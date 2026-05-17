@@ -1795,10 +1795,12 @@ export default function Page() {
   const [eanScannerOpen, setEanScannerOpen] = useState(false);
   const [eanScannerMessage, setEanScannerMessage] = useState("");
   const [scanSuccessFlash, setScanSuccessFlash] = useState(false);
+  const [scanMissFlash, setScanMissFlash] = useState(false);
   const eanHtml5ScannerRef = useRef<any | null>(null);
   const eanScannerStoppingRef = useRef(false);
   const lastContinuousScanRef = useRef<{ code: string; at: number } | null>(null);
   const scanSuccessFlashTimeoutRef = useRef<number | null>(null);
+  const scanMissFlashTimeoutRef = useRef<number | null>(null);
 
   // =========================
   // MOBILE APP SHELL
@@ -1834,6 +1836,11 @@ export default function Page() {
       if (scanSuccessFlashTimeoutRef.current) {
         window.clearTimeout(scanSuccessFlashTimeoutRef.current);
         scanSuccessFlashTimeoutRef.current = null;
+      }
+
+      if (scanMissFlashTimeoutRef.current) {
+        window.clearTimeout(scanMissFlashTimeoutRef.current);
+        scanMissFlashTimeoutRef.current = null;
       }
     };
   }, []);
@@ -1938,6 +1945,7 @@ export default function Page() {
   }
 
   function showScanSuccessFlash() {
+    setScanMissFlash(false);
     setScanSuccessFlash(true);
 
     if (scanSuccessFlashTimeoutRef.current) {
@@ -1947,7 +1955,21 @@ export default function Page() {
     scanSuccessFlashTimeoutRef.current = window.setTimeout(() => {
       setScanSuccessFlash(false);
       scanSuccessFlashTimeoutRef.current = null;
-    }, 420);
+    }, 500);
+  }
+
+  function showScanMissFlash() {
+    setScanSuccessFlash(false);
+    setScanMissFlash(true);
+
+    if (scanMissFlashTimeoutRef.current) {
+      window.clearTimeout(scanMissFlashTimeoutRef.current);
+    }
+
+    scanMissFlashTimeoutRef.current = window.setTimeout(() => {
+      setScanMissFlash(false);
+      scanMissFlashTimeoutRef.current = null;
+    }, 500);
   }
 
 
@@ -3630,6 +3652,10 @@ export default function Page() {
 
       setEanSearchStartedAutomatically(false);
       eanAutoSearchActiveRef.current = false;
+
+      if (eanScannerOpen || eanHtml5ScannerRef.current) {
+        showScanMissFlash();
+      }
 
       if (externalNames.length > 0) {
         setEanMessage("Tuote tunnistettiin osittain, mutta valituista kaupoista ei löytynyt tarkkaa EAN-osumaa.");
@@ -6340,12 +6366,23 @@ export default function Page() {
                     </div>
 
                     {scanSuccessFlash && (
-                      <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-xl bg-green-400/35 backdrop-brightness-125 transition-opacity duration-300">
+                      <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-xl bg-green-400/35 backdrop-brightness-125 transition-opacity duration-500">
                         <div className="flex h-24 w-24 items-center justify-center rounded-full bg-green-500 text-5xl font-black text-white shadow-2xl ring-4 ring-white/80 animate-pulse">
                           ✓
                         </div>
                         <div className="absolute bottom-5 rounded-full bg-green-600 px-4 py-2 text-sm font-black text-white shadow-xl ring-2 ring-white/70">
                           Lisätty koriin
+                        </div>
+                      </div>
+                    )}
+
+                    {scanMissFlash && (
+                      <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-xl bg-red-500/35 backdrop-brightness-90 transition-opacity duration-500">
+                        <div className="flex h-24 w-24 items-center justify-center rounded-full bg-red-600 text-5xl font-black text-white shadow-2xl ring-4 ring-white/80 animate-pulse">
+                          ?
+                        </div>
+                        <div className="absolute bottom-5 rounded-full bg-red-600 px-4 py-2 text-sm font-black text-white shadow-xl ring-2 ring-white/70">
+                          Ei löytynyt
                         </div>
                       </div>
                     )}
