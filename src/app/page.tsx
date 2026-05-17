@@ -419,6 +419,52 @@ function triggerHaptic() {
   } catch {}
 }
 
+
+function playScanSuccessFeedback() {
+  // Kevyt värinä onnistuneesta skannauksesta. iOS/Safari voi jättää tämän huomiotta,
+  // mutta Androidissa ja osassa PWA-tilanteita se toimii suoraan.
+  try {
+    if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      navigator.vibrate(70);
+    }
+  } catch {}
+
+  // Lyhyt piippaus. Selain sallii äänen yleensä, koska käyttäjä on ensin painanut
+  // skannerin käynnistyspainiketta. Jos ääntä ei sallita, epäonnistuminen ohitetaan.
+  try {
+    if (typeof window === "undefined") return;
+
+    const AudioCtx =
+      (window as any).AudioContext ||
+      (window as any).webkitAudioContext;
+
+    if (!AudioCtx) return;
+
+    const audioContext = new AudioCtx();
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+
+    oscillator.type = "sine";
+    oscillator.frequency.value = 880;
+
+    gain.gain.setValueAtTime(0.001, audioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.06, audioContext.currentTime + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.09);
+
+    oscillator.connect(gain);
+    gain.connect(audioContext.destination);
+
+    oscillator.start();
+    oscillator.stop(audioContext.currentTime + 0.1);
+
+    oscillator.onended = () => {
+      try {
+        audioContext.close();
+      } catch {}
+    };
+  } catch {}
+}
+
 function formatDate(value?: string | null) {
   if (!value) return "—";
   return new Date(value).toLocaleDateString("fi-FI");
@@ -3638,6 +3684,7 @@ export default function Page() {
 
     lastEanCartAddRef.current = { key: addKey, at: now };
     triggerHaptic();
+    playScanSuccessFeedback();
 
     const existingItem = cart.find((item) => {
       const itemEan = normalizeEan(item.ean || item.product?.ean);
