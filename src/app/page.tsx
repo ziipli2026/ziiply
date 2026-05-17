@@ -3318,23 +3318,30 @@ export default function Page() {
 
     eanScannerStoppingRef.current = true;
 
+    // v173: mitätöi kaikki vanhat callbackit heti, jotta iOS Safari ei jää vanhan
+    // ZXing/html5-session varaan ensimmäisen onnistuneen skannauksen jälkeen.
+    eanScannerSessionRef.current += 1;
+
     const scanner = eanHtml5ScannerRef.current;
     eanHtml5ScannerRef.current = null;
 
     try {
-      if (scanner) {
-        try {
-          await scanner.stop?.();
-        } catch {}
+      try {
+        await scanner?.stop?.();
+      } catch {}
 
-        try {
-          await scanner.clear?.();
-        } catch {}
+      try {
+        await scanner?.clear?.();
+      } catch {}
 
-        try {
-          scanner.reset?.();
-        } catch {}
-      }
+      try {
+        scanner?.reset?.();
+      } catch {}
+
+      try {
+        const Quagga = (window as any).Quagga;
+        Quagga?.stop?.();
+      } catch {}
 
       try {
         const region = document.getElementById(EAN_SCANNER_REGION_ID);
@@ -3344,7 +3351,11 @@ export default function Page() {
 
           try {
             const stream = video.srcObject as MediaStream | null;
-            stream?.getTracks?.().forEach((track) => track.stop());
+            stream?.getTracks?.().forEach((track) => {
+              try {
+                track.stop();
+              } catch {}
+            });
           } catch {}
 
           try {
@@ -3360,16 +3371,11 @@ export default function Page() {
         }
       } catch {}
 
-      try {
-        const Quagga = (window as any).Quagga;
-        Quagga?.stop?.();
-      } catch {}
-
       eanScannerRunningRef.current = false;
       eanScannerStartingRef.current = false;
 
-      // iOS Safari tarvitsee pienen viiveen, muuten seuraava kamerakäynnistys voi jäädä mustaan ruutuun.
-      await new Promise<void>((resolve) => window.setTimeout(resolve, 280));
+      // iOS Safari tarvitsee oikeasti pienen cooldownin kameran vapautumiseen.
+      await new Promise<void>((resolve) => window.setTimeout(resolve, 450));
     } finally {
       eanScannerStoppingRef.current = false;
       setEanScannerOpen(false);
@@ -3395,20 +3401,22 @@ export default function Page() {
 
     eanScannerStartingRef.current = true;
     eanScanFinishedRef.current = false;
-    const sessionId = eanScannerSessionRef.current + 1;
-    eanScannerSessionRef.current = sessionId;
 
     try {
+      // v173: poistetaan ZXing ensisijaisesta livekamerasta, koska se lukitsi
+      // iOS Safarin kameran ensimmäisen skannauksen jälkeen. Palataan vakaampaan
+      // html5-qrcode-käynnistykseen, mutta pidetään siivous aiempaa tiukempana.
       await stopEanCameraScanner();
 
-      if (eanScannerSessionRef.current !== sessionId) return;
+      const sessionId = eanScannerSessionRef.current + 1;
+      eanScannerSessionRef.current = sessionId;
 
       setEanScannerOpen(true);
       setEanScannerMessage("Käynnistetään kamera...");
 
       // Anna Reactin piirtää kameran container ja anna iOS Safarille aikaa vapauttaa vanha stream.
       await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()));
-      await new Promise<void>((resolve) => window.setTimeout(resolve, 220));
+      await new Promise<void>((resolve) => window.setTimeout(resolve, 350));
 
       const scannerElement = document.getElementById(EAN_SCANNER_REGION_ID);
 
@@ -3419,105 +3427,9 @@ export default function Page() {
 
       scannerElement.innerHTML = "";
 
-      // v172: ensisijainen ZXing-lukija paremmalla lifecycle-hallinnalla.
-      // Tämä ehkäisee iOS Safarin kameran lukkiutumista ensimmäisen skannauksen jälkeen.
-      try {
-        const ZXingBrowser = await loadZxingBrowserScript();
-        const BrowserMultiFormatReader = ZXingBrowser?.BrowserMultiFormatReader;
-
-        if (BrowserMultiFormatReader && eanScannerSessionRef.current === sessionId) {
-          scannerElement.innerHTML = "";
-
-          const video = document.createElement("video");
-          video.setAttribute("playsinline", "true");
-          video.setAttribute("webkit-playsinline", "true");
-          video.setAttribute("muted", "true");
-          video.autoplay = true;
-          video.muted = true;
-          video.className = "h-full w-full rounded-[1.5rem] object-cover";
-          scannerElement.appendChild(video);
-
-          const hints =
-            ZXingBrowser?.DecodeHintType && ZXingBrowser?.BarcodeFormat
-              ? new Map([
-                  [
-                    ZXingBrowser.DecodeHintType.POSSIBLE_FORMATS,
-                    [
-                      ZXingBrowser.BarcodeFormat.EAN_13,
-                      ZXingBrowser.BarcodeFormat.EAN_8,
-                      ZXingBrowser.BarcodeFormat.UPC_A,
-                      ZXingBrowser.BarcodeFormat.UPC_E,
-                    ].filter(Boolean),
-                  ],
-                  [ZXingBrowser.DecodeHintType.TRY_HARDER, true],
-                ])
-              : undefined;
-
-          const reader = new BrowserMultiFormatReader(hints, {
-            delayBetweenScanAttempts: 90,
-            delayBetweenScanSuccess: 700,
-          });
-
-          const controls = await reader.decodeFromConstraints(
-            {
-              video: {
-                facingMode: { ideal: "environment" },
-                width: { ideal: 1920 },
-                height: { ideal: 1080 },
-                frameRate: { ideal: 30, max: 30 },
-              },
-              audio: false,
-            },
-            video,
-            (result: any) => {
-              if (eanScannerSessionRef.current !== sessionId || eanScanFinishedRef.current) return;
-
-              const rawText = result?.getText?.() || result?.text || String(result || "");
-              const code = normalizeEan(rawText);
-
-              if (isUsableEan(code)) {
-                finishScannedEan(code);
-              }
-            }
-          );
-
-          eanHtml5ScannerRef.current = {
-            async stop() {
-              try {
-                controls?.stop?.();
-              } catch {}
-
-              try {
-                reader?.reset?.();
-              } catch {}
-
-              try {
-                const stream = video.srcObject as MediaStream | null;
-                stream?.getTracks?.().forEach((track) => track.stop());
-                video.srcObject = null;
-              } catch {}
-            },
-            async clear() {
-              try {
-                scannerElement.innerHTML = "";
-              } catch {}
-            },
-          };
-
-          eanScannerRunningRef.current = true;
-          setEanScannerMessage(
-            "Aseta EAN-koodi vihreän kehyksen sisään. Maitopurkki ja sininen/haalea koodi toimivat parhaiten läheltä, suorassa ja ilman heijastusta."
-          );
-          return;
-        }
-      } catch (zxingError) {
-        console.warn("ZXing scanner failed, falling back to html5-qrcode", zxingError);
-      }
+      const Html5Qrcode = await loadHtml5QrCodeScript();
 
       if (eanScannerSessionRef.current !== sessionId) return;
-
-      // Turvaverkko: html5-qrcode, jos ZXing ei lataudu tai kamera ei käynnisty.
-      const Html5Qrcode = await loadHtml5QrCodeScript();
 
       const supportedFormats = (window as any).Html5QrcodeSupportedFormats;
       const formatsToSupport = supportedFormats
@@ -3532,16 +3444,19 @@ export default function Page() {
       const scanner = new Html5Qrcode(EAN_SCANNER_REGION_ID, formatsToSupport ? { formatsToSupport } : undefined);
       eanHtml5ScannerRef.current = scanner;
 
-      const scannerSize = Math.max(280, Math.min(390, window.innerWidth - 44));
+      const scannerSize = Math.max(300, Math.min(420, window.innerWidth - 38));
 
-      setEanScannerMessage("Aseta EAN-koodi vihreän kehyksen sisään. Jos pystykoodi ei osu, käännä puhelin vaakaan tai syötä numero koodin alta.");
+      setEanScannerMessage(
+        "Aseta EAN-koodi vihreän kehyksen sisään. Maitopurkki ja sininen/haalea koodi toimivat parhaiten läheltä, suorassa ja ilman heijastusta."
+      );
 
       await scanner.start(
         {
           facingMode: { ideal: "environment" },
         },
         {
-          fps: 8,
+          // Hieman rauhallisempi tahti vähentää iPhone Safarin blurrausta.
+          fps: 7,
           qrbox: {
             width: scannerSize,
             height: scannerSize,
@@ -3564,10 +3479,16 @@ export default function Page() {
         () => undefined
       );
 
+      if (eanScannerSessionRef.current !== sessionId) {
+        await stopEanCameraScanner();
+        return;
+      }
+
       eanScannerRunningRef.current = true;
     } catch (error) {
       console.error(error);
       await stopEanCameraScanner();
+      setEanScannerOpen(true);
       setEanScannerMessage("Kameraa ei saatu avattua tai skanneri ei käynnistynyt. Sulje kamera ja yritä uudelleen.");
     } finally {
       eanScannerStartingRef.current = false;
