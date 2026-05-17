@@ -160,6 +160,9 @@ const RECENT_CART_ITEMS_STORAGE_KEY = "ziiply-recent-cart-items-v1";
 const SAVED_SHOPPING_LISTS_STORAGE_KEY = "ziiply-saved-shopping-lists-v1";
 const MAX_RECENT_CART_ITEMS = 10;
 const MAX_SAVED_SHOPPING_LISTS = 8;
+const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
+const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
+
 
 // Local store fallback:
 // Jos alueelta ei vielä löydy oikeaa lähikaupan storeId:tä,
@@ -1742,9 +1745,8 @@ export default function Page() {
   const [showLaunchScreen, setShowLaunchScreen] = useState(true);
   const [eanScannerOpen, setEanScannerOpen] = useState(false);
   const [eanScannerMessage, setEanScannerMessage] = useState("");
-  const eanScannerVideoRef = useRef<HTMLVideoElement | null>(null);
-  const eanScannerStreamRef = useRef<MediaStream | null>(null);
-  const eanScannerFrameRef = useRef<number | null>(null);
+  const eanHtml5ScannerRef = useRef<any | null>(null);
+  const eanScannerStoppingRef = useRef(false);
 
   // =========================
   // MOBILE APP SHELL
@@ -3189,63 +3191,73 @@ export default function Page() {
     showCartToast(`Lisätty ostoskoriin: ${name}`);
   }
 
-  function stopEanCameraScanner() {
-    if (eanScannerFrameRef.current) {
-      window.cancelAnimationFrame(eanScannerFrameRef.current);
-      eanScannerFrameRef.current = null;
+  function loadHtml5QrCodeScript() {
+    return new Promise<any>((resolve, reject) => {
+      if (typeof window === "undefined") {
+        reject(new Error("Html5Qrcode can only be loaded in browser"));
+        return;
+      }
+
+      if ((window as any).Html5Qrcode) {
+        resolve((window as any).Html5Qrcode);
+        return;
+      }
+
+      const existingScript = document.querySelector<HTMLScriptElement>(`script[src="${HTML5_QRCODE_SCRIPT_URL}"]`);
+
+      if (existingScript) {
+        existingScript.addEventListener("load", () => resolve((window as any).Html5Qrcode), { once: true });
+        existingScript.addEventListener("error", reject, { once: true });
+        return;
+      }
+
+      const script = document.createElement("script");
+      script.src = HTML5_QRCODE_SCRIPT_URL;
+      script.async = true;
+      script.onload = () => resolve((window as any).Html5Qrcode);
+      script.onerror = () => reject(new Error("Html5Qrcode loading failed"));
+      document.body.appendChild(script);
+    });
+  }
+
+  function finishScannedEan(code: string) {
+    if (!isUsableEan(code)) return;
+
+    void stopEanCameraScanner();
+
+    if (eanAutoSearchTimeoutRef.current) {
+      window.clearTimeout(eanAutoSearchTimeoutRef.current);
+      eanAutoSearchTimeoutRef.current = null;
     }
 
-    if (eanScannerStreamRef.current) {
-      eanScannerStreamRef.current.getTracks().forEach((track) => track.stop());
-      eanScannerStreamRef.current = null;
-    }
+    setEanInput(code);
+    setLastAutoEanSearch(code);
+    setEanSearchStartedAutomatically(true);
+    eanAutoSearchActiveRef.current = true;
+    setEanScannerMessage("");
+    setEanMessage(`Skannattu EAN: ${code}. Haetaan...`);
+    void searchByEan(code);
+  }
 
-    if (eanScannerVideoRef.current) {
-      eanScannerVideoRef.current.srcObject = null;
+  async function stopEanCameraScanner() {
+    const scanner = eanHtml5ScannerRef.current;
+    eanHtml5ScannerRef.current = null;
+
+    if (scanner && !eanScannerStoppingRef.current) {
+      eanScannerStoppingRef.current = true;
+
+      try {
+        await scanner.stop();
+      } catch {}
+
+      try {
+        await scanner.clear();
+      } catch {}
+
+      eanScannerStoppingRef.current = false;
     }
 
     setEanScannerOpen(false);
-  }
-
-  async function scanEanVideoFrame(detector: any) {
-    const video = eanScannerVideoRef.current;
-
-    if (!video || !eanScannerStreamRef.current) return;
-
-    try {
-      if (video.readyState >= 2) {
-        const codes = await detector.detect(video);
-        const rawValue = codes?.[0]?.rawValue || codes?.[0]?.raw_value || "";
-        const code = normalizeEan(rawValue);
-
-        if (isUsableEan(code)) {
-          stopEanCameraScanner();
-
-          if (eanAutoSearchTimeoutRef.current) {
-            window.clearTimeout(eanAutoSearchTimeoutRef.current);
-            eanAutoSearchTimeoutRef.current = null;
-          }
-
-          setEanInput(code);
-          setLastAutoEanSearch(code);
-          setEanSearchStartedAutomatically(true);
-          eanAutoSearchActiveRef.current = true;
-          setEanScannerMessage("");
-          setEanMessage(`Skannattu EAN: ${code}. Haetaan...`);
-          void searchByEan(code);
-          return;
-        }
-      }
-    } catch (error) {
-      console.error(error);
-      setEanScannerMessage("Viivakoodin lukeminen epäonnistui. Kokeile kirjoittaa EAN käsin.");
-      stopEanCameraScanner();
-      return;
-    }
-
-    eanScannerFrameRef.current = window.requestAnimationFrame(() => {
-      void scanEanVideoFrame(detector);
-    });
   }
 
   async function startEanCameraScanner() {
@@ -3256,55 +3268,62 @@ export default function Page() {
       return;
     }
 
-    const BarcodeDetectorConstructor = (window as any).BarcodeDetector;
-
-    if (!BarcodeDetectorConstructor) {
-      setEanScannerMessage("Tämä selain ei tue viivakoodin lukemista suoraan kamerasta. Kirjoita tai liitä EAN käsin.");
-      return;
-    }
-
     if (!navigator.mediaDevices?.getUserMedia) {
       setEanScannerMessage("Kamera ei ole käytettävissä tässä ympäristössä.");
       return;
     }
 
     try {
-      stopEanCameraScanner();
-      setEanScannerMessage("Avataan kamera...");
+      await stopEanCameraScanner();
       setEanScannerOpen(true);
+      setEanScannerMessage("Ladataan kameraskanneria...");
 
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: { ideal: "environment" },
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
+      const Html5Qrcode = await loadHtml5QrCodeScript();
+
+      await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()));
+
+      const scannerElement = document.getElementById(EAN_SCANNER_REGION_ID);
+
+      if (!scannerElement) {
+        setEanScannerMessage("Kameranäkymää ei saatu avattua. Sulje EAN-ikkuna ja yritä uudelleen.");
+        return;
+      }
+
+      const supportedFormats = (window as any).Html5QrcodeSupportedFormats;
+      const formatsToSupport = supportedFormats
+        ? [
+            supportedFormats.EAN_13,
+            supportedFormats.EAN_8,
+            supportedFormats.UPC_A,
+            supportedFormats.UPC_E,
+          ].filter(Boolean)
+        : undefined;
+
+      const scanner = new Html5Qrcode(EAN_SCANNER_REGION_ID, formatsToSupport ? { formatsToSupport } : undefined);
+      eanHtml5ScannerRef.current = scanner;
+
+      const scannerWidth = Math.max(240, Math.min(340, window.innerWidth - 72));
+
+      setEanScannerMessage("Kohdista viivakoodi vihreän alueen keskelle.");
+
+      await scanner.start(
+        { facingMode: "environment" },
+        {
+          fps: 10,
+          qrbox: { width: scannerWidth, height: 140 },
+          aspectRatio: 1.7777778,
+          disableFlip: true,
         },
-        audio: false,
-      });
-
-      eanScannerStreamRef.current = stream;
-
-      window.setTimeout(async () => {
-        const video = eanScannerVideoRef.current;
-        if (!video || !eanScannerStreamRef.current) return;
-
-        video.srcObject = stream;
-        await video.play().catch(() => undefined);
-
-        let detector: any;
-        try {
-          detector = new BarcodeDetectorConstructor({ formats: ["ean_13", "ean_8", "upc_a", "upc_e"] });
-        } catch {
-          detector = new BarcodeDetectorConstructor();
-        }
-
-        setEanScannerMessage("Kohdista viivakoodi kameran keskelle.");
-        void scanEanVideoFrame(detector);
-      }, 80);
+        (decodedText: string) => {
+          const code = normalizeEan(decodedText);
+          if (isUsableEan(code)) finishScannedEan(code);
+        },
+        () => undefined
+      );
     } catch (error) {
       console.error(error);
-      stopEanCameraScanner();
-      setEanScannerMessage("Kameraa ei saatu avattua. Tarkista kameran lupa tai kirjoita EAN käsin.");
+      await stopEanCameraScanner();
+      setEanScannerMessage("Kameraa ei saatu avattua tai skanneri ei käynnistynyt. Tarkista kameran lupa ja yritä uudelleen.");
     }
   }
 
@@ -6193,13 +6212,14 @@ export default function Page() {
               )}
 
               {eanScannerOpen && (
-                <div className="mt-3 overflow-hidden rounded-2xl bg-slate-950 ring-1 ring-slate-200">
-                  <video
-                    ref={eanScannerVideoRef}
-                    className="h-56 w-full object-cover"
-                    playsInline
-                    muted
+                <div className="mt-3 overflow-hidden rounded-2xl bg-slate-950 p-2 ring-1 ring-slate-200">
+                  <div
+                    id={EAN_SCANNER_REGION_ID}
+                    className="min-h-56 w-full overflow-hidden rounded-xl bg-slate-950 [&_video]:rounded-xl [&_video]:object-cover"
                   />
+                  <div className="mt-2 rounded-xl border border-green-400/50 bg-green-500/10 p-2 text-center text-xs font-extrabold text-green-100">
+                    Vie viivakoodi kameran keskelle ja pidä puhelin hetki paikallaan.
+                  </div>
                 </div>
               )}
 
