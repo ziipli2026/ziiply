@@ -1794,9 +1794,11 @@ export default function Page() {
   const [showLaunchScreen, setShowLaunchScreen] = useState(true);
   const [eanScannerOpen, setEanScannerOpen] = useState(false);
   const [eanScannerMessage, setEanScannerMessage] = useState("");
+  const [scanSuccessFlash, setScanSuccessFlash] = useState(false);
   const eanHtml5ScannerRef = useRef<any | null>(null);
   const eanScannerStoppingRef = useRef(false);
   const lastContinuousScanRef = useRef<{ code: string; at: number } | null>(null);
+  const scanSuccessFlashTimeoutRef = useRef<number | null>(null);
 
   // =========================
   // MOBILE APP SHELL
@@ -1825,6 +1827,15 @@ export default function Page() {
   useEffect(() => {
     const timeout = window.setTimeout(() => setShowLaunchScreen(false), 900);
     return () => window.clearTimeout(timeout);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (scanSuccessFlashTimeoutRef.current) {
+        window.clearTimeout(scanSuccessFlashTimeoutRef.current);
+        scanSuccessFlashTimeoutRef.current = null;
+      }
+    };
   }, []);
 
   useEffect(() => {
@@ -1924,6 +1935,19 @@ export default function Page() {
     window.setTimeout(() => {
       setLastCartToast((current) => (current === message ? null : current));
     }, 2600);
+  }
+
+  function showScanSuccessFlash() {
+    setScanSuccessFlash(true);
+
+    if (scanSuccessFlashTimeoutRef.current) {
+      window.clearTimeout(scanSuccessFlashTimeoutRef.current);
+    }
+
+    scanSuccessFlashTimeoutRef.current = window.setTimeout(() => {
+      setScanSuccessFlash(false);
+      scanSuccessFlashTimeoutRef.current = null;
+    }, 420);
   }
 
 
@@ -3685,6 +3709,7 @@ export default function Page() {
     lastEanCartAddRef.current = { key: addKey, at: now };
     triggerHaptic();
     playScanSuccessFeedback();
+    showScanSuccessFlash();
 
     const existingItem = cart.find((item) => {
       const itemEan = normalizeEan(item.ean || item.product?.ean);
@@ -6313,6 +6338,17 @@ export default function Page() {
                       <div className="absolute -bottom-1 -left-1 h-5 w-5 rounded-bl-2xl border-b-4 border-l-4 border-white/90" />
                       <div className="absolute -bottom-1 -right-1 h-5 w-5 rounded-br-2xl border-b-4 border-r-4 border-white/90" />
                     </div>
+
+                    {scanSuccessFlash && (
+                      <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-xl bg-green-400/35 backdrop-brightness-125 transition-opacity duration-300">
+                        <div className="flex h-24 w-24 items-center justify-center rounded-full bg-green-500 text-5xl font-black text-white shadow-2xl ring-4 ring-white/80 animate-pulse">
+                          ✓
+                        </div>
+                        <div className="absolute bottom-5 rounded-full bg-green-600 px-4 py-2 text-sm font-black text-white shadow-xl ring-2 ring-white/70">
+                          Lisätty koriin
+                        </div>
+                      </div>
+                    )}
                   </div>
                   <div className="mt-2 rounded-xl border border-green-400/50 bg-green-500/10 p-2 text-center text-xs font-extrabold text-green-100">
                     Aseta viivakoodi vihreän kehyksen sisään. Käännä puhelinta tarvittaessa; maitopurkin pystyviivakoodi toimii parhaiten läheltä ja hyvässä valossa.
