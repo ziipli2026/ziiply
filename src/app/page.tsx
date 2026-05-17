@@ -1750,7 +1750,6 @@ export default function Page() {
   const [eanScannerMessage, setEanScannerMessage] = useState("");
   const eanHtml5ScannerRef = useRef<any | null>(null);
   const eanScannerStoppingRef = useRef(false);
-  const eanScannerStartingRef = useRef(false);
   const lastContinuousScanRef = useRef<{ code: string; at: number } | null>(null);
 
   // =========================
@@ -3232,10 +3231,9 @@ export default function Page() {
     const now = Date.now();
     const previous = lastContinuousScanRef.current;
 
-    // Kameraa EI suljeta onnistuneen skannauksen jälkeen.
-    // Tämä pitää sarjaskannauksen käynnissä ja estää iOS Safarin kamerajumin,
-    // joka syntyi, kun kamera pysäytettiin ja käynnistettiin monta kertaa peräkkäin.
-    if (previous?.code === normalizedCode && now - previous.at < 2800) {
+    // TÄRKEÄ: älä pysäytä kameraa onnistuneen skannauksen jälkeen.
+    // Sarjaskannauksessa kamera pysyy päällä ja käyttäjä voi lukea seuraavan tuotteen heti.
+    if (previous?.code === normalizedCode && now - previous.at < 3200) {
       return;
     }
 
@@ -3251,59 +3249,36 @@ export default function Page() {
     setLastAutoEanSearch(normalizedCode);
     setEanSearchStartedAutomatically(true);
     eanAutoSearchActiveRef.current = true;
-    setEanScannerMessage(`Luettu ${normalizedCode}. Kamera jää päälle seuraavaa tuotetta varten.`);
+    setEanScannerOpen(true);
+    setEanScannerMessage(`Luettu ${normalizedCode}. Kamera pysyy päällä seuraavaa tuotetta varten.`);
     setEanMessage(`Skannattu EAN: ${normalizedCode}. Haetaan...`);
     void searchByEan(normalizedCode);
   }
 
   async function stopEanCameraScanner() {
-    if (eanScannerStoppingRef.current) return;
-
-    eanScannerStoppingRef.current = true;
     const scanner = eanHtml5ScannerRef.current;
     eanHtml5ScannerRef.current = null;
     lastContinuousScanRef.current = null;
 
-    try {
-      if (scanner) {
-        try {
-          await scanner.stop();
-        } catch {}
+    if (scanner && !eanScannerStoppingRef.current) {
+      eanScannerStoppingRef.current = true;
 
-        try {
-          await scanner.clear();
-        } catch {}
-      }
+      try {
+        await scanner.stop();
+      } catch {}
 
-      // iOS Safari voi jättää MediaStreamin roikkumaan, vaikka kirjasto olisi pysäytetty.
-      // Suljetaan varmuuden vuoksi kaikki videotrackit vain silloin kun käyttäjä oikeasti sulkee kameran.
-      const region = document.getElementById(EAN_SCANNER_REGION_ID);
-      const videos = Array.from(region?.querySelectorAll("video") || []) as HTMLVideoElement[];
+      try {
+        await scanner.clear();
+      } catch {}
 
-      for (const video of videos) {
-        const stream = video.srcObject as MediaStream | null;
-        if (stream) {
-          stream.getTracks().forEach((track) => track.stop());
-          video.srcObject = null;
-        }
-      }
-
-      if (region) region.innerHTML = "";
-    } finally {
       eanScannerStoppingRef.current = false;
-      eanScannerStartingRef.current = false;
-      setEanScannerOpen(false);
     }
+
+    setEanScannerOpen(false);
   }
 
   async function startEanCameraScanner() {
     if (typeof window === "undefined" || typeof navigator === "undefined") return;
-
-    if (eanScannerStartingRef.current || eanHtml5ScannerRef.current) {
-      setEanScannerOpen(true);
-      setEanScannerMessage("Kamera on jo päällä. Skannaa seuraava tuote.");
-      return;
-    }
 
     if (!window.isSecureContext) {
       setEanScannerMessage("Kamera toimii vain HTTPS-osoitteessa. Avaa Ziiply Vercelin live-osoitteesta.");
@@ -3315,18 +3290,13 @@ export default function Page() {
       return;
     }
 
-    eanScannerStartingRef.current = true;
-
     try {
       await stopEanCameraScanner();
-      await new Promise((resolve) => window.setTimeout(resolve, 180));
-
       setEanScannerOpen(true);
       setEanScannerMessage("Ladataan kameraskanneria...");
 
       const Html5Qrcode = await loadHtml5QrCodeScript();
 
-      await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()));
       await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()));
 
       const scannerElement = document.getElementById(EAN_SCANNER_REGION_ID);
@@ -3349,25 +3319,29 @@ export default function Page() {
       const scanner = new Html5Qrcode(EAN_SCANNER_REGION_ID, formatsToSupport ? { formatsToSupport } : undefined);
       eanHtml5ScannerRef.current = scanner;
 
-      // v168-pohjainen vakaa skannaus: lähes neliö auttaa pysty- ja vaakakoodeissa.
-      // Ei suljeta kameraa onnistuneen skannauksen jälkeen.
-      const scannerSize = Math.max(280, Math.min(390, window.innerWidth - 44));
+      const scannerSize = Math.max(260, Math.min(360, window.innerWidth - 56));
 
-      setEanScannerMessage("Aseta viivakoodi vihreän kehyksen sisään. Kamera pysyy päällä usean tuotteen skannausta varten.");
+      setEanScannerMessage("Aseta viivakoodi vihreän kehyksen sisään. Käännä puhelinta tarvittaessa pysty- tai vaakakoodille.");
 
       await scanner.start(
         {
-          facingMode: "environment",
+          facingMode: { exact: "environment" },
         },
         {
-          fps: 12,
+          fps: 10,
           qrbox: { width: scannerSize, height: scannerSize },
           aspectRatio: 1.0,
           disableFlip: false,
           videoConstraints: {
             facingMode: "environment",
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+            focusMode: "continuous",
+            exposureMode: "continuous",
+            advanced: [
+              { focusMode: "continuous" },
+              { exposureMode: "continuous" },
+            ],
           },
         },
         (decodedText: string) => {
@@ -3380,8 +3354,6 @@ export default function Page() {
       console.error(error);
       await stopEanCameraScanner();
       setEanScannerMessage("Kameraa ei saatu avattua tai skanneri ei käynnistynyt. Tarkista kameran lupa ja yritä uudelleen.");
-    } finally {
-      eanScannerStartingRef.current = false;
     }
   }
 
@@ -3682,7 +3654,9 @@ export default function Page() {
 
       setCart(nextCart);
       persistCartImmediately(nextCart);
-      setActiveResult("compare");
+      // Sarjaskannauksessa ei vaihdeta vertailunäkymään, koska se voi peittää tai katkaista kameran.
+      // Vertailu päivittyy silti taustalla.
+      if (!eanScannerOpen) setActiveResult("compare");
       void updateChainComparison(nextCart);
 
       setEanInput("");
@@ -3691,6 +3665,10 @@ export default function Page() {
       setEanSearchStartedAutomatically(false);
       eanAutoSearchActiveRef.current = false;
       setEanMessage("");
+      if (eanHtml5ScannerRef.current) {
+        setEanScannerOpen(true);
+        setEanScannerMessage("Lisätty koriin. Kamera pysyy päällä seuraavaa tuotetta varten.");
+      }
       showCartToast(`Määrä +1: ${existingItem.name}`);
       setLastAutoEanSearch("");
 
@@ -3732,7 +3710,9 @@ export default function Page() {
 
     setCart(nextCart);
     persistCartImmediately(nextCart);
-    setActiveResult("compare");
+    // Sarjaskannauksessa ei vaihdeta vertailunäkymään, koska kamera halutaan pitää auki.
+    // Vertailu päivittyy silti taustalla.
+    if (!eanScannerOpen) setActiveResult("compare");
     void updateChainComparison(nextCart);
 
     // Jätä EAN-ikkuna auki seuraavaa koodia/kameraskannausta varten.
@@ -3742,6 +3722,10 @@ export default function Page() {
     setEanSearchStartedAutomatically(false);
     eanAutoSearchActiveRef.current = false;
     setEanMessage("");
+    if (eanHtml5ScannerRef.current) {
+      setEanScannerOpen(true);
+      setEanScannerMessage("Lisätty koriin. Kamera pysyy päällä seuraavaa tuotetta varten.");
+    }
     showCartToast(`Lisätty: ${newItem.name}`);
     setLastAutoEanSearch("");
 
@@ -6284,7 +6268,7 @@ export default function Page() {
                     </div>
                   </div>
                   <div className="mt-2 rounded-xl border border-green-400/50 bg-green-500/10 p-2 text-center text-xs font-extrabold text-green-100">
-                    Aseta viivakoodi vihreän kehyksen sisään. Kamera pysyy päällä: voit skannata useita tuotteita peräkkäin.
+                    Aseta viivakoodi vihreän kehyksen sisään. Käännä puhelinta tarvittaessa; maitopurkin pystyviivakoodi toimii parhaiten läheltä ja hyvässä valossa.
                   </div>
                 </div>
               )}
