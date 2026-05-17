@@ -3302,17 +3302,27 @@ export default function Page() {
       const scanner = new Html5Qrcode(EAN_SCANNER_REGION_ID, formatsToSupport ? { formatsToSupport } : undefined);
       eanHtml5ScannerRef.current = scanner;
 
-      const scannerWidth = Math.max(240, Math.min(340, window.innerWidth - 72));
+      const scannerWidth = Math.max(260, Math.min(520, window.innerWidth - 64));
+      const scannerHeight = 104;
 
-      setEanScannerMessage("Kohdista viivakoodi vihreän alueen keskelle.");
+      setEanScannerMessage("Aseta viivakoodi vihreän kehyksen sisään ja pidä puhelin hetki paikallaan.");
 
       await scanner.start(
-        { facingMode: "environment" },
         {
-          fps: 10,
-          qrbox: { width: scannerWidth, height: 140 },
-          aspectRatio: 1.7777778,
+          facingMode: { exact: "environment" },
+        },
+        {
+          fps: 12,
+          qrbox: { width: scannerWidth, height: scannerHeight },
+          aspectRatio: 2.2,
           disableFlip: true,
+          videoConstraints: {
+            facingMode: "environment",
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
+            focusMode: "continuous",
+            exposureMode: "continuous",
+          },
         },
         (decodedText: string) => {
           const code = normalizeEan(decodedText);
@@ -6213,12 +6223,20 @@ export default function Page() {
 
               {eanScannerOpen && (
                 <div className="mt-3 overflow-hidden rounded-2xl bg-slate-950 p-2 ring-1 ring-slate-200">
-                  <div
-                    id={EAN_SCANNER_REGION_ID}
-                    className="min-h-56 w-full overflow-hidden rounded-xl bg-slate-950 [&_video]:rounded-xl [&_video]:object-cover"
-                  />
+                  <div className="relative h-44 w-full overflow-hidden rounded-xl bg-slate-950">
+                    <div
+                      id={EAN_SCANNER_REGION_ID}
+                      className="h-full w-full overflow-hidden rounded-xl bg-slate-950 [&_canvas]:!hidden [&_video]:!h-full [&_video]:!w-full [&_video]:rounded-xl [&_video]:object-cover"
+                    />
+                    <div className="pointer-events-none absolute inset-x-5 top-1/2 h-24 -translate-y-1/2 rounded-2xl border-4 border-green-400 shadow-[0_0_0_999px_rgba(2,6,23,0.35)]">
+                      <div className="absolute -left-1 -top-1 h-5 w-5 rounded-tl-2xl border-l-4 border-t-4 border-white/90" />
+                      <div className="absolute -right-1 -top-1 h-5 w-5 rounded-tr-2xl border-r-4 border-t-4 border-white/90" />
+                      <div className="absolute -bottom-1 -left-1 h-5 w-5 rounded-bl-2xl border-b-4 border-l-4 border-white/90" />
+                      <div className="absolute -bottom-1 -right-1 h-5 w-5 rounded-br-2xl border-b-4 border-r-4 border-white/90" />
+                    </div>
+                  </div>
                   <div className="mt-2 rounded-xl border border-green-400/50 bg-green-500/10 p-2 text-center text-xs font-extrabold text-green-100">
-                    Vie viivakoodi kameran keskelle ja pidä puhelin hetki paikallaan.
+                    Aseta viivakoodi vihreän kehyksen sisään. Paras etäisyys on noin 10–20 cm.
                   </div>
                 </div>
               )}
