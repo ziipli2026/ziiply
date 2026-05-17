@@ -1740,6 +1740,11 @@ export default function Page() {
 
   const [isOnline, setIsOnline] = useState(true);
   const [showLaunchScreen, setShowLaunchScreen] = useState(true);
+  const [eanScannerOpen, setEanScannerOpen] = useState(false);
+  const [eanScannerMessage, setEanScannerMessage] = useState("");
+  const eanScannerVideoRef = useRef<HTMLVideoElement | null>(null);
+  const eanScannerStreamRef = useRef<MediaStream | null>(null);
+  const eanScannerFrameRef = useRef<number | null>(null);
 
   // =========================
   // MOBILE APP SHELL
@@ -1769,6 +1774,14 @@ export default function Page() {
     const timeout = window.setTimeout(() => setShowLaunchScreen(false), 900);
     return () => window.clearTimeout(timeout);
   }, []);
+
+  useEffect(() => {
+    if (!eanModalOpen) stopEanCameraScanner();
+
+    return () => {
+      stopEanCameraScanner();
+    };
+  }, [eanModalOpen]);
 
   // =========================
   // DERIVED VIEW STATE
@@ -3176,7 +3189,128 @@ export default function Page() {
     showCartToast(`Lisätty ostoskoriin: ${name}`);
   }
 
+  function stopEanCameraScanner() {
+    if (eanScannerFrameRef.current) {
+      window.cancelAnimationFrame(eanScannerFrameRef.current);
+      eanScannerFrameRef.current = null;
+    }
+
+    if (eanScannerStreamRef.current) {
+      eanScannerStreamRef.current.getTracks().forEach((track) => track.stop());
+      eanScannerStreamRef.current = null;
+    }
+
+    if (eanScannerVideoRef.current) {
+      eanScannerVideoRef.current.srcObject = null;
+    }
+
+    setEanScannerOpen(false);
+  }
+
+  async function scanEanVideoFrame(detector: any) {
+    const video = eanScannerVideoRef.current;
+
+    if (!video || !eanScannerStreamRef.current) return;
+
+    try {
+      if (video.readyState >= 2) {
+        const codes = await detector.detect(video);
+        const rawValue = codes?.[0]?.rawValue || codes?.[0]?.raw_value || "";
+        const code = normalizeEan(rawValue);
+
+        if (isUsableEan(code)) {
+          stopEanCameraScanner();
+
+          if (eanAutoSearchTimeoutRef.current) {
+            window.clearTimeout(eanAutoSearchTimeoutRef.current);
+            eanAutoSearchTimeoutRef.current = null;
+          }
+
+          setEanInput(code);
+          setLastAutoEanSearch(code);
+          setEanSearchStartedAutomatically(true);
+          eanAutoSearchActiveRef.current = true;
+          setEanScannerMessage("");
+          setEanMessage(`Skannattu EAN: ${code}. Haetaan...`);
+          void searchByEan(code);
+          return;
+        }
+      }
+    } catch (error) {
+      console.error(error);
+      setEanScannerMessage("Viivakoodin lukeminen epäonnistui. Kokeile kirjoittaa EAN käsin.");
+      stopEanCameraScanner();
+      return;
+    }
+
+    eanScannerFrameRef.current = window.requestAnimationFrame(() => {
+      void scanEanVideoFrame(detector);
+    });
+  }
+
+  async function startEanCameraScanner() {
+    if (typeof window === "undefined" || typeof navigator === "undefined") return;
+
+    if (!window.isSecureContext) {
+      setEanScannerMessage("Kamera toimii vain HTTPS-osoitteessa. Avaa Ziiply Vercelin live-osoitteesta.");
+      return;
+    }
+
+    const BarcodeDetectorConstructor = (window as any).BarcodeDetector;
+
+    if (!BarcodeDetectorConstructor) {
+      setEanScannerMessage("Tämä selain ei tue viivakoodin lukemista suoraan kamerasta. Kirjoita tai liitä EAN käsin.");
+      return;
+    }
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setEanScannerMessage("Kamera ei ole käytettävissä tässä ympäristössä.");
+      return;
+    }
+
+    try {
+      stopEanCameraScanner();
+      setEanScannerMessage("Avataan kamera...");
+      setEanScannerOpen(true);
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: { ideal: "environment" },
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+        audio: false,
+      });
+
+      eanScannerStreamRef.current = stream;
+
+      window.setTimeout(async () => {
+        const video = eanScannerVideoRef.current;
+        if (!video || !eanScannerStreamRef.current) return;
+
+        video.srcObject = stream;
+        await video.play().catch(() => undefined);
+
+        let detector: any;
+        try {
+          detector = new BarcodeDetectorConstructor({ formats: ["ean_13", "ean_8", "upc_a", "upc_e"] });
+        } catch {
+          detector = new BarcodeDetectorConstructor();
+        }
+
+        setEanScannerMessage("Kohdista viivakoodi kameran keskelle.");
+        void scanEanVideoFrame(detector);
+      }, 80);
+    } catch (error) {
+      console.error(error);
+      stopEanCameraScanner();
+      setEanScannerMessage("Kameraa ei saatu avattua. Tarkista kameran lupa tai kirjoita EAN käsin.");
+    }
+  }
+
   function closeEanModal() {
+    stopEanCameraScanner();
+
     if (eanAutoSearchTimeoutRef.current) {
       window.clearTimeout(eanAutoSearchTimeoutRef.current);
       eanAutoSearchTimeoutRef.current = null;
@@ -3186,6 +3320,7 @@ export default function Page() {
     setEanInput("");
     setEanResults([]);
     setEanMessage("");
+    setEanScannerMessage("");
     setEanLoading(false);
     eanSearchInFlightRef.current = null;
     setLastAutoEanSearch("");
@@ -3222,6 +3357,7 @@ export default function Page() {
     setEanInput("");
     setEanResults([]);
     setEanMessage("");
+    setEanScannerMessage("");
     setEanLoading(false);
     eanSearchInFlightRef.current = null;
     setLastAutoEanSearch("");
@@ -6030,6 +6166,42 @@ export default function Page() {
                   Tyhjennä
                 </button>
               </div>
+
+              <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                <button
+                  type="button"
+                  onClick={() => void startEanCameraScanner()}
+                  className="touch-manipulation rounded-2xl bg-green-600 px-4 py-3 text-sm font-extrabold text-white transition active:scale-[0.98]"
+                >
+                  📷 Skannaa viivakoodi
+                </button>
+                {eanScannerOpen && (
+                  <button
+                    type="button"
+                    onClick={stopEanCameraScanner}
+                    className="touch-manipulation rounded-2xl bg-slate-900 px-4 py-3 text-sm font-extrabold text-white transition active:scale-[0.98]"
+                  >
+                    Sulje kamera
+                  </button>
+                )}
+              </div>
+
+              {eanScannerMessage && (
+                <div className="mt-3 rounded-2xl bg-slate-100 p-3 text-sm font-bold text-slate-700">
+                  {eanScannerMessage}
+                </div>
+              )}
+
+              {eanScannerOpen && (
+                <div className="mt-3 overflow-hidden rounded-2xl bg-slate-950 ring-1 ring-slate-200">
+                  <video
+                    ref={eanScannerVideoRef}
+                    className="h-56 w-full object-cover"
+                    playsInline
+                    muted
+                  />
+                </div>
+              )}
 
               {eanLoading && (
                 <div className="mt-2 rounded-2xl bg-green-50 p-3 text-sm font-extrabold text-green-700">
