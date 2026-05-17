@@ -161,6 +161,7 @@ const SAVED_SHOPPING_LISTS_STORAGE_KEY = "ziiply-saved-shopping-lists-v1";
 const MAX_RECENT_CART_ITEMS = 10;
 const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
+const ZXING_BROWSER_SCRIPT_URL = "https://unpkg.com/@zxing/browser@0.1.5/umd/index.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 
 // Scanner UX:
@@ -3223,6 +3224,35 @@ export default function Page() {
     });
   }
 
+  function loadZxingBrowserScript() {
+    return new Promise<any>((resolve, reject) => {
+      if (typeof window === "undefined") {
+        reject(new Error("ZXing can only be loaded in browser"));
+        return;
+      }
+
+      if ((window as any).ZXingBrowser) {
+        resolve((window as any).ZXingBrowser);
+        return;
+      }
+
+      const existingScript = document.querySelector<HTMLScriptElement>(`script[src="${ZXING_BROWSER_SCRIPT_URL}"]`);
+
+      if (existingScript) {
+        existingScript.addEventListener("load", () => resolve((window as any).ZXingBrowser), { once: true });
+        existingScript.addEventListener("error", reject, { once: true });
+        return;
+      }
+
+      const script = document.createElement("script");
+      script.src = ZXING_BROWSER_SCRIPT_URL;
+      script.async = true;
+      script.onload = () => resolve((window as any).ZXingBrowser);
+      script.onerror = () => reject(new Error("ZXing Browser loading failed"));
+      document.body.appendChild(script);
+    });
+  }
+
   function finishScannedEan(code: string) {
     if (!isUsableEan(code)) return;
 
@@ -3281,8 +3311,6 @@ export default function Page() {
       setEanScannerOpen(true);
       setEanScannerMessage("Ladataan kameraskanneria...");
 
-      const Html5Qrcode = await loadHtml5QrCodeScript();
-
       await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()));
 
       const scannerElement = document.getElementById(EAN_SCANNER_REGION_ID);
@@ -3291,6 +3319,74 @@ export default function Page() {
         setEanScannerMessage("Kameranäkymää ei saatu avattua. Sulje EAN-ikkuna ja yritä uudelleen.");
         return;
       }
+
+      // v171: ensisijainen lukija ZXingillä. Se on usein parempi vaikeissa EAN-koodeissa
+      // kuten maitopurkeissa, joissa viivat ovat tiheitä, pieniä tai pehmeästi painettuja.
+      try {
+        const ZXingBrowser = await loadZxingBrowserScript();
+        const BrowserMultiFormatReader = ZXingBrowser?.BrowserMultiFormatReader;
+
+        if (BrowserMultiFormatReader) {
+          scannerElement.innerHTML = "";
+
+          const video = document.createElement("video");
+          video.setAttribute("playsinline", "true");
+          video.setAttribute("muted", "true");
+          video.autoplay = true;
+          video.muted = true;
+          video.className = "h-full w-full rounded-[1.5rem] object-cover";
+          scannerElement.appendChild(video);
+
+          const reader = new BrowserMultiFormatReader(undefined, {
+            delayBetweenScanAttempts: 120,
+            delayBetweenScanSuccess: 500,
+          });
+
+          const controls = await reader.decodeFromConstraints(
+            {
+              video: {
+                facingMode: { ideal: "environment" },
+                width: { ideal: 1280 },
+                height: { ideal: 720 },
+              },
+              audio: false,
+            },
+            video,
+            (result: any) => {
+              const rawText = result?.getText?.() || result?.text || String(result || "");
+              const code = normalizeEan(rawText);
+              if (isUsableEan(code)) finishScannedEan(code);
+            }
+          );
+
+          eanHtml5ScannerRef.current = {
+            async stop() {
+              try {
+                controls?.stop?.();
+              } catch {}
+
+              try {
+                const stream = video.srcObject as MediaStream | null;
+                stream?.getTracks?.().forEach((track) => track.stop());
+                video.srcObject = null;
+              } catch {}
+            },
+            async clear() {
+              try {
+                scannerElement.innerHTML = "";
+              } catch {}
+            },
+          };
+
+          setEanScannerMessage("Aseta maitopurkin EAN-koodi keskelle. Vie kamera lähelle, pidä paikallaan 1–2 s ja vältä heijastusta.");
+          return;
+        }
+      } catch (zxingError) {
+        console.warn("ZXing scanner failed, falling back to html5-qrcode", zxingError);
+      }
+
+      // Turvaverkko: jos ZXing ei lataudu tai ei käynnisty iPhonessa, käytetään aiempaa toimivaa skanneria.
+      const Html5Qrcode = await loadHtml5QrCodeScript();
 
       const supportedFormats = (window as any).Html5QrcodeSupportedFormats;
       const formatsToSupport = supportedFormats
@@ -3305,19 +3401,19 @@ export default function Page() {
       const scanner = new Html5Qrcode(EAN_SCANNER_REGION_ID, formatsToSupport ? { formatsToSupport } : undefined);
       eanHtml5ScannerRef.current = scanner;
 
-      const scannerSize = Math.max(260, Math.min(360, window.innerWidth - 56));
+      const scannerSize = Math.max(280, Math.min(380, window.innerWidth - 44));
 
-      setEanScannerMessage("Aseta viivakoodi vihreän kehyksen sisään. Käännä puhelinta tarvittaessa pysty- tai vaakakoodille.");
+      setEanScannerMessage("Aseta EAN-koodi vihreän kehyksen sisään. Maitopurkissa vie kamera lähelle ja pidä paikallaan.");
 
       await scanner.start(
         {
-          facingMode: { exact: "environment" },
+          facingMode: { ideal: "environment" },
         },
         {
-          fps: 7,
+          fps: 8,
           qrbox: {
-            width: Math.min(scannerSize + 40, 320),
-            height: Math.min(scannerSize + 40, 320),
+            width: scannerSize,
+            height: scannerSize,
           },
           aspectRatio: 1.0,
           disableFlip: false,
