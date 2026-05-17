@@ -163,10 +163,9 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 
-// Scanner UX / quality:
+// Scanner UX:
 // Käytetään lähes neliötä, jotta sekä pysty- että vaakaviivakoodit mahtuvat kehykseen.
-// Pyydetään iPhonelta mahdollisimman tarkka takakameran stream ja yritetään tarkennus/zoom-asetuksia,
-// koska haaleat, siniset ja kaarevalla pinnalla olevat viivakoodit tarvitsevat selvästi paremman kuvan.
+// Tämä auttaa erityisesti maitopurkkien ja kaarevien pakkausten viivakoodeissa.
 
 // Local store fallback:
 // Jos alueelta ei vielä löydy oikeaa lähikaupan storeId:tä,
@@ -3224,48 +3223,6 @@ export default function Page() {
     });
   }
 
-  async function improveEanScannerVideoQuality() {
-    await new Promise<void>((resolve) => window.setTimeout(resolve, 250));
-
-    try {
-      const scannerElement = document.getElementById(EAN_SCANNER_REGION_ID);
-      const video = scannerElement?.querySelector("video") as HTMLVideoElement | null;
-      const stream = video?.srcObject as MediaStream | null;
-      const track = stream?.getVideoTracks?.()[0];
-
-      if (!track) return;
-
-      const capabilities = typeof (track as any).getCapabilities === "function" ? (track as any).getCapabilities() : null;
-      const advanced: any[] = [];
-
-      if (capabilities?.focusMode?.includes?.("continuous")) {
-        advanced.push({ focusMode: "continuous" });
-      }
-
-      if (capabilities?.exposureMode?.includes?.("continuous")) {
-        advanced.push({ exposureMode: "continuous" });
-      }
-
-      if (capabilities?.whiteBalanceMode?.includes?.("continuous")) {
-        advanced.push({ whiteBalanceMode: "continuous" });
-      }
-
-      if (capabilities?.zoom) {
-        const minZoom = Number(capabilities.zoom.min || 1);
-        const maxZoom = Number(capabilities.zoom.max || 1);
-        const preferredZoom = Math.min(maxZoom, Math.max(minZoom, 1.8));
-        advanced.push({ zoom: preferredZoom });
-      }
-
-      if (advanced.length > 0) {
-        await track.applyConstraints({ advanced } as any);
-      }
-    } catch {
-      // Kaikki iOS/Safari-versiot eivät hyväksy tarkennus- tai zoom-asetuksia.
-      // Skanneri toimii silti ilman näitä.
-    }
-  }
-
   function finishScannedEan(code: string) {
     if (!isUsableEan(code)) return;
 
@@ -3348,31 +3305,26 @@ export default function Page() {
       const scanner = new Html5Qrcode(EAN_SCANNER_REGION_ID, formatsToSupport ? { formatsToSupport } : undefined);
       eanHtml5ScannerRef.current = scanner;
 
-      const scannerSize = Math.max(280, Math.min(390, window.innerWidth - 44));
-      const cameraConstraints: any = {
-        facingMode: { ideal: "environment" },
-        width: { min: 1280, ideal: 1920, max: 3840 },
-        height: { min: 720, ideal: 1080, max: 2160 },
-        frameRate: { ideal: 30, max: 30 },
-        advanced: [
-          { focusMode: "continuous" },
-          { exposureMode: "continuous" },
-          { whiteBalanceMode: "continuous" },
-        ],
-      };
+      const scannerSize = Math.max(260, Math.min(360, window.innerWidth - 56));
 
-      setEanScannerMessage("Aseta koodi vihreään kehykseen. Vie kamera lähelle, pidä hetki paikallaan ja käytä tarvittaessa Tarkenna-painiketta.");
+      setEanScannerMessage("Aseta viivakoodi vihreän kehyksen sisään. Käännä puhelinta tarvittaessa pysty- tai vaakakoodille.");
 
       await scanner.start(
-        cameraConstraints,
         {
-          // Hitaampi skannausrytmi antaa iPhonelle enemmän aikaa tarkentaa.
-          fps: 6,
-          qrbox: { width: scannerSize, height: scannerSize },
+          facingMode: { exact: "environment" },
+        },
+        {
+          fps: 7,
+          qrbox: {
+            width: Math.min(scannerSize + 40, 320),
+            height: Math.min(scannerSize + 40, 320),
+          },
           aspectRatio: 1.0,
           disableFlip: false,
-          experimentalFeatures: {
-            useBarCodeDetectorIfSupported: true,
+          videoConstraints: {
+            facingMode: { ideal: "environment" },
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
           },
         },
         (decodedText: string) => {
@@ -3381,8 +3333,6 @@ export default function Page() {
         },
         () => undefined
       );
-
-      await improveEanScannerVideoQuality();
     } catch (error) {
       console.error(error);
       await stopEanCameraScanner();
@@ -6276,39 +6226,20 @@ export default function Page() {
 
               {eanScannerOpen && (
                 <div className="mt-3 overflow-hidden rounded-2xl bg-slate-950 p-2 ring-1 ring-slate-200">
-                  <div className="relative mx-auto h-[min(82vw,390px)] max-h-[390px] min-h-[280px] w-full max-w-[390px] overflow-hidden rounded-xl bg-slate-950">
+                  <div className="relative mx-auto h-[min(78vw,360px)] max-h-[360px] min-h-[260px] w-full max-w-[360px] overflow-hidden rounded-xl bg-slate-950">
                     <div
                       id={EAN_SCANNER_REGION_ID}
                       className="h-full w-full overflow-hidden rounded-xl bg-slate-950 [&_canvas]:!hidden [&_video]:!h-full [&_video]:!w-full [&_video]:rounded-xl [&_video]:object-cover"
                     />
-                    <div className="pointer-events-none absolute inset-3 rounded-2xl border-4 border-green-400 shadow-[0_0_0_999px_rgba(2,6,23,0.28)]">
-                      <div className="absolute -left-1 -top-1 h-6 w-6 rounded-tl-2xl border-l-4 border-t-4 border-white/90" />
-                      <div className="absolute -right-1 -top-1 h-6 w-6 rounded-tr-2xl border-r-4 border-t-4 border-white/90" />
-                      <div className="absolute -bottom-1 -left-1 h-6 w-6 rounded-bl-2xl border-b-4 border-l-4 border-white/90" />
-                      <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-br-2xl border-b-4 border-r-4 border-white/90" />
+                    <div className="pointer-events-none absolute inset-5 rounded-2xl border-4 border-green-400 shadow-[0_0_0_999px_rgba(2,6,23,0.35)]">
+                      <div className="absolute -left-1 -top-1 h-5 w-5 rounded-tl-2xl border-l-4 border-t-4 border-white/90" />
+                      <div className="absolute -right-1 -top-1 h-5 w-5 rounded-tr-2xl border-r-4 border-t-4 border-white/90" />
+                      <div className="absolute -bottom-1 -left-1 h-5 w-5 rounded-bl-2xl border-b-4 border-l-4 border-white/90" />
+                      <div className="absolute -bottom-1 -right-1 h-5 w-5 rounded-br-2xl border-b-4 border-r-4 border-white/90" />
                     </div>
                   </div>
-                  <div className="mt-2 grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => void startEanCameraScanner()}
-                      className="rounded-xl bg-white px-3 py-2 text-xs font-extrabold text-slate-900 transition active:scale-[0.98]"
-                    >
-                      Tarkenna / yritä uudelleen
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        void stopEanCameraScanner();
-                        window.setTimeout(() => eanInputRef.current?.focus(), 120);
-                      }}
-                      className="rounded-xl border border-green-400/50 bg-green-500/10 px-3 py-2 text-xs font-extrabold text-green-100 transition active:scale-[0.98]"
-                    >
-                      Syötä numero kuvasta
-                    </button>
-                  </div>
                   <div className="mt-2 rounded-xl border border-green-400/50 bg-green-500/10 p-2 text-center text-xs font-extrabold text-green-100">
-                    Vie koodi lähelle, täytä kehys mahdollisimman isoksi ja pidä puhelin hetki paikallaan. Sininen/haalea koodi vaatii usein hyvin läheltä kuvatun kohdan.
+                    Aseta viivakoodi vihreän kehyksen sisään. Käännä puhelinta tarvittaessa; maitopurkin pystyviivakoodi toimii parhaiten läheltä ja hyvässä valossa.
                   </div>
                 </div>
               )}
