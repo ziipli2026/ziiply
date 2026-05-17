@@ -163,6 +163,9 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 
+// Scanner UX:
+// Käytetään lähes neliötä, jotta sekä pysty- että vaakaviivakoodit mahtuvat kehykseen.
+// Tämä auttaa erityisesti maitopurkkien ja kaarevien pakkausten viivakoodeissa.
 
 // Local store fallback:
 // Jos alueelta ei vielä löydy oikeaa lähikaupan storeId:tä,
@@ -3302,26 +3305,29 @@ export default function Page() {
       const scanner = new Html5Qrcode(EAN_SCANNER_REGION_ID, formatsToSupport ? { formatsToSupport } : undefined);
       eanHtml5ScannerRef.current = scanner;
 
-      const scannerWidth = Math.max(260, Math.min(520, window.innerWidth - 64));
-      const scannerHeight = 104;
+      const scannerSize = Math.max(260, Math.min(360, window.innerWidth - 56));
 
-      setEanScannerMessage("Aseta viivakoodi vihreän kehyksen sisään ja pidä puhelin hetki paikallaan.");
+      setEanScannerMessage("Aseta viivakoodi vihreän kehyksen sisään. Käännä puhelinta tarvittaessa pysty- tai vaakakoodille.");
 
       await scanner.start(
         {
           facingMode: { exact: "environment" },
         },
         {
-          fps: 12,
-          qrbox: { width: scannerWidth, height: scannerHeight },
-          aspectRatio: 2.2,
-          disableFlip: true,
+          fps: 10,
+          qrbox: { width: scannerSize, height: scannerSize },
+          aspectRatio: 1.0,
+          disableFlip: false,
           videoConstraints: {
             facingMode: "environment",
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
             focusMode: "continuous",
             exposureMode: "continuous",
+            advanced: [
+              { focusMode: "continuous" },
+              { exposureMode: "continuous" },
+            ],
           },
         },
         (decodedText: string) => {
@@ -6223,12 +6229,12 @@ export default function Page() {
 
               {eanScannerOpen && (
                 <div className="mt-3 overflow-hidden rounded-2xl bg-slate-950 p-2 ring-1 ring-slate-200">
-                  <div className="relative h-44 w-full overflow-hidden rounded-xl bg-slate-950">
+                  <div className="relative mx-auto h-[min(78vw,360px)] max-h-[360px] min-h-[260px] w-full max-w-[360px] overflow-hidden rounded-xl bg-slate-950">
                     <div
                       id={EAN_SCANNER_REGION_ID}
                       className="h-full w-full overflow-hidden rounded-xl bg-slate-950 [&_canvas]:!hidden [&_video]:!h-full [&_video]:!w-full [&_video]:rounded-xl [&_video]:object-cover"
                     />
-                    <div className="pointer-events-none absolute inset-x-5 top-1/2 h-24 -translate-y-1/2 rounded-2xl border-4 border-green-400 shadow-[0_0_0_999px_rgba(2,6,23,0.35)]">
+                    <div className="pointer-events-none absolute inset-5 rounded-2xl border-4 border-green-400 shadow-[0_0_0_999px_rgba(2,6,23,0.35)]">
                       <div className="absolute -left-1 -top-1 h-5 w-5 rounded-tl-2xl border-l-4 border-t-4 border-white/90" />
                       <div className="absolute -right-1 -top-1 h-5 w-5 rounded-tr-2xl border-r-4 border-t-4 border-white/90" />
                       <div className="absolute -bottom-1 -left-1 h-5 w-5 rounded-bl-2xl border-b-4 border-l-4 border-white/90" />
@@ -6236,7 +6242,7 @@ export default function Page() {
                     </div>
                   </div>
                   <div className="mt-2 rounded-xl border border-green-400/50 bg-green-500/10 p-2 text-center text-xs font-extrabold text-green-100">
-                    Aseta viivakoodi vihreän kehyksen sisään. Paras etäisyys on noin 10–20 cm.
+                    Aseta viivakoodi vihreän kehyksen sisään. Käännä puhelinta tarvittaessa; maitopurkin pystyviivakoodi toimii parhaiten läheltä ja hyvässä valossa.
                   </div>
                 </div>
               )}
