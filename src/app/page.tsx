@@ -161,8 +161,6 @@ const SAVED_SHOPPING_LISTS_STORAGE_KEY = "ziiply-saved-shopping-lists-v1";
 const MAX_RECENT_CART_ITEMS = 10;
 const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
-const ZXING_BROWSER_SCRIPT_URL = "https://unpkg.com/@zxing/browser@0.1.5/umd/index.min.js";
-const QUAGGA_SCRIPT_URL = "https://unpkg.com/@ericblade/quagga2@1.8.4/dist/quagga.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 
 // Scanner UX:
@@ -1752,10 +1750,6 @@ export default function Page() {
   const [eanScannerMessage, setEanScannerMessage] = useState("");
   const eanHtml5ScannerRef = useRef<any | null>(null);
   const eanScannerStoppingRef = useRef(false);
-  const eanScannerStartingRef = useRef(false);
-  const eanScannerRunningRef = useRef(false);
-  const eanScanFinishedRef = useRef(false);
-  const eanScannerSessionRef = useRef(0);
 
   // =========================
   // MOBILE APP SHELL
@@ -3229,165 +3223,48 @@ export default function Page() {
     });
   }
 
-  function loadZxingBrowserScript() {
-    return new Promise<any>((resolve, reject) => {
-      if (typeof window === "undefined") {
-        reject(new Error("ZXing can only be loaded in browser"));
-        return;
-      }
-
-      if ((window as any).ZXingBrowser) {
-        resolve((window as any).ZXingBrowser);
-        return;
-      }
-
-      const existingScript = document.querySelector<HTMLScriptElement>(`script[src="${ZXING_BROWSER_SCRIPT_URL}"]`);
-
-      if (existingScript) {
-        existingScript.addEventListener("load", () => resolve((window as any).ZXingBrowser), { once: true });
-        existingScript.addEventListener("error", reject, { once: true });
-        return;
-      }
-
-      const script = document.createElement("script");
-      script.src = ZXING_BROWSER_SCRIPT_URL;
-      script.async = true;
-      script.onload = () => resolve((window as any).ZXingBrowser);
-      script.onerror = () => reject(new Error("ZXing Browser loading failed"));
-      document.body.appendChild(script);
-    });
-  }
-
-  function loadQuaggaScript() {
-    return new Promise<any>((resolve, reject) => {
-      if (typeof window === "undefined") {
-        reject(new Error("Quagga can only be loaded in browser"));
-        return;
-      }
-
-      if ((window as any).Quagga) {
-        resolve((window as any).Quagga);
-        return;
-      }
-
-      const existingScript = document.querySelector<HTMLScriptElement>(`script[src="${QUAGGA_SCRIPT_URL}"]`);
-
-      if (existingScript) {
-        existingScript.addEventListener("load", () => resolve((window as any).Quagga), { once: true });
-        existingScript.addEventListener("error", reject, { once: true });
-        return;
-      }
-
-      const script = document.createElement("script");
-      script.src = QUAGGA_SCRIPT_URL;
-      script.async = true;
-      script.onload = () => resolve((window as any).Quagga);
-      script.onerror = () => reject(new Error("Quagga loading failed"));
-      document.body.appendChild(script);
-    });
-  }
-
   function finishScannedEan(code: string) {
-    const normalizedCode = normalizeEan(code);
-    if (!isUsableEan(normalizedCode)) return;
-    if (eanScanFinishedRef.current) return;
+    if (!isUsableEan(code)) return;
 
-    eanScanFinishedRef.current = true;
-    triggerHaptic();
+    void stopEanCameraScanner();
 
     if (eanAutoSearchTimeoutRef.current) {
       window.clearTimeout(eanAutoSearchTimeoutRef.current);
       eanAutoSearchTimeoutRef.current = null;
     }
 
-    setEanInput(normalizedCode);
-    setLastAutoEanSearch(normalizedCode);
+    setEanInput(code);
+    setLastAutoEanSearch(code);
     setEanSearchStartedAutomatically(true);
     eanAutoSearchActiveRef.current = true;
     setEanScannerMessage("");
-    setEanMessage(`Skannattu EAN: ${normalizedCode}. Haetaan...`);
-
-    void (async () => {
-      await stopEanCameraScanner();
-      void searchByEan(normalizedCode);
-    })();
+    setEanMessage(`Skannattu EAN: ${code}. Haetaan...`);
+    void searchByEan(code);
   }
 
   async function stopEanCameraScanner() {
-    if (eanScannerStoppingRef.current) return;
-
-    eanScannerStoppingRef.current = true;
-
-    // v173: mitätöi kaikki vanhat callbackit heti, jotta iOS Safari ei jää vanhan
-    // ZXing/html5-session varaan ensimmäisen onnistuneen skannauksen jälkeen.
-    eanScannerSessionRef.current += 1;
-
     const scanner = eanHtml5ScannerRef.current;
     eanHtml5ScannerRef.current = null;
 
-    try {
+    if (scanner && !eanScannerStoppingRef.current) {
+      eanScannerStoppingRef.current = true;
+
       try {
-        await scanner?.stop?.();
+        await scanner.stop();
       } catch {}
 
       try {
-        await scanner?.clear?.();
+        await scanner.clear();
       } catch {}
 
-      try {
-        scanner?.reset?.();
-      } catch {}
-
-      try {
-        const Quagga = (window as any).Quagga;
-        Quagga?.stop?.();
-      } catch {}
-
-      try {
-        const region = document.getElementById(EAN_SCANNER_REGION_ID);
-
-        region?.querySelectorAll("video").forEach((videoElement) => {
-          const video = videoElement as HTMLVideoElement;
-
-          try {
-            const stream = video.srcObject as MediaStream | null;
-            stream?.getTracks?.().forEach((track) => {
-              try {
-                track.stop();
-              } catch {}
-            });
-          } catch {}
-
-          try {
-            video.pause();
-            video.removeAttribute("src");
-            video.srcObject = null;
-            video.load?.();
-          } catch {}
-        });
-
-        if (region) {
-          region.innerHTML = "";
-        }
-      } catch {}
-
-      eanScannerRunningRef.current = false;
-      eanScannerStartingRef.current = false;
-
-      // iOS Safari tarvitsee oikeasti pienen cooldownin kameran vapautumiseen.
-      await new Promise<void>((resolve) => window.setTimeout(resolve, 450));
-    } finally {
       eanScannerStoppingRef.current = false;
-      setEanScannerOpen(false);
     }
+
+    setEanScannerOpen(false);
   }
 
   async function startEanCameraScanner() {
     if (typeof window === "undefined" || typeof navigator === "undefined") return;
-
-    if (eanScannerStartingRef.current || eanScannerRunningRef.current) {
-      return;
-    }
 
     if (!window.isSecureContext) {
       setEanScannerMessage("Kamera toimii vain HTTPS-osoitteessa. Avaa Ziiply Vercelin live-osoitteesta.");
@@ -3399,24 +3276,14 @@ export default function Page() {
       return;
     }
 
-    eanScannerStartingRef.current = true;
-    eanScanFinishedRef.current = false;
-
     try {
-      // v173: poistetaan ZXing ensisijaisesta livekamerasta, koska se lukitsi
-      // iOS Safarin kameran ensimmäisen skannauksen jälkeen. Palataan vakaampaan
-      // html5-qrcode-käynnistykseen, mutta pidetään siivous aiempaa tiukempana.
       await stopEanCameraScanner();
-
-      const sessionId = eanScannerSessionRef.current + 1;
-      eanScannerSessionRef.current = sessionId;
-
       setEanScannerOpen(true);
-      setEanScannerMessage("Käynnistetään kamera...");
+      setEanScannerMessage("Ladataan kameraskanneria...");
 
-      // Anna Reactin piirtää kameran container ja anna iOS Safarille aikaa vapauttaa vanha stream.
+      const Html5Qrcode = await loadHtml5QrCodeScript();
+
       await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()));
-      await new Promise<void>((resolve) => window.setTimeout(resolve, 350));
 
       const scannerElement = document.getElementById(EAN_SCANNER_REGION_ID);
 
@@ -3424,12 +3291,6 @@ export default function Page() {
         setEanScannerMessage("Kameranäkymää ei saatu avattua. Sulje EAN-ikkuna ja yritä uudelleen.");
         return;
       }
-
-      scannerElement.innerHTML = "";
-
-      const Html5Qrcode = await loadHtml5QrCodeScript();
-
-      if (eanScannerSessionRef.current !== sessionId) return;
 
       const supportedFormats = (window as any).Html5QrcodeSupportedFormats;
       const formatsToSupport = supportedFormats
@@ -3444,57 +3305,43 @@ export default function Page() {
       const scanner = new Html5Qrcode(EAN_SCANNER_REGION_ID, formatsToSupport ? { formatsToSupport } : undefined);
       eanHtml5ScannerRef.current = scanner;
 
-      const scannerSize = Math.max(300, Math.min(420, window.innerWidth - 38));
+      const scannerSize = Math.max(260, Math.min(360, window.innerWidth - 56));
 
-      setEanScannerMessage(
-        "Aseta EAN-koodi vihreän kehyksen sisään. Maitopurkki ja sininen/haalea koodi toimivat parhaiten läheltä, suorassa ja ilman heijastusta."
-      );
+      setEanScannerMessage("Aseta viivakoodi vihreän kehyksen sisään. Käännä puhelinta tarvittaessa pysty- tai vaakakoodille.");
 
       await scanner.start(
         {
-          facingMode: { ideal: "environment" },
+          facingMode: { exact: "environment" },
         },
         {
-          // Hieman rauhallisempi tahti vähentää iPhone Safarin blurrausta.
-          fps: 7,
-          qrbox: {
-            width: scannerSize,
-            height: scannerSize,
-          },
+          fps: 10,
+          qrbox: { width: scannerSize, height: scannerSize },
           aspectRatio: 1.0,
           disableFlip: false,
           videoConstraints: {
-            facingMode: { ideal: "environment" },
-            width: { ideal: 1280 },
-            height: { ideal: 720 },
-            frameRate: { ideal: 24, max: 30 },
+            facingMode: "environment",
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+            focusMode: "continuous",
+            exposureMode: "continuous",
+            advanced: [
+              { focusMode: "continuous" },
+              { exposureMode: "continuous" },
+            ],
           },
         },
         (decodedText: string) => {
-          if (eanScannerSessionRef.current !== sessionId || eanScanFinishedRef.current) return;
-
           const code = normalizeEan(decodedText);
           if (isUsableEan(code)) finishScannedEan(code);
         },
         () => undefined
       );
-
-      if (eanScannerSessionRef.current !== sessionId) {
-        await stopEanCameraScanner();
-        return;
-      }
-
-      eanScannerRunningRef.current = true;
     } catch (error) {
       console.error(error);
       await stopEanCameraScanner();
-      setEanScannerOpen(true);
-      setEanScannerMessage("Kameraa ei saatu avattua tai skanneri ei käynnistynyt. Sulje kamera ja yritä uudelleen.");
-    } finally {
-      eanScannerStartingRef.current = false;
+      setEanScannerMessage("Kameraa ei saatu avattua tai skanneri ei käynnistynyt. Tarkista kameran lupa ja yritä uudelleen.");
     }
   }
-
 
   function closeEanModal() {
     stopEanCameraScanner();
