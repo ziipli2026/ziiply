@@ -4,15 +4,21 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "Ziiply – halvempi ostoskori",
     short_name: "Ziiply",
-    description: "Mobiili-MVP ostoskorin, EAN-haun, muistilistan ja kauppavertailun testaamiseen.",
+    description:
+      "Mobiili-MVP ostoskorin, EAN-haun, muistilistan ja kauppavertailun testaamiseen.",
+
     start_url: "/",
     scope: "/",
+
     display: "standalone",
     orientation: "portrait",
+
     background_color: "#f8fafc",
     theme_color: "#16a34a",
+
     categories: ["shopping", "utilities"],
     lang: "fi",
+
     icons: [
       {
         src: "/icons/icon-192.png",
