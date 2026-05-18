@@ -1734,6 +1734,7 @@ export default function Page() {
   const [visibleNormalCount, setVisibleNormalCount] = useState(8);
   const [eanModalOpen, setEanModalOpen] = useState(false);
   const [eanInput, setEanInput] = useState("");
+  const [eanManualInputOpen, setEanManualInputOpen] = useState(false);
   const [eanLoading, setEanLoading] = useState(false);
   const [eanResults, setEanResults] = useState<EanSearchResult[]>([]);
   const [eanMessage, setEanMessage] = useState("");
@@ -3409,6 +3410,7 @@ export default function Page() {
 
     try {
       await stopEanCameraScanner();
+      setEanManualInputOpen(false);
       setEanScannerOpen(true);
       setEanScannerMessage("Ladataan kameraskanneria...");
 
@@ -3483,6 +3485,7 @@ export default function Page() {
     }
 
     setEanModalOpen(false);
+    setEanManualInputOpen(false);
     setEanInput("");
     setEanResults([]);
     setEanMessage("");
@@ -3503,6 +3506,7 @@ export default function Page() {
     setSearchPanelOpen(false);
     setCartModalOpen(false);
     setEanModalOpen(true);
+    setEanManualInputOpen(true);
     setEanMessage("");
     setEanResults([]);
     setLastAutoEanSearch("");
@@ -3533,6 +3537,54 @@ export default function Page() {
     window.setTimeout(() => {
       eanInputRef.current?.focus();
     }, 0);
+  }
+
+  function openManualEanInput() {
+    setEanManualInputOpen(true);
+
+    window.setTimeout(() => {
+      eanInputRef.current?.focus();
+    }, 0);
+  }
+
+  async function pasteEanFromClipboard() {
+    try {
+      const clipboard = (navigator as any)?.clipboard;
+
+      if (!clipboard?.readText) {
+        setEanManualInputOpen(true);
+        setEanMessage("Leikepöydän lukeminen ei ole käytettävissä. Liitä EAN käsin kenttään.");
+        window.setTimeout(() => eanInputRef.current?.focus(), 0);
+        return;
+      }
+
+      const pastedText = await clipboard.readText();
+      const code = normalizeEan(pastedText);
+
+      if (!isUsableEan(code)) {
+        setEanManualInputOpen(true);
+        setEanMessage("Leikepöydältä ei löytynyt 8–14 numeron EAN-koodia.");
+        window.setTimeout(() => eanInputRef.current?.focus(), 0);
+        return;
+      }
+
+      if (eanAutoSearchTimeoutRef.current) {
+        window.clearTimeout(eanAutoSearchTimeoutRef.current);
+        eanAutoSearchTimeoutRef.current = null;
+      }
+
+      setEanManualInputOpen(true);
+      setEanInput(code);
+      setLastAutoEanSearch(code);
+      setEanSearchStartedAutomatically(true);
+      eanAutoSearchActiveRef.current = true;
+      setEanMessage(`Liitetty koodi: ${code}. Haetaan...`);
+      void searchByEan(code);
+    } catch {
+      setEanManualInputOpen(true);
+      setEanMessage("Liittäminen ei onnistunut. Liitä EAN käsin kenttään.");
+      window.setTimeout(() => eanInputRef.current?.focus(), 0);
+    }
   }
 
 
@@ -6207,72 +6259,84 @@ export default function Page() {
                 </button>
               </div>
 
-              <div className="mt-4 flex gap-2">
-                <input
-                  ref={eanInputRef}
-                  value={eanInput}
-                  onChange={(event) => setEanInput(event.target.value.replace(/\D/g, ""))}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") void searchByEan();
-                  }}
-                  inputMode="numeric"
-                  placeholder="Syötä EAN, esim. 641..."
-                  className="min-w-0 flex-1 rounded-2xl border border-slate-300 px-4 py-3 text-base font-bold tracking-wide outline-none transition focus:border-green-600"
-                  onPaste={(event) => {
-                    const pastedText = event.clipboardData.getData("text");
-                    const code = normalizeEan(pastedText);
+              {(!eanScannerOpen || eanManualInputOpen) && (
+                <div className="mt-4 flex gap-2">
+                  <input
+                    ref={eanInputRef}
+                    value={eanInput}
+                    onChange={(event) => setEanInput(event.target.value.replace(/\D/g, ""))}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") void searchByEan();
+                    }}
+                    inputMode="numeric"
+                    placeholder="Syötä EAN, esim. 641..."
+                    className="min-w-0 flex-1 rounded-2xl border border-slate-300 px-4 py-3 text-base font-bold tracking-wide outline-none transition focus:border-green-600"
+                    onPaste={(event) => {
+                      const pastedText = event.clipboardData.getData("text");
+                      const code = normalizeEan(pastedText);
 
-                    if (!isUsableEan(code)) return;
+                      if (!isUsableEan(code)) return;
 
-                    event.preventDefault();
+                      event.preventDefault();
 
-                    if (eanAutoSearchTimeoutRef.current) {
-                      window.clearTimeout(eanAutoSearchTimeoutRef.current);
-                      eanAutoSearchTimeoutRef.current = null;
-                    }
+                      if (eanAutoSearchTimeoutRef.current) {
+                        window.clearTimeout(eanAutoSearchTimeoutRef.current);
+                        eanAutoSearchTimeoutRef.current = null;
+                      }
 
-                    setEanInput(code);
-                    setLastAutoEanSearch(code);
-                    setEanSearchStartedAutomatically(true);
-                    eanAutoSearchActiveRef.current = true;
-                    setEanMessage(`Liitetty koodi: ${code}. Haetaan...`);
-                    void searchByEan(code);
-                  }}
-                />
+                      setEanManualInputOpen(true);
+                      setEanInput(code);
+                      setLastAutoEanSearch(code);
+                      setEanSearchStartedAutomatically(true);
+                      eanAutoSearchActiveRef.current = true;
+                      setEanMessage(`Liitetty koodi: ${code}. Haetaan...`);
+                      void searchByEan(code);
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={clearEanSearch}
+                    disabled={!eanInput && eanResults.length === 0 && !eanMessage}
+                    className="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-extrabold text-slate-700 transition active:scale-[0.98] disabled:opacity-40"
+                  >
+                    Tyhjennä
+                  </button>
+                </div>
+              )}
+
+              <div className={`mt-3 grid gap-2 ${eanScannerOpen ? "grid-cols-3" : "grid-cols-1 sm:grid-cols-3"}`}>
                 <button
                   type="button"
-                  onClick={clearEanSearch}
-                  disabled={!eanInput && eanResults.length === 0 && !eanMessage}
-                  className="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-extrabold text-slate-700 transition active:scale-[0.98] disabled:opacity-40"
+                  onClick={() => void pasteEanFromClipboard()}
+                  className="touch-manipulation rounded-2xl bg-green-600 px-3 py-3 text-sm font-extrabold text-white transition active:scale-[0.98]"
                 >
-                  Tyhjennä
+                  Liitä
                 </button>
-              </div>
-
-              <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <button
                   type="button"
-                  onClick={() => void startEanCameraScanner()}
-                  className="touch-manipulation rounded-2xl bg-green-600 px-4 py-3 text-sm font-extrabold text-white transition active:scale-[0.98]"
+                  onClick={openManualEanInput}
+                  className="touch-manipulation rounded-2xl bg-green-600 px-3 py-3 text-sm font-extrabold text-white transition active:scale-[0.98]"
                 >
-                  📷 Skannaa viivakoodi
+                  Kirjoita
                 </button>
-                {eanScannerOpen && (
+                {eanScannerOpen ? (
                   <button
                     type="button"
                     onClick={stopEanCameraScanner}
-                    className="touch-manipulation rounded-2xl bg-slate-900 px-4 py-3 text-sm font-extrabold text-white transition active:scale-[0.98]"
+                    className="touch-manipulation rounded-2xl bg-green-600 px-3 py-3 text-sm font-extrabold text-white transition active:scale-[0.98]"
                   >
                     Sulje kamera
                   </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => void startEanCameraScanner()}
+                    className="touch-manipulation rounded-2xl bg-green-600 px-3 py-3 text-sm font-extrabold text-white transition active:scale-[0.98]"
+                  >
+                    📷 Skannaa
+                  </button>
                 )}
               </div>
-
-              {eanScannerMessage && (
-                <div className="mt-3 rounded-2xl bg-slate-100 p-3 text-sm font-bold text-slate-700">
-                  {eanScannerMessage}
-                </div>
-              )}
 
               {eanScannerOpen && (
                 <div className="mt-3 overflow-hidden rounded-2xl bg-slate-950 p-2 ring-1 ring-slate-200">
