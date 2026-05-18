@@ -163,7 +163,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v197";
+const APP_VERSION = "v198";
 
 // Scanner UX:
 // Käytetään lähes neliötä, jotta sekä pysty- että vaakaviivakoodit mahtuvat kehykseen.
@@ -621,23 +621,7 @@ function isDifferentColaBrand(sourceName: string, targetName: string) {
   const targetCocaCola = hasAnyToken(target, ["coca-cola", "coca cola"]);
   const sourcePepsi = hasAnyToken(source, ["pepsi", "pepsi max"]);
   const targetPepsi = hasAnyToken(target, ["pepsi", "pepsi max"]);
-
-  useEffect(() => {
-    if (activeResult !== "compare") return;
-    if (!pendingCompareAnchorRef.current) return;
-
-    const scroller = compareOverlayScrollRef.current;
-    const target = compareHeroRef.current;
-
-    if (!scroller || !target) return;
-
-    requestAnimationFrame(() => {
-      scroller.scrollTop = Math.max(0, target.offsetTop - 12);
-      pendingCompareAnchorRef.current = false;
-    });
-  }, [activeResult, comparisonLoading, chainResults.length]);
-
-  return (sourceCocaCola && targetPepsi) || (sourcePepsi && targetCocaCola);
+return (sourceCocaCola && targetPepsi) || (sourcePepsi && targetCocaCola);
 }
 
 function buildKSearchName(name: string) {
@@ -1852,7 +1836,22 @@ export default function Page() {
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
 
-    return () => {
+    useEffect(() => {
+    if (activeResult !== "compare") return;
+    if (!pendingCompareAnchorRef.current) return;
+
+    const scroller = compareOverlayScrollRef.current;
+    const target = compareHeroRef.current;
+
+    if (!scroller || !target) return;
+
+    requestAnimationFrame(() => {
+      scroller.scrollTop = Math.max(0, target.offsetTop - 12);
+      pendingCompareAnchorRef.current = false;
+    });
+  }, [activeResult, comparisonLoading, chainResults.length]);
+
+  return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
     };
