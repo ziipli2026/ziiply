@@ -163,7 +163,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v195";
+const APP_VERSION = "v196";
 
 // Scanner UX:
 // Käytetään lähes neliötä, jotta sekä pysty- että vaakaviivakoodit mahtuvat kehykseen.
@@ -1953,7 +1953,7 @@ export default function Page() {
     const targetTop = Math.max(0, target.offsetTop - 4);
     scroller.scrollTop = targetTop;
     pendingCompareAnchorRef.current = false;
-  }, [activeResult, showCheapestSticky, cheapest?.key, chainResults.length, comparisonLoading]);
+  }, [activeResult, cheapest?.key, chainResults.length, comparisonLoading]);
 
   // =========================
   // DERIVED VIEW STATE
