@@ -163,7 +163,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v191";
+const APP_VERSION = "v192";
 
 // Scanner UX:
 // Käytetään lähes neliötä, jotta sekä pysty- että vaakaviivakoodit mahtuvat kehykseen.
@@ -1927,6 +1927,7 @@ export default function Page() {
   // Varsinainen komponenttijako kannattaa tehdä myöhemmin omiin tiedostoihin.
 
   const terms = useMemo(() => parseTerms(input), [input]);
+  const hasSearchInput = terms.length > 0;
 
   const activeStores = useMemo(() => {
     if (storeMode === "local") {
@@ -3071,7 +3072,7 @@ export default function Page() {
     if (useTerms.length === 0) {
       setHasSearchedOffers(false);
       setOffers([]);
-      setActiveResult("offers");
+      setActiveResult("none");
       return;
     }
 
@@ -4172,17 +4173,18 @@ export default function Page() {
   }
 
   function handleMainNormalSearch() {
+    if (!hasSearchInput || loadingNormal) return;
+
     setSearchPanelOpen(false);
     void searchNormalPrices();
     scrollToNormalResults();
   }
 
   function handleMainOfferSearch() {
+    if (!hasSearchInput || loadingOffers) return;
+
     setSearchPanelOpen(false);
     void searchOffers();
-    window.setTimeout(() => {
-      normalResultsSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 250);
   }
 
   function getMatchEan(match: Match) {
@@ -6113,10 +6115,30 @@ export default function Page() {
               <h1 className="text-xl font-extrabold sm:text-2xl">Mitä haluat ostaa halvemmalla?</h1>
             </div>
             <div className="mt-4 grid grid-cols-3 gap-2 sm:flex sm:flex-wrap sm:gap-3">
-              <button type="button" onClick={handleMainOfferSearch} className="touch-manipulation rounded-2xl bg-green-600 px-3 py-4 text-sm font-extrabold text-white transition active:scale-[0.98] sm:px-5 sm:text-base">
+              <button
+                type="button"
+                onClick={handleMainOfferSearch}
+                disabled={!hasSearchInput || loadingOffers}
+                aria-disabled={!hasSearchInput || loadingOffers}
+                className={`touch-manipulation rounded-2xl px-3 py-4 text-sm font-extrabold transition sm:px-5 sm:text-base ${
+                  !hasSearchInput || loadingOffers
+                    ? "cursor-not-allowed bg-slate-200 text-slate-400"
+                    : "bg-green-600 text-white active:scale-[0.98]"
+                }`}
+              >
                 {loadingOffers ? "Haetaan..." : "🔥 Tarjoukset"}
               </button>
-              <button type="button" onClick={handleMainNormalSearch} className="touch-manipulation rounded-2xl bg-green-600 px-3 py-4 text-sm font-extrabold text-white transition active:scale-[0.98] sm:px-5 sm:text-base">
+              <button
+                type="button"
+                onClick={handleMainNormalSearch}
+                disabled={!hasSearchInput || loadingNormal}
+                aria-disabled={!hasSearchInput || loadingNormal}
+                className={`touch-manipulation rounded-2xl px-3 py-4 text-sm font-extrabold transition sm:px-5 sm:text-base ${
+                  !hasSearchInput || loadingNormal
+                    ? "cursor-not-allowed bg-slate-200 text-slate-400"
+                    : "bg-green-600 text-white active:scale-[0.98]"
+                }`}
+              >
                 {loadingNormal ? "Haetaan..." : "🛒 Hintavertailu"}
               </button>
               <button onClick={addInputToCart} className="touch-manipulation rounded-2xl bg-slate-900 px-3 py-4 text-sm font-extrabold text-white transition active:scale-[0.98] sm:px-5 sm:text-base">
