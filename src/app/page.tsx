@@ -1796,11 +1796,28 @@ export default function Page() {
   const [eanScannerMessage, setEanScannerMessage] = useState("");
   const [scanSuccessFlash, setScanSuccessFlash] = useState(false);
   const [scanMissFlash, setScanMissFlash] = useState(false);
+  const [scannerDebug, setScannerDebug] = useState<string[]>([]);
+  const [lastScannedEan, setLastScannedEan] = useState("");
   const eanHtml5ScannerRef = useRef<any | null>(null);
   const eanScannerStoppingRef = useRef(false);
   const lastContinuousScanRef = useRef<{ code: string; at: number } | null>(null);
   const scanSuccessFlashTimeoutRef = useRef<number | null>(null);
   const scanMissFlashTimeoutRef = useRef<number | null>(null);
+  const scannerContainerRef = useRef<HTMLDivElement | null>(null);
+  const lastScrollYRef = useRef(0);
+
+  const pushScannerDebug = useCallback((message: string) => {
+    try {
+      const time = new Date().toLocaleTimeString("fi-FI", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+      });
+
+      setScannerDebug((previous) => [`${time}  ${message}`, ...previous].slice(0, 10));
+      console.log("[Ziiply scanner]", message);
+    } catch {}
+  }, []);
 
   // =========================
   // MOBILE APP SHELL
@@ -1846,12 +1863,63 @@ export default function Page() {
   }, []);
 
   useEffect(() => {
-    if (!eanModalOpen) stopEanCameraScanner();
+    if (typeof window === "undefined") return;
+
+    if (eanModalOpen) {
+      lastScrollYRef.current = window.scrollY;
+
+      document.body.style.overflow = "hidden";
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${lastScrollYRef.current}px`;
+      document.body.style.left = "0";
+      document.body.style.right = "0";
+      document.body.style.width = "100%";
+      document.body.style.touchAction = "none";
+    } else {
+      stopEanCameraScanner();
+
+      const scrollY = lastScrollYRef.current;
+      document.body.style.overflow = "";
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.left = "";
+      document.body.style.right = "";
+      document.body.style.width = "";
+      document.body.style.touchAction = "";
+
+      window.scrollTo(0, scrollY);
+    }
 
     return () => {
       stopEanCameraScanner();
+
+      document.body.style.overflow = "";
+      document.body.style.position = "";
+      document.body.style.top = "";
+      document.body.style.left = "";
+      document.body.style.right = "";
+      document.body.style.width = "";
+      document.body.style.touchAction = "";
     };
   }, [eanModalOpen]);
+
+  useEffect(() => {
+    if (!eanScannerOpen) return;
+
+    const preventScannerScroll = (event: TouchEvent) => {
+      const target = event.target as HTMLElement | null;
+
+      if (target && scannerContainerRef.current?.contains(target)) {
+        event.preventDefault();
+      }
+    };
+
+    document.addEventListener("touchmove", preventScannerScroll, { passive: false });
+
+    return () => {
+      document.removeEventListener("touchmove", preventScannerScroll);
+    };
+  }, [eanScannerOpen]);
 
   // =========================
   // DERIVED VIEW STATE
@@ -3325,11 +3393,14 @@ export default function Page() {
 
     // TÄRKEÄ: älä pysäytä kameraa onnistuneen skannauksen jälkeen.
     // Sarjaskannauksessa kamera pysyy päällä ja käyttäjä voi lukea seuraavan tuotteen heti.
-    if (previous?.code === normalizedCode && now - previous.at < 3200) {
+    if (previous?.code === normalizedCode && now - previous.at < 2200) {
+      pushScannerDebug(`Ohitettu tuplaluku: ${normalizedCode}`);
       return;
     }
 
     lastContinuousScanRef.current = { code: normalizedCode, at: now };
+    setLastScannedEan(normalizedCode);
+    pushScannerDebug(`EAN havaittu: ${normalizedCode}`);
 
     if (eanAutoSearchTimeoutRef.current) {
       window.clearTimeout(eanAutoSearchTimeoutRef.current);
@@ -3385,7 +3456,8 @@ export default function Page() {
     try {
       await stopEanCameraScanner();
       setEanScannerOpen(true);
-      setEanScannerMessage("Ladataan kameraskanneria...");
+      setEanScannerMessage("Kamera käynnistyy...");
+      pushScannerDebug("Kameraskanneria käynnistetään");
 
       const Html5Qrcode = await loadHtml5QrCodeScript();
 
@@ -3395,6 +3467,7 @@ export default function Page() {
 
       if (!scannerElement) {
         setEanScannerMessage("Kameranäkymää ei saatu avattua. Sulje EAN-ikkuna ja yritä uudelleen.");
+        pushScannerDebug("Virhe: scanner-elementtiä ei löytynyt");
         return;
       }
 
@@ -3413,37 +3486,42 @@ export default function Page() {
 
       const scannerSize = Math.max(260, Math.min(360, window.innerWidth - 56));
 
-      setEanScannerMessage("Aseta viivakoodi vihreän kehyksen sisään. Käännä puhelinta tarvittaessa pysty- tai vaakakoodille.");
+      setEanScannerMessage("Kamera valmis.");
+      pushScannerDebug("Kamera valmis lukemaan EAN-koodeja");
 
       await scanner.start(
         {
           facingMode: { exact: "environment" },
         },
         {
-          fps: 10,
+          fps: 12,
           qrbox: { width: scannerSize, height: scannerSize },
           aspectRatio: 1.0,
           disableFlip: false,
+          rememberLastUsedCamera: true,
           videoConstraints: {
             facingMode: "environment",
-            width: { ideal: 1920 },
-            height: { ideal: 1080 },
-            focusMode: "continuous",
-            exposureMode: "continuous",
-            advanced: [
-              { focusMode: "continuous" },
-              { exposureMode: "continuous" },
-            ],
+            width: { ideal: 1280 },
+            height: { ideal: 720 },
           },
         },
         (decodedText: string) => {
           const code = normalizeEan(decodedText);
-          if (isUsableEan(code)) finishScannedEan(code);
+          if (isUsableEan(code)) {
+            finishScannedEan(code);
+          } else if (decodedText) {
+            pushScannerDebug(`Hylätty luku: ${decodedText}`);
+          }
         },
-        () => undefined
+        (errorMessage: string) => {
+          if (errorMessage && !errorMessage.includes("NotFoundException")) {
+            pushScannerDebug(`Scanner huomio: ${errorMessage}`);
+          }
+        }
       );
     } catch (error) {
       console.error(error);
+      pushScannerDebug(`Kamera epäonnistui: ${error instanceof Error ? error.message : String(error)}`);
       await stopEanCameraScanner();
       setEanScannerMessage("Kameraa ei saatu avattua tai skanneri ei käynnistynyt. Tarkista kameran lupa ja yritä uudelleen.");
     }
@@ -3462,6 +3540,7 @@ export default function Page() {
     setEanResults([]);
     setEanMessage("");
     setEanScannerMessage("");
+    setLastScannedEan("");
     setEanLoading(false);
     eanSearchInFlightRef.current = null;
     setLastAutoEanSearch("");
@@ -3499,6 +3578,7 @@ export default function Page() {
     setEanResults([]);
     setEanMessage("");
     setEanScannerMessage("");
+    setLastScannedEan("");
     setEanLoading(false);
     eanSearchInFlightRef.current = null;
     setLastAutoEanSearch("");
@@ -3523,12 +3603,15 @@ export default function Page() {
     if (eanSearchInFlightRef.current === ean) return;
 
     eanSearchInFlightRef.current = ean;
+    setLastScannedEan(ean);
+    pushScannerDebug(`Haetaan EAN: ${ean}`);
     setEanLoading(true);
     setEanMessage("");
     setEanResults([]);
 
     try {
       const variants = getEanSearchVariants(ean);
+      pushScannerDebug(`Hakumuodot: ${variants.join(", ")}`);
 
       const cachedName =
         variants.map((variant) => eanCache[variant]).find(Boolean) ||
@@ -3622,6 +3705,7 @@ export default function Page() {
       );
 
       if (exactResults.length > 0) {
+        pushScannerDebug(`Löytyi ${exactResults.length} tarkka osuma`);
         const cacheName = exactResults[0]?.product?.name;
 
         if (cacheName) {
@@ -3658,12 +3742,15 @@ export default function Page() {
       }
 
       if (externalNames.length > 0) {
-        setEanMessage("Tuote tunnistettiin osittain, mutta valituista kaupoista ei löytynyt tarkkaa EAN-osumaa.");
+        pushScannerDebug(`Ei tarkkaa kauppaosumaa. OFF-nimet: ${externalNames.slice(0, 3).join(" / ")}`);
+        setEanMessage(`Ei tarkkaa osumaa kaupoista. Luettu EAN: ${ean}. Tuote tunnistettiin osittain, mutta valituista kaupoista ei löytynyt tarkkaa EAN-osumaa.`);
       } else {
-        setEanMessage("EAN-koodilla ei löytynyt tarkkaa tuotetta valituista kaupoista.");
+        pushScannerDebug(`Ei löytynyt EAN-koodilla: ${ean}`);
+        setEanMessage(`EAN-koodilla ei löytynyt tarkkaa tuotetta. Luettu EAN: ${ean}.`);
       }
     } catch (error) {
       console.error(error);
+      pushScannerDebug(`EAN-haku epäonnistui: ${error instanceof Error ? error.message : String(error)}`);
       setEanResults([]);
       setEanSearchStartedAutomatically(false);
       eanAutoSearchActiveRef.current = false;
@@ -3736,6 +3823,7 @@ export default function Page() {
     triggerHaptic();
     playScanSuccessFeedback();
     showScanSuccessFlash();
+    pushScannerDebug(`Tuote lisätään koriin: ${ean || result.product.ean || productName}`);
 
     const existingItem = cart.find((item) => {
       const itemEan = normalizeEan(item.ean || item.product?.ean);
@@ -3767,6 +3855,7 @@ export default function Page() {
         setEanScannerOpen(true);
         setEanScannerMessage("Lisätty koriin. Kamera pysyy päällä seuraavaa tuotetta varten.");
       }
+      pushScannerDebug(`Määrä +1: ${existingItem.name}`);
       showCartToast(`Määrä +1: ${existingItem.name}`);
       setLastAutoEanSearch("");
 
@@ -3824,6 +3913,7 @@ export default function Page() {
       setEanScannerOpen(true);
       setEanScannerMessage("Lisätty koriin. Kamera pysyy päällä seuraavaa tuotetta varten.");
     }
+    pushScannerDebug(`Lisätty koriin: ${newItem.name}`);
     showCartToast(`Lisätty: ${newItem.name}`);
     setLastAutoEanSearch("");
 
@@ -6266,8 +6356,8 @@ export default function Page() {
       )}
 
       {eanModalOpen && (
-          <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/40 px-3 pb-3 pt-10 sm:items-center sm:p-4">
-            <div className="w-[min(94vw,34rem)] rounded-[1.5rem] bg-white p-4 shadow-2xl ring-1 ring-slate-200 sm:p-5">
+          <div className="fixed inset-0 z-[80] flex items-end justify-center overflow-hidden overscroll-none bg-black/40 px-3 pb-3 pt-10 sm:items-center sm:p-4">
+            <div className="max-h-[calc(100dvh-1.5rem)] w-[min(94vw,34rem)] overflow-y-auto overscroll-contain rounded-[1.5rem] bg-white p-4 shadow-2xl ring-1 ring-slate-200 [-webkit-overflow-scrolling:touch] sm:max-h-[calc(100dvh-2rem)] sm:p-5">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-lg font-extrabold text-slate-900">EAN / viivakoodi</p>
@@ -6309,6 +6399,8 @@ export default function Page() {
                     }
 
                     setEanInput(code);
+                    setLastScannedEan(code);
+                    pushScannerDebug(`EAN liitetty kenttään: ${code}`);
                     setLastAutoEanSearch(code);
                     setEanSearchStartedAutomatically(true);
                     eanAutoSearchActiveRef.current = true;
@@ -6345,15 +6437,18 @@ export default function Page() {
                 )}
               </div>
 
-              {eanScannerMessage && (
+              {eanScannerMessage && !eanScannerOpen && (
                 <div className="mt-3 rounded-2xl bg-slate-100 p-3 text-sm font-bold text-slate-700">
                   {eanScannerMessage}
                 </div>
               )}
 
               {eanScannerOpen && (
-                <div className="mt-3 overflow-hidden rounded-2xl bg-slate-950 p-2 ring-1 ring-slate-200">
-                  <div className="relative mx-auto h-[min(78vw,360px)] max-h-[360px] min-h-[260px] w-full max-w-[360px] overflow-hidden rounded-xl bg-slate-950">
+                <div
+                  className="mt-3 overflow-hidden overscroll-none rounded-2xl bg-slate-950 p-2 ring-1 ring-slate-200"
+                  style={{ WebkitOverflowScrolling: "touch", overscrollBehavior: "none" }}
+                >
+                  <div ref={scannerContainerRef} className="relative mx-auto h-[min(78vw,360px)] max-h-[360px] min-h-[260px] w-full max-w-[360px] overflow-hidden rounded-xl bg-slate-950 touch-none">
                     <div
                       id={EAN_SCANNER_REGION_ID}
                       className="h-full w-full overflow-hidden rounded-xl bg-slate-950 [&_canvas]:!hidden [&_video]:!h-full [&_video]:!w-full [&_video]:rounded-xl [&_video]:object-cover"
@@ -6403,6 +6498,29 @@ export default function Page() {
                   <div className="mt-2 rounded-xl border border-green-400/50 bg-green-500/10 p-2 text-center text-xs font-extrabold text-green-100">
                     Aseta viivakoodi vihreän kehyksen sisään. Käännä puhelinta tarvittaessa; maitopurkin pystyviivakoodi toimii parhaiten läheltä ja hyvässä valossa.
                   </div>
+
+                  {lastScannedEan && (
+                    <div className="mt-2 rounded-xl border border-white/10 bg-white/10 p-2 text-center font-mono text-xs font-black text-white">
+                      Luettu EAN: {lastScannedEan}
+                    </div>
+                  )}
+
+                  <details className="mt-2 rounded-xl border border-white/10 bg-black/35 text-white">
+                    <summary className="cursor-pointer px-3 py-2 text-xs font-black uppercase tracking-wide text-white/80">
+                      Scanner debug
+                    </summary>
+                    <div className="max-h-36 overflow-y-auto border-t border-white/10 p-3 font-mono text-[11px] leading-relaxed text-white/80">
+                      {scannerDebug.length === 0 ? (
+                        <div className="opacity-60">Ei debug-dataa vielä.</div>
+                      ) : (
+                        scannerDebug.map((line, index) => (
+                          <div key={`${line}-${index}`} className="break-all">
+                            {line}
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </details>
                 </div>
               )}
 
