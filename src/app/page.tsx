@@ -1753,6 +1753,7 @@ export default function Page() {
   const eanAutoSearchTimeoutRef = useRef<number | null>(null);
   const eanAutoSearchActiveRef = useRef(false);
   const eanInputRef = useRef<HTMLInputElement | null>(null);
+  const eanResultsRef = useRef<HTMLDivElement | null>(null);
   const lastEanCartAddRef = useRef<{ key: string; at: number } | null>(null);
   const lastEanToastRef = useRef<{ message: string; at: number } | null>(null);
   const eanSearchInFlightRef = useRef<string | null>(null);
@@ -1878,6 +1879,16 @@ export default function Page() {
       stopEanCameraScanner();
     };
   }, [eanModalOpen]);
+
+  useEffect(() => {
+    if (!eanModalOpen || eanResults.length <= 1) return;
+
+    const timeout = window.setTimeout(() => {
+      eanResultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 180);
+
+    return () => window.clearTimeout(timeout);
+  }, [eanModalOpen, eanResults.length]);
 
   // =========================
   // DERIVED VIEW STATE
@@ -6200,13 +6211,11 @@ export default function Page() {
           <div className="fixed inset-0 z-[80] flex items-end justify-center overflow-hidden overscroll-none bg-black/40 px-3 pb-3 pt-10 sm:items-center sm:p-4">
             <div className="max-h-[calc(100dvh-1.5rem)] w-[min(94vw,34rem)] overflow-y-auto overscroll-contain rounded-[1.5rem] bg-white p-4 shadow-2xl ring-1 ring-slate-200 [WebkitOverflowScrolling:touch] sm:max-h-[calc(100dvh-2rem)] sm:p-5">
               <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-lg font-extrabold text-slate-900">EAN / viivakoodi</p>
-                </div>
+                <p className="text-lg font-extrabold text-slate-900">EAN / viivakoodi</p>
                 <button
                   type="button"
                   onClick={closeEanModal}
-                  className="shrink-0 rounded-xl bg-slate-100 px-3 py-2 text-sm font-extrabold text-slate-700 transition hover:bg-slate-200 active:scale-[0.98]"
+                  className="touch-manipulation rounded-2xl bg-slate-100 px-4 py-3 text-sm font-extrabold text-slate-700 transition active:scale-[0.98]"
                 >
                   Sulje
                 </button>
@@ -6256,7 +6265,7 @@ export default function Page() {
                 </div>
               )}
 
-              <div className="mt-4 grid grid-cols-3 gap-2">
+              <div className="mt-4 grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={async () => {
@@ -6292,13 +6301,6 @@ export default function Page() {
                   className="touch-manipulation rounded-2xl bg-green-600 px-3 py-3 text-sm font-extrabold text-white transition active:scale-[0.98]"
                 >
                   Kirjoita
-                </button>
-                <button
-                  type="button"
-                  onClick={stopEanCameraScanner}
-                  className="touch-manipulation rounded-2xl bg-green-600 px-3 py-3 text-sm font-extrabold text-white transition active:scale-[0.98]"
-                >
-                  Sulje kamera
                 </button>
               </div>
 
@@ -6370,7 +6372,7 @@ export default function Page() {
               )}
 
               {eanResults.length > 0 && !eanSearchStartedAutomatically && (
-                <div className="mt-4 grid gap-2">
+                <div ref={eanResultsRef} className="mt-4 grid gap-2 scroll-mt-4">
                   {eanResults.map((result) => (
                     <div key={result.key} className="rounded-2xl border border-slate-200 p-3">
                       <div className="flex min-w-0 items-center gap-3">
