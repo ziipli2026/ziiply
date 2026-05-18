@@ -163,7 +163,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v198";
+const APP_VERSION = "v201";
 
 // Scanner UX:
 // Käytetään lähes neliötä, jotta sekä pysty- että vaakaviivakoodit mahtuvat kehykseen.
@@ -621,7 +621,8 @@ function isDifferentColaBrand(sourceName: string, targetName: string) {
   const targetCocaCola = hasAnyToken(target, ["coca-cola", "coca cola"]);
   const sourcePepsi = hasAnyToken(source, ["pepsi", "pepsi max"]);
   const targetPepsi = hasAnyToken(target, ["pepsi", "pepsi max"]);
-return (sourceCocaCola && targetPepsi) || (sourcePepsi && targetCocaCola);
+
+  return (sourceCocaCola && targetPepsi) || (sourcePepsi && targetCocaCola);
 }
 
 function buildKSearchName(name: string) {
@@ -1749,7 +1750,7 @@ export default function Page() {
   const cartSectionRef = useRef<HTMLElement | null>(null);
   const comparisonSectionRef = useRef<HTMLElement | null>(null);
   const compareOverlayScrollRef = useRef<HTMLDivElement | null>(null);
-  const compareHeroRef = useRef<HTMLDivElement | null>(null);
+  const compareHeroRef = useRef<HTMLElement | null>(null);
   const pendingCompareAnchorRef = useRef(false);
   const normalResultsSectionRef = useRef<HTMLElement | null>(null);
   const savingsSummaryRef = useRef<HTMLElement | null>(null);
@@ -1917,12 +1918,24 @@ export default function Page() {
     body.style.top = `-${scrollY}px`;
     body.style.width = "100%";
 
+    const keepBodyLocked = () => {
+      body.style.position = "fixed";
+      body.style.top = `-${scrollY}px`;
+      body.style.width = "100%";
+      body.style.overflow = "hidden";
+    };
+
+    window.visualViewport?.addEventListener("resize", keepBodyLocked);
+    window.visualViewport?.addEventListener("scroll", keepBodyLocked);
+
     return () => {
       body.style.overflow = previousOverflow;
       body.style.position = previousPosition;
       body.style.top = previousTop;
       body.style.width = previousWidth;
-      window.scrollTo(0, scrollY);
+            window.visualViewport?.removeEventListener("resize", keepBodyLocked);
+      window.visualViewport?.removeEventListener("scroll", keepBodyLocked);
+window.scrollTo(0, scrollY);
     };
   }, [searchPanelOpen, cartModalOpen, activeResult]);
 
