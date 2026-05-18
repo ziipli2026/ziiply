@@ -162,6 +162,7 @@ const MAX_RECENT_CART_ITEMS = 10;
 const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
+const SAME_EAN_RESCAN_LOCK_MS = 9000;
 
 // Scanner UX:
 // Käytetään lähes neliötä, jotta sekä pysty- että vaakaviivakoodit mahtuvat kehykseen.
@@ -1846,6 +1847,30 @@ export default function Page() {
   }, []);
 
   useEffect(() => {
+    if (!eanModalOpen || typeof document === "undefined") return;
+
+    const body = document.body;
+    const scrollY = window.scrollY;
+    const previousOverflow = body.style.overflow;
+    const previousPosition = body.style.position;
+    const previousTop = body.style.top;
+    const previousWidth = body.style.width;
+
+    body.style.overflow = "hidden";
+    body.style.position = "fixed";
+    body.style.top = `-${scrollY}px`;
+    body.style.width = "100%";
+
+    return () => {
+      body.style.overflow = previousOverflow;
+      body.style.position = previousPosition;
+      body.style.top = previousTop;
+      body.style.width = previousWidth;
+      window.scrollTo(0, scrollY);
+    };
+  }, [eanModalOpen]);
+
+  useEffect(() => {
     if (!eanModalOpen) stopEanCameraScanner();
 
     return () => {
@@ -3325,7 +3350,7 @@ export default function Page() {
 
     // TÄRKEÄ: älä pysäytä kameraa onnistuneen skannauksen jälkeen.
     // Sarjaskannauksessa kamera pysyy päällä ja käyttäjä voi lukea seuraavan tuotteen heti.
-    if (previous?.code === normalizedCode && now - previous.at < 3200) {
+    if (previous?.code === normalizedCode && now - previous.at < SAME_EAN_RESCAN_LOCK_MS) {
       return;
     }
 
@@ -3722,6 +3747,10 @@ export default function Page() {
 
   function addEanResultToCart(result: EanSearchResult) {
     const ean = normalizeEan(result.product.ean || eanInput);
+    if (isUsableEan(ean)) {
+      lastContinuousScanRef.current = { code: ean, at: Date.now() };
+    }
+
     const productName = fixText(result.product.name);
     const addKey = `${result.chain}-${ean || normalize(productName)}-${result.product.id}`;
     const now = Date.now();
@@ -6266,8 +6295,8 @@ export default function Page() {
       )}
 
       {eanModalOpen && (
-          <div className="fixed inset-0 z-[80] flex items-end justify-center bg-black/40 px-3 pb-3 pt-10 sm:items-center sm:p-4">
-            <div className="w-[min(94vw,34rem)] rounded-[1.5rem] bg-white p-4 shadow-2xl ring-1 ring-slate-200 sm:p-5">
+          <div className="fixed inset-0 z-[80] flex items-end justify-center overflow-hidden overscroll-none bg-black/40 px-3 pb-3 pt-10 sm:items-center sm:p-4">
+            <div className="max-h-[calc(100dvh-1.5rem)] w-[min(94vw,34rem)] overflow-y-auto overscroll-contain rounded-[1.5rem] bg-white p-4 shadow-2xl ring-1 ring-slate-200 [WebkitOverflowScrolling:touch] sm:max-h-[calc(100dvh-2rem)] sm:p-5">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-lg font-extrabold text-slate-900">EAN / viivakoodi</p>
