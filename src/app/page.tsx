@@ -6211,13 +6211,54 @@ export default function Page() {
           <div className="fixed inset-0 z-[80] flex items-end justify-center overflow-hidden overscroll-none bg-black/40 px-3 pb-3 pt-10 sm:items-center sm:p-4">
             <div className="max-h-[calc(100dvh-1.5rem)] w-[min(94vw,34rem)] overflow-y-auto overscroll-contain rounded-[1.5rem] bg-white p-4 shadow-2xl ring-1 ring-slate-200 [WebkitOverflowScrolling:touch] sm:max-h-[calc(100dvh-2rem)] sm:p-5">
               <div className="flex items-start justify-between gap-3">
-                <p className="text-lg font-extrabold text-slate-900">EAN / viivakoodi</p>
+                <div>
+                  <p className="text-lg font-extrabold text-slate-900">EAN / viivakoodi</p>
+                </div>
                 <button
                   type="button"
                   onClick={closeEanModal}
-                  className="touch-manipulation rounded-2xl bg-slate-100 px-4 py-3 text-sm font-extrabold text-slate-700 transition active:scale-[0.98]"
+                  className="shrink-0 rounded-xl bg-slate-100 px-3 py-2 text-sm font-extrabold text-slate-700 transition hover:bg-slate-200 active:scale-[0.98]"
                 >
                   Sulje
+                </button>
+              </div>
+
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      const text = await navigator.clipboard.readText();
+                      const code = normalizeEan(text);
+                      if (!isUsableEan(code)) {
+                        setEanMessage("Leikepöydältä ei löytynyt kelvollista EAN-koodia.");
+                        return;
+                      }
+                      setEanManualInputOpen(true);
+                      setEanInput(code);
+                      setLastAutoEanSearch(code);
+                      setEanSearchStartedAutomatically(true);
+                      eanAutoSearchActiveRef.current = true;
+                      setEanMessage(`Liitetty koodi: ${code}. Haetaan...`);
+                      void searchByEan(code);
+                    } catch {
+                      setEanManualInputOpen(true);
+                      window.setTimeout(() => eanInputRef.current?.focus(), 0);
+                    }
+                  }}
+                  className="touch-manipulation rounded-2xl bg-green-600 px-3 py-3 text-sm font-extrabold text-white transition active:scale-[0.98]"
+                >
+                  Liitä
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEanManualInputOpen((current) => !current);
+                    window.setTimeout(() => eanInputRef.current?.focus(), 0);
+                  }}
+                  className="touch-manipulation rounded-2xl bg-green-600 px-3 py-3 text-sm font-extrabold text-white transition active:scale-[0.98]"
+                >
+                  Kirjoita
                 </button>
               </div>
 
@@ -6265,44 +6306,6 @@ export default function Page() {
                 </div>
               )}
 
-              <div className="mt-4 grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={async () => {
-                    try {
-                      const text = await navigator.clipboard.readText();
-                      const code = normalizeEan(text);
-                      if (!isUsableEan(code)) {
-                        setEanMessage("Leikepöydältä ei löytynyt kelvollista EAN-koodia.");
-                        return;
-                      }
-                      setEanManualInputOpen(true);
-                      setEanInput(code);
-                      setLastAutoEanSearch(code);
-                      setEanSearchStartedAutomatically(true);
-                      eanAutoSearchActiveRef.current = true;
-                      setEanMessage(`Liitetty koodi: ${code}. Haetaan...`);
-                      void searchByEan(code);
-                    } catch {
-                      setEanManualInputOpen(true);
-                      window.setTimeout(() => eanInputRef.current?.focus(), 0);
-                    }
-                  }}
-                  className="touch-manipulation rounded-2xl bg-green-600 px-3 py-3 text-sm font-extrabold text-white transition active:scale-[0.98]"
-                >
-                  Liitä
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEanManualInputOpen((current) => !current);
-                    window.setTimeout(() => eanInputRef.current?.focus(), 0);
-                  }}
-                  className="touch-manipulation rounded-2xl bg-green-600 px-3 py-3 text-sm font-extrabold text-white transition active:scale-[0.98]"
-                >
-                  Kirjoita
-                </button>
-              </div>
 
               {eanScannerMessage && !eanScannerOpen && (
                 <div className="mt-3 rounded-2xl bg-slate-100 p-3 text-sm font-bold text-slate-700">
