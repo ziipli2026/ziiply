@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type Offer = {
   id: number;
@@ -163,7 +163,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v196";
+const APP_VERSION = "v197";
 
 // Scanner UX:
 // Käytetään lähes neliötä, jotta sekä pysty- että vaakaviivakoodit mahtuvat kehykseen.
@@ -621,6 +621,21 @@ function isDifferentColaBrand(sourceName: string, targetName: string) {
   const targetCocaCola = hasAnyToken(target, ["coca-cola", "coca cola"]);
   const sourcePepsi = hasAnyToken(source, ["pepsi", "pepsi max"]);
   const targetPepsi = hasAnyToken(target, ["pepsi", "pepsi max"]);
+
+  useEffect(() => {
+    if (activeResult !== "compare") return;
+    if (!pendingCompareAnchorRef.current) return;
+
+    const scroller = compareOverlayScrollRef.current;
+    const target = compareHeroRef.current;
+
+    if (!scroller || !target) return;
+
+    requestAnimationFrame(() => {
+      scroller.scrollTop = Math.max(0, target.offsetTop - 12);
+      pendingCompareAnchorRef.current = false;
+    });
+  }, [activeResult, comparisonLoading, chainResults.length]);
 
   return (sourceCocaCola && targetPepsi) || (sourcePepsi && targetCocaCola);
 }
@@ -1750,6 +1765,7 @@ export default function Page() {
   const cartSectionRef = useRef<HTMLElement | null>(null);
   const comparisonSectionRef = useRef<HTMLElement | null>(null);
   const compareOverlayScrollRef = useRef<HTMLDivElement | null>(null);
+  const compareHeroRef = useRef<HTMLDivElement | null>(null);
   const pendingCompareAnchorRef = useRef(false);
   const normalResultsSectionRef = useRef<HTMLElement | null>(null);
   const savingsSummaryRef = useRef<HTMLElement | null>(null);
@@ -1810,6 +1826,14 @@ export default function Page() {
   const scanSuccessFlashTimeoutRef = useRef<number | null>(null);
   const scanMissFlashTimeoutRef = useRef<number | null>(null);
 
+  function openCompareOverlay() {
+    if (cartIsEmpty) return;
+    pendingCompareAnchorRef.current = true;
+    setCartModalOpen(false);
+    setSearchPanelOpen(false);
+    setActiveResult("compare");
+  }
+
   // =========================
   // MOBILE APP SHELL
   // =========================
@@ -1863,22 +1887,12 @@ export default function Page() {
     const previousTop = body.style.top;
     const previousWidth = body.style.width;
 
-    const keepBodyLocked = () => {
-      body.style.overflow = "hidden";
-      body.style.position = "fixed";
-      body.style.top = `-${scrollY}px`;
-      body.style.width = "100%";
-    };
-
-    keepBodyLocked();
-
-    const visualViewport = window.visualViewport;
-    visualViewport?.addEventListener("resize", keepBodyLocked);
-    visualViewport?.addEventListener("scroll", keepBodyLocked);
+    body.style.overflow = "hidden";
+    body.style.position = "fixed";
+    body.style.top = `-${scrollY}px`;
+    body.style.width = "100%";
 
     return () => {
-      visualViewport?.removeEventListener("resize", keepBodyLocked);
-      visualViewport?.removeEventListener("scroll", keepBodyLocked);
       body.style.overflow = previousOverflow;
       body.style.position = previousPosition;
       body.style.top = previousTop;
@@ -1899,22 +1913,12 @@ export default function Page() {
     const previousTop = body.style.top;
     const previousWidth = body.style.width;
 
-    const keepBodyLocked = () => {
-      body.style.overflow = "hidden";
-      body.style.position = "fixed";
-      body.style.top = `-${scrollY}px`;
-      body.style.width = "100%";
-    };
-
-    keepBodyLocked();
-
-    const visualViewport = window.visualViewport;
-    visualViewport?.addEventListener("resize", keepBodyLocked);
-    visualViewport?.addEventListener("scroll", keepBodyLocked);
+    body.style.overflow = "hidden";
+    body.style.position = "fixed";
+    body.style.top = `-${scrollY}px`;
+    body.style.width = "100%";
 
     return () => {
-      visualViewport?.removeEventListener("resize", keepBodyLocked);
-      visualViewport?.removeEventListener("scroll", keepBodyLocked);
       body.style.overflow = previousOverflow;
       body.style.position = previousPosition;
       body.style.top = previousTop;
@@ -1941,19 +1945,6 @@ export default function Page() {
 
     return () => window.clearTimeout(timeout);
   }, [eanModalOpen, eanResults.length]);
-
-  useLayoutEffect(() => {
-    if (activeResult !== "compare") return;
-
-    const scroller = compareOverlayScrollRef.current;
-    const target = savingsSummaryRef.current || comparisonSectionRef.current;
-
-    if (!scroller || !target) return;
-
-    const targetTop = Math.max(0, target.offsetTop - 4);
-    scroller.scrollTop = targetTop;
-    pendingCompareAnchorRef.current = false;
-  }, [activeResult, cheapest?.key, chainResults.length, comparisonLoading]);
 
   // =========================
   // DERIVED VIEW STATE
@@ -4192,7 +4183,10 @@ export default function Page() {
     setEanModalOpen(false);
     setActiveResult("compare");
 
-    pendingCompareAnchorRef.current = true;
+    window.setTimeout(() => {
+      compareOverlayScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+      comparisonSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 80);
 
     void updateChainComparison(cart);
   }
@@ -5331,10 +5325,10 @@ export default function Page() {
 
         {activeResult === "compare" && (
           <div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0">
-            <div ref={compareOverlayScrollRef} data-ziiply-overlay-scroll="true" className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-50 p-3 shadow-2xl sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:bg-transparent sm:p-0 sm:shadow-none">
+            <div className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-50 p-3 shadow-2xl sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:bg-transparent sm:p-0 sm:shadow-none">
             <div className="grid min-w-0 max-w-full gap-4 overflow-hidden lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
             {showCheapestSticky && cheapest && secondCheapest ? (
-                <section ref={savingsSummaryRef} className="min-w-0 max-w-full overflow-hidden rounded-[1.5rem] bg-white p-3 shadow-sm sm:rounded-[2rem] sm:p-6">
+                <section ref={(node) => { savingsSummaryRef.current = node; compareHeroRef.current = node; }} className="min-w-0 max-w-full overflow-hidden rounded-[1.5rem] bg-white p-3 shadow-sm sm:rounded-[2rem] sm:p-6">
                   <div className="rounded-[1.5rem] border border-green-200 bg-white/95 p-5 text-center shadow-sm">
                     <div className="relative mx-auto max-w-sm rounded-2xl border border-green-200 bg-white px-5 pb-4 pt-3 shadow-xl">
                       <div className="flex items-start justify-between gap-3">
