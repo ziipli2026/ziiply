@@ -6174,27 +6174,18 @@ export default function Page() {
                 Sulje
               </button>
             </div>
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => startVoiceInput()}
-                className={`touch-manipulation rounded-2xl px-4 py-4 text-sm font-extrabold text-white transition active:scale-[0.98] ${
-                  isListening
-                    ? "bg-red-600"
-                    : speechSupported
-                    ? "bg-blue-600"
-                    : "bg-slate-500"
-                }`}
-              >
-                {isListening ? "🎙️ Kuunnellaan..." : "🎤 Sanele haku"}
+            <div className="mt-4 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-3">
+              <button type="button" onClick={handleMainOfferSearch} className="touch-manipulation rounded-2xl bg-green-600 px-3 py-4 text-sm font-extrabold text-white transition active:scale-[0.98] sm:px-5 sm:text-base">
+                {loadingOffers ? "Haetaan..." : "🔥 Tarjoukset"}
               </button>
-
-              <button
-                type="button"
-                onClick={openEanModal}
-                className="touch-manipulation rounded-2xl bg-emerald-700 px-4 py-4 text-sm font-extrabold text-white transition active:scale-[0.98]"
-              >
-                ▦ EAN / viivakoodi
+              <button type="button" onClick={handleMainNormalSearch} className="touch-manipulation rounded-2xl bg-green-600 px-3 py-4 text-sm font-extrabold text-white transition active:scale-[0.98] sm:px-5 sm:text-base">
+                {loadingNormal ? "Haetaan..." : "🛒 Hintavertailu"}
+              </button>
+              <button onClick={addInputToCart} className="touch-manipulation rounded-2xl bg-slate-900 px-3 py-4 text-sm font-extrabold text-white transition active:scale-[0.98] sm:px-5 sm:text-base">
+                Lisää muistilistana
+              </button>
+              <button onClick={showCart} className="touch-manipulation rounded-2xl bg-slate-900 px-3 py-4 text-sm font-extrabold text-white transition active:scale-[0.98] sm:px-5 sm:text-base">
+                Näytä ostoskori ({cart.length})
               </button>
             </div>
 
@@ -6203,7 +6194,7 @@ export default function Page() {
               value={input}
               onChange={(event) => setInput(event.target.value)}
               placeholder={"Kirjoita esim. maito,kahvi,jauheliha\nTai liitä muistilista pilkulla tai riveittäin, max 8 tuotetta"}
-              className="h-28 w-full rounded-2xl border border-slate-300 px-4 py-3 text-base outline-none transition focus:border-green-600 sm:h-32"
+              className="mt-3 h-28 w-full rounded-2xl border-2 border-green-600 px-4 py-3 text-base outline-none transition placeholder:text-slate-400 focus:border-green-700 sm:h-32"
             />
 
             {terms.length > 0 && (
@@ -6271,21 +6262,29 @@ export default function Page() {
               </div>
             )}
 
-            <div className="mt-4 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-3">
-              <button type="button" onClick={handleMainOfferSearch} className="touch-manipulation rounded-xl bg-green-600 px-3 py-3 text-sm font-bold text-white transition active:scale-[0.98] sm:px-5 sm:text-base">
-                {loadingOffers ? "Haetaan..." : "🔥 Tarjoukset"}
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => startVoiceInput()}
+                className={`touch-manipulation rounded-2xl px-4 py-4 text-sm font-extrabold text-white transition active:scale-[0.98] ${
+                  isListening
+                    ? "bg-red-600"
+                    : speechSupported
+                    ? "bg-blue-600"
+                    : "bg-slate-500"
+                }`}
+              >
+                {isListening ? "🎙️ Kuunnellaan..." : "🎤 Sanele haku"}
               </button>
-              <button type="button" onClick={handleMainNormalSearch} className="touch-manipulation rounded-xl bg-green-600 px-3 py-3 text-sm font-bold text-white transition active:scale-[0.98] sm:px-5 sm:text-base">
-                {loadingNormal ? "Haetaan..." : "🛒 Hintavertailu"}
+
+              <button
+                type="button"
+                onClick={openEanModal}
+                className="touch-manipulation rounded-2xl bg-emerald-700 px-4 py-4 text-sm font-extrabold text-white transition active:scale-[0.98]"
+              >
+                ▦ EAN / viivakoodi
               </button>
-              <button onClick={addInputToCart} className="touch-manipulation rounded-xl bg-slate-900 px-3 py-3 text-sm font-bold text-white transition active:scale-[0.98] sm:px-5 sm:text-base">
-                Lisää muistilistana
-              </button>
-              <button onClick={showCart} className="touch-manipulation rounded-xl bg-slate-900 px-3 py-3 text-sm font-bold text-white transition active:scale-[0.98] sm:px-5 sm:text-base">
-                Näytä ostoskori ({cart.length})
-              </button>
-            
-              </div>
+            </div>
 
             <p className="mt-3 text-sm text-slate-500">Kirjoita muistilistaksi esim. maito,kahvi,banaani. Hintavertailu hakee hintoja, Lisää muistilistana lisää rivit ilman hintaa keräilyyn.</p>
           </div>
