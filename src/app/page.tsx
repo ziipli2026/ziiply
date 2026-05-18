@@ -163,7 +163,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v194";
+const APP_VERSION = "v202";
 
 // Scanner UX:
 // Käytetään lähes neliötä, jotta sekä pysty- että vaakaviivakoodit mahtuvat kehykseen.
@@ -1750,6 +1750,7 @@ export default function Page() {
   const cartSectionRef = useRef<HTMLElement | null>(null);
   const comparisonSectionRef = useRef<HTMLElement | null>(null);
   const compareOverlayScrollRef = useRef<HTMLDivElement | null>(null);
+  const pendingCompareAnchorRef = useRef(false);
   const normalResultsSectionRef = useRef<HTMLElement | null>(null);
   const savingsSummaryRef = useRef<HTMLElement | null>(null);
   const searchInputRef = useRef<HTMLTextAreaElement | null>(null);
@@ -1809,6 +1810,14 @@ export default function Page() {
   const scanSuccessFlashTimeoutRef = useRef<number | null>(null);
   const scanMissFlashTimeoutRef = useRef<number | null>(null);
 
+  function openCompareOverlayAtResult() {
+    if (cartIsEmpty) return;
+    pendingCompareAnchorRef.current = true;
+    setCartModalOpen(false);
+    setSearchPanelOpen(false);
+    setActiveResult("compare");
+  }
+
   // =========================
   // MOBILE APP SHELL
   // =========================
@@ -1827,7 +1836,30 @@ export default function Page() {
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
 
-    return () => {
+    useEffect(() => {
+    if (activeResult !== "compare") return;
+    if (!pendingCompareAnchorRef.current) return;
+
+    const scroller = compareOverlayScrollRef.current;
+    if (!scroller) return;
+
+    requestAnimationFrame(() => {
+      const cards = Array.from(scroller.querySelectorAll("section, div")) as HTMLElement[];
+      const target = cards.find((element) =>
+        element.textContent?.toLowerCase().includes("halvin täysi kori")
+      );
+
+      if (target) {
+        scroller.scrollTop = Math.max(0, target.offsetTop - 12);
+      } else {
+        scroller.scrollTop = 0;
+      }
+
+      pendingCompareAnchorRef.current = false;
+    });
+  }, [activeResult, comparisonLoading, chainResults.length]);
+
+  return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
     };
@@ -1893,12 +1925,24 @@ export default function Page() {
     body.style.top = `-${scrollY}px`;
     body.style.width = "100%";
 
+    const keepOverlayBodyLocked = () => {
+      body.style.overflow = "hidden";
+      body.style.position = "fixed";
+      body.style.top = `-${scrollY}px`;
+      body.style.width = "100%";
+    };
+
+    window.visualViewport?.addEventListener("resize", keepOverlayBodyLocked);
+    window.visualViewport?.addEventListener("scroll", keepOverlayBodyLocked);
+
     return () => {
       body.style.overflow = previousOverflow;
       body.style.position = previousPosition;
       body.style.top = previousTop;
       body.style.width = previousWidth;
-      window.scrollTo(0, scrollY);
+            window.visualViewport?.removeEventListener("resize", keepOverlayBodyLocked);
+      window.visualViewport?.removeEventListener("scroll", keepOverlayBodyLocked);
+window.scrollTo(0, scrollY);
     };
   }, [searchPanelOpen, cartModalOpen, activeResult]);
 
