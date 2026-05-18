@@ -163,7 +163,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v201";
+const APP_VERSION = "v194";
 
 // Scanner UX:
 // Käytetään lähes neliötä, jotta sekä pysty- että vaakaviivakoodit mahtuvat kehykseen.
@@ -1750,8 +1750,6 @@ export default function Page() {
   const cartSectionRef = useRef<HTMLElement | null>(null);
   const comparisonSectionRef = useRef<HTMLElement | null>(null);
   const compareOverlayScrollRef = useRef<HTMLDivElement | null>(null);
-  const compareHeroRef = useRef<HTMLElement | null>(null);
-  const pendingCompareAnchorRef = useRef(false);
   const normalResultsSectionRef = useRef<HTMLElement | null>(null);
   const savingsSummaryRef = useRef<HTMLElement | null>(null);
   const searchInputRef = useRef<HTMLTextAreaElement | null>(null);
@@ -1811,14 +1809,6 @@ export default function Page() {
   const scanSuccessFlashTimeoutRef = useRef<number | null>(null);
   const scanMissFlashTimeoutRef = useRef<number | null>(null);
 
-  function openCompareOverlay() {
-    if (cartIsEmpty) return;
-    pendingCompareAnchorRef.current = true;
-    setCartModalOpen(false);
-    setSearchPanelOpen(false);
-    setActiveResult("compare");
-  }
-
   // =========================
   // MOBILE APP SHELL
   // =========================
@@ -1837,22 +1827,7 @@ export default function Page() {
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
 
-    useEffect(() => {
-    if (activeResult !== "compare") return;
-    if (!pendingCompareAnchorRef.current) return;
-
-    const scroller = compareOverlayScrollRef.current;
-    const target = compareHeroRef.current;
-
-    if (!scroller || !target) return;
-
-    requestAnimationFrame(() => {
-      scroller.scrollTop = Math.max(0, target.offsetTop - 12);
-      pendingCompareAnchorRef.current = false;
-    });
-  }, [activeResult, comparisonLoading, chainResults.length]);
-
-  return () => {
+    return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
     };
@@ -1918,24 +1893,12 @@ export default function Page() {
     body.style.top = `-${scrollY}px`;
     body.style.width = "100%";
 
-    const keepBodyLocked = () => {
-      body.style.position = "fixed";
-      body.style.top = `-${scrollY}px`;
-      body.style.width = "100%";
-      body.style.overflow = "hidden";
-    };
-
-    window.visualViewport?.addEventListener("resize", keepBodyLocked);
-    window.visualViewport?.addEventListener("scroll", keepBodyLocked);
-
     return () => {
       body.style.overflow = previousOverflow;
       body.style.position = previousPosition;
       body.style.top = previousTop;
       body.style.width = previousWidth;
-            window.visualViewport?.removeEventListener("resize", keepBodyLocked);
-      window.visualViewport?.removeEventListener("scroll", keepBodyLocked);
-window.scrollTo(0, scrollY);
+      window.scrollTo(0, scrollY);
     };
   }, [searchPanelOpen, cartModalOpen, activeResult]);
 
@@ -5340,7 +5303,7 @@ window.scrollTo(0, scrollY);
             <div className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-50 p-3 shadow-2xl sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:bg-transparent sm:p-0 sm:shadow-none">
             <div className="grid min-w-0 max-w-full gap-4 overflow-hidden lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
             {showCheapestSticky && cheapest && secondCheapest ? (
-                <section ref={(node) => { savingsSummaryRef.current = node; compareHeroRef.current = node; }} className="min-w-0 max-w-full overflow-hidden rounded-[1.5rem] bg-white p-3 shadow-sm sm:rounded-[2rem] sm:p-6">
+                <section ref={savingsSummaryRef} className="min-w-0 max-w-full overflow-hidden rounded-[1.5rem] bg-white p-3 shadow-sm sm:rounded-[2rem] sm:p-6">
                   <div className="rounded-[1.5rem] border border-green-200 bg-white/95 p-5 text-center shadow-sm">
                     <div className="relative mx-auto max-w-sm rounded-2xl border border-green-200 bg-white px-5 pb-4 pt-3 shadow-xl">
                       <div className="flex items-start justify-between gap-3">
