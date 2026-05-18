@@ -163,6 +163,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
+const APP_VERSION = "v187";
 
 // Scanner UX:
 // Käytetään lähes neliötä, jotta sekä pysty- että vaakaviivakoodit mahtuvat kehykseen.
@@ -3785,81 +3786,70 @@ export default function Page() {
     playScanSuccessFeedback();
     showScanSuccessFlash();
 
-    const existingItem = cart.find((item) => {
-      const itemEan = normalizeEan(item.ean || item.product?.ean);
-      if (isUsableEan(ean) && itemEan === ean) return true;
-      return normalize(item.name) === normalize(productName);
+    let cartLimitReached = false;
+
+    setCart((currentCart) => {
+      const existingItem = currentCart.find((item) => {
+        const itemEan = normalizeEan(item.ean || item.product?.ean);
+        if (isUsableEan(ean) && itemEan === ean) return true;
+        return normalize(item.name) === normalize(productName);
+      });
+
+      if (existingItem) {
+        const nextCart = currentCart.map((item) =>
+          item.id === existingItem.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item
+        );
+
+        persistCartImmediately(nextCart);
+        void updateChainComparison(nextCart);
+        showCartToast(`Määrä +1: ${existingItem.name}`);
+        return nextCart;
+      }
+
+      if (currentCart.length >= MAX_ITEMS) {
+        cartLimitReached = true;
+        return currentCart;
+      }
+
+      const newItem: CartItem = {
+        id: `ean-${result.chain}-${result.product.id}-${Date.now()}`,
+        name: productName,
+        price: getProductPrice(result.product),
+        image: result.product.pictureUrl,
+        chain: result.chain,
+        storeName: result.storeName,
+        quantity: 1,
+        source: "search",
+        product: result.product,
+        ean: ean || result.product.ean,
+      };
+
+      const nextCart = [...currentCart, newItem];
+      persistCartImmediately(nextCart);
+      void updateChainComparison(nextCart);
+      showCartToast(`Lisätty: ${newItem.name}`);
+
+      const normalizedEan = normalizeEan(newItem.ean);
+      if (isUsableEan(normalizedEan)) {
+        setEanCache((prev) => ({
+          ...prev,
+          [normalizedEan]: newItem.name,
+        }));
+      }
+
+      return nextCart;
     });
 
-    if (existingItem) {
-      const nextCart = cart.map((item) =>
-        item.id === existingItem.id
-          ? { ...item, quantity: item.quantity + 1 }
-          : item
-      );
-
-      setCart(nextCart);
-      persistCartImmediately(nextCart);
-      // Sarjaskannauksessa ei vaihdeta vertailunäkymään, koska se voi peittää tai katkaista kameran.
-      // Vertailu päivittyy silti taustalla.
-      if (!eanScannerOpen) setActiveResult("compare");
-      void updateChainComparison(nextCart);
-
-      setEanInput("");
-      setEanResults([]);
-      setEanLoading(false);
-      setEanSearchStartedAutomatically(false);
-      eanAutoSearchActiveRef.current = false;
-      setEanMessage("");
-      if (eanHtml5ScannerRef.current) {
-        setEanScannerOpen(true);
-        setEanScannerMessage("Lisätty koriin. Kamera pysyy päällä seuraavaa tuotetta varten.");
-      }
-      showCartToast(`Määrä +1: ${existingItem.name}`);
-      setLastAutoEanSearch("");
-
-      window.setTimeout(() => {
-        eanInputRef.current?.focus();
-      }, 0);
-
-      return;
-    }
-
-    if (cart.length >= MAX_ITEMS) {
+    if (cartLimitReached) {
       alert(`Demossa ostoskori on rajattu ${MAX_ITEMS} tuotteeseen.`);
       return;
     }
 
-    const newItem: CartItem = {
-      id: `ean-${result.chain}-${result.product.id}-${Date.now()}`,
-      name: productName,
-      price: getProductPrice(result.product),
-      image: result.product.pictureUrl,
-      chain: result.chain,
-      storeName: result.storeName,
-      quantity: 1,
-      source: "search",
-      product: result.product,
-      ean: ean || result.product.ean,
-    };
-
-    const nextCart = [...cart, newItem];
-
-    const normalizedEan = normalizeEan(newItem.ean);
-
-    if (isUsableEan(normalizedEan)) {
-      setEanCache((prev) => ({
-        ...prev,
-        [normalizedEan]: newItem.name,
-      }));
-    }
-
-    setCart(nextCart);
-    persistCartImmediately(nextCart);
     // Sarjaskannauksessa ei vaihdeta vertailunäkymään, koska kamera halutaan pitää auki.
     // Vertailu päivittyy silti taustalla.
     if (!eanScannerOpen) setActiveResult("compare");
-    void updateChainComparison(nextCart);
 
     // Jätä EAN-ikkuna auki seuraavaa koodia/kameraskannausta varten.
     setEanInput("");
@@ -3872,7 +3862,6 @@ export default function Page() {
       setEanScannerOpen(true);
       setEanScannerMessage("Lisätty koriin. Kamera pysyy päällä seuraavaa tuotetta varten.");
     }
-    showCartToast(`Lisätty: ${newItem.name}`);
     setLastAutoEanSearch("");
 
     window.setTimeout(() => {
@@ -4901,9 +4890,10 @@ export default function Page() {
               alt="Ziiply"
               className="h-auto w-full max-w-[280px] object-contain"
             />
-            <p className="mt-4 rounded-full bg-green-50 px-4 py-2 text-[11px] font-black uppercase tracking-[0.22em] text-green-700 ring-1 ring-green-100">
-              MVP
-            </p>
+            <div className="mt-4 flex flex-col items-center gap-2">
+              <span className="rounded-full bg-green-50 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-green-700 ring-1 ring-green-100">{APP_VERSION}</span>
+              <span className="rounded-full bg-slate-100 px-4 py-2 text-[11px] font-black uppercase tracking-[0.22em] text-slate-600 ring-1 ring-slate-200">MVP</span>
+            </div>
           </div>
         </div>
       )}
@@ -4917,7 +4907,10 @@ export default function Page() {
               className="h-9 w-auto max-w-[128px] shrink-0 object-contain"
             />
           </div>
-          <span className="shrink-0 rounded-full bg-slate-100 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-slate-600 ring-1 ring-slate-200">MVP</span>
+          <div className="flex shrink-0 flex-col items-end gap-1">
+            <span className="rounded-full bg-green-50 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-green-700 ring-1 ring-green-100">{APP_VERSION}</span>
+            <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-slate-600 ring-1 ring-slate-200">MVP</span>
+          </div>
         </div>
         {!isOnline && (
           <div className="mx-auto mt-2 max-w-md rounded-2xl bg-amber-100 px-3 py-2 text-center text-[11px] font-black text-amber-900 ring-1 ring-amber-200">
