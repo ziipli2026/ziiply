@@ -1955,7 +1955,7 @@ export default function Page() {
     scanSuccessFlashTimeoutRef.current = window.setTimeout(() => {
       setScanSuccessFlash(false);
       scanSuccessFlashTimeoutRef.current = null;
-    }, 500);
+    }, 700);
   }
 
   function showScanMissFlash() {
@@ -1969,7 +1969,7 @@ export default function Page() {
     scanMissFlashTimeoutRef.current = window.setTimeout(() => {
       setScanMissFlash(false);
       scanMissFlashTimeoutRef.current = null;
-    }, 500);
+    }, 700);
   }
 
 
@@ -6365,8 +6365,21 @@ export default function Page() {
                       <div className="absolute -bottom-1 -right-1 h-5 w-5 rounded-br-2xl border-b-4 border-r-4 border-white/90" />
                     </div>
 
+                    {eanLoading && (
+                      <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-xl bg-slate-700/45 backdrop-blur-[1px]">
+                        <div className="flex flex-col items-center gap-3 rounded-3xl bg-slate-900/80 px-6 py-5 text-white shadow-2xl ring-2 ring-white/20">
+                          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/15 text-4xl font-black animate-pulse">
+                            ⏳
+                          </div>
+                          <div className="text-sm font-black uppercase tracking-[0.22em] text-white/90">
+                            Haetaan
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
                     {scanSuccessFlash && (
-                      <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-xl bg-green-400/35 backdrop-brightness-125 transition-opacity duration-500">
+                      <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-xl bg-green-400/35 backdrop-brightness-125 transition-opacity duration-700">
                         <div className="flex h-24 w-24 items-center justify-center rounded-full bg-green-500 text-5xl font-black text-white shadow-2xl ring-4 ring-white/80 animate-pulse">
                           ✓
                         </div>
@@ -6377,7 +6390,7 @@ export default function Page() {
                     )}
 
                     {scanMissFlash && (
-                      <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-xl bg-red-500/35 backdrop-brightness-90 transition-opacity duration-500">
+                      <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-xl bg-red-500/35 backdrop-brightness-90 transition-opacity duration-700">
                         <div className="flex h-24 w-24 items-center justify-center rounded-full bg-red-600 text-5xl font-black text-white shadow-2xl ring-4 ring-white/80 animate-pulse">
                           ?
                         </div>
@@ -6390,12 +6403,6 @@ export default function Page() {
                   <div className="mt-2 rounded-xl border border-green-400/50 bg-green-500/10 p-2 text-center text-xs font-extrabold text-green-100">
                     Aseta viivakoodi vihreän kehyksen sisään. Käännä puhelinta tarvittaessa; maitopurkin pystyviivakoodi toimii parhaiten läheltä ja hyvässä valossa.
                   </div>
-                </div>
-              )}
-
-              {eanLoading && (
-                <div className="mt-2 rounded-2xl bg-green-50 p-3 text-sm font-extrabold text-green-700">
-                  Haetaan EAN-koodia...
                 </div>
               )}
 
