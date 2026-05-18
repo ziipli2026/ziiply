@@ -163,7 +163,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v193";
+const APP_VERSION = "v194";
 
 // Scanner UX:
 // Käytetään lähes neliötä, jotta sekä pysty- että vaakaviivakoodit mahtuvat kehykseen.
@@ -1727,6 +1727,7 @@ export default function Page() {
   const [activeResult, setActiveResult] = useState<"none" | "offers" | "compare">("none");
   const [searchPanelOpen, setSearchPanelOpen] = useState(false);
   const [cartModalOpen, setCartModalOpen] = useState(false);
+  const [cartSavePanelOpen, setCartSavePanelOpen] = useState(false);
   // Mobile comparison view uses the same activeResult state as desktop, but renders as its own overlay.
   const [cart, setCart] = useState<CartItem[]>([]);
   const cartIsEmpty = cart.length === 0;
@@ -1748,6 +1749,7 @@ export default function Page() {
   const voiceOpenSearchPanelAfterResultRef = useRef(false);
   const cartSectionRef = useRef<HTMLElement | null>(null);
   const comparisonSectionRef = useRef<HTMLElement | null>(null);
+  const compareOverlayScrollRef = useRef<HTMLDivElement | null>(null);
   const normalResultsSectionRef = useRef<HTMLElement | null>(null);
   const savingsSummaryRef = useRef<HTMLElement | null>(null);
   const searchInputRef = useRef<HTMLTextAreaElement | null>(null);
@@ -4123,6 +4125,7 @@ export default function Page() {
     setSearchPanelOpen(false);
     setEanModalOpen(false);
     setActiveResult("none");
+    setCartSavePanelOpen(false);
     setCartModalOpen(true);
     void updateChainComparison(cart);
   }
@@ -4133,6 +4136,7 @@ export default function Page() {
     // Toinen painallus sulkee Korin. Jos Hae on auki, vaihdetaan suoraan Koriin.
     if (cartModalOpen) {
       setCartModalOpen(false);
+      setCartSavePanelOpen(false);
       return;
     }
 
@@ -4141,6 +4145,7 @@ export default function Page() {
 
   function closeCartModal() {
     setCartModalOpen(false);
+    setCartSavePanelOpen(false);
   }
 
   function openComparisonView() {
@@ -4149,8 +4154,15 @@ export default function Page() {
     // Vertailu avautuu mobiilissa omana näkymänä eikä jää taustalle sivun scrolliin.
     setSearchPanelOpen(false);
     setCartModalOpen(false);
+    setCartSavePanelOpen(false);
     setEanModalOpen(false);
     setActiveResult("compare");
+
+    window.setTimeout(() => {
+      compareOverlayScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+      comparisonSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 80);
+
     void updateChainComparison(cart);
   }
 
@@ -5203,7 +5215,7 @@ export default function Page() {
 
         {activeResult === "offers" && (
           <div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0">
-            <div className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-50 p-3 shadow-2xl sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:bg-transparent sm:p-0 sm:shadow-none">
+            <div ref={compareOverlayScrollRef} className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-50 p-3 shadow-2xl sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:bg-transparent sm:p-0 sm:shadow-none">
               <div className="mb-3 rounded-2xl bg-green-700 p-4 text-white shadow-sm sm:rounded-[2rem] sm:p-6">
                 <p className="text-xs font-bold uppercase tracking-wide text-green-100 sm:text-sm">Tarjousmoottori</p>
                 <h2 className="mt-1 text-2xl font-extrabold sm:text-3xl">Tarjoukset</h2>
@@ -5885,7 +5897,7 @@ export default function Page() {
                     onClick={clearCartAndCloseModal}
                     className="rounded-xl border border-white/30 bg-white/10 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/20"
                   >
-                    🗑 Tyhjennä kaikki
+                    🗑 Tyhjennä kori
                   </button>
                 )}
               </div>
@@ -5897,7 +5909,17 @@ export default function Page() {
               <p className="mt-1 text-xs font-bold text-green-100">Hintamerkinnät perustuvat tällä laitteella aiemmin nähtyihin hintoihin.</p>
             </div>
 
-            {cart.length > 0 && (
+            {cart.length > 0 && !cartSavePanelOpen && (
+              <button
+                type="button"
+                onClick={() => setCartSavePanelOpen(true)}
+                className="mb-4 w-full rounded-2xl bg-white px-4 py-3 text-sm font-extrabold text-slate-900 transition active:scale-[0.98]"
+              >
+                Tallenna lista
+              </button>
+            )}
+
+            {cart.length > 0 && cartSavePanelOpen && (
               <div className="mb-4 rounded-2xl bg-white/10 p-4 text-white">
                 <p className="text-xs font-black uppercase tracking-wide text-green-200">Tallenna ostoslista</p>
                 <p className="mt-1 text-sm font-semibold text-green-50">Tallenna nykyinen kori myöhempää käyttöä varten.</p>
@@ -5919,7 +5941,7 @@ export default function Page() {
               </div>
             )}
 
-            {savedShoppingLists.length > 0 && (
+            {cartSavePanelOpen && savedShoppingLists.length > 0 && (
               <div className="mb-4 rounded-2xl bg-white/10 p-4 text-white">
                 <p className="text-xs font-black uppercase tracking-wide text-green-200">Tallennetut listat</p>
                 <div className="mt-3 grid gap-2">
