@@ -1734,7 +1734,6 @@ export default function Page() {
   const [visibleNormalCount, setVisibleNormalCount] = useState(8);
   const [eanModalOpen, setEanModalOpen] = useState(false);
   const [eanInput, setEanInput] = useState("");
-  const [eanManualInputOpen, setEanManualInputOpen] = useState(false);
   const [eanLoading, setEanLoading] = useState(false);
   const [eanResults, setEanResults] = useState<EanSearchResult[]>([]);
   const [eanMessage, setEanMessage] = useState("");
@@ -1796,6 +1795,7 @@ export default function Page() {
   const [showLaunchScreen, setShowLaunchScreen] = useState(true);
   const [eanScannerOpen, setEanScannerOpen] = useState(false);
   const [eanScannerMessage, setEanScannerMessage] = useState("");
+  const [eanManualInputOpen, setEanManualInputOpen] = useState(false);
   const [scanSuccessFlash, setScanSuccessFlash] = useState(false);
   const [scanMissFlash, setScanMissFlash] = useState(false);
   const eanHtml5ScannerRef = useRef<any | null>(null);
@@ -3410,7 +3410,6 @@ export default function Page() {
 
     try {
       await stopEanCameraScanner();
-      setEanManualInputOpen(false);
       setEanScannerOpen(true);
       setEanScannerMessage("Ladataan kameraskanneria...");
 
@@ -3506,16 +3505,17 @@ export default function Page() {
     setSearchPanelOpen(false);
     setCartModalOpen(false);
     setEanModalOpen(true);
-    setEanManualInputOpen(true);
+    setEanManualInputOpen(false);
     setEanMessage("");
     setEanResults([]);
     setLastAutoEanSearch("");
     setEanSearchStartedAutomatically(false);
     eanAutoSearchActiveRef.current = false;
 
+    // EAN / viivakoodi -napista avataan kamera suoraan.
     window.setTimeout(() => {
-      eanInputRef.current?.focus();
-    }, 50);
+      void startEanCameraScanner();
+    }, 120);
   }
 
   function clearEanSearch() {
@@ -3537,54 +3537,6 @@ export default function Page() {
     window.setTimeout(() => {
       eanInputRef.current?.focus();
     }, 0);
-  }
-
-  function openManualEanInput() {
-    setEanManualInputOpen(true);
-
-    window.setTimeout(() => {
-      eanInputRef.current?.focus();
-    }, 0);
-  }
-
-  async function pasteEanFromClipboard() {
-    try {
-      const clipboard = (navigator as any)?.clipboard;
-
-      if (!clipboard?.readText) {
-        setEanManualInputOpen(true);
-        setEanMessage("Leikepöydän lukeminen ei ole käytettävissä. Liitä EAN käsin kenttään.");
-        window.setTimeout(() => eanInputRef.current?.focus(), 0);
-        return;
-      }
-
-      const pastedText = await clipboard.readText();
-      const code = normalizeEan(pastedText);
-
-      if (!isUsableEan(code)) {
-        setEanManualInputOpen(true);
-        setEanMessage("Leikepöydältä ei löytynyt 8–14 numeron EAN-koodia.");
-        window.setTimeout(() => eanInputRef.current?.focus(), 0);
-        return;
-      }
-
-      if (eanAutoSearchTimeoutRef.current) {
-        window.clearTimeout(eanAutoSearchTimeoutRef.current);
-        eanAutoSearchTimeoutRef.current = null;
-      }
-
-      setEanManualInputOpen(true);
-      setEanInput(code);
-      setLastAutoEanSearch(code);
-      setEanSearchStartedAutomatically(true);
-      eanAutoSearchActiveRef.current = true;
-      setEanMessage(`Liitetty koodi: ${code}. Haetaan...`);
-      void searchByEan(code);
-    } catch {
-      setEanManualInputOpen(true);
-      setEanMessage("Liittäminen ei onnistunut. Liitä EAN käsin kenttään.");
-      window.setTimeout(() => eanInputRef.current?.focus(), 0);
-    }
   }
 
 
@@ -3713,11 +3665,15 @@ export default function Page() {
           // ei renderöidä välissä tuloskorttia, jotta EAN-ikkuna ei hypi.
           addEanResultToCart(exactResults[0]);
         } else if (exactResults.length === 1) {
+          if (eanScannerOpen || eanHtml5ScannerRef.current) showScanSuccessFlash();
           setEanResults(exactResults.slice(0, 8));
           setEanMessage("Löytyi 1 tarkka EAN-osuma.");
         } else {
+          // Kamera löysi oikean EANin, vaikka käyttäjän pitää valita useasta osumasta.
+          // Näytetään vihreä palaute myös tässä tilanteessa, ei punaista virhettä.
+          if (eanScannerOpen || eanHtml5ScannerRef.current) showScanSuccessFlash();
           setEanResults(exactResults.slice(0, 8));
-          setEanMessage(`Löytyi ${exactResults.length} tarkkaa EAN-osumaa.`);
+          setEanMessage(`Löytyi ${exactResults.length} tarkkaa EAN-osumaa. Valitse lisättävä tuote.`);
         }
 
         setEanSearchStartedAutomatically(false);
@@ -6246,9 +6202,6 @@ export default function Page() {
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-lg font-extrabold text-slate-900">EAN / viivakoodi</p>
-                  <p className="mt-1 text-sm font-semibold text-slate-500">
-                    Syötä tai liitä EAN-numero. Haku käynnistyy automaattisesti ja yksi tarkka osuma lisätään ostoskoriin.
-                  </p>
                 </div>
                 <button
                   type="button"
@@ -6259,7 +6212,7 @@ export default function Page() {
                 </button>
               </div>
 
-              {(!eanScannerOpen || eanManualInputOpen) && (
+              {eanManualInputOpen && (
                 <div className="mt-4 flex gap-2">
                   <input
                     ref={eanInputRef}
@@ -6284,7 +6237,6 @@ export default function Page() {
                         eanAutoSearchTimeoutRef.current = null;
                       }
 
-                      setEanManualInputOpen(true);
                       setEanInput(code);
                       setLastAutoEanSearch(code);
                       setEanSearchStartedAutomatically(true);
@@ -6304,43 +6256,61 @@ export default function Page() {
                 </div>
               )}
 
-              <div className={`mt-3 grid gap-2 ${eanScannerOpen ? "grid-cols-3" : "grid-cols-1 sm:grid-cols-3"}`}>
+              <div className="mt-4 grid grid-cols-3 gap-2">
                 <button
                   type="button"
-                  onClick={() => void pasteEanFromClipboard()}
+                  onClick={async () => {
+                    try {
+                      const text = await navigator.clipboard.readText();
+                      const code = normalizeEan(text);
+                      if (!isUsableEan(code)) {
+                        setEanMessage("Leikepöydältä ei löytynyt kelvollista EAN-koodia.");
+                        return;
+                      }
+                      setEanManualInputOpen(true);
+                      setEanInput(code);
+                      setLastAutoEanSearch(code);
+                      setEanSearchStartedAutomatically(true);
+                      eanAutoSearchActiveRef.current = true;
+                      setEanMessage(`Liitetty koodi: ${code}. Haetaan...`);
+                      void searchByEan(code);
+                    } catch {
+                      setEanManualInputOpen(true);
+                      window.setTimeout(() => eanInputRef.current?.focus(), 0);
+                    }
+                  }}
                   className="touch-manipulation rounded-2xl bg-green-600 px-3 py-3 text-sm font-extrabold text-white transition active:scale-[0.98]"
                 >
                   Liitä
                 </button>
                 <button
                   type="button"
-                  onClick={openManualEanInput}
+                  onClick={() => {
+                    setEanManualInputOpen((current) => !current);
+                    window.setTimeout(() => eanInputRef.current?.focus(), 0);
+                  }}
                   className="touch-manipulation rounded-2xl bg-green-600 px-3 py-3 text-sm font-extrabold text-white transition active:scale-[0.98]"
                 >
                   Kirjoita
                 </button>
-                {eanScannerOpen ? (
-                  <button
-                    type="button"
-                    onClick={stopEanCameraScanner}
-                    className="touch-manipulation rounded-2xl bg-green-600 px-3 py-3 text-sm font-extrabold text-white transition active:scale-[0.98]"
-                  >
-                    Sulje kamera
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => void startEanCameraScanner()}
-                    className="touch-manipulation rounded-2xl bg-green-600 px-3 py-3 text-sm font-extrabold text-white transition active:scale-[0.98]"
-                  >
-                    📷 Skannaa
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={stopEanCameraScanner}
+                  className="touch-manipulation rounded-2xl bg-green-600 px-3 py-3 text-sm font-extrabold text-white transition active:scale-[0.98]"
+                >
+                  Sulje kamera
+                </button>
               </div>
+
+              {eanScannerMessage && !eanScannerOpen && (
+                <div className="mt-3 rounded-2xl bg-slate-100 p-3 text-sm font-bold text-slate-700">
+                  {eanScannerMessage}
+                </div>
+              )}
 
               {eanScannerOpen && (
                 <div className="mt-3 overflow-hidden rounded-2xl bg-slate-950 p-2 ring-1 ring-slate-200">
-                  <div className="relative mx-auto h-[min(78vw,360px)] max-h-[360px] min-h-[260px] w-full max-w-[360px] overflow-hidden rounded-xl bg-slate-950">
+                  <div className="relative mx-auto h-[min(78vw,390px)] max-h-[390px] min-h-[300px] w-full max-w-[390px] overflow-hidden rounded-xl bg-slate-950">
                     <div
                       id={EAN_SCANNER_REGION_ID}
                       className="h-full w-full overflow-hidden rounded-xl bg-slate-950 [&_canvas]:!hidden [&_video]:!h-full [&_video]:!w-full [&_video]:rounded-xl [&_video]:object-cover"
@@ -6387,7 +6357,7 @@ export default function Page() {
                       </div>
                     )}
                   </div>
-                  <div className="mt-2 rounded-xl border border-green-400/50 bg-green-500/10 p-2 text-center text-xs font-extrabold text-green-100">
+                  <div className="mt-3 rounded-xl border border-green-400/50 bg-green-500/10 p-3 text-center text-sm font-extrabold leading-snug text-green-100">
                     Aseta viivakoodi vihreän kehyksen sisään. Käännä puhelinta tarvittaessa; maitopurkin pystyviivakoodi toimii parhaiten läheltä ja hyvässä valossa.
                   </div>
                 </div>
