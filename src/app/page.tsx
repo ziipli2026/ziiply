@@ -163,7 +163,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v192";
+const APP_VERSION = "v193";
 
 // Scanner UX:
 // Käytetään lähes neliötä, jotta sekä pysty- että vaakaviivakoodit mahtuvat kehykseen.
@@ -5202,8 +5202,8 @@ export default function Page() {
         </section>
 
         {activeResult === "offers" && (
-          <div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-3 sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0">
-            <div className="max-h-[calc(100dvh-7rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-50 p-3 shadow-2xl sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:bg-transparent sm:p-0 sm:shadow-none">
+          <div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0">
+            <div className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-50 p-3 shadow-2xl sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:bg-transparent sm:p-0 sm:shadow-none">
               <div className="mb-3 rounded-2xl bg-green-700 p-4 text-white shadow-sm sm:rounded-[2rem] sm:p-6">
                 <p className="text-xs font-bold uppercase tracking-wide text-green-100 sm:text-sm">Tarjousmoottori</p>
                 <h2 className="mt-1 text-2xl font-extrabold sm:text-3xl">Tarjoukset</h2>
@@ -5287,14 +5287,8 @@ export default function Page() {
         )}
 
         {activeResult === "compare" && (
-          <div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-3 sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0">
-            <div className="max-h-[calc(100dvh-7rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-50 p-3 shadow-2xl sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:bg-transparent sm:p-0 sm:shadow-none">
-              <div className="mb-3 flex items-start justify-between gap-3 rounded-2xl bg-white p-3 shadow-sm sm:hidden">
-                <div className="min-w-0">
-                  <p className="text-lg font-black text-slate-900">Vertailu</p>
-                  <p className="text-xs font-bold text-slate-500">Kauppaketjujen hinnat ja halvin kori</p>
-                </div>
-              </div>
+          <div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0">
+            <div className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-50 p-3 shadow-2xl sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:bg-transparent sm:p-0 sm:shadow-none">
             <div className="grid min-w-0 max-w-full gap-4 overflow-hidden lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
             {showCheapestSticky && cheapest && secondCheapest ? (
                 <section ref={savingsSummaryRef} className="min-w-0 max-w-full overflow-hidden rounded-[1.5rem] bg-white p-3 shadow-sm sm:rounded-[2rem] sm:p-6">
@@ -5456,11 +5450,6 @@ export default function Page() {
 
             {cart.length > 0 && (
                 <section ref={comparisonSectionRef} className="rounded-[1.5rem] bg-white p-4 shadow-sm sm:rounded-[2rem] sm:p-6">
-                <div className="mb-5">
-                  <h2 className="text-2xl font-extrabold">Kauppaketjuvertailu</h2>
-                  <p className="min-w-0 break-words text-sm text-slate-500">Halvin valitaan vain ketjuista, joista löytyvät kaikki ostoskorin tuotteet.</p>
-                </div>
-
                 {cheapest && (
                   <div className="mb-4 max-w-full overflow-hidden rounded-[1.5rem] bg-slate-950 p-4 text-white shadow-sm sm:p-5">
                     <p className="text-xs font-black uppercase tracking-wide text-green-300">Halvin täysi kori</p>
@@ -5882,8 +5871,8 @@ export default function Page() {
 
 
         {cartModalOpen && (
-        <div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-3 sm:items-start sm:p-6">
-          <div className="max-h-[calc(100dvh-7rem)] w-full max-w-3xl overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-green-700 p-4 text-white shadow-2xl sm:max-h-none sm:rounded-[2rem] sm:p-6">
+        <div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:items-start sm:p-6">
+          <div className="max-h-[calc(100dvh-12.5rem)] w-full max-w-3xl overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-green-700 p-4 text-white shadow-2xl sm:max-h-none sm:rounded-[2rem] sm:p-6">
             <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <h2 className="text-2xl font-extrabold">Ostoskori ({cart.length}/{MAX_ITEMS})</h2>
@@ -6108,9 +6097,9 @@ export default function Page() {
       )}
 
       {searchPanelOpen && (
-        <div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden bg-slate-950/40 p-3 pb-[calc(env(safe-area-inset-bottom)+6rem)] sm:items-start sm:p-6">
+        <div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden bg-slate-950/40 px-3 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:items-start sm:p-6">
           <div className="w-full max-w-3xl">
-          <div className="max-h-[calc(100dvh-7rem)] overflow-y-auto overscroll-contain rounded-[1.5rem] bg-white p-4 shadow-sm sm:max-h-none sm:rounded-[2rem] sm:p-6">
+          <div className="max-h-[calc(100dvh-12.5rem)] overflow-y-auto overscroll-contain rounded-[1.5rem] bg-white p-4 shadow-sm sm:max-h-none sm:rounded-[2rem] sm:p-6">
             <div className="mb-3 flex items-start justify-between gap-3 sm:mb-4">
               <h1 className="text-xl font-extrabold sm:text-2xl">Mitä haluat ostaa halvemmalla?</h1>
             </div>
