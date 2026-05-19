@@ -163,7 +163,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v196";
+const APP_VERSION = "v198";
 
 // Scanner UX:
 // Käytetään lähes neliötä, jotta sekä pysty- että vaakaviivakoodit mahtuvat kehykseen.
@@ -3980,6 +3980,15 @@ export default function Page() {
     } else {
       setNormalResults([]);
       setVisibleNormalCount(8);
+      setSearchPanelOpen(false);
+      setCartModalOpen(false);
+      setCartSavePanelOpen(false);
+      setEanModalOpen(false);
+      setActiveResult("compare");
+
+      window.requestAnimationFrame(() => {
+        compareOverlayScrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
+      });
     }
   }
 
@@ -5911,11 +5920,6 @@ export default function Page() {
               </div>
             </div>
 
-            <div className="mb-4 rounded-2xl bg-white/10 p-4">
-              <p className="text-sm text-green-100">Tämänhetkinen korihinta</p>
-              <p className="text-4xl font-extrabold">{formatEuro(cartTotal)}</p>
-              <p className="mt-1 text-xs font-bold text-green-100">Hintamerkinnät perustuvat tällä laitteella aiemmin nähtyihin hintoihin.</p>
-            </div>
 
             {cart.length > 0 && !cartSavePanelOpen && (
               <button
@@ -6160,7 +6164,17 @@ export default function Page() {
               >
                 {loadingNormal ? "Haetaan..." : "🛒 Hintavertailu"}
               </button>
-              <button onClick={addInputToCart} className="touch-manipulation rounded-2xl bg-slate-900 px-3 py-4 text-sm font-extrabold text-white transition active:scale-[0.98] sm:px-5 sm:text-base">
+              <button
+                type="button"
+                onClick={addInputToCart}
+                disabled={!hasSearchInput}
+                aria-disabled={!hasSearchInput}
+                className={`touch-manipulation rounded-2xl px-3 py-4 text-sm font-extrabold transition sm:px-5 sm:text-base ${
+                  !hasSearchInput
+                    ? "cursor-not-allowed bg-slate-200 text-slate-400"
+                    : "bg-slate-900 text-white active:scale-[0.98]"
+                }`}
+              >
                 Lisää muistilistana
               </button>
             </div>
