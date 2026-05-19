@@ -163,7 +163,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v194";
+const APP_VERSION = "v195";
 
 // Scanner UX:
 // Käytetään lähes neliötä, jotta sekä pysty- että vaakaviivakoodit mahtuvat kehykseen.
@@ -1750,6 +1750,7 @@ export default function Page() {
   const cartSectionRef = useRef<HTMLElement | null>(null);
   const comparisonSectionRef = useRef<HTMLElement | null>(null);
   const compareOverlayScrollRef = useRef<HTMLDivElement | null>(null);
+  const cartOverlayScrollRef = useRef<HTMLDivElement | null>(null);
   const normalResultsSectionRef = useRef<HTMLElement | null>(null);
   const savingsSummaryRef = useRef<HTMLElement | null>(null);
   const searchInputRef = useRef<HTMLTextAreaElement | null>(null);
@@ -4082,6 +4083,11 @@ export default function Page() {
     });
 
     setSavedListName("");
+    setCartSavePanelOpen(false);
+    cartOverlayScrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
+    if (typeof document !== "undefined") {
+      (document.activeElement as HTMLElement | null)?.blur?.();
+    }
     showCartToast(`Tallennettu lista: ${listName}`);
   }
 
@@ -4127,6 +4133,9 @@ export default function Page() {
     setActiveResult("none");
     setCartSavePanelOpen(false);
     setCartModalOpen(true);
+    window.requestAnimationFrame(() => {
+      cartOverlayScrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
+    });
     void updateChainComparison(cart);
   }
 
@@ -4158,10 +4167,9 @@ export default function Page() {
     setEanModalOpen(false);
     setActiveResult("compare");
 
-    window.setTimeout(() => {
-      compareOverlayScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
-      comparisonSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 80);
+    window.requestAnimationFrame(() => {
+      compareOverlayScrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
+    });
 
     void updateChainComparison(cart);
   }
@@ -5300,7 +5308,7 @@ export default function Page() {
 
         {activeResult === "compare" && (
           <div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0">
-            <div className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-50 p-3 shadow-2xl sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:bg-transparent sm:p-0 sm:shadow-none">
+            <div ref={compareOverlayScrollRef} className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-50 p-3 shadow-2xl sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:bg-transparent sm:p-0 sm:shadow-none">
             <div className="grid min-w-0 max-w-full gap-4 overflow-hidden lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
             {showCheapestSticky && cheapest && secondCheapest ? (
                 <section ref={savingsSummaryRef} className="min-w-0 max-w-full overflow-hidden rounded-[1.5rem] bg-white p-3 shadow-sm sm:rounded-[2rem] sm:p-6">
@@ -5884,7 +5892,7 @@ export default function Page() {
 
         {cartModalOpen && (
         <div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:items-start sm:p-6">
-          <div className="max-h-[calc(100dvh-12.5rem)] w-full max-w-3xl overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-green-700 p-4 text-white shadow-2xl sm:max-h-none sm:rounded-[2rem] sm:p-6">
+          <div ref={cartOverlayScrollRef} className="max-h-[calc(100dvh-12.5rem)] w-full max-w-3xl overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-green-700 p-4 text-white shadow-2xl sm:max-h-none sm:rounded-[2rem] sm:p-6">
             <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <h2 className="text-2xl font-extrabold">Ostoskori ({cart.length}/{MAX_ITEMS})</h2>
@@ -5928,7 +5936,7 @@ export default function Page() {
                     value={savedListName}
                     onChange={(event) => setSavedListName(event.target.value)}
                     placeholder="Esim. Viikko-ostos"
-                    className="min-w-0 flex-1 rounded-xl border border-white/20 bg-white px-3 py-2 text-sm font-bold text-slate-900 outline-none focus:border-green-300"
+                    className="min-w-0 flex-1 rounded-xl border border-white/20 bg-white px-3 py-2 text-[16px] font-bold text-slate-900 outline-none focus:border-green-300"
                   />
                   <button
                     type="button"
