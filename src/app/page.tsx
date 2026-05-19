@@ -163,7 +163,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v202";
+const APP_VERSION = "v203";
 
 // Scanner UX:
 // Käytetään lähes neliötä, jotta sekä pysty- että vaakaviivakoodit mahtuvat kehykseen.
@@ -1770,6 +1770,7 @@ export default function Page() {
   const priceHistorySaveTimeoutRef = useRef<number | null>(null);
   const priceHistoryBaselineRef = useRef<Record<string, PriceSnapshot>>({});
   const priceHistoryHasLoadedRef = useRef(false);
+  const shoppingItemRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 
 
   const [checkedCartItems, setCheckedCartItems] = useState<Record<string, boolean>>({});
@@ -2852,15 +2853,40 @@ export default function Page() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
+  function scrollToNextUncheckedShoppingItem(nextChecks: Record<string, boolean>, currentKey: string) {
+    const currentIndex = shoppingListKeys.findIndex((itemKey) => itemKey === currentKey);
+    if (currentIndex < 0) return;
+
+    const orderedKeys = [
+      ...shoppingListKeys.slice(currentIndex + 1),
+      ...shoppingListKeys.slice(0, currentIndex),
+    ];
+    const nextKey = orderedKeys.find((itemKey) => !nextChecks[itemKey]);
+    if (!nextKey) return;
+
+    window.setTimeout(() => {
+      shoppingItemRefs.current[nextKey]?.scrollIntoView({
+        block: "center",
+        behavior: "smooth",
+      });
+    }, 80);
+  }
+
   function toggleShoppingListItem(match: Match, index: number) {
     const key = getShoppingListItemKey(match, index);
 
     setCheckedCartItems((current) => {
+      const willBeChecked = !current[key];
       const next = {
         ...current,
-        [key]: !current[key],
+        [key]: willBeChecked,
       };
       persistShoppingChecksImmediately(next);
+
+      if (willBeChecked) {
+        scrollToNextUncheckedShoppingItem(next, key);
+      }
+
       return next;
     });
 
@@ -6276,6 +6302,10 @@ export default function Page() {
                           return (
                             <button
                               key={key}
+                              ref={(element) => {
+                                shoppingItemRefs.current[key] = element;
+                              }}
+                              data-shopping-key={key}
                               type="button"
                               onClick={() => toggleShoppingListItem(match, index)}
                               className={`flex w-full items-center gap-3 rounded-2xl p-3 text-left transition active:scale-[0.99] ${
@@ -6413,13 +6443,32 @@ export default function Page() {
               </button>
             </div>
 
-            <textarea
-              ref={searchInputRef}
-              value={input}
-              onChange={(event) => setInput(event.target.value)}
-              placeholder={"Kirjoita esim. maito,kahvi,jauheliha\nTai liitä muistilista pilkulla tai riveittäin, max 8 tuotetta\nTarjoukset hakee tarjoukset. Hintavertailu hakee hintoja. Lisää muistilistana lisää rivit ilman hintaa keräilyyn."}
-              className="mt-3 h-40 w-full rounded-2xl border-2 border-green-600 px-4 py-3 text-base outline-none transition placeholder:text-slate-400 focus:border-green-700 sm:h-44"
-            />
+            <div className="relative mt-3">
+              <textarea
+                ref={searchInputRef}
+                value={input}
+                onChange={(event) => setInput(event.target.value)}
+                placeholder={"Kirjoita esim. maito,kahvi,jauheliha\nTai liitä muistilista pilkulla tai riveittäin, max 8 tuotetta\nTarjoukset hakee tarjoukset. Hintavertailu hakee hintoja. Lisää muistilistana lisää rivit ilman hintaa keräilyyn."}
+                className="h-40 w-full rounded-2xl border-2 border-green-600 px-4 py-3 pr-24 text-base outline-none transition placeholder:text-slate-400 focus:border-green-700 sm:h-44"
+              />
+              {hasSearchInput && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setInput("");
+                    setNormalResults([]);
+                    setVisibleNormalCount(8);
+                    setHasSearchedOffers(false);
+                    setOffers([]);
+                    triggerHaptic();
+                    window.setTimeout(() => searchInputRef.current?.focus(), 0);
+                  }}
+                  className="absolute bottom-3 right-3 rounded-xl bg-white px-3 py-1.5 text-sm font-extrabold text-red-600 shadow-sm ring-1 ring-red-200 active:scale-[0.98]"
+                >
+                  tyhjennä
+                </button>
+              )}
+            </div>
 
             {terms.length > 0 && (
               <div className="mt-3 rounded-2xl bg-slate-50 p-3">
