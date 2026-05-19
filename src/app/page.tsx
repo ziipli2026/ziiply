@@ -163,7 +163,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v200";
+const APP_VERSION = "v201";
 
 // Scanner UX:
 // Käytetään lähes neliötä, jotta sekä pysty- että vaakaviivakoodit mahtuvat kehykseen.
@@ -6153,8 +6153,8 @@ export default function Page() {
               ref={searchInputRef}
               value={input}
               onChange={(event) => setInput(event.target.value)}
-              placeholder={"Kirjoita esim. maito,kahvi,jauheliha\nTai liitä muistilista pilkulla tai riveittäin, max 8 tuotetta"}
-              className="mt-3 h-28 w-full rounded-2xl border-2 border-green-600 px-4 py-3 text-base outline-none transition placeholder:text-slate-400 focus:border-green-700 sm:h-32"
+              placeholder={"Kirjoita esim. maito,kahvi,jauheliha\nTai liitä muistilista pilkulla tai riveittäin, max 8 tuotetta\nTarjoukset hakee tarjoukset. Hintavertailu hakee hintoja. Lisää muistilistana lisää rivit ilman hintaa keräilyyn."}
+              className="mt-3 h-40 w-full rounded-2xl border-2 border-green-600 px-4 py-3 text-base outline-none transition placeholder:text-slate-400 focus:border-green-700 sm:h-44"
             />
 
             {terms.length > 0 && (
@@ -6202,7 +6202,6 @@ export default function Page() {
               </button>
             </div>
 
-            <p className="mt-3 text-sm text-slate-500">Kirjoita muistilistaksi esim. maito,kahvi,banaani. Hintavertailu hakee hintoja, Lisää muistilistana lisää rivit ilman hintaa keräilyyn.</p>
           </div>
 
           </div>
