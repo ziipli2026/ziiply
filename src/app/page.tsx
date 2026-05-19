@@ -163,7 +163,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v201";
+const APP_VERSION = "v202";
 
 // Scanner UX:
 // Käytetään lähes neliötä, jotta sekä pysty- että vaakaviivakoodit mahtuvat kehykseen.
@@ -1728,6 +1728,7 @@ export default function Page() {
   const [searchPanelOpen, setSearchPanelOpen] = useState(false);
   const [cartModalOpen, setCartModalOpen] = useState(false);
   const [cartSavePanelOpen, setCartSavePanelOpen] = useState(false);
+  const [shopsPanelOpen, setShopsPanelOpen] = useState(false);
   // Mobile comparison view uses the same activeResult state as desktop, but renders as its own overlay.
   const [cart, setCart] = useState<CartItem[]>([]);
   const cartIsEmpty = cart.length === 0;
@@ -1878,7 +1879,7 @@ export default function Page() {
   }, [eanModalOpen]);
 
   useEffect(() => {
-    const overlayOpen = searchPanelOpen || cartModalOpen || activeResult === "compare" || activeResult === "offers";
+    const overlayOpen = searchPanelOpen || cartModalOpen || shopsPanelOpen || activeResult === "compare" || activeResult === "offers";
 
     if (!overlayOpen || typeof document === "undefined") return;
 
@@ -2489,6 +2490,7 @@ export default function Page() {
   function openSearchPanel() {
     // Hae-paneeli toimii mobiilissa erillisenä näkymänä: se sulkee korin/EANin/vertailun ja näkyy aina viewportissa.
     setCartModalOpen(false);
+    setShopsPanelOpen(false);
     setEanModalOpen(false);
     setActiveResult("none");
     setSearchPanelOpen(true);
@@ -4138,6 +4140,7 @@ export default function Page() {
 
     // Kori-paneeli toimii erillisenä näkymänä: se sulkee Haen/EANin/vertailun ja avautuu heti näkyville.
     setSearchPanelOpen(false);
+    setShopsPanelOpen(false);
     setEanModalOpen(false);
     setActiveResult("none");
     setCartSavePanelOpen(false);
@@ -4173,6 +4176,7 @@ export default function Page() {
     setSearchPanelOpen(false);
     setCartModalOpen(false);
     setCartSavePanelOpen(false);
+    setShopsPanelOpen(false);
     setEanModalOpen(false);
     setActiveResult("compare");
 
@@ -4192,6 +4196,28 @@ export default function Page() {
     }
 
     openComparisonView();
+  }
+
+  function openShopsPanel() {
+    setSearchPanelOpen(false);
+    setCartModalOpen(false);
+    setCartSavePanelOpen(false);
+    setEanModalOpen(false);
+    setActiveResult("none");
+    setShopsPanelOpen(true);
+  }
+
+  function toggleShopsPanel() {
+    if (shopsPanelOpen) {
+      setShopsPanelOpen(false);
+      return;
+    }
+
+    openShopsPanel();
+  }
+
+  function closeShopsPanel() {
+    setShopsPanelOpen(false);
   }
 
   function scrollToNormalResults() {
@@ -5007,7 +5033,21 @@ export default function Page() {
           </div>
         </section>
 
-        <section className="rounded-[1.25rem] border border-slate-200 bg-white/95 p-2 shadow-sm sm:rounded-[1.75rem] sm:p-4">
+        {!searchPanelOpen && !cartModalOpen && !shopsPanelOpen && !eanModalOpen && activeResult === "none" && (
+          <section className="flex min-h-[calc(100dvh-12rem)] flex-col items-center justify-center px-8 text-center sm:hidden">
+            <img
+              src="/ziiply.png"
+              alt="Ziiply"
+              className="h-auto w-full max-w-[280px] object-contain"
+            />
+            <div className="mt-4 flex flex-col items-center gap-2">
+              <span className="rounded-full bg-green-50 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-green-700 ring-1 ring-green-100">{APP_VERSION}</span>
+              <span className="rounded-full bg-slate-100 px-4 py-2 text-[11px] font-black uppercase tracking-[0.22em] text-slate-600 ring-1 ring-slate-200">MVP</span>
+            </div>
+          </section>
+        )}
+
+        <section className="hidden rounded-[1.25rem] border border-slate-200 bg-white/95 p-2 shadow-sm sm:block sm:rounded-[1.75rem] sm:p-4">
           <div className="flex items-center gap-2 sm:gap-3">
             <label className="flex shrink-0 items-center gap-1.5 rounded-xl bg-slate-50 px-2 py-2 text-[11px] font-extrabold text-slate-700 ring-1 ring-slate-200 sm:gap-2 sm:rounded-2xl sm:px-3 sm:py-3 sm:text-sm">
               <input
@@ -5047,7 +5087,7 @@ export default function Page() {
 
 
 
-        <section className="rounded-[2rem] bg-white p-5 shadow-sm">
+        <section className="hidden rounded-[2rem] bg-white p-5 shadow-sm sm:block">
           <p className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-500">Hakutapa</p>
           <div className="grid grid-cols-2 gap-3">
             <button
@@ -5160,7 +5200,7 @@ export default function Page() {
           )}
         </section>
 
-        <section className="rounded-[2rem] bg-white p-5 shadow-sm">
+        <section className="hidden rounded-[2rem] bg-white p-5 shadow-sm sm:block">
           <h2 className="mb-4 text-2xl font-extrabold">Vertailtavat ketjut</h2>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {[
@@ -5229,6 +5269,230 @@ export default function Page() {
             })}
           </div>
         </section>
+
+
+        {shopsPanelOpen && (
+          <div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:hidden">
+            <div className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-100 p-3 shadow-2xl">
+              <section className="rounded-[1.25rem] border border-slate-200 bg-white/95 p-2 shadow-sm">
+                <div className="flex items-center gap-2">
+                  <label className="flex shrink-0 items-center gap-1.5 rounded-xl bg-slate-50 px-2 py-2 text-[11px] font-extrabold text-slate-700 ring-1 ring-slate-200">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-slate-300 text-green-600 focus:ring-green-600"
+                      readOnly
+                    />
+                    <span>Oma</span>
+                  </label>
+
+                  <div className="shrink-0 text-xs font-black text-slate-500">TAI</div>
+
+                  <input
+                    value={locationInput}
+                    onChange={(event) => setLocationInput(event.target.value)}
+                    placeholder="05510 tai Hyvinkää"
+                    className="min-w-0 flex-1 rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-green-600"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={applyLocation}
+                    className="shrink-0 rounded-xl bg-slate-900 px-3 py-2 text-sm font-extrabold text-white transition active:scale-[0.98]"
+                  >
+                    {storeSearchLoading ? "..." : "Käytä"}
+                  </button>
+                </div>
+
+                <div className="mt-2 rounded-xl bg-green-50 px-3 py-2 text-xs font-semibold text-green-900">
+                  {locationMessage}
+                </div>
+              </section>
+
+              <section className="mt-4 rounded-[2rem] bg-white p-5 shadow-sm">
+                <p className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-500">Hakutapa</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => handleStoreModeChange("hyper")}
+                    className={`rounded-2xl px-4 py-4 text-base font-extrabold transition ${
+                      storeMode === "hyper"
+                        ? "bg-green-600 text-white"
+                        : "bg-white text-slate-700 ring-1 ring-slate-200"
+                    }`}
+                  >
+                    🏬 Tavaratalot
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleStoreModeChange("local")}
+                    className={`rounded-2xl px-4 py-4 text-base font-extrabold transition ${
+                      storeMode === "local"
+                        ? "bg-green-600 text-white"
+                        : "bg-white text-slate-700 ring-1 ring-slate-200"
+                    }`}
+                  >
+                    🏪 Lähikaupat
+                  </button>
+                </div>
+                <div className="mt-3 rounded-2xl bg-slate-50 p-3 text-sm text-slate-600 ring-1 ring-slate-200">
+                  <p className="font-bold text-slate-700">
+                    {storeMode === "hyper" ? "Haetaan tavarataloista" : "Haetaan lähikaupoista"}
+                  </p>
+                  <p className="mt-1">S: {activeStores.sStoreName}</p>
+                  <p>K: {activeStores.kStoreName}</p>
+                  <p className="mt-2 text-slate-400">Valitut kaupat tallennetaan tälle selaimelle.</p>
+
+                  {storeMode === "local" && (!activeArea.sLocalStoreId || !activeArea.kLocalStoreId) && foundStores.length === 0 && (
+                    <p className="mt-2 text-amber-700">
+                      Paina Käytä, niin Ziiply hakee lähialueen kaupat valittavaksi.
+                    </p>
+                  )}
+                </div>
+
+                {foundStores.length > 0 && (
+                  <div className="mt-3 rounded-2xl bg-white p-3 text-xs text-slate-600 ring-1 ring-slate-200">
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <p className="font-bold text-slate-700">Valitse kaupat ({foundStores.length})</p>
+                      <p className="text-slate-400">ID näkyy testaukseen</p>
+                    </div>
+
+                    <div className="grid gap-3">
+                      <div>
+                        <p className="mb-2 text-xs font-bold uppercase tracking-wide text-green-700">S-ryhmä</p>
+                        <div className="max-h-44 space-y-2 overflow-auto pr-1">
+                          {foundStores.filter((store) => store.type === "S").map((store) => {
+                            const selected =
+                              storeMode === "local"
+                                ? activeArea.sLocalStoreId === store.id
+                                : activeArea.sStoreId === store.id;
+
+                            return (
+                              <button
+                                key={store.id}
+                                type="button"
+                                onClick={() => selectStoreForCurrentMode(store)}
+                                className={`w-full rounded-xl px-3 py-2 text-left transition ${
+                                  selected
+                                    ? "bg-green-600 text-white"
+                                    : "bg-slate-50 text-slate-700 hover:bg-green-50"
+                                }`}
+                              >
+                                <span className="block truncate font-bold">{store.name}</span>
+                                <span className={`block text-[11px] ${selected ? "text-green-50" : "text-slate-400"}`}>
+                                  ID {store.id} · {store.city || ""} {store.postalCode || ""}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <div>
+                        <p className="mb-2 text-xs font-bold uppercase tracking-wide text-red-700">K-ryhmä</p>
+                        <div className="max-h-44 space-y-2 overflow-auto pr-1">
+                          {foundStores.filter((store) => store.type === "K").map((store) => {
+                            const selected =
+                              storeMode === "local"
+                                ? activeArea.kLocalStoreId === store.id
+                                : activeArea.kStoreId === store.id;
+
+                            return (
+                              <button
+                                key={store.id}
+                                type="button"
+                                onClick={() => selectStoreForCurrentMode(store)}
+                                className={`w-full rounded-xl px-3 py-2 text-left transition ${
+                                  selected
+                                    ? "bg-red-600 text-white"
+                                    : "bg-slate-50 text-slate-700 hover:bg-red-50"
+                                }`}
+                              >
+                                <span className="block truncate font-bold">{store.name}</span>
+                                <span className={`block text-[11px] ${selected ? "text-red-50" : "text-slate-400"}`}>
+                                  ID {store.id} · {store.city || ""} {store.postalCode || ""}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </section>
+
+              <section className="mt-4 rounded-[2rem] bg-white p-5 shadow-sm">
+                <h2 className="mb-4 text-2xl font-extrabold">Vertailtavat ketjut</h2>
+                <div className="grid gap-3">
+                  {[
+                    {
+                      key: "s" as const,
+                      title: "S-ryhmä",
+                      subtitle: "Prisma, S-market, Sale, Alepa",
+                    },
+                    {
+                      key: "k" as const,
+                      title: "K-ryhmä",
+                      subtitle: "K-Citymarket, K-Supermarket, K-Market",
+                    },
+                    {
+                      key: "lidl" as const,
+                      title: "Lidl",
+                      subtitle: "Tulossa myöhemmin",
+                      comingSoon: true,
+                    },
+                    {
+                      key: "tokmanni" as const,
+                      title: "Tokmanni / Spar",
+                      subtitle: "Tulossa myöhemmin",
+                      comingSoon: true,
+                    },
+                  ].map((chain) => {
+                    const selected = selectedChains[chain.key];
+
+                    return (
+                      <button
+                        key={chain.key}
+                        type="button"
+                        onClick={() =>
+                          setSelectedChains((current) => ({
+                            ...current,
+                            [chain.key]: !current[chain.key],
+                          }))
+                        }
+                        className={`min-h-[5.75rem] rounded-2xl border p-4 text-left transition ${
+                          selected ? "border-green-600 bg-green-50" : "border-slate-200 bg-white opacity-60"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <p className="font-bold text-slate-950">{chain.title}</p>
+                              {chain.comingSoon && (
+                                <span className="rounded-full bg-slate-200 px-2 py-1 text-xs font-bold text-slate-700">
+                                  Tulossa
+                                </span>
+                              )}
+                            </div>
+                            <p className="mt-1 line-clamp-2 text-sm text-slate-500">{chain.subtitle}</p>
+                          </div>
+
+                          <span
+                            className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
+                              selected ? "bg-green-600 text-white" : "bg-slate-100 text-slate-400"
+                            }`}
+                          >
+                            {selected ? "✓" : ""}
+                          </span>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
+            </div>
+          </div>
+        )}
 
         {activeResult === "offers" && (
           <div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0">
@@ -6422,7 +6686,7 @@ export default function Page() {
           </div>
         )}
 
-      {cheapest && !cartModalOpen && !searchPanelOpen && !eanModalOpen && activeResult !== "compare" && (
+      {cheapest && !cartModalOpen && !searchPanelOpen && !shopsPanelOpen && !eanModalOpen && activeResult !== "compare" && (
         <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] left-2 right-2 z-40 mx-auto max-w-3xl rounded-[1.2rem] bg-slate-950/95 p-2.5 text-white shadow-2xl sm:hidden">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
@@ -6458,7 +6722,7 @@ export default function Page() {
       )}
 
       <nav className="fixed bottom-0 left-0 right-0 z-50 bg-transparent px-3 pb-[calc(env(safe-area-inset-bottom)+0.7rem)] pt-2 sm:hidden">
-        <div className="mx-auto grid max-w-md grid-cols-3 gap-2 rounded-[1.6rem] border border-slate-200 bg-white/95 p-2 shadow-2xl backdrop-blur">
+        <div className="mx-auto grid max-w-md grid-cols-4 gap-2 rounded-[1.6rem] border border-slate-200 bg-white/95 p-2 shadow-2xl backdrop-blur">
           <button
             type="button"
             onClick={toggleSearchPanel}
@@ -6466,6 +6730,14 @@ export default function Page() {
           >
             <span className="text-lg leading-none">🔎</span>
             <span className="mt-1 block">Hae</span>
+          </button>
+          <button
+            type="button"
+            onClick={toggleShopsPanel}
+            className={`flex flex-col items-center justify-center rounded-[1.25rem] px-2 py-2.5 text-xs font-black transition active:scale-[0.98] ${shopsPanelOpen ? "bg-green-600 text-white shadow-md" : "text-slate-700 active:bg-slate-100"}`}
+          >
+            <span className="text-lg leading-none">🏪</span>
+            <span className="mt-1 block">Kaupat</span>
           </button>
           <button
             type="button"
