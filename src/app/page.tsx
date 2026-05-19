@@ -163,7 +163,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v203a";
+const APP_VERSION = "v203";
 
 // Scanner UX:
 // Käytetään lähes neliötä, jotta sekä pysty- että vaakaviivakoodit mahtuvat kehykseen.
@@ -6443,34 +6443,30 @@ export default function Page() {
               </button>
             </div>
 
-            <div className="mt-3">
+            <div className="relative mt-3">
               <textarea
                 ref={searchInputRef}
                 value={input}
                 onChange={(event) => setInput(event.target.value)}
-                placeholder={"Kirjoita esim. maito,kahvi,jauheliha
-Tai liitä muistilista pilkulla tai riveittäin, max 8 tuotetta
-Tarjoukset hakee tarjoukset. Hintavertailu hakee hintoja. Lisää muistilistana lisää rivit ilman hintaa keräilyyn."}
-                className="h-28 w-full rounded-2xl border-2 border-green-600 px-4 py-3 text-base outline-none transition placeholder:text-slate-400 focus:border-green-700 sm:h-32"
+                placeholder={"Kirjoita esim. maito,kahvi,jauheliha\nTai liitä muistilista pilkulla tai riveittäin, max 8 tuotetta\nTarjoukset hakee tarjoukset. Hintavertailu hakee hintoja. Lisää muistilistana lisää rivit ilman hintaa keräilyyn."}
+                className="h-40 w-full rounded-2xl border-2 border-green-600 px-4 py-3 pr-24 text-base outline-none transition placeholder:text-slate-400 focus:border-green-700 sm:h-44"
               />
               {hasSearchInput && (
-                <div className="mt-1 flex justify-end">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setInput("");
-                      setNormalResults([]);
-                      setVisibleNormalCount(8);
-                      setHasSearchedOffers(false);
-                      setOffers([]);
-                      triggerHaptic();
-                      window.setTimeout(() => searchInputRef.current?.focus(), 0);
-                    }}
-                    className="rounded-xl bg-white px-3 py-1.5 text-sm font-extrabold text-red-600 shadow-sm ring-1 ring-red-200 active:scale-[0.98]"
-                  >
-                    tyhjennä
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setInput("");
+                    setNormalResults([]);
+                    setVisibleNormalCount(8);
+                    setHasSearchedOffers(false);
+                    setOffers([]);
+                    triggerHaptic();
+                    window.setTimeout(() => searchInputRef.current?.focus(), 0);
+                  }}
+                  className="absolute bottom-3 right-3 rounded-xl bg-white px-3 py-1.5 text-sm font-extrabold text-red-600 shadow-sm ring-1 ring-red-200 active:scale-[0.98]"
+                >
+                  tyhjennä
+                </button>
               )}
             </div>
 
