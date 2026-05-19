@@ -163,7 +163,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v199";
+const APP_VERSION = "v200";
 
 // Scanner UX:
 // Käytetään lähes neliötä, jotta sekä pysty- että vaakaviivakoodit mahtuvat kehykseen.
@@ -5321,29 +5321,43 @@ export default function Page() {
             <div className="grid min-w-0 max-w-full gap-4 overflow-hidden lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
             {showCheapestSticky && cheapest && secondCheapest ? (
                 <section ref={savingsSummaryRef} className="min-w-0 max-w-full overflow-hidden rounded-[1.5rem] bg-white p-3 shadow-sm sm:rounded-[2rem] sm:p-6">
-                  <div className="rounded-[1.5rem] border border-green-200 bg-white/95 p-5 text-center shadow-sm">
-                    <div className="relative mx-auto max-w-sm rounded-2xl border border-green-200 bg-white px-5 pb-4 pt-3 shadow-xl">
+                  <div className="rounded-[1.5rem] border border-green-200 bg-white/95 p-4 text-left shadow-sm">
+                    <div className="relative mx-auto max-w-sm rounded-2xl border border-green-200 bg-white px-5 py-4 shadow-xl">
                       <div className="flex items-start justify-between gap-3">
                         <p className="text-[12px] font-extrabold uppercase tracking-wide text-green-700">
                           Halvin täysi kori
                         </p>
-                        <span className="shrink-0 rounded-full bg-red-50 px-3 py-1 text-xl font-black leading-none text-red-500">
-                          −{savingsPercent.toFixed(1).replace(".", ",")}%
-                        </span>
+                        {secondCheapest && savings > 0 && (
+                          <span className="shrink-0 rounded-full bg-red-50 px-3 py-1 text-xl font-black leading-none text-red-500">
+                            −{savingsPercent.toFixed(1).replace(".", ",")}%
+                          </span>
+                        )}
                       </div>
 
-                      <p className="mt-3 text-6xl font-black leading-none tracking-tight text-green-700">
+                      <h3 className="mt-3 truncate text-3xl font-black leading-tight text-slate-900">
+                        {cheapest.storeName}
+                      </h3>
+                      <p className="mt-1 text-sm font-bold text-slate-500">
+                        {cheapest.chain} · {cheapest.foundItems}/{cart.length} tuotetta löytyi
+                      </p>
+
+                      <p className="mt-5 text-6xl font-black leading-none tracking-tight text-green-700">
                         {formatEuro(cheapest.totalPrice)}
                       </p>
 
-                      <p className="mt-4 text-3xl font-black leading-none text-green-800">
-                        Säästit {formatEuro(savings)}
-                      </p>
+                      {secondCheapest && savings > 0 && (
+                        <p className="mt-3 text-lg font-extrabold text-green-800">
+                          Säästö {formatEuro(savings)} · {savingsPercent.toFixed(1).replace(".", ",")} %
+                        </p>
+                      )}
 
-                      <p className="mt-2 truncate text-xl font-extrabold leading-tight text-slate-800">
-                        {cheapest.storeName}
-                      </p>
-
+                      <button
+                        type="button"
+                        onClick={openShoppingListForCheapest}
+                        className="mt-5 w-full rounded-2xl bg-green-500 px-4 py-3 text-sm font-black text-slate-950 transition active:scale-[0.98]"
+                      >
+                        Näytä ostoslista kauppaan
+                      </button>
 
                       {lastOptimizationSnapshot && (
                         <button
@@ -5354,25 +5368,6 @@ export default function Page() {
                           ↩ Peruuta optimointi
                         </button>
                       )}
-                    </div>
-
-                    <div className="mt-4 rounded-2xl bg-slate-50 p-4 text-left">
-                      <p className="text-xs font-extrabold uppercase tracking-wide text-slate-400">
-                        Yhteenveto
-                      </p>
-                      <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
-                        <div className="rounded-xl bg-white p-3 ring-1 ring-slate-100">
-                          <p className="text-xs font-bold text-slate-400">Tuotteita</p>
-                          <p className="text-lg font-black text-slate-900">{cart.length}</p>
-                        </div>
-                        <div className="rounded-xl bg-white p-3 ring-1 ring-slate-100">
-                          <p className="text-xs font-bold text-slate-400">Vertailtu</p>
-                          <p className="text-lg font-black text-slate-900">{completeResults.length} ketjua</p>
-                        </div>
-                      </div>
-                      <p className="mt-3 text-xs font-semibold leading-relaxed text-slate-500">
-                        Tähän voidaan lisätä myöhemmin ostohistoria, aiemmat säästöt ja optimointien vaikutus.
-                      </p>
                     </div>
                   </div>
                 </section>
@@ -5479,33 +5474,6 @@ export default function Page() {
 
             {cart.length > 0 && (
                 <section ref={comparisonSectionRef} className="rounded-[1.5rem] bg-white p-4 shadow-sm sm:rounded-[2rem] sm:p-6">
-                {cheapest && (
-                  <div className="mb-4 max-w-full overflow-hidden rounded-[1.5rem] bg-slate-950 p-4 text-white shadow-sm sm:p-5">
-                    <p className="text-xs font-black uppercase tracking-wide text-green-300">Halvin täysi kori</p>
-                    <div className="mt-2 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                      <div>
-                        <h3 className="text-2xl font-black leading-tight">{cheapest.storeName}</h3>
-                        <p className="mt-1 text-sm font-bold text-slate-300">{cheapest.chain} · {cheapest.foundItems}/{cart.length} tuotetta löytyi</p>
-                      </div>
-                      <div className="text-left sm:text-right">
-                        <p className="text-4xl font-black text-green-300">{formatEuro(cheapest.totalPrice)}</p>
-                        {secondCheapest && savings > 0 && (
-                          <p className="mt-1 text-sm font-extrabold text-green-200">
-                            Säästö {formatEuro(savings)} · {savingsPercent.toFixed(1).replace(".", ",")} %
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={openShoppingListForCheapest}
-                      className="mt-4 w-full rounded-2xl bg-green-500 px-4 py-3 text-sm font-black text-slate-950 transition active:scale-[0.98] sm:w-auto"
-                    >
-                      Näytä ostoslista kauppaan
-                    </button>
-                  </div>
-                )}
-
                 <div className="grid gap-4 md:grid-cols-2">
                   {chainResults.map((chain) => {
                     const isCheapest = cheapest?.key === chain.key;
