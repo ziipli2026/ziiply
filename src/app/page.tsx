@@ -163,7 +163,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v205";
+const APP_VERSION = "v206";
 
 // Scanner UX:
 // Käytetään lähes neliötä, jotta sekä pysty- että vaakaviivakoodit mahtuvat kehykseen.
@@ -5792,47 +5792,60 @@ export default function Page() {
                     return (
                       <div
                         key={chain.key}
-                        className={`flex min-w-0 max-w-full flex-col overflow-hidden rounded-[1.5rem] border p-3 sm:min-h-[25rem] sm:p-5 ${
+                        className={`flex min-w-0 max-w-full flex-col overflow-hidden rounded-[1.25rem] border p-3 shadow-sm sm:min-h-[22rem] sm:p-4 ${
                           chain.comingSoon
                             ? "border-slate-200 bg-slate-50 opacity-80"
                             : isCheapest
-                            ? "border-green-500 bg-green-50 shadow-lg shadow-green-100 ring-2 ring-green-200"
+                            ? "border-green-300 bg-white shadow-md"
                             : isComplete
                             ? "border-slate-200 bg-white"
-                            : "border-amber-200 bg-amber-50"
+                            : "border-amber-200 bg-white"
                         }`}
                       >
-                        <div className="min-w-0 flex-1 overflow-hidden">
-                          <p className="min-w-0 break-words text-sm text-slate-500">{chain.chain}</p>
-                          <h3 className="mt-1 line-clamp-2 max-w-full break-words text-lg font-bold">{chain.storeName}</h3>
-                          {isCheapest && (
-                            <div className="mt-2 inline-flex rounded-full bg-green-600 px-3 py-1 text-[11px] font-black uppercase tracking-wide text-white">
-                              Halvin kori
+                        <div className="min-w-0 overflow-hidden">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0 flex-1">
+                              <p className="min-w-0 break-words text-xs font-bold uppercase tracking-wide text-slate-500">{chain.chain}</p>
+                              <h3 className="mt-0.5 line-clamp-2 max-w-full break-words text-lg font-black text-slate-950">{chain.storeName}</h3>
                             </div>
-                          )}
-                          <p className="mt-2 line-clamp-3 text-sm text-slate-500">{chain.detail}</p>
+
+                            <div className="shrink-0 text-right">
+                              {isCheapest && (
+                                <div className="mb-1 inline-flex rounded-full bg-green-600 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-white">
+                                  Halvin kori
+                                </div>
+                              )}
+                              {!isComplete && !chain.comingSoon && (
+                                <div className="mb-1 inline-flex rounded-full bg-amber-500 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-white">
+                                  Vajaa kori
+                                </div>
+                              )}
+                              {chain.comingSoon && (
+                                <div className="mb-1 inline-flex rounded-full bg-slate-500 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-white">
+                                  Tulossa
+                                </div>
+                              )}
+                              <p className="text-2xl font-black leading-none text-green-700">
+                                {chain.comingSoon ? "—" : chain.totalPrice > 0 ? formatEuro(chain.totalPrice) : "—"}
+                              </p>
+                            </div>
+                          </div>
+                          <p className="mt-2 line-clamp-2 text-xs font-medium text-slate-500">{chain.detail}</p>
                         </div>
 
-                        <div className="grid grid-cols-3 gap-1.5 text-center sm:gap-2">
-                          <div className="rounded-2xl bg-green-100 p-2 sm:p-3">
-                            <p className="text-xl font-bold text-green-700 sm:text-2xl">{chain.foundItems}</p>
-                            <p className="text-xs text-green-800">löytyi</p>
-                          </div>
-                          <div className="rounded-2xl bg-red-100 p-2 sm:p-3">
-                            <p className="text-xl font-bold text-red-700 sm:text-2xl">{chain.missingItems}</p>
-                            <p className="text-xs text-red-800">puuttuu</p>
-                          </div>
-                          <div className="rounded-2xl bg-yellow-100 p-2 sm:p-3">
-                            <p className="text-xl font-bold text-yellow-700 sm:text-2xl">{chain.offerCount}</p>
-                            <p className="text-xs text-yellow-800">tarjousta</p>
-                          </div>
+                        <div className="mt-3 flex flex-wrap items-center gap-1.5 rounded-2xl border border-slate-100 bg-slate-50 px-3 py-2 text-[11px] font-extrabold text-slate-600">
+                          <span className="text-green-700">{chain.foundItems} löytyi</span>
+                          <span className="text-slate-300">·</span>
+                          <span className={chain.missingItems > 0 ? "text-red-700" : "text-slate-500"}>{chain.missingItems} puuttuu</span>
+                          <span className="text-slate-300">·</span>
+                          <span className="text-yellow-700">{chain.offerCount} tarjousta</span>
+                          {!chain.comingSoon && <span className="ml-auto text-[10px] uppercase tracking-wide text-green-700">oikea data</span>}
                         </div>
 
                         {chain.matches.length > 0 ? (
-                          <div className="mt-4 max-w-full overflow-hidden rounded-2xl bg-slate-50 p-3">
+                          <div className="mt-3 max-w-full overflow-hidden rounded-2xl border border-slate-100 bg-white p-2.5">
                             <div className="mb-2">
-                              <p className="text-xs font-bold uppercase text-slate-500">Tuotematchit</p>
-                              <p className="mt-0.5 text-[11px] text-slate-400">Status kertoo miksi tuote valittiin.</p>
+                              <p className="text-[11px] font-black uppercase tracking-wide text-slate-500">Tuotteet</p>
                             </div>
                             <div className="space-y-2">
                               {chain.matches.map((match, index) => {
@@ -5841,7 +5854,7 @@ export default function Page() {
                                   (chain.key === "s" && hasAnyBrand(normalize(match.product.name), S_OWN_BRANDS));
 
                                 return (
-                                  <div key={`${chain.key}-${match.product.id}-${match.product.name}-${index}`} className="max-w-full overflow-hidden rounded-xl bg-white/70 p-2 text-sm">
+                                  <div key={`${chain.key}-${match.product.id}-${match.product.name}-${index}`} className="max-w-full overflow-hidden rounded-xl bg-slate-50 px-2.5 py-2 text-sm">
                                     <div className="flex items-center justify-between gap-2">
                                       <span className="min-w-0 flex-1 truncate">{match.quantity} × {fixText(match.product.name)}</span>
                                       <span className="shrink-0 text-slate-500">{formatEuro(match.price * match.quantity)}</span>
@@ -5880,7 +5893,7 @@ export default function Page() {
                                     <button
                                       type="button"
                                       onClick={() => toggleAlternatives(getAlternativeKey(chain.key, match, index), chain.key, match)}
-                                      className="mt-2 rounded-lg bg-slate-100 px-2 py-1 text-[11px] font-extrabold text-slate-700 transition hover:bg-slate-200 active:scale-[0.98]"
+                                      className="mt-1.5 rounded-lg bg-white px-2 py-1 text-[11px] font-extrabold text-slate-600 ring-1 ring-slate-100 transition hover:bg-slate-100 active:scale-[0.98]"
                                     >
                                       {expandedAlternatives[getAlternativeKey(chain.key, match, index)]
                                         ? "Piilota vaihtoehdot"
@@ -6084,8 +6097,8 @@ export default function Page() {
                           </div>
                         )}
 
-                        <div className="mt-auto pt-5">
-                          <div className="grid grid-cols-[3.5rem_minmax(0,1fr)] items-end gap-3 sm:grid-cols-[4rem_1fr]">
+                        <div className="mt-auto pt-3">
+                          <div className="hidden">
                             <div
                               className={`flex h-14 w-14 items-center justify-center rounded-xl bg-white text-center text-2xl font-black shadow-sm sm:h-16 sm:w-16 ${
                                 chain.key === "k"
@@ -6124,18 +6137,18 @@ export default function Page() {
                           </div>
 
                           {!chain.comingSoon && chain.matches.length > 0 && (
-                            <div className="mt-4 grid grid-cols-2 gap-2">
+                            <div className="mt-3 grid grid-cols-3 gap-2">
                               <button
                                 type="button"
                                 onClick={() => void shareShoppingList(chain)}
-                                className="rounded-xl bg-slate-900 px-3 py-3 text-sm font-extrabold text-white transition active:scale-[0.98]"
+                                className="rounded-xl bg-slate-100 px-3 py-2.5 text-xs font-extrabold text-slate-700 transition active:scale-[0.98]"
                               >
                                 Jaa
                               </button>
                               <button
                                 type="button"
                                 onClick={() => void buyShoppingList(chain)}
-                                className="rounded-xl bg-green-600 px-3 py-3 text-sm font-extrabold text-white transition active:scale-[0.98]"
+                                className="rounded-xl bg-green-600 px-3 py-2.5 text-xs font-extrabold text-white transition active:scale-[0.98]"
                               >
                                 Osta
                               </button>
@@ -6144,7 +6157,7 @@ export default function Page() {
                                 type="button"
                                 disabled={!canOptimizeChain(chain) || optimizingChains[chain.key]}
                                 onClick={() => void optimizeCart(chain)}
-                                className={`col-span-2 rounded-xl px-3 py-3 text-sm font-extrabold transition ${
+                                className={`col-span-1 rounded-xl px-3 py-2.5 text-xs font-extrabold transition ${
                                   canOptimizeChain(chain) && !optimizingChains[chain.key]
                                     ? "bg-emerald-700 text-white active:scale-[0.98]"
                                     : "cursor-not-allowed bg-slate-200 text-slate-500"
@@ -6524,7 +6537,7 @@ export default function Page() {
                 <p className="text-lg font-extrabold text-slate-900">EAN / viivakoodi</p>
               </div>
 
-              <div className="mt-4 grid grid-cols-2 gap-2">
+              <div className="mt-3 grid grid-cols-3 gap-2">
                 <button
                   type="button"
                   onClick={async () => {
