@@ -163,7 +163,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v205";
+const APP_VERSION = "v194";
 
 // Scanner UX:
 // Käytetään lähes neliötä, jotta sekä pysty- että vaakaviivakoodit mahtuvat kehykseen.
@@ -4082,7 +4082,6 @@ export default function Page() {
     });
 
     setSavedListName("");
-    setCartSavePanelOpen(false);
     showCartToast(`Tallennettu lista: ${listName}`);
   }
 
@@ -4149,22 +4148,6 @@ export default function Page() {
     setCartSavePanelOpen(false);
   }
 
-  function scrollCompareToSavingsStart() {
-    window.setTimeout(() => {
-      const scroller = compareOverlayScrollRef.current;
-      const target = savingsSummaryRef.current;
-
-      if (!scroller) return;
-
-      if (target) {
-        scroller.scrollTop = Math.max(0, target.offsetTop - 12);
-        return;
-      }
-
-      scroller.scrollTop = 0;
-    }, 120);
-  }
-
   function openComparisonView() {
     if (cart.length === 0) return;
 
@@ -4175,11 +4158,12 @@ export default function Page() {
     setEanModalOpen(false);
     setActiveResult("compare");
 
-    scrollCompareToSavingsStart();
+    window.setTimeout(() => {
+      compareOverlayScrollRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+      comparisonSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 80);
 
-    void updateChainComparison(cart).finally(() => {
-      scrollCompareToSavingsStart();
-    });
+    void updateChainComparison(cart);
   }
 
   function toggleComparisonView() {
@@ -5316,7 +5300,7 @@ export default function Page() {
 
         {activeResult === "compare" && (
           <div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0">
-            <div ref={compareOverlayScrollRef} className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-50 p-3 shadow-2xl sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:bg-transparent sm:p-0 sm:shadow-none">
+            <div className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-50 p-3 shadow-2xl sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:bg-transparent sm:p-0 sm:shadow-none">
             <div className="grid min-w-0 max-w-full gap-4 overflow-hidden lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
             {showCheapestSticky && cheapest && secondCheapest ? (
                 <section ref={savingsSummaryRef} className="min-w-0 max-w-full overflow-hidden rounded-[1.5rem] bg-white p-3 shadow-sm sm:rounded-[2rem] sm:p-6">
