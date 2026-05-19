@@ -1774,7 +1774,6 @@ export default function Page() {
 
 
   const [checkedCartItems, setCheckedCartItems] = useState<Record<string, boolean>>({});
-  const [showOnlyUncheckedShoppingItems, setShowOnlyUncheckedShoppingItems] = useState(false);
   const [priceHistoryBaseline, setPriceHistoryBaseline] = useState<Record<string, PriceSnapshot>>({});
   const [recentCartItems, setRecentCartItems] = useState<CartItem[]>([]);
   const [savedShoppingLists, setSavedShoppingLists] = useState<SavedShoppingList[]>([]);
@@ -2752,16 +2751,6 @@ export default function Page() {
       return groups;
     }, {} as Record<string, Match[]>);
   }, [shoppingListItems]);
-
-  const visibleShoppingListGroups = useMemo(() => {
-    if (!showOnlyUncheckedShoppingItems) return bestShoppingListGroups;
-
-    return Object.entries(bestShoppingListGroups).reduce((groups, [category, matches]) => {
-      const visibleMatches = matches.filter((match) => !checkedCartItems[getShoppingListItemKey(match)]);
-      if (visibleMatches.length > 0) groups[category] = visibleMatches;
-      return groups;
-    }, {} as Record<string, Match[]>);
-  }, [bestShoppingListGroups, checkedCartItems, showOnlyUncheckedShoppingItems]);
 
   const { checkedCount, shoppingListCount, shoppingProgressPercent } = useMemo(() => {
     const checked = shoppingListKeys.filter((key) => checkedCartItems[key]).length;
@@ -4173,7 +4162,10 @@ export default function Page() {
   }
 
   function showCart() {
-    if (cart.length === 0) return;
+    if (cart.length === 0) {
+      showCartToast("Lisää ensin tuote koriin.");
+      return;
+    }
 
     // Kori-paneeli toimii erillisenä näkymänä: se sulkee Haen/EANin/vertailun ja avautuu heti näkyville.
     setSearchPanelOpen(false);
@@ -4189,7 +4181,10 @@ export default function Page() {
   }
 
   function toggleCartModal() {
-    if (cart.length === 0) return;
+    if (cart.length === 0) {
+      showCartToast("Lisää ensin tuote koriin.");
+      return;
+    }
 
     // Toinen painallus sulkee Korin. Jos Hae on auki, vaihdetaan suoraan Koriin.
     if (cartModalOpen) {
@@ -4207,7 +4202,10 @@ export default function Page() {
   }
 
   function openComparisonView() {
-    if (cart.length === 0) return;
+    if (cart.length === 0) {
+      showCartToast("Lisää ensin tuote koriin.");
+      return;
+    }
 
     // Vertailu avautuu mobiilissa omana näkymänä eikä jää taustalle sivun scrolliin.
     setSearchPanelOpen(false);
@@ -4225,7 +4223,10 @@ export default function Page() {
   }
 
   function toggleComparisonView() {
-    if (cart.length === 0) return;
+    if (cart.length === 0) {
+      showCartToast("Lisää ensin tuote koriin.");
+      return;
+    }
 
     if (activeResult === "compare" && !searchPanelOpen && !cartModalOpen && !eanModalOpen) {
       setActiveResult("none");
@@ -6297,26 +6298,12 @@ export default function Page() {
                   </button>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowOnlyUncheckedShoppingItems((current) => !current);
-                    triggerHaptic();
-                  }}
-                  disabled={shoppingListCount === 0}
-                  className={`mt-3 w-full rounded-xl px-3 py-2 text-xs font-black transition active:scale-[0.98] disabled:opacity-50 ${
-                    showOnlyUncheckedShoppingItems ? "bg-white text-slate-950" : "bg-white/10 text-white"
-                  }`}
-                >
-                  {showOnlyUncheckedShoppingItems ? "Näytä kaikki tuotteet" : "Näytä vain keräämättömät"}
-                </button>
-
                 <p className="mt-3 text-center text-xs font-bold text-slate-400">
                   Merkitse tuote kerätyksi, kun olet poiminut sen hyllystä. Merkinnät säilyvät sivun päivityksen jälkeen.
                 </p>
 
                 <div className="mt-4 max-h-[46vh] space-y-4 overflow-auto pr-1">
-                  {(Object.entries(visibleShoppingListGroups) as [string, Match[]][]).map(([category, matches]) => (
+                  {(Object.entries(bestShoppingListGroups) as [string, Match[]][]).map(([category, matches]) => (
                     <div key={category}>
                       <p className="mb-2 flex items-center justify-between text-xs font-black uppercase tracking-wide text-slate-400"><span>{category}</span><span>{matches.filter((match, index) => checkedCartItems[getShoppingListItemKey(match, index)]).length}/{matches.length}</span></p>
                       <div className="space-y-2">
@@ -6800,7 +6787,6 @@ export default function Page() {
           <button
             type="button"
             onClick={toggleCartModal}
-            disabled={cart.length === 0}
             aria-disabled={cart.length === 0}
             className={`relative flex flex-col items-center justify-center rounded-[1.25rem] px-2 py-2.5 text-xs font-black transition ${cart.length === 0 ? "cursor-not-allowed bg-slate-100 text-slate-300 opacity-70" : cartModalOpen ? "bg-green-600 text-white shadow-md active:scale-[0.98]" : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
           >
@@ -6815,7 +6801,6 @@ export default function Page() {
           <button
             type="button"
             onClick={toggleComparisonView}
-            disabled={cart.length === 0}
             aria-disabled={cart.length === 0}
             className={`flex flex-col items-center justify-center rounded-[1.25rem] px-2 py-2.5 text-xs font-black transition ${cart.length === 0 ? "cursor-not-allowed bg-slate-100 text-slate-300 opacity-70" : activeResult === "compare" && !searchPanelOpen && !cartModalOpen ? "bg-green-600 text-white shadow-md active:scale-[0.98]" : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
           >
