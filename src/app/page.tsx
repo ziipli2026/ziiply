@@ -163,7 +163,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v198";
+const APP_VERSION = "v199";
 
 // Scanner UX:
 // Käytetään lähes neliötä, jotta sekä pysty- että vaakaviivakoodit mahtuvat kehykseen.
@@ -5909,27 +5909,29 @@ export default function Page() {
               </div>
               <div className="flex flex-wrap gap-2 sm:justify-end">
                 {cart.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={clearCartAndCloseModal}
-                    className="rounded-xl border border-white/30 bg-white/10 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/20"
-                  >
-                    🗑 Tyhjennä kori
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      onClick={clearCartAndCloseModal}
+                      className="rounded-xl border border-white/30 bg-white/10 px-4 py-2 text-sm font-bold text-white transition hover:bg-white/20"
+                    >
+                      🗑 Tyhjennä kori
+                    </button>
+                    {!cartSavePanelOpen && (
+                      <button
+                        type="button"
+                        onClick={() => setCartSavePanelOpen(true)}
+                        className="rounded-xl bg-white px-4 py-2 text-sm font-extrabold text-slate-900 transition active:scale-[0.98]"
+                      >
+                        Tallenna lista
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             </div>
 
 
-            {cart.length > 0 && !cartSavePanelOpen && (
-              <button
-                type="button"
-                onClick={() => setCartSavePanelOpen(true)}
-                className="mb-4 w-full rounded-2xl bg-white px-4 py-3 text-sm font-extrabold text-slate-900 transition active:scale-[0.98]"
-              >
-                Tallenna lista
-              </button>
-            )}
 
             {cart.length > 0 && cartSavePanelOpen && (
               <div className="mb-4 rounded-2xl bg-white/10 p-4 text-white">
