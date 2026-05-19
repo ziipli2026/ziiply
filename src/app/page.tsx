@@ -163,7 +163,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v203a";
+const APP_VERSION = "v203b";
 
 // Scanner UX:
 // Käytetään lähes neliötä, jotta sekä pysty- että vaakaviivakoodit mahtuvat kehykseen.
@@ -6472,24 +6472,6 @@ export default function Page() {
               )}
             </div>
 
-            {terms.length > 0 && (
-              <div className="mt-3 rounded-2xl bg-slate-50 p-3">
-                <div className="mb-2 flex items-center justify-between gap-3">
-                  <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Jäljellä haussa</p>
-                  <p className="text-xs font-semibold text-slate-400">{terms.length} / {MAX_ITEMS}</p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {terms.map((term) => (
-                    <span
-                      key={term}
-                      className="rounded-full bg-white px-3 py-1.5 text-sm font-bold text-slate-700 shadow-sm ring-1 ring-slate-200"
-                    >
-                      {term}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
 
 
 
