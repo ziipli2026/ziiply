@@ -163,7 +163,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v206";
+const APP_VERSION = "v207";
 
 // Scanner UX:
 // Käytetään lähes neliötä, jotta sekä pysty- että vaakaviivakoodit mahtuvat kehykseen.
@@ -5636,7 +5636,7 @@ export default function Page() {
                         )}
                       </div>
 
-                      <h3 className="mt-3 truncate text-3xl font-black leading-tight text-slate-900">
+                      <h3 className="mt-3 max-w-full break-words text-[2rem] font-black leading-[1.05] text-slate-900 sm:text-3xl">
                         {cheapest.storeName}
                       </h3>
                       <p className="mt-1 text-sm font-bold text-slate-500">
@@ -5649,7 +5649,7 @@ export default function Page() {
 
                       {secondCheapest && savings > 0 && (
                         <p className="mt-3 text-lg font-extrabold text-green-800">
-                          Säästö {formatEuro(savings)} · {savingsPercent.toFixed(1).replace(".", ",")} %
+                          Säästö {formatEuro(savings)}
                         </p>
                       )}
 
