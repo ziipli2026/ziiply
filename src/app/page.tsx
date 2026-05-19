@@ -163,7 +163,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v195";
+const APP_VERSION = "v196";
 
 // Scanner UX:
 // Käytetään lähes neliötä, jotta sekä pysty- että vaakaviivakoodit mahtuvat kehykseen.
@@ -6192,51 +6192,7 @@ export default function Page() {
               </div>
             )}
 
-            {savedShoppingLists.length > 0 && (
-              <div className="mt-3 grid gap-3">
-                <div className="rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-200">
-                  <p className="text-xs font-black uppercase tracking-wide text-slate-500">Tallennetut listat</p>
-                  <div className="mt-2 grid gap-2">
-                    {savedShoppingLists.slice(0, 4).map((list) => (
-                      <div key={list.id} className="flex items-center justify-between gap-2 rounded-xl bg-white p-2 ring-1 ring-slate-200">
-                        <button
-                          type="button"
-                          onClick={() => addSavedListToCart(list)}
-                          className="min-w-0 flex-1 text-left transition active:scale-[0.99]"
-                        >
-                          <span className="block truncate text-sm font-extrabold text-slate-800">{list.name}</span>
-                          <span className="block text-xs font-semibold text-slate-500">{list.items.length} riviä · lisää koriin</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => deleteSavedShoppingList(list.id)}
-                          className="rounded-lg bg-slate-100 px-2 py-1 text-xs font-black text-slate-500 transition active:scale-[0.96]"
-                          aria-label={`Poista tallennettu lista ${list.name}`}
-                        >
-                          Poista
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
 
-            {isShoppingListReady && (
-              <div className="mt-3 rounded-2xl border border-green-200 bg-green-50 p-4 text-green-900">
-                <p className="text-base font-extrabold">✅ Ostoskori valmis</p>
-                <p className="mt-1 text-sm font-semibold text-green-800">
-                  Kaikki hakusanat on käsitelty. Seuraavaksi voit vertailla kauppaketjut.
-                </p>
-                <button
-                  type="button"
-                  onClick={openComparisonView}
-                  className="mt-3 w-full rounded-xl bg-green-600 px-4 py-3 text-sm font-extrabold text-white transition active:scale-[0.98] sm:w-auto"
-                >
-                  Vertaa kauppaketjut
-                </button>
-              </div>
-            )}
 
             <div className="mt-4 grid grid-cols-2 gap-3">
               <button
