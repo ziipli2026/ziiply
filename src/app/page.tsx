@@ -206,7 +206,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v216-search-overlay-fix";
+const APP_VERSION = "v217-search-result-isolation";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -6273,7 +6273,7 @@ export default function Page() {
           <div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0">
             <div ref={compareOverlayScrollRef} className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-50 p-3 shadow-2xl sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:bg-transparent sm:p-0 sm:shadow-none">
             <div className="grid min-w-0 max-w-full gap-4 overflow-hidden lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-            {showCheapestSticky && cheapest && secondCheapest && (
+            {activeResult === "compare" && showCheapestSticky && cheapest && secondCheapest && (
                 <section ref={savingsSummaryRef} className="min-w-0 max-w-full overflow-hidden rounded-[1.5rem] bg-white p-3 shadow-sm sm:rounded-[2rem] sm:p-6">
                   <div className="rounded-[1.5rem] border border-green-200 bg-white/95 p-4 text-left shadow-sm">
                     <div className="relative mx-auto max-w-sm rounded-2xl border border-green-200 bg-white px-5 py-4 shadow-xl">
@@ -6441,7 +6441,7 @@ export default function Page() {
                       <button
                         type="button"
                         onClick={() => setVisibleNormalCount((current) => current + 8)}
-                        className="mt-4 w-full rounded-2xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition hover:border-green-300 hover:bg-green-50"
+                        className="mt-4 w-full rounded-2xl border border-green-200 bg-green-600 px-5 py-3 text-sm font-black text-white shadow-sm transition active:scale-[0.99] hover:bg-green-700"
                       >
                         Näytä lisää
                       </button>
@@ -6451,7 +6451,7 @@ export default function Page() {
               </section>
               )}
 
-            {cart.length > 0 && !searchPanelOpen && (
+            {activeResult === "compare" && cart.length > 0 && !searchPanelOpen && (
                 <section ref={comparisonSectionRef} className="rounded-[1.5rem] bg-white p-4 shadow-sm sm:rounded-[2rem] sm:p-6">
                 <div className="grid gap-4 md:grid-cols-2">
                   {chainResults.map((chain) => {
