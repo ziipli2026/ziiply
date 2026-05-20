@@ -206,7 +206,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v211-query-priority";
+const APP_VERSION = "v212-relevance-foundation";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -1591,18 +1591,92 @@ function scoreDirectQueryNameMatch(query: string, productName: string) {
   return score;
 }
 
-function scoreNormalSResult(query: string, product: Product) {
+
+type ScoredProduct = {
+  product: Product;
+  score: number;
+  categoryConfidence: number;
+  preferredSizeScore: number;
+};
+
+function getProductSearchText(product: Product) {
+  return normalize(`${product.name} ${product.brandName || ""} ${product.category || ""}`);
+}
+
+function getPreferredSizeScore(intent: SearchIntent, product: Product) {
+  const size = parseMetricSize(product.name);
+  if (!intent.preferredSizes?.length) return 0;
+
+  // Jos tuotteesta ei saada kokoa, älä rankaise kovaa. Kaikissa lähteissä koko ei ole nimessä.
+  if (!size) return 0;
+
+  let bestScore = 0;
+  for (const preferredSize of intent.preferredSizes) {
+    if (size.unitGroup !== preferredSize.unitGroup) continue;
+
+    const targetMidpoint = (preferredSize.min + preferredSize.max) / 2;
+    const distanceRatio = Math.abs(size.amount - targetMidpoint) / targetMidpoint;
+
+    if (size.amount >= preferredSize.min && size.amount <= preferredSize.max) {
+      bestScore = Math.max(bestScore, preferredSize.boost + Math.max(0, 24 - distanceRatio * 50));
+    } else if (distanceRatio <= 0.25) {
+      bestScore = Math.max(bestScore, Math.round(preferredSize.boost * 0.35));
+    }
+  }
+
+  if (bestScore > 0) return bestScore;
+
+  // Selvästi väärät minikoot pois kärjestä, mutta ei hard rejectiä.
+  if (size.unitGroup === "volume" && size.amount < 250) return -70;
+  if (size.unitGroup === "weight" && size.amount < 100) return -70;
+
+  return 0;
+}
+
+function getCategoryConfidence(intent: SearchIntent, product: Product) {
+  if (intent.category === "generic") return 0;
+
+  const text = getProductSearchText(product);
+  let confidence = 0;
+
+  if (intent.requiredAny?.length && hasAnyToken(text, intent.requiredAny)) confidence += 95;
+  if (intent.preferredAny?.length && hasAnyToken(text, intent.preferredAny)) confidence += 38;
+  if (intent.bannedAny?.length && hasAnyToken(text, intent.bannedAny)) confidence -= 180;
+
+  if (intent.category === "milk") {
+    if (!isBadNormalResult(product, "maito")) confidence += 120;
+    if (hasAnyToken(text, ["kevytmaito", "rasvaton", "täysmaito", "taysmaito", "ykkösmaito", "ykkosmaito", "maito 1l", "maito 1 l"])) confidence += 55;
+    if (hasAnyToken(text, ["maitojuoma", "proteiinijuoma", "latte", "kaakao", "maitojauhe"])) confidence -= 220;
+  }
+
+  if (intent.category === "coffee") {
+    if (isClearlyCoffeeProduct(product.name)) confidence += 125;
+    if (hasStrongCoffeeSignal(product.name)) confidence += 60;
+    if (isCoffeeAccessory(product.name)) confidence -= 260;
+  }
+
+  if (intent.category === "cola") {
+    if (isClearlyColaProduct(product.name)) confidence += 135;
+    else confidence -= 260;
+
+    // Käyttäjän "cola"-haku tarkoittaa ensisijaisesti cola-nimisiä tuotteita.
+    // Pepsi saa edelleen näkyä, mutta vasta Cola-nimisten jälkeen.
+    if (hasAnyToken(text, ["coca-cola", "coca cola", "cola"])) confidence += 85;
+    if (hasAnyToken(text, ["pepsi", "pepsi max"]) && !hasAnyToken(normalize(product.name), ["cola"])) confidence -= 20;
+  }
+
+  return confidence;
+}
+
+function scoreBaseNormalResult(query: string, product: Product) {
   const intent = detectSearchIntent(query);
   const queryText = normalize(query);
-  const productText = normalize(`${product.name} ${product.brandName || ""} ${product.category || ""}`);
+  const productText = getProductSearchText(product);
   const nameText = normalize(product.name);
   const queryWords = getNormalizedWords(query).filter((word) => word.length > 1);
-  const size = parseMetricSize(product.name);
 
   let score = 0;
 
-  // Vahva suora nimiosuma aina ennen category/intention synonyymejä.
-  // Tämä estää esim. "cola"-haussa Pepsi-tuotteita menemästä Cola-nimisten tuotteiden edelle.
   score += scoreDirectQueryNameMatch(query, product.name);
 
   if (productText === queryText) score += 140;
@@ -1615,45 +1689,13 @@ function scoreNormalSResult(query: string, product: Product) {
     else score -= 7;
   }
 
-  if (intent.requiredAny?.length) {
-    const hasRequiredSignal = hasAnyToken(productText, intent.requiredAny);
-    if (hasRequiredSignal) score += 95;
-    else if (intent.category !== "generic") score -= 120;
-  }
-
-  if (intent.preferredAny?.length && hasAnyToken(productText, intent.preferredAny)) score += 45;
-  if (intent.bannedAny?.length && hasAnyToken(productText, intent.bannedAny)) score -= 220;
-
-  if (intent.preferredSizes?.length && size) {
-    for (const preferredSize of intent.preferredSizes) {
-      if (size.unitGroup === preferredSize.unitGroup && size.amount >= preferredSize.min && size.amount <= preferredSize.max) {
-        score += preferredSize.boost;
-      }
-    }
-  }
-
-  if (intent.preferredSizes?.length && size?.unitGroup === "volume" && size.amount < 250) score -= 25;
-  if (intent.preferredSizes?.length && size?.unitGroup === "weight" && size.amount < 100) score -= 25;
+  score += getCategoryConfidence(intent, product);
+  score += getPreferredSizeScore(intent, product);
 
   if (intent.preferredBrands?.length && hasAnyBrand(nameText, intent.preferredBrands)) score += 22;
   if (intent.ownBrandFriendly && isValueBrandProduct(product.name)) score += 16;
 
-  if (intent.category === "coffee") {
-    if (isClearlyCoffeeProduct(product.name)) score += 80;
-    if (isCoffeeAccessory(product.name)) score -= 180;
-  }
-
-  if (intent.category === "cola") {
-    if (isClearlyColaProduct(product.name)) score += 80;
-    if (!isClearlyColaProduct(product.name)) score -= 160;
-  }
-
-  if (intent.category === "milk") {
-    if (isBadNormalResult(product, query)) score -= 120;
-  } else if (isBadNormalResult(product, query)) {
-    // Muissa kategorioissa tämä on pehmeä varoitus, ei täystappo.
-    score -= 70;
-  }
+  if (isBadNormalResult(product, query)) score -= intent.category === "generic" ? 70 : 120;
 
   const price = getProductPrice(product);
   if (price > 0) score -= Math.min(18, price / 1000);
@@ -1661,25 +1703,87 @@ function scoreNormalSResult(query: string, product: Product) {
   return score;
 }
 
+function scoreMilkProduct(query: string, product: Product) {
+  let score = scoreBaseNormalResult(query, product);
+  const text = getProductSearchText(product);
+  const size = parseMetricSize(product.name);
+
+  if (isBadNormalResult(product, "maito")) score -= 260;
+  if (size?.unitGroup === "volume" && size.amount >= 900 && size.amount <= 1100) score += 90;
+  if (size?.unitGroup === "volume" && size.amount >= 1400 && size.amount <= 2100) score += 35;
+  if (size?.unitGroup === "volume" && size.amount < 500) score -= 85;
+
+  if (hasAnyToken(text, ["kevytmaito", "rasvaton", "täysmaito", "taysmaito", "ykkösmaito", "ykkosmaito"])) score += 55;
+  if (hasAnyToken(text, ["kauramaito", "soijamaito", "mantelimaito"]) && !hasAnyToken(normalize(query), ["kaura", "soija", "manteli"])) score -= 45;
+
+  return score;
+}
+
+function scoreCoffeeProduct(query: string, product: Product) {
+  let score = scoreBaseNormalResult(query, product);
+  const text = getProductSearchText(product);
+  const size = parseMetricSize(product.name);
+
+  if (!isClearlyCoffeeProduct(product.name)) score -= 320;
+  if (hasStrongCoffeeSignal(product.name)) score += 85;
+  if (isCoffeeAccessory(product.name)) score -= 420;
+  if (size?.unitGroup === "weight" && size.amount >= 400 && size.amount <= 550) score += 85;
+  if (size?.unitGroup === "weight" && size.amount < 100) score -= 95;
+  if (hasAnyToken(text, ["suodatinkahvi", "suodatinjauhatus", "jauhettu", "jauhatus"])) score += 45;
+
+  return score;
+}
+
+function scoreColaProduct(query: string, product: Product) {
+  let score = scoreBaseNormalResult(query, product);
+  const text = getProductSearchText(product);
+  const size = parseMetricSize(product.name);
+
+  if (!isClearlyColaProduct(product.name)) score -= 360;
+  if (hasAnyToken(text, ["coca-cola", "coca cola"])) score += 110;
+  if (hasAnyToken(text, ["cola"])) score += 90;
+  if (hasAnyToken(text, ["pepsi", "pepsi max"]) && normalize(query).includes("cola")) score -= 35;
+  if (size?.unitGroup === "volume" && size.amount >= 1400 && size.amount <= 1600) score += 70;
+  if (size?.unitGroup === "volume" && size.amount >= 300 && size.amount <= 550) score += 35;
+  if (size?.unitGroup === "volume" && size.amount < 250) score -= 80;
+
+  return score;
+}
+
+function scoreCategorySpecificResult(query: string, product: Product) {
+  const intent = detectSearchIntent(query);
+
+  if (intent.category === "milk") return scoreMilkProduct(query, product);
+  if (intent.category === "coffee") return scoreCoffeeProduct(query, product);
+  if (intent.category === "cola") return scoreColaProduct(query, product);
+
+  return scoreBaseNormalResult(query, product);
+}
+
+function scoreNormalSResult(query: string, product: Product) {
+  return scoreCategorySpecificResult(query, product);
+}
+
 function rankNormalSearchResults(query: string, products: Product[]) {
   const intent = detectSearchIntent(query);
 
   return products
-    .map((product: Product) => ({ product, score: scoreNormalSResult(query, product) }))
+    .map((product: Product): ScoredProduct => ({
+      product,
+      score: scoreNormalSResult(query, product),
+      categoryConfidence: getCategoryConfidence(intent, product),
+      preferredSizeScore: getPreferredSizeScore(intent, product),
+    }))
     .sort((a, b) => {
       const scoreDifference = b.score - a.score;
       if (Math.abs(scoreDifference) > 8) return scoreDifference;
 
-      const aSize = parseMetricSize(a.product.name);
-      const bSize = parseMetricSize(b.product.name);
-      const aPreferredSize = intent.preferredSizes?.some((preferredSize) =>
-        aSize?.unitGroup === preferredSize.unitGroup && aSize.amount >= preferredSize.min && aSize.amount <= preferredSize.max
-      ) ? 1 : 0;
-      const bPreferredSize = intent.preferredSizes?.some((preferredSize) =>
-        bSize?.unitGroup === preferredSize.unitGroup && bSize.amount >= preferredSize.min && bSize.amount <= preferredSize.max
-      ) ? 1 : 0;
+      // Tasatilanteissa aito tuoteryhmä ja normaali pakkauskoko voittavat halvimman hinnan.
+      const categoryDifference = b.categoryConfidence - a.categoryConfidence;
+      if (Math.abs(categoryDifference) > 20) return categoryDifference;
 
-      if (aPreferredSize !== bPreferredSize) return bPreferredSize - aPreferredSize;
+      const sizeDifference = b.preferredSizeScore - a.preferredSizeScore;
+      if (Math.abs(sizeDifference) > 8) return sizeDifference;
 
       return getProductPrice(a.product) - getProductPrice(b.product);
     })
