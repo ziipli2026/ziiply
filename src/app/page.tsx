@@ -487,7 +487,41 @@ function formatDate(value?: string | null) {
 }
 
 function getProductPrice(product: Product) {
-  return product.storeItems?.[0]?.price || product.price || 0;
+  const value =
+    product.storeItems?.[0]?.price ??
+    product.price ??
+    (product as Product & { storeItem?: { price?: number | null } }).storeItem?.price ??
+    0;
+
+  return Number(value) || 0;
+}
+
+function normalizeSProduct(product: Product): Product {
+  const anyProduct = product as Product & {
+    storeItem?: {
+      price?: number | null;
+      comparisonPrice?: number | null;
+      comparisonPriceUnit?: string | null;
+    };
+    storeItems?: Array<{
+      price?: number | null;
+      comparisonPrice?: number | null;
+      comparisonPriceUnit?: string | null;
+    }>;
+  };
+
+  return {
+    ...product,
+    price: product.price ?? anyProduct.storeItem?.price ?? anyProduct.storeItems?.[0]?.price ?? 0,
+    comparisonPrice: product.comparisonPrice ?? anyProduct.storeItem?.comparisonPrice ?? anyProduct.storeItems?.[0]?.comparisonPrice ?? undefined,
+    comparisonPriceUnit: product.comparisonPriceUnit ?? anyProduct.storeItem?.comparisonPriceUnit ?? anyProduct.storeItems?.[0]?.comparisonPriceUnit ?? undefined,
+    storeItems:
+      product.storeItems && product.storeItems.length > 0
+        ? product.storeItems
+        : anyProduct.storeItem?.price != null
+        ? [{ price: anyProduct.storeItem.price }]
+        : product.storeItems,
+  };
 }
 
 function isManualShoppingItem(item: CartItem) {
@@ -1997,7 +2031,7 @@ export default function Page() {
         const data = await response.json();
         const items = Array.isArray(data?.items) ? data.items : Array.isArray(data) ? data : [];
 
-        if (items.length > 0) return items as Product[];
+        if (items.length > 0) return (items as Product[]).map(normalizeSProduct);
       } catch {
         // Try the next S-product source. One failing endpoint must not kill S-search.
       }
@@ -3294,8 +3328,11 @@ export default function Page() {
             fallbackStoreName = activeArea.sStoreName;
           }
 
-          const items = rawItems
-            .filter((product) => getProductPrice(product) > 0)
+          const pricedItems = rawItems
+            .map(normalizeSProduct)
+            .filter((product) => getProductPrice(product) > 0);
+
+          const scoredItems = pricedItems
             .filter((product) => !isBadNormalResult(product, searchQuery))
             .map((product) => ({ product, score: scoreNameMatch(searchQuery, product.name) }))
             // Älä leikkaa maito/kahvi-osumia liian aggressiivisesti. Roskat poistetaan isBadNormalResultillä,
@@ -3308,8 +3345,17 @@ export default function Page() {
               if (Math.abs(scoreDifference) > 12) return scoreDifference;
               return getProductPrice(a.product) - getProductPrice(b.product);
             })
+            .map(({ product }) => product);
+
+          // S-ryhmän normaalihaun pitää olla fail-open: jos API palauttaa tuotteita,
+          // UI ei saa näyttää tyhjää vain siksi että ranking/filtteri oli liian tiukka.
+          const sourceItems = scoredItems.length > 0
+            ? scoredItems
+            : pricedItems.sort((a, b) => getProductPrice(a) - getProductPrice(b));
+
+          const items = sourceItems
             .slice(0, 40)
-            .map(({ product }) => {
+            .map((product) => {
               const withMeta = {
                 ...product,
                 originalSearchTerm: term,
