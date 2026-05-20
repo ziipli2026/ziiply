@@ -182,6 +182,7 @@ type SearchIntentCategory =
   | "fruit_veg"
   | "frozen"
   | "snacks"
+  | "buttermilk"
   | "generic";
 
 type SearchIntent = {
@@ -206,7 +207,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v222-cart-actions-clean";
+const APP_VERSION = "v223-scandinavian-search-fix";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -374,6 +375,8 @@ function parseTerms(value: string) {
     "jauheliha",
     "sipsit",
     "sipsi",
+    "piimä",
+    "piima",
   ]);
 
   const allWordsAreSimpleProducts =
@@ -390,6 +393,8 @@ function parseTerms(value: string) {
 const SEARCH_ALIASES: Record<string, string> = {
   // Juomat
   maito: "maito",
+  piima: "piimä",
+  "piimä": "piimä",
   kahvi: "kahvi",
   kahvia: "kahvi",
   cola: "cola",
@@ -428,10 +433,19 @@ function getSearchQuery(term: string) {
 
 function uniqueNormalizedQueries(values: string[]) {
   const queries: string[] = [];
+  const seen = new Set<string>();
 
   for (const value of values) {
-    const clean = normalize(value);
-    if (clean && !queries.includes(clean)) queries.push(clean);
+    const cleanValue = fixText(String(value || "")).replace(/\s+/g, " ").trim();
+    const key = normalize(cleanValue);
+
+    // Tärkeä v223-korjaus:
+    // Dedupataan normalisoidulla avaimella, mutta palautetaan alkuperäinen ääkkösellinen hakusana.
+    // API-haku ei saa lähteä muodossa "piima", jos käyttäjä haki "piimä".
+    if (key && !seen.has(key)) {
+      seen.add(key);
+      queries.push(cleanValue);
+    }
   }
 
   return queries;
@@ -447,6 +461,17 @@ const SEARCH_INTENTS: SearchIntent[] = [
     bannedAny: ["maitorahka", "rahka", "kerma", "jogurtti", "jogurt", "kaakao", "suklaa", "kondensoitu", "maitojuoma", "proteiini", "latte", "maitojauhe", "cappuccino"],
     preferredSizes: [{ unitGroup: "volume", min: 900, max: 1100, boost: 95 }],
     preferredBrands: ["kotimaista", "coop", "rainbow", "valio", "arla"],
+    ownBrandFriendly: true,
+  },
+  {
+    category: "buttermilk",
+    label: "Piimät",
+    variants: ["piimä", "piima", "rasvaton piimä", "laktoositon piimä", "valio piimä", "kotimaista piimä"],
+    requiredAny: ["piimä", "piima"],
+    preferredAny: ["piimä", "piima", "rasvaton", "laktoositon"],
+    bannedAny: ["maito", "kerma", "jogurtti", "jogurt", "rahka", "raejuusto", "juusto", "kaakao", "proteiinijuoma", "maitojuoma"],
+    preferredSizes: [{ unitGroup: "volume", min: 900, max: 1100, boost: 95 }],
+    preferredBrands: ["valio", "kotimaista", "arla"],
     ownBrandFriendly: true,
   },
   {
@@ -1696,6 +1721,12 @@ function getCategoryConfidence(intent: SearchIntent, product: Product) {
     if (hasAnyToken(text, ["maitojuoma", "proteiinijuoma", "latte", "kaakao", "maitojauhe"])) confidence -= 220;
   }
 
+  if (intent.category === "buttermilk") {
+    if (hasAnyToken(text, ["piimä", "piima"])) confidence += 180;
+    if (hasAnyToken(text, ["rasvaton", "laktoositon"])) confidence += 35;
+    if (hasAnyToken(text, ["maito", "kerma", "jogurtti", "jogurt", "rahka", "juusto", "raejuusto", "kaakao", "maitojuoma", "proteiinijuoma"])) confidence -= 240;
+  }
+
   if (intent.category === "coffee") {
     if (isClearlyCoffeeProduct(product.name)) confidence += 125;
     if (hasStrongCoffeeSignal(product.name)) confidence += 60;
@@ -1797,10 +1828,25 @@ function scoreColaProduct(query: string, product: Product) {
   return score;
 }
 
+function scoreButtermilkProduct(query: string, product: Product) {
+  let score = scoreBaseNormalResult(query, product);
+  const text = getProductSearchText(product);
+  const size = parseMetricSize(product.name);
+
+  if (hasAnyToken(text, ["piimä", "piima"])) score += 220;
+  if (!hasAnyToken(text, ["piimä", "piima"])) score -= 320;
+  if (hasAnyToken(text, ["maito", "kerma", "jogurtti", "jogurt", "rahka", "juusto", "raejuusto", "kaakao", "maitojuoma", "proteiinijuoma"])) score -= 260;
+  if (size?.unitGroup === "volume" && size.amount >= 900 && size.amount <= 1100) score += 90;
+  if (size?.unitGroup === "volume" && size.amount < 500) score -= 85;
+
+  return score;
+}
+
 function scoreCategorySpecificResult(query: string, product: Product) {
   const intent = detectSearchIntent(query);
 
   if (intent.category === "milk") return scoreMilkProduct(query, product);
+  if (intent.category === "buttermilk") return scoreButtermilkProduct(query, product);
   if (intent.category === "coffee") return scoreCoffeeProduct(query, product);
   if (intent.category === "cola") return scoreColaProduct(query, product);
 
