@@ -208,7 +208,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v224-food-search-priority";
+const APP_VERSION = "v226-compare-default-view";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -461,7 +461,7 @@ const SEARCH_INTENTS: SearchIntent[] = [
     variants: ["maito", "kevytmaito", "rasvaton maito", "täysmaito", "ykkösmaito", "laktoositon maito", "luomu maito", "pirkka maito", "valio maito", "arla maito", "kauramaito"],
     requiredAny: ["maito", "kevytmaito", "rasvaton", "täysmaito", "taysmaito", "ykkösmaito", "ykkosmaito", "kauramaito"],
     preferredAny: ["kevytmaito", "rasvaton", "täysmaito", "taysmaito", "ykkösmaito", "ykkosmaito", "laktoositon"],
-    bannedAny: ["maitorahka", "rahka", "kerma", "jogurtti", "jogurt", "kaakao", "suklaa", "kondensoitu", "maitojuoma", "proteiini", "latte", "maitojauhe", "cappuccino"],
+    bannedAny: ["maitorahka", "rahka", "kerma", "jogurtti", "jogurt", "kaakao", "suklaa", "kondensoitu", "maitojuoma", "proteiini", "latte", "maitojauhe", "cappuccino", "rasvaseos", "rasvasekoite", "rasvasekoitus", "voi", "levite", "margariini", "piimä", "piima"],
     preferredSizes: [{ unitGroup: "volume", min: 900, max: 1100, boost: 95 }],
     preferredBrands: ["kotimaista", "coop", "rainbow", "valio", "arla"],
     ownBrandFriendly: true,
@@ -1819,6 +1819,66 @@ function getGroceryNonFoodPenalty(query: string, product: Product) {
   return -900;
 }
 
+function isWrongMilkSearchProduct(product: Product) {
+  const text = getProductSearchText(product);
+
+  const wrongMilkSignals = [
+    "rasvaseos",
+    "rasvasekoite",
+    "rasvasekoitus",
+    "maitorahka",
+    "rahka",
+    "kerma",
+    "ruokakerma",
+    "kuohukerma",
+    "vispikerma",
+    "jogurtti",
+    "jogurt",
+    "piimä",
+    "piima",
+    "raejuusto",
+    "juusto",
+    "voi",
+    "levite",
+    "margariini",
+    "kaakao",
+    "vanukas",
+    "maitojauhe",
+    "maitokahvijuoma",
+    "latte",
+    "cappuccino",
+    "proteiinijuoma",
+    "maitojuoma",
+    "kondensoitu",
+  ];
+
+  // Brändinimi kuten "Maitokolmion" ei vielä tee tuotteesta maitoa.
+  if (hasAnyToken(text, wrongMilkSignals)) return true;
+
+  return false;
+}
+
+function hasStrongMilkSignal(product: Product) {
+  const text = getProductSearchText(product);
+
+  return hasAnyToken(text, [
+    "kevytmaito",
+    "rasvaton maito",
+    "rasvatonmaito",
+    "täysmaito",
+    "taysmaito",
+    "ykkösmaito",
+    "ykkosmaito",
+    "laktoositon maito",
+    "luomu maito",
+    "maito 1l",
+    "maito 1 l",
+    "maito 1,5l",
+    "maito 1,5 l",
+    "maitojuoma 1l", // pieni signaali vain jos muut väärät signaalit eivät osu
+  ]) || /maito\s+(1|1[,.]5|2)\s?l/.test(text);
+}
+
 function getCategoryConfidence(intent: SearchIntent, product: Product) {
   if (intent.category === "generic") return 0;
 
@@ -1831,8 +1891,10 @@ function getCategoryConfidence(intent: SearchIntent, product: Product) {
 
   if (intent.category === "milk") {
     if (!isBadNormalResult(product, "maito")) confidence += 120;
+    if (hasStrongMilkSignal(product)) confidence += 95;
     if (hasAnyToken(text, ["kevytmaito", "rasvaton", "täysmaito", "taysmaito", "ykkösmaito", "ykkosmaito", "maito 1l", "maito 1 l"])) confidence += 55;
-    if (hasAnyToken(text, ["maitojuoma", "proteiinijuoma", "latte", "kaakao", "maitojauhe"])) confidence -= 220;
+    if (isWrongMilkSearchProduct(product)) confidence -= 360;
+    if (hasAnyToken(text, ["maitojuoma", "proteiinijuoma", "latte", "kaakao", "maitojauhe", "rasvaseos", "rasvasekoite"])) confidence -= 220;
   }
 
   if (intent.category === "buttermilk") {
@@ -1910,6 +1972,8 @@ function scoreMilkProduct(query: string, product: Product) {
   const size = parseMetricSize(product.name);
 
   if (isBadNormalResult(product, "maito")) score -= 260;
+  if (isWrongMilkSearchProduct(product)) score -= 650;
+  if (hasStrongMilkSignal(product)) score += 150;
   if (size?.unitGroup === "volume" && size.amount >= 900 && size.amount <= 1100) score += 90;
   if (size?.unitGroup === "volume" && size.amount >= 1400 && size.amount <= 2100) score += 35;
   if (size?.unitGroup === "volume" && size.amount < 500) score -= 85;
@@ -5076,12 +5140,16 @@ export default function Page() {
       return;
     }
 
-    // Vertailu avautuu mobiilissa omana näkymänä eikä jää taustalle sivun scrolliin.
+    // Vertailu avautuu aina puhtaana vakionäkymänä:
+    // ei hakutuloksia, ei valintamodaalia, ei vanhaa overlay-statea.
     setSearchPanelOpen(false);
     setCartModalOpen(false);
     setCartSavePanelOpen(false);
     setShopsPanelOpen(false);
     setEanModalOpen(false);
+    setLoadingNormal(false);
+    setNormalResults([]);
+    setVisibleNormalCount(8);
     setActiveResult("compare");
 
     window.requestAnimationFrame(() => {
