@@ -1,86 +1,130 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
-export async function GET(req: NextRequest) {
+type RuoanhintaProduct = {
+  id: number;
+  name: string;
+  ean?: string;
+  gtin?: string;
+  eanCode?: string;
+  barcode?: string;
+  externalId?: string;
+  familyKey?: string;
+  brandName?: string;
+  pictureUrl?: string;
+  category?: string;
+  storeItems?: {
+    price: number;
+    comparisonPrice?: number | null;
+    comparisonPriceUnit?: string | null;
+  }[];
+};
+
+function getPrice(product: RuoanhintaProduct) {
+  return product.storeItems?.[0]?.price || 0;
+}
+
+function getEan(product: RuoanhintaProduct) {
+  const candidates = [
+    product.ean,
+    product.gtin,
+    product.eanCode,
+    product.barcode,
+    product.externalId,
+  ];
+
+  return candidates.find((value) => value && /^\d{8,14}$/.test(String(value))) || undefined;
+}
+
+function fixEncoding(value: string) {
+  return value
+    .replace(/Ã¤/g, "ä")
+    .replace(/Ã¶/g, "ö")
+    .replace(/Ã¥/g, "å")
+    .replace(/â„¢/g, "")
+    .replace(/Â/g, "");
+}
+
+function resolveSStoreId(store: string) {
+  if (/^\d+$/.test(store)) return Number(store);
+
+  if (store === "prisma-hyvinkaa") return 292;
+
+  return 292;
+}
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+
+  const search = searchParams.get("search") || "";
+  const store = searchParams.get("store") || "292";
+  const storeId = resolveSStoreId(store);
+
+  if (!search.trim()) {
+    return NextResponse.json({
+      store,
+      storeId,
+      source: "ruoanhinta-s",
+      status: 200,
+      items: [],
+    });
+  }
+
+  const endpoint = `https://api.ruoanhinta.fi/api/items?search=${encodeURIComponent(
+    search
+  )}&storeIds=${storeId}&skip=0&take=80`;
+
   try {
-    const search = req.nextUrl.searchParams.get("search") || "";
-    const store = req.nextUrl.searchParams.get("store") || "292";
-
-    if (!search.trim()) {
-      return NextResponse.json({ products: [] });
-    }
-
-    const url =
-      `https://api.ruoanhinta.fi/api/items` +
-      `?search=${encodeURIComponent(search)}` +
-      `&storeIds=${store}` +
-      `&skip=0` +
-      `&take=80`;
-
-    const response = await fetch(url, {
+    const response = await fetch(endpoint, {
+      method: "GET",
       headers: {
         accept: "application/json",
       },
       cache: "no-store",
     });
 
-    if (!response.ok) {
-      return NextResponse.json(
-        {
-          error: "S API failed",
-          status: response.status,
-        },
-        { status: 500 }
-      );
-    }
-
     const data = await response.json();
+    const sourceItems: RuoanhintaProduct[] = data.items || [];
 
-    const rawItems = Array.isArray(data?.items)
-      ? data.items
-      : [];
-
-    const products = rawItems.map((item: any) => ({
-      id: item.id,
-      name: item.name || "",
-      ean: item.ean || "",
-      brandName: item.brandName || "",
-      pictureUrl: item.pictureUrl || "",
-      category: item.category || "",
-
-      // TÄRKEIN KORJAUS:
-      // Ziiply käyttää tätä rakennetta
-      storeItems: [
-        {
-          price:
-            item?.storeItem?.price ||
-            item?.price ||
-            0,
-
-          comparisonPrice:
-            item?.storeItem?.comparisonPrice ||
-            null,
-
-          comparisonPriceUnit:
-            item?.storeItem?.comparisonPriceUnit ||
-            null,
-        },
-      ],
-
-      price:
-        item?.storeItem?.price ||
-        item?.price ||
-        0,
-    }));
+    const items = sourceItems
+      .filter((product) => getPrice(product) > 0)
+      .map((product) => ({
+        id: product.id,
+        name: fixEncoding(product.name),
+        ean: getEan(product),
+        familyKey: product.familyKey,
+        brandName: product.brandName ? fixEncoding(product.brandName) : undefined,
+        pictureUrl: product.pictureUrl,
+        category: product.category,
+        price: getPrice(product),
+        comparisonPrice: product.storeItems?.[0]?.comparisonPrice ?? undefined,
+        comparisonPriceUnit: product.storeItems?.[0]?.comparisonPriceUnit ?? undefined,
+        storeItems: [
+          {
+            price: getPrice(product),
+            comparisonPrice: product.storeItems?.[0]?.comparisonPrice ?? undefined,
+            comparisonPriceUnit: product.storeItems?.[0]?.comparisonPriceUnit ?? undefined,
+          },
+        ],
+      }));
 
     return NextResponse.json({
-      success: true,
-      count: products.length,
-      products,
+      store,
+      storeId,
+      source: "ruoanhinta-s",
+      endpoint,
+      status: response.status,
+      items,
     });
-  } catch (error: any) {
+  } catch (error) {
     return NextResponse.json(
       {
-        error: error?.message || "Unknown error",
+        store,
+        storeId,
+        source: "ruoanhinta-s",
+        endpoint,
+        status: 500,
+        items: [],
+        error: String(error),
       },
       { status: 500 }
     );
