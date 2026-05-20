@@ -206,7 +206,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v212-relevance-foundation";
+const APP_VERSION = "v213-search-focus-mode";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -6444,7 +6444,7 @@ export default function Page() {
               </section>
               )}
 
-            {cart.length > 0 && (
+            {cart.length > 0 && !searchPanelOpen && (
                 <section ref={comparisonSectionRef} className="rounded-[1.5rem] bg-white p-4 shadow-sm sm:rounded-[2rem] sm:p-6">
                 <div className="grid gap-4 md:grid-cols-2">
                   {chainResults.map((chain) => {
