@@ -179,6 +179,7 @@ const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrco
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
 const APP_VERSION = "v209-debug";
+const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
   try {
@@ -6051,7 +6052,7 @@ export default function Page() {
                   )}
                 </div>
 
-                {searchDebug.length > 0 && (
+                {SHOW_SEARCH_DEBUG_PANEL && searchDebug.length > 0 && (
                   <div className="mb-4 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-700">
                     <div className="mb-2 font-black text-slate-900">Hakudebug</div>
                     <div className="grid gap-2 sm:grid-cols-2">
