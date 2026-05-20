@@ -206,7 +206,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v218-fast-add-flow";
+const APP_VERSION = "v219-sequential-multi-search";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -337,7 +337,54 @@ function getOpenFoodFactsNames(product: any) {
 }
 
 function parseTerms(value: string) {
-  return value.split(/[\n,]+/).map((x) => x.trim()).filter(Boolean).slice(0, MAX_ITEMS);
+  const explicitRows = value
+    .split(/[\n,]+/)
+    .map((x) => x.trim())
+    .filter(Boolean);
+
+  if (explicitRows.length !== 1) return explicitRows.slice(0, MAX_ITEMS);
+
+  const singleRow = explicitRows[0] || "";
+  const normalizedSingleRow = normalize(singleRow);
+  const words = getNormalizedWords(singleRow);
+
+  // Fast multi-add UX:
+  // Jos käyttäjä kirjoittaa useita yksinkertaisia ydintuotteita samalla rivillä
+  // esim. "maito kahvi cola", käsitellään ne samana jonona kuin rivinvaihdolla/kommoilla.
+  // Tuotenimet kuten "juhla mokka" tai "rasvaton maito" pidetään yhtenä hakuna.
+  const simpleIntentWords = new Set([
+    "maito",
+    "kahvi",
+    "cola",
+    "kokis",
+    "juusto",
+    "jogurtti",
+    "jogurt",
+    "rahka",
+    "voi",
+    "leipa",
+    "leipä",
+    "pasta",
+    "riisi",
+    "banaani",
+    "omena",
+    "tomaatti",
+    "kurkku",
+    "kana",
+    "jauheliha",
+    "sipsit",
+    "sipsi",
+  ]);
+
+  const allWordsAreSimpleProducts =
+    words.length >= 2 &&
+    words.length <= MAX_ITEMS &&
+    words.every((word) => simpleIntentWords.has(word));
+
+  if (allWordsAreSimpleProducts) return words.slice(0, MAX_ITEMS);
+
+  if (!normalizedSingleRow) return [];
+  return [singleRow].slice(0, MAX_ITEMS);
 }
 
 const SEARCH_ALIASES: Record<string, string> = {
@@ -2178,6 +2225,7 @@ export default function Page() {
   const [searchDebug, setSearchDebug] = useState<SearchDebugEntry[]>([]);
   const [loadingNormal, setLoadingNormal] = useState(false);
   const [visibleNormalCount, setVisibleNormalCount] = useState(8);
+  const [activeNormalSearchTerm, setActiveNormalSearchTerm] = useState("");
   const [eanModalOpen, setEanModalOpen] = useState(false);
   const [eanInput, setEanInput] = useState("");
   const [eanLoading, setEanLoading] = useState(false);
@@ -3682,13 +3730,19 @@ export default function Page() {
 
   async function searchNormalPrices(termOverride?: string, forceEan = false) {
     const useTerms = termOverride ? parseTerms(termOverride) : terms;
-    if (useTerms.length === 0) return;
+    if (useTerms.length === 0) {
+      setActiveNormalSearchTerm("");
+      return;
+    }
 
     const isMainSearch = !termOverride;
+    const focusedSearchTerms = useTerms.length > 1 ? [useTerms[0]] : useTerms;
 
     trackZiiplyEvent("search_used", {
       query: useTerms.join(", "),
       termCount: useTerms.length,
+      focusedTerm: focusedSearchTerms[0] || "",
+      queuedTermCount: Math.max(0, useTerms.length - focusedSearchTerms.length),
       isMainSearch,
       forceEan,
       cartItemsCount: cart.length,
@@ -3710,6 +3764,7 @@ export default function Page() {
     setLoadingNormal(true);
     setSearchDebug([]);
     setVisibleNormalCount(8);
+    setActiveNormalSearchTerm(focusedSearchTerms[0] || "");
     // Normaali haku avaa hakutulosten valintanäkymän, ei korivertailua.
     // Korivertailu avataan vain Vertailu-tabista tai ostoslistatoiminnoista.
     setActiveResult("none");
@@ -3719,8 +3774,11 @@ export default function Page() {
     try {
       const all: Product[] = [];
 
-      for (const term of useTerms) {
+      for (const term of focusedSearchTerms) {
         // Normaali haku on S-first: haetaan S-tuote ensin /api/s-products-routesta.
+        // Monen tuotteen haussa näytetään vain seuraavan jonossa olevan tuotteen kandidaatit.
+        // Näin "maito, kahvi, cola" käyttää samaa relevance-logiikkaa kuin yksittäinen haku:
+        // valitse maito -> valitse kahvi -> valitse cola.
         // K-vastine haetaan vasta ostoskori-/vertailuvaiheessa.
         const searchQueries = getNormalSearchQueries(term).slice(0, 8);
 
@@ -4615,6 +4673,7 @@ export default function Page() {
       setInput("");
       setNormalResults([]);
       setVisibleNormalCount(8);
+      setActiveNormalSearchTerm("");
       setSearchPanelOpen(true);
       setCartModalOpen(false);
       setCartSavePanelOpen(false);
@@ -6334,10 +6393,11 @@ export default function Page() {
 <section ref={normalResultsSectionRef} className="min-w-0 max-w-full overflow-hidden rounded-[1.5rem] bg-white p-4 shadow-sm sm:rounded-[2rem] sm:p-6">
                 <div className="mb-4 flex items-end justify-between gap-3">
                   <div>
-                    <h2 className="text-2xl font-extrabold">Normaalihintojen hakutulokset</h2>
+                    <h2 className="text-2xl font-extrabold">Valitse tuote</h2>
                     <p className="min-w-0 break-words text-sm text-slate-500">
-                      Hakutulokset halvimmasta kalleimpaan. Näytetään {Math.min(visibleNormalCount, visibleNormalResults.length)} / {visibleNormalResults.length}.
-                      {terms.length > 0 ? ` Jäljellä haussa: ${terms.join(", ")}.` : ""}
+                      {activeNormalSearchTerm ? `Haetaan nyt: ${activeNormalSearchTerm}. ` : ""}
+                      Näytetään {Math.min(visibleNormalCount, visibleNormalResults.length)} / {visibleNormalResults.length} parasta osumaa.
+                      {terms.length > 1 ? ` Jonossa seuraavaksi: ${terms.slice(1).join(", ")}.` : ""}
                     </p>
                   </div>
 
