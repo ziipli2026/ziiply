@@ -3237,88 +3237,93 @@ export default function Page() {
         const searchQueries = getNormalSearchQueries(term).slice(0, 8);
 
         for (const searchQuery of searchQueries) {
-          let rawSItems = await fetchSProducts(searchQuery, activeStores.sStoreId);
+          let sRawItems: Product[] = [];
+          let kRawItems: KProduct[] = [];
           let sFallbackStoreName = "";
+          let kFallbackStoreName = "";
 
-          if (rawSItems.length === 0 && shouldUseLocalFallback("S")) {
-            rawSItems = await fetchSProducts(searchQuery, activeArea.sStoreId);
+          try {
+            [sRawItems, kRawItems] = await Promise.all([
+              fetchSProducts(searchQuery, activeStores.sStoreId).catch(() => [] as Product[]),
+              fetchKProducts(searchQuery, activeStores.kStoreId).catch(() => [] as KProduct[]),
+            ]);
+          } catch {
+            sRawItems = [];
+            kRawItems = [];
+          }
+
+          if (sRawItems.length === 0 && shouldUseLocalFallback("S")) {
+            sRawItems = await fetchSProducts(searchQuery, activeArea.sStoreId).catch(() => [] as Product[]);
             sFallbackStoreName = activeArea.sStoreName;
           }
 
-          let rawKItems = await fetchKProducts(searchQuery, activeStores.kStoreId);
-          let kFallbackStoreName = "";
-
-          if (rawKItems.length === 0 && shouldUseLocalFallback("K")) {
-            rawKItems = await fetchKProducts(searchQuery, activeArea.kStoreId);
+          if (kRawItems.length === 0 && shouldUseLocalFallback("K")) {
+            kRawItems = await fetchKProducts(searchQuery, activeArea.kStoreId).catch(() => [] as KProduct[]);
             kFallbackStoreName = activeArea.kStoreName;
           }
 
-          const scoreAndSortProducts = (products: Product[]) => {
+          const rankNormalProducts = (products: Product[]) => {
             const filtered = products
               .filter((product) => getProductPrice(product) > 0)
               .filter((product) => !isBadNormalResult(product, searchQuery))
               .map((product) => ({ product, score: scoreNameMatch(searchQuery, product.name) }))
               // Älä leikkaa maito/kahvi-osumia liian aggressiivisesti. Roskat poistetaan isBadNormalResultillä,
               // mutta muuten annetaan scoringin ja hinnan järjestää tulokset.
-              .filter(({ score }) => score > -250);
+              .filter(({ score }) => score > -250)
+              .sort((a, b) => {
+                const scoreDifference = b.score - a.score;
 
-            const fallback =
-              filtered.length > 0
-                ? filtered
-                : products
-                    .filter((product) => getProductPrice(product) > 0)
-                    .map((product) => ({ product, score: 0 }));
+                // Relevanssi ensin, hinta vasta tasapisteissä.
+                if (Math.abs(scoreDifference) > 12) return scoreDifference;
+                return getProductPrice(a.product) - getProductPrice(b.product);
+              });
 
-            return fallback.sort((a, b) => {
-              const scoreDifference = b.score - a.score;
+            // Jos suodatus pudottaa kaiken pois, näytä silti raakahaun halvimmat osumat.
+            // Tämä estää tilanteen, jossa API palauttaa tuotteita mutta UI näyttää 0 / 0.
+            if (filtered.length > 0) return filtered.map(({ product }) => product);
 
-              // Relevanssi ensin, hinta vasta tasapisteissä.
-              if (Math.abs(scoreDifference) > 12) return scoreDifference;
-              return getProductPrice(a.product) - getProductPrice(b.product);
-            });
+            return products
+              .filter((product) => getProductPrice(product) > 0)
+              .sort((a, b) => getProductPrice(a) - getProductPrice(b));
           };
 
-          const sItems = scoreAndSortProducts(rawSItems)
+          const sItems = rankNormalProducts(sRawItems)
             .slice(0, 40)
-            .map(({ product }) => {
+            .map((product) => {
               const withMeta = {
                 ...product,
                 originalSearchTerm: term,
                 usedSearchQuery: searchQuery,
-                fallbackStoreName: sFallbackStoreName || activeStores.sStoreName,
-                chain: "S",
+                sourceChain: "S",
+                sourceStoreName: sFallbackStoreName || activeStores.sStoreName,
+                fallbackStoreName: sFallbackStoreName || undefined,
               } as Product & {
                 originalSearchTerm?: string;
                 usedSearchQuery?: string;
+                sourceChain?: "S" | "K";
+                sourceStoreName?: string;
                 fallbackStoreName?: string;
-                chain?: "S" | "K";
               };
 
               return withMeta;
             });
 
-          const kProducts = rawKItems.map((product, index) => {
-            const converted = convertKProductToProduct(product);
-            return {
-              ...converted,
-              id: Number(`2${String(product.id).replace(/\D/g, "").slice(0, 8)}`) || 200000000 + index,
-            };
-          });
-
-          const kItems = scoreAndSortProducts(kProducts)
+          const kItems = rankNormalProducts(kRawItems.map(convertKProductToProduct))
             .slice(0, 40)
-            .map(({ product }) => {
+            .map((product) => {
               const withMeta = {
                 ...product,
                 originalSearchTerm: term,
                 usedSearchQuery: searchQuery,
-                fallbackStoreName: kFallbackStoreName || activeStores.kStoreName,
-                chain: "K",
+                sourceChain: "K",
+                sourceStoreName: kFallbackStoreName || activeStores.kStoreName,
+                fallbackStoreName: kFallbackStoreName || undefined,
               } as Product & {
                 originalSearchTerm?: string;
                 usedSearchQuery?: string;
+                sourceChain?: "S" | "K";
+                sourceStoreName?: string;
                 fallbackStoreName?: string;
-                chain?: "S" | "K";
               };
 
               return withMeta;
@@ -3328,7 +3333,14 @@ export default function Page() {
         }
       }
 
-      const unique = Array.from(new Map(all.map((item) => [item.id, item])).values());
+      const unique = Array.from(
+        new Map(
+          all.map((item) => [
+            `${(item as Product & { sourceChain?: string }).sourceChain || "S"}-${item.id}-${normalize(item.name)}`,
+            item,
+          ])
+        ).values()
+      );
 
       setEanCache((prev) => {
         const next = { ...prev };
@@ -4112,20 +4124,13 @@ export default function Page() {
       return;
     }
 
-    const productMeta = product as Product & {
-      chain?: "S" | "K";
-      fallbackStoreName?: string;
-    };
-
     const newItem: CartItem = {
-      id: `search-${productMeta.chain || "S"}-${product.id}`,
+      id: `search-${product.id}`,
       name: fixText(product.name),
       price: getProductPrice(product),
       image: product.pictureUrl,
-      chain: productMeta.chain || "S",
-      storeName:
-        productMeta.fallbackStoreName ||
-        (productMeta.chain === "K" ? activeStores.kStoreName : activeStores.sStoreName),
+      chain: "S",
+      storeName: activeStores.sStoreName,
       quantity: 1,
       source: "search",
       product,
@@ -5924,7 +5929,9 @@ export default function Page() {
                               <div className="min-w-0 max-w-full flex-1 overflow-hidden">
                                 <h3 className="line-clamp-2 max-w-full break-words font-bold leading-tight">{fixText(product.name)}</h3>
                                 <p className="min-w-0 break-words text-sm text-slate-500">
-                                  {(product as Product & { fallbackStoreName?: string }).fallbackStoreName || activeStores.sStoreName}
+                                  {(product as Product & { sourceStoreName?: string; fallbackStoreName?: string }).sourceStoreName ||
+                                    (product as Product & { fallbackStoreName?: string }).fallbackStoreName ||
+                                    activeStores.sStoreName}
                                 </p>
                                 {(product as Product & { originalSearchTerm?: string; usedSearchQuery?: string }).usedSearchQuery &&
                                   normalize((product as Product & { originalSearchTerm?: string; usedSearchQuery?: string }).usedSearchQuery || "") !==
