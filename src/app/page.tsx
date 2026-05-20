@@ -206,7 +206,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v215-compare-view-fix";
+const APP_VERSION = "v216-search-overlay-fix";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -3710,7 +3710,9 @@ export default function Page() {
     setLoadingNormal(true);
     setSearchDebug([]);
     setVisibleNormalCount(8);
-    setActiveResult("compare");
+    // Normaali haku avaa hakutulosten valintanäkymän, ei korivertailua.
+    // Korivertailu avataan vain Vertailu-tabista tai ostoslistatoiminnoista.
+    setActiveResult("none");
 
     const debugEntries: SearchDebugEntry[] = [];
 
@@ -6267,7 +6269,7 @@ export default function Page() {
           </div>
         )}
 
-        {activeResult === "compare" && (
+        {(activeResult === "compare" || (activeResult !== "offers" && (loadingNormal || normalResults.length > 0))) && (
           <div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0">
             <div ref={compareOverlayScrollRef} className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-50 p-3 shadow-2xl sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:bg-transparent sm:p-0 sm:shadow-none">
             <div className="grid min-w-0 max-w-full gap-4 overflow-hidden lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
