@@ -38,7 +38,16 @@ type Product = {
   brandName?: string;
   pictureUrl?: string;
   category?: string;
-  storeItems?: { price: number }[];
+  storeItem?: {
+    price?: number | null;
+    comparisonPrice?: number | null;
+    comparisonPriceUnit?: string | null;
+  };
+  storeItems?: {
+    price?: number | null;
+    comparisonPrice?: number | null;
+    comparisonPriceUnit?: string | null;
+  }[];
   price?: number;
   comparisonPrice?: number;
   comparisonPriceUnit?: string;
@@ -487,41 +496,12 @@ function formatDate(value?: string | null) {
 }
 
 function getProductPrice(product: Product) {
-  const value =
+  return (
     product.storeItems?.[0]?.price ??
+    product.storeItem?.price ??
     product.price ??
-    (product as Product & { storeItem?: { price?: number | null } }).storeItem?.price ??
-    0;
-
-  return Number(value) || 0;
-}
-
-function normalizeSProduct(product: Product): Product {
-  const anyProduct = product as Product & {
-    storeItem?: {
-      price?: number | null;
-      comparisonPrice?: number | null;
-      comparisonPriceUnit?: string | null;
-    };
-    storeItems?: Array<{
-      price?: number | null;
-      comparisonPrice?: number | null;
-      comparisonPriceUnit?: string | null;
-    }>;
-  };
-
-  return {
-    ...product,
-    price: product.price ?? anyProduct.storeItem?.price ?? anyProduct.storeItems?.[0]?.price ?? 0,
-    comparisonPrice: product.comparisonPrice ?? anyProduct.storeItem?.comparisonPrice ?? anyProduct.storeItems?.[0]?.comparisonPrice ?? undefined,
-    comparisonPriceUnit: product.comparisonPriceUnit ?? anyProduct.storeItem?.comparisonPriceUnit ?? anyProduct.storeItems?.[0]?.comparisonPriceUnit ?? undefined,
-    storeItems:
-      product.storeItems && product.storeItems.length > 0
-        ? product.storeItems
-        : anyProduct.storeItem?.price != null
-        ? [{ price: anyProduct.storeItem.price }]
-        : product.storeItems,
-  };
+    0
+  ) || 0;
 }
 
 function isManualShoppingItem(item: CartItem) {
@@ -2010,6 +1990,63 @@ export default function Page() {
     return activeStores.kStoreId !== activeArea.kStoreId;
   }
 
+  function normalizeSProduct(raw: any, index = 0): Product | null {
+    const source = raw?.item && typeof raw.item === "object" ? raw.item : raw;
+
+    const rawId = source?.id ?? raw?.id ?? raw?.itemId ?? raw?.ean ?? `${Date.now()}-${index}`;
+    const numericId = Number(String(rawId).replace(/\D/g, "").slice(0, 12)) || Math.abs(String(rawId).split("").reduce((sum, char) => sum + char.charCodeAt(0), 0)) + index;
+
+    const price =
+      raw?.storeItems?.[0]?.price ??
+      raw?.storeItem?.price ??
+      source?.storeItems?.[0]?.price ??
+      source?.storeItem?.price ??
+      raw?.price ??
+      source?.price ??
+      0;
+
+    const comparisonPrice =
+      raw?.storeItems?.[0]?.comparisonPrice ??
+      raw?.storeItem?.comparisonPrice ??
+      source?.storeItems?.[0]?.comparisonPrice ??
+      source?.storeItem?.comparisonPrice ??
+      raw?.comparisonPrice ??
+      source?.comparisonPrice;
+
+    const comparisonPriceUnit =
+      raw?.storeItems?.[0]?.comparisonPriceUnit ??
+      raw?.storeItem?.comparisonPriceUnit ??
+      source?.storeItems?.[0]?.comparisonPriceUnit ??
+      source?.storeItem?.comparisonPriceUnit ??
+      raw?.comparisonPriceUnit ??
+      source?.comparisonPriceUnit;
+
+    const name = cleanExternalProductName(source?.name ?? raw?.name ?? source?.itemName ?? raw?.itemName);
+    if (!name) return null;
+
+    return {
+      id: numericId,
+      name,
+      ean: source?.ean ?? raw?.ean,
+      brandName: source?.brandName ?? raw?.brandName ?? source?.brand ?? raw?.brand,
+      pictureUrl: source?.pictureUrl ?? raw?.pictureUrl ?? source?.imageUrl ?? raw?.imageUrl,
+      category: source?.category ?? raw?.category,
+      price,
+      comparisonPrice,
+      comparisonPriceUnit,
+      storeItem: {
+        price,
+        comparisonPrice,
+        comparisonPriceUnit,
+      },
+      storeItems: [{
+        price,
+        comparisonPrice,
+        comparisonPriceUnit,
+      }],
+    };
+  }
+
   async function fetchSProducts(search: string, storeId: number): Promise<Product[]> {
     const encodedSearch = encodeURIComponent(search);
     const encodedStoreId = encodeURIComponent(String(storeId));
@@ -2029,9 +2066,12 @@ export default function Page() {
         if (!response.ok) continue;
 
         const data = await response.json();
-        const items = Array.isArray(data?.items) ? data.items : Array.isArray(data) ? data : [];
+        const rawItems = Array.isArray(data?.items) ? data.items : Array.isArray(data) ? data : [];
+        const items = rawItems
+          .map((item: any, index: number) => normalizeSProduct(item, index))
+          .filter(Boolean) as Product[];
 
-        if (items.length > 0) return (items as Product[]).map(normalizeSProduct);
+        if (items.length > 0) return items;
       } catch {
         // Try the next S-product source. One failing endpoint must not kill S-search.
       }
@@ -3328,34 +3368,26 @@ export default function Page() {
             fallbackStoreName = activeArea.sStoreName;
           }
 
-          const pricedItems = rawItems
-            .map(normalizeSProduct)
-            .filter((product) => getProductPrice(product) > 0);
+          const pricedItems = rawItems.filter((product: Product) => getProductPrice(product) > 0);
+          const cleanItems = pricedItems.filter((product: Product) => !isBadNormalResult(product, searchQuery));
 
-          const scoredItems = pricedItems
-            .filter((product) => !isBadNormalResult(product, searchQuery))
-            .map((product) => ({ product, score: scoreNameMatch(searchQuery, product.name) }))
-            // Älä leikkaa maito/kahvi-osumia liian aggressiivisesti. Roskat poistetaan isBadNormalResultillä,
-            // mutta muuten annetaan scoringin ja hinnan järjestää tulokset.
-            .filter(({ score }) => score > -250)
+          // S-ryhmän normaalihaussa API:n palauttama data on totuus.
+          // Scoring saa järjestää osumat, mutta se ei saa enää tappaa koko hakua.
+          const sourceItems = cleanItems.length > 0 ? cleanItems : pricedItems;
+
+          const items = sourceItems
+            .map((product: Product) => ({
+              product,
+              score: scoreNameMatch(searchQuery, product.name),
+            }))
             .sort((a, b) => {
               const scoreDifference = b.score - a.score;
 
-              // Relevanssi ensin, hinta vasta tasapisteissä.
               if (Math.abs(scoreDifference) > 12) return scoreDifference;
               return getProductPrice(a.product) - getProductPrice(b.product);
             })
-            .map(({ product }) => product);
-
-          // S-ryhmän normaalihaun pitää olla fail-open: jos API palauttaa tuotteita,
-          // UI ei saa näyttää tyhjää vain siksi että ranking/filtteri oli liian tiukka.
-          const sourceItems = scoredItems.length > 0
-            ? scoredItems
-            : pricedItems.sort((a, b) => getProductPrice(a) - getProductPrice(b));
-
-          const items = sourceItems
             .slice(0, 40)
-            .map((product) => {
+            .map(({ product }) => {
               const withMeta = {
                 ...product,
                 originalSearchTerm: term,
@@ -3373,7 +3405,9 @@ export default function Page() {
         }
       }
 
-      const unique = Array.from(new Map(all.map((item) => [item.id, item])).values());
+      const unique = Array.from(
+        new Map(all.map((item) => [normalizeEan(item.ean) || `${item.id}-${normalize(item.name)}`, item])).values()
+      );
 
       setEanCache((prev) => {
         const next = { ...prev };
