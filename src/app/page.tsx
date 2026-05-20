@@ -3237,63 +3237,75 @@ export default function Page() {
         const searchQueries = getNormalSearchQueries(term).slice(0, 8);
 
         for (const searchQuery of searchQueries) {
-          let rawItems = await fetchSProducts(searchQuery, activeStores.sStoreId);
-          let fallbackStoreName = "";
+          let rawSItems = await fetchSProducts(searchQuery, activeStores.sStoreId);
+          let sFallbackStoreName = "";
 
-          if (rawItems.length === 0 && shouldUseLocalFallback("S")) {
-            rawItems = await fetchSProducts(searchQuery, activeArea.sStoreId);
-            fallbackStoreName = activeArea.sStoreName;
+          if (rawSItems.length === 0 && shouldUseLocalFallback("S")) {
+            rawSItems = await fetchSProducts(searchQuery, activeArea.sStoreId);
+            sFallbackStoreName = activeArea.sStoreName;
           }
 
-          const sItems = rawItems
-            .filter((product) => getProductPrice(product) > 0)
-            .filter((product) => !isBadNormalResult(product, searchQuery))
-            .map((product) => ({ product, score: scoreNameMatch(searchQuery, product.name) }))
-            // Älä leikkaa maito/kahvi-osumia liian aggressiivisesti. Roskat poistetaan isBadNormalResultillä,
-            // mutta muuten annetaan scoringin ja hinnan järjestää tulokset.
-            .filter(({ score }) => score > -250)
-            .sort((a, b) => {
+          let rawKItems = await fetchKProducts(searchQuery, activeStores.kStoreId);
+          let kFallbackStoreName = "";
+
+          if (rawKItems.length === 0 && shouldUseLocalFallback("K")) {
+            rawKItems = await fetchKProducts(searchQuery, activeArea.kStoreId);
+            kFallbackStoreName = activeArea.kStoreName;
+          }
+
+          const scoreAndSortProducts = (products: Product[]) => {
+            const filtered = products
+              .filter((product) => getProductPrice(product) > 0)
+              .filter((product) => !isBadNormalResult(product, searchQuery))
+              .map((product) => ({ product, score: scoreNameMatch(searchQuery, product.name) }))
+              // Älä leikkaa maito/kahvi-osumia liian aggressiivisesti. Roskat poistetaan isBadNormalResultillä,
+              // mutta muuten annetaan scoringin ja hinnan järjestää tulokset.
+              .filter(({ score }) => score > -250);
+
+            const fallback =
+              filtered.length > 0
+                ? filtered
+                : products
+                    .filter((product) => getProductPrice(product) > 0)
+                    .map((product) => ({ product, score: 0 }));
+
+            return fallback.sort((a, b) => {
               const scoreDifference = b.score - a.score;
 
               // Relevanssi ensin, hinta vasta tasapisteissä.
               if (Math.abs(scoreDifference) > 12) return scoreDifference;
               return getProductPrice(a.product) - getProductPrice(b.product);
-            })
+            });
+          };
+
+          const sItems = scoreAndSortProducts(rawSItems)
             .slice(0, 40)
             .map(({ product }) => {
               const withMeta = {
                 ...product,
                 originalSearchTerm: term,
                 usedSearchQuery: searchQuery,
-                fallbackStoreName: fallbackStoreName || undefined,
+                fallbackStoreName: sFallbackStoreName || activeStores.sStoreName,
+                chain: "S",
               } as Product & {
                 originalSearchTerm?: string;
                 usedSearchQuery?: string;
                 fallbackStoreName?: string;
+                chain?: "S" | "K";
               };
 
               return withMeta;
             });
 
-          let kRawItems = await fetchKProducts(searchQuery, activeStores.kStoreId);
-          let kFallbackStoreName = "";
+          const kProducts = rawKItems.map((product, index) => {
+            const converted = convertKProductToProduct(product);
+            return {
+              ...converted,
+              id: Number(`2${String(product.id).replace(/\D/g, "").slice(0, 8)}`) || 200000000 + index,
+            };
+          });
 
-          if (kRawItems.length === 0 && shouldUseLocalFallback("K")) {
-            kRawItems = await fetchKProducts(searchQuery, activeArea.kStoreId);
-            kFallbackStoreName = activeArea.kStoreName;
-          }
-
-          const kItems = kRawItems
-            .filter((product) => product.price > 0)
-            .filter((product) => !isBadNormalResult(convertKProductToProduct(product), searchQuery))
-            .filter((product) => !isHardRejectedKMatch(searchQuery, product.name))
-            .map((product) => ({ product: convertKProductToProduct(product), score: scoreNameMatch(searchQuery, product.name) }))
-            .filter(({ score }) => score > -250)
-            .sort((a, b) => {
-              const scoreDifference = b.score - a.score;
-              if (Math.abs(scoreDifference) > 12) return scoreDifference;
-              return getProductPrice(a.product) - getProductPrice(b.product);
-            })
+          const kItems = scoreAndSortProducts(kProducts)
             .slice(0, 40)
             .map(({ product }) => {
               const withMeta = {
@@ -3301,10 +3313,12 @@ export default function Page() {
                 originalSearchTerm: term,
                 usedSearchQuery: searchQuery,
                 fallbackStoreName: kFallbackStoreName || activeStores.kStoreName,
+                chain: "K",
               } as Product & {
                 originalSearchTerm?: string;
                 usedSearchQuery?: string;
                 fallbackStoreName?: string;
+                chain?: "S" | "K";
               };
 
               return withMeta;
@@ -4098,13 +4112,20 @@ export default function Page() {
       return;
     }
 
+    const productMeta = product as Product & {
+      chain?: "S" | "K";
+      fallbackStoreName?: string;
+    };
+
     const newItem: CartItem = {
-      id: `search-${product.id}`,
+      id: `search-${productMeta.chain || "S"}-${product.id}`,
       name: fixText(product.name),
       price: getProductPrice(product),
       image: product.pictureUrl,
-      chain: "S",
-      storeName: activeStores.sStoreName,
+      chain: productMeta.chain || "S",
+      storeName:
+        productMeta.fallbackStoreName ||
+        (productMeta.chain === "K" ? activeStores.kStoreName : activeStores.sStoreName),
       quantity: 1,
       source: "search",
       product,
@@ -5801,7 +5822,7 @@ export default function Page() {
           <div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0">
             <div ref={compareOverlayScrollRef} className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-50 p-3 shadow-2xl sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:bg-transparent sm:p-0 sm:shadow-none">
             <div className="grid min-w-0 max-w-full gap-4 overflow-hidden lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-            {showCheapestSticky && cheapest && secondCheapest ? (
+            {showCheapestSticky && cheapest && secondCheapest && (
                 <section ref={savingsSummaryRef} className="min-w-0 max-w-full overflow-hidden rounded-[1.5rem] bg-white p-3 shadow-sm sm:rounded-[2rem] sm:p-6">
                   <div className="rounded-[1.5rem] border border-green-200 bg-white/95 p-4 text-left shadow-sm">
                     <div className="relative mx-auto max-w-sm rounded-2xl border border-green-200 bg-white px-5 py-4 shadow-xl">
@@ -5853,7 +5874,9 @@ export default function Page() {
                     </div>
                   </div>
                 </section>
-              ) : (loadingNormal || normalResults.length > 0 || activeResult === "compare") && (
+              )}
+
+              {(loadingNormal || normalResults.length > 0 || activeResult === "compare") && (
 <section ref={normalResultsSectionRef} className="min-w-0 max-w-full overflow-hidden rounded-[1.5rem] bg-white p-4 shadow-sm sm:rounded-[2rem] sm:p-6">
                 <div className="mb-4 flex items-end justify-between gap-3">
                   <div>
