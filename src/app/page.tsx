@@ -206,7 +206,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v214-search-focus-hide-compare";
+const APP_VERSION = "v215-compare-view-fix";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -6325,7 +6325,7 @@ export default function Page() {
                 </section>
               )}
 
-              {(loadingNormal || normalResults.length > 0 || activeResult === "compare") && (
+              {activeResult !== "compare" && (loadingNormal || normalResults.length > 0) && (
 <section ref={normalResultsSectionRef} className="min-w-0 max-w-full overflow-hidden rounded-[1.5rem] bg-white p-4 shadow-sm sm:rounded-[2rem] sm:p-6">
                 <div className="mb-4 flex items-end justify-between gap-3">
                   <div>
@@ -6449,7 +6449,7 @@ export default function Page() {
               </section>
               )}
 
-            {cart.length > 0 && !searchPanelOpen && !searchSelectionMode && (
+            {cart.length > 0 && !searchPanelOpen && (
                 <section ref={comparisonSectionRef} className="rounded-[1.5rem] bg-white p-4 shadow-sm sm:rounded-[2rem] sm:p-6">
                 <div className="grid gap-4 md:grid-cols-2">
                   {chainResults.map((chain) => {
@@ -7490,7 +7490,7 @@ export default function Page() {
             type="button"
             onClick={toggleComparisonView}
             aria-disabled={cart.length === 0}
-            className={`flex flex-col items-center justify-center rounded-[1.25rem] px-2 py-2.5 text-xs font-black transition ${cart.length === 0 ? "cursor-not-allowed bg-slate-100 text-slate-300 opacity-70" : activeResult === "compare" && !searchPanelOpen && !cartModalOpen && !searchSelectionMode ? "bg-green-600 text-white shadow-md active:scale-[0.98]" : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
+            className={`flex flex-col items-center justify-center rounded-[1.25rem] px-2 py-2.5 text-xs font-black transition ${cart.length === 0 ? "cursor-not-allowed bg-slate-100 text-slate-300 opacity-70" : activeResult === "compare" && !searchPanelOpen && !cartModalOpen ? "bg-green-600 text-white shadow-md active:scale-[0.98]" : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
           >
             <span className="text-lg leading-none">⚖️</span>
             <span className="mt-1 block">Vertailu</span>
