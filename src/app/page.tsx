@@ -206,7 +206,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v217-search-result-isolation";
+const APP_VERSION = "v218-fast-add-flow";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -4610,16 +4610,19 @@ export default function Page() {
     if (remainingTerms.length > 0) {
       void searchNormalPrices(nextInput);
     } else {
+      // Fast add flow: lisää tuote koriin ja pidä käyttäjä hakutilassa seuraavaa tuotetta varten.
+      // Ei hypätä vertailuun eikä näytetä vertailukortteja tuotteen lisäämisen jälkeen.
+      setInput("");
       setNormalResults([]);
       setVisibleNormalCount(8);
-      setSearchPanelOpen(false);
+      setSearchPanelOpen(true);
       setCartModalOpen(false);
       setCartSavePanelOpen(false);
       setEanModalOpen(false);
-      setActiveResult("compare");
+      setActiveResult("none");
 
       window.requestAnimationFrame(() => {
-        compareOverlayScrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
+        searchInputRef.current?.focus();
       });
     }
   }
