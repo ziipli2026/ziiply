@@ -168,6 +168,34 @@ type SearchDebugEntry = {
   fallbackStoreName?: string;
 };
 
+type SearchIntentCategory =
+  | "milk"
+  | "coffee"
+  | "cola"
+  | "cheese"
+  | "yogurt"
+  | "meat"
+  | "chicken"
+  | "bread"
+  | "pasta"
+  | "rice"
+  | "fruit_veg"
+  | "frozen"
+  | "snacks"
+  | "generic";
+
+type SearchIntent = {
+  category: SearchIntentCategory;
+  label: string;
+  variants: string[];
+  requiredAny?: string[];
+  preferredAny?: string[];
+  bannedAny?: string[];
+  preferredSizes?: { unitGroup: "weight" | "volume"; min: number; max: number; boost: number }[];
+  preferredBrands?: string[];
+  ownBrandFriendly?: boolean;
+};
+
 const MAX_ITEMS = 8;
 const ALTERNATIVES_AUTO_CLOSE_MS = 12000;
 const PRICE_HISTORY_STORAGE_KEY = "ziiply-price-history-v1";
@@ -178,7 +206,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v209-debug";
+const APP_VERSION = "v211-query-priority";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -351,96 +379,196 @@ function getSearchQuery(term: string) {
   return SEARCH_ALIASES[normalized] || term;
 }
 
+function uniqueNormalizedQueries(values: string[]) {
+  const queries: string[] = [];
+
+  for (const value of values) {
+    const clean = normalize(value);
+    if (clean && !queries.includes(clean)) queries.push(clean);
+  }
+
+  return queries;
+}
+
+const SEARCH_INTENTS: SearchIntent[] = [
+  {
+    category: "milk",
+    label: "Maidot",
+    variants: ["maito", "kevytmaito", "rasvaton maito", "täysmaito", "ykkösmaito", "laktoositon maito", "luomu maito", "pirkka maito", "valio maito", "arla maito", "kauramaito"],
+    requiredAny: ["maito", "kevytmaito", "rasvaton", "täysmaito", "taysmaito", "ykkösmaito", "ykkosmaito", "kauramaito"],
+    preferredAny: ["kevytmaito", "rasvaton", "täysmaito", "taysmaito", "ykkösmaito", "ykkosmaito", "laktoositon"],
+    bannedAny: ["maitorahka", "rahka", "kerma", "jogurtti", "jogurt", "kaakao", "suklaa", "kondensoitu", "maitojuoma", "proteiini", "latte", "maitojauhe", "cappuccino"],
+    preferredSizes: [{ unitGroup: "volume", min: 900, max: 1100, boost: 95 }],
+    preferredBrands: ["kotimaista", "coop", "rainbow", "valio", "arla"],
+    ownBrandFriendly: true,
+  },
+  {
+    category: "coffee",
+    label: "Kahvit",
+    variants: ["kahvi", "suodatinkahvi", "kahvi suodatinjauhatus", "jauhettu kahvi", "juhla mokka", "presidentti kahvi", "kulta katriina", "paulig kahvi", "meira kahvi", "kahvipapu", "espresso kahvi", "pikakahvi"],
+    requiredAny: ["kahvi", "suodatinkahvi", "suodatinjauhatus", "jauhettu", "kahvipapu", "espresso", "pikakahvi", "juhla mokka", "presidentti", "kulta katriina"],
+    preferredAny: ["suodatinkahvi", "suodatinjauhatus", "jauhettu", "juhla mokka", "presidentti", "kulta katriina", "paulig", "meira"],
+    bannedAny: ["kahvikuppi", "muki", "kahvimitta", "suodatinpussi", "kahvinkeitin", "energiajuoma", "proteiinijuoma", "jogurtti", "rahka", "jäätelö", "jaatelo", "patukka"],
+    preferredSizes: [{ unitGroup: "weight", min: 400, max: 550, boost: 65 }],
+    preferredBrands: ["juhla mokka", "presidentti", "kulta katriina", "paulig", "meira"],
+  },
+  {
+    category: "cola",
+    label: "Cola-juomat",
+    variants: ["cola", "coca cola", "coca-cola", "pepsi", "pepsi max", "cola zero", "coca cola zero", "virvoitusjuoma cola"],
+    requiredAny: ["cola", "coca-cola", "coca cola", "pepsi", "pepsi max"],
+    preferredAny: ["coca-cola", "coca cola", "pepsi", "pepsi max", "zero", "virvoitusjuoma"],
+    bannedAny: ["tiiviste", "siirappi", "syrup", "jauhe", "karkki", "makeinen", "jäätelö", "jaatelo", "kastike", "alkoholi", "olut", "siideri"],
+    preferredSizes: [
+      { unitGroup: "volume", min: 1400, max: 1600, boost: 42 },
+      { unitGroup: "volume", min: 300, max: 550, boost: 24 },
+    ],
+    preferredBrands: ["coca-cola", "coca cola", "pepsi", "pepsi max"],
+  },
+  {
+    category: "cheese",
+    label: "Juustot",
+    variants: ["juusto", "edam juusto", "emmental juusto", "oltermanni", "kermajuusto", "viipalejuusto", "raastejuusto"],
+    requiredAny: ["juusto", "edam", "emmental", "gouda", "oltermanni"],
+    preferredAny: ["viipale", "raaste", "kermajuusto", "edam", "emmental", "oltermanni"],
+    bannedAny: ["tuorejuusto", "sulatejuusto", "raejuusto", "juustodippi", "dippi", "nacho", "kastike"],
+    preferredSizes: [{ unitGroup: "weight", min: 350, max: 1000, boost: 35 }],
+    preferredBrands: ["valio", "arla", "kotimaista", "pirkka", "oltermanni"],
+    ownBrandFriendly: true,
+  },
+  {
+    category: "yogurt",
+    label: "Jogurtit",
+    variants: ["jogurtti", "jogurt", "maustamaton jogurtti", "turkkilainen jogurtti", "kreikkalainen jogurtti", "jogurtti 1kg"],
+    requiredAny: ["jogurtti", "jogurt"],
+    preferredAny: ["maustamaton", "turkkilainen", "kreikkalainen"],
+    bannedAny: ["rahka", "vanukas", "proteiinijuoma", "raejuusto", "tuorejuusto", "jäätelö", "jaatelo"],
+    preferredSizes: [{ unitGroup: "weight", min: 750, max: 1100, boost: 35 }],
+    ownBrandFriendly: true,
+  },
+  {
+    category: "meat",
+    label: "Jauhelihat ja lihat",
+    variants: ["jauheliha", "naudan jauheliha", "sika-nauta jauheliha", "broilerin jauheliha", "jauheliha 400g"],
+    requiredAny: ["jauheliha", "nauta", "sika-nauta", "broilerin jauheliha"],
+    preferredAny: ["jauheliha", "naudan", "sika-nauta"],
+    bannedAny: ["kastike", "keitto", "ateria", "pizza", "piirakka"],
+    preferredSizes: [{ unitGroup: "weight", min: 300, max: 450, boost: 45 }],
+    preferredBrands: ["atria", "hk", "snellman", "kotimaista"],
+  },
+  {
+    category: "chicken",
+    label: "Kana ja broileri",
+    variants: ["kana", "broileri", "kanasuikale", "broilerisuikale", "broilerin fileesuikale", "kanan filee"],
+    requiredAny: ["kana", "broileri", "kanasuikale", "broilerisuikale", "fileesuikale"],
+    preferredAny: ["suikale", "filee", "broileri"],
+    bannedAny: ["kastike", "keitto", "pizza", "salaatti", "ateria"],
+    preferredSizes: [{ unitGroup: "weight", min: 300, max: 700, boost: 35 }],
+  },
+  {
+    category: "bread",
+    label: "Leivät",
+    variants: ["leipä", "ruisleipä", "paahtoleipä", "kauraleipä", "sämpylä", "rieska"],
+    requiredAny: ["leipä", "leipa", "ruis", "paahto", "kaura", "sämpylä", "sampyla", "rieska"],
+    preferredAny: ["ruisleipä", "paahtoleipä", "kauraleipä", "sämpylä"],
+    bannedAny: ["keksi", "pullapitko", "kakku", "muro"],
+    ownBrandFriendly: true,
+  },
+  {
+    category: "pasta",
+    label: "Pastat",
+    variants: ["pasta", "spagetti", "makaroni", "fusilli", "penne", "lasagnelevy"],
+    requiredAny: ["pasta", "spagetti", "makaroni", "fusilli", "penne", "lasagne"],
+    preferredAny: ["spagetti", "makaroni", "fusilli", "penne"],
+    bannedAny: ["kastike", "ateria", "salaatti"],
+    preferredSizes: [{ unitGroup: "weight", min: 400, max: 1000, boost: 35 }],
+    ownBrandFriendly: true,
+  },
+  {
+    category: "rice",
+    label: "Riisit",
+    variants: ["riisi", "jasmiiniriisi", "basmatiriisi", "pitkäjyväinen riisi", "puuroriisi"],
+    requiredAny: ["riisi", "jasmiini", "basmati", "pitkäjyväinen", "pitkajyvainen", "puuroriisi"],
+    preferredAny: ["jasmiini", "basmati", "pitkäjyväinen", "puuroriisi"],
+    bannedAny: ["ateria", "salaatti", "riisipiirakka"],
+    preferredSizes: [{ unitGroup: "weight", min: 900, max: 1100, boost: 35 }],
+    ownBrandFriendly: true,
+  },
+  {
+    category: "fruit_veg",
+    label: "Hedelmät ja vihannekset",
+    variants: ["banaani", "omena", "tomaatti", "kurkku", "peruna", "sipuli", "porkkana"],
+    requiredAny: ["banaani", "omena", "tomaatti", "kurkku", "peruna", "sipuli", "porkkana"],
+    preferredAny: ["suomi", "kotimainen", "luomu"],
+    bannedAny: ["mehu", "sose", "hillo", "kastike", "karkki"],
+  },
+  {
+    category: "frozen",
+    label: "Pakasteet",
+    variants: ["pakaste", "kalapuikot", "ranskanperunat", "pakastevihannekset", "jäätelö", "jaatelo"],
+    requiredAny: ["pakaste", "kalapuikko", "kalapuikot", "ranskanperuna", "ranskanperunat", "jäätelö", "jaatelo"],
+    preferredAny: ["pakaste", "kalapuikot", "ranskanperunat"],
+    bannedAny: ["tuore", "säilyke", "sailyke"],
+  },
+  {
+    category: "snacks",
+    label: "Herkut ja naposteltavat",
+    variants: ["sipsit", "chips", "tortilla chips", "karkki", "suklaa", "keksi"],
+    requiredAny: ["sipsi", "chips", "tortilla", "karkki", "suklaa", "keksi"],
+    preferredAny: ["sipsi", "chips", "tortilla", "suklaa"],
+    bannedAny: ["kastike", "dippi", "jogurtti"],
+  },
+];
+
+function detectSearchIntent(query: string): SearchIntent {
+  const normalized = normalize(query);
+
+  const exactIntent = SEARCH_INTENTS.find((intent) =>
+    intent.variants.some((variant) => normalize(variant) === normalized)
+  );
+
+  if (exactIntent) return exactIntent;
+
+  const tokenIntent = SEARCH_INTENTS.find((intent) =>
+    [...intent.variants, ...(intent.requiredAny || [])].some((token) => normalized.includes(normalize(token)))
+  );
+
+  if (tokenIntent) return tokenIntent;
+
+  const alias = getSearchQuery(query);
+  const aliasIntent = SEARCH_INTENTS.find((intent) =>
+    intent.variants.some((variant) => normalize(alias).includes(normalize(variant)) || normalize(variant).includes(normalize(alias)))
+  );
+
+  if (aliasIntent) return aliasIntent;
+
+  return {
+    category: "generic",
+    label: "Yleishaku",
+    variants: uniqueNormalizedQueries([alias, query]),
+    requiredAny: getNormalizedWords(query).filter((word) => word.length > 2),
+    preferredAny: getNormalizedWords(query).filter((word) => word.length > 3),
+  };
+}
+
 function isMilkSearchTerm(value: string) {
-  const text = normalize(value);
-  return hasAnyToken(text, [
-    "maito",
-    "maidot",
-    "kevytmaito",
-    "rasvaton maito",
-    "täysmaito",
-    "taysmaito",
-    "ykkösmaito",
-    "ykkosmaito",
-    "laktoositon maito",
-    "luomu maito",
-    "kauramaito",
-  ]);
+  return detectSearchIntent(value).category === "milk";
 }
 
 function isColaSearchTerm(value: string) {
-  const text = normalize(value);
-  return hasAnyToken(text, [
-    "cola",
-    "coca-cola",
-    "coca cola",
-    "kokis",
-    "pepsi",
-    "pepsi max",
-    "zero",
-  ]);
+  return detectSearchIntent(value).category === "cola";
 }
 
 function getNormalSearchQueries(term: string) {
-  const normalized = normalize(term);
-  const queries: string[] = [];
-
-  const addQuery = (query: string) => {
-    const clean = normalize(query);
-    if (clean && !queries.includes(clean)) queries.push(clean);
-  };
-
-  // K-ruoan hakukäyttäytymistä matkiva query expansion:
-  // lyhyt yleistermi ensin, sitten yleisimmät aidot alalajit.
-  if (isMilkSearchTerm(normalized)) {
-    addQuery("maito");
-    addQuery("kevytmaito");
-    addQuery("rasvaton maito");
-    addQuery("täysmaito");
-    addQuery("ykkösmaito");
-    addQuery("laktoositon maito");
-    addQuery("luomu maito");
-    addQuery("pirkka maito");
-    addQuery("valio maito");
-    addQuery("arla maito");
-    addQuery("kauramaito");
-    return queries;
-  }
-
-  if (isCoffeeSearchTerm(normalized)) {
-    addQuery("kahvi");
-    addQuery("suodatinkahvi");
-    addQuery("kahvi suodatinjauhatus");
-    addQuery("juhla mokka");
-    addQuery("presidentti kahvi");
-    addQuery("kulta katriina");
-    addQuery("paulig kahvi");
-    addQuery("meira kahvi");
-    addQuery("kahvipapu");
-    addQuery("espresso kahvi");
-    return queries;
-  }
-
-  if (isColaSearchTerm(normalized)) {
-    addQuery("cola");
-    addQuery("coca cola");
-    addQuery("coca-cola");
-    addQuery("pepsi");
-    addQuery("pepsi max");
-    addQuery("cola zero");
-    addQuery("coca cola zero");
-    addQuery("virvoitusjuoma cola");
-    return queries;
-  }
-
-  addQuery(getSearchQuery(term));
+  const intent = detectSearchIntent(term);
+  const expanded = uniqueNormalizedQueries([term, getSearchQuery(term), ...intent.variants]);
 
   // Jos käyttäjä kirjoittaa useamman sanan, kokeillaan myös ydintermiä.
   const words = getNormalizedWords(term).filter((word) => word.length > 3 && !/^\d/.test(word));
-  if (words.length >= 2) addQuery(words.slice(0, 2).join(" "));
-  if (words.length >= 1) addQuery(words[0]);
+  if (words.length >= 2) expanded.push(...uniqueNormalizedQueries([words.slice(0, 2).join(" ")]));
+  if (words.length >= 1) expanded.push(...uniqueNormalizedQueries([words[0]]));
 
-  return queries;
+  return uniqueNormalizedQueries(expanded);
 }
 
 function isAliasSearch(term: string) {
@@ -1426,7 +1554,45 @@ function scoreNameMatch(sourceName: string, targetName: string) {
   return score;
 }
 
+
+function scoreDirectQueryNameMatch(query: string, productName: string) {
+  const queryText = normalize(query);
+  const nameText = normalize(productName);
+
+  if (!queryText || !nameText) return 0;
+
+  let score = 0;
+
+  // Tärkein hakusääntö:
+  // jos käyttäjän hakusana löytyy tuotteen nimestä, tuote kuuluu listan kärkeen.
+  // Esim. "cola" => Coca-Cola / Pirkka Cola ennen Pepsiä.
+  if (nameText === queryText) score += 900;
+  else if (nameText.startsWith(queryText)) score += 720;
+  else if (nameText.includes(queryText)) score += 560;
+
+  const queryWords = getNormalizedWords(query)
+    .filter((word) => word.length > 2)
+    .filter((word) => !["ja", "tai", "the", "with"].includes(word));
+
+  if (queryWords.length > 0) {
+    const matchingWords = queryWords.filter((word) =>
+      hasExactNormalizedWord(productName, word) || nameText.includes(word)
+    );
+
+    if (matchingWords.length === queryWords.length) score += 320;
+    else if (matchingWords.length > 0) score += matchingWords.length * 120;
+
+    const firstWord = queryWords[0];
+    if (firstWord && (hasExactNormalizedWord(productName, firstWord) || nameText.includes(firstWord))) {
+      score += 220;
+    }
+  }
+
+  return score;
+}
+
 function scoreNormalSResult(query: string, product: Product) {
+  const intent = detectSearchIntent(query);
   const queryText = normalize(query);
   const productText = normalize(`${product.name} ${product.brandName || ""} ${product.category || ""}`);
   const nameText = normalize(product.name);
@@ -1434,6 +1600,10 @@ function scoreNormalSResult(query: string, product: Product) {
   const size = parseMetricSize(product.name);
 
   let score = 0;
+
+  // Vahva suora nimiosuma aina ennen category/intention synonyymejä.
+  // Tämä estää esim. "cola"-haussa Pepsi-tuotteita menemästä Cola-nimisten tuotteiden edelle.
+  score += scoreDirectQueryNameMatch(query, product.name);
 
   if (productText === queryText) score += 140;
   if (nameText.startsWith(queryText)) score += 90;
@@ -1445,49 +1615,45 @@ function scoreNormalSResult(query: string, product: Product) {
     else score -= 7;
   }
 
-  if (isMilkSearchTerm(query)) {
-    const isRealMilk =
-      hasAnyToken(nameText, ["maito", "kevytmaito", "rasvaton", "täysmaito", "taysmaito", "ykkösmaito", "ykkosmaito"]) &&
-      !hasAnyToken(nameText, [
-        "maitorahka",
-        "rahka",
-        "kerma",
-        "jogurtti",
-        "jogurt",
-        "kaakao",
-        "suklaa",
-        "kondensoitu",
-        "maitojuoma",
-        "proteiini",
-        "latte",
-        "maitojauhe",
-      ]);
-
-    if (isRealMilk) score += 120;
-    if (size?.unitGroup === "volume" && size.amount >= 900 && size.amount <= 1100) score += 90;
-    if (size?.unitGroup === "volume" && size.amount < 500) score -= 45;
-    if (hasAnyToken(nameText, ["kevytmaito", "rasvaton", "täysmaito", "taysmaito", "ykkösmaito", "ykkosmaito"])) score += 35;
-    if (hasAnyBrand(nameText, ["kotimaista", "coop", "rainbow", "valio", "arla"])) score += 12;
+  if (intent.requiredAny?.length) {
+    const hasRequiredSignal = hasAnyToken(productText, intent.requiredAny);
+    if (hasRequiredSignal) score += 95;
+    else if (intent.category !== "generic") score -= 120;
   }
 
-  if (isColaSearchTerm(query)) {
-    if (isClearlyColaProduct(product.name)) score += 120;
-    if (hasAnyToken(nameText, ["coca-cola", "coca cola", "pepsi", "pepsi max"])) score += 45;
-    if (size?.unitGroup === "volume" && size.amount >= 1400 && size.amount <= 1600) score += 35;
-    if (size?.unitGroup === "volume" && size.amount >= 300 && size.amount <= 550) score += 18;
+  if (intent.preferredAny?.length && hasAnyToken(productText, intent.preferredAny)) score += 45;
+  if (intent.bannedAny?.length && hasAnyToken(productText, intent.bannedAny)) score -= 220;
+
+  if (intent.preferredSizes?.length && size) {
+    for (const preferredSize of intent.preferredSizes) {
+      if (size.unitGroup === preferredSize.unitGroup && size.amount >= preferredSize.min && size.amount <= preferredSize.max) {
+        score += preferredSize.boost;
+      }
+    }
   }
 
-  if (isCoffeeSearchTerm(query)) {
-    if (isClearlyCoffeeProduct(product.name)) score += 120;
-    if (hasAnyToken(nameText, ["suodatinkahvi", "suodatinjauhatus", "jauhettu", "jauhatus"])) score += 55;
-    if (hasAnyToken(nameText, ["juhla mokka", "presidentti", "kulta katriina", "paulig", "meira"])) score += 35;
-    if (size?.unitGroup === "weight" && size.amount >= 400 && size.amount <= 550) score += 55;
+  if (intent.preferredSizes?.length && size?.unitGroup === "volume" && size.amount < 250) score -= 25;
+  if (intent.preferredSizes?.length && size?.unitGroup === "weight" && size.amount < 100) score -= 25;
+
+  if (intent.preferredBrands?.length && hasAnyBrand(nameText, intent.preferredBrands)) score += 22;
+  if (intent.ownBrandFriendly && isValueBrandProduct(product.name)) score += 16;
+
+  if (intent.category === "coffee") {
+    if (isClearlyCoffeeProduct(product.name)) score += 80;
     if (isCoffeeAccessory(product.name)) score -= 180;
   }
 
-  // S-normaalihaussa ei käytetä K-vastineiden kovia rejectejä.
-  // Tässä järjestetään löydetyt S-tuotteet järkevämpään järjestykseen, mutta ei tapeta tuloksia.
-  if (isBadNormalResult(product, query)) score -= 95;
+  if (intent.category === "cola") {
+    if (isClearlyColaProduct(product.name)) score += 80;
+    if (!isClearlyColaProduct(product.name)) score -= 160;
+  }
+
+  if (intent.category === "milk") {
+    if (isBadNormalResult(product, query)) score -= 120;
+  } else if (isBadNormalResult(product, query)) {
+    // Muissa kategorioissa tämä on pehmeä varoitus, ei täystappo.
+    score -= 70;
+  }
 
   const price = getProductPrice(product);
   if (price > 0) score -= Math.min(18, price / 1000);
@@ -1496,14 +1662,24 @@ function scoreNormalSResult(query: string, product: Product) {
 }
 
 function rankNormalSearchResults(query: string, products: Product[]) {
+  const intent = detectSearchIntent(query);
+
   return products
     .map((product: Product) => ({ product, score: scoreNormalSResult(query, product) }))
     .sort((a, b) => {
       const scoreDifference = b.score - a.score;
       if (Math.abs(scoreDifference) > 8) return scoreDifference;
 
-      const sizeDifference = getSizeMatchScore(query, a.product.name) - getSizeMatchScore(query, b.product.name);
-      if (Math.abs(sizeDifference) > 8) return sizeDifference;
+      const aSize = parseMetricSize(a.product.name);
+      const bSize = parseMetricSize(b.product.name);
+      const aPreferredSize = intent.preferredSizes?.some((preferredSize) =>
+        aSize?.unitGroup === preferredSize.unitGroup && aSize.amount >= preferredSize.min && aSize.amount <= preferredSize.max
+      ) ? 1 : 0;
+      const bPreferredSize = intent.preferredSizes?.some((preferredSize) =>
+        bSize?.unitGroup === preferredSize.unitGroup && bSize.amount >= preferredSize.min && bSize.amount <= preferredSize.max
+      ) ? 1 : 0;
+
+      if (aPreferredSize !== bPreferredSize) return bPreferredSize - aPreferredSize;
 
       return getProductPrice(a.product) - getProductPrice(b.product);
     })
@@ -3492,9 +3668,15 @@ export default function Page() {
 
       const unique = Array.from(new Map(all.map((item) => [item.id, item])).values())
         .sort((a, b) => {
-          const aQuery = (a as Product & { usedSearchQuery?: string }).usedSearchQuery || useTerms[0] || "";
-          const bQuery = (b as Product & { usedSearchQuery?: string }).usedSearchQuery || useTerms[0] || "";
-          return scoreNormalSResult(bQuery, b) - scoreNormalSResult(aQuery, a);
+          const aOriginalQuery = (a as Product & { originalSearchTerm?: string }).originalSearchTerm || useTerms[0] || "";
+          const bOriginalQuery = (b as Product & { originalSearchTerm?: string }).originalSearchTerm || useTerms[0] || "";
+          const directNameDifference =
+            scoreDirectQueryNameMatch(bOriginalQuery, b.name) -
+            scoreDirectQueryNameMatch(aOriginalQuery, a.name);
+
+          if (Math.abs(directNameDifference) > 40) return directNameDifference;
+
+          return scoreNormalSResult(bOriginalQuery, b) - scoreNormalSResult(aOriginalQuery, a);
         });
 
       setEanCache((prev) => {
