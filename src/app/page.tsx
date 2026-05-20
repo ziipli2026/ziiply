@@ -4017,6 +4017,11 @@ export default function Page() {
       setLocationInput(nextArea.label || query);
       clearStoreBackedSearchState();
 
+      if (typeof document !== "undefined") {
+        const activeElement = document.activeElement as HTMLElement | null;
+        activeElement?.blur?.();
+      }
+
       const modeMissing = storeMode === "local"
         ? !ranked.sLocal || !ranked.kLocal
         : !ranked.sHyper || !ranked.kHyper;
@@ -6242,7 +6247,10 @@ export default function Page() {
 
             <input
               value={locationInput}
-              onChange={(event) => setLocationInput(event.target.value)}
+              onChange={(event) => {
+                setLocationInput(event.target.value);
+                setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
+              }}
               placeholder="05510 tai Hyvinkää"
               className="min-w-0 flex-1 rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-green-600 sm:rounded-2xl sm:px-4 sm:py-3 sm:text-base"
             />
@@ -6251,7 +6259,8 @@ export default function Page() {
           <button
               type="button"
               onClick={() => applyLocation()}
-              className="shrink-0 rounded-xl bg-slate-900 px-3 py-2 text-sm font-extrabold text-white transition active:scale-[0.98] sm:rounded-2xl sm:px-5 sm:py-3 sm:text-base"
+              disabled={storeSearchLoading}
+              className="shrink-0 rounded-xl bg-slate-900 px-3 py-2 text-sm font-extrabold text-white transition disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] sm:rounded-2xl sm:px-5 sm:py-3 sm:text-base"
             >
               {storeSearchLoading ? "..." : "Käytä"}
             </button>
@@ -6260,6 +6269,12 @@ export default function Page() {
           <div className="mt-2 rounded-xl bg-green-50 px-3 py-2 text-xs font-semibold text-green-900 sm:mt-3 sm:rounded-2xl sm:p-3 sm:text-sm">
             {locationMessage}
           </div>
+
+          {activeArea?.label ? (
+            <div className="mt-2 text-xs font-bold text-slate-600 sm:text-sm">
+              📍 {activeArea.label} käytössä
+            </div>
+          ) : null}
 
 
         </section>
@@ -6473,7 +6488,10 @@ export default function Page() {
 
                   <input
                     value={locationInput}
-                    onChange={(event) => setLocationInput(event.target.value)}
+                    onChange={(event) => {
+                setLocationInput(event.target.value);
+                setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
+              }}
                     placeholder="05510 tai Hyvinkää"
                     className="min-w-0 flex-1 rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-green-600"
                   />
@@ -6481,7 +6499,8 @@ export default function Page() {
                   <button
                     type="button"
                     onClick={() => applyLocation()}
-                    className="shrink-0 rounded-xl bg-slate-900 px-3 py-2 text-sm font-extrabold text-white transition active:scale-[0.98]"
+                    disabled={storeSearchLoading}
+                    className="shrink-0 rounded-xl bg-slate-900 px-3 py-2 text-sm font-extrabold text-white transition disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
                   >
                     {storeSearchLoading ? "..." : "Käytä"}
                   </button>
