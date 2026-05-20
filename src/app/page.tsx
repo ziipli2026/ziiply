@@ -3241,11 +3241,11 @@ export default function Page() {
           let fallbackStoreName = "";
 
           if (rawItems.length === 0 && shouldUseLocalFallback("S")) {
-            rawItems = await fetchSProducts(searchQuery, activeArea.sStoreId).catch(() => [] as Product[]);
+            rawItems = await fetchSProducts(searchQuery, activeArea.sStoreId);
             fallbackStoreName = activeArea.sStoreName;
           }
 
-          const filtered = rawItems
+          const items = rawItems
             .filter((product) => getProductPrice(product) > 0)
             .filter((product) => !isBadNormalResult(product, searchQuery))
             .map((product) => ({ product, score: scoreNameMatch(searchQuery, product.name) }))
@@ -3258,48 +3258,27 @@ export default function Page() {
               // Relevanssi ensin, hinta vasta tasapisteissä.
               if (Math.abs(scoreDifference) > 12) return scoreDifference;
               return getProductPrice(a.product) - getProductPrice(b.product);
-            });
-
-          const rankedItems =
-            filtered.length > 0
-              ? filtered.map(({ product }) => product)
-              : rawItems
-                  .filter((product) => getProductPrice(product) > 0)
-                  .sort((a, b) => getProductPrice(a) - getProductPrice(b));
-
-          const sItems = rankedItems
+            })
             .slice(0, 40)
-            .map((product) => {
+            .map(({ product }) => {
               const withMeta = {
                 ...product,
                 originalSearchTerm: term,
                 usedSearchQuery: searchQuery,
-                sourceChain: "S",
-                sourceStoreName: fallbackStoreName || activeStores.sStoreName,
                 fallbackStoreName: fallbackStoreName || undefined,
               } as Product & {
                 originalSearchTerm?: string;
                 usedSearchQuery?: string;
-                sourceChain?: "S" | "K";
-                sourceStoreName?: string;
                 fallbackStoreName?: string;
               };
 
               return withMeta;
             });
-
-          all.push(...sItems);
+          all.push(...items);
         }
       }
 
-      const unique = Array.from(
-        new Map(
-          all.map((item) => [
-            `${(item as Product & { sourceChain?: string }).sourceChain || "S"}-${item.id}-${normalize(item.name)}`,
-            item,
-          ])
-        ).values()
-      );
+      const unique = Array.from(new Map(all.map((item) => [item.id, item])).values());
 
       setEanCache((prev) => {
         const next = { ...prev };
