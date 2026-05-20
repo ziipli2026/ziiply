@@ -154,6 +154,20 @@ type SavedShoppingList = {
   updatedAt: number;
 };
 
+type SearchDebugEntry = {
+  term: string;
+  query: string;
+  storeName: string;
+  rawCount: number;
+  pricedCount: number;
+  badFilterCount: number;
+  safeCount: number;
+  finalCount: number;
+  rejectedByPrice: number;
+  rejectedByBadFilter: number;
+  fallbackStoreName?: string;
+};
+
 const MAX_ITEMS = 8;
 const ALTERNATIVES_AUTO_CLOSE_MS = 12000;
 const PRICE_HISTORY_STORAGE_KEY = "ziiply-price-history-v1";
@@ -1370,6 +1384,33 @@ function scoreNameMatch(sourceName: string, targetName: string) {
   return score;
 }
 
+function scoreNormalSResult(query: string, product: Product) {
+  const queryText = normalize(query);
+  const productText = normalize(`${product.name} ${product.brandName || ""} ${product.category || ""}`);
+  const queryWords = getNormalizedWords(query).filter((word) => word.length > 1);
+
+  let score = 0;
+
+  if (productText === queryText) score += 120;
+  if (productText.startsWith(queryText)) score += 80;
+  if (productText.includes(queryText)) score += 60;
+
+  for (const word of queryWords) {
+    if (hasExactNormalizedWord(product.name, word)) score += 22;
+    else if (productText.includes(word)) score += 10;
+    else score -= 8;
+  }
+
+  // S-normaalihaussa ei käytetä K-vastineiden kovia rejectejä.
+  // Tässä järjestetään löydetyt S-tuotteet järkevämpään järjestykseen, mutta ei tapeta tuloksia.
+  if (isBadNormalResult(product, query)) score -= 80;
+
+  const price = getProductPrice(product);
+  if (price > 0) score -= Math.min(20, price / 1000);
+
+  return score;
+}
+
 function isNonFoodOffer(offer: ZiiplyOffer) {
   const text = normalize(`${offer.offer.item.name} ${offer.offer.item.category || ""}`);
   const blocked = [
@@ -1755,6 +1796,7 @@ export default function Page() {
   const cartIsEmpty = cart.length === 0;
 
   const [normalResults, setNormalResults] = useState<Product[]>([]);
+  const [searchDebug, setSearchDebug] = useState<SearchDebugEntry[]>([]);
   const [loadingNormal, setLoadingNormal] = useState(false);
   const [visibleNormalCount, setVisibleNormalCount] = useState(8);
   const [eanModalOpen, setEanModalOpen] = useState(false);
@@ -3282,48 +3324,47 @@ export default function Page() {
     }
 
     setLoadingNormal(true);
+    setSearchDebug([]);
     setVisibleNormalCount(8);
     setActiveResult("compare");
+
+    const debugEntries: SearchDebugEntry[] = [];
 
     try {
       const all: Product[] = [];
 
       for (const term of useTerms) {
-        // Käytä normaalihaussa useampaa hakusanaa silloin, kun termi on laaja kuten "kahvi".
-        // Tämä palauttaa hakumoottorin laajaksi: yksi liian tarkka query ei saa tappaa osumia.
+        // Normaali haku on S-first: haetaan S-tuote ensin /api/s-products-routesta.
+        // K-vastine haetaan vasta ostoskori-/vertailuvaiheessa.
         const searchQueries = getNormalSearchQueries(term).slice(0, 8);
 
         for (const searchQuery of searchQueries) {
           let rawItems: Product[] = await fetchSProducts(searchQuery, activeStores.sStoreId);
+          let usedStoreName = activeStores.sStoreName;
           let fallbackStoreName = "";
 
           if (rawItems.length === 0 && shouldUseLocalFallback("S")) {
             rawItems = await fetchSProducts(searchQuery, activeArea.sStoreId);
             fallbackStoreName = activeArea.sStoreName;
+            usedStoreName = activeArea.sStoreName;
           }
 
           const pricedItems = rawItems.filter((product: Product) => getProductPrice(product) > 0);
-
-          // S-haku saa olla fail-open: jos API palauttaa tuotteita, UI ei saa tyhjentyä
-          // liian aggressiivisen scoringin takia. Roskafiltteriä käytetään vain jos se ei
-          // tapa koko tulosjoukkoa.
           const normalFiltered = pricedItems.filter((product: Product) => !isBadNormalResult(product, searchQuery));
+
+          // Fail-open: jos S-route palauttaa hinnoiteltuja tuotteita, UI ei saa näyttää nollaa
+          // vain siksi, että jokin tuoteryhmäfiltteri oli liian tiukka.
           const safeItems = normalFiltered.length > 0 ? normalFiltered : pricedItems;
 
-          const scoredItems = safeItems
-            .map((product: Product) => ({ product, score: scoreNameMatch(searchQuery, product.name) }))
-            .filter(({ score }: { product: Product; score: number }) => score > -250)
-            .sort((a: { product: Product; score: number }, b: { product: Product; score: number }) => {
+          const finalItems = safeItems
+            .map((product: Product) => ({ product, score: scoreNormalSResult(searchQuery, product) }))
+            .sort((a, b) => {
               const scoreDifference = b.score - a.score;
-
-              if (Math.abs(scoreDifference) > 12) return scoreDifference;
+              if (Math.abs(scoreDifference) > 8) return scoreDifference;
               return getProductPrice(a.product) - getProductPrice(b.product);
             })
-            .map(({ product }: { product: Product; score: number }) => product);
-
-          const finalItems = (scoredItems.length > 0 ? scoredItems : safeItems)
             .slice(0, 40)
-            .map((product: Product) => {
+            .map(({ product }) => {
               const withMeta = {
                 ...product,
                 originalSearchTerm: term,
@@ -3337,6 +3378,20 @@ export default function Page() {
 
               return withMeta;
             });
+
+          debugEntries.push({
+            term,
+            query: searchQuery,
+            storeName: usedStoreName,
+            rawCount: rawItems.length,
+            pricedCount: pricedItems.length,
+            badFilterCount: normalFiltered.length,
+            safeCount: safeItems.length,
+            finalCount: finalItems.length,
+            rejectedByPrice: rawItems.length - pricedItems.length,
+            rejectedByBadFilter: pricedItems.length - normalFiltered.length,
+            fallbackStoreName: fallbackStoreName || undefined,
+          });
 
           all.push(...finalItems);
         }
@@ -3358,9 +3413,11 @@ export default function Page() {
         return next;
       });
 
+      setSearchDebug(debugEntries);
       setNormalResults(unique);
     } catch (error) {
       console.error(error);
+      setSearchDebug(debugEntries);
       setNormalResults([]);
     } finally {
       setLoadingNormal(false);
@@ -5900,6 +5957,27 @@ export default function Page() {
                     </div>
                   )}
                 </div>
+
+                {searchDebug.length > 0 && (
+                  <div className="mb-4 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-700">
+                    <div className="mb-2 font-black text-slate-900">Hakudebug</div>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {searchDebug.map((row, index) => (
+                        <div key={`${row.query}-${index}`} className="rounded-xl bg-white p-2 ring-1 ring-slate-100">
+                          <div className="font-extrabold text-slate-900">{row.query} · {row.storeName}</div>
+                          <div>API {row.rawCount} · hinnallisia {row.pricedCount} · filtteri läpi {row.badFilterCount} · näytölle {row.finalCount}</div>
+                          {(row.rejectedByPrice > 0 || row.rejectedByBadFilter > 0 || row.fallbackStoreName) && (
+                            <div className="mt-1 text-slate-500">
+                              {row.rejectedByPrice > 0 ? `Hinta puuttui: ${row.rejectedByPrice}. ` : ""}
+                              {row.rejectedByBadFilter > 0 ? `Tuotefiltteri poisti: ${row.rejectedByBadFilter}. ` : ""}
+                              {row.fallbackStoreName ? `Fallback: ${row.fallbackStoreName}.` : ""}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {loadingNormal ? (
                   <div className="grid gap-3">
