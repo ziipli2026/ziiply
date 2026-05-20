@@ -1976,7 +1976,7 @@ export default function Page() {
     return activeStores.kStoreId !== activeArea.kStoreId;
   }
 
-  async function fetchSProducts(search: string, storeId: number) {
+  async function fetchSProducts(search: string, storeId: number): Promise<Product[]> {
     const encodedSearch = encodeURIComponent(search);
     const encodedStoreId = encodeURIComponent(String(storeId));
 
@@ -2034,7 +2034,7 @@ export default function Page() {
     }
   }
 
-  async function fetchKProducts(search: string, storeId: number) {
+  async function fetchKProducts(search: string, storeId: number): Promise<KProduct[]> {
     const response = await fetch(
       `/api/k-products?search=${encodeURIComponent(search)}&store=${encodeURIComponent(String(storeId))}`,
       { cache: "no-store" }
@@ -3286,7 +3286,7 @@ export default function Page() {
         const searchQueries = getNormalSearchQueries(term).slice(0, 8);
 
         for (const searchQuery of searchQueries) {
-          let rawItems = await fetchSProducts(searchQuery, activeStores.sStoreId);
+          let rawItems: Product[] = await fetchSProducts(searchQuery, activeStores.sStoreId);
           let fallbackStoreName = "";
 
           if (rawItems.length === 0 && shouldUseLocalFallback("S")) {
