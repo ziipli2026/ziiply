@@ -207,7 +207,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v233-visible-location-badge";
+const APP_VERSION = "v234";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -6192,7 +6192,7 @@ export default function Page() {
           <div className="flex shrink-0 flex-col items-end gap-1">
             <span className="rounded-full bg-green-50 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-green-700 ring-1 ring-green-100">{APP_VERSION}</span>
             {activeArea?.label ? (
-              <span className="rounded-full bg-green-50 px-2.5 py-0.5 text-[10px] font-black text-green-700 ring-1 ring-green-100">📍 {activeArea.label}</span>
+              <span className="rounded-full bg-green-50 px-2.5 py-0.5 text-[10px] font-black text-green-700 ring-1 ring-green-100">📍 {activeArea.label} · {storeMode === "hyper" ? "Tavaratalot" : "Lähikaupat"}</span>
             ) : null}
           </div>
         </div>
