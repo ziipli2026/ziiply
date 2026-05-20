@@ -3203,17 +3203,6 @@ export default function Page() {
 
     const isMainSearch = !termOverride;
 
-    trackZiiplyEvent("search_used", {
-      query: useTerms.join(", "),
-      termCount: useTerms.length,
-      isMainSearch,
-      forceEan,
-      cartItemsCount: cart.length,
-      storeMode,
-      sStoreName: activeStores.sStoreName,
-      kStoreName: activeStores.kStoreName,
-    });
-
     if (termOverride) setInput(termOverride);
 
     if (isMainSearch) {
