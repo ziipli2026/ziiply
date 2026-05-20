@@ -164,7 +164,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v208";
+const APP_VERSION = "v208-search-results-safe";
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
   try {
@@ -3227,15 +3227,6 @@ export default function Page() {
     setLoadingNormal(true);
     setVisibleNormalCount(8);
 
-    // Sulje Hae-/kauppa-/kori-overlayt, jotta hakutulokset näkyvät mobiilissa heti haun jälkeen.
-    setSearchPanelOpen(false);
-    setCartModalOpen(false);
-    setCartSavePanelOpen(false);
-    setShopsPanelOpen(false);
-    setEanModalOpen(false);
-
-    setActiveResult("compare");
-
     try {
       const all: Product[] = [];
 
@@ -3303,9 +3294,25 @@ export default function Page() {
       });
 
       setNormalResults(unique);
+      setSearchPanelOpen(false);
+      setCartModalOpen(false);
+      setCartSavePanelOpen(false);
+      setShopsPanelOpen(false);
+      setEanModalOpen(false);
+      setActiveResult("compare");
+
+      window.requestAnimationFrame(() => {
+        compareOverlayScrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
+      });
     } catch (error) {
       console.error(error);
       setNormalResults([]);
+      setSearchPanelOpen(false);
+      setCartModalOpen(false);
+      setCartSavePanelOpen(false);
+      setShopsPanelOpen(false);
+      setEanModalOpen(false);
+      setActiveResult("compare");
     } finally {
       setLoadingNormal(false);
     }
@@ -4393,9 +4400,7 @@ export default function Page() {
       cartItemsCount: cart.length,
     });
 
-    setSearchPanelOpen(false);
     void searchNormalPrices();
-    scrollToNormalResults();
   }
 
   function handleMainOfferSearch() {
@@ -5827,7 +5832,7 @@ export default function Page() {
                 </section>
               )}
 
-              {(loadingNormal || normalResults.length > 0) && (
+              {(loadingNormal || normalResults.length > 0 || activeResult === "compare") && (
 <section ref={normalResultsSectionRef} className="min-w-0 max-w-full overflow-hidden rounded-[1.5rem] bg-white p-4 shadow-sm sm:rounded-[2rem] sm:p-6">
                 <div className="mb-4 flex items-end justify-between gap-3">
                   <div>
