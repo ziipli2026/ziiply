@@ -164,7 +164,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v208-search-results-safe";
+const APP_VERSION = "v208";
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
   try {
@@ -3226,6 +3226,7 @@ export default function Page() {
 
     setLoadingNormal(true);
     setVisibleNormalCount(8);
+    setActiveResult("compare");
 
     try {
       const all: Product[] = [];
@@ -3244,7 +3245,7 @@ export default function Page() {
             fallbackStoreName = activeArea.sStoreName;
           }
 
-          const items = rawItems
+          const sItems = rawItems
             .filter((product) => getProductPrice(product) > 0)
             .filter((product) => !isBadNormalResult(product, searchQuery))
             .map((product) => ({ product, score: scoreNameMatch(searchQuery, product.name) }))
@@ -3273,7 +3274,43 @@ export default function Page() {
 
               return withMeta;
             });
-          all.push(...items);
+
+          let kRawItems = await fetchKProducts(searchQuery, activeStores.kStoreId);
+          let kFallbackStoreName = "";
+
+          if (kRawItems.length === 0 && shouldUseLocalFallback("K")) {
+            kRawItems = await fetchKProducts(searchQuery, activeArea.kStoreId);
+            kFallbackStoreName = activeArea.kStoreName;
+          }
+
+          const kItems = kRawItems
+            .filter((product) => product.price > 0)
+            .filter((product) => !isBadNormalResult(convertKProductToProduct(product), searchQuery))
+            .filter((product) => !isHardRejectedKMatch(searchQuery, product.name))
+            .map((product) => ({ product: convertKProductToProduct(product), score: scoreNameMatch(searchQuery, product.name) }))
+            .filter(({ score }) => score > -250)
+            .sort((a, b) => {
+              const scoreDifference = b.score - a.score;
+              if (Math.abs(scoreDifference) > 12) return scoreDifference;
+              return getProductPrice(a.product) - getProductPrice(b.product);
+            })
+            .slice(0, 40)
+            .map(({ product }) => {
+              const withMeta = {
+                ...product,
+                originalSearchTerm: term,
+                usedSearchQuery: searchQuery,
+                fallbackStoreName: kFallbackStoreName || activeStores.kStoreName,
+              } as Product & {
+                originalSearchTerm?: string;
+                usedSearchQuery?: string;
+                fallbackStoreName?: string;
+              };
+
+              return withMeta;
+            });
+
+          all.push(...sItems, ...kItems);
         }
       }
 
@@ -3294,25 +3331,9 @@ export default function Page() {
       });
 
       setNormalResults(unique);
-      setSearchPanelOpen(false);
-      setCartModalOpen(false);
-      setCartSavePanelOpen(false);
-      setShopsPanelOpen(false);
-      setEanModalOpen(false);
-      setActiveResult("compare");
-
-      window.requestAnimationFrame(() => {
-        compareOverlayScrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
-      });
     } catch (error) {
       console.error(error);
       setNormalResults([]);
-      setSearchPanelOpen(false);
-      setCartModalOpen(false);
-      setCartSavePanelOpen(false);
-      setShopsPanelOpen(false);
-      setEanModalOpen(false);
-      setActiveResult("compare");
     } finally {
       setLoadingNormal(false);
     }
@@ -4400,7 +4421,9 @@ export default function Page() {
       cartItemsCount: cart.length,
     });
 
+    setSearchPanelOpen(false);
     void searchNormalPrices();
+    scrollToNormalResults();
   }
 
   function handleMainOfferSearch() {
@@ -5778,7 +5801,7 @@ export default function Page() {
           <div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0">
             <div ref={compareOverlayScrollRef} className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-50 p-3 shadow-2xl sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:bg-transparent sm:p-0 sm:shadow-none">
             <div className="grid min-w-0 max-w-full gap-4 overflow-hidden lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-            {showCheapestSticky && cheapest && secondCheapest && (
+            {showCheapestSticky && cheapest && secondCheapest ? (
                 <section ref={savingsSummaryRef} className="min-w-0 max-w-full overflow-hidden rounded-[1.5rem] bg-white p-3 shadow-sm sm:rounded-[2rem] sm:p-6">
                   <div className="rounded-[1.5rem] border border-green-200 bg-white/95 p-4 text-left shadow-sm">
                     <div className="relative mx-auto max-w-sm rounded-2xl border border-green-200 bg-white px-5 py-4 shadow-xl">
@@ -5830,9 +5853,7 @@ export default function Page() {
                     </div>
                   </div>
                 </section>
-              )}
-
-              {(loadingNormal || normalResults.length > 0 || activeResult === "compare") && (
+              ) : (loadingNormal || normalResults.length > 0 || activeResult === "compare") && (
 <section ref={normalResultsSectionRef} className="min-w-0 max-w-full overflow-hidden rounded-[1.5rem] bg-white p-4 shadow-sm sm:rounded-[2rem] sm:p-6">
                 <div className="mb-4 flex items-end justify-between gap-3">
                   <div>
