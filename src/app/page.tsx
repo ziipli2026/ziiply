@@ -207,7 +207,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v229-dynamic-location-build-fix";
+const APP_VERSION = "v230-location-handler-build-fix";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -6217,7 +6217,7 @@ export default function Page() {
 
           <button
               type="button"
-              onClick={applyLocation}
+              onClick={() => applyLocation()}
               className="shrink-0 rounded-xl bg-slate-900 px-3 py-2 text-sm font-extrabold text-white transition active:scale-[0.98] sm:rounded-2xl sm:px-5 sm:py-3 sm:text-base"
             >
               {storeSearchLoading ? "..." : "Käytä"}
@@ -6447,7 +6447,7 @@ export default function Page() {
 
                   <button
                     type="button"
-                    onClick={applyLocation}
+                    onClick={() => applyLocation()}
                     className="shrink-0 rounded-xl bg-slate-900 px-3 py-2 text-sm font-extrabold text-white transition active:scale-[0.98]"
                   >
                     {storeSearchLoading ? "..." : "Käytä"}
