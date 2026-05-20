@@ -183,6 +183,7 @@ type SearchIntentCategory =
   | "frozen"
   | "snacks"
   | "buttermilk"
+  | "cooking_oil"
   | "generic";
 
 type SearchIntent = {
@@ -207,7 +208,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v223-scandinavian-search-fix";
+const APP_VERSION = "v224-food-search-priority";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -395,6 +396,8 @@ const SEARCH_ALIASES: Record<string, string> = {
   maito: "maito",
   piima: "piimä",
   "piimä": "piimä",
+  öljy: "öljy",
+  oljy: "öljy",
   kahvi: "kahvi",
   kahvia: "kahvi",
   cola: "cola",
@@ -472,6 +475,16 @@ const SEARCH_INTENTS: SearchIntent[] = [
     bannedAny: ["maito", "kerma", "jogurtti", "jogurt", "rahka", "raejuusto", "juusto", "kaakao", "proteiinijuoma", "maitojuoma"],
     preferredSizes: [{ unitGroup: "volume", min: 900, max: 1100, boost: 95 }],
     preferredBrands: ["valio", "kotimaista", "arla"],
+    ownBrandFriendly: true,
+  },
+  {
+    category: "cooking_oil",
+    label: "Ruokaöljyt",
+    variants: ["öljy", "oljy", "ruokaöljy", "ruokaoljy", "rypsiöljy", "rypsioljy", "rapsiöljy", "rapsioljy", "oliiviöljy", "oliivioljy", "auringonkukkaöljy", "auringonkukkaoljy"],
+    requiredAny: ["öljy", "oljy", "ruokaöljy", "ruokaoljy", "rypsiöljy", "rypsioljy", "rapsiöljy", "rapsioljy", "oliiviöljy", "oliivioljy", "auringonkukkaöljy", "auringonkukkaoljy"],
+    preferredAny: ["ruokaöljy", "ruokaoljy", "rypsiöljy", "rypsioljy", "rapsiöljy", "rapsioljy", "oliiviöljy", "oliivioljy", "paisto", "leivonta"],
+    bannedAny: ["iho", "iholle", "kasvo", "kasvoille", "huuli", "huulikiilto", "arpi", "arville", "hius", "hiuksille", "vartalo", "hieronta", "hoitava", "kosmetiikka", "meikki", "meikinpoisto", "öljypohjainen", "oljyphjainen", "moottori", "voitelu"],
+    preferredSizes: [{ unitGroup: "volume", min: 400, max: 1000, boost: 45 }],
     ownBrandFriendly: true,
   },
   {
@@ -1669,6 +1682,7 @@ type ScoredProduct = {
   score: number;
   categoryConfidence: number;
   preferredSizeScore: number;
+  nonFoodPenalty: number;
 };
 
 function getProductSearchText(product: Product) {
@@ -1705,6 +1719,106 @@ function getPreferredSizeScore(intent: SearchIntent, product: Product) {
   return 0;
 }
 
+
+function looksLikeNonFoodProduct(product: Product) {
+  const text = getProductSearchText(product);
+
+  const nonFoodSignals = [
+    "iholle",
+    "iholle ja",
+    "iho",
+    "ihon",
+    "kasvo",
+    "kasvoille",
+    "huuli",
+    "huulikiilto",
+    "huulipuna",
+    "ripsiväri",
+    "ripsivari",
+    "meikki",
+    "meikinpoisto",
+    "kosmetiikka",
+    "arville",
+    "arpi",
+    "hoitava öljy",
+    "hoitava oljy",
+    "kuivalle iholle",
+    "hiusöljy",
+    "hiusoljy",
+    "hiuksille",
+    "vartaloöljy",
+    "vartalooljy",
+    "hierontaöljy",
+    "hierontaoljy",
+    "öljypohjainen",
+    "oljypohjainen",
+    "moottoriöljy",
+    "moottorioljy",
+    "voiteluöljy",
+    "voiteluoljy",
+  ];
+
+  const foodSignals = [
+    "ruokaöljy",
+    "ruokaoljy",
+    "rypsiöljy",
+    "rypsioljy",
+    "rapsiöljy",
+    "rapsioljy",
+    "oliiviöljy",
+    "oliivioljy",
+    "auringonkukkaöljy",
+    "auringonkukkaoljy",
+    "paistoöljy",
+    "paistooljy",
+    "seesamiöljy",
+    "seesamioljy",
+    "avokadoöljy",
+    "avokadooljy",
+    "salaattiöljy",
+    "salaattioljy",
+    "leivonta",
+    "paistamiseen",
+    "elintarvike",
+  ];
+
+  return hasAnyToken(text, nonFoodSignals) && !hasAnyToken(text, foodSignals);
+}
+
+function getGroceryNonFoodPenalty(query: string, product: Product) {
+  const queryText = normalize(query);
+  const productText = getProductSearchText(product);
+
+  if (!looksLikeNonFoodProduct(product)) return 0;
+
+  // Kun käyttäjä hakee ruokakaupan geneeristä ydintuotetta kuten "öljy",
+  // kosmetiikan ja muun ei-ruoan ei pidä nousta kärkeen vain siksi että nimi sisältää saman sanan.
+  const groceryCoreQuery = hasAnyToken(queryText, [
+    "öljy",
+    "oljy",
+    "maito",
+    "piimä",
+    "piima",
+    "kahvi",
+    "cola",
+    "juusto",
+    "jogurtti",
+    "jogurt",
+    "pasta",
+    "riisi",
+    "leipä",
+    "leipa",
+    "kana",
+    "jauheliha",
+    "ranskanperuna",
+    "ranskanperunat",
+  ]);
+
+  if (!groceryCoreQuery) return -120;
+  if (productText.includes(queryText)) return -1400;
+  return -900;
+}
+
 function getCategoryConfidence(intent: SearchIntent, product: Product) {
   if (intent.category === "generic") return 0;
 
@@ -1725,6 +1839,13 @@ function getCategoryConfidence(intent: SearchIntent, product: Product) {
     if (hasAnyToken(text, ["piimä", "piima"])) confidence += 180;
     if (hasAnyToken(text, ["rasvaton", "laktoositon"])) confidence += 35;
     if (hasAnyToken(text, ["maito", "kerma", "jogurtti", "jogurt", "rahka", "juusto", "raejuusto", "kaakao", "maitojuoma", "proteiinijuoma"])) confidence -= 240;
+  }
+
+
+  if (intent.category === "cooking_oil") {
+    if (hasAnyToken(text, ["ruokaöljy", "ruokaoljy", "rypsiöljy", "rypsioljy", "rapsiöljy", "rapsioljy", "oliiviöljy", "oliivioljy", "auringonkukkaöljy", "auringonkukkaoljy", "öljy", "oljy"])) confidence += 120;
+    if (hasAnyToken(text, ["ruokaöljy", "ruokaoljy", "rypsiöljy", "rypsioljy", "rapsiöljy", "rapsioljy", "oliiviöljy", "oliivioljy"])) confidence += 85;
+    if (looksLikeNonFoodProduct(product)) confidence -= 900;
   }
 
   if (intent.category === "coffee") {
@@ -1774,6 +1895,8 @@ function scoreBaseNormalResult(query: string, product: Product) {
   if (intent.ownBrandFriendly && isValueBrandProduct(product.name)) score += 16;
 
   if (isBadNormalResult(product, query)) score -= intent.category === "generic" ? 70 : 120;
+
+  score += getGroceryNonFoodPenalty(query, product);
 
   const price = getProductPrice(product);
   if (price > 0) score -= Math.min(18, price / 1000);
@@ -1842,11 +1965,27 @@ function scoreButtermilkProduct(query: string, product: Product) {
   return score;
 }
 
+
+function scoreCookingOilProduct(query: string, product: Product) {
+  let score = scoreBaseNormalResult(query, product);
+  const text = getProductSearchText(product);
+  const size = parseMetricSize(product.name);
+
+  if (looksLikeNonFoodProduct(product)) score -= 1400;
+  if (hasAnyToken(text, ["ruokaöljy", "ruokaoljy", "rypsiöljy", "rypsioljy", "rapsiöljy", "rapsioljy", "oliiviöljy", "oliivioljy", "auringonkukkaöljy", "auringonkukkaoljy"])) score += 170;
+  if (hasAnyToken(text, ["paistamiseen", "leivonta", "salaatti", "extra virgin", "neitsytoliivi"])) score += 35;
+  if (size?.unitGroup === "volume" && size.amount >= 400 && size.amount <= 1000) score += 55;
+  if (size?.unitGroup === "volume" && size.amount < 150) score -= 55;
+
+  return score;
+}
+
 function scoreCategorySpecificResult(query: string, product: Product) {
   const intent = detectSearchIntent(query);
 
   if (intent.category === "milk") return scoreMilkProduct(query, product);
   if (intent.category === "buttermilk") return scoreButtermilkProduct(query, product);
+  if (intent.category === "cooking_oil") return scoreCookingOilProduct(query, product);
   if (intent.category === "coffee") return scoreCoffeeProduct(query, product);
   if (intent.category === "cola") return scoreColaProduct(query, product);
 
@@ -1866,6 +2005,7 @@ function rankNormalSearchResults(query: string, products: Product[]) {
       score: scoreNormalSResult(query, product),
       categoryConfidence: getCategoryConfidence(intent, product),
       preferredSizeScore: getPreferredSizeScore(intent, product),
+      nonFoodPenalty: getGroceryNonFoodPenalty(query, product),
     }))
     .sort((a, b) => {
       const scoreDifference = b.score - a.score;
@@ -1877,6 +2017,10 @@ function rankNormalSearchResults(query: string, products: Product[]) {
 
       const sizeDifference = b.preferredSizeScore - a.preferredSizeScore;
       if (Math.abs(sizeDifference) > 8) return sizeDifference;
+
+      // Ei-ruokatuotteet jätetään ruokahakujen viimeisiksi, vaikka nimessä olisi täsmäosuma.
+      const nonFoodDifference = b.nonFoodPenalty - a.nonFoodPenalty;
+      if (Math.abs(nonFoodDifference) > 100) return nonFoodDifference;
 
       return getProductPrice(a.product) - getProductPrice(b.product);
     })
@@ -6449,7 +6593,7 @@ export default function Page() {
 
                   {loadingNormal && (
                     <div className="rounded-full bg-green-50 px-3 py-2 text-sm font-black text-green-700 ring-1 ring-green-100">
-                      Verrataan hintoja...
+                      Haetaan tuotteita...
                     </div>
                   )}
                 </div>
