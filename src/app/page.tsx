@@ -78,13 +78,12 @@ type Area = {
   label: string;
   aliases: string[];
 
-  // Tavaratalot / isot kaupat
-  sStoreId: number;
-  sStoreName: string;
-  kStoreId: number;
-  kStoreName: string;
-
-  // Lähikaupat. Jos näitä ei ole vielä täytetty, koodi käyttää yllä olevia tavarataloja fallbackina.
+  // v228: alue ei enää kanna kovakoodattuja kauppoja.
+  // Kaupat haetaan dynaamisesti käsin annetun alueen tai GPS:stä päätellyn alueen perusteella.
+  sStoreId?: number;
+  sStoreName?: string;
+  kStoreId?: number;
+  kStoreName?: string;
   sLocalStoreId?: number;
   sLocalStoreName?: string;
   kLocalStoreId?: number;
@@ -208,7 +207,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v227-unified-offer-search-ranking";
+const APP_VERSION = "v228-dynamic-location-stores";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -228,21 +227,21 @@ function trackZiiplyEvent(eventName: string, properties: Record<string, unknown>
 // Käytetään lähes neliötä, jotta sekä pysty- että vaakaviivakoodit mahtuvat kehykseen.
 // Tämä auttaa erityisesti maitopurkkien ja kaarevien pakkausten viivakoodeissa.
 
-// Local store fallback:
-// Jos alueelta ei vielä löydy oikeaa lähikaupan storeId:tä,
-// käytetään automaattisesti hypermarket-versiota fallbackina.
+// v228:
+// AREAS on nyt vain alue-/aliaslista. Kauppoja ei enää oteta kovakoodatusta listasta,
+// vaan ne haetaan dynaamisesti käsin annetun alueen tai GPS:stä päätellyn alueen perusteella.
 const AREAS: Area[] = [
-  { label: "Hyvinkää", aliases: ["hyvinkää", "hyvinkaa", "05800"], sStoreId: 292, sStoreName: "Prisma Hyvinkää", kStoreId: 3221, kStoreName: "K-Citymarket Hyvinkää" },
-  { label: "Helsinki", aliases: ["helsinki", "pasila", "tripla", "ruoholahti"], sStoreId: 945, sStoreName: "Prisma Tripla", kStoreId: 3275, kStoreName: "K-Citymarket Ruoholahti" },
-  { label: "Espoo", aliases: ["espoo", "sello", "leppävaara", "leppavaara"], sStoreId: 1020, sStoreName: "Prisma Sello", kStoreId: 3695, kStoreName: "K-Citymarket Sello" },
-  { label: "Vantaa", aliases: ["vantaa", "tikkurila", "jumbo"], sStoreId: 3, sStoreName: "Prisma Tikkurila", kStoreId: 3227, kStoreName: "K-Citymarket Jumbo" },
-  { label: "Tampere", aliases: ["tampere", "kaleva"], sStoreId: 423, sStoreName: "Prisma Kaleva", kStoreId: 3343, kStoreName: "K-Supermarket Kaleva" },
-  { label: "Turku", aliases: ["turku", "itäharju", "itaharju", "länsikeskus", "lansikeskus"], sStoreId: 225, sStoreName: "Prisma Itäharju", kStoreId: 3256, kStoreName: "K-Citymarket Länsikeskus" },
-  { label: "Oulu", aliases: ["oulu", "limingantulli", "raksila"], sStoreId: 1047, sStoreName: "Prisma Limingantulli", kStoreId: 3271, kStoreName: "K-Citymarket Raksila" },
-  { label: "Jyväskylä", aliases: ["jyväskylä", "jyvaskyla", "seppälä", "seppala", "keljo"], sStoreId: 247, sStoreName: "Prisma Seppälä", kStoreId: 3235, kStoreName: "K-Citymarket Keljo" },
-  { label: "Kuopio", aliases: ["kuopio", "päiväranta", "paivaranta"], sStoreId: 929, sStoreName: "Prisma Kuopio", kStoreId: 3268, kStoreName: "K-Citymarket Päiväranta" },
-  { label: "Lahti", aliases: ["lahti", "holma", "paavola"], sStoreId: 493, sStoreName: "Prisma Holma", kStoreId: 3262, kStoreName: "K-Citymarket Paavola" },
-  { label: "Pori", aliases: ["pori", "mikkola", "puuvilla"], sStoreId: 360, sStoreName: "Prisma Mikkola", kStoreId: 3267, kStoreName: "K-Citymarket Puuvilla" },
+  { label: "Hyvinkää", aliases: ["hyvinkää", "hyvinkaa", "05800"] },
+  { label: "Helsinki", aliases: ["helsinki", "pasila", "tripla", "ruoholahti"] },
+  { label: "Espoo", aliases: ["espoo", "sello", "leppävaara", "leppavaara"] },
+  { label: "Vantaa", aliases: ["vantaa", "tikkurila", "jumbo"] },
+  { label: "Tampere", aliases: ["tampere", "kaleva"] },
+  { label: "Turku", aliases: ["turku", "itäharju", "itaharju", "länsikeskus", "lansikeskus"] },
+  { label: "Oulu", aliases: ["oulu", "limingantulli", "raksila"] },
+  { label: "Jyväskylä", aliases: ["jyväskylä", "jyvaskyla", "seppälä", "seppala", "keljo"] },
+  { label: "Kuopio", aliases: ["kuopio", "päiväranta", "paivaranta"] },
+  { label: "Lahti", aliases: ["lahti", "holma", "paavola"] },
+  { label: "Pori", aliases: ["pori", "mikkola", "puuvilla"] },
 ];
 
 // =========================
@@ -2521,7 +2520,8 @@ export default function Page() {
   const [locationInput, setLocationInput] = useState("Hyvinkää");
   const [activeArea, setActiveArea] = useState<Area>(AREAS[0]);
   const [storeMode, setStoreMode] = useState<StoreMode>("hyper");
-  const [locationMessage, setLocationMessage] = useState("Demo käyttää Hyvinkään aluetta.");
+  const [locationMessage, setLocationMessage] = useState("Kirjoita alue tai käytä omaa sijaintia.");
+  const [usingOwnLocation, setUsingOwnLocation] = useState(false);
   const [storeSearchLoading, setStoreSearchLoading] = useState(false);
   const [foundStores, setFoundStores] = useState<StoreSearchItem[]>([]);
 
@@ -2746,29 +2746,31 @@ export default function Page() {
   const activeStores = useMemo(() => {
     if (storeMode === "local") {
       return {
-        sStoreId: activeArea.sLocalStoreId ?? activeArea.sStoreId,
-        sStoreName: activeArea.sLocalStoreName ?? activeArea.sStoreName,
-        kStoreId: activeArea.kLocalStoreId ?? activeArea.kStoreId,
-        kStoreName: activeArea.kLocalStoreName ?? activeArea.kStoreName,
+        sStoreId: activeArea.sLocalStoreId ?? 0,
+        sStoreName: activeArea.sLocalStoreName ?? "S-lähikauppa ei valittu",
+        kStoreId: activeArea.kLocalStoreId ?? 0,
+        kStoreName: activeArea.kLocalStoreName ?? "K-lähikauppa ei valittu",
       };
     }
 
     return {
-      sStoreId: activeArea.sStoreId,
-      sStoreName: activeArea.sStoreName,
-      kStoreId: activeArea.kStoreId,
-      kStoreName: activeArea.kStoreName,
+      sStoreId: activeArea.sStoreId ?? 0,
+      sStoreName: activeArea.sStoreName ?? "S-tavaratalo ei valittu",
+      kStoreId: activeArea.kStoreId ?? 0,
+      kStoreName: activeArea.kStoreName ?? "K-tavaratalo ei valittu",
     };
   }, [activeArea, storeMode]);
+
+  const hasActiveStores = activeStores.sStoreId > 0 && activeStores.kStoreId > 0;
 
   function shouldUseLocalFallback(chain: "S" | "K") {
     if (storeMode !== "local") return false;
 
     if (chain === "S") {
-      return activeStores.sStoreId !== activeArea.sStoreId;
+      return Boolean(activeArea.sStoreId) && activeStores.sStoreId !== activeArea.sStoreId;
     }
 
-    return activeStores.kStoreId !== activeArea.kStoreId;
+    return Boolean(activeArea.kStoreId) && activeStores.kStoreId !== activeArea.kStoreId;
   }
 
   function normalizeSProduct(raw: any): Product | null {
@@ -3853,8 +3855,105 @@ export default function Page() {
     }.`);
   }
 
-  async function applyLocation() {
-    const query = locationInput.trim();
+  function clearStoreBackedSearchState() {
+    setOffers([]);
+    setNormalResults([]);
+    setVisibleNormalCount(8);
+    setSMatches({});
+    setKMatches({});
+    setHasSearchedOffers(false);
+    setActiveResult("none");
+    setLastOptimizationSnapshot(null);
+  }
+
+  function rankStoresForMode(stores: StoreSearchItem[], mode: StoreMode) {
+    const sStores = stores.filter((store) => store.type === "S");
+    const kStores = stores.filter((store) => store.type === "K");
+
+    const sHyper = pickStore(sStores, isPrisma);
+    const kHyper = pickStore(kStores, isKCitymarket);
+    const sLocal = pickStore(sStores, isSLocalStore);
+    const kLocal = pickStore(kStores, isKLocalStore);
+
+    return {
+      sHyper,
+      kHyper,
+      sLocal,
+      kLocal,
+      selectedS: mode === "local" ? sLocal : sHyper,
+      selectedK: mode === "local" ? kLocal : kHyper,
+    };
+  }
+
+  function buildDynamicArea(query: string, stores: StoreSearchItem[], mode: StoreMode): Area {
+    const matchedArea = findArea(query);
+    const ranked = rankStoresForMode(stores, mode);
+
+    const detectedCity =
+      ranked.selectedS?.city ||
+      ranked.selectedK?.city ||
+      stores.find((store) => store.city)?.city ||
+      matchedArea?.label ||
+      query;
+
+    return {
+      label: detectedCity,
+      aliases: Array.from(new Set([...(matchedArea?.aliases || []), query, detectedCity].filter(Boolean))),
+      sStoreId: ranked.sHyper?.id,
+      sStoreName: ranked.sHyper?.name,
+      kStoreId: ranked.kHyper?.id,
+      kStoreName: ranked.kHyper?.name,
+      sLocalStoreId: ranked.sLocal?.id,
+      sLocalStoreName: ranked.sLocal?.name,
+      kLocalStoreId: ranked.kLocal?.id,
+      kLocalStoreName: ranked.kLocal?.name,
+    };
+  }
+
+  async function fetchStoresForLocationQuery(query: string) {
+    const response = await fetch(`/api/store-search?search=${encodeURIComponent(query)}`, {
+      cache: "no-store",
+    });
+    const data = await response.json();
+    return ((data.items || []) as StoreSearchItem[]).filter((store) => store.id && store.name);
+  }
+
+  async function reverseGeocodeCity(latitude: number, longitude: number) {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(latitude)}&lon=${encodeURIComponent(longitude)}&accept-language=fi`,
+      { cache: "no-store" }
+    );
+    const data = await response.json();
+    const address = data?.address || {};
+
+    return String(
+      address.city ||
+        address.town ||
+        address.municipality ||
+        address.village ||
+        address.suburb ||
+        address.county ||
+        ""
+    ).trim();
+  }
+
+  function getCurrentPosition() {
+    return new Promise<GeolocationPosition>((resolve, reject) => {
+      if (typeof navigator === "undefined" || !navigator.geolocation) {
+        reject(new Error("Geolocation is not supported"));
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(resolve, reject, {
+        enableHighAccuracy: false,
+        timeout: 10000,
+        maximumAge: 5 * 60 * 1000,
+      });
+    });
+  }
+
+  async function applyLocation(queryOverride?: string, source: "manual" | "gps" = "manual") {
+    const query = (queryOverride || locationInput).trim();
 
     if (!query) {
       setLocationMessage("Kirjoita ensin kaupunki, alue tai postinumero.");
@@ -3864,81 +3963,71 @@ export default function Page() {
     trackZiiplyEvent("store_search_used", {
       query,
       storeMode,
+      source,
     });
 
     setStoreSearchLoading(true);
+    setLocationMessage(source === "gps" ? `Haetaan kauppoja alueelle ${query}...` : "Haetaan kauppoja...");
 
     try {
-      const response = await fetch(`/api/store-search?search=${encodeURIComponent(query)}`, {
-        cache: "no-store",
-      });
-      const data = await response.json();
-      const stores = ((data.items || []) as StoreSearchItem[]).filter((store) => store.id && store.name);
-
+      const stores = await fetchStoresForLocationQuery(query);
       setFoundStores(stores);
 
-      const fallbackArea = findArea(query) || activeArea;
-      const prisma = pickStore(stores, isPrisma);
-      const kCitymarket = pickStore(stores, isKCitymarket);
-      const sLocal = pickStore(stores, isSLocalStore);
-      const kLocal = pickStore(stores, isKLocalStore);
-
-      const nextArea: Area = {
-        label: fallbackArea?.label || query,
-        aliases: Array.from(new Set([...(fallbackArea?.aliases || []), normalize(query), query])),
-        sStoreId: prisma?.id ?? fallbackArea.sStoreId,
-        sStoreName: prisma?.name ?? fallbackArea.sStoreName,
-        kStoreId: kCitymarket?.id ?? fallbackArea.kStoreId,
-        kStoreName: kCitymarket?.name ?? fallbackArea.kStoreName,
-        sLocalStoreId: sLocal?.id ?? fallbackArea.sLocalStoreId ?? fallbackArea.sStoreId,
-        sLocalStoreName: sLocal?.name ?? fallbackArea.sLocalStoreName ?? fallbackArea.sStoreName,
-        kLocalStoreId: kLocal?.id ?? fallbackArea.kLocalStoreId ?? fallbackArea.kStoreId,
-        kLocalStoreName: kLocal?.name ?? fallbackArea.kLocalStoreName ?? fallbackArea.kStoreName,
-      };
-
-      setActiveArea(nextArea);
-      setOffers([]);
-      setNormalResults([]);
-      setVisibleNormalCount(8);
-      setSMatches({});
-      setKMatches({});
-      setHasSearchedOffers(false);
-      setActiveResult("none");
-
-      const foundLocal = Boolean(sLocal || kLocal);
-      const foundHyper = Boolean(prisma || kCitymarket);
-
       if (stores.length === 0) {
-        setLocationMessage(
-          `Kauppoja ei löytynyt haulla "${query}". Käytetään nykyistä/demoalueen kauppadataa.`
-        );
-      } else {
-        setLocationMessage(
-          `Haulla "${query}" löytyi ${stores.length} kauppaa. ${
-            foundLocal ? "Lähikaupat päivitetty." : "Lähikaupoille käytetään fallback-kauppoja."
-          } ${foundHyper ? "Tavaratalot päivitetty." : "Tavarataloille käytetään fallback-kauppoja."}`
-        );
-      }
-    } catch (error) {
-      console.error(error);
-
-      const area = findArea(query);
-
-      if (!area) {
-        setLocationMessage(`Aluetta ei löytynyt. Tuetut fallback-alueet: ${AREAS.map((x) => x.label).join(", ")}.`);
+        setLocationMessage(`Alueelle "${query}" ei löytynyt kauppoja. Valitse alue käsin.`);
         return;
       }
 
-      setActiveArea(area);
-      setOffers([]);
-      setNormalResults([]);
-      setVisibleNormalCount(8);
-      setSMatches({});
-      setKMatches({});
-      setHasSearchedOffers(false);
-      setActiveResult("none");
-      setLocationMessage(`Store-haku epäonnistui. Käytetään fallback-aluetta: ${area.label}.`);
+      const ranked = rankStoresForMode(stores, storeMode);
+      const nextArea = buildDynamicArea(query, stores, storeMode);
+      setActiveArea(nextArea);
+      setLocationInput(nextArea.label || query);
+      clearStoreBackedSearchState();
+
+      const modeMissing = storeMode === "local"
+        ? !ranked.sLocal || !ranked.kLocal
+        : !ranked.sHyper || !ranked.kHyper;
+
+      if (modeMissing) {
+        setLocationMessage(
+          `${nextArea.label || query} löytyi, mutta kaikkia ${storeMode === "local" ? "lähikauppoja" : "tavarataloja"} ei löytynyt. Voit valita kaupat listasta.`
+        );
+      } else {
+        setLocationMessage(`${nextArea.label || query} käytössä.`);
+      }
+    } catch (error) {
+      console.error(error);
+      setLocationMessage(source === "gps" ? "Sijainti löytyi, mutta kauppahaku epäonnistui. Valitse alue käsin." : "Kauppahaku epäonnistui. Valitse alue käsin.");
     } finally {
+      setStoreSearchLoading(false);
+    }
+  }
+
+  async function useOwnLocation() {
+    if (storeSearchLoading) return;
+
+    setUsingOwnLocation(true);
+    setStoreSearchLoading(true);
+    setLocationMessage("Haetaan sijaintia...");
+
+    try {
+      const position = await getCurrentPosition();
+      const city = await reverseGeocodeCity(position.coords.latitude, position.coords.longitude);
+
+      if (!city) {
+        setLocationMessage("Sijaintia ei saatu. Valitse alue käsin.");
+        setUsingOwnLocation(false);
+        return;
+      }
+
+      setLocationMessage(`${city} löytyi. Haetaan kaupat...`);
+      setLocationInput(city);
+      setStoreSearchLoading(false);
+      await applyLocation(city, "gps");
+    } catch (error) {
+      console.error(error);
+      setLocationMessage("Sijaintia ei saatu. Valitse alue käsin.");
+      setUsingOwnLocation(false);
       setStoreSearchLoading(false);
     }
   }
@@ -3947,6 +4036,14 @@ export default function Page() {
     const useTerms = termOverride ? parseTerms(termOverride) : terms;
 
     if (useTerms.length === 0) {
+      setHasSearchedOffers(false);
+      setOffers([]);
+      setActiveResult("none");
+      return;
+    }
+
+    if (!hasActiveStores) {
+      setLocationMessage("Hae ensin alue tai käytä omaa sijaintia, jotta kaupat voidaan valita.");
       setHasSearchedOffers(false);
       setOffers([]);
       setActiveResult("none");
@@ -4017,6 +4114,13 @@ export default function Page() {
       return;
     }
 
+    if (!hasActiveStores) {
+      setLocationMessage("Hae ensin alue tai käytä omaa sijaintia, jotta kaupat voidaan valita.");
+      setActiveNormalSearchTerm("");
+      setNormalResults([]);
+      return;
+    }
+
     const isMainSearch = !termOverride;
     const focusedSearchTerms = useTerms.length > 1 ? [useTerms[0]] : useTerms;
 
@@ -4070,9 +4174,9 @@ export default function Page() {
           let fallbackStoreName = "";
 
           if (rawItems.length === 0 && shouldUseLocalFallback("S")) {
-            rawItems = await fetchSProducts(searchQuery, activeArea.sStoreId);
-            fallbackStoreName = activeArea.sStoreName;
-            usedStoreName = activeArea.sStoreName;
+            if (activeArea.sStoreId) rawItems = await fetchSProducts(searchQuery, activeArea.sStoreId);
+            fallbackStoreName = activeArea.sStoreName || "S-tavaratalo";
+            usedStoreName = activeArea.sStoreName || "S-tavaratalo";
           }
 
           const pricedItems = rawItems.filter((product: Product) => getProductPrice(product) > 0);
@@ -4216,7 +4320,7 @@ export default function Page() {
               let fallbackStoreName = "";
 
               if (!best && shouldUseLocalFallback("S")) {
-                items = await fetchSProducts(item.name, activeArea.sStoreId);
+                if (activeArea.sStoreId) items = await fetchSProducts(item.name, activeArea.sStoreId);
                 best = pickBestSProduct(items, item.name, item.ean);
                 fallbackStoreName = activeArea.sStoreName;
               }
@@ -4244,7 +4348,7 @@ export default function Page() {
               best = await findBestKMatchForStore(item.name, activeStores.kStoreId, item.ean);
 
               if (!best && shouldUseLocalFallback("K")) {
-                best = await findBestKMatchForStore(item.name, activeArea.kStoreId, item.ean);
+                if (activeArea.kStoreId) best = await findBestKMatchForStore(item.name, activeArea.kStoreId, item.ean);
 
                 if (best) {
                   fallbackStoreName = activeArea.kStoreName;
@@ -6091,7 +6195,11 @@ export default function Page() {
               <input
                 type="checkbox"
                 className="h-4 w-4 rounded border-slate-300 text-green-600 focus:ring-green-600 sm:h-5 sm:w-5"
-                readOnly
+                checked={usingOwnLocation}
+                onChange={(event) => {
+                  if (event.target.checked) useOwnLocation();
+                  else setUsingOwnLocation(false);
+                }}
               />
               <span className="hidden xs:inline sm:inline">Oma sijainti</span>
               <span className="inline xs:hidden sm:hidden">Oma</span>
@@ -6159,9 +6267,10 @@ export default function Page() {
             <p>K: {activeStores.kStoreName}</p>
             <p className="mt-2 text-slate-400">Valitut kaupat tallennetaan tälle selaimelle.</p>
 
-            {storeMode === "local" && (!activeArea.sLocalStoreId || !activeArea.kLocalStoreId) && foundStores.length === 0 && (
+            {((storeMode === "local" && (!activeArea.sLocalStoreId || !activeArea.kLocalStoreId)) ||
+              (storeMode === "hyper" && (!activeArea.sStoreId || !activeArea.kStoreId))) && foundStores.length === 0 && (
               <p className="mt-2 text-amber-700">
-                Paina Käytä, niin Ziiply hakee lähialueen kaupat valittavaksi.
+                Hae alue tai käytä omaa sijaintia, niin Ziiply hakee kaupat dynaamisesti.
               </p>
             )}
           </div>
@@ -6318,7 +6427,11 @@ export default function Page() {
                     <input
                       type="checkbox"
                       className="h-4 w-4 rounded border-slate-300 text-green-600 focus:ring-green-600"
-                      readOnly
+                      checked={usingOwnLocation}
+                      onChange={(event) => {
+                        if (event.target.checked) useOwnLocation();
+                        else setUsingOwnLocation(false);
+                      }}
                     />
                     <span>Oma</span>
                   </label>
@@ -6380,9 +6493,10 @@ export default function Page() {
                   <p>K: {activeStores.kStoreName}</p>
                   <p className="mt-2 text-slate-400">Valitut kaupat tallennetaan tälle selaimelle.</p>
 
-                  {storeMode === "local" && (!activeArea.sLocalStoreId || !activeArea.kLocalStoreId) && foundStores.length === 0 && (
+                  {((storeMode === "local" && (!activeArea.sLocalStoreId || !activeArea.kLocalStoreId)) ||
+                    (storeMode === "hyper" && (!activeArea.sStoreId || !activeArea.kStoreId))) && foundStores.length === 0 && (
                     <p className="mt-2 text-amber-700">
-                      Paina Käytä, niin Ziiply hakee lähialueen kaupat valittavaksi.
+                      Hae alue tai käytä omaa sijaintia, niin Ziiply hakee kaupat dynaamisesti.
                     </p>
                   )}
                 </div>
