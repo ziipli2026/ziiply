@@ -208,7 +208,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v226-compare-default-view";
+const APP_VERSION = "v227-unified-offer-search-ranking";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -2285,6 +2285,71 @@ function offerToProduct(item: ZiiplyOffer): Product {
   };
 }
 
+type ScoredOfferResult = {
+  item: ZiiplyOffer;
+  score: number;
+  directHit: boolean;
+};
+
+function scoreOfferForTerm(term: string, item: ZiiplyOffer): { score: number; directHit: boolean } {
+  const product = offerToProduct(item);
+  const productText = getProductSearchText(product);
+  const queries = getNormalSearchQueries(term);
+  const directHit = queries.some((query) => {
+    const normalizedQuery = normalize(query);
+    return Boolean(normalizedQuery) && productText.includes(normalizedQuery);
+  });
+
+  const intent = detectSearchIntent(term);
+  const categoryConfidence = getCategoryConfidence(intent, product);
+  const preferredSizeScore = getPreferredSizeScore(intent, product);
+  const nonFoodPenalty = getGroceryNonFoodPenalty(term, product);
+  const baseScore = scoreCategorySpecificResult(term, product);
+
+  let score = baseScore + categoryConfidence * 0.7 + preferredSizeScore * 0.5 + nonFoodPenalty;
+
+  // Tarjousbackend pysyy ennallaan, mutta tarjouslistan relevanssi seuraa nyt samaa
+  // intentti-, tuoteryhmä-, koko- ja ei-ruoka-logiikkaa kuin normaali tuotteenhaku.
+  if (isNonFoodOffer(item)) score -= 1600;
+  if (isBadNormalResult(product, term)) score -= 650;
+  if (isHardRejectedAlternative(term, product.name)) score -= 900;
+
+  // Jos tarjouksen nimi ei osu yhteenkään normaalihaun laajennettuun queryyn,
+  // sen pitää todistaa relevanssinsa category confidencella tai korkealla scorerilla.
+  if (!directHit && categoryConfidence < 70 && baseScore < 120) score -= 900;
+
+  return { score, directHit };
+}
+
+function rankOfferSearchResults(offers: ZiiplyOffer[], terms: string[]) {
+  const searchTerms = terms.map((term) => term.trim()).filter(Boolean);
+  if (searchTerms.length === 0) return [];
+
+  return offers
+    .map((item): ScoredOfferResult => {
+      const best = searchTerms
+        .map((term) => scoreOfferForTerm(term, item))
+        .sort((a, b) => b.score - a.score)[0];
+
+      return {
+        item,
+        score: best?.score ?? -9999,
+        directHit: best?.directHit ?? false,
+      };
+    })
+    .filter(({ score, directHit }) => directHit || score > 120)
+    .sort((a, b) => {
+      const scoreDifference = b.score - a.score;
+      if (Math.abs(scoreDifference) > 12) return scoreDifference;
+
+      const priceDifference = (a.item.offer.storeItem?.price || 0) - (b.item.offer.storeItem?.price || 0);
+      if (priceDifference !== 0) return priceDifference;
+
+      return (b.item.offer.discountPercent || 0) - (a.item.offer.discountPercent || 0);
+    })
+    .map(({ item }) => item);
+}
+
 function convertKProductToProduct(product: KProduct): Product {
   return {
     id: Number(product.id.replace(/\D/g, "").slice(0, 9)) || Date.now(),
@@ -3334,45 +3399,8 @@ export default function Page() {
   }
 
   const filteredOffers = useMemo(() => {
-    const normalizedTerms = terms.map(normalize);
-
-    return offers
-      .filter((item) => chainFilter === "all" || item.chain === chainFilter)
-      .filter((item) => !isNonFoodOffer(item))
-      .filter((item) => {
-        if (normalizedTerms.length === 0) return false;
-        const name = normalize(item.offer.item.name);
-
-        return normalizedTerms.some((term) => {
-          if (!name.includes(term)) return false;
-
-          const productLike: Product = {
-            id: item.offer.item.id,
-            name: item.offer.item.name,
-            ean: item.offer.item.ean,
-            pictureUrl: item.offer.item.pictureUrl,
-            category: item.offer.item.category,
-            price: item.offer.storeItem?.price || 0,
-            storeItems: [{ price: item.offer.storeItem?.price || 0 }],
-          };
-
-          return !isBadNormalResult(productLike, term);
-        });
-      })
-      .sort((a, b) => {
-        const primaryTerm = terms[0] || "";
-        const aScore = scoreNameMatch(primaryTerm, a.offer.item.name);
-        const bScore = scoreNameMatch(primaryTerm, b.offer.item.name);
-        const scoreDifference = bScore - aScore;
-
-        // Ensin tuotteen relevanssi, sitten hinta ja vasta viimeisenä tarjousprosentti.
-        if (Math.abs(scoreDifference) > 12) return scoreDifference;
-
-        const priceDifference = (a.offer.storeItem?.price || 0) - (b.offer.storeItem?.price || 0);
-        if (priceDifference !== 0) return priceDifference;
-
-        return (b.offer.discountPercent || 0) - (a.offer.discountPercent || 0);
-      });
+    const chainFilteredOffers = offers.filter((item) => chainFilter === "all" || item.chain === chainFilter);
+    return rankOfferSearchResults(chainFilteredOffers, terms);
   }, [offers, terms, chainFilter]);
 
   const offerSearchLabel = useMemo(() => {
