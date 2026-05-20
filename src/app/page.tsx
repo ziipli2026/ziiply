@@ -206,7 +206,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v219-sequential-multi-search";
+const APP_VERSION = "v220-clean-selection-overlay";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -7141,7 +7141,6 @@ export default function Page() {
                         </button>
                       </div>
                       <button onClick={() => searchOffers(item.name)} className="rounded-xl bg-red-100 px-3 py-2 text-sm font-bold text-red-700">🔥 Tarjoukset</button>
-                      <button onClick={() => searchNormalPrices(item.name)} className="rounded-xl bg-slate-100 px-3 py-2 text-sm font-bold text-slate-700">🛒 Hintavertailu</button>
                       <button
                         type="button"
                         onClick={() => removeCartItem(item.id)}
@@ -7484,7 +7483,7 @@ export default function Page() {
           </div>
         )}
 
-      {cheapest && !cartModalOpen && !searchPanelOpen && !shopsPanelOpen && !eanModalOpen && activeResult !== "compare" && (
+      {cheapest && !cartModalOpen && !searchPanelOpen && !shopsPanelOpen && !eanModalOpen && activeResult !== "compare" && !(loadingNormal || normalResults.length > 0) && (
         <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] left-2 right-2 z-40 mx-auto max-w-3xl rounded-[1.2rem] bg-slate-950/95 p-2.5 text-white shadow-2xl sm:hidden">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
