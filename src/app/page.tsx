@@ -207,7 +207,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v230-location-handler-build-fix";
+const APP_VERSION = "v231-postal-location-cleanup";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -2517,7 +2517,7 @@ function pickBestKProduct(items: KProduct[], query: string, ean?: string) {
 
 export default function Page() {
   const [input, setInput] = useState("");
-  const [locationInput, setLocationInput] = useState("Hyvinkää");
+  const [locationInput, setLocationInput] = useState("");
   const [activeArea, setActiveArea] = useState<Area>(AREAS[0]);
   const [storeMode, setStoreMode] = useState<StoreMode>("hyper");
   const [locationMessage, setLocationMessage] = useState("Kirjoita alue tai käytä omaa sijaintia.");
@@ -3249,7 +3249,7 @@ export default function Page() {
 
   useEffect(() => {
     try {
-      const saved = window.localStorage.getItem("ziiply-default-stores-v1");
+      const saved = window.localStorage.getItem("ziiply-default-stores-v2");
       if (!saved) return;
 
       const parsed = JSON.parse(saved);
@@ -3273,7 +3273,7 @@ export default function Page() {
   useEffect(() => {
     try {
       window.localStorage.setItem(
-        "ziiply-default-stores-v1",
+        "ziiply-default-stores-v2",
         JSON.stringify({
           activeArea,
           storeMode,
@@ -3918,23 +3918,39 @@ export default function Page() {
     return ((data.items || []) as StoreSearchItem[]).filter((store) => store.id && store.name);
   }
 
+  function getCityFromGeocodeAddress(address: any) {
+    return String(
+      address?.city ||
+        address?.town ||
+        address?.municipality ||
+        address?.village ||
+        address?.suburb ||
+        address?.county ||
+        ""
+    ).trim();
+  }
+
+  function isFinnishPostalCode(value: string) {
+    return /^\d{5}$/.test(value.trim());
+  }
+
   async function reverseGeocodeCity(latitude: number, longitude: number) {
     const response = await fetch(
       `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(latitude)}&lon=${encodeURIComponent(longitude)}&accept-language=fi`,
       { cache: "no-store" }
     );
     const data = await response.json();
-    const address = data?.address || {};
+    return getCityFromGeocodeAddress(data?.address || {});
+  }
 
-    return String(
-      address.city ||
-        address.town ||
-        address.municipality ||
-        address.village ||
-        address.suburb ||
-        address.county ||
-        ""
-    ).trim();
+  async function resolvePostalCodeToCity(postalCode: string) {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=jsonv2&countrycodes=fi&postalcode=${encodeURIComponent(postalCode)}&addressdetails=1&limit=1&accept-language=fi`,
+      { cache: "no-store" }
+    );
+    const data = await response.json();
+    const firstMatch = Array.isArray(data) ? data[0] : null;
+    return getCityFromGeocodeAddress(firstMatch?.address || {});
   }
 
   function getCurrentPosition() {
@@ -3953,23 +3969,40 @@ export default function Page() {
   }
 
   async function applyLocation(queryOverride?: string, source: "manual" | "gps" = "manual") {
-    const query = (queryOverride || locationInput).trim();
+    const rawQuery = (queryOverride || locationInput).trim();
 
-    if (!query) {
+    if (!rawQuery) {
       setLocationMessage("Kirjoita ensin kaupunki, alue tai postinumero.");
       return;
     }
 
-    trackZiiplyEvent("store_search_used", {
-      query,
-      storeMode,
-      source,
-    });
-
     setStoreSearchLoading(true);
-    setLocationMessage(source === "gps" ? `Haetaan kauppoja alueelle ${query}...` : "Haetaan kauppoja...");
+    setLocationMessage(source === "gps" ? `Haetaan kauppoja alueelle ${rawQuery}...` : "Haetaan kauppoja...");
 
     try {
+      let query = rawQuery;
+
+      if (isFinnishPostalCode(rawQuery)) {
+        setLocationMessage(`Haetaan aluetta postinumerolle ${rawQuery}...`);
+        const cityFromPostalCode = await resolvePostalCodeToCity(rawQuery);
+
+        if (!cityFromPostalCode) {
+          setFoundStores([]);
+          setLocationMessage(`Postinumeroa "${rawQuery}" ei tunnistettu. Valitse alue käsin.`);
+          return;
+        }
+
+        query = cityFromPostalCode;
+      }
+
+      trackZiiplyEvent("store_search_used", {
+        query,
+        rawQuery,
+        storeMode,
+        source,
+      });
+
+      setLocationMessage(source === "gps" ? `Haetaan kauppoja alueelle ${query}...` : "Haetaan kauppoja...");
       const stores = await fetchStoresForLocationQuery(query);
       setFoundStores(stores);
 
