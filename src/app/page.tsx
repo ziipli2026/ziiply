@@ -39,19 +39,9 @@ type Product = {
   pictureUrl?: string;
   category?: string;
   storeItems?: { price: number }[];
-  // S-ryhmän ulkoinen API palauttaa hinnan usein muodossa storeItem.price,
-  // kun taas appin sisäinen Product-malli käyttää storeItems[0].price / price.
-  // Tämä kenttä pidetään mukana, jotta normaali S-haku ei filtteröidy tyhjäksi.
-  storeItem?: {
-    price?: number | null;
-    comparisonPrice?: number | null;
-    comparisonPriceUnit?: string | null;
-  };
   price?: number;
   comparisonPrice?: number;
   comparisonPriceUnit?: string;
-  chain?: "S" | "K";
-  storeName?: string;
 };
 
 type KProduct = {
@@ -497,73 +487,14 @@ function formatDate(value?: string | null) {
 }
 
 function getProductPrice(product: Product) {
-  const anyProduct = product as any;
-
+  // S-products route normalisoi hinnan Product.price / storeItems[0].price -muotoon.
+  // Tämä fallback pitää haun toimivana myös, jos raakadataan jää vanha storeItem.price.
   return (
     product.storeItems?.[0]?.price ||
-    product.storeItem?.price ||
-    anyProduct?.storeItem?.price ||
-    anyProduct?.storeItems?.[0]?.price ||
-    anyProduct?.price ||
-    anyProduct?.priceInCents ||
-    anyProduct?.currentPrice ||
-    anyProduct?.storePrice ||
+    product.price ||
+    (product as any)?.storeItem?.price ||
     0
   );
-}
-
-function getStableNumericId(value: string) {
-  let hash = 0;
-
-  for (let index = 0; index < value.length; index += 1) {
-    hash = (hash * 31 + value.charCodeAt(index)) >>> 0;
-  }
-
-  return hash || Date.now();
-}
-
-function normalizeSProduct(rawProduct: any, storeName?: string): Product | null {
-  const source = rawProduct?.item && rawProduct?.storeItem ? rawProduct.item : rawProduct;
-  const storeItem = rawProduct?.storeItem || source?.storeItem || rawProduct?.storeItems?.[0] || source?.storeItems?.[0];
-  const name = fixText(String(source?.name || rawProduct?.name || rawProduct?.productName || rawProduct?.title || "")).trim();
-
-  if (!name) return null;
-
-  const ean = source?.ean || rawProduct?.ean || rawProduct?.gtin || rawProduct?.barcode;
-  const price = Number(
-    storeItem?.price ??
-      source?.price ??
-      rawProduct?.price ??
-      rawProduct?.priceInCents ??
-      rawProduct?.currentPrice ??
-      rawProduct?.storePrice ??
-      0
-  );
-
-  const rawId = source?.id || rawProduct?.id || ean || `${name}-${price}`;
-  const numericId = Number(String(rawId).replace(/\D/g, "").slice(0, 9)) || getStableNumericId(`${rawId}-${name}-${price}`);
-
-  return {
-    id: numericId,
-    name,
-    ean,
-    brandName: source?.brandName || rawProduct?.brandName || rawProduct?.brand,
-    pictureUrl: source?.pictureUrl || rawProduct?.pictureUrl || rawProduct?.imageUrl || rawProduct?.image,
-    category: source?.category || rawProduct?.category,
-    price: Number.isFinite(price) ? price : 0,
-    storeItem: storeItem
-      ? {
-          price: Number.isFinite(price) ? price : storeItem?.price ?? null,
-          comparisonPrice: storeItem?.comparisonPrice ?? rawProduct?.comparisonPrice ?? null,
-          comparisonPriceUnit: storeItem?.comparisonPriceUnit ?? rawProduct?.comparisonPriceUnit ?? null,
-        }
-      : undefined,
-    storeItems: [{ price: Number.isFinite(price) ? price : 0 }],
-    comparisonPrice: storeItem?.comparisonPrice ?? rawProduct?.comparisonPrice,
-    comparisonPriceUnit: storeItem?.comparisonPriceUnit ?? rawProduct?.comparisonPriceUnit,
-    chain: "S",
-    storeName,
-  };
 }
 
 function isManualShoppingItem(item: CartItem) {
@@ -2052,74 +1983,63 @@ export default function Page() {
     return activeStores.kStoreId !== activeArea.kStoreId;
   }
 
+  function normalizeSProduct(raw: any): Product | null {
+    const idValue = raw?.id ?? raw?.item?.id ?? raw?.productId ?? raw?.ean ?? `${raw?.name || "s-product"}-${Math.random()}`;
+    const price =
+      raw?.price ??
+      raw?.storeItems?.[0]?.price ??
+      raw?.storeItem?.price ??
+      raw?.pricing?.price ??
+      raw?.currentPrice ??
+      0;
+
+    const name = fixText(String(raw?.name ?? raw?.item?.name ?? raw?.productName ?? ""));
+    if (!name) return null;
+
+    return {
+      id: Number(String(idValue).replace(/\D/g, "").slice(0, 9)) || Math.abs(String(idValue).split("").reduce((sum, char) => sum + char.charCodeAt(0), 0)),
+      name,
+      ean: raw?.ean ?? raw?.item?.ean ?? raw?.gtin ?? raw?.barcode ?? "",
+      brandName: raw?.brandName ?? raw?.brand ?? raw?.item?.brandName ?? "",
+      pictureUrl: raw?.pictureUrl ?? raw?.imageUrl ?? raw?.item?.pictureUrl ?? "",
+      category: raw?.category ?? raw?.item?.category ?? "",
+      price,
+      comparisonPrice:
+        raw?.comparisonPrice ??
+        raw?.storeItems?.[0]?.comparisonPrice ??
+        raw?.storeItem?.comparisonPrice,
+      comparisonPriceUnit:
+        raw?.comparisonPriceUnit ??
+        raw?.storeItems?.[0]?.comparisonPriceUnit ??
+        raw?.storeItem?.comparisonPriceUnit,
+      storeItems: [{ price }],
+    };
+  }
+
   async function fetchSProducts(search: string, storeId: number): Promise<Product[]> {
-    const encodedSearch = encodeURIComponent(search);
-    const encodedStoreId = encodeURIComponent(String(storeId));
+    const response = await fetch(
+      `/api/s-products?search=${encodeURIComponent(search)}&store=${encodeURIComponent(String(storeId))}`,
+      { cache: "no-store" }
+    );
 
-    // S-ryhmän normaali tuotehaku: ensisijaisesti sama ruoanhinta-endpoint kuin v205/v208:ssa.
-    // Tärkeä ero aiempiin korjausyrityksiin: raakadata normalisoidaan Product-muotoon,
-    // koska S-API voi palauttaa hinnan storeItem.price-kentässä eikä Product.price-kentässä.
-    const productUrls = [
-      `https://api.ruoanhinta.fi/api/items?search=${encodedSearch}&storeIds=${encodedStoreId}&skip=0&take=80`,
-      `/api/items?search=${encodedSearch}&storeIds=${encodedStoreId}&skip=0&take=80`,
-      `/api/items?search=${encodedSearch}&storeId=${encodedStoreId}&skip=0&take=80`,
-      `/api/s-products?search=${encodedSearch}&store=${encodedStoreId}`,
-      `/api/s-products?search=${encodedSearch}&storeId=${encodedStoreId}`,
-      `/api/products?search=${encodedSearch}&storeIds=${encodedStoreId}&skip=0&take=80`,
-    ];
-
-    for (const url of productUrls) {
-      try {
-        const response = await fetch(url, { cache: "no-store" });
-        if (!response.ok) continue;
-
-        const data = await response.json();
-        const rawItems = Array.isArray(data?.items)
-          ? data.items
-          : Array.isArray(data?.products)
-          ? data.products
-          : Array.isArray(data?.data)
-          ? data.data
-          : Array.isArray(data)
-          ? data
-          : [];
-
-        const items = rawItems
-          .map((item: any) => normalizeSProduct(item, activeStores.sStoreName))
-          .filter(Boolean) as Product[];
-
-        if (items.length > 0) return items;
-      } catch {
-        // Kokeillaan seuraavaa S-tuotelähdettä. Yksi epäonnistunut endpoint ei saa tappaa S-hakua.
-      }
-    }
-
-    // Viimeinen fallback: tarjoukset voidaan näyttää Product-riveinä, jos normaali S-tuote-endpoint ei vastaa.
-    try {
-      const response = await fetch(`/api/offers?storeId=${encodedStoreId}`, { cache: "no-store" });
-      if (!response.ok) return [];
-
-      const data = await response.json();
-      const offerItems = Array.isArray(data?.items) ? data.items : [];
-      const queryWords = getNormalizedWords(search).filter((word) => word.length > 1);
-
-      return offerItems
-        .map((offer: Offer) =>
-          offerToProduct({
-            id: `S-${offer.id}`,
-            chain: "S",
-            storeName: activeStores.sStoreName,
-            offer,
-          })
-        )
-        .filter((product: Product) => {
-          const name = normalize(product.name);
-          if (!queryWords.length) return true;
-          return queryWords.some((word) => name.includes(word));
-        });
-    } catch {
+    if (!response.ok) {
+      console.error("S-products route failed", response.status);
       return [];
     }
+
+    const data = await response.json();
+
+    const rawItems = Array.isArray(data?.products)
+      ? data.products
+      : Array.isArray(data?.items)
+      ? data.items
+      : Array.isArray(data)
+      ? data
+      : [];
+
+    return rawItems
+      .map((item: any) => normalizeSProduct(item))
+      .filter((item: Product | null): item is Product => Boolean(item && item.name && getProductPrice(item) > 0));
   }
 
   async function fetchKProducts(search: string, storeId: number): Promise<KProduct[]> {
@@ -3382,29 +3302,28 @@ export default function Page() {
             fallbackStoreName = activeArea.sStoreName;
           }
 
-          const pricedItems = rawItems.filter((product) => getProductPrice(product) > 0);
-          const filteredItems = pricedItems.filter((product) => !isBadNormalResult(product, searchQuery));
+          const pricedItems = rawItems.filter((product: Product) => getProductPrice(product) > 0);
 
-          const rankedItems = filteredItems
-            .map((product) => ({ product, score: scoreNameMatch(searchQuery, product.name) }))
-            // Älä leikkaa maito/kahvi-osumia liian aggressiivisesti. Roskat poistetaan isBadNormalResultillä,
-            // mutta muuten annetaan scoringin ja hinnan järjestää tulokset.
-            .filter(({ score }) => score > -250)
-            .sort((a, b) => {
+          // S-haku saa olla fail-open: jos API palauttaa tuotteita, UI ei saa tyhjentyä
+          // liian aggressiivisen scoringin takia. Roskafiltteriä käytetään vain jos se ei
+          // tapa koko tulosjoukkoa.
+          const normalFiltered = pricedItems.filter((product: Product) => !isBadNormalResult(product, searchQuery));
+          const safeItems = normalFiltered.length > 0 ? normalFiltered : pricedItems;
+
+          const scoredItems = safeItems
+            .map((product: Product) => ({ product, score: scoreNameMatch(searchQuery, product.name) }))
+            .filter(({ score }: { product: Product; score: number }) => score > -250)
+            .sort((a: { product: Product; score: number }, b: { product: Product; score: number }) => {
               const scoreDifference = b.score - a.score;
 
-              // Relevanssi ensin, hinta vasta tasapisteissä.
               if (Math.abs(scoreDifference) > 12) return scoreDifference;
               return getProductPrice(a.product) - getProductPrice(b.product);
             })
-            .map(({ product }) => product);
+            .map(({ product }: { product: Product; score: number }) => product);
 
-          // Fail-open vain S-ryhmän normaalihakuun:
-          // jos API palautti tuotteita mutta liian tiukka sääntö pudotti kaiken, näytetään silti hintadata.
-          const safeItems = (rankedItems.length > 0 ? rankedItems : filteredItems.length > 0 ? filteredItems : pricedItems).slice(0, 40);
-
-          const items = safeItems
-            .map((product) => {
+          const finalItems = (scoredItems.length > 0 ? scoredItems : safeItems)
+            .slice(0, 40)
+            .map((product: Product) => {
               const withMeta = {
                 ...product,
                 originalSearchTerm: term,
@@ -3418,7 +3337,8 @@ export default function Page() {
 
               return withMeta;
             });
-          all.push(...items);
+
+          all.push(...finalItems);
         }
       }
 
