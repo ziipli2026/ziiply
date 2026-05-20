@@ -206,7 +206,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v220-clean-selection-overlay";
+const APP_VERSION = "v222-cart-actions-clean";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -7140,11 +7140,19 @@ export default function Page() {
                           +
                         </button>
                       </div>
-                      <button onClick={() => searchOffers(item.name)} className="rounded-xl bg-red-100 px-3 py-2 text-sm font-bold text-red-700">🔥 Tarjoukset</button>
+                      <button
+                        type="button"
+                        disabled
+                        className="rounded-xl bg-amber-100 px-3 py-2 text-sm font-bold text-amber-700 opacity-80"
+                        title="Tuotekohtainen tarjoushaku rakennetaan myöhemmin"
+                        aria-label="Tarjoukset tulossa"
+                      >
+                        🔥 Tarjoukset tulossa
+                      </button>
                       <button
                         type="button"
                         onClick={() => removeCartItem(item.id)}
-                        className="col-span-2 rounded-xl bg-red-100 px-3 py-2 text-sm font-bold text-red-700 transition active:scale-[0.98] sm:col-span-1"
+                        className="rounded-xl bg-red-100 px-3 py-2 text-sm font-bold text-red-700 transition active:scale-[0.98]"
                         aria-label={`Poista ${item.name} ostoskorista`}
                       >
                         🗑 Poista
