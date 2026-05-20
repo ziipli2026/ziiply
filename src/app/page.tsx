@@ -207,7 +207,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v228-dynamic-location-stores";
+const APP_VERSION = "v229-dynamic-location-build-fix";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -4322,7 +4322,7 @@ export default function Page() {
               if (!best && shouldUseLocalFallback("S")) {
                 if (activeArea.sStoreId) items = await fetchSProducts(item.name, activeArea.sStoreId);
                 best = pickBestSProduct(items, item.name, item.ean);
-                fallbackStoreName = activeArea.sStoreName;
+                fallbackStoreName = activeArea.sStoreName || activeStores.sStoreName || "S-kauppa";
               }
 
               if (best) {
@@ -4351,7 +4351,7 @@ export default function Page() {
                 if (activeArea.kStoreId) best = await findBestKMatchForStore(item.name, activeArea.kStoreId, item.ean);
 
                 if (best) {
-                  fallbackStoreName = activeArea.kStoreName;
+                  fallbackStoreName = activeArea.kStoreName || activeStores.kStoreName || "K-kauppa";
                 }
               }
 
