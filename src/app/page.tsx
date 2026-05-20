@@ -207,7 +207,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v231-postal-location-cleanup";
+const APP_VERSION = "v233-visible-location-badge";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -6191,6 +6191,9 @@ export default function Page() {
           </div>
           <div className="flex shrink-0 flex-col items-end gap-1">
             <span className="rounded-full bg-green-50 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-green-700 ring-1 ring-green-100">{APP_VERSION}</span>
+            {activeArea?.label ? (
+              <span className="rounded-full bg-green-50 px-2.5 py-0.5 text-[10px] font-black text-green-700 ring-1 ring-green-100">📍 {activeArea.label}</span>
+            ) : null}
           </div>
         </div>
         {!isOnline && (
@@ -6270,11 +6273,6 @@ export default function Page() {
             {locationMessage}
           </div>
 
-          {activeArea?.label ? (
-            <div className="mt-2 text-xs font-bold text-slate-600 sm:text-sm">
-              📍 {activeArea.label} käytössä
-            </div>
-          ) : null}
 
 
         </section>
@@ -6327,7 +6325,6 @@ export default function Page() {
             <div className="mt-3 rounded-2xl bg-white p-3 text-xs text-slate-600 ring-1 ring-slate-200">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <p className="font-bold text-slate-700">Valitse kaupat ({foundStores.length})</p>
-                <p className="text-slate-400">ID näkyy testaukseen</p>
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
@@ -6557,7 +6554,6 @@ export default function Page() {
                   <div className="mt-3 rounded-2xl bg-white p-3 text-xs text-slate-600 ring-1 ring-slate-200">
                     <div className="mb-3 flex items-center justify-between gap-3">
                       <p className="font-bold text-slate-700">Valitse kaupat ({foundStores.length})</p>
-                      <p className="text-slate-400">ID näkyy testaukseen</p>
                     </div>
 
                     <div className="grid gap-3">
