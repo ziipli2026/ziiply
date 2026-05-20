@@ -1976,65 +1976,16 @@ export default function Page() {
     return activeStores.kStoreId !== activeArea.kStoreId;
   }
 
-  async function fetchSProducts(search: string, storeId: number): Promise<Product[]> {
-    const encodedSearch = encodeURIComponent(search);
-    const encodedStoreId = encodeURIComponent(String(storeId));
-
-    const productUrls = [
-      `https://api.ruoanhinta.fi/api/items?search=${encodedSearch}&storeIds=${encodedStoreId}&skip=0&take=80`,
-      `/api/items?search=${encodedSearch}&storeIds=${encodedStoreId}&skip=0&take=80`,
-      `/api/items?search=${encodedSearch}&storeId=${encodedStoreId}&skip=0&take=80`,
-      `/api/s-products?search=${encodedSearch}&store=${encodedStoreId}`,
-      `/api/s-products?search=${encodedSearch}&storeId=${encodedStoreId}`,
-      `/api/products?search=${encodedSearch}&storeIds=${encodedStoreId}&skip=0&take=80`,
-    ];
-
-    for (const url of productUrls) {
-      try {
-        const response = await fetch(url, { cache: "no-store" });
-        if (!response.ok) continue;
-
-        const data = await response.json();
-        const items = Array.isArray(data?.items) ? data.items : Array.isArray(data) ? data : [];
-
-        if (items.length > 0) return items as Product[];
-      } catch {
-        // Try the next S-product source. One failing endpoint must not kill S-search.
-      }
-    }
-
-    // Last-resort fallback: if the normal S-product endpoint/proxy is unavailable,
-    // use the existing S-offers API and convert matching offer rows into Product rows.
-    // This keeps S-ryhmä visible instead of returning an empty UI.
-    try {
-      const response = await fetch(`/api/offers?storeId=${encodedStoreId}`, { cache: "no-store" });
-      if (!response.ok) return [];
-
-      const data = await response.json();
-      const offerItems = Array.isArray(data?.items) ? data.items : [];
-      const query = normalize(search);
-      const queryWords = getNormalizedWords(query).filter((word) => word.length > 1);
-
-      return offerItems
-        .map((offer: Offer) =>
-          offerToProduct({
-            id: `S-${offer.id}`,
-            chain: "S",
-            storeName: activeStores.sStoreName,
-            offer,
-          })
-        )
-        .filter((product: Product) => {
-          const name = normalize(product.name);
-          if (!queryWords.length) return true;
-          return queryWords.some((word) => name.includes(word));
-        });
-    } catch {
-      return [];
-    }
+  async function fetchSProducts(search: string, storeId: number) {
+    const response = await fetch(
+      `https://api.ruoanhinta.fi/api/items?search=${encodeURIComponent(search)}&storeIds=${storeId}&skip=0&take=80`,
+      { cache: "no-store" }
+    );
+    const data = await response.json();
+    return (data.items || []) as Product[];
   }
 
-  async function fetchKProducts(search: string, storeId: number): Promise<KProduct[]> {
+  async function fetchKProducts(search: string, storeId: number) {
     const response = await fetch(
       `/api/k-products?search=${encodeURIComponent(search)}&store=${encodeURIComponent(String(storeId))}`,
       { cache: "no-store" }
@@ -3286,7 +3237,7 @@ export default function Page() {
         const searchQueries = getNormalSearchQueries(term).slice(0, 8);
 
         for (const searchQuery of searchQueries) {
-          let rawItems: Product[] = await fetchSProducts(searchQuery, activeStores.sStoreId);
+          let rawItems = await fetchSProducts(searchQuery, activeStores.sStoreId);
           let fallbackStoreName = "";
 
           if (rawItems.length === 0 && shouldUseLocalFallback("S")) {
