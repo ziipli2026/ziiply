@@ -3237,57 +3237,37 @@ export default function Page() {
         const searchQueries = getNormalSearchQueries(term).slice(0, 8);
 
         for (const searchQuery of searchQueries) {
-          let sRawItems: Product[] = [];
-          let kRawItems: KProduct[] = [];
-          let sFallbackStoreName = "";
-          let kFallbackStoreName = "";
+          let rawItems = await fetchSProducts(searchQuery, activeStores.sStoreId);
+          let fallbackStoreName = "";
 
-          try {
-            [sRawItems, kRawItems] = await Promise.all([
-              fetchSProducts(searchQuery, activeStores.sStoreId).catch(() => [] as Product[]),
-              fetchKProducts(searchQuery, activeStores.kStoreId).catch(() => [] as KProduct[]),
-            ]);
-          } catch {
-            sRawItems = [];
-            kRawItems = [];
+          if (rawItems.length === 0 && shouldUseLocalFallback("S")) {
+            rawItems = await fetchSProducts(searchQuery, activeArea.sStoreId).catch(() => [] as Product[]);
+            fallbackStoreName = activeArea.sStoreName;
           }
 
-          if (sRawItems.length === 0 && shouldUseLocalFallback("S")) {
-            sRawItems = await fetchSProducts(searchQuery, activeArea.sStoreId).catch(() => [] as Product[]);
-            sFallbackStoreName = activeArea.sStoreName;
-          }
+          const filtered = rawItems
+            .filter((product) => getProductPrice(product) > 0)
+            .filter((product) => !isBadNormalResult(product, searchQuery))
+            .map((product) => ({ product, score: scoreNameMatch(searchQuery, product.name) }))
+            // Älä leikkaa maito/kahvi-osumia liian aggressiivisesti. Roskat poistetaan isBadNormalResultillä,
+            // mutta muuten annetaan scoringin ja hinnan järjestää tulokset.
+            .filter(({ score }) => score > -250)
+            .sort((a, b) => {
+              const scoreDifference = b.score - a.score;
 
-          if (kRawItems.length === 0 && shouldUseLocalFallback("K")) {
-            kRawItems = await fetchKProducts(searchQuery, activeArea.kStoreId).catch(() => [] as KProduct[]);
-            kFallbackStoreName = activeArea.kStoreName;
-          }
+              // Relevanssi ensin, hinta vasta tasapisteissä.
+              if (Math.abs(scoreDifference) > 12) return scoreDifference;
+              return getProductPrice(a.product) - getProductPrice(b.product);
+            });
 
-          const rankNormalProducts = (products: Product[]) => {
-            const filtered = products
-              .filter((product) => getProductPrice(product) > 0)
-              .filter((product) => !isBadNormalResult(product, searchQuery))
-              .map((product) => ({ product, score: scoreNameMatch(searchQuery, product.name) }))
-              // Älä leikkaa maito/kahvi-osumia liian aggressiivisesti. Roskat poistetaan isBadNormalResultillä,
-              // mutta muuten annetaan scoringin ja hinnan järjestää tulokset.
-              .filter(({ score }) => score > -250)
-              .sort((a, b) => {
-                const scoreDifference = b.score - a.score;
+          const rankedItems =
+            filtered.length > 0
+              ? filtered.map(({ product }) => product)
+              : rawItems
+                  .filter((product) => getProductPrice(product) > 0)
+                  .sort((a, b) => getProductPrice(a) - getProductPrice(b));
 
-                // Relevanssi ensin, hinta vasta tasapisteissä.
-                if (Math.abs(scoreDifference) > 12) return scoreDifference;
-                return getProductPrice(a.product) - getProductPrice(b.product);
-              });
-
-            // Jos suodatus pudottaa kaiken pois, näytä silti raakahaun halvimmat osumat.
-            // Tämä estää tilanteen, jossa API palauttaa tuotteita mutta UI näyttää 0 / 0.
-            if (filtered.length > 0) return filtered.map(({ product }) => product);
-
-            return products
-              .filter((product) => getProductPrice(product) > 0)
-              .sort((a, b) => getProductPrice(a) - getProductPrice(b));
-          };
-
-          const sItems = rankNormalProducts(sRawItems)
+          const sItems = rankedItems
             .slice(0, 40)
             .map((product) => {
               const withMeta = {
@@ -3295,8 +3275,8 @@ export default function Page() {
                 originalSearchTerm: term,
                 usedSearchQuery: searchQuery,
                 sourceChain: "S",
-                sourceStoreName: sFallbackStoreName || activeStores.sStoreName,
-                fallbackStoreName: sFallbackStoreName || undefined,
+                sourceStoreName: fallbackStoreName || activeStores.sStoreName,
+                fallbackStoreName: fallbackStoreName || undefined,
               } as Product & {
                 originalSearchTerm?: string;
                 usedSearchQuery?: string;
@@ -3308,28 +3288,7 @@ export default function Page() {
               return withMeta;
             });
 
-          const kItems = rankNormalProducts(kRawItems.map(convertKProductToProduct))
-            .slice(0, 40)
-            .map((product) => {
-              const withMeta = {
-                ...product,
-                originalSearchTerm: term,
-                usedSearchQuery: searchQuery,
-                sourceChain: "K",
-                sourceStoreName: kFallbackStoreName || activeStores.kStoreName,
-                fallbackStoreName: kFallbackStoreName || undefined,
-              } as Product & {
-                originalSearchTerm?: string;
-                usedSearchQuery?: string;
-                sourceChain?: "S" | "K";
-                sourceStoreName?: string;
-                fallbackStoreName?: string;
-              };
-
-              return withMeta;
-            });
-
-          all.push(...sItems, ...kItems);
+          all.push(...sItems);
         }
       }
 
