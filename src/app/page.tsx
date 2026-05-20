@@ -178,7 +178,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v208";
+const APP_VERSION = "v209-debug";
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
   try {
@@ -350,6 +350,36 @@ function getSearchQuery(term: string) {
   return SEARCH_ALIASES[normalized] || term;
 }
 
+function isMilkSearchTerm(value: string) {
+  const text = normalize(value);
+  return hasAnyToken(text, [
+    "maito",
+    "maidot",
+    "kevytmaito",
+    "rasvaton maito",
+    "täysmaito",
+    "taysmaito",
+    "ykkösmaito",
+    "ykkosmaito",
+    "laktoositon maito",
+    "luomu maito",
+    "kauramaito",
+  ]);
+}
+
+function isColaSearchTerm(value: string) {
+  const text = normalize(value);
+  return hasAnyToken(text, [
+    "cola",
+    "coca-cola",
+    "coca cola",
+    "kokis",
+    "pepsi",
+    "pepsi max",
+    "zero",
+  ]);
+}
+
 function getNormalSearchQueries(term: string) {
   const normalized = normalize(term);
   const queries: string[] = [];
@@ -359,45 +389,56 @@ function getNormalSearchQueries(term: string) {
     if (clean && !queries.includes(clean)) queries.push(clean);
   };
 
+  // K-ruoan hakukäyttäytymistä matkiva query expansion:
+  // lyhyt yleistermi ensin, sitten yleisimmät aidot alalajit.
+  if (isMilkSearchTerm(normalized)) {
+    addQuery("maito");
+    addQuery("kevytmaito");
+    addQuery("rasvaton maito");
+    addQuery("täysmaito");
+    addQuery("ykkösmaito");
+    addQuery("laktoositon maito");
+    addQuery("luomu maito");
+    addQuery("pirkka maito");
+    addQuery("valio maito");
+    addQuery("arla maito");
+    addQuery("kauramaito");
+    return queries;
+  }
+
   if (isCoffeeSearchTerm(normalized)) {
     addQuery("kahvi");
     addQuery("suodatinkahvi");
+    addQuery("kahvi suodatinjauhatus");
     addQuery("juhla mokka");
     addQuery("presidentti kahvi");
     addQuery("kulta katriina");
-    addQuery("paulig suodatinjauhatus");
     addQuery("paulig kahvi");
     addQuery("meira kahvi");
-    addQuery("suodatinkahvi");
-    addQuery("kahvi suodatinjauhatus");
     addQuery("kahvipapu");
     addQuery("espresso kahvi");
     return queries;
   }
 
-  if (hasAnyToken(normalized, ["maito", "kevytmaito", "rasvaton maito", "täysmaito", "taysmaito", "ykkösmaito", "ykkosmaito", "laktoositon maito"])) {
-    // Laaja maitohaku: yksi "maito"-query palautti liian vähän osumia.
-    // Haetaan usealla aidolla maitotermillä ja suodatetaan roskat jälkikäteen.
-    addQuery("maito");
-    addQuery("rasvaton maito");
-    addQuery("kevytmaito");
-    addQuery("täysmaito");
-    addQuery("ykkösmaito");
-    addQuery("laktoositon maito");
-    addQuery("luomu maito");
-    addQuery("kauramaito");
-    return queries;
-  }
-
-  if (hasAnyToken(normalized, ["cola", "coca-cola", "coca cola", "pepsi", "kokis"])) {
+  if (isColaSearchTerm(normalized)) {
     addQuery("cola");
     addQuery("coca cola");
     addQuery("coca-cola");
     addQuery("pepsi");
+    addQuery("pepsi max");
+    addQuery("cola zero");
+    addQuery("coca cola zero");
+    addQuery("virvoitusjuoma cola");
     return queries;
   }
 
   addQuery(getSearchQuery(term));
+
+  // Jos käyttäjä kirjoittaa useamman sanan, kokeillaan myös ydintermiä.
+  const words = getNormalizedWords(term).filter((word) => word.length > 3 && !/^\d/.test(word));
+  if (words.length >= 2) addQuery(words.slice(0, 2).join(" "));
+  if (words.length >= 1) addQuery(words[0]);
+
   return queries;
 }
 
@@ -1387,28 +1428,85 @@ function scoreNameMatch(sourceName: string, targetName: string) {
 function scoreNormalSResult(query: string, product: Product) {
   const queryText = normalize(query);
   const productText = normalize(`${product.name} ${product.brandName || ""} ${product.category || ""}`);
+  const nameText = normalize(product.name);
   const queryWords = getNormalizedWords(query).filter((word) => word.length > 1);
+  const size = parseMetricSize(product.name);
 
   let score = 0;
 
-  if (productText === queryText) score += 120;
-  if (productText.startsWith(queryText)) score += 80;
-  if (productText.includes(queryText)) score += 60;
+  if (productText === queryText) score += 140;
+  if (nameText.startsWith(queryText)) score += 90;
+  if (productText.includes(queryText)) score += 65;
 
   for (const word of queryWords) {
-    if (hasExactNormalizedWord(product.name, word)) score += 22;
+    if (hasExactNormalizedWord(product.name, word)) score += 24;
     else if (productText.includes(word)) score += 10;
-    else score -= 8;
+    else score -= 7;
+  }
+
+  if (isMilkSearchTerm(query)) {
+    const isRealMilk =
+      hasAnyToken(nameText, ["maito", "kevytmaito", "rasvaton", "täysmaito", "taysmaito", "ykkösmaito", "ykkosmaito"]) &&
+      !hasAnyToken(nameText, [
+        "maitorahka",
+        "rahka",
+        "kerma",
+        "jogurtti",
+        "jogurt",
+        "kaakao",
+        "suklaa",
+        "kondensoitu",
+        "maitojuoma",
+        "proteiini",
+        "latte",
+        "maitojauhe",
+      ]);
+
+    if (isRealMilk) score += 120;
+    if (size?.unitGroup === "volume" && size.amount >= 900 && size.amount <= 1100) score += 90;
+    if (size?.unitGroup === "volume" && size.amount < 500) score -= 45;
+    if (hasAnyToken(nameText, ["kevytmaito", "rasvaton", "täysmaito", "taysmaito", "ykkösmaito", "ykkosmaito"])) score += 35;
+    if (hasAnyBrand(nameText, ["kotimaista", "coop", "rainbow", "valio", "arla"])) score += 12;
+  }
+
+  if (isColaSearchTerm(query)) {
+    if (isClearlyColaProduct(product.name)) score += 120;
+    if (hasAnyToken(nameText, ["coca-cola", "coca cola", "pepsi", "pepsi max"])) score += 45;
+    if (size?.unitGroup === "volume" && size.amount >= 1400 && size.amount <= 1600) score += 35;
+    if (size?.unitGroup === "volume" && size.amount >= 300 && size.amount <= 550) score += 18;
+  }
+
+  if (isCoffeeSearchTerm(query)) {
+    if (isClearlyCoffeeProduct(product.name)) score += 120;
+    if (hasAnyToken(nameText, ["suodatinkahvi", "suodatinjauhatus", "jauhettu", "jauhatus"])) score += 55;
+    if (hasAnyToken(nameText, ["juhla mokka", "presidentti", "kulta katriina", "paulig", "meira"])) score += 35;
+    if (size?.unitGroup === "weight" && size.amount >= 400 && size.amount <= 550) score += 55;
+    if (isCoffeeAccessory(product.name)) score -= 180;
   }
 
   // S-normaalihaussa ei käytetä K-vastineiden kovia rejectejä.
   // Tässä järjestetään löydetyt S-tuotteet järkevämpään järjestykseen, mutta ei tapeta tuloksia.
-  if (isBadNormalResult(product, query)) score -= 80;
+  if (isBadNormalResult(product, query)) score -= 95;
 
   const price = getProductPrice(product);
-  if (price > 0) score -= Math.min(20, price / 1000);
+  if (price > 0) score -= Math.min(18, price / 1000);
 
   return score;
+}
+
+function rankNormalSearchResults(query: string, products: Product[]) {
+  return products
+    .map((product: Product) => ({ product, score: scoreNormalSResult(query, product) }))
+    .sort((a, b) => {
+      const scoreDifference = b.score - a.score;
+      if (Math.abs(scoreDifference) > 8) return scoreDifference;
+
+      const sizeDifference = getSizeMatchScore(query, a.product.name) - getSizeMatchScore(query, b.product.name);
+      if (Math.abs(sizeDifference) > 8) return sizeDifference;
+
+      return getProductPrice(a.product) - getProductPrice(b.product);
+    })
+    .map(({ product }) => product);
 }
 
 function isNonFoodOffer(offer: ZiiplyOffer) {
@@ -3356,15 +3454,9 @@ export default function Page() {
           // vain siksi, että jokin tuoteryhmäfiltteri oli liian tiukka.
           const safeItems = normalFiltered.length > 0 ? normalFiltered : pricedItems;
 
-          const finalItems = safeItems
-            .map((product: Product) => ({ product, score: scoreNormalSResult(searchQuery, product) }))
-            .sort((a, b) => {
-              const scoreDifference = b.score - a.score;
-              if (Math.abs(scoreDifference) > 8) return scoreDifference;
-              return getProductPrice(a.product) - getProductPrice(b.product);
-            })
+          const finalItems = rankNormalSearchResults(searchQuery, safeItems)
             .slice(0, 40)
-            .map(({ product }) => {
+            .map((product) => {
               const withMeta = {
                 ...product,
                 originalSearchTerm: term,
@@ -3397,7 +3489,12 @@ export default function Page() {
         }
       }
 
-      const unique = Array.from(new Map(all.map((item) => [item.id, item])).values());
+      const unique = Array.from(new Map(all.map((item) => [item.id, item])).values())
+        .sort((a, b) => {
+          const aQuery = (a as Product & { usedSearchQuery?: string }).usedSearchQuery || useTerms[0] || "";
+          const bQuery = (b as Product & { usedSearchQuery?: string }).usedSearchQuery || useTerms[0] || "";
+          return scoreNormalSResult(bQuery, b) - scoreNormalSResult(aQuery, a);
+        });
 
       setEanCache((prev) => {
         const next = { ...prev };
@@ -5285,16 +5382,16 @@ export default function Page() {
     <main className="min-h-screen overflow-x-hidden bg-slate-100 px-2 pb-32 pt-[4.75rem] text-slate-950 sm:px-4 sm:py-4 md:pb-4">
       {showLaunchScreen && (
         <div className="fixed inset-0 z-[90] flex items-center justify-center bg-white sm:hidden">
+          <div className="absolute right-5 top-[calc(env(safe-area-inset-top)+0.75rem)]">
+            <span className="rounded-full bg-green-50 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-green-700 ring-1 ring-green-100">{APP_VERSION}</span>
+          </div>
           <div className="mx-auto flex w-full max-w-[320px] flex-col items-center px-8 text-center">
             <img
               src="/ziiply.png"
               alt="Ziiply"
               className="h-auto w-full max-w-[280px] object-contain"
             />
-            <div className="mt-4 flex flex-col items-center gap-2">
-              <span className="rounded-full bg-green-50 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-green-700 ring-1 ring-green-100">{APP_VERSION}</span>
-              <span className="rounded-full bg-slate-100 px-4 py-2 text-[11px] font-black uppercase tracking-[0.22em] text-slate-600 ring-1 ring-slate-200">MVP</span>
-            </div>
+
           </div>
         </div>
       )}
@@ -5310,7 +5407,6 @@ export default function Page() {
           </div>
           <div className="flex shrink-0 flex-col items-end gap-1">
             <span className="rounded-full bg-green-50 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-green-700 ring-1 ring-green-100">{APP_VERSION}</span>
-            <span className="rounded-full bg-slate-100 px-3 py-1 text-[10px] font-black uppercase tracking-wide text-slate-600 ring-1 ring-slate-200">MVP</span>
           </div>
         </div>
         {!isOnline && (
@@ -5343,10 +5439,7 @@ export default function Page() {
               alt="Ziiply"
               className="h-auto w-full max-w-[280px] object-contain"
             />
-            <div className="mt-4 flex flex-col items-center gap-2">
-              <span className="rounded-full bg-green-50 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-green-700 ring-1 ring-green-100">{APP_VERSION}</span>
-              <span className="rounded-full bg-slate-100 px-4 py-2 text-[11px] font-black uppercase tracking-[0.22em] text-slate-600 ring-1 ring-slate-200">MVP</span>
-            </div>
+
           </section>
         )}
 
@@ -5964,7 +6057,7 @@ export default function Page() {
                     <div className="grid gap-2 sm:grid-cols-2">
                       {searchDebug.map((row, index) => (
                         <div key={`${row.query}-${index}`} className="rounded-xl bg-white p-2 ring-1 ring-slate-100">
-                          <div className="font-extrabold text-slate-900">{row.query} · {row.storeName}</div>
+                          <div className="font-extrabold text-slate-900">{row.term} → {row.query} · {row.storeName}</div>
                           <div>API {row.rawCount} · hinnallisia {row.pricedCount} · filtteri läpi {row.badFilterCount} · näytölle {row.finalCount}</div>
                           {(row.rejectedByPrice > 0 || row.rejectedByBadFilter > 0 || row.fallbackStoreName) && (
                             <div className="mt-1 text-slate-500">
