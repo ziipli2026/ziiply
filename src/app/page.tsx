@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import posthog from "posthog-js";
 
 type Offer = {
   id: number;
@@ -163,7 +164,20 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v207";
+const APP_VERSION = "v208";
+
+function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
+  try {
+    if (typeof window === "undefined") return;
+
+    posthog.capture(eventName, {
+      appVersion: APP_VERSION,
+      ...properties,
+    });
+  } catch {
+    // Analytics must never break the app.
+  }
+}
 
 // Scanner UX:
 // Käytetään lähes neliötä, jotta sekä pysty- että vaakaviivakoodit mahtuvat kehykseen.
@@ -2961,12 +2975,26 @@ export default function Page() {
   }
 
   function handleStoreModeChange(nextMode: StoreMode) {
+    trackZiiplyEvent("store_mode_changed", {
+      previousMode: storeMode,
+      nextMode,
+    });
+
     setStoreMode(nextMode);
     clearSearchAndComparisonState();
   }
 
   function selectStoreForCurrentMode(store: StoreSearchItem) {
     if (!store.id || !store.name) return;
+
+    trackZiiplyEvent("store_selected", {
+      storeId: store.id,
+      storeName: store.name,
+      chain: store.type || store.chain || "unknown",
+      storeMode,
+      city: store.city,
+      postalCode: store.postalCode,
+    });
 
     setActiveArea((current) => {
       if (storeMode === "local") {
@@ -3019,6 +3047,11 @@ export default function Page() {
       setLocationMessage("Kirjoita ensin kaupunki, alue tai postinumero.");
       return;
     }
+
+    trackZiiplyEvent("store_search_used", {
+      query,
+      storeMode,
+    });
 
     setStoreSearchLoading(true);
 
@@ -3109,6 +3142,16 @@ export default function Page() {
 
     const isMainOfferSearch = !termOverride;
 
+    trackZiiplyEvent("offers_search_used", {
+      query: useTerms.join(", "),
+      termCount: useTerms.length,
+      isMainSearch: isMainOfferSearch,
+      cartItemsCount: cart.length,
+      storeMode,
+      sStoreName: activeStores.sStoreName,
+      kStoreName: activeStores.kStoreName,
+    });
+
     if (termOverride) setInput(termOverride);
 
     // Uusi tarjoushaku ei enää tyhjennä ostoskoria. Käyttäjä voi lisätä tuotteita nykyiseen koriin.
@@ -3159,6 +3202,17 @@ export default function Page() {
     if (useTerms.length === 0) return;
 
     const isMainSearch = !termOverride;
+
+    trackZiiplyEvent("search_used", {
+      query: useTerms.join(", "),
+      termCount: useTerms.length,
+      isMainSearch,
+      forceEan,
+      cartItemsCount: cart.length,
+      storeMode,
+      sStoreName: activeStores.sStoreName,
+      kStoreName: activeStores.kStoreName,
+    });
 
     if (termOverride) setInput(termOverride);
 
@@ -3284,6 +3338,14 @@ export default function Page() {
   }
 
   async function updateChainComparison(nextCart = cart) {
+    trackZiiplyEvent("comparison_opened", {
+      cartItemsCount: nextCart.length,
+      totalQuantity: nextCart.reduce((sum, item) => sum + item.quantity, 0),
+      storeMode,
+      sStoreName: activeStores.sStoreName,
+      kStoreName: activeStores.kStoreName,
+    });
+
     setComparisonLoading(true);
     setActiveResult("compare");
 
@@ -3574,6 +3636,10 @@ export default function Page() {
   }
 
   function openEanModal() {
+    trackZiiplyEvent("barcode_scanner_opened", {
+      cartItemsCount: cart.length,
+    });
+
     if (eanModalOpen) {
       closeEanModal();
       return;
@@ -3627,6 +3693,11 @@ export default function Page() {
     }
 
     if (eanSearchInFlightRef.current === ean) return;
+
+    trackZiiplyEvent("barcode_search_used", {
+      ean,
+      cartItemsCount: cart.length,
+    });
 
     eanSearchInFlightRef.current = ean;
     setEanLoading(true);
@@ -3847,6 +3918,16 @@ export default function Page() {
     }
 
     lastEanCartAddRef.current = { key: addKey, at: now };
+
+    trackZiiplyEvent("product_added_to_cart", {
+      source: eanScannerOpen ? "barcode_scanner" : "ean_search",
+      productName,
+      ean: ean || result.product.ean,
+      chain: result.chain,
+      storeName: result.storeName,
+      price: getProductPrice(result.product),
+    });
+
     triggerHaptic();
     playScanSuccessFeedback();
     showScanSuccessFlash();
@@ -3995,6 +4076,17 @@ export default function Page() {
     };
 
     const nextCart = [...cartWithoutMatchingManualRows, newItem];
+
+    trackZiiplyEvent("product_added_to_cart", {
+      source: "normal_search",
+      productName: newItem.name,
+      ean: newItem.ean,
+      chain: newItem.chain,
+      storeName: newItem.storeName,
+      price: newItem.price,
+      cartItemsCount: nextCart.length,
+    });
+
     setCart(nextCart);
     showCartToast(`Lisätty ostoskoriin: ${newItem.name}`);
     void updateChainComparison(nextCart);
@@ -4059,6 +4151,13 @@ export default function Page() {
     setVisibleNormalCount(8);
 
     const nextCart = [...cart, ...newItems].slice(0, MAX_ITEMS);
+
+    trackZiiplyEvent("manual_items_added_to_cart", {
+      addedCount: newItems.length,
+      cartItemsCount: nextCart.length,
+      itemNames: newItems.map((item) => item.name),
+    });
+
     setCart(nextCart);
     persistCartImmediately(nextCart);
 
@@ -4104,6 +4203,12 @@ export default function Page() {
     const listName = trimmedName || defaultName;
     const now = Date.now();
     const items = cart.map(sanitizeCartItemForStorage).slice(0, MAX_ITEMS);
+
+    trackZiiplyEvent("shopping_list_saved", {
+      listName,
+      cartItemsCount: items.length,
+      totalQuantity: items.reduce((sum, item) => sum + item.quantity, 0),
+    });
 
     setSavedShoppingLists((current) => {
       const existingIndex = current.findIndex((list) => normalize(list.name) === normalize(listName));
@@ -4237,6 +4342,12 @@ export default function Page() {
   }
 
   function openShopsPanel() {
+    trackZiiplyEvent("shops_panel_opened", {
+      storeMode,
+      sStoreName: activeStores.sStoreName,
+      kStoreName: activeStores.kStoreName,
+    });
+
     setSearchPanelOpen(false);
     setCartModalOpen(false);
     setCartSavePanelOpen(false);
@@ -4268,6 +4379,12 @@ export default function Page() {
   function handleMainNormalSearch() {
     if (!hasSearchInput || loadingNormal) return;
 
+    trackZiiplyEvent("main_search_clicked", {
+      query: terms.join(", "),
+      searchType: "normal_prices",
+      cartItemsCount: cart.length,
+    });
+
     setSearchPanelOpen(false);
     void searchNormalPrices();
     scrollToNormalResults();
@@ -4275,6 +4392,12 @@ export default function Page() {
 
   function handleMainOfferSearch() {
     if (!hasSearchInput || loadingOffers) return;
+
+    trackZiiplyEvent("main_search_clicked", {
+      query: terms.join(", "),
+      searchType: "offers",
+      cartItemsCount: cart.length,
+    });
 
     setSearchPanelOpen(false);
     void searchOffers();
@@ -4322,6 +4445,13 @@ export default function Page() {
   }
 
   async function shareShoppingList(chain: ChainResult) {
+    trackZiiplyEvent("shopping_list_shared", {
+      chain: chain.chain,
+      storeName: chain.storeName,
+      cartItemsCount: chain.matches.length,
+      totalPrice: chain.totalPrice,
+    });
+
     const textToShare = buildShoppingListText(chain);
 
     try {
@@ -4340,6 +4470,13 @@ export default function Page() {
   }
 
   async function buyShoppingList(chain: ChainResult) {
+    trackZiiplyEvent("buy_clicked", {
+      chain: chain.chain,
+      storeName: chain.storeName,
+      cartItemsCount: chain.matches.length,
+      totalPrice: chain.totalPrice,
+    });
+
     const textToShare = buildShoppingListText(chain);
     await copyTextToClipboard(textToShare);
     alert("Osta-toiminto on MVP:ssä ostoskorin kopiointi. Myöhemmin tämä voi avata valitun kaupan verkkokaupan.");
@@ -4906,6 +5043,13 @@ export default function Page() {
 
   async function optimizeCart(chain: ChainResult) {
     if (!canOptimizeChain(chain) || optimizingChains[chain.key]) return;
+
+    trackZiiplyEvent("optimize_cart_clicked", {
+      chain: chain.chain,
+      storeName: chain.storeName,
+      cartItemsCount: chain.matches.length,
+      totalPrice: chain.totalPrice,
+    });
 
     const snapshotBeforeOptimization: OptimizationSnapshot = {
       cart: [...cart],
