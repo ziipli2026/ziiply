@@ -1977,12 +1977,61 @@ export default function Page() {
   }
 
   async function fetchSProducts(search: string, storeId: number) {
-    const response = await fetch(
-      `https://api.ruoanhinta.fi/api/items?search=${encodeURIComponent(search)}&storeIds=${storeId}&skip=0&take=80`,
-      { cache: "no-store" }
-    );
-    const data = await response.json();
-    return (data.items || []) as Product[];
+    const encodedSearch = encodeURIComponent(search);
+    const encodedStoreId = encodeURIComponent(String(storeId));
+
+    const productUrls = [
+      `https://api.ruoanhinta.fi/api/items?search=${encodedSearch}&storeIds=${encodedStoreId}&skip=0&take=80`,
+      `/api/items?search=${encodedSearch}&storeIds=${encodedStoreId}&skip=0&take=80`,
+      `/api/items?search=${encodedSearch}&storeId=${encodedStoreId}&skip=0&take=80`,
+      `/api/s-products?search=${encodedSearch}&store=${encodedStoreId}`,
+      `/api/s-products?search=${encodedSearch}&storeId=${encodedStoreId}`,
+      `/api/products?search=${encodedSearch}&storeIds=${encodedStoreId}&skip=0&take=80`,
+    ];
+
+    for (const url of productUrls) {
+      try {
+        const response = await fetch(url, { cache: "no-store" });
+        if (!response.ok) continue;
+
+        const data = await response.json();
+        const items = Array.isArray(data?.items) ? data.items : Array.isArray(data) ? data : [];
+
+        if (items.length > 0) return items as Product[];
+      } catch {
+        // Try the next S-product source. One failing endpoint must not kill S-search.
+      }
+    }
+
+    // Last-resort fallback: if the normal S-product endpoint/proxy is unavailable,
+    // use the existing S-offers API and convert matching offer rows into Product rows.
+    // This keeps S-ryhmä visible instead of returning an empty UI.
+    try {
+      const response = await fetch(`/api/offers?storeId=${encodedStoreId}`, { cache: "no-store" });
+      if (!response.ok) return [];
+
+      const data = await response.json();
+      const offerItems = Array.isArray(data?.items) ? data.items : [];
+      const query = normalize(search);
+      const queryWords = getNormalizedWords(query).filter((word) => word.length > 1);
+
+      return offerItems
+        .map((offer: Offer) =>
+          offerToProduct({
+            id: `S-${offer.id}`,
+            chain: "S",
+            storeName: activeStores.sStoreName,
+            offer,
+          })
+        )
+        .filter((product: Product) => {
+          const name = normalize(product.name);
+          if (!queryWords.length) return true;
+          return queryWords.some((word) => name.includes(word));
+        });
+    } catch {
+      return [];
+    }
   }
 
   async function fetchKProducts(search: string, storeId: number) {
@@ -5765,7 +5814,7 @@ export default function Page() {
           <div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0">
             <div ref={compareOverlayScrollRef} className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-50 p-3 shadow-2xl sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:bg-transparent sm:p-0 sm:shadow-none">
             <div className="grid min-w-0 max-w-full gap-4 overflow-hidden lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-            {showCheapestSticky && cheapest && secondCheapest ? (
+            {showCheapestSticky && cheapest && secondCheapest && (
                 <section ref={savingsSummaryRef} className="min-w-0 max-w-full overflow-hidden rounded-[1.5rem] bg-white p-3 shadow-sm sm:rounded-[2rem] sm:p-6">
                   <div className="rounded-[1.5rem] border border-green-200 bg-white/95 p-4 text-left shadow-sm">
                     <div className="relative mx-auto max-w-sm rounded-2xl border border-green-200 bg-white px-5 py-4 shadow-xl">
@@ -5817,7 +5866,9 @@ export default function Page() {
                     </div>
                   </div>
                 </section>
-              ) : (loadingNormal || normalResults.length > 0 || activeResult === "compare") && (
+              )}
+
+              {(loadingNormal || normalResults.length > 0 || activeResult === "compare") && (
 <section ref={normalResultsSectionRef} className="min-w-0 max-w-full overflow-hidden rounded-[1.5rem] bg-white p-4 shadow-sm sm:rounded-[2rem] sm:p-6">
                 <div className="mb-4 flex items-end justify-between gap-3">
                   <div>
@@ -5865,7 +5916,9 @@ export default function Page() {
                               <div className="min-w-0 max-w-full flex-1 overflow-hidden">
                                 <h3 className="line-clamp-2 max-w-full break-words font-bold leading-tight">{fixText(product.name)}</h3>
                                 <p className="min-w-0 break-words text-sm text-slate-500">
-                                  {(product as Product & { fallbackStoreName?: string }).fallbackStoreName || activeStores.sStoreName}
+                                  {(product as Product & { sourceStoreName?: string; fallbackStoreName?: string }).sourceStoreName ||
+                                    (product as Product & { fallbackStoreName?: string }).fallbackStoreName ||
+                                    activeStores.sStoreName}
                                 </p>
                                 {(product as Product & { originalSearchTerm?: string; usedSearchQuery?: string }).usedSearchQuery &&
                                   normalize((product as Product & { originalSearchTerm?: string; usedSearchQuery?: string }).usedSearchQuery || "") !==
