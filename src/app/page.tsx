@@ -122,6 +122,17 @@ type ChainResult = {
   comingSoon?: boolean;
 };
 
+type SingleProductCompareResult = {
+  key: "s" | "k";
+  chain: string;
+  storeName: string;
+  productName: string;
+  price: number;
+  ean?: string;
+  image?: string;
+  comparisonPrice?: string | null;
+};
+
 type StoreMode = "hyper" | "local";
 type QualityMode = "cheapest" | "same_quality" | "own_brands" | "keep_brands";
 
@@ -207,7 +218,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v234";
+const APP_VERSION = "v236";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -2517,6 +2528,7 @@ function pickBestKProduct(items: KProduct[], query: string, ean?: string) {
 
 export default function Page() {
   const [input, setInput] = useState("");
+  const [searchCompareMode, setSearchCompareMode] = useState<"cart" | "single">("cart");
   const [locationInput, setLocationInput] = useState("");
   const [activeArea, setActiveArea] = useState<Area>(AREAS[0]);
   const [storeMode, setStoreMode] = useState<StoreMode>("hyper");
@@ -2531,7 +2543,7 @@ export default function Page() {
   const [chainFilter, setChainFilter] = useState<"all" | "S" | "K">("all");
   const [justAdded, setJustAdded] = useState<string | null>(null);
 
-  const [activeResult, setActiveResult] = useState<"none" | "offers" | "compare">("none");
+  const [activeResult, setActiveResult] = useState<"none" | "offers" | "compare" | "singleCompare">("none");
   const [searchPanelOpen, setSearchPanelOpen] = useState(false);
   const [cartModalOpen, setCartModalOpen] = useState(false);
   const [cartSavePanelOpen, setCartSavePanelOpen] = useState(false);
@@ -2543,6 +2555,9 @@ export default function Page() {
   const [normalResults, setNormalResults] = useState<Product[]>([]);
   const [searchDebug, setSearchDebug] = useState<SearchDebugEntry[]>([]);
   const [loadingNormal, setLoadingNormal] = useState(false);
+  const [singleProductCompareResults, setSingleProductCompareResults] = useState<SingleProductCompareResult[]>([]);
+  const [singleProductCompareLoading, setSingleProductCompareLoading] = useState(false);
+  const [singleProductCompareTerm, setSingleProductCompareTerm] = useState("");
   const [visibleNormalCount, setVisibleNormalCount] = useState(8);
   const [activeNormalSearchTerm, setActiveNormalSearchTerm] = useState("");
   const [eanModalOpen, setEanModalOpen] = useState(false);
@@ -3535,8 +3550,8 @@ export default function Page() {
   }, [cheapest, secondCheapest, savings, savingsPercent]);
 
   const showCheapestSticky = useMemo(() => {
-    return isShoppingListReady && Boolean(cheapest) && Boolean(secondCheapest) && savings > 0;
-  }, [isShoppingListReady, cheapest, secondCheapest, savings]);
+    return cart.length > 0 && Boolean(cheapest) && Boolean(secondCheapest) && savings > 0;
+  }, [cart.length, cheapest, secondCheapest, savings]);
 
 
   function getShoppingListItemKey(match: Match, index?: number) {
@@ -5378,14 +5393,129 @@ export default function Page() {
     }, 250);
   }
 
+  async function pasteFromClipboardToSearch() {
+    triggerHaptic();
+
+    try {
+      const text = await navigator.clipboard?.readText?.();
+      const cleanText = String(text || "").trim();
+
+      if (!cleanText) {
+        showCartToast("Leikepöytä on tyhjä.");
+        return;
+      }
+
+      setInput((current) => {
+        const separator = current.trim() ? "\n" : "";
+        return `${current}${separator}${cleanText}`.slice(0, 1200);
+      });
+
+      trackZiiplyEvent("clipboard_pasted_to_search", {
+        pastedLength: cleanText.length,
+      });
+
+      window.setTimeout(() => searchInputRef.current?.focus(), 0);
+    } catch {
+      showCartToast("Liittäminen ei onnistunut. Käytä selaimen Liitä-toimintoa.");
+      window.setTimeout(() => searchInputRef.current?.focus(), 0);
+    }
+  }
+
+  async function compareSingleProduct() {
+    const term = parseTerms(input)[0] || input.trim();
+
+    if (!term || singleProductCompareLoading) return;
+
+    if (!hasActiveStores) {
+      setLocationMessage("Hae ensin alue tai käytä omaa sijaintia, jotta kaupat voidaan valita.");
+      showCartToast("Valitse ensin kaupat.");
+      return;
+    }
+
+    trackZiiplyEvent("single_product_compare_clicked", {
+      query: term,
+      storeMode,
+      sStoreName: activeStores.sStoreName,
+      kStoreName: activeStores.kStoreName,
+    });
+
+    setSearchPanelOpen(false);
+    setCartModalOpen(false);
+    setCartSavePanelOpen(false);
+    setShopsPanelOpen(false);
+    setEanModalOpen(false);
+    setNormalResults([]);
+    setVisibleNormalCount(8);
+    setSingleProductCompareTerm(term);
+    setSingleProductCompareResults([]);
+    setSingleProductCompareLoading(true);
+    setActiveResult("singleCompare");
+
+    try {
+      const nextResults: SingleProductCompareResult[] = [];
+
+      try {
+        const sItems = await fetchSProducts(getSearchQuery(term), activeStores.sStoreId);
+        const sBest = pickBestSProduct(sItems, term);
+
+        if (sBest && getProductPrice(sBest) > 0) {
+          nextResults.push({
+            key: "s",
+            chain: "S-ryhmä",
+            storeName: activeStores.sStoreName,
+            productName: fixText(sBest.name),
+            price: getProductPrice(sBest),
+            ean: sBest.ean,
+            image: sBest.pictureUrl,
+            comparisonPrice: formatComparisonPrice(sBest),
+          });
+        }
+      } catch {}
+
+      try {
+        let kBest: KProduct | undefined;
+        for (const kSearchTerm of getKSearchTerms(term)) {
+          const kItems = await fetchKProducts(kSearchTerm, activeStores.kStoreId);
+          kBest = pickBestKProduct(kItems, term);
+          if (kBest) break;
+        }
+
+        if (kBest && kBest.price > 0) {
+          nextResults.push({
+            key: "k",
+            chain: "K-ryhmä",
+            storeName: activeStores.kStoreName,
+            productName: fixText(kBest.name),
+            price: kBest.price,
+            ean: kBest.ean,
+            image: kBest.pictureUrl,
+            comparisonPrice: null,
+          });
+        }
+      } catch {}
+
+      setSingleProductCompareResults(nextResults.sort((a, b) => a.price - b.price));
+    } finally {
+      setSingleProductCompareLoading(false);
+      window.requestAnimationFrame(() => {
+        compareOverlayScrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
+      });
+    }
+  }
+
   function handleMainNormalSearch() {
-    if (!hasSearchInput || loadingNormal) return;
+    if (!hasSearchInput || loadingNormal || singleProductCompareLoading) return;
 
     trackZiiplyEvent("main_search_clicked", {
       query: terms.join(", "),
-      searchType: "normal_prices",
+      searchType: searchCompareMode === "single" ? "single_product_compare" : "normal_prices",
       cartItemsCount: cart.length,
     });
+
+    if (searchCompareMode === "single") {
+      void compareSingleProduct();
+      return;
+    }
 
     setSearchPanelOpen(false);
     void searchNormalPrices();
@@ -6163,7 +6293,7 @@ export default function Page() {
   }
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-slate-100 px-2 pb-32 pt-[4.75rem] text-slate-950 sm:px-4 sm:py-4 md:pb-4">
+    <main className="min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top,#ecfdf3_0%,#f8fafc_42%,#f1f5f9_100%)] px-2 pb-32 pt-[4.75rem] text-slate-950 sm:px-4 sm:py-4 md:pb-4">
       {showLaunchScreen && (
         <div className="fixed inset-0 z-[90] flex items-center justify-center bg-white sm:hidden">
           <div className="absolute right-5 top-[calc(env(safe-area-inset-top)+0.75rem)]">
@@ -6180,13 +6310,13 @@ export default function Page() {
         </div>
       )}
 
-      <header className="fixed left-0 right-0 top-0 z-50 border-b border-slate-200 bg-white/95 px-3 pb-2 pt-[calc(env(safe-area-inset-top)+0.55rem)] shadow-sm backdrop-blur sm:hidden">
+      <header className="fixed left-0 right-0 top-0 z-50 border-b border-white/70 bg-white/80 px-3 pb-2 pt-[calc(env(safe-area-inset-top)+0.55rem)] shadow-[0_10px_30px_rgba(15,23,42,0.06)] backdrop-blur-2xl sm:hidden">
         <div className="mx-auto flex max-w-md items-center justify-between gap-3">
           <div className="min-w-0">
             <img
               src="/ziiply.png"
               alt="Ziiply"
-              className="h-9 w-auto max-w-[128px] shrink-0 object-contain"
+              className="h-9 w-auto max-w-[128px] shrink-0 object-contain drop-shadow-sm"
             />
           </div>
           <div className="flex shrink-0 flex-col items-end gap-1">
@@ -6220,13 +6350,54 @@ export default function Page() {
         </section>
 
         {!searchPanelOpen && !cartModalOpen && !shopsPanelOpen && !eanModalOpen && activeResult === "none" && (
-          <section className="flex min-h-[calc(100dvh-12rem)] flex-col items-center justify-center px-8 text-center sm:hidden">
-            <img
-              src="/ziiply.png"
-              alt="Ziiply"
-              className="h-auto w-full max-w-[280px] object-contain"
-            />
-
+          <section className="flex min-h-[calc(100dvh-12rem)] flex-col justify-center px-5 text-left sm:hidden">
+            <div className="mx-auto w-full max-w-md">
+              <img
+                src="/ziiply.png"
+                alt="Ziiply"
+                className="mb-10 h-auto w-full max-w-[190px] object-contain drop-shadow-sm"
+              />
+              <div className="mb-7">
+                <p className="text-[2.35rem] font-black leading-[0.98] tracking-tight text-slate-950">
+                  Säästä rahaa.<br />Vertaa hinnat.
+                </p>
+                <p className="mt-4 max-w-[18rem] text-base font-semibold leading-snug text-slate-500">
+                  Löydä halvin kauppa ostoskorille tai yksittäiselle tuotteelle.
+                </p>
+              </div>
+              <div className="grid gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchCompareMode("cart");
+                    setSearchPanelOpen(true);
+                    triggerHaptic();
+                  }}
+                  className="group flex items-center justify-between rounded-[1.35rem] border border-green-100 bg-white/90 p-4 text-left shadow-[0_12px_35px_rgba(16,185,129,0.11)] transition active:scale-[0.99]"
+                >
+                  <span>
+                    <span className="block text-sm font-black text-green-700">Koko kori</span>
+                    <span className="mt-0.5 block text-xs font-semibold text-slate-500">Vertaa koko ostoskorin hinnat eri kaupoissa.</span>
+                  </span>
+                  <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-green-50 text-xl text-green-700 group-active:bg-green-100">🛒</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchCompareMode("single");
+                    setSearchPanelOpen(true);
+                    triggerHaptic();
+                  }}
+                  className="group flex items-center justify-between rounded-[1.35rem] border border-green-100 bg-white/90 p-4 text-left shadow-[0_12px_35px_rgba(16,185,129,0.08)] transition active:scale-[0.99]"
+                >
+                  <span>
+                    <span className="block text-sm font-black text-green-700">Yksi tuote</span>
+                    <span className="mt-0.5 block text-xs font-semibold text-slate-500">Vertaa yksittäisen tuotteen hinnat eri kaupoissa.</span>
+                  </span>
+                  <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-green-50 text-xl text-green-700 group-active:bg-green-100">🔎</span>
+                </button>
+              </div>
+            </div>
           </section>
         )}
 
@@ -6779,14 +6950,14 @@ export default function Page() {
           </div>
         )}
 
-        {(activeResult === "compare" || (activeResult !== "offers" && (loadingNormal || normalResults.length > 0))) && (
+        {(activeResult === "compare" || activeResult === "singleCompare" || (activeResult !== "offers" && (loadingNormal || normalResults.length > 0))) && (
           <div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0">
             <div ref={compareOverlayScrollRef} className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-50 p-3 shadow-2xl sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:bg-transparent sm:p-0 sm:shadow-none">
             <div className="grid min-w-0 max-w-full gap-4 overflow-hidden lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
             {activeResult === "compare" && showCheapestSticky && cheapest && secondCheapest && (
-                <section ref={savingsSummaryRef} className="min-w-0 max-w-full overflow-hidden rounded-[1.5rem] bg-white p-3 shadow-sm sm:rounded-[2rem] sm:p-6">
-                  <div className="rounded-[1.5rem] border border-green-200 bg-white/95 p-4 text-left shadow-sm">
-                    <div className="relative mx-auto max-w-sm rounded-2xl border border-green-200 bg-white px-5 py-4 shadow-xl">
+                <section ref={savingsSummaryRef} className="min-w-0 max-w-full overflow-hidden rounded-[1.5rem] border border-white/70 bg-white/95 p-3 shadow-[0_18px_55px_rgba(15,23,42,0.10)] backdrop-blur sm:rounded-[2rem] sm:p-6">
+                  <div className="rounded-[1.6rem] border border-green-100 bg-gradient-to-br from-white via-white to-green-50 p-4 text-left shadow-[0_18px_55px_rgba(16,185,129,0.14)]">
+                    <div className="relative mx-auto max-w-sm overflow-hidden rounded-[1.5rem] border border-green-100 bg-white px-5 py-5 shadow-xl">
                       <div className="flex items-start justify-between gap-3">
                         <p className="text-[12px] font-extrabold uppercase tracking-wide text-green-700">
                           Halvin täysi kori
@@ -6818,7 +6989,7 @@ export default function Page() {
                       <button
                         type="button"
                         onClick={openShoppingListForCheapest}
-                        className="mt-5 w-full rounded-2xl bg-green-500 px-4 py-3 text-sm font-black text-slate-950 transition active:scale-[0.98]"
+                        className="mt-5 w-full rounded-[1.1rem] bg-green-600 px-4 py-3.5 text-sm font-black text-white shadow-lg shadow-green-600/20 transition active:scale-[0.98]"
                       >
                         Näytä ostoslista kauppaan
                       </button>
@@ -6837,8 +7008,71 @@ export default function Page() {
                 </section>
               )}
 
+              {activeResult === "singleCompare" && (
+                <section className="min-w-0 max-w-full overflow-hidden rounded-[1.5rem] border border-white/70 bg-white/95 p-4 shadow-[0_18px_55px_rgba(15,23,42,0.10)] backdrop-blur sm:rounded-[2rem] sm:p-6">
+                  <div className="mb-4 flex items-start justify-between gap-3">
+                    <div>
+                      <h2 className="text-2xl font-extrabold">Yhden tuotteen hintavertailu</h2>
+                      <p className="text-sm text-slate-500">
+                        {singleProductCompareTerm ? `Haetaan: ${singleProductCompareTerm}` : "Valitse ensin tuote."}
+                      </p>
+                    </div>
+                    {singleProductCompareLoading && (
+                      <div className="rounded-full bg-green-50 px-3 py-2 text-sm font-black text-green-700 ring-1 ring-green-100">
+                        Haetaan hintoja...
+                      </div>
+                    )}
+                  </div>
+
+                  {!singleProductCompareLoading && singleProductCompareResults.length === 0 && (
+                    <div className="rounded-2xl bg-slate-50 p-4 text-sm font-bold text-slate-600">
+                      Tuotteelle ei löytynyt vertailuhintoja valituista kaupoista.
+                    </div>
+                  )}
+
+                  <div className="space-y-3">
+                    {singleProductCompareResults.map((result, index) => {
+                      const isCheapestSingle = index === 0 && singleProductCompareResults.length > 1;
+                      return (
+                        <div
+                          key={`${result.key}-${result.productName}`}
+                          className={`rounded-[1.35rem] border p-4 shadow-sm ${
+                            isCheapestSingle ? "border-green-200 bg-green-50/90 shadow-green-100" : "border-slate-100 bg-white"
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            {result.image && (
+                              <img src={result.image} alt={result.productName} className="h-16 w-16 shrink-0 rounded-xl bg-white object-contain" />
+                            )}
+                            <div className="min-w-0 flex-1">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className={`rounded-full px-2 py-0.5 text-[10px] font-black ${result.key === "s" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+                                  {result.chain}
+                                </span>
+                                {isCheapestSingle && (
+                                  <span className="rounded-full bg-green-600 px-2 py-0.5 text-[10px] font-black text-white">
+                                    Halvin
+                                  </span>
+                                )}
+                              </div>
+                              <h3 className="mt-1 line-clamp-2 text-base font-black text-slate-950">{result.productName}</h3>
+                              <p className="mt-0.5 text-sm font-bold text-slate-500">{result.storeName}</p>
+                              {result.ean && <p className="mt-0.5 text-[11px] text-slate-400">EAN: {result.ean}</p>}
+                            </div>
+                            <div className="shrink-0 text-right">
+                              <p className="text-2xl font-black text-green-700">{formatEuro(result.price)}</p>
+                              {result.comparisonPrice && <p className="text-[11px] font-bold text-slate-500">{result.comparisonPrice}</p>}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
+              )}
+
               {activeResult !== "compare" && (loadingNormal || normalResults.length > 0) && (
-<section ref={normalResultsSectionRef} className="min-w-0 max-w-full overflow-hidden rounded-[1.5rem] bg-white p-4 shadow-sm sm:rounded-[2rem] sm:p-6">
+<section ref={normalResultsSectionRef} className="min-w-0 max-w-full overflow-hidden rounded-[1.5rem] border border-white/70 bg-white/95 p-4 shadow-[0_18px_55px_rgba(15,23,42,0.10)] backdrop-blur sm:rounded-[2rem] sm:p-6">
                 <div className="mb-4 flex items-end justify-between gap-3">
                   <div>
                     <h2 className="text-2xl font-extrabold">Valitse tuote</h2>
@@ -7329,7 +7563,7 @@ export default function Page() {
                               <button
                                 type="button"
                                 onClick={() => void shareShoppingList(chain)}
-                                className="rounded-xl bg-slate-100 px-3 py-2.5 text-xs font-extrabold text-slate-700 transition active:scale-[0.98]"
+                                className="rounded-xl bg-green-600 px-3 py-2.5 text-xs font-extrabold text-white transition active:scale-[0.98]"
                               >
                                 Jaa
                               </button>
@@ -7372,7 +7606,7 @@ export default function Page() {
 
         {cartModalOpen && (
         <div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:items-start sm:p-6">
-          <div ref={cartOverlayScrollRef} className="max-h-[calc(100dvh-12.5rem)] w-full max-w-3xl overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-green-700 p-4 text-white shadow-2xl sm:max-h-none sm:rounded-[2rem] sm:p-6">
+          <div ref={cartOverlayScrollRef} className="max-h-[calc(100dvh-12.5rem)] w-full max-w-3xl overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.6rem] bg-gradient-to-br from-slate-950 via-emerald-950 to-green-800 p-4 text-white shadow-[0_24px_80px_rgba(15,23,42,0.35)] sm:max-h-none sm:rounded-[2rem] sm:p-6">
             <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <h2 className="text-2xl font-extrabold">Ostoskori ({cart.length}/{MAX_ITEMS})</h2>
@@ -7615,22 +7849,46 @@ export default function Page() {
       )}
 
       {searchPanelOpen && (
-        <div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden bg-slate-950/40 px-3 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:items-start sm:p-6">
+        <div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden bg-slate-950/35 px-3 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] backdrop-blur-sm sm:items-start sm:p-6">
           <div className="w-full max-w-3xl">
-          <div className="max-h-[calc(100dvh-12.5rem)] overflow-y-auto overscroll-contain rounded-[1.5rem] bg-white p-4 shadow-sm sm:max-h-none sm:rounded-[2rem] sm:p-6">
+          <div className="max-h-[calc(100dvh-12.5rem)] overflow-y-auto overscroll-contain rounded-[1.65rem] border border-white/70 bg-white/95 p-4 shadow-[0_22px_70px_rgba(15,23,42,0.22)] backdrop-blur-2xl sm:max-h-none sm:rounded-[2rem] sm:p-6">
             <div className="mb-3 flex items-start justify-between gap-3 sm:mb-4">
-              <h1 className="text-xl font-extrabold sm:text-2xl">Mitä haluat ostaa halvemmalla?</h1>
+              <div><p className="text-[11px] font-black uppercase tracking-[0.18em] text-green-700">Haku</p><h1 className="mt-1 text-[1.7rem] font-black leading-none tracking-tight text-slate-950 sm:text-2xl">Mitä haluat ostaa halvemmalla?</h1><p className="mt-2 text-sm font-semibold leading-snug text-slate-500">Hae tarjouksia, vertaa koko koria tai tarkista yhden tuotteen hinta.</p></div>
             </div>
-            <div className="mt-4 grid grid-cols-3 gap-2 sm:flex sm:flex-wrap sm:gap-3">
+            <div className="mt-4 rounded-[1.35rem] bg-slate-50/80 p-2 ring-1 ring-slate-100">
+              <p className="px-2 pb-2 text-[11px] font-black uppercase tracking-wide text-slate-500">Vertailu</p>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setSearchCompareMode("cart")}
+                  className={`rounded-xl px-3 py-3 text-sm font-extrabold transition active:scale-[0.98] ${
+                    searchCompareMode === "cart" ? "bg-green-600 text-white shadow-md shadow-green-600/20" : "bg-white text-slate-700 ring-1 ring-slate-200"
+                  }`}
+                >
+                  🛒 Koko kori
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSearchCompareMode("single")}
+                  className={`rounded-xl px-3 py-3 text-sm font-extrabold transition active:scale-[0.98] ${
+                    searchCompareMode === "single" ? "bg-green-600 text-white shadow-md shadow-green-600/20" : "bg-white text-slate-700 ring-1 ring-slate-200"
+                  }`}
+                >
+                  🔎 Yksi tuote
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-4 grid grid-cols-1 gap-2 sm:flex sm:flex-wrap sm:gap-3">
               <button
                 type="button"
                 onClick={handleMainOfferSearch}
                 disabled={!hasSearchInput || loadingOffers}
                 aria-disabled={!hasSearchInput || loadingOffers}
-                className={`touch-manipulation rounded-2xl px-3 py-4 text-sm font-extrabold transition sm:px-5 sm:text-base ${
+                className={`touch-manipulation rounded-[1.15rem] px-4 py-3.5 text-sm font-black transition sm:px-5 sm:text-base ${
                   !hasSearchInput || loadingOffers
                     ? "cursor-not-allowed bg-slate-200 text-slate-400"
-                    : "bg-green-600 text-white active:scale-[0.98]"
+                    : "bg-green-600 text-white shadow-lg shadow-green-600/20 active:scale-[0.98]"
                 }`}
               >
                 {loadingOffers ? "Haetaan..." : "🔥 Tarjoukset"}
@@ -7638,68 +7896,82 @@ export default function Page() {
               <button
                 type="button"
                 onClick={handleMainNormalSearch}
-                disabled={!hasSearchInput || loadingNormal}
-                aria-disabled={!hasSearchInput || loadingNormal}
-                className={`touch-manipulation rounded-2xl px-3 py-4 text-sm font-extrabold transition sm:px-5 sm:text-base ${
-                  !hasSearchInput || loadingNormal
+                disabled={!hasSearchInput || loadingNormal || singleProductCompareLoading}
+                aria-disabled={!hasSearchInput || loadingNormal || singleProductCompareLoading}
+                className={`touch-manipulation rounded-[1.15rem] px-4 py-3.5 text-sm font-black transition sm:px-5 sm:text-base ${
+                  !hasSearchInput || loadingNormal || singleProductCompareLoading
                     ? "cursor-not-allowed bg-slate-200 text-slate-400"
-                    : "bg-green-600 text-white active:scale-[0.98]"
+                    : "bg-green-600 text-white shadow-lg shadow-green-600/20 active:scale-[0.98]"
                 }`}
               >
-                {loadingNormal ? "Haetaan..." : "🛒 Hintavertailu"}
+                {loadingNormal || singleProductCompareLoading ? "Haetaan..." : searchCompareMode === "single" ? "🔎 Vertaa tuotetta" : "🛒 Hintavertailu"}
               </button>
               <button
                 type="button"
                 onClick={addInputToCart}
                 disabled={!hasSearchInput}
                 aria-disabled={!hasSearchInput}
-                className={`touch-manipulation rounded-2xl px-3 py-4 text-sm font-extrabold transition sm:px-5 sm:text-base ${
+                className={`touch-manipulation rounded-[1.15rem] px-4 py-3.5 text-sm font-black transition sm:px-5 sm:text-base ${
                   !hasSearchInput
                     ? "cursor-not-allowed bg-slate-200 text-slate-400"
-                    : "bg-slate-900 text-white active:scale-[0.98]"
+                    : "bg-slate-950 text-white shadow-lg shadow-slate-950/10 active:scale-[0.98]"
                 }`}
               >
                 Lisää muistilistana
               </button>
             </div>
 
-            <div className="mt-3">
+            <div className="mt-3 rounded-[1.35rem] border border-green-100 bg-white p-2 shadow-inner shadow-green-50/60">
+              <div className="mb-2 flex items-center justify-between px-1">
+                <p className="text-xs font-black uppercase tracking-wide text-slate-500">Tuotteet</p>
+                <button
+                  type="button"
+                  onClick={() => void pasteFromClipboardToSearch()}
+                  className="rounded-full bg-green-50 px-3 py-1.5 text-xs font-black text-green-700 ring-1 ring-green-200 active:scale-[0.98]"
+                >
+                  Liitä
+                </button>
+              </div>
               <textarea
                 ref={searchInputRef}
                 value={input}
                 onChange={(event) => setInput(event.target.value)}
-                placeholder={"Kirjoita esim. maito,kahvi,jauheliha\nTai liitä muistilista pilkulla tai riveittäin, max 8 tuotetta\nTarjoukset hakee tarjoukset. Hintavertailu hakee hintoja. Lisää muistilistana lisää rivit ilman hintaa keräilyyn."}
-                className="h-28 w-full rounded-2xl border-2 border-green-600 px-4 py-3 text-base outline-none transition placeholder:text-slate-400 focus:border-green-700 sm:h-32"
+                placeholder={searchCompareMode === "single" ? "Kirjoita yksi tuote, esim. maito" : "Kirjoita tuotteet pilkulla tai riveittäin, esim.\nmaito, kahvi, jauheliha"}
+                className="h-28 w-full resize-none rounded-[1.1rem] border border-slate-200 bg-slate-50/70 px-4 py-3 text-[16px] font-semibold leading-snug text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-green-500 focus:bg-white focus:ring-4 focus:ring-green-100 sm:h-32"
               />
-              {hasSearchInput && (
-                <div className="mt-2 flex justify-end">
+              <div className="mt-2 flex items-center justify-between gap-2 px-1">
+                <p className="text-[11px] font-semibold leading-snug text-slate-400">
+                  {searchCompareMode === "single" ? "Yksi tuote näyttää nopean hintavertailun." : "Max 8 tuotetta. Liitä toimii muistilistoille."}
+                </p>
+                {hasSearchInput && (
                   <button
                     type="button"
                     onClick={() => {
                       setInput("");
                       setNormalResults([]);
+                      setSingleProductCompareResults([]);
+                      setSingleProductCompareTerm("");
                       setVisibleNormalCount(8);
                       setHasSearchedOffers(false);
                       setOffers([]);
                       triggerHaptic();
                       window.setTimeout(() => searchInputRef.current?.focus(), 0);
                     }}
-                    className="rounded-xl bg-white px-3 py-1.5 text-sm font-extrabold text-red-600 shadow-sm ring-1 ring-red-200 active:scale-[0.98]"
+                    className="shrink-0 rounded-full bg-red-50 px-3 py-1.5 text-xs font-black text-red-600 ring-1 ring-red-100 active:scale-[0.98]"
                   >
-                    tyhjennä
+                    Tyhjennä
                   </button>
-                </div>
-              )}
+                )}
+              </div>
             </div>
 
 
 
-
-            <div className="mt-4 grid grid-cols-2 gap-3">
+            <div className="mt-4 grid grid-cols-2 gap-2">
               <button
                 type="button"
                 onClick={() => startVoiceInput()}
-                className={`touch-manipulation rounded-2xl px-4 py-4 text-sm font-extrabold text-white transition active:scale-[0.98] ${
+                className={`touch-manipulation rounded-[1.15rem] px-4 py-3.5 text-sm font-black text-white shadow-sm transition active:scale-[0.98] ${
                   isListening
                     ? "bg-red-600"
                     : speechSupported
@@ -7713,7 +7985,7 @@ export default function Page() {
               <button
                 type="button"
                 onClick={openEanModal}
-                className="touch-manipulation rounded-2xl bg-emerald-700 px-4 py-4 text-sm font-extrabold text-white transition active:scale-[0.98]"
+                className="touch-manipulation rounded-[1.15rem] bg-emerald-700 px-4 py-3.5 text-sm font-black text-white shadow-sm transition active:scale-[0.98]"
               >
                 ▦ EAN / viivakoodi
               </button>
@@ -7940,7 +8212,7 @@ export default function Page() {
         )}
 
       {cheapest && !cartModalOpen && !searchPanelOpen && !shopsPanelOpen && !eanModalOpen && activeResult !== "compare" && !(loadingNormal || normalResults.length > 0) && (
-        <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] left-2 right-2 z-40 mx-auto max-w-3xl rounded-[1.2rem] bg-slate-950/95 p-2.5 text-white shadow-2xl sm:hidden">
+        <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] left-3 right-3 z-40 mx-auto max-w-md rounded-[1.35rem] border border-white/10 bg-slate-950/92 p-3 text-white shadow-[0_18px_55px_rgba(15,23,42,0.35)] backdrop-blur-2xl sm:hidden">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="text-[11px] font-black uppercase tracking-wide text-green-300">Halvin täysi kori</p>
@@ -7975,11 +8247,11 @@ export default function Page() {
       )}
 
       <nav className="fixed bottom-0 left-0 right-0 z-50 bg-transparent px-3 pb-[calc(env(safe-area-inset-bottom)+0.7rem)] pt-2 sm:hidden">
-        <div className="mx-auto grid max-w-md grid-cols-4 gap-2 rounded-[1.6rem] border border-slate-200 bg-white/95 p-2 shadow-2xl backdrop-blur">
+        <div className="mx-auto grid max-w-md grid-cols-4 gap-1.5 rounded-[1.7rem] border border-white/70 bg-white/86 p-2 shadow-[0_18px_55px_rgba(15,23,42,0.18)] backdrop-blur-2xl">
           <button
             type="button"
             onClick={toggleSearchPanel}
-            className={`flex flex-col items-center justify-center rounded-[1.25rem] px-2 py-2.5 text-xs font-black transition active:scale-[0.98] ${searchPanelOpen ? "bg-green-600 text-white shadow-md" : "text-slate-700 active:bg-slate-100"}`}
+            className={`flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition active:scale-[0.98] ${searchPanelOpen ? "bg-green-600 text-white shadow-md" : "text-slate-700 active:bg-slate-100"}`}
           >
             <span className="text-lg leading-none">🔎</span>
             <span className="mt-1 block">Hae</span>
@@ -7987,7 +8259,7 @@ export default function Page() {
           <button
             type="button"
             onClick={toggleShopsPanel}
-            className={`flex flex-col items-center justify-center rounded-[1.25rem] px-2 py-2.5 text-xs font-black transition active:scale-[0.98] ${shopsPanelOpen ? "bg-green-600 text-white shadow-md" : "text-slate-700 active:bg-slate-100"}`}
+            className={`flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition active:scale-[0.98] ${shopsPanelOpen ? "bg-green-600 text-white shadow-md" : "text-slate-700 active:bg-slate-100"}`}
           >
             <span className="text-lg leading-none">🏪</span>
             <span className="mt-1 block">Kaupat</span>
@@ -7996,7 +8268,7 @@ export default function Page() {
             type="button"
             onClick={toggleCartModal}
             aria-disabled={cart.length === 0}
-            className={`relative flex flex-col items-center justify-center rounded-[1.25rem] px-2 py-2.5 text-xs font-black transition ${cart.length === 0 ? "cursor-not-allowed bg-slate-100 text-slate-300 opacity-70" : cartModalOpen ? "bg-green-600 text-white shadow-md active:scale-[0.98]" : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
+            className={`relative flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition ${cart.length === 0 ? "cursor-not-allowed bg-slate-100 text-slate-300 opacity-70" : cartModalOpen ? "bg-green-600 text-white shadow-md active:scale-[0.98]" : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
           >
             <span className="text-lg leading-none">🛒</span>
             <span className="mt-1 block">Kori</span>
@@ -8010,7 +8282,7 @@ export default function Page() {
             type="button"
             onClick={toggleComparisonView}
             aria-disabled={cart.length === 0}
-            className={`flex flex-col items-center justify-center rounded-[1.25rem] px-2 py-2.5 text-xs font-black transition ${cart.length === 0 ? "cursor-not-allowed bg-slate-100 text-slate-300 opacity-70" : activeResult === "compare" && !searchPanelOpen && !cartModalOpen ? "bg-green-600 text-white shadow-md active:scale-[0.98]" : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
+            className={`flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition ${cart.length === 0 ? "cursor-not-allowed bg-slate-100 text-slate-300 opacity-70" : activeResult === "compare" && !searchPanelOpen && !cartModalOpen ? "bg-green-600 text-white shadow-md active:scale-[0.98]" : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
           >
             <span className="text-lg leading-none">⚖️</span>
             <span className="mt-1 block">Vertailu</span>
