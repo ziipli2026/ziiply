@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v299_SAFE_SHOPS_SELECTION";
+const APP_VERSION = "v301_SHOPS_BUTTON_INFO_FIX";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -4276,6 +4276,9 @@ export default function Page() {
   function handleStoreModeChange(nextMode: StoreMode) {
     if (storeCompareScope === "within_chain") return;
 
+    setStoreModeChosenV299(true);
+    setOpenStorePicker(null);
+
     trackZiiplyEvent("store_mode_changed", {
       previousMode: storeMode,
       nextMode,
@@ -7528,7 +7531,7 @@ export default function Page() {
   function renderComparedStoreCards(compact = false) {
     if (storeCompareScope === "between_chains" && !storeModeChosenV299) {
       return (
-        <div className="mt-3 rounded-2xl bg-amber-50 px-4 py-4 text-center text-sm font-extrabold text-amber-800 ring-1 ring-amber-200">
+        <div className="mt-3 rounded-2xl bg-amber-50 px-4 py-3 text-center text-sm font-extrabold text-amber-800 ring-1 ring-amber-200">
           Valitse ensin Tavaratalot tai Lähikaupat.
         </div>
       );
@@ -8169,14 +8172,6 @@ return (
                   </button>
                 </div>
               </div>
-
-
-                
-                {storeCompareScope === "between_chains" && !storeModeChosenV299 && (
-                  <div className="mt-2 rounded-2xl bg-amber-50 px-3 py-2 text-center text-xs font-extrabold text-amber-800 ring-1 ring-amber-200">
-                    Valitse ensin Tavaratalot tai Lähikaupat.
-                  </div>
-                )}
 {renderComparedStoreCards(true)}
               </section>
 
