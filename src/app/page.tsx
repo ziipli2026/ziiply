@@ -8054,8 +8054,7 @@ export default function Page() {
                   ref={searchInputRef}
                   value={input}
                   onChange={(event) => setInput(event.target.value)}
-                  placeholder={searchCompareMode === "single" ? "Kirjoita yksi tuote, esim. maito" : "Kirjoita tuotteet pilkulla tai riveittäin, esim.
-maito, kahvi, jauheliha"}
+                  placeholder={searchCompareMode === "single" ? "Kirjoita yksi tuote, esim. maito" : "Kirjoita tuotteet pilkulla tai riveittäin, esim. maito, kahvi, jauheliha"}
                   className={`${instantSearchSuggestions.length > 0 ? "h-[calc(100%-8.8rem)] min-h-[5.4rem]" : "h-[calc(100%-3.8rem)] min-h-[7.5rem]"} w-full resize-none rounded-[1rem] border border-slate-200 bg-slate-50/70 px-3 py-2.5 text-[16px] font-semibold leading-snug text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-green-500 focus:bg-white focus:ring-4 focus:ring-green-100`}
                 />
                 {instantSearchSuggestions.length > 0 && (
