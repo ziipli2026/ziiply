@@ -218,7 +218,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v260";
+const APP_VERSION = "v261";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -2983,6 +2983,20 @@ export default function Page() {
     setInput(value);
   }
 
+  function clearSingleSearchInputState(options: { clearResults?: boolean } = {}) {
+    setInput("");
+    setNormalResults([]);
+    setNormalSearchAttempted(false);
+    setVisibleNormalCount(8);
+    setActiveNormalSearchTerm("");
+    setSearchDebug([]);
+    setSingleProductCompareTerm("");
+
+    if (options.clearResults) {
+      setSingleProductCompareResults([]);
+    }
+  }
+
   function getCompactSuggestionLabel(label: string) {
     const clean = fixText(label).replace(/\s+/g, " ").trim();
     const text = normalize(clean);
@@ -3688,18 +3702,18 @@ export default function Page() {
     // v236: Aloitussivu pysyy tyhjänä v234-tyyliin. Hae avataan kiinteänä yhtenä näkymänä, ei skrollattavana sivuna.
     // Hae-paneeli toimii mobiilissa erillisenä näkymänä: se sulkee korin/EANin/vertailun ja näkyy aina viewportissa.
     const openedFromSingleCompare = activeResult === "singleCompare";
+    const openedFromCart = cartModalOpen;
 
     setCartModalOpen(false);
     setShopsPanelOpen(false);
     setEanModalOpen(false);
 
-    if (openedFromSingleCompare) {
-      setInput("");
-      setNormalResults([]);
-      setNormalSearchAttempted(false);
-      setVisibleNormalCount(8);
-      setActiveNormalSearchTerm("");
-      setSearchDebug([]);
+    // v261:
+    // Yksittäisen tuotteen vertailusta/koriin lisäyksestä jäänyt hakusana ei saa
+    // palata Hae-kortin tekstikenttään, kun käyttäjä tulee sinne vertailukortilta
+    // tai ostoskorista. Koko kori -tilan keskeneräistä listaa ei tyhjennetä.
+    if (openedFromSingleCompare || (openedFromCart && searchCompareMode === "single")) {
+      clearSingleSearchInputState({ clearResults: openedFromSingleCompare });
     }
 
     setActiveResult("none");
@@ -5535,6 +5549,7 @@ export default function Page() {
     });
 
     if (alreadyInCart) {
+      clearSingleSearchInputState();
       showCartToast("Tuote on jo ostoskorissa.");
       return;
     }
@@ -5582,6 +5597,7 @@ export default function Page() {
     setCart(nextCart);
     showCartToast(`Lisätty ostoskoriin: ${newItem.name}`);
     triggerHaptic();
+    clearSingleSearchInputState();
     void updateChainComparison(nextCart, { openCompare: false });
     setActiveResult("singleCompare");
   }
@@ -6228,6 +6244,7 @@ export default function Page() {
     syncCartDependentState(nextCart, id, removedItem?.id);
 
     if (removedItem) {
+      clearSingleSearchInputState({ clearResults: searchCompareMode === "single" });
       setCheckedCartItems((current) => {
         const next = { ...current };
         delete next[id];
@@ -6253,6 +6270,7 @@ export default function Page() {
 
     if (!removedItem) return;
 
+    clearSingleSearchInputState({ clearResults: searchCompareMode === "single" });
     setCart(nextCart);
     syncCartDependentState(nextCart, undefined, id);
     setCheckedCartItems((current) => {
@@ -6285,6 +6303,7 @@ export default function Page() {
     const ok = window.confirm(`Tyhjennetäänkö koko ostoskori (${cart.length} tuotetta)?`);
     if (!ok) return false;
 
+    clearSingleSearchInputState({ clearResults: true });
     setCart([]);
     setCheckedCartItems({});
     setQualityModesByCart({});
