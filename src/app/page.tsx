@@ -218,7 +218,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v250";
+const APP_VERSION = "v249";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -622,29 +622,8 @@ const SEARCH_INTENTS: SearchIntent[] = [
   },
 ];
 
-
-function getPrimarySearchCoreTerm(query: string) {
-  const text = normalize(query);
-
-  // v250:
-  // Käyttäjän itse kirjoittamissa moniosaisissa tuotetermeissä jälkimmäinen ydinsana
-  // on usein varsinainen tuoteryhmä. Esim. "broilerin jauheliha" ei saa hakea
-  // pelkkää broileria/filettä, vaan ensin jauhelihaa.
-  if (hasAnyToken(text, ["jauheliha", "sika-nauta"])) return "jauheliha";
-  if (hasAnyToken(text, ["broilerin jauheliha", "broileri jauheliha"])) return "jauheliha";
-  if (hasAnyToken(text, ["naudan jauheliha", "nauta jauheliha"])) return "jauheliha";
-
-  return "";
-}
-
 function detectSearchIntent(query: string): SearchIntent {
   const normalized = normalize(query);
-
-  const forcedCoreTerm = getPrimarySearchCoreTerm(query);
-  if (forcedCoreTerm === "jauheliha") {
-    const meatIntent = SEARCH_INTENTS.find((intent) => intent.category === "meat");
-    if (meatIntent) return meatIntent;
-  }
 
   const exactIntent = SEARCH_INTENTS.find((intent) =>
     intent.variants.some((variant) => normalize(variant) === normalized)
@@ -698,25 +677,13 @@ function getNormalSearchQueries(term: string) {
   const intent = detectSearchIntent(term);
   const normalizedTerm = normalize(term);
   const words = getNormalizedWords(term).filter((word) => word.length > 3 && !/^\d/.test(word));
-  const coreTerm = getPrimarySearchCoreTerm(term);
-  const expanded = coreTerm
-    ? uniqueNormalizedQueries([coreTerm, term, getSearchQuery(term), ...intent.variants])
-    : uniqueNormalizedQueries([term, getSearchQuery(term), ...intent.variants]);
-
-  // v250:
-  // Jos haussa on selkeä tuoteryhmäydin, kuten "jauheliha", pidä se ensimmäisenä.
-  // Tämä estää tapauksen "broilerin jauheliha" → "broilerin filee".
-  if (coreTerm) {
-    return uniqueNormalizedQueries(expanded).filter((query) => {
-      const q = normalize(query);
-      if (coreTerm === "jauheliha") return q.includes("jauheliha");
-      return true;
-    });
-  }
+  const primaryProductNounQuery = getPrimaryProductNounQuery(term);
+  const expanded = uniqueNormalizedQueries([primaryProductNounQuery, term, getSearchQuery(term), ...intent.variants]);
 
   // v247:
   // Moniosaiset tuotetermit ovat yleensä tarkoituksella tarkkoja hakuja.
-  // Esim. "Coca-Cola Zero 1,5l" ei saa hajota yleiseksi cola-hauksi liian aikaisin.
+  // Esim. "broilerin jauheliha" ei saa muuttua käytännössä "broilerin"-hauksi,
+  // eikä "Coca-Cola Zero 1,5l" saa hajota yleiseksi cola-hauksi liian aikaisin.
   // Pidetään tarkka termi aina ensimmäisenä ja lisätään lyhyemmät fallbackit vasta loppuun.
   if (words.length >= 2) expanded.push(...uniqueNormalizedQueries([words.slice(0, 2).join(" ")]));
 
@@ -4501,11 +4468,7 @@ export default function Page() {
           // vain siksi, että jokin tuoteryhmäfiltteri oli liian tiukka.
           const safeItems = normalFiltered.length > 0 ? normalFiltered : pricedItems;
 
-          const hardSafeItems = getPrimarySearchCoreTerm(term) === "jauheliha"
-            ? safeItems.filter((product) => normalize(`${product.name} ${product.category || ""}`).includes("jauheliha"))
-            : safeItems;
-
-          const finalItems = rankNormalSearchResults(searchQuery, hardSafeItems)
+          const finalItems = rankNormalSearchResults(searchQuery, safeItems)
             .slice(0, 40)
             .map((product) => {
               const withMeta = {
@@ -4544,15 +4507,13 @@ export default function Page() {
         .sort((a, b) => {
           const aOriginalQuery = (a as Product & { originalSearchTerm?: string }).originalSearchTerm || useTerms[0] || "";
           const bOriginalQuery = (b as Product & { originalSearchTerm?: string }).originalSearchTerm || useTerms[0] || "";
-          const aScoringQuery = getPrimarySearchCoreTerm(aOriginalQuery) || aOriginalQuery;
-          const bScoringQuery = getPrimarySearchCoreTerm(bOriginalQuery) || bOriginalQuery;
           const directNameDifference =
-            scoreDirectQueryNameMatch(bScoringQuery, b.name) -
-            scoreDirectQueryNameMatch(aScoringQuery, a.name);
+            scoreDirectQueryNameMatch(bOriginalQuery, b.name) -
+            scoreDirectQueryNameMatch(aOriginalQuery, a.name);
 
           if (Math.abs(directNameDifference) > 12) return directNameDifference;
 
-          return scoreNormalSResult(bScoringQuery, b) - scoreNormalSResult(aScoringQuery, a);
+          return scoreNormalSResult(bOriginalQuery, b) - scoreNormalSResult(aOriginalQuery, a);
         });
 
       setEanCache((prev) => {
