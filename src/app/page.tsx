@@ -218,7 +218,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v242";
+const APP_VERSION = "v243";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -2757,6 +2757,68 @@ export default function Page() {
 
   const terms = useMemo(() => parseTerms(input), [input]);
   const hasSearchInput = terms.length > 0;
+
+  const searchSuggestionSeed = useMemo(() => {
+    const currentText = input.split(/[\n,]+/).pop()?.trim() || input.trim();
+    return currentText;
+  }, [input]);
+
+  const instantSearchSuggestions = useMemo(() => {
+    const query = normalize(searchSuggestionSeed);
+    if (query.length < 2) return [];
+
+    const candidates = new Map<string, { label: string; hint: string; score: number }>();
+
+    const addCandidate = (label: string, hint: string, score: number) => {
+      const cleanLabel = fixText(label).replace(/\s+/g, " ").trim();
+      const key = normalize(cleanLabel);
+      if (!key || key.length < 2) return;
+      if (!key.includes(query) && !key.startsWith(query) && !query.includes(key)) return;
+
+      const existing = candidates.get(key);
+      if (!existing || existing.score < score) candidates.set(key, { label: cleanLabel, hint, score });
+    };
+
+    for (const item of cart) addCandidate(item.name, "Korista", 115);
+    for (const item of recentCartItems) addCandidate(item.name, "Viimeksi lisätty", 105);
+
+    for (const intent of SEARCH_INTENTS) {
+      const intentMatchesQuery = normalize(intent.label).includes(query) || intent.variants.some((variant) => normalize(variant).includes(query));
+      for (const variant of intent.variants) addCandidate(variant, intent.label, intentMatchesQuery ? 92 : 78);
+    }
+
+    Object.values(SEARCH_ALIASES).forEach((alias) => addCandidate(alias, "Nopea haku", 70));
+
+    return Array.from(candidates.values())
+      .sort((a, b) => b.score - a.score || a.label.localeCompare(b.label, "fi"))
+      .slice(0, 5);
+  }, [cart, recentCartItems, searchSuggestionSeed]);
+
+  function applyInstantSearchSuggestion(label: string) {
+    const cleanLabel = fixText(label).replace(/\s+/g, " ").trim();
+    if (!cleanLabel) return;
+
+    const parts = input.split(/([\n,]+)/);
+    let replaced = false;
+
+    for (let index = parts.length - 1; index >= 0; index -= 1) {
+      if (!/[\n,]+/.test(parts[index]) && parts[index].trim().length > 0) {
+        const leadingSpace = parts[index].match(/^\s*/)?.[0] || "";
+        parts[index] = `${leadingSpace}${cleanLabel}`;
+        replaced = true;
+        break;
+      }
+    }
+
+    const nextInput = replaced ? parts.join("") : cleanLabel;
+    setInput(nextInput);
+    setVisibleNormalCount(8);
+    triggerHaptic();
+
+    window.requestAnimationFrame(() => {
+      searchInputRef.current?.focus();
+    });
+  }
 
   const activeStores = useMemo(() => {
     if (storeMode === "local") {
@@ -7992,9 +8054,26 @@ export default function Page() {
                   ref={searchInputRef}
                   value={input}
                   onChange={(event) => setInput(event.target.value)}
-                  placeholder={searchCompareMode === "single" ? "Kirjoita yksi tuote, esim. maito" : "Kirjoita tuotteet pilkulla tai riveittäin, esim.\nmaito, kahvi, jauheliha"}
-                  className="h-[calc(100%-3.8rem)] min-h-[7.5rem] w-full resize-none rounded-[1rem] border border-slate-200 bg-slate-50/70 px-3 py-2.5 text-[16px] font-semibold leading-snug text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-green-500 focus:bg-white focus:ring-4 focus:ring-green-100"
+                  placeholder={searchCompareMode === "single" ? "Kirjoita yksi tuote, esim. maito" : "Kirjoita tuotteet pilkulla tai riveittäin, esim.
+maito, kahvi, jauheliha"}
+                  className={`${instantSearchSuggestions.length > 0 ? "h-[calc(100%-8.8rem)] min-h-[5.4rem]" : "h-[calc(100%-3.8rem)] min-h-[7.5rem]"} w-full resize-none rounded-[1rem] border border-slate-200 bg-slate-50/70 px-3 py-2.5 text-[16px] font-semibold leading-snug text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-green-500 focus:bg-white focus:ring-4 focus:ring-green-100`}
                 />
+                {instantSearchSuggestions.length > 0 && (
+                  <div className="mt-1.5 flex max-h-[4.65rem] flex-wrap gap-1.5 overflow-hidden px-1">
+                    {instantSearchSuggestions.map((suggestion) => (
+                      <button
+                        key={`${suggestion.hint}-${suggestion.label}`}
+                        type="button"
+                        onPointerDown={(event) => event.preventDefault()}
+                        onClick={() => applyInstantSearchSuggestion(suggestion.label)}
+                        className="max-w-full truncate rounded-full bg-green-50 px-2.5 py-1 text-[11px] font-black text-green-800 ring-1 ring-green-100 active:scale-[0.98]"
+                        title={suggestion.label}
+                      >
+                        {suggestion.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
                 <div className="mt-1.5 flex h-7 items-center justify-between gap-2 px-1">
                   <p className="truncate text-[10px] font-semibold text-slate-400">
                     {searchCompareMode === "single" ? "Valitse tarkka tuote listasta ennen vertailua." : "Max 8 tuotetta. Liitä muistilistasta."}
