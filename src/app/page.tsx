@@ -218,7 +218,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v255";
+const APP_VERSION = "v256";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -668,69 +668,12 @@ function getPrimaryProductNounQuery(term: string) {
   // Omalla sanalla kirjoitetuissa moniosaisissa ydintuotteissa haetaan ensin tuoteryhmän ydinsanalla.
   // Esim. "broilerin jauheliha" / "naudan jauheliha" pitää ensin hakea jauhelihoja,
   // ei broilerin fileitä tai muita broilerituotteita.
-  if (hasAnyToken(text, ["jauheliha", "jauhelihaa", "sika-nauta", "sikanauta"])) return "jauheliha";
+  if (hasAnyToken(text, ["jauheliha", "sika-nauta", "sikanauta"])) return "jauheliha";
 
   return "";
 }
 
-function getGroundMeatSearchProfile(term: string) {
-  const text = normalize(term);
-  if (!hasAnyToken(text, ["jauheliha", "jauhelihaa", "sika-nauta", "sikanauta"])) return null;
-
-  if (hasAnyToken(text, ["broilerin", "broileri", "kanan", "kana"])) {
-    return {
-      canonicalQuery: "broilerin jauheliha",
-      fallbackQuery: "jauheliha",
-      requiredAny: ["broilerin", "broileri", "kanan", "kana"],
-    };
-  }
-
-  if (hasAnyToken(text, ["naudan", "nauta"])) {
-    return {
-      canonicalQuery: "naudan jauheliha",
-      fallbackQuery: "jauheliha",
-      requiredAny: ["naudan", "nauta"],
-    };
-  }
-
-  if (hasAnyToken(text, ["sika-nauta", "sikanauta"])) {
-    return {
-      canonicalQuery: "sika-nauta jauheliha",
-      fallbackQuery: "jauheliha",
-      requiredAny: ["sika-nauta", "sikanauta"],
-    };
-  }
-
-  return {
-    canonicalQuery: "jauheliha",
-    fallbackQuery: "jauheliha",
-    requiredAny: [] as string[],
-  };
-}
-
-function isAllowedGroundMeatResult(originalQuery: string, product: Product) {
-  const profile = getGroundMeatSearchProfile(originalQuery);
-  if (!profile) return true;
-
-  const productText = normalize(`${product.name} ${product.category || ""}`);
-  if (!productText.includes("jauheliha")) return false;
-  if (profile.requiredAny.length === 0) return true;
-  return hasAnyToken(productText, profile.requiredAny);
-}
-
 function getNormalSearchQueries(term: string) {
-  const groundMeatProfile = getGroundMeatSearchProfile(term);
-
-  // v255:
-  // Jauheliha-haussa ei saa koskaan fallbackata pelkkään "broilerin"/"naudan" sanaan.
-  // Muuten S-haku voi jäädä broileri-/nauta-tuoteryhmään ja nostaa fileitä, pihvejä tms.
-  if (groundMeatProfile) {
-    return uniqueNormalizedQueries([
-      groundMeatProfile.canonicalQuery,
-      groundMeatProfile.fallbackQuery,
-    ]);
-  }
-
   const intent = detectSearchIntent(term);
   const normalizedTerm = normalize(term);
   const words = getNormalizedWords(term).filter((word) => word.length > 3 && !/^\d/.test(word));
@@ -746,7 +689,8 @@ function getNormalSearchQueries(term: string) {
 
   // v247:
   // Moniosaiset tuotetermit ovat yleensä tarkoituksella tarkkoja hakuja.
-  // Esim. "Coca-Cola Zero 1,5l" ei saa hajota yleiseksi cola-hauksi liian aikaisin.
+  // Esim. "broilerin jauheliha" ei saa muuttua käytännössä "broilerin"-hauksi,
+  // eikä "Coca-Cola Zero 1,5l" saa hajota yleiseksi cola-hauksi liian aikaisin.
   // Pidetään tarkka termi aina ensimmäisenä ja lisätään lyhyemmät fallbackit vasta loppuun.
   if (words.length >= 2 && primaryProductNounQuery !== "jauheliha") expanded.push(...uniqueNormalizedQueries([words.slice(0, 2).join(" ")]));
 
@@ -4540,11 +4484,8 @@ export default function Page() {
           // Fail-open: jos S-route palauttaa hinnoiteltuja tuotteita, UI ei saa näyttää nollaa
           // vain siksi, että jokin tuoteryhmäfiltteri oli liian tiukka.
           const safeItems = normalFiltered.length > 0 ? normalFiltered : pricedItems;
-          const groundMeatSafeItems = normalize(term).includes("jauheliha")
-            ? safeItems.filter((product) => isAllowedGroundMeatResult(term, product))
-            : safeItems;
 
-          const finalItems = rankNormalSearchResults(searchQuery, groundMeatSafeItems)
+          const finalItems = rankNormalSearchResults(searchQuery, safeItems)
             .slice(0, 40)
             .map((product) => {
               const withMeta = {
@@ -4583,7 +4524,7 @@ export default function Page() {
         .filter((item) => {
           const originalQuery = (item as Product & { originalSearchTerm?: string }).originalSearchTerm || useTerms[0] || "";
           if (!normalize(originalQuery).includes("jauheliha")) return true;
-          return isAllowedGroundMeatResult(originalQuery, item);
+          return normalize(`${item.name} ${item.category || ""}`).includes("jauheliha");
         })
         .sort((a, b) => {
           const aOriginalQuery = (a as Product & { originalSearchTerm?: string }).originalSearchTerm || useTerms[0] || "";
@@ -5342,9 +5283,23 @@ export default function Page() {
     const matchedTerm = currentTerms.find((term) => {
       const normalizedTerm = normalize(term);
       const normalizedSearchQuery = normalize(getSearchQuery(term));
+
+      // v256:
+      // Jauheliha-haussa hakukysely voi tietoisesti hakea ydintermillä "jauheliha",
+      // vaikka käyttäjän alkuperäinen rivi olisi esim. "broilerin jauheliha".
+      // Kun käyttäjä valitsee minkä tahansa aidon jauhelihatuotteen, alkuperäinen rivi
+      // pitää poistaa jonosta. Muuten sama rivi jää hakemaan itseään uudestaan ja
+      // käyttö näyttää jumittuvan broileri-/jauheliha-hakuun.
+      const termIsGroundMeat = normalizedTerm.includes("jauheliha");
+      const productIsGroundMeat = productName.includes("jauheliha");
+
       return (
         normalizedTerm.length > 0 &&
-        (productName.includes(normalizedTerm) || productName.includes(normalizedSearchQuery))
+        (
+          productName.includes(normalizedTerm) ||
+          productName.includes(normalizedSearchQuery) ||
+          (termIsGroundMeat && productIsGroundMeat)
+        )
       );
     });
 
@@ -5493,11 +5448,9 @@ export default function Page() {
     });
 
     setCart(nextCart);
-    persistCartImmediately(nextCart);
     showCartToast(`Lisätty ostoskoriin: ${newItem.name}`);
     triggerHaptic();
-    // v255: Vertailukortilta koriin lisääminen ei saa hypätä korivertailuun.
-    // Käyttäjä pysyy single-tuotteen vertailukortilla ja voi lisätä myös toisen kaupan tuotteen.
+    void updateChainComparison(nextCart);
   }
 
   function addInputToCart() {
