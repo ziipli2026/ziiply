@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v284_BUILDOK_STORE_PICKER";
+const APP_VERSION = "v285_GPS_AND_WIDE_PICKERS";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -2853,6 +2853,7 @@ export default function Page() {
   const [cartModalOpen, setCartModalOpen] = useState(false);
   const [cartSavePanelOpen, setCartSavePanelOpen] = useState(false);
   const [shopsPanelOpen, setShopsPanelOpen] = useState(false);
+  const [gpsErrorMessage, setGpsErrorMessage] = useState("");
   // Mobile comparison view uses the same activeResult state as desktop, but renders as its own overlay.
   const [cart, setCart] = useState<CartItem[]>([]);
   const cartIsEmpty = cart.length === 0;
@@ -4531,6 +4532,15 @@ export default function Page() {
       }
     } catch (error) {
       console.error(error);
+        if (error?.code === 1) {
+          setGpsErrorMessage("GPS-paikannus estetty selaimen asetuksissa.");
+        } else if (error?.code === 2) {
+          setGpsErrorMessage("GPS-sijaintia ei saatu haettua.");
+        } else if (error?.code === 3) {
+          setGpsErrorMessage("GPS-paikannus aikakatkaistiin.");
+        } else {
+          setGpsErrorMessage("GPS-paikannus ei ole käytettävissä.");
+        }
       setLocationMessage(source === "gps" ? "Sijainti löytyi, mutta kauppahaku epäonnistui. Valitse alue käsin." : "Kauppahaku epäonnistui. Valitse alue käsin.");
     } finally {
       setStoreSearchLoading(false);
@@ -4561,6 +4571,15 @@ export default function Page() {
       await applyLocation(city, "gps");
     } catch (error) {
       console.error(error);
+        if (error?.code === 1) {
+          setGpsErrorMessage("GPS-paikannus estetty selaimen asetuksissa.");
+        } else if (error?.code === 2) {
+          setGpsErrorMessage("GPS-sijaintia ei saatu haettua.");
+        } else if (error?.code === 3) {
+          setGpsErrorMessage("GPS-paikannus aikakatkaistiin.");
+        } else {
+          setGpsErrorMessage("GPS-paikannus ei ole käytettävissä.");
+        }
       setLocationMessage("Sijaintia ei saatu. Valitse alue käsin.");
       setUsingOwnLocation(false);
       setStoreSearchLoading(false);
@@ -4636,6 +4655,15 @@ export default function Page() {
       setOffers([...sItems, ...kItems]);
     } catch (error) {
       console.error(error);
+        if (error?.code === 1) {
+          setGpsErrorMessage("GPS-paikannus estetty selaimen asetuksissa.");
+        } else if (error?.code === 2) {
+          setGpsErrorMessage("GPS-sijaintia ei saatu haettua.");
+        } else if (error?.code === 3) {
+          setGpsErrorMessage("GPS-paikannus aikakatkaistiin.");
+        } else {
+          setGpsErrorMessage("GPS-paikannus ei ole käytettävissä.");
+        }
       setOffers([]);
     } finally {
       setLoadingOffers(false);
@@ -4807,6 +4835,15 @@ export default function Page() {
       setNormalResults(unique);
     } catch (error) {
       console.error(error);
+        if (error?.code === 1) {
+          setGpsErrorMessage("GPS-paikannus estetty selaimen asetuksissa.");
+        } else if (error?.code === 2) {
+          setGpsErrorMessage("GPS-sijaintia ei saatu haettua.");
+        } else if (error?.code === 3) {
+          setGpsErrorMessage("GPS-paikannus aikakatkaistiin.");
+        } else {
+          setGpsErrorMessage("GPS-paikannus ei ole käytettävissä.");
+        }
       setSearchDebug(debugEntries);
       setNormalResults([]);
     } finally {
@@ -5124,6 +5161,15 @@ export default function Page() {
       );
     } catch (error) {
       console.error(error);
+        if (error?.code === 1) {
+          setGpsErrorMessage("GPS-paikannus estetty selaimen asetuksissa.");
+        } else if (error?.code === 2) {
+          setGpsErrorMessage("GPS-sijaintia ei saatu haettua.");
+        } else if (error?.code === 3) {
+          setGpsErrorMessage("GPS-paikannus aikakatkaistiin.");
+        } else {
+          setGpsErrorMessage("GPS-paikannus ei ole käytettävissä.");
+        }
       await stopEanCameraScanner();
       setEanScannerMessage("Kameraa ei saatu avattua tai skanneri ei käynnistynyt. Tarkista kameran lupa ja yritä uudelleen.");
     }
@@ -5394,6 +5440,15 @@ export default function Page() {
       }
     } catch (error) {
       console.error(error);
+        if (error?.code === 1) {
+          setGpsErrorMessage("GPS-paikannus estetty selaimen asetuksissa.");
+        } else if (error?.code === 2) {
+          setGpsErrorMessage("GPS-sijaintia ei saatu haettua.");
+        } else if (error?.code === 3) {
+          setGpsErrorMessage("GPS-paikannus aikakatkaistiin.");
+        } else {
+          setGpsErrorMessage("GPS-paikannus ei ole käytettävissä.");
+        }
       setEanResults([]);
       setEanSearchStartedAutomatically(false);
       eanAutoSearchActiveRef.current = false;
@@ -6874,6 +6929,15 @@ export default function Page() {
       }));
     } catch (error) {
       console.error(error);
+        if (error?.code === 1) {
+          setGpsErrorMessage("GPS-paikannus estetty selaimen asetuksissa.");
+        } else if (error?.code === 2) {
+          setGpsErrorMessage("GPS-sijaintia ei saatu haettua.");
+        } else if (error?.code === 3) {
+          setGpsErrorMessage("GPS-paikannus aikakatkaistiin.");
+        } else {
+          setGpsErrorMessage("GPS-paikannus ei ole käytettävissä.");
+        }
       setAlternativeResults((prev) => ({
         ...prev,
         [key]: [],
@@ -7176,6 +7240,15 @@ export default function Page() {
       }));
     } catch (error) {
       console.error(error);
+        if (error?.code === 1) {
+          setGpsErrorMessage("GPS-paikannus estetty selaimen asetuksissa.");
+        } else if (error?.code === 2) {
+          setGpsErrorMessage("GPS-sijaintia ei saatu haettua.");
+        } else if (error?.code === 3) {
+          setGpsErrorMessage("GPS-paikannus aikakatkaistiin.");
+        } else {
+          setGpsErrorMessage("GPS-paikannus ei ole käytettävissä.");
+        }
       alert("Korivaihtoehtojen haku epäonnistui. Kokeile hetken päästä uudelleen.");
     } finally {
       setOptimizingChains((prev) => ({
@@ -7323,7 +7396,7 @@ export default function Page() {
                     : "bg-slate-50 text-slate-700"
                 }`}
               >
-                <span className="block truncate">{store.name}</span>
+                <span className="block">{store.name}</span>
                 <span className={`block text-[10px] ${selected ? "text-white/80" : "text-slate-400"}`}>{store.city || activeArea.label || ""} {store.postalCode || ""}</span>
               </button>
             );
@@ -7601,6 +7674,12 @@ export default function Page() {
           <div className="mt-2 rounded-xl bg-green-50 px-3 py-2 text-xs font-semibold text-green-900 sm:mt-3 sm:rounded-2xl sm:p-3 sm:text-sm">
             {locationMessage}
           </div>
+              {gpsErrorMessage && (
+                <div className="mt-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-center text-sm font-extrabold text-red-700 shadow-sm">
+                  {gpsErrorMessage}
+                </div>
+              )}
+
 
           {renderComparedStoreCards(false)}
         </section>
@@ -7702,7 +7781,7 @@ export default function Page() {
                           key={store.id}
                           type="button"
                           onClick={() => selectStoreForCurrentMode(store)}
-                          className={`w-full rounded-xl px-3 py-2 text-left transition ${
+                          className={`w-full min-w-[280px] rounded-xl px-4 py-3 text-left transition ${
                             selected
                               ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                               : "bg-slate-50 text-slate-700 hover:bg-green-50"
@@ -7733,19 +7812,56 @@ export default function Page() {
                           ? activeArea.kLocalStoreId === store.id
                           : activeArea.kStoreId === store.id;
 
+
+  // AUTO_GPS_DEFAULT_V285
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const timer = window.setTimeout(() => {
+      try {
+        if (!navigator.geolocation) {
+          setGpsErrorMessage("Selain ei tue GPS-paikannusta.");
+          return;
+        }
+
+        setGpsErrorMessage("");
+        navigator.geolocation.getCurrentPosition(
+          () => {
+            setGpsErrorMessage("");
+          },
+          (error) => {
+            if (error?.code === 1) {
+              setGpsErrorMessage("GPS-paikannus estetty selaimen asetuksissa.");
+            } else if (error?.code === 2) {
+              setGpsErrorMessage("GPS-sijaintia ei saatu haettua.");
+            } else if (error?.code === 3) {
+              setGpsErrorMessage("GPS-paikannus aikakatkaistiin.");
+            } else {
+              setGpsErrorMessage("GPS-paikannus ei ole käytettävissä.");
+            }
+          },
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
+        );
+      } catch {
+        setGpsErrorMessage("GPS-paikannus ei ole käytettävissä.");
+      }
+    }, 450);
+
+    return () => window.clearTimeout(timer);
+  }, []);
 return (
                         <button
                           key={store.id}
                           type="button"
                           onClick={() => selectStoreForCurrentMode(store)}
-                          className={`w-full rounded-xl px-3 py-2 text-left transition ${
+                          className={`w-full min-w-[280px] rounded-xl px-4 py-3 text-left transition ${
                             selected
                               ? "bg-red-700 shadow-md ring-1 ring-black/10 text-white"
                               : "bg-slate-50 text-slate-700 hover:bg-red-50"
                           }`}
                         >
-                          <span className="block truncate font-bold">{store.name}</span>
-                          <span className={`block text-[11px] ${selected ? "text-red-50" : "text-slate-400"}`}>
+                          <span className="block font-bold">{store.name}</span>
+                          <span className={`block text-xs ${selected ? "text-red-50" : "text-slate-400"}`}>
                             ID {store.id} · {store.city || ""} {store.postalCode || ""}
                           </span>
                         </button>
@@ -7814,7 +7930,7 @@ return (
                 </div>
 
               <div data-v282="v282_MOBILE_HAKUTAPA_RENDER_MARKER" className="mt-3 rounded-[1.5rem] bg-slate-50 p-3 ring-1 ring-slate-200">
-                <p className="mb-2 text-[11px] font-black uppercase tracking-wide text-slate-500">Hakutapa</p>
+                <p className="mb-2 text-xs font-black uppercase tracking-wide text-slate-500">Hakutapa</p>
 
                 <div className="grid grid-cols-2 gap-2">
                   <button
@@ -7944,7 +8060,7 @@ return (
                                 key={store.id}
                                 type="button"
                                 onClick={() => selectStoreForCurrentMode(store)}
-                                className={`w-full rounded-xl px-3 py-2 text-left transition ${
+                                className={`w-full min-w-[280px] rounded-xl px-4 py-3 text-left transition ${
                                   selected
                                     ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                                     : "bg-slate-50 text-slate-700 hover:bg-green-50"
@@ -7980,7 +8096,7 @@ return (
                                 key={store.id}
                                 type="button"
                                 onClick={() => selectStoreForCurrentMode(store)}
-                                className={`w-full rounded-xl px-3 py-2 text-left transition ${
+                                className={`w-full min-w-[280px] rounded-xl px-4 py-3 text-left transition ${
                                   selected
                                     ? "bg-red-700 shadow-md ring-1 ring-black/10 text-white"
                                     : "bg-slate-50 text-slate-700 hover:bg-red-50"
