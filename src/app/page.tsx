@@ -218,7 +218,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v261";
+const APP_VERSION = "v262";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -818,7 +818,7 @@ function getProductCategoryLabel(name: string, category?: string) {
 
   if (hasAnyToken(text, ["banaani", "omena", "tomaatti", "kurkku", "hedelmä", "hedelma", "vihannes", "juures"])) return "Hedelmät ja vihannekset";
   if (hasAnyToken(text, ["maito", "juusto", "jogurtti", "jogurt", "rahka", "voi", "kerma", "raejuusto"])) return "Maitotuotteet";
-  if (hasAnyToken(text, ["jauheliha", "kana", "broileri", "liha", "makkara", "kala", "kalapuikko"])) return "Liha, kala ja proteiinit";
+  if (hasAnyToken(text, ["jauheliha", "kana", "broileri", "liha", "makkara", "kala", "kalapuikko", "kananmuna", "kananmunia", "kananmunat", "munat"])) return "Liha, kala ja proteiinit";
   if (hasAnyToken(text, ["leipä", "leipa", "sämpylä", "sampyla", "tortilla"])) return "Leivät ja viljatuotteet";
   if (hasAnyToken(text, ["kahvi", "cola", "mehu", "limu", "vesi", "juoma", "olut"])) return "Juomat";
   if (hasAnyToken(text, ["pakaste", "ranskanperuna", "jäätelö", "jaatelo", "kalapuikko"])) return "Pakasteet";
@@ -1122,6 +1122,8 @@ function getKSearchTerms(name: string) {
     "leipa",
     "voi",
     "kananmuna",
+    "kananmunia",
+    "munat",
     "makkara",
     "pasta",
     "riisi",
@@ -1138,6 +1140,15 @@ function getKSearchTerms(name: string) {
   if (hasAnyToken(normalized, ["kalapuikko", "kalapuikot", "fiskpinnar"])) {
     addTerm("kalapuikot");
     addTerm("kalapuikko");
+  }
+
+  // v262: EAN/viivakoodihaussa K-vastine haetaan usein S-tuotteen nimellä.
+  // Kananmunat taipuvat nimissä eri tavoin (kananmuna / kananmunia / munat),
+  // joten lisätään tuoteryhmän ydintermit ennen geneerisiä fallbackeja.
+  if (hasAnyToken(normalized, ["kananmuna", "kananmunia", "kananmunat", "muna", "munia", "munat", "egg", "eggs"])) {
+    addTerm("kananmuna");
+    addTerm("kananmunia");
+    addTerm("munat");
   }
 
   for (const word of fallbackWords) {
@@ -1595,6 +1606,30 @@ function productGroupGate(sourceName: string, targetName: string) {
     if (targetIsFishStick) return false;
   }
 
+  const sourceIsEgg = hasAnyToken(source, ["kananmuna", "kananmunia", "kananmunat", "muna", "munia", "munat", "egg", "eggs"]);
+  if (sourceIsEgg) {
+    const targetIsEgg = hasAnyToken(target, ["kananmuna", "kananmunia", "kananmunat", "muna", "munia", "munat", "egg", "eggs"]);
+    const targetIsWrongEggProduct = hasAnyToken(target, [
+      "suklaa",
+      "pääsiäis",
+      "paasiais",
+      "yllätys",
+      "yllatys",
+      "makeinen",
+      "karkki",
+      "lelu",
+      "majoneesi",
+      "munavoi",
+      "munakas",
+      "kastike",
+      "nuudeli",
+      "pasta",
+    ]);
+
+    if (!targetIsEgg) return false;
+    if (targetIsWrongEggProduct) return false;
+  }
+
   // Maito ja kahvi eivät saa käyttää kovaa tuoteryhmäporttia:
   // aiempi versio pudotti liikaa oikeita tuotteita pois.
 
@@ -1704,6 +1739,15 @@ function isHardRejectedKMatch(query: string, candidateName: string) {
     if (forbiddenWords) return true;
   }
 
+  const sourceIsEgg = hasAnyToken(source, ["kananmuna", "kananmunia", "kananmunat", "muna", "munia", "munat", "egg", "eggs"]);
+  if (sourceIsEgg) {
+    const targetIsEgg = hasAnyToken(target, ["kananmuna", "kananmunia", "kananmunat", "muna", "munia", "munat", "egg", "eggs"]);
+    const forbiddenWords = hasAnyToken(target, ["suklaa", "pääsiäis", "paasiais", "yllätys", "yllatys", "makeinen", "karkki", "lelu", "majoneesi", "munavoi", "munakas", "kastike"]);
+
+    if (!targetIsEgg) return true;
+    if (forbiddenWords) return true;
+  }
+
   return false;
 }
 
@@ -1761,6 +1805,9 @@ function scoreNameMatch(sourceName: string, targetName: string) {
     "rahka",
     "kana",
     "kahvi",
+    "kananmuna",
+    "kananmunia",
+    "munat",
     "laktoositon",
     "luomu",
     "kalapuikko",
@@ -2983,20 +3030,6 @@ export default function Page() {
     setInput(value);
   }
 
-  function clearSingleSearchInputState(options: { clearResults?: boolean } = {}) {
-    setInput("");
-    setNormalResults([]);
-    setNormalSearchAttempted(false);
-    setVisibleNormalCount(8);
-    setActiveNormalSearchTerm("");
-    setSearchDebug([]);
-    setSingleProductCompareTerm("");
-
-    if (options.clearResults) {
-      setSingleProductCompareResults([]);
-    }
-  }
-
   function getCompactSuggestionLabel(label: string) {
     const clean = fixText(label).replace(/\s+/g, " ").trim();
     const text = normalize(clean);
@@ -3702,18 +3735,18 @@ export default function Page() {
     // v236: Aloitussivu pysyy tyhjänä v234-tyyliin. Hae avataan kiinteänä yhtenä näkymänä, ei skrollattavana sivuna.
     // Hae-paneeli toimii mobiilissa erillisenä näkymänä: se sulkee korin/EANin/vertailun ja näkyy aina viewportissa.
     const openedFromSingleCompare = activeResult === "singleCompare";
-    const openedFromCart = cartModalOpen;
 
     setCartModalOpen(false);
     setShopsPanelOpen(false);
     setEanModalOpen(false);
 
-    // v261:
-    // Yksittäisen tuotteen vertailusta/koriin lisäyksestä jäänyt hakusana ei saa
-    // palata Hae-kortin tekstikenttään, kun käyttäjä tulee sinne vertailukortilta
-    // tai ostoskorista. Koko kori -tilan keskeneräistä listaa ei tyhjennetä.
-    if (openedFromSingleCompare || (openedFromCart && searchCompareMode === "single")) {
-      clearSingleSearchInputState({ clearResults: openedFromSingleCompare });
+    if (openedFromSingleCompare) {
+      setInput("");
+      setNormalResults([]);
+      setNormalSearchAttempted(false);
+      setVisibleNormalCount(8);
+      setActiveNormalSearchTerm("");
+      setSearchDebug([]);
     }
 
     setActiveResult("none");
@@ -5549,7 +5582,6 @@ export default function Page() {
     });
 
     if (alreadyInCart) {
-      clearSingleSearchInputState();
       showCartToast("Tuote on jo ostoskorissa.");
       return;
     }
@@ -5597,7 +5629,6 @@ export default function Page() {
     setCart(nextCart);
     showCartToast(`Lisätty ostoskoriin: ${newItem.name}`);
     triggerHaptic();
-    clearSingleSearchInputState();
     void updateChainComparison(nextCart, { openCompare: false });
     setActiveResult("singleCompare");
   }
@@ -6244,7 +6275,6 @@ export default function Page() {
     syncCartDependentState(nextCart, id, removedItem?.id);
 
     if (removedItem) {
-      clearSingleSearchInputState({ clearResults: searchCompareMode === "single" });
       setCheckedCartItems((current) => {
         const next = { ...current };
         delete next[id];
@@ -6270,7 +6300,6 @@ export default function Page() {
 
     if (!removedItem) return;
 
-    clearSingleSearchInputState({ clearResults: searchCompareMode === "single" });
     setCart(nextCart);
     syncCartDependentState(nextCart, undefined, id);
     setCheckedCartItems((current) => {
@@ -6303,7 +6332,6 @@ export default function Page() {
     const ok = window.confirm(`Tyhjennetäänkö koko ostoskori (${cart.length} tuotetta)?`);
     if (!ok) return false;
 
-    clearSingleSearchInputState({ clearResults: true });
     setCart([]);
     setCheckedCartItems({});
     setQualityModesByCart({});
