@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v314";
+const APP_VERSION = "v315";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -2953,13 +2953,15 @@ export default function Page() {
     setStoreModeChosenV299(false);
     setStoreCompareScope("none");
     setWithinChain(null);
-    // v314_INITIAL_NAV_LOCK: refresh/ensimmäinen avaus näyttää aina Kaupat-näkymän.
+    // v315_INITIAL_NAV_PROMPT: refresh/ensimmäinen avaus ei avaa mitään korttia.
+    // Vain Kaupat-nappi on käytettävissä, mutta se ei ole vielä aktiivinen ennen käyttäjän painallusta.
     setSearchPanelOpen(false);
     setCartModalOpen(false);
     setCartSavePanelOpen(false);
     setEanModalOpen(false);
     setActiveResult("none");
-    setShopsPanelOpen(true);
+    setShopsPanelOpen(false);
+    setInitialStoreNavPrompt(true);
     // v310_STEP1_2_GPS_REFRESH_FIX: refreshissä valinnat nollaan, GPS päälle.
     gpsUserDisabledRefV306.current = false;
     setUsingOwnLocation(true);
@@ -2976,7 +2978,8 @@ export default function Page() {
   const [searchPanelOpen, setSearchPanelOpen] = useState(false);
   const [cartModalOpen, setCartModalOpen] = useState(false);
   const [cartSavePanelOpen, setCartSavePanelOpen] = useState(false);
-  const [shopsPanelOpen, setShopsPanelOpen] = useState(true);
+  const [shopsPanelOpen, setShopsPanelOpen] = useState(false);
+  const [initialStoreNavPrompt, setInitialStoreNavPrompt] = useState(true);
   const [gpsErrorMessage, setGpsErrorMessage] = useState("");
   const [gpsAutoActivatedV287, setGpsAutoActivatedV287] = useState(false);
   const gpsUserDisabledRefV306 = useRef(false);
@@ -6398,6 +6401,7 @@ export default function Page() {
     setCartSavePanelOpen(false);
     setEanModalOpen(false);
     setActiveResult("none");
+    setInitialStoreNavPrompt(false);
     setShopsPanelOpen(true);
   }
 
@@ -9801,7 +9805,7 @@ return (
             type="button"
             onClick={toggleShopsPanel}
             aria-disabled={false}
-            className={`flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition ${shopsPanelOpen ? (initialStoreSelectionLocked ? "bg-green-50 text-green-800 ring-2 ring-green-200 shadow-[0_0_22px_rgba(34,197,94,0.18)] active:scale-[0.98]" : "bg-green-700 shadow-md ring-1 ring-black/10 text-white shadow-md active:scale-[0.98]") : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
+            className={`flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition ${shopsPanelOpen ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white active:scale-[0.98]" : initialStoreNavPrompt ? "bg-green-50/60 text-slate-700 ring-1 ring-green-100 shadow-[0_0_18px_rgba(34,197,94,0.10)] active:scale-[0.98]" : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
           >
             <span className="text-lg leading-none">🏪</span>
             <span className="mt-1 block">Kaupat</span>
