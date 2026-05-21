@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v290_BUILDOK_MOBILE_GPS_PICKER";
+const APP_VERSION = "v291_MOBILE_ONLY_GPS_PICKER";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -7921,6 +7921,22 @@ export default function Page() {
 
     return () => window.clearTimeout(timer);
   }, []);
+
+  // GPS_VISUAL_STICKY_V291
+  // Merkitään oma sijainti aktiiviseksi selaimessa latauksen jälkeen.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const timer = window.setTimeout(() => {
+      try {
+        localStorage.setItem("ziiply-use-own-location", "1");
+        setGpsErrorMessage("");
+      } catch {}
+    }, 120);
+
+    return () => window.clearTimeout(timer);
+  }, []);
+
 return (
                         <button
                           key={store.id}
@@ -7951,7 +7967,7 @@ return (
 
         {shopsPanelOpen && (
           <div className="fixed inset-0 z-40 flex items-end justify-center overflow-y-auto overscroll-contain bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:hidden">
-            <div className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-100 p-3 shadow-2xl">
+            <div className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-100 p-3 shadow-2xl" style={ width: "100%" }>
               <section className="rounded-[1.25rem] border border-slate-200 bg-white/95 p-2 shadow-sm">
                 <div className="flex items-center gap-2">
                   <button
@@ -8114,7 +8130,7 @@ return (
                     <div className="grid gap-2">
                       <div>
                         <p className="mb-2 text-xs font-bold uppercase tracking-wide text-green-700">S-ryhmä</p>
-                        <div className="max-h-44 space-y-2 overflow-auto pr-1">
+                        <div className="max-h-44 space-y-2 overflow-auto pr-1" style={ width: "100%" }>
                           {foundStores.filter((store) => {
                       if (store.type !== "S") return false;
                       if (storeCompareScope === "within_chain") return true;
@@ -8132,7 +8148,7 @@ return (
                                 key={store.id}
                                 type="button"
                                 onClick={() => selectStoreForCurrentMode(store)}
-                                className={`w-full min-w-[min(86vw,360px)] rounded-xl px-4 py-3 text-left transition ${
+                                className={`w-full min-w-[320px] rounded-xl px-4 py-3 text-left transition ${
                                   selected
                                     ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                                     : "bg-slate-50 text-slate-700 hover:bg-green-50"
@@ -8149,8 +8165,8 @@ return (
                       </div>
 
                       <div>
-                        <p className="mb-2 text-xs font-bold uppercase tracking-wide text-red-700">K-ryhmä</p>
-                        <div className="max-h-44 space-y-2 overflow-auto pr-1">
+                        <p className="mb-2 text-xs font-bold uppercase tracking-wide text-green-700">K-ryhmä</p>
+                        <div className="max-h-44 space-y-2 overflow-auto pr-1" style={ width: "100%" }>
                           {foundStores.filter((store) => {
                       if (store.type !== "K") return false;
                       if (storeCompareScope === "within_chain") return true;
@@ -8168,7 +8184,7 @@ return (
                                 key={store.id}
                                 type="button"
                                 onClick={() => selectStoreForCurrentMode(store)}
-                                className={`w-full min-w-[min(86vw,360px)] rounded-xl px-4 py-3 text-left transition ${
+                                className={`w-full min-w-[320px] rounded-xl px-4 py-3 text-left transition ${
                                   selected
                                     ? "bg-red-700 shadow-md ring-1 ring-black/10 text-white"
                                     : "bg-slate-50 text-slate-700 hover:bg-red-50"
@@ -8234,8 +8250,8 @@ return (
                           {item.offer.item.pictureUrl && <img src={item.offer.item.pictureUrl} alt={item.offer.item.name} className="h-20 w-24 shrink-0 rounded-2xl bg-slate-100 object-contain" />}
                           <div className="min-w-0 max-w-full flex-1 overflow-hidden">
                             <div className="mb-2 flex flex-wrap gap-2">
-                              <span className="rounded-full bg-red-100 px-2 py-1 text-xs font-extrabold text-red-700">🔥 Tarjous</span>
-                              <span className={`rounded-full px-2 py-1 text-xs font-bold ${item.chain === "S" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>{item.chain === "S" ? "S-ryhmä" : "K-ryhmä"}</span>
+                              <span className="rounded-full bg-red-100 px-2 py-1 text-xs font-extrabold text-green-700">🔥 Tarjous</span>
+                              <span className={`rounded-full px-2 py-1 text-xs font-bold ${item.chain === "S" ? "bg-green-100 text-green-700" : "bg-red-100 text-green-700"}`}>{item.chain === "S" ? "S-ryhmä" : "K-ryhmä"}</span>
                             </div>
                             <h3 className="line-clamp-2 font-extrabold">{fixText(item.offer.item.name)}</h3>
                             <p className="mt-1 text-sm text-slate-500">{item.storeName}</p>
@@ -8374,7 +8390,7 @@ return (
                             )}
                             <div className="min-w-0 flex-1">
                               <div className="flex flex-wrap items-center gap-2">
-                                <span className={`rounded-full px-2 py-0.5 text-[10px] font-black ${result.key === "s" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
+                                <span className={`rounded-full px-2 py-0.5 text-[10px] font-black ${result.key === "s" ? "bg-green-100 text-green-700" : "bg-red-100 text-green-700"}`}>
                                   {result.chain}
                                 </span>
                                 {isCheapestSingle && (
@@ -8385,11 +8401,11 @@ return (
                               </div>
                               <h3 className="mt-1 line-clamp-2 text-base font-black text-slate-950">{result.productName}</h3>
                               <p className="mt-0.5 text-sm font-bold text-slate-500">{result.storeName}</p>
-                              {result.ean && <p className="mt-0.5 text-[11px] text-slate-400">EAN: {result.ean}</p>}
+                              {result.ean && <p className="mt-0.5 text-xs text-slate-400">EAN: {result.ean}</p>}
                             </div>
                             <div className="shrink-0 text-right">
                               <p className="text-2xl font-black text-green-700">{formatEuro(result.price)}</p>
-                              {result.comparisonPrice && <p className="text-[11px] font-bold text-slate-500">{result.comparisonPrice}</p>}
+                              {result.comparisonPrice && <p className="text-xs font-bold text-slate-500">{result.comparisonPrice}</p>}
                             </div>
                           </div>
                           <button
@@ -8455,7 +8471,7 @@ return (
                       <div key={item} className="rounded-2xl border border-slate-200 p-3">
                         <div className="flex items-center gap-3">
                           <div className="h-12 w-12 animate-pulse rounded-xl bg-slate-100" />
-                          <div className="min-w-0 flex-1 space-y-2">
+                          <div className="min-w-0 flex-1 space-y-2" style={ width: "100%" }>
                             <div className="h-4 w-3/4 animate-pulse rounded bg-slate-100" />
                             <div className="h-3 w-1/2 animate-pulse rounded bg-slate-100" />
                             <div className="h-5 w-24 animate-pulse rounded bg-slate-100" />
@@ -8593,10 +8609,10 @@ return (
                           <p className="mt-2 line-clamp-2 text-xs font-medium text-slate-500">{chain.detail}</p>
                         </div>
 
-                        <div className="mt-3 flex flex-wrap items-center gap-1.5 rounded-2xl border border-slate-100 bg-slate-50 px-3 py-2 text-[11px] font-extrabold text-slate-600">
+                        <div className="mt-3 flex flex-wrap items-center gap-1.5 rounded-2xl border border-slate-100 bg-slate-50 px-3 py-2 text-xs font-extrabold text-slate-600">
                           <span className="text-green-700">{chain.foundItems} löytyi</span>
                           <span className="text-slate-300">·</span>
-                          <span className={chain.missingItems > 0 ? "text-red-700" : "text-slate-500"}>{chain.missingItems} puuttuu</span>
+                          <span className={chain.missingItems > 0 ? "text-green-700" : "text-slate-500"}>{chain.missingItems} puuttuu</span>
                           <span className="text-slate-300">·</span>
                           <span className="text-yellow-700">{chain.offerCount} tarjousta</span>
                           {!chain.comingSoon && <span className="ml-auto text-[10px] uppercase tracking-wide text-green-700">oikea data</span>}
@@ -8605,9 +8621,9 @@ return (
                         {chain.matches.length > 0 ? (
                           <div className="mt-3 max-w-full overflow-hidden rounded-2xl border border-slate-100 bg-white p-2.5">
                             <div className="mb-2">
-                              <p className="text-[11px] font-black uppercase tracking-wide text-slate-500">Tuotteet</p>
+                              <p className="text-xs font-black uppercase tracking-wide text-slate-500">Tuotteet</p>
                             </div>
-                            <div className="space-y-2">
+                            <div className="space-y-2" style={ width: "100%" }>
                               {chain.matches.map((match, index) => {
                                 const isOwnBrandMatch =
                                   (chain.key === "k" && isKOwnBrandProduct(match.product.name)) ||
@@ -8653,7 +8669,7 @@ return (
                                     <button
                                       type="button"
                                       onClick={() => toggleAlternatives(getAlternativeKey(chain.key, match, index), chain.key, match)}
-                                      className="mt-1.5 rounded-lg bg-white px-2 py-1 text-[11px] font-extrabold text-slate-600 ring-1 ring-slate-100 transition hover:bg-slate-100 active:scale-[0.98]"
+                                      className="mt-1.5 rounded-lg bg-white px-2 py-1 text-xs font-extrabold text-slate-600 ring-1 ring-slate-100 transition hover:bg-slate-100 active:scale-[0.98]"
                                     >
                                       {expandedAlternatives[getAlternativeKey(chain.key, match, index)]
                                         ? "Piilota vaihtoehdot"
@@ -8676,10 +8692,10 @@ return (
                                         onPointerDown={() => startAlternativesAutoCloseTimer(getAlternativeKey(chain.key, match, index))}
                                         className="fixed inset-0 z-[80] flex items-end justify-center bg-black/40 px-3 pb-3 pt-10 sm:items-center sm:p-4"
                                       >
-                                        <div className="max-h-[82vh] w-full max-w-xl overflow-y-auto rounded-t-[1.75rem] bg-slate-50 p-3 text-[11px] text-slate-600 shadow-2xl ring-1 ring-slate-200 sm:rounded-[1.75rem]"><div className="flex items-center justify-between gap-3">
+                                        <div className="max-h-[82vh] w-full max-w-xl overflow-y-auto rounded-t-[1.75rem] bg-slate-50 p-3 text-xs text-slate-600 shadow-2xl ring-1 ring-slate-200 sm:rounded-[1.75rem]" style={ width: "100%" }><div className="flex items-center justify-between gap-3">
                                           <div className="min-w-0 flex-1 overflow-hidden">
                                             <p className="font-extrabold text-slate-700">Vaihtoehdot tuotteelle</p>
-                                            <p className="mt-0.5 truncate text-[11px] font-bold text-slate-500">{fixText(match.product.name)}</p>
+                                            <p className="mt-0.5 truncate text-xs font-bold text-slate-500">{fixText(match.product.name)}</p>
                                             <p className="mt-0.5 text-[10px] font-bold text-slate-400">
                                               {getQualityModeLabel(getMatchQualityMode(match))}
                                             </p>
@@ -8758,7 +8774,7 @@ return (
                                           </button>
                                         )}
 
-                                        <div className="mt-2 space-y-2">
+                                        <div className="mt-2 space-y-2" style={ width: "100%" }>
                                           {(alternativeResults[getAlternativeKey(chain.key, match, index)] || []).map((alternative, alternativeIndex) => {
                                             const alternativePrice = getProductPrice(alternative);
                                             const priceDiff = alternativePrice - match.price;
@@ -8839,12 +8855,12 @@ return (
                                     )}
 
                                     {match.fallbackStoreName && (
-                                      <p className="mt-1 truncate text-[11px] font-semibold text-amber-600">
+                                      <p className="mt-1 truncate text-xs font-semibold text-amber-600">
                                         fallback: {match.fallbackStoreName}
                                       </p>
                                     )}
                                     {match.product.ean && (
-                                      <p className="mt-0.5 truncate text-[11px] text-slate-400">EAN: {match.product.ean}</p>
+                                      <p className="mt-0.5 truncate text-xs text-slate-400">EAN: {match.product.ean}</p>
                                     )}
                                   </div>
                                 );
@@ -8888,7 +8904,7 @@ return (
                                 </div>
                               )}
 
-                              <p className="max-w-full break-words text-2xl sm:text-3xl font-extrabold leading-none text-green-700 sm:whitespace-nowrap sm:text-4xl">
+                              <p className="max-w-full break-words text-2xl sm:text-3xl font-extrabold leading-none text-green-700 sm:whitespace-normal sm:text-4xl">
                                 {chain.comingSoon ? "—" : chain.totalPrice > 0 ? formatEuro(chain.totalPrice) : "—"}
                               </p>
                               {!chain.comingSoon && <p className="text-sm text-green-700">oikea data</p>}
@@ -9009,7 +9025,7 @@ return (
                         onClick={() => addSavedListToCart(list)}
                         className="min-w-0 flex-1 text-left transition active:scale-[0.99]"
                       >
-                        <span className="block truncate text-sm font-extrabold">{list.name}</span>
+                        <span className="block whitespace-normal break-words text-sm font-extrabold">{list.name}</span>
                         <span className="block text-xs font-semibold text-green-100">{list.items.length} riviä · lisää ostoskoriin</span>
                       </button>
                       <button
@@ -9075,11 +9091,11 @@ return (
                   Merkitse tuote kerätyksi, kun olet poiminut sen hyllystä. Merkinnät säilyvät sivun päivityksen jälkeen.
                 </p>
 
-                <div className="mt-4 max-h-[46vh] space-y-3 sm:space-y-4 overflow-auto pr-1">
+                <div className="mt-4 max-h-[46vh] space-y-3 sm:space-y-4 overflow-auto pr-1" style={ width: "100%" }>
                   {(Object.entries(bestShoppingListGroups) as [string, Match[]][]).map(([category, matches]) => (
                     <div key={category}>
                       <p className="mb-2 flex items-center justify-between text-xs font-black uppercase tracking-wide text-slate-400"><span>{category}</span><span>{matches.filter((match, index) => checkedCartItems[getShoppingListItemKey(match, index)]).length}/{matches.length}</span></p>
-                      <div className="space-y-2">
+                      <div className="space-y-2" style={ width: "100%" }>
                         {matches.map((match, index) => {
                           const key = getShoppingListItemKey(match, index);
                           const checked = Boolean(checkedCartItems[key]);
@@ -9172,7 +9188,7 @@ return (
                       <button
                         type="button"
                         onClick={() => removeCartItem(item.id)}
-                        className="rounded-xl bg-red-100 px-3 py-2 text-sm font-bold text-red-700 transition active:scale-[0.98]"
+                        className="rounded-xl bg-red-100 px-3 py-2 text-sm font-bold text-green-700 transition active:scale-[0.98]"
                         aria-label={`Poista ${item.name} ostoskorista`}
                       >
                         🗑 Poista
@@ -9240,7 +9256,7 @@ return (
                   onClick={handleMainOfferSearch}
                   disabled={!hasSearchInput || loadingOffers}
                   aria-disabled={!hasSearchInput || loadingOffers}
-                  className={`touch-manipulation rounded-[0.95rem] px-2 py-2 text-[11px] font-black leading-tight transition sm:text-xs ${
+                  className={`touch-manipulation rounded-[0.95rem] px-2 py-2 text-xs font-black leading-tight transition sm:text-xs ${
                     !hasSearchInput || loadingOffers
                       ? "cursor-not-allowed bg-slate-100 text-slate-400 ring-1 ring-slate-200"
                       : "bg-white text-slate-800 shadow-sm ring-1 ring-slate-200 active:scale-[0.98]"
@@ -9253,7 +9269,7 @@ return (
                   onClick={handleMainNormalSearch}
                   disabled={!hasSearchInput || loadingNormal || singleProductCompareLoading}
                   aria-disabled={!hasSearchInput || loadingNormal || singleProductCompareLoading}
-                  className={`touch-manipulation rounded-[0.95rem] px-2 py-2 text-[11px] font-black leading-tight transition sm:text-xs ${
+                  className={`touch-manipulation rounded-[0.95rem] px-2 py-2 text-xs font-black leading-tight transition sm:text-xs ${
                     !hasSearchInput || loadingNormal || singleProductCompareLoading
                       ? "cursor-not-allowed bg-slate-100 text-slate-400 ring-1 ring-slate-200"
                       : "bg-white text-slate-800 shadow-sm ring-1 ring-slate-200 active:scale-[0.98]"
@@ -9266,7 +9282,7 @@ return (
                   onClick={addInputToCart}
                   disabled={!hasSearchInput}
                   aria-disabled={!hasSearchInput}
-                  className={`touch-manipulation rounded-[0.95rem] px-2 py-2 text-[11px] font-black leading-tight transition sm:text-xs ${
+                  className={`touch-manipulation rounded-[0.95rem] px-2 py-2 text-xs font-black leading-tight transition sm:text-xs ${
                     !hasSearchInput
                       ? "cursor-not-allowed bg-slate-100 text-slate-400 ring-1 ring-slate-200"
                       : "bg-white text-slate-800 shadow-sm ring-1 ring-slate-200 active:scale-[0.98]"
@@ -9278,7 +9294,7 @@ return (
 
               <div className="mt-2 min-h-0 flex-1 rounded-[1.1rem] border border-green-100 bg-white p-2 shadow-inner shadow-green-50/60">
                 <div className="mb-1.5 flex items-center justify-between px-1">
-                  <p className="text-[11px] font-black uppercase tracking-wide text-slate-500">Tuotteet</p>
+                  <p className="text-xs font-black uppercase tracking-wide text-slate-500">Tuotteet</p>
                   <button
                     type="button"
                     onPointerDown={(event) => event.preventDefault()}
@@ -9296,14 +9312,14 @@ return (
                   className={`${instantSearchSuggestions.length > 0 ? "h-[calc(100%-8.8rem)] min-h-[5.4rem]" : "h-[calc(100%-3.8rem)] min-h-[7.5rem]"} w-full resize-none rounded-[1rem] border border-slate-200 bg-slate-50/70 px-3 py-2.5 text-[16px] font-semibold leading-snug text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-green-500 focus:bg-white focus:ring-4 focus:ring-green-100`}
                 />
                 {instantSearchSuggestions.length > 0 && (
-                  <div className="mt-1.5 flex max-h-[4.65rem] flex-wrap gap-1.5 overflow-hidden px-1">
+                  <div className="mt-1.5 flex max-h-[4.65rem] flex-wrap gap-1.5 overflow-hidden px-1" style={ width: "100%" }>
                     {instantSearchSuggestions.map((suggestion) => (
                       <button
                         key={`${suggestion.hint}-${suggestion.label}`}
                         type="button"
                         onPointerDown={(event) => event.preventDefault()}
                         onClick={() => applyInstantSearchSuggestion(suggestion.label)}
-                        className="max-w-full truncate rounded-full bg-green-50 px-2.5 py-1 text-[11px] font-black text-green-800 ring-1 ring-green-100 active:scale-[0.98]"
+                        className="max-w-full truncate rounded-full bg-green-50 px-2.5 py-1 text-xs font-black text-green-800 ring-1 ring-green-100 active:scale-[0.98]"
                         title={suggestion.label}
                       >
                         {suggestion.label}
@@ -9329,7 +9345,7 @@ return (
                         triggerHaptic();
                         window.setTimeout(() => searchInputRef.current?.focus(), 0);
                       }}
-                      className="shrink-0 rounded-full bg-red-50 px-2.5 py-1 text-[11px] font-black text-red-600 ring-1 ring-red-100 active:scale-[0.98]"
+                      className="shrink-0 rounded-full bg-red-50 px-2.5 py-1 text-xs font-black text-red-600 ring-1 ring-red-100 active:scale-[0.98]"
                     >
                       Tyhjennä
                     </button>
@@ -9369,7 +9385,7 @@ return (
 
       {eanModalOpen && (
           <div className="fixed inset-0 z-[80] flex items-end justify-center overflow-hidden overscroll-none bg-black/40 px-3 pb-3 pt-10 sm:items-center sm:p-4">
-            <div className="max-h-[calc(100dvh-1.5rem)] w-[min(94vw,34rem)] overflow-y-auto overscroll-contain rounded-[1.5rem] bg-white p-4 shadow-2xl ring-1 ring-slate-200 [WebkitOverflowScrolling:touch] sm:max-h-[calc(100dvh-2rem)] sm:p-5">
+            <div className="max-h-[calc(100dvh-1.5rem)] w-[min(94vw,34rem)] overflow-y-auto overscroll-contain rounded-[1.5rem] bg-white p-4 shadow-2xl ring-1 ring-slate-200 [WebkitOverflowScrolling:touch] sm:max-h-[calc(100dvh-2rem)] sm:p-5" style={ width: "100%" }>
               <div>
                 <p className="text-lg font-extrabold text-slate-900">EAN / viivakoodi</p>
               </div>
@@ -9466,12 +9482,12 @@ return (
 
               {eanScannerOpen && (
                 <div className="mt-3 overflow-hidden rounded-2xl bg-slate-950 p-2 ring-1 ring-slate-200">
-                  <div className="relative mx-auto h-[min(78vw,390px)] max-h-[390px] min-h-[300px] w-full max-w-[390px] overflow-hidden rounded-xl bg-slate-950">
+                  <div className="relative mx-auto h-[min(78vw,390px)] max-h-[390px] min-h-[300px] w-full max-w-[390px] overflow-hidden rounded-xl bg-slate-950" style={ width: "100%" }>
                     <div
                       id={EAN_SCANNER_REGION_ID}
                       className="h-full w-full overflow-hidden rounded-xl bg-slate-950 [&_canvas]:!hidden [&_video]:!h-full [&_video]:!w-full [&_video]:rounded-xl [&_video]:object-cover"
                     />
-                    <div className="pointer-events-none absolute inset-5 rounded-2xl border-4 border-green-400 shadow-[0_0_0_999px_rgba(2,6,23,0.35)]">
+                    <div className="pointer-events-none absolute inset-5 rounded-2xl border-4 border-green-400 shadow-[0_0_0_999px_rgba(2,6,23,0.35)]" style={{ width: "min(88vw, 380px)", minWidth: "320px", maxWidth: "380px" }}>
                       <div className="absolute -left-1 -top-1 h-5 w-5 rounded-tl-2xl border-l-4 border-t-4 border-white/90" />
                       <div className="absolute -right-1 -top-1 h-5 w-5 rounded-tr-2xl border-r-4 border-t-4 border-white/90" />
                       <div className="absolute -bottom-1 -left-1 h-5 w-5 rounded-bl-2xl border-b-4 border-l-4 border-white/90" />
@@ -9479,7 +9495,7 @@ return (
                     </div>
 
                     {eanLoading && (
-                      <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-xl bg-slate-700/45 backdrop-blur-[1px]">
+                      <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-xl bg-slate-700/45 backdrop-blur-[1px]" style={{ width: "min(88vw, 380px)", minWidth: "320px", maxWidth: "380px" }}>
                         <div className="flex flex-col items-center gap-3 rounded-3xl bg-slate-900/80 px-6 py-3 sm:py-5 text-white shadow-2xl ring-2 ring-white/20">
                           <div className="flex h-12 sm:h-16 w-16 items-center justify-center rounded-full bg-white/15 text-4xl font-black animate-pulse">
                             ⏳
@@ -9492,22 +9508,22 @@ return (
                     )}
 
                     {scanSuccessFlash && (
-                      <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-xl bg-green-400/35 backdrop-brightness-125 transition-opacity duration-700">
+                      <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-xl bg-green-400/35 backdrop-brightness-125 transition-opacity duration-700" style={{ width: "min(88vw, 380px)", minWidth: "320px", maxWidth: "380px" }}>
                         <div className="flex h-24 w-24 items-center justify-center rounded-full bg-green-500 text-5xl font-black text-white shadow-2xl ring-4 ring-white/80 animate-pulse">
                           ✓
                         </div>
-                        <div className="absolute bottom-5 rounded-full bg-green-600 px-4 py-2 text-sm font-black text-white shadow-xl ring-2 ring-white/70">
+                        <div className="absolute bottom-5 rounded-full bg-green-600 px-4 py-2 text-sm font-black text-white shadow-xl ring-2 ring-white/70" style={{ width: "min(88vw, 380px)", minWidth: "320px", maxWidth: "380px" }}>
                           Lisätty koriin
                         </div>
                       </div>
                     )}
 
                     {scanMissFlash && (
-                      <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-xl bg-red-500/35 backdrop-brightness-90 transition-opacity duration-700">
+                      <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-xl bg-red-500/35 backdrop-brightness-90 transition-opacity duration-700" style={{ width: "min(88vw, 380px)", minWidth: "320px", maxWidth: "380px" }}>
                         <div className="flex h-24 w-24 items-center justify-center rounded-full bg-red-600 text-5xl font-black text-white shadow-2xl ring-4 ring-white/80 animate-pulse">
                           ?
                         </div>
-                        <div className="absolute bottom-5 rounded-full bg-red-600 px-4 py-2 text-sm font-black text-white shadow-xl ring-2 ring-white/70">
+                        <div className="absolute bottom-5 rounded-full bg-red-600 px-4 py-2 text-sm font-black text-white shadow-xl ring-2 ring-white/70" style={{ width: "min(88vw, 380px)", minWidth: "320px", maxWidth: "380px" }}>
                           Ei löytynyt
                         </div>
                       </div>
