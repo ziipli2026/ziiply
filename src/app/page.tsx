@@ -7668,7 +7668,7 @@ export default function Page() {
     if (storeCompareScope !== "within_chain" && !storeModeChosenV299) {
       return (
         <div className="mt-3 rounded-2xl bg-amber-50 px-4 py-3 text-center text-sm font-extrabold text-amber-800 ring-1 ring-amber-200">
-          Valitse ensin Tavaratalot tai Lähikaupat.
+          Valitse ensin mistä kaupoista haetaan ja miten kauppoja vertaillaan.
         </div>
       );
     }
@@ -7678,7 +7678,7 @@ export default function Page() {
       const selectedChainKey = withinChain === "S" ? "s" : withinChain === "K" ? "k" : null;
 
       return (
-        <div className={compact ? "mt-3 grid grid-cols-2 gap-2" : "mt-3 grid grid-cols-2 gap-3"}>
+        <div className={compact ? "mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2" : "mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3"}>
           {chainCards.map((store) => {
             const selected = selectedChainKey === store.key;
             const chain = store.key === "s" ? "S" : "K";
@@ -7931,7 +7931,7 @@ export default function Page() {
 
         <section className="hidden rounded-[2rem] bg-white p-5 shadow-sm sm:block">
           <p className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-500">Hakutapa</p>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button
               type="button"
               disabled={storeCompareScope === "within_chain"}
@@ -7957,7 +7957,7 @@ export default function Page() {
               🏪 Lähikaupat
             </button>
           </div>
-          <div className="mt-3 grid grid-cols-2 gap-3">
+          <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button
               type="button"
               onClick={() => handleStoreCompareScopeChange("between_chains")}
