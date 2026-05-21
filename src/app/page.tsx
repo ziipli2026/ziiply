@@ -219,7 +219,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v274";
+const APP_VERSION = "v275";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -7199,7 +7199,7 @@ export default function Page() {
       logo: "S",
       title: "S-ryhmä",
       name: activeStores.sStoreName || "Valitse S",
-      tone: "bg-green-600 text-white ring-green-100",
+      tone: "bg-green-700 shadow-md ring-1 ring-black/10 text-white ring-green-100",
       selectedTone: "border-green-600 bg-green-50 text-green-900",
     },
     {
@@ -7207,7 +7207,7 @@ export default function Page() {
       logo: "K",
       title: "K-ryhmä",
       name: activeStores.kStoreName || "Valitse K",
-      tone: "bg-red-600 text-white ring-red-100",
+      tone: "bg-red-700 shadow-md ring-1 ring-black/10 text-white ring-red-100",
       selectedTone: "border-red-600 bg-red-50 text-red-900",
     },
     {
@@ -7255,7 +7255,7 @@ export default function Page() {
             >
               <span
                 className={`absolute ${compact ? "right-1 top-1 h-4 w-4 text-[10px]" : "right-2 top-2 h-5 w-5 text-xs"} flex items-center justify-center rounded-full font-black ${
-                  selected ? "bg-green-600 text-white" : "bg-slate-100 text-slate-300"
+                  selected ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white" : "bg-slate-100 text-slate-300"
                 }`}
               >
                 {selected ? "✓" : ""}
@@ -7406,7 +7406,7 @@ export default function Page() {
               onClick={() => handleStoreModeChange("hyper")}
               className={`rounded-2xl px-4 py-4 text-base font-extrabold transition ${
                 storeMode === "hyper"
-                  ? "bg-green-600 text-white"
+                  ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                   : "bg-white text-slate-700 ring-1 ring-slate-200"
               }`}
             >
@@ -7417,7 +7417,7 @@ export default function Page() {
               onClick={() => handleStoreModeChange("local")}
               className={`rounded-2xl px-4 py-4 text-base font-extrabold transition ${
                 storeMode === "local"
-                  ? "bg-green-600 text-white"
+                  ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                   : "bg-white text-slate-700 ring-1 ring-slate-200"
               }`}
             >
@@ -7461,7 +7461,7 @@ export default function Page() {
                           onClick={() => selectStoreForCurrentMode(store)}
                           className={`w-full rounded-xl px-3 py-2 text-left transition ${
                             selected
-                              ? "bg-green-600 text-white"
+                              ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                               : "bg-slate-50 text-slate-700 hover:bg-green-50"
                           }`}
                         >
@@ -7491,7 +7491,7 @@ export default function Page() {
                           onClick={() => selectStoreForCurrentMode(store)}
                           className={`w-full rounded-xl px-3 py-2 text-left transition ${
                             selected
-                              ? "bg-red-600 text-white"
+                              ? "bg-red-700 shadow-md ring-1 ring-black/10 text-white"
                               : "bg-slate-50 text-slate-700 hover:bg-red-50"
                           }`}
                         >
@@ -7575,7 +7575,7 @@ export default function Page() {
                     onClick={() => handleStoreModeChange("hyper")}
                     className={`rounded-2xl px-4 py-4 text-base font-extrabold transition ${
                       storeMode === "hyper"
-                        ? "bg-green-600 text-white"
+                        ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                         : "bg-white text-slate-700 ring-1 ring-slate-200"
                     }`}
                   >
@@ -7586,7 +7586,7 @@ export default function Page() {
                     onClick={() => handleStoreModeChange("local")}
                     className={`rounded-2xl px-4 py-4 text-base font-extrabold transition ${
                       storeMode === "local"
-                        ? "bg-green-600 text-white"
+                        ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                         : "bg-white text-slate-700 ring-1 ring-slate-200"
                     }`}
                   >
@@ -7630,7 +7630,7 @@ export default function Page() {
                                 onClick={() => selectStoreForCurrentMode(store)}
                                 className={`w-full rounded-xl px-3 py-2 text-left transition ${
                                   selected
-                                    ? "bg-green-600 text-white"
+                                    ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                                     : "bg-slate-50 text-slate-700 hover:bg-green-50"
                                 }`}
                               >
@@ -7660,7 +7660,7 @@ export default function Page() {
                                 onClick={() => selectStoreForCurrentMode(store)}
                                 className={`w-full rounded-xl px-3 py-2 text-left transition ${
                                   selected
-                                    ? "bg-red-600 text-white"
+                                    ? "bg-red-700 shadow-md ring-1 ring-black/10 text-white"
                                     : "bg-slate-50 text-slate-700 hover:bg-red-50"
                                 }`}
                               >
@@ -7712,8 +7712,8 @@ export default function Page() {
                     </div>
                     <div className="flex flex-wrap gap-2">
                       <button onClick={() => setChainFilter("all")} className={`rounded-full px-4 py-2 text-sm font-bold ${chainFilter === "all" ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600"}`}>Kaikki</button>
-                      <button onClick={() => setChainFilter("S")} className={`rounded-full px-4 py-2 text-sm font-bold ${chainFilter === "S" ? "bg-green-600 text-white" : "bg-slate-100 text-slate-600"}`}>S-ryhmä</button>
-                      <button onClick={() => setChainFilter("K")} className={`rounded-full px-4 py-2 text-sm font-bold ${chainFilter === "K" ? "bg-red-600 text-white" : "bg-slate-100 text-slate-600"}`}>K-ryhmä</button>
+                      <button onClick={() => setChainFilter("S")} className={`rounded-full px-4 py-2 text-sm font-bold ${chainFilter === "S" ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white" : "bg-slate-100 text-slate-600"}`}>S-ryhmä</button>
+                      <button onClick={() => setChainFilter("K")} className={`rounded-full px-4 py-2 text-sm font-bold ${chainFilter === "K" ? "bg-red-700 shadow-md ring-1 ring-black/10 text-white" : "bg-slate-100 text-slate-600"}`}>K-ryhmä</button>
                     </div>
                   </div>
 
@@ -8212,7 +8212,7 @@ export default function Page() {
                                                 }
                                                 className={`rounded-lg px-2 py-1.5 text-[10px] font-extrabold transition ${
                                                   getMatchQualityMode(match) === mode
-                                                    ? "bg-green-600 text-white"
+                                                    ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                                                     : "bg-slate-50 text-slate-600 ring-1 ring-slate-200"
                                                 }`}
                                               >
@@ -8700,7 +8700,7 @@ export default function Page() {
                       setVisibleNormalCount(8);
                     }}
                     className={`rounded-[0.85rem] px-2 py-1.5 text-xs font-black transition active:scale-[0.98] ${
-                      searchCompareMode === "cart" ? "bg-green-600 text-white shadow-sm shadow-green-600/20" : "bg-white text-slate-700 ring-1 ring-slate-200"
+                      searchCompareMode === "cart" ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white shadow-sm shadow-green-600/20" : "bg-white text-slate-700 ring-1 ring-slate-200"
                     }`}
                   >
                     🛒 Koko kori
@@ -8716,7 +8716,7 @@ export default function Page() {
                       setVisibleNormalCount(8);
                     }}
                     className={`rounded-[0.85rem] px-2 py-1.5 text-xs font-black transition active:scale-[0.98] ${
-                      searchCompareMode === "single" ? "bg-green-600 text-white shadow-sm shadow-green-600/20" : "bg-white text-slate-700 ring-1 ring-slate-200"
+                      searchCompareMode === "single" ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white shadow-sm shadow-green-600/20" : "bg-white text-slate-700 ring-1 ring-slate-200"
                     }`}
                   >
                     🔎 Yksi tuote
@@ -9113,7 +9113,7 @@ export default function Page() {
             onClick={toggleSearchPanel}
             disabled={searchNavigationLocked}
             aria-disabled={searchNavigationLocked}
-            className={`flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition ${searchNavigationLocked ? "cursor-not-allowed bg-slate-100 text-slate-300 opacity-70" : searchPanelOpen ? "bg-green-600 text-white shadow-md active:scale-[0.98]" : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
+            className={`flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition ${searchNavigationLocked ? "cursor-not-allowed bg-slate-100 text-slate-300 opacity-70" : searchPanelOpen ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white shadow-md active:scale-[0.98]" : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
           >
             <span className="text-lg leading-none">🔎</span>
             <span className="mt-1 block">Hae</span>
@@ -9123,7 +9123,7 @@ export default function Page() {
             onClick={toggleShopsPanel}
             disabled={searchNavigationLocked}
             aria-disabled={searchNavigationLocked}
-            className={`flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition ${searchNavigationLocked ? "cursor-not-allowed bg-slate-100 text-slate-300 opacity-70" : shopsPanelOpen ? "bg-green-600 text-white shadow-md active:scale-[0.98]" : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
+            className={`flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition ${searchNavigationLocked ? "cursor-not-allowed bg-slate-100 text-slate-300 opacity-70" : shopsPanelOpen ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white shadow-md active:scale-[0.98]" : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
           >
             <span className="text-lg leading-none">🏪</span>
             <span className="mt-1 block">Kaupat</span>
@@ -9132,12 +9132,12 @@ export default function Page() {
             type="button"
             onClick={toggleCartModal}
             aria-disabled={cart.length === 0}
-            className={`relative flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition ${cart.length === 0 ? "cursor-not-allowed bg-slate-100 text-slate-300 opacity-70" : cartModalOpen ? "bg-green-600 text-white shadow-md active:scale-[0.98]" : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
+            className={`relative flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition ${cart.length === 0 ? "cursor-not-allowed bg-slate-100 text-slate-300 opacity-70" : cartModalOpen ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white shadow-md active:scale-[0.98]" : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
           >
             <span className="text-lg leading-none">🛒</span>
             <span className="mt-1 block">Kori</span>
             {cart.length > 0 && (
-              <span className={`absolute right-2 top-1 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-black ${cartModalOpen ? "bg-white text-green-700" : "bg-green-600 text-white"}`}>
+              <span className={`absolute right-2 top-1 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-black ${cartModalOpen ? "bg-white text-green-700" : "bg-green-700 shadow-md ring-1 ring-black/10 text-white"}`}>
                 {cart.length}
               </span>
             )}
@@ -9146,7 +9146,7 @@ export default function Page() {
             type="button"
             onClick={toggleComparisonView}
             aria-disabled={cart.length === 0}
-            className={`flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition ${cart.length === 0 ? "cursor-not-allowed bg-slate-100 text-slate-300 opacity-70" : activeResult === "compare" && !searchPanelOpen && !cartModalOpen ? "bg-green-600 text-white shadow-md active:scale-[0.98]" : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
+            className={`flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition ${cart.length === 0 ? "cursor-not-allowed bg-slate-100 text-slate-300 opacity-70" : activeResult === "compare" && !searchPanelOpen && !cartModalOpen ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white shadow-md active:scale-[0.98]" : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
           >
             <span className="text-lg leading-none">⚖️</span>
             <span className="mt-1 block">Vertailu</span>
