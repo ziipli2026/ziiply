@@ -218,7 +218,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v244";
+const APP_VERSION = "v245";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -2758,6 +2758,26 @@ export default function Page() {
   const terms = useMemo(() => parseTerms(input), [input]);
   const hasSearchInput = terms.length > 0;
 
+  function getSingleSearchTerm(value: string) {
+    // v245: Yksi tuote -tilassa hakukentässä saa olla vain yksi tuote.
+    // Pilkut ja rivinvaihdot katkaisevat hakujonon ensimmäiseen termiin,
+    // mutta monisanaiset tuotteet kuten "coca cola zero" säilyvät yhtenä tuotteena.
+    return fixText(String(value || ""))
+      .split(/[\n,]+/)[0]
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, 180);
+  }
+
+  function setSearchInputForMode(value: string) {
+    if (searchCompareMode === "single") {
+      setInput(getSingleSearchTerm(value));
+      return;
+    }
+
+    setInput(value);
+  }
+
   const searchSuggestionSeed = useMemo(() => {
     const currentText = input.split(/[\n,]+/).pop()?.trim() || input.trim();
     return currentText;
@@ -2802,7 +2822,7 @@ export default function Page() {
     // Yksi tuote -tilassa smart suggestion on aina yksi kokonainen hakutermi.
     // Esim. "coca cola zero" ei saa hajota sanoiksi eikä jäädä vanhan pilkkujonon perään.
     if (searchCompareMode === "single") {
-      setInput(cleanLabel);
+      setInput(getSingleSearchTerm(cleanLabel));
       setVisibleNormalCount(8);
       triggerHaptic();
       window.requestAnimationFrame(() => searchInputRef.current?.focus());
@@ -5484,7 +5504,7 @@ export default function Page() {
       // v240: Liitä-painike tekee vain yhden asian: leikepöydän sisältö siirtyy
       // suoraan hakutekstiruutuun. Ei selaimen erillistä "Sijoita/Liitä"-valikkoa,
       // ei vahvistusmodalia, ei toista vaihetta eikä tekstikentän automaattifokusta.
-      setInput(cleanText.slice(0, 1200));
+      setSearchInputForMode(cleanText.slice(0, 1200));
       setNormalResults([]);
       setSingleProductCompareResults([]);
       setSingleProductCompareTerm("");
@@ -5673,7 +5693,7 @@ export default function Page() {
   function handleMainNormalSearch() {
     if (!hasSearchInput || loadingNormal || singleProductCompareLoading) return;
 
-    const singleModeTerm = terms[0] || input.trim();
+    const singleModeTerm = getSingleSearchTerm(input);
     const searchQueryForMode = searchCompareMode === "single" ? singleModeTerm : terms.join(", ");
 
     trackZiiplyEvent("main_search_clicked", {
@@ -7997,7 +8017,13 @@ export default function Page() {
                 <div className="grid grid-cols-2 gap-1.5">
                   <button
                     type="button"
-                    onClick={() => setSearchCompareMode("cart")}
+                    onClick={() => {
+                      setSearchCompareMode("cart");
+                      setNormalResults([]);
+                      setSingleProductCompareResults([]);
+                      setSingleProductCompareTerm("");
+                      setVisibleNormalCount(8);
+                    }}
                     className={`rounded-[0.85rem] px-2 py-1.5 text-xs font-black transition active:scale-[0.98] ${
                       searchCompareMode === "cart" ? "bg-green-600 text-white shadow-sm shadow-green-600/20" : "bg-white text-slate-700 ring-1 ring-slate-200"
                     }`}
@@ -8006,7 +8032,14 @@ export default function Page() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setSearchCompareMode("single")}
+                    onClick={() => {
+                      setSearchCompareMode("single");
+                      setInput((currentInput) => getSingleSearchTerm(currentInput));
+                      setNormalResults([]);
+                      setSingleProductCompareResults([]);
+                      setSingleProductCompareTerm("");
+                      setVisibleNormalCount(8);
+                    }}
                     className={`rounded-[0.85rem] px-2 py-1.5 text-xs font-black transition active:scale-[0.98] ${
                       searchCompareMode === "single" ? "bg-green-600 text-white shadow-sm shadow-green-600/20" : "bg-white text-slate-700 ring-1 ring-slate-200"
                     }`}
@@ -8073,7 +8106,7 @@ export default function Page() {
                 <textarea
                   ref={searchInputRef}
                   value={input}
-                  onChange={(event) => setInput(event.target.value)}
+                  onChange={(event) => setSearchInputForMode(event.target.value)}
                   placeholder={searchCompareMode === "single" ? "Kirjoita yksi tuote, esim. maito" : "Kirjoita tuotteet pilkulla tai riveittäin, esim. maito, kahvi, jauheliha"}
                   className={`${instantSearchSuggestions.length > 0 ? "h-[calc(100%-8.8rem)] min-h-[5.4rem]" : "h-[calc(100%-3.8rem)] min-h-[7.5rem]"} w-full resize-none rounded-[1rem] border border-slate-200 bg-slate-50/70 px-3 py-2.5 text-[16px] font-semibold leading-snug text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-green-500 focus:bg-white focus:ring-4 focus:ring-green-100`}
                 />
