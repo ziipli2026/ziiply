@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v280_MOBILE_KAUPAT_FIX_BUILDOK";
+const APP_VERSION = "v279_HAKUTAPA_FIX";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -7635,7 +7635,55 @@ export default function Page() {
               🏪 Lähikaupat
             </button>
           </div>
-          
+          <div className="mt-3 grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => handleStoreCompareScopeChange("between_chains")}
+              className={`rounded-2xl px-4 py-3 text-sm font-extrabold transition ${
+                storeCompareScope === "between_chains"
+                  ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
+                  : "bg-white text-slate-700 ring-1 ring-slate-200"
+              }`}
+            >
+              Ketjujen väliltä
+            </button>
+            <button
+              type="button"
+              onClick={() => handleStoreCompareScopeChange("within_chain")}
+              className={`rounded-2xl px-4 py-3 text-sm font-extrabold transition ${
+                storeCompareScope === "within_chain"
+                  ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
+                  : "bg-white text-slate-700 ring-1 ring-slate-200"
+              }`}
+            >
+              Ketjun sisältä
+            </button>
+          </div>
+          <div className="mt-3 rounded-2xl bg-slate-50 p-3 text-sm text-slate-600 ring-1 ring-slate-200">
+            <p className="font-bold text-slate-700">
+              {storeCompareScope === "within_chain" ? "Haetaan saman ketjun kaupoista" : storeMode === "hyper" ? "Haetaan tavarataloista" : "Haetaan lähikaupoista"}
+            </p>
+            <p className="mt-1 text-slate-400">Valitut kaupat tallennetaan tälle selaimelle.</p>
+                  {storeCompareScope === "between_chains" && selectedRealChainCount < 2 && (
+                    <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 font-black text-amber-800 ring-1 ring-amber-100">Vertailu ei ole mahdollinen vain yhdellä valitulla ketjulla.</p>
+                  )}
+                  {storeCompareScope === "within_chain" && !withinChain && (
+                    <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 font-black text-amber-800 ring-1 ring-amber-100">Valitse S-ryhmä tai K-ryhmä ketjun sisäistä vertailua varten.</p>
+                  )}
+
+            {((storeMode === "local" && (!activeArea.sLocalStoreId || !activeArea.kLocalStoreId)) ||
+              (storeMode === "hyper" && (!activeArea.sStoreId || !activeArea.kStoreId))) && foundStores.length === 0 && (
+              <p className="mt-2 text-amber-700">
+                Hae alue tai käytä omaa sijaintia, niin Ziiply hakee kaupat dynaamisesti.
+              </p>
+            )}
+          </div>
+
+          {false && foundStores.length > 0 && (
+            <div className="mt-3 rounded-2xl bg-white p-3 text-xs text-slate-600 ring-1 ring-slate-200">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <p className="font-bold text-slate-700">Valitse kaupat ({foundStores.length})</p>
+              </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
@@ -7699,6 +7747,7 @@ export default function Page() {
                 </div>
               </div>
             </div>
+          )}
         </section>
 
         
@@ -7761,7 +7810,55 @@ export default function Page() {
 
               <section className="mt-4 rounded-[2rem] bg-white p-5 shadow-sm">
                 <p className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-500">Hakutapa</p>
-                
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => handleStoreModeChange("hyper")}
+                    className={`rounded-2xl px-4 py-3 sm:py-4 text-base font-extrabold transition ${
+                      storeMode === "hyper"
+                        ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
+                        : "bg-white text-slate-700 ring-1 ring-slate-200"
+                    }`}
+                  >
+                    🏬 Tavaratalot
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleStoreModeChange("local")}
+                    className={`rounded-2xl px-4 py-3 sm:py-4 text-base font-extrabold transition ${
+                      storeMode === "local"
+                        ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
+                        : "bg-white text-slate-700 ring-1 ring-slate-200"
+                    }`}
+                  >
+                    🏪 Lähikaupat
+                  </button>
+                </div>
+                <div className="mt-3 rounded-2xl bg-slate-50 p-3 text-sm text-slate-600 ring-1 ring-slate-200">
+                  <p className="font-bold text-slate-700">
+                    {storeCompareScope === "within_chain" ? "Haetaan saman ketjun kaupoista" : storeMode === "hyper" ? "Haetaan tavarataloista" : "Haetaan lähikaupoista"}
+                  </p>
+                  <p className="mt-1 text-slate-400">Valitut kaupat tallennetaan tälle selaimelle.</p>
+                  {storeCompareScope === "between_chains" && selectedRealChainCount < 2 && (
+                    <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 font-black text-amber-800 ring-1 ring-amber-100">Vertailu ei ole mahdollinen vain yhdellä valitulla ketjulla.</p>
+                  )}
+                  {storeCompareScope === "within_chain" && !withinChain && (
+                    <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 font-black text-amber-800 ring-1 ring-amber-100">Valitse S-ryhmä tai K-ryhmä ketjun sisäistä vertailua varten.</p>
+                  )}
+
+                  {((storeMode === "local" && (!activeArea.sLocalStoreId || !activeArea.kLocalStoreId)) ||
+                    (storeMode === "hyper" && (!activeArea.sStoreId || !activeArea.kStoreId))) && foundStores.length === 0 && (
+                    <p className="mt-2 text-amber-700">
+                      Hae alue tai käytä omaa sijaintia, niin Ziiply hakee kaupat dynaamisesti.
+                    </p>
+                  )}
+                </div>
+
+                {false && foundStores.length > 0 && (
+                  <div className="mt-3 rounded-2xl bg-white p-3 text-xs text-slate-600 ring-1 ring-slate-200">
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <p className="font-bold text-slate-700">Valitse kaupat ({foundStores.length})</p>
+                    </div>
 
                     <div className="grid gap-2">
                       <div>
