@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v278";
+const APP_VERSION = "v277";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -7230,7 +7230,7 @@ export default function Page() {
       logo: "T",
       title: "Tokmanni",
       name: "Tulossa",
-      tone: "bg-yellow-64 sm:w-400 text-slate-950 ring-yellow-100",
+      tone: "bg-yellow-400 text-slate-950 ring-yellow-100",
       selectedTone: "border-yellow-500 bg-yellow-50 text-yellow-950",
       comingSoon: true,
     },
@@ -7486,9 +7486,9 @@ export default function Page() {
   }
 
   return (
-    <main className={`min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top,#ecfdf3_0%,#f8fafc_42%,#f1f5f9_100%)] px-2 pb-56 sm:pb-32 pt-[4.75rem] text-slate-950 sm:px-4 sm:py-3 sm:py-4 md:pb-4 ${suppressUiForEanClose ? "pointer-events-none opacity-0" : "opacity-100"}`}>
+    <main className={`min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top,#ecfdf3_0%,#f8fafc_42%,#f1f5f9_100%)] px-2 pb-44 sm:pb-32 pt-[4.75rem] text-slate-950 sm:px-4 sm:py-3 sm:py-4 md:pb-4 ${suppressUiForEanClose ? "pointer-events-none opacity-0" : "opacity-100"}`}>
       {showLaunchScreen && (
-        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-white">
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-white sm:hidden">
           <div className="absolute right-5 top-[calc(env(safe-area-inset-top)+0.75rem)]">
             <span className="rounded-full bg-green-50 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-green-700 ring-1 ring-green-100">{APP_VERSION}</span>
           </div>
@@ -7503,13 +7503,13 @@ export default function Page() {
         </div>
       )}
 
-      <header className="fixed left-0 right-0 top-0 z-50 border-b border-white/70 bg-white/80 px-3 pb-2 pt-[calc(env(safe-area-inset-top)+0.55rem)] shadow-[0_10px_30px_rgba(15,23,42,0.06)] backdrop-blur-2xl">
+      <header className="fixed left-0 right-0 top-0 z-50 border-b border-white/70 bg-white/80 px-3 pb-2 pt-[calc(env(safe-area-inset-top)+0.55rem)] shadow-[0_10px_30px_rgba(15,23,42,0.06)] backdrop-blur-2xl sm:hidden">
         <div className="mx-auto flex max-w-md items-center justify-between gap-3">
           <div className="min-w-0">
             <img
               src="/ziiply.png"
               alt="Ziiply"
-              className="h-9 w-auto max-w-[240px] sm:w-[128px] shrink-0 object-contain drop-shadow-sm"
+              className="h-9 w-auto max-w-[128px] shrink-0 object-contain drop-shadow-sm"
             />
           </div>
           <div className="flex shrink-0 flex-col items-end gap-1">
@@ -7526,14 +7526,14 @@ export default function Page() {
         )}
       </header>
 
-      <div className="mx-auto max-w-6xl space-y-3 sm:space-y-6">
+      <div className="mx-auto max-w-6xl space-y-3 sm:space-y-4 sm:space-y-6">
         <section className="-mx-2 hidden bg-slate-100/95 px-2 pb-2 pt-2 sm:-mx-4 sm:block sm:px-4 sm:pb-4 sm:pt-4">
           <div className="mx-auto max-w-6xl">
           <div className="overflow-hidden rounded-[1.75rem] bg-white px-4 py-1 shadow-sm sm:rounded-[2rem] sm:px-6">
             <img
               src="/ziiply.png"
               alt="Ziiply"
-              className="mx-auto sm:max-h-[150px] w-auto object-contain py-2 sm:max-h-[180px] sm:py-3"
+              className="mx-auto max-h-[150px] w-auto object-contain py-2 sm:max-h-[180px] sm:py-3"
             />
             <p className="mx-auto mt-1 max-w-3xl text-center text-sm leading-snug text-slate-600 sm:text-base">
               Hae mitä tarvitset. Ziiply etsii siihen liittyvät tarjoukset ja auttaa vertaamaan ostoskorin hinnat.
@@ -7543,7 +7543,7 @@ export default function Page() {
         </section>
 
         {!searchPanelOpen && !cartModalOpen && !shopsPanelOpen && !eanModalOpen && activeResult === "none" && (
-          <section className="flex min-h-[calc(100dvh-12rem)] flex-col items-center justify-center px-8 text-center">
+          <section className="flex min-h-[calc(100dvh-12rem)] flex-col items-center justify-center px-8 text-center sm:hidden">
             <img
               src="/ziiply.png"
               alt="Ziiply"
@@ -7754,8 +7754,8 @@ export default function Page() {
 
 
         {shopsPanelOpen && (
-          <div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)]">
-            <div className="sm:max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-100 p-3 shadow-2xl">
+          <div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:hidden">
+            <div className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-100 p-3 shadow-2xl">
               <section className="rounded-[1.25rem] border border-slate-200 bg-white/95 p-2 shadow-sm">
                 <div className="flex items-center gap-2">
                   <button
@@ -7932,7 +7932,7 @@ export default function Page() {
 
         {activeResult === "offers" && (
           <div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0">
-            <div ref={compareOverlayScrollRef} className="sm:max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-50 p-3 shadow-2xl sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:bg-transparent sm:p-0 sm:shadow-none">
+            <div ref={compareOverlayScrollRef} className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-50 p-3 shadow-2xl sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:bg-transparent sm:p-0 sm:shadow-none">
               <div className="mb-3 rounded-2xl bg-green-700 p-4 text-white shadow-sm sm:rounded-[2rem] sm:p-6">
                 <p className="text-xs font-bold uppercase tracking-wide text-green-100 sm:text-sm">Tarjousmoottori</p>
                 <h2 className="mt-1 text-2xl font-extrabold sm:text-2xl sm:text-3xl">Tarjoukset</h2>
@@ -8017,7 +8017,7 @@ export default function Page() {
 
         {(activeResult === "compare" || activeResult === "singleCompare" || (activeResult !== "offers" && (loadingNormal || normalResults.length > 0 || (searchPanelOpen && normalSearchAttempted && activeNormalSearchTerm)))) && (
           <div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0">
-            <div ref={compareOverlayScrollRef} className="sm:max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-50 p-3 shadow-2xl sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:bg-transparent sm:p-0 sm:shadow-none">
+            <div ref={compareOverlayScrollRef} className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-50 p-3 shadow-2xl sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:bg-transparent sm:p-0 sm:shadow-none">
             <div className="grid min-w-0 max-w-full gap-3 sm:gap-4 overflow-hidden lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
             {activeResult === "compare" && showCheapestSticky && cheapest && secondCheapest && (
                 <section ref={savingsSummaryRef} className="min-w-0 max-w-full overflow-hidden rounded-[1.5rem] border border-white/70 bg-white/95 p-3 shadow-[0_18px_55px_rgba(15,23,42,0.10)] backdrop-blur sm:rounded-[2rem] sm:p-6">
@@ -8195,7 +8195,7 @@ export default function Page() {
                           <div className="min-w-0 flex-1 space-y-2">
                             <div className="h-4 w-3/4 animate-pulse rounded bg-slate-100" />
                             <div className="h-3 w-1/2 animate-pulse rounded bg-slate-100" />
-                            <div className="h-5 w-56 sm:w-24 animate-pulse rounded bg-slate-100" />
+                            <div className="h-5 w-24 animate-pulse rounded bg-slate-100" />
                           </div>
                         </div>
                       </div>
@@ -8413,7 +8413,7 @@ export default function Page() {
                                         onPointerDown={() => startAlternativesAutoCloseTimer(getAlternativeKey(chain.key, match, index))}
                                         className="fixed inset-0 z-[80] flex items-end justify-center bg-black/40 px-3 pb-3 pt-10 sm:items-center sm:p-4"
                                       >
-                                        <div className="sm:max-h-[82vh] w-full max-w-xl overflow-y-auto rounded-t-[1.75rem] bg-slate-50 p-3 text-[11px] text-slate-600 shadow-2xl ring-1 ring-slate-200 sm:rounded-[1.75rem]"><div className="flex items-center justify-between gap-3">
+                                        <div className="max-h-[82vh] w-full max-w-xl overflow-y-auto rounded-t-[1.75rem] bg-slate-50 p-3 text-[11px] text-slate-600 shadow-2xl ring-1 ring-slate-200 sm:rounded-[1.75rem]"><div className="flex items-center justify-between gap-3">
                                           <div className="min-w-0 flex-1 overflow-hidden">
                                             <p className="font-extrabold text-slate-700">Vaihtoehdot tuotteelle</p>
                                             <p className="mt-0.5 truncate text-[11px] font-bold text-slate-500">{fixText(match.product.name)}</p>
@@ -8681,7 +8681,7 @@ export default function Page() {
 
         {cartModalOpen && (
         <div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:items-start sm:p-6">
-          <div ref={cartOverlayScrollRef} className="sm:max-h-[calc(100dvh-12.5rem)] w-full max-w-3xl overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.6rem] bg-gradient-to-br from-slate-950 via-emerald-950 to-green-800 p-4 text-white shadow-[0_24px_80px_rgba(15,23,42,0.35)] sm:max-h-none sm:rounded-[2rem] sm:p-6">
+          <div ref={cartOverlayScrollRef} className="max-h-[calc(100dvh-12.5rem)] w-full max-w-3xl overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.6rem] bg-gradient-to-br from-slate-950 via-emerald-950 to-green-800 p-4 text-white shadow-[0_24px_80px_rgba(15,23,42,0.35)] sm:max-h-none sm:rounded-[2rem] sm:p-6">
             <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <h2 className="text-2xl font-extrabold">Ostoskori ({cart.length}/{MAX_ITEMS})</h2>
@@ -8812,7 +8812,7 @@ export default function Page() {
                   Merkitse tuote kerätyksi, kun olet poiminut sen hyllystä. Merkinnät säilyvät sivun päivityksen jälkeen.
                 </p>
 
-                <div className="mt-4 sm:max-h-[46vh] space-y-3 overflow-auto pr-1">
+                <div className="mt-4 max-h-[46vh] space-y-3 sm:space-y-4 overflow-auto pr-1">
                   {(Object.entries(bestShoppingListGroups) as [string, Match[]][]).map(([category, matches]) => (
                     <div key={category}>
                       <p className="mb-2 flex items-center justify-between text-xs font-black uppercase tracking-wide text-slate-400"><span>{category}</span><span>{matches.filter((match, index) => checkedCartItems[getShoppingListItemKey(match, index)]).length}/{matches.length}</span></p>
@@ -9033,7 +9033,7 @@ export default function Page() {
                   className={`${instantSearchSuggestions.length > 0 ? "h-[calc(100%-8.8rem)] min-h-[5.4rem]" : "h-[calc(100%-3.8rem)] min-h-[7.5rem]"} w-full resize-none rounded-[1rem] border border-slate-200 bg-slate-50/70 px-3 py-2.5 text-[16px] font-semibold leading-snug text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-green-500 focus:bg-white focus:ring-4 focus:ring-green-100`}
                 />
                 {instantSearchSuggestions.length > 0 && (
-                  <div className="mt-1.5 flex sm:max-h-[4.65rem] flex-wrap gap-1.5 overflow-hidden px-1">
+                  <div className="mt-1.5 flex max-h-[4.65rem] flex-wrap gap-1.5 overflow-hidden px-1">
                     {instantSearchSuggestions.map((suggestion) => (
                       <button
                         key={`${suggestion.hint}-${suggestion.label}`}
@@ -9106,7 +9106,7 @@ export default function Page() {
 
       {eanModalOpen && (
           <div className="fixed inset-0 z-[80] flex items-end justify-center overflow-hidden overscroll-none bg-black/40 px-3 pb-3 pt-10 sm:items-center sm:p-4">
-            <div className="sm:max-h-[calc(100dvh-1.5rem)] w-[min(94vw,34rem)] overflow-y-auto overscroll-contain rounded-[1.5rem] bg-white p-4 shadow-2xl ring-1 ring-slate-200 [WebkitOverflowScrolling:touch] sm:max-h-[calc(100dvh-2rem)] sm:p-5">
+            <div className="max-h-[calc(100dvh-1.5rem)] w-[min(94vw,34rem)] overflow-y-auto overscroll-contain rounded-[1.5rem] bg-white p-4 shadow-2xl ring-1 ring-slate-200 [WebkitOverflowScrolling:touch] sm:max-h-[calc(100dvh-2rem)] sm:p-5">
               <div>
                 <p className="text-lg font-extrabold text-slate-900">EAN / viivakoodi</p>
               </div>
@@ -9203,7 +9203,7 @@ export default function Page() {
 
               {eanScannerOpen && (
                 <div className="mt-3 overflow-hidden rounded-2xl bg-slate-950 p-2 ring-1 ring-slate-200">
-                  <div className="relative mx-auto h-[min(78vw,390px)] sm:max-h-[390px] min-h-[300px] w-full max-w-[390px] overflow-hidden rounded-xl bg-slate-950">
+                  <div className="relative mx-auto h-[min(78vw,390px)] max-h-[390px] min-h-[300px] w-full max-w-[390px] overflow-hidden rounded-xl bg-slate-950">
                     <div
                       id={EAN_SCANNER_REGION_ID}
                       className="h-full w-full overflow-hidden rounded-xl bg-slate-950 [&_canvas]:!hidden [&_video]:!h-full [&_video]:!w-full [&_video]:rounded-xl [&_video]:object-cover"
@@ -9319,7 +9319,7 @@ export default function Page() {
         )}
 
       {false && cheapest && !cartModalOpen && !searchPanelOpen && !shopsPanelOpen && !eanModalOpen && activeResult !== "compare" && !(loadingNormal || normalResults.length > 0) && (
-        <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] left-3 right-3 z-40 mx-auto max-w-md rounded-[1.35rem] border border-white/10 bg-slate-950/92 p-3 text-white shadow-[0_18px_55px_rgba(15,23,42,0.35)] backdrop-blur-2xl">
+        <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] left-3 right-3 z-40 mx-auto max-w-md rounded-[1.35rem] border border-white/10 bg-slate-950/92 p-3 text-white shadow-[0_18px_55px_rgba(15,23,42,0.35)] backdrop-blur-2xl sm:hidden">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="text-[11px] font-black uppercase tracking-wide text-green-300">Halvin täysi kori</p>
@@ -9342,7 +9342,7 @@ export default function Page() {
 
 
       {lastCartToast && (
-        <div className="fixed left-3 right-3 bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] z-[60] mx-auto max-w-md animate-[ziiplyFade_2.6s_ease-in-out] rounded-2xl bg-emerald-600 px-4 py-3 text-center text-sm font-black text-white shadow-2xl">
+        <div className="fixed left-3 right-3 bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] z-[60] mx-auto max-w-md animate-[ziiplyFade_2.6s_ease-in-out] rounded-2xl bg-emerald-600 px-4 py-3 text-center text-sm font-black text-white shadow-2xl sm:hidden">
           ✓ {lastCartToast}
         </div>
       )}
@@ -9353,7 +9353,7 @@ export default function Page() {
         </div>
       )}
 
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-transparent px-3 pb-[calc(env(safe-area-inset-bottom)+0.7rem)] pt-2">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-transparent px-3 pb-[calc(env(safe-area-inset-bottom)+0.7rem)] pt-2 sm:hidden">
         <div className="mx-auto grid max-w-md grid-cols-4 gap-1.5 rounded-[1.7rem] border border-white/70 bg-white/86 p-2 shadow-[0_18px_55px_rgba(15,23,42,0.18)] backdrop-blur-2xl">
           <button
             type="button"
