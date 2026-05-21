@@ -219,7 +219,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v270";
+const APP_VERSION = "v271";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -4492,6 +4492,7 @@ export default function Page() {
       const nextArea = buildDynamicArea(query, stores, storeMode);
       setActiveArea(nextArea);
       setLocationInput(nextArea.label || query);
+      if (source === "manual") setUsingOwnLocation(false);
       clearStoreBackedSearchState();
 
       if (typeof document !== "undefined") {
@@ -7171,6 +7172,60 @@ export default function Page() {
     return Math.max(15, Math.min(100, (cheapest.totalPrice / chain.totalPrice) * 100));
   }
 
+  const comparedStoreCards = [
+    {
+      key: "s",
+      logo: "S",
+      title: "S-ryhmä",
+      name: activeStores.sStoreName || "Valitse S",
+      tone: "bg-green-600 text-white ring-green-100",
+    },
+    {
+      key: "k",
+      logo: "K",
+      title: "K-ryhmä",
+      name: activeStores.kStoreName || "Valitse K",
+      tone: "bg-red-600 text-white ring-red-100",
+    },
+    {
+      key: "lidl",
+      logo: "L",
+      title: "Lidl",
+      name: "Tulossa",
+      tone: "bg-blue-600 text-white ring-blue-100",
+    },
+    {
+      key: "tokmanni",
+      logo: "T",
+      title: "Tokmanni",
+      name: "Tulossa",
+      tone: "bg-yellow-400 text-slate-950 ring-yellow-100",
+    },
+  ];
+
+  function renderComparedStoreCards(compact = false) {
+    return (
+      <div className={compact ? "mt-3 grid grid-cols-4 gap-1.5" : "mt-3 grid grid-cols-4 gap-2 sm:gap-3"}>
+        {comparedStoreCards.map((store) => (
+          <div
+            key={store.key}
+            className={compact ? "min-w-0 rounded-xl bg-white px-1.5 py-2 text-center shadow-sm ring-1 ring-slate-200" : "min-w-0 rounded-2xl bg-white px-2.5 py-3 text-center shadow-sm ring-1 ring-slate-200"}
+          >
+            <div className={`mx-auto flex ${compact ? "h-7 w-7 text-[13px]" : "h-9 w-9 text-sm"} items-center justify-center rounded-full font-black shadow-sm ring-4 ${store.tone}`}>
+              {store.logo}
+            </div>
+            <p className={compact ? "mt-1 truncate text-[9px] font-black uppercase tracking-tight text-slate-500" : "mt-2 truncate text-[10px] font-black uppercase tracking-wide text-slate-500"}>
+              {store.title}
+            </p>
+            <p className={compact ? "mt-0.5 line-clamp-2 min-h-[1.8rem] text-[10px] font-extrabold leading-tight text-slate-800" : "mt-1 line-clamp-2 min-h-[2rem] text-xs font-extrabold leading-tight text-slate-800"}>
+              {store.name}
+            </p>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   return (
     <main className={`min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top,#ecfdf3_0%,#f8fafc_42%,#f1f5f9_100%)] px-2 pb-32 pt-[4.75rem] text-slate-950 sm:px-4 sm:py-4 md:pb-4 ${suppressUiForEanClose ? "pointer-events-none opacity-0" : "opacity-100"}`}>
       {showLaunchScreen && (
@@ -7241,34 +7296,37 @@ export default function Page() {
 
         <section className="hidden rounded-[1.25rem] border border-slate-200 bg-white/95 p-2 shadow-sm sm:block sm:rounded-[1.75rem] sm:p-4">
           <div className="flex items-center gap-2 sm:gap-3">
-            <label className="flex shrink-0 items-center gap-1.5 rounded-xl bg-slate-50 px-2 py-2 text-[11px] font-extrabold text-slate-700 ring-1 ring-slate-200 sm:gap-2 sm:rounded-2xl sm:px-3 sm:py-3 sm:text-sm">
-              <input
-                type="checkbox"
-                className="h-4 w-4 rounded border-slate-300 text-green-600 focus:ring-green-600 sm:h-5 sm:w-5"
-                checked={usingOwnLocation}
-                onChange={(event) => {
-                  if (event.target.checked) useOwnLocation();
-                  else setUsingOwnLocation(false);
-                }}
-              />
-              <span className="hidden xs:inline sm:inline">Oma sijainti</span>
-              <span className="inline xs:hidden sm:hidden">Oma</span>
-            </label>
-
-            <div className="shrink-0 text-xs font-black text-slate-500 sm:text-sm">TAI</div>
+            <button
+              type="button"
+              aria-pressed={usingOwnLocation}
+              onClick={() => {
+                if (usingOwnLocation) setUsingOwnLocation(false);
+                else useOwnLocation();
+              }}
+              disabled={storeSearchLoading}
+              title={usingOwnLocation ? "Oma sijainti käytössä" : "Käytä omaa sijaintia"}
+              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-xl font-black shadow-sm ring-1 transition disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98] ${
+                usingOwnLocation
+                  ? "bg-red-50 text-red-600 ring-red-100"
+                  : "bg-slate-50 text-slate-400 ring-slate-200"
+              }`}
+            >
+              📍
+            </button>
 
             <input
               value={locationInput}
               onChange={(event) => {
-                setLocationInput(event.target.value);
+                const nextValue = event.target.value;
+                setLocationInput(nextValue);
+                if (nextValue.trim()) setUsingOwnLocation(false);
                 setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
               }}
-              placeholder="05510 tai Hyvinkää"
+              placeholder="05510 tai hyvinkää"
               className="min-w-0 flex-1 rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-green-600 sm:rounded-2xl sm:px-4 sm:py-3 sm:text-base"
             />
 
-
-          <button
+            <button
               type="button"
               onClick={() => applyLocation()}
               disabled={storeSearchLoading}
@@ -7282,8 +7340,7 @@ export default function Page() {
             {locationMessage}
           </div>
 
-
-
+          {renderComparedStoreCards(false)}
         </section>
 
 
@@ -7318,9 +7375,7 @@ export default function Page() {
             <p className="font-bold text-slate-700">
               {storeMode === "hyper" ? "Haetaan tavarataloista" : "Haetaan lähikaupoista"}
             </p>
-            <p className="mt-1">S: {activeStores.sStoreName}</p>
-            <p>K: {activeStores.kStoreName}</p>
-            <p className="mt-2 text-slate-400">Valitut kaupat tallennetaan tälle selaimelle.</p>
+            <p className="mt-1 text-slate-400">Valitut kaupat tallennetaan tälle selaimelle.</p>
 
             {((storeMode === "local" && (!activeArea.sLocalStoreId || !activeArea.kLocalStoreId)) ||
               (storeMode === "hyper" && (!activeArea.sStoreId || !activeArea.kStoreId))) && foundStores.length === 0 && (
@@ -7477,28 +7532,33 @@ export default function Page() {
             <div className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-100 p-3 shadow-2xl">
               <section className="rounded-[1.25rem] border border-slate-200 bg-white/95 p-2 shadow-sm">
                 <div className="flex items-center gap-2">
-                  <label className="flex shrink-0 items-center gap-1.5 rounded-xl bg-slate-50 px-2 py-2 text-[11px] font-extrabold text-slate-700 ring-1 ring-slate-200">
-                    <input
-                      type="checkbox"
-                      className="h-4 w-4 rounded border-slate-300 text-green-600 focus:ring-green-600"
-                      checked={usingOwnLocation}
-                      onChange={(event) => {
-                        if (event.target.checked) useOwnLocation();
-                        else setUsingOwnLocation(false);
-                      }}
-                    />
-                    <span>Oma</span>
-                  </label>
-
-                  <div className="shrink-0 text-xs font-black text-slate-500">TAI</div>
+                  <button
+                    type="button"
+                    aria-pressed={usingOwnLocation}
+                    onClick={() => {
+                      if (usingOwnLocation) setUsingOwnLocation(false);
+                      else useOwnLocation();
+                    }}
+                    disabled={storeSearchLoading}
+                    title={usingOwnLocation ? "Oma sijainti käytössä" : "Käytä omaa sijaintia"}
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg font-black shadow-sm ring-1 transition disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98] ${
+                      usingOwnLocation
+                        ? "bg-red-50 text-red-600 ring-red-100"
+                        : "bg-slate-50 text-slate-400 ring-slate-200"
+                    }`}
+                  >
+                    📍
+                  </button>
 
                   <input
                     value={locationInput}
                     onChange={(event) => {
-                setLocationInput(event.target.value);
-                setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
-              }}
-                    placeholder="05510 tai Hyvinkää"
+                      const nextValue = event.target.value;
+                      setLocationInput(nextValue);
+                      if (nextValue.trim()) setUsingOwnLocation(false);
+                      setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
+                    }}
+                    placeholder="05510 tai hyvinkää"
                     className="min-w-0 flex-1 rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-green-600"
                   />
 
@@ -7515,6 +7575,8 @@ export default function Page() {
                 <div className="mt-2 rounded-xl bg-green-50 px-3 py-2 text-xs font-semibold text-green-900">
                   {locationMessage}
                 </div>
+
+                {renderComparedStoreCards(true)}
               </section>
 
               <section className="mt-4 rounded-[2rem] bg-white p-5 shadow-sm">
@@ -7547,9 +7609,7 @@ export default function Page() {
                   <p className="font-bold text-slate-700">
                     {storeMode === "hyper" ? "Haetaan tavarataloista" : "Haetaan lähikaupoista"}
                   </p>
-                  <p className="mt-1">S: {activeStores.sStoreName}</p>
-                  <p>K: {activeStores.kStoreName}</p>
-                  <p className="mt-2 text-slate-400">Valitut kaupat tallennetaan tälle selaimelle.</p>
+                  <p className="mt-1 text-slate-400">Valitut kaupat tallennetaan tälle selaimelle.</p>
 
                   {((storeMode === "local" && (!activeArea.sLocalStoreId || !activeArea.kLocalStoreId)) ||
                     (storeMode === "hyper" && (!activeArea.sStoreId || !activeArea.kStoreId))) && foundStores.length === 0 && (
