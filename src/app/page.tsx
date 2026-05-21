@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v311";
+const APP_VERSION = "v312";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -2969,7 +2969,7 @@ export default function Page() {
   const [searchPanelOpen, setSearchPanelOpen] = useState(false);
   const [cartModalOpen, setCartModalOpen] = useState(false);
   const [cartSavePanelOpen, setCartSavePanelOpen] = useState(false);
-  const [shopsPanelOpen, setShopsPanelOpen] = useState(false);
+  const [shopsPanelOpen, setShopsPanelOpen] = useState(true);
   const [gpsErrorMessage, setGpsErrorMessage] = useState("");
   const [gpsAutoActivatedV287, setGpsAutoActivatedV287] = useState(false);
   const gpsUserDisabledRefV306 = useRef(false);
@@ -2996,6 +2996,8 @@ export default function Page() {
   const [singleProductCompareLoading, setSingleProductCompareLoading] = useState(false);
   const [singleProductCompareTerm, setSingleProductCompareTerm] = useState("");
   const searchNavigationLocked = loadingOffers || loadingNormal || singleProductCompareLoading;
+  const storesReadyForSearch = storeModeChosenV299 && storeCompareScope !== "none";
+  const searchBottomNavDisabled = searchNavigationLocked || !storesReadyForSearch;
   const [visibleNormalCount, setVisibleNormalCount] = useState(8);
   const [activeNormalSearchTerm, setActiveNormalSearchTerm] = useState("");
   const [eanModalOpen, setEanModalOpen] = useState(false);
@@ -3931,6 +3933,15 @@ export default function Page() {
 
   function openSearchPanel() {
     if (searchNavigationLocked) return;
+    if (!storesReadyForSearch) {
+      setCartModalOpen(false);
+      setCartSavePanelOpen(false);
+      setEanModalOpen(false);
+      setActiveResult("none");
+      setSearchPanelOpen(false);
+      setShopsPanelOpen(true);
+      return;
+    }
 
     // v236: Aloitussivu pysyy tyhjänä v234-tyyliin. Hae avataan kiinteänä yhtenä näkymänä, ei skrollattavana sivuna.
     // Hae-paneeli toimii mobiilissa erillisenä näkymänä: se sulkee korin/EANin/vertailun ja näkyy aina viewportissa.
@@ -3959,6 +3970,15 @@ export default function Page() {
 
   function toggleSearchPanel() {
     if (searchNavigationLocked) return;
+    if (!storesReadyForSearch) {
+      setCartModalOpen(false);
+      setCartSavePanelOpen(false);
+      setEanModalOpen(false);
+      setActiveResult("none");
+      setSearchPanelOpen(false);
+      setShopsPanelOpen(true);
+      return;
+    }
 
     // Toinen painallus sulkee Hae-näkymän. Jos Kori on auki, vaihdetaan suoraan Hae-näkymään.
     if (searchPanelOpen) {
@@ -5378,8 +5398,8 @@ export default function Page() {
     setActiveResult("none");
     setCartModalOpen(false);
     setCartSavePanelOpen(false);
-    setShopsPanelOpen(false);
-    setSearchPanelOpen(true);
+    setShopsPanelOpen(!storesReadyForSearch);
+    setSearchPanelOpen(storesReadyForSearch);
 
     await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()));
     await new Promise<void>((resolve) => window.setTimeout(resolve, 720));
@@ -6359,8 +6379,6 @@ export default function Page() {
   }
 
   function openShopsPanel() {
-    if (searchNavigationLocked) return;
-
     trackZiiplyEvent("shops_panel_opened", {
       storeMode,
       sStoreName: activeStores.sStoreName,
@@ -6376,8 +6394,6 @@ export default function Page() {
   }
 
   function toggleShopsPanel() {
-    if (searchNavigationLocked) return;
-
     if (shopsPanelOpen) {
       setShopsPanelOpen(false);
       return;
@@ -9030,7 +9046,7 @@ return (
                           </div>
 
                           {!chain.comingSoon && chain.matches.length > 0 && (
-                            <div className="mt-3 grid grid-cols-3 gap-2">
+                            <div className="mt-3 grid grid-cols-2 gap-3">
                               <button
                                 type="button"
                                 onClick={() => void shareShoppingList(chain)}
@@ -9501,20 +9517,13 @@ return (
       )}
 
       {eanModalOpen && (
-          <div className={`fixed inset-0 z-[80] flex items-end justify-center overflow-hidden overscroll-none bg-black/40 px-3 pb-3 pt-10 transition-opacity duration-700 ease-out sm:items-center sm:p-4 ${eanModalClosing ? "pointer-events-none opacity-0" : "opacity-100 ziiply-soft-open-fast"}`}>
-            <div className={`max-h-[calc(100dvh-1.5rem)] w-[min(94vw,34rem)] overflow-y-auto overscroll-contain rounded-[1.5rem] bg-white p-4 shadow-2xl ring-1 ring-slate-200 transition-all duration-700 ease-out [WebkitOverflowScrolling:touch] sm:max-h-[calc(100dvh-2rem)] sm:p-5 ${eanModalClosing ? "translate-y-2 scale-[0.985]" : "translate-y-0 scale-100"}`} style={{ width: "100%" }}>
+          <div className={`fixed inset-0 z-[80] flex items-end justify-center overflow-hidden overscroll-none bg-black/40 px-3 pb-3 pt-10 transition-opacity duration-700 ease-out sm:items-center sm:p-4 ${eanModalClosing ? "pointer-events-none opacity-0" : "opacity-100 ziiply-soft-open"}`}>
+            <div className={`max-h-[calc(100dvh-1.5rem)] w-full max-w-[34rem] overflow-y-auto overscroll-contain rounded-[1.5rem] bg-white p-4 shadow-2xl ring-1 ring-slate-200 transition-all duration-700 ease-out [WebkitOverflowScrolling:touch] sm:max-h-[calc(100dvh-2rem)] sm:p-5 ${eanModalClosing ? "translate-y-3 scale-[0.98] opacity-0" : "translate-y-0 scale-100 opacity-100"}`}>
               <div className="flex items-center justify-between gap-3">
                 <p className="text-lg font-extrabold text-slate-900">EAN / viivakoodi</p>
-                <button
-                  type="button"
-                  onClick={closeEanModal}
-                  className="touch-manipulation rounded-2xl bg-slate-100 px-4 py-2.5 text-sm font-black text-slate-900 shadow-sm ring-1 ring-slate-200 transition active:scale-[0.98]"
-                >
-                  Sulje
-                </button>
               </div>
 
-              <div className="mt-3 grid grid-cols-3 gap-2">
+              <div className="mt-3 grid grid-cols-2 gap-3">
                 <button
                   type="button"
                   onClick={async () => {
@@ -9605,20 +9614,20 @@ return (
               )}
 
               {eanScannerOpen && (
-                <div className="mt-3 overflow-hidden rounded-2xl bg-slate-950 p-2 ring-1 ring-slate-200 ziiply-soft-open">
+                <div className="mt-4 rounded-2xl bg-white ziiply-soft-open">
                   <div
-                    className="relative mx-auto aspect-[4/3] w-full max-w-[430px] overflow-hidden rounded-xl bg-slate-950"
+                    className="relative mx-auto aspect-[3/4] w-full max-w-[430px] overflow-hidden rounded-2xl bg-slate-950 ring-1 ring-slate-200"
                     onPointerDown={(event) => void focusScannerCameraAtPoint(event)}
                   >
                     <div
                       id={EAN_SCANNER_REGION_ID}
-                      className="h-full w-full overflow-hidden rounded-xl bg-slate-950 [&_canvas]:!hidden [&_video]:!h-full [&_video]:!w-full [&_video]:rounded-xl [&_video]:!object-contain"
+                      className="h-full w-full overflow-hidden rounded-2xl bg-slate-950 [&_canvas]:!hidden [&_video]:!h-full [&_video]:!w-full [&_video]:rounded-2xl [&_video]:!object-contain"
                     />
-                    <div className="pointer-events-none absolute inset-x-6 top-1/2 aspect-[1.55/1] -translate-y-1/2 rounded-2xl border-4 border-green-400 shadow-[0_0_0_999px_rgba(2,6,23,0.22)]">
-                      <div className="absolute -left-1 -top-1 h-5 w-5 rounded-tl-2xl border-l-4 border-t-4 border-white/90" />
-                      <div className="absolute -right-1 -top-1 h-5 w-5 rounded-tr-2xl border-r-4 border-t-4 border-white/90" />
-                      <div className="absolute -bottom-1 -left-1 h-5 w-5 rounded-bl-2xl border-b-4 border-l-4 border-white/90" />
-                      <div className="absolute -bottom-1 -right-1 h-5 w-5 rounded-br-2xl border-b-4 border-r-4 border-white/90" />
+                    <div className="pointer-events-none absolute inset-x-7 top-1/2 aspect-[1.45/1] -translate-y-1/2 rounded-3xl border-4 border-green-400 shadow-[0_0_0_999px_rgba(2,6,23,0.16)]">
+                      <div className="absolute -left-1 -top-1 h-6 w-6 rounded-tl-3xl border-l-4 border-t-4 border-white/95" />
+                      <div className="absolute -right-1 -top-1 h-6 w-6 rounded-tr-3xl border-r-4 border-t-4 border-white/95" />
+                      <div className="absolute -bottom-1 -left-1 h-6 w-6 rounded-bl-3xl border-b-4 border-l-4 border-white/95" />
+                      <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-br-3xl border-b-4 border-r-4 border-white/95" />
                     </div>
 
                     {eanLoading && (
@@ -9657,8 +9666,17 @@ return (
                     )}
 
                   </div>
-                  <div className="mt-3 rounded-xl border border-green-400/50 bg-green-500/10 p-3 text-center text-sm font-extrabold leading-snug text-green-100">
+                  <div className="mt-3 rounded-2xl border border-slate-200 bg-white p-3 text-center text-sm font-extrabold leading-snug text-slate-800 shadow-sm">
                     Aseta viivakoodi vihreän kehyksen alueelle. Napauta kuvaa tarkennusta varten, pidä pakkaus vakaana ja käytä hyvää valoa.
+                  </div>
+                  <div className="mt-3 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={closeEanModal}
+                      className="touch-manipulation rounded-2xl bg-slate-100 px-5 py-3 text-base font-black text-slate-900 shadow-sm ring-1 ring-slate-200 transition active:scale-[0.98]"
+                    >
+                      Sulje
+                    </button>
                   </div>
                 </div>
               )}
@@ -9757,9 +9775,9 @@ return (
           <button
             type="button"
             onClick={toggleSearchPanel}
-            disabled={searchNavigationLocked}
-            aria-disabled={searchNavigationLocked}
-            className={`flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition ${searchNavigationLocked ? "cursor-not-allowed bg-slate-100 text-slate-300 opacity-70" : searchPanelOpen ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white shadow-md active:scale-[0.98]" : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
+            disabled={searchBottomNavDisabled}
+            aria-disabled={searchBottomNavDisabled}
+            className={`flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition ${searchBottomNavDisabled ? "cursor-not-allowed bg-slate-100 text-slate-300 opacity-70" : searchPanelOpen ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white shadow-md active:scale-[0.98]" : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
           >
             <span className="text-lg leading-none">🔎</span>
             <span className="mt-1 block">Hae</span>
@@ -9767,9 +9785,8 @@ return (
           <button
             type="button"
             onClick={toggleShopsPanel}
-            disabled={searchNavigationLocked}
-            aria-disabled={searchNavigationLocked}
-            className={`flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition ${searchNavigationLocked ? "cursor-not-allowed bg-slate-100 text-slate-300 opacity-70" : shopsPanelOpen ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white shadow-md active:scale-[0.98]" : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
+            aria-disabled={false}
+            className={`flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition ${shopsPanelOpen ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white shadow-md active:scale-[0.98]" : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
           >
             <span className="text-lg leading-none">🏪</span>
             <span className="mt-1 block">Kaupat</span>
