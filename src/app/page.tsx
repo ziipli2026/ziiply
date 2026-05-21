@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v301_SHOPS_BUTTON_INFO_FIX";
+const APP_VERSION = "v303_STORE_SELECTION_STABLE";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -2835,6 +2835,7 @@ export default function Page() {
   const [activeArea, setActiveArea] = useState<Area>(AREAS[0]);
   const [storeMode, setStoreMode] = useState<StoreMode>("hyper");
   const [storeModeChosenV299, setStoreModeChosenV299] = useState(false);
+  const selectedStoreModeRefV302 = useRef<StoreMode>("hyper");
   const [storeCompareScope, setStoreCompareScope] = useState<StoreCompareScope>("between_chains");
   const [withinChain, setWithinChain] = useState<"S" | "K" | null>(null);
   const [openStorePicker, setOpenStorePicker] = useState<string | null>(null);
@@ -2842,6 +2843,27 @@ export default function Page() {
   const [usingOwnLocation, setUsingOwnLocation] = useState(true);
   const [storeSearchLoading, setStoreSearchLoading] = useState(false);
   const [foundStores, setFoundStores] = useState<StoreSearchItem[]>([]);
+
+  // STORE_MODE_PERSIST_V302
+  // Pitää käyttäjän valitseman Tavaratalot/Lähikaupat-tilan vakaana myös kaupan vaihdon
+  // ja kauppalistan päivityksen jälkeen.
+  useEffect(() => {
+    selectedStoreModeRefV302.current = storeMode;
+  }, [storeMode]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    try {
+      const savedMode = localStorage.getItem("ziiply-store-mode-v302");
+      if (savedMode === "hyper" || savedMode === "local") {
+        selectedStoreModeRefV302.current = savedMode;
+        setStoreMode(savedMode);
+        setStoreModeChosenV299(true);
+      }
+    } catch {}
+  }, []);
+
 
   const [offers, setOffers] = useState<ZiiplyOffer[]>([]);
   const [hasSearchedOffers, setHasSearchedOffers] = useState(false);
@@ -4276,8 +4298,15 @@ export default function Page() {
   function handleStoreModeChange(nextMode: StoreMode) {
     if (storeCompareScope === "within_chain") return;
 
+    selectedStoreModeRefV302.current = nextMode;
     setStoreModeChosenV299(true);
     setOpenStorePicker(null);
+
+    try {
+      if (typeof window !== "undefined") {
+        localStorage.setItem("ziiply-store-mode-v302", nextMode);
+      }
+    } catch {}
 
     trackZiiplyEvent("store_mode_changed", {
       previousMode: storeMode,
@@ -4291,17 +4320,19 @@ export default function Page() {
   function selectStoreForCurrentMode(store: StoreSearchItem) {
     if (!store.id || !store.name) return;
 
+    const effectiveStoreMode = storeModeChosenV299 ? selectedStoreModeRefV302.current : storeMode;
+
     trackZiiplyEvent("store_selected", {
       storeId: store.id,
       storeName: store.name,
       chain: store.type || store.chain || "unknown",
-      storeMode,
+      storeMode: effectiveStoreMode,
       city: store.city,
       postalCode: store.postalCode,
     });
 
     setActiveArea((current) => {
-      if (storeMode === "local") {
+      if (effectiveStoreMode === "local") {
         if (store.type === "S") {
           return {
             ...current,
@@ -4338,9 +4369,20 @@ export default function Page() {
       return current;
     });
 
+    selectedStoreModeRefV302.current = effectiveStoreMode;
+    setStoreMode(effectiveStoreMode);
+    setStoreModeChosenV299(true);
+    setOpenStorePicker(null);
+
+    try {
+      if (typeof window !== "undefined") {
+        localStorage.setItem("ziiply-store-mode-v302", effectiveStoreMode);
+      }
+    } catch {}
+
     clearSearchAndComparisonState();
     setLocationMessage(`${store.name} valittu ${store.type === "S" ? "S-ryhmän" : "K-ryhmän"} ${
-      storeMode === "local" ? "lähikaupaksi" : "tavarataloksi"
+      effectiveStoreMode === "local" ? "lähikaupaksi" : "tavarataloksi"
     }.`);
   }
 
@@ -4502,8 +4544,8 @@ export default function Page() {
         return;
       }
 
-      const ranked = rankStoresForMode(stores, storeMode);
-      const nextArea = buildDynamicArea(query, stores, storeMode);
+      const ranked = rankStoresForMode(stores, storeModeChosenV299 ? selectedStoreModeRefV302.current : storeMode);
+      const nextArea = buildDynamicArea(query, stores, storeModeChosenV299 ? selectedStoreModeRefV302.current : storeMode);
       setActiveArea(nextArea);
 
       // v272: Nuppineula kertoo yksiselitteisesti käytetäänkö omaa sijaintia.
@@ -7977,11 +8019,15 @@ export default function Page() {
         localStorage.getItem("storeCompareScope");
 
       if (!hasSavedStoreMode) {
+        if (!storeModeChosenV299) {
         setStoreMode("hyper");
+      }
         setStoreCompareScope("between_chains");
       }
     } catch {
-      setStoreMode("hyper");
+      if (!storeModeChosenV299) {
+        setStoreMode("hyper");
+      }
       setStoreCompareScope("between_chains");
     }
   }, []);
