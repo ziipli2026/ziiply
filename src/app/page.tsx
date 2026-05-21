@@ -219,7 +219,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v269";
+const APP_VERSION = "v270";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -5110,10 +5110,10 @@ export default function Page() {
   }
 
   async function closeEanModal() {
-    // v269: screenupdate=false -tyylinen kameran sulku.
-    // Taustan tila rakennetaan valmiiksi modaalin alla, kamera pysäytetään ilman
-    // scannerin välirenderöintiä, ja modal suljetaan vasta kahden framen jälkeen.
-    // Näin käyttäjä ei näe Hae-kortin / pääsivun välihyppyä kameran sulussa.
+    // v270: suljetaan kamera ilman näkyvää korttihyppyä.
+    // Välähdys johtui siitä, että skannerikortti ja Hae-kortti eivät ole aivan samassa
+    // pystykohdassa. Siksi pidetään kamera-overlay paikallaan, valmistellaan Hae-kortti
+    // sen alle ja odotetaan pieni hetki ennen modaalin poistamista.
     setSuppressUiForEanClose(true);
 
     if (eanAutoSearchTimeoutRef.current) {
@@ -5121,6 +5121,19 @@ export default function Page() {
       eanAutoSearchTimeoutRef.current = null;
     }
 
+    // Valmistellaan tausta Hae-kortille heti, mutta käyttäjä näkee edelleen kameramodaalin.
+    setActiveResult("none");
+    setCartModalOpen(false);
+    setCartSavePanelOpen(false);
+    setShopsPanelOpen(false);
+    setSearchPanelOpen(true);
+
+    // Anna selaimelle aikaa rakentaa uusi taustanäkymä modaalin alle.
+    await new Promise<void>((resolve) => window.setTimeout(resolve, 360));
+    await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()));
+
+    // Pysäytä kamera vasta kun overlay on ollut hetken paikallaan.
+    // keepScannerOpenState pitää skannerikortin samankokoisena sulkuhetkeen asti.
     await stopEanCameraScanner({ keepScannerOpenState: true });
 
     setEanManualInputOpen(false);
@@ -5134,22 +5147,13 @@ export default function Page() {
     setEanSearchStartedAutomatically(false);
     eanAutoSearchActiveRef.current = false;
 
-    // Valmistellaan tausta aina Hae-kortille modaalin alla.
-    setActiveResult("none");
-    setCartModalOpen(false);
-    setCartSavePanelOpen(false);
-    setShopsPanelOpen(false);
-    setSearchPanelOpen(true);
-
-    await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()));
     await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()));
 
+    // Sama renderöintierä: modal pois, scanner-state pois ja tausta näkyviin.
+    // Näin väli-frameä ei pitäisi syntyä.
     setEanScannerOpen(false);
     setEanModalOpen(false);
-
-    window.requestAnimationFrame(() => {
-      setSuppressUiForEanClose(false);
-    });
+    setSuppressUiForEanClose(false);
   }
 
   function openEanModal() {
