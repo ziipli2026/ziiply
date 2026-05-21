@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v279_HAKUTAPA_FIX";
+const APP_VERSION = "v280_SAFE_BUILDOK";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -7614,7 +7614,7 @@ export default function Page() {
               type="button"
               disabled={storeCompareScope === "within_chain"}
               onClick={() => handleStoreModeChange("hyper")}
-              className={`rounded-2xl px-4 py-3 sm:py-4 text-base font-extrabold transition disabled:cursor-not-allowed disabled:opacity-45 ${
+              className={`rounded-2xl px-4 py-3 sm:py-3 text-base font-extrabold transition disabled:cursor-not-allowed disabled:opacity-45 ${
                 storeMode === "hyper" && storeCompareScope === "between_chains"
                   ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                   : "bg-white text-slate-700 ring-1 ring-slate-200"
@@ -7626,7 +7626,7 @@ export default function Page() {
               type="button"
               disabled={storeCompareScope === "within_chain"}
               onClick={() => handleStoreModeChange("local")}
-              className={`rounded-2xl px-4 py-3 sm:py-4 text-base font-extrabold transition disabled:cursor-not-allowed disabled:opacity-45 ${
+              className={`rounded-2xl px-4 py-3 sm:py-3 text-base font-extrabold transition disabled:cursor-not-allowed disabled:opacity-45 ${
                 storeMode === "local" && storeCompareScope === "between_chains"
                   ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                   : "bg-white text-slate-700 ring-1 ring-slate-200"
@@ -7659,11 +7659,7 @@ export default function Page() {
               Ketjun sisältä
             </button>
           </div>
-          <div className="mt-3 rounded-2xl bg-slate-50 p-3 text-sm text-slate-600 ring-1 ring-slate-200">
-            <p className="font-bold text-slate-700">
-              {storeCompareScope === "within_chain" ? "Haetaan saman ketjun kaupoista" : storeMode === "hyper" ? "Haetaan tavarataloista" : "Haetaan lähikaupoista"}
-            </p>
-            <p className="mt-1 text-slate-400">Valitut kaupat tallennetaan tälle selaimelle.</p>
+          <div className="mt-3 rounded-2xl bg-slate-50 p-3 text-sm text-slate-600 ring-1 ring-slate-200 empty:hidden">
                   {storeCompareScope === "between_chains" && selectedRealChainCount < 2 && (
                     <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 font-black text-amber-800 ring-1 ring-amber-100">Vertailu ei ole mahdollinen vain yhdellä valitulla ketjulla.</p>
                   )}
@@ -7814,7 +7810,7 @@ export default function Page() {
                   <button
                     type="button"
                     onClick={() => handleStoreModeChange("hyper")}
-                    className={`rounded-2xl px-4 py-3 sm:py-4 text-base font-extrabold transition ${
+                    className={`rounded-2xl px-4 py-3 sm:py-3 text-base font-extrabold transition ${
                       storeMode === "hyper"
                         ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                         : "bg-white text-slate-700 ring-1 ring-slate-200"
@@ -7825,7 +7821,7 @@ export default function Page() {
                   <button
                     type="button"
                     onClick={() => handleStoreModeChange("local")}
-                    className={`rounded-2xl px-4 py-3 sm:py-4 text-base font-extrabold transition ${
+                    className={`rounded-2xl px-4 py-3 sm:py-3 text-base font-extrabold transition ${
                       storeMode === "local"
                         ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                         : "bg-white text-slate-700 ring-1 ring-slate-200"
@@ -7834,11 +7830,7 @@ export default function Page() {
                     🏪 Lähikaupat
                   </button>
                 </div>
-                <div className="mt-3 rounded-2xl bg-slate-50 p-3 text-sm text-slate-600 ring-1 ring-slate-200">
-                  <p className="font-bold text-slate-700">
-                    {storeCompareScope === "within_chain" ? "Haetaan saman ketjun kaupoista" : storeMode === "hyper" ? "Haetaan tavarataloista" : "Haetaan lähikaupoista"}
-                  </p>
-                  <p className="mt-1 text-slate-400">Valitut kaupat tallennetaan tälle selaimelle.</p>
+                <div className="mt-3 rounded-2xl bg-slate-50 p-3 text-sm text-slate-600 ring-1 ring-slate-200 empty:hidden">
                   {storeCompareScope === "between_chains" && selectedRealChainCount < 2 && (
                     <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 font-black text-amber-800 ring-1 ring-amber-100">Vertailu ei ole mahdollinen vain yhdellä valitulla ketjulla.</p>
                   )}
