@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v279";
+const APP_VERSION = "v278";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -733,61 +733,7 @@ function getPrimaryProductNounQuery(term: string) {
 function isVerySpecificSearch(term: string) {
   const text = normalize(term);
 
-  
-  // AUTO GPS INIT v279
-  useEffect(() => {
-    try {
-      if (typeof window === "undefined") return;
-
-      const alreadyAsked = sessionStorage.getItem("ziiply-gps-init");
-
-      if (alreadyAsked) return;
-
-      sessionStorage.setItem("ziiply-gps-init", "1");
-
-      if (!navigator.geolocation) {
-        setGpsErrorMessage("Selain ei tue GPS-paikannusta.");
-        return;
-      }
-
-      navigator.geolocation.getCurrentPosition(
-        () => {
-          setGpsErrorMessage("");
-        },
-        (error) => {
-          if (error?.code === 1) {
-            setGpsErrorMessage("GPS-paikannus estetty selaimen asetuksissa.");
-          } else if (error?.code === 2) {
-            setGpsErrorMessage("GPS-sijaintia ei saatu haettua.");
-          } else if (error?.code === 3) {
-            setGpsErrorMessage("GPS-paikannus aikakatkaistiin.");
-          } else {
-            setGpsErrorMessage("GPS-paikannus ei ole käytettävissä.");
-          }
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 300000,
-        }
-      );
-    } catch {
-      setGpsErrorMessage("GPS-paikannus ei ole käytettävissä.");
-    }
-  }, []);
-
-return (
-<>
-
-        {gpsErrorMessage && (
-          <div
-            className="mx-auto mb-3 mt-2 w-full max-w-[92%] rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-center text-sm font-semibold text-red-700 shadow-sm"
-          >
-            {gpsErrorMessage}
-          </div>
-        )}
-
-
+  return (
     getNormalizedWords(text).length >= 2 ||
     /\b\d+(?:[,\.]\d+)?\s?(l|ml|kg|g)\b/i.test(text) ||
     text.includes("zero") ||
@@ -2884,7 +2830,6 @@ function pickBestKProduct(items: KProduct[], query: string, ean?: string) {
 
 export default function Page() {
   const [input, setInput] = useState("");
-const [gpsErrorMessage, setGpsErrorMessage] = useState("");
   const [searchCompareMode, setSearchCompareMode] = useState<"cart" | "single">("cart");
   const [locationInput, setLocationInput] = useState("");
   const [activeArea, setActiveArea] = useState<Area>(AREAS[0]);
@@ -4498,7 +4443,6 @@ const [gpsErrorMessage, setGpsErrorMessage] = useState("");
         return;
       }
 
-      setGpsErrorMessage("");
       navigator.geolocation.getCurrentPosition(resolve, reject, {
         enableHighAccuracy: false,
         timeout: 10000,
@@ -4587,15 +4531,6 @@ const [gpsErrorMessage, setGpsErrorMessage] = useState("");
       }
     } catch (error) {
       console.error(error);
-          if (error?.code === 1) {
-            setGpsErrorMessage("GPS-paikannus estetty selaimen asetuksissa.");
-          } else if (error?.code === 2) {
-            setGpsErrorMessage("GPS-sijaintia ei saatu haettua.");
-          } else if (error?.code === 3) {
-            setGpsErrorMessage("GPS-paikannus aikakatkaistiin.");
-          } else {
-            setGpsErrorMessage("GPS-paikannus ei ole käytettävissä tällä selaimella.");
-          }
       setLocationMessage(source === "gps" ? "Sijainti löytyi, mutta kauppahaku epäonnistui. Valitse alue käsin." : "Kauppahaku epäonnistui. Valitse alue käsin.");
     } finally {
       setStoreSearchLoading(false);
@@ -4626,15 +4561,6 @@ const [gpsErrorMessage, setGpsErrorMessage] = useState("");
       await applyLocation(city, "gps");
     } catch (error) {
       console.error(error);
-          if (error?.code === 1) {
-            setGpsErrorMessage("GPS-paikannus estetty selaimen asetuksissa.");
-          } else if (error?.code === 2) {
-            setGpsErrorMessage("GPS-sijaintia ei saatu haettua.");
-          } else if (error?.code === 3) {
-            setGpsErrorMessage("GPS-paikannus aikakatkaistiin.");
-          } else {
-            setGpsErrorMessage("GPS-paikannus ei ole käytettävissä tällä selaimella.");
-          }
       setLocationMessage("Sijaintia ei saatu. Valitse alue käsin.");
       setUsingOwnLocation(false);
       setStoreSearchLoading(false);
@@ -4710,15 +4636,6 @@ const [gpsErrorMessage, setGpsErrorMessage] = useState("");
       setOffers([...sItems, ...kItems]);
     } catch (error) {
       console.error(error);
-          if (error?.code === 1) {
-            setGpsErrorMessage("GPS-paikannus estetty selaimen asetuksissa.");
-          } else if (error?.code === 2) {
-            setGpsErrorMessage("GPS-sijaintia ei saatu haettua.");
-          } else if (error?.code === 3) {
-            setGpsErrorMessage("GPS-paikannus aikakatkaistiin.");
-          } else {
-            setGpsErrorMessage("GPS-paikannus ei ole käytettävissä tällä selaimella.");
-          }
       setOffers([]);
     } finally {
       setLoadingOffers(false);
@@ -4890,15 +4807,6 @@ const [gpsErrorMessage, setGpsErrorMessage] = useState("");
       setNormalResults(unique);
     } catch (error) {
       console.error(error);
-          if (error?.code === 1) {
-            setGpsErrorMessage("GPS-paikannus estetty selaimen asetuksissa.");
-          } else if (error?.code === 2) {
-            setGpsErrorMessage("GPS-sijaintia ei saatu haettua.");
-          } else if (error?.code === 3) {
-            setGpsErrorMessage("GPS-paikannus aikakatkaistiin.");
-          } else {
-            setGpsErrorMessage("GPS-paikannus ei ole käytettävissä tällä selaimella.");
-          }
       setSearchDebug(debugEntries);
       setNormalResults([]);
     } finally {
@@ -5216,15 +5124,6 @@ const [gpsErrorMessage, setGpsErrorMessage] = useState("");
       );
     } catch (error) {
       console.error(error);
-          if (error?.code === 1) {
-            setGpsErrorMessage("GPS-paikannus estetty selaimen asetuksissa.");
-          } else if (error?.code === 2) {
-            setGpsErrorMessage("GPS-sijaintia ei saatu haettua.");
-          } else if (error?.code === 3) {
-            setGpsErrorMessage("GPS-paikannus aikakatkaistiin.");
-          } else {
-            setGpsErrorMessage("GPS-paikannus ei ole käytettävissä tällä selaimella.");
-          }
       await stopEanCameraScanner();
       setEanScannerMessage("Kameraa ei saatu avattua tai skanneri ei käynnistynyt. Tarkista kameran lupa ja yritä uudelleen.");
     }
@@ -5495,15 +5394,6 @@ const [gpsErrorMessage, setGpsErrorMessage] = useState("");
       }
     } catch (error) {
       console.error(error);
-          if (error?.code === 1) {
-            setGpsErrorMessage("GPS-paikannus estetty selaimen asetuksissa.");
-          } else if (error?.code === 2) {
-            setGpsErrorMessage("GPS-sijaintia ei saatu haettua.");
-          } else if (error?.code === 3) {
-            setGpsErrorMessage("GPS-paikannus aikakatkaistiin.");
-          } else {
-            setGpsErrorMessage("GPS-paikannus ei ole käytettävissä tällä selaimella.");
-          }
       setEanResults([]);
       setEanSearchStartedAutomatically(false);
       eanAutoSearchActiveRef.current = false;
@@ -6984,15 +6874,6 @@ const [gpsErrorMessage, setGpsErrorMessage] = useState("");
       }));
     } catch (error) {
       console.error(error);
-          if (error?.code === 1) {
-            setGpsErrorMessage("GPS-paikannus estetty selaimen asetuksissa.");
-          } else if (error?.code === 2) {
-            setGpsErrorMessage("GPS-sijaintia ei saatu haettua.");
-          } else if (error?.code === 3) {
-            setGpsErrorMessage("GPS-paikannus aikakatkaistiin.");
-          } else {
-            setGpsErrorMessage("GPS-paikannus ei ole käytettävissä tällä selaimella.");
-          }
       setAlternativeResults((prev) => ({
         ...prev,
         [key]: [],
@@ -7295,15 +7176,6 @@ const [gpsErrorMessage, setGpsErrorMessage] = useState("");
       }));
     } catch (error) {
       console.error(error);
-          if (error?.code === 1) {
-            setGpsErrorMessage("GPS-paikannus estetty selaimen asetuksissa.");
-          } else if (error?.code === 2) {
-            setGpsErrorMessage("GPS-sijaintia ei saatu haettua.");
-          } else if (error?.code === 3) {
-            setGpsErrorMessage("GPS-paikannus aikakatkaistiin.");
-          } else {
-            setGpsErrorMessage("GPS-paikannus ei ole käytettävissä tällä selaimella.");
-          }
       alert("Korivaihtoehtojen haku epäonnistui. Kokeile hetken päästä uudelleen.");
     } finally {
       setOptimizingChains((prev) => ({
