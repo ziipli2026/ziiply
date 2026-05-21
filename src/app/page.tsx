@@ -218,7 +218,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v246";
+const APP_VERSION = "v247";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -663,16 +663,29 @@ function isColaSearchTerm(value: string) {
 
 function getNormalSearchQueries(term: string) {
   const intent = detectSearchIntent(term);
+  const normalizedTerm = normalize(term);
+  const words = getNormalizedWords(term).filter((word) => word.length > 3 && !/^\d/.test(word));
   const expanded = uniqueNormalizedQueries([term, getSearchQuery(term), ...intent.variants]);
 
-  // Jos käyttäjä kirjoittaa useamman sanan, kokeillaan myös ydintermiä.
-  const words = getNormalizedWords(term).filter((word) => word.length > 3 && !/^\d/.test(word));
+  // v247:
+  // Moniosaiset tuotetermit ovat yleensä tarkoituksella tarkkoja hakuja.
+  // Esim. "broilerin jauheliha" ei saa muuttua käytännössä "broilerin"-hauksi,
+  // eikä "Coca-Cola Zero 1,5l" saa hajota yleiseksi cola-hauksi liian aikaisin.
+  // Pidetään tarkka termi aina ensimmäisenä ja lisätään lyhyemmät fallbackit vasta loppuun.
   if (words.length >= 2) expanded.push(...uniqueNormalizedQueries([words.slice(0, 2).join(" ")]));
-  if (words.length >= 1) expanded.push(...uniqueNormalizedQueries([words[0]]));
+
+  const isVerySpecificProductQuery =
+    words.length >= 2 ||
+    /\b\d+(?:[,\.]\d+)?\s?(l|ml|kg|g)\b/i.test(normalizedTerm) ||
+    normalizedTerm.includes("2-pack") ||
+    normalizedTerm.includes("zero");
+
+  if (!isVerySpecificProductQuery && words.length >= 1) {
+    expanded.push(...uniqueNormalizedQueries([words[0]]));
+  }
 
   return uniqueNormalizedQueries(expanded);
 }
-
 function isAliasSearch(term: string) {
   return normalize(getSearchQuery(term)) !== normalize(term);
 }
@@ -1946,6 +1959,57 @@ function getCategoryConfidence(intent: SearchIntent, product: Product) {
   return confidence;
 }
 
+
+function getImportantQueryWordsForStrictMatch(query: string) {
+  const genericWords = new Set([
+    "tuote",
+    "tuotteet",
+    "pakkaus",
+    "pkt",
+    "kpl",
+    "pl",
+    "tlk",
+    "plo",
+    "pullo",
+    "virvoitusjuoma",
+    "juoma",
+    "kokonainen",
+    "tuore",
+    "pakaste",
+  ]);
+
+  return getNormalizedWords(query)
+    .filter((word) => word.length > 2)
+    .filter((word) => !genericWords.has(word))
+    .filter((word) => !/^\d+$/.test(word));
+}
+
+function getStrictMultiWordMatchScore(query: string, product: Product) {
+  const words = getImportantQueryWordsForStrictMatch(query);
+  if (words.length < 2) return 0;
+
+  const text = getProductSearchText(product);
+  let score = 0;
+  let missing = 0;
+
+  for (const word of words) {
+    if (hasExactNormalizedWord(product.name, word) || text.includes(word)) {
+      score += 34;
+    } else {
+      missing += 1;
+      score -= 105;
+    }
+  }
+
+  // Moniosaisissa hauissa kuten "broilerin jauheliha" tai
+  // "coca cola zero 1,5l" tärkeiden sanojen pitää pysyä mukana.
+  // Muuten hakukone saa nostaa väärän alaryhmän kärkeen.
+  if (missing === 0) score += 140;
+  if (missing >= 2) score -= 180;
+
+  return score;
+}
+
 function scoreBaseNormalResult(query: string, product: Product) {
   const intent = detectSearchIntent(query);
   const queryText = normalize(query);
@@ -1956,6 +2020,7 @@ function scoreBaseNormalResult(query: string, product: Product) {
   let score = 0;
 
   score += scoreDirectQueryNameMatch(query, product.name);
+  score += getStrictMultiWordMatchScore(query, product);
 
   if (productText === queryText) score += 140;
   if (nameText.startsWith(queryText)) score += 90;
@@ -2792,6 +2857,25 @@ export default function Page() {
     setInput(value);
   }
 
+  function getCompactSuggestionLabel(label: string) {
+    const clean = fixText(label).replace(/\s+/g, " ").trim();
+    const text = normalize(clean);
+
+    if (hasAnyToken(text, ["coca-cola", "coca cola", "cola", "pepsi"])) {
+      const size = clean.match(/\b\d+(?:[,\.]\d+)?\s?(?:l|ml)\b/i)?.[0] || "";
+      const isZero = hasAnyToken(text, ["zero", "max"]);
+      const brand = hasAnyToken(text, ["pepsi"]) ? "pepsi" : hasAnyToken(text, ["coca-cola", "coca cola"]) ? "coca cola" : "cola";
+      return [brand, isZero ? (brand === "pepsi" ? "max" : "zero") : "", size].filter(Boolean).join(" ");
+    }
+
+    if (hasAnyToken(text, ["broilerin jauheliha", "kanan jauheliha"])) return "broilerin jauheliha";
+    if (hasAnyToken(text, ["naudan jauheliha"])) return "naudan jauheliha";
+    if (hasAnyToken(text, ["sika-nauta jauheliha", "sikanauta jauheliha"])) return "sika-nauta jauheliha";
+    if (hasAnyToken(text, ["jauheliha"])) return "jauheliha";
+
+    return clean.length > 42 ? clean.slice(0, 42).trim() : clean;
+  }
+
   const searchSuggestionSeed = useMemo(() => {
     const splitTerms = splitProductTermsPreservingDecimalCommas(input);
     const currentText = splitTerms[splitTerms.length - 1] || input.trim();
@@ -2814,8 +2898,8 @@ export default function Page() {
       if (!existing || existing.score < score) candidates.set(key, { label: cleanLabel, hint, score });
     };
 
-    for (const item of cart) addCandidate(item.name, "Korista", 115);
-    for (const item of recentCartItems) addCandidate(item.name, "Viimeksi lisätty", 105);
+    for (const item of cart) addCandidate(getCompactSuggestionLabel(item.name), "Korista", 115);
+    for (const item of recentCartItems) addCandidate(getCompactSuggestionLabel(item.name), "Viimeksi lisätty", 105);
 
     for (const intent of SEARCH_INTENTS) {
       const intentMatchesQuery = normalize(intent.label).includes(query) || intent.variants.some((variant) => normalize(variant).includes(query));
@@ -4399,7 +4483,7 @@ export default function Page() {
             scoreDirectQueryNameMatch(bOriginalQuery, b.name) -
             scoreDirectQueryNameMatch(aOriginalQuery, a.name);
 
-          if (Math.abs(directNameDifference) > 40) return directNameDifference;
+          if (Math.abs(directNameDifference) > 12) return directNameDifference;
 
           return scoreNormalSResult(bOriginalQuery, b) - scoreNormalSResult(aOriginalQuery, a);
         });
