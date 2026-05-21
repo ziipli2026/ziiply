@@ -219,7 +219,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v267";
+const APP_VERSION = "v268";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -5130,19 +5130,18 @@ export default function Page() {
     eanAutoSearchActiveRef.current = false;
 
     // Kameran/EAN-ikkunan sulkeminen ei saa jättää käyttäjää tyhjälle pääsivulle
-    // eikä avata Vertailu-korttia automaattisesti. Palautetaan Hae-kortti taustalla.
+    // eikä avata Vertailu-korttia automaattisesti. Palautetaan Hae-kortti piilotettuna
+    // ja suljetaan modal samassa renderöintijaksossa, jotta väli-frame ei välähdä.
     setActiveResult("none");
     setCartModalOpen(false);
     setCartSavePanelOpen(false);
     setShopsPanelOpen(false);
     setSearchPanelOpen(true);
+    setEanModalOpen(false);
 
     window.requestAnimationFrame(() => {
       window.requestAnimationFrame(() => {
-        setEanModalOpen(false);
-        window.requestAnimationFrame(() => {
-          setSuppressUiForEanClose(false);
-        });
+        setSuppressUiForEanClose(false);
       });
     });
   }
@@ -5322,9 +5321,16 @@ export default function Page() {
         }
 
         if (exactResults.length === 1 && eanAutoSearchActiveRef.current) {
-          // Automaattisen EAN-haun yhden täsmäosuman polku pidetään hiljaisena:
-          // ei renderöidä välissä tuloskorttia, jotta EAN-ikkuna ei hypi.
-          addEanResultToCart(exactResults[0]);
+          // Yksi tuote -tilassa skannaus toimii kuten tekstihaku: avaa vertailu,
+          // ei lisää tuotetta suoraan ostoskoriin. Koko kori -tilassa säilyy vanha pikalisäys.
+          if (searchCompareMode === "single") {
+            await stopEanCameraScanner();
+            await compareEanResultAsSingle(exactResults[0]);
+          } else {
+            // Automaattisen EAN-haun yhden täsmäosuman polku pidetään hiljaisena:
+            // ei renderöidä välissä tuloskorttia, jotta EAN-ikkuna ei hypi.
+            addEanResultToCart(exactResults[0]);
+          }
         } else if (exactResults.length === 1) {
           if (eanScannerOpen || eanHtml5ScannerRef.current) showScanSuccessFlash();
           setEanResults(exactResults.slice(0, 8));
@@ -5413,6 +5419,114 @@ export default function Page() {
       }
     };
   }, [eanInput, eanModalOpen, eanLoading, lastAutoEanSearch, eanMessage]);
+
+  async function compareEanResultAsSingle(result: EanSearchResult) {
+    const selectedName = fixText(result.product.name);
+    const selectedPrice = getProductPrice(result.product);
+
+    if (!selectedName || selectedPrice <= 0 || singleProductCompareLoading) return;
+
+    trackZiiplyEvent("single_product_selected_for_compare", {
+      productName: selectedName,
+      ean: result.product.ean,
+      source: "barcode_scanner",
+      chain: result.chain,
+      storeMode,
+      sStoreName: activeStores.sStoreName,
+      kStoreName: activeStores.kStoreName,
+    });
+
+    setSearchPanelOpen(false);
+    setCartModalOpen(false);
+    setCartSavePanelOpen(false);
+    setShopsPanelOpen(false);
+    setEanModalOpen(false);
+    setEanManualInputOpen(false);
+    setEanResults([]);
+    setEanInput("");
+    setEanMessage("");
+    setEanScannerMessage("");
+    setLastAutoEanSearch("");
+    setEanSearchStartedAutomatically(false);
+    eanAutoSearchActiveRef.current = false;
+    setNormalResults([]);
+    setVisibleNormalCount(8);
+    setActiveNormalSearchTerm("");
+    setSingleProductCompareTerm(selectedName);
+    setSingleProductCompareResults([]);
+    setSingleProductCompareLoading(true);
+    setActiveResult("singleCompare");
+
+    try {
+      const nextResults: SingleProductCompareResult[] = [
+        {
+          key: result.chain.toLowerCase() as "s" | "k",
+          chain: result.chain === "S" ? "S-ryhmä" : "K-ryhmä",
+          storeName: result.storeName,
+          productName: selectedName,
+          price: selectedPrice,
+          ean: result.product.ean,
+          image: result.product.pictureUrl,
+          comparisonPrice: formatComparisonPrice(result.product),
+        },
+      ];
+
+      try {
+        if (result.chain === "S") {
+          let kBest: KProduct | undefined;
+          const selectedEan = normalizeEan(result.product.ean);
+
+          for (const kSearchTerm of getKSearchTerms(selectedName)) {
+            const kItems = await fetchKProducts(kSearchTerm, activeStores.kStoreId);
+            kBest = pickBestKProduct(kItems, selectedName, selectedEan);
+            if (kBest && !shouldKeepSearchingKOwnBrand(selectedName, kBest)) break;
+          }
+
+          if (kBest && kBest.price > 0) {
+            nextResults.push({
+              key: "k",
+              chain: "K-ryhmä",
+              storeName: activeStores.kStoreName,
+              productName: fixText(kBest.name),
+              price: kBest.price,
+              ean: kBest.ean,
+              image: kBest.pictureUrl,
+              comparisonPrice: null,
+            });
+          }
+        } else {
+          let sBest: Product | undefined;
+          const selectedEan = normalizeEan(result.product.ean);
+
+          for (const sSearchTerm of getNormalSearchQueries(selectedName).slice(0, 6)) {
+            const sItems = await fetchSProducts(sSearchTerm, activeStores.sStoreId);
+            sBest = pickBestSProduct(sItems, selectedName, selectedEan);
+            if (sBest && getProductPrice(sBest) > 0) break;
+          }
+
+          if (sBest && getProductPrice(sBest) > 0) {
+            nextResults.push({
+              key: "s",
+              chain: "S-ryhmä",
+              storeName: activeStores.sStoreName,
+              productName: fixText(sBest.name),
+              price: getProductPrice(sBest),
+              ean: sBest.ean,
+              image: sBest.pictureUrl,
+              comparisonPrice: formatComparisonPrice(sBest),
+            });
+          }
+        }
+      } catch {}
+
+      setSingleProductCompareResults(nextResults.sort((a, b) => a.price - b.price));
+    } finally {
+      setSingleProductCompareLoading(false);
+      window.requestAnimationFrame(() => {
+        compareOverlayScrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
+      });
+    }
+  }
 
   function addEanResultToCart(result: EanSearchResult) {
     const ean = normalizeEan(result.product.ean || eanInput);
@@ -6400,6 +6514,15 @@ export default function Page() {
       showCartToast(`${currentItem.name}: ${nextQuantity} kpl`);
     }
 
+    if (nextCart.length === 0) {
+      setActiveResult("none");
+      setCartModalOpen(false);
+      setCartSavePanelOpen(false);
+      setShopsPanelOpen(false);
+      setEanModalOpen(false);
+      setSearchPanelOpen(true);
+    }
+
     triggerHaptic();
     void updateChainComparison(nextCart);
   }
@@ -6438,6 +6561,15 @@ export default function Page() {
       delete next[id];
       return next;
     });
+    if (nextCart.length === 0) {
+      setActiveResult("none");
+      setCartModalOpen(false);
+      setCartSavePanelOpen(false);
+      setShopsPanelOpen(false);
+      setEanModalOpen(false);
+      setSearchPanelOpen(true);
+    }
+
     showCartToast(`Poistettu: ${removedItem.name}`);
     void updateChainComparison(nextCart);
   }
@@ -6461,6 +6593,11 @@ export default function Page() {
     setNormalResults([]);
     setVisibleNormalCount(8);
     setActiveResult("none");
+    setCartModalOpen(false);
+    setCartSavePanelOpen(false);
+    setShopsPanelOpen(false);
+    setEanModalOpen(false);
+    setSearchPanelOpen(true);
     showCartToast("Ostoskori tyhjennetty");
     return true;
   }
@@ -7025,7 +7162,7 @@ export default function Page() {
   }
 
   return (
-    <main className={`min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top,#ecfdf3_0%,#f8fafc_42%,#f1f5f9_100%)] px-2 pb-32 pt-[4.75rem] text-slate-950 sm:px-4 sm:py-4 md:pb-4 ${suppressUiForEanClose ? "pointer-events-none" : ""}`}>
+    <main className={`min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top,#ecfdf3_0%,#f8fafc_42%,#f1f5f9_100%)] px-2 pb-32 pt-[4.75rem] text-slate-950 sm:px-4 sm:py-4 md:pb-4 ${suppressUiForEanClose ? "pointer-events-none opacity-0" : "opacity-100"}`}>
       {showLaunchScreen && (
         <div className="fixed inset-0 z-[90] flex items-center justify-center bg-white sm:hidden">
           <div className="absolute right-5 top-[calc(env(safe-area-inset-top)+0.75rem)]">
