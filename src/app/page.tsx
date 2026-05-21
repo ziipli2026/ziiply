@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v285_GPS_AND_WIDE_PICKERS";
+const APP_VERSION = "v286_GPS_BUILDOK_DEFAULTS";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -4532,11 +4532,12 @@ export default function Page() {
       }
     } catch (error) {
       console.error(error);
-        if (error?.code === 1) {
+        const gpsErrorCode = typeof error === "object" && error !== null && "code" in error ? Number((error as { code?: number }).code) : 0;
+        if (gpsErrorCode === 1) {
           setGpsErrorMessage("GPS-paikannus estetty selaimen asetuksissa.");
-        } else if (error?.code === 2) {
+        } else if (gpsErrorCode === 2) {
           setGpsErrorMessage("GPS-sijaintia ei saatu haettua.");
-        } else if (error?.code === 3) {
+        } else if (gpsErrorCode === 3) {
           setGpsErrorMessage("GPS-paikannus aikakatkaistiin.");
         } else {
           setGpsErrorMessage("GPS-paikannus ei ole käytettävissä.");
@@ -4571,11 +4572,12 @@ export default function Page() {
       await applyLocation(city, "gps");
     } catch (error) {
       console.error(error);
-        if (error?.code === 1) {
+        const gpsErrorCode = typeof error === "object" && error !== null && "code" in error ? Number((error as { code?: number }).code) : 0;
+        if (gpsErrorCode === 1) {
           setGpsErrorMessage("GPS-paikannus estetty selaimen asetuksissa.");
-        } else if (error?.code === 2) {
+        } else if (gpsErrorCode === 2) {
           setGpsErrorMessage("GPS-sijaintia ei saatu haettua.");
-        } else if (error?.code === 3) {
+        } else if (gpsErrorCode === 3) {
           setGpsErrorMessage("GPS-paikannus aikakatkaistiin.");
         } else {
           setGpsErrorMessage("GPS-paikannus ei ole käytettävissä.");
@@ -4655,11 +4657,12 @@ export default function Page() {
       setOffers([...sItems, ...kItems]);
     } catch (error) {
       console.error(error);
-        if (error?.code === 1) {
+        const gpsErrorCode = typeof error === "object" && error !== null && "code" in error ? Number((error as { code?: number }).code) : 0;
+        if (gpsErrorCode === 1) {
           setGpsErrorMessage("GPS-paikannus estetty selaimen asetuksissa.");
-        } else if (error?.code === 2) {
+        } else if (gpsErrorCode === 2) {
           setGpsErrorMessage("GPS-sijaintia ei saatu haettua.");
-        } else if (error?.code === 3) {
+        } else if (gpsErrorCode === 3) {
           setGpsErrorMessage("GPS-paikannus aikakatkaistiin.");
         } else {
           setGpsErrorMessage("GPS-paikannus ei ole käytettävissä.");
@@ -4835,11 +4838,12 @@ export default function Page() {
       setNormalResults(unique);
     } catch (error) {
       console.error(error);
-        if (error?.code === 1) {
+        const gpsErrorCode = typeof error === "object" && error !== null && "code" in error ? Number((error as { code?: number }).code) : 0;
+        if (gpsErrorCode === 1) {
           setGpsErrorMessage("GPS-paikannus estetty selaimen asetuksissa.");
-        } else if (error?.code === 2) {
+        } else if (gpsErrorCode === 2) {
           setGpsErrorMessage("GPS-sijaintia ei saatu haettua.");
-        } else if (error?.code === 3) {
+        } else if (gpsErrorCode === 3) {
           setGpsErrorMessage("GPS-paikannus aikakatkaistiin.");
         } else {
           setGpsErrorMessage("GPS-paikannus ei ole käytettävissä.");
@@ -5161,11 +5165,12 @@ export default function Page() {
       );
     } catch (error) {
       console.error(error);
-        if (error?.code === 1) {
+        const gpsErrorCode = typeof error === "object" && error !== null && "code" in error ? Number((error as { code?: number }).code) : 0;
+        if (gpsErrorCode === 1) {
           setGpsErrorMessage("GPS-paikannus estetty selaimen asetuksissa.");
-        } else if (error?.code === 2) {
+        } else if (gpsErrorCode === 2) {
           setGpsErrorMessage("GPS-sijaintia ei saatu haettua.");
-        } else if (error?.code === 3) {
+        } else if (gpsErrorCode === 3) {
           setGpsErrorMessage("GPS-paikannus aikakatkaistiin.");
         } else {
           setGpsErrorMessage("GPS-paikannus ei ole käytettävissä.");
@@ -5440,11 +5445,12 @@ export default function Page() {
       }
     } catch (error) {
       console.error(error);
-        if (error?.code === 1) {
+        const gpsErrorCode = typeof error === "object" && error !== null && "code" in error ? Number((error as { code?: number }).code) : 0;
+        if (gpsErrorCode === 1) {
           setGpsErrorMessage("GPS-paikannus estetty selaimen asetuksissa.");
-        } else if (error?.code === 2) {
+        } else if (gpsErrorCode === 2) {
           setGpsErrorMessage("GPS-sijaintia ei saatu haettua.");
-        } else if (error?.code === 3) {
+        } else if (gpsErrorCode === 3) {
           setGpsErrorMessage("GPS-paikannus aikakatkaistiin.");
         } else {
           setGpsErrorMessage("GPS-paikannus ei ole käytettävissä.");
@@ -6929,11 +6935,12 @@ export default function Page() {
       }));
     } catch (error) {
       console.error(error);
-        if (error?.code === 1) {
+        const gpsErrorCode = typeof error === "object" && error !== null && "code" in error ? Number((error as { code?: number }).code) : 0;
+        if (gpsErrorCode === 1) {
           setGpsErrorMessage("GPS-paikannus estetty selaimen asetuksissa.");
-        } else if (error?.code === 2) {
+        } else if (gpsErrorCode === 2) {
           setGpsErrorMessage("GPS-sijaintia ei saatu haettua.");
-        } else if (error?.code === 3) {
+        } else if (gpsErrorCode === 3) {
           setGpsErrorMessage("GPS-paikannus aikakatkaistiin.");
         } else {
           setGpsErrorMessage("GPS-paikannus ei ole käytettävissä.");
@@ -7240,11 +7247,12 @@ export default function Page() {
       }));
     } catch (error) {
       console.error(error);
-        if (error?.code === 1) {
+        const gpsErrorCode = typeof error === "object" && error !== null && "code" in error ? Number((error as { code?: number }).code) : 0;
+        if (gpsErrorCode === 1) {
           setGpsErrorMessage("GPS-paikannus estetty selaimen asetuksissa.");
-        } else if (error?.code === 2) {
+        } else if (gpsErrorCode === 2) {
           setGpsErrorMessage("GPS-sijaintia ei saatu haettua.");
-        } else if (error?.code === 3) {
+        } else if (gpsErrorCode === 3) {
           setGpsErrorMessage("GPS-paikannus aikakatkaistiin.");
         } else {
           setGpsErrorMessage("GPS-paikannus ei ole käytettävissä.");
@@ -7565,7 +7573,7 @@ export default function Page() {
           <div className="absolute right-5 top-[calc(env(safe-area-inset-top)+0.75rem)]">
             <span className="rounded-full bg-green-50 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-green-700 ring-1 ring-green-100">{APP_VERSION}</span>
           </div>
-          <div className="mx-auto flex w-full max-w-[320px] flex-col items-center px-8 text-center">
+          <div className="mx-auto flex w-full max-w-[340px] flex-col items-center px-8 text-center">
             <img
               src="/ziiply.png"
               alt="Ziiply"
@@ -7781,7 +7789,7 @@ export default function Page() {
                           key={store.id}
                           type="button"
                           onClick={() => selectStoreForCurrentMode(store)}
-                          className={`w-full min-w-[280px] rounded-xl px-4 py-3 text-left transition ${
+                          className={`w-full min-w-[340px] rounded-xl px-4 py-3 text-left transition ${
                             selected
                               ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                               : "bg-slate-50 text-slate-700 hover:bg-green-50"
@@ -7829,12 +7837,12 @@ export default function Page() {
           () => {
             setGpsErrorMessage("");
           },
-          (error) => {
-            if (error?.code === 1) {
+          (error: GeolocationPositionError) => {
+            if (error.code === 1) {
               setGpsErrorMessage("GPS-paikannus estetty selaimen asetuksissa.");
-            } else if (error?.code === 2) {
+            } else if (error.code === 2) {
               setGpsErrorMessage("GPS-sijaintia ei saatu haettua.");
-            } else if (error?.code === 3) {
+            } else if (error.code === 3) {
               setGpsErrorMessage("GPS-paikannus aikakatkaistiin.");
             } else {
               setGpsErrorMessage("GPS-paikannus ei ole käytettävissä.");
@@ -7849,12 +7857,36 @@ export default function Page() {
 
     return () => window.clearTimeout(timer);
   }, []);
+
+  // DEFAULT_STORE_MODE_V286
+  // Ensimmäisellä latauksella oletus on aina Tavaratalot + Ketjujen väliltä,
+  // ellei selaimesta löydy aiemmin tallennettuja kauppavalintoja.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    try {
+      const hasSavedStoreMode =
+        localStorage.getItem("ziiply-store-mode") ||
+        localStorage.getItem("storeMode") ||
+        localStorage.getItem("ziiply-store-compare-scope") ||
+        localStorage.getItem("storeCompareScope");
+
+      if (!hasSavedStoreMode) {
+        setStoreMode("hyper");
+        setStoreCompareScope("between_chains");
+      }
+    } catch {
+      setStoreMode("hyper");
+      setStoreCompareScope("between_chains");
+    }
+  }, []);
+
 return (
                         <button
                           key={store.id}
                           type="button"
                           onClick={() => selectStoreForCurrentMode(store)}
-                          className={`w-full min-w-[280px] rounded-xl px-4 py-3 text-left transition ${
+                          className={`w-full min-w-[340px] rounded-xl px-4 py-3 text-left transition ${
                             selected
                               ? "bg-red-700 shadow-md ring-1 ring-black/10 text-white"
                               : "bg-slate-50 text-slate-700 hover:bg-red-50"
@@ -8060,7 +8092,7 @@ return (
                                 key={store.id}
                                 type="button"
                                 onClick={() => selectStoreForCurrentMode(store)}
-                                className={`w-full min-w-[280px] rounded-xl px-4 py-3 text-left transition ${
+                                className={`w-full min-w-[340px] rounded-xl px-4 py-3 text-left transition ${
                                   selected
                                     ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                                     : "bg-slate-50 text-slate-700 hover:bg-green-50"
@@ -8096,7 +8128,7 @@ return (
                                 key={store.id}
                                 type="button"
                                 onClick={() => selectStoreForCurrentMode(store)}
-                                className={`w-full min-w-[280px] rounded-xl px-4 py-3 text-left transition ${
+                                className={`w-full min-w-[340px] rounded-xl px-4 py-3 text-left transition ${
                                   selected
                                     ? "bg-red-700 shadow-md ring-1 ring-black/10 text-white"
                                     : "bg-slate-50 text-slate-700 hover:bg-red-50"
