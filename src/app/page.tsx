@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v310";
+const APP_VERSION = "v311";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -907,6 +907,85 @@ function playScanSuccessFeedback() {
       } catch {}
     };
   } catch {}
+}
+
+
+function getScannerVideoElement() {
+  if (typeof document === "undefined") return null;
+  return document.querySelector(`#${EAN_SCANNER_REGION_ID} video`) as HTMLVideoElement | null;
+}
+
+function getScannerVideoTrack() {
+  const video = getScannerVideoElement();
+  const stream = video?.srcObject as MediaStream | null;
+  return stream?.getVideoTracks?.()[0] || null;
+}
+
+async function applyBestEffortScannerCameraTuning() {
+  try {
+    const track = getScannerVideoTrack();
+    if (!track) return;
+
+    const capabilities = typeof track.getCapabilities === "function" ? (track.getCapabilities() as any) : {};
+    const advanced: any[] = [];
+
+    if (Array.isArray(capabilities.focusMode) && capabilities.focusMode.includes("continuous")) {
+      advanced.push({ focusMode: "continuous" });
+    }
+
+    if (Array.isArray(capabilities.exposureMode) && capabilities.exposureMode.includes("continuous")) {
+      advanced.push({ exposureMode: "continuous" });
+    }
+
+    if (Array.isArray(capabilities.whiteBalanceMode) && capabilities.whiteBalanceMode.includes("continuous")) {
+      advanced.push({ whiteBalanceMode: "continuous" });
+    }
+
+    if (capabilities.zoom && typeof capabilities.zoom.min === "number") {
+      advanced.push({ zoom: capabilities.zoom.min });
+    }
+
+    if (advanced.length > 0) {
+      await track.applyConstraints({ advanced } as any);
+    }
+  } catch {
+    // Kameralaitteet ja selaimet tukevat näitä eri tavoin. Epäonnistuminen ohitetaan.
+  }
+}
+
+async function focusScannerCameraAtPoint(event: React.PointerEvent<HTMLElement>) {
+  try {
+    const track = getScannerVideoTrack();
+    const target = event.currentTarget;
+    if (!track || !target) return;
+
+    const rect = target.getBoundingClientRect();
+    const x = Math.max(0, Math.min(1, (event.clientX - rect.left) / Math.max(1, rect.width)));
+    const y = Math.max(0, Math.min(1, (event.clientY - rect.top) / Math.max(1, rect.height)));
+    const capabilities = typeof track.getCapabilities === "function" ? (track.getCapabilities() as any) : {};
+
+    if ((window as any).ImageCapture) {
+      try {
+        const imageCapture = new (window as any).ImageCapture(track);
+        await imageCapture.setOptions?.({
+          pointsOfInterest: [{ x, y }],
+          focusMode: Array.isArray(capabilities.focusMode) && capabilities.focusMode.includes("single-shot") ? "single-shot" : "continuous",
+        });
+        return;
+      } catch {}
+    }
+
+    if (Array.isArray(capabilities.focusMode) && capabilities.focusMode.includes("single-shot")) {
+      await track.applyConstraints({ advanced: [{ focusMode: "single-shot" }] } as any);
+      window.setTimeout(() => {
+        void track.applyConstraints({ advanced: [{ focusMode: "continuous" }] } as any).catch(() => undefined);
+      }, 900);
+    } else if (Array.isArray(capabilities.focusMode) && capabilities.focusMode.includes("continuous")) {
+      await track.applyConstraints({ advanced: [{ focusMode: "continuous" }] } as any);
+    }
+  } catch {
+    // Tap-to-focus on best-effort; jos selain ei tue sitä, skanneri jatkaa normaalisti.
+  }
 }
 
 function formatDate(value?: string | null) {
@@ -5230,28 +5309,28 @@ export default function Page() {
       const scanner = new Html5Qrcode(EAN_SCANNER_REGION_ID, formatsToSupport ? { formatsToSupport } : undefined);
       eanHtml5ScannerRef.current = scanner;
 
-      const scannerSize = Math.max(260, Math.min(360, window.innerWidth - 56));
-
-      setEanScannerMessage("Aseta viivakoodi vihreän kehyksen sisään. Käännä puhelinta tarvittaessa pysty- tai vaakakoodille.");
+      setEanScannerMessage("Aseta viivakoodi vihreän kehyksen alueelle. Napauta kuvaa, jos haluat yrittää tarkentaa kameraa.");
 
       await scanner.start(
         {
           facingMode: { exact: "environment" },
         },
         {
-          fps: 10,
-          qrbox: { width: scannerSize, height: scannerSize },
-          aspectRatio: 1.0,
+          fps: 12,
+          aspectRatio: 4 / 3,
           disableFlip: false,
           videoConstraints: {
             facingMode: "environment",
             width: { ideal: 1920 },
-            height: { ideal: 1080 },
+            height: { ideal: 1440 },
             focusMode: "continuous",
             exposureMode: "continuous",
+            whiteBalanceMode: "continuous",
             advanced: [
               { focusMode: "continuous" },
               { exposureMode: "continuous" },
+              { whiteBalanceMode: "continuous" },
+              { zoom: 1 },
             ],
           },
         },
@@ -5261,6 +5340,10 @@ export default function Page() {
         },
         () => undefined
       );
+
+      window.requestAnimationFrame(() => {
+        void applyBestEffortScannerCameraTuning();
+      });
     } catch (error) {
       console.error(error);
         const gpsErrorCode = typeof error === "object" && error !== null && "code" in error ? Number((error as { code?: number }).code) : 0;
@@ -7809,8 +7892,22 @@ export default function Page() {
 
   return (
     <main className={`min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top,#ecfdf3_0%,#f8fafc_42%,#f1f5f9_100%)] px-2 pb-44 sm:pb-32 pt-[4.75rem] text-slate-950 sm:px-4 sm:py-3 sm:py-4 md:pb-4 ${suppressUiForEanClose ? "pointer-events-none" : ""}`}>
+      <style jsx global>{`
+        @keyframes ziiply-soft-open {
+          from { opacity: 0; transform: translateY(10px) scale(0.985); filter: blur(2px); }
+          to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+        }
+        .ziiply-soft-open {
+          animation: ziiply-soft-open 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+          transform-origin: top center;
+        }
+        .ziiply-soft-open-fast {
+          animation: ziiply-soft-open 190ms cubic-bezier(0.16, 1, 0.3, 1) both;
+          transform-origin: top center;
+        }
+      `}</style>
       {showLaunchScreen && (
-        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-white">
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-white ziiply-soft-open">
           <div className="absolute right-5 top-[calc(env(safe-area-inset-top)+0.75rem)]">
             <span className="rounded-full bg-green-50 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-green-700 ring-1 ring-green-100">{APP_VERSION}</span>
           </div>
@@ -7836,9 +7933,6 @@ export default function Page() {
           </div>
           <div className="flex shrink-0 flex-col items-end gap-1">
             <span className="rounded-full bg-green-50 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-green-700 ring-1 ring-green-100">{APP_VERSION}</span>
-            {activeArea?.label ? (
-              <span className="rounded-full bg-green-50 px-2.5 py-0.5 text-[10px] font-black text-green-700 ring-1 ring-green-100">📍 {activeArea.label} · {storeCompareScope === "within_chain" ? "Ketjun sisältä" : storeModeChosenV299 ? storeMode === "hyper" ? "Tavaratalot" : "Lähikaupat" : "Valitse hakutapa"}</span>
-            ) : null}
           </div>
         </div>
         {!isOnline && (
@@ -9407,7 +9501,7 @@ return (
       )}
 
       {eanModalOpen && (
-          <div className={`fixed inset-0 z-[80] flex items-end justify-center overflow-hidden overscroll-none bg-black/40 px-3 pb-3 pt-10 transition-opacity duration-700 ease-out sm:items-center sm:p-4 ${eanModalClosing ? "pointer-events-none opacity-0" : "opacity-100"}`}>
+          <div className={`fixed inset-0 z-[80] flex items-end justify-center overflow-hidden overscroll-none bg-black/40 px-3 pb-3 pt-10 transition-opacity duration-700 ease-out sm:items-center sm:p-4 ${eanModalClosing ? "pointer-events-none opacity-0" : "opacity-100 ziiply-soft-open-fast"}`}>
             <div className={`max-h-[calc(100dvh-1.5rem)] w-[min(94vw,34rem)] overflow-y-auto overscroll-contain rounded-[1.5rem] bg-white p-4 shadow-2xl ring-1 ring-slate-200 transition-all duration-700 ease-out [WebkitOverflowScrolling:touch] sm:max-h-[calc(100dvh-2rem)] sm:p-5 ${eanModalClosing ? "translate-y-2 scale-[0.985]" : "translate-y-0 scale-100"}`} style={{ width: "100%" }}>
               <div className="flex items-center justify-between gap-3">
                 <p className="text-lg font-extrabold text-slate-900">EAN / viivakoodi</p>
@@ -9460,7 +9554,7 @@ return (
               </div>
 
               {eanManualInputOpen && (
-                <div className="mt-4 flex gap-2">
+                <div className="mt-4 flex gap-2 ziiply-soft-open-fast">
                   <input
                     ref={eanInputRef}
                     value={eanInput}
@@ -9505,19 +9599,22 @@ return (
 
 
               {eanScannerMessage && !eanScannerOpen && (
-                <div className="mt-3 rounded-2xl bg-slate-100 p-3 text-sm font-bold text-slate-700">
+                <div className="mt-3 rounded-2xl bg-slate-100 p-3 text-sm font-bold text-slate-700 ziiply-soft-open-fast">
                   {eanScannerMessage}
                 </div>
               )}
 
               {eanScannerOpen && (
-                <div className="mt-3 overflow-hidden rounded-2xl bg-slate-950 p-2 ring-1 ring-slate-200">
-                  <div className="relative mx-auto aspect-square w-full max-w-[390px] overflow-hidden rounded-xl bg-slate-950">
+                <div className="mt-3 overflow-hidden rounded-2xl bg-slate-950 p-2 ring-1 ring-slate-200 ziiply-soft-open">
+                  <div
+                    className="relative mx-auto aspect-[4/3] w-full max-w-[430px] overflow-hidden rounded-xl bg-slate-950"
+                    onPointerDown={(event) => void focusScannerCameraAtPoint(event)}
+                  >
                     <div
                       id={EAN_SCANNER_REGION_ID}
-                      className="h-full w-full overflow-hidden rounded-xl bg-slate-950 [&_canvas]:!hidden [&_video]:!h-full [&_video]:!w-full [&_video]:rounded-xl [&_video]:object-cover"
+                      className="h-full w-full overflow-hidden rounded-xl bg-slate-950 [&_canvas]:!hidden [&_video]:!h-full [&_video]:!w-full [&_video]:rounded-xl [&_video]:!object-contain"
                     />
-                    <div className="pointer-events-none absolute inset-6 rounded-2xl border-4 border-green-400 shadow-[0_0_0_999px_rgba(2,6,23,0.35)]">
+                    <div className="pointer-events-none absolute inset-x-6 top-1/2 aspect-[1.55/1] -translate-y-1/2 rounded-2xl border-4 border-green-400 shadow-[0_0_0_999px_rgba(2,6,23,0.22)]">
                       <div className="absolute -left-1 -top-1 h-5 w-5 rounded-tl-2xl border-l-4 border-t-4 border-white/90" />
                       <div className="absolute -right-1 -top-1 h-5 w-5 rounded-tr-2xl border-r-4 border-t-4 border-white/90" />
                       <div className="absolute -bottom-1 -left-1 h-5 w-5 rounded-bl-2xl border-b-4 border-l-4 border-white/90" />
@@ -9561,7 +9658,7 @@ return (
 
                   </div>
                   <div className="mt-3 rounded-xl border border-green-400/50 bg-green-500/10 p-3 text-center text-sm font-extrabold leading-snug text-green-100">
-                    Aseta viivakoodi vihreän kehyksen sisään. Käännä puhelinta tarvittaessa. Lue läheltä, pidä pakkaus vakaana ja käytä hyvää valoa.
+                    Aseta viivakoodi vihreän kehyksen alueelle. Napauta kuvaa tarkennusta varten, pidä pakkaus vakaana ja käytä hyvää valoa.
                   </div>
                 </div>
               )}
