@@ -219,7 +219,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v268";
+const APP_VERSION = "v269";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -5005,7 +5005,7 @@ export default function Page() {
     void searchByEan(normalizedCode);
   }
 
-  async function stopEanCameraScanner() {
+  async function stopEanCameraScanner(options: { keepScannerOpenState?: boolean } = {}) {
     const scanner = eanHtml5ScannerRef.current;
     eanHtml5ScannerRef.current = null;
     lastContinuousScanRef.current = null;
@@ -5024,7 +5024,9 @@ export default function Page() {
       eanScannerStoppingRef.current = false;
     }
 
-    setEanScannerOpen(false);
+    if (!options.keepScannerOpenState) {
+      setEanScannerOpen(false);
+    }
   }
 
   async function startEanCameraScanner() {
@@ -5107,16 +5109,19 @@ export default function Page() {
     }
   }
 
-  function closeEanModal() {
-    // v266: Suljetaan kamera "screenupdate=false" -tyyliin.
-    // Ensin piilotetaan taustan välipäivitys, sitten palautetaan Hae-kortti ja vapautetaan näkymä.
+  async function closeEanModal() {
+    // v269: screenupdate=false -tyylinen kameran sulku.
+    // Taustan tila rakennetaan valmiiksi modaalin alla, kamera pysäytetään ilman
+    // scannerin välirenderöintiä, ja modal suljetaan vasta kahden framen jälkeen.
+    // Näin käyttäjä ei näe Hae-kortin / pääsivun välihyppyä kameran sulussa.
     setSuppressUiForEanClose(true);
-    stopEanCameraScanner();
 
     if (eanAutoSearchTimeoutRef.current) {
       window.clearTimeout(eanAutoSearchTimeoutRef.current);
       eanAutoSearchTimeoutRef.current = null;
     }
+
+    await stopEanCameraScanner({ keepScannerOpenState: true });
 
     setEanManualInputOpen(false);
     setEanInput("");
@@ -5129,20 +5134,21 @@ export default function Page() {
     setEanSearchStartedAutomatically(false);
     eanAutoSearchActiveRef.current = false;
 
-    // Kameran/EAN-ikkunan sulkeminen ei saa jättää käyttäjää tyhjälle pääsivulle
-    // eikä avata Vertailu-korttia automaattisesti. Palautetaan Hae-kortti piilotettuna
-    // ja suljetaan modal samassa renderöintijaksossa, jotta väli-frame ei välähdä.
+    // Valmistellaan tausta aina Hae-kortille modaalin alla.
     setActiveResult("none");
     setCartModalOpen(false);
     setCartSavePanelOpen(false);
     setShopsPanelOpen(false);
     setSearchPanelOpen(true);
+
+    await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()));
+    await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()));
+
+    setEanScannerOpen(false);
     setEanModalOpen(false);
 
     window.requestAnimationFrame(() => {
-      window.requestAnimationFrame(() => {
-        setSuppressUiForEanClose(false);
-      });
+      setSuppressUiForEanClose(false);
     });
   }
 
@@ -5152,7 +5158,7 @@ export default function Page() {
     });
 
     if (eanModalOpen) {
-      closeEanModal();
+      void closeEanModal();
       return;
     }
 
