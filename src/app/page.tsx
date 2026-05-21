@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v318";
+const APP_VERSION = "v319";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -4206,8 +4206,10 @@ export default function Page() {
   }, [cheapest, secondCheapest, savings, savingsPercent]);
 
   const showCheapestSticky = useMemo(() => {
-    return cart.length > 0 && Boolean(cheapest) && Boolean(secondCheapest) && savings > 0;
-  }, [cart.length, cheapest, secondCheapest, savings]);
+    // v319: Vertailu avautuu aina yleisnäkymään. Näytä iso halvin kori -kortti heti,
+    // vaikka vertailussa olisi vain yksi valmis kauppa tai säästöä ei vielä synny.
+    return cart.length > 0 && Boolean(cheapest);
+  }, [cart.length, cheapest]);
 
 
   function getShoppingListItemKey(match: Match, index?: number) {
@@ -4340,6 +4342,16 @@ export default function Page() {
     // v318: Vertailu-kortin taustalle ei näytetä erillistä säästötoastia.
     setLastSavingsToast(null);
   }, [activeResult, cheapest?.key, cheapest?.totalPrice, savings]);
+
+  useEffect(() => {
+    // v319: Vertailu-kortti avautuu aina yleisnäkymän alkuun, ei edelliseen skrollipaikkaan
+    // eikä suoraan kauppakohtaiseen tuotelistaan.
+    if (activeResult !== "compare") return;
+    requestAnimationFrame(() => {
+      compareOverlayScrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
+      comparisonSectionRef.current?.scrollIntoView?.({ block: "start", behavior: "auto" });
+    });
+  }, [activeResult, cheapest?.key, cart.length]);
 
   function scrollToTop() {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -8523,7 +8535,7 @@ return (
           <div className={`fixed inset-0 z-40 flex items-end justify-center overflow-y-auto overscroll-contain bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0 ${(closingPanels.compare || closingPanels.singleCompare) ? "ziiply-soft-close" : "ziiply-soft-open"}`}>
             <div ref={compareOverlayScrollRef} className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-visible rounded-[1.5rem] bg-slate-50 p-3 shadow-2xl sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:bg-transparent sm:p-0 sm:shadow-none">
             <div className="grid min-w-0 max-w-full gap-3 sm:gap-4 overflow-hidden lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-            {activeResult === "compare" && showCheapestSticky && cheapest && secondCheapest && (
+            {activeResult === "compare" && showCheapestSticky && cheapest && (
                 <section ref={savingsSummaryRef} className="min-w-0 max-w-full overflow-hidden rounded-[1.5rem] border border-white/70 bg-white/95 p-3 shadow-[0_18px_55px_rgba(15,23,42,0.10)] backdrop-blur sm:rounded-[2rem] sm:p-6">
                   <div className="rounded-[1.6rem] border border-green-100 bg-gradient-to-br from-white via-white to-green-50 p-4 text-left shadow-[0_18px_55px_rgba(16,185,129,0.14)]">
                     <div className="relative mx-auto max-w-sm overflow-hidden rounded-[1.5rem] border border-green-100 bg-white px-5 py-3 sm:py-5 shadow-xl">
