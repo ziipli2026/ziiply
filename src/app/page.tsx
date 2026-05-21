@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v309_BETWEEN_MOBILE_PICKER_FIX";
+const APP_VERSION = "v310";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -2985,6 +2985,7 @@ export default function Page() {
   const [isOnline, setIsOnline] = useState(true);
   const [showLaunchScreen, setShowLaunchScreen] = useState(true);
   const [suppressUiForEanClose, setSuppressUiForEanClose] = useState(false);
+  const [eanModalClosing, setEanModalClosing] = useState(false);
   const [eanScannerOpen, setEanScannerOpen] = useState(false);
   const [eanScannerMessage, setEanScannerMessage] = useState("");
   const [eanManualInputOpen, setEanManualInputOpen] = useState(false);
@@ -5278,30 +5279,28 @@ export default function Page() {
   }
 
   async function closeEanModal() {
-    // v270: suljetaan kamera ilman näkyvää korttihyppyä.
-    // Välähdys johtui siitä, että skannerikortti ja Hae-kortti eivät ole aivan samassa
-    // pystykohdassa. Siksi pidetään kamera-overlay paikallaan, valmistellaan Hae-kortti
-    // sen alle ja odotetaan pieni hetki ennen modaalin poistamista.
+    // v310: skanneri sulkeutuu pehmeällä haihtumisella.
+    // Taustalle palautetaan Hae-kortti ensin, jonka jälkeen kamera-overlay
+    // häivytetään pois riittävän hitaasti ilman layout-hyppyä.
+    if (eanModalClosing) return;
+
     setSuppressUiForEanClose(true);
+    setEanModalClosing(true);
 
     if (eanAutoSearchTimeoutRef.current) {
       window.clearTimeout(eanAutoSearchTimeoutRef.current);
       eanAutoSearchTimeoutRef.current = null;
     }
 
-    // Valmistellaan tausta Hae-kortille heti, mutta käyttäjä näkee edelleen kameramodaalin.
     setActiveResult("none");
     setCartModalOpen(false);
     setCartSavePanelOpen(false);
     setShopsPanelOpen(false);
     setSearchPanelOpen(true);
 
-    // Anna selaimelle aikaa rakentaa uusi taustanäkymä modaalin alle.
-    await new Promise<void>((resolve) => window.setTimeout(resolve, 360));
     await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()));
+    await new Promise<void>((resolve) => window.setTimeout(resolve, 720));
 
-    // Pysäytä kamera vasta kun overlay on ollut hetken paikallaan.
-    // keepScannerOpenState pitää skannerikortin samankokoisena sulkuhetkeen asti.
     await stopEanCameraScanner({ keepScannerOpenState: true });
 
     setEanManualInputOpen(false);
@@ -5315,12 +5314,9 @@ export default function Page() {
     setEanSearchStartedAutomatically(false);
     eanAutoSearchActiveRef.current = false;
 
-    await new Promise<void>((resolve) => window.requestAnimationFrame(() => resolve()));
-
-    // Sama renderöintierä: modal pois, scanner-state pois ja tausta näkyviin.
-    // Näin väli-frameä ei pitäisi syntyä.
     setEanScannerOpen(false);
     setEanModalOpen(false);
+    setEanModalClosing(false);
     setSuppressUiForEanClose(false);
   }
 
@@ -5337,6 +5333,7 @@ export default function Page() {
     setSearchPanelOpen(false);
     setCartModalOpen(false);
     setActiveResult("none");
+    setEanModalClosing(false);
     setEanModalOpen(true);
     setEanManualInputOpen(false);
     setEanMessage("");
@@ -7811,7 +7808,7 @@ export default function Page() {
   }
 
   return (
-    <main className={`min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top,#ecfdf3_0%,#f8fafc_42%,#f1f5f9_100%)] px-2 pb-44 sm:pb-32 pt-[4.75rem] text-slate-950 sm:px-4 sm:py-3 sm:py-4 md:pb-4 ${suppressUiForEanClose ? "pointer-events-none opacity-0" : "opacity-100"}`}>
+    <main className={`min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top,#ecfdf3_0%,#f8fafc_42%,#f1f5f9_100%)] px-2 pb-44 sm:pb-32 pt-[4.75rem] text-slate-950 sm:px-4 sm:py-3 sm:py-4 md:pb-4 ${suppressUiForEanClose ? "pointer-events-none" : ""}`}>
       {showLaunchScreen && (
         <div className="fixed inset-0 z-[90] flex items-center justify-center bg-white">
           <div className="absolute right-5 top-[calc(env(safe-area-inset-top)+0.75rem)]">
@@ -9410,10 +9407,17 @@ return (
       )}
 
       {eanModalOpen && (
-          <div className="fixed inset-0 z-[80] flex items-end justify-center overflow-hidden overscroll-none bg-black/40 px-3 pb-3 pt-10 sm:items-center sm:p-4">
-            <div className="max-h-[calc(100dvh-1.5rem)] w-[min(94vw,34rem)] overflow-y-auto overscroll-contain rounded-[1.5rem] bg-white p-4 shadow-2xl ring-1 ring-slate-200 [WebkitOverflowScrolling:touch] sm:max-h-[calc(100dvh-2rem)] sm:p-5" style={{ width: "100%" }}>
-              <div>
+          <div className={`fixed inset-0 z-[80] flex items-end justify-center overflow-hidden overscroll-none bg-black/40 px-3 pb-3 pt-10 transition-opacity duration-700 ease-out sm:items-center sm:p-4 ${eanModalClosing ? "pointer-events-none opacity-0" : "opacity-100"}`}>
+            <div className={`max-h-[calc(100dvh-1.5rem)] w-[min(94vw,34rem)] overflow-y-auto overscroll-contain rounded-[1.5rem] bg-white p-4 shadow-2xl ring-1 ring-slate-200 transition-all duration-700 ease-out [WebkitOverflowScrolling:touch] sm:max-h-[calc(100dvh-2rem)] sm:p-5 ${eanModalClosing ? "translate-y-2 scale-[0.985]" : "translate-y-0 scale-100"}`} style={{ width: "100%" }}>
+              <div className="flex items-center justify-between gap-3">
                 <p className="text-lg font-extrabold text-slate-900">EAN / viivakoodi</p>
+                <button
+                  type="button"
+                  onClick={closeEanModal}
+                  className="touch-manipulation rounded-2xl bg-slate-100 px-4 py-2.5 text-sm font-black text-slate-900 shadow-sm ring-1 ring-slate-200 transition active:scale-[0.98]"
+                >
+                  Sulje
+                </button>
               </div>
 
               <div className="mt-3 grid grid-cols-3 gap-2">
@@ -9508,12 +9512,12 @@ return (
 
               {eanScannerOpen && (
                 <div className="mt-3 overflow-hidden rounded-2xl bg-slate-950 p-2 ring-1 ring-slate-200">
-                  <div className="relative mx-auto h-[min(78vw,390px)] max-h-[390px] min-h-[300px] w-full max-w-[390px] overflow-hidden rounded-xl bg-slate-950" style={{ width: "100%" }}>
+                  <div className="relative mx-auto aspect-square w-full max-w-[390px] overflow-hidden rounded-xl bg-slate-950">
                     <div
                       id={EAN_SCANNER_REGION_ID}
                       className="h-full w-full overflow-hidden rounded-xl bg-slate-950 [&_canvas]:!hidden [&_video]:!h-full [&_video]:!w-full [&_video]:rounded-xl [&_video]:object-cover"
                     />
-                    <div className="pointer-events-none absolute inset-5 rounded-2xl border-4 border-green-400 shadow-[0_0_0_999px_rgba(2,6,23,0.35)]" style={{ width: "min(88vw, 380px)", minWidth: "320px", maxWidth: "380px" }}>
+                    <div className="pointer-events-none absolute inset-6 rounded-2xl border-4 border-green-400 shadow-[0_0_0_999px_rgba(2,6,23,0.35)]">
                       <div className="absolute -left-1 -top-1 h-5 w-5 rounded-tl-2xl border-l-4 border-t-4 border-white/90" />
                       <div className="absolute -right-1 -top-1 h-5 w-5 rounded-tr-2xl border-r-4 border-t-4 border-white/90" />
                       <div className="absolute -bottom-1 -left-1 h-5 w-5 rounded-bl-2xl border-b-4 border-l-4 border-white/90" />
@@ -9521,7 +9525,7 @@ return (
                     </div>
 
                     {eanLoading && (
-                      <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-xl bg-slate-700/45 backdrop-blur-[1px]" style={{ width: "min(88vw, 380px)", minWidth: "320px", maxWidth: "380px" }}>
+                      <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-xl bg-slate-700/45 backdrop-blur-[1px]">
                         <div className="flex flex-col items-center gap-3 rounded-3xl bg-slate-900/80 px-6 py-3 sm:py-5 text-white shadow-2xl ring-2 ring-white/20">
                           <div className="flex h-12 sm:h-16 w-16 items-center justify-center rounded-full bg-white/15 text-4xl font-black animate-pulse">
                             ⏳
@@ -9534,37 +9538,30 @@ return (
                     )}
 
                     {scanSuccessFlash && (
-                      <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-xl bg-green-400/35 backdrop-brightness-125 transition-opacity duration-700" style={{ width: "min(88vw, 380px)", minWidth: "320px", maxWidth: "380px" }}>
+                      <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-xl bg-green-400/35 backdrop-brightness-125 transition-opacity duration-700">
                         <div className="flex h-24 w-24 items-center justify-center rounded-full bg-green-500 text-5xl font-black text-white shadow-2xl ring-4 ring-white/80 animate-pulse">
                           ✓
                         </div>
-                        <div className="absolute bottom-5 rounded-full bg-green-600 px-4 py-2 text-sm font-black text-white shadow-xl ring-2 ring-white/70" style={{ width: "min(88vw, 380px)", minWidth: "320px", maxWidth: "380px" }}>
+                        <div className="absolute bottom-5 rounded-full bg-green-600 px-4 py-2 text-sm font-black text-white shadow-xl ring-2 ring-white/70">
                           Lisätty koriin
                         </div>
                       </div>
                     )}
 
                     {scanMissFlash && (
-                      <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-xl bg-red-500/35 backdrop-brightness-90 transition-opacity duration-700" style={{ width: "min(88vw, 380px)", minWidth: "320px", maxWidth: "380px" }}>
+                      <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-xl bg-red-500/35 backdrop-brightness-90 transition-opacity duration-700">
                         <div className="flex h-24 w-24 items-center justify-center rounded-full bg-red-600 text-5xl font-black text-white shadow-2xl ring-4 ring-white/80 animate-pulse">
                           ?
                         </div>
-                        <div className="absolute bottom-5 rounded-full bg-red-600 px-4 py-2 text-sm font-black text-white shadow-xl ring-2 ring-white/70" style={{ width: "min(88vw, 380px)", minWidth: "320px", maxWidth: "380px" }}>
+                        <div className="absolute bottom-5 rounded-full bg-red-600 px-4 py-2 text-sm font-black text-white shadow-xl ring-2 ring-white/70">
                           Ei löytynyt
                         </div>
                       </div>
                     )}
 
-                    <button
-                      type="button"
-                      onClick={closeEanModal}
-                      className="absolute bottom-3 right-3 z-20 rounded-2xl bg-white/95 px-4 py-3 text-sm font-black text-slate-950 shadow-2xl ring-2 ring-white/30 transition active:scale-[0.98]"
-                    >
-                      Sulje
-                    </button>
                   </div>
                   <div className="mt-3 rounded-xl border border-green-400/50 bg-green-500/10 p-3 text-center text-sm font-extrabold leading-snug text-green-100">
-                    Aseta viivakoodi vihreän kehyksen sisään. Käännä puhelinta tarvittaessa; maitopurkin pystyviivakoodi toimii parhaiten läheltä ja hyvässä valossa.
+                    Aseta viivakoodi vihreän kehyksen sisään. Käännä puhelinta tarvittaessa. Lue läheltä, pidä pakkaus vakaana ja käytä hyvää valoa.
                   </div>
                 </div>
               )}
