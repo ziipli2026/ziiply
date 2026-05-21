@@ -218,7 +218,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v237";
+const APP_VERSION = "v239";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -3435,8 +3435,9 @@ export default function Page() {
   }, [cart]);
 
   const visibleNormalResults = useMemo(() => {
+    if (searchCompareMode === "single") return normalResults;
     return normalResults.filter((product) => !cartNameSet.has(normalize(product.name)));
-  }, [normalResults, cartNameSet]);
+  }, [normalResults, cartNameSet, searchCompareMode]);
 
   // Hakutulosten valintatila on eri käyttömoodi kuin korivertailu.
   // Kun käyttäjä valitsee seuraavaa tuotetta koriin, vertailukortteja ei näytetä
@@ -3682,6 +3683,7 @@ export default function Page() {
   }, [checkedCartItems]);
 
   useEffect(() => {
+    if (activeResult !== "compare") return;
     if (!cheapest || !secondCheapest || savings <= 0) return;
 
     const toastText = `Säästit ${formatEuro(savings)} valitsemalla ${cheapest.storeName}`;
@@ -3692,7 +3694,7 @@ export default function Page() {
     }, 3500);
 
     return () => window.clearTimeout(timeout);
-  }, [cheapest?.key, cheapest?.totalPrice, savings]);
+  }, [activeResult, cheapest?.key, cheapest?.totalPrice, savings]);
 
   function scrollToTop() {
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -5398,27 +5400,117 @@ export default function Page() {
     triggerHaptic();
 
     try {
-      const text = await navigator.clipboard?.readText?.();
-      const cleanText = String(text || "").trim();
+      const clipboardText = await navigator.clipboard?.readText?.();
+      const cleanText = String(clipboardText || "").trim();
 
       if (!cleanText) {
         showCartToast("Leikepöytä on tyhjä.");
         return;
       }
 
-      setInput((current) => {
-        const separator = current.trim() ? "\n" : "";
-        return `${current}${separator}${cleanText}`.slice(0, 1200);
-      });
+      // v238: Liitä-painike tekee vain yhden asian: leikepöydän sisältö siirtyy
+      // suoraan hakutekstiruutuun. Ei selaimen erillistä "Sijoita/Liitä"-valikkoa,
+      // ei vahvistusmodalia eikä toista vaihetta.
+      setInput(cleanText.slice(0, 1200));
+      setNormalResults([]);
+      setSingleProductCompareResults([]);
+      setSingleProductCompareTerm("");
+      setVisibleNormalCount(8);
 
       trackZiiplyEvent("clipboard_pasted_to_search", {
         pastedLength: cleanText.length,
+        mode: searchCompareMode,
       });
 
       window.setTimeout(() => searchInputRef.current?.focus(), 0);
     } catch {
-      showCartToast("Liittäminen ei onnistunut. Käytä selaimen Liitä-toimintoa.");
+      showCartToast("Liittäminen ei onnistunut suoraan. Tarkista selaimen leikepöytäoikeus.");
       window.setTimeout(() => searchInputRef.current?.focus(), 0);
+    }
+  }
+
+  async function compareSelectedSingleProduct(product: Product) {
+    const selectedName = fixText(product.name);
+    const selectedPrice = getProductPrice(product);
+
+    if (!selectedName || selectedPrice <= 0 || singleProductCompareLoading) return;
+
+    if (!hasActiveStores) {
+      setLocationMessage("Hae ensin alue tai käytä omaa sijaintia, jotta kaupat voidaan valita.");
+      showCartToast("Valitse ensin kaupat.");
+      return;
+    }
+
+    trackZiiplyEvent("single_product_selected_for_compare", {
+      productName: selectedName,
+      ean: product.ean,
+      storeMode,
+      sStoreName: activeStores.sStoreName,
+      kStoreName: activeStores.kStoreName,
+    });
+
+    setSearchPanelOpen(false);
+    setCartModalOpen(false);
+    setCartSavePanelOpen(false);
+    setShopsPanelOpen(false);
+    setEanModalOpen(false);
+    setNormalResults([]);
+    setVisibleNormalCount(8);
+    setActiveNormalSearchTerm("");
+    setSingleProductCompareTerm(selectedName);
+    setSingleProductCompareResults([]);
+    setSingleProductCompareLoading(true);
+    setActiveResult("singleCompare");
+
+    try {
+      const sourceStoreName =
+        (product as Product & { sourceStoreName?: string; fallbackStoreName?: string }).sourceStoreName ||
+        (product as Product & { fallbackStoreName?: string }).fallbackStoreName ||
+        activeStores.sStoreName;
+
+      const nextResults: SingleProductCompareResult[] = [
+        {
+          key: "s",
+          chain: "S-ryhmä",
+          storeName: sourceStoreName,
+          productName: selectedName,
+          price: selectedPrice,
+          ean: product.ean,
+          image: product.pictureUrl,
+          comparisonPrice: formatComparisonPrice(product),
+        },
+      ];
+
+      try {
+        let kBest: KProduct | undefined;
+        const selectedEan = normalizeEan(product.ean);
+
+        for (const kSearchTerm of getKSearchTerms(selectedName)) {
+          const kItems = await fetchKProducts(kSearchTerm, activeStores.kStoreId);
+          kBest = pickBestKProduct(kItems, selectedName, selectedEan);
+          if (kBest && !shouldKeepSearchingKOwnBrand(selectedName, kBest)) break;
+        }
+
+        if (kBest && kBest.price > 0) {
+          nextResults.push({
+            key: "k",
+            chain: "K-ryhmä",
+            storeName: activeStores.kStoreName,
+            productName: fixText(kBest.name),
+            price: kBest.price,
+            ean: kBest.ean,
+            image: kBest.pictureUrl,
+            comparisonPrice: null,
+          });
+        }
+      } catch {}
+
+      setSingleProductCompareResults(nextResults.sort((a, b) => a.price - b.price));
+    } finally {
+      setSingleProductCompareLoading(false);
+      window.requestAnimationFrame(() => {
+        compareOverlayScrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
+      });
     }
   }
 
@@ -5513,11 +5605,9 @@ export default function Page() {
       cartItemsCount: cart.length,
     });
 
-    if (searchCompareMode === "single") {
-      void compareSingleProduct();
-      return;
-    }
-
+    // v238: myös yksittäisen tuotteen vertailu alkaa samalla valintalistalla
+    // kuin useamman tuotteen flow. Käyttäjä valitsee ensin tarkan tuotteen,
+    // ja hintavertailu käynnistyy vasta valinnan jälkeen.
     setSearchPanelOpen(false);
     void searchNormalPrices();
     scrollToNormalResults();
@@ -7039,7 +7129,7 @@ export default function Page() {
                     <p className="min-w-0 break-words text-sm text-slate-500">
                       {activeNormalSearchTerm ? `Haetaan nyt: ${activeNormalSearchTerm}. ` : ""}
                       Näytetään {Math.min(visibleNormalCount, visibleNormalResults.length)} / {visibleNormalResults.length} parasta osumaa.
-                      {terms.length > 1 ? ` Jonossa seuraavaksi: ${terms.slice(1).join(", ")}.` : ""}
+                      {searchCompareMode === "single" ? " Valitse tuote, jonka haluat vertailla." : terms.length > 1 ? ` Jonossa seuraavaksi: ${terms.slice(1).join(", ")}.` : ""}
                     </p>
                   </div>
 
@@ -7129,10 +7219,10 @@ export default function Page() {
                                   <p className="text-lg font-bold text-green-700">{formatEuro(getProductPrice(product))}</p>
                                   {renderPriceHistoryBadge(getPriceHistoryKeyFromProduct(product, (product as Product & { fallbackStoreName?: string }).fallbackStoreName || activeStores.sStoreName), getProductPrice(product))}
                                   <button
-                                    onClick={() => addProductToCart(product)}
+                                    onClick={() => searchCompareMode === "single" ? void compareSelectedSingleProduct(product) : addProductToCart(product)}
                                     className="shrink-0 rounded-xl bg-green-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-green-700"
                                   >
-                                    Lisää
+                                    {searchCompareMode === "single" ? "Valitse ja vertaile" : "Lisää"}
                                   </button>
                                 </div>
                               </div>
@@ -7868,7 +7958,7 @@ export default function Page() {
                       : "bg-white text-slate-800 shadow-sm ring-1 ring-slate-200 active:scale-[0.98]"
                   }`}
                 >
-                  {loadingNormal || singleProductCompareLoading ? "Haetaan..." : searchCompareMode === "single" ? "🔎 Vertaa" : "🛒 Vertailu"}
+                  {loadingNormal || singleProductCompareLoading ? "Haetaan..." : searchCompareMode === "single" ? "🔎 Valitse tuote" : "🛒 Vertailu"}
                 </button>
                 <button
                   type="button"
@@ -7905,7 +7995,7 @@ export default function Page() {
                 />
                 <div className="mt-1.5 flex h-7 items-center justify-between gap-2 px-1">
                   <p className="truncate text-[10px] font-semibold text-slate-400">
-                    {searchCompareMode === "single" ? "Yksi tuote = nopea hintavertailu." : "Max 8 tuotetta. Liitä muistilistasta."}
+                    {searchCompareMode === "single" ? "Valitse tarkka tuote listasta ennen vertailua." : "Max 8 tuotetta. Liitä muistilistasta."}
                   </p>
                   {hasSearchInput && (
                     <button
@@ -8173,7 +8263,7 @@ export default function Page() {
           </div>
         )}
 
-      {cheapest && !cartModalOpen && !searchPanelOpen && !shopsPanelOpen && !eanModalOpen && activeResult !== "compare" && !(loadingNormal || normalResults.length > 0) && (
+      {false && cheapest && !cartModalOpen && !searchPanelOpen && !shopsPanelOpen && !eanModalOpen && activeResult !== "compare" && !(loadingNormal || normalResults.length > 0) && (
         <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] left-3 right-3 z-40 mx-auto max-w-md rounded-[1.35rem] border border-white/10 bg-slate-950/92 p-3 text-white shadow-[0_18px_55px_rgba(15,23,42,0.35)] backdrop-blur-2xl sm:hidden">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
@@ -8202,7 +8292,7 @@ export default function Page() {
         </div>
       )}
 
-      {lastSavingsToast && (
+      {lastSavingsToast && activeResult === "compare" && !searchPanelOpen && !cartModalOpen && !shopsPanelOpen && !eanModalOpen && (
         <div className="mx-auto mb-4 max-w-md rounded-2xl bg-green-600 px-4 py-3 text-center text-sm font-black text-white shadow-lg">
           💰 {lastSavingsToast}
         </div>
