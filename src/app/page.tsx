@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v288_BUILDOK_GPS_WIDE_PICKERS";
+const APP_VERSION = "v289_MOBILE_GPS_PICKER_FIX";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -7790,7 +7790,7 @@ export default function Page() {
                           key={store.id}
                           type="button"
                           onClick={() => selectStoreForCurrentMode(store)}
-                          className={`w-full min-w-[340px] rounded-xl px-4 py-3 text-left transition ${
+                          className={`w-full min-w-[min(86vw,360px)] rounded-xl px-4 py-3 text-left transition ${
                             selected
                               ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                               : "bg-slate-50 text-slate-700 hover:bg-green-50"
@@ -7839,6 +7839,7 @@ export default function Page() {
             
             setGpsErrorMessage("");
             setGpsAutoActivatedV287(true);
+            try { localStorage.setItem("ziiply-use-own-location", "1"); } catch {}
             try {
               localStorage.setItem("ziiply-use-own-location", "1");
             } catch {}
@@ -7906,12 +7907,29 @@ export default function Page() {
     } catch {}
   }, [gpsAutoActivatedV287]);
 
+  // GPS_VISUAL_STICKY_V289
+  // Pidetään oma sijainti / GPS-nuppineula aktiivisena myös ensimmäisen latauksen jälkeen.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const timer = window.setTimeout(() => {
+      try {
+        const hasManualLocation = Boolean((manualAreaInput || "").trim());
+        if (hasManualLocation) return;
+
+        localStorage.setItem("ziiply-use-own-location", "1");
+        setGpsErrorMessage("");
+      } catch {}
+    }, 120);
+
+    return () => window.clearTimeout(timer);
+  }, []);
 return (
                         <button
                           key={store.id}
                           type="button"
                           onClick={() => selectStoreForCurrentMode(store)}
-                          className={`w-full min-w-[340px] rounded-xl px-4 py-3 text-left transition ${
+                          className={`w-full min-w-[min(86vw,360px)] rounded-xl px-4 py-3 text-left transition ${
                             selected
                               ? "bg-red-700 shadow-md ring-1 ring-black/10 text-white"
                               : "bg-slate-50 text-slate-700 hover:bg-red-50"
@@ -7969,7 +7987,7 @@ return (
                       setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
                     }}
                     placeholder="05510 tai Hyvinkää"
-                    className="min-w-0 flex-1 max-w-[340px] rounded-xl border border-slate-300 px-4 py-3 text-[16px] outline-none focus:border-green-600"
+                    className="min-w-0 flex-1 max-w-[min(86vw,360px)] rounded-xl border border-slate-300 px-4 py-3 text-[16px] outline-none focus:border-green-600"
                   />
 
                   <button
@@ -8007,7 +8025,7 @@ return (
                     type="button"
                     disabled={storeCompareScope === "within_chain"}
                     onClick={() => handleStoreModeChange("local")}
-                    className={`rounded-2xl px-3 py-2.5 text-sm font-extrabold transition disabled:cursor-not-allowed disabled:opacity-45 ${
+                    className={`rounded-2xl px-4 py-3.5 text-sm font-extrabold transition disabled:cursor-not-allowed disabled:opacity-45 ${
                       storeMode === "local" && storeCompareScope === "between_chains"
                         ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                         : "bg-white text-slate-700 ring-1 ring-slate-200"
@@ -8021,7 +8039,7 @@ return (
                   <button
                     type="button"
                     onClick={() => handleStoreCompareScopeChange("between_chains")}
-                    className={`rounded-2xl px-3 py-2.5 text-sm font-extrabold transition ${
+                    className={`rounded-2xl px-4 py-3.5 text-sm font-extrabold transition ${
                       storeCompareScope === "between_chains"
                         ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                         : "bg-white text-slate-700 ring-1 ring-slate-200"
@@ -8033,7 +8051,7 @@ return (
                   <button
                     type="button"
                     onClick={() => handleStoreCompareScopeChange("within_chain")}
-                    className={`rounded-2xl px-3 py-2.5 text-sm font-extrabold transition ${
+                    className={`rounded-2xl px-4 py-3.5 text-sm font-extrabold transition ${
                       storeCompareScope === "within_chain"
                         ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                         : "bg-white text-slate-700 ring-1 ring-slate-200"
@@ -8117,7 +8135,7 @@ return (
                                 key={store.id}
                                 type="button"
                                 onClick={() => selectStoreForCurrentMode(store)}
-                                className={`w-full min-w-[340px] rounded-xl px-4 py-3 text-left transition ${
+                                className={`w-full min-w-[min(86vw,360px)] rounded-xl px-4 py-3 text-left transition ${
                                   selected
                                     ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                                     : "bg-slate-50 text-slate-700 hover:bg-green-50"
@@ -8153,7 +8171,7 @@ return (
                                 key={store.id}
                                 type="button"
                                 onClick={() => selectStoreForCurrentMode(store)}
-                                className={`w-full min-w-[340px] rounded-xl px-4 py-3 text-left transition ${
+                                className={`w-full min-w-[min(86vw,360px)] rounded-xl px-4 py-3 text-left transition ${
                                   selected
                                     ? "bg-red-700 shadow-md ring-1 ring-black/10 text-white"
                                     : "bg-slate-50 text-slate-700 hover:bg-red-50"
@@ -8216,7 +8234,7 @@ return (
                     {filteredOffers.map((item) => (
                       <div key={item.id} className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
                         <div className="flex gap-3 sm:gap-4">
-                          {item.offer.item.pictureUrl && <img src={item.offer.item.pictureUrl} alt={item.offer.item.name} className="h-20 w-20 shrink-0 rounded-2xl bg-slate-100 object-contain" />}
+                          {item.offer.item.pictureUrl && <img src={item.offer.item.pictureUrl} alt={item.offer.item.name} className="h-20 w-24 shrink-0 rounded-2xl bg-slate-100 object-contain" />}
                           <div className="min-w-0 max-w-full flex-1 overflow-hidden">
                             <div className="mb-2 flex flex-wrap gap-2">
                               <span className="rounded-full bg-red-100 px-2 py-1 text-xs font-extrabold text-red-700">🔥 Tarjous</span>
