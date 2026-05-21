@@ -219,7 +219,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v272";
+const APP_VERSION = "v274";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -4495,8 +4495,8 @@ export default function Page() {
       setActiveArea(nextArea);
 
       // v272: Nuppineula kertoo yksiselitteisesti käytetäänkö omaa sijaintia.
-      // - GPS / oma sijainti: punainen nuppineula, hakukenttä tyhjä ja placeholder näkyy.
-      // - Käsin haettu sijainti: harmaa nuppineula, löydetty sijainti näkyy kentässä.
+      // - GPS / oma sijainti: vihreä nuppineula, hakukenttä tyhjä ja placeholder näkyy.
+      // - Käsin haettu sijainti: punainen nuppineula, löydetty sijainti näkyy kentässä.
       if (source === "gps") {
         setUsingOwnLocation(true);
         setLocationInput("");
@@ -7185,13 +7185,22 @@ export default function Page() {
     return Math.max(15, Math.min(100, (cheapest.totalPrice / chain.totalPrice) * 100));
   }
 
-  const comparedStoreCards = [
+  const comparedStoreCards: Array<{
+    key: ChainResult["key"];
+    logo: string;
+    title: string;
+    name: string;
+    tone: string;
+    selectedTone: string;
+    comingSoon?: boolean;
+  }> = [
     {
       key: "s",
       logo: "S",
       title: "S-ryhmä",
       name: activeStores.sStoreName || "Valitse S",
       tone: "bg-green-600 text-white ring-green-100",
+      selectedTone: "border-green-600 bg-green-50 text-green-900",
     },
     {
       key: "k",
@@ -7199,6 +7208,7 @@ export default function Page() {
       title: "K-ryhmä",
       name: activeStores.kStoreName || "Valitse K",
       tone: "bg-red-600 text-white ring-red-100",
+      selectedTone: "border-red-600 bg-red-50 text-red-900",
     },
     {
       key: "lidl",
@@ -7206,6 +7216,8 @@ export default function Page() {
       title: "Lidl",
       name: "Tulossa",
       tone: "bg-blue-600 text-white ring-blue-100",
+      selectedTone: "border-blue-600 bg-blue-50 text-blue-900",
+      comingSoon: true,
     },
     {
       key: "tokmanni",
@@ -7213,28 +7225,53 @@ export default function Page() {
       title: "Tokmanni",
       name: "Tulossa",
       tone: "bg-yellow-400 text-slate-950 ring-yellow-100",
+      selectedTone: "border-yellow-500 bg-yellow-50 text-yellow-950",
+      comingSoon: true,
     },
   ];
 
   function renderComparedStoreCards(compact = false) {
     return (
       <div className={compact ? "mt-3 grid grid-cols-4 gap-1.5" : "mt-3 grid grid-cols-4 gap-2 sm:gap-3"}>
-        {comparedStoreCards.map((store) => (
-          <div
-            key={store.key}
-            className={compact ? "min-w-0 rounded-xl bg-white px-1.5 py-2 text-center shadow-sm ring-1 ring-slate-200" : "min-w-0 rounded-2xl bg-white px-2.5 py-3 text-center shadow-sm ring-1 ring-slate-200"}
-          >
-            <div className={`mx-auto flex ${compact ? "h-7 w-7 text-[13px]" : "h-9 w-9 text-sm"} items-center justify-center rounded-full font-black shadow-sm ring-4 ${store.tone}`}>
-              {store.logo}
-            </div>
-            <p className={compact ? "mt-1 truncate text-[9px] font-black uppercase tracking-tight text-slate-500" : "mt-2 truncate text-[10px] font-black uppercase tracking-wide text-slate-500"}>
-              {store.title}
-            </p>
-            <p className={compact ? "mt-0.5 line-clamp-2 min-h-[1.8rem] text-[10px] font-extrabold leading-tight text-slate-800" : "mt-1 line-clamp-2 min-h-[2rem] text-xs font-extrabold leading-tight text-slate-800"}>
-              {store.name}
-            </p>
-          </div>
-        ))}
+        {comparedStoreCards.map((store) => {
+          const selected = selectedChains[store.key];
+
+          return (
+            <button
+              key={store.key}
+              type="button"
+              aria-pressed={selected}
+              onClick={() =>
+                setSelectedChains((current) => ({
+                  ...current,
+                  [store.key]: !current[store.key],
+                }))
+              }
+              className={`${compact ? "min-w-0 rounded-xl px-1.5 py-2" : "min-w-0 rounded-2xl px-2.5 py-3"} relative text-center shadow-sm ring-1 transition active:scale-[0.98] ${
+                selected
+                  ? `${store.selectedTone} ring-current/20`
+                  : "border border-slate-200 bg-white text-slate-600 opacity-60 ring-slate-200"
+              }`}
+            >
+              <span
+                className={`absolute ${compact ? "right-1 top-1 h-4 w-4 text-[10px]" : "right-2 top-2 h-5 w-5 text-xs"} flex items-center justify-center rounded-full font-black ${
+                  selected ? "bg-green-600 text-white" : "bg-slate-100 text-slate-300"
+                }`}
+              >
+                {selected ? "✓" : ""}
+              </span>
+              <div className={`mx-auto flex ${compact ? "h-7 w-7 text-[13px]" : "h-9 w-9 text-sm"} items-center justify-center rounded-full font-black shadow-sm ring-4 ${store.tone}`}>
+                {store.logo}
+              </div>
+              <p className={compact ? "mt-1 truncate text-[9px] font-black uppercase tracking-tight text-slate-500" : "mt-2 truncate text-[10px] font-black uppercase tracking-wide text-slate-500"}>
+                {store.title}
+              </p>
+              <p className={compact ? "mt-0.5 line-clamp-2 min-h-[1.8rem] text-[10px] font-extrabold leading-tight text-slate-800" : "mt-1 line-clamp-2 min-h-[2rem] text-xs font-extrabold leading-tight text-slate-800"}>
+                {store.name}
+              </p>
+            </button>
+          );
+        })}
       </div>
     );
   }
@@ -7314,14 +7351,17 @@ export default function Page() {
               aria-pressed={usingOwnLocation}
               onClick={() => {
                 if (usingOwnLocation) setUsingOwnLocation(false);
-                else useOwnLocation();
+                else {
+                  setLocationInput("");
+                  useOwnLocation();
+                }
               }}
               disabled={storeSearchLoading}
               title={usingOwnLocation ? "Oma sijainti käytössä" : "Käytä omaa sijaintia"}
               className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-xl font-black shadow-sm ring-1 transition disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98] ${
                 usingOwnLocation
-                  ? "bg-red-50 text-red-600 ring-red-100"
-                  : "bg-slate-50 text-slate-400 ring-slate-200"
+                  ? "bg-green-50 text-green-600 ring-green-100"
+                  : "bg-red-50 text-red-600 ring-red-100"
               }`}
             >
               📍
@@ -7336,7 +7376,7 @@ export default function Page() {
                 setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
               }}
               placeholder="05510 tai Hyvinkää"
-              className="min-w-0 flex-1 rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-green-600 sm:rounded-2xl sm:px-4 sm:py-3 sm:text-base"
+              className="min-w-0 flex-1 max-w-[280px] rounded-xl border border-slate-300 px-3 py-2 text-[16px] outline-none focus:border-green-600 sm:mx-auto sm:rounded-2xl sm:px-4 sm:py-3"
             />
 
             <button
@@ -7469,75 +7509,7 @@ export default function Page() {
           )}
         </section>
 
-        <section className="hidden rounded-[2rem] bg-white p-5 shadow-sm sm:block">
-          <h2 className="mb-4 text-2xl font-extrabold">Vertailtavat ketjut</h2>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              {
-                key: "s" as const,
-                title: "S-ryhmä",
-                subtitle: "Prisma, S-market, Sale, Alepa",
-              },
-              {
-                key: "k" as const,
-                title: "K-ryhmä",
-                subtitle: "K-Citymarket, K-Supermarket, K-Market",
-              },
-              {
-                key: "lidl" as const,
-                title: "Lidl",
-                subtitle: "Tulossa myöhemmin",
-                comingSoon: true,
-              },
-              {
-                key: "tokmanni" as const,
-                title: "Tokmanni / Spar",
-                subtitle: "Tulossa myöhemmin",
-                comingSoon: true,
-              },
-            ].map((chain) => {
-              const selected = selectedChains[chain.key];
-
-              return (
-                <button
-                  key={chain.key}
-                  type="button"
-                  onClick={() =>
-                    setSelectedChains((current) => ({
-                      ...current,
-                      [chain.key]: !current[chain.key],
-                    }))
-                  }
-                  className={`rounded-2xl border p-4 text-left transition min-h-[5.75rem] ${
-                    selected ? "border-green-600 bg-green-50" : "border-slate-200 bg-white opacity-60"
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <p className="font-bold text-slate-950">{chain.title}</p>
-                        {chain.comingSoon && (
-                          <span className="rounded-full bg-slate-200 px-2 py-1 text-xs font-bold text-slate-700">
-                            Tulossa
-                          </span>
-                        )}
-                      </div>
-                      <p className="mt-1 line-clamp-2 text-sm text-slate-500">{chain.subtitle}</p>
-                    </div>
-
-                    <span
-                      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
-                        selected ? "bg-green-600 text-white" : "bg-slate-100 text-slate-400"
-                      }`}
-                    >
-                      {selected ? "✓" : ""}
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </section>
+        
 
 
         {shopsPanelOpen && (
@@ -7550,14 +7522,17 @@ export default function Page() {
                     aria-pressed={usingOwnLocation}
                     onClick={() => {
                       if (usingOwnLocation) setUsingOwnLocation(false);
-                      else useOwnLocation();
+                      else {
+                        setLocationInput("");
+                        useOwnLocation();
+                      }
                     }}
                     disabled={storeSearchLoading}
                     title={usingOwnLocation ? "Oma sijainti käytössä" : "Käytä omaa sijaintia"}
                     className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg font-black shadow-sm ring-1 transition disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98] ${
                       usingOwnLocation
-                        ? "bg-red-50 text-red-600 ring-red-100"
-                        : "bg-slate-50 text-slate-400 ring-slate-200"
+                        ? "bg-green-50 text-green-600 ring-green-100"
+                        : "bg-red-50 text-red-600 ring-red-100"
                     }`}
                   >
                     📍
@@ -7572,7 +7547,7 @@ export default function Page() {
                       setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
                     }}
                     placeholder="05510 tai Hyvinkää"
-                    className="min-w-0 flex-1 rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-green-600"
+                    className="min-w-0 flex-1 max-w-[280px] rounded-xl border border-slate-300 px-3 py-2 text-[16px] outline-none focus:border-green-600"
                   />
 
                   <button
@@ -7703,75 +7678,7 @@ export default function Page() {
                 )}
               </section>
 
-              <section className="mt-4 rounded-[2rem] bg-white p-5 shadow-sm">
-                <h2 className="mb-4 text-2xl font-extrabold">Vertailtavat ketjut</h2>
-                <div className="grid gap-2">
-                  {[
-                    {
-                      key: "s" as const,
-                      title: "S-ryhmä",
-                      subtitle: "Prisma, S-market, Sale, Alepa",
-                    },
-                    {
-                      key: "k" as const,
-                      title: "K-ryhmä",
-                      subtitle: "K-Citymarket, K-Supermarket, K-Market",
-                    },
-                    {
-                      key: "lidl" as const,
-                      title: "Lidl",
-                      subtitle: "Tulossa myöhemmin",
-                      comingSoon: true,
-                    },
-                    {
-                      key: "tokmanni" as const,
-                      title: "Tokmanni / Spar",
-                      subtitle: "Tulossa myöhemmin",
-                      comingSoon: true,
-                    },
-                  ].map((chain) => {
-                    const selected = selectedChains[chain.key];
-
-                    return (
-                      <button
-                        key={chain.key}
-                        type="button"
-                        onClick={() =>
-                          setSelectedChains((current) => ({
-                            ...current,
-                            [chain.key]: !current[chain.key],
-                          }))
-                        }
-                        className={`min-h-[5.75rem] rounded-2xl border p-4 text-left transition ${
-                          selected ? "border-green-600 bg-green-50" : "border-slate-200 bg-white opacity-60"
-                        }`}
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <p className="font-bold text-slate-950">{chain.title}</p>
-                              {chain.comingSoon && (
-                                <span className="rounded-full bg-slate-200 px-2 py-1 text-xs font-bold text-slate-700">
-                                  Tulossa
-                                </span>
-                              )}
-                            </div>
-                            <p className="mt-1 line-clamp-2 text-sm text-slate-500">{chain.subtitle}</p>
-                          </div>
-
-                          <span
-                            className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
-                              selected ? "bg-green-600 text-white" : "bg-slate-100 text-slate-400"
-                            }`}
-                          >
-                            {selected ? "✓" : ""}
-                          </span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              </section>
+              
             </div>
           </div>
         )}
