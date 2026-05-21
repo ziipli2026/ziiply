@@ -218,7 +218,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v253";
+const APP_VERSION = "v254";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -678,14 +678,21 @@ function getNormalSearchQueries(term: string) {
   const normalizedTerm = normalize(term);
   const words = getNormalizedWords(term).filter((word) => word.length > 3 && !/^\d/.test(word));
   const primaryProductNounQuery = getPrimaryProductNounQuery(term);
-  const expanded = uniqueNormalizedQueries([term, getSearchQuery(term), primaryProductNounQuery, ...intent.variants]);
+  const expanded = primaryProductNounQuery === "jauheliha"
+    ? uniqueNormalizedQueries([
+        "jauheliha",
+        term,
+        getSearchQuery(term),
+        ...intent.variants.filter((variant) => normalize(variant).includes("jauheliha")),
+      ])
+    : uniqueNormalizedQueries([term, getSearchQuery(term), primaryProductNounQuery, ...intent.variants]);
 
   // v247:
   // Moniosaiset tuotetermit ovat yleensä tarkoituksella tarkkoja hakuja.
   // Esim. "broilerin jauheliha" ei saa muuttua käytännössä "broilerin"-hauksi,
   // eikä "Coca-Cola Zero 1,5l" saa hajota yleiseksi cola-hauksi liian aikaisin.
   // Pidetään tarkka termi aina ensimmäisenä ja lisätään lyhyemmät fallbackit vasta loppuun.
-  if (words.length >= 2) expanded.push(...uniqueNormalizedQueries([words.slice(0, 2).join(" ")]));
+  if (words.length >= 2 && primaryProductNounQuery !== "jauheliha") expanded.push(...uniqueNormalizedQueries([words.slice(0, 2).join(" ")]));
 
   const isVerySpecificProductQuery =
     words.length >= 2 ||
@@ -2656,6 +2663,7 @@ export default function Page() {
   const [singleProductCompareResults, setSingleProductCompareResults] = useState<SingleProductCompareResult[]>([]);
   const [singleProductCompareLoading, setSingleProductCompareLoading] = useState(false);
   const [singleProductCompareTerm, setSingleProductCompareTerm] = useState("");
+  const searchNavigationLocked = loadingOffers || loadingNormal || singleProductCompareLoading;
   const [visibleNormalCount, setVisibleNormalCount] = useState(8);
   const [activeNormalSearchTerm, setActiveNormalSearchTerm] = useState("");
   const [eanModalOpen, setEanModalOpen] = useState(false);
@@ -3575,6 +3583,8 @@ export default function Page() {
   }, []);
 
   function openSearchPanel() {
+    if (searchNavigationLocked) return;
+
     // v236: Aloitussivu pysyy tyhjänä v234-tyyliin. Hae avataan kiinteänä yhtenä näkymänä, ei skrollattavana sivuna.
     // Hae-paneeli toimii mobiilissa erillisenä näkymänä: se sulkee korin/EANin/vertailun ja näkyy aina viewportissa.
     const openedFromSingleCompare = activeResult === "singleCompare";
@@ -3601,6 +3611,8 @@ export default function Page() {
   }
 
   function toggleSearchPanel() {
+    if (searchNavigationLocked) return;
+
     // Toinen painallus sulkee Hae-näkymän. Jos Kori on auki, vaihdetaan suoraan Hae-näkymään.
     if (searchPanelOpen) {
       setSearchPanelOpen(false);
@@ -4509,6 +4521,11 @@ export default function Page() {
       }
 
       const unique = Array.from(new Map(all.map((item) => [item.id, item])).values())
+        .filter((item) => {
+          const originalQuery = (item as Product & { originalSearchTerm?: string }).originalSearchTerm || useTerms[0] || "";
+          if (!normalize(originalQuery).includes("jauheliha")) return true;
+          return normalize(`${item.name} ${item.category || ""}`).includes("jauheliha");
+        })
         .sort((a, b) => {
           const aOriginalQuery = (a as Product & { originalSearchTerm?: string }).originalSearchTerm || useTerms[0] || "";
           const bOriginalQuery = (b as Product & { originalSearchTerm?: string }).originalSearchTerm || useTerms[0] || "";
@@ -5360,6 +5377,68 @@ export default function Page() {
     }
   }
 
+  function addSingleCompareResultToCart(result: SingleProductCompareResult) {
+    if (!result.productName || !result.price || result.price <= 0) return;
+
+    const normalizedResultName = normalize(result.productName);
+    const resultEan = normalizeEan(result.ean);
+    const alreadyInCart = cart.some((item) => {
+      const itemEan = normalizeEan(item.ean || item.product?.ean);
+      if (resultEan && itemEan && resultEan === itemEan) return true;
+      return normalize(item.name) === normalizedResultName && item.chain === result.key.toUpperCase();
+    });
+
+    if (alreadyInCart) {
+      showCartToast("Tuote on jo ostoskorissa.");
+      return;
+    }
+
+    if (cart.length >= MAX_ITEMS) {
+      alert(`Demossa ostoskori on rajattu ${MAX_ITEMS} tuotteeseen.`);
+      return;
+    }
+
+    const product: Product = {
+      id: resultEan ? Number(resultEan.slice(-8)) || Date.now() : Date.now(),
+      name: fixText(result.productName),
+      ean: result.ean,
+      pictureUrl: result.image,
+      price: result.price,
+      comparisonPriceUnit: result.comparisonPrice || undefined,
+      storeItems: [{ price: result.price }],
+    };
+
+    const newItem: CartItem = {
+      id: `single-compare-${result.key}-${resultEan || normalize(result.productName)}-${Date.now()}`,
+      name: fixText(result.productName),
+      price: result.price,
+      image: result.image,
+      chain: result.key.toUpperCase() as "S" | "K",
+      storeName: result.storeName,
+      quantity: 1,
+      source: "search",
+      product,
+      ean: result.ean,
+    };
+
+    const nextCart = [...cart, newItem];
+
+    trackZiiplyEvent("product_added_to_cart", {
+      source: "single_product_compare",
+      productName: newItem.name,
+      ean: newItem.ean,
+      chain: newItem.chain,
+      storeName: newItem.storeName,
+      price: newItem.price,
+      cartItemsCount: nextCart.length,
+    });
+
+    setCart(nextCart);
+    showCartToast(`Lisätty ostoskoriin: ${newItem.name}`);
+    triggerHaptic();
+    void updateChainComparison(nextCart);
+  }
+
   function addInputToCart() {
     triggerHaptic();
     const rows = parseTerms(input);
@@ -5594,6 +5673,8 @@ export default function Page() {
   }
 
   function openShopsPanel() {
+    if (searchNavigationLocked) return;
+
     trackZiiplyEvent("shops_panel_opened", {
       storeMode,
       sStoreName: activeStores.sStoreName,
@@ -5609,6 +5690,8 @@ export default function Page() {
   }
 
   function toggleShopsPanel() {
+    if (searchNavigationLocked) return;
+
     if (shopsPanelOpen) {
       setShopsPanelOpen(false);
       return;
@@ -7357,6 +7440,13 @@ export default function Page() {
                               {result.comparisonPrice && <p className="text-[11px] font-bold text-slate-500">{result.comparisonPrice}</p>}
                             </div>
                           </div>
+                          <button
+                            type="button"
+                            onClick={() => addSingleCompareResultToCart(result)}
+                            className="mt-3 w-full rounded-xl bg-green-600 px-3 py-2 text-sm font-black text-white shadow-sm shadow-green-600/20 transition active:scale-[0.98]"
+                          >
+                            Lisää tämä koriin
+                          </button>
                         </div>
                       );
                     })}
@@ -8579,7 +8669,9 @@ export default function Page() {
           <button
             type="button"
             onClick={toggleSearchPanel}
-            className={`flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition active:scale-[0.98] ${searchPanelOpen ? "bg-green-600 text-white shadow-md" : "text-slate-700 active:bg-slate-100"}`}
+            disabled={searchNavigationLocked}
+            aria-disabled={searchNavigationLocked}
+            className={`flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition ${searchNavigationLocked ? "cursor-not-allowed bg-slate-100 text-slate-300 opacity-70" : searchPanelOpen ? "bg-green-600 text-white shadow-md active:scale-[0.98]" : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
           >
             <span className="text-lg leading-none">🔎</span>
             <span className="mt-1 block">Hae</span>
@@ -8587,7 +8679,9 @@ export default function Page() {
           <button
             type="button"
             onClick={toggleShopsPanel}
-            className={`flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition active:scale-[0.98] ${shopsPanelOpen ? "bg-green-600 text-white shadow-md" : "text-slate-700 active:bg-slate-100"}`}
+            disabled={searchNavigationLocked}
+            aria-disabled={searchNavigationLocked}
+            className={`flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition ${searchNavigationLocked ? "cursor-not-allowed bg-slate-100 text-slate-300 opacity-70" : shopsPanelOpen ? "bg-green-600 text-white shadow-md active:scale-[0.98]" : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
           >
             <span className="text-lg leading-none">🏪</span>
             <span className="mt-1 block">Kaupat</span>
