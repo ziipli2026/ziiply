@@ -218,7 +218,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v248";
+const APP_VERSION = "v249";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -661,11 +661,24 @@ function isColaSearchTerm(value: string) {
   return detectSearchIntent(value).category === "cola";
 }
 
+function getPrimaryProductNounQuery(term: string) {
+  const text = normalize(term);
+
+  // v249:
+  // Omalla sanalla kirjoitetuissa moniosaisissa ydintuotteissa haetaan ensin tuoteryhmän ydinsanalla.
+  // Esim. "broilerin jauheliha" / "naudan jauheliha" pitää ensin hakea jauhelihoja,
+  // ei broilerin fileitä tai muita broilerituotteita.
+  if (hasAnyToken(text, ["jauheliha", "sika-nauta", "sikanauta"])) return "jauheliha";
+
+  return "";
+}
+
 function getNormalSearchQueries(term: string) {
   const intent = detectSearchIntent(term);
   const normalizedTerm = normalize(term);
   const words = getNormalizedWords(term).filter((word) => word.length > 3 && !/^\d/.test(word));
-  const expanded = uniqueNormalizedQueries([term, getSearchQuery(term), ...intent.variants]);
+  const primaryProductNounQuery = getPrimaryProductNounQuery(term);
+  const expanded = uniqueNormalizedQueries([primaryProductNounQuery, term, getSearchQuery(term), ...intent.variants]);
 
   // v247:
   // Moniosaiset tuotetermit ovat yleensä tarkoituksella tarkkoja hakuja.
@@ -1450,6 +1463,8 @@ function productGroupGate(sourceName: string, targetName: string) {
   const source = normalize(sourceName);
   const target = normalize(targetName);
 
+  if (source.includes("jauheliha") && !target.includes("jauheliha")) return false;
+
   const sourceIsFishStick = hasAnyToken(source, ["kalapuikko", "kalapuikot", "fiskpinnar"]);
   if (sourceIsFishStick) {
     const targetIsFishStick = hasAnyToken(target, ["kalapuikko", "kalapuikot", "fiskpinnar"]);
@@ -2229,6 +2244,8 @@ function isBadNormalResult(product: Product, query: string) {
   const normalizedName = normalize(product.name);
   const category = normalize(product.category || "");
   const productText = `${normalizedName} ${category}`;
+
+  if (normalizedQuery.includes("jauheliha") && !productText.includes("jauheliha")) return true;
 
   const queryIsMilk = hasAnyToken(normalizedQuery, ["maito", "kevytmaito", "rasvaton maito", "täysmaito", "taysmaito"]);
   if (queryIsMilk) {
@@ -3559,9 +3576,20 @@ export default function Page() {
   function openSearchPanel() {
     // v236: Aloitussivu pysyy tyhjänä v234-tyyliin. Hae avataan kiinteänä yhtenä näkymänä, ei skrollattavana sivuna.
     // Hae-paneeli toimii mobiilissa erillisenä näkymänä: se sulkee korin/EANin/vertailun ja näkyy aina viewportissa.
+    const openedFromSingleCompare = activeResult === "singleCompare";
+
     setCartModalOpen(false);
     setShopsPanelOpen(false);
     setEanModalOpen(false);
+
+    if (openedFromSingleCompare) {
+      setInput("");
+      setNormalResults([]);
+      setVisibleNormalCount(8);
+      setActiveNormalSearchTerm("");
+      setSearchDebug([]);
+    }
+
     setActiveResult("none");
     setSearchPanelOpen(true);
 
