@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v294_MOBILE_SIMULATED_FIX";
+const APP_VERSION = "v295_STORE_PICKER_SCANNER_FIX";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -4446,9 +4446,9 @@ export default function Page() {
       }
 
       navigator.geolocation.getCurrentPosition(resolve, reject, {
-        enableHighAccuracy: false,
-        timeout: 10000,
-        maximumAge: 5 * 60 * 1000,
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0,
       });
     });
   }
@@ -7336,6 +7336,12 @@ export default function Page() {
   ];
 
 
+
+  // CLEAR_STALE_STORE_PICKER_V295
+  useEffect(() => {
+    setOpenStorePicker(null);
+  }, [storeMode, storeCompareScope, withinChain, activeArea.label]);
+
   function handleStoreCompareScopeChange(nextScope: StoreCompareScope) {
     setOpenStorePicker(null);
 
@@ -7365,16 +7371,63 @@ export default function Page() {
     setLocationMessage("Valitse S-ryhmä tai K-ryhmä ketjun sisäistä vertailua varten.");
   }
 
+
+  function isLocalStoreForModeV295(store: StoreSearchItem) {
+    const text = storeText(store);
+    return (
+      text.includes("k-market") ||
+      text.includes("k market") ||
+      text.includes("k-supermarket") ||
+      text.includes("k supermarket") ||
+      text.includes("s-market") ||
+      text.includes("s market") ||
+      text.includes("alepa") ||
+      text.includes("sale")
+    );
+  }
+
+  function isHyperStoreForModeV295(store: StoreSearchItem) {
+    return isPrisma(store) || isKCitymarket(store);
+  }
+
+  function getStoresForPickerOptionsV295(chain: "S" | "K", mode: StoreMode) {
+    const chainStores = foundStores.filter((store) => store.type === chain);
+
+    // Ketjun sisällä: salli saman ketjun tavaratalot ja lähikaupat.
+    if (storeCompareScope === "within_chain") {
+      return chainStores;
+    }
+
+    // Ketjujen välillä: tavaratalot ja lähikaupat eivät saa sekoittua.
+    if (mode === "hyper") {
+      return chainStores.filter(isHyperStoreForModeV295);
+    }
+
+    return chainStores.filter(isLocalStoreForModeV295);
+  }
+
   function getStoresForPicker(chain: "S" | "K", mode: StoreMode) {
-    const list = foundStores.filter((store) => store.type === chain);
+    const list = getStoresForPickerOptionsV295(chain, mode);
     if (list.length > 0) return list;
 
-    const fallbackId = chain === "S"
-      ? mode === "local" ? activeArea.sLocalStoreId : activeArea.sStoreId
-      : mode === "local" ? activeArea.kLocalStoreId : activeArea.kStoreId;
-    const fallbackName = chain === "S"
-      ? mode === "local" ? activeArea.sLocalStoreName : activeArea.sStoreName
-      : mode === "local" ? activeArea.kLocalStoreName : activeArea.kStoreName;
+    // Fallback vain valittuun ketjuun ja nykyiseen modeen.
+    const fallbackId =
+      chain === "S"
+        ? mode === "local"
+          ? activeArea.sLocalStoreId
+          : activeArea.sStoreId
+        : mode === "local"
+          ? activeArea.kLocalStoreId
+          : activeArea.kStoreId;
+
+    const fallbackName =
+      chain === "S"
+        ? mode === "local"
+          ? activeArea.sLocalStoreName
+          : activeArea.sStoreName
+        : mode === "local"
+          ? activeArea.kLocalStoreName
+          : activeArea.kStoreName;
 
     if (fallbackId && fallbackName) {
       return [{
@@ -7398,10 +7451,16 @@ export default function Page() {
 
     const options = getStoresForPicker(chain, mode);
 
+    // Älä avaa valikkoa, jos vaihtoehtoja on vain yksi.
+    if (options.length <= 1) {
+      window.setTimeout(() => setOpenStorePicker(null), 0);
+      return null;
+    }
+
     return (
       <div
-        className={`fixed left-1/2 top-[calc(env(safe-area-inset-top)+8.5rem)] z-[90] max-h-[62dvh] w-[min(92vw,400px)] -translate-x-1/2 overflow-auto rounded-2xl bg-white p-3 text-left shadow-2xl ring-1 ring-slate-200 sm:absolute sm:top-full sm:z-50 sm:mt-2 sm:max-h-64 sm:w-[min(88vw,380px)] ${compact ? "text-xs" : "text-sm"}`}
-        style={{ minWidth: "320px", maxWidth: "400px" }}
+        className={`fixed left-1/2 top-[calc(env(safe-area-inset-top)+8.5rem)] z-[90] max-h-[62dvh] w-[min(78vw,340px)] -translate-x-1/2 overflow-auto rounded-2xl bg-white p-3 text-left shadow-2xl ring-1 ring-slate-200 sm:absolute sm:top-full sm:z-50 sm:mt-2 sm:max-h-64 sm:w-[min(78vw,340px)] ${compact ? "text-xs" : "text-sm"}`}
+        style={{ minWidth: "260px", maxWidth: "340px" }}
       >
         {options.length <= 1 ? (
           <p className="px-2 py-2 font-bold text-slate-400">Ei muita kauppoja valittavana.</p>
@@ -7415,9 +7474,11 @@ export default function Page() {
                 key={`${pickerKey}-${store.id}`}
                 type="button"
                 onClick={(event) => {
+                  event.preventDefault();
                   event.stopPropagation();
+                  if (store.type !== chain) return;
                   selectStoreForCurrentMode(store);
-                  setOpenStorePicker(null);
+                  window.setTimeout(() => setOpenStorePicker(null), 0);
                 }}
                 className={`mb-2 w-full rounded-xl px-4 py-3 text-left font-extrabold transition last:mb-0 ${
                   selected
@@ -7443,8 +7504,13 @@ export default function Page() {
       <button
         type="button"
         onClick={(event) => {
+          event.preventDefault();
           event.stopPropagation();
-          if (hasMany) setOpenStorePicker((current) => current === pickerKey ? null : pickerKey);
+          if (!hasMany) {
+            setOpenStorePicker(null);
+            return;
+          }
+          setOpenStorePicker((current) => current === pickerKey ? null : pickerKey);
         }}
         className={`mt-1 rounded-full px-2 py-1 font-black ring-1 ${compact ? "text-[9px]" : "text-[10px]"} ${
           hasMany
@@ -7875,7 +7941,7 @@ export default function Page() {
               setGpsErrorMessage("GPS-paikannus ei ole käytettävissä.");
             }
           },
-          { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
+          { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
         );
       } catch {
         setGpsErrorMessage("GPS-paikannus ei ole käytettävissä.");
@@ -8020,7 +8086,7 @@ return (
                       setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
                     }}
                     placeholder="05510 tai Hyvinkää"
-                    className="min-w-0 flex-1 max-w-[min(86vw,360px)] rounded-xl border border-slate-300 px-4 py-3 text-[16px] outline-none focus:border-green-600"
+                    className="min-w-0 flex-[0_1_11rem] max-w-[11rem] rounded-xl border border-slate-300 px-3 py-3 text-[16px] outline-none focus:border-green-600"
                   />
 
                   <button
