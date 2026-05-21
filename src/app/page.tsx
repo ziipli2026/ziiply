@@ -218,7 +218,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v262";
+const APP_VERSION = "v263";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -5358,7 +5358,7 @@ export default function Page() {
         );
 
         persistCartImmediately(nextCart);
-        void updateChainComparison(nextCart);
+        void updateChainComparison(nextCart, { openCompare: false });
         showCartToast(`Määrä +1: ${existingItem.name}`);
         return nextCart;
       }
@@ -5383,7 +5383,7 @@ export default function Page() {
 
       const nextCart = [...currentCart, newItem];
       persistCartImmediately(nextCart);
-      void updateChainComparison(nextCart);
+      void updateChainComparison(nextCart, { openCompare: false });
       showCartToast(`Lisätty: ${newItem.name}`);
 
       const normalizedEan = normalizeEan(newItem.ean);
@@ -5402,9 +5402,8 @@ export default function Page() {
       return;
     }
 
-    // Sarjaskannauksessa ei vaihdeta vertailunäkymään, koska kamera halutaan pitää auki.
-    // Vertailu päivittyy silti taustalla.
-    if (!eanScannerOpen) setActiveResult("compare");
+    // EAN/skannerilisäys ei saa siirtää käyttäjää automaattisesti Vertailu-kortille.
+    // Vertailu päivittyy taustalla ja avataan vain käyttäjän omasta Vertailu-napista.
 
     // Jätä EAN-ikkuna auki seuraavaa koodia/kameraskannausta varten.
     setEanInput("");
