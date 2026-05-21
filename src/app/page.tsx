@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v308_STEP1_2_GPS_REFRESH_FIX";
+const APP_VERSION = "v308_STEP4_WITHIN_CHAIN_DUAL_PICKERS";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -7537,10 +7537,56 @@ export default function Page() {
     return mode === "local" ? activeArea.kLocalStoreName : activeArea.kStoreName;
   }
 
+  function getSelectedStoreIdFor(chain: "S" | "K", mode: StoreMode) {
+    if (chain === "S") return mode === "local" ? activeArea.sLocalStoreId : activeArea.sStoreId;
+    return mode === "local" ? activeArea.kLocalStoreId : activeArea.kStoreId;
+  }
+
+  function uniqueStoresByIdAndName(stores: StoreSearchItem[]) {
+    const seen = new Set<string>();
+    const result: StoreSearchItem[] = [];
+
+    for (const store of stores) {
+      const key = store.id ? `${store.type || store.chain || ""}:${store.id}` : `${store.type || store.chain || ""}:${normalize(store.name || "")}`;
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      result.push(store);
+    }
+
+    return result;
+  }
+
+  function getStoresForWithinChainPicker(chain: "S" | "K", slotMode: StoreMode) {
+    // Ketjun sisällä EI saa olla erillistä Tavaratalo/Lähikauppa-sorttausta per ikkuna.
+    // Molemmat ikkunat näyttävät saman ketjun kaikki alueelta löydetyt kaupat
+    // (tavaratalot + lähikaupat). Ainoa suodatus: toisessa ikkunassa jo valittu kauppa
+    // poistetaan tästä ikkunasta, jotta vertailussa on aina kaksi eri kauppaa.
+    const combined = uniqueStoresByIdAndName([
+      ...foundStores.filter((store) => store.type === chain),
+      ...getStoresForPicker(chain, "hyper"),
+      ...getStoresForPicker(chain, "local"),
+    ]);
+
+    const otherMode: StoreMode = slotMode === "hyper" ? "local" : "hyper";
+    const otherSelectedId = getSelectedStoreIdFor(chain, otherMode);
+    const otherSelectedName = getSelectedStoreNameFor(chain, otherMode);
+
+    return combined.filter((store) => {
+      if (otherSelectedId && store.id === otherSelectedId) return false;
+      if (otherSelectedName && store.name === otherSelectedName) return false;
+      return true;
+    });
+  }
+
+  function getStoresForPickerContext(chain: "S" | "K", mode: StoreMode) {
+    if (storeCompareScope === "within_chain") return getStoresForWithinChainPicker(chain, mode);
+    return getStoresForPicker(chain, mode);
+  }
+
   function renderStorePickerMenu(chain: "S" | "K", mode: StoreMode, pickerKey: string, compact: boolean) {
     if (openStorePicker !== pickerKey) return null;
 
-    const options = getStoresForPicker(chain, mode);
+    const options = getStoresForPickerContext(chain, mode);
 
     // Älä avaa valikkoa, jos vaihtoehtoja on vain yksi.
     if (options.length <= 1) {
@@ -7588,7 +7634,7 @@ export default function Page() {
   }
 
   function renderStoreChoiceButton(chain: "S" | "K", mode: StoreMode, pickerKey: string, compact: boolean) {
-    const options = storeCompareScope !== "within_chain" && !storeModeChosenV299 ? [] : getStoresForPicker(chain, mode);
+    const options = storeCompareScope !== "within_chain" && !storeModeChosenV299 ? [] : getStoresForPickerContext(chain, mode);
     const hasMany = options.length > 1;
 
     return (
@@ -7635,8 +7681,8 @@ export default function Page() {
             const chain = store.key === "s" ? "S" : "K";
             const modeA: StoreMode = "hyper";
             const modeB: StoreMode = "local";
-            const storeNameA = getSelectedStoreNameFor(chain, modeA) || (chain === "S" ? "S-tavaratalo" : "K-tavaratalo");
-            const storeNameB = getSelectedStoreNameFor(chain, modeB) || (chain === "S" ? "S-lähikauppa" : "K-lähikauppa");
+            const storeNameA = getSelectedStoreNameFor(chain, modeA) || (chain === "S" ? "S-kauppa 1" : "K-kauppa 1");
+            const storeNameB = getSelectedStoreNameFor(chain, modeB) || (chain === "S" ? "S-kauppa 2" : "K-kauppa 2");
 
             return (
               <div
@@ -7677,13 +7723,13 @@ export default function Page() {
                 {selected && (
                   <div className="mt-2 grid grid-cols-2 gap-1.5">
                     <div className="relative rounded-xl bg-white/80 p-1.5 text-center ring-1 ring-slate-200">
-                      <p className="text-[9px] font-black uppercase text-slate-400">Tavaratalo</p>
+                      <p className="text-[9px] font-black uppercase text-slate-400">Kauppa 1</p>
                       <p className="line-clamp-2 min-h-[1.7rem] text-[10px] font-extrabold leading-tight text-slate-800">{storeNameA}</p>
                       {renderStoreChoiceButton(chain, modeA, `${store.key}-within-hyper`, compact)}
                       {renderStorePickerMenu(chain, modeA, `${store.key}-within-hyper`, compact)}
                     </div>
                     <div className="relative rounded-xl bg-white/80 p-1.5 text-center ring-1 ring-slate-200">
-                      <p className="text-[9px] font-black uppercase text-slate-400">Lähikauppa</p>
+                      <p className="text-[9px] font-black uppercase text-slate-400">Kauppa 2</p>
                       <p className="line-clamp-2 min-h-[1.7rem] text-[10px] font-extrabold leading-tight text-slate-800">{storeNameB}</p>
                       {renderStoreChoiceButton(chain, modeB, `${store.key}-within-local`, compact)}
                       {renderStorePickerMenu(chain, modeB, `${store.key}-within-local`, compact)}
