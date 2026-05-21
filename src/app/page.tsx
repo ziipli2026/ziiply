@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v308_STEP4_WITHIN_CHAIN_DUAL_PICKERS";
+const APP_VERSION = "v308_STEP4C_NO_AUTO_BETWEEN_ON_STORE_MODE";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -4325,7 +4325,10 @@ export default function Page() {
     if (storeCompareScope === "within_chain") return;
 
     selectedStoreModeRefV302.current = nextMode;
-    setStoreCompareScope("between_chains");
+    // v308_STEP4C:
+    // Tavaratalot/Lähikaupat-valinta ei saa automaattisesti aktivoida
+    // Ketjujen väliltä -vertailutapaa. Vertailutapa muuttuu vain, kun
+    // käyttäjä painaa itse Ketjujen väliltä tai Ketjun sisältä -nappia.
     setWithinChain(null);
     setStoreModeChosenV299(true);
     setOpenStorePicker(null);
@@ -4398,7 +4401,7 @@ export default function Page() {
     // v306_STORE_PICKER_GPS_HARD_LOCK:
     // Kaupan valitseminen EI saa koskaan itsestään aktivoida Tavaratalot/Lähikaupat-nappia.
     // Moodin saa valita vain Hakutapa-napeista. Jos moodi on jo valittu, pidetään se vakaana.
-    if (storeCompareScope === "between_chains" && storeModeChosenV299) {
+    if (storeCompareScope === "between_chains") {
       // Vain käyttäjän lukitsema between_chains-hakutapa saa pysyä aktiivisena.
       // Ketjun sisällä -valinnat eivät saa muuttaa Tavaratalot/Lähikaupat-lukkoa.
       selectedStoreModeRefV302.current = effectiveStoreMode;
@@ -7959,7 +7962,7 @@ export default function Page() {
               type="button"
               onClick={() => handleStoreCompareScopeChange("between_chains")}
               className={`rounded-2xl px-4 py-3 text-sm font-extrabold transition ${
-                (storeCompareScope === "between_chains" && storeModeChosenV299)
+                (storeCompareScope === "between_chains")
                   ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                   : "bg-white text-slate-700 ring-1 ring-slate-200"
               }`}
@@ -8062,7 +8065,7 @@ export default function Page() {
   // Ei automaattista Tavaratalot-oletusta refreshissä.
   useEffect(() => {
     setStoreModeChosenV299(false);
-    setStoreCompareScope("between_chains");
+    setStoreCompareScope("none");
     setOpenStorePicker(null);
   }, []);
 
@@ -8191,7 +8194,7 @@ return (
                     type="button"
                     onClick={() => handleStoreCompareScopeChange("between_chains")}
                     className={`rounded-2xl px-4 py-3.5 text-sm font-extrabold transition ${
-                      (storeCompareScope === "between_chains" && storeModeChosenV299)
+                      (storeCompareScope === "between_chains")
                         ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                         : "bg-white text-slate-700 ring-1 ring-slate-200"
                     }`}
