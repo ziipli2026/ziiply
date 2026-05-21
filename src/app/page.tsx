@@ -219,7 +219,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v266";
+const APP_VERSION = "v267";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -2364,8 +2364,10 @@ function scoreNormalSResult(query: string, product: Product) {
 
 function rankNormalSearchResults(query: string, products: Product[]) {
   const intent = detectSearchIntent(query);
+  const queryIsEgg = intent.category === "egg" || isEggSearchTerm(query);
 
   return products
+    .filter((product: Product) => !queryIsEgg || isClearlyEggProduct(product.name))
     .map((product: Product): ScoredProduct => ({
       product,
       score: scoreNormalSResult(query, product),
@@ -4702,11 +4704,14 @@ export default function Page() {
           }
 
           const pricedItems = rawItems.filter((product: Product) => getProductPrice(product) > 0);
-          const normalFiltered = pricedItems.filter((product: Product) => !isBadNormalResult(product, searchQuery));
+          const eggLockedSearch = detectSearchIntent(term).category === "egg" || isEggSearchTerm(term) || isEggSearchTerm(searchQuery);
+          const normalFiltered = pricedItems
+            .filter((product: Product) => !isBadNormalResult(product, searchQuery))
+            .filter((product: Product) => !eggLockedSearch || isClearlyEggProduct(product.name));
 
-          // Fail-open: jos S-route palauttaa hinnoiteltuja tuotteita, UI ei saa näyttää nollaa
-          // vain siksi, että jokin tuoteryhmäfiltteri oli liian tiukka.
-          const safeItems = normalFiltered.length > 0 ? normalFiltered : pricedItems;
+          // Fail-open pidetään vain yleisissä hauissa. Kananmunahaussa se aiheutti sen,
+          // että "kananmunaton pasta" palasi tuloksiin, jos kaikki aidot osumat putosivat.
+          const safeItems = eggLockedSearch ? normalFiltered : normalFiltered.length > 0 ? normalFiltered : pricedItems;
 
           const finalItems = rankNormalSearchResults(searchQuery, safeItems)
             .slice(0, 40)
@@ -4746,6 +4751,9 @@ export default function Page() {
       const unique = Array.from(new Map(all.map((item) => [item.id, item])).values())
         .filter((item) => {
           const originalQuery = (item as Product & { originalSearchTerm?: string }).originalSearchTerm || useTerms[0] || "";
+          if (detectSearchIntent(originalQuery).category === "egg" || isEggSearchTerm(originalQuery)) {
+            return isClearlyEggProduct(item.name);
+          }
           if (!normalize(originalQuery).includes("jauheliha")) return true;
           return normalize(`${item.name} ${item.category || ""}`).includes("jauheliha");
         })
@@ -5129,12 +5137,14 @@ export default function Page() {
     setShopsPanelOpen(false);
     setSearchPanelOpen(true);
 
-    window.setTimeout(() => {
-      setEanModalOpen(false);
+    window.requestAnimationFrame(() => {
       window.requestAnimationFrame(() => {
-        setSuppressUiForEanClose(false);
+        setEanModalOpen(false);
+        window.requestAnimationFrame(() => {
+          setSuppressUiForEanClose(false);
+        });
       });
-    }, 40);
+    });
   }
 
   function openEanModal() {
@@ -7015,7 +7025,7 @@ export default function Page() {
   }
 
   return (
-    <main className={`min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top,#ecfdf3_0%,#f8fafc_42%,#f1f5f9_100%)] px-2 pb-32 pt-[4.75rem] text-slate-950 transition-opacity duration-75 sm:px-4 sm:py-4 md:pb-4 ${suppressUiForEanClose ? "opacity-0" : "opacity-100"}`}>
+    <main className={`min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top,#ecfdf3_0%,#f8fafc_42%,#f1f5f9_100%)] px-2 pb-32 pt-[4.75rem] text-slate-950 sm:px-4 sm:py-4 md:pb-4 ${suppressUiForEanClose ? "pointer-events-none" : ""}`}>
       {showLaunchScreen && (
         <div className="fixed inset-0 z-[90] flex items-center justify-center bg-white sm:hidden">
           <div className="absolute right-5 top-[calc(env(safe-area-inset-top)+0.75rem)]">
