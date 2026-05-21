@@ -218,7 +218,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v256";
+const APP_VERSION = "v257";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -451,6 +451,39 @@ function getSearchQuery(term: string) {
   return SEARCH_ALIASES[normalized] || term;
 }
 
+function getColaSpecificSearchQueries(term: string) {
+  const normalizedTerm = normalize(term);
+  if (!hasAnyToken(normalizedTerm, ["cola", "coca-cola", "coca cola", "pepsi", "pepsi max", "kokis"])) return [];
+
+  const sizeMatch = normalizedTerm.match(/\b\d+(?:[,\.]\d+)?\s?(?:l|ml)\b/i)?.[0] || "";
+  const compactSize = sizeMatch.replace(/\s+/g, "");
+  const spacedSize = compactSize.replace(/(\d(?:[,\.]\d+)?)(l|ml)$/i, "$1 $2");
+  const isZero = hasAnyToken(normalizedTerm, ["zero"]);
+  const isPepsiMax = hasAnyToken(normalizedTerm, ["pepsi max", "max"]);
+  const isPepsi = hasAnyToken(normalizedTerm, ["pepsi"]);
+
+  const brandBase = isPepsi ? "pepsi" : hasAnyToken(normalizedTerm, ["coca-cola", "coca cola"]) ? "coca-cola" : "cola";
+  const variant = isPepsiMax ? "max" : isZero ? "zero" : "";
+  const base = [brandBase, variant].filter(Boolean).join(" ");
+
+  return uniqueNormalizedQueries([
+    term,
+    base && compactSize ? `${base} ${compactSize}` : "",
+    base && spacedSize && spacedSize !== compactSize ? `${base} ${spacedSize}` : "",
+    base,
+    isZero ? "coca-cola zero" : "",
+    isZero ? "coca cola zero" : "",
+    isZero && compactSize ? `coca-cola zero ${compactSize}` : "",
+    isZero && spacedSize && spacedSize !== compactSize ? `coca-cola zero ${spacedSize}` : "",
+    isPepsiMax ? "pepsi max" : "",
+    "cola zero",
+    "coca-cola",
+    "coca cola",
+    "cola",
+    "virvoitusjuoma cola",
+  ]);
+}
+
 function uniqueNormalizedQueries(values: string[]) {
   const queries: string[] = [];
   const seen = new Set<string>();
@@ -678,6 +711,7 @@ function getNormalSearchQueries(term: string) {
   const normalizedTerm = normalize(term);
   const words = getNormalizedWords(term).filter((word) => word.length > 3 && !/^\d/.test(word));
   const primaryProductNounQuery = getPrimaryProductNounQuery(term);
+  const colaSpecificQueries = getColaSpecificSearchQueries(term);
   const expanded = primaryProductNounQuery === "jauheliha"
     ? uniqueNormalizedQueries([
         "jauheliha",
@@ -685,6 +719,8 @@ function getNormalSearchQueries(term: string) {
         getSearchQuery(term),
         ...intent.variants.filter((variant) => normalize(variant).includes("jauheliha")),
       ])
+    : colaSpecificQueries.length > 0
+    ? uniqueNormalizedQueries([...colaSpecificQueries, term, getSearchQuery(term), ...intent.variants])
     : uniqueNormalizedQueries([term, getSearchQuery(term), primaryProductNounQuery, ...intent.variants]);
 
   // v247:
@@ -7340,7 +7376,7 @@ export default function Page() {
           </div>
         )}
 
-        {(activeResult === "compare" || activeResult === "singleCompare" || (activeResult !== "offers" && (loadingNormal || normalResults.length > 0 || (normalSearchAttempted && activeNormalSearchTerm)))) && (
+        {(activeResult === "compare" || activeResult === "singleCompare" || (activeResult !== "offers" && (loadingNormal || normalResults.length > 0 || (searchPanelOpen && normalSearchAttempted && activeNormalSearchTerm)))) && (
           <div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0">
             <div ref={compareOverlayScrollRef} className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-50 p-3 shadow-2xl sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:bg-transparent sm:p-0 sm:shadow-none">
             <div className="grid min-w-0 max-w-full gap-4 overflow-hidden lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
