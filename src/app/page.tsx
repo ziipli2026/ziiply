@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v292_BUILDOK_MOBILE_PICKER";
+const APP_VERSION = "v294_MOBILE_SIMULATED_FIX";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -2838,7 +2838,7 @@ export default function Page() {
   const [withinChain, setWithinChain] = useState<"S" | "K" | null>(null);
   const [openStorePicker, setOpenStorePicker] = useState<string | null>(null);
   const [locationMessage, setLocationMessage] = useState("Kirjoita alue tai käytä omaa sijaintia.");
-  const [usingOwnLocation, setUsingOwnLocation] = useState(false);
+  const [usingOwnLocation, setUsingOwnLocation] = useState(true);
   const [storeSearchLoading, setStoreSearchLoading] = useState(false);
   const [foundStores, setFoundStores] = useState<StoreSearchItem[]>([]);
 
@@ -4563,7 +4563,7 @@ export default function Page() {
 
       if (!city) {
         setLocationMessage("Sijaintia ei saatu. Valitse alue käsin.");
-        setUsingOwnLocation(false);
+        setUsingOwnLocation(true);
         return;
       }
 
@@ -4584,10 +4584,27 @@ export default function Page() {
           setGpsErrorMessage("GPS-paikannus ei ole käytettävissä.");
         }
       setLocationMessage("Sijaintia ei saatu. Valitse alue käsin.");
-      setUsingOwnLocation(false);
+      setUsingOwnLocation(true);
       setStoreSearchLoading(false);
     }
   }
+
+
+  // AUTO_USE_OWN_LOCATION_V293
+  // Käynnistää oikean GPS/oma sijainti -haun ensimmäisellä latauksella,
+  // jotta Kaupat-kortin kauppavalinnat aktivoituvat ilman erillistä painallusta.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    setUsingOwnLocation(true);
+    setLocationInput("");
+
+    const timer = window.setTimeout(() => {
+      useOwnLocation();
+    }, 350);
+
+    return () => window.clearTimeout(timer);
+  }, []);
 
   async function searchOffers(termOverride?: string) {
     const useTerms = termOverride ? parseTerms(termOverride) : terms;
@@ -7382,7 +7399,10 @@ export default function Page() {
     const options = getStoresForPicker(chain, mode);
 
     return (
-      <div className={`absolute left-1 right-1 top-full z-30 mt-1 max-h-44 overflow-auto rounded-2xl bg-white p-2 text-left shadow-2xl ring-1 ring-slate-200 ${compact ? "text-[10px]" : "text-xs"}`}>
+      <div
+        className={`fixed left-1/2 top-[calc(env(safe-area-inset-top)+8.5rem)] z-[90] max-h-[62dvh] w-[min(92vw,400px)] -translate-x-1/2 overflow-auto rounded-2xl bg-white p-3 text-left shadow-2xl ring-1 ring-slate-200 sm:absolute sm:top-full sm:z-50 sm:mt-2 sm:max-h-64 sm:w-[min(88vw,380px)] ${compact ? "text-xs" : "text-sm"}`}
+        style={{ minWidth: "320px", maxWidth: "400px" }}
+      >
         {options.length <= 1 ? (
           <p className="px-2 py-2 font-bold text-slate-400">Ei muita kauppoja valittavana.</p>
         ) : (
@@ -7399,14 +7419,14 @@ export default function Page() {
                   selectStoreForCurrentMode(store);
                   setOpenStorePicker(null);
                 }}
-                className={`mb-1 w-full rounded-xl px-2 py-2 text-left font-extrabold transition last:mb-0 ${
+                className={`mb-2 w-full rounded-xl px-4 py-3 text-left font-extrabold transition last:mb-0 ${
                   selected
                     ? chain === "S" ? "bg-green-700 text-white" : "bg-red-700 text-white"
                     : "bg-slate-50 text-slate-700"
                 }`}
               >
-                <span className="block">{store.name}</span>
-                <span className={`block text-[10px] ${selected ? "text-white/80" : "text-slate-400"}`}>{store.city || activeArea.label || ""} {store.postalCode || ""}</span>
+                <span className="block whitespace-normal break-words leading-tight">{store.name}</span>
+                <span className={`mt-1 block text-xs ${selected ? "text-white/80" : "text-slate-400"}`}>{store.city || activeArea.label || ""} {store.postalCode || ""}</span>
               </button>
             );
           })
@@ -7639,7 +7659,7 @@ export default function Page() {
           <div className="flex items-center gap-2 sm:gap-3">
             <button
               type="button"
-              aria-pressed={usingOwnLocation}
+              aria-pressed={usingOwnLocation || !locationInput.trim()}
               onClick={() => {
                 if (usingOwnLocation) setUsingOwnLocation(false);
                 else {
@@ -7648,9 +7668,9 @@ export default function Page() {
                 }
               }}
               disabled={storeSearchLoading}
-              title={usingOwnLocation ? "Oma sijainti käytössä" : "Käytä omaa sijaintia"}
+              title={(usingOwnLocation || !locationInput.trim()) ? "Oma sijainti käytössä" : "Käytä omaa sijaintia"}
               className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-xl font-black shadow-sm ring-1 transition disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98] ${
-                usingOwnLocation
+                (usingOwnLocation || !locationInput.trim())
                   ? "bg-green-50 text-green-600 ring-green-100"
                   : "bg-red-50 text-red-600 ring-red-100"
               }`}
@@ -7967,12 +7987,12 @@ return (
 
         {shopsPanelOpen && (
           <div className="fixed inset-0 z-40 flex items-end justify-center overflow-y-auto overscroll-contain bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:hidden">
-            <div className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-100 p-3 shadow-2xl" style={{ width: "100%" }}>
+            <div className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-visible rounded-[1.5rem] bg-slate-100 p-3 shadow-2xl" style={{ width: "100%" }}>
               <section className="rounded-[1.25rem] border border-slate-200 bg-white/95 p-2 shadow-sm">
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    aria-pressed={usingOwnLocation}
+                    aria-pressed={usingOwnLocation || !locationInput.trim()}
                     onClick={() => {
                       if (usingOwnLocation) setUsingOwnLocation(false);
                       else {
@@ -7981,9 +8001,9 @@ return (
                       }
                     }}
                     disabled={storeSearchLoading}
-                    title={usingOwnLocation ? "Oma sijainti käytössä" : "Käytä omaa sijaintia"}
+                    title={(usingOwnLocation || !locationInput.trim()) ? "Oma sijainti käytössä" : "Käytä omaa sijaintia"}
                     className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg font-black shadow-sm ring-1 transition disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98] ${
-                      usingOwnLocation
+                      (usingOwnLocation || !locationInput.trim())
                         ? "bg-green-50 text-green-600 ring-green-100"
                         : "bg-red-50 text-red-600 ring-red-100"
                     }`}
@@ -8211,7 +8231,7 @@ return (
 
         {activeResult === "offers" && (
           <div className="fixed inset-0 z-40 flex items-end justify-center overflow-y-auto overscroll-contain bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0">
-            <div ref={compareOverlayScrollRef} className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-50 p-3 shadow-2xl sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:bg-transparent sm:p-0 sm:shadow-none">
+            <div ref={compareOverlayScrollRef} className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-visible rounded-[1.5rem] bg-slate-50 p-3 shadow-2xl sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:bg-transparent sm:p-0 sm:shadow-none">
               <div className="mb-3 rounded-2xl bg-green-700 p-4 text-white shadow-sm sm:rounded-[2rem] sm:p-6">
                 <p className="text-xs font-bold uppercase tracking-wide text-green-100 sm:text-sm">Tarjousmoottori</p>
                 <h2 className="mt-1 text-2xl font-extrabold sm:text-2xl sm:text-3xl">Tarjoukset</h2>
@@ -8296,7 +8316,7 @@ return (
 
         {(activeResult === "compare" || activeResult === "singleCompare" || (activeResult !== "offers" && (loadingNormal || normalResults.length > 0 || (searchPanelOpen && normalSearchAttempted && activeNormalSearchTerm)))) && (
           <div className="fixed inset-0 z-40 flex items-end justify-center overflow-y-auto overscroll-contain bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0">
-            <div ref={compareOverlayScrollRef} className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-50 p-3 shadow-2xl sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:bg-transparent sm:p-0 sm:shadow-none">
+            <div ref={compareOverlayScrollRef} className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-visible rounded-[1.5rem] bg-slate-50 p-3 shadow-2xl sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:bg-transparent sm:p-0 sm:shadow-none">
             <div className="grid min-w-0 max-w-full gap-3 sm:gap-4 overflow-hidden lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
             {activeResult === "compare" && showCheapestSticky && cheapest && secondCheapest && (
                 <section ref={savingsSummaryRef} className="min-w-0 max-w-full overflow-hidden rounded-[1.5rem] border border-white/70 bg-white/95 p-3 shadow-[0_18px_55px_rgba(15,23,42,0.10)] backdrop-blur sm:rounded-[2rem] sm:p-6">
