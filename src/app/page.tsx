@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v287_GPS_STICKY_WIDE_PICKERS";
+const APP_VERSION = "v288_BUILDOK_GPS_WIDE_PICKERS";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -9325,7 +9325,7 @@ return (
               <div className="mt-2 shrink-0 grid grid-cols-2 gap-2">
                 <button
                   type="button"
-                  onClick={() => startVoiceInput(); }}
+                  onClick={() => startVoiceInput()}
                   className={`touch-manipulation rounded-[1rem] px-3 py-2.5 text-sm font-black text-white shadow-sm transition active:scale-[0.98] ${
                     isListening
                       ? "bg-red-600"
