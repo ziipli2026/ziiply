@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v319";
+const APP_VERSION = "v320";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -9444,174 +9444,193 @@ return (
           <div className="w-full max-w-[38rem] overflow-hidden">
           <div className="h-[min(33rem,calc(100dvh-11.5rem))] overflow-hidden rounded-[1.5rem] border border-white/80 bg-white/95 p-3 shadow-[0_22px_70px_rgba(15,23,42,0.22)] backdrop-blur-2xl sm:h-[34rem] sm:rounded-[1.75rem] sm:p-4">
             <div className="flex h-full min-h-0 flex-col">
-              <div className="mb-2 flex shrink-0 items-start justify-between gap-3">
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.16em] text-green-700">Haku</p>
-                  <h1 className="mt-0.5 text-[1.15rem] font-black leading-tight tracking-tight text-slate-950 sm:text-[1.35rem]">Mitä haluat ostaa halvemmalla?</h1>
-                </div>
+              <div className="mb-3 shrink-0">
+                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-green-700">Haku</p>
+                <h1 className="mt-1 text-[1.18rem] font-black leading-tight tracking-tight text-slate-950 sm:text-[1.35rem]">Mitä haluat ostaa?</h1>
               </div>
 
-              <div className="shrink-0 rounded-[1rem] bg-slate-50/90 p-1 ring-1 ring-slate-100">
-                <div className="grid grid-cols-2 gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSearchCompareMode("cart");
-                      setNormalResults([]);
-                      setSingleProductCompareResults([]);
-                      setSingleProductCompareTerm("");
-                      setVisibleNormalCount(8);
-                    }}
-                    className={`rounded-[0.85rem] px-2 py-1.5 text-xs font-black transition active:scale-[0.98] ${
-                      searchCompareMode === "cart" ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white shadow-sm shadow-green-600/20" : "bg-white text-slate-700 ring-1 ring-slate-200"
-                    }`}
-                  >
-                    🛒 Koko kori
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSearchCompareMode("single");
-                      setInput((currentInput) => getSingleSearchTerm(currentInput));
-                      setNormalResults([]);
-                      setSingleProductCompareResults([]);
-                      setSingleProductCompareTerm("");
-                      setVisibleNormalCount(8);
-                    }}
-                    className={`rounded-[0.85rem] px-2 py-1.5 text-xs font-black transition active:scale-[0.98] ${
-                      searchCompareMode === "single" ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white shadow-sm shadow-green-600/20" : "bg-white text-slate-700 ring-1 ring-slate-200"
-                    }`}
-                  >
-                    🔎 Yksi tuote
-                  </button>
-                </div>
-              </div>
-
-              <div className="mt-2 shrink-0 grid grid-cols-3 gap-1.5">
-                <button
-                  type="button"
-                  onClick={handleMainOfferSearch}
-                  disabled={!hasSearchInput || loadingOffers}
-                  aria-disabled={!hasSearchInput || loadingOffers}
-                  className={`touch-manipulation rounded-[0.95rem] px-2 py-2 text-xs font-black leading-tight transition sm:text-xs ${
-                    !hasSearchInput || loadingOffers
-                      ? "cursor-not-allowed bg-slate-100 text-slate-400 ring-1 ring-slate-200"
-                      : "bg-white text-slate-800 shadow-sm ring-1 ring-slate-200 active:scale-[0.98]"
-                  }`}
-                >
-                  {loadingOffers ? "Haetaan..." : "🔥 Tarjoukset"}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleMainNormalSearch}
-                  disabled={!hasSearchInput || loadingNormal || singleProductCompareLoading}
-                  aria-disabled={!hasSearchInput || loadingNormal || singleProductCompareLoading}
-                  className={`touch-manipulation rounded-[0.95rem] px-2 py-2 text-xs font-black leading-tight transition sm:text-xs ${
-                    !hasSearchInput || loadingNormal || singleProductCompareLoading
-                      ? "cursor-not-allowed bg-slate-100 text-slate-400 ring-1 ring-slate-200"
-                      : "bg-white text-slate-800 shadow-sm ring-1 ring-slate-200 active:scale-[0.98]"
-                  }`}
-                >
-                  {loadingNormal || singleProductCompareLoading ? "Haetaan..." : searchCompareMode === "single" ? "🔎 Vertailu" : "🛒 Vertailu"}
-                </button>
-                <button
-                  type="button"
-                  onClick={addInputToCart}
-                  disabled={!hasSearchInput}
-                  aria-disabled={!hasSearchInput}
-                  className={`touch-manipulation rounded-[0.95rem] px-2 py-2 text-xs font-black leading-tight transition sm:text-xs ${
-                    !hasSearchInput
-                      ? "cursor-not-allowed bg-slate-100 text-slate-400 ring-1 ring-slate-200"
-                      : "bg-white text-slate-800 shadow-sm ring-1 ring-slate-200 active:scale-[0.98]"
-                  }`}
-                >
-                  Lisää koriin
-                </button>
-              </div>
-
-              <div className="mt-2 min-h-0 flex-1 rounded-[1.1rem] border border-green-100 bg-white p-2 shadow-inner shadow-green-50/60">
-                <div className="mb-1.5 flex items-center justify-between px-1">
-                  <p className="text-xs font-black uppercase tracking-wide text-slate-500">Tuotteet</p>
-                  <button
-                    type="button"
-                    onPointerDown={(event) => event.preventDefault()}
-                    onClick={() => void pasteFromClipboardToSearch()}
-                    className="rounded-full bg-green-50 px-3 py-1 text-xs font-black text-green-700 ring-1 ring-green-200 active:scale-[0.98]"
-                  >
-                    Liitä
-                  </button>
-                </div>
-                <textarea
-                  ref={searchInputRef}
-                  value={input}
-                  onChange={(event) => setSearchInputForMode(event.target.value)}
-                  placeholder={searchCompareMode === "single" ? "Kirjoita yksi tuote, esim. maito" : "Kirjoita tuotteet pilkulla tai riveittäin, esim. maito, kahvi, jauheliha"}
-                  className={`${instantSearchSuggestions.length > 0 ? "h-[calc(100%-8.8rem)] min-h-[5.4rem]" : "h-[calc(100%-3.8rem)] min-h-[7.5rem]"} w-full resize-none rounded-[1rem] border border-slate-200 bg-slate-50/70 px-3 py-2.5 text-[16px] font-semibold leading-snug text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-green-500 focus:bg-white focus:ring-4 focus:ring-green-100`}
-                />
-                {instantSearchSuggestions.length > 0 && (
-                  <div className="mt-1.5 flex max-h-[4.65rem] flex-wrap gap-1.5 overflow-hidden px-1" style={{ width: "100%" }}>
-                    {instantSearchSuggestions.map((suggestion) => (
-                      <button
-                        key={`${suggestion.hint}-${suggestion.label}`}
-                        type="button"
-                        onPointerDown={(event) => event.preventDefault()}
-                        onClick={() => applyInstantSearchSuggestion(suggestion.label)}
-                        className="max-w-full truncate rounded-full bg-green-50 px-2.5 py-1 text-xs font-black text-green-800 ring-1 ring-green-100 active:scale-[0.98]"
-                        title={suggestion.label}
-                      >
-                        {suggestion.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-                <div className="mt-1.5 flex h-7 items-center justify-between gap-2 px-1">
-                  <p className="truncate text-[10px] font-semibold text-slate-400">
-                    {searchCompareMode === "single" ? "Valitse tarkka tuote listasta ennen vertailua." : "Max 8 tuotetta. Liitä muistilistasta."}
-                  </p>
-                  {hasSearchInput && (
+              <div className="min-h-0 flex-1 overflow-hidden rounded-[1.35rem] bg-gradient-to-br from-white via-green-50/30 to-white p-2 ring-1 ring-green-100/80">
+                <div className="flex h-full min-h-0 gap-2">
+                  <div className="flex w-[6.35rem] shrink-0 flex-col gap-2">
                     <button
                       type="button"
                       onClick={() => {
-                        setInput("");
+                        setSearchCompareMode("cart");
                         setNormalResults([]);
                         setSingleProductCompareResults([]);
                         setSingleProductCompareTerm("");
                         setVisibleNormalCount(8);
-                        setHasSearchedOffers(false);
-                        setOffers([]);
-                        triggerHaptic();
-                        window.setTimeout(() => searchInputRef.current?.focus(), 0);
                       }}
-                      className="shrink-0 rounded-full bg-red-50 px-2.5 py-1 text-xs font-black text-red-600 ring-1 ring-red-100 active:scale-[0.98]"
+                      className={`flex flex-1 min-h-[4.2rem] flex-col items-center justify-center rounded-[1rem] px-2 text-[11px] font-black leading-tight transition active:scale-[0.98] ${
+                        searchCompareMode === "cart"
+                          ? "bg-green-700 text-white shadow-lg shadow-green-700/20 ring-1 ring-green-900/10"
+                          : "bg-white/90 text-slate-800 shadow-sm ring-1 ring-slate-200"
+                      }`}
                     >
-                      Tyhjennä
+                      <span className="text-2xl leading-none">🛒</span>
+                      <span className="mt-1">Koko kori</span>
                     </button>
-                  )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSearchCompareMode("single");
+                        setInput((currentInput) => getSingleSearchTerm(currentInput));
+                        setNormalResults([]);
+                        setSingleProductCompareResults([]);
+                        setSingleProductCompareTerm("");
+                        setVisibleNormalCount(8);
+                      }}
+                      className={`flex flex-1 min-h-[4.2rem] flex-col items-center justify-center rounded-[1rem] px-2 text-[11px] font-black leading-tight transition active:scale-[0.98] ${
+                        searchCompareMode === "single"
+                          ? "bg-green-700 text-white shadow-lg shadow-green-700/20 ring-1 ring-green-900/10"
+                          : "bg-white/90 text-slate-800 shadow-sm ring-1 ring-slate-200"
+                      }`}
+                    >
+                      <span className="text-2xl leading-none">🔎</span>
+                      <span className="mt-1">Yksi tuote</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={addInputToCart}
+                      disabled={!hasSearchInput}
+                      aria-disabled={!hasSearchInput}
+                      className={`flex flex-1 min-h-[4.2rem] flex-col items-center justify-center rounded-[1rem] px-2 text-[11px] font-black leading-tight transition ${
+                        !hasSearchInput
+                          ? "cursor-not-allowed bg-slate-100/90 text-slate-400 ring-1 ring-slate-200"
+                          : "bg-white/95 text-green-800 shadow-sm ring-1 ring-green-200 active:scale-[0.98]"
+                      }`}
+                    >
+                      <span className="text-2xl leading-none">➕</span>
+                      <span className="mt-1">Lisää koriin</span>
+                    </button>
+                  </div>
+
+                  <div className="flex min-w-0 flex-1 flex-col gap-2">
+                    <div className="min-h-0 flex-1 rounded-[1.15rem] border border-slate-200 bg-white/95 p-2 shadow-sm">
+                      <div className="mb-1.5 flex items-center justify-between gap-2 px-1">
+                        <p className="text-xs font-black uppercase tracking-wide text-slate-500">Tuotteet</p>
+                        <button
+                          type="button"
+                          onPointerDown={(event) => event.preventDefault()}
+                          onClick={() => void pasteFromClipboardToSearch()}
+                          className="shrink-0 rounded-full bg-green-50 px-3 py-1 text-xs font-black text-green-700 ring-1 ring-green-200 active:scale-[0.98]"
+                        >
+                          Liitä
+                        </button>
+                      </div>
+                      <textarea
+                        ref={searchInputRef}
+                        value={input}
+                        onChange={(event) => setSearchInputForMode(event.target.value)}
+                        placeholder={searchCompareMode === "single" ? "Kirjoita yksi tuote..." : "Kirjoita tuotteet pilkulla tai riveittäin..."}
+                        className={`${instantSearchSuggestions.length > 0 ? "h-[calc(100%-7.8rem)] min-h-[4.2rem]" : "h-[calc(100%-3.4rem)] min-h-[6.3rem]"} w-full resize-none rounded-[1rem] border border-slate-200 bg-slate-50/70 px-3 py-2.5 text-[16px] font-semibold leading-snug text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-green-500 focus:bg-white focus:ring-4 focus:ring-green-100`}
+                      />
+                      {instantSearchSuggestions.length > 0 && (
+                        <div className="mt-1.5 flex max-h-[4rem] flex-wrap gap-1.5 overflow-hidden px-1" style={{ width: "100%" }}>
+                          {instantSearchSuggestions.map((suggestion) => (
+                            <button
+                              key={`${suggestion.hint}-${suggestion.label}`}
+                              type="button"
+                              onPointerDown={(event) => event.preventDefault()}
+                              onClick={() => applyInstantSearchSuggestion(suggestion.label)}
+                              className="max-w-full truncate rounded-full bg-green-50 px-2.5 py-1 text-xs font-black text-green-800 ring-1 ring-green-100 active:scale-[0.98]"
+                              title={suggestion.label}
+                            >
+                              {suggestion.label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      <div className="mt-1 flex h-6 items-center justify-between gap-2 px-1">
+                        <p className="truncate text-[10px] font-semibold text-slate-400">
+                          {searchCompareMode === "single" ? "Yksi tarkka tuote." : "Max 8 tuotetta."}
+                        </p>
+                        {hasSearchInput && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setInput("");
+                              setNormalResults([]);
+                              setSingleProductCompareResults([]);
+                              setSingleProductCompareTerm("");
+                              setVisibleNormalCount(8);
+                              setHasSearchedOffers(false);
+                              setOffers([]);
+                              triggerHaptic();
+                              window.setTimeout(() => searchInputRef.current?.focus(), 0);
+                            }}
+                            className="shrink-0 rounded-full bg-red-50 px-2.5 py-1 text-xs font-black text-red-600 ring-1 ring-red-100 active:scale-[0.98]"
+                          >
+                            Tyhjennä
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="grid shrink-0 grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={handleMainOfferSearch}
+                        disabled={!hasSearchInput || loadingOffers}
+                        aria-disabled={!hasSearchInput || loadingOffers}
+                        className={`flex min-h-[3.8rem] items-center gap-2 rounded-[1rem] px-3 text-left transition ${
+                          !hasSearchInput || loadingOffers
+                            ? "cursor-not-allowed bg-slate-100 text-slate-400 ring-1 ring-slate-200"
+                            : "bg-white text-slate-900 shadow-sm ring-1 ring-green-100 active:scale-[0.98]"
+                        }`}
+                      >
+                        <span className="text-xl">🏷️</span>
+                        <span className="min-w-0">
+                          <span className="block text-sm font-black leading-tight">{loadingOffers ? "Haetaan" : "Tarjoukset"}</span>
+                          <span className="block truncate text-[10px] font-bold text-slate-500">Löydä tarjoukset</span>
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleMainNormalSearch}
+                        disabled={!hasSearchInput || loadingNormal || singleProductCompareLoading}
+                        aria-disabled={!hasSearchInput || loadingNormal || singleProductCompareLoading}
+                        className={`flex min-h-[3.8rem] items-center gap-2 rounded-[1rem] px-3 text-left transition ${
+                          !hasSearchInput || loadingNormal || singleProductCompareLoading
+                            ? "cursor-not-allowed bg-slate-100 text-slate-400 ring-1 ring-slate-200"
+                            : "bg-white text-slate-900 shadow-sm ring-1 ring-green-100 active:scale-[0.98]"
+                        }`}
+                      >
+                        <span className="text-xl">⚖️</span>
+                        <span className="min-w-0">
+                          <span className="block text-sm font-black leading-tight">{loadingNormal || singleProductCompareLoading ? "Haetaan" : "Vertailu"}</span>
+                          <span className="block truncate text-[10px] font-bold text-slate-500">Vertaa hintoja</span>
+                        </span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="mt-2 shrink-0 grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => startVoiceInput()}
-                  className={`touch-manipulation rounded-[1rem] px-3 py-2.5 text-sm font-black text-white shadow-sm transition active:scale-[0.98] ${
-                    isListening
-                      ? "bg-red-600"
-                      : speechSupported
-                      ? "bg-blue-600"
-                      : "bg-slate-500"
-                  }`}
-                >
-                  {isListening ? "🎙️ Kuunnellaan..." : "🎤 Sanele haku"}
-                </button>
+              <div className="mt-3 shrink-0 rounded-[1.45rem] border border-white/80 bg-white/86 p-2 shadow-[0_16px_42px_rgba(15,23,42,0.16)] backdrop-blur-2xl">
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => startVoiceInput()}
+                    className={`touch-manipulation rounded-[1.05rem] px-3 py-3 text-sm font-black text-white shadow-lg transition active:scale-[0.98] ${
+                      isListening
+                        ? "bg-red-600 shadow-red-500/20"
+                        : speechSupported
+                        ? "bg-blue-600 shadow-blue-500/20"
+                        : "bg-slate-500"
+                    }`}
+                  >
+                    {isListening ? "🎙️ Kuunnellaan" : "🎤 Sanele"}
+                  </button>
 
-                <button
-                  type="button"
-                  onClick={openEanModal}
-                  className="touch-manipulation rounded-[1rem] bg-emerald-700 px-3 py-2.5 text-sm font-black text-white shadow-sm transition active:scale-[0.98]"
-                >
-                  ▦ EAN / viivakoodi
-                </button>
+                  <button
+                    type="button"
+                    onClick={openEanModal}
+                    className="touch-manipulation rounded-[1.05rem] bg-gradient-to-r from-emerald-700 to-green-600 px-3 py-3 text-sm font-black text-white shadow-lg shadow-green-700/20 transition active:scale-[0.98]"
+                  >
+                    ▦ EAN
+                  </button>
+                </div>
               </div>
             </div>
           </div>
