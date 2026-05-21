@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v295_STORE_PICKER_SCANNER_FIX";
+const APP_VERSION = "v299_SAFE_SHOPS_SELECTION";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -2834,6 +2834,7 @@ export default function Page() {
   const [locationInput, setLocationInput] = useState("");
   const [activeArea, setActiveArea] = useState<Area>(AREAS[0]);
   const [storeMode, setStoreMode] = useState<StoreMode>("hyper");
+  const [storeModeChosenV299, setStoreModeChosenV299] = useState(false);
   const [storeCompareScope, setStoreCompareScope] = useState<StoreCompareScope>("between_chains");
   const [withinChain, setWithinChain] = useState<"S" | "K" | null>(null);
   const [openStorePicker, setOpenStorePicker] = useState<string | null>(null);
@@ -7497,7 +7498,7 @@ export default function Page() {
   }
 
   function renderStoreChoiceButton(chain: "S" | "K", mode: StoreMode, pickerKey: string, compact: boolean) {
-    const options = getStoresForPicker(chain, mode);
+    const options = storeCompareScope === "between_chains" && !storeModeChosenV299 ? [] : getStoresForPicker(chain, mode);
     const hasMany = options.length > 1;
 
     return (
@@ -7525,6 +7526,14 @@ export default function Page() {
 
   const selectedRealChainCount = Number(Boolean(selectedChains.s)) + Number(Boolean(selectedChains.k));
   function renderComparedStoreCards(compact = false) {
+    if (storeCompareScope === "between_chains" && !storeModeChosenV299) {
+      return (
+        <div className="mt-3 rounded-2xl bg-amber-50 px-4 py-4 text-center text-sm font-extrabold text-amber-800 ring-1 ring-amber-200">
+          Valitse ensin Tavaratalot tai Lähikaupat.
+        </div>
+      );
+    }
+
     if (storeCompareScope === "within_chain") {
       const chainCards = comparedStoreCards.filter((store) => store.key === "s" || store.key === "k");
       const selectedChainKey = withinChain === "S" ? "s" : withinChain === "K" ? "k" : null;
@@ -7683,7 +7692,7 @@ export default function Page() {
           <div className="flex shrink-0 flex-col items-end gap-1">
             <span className="rounded-full bg-green-50 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-green-700 ring-1 ring-green-100">{APP_VERSION}</span>
             {activeArea?.label ? (
-              <span className="rounded-full bg-green-50 px-2.5 py-0.5 text-[10px] font-black text-green-700 ring-1 ring-green-100">📍 {activeArea.label} · {storeCompareScope === "within_chain" ? "Ketjun sisältä" : storeMode === "hyper" ? "Tavaratalot" : "Lähikaupat"}</span>
+              <span className="rounded-full bg-green-50 px-2.5 py-0.5 text-[10px] font-black text-green-700 ring-1 ring-green-100">📍 {activeArea.label} · {storeCompareScope === "within_chain" ? "Ketjun sisältä" : storeModeChosenV299 ? storeMode === "hyper" ? "Tavaratalot" : "Lähikaupat" : "Valitse hakutapa"}</span>
             ) : null}
           </div>
         </div>
@@ -7789,7 +7798,7 @@ export default function Page() {
               disabled={storeCompareScope === "within_chain"}
               onClick={() => handleStoreModeChange("hyper")}
               className={`rounded-2xl px-4 py-3 sm:py-3 text-base font-extrabold transition disabled:cursor-not-allowed disabled:opacity-45 ${
-                storeMode === "hyper" && storeCompareScope === "between_chains"
+                storeModeChosenV299 && storeMode === "hyper" && storeCompareScope === "between_chains"
                   ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                   : "bg-white text-slate-700 ring-1 ring-slate-200"
               }`}
@@ -7801,7 +7810,7 @@ export default function Page() {
               disabled={storeCompareScope === "within_chain"}
               onClick={() => handleStoreModeChange("local")}
               className={`rounded-2xl px-4 py-3 sm:py-3 text-base font-extrabold transition disabled:cursor-not-allowed disabled:opacity-45 ${
-                storeMode === "local" && storeCompareScope === "between_chains"
+                storeModeChosenV299 && storeMode === "local" && storeCompareScope === "between_chains"
                   ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                   : "bg-white text-slate-700 ring-1 ring-slate-200"
               }`}
@@ -8112,7 +8121,7 @@ return (
                     disabled={storeCompareScope === "within_chain"}
                     onClick={() => handleStoreModeChange("hyper")}
                     className={`rounded-2xl px-4 py-3.5 text-sm font-extrabold transition disabled:cursor-not-allowed disabled:opacity-45 ${
-                      storeMode === "hyper" && storeCompareScope === "between_chains"
+                      storeModeChosenV299 && storeMode === "hyper" && storeCompareScope === "between_chains"
                         ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                         : "bg-white text-slate-700 ring-1 ring-slate-200"
                     }`}
@@ -8125,7 +8134,7 @@ return (
                     disabled={storeCompareScope === "within_chain"}
                     onClick={() => handleStoreModeChange("local")}
                     className={`rounded-2xl px-4 py-3.5 text-sm font-extrabold transition disabled:cursor-not-allowed disabled:opacity-45 ${
-                      storeMode === "local" && storeCompareScope === "between_chains"
+                      storeModeChosenV299 && storeMode === "local" && storeCompareScope === "between_chains"
                         ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                         : "bg-white text-slate-700 ring-1 ring-slate-200"
                     }`}
@@ -8162,133 +8171,17 @@ return (
               </div>
 
 
-                {renderComparedStoreCards(true)}
-              </section>
-
-              <section className="mt-4 rounded-[2rem] bg-white p-5 shadow-sm">
-                <p className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-500">Hakutapa</p>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => handleStoreModeChange("hyper")}
-                    className={`rounded-2xl px-4 py-3 sm:py-3 text-base font-extrabold transition ${
-                      storeMode === "hyper"
-                        ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
-                        : "bg-white text-slate-700 ring-1 ring-slate-200"
-                    }`}
-                  >
-                    🏬 Tavaratalot
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleStoreModeChange("local")}
-                    className={`rounded-2xl px-4 py-3 sm:py-3 text-base font-extrabold transition ${
-                      storeMode === "local"
-                        ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
-                        : "bg-white text-slate-700 ring-1 ring-slate-200"
-                    }`}
-                  >
-                    🏪 Lähikaupat
-                  </button>
-                </div>
-                <div className="mt-3 rounded-2xl bg-slate-50 p-3 text-sm text-slate-600 ring-1 ring-slate-200 empty:hidden">
-                  {storeCompareScope === "between_chains" && selectedRealChainCount < 2 && (
-                    <p className="mt-2 rounded-xl bg-amber-50 px-4 py-3 font-black text-amber-800 ring-1 ring-amber-100">Vertailu ei ole mahdollinen vain yhdellä valitulla ketjulla.</p>
-                  )}
-                  {storeCompareScope === "within_chain" && !withinChain && (
-                    <p className="mt-2 rounded-xl bg-amber-50 px-4 py-3 font-black text-amber-800 ring-1 ring-amber-100">Valitse S-ryhmä tai K-ryhmä ketjun sisäistä vertailua varten.</p>
-                  )}
-
-                  {((storeMode === "local" && (!activeArea.sLocalStoreId || !activeArea.kLocalStoreId)) ||
-                    (storeMode === "hyper" && (!activeArea.sStoreId || !activeArea.kStoreId))) && foundStores.length === 0 && (
-                    <p className="mt-2 text-amber-700">
-                      Hae alue tai käytä omaa sijaintia, niin Ziiply hakee kaupat dynaamisesti.
-                    </p>
-                  )}
-                </div>
-
-                {false && foundStores.length > 0 && (
-                  <div className="mt-3 rounded-2xl bg-white p-3 text-xs text-slate-600 ring-1 ring-slate-200">
-                    <div className="mb-3 flex items-center justify-between gap-3">
-                      <p className="font-bold text-slate-700">Valitse kaupat ({foundStores.length})</p>
-                    </div>
-
-                    <div className="grid gap-2">
-                      <div>
-                        <p className="mb-2 text-xs font-bold uppercase tracking-wide text-green-700">S-ryhmä</p>
-                        <div className="max-h-44 space-y-2 overflow-auto pr-1" style={{ width: "100%" }}>
-                          {foundStores.filter((store) => {
-                      if (store.type !== "S") return false;
-                      if (storeCompareScope === "within_chain") return true;
-                      const storeNameForMode = normalize(store.name || "");
-                      const isLocalStoreForMode = hasAnyToken(storeNameForMode, ["market", "alepa", "sale", "s-market", "s market"]);
-                      return storeMode === "local" ? isLocalStoreForMode : !isLocalStoreForMode;
-                    }).map((store) => {
-                            const selected =
-                              storeMode === "local"
-                                ? activeArea.sLocalStoreId === store.id
-                                : activeArea.sStoreId === store.id;
-
-                            return (
-                              <button
-                                key={store.id}
-                                type="button"
-                                onClick={() => selectStoreForCurrentMode(store)}
-                                className={`w-full min-w-[320px] rounded-xl px-4 py-3 text-left transition ${
-                                  selected
-                                    ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
-                                    : "bg-slate-50 text-slate-700 hover:bg-green-50"
-                                }`}
-                              >
-                                <span className="block font-bold break-words">{store.name}</span>
-                                <span className={`block text-xs ${selected ? "text-green-50" : "text-slate-400"}`}>
-                                  ID {store.id} · {store.city || ""} {store.postalCode || ""}
-                                </span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      <div>
-                        <p className="mb-2 text-xs font-bold uppercase tracking-wide text-green-700">K-ryhmä</p>
-                        <div className="max-h-44 space-y-2 overflow-auto pr-1" style={{ width: "100%" }}>
-                          {foundStores.filter((store) => {
-                      if (store.type !== "K") return false;
-                      if (storeCompareScope === "within_chain") return true;
-                      const storeNameForMode = normalize(store.name || "");
-                      const isLocalStoreForMode = hasAnyToken(storeNameForMode, ["market", "k-market", "k market", "k-supermarket", "k supermarket"]);
-                      return storeMode === "local" ? isLocalStoreForMode : !isLocalStoreForMode;
-                    }).map((store) => {
-                            const selected =
-                              storeMode === "local"
-                                ? activeArea.kLocalStoreId === store.id
-                                : activeArea.kStoreId === store.id;
-
-                            return (
-                              <button
-                                key={store.id}
-                                type="button"
-                                onClick={() => selectStoreForCurrentMode(store)}
-                                className={`w-full min-w-[320px] rounded-xl px-4 py-3 text-left transition ${
-                                  selected
-                                    ? "bg-red-700 shadow-md ring-1 ring-black/10 text-white"
-                                    : "bg-slate-50 text-slate-700 hover:bg-red-50"
-                                }`}
-                              >
-                                <span className="block font-bold break-words">{store.name}</span>
-                                <span className={`block text-xs ${selected ? "text-red-50" : "text-slate-400"}`}>
-                                  ID {store.id} · {store.city || ""} {store.postalCode || ""}
-                                </span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
+                
+                {storeCompareScope === "between_chains" && !storeModeChosenV299 && (
+                  <div className="mt-2 rounded-2xl bg-amber-50 px-3 py-2 text-center text-xs font-extrabold text-amber-800 ring-1 ring-amber-200">
+                    Valitse ensin Tavaratalot tai Lähikaupat.
                   </div>
                 )}
+{renderComparedStoreCards(true)}
               </section>
+
+              
+
 
               
             </div>
