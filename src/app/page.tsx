@@ -218,7 +218,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v245";
+const APP_VERSION = "v246";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -348,11 +348,18 @@ function getOpenFoodFactsNames(product: any) {
   return Array.from(new Set(names));
 }
 
-function parseTerms(value: string) {
-  const explicitRows = value
+function splitProductTermsPreservingDecimalCommas(value: string) {
+  const decimalCommaPlaceholder = "__ZIIPLY_DECIMAL_COMMA__";
+
+  return fixText(String(value || ""))
+    .replace(/(\d)\s*,\s*(\d)/g, `$1${decimalCommaPlaceholder}$2`)
     .split(/[\n,]+/)
-    .map((x) => x.trim())
+    .map((x) => x.replaceAll(decimalCommaPlaceholder, ",").replace(/\s+/g, " ").trim())
     .filter(Boolean);
+}
+
+function parseTerms(value: string) {
+  const explicitRows = splitProductTermsPreservingDecimalCommas(value);
 
   if (explicitRows.length !== 1) return explicitRows.slice(0, MAX_ITEMS);
 
@@ -2018,8 +2025,16 @@ function scoreColaProduct(query: string, product: Product) {
   if (hasAnyToken(text, ["coca-cola", "coca cola"])) score += 110;
   if (hasAnyToken(text, ["cola"])) score += 90;
   if (hasAnyToken(text, ["pepsi", "pepsi max"]) && normalize(query).includes("cola")) score -= 35;
+  const querySize = parseMetricSize(query);
+  if (querySize?.unitGroup === "volume" && size?.unitGroup === "volume") {
+    const sizeRatio = Math.abs(querySize.amount - size.amount) / Math.max(querySize.amount, size.amount);
+    if (sizeRatio <= 0.04) score += 260;
+    else if (sizeRatio <= 0.16) score += 80;
+    else score -= 180;
+  }
+
   if (size?.unitGroup === "volume" && size.amount >= 1400 && size.amount <= 1600) score += 70;
-  if (size?.unitGroup === "volume" && size.amount >= 300 && size.amount <= 550) score += 35;
+  if (size?.unitGroup === "volume" && size.amount >= 300 && size.amount <= 550) score += querySize ? 0 : 35;
   if (size?.unitGroup === "volume" && size.amount < 250) score -= 80;
 
   return score;
@@ -2759,11 +2774,10 @@ export default function Page() {
   const hasSearchInput = terms.length > 0;
 
   function getSingleSearchTerm(value: string) {
-    // v245: Yksi tuote -tilassa hakukentässä saa olla vain yksi tuote.
-    // Pilkut ja rivinvaihdot katkaisevat hakujonon ensimmäiseen termiin,
-    // mutta monisanaiset tuotteet kuten "coca cola zero" säilyvät yhtenä tuotteena.
-    return fixText(String(value || ""))
-      .split(/[\n,]+/)[0]
+    // v246: Yksi tuote -tilassa hakukentässä saa olla vain yksi tuote,
+    // mutta desimaalipilkku on osa pakkauskokoa eikä listanerotin.
+    // Esim. "Coca-Cola Zero 1,5l" pysyy yhtenä tuotteena.
+    return (splitProductTermsPreservingDecimalCommas(value)[0] || "")
       .replace(/\s+/g, " ")
       .trim()
       .slice(0, 180);
@@ -2779,7 +2793,8 @@ export default function Page() {
   }
 
   const searchSuggestionSeed = useMemo(() => {
-    const currentText = input.split(/[\n,]+/).pop()?.trim() || input.trim();
+    const splitTerms = splitProductTermsPreservingDecimalCommas(input);
+    const currentText = splitTerms[splitTerms.length - 1] || input.trim();
     return currentText;
   }, [input]);
 
@@ -4257,7 +4272,13 @@ export default function Page() {
   }
 
   async function searchNormalPrices(termOverride?: string, forceEan = false) {
-    const useTerms = termOverride ? parseTerms(termOverride) : terms;
+    const useTerms = termOverride
+      ? searchCompareMode === "single"
+        ? [getSingleSearchTerm(termOverride)].filter(Boolean)
+        : parseTerms(termOverride)
+      : searchCompareMode === "single"
+        ? [getSingleSearchTerm(input)].filter(Boolean)
+        : terms;
     if (useTerms.length === 0) {
       setActiveNormalSearchTerm("");
       return;
