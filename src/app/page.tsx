@@ -218,7 +218,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v239";
+const APP_VERSION = "v240";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -5408,9 +5408,9 @@ export default function Page() {
         return;
       }
 
-      // v238: Liitä-painike tekee vain yhden asian: leikepöydän sisältö siirtyy
+      // v240: Liitä-painike tekee vain yhden asian: leikepöydän sisältö siirtyy
       // suoraan hakutekstiruutuun. Ei selaimen erillistä "Sijoita/Liitä"-valikkoa,
-      // ei vahvistusmodalia eikä toista vaihetta.
+      // ei vahvistusmodalia, ei toista vaihetta eikä tekstikentän automaattifokusta.
       setInput(cleanText.slice(0, 1200));
       setNormalResults([]);
       setSingleProductCompareResults([]);
@@ -5422,10 +5422,11 @@ export default function Page() {
         mode: searchCompareMode,
       });
 
-      window.setTimeout(() => searchInputRef.current?.focus(), 0);
+      // Ei fokusoida tekstikenttää Liitä-painalluksen jälkeen, koska iOS Safari
+      // näyttää muuten oman "Sijoita / Puhu" -valikon.
     } catch {
       showCartToast("Liittäminen ei onnistunut suoraan. Tarkista selaimen leikepöytäoikeus.");
-      window.setTimeout(() => searchInputRef.current?.focus(), 0);
+      // Ei fallback-fokusta: käyttäjä ei halua selaimen omaa Sijoita-valikkoa tähän.
     }
   }
 
@@ -7958,7 +7959,7 @@ export default function Page() {
                       : "bg-white text-slate-800 shadow-sm ring-1 ring-slate-200 active:scale-[0.98]"
                   }`}
                 >
-                  {loadingNormal || singleProductCompareLoading ? "Haetaan..." : searchCompareMode === "single" ? "🔎 Valitse tuote" : "🛒 Vertailu"}
+                  {loadingNormal || singleProductCompareLoading ? "Haetaan..." : searchCompareMode === "single" ? "🔎 Vertailu" : "🛒 Vertailu"}
                 </button>
                 <button
                   type="button"
@@ -7980,6 +7981,7 @@ export default function Page() {
                   <p className="text-[11px] font-black uppercase tracking-wide text-slate-500">Tuotteet</p>
                   <button
                     type="button"
+                    onPointerDown={(event) => event.preventDefault()}
                     onClick={() => void pasteFromClipboardToSearch()}
                     className="rounded-full bg-green-50 px-3 py-1 text-xs font-black text-green-700 ring-1 ring-green-200 active:scale-[0.98]"
                   >
