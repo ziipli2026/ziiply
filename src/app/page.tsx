@@ -218,7 +218,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v257";
+const APP_VERSION = "v258";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -706,38 +706,84 @@ function getPrimaryProductNounQuery(term: string) {
   return "";
 }
 
+
+function isVerySpecificSearch(term: string) {
+  const text = normalize(term);
+
+  return (
+    getNormalizedWords(text).length >= 2 ||
+    /\b\d+(?:[,\.]\d+)?\s?(l|ml|kg|g)\b/i.test(text) ||
+    text.includes("zero") ||
+    text.includes("2-pack") ||
+    text.includes("1,5") ||
+    text.includes("1.5")
+  );
+}
+
+function normalizeLooseProductMatch(value: string) {
+  return normalize(value)
+    .replace(/(\d+(?:[,\.]\d+)?)\s+(l|ml|kg|g)\b/g, "$1$2")
+    .replace(/coca cola/g, "coca-cola")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function getMetricSizeKey(value: string) {
+  return normalizeLooseProductMatch(value).match(/\b\d+(?:[,\.]\d+)?(?:l|ml|kg|g)\b/i)?.[0] || "";
+}
+
 function getNormalSearchQueries(term: string) {
   const intent = detectSearchIntent(term);
   const normalizedTerm = normalize(term);
-  const words = getNormalizedWords(term).filter((word) => word.length > 3 && !/^\d/.test(word));
+  const looseTerm = normalizeLooseProductMatch(term);
+  const words = getNormalizedWords(term).filter((word) => word.length > 2);
   const primaryProductNounQuery = getPrimaryProductNounQuery(term);
   const colaSpecificQueries = getColaSpecificSearchQueries(term);
-  const expanded = primaryProductNounQuery === "jauheliha"
-    ? uniqueNormalizedQueries([
-        "jauheliha",
-        term,
-        getSearchQuery(term),
-        ...intent.variants.filter((variant) => normalize(variant).includes("jauheliha")),
-      ])
-    : colaSpecificQueries.length > 0
-    ? uniqueNormalizedQueries([...colaSpecificQueries, term, getSearchQuery(term), ...intent.variants])
-    : uniqueNormalizedQueries([term, getSearchQuery(term), primaryProductNounQuery, ...intent.variants]);
 
-  // v247:
-  // Moniosaiset tuotetermit ovat yleensä tarkoituksella tarkkoja hakuja.
-  // Esim. "broilerin jauheliha" ei saa muuttua käytännössä "broilerin"-hauksi,
-  // eikä "Coca-Cola Zero 1,5l" saa hajota yleiseksi cola-hauksi liian aikaisin.
-  // Pidetään tarkka termi aina ensimmäisenä ja lisätään lyhyemmät fallbackit vasta loppuun.
-  if (words.length >= 2 && primaryProductNounQuery !== "jauheliha") expanded.push(...uniqueNormalizedQueries([words.slice(0, 2).join(" ")]));
+  // Tarkat moniosaiset haut eivät saa pudota yksittäiseen sanaan.
+  // Tämä estää loopit kuten "Coca Cola zero 1,5L" -> "cola"
+  // sekä "tuore kala" -> viimeinen sana jää hakukenttään.
+  if (isVerySpecificSearch(term)) {
+    const exactQueries = uniqueNormalizedQueries([
+      term,
+      looseTerm,
+      getSearchQuery(term),
+      ...colaSpecificQueries.filter((query) => {
+        const clean = normalizeLooseProductMatch(query);
+        if (!clean) return false;
 
-  const isVerySpecificProductQuery =
-    words.length >= 2 ||
-    /\b\d+(?:[,\.]\d+)?\s?(l|ml|kg|g)\b/i.test(normalizedTerm) ||
-    normalizedTerm.includes("2-pack") ||
-    normalizedTerm.includes("zero");
+        // Cola-haussa pidetään tarkat brandi/variantti/koko -haut ennen geneeristä "cola"-fallbackia.
+        if (colaSpecificQueries.length > 0) {
+          if (clean === "cola" || clean === "coca-cola" || clean === "coca cola" || clean === "virvoitusjuoma cola") return false;
+        }
 
-  if (!isVerySpecificProductQuery && words.length >= 1) {
-    expanded.push(...uniqueNormalizedQueries([words[0]]));
+        return true;
+      }),
+      ...intent.variants.filter((variant) => {
+        const cleanVariant = normalizeLooseProductMatch(variant);
+        if (!cleanVariant) return false;
+        if (looseTerm.includes(cleanVariant) || cleanVariant.includes(looseTerm)) return true;
+        if (primaryProductNounQuery === "jauheliha" && cleanVariant.includes("jauheliha")) return true;
+        return false;
+      }),
+    ]);
+
+    if (primaryProductNounQuery === "jauheliha") {
+      exactQueries.push("jauheliha");
+    }
+
+    return uniqueNormalizedQueries(exactQueries);
+  }
+
+  const expanded = uniqueNormalizedQueries([
+    term,
+    getSearchQuery(term),
+    primaryProductNounQuery,
+    ...intent.variants,
+  ]);
+
+  if (words.length >= 1) {
+    expanded.push(words[0]);
   }
 
   return uniqueNormalizedQueries(expanded);
@@ -1026,6 +1072,10 @@ function getKSearchTerms(name: string) {
     const clean = normalize(term);
     if (clean && !terms.includes(clean)) terms.push(clean);
   };
+
+  for (const colaQuery of getColaSpecificSearchQueries(name).slice(0, 6)) {
+    addTerm(colaQuery);
+  }
 
   const isValueBrand = ["coop", "rainbow", "xtra", "kotimaista", "suomalainen"].some((brand) =>
     normalized.includes(brand)
@@ -5315,26 +5365,40 @@ export default function Page() {
   function removeMatchingSearchTerm(product: Product) {
     const currentTerms = parseTerms(input);
     const productName = normalize(product.name);
+    const looseProductName = normalizeLooseProductMatch(product.name);
+    const originalSearchTerm = normalizeLooseProductMatch((product as Product & { originalSearchTerm?: string }).originalSearchTerm || "");
 
     const matchedTerm = currentTerms.find((term) => {
       const normalizedTerm = normalize(term);
+      const looseTerm = normalizeLooseProductMatch(term);
       const normalizedSearchQuery = normalize(getSearchQuery(term));
+      const looseSearchQuery = normalizeLooseProductMatch(getSearchQuery(term));
 
-      // v256:
-      // Jauheliha-haussa hakukysely voi tietoisesti hakea ydintermillä "jauheliha",
-      // vaikka käyttäjän alkuperäinen rivi olisi esim. "broilerin jauheliha".
-      // Kun käyttäjä valitsee minkä tahansa aidon jauhelihatuotteen, alkuperäinen rivi
-      // pitää poistaa jonosta. Muuten sama rivi jää hakemaan itseään uudestaan ja
-      // käyttö näyttää jumittuvan broileri-/jauheliha-hakuun.
+      // Jos hakutulos on tuotettu tietylle jonotermille, se termi poistetaan varmasti.
+      // Tämä estää viimeisen moniosaisen haun kuten "tuore kala" jäämisen Hae-kortille.
+      if (originalSearchTerm && looseTerm === originalSearchTerm) return true;
+
+      // Jauheliha-haussa hakukysely voi tietoisesti hakea ydintermillä "jauheliha".
       const termIsGroundMeat = normalizedTerm.includes("jauheliha");
       const productIsGroundMeat = productName.includes("jauheliha");
+
+      // Cola/limsa: koko voi olla muodossa "1,5L" tai "1,5 l".
+      // Normalisoidaan koko ennen vertailua, jotta Coca Cola zero 1,5L poistuu jonosta.
+      const termIsCola = isColaSearchTerm(term);
+      const productIsCola = isClearlyColaProduct(product.name);
+      const termSize = getMetricSizeKey(term);
+      const productSize = getMetricSizeKey(product.name);
+      const colaSizeMatches = !termSize || !productSize || termSize === productSize;
 
       return (
         normalizedTerm.length > 0 &&
         (
           productName.includes(normalizedTerm) ||
           productName.includes(normalizedSearchQuery) ||
-          (termIsGroundMeat && productIsGroundMeat)
+          looseProductName.includes(looseTerm) ||
+          looseProductName.includes(looseSearchQuery) ||
+          (termIsGroundMeat && productIsGroundMeat) ||
+          (termIsCola && productIsCola && colaSizeMatches)
         )
       );
     });
@@ -5365,7 +5429,23 @@ export default function Page() {
       return !matchedBySearchTerm && !matchedByProductName;
     });
 
-    if (cartWithoutMatchingManualRows.some((x) => normalize(x.name) === normalize(product.name))) return;
+    if (cartWithoutMatchingManualRows.some((x) => normalize(x.name) === normalize(product.name))) {
+      const nextInputForDuplicate = remainingTerms.join(",");
+      setInput(nextInputForDuplicate);
+      setNormalResults([]);
+      setVisibleNormalCount(8);
+      setActiveNormalSearchTerm("");
+
+      if (remainingTerms.length > 0) {
+        void searchNormalPrices(nextInputForDuplicate);
+      } else {
+        setNormalSearchAttempted(false);
+        setSearchPanelOpen(true);
+        setActiveResult("none");
+      }
+
+      return;
+    }
 
     if (cartWithoutMatchingManualRows.length >= MAX_ITEMS) {
       alert(`Demossa ostoskori on rajattu ${MAX_ITEMS} tuotteeseen.`);
@@ -5915,8 +5995,13 @@ export default function Page() {
       const nextResults: SingleProductCompareResult[] = [];
 
       try {
-        const sItems = await fetchSProducts(getSearchQuery(term), activeStores.sStoreId);
-        const sBest = pickBestSProduct(sItems, term);
+        let sBest: Product | undefined;
+
+        for (const sSearchTerm of getNormalSearchQueries(term).slice(0, 6)) {
+          const sItems = await fetchSProducts(sSearchTerm, activeStores.sStoreId);
+          sBest = pickBestSProduct(sItems, term);
+          if (sBest && getProductPrice(sBest) > 0) break;
+        }
 
         if (sBest && getProductPrice(sBest) > 0) {
           nextResults.push({
@@ -7504,7 +7589,7 @@ export default function Page() {
                 </section>
               )}
 
-              {activeResult !== "compare" && (loadingNormal || normalResults.length > 0 || (normalSearchAttempted && activeNormalSearchTerm)) && (
+              {activeResult !== "compare" && (loadingNormal || normalResults.length > 0 || (searchPanelOpen && normalSearchAttempted && activeNormalSearchTerm)) && (
 <section ref={normalResultsSectionRef} className="min-w-0 max-w-full overflow-hidden rounded-[1.5rem] border border-white/70 bg-white/95 p-3 shadow-[0_18px_55px_rgba(15,23,42,0.10)] backdrop-blur sm:rounded-[2rem] sm:p-5">
                 <div className="mb-3 flex items-start justify-between gap-3">
                   <div className="min-w-0">
