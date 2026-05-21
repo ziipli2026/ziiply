@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v305_EMPTY_REFRESH_GPS_TOGGLE";
+const APP_VERSION = "v306_STORE_PICKER_GPS_HARD_LOCK";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -2889,6 +2889,18 @@ export default function Page() {
   const [shopsPanelOpen, setShopsPanelOpen] = useState(false);
   const [gpsErrorMessage, setGpsErrorMessage] = useState("");
   const [gpsAutoActivatedV287, setGpsAutoActivatedV287] = useState(false);
+  const gpsUserDisabledRefV306 = useRef(true);
+
+  function stopOwnLocationV306(message = "Oma sijainti pois päältä. Kirjoita alue tai postinumero.") {
+    gpsUserDisabledRefV306.current = true;
+    setUsingOwnLocation(false);
+    setGpsErrorMessage("");
+    setLocationInput("");
+    setLocationMessage(message);
+    try {
+      localStorage.removeItem("ziiply-use-own-location");
+    } catch {}
+  }
   // Mobile comparison view uses the same activeResult state as desktop, but renders as its own overlay.
   const [cart, setCart] = useState<CartItem[]>([]);
   const cartIsEmpty = cart.length === 0;
@@ -3242,6 +3254,15 @@ export default function Page() {
   }
 
   const activeStores = useMemo(() => {
+    if (storeCompareScope === "between_chains" && !storeModeChosenV299) {
+      return {
+        sStoreId: 0,
+        sStoreName: "Valitse ensin Tavaratalot tai Lähikaupat",
+        kStoreId: 0,
+        kStoreName: "Valitse ensin Tavaratalot tai Lähikaupat",
+      };
+    }
+
     if (storeMode === "local") {
       return {
         sStoreId: activeArea.sLocalStoreId ?? 0,
@@ -3257,7 +3278,7 @@ export default function Page() {
       kStoreId: activeArea.kStoreId ?? 0,
       kStoreName: activeArea.kStoreName ?? "K-tavaratalo ei valittu",
     };
-  }, [activeArea, storeMode]);
+  }, [activeArea, storeMode, storeModeChosenV299, storeCompareScope]);
 
   const hasActiveStores = activeStores.sStoreId > 0 && activeStores.kStoreId > 0;
 
@@ -4283,6 +4304,19 @@ export default function Page() {
     setActiveResult("none");
   }
 
+  function inferStoreModeForStoreV306(store: StoreSearchItem, fallbackMode: StoreMode = storeMode): StoreMode {
+    const name = normalize(store.name || "");
+    if (store.type === "S") {
+      if (isSLocalStore(store) || hasAnyToken(name, ["s-market", "s market", "alepa", "sale", "market"])) return "local";
+      if (isPrisma(store)) return "hyper";
+    }
+    if (store.type === "K") {
+      if (isKLocalStore(store) || hasAnyToken(name, ["k-market", "k market", "k-supermarket", "k supermarket", "market"])) return "local";
+      if (isKCitymarket(store)) return "hyper";
+    }
+    return fallbackMode;
+  }
+
   function handleStoreModeChange(nextMode: StoreMode) {
     if (storeCompareScope === "within_chain") return;
 
@@ -4355,15 +4389,22 @@ export default function Page() {
       return current;
     });
 
-    selectedStoreModeRefV302.current = effectiveStoreMode;
-    setStoreMode(effectiveStoreMode);
-    setStoreModeChosenV299(true);
+    // v306_STORE_PICKER_GPS_HARD_LOCK:
+    // Kaupan valitseminen EI saa koskaan itsestään aktivoida Tavaratalot/Lähikaupat-nappia.
+    // Moodin saa valita vain Hakutapa-napeista. Jos moodi on jo valittu, pidetään se vakaana.
+    if (storeModeChosenV299) {
+      selectedStoreModeRefV302.current = effectiveStoreMode;
+      setStoreMode(effectiveStoreMode);
+    }
+
     setOpenStorePicker(null);
 
     clearSearchAndComparisonState();
-    setLocationMessage(`${store.name} valittu ${store.type === "S" ? "S-ryhmän" : "K-ryhmän"} ${
-      effectiveStoreMode === "local" ? "lähikaupaksi" : "tavarataloksi"
-    }.`);
+    setLocationMessage(
+      storeModeChosenV299
+        ? `${store.name} valittu ${store.type === "S" ? "S-ryhmän" : "K-ryhmän"} ${effectiveStoreMode === "local" ? "lähikaupaksi" : "tavarataloksi"}.`
+        : `${store.name} valittu. Valitse vielä Tavaratalot tai Lähikaupat.`
+    );
   }
 
   function clearStoreBackedSearchState() {
@@ -4578,6 +4619,8 @@ export default function Page() {
   async function useOwnLocation() {
     if (storeSearchLoading) return;
 
+    gpsUserDisabledRefV306.current = false;
+    setGpsErrorMessage("");
     setUsingOwnLocation(true);
     setLocationInput("");
     setStoreSearchLoading(true);
@@ -4589,6 +4632,7 @@ export default function Page() {
 
       if (!city) {
         setLocationMessage("Sijaintia ei saatu. Valitse alue käsin.");
+        gpsUserDisabledRefV306.current = true;
         setUsingOwnLocation(false);
         return;
       }
@@ -4610,26 +4654,19 @@ export default function Page() {
           setGpsErrorMessage("GPS-paikannus ei ole käytettävissä.");
         }
       setLocationMessage("Sijaintia ei saatu. Valitse alue käsin.");
+      gpsUserDisabledRefV306.current = true;
       setUsingOwnLocation(false);
       setStoreSearchLoading(false);
     }
   }
 
 
-  // AUTO_USE_OWN_LOCATION_V293
-  // Käynnistää oikean GPS/oma sijainti -haun ensimmäisellä latauksella,
-  // jotta Kaupat-kortin kauppavalinnat aktivoituvat ilman erillistä painallusta.
+  // AUTO_USE_OWN_LOCATION_DISABLED_V306
+  // GPS ei käynnisty latauksessa eikä palaa päälle itsestään.
+  // Oma sijainti käynnistyy vain käyttäjän painalluksesta.
   useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    setUsingOwnLocation(true);
-    setLocationInput("");
-
-    const timer = window.setTimeout(() => {
-      useOwnLocation();
-    }, 350);
-
-    return () => window.clearTimeout(timer);
+    gpsUserDisabledRefV306.current = true;
+    setUsingOwnLocation(false);
   }, []);
 
   async function searchOffers(termOverride?: string) {
@@ -7762,11 +7799,7 @@ export default function Page() {
               aria-pressed={usingOwnLocation}
               onClick={() => {
                 if (usingOwnLocation) {
-                  setUsingOwnLocation(false);
-                  setLocationInput("");
-                  setGpsErrorMessage("");
-                  setLocationMessage("Oma sijainti pois päältä. Kirjoita alue tai postinumero.");
-                  try { localStorage.removeItem("ziiply-use-own-location"); } catch {}
+                  stopOwnLocationV306();
                 } else {
                   setLocationInput("");
                   useOwnLocation();
@@ -7777,7 +7810,7 @@ export default function Page() {
               className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-xl font-black shadow-sm ring-1 transition disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98] ${
                 usingOwnLocation
                   ? "bg-green-50 text-green-600 ring-green-100"
-                  : "bg-white text-slate-500 ring-slate-200"
+                  : "bg-red-50 text-red-600 ring-red-100"
               }`}
             >
               📍
@@ -7788,7 +7821,7 @@ export default function Page() {
               onChange={(event) => {
                 const nextValue = event.target.value;
                 setLocationInput(nextValue);
-                if (nextValue.trim()) setUsingOwnLocation(false);
+                if (nextValue.trim()) { gpsUserDisabledRefV306.current = true; setUsingOwnLocation(false); }
                 setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
               }}
               placeholder="05510 tai Hyvinkää"
@@ -7901,6 +7934,7 @@ export default function Page() {
                     {foundStores.filter((store) => {
                       if (store.type !== "S") return false;
                       if (storeCompareScope === "within_chain") return true;
+                      if (!storeModeChosenV299) return true;
                       const storeNameForMode = normalize(store.name || "");
                       const isLocalStoreForMode = hasAnyToken(storeNameForMode, ["market", "alepa", "sale", "s-market", "s market"]);
                       return storeMode === "local" ? isLocalStoreForMode : !isLocalStoreForMode;
@@ -7914,7 +7948,7 @@ export default function Page() {
                         <button
                           key={store.id}
                           type="button"
-                          onClick={() => selectStoreForCurrentMode(store, storeMode)}
+                          onClick={() => selectStoreForCurrentMode(store, storeModeChosenV299 ? storeMode : inferStoreModeForStoreV306(store))}
                           className={`w-full min-w-[min(86vw,360px)] rounded-xl px-4 py-3 text-left transition ${
                             selected
                               ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
@@ -7937,6 +7971,7 @@ export default function Page() {
                     {foundStores.filter((store) => {
                       if (store.type !== "K") return false;
                       if (storeCompareScope === "within_chain") return true;
+                      if (!storeModeChosenV299) return true;
                       const storeNameForMode = normalize(store.name || "");
                       const isLocalStoreForMode = hasAnyToken(storeNameForMode, ["market", "k-market", "k market", "k-supermarket", "k supermarket"]);
                       return storeMode === "local" ? isLocalStoreForMode : !isLocalStoreForMode;
@@ -7971,7 +8006,7 @@ return (
                         <button
                           key={store.id}
                           type="button"
-                          onClick={() => selectStoreForCurrentMode(store, storeMode)}
+                          onClick={() => selectStoreForCurrentMode(store, storeModeChosenV299 ? storeMode : inferStoreModeForStoreV306(store))}
                           className={`w-full min-w-[min(86vw,360px)] rounded-xl px-4 py-3 text-left transition ${
                             selected
                               ? "bg-red-700 shadow-md ring-1 ring-black/10 text-white"
@@ -8005,11 +8040,7 @@ return (
                     aria-pressed={usingOwnLocation}
                     onClick={() => {
                       if (usingOwnLocation) {
-                        setUsingOwnLocation(false);
-                        setLocationInput("");
-                        setGpsErrorMessage("");
-                        setLocationMessage("Oma sijainti pois päältä. Kirjoita alue tai postinumero.");
-                        try { localStorage.removeItem("ziiply-use-own-location"); } catch {}
+                        stopOwnLocationV306();
                       } else {
                         setLocationInput("");
                         useOwnLocation();
@@ -8020,7 +8051,7 @@ return (
                     className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg font-black shadow-sm ring-1 transition disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98] ${
                       usingOwnLocation
                         ? "bg-green-50 text-green-600 ring-green-100"
-                        : "bg-white text-slate-500 ring-slate-200"
+                        : "bg-red-50 text-red-600 ring-red-100"
                     }`}
                   >
                     📍
@@ -8031,7 +8062,7 @@ return (
                     onChange={(event) => {
                       const nextValue = event.target.value;
                       setLocationInput(nextValue);
-                      if (nextValue.trim()) setUsingOwnLocation(false);
+                      if (nextValue.trim()) { gpsUserDisabledRefV306.current = true; setUsingOwnLocation(false); }
                       setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
                     }}
                     placeholder="05510 tai Hyvinkää"
