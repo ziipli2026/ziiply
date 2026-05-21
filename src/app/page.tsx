@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v316";
+const APP_VERSION = "v317";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -3078,6 +3078,8 @@ export default function Page() {
   const [showLaunchScreen, setShowLaunchScreen] = useState(true);
   const [suppressUiForEanClose, setSuppressUiForEanClose] = useState(false);
   const [eanModalClosing, setEanModalClosing] = useState(false);
+  const PANEL_FADE_MS = 260;
+  const [closingPanels, setClosingPanels] = useState<Record<string, boolean>>({});
   const [eanScannerOpen, setEanScannerOpen] = useState(false);
   const [eanScannerMessage, setEanScannerMessage] = useState("");
   const [eanManualInputOpen, setEanManualInputOpen] = useState(false);
@@ -3942,6 +3944,44 @@ export default function Page() {
     setEanModalOpen(false);
   }, []);
 
+
+  function markPanelClosing(panelKey: string) {
+    setClosingPanels((current) => ({ ...current, [panelKey]: true }));
+    window.setTimeout(() => {
+      setClosingPanels((current) => {
+        const next = { ...current };
+        delete next[panelKey];
+        return next;
+      });
+    }, PANEL_FADE_MS + 40);
+  }
+
+  function getOpenMobilePanelKey() {
+    if (shopsPanelOpen) return "shops";
+    if (searchPanelOpen) return "search";
+    if (cartModalOpen) return "cart";
+    if (eanModalOpen) return "ean";
+    if (activeResult === "compare") return "compare";
+    if (activeResult === "offers") return "offers";
+    if (activeResult === "singleCompare") return "singleCompare";
+    return "none";
+  }
+
+  function transitionMobilePanel(nextPanel: "none" | "shops" | "search" | "cart" | "compare" | "offers" | "singleCompare", applyNext: () => void) {
+    const currentPanel = getOpenMobilePanelKey();
+    if (currentPanel !== "none" && currentPanel !== nextPanel) {
+      markPanelClosing(currentPanel);
+      window.setTimeout(applyNext, PANEL_FADE_MS);
+      return;
+    }
+    applyNext();
+  }
+
+  function closePanelWithFade(panelKey: string, applyClose: () => void) {
+    markPanelClosing(panelKey);
+    window.setTimeout(applyClose, PANEL_FADE_MS);
+  }
+
   function openSearchPanel() {
     if (searchNavigationLocked) return;
     if (!storesReadyForSearch) {
@@ -3958,25 +3998,27 @@ export default function Page() {
     // Hae-paneeli toimii mobiilissa erillisenä näkymänä: se sulkee korin/EANin/vertailun ja näkyy aina viewportissa.
     const openedFromSingleCompare = activeResult === "singleCompare";
 
-    setCartModalOpen(false);
-    setShopsPanelOpen(false);
-    setEanModalOpen(false);
+    transitionMobilePanel("search", () => {
+      setCartModalOpen(false);
+      setShopsPanelOpen(false);
+      setEanModalOpen(false);
 
-    if (openedFromSingleCompare) {
-      setInput("");
-      setNormalResults([]);
-      setNormalSearchAttempted(false);
-      setVisibleNormalCount(8);
-      setActiveNormalSearchTerm("");
-      setSearchDebug([]);
-    }
+      if (openedFromSingleCompare) {
+        setInput("");
+        setNormalResults([]);
+        setNormalSearchAttempted(false);
+        setVisibleNormalCount(8);
+        setActiveNormalSearchTerm("");
+        setSearchDebug([]);
+      }
 
-    setActiveResult("none");
-    setSearchPanelOpen(true);
+      setActiveResult("none");
+      setSearchPanelOpen(true);
 
-    window.setTimeout(() => {
-      searchInputRef.current?.focus();
-    }, 50);
+      window.setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 50);
+    });
   }
 
   function toggleSearchPanel() {
@@ -3993,7 +4035,7 @@ export default function Page() {
 
     // Toinen painallus sulkee Hae-näkymän. Jos Kori on auki, vaihdetaan suoraan Hae-näkymään.
     if (searchPanelOpen) {
-      setSearchPanelOpen(false);
+      closePanelWithFade("search", () => setSearchPanelOpen(false));
       return;
     }
 
@@ -4001,7 +4043,7 @@ export default function Page() {
   }
 
   function closeSearchPanel() {
-    setSearchPanelOpen(false);
+    closePanelWithFade("search", () => setSearchPanelOpen(false));
   }
 
   function openSearchPanelAndStartVoice() {
@@ -6317,16 +6359,18 @@ export default function Page() {
     }
 
     // Kori-paneeli toimii erillisenä näkymänä: se sulkee Haen/EANin/vertailun ja avautuu heti näkyville.
-    setSearchPanelOpen(false);
-    setShopsPanelOpen(false);
-    setEanModalOpen(false);
-    setActiveResult("none");
-    setCartSavePanelOpen(false);
-    setCartModalOpen(true);
-    window.requestAnimationFrame(() => {
-      cartOverlayScrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
+    transitionMobilePanel("cart", () => {
+      setSearchPanelOpen(false);
+      setShopsPanelOpen(false);
+      setEanModalOpen(false);
+      setActiveResult("none");
+      setCartSavePanelOpen(false);
+      setCartModalOpen(true);
+      window.requestAnimationFrame(() => {
+        cartOverlayScrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
+      });
+      void updateChainComparison(cart);
     });
-    void updateChainComparison(cart);
   }
 
   function toggleCartModal() {
@@ -6337,8 +6381,10 @@ export default function Page() {
 
     // Toinen painallus sulkee Korin. Jos Hae on auki, vaihdetaan suoraan Koriin.
     if (cartModalOpen) {
-      setCartModalOpen(false);
-      setCartSavePanelOpen(false);
+      closePanelWithFade("cart", () => {
+        setCartModalOpen(false);
+        setCartSavePanelOpen(false);
+      });
       return;
     }
 
@@ -6346,8 +6392,10 @@ export default function Page() {
   }
 
   function closeCartModal() {
-    setCartModalOpen(false);
-    setCartSavePanelOpen(false);
+    closePanelWithFade("cart", () => {
+      setCartModalOpen(false);
+      setCartSavePanelOpen(false);
+    });
   }
 
   function openComparisonView() {
@@ -6358,21 +6406,23 @@ export default function Page() {
 
     // Vertailu avautuu aina puhtaana vakionäkymänä:
     // ei hakutuloksia, ei valintamodaalia, ei vanhaa overlay-statea.
-    setSearchPanelOpen(false);
-    setCartModalOpen(false);
-    setCartSavePanelOpen(false);
-    setShopsPanelOpen(false);
-    setEanModalOpen(false);
-    setLoadingNormal(false);
-    setNormalResults([]);
-    setVisibleNormalCount(8);
-    setActiveResult("compare");
+    transitionMobilePanel("compare", () => {
+      setSearchPanelOpen(false);
+      setCartModalOpen(false);
+      setCartSavePanelOpen(false);
+      setShopsPanelOpen(false);
+      setEanModalOpen(false);
+      setLoadingNormal(false);
+      setNormalResults([]);
+      setVisibleNormalCount(8);
+      setActiveResult("compare");
 
-    window.requestAnimationFrame(() => {
-      compareOverlayScrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
+      window.requestAnimationFrame(() => {
+        compareOverlayScrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
+      });
+
+      void updateChainComparison(cart);
     });
-
-    void updateChainComparison(cart);
   }
 
   function toggleComparisonView() {
@@ -6382,7 +6432,7 @@ export default function Page() {
     }
 
     if (activeResult === "compare" && !searchPanelOpen && !cartModalOpen && !eanModalOpen) {
-      setActiveResult("none");
+      closePanelWithFade("compare", () => setActiveResult("none"));
       return;
     }
 
@@ -6396,20 +6446,22 @@ export default function Page() {
       kStoreName: activeStores.kStoreName,
     });
 
-    setSearchPanelOpen(false);
-    setCartModalOpen(false);
-    setCartSavePanelOpen(false);
-    setEanModalOpen(false);
-    setActiveResult("none");
-    setInitialStoreNavPrompt(false);
-    setShopsPanelOpen(true);
+    transitionMobilePanel("shops", () => {
+      setSearchPanelOpen(false);
+      setCartModalOpen(false);
+      setCartSavePanelOpen(false);
+      setEanModalOpen(false);
+      setActiveResult("none");
+      setInitialStoreNavPrompt(false);
+      setShopsPanelOpen(true);
+    });
   }
 
   function toggleShopsPanel() {
     // v316: Kaupat on alussa ainoa käytettävissä oleva nappi, mutta sekin toimii toggle-na.
     // Eli Kaupat-kortin voi avata ja sulkea myös ennen kauppavalintojen valmistumista.
     if (shopsPanelOpen) {
-      setShopsPanelOpen(false);
+      closePanelWithFade("shops", () => setShopsPanelOpen(false));
       return;
     }
 
@@ -6417,7 +6469,7 @@ export default function Page() {
   }
 
   function closeShopsPanel() {
-    setShopsPanelOpen(false);
+    closePanelWithFade("shops", () => setShopsPanelOpen(false));
   }
 
   function scrollToNormalResults() {
@@ -7941,6 +7993,15 @@ export default function Page() {
           animation: ziiply-soft-open 190ms cubic-bezier(0.16, 1, 0.3, 1) both;
           transform-origin: top center;
         }
+        @keyframes ziiply-soft-close {
+          from { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+          to { opacity: 0; transform: translateY(10px) scale(0.985); filter: blur(2px); }
+        }
+        .ziiply-soft-close {
+          animation: ziiply-soft-close 260ms cubic-bezier(0.7, 0, 0.84, 0) both;
+          pointer-events: none;
+          transform-origin: top center;
+        }
       `}</style>
       {showLaunchScreen && (
         <div className="fixed inset-0 z-[90] flex items-center justify-center bg-white ziiply-soft-open">
@@ -8243,7 +8304,7 @@ return (
 
 
         {shopsPanelOpen && (
-          <div className="fixed inset-0 z-40 flex items-end justify-center overflow-y-auto overscroll-contain bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:hidden ziiply-soft-open">
+          <div className={`fixed inset-0 z-40 flex items-end justify-center overflow-y-auto overscroll-contain bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:hidden ${closingPanels.shops ? "ziiply-soft-close" : "ziiply-soft-open"}`}>
             <div className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[28rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-100 p-3 shadow-2xl">
               <section className="rounded-[1.25rem] border border-slate-200 bg-white/95 p-2 shadow-sm">
                 <div className="flex items-center gap-2">
@@ -8363,7 +8424,7 @@ return (
         )}
 
         {activeResult === "offers" && (
-          <div className="fixed inset-0 z-40 flex items-end justify-center overflow-y-auto overscroll-contain bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0">
+          <div className={`fixed inset-0 z-40 flex items-end justify-center overflow-y-auto overscroll-contain bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0 ${closingPanels.offers ? "ziiply-soft-close" : "ziiply-soft-open"}`}>
             <div ref={compareOverlayScrollRef} className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-visible rounded-[1.5rem] bg-slate-50 p-3 shadow-2xl sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:bg-transparent sm:p-0 sm:shadow-none">
               <div className="mb-3 rounded-2xl bg-green-700 p-4 text-white shadow-sm sm:rounded-[2rem] sm:p-6">
                 <p className="text-xs font-bold uppercase tracking-wide text-green-100 sm:text-sm">Tarjousmoottori</p>
@@ -8448,7 +8509,7 @@ return (
         )}
 
         {(activeResult === "compare" || activeResult === "singleCompare" || (activeResult !== "offers" && (loadingNormal || normalResults.length > 0 || (searchPanelOpen && normalSearchAttempted && activeNormalSearchTerm)))) && (
-          <div className="fixed inset-0 z-40 flex items-end justify-center overflow-y-auto overscroll-contain bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0">
+          <div className={`fixed inset-0 z-40 flex items-end justify-center overflow-y-auto overscroll-contain bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0 ${(closingPanels.compare || closingPanels.singleCompare) ? "ziiply-soft-close" : "ziiply-soft-open"}`}>
             <div ref={compareOverlayScrollRef} className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-visible rounded-[1.5rem] bg-slate-50 p-3 shadow-2xl sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:bg-transparent sm:p-0 sm:shadow-none">
             <div className="grid min-w-0 max-w-full gap-3 sm:gap-4 overflow-hidden lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
             {activeResult === "compare" && showCheapestSticky && cheapest && secondCheapest && (
@@ -9112,7 +9173,7 @@ return (
 
 
         {cartModalOpen && (
-        <div className="fixed inset-0 z-40 flex items-end justify-center overflow-y-auto overscroll-contain bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:items-start sm:p-6 ziiply-soft-open">
+        <div className={`fixed inset-0 z-40 flex items-end justify-center overflow-y-auto overscroll-contain bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:items-start sm:p-6 ${closingPanels.cart ? "ziiply-soft-close" : "ziiply-soft-open"}`}>
           <div ref={cartOverlayScrollRef} className="max-h-[calc(100dvh-12.5rem)] w-full max-w-3xl overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.6rem] bg-gradient-to-br from-slate-950 via-emerald-950 to-green-800 p-4 text-white shadow-[0_24px_80px_rgba(15,23,42,0.35)] sm:max-h-none sm:rounded-[2rem] sm:p-6">
             <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
@@ -9356,7 +9417,7 @@ return (
       )}
 
       {searchPanelOpen && (
-        <div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden overscroll-none bg-slate-950/35 px-3 pb-[calc(env(safe-area-inset-bottom)+5.9rem)] pt-[calc(env(safe-area-inset-top)+5.05rem)] backdrop-blur-sm sm:items-center sm:p-6 ziiply-soft-open">
+        <div className={`fixed inset-0 z-40 flex items-end justify-center overflow-hidden overscroll-none bg-slate-950/35 px-3 pb-[calc(env(safe-area-inset-bottom)+5.9rem)] pt-[calc(env(safe-area-inset-top)+5.05rem)] backdrop-blur-sm sm:items-center sm:p-6 ${closingPanels.search ? "ziiply-soft-close" : "ziiply-soft-open"}`}>
           <div className="w-full max-w-[38rem] overflow-hidden">
           <div className="h-[min(33rem,calc(100dvh-11.5rem))] overflow-hidden rounded-[1.5rem] border border-white/80 bg-white/95 p-3 shadow-[0_22px_70px_rgba(15,23,42,0.22)] backdrop-blur-2xl sm:h-[34rem] sm:rounded-[1.75rem] sm:p-4">
             <div className="flex h-full min-h-0 flex-col">
@@ -9537,7 +9598,7 @@ return (
       )}
 
       {eanModalOpen && (
-          <div className={`fixed inset-0 z-[80] flex items-end justify-center overflow-hidden overscroll-none bg-black/40 px-3 pb-3 pt-10 transition-opacity duration-700 ease-out sm:items-center sm:p-4 ${eanModalClosing ? "pointer-events-none opacity-0" : "opacity-100 ziiply-soft-open"}`}>
+          <div className={`fixed inset-0 z-[80] flex items-end justify-center overflow-hidden overscroll-none bg-black/40 px-3 pb-3 pt-10 transition-opacity duration-700 ease-out sm:items-center sm:p-4 ${eanModalClosing ? "ziiply-soft-close" : "ziiply-soft-open"}`}>
             <div className={`max-h-[calc(100dvh-1.5rem)] w-full max-w-[34rem] overflow-y-auto overscroll-contain rounded-[1.5rem] bg-white p-4 shadow-2xl ring-1 ring-slate-200 transition-all duration-700 ease-out [WebkitOverflowScrolling:touch] sm:max-h-[calc(100dvh-2rem)] sm:p-5 ${eanModalClosing ? "translate-y-3 scale-[0.98] opacity-0" : "translate-y-0 scale-100 opacity-100"}`}>
               <div className="flex items-center justify-between gap-3">
                 <p className="text-lg font-extrabold text-slate-900">EAN / viivakoodi</p>
