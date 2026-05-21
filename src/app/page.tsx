@@ -218,7 +218,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v243";
+const APP_VERSION = "v244";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -2797,6 +2797,17 @@ export default function Page() {
   function applyInstantSearchSuggestion(label: string) {
     const cleanLabel = fixText(label).replace(/\s+/g, " ").trim();
     if (!cleanLabel) return;
+
+    // v244:
+    // Yksi tuote -tilassa smart suggestion on aina yksi kokonainen hakutermi.
+    // Esim. "coca cola zero" ei saa hajota sanoiksi eikä jäädä vanhan pilkkujonon perään.
+    if (searchCompareMode === "single") {
+      setInput(cleanLabel);
+      setVisibleNormalCount(8);
+      triggerHaptic();
+      window.requestAnimationFrame(() => searchInputRef.current?.focus());
+      return;
+    }
 
     const parts = input.split(/([\n,]+)/);
     let replaced = false;
@@ -5662,17 +5673,26 @@ export default function Page() {
   function handleMainNormalSearch() {
     if (!hasSearchInput || loadingNormal || singleProductCompareLoading) return;
 
+    const singleModeTerm = terms[0] || input.trim();
+    const searchQueryForMode = searchCompareMode === "single" ? singleModeTerm : terms.join(", ");
+
     trackZiiplyEvent("main_search_clicked", {
-      query: terms.join(", "),
+      query: searchQueryForMode,
       searchType: searchCompareMode === "single" ? "single_product_compare" : "normal_prices",
       cartItemsCount: cart.length,
     });
 
-    // v238: myös yksittäisen tuotteen vertailu alkaa samalla valintalistalla
-    // kuin useamman tuotteen flow. Käyttäjä valitsee ensin tarkan tuotteen,
-    // ja hintavertailu käynnistyy vasta valinnan jälkeen.
+    // v244:
+    // Yksi tuote -tila hakee vain yhden kokonaisen termin. Jos kentässä on pilkuilla
+    // useampi tuote, niitä ei ajeta jonona eikä näytetä single-product flowssa.
+    // Useamman tuotteen jono kuuluu vain Koko kori -tilaan.
     setSearchPanelOpen(false);
-    void searchNormalPrices();
+    if (searchCompareMode === "single") {
+      setInput(singleModeTerm);
+      void searchNormalPrices(singleModeTerm);
+    } else {
+      void searchNormalPrices();
+    }
     scrollToNormalResults();
   }
 
