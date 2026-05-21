@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v313";
+const APP_VERSION = "v314";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -2953,6 +2953,13 @@ export default function Page() {
     setStoreModeChosenV299(false);
     setStoreCompareScope("none");
     setWithinChain(null);
+    // v314_INITIAL_NAV_LOCK: refresh/ensimmäinen avaus näyttää aina Kaupat-näkymän.
+    setSearchPanelOpen(false);
+    setCartModalOpen(false);
+    setCartSavePanelOpen(false);
+    setEanModalOpen(false);
+    setActiveResult("none");
+    setShopsPanelOpen(true);
     // v310_STEP1_2_GPS_REFRESH_FIX: refreshissä valinnat nollaan, GPS päälle.
     gpsUserDisabledRefV306.current = false;
     setUsingOwnLocation(true);
@@ -2997,7 +3004,8 @@ export default function Page() {
   const [singleProductCompareTerm, setSingleProductCompareTerm] = useState("");
   const searchNavigationLocked = loadingOffers || loadingNormal || singleProductCompareLoading;
   const storesReadyForSearch = storeModeChosenV299 && storeCompareScope !== "none";
-  const searchBottomNavDisabled = searchNavigationLocked || !storesReadyForSearch;
+  const initialStoreSelectionLocked = !storesReadyForSearch;
+  const searchBottomNavDisabled = searchNavigationLocked || initialStoreSelectionLocked;
   const [visibleNormalCount, setVisibleNormalCount] = useState(8);
   const [activeNormalSearchTerm, setActiveNormalSearchTerm] = useState("");
   const [eanModalOpen, setEanModalOpen] = useState(false);
@@ -6394,6 +6402,13 @@ export default function Page() {
   }
 
   function toggleShopsPanel() {
+    // v314: ensimmäisessä avauksessa/refreshissä vain Kaupat on käytettävissä.
+    // Kaupat-nappi ei saa sulkea Kaupat-korttia ennen kuin kauppatyyppi ja vertailutapa on valittu.
+    if (initialStoreSelectionLocked) {
+      openShopsPanel();
+      return;
+    }
+
     if (shopsPanelOpen) {
       setShopsPanelOpen(false);
       return;
@@ -9616,12 +9631,12 @@ return (
               {eanScannerOpen && (
                 <div className="mt-4 rounded-2xl bg-white ziiply-soft-open">
                   <div
-                    className="relative mx-auto aspect-[3/4] w-full max-w-[430px] overflow-hidden rounded-2xl bg-slate-950 ring-1 ring-slate-200"
+                    className="relative mx-auto aspect-square w-full max-w-[430px] overflow-hidden rounded-2xl bg-slate-950 ring-1 ring-slate-200"
                     onPointerDown={(event) => void focusScannerCameraAtPoint(event)}
                   >
                     <div
                       id={EAN_SCANNER_REGION_ID}
-                      className="h-full w-full overflow-hidden rounded-2xl bg-slate-950 [&_canvas]:!hidden [&_video]:!h-full [&_video]:!w-full [&_video]:rounded-2xl [&_video]:!object-contain"
+                      className="h-full w-full overflow-hidden rounded-2xl bg-slate-950 [&_canvas]:!hidden [&_video]:!h-full [&_video]:!w-full [&_video]:rounded-2xl [&_video]:!object-cover"
                     />
                     <div className="pointer-events-none absolute inset-x-7 top-1/2 aspect-[1.45/1] -translate-y-1/2 rounded-3xl border-4 border-green-400 shadow-[0_0_0_999px_rgba(2,6,23,0.16)]">
                       <div className="absolute -left-1 -top-1 h-6 w-6 rounded-tl-3xl border-l-4 border-t-4 border-white/95" />
@@ -9777,7 +9792,7 @@ return (
             onClick={toggleSearchPanel}
             disabled={searchBottomNavDisabled}
             aria-disabled={searchBottomNavDisabled}
-            className={`flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition ${searchBottomNavDisabled ? "cursor-not-allowed bg-slate-100 text-slate-300 opacity-70" : searchPanelOpen ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white shadow-md active:scale-[0.98]" : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
+            className={`flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition ${searchBottomNavDisabled ? (initialStoreSelectionLocked ? "cursor-not-allowed bg-red-50 text-red-300 ring-1 ring-red-100 opacity-80" : "cursor-not-allowed bg-slate-100 text-slate-300 opacity-70") : searchPanelOpen ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white shadow-md active:scale-[0.98]" : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
           >
             <span className="text-lg leading-none">🔎</span>
             <span className="mt-1 block">Hae</span>
@@ -9786,7 +9801,7 @@ return (
             type="button"
             onClick={toggleShopsPanel}
             aria-disabled={false}
-            className={`flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition ${shopsPanelOpen ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white shadow-md active:scale-[0.98]" : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
+            className={`flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition ${shopsPanelOpen ? (initialStoreSelectionLocked ? "bg-green-50 text-green-800 ring-2 ring-green-200 shadow-[0_0_22px_rgba(34,197,94,0.18)] active:scale-[0.98]" : "bg-green-700 shadow-md ring-1 ring-black/10 text-white shadow-md active:scale-[0.98]") : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
           >
             <span className="text-lg leading-none">🏪</span>
             <span className="mt-1 block">Kaupat</span>
@@ -9794,8 +9809,9 @@ return (
           <button
             type="button"
             onClick={toggleCartModal}
-            aria-disabled={cart.length === 0}
-            className={`relative flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition ${cart.length === 0 ? "cursor-not-allowed bg-slate-100 text-slate-300 opacity-70" : cartModalOpen ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white shadow-md active:scale-[0.98]" : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
+            disabled={initialStoreSelectionLocked || cart.length === 0}
+            aria-disabled={initialStoreSelectionLocked || cart.length === 0}
+            className={`relative flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition ${cart.length === 0 ? (initialStoreSelectionLocked ? "cursor-not-allowed bg-red-50 text-red-300 ring-1 ring-red-100 opacity-80" : "cursor-not-allowed bg-slate-100 text-slate-300 opacity-70") : cartModalOpen ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white shadow-md active:scale-[0.98]" : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
           >
             <span className="text-lg leading-none">🛒</span>
             <span className="mt-1 block">Kori</span>
@@ -9808,8 +9824,9 @@ return (
           <button
             type="button"
             onClick={toggleComparisonView}
-            aria-disabled={cart.length === 0}
-            className={`flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition ${cart.length === 0 ? "cursor-not-allowed bg-slate-100 text-slate-300 opacity-70" : activeResult === "compare" && !searchPanelOpen && !cartModalOpen ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white shadow-md active:scale-[0.98]" : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
+            disabled={initialStoreSelectionLocked || cart.length === 0}
+            aria-disabled={initialStoreSelectionLocked || cart.length === 0}
+            className={`flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition ${cart.length === 0 ? (initialStoreSelectionLocked ? "cursor-not-allowed bg-red-50 text-red-300 ring-1 ring-red-100 opacity-80" : "cursor-not-allowed bg-slate-100 text-slate-300 opacity-70") : activeResult === "compare" && !searchPanelOpen && !cartModalOpen ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white shadow-md active:scale-[0.98]" : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
           >
             <span className="text-lg leading-none">⚖️</span>
             <span className="mt-1 block">Vertailu</span>
