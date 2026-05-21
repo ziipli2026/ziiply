@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v304_STORE_MODE_LOCK";
+const APP_VERSION = "v305_EMPTY_REFRESH_GPS_TOGGLE";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -2840,7 +2840,7 @@ export default function Page() {
   const [withinChain, setWithinChain] = useState<"S" | "K" | null>(null);
   const [openStorePicker, setOpenStorePicker] = useState<string | null>(null);
   const [locationMessage, setLocationMessage] = useState("Kirjoita alue tai käytä omaa sijaintia.");
-  const [usingOwnLocation, setUsingOwnLocation] = useState(true);
+  const [usingOwnLocation, setUsingOwnLocation] = useState(false);
   const [storeSearchLoading, setStoreSearchLoading] = useState(false);
   const [foundStores, setFoundStores] = useState<StoreSearchItem[]>([]);
 
@@ -2859,14 +2859,20 @@ export default function Page() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
+    // v305_EMPTY_REFRESH_GPS_TOGGLE:
+    // Uusi selainikkuna / refresh ei saa palauttaa Tavaratalot/Lähikaupat-valintaa.
+    // Kauppatyyppi valitaan joka sessiossa käsin, jotta vanha localStorage ei lukitse UI:ta.
     try {
-      const savedMode = localStorage.getItem("ziiply-store-mode-v302");
-      if (savedMode === "hyper" || savedMode === "local") {
-        selectedStoreModeRefV302.current = savedMode;
-        setStoreMode(savedMode);
-        setStoreModeChosenV299(true);
-      }
+      localStorage.removeItem("ziiply-store-mode-v302");
+      localStorage.removeItem("ziiply-store-mode");
+      localStorage.removeItem("storeMode");
+      localStorage.removeItem("ziiply-use-own-location");
     } catch {}
+
+    selectedStoreModeRefV302.current = "hyper";
+    setStoreMode("hyper");
+    setStoreModeChosenV299(false);
+    setUsingOwnLocation(false);
   }, []);
 
 
@@ -3740,41 +3746,18 @@ export default function Page() {
   }, [eanCache]);
 
   useEffect(() => {
+    // v305: Älä palauta vanhoja kauppavalintoja refreshin jälkeen.
+    // Tämä estää tilanteen, jossa selain avaa suoraan vanhan Lähikaupat/Tavaratalot-tilan.
     try {
-      const saved = window.localStorage.getItem("ziiply-default-stores-v2");
-      if (!saved) return;
-
-      const parsed = JSON.parse(saved);
-
-      if (parsed?.activeArea) {
-        setActiveArea(parsed.activeArea);
-      }
-
-      if (parsed?.storeMode === "hyper" || parsed?.storeMode === "local") {
-        setStoreMode(parsed.storeMode);
-      }
-
-      if (parsed?.locationInput) {
-        setLocationInput(parsed.locationInput);
-      }
+      window.localStorage.removeItem("ziiply-default-stores-v2");
     } catch {
-      // Ignore broken saved store data.
+      // Ignore storage errors in private browsing.
     }
   }, []);
 
   useEffect(() => {
-    try {
-      window.localStorage.setItem(
-        "ziiply-default-stores-v2",
-        JSON.stringify({
-          activeArea,
-          storeMode,
-          locationInput,
-        })
-      );
-    } catch {
-      // Ignore storage errors in private browsing.
-    }
+    // v305: ei tallenneta kauppatyyppiä/kauppavalintoja pysyvästi.
+    // Refreshin pitää palata tyhjään hakutapaan.
   }, [activeArea, storeMode, locationInput]);
 
 
@@ -4307,12 +4290,6 @@ export default function Page() {
     setStoreModeChosenV299(true);
     setOpenStorePicker(null);
 
-    try {
-      if (typeof window !== "undefined") {
-        localStorage.setItem("ziiply-store-mode-v302", nextMode);
-      }
-    } catch {}
-
     trackZiiplyEvent("store_mode_changed", {
       previousMode: storeMode,
       nextMode,
@@ -4382,12 +4359,6 @@ export default function Page() {
     setStoreMode(effectiveStoreMode);
     setStoreModeChosenV299(true);
     setOpenStorePicker(null);
-
-    try {
-      if (typeof window !== "undefined") {
-        localStorage.setItem("ziiply-store-mode-v302", effectiveStoreMode);
-      }
-    } catch {}
 
     clearSearchAndComparisonState();
     setLocationMessage(`${store.name} valittu ${store.type === "S" ? "S-ryhmän" : "K-ryhmän"} ${
@@ -4618,7 +4589,7 @@ export default function Page() {
 
       if (!city) {
         setLocationMessage("Sijaintia ei saatu. Valitse alue käsin.");
-        setUsingOwnLocation(true);
+        setUsingOwnLocation(false);
         return;
       }
 
@@ -4639,7 +4610,7 @@ export default function Page() {
           setGpsErrorMessage("GPS-paikannus ei ole käytettävissä.");
         }
       setLocationMessage("Sijaintia ei saatu. Valitse alue käsin.");
-      setUsingOwnLocation(true);
+      setUsingOwnLocation(false);
       setStoreSearchLoading(false);
     }
   }
@@ -7788,20 +7759,25 @@ export default function Page() {
           <div className="flex items-center gap-2 sm:gap-3">
             <button
               type="button"
-              aria-pressed={usingOwnLocation || !locationInput.trim()}
+              aria-pressed={usingOwnLocation}
               onClick={() => {
-                if (usingOwnLocation) setUsingOwnLocation(false);
-                else {
+                if (usingOwnLocation) {
+                  setUsingOwnLocation(false);
+                  setLocationInput("");
+                  setGpsErrorMessage("");
+                  setLocationMessage("Oma sijainti pois päältä. Kirjoita alue tai postinumero.");
+                  try { localStorage.removeItem("ziiply-use-own-location"); } catch {}
+                } else {
                   setLocationInput("");
                   useOwnLocation();
                 }
               }}
               disabled={storeSearchLoading}
-              title={(usingOwnLocation || !locationInput.trim()) ? "Oma sijainti käytössä" : "Käytä omaa sijaintia"}
+              title={usingOwnLocation ? "Oma sijainti käytössä – poista käytöstä" : "Käytä omaa sijaintia"}
               className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-xl font-black shadow-sm ring-1 transition disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98] ${
-                (usingOwnLocation || !locationInput.trim())
+                usingOwnLocation
                   ? "bg-green-50 text-green-600 ring-green-100"
-                  : "bg-red-50 text-red-600 ring-red-100"
+                  : "bg-white text-slate-500 ring-slate-200"
               }`}
             >
               📍
@@ -7971,125 +7947,25 @@ export default function Page() {
                           : activeArea.kStoreId === store.id;
 
 
-  // AUTO_GPS_DEFAULT_V285
+  // AUTO_GPS_DEFAULT_DISABLED_V305
+  // Ei automaattista GPS-kyselyä latauksessa. GPS käynnistyy vain käyttäjän napista.
+
+  // DEFAULT_STORE_MODE_DISABLED_V305
+  // Ei automaattista Tavaratalot-oletusta refreshissä.
   useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const timer = window.setTimeout(() => {
-      try {
-        if (!navigator.geolocation) {
-          setGpsErrorMessage("Selain ei tue GPS-paikannusta.");
-          return;
-        }
-
-        setGpsErrorMessage("");
-        navigator.geolocation.getCurrentPosition(
-          () => {
-            
-            setGpsErrorMessage("");
-            setGpsAutoActivatedV287(true);
-            try { localStorage.setItem("ziiply-use-own-location", "1"); } catch {}
-            try {
-              localStorage.setItem("ziiply-use-own-location", "1");
-            } catch {}
-          },
-          (error: GeolocationPositionError) => {
-            if (error.code === 1) {
-              setGpsErrorMessage("GPS-paikannus estetty selaimen asetuksissa.");
-            } else if (error.code === 2) {
-              setGpsErrorMessage("GPS-sijaintia ei saatu haettua.");
-            } else if (error.code === 3) {
-              setGpsErrorMessage("GPS-paikannus aikakatkaistiin.");
-            } else {
-              setGpsErrorMessage("GPS-paikannus ei ole käytettävissä.");
-            }
-          },
-          { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-        );
-      } catch {
-        setGpsErrorMessage("GPS-paikannus ei ole käytettävissä.");
-      }
-    }, 450);
-
-    return () => window.clearTimeout(timer);
+    setStoreModeChosenV299(false);
+    setStoreCompareScope("between_chains");
+    setOpenStorePicker(null);
   }, []);
 
-  // DEFAULT_STORE_MODE_V286
-  // Ensimmäisellä latauksella oletus on aina Tavaratalot + Ketjujen väliltä,
-  // ellei selaimesta löydy aiemmin tallennettuja kauppavalintoja.
-  useEffect(() => {
-    if (typeof window === "undefined") return;
+  // GPS_STICKY_STATE_DISABLED_V305
+  // Ei palauteta GPS-tilaa localStoragesta.
 
-    try {
-      const hasSavedStoreMode =
-        localStorage.getItem("ziiply-store-mode-v302") ||
-        localStorage.getItem("ziiply-store-mode") ||
-        localStorage.getItem("storeMode") ||
-        localStorage.getItem("ziiply-store-compare-scope") ||
-        localStorage.getItem("storeCompareScope");
+  // GPS_VISUAL_STICKY_DISABLED_V305
+  // Ei pakoteta GPS-nuppineulaa aktiiviseksi latauksessa.
 
-      if (!hasSavedStoreMode) {
-        if (!storeModeChosenV299) {
-        setStoreMode("hyper");
-      }
-        setStoreCompareScope("between_chains");
-      }
-    } catch {
-      if (!storeModeChosenV299) {
-        setStoreMode("hyper");
-      }
-      setStoreCompareScope("between_chains");
-    }
-  }, []);
-
-
-  // GPS_STICKY_STATE_V287
-  // Pidä GPS/oma sijainti visuaalisesti päällä latauksen jälkeen,
-  // jos automaattinen GPS onnistui tai käyttäjä on aiemmin sallinut sen.
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    let storedGps = "";
-    try {
-      storedGps = localStorage.getItem("ziiply-use-own-location") || "";
-    } catch {}
-
-    if (!gpsAutoActivatedV287 && storedGps !== "1") return;
-
-    try {
-      setGpsErrorMessage("");
-    } catch {}
-  }, [gpsAutoActivatedV287]);
-
-  // GPS_VISUAL_STICKY_V289
-  // Pidetään oma sijainti / GPS-nuppineula aktiivisena myös ensimmäisen latauksen jälkeen.
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const timer = window.setTimeout(() => {
-      try {
-        localStorage.setItem("ziiply-use-own-location", "1");
-        setGpsErrorMessage("");
-      } catch {}
-    }, 120);
-
-    return () => window.clearTimeout(timer);
-  }, []);
-
-  // GPS_VISUAL_STICKY_V291
-  // Merkitään oma sijainti aktiiviseksi selaimessa latauksen jälkeen.
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const timer = window.setTimeout(() => {
-      try {
-        localStorage.setItem("ziiply-use-own-location", "1");
-        setGpsErrorMessage("");
-      } catch {}
-    }, 120);
-
-    return () => window.clearTimeout(timer);
-  }, []);
+  // GPS_VISUAL_STICKY_DISABLED_2_V305
+  // Ei pakoteta GPS-nuppineulaa aktiiviseksi latauksessa.
 
 return (
                         <button
@@ -8126,20 +8002,25 @@ return (
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    aria-pressed={usingOwnLocation || !locationInput.trim()}
+                    aria-pressed={usingOwnLocation}
                     onClick={() => {
-                      if (usingOwnLocation) setUsingOwnLocation(false);
-                      else {
+                      if (usingOwnLocation) {
+                        setUsingOwnLocation(false);
+                        setLocationInput("");
+                        setGpsErrorMessage("");
+                        setLocationMessage("Oma sijainti pois päältä. Kirjoita alue tai postinumero.");
+                        try { localStorage.removeItem("ziiply-use-own-location"); } catch {}
+                      } else {
                         setLocationInput("");
                         useOwnLocation();
                       }
                     }}
                     disabled={storeSearchLoading}
-                    title={(usingOwnLocation || !locationInput.trim()) ? "Oma sijainti käytössä" : "Käytä omaa sijaintia"}
+                    title={usingOwnLocation ? "Oma sijainti käytössä – poista käytöstä" : "Käytä omaa sijaintia"}
                     className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg font-black shadow-sm ring-1 transition disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98] ${
-                      (usingOwnLocation || !locationInput.trim())
+                      usingOwnLocation
                         ? "bg-green-50 text-green-600 ring-green-100"
-                        : "bg-red-50 text-red-600 ring-red-100"
+                        : "bg-white text-slate-500 ring-slate-200"
                     }`}
                   >
                     📍
