@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v317";
+const APP_VERSION = "v318";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -4337,17 +4337,8 @@ export default function Page() {
   }, [checkedCartItems]);
 
   useEffect(() => {
-    if (activeResult !== "compare") return;
-    if (!cheapest || !secondCheapest || savings <= 0) return;
-
-    const toastText = `Säästit ${formatEuro(savings)} valitsemalla ${cheapest.storeName}`;
-    setLastSavingsToast(toastText);
-
-    const timeout = window.setTimeout(() => {
-      setLastSavingsToast(null);
-    }, 3500);
-
-    return () => window.clearTimeout(timeout);
+    // v318: Vertailu-kortin taustalle ei näytetä erillistä säästötoastia.
+    setLastSavingsToast(null);
   }, [activeResult, cheapest?.key, cheapest?.totalPrice, savings]);
 
   function scrollToTop() {
@@ -6384,6 +6375,7 @@ export default function Page() {
       closePanelWithFade("cart", () => {
         setCartModalOpen(false);
         setCartSavePanelOpen(false);
+        setActiveResult("none");
       });
       return;
     }
@@ -6395,6 +6387,7 @@ export default function Page() {
     closePanelWithFade("cart", () => {
       setCartModalOpen(false);
       setCartSavePanelOpen(false);
+      setActiveResult("none");
     });
   }
 
@@ -8002,6 +7995,24 @@ export default function Page() {
           pointer-events: none;
           transform-origin: top center;
         }
+
+        #ziiply-ean-scanner-region,
+        #ziiply-ean-scanner-region > div,
+        #ziiply-ean-scanner-region video {
+          width: 100% !important;
+          height: 100% !important;
+          max-width: none !important;
+          max-height: none !important;
+          overflow: hidden !important;
+          border-radius: 1rem !important;
+        }
+        #ziiply-ean-scanner-region video {
+          object-fit: cover !important;
+        }
+        #ziiply-ean-scanner-region canvas,
+        #ziiply-ean-scanner-region svg {
+          display: none !important;
+        }
       `}</style>
       {showLaunchScreen && (
         <div className="fixed inset-0 z-[90] flex items-center justify-center bg-white ziiply-soft-open">
@@ -8019,7 +8030,7 @@ export default function Page() {
         </div>
       )}
 
-      <header className="fixed left-0 right-0 top-0 z-50 border-b border-white/70 bg-white/80 px-3 pb-2 pt-[calc(env(safe-area-inset-top)+0.55rem)] shadow-[0_10px_30px_rgba(15,23,42,0.06)] backdrop-blur-2xl">
+      <header className="fixed left-0 right-0 top-0 z-50 border-b border-white/70 bg-white px-3 pb-2 pt-[calc(env(safe-area-inset-top)+0.55rem)] shadow-[0_10px_30px_rgba(15,23,42,0.06)] backdrop-blur-2xl">
         <div className="mx-auto flex max-w-md items-center justify-between gap-3">
           <div className="min-w-0">
             <img
@@ -9702,13 +9713,13 @@ return (
                   >
                     <div
                       id={EAN_SCANNER_REGION_ID}
-                      className="h-full w-full overflow-hidden rounded-2xl bg-slate-950 [&_canvas]:!hidden [&_video]:!h-full [&_video]:!w-full [&_video]:rounded-2xl [&_video]:!object-cover"
+                      className="absolute inset-0 h-full w-full overflow-hidden rounded-2xl bg-slate-950 [&_*]:!box-border [&_canvas]:!hidden [&_div]:!border-0 [&_div]:!shadow-none [&_video]:!absolute [&_video]:!inset-0 [&_video]:!h-full [&_video]:!w-full [&_video]:rounded-2xl [&_video]:!object-cover"
                     />
-                    <div className="pointer-events-none absolute inset-x-7 top-1/2 aspect-[1.45/1] -translate-y-1/2 rounded-3xl border-4 border-green-400 shadow-[0_0_0_999px_rgba(2,6,23,0.16)]">
-                      <div className="absolute -left-1 -top-1 h-6 w-6 rounded-tl-3xl border-l-4 border-t-4 border-white/95" />
-                      <div className="absolute -right-1 -top-1 h-6 w-6 rounded-tr-3xl border-r-4 border-t-4 border-white/95" />
-                      <div className="absolute -bottom-1 -left-1 h-6 w-6 rounded-bl-3xl border-b-4 border-l-4 border-white/95" />
-                      <div className="absolute -bottom-1 -right-1 h-6 w-6 rounded-br-3xl border-b-4 border-r-4 border-white/95" />
+                    <div className="pointer-events-none absolute inset-0 rounded-2xl border-4 border-green-400 shadow-[inset_0_0_0_999px_rgba(2,6,23,0.06)]">
+                      <div className="absolute -left-1 -top-1 h-7 w-7 rounded-tl-2xl border-l-4 border-t-4 border-white/95" />
+                      <div className="absolute -right-1 -top-1 h-7 w-7 rounded-tr-2xl border-r-4 border-t-4 border-white/95" />
+                      <div className="absolute -bottom-1 -left-1 h-7 w-7 rounded-bl-2xl border-b-4 border-l-4 border-white/95" />
+                      <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-br-2xl border-b-4 border-r-4 border-white/95" />
                     </div>
 
                     {eanLoading && (
@@ -9842,12 +9853,6 @@ return (
       {lastCartToast && (
         <div className="fixed left-3 right-3 bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] z-[60] mx-auto max-w-md animate-[ziiplyFade_2.6s_ease-in-out] rounded-2xl bg-emerald-600 px-4 py-3 text-center text-sm font-black text-white shadow-2xl sm:hidden">
           ✓ {lastCartToast}
-        </div>
-      )}
-
-      {lastSavingsToast && activeResult === "compare" && !searchPanelOpen && !cartModalOpen && !shopsPanelOpen && !eanModalOpen && (
-        <div className="mx-auto mb-4 max-w-md rounded-2xl bg-green-600 px-4 py-3 text-center text-sm font-black text-white shadow-lg">
-          💰 {lastSavingsToast}
         </div>
       )}
 
