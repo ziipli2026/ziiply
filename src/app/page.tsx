@@ -218,7 +218,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v249";
+const APP_VERSION = "v252";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -4532,6 +4532,13 @@ export default function Page() {
 
       setSearchDebug(debugEntries);
       setNormalResults(unique);
+
+      // v252 recovery:
+      // Kun Hae-paneeli suljetaan haun ajaksi, mobiilin pääruutu ei saa jäädä tyhjäksi.
+      // Varmistetaan että tuloskortti tulee näkyviin renderöinnin jälkeen.
+      window.setTimeout(() => {
+        normalResultsSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 80);
     } catch (error) {
       console.error(error);
       setSearchDebug(debugEntries);
@@ -6676,7 +6683,7 @@ export default function Page() {
           </div>
         </section>
 
-        {!searchPanelOpen && !cartModalOpen && !shopsPanelOpen && !eanModalOpen && activeResult === "none" && (
+        {!searchPanelOpen && !cartModalOpen && !shopsPanelOpen && !eanModalOpen && activeResult === "none" && !(loadingNormal || normalResults.length > 0 || activeNormalSearchTerm) && (
           <section className="flex min-h-[calc(100dvh-12rem)] flex-col items-center justify-center px-8 text-center sm:hidden">
             <img
               src="/ziiply.png"
