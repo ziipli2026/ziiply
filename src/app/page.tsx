@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v306_STORE_PICKER_GPS_HARD_LOCK";
+const APP_VERSION = "v307_GPS_DEFAULT_STORE_MODE_FIX";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -2840,7 +2840,7 @@ export default function Page() {
   const [withinChain, setWithinChain] = useState<"S" | "K" | null>(null);
   const [openStorePicker, setOpenStorePicker] = useState<string | null>(null);
   const [locationMessage, setLocationMessage] = useState("Kirjoita alue tai käytä omaa sijaintia.");
-  const [usingOwnLocation, setUsingOwnLocation] = useState(false);
+  const [usingOwnLocation, setUsingOwnLocation] = useState(true);
   const [storeSearchLoading, setStoreSearchLoading] = useState(false);
   const [foundStores, setFoundStores] = useState<StoreSearchItem[]>([]);
 
@@ -2872,7 +2872,9 @@ export default function Page() {
     selectedStoreModeRefV302.current = "hyper";
     setStoreMode("hyper");
     setStoreModeChosenV299(false);
-    setUsingOwnLocation(false);
+    // v307: GPS on oletuksena visuaalisesti päällä kaupat-näkymässä.
+    gpsUserDisabledRefV306.current = false;
+    setUsingOwnLocation(true);
   }, []);
 
 
@@ -2889,9 +2891,9 @@ export default function Page() {
   const [shopsPanelOpen, setShopsPanelOpen] = useState(false);
   const [gpsErrorMessage, setGpsErrorMessage] = useState("");
   const [gpsAutoActivatedV287, setGpsAutoActivatedV287] = useState(false);
-  const gpsUserDisabledRefV306 = useRef(true);
+  const gpsUserDisabledRefV306 = useRef(false);
 
-  function stopOwnLocationV306(message = "Oma sijainti pois päältä. Kirjoita alue tai postinumero.") {
+  function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
     gpsUserDisabledRefV306.current = true;
     setUsingOwnLocation(false);
     setGpsErrorMessage("");
@@ -4661,12 +4663,12 @@ export default function Page() {
   }
 
 
-  // AUTO_USE_OWN_LOCATION_DISABLED_V306
-  // GPS ei käynnisty latauksessa eikä palaa päälle itsestään.
-  // Oma sijainti käynnistyy vain käyttäjän painalluksesta.
+  // GPS_DEFAULT_VISUAL_ON_V307
+  // GPS-nuppineula on oletuksena vihreä/päällä kaupat-näkymässä, mutta sijaintihakua
+  // ei käynnistetä automaattisesti. Käyttäjän painallus käynnistää haun.
   useEffect(() => {
-    gpsUserDisabledRefV306.current = true;
-    setUsingOwnLocation(false);
+    gpsUserDisabledRefV306.current = false;
+    setUsingOwnLocation(true);
   }, []);
 
   async function searchOffers(termOverride?: string) {
@@ -7798,19 +7800,14 @@ export default function Page() {
               type="button"
               aria-pressed={usingOwnLocation}
               onClick={() => {
-                if (usingOwnLocation) {
-                  stopOwnLocationV306();
-                } else {
-                  setLocationInput("");
-                  useOwnLocation();
-                }
+                setLocationInput("");
+                useOwnLocation();
               }}
-              disabled={storeSearchLoading}
-              title={usingOwnLocation ? "Oma sijainti käytössä – poista käytöstä" : "Käytä omaa sijaintia"}
-              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-xl font-black shadow-sm ring-1 transition disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98] ${
+              title="Käytä omaa sijaintia"
+              className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-xl font-black shadow-sm ring-1 transition active:scale-[0.98] ${
                 usingOwnLocation
                   ? "bg-green-50 text-green-600 ring-green-100"
-                  : "bg-red-50 text-red-600 ring-red-100"
+                  : "bg-white text-slate-500 ring-slate-200"
               }`}
             >
               📍
@@ -7832,9 +7829,9 @@ export default function Page() {
               type="button"
               onClick={() => applyLocation()}
               disabled={storeSearchLoading}
-              className="shrink-0 rounded-xl bg-slate-900 px-3 py-2 text-sm font-extrabold text-white transition disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] sm:rounded-2xl sm:px-5 sm:py-3 sm:text-base"
+              className="min-w-[76px] shrink-0 rounded-xl bg-slate-900 px-3 py-2 text-sm font-extrabold text-white transition disabled:cursor-not-allowed active:scale-[0.98] sm:min-w-[92px] sm:rounded-2xl sm:px-5 sm:py-3 sm:text-base"
             >
-              {storeSearchLoading ? "..." : "Käytä"}
+              Käytä
             </button>
           </div>
 
@@ -7948,7 +7945,7 @@ export default function Page() {
                         <button
                           key={store.id}
                           type="button"
-                          onClick={() => selectStoreForCurrentMode(store, storeModeChosenV299 ? storeMode : inferStoreModeForStoreV306(store))}
+                          onClick={() => selectStoreForCurrentMode(store, storeMode)}
                           className={`w-full min-w-[min(86vw,360px)] rounded-xl px-4 py-3 text-left transition ${
                             selected
                               ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
@@ -7996,17 +7993,17 @@ export default function Page() {
   // GPS_STICKY_STATE_DISABLED_V305
   // Ei palauteta GPS-tilaa localStoragesta.
 
-  // GPS_VISUAL_STICKY_DISABLED_V305
-  // Ei pakoteta GPS-nuppineulaa aktiiviseksi latauksessa.
+  // GPS_DEFAULT_VISUAL_ON_V307
+  // GPS-nuppineula pidetään oletuksena vihreänä kaupat-näkymässä.
 
-  // GPS_VISUAL_STICKY_DISABLED_2_V305
-  // Ei pakoteta GPS-nuppineulaa aktiiviseksi latauksessa.
+  // STORE_SELECTION_DOES_NOT_PICK_MODE_V307
+  // Kaupan valinta ei saa itsessään valita Tavaratalot/Lähikaupat-hakutapaa.
 
 return (
                         <button
                           key={store.id}
                           type="button"
-                          onClick={() => selectStoreForCurrentMode(store, storeModeChosenV299 ? storeMode : inferStoreModeForStoreV306(store))}
+                          onClick={() => selectStoreForCurrentMode(store, storeMode)}
                           className={`w-full min-w-[min(86vw,360px)] rounded-xl px-4 py-3 text-left transition ${
                             selected
                               ? "bg-red-700 shadow-md ring-1 ring-black/10 text-white"
@@ -8039,19 +8036,14 @@ return (
                     type="button"
                     aria-pressed={usingOwnLocation}
                     onClick={() => {
-                      if (usingOwnLocation) {
-                        stopOwnLocationV306();
-                      } else {
-                        setLocationInput("");
-                        useOwnLocation();
-                      }
+                      setLocationInput("");
+                      useOwnLocation();
                     }}
-                    disabled={storeSearchLoading}
-                    title={usingOwnLocation ? "Oma sijainti käytössä – poista käytöstä" : "Käytä omaa sijaintia"}
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg font-black shadow-sm ring-1 transition disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98] ${
+                    title="Käytä omaa sijaintia"
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg font-black shadow-sm ring-1 transition active:scale-[0.98] ${
                       usingOwnLocation
                         ? "bg-green-50 text-green-600 ring-green-100"
-                        : "bg-red-50 text-red-600 ring-red-100"
+                        : "bg-white text-slate-500 ring-slate-200"
                     }`}
                   >
                     📍
@@ -8073,9 +8065,9 @@ return (
                     type="button"
                     onClick={() => applyLocation()}
                     disabled={storeSearchLoading}
-                    className="shrink-0 rounded-xl bg-slate-900 px-4 py-3 text-sm font-extrabold text-white transition disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
+                    className="min-w-[76px] shrink-0 rounded-xl bg-slate-900 px-4 py-3 text-sm font-extrabold text-white transition disabled:cursor-not-allowed active:scale-[0.98]"
                   >
-                    {storeSearchLoading ? "..." : "Käytä"}
+                    Käytä
                   </button>
                 </div>
 
