@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v303_STORE_SELECTION_STABLE";
+const APP_VERSION = "v304_STORE_MODE_LOCK";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -2848,8 +2848,13 @@ export default function Page() {
   // Pitää käyttäjän valitseman Tavaratalot/Lähikaupat-tilan vakaana myös kaupan vaihdon
   // ja kauppalistan päivityksen jälkeen.
   useEffect(() => {
-    selectedStoreModeRefV302.current = storeMode;
-  }, [storeMode]);
+    // v304_STORE_MODE_LOCK:
+    // Ref on käyttäjän valitseman moodin lähde. Älä anna satunnaisen storeMode-resetin
+    // ylikirjoittaa sitä sen jälkeen, kun käyttäjä on valinnut Tavaratalot/Lähikaupat.
+    if (!storeModeChosenV299) {
+      selectedStoreModeRefV302.current = storeMode;
+    }
+  }, [storeMode, storeModeChosenV299]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -4317,10 +4322,14 @@ export default function Page() {
     clearSearchAndComparisonState();
   }
 
-  function selectStoreForCurrentMode(store: StoreSearchItem) {
+  function selectStoreForCurrentMode(store: StoreSearchItem, forcedMode?: StoreMode) {
     if (!store.id || !store.name) return;
 
-    const effectiveStoreMode = storeModeChosenV299 ? selectedStoreModeRefV302.current : storeMode;
+    // v304_STORE_MODE_LOCK:
+    // Kauppavalinta tehdään aina sen valintalaatikon moodiin, josta klikkaus tuli.
+    // Älä päättele moodia uudelleen refistä/stateista, koska async-effectit voivat olla
+    // ehtineet palauttaa storeMode-arvon hyperiksi juuri ennen kaupan klikkausta.
+    const effectiveStoreMode = forcedMode || selectedStoreModeRefV302.current || storeMode;
 
     trackZiiplyEvent("store_selected", {
       storeId: store.id,
@@ -7523,7 +7532,7 @@ export default function Page() {
                   event.preventDefault();
                   event.stopPropagation();
                   if (store.type !== chain) return;
-                  selectStoreForCurrentMode(store);
+                  selectStoreForCurrentMode(store, mode);
                   window.setTimeout(() => setOpenStorePicker(null), 0);
                 }}
                 className={`mb-2 w-full rounded-xl px-4 py-3 text-left font-extrabold transition last:mb-0 ${
@@ -7929,7 +7938,7 @@ export default function Page() {
                         <button
                           key={store.id}
                           type="button"
-                          onClick={() => selectStoreForCurrentMode(store)}
+                          onClick={() => selectStoreForCurrentMode(store, storeMode)}
                           className={`w-full min-w-[min(86vw,360px)] rounded-xl px-4 py-3 text-left transition ${
                             selected
                               ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
@@ -8013,6 +8022,7 @@ export default function Page() {
 
     try {
       const hasSavedStoreMode =
+        localStorage.getItem("ziiply-store-mode-v302") ||
         localStorage.getItem("ziiply-store-mode") ||
         localStorage.getItem("storeMode") ||
         localStorage.getItem("ziiply-store-compare-scope") ||
@@ -8085,7 +8095,7 @@ return (
                         <button
                           key={store.id}
                           type="button"
-                          onClick={() => selectStoreForCurrentMode(store)}
+                          onClick={() => selectStoreForCurrentMode(store, storeMode)}
                           className={`w-full min-w-[min(86vw,360px)] rounded-xl px-4 py-3 text-left transition ${
                             selected
                               ? "bg-red-700 shadow-md ring-1 ring-black/10 text-white"
