@@ -135,7 +135,7 @@ type SingleProductCompareResult = {
 
 type StoreMode = "hyper" | "local";
 type QualityMode = "cheapest" | "same_quality" | "own_brands" | "keep_brands";
-type StoreCompareScope = "between_chains" | "within_chain";
+type StoreCompareScope = "none" | "between_chains" | "within_chain";
 
 type OptimizationSnapshot = {
   cart: CartItem[];
@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v308_STORE_MODE_SCOPE_LOCK";
+const APP_VERSION = "v309_STORE_STATE_MACHINE_FIX";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -2836,7 +2836,7 @@ export default function Page() {
   const [storeMode, setStoreMode] = useState<StoreMode>("hyper");
   const [storeModeChosenV299, setStoreModeChosenV299] = useState(false);
   const selectedStoreModeRefV302 = useRef<StoreMode>("hyper");
-  const [storeCompareScope, setStoreCompareScope] = useState<StoreCompareScope>("between_chains");
+  const [storeCompareScope, setStoreCompareScope] = useState<StoreCompareScope>("none");
   const [withinChain, setWithinChain] = useState<"S" | "K" | null>(null);
   const [openStorePicker, setOpenStorePicker] = useState<string | null>(null);
   const [locationMessage, setLocationMessage] = useState("Kirjoita alue tai käytä omaa sijaintia.");
@@ -2872,9 +2872,12 @@ export default function Page() {
     selectedStoreModeRefV302.current = "hyper";
     setStoreMode("hyper");
     setStoreModeChosenV299(false);
-    // v307: GPS on oletuksena visuaalisesti päällä kaupat-näkymässä.
+    setStoreCompareScope("none");
+    setWithinChain(null);
+    // v309: refresh nollaa kauppa-/vertailuvalinnat, mutta GPS alustuu aina päälle.
     gpsUserDisabledRefV306.current = false;
     setUsingOwnLocation(true);
+    setGpsAutoActivatedV287(false);
   }, []);
 
 
@@ -3256,7 +3259,7 @@ export default function Page() {
   }
 
   const activeStores = useMemo(() => {
-    if (storeCompareScope === "between_chains" && !storeModeChosenV299) {
+    if ((storeCompareScope === "none") || (storeCompareScope === "between_chains" && !storeModeChosenV299)) {
       return {
         sStoreId: 0,
         sStoreName: "Valitse ensin Tavaratalot tai Lähikaupat",
@@ -4322,6 +4325,8 @@ export default function Page() {
   function handleStoreModeChange(nextMode: StoreMode) {
     if (storeCompareScope === "within_chain") return;
 
+    setStoreCompareScope("between_chains");
+    setWithinChain(null);
     selectedStoreModeRefV302.current = nextMode;
     setStoreModeChosenV299(true);
     setOpenStorePicker(null);
@@ -4665,13 +4670,20 @@ export default function Page() {
   }
 
 
-  // GPS_DEFAULT_VISUAL_ON_V307
-  // GPS-nuppineula on oletuksena vihreä/päällä kaupat-näkymässä, mutta sijaintihakua
-  // ei käynnistetä automaattisesti. Käyttäjän painallus käynnistää haun.
+  // GPS_REFRESH_DEFAULT_ON_V309
+  // Refreshissä GPS on aina päällä ja tekee yhden automaattisen sijaintihaun.
+  // Käyttäjä voi silti sammuttaa GPS:n kauppanäkymässä.
   useEffect(() => {
+    if (gpsAutoActivatedV287 || gpsUserDisabledRefV306.current) return;
     gpsUserDisabledRefV306.current = false;
     setUsingOwnLocation(true);
-  }, []);
+    setGpsAutoActivatedV287(true);
+    window.setTimeout(() => {
+      if (!gpsUserDisabledRefV306.current) {
+        useOwnLocation();
+      }
+    }, 250);
+  }, [gpsAutoActivatedV287]);
 
   async function searchOffers(termOverride?: string) {
     const useTerms = termOverride ? parseTerms(termOverride) : terms;
@@ -7413,9 +7425,8 @@ export default function Page() {
     setOpenStorePicker(null);
 
     if (nextScope === "between_chains") {
-      // v308_STORE_MODE_SCOPE_LOCK:
-      // Ketjujen välillä -tilaan palatessa kumpikaan kauppatyyppi ei saa jäädä päälle.
-      // Tavaratalot/Lähikaupat aktivoituvat vasta, kun käyttäjä painaa niitä itse.
+      // v309: Ketjujen väliltä -painallus nollaa Tavaratalot/Lähikaupat harmaaksi.
+      // Varsinainen kauppatyyppi aktivoituu vasta Tavaratalot/Lähikaupat-painikkeesta.
       setStoreCompareScope("between_chains");
       setWithinChain(null);
       setStoreModeChosenV299(false);
@@ -7433,22 +7444,34 @@ export default function Page() {
       return;
     }
 
-    // Ketjun sisällä näyttää sekä tavaratalo- että lähikauppavalinnan vihreänä,
-    // mutta ei tallenna kumpaakaan varsinaiseksi between_chains-hakutavaksi.
-    setStoreCompareScope("within_chain");
+    if (nextScope === "within_chain") {
+      // Ketjun sisällä näyttää sekä tavaratalo- että lähikauppavalinnan vihreänä,
+      // mutta ei tallenna kumpaakaan varsinaiseksi between_chains-hakutavaksi.
+      setStoreCompareScope("within_chain");
+      setWithinChain(null);
+      setStoreModeChosenV299(false);
+      selectedStoreModeRefV302.current = "hyper";
+      setStoreMode("hyper");
+      setSelectedChains((current) => ({
+        ...current,
+        s: false,
+        k: false,
+        lidl: false,
+        tokmanni: false,
+      }));
+      clearSearchAndComparisonState();
+      setLocationMessage("Valitse S-ryhmä tai K-ryhmä ketjun sisäistä vertailua varten.");
+      return;
+    }
+
+    setStoreCompareScope("none");
     setWithinChain(null);
     setStoreModeChosenV299(false);
     selectedStoreModeRefV302.current = "hyper";
     setStoreMode("hyper");
-    setSelectedChains((current) => ({
-      ...current,
-      s: false,
-      k: false,
-      lidl: false,
-      tokmanni: false,
-    }));
+    setOpenStorePicker(null);
     clearSearchAndComparisonState();
-    setLocationMessage("Valitse S-ryhmä tai K-ryhmä ketjun sisäistä vertailua varten.");
+    setLocationMessage("Valitse hakutapa.");
   }
 
 
@@ -7579,7 +7602,7 @@ export default function Page() {
   }
 
   function renderStoreChoiceButton(chain: "S" | "K", mode: StoreMode, pickerKey: string, compact: boolean) {
-    const options = storeCompareScope === "between_chains" && !storeModeChosenV299 ? [] : getStoresForPicker(chain, mode);
+    const options = (storeCompareScope === "none" || (storeCompareScope === "between_chains" && !storeModeChosenV299)) ? [] : getStoresForPicker(chain, mode);
     const hasMany = options.length > 1;
 
     return (
@@ -7607,7 +7630,7 @@ export default function Page() {
 
   const selectedRealChainCount = Number(Boolean(selectedChains.s)) + Number(Boolean(selectedChains.k));
   function renderComparedStoreCards(compact = false) {
-    if (storeCompareScope === "between_chains" && !storeModeChosenV299) {
+    if (storeCompareScope === "none" || (storeCompareScope === "between_chains" && !storeModeChosenV299)) {
       return (
         <div className="mt-3 rounded-2xl bg-amber-50 px-4 py-3 text-center text-sm font-extrabold text-amber-800 ring-1 ring-amber-200">
           Valitse ensin Tavaratalot tai Lähikaupat.
@@ -7665,8 +7688,7 @@ export default function Page() {
                   <p className={compact ? "mt-1 text-[9px] font-black uppercase tracking-tight text-slate-500" : "mt-2 text-[10px] font-black uppercase tracking-wide text-slate-500"}>{store.title}</p>
                 </button>
 
-                {selected && (
-                  <div className="mt-2 grid grid-cols-2 gap-1.5">
+                <div className="mt-2 grid grid-cols-2 gap-1.5">
                     <div className="relative rounded-xl bg-white/80 p-1.5 text-center ring-1 ring-slate-200">
                       <p className="text-[9px] font-black uppercase text-slate-400">Tavaratalo</p>
                       <p className="line-clamp-2 min-h-[1.7rem] text-[10px] font-extrabold leading-tight text-slate-800">{storeNameA}</p>
@@ -7680,7 +7702,6 @@ export default function Page() {
                       {renderStorePickerMenu(chain, modeB, `${store.key}-within-local`, compact)}
                     </div>
                   </div>
-                )}
               </div>
             );
           })}
@@ -7952,7 +7973,7 @@ export default function Page() {
                     {foundStores.filter((store) => {
                       if (store.type !== "S") return false;
                       if (storeCompareScope === "within_chain") return true;
-                      if (!storeModeChosenV299) return true;
+                      if (!storeModeChosenV299) return false;
                       const storeNameForMode = normalize(store.name || "");
                       const isLocalStoreForMode = hasAnyToken(storeNameForMode, ["market", "alepa", "sale", "s-market", "s market"]);
                       return storeMode === "local" ? isLocalStoreForMode : !isLocalStoreForMode;
@@ -7989,7 +8010,7 @@ export default function Page() {
                     {foundStores.filter((store) => {
                       if (store.type !== "K") return false;
                       if (storeCompareScope === "within_chain") return true;
-                      if (!storeModeChosenV299) return true;
+                      if (!storeModeChosenV299) return false;
                       const storeNameForMode = normalize(store.name || "");
                       const isLocalStoreForMode = hasAnyToken(storeNameForMode, ["market", "k-market", "k market", "k-supermarket", "k supermarket"]);
                       return storeMode === "local" ? isLocalStoreForMode : !isLocalStoreForMode;
@@ -8007,7 +8028,7 @@ export default function Page() {
   // Ei automaattista Tavaratalot-oletusta refreshissä.
   useEffect(() => {
     setStoreModeChosenV299(false);
-    setStoreCompareScope("between_chains");
+    setStoreCompareScope("none");
     setOpenStorePicker(null);
   }, []);
 
