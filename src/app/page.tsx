@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v308_STEP4C_NO_AUTO_BETWEEN_ON_STORE_MODE";
+const APP_VERSION = "v309_MOBILE_RENDER_FIX";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -7678,7 +7678,7 @@ export default function Page() {
       const selectedChainKey = withinChain === "S" ? "s" : withinChain === "K" ? "k" : null;
 
       return (
-        <div className={compact ? "mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2" : "mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3"}>
+        <div className={compact ? "mt-3 grid grid-cols-1 gap-2" : "mt-3 grid grid-cols-2 gap-3"}>
           {chainCards.map((store) => {
             const selected = selectedChainKey === store.key;
             const chain = store.key === "s" ? "S" : "K";
@@ -7747,7 +7747,7 @@ export default function Page() {
     }
 
     return (
-      <div className={compact ? "mt-3 grid grid-cols-4 gap-1.5" : "mt-3 grid grid-cols-4 gap-2 sm:gap-3"}>
+      <div className={compact ? "mt-3 grid grid-cols-2 gap-2" : "mt-3 grid grid-cols-4 gap-2 sm:gap-3"}>
         {comparedStoreCards.map((store) => {
           const selected = selectedChains[store.key];
           const isRealChain = store.key === "s" || store.key === "k";
@@ -7766,26 +7766,26 @@ export default function Page() {
                   [store.key]: !current[store.key],
                 }));
               }}
-              className={`${compact ? "min-w-0 rounded-xl px-1.5 py-2" : "min-w-0 rounded-2xl px-2.5 py-3"} relative text-center shadow-sm ring-1 transition active:scale-[0.98] ${
+              className={`${compact ? "min-w-0 rounded-2xl px-2.5 py-3" : "min-w-0 rounded-2xl px-2.5 py-3"} relative text-center shadow-sm ring-1 transition active:scale-[0.98] ${
                 selected
                   ? `${store.selectedTone} ring-current/20`
                   : "border border-slate-200 bg-white text-slate-600 opacity-60 ring-slate-200"
               }`}
             >
               <span
-                className={`absolute ${compact ? "right-1 top-1 h-4 w-4 text-[10px]" : "right-2 top-2 h-5 w-5 text-xs"} flex items-center justify-center rounded-full font-black ${
+                className={`absolute ${compact ? "right-2 top-2 h-5 w-5 text-xs" : "right-2 top-2 h-5 w-5 text-xs"} flex items-center justify-center rounded-full font-black ${
                   selected ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white" : "bg-slate-100 text-slate-300"
                 }`}
               >
                 {selected ? "✓" : ""}
               </span>
-              <div className={`mx-auto flex ${compact ? "h-7 w-7 text-[13px]" : "h-9 w-9 text-sm"} items-center justify-center rounded-full font-black shadow-sm ring-4 ${store.tone}`}>
+              <div className={`mx-auto flex ${compact ? "h-9 w-9 text-sm" : "h-9 w-9 text-sm"} items-center justify-center rounded-full font-black shadow-sm ring-4 ${store.tone}`}>
                 {store.logo}
               </div>
-              <p className={compact ? "mt-1 truncate text-[9px] font-black uppercase tracking-tight text-slate-500" : "mt-2 truncate text-[10px] font-black uppercase tracking-wide text-slate-500"}>
+              <p className={compact ? "mt-2 truncate text-[10px] font-black uppercase tracking-wide text-slate-500" : "mt-2 truncate text-[10px] font-black uppercase tracking-wide text-slate-500"}>
                 {store.title}
               </p>
-              <p className={compact ? "mt-0.5 line-clamp-2 min-h-[1.8rem] text-[10px] font-extrabold leading-tight text-slate-800" : "mt-1 line-clamp-2 min-h-[2rem] text-xs font-extrabold leading-tight text-slate-800"}>
+              <p className={compact ? "mt-1 line-clamp-2 min-h-[2rem] text-xs font-extrabold leading-tight text-slate-800" : "mt-1 line-clamp-2 min-h-[2rem] text-xs font-extrabold leading-tight text-slate-800"}>
                 {store.name}
               </p>
               {isRealChain && chain && (
@@ -7931,7 +7931,7 @@ export default function Page() {
 
         <section className="hidden rounded-[2rem] bg-white p-5 shadow-sm sm:block">
           <p className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-500">Hakutapa</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
               disabled={storeCompareScope === "within_chain"}
@@ -7957,7 +7957,7 @@ export default function Page() {
               🏪 Lähikaupat
             </button>
           </div>
-          <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="mt-3 grid grid-cols-2 gap-3">
             <button
               type="button"
               onClick={() => handleStoreCompareScopeChange("between_chains")}
