@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v295_STORE_PICKER_SCANNER_FIX";
+const APP_VERSION = "v297_BUILDOK_SCANNER_TUNE";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -734,7 +734,7 @@ function isVerySpecificSearch(term: string) {
   const text = normalize(term);
 
   return (
-    getNormalizedWords(text).length >= 2 ||
+getNormalizedWords(text).length >= 2 ||
     /\b\d+(?:[,\.]\d+)?\s?(l|ml|kg|g)\b/i.test(text) ||
     text.includes("zero") ||
     text.includes("2-pack") ||
@@ -2833,7 +2833,7 @@ export default function Page() {
   const [searchCompareMode, setSearchCompareMode] = useState<"cart" | "single">("cart");
   const [locationInput, setLocationInput] = useState("");
   const [activeArea, setActiveArea] = useState<Area>(AREAS[0]);
-  const [storeMode, setStoreMode] = useState<StoreMode>("hyper");
+  const [storeMode, setStoreMode] = useState<StoreMode | null>(null);
   const [storeCompareScope, setStoreCompareScope] = useState<StoreCompareScope>("between_chains");
   const [withinChain, setWithinChain] = useState<"S" | "K" | null>(null);
   const [openStorePicker, setOpenStorePicker] = useState<string | null>(null);
@@ -2870,6 +2870,7 @@ export default function Page() {
   const [visibleNormalCount, setVisibleNormalCount] = useState(8);
   const [activeNormalSearchTerm, setActiveNormalSearchTerm] = useState("");
   const [eanModalOpen, setEanModalOpen] = useState(false);
+  const [scannerZoomV296, setScannerZoomV296] = useState(1);
   const [eanInput, setEanInput] = useState("");
   const [eanLoading, setEanLoading] = useState(false);
   const [eanResults, setEanResults] = useState<EanSearchResult[]>([]);
@@ -4498,8 +4499,8 @@ export default function Page() {
         return;
       }
 
-      const ranked = rankStoresForMode(stores, storeMode);
-      const nextArea = buildDynamicArea(query, stores, storeMode);
+      const ranked = rankStoresForMode(stores, storeMode || "hyper");
+      const nextArea = buildDynamicArea(query, stores, storeMode || "hyper");
       setActiveArea(nextArea);
 
       // v272: Nuppineula kertoo yksiselitteisesti käytetäänkö omaa sijaintia.
@@ -4520,9 +4521,11 @@ export default function Page() {
         activeElement?.blur?.();
       }
 
-      const modeMissing = storeMode === "local"
-        ? !ranked.sLocal || !ranked.kLocal
-        : !ranked.sHyper || !ranked.kHyper;
+      const modeMissing = storeMode
+        ? storeMode === "local"
+          ? !ranked.sLocal || !ranked.kLocal
+          : !ranked.sHyper || !ranked.kHyper
+        : false;
 
       if (modeMissing) {
         setLocationMessage(
@@ -4588,23 +4591,6 @@ export default function Page() {
       setStoreSearchLoading(false);
     }
   }
-
-
-  // AUTO_USE_OWN_LOCATION_V293
-  // Käynnistää oikean GPS/oma sijainti -haun ensimmäisellä latauksella,
-  // jotta Kaupat-kortin kauppavalinnat aktivoituvat ilman erillistä painallusta.
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    setUsingOwnLocation(true);
-    setLocationInput("");
-
-    const timer = window.setTimeout(() => {
-      useOwnLocation();
-    }, 350);
-
-    return () => window.clearTimeout(timer);
-  }, []);
 
   async function searchOffers(termOverride?: string) {
     const useTerms = termOverride ? parseTerms(termOverride) : terms;
@@ -7390,8 +7376,12 @@ export default function Page() {
     return isPrisma(store) || isKCitymarket(store);
   }
 
-  function getStoresForPickerOptionsV295(chain: "S" | "K", mode: StoreMode) {
+  function getStoresForPickerOptionsV295(chain: "S" | "K", mode: StoreMode | null) {
     const chainStores = foundStores.filter((store) => store.type === chain);
+
+    if (storeCompareScope === "between_chains" && !mode) {
+      return [];
+    }
 
     // Ketjun sisällä: salli saman ketjun tavaratalot ja lähikaupat.
     if (storeCompareScope === "within_chain") {
@@ -7406,11 +7396,13 @@ export default function Page() {
     return chainStores.filter(isLocalStoreForModeV295);
   }
 
-  function getStoresForPicker(chain: "S" | "K", mode: StoreMode) {
+  function getStoresForPicker(chain: "S" | "K", mode: StoreMode | null) {
     const list = getStoresForPickerOptionsV295(chain, mode);
     if (list.length > 0) return list;
 
     // Fallback vain valittuun ketjuun ja nykyiseen modeen.
+    if (storeCompareScope === "between_chains" && !mode) return [];
+
     const fallbackId =
       chain === "S"
         ? mode === "local"
@@ -7441,12 +7433,13 @@ export default function Page() {
     return [];
   }
 
-  function getSelectedStoreNameFor(chain: "S" | "K", mode: StoreMode) {
+  function getSelectedStoreNameFor(chain: "S" | "K", mode: StoreMode | null) {
+    if (!mode) return "";
     if (chain === "S") return mode === "local" ? activeArea.sLocalStoreName : activeArea.sStoreName;
     return mode === "local" ? activeArea.kLocalStoreName : activeArea.kStoreName;
   }
 
-  function renderStorePickerMenu(chain: "S" | "K", mode: StoreMode, pickerKey: string, compact: boolean) {
+  function renderStorePickerMenu(chain: "S" | "K", mode: StoreMode | null, pickerKey: string, compact: boolean) {
     if (openStorePicker !== pickerKey) return null;
 
     const options = getStoresForPicker(chain, mode);
@@ -7493,10 +7486,30 @@ export default function Page() {
           })
         )}
       </div>
+              <div className="mt-3 flex items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setScannerZoomV296((value) => Math.max(1, Number((value - 0.25).toFixed(2))))}
+                  className="rounded-xl bg-slate-900 px-3 py-2 text-xs font-black text-white active:scale-[0.98]"
+                >
+                  Zoom -
+                </button>
+                <span className="min-w-[4.5rem] rounded-xl bg-white/90 px-3 py-2 text-center text-xs font-black text-slate-700 ring-1 ring-slate-200">
+                  {Math.round(scannerZoomV296 * 100)} %
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setScannerZoomV296((value) => Math.min(2.5, Number((value + 0.25).toFixed(2))))}
+                  className="rounded-xl bg-slate-900 px-3 py-2 text-xs font-black text-white active:scale-[0.98]"
+                >
+                  Zoom +
+                </button>
+              </div>
+
     );
   }
 
-  function renderStoreChoiceButton(chain: "S" | "K", mode: StoreMode, pickerKey: string, compact: boolean) {
+  function renderStoreChoiceButton(chain: "S" | "K", mode: StoreMode | null, pickerKey: string, compact: boolean) {
     const options = getStoresForPicker(chain, mode);
     const hasMany = options.length > 1;
 
@@ -7522,6 +7535,9 @@ export default function Page() {
       </button>
     );
   }
+
+
+  const hasSelectedStoreModeV296 = storeMode === "hyper" || storeMode === "local";
 
   const selectedRealChainCount = Number(Boolean(selectedChains.s)) + Number(Boolean(selectedChains.k));
   function renderComparedStoreCards(compact = false) {
@@ -7951,29 +7967,6 @@ export default function Page() {
     return () => window.clearTimeout(timer);
   }, []);
 
-  // DEFAULT_STORE_MODE_V286
-  // Ensimmäisellä latauksella oletus on aina Tavaratalot + Ketjujen väliltä,
-  // ellei selaimesta löydy aiemmin tallennettuja kauppavalintoja.
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    try {
-      const hasSavedStoreMode =
-        localStorage.getItem("ziiply-store-mode") ||
-        localStorage.getItem("storeMode") ||
-        localStorage.getItem("ziiply-store-compare-scope") ||
-        localStorage.getItem("storeCompareScope");
-
-      if (!hasSavedStoreMode) {
-        setStoreMode("hyper");
-        setStoreCompareScope("between_chains");
-      }
-    } catch {
-      setStoreMode("hyper");
-      setStoreCompareScope("between_chains");
-    }
-  }, []);
-
 
   // GPS_STICKY_STATE_V287
   // Pidä GPS/oma sijainti visuaalisesti päällä latauksen jälkeen,
@@ -8023,6 +8016,48 @@ export default function Page() {
     return () => window.clearTimeout(timer);
   }, []);
 
+
+  // SCANNER_STYLE_EFFECT_V297
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+
+    const styleId = "ziiply-scanner-video-tune-v297";
+    if (document.getElementById(styleId)) return;
+
+    const style = document.createElement("style");
+    style.id = styleId;
+    style.textContent = `
+      #ziiply-ean-scanner-region {
+        transform: scale(var(--ziiply-scanner-zoom, 1));
+        transform-origin: center center;
+        position: relative;
+      }
+      #ziiply-ean-scanner-region video,
+      #ziiply-ean-scanner-region canvas {
+        filter: contrast(1.75) saturate(0) brightness(0.92);
+      }
+      #ziiply-ean-scanner-region::after {
+        content: "";
+        pointer-events: none;
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: min(72vw, 300px);
+        height: min(46vw, 180px);
+        transform: translate(-50%, -50%);
+        border: 5px solid #22c55e;
+        border-radius: 22px;
+        box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.18);
+      }
+    `;
+
+    document.head.appendChild(style);
+
+    return () => {
+      document.getElementById(styleId)?.remove();
+    };
+  }, []);
+
 return (
                         <button
                           key={store.id}
@@ -8054,241 +8089,9 @@ return (
         {shopsPanelOpen && (
           <div className="fixed inset-0 z-40 flex items-end justify-center overflow-y-auto overscroll-contain bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:hidden">
             <div className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-visible rounded-[1.5rem] bg-slate-100 p-3 shadow-2xl" style={{ width: "100%" }}>
-              <section className="rounded-[1.25rem] border border-slate-200 bg-white/95 p-2 shadow-sm">
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    aria-pressed={usingOwnLocation || !locationInput.trim()}
-                    onClick={() => {
-                      if (usingOwnLocation) setUsingOwnLocation(false);
-                      else {
-                        setLocationInput("");
-                        useOwnLocation();
-                      }
-                    }}
-                    disabled={storeSearchLoading}
-                    title={(usingOwnLocation || !locationInput.trim()) ? "Oma sijainti käytössä" : "Käytä omaa sijaintia"}
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg font-black shadow-sm ring-1 transition disabled:cursor-not-allowed disabled:opacity-50 active:scale-[0.98] ${
-                      (usingOwnLocation || !locationInput.trim())
-                        ? "bg-green-50 text-green-600 ring-green-100"
-                        : "bg-red-50 text-red-600 ring-red-100"
-                    }`}
-                  >
-                    📍
-                  </button>
+              
 
-                  <input
-                    value={locationInput}
-                    onChange={(event) => {
-                      const nextValue = event.target.value;
-                      setLocationInput(nextValue);
-                      if (nextValue.trim()) setUsingOwnLocation(false);
-                      setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
-                    }}
-                    placeholder="05510 tai Hyvinkää"
-                    className="min-w-0 flex-[0_1_11rem] max-w-[11rem] rounded-xl border border-slate-300 px-3 py-3 text-[16px] outline-none focus:border-green-600"
-                  />
-
-                  <button
-                    type="button"
-                    onClick={() => applyLocation()}
-                    disabled={storeSearchLoading}
-                    className="shrink-0 rounded-xl bg-slate-900 px-4 py-3 text-sm font-extrabold text-white transition disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
-                  >
-                    {storeSearchLoading ? "..." : "Käytä"}
-                  </button>
-                </div>
-
-                <div className="mt-2 rounded-xl bg-green-50 px-4 py-3 text-xs font-semibold text-green-900">
-                  {locationMessage}
-                </div>
-
-              <div data-v282="v282_MOBILE_HAKUTAPA_RENDER_MARKER" className="mt-3 rounded-[1.5rem] bg-slate-50 p-3 ring-1 ring-slate-200">
-                <p className="mb-2 text-xs font-black uppercase tracking-wide text-slate-500">Hakutapa</p>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    disabled={storeCompareScope === "within_chain"}
-                    onClick={() => handleStoreModeChange("hyper")}
-                    className={`rounded-2xl px-4 py-3.5 text-sm font-extrabold transition disabled:cursor-not-allowed disabled:opacity-45 ${
-                      storeMode === "hyper" && storeCompareScope === "between_chains"
-                        ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
-                        : "bg-white text-slate-700 ring-1 ring-slate-200"
-                    }`}
-                  >
-                    🏬 Tavaratalot
-                  </button>
-
-                  <button
-                    type="button"
-                    disabled={storeCompareScope === "within_chain"}
-                    onClick={() => handleStoreModeChange("local")}
-                    className={`rounded-2xl px-4 py-3.5 text-sm font-extrabold transition disabled:cursor-not-allowed disabled:opacity-45 ${
-                      storeMode === "local" && storeCompareScope === "between_chains"
-                        ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
-                        : "bg-white text-slate-700 ring-1 ring-slate-200"
-                    }`}
-                  >
-                    🏪 Lähikaupat
-                  </button>
-                </div>
-
-                <div className="mt-2 grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleStoreCompareScopeChange("between_chains")}
-                    className={`rounded-2xl px-4 py-3.5 text-sm font-extrabold transition ${
-                      storeCompareScope === "between_chains"
-                        ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
-                        : "bg-white text-slate-700 ring-1 ring-slate-200"
-                    }`}
-                  >
-                    Ketjujen väliltä
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleStoreCompareScopeChange("within_chain")}
-                    className={`rounded-2xl px-4 py-3.5 text-sm font-extrabold transition ${
-                      storeCompareScope === "within_chain"
-                        ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
-                        : "bg-white text-slate-700 ring-1 ring-slate-200"
-                    }`}
-                  >
-                    Ketjun sisältä
-                  </button>
-                </div>
-              </div>
-
-
-                {renderComparedStoreCards(true)}
-              </section>
-
-              <section className="mt-4 rounded-[2rem] bg-white p-5 shadow-sm">
-                <p className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-500">Hakutapa</p>
-                <div className="grid grid-cols-2 gap-3">
-                  <button
-                    type="button"
-                    onClick={() => handleStoreModeChange("hyper")}
-                    className={`rounded-2xl px-4 py-3 sm:py-3 text-base font-extrabold transition ${
-                      storeMode === "hyper"
-                        ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
-                        : "bg-white text-slate-700 ring-1 ring-slate-200"
-                    }`}
-                  >
-                    🏬 Tavaratalot
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleStoreModeChange("local")}
-                    className={`rounded-2xl px-4 py-3 sm:py-3 text-base font-extrabold transition ${
-                      storeMode === "local"
-                        ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
-                        : "bg-white text-slate-700 ring-1 ring-slate-200"
-                    }`}
-                  >
-                    🏪 Lähikaupat
-                  </button>
-                </div>
-                <div className="mt-3 rounded-2xl bg-slate-50 p-3 text-sm text-slate-600 ring-1 ring-slate-200 empty:hidden">
-                  {storeCompareScope === "between_chains" && selectedRealChainCount < 2 && (
-                    <p className="mt-2 rounded-xl bg-amber-50 px-4 py-3 font-black text-amber-800 ring-1 ring-amber-100">Vertailu ei ole mahdollinen vain yhdellä valitulla ketjulla.</p>
-                  )}
-                  {storeCompareScope === "within_chain" && !withinChain && (
-                    <p className="mt-2 rounded-xl bg-amber-50 px-4 py-3 font-black text-amber-800 ring-1 ring-amber-100">Valitse S-ryhmä tai K-ryhmä ketjun sisäistä vertailua varten.</p>
-                  )}
-
-                  {((storeMode === "local" && (!activeArea.sLocalStoreId || !activeArea.kLocalStoreId)) ||
-                    (storeMode === "hyper" && (!activeArea.sStoreId || !activeArea.kStoreId))) && foundStores.length === 0 && (
-                    <p className="mt-2 text-amber-700">
-                      Hae alue tai käytä omaa sijaintia, niin Ziiply hakee kaupat dynaamisesti.
-                    </p>
-                  )}
-                </div>
-
-                {false && foundStores.length > 0 && (
-                  <div className="mt-3 rounded-2xl bg-white p-3 text-xs text-slate-600 ring-1 ring-slate-200">
-                    <div className="mb-3 flex items-center justify-between gap-3">
-                      <p className="font-bold text-slate-700">Valitse kaupat ({foundStores.length})</p>
-                    </div>
-
-                    <div className="grid gap-2">
-                      <div>
-                        <p className="mb-2 text-xs font-bold uppercase tracking-wide text-green-700">S-ryhmä</p>
-                        <div className="max-h-44 space-y-2 overflow-auto pr-1" style={{ width: "100%" }}>
-                          {foundStores.filter((store) => {
-                      if (store.type !== "S") return false;
-                      if (storeCompareScope === "within_chain") return true;
-                      const storeNameForMode = normalize(store.name || "");
-                      const isLocalStoreForMode = hasAnyToken(storeNameForMode, ["market", "alepa", "sale", "s-market", "s market"]);
-                      return storeMode === "local" ? isLocalStoreForMode : !isLocalStoreForMode;
-                    }).map((store) => {
-                            const selected =
-                              storeMode === "local"
-                                ? activeArea.sLocalStoreId === store.id
-                                : activeArea.sStoreId === store.id;
-
-                            return (
-                              <button
-                                key={store.id}
-                                type="button"
-                                onClick={() => selectStoreForCurrentMode(store)}
-                                className={`w-full min-w-[320px] rounded-xl px-4 py-3 text-left transition ${
-                                  selected
-                                    ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
-                                    : "bg-slate-50 text-slate-700 hover:bg-green-50"
-                                }`}
-                              >
-                                <span className="block font-bold break-words">{store.name}</span>
-                                <span className={`block text-xs ${selected ? "text-green-50" : "text-slate-400"}`}>
-                                  ID {store.id} · {store.city || ""} {store.postalCode || ""}
-                                </span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      <div>
-                        <p className="mb-2 text-xs font-bold uppercase tracking-wide text-green-700">K-ryhmä</p>
-                        <div className="max-h-44 space-y-2 overflow-auto pr-1" style={{ width: "100%" }}>
-                          {foundStores.filter((store) => {
-                      if (store.type !== "K") return false;
-                      if (storeCompareScope === "within_chain") return true;
-                      const storeNameForMode = normalize(store.name || "");
-                      const isLocalStoreForMode = hasAnyToken(storeNameForMode, ["market", "k-market", "k market", "k-supermarket", "k supermarket"]);
-                      return storeMode === "local" ? isLocalStoreForMode : !isLocalStoreForMode;
-                    }).map((store) => {
-                            const selected =
-                              storeMode === "local"
-                                ? activeArea.kLocalStoreId === store.id
-                                : activeArea.kStoreId === store.id;
-
-                            return (
-                              <button
-                                key={store.id}
-                                type="button"
-                                onClick={() => selectStoreForCurrentMode(store)}
-                                className={`w-full min-w-[320px] rounded-xl px-4 py-3 text-left transition ${
-                                  selected
-                                    ? "bg-red-700 shadow-md ring-1 ring-black/10 text-white"
-                                    : "bg-slate-50 text-slate-700 hover:bg-red-50"
-                                }`}
-                              >
-                                <span className="block font-bold break-words">{store.name}</span>
-                                <span className={`block text-xs ${selected ? "text-red-50" : "text-slate-400"}`}>
-                                  ID {store.id} · {store.city || ""} {store.postalCode || ""}
-                                </span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </section>
+              
 
               
             </div>
