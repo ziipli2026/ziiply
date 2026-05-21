@@ -218,7 +218,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v259";
+const APP_VERSION = "v260";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -2951,15 +2951,16 @@ export default function Page() {
   const hasSearchInput = terms.length > 0;
 
   function getSingleSearchTerm(value: string, options: { preserveTypingSpace?: boolean } = {}) {
-    // v259:
-    // Yksi tuote -tilassa hakukentässä saa olla vain yksi kokonainen tuote,
-    // mutta kirjoittamisen aikana välilyöntiä ei saa poistaa heti.
-    // Muuten käyttäjä ei pysty kirjoittamaan esim. "Coca Cola zero 1,5L".
-    // Rivinvaihto ja listapilkku katkaisevat edelleen ylimääräiset tuotteet pois.
+    // v260:
+    // Yksi tuote -tilassa sallitaan yksi moniosainen tuote, myös desimaalipilkulla:
+    // "Coca Cola zero 1,5L". iOS/Safari antaa välivaiheen "1," ennen seuraavaa
+    // numeroa, joten myös numeron jälkeinen keskeneräinen pilkku pitää suojata.
+    // Rivinvaihto katkaisee aina ylimääräiset tuotteet pois. Listapilkku katkaisee
+    // vain silloin, kun se ei ole numerokoon/desimaalin osa.
     const decimalCommaPlaceholder = "__ZIIPLY_DECIMAL_COMMA__";
-    const rawFirstTerm = fixText(String(value || ""))
-      .replace(/(\d)\s*,\s*(\d)/g, `$1${decimalCommaPlaceholder}$2`)
-      .split(/[\n,]+/)[0] || "";
+    const rawFirstLine = fixText(String(value || "")).split(/[\n]+/)[0] || "";
+    const protectedDecimalCommas = rawFirstLine.replace(/(\d)\s*,\s*(?=\d|$)/g, `$1${decimalCommaPlaceholder}`);
+    const rawFirstTerm = protectedDecimalCommas.split(/,+/)[0] || "";
 
     const restored = rawFirstTerm
       .replaceAll(decimalCommaPlaceholder, ",")
@@ -4696,7 +4697,9 @@ export default function Page() {
     return fallbackCandidate;
   }
 
-  async function updateChainComparison(nextCart = cart) {
+  async function updateChainComparison(nextCart = cart, options: { openCompare?: boolean } = {}) {
+    const shouldOpenCompare = options.openCompare !== false;
+
     trackZiiplyEvent("comparison_opened", {
       cartItemsCount: nextCart.length,
       totalQuantity: nextCart.reduce((sum, item) => sum + item.quantity, 0),
@@ -4706,7 +4709,7 @@ export default function Page() {
     });
 
     setComparisonLoading(true);
-    setActiveResult("compare");
+    if (shouldOpenCompare) setActiveResult("compare");
 
     try {
       const nextSMatches: Record<string, Match> = {};
@@ -5579,7 +5582,8 @@ export default function Page() {
     setCart(nextCart);
     showCartToast(`Lisätty ostoskoriin: ${newItem.name}`);
     triggerHaptic();
-    void updateChainComparison(nextCart);
+    void updateChainComparison(nextCart, { openCompare: false });
+    setActiveResult("singleCompare");
   }
 
   function addInputToCart() {
