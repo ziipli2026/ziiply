@@ -218,7 +218,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v252";
+const APP_VERSION = "v253";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -678,7 +678,7 @@ function getNormalSearchQueries(term: string) {
   const normalizedTerm = normalize(term);
   const words = getNormalizedWords(term).filter((word) => word.length > 3 && !/^\d/.test(word));
   const primaryProductNounQuery = getPrimaryProductNounQuery(term);
-  const expanded = uniqueNormalizedQueries([primaryProductNounQuery, term, getSearchQuery(term), ...intent.variants]);
+  const expanded = uniqueNormalizedQueries([term, getSearchQuery(term), primaryProductNounQuery, ...intent.variants]);
 
   // v247:
   // Moniosaiset tuotetermit ovat yleensä tarkoituksella tarkkoja hakuja.
@@ -2650,6 +2650,7 @@ export default function Page() {
   const cartIsEmpty = cart.length === 0;
 
   const [normalResults, setNormalResults] = useState<Product[]>([]);
+  const [normalSearchAttempted, setNormalSearchAttempted] = useState(false);
   const [searchDebug, setSearchDebug] = useState<SearchDebugEntry[]>([]);
   const [loadingNormal, setLoadingNormal] = useState(false);
   const [singleProductCompareResults, setSingleProductCompareResults] = useState<SingleProductCompareResult[]>([]);
@@ -3585,6 +3586,7 @@ export default function Page() {
     if (openedFromSingleCompare) {
       setInput("");
       setNormalResults([]);
+      setNormalSearchAttempted(false);
       setVisibleNormalCount(8);
       setActiveNormalSearchTerm("");
       setSearchDebug([]);
@@ -4393,6 +4395,7 @@ export default function Page() {
         : terms;
     if (useTerms.length === 0) {
       setActiveNormalSearchTerm("");
+      setNormalSearchAttempted(false);
       return;
     }
 
@@ -4400,6 +4403,7 @@ export default function Page() {
       setLocationMessage("Hae ensin alue tai käytä omaa sijaintia, jotta kaupat voidaan valita.");
       setActiveNormalSearchTerm("");
       setNormalResults([]);
+      setNormalSearchAttempted(false);
       return;
     }
 
@@ -4430,6 +4434,7 @@ export default function Page() {
     }
 
     setLoadingNormal(true);
+    setNormalSearchAttempted(true);
     setSearchDebug([]);
     setVisibleNormalCount(8);
     setActiveNormalSearchTerm(focusedSearchTerms[0] || "");
@@ -4532,13 +4537,6 @@ export default function Page() {
 
       setSearchDebug(debugEntries);
       setNormalResults(unique);
-
-      // v252 recovery:
-      // Kun Hae-paneeli suljetaan haun ajaksi, mobiilin pääruutu ei saa jäädä tyhjäksi.
-      // Varmistetaan että tuloskortti tulee näkyviin renderöinnin jälkeen.
-      window.setTimeout(() => {
-        normalResultsSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 80);
     } catch (error) {
       console.error(error);
       setSearchDebug(debugEntries);
@@ -5347,6 +5345,7 @@ export default function Page() {
       // Ei hypätä vertailuun eikä näytetä vertailukortteja tuotteen lisäämisen jälkeen.
       setInput("");
       setNormalResults([]);
+      setNormalSearchAttempted(false);
       setVisibleNormalCount(8);
       setActiveNormalSearchTerm("");
       setSearchPanelOpen(true);
@@ -5646,6 +5645,7 @@ export default function Page() {
       // ei vahvistusmodalia, ei toista vaihetta eikä tekstikentän automaattifokusta.
       setSearchInputForMode(cleanText.slice(0, 1200));
       setNormalResults([]);
+      setNormalSearchAttempted(false);
       setSingleProductCompareResults([]);
       setSingleProductCompareTerm("");
       setVisibleNormalCount(8);
@@ -6683,7 +6683,7 @@ export default function Page() {
           </div>
         </section>
 
-        {!searchPanelOpen && !cartModalOpen && !shopsPanelOpen && !eanModalOpen && activeResult === "none" && !(loadingNormal || normalResults.length > 0 || activeNormalSearchTerm) && (
+        {!searchPanelOpen && !cartModalOpen && !shopsPanelOpen && !eanModalOpen && activeResult === "none" && (
           <section className="flex min-h-[calc(100dvh-12rem)] flex-col items-center justify-center px-8 text-center sm:hidden">
             <img
               src="/ziiply.png"
@@ -7243,7 +7243,7 @@ export default function Page() {
           </div>
         )}
 
-        {(activeResult === "compare" || activeResult === "singleCompare" || (activeResult !== "offers" && (loadingNormal || normalResults.length > 0))) && (
+        {(activeResult === "compare" || activeResult === "singleCompare" || (activeResult !== "offers" && (loadingNormal || normalResults.length > 0 || (normalSearchAttempted && activeNormalSearchTerm)))) && (
           <div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0">
             <div ref={compareOverlayScrollRef} className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-50 p-3 shadow-2xl sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:bg-transparent sm:p-0 sm:shadow-none">
             <div className="grid min-w-0 max-w-full gap-4 overflow-hidden lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
@@ -7364,7 +7364,7 @@ export default function Page() {
                 </section>
               )}
 
-              {activeResult !== "compare" && (loadingNormal || normalResults.length > 0) && (
+              {activeResult !== "compare" && (loadingNormal || normalResults.length > 0 || (normalSearchAttempted && activeNormalSearchTerm)) && (
 <section ref={normalResultsSectionRef} className="min-w-0 max-w-full overflow-hidden rounded-[1.5rem] border border-white/70 bg-white/95 p-3 shadow-[0_18px_55px_rgba(15,23,42,0.10)] backdrop-blur sm:rounded-[2rem] sm:p-5">
                 <div className="mb-3 flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -7424,7 +7424,7 @@ export default function Page() {
                   </div>
                 ) : visibleNormalResults.length === 0 ? (
                   <div className="rounded-2xl bg-slate-100 p-5 text-sm font-semibold text-slate-600">
-                    {normalResults.length === 0 ? (terms.length === 0 && cart.length > 0 ? "Ostoskori valmis. Voit siirtyä kauppaketjuvertailuun." : "Ei normaalihintojen hakutuloksia vielä. Tee hintavertailuhaku tai hae tuotetta nimellä.") : "Kaikki näkyvät hakutulokset on jo lisätty ostoskoriin."}
+                    {normalResults.length === 0 ? (normalSearchAttempted && activeNormalSearchTerm ? `Ei hakutuloksia haulle: ${activeNormalSearchTerm}` : terms.length === 0 && cart.length > 0 ? "Ostoskori valmis. Voit siirtyä kauppaketjuvertailuun." : "Ei normaalihintojen hakutuloksia vielä. Tee hintavertailuhaku tai hae tuotetta nimellä.") : "Kaikki näkyvät hakutulokset on jo lisätty ostoskoriin."}
                   </div>
                 ) : (
                   <>
