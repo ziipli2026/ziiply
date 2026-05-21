@@ -219,7 +219,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v271";
+const APP_VERSION = "v272";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -4453,6 +4453,8 @@ export default function Page() {
       return;
     }
 
+    if (source === "manual") setUsingOwnLocation(false);
+
     setStoreSearchLoading(true);
     setLocationMessage(source === "gps" ? `Haetaan kauppoja alueelle ${rawQuery}...` : "Haetaan kauppoja...");
 
@@ -4491,8 +4493,18 @@ export default function Page() {
       const ranked = rankStoresForMode(stores, storeMode);
       const nextArea = buildDynamicArea(query, stores, storeMode);
       setActiveArea(nextArea);
-      setLocationInput(nextArea.label || query);
-      if (source === "manual") setUsingOwnLocation(false);
+
+      // v272: Nuppineula kertoo yksiselitteisesti käytetäänkö omaa sijaintia.
+      // - GPS / oma sijainti: punainen nuppineula, hakukenttä tyhjä ja placeholder näkyy.
+      // - Käsin haettu sijainti: harmaa nuppineula, löydetty sijainti näkyy kentässä.
+      if (source === "gps") {
+        setUsingOwnLocation(true);
+        setLocationInput("");
+      } else {
+        setUsingOwnLocation(false);
+        setLocationInput(nextArea.label || query);
+      }
+
       clearStoreBackedSearchState();
 
       if (typeof document !== "undefined") {
@@ -4523,6 +4535,7 @@ export default function Page() {
     if (storeSearchLoading) return;
 
     setUsingOwnLocation(true);
+    setLocationInput("");
     setStoreSearchLoading(true);
     setLocationMessage("Haetaan sijaintia...");
 
@@ -4537,7 +4550,7 @@ export default function Page() {
       }
 
       setLocationMessage(`${city} löytyi. Haetaan kaupat...`);
-      setLocationInput(city);
+      setLocationInput("");
       setStoreSearchLoading(false);
       await applyLocation(city, "gps");
     } catch (error) {
@@ -7322,7 +7335,7 @@ export default function Page() {
                 if (nextValue.trim()) setUsingOwnLocation(false);
                 setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
               }}
-              placeholder="05510 tai hyvinkää"
+              placeholder="05510 tai Hyvinkää"
               className="min-w-0 flex-1 rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-green-600 sm:rounded-2xl sm:px-4 sm:py-3 sm:text-base"
             />
 
@@ -7558,7 +7571,7 @@ export default function Page() {
                       if (nextValue.trim()) setUsingOwnLocation(false);
                       setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
                     }}
-                    placeholder="05510 tai hyvinkää"
+                    placeholder="05510 tai Hyvinkää"
                     className="min-w-0 flex-1 rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:border-green-600"
                   />
 
