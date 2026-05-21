@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v282_MOBILE_HAKUTAPA_RENDER";
+const APP_VERSION = "v283_STORE_PICKER_FIX";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -7685,7 +7685,7 @@ export default function Page() {
                 <div>
                   <p className="mb-2 text-xs font-bold uppercase tracking-wide text-green-700">S-ryhmä</p>
                   <div className="max-h-44 space-y-2 overflow-auto pr-1">
-                    {foundStores.filter((store) => store.type === "S").map((store) => {
+                    {getStoresForCurrentModeV283("S").map((store) => {
                       const selected =
                         storeMode === "local"
                           ? activeArea.sLocalStoreId === store.id
@@ -7715,13 +7715,42 @@ export default function Page() {
                 <div>
                   <p className="mb-2 text-xs font-bold uppercase tracking-wide text-red-700">K-ryhmä</p>
                   <div className="max-h-44 space-y-2 overflow-auto pr-1">
-                    {foundStores.filter((store) => store.type === "K").map((store) => {
+                    {getStoresForCurrentModeV283("K").map((store) => {
                       const selected =
                         storeMode === "local"
                           ? activeArea.kLocalStoreId === store.id
                           : activeArea.kStoreId === store.id;
 
-                      return (
+                      
+  // INITIAL_STORE_REFRESH_V283
+  // Päivittää kauppalistat myös ensimmäisellä latauksella, jotta "Vaihda"-valikot ovat käytössä
+  // ilman että käyttäjän pitää ensin painaa GPS- tai manuaalihaku-nappia.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const timer = window.setTimeout(() => {
+      try {
+        const hasStores = Array.isArray(foundStores) && foundStores.length > 0;
+        if (hasStores) return;
+
+        const fallbackArea =
+          manualAreaInput ||
+          activeArea?.label ||
+          locationInput ||
+          "Hyvinkää";
+
+        if (fallbackArea && typeof handleAreaSearch === "function") {
+          handleAreaSearch(fallbackArea);
+        }
+      } catch (error) {
+        console.error("Initial store refresh failed", error);
+      }
+    }, 350);
+
+    return () => window.clearTimeout(timer);
+  }, []);
+
+return (
                         <button
                           key={store.id}
                           type="button"
@@ -7915,7 +7944,7 @@ export default function Page() {
                       <div>
                         <p className="mb-2 text-xs font-bold uppercase tracking-wide text-green-700">S-ryhmä</p>
                         <div className="max-h-44 space-y-2 overflow-auto pr-1">
-                          {foundStores.filter((store) => store.type === "S").map((store) => {
+                          {getStoresForCurrentModeV283("S").map((store) => {
                             const selected =
                               storeMode === "local"
                                 ? activeArea.sLocalStoreId === store.id
@@ -7945,7 +7974,7 @@ export default function Page() {
                       <div>
                         <p className="mb-2 text-xs font-bold uppercase tracking-wide text-red-700">K-ryhmä</p>
                         <div className="max-h-44 space-y-2 overflow-auto pr-1">
-                          {foundStores.filter((store) => store.type === "K").map((store) => {
+                          {getStoresForCurrentModeV283("K").map((store) => {
                             const selected =
                               storeMode === "local"
                                 ? activeArea.kLocalStoreId === store.id
