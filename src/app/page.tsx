@@ -218,7 +218,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v258";
+const APP_VERSION = "v259";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -2950,19 +2950,32 @@ export default function Page() {
   const terms = useMemo(() => parseTerms(input), [input]);
   const hasSearchInput = terms.length > 0;
 
-  function getSingleSearchTerm(value: string) {
-    // v246: Yksi tuote -tilassa hakukentässä saa olla vain yksi tuote,
-    // mutta desimaalipilkku on osa pakkauskokoa eikä listanerotin.
-    // Esim. "Coca-Cola Zero 1,5l" pysyy yhtenä tuotteena.
-    return (splitProductTermsPreservingDecimalCommas(value)[0] || "")
+  function getSingleSearchTerm(value: string, options: { preserveTypingSpace?: boolean } = {}) {
+    // v259:
+    // Yksi tuote -tilassa hakukentässä saa olla vain yksi kokonainen tuote,
+    // mutta kirjoittamisen aikana välilyöntiä ei saa poistaa heti.
+    // Muuten käyttäjä ei pysty kirjoittamaan esim. "Coca Cola zero 1,5L".
+    // Rivinvaihto ja listapilkku katkaisevat edelleen ylimääräiset tuotteet pois.
+    const decimalCommaPlaceholder = "__ZIIPLY_DECIMAL_COMMA__";
+    const rawFirstTerm = fixText(String(value || ""))
+      .replace(/(\d)\s*,\s*(\d)/g, `$1${decimalCommaPlaceholder}$2`)
+      .split(/[\n,]+/)[0] || "";
+
+    const restored = rawFirstTerm
+      .replaceAll(decimalCommaPlaceholder, ",")
       .replace(/\s+/g, " ")
-      .trim()
       .slice(0, 180);
+
+    if (options.preserveTypingSpace) {
+      return restored.replace(/^\s+/, "");
+    }
+
+    return restored.trim();
   }
 
   function setSearchInputForMode(value: string) {
     if (searchCompareMode === "single") {
-      setInput(getSingleSearchTerm(value));
+      setInput(getSingleSearchTerm(value, { preserveTypingSpace: true }));
       return;
     }
 
