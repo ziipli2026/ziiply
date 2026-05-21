@@ -135,6 +135,7 @@ type SingleProductCompareResult = {
 
 type StoreMode = "hyper" | "local";
 type QualityMode = "cheapest" | "same_quality" | "own_brands" | "keep_brands";
+type StoreCompareScope = "between_chains" | "within_chain";
 
 type OptimizationSnapshot = {
   cart: CartItem[];
@@ -219,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v275";
+const APP_VERSION = "v276";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -2833,6 +2834,9 @@ export default function Page() {
   const [locationInput, setLocationInput] = useState("");
   const [activeArea, setActiveArea] = useState<Area>(AREAS[0]);
   const [storeMode, setStoreMode] = useState<StoreMode>("hyper");
+  const [storeCompareScope, setStoreCompareScope] = useState<StoreCompareScope>("between_chains");
+  const [withinChain, setWithinChain] = useState<"S" | "K" | null>(null);
+  const [openStorePicker, setOpenStorePicker] = useState<string | null>(null);
   const [locationMessage, setLocationMessage] = useState("Kirjoita alue tai käytä omaa sijaintia.");
   const [usingOwnLocation, setUsingOwnLocation] = useState(false);
   const [storeSearchLoading, setStoreSearchLoading] = useState(false);
@@ -4267,6 +4271,8 @@ export default function Page() {
   }
 
   function handleStoreModeChange(nextMode: StoreMode) {
+    if (storeCompareScope === "within_chain") return;
+
     trackZiiplyEvent("store_mode_changed", {
       previousMode: storeMode,
       nextMode,
@@ -7230,23 +7236,220 @@ export default function Page() {
     },
   ];
 
+
+  function handleStoreCompareScopeChange(nextScope: StoreCompareScope) {
+    setOpenStorePicker(null);
+
+    if (nextScope === "between_chains") {
+      setStoreCompareScope("between_chains");
+      setWithinChain(null);
+      setSelectedChains((current) => ({
+        ...current,
+        s: true,
+        k: true,
+        lidl: false,
+        tokmanni: false,
+      }));
+      setLocationMessage(`${activeArea.label || "Alue"} käytössä. Valitse vertailtavat ketjut.`);
+      return;
+    }
+
+    setStoreCompareScope("within_chain");
+    setWithinChain(null);
+    setSelectedChains((current) => ({
+      ...current,
+      s: false,
+      k: false,
+      lidl: false,
+      tokmanni: false,
+    }));
+    setLocationMessage("Valitse S-ryhmä tai K-ryhmä ketjun sisäistä vertailua varten.");
+  }
+
+  function getStoresForPicker(chain: "S" | "K", mode: StoreMode) {
+    const list = foundStores.filter((store) => store.type === chain);
+    if (list.length > 0) return list;
+
+    const fallbackId = chain === "S"
+      ? mode === "local" ? activeArea.sLocalStoreId : activeArea.sStoreId
+      : mode === "local" ? activeArea.kLocalStoreId : activeArea.kStoreId;
+    const fallbackName = chain === "S"
+      ? mode === "local" ? activeArea.sLocalStoreName : activeArea.sStoreName
+      : mode === "local" ? activeArea.kLocalStoreName : activeArea.kStoreName;
+
+    if (fallbackId && fallbackName) {
+      return [{
+        id: fallbackId,
+        name: fallbackName,
+        type: chain,
+        city: activeArea.label,
+      } as StoreSearchItem];
+    }
+
+    return [];
+  }
+
+  function getSelectedStoreNameFor(chain: "S" | "K", mode: StoreMode) {
+    if (chain === "S") return mode === "local" ? activeArea.sLocalStoreName : activeArea.sStoreName;
+    return mode === "local" ? activeArea.kLocalStoreName : activeArea.kStoreName;
+  }
+
+  function renderStorePickerMenu(chain: "S" | "K", mode: StoreMode, pickerKey: string, compact: boolean) {
+    if (openStorePicker !== pickerKey) return null;
+
+    const options = getStoresForPicker(chain, mode);
+
+    return (
+      <div className={`absolute left-1 right-1 top-full z-30 mt-1 max-h-44 overflow-auto rounded-2xl bg-white p-2 text-left shadow-2xl ring-1 ring-slate-200 ${compact ? "text-[10px]" : "text-xs"}`}>
+        {options.length <= 1 ? (
+          <p className="px-2 py-2 font-bold text-slate-400">Ei muita kauppoja valittavana.</p>
+        ) : (
+          options.map((store) => {
+            const selectedName = getSelectedStoreNameFor(chain, mode);
+            const selected = selectedName === store.name;
+
+            return (
+              <button
+                key={`${pickerKey}-${store.id}`}
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  selectStoreForCurrentMode(store);
+                  setOpenStorePicker(null);
+                }}
+                className={`mb-1 w-full rounded-xl px-2 py-2 text-left font-extrabold transition last:mb-0 ${
+                  selected
+                    ? chain === "S" ? "bg-green-700 text-white" : "bg-red-700 text-white"
+                    : "bg-slate-50 text-slate-700"
+                }`}
+              >
+                <span className="block truncate">{store.name}</span>
+                <span className={`block text-[10px] ${selected ? "text-white/80" : "text-slate-400"}`}>{store.city || activeArea.label || ""} {store.postalCode || ""}</span>
+              </button>
+            );
+          })
+        )}
+      </div>
+    );
+  }
+
+  function renderStoreChoiceButton(chain: "S" | "K", mode: StoreMode, pickerKey: string, compact: boolean) {
+    const options = getStoresForPicker(chain, mode);
+    const hasMany = options.length > 1;
+
+    return (
+      <button
+        type="button"
+        onClick={(event) => {
+          event.stopPropagation();
+          if (hasMany) setOpenStorePicker((current) => current === pickerKey ? null : pickerKey);
+        }}
+        className={`mt-1 rounded-full px-2 py-1 font-black ring-1 ${compact ? "text-[9px]" : "text-[10px]"} ${
+          hasMany
+            ? "bg-white/90 text-slate-700 ring-slate-200"
+            : "bg-slate-100 text-slate-400 ring-slate-200"
+        }`}
+      >
+        {hasMany ? "Vaihda" : "Valittu"}
+      </button>
+    );
+  }
+
+  const selectedRealChainCount = Number(Boolean(selectedChains.s)) + Number(Boolean(selectedChains.k));
   function renderComparedStoreCards(compact = false) {
+    if (storeCompareScope === "within_chain") {
+      const chainCards = comparedStoreCards.filter((store) => store.key === "s" || store.key === "k");
+      const selectedChainKey = withinChain === "S" ? "s" : withinChain === "K" ? "k" : null;
+
+      return (
+        <div className={compact ? "mt-3 grid grid-cols-2 gap-2" : "mt-3 grid grid-cols-2 gap-3"}>
+          {chainCards.map((store) => {
+            const selected = selectedChainKey === store.key;
+            const chain = store.key === "s" ? "S" : "K";
+            const modeA: StoreMode = "hyper";
+            const modeB: StoreMode = "local";
+            const storeNameA = getSelectedStoreNameFor(chain, modeA) || (chain === "S" ? "S-tavaratalo" : "K-tavaratalo");
+            const storeNameB = getSelectedStoreNameFor(chain, modeB) || (chain === "S" ? "S-lähikauppa" : "K-lähikauppa");
+
+            return (
+              <div
+                key={store.key}
+                className={`${compact ? "rounded-xl p-2" : "rounded-2xl p-3"} relative shadow-sm ring-1 transition ${
+                  selected ? `${store.selectedTone} ring-current/20` : "border border-slate-200 bg-white text-slate-600 ring-slate-200"
+                }`}
+              >
+                <button
+                  type="button"
+                  aria-pressed={selected}
+                  onClick={() => {
+                    const nextChain = chain;
+                    setWithinChain(nextChain);
+                    setSelectedChains((current) => ({
+                      ...current,
+                      s: nextChain === "S",
+                      k: nextChain === "K",
+                      lidl: false,
+                      tokmanni: false,
+                    }));
+                    setOpenStorePicker(null);
+                    setLocationMessage(`${store.title} valittu ketjun sisäiseen vertailuun. Valitse kaksi vertailtavaa kauppaa.`);
+                  }}
+                  className="w-full text-center"
+                >
+                  <span className={`absolute ${compact ? "right-2 top-2 h-5 w-5 text-[10px]" : "right-3 top-3 h-6 w-6 text-xs"} flex items-center justify-center rounded-full font-black ${
+                    selected ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white" : "bg-slate-100 text-slate-300"
+                  }`}>
+                    {selected ? "✓" : ""}
+                  </span>
+                  <div className={`mx-auto flex ${compact ? "h-8 w-8 text-[13px]" : "h-10 w-10 text-sm"} items-center justify-center rounded-full font-black shadow-sm ring-4 ${store.tone}`}>
+                    {store.logo}
+                  </div>
+                  <p className={compact ? "mt-1 text-[9px] font-black uppercase tracking-tight text-slate-500" : "mt-2 text-[10px] font-black uppercase tracking-wide text-slate-500"}>{store.title}</p>
+                </button>
+
+                {selected && (
+                  <div className="mt-2 grid grid-cols-2 gap-1.5">
+                    <div className="relative rounded-xl bg-white/80 p-1.5 text-center ring-1 ring-slate-200">
+                      <p className="text-[9px] font-black uppercase text-slate-400">Tavaratalo</p>
+                      <p className="line-clamp-2 min-h-[1.7rem] text-[10px] font-extrabold leading-tight text-slate-800">{storeNameA}</p>
+                      {renderStoreChoiceButton(chain, modeA, `${store.key}-within-hyper`, compact)}
+                      {renderStorePickerMenu(chain, modeA, `${store.key}-within-hyper`, compact)}
+                    </div>
+                    <div className="relative rounded-xl bg-white/80 p-1.5 text-center ring-1 ring-slate-200">
+                      <p className="text-[9px] font-black uppercase text-slate-400">Lähikauppa</p>
+                      <p className="line-clamp-2 min-h-[1.7rem] text-[10px] font-extrabold leading-tight text-slate-800">{storeNameB}</p>
+                      {renderStoreChoiceButton(chain, modeB, `${store.key}-within-local`, compact)}
+                      {renderStorePickerMenu(chain, modeB, `${store.key}-within-local`, compact)}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
     return (
       <div className={compact ? "mt-3 grid grid-cols-4 gap-1.5" : "mt-3 grid grid-cols-4 gap-2 sm:gap-3"}>
         {comparedStoreCards.map((store) => {
           const selected = selectedChains[store.key];
+          const isRealChain = store.key === "s" || store.key === "k";
+          const chain = store.key === "s" ? "S" : store.key === "k" ? "K" : null;
+          const pickerKey = `${store.key}-${storeMode}`;
 
           return (
             <button
               key={store.key}
               type="button"
               aria-pressed={selected}
-              onClick={() =>
+              onClick={() => {
+                if (store.comingSoon) return;
                 setSelectedChains((current) => ({
                   ...current,
                   [store.key]: !current[store.key],
-                }))
-              }
+                }));
+              }}
               className={`${compact ? "min-w-0 rounded-xl px-1.5 py-2" : "min-w-0 rounded-2xl px-2.5 py-3"} relative text-center shadow-sm ring-1 transition active:scale-[0.98] ${
                 selected
                   ? `${store.selectedTone} ring-current/20`
@@ -7269,6 +7472,12 @@ export default function Page() {
               <p className={compact ? "mt-0.5 line-clamp-2 min-h-[1.8rem] text-[10px] font-extrabold leading-tight text-slate-800" : "mt-1 line-clamp-2 min-h-[2rem] text-xs font-extrabold leading-tight text-slate-800"}>
                 {store.name}
               </p>
+              {isRealChain && chain && (
+                <span onClick={(event) => event.stopPropagation()} className="relative block">
+                  {renderStoreChoiceButton(chain, storeMode, pickerKey, compact)}
+                  {renderStorePickerMenu(chain, storeMode, pickerKey, compact)}
+                </span>
+              )}
             </button>
           );
         })}
@@ -7306,7 +7515,7 @@ export default function Page() {
           <div className="flex shrink-0 flex-col items-end gap-1">
             <span className="rounded-full bg-green-50 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-green-700 ring-1 ring-green-100">{APP_VERSION}</span>
             {activeArea?.label ? (
-              <span className="rounded-full bg-green-50 px-2.5 py-0.5 text-[10px] font-black text-green-700 ring-1 ring-green-100">📍 {activeArea.label} · {storeMode === "hyper" ? "Tavaratalot" : "Lähikaupat"}</span>
+              <span className="rounded-full bg-green-50 px-2.5 py-0.5 text-[10px] font-black text-green-700 ring-1 ring-green-100">📍 {activeArea.label} · {storeCompareScope === "within_chain" ? "Ketjun sisältä" : storeMode === "hyper" ? "Tavaratalot" : "Lähikaupat"}</span>
             ) : null}
           </div>
         </div>
@@ -7403,9 +7612,10 @@ export default function Page() {
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
+              disabled={storeCompareScope === "within_chain"}
               onClick={() => handleStoreModeChange("hyper")}
-              className={`rounded-2xl px-4 py-4 text-base font-extrabold transition ${
-                storeMode === "hyper"
+              className={`rounded-2xl px-4 py-4 text-base font-extrabold transition disabled:cursor-not-allowed disabled:opacity-45 ${
+                storeMode === "hyper" && storeCompareScope === "between_chains"
                   ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                   : "bg-white text-slate-700 ring-1 ring-slate-200"
               }`}
@@ -7414,9 +7624,10 @@ export default function Page() {
             </button>
             <button
               type="button"
+              disabled={storeCompareScope === "within_chain"}
               onClick={() => handleStoreModeChange("local")}
-              className={`rounded-2xl px-4 py-4 text-base font-extrabold transition ${
-                storeMode === "local"
+              className={`rounded-2xl px-4 py-4 text-base font-extrabold transition disabled:cursor-not-allowed disabled:opacity-45 ${
+                storeMode === "local" && storeCompareScope === "between_chains"
                   ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                   : "bg-white text-slate-700 ring-1 ring-slate-200"
               }`}
@@ -7424,11 +7635,41 @@ export default function Page() {
               🏪 Lähikaupat
             </button>
           </div>
+          <div className="mt-3 grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => handleStoreCompareScopeChange("between_chains")}
+              className={`rounded-2xl px-4 py-3 text-sm font-extrabold transition ${
+                storeCompareScope === "between_chains"
+                  ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
+                  : "bg-white text-slate-700 ring-1 ring-slate-200"
+              }`}
+            >
+              Ketjujen väliltä
+            </button>
+            <button
+              type="button"
+              onClick={() => handleStoreCompareScopeChange("within_chain")}
+              className={`rounded-2xl px-4 py-3 text-sm font-extrabold transition ${
+                storeCompareScope === "within_chain"
+                  ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
+                  : "bg-white text-slate-700 ring-1 ring-slate-200"
+              }`}
+            >
+              Ketjun sisältä
+            </button>
+          </div>
           <div className="mt-3 rounded-2xl bg-slate-50 p-3 text-sm text-slate-600 ring-1 ring-slate-200">
             <p className="font-bold text-slate-700">
-              {storeMode === "hyper" ? "Haetaan tavarataloista" : "Haetaan lähikaupoista"}
+              {storeCompareScope === "within_chain" ? "Haetaan saman ketjun kaupoista" : storeMode === "hyper" ? "Haetaan tavarataloista" : "Haetaan lähikaupoista"}
             </p>
             <p className="mt-1 text-slate-400">Valitut kaupat tallennetaan tälle selaimelle.</p>
+                  {storeCompareScope === "between_chains" && selectedRealChainCount < 2 && (
+                    <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 font-black text-amber-800 ring-1 ring-amber-100">Vertailu ei ole mahdollinen vain yhdellä valitulla ketjulla.</p>
+                  )}
+                  {storeCompareScope === "within_chain" && !withinChain && (
+                    <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 font-black text-amber-800 ring-1 ring-amber-100">Valitse S-ryhmä tai K-ryhmä ketjun sisäistä vertailua varten.</p>
+                  )}
 
             {((storeMode === "local" && (!activeArea.sLocalStoreId || !activeArea.kLocalStoreId)) ||
               (storeMode === "hyper" && (!activeArea.sStoreId || !activeArea.kStoreId))) && foundStores.length === 0 && (
@@ -7438,7 +7679,7 @@ export default function Page() {
             )}
           </div>
 
-          {foundStores.length > 0 && (
+          {false && foundStores.length > 0 && (
             <div className="mt-3 rounded-2xl bg-white p-3 text-xs text-slate-600 ring-1 ring-slate-200">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <p className="font-bold text-slate-700">Valitse kaupat ({foundStores.length})</p>
@@ -7595,9 +7836,15 @@ export default function Page() {
                 </div>
                 <div className="mt-3 rounded-2xl bg-slate-50 p-3 text-sm text-slate-600 ring-1 ring-slate-200">
                   <p className="font-bold text-slate-700">
-                    {storeMode === "hyper" ? "Haetaan tavarataloista" : "Haetaan lähikaupoista"}
+                    {storeCompareScope === "within_chain" ? "Haetaan saman ketjun kaupoista" : storeMode === "hyper" ? "Haetaan tavarataloista" : "Haetaan lähikaupoista"}
                   </p>
                   <p className="mt-1 text-slate-400">Valitut kaupat tallennetaan tälle selaimelle.</p>
+                  {storeCompareScope === "between_chains" && selectedRealChainCount < 2 && (
+                    <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 font-black text-amber-800 ring-1 ring-amber-100">Vertailu ei ole mahdollinen vain yhdellä valitulla ketjulla.</p>
+                  )}
+                  {storeCompareScope === "within_chain" && !withinChain && (
+                    <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 font-black text-amber-800 ring-1 ring-amber-100">Valitse S-ryhmä tai K-ryhmä ketjun sisäistä vertailua varten.</p>
+                  )}
 
                   {((storeMode === "local" && (!activeArea.sLocalStoreId || !activeArea.kLocalStoreId)) ||
                     (storeMode === "hyper" && (!activeArea.sStoreId || !activeArea.kStoreId))) && foundStores.length === 0 && (
@@ -7607,7 +7854,7 @@ export default function Page() {
                   )}
                 </div>
 
-                {foundStores.length > 0 && (
+                {false && foundStores.length > 0 && (
                   <div className="mt-3 rounded-2xl bg-white p-3 text-xs text-slate-600 ring-1 ring-slate-200">
                     <div className="mb-3 flex items-center justify-between gap-3">
                       <p className="font-bold text-slate-700">Valitse kaupat ({foundStores.length})</p>
