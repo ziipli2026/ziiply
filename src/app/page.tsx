@@ -218,7 +218,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v247";
+const APP_VERSION = "v248";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -6985,7 +6985,7 @@ export default function Page() {
                       <p className="font-bold text-slate-700">Valitse kaupat ({foundStores.length})</p>
                     </div>
 
-                    <div className="grid gap-3">
+                    <div className="grid gap-2">
                       <div>
                         <p className="mb-2 text-xs font-bold uppercase tracking-wide text-green-700">S-ryhmä</p>
                         <div className="max-h-44 space-y-2 overflow-auto pr-1">
@@ -7052,7 +7052,7 @@ export default function Page() {
 
               <section className="mt-4 rounded-[2rem] bg-white p-5 shadow-sm">
                 <h2 className="mb-4 text-2xl font-extrabold">Vertailtavat ketjut</h2>
-                <div className="grid gap-3">
+                <div className="grid gap-2">
                   {[
                     {
                       key: "s" as const,
@@ -7148,7 +7148,7 @@ export default function Page() {
                   <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                     <div>
                       <h2 className="text-2xl font-extrabold">Löytyneet tarjoukset</h2>
-                      <p className="min-w-0 break-words text-sm text-slate-500">{filteredOffers.length} tarjousta</p>
+                      <p className="min-w-0 break-words text-xs font-semibold text-slate-500 sm:text-sm">{filteredOffers.length} tarjousta</p>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       <button onClick={() => setChainFilter("all")} className={`rounded-full px-4 py-2 text-sm font-bold ${chainFilter === "all" ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600"}`}>Kaikki</button>
@@ -7267,7 +7267,7 @@ export default function Page() {
               )}
 
               {activeResult === "singleCompare" && (
-                <section className="min-w-0 max-w-full overflow-hidden rounded-[1.5rem] border border-white/70 bg-white/95 p-4 shadow-[0_18px_55px_rgba(15,23,42,0.10)] backdrop-blur sm:rounded-[2rem] sm:p-6">
+                <section className="min-w-0 max-w-full overflow-hidden rounded-[1.5rem] border border-white/70 bg-white/95 p-3 shadow-[0_18px_55px_rgba(15,23,42,0.10)] backdrop-blur sm:rounded-[2rem] sm:p-5">
                   <div className="mb-4 flex items-start justify-between gap-3">
                     <div>
                       <h2 className="text-2xl font-extrabold">Yhden tuotteen hintavertailu</h2>
@@ -7330,20 +7330,23 @@ export default function Page() {
               )}
 
               {activeResult !== "compare" && (loadingNormal || normalResults.length > 0) && (
-<section ref={normalResultsSectionRef} className="min-w-0 max-w-full overflow-hidden rounded-[1.5rem] border border-white/70 bg-white/95 p-4 shadow-[0_18px_55px_rgba(15,23,42,0.10)] backdrop-blur sm:rounded-[2rem] sm:p-6">
-                <div className="mb-4 flex items-end justify-between gap-3">
-                  <div>
-                    <h2 className="text-2xl font-extrabold">Valitse tuote</h2>
-                    <p className="min-w-0 break-words text-sm text-slate-500">
-                      {activeNormalSearchTerm ? `Haetaan nyt: ${activeNormalSearchTerm}. ` : ""}
-                      Näytetään {Math.min(visibleNormalCount, visibleNormalResults.length)} / {visibleNormalResults.length} parasta osumaa.
-                      {searchCompareMode === "single" ? " Valitse tuote, jonka haluat vertailla." : terms.length > 1 ? ` Jonossa seuraavaksi: ${terms.slice(1).join(", ")}.` : ""}
+<section ref={normalResultsSectionRef} className="min-w-0 max-w-full overflow-hidden rounded-[1.5rem] border border-white/70 bg-white/95 p-3 shadow-[0_18px_55px_rgba(15,23,42,0.10)] backdrop-blur sm:rounded-[2rem] sm:p-5">
+                <div className="mb-3 flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h2 className="text-2xl font-extrabold">Valitse oikea tuote</h2>
+                    <p className="mt-1 min-w-0 break-words text-sm font-semibold text-slate-500">
+                      {activeNormalSearchTerm ? `Haetaan: ${activeNormalSearchTerm}` : "Valitse listasta tarkka tuote."}
                     </p>
+                    {visibleNormalResults.length > 0 && (
+                      <p className="mt-0.5 text-xs font-bold text-slate-400">
+                        {Math.min(visibleNormalCount, visibleNormalResults.length)} / {visibleNormalResults.length} osumaa
+                      </p>
+                    )}
                   </div>
 
                   {loadingNormal && (
-                    <div className="rounded-full bg-green-50 px-3 py-2 text-sm font-black text-green-700 ring-1 ring-green-100">
-                      Haetaan tuotteita...
+                    <div className="shrink-0 rounded-full bg-green-50 px-3 py-2 text-xs font-black text-green-700 ring-1 ring-green-100">
+                      Haetaan...
                     </div>
                   )}
                 </div>
@@ -7370,11 +7373,11 @@ export default function Page() {
                 )}
 
                 {loadingNormal ? (
-                  <div className="grid gap-3">
+                  <div className="grid gap-2">
                     {[1, 2, 3].map((item) => (
-                      <div key={item} className="rounded-2xl border border-slate-200 p-4">
+                      <div key={item} className="rounded-2xl border border-slate-200 p-3">
                         <div className="flex items-center gap-3">
-                          <div className="h-14 w-14 animate-pulse rounded-xl bg-slate-100" />
+                          <div className="h-12 w-12 animate-pulse rounded-xl bg-slate-100" />
                           <div className="min-w-0 flex-1 space-y-2">
                             <div className="h-4 w-3/4 animate-pulse rounded bg-slate-100" />
                             <div className="h-3 w-1/2 animate-pulse rounded bg-slate-100" />
@@ -7390,15 +7393,15 @@ export default function Page() {
                   </div>
                 ) : (
                   <>
-                    <div className="grid min-w-0 max-w-full gap-3 overflow-hidden">
+                    <div className="grid min-w-0 max-w-full gap-2 overflow-hidden">
                       {visibleNormalResults.slice(0, visibleNormalCount).map((product) => {
                         return (
-                          <div key={product.id} className="w-full min-w-0 max-w-full overflow-hidden rounded-2xl border border-slate-200 p-3 transition hover:border-green-300 hover:bg-green-50/30 sm:p-4">
-                            <div className="flex min-w-0 max-w-full items-center gap-3 overflow-hidden">
-                              {product.pictureUrl && <img src={product.pictureUrl} alt={product.name} className="h-14 w-14 shrink-0 rounded-xl bg-white object-contain sm:h-16 sm:w-16" />}
+                          <div key={product.id} className="w-full min-w-0 max-w-full overflow-hidden rounded-2xl border border-slate-200 p-2.5 transition hover:border-green-300 hover:bg-green-50/30 sm:p-3">
+                            <div className="flex min-w-0 max-w-full items-center gap-2.5 overflow-hidden">
+                              {product.pictureUrl && <img src={product.pictureUrl} alt={product.name} className="h-12 w-12 shrink-0 rounded-xl bg-white object-contain sm:h-14 sm:w-14" />}
                               <div className="min-w-0 max-w-full flex-1 overflow-hidden">
-                                <h3 className="line-clamp-2 max-w-full break-words font-bold leading-tight">{fixText(product.name)}</h3>
-                                <p className="min-w-0 break-words text-sm text-slate-500">
+                                <h3 className="line-clamp-2 max-w-full break-words text-sm font-black leading-tight text-slate-950 sm:text-base">{fixText(product.name)}</h3>
+                                <p className="min-w-0 break-words text-xs font-semibold text-slate-500 sm:text-sm">
                                   {(product as Product & { sourceStoreName?: string; fallbackStoreName?: string }).sourceStoreName ||
                                     (product as Product & { fallbackStoreName?: string }).fallbackStoreName ||
                                     activeStores.sStoreName}
@@ -7423,14 +7426,14 @@ export default function Page() {
                                 {product.ean && (
                                   <p className="mt-1 max-w-full truncate text-xs text-slate-400">EAN: {product.ean}</p>
                                 )}
-                                <div className="mt-2 flex flex-wrap items-center gap-3">
-                                  <p className="text-lg font-bold text-green-700">{formatEuro(getProductPrice(product))}</p>
+                                <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                                  <p className="text-lg font-black text-green-700">{formatEuro(getProductPrice(product))}</p>
                                   {renderPriceHistoryBadge(getPriceHistoryKeyFromProduct(product, (product as Product & { fallbackStoreName?: string }).fallbackStoreName || activeStores.sStoreName), getProductPrice(product))}
                                   <button
                                     onClick={() => searchCompareMode === "single" ? void compareSelectedSingleProduct(product) : addProductToCart(product)}
-                                    className="shrink-0 rounded-xl bg-green-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-green-700"
+                                    className="shrink-0 rounded-xl bg-green-600 px-3.5 py-2 text-sm font-black text-white transition hover:bg-green-700"
                                   >
-                                    {searchCompareMode === "single" ? "Valitse ja vertaile" : "Lisää"}
+                                    {searchCompareMode === "single" ? "Valitse" : "Lisää"}
                                   </button>
                                 </div>
                               </div>
@@ -8041,14 +8044,14 @@ export default function Page() {
             {cart.length === 0 ? (
               <div className="rounded-2xl bg-white/10 p-4 text-green-50">Lisää tuotteita hausta, tarjouksista, EAN-haulla tai muistilistana.</div>
             ) : (
-              <div className="grid gap-3">
+              <div className="grid gap-2">
                 {cart.map((item) => (
                   <div key={item.id} className="flex min-w-0 max-w-full flex-col gap-3 overflow-hidden rounded-2xl bg-white p-3 text-slate-950 sm:p-4 md:flex-row md:items-center md:justify-between">
-                    <div className="flex min-w-0 max-w-full items-center gap-3 overflow-hidden">
+                    <div className="flex min-w-0 max-w-full items-center gap-2.5 overflow-hidden">
                       {item.image && <img src={item.image} alt={item.name} className="h-14 w-14 shrink-0 object-contain" />}
                       <div className="min-w-0 flex-1 overflow-hidden">
                         <p className="line-clamp-2 break-words font-bold leading-tight">{item.name}</p>
-                        <p className="min-w-0 break-words text-sm text-slate-500">{item.storeName ? `${item.storeName} · ${item.chain}` : "Muistilistarivi · ei mukana hintavertailussa"}</p>
+                        <p className="min-w-0 break-words text-xs font-semibold text-slate-500 sm:text-sm">{item.storeName ? `${item.storeName} · ${item.chain}` : "Muistilistarivi · ei mukana hintavertailussa"}</p>
                         {item.price ? (
                           <div className="mt-1 flex flex-wrap items-center gap-2">
                             <p className="text-sm font-bold text-green-700">{item.quantity} × {formatEuro(item.price)} = {formatEuro(item.price * item.quantity)}</p>
