@@ -219,7 +219,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v265";
+const APP_VERSION = "v266";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -1203,7 +1203,18 @@ function hasAnyToken(text: string, tokens: string[]) {
 
 function isEggSearchTerm(value: string) {
   const text = normalize(value);
-  return hasAnyToken(text, ["kananmuna", "kananmunat", "kananmunia", "munat", "egg", "eggs"]);
+
+  if (hasAnyToken(text, ["kananmunaton", "munaton", "egg-free", "egg free"])) return false;
+
+  return (
+    hasExactNormalizedWord(text, "kananmuna") ||
+    hasExactNormalizedWord(text, "kananmunat") ||
+    hasExactNormalizedWord(text, "kananmunia") ||
+    hasExactNormalizedWord(text, "munat") ||
+    hasExactNormalizedWord(text, "muna") ||
+    hasExactNormalizedWord(text, "egg") ||
+    hasExactNormalizedWord(text, "eggs")
+  );
 }
 
 function isClearlyEggProduct(name: string) {
@@ -2502,6 +2513,11 @@ function isBadNormalResult(product: Product, query: string) {
     if (isDifferentColaBrand(query, product.name)) return true;
   }
 
+  const queryIsEgg = isEggSearchTerm(normalizedQuery);
+  if (queryIsEgg) {
+    if (!isClearlyEggProduct(product.name)) return true;
+  }
+
   if (normalizedQuery.includes("jogurtti") || normalizedQuery.includes("jogurt")) {
     const targetIsYogurt = hasAnyToken(normalizedName, ["jogurtti", "jogurt"]);
     const forbiddenWords = hasAnyToken(productText, ["rahka", "vanukas", "juoma", "proteiinijuoma", "raejuusto", "tuorejuusto", "jäätelö", "jaatelo"]);
@@ -2910,6 +2926,7 @@ export default function Page() {
 
   const [isOnline, setIsOnline] = useState(true);
   const [showLaunchScreen, setShowLaunchScreen] = useState(true);
+  const [suppressUiForEanClose, setSuppressUiForEanClose] = useState(false);
   const [eanScannerOpen, setEanScannerOpen] = useState(false);
   const [eanScannerMessage, setEanScannerMessage] = useState("");
   const [eanManualInputOpen, setEanManualInputOpen] = useState(false);
@@ -5083,6 +5100,9 @@ export default function Page() {
   }
 
   function closeEanModal() {
+    // v266: Suljetaan kamera "screenupdate=false" -tyyliin.
+    // Ensin piilotetaan taustan välipäivitys, sitten palautetaan Hae-kortti ja vapautetaan näkymä.
+    setSuppressUiForEanClose(true);
     stopEanCameraScanner();
 
     if (eanAutoSearchTimeoutRef.current) {
@@ -5090,7 +5110,6 @@ export default function Page() {
       eanAutoSearchTimeoutRef.current = null;
     }
 
-    setEanModalOpen(false);
     setEanManualInputOpen(false);
     setEanInput("");
     setEanResults([]);
@@ -5102,13 +5121,20 @@ export default function Page() {
     setEanSearchStartedAutomatically(false);
     eanAutoSearchActiveRef.current = false;
 
-    // v264: Kameran/EAN-ikkunan sulkeminen ei saa jättää käyttäjää tyhjälle pääsivulle
-    // eikä avata Vertailu-korttia automaattisesti. Palautetaan aina Hae-kortti näkyviin.
+    // Kameran/EAN-ikkunan sulkeminen ei saa jättää käyttäjää tyhjälle pääsivulle
+    // eikä avata Vertailu-korttia automaattisesti. Palautetaan Hae-kortti taustalla.
     setActiveResult("none");
     setCartModalOpen(false);
     setCartSavePanelOpen(false);
     setShopsPanelOpen(false);
     setSearchPanelOpen(true);
+
+    window.setTimeout(() => {
+      setEanModalOpen(false);
+      window.requestAnimationFrame(() => {
+        setSuppressUiForEanClose(false);
+      });
+    }, 40);
   }
 
   function openEanModal() {
@@ -6989,7 +7015,7 @@ export default function Page() {
   }
 
   return (
-    <main className="min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top,#ecfdf3_0%,#f8fafc_42%,#f1f5f9_100%)] px-2 pb-32 pt-[4.75rem] text-slate-950 sm:px-4 sm:py-4 md:pb-4">
+    <main className={`min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top,#ecfdf3_0%,#f8fafc_42%,#f1f5f9_100%)] px-2 pb-32 pt-[4.75rem] text-slate-950 transition-opacity duration-75 sm:px-4 sm:py-4 md:pb-4 ${suppressUiForEanClose ? "opacity-0" : "opacity-100"}`}>
       {showLaunchScreen && (
         <div className="fixed inset-0 z-[90] flex items-center justify-center bg-white sm:hidden">
           <div className="absolute right-5 top-[calc(env(safe-area-inset-top)+0.75rem)]">
