@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v315";
+const APP_VERSION = "v316";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -6406,13 +6406,8 @@ export default function Page() {
   }
 
   function toggleShopsPanel() {
-    // v314: ensimmäisessä avauksessa/refreshissä vain Kaupat on käytettävissä.
-    // Kaupat-nappi ei saa sulkea Kaupat-korttia ennen kuin kauppatyyppi ja vertailutapa on valittu.
-    if (initialStoreSelectionLocked) {
-      openShopsPanel();
-      return;
-    }
-
+    // v316: Kaupat on alussa ainoa käytettävissä oleva nappi, mutta sekin toimii toggle-na.
+    // Eli Kaupat-kortin voi avata ja sulkea myös ennen kauppavalintojen valmistumista.
     if (shopsPanelOpen) {
       setShopsPanelOpen(false);
       return;
@@ -7540,23 +7535,29 @@ export default function Page() {
     setOpenStorePicker(null);
 
     if (nextScope === "between_chains") {
-      // v308_STORE_MODE_SCOPE_LOCK:
-      // Ketjujen välillä -tilaan palatessa kumpikaan kauppatyyppi ei saa jäädä päälle.
-      // Tavaratalot/Lähikaupat aktivoituvat vasta, kun käyttäjä painaa niitä itse.
+      // v316: Ketjujen väliltä ei saa nollata jo valittua Tavaratalot/Lähikaupat-valintaa.
+      // Jos käyttäjä valitsi ensin Tavaratalot tai Lähikaupat, se pysyy vihreänä ja kauppakortit aktivoituvat.
+      const hadStoreModeChoice = storeModeChosenV299;
       setStoreCompareScope("between_chains");
       setWithinChain(null);
-      setStoreModeChosenV299(false);
-      selectedStoreModeRefV302.current = "hyper";
-      setStoreMode("hyper");
+      setStoreModeChosenV299(hadStoreModeChoice);
+      if (!hadStoreModeChoice) {
+        selectedStoreModeRefV302.current = "hyper";
+        setStoreMode("hyper");
+      }
       setSelectedChains((current) => ({
         ...current,
-        s: true,
-        k: true,
+        s: hadStoreModeChoice,
+        k: hadStoreModeChoice,
         lidl: false,
         tokmanni: false,
       }));
       clearSearchAndComparisonState();
-      setLocationMessage(`${activeArea.label || "Alue"} käytössä. Valitse hakutapa: Tavaratalot tai Lähikaupat.`);
+      setLocationMessage(
+        hadStoreModeChoice
+          ? `${activeArea.label || "Alue"} käytössä.`
+          : `${activeArea.label || "Alue"} käytössä. Valitse hakutapa: Tavaratalot tai Lähikaupat.`
+      );
       return;
     }
 
@@ -7780,7 +7781,7 @@ export default function Page() {
 
   const selectedRealChainCount = Number(Boolean(selectedChains.s)) + Number(Boolean(selectedChains.k));
   function renderComparedStoreCards(compact = false) {
-    if (storeCompareScope !== "within_chain" && !storeModeChosenV299) {
+    if (storeCompareScope === "none" || (storeCompareScope === "between_chains" && !storeModeChosenV299)) {
       return (
         <div className="mt-3 rounded-2xl bg-amber-50 px-4 py-3 text-center text-sm font-extrabold text-amber-800 ring-1 ring-amber-200">
           Valitse ensin mistä kaupoista haetaan ja miten kauppoja vertaillaan.
@@ -8242,7 +8243,7 @@ return (
 
 
         {shopsPanelOpen && (
-          <div className="fixed inset-0 z-40 flex items-end justify-center overflow-y-auto overscroll-contain bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:hidden">
+          <div className="fixed inset-0 z-40 flex items-end justify-center overflow-y-auto overscroll-contain bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:hidden ziiply-soft-open">
             <div className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[28rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-100 p-3 shadow-2xl">
               <section className="rounded-[1.25rem] border border-slate-200 bg-white/95 p-2 shadow-sm">
                 <div className="flex items-center gap-2">
@@ -9111,7 +9112,7 @@ return (
 
 
         {cartModalOpen && (
-        <div className="fixed inset-0 z-40 flex items-end justify-center overflow-y-auto overscroll-contain bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:items-start sm:p-6">
+        <div className="fixed inset-0 z-40 flex items-end justify-center overflow-y-auto overscroll-contain bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:items-start sm:p-6 ziiply-soft-open">
           <div ref={cartOverlayScrollRef} className="max-h-[calc(100dvh-12.5rem)] w-full max-w-3xl overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.6rem] bg-gradient-to-br from-slate-950 via-emerald-950 to-green-800 p-4 text-white shadow-[0_24px_80px_rgba(15,23,42,0.35)] sm:max-h-none sm:rounded-[2rem] sm:p-6">
             <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
@@ -9355,7 +9356,7 @@ return (
       )}
 
       {searchPanelOpen && (
-        <div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden overscroll-none bg-slate-950/35 px-3 pb-[calc(env(safe-area-inset-bottom)+5.9rem)] pt-[calc(env(safe-area-inset-top)+5.05rem)] backdrop-blur-sm sm:items-center sm:p-6">
+        <div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden overscroll-none bg-slate-950/35 px-3 pb-[calc(env(safe-area-inset-bottom)+5.9rem)] pt-[calc(env(safe-area-inset-top)+5.05rem)] backdrop-blur-sm sm:items-center sm:p-6 ziiply-soft-open">
           <div className="w-full max-w-[38rem] overflow-hidden">
           <div className="h-[min(33rem,calc(100dvh-11.5rem))] overflow-hidden rounded-[1.5rem] border border-white/80 bg-white/95 p-3 shadow-[0_22px_70px_rgba(15,23,42,0.22)] backdrop-blur-2xl sm:h-[34rem] sm:rounded-[1.75rem] sm:p-4">
             <div className="flex h-full min-h-0 flex-col">
@@ -9793,6 +9794,15 @@ return (
         <div className="mx-auto grid max-w-md grid-cols-4 gap-1.5 rounded-[1.7rem] border border-white/70 bg-white/86 p-2 shadow-[0_18px_55px_rgba(15,23,42,0.18)] backdrop-blur-2xl">
           <button
             type="button"
+            onClick={toggleShopsPanel}
+            aria-disabled={false}
+            className={`flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition ${shopsPanelOpen ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white active:scale-[0.98]" : initialStoreNavPrompt ? "bg-green-50/60 text-slate-700 ring-1 ring-green-100 shadow-[0_0_18px_rgba(34,197,94,0.10)] active:scale-[0.98]" : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
+          >
+            <span className="text-lg leading-none">🏪</span>
+            <span className="mt-1 block">Kaupat</span>
+          </button>
+          <button
+            type="button"
             onClick={toggleSearchPanel}
             disabled={searchBottomNavDisabled}
             aria-disabled={searchBottomNavDisabled}
@@ -9800,15 +9810,6 @@ return (
           >
             <span className="text-lg leading-none">🔎</span>
             <span className="mt-1 block">Hae</span>
-          </button>
-          <button
-            type="button"
-            onClick={toggleShopsPanel}
-            aria-disabled={false}
-            className={`flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition ${shopsPanelOpen ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white active:scale-[0.98]" : initialStoreNavPrompt ? "bg-green-50/60 text-slate-700 ring-1 ring-green-100 shadow-[0_0_18px_rgba(34,197,94,0.10)] active:scale-[0.98]" : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
-          >
-            <span className="text-lg leading-none">🏪</span>
-            <span className="mt-1 block">Kaupat</span>
           </button>
           <button
             type="button"
