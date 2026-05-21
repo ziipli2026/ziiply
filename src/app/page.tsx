@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v286_GPS_BUILDOK_DEFAULTS";
+const APP_VERSION = "v287_GPS_STICKY_WIDE_PICKERS";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -2854,6 +2854,7 @@ export default function Page() {
   const [cartSavePanelOpen, setCartSavePanelOpen] = useState(false);
   const [shopsPanelOpen, setShopsPanelOpen] = useState(false);
   const [gpsErrorMessage, setGpsErrorMessage] = useState("");
+  const [gpsAutoActivatedV287, setGpsAutoActivatedV287] = useState(false);
   // Mobile comparison view uses the same activeResult state as desktop, but renders as its own overlay.
   const [cart, setCart] = useState<CartItem[]>([]);
   const cartIsEmpty = cart.length === 0;
@@ -7748,10 +7749,10 @@ export default function Page() {
           </div>
           <div className="mt-3 rounded-2xl bg-slate-50 p-3 text-sm text-slate-600 ring-1 ring-slate-200 empty:hidden">
                   {storeCompareScope === "between_chains" && selectedRealChainCount < 2 && (
-                    <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 font-black text-amber-800 ring-1 ring-amber-100">Vertailu ei ole mahdollinen vain yhdellä valitulla ketjulla.</p>
+                    <p className="mt-2 rounded-xl bg-amber-50 px-4 py-3 font-black text-amber-800 ring-1 ring-amber-100">Vertailu ei ole mahdollinen vain yhdellä valitulla ketjulla.</p>
                   )}
                   {storeCompareScope === "within_chain" && !withinChain && (
-                    <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 font-black text-amber-800 ring-1 ring-amber-100">Valitse S-ryhmä tai K-ryhmä ketjun sisäistä vertailua varten.</p>
+                    <p className="mt-2 rounded-xl bg-amber-50 px-4 py-3 font-black text-amber-800 ring-1 ring-amber-100">Valitse S-ryhmä tai K-ryhmä ketjun sisäistä vertailua varten.</p>
                   )}
 
             {((storeMode === "local" && (!activeArea.sLocalStoreId || !activeArea.kLocalStoreId)) ||
@@ -7795,8 +7796,8 @@ export default function Page() {
                               : "bg-slate-50 text-slate-700 hover:bg-green-50"
                           }`}
                         >
-                          <span className="block truncate font-bold">{store.name}</span>
-                          <span className={`block text-[11px] ${selected ? "text-green-50" : "text-slate-400"}`}>
+                          <span className="block font-bold break-words">{store.name}</span>
+                          <span className={`block text-xs ${selected ? "text-green-50" : "text-slate-400"}`}>
                             ID {store.id} · {store.city || ""} {store.postalCode || ""}
                           </span>
                         </button>
@@ -7835,7 +7836,12 @@ export default function Page() {
         setGpsErrorMessage("");
         navigator.geolocation.getCurrentPosition(
           () => {
+            
             setGpsErrorMessage("");
+            setGpsAutoActivatedV287(true);
+            try {
+              localStorage.setItem("ziiply-use-own-location", "1");
+            } catch {}
           },
           (error: GeolocationPositionError) => {
             if (error.code === 1) {
@@ -7881,6 +7887,25 @@ export default function Page() {
     }
   }, []);
 
+
+  // GPS_STICKY_STATE_V287
+  // Pidä GPS/oma sijainti visuaalisesti päällä latauksen jälkeen,
+  // jos automaattinen GPS onnistui tai käyttäjä on aiemmin sallinut sen.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    let storedGps = "";
+    try {
+      storedGps = localStorage.getItem("ziiply-use-own-location") || "";
+    } catch {}
+
+    if (!gpsAutoActivatedV287 && storedGps !== "1") return;
+
+    try {
+      setGpsErrorMessage("");
+    } catch {}
+  }, [gpsAutoActivatedV287]);
+
 return (
                         <button
                           key={store.id}
@@ -7892,7 +7917,7 @@ return (
                               : "bg-slate-50 text-slate-700 hover:bg-red-50"
                           }`}
                         >
-                          <span className="block font-bold">{store.name}</span>
+                          <span className="block whitespace-normal break-words font-bold leading-tight">{store.name}</span>
                           <span className={`block text-xs ${selected ? "text-red-50" : "text-slate-400"}`}>
                             ID {store.id} · {store.city || ""} {store.postalCode || ""}
                           </span>
@@ -7944,20 +7969,20 @@ return (
                       setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
                     }}
                     placeholder="05510 tai Hyvinkää"
-                    className="min-w-0 flex-1 max-w-[280px] rounded-xl border border-slate-300 px-3 py-2 text-[16px] outline-none focus:border-green-600"
+                    className="min-w-0 flex-1 max-w-[340px] rounded-xl border border-slate-300 px-4 py-3 text-[16px] outline-none focus:border-green-600"
                   />
 
                   <button
                     type="button"
                     onClick={() => applyLocation()}
                     disabled={storeSearchLoading}
-                    className="shrink-0 rounded-xl bg-slate-900 px-3 py-2 text-sm font-extrabold text-white transition disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
+                    className="shrink-0 rounded-xl bg-slate-900 px-4 py-3 text-sm font-extrabold text-white transition disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98]"
                   >
                     {storeSearchLoading ? "..." : "Käytä"}
                   </button>
                 </div>
 
-                <div className="mt-2 rounded-xl bg-green-50 px-3 py-2 text-xs font-semibold text-green-900">
+                <div className="mt-2 rounded-xl bg-green-50 px-4 py-3 text-xs font-semibold text-green-900">
                   {locationMessage}
                 </div>
 
@@ -7969,7 +7994,7 @@ return (
                     type="button"
                     disabled={storeCompareScope === "within_chain"}
                     onClick={() => handleStoreModeChange("hyper")}
-                    className={`rounded-2xl px-3 py-2.5 text-sm font-extrabold transition disabled:cursor-not-allowed disabled:opacity-45 ${
+                    className={`rounded-2xl px-4 py-3.5 text-sm font-extrabold transition disabled:cursor-not-allowed disabled:opacity-45 ${
                       storeMode === "hyper" && storeCompareScope === "between_chains"
                         ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                         : "bg-white text-slate-700 ring-1 ring-slate-200"
@@ -8051,10 +8076,10 @@ return (
                 </div>
                 <div className="mt-3 rounded-2xl bg-slate-50 p-3 text-sm text-slate-600 ring-1 ring-slate-200 empty:hidden">
                   {storeCompareScope === "between_chains" && selectedRealChainCount < 2 && (
-                    <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 font-black text-amber-800 ring-1 ring-amber-100">Vertailu ei ole mahdollinen vain yhdellä valitulla ketjulla.</p>
+                    <p className="mt-2 rounded-xl bg-amber-50 px-4 py-3 font-black text-amber-800 ring-1 ring-amber-100">Vertailu ei ole mahdollinen vain yhdellä valitulla ketjulla.</p>
                   )}
                   {storeCompareScope === "within_chain" && !withinChain && (
-                    <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 font-black text-amber-800 ring-1 ring-amber-100">Valitse S-ryhmä tai K-ryhmä ketjun sisäistä vertailua varten.</p>
+                    <p className="mt-2 rounded-xl bg-amber-50 px-4 py-3 font-black text-amber-800 ring-1 ring-amber-100">Valitse S-ryhmä tai K-ryhmä ketjun sisäistä vertailua varten.</p>
                   )}
 
                   {((storeMode === "local" && (!activeArea.sLocalStoreId || !activeArea.kLocalStoreId)) ||
@@ -8098,8 +8123,8 @@ return (
                                     : "bg-slate-50 text-slate-700 hover:bg-green-50"
                                 }`}
                               >
-                                <span className="block truncate font-bold">{store.name}</span>
-                                <span className={`block text-[11px] ${selected ? "text-green-50" : "text-slate-400"}`}>
+                                <span className="block font-bold break-words">{store.name}</span>
+                                <span className={`block text-xs ${selected ? "text-green-50" : "text-slate-400"}`}>
                                   ID {store.id} · {store.city || ""} {store.postalCode || ""}
                                 </span>
                               </button>
@@ -8134,8 +8159,8 @@ return (
                                     : "bg-slate-50 text-slate-700 hover:bg-red-50"
                                 }`}
                               >
-                                <span className="block truncate font-bold">{store.name}</span>
-                                <span className={`block text-[11px] ${selected ? "text-red-50" : "text-slate-400"}`}>
+                                <span className="block font-bold break-words">{store.name}</span>
+                                <span className={`block text-xs ${selected ? "text-red-50" : "text-slate-400"}`}>
                                   ID {store.id} · {store.city || ""} {store.postalCode || ""}
                                 </span>
                               </button>
@@ -9300,7 +9325,7 @@ return (
               <div className="mt-2 shrink-0 grid grid-cols-2 gap-2">
                 <button
                   type="button"
-                  onClick={() => startVoiceInput()}
+                  onClick={() => startVoiceInput(); }}
                   className={`touch-manipulation rounded-[1rem] px-3 py-2.5 text-sm font-black text-white shadow-sm transition active:scale-[0.98] ${
                     isListening
                       ? "bg-red-600"
