@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v280_SAFE_BUILDOK";
+const APP_VERSION = "v282_MOBILE_HAKUTAPA_RENDER";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -7750,7 +7750,7 @@ export default function Page() {
 
 
         {shopsPanelOpen && (
-          <div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:hidden">
+          <div className="fixed inset-0 z-40 flex items-end justify-center overflow-y-auto overscroll-contain bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:hidden">
             <div className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-100 p-3 shadow-2xl">
               <section className="rounded-[1.25rem] border border-slate-200 bg-white/95 p-2 shadow-sm">
                 <div className="flex items-center gap-2">
@@ -7800,6 +7800,65 @@ export default function Page() {
                 <div className="mt-2 rounded-xl bg-green-50 px-3 py-2 text-xs font-semibold text-green-900">
                   {locationMessage}
                 </div>
+
+              <div data-v282="v282_MOBILE_HAKUTAPA_RENDER_MARKER" className="mt-3 rounded-[1.5rem] bg-slate-50 p-3 ring-1 ring-slate-200">
+                <p className="mb-2 text-[11px] font-black uppercase tracking-wide text-slate-500">Hakutapa</p>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    disabled={storeCompareScope === "within_chain"}
+                    onClick={() => handleStoreModeChange("hyper")}
+                    className={`rounded-2xl px-3 py-2.5 text-sm font-extrabold transition disabled:cursor-not-allowed disabled:opacity-45 ${
+                      storeMode === "hyper" && storeCompareScope === "between_chains"
+                        ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
+                        : "bg-white text-slate-700 ring-1 ring-slate-200"
+                    }`}
+                  >
+                    🏬 Tavaratalot
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={storeCompareScope === "within_chain"}
+                    onClick={() => handleStoreModeChange("local")}
+                    className={`rounded-2xl px-3 py-2.5 text-sm font-extrabold transition disabled:cursor-not-allowed disabled:opacity-45 ${
+                      storeMode === "local" && storeCompareScope === "between_chains"
+                        ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
+                        : "bg-white text-slate-700 ring-1 ring-slate-200"
+                    }`}
+                  >
+                    🏪 Lähikaupat
+                  </button>
+                </div>
+
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleStoreCompareScopeChange("between_chains")}
+                    className={`rounded-2xl px-3 py-2.5 text-sm font-extrabold transition ${
+                      storeCompareScope === "between_chains"
+                        ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
+                        : "bg-white text-slate-700 ring-1 ring-slate-200"
+                    }`}
+                  >
+                    Ketjujen väliltä
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleStoreCompareScopeChange("within_chain")}
+                    className={`rounded-2xl px-3 py-2.5 text-sm font-extrabold transition ${
+                      storeCompareScope === "within_chain"
+                        ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
+                        : "bg-white text-slate-700 ring-1 ring-slate-200"
+                    }`}
+                  >
+                    Ketjun sisältä
+                  </button>
+                </div>
+              </div>
+
 
                 {renderComparedStoreCards(true)}
               </section>
@@ -7923,7 +7982,7 @@ export default function Page() {
         )}
 
         {activeResult === "offers" && (
-          <div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0">
+          <div className="fixed inset-0 z-40 flex items-end justify-center overflow-y-auto overscroll-contain bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0">
             <div ref={compareOverlayScrollRef} className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-50 p-3 shadow-2xl sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:bg-transparent sm:p-0 sm:shadow-none">
               <div className="mb-3 rounded-2xl bg-green-700 p-4 text-white shadow-sm sm:rounded-[2rem] sm:p-6">
                 <p className="text-xs font-bold uppercase tracking-wide text-green-100 sm:text-sm">Tarjousmoottori</p>
@@ -8008,7 +8067,7 @@ export default function Page() {
         )}
 
         {(activeResult === "compare" || activeResult === "singleCompare" || (activeResult !== "offers" && (loadingNormal || normalResults.length > 0 || (searchPanelOpen && normalSearchAttempted && activeNormalSearchTerm)))) && (
-          <div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0">
+          <div className="fixed inset-0 z-40 flex items-end justify-center overflow-y-auto overscroll-contain bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0">
             <div ref={compareOverlayScrollRef} className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-50 p-3 shadow-2xl sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:bg-transparent sm:p-0 sm:shadow-none">
             <div className="grid min-w-0 max-w-full gap-3 sm:gap-4 overflow-hidden lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
             {activeResult === "compare" && showCheapestSticky && cheapest && secondCheapest && (
@@ -8099,7 +8158,7 @@ export default function Page() {
                         >
                           <div className="flex items-center gap-3">
                             {result.image && (
-                              <img src={result.image} alt={result.productName} className="h-12 sm:h-16 w-16 shrink-0 rounded-xl bg-white object-contain" />
+                              <img src={result.image} alt={result.productName} className="h-12 sm:h-14 w-16 shrink-0 rounded-xl bg-white object-contain" />
                             )}
                             <div className="min-w-0 flex-1">
                               <div className="flex flex-wrap items-center gap-2">
@@ -8672,7 +8731,7 @@ export default function Page() {
 
 
         {cartModalOpen && (
-        <div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:items-start sm:p-6">
+        <div className="fixed inset-0 z-40 flex items-end justify-center overflow-y-auto overscroll-contain bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:items-start sm:p-6">
           <div ref={cartOverlayScrollRef} className="max-h-[calc(100dvh-12.5rem)] w-full max-w-3xl overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.6rem] bg-gradient-to-br from-slate-950 via-emerald-950 to-green-800 p-4 text-white shadow-[0_24px_80px_rgba(15,23,42,0.35)] sm:max-h-none sm:rounded-[2rem] sm:p-6">
             <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
