@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v276";
+const APP_VERSION = "v277";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -7486,7 +7486,7 @@ export default function Page() {
   }
 
   return (
-    <main className={`min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top,#ecfdf3_0%,#f8fafc_42%,#f1f5f9_100%)] px-2 pb-32 pt-[4.75rem] text-slate-950 sm:px-4 sm:py-4 md:pb-4 ${suppressUiForEanClose ? "pointer-events-none opacity-0" : "opacity-100"}`}>
+    <main className={`min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top,#ecfdf3_0%,#f8fafc_42%,#f1f5f9_100%)] px-2 pb-44 sm:pb-32 pt-[4.75rem] text-slate-950 sm:px-4 sm:py-3 sm:py-4 md:pb-4 ${suppressUiForEanClose ? "pointer-events-none opacity-0" : "opacity-100"}`}>
       {showLaunchScreen && (
         <div className="fixed inset-0 z-[90] flex items-center justify-center bg-white sm:hidden">
           <div className="absolute right-5 top-[calc(env(safe-area-inset-top)+0.75rem)]">
@@ -7526,7 +7526,7 @@ export default function Page() {
         )}
       </header>
 
-      <div className="mx-auto max-w-6xl space-y-4 sm:space-y-6">
+      <div className="mx-auto max-w-6xl space-y-3 sm:space-y-4 sm:space-y-6">
         <section className="-mx-2 hidden bg-slate-100/95 px-2 pb-2 pt-2 sm:-mx-4 sm:block sm:px-4 sm:pb-4 sm:pt-4">
           <div className="mx-auto max-w-6xl">
           <div className="overflow-hidden rounded-[1.75rem] bg-white px-4 py-1 shadow-sm sm:rounded-[2rem] sm:px-6">
@@ -7614,7 +7614,7 @@ export default function Page() {
               type="button"
               disabled={storeCompareScope === "within_chain"}
               onClick={() => handleStoreModeChange("hyper")}
-              className={`rounded-2xl px-4 py-4 text-base font-extrabold transition disabled:cursor-not-allowed disabled:opacity-45 ${
+              className={`rounded-2xl px-4 py-3 sm:py-4 text-base font-extrabold transition disabled:cursor-not-allowed disabled:opacity-45 ${
                 storeMode === "hyper" && storeCompareScope === "between_chains"
                   ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                   : "bg-white text-slate-700 ring-1 ring-slate-200"
@@ -7626,7 +7626,7 @@ export default function Page() {
               type="button"
               disabled={storeCompareScope === "within_chain"}
               onClick={() => handleStoreModeChange("local")}
-              className={`rounded-2xl px-4 py-4 text-base font-extrabold transition disabled:cursor-not-allowed disabled:opacity-45 ${
+              className={`rounded-2xl px-4 py-3 sm:py-4 text-base font-extrabold transition disabled:cursor-not-allowed disabled:opacity-45 ${
                 storeMode === "local" && storeCompareScope === "between_chains"
                   ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                   : "bg-white text-slate-700 ring-1 ring-slate-200"
@@ -7814,7 +7814,7 @@ export default function Page() {
                   <button
                     type="button"
                     onClick={() => handleStoreModeChange("hyper")}
-                    className={`rounded-2xl px-4 py-4 text-base font-extrabold transition ${
+                    className={`rounded-2xl px-4 py-3 sm:py-4 text-base font-extrabold transition ${
                       storeMode === "hyper"
                         ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                         : "bg-white text-slate-700 ring-1 ring-slate-200"
@@ -7825,7 +7825,7 @@ export default function Page() {
                   <button
                     type="button"
                     onClick={() => handleStoreModeChange("local")}
-                    className={`rounded-2xl px-4 py-4 text-base font-extrabold transition ${
+                    className={`rounded-2xl px-4 py-3 sm:py-4 text-base font-extrabold transition ${
                       storeMode === "local"
                         ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                         : "bg-white text-slate-700 ring-1 ring-slate-200"
@@ -7935,7 +7935,7 @@ export default function Page() {
             <div ref={compareOverlayScrollRef} className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-50 p-3 shadow-2xl sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:bg-transparent sm:p-0 sm:shadow-none">
               <div className="mb-3 rounded-2xl bg-green-700 p-4 text-white shadow-sm sm:rounded-[2rem] sm:p-6">
                 <p className="text-xs font-bold uppercase tracking-wide text-green-100 sm:text-sm">Tarjousmoottori</p>
-                <h2 className="mt-1 text-2xl font-extrabold sm:text-3xl">Tarjoukset</h2>
+                <h2 className="mt-1 text-2xl font-extrabold sm:text-2xl sm:text-3xl">Tarjoukset</h2>
                 <p className="mt-2 min-w-0 break-words text-sm font-bold text-green-100">
                   Hakusana: {offerSearchLabel}
                 </p>
@@ -7964,10 +7964,10 @@ export default function Page() {
                     </div>
                   </div>
 
-                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                  <div className="grid gap-3 sm:gap-4 md:grid-cols-2 xl:grid-cols-3">
                     {filteredOffers.map((item) => (
                       <div key={item.id} className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm">
-                        <div className="flex gap-4">
+                        <div className="flex gap-3 sm:gap-4">
                           {item.offer.item.pictureUrl && <img src={item.offer.item.pictureUrl} alt={item.offer.item.name} className="h-20 w-20 shrink-0 rounded-2xl bg-slate-100 object-contain" />}
                           <div className="min-w-0 max-w-full flex-1 overflow-hidden">
                             <div className="mb-2 flex flex-wrap gap-2">
@@ -7985,7 +7985,7 @@ export default function Page() {
                         <div className="mt-4 flex items-end justify-between gap-3">
                           <div>
                             <div className="grid w-full min-w-0 grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
-                              <p className="text-3xl font-extrabold text-green-700">{formatEuro(item.offer.storeItem?.price)}</p>
+                              <p className="text-2xl sm:text-3xl font-extrabold text-green-700">{formatEuro(item.offer.storeItem?.price)}</p>
                               {renderPriceHistoryBadge(getPriceHistoryKeyFromProduct(offerToProduct(item), item.storeName, item.chain), item.offer.storeItem?.price || 0)}
                             </div>
                             {item.offer.batchQuantity && item.offer.batchTotalPrice && <p className="mt-1 text-sm font-bold text-green-700">{item.offer.batchQuantity} kpl = {formatEuro(item.offer.batchTotalPrice)}</p>}
@@ -8018,11 +8018,11 @@ export default function Page() {
         {(activeResult === "compare" || activeResult === "singleCompare" || (activeResult !== "offers" && (loadingNormal || normalResults.length > 0 || (searchPanelOpen && normalSearchAttempted && activeNormalSearchTerm)))) && (
           <div className="fixed inset-0 z-40 flex items-end justify-center overflow-hidden bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0">
             <div ref={compareOverlayScrollRef} className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-50 p-3 shadow-2xl sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:bg-transparent sm:p-0 sm:shadow-none">
-            <div className="grid min-w-0 max-w-full gap-4 overflow-hidden lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+            <div className="grid min-w-0 max-w-full gap-3 sm:gap-4 overflow-hidden lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
             {activeResult === "compare" && showCheapestSticky && cheapest && secondCheapest && (
                 <section ref={savingsSummaryRef} className="min-w-0 max-w-full overflow-hidden rounded-[1.5rem] border border-white/70 bg-white/95 p-3 shadow-[0_18px_55px_rgba(15,23,42,0.10)] backdrop-blur sm:rounded-[2rem] sm:p-6">
                   <div className="rounded-[1.6rem] border border-green-100 bg-gradient-to-br from-white via-white to-green-50 p-4 text-left shadow-[0_18px_55px_rgba(16,185,129,0.14)]">
-                    <div className="relative mx-auto max-w-sm overflow-hidden rounded-[1.5rem] border border-green-100 bg-white px-5 py-5 shadow-xl">
+                    <div className="relative mx-auto max-w-sm overflow-hidden rounded-[1.5rem] border border-green-100 bg-white px-5 py-3 sm:py-5 shadow-xl">
                       <div className="flex items-start justify-between gap-3">
                         <p className="text-[12px] font-extrabold uppercase tracking-wide text-green-700">
                           Halvin täysi kori
@@ -8034,7 +8034,7 @@ export default function Page() {
                         )}
                       </div>
 
-                      <h3 className="mt-3 max-w-full break-words text-[2rem] font-black leading-[1.05] text-slate-900 sm:text-3xl">
+                      <h3 className="mt-3 max-w-full break-words text-[2rem] font-black leading-[1.05] text-slate-900 sm:text-2xl sm:text-3xl">
                         {cheapest.storeName}
                       </h3>
                       <p className="mt-1 text-sm font-bold text-slate-500">
@@ -8107,7 +8107,7 @@ export default function Page() {
                         >
                           <div className="flex items-center gap-3">
                             {result.image && (
-                              <img src={result.image} alt={result.productName} className="h-16 w-16 shrink-0 rounded-xl bg-white object-contain" />
+                              <img src={result.image} alt={result.productName} className="h-12 sm:h-16 w-16 shrink-0 rounded-xl bg-white object-contain" />
                             )}
                             <div className="min-w-0 flex-1">
                               <div className="flex flex-wrap items-center gap-2">
@@ -8273,7 +8273,7 @@ export default function Page() {
 
             {activeResult === "compare" && cart.length > 0 && !searchPanelOpen && (
                 <section ref={comparisonSectionRef} className="rounded-[1.5rem] bg-white p-4 shadow-sm sm:rounded-[2rem] sm:p-6">
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
                   {chainResults.map((chain) => {
                     const isCheapest = cheapest?.key === chain.key;
                     const isComplete = !chain.comingSoon && chain.totalPrice > 0 && chain.missingItems === 0;
@@ -8597,7 +8597,7 @@ export default function Page() {
                         <div className="mt-auto pt-3">
                           <div className="hidden">
                             <div
-                              className={`flex h-14 w-14 items-center justify-center rounded-xl bg-white text-center text-2xl font-black shadow-sm sm:h-16 sm:w-16 ${
+                              className={`flex h-14 w-14 items-center justify-center rounded-xl bg-white text-center text-2xl font-black shadow-sm sm:h-12 sm:h-16 sm:w-16 ${
                                 chain.key === "k"
                                   ? "text-red-600"
                                   : chain.key === "s"
@@ -8625,7 +8625,7 @@ export default function Page() {
                                 </div>
                               )}
 
-                              <p className="max-w-full break-words text-3xl font-extrabold leading-none text-green-700 sm:whitespace-nowrap sm:text-4xl">
+                              <p className="max-w-full break-words text-2xl sm:text-3xl font-extrabold leading-none text-green-700 sm:whitespace-nowrap sm:text-4xl">
                                 {chain.comingSoon ? "—" : chain.totalPrice > 0 ? formatEuro(chain.totalPrice) : "—"}
                               </p>
                               {!chain.comingSoon && <p className="text-sm text-green-700">oikea data</p>}
@@ -8812,7 +8812,7 @@ export default function Page() {
                   Merkitse tuote kerätyksi, kun olet poiminut sen hyllystä. Merkinnät säilyvät sivun päivityksen jälkeen.
                 </p>
 
-                <div className="mt-4 max-h-[46vh] space-y-4 overflow-auto pr-1">
+                <div className="mt-4 max-h-[46vh] space-y-3 sm:space-y-4 overflow-auto pr-1">
                   {(Object.entries(bestShoppingListGroups) as [string, Match[]][]).map(([category, matches]) => (
                     <div key={category}>
                       <p className="mb-2 flex items-center justify-between text-xs font-black uppercase tracking-wide text-slate-400"><span>{category}</span><span>{matches.filter((match, index) => checkedCartItems[getShoppingListItemKey(match, index)]).length}/{matches.length}</span></p>
@@ -9217,8 +9217,8 @@ export default function Page() {
 
                     {eanLoading && (
                       <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-xl bg-slate-700/45 backdrop-blur-[1px]">
-                        <div className="flex flex-col items-center gap-3 rounded-3xl bg-slate-900/80 px-6 py-5 text-white shadow-2xl ring-2 ring-white/20">
-                          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/15 text-4xl font-black animate-pulse">
+                        <div className="flex flex-col items-center gap-3 rounded-3xl bg-slate-900/80 px-6 py-3 sm:py-5 text-white shadow-2xl ring-2 ring-white/20">
+                          <div className="flex h-12 sm:h-16 w-16 items-center justify-center rounded-full bg-white/15 text-4xl font-black animate-pulse">
                             ⏳
                           </div>
                           <div className="text-sm font-black uppercase tracking-[0.22em] text-white/90">
