@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v312";
+const APP_VERSION = "v313";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -8053,7 +8053,7 @@ export default function Page() {
               disabled={storeCompareScope === "within_chain"}
               onClick={() => handleStoreModeChange("hyper")}
               className={`rounded-2xl px-4 py-3 sm:py-3 text-base font-extrabold transition disabled:cursor-not-allowed ${
-                (storeCompareScope === "within_chain" || (storeModeChosenV299 && storeMode === "hyper" && storeCompareScope === "between_chains"))
+                (storeCompareScope === "within_chain" || (storeModeChosenV299 && storeMode === "hyper"))
                   ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                   : "bg-white text-slate-700 ring-1 ring-slate-200"
               }`}
@@ -8065,7 +8065,7 @@ export default function Page() {
               disabled={storeCompareScope === "within_chain"}
               onClick={() => handleStoreModeChange("local")}
               className={`rounded-2xl px-4 py-3 sm:py-3 text-base font-extrabold transition disabled:cursor-not-allowed ${
-                (storeCompareScope === "within_chain" || (storeModeChosenV299 && storeMode === "local" && storeCompareScope === "between_chains"))
+                (storeCompareScope === "within_chain" || (storeModeChosenV299 && storeMode === "local"))
                   ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                   : "bg-white text-slate-700 ring-1 ring-slate-200"
               }`}
@@ -8283,7 +8283,7 @@ return (
                     disabled={storeCompareScope === "within_chain"}
                     onClick={() => handleStoreModeChange("hyper")}
                     className={`rounded-2xl px-4 py-3.5 text-sm font-extrabold transition disabled:cursor-not-allowed ${
-                      (storeCompareScope === "within_chain" || (storeModeChosenV299 && storeMode === "hyper" && storeCompareScope === "between_chains"))
+                      (storeCompareScope === "within_chain" || (storeModeChosenV299 && storeMode === "hyper"))
                         ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                         : "bg-white text-slate-700 ring-1 ring-slate-200"
                     }`}
@@ -8296,7 +8296,7 @@ return (
                     disabled={storeCompareScope === "within_chain"}
                     onClick={() => handleStoreModeChange("local")}
                     className={`rounded-2xl px-4 py-3.5 text-sm font-extrabold transition disabled:cursor-not-allowed ${
-                      (storeCompareScope === "within_chain" || (storeModeChosenV299 && storeMode === "local" && storeCompareScope === "between_chains"))
+                      (storeCompareScope === "within_chain" || (storeModeChosenV299 && storeMode === "local"))
                         ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                         : "bg-white text-slate-700 ring-1 ring-slate-200"
                     }`}
