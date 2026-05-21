@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v289_MOBILE_GPS_PICKER_FIX";
+const APP_VERSION = "v290_BUILDOK_MOBILE_GPS_PICKER";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -7914,9 +7914,6 @@ export default function Page() {
 
     const timer = window.setTimeout(() => {
       try {
-        const hasManualLocation = Boolean((manualAreaInput || "").trim());
-        if (hasManualLocation) return;
-
         localStorage.setItem("ziiply-use-own-location", "1");
         setGpsErrorMessage("");
       } catch {}
