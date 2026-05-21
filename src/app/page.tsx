@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v309_MOBILE_RENDER_FIX_2";
+const APP_VERSION = "v309_BETWEEN_MOBILE_PICKER_FIX";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -7755,46 +7755,55 @@ export default function Page() {
           const pickerKey = `${store.key}-${storeMode}`;
 
           return (
-            <button
+            <div
               key={store.key}
-              type="button"
-              aria-pressed={selected}
-              onClick={() => {
-                if (store.comingSoon) return;
-                setSelectedChains((current) => ({
-                  ...current,
-                  [store.key]: !current[store.key],
-                }));
-              }}
-              className={`${compact ? "min-w-0 rounded-2xl px-2.5 py-3" : "min-w-0 rounded-2xl px-2.5 py-3"} relative text-center shadow-sm ring-1 transition active:scale-[0.98] ${
+              className={`${compact ? "min-w-0 rounded-2xl px-2.5 py-3" : "min-w-0 rounded-2xl px-2.5 py-3"} relative text-center shadow-sm ring-1 transition ${
                 selected
                   ? `${store.selectedTone} ring-current/20`
                   : "border border-slate-200 bg-white text-slate-600 opacity-60 ring-slate-200"
               }`}
             >
-              <span
-                className={`absolute ${compact ? "right-2 top-2 h-5 w-5 text-xs" : "right-2 top-2 h-5 w-5 text-xs"} flex items-center justify-center rounded-full font-black ${
-                  selected ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white" : "bg-slate-100 text-slate-300"
-                }`}
+              <button
+                type="button"
+                aria-pressed={selected}
+                onClick={() => {
+                  if (store.comingSoon) return;
+                  setSelectedChains((current) => ({
+                    ...current,
+                    [store.key]: !current[store.key],
+                  }));
+                  setOpenStorePicker(null);
+                }}
+                className="block w-full text-center active:scale-[0.98]"
               >
-                {selected ? "✓" : ""}
-              </span>
-              <div className={`mx-auto flex ${compact ? "h-9 w-9 text-sm" : "h-9 w-9 text-sm"} items-center justify-center rounded-full font-black shadow-sm ring-4 ${store.tone}`}>
-                {store.logo}
-              </div>
-              <p className={compact ? "mt-2 truncate text-[10px] font-black uppercase tracking-wide text-slate-500" : "mt-2 truncate text-[10px] font-black uppercase tracking-wide text-slate-500"}>
-                {store.title}
-              </p>
-              <p className={compact ? "mt-1 line-clamp-2 min-h-[2rem] text-xs font-extrabold leading-tight text-slate-800" : "mt-1 line-clamp-2 min-h-[2rem] text-xs font-extrabold leading-tight text-slate-800"}>
-                {store.name}
-              </p>
-              {isRealChain && chain && (
-                <span onClick={(event) => event.stopPropagation()} className="relative block">
+                <span
+                  className={`absolute ${compact ? "right-2 top-2 h-5 w-5 text-xs" : "right-2 top-2 h-5 w-5 text-xs"} flex items-center justify-center rounded-full font-black ${
+                    selected ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white" : "bg-slate-100 text-slate-300"
+                  }`}
+                >
+                  {selected ? "✓" : ""}
+                </span>
+                <div className={`mx-auto flex ${compact ? "h-9 w-9 text-sm" : "h-9 w-9 text-sm"} items-center justify-center rounded-full font-black shadow-sm ring-4 ${store.tone}`}>
+                  {store.logo}
+                </div>
+                <p className={compact ? "mt-2 truncate text-[10px] font-black uppercase tracking-wide text-slate-500" : "mt-2 truncate text-[10px] font-black uppercase tracking-wide text-slate-500"}>
+                  {store.title}
+                </p>
+                <p className={compact ? "mt-1 line-clamp-2 min-h-[2rem] text-xs font-extrabold leading-tight text-slate-800" : "mt-1 line-clamp-2 min-h-[2rem] text-xs font-extrabold leading-tight text-slate-800"}>
+                  {store.name}
+                </p>
+              </button>
+
+              {isRealChain && chain && selected && (
+                <div
+                  onClick={(event) => event.stopPropagation()}
+                  className="relative block"
+                >
                   {renderStoreChoiceButton(chain, storeMode, pickerKey, compact)}
                   {renderStorePickerMenu(chain, storeMode, pickerKey, compact)}
-                </span>
+                </div>
               )}
-            </button>
+            </div>
           );
         })}
       </div>
