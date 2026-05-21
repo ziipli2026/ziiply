@@ -185,6 +185,7 @@ type SearchIntentCategory =
   | "cheese"
   | "yogurt"
   | "meat"
+  | "egg"
   | "chicken"
   | "bread"
   | "pasta"
@@ -218,7 +219,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v263";
+const APP_VERSION = "v264";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -391,6 +392,10 @@ function parseTerms(value: string) {
     "kurkku",
     "kana",
     "jauheliha",
+    "kananmuna",
+    "kananmunat",
+    "kananmunia",
+    "munat",
     "sipsit",
     "sipsi",
     "piimä",
@@ -438,6 +443,11 @@ const SEARCH_ALIASES: Record<string, string> = {
 
   // Proteiinit
   kana: "kanasuikale",
+  kananmuna: "kananmuna 10 kpl",
+  kananmunat: "kananmuna 10 kpl",
+  kananmunia: "kananmuna 10 kpl",
+  munat: "kananmuna 10 kpl",
+  muna: "kananmuna 10 kpl",
   kalapuikko: "kalapuikot",
   kalapuikot: "kalapuikot",
 
@@ -592,6 +602,17 @@ const SEARCH_INTENTS: SearchIntent[] = [
     preferredBrands: ["atria", "hk", "snellman", "kotimaista"],
   },
   {
+    category: "egg",
+    label: "Kananmunat",
+    variants: ["kananmuna", "kananmunat", "kananmunia", "munat", "kananmuna 10 kpl", "kananmunat 10 kpl", "vapaan kanan munat", "luomu kananmunat"],
+    requiredAny: ["kananmuna", "kananmunat", "kananmunia", "munat"],
+    preferredAny: ["kananmuna", "kananmunat", "kananmunia", "munat", "10 kpl", "15 kpl", "6 kpl"],
+    bannedAny: ["suklaa", "pääsiäis", "paasiais", "yllätys", "yllatys", "makeinen", "karkki", "lelu", "majoneesi", "munavoi", "munakas", "kastike", "nuudeli", "pasta"],
+    preferredSizes: [{ unitGroup: "weight", min: 0, max: 0, boost: 0 }],
+    preferredBrands: ["kotimaista", "pirkka", "k-menu", "munax", "dava"],
+    ownBrandFriendly: true,
+  },
+  {
     category: "chicken",
     label: "Kana ja broileri",
     variants: ["kana", "broileri", "kanasuikale", "broilerisuikale", "broilerin fileesuikale", "kanan filee"],
@@ -702,6 +723,7 @@ function getPrimaryProductNounQuery(term: string) {
   // Esim. "broilerin jauheliha" / "naudan jauheliha" pitää ensin hakea jauhelihoja,
   // ei broilerin fileitä tai muita broilerituotteita.
   if (hasAnyToken(text, ["jauheliha", "sika-nauta", "sikanauta"])) return "jauheliha";
+  if (hasAnyToken(text, ["kananmuna", "kananmunat", "kananmunia", "munat", "muna"])) return "kananmuna";
 
   return "";
 }
@@ -770,6 +792,10 @@ function getNormalSearchQueries(term: string) {
 
     if (primaryProductNounQuery === "jauheliha") {
       exactQueries.push("jauheliha");
+    }
+
+    if (primaryProductNounQuery === "kananmuna") {
+      exactQueries.push("kananmuna", "kananmunat", "kananmuna 10 kpl");
     }
 
     return uniqueNormalizedQueries(exactQueries);
@@ -3041,6 +3067,8 @@ export default function Page() {
       return [brand, isZero ? (brand === "pepsi" ? "max" : "zero") : "", size].filter(Boolean).join(" ");
     }
 
+    if (hasAnyToken(text, ["kananmuna", "kananmunat", "kananmunia", "munat"])) return "kananmuna";
+
     if (hasAnyToken(text, ["broilerin jauheliha", "kanan jauheliha"])) return "broilerin jauheliha";
     if (hasAnyToken(text, ["naudan jauheliha"])) return "naudan jauheliha";
     if (hasAnyToken(text, ["sika-nauta jauheliha", "sikanauta jauheliha"])) return "sika-nauta jauheliha";
@@ -5042,6 +5070,14 @@ export default function Page() {
     setLastAutoEanSearch("");
     setEanSearchStartedAutomatically(false);
     eanAutoSearchActiveRef.current = false;
+
+    // v264: Kameran/EAN-ikkunan sulkeminen ei saa jättää käyttäjää tyhjälle pääsivulle
+    // eikä avata Vertailu-korttia automaattisesti. Palautetaan aina Hae-kortti näkyviin.
+    setActiveResult("none");
+    setCartModalOpen(false);
+    setCartSavePanelOpen(false);
+    setShopsPanelOpen(false);
+    setSearchPanelOpen(true);
   }
 
   function openEanModal() {
@@ -5056,6 +5092,7 @@ export default function Page() {
 
     setSearchPanelOpen(false);
     setCartModalOpen(false);
+    setActiveResult("none");
     setEanModalOpen(true);
     setEanManualInputOpen(false);
     setEanMessage("");
