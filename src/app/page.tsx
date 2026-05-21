@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v277";
+const APP_VERSION = "v278_SAFE";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -7488,7 +7488,7 @@ export default function Page() {
   return (
     <main className={`min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top,#ecfdf3_0%,#f8fafc_42%,#f1f5f9_100%)] px-2 pb-44 sm:pb-32 pt-[4.75rem] text-slate-950 sm:px-4 sm:py-3 sm:py-4 md:pb-4 ${suppressUiForEanClose ? "pointer-events-none opacity-0" : "opacity-100"}`}>
       {showLaunchScreen && (
-        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-white sm:hidden">
+        <div className="fixed inset-0 z-[90] flex items-center justify-center bg-white">
           <div className="absolute right-5 top-[calc(env(safe-area-inset-top)+0.75rem)]">
             <span className="rounded-full bg-green-50 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-green-700 ring-1 ring-green-100">{APP_VERSION}</span>
           </div>
@@ -7503,7 +7503,7 @@ export default function Page() {
         </div>
       )}
 
-      <header className="fixed left-0 right-0 top-0 z-50 border-b border-white/70 bg-white/80 px-3 pb-2 pt-[calc(env(safe-area-inset-top)+0.55rem)] shadow-[0_10px_30px_rgba(15,23,42,0.06)] backdrop-blur-2xl sm:hidden">
+      <header className="fixed left-0 right-0 top-0 z-50 border-b border-white/70 bg-white/80 px-3 pb-2 pt-[calc(env(safe-area-inset-top)+0.55rem)] shadow-[0_10px_30px_rgba(15,23,42,0.06)] backdrop-blur-2xl">
         <div className="mx-auto flex max-w-md items-center justify-between gap-3">
           <div className="min-w-0">
             <img
@@ -7543,7 +7543,7 @@ export default function Page() {
         </section>
 
         {!searchPanelOpen && !cartModalOpen && !shopsPanelOpen && !eanModalOpen && activeResult === "none" && (
-          <section className="flex min-h-[calc(100dvh-12rem)] flex-col items-center justify-center px-8 text-center sm:hidden">
+          <section className="flex min-h-[calc(100dvh-12rem)] flex-col items-center justify-center px-8 text-center">
             <img
               src="/ziiply.png"
               alt="Ziiply"
