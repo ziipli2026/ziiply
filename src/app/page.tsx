@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v309_MOBILE_RENDER_FIX";
+const APP_VERSION = "v309_MOBILE_RENDER_FIX_2";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -7599,7 +7599,7 @@ export default function Page() {
 
     return (
       <div
-        className={`fixed left-1/2 top-[calc(env(safe-area-inset-top)+8.5rem)] z-[90] max-h-[62dvh] w-[min(78vw,340px)] -translate-x-1/2 overflow-auto rounded-2xl bg-white p-3 text-left shadow-2xl ring-1 ring-slate-200 sm:absolute sm:top-full sm:z-50 sm:mt-2 sm:max-h-64 sm:w-[min(78vw,340px)] ${compact ? "text-xs" : "text-sm"}`}
+        className={`${compact ? "fixed left-3 right-3 top-[calc(env(safe-area-inset-top)+8rem)] z-[90] max-h-[52dvh] w-auto overflow-auto rounded-2xl bg-white p-3 text-left shadow-2xl ring-1 ring-slate-200 text-sm" : "absolute left-1/2 top-full z-50 mt-2 max-h-64 w-[min(78vw,340px)] -translate-x-1/2 overflow-auto rounded-2xl bg-white p-3 text-left text-sm shadow-2xl ring-1 ring-slate-200"}`}
         style={{ minWidth: "260px", maxWidth: "340px" }}
       >
         {options.length <= 1 ? (
@@ -7724,16 +7724,16 @@ export default function Page() {
                 </button>
 
                 {selected && (
-                  <div className="mt-2 grid grid-cols-2 gap-1.5">
-                    <div className="relative rounded-xl bg-white/80 p-1.5 text-center ring-1 ring-slate-200">
+                  <div className={compact ? "mt-2 grid grid-cols-1 gap-2" : "mt-2 grid grid-cols-2 gap-1.5"}>
+                    <div className={compact ? "relative rounded-xl bg-white/90 p-2 text-center ring-1 ring-slate-200" : "relative rounded-xl bg-white/80 p-1.5 text-center ring-1 ring-slate-200"}>
                       <p className="text-[9px] font-black uppercase text-slate-400">Kauppa 1</p>
-                      <p className="line-clamp-2 min-h-[1.7rem] text-[10px] font-extrabold leading-tight text-slate-800">{storeNameA}</p>
+                      <p className={compact ? "min-h-0 text-xs font-extrabold leading-tight text-slate-800" : "line-clamp-2 min-h-[1.7rem] text-[10px] font-extrabold leading-tight text-slate-800"}>{storeNameA}</p>
                       {renderStoreChoiceButton(chain, modeA, `${store.key}-within-hyper`, compact)}
                       {renderStorePickerMenu(chain, modeA, `${store.key}-within-hyper`, compact)}
                     </div>
-                    <div className="relative rounded-xl bg-white/80 p-1.5 text-center ring-1 ring-slate-200">
+                    <div className={compact ? "relative rounded-xl bg-white/90 p-2 text-center ring-1 ring-slate-200" : "relative rounded-xl bg-white/80 p-1.5 text-center ring-1 ring-slate-200"}>
                       <p className="text-[9px] font-black uppercase text-slate-400">Kauppa 2</p>
-                      <p className="line-clamp-2 min-h-[1.7rem] text-[10px] font-extrabold leading-tight text-slate-800">{storeNameB}</p>
+                      <p className={compact ? "min-h-0 text-xs font-extrabold leading-tight text-slate-800" : "line-clamp-2 min-h-[1.7rem] text-[10px] font-extrabold leading-tight text-slate-800"}>{storeNameB}</p>
                       {renderStoreChoiceButton(chain, modeB, `${store.key}-within-local`, compact)}
                       {renderStorePickerMenu(chain, modeB, `${store.key}-within-local`, compact)}
                     </div>
@@ -8108,7 +8108,7 @@ return (
 
         {shopsPanelOpen && (
           <div className="fixed inset-0 z-40 flex items-end justify-center overflow-y-auto overscroll-contain bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:hidden">
-            <div className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-visible rounded-[1.5rem] bg-slate-100 p-3 shadow-2xl" style={{ width: "100%" }}>
+            <div className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[28rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-100 p-3 shadow-2xl">
               <section className="rounded-[1.25rem] border border-slate-200 bg-white/95 p-2 shadow-sm">
                 <div className="flex items-center gap-2">
                   <button
@@ -8141,14 +8141,14 @@ return (
                       setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
                     }}
                     placeholder="05510 tai Hyvinkää"
-                    className="min-w-0 flex-[0_1_11rem] max-w-[11rem] rounded-xl border border-slate-300 px-3 py-3 text-[16px] outline-none focus:border-green-600"
+                    className="min-w-0 flex-1 rounded-xl border border-slate-300 px-3 py-3 text-[16px] outline-none focus:border-green-600"
                   />
 
                   <button
                     type="button"
                     onClick={() => applyLocation()}
                     disabled={storeSearchLoading}
-                    className="min-w-[76px] shrink-0 rounded-xl bg-slate-900 px-4 py-3 text-sm font-extrabold text-white transition disabled:cursor-not-allowed active:scale-[0.98]"
+                    className="min-w-[70px] shrink-0 rounded-xl bg-slate-900 px-3 py-3 text-sm font-extrabold text-white transition disabled:cursor-not-allowed active:scale-[0.98]"
                   >
                     Käytä
                   </button>
