@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v307_GPS_DEFAULT_STORE_MODE_FIX";
+const APP_VERSION = "v308_STORE_MODE_SCOPE_LOCK";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -4394,7 +4394,9 @@ export default function Page() {
     // v306_STORE_PICKER_GPS_HARD_LOCK:
     // Kaupan valitseminen EI saa koskaan itsestään aktivoida Tavaratalot/Lähikaupat-nappia.
     // Moodin saa valita vain Hakutapa-napeista. Jos moodi on jo valittu, pidetään se vakaana.
-    if (storeModeChosenV299) {
+    if (storeCompareScope === "between_chains" && storeModeChosenV299) {
+      // Vain käyttäjän lukitsema between_chains-hakutapa saa pysyä aktiivisena.
+      // Ketjun sisällä -valinnat eivät saa muuttaa Tavaratalot/Lähikaupat-lukkoa.
       selectedStoreModeRefV302.current = effectiveStoreMode;
       setStoreMode(effectiveStoreMode);
     }
@@ -7411,8 +7413,14 @@ export default function Page() {
     setOpenStorePicker(null);
 
     if (nextScope === "between_chains") {
+      // v308_STORE_MODE_SCOPE_LOCK:
+      // Ketjujen välillä -tilaan palatessa kumpikaan kauppatyyppi ei saa jäädä päälle.
+      // Tavaratalot/Lähikaupat aktivoituvat vasta, kun käyttäjä painaa niitä itse.
       setStoreCompareScope("between_chains");
       setWithinChain(null);
+      setStoreModeChosenV299(false);
+      selectedStoreModeRefV302.current = "hyper";
+      setStoreMode("hyper");
       setSelectedChains((current) => ({
         ...current,
         s: true,
@@ -7420,12 +7428,18 @@ export default function Page() {
         lidl: false,
         tokmanni: false,
       }));
-      setLocationMessage(`${activeArea.label || "Alue"} käytössä. Valitse vertailtavat ketjut.`);
+      clearSearchAndComparisonState();
+      setLocationMessage(`${activeArea.label || "Alue"} käytössä. Valitse hakutapa: Tavaratalot tai Lähikaupat.`);
       return;
     }
 
+    // Ketjun sisällä näyttää sekä tavaratalo- että lähikauppavalinnan vihreänä,
+    // mutta ei tallenna kumpaakaan varsinaiseksi between_chains-hakutavaksi.
     setStoreCompareScope("within_chain");
     setWithinChain(null);
+    setStoreModeChosenV299(false);
+    selectedStoreModeRefV302.current = "hyper";
+    setStoreMode("hyper");
     setSelectedChains((current) => ({
       ...current,
       s: false,
@@ -7433,6 +7447,7 @@ export default function Page() {
       lidl: false,
       tokmanni: false,
     }));
+    clearSearchAndComparisonState();
     setLocationMessage("Valitse S-ryhmä tai K-ryhmä ketjun sisäistä vertailua varten.");
   }
 
@@ -7458,17 +7473,19 @@ export default function Page() {
   function getStoresForPickerOptionsV295(chain: "S" | "K", mode: StoreMode) {
     const chainStores = foundStores.filter((store) => store.type === chain);
 
-    // Ketjun sisällä: salli saman ketjun tavaratalot ja lähikaupat.
-    if (storeCompareScope === "within_chain") {
-      return chainStores;
-    }
+    // v308_STORE_MODE_SCOPE_LOCK:
+    // Käytetään samaa laajaa kauppapohjaa sekä Lähikaupat-tilassa että Ketjun sisällä -tilassa.
+    // Tavaratalo = Prisma / K-Citymarket. Lähikauppa = kaikki saman ketjun ei-tavaratalot,
+    // myös ne, joita vanha liian tiukka S-market/K-market-filteri ei tunnistanut.
+    const hyperStores = chainStores.filter(isHyperStoreForModeV295);
+    const expandedLocalStores = chainStores.filter((store) => !isHyperStoreForModeV295(store));
+    const strictLocalStores = chainStores.filter(isLocalStoreForModeV295);
 
-    // Ketjujen välillä: tavaratalot ja lähikaupat eivät saa sekoittua.
     if (mode === "hyper") {
-      return chainStores.filter(isHyperStoreForModeV295);
+      return hyperStores;
     }
 
-    return chainStores.filter(isLocalStoreForModeV295);
+    return expandedLocalStores.length > 0 ? expandedLocalStores : strictLocalStores;
   }
 
   function getStoresForPicker(chain: "S" | "K", mode: StoreMode) {
@@ -7800,6 +7817,10 @@ export default function Page() {
               type="button"
               aria-pressed={usingOwnLocation}
               onClick={() => {
+                if (usingOwnLocation) {
+                  stopOwnLocationV306("GPS pois päältä. Kirjoita alue tai postinumero.");
+                  return;
+                }
                 setLocationInput("");
                 useOwnLocation();
               }}
@@ -7807,7 +7828,7 @@ export default function Page() {
               className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-xl font-black shadow-sm ring-1 transition active:scale-[0.98] ${
                 usingOwnLocation
                   ? "bg-green-50 text-green-600 ring-green-100"
-                  : "bg-white text-slate-500 ring-slate-200"
+                  : "bg-red-50 text-red-600 ring-red-100"
               }`}
             >
               📍
@@ -7857,8 +7878,8 @@ export default function Page() {
               type="button"
               disabled={storeCompareScope === "within_chain"}
               onClick={() => handleStoreModeChange("hyper")}
-              className={`rounded-2xl px-4 py-3 sm:py-3 text-base font-extrabold transition disabled:cursor-not-allowed disabled:opacity-45 ${
-                storeModeChosenV299 && storeMode === "hyper" && storeCompareScope === "between_chains"
+              className={`rounded-2xl px-4 py-3 sm:py-3 text-base font-extrabold transition disabled:cursor-not-allowed ${
+                (storeCompareScope === "within_chain" || (storeModeChosenV299 && storeMode === "hyper" && storeCompareScope === "between_chains"))
                   ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                   : "bg-white text-slate-700 ring-1 ring-slate-200"
               }`}
@@ -7869,8 +7890,8 @@ export default function Page() {
               type="button"
               disabled={storeCompareScope === "within_chain"}
               onClick={() => handleStoreModeChange("local")}
-              className={`rounded-2xl px-4 py-3 sm:py-3 text-base font-extrabold transition disabled:cursor-not-allowed disabled:opacity-45 ${
-                storeModeChosenV299 && storeMode === "local" && storeCompareScope === "between_chains"
+              className={`rounded-2xl px-4 py-3 sm:py-3 text-base font-extrabold transition disabled:cursor-not-allowed ${
+                (storeCompareScope === "within_chain" || (storeModeChosenV299 && storeMode === "local" && storeCompareScope === "between_chains"))
                   ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                   : "bg-white text-slate-700 ring-1 ring-slate-200"
               }`}
@@ -8036,6 +8057,10 @@ return (
                     type="button"
                     aria-pressed={usingOwnLocation}
                     onClick={() => {
+                      if (usingOwnLocation) {
+                        stopOwnLocationV306("GPS pois päältä. Kirjoita alue tai postinumero.");
+                        return;
+                      }
                       setLocationInput("");
                       useOwnLocation();
                     }}
@@ -8043,7 +8068,7 @@ return (
                     className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-lg font-black shadow-sm ring-1 transition active:scale-[0.98] ${
                       usingOwnLocation
                         ? "bg-green-50 text-green-600 ring-green-100"
-                        : "bg-white text-slate-500 ring-slate-200"
+                        : "bg-red-50 text-red-600 ring-red-100"
                     }`}
                   >
                     📍
@@ -8083,8 +8108,8 @@ return (
                     type="button"
                     disabled={storeCompareScope === "within_chain"}
                     onClick={() => handleStoreModeChange("hyper")}
-                    className={`rounded-2xl px-4 py-3.5 text-sm font-extrabold transition disabled:cursor-not-allowed disabled:opacity-45 ${
-                      storeModeChosenV299 && storeMode === "hyper" && storeCompareScope === "between_chains"
+                    className={`rounded-2xl px-4 py-3.5 text-sm font-extrabold transition disabled:cursor-not-allowed ${
+                      (storeCompareScope === "within_chain" || (storeModeChosenV299 && storeMode === "hyper" && storeCompareScope === "between_chains"))
                         ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                         : "bg-white text-slate-700 ring-1 ring-slate-200"
                     }`}
@@ -8096,8 +8121,8 @@ return (
                     type="button"
                     disabled={storeCompareScope === "within_chain"}
                     onClick={() => handleStoreModeChange("local")}
-                    className={`rounded-2xl px-4 py-3.5 text-sm font-extrabold transition disabled:cursor-not-allowed disabled:opacity-45 ${
-                      storeModeChosenV299 && storeMode === "local" && storeCompareScope === "between_chains"
+                    className={`rounded-2xl px-4 py-3.5 text-sm font-extrabold transition disabled:cursor-not-allowed ${
+                      (storeCompareScope === "within_chain" || (storeModeChosenV299 && storeMode === "local" && storeCompareScope === "between_chains"))
                         ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                         : "bg-white text-slate-700 ring-1 ring-slate-200"
                     }`}
