@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v291_MOBILE_ONLY_GPS_PICKER";
+const APP_VERSION = "v292_BUILDOK_MOBILE_PICKER";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -7967,7 +7967,7 @@ return (
 
         {shopsPanelOpen && (
           <div className="fixed inset-0 z-40 flex items-end justify-center overflow-y-auto overscroll-contain bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:hidden">
-            <div className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-100 p-3 shadow-2xl" style={ width: "100%" }>
+            <div className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-100 p-3 shadow-2xl" style={{ width: "100%" }}>
               <section className="rounded-[1.25rem] border border-slate-200 bg-white/95 p-2 shadow-sm">
                 <div className="flex items-center gap-2">
                   <button
@@ -8130,7 +8130,7 @@ return (
                     <div className="grid gap-2">
                       <div>
                         <p className="mb-2 text-xs font-bold uppercase tracking-wide text-green-700">S-ryhmä</p>
-                        <div className="max-h-44 space-y-2 overflow-auto pr-1" style={ width: "100%" }>
+                        <div className="max-h-44 space-y-2 overflow-auto pr-1" style={{ width: "100%" }}>
                           {foundStores.filter((store) => {
                       if (store.type !== "S") return false;
                       if (storeCompareScope === "within_chain") return true;
@@ -8166,7 +8166,7 @@ return (
 
                       <div>
                         <p className="mb-2 text-xs font-bold uppercase tracking-wide text-green-700">K-ryhmä</p>
-                        <div className="max-h-44 space-y-2 overflow-auto pr-1" style={ width: "100%" }>
+                        <div className="max-h-44 space-y-2 overflow-auto pr-1" style={{ width: "100%" }}>
                           {foundStores.filter((store) => {
                       if (store.type !== "K") return false;
                       if (storeCompareScope === "within_chain") return true;
@@ -8471,7 +8471,7 @@ return (
                       <div key={item} className="rounded-2xl border border-slate-200 p-3">
                         <div className="flex items-center gap-3">
                           <div className="h-12 w-12 animate-pulse rounded-xl bg-slate-100" />
-                          <div className="min-w-0 flex-1 space-y-2" style={ width: "100%" }>
+                          <div className="min-w-0 flex-1 space-y-2" style={{ width: "100%" }}>
                             <div className="h-4 w-3/4 animate-pulse rounded bg-slate-100" />
                             <div className="h-3 w-1/2 animate-pulse rounded bg-slate-100" />
                             <div className="h-5 w-24 animate-pulse rounded bg-slate-100" />
@@ -8623,7 +8623,7 @@ return (
                             <div className="mb-2">
                               <p className="text-xs font-black uppercase tracking-wide text-slate-500">Tuotteet</p>
                             </div>
-                            <div className="space-y-2" style={ width: "100%" }>
+                            <div className="space-y-2" style={{ width: "100%" }}>
                               {chain.matches.map((match, index) => {
                                 const isOwnBrandMatch =
                                   (chain.key === "k" && isKOwnBrandProduct(match.product.name)) ||
@@ -8692,7 +8692,7 @@ return (
                                         onPointerDown={() => startAlternativesAutoCloseTimer(getAlternativeKey(chain.key, match, index))}
                                         className="fixed inset-0 z-[80] flex items-end justify-center bg-black/40 px-3 pb-3 pt-10 sm:items-center sm:p-4"
                                       >
-                                        <div className="max-h-[82vh] w-full max-w-xl overflow-y-auto rounded-t-[1.75rem] bg-slate-50 p-3 text-xs text-slate-600 shadow-2xl ring-1 ring-slate-200 sm:rounded-[1.75rem]" style={ width: "100%" }><div className="flex items-center justify-between gap-3">
+                                        <div className="max-h-[82vh] w-full max-w-xl overflow-y-auto rounded-t-[1.75rem] bg-slate-50 p-3 text-xs text-slate-600 shadow-2xl ring-1 ring-slate-200 sm:rounded-[1.75rem]" style={{ width: "100%" }}><div className="flex items-center justify-between gap-3">
                                           <div className="min-w-0 flex-1 overflow-hidden">
                                             <p className="font-extrabold text-slate-700">Vaihtoehdot tuotteelle</p>
                                             <p className="mt-0.5 truncate text-xs font-bold text-slate-500">{fixText(match.product.name)}</p>
@@ -8774,7 +8774,7 @@ return (
                                           </button>
                                         )}
 
-                                        <div className="mt-2 space-y-2" style={ width: "100%" }>
+                                        <div className="mt-2 space-y-2" style={{ width: "100%" }}>
                                           {(alternativeResults[getAlternativeKey(chain.key, match, index)] || []).map((alternative, alternativeIndex) => {
                                             const alternativePrice = getProductPrice(alternative);
                                             const priceDiff = alternativePrice - match.price;
@@ -9091,11 +9091,11 @@ return (
                   Merkitse tuote kerätyksi, kun olet poiminut sen hyllystä. Merkinnät säilyvät sivun päivityksen jälkeen.
                 </p>
 
-                <div className="mt-4 max-h-[46vh] space-y-3 sm:space-y-4 overflow-auto pr-1" style={ width: "100%" }>
+                <div className="mt-4 max-h-[46vh] space-y-3 sm:space-y-4 overflow-auto pr-1" style={{ width: "100%" }}>
                   {(Object.entries(bestShoppingListGroups) as [string, Match[]][]).map(([category, matches]) => (
                     <div key={category}>
                       <p className="mb-2 flex items-center justify-between text-xs font-black uppercase tracking-wide text-slate-400"><span>{category}</span><span>{matches.filter((match, index) => checkedCartItems[getShoppingListItemKey(match, index)]).length}/{matches.length}</span></p>
-                      <div className="space-y-2" style={ width: "100%" }>
+                      <div className="space-y-2" style={{ width: "100%" }}>
                         {matches.map((match, index) => {
                           const key = getShoppingListItemKey(match, index);
                           const checked = Boolean(checkedCartItems[key]);
@@ -9312,7 +9312,7 @@ return (
                   className={`${instantSearchSuggestions.length > 0 ? "h-[calc(100%-8.8rem)] min-h-[5.4rem]" : "h-[calc(100%-3.8rem)] min-h-[7.5rem]"} w-full resize-none rounded-[1rem] border border-slate-200 bg-slate-50/70 px-3 py-2.5 text-[16px] font-semibold leading-snug text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-green-500 focus:bg-white focus:ring-4 focus:ring-green-100`}
                 />
                 {instantSearchSuggestions.length > 0 && (
-                  <div className="mt-1.5 flex max-h-[4.65rem] flex-wrap gap-1.5 overflow-hidden px-1" style={ width: "100%" }>
+                  <div className="mt-1.5 flex max-h-[4.65rem] flex-wrap gap-1.5 overflow-hidden px-1" style={{ width: "100%" }}>
                     {instantSearchSuggestions.map((suggestion) => (
                       <button
                         key={`${suggestion.hint}-${suggestion.label}`}
@@ -9385,7 +9385,7 @@ return (
 
       {eanModalOpen && (
           <div className="fixed inset-0 z-[80] flex items-end justify-center overflow-hidden overscroll-none bg-black/40 px-3 pb-3 pt-10 sm:items-center sm:p-4">
-            <div className="max-h-[calc(100dvh-1.5rem)] w-[min(94vw,34rem)] overflow-y-auto overscroll-contain rounded-[1.5rem] bg-white p-4 shadow-2xl ring-1 ring-slate-200 [WebkitOverflowScrolling:touch] sm:max-h-[calc(100dvh-2rem)] sm:p-5" style={ width: "100%" }>
+            <div className="max-h-[calc(100dvh-1.5rem)] w-[min(94vw,34rem)] overflow-y-auto overscroll-contain rounded-[1.5rem] bg-white p-4 shadow-2xl ring-1 ring-slate-200 [WebkitOverflowScrolling:touch] sm:max-h-[calc(100dvh-2rem)] sm:p-5" style={{ width: "100%" }}>
               <div>
                 <p className="text-lg font-extrabold text-slate-900">EAN / viivakoodi</p>
               </div>
@@ -9482,7 +9482,7 @@ return (
 
               {eanScannerOpen && (
                 <div className="mt-3 overflow-hidden rounded-2xl bg-slate-950 p-2 ring-1 ring-slate-200">
-                  <div className="relative mx-auto h-[min(78vw,390px)] max-h-[390px] min-h-[300px] w-full max-w-[390px] overflow-hidden rounded-xl bg-slate-950" style={ width: "100%" }>
+                  <div className="relative mx-auto h-[min(78vw,390px)] max-h-[390px] min-h-[300px] w-full max-w-[390px] overflow-hidden rounded-xl bg-slate-950" style={{ width: "100%" }}>
                     <div
                       id={EAN_SCANNER_REGION_ID}
                       className="h-full w-full overflow-hidden rounded-xl bg-slate-950 [&_canvas]:!hidden [&_video]:!h-full [&_video]:!w-full [&_video]:rounded-xl [&_video]:object-cover"
