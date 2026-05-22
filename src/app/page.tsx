@@ -231,7 +231,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "V320haku-8";
+const APP_VERSION = "V320haku-9";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -10235,13 +10235,7 @@ return (
                       <div className="grid grid-cols-2 gap-2">
                         <button
                           type="button"
-                          onClick={openEanModal}
-                          className="min-h-[2.5rem] touch-manipulation rounded-[0.95rem] bg-emerald-700 px-2 text-xs font-black text-white shadow-sm transition active:scale-[0.98]"
-                        >
-                          <span className="inline-flex items-center justify-center gap-1.5"><span aria-hidden="true">▦</span><span>EAN / SKANNAA</span></span>
-                        </button>
-                        <button
-                          type="button"
+                          onPointerDown={(event) => event.preventDefault()}
                           onClick={handleMainNormalSearch}
                           disabled={!hasSearchInput || loadingNormal || singleProductCompareLoading}
                           aria-disabled={!hasSearchInput || loadingNormal || singleProductCompareLoading}
@@ -10252,6 +10246,14 @@ return (
                           }`}
                         >
                           {loadingNormal || singleProductCompareLoading ? "Haetaan..." : "🔎 Vertailu"}
+                        </button>
+                        <button
+                          type="button"
+                          onPointerDown={(event) => event.preventDefault()}
+                          onClick={openEanModal}
+                          className="min-h-[2.5rem] touch-manipulation rounded-[0.95rem] bg-emerald-700 px-2 text-xs font-black text-white shadow-sm transition active:scale-[0.98]"
+                        >
+                          <span className="inline-flex items-center justify-center gap-1.5"><span aria-hidden="true">▦</span><span>EAN / SKANNAA</span></span>
                         </button>
                       </div>
                     </div>
@@ -10267,7 +10269,7 @@ return (
                         isListening
                           ? "bg-red-600 text-white"
                           : speechSupported
-                            ? "bg-white text-slate-800 ring-1 ring-slate-200"
+                            ? "bg-blue-600 text-white shadow-md shadow-blue-500/20 ring-1 ring-blue-700/10"
                             : "bg-slate-100 text-slate-400 ring-1 ring-slate-200"
                       }`}
                     >
