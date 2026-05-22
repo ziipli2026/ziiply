@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v319";
+const APP_VERSION = "v320store";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -7851,7 +7851,7 @@ export default function Page() {
       const selectedChainKey = withinChain === "S" ? "s" : withinChain === "K" ? "k" : null;
 
       return (
-        <div className={compact ? "mt-3 grid grid-cols-1 gap-2" : "mt-3 grid grid-cols-2 gap-3"}>
+        <div className={compact ? "grid h-full min-h-0 grid-cols-1 content-start gap-2 overflow-hidden" : "mt-3 grid grid-cols-2 gap-3"}>
           {chainCards.map((store) => {
             const selected = selectedChainKey === store.key;
             const chain = store.key === "s" ? "S" : "K";
@@ -7863,7 +7863,7 @@ export default function Page() {
             return (
               <div
                 key={store.key}
-                className={`${compact ? "rounded-xl p-2" : "rounded-2xl p-3"} relative shadow-sm ring-1 transition ${
+                className={`${compact ? "rounded-2xl p-3" : "rounded-2xl p-3"} relative shadow-sm ring-1 transition ${
                   selected ? `${store.selectedTone} ring-current/20` : "border border-slate-200 bg-white text-slate-600 ring-slate-200"
                 }`}
               >
@@ -7897,7 +7897,7 @@ export default function Page() {
                 </button>
 
                 {selected && (
-                  <div className={compact ? "mt-2 grid grid-cols-1 gap-2" : "mt-2 grid grid-cols-2 gap-1.5"}>
+                  <div className={compact ? "mt-2 grid grid-cols-2 gap-2" : "mt-2 grid grid-cols-2 gap-1.5"}>
                     <div className={compact ? "relative rounded-xl bg-white/90 p-2 text-center ring-1 ring-slate-200" : "relative rounded-xl bg-white/80 p-1.5 text-center ring-1 ring-slate-200"}>
                       <p className="text-[9px] font-black uppercase text-slate-400">Kauppa 1</p>
                       <p className={compact ? "min-h-0 text-xs font-extrabold leading-tight text-slate-800" : "line-clamp-2 min-h-[1.7rem] text-[10px] font-extrabold leading-tight text-slate-800"}>{storeNameA}</p>
@@ -7920,7 +7920,7 @@ export default function Page() {
     }
 
     return (
-      <div className={compact ? "mt-3 grid grid-cols-2 gap-2" : "mt-3 grid grid-cols-4 gap-2 sm:gap-3"}>
+      <div className={compact ? "grid h-full min-h-0 grid-cols-2 content-start gap-2 overflow-hidden" : "mt-3 grid grid-cols-4 gap-2 sm:gap-3"}>
         {comparedStoreCards.map((store) => {
           const selected = selectedChains[store.key];
           const isRealChain = store.key === "s" || store.key === "k";
@@ -7930,7 +7930,7 @@ export default function Page() {
           return (
             <div
               key={store.key}
-              className={`${compact ? "min-w-0 rounded-2xl px-2.5 py-3" : "min-w-0 rounded-2xl px-2.5 py-3"} relative text-center shadow-sm ring-1 transition ${
+              className={`${compact ? "min-w-0 rounded-2xl px-3 py-4" : "min-w-0 rounded-2xl px-2.5 py-3"} relative text-center shadow-sm ring-1 transition ${
                 selected
                   ? `${store.selectedTone} ring-current/20`
                   : "border border-slate-200 bg-white text-slate-600 opacity-60 ring-slate-200"
@@ -8053,6 +8053,9 @@ export default function Page() {
           </div>
           <div className="flex shrink-0 flex-col items-end gap-1">
             <span className="rounded-full bg-green-50 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-green-700 ring-1 ring-green-100">{APP_VERSION}</span>
+            <span className="max-w-[220px] truncate rounded-full bg-green-50/90 px-3 py-1 text-[10px] font-black text-green-800 ring-1 ring-green-100">
+              📍 {activeArea.label} · {storeCompareScope === "between_chains" ? (storeMode === "local" ? "Lähikaupat" : "Tavaratalot") : storeCompareScope === "within_chain" ? "Ketjun sisältä" : "Valitse hakutapa"}
+            </span>
           </div>
         </div>
         {!isOnline && (
@@ -8327,9 +8330,9 @@ return (
 
 
         {shopsPanelOpen && (
-          <div className={`fixed inset-0 z-40 flex items-end justify-center overflow-y-auto overscroll-contain bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:hidden ${closingPanels.shops ? "ziiply-soft-close" : "ziiply-soft-open"}`}>
-            <div className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[28rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.5rem] bg-slate-100 p-3 shadow-2xl">
-              <section className="rounded-[1.25rem] border border-slate-200 bg-white/95 p-2 shadow-sm">
+          <div className={`fixed inset-0 z-40 flex items-end justify-center overflow-hidden overscroll-none bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6.75rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:hidden ${closingPanels.shops ? "ziiply-soft-close" : "ziiply-soft-open"}`}>
+            <div className="h-[min(72dvh,680px)] w-full max-w-[28rem] overflow-hidden overscroll-none rounded-[1.5rem] bg-slate-100 p-3 shadow-2xl">
+              <section className="flex h-full min-h-0 flex-col rounded-[1.25rem] border border-slate-200 bg-white/95 p-2 shadow-sm">
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
@@ -8378,7 +8381,11 @@ return (
                   {locationMessage}
                 </div>
 
-              <div data-v282="v282_MOBILE_HAKUTAPA_RENDER_MARKER" className="mt-3 rounded-[1.5rem] bg-slate-50 p-3 ring-1 ring-slate-200">
+              <div className="mt-3 min-h-0 flex-1 overflow-hidden rounded-[1.5rem] bg-white/70 p-2 ring-1 ring-slate-200">
+                {renderComparedStoreCards(true)}
+              </div>
+
+              <div data-v320store="fixed-one-hand-shop-actions" className="mt-3 shrink-0 rounded-[1.5rem] bg-slate-50 p-3 ring-1 ring-slate-200">
                 <p className="mb-2 text-xs font-black uppercase tracking-wide text-slate-500">Hakutapa</p>
 
                 <div className="grid grid-cols-2 gap-2">
@@ -8386,7 +8393,7 @@ return (
                     type="button"
                     disabled={storeCompareScope === "within_chain"}
                     onClick={() => handleStoreModeChange("hyper")}
-                    className={`rounded-2xl px-4 py-3.5 text-sm font-extrabold transition disabled:cursor-not-allowed ${
+                    className={`min-h-[4rem] rounded-2xl px-4 py-4 text-sm font-extrabold transition disabled:cursor-not-allowed ${
                       (storeCompareScope === "within_chain" || (storeModeChosenV299 && storeMode === "hyper"))
                         ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                         : "bg-white text-slate-700 ring-1 ring-slate-200"
@@ -8399,7 +8406,7 @@ return (
                     type="button"
                     disabled={storeCompareScope === "within_chain"}
                     onClick={() => handleStoreModeChange("local")}
-                    className={`rounded-2xl px-4 py-3.5 text-sm font-extrabold transition disabled:cursor-not-allowed ${
+                    className={`min-h-[4rem] rounded-2xl px-4 py-4 text-sm font-extrabold transition disabled:cursor-not-allowed ${
                       (storeCompareScope === "within_chain" || (storeModeChosenV299 && storeMode === "local"))
                         ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                         : "bg-white text-slate-700 ring-1 ring-slate-200"
@@ -8413,7 +8420,7 @@ return (
                   <button
                     type="button"
                     onClick={() => handleStoreCompareScopeChange("between_chains")}
-                    className={`rounded-2xl px-4 py-3.5 text-sm font-extrabold transition ${
+                    className={`min-h-[4rem] rounded-2xl px-4 py-4 text-sm font-extrabold transition ${
                       (storeCompareScope === "between_chains")
                         ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                         : "bg-white text-slate-700 ring-1 ring-slate-200"
@@ -8425,7 +8432,7 @@ return (
                   <button
                     type="button"
                     onClick={() => handleStoreCompareScopeChange("within_chain")}
-                    className={`rounded-2xl px-4 py-3.5 text-sm font-extrabold transition ${
+                    className={`min-h-[4rem] rounded-2xl px-4 py-4 text-sm font-extrabold transition ${
                       storeCompareScope === "within_chain"
                         ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                         : "bg-white text-slate-700 ring-1 ring-slate-200"
@@ -8435,7 +8442,6 @@ return (
                   </button>
                 </div>
               </div>
-{renderComparedStoreCards(true)}
               </section>
 
               
