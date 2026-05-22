@@ -231,7 +231,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "V320haku-1";
+const APP_VERSION = "V320haku-2";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -8388,8 +8388,8 @@ export default function Page() {
             return (
               <div
                 key={store.key}
-                className={`${compact ? "min-h-[9.2rem] rounded-xl p-2" : "rounded-2xl p-3"} relative shadow-sm ring-1 transition ${
-                  selected ? `${store.selectedTone} ring-current/20` : "border border-slate-200 bg-white text-slate-600 ring-slate-200"
+                className={`${compact ? "min-h-[7.8rem] rounded-xl p-2" : "rounded-2xl p-3"} relative border shadow-sm ring-1 transition ${
+                  selected ? `${store.selectedTone} ring-current/20` : "border-slate-200 bg-white text-slate-600 ring-slate-200"
                 }`}
               >
                 <button
@@ -8459,10 +8459,10 @@ export default function Page() {
           return (
             <div
               key={store.key}
-              className={`${compact ? "min-w-0 rounded-2xl px-2 py-2" : "min-w-0 rounded-2xl px-2.5 py-3"} relative text-center shadow-sm ring-1 transition ${
+              className={`${compact ? "min-w-0 rounded-2xl px-2 py-2" : "min-w-0 rounded-2xl px-2.5 py-3"} relative flex flex-col items-center justify-start border text-center shadow-sm ring-1 transition ${
                 selected
                   ? `${store.selectedTone} ring-current/20`
-                  : "border border-slate-200 bg-white text-slate-600 opacity-60 ring-slate-200"
+                  : "border-slate-200 bg-white text-slate-600 opacity-60 ring-slate-200"
               }`}
             >
               <button
@@ -8485,16 +8485,16 @@ export default function Page() {
                 >
                   {selected ? "✓" : ""}
                 </span>
-                <div className={`mx-auto flex ${compact ? "h-9 w-9 text-sm" : "h-9 w-9 text-sm"} items-center justify-center rounded-full font-black shadow-sm ring-4 ${store.tone}`}>
+                <div className={`mx-auto flex ${compact ? "h-8 w-8 text-sm" : "h-9 w-9 text-sm"} items-center justify-center rounded-full font-black shadow-sm ring-4 ${store.tone}`}>
                   {store.logo}
                 </div>
-                <p className={compact ? "mt-2 truncate text-[10px] font-black uppercase tracking-wide text-slate-500" : "mt-2 truncate text-[10px] font-black uppercase tracking-wide text-slate-500"}>
+                <p className={compact ? "mt-1 truncate text-[9px] font-black uppercase tracking-wide text-slate-500" : "mt-2 truncate text-[10px] font-black uppercase tracking-wide text-slate-500"}>
                   {store.title}
                 </p>
-                <p className={compact ? "mt-1 min-h-[2.25rem] whitespace-normal break-words text-[10px] font-extrabold leading-tight text-slate-800" : "mt-1 min-h-[2.6rem] whitespace-normal break-words text-xs font-extrabold leading-tight text-slate-800"}>
+                <p className={compact ? "mt-1 min-h-[1.55rem] whitespace-normal break-words text-[10px] font-extrabold leading-tight text-slate-800" : "mt-1 min-h-[2.1rem] whitespace-normal break-words text-xs font-extrabold leading-tight text-slate-800"}>
                   {store.name}
                 </p>
-                {distanceForCard && <p className="mt-0.5 text-[9px] font-black text-slate-400">{distanceForCard}</p>}
+                {distanceForCard && <p className="mt-1 text-[9px] font-black text-slate-400">{distanceForCard}</p>}
               </button>
 
               {isRealChain && chain && selected && (
@@ -10133,7 +10133,7 @@ return (
                   </div>
                 </div>
 
-                <div className="mt-3 min-h-0 flex-1 rounded-[1.35rem] border border-green-100 bg-white p-2.5 shadow-inner shadow-green-50/60">
+                <div className="mt-3 shrink-0 rounded-[1.35rem] border border-green-100 bg-white p-2.5 shadow-inner shadow-green-50/60">
                   <div className="mb-2 flex items-center justify-between px-1">
                     <p className="text-xs font-black uppercase tracking-wide text-slate-500">Tuotteet</p>
                     <button
@@ -10150,7 +10150,7 @@ return (
                     value={input}
                     onChange={(event) => setSearchInputForMode(event.target.value)}
                     placeholder={searchCompareMode === "single" ? "Kirjoita yksi tuote, esim. maito" : "Kirjoita tuotteet riveittäin tai pilkulla, esim. maito, kahvi, jauheliha"}
-                    className={`${instantSearchSuggestions.length > 0 ? "h-[calc(100%-8.7rem)] min-h-[6.1rem]" : "h-[calc(100%-4.1rem)] min-h-[8.2rem]"} w-full resize-none rounded-[1.25rem] border-2 border-green-500/70 bg-white px-3.5 py-3 text-[16px] font-semibold leading-snug text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-green-600 focus:ring-4 focus:ring-green-100`}
+                    className={`${instantSearchSuggestions.length > 0 ? "h-[6.4rem]" : "h-[8.4rem]"} w-full resize-none rounded-[1.25rem] border-2 border-green-500/70 bg-white px-3.5 py-3 text-[16px] font-semibold leading-snug text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-green-600 focus:ring-4 focus:ring-green-100 sm:h-[9.1rem]`}
                   />
                   {instantSearchSuggestions.length > 0 && (
                     <div className="mt-1.5 flex max-h-[4.6rem] flex-wrap gap-1.5 overflow-hidden px-1" style={{ width: "100%" }}>
@@ -10210,7 +10210,7 @@ return (
                       onClick={openEanModal}
                       className="min-h-[3.35rem] touch-manipulation rounded-[1.1rem] bg-emerald-700 px-3 text-sm font-black text-white shadow-sm transition active:scale-[0.98]"
                     >
-                      ▦ EAN
+                      <span className="inline-flex items-center justify-center gap-2"><span aria-hidden="true">▦</span><span>EAN/SKANNAA</span></span>
                     </button>
                   </div>
 
@@ -10252,7 +10252,7 @@ return (
                           : "bg-green-700 text-white shadow-md shadow-green-600/20 ring-1 ring-black/10 active:scale-[0.98]"
                       }`}
                     >
-                      {loadingNormal || singleProductCompareLoading ? "Haetaan..." : searchCompareMode === "single" ? "🔎 Vertailu" : "Hae halvin"}
+                      {loadingNormal || singleProductCompareLoading ? "Haetaan..." : "🔎 Vertailu"}
                     </button>
                   </div>
                 </div>
