@@ -231,7 +231,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "V320MOBTXT-9-EMPTY2";
+const APP_VERSION = "V320MOBTXT-9-EMPTY3";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -5205,6 +5205,7 @@ export default function Page() {
       setActiveNormalSearchTerm(focusedSearchTerms[0] || "");
       setNormalResults([]);
       setActiveResult("none");
+      setSearchPanelOpen(true);
       return;
     }
 
@@ -5346,6 +5347,10 @@ export default function Page() {
 
       setSearchDebug(debugEntries);
       setNormalResults(unique);
+
+      if (unique.length === 0 && isMainSearch) {
+        setSearchPanelOpen(true);
+      }
     } catch (error) {
       console.error(error);
         const gpsErrorCode = typeof error === "object" && error !== null && "code" in error ? Number((error as { code?: number }).code) : 0;
@@ -5360,6 +5365,9 @@ export default function Page() {
         }
       setSearchDebug(debugEntries);
       setNormalResults([]);
+      if (isMainSearch) {
+        setSearchPanelOpen(true);
+      }
     } finally {
       setLoadingNormal(false);
     }
@@ -9404,7 +9412,7 @@ return (
 <section ref={normalResultsSectionRef} className="min-h-full min-w-0 max-w-full overflow-hidden rounded-[1.5rem] bg-white p-2.5 sm:min-h-0 sm:rounded-[2rem] sm:p-5">
                 <div className="mb-2 flex items-start justify-between gap-3 px-1">
                   <div className="min-w-0">
-                    <h2 className="text-[1.7rem] font-black leading-tight text-slate-950">Valitse oikea tuote</h2>
+                    <h2 className="text-[1.7rem] font-black leading-tight text-slate-950">Valitse haluamasi tuote</h2>
                     <p className="mt-0.5 min-w-0 break-words text-sm font-extrabold text-slate-500">
                       {activeNormalSearchTerm ? `Haetaan: ${activeNormalSearchTerm}` : "Valitse listasta tarkka tuote."}
                     </p>
@@ -10327,6 +10335,8 @@ return (
                           setSingleProductCompareResults([]);
                           setSingleProductCompareTerm("");
                           setVisibleNormalCount(8);
+                          setActiveNormalSearchTerm("");
+                          setNormalSearchAttempted(false);
                           setHasSearchedOffers(false);
                           setOffers([]);
                           triggerHaptic();
@@ -10338,6 +10348,16 @@ return (
                       </button>
                     )}
                   </div>
+
+                  {!loadingNormal && normalSearchAttempted && activeNormalSearchTerm && normalResults.length === 0 && (
+                    <div className="mt-2 shrink-0 rounded-[1.35rem] bg-slate-50 p-4 text-center shadow-sm ring-1 ring-slate-200 ziiply-soft-open-fast">
+                      <div className="text-3xl">🔎</div>
+                      <p className="mt-2 text-base font-black text-slate-900">Tuotteita ei löytynyt</p>
+                      <p className="mt-1 text-sm font-bold leading-snug text-slate-500">
+                        Haulle “{activeNormalSearchTerm}” ei löytynyt tuotteita. Kokeile tarkempaa hakusanaa tai lisää tuote käsin.
+                      </p>
+                    </div>
+                  )}
 
                   {keyboardOpenV320 && (
                     <div className="mt-2 rounded-[1.1rem] bg-white/95 p-1.5 shadow-[0_10px_26px_rgba(15,23,42,0.10)] ring-1 ring-slate-100">
