@@ -231,7 +231,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "V320haku-9";
+const APP_VERSION = "V320sca-2";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -10533,7 +10533,7 @@ return (
                       onClick={() => void toggleScannerTorch()}
                       className={`min-h-[3rem] touch-manipulation rounded-[1rem] px-2 text-sm font-black ring-1 transition active:scale-[0.98] ${scannerTorchOn ? "bg-yellow-100 text-yellow-900 ring-yellow-200" : "bg-slate-100 text-slate-800 ring-slate-200"}`}
                     >
-                      🔦 Valo
+                      🔦
                     </button>
                     <button
                       type="button"
