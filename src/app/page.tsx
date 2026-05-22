@@ -231,7 +231,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "V320haku-7";
+const APP_VERSION = "V320haku-8";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -10259,32 +10259,26 @@ return (
                 </div>
 
                 <div className={`${keyboardOpenV320 ? "hidden" : ""} mt-1 shrink-0 rounded-[1.35rem] bg-white/95 p-2 shadow-[0_-8px_28px_rgba(15,23,42,0.07)] ring-1 ring-slate-100`}>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-3 gap-1.5">
                     <button
                       type="button"
                       onClick={() => startVoiceInput()}
-                      className={`min-h-[2.45rem] touch-manipulation rounded-[1rem] px-3 text-sm font-black text-white shadow-sm transition active:scale-[0.98] ${
-                        isListening ? "bg-red-600" : speechSupported ? "bg-blue-600" : "bg-slate-500"
+                      className={`min-h-[2.35rem] touch-manipulation rounded-[0.85rem] px-2 text-xs font-black leading-tight shadow-sm transition active:scale-[0.98] ${
+                        isListening
+                          ? "bg-red-600 text-white"
+                          : speechSupported
+                            ? "bg-white text-slate-800 ring-1 ring-slate-200"
+                            : "bg-slate-100 text-slate-400 ring-1 ring-slate-200"
                       }`}
                     >
-                      {isListening ? "🎙️ Kuunnellaan..." : "🎤 Sanele"}
+                      {isListening ? "🎙️ Kuuntelee" : "🎤 Sanele"}
                     </button>
-                    <button
-                      type="button"
-                      onClick={openEanModal}
-                      className="min-h-[2.45rem] touch-manipulation rounded-[1rem] bg-emerald-700 px-3 text-sm font-black text-white shadow-sm transition active:scale-[0.98]"
-                    >
-                      <span className="inline-flex items-center justify-center gap-2"><span aria-hidden="true">▦</span><span>EAN / SKANNAA</span></span>
-                    </button>
-                  </div>
-
-                  <div className="mt-1.5 grid grid-cols-3 gap-1.5">
                     <button
                       type="button"
                       onClick={handleMainOfferSearch}
                       disabled={!hasSearchInput || loadingOffers}
                       aria-disabled={!hasSearchInput || loadingOffers}
-                      className={`min-h-[2.25rem] touch-manipulation rounded-[0.85rem] px-2 text-xs font-black leading-tight transition ${
+                      className={`min-h-[2.35rem] touch-manipulation rounded-[0.85rem] px-2 text-xs font-black leading-tight transition ${
                         !hasSearchInput || loadingOffers
                           ? "cursor-not-allowed bg-slate-100 text-slate-400 ring-1 ring-slate-200"
                           : "bg-white text-slate-800 shadow-sm ring-1 ring-slate-200 active:scale-[0.98]"
@@ -10297,7 +10291,7 @@ return (
                       onClick={addInputToCart}
                       disabled={!hasSearchInput}
                       aria-disabled={!hasSearchInput}
-                      className={`min-h-[2.25rem] touch-manipulation rounded-[0.85rem] px-2 text-xs font-black leading-tight transition ${
+                      className={`min-h-[2.35rem] touch-manipulation rounded-[0.85rem] px-2 text-xs font-black leading-tight transition ${
                         !hasSearchInput
                           ? "cursor-not-allowed bg-slate-100 text-slate-400 ring-1 ring-slate-200"
                           : "bg-white text-slate-800 shadow-sm ring-1 ring-slate-200 active:scale-[0.98]"
@@ -10305,12 +10299,15 @@ return (
                     >
                       Lisää koriin
                     </button>
+                  </div>
+
+                  <div className="mt-1.5 grid grid-cols-2 gap-2">
                     <button
                       type="button"
                       onClick={handleMainNormalSearch}
                       disabled={!hasSearchInput || loadingNormal || singleProductCompareLoading}
                       aria-disabled={!hasSearchInput || loadingNormal || singleProductCompareLoading}
-                      className={`min-h-[2.25rem] touch-manipulation rounded-[0.85rem] px-2 text-xs font-black leading-tight transition ${
+                      className={`min-h-[2.65rem] touch-manipulation rounded-[1rem] px-3 text-sm font-black transition ${
                         !hasSearchInput || loadingNormal || singleProductCompareLoading
                           ? "cursor-not-allowed bg-slate-100 text-slate-400 ring-1 ring-slate-200"
                           : "bg-green-700 text-white shadow-md shadow-green-600/20 ring-1 ring-black/10 active:scale-[0.98]"
@@ -10318,9 +10315,15 @@ return (
                     >
                       {loadingNormal || singleProductCompareLoading ? "Haetaan..." : "🔎 Vertailu"}
                     </button>
+                    <button
+                      type="button"
+                      onClick={openEanModal}
+                      className="min-h-[2.65rem] touch-manipulation rounded-[1rem] bg-emerald-700 px-3 text-sm font-black text-white shadow-sm transition active:scale-[0.98]"
+                    >
+                      <span className="inline-flex items-center justify-center gap-2"><span aria-hidden="true">▦</span><span>EAN / SKANNAA</span></span>
+                    </button>
                   </div>
-                </div>
-              </div>
+                </div>              </div>
             </div>
           </div>
         </div>
