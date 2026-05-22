@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v320store-3";
+const APP_VERSION = "v320store-4";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -8333,9 +8333,9 @@ return (
 
         {shopsPanelOpen && (
           <div className={`fixed inset-0 z-40 flex items-end justify-center overflow-hidden overscroll-none bg-transparent px-2 pb-[calc(env(safe-area-inset-bottom)+6.45rem)] pt-[calc(env(safe-area-inset-top)+5.1rem)] sm:hidden ${closingPanels.shops ? "ziiply-soft-close" : "ziiply-soft-open"}`}>
-            <div className="h-[min(74dvh,690px)] w-full max-w-[28rem] overflow-hidden overscroll-none rounded-[1.65rem] bg-white/90 p-3 shadow-2xl ring-1 ring-white/70 backdrop-blur-2xl">
+            <div className="h-[min(72dvh,670px)] w-full max-w-[28rem] overflow-hidden overscroll-none rounded-[1.65rem] bg-white/90 p-2.5 shadow-2xl ring-1 ring-white/70 backdrop-blur-2xl">
               <section className="flex h-full min-h-0 flex-col overflow-hidden rounded-[1.35rem] bg-white/95 p-4 shadow-[0_18px_55px_rgba(15,23,42,0.10)] ring-1 ring-slate-100">
-                <div className="mb-3 flex shrink-0 items-center justify-between gap-3">
+                <div className="mb-2 flex shrink-0 items-center justify-between gap-3">
                   <div className="flex min-w-0 items-center gap-3">
                     <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-green-50 text-xl shadow-sm ring-1 ring-green-100">
                       🏪
@@ -8347,7 +8347,7 @@ return (
                   </div>
                 </div>
 
-                <div className="mb-3 flex shrink-0 items-center gap-2 rounded-[1.25rem] bg-slate-50 p-2 ring-1 ring-slate-200">
+                <div className="mb-2 flex shrink-0 items-center gap-2 rounded-[1.25rem] bg-slate-50 p-2 ring-1 ring-slate-200">
                   <button
                     type="button"
                     aria-pressed={usingOwnLocation}
@@ -8391,20 +8391,20 @@ return (
                   </button>
                 </div>
 
-                <div className="mb-3 shrink-0 rounded-[1.25rem] bg-green-50 px-4 py-3 text-xs font-black text-green-900 ring-1 ring-green-100">
+                <div className="mb-2 shrink-0 rounded-[1.25rem] bg-green-50 px-4 py-2.5 text-xs font-black text-green-900 ring-1 ring-green-100">
                   {locationMessage}
                 </div>
 
                 {storeDrillViewV320 === "main" ? (
-                  <div data-v320store2="fixed-one-hand-shop-actions" className="shrink-0 space-y-2">
+                  <div data-v320store2="fixed-one-hand-shop-actions" className="min-h-0 flex-1 space-y-1.5 overflow-hidden">
                     <button
                       type="button"
                       disabled={storeCompareScope === "within_chain"}
                       onClick={() => {
                         handleStoreModeChange("hyper");
-                        setStoreDrillViewV320("selection");
+                        if (storeCompareScope === "between_chains") setStoreDrillViewV320("selection");
                       }}
-                      className={`flex min-h-[3.8rem] w-full items-center justify-between rounded-[1.25rem] px-4 text-left text-base font-black shadow-sm ring-1 transition disabled:cursor-not-allowed active:scale-[0.985] ${
+                      className={`flex min-h-[3.25rem] w-full items-center justify-between rounded-[1.25rem] px-4 text-left text-base font-black shadow-sm ring-1 transition disabled:cursor-not-allowed active:scale-[0.985] ${
                         (storeCompareScope === "within_chain" || (storeModeChosenV299 && storeMode === "hyper"))
                           ? "bg-green-700 text-white ring-black/10"
                           : "bg-white text-slate-800 ring-slate-200"
@@ -8419,9 +8419,9 @@ return (
                       disabled={storeCompareScope === "within_chain"}
                       onClick={() => {
                         handleStoreModeChange("local");
-                        setStoreDrillViewV320("selection");
+                        if (storeCompareScope === "between_chains") setStoreDrillViewV320("selection");
                       }}
-                      className={`flex min-h-[3.8rem] w-full items-center justify-between rounded-[1.25rem] px-4 text-left text-base font-black shadow-sm ring-1 transition disabled:cursor-not-allowed active:scale-[0.985] ${
+                      className={`flex min-h-[3.25rem] w-full items-center justify-between rounded-[1.25rem] px-4 text-left text-base font-black shadow-sm ring-1 transition disabled:cursor-not-allowed active:scale-[0.985] ${
                         (storeCompareScope === "within_chain" || (storeModeChosenV299 && storeMode === "local"))
                           ? "bg-green-700 text-white ring-black/10"
                           : "bg-white text-slate-800 ring-slate-200"
@@ -8434,17 +8434,17 @@ return (
                     <button
                       type="button"
                       onClick={() => {
+                        const canOpenStoreSelection = storeModeChosenV299;
                         handleStoreCompareScopeChange("between_chains");
-                        setStoreDrillViewV320("selection");
+                        if (canOpenStoreSelection) setStoreDrillViewV320("selection");
                       }}
-                      className={`flex min-h-[3.8rem] w-full items-center justify-between rounded-[1.25rem] px-4 text-left text-base font-black shadow-sm ring-1 transition active:scale-[0.985] ${
+                      className={`flex min-h-[3.25rem] w-full items-center justify-between rounded-[1.25rem] px-4 text-left text-base font-black shadow-sm ring-1 transition active:scale-[0.985] ${
                         storeCompareScope === "between_chains"
                           ? "bg-green-700 text-white ring-black/10"
                           : "bg-white text-slate-800 ring-slate-200"
                       }`}
                     >
                       <span className="flex items-center gap-3"><span className="text-xl">⇄</span> Ketjujen väliltä</span>
-                      <span className="text-xl opacity-70">›</span>
                     </button>
 
                     <button
@@ -8453,14 +8453,13 @@ return (
                         handleStoreCompareScopeChange("within_chain");
                         setStoreDrillViewV320("selection");
                       }}
-                      className={`flex min-h-[3.8rem] w-full items-center justify-between rounded-[1.25rem] px-4 text-left text-base font-black shadow-sm ring-1 transition active:scale-[0.985] ${
+                      className={`flex min-h-[3.25rem] w-full items-center justify-between rounded-[1.25rem] px-4 text-left text-base font-black shadow-sm ring-1 transition active:scale-[0.985] ${
                         storeCompareScope === "within_chain"
                           ? "bg-green-700 text-white ring-black/10"
                           : "bg-white text-slate-800 ring-slate-200"
                       }`}
                     >
                       <span className="flex items-center gap-3"><span className="text-xl">🔗</span> Ketjun sisältä</span>
-                      <span className="text-xl opacity-70">›</span>
                     </button>
                   </div>
                 ) : (
@@ -8481,7 +8480,7 @@ return (
                       </span>
                     </div>
 
-                    {!storeModeChosenV299 && (
+                    {!storeModeChosenV299 && storeCompareScope !== "within_chain" && (
                       <div className="mb-2 grid grid-cols-2 gap-2">
                         <button type="button" onClick={() => handleStoreModeChange("hyper")} className="rounded-2xl bg-white px-3 py-3 text-sm font-black text-slate-800 shadow-sm ring-1 ring-slate-200 active:scale-[0.98]">🏬 Tavaratalot</button>
                         <button type="button" onClick={() => handleStoreModeChange("local")} className="rounded-2xl bg-white px-3 py-3 text-sm font-black text-slate-800 shadow-sm ring-1 ring-slate-200 active:scale-[0.98]">🏪 Lähikaupat</button>
