@@ -231,7 +231,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v320store-13";
+const APP_VERSION = "v320store-14";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -3046,6 +3046,36 @@ export default function Page() {
   );
   const initialStoreSelectionLocked = !storesReadyForSearch;
   const searchBottomNavDisabled = searchNavigationLocked || initialStoreSelectionLocked;
+  const [searchReadyBounceKeyV320, setSearchReadyBounceKeyV320] = useState(0);
+  const previousSearchReadySignatureV320 = useRef("");
+
+  const searchReadySignatureV320 = storesReadyForSearch
+    ? [
+        storeCompareScope,
+        storeMode,
+        withinChain || "",
+        activeArea.sStoreId || "",
+        activeArea.sStoreName || "",
+        activeArea.kStoreId || "",
+        activeArea.kStoreName || "",
+        activeArea.sLocalStoreId || "",
+        activeArea.sLocalStoreName || "",
+        activeArea.kLocalStoreId || "",
+        activeArea.kLocalStoreName || "",
+      ].join("|")
+    : "";
+
+  useEffect(() => {
+    if (!storesReadyForSearch) {
+      previousSearchReadySignatureV320.current = "";
+      return;
+    }
+
+    if (previousSearchReadySignatureV320.current !== searchReadySignatureV320) {
+      previousSearchReadySignatureV320.current = searchReadySignatureV320;
+      setSearchReadyBounceKeyV320((value) => value + 1);
+    }
+  }, [storesReadyForSearch, searchReadySignatureV320]);
   const [visibleNormalCount, setVisibleNormalCount] = useState(8);
   const [activeNormalSearchTerm, setActiveNormalSearchTerm] = useState("");
   const [eanModalOpen, setEanModalOpen] = useState(false);
@@ -4686,16 +4716,13 @@ export default function Page() {
     if (!coords) return stores;
 
     return stores.map((store) => {
-      const alreadyHasDistance =
-        store.distanceKm != null ||
-        store.distanceMeters != null ||
-        (store as any).distance_km != null ||
-        (store as any).distance_m != null ||
-        (store as any).distanceKilometers != null ||
-        (store as any).distance_meters != null ||
-        (store as any).distance != null;
-
-      if (alreadyHasDistance) return store;
+      const explicitDistanceKm = readExplicitDistanceKmV320(store);
+      if (explicitDistanceKm != null) {
+        return {
+          ...store,
+          distanceKm: explicitDistanceKm,
+        };
+      }
 
       const latitude = getStoreCoordinateV320(store, ["latitude", "lat", "y"]);
       const longitude = getStoreCoordinateV320(store, ["longitude", "lng", "lon", "x"]);
@@ -7857,51 +7884,87 @@ export default function Page() {
     return mode === "local" ? activeArea.kLocalStoreId : activeArea.kStoreId;
   }
 
-  function getStoreCoordinateV320(store: StoreSearchItem, keys: string[]) {
-    const readNumber = (value: unknown) => {
-      if (value == null || value === "") return null;
-      if (typeof value === "string") {
-        const normalizedValue = value.replace(",", ".").replace(/[^0-9.\-]/g, "");
-        if (!normalizedValue) return null;
-        const numberValue = Number(normalizedValue);
-        return Number.isFinite(numberValue) ? numberValue : null;
-      }
-      const numberValue = Number(value);
+  function readStoreNumberV320(value: unknown) {
+    if (value == null || value === "") return null;
+    if (typeof value === "string") {
+      const normalizedValue = value.replace(",", ".").replace(/[^0-9.\-]/g, "");
+      if (!normalizedValue) return null;
+      const numberValue = Number(normalizedValue);
       return Number.isFinite(numberValue) ? numberValue : null;
-    };
-
-    for (const key of keys) {
-      const direct = readNumber((store as any)[key]);
-      if (direct != null) return direct;
     }
+    const numberValue = Number(value);
+    return Number.isFinite(numberValue) ? numberValue : null;
+  }
 
-    // API-muodot vaihtelevat mobiilissa/desktopissa. Haetaan koordinaatit myös
-    // tavallisista sisäkkäisistä rakenteista: location, coordinates, geo, address.
-    const containers = [
-      (store as any).location,
-      (store as any).coordinates,
-      (store as any).coordinates?.coordinates,
-      (store as any).coord,
-      (store as any).geo,
-      (store as any).geometry,
-      (store as any).geometry?.coordinates,
-      (store as any).address,
-      (store as any).position,
-      (store as any).store,
-      (store as any).raw,
-    ].filter(Boolean);
+  function readNestedNumberByKeysV320(source: unknown, keys: string[], maxDepth = 5): number | null {
+    if (!source || maxDepth < 0) return null;
 
-    for (const container of containers) {
-      for (const key of keys) {
-        const nested = readNumber(container?.[key]);
+    if (Array.isArray(source)) {
+      for (const item of source) {
+        const nested = readNestedNumberByKeysV320(item, keys, maxDepth - 1);
         if (nested != null) return nested;
       }
+      return null;
+    }
 
-      if (Array.isArray(container) && container.length >= 2) {
-        const looksLikeLatitude = keys.some((key) => ["latitude", "lat", "y"].includes(key));
-        const value = readNumber(container[looksLikeLatitude ? 1 : 0]) ?? readNumber(container[looksLikeLatitude ? 0 : 1]);
+    if (typeof source !== "object") return null;
+
+    const record = source as Record<string, unknown>;
+    const lowerKeyMap = new Map(Object.keys(record).map((key) => [key.toLowerCase(), key]));
+
+    for (const key of keys) {
+      const directKey = lowerKeyMap.get(key.toLowerCase());
+      if (directKey) {
+        const value = readStoreNumberV320(record[directKey]);
         if (value != null) return value;
       }
+    }
+
+    for (const value of Object.values(record)) {
+      if (!value || typeof value !== "object") continue;
+      const nested = readNestedNumberByKeysV320(value, keys, maxDepth - 1);
+      if (nested != null) return nested;
+    }
+
+    return null;
+  }
+
+  function getStoreCoordinateV320(store: StoreSearchItem, keys: string[]) {
+    const direct = readNestedNumberByKeysV320(store, keys, 4);
+    if (direct != null) return direct;
+
+    const wantsLatitude = keys.some((key) => ["latitude", "lat", "y"].includes(key));
+    const coordinateContainers = [
+      (store as any).coordinates,
+      (store as any).location?.coordinates,
+      (store as any).geometry?.coordinates,
+      (store as any).geo?.coordinates,
+      (store as any).position?.coordinates,
+      (store as any).raw?.coordinates,
+      (store as any).raw?.location?.coordinates,
+      (store as any).raw?.geometry?.coordinates,
+    ].filter(Array.isArray) as unknown[][];
+
+    for (const coordinates of coordinateContainers) {
+      if (coordinates.length < 2) continue;
+
+      const first = readStoreNumberV320(coordinates[0]);
+      const second = readStoreNumberV320(coordinates[1]);
+      if (first == null || second == null) continue;
+
+      // Tuetaan sekä GeoJSON-muotoa [lon, lat] että tavallista [lat, lon].
+      const firstLooksLat = Math.abs(first) <= 90 && Math.abs(second) <= 180;
+      const secondLooksLat = Math.abs(second) <= 90 && Math.abs(first) <= 180;
+
+      if (wantsLatitude) {
+        if (secondLooksLat && Math.abs(first) > 90) return second;
+        if (firstLooksLat && Math.abs(second) > 90) return first;
+        return secondLooksLat ? second : first;
+      }
+
+      if (secondLooksLat && Math.abs(first) > 90) return first;
+      if (firstLooksLat && Math.abs(second) > 90) return second;
+      return first;
     }
 
     return null;
@@ -7926,49 +7989,52 @@ export default function Page() {
     return `${km.toFixed(km < 10 ? 1 : 0).replace(".", ",")} km`;
   }
 
+  function readExplicitDistanceKmV320(store: StoreSearchItem) {
+    const km = readNestedNumberByKeysV320(store, [
+      "distanceKm",
+      "distance_km",
+      "distanceKilometers",
+      "distance_kilometers",
+      "distanceInKm",
+      "distance_in_km",
+      "kilometers",
+      "kilometres",
+      "km",
+    ], 5);
+
+    if (km != null) return km;
+
+    const meters = readNestedNumberByKeysV320(store, [
+      "distanceMeters",
+      "distance_m",
+      "distance_meters",
+      "distanceInMeters",
+      "distance_in_meters",
+      "meters",
+      "metres",
+      "m",
+    ], 5);
+
+    if (meters != null) return meters / 1000;
+
+    const genericDistance = readNestedNumberByKeysV320(store, [
+      "distance",
+      "distanceText",
+      "distance_text",
+      "distanceLabel",
+      "distance_label",
+    ], 5);
+
+    if (genericDistance == null) return null;
+    return genericDistance > 100 ? genericDistance / 1000 : genericDistance;
+  }
+
   function getStoreDistanceLabelV320(store?: StoreSearchItem | null) {
     if (!store) return "";
 
-    const readNumber = (value: unknown) => {
-      if (value == null || value === "") return null;
-      if (typeof value === "string") {
-        const normalizedValue = value.replace(",", ".").replace(/[^0-9.\-]/g, "");
-        if (!normalizedValue) return null;
-        const numberValue = Number(normalizedValue);
-        return Number.isFinite(numberValue) ? numberValue : null;
-      }
-      const numberValue = Number(value);
-      return Number.isFinite(numberValue) ? numberValue : null;
-    };
-
-    const explicitKm =
-      readNumber((store as any).distanceKm) ??
-      readNumber((store as any).distance_km) ??
-      readNumber((store as any).distanceKilometers) ??
-      readNumber((store as any).distance_kilometers) ??
-      readNumber((store as any).distanceInKm) ??
-      readNumber((store as any).distance_in_km) ??
-      readNumber((store as any).distanceText) ??
-      readNumber((store as any).distance_text) ??
-      readNumber((store as any).distanceLabel) ??
-      readNumber((store as any).distance_label) ??
-      readNumber((store as any).distance?.km) ??
-      readNumber((store as any).distance?.kilometers) ??
-      readNumber((store as any).distance?.text) ??
-      readNumber((store as any).distance?.label);
-
-    const explicitMeters =
-      readNumber((store as any).distanceMeters) ??
-      readNumber((store as any).distance_m) ??
-      readNumber((store as any).distance_meters) ??
-      readNumber((store as any).distanceInMeters) ??
-      readNumber((store as any).distance_in_meters) ??
-      readNumber((store as any).distance?.meters);
-
-    const rawDistance = explicitKm ?? (explicitMeters != null ? explicitMeters / 1000 : readNumber((store as any).distance));
-
-    if (rawDistance != null && Number.isFinite(rawDistance)) {
-      return formatDistanceKmV320(rawDistance > 100 ? rawDistance / 1000 : rawDistance);
+    const explicitKm = readExplicitDistanceKmV320(store);
+    if (explicitKm != null && Number.isFinite(explicitKm)) {
+      return formatDistanceKmV320(explicitKm);
     }
 
     const latitude = getStoreCoordinateV320(store, ["latitude", "lat", "y"]);
@@ -8359,6 +8425,18 @@ export default function Page() {
           animation: ziiply-soft-close 260ms cubic-bezier(0.7, 0, 0.84, 0) both;
           pointer-events: none;
           transform-origin: top center;
+        }
+        @keyframes ziiply-search-ready-bounce {
+          0% { transform: translateY(0) scale(1); }
+          24% { transform: translateY(-9px) scale(1.08); }
+          48% { transform: translateY(0) scale(1); }
+          68% { transform: translateY(-4px) scale(1.03); }
+          100% { transform: translateY(0) scale(1); }
+        }
+        .ziiply-search-ready-bounce {
+          animation: ziiply-search-ready-bounce 1.15s cubic-bezier(0.22, 1, 0.36, 1) both;
+          transform-origin: center bottom;
+          will-change: transform;
         }
 
         #ziiply-ean-scanner-region,
@@ -10299,7 +10377,12 @@ return (
             aria-disabled={searchBottomNavDisabled}
             className={`flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition ${searchBottomNavDisabled ? (initialStoreSelectionLocked ? "cursor-not-allowed bg-red-50 text-red-300 ring-1 ring-red-100 opacity-80" : "cursor-not-allowed bg-slate-100 text-slate-300 opacity-70") : searchPanelOpen ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white shadow-md active:scale-[0.98]" : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
           >
-            <span className="text-lg leading-none">🔎</span>
+            <span
+              key={searchReadyBounceKeyV320}
+              className={`text-lg leading-none ${!searchBottomNavDisabled && storesReadyForSearch ? "ziiply-search-ready-bounce" : ""}`}
+            >
+              🔎
+            </span>
             <span className="mt-1 block">Hae</span>
           </button>
           <button
