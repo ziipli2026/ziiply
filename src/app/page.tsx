@@ -3247,6 +3247,7 @@ export default function Page() {
   const [closingPanels, setClosingPanels] = useState<Record<string, boolean>>({});
   const [eanScannerOpen, setEanScannerOpen] = useState(false);
   const [eanScannerMessage, setEanScannerMessage] = useState("");
+  const [scannerTorchOn, setScannerTorchOn] = useState(false);
   const [eanManualInputOpen, setEanManualInputOpen] = useState(false);
   const [scanSuccessFlash, setScanSuccessFlash] = useState(false);
   const [scanMissFlash, setScanMissFlash] = useState(false);
@@ -5530,10 +5531,34 @@ export default function Page() {
     void searchByEan(normalizedCode);
   }
 
+  async function toggleScannerTorch() {
+    try {
+      const track = getScannerVideoTrack();
+      if (!track) {
+        setEanScannerMessage("Valoa voi kokeilla vasta, kun kamera on käynnissä.");
+        return;
+      }
+
+      const capabilities = typeof track.getCapabilities === "function" ? (track.getCapabilities() as any) : {};
+      if (!capabilities.torch) {
+        setEanScannerMessage("Tämä selain tai kamera ei tue taskuvaloa. Hyvä yleisvalo toimii yleensä paremmin.");
+        return;
+      }
+
+      const nextTorchState = !scannerTorchOn;
+      await track.applyConstraints({ advanced: [{ torch: nextTorchState }] } as any);
+      setScannerTorchOn(nextTorchState);
+      setEanScannerMessage(nextTorchState ? "Valo päällä kokeiluna. Jos pakkaus heijastaa, sammuta valo." : "Valo pois päältä.");
+    } catch {
+      setEanScannerMessage("Taskuvaloa ei saatu vaihdettua tässä selaimessa.");
+    }
+  }
+
   async function stopEanCameraScanner(options: { keepScannerOpenState?: boolean } = {}) {
     const scanner = eanHtml5ScannerRef.current;
     eanHtml5ScannerRef.current = null;
     lastContinuousScanRef.current = null;
+    setScannerTorchOn(false);
 
     if (scanner && !eanScannerStoppingRef.current) {
       eanScannerStoppingRef.current = true;
@@ -5596,7 +5621,7 @@ export default function Page() {
       const scanner = new Html5Qrcode(EAN_SCANNER_REGION_ID, formatsToSupport ? { formatsToSupport } : undefined);
       eanHtml5ScannerRef.current = scanner;
 
-      setEanScannerMessage("Aseta viivakoodi vihreän kehyksen alueelle. Napauta kuvaa, jos haluat yrittää tarkentaa kameraa.");
+      setEanScannerMessage("Aseta viivakoodi kehykseen. Napauta kuvaa tarkennusta varten.");
 
       await scanner.start(
         {
@@ -9095,8 +9120,8 @@ return (
         )}
 
         {activeResult === "offers" && (
-          <div className={`fixed inset-0 z-40 flex items-end justify-center overflow-y-auto overscroll-contain bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0 ${closingPanels.offers ? "ziiply-soft-close" : "ziiply-soft-open"}`}>
-            <div ref={compareOverlayScrollRef} className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-visible rounded-[1.5rem] bg-slate-50 p-3 shadow-2xl sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:bg-transparent sm:p-0 sm:shadow-none">
+          <div className={`fixed inset-0 z-40 flex items-end justify-center overflow-y-auto overscroll-contain bg-slate-950/35 px-3 pb-[calc(env(safe-area-inset-bottom)+5.8rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0 ${closingPanels.offers ? "ziiply-soft-close" : "ziiply-soft-open"}`}>
+            <div ref={compareOverlayScrollRef} className="max-h-[calc(100dvh-11.7rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-visible rounded-[1.75rem] border border-white/70 bg-white/95 p-3 shadow-2xl backdrop-blur sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none">
               <div className="mb-3 rounded-2xl bg-green-700 p-4 text-white shadow-sm sm:rounded-[2rem] sm:p-6">
                 <p className="text-xs font-bold uppercase tracking-wide text-green-100 sm:text-sm">Tarjousmoottori</p>
                 <h2 className="mt-1 text-2xl font-extrabold sm:text-2xl sm:text-3xl">Tarjoukset</h2>
@@ -9180,8 +9205,8 @@ return (
         )}
 
         {(activeResult === "compare" || activeResult === "singleCompare" || (activeResult !== "offers" && (loadingNormal || normalResults.length > 0 || (searchPanelOpen && normalSearchAttempted && activeNormalSearchTerm)))) && (
-          <div className={`fixed inset-0 z-40 flex items-end justify-center overflow-y-auto overscroll-contain bg-slate-950/40 px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0 ${(closingPanels.compare || closingPanels.singleCompare) ? "ziiply-soft-close" : "ziiply-soft-open"}`}>
-            <div ref={compareOverlayScrollRef} className="max-h-[calc(100dvh-12.5rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-visible rounded-[1.5rem] bg-slate-50 p-3 shadow-2xl sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:bg-transparent sm:p-0 sm:shadow-none">
+          <div className={`fixed inset-0 z-40 flex items-end justify-center overflow-y-auto overscroll-contain bg-slate-950/35 px-3 pb-[calc(env(safe-area-inset-bottom)+5.8rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0 ${(closingPanels.compare || closingPanels.singleCompare) ? "ziiply-soft-close" : "ziiply-soft-open"}`}>
+            <div ref={compareOverlayScrollRef} className="max-h-[calc(100dvh-11.7rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-visible rounded-[1.75rem] border border-white/70 bg-white/95 p-3 shadow-2xl backdrop-blur sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none">
             <div className="grid min-w-0 max-w-full gap-3 sm:gap-4 overflow-hidden lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
             {activeResult === "compare" && showCheapestSticky && cheapest && (
                 <section ref={savingsSummaryRef} className="min-w-0 max-w-full overflow-hidden rounded-[1.5rem] border border-white/70 bg-white/95 p-3 shadow-[0_18px_55px_rgba(15,23,42,0.10)] backdrop-blur sm:rounded-[2rem] sm:p-6">
@@ -9308,11 +9333,11 @@ return (
               )}
 
               {activeResult !== "compare" && (loadingNormal || normalResults.length > 0 || (searchPanelOpen && normalSearchAttempted && activeNormalSearchTerm)) && (
-<section ref={normalResultsSectionRef} className="min-w-0 max-w-full overflow-hidden rounded-[1.5rem] border border-white/70 bg-white/95 p-3 shadow-[0_18px_55px_rgba(15,23,42,0.10)] backdrop-blur sm:rounded-[2rem] sm:p-5">
-                <div className="mb-3 flex items-start justify-between gap-3">
+<section ref={normalResultsSectionRef} className="min-w-0 max-w-full overflow-hidden rounded-[1.5rem] bg-white p-2.5 sm:rounded-[2rem] sm:p-5">
+                <div className="mb-2 flex items-start justify-between gap-3 px-1">
                   <div className="min-w-0">
-                    <h2 className="text-2xl font-extrabold">Valitse oikea tuote</h2>
-                    <p className="mt-1 min-w-0 break-words text-sm font-semibold text-slate-500">
+                    <h2 className="text-[1.7rem] font-black leading-tight text-slate-950">Valitse oikea tuote</h2>
+                    <p className="mt-0.5 min-w-0 break-words text-sm font-extrabold text-slate-500">
                       {activeNormalSearchTerm ? `Haetaan: ${activeNormalSearchTerm}` : "Valitse listasta tarkka tuote."}
                     </p>
                     {visibleNormalResults.length > 0 && (
@@ -9353,7 +9378,7 @@ return (
                 {loadingNormal ? (
                   <div className="grid gap-2">
                     {[1, 2, 3].map((item) => (
-                      <div key={item} className="rounded-2xl border border-slate-200 p-3">
+                      <div key={item} className="rounded-[1.25rem] border border-slate-200 bg-white p-2 shadow-sm">
                         <div className="flex items-center gap-3">
                           <div className="h-12 w-12 animate-pulse rounded-xl bg-slate-100" />
                           <div className="min-w-0 flex-1 space-y-2" style={{ width: "100%" }}>
@@ -9374,46 +9399,40 @@ return (
                     <div className="grid min-w-0 max-w-full gap-2 overflow-hidden">
                       {visibleNormalResults.slice(0, visibleNormalCount).map((product) => {
                         return (
-                          <div key={product.id} className="w-full min-w-0 max-w-full overflow-hidden rounded-2xl border border-slate-200 p-2.5 transition hover:border-green-300 hover:bg-green-50/30 sm:p-3">
-                            <div className="flex min-w-0 max-w-full items-center gap-2.5 overflow-hidden">
-                              {product.pictureUrl && <img src={product.pictureUrl} alt={product.name} className="h-12 w-12 shrink-0 rounded-xl bg-white object-contain sm:h-14 sm:w-14" />}
-                              <div className="min-w-0 max-w-full flex-1 overflow-hidden">
-                                <h3 className="line-clamp-2 max-w-full break-words text-sm font-black leading-tight text-slate-950 sm:text-base">{fixText(product.name)}</h3>
-                                <p className="min-w-0 break-words text-xs font-semibold text-slate-500 sm:text-sm">
+                          <div key={product.id} className="w-full min-w-0 max-w-full overflow-hidden rounded-[1.25rem] border border-slate-200 bg-white p-2 shadow-sm transition active:scale-[0.995] hover:border-green-300 hover:bg-green-50/20 sm:p-3">
+                            <div className="grid min-w-0 max-w-full grid-cols-[3.5rem_minmax(0,1fr)_auto] items-center gap-2.5 overflow-hidden sm:grid-cols-[4rem_minmax(0,1fr)_auto]">
+                              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-slate-50 ring-1 ring-slate-100 sm:h-16 sm:w-16">
+                                {product.pictureUrl ? <img src={product.pictureUrl} alt={product.name} className="h-12 w-12 object-contain sm:h-14 sm:w-14" /> : <span className="text-xl">🛒</span>}
+                              </div>
+                              <div className="min-w-0 max-w-full overflow-hidden">
+                                <h3 className="line-clamp-2 max-w-full break-words text-[0.95rem] font-black leading-tight text-slate-950 sm:text-base">{fixText(product.name)}</h3>
+                                <p className="mt-0.5 min-w-0 truncate text-xs font-extrabold text-slate-500 sm:text-sm">
                                   {(product as Product & { sourceStoreName?: string; fallbackStoreName?: string }).sourceStoreName ||
                                     (product as Product & { fallbackStoreName?: string }).fallbackStoreName ||
                                     activeStores.sStoreName}
                                 </p>
-                                {(product as Product & { originalSearchTerm?: string; usedSearchQuery?: string }).usedSearchQuery &&
-                                  normalize((product as Product & { originalSearchTerm?: string; usedSearchQuery?: string }).usedSearchQuery || "") !==
-                                    normalize((product as Product & { originalSearchTerm?: string; usedSearchQuery?: string }).originalSearchTerm || "") && (
-                                  <p className="mt-1 line-clamp-2 max-w-full break-words text-xs font-semibold text-blue-600">
-                                    haettu oletustuotteena: {(product as Product & { usedSearchQuery?: string }).usedSearchQuery}
-                                  </p>
-                                )}
-                                {(product as Product & { fallbackStoreName?: string }).fallbackStoreName && (
-                                  <p className="mt-1 text-xs font-semibold text-amber-600">
-                                    fallback: {(product as Product & { fallbackStoreName?: string }).fallbackStoreName}
-                                  </p>
-                                )}
-                                {formatComparisonPrice(product) && (
-                                  <p className="mt-1 text-xs font-semibold text-slate-500">
-                                    {formatComparisonPrice(product)}
-                                  </p>
-                                )}
-                                {product.ean && (
-                                  <p className="mt-1 max-w-full truncate text-xs text-slate-400">EAN: {product.ean}</p>
-                                )}
-                                <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                                  <p className="text-lg font-black text-green-700">{formatEuro(getProductPrice(product))}</p>
-                                  {renderPriceHistoryBadge(getPriceHistoryKeyFromProduct(product, (product as Product & { fallbackStoreName?: string }).fallbackStoreName || activeStores.sStoreName), getProductPrice(product))}
-                                  <button
-                                    onClick={() => searchCompareMode === "single" ? void compareSelectedSingleProduct(product) : addProductToCart(product)}
-                                    className="shrink-0 rounded-xl bg-green-600 px-3.5 py-2 text-sm font-black text-white transition hover:bg-green-700"
-                                  >
-                                    {searchCompareMode === "single" ? "Valitse" : "Lisää"}
-                                  </button>
+                                <div className="mt-1 flex min-w-0 flex-wrap items-center gap-1.5 text-[11px] font-bold text-slate-500">
+                                  {formatComparisonPrice(product) && <span className="rounded-full bg-slate-100 px-2 py-0.5">{formatComparisonPrice(product)}</span>}
+                                  {(product as Product & { originalSearchTerm?: string; usedSearchQuery?: string }).usedSearchQuery &&
+                                    normalize((product as Product & { originalSearchTerm?: string; usedSearchQuery?: string }).usedSearchQuery || "") !==
+                                      normalize((product as Product & { originalSearchTerm?: string; usedSearchQuery?: string }).originalSearchTerm || "") && (
+                                    <span className="max-w-full truncate rounded-full bg-blue-50 px-2 py-0.5 font-extrabold text-blue-700">
+                                      oletus: {(product as Product & { usedSearchQuery?: string }).usedSearchQuery}
+                                    </span>
+                                  )}
+                                  {product.ean && <span className="hidden rounded-full bg-slate-100 px-2 py-0.5 text-slate-400 sm:inline">EAN {product.ean}</span>}
+                                  {(product as Product & { fallbackStoreName?: string }).fallbackStoreName && <span className="rounded-full bg-amber-50 px-2 py-0.5 text-amber-700">fallback</span>}
                                 </div>
+                              </div>
+                              <div className="flex shrink-0 flex-col items-end justify-center gap-1.5">
+                                <p className="whitespace-nowrap text-[1.45rem] font-black leading-none text-green-700 sm:text-2xl">{formatEuro(getProductPrice(product))}</p>
+                                {renderPriceHistoryBadge(getPriceHistoryKeyFromProduct(product, (product as Product & { fallbackStoreName?: string }).fallbackStoreName || activeStores.sStoreName), getProductPrice(product))}
+                                <button
+                                  onClick={() => searchCompareMode === "single" ? void compareSelectedSingleProduct(product) : addProductToCart(product)}
+                                  className="min-h-[2.55rem] touch-manipulation rounded-[1rem] bg-green-600 px-4 text-sm font-black text-white shadow-sm shadow-green-600/20 transition active:scale-[0.98] hover:bg-green-700"
+                                >
+                                  {searchCompareMode === "single" ? "Valitse" : "+ Lisää"}
+                                </button>
                               </div>
                             </div>
                           </div>
@@ -10332,13 +10351,27 @@ return (
       )}
 
       {eanModalOpen && (
-          <div className={`fixed inset-0 z-[80] flex items-end justify-center overflow-hidden overscroll-none bg-black/40 px-3 pb-3 pt-10 transition-opacity duration-700 ease-out sm:items-center sm:p-4 ${eanModalClosing ? "ziiply-soft-close" : "ziiply-soft-open"}`}>
-            <div className={`max-h-[calc(100dvh-1.5rem)] w-full max-w-[34rem] overflow-y-auto overscroll-contain rounded-[1.5rem] bg-white p-4 shadow-2xl ring-1 ring-slate-200 transition-all duration-700 ease-out [WebkitOverflowScrolling:touch] sm:max-h-[calc(100dvh-2rem)] sm:p-5 ${eanModalClosing ? "translate-y-3 scale-[0.98] opacity-0" : "translate-y-0 scale-100 opacity-100"}`}>
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-lg font-extrabold text-slate-900">EAN / viivakoodi</p>
+          <div className={`fixed inset-0 z-[80] flex items-end justify-center overflow-hidden overscroll-none bg-slate-950/35 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] transition-opacity duration-700 ease-out sm:items-center sm:p-4 ${eanModalClosing ? "ziiply-soft-close" : "ziiply-soft-open"}`}>
+            <div className={`max-h-[calc(100dvh-7rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain rounded-[1.75rem] border border-white/70 bg-white/95 p-3 shadow-2xl backdrop-blur transition-all duration-700 ease-out [WebkitOverflowScrolling:touch] sm:max-h-[calc(100dvh-2rem)] sm:p-5 ${eanModalClosing ? "translate-y-3 scale-[0.98] opacity-0" : "translate-y-0 scale-100 opacity-100"}`}>
+              <div className="flex items-center justify-between gap-3 px-1">
+                <button
+                  type="button"
+                  onClick={closeEanModal}
+                  className="touch-manipulation rounded-2xl bg-slate-100 px-3 py-2 text-sm font-black text-slate-800 ring-1 ring-slate-200 transition active:scale-[0.98]"
+                >
+                  ← Takaisin
+                </button>
+                <p className="min-w-0 flex-1 text-center text-lg font-black text-slate-950">EAN-skanneri</p>
+                <button
+                  type="button"
+                  onClick={() => void toggleScannerTorch()}
+                  className={`touch-manipulation rounded-2xl px-3 py-2 text-sm font-black ring-1 transition active:scale-[0.98] ${scannerTorchOn ? "bg-yellow-100 text-yellow-900 ring-yellow-200" : "bg-slate-100 text-slate-800 ring-slate-200"}`}
+                >
+                  🔦
+                </button>
               </div>
 
-              <div className="mt-3 grid grid-cols-2 gap-3">
+              <div className="mt-3 grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={async () => {
@@ -10361,7 +10394,7 @@ return (
                       window.setTimeout(() => eanInputRef.current?.focus(), 0);
                     }
                   }}
-                  className="touch-manipulation rounded-2xl bg-green-600 px-3 py-2.5 text-sm font-extrabold text-white transition active:scale-[0.98]"
+                  className="touch-manipulation min-h-[3rem] touch-manipulation rounded-[1rem] bg-green-600 px-3 text-sm font-black text-white shadow-sm shadow-green-600/20 transition active:scale-[0.98]"
                 >
                   Liitä
                 </button>
@@ -10371,7 +10404,7 @@ return (
                     setEanManualInputOpen((current) => !current);
                     window.setTimeout(() => eanInputRef.current?.focus(), 0);
                   }}
-                  className="touch-manipulation rounded-2xl bg-green-600 px-3 py-2.5 text-sm font-extrabold text-white transition active:scale-[0.98]"
+                  className="touch-manipulation min-h-[3rem] touch-manipulation rounded-[1rem] bg-green-600 px-3 text-sm font-black text-white shadow-sm shadow-green-600/20 transition active:scale-[0.98]"
                 >
                   Kirjoita
                 </button>
@@ -10429,16 +10462,16 @@ return (
               )}
 
               {eanScannerOpen && (
-                <div className="mt-4 rounded-2xl bg-white ziiply-soft-open">
+                <div className="mt-3 rounded-2xl bg-white ziiply-soft-open">
                   <div
-                    className="relative mx-auto aspect-square w-full max-w-[430px] overflow-hidden rounded-2xl bg-slate-950 ring-1 ring-slate-200"
+                    className="relative mx-auto aspect-[3/4] max-h-[calc(100dvh-21rem)] min-h-[20rem] w-full overflow-hidden rounded-[1.5rem] bg-slate-950 ring-1 ring-slate-200 sm:aspect-square sm:max-w-[430px]"
                     onPointerDown={(event) => void focusScannerCameraAtPoint(event)}
                   >
                     <div
                       id={EAN_SCANNER_REGION_ID}
                       className="absolute inset-0 h-full w-full overflow-hidden rounded-2xl bg-slate-950 [&_*]:!box-border [&_canvas]:!hidden [&_div]:!border-0 [&_div]:!shadow-none [&_video]:!absolute [&_video]:!inset-0 [&_video]:!h-full [&_video]:!w-full [&_video]:rounded-2xl [&_video]:!object-cover"
                     />
-                    <div className="pointer-events-none absolute inset-0 rounded-2xl border-4 border-green-400 shadow-[inset_0_0_0_999px_rgba(2,6,23,0.06)]">
+                    <div className="pointer-events-none absolute inset-0 rounded-[1.5rem] border-[3px] border-green-400 shadow-[inset_0_0_0_999px_rgba(2,6,23,0.04)]">
                       <div className="absolute -left-1 -top-1 h-7 w-7 rounded-tl-2xl border-l-4 border-t-4 border-white/95" />
                       <div className="absolute -right-1 -top-1 h-7 w-7 rounded-tr-2xl border-r-4 border-t-4 border-white/95" />
                       <div className="absolute -bottom-1 -left-1 h-7 w-7 rounded-bl-2xl border-b-4 border-l-4 border-white/95" />
@@ -10481,14 +10514,31 @@ return (
                     )}
 
                   </div>
-                  <div className="mt-3 rounded-2xl border border-slate-200 bg-white p-3 text-center text-sm font-extrabold leading-snug text-slate-800 shadow-sm">
-                    Aseta viivakoodi vihreän kehyksen alueelle. Napauta kuvaa tarkennusta varten, pidä pakkaus vakaana ja käytä hyvää valoa.
+                  <div className="mt-2 rounded-2xl border border-slate-200 bg-slate-50/90 px-3 py-2 text-center text-xs font-black leading-snug text-slate-700 shadow-sm">
+                    Aseta viivakoodi kehykseen. Napauta kuvaa tarkennusta varten.
                   </div>
-                  <div className="mt-3 flex justify-end">
+                  <div className="sticky bottom-0 z-10 mt-3 grid grid-cols-3 gap-2 rounded-[1.35rem] border border-slate-200 bg-white/95 p-2 shadow-[0_-12px_35px_rgba(15,23,42,0.08)] backdrop-blur">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEanManualInputOpen(true);
+                        window.setTimeout(() => eanInputRef.current?.focus(), 0);
+                      }}
+                      className="min-h-[3rem] touch-manipulation rounded-[1rem] bg-slate-100 px-2 text-sm font-black text-slate-800 ring-1 ring-slate-200 transition active:scale-[0.98]"
+                    >
+                      ✍️ EAN
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void toggleScannerTorch()}
+                      className={`min-h-[3rem] touch-manipulation rounded-[1rem] px-2 text-sm font-black ring-1 transition active:scale-[0.98] ${scannerTorchOn ? "bg-yellow-100 text-yellow-900 ring-yellow-200" : "bg-slate-100 text-slate-800 ring-slate-200"}`}
+                    >
+                      🔦 Valo
+                    </button>
                     <button
                       type="button"
                       onClick={closeEanModal}
-                      className="touch-manipulation rounded-2xl bg-slate-100 px-5 py-3 text-base font-black text-slate-900 shadow-sm ring-1 ring-slate-200 transition active:scale-[0.98]"
+                      className="min-h-[3rem] touch-manipulation rounded-[1rem] bg-slate-900 px-2 text-sm font-black text-white shadow-sm transition active:scale-[0.98]"
                     >
                       Sulje
                     </button>
@@ -10505,7 +10555,7 @@ return (
               {eanResults.length > 0 && !eanSearchStartedAutomatically && (
                 <div ref={eanResultsRef} className="mt-4 grid gap-2 scroll-mt-4">
                   {eanResults.map((result) => (
-                    <div key={result.key} className="rounded-2xl border border-slate-200 p-3">
+                    <div key={result.key} className="rounded-[1.25rem] border border-slate-200 bg-white p-2 shadow-sm">
                       <div className="flex min-w-0 items-center gap-3">
                         {result.product.pictureUrl && (
                           <img src={result.product.pictureUrl} alt={result.product.name} className="h-14 w-14 shrink-0 rounded-xl object-contain" />
@@ -10537,7 +10587,7 @@ return (
                         <button
                           type="button"
                           onClick={() => addEanResultToCart(result)}
-                          className="shrink-0 rounded-xl bg-green-600 px-3 py-2 text-sm font-extrabold text-white transition active:scale-[0.98]"
+                          className="min-h-[2.75rem] shrink-0 touch-manipulation rounded-[1rem] bg-green-600 px-3 text-sm font-black text-white shadow-sm shadow-green-600/20 transition active:scale-[0.98]"
                         >
                           Lisää ostoskoriin
                         </button>
