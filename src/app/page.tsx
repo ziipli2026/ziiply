@@ -231,7 +231,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "V320MOBTXT-9-VERIFY1";
+const APP_VERSION = "V320MOBTXT-9-EMPTY1";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -424,6 +424,21 @@ function parseTerms(value: string) {
   if (!normalizedSingleRow) return [];
   return [singleRow].slice(0, MAX_ITEMS);
 }
+
+function isLowSignalProductSearchTerm(value: string) {
+  const normalizedValue = normalize(value);
+  const compactValue = normalizedValue.replace(/\s+/g, "");
+
+  if (!compactValue) return true;
+  if (isUsableEan(compactValue)) return false;
+  if (compactValue.length > 3) return false;
+  if (SEARCH_ALIASES[normalizedValue]) return false;
+
+  // Estää haamuhakuja kuten "kdk" / "sks", jotka jäivät aiemmin skeleton-tilaan.
+  // Lyhyet oikeat tuotteet kuten "voi" säilyvät, koska niissä on vokaali / alias.
+  return !/[aeiouyäöå]/i.test(compactValue);
+}
+
 
 const SEARCH_ALIASES: Record<string, string> = {
   // Juomat
@@ -5181,6 +5196,18 @@ export default function Page() {
     const isMainSearch = !termOverride;
     const focusedSearchTerms = useTerms.length > 1 ? [useTerms[0]] : useTerms;
 
+    if (focusedSearchTerms.every(isLowSignalProductSearchTerm)) {
+      if (termOverride) setInput(termOverride);
+      setLoadingNormal(false);
+      setNormalSearchAttempted(true);
+      setSearchDebug([]);
+      setVisibleNormalCount(8);
+      setActiveNormalSearchTerm(focusedSearchTerms[0] || "");
+      setNormalResults([]);
+      setActiveResult("none");
+      return;
+    }
+
     trackZiiplyEvent("search_used", {
       query: useTerms.join(", "),
       termCount: useTerms.length,
@@ -9432,8 +9459,14 @@ return (
                     ))}
                   </div>
                 ) : visibleNormalResults.length === 0 ? (
-                  <div className="rounded-2xl bg-slate-100 p-5 text-sm font-semibold text-slate-600">
-                    {normalResults.length === 0 ? (normalSearchAttempted && activeNormalSearchTerm ? `Ei hakutuloksia haulle: ${activeNormalSearchTerm}` : terms.length === 0 && cart.length > 0 ? "Ostoskori valmis. Voit siirtyä kauppaketjuvertailuun." : "Ei normaalihintojen hakutuloksia vielä. Tee hintavertailuhaku tai hae tuotetta nimellä.") : "Kaikki näkyvät hakutulokset on jo lisätty ostoskoriin."}
+                  <div className="rounded-[1.35rem] bg-slate-50 p-5 text-center shadow-sm ring-1 ring-slate-200">
+                    <div className="text-3xl">🔎</div>
+                    <p className="mt-2 text-base font-black text-slate-900">
+                      {normalResults.length === 0 ? (normalSearchAttempted && activeNormalSearchTerm ? "Tuotteita ei löytynyt" : terms.length === 0 && cart.length > 0 ? "Ostoskori valmis" : "Ei hakutuloksia vielä") : "Kaikki näkyvät hakutulokset on jo lisätty ostoskoriin."}
+                    </p>
+                    <p className="mt-1 text-sm font-bold text-slate-500">
+                      {normalResults.length === 0 ? (normalSearchAttempted && activeNormalSearchTerm ? `Haulle “${activeNormalSearchTerm}” ei löytynyt tuotteita. Kokeile tarkempaa hakusanaa tai lisää tuote käsin.` : terms.length === 0 && cart.length > 0 ? "Voit siirtyä kauppaketjuvertailuun." : "Tee hintavertailuhaku tai hae tuotetta nimellä.") : "Voit jatkaa seuraavaan tuotteeseen."}
+                    </p>
                   </div>
                 ) : (
                   <>
@@ -10299,7 +10332,7 @@ return (
                           triggerHaptic();
                           window.setTimeout(() => searchInputRef.current?.focus(), 0);
                         }}
-                        className="shrink-0 rounded-full bg-red-50 px-3 py-1.5 text-xs font-black text-red-600 ring-1 ring-red-100 active:scale-[0.98]"
+                        className="shrink-0 rounded-full bg-slate-700 px-3 py-1.5 text-xs font-black text-white shadow-sm ring-1 ring-slate-600 active:scale-[0.98]"
                       >
                         Tyhjennä
                       </button>
