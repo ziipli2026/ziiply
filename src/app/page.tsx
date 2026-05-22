@@ -231,7 +231,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "V320haku-2";
+const APP_VERSION = "V320haku-3";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -10082,21 +10082,21 @@ return (
       )}
 
       {searchPanelOpen && (
-        <div className={`fixed inset-0 z-40 flex items-end justify-center overflow-hidden overscroll-none bg-slate-950/25 px-3 pb-[calc(env(safe-area-inset-bottom)+5.7rem)] pt-[calc(env(safe-area-inset-top)+5.0rem)] backdrop-blur-sm sm:items-center sm:p-6 ${closingPanels.search ? "ziiply-soft-close" : "ziiply-soft-open"}`}>
+        <div className={`fixed inset-0 z-40 flex items-end justify-center overflow-hidden overscroll-none bg-transparent px-3 pb-[calc(env(safe-area-inset-bottom)+7.2rem)] pt-[calc(env(safe-area-inset-top)+5.0rem)] sm:items-center sm:p-6 ${closingPanels.search ? "ziiply-soft-close" : "ziiply-soft-open"}`}>
           <div className="w-full max-w-[38rem] overflow-hidden">
-            <div className="h-[min(34rem,calc(100dvh-11.3rem))] overflow-hidden rounded-[1.8rem] border border-white/80 bg-white/95 p-3 shadow-[0_22px_70px_rgba(15,23,42,0.22)] ring-1 ring-white/80 backdrop-blur-2xl sm:h-[34.5rem] sm:rounded-[2rem] sm:p-4">
+            <div className="h-[min(30.8rem,calc(100dvh-13.8rem))] overflow-hidden rounded-[1.8rem] border border-white/80 bg-white/95 p-3 shadow-[0_18px_55px_rgba(15,23,42,0.14)] ring-1 ring-white/80 backdrop-blur-2xl sm:h-[33rem] sm:rounded-[2rem] sm:p-4">
               <div className="flex h-full min-h-0 flex-col">
                 <div className="shrink-0">
                   <div className="flex items-start gap-3">
-                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[1.25rem] bg-green-50 text-2xl shadow-sm ring-1 ring-green-100">🔎</div>
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[1.15rem] bg-green-50 text-2xl shadow-sm ring-1 ring-green-100">🔎</div>
                     <div className="min-w-0 flex-1">
                       <p className="text-[11px] font-black uppercase tracking-[0.32em] text-green-700">Haku</p>
-                      <h1 className="mt-1 text-[1.35rem] font-black leading-[1.05] tracking-tight text-slate-950 sm:text-[1.55rem]">Mitä haluat ostaa?</h1>
-                      <p className="mt-1 text-xs font-bold leading-snug text-slate-500">Kirjoita tuotteet ylös, valitse koko kori tai yksi tuote ja käynnistä haku peukaloalueelta.</p>
+                      <h1 className="mt-0.5 text-[1.25rem] font-black leading-[1.05] tracking-tight text-slate-950 sm:text-[1.55rem]">Mitä haluat ostaa?</h1>
+                      <p className="mt-0.5 text-[11px] font-bold leading-snug text-slate-500">Kirjoita tuotteet ylös, valitse koko kori tai yksi tuote ja käynnistä haku peukaloalueelta.</p>
                     </div>
                   </div>
 
-                  <div className="mt-3 rounded-[1.15rem] bg-slate-50/90 p-1 ring-1 ring-slate-100">
+                  <div className="mt-2 rounded-[1.15rem] bg-slate-50/90 p-1 ring-1 ring-slate-100">
                     <div className="grid grid-cols-2 gap-1.5">
                       <button
                         type="button"
@@ -10107,7 +10107,7 @@ return (
                           setSingleProductCompareTerm("");
                           setVisibleNormalCount(8);
                         }}
-                        className={`min-h-[3rem] rounded-[0.95rem] px-3 py-2 text-sm font-black transition active:scale-[0.98] ${
+                        className={`min-h-[2.75rem] rounded-[0.95rem] px-3 py-1.5 text-sm font-black transition active:scale-[0.98] ${
                           searchCompareMode === "cart" ? "bg-green-700 text-white shadow-md shadow-green-600/20 ring-1 ring-black/10" : "bg-white text-slate-700 ring-1 ring-slate-200"
                         }`}
                       >
@@ -10123,7 +10123,7 @@ return (
                           setSingleProductCompareTerm("");
                           setVisibleNormalCount(8);
                         }}
-                        className={`min-h-[3rem] rounded-[0.95rem] px-3 py-2 text-sm font-black transition active:scale-[0.98] ${
+                        className={`min-h-[2.75rem] rounded-[0.95rem] px-3 py-1.5 text-sm font-black transition active:scale-[0.98] ${
                           searchCompareMode === "single" ? "bg-green-700 text-white shadow-md shadow-green-600/20 ring-1 ring-black/10" : "bg-white text-slate-700 ring-1 ring-slate-200"
                         }`}
                       >
@@ -10133,8 +10133,8 @@ return (
                   </div>
                 </div>
 
-                <div className="mt-3 shrink-0 rounded-[1.35rem] border border-green-100 bg-white p-2.5 shadow-inner shadow-green-50/60">
-                  <div className="mb-2 flex items-center justify-between px-1">
+                <div className="mt-2 shrink-0 rounded-[1.35rem] border border-green-100 bg-white p-2 shadow-inner shadow-green-50/60">
+                  <div className="mb-1.5 flex items-center justify-between px-1">
                     <p className="text-xs font-black uppercase tracking-wide text-slate-500">Tuotteet</p>
                     <button
                       type="button"
@@ -10150,7 +10150,7 @@ return (
                     value={input}
                     onChange={(event) => setSearchInputForMode(event.target.value)}
                     placeholder={searchCompareMode === "single" ? "Kirjoita yksi tuote, esim. maito" : "Kirjoita tuotteet riveittäin tai pilkulla, esim. maito, kahvi, jauheliha"}
-                    className={`${instantSearchSuggestions.length > 0 ? "h-[6.4rem]" : "h-[8.4rem]"} w-full resize-none rounded-[1.25rem] border-2 border-green-500/70 bg-white px-3.5 py-3 text-[16px] font-semibold leading-snug text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-green-600 focus:ring-4 focus:ring-green-100 sm:h-[9.1rem]`}
+                    className={`${instantSearchSuggestions.length > 0 ? "h-[5.2rem]" : "h-[6.4rem]"} w-full resize-none rounded-[1.25rem] border-2 border-green-500/70 bg-white px-3.5 py-3 text-[16px] font-semibold leading-snug text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-green-600 focus:ring-4 focus:ring-green-100 sm:h-[8.2rem]`}
                   />
                   {instantSearchSuggestions.length > 0 && (
                     <div className="mt-1.5 flex max-h-[4.6rem] flex-wrap gap-1.5 overflow-hidden px-1" style={{ width: "100%" }}>
@@ -10168,7 +10168,7 @@ return (
                       ))}
                     </div>
                   )}
-                  <div className="mt-2 flex h-8 items-center justify-between gap-2 px-1">
+                  <div className="mt-1.5 flex h-7 items-center justify-between gap-2 px-1">
                     <p className="truncate text-[11px] font-bold text-slate-400">
                       {searchCompareMode === "single" ? "Valitse tarkka tuote listasta ennen vertailua." : "Max 8 tuotetta. Liitä muistilistasta."}
                     </p>
@@ -10194,12 +10194,12 @@ return (
                   </div>
                 </div>
 
-                <div className="mt-3 shrink-0 rounded-[1.45rem] bg-white/95 p-2 shadow-[0_-8px_32px_rgba(15,23,42,0.08)] ring-1 ring-slate-100">
+                <div className="mt-2 shrink-0 rounded-[1.45rem] bg-white/95 p-2 shadow-[0_-8px_28px_rgba(15,23,42,0.07)] ring-1 ring-slate-100">
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
                       onClick={() => startVoiceInput()}
-                      className={`min-h-[3.35rem] touch-manipulation rounded-[1.1rem] px-3 text-sm font-black text-white shadow-sm transition active:scale-[0.98] ${
+                      className={`min-h-[3rem] touch-manipulation rounded-[1.1rem] px-3 text-sm font-black text-white shadow-sm transition active:scale-[0.98] ${
                         isListening ? "bg-red-600" : speechSupported ? "bg-blue-600" : "bg-slate-500"
                       }`}
                     >
@@ -10208,9 +10208,9 @@ return (
                     <button
                       type="button"
                       onClick={openEanModal}
-                      className="min-h-[3.35rem] touch-manipulation rounded-[1.1rem] bg-emerald-700 px-3 text-sm font-black text-white shadow-sm transition active:scale-[0.98]"
+                      className="min-h-[3rem] touch-manipulation rounded-[1.1rem] bg-emerald-700 px-3 text-sm font-black text-white shadow-sm transition active:scale-[0.98]"
                     >
-                      <span className="inline-flex items-center justify-center gap-2"><span aria-hidden="true">▦</span><span>EAN/SKANNAA</span></span>
+                      <span className="inline-flex items-center justify-center gap-2"><span aria-hidden="true">▦</span><span>EAN / SKANNAA</span></span>
                     </button>
                   </div>
 
@@ -10220,7 +10220,7 @@ return (
                       onClick={handleMainOfferSearch}
                       disabled={!hasSearchInput || loadingOffers}
                       aria-disabled={!hasSearchInput || loadingOffers}
-                      className={`min-h-[3.1rem] touch-manipulation rounded-[1rem] px-2 text-xs font-black leading-tight transition ${
+                      className={`min-h-[2.65rem] touch-manipulation rounded-[1rem] px-2 text-xs font-black leading-tight transition ${
                         !hasSearchInput || loadingOffers
                           ? "cursor-not-allowed bg-slate-100 text-slate-400 ring-1 ring-slate-200"
                           : "bg-white text-slate-800 shadow-sm ring-1 ring-slate-200 active:scale-[0.98]"
@@ -10233,7 +10233,7 @@ return (
                       onClick={addInputToCart}
                       disabled={!hasSearchInput}
                       aria-disabled={!hasSearchInput}
-                      className={`min-h-[3.1rem] touch-manipulation rounded-[1rem] px-2 text-xs font-black leading-tight transition ${
+                      className={`min-h-[2.65rem] touch-manipulation rounded-[1rem] px-2 text-xs font-black leading-tight transition ${
                         !hasSearchInput
                           ? "cursor-not-allowed bg-slate-100 text-slate-400 ring-1 ring-slate-200"
                           : "bg-white text-slate-800 shadow-sm ring-1 ring-slate-200 active:scale-[0.98]"
@@ -10246,7 +10246,7 @@ return (
                       onClick={handleMainNormalSearch}
                       disabled={!hasSearchInput || loadingNormal || singleProductCompareLoading}
                       aria-disabled={!hasSearchInput || loadingNormal || singleProductCompareLoading}
-                      className={`min-h-[3.1rem] touch-manipulation rounded-[1rem] px-2 text-xs font-black leading-tight transition ${
+                      className={`min-h-[2.65rem] touch-manipulation rounded-[1rem] px-2 text-xs font-black leading-tight transition ${
                         !hasSearchInput || loadingNormal || singleProductCompareLoading
                           ? "cursor-not-allowed bg-slate-100 text-slate-400 ring-1 ring-slate-200"
                           : "bg-green-700 text-white shadow-md shadow-green-600/20 ring-1 ring-black/10 active:scale-[0.98]"
