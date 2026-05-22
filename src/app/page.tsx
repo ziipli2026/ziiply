@@ -10207,11 +10207,23 @@ return (
                           searchCompareMode === "cart" ? "bg-green-700 text-white shadow-md shadow-green-600/20 ring-1 ring-black/10" : "bg-white text-slate-700 ring-1 ring-slate-200"
                         }`}
                       >
-                        <span className="inline-flex w-full items-center justify-center gap-2 whitespace-nowrap leading-none"><svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.7" strokeLinecap="round" strokeLinejoin="round">
+                        <span className="flex h-full w-full items-center justify-center gap-2 whitespace-nowrap leading-none">
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 24 24"
+                            className="block h-[18px] w-[18px] shrink-0"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2.7"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
                             <path d="M4 5h2.3l1.7 9.2a2 2 0 0 0 2 1.6h6.8a2 2 0 0 0 1.9-1.45L20 8H7.2" />
                             <circle cx="10" cy="20" r="1.55" fill="currentColor" stroke="none" />
                             <circle cx="17" cy="20" r="1.55" fill="currentColor" stroke="none" />
-                          </svg><span className="relative top-[1px]">Koko kori</span></span>
+                          </svg>
+                          <span className="block leading-none">Koko kori</span>
+                        </span>
                       </button>
                       <button
                         type="button"
