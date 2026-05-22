@@ -231,7 +231,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "V320MOBTXT-5";
+const APP_VERSION = "V320MOBTXT-6";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -10306,22 +10306,20 @@ return (
                           }`}
                         >
                           {loadingNormal || singleProductCompareLoading ? "Haetaan..." : (
-                            <span className="inline-flex items-center justify-center gap-2 whitespace-nowrap">🔎<span>Vertailu</span></span>
-                          )}
-                        </button>
-                        <button
-                          type="button"
-                          onPointerDown={(event) => event.preventDefault()}
-                          onClick={openEanModal}
-                          className="min-h-[2.65rem] touch-manipulation rounded-[1rem] bg-green-700 px-3 text-sm font-black text-white shadow-md shadow-green-600/20 ring-1 ring-black/10 transition active:scale-[0.98]"
-                        >
-                          <span className="inline-flex items-center justify-center gap-2 whitespace-nowrap"><svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 shrink-0 text-white" fill="currentColor">
-                            <rect x="3" y="5" width="2" height="14" rx=".4" />
-                            <rect x="7" y="5" width="1.2" height="14" rx=".35" />
-                            <rect x="10" y="5" width="2.6" height="14" rx=".4" />
-                            <rect x="15" y="5" width="1.2" height="14" rx=".35" />
-                            <rect x="18.5" y="5" width="2.5" height="14" rx=".4" />
-                          </svg><span>EAN / SKANNAA</span></span>
+                            
+<span className="inline-flex w-full items-center justify-center gap-3 whitespace-nowrap leading-none">
+  <span className="flex h-5 w-5 items-center justify-center shrink-0">
+    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 text-white" fill="currentColor">
+      <rect x="3" y="5" width="2" height="14" rx=".4" />
+      <rect x="7" y="5" width="1.2" height="14" rx=".35" />
+      <rect x="10" y="5" width="2.6" height="14" rx=".4" />
+      <rect x="15" y="5" width="1.2" height="14" rx=".35" />
+      <rect x="18.5" y="5" width="2.5" height="14" rx=".4" />
+    </svg>
+  </span>
+  <span className="relative top-[1px]">EAN / SKANNAA</span>
+</span>
+
                         </button>
                       </div>
                     </div>
@@ -10388,21 +10386,20 @@ return (
                       }`}
                     >
                       {loadingNormal || singleProductCompareLoading ? "Haetaan..." : (
-                        <span className="inline-flex items-center justify-center gap-2 whitespace-nowrap">🔎<span>Vertailu</span></span>
-                      )}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={openEanModal}
-                      className="min-h-[2.65rem] touch-manipulation rounded-[1rem] bg-green-700 px-3 text-sm font-black text-white shadow-md shadow-green-600/20 ring-1 ring-black/10 transition active:scale-[0.98]"
-                    >
-                      <span className="inline-flex items-center justify-center gap-2 whitespace-nowrap"><svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 shrink-0 text-white" fill="currentColor">
-                            <rect x="3" y="5" width="2" height="14" rx=".4" />
-                            <rect x="7" y="5" width="1.2" height="14" rx=".35" />
-                            <rect x="10" y="5" width="2.6" height="14" rx=".4" />
-                            <rect x="15" y="5" width="1.2" height="14" rx=".35" />
-                            <rect x="18.5" y="5" width="2.5" height="14" rx=".4" />
-                          </svg><span>EAN / SKANNAA</span></span>
+                        
+<span className="inline-flex w-full items-center justify-center gap-3 whitespace-nowrap leading-none">
+  <span className="flex h-5 w-5 items-center justify-center shrink-0">
+    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 text-white" fill="currentColor">
+      <rect x="3" y="5" width="2" height="14" rx=".4" />
+      <rect x="7" y="5" width="1.2" height="14" rx=".35" />
+      <rect x="10" y="5" width="2.6" height="14" rx=".4" />
+      <rect x="15" y="5" width="1.2" height="14" rx=".35" />
+      <rect x="18.5" y="5" width="2.5" height="14" rx=".4" />
+    </svg>
+  </span>
+  <span className="relative top-[1px]">EAN / SKANNAA</span>
+</span>
+
                     </button>
                   </div>
                 </div>              </div>
