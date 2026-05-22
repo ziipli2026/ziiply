@@ -231,7 +231,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "V320haku-6";
+const APP_VERSION = "V320haku-7";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -2937,6 +2937,42 @@ export default function Page() {
   const [foundStores, setFoundStores] = useState<StoreSearchItem[]>([]);
   const [gpsCoordsV320, setGpsCoordsV320] = useState<{ latitude: number; longitude: number } | null>(null);
   const [storeDistanceFallbacksV320, setStoreDistanceFallbacksV320] = useState<Record<string, number>>({});
+  const [keyboardOpenV320, setKeyboardOpenV320] = useState(false);
+
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const updateKeyboardState = () => {
+      const activeElement = document.activeElement;
+      const isTextInputFocused =
+        activeElement instanceof HTMLTextAreaElement ||
+        activeElement instanceof HTMLInputElement ||
+        (activeElement instanceof HTMLElement && activeElement.isContentEditable);
+
+      const visualViewport = window.visualViewport;
+      const viewportHeight = visualViewport?.height ?? window.innerHeight;
+      const keyboardLikelyOpen = isTextInputFocused && viewportHeight < window.innerHeight - 110;
+
+      setKeyboardOpenV320(Boolean(keyboardLikelyOpen));
+    };
+
+    updateKeyboardState();
+
+    window.visualViewport?.addEventListener("resize", updateKeyboardState);
+    window.visualViewport?.addEventListener("scroll", updateKeyboardState);
+    window.addEventListener("resize", updateKeyboardState);
+    window.addEventListener("focusin", updateKeyboardState);
+    window.addEventListener("focusout", updateKeyboardState);
+
+    return () => {
+      window.visualViewport?.removeEventListener("resize", updateKeyboardState);
+      window.visualViewport?.removeEventListener("scroll", updateKeyboardState);
+      window.removeEventListener("resize", updateKeyboardState);
+      window.removeEventListener("focusin", updateKeyboardState);
+      window.removeEventListener("focusout", updateKeyboardState);
+    };
+  }, []);
 
   // STORE_MODE_PERSIST_V302
   // Pitää käyttäjän valitseman Tavaratalot/Lähikaupat-tilan vakaana myös kaupan vaihdon
@@ -10150,7 +10186,7 @@ return (
                     value={input}
                     onChange={(event) => setSearchInputForMode(event.target.value)}
                     placeholder={searchCompareMode === "single" ? "Kirjoita yksi tuote, esim. maito" : "Kirjoita tuotteet riveittäin tai pilkulla, esim. maito, kahvi, jauheliha"}
-                    className={`${instantSearchSuggestions.length > 0 ? "h-[3.4rem]" : "h-[4.1rem]"} w-full resize-none rounded-[1.25rem] border-2 border-green-500/70 bg-white px-3.5 py-3 text-[16px] font-semibold leading-snug text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-green-600 focus:ring-4 focus:ring-green-100 sm:h-[5.2rem]`}
+                    className={`${keyboardOpenV320 ? "h-[2.9rem]" : instantSearchSuggestions.length > 0 ? "h-[3.4rem]" : "h-[4.1rem]"} w-full resize-none rounded-[1.25rem] border-2 border-green-500/70 bg-white px-3.5 py-3 text-[16px] font-semibold leading-snug text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-green-600 focus:ring-4 focus:ring-green-100 sm:h-[5.2rem]`}
                   />
                   {instantSearchSuggestions.length > 0 && (
                     <div className="mt-1 flex h-8 w-full items-center gap-1.5 overflow-x-auto overflow-y-hidden px-1 pb-1 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="Hakuehdotukset">
@@ -10193,9 +10229,36 @@ return (
                       </button>
                     )}
                   </div>
+
+                  {keyboardOpenV320 && (
+                    <div className="mt-2 rounded-[1.1rem] bg-white/95 p-1.5 shadow-[0_10px_26px_rgba(15,23,42,0.10)] ring-1 ring-slate-100">
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={openEanModal}
+                          className="min-h-[2.5rem] touch-manipulation rounded-[0.95rem] bg-emerald-700 px-2 text-xs font-black text-white shadow-sm transition active:scale-[0.98]"
+                        >
+                          <span className="inline-flex items-center justify-center gap-1.5"><span aria-hidden="true">▦</span><span>EAN / SKANNAA</span></span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleMainNormalSearch}
+                          disabled={!hasSearchInput || loadingNormal || singleProductCompareLoading}
+                          aria-disabled={!hasSearchInput || loadingNormal || singleProductCompareLoading}
+                          className={`min-h-[2.5rem] touch-manipulation rounded-[0.95rem] px-2 text-xs font-black transition ${
+                            !hasSearchInput || loadingNormal || singleProductCompareLoading
+                              ? "cursor-not-allowed bg-slate-100 text-slate-400 ring-1 ring-slate-200"
+                              : "bg-green-700 text-white shadow-md shadow-green-600/20 ring-1 ring-black/10 active:scale-[0.98]"
+                          }`}
+                        >
+                          {loadingNormal || singleProductCompareLoading ? "Haetaan..." : "🔎 Vertailu"}
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
-                <div className="mt-1 shrink-0 rounded-[1.35rem] bg-white/95 p-2 shadow-[0_-8px_28px_rgba(15,23,42,0.07)] ring-1 ring-slate-100">
+                <div className={`${keyboardOpenV320 ? "hidden" : ""} mt-1 shrink-0 rounded-[1.35rem] bg-white/95 p-2 shadow-[0_-8px_28px_rgba(15,23,42,0.07)] ring-1 ring-slate-100`}>
                   <div className="grid grid-cols-2 gap-2">
                     <button
                       type="button"
