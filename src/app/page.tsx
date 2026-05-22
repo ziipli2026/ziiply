@@ -10383,7 +10383,7 @@ return (
                       className={`min-h-[2.35rem] touch-manipulation rounded-[0.85rem] px-2 text-xs font-black leading-tight transition ${
                         !hasSearchInput
                           ? "cursor-not-allowed bg-slate-100 text-slate-400 ring-1 ring-slate-200"
-                          : "bg-rose-100 text-rose-700 shadow-sm ring-1 ring-rose-200 active:scale-[0.98]"
+                          : "bg-white text-slate-800 shadow-sm ring-1 ring-slate-200 active:scale-[0.98]"
                       }`}
                     >
                       Lisää koriin
