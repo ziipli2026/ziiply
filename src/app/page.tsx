@@ -97,6 +97,11 @@ type StoreSearchItem = {
   type?: "S" | "K" | string;
   city?: string;
   postalCode?: string;
+  distanceKm?: number;
+  distanceMeters?: number;
+  distance?: number | string;
+  distance_km?: number;
+  distance_m?: number;
 };
 
 type Match = {
@@ -220,7 +225,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v320store-7";
+const APP_VERSION = "v320store-8";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -7796,6 +7801,44 @@ export default function Page() {
     return mode === "local" ? activeArea.kLocalStoreId : activeArea.kStoreId;
   }
 
+  function getStoreDistanceLabelV320(store?: StoreSearchItem | null) {
+    if (!usingOwnLocation || !store) return "";
+
+    const explicitKm =
+      (store as any).distanceKm ??
+      (store as any).distance_km ??
+      (store as any).distanceKilometers ??
+      (store as any).distance_kilometers;
+
+    const raw = explicitKm != null
+      ? Number(explicitKm)
+      : (store as any).distanceMeters != null
+        ? Number((store as any).distanceMeters) / 1000
+        : (store as any).distance_m != null
+          ? Number((store as any).distance_m) / 1000
+          : (store as any).distance != null
+            ? Number((store as any).distance)
+            : null;
+
+    if (raw == null || Number.isNaN(raw) || !Number.isFinite(raw)) return "";
+
+    const km = raw > 100 ? raw / 1000 : raw;
+    if (km < 1) return `${Math.max(0.1, km).toFixed(1).replace(".", ",")} km`;
+    return `${km.toFixed(km < 10 ? 1 : 0).replace(".", ",")} km`;
+  }
+
+  function findStoreForSelectionV320(chain: "S" | "K", mode: StoreMode) {
+    const selectedId = getSelectedStoreIdFor(chain, mode);
+    const selectedName = getSelectedStoreNameFor(chain, mode);
+
+    return foundStores
+      .map(normalizeStoreForPickerV320)
+      .find((store) =>
+        getStoreChainV320(store) === chain &&
+        Boolean((selectedId && store.id === selectedId) || (selectedName && store.name === selectedName))
+      );
+  }
+
   function uniqueStoresByIdAndName(stores: StoreSearchItem[]) {
     const seen = new Set<string>();
     const result: StoreSearchItem[] = [];
@@ -7858,8 +7901,8 @@ export default function Page() {
 
     return (
       <div
-        className={`${compact ? "fixed left-3 right-3 bottom-[calc(env(safe-area-inset-bottom)+8.35rem)] z-[140] max-h-[42dvh] w-auto overflow-hidden rounded-[1.35rem] bg-white p-2 text-left shadow-2xl ring-1 ring-slate-200 text-xs" : "absolute left-1/2 top-full z-50 mt-2 max-h-64 w-[min(78vw,340px)] -translate-x-1/2 overflow-hidden rounded-2xl bg-white p-3 text-left text-sm shadow-2xl ring-1 ring-slate-200"}`}
-        style={compact ? { minWidth: "260px", maxWidth: "none" } : { minWidth: "260px", maxWidth: "340px" }}
+        className={`${compact ? "fixed left-6 right-6 top-[calc(env(safe-area-inset-top)+24.25rem)] z-[140] max-h-[27dvh] w-auto overflow-hidden rounded-[1.35rem] bg-white p-2 text-left shadow-2xl ring-1 ring-slate-200 text-xs" : "absolute left-1/2 top-full z-50 mt-2 max-h-64 w-[min(78vw,340px)] -translate-x-1/2 overflow-hidden rounded-2xl bg-white p-3 text-left text-sm shadow-2xl ring-1 ring-slate-200"}`}
+        style={compact ? { minWidth: "260px", maxWidth: "calc(100vw - 3rem)" } : { minWidth: "260px", maxWidth: "340px" }}
         onClick={(event) => event.stopPropagation()}
       >
         <div className="mb-2 flex items-center justify-between gap-2 px-1">
@@ -7877,7 +7920,7 @@ export default function Page() {
           </button>
         </div>
 
-        <div className={`${compact ? "max-h-[34dvh]" : "max-h-56"} overflow-auto overscroll-contain pr-1`}>
+        <div className={`${compact ? "max-h-[22dvh]" : "max-h-56"} overflow-auto overscroll-contain pr-1`}>
           {options.length === 0 ? (
             <p className="rounded-xl bg-slate-50 px-3 py-3 font-bold text-slate-400">Ei kauppoja valittavana. Hae alue uudelleen.</p>
           ) : (
@@ -7904,7 +7947,7 @@ export default function Page() {
                 >
                   <span className="min-w-0">
                     <span className="block whitespace-normal break-words leading-tight">{store.name}</span>
-                    <span className={`mt-1 block text-xs ${selected ? "text-white/80" : "text-slate-400"}`}>{store.city || activeArea.label || ""} {store.postalCode || ""}</span>
+                    <span className={`mt-1 block text-xs ${selected ? "text-white/80" : "text-slate-400"}`}>{store.city || activeArea.label || ""} {store.postalCode || ""}{getStoreDistanceLabelV320(store) ? ` · ${getStoreDistanceLabelV320(store)}` : ""}</span>
                   </span>
                   <span className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-black ${selected ? "bg-white/20 text-white" : "bg-white text-slate-400"}`}>
                     {selected ? "Valittu" : mode === "local" ? "Lähi" : "Talo"}
@@ -7968,11 +8011,15 @@ export default function Page() {
             const modeB: StoreMode = "local";
             const storeNameA = getSelectedStoreNameFor(chain, modeA) || (chain === "S" ? "S-kauppa 1" : "K-kauppa 1");
             const storeNameB = getSelectedStoreNameFor(chain, modeB) || (chain === "S" ? "S-kauppa 2" : "K-kauppa 2");
+            const selectedStoreA = findStoreForSelectionV320(chain, modeA);
+            const selectedStoreB = findStoreForSelectionV320(chain, modeB);
+            const distanceA = getStoreDistanceLabelV320(selectedStoreA);
+            const distanceB = getStoreDistanceLabelV320(selectedStoreB);
 
             return (
               <div
                 key={store.key}
-                className={`${compact ? "rounded-xl p-2" : "rounded-2xl p-3"} relative shadow-sm ring-1 transition ${
+                className={`${compact ? "min-h-[10.5rem] rounded-xl p-2" : "rounded-2xl p-3"} relative shadow-sm ring-1 transition ${
                   selected ? `${store.selectedTone} ring-current/20` : "border border-slate-200 bg-white text-slate-600 ring-slate-200"
                 }`}
               >
@@ -8009,13 +8056,15 @@ export default function Page() {
                   <div className={compact ? "mt-1.5 grid grid-cols-2 gap-1.5" : "mt-2 grid grid-cols-2 gap-1.5"}>
                     <div className={compact ? "relative rounded-lg bg-white/90 p-1.5 text-center ring-1 ring-slate-200" : "relative rounded-xl bg-white/80 p-1.5 text-center ring-1 ring-slate-200"}>
                       <p className="text-[9px] font-black uppercase text-slate-400">Kauppa 1</p>
-                      <p className={compact ? "line-clamp-2 min-h-[1.7rem] text-[10px] font-extrabold leading-tight text-slate-800" : "line-clamp-2 min-h-[1.7rem] text-[10px] font-extrabold leading-tight text-slate-800"}>{storeNameA}</p>
+                      <p className={compact ? "min-h-[1.7rem] break-words text-[9.5px] font-extrabold leading-tight text-slate-800" : "min-h-[1.7rem] break-words text-[10px] font-extrabold leading-tight text-slate-800"}>{storeNameA}</p>
+                      {distanceA && <p className="mt-0.5 text-[9px] font-black text-slate-400">{distanceA}</p>}
                       {renderStoreChoiceButton(chain, modeA, `${store.key}-within-hyper`, compact)}
                       {renderStorePickerMenu(chain, modeA, `${store.key}-within-hyper`, compact)}
                     </div>
                     <div className={compact ? "relative rounded-lg bg-white/90 p-1.5 text-center ring-1 ring-slate-200" : "relative rounded-xl bg-white/80 p-1.5 text-center ring-1 ring-slate-200"}>
                       <p className="text-[9px] font-black uppercase text-slate-400">Kauppa 2</p>
-                      <p className={compact ? "line-clamp-2 min-h-[1.7rem] text-[10px] font-extrabold leading-tight text-slate-800" : "line-clamp-2 min-h-[1.7rem] text-[10px] font-extrabold leading-tight text-slate-800"}>{storeNameB}</p>
+                      <p className={compact ? "min-h-[1.7rem] break-words text-[9.5px] font-extrabold leading-tight text-slate-800" : "min-h-[1.7rem] break-words text-[10px] font-extrabold leading-tight text-slate-800"}>{storeNameB}</p>
+                      {distanceB && <p className="mt-0.5 text-[9px] font-black text-slate-400">{distanceB}</p>}
                       {renderStoreChoiceButton(chain, modeB, `${store.key}-within-local`, compact)}
                       {renderStorePickerMenu(chain, modeB, `${store.key}-within-local`, compact)}
                     </div>
@@ -8035,6 +8084,8 @@ export default function Page() {
           const isRealChain = store.key === "s" || store.key === "k";
           const chain = store.key === "s" ? "S" : store.key === "k" ? "K" : null;
           const pickerKey = `${store.key}-${storeMode}`;
+          const selectedStoreForCard = chain ? findStoreForSelectionV320(chain, storeMode) : null;
+          const distanceForCard = getStoreDistanceLabelV320(selectedStoreForCard);
 
           return (
             <div
@@ -8071,9 +8122,10 @@ export default function Page() {
                 <p className={compact ? "mt-2 truncate text-[10px] font-black uppercase tracking-wide text-slate-500" : "mt-2 truncate text-[10px] font-black uppercase tracking-wide text-slate-500"}>
                   {store.title}
                 </p>
-                <p className={compact ? "mt-1 line-clamp-2 min-h-[2rem] text-xs font-extrabold leading-tight text-slate-800" : "mt-1 line-clamp-2 min-h-[2rem] text-xs font-extrabold leading-tight text-slate-800"}>
+                <p className={compact ? "mt-1 min-h-[2rem] break-words text-[11px] font-extrabold leading-tight text-slate-800" : "mt-1 min-h-[2rem] break-words text-xs font-extrabold leading-tight text-slate-800"}>
                   {store.name}
                 </p>
+                {distanceForCard && <p className="mt-0.5 text-[9px] font-black text-slate-400">{distanceForCard}</p>}
               </button>
 
               {isRealChain && chain && selected && (
