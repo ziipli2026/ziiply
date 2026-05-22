@@ -231,7 +231,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v320store-12";
+const APP_VERSION = "v320store-13";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -3034,7 +3034,16 @@ export default function Page() {
   const [singleProductCompareLoading, setSingleProductCompareLoading] = useState(false);
   const [singleProductCompareTerm, setSingleProductCompareTerm] = useState("");
   const searchNavigationLocked = loadingOffers || loadingNormal || singleProductCompareLoading;
-  const storesReadyForSearch = storeModeChosenV299 && storeCompareScope !== "none";
+  const withinChainStoresReadyV320 = Boolean(
+    storeCompareScope === "within_chain" &&
+      withinChain &&
+      (withinChain === "S"
+        ? (activeArea.sStoreId || activeArea.sStoreName) && (activeArea.sLocalStoreId || activeArea.sLocalStoreName)
+        : (activeArea.kStoreId || activeArea.kStoreName) && (activeArea.kLocalStoreId || activeArea.kLocalStoreName))
+  );
+  const storesReadyForSearch = Boolean(
+    (storeCompareScope === "between_chains" && storeModeChosenV299) || withinChainStoresReadyV320
+  );
   const initialStoreSelectionLocked = !storesReadyForSearch;
   const searchBottomNavDisabled = searchNavigationLocked || initialStoreSelectionLocked;
   const [visibleNormalCount, setVisibleNormalCount] = useState(8);
@@ -7851,6 +7860,12 @@ export default function Page() {
   function getStoreCoordinateV320(store: StoreSearchItem, keys: string[]) {
     const readNumber = (value: unknown) => {
       if (value == null || value === "") return null;
+      if (typeof value === "string") {
+        const normalizedValue = value.replace(",", ".").replace(/[^0-9.\-]/g, "");
+        if (!normalizedValue) return null;
+        const numberValue = Number(normalizedValue);
+        return Number.isFinite(numberValue) ? numberValue : null;
+      }
       const numberValue = Number(value);
       return Number.isFinite(numberValue) ? numberValue : null;
     };
@@ -7865,10 +7880,15 @@ export default function Page() {
     const containers = [
       (store as any).location,
       (store as any).coordinates,
+      (store as any).coordinates?.coordinates,
       (store as any).coord,
       (store as any).geo,
+      (store as any).geometry,
+      (store as any).geometry?.coordinates,
       (store as any).address,
       (store as any).position,
+      (store as any).store,
+      (store as any).raw,
     ].filter(Boolean);
 
     for (const container of containers) {
@@ -7926,12 +7946,23 @@ export default function Page() {
       readNumber((store as any).distance_km) ??
       readNumber((store as any).distanceKilometers) ??
       readNumber((store as any).distance_kilometers) ??
+      readNumber((store as any).distanceInKm) ??
+      readNumber((store as any).distance_in_km) ??
+      readNumber((store as any).distanceText) ??
+      readNumber((store as any).distance_text) ??
+      readNumber((store as any).distanceLabel) ??
+      readNumber((store as any).distance_label) ??
       readNumber((store as any).distance?.km) ??
-      readNumber((store as any).distance?.kilometers);
+      readNumber((store as any).distance?.kilometers) ??
+      readNumber((store as any).distance?.text) ??
+      readNumber((store as any).distance?.label);
 
     const explicitMeters =
       readNumber((store as any).distanceMeters) ??
       readNumber((store as any).distance_m) ??
+      readNumber((store as any).distance_meters) ??
+      readNumber((store as any).distanceInMeters) ??
+      readNumber((store as any).distance_in_meters) ??
       readNumber((store as any).distance?.meters);
 
     const rawDistance = explicitKm ?? (explicitMeters != null ? explicitMeters / 1000 : readNumber((store as any).distance));
@@ -8076,9 +8107,11 @@ export default function Page() {
                       {[store.city || activeArea.label || "", store.postalCode || "", distanceLabel].filter(Boolean).join(" · ")}
                     </span>
                   </span>
-                  <span className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-black ${selected ? "bg-white/20 text-white" : "bg-white text-slate-400"}`}>
-                    {selected ? "Valittu" : distanceLabel || (mode === "local" ? "Lähi" : "Talo")}
-                  </span>
+                  {(selected || distanceLabel) && (
+                    <span className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-black ${selected ? "bg-white/20 text-white" : "bg-white text-slate-400"}`}>
+                      {selected ? "Valittu" : distanceLabel}
+                    </span>
+                  )}
                 </button>
               );
             })
