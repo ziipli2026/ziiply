@@ -231,7 +231,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v320store-16";
+const APP_VERSION = "v320store-18";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -8240,20 +8240,20 @@ export default function Page() {
                   key={`${pickerKey}-${store.type || chain}-${store.id || index}-${normalize(store.name || "")}`}
                   type="button"
                   onClick={(event) => selectFromPicker(event, store)}
-                  className={`mb-1.5 flex w-full touch-manipulation items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-left font-extrabold transition last:mb-0 active:scale-[0.99] ${
+                  className={`mb-1.5 flex w-full touch-manipulation items-center justify-between gap-1.5 rounded-xl px-2.5 py-2.5 text-left font-extrabold transition last:mb-0 active:scale-[0.99] ${
                     selected
                       ? chain === "S" ? "bg-green-700 text-white" : "bg-red-700 text-white"
                       : "bg-slate-50 text-slate-700 active:bg-slate-100"
                   }`}
                 >
                   <span className="min-w-0 flex-1">
-                    <span className="block whitespace-normal break-words text-[13px] leading-tight">{store.name}</span>
-                    <span className={`mt-1 block text-xs ${selected ? "text-white/80" : "text-slate-400"}`}>
+                    <span className="block whitespace-normal break-words text-[12.5px] leading-tight">{store.name}</span>
+                    <span className={`mt-1 block text-[10.5px] leading-tight ${selected ? "text-white/80" : "text-slate-400"}`}>
                       {[store.city || activeArea.label || "", store.postalCode || "", distanceLabel].filter(Boolean).join(" · ")}
                     </span>
                   </span>
                   {(selected || distanceLabel) && (
-                    <span className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-black ${selected ? "bg-white/20 text-white" : "bg-white text-slate-400"}`}>
+                    <span className={`shrink-0 rounded-full px-1.5 py-1 text-[9px] font-black ${selected ? "bg-white/20 text-white" : "bg-white text-slate-400"}`}>
                       {selected ? "Valittu" : distanceLabel}
                     </span>
                   )}
@@ -8270,8 +8270,8 @@ export default function Page() {
     if (!compact) {
       return (
         <div
-          className="absolute left-1/2 top-full z-50 mt-2 max-h-64 w-[min(72vw,300px)] -translate-x-1/2 overflow-hidden rounded-2xl bg-white p-3 text-left text-sm shadow-2xl ring-1 ring-slate-200"
-          style={{ minWidth: "240px", maxWidth: "300px" }}
+          className="absolute left-1/2 top-full z-50 mt-2 max-h-64 w-[min(62vw,244px)] -translate-x-1/2 overflow-hidden rounded-2xl bg-white p-2 text-left text-sm shadow-2xl ring-1 ring-slate-200"
+          style={{ minWidth: "206px", maxWidth: "244px" }}
           onClick={(event) => event.stopPropagation()}
         >
           {menuBody}
@@ -8284,8 +8284,8 @@ export default function Page() {
     const portalContent = (
       <div className="fixed inset-x-0 top-0 z-[2147483647] pointer-events-none">
         <div
-          className="absolute left-1/2 top-[calc(env(safe-area-inset-top)+20.25rem)] max-h-[38dvh] w-[min(calc(100vw-3.5rem),21rem)] -translate-x-1/2 overflow-hidden rounded-[1.35rem] bg-white p-2 text-left text-xs shadow-2xl ring-1 ring-slate-200 pointer-events-auto"
-          style={{ minWidth: "300px", maxWidth: "336px" }}
+          className="absolute left-1/2 top-[calc(env(safe-area-inset-top)+20.25rem)] max-h-[38dvh] w-[min(calc(100vw-8.5rem),15.25rem)] -translate-x-1/2 overflow-hidden rounded-[1.35rem] bg-white p-2 text-left text-xs shadow-2xl ring-1 ring-slate-200 pointer-events-auto"
+          style={{ minWidth: "206px", maxWidth: "244px" }}
           onClick={(event) => event.stopPropagation()}
           onPointerDown={(event) => event.stopPropagation()}
           onTouchStart={(event) => event.stopPropagation()}
@@ -8356,7 +8356,7 @@ export default function Page() {
             return (
               <div
                 key={store.key}
-                className={`${compact ? "min-h-[12.75rem] rounded-xl p-2" : "rounded-2xl p-3"} relative shadow-sm ring-1 transition ${
+                className={`${compact ? "min-h-[9.2rem] rounded-xl p-2" : "rounded-2xl p-3"} relative shadow-sm ring-1 transition ${
                   selected ? `${store.selectedTone} ring-current/20` : "border border-slate-200 bg-white text-slate-600 ring-slate-200"
                 }`}
               >
@@ -8390,17 +8390,17 @@ export default function Page() {
                 </button>
 
                 {selected && (
-                  <div className={compact ? "mt-1.5 grid grid-cols-1 gap-1.5" : "mt-2 grid grid-cols-2 gap-1.5"}>
-                    <div className={compact ? "relative rounded-lg bg-white/90 p-1.5 text-center ring-1 ring-slate-200" : "relative rounded-xl bg-white/80 p-1.5 text-center ring-1 ring-slate-200"}>
+                  <div className={compact ? "mt-1.5 grid grid-cols-2 gap-1.5" : "mt-2 grid grid-cols-2 gap-1.5"}>
+                    <div className={compact ? "relative rounded-lg bg-white/90 px-1.5 py-1 text-center ring-1 ring-slate-200" : "relative rounded-xl bg-white/80 p-1.5 text-center ring-1 ring-slate-200"}>
                       <p className="text-[9px] font-black uppercase text-slate-400">Kauppa 1</p>
-                      <p className={compact ? "min-h-[2.7rem] whitespace-normal break-words text-[10px] font-extrabold leading-tight text-slate-800" : "min-h-[2.7rem] whitespace-normal break-words text-[11px] font-extrabold leading-tight text-slate-800"}>{storeNameA}</p>
+                      <p className={compact ? "min-h-[2.1rem] whitespace-normal break-words text-[9px] font-extrabold leading-tight text-slate-800" : "min-h-[2.7rem] whitespace-normal break-words text-[11px] font-extrabold leading-tight text-slate-800"}>{storeNameA}</p>
                       {distanceA && <p className="mt-0.5 text-[9px] font-black text-slate-400">{distanceA}</p>}
                       {renderStoreChoiceButton(chain, modeA, `${store.key}-within-hyper`, compact)}
                       {renderStorePickerMenu(chain, modeA, `${store.key}-within-hyper`, compact)}
                     </div>
-                    <div className={compact ? "relative rounded-lg bg-white/90 p-1.5 text-center ring-1 ring-slate-200" : "relative rounded-xl bg-white/80 p-1.5 text-center ring-1 ring-slate-200"}>
+                    <div className={compact ? "relative rounded-lg bg-white/90 px-1.5 py-1 text-center ring-1 ring-slate-200" : "relative rounded-xl bg-white/80 p-1.5 text-center ring-1 ring-slate-200"}>
                       <p className="text-[9px] font-black uppercase text-slate-400">Kauppa 2</p>
-                      <p className={compact ? "min-h-[2.7rem] whitespace-normal break-words text-[10px] font-extrabold leading-tight text-slate-800" : "min-h-[2.7rem] whitespace-normal break-words text-[11px] font-extrabold leading-tight text-slate-800"}>{storeNameB}</p>
+                      <p className={compact ? "min-h-[2.1rem] whitespace-normal break-words text-[9px] font-extrabold leading-tight text-slate-800" : "min-h-[2.7rem] whitespace-normal break-words text-[11px] font-extrabold leading-tight text-slate-800"}>{storeNameB}</p>
                       {distanceB && <p className="mt-0.5 text-[9px] font-black text-slate-400">{distanceB}</p>}
                       {renderStoreChoiceButton(chain, modeB, `${store.key}-within-local`, compact)}
                       {renderStorePickerMenu(chain, modeB, `${store.key}-within-local`, compact)}
@@ -8427,7 +8427,7 @@ export default function Page() {
           return (
             <div
               key={store.key}
-              className={`${compact ? "min-w-0 rounded-2xl px-2 py-2.5" : "min-w-0 rounded-2xl px-2.5 py-3"} relative text-center shadow-sm ring-1 transition ${
+              className={`${compact ? "min-w-0 rounded-2xl px-2 py-2" : "min-w-0 rounded-2xl px-2.5 py-3"} relative text-center shadow-sm ring-1 transition ${
                 selected
                   ? `${store.selectedTone} ring-current/20`
                   : "border border-slate-200 bg-white text-slate-600 opacity-60 ring-slate-200"
@@ -8459,7 +8459,7 @@ export default function Page() {
                 <p className={compact ? "mt-2 truncate text-[10px] font-black uppercase tracking-wide text-slate-500" : "mt-2 truncate text-[10px] font-black uppercase tracking-wide text-slate-500"}>
                   {store.title}
                 </p>
-                <p className={compact ? "mt-1 min-h-[3.05rem] whitespace-normal break-words text-[11px] font-extrabold leading-tight text-slate-800" : "mt-1 min-h-[2.6rem] whitespace-normal break-words text-xs font-extrabold leading-tight text-slate-800"}>
+                <p className={compact ? "mt-1 min-h-[2.25rem] whitespace-normal break-words text-[10px] font-extrabold leading-tight text-slate-800" : "mt-1 min-h-[2.6rem] whitespace-normal break-words text-xs font-extrabold leading-tight text-slate-800"}>
                   {store.name}
                 </p>
                 {distanceForCard && <p className="mt-0.5 text-[9px] font-black text-slate-400">{distanceForCard}</p>}
@@ -8512,10 +8512,20 @@ export default function Page() {
           68% { transform: translateY(-4px) scale(1.03); }
           100% { transform: translateY(0) scale(1); }
         }
+        @keyframes ziiply-search-ready-attention {
+          0%, 100% { background-color: transparent; box-shadow: none; filter: none; }
+          18%, 58% { background-color: rgba(250, 204, 21, 0.95); box-shadow: 0 0 0 4px rgba(250, 204, 21, 0.22), 0 8px 18px rgba(202, 138, 4, 0.28); filter: saturate(1.18); }
+        }
         .ziiply-search-ready-bounce {
-          animation: ziiply-search-ready-bounce 1.15s cubic-bezier(0.22, 1, 0.36, 1) both;
+          animation: ziiply-search-ready-bounce 1.15s cubic-bezier(0.22, 1, 0.36, 1) both, ziiply-search-ready-attention 1.15s ease-in-out both;
           transform-origin: center bottom;
-          will-change: transform;
+          will-change: transform, background-color, box-shadow, filter;
+          display: inline-flex;
+          min-width: 1.75rem;
+          min-height: 1.75rem;
+          align-items: center;
+          justify-content: center;
+          border-radius: 9999px;
         }
 
         #ziiply-ean-scanner-region,
