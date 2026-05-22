@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v320store-6fix";
+const APP_VERSION = "v320store-7";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -7671,22 +7671,84 @@ export default function Page() {
     return isPrisma(store) || isKCitymarket(store);
   }
 
-  function getStoresForPickerOptionsV295(chain: "S" | "K", mode: StoreMode) {
-    const chainStores = foundStores.filter((store) => store.type === chain);
+  function getStoreChainV320(store: StoreSearchItem): "S" | "K" | null {
+    const raw = String(store.type || store.chain || "").toUpperCase();
+    if (raw === "S" || raw.includes("S-RYHM") || raw.includes("SOK")) return "S";
+    if (raw === "K" || raw.includes("K-RYHM") || raw.includes("KESKO")) return "K";
 
-    // v308_STORE_MODE_SCOPE_LOCK:
-    // Käytetään samaa laajaa kauppapohjaa sekä Lähikaupat-tilassa että Ketjun sisällä -tilassa.
-    // Tavaratalo = Prisma / K-Citymarket. Lähikauppa = kaikki saman ketjun ei-tavaratalot,
-    // myös ne, joita vanha liian tiukka S-market/K-market-filteri ei tunnistanut.
-    const hyperStores = chainStores.filter(isHyperStoreForModeV295);
-    const expandedLocalStores = chainStores.filter((store) => !isHyperStoreForModeV295(store));
-    const strictLocalStores = chainStores.filter(isLocalStoreForModeV295);
+    const text = storeText(store);
+    if (text.includes("prisma") || text.includes("s-market") || text.includes("smarket") || text.includes("alepa") || text.includes("sale")) return "S";
+    if (text.includes("k-citymarket") || text.includes("kcitymarket") || text.includes("k-supermarket") || text.includes("ksupermarket") || text.includes("k-market") || text.includes("kmarket")) return "K";
+
+    return null;
+  }
+
+  function normalizeStoreForPickerV320(store: StoreSearchItem): StoreSearchItem {
+    const chain = getStoreChainV320(store);
+    return {
+      ...store,
+      type: chain || store.type,
+    };
+  }
+
+  function getStoreModeRankV320(store: StoreSearchItem, mode: StoreMode) {
+    const text = storeText(store);
+    const isHyper = isHyperStoreForModeV295(store);
+    const isStrictLocal = isLocalStoreForModeV295(store);
+    const isLocalLike = isStrictLocal || (!isHyper && (text.includes("market") || text.includes("alepa") || text.includes("sale")));
 
     if (mode === "hyper") {
-      return hyperStores;
+      if (isHyper) return 0;
+      if (isLocalLike) return 3;
+      return 5;
     }
 
-    return expandedLocalStores.length > 0 ? expandedLocalStores : strictLocalStores;
+    if (isStrictLocal) return 0;
+    if (isLocalLike) return 1;
+    if (isHyper) return 5;
+    return 3;
+  }
+
+  function sortStoresForPickerV320(stores: StoreSearchItem[], mode: StoreMode, selectedId?: number, selectedName?: string) {
+    return uniqueStoresByIdAndName(stores.map(normalizeStoreForPickerV320))
+      .sort((a, b) => {
+        const aSelected = Boolean((selectedId && a.id === selectedId) || (selectedName && a.name === selectedName));
+        const bSelected = Boolean((selectedId && b.id === selectedId) || (selectedName && b.name === selectedName));
+        if (aSelected !== bSelected) return aSelected ? -1 : 1;
+
+        const modeDiff = getStoreModeRankV320(a, mode) - getStoreModeRankV320(b, mode);
+        if (modeDiff !== 0) return modeDiff;
+
+        const cityA = normalize(a.city || "");
+        const cityB = normalize(b.city || "");
+        const area = normalize(activeArea.label || "");
+        const aSameCity = area && cityA.includes(area);
+        const bSameCity = area && cityB.includes(area);
+        if (aSameCity !== bSameCity) return aSameCity ? -1 : 1;
+
+        return normalize(a.name || "").localeCompare(normalize(b.name || ""), "fi");
+      });
+  }
+
+  function getStoresForPickerOptionsV295(chain: "S" | "K", mode: StoreMode) {
+    const chainStores = foundStores
+      .map(normalizeStoreForPickerV320)
+      .filter((store) => getStoreChainV320(store) === chain);
+
+    const selectedId = getSelectedStoreIdFor(chain, mode);
+    const selectedName = getSelectedStoreNameFor(chain, mode);
+
+    // Tavaratalot = vain Prisma / K-Citymarket jos niitä löytyy.
+    // Lähikaupat = vain ketjun ei-tavaratalot jos niitä löytyy.
+    // Jos API palauttaa suppean datan, fallback näyttää silti koko ketjun eikä tyhjää/virheellistä ikkunaa.
+    const hyperStores = chainStores.filter(isHyperStoreForModeV295);
+    const localStores = chainStores.filter((store) => !isHyperStoreForModeV295(store));
+
+    const scoped = mode === "hyper"
+      ? (hyperStores.length > 0 ? hyperStores : chainStores)
+      : (localStores.length > 0 ? localStores : chainStores);
+
+    return sortStoresForPickerV320(scoped, mode, selectedId, selectedName);
   }
 
   function getStoresForPicker(chain: "S" | "K", mode: StoreMode) {
@@ -7749,25 +7811,29 @@ export default function Page() {
   }
 
   function getStoresForWithinChainPicker(chain: "S" | "K", slotMode: StoreMode) {
-    // Ketjun sisällä EI saa olla erillistä Tavaratalo/Lähikauppa-sorttausta per ikkuna.
-    // Molemmat ikkunat näyttävät saman ketjun kaikki alueelta löydetyt kaupat
-    // (tavaratalot + lähikaupat). Ainoa suodatus: toisessa ikkunassa jo valittu kauppa
-    // poistetaan tästä ikkunasta, jotta vertailussa on aina kaksi eri kauppaa.
-    const combined = uniqueStoresByIdAndName([
-      ...foundStores.filter((store) => store.type === chain),
-      ...getStoresForPicker(chain, "hyper"),
-      ...getStoresForPicker(chain, "local"),
-    ]);
+    // Ketjun sisällä: molemmat valintaikkunat näyttävät saman ketjun kaikki löydetyt kaupat.
+    // Ainoa suodatus: toisessa slotissa jo valittu kauppa poistetaan, jotta vertailuun tulee kaksi eri kauppaa.
+    const allChainStores = foundStores
+      .map(normalizeStoreForPickerV320)
+      .filter((store) => getStoreChainV320(store) === chain);
 
+    const selectedId = getSelectedStoreIdFor(chain, slotMode);
+    const selectedName = getSelectedStoreNameFor(chain, slotMode);
     const otherMode: StoreMode = slotMode === "hyper" ? "local" : "hyper";
     const otherSelectedId = getSelectedStoreIdFor(chain, otherMode);
     const otherSelectedName = getSelectedStoreNameFor(chain, otherMode);
 
-    return combined.filter((store) => {
-      if (otherSelectedId && store.id === otherSelectedId) return false;
-      if (otherSelectedName && store.name === otherSelectedName) return false;
-      return true;
-    });
+    const fallbackStores = [
+      ...getStoresForPicker(chain, "hyper"),
+      ...getStoresForPicker(chain, "local"),
+    ];
+
+    return sortStoresForPickerV320([...allChainStores, ...fallbackStores], slotMode, selectedId, selectedName)
+      .filter((store) => {
+        if (otherSelectedId && store.id === otherSelectedId) return false;
+        if (otherSelectedName && store.name === otherSelectedName) return false;
+        return true;
+      });
   }
 
   function getStoresForPickerContext(chain: "S" | "K", mode: StoreMode) {
@@ -7779,48 +7845,75 @@ export default function Page() {
     if (openStorePicker !== pickerKey) return null;
 
     const options = getStoresForPickerContext(chain, mode);
+    const selectedName = getSelectedStoreNameFor(chain, mode);
+    const selectedId = getSelectedStoreIdFor(chain, mode);
 
-    // Älä avaa valikkoa, jos vaihtoehtoja on vain yksi.
-    if (options.length <= 1) {
-      window.setTimeout(() => setOpenStorePicker(null), 0);
-      return null;
-    }
+    // Ei suljeta heti pois renderin aikana. Näytetään käyttäjälle selkeä tila,
+    // koska mobiilissa tämä tuntui muuten siltä, ettei valikko toimi ollenkaan.
+    const menuTitle = storeCompareScope === "within_chain"
+      ? `Valitse ${chain === "S" ? "S-ryhmän" : "K-ryhmän"} kauppa`
+      : mode === "local"
+        ? `Valitse ${chain === "S" ? "S-ryhmän" : "K-ryhmän"} lähikauppa`
+        : `Valitse ${chain === "S" ? "S-ryhmän" : "K-ryhmän"} tavaratalo`;
 
     return (
       <div
-        className={`${compact ? "fixed left-3 right-3 top-[calc(env(safe-area-inset-top)+9rem)] z-[120] max-h-[60dvh] w-auto overflow-auto rounded-2xl bg-white p-2 text-left shadow-2xl ring-1 ring-slate-200 text-xs" : "absolute left-1/2 top-full z-50 mt-2 max-h-64 w-[min(78vw,340px)] -translate-x-1/2 overflow-auto rounded-2xl bg-white p-3 text-left text-sm shadow-2xl ring-1 ring-slate-200"}`}
+        className={`${compact ? "fixed left-3 right-3 bottom-[calc(env(safe-area-inset-bottom)+8.35rem)] z-[140] max-h-[42dvh] w-auto overflow-hidden rounded-[1.35rem] bg-white p-2 text-left shadow-2xl ring-1 ring-slate-200 text-xs" : "absolute left-1/2 top-full z-50 mt-2 max-h-64 w-[min(78vw,340px)] -translate-x-1/2 overflow-hidden rounded-2xl bg-white p-3 text-left text-sm shadow-2xl ring-1 ring-slate-200"}`}
         style={compact ? { minWidth: "260px", maxWidth: "none" } : { minWidth: "260px", maxWidth: "340px" }}
+        onClick={(event) => event.stopPropagation()}
       >
-        {options.length <= 1 ? (
-          <p className="px-2 py-2 font-bold text-slate-400">Ei muita kauppoja valittavana.</p>
-        ) : (
-          options.map((store) => {
-            const selectedName = getSelectedStoreNameFor(chain, mode);
-            const selected = selectedName === store.name;
+        <div className="mb-2 flex items-center justify-between gap-2 px-1">
+          <p className="text-[11px] font-black uppercase tracking-wide text-slate-500">{menuTitle}</p>
+          <button
+            type="button"
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              setOpenStorePicker(null);
+            }}
+            className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black text-slate-600"
+          >
+            Sulje
+          </button>
+        </div>
 
-            return (
-              <button
-                key={`${pickerKey}-${store.id}`}
-                type="button"
-                onClick={(event) => {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  if (store.type !== chain) return;
-                  selectStoreForCurrentMode(store, mode);
-                  window.setTimeout(() => setOpenStorePicker(null), 0);
-                }}
-                className={`mb-1.5 w-full rounded-xl px-3 py-2.5 text-left font-extrabold transition last:mb-0 ${
-                  selected
-                    ? chain === "S" ? "bg-green-700 text-white" : "bg-red-700 text-white"
-                    : "bg-slate-50 text-slate-700"
-                }`}
-              >
-                <span className="block whitespace-normal break-words leading-tight">{store.name}</span>
-                <span className={`mt-1 block text-xs ${selected ? "text-white/80" : "text-slate-400"}`}>{store.city || activeArea.label || ""} {store.postalCode || ""}</span>
-              </button>
-            );
-          })
-        )}
+        <div className={`${compact ? "max-h-[34dvh]" : "max-h-56"} overflow-auto overscroll-contain pr-1`}>
+          {options.length === 0 ? (
+            <p className="rounded-xl bg-slate-50 px-3 py-3 font-bold text-slate-400">Ei kauppoja valittavana. Hae alue uudelleen.</p>
+          ) : (
+            options.map((store, index) => {
+              const selected = Boolean((selectedId && store.id === selectedId) || (selectedName && store.name === selectedName));
+
+              return (
+                <button
+                  key={`${pickerKey}-${store.type || chain}-${store.id || index}-${normalize(store.name || "")}`}
+                  type="button"
+                  onClick={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const normalizedStore = normalizeStoreForPickerV320(store);
+                    if (getStoreChainV320(normalizedStore) !== chain) return;
+                    selectStoreForCurrentMode(normalizedStore, mode);
+                    window.setTimeout(() => setOpenStorePicker(null), 0);
+                  }}
+                  className={`mb-1.5 flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-left font-extrabold transition last:mb-0 ${
+                    selected
+                      ? chain === "S" ? "bg-green-700 text-white" : "bg-red-700 text-white"
+                      : "bg-slate-50 text-slate-700 active:bg-slate-100"
+                  }`}
+                >
+                  <span className="min-w-0">
+                    <span className="block whitespace-normal break-words leading-tight">{store.name}</span>
+                    <span className={`mt-1 block text-xs ${selected ? "text-white/80" : "text-slate-400"}`}>{store.city || activeArea.label || ""} {store.postalCode || ""}</span>
+                  </span>
+                  <span className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-black ${selected ? "bg-white/20 text-white" : "bg-white text-slate-400"}`}>
+                    {selected ? "Valittu" : mode === "local" ? "Lähi" : "Talo"}
+                  </span>
+                </button>
+              );
+            })
+          )}
+        </div>
       </div>
     );
   }
