@@ -231,7 +231,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "V320SEL-2B";
+const APP_VERSION = "V320MOBTXT-2";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -4177,13 +4177,16 @@ export default function Page() {
       setShopsPanelOpen(false);
       setEanModalOpen(false);
 
+      setInput((current) => current);
+      setLoadingNormal(false);
+      setNormalResults([]);
+      setNormalSearchAttempted(false);
+      setVisibleNormalCount(8);
+      setActiveNormalSearchTerm("");
+      setSearchDebug([]);
+
       if (openedFromSingleCompare) {
         setInput("");
-        setNormalResults([]);
-        setNormalSearchAttempted(false);
-        setVisibleNormalCount(8);
-        setActiveNormalSearchTerm("");
-        setSearchDebug([]);
       }
 
       setActiveResult("none");
@@ -8718,13 +8721,15 @@ export default function Page() {
         </section>
 
         {!searchPanelOpen && !cartModalOpen && !shopsPanelOpen && !eanModalOpen && activeResult === "none" && (
-          <section className="flex min-h-[calc(100dvh-12rem)] flex-col items-center justify-center px-8 text-center">
+          <section className="flex min-h-[calc(100dvh-12rem)] flex-col items-center justify-center px-7 text-center">
             <img
               src="/ziiply.png"
               alt="Ziiply"
               className="h-auto w-full max-w-[280px] object-contain"
             />
-
+            <p className="mt-5 max-w-[21rem] rounded-[1.35rem] border border-white/70 bg-white/82 px-4 py-3 text-[0.95rem] font-semibold leading-snug tracking-[-0.01em] text-slate-600 shadow-[0_14px_38px_rgba(15,23,42,0.08)] backdrop-blur sm:hidden">
+              Hae mitä tarvitset. Ziiply etsii siihen liittyvät tarjoukset ja auttaa vertaamaan ostoskorin hinnat.
+            </p>
           </section>
         )}
 
@@ -9229,7 +9234,7 @@ return (
 
         {(activeResult === "compare" || activeResult === "singleCompare" || (!searchPanelOpen && activeResult !== "offers" && (loadingNormal || normalResults.length > 0 || (normalSearchAttempted && activeNormalSearchTerm)))) && (
           <div
-            className={`fixed inset-0 z-40 flex items-end justify-center overflow-y-auto overscroll-contain ${activeResult === "compare" || activeResult === "singleCompare" ? "bg-transparent" : "bg-slate-950/35"} px-3 pb-[calc(env(safe-area-inset-bottom)+5.8rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0 ${(closingPanels.compare || closingPanels.singleCompare) ? "ziiply-soft-close" : "ziiply-soft-open"}`}
+            className={`fixed inset-0 z-40 flex items-end justify-center overflow-y-auto overscroll-contain bg-transparent px-2 pb-[calc(env(safe-area-inset-bottom)+6.45rem)] pt-[calc(env(safe-area-inset-top)+5.1rem)] sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0 ${(closingPanels.compare || closingPanels.singleCompare) ? "ziiply-soft-close" : "ziiply-soft-open"}`}
             onClick={(event) => {
               if (event.target !== event.currentTarget) return;
               if (activeResult !== "compare" && activeResult !== "singleCompare") {
@@ -9241,7 +9246,7 @@ return (
             <div
               ref={compareOverlayScrollRef}
               onClick={(event) => event.stopPropagation()}
-              className="max-h-[calc(100dvh-11.7rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain overflow-x-visible rounded-[1.75rem] border border-white/70 bg-white/95 p-3 shadow-2xl backdrop-blur sm:min-h-0 sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none"
+              className="h-[min(72dvh,670px)] w-full max-w-[28rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.65rem] border border-white/70 bg-white/95 p-3 shadow-2xl backdrop-blur sm:min-h-0 sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none"
             >
             <div className="grid min-w-0 max-w-full gap-3 sm:gap-4 overflow-hidden lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
             {activeResult === "compare" && showCheapestSticky && cheapest && (
@@ -9369,7 +9374,7 @@ return (
               )}
 
               {activeResult !== "compare" && (loadingNormal || normalResults.length > 0 || (searchPanelOpen && normalSearchAttempted && activeNormalSearchTerm)) && (
-<section ref={normalResultsSectionRef} className="min-w-0 max-w-full overflow-hidden rounded-[1.5rem] bg-white p-2.5 sm:min-h-0 sm:rounded-[2rem] sm:p-5">
+<section ref={normalResultsSectionRef} className="min-h-full min-w-0 max-w-full overflow-hidden rounded-[1.5rem] bg-white p-2.5 sm:min-h-0 sm:rounded-[2rem] sm:p-5">
                 <div className="mb-2 flex items-start justify-between gap-3 px-1">
                   <div className="min-w-0">
                     <h2 className="text-[1.7rem] font-black leading-tight text-slate-950">Valitse oikea tuote</h2>
@@ -10173,9 +10178,9 @@ return (
       )}
 
       {searchPanelOpen && (
-        <div className={`fixed inset-0 z-40 flex items-end justify-center overflow-hidden overscroll-none bg-transparent px-3 pb-[calc(env(safe-area-inset-bottom)+8.9rem)] pt-[calc(env(safe-area-inset-top)+5.0rem)] sm:items-center sm:p-6 ${closingPanels.search ? "ziiply-soft-close" : "ziiply-soft-open"}`}>
-          <div className="w-full max-w-[38rem] overflow-hidden">
-            <div className="h-[min(31.4rem,calc(100dvh-14.8rem))] overflow-hidden rounded-[1.8rem] border border-white/80 bg-white/95 p-3 shadow-[0_18px_55px_rgba(15,23,42,0.14)] ring-1 ring-white/80 backdrop-blur-2xl sm:h-[32.5rem] sm:rounded-[2rem] sm:p-4">
+        <div className={`fixed inset-0 z-40 flex items-end justify-center overflow-hidden overscroll-none bg-transparent px-2 pb-[calc(env(safe-area-inset-bottom)+6.45rem)] pt-[calc(env(safe-area-inset-top)+5.1rem)] sm:items-center sm:p-6 ${closingPanels.search ? "ziiply-soft-close" : "ziiply-soft-open"}`}>
+          <div className="h-[min(72dvh,670px)] w-full max-w-[28rem] overflow-visible overscroll-none rounded-[1.65rem] bg-white/90 p-2.5 shadow-2xl ring-1 ring-white/70 backdrop-blur-2xl">
+            <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-[1.35rem] border border-white/80 bg-white/95 p-3 shadow-[0_18px_55px_rgba(15,23,42,0.10)] ring-1 ring-slate-100 sm:rounded-[2rem] sm:p-4">
               <div className="flex h-full min-h-0 flex-col">
                 <div className="shrink-0">
                   <div className="flex items-start gap-3">
