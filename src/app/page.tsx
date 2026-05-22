@@ -231,7 +231,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "V320SEL-2A";
+const APP_VERSION = "V320SEL-2B";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -4209,7 +4209,10 @@ export default function Page() {
 
     // Toinen painallus sulkee Hae-näkymän. Jos Kori on auki, vaihdetaan suoraan Hae-näkymään.
     if (searchPanelOpen) {
-      closePanelWithFade("search", () => setSearchPanelOpen(false));
+      closePanelWithFade("search", () => {
+        setSearchPanelOpen(false);
+        closeProductSelectionOverlay();
+      });
       return;
     }
 
@@ -7123,6 +7126,14 @@ export default function Page() {
       setCartSavePanelOpen(false);
       setShopsPanelOpen(false);
       setEanModalOpen(false);
+      setLoadingNormal(false);
+      setNormalResults([]);
+      setVisibleNormalCount(8);
+      setNormalSearchAttempted(false);
+      setActiveNormalSearchTerm("");
+      if (activeResult !== "compare" && activeResult !== "singleCompare") {
+        setActiveResult("none");
+      }
       setSearchPanelOpen(true);
     }
 
@@ -9216,7 +9227,7 @@ return (
           </div>
         )}
 
-        {(activeResult === "compare" || activeResult === "singleCompare" || (activeResult !== "offers" && (loadingNormal || normalResults.length > 0 || (searchPanelOpen && normalSearchAttempted && activeNormalSearchTerm)))) && (
+        {(activeResult === "compare" || activeResult === "singleCompare" || (!searchPanelOpen && activeResult !== "offers" && (loadingNormal || normalResults.length > 0 || (normalSearchAttempted && activeNormalSearchTerm)))) && (
           <div
             className={`fixed inset-0 z-40 flex items-end justify-center overflow-y-auto overscroll-contain ${activeResult === "compare" || activeResult === "singleCompare" ? "bg-transparent" : "bg-slate-950/35"} px-3 pb-[calc(env(safe-area-inset-bottom)+5.8rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0 ${(closingPanels.compare || closingPanels.singleCompare) ? "ziiply-soft-close" : "ziiply-soft-open"}`}
             onClick={(event) => {
