@@ -231,7 +231,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "V320MOBTXT-8A";
+const APP_VERSION = "V320MOBTXT-7";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -10299,7 +10299,7 @@ return (
                           triggerHaptic();
                           window.setTimeout(() => searchInputRef.current?.focus(), 0);
                         }}
-                        className="shrink-0 rounded-full bg-slate-700 px-3 py-1.5 text-xs font-black text-white shadow-sm ring-1 ring-slate-600 active:scale-[0.98]"
+                        className="shrink-0 rounded-full bg-red-50 px-3 py-1.5 text-xs font-black text-red-600 ring-1 ring-red-100 active:scale-[0.98]"
                       >
                         Tyhjennä
                       </button>
