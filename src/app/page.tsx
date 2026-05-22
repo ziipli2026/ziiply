@@ -102,6 +102,11 @@ type StoreSearchItem = {
   distance?: number | string;
   distance_km?: number;
   distance_m?: number;
+  latitude?: number | string;
+  longitude?: number | string;
+  lat?: number | string;
+  lon?: number | string;
+  lng?: number | string;
 };
 
 type Match = {
@@ -225,7 +230,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v320store-8";
+const APP_VERSION = "v320store-9";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -2929,6 +2934,7 @@ export default function Page() {
   const [usingOwnLocation, setUsingOwnLocation] = useState(true);
   const [storeSearchLoading, setStoreSearchLoading] = useState(false);
   const [foundStores, setFoundStores] = useState<StoreSearchItem[]>([]);
+  const [gpsCoordsV320, setGpsCoordsV320] = useState<{ latitude: number; longitude: number } | null>(null);
 
   // STORE_MODE_PERSIST_V302
   // Pitää käyttäjän valitseman Tavaratalot/Lähikaupat-tilan vakaana myös kaupan vaihdon
@@ -4650,8 +4656,15 @@ export default function Page() {
     };
   }
 
-  async function fetchStoresForLocationQuery(query: string) {
-    const response = await fetch(`/api/store-search?search=${encodeURIComponent(query)}`, {
+  async function fetchStoresForLocationQuery(query: string, coords?: { latitude: number; longitude: number } | null) {
+    const params = new URLSearchParams({ search: query });
+    if (coords) {
+      params.set("lat", String(coords.latitude));
+      params.set("lon", String(coords.longitude));
+      params.set("latitude", String(coords.latitude));
+      params.set("longitude", String(coords.longitude));
+    }
+    const response = await fetch(`/api/store-search?${params.toString()}`, {
       cache: "no-store",
     });
     const data = await response.json();
@@ -4708,7 +4721,7 @@ export default function Page() {
     });
   }
 
-  async function applyLocation(queryOverride?: string, source: "manual" | "gps" = "manual") {
+  async function applyLocation(queryOverride?: string, source: "manual" | "gps" = "manual", coordsOverride?: { latitude: number; longitude: number } | null) {
     const rawQuery = (queryOverride || locationInput).trim();
 
     if (!rawQuery) {
@@ -4716,7 +4729,10 @@ export default function Page() {
       return;
     }
 
-    if (source === "manual") setUsingOwnLocation(false);
+    if (source === "manual") {
+      setUsingOwnLocation(false);
+      setGpsCoordsV320(null);
+    }
 
     setStoreSearchLoading(true);
     setLocationMessage(source === "gps" ? `Haetaan kauppoja alueelle ${rawQuery}...` : "Haetaan kauppoja...");
@@ -4745,7 +4761,7 @@ export default function Page() {
       });
 
       setLocationMessage(source === "gps" ? `Haetaan kauppoja alueelle ${query}...` : "Haetaan kauppoja...");
-      const stores = await fetchStoresForLocationQuery(query);
+      const stores = await fetchStoresForLocationQuery(query, source === "gps" ? (coordsOverride || gpsCoordsV320) : null);
       setFoundStores(stores);
 
       if (stores.length === 0) {
@@ -4816,19 +4832,21 @@ export default function Page() {
 
     try {
       const position = await getCurrentPosition();
+      setGpsCoordsV320({ latitude: position.coords.latitude, longitude: position.coords.longitude });
       const city = await reverseGeocodeCity(position.coords.latitude, position.coords.longitude);
 
       if (!city) {
         setLocationMessage("Sijaintia ei saatu. Valitse alue käsin.");
         gpsUserDisabledRefV306.current = true;
         setUsingOwnLocation(false);
+        setGpsCoordsV320(null);
         return;
       }
 
       setLocationMessage(`${city} löytyi. Haetaan kaupat...`);
       setLocationInput("");
       setStoreSearchLoading(false);
-      await applyLocation(city, "gps");
+      await applyLocation(city, "gps", { latitude: position.coords.latitude, longitude: position.coords.longitude });
     } catch (error) {
       console.error(error);
         const gpsErrorCode = typeof error === "object" && error !== null && "code" in error ? Number((error as { code?: number }).code) : 0;
@@ -7801,6 +7819,35 @@ export default function Page() {
     return mode === "local" ? activeArea.kLocalStoreId : activeArea.kStoreId;
   }
 
+  function getStoreCoordinateV320(store: StoreSearchItem, keys: string[]) {
+    for (const key of keys) {
+      const value = (store as any)[key];
+      if (value == null || value === "") continue;
+      const numberValue = Number(value);
+      if (Number.isFinite(numberValue)) return numberValue;
+    }
+    return null;
+  }
+
+  function calculateDistanceKmV320(from: { latitude: number; longitude: number }, to: { latitude: number; longitude: number }) {
+    const earthRadiusKm = 6371;
+    const toRad = (value: number) => (value * Math.PI) / 180;
+    const dLat = toRad(to.latitude - from.latitude);
+    const dLon = toRad(to.longitude - from.longitude);
+    const lat1 = toRad(from.latitude);
+    const lat2 = toRad(to.latitude);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    return earthRadiusKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+
+  function formatDistanceKmV320(km: number) {
+    if (!Number.isFinite(km) || km < 0) return "";
+    if (km < 1) return `${Math.max(0.1, km).toFixed(1).replace(".", ",")} km`;
+    return `${km.toFixed(km < 10 ? 1 : 0).replace(".", ",")} km`;
+  }
+
   function getStoreDistanceLabelV320(store?: StoreSearchItem | null) {
     if (!usingOwnLocation || !store) return "";
 
@@ -7820,11 +7867,17 @@ export default function Page() {
             ? Number((store as any).distance)
             : null;
 
-    if (raw == null || Number.isNaN(raw) || !Number.isFinite(raw)) return "";
+    if (raw != null && !Number.isNaN(raw) && Number.isFinite(raw)) {
+      return formatDistanceKmV320(raw > 100 ? raw / 1000 : raw);
+    }
 
-    const km = raw > 100 ? raw / 1000 : raw;
-    if (km < 1) return `${Math.max(0.1, km).toFixed(1).replace(".", ",")} km`;
-    return `${km.toFixed(km < 10 ? 1 : 0).replace(".", ",")} km`;
+    const latitude = getStoreCoordinateV320(store, ["latitude", "lat", "y"]);
+    const longitude = getStoreCoordinateV320(store, ["longitude", "lng", "lon", "x"]);
+    if (gpsCoordsV320 && latitude != null && longitude != null) {
+      return formatDistanceKmV320(calculateDistanceKmV320(gpsCoordsV320, { latitude, longitude }));
+    }
+
+    return "";
   }
 
   function findStoreForSelectionV320(chain: "S" | "K", mode: StoreMode) {
@@ -7901,7 +7954,7 @@ export default function Page() {
 
     return (
       <div
-        className={`${compact ? "fixed left-6 right-6 top-[calc(env(safe-area-inset-top)+24.25rem)] z-[140] max-h-[27dvh] w-auto overflow-hidden rounded-[1.35rem] bg-white p-2 text-left shadow-2xl ring-1 ring-slate-200 text-xs" : "absolute left-1/2 top-full z-50 mt-2 max-h-64 w-[min(78vw,340px)] -translate-x-1/2 overflow-hidden rounded-2xl bg-white p-3 text-left text-sm shadow-2xl ring-1 ring-slate-200"}`}
+        className={`${compact ? "fixed left-5 right-5 top-[calc(env(safe-area-inset-top)+19.75rem)] z-[9999] max-h-[34dvh] w-auto overflow-hidden rounded-[1.35rem] bg-white p-2 text-left shadow-2xl ring-1 ring-slate-200 text-xs pointer-events-auto" : "absolute left-1/2 top-full z-50 mt-2 max-h-64 w-[min(78vw,340px)] -translate-x-1/2 overflow-hidden rounded-2xl bg-white p-3 text-left text-sm shadow-2xl ring-1 ring-slate-200"}`}
         style={compact ? { minWidth: "260px", maxWidth: "calc(100vw - 3rem)" } : { minWidth: "260px", maxWidth: "340px" }}
         onClick={(event) => event.stopPropagation()}
       >
@@ -7920,7 +7973,7 @@ export default function Page() {
           </button>
         </div>
 
-        <div className={`${compact ? "max-h-[22dvh]" : "max-h-56"} overflow-auto overscroll-contain pr-1`}>
+        <div className={`${compact ? "max-h-[29dvh]" : "max-h-56"} overflow-auto overscroll-contain pr-1`}>
           {options.length === 0 ? (
             <p className="rounded-xl bg-slate-50 px-3 py-3 font-bold text-slate-400">Ei kauppoja valittavana. Hae alue uudelleen.</p>
           ) : (
@@ -8019,7 +8072,7 @@ export default function Page() {
             return (
               <div
                 key={store.key}
-                className={`${compact ? "min-h-[10.5rem] rounded-xl p-2" : "rounded-2xl p-3"} relative shadow-sm ring-1 transition ${
+                className={`${compact ? "min-h-[11.75rem] rounded-xl p-2" : "rounded-2xl p-3"} relative shadow-sm ring-1 transition ${
                   selected ? `${store.selectedTone} ring-current/20` : "border border-slate-200 bg-white text-slate-600 ring-slate-200"
                 }`}
               >
@@ -8053,17 +8106,17 @@ export default function Page() {
                 </button>
 
                 {selected && (
-                  <div className={compact ? "mt-1.5 grid grid-cols-2 gap-1.5" : "mt-2 grid grid-cols-2 gap-1.5"}>
+                  <div className={compact ? "mt-1.5 grid grid-cols-1 gap-1.5" : "mt-2 grid grid-cols-2 gap-1.5"}>
                     <div className={compact ? "relative rounded-lg bg-white/90 p-1.5 text-center ring-1 ring-slate-200" : "relative rounded-xl bg-white/80 p-1.5 text-center ring-1 ring-slate-200"}>
                       <p className="text-[9px] font-black uppercase text-slate-400">Kauppa 1</p>
-                      <p className={compact ? "min-h-[1.7rem] break-words text-[9.5px] font-extrabold leading-tight text-slate-800" : "min-h-[1.7rem] break-words text-[10px] font-extrabold leading-tight text-slate-800"}>{storeNameA}</p>
+                      <p className={compact ? "min-h-[2.1rem] whitespace-normal break-words text-[10px] font-extrabold leading-tight text-slate-800" : "min-h-[2.1rem] whitespace-normal break-words text-[11px] font-extrabold leading-tight text-slate-800"}>{storeNameA}</p>
                       {distanceA && <p className="mt-0.5 text-[9px] font-black text-slate-400">{distanceA}</p>}
                       {renderStoreChoiceButton(chain, modeA, `${store.key}-within-hyper`, compact)}
                       {renderStorePickerMenu(chain, modeA, `${store.key}-within-hyper`, compact)}
                     </div>
                     <div className={compact ? "relative rounded-lg bg-white/90 p-1.5 text-center ring-1 ring-slate-200" : "relative rounded-xl bg-white/80 p-1.5 text-center ring-1 ring-slate-200"}>
                       <p className="text-[9px] font-black uppercase text-slate-400">Kauppa 2</p>
-                      <p className={compact ? "min-h-[1.7rem] break-words text-[9.5px] font-extrabold leading-tight text-slate-800" : "min-h-[1.7rem] break-words text-[10px] font-extrabold leading-tight text-slate-800"}>{storeNameB}</p>
+                      <p className={compact ? "min-h-[2.1rem] whitespace-normal break-words text-[10px] font-extrabold leading-tight text-slate-800" : "min-h-[2.1rem] whitespace-normal break-words text-[11px] font-extrabold leading-tight text-slate-800"}>{storeNameB}</p>
                       {distanceB && <p className="mt-0.5 text-[9px] font-black text-slate-400">{distanceB}</p>}
                       {renderStoreChoiceButton(chain, modeB, `${store.key}-within-local`, compact)}
                       {renderStorePickerMenu(chain, modeB, `${store.key}-within-local`, compact)}
@@ -8122,7 +8175,7 @@ export default function Page() {
                 <p className={compact ? "mt-2 truncate text-[10px] font-black uppercase tracking-wide text-slate-500" : "mt-2 truncate text-[10px] font-black uppercase tracking-wide text-slate-500"}>
                   {store.title}
                 </p>
-                <p className={compact ? "mt-1 min-h-[2rem] break-words text-[11px] font-extrabold leading-tight text-slate-800" : "mt-1 min-h-[2rem] break-words text-xs font-extrabold leading-tight text-slate-800"}>
+                <p className={compact ? "mt-1 min-h-[2.6rem] whitespace-normal break-words text-[11px] font-extrabold leading-tight text-slate-800" : "mt-1 min-h-[2.6rem] whitespace-normal break-words text-xs font-extrabold leading-tight text-slate-800"}>
                   {store.name}
                 </p>
                 {distanceForCard && <p className="mt-0.5 text-[9px] font-black text-slate-400">{distanceForCard}</p>}
