@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v320store-6";
+const APP_VERSION = "v320store-6fix";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -8400,11 +8400,18 @@ return (
                   </div>
                 </div>
 
-                {locationMessageVisible && (
-                  <div className="mb-2 shrink-0 rounded-[1.05rem] bg-green-50 px-3 py-2 text-[11px] font-black leading-tight text-green-900 ring-1 ring-green-100 ziiply-soft-open-fast">
-                    {locationMessage}
+                <div className="mb-2 min-h-[2.55rem] shrink-0">
+                  <div
+                    aria-hidden={!locationMessageVisible}
+                    className={`min-h-[2.55rem] rounded-[1.05rem] px-3 py-2 text-[11px] font-black leading-tight ring-1 transition-opacity duration-200 ${
+                      locationMessageVisible
+                        ? "bg-green-50 text-green-900 ring-green-100 opacity-100 ziiply-soft-open-fast"
+                        : "bg-transparent text-transparent ring-transparent opacity-0"
+                    }`}
+                  >
+                    {locationMessage || "Hyvinkää käytössä."}
                   </div>
-                )}
+                </div>
 
                 {storeDrillViewV320 === "main" ? (
                   <div data-v320store2="fixed-one-hand-shop-actions" className="min-h-0 flex-1 space-y-1 overflow-hidden">
