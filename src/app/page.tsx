@@ -230,7 +230,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v320store-9";
+const APP_VERSION = "v320store-10";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -7820,12 +7820,41 @@ export default function Page() {
   }
 
   function getStoreCoordinateV320(store: StoreSearchItem, keys: string[]) {
-    for (const key of keys) {
-      const value = (store as any)[key];
-      if (value == null || value === "") continue;
+    const readNumber = (value: unknown) => {
+      if (value == null || value === "") return null;
       const numberValue = Number(value);
-      if (Number.isFinite(numberValue)) return numberValue;
+      return Number.isFinite(numberValue) ? numberValue : null;
+    };
+
+    for (const key of keys) {
+      const direct = readNumber((store as any)[key]);
+      if (direct != null) return direct;
     }
+
+    // API-muodot vaihtelevat mobiilissa/desktopissa. Haetaan koordinaatit myös
+    // tavallisista sisäkkäisistä rakenteista: location, coordinates, geo, address.
+    const containers = [
+      (store as any).location,
+      (store as any).coordinates,
+      (store as any).coord,
+      (store as any).geo,
+      (store as any).address,
+      (store as any).position,
+    ].filter(Boolean);
+
+    for (const container of containers) {
+      for (const key of keys) {
+        const nested = readNumber(container?.[key]);
+        if (nested != null) return nested;
+      }
+
+      if (Array.isArray(container) && container.length >= 2) {
+        const looksLikeLatitude = keys.some((key) => ["latitude", "lat", "y"].includes(key));
+        const value = readNumber(container[looksLikeLatitude ? 1 : 0]) ?? readNumber(container[looksLikeLatitude ? 0 : 1]);
+        if (value != null) return value;
+      }
+    }
+
     return null;
   }
 
@@ -7849,26 +7878,37 @@ export default function Page() {
   }
 
   function getStoreDistanceLabelV320(store?: StoreSearchItem | null) {
-    if (!usingOwnLocation || !store) return "";
+    if (!store) return "";
+
+    const readNumber = (value: unknown) => {
+      if (value == null || value === "") return null;
+      if (typeof value === "string") {
+        const normalizedValue = value.replace(",", ".").replace(/[^0-9.\-]/g, "");
+        if (!normalizedValue) return null;
+        const numberValue = Number(normalizedValue);
+        return Number.isFinite(numberValue) ? numberValue : null;
+      }
+      const numberValue = Number(value);
+      return Number.isFinite(numberValue) ? numberValue : null;
+    };
 
     const explicitKm =
-      (store as any).distanceKm ??
-      (store as any).distance_km ??
-      (store as any).distanceKilometers ??
-      (store as any).distance_kilometers;
+      readNumber((store as any).distanceKm) ??
+      readNumber((store as any).distance_km) ??
+      readNumber((store as any).distanceKilometers) ??
+      readNumber((store as any).distance_kilometers) ??
+      readNumber((store as any).distance?.km) ??
+      readNumber((store as any).distance?.kilometers);
 
-    const raw = explicitKm != null
-      ? Number(explicitKm)
-      : (store as any).distanceMeters != null
-        ? Number((store as any).distanceMeters) / 1000
-        : (store as any).distance_m != null
-          ? Number((store as any).distance_m) / 1000
-          : (store as any).distance != null
-            ? Number((store as any).distance)
-            : null;
+    const explicitMeters =
+      readNumber((store as any).distanceMeters) ??
+      readNumber((store as any).distance_m) ??
+      readNumber((store as any).distance?.meters);
 
-    if (raw != null && !Number.isNaN(raw) && Number.isFinite(raw)) {
-      return formatDistanceKmV320(raw > 100 ? raw / 1000 : raw);
+    const rawDistance = explicitKm ?? (explicitMeters != null ? explicitMeters / 1000 : readNumber((store as any).distance));
+
+    if (rawDistance != null && Number.isFinite(rawDistance)) {
+      return formatDistanceKmV320(rawDistance > 100 ? rawDistance / 1000 : rawDistance);
     }
 
     const latitude = getStoreCoordinateV320(store, ["latitude", "lat", "y"]);
@@ -7944,73 +7984,89 @@ export default function Page() {
     const selectedName = getSelectedStoreNameFor(chain, mode);
     const selectedId = getSelectedStoreIdFor(chain, mode);
 
-    // Ei suljeta heti pois renderin aikana. Näytetään käyttäjälle selkeä tila,
-    // koska mobiilissa tämä tuntui muuten siltä, ettei valikko toimi ollenkaan.
     const menuTitle = storeCompareScope === "within_chain"
       ? `Valitse ${chain === "S" ? "S-ryhmän" : "K-ryhmän"} kauppa`
       : mode === "local"
         ? `Valitse ${chain === "S" ? "S-ryhmän" : "K-ryhmän"} lähikauppa`
         : `Valitse ${chain === "S" ? "S-ryhmän" : "K-ryhmän"} tavaratalo`;
 
+    const selectFromPicker = (event: React.MouseEvent<HTMLButtonElement> | React.PointerEvent<HTMLButtonElement>, store: StoreSearchItem) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const normalizedStore = normalizeStoreForPickerV320(store);
+      if (getStoreChainV320(normalizedStore) !== chain) return;
+      triggerHaptic();
+      selectStoreForCurrentMode(normalizedStore, mode);
+      setOpenStorePicker(null);
+    };
+
     return (
-      <div
-        className={`${compact ? "fixed left-5 right-5 top-[calc(env(safe-area-inset-top)+19.75rem)] z-[9999] max-h-[34dvh] w-auto overflow-hidden rounded-[1.35rem] bg-white p-2 text-left shadow-2xl ring-1 ring-slate-200 text-xs pointer-events-auto" : "absolute left-1/2 top-full z-50 mt-2 max-h-64 w-[min(78vw,340px)] -translate-x-1/2 overflow-hidden rounded-2xl bg-white p-3 text-left text-sm shadow-2xl ring-1 ring-slate-200"}`}
-        style={compact ? { minWidth: "260px", maxWidth: "calc(100vw - 3rem)" } : { minWidth: "260px", maxWidth: "340px" }}
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div className="mb-2 flex items-center justify-between gap-2 px-1">
-          <p className="text-[11px] font-black uppercase tracking-wide text-slate-500">{menuTitle}</p>
-          <button
-            type="button"
-            onClick={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              setOpenStorePicker(null);
-            }}
-            className="rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black text-slate-600"
-          >
-            Sulje
-          </button>
-        </div>
+      <>
+        <div
+          className="fixed inset-0 z-[9998] bg-transparent pointer-events-auto"
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            setOpenStorePicker(null);
+          }}
+        />
+        <div
+          className={`${compact ? "fixed left-5 right-5 top-[calc(env(safe-area-inset-top)+20.25rem)]" : "fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"} z-[9999] max-h-[42dvh] w-auto overflow-hidden rounded-[1.35rem] bg-white p-2 text-left shadow-2xl ring-1 ring-slate-200 text-xs pointer-events-auto`}
+          style={compact ? { minWidth: "260px", maxWidth: "calc(100vw - 2.5rem)" } : { minWidth: "280px", maxWidth: "420px" }}
+          onClick={(event) => event.stopPropagation()}
+          onPointerDown={(event) => event.stopPropagation()}
+        >
+          <div className="mb-2 flex items-center justify-between gap-2 px-1">
+            <p className="min-w-0 truncate text-[11px] font-black uppercase tracking-wide text-slate-500">{menuTitle}</p>
+            <button
+              type="button"
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                setOpenStorePicker(null);
+              }}
+              className="shrink-0 rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black text-slate-600 active:scale-[0.98]"
+            >
+              Sulje
+            </button>
+          </div>
 
-        <div className={`${compact ? "max-h-[29dvh]" : "max-h-56"} overflow-auto overscroll-contain pr-1`}>
-          {options.length === 0 ? (
-            <p className="rounded-xl bg-slate-50 px-3 py-3 font-bold text-slate-400">Ei kauppoja valittavana. Hae alue uudelleen.</p>
-          ) : (
-            options.map((store, index) => {
-              const selected = Boolean((selectedId && store.id === selectedId) || (selectedName && store.name === selectedName));
+          <div className={`${compact ? "max-h-[35dvh]" : "max-h-[36dvh]"} overflow-auto overscroll-contain pr-1 [-webkit-overflow-scrolling:touch]`}> 
+            {options.length === 0 ? (
+              <p className="rounded-xl bg-slate-50 px-3 py-3 font-bold text-slate-400">Ei kauppoja valittavana. Hae alue uudelleen.</p>
+            ) : (
+              options.map((store, index) => {
+                const selected = Boolean((selectedId && store.id === selectedId) || (selectedName && store.name === selectedName));
+                const distanceLabel = getStoreDistanceLabelV320(store);
 
-              return (
-                <button
-                  key={`${pickerKey}-${store.type || chain}-${store.id || index}-${normalize(store.name || "")}`}
-                  type="button"
-                  onClick={(event) => {
-                    event.preventDefault();
-                    event.stopPropagation();
-                    const normalizedStore = normalizeStoreForPickerV320(store);
-                    if (getStoreChainV320(normalizedStore) !== chain) return;
-                    selectStoreForCurrentMode(normalizedStore, mode);
-                    window.setTimeout(() => setOpenStorePicker(null), 0);
-                  }}
-                  className={`mb-1.5 flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-left font-extrabold transition last:mb-0 ${
-                    selected
-                      ? chain === "S" ? "bg-green-700 text-white" : "bg-red-700 text-white"
-                      : "bg-slate-50 text-slate-700 active:bg-slate-100"
-                  }`}
-                >
-                  <span className="min-w-0">
-                    <span className="block whitespace-normal break-words leading-tight">{store.name}</span>
-                    <span className={`mt-1 block text-xs ${selected ? "text-white/80" : "text-slate-400"}`}>{store.city || activeArea.label || ""} {store.postalCode || ""}{getStoreDistanceLabelV320(store) ? ` · ${getStoreDistanceLabelV320(store)}` : ""}</span>
-                  </span>
-                  <span className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-black ${selected ? "bg-white/20 text-white" : "bg-white text-slate-400"}`}>
-                    {selected ? "Valittu" : mode === "local" ? "Lähi" : "Talo"}
-                  </span>
-                </button>
-              );
-            })
-          )}
+                return (
+                  <button
+                    key={`${pickerKey}-${store.type || chain}-${store.id || index}-${normalize(store.name || "")}`}
+                    type="button"
+                    onPointerUp={(event) => selectFromPicker(event, store)}
+                    onClick={(event) => selectFromPicker(event, store)}
+                    className={`mb-1.5 flex w-full touch-manipulation items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-left font-extrabold transition last:mb-0 active:scale-[0.99] ${
+                      selected
+                        ? chain === "S" ? "bg-green-700 text-white" : "bg-red-700 text-white"
+                        : "bg-slate-50 text-slate-700 active:bg-slate-100"
+                    }`}
+                  >
+                    <span className="min-w-0">
+                      <span className="block whitespace-normal break-words text-[13px] leading-tight">{store.name}</span>
+                      <span className={`mt-1 block text-xs ${selected ? "text-white/80" : "text-slate-400"}`}>
+                        {[store.city || activeArea.label || "", store.postalCode || "", distanceLabel].filter(Boolean).join(" · ")}
+                      </span>
+                    </span>
+                    <span className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-black ${selected ? "bg-white/20 text-white" : "bg-white text-slate-400"}`}>
+                      {selected ? "Valittu" : distanceLabel || (mode === "local" ? "Lähi" : "Talo")}
+                    </span>
+                  </button>
+                );
+              })
+            )}
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
@@ -8072,7 +8128,7 @@ export default function Page() {
             return (
               <div
                 key={store.key}
-                className={`${compact ? "min-h-[11.75rem] rounded-xl p-2" : "rounded-2xl p-3"} relative shadow-sm ring-1 transition ${
+                className={`${compact ? "min-h-[12.75rem] rounded-xl p-2" : "rounded-2xl p-3"} relative shadow-sm ring-1 transition ${
                   selected ? `${store.selectedTone} ring-current/20` : "border border-slate-200 bg-white text-slate-600 ring-slate-200"
                 }`}
               >
@@ -8109,14 +8165,14 @@ export default function Page() {
                   <div className={compact ? "mt-1.5 grid grid-cols-1 gap-1.5" : "mt-2 grid grid-cols-2 gap-1.5"}>
                     <div className={compact ? "relative rounded-lg bg-white/90 p-1.5 text-center ring-1 ring-slate-200" : "relative rounded-xl bg-white/80 p-1.5 text-center ring-1 ring-slate-200"}>
                       <p className="text-[9px] font-black uppercase text-slate-400">Kauppa 1</p>
-                      <p className={compact ? "min-h-[2.1rem] whitespace-normal break-words text-[10px] font-extrabold leading-tight text-slate-800" : "min-h-[2.1rem] whitespace-normal break-words text-[11px] font-extrabold leading-tight text-slate-800"}>{storeNameA}</p>
+                      <p className={compact ? "min-h-[2.7rem] whitespace-normal break-words text-[10px] font-extrabold leading-tight text-slate-800" : "min-h-[2.7rem] whitespace-normal break-words text-[11px] font-extrabold leading-tight text-slate-800"}>{storeNameA}</p>
                       {distanceA && <p className="mt-0.5 text-[9px] font-black text-slate-400">{distanceA}</p>}
                       {renderStoreChoiceButton(chain, modeA, `${store.key}-within-hyper`, compact)}
                       {renderStorePickerMenu(chain, modeA, `${store.key}-within-hyper`, compact)}
                     </div>
                     <div className={compact ? "relative rounded-lg bg-white/90 p-1.5 text-center ring-1 ring-slate-200" : "relative rounded-xl bg-white/80 p-1.5 text-center ring-1 ring-slate-200"}>
                       <p className="text-[9px] font-black uppercase text-slate-400">Kauppa 2</p>
-                      <p className={compact ? "min-h-[2.1rem] whitespace-normal break-words text-[10px] font-extrabold leading-tight text-slate-800" : "min-h-[2.1rem] whitespace-normal break-words text-[11px] font-extrabold leading-tight text-slate-800"}>{storeNameB}</p>
+                      <p className={compact ? "min-h-[2.7rem] whitespace-normal break-words text-[10px] font-extrabold leading-tight text-slate-800" : "min-h-[2.7rem] whitespace-normal break-words text-[11px] font-extrabold leading-tight text-slate-800"}>{storeNameB}</p>
                       {distanceB && <p className="mt-0.5 text-[9px] font-black text-slate-400">{distanceB}</p>}
                       {renderStoreChoiceButton(chain, modeB, `${store.key}-within-local`, compact)}
                       {renderStorePickerMenu(chain, modeB, `${store.key}-within-local`, compact)}
@@ -8175,7 +8231,7 @@ export default function Page() {
                 <p className={compact ? "mt-2 truncate text-[10px] font-black uppercase tracking-wide text-slate-500" : "mt-2 truncate text-[10px] font-black uppercase tracking-wide text-slate-500"}>
                   {store.title}
                 </p>
-                <p className={compact ? "mt-1 min-h-[2.6rem] whitespace-normal break-words text-[11px] font-extrabold leading-tight text-slate-800" : "mt-1 min-h-[2.6rem] whitespace-normal break-words text-xs font-extrabold leading-tight text-slate-800"}>
+                <p className={compact ? "mt-1 min-h-[3.05rem] whitespace-normal break-words text-[11px] font-extrabold leading-tight text-slate-800" : "mt-1 min-h-[2.6rem] whitespace-normal break-words text-xs font-extrabold leading-tight text-slate-800"}>
                   {store.name}
                 </p>
                 {distanceForCard && <p className="mt-0.5 text-[9px] font-black text-slate-400">{distanceForCard}</p>}
