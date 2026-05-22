@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import posthog from "posthog-js";
 
 type Offer = {
@@ -230,7 +231,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v320store-10";
+const APP_VERSION = "v320store-11";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -4668,7 +4669,35 @@ export default function Page() {
       cache: "no-store",
     });
     const data = await response.json();
-    return ((data.items || []) as StoreSearchItem[]).filter((store) => store.id && store.name);
+    const stores = ((data.items || []) as StoreSearchItem[]).filter((store) => store.id && store.name);
+
+    // v320store-11:
+    // Varmistetaan etäisyydet myös silloin, kun API ei palauta distance-kenttää.
+    // Jos GPS-koordinaatti on käytössä ja kaupalla on koordinaatit, lasketaan distanceKm mukaan listadataan.
+    if (!coords) return stores;
+
+    return stores.map((store) => {
+      const alreadyHasDistance =
+        store.distanceKm != null ||
+        store.distanceMeters != null ||
+        (store as any).distance_km != null ||
+        (store as any).distance_m != null ||
+        (store as any).distanceKilometers != null ||
+        (store as any).distance_meters != null ||
+        (store as any).distance != null;
+
+      if (alreadyHasDistance) return store;
+
+      const latitude = getStoreCoordinateV320(store, ["latitude", "lat", "y"]);
+      const longitude = getStoreCoordinateV320(store, ["longitude", "lng", "lon", "x"]);
+
+      if (latitude == null || longitude == null) return store;
+
+      return {
+        ...store,
+        distanceKm: calculateDistanceKmV320(coords, { latitude, longitude }),
+      };
+    });
   }
 
   function getCityFromGeocodeAddress(address: any) {
@@ -7979,6 +8008,7 @@ export default function Page() {
 
   function renderStorePickerMenu(chain: "S" | "K", mode: StoreMode, pickerKey: string, compact: boolean) {
     if (openStorePicker !== pickerKey) return null;
+    if (typeof document === "undefined") return null;
 
     const options = getStoresForPickerContext(chain, mode);
     const selectedName = getSelectedStoreNameFor(chain, mode);
@@ -7990,36 +8020,50 @@ export default function Page() {
         ? `Valitse ${chain === "S" ? "S-ryhmän" : "K-ryhmän"} lähikauppa`
         : `Valitse ${chain === "S" ? "S-ryhmän" : "K-ryhmän"} tavaratalo`;
 
-    const selectFromPicker = (event: React.MouseEvent<HTMLButtonElement> | React.PointerEvent<HTMLButtonElement>, store: StoreSearchItem) => {
+    const selectFromPicker = (
+      event: React.MouseEvent<HTMLButtonElement> | React.PointerEvent<HTMLButtonElement>,
+      store: StoreSearchItem
+    ) => {
       event.preventDefault();
       event.stopPropagation();
+
       const normalizedStore = normalizeStoreForPickerV320(store);
       if (getStoreChainV320(normalizedStore) !== chain) return;
+
       triggerHaptic();
       selectStoreForCurrentMode(normalizedStore, mode);
       setOpenStorePicker(null);
     };
 
-    return (
-      <>
-        <div
-          className="fixed inset-0 z-[9998] bg-transparent pointer-events-auto"
-          onClick={(event) => {
+    const portalContent = (
+      <div className="fixed inset-0 z-[2147483647] pointer-events-none">
+        <button
+          type="button"
+          aria-label="Sulje kauppavalinta"
+          className="absolute inset-0 bg-transparent pointer-events-auto"
+          onPointerDown={(event) => {
             event.preventDefault();
             event.stopPropagation();
             setOpenStorePicker(null);
           }}
         />
+
         <div
-          className={`${compact ? "fixed left-5 right-5 top-[calc(env(safe-area-inset-top)+20.25rem)]" : "fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"} z-[9999] max-h-[42dvh] w-auto overflow-hidden rounded-[1.35rem] bg-white p-2 text-left shadow-2xl ring-1 ring-slate-200 text-xs pointer-events-auto`}
+          className={`${compact ? "absolute left-5 right-5 top-[calc(env(safe-area-inset-top)+20.25rem)]" : "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"} max-h-[42dvh] w-auto overflow-hidden rounded-[1.35rem] bg-white p-2 text-left shadow-2xl ring-1 ring-slate-200 text-xs pointer-events-auto`}
           style={compact ? { minWidth: "260px", maxWidth: "calc(100vw - 2.5rem)" } : { minWidth: "280px", maxWidth: "420px" }}
           onClick={(event) => event.stopPropagation()}
           onPointerDown={(event) => event.stopPropagation()}
+          onTouchStart={(event) => event.stopPropagation()}
         >
           <div className="mb-2 flex items-center justify-between gap-2 px-1">
             <p className="min-w-0 truncate text-[11px] font-black uppercase tracking-wide text-slate-500">{menuTitle}</p>
             <button
               type="button"
+              onPointerDown={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                setOpenStorePicker(null);
+              }}
               onClick={(event) => {
                 event.preventDefault();
                 event.stopPropagation();
@@ -8031,7 +8075,7 @@ export default function Page() {
             </button>
           </div>
 
-          <div className={`${compact ? "max-h-[35dvh]" : "max-h-[36dvh]"} overflow-auto overscroll-contain pr-1 [-webkit-overflow-scrolling:touch]`}> 
+          <div className={`${compact ? "max-h-[35dvh]" : "max-h-[36dvh]"} overflow-auto overscroll-contain pr-1 [-webkit-overflow-scrolling:touch]`}>
             {options.length === 0 ? (
               <p className="rounded-xl bg-slate-50 px-3 py-3 font-bold text-slate-400">Ei kauppoja valittavana. Hae alue uudelleen.</p>
             ) : (
@@ -8043,7 +8087,7 @@ export default function Page() {
                   <button
                     key={`${pickerKey}-${store.type || chain}-${store.id || index}-${normalize(store.name || "")}`}
                     type="button"
-                    onPointerUp={(event) => selectFromPicker(event, store)}
+                    onPointerDown={(event) => selectFromPicker(event, store)}
                     onClick={(event) => selectFromPicker(event, store)}
                     className={`mb-1.5 flex w-full touch-manipulation items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-left font-extrabold transition last:mb-0 active:scale-[0.99] ${
                       selected
@@ -8066,8 +8110,10 @@ export default function Page() {
             )}
           </div>
         </div>
-      </>
+      </div>
     );
+
+    return createPortal(portalContent, document.body);
   }
 
   function renderStoreChoiceButton(chain: "S" | "K", mode: StoreMode, pickerKey: string, compact: boolean) {
