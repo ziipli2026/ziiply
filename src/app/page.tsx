@@ -231,7 +231,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "V320sca-4";
+const APP_VERSION = "V320sel-1";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -4138,6 +4138,7 @@ export default function Page() {
     if (activeResult === "compare") return "compare";
     if (activeResult === "offers") return "offers";
     if (activeResult === "singleCompare") return "singleCompare";
+    if (loadingNormal || normalResults.length > 0 || (normalSearchAttempted && activeNormalSearchTerm)) return "productPicker";
     return "none";
   }
 
@@ -4156,12 +4157,22 @@ export default function Page() {
     window.setTimeout(applyClose, PANEL_FADE_MS);
   }
 
+  function closeProductPickerStateV320() {
+    setLoadingNormal(false);
+    setNormalResults([]);
+    setNormalSearchAttempted(false);
+    setVisibleNormalCount(8);
+    setActiveNormalSearchTerm("");
+    setSearchDebug([]);
+  }
+
   function openSearchPanel() {
     if (searchNavigationLocked) return;
     if (!storesReadyForSearch) {
       setCartModalOpen(false);
       setCartSavePanelOpen(false);
       setEanModalOpen(false);
+      closeProductPickerStateV320();
       setActiveResult("none");
       setSearchPanelOpen(false);
       setShopsPanelOpen(true);
@@ -4176,6 +4187,7 @@ export default function Page() {
       setCartModalOpen(false);
       setShopsPanelOpen(false);
       setEanModalOpen(false);
+      closeProductPickerStateV320();
 
       if (openedFromSingleCompare) {
         setInput("");
@@ -6602,6 +6614,7 @@ export default function Page() {
       setSearchPanelOpen(false);
       setShopsPanelOpen(false);
       setEanModalOpen(false);
+      closeProductPickerStateV320();
       setActiveResult("none");
       setCartSavePanelOpen(false);
       setCartModalOpen(true);
@@ -6653,9 +6666,7 @@ export default function Page() {
       setCartSavePanelOpen(false);
       setShopsPanelOpen(false);
       setEanModalOpen(false);
-      setLoadingNormal(false);
-      setNormalResults([]);
-      setVisibleNormalCount(8);
+      closeProductPickerStateV320();
       setActiveResult("compare");
 
       window.requestAnimationFrame(() => {
@@ -6692,6 +6703,7 @@ export default function Page() {
       setCartModalOpen(false);
       setCartSavePanelOpen(false);
       setEanModalOpen(false);
+      closeProductPickerStateV320();
       setActiveResult("none");
       setInitialStoreNavPrompt(false);
       setShopsPanelOpen(true);
@@ -9333,7 +9345,10 @@ return (
               )}
 
               {activeResult !== "compare" && (loadingNormal || normalResults.length > 0 || (searchPanelOpen && normalSearchAttempted && activeNormalSearchTerm)) && (
-<section ref={normalResultsSectionRef} className="min-w-0 max-w-full overflow-hidden rounded-[1.5rem] bg-white p-2.5 sm:rounded-[2rem] sm:p-5">
+<section
+                ref={normalResultsSectionRef}
+                className={`fixed left-3 right-3 bottom-[calc(env(safe-area-inset-bottom)+6.15rem)] z-40 mx-auto h-[min(31.4rem,calc(100dvh-14.8rem))] max-w-[38rem] overflow-y-auto overscroll-contain rounded-[1.8rem] border border-white/80 bg-white/95 p-3 shadow-[0_18px_55px_rgba(15,23,42,0.14)] ring-1 ring-white/80 backdrop-blur-2xl [WebkitOverflowScrolling:touch] sm:static sm:h-auto sm:max-w-full sm:overflow-hidden sm:rounded-[2rem] sm:p-5 ${closingPanels.productPicker ? "ziiply-soft-close" : "ziiply-soft-open"}`}
+              >
                 <div className="mb-2 flex items-start justify-between gap-3 px-1">
                   <div className="min-w-0">
                     <h2 className="text-[1.7rem] font-black leading-tight text-slate-950">Valitse oikea tuote</h2>
