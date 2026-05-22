@@ -231,7 +231,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "V320MOBTXT-2";
+const APP_VERSION = "V320MOBTXT-3";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -10457,9 +10457,10 @@ return (
                     )}
 
                   </div>
-              {eanManualInputOpen && (
-                <div className="mt-4 flex gap-2 ziiply-soft-open-fast">
-                  <input
+              <div className="mt-4 min-h-[3.75rem]">
+                {eanManualInputOpen && (
+                  <div className="flex gap-2 ziiply-soft-open-fast">
+                    <input
                     ref={eanInputRef}
                     value={eanInput}
                     onChange={(event) => setEanInput(event.target.value.replace(/\D/g, ""))}
@@ -10497,9 +10498,10 @@ return (
                     className="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-extrabold text-slate-700 transition active:scale-[0.98] disabled:opacity-40"
                   >
                     Tyhjennä
-                  </button>
-                </div>
-              )}
+                    </button>
+                  </div>
+                )}
+              </div>
 
                   <div className="mt-2 rounded-2xl border border-slate-200 bg-slate-50/90 px-3 py-2 text-center text-xs font-black leading-snug text-slate-700 shadow-sm">
                     Aseta viivakoodi kehykseen. Napauta kuvaa tarkennusta varten.
