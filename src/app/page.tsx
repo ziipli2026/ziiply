@@ -231,7 +231,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "V320MOBTXT-3";
+const APP_VERSION = "V320MOBTXT-4";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -10299,21 +10299,30 @@ return (
                           onClick={handleMainNormalSearch}
                           disabled={!hasSearchInput || loadingNormal || singleProductCompareLoading}
                           aria-disabled={!hasSearchInput || loadingNormal || singleProductCompareLoading}
-                          className={`min-h-[2.5rem] touch-manipulation rounded-[0.95rem] px-2 text-xs font-black transition ${
+                          className={`min-h-[2.65rem] touch-manipulation rounded-[1rem] px-3 text-sm font-black transition ${
                             !hasSearchInput || loadingNormal || singleProductCompareLoading
                               ? "cursor-not-allowed bg-slate-100 text-slate-400 ring-1 ring-slate-200"
                               : "bg-green-700 text-white shadow-md shadow-green-600/20 ring-1 ring-black/10 active:scale-[0.98]"
                           }`}
                         >
-                          {loadingNormal || singleProductCompareLoading ? "Haetaan..." : "🔎 Vertailu"}
+                          {loadingNormal || singleProductCompareLoading ? "Haetaan..." : (
+                            <span className="inline-flex items-center justify-center gap-2">🔎<span>Vertailu</span></span>
+                          )}
                         </button>
                         <button
                           type="button"
                           onPointerDown={(event) => event.preventDefault()}
                           onClick={openEanModal}
-                          className="min-h-[2.5rem] touch-manipulation rounded-[0.95rem] bg-emerald-700 px-2 text-xs font-black text-white shadow-sm transition active:scale-[0.98]"
+                          className="min-h-[2.65rem] touch-manipulation rounded-[1rem] bg-green-700 px-3 text-sm font-black text-white shadow-md shadow-green-600/20 ring-1 ring-black/10 transition active:scale-[0.98]"
                         >
-                          <span className="inline-flex items-center justify-center gap-1.5"><span aria-hidden="true">▦</span><span>EAN / SKANNAA</span></span>
+                          <span className="inline-flex items-center justify-center gap-2"><svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M5 7.5h9.5c1.4 0 2.5 1.1 2.5 2.5v.5H5z" />
+                            <path d="M9 10.5l2.7 2.7" />
+                            <path d="M11.7 13.2l-2.9 5.3a1.4 1.4 0 0 1-1.9.6l-.5-.3a1.4 1.4 0 0 1-.6-1.9l2.9-5.3" />
+                            <path d="M17 10.5h2.2c.9 0 1.6.7 1.6 1.6v.4" />
+                            <path d="M4 16h2.2" />
+                            <path d="M3.5 19h1.7" />
+                          </svg><span>EAN / SKANNAA</span></span>
                         </button>
                       </div>
                     </div>
@@ -10343,7 +10352,7 @@ return (
                       className={`min-h-[2.35rem] touch-manipulation rounded-[0.85rem] px-2 text-xs font-black leading-tight transition ${
                         !hasSearchInput || loadingOffers
                           ? "cursor-not-allowed bg-slate-100 text-slate-400 ring-1 ring-slate-200"
-                          : "bg-white text-slate-800 shadow-sm ring-1 ring-slate-200 active:scale-[0.98]"
+                          : "bg-rose-100 text-rose-700 shadow-sm ring-1 ring-rose-200 active:scale-[0.98]"
                       }`}
                     >
                       {loadingOffers ? "Haetaan..." : "🔥 Tarjoukset"}
@@ -10359,7 +10368,11 @@ return (
                           : "bg-white text-slate-800 shadow-sm ring-1 ring-slate-200 active:scale-[0.98]"
                       }`}
                     >
-                      Lisää koriin
+                      <span className="inline-flex items-center justify-center gap-1.5"><svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M4 5h2.2l1.7 9.2a2 2 0 0 0 2 1.6h6.9a2 2 0 0 0 1.9-1.4L20 8H7.1" />
+                            <circle cx="10" cy="20" r="1.5" fill="currentColor" stroke="none" />
+                            <circle cx="17" cy="20" r="1.5" fill="currentColor" stroke="none" />
+                          </svg><span>Lisää koriin</span></span>
                     </button>
                   </div>
 
@@ -10375,14 +10388,23 @@ return (
                           : "bg-green-700 text-white shadow-md shadow-green-600/20 ring-1 ring-black/10 active:scale-[0.98]"
                       }`}
                     >
-                      {loadingNormal || singleProductCompareLoading ? "Haetaan..." : "🔎 Vertailu"}
+                      {loadingNormal || singleProductCompareLoading ? "Haetaan..." : (
+                        <span className="inline-flex items-center justify-center gap-2">🔎<span>Vertailu</span></span>
+                      )}
                     </button>
                     <button
                       type="button"
                       onClick={openEanModal}
-                      className="min-h-[2.65rem] touch-manipulation rounded-[1rem] bg-emerald-700 px-3 text-sm font-black text-white shadow-sm transition active:scale-[0.98]"
+                      className="min-h-[2.65rem] touch-manipulation rounded-[1rem] bg-green-700 px-3 text-sm font-black text-white shadow-md shadow-green-600/20 ring-1 ring-black/10 transition active:scale-[0.98]"
                     >
-                      <span className="inline-flex items-center justify-center gap-2"><span aria-hidden="true">▦</span><span>EAN / SKANNAA</span></span>
+                      <span className="inline-flex items-center justify-center gap-2"><svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M5 7.5h9.5c1.4 0 2.5 1.1 2.5 2.5v.5H5z" />
+                            <path d="M9 10.5l2.7 2.7" />
+                            <path d="M11.7 13.2l-2.9 5.3a1.4 1.4 0 0 1-1.9.6l-.5-.3a1.4 1.4 0 0 1-.6-1.9l2.9-5.3" />
+                            <path d="M17 10.5h2.2c.9 0 1.6.7 1.6 1.6v.4" />
+                            <path d="M4 16h2.2" />
+                            <path d="M3.5 19h1.7" />
+                          </svg><span>EAN / SKANNAA</span></span>
                     </button>
                   </div>
                 </div>              </div>
