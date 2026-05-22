@@ -231,7 +231,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v320store-14";
+const APP_VERSION = "v320store-15";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -2936,6 +2936,7 @@ export default function Page() {
   const [storeSearchLoading, setStoreSearchLoading] = useState(false);
   const [foundStores, setFoundStores] = useState<StoreSearchItem[]>([]);
   const [gpsCoordsV320, setGpsCoordsV320] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [storeDistanceFallbacksV320, setStoreDistanceFallbacksV320] = useState<Record<string, number>>({});
 
   // STORE_MODE_PERSIST_V302
   // Pitää käyttäjän valitseman Tavaratalot/Lähikaupat-tilan vakaana myös kaupan vaihdon
@@ -2994,6 +2995,65 @@ export default function Page() {
     const timer = window.setTimeout(() => setLocationMessageVisible(false), 1700);
     return () => window.clearTimeout(timer);
   }, [locationMessage, storeSearchLoading]);
+
+  useEffect(() => {
+    if (!gpsCoordsV320 || foundStores.length === 0) {
+      setStoreDistanceFallbacksV320({});
+      return;
+    }
+
+    let cancelled = false;
+    const controller = new AbortController();
+
+    async function geocodeStoreDistanceFallbacksV320() {
+      const candidates = uniqueStoresByIdAndName(foundStores.map(normalizeStoreForPickerV320))
+        .filter((store) => !getStoreDistanceLabelWithoutFallbackV320(store))
+        .slice(0, 24);
+
+      if (candidates.length === 0) return;
+
+      const nextDistances: Record<string, number> = {};
+
+      for (const store of candidates) {
+        if (cancelled) return;
+
+        const queryParts = [store.name, store.city || activeArea.label, store.postalCode, "Suomi"].filter(Boolean);
+        const query = queryParts.join(", ");
+
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=fi&q=${encodeURIComponent(query)}`,
+            { signal: controller.signal }
+          );
+          if (!response.ok) continue;
+
+          const results = await response.json();
+          const first = Array.isArray(results) ? results[0] : null;
+          const latitude = readStoreNumberV320(first?.lat);
+          const longitude = readStoreNumberV320(first?.lon ?? first?.lng);
+          if (latitude == null || longitude == null) continue;
+
+          nextDistances[getStoreDistanceKeyV320(store)] = calculateDistanceKmV320(gpsCoordsV320, { latitude, longitude });
+        } catch (error) {
+          if (!cancelled) console.debug("Etäisyyden varalaskenta epäonnistui", error);
+        }
+      }
+
+      if (cancelled || Object.keys(nextDistances).length === 0) return;
+
+      setStoreDistanceFallbacksV320((current) => {
+        const merged = { ...current, ...nextDistances };
+        return JSON.stringify(merged) === JSON.stringify(current) ? current : merged;
+      });
+    }
+
+    geocodeStoreDistanceFallbacksV320();
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [gpsCoordsV320, foundStores, activeArea.label]);
 
 
   const [offers, setOffers] = useState<ZiiplyOffer[]>([]);
@@ -4701,6 +4761,7 @@ export default function Page() {
     if (coords) {
       params.set("lat", String(coords.latitude));
       params.set("lon", String(coords.longitude));
+      params.set("lng", String(coords.longitude));
       params.set("latitude", String(coords.latitude));
       params.set("longitude", String(coords.longitude));
     }
@@ -8029,7 +8090,12 @@ export default function Page() {
     return genericDistance > 100 ? genericDistance / 1000 : genericDistance;
   }
 
-  function getStoreDistanceLabelV320(store?: StoreSearchItem | null) {
+  function getStoreDistanceKeyV320(store?: StoreSearchItem | null) {
+    if (!store) return "";
+    return `${store.type || store.chain || ""}:${store.id || ""}:${normalize(store.name || "")}:${normalize(store.city || "")}:${store.postalCode || ""}`;
+  }
+
+  function getStoreDistanceLabelWithoutFallbackV320(store?: StoreSearchItem | null) {
     if (!store) return "";
 
     const explicitKm = readExplicitDistanceKmV320(store);
@@ -8041,6 +8107,18 @@ export default function Page() {
     const longitude = getStoreCoordinateV320(store, ["longitude", "lng", "lon", "x"]);
     if (gpsCoordsV320 && latitude != null && longitude != null) {
       return formatDistanceKmV320(calculateDistanceKmV320(gpsCoordsV320, { latitude, longitude }));
+    }
+
+    return "";
+  }
+
+  function getStoreDistanceLabelV320(store?: StoreSearchItem | null) {
+    const directLabel = getStoreDistanceLabelWithoutFallbackV320(store);
+    if (directLabel) return directLabel;
+
+    const fallbackKm = storeDistanceFallbacksV320[getStoreDistanceKeyV320(store)];
+    if (fallbackKm != null && Number.isFinite(fallbackKm)) {
+      return formatDistanceKmV320(fallbackKm);
     }
 
     return "";
@@ -8161,7 +8239,7 @@ export default function Page() {
                   key={`${pickerKey}-${store.type || chain}-${store.id || index}-${normalize(store.name || "")}`}
                   type="button"
                   onClick={(event) => selectFromPicker(event, store)}
-                  className={`mb-1.5 flex w-full touch-manipulation items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-left font-extrabold transition last:mb-0 active:scale-[0.99] ${
+                  className={`mb-1.5 flex w-full touch-manipulation items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-left font-extrabold transition last:mb-0 active:scale-[0.99] ${
                     selected
                       ? chain === "S" ? "bg-green-700 text-white" : "bg-red-700 text-white"
                       : "bg-slate-50 text-slate-700 active:bg-slate-100"
@@ -8191,8 +8269,8 @@ export default function Page() {
     if (!compact) {
       return (
         <div
-          className="absolute left-1/2 top-full z-50 mt-2 max-h-64 w-[min(78vw,340px)] -translate-x-1/2 overflow-hidden rounded-2xl bg-white p-3 text-left text-sm shadow-2xl ring-1 ring-slate-200"
-          style={{ minWidth: "260px", maxWidth: "340px" }}
+          className="absolute left-1/2 top-full z-50 mt-2 max-h-64 w-[min(72vw,300px)] -translate-x-1/2 overflow-hidden rounded-2xl bg-white p-3 text-left text-sm shadow-2xl ring-1 ring-slate-200"
+          style={{ minWidth: "240px", maxWidth: "300px" }}
           onClick={(event) => event.stopPropagation()}
         >
           {menuBody}
@@ -8205,8 +8283,8 @@ export default function Page() {
     const portalContent = (
       <div className="fixed inset-x-0 top-0 z-[2147483647] pointer-events-none">
         <div
-          className="absolute left-5 right-5 top-[calc(env(safe-area-inset-top)+20.25rem)] max-h-[38dvh] overflow-hidden rounded-[1.35rem] bg-white p-2 text-left text-xs shadow-2xl ring-1 ring-slate-200 pointer-events-auto"
-          style={{ minWidth: "260px", maxWidth: "calc(100vw - 2.5rem)" }}
+          className="absolute left-1/2 top-[calc(env(safe-area-inset-top)+20.25rem)] max-h-[38dvh] w-[min(calc(100vw-3.5rem),21rem)] -translate-x-1/2 overflow-hidden rounded-[1.35rem] bg-white p-2 text-left text-xs shadow-2xl ring-1 ring-slate-200 pointer-events-auto"
+          style={{ minWidth: "300px", maxWidth: "336px" }}
           onClick={(event) => event.stopPropagation()}
           onPointerDown={(event) => event.stopPropagation()}
           onTouchStart={(event) => event.stopPropagation()}
