@@ -231,7 +231,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "V320sca-3";
+const APP_VERSION = "V320sca-4";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -10353,16 +10353,8 @@ return (
       {eanModalOpen && (
           <div className={`fixed inset-0 z-[80] flex items-end justify-center overflow-hidden overscroll-none bg-slate-950/35 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] transition-opacity duration-700 ease-out sm:items-center sm:p-4 ${eanModalClosing ? "ziiply-soft-close" : "ziiply-soft-open"}`}>
             <div className={`max-h-[calc(100dvh-7rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain rounded-[1.75rem] border border-white/70 bg-white/95 p-3 shadow-2xl backdrop-blur transition-all duration-700 ease-out [WebkitOverflowScrolling:touch] sm:max-h-[calc(100dvh-2rem)] sm:p-5 ${eanModalClosing ? "translate-y-3 scale-[0.98] opacity-0" : "translate-y-0 scale-100 opacity-100"}`}>
-              <div className="flex items-center justify-between gap-3 px-1">
-                <button
-                  type="button"
-                  onClick={closeEanModal}
-                  className="touch-manipulation rounded-2xl bg-slate-100 px-3 py-2 text-sm font-black text-slate-800 ring-1 ring-slate-200 transition active:scale-[0.98]"
-                >
-                  ← Takaisin
-                </button>
-                <p className="min-w-0 flex-1 text-center text-lg font-black text-slate-950">EAN-skanneri</p>
-                <div className="w-[5.25rem]" aria-hidden="true" />
+              <div className="flex items-center justify-center px-1">
+                <p className="min-w-0 text-center text-lg font-black text-slate-950">EAN-skanneri</p>
               </div>
 
               {eanScannerMessage && !eanScannerOpen && (
@@ -10475,10 +10467,16 @@ return (
                     <button
                       type="button"
                       onClick={() => {
-                        setEanManualInputOpen(true);
-                        window.setTimeout(() => eanInputRef.current?.focus(), 0);
+                        setEanManualInputOpen((open) => {
+                          const nextOpen = !open;
+                          if (nextOpen) {
+                            window.setTimeout(() => eanInputRef.current?.focus(), 0);
+                          }
+                          return nextOpen;
+                        });
                       }}
-                      className="min-h-[3rem] touch-manipulation rounded-[1rem] bg-slate-100 px-2 text-sm font-black text-slate-800 ring-1 ring-slate-200 transition active:scale-[0.98]"
+                      className={`min-h-[3rem] touch-manipulation rounded-[1rem] px-2 text-sm font-black ring-1 transition active:scale-[0.98] ${eanManualInputOpen ? "bg-green-100 text-green-900 ring-green-200" : "bg-slate-100 text-slate-800 ring-slate-200"}`}
+                      aria-pressed={eanManualInputOpen}
                     >
                       ✍️ EAN
                     </button>
