@@ -231,7 +231,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v320store-11";
+const APP_VERSION = "v320store-12";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -8008,7 +8008,6 @@ export default function Page() {
 
   function renderStorePickerMenu(chain: "S" | "K", mode: StoreMode, pickerKey: string, compact: boolean) {
     if (openStorePicker !== pickerKey) return null;
-    if (typeof document === "undefined") return null;
 
     const options = getStoresForPickerContext(chain, mode);
     const selectedName = getSelectedStoreNameFor(chain, mode);
@@ -8032,83 +8031,88 @@ export default function Page() {
 
       triggerHaptic();
       selectStoreForCurrentMode(normalizedStore, mode);
-      setOpenStorePicker(null);
+      window.setTimeout(() => setOpenStorePicker(null), 0);
     };
 
-    const portalContent = (
-      <div className="fixed inset-0 z-[2147483647] pointer-events-none">
-        <button
-          type="button"
-          aria-label="Sulje kauppavalinta"
-          className="absolute inset-0 bg-transparent pointer-events-auto"
-          onPointerDown={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            setOpenStorePicker(null);
-          }}
-        />
+    const menuBody = (
+      <>
+        <div className="mb-2 flex items-center justify-between gap-2 px-1">
+          <p className="min-w-0 truncate text-[11px] font-black uppercase tracking-wide text-slate-500">{menuTitle}</p>
+          <button
+            type="button"
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              setOpenStorePicker(null);
+            }}
+            className="shrink-0 rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black text-slate-600 active:scale-[0.98]"
+          >
+            Sulje
+          </button>
+        </div>
 
+        <div className={`${compact ? "max-h-[30dvh]" : "max-h-56"} overflow-y-auto overscroll-contain pr-1 [-webkit-overflow-scrolling:touch] touch-pan-y`}>
+          {options.length === 0 ? (
+            <p className="rounded-xl bg-slate-50 px-3 py-3 font-bold text-slate-400">Ei kauppoja valittavana. Hae alue uudelleen.</p>
+          ) : (
+            options.map((store, index) => {
+              const selected = Boolean((selectedId && store.id === selectedId) || (selectedName && store.name === selectedName));
+              const distanceLabel = getStoreDistanceLabelV320(store);
+
+              return (
+                <button
+                  key={`${pickerKey}-${store.type || chain}-${store.id || index}-${normalize(store.name || "")}`}
+                  type="button"
+                  onClick={(event) => selectFromPicker(event, store)}
+                  className={`mb-1.5 flex w-full touch-manipulation items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-left font-extrabold transition last:mb-0 active:scale-[0.99] ${
+                    selected
+                      ? chain === "S" ? "bg-green-700 text-white" : "bg-red-700 text-white"
+                      : "bg-slate-50 text-slate-700 active:bg-slate-100"
+                  }`}
+                >
+                  <span className="min-w-0 flex-1">
+                    <span className="block whitespace-normal break-words text-[13px] leading-tight">{store.name}</span>
+                    <span className={`mt-1 block text-xs ${selected ? "text-white/80" : "text-slate-400"}`}>
+                      {[store.city || activeArea.label || "", store.postalCode || "", distanceLabel].filter(Boolean).join(" · ")}
+                    </span>
+                  </span>
+                  <span className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-black ${selected ? "bg-white/20 text-white" : "bg-white text-slate-400"}`}>
+                    {selected ? "Valittu" : distanceLabel || (mode === "local" ? "Lähi" : "Talo")}
+                  </span>
+                </button>
+              );
+            })
+          )}
+        </div>
+      </>
+    );
+
+    // Desktop: pidetään vanha, korttiin ankkuroitu absolute-sijoittelu.
+    // Älä portaloi desktopia, koska se muutti valintaikkunoiden paikan vääräksi.
+    if (!compact) {
+      return (
         <div
-          className={`${compact ? "absolute left-5 right-5 top-[calc(env(safe-area-inset-top)+20.25rem)]" : "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"} max-h-[42dvh] w-auto overflow-hidden rounded-[1.35rem] bg-white p-2 text-left shadow-2xl ring-1 ring-slate-200 text-xs pointer-events-auto`}
-          style={compact ? { minWidth: "260px", maxWidth: "calc(100vw - 2.5rem)" } : { minWidth: "280px", maxWidth: "420px" }}
+          className="absolute left-1/2 top-full z-50 mt-2 max-h-64 w-[min(78vw,340px)] -translate-x-1/2 overflow-hidden rounded-2xl bg-white p-3 text-left text-sm shadow-2xl ring-1 ring-slate-200"
+          style={{ minWidth: "260px", maxWidth: "340px" }}
+          onClick={(event) => event.stopPropagation()}
+        >
+          {menuBody}
+        </div>
+      );
+    }
+
+    if (typeof document === "undefined") return null;
+
+    const portalContent = (
+      <div className="fixed inset-x-0 top-0 z-[2147483647] pointer-events-none">
+        <div
+          className="absolute left-5 right-5 top-[calc(env(safe-area-inset-top)+20.25rem)] max-h-[38dvh] overflow-hidden rounded-[1.35rem] bg-white p-2 text-left text-xs shadow-2xl ring-1 ring-slate-200 pointer-events-auto"
+          style={{ minWidth: "260px", maxWidth: "calc(100vw - 2.5rem)" }}
           onClick={(event) => event.stopPropagation()}
           onPointerDown={(event) => event.stopPropagation()}
           onTouchStart={(event) => event.stopPropagation()}
         >
-          <div className="mb-2 flex items-center justify-between gap-2 px-1">
-            <p className="min-w-0 truncate text-[11px] font-black uppercase tracking-wide text-slate-500">{menuTitle}</p>
-            <button
-              type="button"
-              onPointerDown={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                setOpenStorePicker(null);
-              }}
-              onClick={(event) => {
-                event.preventDefault();
-                event.stopPropagation();
-                setOpenStorePicker(null);
-              }}
-              className="shrink-0 rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black text-slate-600 active:scale-[0.98]"
-            >
-              Sulje
-            </button>
-          </div>
-
-          <div className={`${compact ? "max-h-[35dvh]" : "max-h-[36dvh]"} overflow-auto overscroll-contain pr-1 [-webkit-overflow-scrolling:touch]`}>
-            {options.length === 0 ? (
-              <p className="rounded-xl bg-slate-50 px-3 py-3 font-bold text-slate-400">Ei kauppoja valittavana. Hae alue uudelleen.</p>
-            ) : (
-              options.map((store, index) => {
-                const selected = Boolean((selectedId && store.id === selectedId) || (selectedName && store.name === selectedName));
-                const distanceLabel = getStoreDistanceLabelV320(store);
-
-                return (
-                  <button
-                    key={`${pickerKey}-${store.type || chain}-${store.id || index}-${normalize(store.name || "")}`}
-                    type="button"
-                    onPointerDown={(event) => selectFromPicker(event, store)}
-                    onClick={(event) => selectFromPicker(event, store)}
-                    className={`mb-1.5 flex w-full touch-manipulation items-center justify-between gap-3 rounded-xl px-3 py-2.5 text-left font-extrabold transition last:mb-0 active:scale-[0.99] ${
-                      selected
-                        ? chain === "S" ? "bg-green-700 text-white" : "bg-red-700 text-white"
-                        : "bg-slate-50 text-slate-700 active:bg-slate-100"
-                    }`}
-                  >
-                    <span className="min-w-0">
-                      <span className="block whitespace-normal break-words text-[13px] leading-tight">{store.name}</span>
-                      <span className={`mt-1 block text-xs ${selected ? "text-white/80" : "text-slate-400"}`}>
-                        {[store.city || activeArea.label || "", store.postalCode || "", distanceLabel].filter(Boolean).join(" · ")}
-                      </span>
-                    </span>
-                    <span className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-black ${selected ? "bg-white/20 text-white" : "bg-white text-slate-400"}`}>
-                      {selected ? "Valittu" : distanceLabel || (mode === "local" ? "Lähi" : "Talo")}
-                    </span>
-                  </button>
-                );
-              })
-            )}
-          </div>
+          {menuBody}
         </div>
       </div>
     );
