@@ -220,7 +220,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v320store-5";
+const APP_VERSION = "v320store-6";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -8350,62 +8350,53 @@ return (
           <div className={`fixed inset-0 z-40 flex items-end justify-center overflow-hidden overscroll-none bg-transparent px-2 pb-[calc(env(safe-area-inset-bottom)+6.45rem)] pt-[calc(env(safe-area-inset-top)+5.1rem)] sm:hidden ${closingPanels.shops ? "ziiply-soft-close" : "ziiply-soft-open"}`}>
             <div className="h-[min(72dvh,670px)] w-full max-w-[28rem] overflow-visible overscroll-none rounded-[1.65rem] bg-white/90 p-2.5 shadow-2xl ring-1 ring-white/70 backdrop-blur-2xl">
               <section className="flex h-full min-h-0 flex-col overflow-hidden rounded-[1.35rem] bg-white/95 p-3.5 shadow-[0_18px_55px_rgba(15,23,42,0.10)] ring-1 ring-slate-100">
-                <div className="mb-2 flex shrink-0 items-start gap-2.5">
+                <div className="mb-2 flex shrink-0 items-center gap-2">
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-green-50 text-xl shadow-sm ring-1 ring-green-100">
                     🏪
                   </div>
 
-                  <div className="min-w-0 flex-1">
-                    <div className="mb-1 flex min-w-0 items-end justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="text-[10px] font-black uppercase tracking-[0.30em] text-green-700">Kaupat</p>
-                        <h2 className="truncate text-lg font-black leading-tight text-slate-950">Valitse kaupat</h2>
-                      </div>
-                    </div>
+                  <div className="flex min-w-0 flex-1 items-center gap-1.5 rounded-[1.05rem] bg-slate-50 p-1.5 ring-1 ring-slate-200">
+                    <button
+                      type="button"
+                      aria-pressed={usingOwnLocation}
+                      onClick={() => {
+                        if (usingOwnLocation) {
+                          stopOwnLocationV306("GPS pois päältä. Kirjoita alue tai postinumero.");
+                          return;
+                        }
+                        setLocationInput("");
+                        useOwnLocation();
+                      }}
+                      title="Käytä omaa sijaintia"
+                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-base font-black shadow-sm ring-1 transition active:scale-[0.98] ${
+                        usingOwnLocation
+                          ? "bg-green-50 text-green-600 ring-green-100"
+                          : "bg-white text-slate-500 ring-slate-200"
+                      }`}
+                    >
+                      📍
+                    </button>
 
-                    <div className="flex shrink-0 items-center gap-1.5 rounded-[1.05rem] bg-slate-50 p-1.5 ring-1 ring-slate-200">
-                      <button
-                        type="button"
-                        aria-pressed={usingOwnLocation}
-                        onClick={() => {
-                          if (usingOwnLocation) {
-                            stopOwnLocationV306("GPS pois päältä. Kirjoita alue tai postinumero.");
-                            return;
-                          }
-                          setLocationInput("");
-                          useOwnLocation();
-                        }}
-                        title="Käytä omaa sijaintia"
-                        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-base font-black shadow-sm ring-1 transition active:scale-[0.98] ${
-                          usingOwnLocation
-                            ? "bg-green-50 text-green-600 ring-green-100"
-                            : "bg-white text-slate-500 ring-slate-200"
-                        }`}
-                      >
-                        📍
-                      </button>
+                    <input
+                      value={locationInput}
+                      onChange={(event) => {
+                        const nextValue = event.target.value;
+                        setLocationInput(nextValue);
+                        if (nextValue.trim()) { gpsUserDisabledRefV306.current = true; setUsingOwnLocation(false); }
+                        setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
+                      }}
+                      placeholder="05510 tai Hyvinkää"
+                      className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-2.5 py-2 text-[15px] font-semibold text-slate-800 outline-none focus:border-green-600"
+                    />
 
-                      <input
-                        value={locationInput}
-                        onChange={(event) => {
-                          const nextValue = event.target.value;
-                          setLocationInput(nextValue);
-                          if (nextValue.trim()) { gpsUserDisabledRefV306.current = true; setUsingOwnLocation(false); }
-                          setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
-                        }}
-                        placeholder="05510 tai Hyvinkää"
-                        className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-2.5 py-2 text-[15px] font-semibold text-slate-800 outline-none focus:border-green-600"
-                      />
-
-                      <button
-                        type="button"
-                        onClick={() => applyLocation()}
-                        disabled={storeSearchLoading}
-                        className="min-w-[58px] shrink-0 rounded-xl bg-slate-900 px-2.5 py-2 text-xs font-black text-white shadow-sm transition disabled:cursor-not-allowed active:scale-[0.98]"
-                      >
-                        Käytä
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => applyLocation()}
+                      disabled={storeSearchLoading}
+                      className="min-w-[56px] shrink-0 rounded-xl bg-slate-900 px-2.5 py-2 text-xs font-black text-white shadow-sm transition disabled:cursor-not-allowed active:scale-[0.98]"
+                    >
+                      Käytä
+                    </button>
                   </div>
                 </div>
 
