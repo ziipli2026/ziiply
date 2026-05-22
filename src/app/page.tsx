@@ -231,7 +231,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "v320store-15";
+const APP_VERSION = "v320store-16";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -3002,6 +3002,7 @@ export default function Page() {
       return;
     }
 
+    const gpsCoordsForFallbackV320 = gpsCoordsV320;
     let cancelled = false;
     const controller = new AbortController();
 
@@ -3033,7 +3034,7 @@ export default function Page() {
           const longitude = readStoreNumberV320(first?.lon ?? first?.lng);
           if (latitude == null || longitude == null) continue;
 
-          nextDistances[getStoreDistanceKeyV320(store)] = calculateDistanceKmV320(gpsCoordsV320, { latitude, longitude });
+          nextDistances[getStoreDistanceKeyV320(store)] = calculateDistanceKmV320(gpsCoordsForFallbackV320, { latitude, longitude });
         } catch (error) {
           if (!cancelled) console.debug("Etäisyyden varalaskenta epäonnistui", error);
         }
