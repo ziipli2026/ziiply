@@ -231,7 +231,7 @@ const MAX_SAVED_SHOPPING_LISTS = 8;
 const HTML5_QRCODE_SCRIPT_URL = "https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js";
 const EAN_SCANNER_REGION_ID = "ziiply-ean-scanner-region";
 const SAME_EAN_RESCAN_LOCK_MS = 9000;
-const APP_VERSION = "V320MOBTXT-9-EMPTY1";
+const APP_VERSION = "V320MOBTXT-9-EMPTY2";
 const SHOW_SEARCH_DEBUG_PANEL = false;
 
 function trackZiiplyEvent(eventName: string, properties: Record<string, unknown> = {}) {
@@ -9400,7 +9400,7 @@ return (
                 </section>
               )}
 
-              {activeResult !== "compare" && (loadingNormal || normalResults.length > 0 || (searchPanelOpen && normalSearchAttempted && activeNormalSearchTerm)) && (
+              {activeResult !== "compare" && (loadingNormal || normalResults.length > 0 || (normalSearchAttempted && activeNormalSearchTerm)) && (
 <section ref={normalResultsSectionRef} className="min-h-full min-w-0 max-w-full overflow-hidden rounded-[1.5rem] bg-white p-2.5 sm:min-h-0 sm:rounded-[2rem] sm:p-5">
                 <div className="mb-2 flex items-start justify-between gap-3 px-1">
                   <div className="min-w-0">
