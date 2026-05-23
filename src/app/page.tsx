@@ -5812,8 +5812,7 @@ export default function Page() {
       `}</style>
       {showLaunchScreen && <ZiiplyLaunchScreen appVersion={APP_VERSION} />}
 
-      <div className="relative z-[30] mb-8">
-        {/* ZIIPLY_MOBILE_TOPBAR_OVERLAP_FIX_V12: topbar is normal flow; shops card gets extra top clearance. */}
+      <div className="relative z-[80] mb-8">
         <TopbarResponsiveCard
           areaLabel={activeArea.label}
           storeModeLabel={
@@ -6110,8 +6109,8 @@ return (
 
 
         {shopsPanelOpen && (
-          <div className={`fixed inset-0 z-40 flex items-end justify-center overflow-hidden overscroll-none bg-transparent px-2 pb-[calc(env(safe-area-inset-bottom)+6.45rem)] pt-[calc(env(safe-area-inset-top)+5.1rem)] sm:hidden ${closingPanels.shops ? "ziiply-soft-close" : "ziiply-soft-open"}`}>
-            <div className="h-[min(72dvh,670px)] w-full max-w-[28rem] overflow-visible overscroll-none rounded-[1.65rem] bg-white/90 p-2.5 shadow-2xl ring-1 ring-white/70 backdrop-blur-2xl mt-24">
+          <div className={`fixed inset-0 z-40 flex items-end justify-center overflow-hidden overscroll-none bg-transparent px-2 pb-[calc(env(safe-area-inset-bottom)+6.45rem)] pt-[calc(env(safe-area-inset-top)+7.25rem)] sm:hidden ${closingPanels.shops ? "ziiply-soft-close" : "ziiply-soft-open"}`}>
+            <div className="h-[min(60dvh,560px)] w-full max-w-[28rem] overflow-visible overscroll-none rounded-[1.65rem] bg-white/90 p-2.5 shadow-2xl ring-1 ring-white/70 backdrop-blur-2xl">
               <section className="flex h-full min-h-0 flex-col overflow-hidden rounded-[1.35rem] bg-white/95 p-3.5 shadow-[0_18px_55px_rgba(15,23,42,0.10)] ring-1 ring-slate-100">
                 <div className="mb-2 flex shrink-0 items-center gap-2">
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-green-50 text-xl shadow-sm ring-1 ring-green-100">
@@ -6372,7 +6371,7 @@ return (
 
         {(activeResult === "compare" || activeResult === "singleCompare" || (!searchPanelOpen && activeResult !== "offers" && (loadingNormal || normalResults.length > 0 || (normalSearchAttempted && activeNormalSearchTerm)))) && (
           <div
-            className={`fixed inset-0 z-40 flex items-end justify-center overflow-y-auto overscroll-contain bg-transparent px-2 pb-[calc(env(safe-area-inset-bottom)+6.45rem)] pt-[calc(env(safe-area-inset-top)+5.1rem)] sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0 ${(closingPanels.compare || closingPanels.singleCompare) ? "ziiply-soft-close" : "ziiply-soft-open"}`}
+            className={`fixed inset-0 z-40 flex items-end justify-center overflow-y-auto overscroll-contain bg-transparent px-2 pb-[calc(env(safe-area-inset-bottom)+6.45rem)] pt-[calc(env(safe-area-inset-top)+7.25rem)] sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0 ${(closingPanels.compare || closingPanels.singleCompare) ? "ziiply-soft-close" : "ziiply-soft-open"}`}
             onClick={(event) => {
               if (event.target !== event.currentTarget) return;
               if (activeResult !== "compare" && activeResult !== "singleCompare") {
@@ -7322,8 +7321,8 @@ return (
       )}
 
       {searchPanelOpen && (
-        <div className={`fixed inset-0 z-40 flex items-end justify-center overflow-hidden overscroll-none bg-transparent px-2 pb-[calc(env(safe-area-inset-bottom)+6.45rem)] pt-[calc(env(safe-area-inset-top)+5.1rem)] sm:items-center sm:p-6 ${closingPanels.search ? "ziiply-soft-close" : "ziiply-soft-open"}`}>
-          <div className="h-[min(72dvh,670px)] w-full max-w-[28rem] overflow-visible overscroll-none rounded-[1.65rem] bg-white/90 p-2.5 shadow-2xl ring-1 ring-white/70 backdrop-blur-2xl">
+        <div className={`fixed inset-0 z-40 flex items-end justify-center overflow-hidden overscroll-none bg-transparent px-2 pb-[calc(env(safe-area-inset-bottom)+6.45rem)] pt-[calc(env(safe-area-inset-top)+7.25rem)] sm:items-center sm:p-6 ${closingPanels.search ? "ziiply-soft-close" : "ziiply-soft-open"}`}>
+          <div className="h-[min(60dvh,560px)] w-full max-w-[28rem] overflow-visible overscroll-none rounded-[1.65rem] bg-white/90 p-2.5 shadow-2xl ring-1 ring-white/70 backdrop-blur-2xl">
             <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-[1.35rem] border border-white/80 bg-white/95 p-3 shadow-[0_18px_55px_rgba(15,23,42,0.10)] ring-1 ring-slate-100 sm:rounded-[2rem] sm:p-4">
               <div className="flex h-full min-h-0 flex-col">
                 <div className="shrink-0">
