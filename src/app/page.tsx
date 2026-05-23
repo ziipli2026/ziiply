@@ -5688,7 +5688,7 @@ export default function Page() {
     }
 
     return (
-      <div className={compact ? "mt-0 grid grid-cols-2 gap-2.5 pb-2" : "mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4"}>
+      <div className={compact ? "mt-0 grid grid-cols-2 gap-2.5 pb-1" : "mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4"}>
         {comparedStoreCards.map((store) => {
           const isRealChain = store.key === "s" || store.key === "k";
           const selected = selectedChains[store.key] || (storeCompareScope === "between_chains" && storeModeChosenV299 && isRealChain);
@@ -5730,8 +5730,8 @@ export default function Page() {
           return (
             <div
               key={store.key}
-              className={`relative flex flex-col items-center justify-start rounded-[1.45rem] border-2 px-2 pb-2.5 pt-3 text-center transition active:scale-[0.985] ${
-                compact ? "min-h-[8.45rem]" : "min-h-[10.6rem]"
+              className={`relative flex flex-col items-center justify-start rounded-[1.45rem] border-2 text-center transition active:scale-[0.985] ${
+                compact ? "min-h-[7.8rem] px-2 pb-2 pt-2.5" : "min-h-[10.6rem] px-2 pb-2.5 pt-3"
               } ${cardTone}`}
             >
               <button
@@ -5749,35 +5749,35 @@ export default function Page() {
                 className="flex w-full flex-1 flex-col items-center text-center disabled:cursor-default"
               >
                 <span
-                  className={`absolute right-2.5 top-2.5 flex h-7 w-7 items-center justify-center rounded-full text-base font-black shadow-[0_4px_10px_rgba(15,23,42,0.18)] ${
+                  className={`absolute flex items-center justify-center rounded-full font-black shadow-[0_4px_10px_rgba(15,23,42,0.18)] ${compact ? "right-2 top-2 h-6 w-6 text-sm" : "right-2.5 top-2.5 h-7 w-7 text-base"} ${
                     selected ? "bg-[#008C35] text-white" : "bg-slate-50 text-transparent"
                   }`}
                 >
                   ✓
                 </span>
 
-                <div className={`flex ${compact ? "h-12 w-12 text-2xl ring-[7px]" : "h-16 w-16 text-3xl ring-[9px]"} items-center justify-center rounded-full font-black shadow-inner ${logoTone}`}>
+                <div className={`flex ${compact ? "h-10 w-10 text-xl ring-[6px]" : "h-16 w-16 text-3xl ring-[9px]"} items-center justify-center rounded-full font-black shadow-inner ${logoTone}`}>
                   {store.logo}
                 </div>
 
-                <p className={compact ? "mt-3 text-[10px] font-black uppercase tracking-wide text-slate-400" : "mt-4 text-[12px] font-black uppercase tracking-wide text-slate-400"}>
+                <p className={compact ? "mt-2 text-[9px] font-black uppercase tracking-wide text-slate-400" : "mt-4 text-[12px] font-black uppercase tracking-wide text-slate-400"}>
                   {cardLabel}
                 </p>
 
-                <p className={`mt-1.5 min-h-[1.95rem] max-w-full whitespace-normal break-words text-[13px] font-black leading-tight ${
+                <p className={`max-w-full whitespace-normal break-words font-black leading-tight ${compact ? "mt-1 min-h-[1.55rem] text-[12px]" : "mt-1.5 min-h-[1.95rem] text-[13px]"} ${
                   isComingSoon ? "text-slate-500" : "text-slate-900"
                 }`}>
                   {isComingSoon ? "Tulossa" : store.name}
                 </p>
 
                 {isRealChain && distanceForCard && (
-                  <p className="mt-1.5 text-[11px] font-black text-slate-400">
+                  <p className={compact ? "mt-1 text-[10px] font-black text-slate-400" : "mt-1.5 text-[11px] font-black text-slate-400"}>
                     {distanceForCard}
                   </p>
                 )}
 
-                {!isComingSoon && (
-                  <span className="mt-2 inline-flex min-h-[1.55rem] items-center rounded-full border border-slate-200 bg-slate-50 px-3.5 text-[11px] font-black text-slate-400">
+                {!isComingSoon && (compact || !isRealChain) && (
+                  <span className="mt-1.5 inline-flex min-h-[1.35rem] items-center rounded-full border border-slate-200 bg-slate-50 px-3 text-[10px] font-black text-slate-400">
                     {selected ? "Valittu" : "Valitse"}
                   </span>
                 )}
@@ -5904,8 +5904,8 @@ export default function Page() {
         />
       </div>
 
-      {/* v325_MOBILE_INFO_STRIP_CONDITIONAL: näkyy vain ennen kauppa- ja vertailutapavalintaa. */}
-      {!storesReadyForSearch && (
+      {/* v326_MOBILE_INFO_STRIP_CONDITIONAL: näkyy vain ennen kauppa- ja vertailutapavalintaa. */}
+      {(storeCompareScope === "none" || (storeCompareScope === "between_chains" && !storeModeChosenV299)) && (
         <div className="mx-auto w-full max-w-6xl px-3 mt-0 mb-1 sm:hidden">
           <div className="w-full overflow-hidden whitespace-nowrap rounded-full border border-[#E6C96A] bg-[#F6F2DD] px-3 py-[3px] text-center text-[10px] font-bold leading-none text-[#9A5A00] shadow-[0_1px_1px_rgba(0,0,0,0.03)]">
             Valitse kaupat ja vertailutapa.
@@ -6305,7 +6305,7 @@ return (
                   </div>
                 ) : (
                   <div className="relative min-h-0 flex-1 overflow-hidden ziiply-soft-open-fast">
-                    <div className="pointer-events-none absolute left-0 right-0 top-[8.4rem] z-20 flex items-center justify-between gap-2 px-0">
+                    <div className="pointer-events-none absolute left-0 right-0 top-[8.95rem] z-20 flex items-center justify-between gap-2 px-0">
                       <button
                         type="button"
                         onClick={() => {
