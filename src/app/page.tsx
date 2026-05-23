@@ -5746,7 +5746,7 @@ export default function Page() {
   }
 
   return (
-    <main className={`min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top,#ecfdf3_0%,#f8fafc_42%,#f1f5f9_100%)] px-2 pb-44 sm:pb-32 pt-[4.75rem] text-slate-950 sm:px-4 sm:py-3 sm:py-4 md:pb-4 ${suppressUiForEanClose ? "pointer-events-none" : ""}`}>
+    <main className={`min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top,#ecfdf3_0%,#f8fafc_42%,#f1f5f9_100%)] px-2 pb-44 sm:pb-32 pt-[7.25rem] text-slate-950 sm:px-4 sm:py-4 md:pb-4 ${suppressUiForEanClose ? "pointer-events-none" : ""}`}>
       <style jsx global>{`
         @keyframes ziiply-soft-open {
           from { opacity: 0; transform: translateY(10px) scale(0.985); filter: blur(2px); }
@@ -5812,60 +5812,41 @@ export default function Page() {
       `}</style>
       {showLaunchScreen && <ZiiplyLaunchScreen appVersion={APP_VERSION} />}
 
-      <TopbarResponsiveCard
-        appVersion={APP_VERSION}
-        areaLabel={activeArea.label}
-        storeModeLabel={
-          storeModeChosenV299
-            ? storeMode === "hyper"
-              ? "Tavaratalot"
-              : "Lähikaupat"
-            : "Valitse hakutapa"
-        }
-        logoImageSrc="/ziiply.png"
-        logoText="Ziiply"
-        infoItems={[
-          {
-            id: "location",
-            label: `${activeArea.label} · ${
-              storeModeChosenV299
-                ? storeMode === "hyper"
-                  ? "Tavaratalot"
-                  : "Lähikaupat"
-                : "Valitse hakutapa"
-            }`,
-            emoji: "📍",
-          },
-          ...(isOnline
-            ? []
-            : [
-                {
-                  id: "offline",
-                  label: "Ei verkkoyhteyttä",
-                  emoji: "⚠️",
-                },
-              ]),
-        ]}
-        onOpenArea={() => {
-          setSearchPanelOpen(false);
-          setCartModalOpen(false);
-          setCartSavePanelOpen(false);
-          setEanModalOpen(false);
-          setActiveResult("none");
-          setShopsPanelOpen(true);
-        }}
-        onOpenInfo={() => {
-          setLocationMessageVisible(true);
-        }}
-        onOpenMenu={() => {
-          setSearchPanelOpen(false);
-          setCartModalOpen(false);
-          setCartSavePanelOpen(false);
-          setEanModalOpen(false);
-          setActiveResult("none");
-          setShopsPanelOpen(true);
-        }}
-      />
+      <div className="fixed left-0 right-0 top-0 z-[70] px-4 pt-[calc(env(safe-area-inset-top)+0.55rem)]">
+        <TopbarResponsiveCard
+          appVersion={APP_VERSION}
+          areaLabel={activeArea.label}
+          storeModeLabel={
+            storeModeChosenV299
+              ? storeMode === "hyper"
+                ? "Tavaratalot"
+                : "Lähikaupat"
+              : "Valitse hakutapa"
+          }
+          logoImageSrc="/ziiply.png"
+          logoText="Ziiply"
+          infoItems={[]}
+          onOpenArea={() => {
+            setSearchPanelOpen(false);
+            setCartModalOpen(false);
+            setCartSavePanelOpen(false);
+            setEanModalOpen(false);
+            setActiveResult("none");
+            setShopsPanelOpen(true);
+          }}
+          onOpenInfo={() => {
+            setLocationMessageVisible(true);
+          }}
+          onOpenMenu={() => {
+            setSearchPanelOpen(false);
+            setCartModalOpen(false);
+            setCartSavePanelOpen(false);
+            setEanModalOpen(false);
+            setActiveResult("none");
+            setShopsPanelOpen(true);
+          }}
+        />
+      </div>
 
 
       <div className="mx-auto max-w-6xl space-y-3 sm:space-y-4 sm:space-y-6">
