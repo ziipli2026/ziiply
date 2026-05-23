@@ -1,230 +1,44 @@
-import React from "react";
+{/* PROGRESS BADGE */}
 
-export type ZiiplyCartCardItem = {
-  id: string;
-  name: string;
-  quantity: number;
-  price?: number;
-  image?: string;
-  storeName?: string;
-  chain?: "S" | "K";
-  source?: "manual" | "offer" | "search" | "recipe" | "justiina";
-  ean?: string;
-};
+<div
+  style={{
+    width: 88,
+    height: 88,
+    minWidth: 88,
+    minHeight: 88,
 
-export type ZiiplyCartCardProps = {
-  items: ZiiplyCartCardItem[];
-  title?: string;
-  subtitle?: string;
-  onIncreaseQuantity?: (itemId: string) => void;
-  onDecreaseQuantity?: (itemId: string) => void;
-  onRemoveItem?: (itemId: string) => void;
-  onClearCart?: () => void;
-  onCompare?: () => void;
-  onAddMore?: () => void;
-};
+    borderRadius: 24,
 
-function formatEuro(cents?: number | null) {
-  if (cents == null || Number.isNaN(cents)) return "—";
-  return `${(cents / 100).toFixed(2).replace(".", ",")} €`;
-}
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
 
-function getCartTotal(items: ZiiplyCartCardItem[]) {
-  return items.reduce((sum, item) => {
-    if (!item.price || item.price <= 0) return sum;
-    return sum + item.price * Math.max(1, item.quantity || 1);
-  }, 0);
-}
+    background: "#00e05a",
+    color: "#001b08",
 
-function getItemMeta(item: ZiiplyCartCardItem) {
-  if (item.source === "manual" || !item.price) return "Ostoslistarivi";
-  if (item.storeName) return item.chain ? `${item.storeName} · ${item.chain}` : item.storeName;
-  if (item.chain === "S") return "S-kauppa";
-  if (item.chain === "K") return "K-kauppa";
-  return "Tuote";
-}
+    fontWeight: 900,
+    lineHeight: 1,
 
-export function ZiiplyCartCard({
-  items,
-  title = "Ostoskori",
-  subtitle,
-  onIncreaseQuantity,
-  onDecreaseQuantity,
-  onRemoveItem,
-  onClearCart,
-  onCompare,
-  onAddMore,
-}: ZiiplyCartCardProps) {
-  const total = getCartTotal(items);
-  const hasItems = items.length > 0;
-  const pricedItems = items.filter((item) => item.price && item.price > 0).length;
-  const manualItems = items.length - pricedItems;
+    flexShrink: 0,
 
-  return (
-    <section className="rounded-[28px] border border-emerald-950/10 bg-gradient-to-br from-emerald-950 via-zinc-950 to-black p-4 text-white shadow-2xl shadow-emerald-950/25">
-      <div className="mb-4">
-        <div className="inline-flex items-center gap-2 rounded-full bg-emerald-400/15 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-emerald-200">
-          <span>🛒</span>
-          <span>Keräily kaupassa</span>
-        </div>
+    boxShadow: "0 4px 12px rgba(0,0,0,0.18)",
+  }}
+>
+  <div
+    style={{
+      fontSize: 24,
+      marginBottom: 2,
+    }}
+  >
+    {progress}
+  </div>
 
-        <h2 className="mt-3 text-2xl font-black tracking-tight text-white">
-          {title}
-        </h2>
-
-        <p className="mt-1 text-sm font-semibold text-emerald-100/80">
-          {subtitle ||
-            (hasItems
-              ? `${items.length} tuotetta · ${pricedItems} hinnoiteltu${manualItems ? ` · ${manualItems} listalla` : ""}`
-              : "Lisää tuotteita hausta tai Justiinalta")}
-        </p>
-      </div>
-
-      {!hasItems ? (
-        <div className="rounded-3xl border border-dashed border-emerald-300/25 bg-white/[0.06] p-5 text-center">
-          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-400/15 text-2xl">
-            🧺
-          </div>
-          <h3 className="text-lg font-black text-white">
-            Kori on vielä tyhjä
-          </h3>
-          <p className="mx-auto mt-2 max-w-[260px] text-sm font-semibold leading-snug text-emerald-100/75">
-            Lisää tuotteita hausta, tarjouksista tai anna Justiinan ehdottaa ostettavaa.
-          </p>
-
-          {onAddMore && (
-            <button
-              type="button"
-              onClick={onAddMore}
-              className="mt-4 inline-flex min-h-[44px] items-center justify-center rounded-2xl bg-emerald-400 px-5 text-sm font-black text-emerald-950 shadow-lg shadow-emerald-500/20 active:scale-[0.98]"
-            >
-              Lisää tuotteita
-            </button>
-          )}
-        </div>
-      ) : (
-        <div className="space-y-2.5">
-          {items.map((item) => {
-            const quantity = Math.max(1, item.quantity || 1);
-            return (
-              <article
-                key={item.id}
-                className="rounded-3xl bg-white/[0.075] p-3 ring-1 ring-white/10 backdrop-blur"
-              >
-                <div className="flex gap-3">
-                  <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white/10 ring-1 ring-white/10">
-                    {item.image ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={item.image}
-                        alt=""
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-2xl">{item.source === "manual" ? "📝" : "🛒"}</span>
-                    )}
-                  </div>
-
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <h3 className="line-clamp-2 text-sm font-black leading-tight text-white">
-                          {item.name}
-                        </h3>
-                        <p className="mt-1 truncate text-xs font-bold text-emerald-100/65">
-                          {getItemMeta(item)}
-                        </p>
-                      </div>
-
-                      <div className="shrink-0">
-                        <div className="rounded-full bg-emerald-400/15 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-emerald-100 ring-1 ring-emerald-300/15">
-                          Kerää
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="mt-3 grid grid-cols-[minmax(74px,0.9fr)_auto_minmax(64px,0.8fr)] items-center gap-1.5">
-                      <button
-                        type="button"
-                        className="flex h-9 min-w-0 items-center justify-center rounded-xl bg-amber-100/90 px-2 text-[11px] font-black text-amber-800 shadow-sm active:scale-[0.98]"
-                      >
-                        <span className="truncate">🔥 Tarjoukset</span>
-                      </button>
-
-                      <div className="inline-flex items-center rounded-2xl bg-black/25 p-1 ring-1 ring-white/10">
-                        <button
-                          type="button"
-                          onClick={() => onDecreaseQuantity?.(item.id)}
-                          className="flex h-8 w-8 items-center justify-center rounded-xl text-lg font-black text-white active:scale-95 disabled:opacity-40"
-                          disabled={!onDecreaseQuantity || quantity <= 1}
-                          aria-label="Vähennä määrää"
-                        >
-                          −
-                        </button>
-
-                        <div className="flex min-w-[32px] items-center justify-center px-1.5 text-sm font-black text-white">
-                          {quantity}
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => onIncreaseQuantity?.(item.id)}
-                          className="flex h-8 w-8 items-center justify-center rounded-xl bg-emerald-400 text-lg font-black text-emerald-950 active:scale-95 disabled:opacity-40"
-                          disabled={!onIncreaseQuantity}
-                          aria-label="Lisää määrää"
-                        >
-                          +
-                        </button>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => onRemoveItem?.(item.id)}
-                        className="flex h-9 min-w-0 items-center justify-center rounded-xl bg-rose-400/15 px-2 text-[11px] font-black text-rose-100 ring-1 ring-rose-300/20 active:scale-[0.98] disabled:opacity-40"
-                        disabled={!onRemoveItem}
-                      >
-                        <span className="truncate">🗑 Poista</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </article>
-            );
-          })}
-        </div>
-      )}
-
-      <div className="mt-4 grid grid-cols-2 gap-2">
-        <button
-          type="button"
-          onClick={onAddMore}
-          className="min-h-[48px] rounded-2xl bg-white/10 px-4 text-sm font-black text-white ring-1 ring-white/10 active:scale-[0.98] disabled:opacity-40"
-          disabled={!onAddMore}
-        >
-          Lisää
-        </button>
-
-        <button
-          type="button"
-          onClick={onCompare}
-          className="min-h-[48px] rounded-2xl bg-emerald-400 px-4 text-sm font-black text-emerald-950 shadow-lg shadow-emerald-500/20 active:scale-[0.98] disabled:opacity-40"
-          disabled={!onCompare || !hasItems}
-        >
-          Vertaa
-        </button>
-      </div>
-
-      {hasItems && onClearCart && (
-        <button
-          type="button"
-          onClick={onClearCart}
-          className="mt-2 min-h-[42px] w-full rounded-2xl bg-zinc-800/90 px-4 text-sm font-black text-zinc-100 ring-1 ring-white/10 active:scale-[0.98]"
-        >
-          Tyhjennä kori
-        </button>
-      )}
-    </section>
-  );
-}
-
-export default ZiiplyCartCard;
+  <div
+    style={{
+      fontSize: 18,
+    }}
+  >
+    %
+  </div>
+</div>
