@@ -5613,7 +5613,8 @@ export default function Page() {
       const selectedChainKey = withinChain === "S" ? "s" : withinChain === "K" ? "k" : null;
 
       return (
-        <div className={compact ? "mt-2 grid grid-cols-2 gap-2" : "mt-3 grid grid-cols-2 gap-3"}>
+        <div className={compact ? "mt-0" : "mt-3"}>
+          <div className={compact ? "grid grid-cols-2 gap-2" : "grid grid-cols-2 gap-3"}>
           {chainCards.map((store) => {
             const selected = selectedChainKey === store.key;
             const chain = store.key === "s" ? "S" : "K";
@@ -5683,6 +5684,25 @@ export default function Page() {
               </div>
             );
           })}
+          </div>
+
+          {compact && (
+            <div className="relative my-2 h-10">
+              <button
+                type="button"
+                onClick={() => {
+                  setStoreDrillViewV320("main");
+                  setOpenStorePicker(null);
+                }}
+                className="absolute left-0 top-1/2 -translate-y-1/2 rounded-full bg-white px-3.5 py-2 text-xs font-black text-slate-700 shadow-sm ring-1 ring-slate-200 active:scale-[0.98]"
+              >
+                ← Kaupat
+              </button>
+              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-green-50 px-4 py-2 text-[10px] font-black uppercase tracking-wide text-green-800 ring-1 ring-green-100">
+                KETJUN SISÄLTÄ
+              </span>
+            </div>
+          )}
         </div>
       );
     }
@@ -5696,7 +5716,7 @@ export default function Page() {
       const renderBetweenChainCard = (store: (typeof comparedStoreCards)[number], isTopRow: boolean) => {
         const isRealChain = store.key === "s" || store.key === "k";
         const chain = store.key === "s" ? "S" : store.key === "k" ? "K" : null;
-        const selected = isRealChain && storeModeChosenV299;
+        const selected = Boolean(selectedChains[store.key]);
         const selectedStoreForCard = chain ? findStoreForSelectionV320(chain, storeMode) : null;
         const distanceForCard = chain ? getStoreDistanceLabelV320(selectedStoreForCard) : "";
         const pickerKey = chain ? `${store.key}-${storeMode}-between` : `${store.key}-coming-soon`;
@@ -5711,6 +5731,8 @@ export default function Page() {
             ? selected
               ? "border-[#E3000F] bg-[#FFF1F1] text-[#1F2B42] shadow-[0_4px_12px_rgba(227,0,15,0.10)]"
               : "border-slate-200 bg-white text-slate-500"
+            : selected
+            ? "border-slate-300 bg-slate-50 text-slate-500 opacity-90 shadow-[0_4px_12px_rgba(15,23,42,0.08)]"
             : "border-slate-200 bg-white text-slate-400 opacity-75";
 
         const logoTone =
@@ -5736,7 +5758,28 @@ export default function Page() {
         return (
           <div
             key={store.key}
-            className={`relative overflow-visible rounded-[1.35rem] border-2 text-center ${
+            role="button"
+            tabIndex={0}
+            aria-pressed={selected}
+            onClick={() => {
+              setSelectedChains((current) => ({
+                ...current,
+                [store.key]: !current[store.key],
+              }));
+              setOpenStorePicker(null);
+              triggerHaptic();
+            }}
+            onKeyDown={(event) => {
+              if (event.key !== "Enter" && event.key !== " ") return;
+              event.preventDefault();
+              setSelectedChains((current) => ({
+                ...current,
+                [store.key]: !current[store.key],
+              }));
+              setOpenStorePicker(null);
+              triggerHaptic();
+            }}
+            className={`relative cursor-pointer overflow-visible rounded-[1.35rem] border-2 text-center transition active:scale-[0.985] ${
               isTopRow ? "min-h-[9.05rem] px-2.5 pb-2 pt-2.5" : "min-h-[6.15rem] px-2 pb-1.5 pt-2"
             } ${cardTone}`}
           >
@@ -5804,24 +5847,20 @@ export default function Page() {
             {topStores.map((store) => renderBetweenChainCard(store, true))}
           </div>
 
-          <div className="my-2 grid grid-cols-2 items-center gap-x-3">
-            <div className="flex justify-start">
-              <button
-                type="button"
-                onClick={() => {
-                  setStoreDrillViewV320("main");
-                  setOpenStorePicker(null);
-                }}
-                className="rounded-full bg-white px-3.5 py-2 text-xs font-black text-slate-700 shadow-sm ring-1 ring-slate-200 active:scale-[0.98]"
-              >
-                ← Kaupat
-              </button>
-            </div>
-            <div className="flex justify-center">
-              <span className="whitespace-nowrap rounded-full bg-green-50 px-3.5 py-2 text-[10px] font-black uppercase tracking-wide text-green-800 ring-1 ring-green-100">
-                {scopeLabel}
-              </span>
-            </div>
+          <div className="relative my-2 h-10">
+            <button
+              type="button"
+              onClick={() => {
+                setStoreDrillViewV320("main");
+                setOpenStorePicker(null);
+              }}
+              className="absolute left-0 top-1/2 -translate-y-1/2 rounded-full bg-white px-3.5 py-2 text-xs font-black text-slate-700 shadow-sm ring-1 ring-slate-200 active:scale-[0.98]"
+            >
+              ← Kaupat
+            </button>
+            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-green-50 px-4 py-2 text-[10px] font-black uppercase tracking-wide text-green-800 ring-1 ring-green-100">
+              {scopeLabel}
+            </span>
           </div>
 
           <div className="grid grid-cols-2 gap-x-3 gap-y-2">
@@ -5835,7 +5874,7 @@ export default function Page() {
       <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
         {comparedStoreCards.map((store) => {
           const isRealChain = store.key === "s" || store.key === "k";
-          const selected = selectedChains[store.key] || (String(storeCompareScope) === "between_chains" && storeModeChosenV299 && isRealChain);
+          const selected = Boolean(selectedChains[store.key]);
           const chain = store.key === "s" ? "S" : store.key === "k" ? "K" : null;
           const pickerKey = `${store.key}-${storeMode}`;
           const selectedStoreForCard = chain ? findStoreForSelectionV320(chain, storeMode) : null;
@@ -5851,7 +5890,9 @@ export default function Page() {
               ? selected
                 ? "border-[#E3000F] bg-[#FFF1F1] text-[#1F2B42] shadow-[0_5px_16px_rgba(227,0,15,0.13)]"
                 : "border-slate-200 bg-white text-slate-500 opacity-70"
-              : "border-slate-200 bg-white text-slate-500 opacity-60";
+              : selected
+                ? "border-slate-300 bg-slate-50 text-slate-600 opacity-90"
+                : "border-slate-200 bg-white text-slate-500 opacity-60";
 
           const logoTone =
             store.key === "s"
@@ -5879,16 +5920,15 @@ export default function Page() {
               <button
                 type="button"
                 aria-pressed={selected}
-                disabled={isComingSoon}
+                disabled={false}
                 onClick={() => {
-                  if (store.comingSoon) return;
                   setSelectedChains((current) => ({
                     ...current,
                     [store.key]: !current[store.key],
                   }));
                   setOpenStorePicker(null);
                 }}
-                className="flex w-full flex-1 flex-col items-center text-center disabled:cursor-default"
+                className="flex w-full flex-1 flex-col items-center text-center"
               >
                 <span
                   className={`absolute right-2.5 top-2.5 flex h-7 w-7 items-center justify-center rounded-full text-base font-black shadow-[0_4px_10px_rgba(15,23,42,0.18)] ${
@@ -6438,19 +6478,6 @@ return (
                   </div>
                 ) : (
                   <div className="relative min-h-0 flex-1 overflow-hidden ziiply-soft-open-fast">
-                    <div className="mb-1.5 flex justify-start">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setStoreDrillViewV320("main");
-                          setOpenStorePicker(null);
-                        }}
-                        className="rounded-full bg-white px-3.5 py-2 text-xs font-black text-slate-700 shadow-sm ring-1 ring-slate-200 active:scale-[0.98]"
-                      >
-                        ← Kaupat
-                      </button>
-                    </div>
-
                     {!storeModeChosenV299 && storeCompareScope !== "within_chain" && (
                       <div className="mb-1.5 grid grid-cols-2 gap-2">
                         <button type="button" onClick={() => handleStoreModeChange("hyper")} className="rounded-2xl bg-white px-3 py-3 text-sm font-black text-slate-800 shadow-sm ring-1 ring-slate-200 active:scale-[0.98]">🏬 Tavaratalot</button>
