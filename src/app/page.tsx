@@ -270,7 +270,7 @@ export default function Page() {
   const storesReadyForSearch = Boolean(
     (storeCompareScope === "between_chains" && storeModeChosenV299) || withinChainStoresReadyV320
   );
-  const initialStoreSelectionLocked = !storesReadyForSearch;
+  const initialStoreSelectionLocked = !storesReadyForSearch && cart.length === 0;
   const searchBottomNavDisabled = searchNavigationLocked;
   const [searchReadyBounceKeyV320, setSearchReadyBounceKeyV320] = useState(0);
   const previousSearchReadySignatureV320 = useRef("");
@@ -3916,7 +3916,12 @@ export default function Page() {
         compareOverlayScrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
       });
 
-      void updateChainComparison(cart);
+      if (storesReadyForSearch) {
+        void updateChainComparison(cart);
+      } else {
+        setComparisonLoading(false);
+        showCartToast("Valitse kaupat, niin vertailu hakee hinnat.");
+      }
     });
   }
 
@@ -8174,7 +8179,7 @@ return (
         shopsPanelOpen={shopsPanelOpen}
         initialStoreNavPrompt={initialStoreNavPrompt}
         searchBottomNavDisabled={searchBottomNavDisabled}
-        initialStoreSelectionLocked={initialStoreSelectionLocked && cart.length === 0}
+        initialStoreSelectionLocked={initialStoreSelectionLocked}
         searchPanelOpen={searchPanelOpen}
         searchReadyBounceKeyV320={searchReadyBounceKeyV320}
         storesReadyForSearch={storesReadyForSearch}
