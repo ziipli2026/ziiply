@@ -268,9 +268,6 @@ export default function Page() {
     (storeCompareScope === "between_chains" && storeModeChosenV299) || withinChainStoresReadyV320
   );
   const initialStoreSelectionLocked = !storesReadyForSearch;
-  // v340_RESTORE_CART_NAV_FIX:
-  // Älä lukitse Hae/Kori-navigaatiota vain siksi, että kauppavalinnat puuttuvat.
-  // Hae saa itse ohjata Kaupat-valintaan, ja Kori pitää voida avata aina kun korissa on tuotteita.
   const searchBottomNavDisabled = searchNavigationLocked;
   const [searchReadyBounceKeyV320, setSearchReadyBounceKeyV320] = useState(0);
   const previousSearchReadySignatureV320 = useRef("");
@@ -1286,8 +1283,12 @@ export default function Page() {
 
   function openSearchPanel() {
     if (searchNavigationLocked) return;
-    setRestoredCartPromptV320({ open: false, count: 0 });
-    if (!storesReadyForSearch) {
+
+    // v342_RESTORE_CART_SEARCH_NAV_FIX:
+    // Reloadin jälkeen ostoskori voi olla palautettu, vaikka kauppavalintoja ei ole vielä tehty.
+    // Hae-napin pitää silloin avata Hae-paneeli normaalisti eikä ohjata Kaupat-paneeliin.
+    // Kaupat-paneeliin ohjataan vain täysin tyhjässä aloitustilassa, kun ei ole kauppavalintoja eikä korissa tuotteita.
+    if (!storesReadyForSearch && cart.length === 0) {
       setCartModalOpen(false);
       setCartSavePanelOpen(false);
       setEanModalOpen(false);
@@ -1302,6 +1303,7 @@ export default function Page() {
     const openedFromSingleCompare = activeResult === "singleCompare";
 
     transitionMobilePanel("search", () => {
+      setRestoredCartPromptV320({ open: false, count: 0 });
       setCartModalOpen(false);
       setShopsPanelOpen(false);
       setEanModalOpen(false);
@@ -1329,7 +1331,11 @@ export default function Page() {
 
   function toggleSearchPanel() {
     if (searchNavigationLocked) return;
-    if (!storesReadyForSearch) {
+
+    // v342_RESTORE_CART_SEARCH_NAV_FIX:
+    // Älä hyppää Kaupat-paneeliin, jos korissa on palautettuja tuotteita.
+    // Tällöin käyttäjä saa avata Hae-paneelin ja bottom navin aktiivinen tila pysyy oikein vihreänä.
+    if (!storesReadyForSearch && cart.length === 0) {
       setCartModalOpen(false);
       setCartSavePanelOpen(false);
       setEanModalOpen(false);
@@ -3773,8 +3779,6 @@ export default function Page() {
       return;
     }
 
-    setRestoredCartPromptV320({ open: false, count: 0 });
-
     // Kori-paneeli toimii erillisenä näkymänä: se sulkee Haen/EANin/vertailun ja avautuu heti näkyville.
     transitionMobilePanel("cart", () => {
       setSearchPanelOpen(false);
@@ -3859,7 +3863,6 @@ export default function Page() {
   }
 
   function openShopsPanel() {
-    setRestoredCartPromptV320({ open: false, count: 0 });
     trackZiiplyEvent("shops_panel_opened", {
       storeMode,
       sStoreName: activeStores.sStoreName,
@@ -7291,7 +7294,7 @@ return (
           <div ref={cartOverlayScrollRef} className="max-h-[calc(100dvh-12.5rem)] w-full max-w-3xl overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.6rem] bg-gradient-to-br from-slate-950 via-emerald-950 to-green-800 p-4 text-white shadow-[0_24px_80px_rgba(15,23,42,0.35)] sm:max-h-none sm:rounded-[2rem] sm:p-6">
             <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <h2 className="text-2xl font-extrabold">Ostoskori</h2>
+                <h2 className="text-2xl font-extrabold">Ostoskori ({cart.length}/{MAX_ITEMS})</h2>
                 <p className="text-sm text-green-100">Ostoskorin tuotteille voi hakea tarjoukset ja vertailla normaalihintoja.</p>
               </div>
               <div className="flex flex-wrap gap-2 sm:justify-end">
@@ -7545,18 +7548,7 @@ return (
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   <button
                     type="button"
-                    onClick={() => {
-                      setRestoredCartPromptV320({ open: false, count: 0 });
-                      setSearchPanelOpen(false);
-                      setShopsPanelOpen(false);
-                      setEanModalOpen(false);
-                      setActiveResult("none");
-                      setCartSavePanelOpen(false);
-                      setCartModalOpen(true);
-                      window.requestAnimationFrame(() => {
-                        cartOverlayScrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
-                      });
-                    }}
+                    onClick={() => setRestoredCartPromptV320({ open: false, count: 0 })}
                     className="rounded-full bg-green-700 px-4 py-2 text-sm font-black text-white shadow-sm active:scale-[0.98]"
                   >
                     Jatka
@@ -8103,7 +8095,7 @@ return (
         shopsPanelOpen={shopsPanelOpen}
         initialStoreNavPrompt={initialStoreNavPrompt}
         searchBottomNavDisabled={searchBottomNavDisabled}
-        initialStoreSelectionLocked={initialStoreSelectionLocked && cart.length === 0}
+        initialStoreSelectionLocked={initialStoreSelectionLocked}
         searchPanelOpen={searchPanelOpen}
         searchReadyBounceKeyV320={searchReadyBounceKeyV320}
         storesReadyForSearch={storesReadyForSearch}
