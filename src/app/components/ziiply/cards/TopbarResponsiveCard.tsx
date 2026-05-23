@@ -91,14 +91,14 @@ export default function TopbarResponsiveCard({
 
   return (
     <div className="w-full">
-      {/* MOBIILI: täysleveä matala palkki, ei menu/info/versio/tekstilogoa */}
+      {/* MOBIILI: täysleveä matala palkki, ei pistekenttää logon takana */}
       <div className="block w-full px-2 md:hidden">
-        <div className="relative w-full overflow-hidden rounded-[20px] border-[4px] border-emerald-950 bg-emerald-950 shadow-[0_10px_24px_rgba(15,23,42,0.14)]">
-          <div className="relative rounded-[13px] border border-amber-900/20 bg-[#fff7df] px-2 py-2">
+        <div className="relative w-full overflow-hidden rounded-[20px] border-[4px] border-emerald-950 bg-[#fff7df] shadow-[0_10px_24px_rgba(15,23,42,0.14)]">
+          <div className="relative rounded-[15px] border border-amber-900/20 bg-[#fff7df] px-2 py-2">
             <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-amber-100/55 to-transparent" />
 
             <div className="relative flex h-[52px] w-full items-center justify-between gap-1.5">
-              <div className="flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-[13px] border border-amber-900/20 bg-white/38 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
+              <div className="flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-[13px] border border-amber-900/20 bg-white/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
                 <img
                   src={logoImageSrc}
                   alt="Ziiply"
@@ -106,7 +106,7 @@ export default function TopbarResponsiveCard({
                 />
               </div>
 
-              <div className="flex min-w-0 shrink-0 items-center justify-center gap-1.5">
+              <div className="flex min-w-0 flex-1 items-center justify-center gap-1.5">
                 {items.slice(0, 4).map((item) => (
                   <MobileInfoSquare key={item.id} item={item} />
                 ))}
@@ -122,8 +122,6 @@ export default function TopbarResponsiveCard({
               </button>
             </div>
           </div>
-
-          <div className="h-1.5 bg-emerald-950" />
         </div>
       </div>
 
