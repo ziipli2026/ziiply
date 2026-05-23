@@ -365,7 +365,7 @@ export default function Page() {
   });
 
   const [isOnline, setIsOnline] = useState(true);
-  const [showLaunchScreen, setShowLaunchScreen] = useState(true);
+  const [showLaunchScreen, setShowLaunchScreen] = useState(false);
   const [suppressUiForEanClose, setSuppressUiForEanClose] = useState(false);
   const [eanModalClosing, setEanModalClosing] = useState(false);
   const PANEL_FADE_MS = 260;
@@ -7369,7 +7369,7 @@ return (
                     <p className="text-xs font-black uppercase tracking-wide text-green-300">Keräily kaupassa</p>
                     <h3 className="mt-1 text-xl font-black">{cheapest?.storeName || "Muistilista"}</h3>
                     <p className="mt-1 text-sm font-bold text-slate-300">
-                      {checkedCount}/{shoppingListCount} ostosta kerätty{cheapest ? ` · kori ${formatEuro(cheapest.totalPrice)}` : " · ei hintavertailussa"}
+                      {checkedCount}/{shoppingListCount} ostosta kerätty
                       {checkedCount === shoppingListCount && shoppingListCount > 0 && (
                         <span className="mt-2 block rounded-xl bg-green-500 px-3 py-2 text-center text-xs font-black uppercase tracking-wide text-slate-950">
                           ✓ Valmis kassalle
@@ -7443,7 +7443,7 @@ return (
                                 <p className={`line-clamp-2 text-sm font-black leading-tight ${checked ? "line-through opacity-70" : ""}`}>
                                   {match.quantity} × {fixText(match.product.name)}
                                 </p>
-                                <p className="mt-1 text-xs font-bold text-slate-400">{match.price > 0 ? formatEuro(match.price * match.quantity) : "Muistilista · ei hintaa"}</p>
+                                <p className="mt-1 text-xs font-bold text-slate-400">Merkitse kerätyksi</p>
                               </div>
                             </button>
                           );
@@ -7479,12 +7479,12 @@ return (
                       <button
                         type="button"
                         disabled
-                        className="flex h-10 min-w-0 flex-1 items-center justify-center rounded-xl bg-amber-100 px-2 text-[12px] font-black leading-tight text-amber-700 opacity-85 active:scale-[0.98] sm:text-sm"
+                        className="flex h-10 w-[6.35rem] shrink-0 items-center justify-center rounded-xl bg-amber-100 px-2 text-[11px] font-black leading-tight text-amber-700 opacity-85 active:scale-[0.98] sm:text-sm"
                         title="Tuotekohtainen tarjoushaku rakennetaan myöhemmin"
                         aria-label="Tarjoukset tulossa"
                       >
-                        <span className="mr-1">🔥</span>
-                        <span className="truncate">Tarjoukset</span>
+                        <span className="mr-1 shrink-0">🔥</span>
+                        <span className="whitespace-nowrap">Tarjoukset</span>
                       </button>
 
                       <div className="flex shrink-0 items-center rounded-xl bg-white p-1 shadow-sm ring-1 ring-slate-200">
@@ -7512,11 +7512,11 @@ return (
                       <button
                         type="button"
                         onClick={() => removeCartItem(item.id)}
-                        className="flex h-10 min-w-0 flex-1 items-center justify-center rounded-xl bg-red-100 px-2 text-[12px] font-black leading-tight text-green-700 transition active:scale-[0.98] sm:text-sm"
+                        className="flex h-10 w-[5.4rem] shrink-0 items-center justify-center rounded-xl bg-red-100 px-2 text-[11px] font-black leading-tight text-red-700 transition active:scale-[0.98] sm:text-sm"
                         aria-label={`Poista ${item.name} ostoskorista`}
                       >
                         <span className="mr-1">🗑</span>
-                        <span className="truncate">Poista</span>
+                        <span className="whitespace-nowrap">Poista</span>
                       </button>
                     </div>
                   </div>
@@ -7538,7 +7538,15 @@ return (
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   <button
                     type="button"
-                    onClick={() => setRestoredCartPromptV320({ open: false, count: 0 })}
+                    onClick={() => {
+                      setRestoredCartPromptV320({ open: false, count: 0 });
+                      setSearchPanelOpen(false);
+                      setShopsPanelOpen(false);
+                      setEanModalOpen(false);
+                      setActiveResult("none");
+                      setCartSavePanelOpen(false);
+                      setCartModalOpen(true);
+                    }}
                     className="rounded-full bg-green-700 px-4 py-2 text-sm font-black text-white shadow-sm active:scale-[0.98]"
                   >
                     Jatka
