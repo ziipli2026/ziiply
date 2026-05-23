@@ -4,14 +4,9 @@ type ZiiplyLaunchScreenProps = {
   appVersion: string;
 };
 
-export function ZiiplyLaunchScreen({ appVersion }: ZiiplyLaunchScreenProps) {
+export function ZiiplyLaunchScreen({ appVersion: _appVersion }: ZiiplyLaunchScreenProps) {
   return (
     <div className="fixed inset-0 z-[90] flex items-center justify-center bg-white ziiply-soft-open">
-      <div className="absolute right-5 top-[calc(env(safe-area-inset-top)+0.75rem)]">
-        <span className="rounded-full bg-green-50 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-green-700 ring-1 ring-green-100">
-          {appVersion}
-        </span>
-      </div>
       <div className="mx-auto flex w-full max-w-[340px] flex-col items-center px-8 text-center">
         <img
           src="/ziiply.png"
