@@ -7291,7 +7291,7 @@ return (
           <div ref={cartOverlayScrollRef} className="max-h-[calc(100dvh-12.5rem)] w-full max-w-3xl overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.6rem] bg-gradient-to-br from-slate-950 via-emerald-950 to-green-800 p-4 text-white shadow-[0_24px_80px_rgba(15,23,42,0.35)] sm:max-h-none sm:rounded-[2rem] sm:p-6">
             <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <h2 className="text-2xl font-extrabold">Ostoskori ({cart.length}/{MAX_ITEMS})</h2>
+                <h2 className="text-2xl font-extrabold">Ostoskori</h2>
                 <p className="text-sm text-green-100">Ostoskorin tuotteille voi hakea tarjoukset ja vertailla normaalihintoja.</p>
               </div>
               <div className="flex flex-wrap gap-2 sm:justify-end">
