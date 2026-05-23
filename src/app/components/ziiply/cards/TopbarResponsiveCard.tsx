@@ -40,13 +40,13 @@ function locationText(areaLabel?: string, storeModeLabel?: string) {
 
 function MobileInfoSquare({ item }: { item: TopBarInfoItem }) {
   return (
-    <div className="flex h-[50px] w-[50px] shrink-0 flex-col items-center justify-center rounded-[14px] border border-amber-900/25 bg-white/35 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
-      <div className="text-[18px] leading-none">{item.emoji || "•"}</div>
-      <div className="mt-[1px] max-w-[42px] truncate text-[7px] font-black uppercase leading-none tracking-wide text-emerald-950/80">
+    <div className="flex h-[46px] w-[46px] shrink-0 flex-col items-center justify-center rounded-[13px] border border-amber-900/25 bg-white/38 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
+      <div className="text-[17px] leading-none">{item.emoji || "•"}</div>
+      <div className="mt-[1px] max-w-[38px] truncate text-[7px] font-black uppercase leading-none tracking-wide text-emerald-950/80">
         {item.label}
       </div>
       {item.value ? (
-        <div className="mt-[1px] max-w-[42px] truncate text-[11px] font-black leading-none text-emerald-950">
+        <div className="mt-[1px] max-w-[38px] truncate text-[10px] font-black leading-none text-emerald-950">
           {item.value}
         </div>
       ) : null}
@@ -91,23 +91,22 @@ export default function TopbarResponsiveCard({
 
   return (
     <div className="w-full">
-      {/* MOBILE ONLY: low mockup-style bar. No menu, no info button, no version. */}
-      <div className="mx-auto block w-full max-w-[430px] px-3 md:hidden">
-        <div className="relative overflow-hidden rounded-[22px] border-[4px] border-emerald-950 bg-emerald-950 shadow-[0_12px_28px_rgba(15,23,42,0.16)]">
-          <div className="relative rounded-[15px] border border-amber-900/20 bg-[#fff7df] px-2 py-2">
-            <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-[radial-gradient(circle_at_7px_7px,rgba(180,122,35,0.22)_1.5px,transparent_2.5px)] bg-[length:10px_10px] opacity-65" />
-            <div className="pointer-events-none absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-amber-100/60 to-transparent" />
+      {/* MOBIILI: täysleveä matala palkki, ei menu/info/versio/tekstilogoa */}
+      <div className="block w-full px-2 md:hidden">
+        <div className="relative w-full overflow-hidden rounded-[20px] border-[4px] border-emerald-950 bg-emerald-950 shadow-[0_10px_24px_rgba(15,23,42,0.14)]">
+          <div className="relative rounded-[13px] border border-amber-900/20 bg-[#fff7df] px-2 py-2">
+            <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-amber-100/55 to-transparent" />
 
-            <div className="relative flex h-[58px] items-center gap-1.5">
-              <div className="flex h-[50px] w-[50px] shrink-0 items-center justify-center rounded-[14px] border border-amber-900/20 bg-white/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
+            <div className="relative flex h-[52px] w-full items-center justify-between gap-1.5">
+              <div className="flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-[13px] border border-amber-900/20 bg-white/38 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
                 <img
                   src={logoImageSrc}
                   alt="Ziiply"
-                  className="h-[44px] w-[44px] object-contain"
+                  className="h-[41px] w-[41px] object-contain"
                 />
               </div>
 
-              <div className="flex min-w-0 flex-1 items-center justify-center gap-1.5">
+              <div className="flex min-w-0 shrink-0 items-center justify-center gap-1.5">
                 {items.slice(0, 4).map((item) => (
                   <MobileInfoSquare key={item.id} item={item} />
                 ))}
@@ -116,7 +115,7 @@ export default function TopbarResponsiveCard({
               <button
                 type="button"
                 onClick={onOpenArea}
-                className="flex h-[26px] w-[82px] shrink-0 items-center justify-center gap-0.5 rounded-full border border-emerald-950/25 bg-white/35 px-1.5 text-[9px] font-black text-emerald-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.70)] active:scale-[0.99]"
+                className="flex h-[24px] w-[78px] shrink-0 items-center justify-center gap-0.5 rounded-full border border-emerald-950/25 bg-white/38 px-1.5 text-[9px] font-black text-emerald-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.70)] active:scale-[0.99]"
               >
                 <span className="shrink-0 text-[11px] leading-none">📍</span>
                 <span className="min-w-0 truncate">{place}</span>
@@ -124,7 +123,7 @@ export default function TopbarResponsiveCard({
             </div>
           </div>
 
-          <div className="h-3 bg-emerald-950" />
+          <div className="h-1.5 bg-emerald-950" />
         </div>
       </div>
 
