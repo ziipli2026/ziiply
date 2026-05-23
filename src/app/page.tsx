@@ -5687,8 +5687,137 @@ export default function Page() {
       );
     }
 
+    if (compact) {
+      const topStores = comparedStoreCards.filter((store) => store.key === "s" || store.key === "k");
+      const bottomStores = comparedStoreCards.filter((store) => store.key !== "s" && store.key !== "k");
+
+      const renderCompactCard = (store: (typeof comparedStoreCards)[number], isTopRow: boolean) => {
+        const isRealChain = store.key === "s" || store.key === "k";
+        const selected = selectedChains[store.key] || (storeCompareScope === "between_chains" && storeModeChosenV299 && isRealChain);
+        const chain = store.key === "s" ? "S" : store.key === "k" ? "K" : null;
+        const selectedStoreForCard = chain ? findStoreForSelectionV320(chain, storeMode) : null;
+        const distanceForCard = getStoreDistanceLabelV320(selectedStoreForCard);
+        const isComingSoon = Boolean(store.comingSoon);
+
+        const cardTone =
+          store.key === "s"
+            ? selected
+              ? "border-[#08A343] bg-[#EEF9F2] text-[#1F2B42] shadow-[0_4px_12px_rgba(8,163,67,0.13)]"
+              : "border-slate-200 bg-white text-slate-500 opacity-70"
+            : store.key === "k"
+            ? selected
+              ? "border-[#E3000F] bg-[#FFF1F1] text-[#1F2B42] shadow-[0_4px_12px_rgba(227,0,15,0.11)]"
+              : "border-slate-200 bg-white text-slate-500 opacity-70"
+            : "border-slate-200 bg-white text-slate-500 opacity-55";
+
+        const logoTone =
+          store.key === "s"
+            ? "bg-[#009A36] text-white ring-[#DFF5E7]"
+            : store.key === "k"
+            ? "bg-[#E3000F] text-white ring-[#FFE0E0]"
+            : store.key === "lidl"
+            ? "bg-[#6D95F8] text-white ring-[#E9F0FF]"
+            : "bg-[#F5D75C] text-[#344054] ring-[#FFF4BF]";
+
+        const cardLabel =
+          store.key === "s"
+            ? "S-RYHMÄ"
+            : store.key === "k"
+            ? "K-RYHMÄ"
+            : store.key === "lidl"
+            ? "LIDL"
+            : "TOKMANNI";
+
+        return (
+          <div
+            key={store.key}
+            className={`relative flex flex-col items-center justify-start rounded-[1.35rem] border-2 text-center transition active:scale-[0.985] ${
+              isTopRow ? "min-h-[7.85rem] px-2 pb-1.5 pt-2" : "min-h-[5.7rem] px-2 pb-1.5 pt-2"
+            } ${cardTone}`}
+          >
+            <button
+              type="button"
+              aria-pressed={selected}
+              disabled={isComingSoon}
+              onClick={() => {
+                if (store.comingSoon) return;
+                setSelectedChains((current) => ({
+                  ...current,
+                  [store.key]: !current[store.key],
+                }));
+                setOpenStorePicker(null);
+              }}
+              className="flex w-full flex-1 flex-col items-center text-center disabled:cursor-default"
+            >
+              <span
+                className={`absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full text-sm font-black shadow-[0_4px_10px_rgba(15,23,42,0.18)] ${
+                  selected ? "bg-[#008C35] text-white" : "bg-slate-50 text-transparent"
+                }`}
+              >
+                ✓
+              </span>
+
+              <div className={`flex ${isTopRow ? "h-11 w-11 text-2xl ring-[6px]" : "h-10 w-10 text-xl ring-[6px]"} items-center justify-center rounded-full font-black shadow-inner ${logoTone}`}>
+                {store.logo}
+              </div>
+
+              <p className={`mt-1.5 text-[9px] font-black uppercase tracking-wide ${isComingSoon ? "text-slate-400" : "text-slate-400"}`}>
+                {cardLabel}
+              </p>
+
+              <p className={`max-w-full whitespace-normal break-words font-black leading-tight ${isTopRow ? "mt-0.5 min-h-[1.65rem] text-[11px]" : "mt-0.5 text-[11px]"} ${
+                isComingSoon ? "text-slate-500" : "text-slate-900"
+              }`}>
+                {isComingSoon ? "Tulossa" : store.name}
+              </p>
+
+              {isRealChain && distanceForCard && (
+                <p className="mt-0.5 text-[9px] font-black text-slate-400">
+                  {distanceForCard}
+                </p>
+              )}
+
+              {!isComingSoon && isTopRow && (
+                <span className="mt-1 inline-flex min-h-[1.25rem] items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 text-[9px] font-black text-slate-400">
+                  {selected ? "Valittu" : "Valitse"}
+                </span>
+              )}
+            </button>
+          </div>
+        );
+      };
+
+      return (
+        <div className="mt-0 pb-1">
+          <div className="grid grid-cols-2 gap-x-3">
+            {topStores.map((store) => renderCompactCard(store, true))}
+          </div>
+
+          <div className="relative z-20 -mt-1 mb-1.5 flex items-center justify-between gap-2 px-0">
+            <button
+              type="button"
+              onClick={() => {
+                setStoreDrillViewV320("main");
+                setOpenStorePicker(null);
+              }}
+              className="rounded-full bg-white px-3 py-2 text-xs font-black text-slate-700 shadow-sm ring-1 ring-slate-200 active:scale-[0.98]"
+            >
+              ← Kaupat
+            </button>
+            <span className="truncate rounded-full bg-green-50 px-3 py-2 text-[10px] font-black uppercase tracking-wide text-green-800 ring-1 ring-green-100">
+              {storeCompareScope === "within_chain" ? "Ketjun sisältä" : storeCompareScope === "between_chains" ? "Ketjujen väliltä" : "Valitse hakutapa"}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-x-3">
+            {bottomStores.map((store) => renderCompactCard(store, false))}
+          </div>
+        </div>
+      );
+    }
+
     return (
-      <div className={compact ? "mt-0 grid grid-cols-2 gap-2.5 pb-1" : "mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4"}>
+      <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
         {comparedStoreCards.map((store) => {
           const isRealChain = store.key === "s" || store.key === "k";
           const selected = selectedChains[store.key] || (storeCompareScope === "between_chains" && storeModeChosenV299 && isRealChain);
@@ -5987,9 +6116,6 @@ export default function Page() {
             </button>
           </div>
 
-          <div className="mt-2 rounded-xl bg-green-50 px-3 py-2 text-xs font-semibold text-green-900 sm:mt-3 sm:rounded-2xl sm:p-3 sm:text-sm">
-            {locationMessage}
-          </div>
               {gpsErrorMessage && (
                 <div className="mt-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-center text-sm font-extrabold text-red-700 shadow-sm">
                   {gpsErrorMessage}
@@ -6305,21 +6431,6 @@ return (
                   </div>
                 ) : (
                   <div className="relative min-h-0 flex-1 overflow-hidden ziiply-soft-open-fast">
-                    <div className="pointer-events-none absolute left-0 right-0 top-[8.95rem] z-20 flex items-center justify-between gap-2 px-0">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setStoreDrillViewV320("main");
-                          setOpenStorePicker(null);
-                        }}
-                        className="pointer-events-auto rounded-full bg-white px-3 py-2 text-xs font-black text-slate-700 shadow-sm ring-1 ring-slate-200 active:scale-[0.98]"
-                      >
-                        ← Kaupat
-                      </button>
-                      <span className="pointer-events-auto truncate rounded-full bg-green-50 px-3 py-2 text-[10px] font-black uppercase tracking-wide text-green-800 ring-1 ring-green-100">
-                        {storeCompareScope === "within_chain" ? "Ketjun sisältä" : storeCompareScope === "between_chains" ? "Ketjujen väliltä" : "Valitse hakutapa"}
-                      </span>
-                    </div>
 
                     {!storeModeChosenV299 && storeCompareScope !== "within_chain" && (
                       <div className="mb-1.5 grid grid-cols-2 gap-2">
