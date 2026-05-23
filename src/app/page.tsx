@@ -5805,7 +5805,7 @@ export default function Page() {
               ← Kaupat
             </button>
             <span className="truncate rounded-full bg-green-50 px-3 py-2 text-[10px] font-black uppercase tracking-wide text-green-800 ring-1 ring-green-100">
-              {storeCompareScope === "within_chain" ? "Ketjun sisältä" : storeCompareScope === "between_chains" ? "Ketjujen väliltä" : "Valitse hakutapa"}
+              {String(storeCompareScope) === "within_chain" ? "Ketjun sisältä" : String(storeCompareScope) === "between_chains" ? "Ketjujen väliltä" : "Valitse hakutapa"}
             </span>
           </div>
 
