@@ -7475,44 +7475,48 @@ return (
                       </div>
                     </div>
 
-                    <div className="grid w-full min-w-0 grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
-                      <div className="col-span-2 flex items-center justify-center rounded-xl bg-slate-100 p-1 sm:col-span-1 sm:justify-start">
+                    <div className="mt-1 flex w-full min-w-0 items-center gap-2 rounded-2xl bg-slate-100 p-1.5">
+                      <button
+                        type="button"
+                        disabled
+                        className="flex h-10 min-w-0 flex-1 items-center justify-center rounded-xl bg-amber-100 px-2 text-[12px] font-black leading-tight text-amber-700 opacity-85 active:scale-[0.98] sm:text-sm"
+                        title="Tuotekohtainen tarjoushaku rakennetaan myöhemmin"
+                        aria-label="Tarjoukset tulossa"
+                      >
+                        <span className="mr-1">🔥</span>
+                        <span className="truncate">Tarjoukset</span>
+                      </button>
+
+                      <div className="flex shrink-0 items-center rounded-xl bg-white p-1 shadow-sm ring-1 ring-slate-200">
                         <button
                           type="button"
                           onClick={() => changeQuantity(item.id, -1)}
-                          className="flex h-10 w-10 items-center justify-center rounded-lg bg-white text-xl font-black text-slate-700 shadow-sm transition active:scale-[0.94]"
+                          className="flex h-9 w-9 items-center justify-center rounded-lg bg-white text-xl font-black text-slate-700 transition active:scale-[0.94]"
                           aria-label={item.quantity <= 1 ? `Poista ${item.name} ostoskorista` : `Vähennä tuotteen ${item.name} määrää`}
                           title={item.quantity <= 1 ? "Poista korista" : "Vähennä määrää"}
                         >
                           −
                         </button>
-                        <span className="min-w-12 px-2 text-center text-lg font-extrabold" aria-label={`Määrä ${item.quantity}`}>{item.quantity}</span>
+                        <span className="min-w-[34px] px-1 text-center text-lg font-extrabold" aria-label={`Määrä ${item.quantity}`}>{item.quantity}</span>
                         <button
                           type="button"
                           onClick={() => changeQuantity(item.id, 1)}
-                          className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-600 text-xl font-black text-white shadow-sm transition active:scale-[0.94]"
+                          className="flex h-9 w-9 items-center justify-center rounded-lg bg-green-600 text-xl font-black text-white shadow-sm transition active:scale-[0.94]"
                           aria-label={`Lisää tuotteen ${item.name} määrää`}
                           title="Lisää määrää"
                         >
                           +
                         </button>
                       </div>
-                      <button
-                        type="button"
-                        disabled
-                        className="rounded-xl bg-amber-100 px-3 py-2 text-sm font-bold text-amber-700 opacity-80"
-                        title="Tuotekohtainen tarjoushaku rakennetaan myöhemmin"
-                        aria-label="Tarjoukset tulossa"
-                      >
-                        🔥 Tarjoukset tulossa
-                      </button>
+
                       <button
                         type="button"
                         onClick={() => removeCartItem(item.id)}
-                        className="rounded-xl bg-red-100 px-3 py-2 text-sm font-bold text-green-700 transition active:scale-[0.98]"
+                        className="flex h-10 min-w-0 flex-1 items-center justify-center rounded-xl bg-red-100 px-2 text-[12px] font-black leading-tight text-green-700 transition active:scale-[0.98] sm:text-sm"
                         aria-label={`Poista ${item.name} ostoskorista`}
                       >
-                        🗑 Poista
+                        <span className="mr-1">🗑</span>
+                        <span className="truncate">Poista</span>
                       </button>
                     </div>
                   </div>
