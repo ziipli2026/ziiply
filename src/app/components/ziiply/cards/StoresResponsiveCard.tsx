@@ -19,139 +19,185 @@ export type StoresResponsiveCardProps = {
   onManualArea?: () => void;
 };
 
+function getChainMeta(chain?: StoreOption["chain"]) {
+  const normalized = String(chain || "").toLowerCase();
+
+  if (normalized === "s" || normalized.includes("s-ryhmä") || normalized.includes("s-ryhma")) {
+    return {
+      label: "S-RYHMÄ",
+      letter: "S",
+      border: "border-emerald-600",
+      bg: "bg-emerald-50",
+      badgeBg: "bg-emerald-600",
+      badgeRing: "ring-emerald-100",
+      text: "text-emerald-700",
+      selectedButton: "bg-emerald-50 text-slate-400 border-slate-200",
+    };
+  }
+
+  if (normalized === "k" || normalized.includes("k-ryhmä") || normalized.includes("k-ryhma")) {
+    return {
+      label: "K-RYHMÄ",
+      letter: "K",
+      border: "border-red-600",
+      bg: "bg-red-50",
+      badgeBg: "bg-red-600",
+      badgeRing: "ring-red-100",
+      text: "text-red-700",
+      selectedButton: "bg-slate-50 text-slate-400 border-slate-200",
+    };
+  }
+
+  if (normalized.includes("lidl")) {
+    return {
+      label: "LIDL",
+      letter: "L",
+      border: "border-slate-200",
+      bg: "bg-white",
+      badgeBg: "bg-blue-500",
+      badgeRing: "ring-blue-100",
+      text: "text-slate-400",
+      selectedButton: "bg-slate-50 text-slate-400 border-slate-200",
+    };
+  }
+
+  if (normalized.includes("tokmanni") || normalized.includes("spar")) {
+    return {
+      label: "TOKMANNI",
+      letter: "T",
+      border: "border-slate-200",
+      bg: "bg-white",
+      badgeBg: "bg-yellow-300",
+      badgeRing: "ring-yellow-100",
+      text: "text-slate-400",
+      selectedButton: "bg-slate-50 text-slate-400 border-slate-200",
+    };
+  }
+
+  return {
+    label: chain ? String(chain).toUpperCase() : "KAUPPA",
+    letter: chain ? String(chain).slice(0, 1).toUpperCase() : "K",
+    border: "border-slate-200",
+    bg: "bg-white",
+    badgeBg: "bg-slate-400",
+    badgeRing: "ring-slate-100",
+    text: "text-slate-500",
+    selectedButton: "bg-slate-50 text-slate-400 border-slate-200",
+  };
+}
+
+function getFallbackStores(): StoreOption[] {
+  return [
+    { id: "s", name: "Prisma Hyvinkää", chain: "S", distance: "10 km", selected: true },
+    { id: "k", name: "K-Citymarket Hyvinkää", chain: "K", distance: "10 km", selected: true },
+    { id: "lidl", name: "Tulossa", chain: "Lidl", distance: "", selected: false },
+    { id: "tokmanni", name: "Tulossa", chain: "Tokmanni", distance: "", selected: false },
+  ];
+}
+
 export function StoresResponsiveCard({
   stores,
-  title = "Kaupat",
-  subtitle = "Valitse lähikaupat vertailuun",
+  title = "Ketjujen väliltä",
+  subtitle = "Valitse kaupat",
   onSelectStore,
   onUseGps,
   onManualArea,
 }: StoresResponsiveCardProps) {
-  const shown = stores.length
-    ? stores
-    : [
-        { id: "1", name: "Prisma Sello", chain: "S", distance: "1,4 km", badge: "Lähin", selected: true },
-        { id: "2", name: "K-Citymarket Sello", chain: "K", distance: "1,6 km", badge: "Vertailuun" },
-        { id: "3", name: "Lidl Leppävaara", chain: "Lidl", distance: "1,9 km", badge: "Edullinen" },
-      ];
+  const shown = stores.length ? stores : getFallbackStores();
 
   return (
-    <section className="overflow-hidden rounded-[28px] border border-emerald-500/20 bg-gradient-to-br from-black via-zinc-950 to-black text-white shadow-[0_0_50px_rgba(16,185,129,0.18)] lg:rounded-[40px]">
-      <div className="relative p-4 lg:p-8">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.18),transparent_45%)]" />
+    <section className="overflow-hidden rounded-[28px] border border-slate-200/80 bg-white/92 text-slate-900 shadow-[0_10px_34px_rgba(15,23,42,0.10)] backdrop-blur lg:rounded-[36px]">
+      <div className="relative px-4 pb-5 pt-4 lg:px-8 lg:pb-8 lg:pt-6">
+        <div className="flex items-center justify-between gap-3">
+          <button
+            type="button"
+            onClick={onManualArea}
+            className="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-base font-black text-slate-800 shadow-[0_3px_10px_rgba(15,23,42,0.08)] active:scale-[0.98] lg:px-5 lg:text-lg"
+          >
+            <span className="text-lg leading-none">←</span>
+            <span>Kaupat</span>
+          </button>
 
-        <div className="relative grid gap-4 lg:grid-cols-[260px_1fr] lg:items-center">
-          <div className="flex items-center gap-3 lg:block">
-            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-3xl bg-emerald-500/10 text-5xl ring-1 ring-emerald-500/20 lg:h-64 lg:w-full lg:text-[150px]">
-              🏪
-            </div>
-
-            <div className="lg:hidden">
-              <div className="text-sm font-black italic text-emerald-400">Valitse</div>
-              <h2 className="text-4xl font-black uppercase leading-none">{title}</h2>
-              <p className="mt-1 text-xs font-black uppercase tracking-[0.18em] text-emerald-400/70">
-                Lähikauppojen kartta
-              </p>
-            </div>
-          </div>
-
-          <div className="hidden lg:block">
-            <div className="text-xl font-black italic text-emerald-400">Valitse</div>
-            <h2 className="text-7xl font-black uppercase leading-none">{title}</h2>
-            <p className="mt-3 text-sm font-black uppercase tracking-[0.22em] text-emerald-400/75">
-              {subtitle}
-            </p>
-            <blockquote className="mt-6 max-w-xl rounded-3xl bg-white/[0.04] p-5 text-2xl font-semibold text-zinc-200 ring-1 ring-white/10">
-              “Hyvä vertailu alkaa oikeista kaupoista.”
-            </blockquote>
+          <div className="inline-flex min-h-[44px] items-center rounded-full border border-emerald-100 bg-emerald-50 px-5 text-sm font-black uppercase tracking-[0.04em] text-emerald-800 shadow-[0_3px_10px_rgba(16,185,129,0.08)] lg:px-6 lg:text-base">
+            {title}
           </div>
         </div>
 
-        <div className="relative mt-4 rounded-[30px] border border-white/10 bg-white/[0.04] p-4 backdrop-blur lg:mt-8 lg:p-6">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <div className="text-lg font-black lg:text-3xl">{shown.length} kauppaa löytyi</div>
-              <div className="mt-1 text-sm font-semibold text-zinc-300 lg:text-lg">
-                GPS tai käsin valittu alue
-              </div>
-            </div>
+        <div className="sr-only">
+          <h2>{subtitle}</h2>
+        </div>
 
-            <button
-              type="button"
-              onClick={onUseGps}
-              className="rounded-2xl bg-emerald-500 px-4 py-3 text-sm font-black text-black shadow-xl shadow-emerald-500/20 lg:text-base"
-            >
-              📍 GPS
-            </button>
-          </div>
+        <div className="mt-6 grid grid-cols-2 gap-3 lg:mt-7 lg:gap-4">
+          {shown.map((store) => {
+            const meta = getChainMeta(store.chain);
+            const isDisabled = /tulossa/i.test(store.name) || store.badge?.toLowerCase() === "tulossa";
+            const isSelected = Boolean(store.selected);
 
-          <div className="mt-5 space-y-2 lg:space-y-3">
-            {shown.map((store) => (
-              <article
+            return (
+              <button
                 key={store.id}
-                className={`rounded-3xl border p-3 transition-all active:scale-[0.99] lg:p-5 ${
-                  store.selected
-                    ? "border-emerald-400/30 bg-emerald-500/10 shadow-[0_0_30px_rgba(16,185,129,0.15)]"
-                    : "border-white/10 bg-black/35"
-                }`}
+                type="button"
+                onClick={() => {
+                  if (!isDisabled) onSelectStore?.(store.id);
+                }}
+                disabled={isDisabled}
+                className={`relative min-h-[168px] rounded-[24px] border-2 p-3 text-center transition active:scale-[0.99] lg:min-h-[190px] lg:p-5 ${
+                  isSelected ? `${meta.border} ${meta.bg} shadow-[0_4px_14px_rgba(15,23,42,0.10)]` : "border-slate-200 bg-white shadow-[0_3px_12px_rgba(15,23,42,0.05)]"
+                } ${isDisabled ? "opacity-70" : ""}`}
               >
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-2xl lg:h-16 lg:w-16 lg:text-4xl ${
-                      store.selected ? "bg-emerald-500 text-black" : "bg-white/10"
-                    }`}
-                  >
-                    {store.chain === "K" ? "🟠" : store.chain === "S" ? "🟢" : "🏬"}
-                  </div>
-
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-black lg:text-xl">{store.name}</div>
-                    <div className="mt-1 flex flex-wrap gap-2 text-xs font-semibold text-zinc-400 lg:text-sm">
-                      {store.chain && <span>{store.chain}-kauppa</span>}
-                      {store.distance && <span>• {store.distance}</span>}
-                      {store.address && <span>• {store.address}</span>}
-                    </div>
-                  </div>
-
-                  {store.badge && (
-                    <div className="rounded-full bg-emerald-500/20 px-3 py-2 text-xs font-black text-emerald-300">
-                      {store.badge}
-                    </div>
-                  )}
+                <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full text-3xl font-black text-white ring-[10px] ${meta.badgeBg} ${meta.badgeRing} lg:h-20 lg:w-20 lg:text-4xl`}>
+                  {meta.letter}
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => onSelectStore?.(store.id)}
-                  className={`mt-4 min-h-[50px] w-full rounded-2xl px-4 text-sm font-black lg:text-lg ${
-                    store.selected ? "bg-emerald-500 text-black" : "bg-white/10 text-white ring-1 ring-white/10"
-                  }`}
-                >
-                  {store.selected ? "✓ Valittu" : "Valitse kauppa"}
-                </button>
-              </article>
-            ))}
-          </div>
+                {isSelected ? (
+                  <div className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-emerald-600 text-xl font-black text-white shadow-[0_4px_10px_rgba(15,23,42,0.22)]">
+                    ✓
+                  </div>
+                ) : (
+                  <div className="absolute right-4 top-4 h-9 w-9 rounded-full bg-slate-50" />
+                )}
 
-          <div className="mt-5 grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={onManualArea}
-              className="min-h-[58px] rounded-3xl bg-white/10 px-4 text-sm font-black text-white ring-1 ring-white/10 lg:text-xl"
-            >
-              ✍️ Alue
-            </button>
-            <button
-              type="button"
-              onClick={onUseGps}
-              className="min-h-[58px] rounded-3xl bg-emerald-500 px-4 text-sm font-black text-black shadow-xl shadow-emerald-500/25 lg:text-xl"
-            >
-              📍 Käytä sijaintia
-            </button>
-          </div>
+                <div className={`mt-4 text-[13px] font-black uppercase tracking-wide ${isDisabled ? "text-slate-400" : "text-slate-500"} lg:text-sm`}>
+                  {meta.label}
+                </div>
+
+                <div className={`mt-2 min-h-[44px] text-[16px] font-black leading-tight lg:text-xl ${isDisabled ? "text-slate-500" : "text-slate-900"}`}>
+                  {store.name}
+                </div>
+
+                {store.distance ? (
+                  <div className="mt-3 text-sm font-black text-slate-400 lg:text-base">{store.distance}</div>
+                ) : null}
+
+                {isDisabled ? (
+                  <div className="mt-2 text-[13px] font-black text-slate-500 lg:text-base">Tulossa</div>
+                ) : (
+                  <div className={`mx-auto mt-3 inline-flex min-h-[34px] items-center rounded-full border px-4 text-sm font-black ${meta.selectedButton}`}>
+                    {isSelected ? "Valittu" : "Valitse"}
+                  </div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="mt-5 grid grid-cols-2 gap-3 lg:hidden">
+          <button
+            type="button"
+            onClick={onManualArea}
+            className="min-h-[48px] rounded-2xl border border-slate-200 bg-white px-3 text-sm font-black text-slate-700 shadow-sm"
+          >
+            Alue
+          </button>
+          <button
+            type="button"
+            onClick={onUseGps}
+            className="min-h-[48px] rounded-2xl bg-slate-950 px-3 text-sm font-black text-white shadow-lg"
+          >
+            Sijainti
+          </button>
         </div>
       </div>
     </section>
   );
 }
-
