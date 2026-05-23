@@ -5687,7 +5687,7 @@ export default function Page() {
           </div>
 
           {compact && (
-            <div className="relative my-2 h-10">
+            <div className="relative my-2.5 h-10">
               <button
                 type="button"
                 onClick={() => {
@@ -5847,7 +5847,7 @@ export default function Page() {
             {topStores.map((store) => renderBetweenChainCard(store, true))}
           </div>
 
-          <div className="relative my-2 h-10">
+          <div className="relative my-2.5 h-10">
             <button
               type="button"
               onClick={() => {
@@ -6055,13 +6055,9 @@ export default function Page() {
       <div className="relative z-[80] m-0 p-0 mt-1 mb-0">
         <TopbarResponsiveCard
           areaLabel={activeArea.label}
-          storeModeLabel={
-            storeModeChosenV299
-              ? storeMode === "hyper"
-                ? "Tavaratalot"
-                : "Lähikaupat"
-              : ""
-          }
+          // v332: älä näytä storeModeLabeliä yläpalkissa.
+          // Se kavensi sijaintipillin leveyttä mobiilissa, jolloin "Hyvinkää" katkesi valintojen jälkeen.
+          storeModeLabel=""
           logoImageSrc="/ziiplylogo_mobile.png"
           infoItems={[
             { id: "weather", label: "SÄÄ", value: "+18°", emoji: "🌤️" },
@@ -6080,14 +6076,16 @@ export default function Page() {
         />
       </div>
 
-      {/* v326_MOBILE_INFO_STRIP_CONDITIONAL: näkyy vain ennen kauppa- ja vertailutapavalintaa. */}
-      {(storeCompareScope === "none" || (storeCompareScope === "between_chains" && !storeModeChosenV299)) && (
-        <div className="mx-auto w-full max-w-6xl px-3 mt-0 mb-1 sm:hidden">
+      {/* v332_MOBILE_INFO_STRIP_STABLE_HEIGHT: sama korkeus aina, teksti vain ennen valintaa. */}
+      <div className="mx-auto w-full max-w-6xl px-3 mt-0 mb-1 sm:hidden">
+        {storeCompareScope === "none" || (storeCompareScope === "between_chains" && !storeModeChosenV299) ? (
           <div className="w-full overflow-hidden whitespace-nowrap rounded-full border border-[#E6C96A] bg-[#F6F2DD] px-3 py-[3px] text-center text-[10px] font-bold leading-none text-[#9A5A00] shadow-[0_1px_1px_rgba(0,0,0,0.03)]">
             Valitse kaupat ja vertailutapa.
           </div>
-        </div>
-      )}
+        ) : (
+          <div className="h-[18px]" aria-hidden="true" />
+        )}
+      </div>
 
       <div className="mx-auto max-w-6xl space-y-3 sm:space-y-4 sm:space-y-6">
         <section className="-mx-2 hidden bg-slate-100/95 px-2 pb-2 pt-2 sm:-mx-4 sm:block sm:px-4 sm:pb-4 sm:pt-4">
