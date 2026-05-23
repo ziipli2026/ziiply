@@ -268,7 +268,10 @@ export default function Page() {
     (storeCompareScope === "between_chains" && storeModeChosenV299) || withinChainStoresReadyV320
   );
   const initialStoreSelectionLocked = !storesReadyForSearch;
-  const searchBottomNavDisabled = searchNavigationLocked || initialStoreSelectionLocked;
+  // v340_RESTORE_CART_NAV_FIX:
+  // Älä lukitse Hae/Kori-navigaatiota vain siksi, että kauppavalinnat puuttuvat.
+  // Hae saa itse ohjata Kaupat-valintaan, ja Kori pitää voida avata aina kun korissa on tuotteita.
+  const searchBottomNavDisabled = searchNavigationLocked;
   const [searchReadyBounceKeyV320, setSearchReadyBounceKeyV320] = useState(0);
   const previousSearchReadySignatureV320 = useRef("");
 
@@ -1283,6 +1286,7 @@ export default function Page() {
 
   function openSearchPanel() {
     if (searchNavigationLocked) return;
+    setRestoredCartPromptV320({ open: false, count: 0 });
     if (!storesReadyForSearch) {
       setCartModalOpen(false);
       setCartSavePanelOpen(false);
@@ -3769,6 +3773,8 @@ export default function Page() {
       return;
     }
 
+    setRestoredCartPromptV320({ open: false, count: 0 });
+
     // Kori-paneeli toimii erillisenä näkymänä: se sulkee Haen/EANin/vertailun ja avautuu heti näkyville.
     transitionMobilePanel("cart", () => {
       setSearchPanelOpen(false);
@@ -3853,6 +3859,7 @@ export default function Page() {
   }
 
   function openShopsPanel() {
+    setRestoredCartPromptV320({ open: false, count: 0 });
     trackZiiplyEvent("shops_panel_opened", {
       storeMode,
       sStoreName: activeStores.sStoreName,
@@ -7538,7 +7545,18 @@ return (
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   <button
                     type="button"
-                    onClick={() => setRestoredCartPromptV320({ open: false, count: 0 })}
+                    onClick={() => {
+                      setRestoredCartPromptV320({ open: false, count: 0 });
+                      setSearchPanelOpen(false);
+                      setShopsPanelOpen(false);
+                      setEanModalOpen(false);
+                      setActiveResult("none");
+                      setCartSavePanelOpen(false);
+                      setCartModalOpen(true);
+                      window.requestAnimationFrame(() => {
+                        cartOverlayScrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
+                      });
+                    }}
                     className="rounded-full bg-green-700 px-4 py-2 text-sm font-black text-white shadow-sm active:scale-[0.98]"
                   >
                     Jatka
@@ -8085,7 +8103,7 @@ return (
         shopsPanelOpen={shopsPanelOpen}
         initialStoreNavPrompt={initialStoreNavPrompt}
         searchBottomNavDisabled={searchBottomNavDisabled}
-        initialStoreSelectionLocked={initialStoreSelectionLocked}
+        initialStoreSelectionLocked={initialStoreSelectionLocked && cart.length === 0}
         searchPanelOpen={searchPanelOpen}
         searchReadyBounceKeyV320={searchReadyBounceKeyV320}
         storesReadyForSearch={storesReadyForSearch}
