@@ -40,7 +40,7 @@ function locationText(areaLabel?: string, storeModeLabel?: string) {
 
 function MobileInfoSquare({ item }: { item: TopBarInfoItem }) {
   return (
-    <div className="flex h-[46px] w-[46px] shrink-0 flex-col items-center justify-center rounded-[13px] border border-amber-900/25 bg-white/38 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
+    <div className="flex h-[46px] w-[46px] shrink-0 flex-col items-center justify-center  border border-amber-900/25 bg-white/38 shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
       <div className="text-[17px] leading-none">{item.emoji || "•"}</div>
       <div className="mt-[1px] max-w-[38px] truncate text-[7px] font-black uppercase leading-none tracking-wide text-emerald-950/80">
         {item.label}
@@ -82,7 +82,7 @@ function DesktopInfoTile({ item }: { item: TopBarInfoItem }) {
 export default function TopbarResponsiveCard({
   areaLabel = "Hyvinkää",
   storeModeLabel = "",
-  logoImageSrc = "/ziiplylogo_mobile.png",
+  logoImageSrc = "/ziiplylogo_mobile.png?v=transparent-20260523",
   infoItems,
   onOpenArea,
 }: ZiiplyTopBarProps) {
@@ -91,18 +91,19 @@ export default function TopbarResponsiveCard({
 
   return (
     <div className="w-full">
-      {/* MOBIILI: täysleveä matala palkki, ei pistekenttää logon takana */}
+      {/* MOBIILI: logo ilman neliötä, reunaa, taustaa tai varjoa */}
       <div className="block w-full px-2 md:hidden">
         <div className="relative w-full overflow-hidden rounded-[20px] border-[4px] border-emerald-950 bg-[#fff7df] shadow-[0_10px_24px_rgba(15,23,42,0.14)]">
           <div className="relative rounded-[15px] border border-amber-900/20 bg-[#fff7df] px-2 py-2">
             <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-amber-100/55 to-transparent" />
 
             <div className="relative flex h-[52px] w-full items-center justify-between gap-1.5">
-              <div className="flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-[13px] border border-amber-900/20 bg-white/20 shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
+              <div className="flex h-[46px] w-[46px] shrink-0 items-center justify-center overflow-visible bg-transparent p-0">
                 <img
                   src={logoImageSrc}
                   alt="Ziiply"
-                  className="h-[41px] w-[41px] object-contain"
+                  className="block h-[46px] w-[46px] object-contain bg-transparent mix-blend-normal"
+                  draggable={false}
                 />
               </div>
 
@@ -133,8 +134,13 @@ export default function TopbarResponsiveCard({
             <div className="pointer-events-none absolute inset-y-0 right-0 w-72 bg-gradient-to-l from-amber-100/60 to-transparent" />
 
             <div className="relative grid grid-cols-[132px_1fr_190px] items-stretch gap-4">
-              <div className="flex items-center justify-center rounded-3xl border border-amber-900/15 bg-white/25 px-3">
-                <img src={logoImageSrc} alt="Ziiply" className="h-[92px] w-[92px] object-contain" />
+              <div className="flex items-center justify-center overflow-visible bg-transparent p-0">
+                <img
+                  src={logoImageSrc}
+                  alt="Ziiply"
+                  className="block h-[104px] w-[104px] object-contain bg-transparent mix-blend-normal"
+                  draggable={false}
+                />
               </div>
 
               <div className="grid grid-cols-4 overflow-hidden rounded-3xl border border-amber-900/20 bg-white/25">
