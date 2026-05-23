@@ -6076,16 +6076,33 @@ export default function Page() {
         />
       </div>
 
-      {/* v332_MOBILE_INFO_STRIP_STABLE_HEIGHT: sama korkeus aina, teksti vain ennen valintaa. */}
-      <div className="mx-auto w-full max-w-6xl px-3 mt-0 mb-1 sm:hidden">
-        {storeCompareScope === "none" || (storeCompareScope === "between_chains" && !storeModeChosenV299) ? (
-          <div className="w-full overflow-hidden whitespace-nowrap rounded-full border border-[#E6C96A] bg-[#F6F2DD] px-3 py-[3px] text-center text-[10px] font-bold leading-none text-[#9A5A00] shadow-[0_1px_1px_rgba(0,0,0,0.03)]">
-            Valitse kaupat ja vertailutapa.
+      {/* v333_MOBILE_INFO_STRIP_VISIBILITY:
+          Näytetään aloitusohje vain silloin kun kauppakortti ei ole auki eikä valintoja ole tehty.
+          Kun Kaupat-kortti avataan, ohje poistuu kokonaan taustalta, ettei se jää kortin alle. */}
+      {(() => {
+        const missingStoreSelectionsV333 =
+          storeCompareScope === "none" ||
+          (storeCompareScope === "between_chains" && !storeModeChosenV299) ||
+          (storeCompareScope === "within_chain" && !withinChain);
+
+        const showMobileStoreInstructionV333 =
+          missingStoreSelectionsV333 &&
+          !shopsPanelOpen &&
+          !searchPanelOpen &&
+          !cartModalOpen &&
+          !eanModalOpen &&
+          activeResult === "none";
+
+        if (!showMobileStoreInstructionV333) return null;
+
+        return (
+          <div className="mx-auto w-full max-w-6xl px-3 mt-1 mb-2 sm:hidden">
+            <div className="w-full overflow-hidden whitespace-nowrap rounded-full border border-[#E6C96A] bg-[#F6F2DD] px-4 py-[6px] text-center text-[12px] font-extrabold leading-none text-[#9A5A00] shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+              Valitse kaupat ja vertailutapa.
+            </div>
           </div>
-        ) : (
-          <div className="h-[18px]" aria-hidden="true" />
-        )}
-      </div>
+        );
+      })()}
 
       <div className="mx-auto max-w-6xl space-y-3 sm:space-y-4 sm:space-y-6">
         <section className="-mx-2 hidden bg-slate-100/95 px-2 pb-2 pt-2 sm:-mx-4 sm:block sm:px-4 sm:pb-4 sm:pt-4">
