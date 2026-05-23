@@ -51,6 +51,9 @@ export default function Page() {
   const [storeMode, setStoreMode] = useState<StoreMode>("hyper");
   const [storeModeChosenV299, setStoreModeChosenV299] = useState(false);
   const selectedStoreModeRefV302 = useRef<StoreMode>("hyper");
+  const storeSelectionHydratedRefV343 = useRef(false);
+  const storeSelectionPersistenceReadyRefV343 = useRef(false);
+  const STORE_SELECTION_STORAGE_KEY_V343 = "ziiply-store-selection-v343";
   const [storeCompareScope, setStoreCompareScope] = useState<StoreCompareScope>("none");
   const [withinChain, setWithinChain] = useState<"S" | "K" | null>(null);
   const [openStorePicker, setOpenStorePicker] = useState<string | null>(null);
@@ -918,6 +921,44 @@ export default function Page() {
 
         if (restoredItems.length > 0) {
           setCart(restoredItems);
+
+          // v343_RESTORE_STORE_SELECTION_WITH_CART:
+          // Kun ostoskori palautetaan reloadin jälkeen, kauppa- ja vertailuvalintoja ei saa nollata.
+          // Palautetaan viimeisin valinta vain tässä tilanteessa.
+          try {
+            const savedStoreSelection = window.localStorage.getItem(STORE_SELECTION_STORAGE_KEY_V343);
+            const parsedStoreSelection = savedStoreSelection ? JSON.parse(savedStoreSelection) : null;
+
+            if (parsedStoreSelection && typeof parsedStoreSelection === "object") {
+              if (parsedStoreSelection.activeArea) {
+                setActiveArea(parsedStoreSelection.activeArea as Area);
+              }
+
+              if (parsedStoreSelection.storeMode === "hyper" || parsedStoreSelection.storeMode === "local") {
+                selectedStoreModeRefV302.current = parsedStoreSelection.storeMode as StoreMode;
+                setStoreMode(parsedStoreSelection.storeMode as StoreMode);
+              }
+
+              setStoreModeChosenV299(Boolean(parsedStoreSelection.storeModeChosenV299));
+
+              if (
+                parsedStoreSelection.storeCompareScope === "none" ||
+                parsedStoreSelection.storeCompareScope === "between_chains" ||
+                parsedStoreSelection.storeCompareScope === "within_chain"
+              ) {
+                setStoreCompareScope(parsedStoreSelection.storeCompareScope as StoreCompareScope);
+              }
+
+              if (parsedStoreSelection.withinChain === "S" || parsedStoreSelection.withinChain === "K") {
+                setWithinChain(parsedStoreSelection.withinChain);
+              } else {
+                setWithinChain(null);
+              }
+            }
+          } catch {
+            // Ignore broken saved store selection data.
+          }
+
           setRestoredCartPromptV320({
             open: true,
             count: restoredItems.length,
@@ -929,8 +970,38 @@ export default function Page() {
       // Ignore broken saved cart data.
     } finally {
       cartHasLoadedRef.current = true;
+      storeSelectionHydratedRefV343.current = true;
     }
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!storeSelectionHydratedRefV343.current) return;
+
+    // Ensimmäinen renderöinti reloadin jälkeen voi vielä sisältää oletusarvot.
+    // Odotetaan yksi state-kierros, jotta palautettu kauppavalinta ei ylikirjoitu tyhjällä.
+    if (!storeSelectionPersistenceReadyRefV343.current) {
+      storeSelectionPersistenceReadyRefV343.current = true;
+      return;
+    }
+
+    try {
+      window.localStorage.setItem(
+        STORE_SELECTION_STORAGE_KEY_V343,
+        JSON.stringify({
+          version: 1,
+          savedAt: Date.now(),
+          activeArea,
+          storeMode,
+          storeModeChosenV299,
+          storeCompareScope,
+          withinChain,
+        })
+      );
+    } catch {
+      // Ignore storage errors.
+    }
+  }, [activeArea, storeMode, storeModeChosenV299, storeCompareScope, withinChain]);
 
   function persistCartImmediately(nextCart: CartItem[]) {
     try {
@@ -3830,6 +3901,7 @@ export default function Page() {
     // Vertailu avautuu aina puhtaana vakionäkymänä:
     // ei hakutuloksia, ei valintamodaalia, ei vanhaa overlay-statea.
     transitionMobilePanel("compare", () => {
+      setRestoredCartPromptV320({ open: false, count: 0 });
       setSearchPanelOpen(false);
       setCartModalOpen(false);
       setCartSavePanelOpen(false);
@@ -7548,7 +7620,14 @@ return (
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   <button
                     type="button"
-                    onClick={() => setRestoredCartPromptV320({ open: false, count: 0 })}
+                    onClick={() => {
+                      setRestoredCartPromptV320({ open: false, count: 0 });
+                      setSearchPanelOpen(false);
+                      setShopsPanelOpen(false);
+                      setEanModalOpen(false);
+                      setActiveResult("none");
+                      setCartModalOpen(true);
+                    }}
                     className="rounded-full bg-green-700 px-4 py-2 text-sm font-black text-white shadow-sm active:scale-[0.98]"
                   >
                     Jatka
@@ -8095,7 +8174,7 @@ return (
         shopsPanelOpen={shopsPanelOpen}
         initialStoreNavPrompt={initialStoreNavPrompt}
         searchBottomNavDisabled={searchBottomNavDisabled}
-        initialStoreSelectionLocked={initialStoreSelectionLocked}
+        initialStoreSelectionLocked={initialStoreSelectionLocked && cart.length === 0}
         searchPanelOpen={searchPanelOpen}
         searchReadyBounceKeyV320={searchReadyBounceKeyV320}
         storesReadyForSearch={storesReadyForSearch}
