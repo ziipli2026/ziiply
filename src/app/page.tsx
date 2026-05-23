@@ -1812,6 +1812,15 @@ export default function Page() {
     });
 
     setStoreMode(nextMode);
+    if (storeCompareScope === "between_chains") {
+      setSelectedChains((current) => ({
+        ...current,
+        s: true,
+        k: true,
+        lidl: false,
+        tokmanni: false,
+      }));
+    }
     clearSearchAndComparisonState();
   }
 
@@ -5679,10 +5688,10 @@ export default function Page() {
     }
 
     return (
-      <div className={compact ? "mt-4 grid grid-cols-2 gap-3" : "mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4"}>
+      <div className={compact ? "mt-0 grid grid-cols-2 gap-2.5 pb-2" : "mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4"}>
         {comparedStoreCards.map((store) => {
-          const selected = selectedChains[store.key];
           const isRealChain = store.key === "s" || store.key === "k";
+          const selected = selectedChains[store.key] || (storeCompareScope === "between_chains" && storeModeChosenV299 && isRealChain);
           const chain = store.key === "s" ? "S" : store.key === "k" ? "K" : null;
           const pickerKey = `${store.key}-${storeMode}`;
           const selectedStoreForCard = chain ? findStoreForSelectionV320(chain, storeMode) : null;
@@ -5721,8 +5730,8 @@ export default function Page() {
           return (
             <div
               key={store.key}
-              className={`relative flex min-h-[9.7rem] flex-col items-center justify-start rounded-[1.7rem] border-2 px-2.5 pb-3 pt-4 text-center transition active:scale-[0.985] ${
-                compact ? "min-h-[9.9rem]" : "min-h-[10.6rem]"
+              className={`relative flex flex-col items-center justify-start rounded-[1.45rem] border-2 px-2 pb-2.5 pt-3 text-center transition active:scale-[0.985] ${
+                compact ? "min-h-[8.45rem]" : "min-h-[10.6rem]"
               } ${cardTone}`}
             >
               <button
@@ -5740,41 +5749,41 @@ export default function Page() {
                 className="flex w-full flex-1 flex-col items-center text-center disabled:cursor-default"
               >
                 <span
-                  className={`absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full text-base font-black shadow-[0_4px_10px_rgba(15,23,42,0.18)] ${
+                  className={`absolute right-2.5 top-2.5 flex h-7 w-7 items-center justify-center rounded-full text-base font-black shadow-[0_4px_10px_rgba(15,23,42,0.18)] ${
                     selected ? "bg-[#008C35] text-white" : "bg-slate-50 text-transparent"
                   }`}
                 >
                   ✓
                 </span>
 
-                <div className={`flex h-16 w-16 items-center justify-center rounded-full text-3xl font-black shadow-inner ring-[9px] ${logoTone}`}>
+                <div className={`flex ${compact ? "h-12 w-12 text-2xl ring-[7px]" : "h-16 w-16 text-3xl ring-[9px]"} items-center justify-center rounded-full font-black shadow-inner ${logoTone}`}>
                   {store.logo}
                 </div>
 
-                <p className="mt-4 text-[12px] font-black uppercase tracking-wide text-slate-400">
+                <p className={compact ? "mt-3 text-[10px] font-black uppercase tracking-wide text-slate-400" : "mt-4 text-[12px] font-black uppercase tracking-wide text-slate-400"}>
                   {cardLabel}
                 </p>
 
-                <p className={`mt-2 min-h-[2.25rem] max-w-full whitespace-normal break-words text-[15px] font-black leading-tight ${
+                <p className={`mt-1.5 min-h-[1.95rem] max-w-full whitespace-normal break-words text-[13px] font-black leading-tight ${
                   isComingSoon ? "text-slate-500" : "text-slate-900"
                 }`}>
                   {isComingSoon ? "Tulossa" : store.name}
                 </p>
 
                 {isRealChain && distanceForCard && (
-                  <p className="mt-2 text-[12px] font-black text-slate-400">
+                  <p className="mt-1.5 text-[11px] font-black text-slate-400">
                     {distanceForCard}
                   </p>
                 )}
 
                 {!isComingSoon && (
-                  <span className="mt-3 inline-flex min-h-[1.85rem] items-center rounded-full border border-slate-200 bg-slate-50 px-4 text-[12px] font-black text-slate-400">
+                  <span className="mt-2 inline-flex min-h-[1.55rem] items-center rounded-full border border-slate-200 bg-slate-50 px-3.5 text-[11px] font-black text-slate-400">
                     {selected ? "Valittu" : "Valitse"}
                   </span>
                 )}
               </button>
 
-              {isRealChain && chain && selected && (
+              {!compact && isRealChain && chain && selected && (
                 <div
                   onClick={(event) => event.stopPropagation()}
                   className="relative mt-2 block"
@@ -5895,12 +5904,14 @@ export default function Page() {
         />
       </div>
 
-      {/* v323_MOBILE_INFO_STRIP_COMPACT: mobile-only help text fitted into the gap between topbar and the first card. */}
-      <div className="mx-auto w-full max-w-6xl px-3 mt-0 mb-1 sm:hidden">
-        <div className="w-full overflow-hidden whitespace-nowrap rounded-full border border-[#E6C96A] bg-[#F6F2DD] px-3 py-[3px] text-center text-[10px] font-bold leading-none text-[#9A5A00] shadow-[0_1px_1px_rgba(0,0,0,0.03)]">
-          Valitse kaupat ja vertailutapa.
+      {/* v325_MOBILE_INFO_STRIP_CONDITIONAL: näkyy vain ennen kauppa- ja vertailutapavalintaa. */}
+      {!storesReadyForSearch && (
+        <div className="mx-auto w-full max-w-6xl px-3 mt-0 mb-1 sm:hidden">
+          <div className="w-full overflow-hidden whitespace-nowrap rounded-full border border-[#E6C96A] bg-[#F6F2DD] px-3 py-[3px] text-center text-[10px] font-bold leading-none text-[#9A5A00] shadow-[0_1px_1px_rgba(0,0,0,0.03)]">
+            Valitse kaupat ja vertailutapa.
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="mx-auto max-w-6xl space-y-3 sm:space-y-4 sm:space-y-6">
         <section className="-mx-2 hidden bg-slate-100/95 px-2 pb-2 pt-2 sm:-mx-4 sm:block sm:px-4 sm:pb-4 sm:pt-4">
@@ -6223,18 +6234,7 @@ return (
                   </div>
                 </div>
 
-                <div className="mb-2 min-h-[2.55rem] shrink-0">
-                  <div
-                    aria-hidden={!locationMessageVisible}
-                    className={`min-h-[2.55rem] rounded-[1.05rem] px-3 py-2 text-[11px] font-black leading-tight ring-1 transition-opacity duration-200 ${
-                      locationMessageVisible
-                        ? "bg-green-50 text-green-900 ring-green-100 opacity-100 ziiply-soft-open-fast"
-                        : "bg-transparent text-transparent ring-transparent opacity-0"
-                    }`}
-                  >
-                    {locationMessage || "Hyvinkää käytössä."}
-                  </div>
-                </div>
+                {/* v325: sijaintibanneri poistettu tästä ikkunasta; sijainti näkyy jo yläpalkissa. */}
 
                 {storeDrillViewV320 === "main" ? (
                   <div data-v320store2="fixed-one-hand-shop-actions" className="min-h-0 flex-1 space-y-1 overflow-hidden">
@@ -6304,19 +6304,19 @@ return (
                     </button>
                   </div>
                 ) : (
-                  <div className="min-h-0 flex-1 overflow-hidden ziiply-soft-open-fast">
-                    <div className="mb-1.5 flex items-center justify-between gap-2">
+                  <div className="relative min-h-0 flex-1 overflow-hidden ziiply-soft-open-fast">
+                    <div className="pointer-events-none absolute left-0 right-0 top-[8.4rem] z-20 flex items-center justify-between gap-2 px-0">
                       <button
                         type="button"
                         onClick={() => {
                           setStoreDrillViewV320("main");
                           setOpenStorePicker(null);
                         }}
-                        className="rounded-full bg-white px-3 py-2 text-xs font-black text-slate-700 shadow-sm ring-1 ring-slate-200 active:scale-[0.98]"
+                        className="pointer-events-auto rounded-full bg-white px-3 py-2 text-xs font-black text-slate-700 shadow-sm ring-1 ring-slate-200 active:scale-[0.98]"
                       >
                         ← Kaupat
                       </button>
-                      <span className="truncate rounded-full bg-green-50 px-3 py-2 text-[10px] font-black uppercase tracking-wide text-green-800 ring-1 ring-green-100">
+                      <span className="pointer-events-auto truncate rounded-full bg-green-50 px-3 py-2 text-[10px] font-black uppercase tracking-wide text-green-800 ring-1 ring-green-100">
                         {storeCompareScope === "within_chain" ? "Ketjun sisältä" : storeCompareScope === "between_chains" ? "Ketjujen väliltä" : "Valitse hakutapa"}
                       </span>
                     </div>
