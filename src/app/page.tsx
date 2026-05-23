@@ -268,7 +268,7 @@ export default function Page() {
     (storeCompareScope === "between_chains" && storeModeChosenV299) || withinChainStoresReadyV320
   );
   const initialStoreSelectionLocked = !storesReadyForSearch;
-  const searchBottomNavDisabled = searchNavigationLocked;
+  const searchBottomNavDisabled = searchNavigationLocked || initialStoreSelectionLocked;
   const [searchReadyBounceKeyV320, setSearchReadyBounceKeyV320] = useState(0);
   const previousSearchReadySignatureV320 = useRef("");
 
@@ -365,7 +365,7 @@ export default function Page() {
   });
 
   const [isOnline, setIsOnline] = useState(true);
-  const [showLaunchScreen, setShowLaunchScreen] = useState(false);
+  const [showLaunchScreen, setShowLaunchScreen] = useState(true);
   const [suppressUiForEanClose, setSuppressUiForEanClose] = useState(false);
   const [eanModalClosing, setEanModalClosing] = useState(false);
   const PANEL_FADE_MS = 260;
@@ -1282,7 +1282,6 @@ export default function Page() {
   }
 
   function openSearchPanel() {
-    setRestoredCartPromptV320({ open: false, count: 0 });
     if (searchNavigationLocked) return;
     if (!storesReadyForSearch) {
       setCartModalOpen(false);
@@ -3770,9 +3769,6 @@ export default function Page() {
       return;
     }
 
-    setRestoredCartPromptV320({ open: false, count: 0 });
-    setInitialStoreNavPrompt(false);
-
     // Kori-paneeli toimii erillisenä näkymänä: se sulkee Haen/EANin/vertailun ja avautuu heti näkyville.
     transitionMobilePanel("cart", () => {
       setSearchPanelOpen(false);
@@ -3821,18 +3817,6 @@ export default function Page() {
       return;
     }
 
-    if (!storesReadyForSearch) {
-      setCartModalOpen(false);
-      setCartSavePanelOpen(false);
-      setSearchPanelOpen(false);
-      setEanModalOpen(false);
-      setActiveResult("none");
-      setInitialStoreNavPrompt(false);
-      setShopsPanelOpen(true);
-      showCartToast("Valitse ensin kaupat ja hakutapa.");
-      return;
-    }
-
     // Vertailu avautuu aina puhtaana vakionäkymänä:
     // ei hakutuloksia, ei valintamodaalia, ei vanhaa overlay-statea.
     transitionMobilePanel("compare", () => {
@@ -3869,7 +3853,6 @@ export default function Page() {
   }
 
   function openShopsPanel() {
-    setRestoredCartPromptV320({ open: false, count: 0 });
     trackZiiplyEvent("shops_panel_opened", {
       storeMode,
       sStoreName: activeStores.sStoreName,
@@ -7460,7 +7443,7 @@ return (
                                 <p className={`line-clamp-2 text-sm font-black leading-tight ${checked ? "line-through opacity-70" : ""}`}>
                                   {match.quantity} × {fixText(match.product.name)}
                                 </p>
-                                <p className="mt-1 text-xs font-bold text-slate-400">{match.price > 0 ? formatEuro(match.price * match.quantity) : "Muistilista · ei hintaa"}</p>
+                                <p className="mt-1 text-xs font-bold text-slate-400">Merkitse kerätyksi</p>
                               </div>
                             </button>
                           );
@@ -7496,12 +7479,12 @@ return (
                       <button
                         type="button"
                         disabled
-                        className="flex h-10 min-w-0 flex-1 items-center justify-center rounded-xl bg-amber-100 px-2 text-[12px] font-black leading-tight text-amber-700 opacity-85 active:scale-[0.98] sm:text-sm"
+                        className="flex h-10 min-w-[6.25rem] flex-1 items-center justify-center rounded-xl bg-amber-100 px-2 text-[12px] font-black leading-tight text-amber-700 opacity-85 active:scale-[0.98] sm:text-sm"
                         title="Tuotekohtainen tarjoushaku rakennetaan myöhemmin"
                         aria-label="Tarjoukset tulossa"
                       >
                         <span className="mr-1">🔥</span>
-                        <span className="truncate">Tarjoukset</span>
+                        <span className="whitespace-nowrap">Tarjoukset</span>
                       </button>
 
                       <div className="flex shrink-0 items-center rounded-xl bg-white p-1 shadow-sm ring-1 ring-slate-200">
@@ -7555,19 +7538,7 @@ return (
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   <button
                     type="button"
-                    onClick={() => {
-                      setRestoredCartPromptV320({ open: false, count: 0 });
-                      setInitialStoreNavPrompt(false);
-                      setSearchPanelOpen(false);
-                      setShopsPanelOpen(false);
-                      setEanModalOpen(false);
-                      setActiveResult("none");
-                      setCartSavePanelOpen(false);
-                      setCartModalOpen(true);
-                      window.requestAnimationFrame(() => {
-                        cartOverlayScrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
-                      });
-                    }}
+                    onClick={() => setRestoredCartPromptV320({ open: false, count: 0 })}
                     className="rounded-full bg-green-700 px-4 py-2 text-sm font-black text-white shadow-sm active:scale-[0.98]"
                   >
                     Jatka
@@ -7671,7 +7642,7 @@ return (
                     value={input}
                     onChange={(event) => setSearchInputForMode(event.target.value)}
                     placeholder={searchCompareMode === "single" ? "Kirjoita yksi tuote, esim. maito" : "Kirjoita tuotteet riveittäin tai pilkulla, esim. maito, kahvi, jauheliha"}
-                    className={`${keyboardOpenV320 ? "h-[2.9rem]" : instantSearchSuggestions.length > 0 ? "h-[3.4rem]" : "h-[4.1rem]"} w-full resize-none rounded-[1.25rem] border-2 border-green-500/70 bg-white px-3.5 py-3 text-[16px] font-semibold leading-snug text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-green-600 focus:ring-4 focus:ring-green-100 sm:h-[5.2rem]`}
+                    className="h-[4.1rem] min-h-[4.1rem] max-h-[4.1rem] w-full resize-none rounded-[1.25rem] border-2 border-green-500/70 bg-white px-3.5 py-3 text-[16px] font-semibold leading-snug text-slate-950 outline-none transition placeholder:text-slate-400 focus:border-green-600 focus:ring-4 focus:ring-green-100 sm:h-[5.2rem] sm:min-h-[5.2rem] sm:max-h-[5.2rem]"
                   />
                   {instantSearchSuggestions.length > 0 && (
                     <div className="mt-1 flex h-8 w-full items-center gap-1.5 overflow-x-auto overflow-y-hidden px-1 pb-1 [-webkit-overflow-scrolling:touch] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" aria-label="Hakuehdotukset">
