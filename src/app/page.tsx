@@ -5746,8 +5746,18 @@ export default function Page() {
   }
 
   return (
-    <main className={`min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top,#ecfdf3_0%,#f8fafc_42%,#f1f5f9_100%)] px-2 pb-44 sm:pb-32 pt-[1.5rem] text-slate-950 sm:px-4 sm:py-3 sm:py-4 md:pb-4 ${suppressUiForEanClose ? "pointer-events-none" : ""}`}>
+    <main className={`min-h-screen overflow-x-hidden bg-[#EAF4F1] px-2 pb-44 pt-0 text-slate-950 sm:bg-[radial-gradient(circle_at_top,#ecfdf3_0%,#f8fafc_42%,#f1f5f9_100%)] sm:px-4 sm:pb-32 sm:py-3 sm:py-4 md:pb-4 ${suppressUiForEanClose ? "pointer-events-none" : ""}`}>
       <style jsx global>{`
+        html,
+        body {
+          background: #EAF4F1 !important;
+        }
+
+        #__next {
+          background: #EAF4F1 !important;
+          min-height: 100dvh;
+        }
+
         @keyframes ziiply-soft-open {
           from { opacity: 0; transform: translateY(10px) scale(0.985); filter: blur(2px); }
           to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
@@ -5812,7 +5822,7 @@ export default function Page() {
       `}</style>
       {showLaunchScreen && <ZiiplyLaunchScreen appVersion={APP_VERSION} />}
 
-      <div className="relative z-[80] m-0 p-0 -mt-2 mb-0">
+      <div className="relative z-[80] m-0 p-0 -mt-3 mb-0">
         <TopbarResponsiveCard
           areaLabel={activeArea.label}
           storeModeLabel={
@@ -6109,8 +6119,8 @@ return (
 
 
         {shopsPanelOpen && (
-          <div className={`fixed inset-0 z-40 flex items-end justify-center overflow-hidden overscroll-none bg-transparent px-2 pb-[calc(env(safe-area-inset-bottom)+6.45rem)] pt-[calc(env(safe-area-inset-top)+5.75rem)] sm:hidden ${closingPanels.shops ? "ziiply-soft-close" : "ziiply-soft-open"}`}>
-            <div className="h-[min(60dvh,560px)] w-full max-w-[28rem] overflow-visible overscroll-none rounded-[1.65rem] bg-white/90 p-2.5 shadow-2xl ring-1 ring-white/70 backdrop-blur-2xl">
+          <div className={`fixed inset-0 z-40 flex items-end justify-center overflow-hidden overscroll-none bg-transparent px-2 pb-[calc(env(safe-area-inset-bottom)+6.45rem)] pt-[calc(env(safe-area-inset-top)+5.0rem)] sm:hidden ${closingPanels.shops ? "ziiply-soft-close" : "ziiply-soft-open"}`}>
+            <div className="h-[min(68dvh,630px)] w-full max-w-[28rem] overflow-visible overscroll-none rounded-[1.65rem] bg-white/90 p-2.5 shadow-2xl ring-1 ring-white/70 backdrop-blur-2xl">
               <section className="flex h-full min-h-0 flex-col overflow-hidden rounded-[1.35rem] bg-white/95 p-3.5 shadow-[0_18px_55px_rgba(15,23,42,0.10)] ring-1 ring-slate-100">
                 <div className="mb-2 flex shrink-0 items-center gap-2">
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-green-50 text-xl shadow-sm ring-1 ring-green-100">
@@ -6371,7 +6381,7 @@ return (
 
         {(activeResult === "compare" || activeResult === "singleCompare" || (!searchPanelOpen && activeResult !== "offers" && (loadingNormal || normalResults.length > 0 || (normalSearchAttempted && activeNormalSearchTerm)))) && (
           <div
-            className={`fixed inset-0 z-40 flex items-end justify-center overflow-y-auto overscroll-contain bg-transparent px-2 pb-[calc(env(safe-area-inset-bottom)+6.45rem)] pt-[calc(env(safe-area-inset-top)+5.75rem)] sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0 ${(closingPanels.compare || closingPanels.singleCompare) ? "ziiply-soft-close" : "ziiply-soft-open"}`}
+            className={`fixed inset-0 z-40 flex items-end justify-center overflow-y-auto overscroll-contain bg-transparent px-2 pb-[calc(env(safe-area-inset-bottom)+6.45rem)] pt-[calc(env(safe-area-inset-top)+5.0rem)] sm:static sm:block sm:overflow-visible sm:bg-transparent sm:p-0 ${(closingPanels.compare || closingPanels.singleCompare) ? "ziiply-soft-close" : "ziiply-soft-open"}`}
             onClick={(event) => {
               if (event.target !== event.currentTarget) return;
               if (activeResult !== "compare" && activeResult !== "singleCompare") {
@@ -6383,7 +6393,7 @@ return (
             <div
               ref={compareOverlayScrollRef}
               onClick={(event) => event.stopPropagation()}
-              className="h-[min(60dvh,560px)] w-full max-w-[28rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.65rem] border border-white/70 bg-white/95 p-3 shadow-2xl backdrop-blur sm:min-h-0 sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none"
+              className="h-[min(68dvh,630px)] w-full max-w-[28rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.65rem] border border-white/70 bg-white/95 p-3 shadow-2xl backdrop-blur sm:min-h-0 sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none"
             >
             <div className="grid min-w-0 max-w-full gap-3 sm:gap-4 overflow-hidden lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
             {activeResult === "compare" && showCheapestSticky && cheapest && (
@@ -7321,8 +7331,8 @@ return (
       )}
 
       {searchPanelOpen && (
-        <div className={`fixed inset-0 z-40 flex items-end justify-center overflow-hidden overscroll-none bg-transparent px-2 pb-[calc(env(safe-area-inset-bottom)+6.45rem)] pt-[calc(env(safe-area-inset-top)+5.75rem)] sm:items-center sm:p-6 ${closingPanels.search ? "ziiply-soft-close" : "ziiply-soft-open"}`}>
-          <div className="h-[min(60dvh,560px)] w-full max-w-[28rem] overflow-visible overscroll-none rounded-[1.65rem] bg-white/90 p-2.5 shadow-2xl ring-1 ring-white/70 backdrop-blur-2xl">
+        <div className={`fixed inset-0 z-40 flex items-end justify-center overflow-hidden overscroll-none bg-transparent px-2 pb-[calc(env(safe-area-inset-bottom)+6.45rem)] pt-[calc(env(safe-area-inset-top)+5.0rem)] sm:items-center sm:p-6 ${closingPanels.search ? "ziiply-soft-close" : "ziiply-soft-open"}`}>
+          <div className="h-[min(68dvh,630px)] w-full max-w-[28rem] overflow-visible overscroll-none rounded-[1.65rem] bg-white/90 p-2.5 shadow-2xl ring-1 ring-white/70 backdrop-blur-2xl">
             <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-[1.35rem] border border-white/80 bg-white/95 p-3 shadow-[0_18px_55px_rgba(15,23,42,0.10)] ring-1 ring-slate-100 sm:rounded-[2rem] sm:p-4">
               <div className="flex h-full min-h-0 flex-col">
                 <div className="shrink-0">
