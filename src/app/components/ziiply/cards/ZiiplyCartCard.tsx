@@ -75,7 +75,7 @@ export function ZiiplyCartCard({
         <p className="mt-1 text-sm font-semibold text-emerald-100/80">
           {subtitle ||
             (hasItems
-              ? `${items.length} tuotetta · ${pricedItems} hinnoiteltu${manualItems ? ` · ${manualItems} listalla` : ""} · yhteensä ${formatEuro(total)}`
+              ? `${items.length} tuotetta · ${pricedItems} hinnoiteltu${manualItems ? ` · ${manualItems} listalla` : ""}`
               : "Lisää tuotteita hausta tai Justiinalta")}
         </p>
       </div>
@@ -106,8 +106,6 @@ export function ZiiplyCartCard({
         <div className="space-y-2.5">
           {items.map((item) => {
             const quantity = Math.max(1, item.quantity || 1);
-            const rowTotal = item.price ? item.price * quantity : undefined;
-
             return (
               <article
                 key={item.id}
@@ -138,28 +136,19 @@ export function ZiiplyCartCard({
                         </p>
                       </div>
 
-                      <div className="shrink-0 text-right">
-                        <div className="text-sm font-black text-white">
-                          {formatEuro(rowTotal)}
+                      <div className="shrink-0">
+                        <div className="rounded-full bg-emerald-400/15 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-emerald-100 ring-1 ring-emerald-300/15">
+                          Kerää
                         </div>
-                        {item.price ? (
-                          <div className="text-[11px] font-bold text-emerald-100/55">
-                            {formatEuro(item.price)} / kpl
-                          </div>
-                        ) : (
-                          <div className="text-[11px] font-bold text-emerald-100/55">
-                            ei hintaa
-                          </div>
-                        )}
                       </div>
                     </div>
 
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <div className="mt-3 grid grid-cols-[minmax(74px,0.9fr)_auto_minmax(64px,0.8fr)] items-center gap-1.5">
                       <button
                         type="button"
-                        className="flex h-9 items-center justify-center rounded-xl bg-amber-100/90 px-3 text-xs font-black text-amber-800 shadow-sm active:scale-[0.98]"
+                        className="flex h-9 min-w-0 items-center justify-center rounded-xl bg-amber-100/90 px-2 text-[11px] font-black text-amber-800 shadow-sm active:scale-[0.98]"
                       >
-                        🔥 Tarjoukset
+                        <span className="truncate">🔥 Tarjoukset</span>
                       </button>
 
                       <div className="inline-flex items-center rounded-2xl bg-black/25 p-1 ring-1 ring-white/10">
@@ -173,7 +162,7 @@ export function ZiiplyCartCard({
                           −
                         </button>
 
-                        <div className="flex min-w-[36px] items-center justify-center px-2 text-sm font-black text-white">
+                        <div className="flex min-w-[32px] items-center justify-center px-1.5 text-sm font-black text-white">
                           {quantity}
                         </div>
 
@@ -191,10 +180,10 @@ export function ZiiplyCartCard({
                       <button
                         type="button"
                         onClick={() => onRemoveItem?.(item.id)}
-                        className="flex h-9 items-center justify-center rounded-xl bg-rose-400/15 px-3 text-xs font-black text-rose-100 ring-1 ring-rose-300/20 active:scale-[0.98] disabled:opacity-40"
+                        className="flex h-9 min-w-0 items-center justify-center rounded-xl bg-rose-400/15 px-2 text-[11px] font-black text-rose-100 ring-1 ring-rose-300/20 active:scale-[0.98] disabled:opacity-40"
                         disabled={!onRemoveItem}
                       >
-                        🗑 Poista
+                        <span className="truncate">🗑 Poista</span>
                       </button>
                     </div>
                   </div>
