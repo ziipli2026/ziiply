@@ -5812,7 +5812,7 @@ export default function Page() {
       `}</style>
       {showLaunchScreen && <ZiiplyLaunchScreen appVersion={APP_VERSION} />}
 
-      <div className="relative z-[80] mb-24">
+      <div className="relative z-[80] mb-32">
         <TopbarResponsiveCard
           areaLabel={activeArea.label}
           storeModeLabel={
