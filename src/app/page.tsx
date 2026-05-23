@@ -35,8 +35,15 @@ import {
   ZiiplyLaunchScreen,
   ZiiplyBottomNav,
 } from "./components/ziiply/ziiplyComponents";
+import * as TopbarResponsiveCardModule from "./components/ziiply/cards/TopbarResponsiveCard";
 
 export default function Page() {
+  const TopbarResponsiveCard =
+    ((TopbarResponsiveCardModule as any).default ||
+      (TopbarResponsiveCardModule as any).TopbarResponsiveCard ||
+      (TopbarResponsiveCardModule as any).ZiiplyTopBar ||
+      (TopbarResponsiveCardModule as any).ZiiplyTopbarResponsiveCard) as any;
+
   const [input, setInput] = useState("");
   const [searchCompareMode, setSearchCompareMode] = useState<"cart" | "single">("cart");
   const [locationInput, setLocationInput] = useState("");
@@ -5805,28 +5812,61 @@ export default function Page() {
       `}</style>
       {showLaunchScreen && <ZiiplyLaunchScreen appVersion={APP_VERSION} />}
 
-      <header className="fixed left-0 right-0 top-0 z-50 border-b border-white/70 bg-white px-3 pb-2 pt-[calc(env(safe-area-inset-top)+0.55rem)] shadow-[0_10px_30px_rgba(15,23,42,0.06)] backdrop-blur-2xl">
-        <div className="mx-auto flex max-w-md items-center justify-between gap-3">
-          <div className="min-w-0">
-            <img
-              src="/ziiply.png"
-              alt="Ziiply"
-              className="h-9 w-auto max-w-[128px] shrink-0 object-contain drop-shadow-sm"
-            />
-          </div>
-          <div className="flex shrink-0 flex-col items-end gap-1">
-            <span className="rounded-full bg-green-50 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-green-700 ring-1 ring-green-100">{APP_VERSION}</span>
-            <span className="max-w-[15rem] truncate rounded-full bg-green-50 px-3 py-1 text-[10px] font-black text-green-800 ring-1 ring-green-100">
-              📍 {activeArea.label} · {storeModeChosenV299 ? (storeMode === "hyper" ? "Tavaratalot" : "Lähikaupat") : "Valitse hakutapa"}
-            </span>
-          </div>
-        </div>
-        {!isOnline && (
-          <div className="mx-auto mt-2 max-w-md rounded-2xl bg-amber-100 px-3 py-2 text-center text-[11px] font-black text-amber-900 ring-1 ring-amber-200">
-            Ei verkkoyhteyttä – kori toimii, hinnat eivät päivity.
-          </div>
-        )}
-      </header>
+      <TopbarResponsiveCard
+        appVersion={APP_VERSION}
+        areaLabel={activeArea.label}
+        storeModeLabel={
+          storeModeChosenV299
+            ? storeMode === "hyper"
+              ? "Tavaratalot"
+              : "Lähikaupat"
+            : "Valitse hakutapa"
+        }
+        logoImageSrc="/ziiply.png"
+        logoText="Ziiply"
+        infoItems={[
+          {
+            id: "location",
+            label: `${activeArea.label} · ${
+              storeModeChosenV299
+                ? storeMode === "hyper"
+                  ? "Tavaratalot"
+                  : "Lähikaupat"
+                : "Valitse hakutapa"
+            }`,
+            emoji: "📍",
+          },
+          ...(isOnline
+            ? []
+            : [
+                {
+                  id: "offline",
+                  label: "Ei verkkoyhteyttä",
+                  emoji: "⚠️",
+                },
+              ]),
+        ]}
+        onOpenArea={() => {
+          setSearchPanelOpen(false);
+          setCartModalOpen(false);
+          setCartSavePanelOpen(false);
+          setEanModalOpen(false);
+          setActiveResult("none");
+          setShopsPanelOpen(true);
+        }}
+        onOpenInfo={() => {
+          setLocationMessageVisible(true);
+        }}
+        onOpenMenu={() => {
+          setSearchPanelOpen(false);
+          setCartModalOpen(false);
+          setCartSavePanelOpen(false);
+          setEanModalOpen(false);
+          setActiveResult("none");
+          setShopsPanelOpen(true);
+        }}
+      />
+
 
       <div className="mx-auto max-w-6xl space-y-3 sm:space-y-4 sm:space-y-6">
         <section className="-mx-2 hidden bg-slate-100/95 px-2 pb-2 pt-2 sm:-mx-4 sm:block sm:px-4 sm:pb-4 sm:pt-4">
