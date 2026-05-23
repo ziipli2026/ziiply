@@ -67,9 +67,9 @@ export function ZiiplyBottomNav({
         <button
           type="button"
           onClick={onSearchClick}
-          disabled={searchBottomNavDisabled}
-          aria-disabled={searchBottomNavDisabled}
-          className={`flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition ${searchBottomNavDisabled ? (initialStoreSelectionLocked ? "cursor-not-allowed bg-red-50 text-red-300 ring-1 ring-red-100 opacity-80" : "cursor-not-allowed bg-slate-100 text-slate-300 opacity-70") : searchPanelOpen ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white shadow-md active:scale-[0.98]" : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
+          disabled={searchBottomNavDisabled && !searchPanelOpen}
+          aria-disabled={searchBottomNavDisabled && !searchPanelOpen}
+          className={`flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition ${searchPanelOpen ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white active:scale-[0.98]" : searchBottomNavDisabled ? (initialStoreSelectionLocked ? "cursor-not-allowed bg-red-50 text-red-300 ring-1 ring-red-100 opacity-80" : "cursor-not-allowed bg-slate-100 text-slate-300 opacity-70") : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
         >
           <span
             key={searchReadyBounceKeyV320}
@@ -83,9 +83,9 @@ export function ZiiplyBottomNav({
         <button
           type="button"
           onClick={onCartClick}
-          disabled={initialStoreSelectionLocked || cartLength === 0}
-          aria-disabled={initialStoreSelectionLocked || cartLength === 0}
-          className={`relative flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition ${cartLength === 0 ? (initialStoreSelectionLocked ? "cursor-not-allowed bg-red-50 text-red-300 ring-1 ring-red-100 opacity-80" : "cursor-not-allowed bg-slate-100 text-slate-300 opacity-70") : cartModalOpen ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white shadow-md active:scale-[0.98]" : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
+          disabled={cartLength === 0}
+          aria-disabled={cartLength === 0}
+          className={`relative flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition ${cartLength === 0 ? "cursor-not-allowed bg-slate-100 text-slate-300 opacity-70" : cartModalOpen ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white active:scale-[0.98]" : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
         >
           <span className="text-lg leading-none">🛒</span>
           <span className="mt-1 block">Kori</span>
