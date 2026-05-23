@@ -5691,24 +5691,27 @@ export default function Page() {
       const topStores = comparedStoreCards.filter((store) => store.key === "s" || store.key === "k");
       const bottomStores = comparedStoreCards.filter((store) => store.key !== "s" && store.key !== "k");
 
-      const renderCompactCard = (store: (typeof comparedStoreCards)[number], isTopRow: boolean) => {
+      const scopeLabel = "Ketjujen väliltä";
+
+      const renderBetweenChainCard = (store: (typeof comparedStoreCards)[number], isTopRow: boolean) => {
         const isRealChain = store.key === "s" || store.key === "k";
-        const selected = selectedChains[store.key] || (String(storeCompareScope) === "between_chains" && storeModeChosenV299 && isRealChain);
         const chain = store.key === "s" ? "S" : store.key === "k" ? "K" : null;
+        const selected = isRealChain && storeModeChosenV299;
         const selectedStoreForCard = chain ? findStoreForSelectionV320(chain, storeMode) : null;
-        const distanceForCard = getStoreDistanceLabelV320(selectedStoreForCard);
+        const distanceForCard = chain ? getStoreDistanceLabelV320(selectedStoreForCard) : "";
+        const pickerKey = chain ? `${store.key}-${storeMode}-between` : `${store.key}-coming-soon`;
         const isComingSoon = Boolean(store.comingSoon);
 
         const cardTone =
           store.key === "s"
             ? selected
               ? "border-[#08A343] bg-[#EEF9F2] text-[#1F2B42] shadow-[0_4px_12px_rgba(8,163,67,0.12)]"
-              : "border-slate-200 bg-white text-slate-500 opacity-70"
+              : "border-slate-200 bg-white text-slate-500"
             : store.key === "k"
             ? selected
               ? "border-[#E3000F] bg-[#FFF1F1] text-[#1F2B42] shadow-[0_4px_12px_rgba(227,0,15,0.10)]"
-              : "border-slate-200 bg-white text-slate-500 opacity-70"
-            : "border-slate-200 bg-white text-slate-500 opacity-55";
+              : "border-slate-200 bg-white text-slate-500"
+            : "border-slate-200 bg-white text-slate-400 opacity-75";
 
         const logoTone =
           store.key === "s"
@@ -5728,82 +5731,77 @@ export default function Page() {
             ? "LIDL"
             : "TOKMANNI";
 
+        const displayName = isComingSoon ? "Tulossa" : store.name;
+
         return (
           <div
             key={store.key}
-            className={`relative overflow-hidden rounded-[1.35rem] border-2 text-center transition active:scale-[0.985] ${
-              isTopRow ? "h-[7.05rem] px-2 pb-1.5 pt-2" : "h-[5.35rem] px-2 pb-1 pt-1.5"
+            className={`relative overflow-visible rounded-[1.35rem] border-2 text-center ${
+              isTopRow ? "min-h-[9.05rem] px-2.5 pb-2 pt-2.5" : "min-h-[6.15rem] px-2 pb-1.5 pt-2"
             } ${cardTone}`}
           >
-            <button
-              type="button"
-              aria-pressed={selected}
-              disabled={isComingSoon}
-              onClick={() => {
-                if (store.comingSoon) return;
-                setSelectedChains((current) => ({
-                  ...current,
-                  [store.key]: !current[store.key],
-                }));
-                setOpenStorePicker(null);
-              }}
-              className="flex h-full w-full flex-col items-center text-center disabled:cursor-default"
+            <span
+              className={`absolute right-2 top-2 flex items-center justify-center rounded-full font-black shadow-[0_4px_10px_rgba(15,23,42,0.18)] ${
+                isTopRow ? "h-6 w-6 text-sm" : "h-5 w-5 text-[10px]"
+              } ${selected ? "bg-[#008C35] text-white" : "bg-slate-50 text-transparent"}`}
             >
-              <span
-                className={`absolute right-2 top-2 flex items-center justify-center rounded-full font-black shadow-[0_4px_10px_rgba(15,23,42,0.18)] ${
-                  isTopRow ? "h-6 w-6 text-sm" : "h-5 w-5 text-[10px]"
-                } ${selected ? "bg-[#008C35] text-white" : "bg-slate-50 text-transparent"}`}
-              >
-                ✓
-              </span>
+              ✓
+            </span>
 
-              <div className={`flex items-center justify-center rounded-full font-black shadow-inner ${
-                isTopRow ? "h-10 w-10 text-xl ring-[6px]" : "h-9 w-9 text-lg ring-[5px]"
-              } ${logoTone}`}>
-                {store.logo}
-              </div>
+            <div className={`mx-auto flex items-center justify-center rounded-full font-black shadow-inner ${
+              isTopRow ? "h-10 w-10 text-xl ring-[6px]" : "h-9 w-9 text-lg ring-[5px]"
+            } ${logoTone}`}>
+              {store.logo}
+            </div>
 
-              <p className={`font-black uppercase tracking-wide text-slate-400 ${
-                isTopRow ? "mt-1 text-[9px]" : "mt-1 text-[8px]"
-              }`}>
-                {cardLabel}
-              </p>
+            <p className={`font-black uppercase tracking-wide text-slate-400 ${isTopRow ? "mt-1 text-[9px]" : "mt-1 text-[8px]"}`}>
+              {cardLabel}
+            </p>
 
-              <p
-                className={`max-w-full overflow-hidden text-center font-black leading-tight ${
-                  isTopRow ? "mt-0.5 h-[1.75rem] text-[11px]" : "mt-0.5 h-[1.15rem] text-[10px]"
-                } ${isComingSoon ? "text-slate-500" : "text-slate-900"}`}
-                style={{ display: "-webkit-box", WebkitLineClamp: isTopRow ? 2 : 1, WebkitBoxOrient: "vertical" }}
-              >
-                {isComingSoon ? "Tulossa" : store.name}
-              </p>
-
-              {isRealChain && distanceForCard && (
-                <p className="mt-0.5 text-[9px] font-black text-slate-400">
-                  {distanceForCard}
+            {isTopRow ? (
+              <>
+                <p
+                  className={`mx-auto mt-0.5 h-[1.7rem] max-w-[8.2rem] overflow-hidden text-center text-[11px] font-black leading-tight ${
+                    isComingSoon ? "text-slate-500" : "text-slate-900"
+                  }`}
+                  style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}
+                >
+                  {displayName}
                 </p>
-              )}
 
-              {!isComingSoon && isTopRow && (
-                <span className="mt-auto inline-flex h-[1.15rem] items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 text-[9px] font-black text-slate-400">
-                  {selected ? "Valittu" : "Valitse"}
-                </span>
-              )}
-            </button>
+                {distanceForCard && <p className="mt-0.5 text-[9px] font-black text-slate-400">{distanceForCard}</p>}
+
+                <div className="relative z-20 mt-1 flex justify-center" onClick={(event) => event.stopPropagation()}>
+                  {chain ? (
+                    <>
+                      {renderStoreChoiceButton(chain, storeMode, pickerKey, true)}
+                      {renderStorePickerMenu(chain, storeMode, pickerKey, true)}
+                    </>
+                  ) : (
+                    <span className="mt-1 rounded-full bg-slate-50 px-2.5 py-1 text-[9px] font-black text-slate-400 ring-1 ring-slate-200">
+                      Tulossa
+                    </span>
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="mt-0.5 text-[10px] font-black leading-tight text-slate-400">{displayName}</p>
+                <div className="relative z-20 mt-1 flex justify-center" onClick={(event) => event.stopPropagation()}>
+                  <span className="rounded-full bg-slate-50 px-2.5 py-1 text-[9px] font-black text-slate-400 ring-1 ring-slate-200">
+                    Tulossa
+                  </span>
+                </div>
+              </>
+            )}
           </div>
         );
       };
 
-      const scopeLabel = String(storeCompareScope) === "within_chain"
-        ? "Ketjun sisältä"
-        : String(storeCompareScope) === "between_chains"
-        ? "Ketjujen väliltä"
-        : "Valitse hakutapa";
-
       return (
         <div className="mt-0 pb-1">
-          <div className="grid grid-cols-2 gap-x-3">
-            {topStores.map((store) => renderCompactCard(store, true))}
+          <div className="grid grid-cols-2 gap-x-3 gap-y-2">
+            {topStores.map((store) => renderBetweenChainCard(store, true))}
           </div>
 
           <div className="my-2 grid grid-cols-2 items-center gap-x-3">
@@ -5826,8 +5824,8 @@ export default function Page() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-x-3">
-            {bottomStores.map((store) => renderCompactCard(store, false))}
+          <div className="grid grid-cols-2 gap-x-3 gap-y-2">
+            {bottomStores.map((store) => renderBetweenChainCard(store, false))}
           </div>
         </div>
       );
@@ -6317,7 +6315,7 @@ return (
 
         {shopsPanelOpen && (
           <div className={`fixed inset-0 z-40 flex items-end justify-center overflow-hidden overscroll-none bg-transparent px-2 pb-[calc(env(safe-area-inset-bottom)+6.45rem)] pt-[calc(env(safe-area-inset-top)+5.0rem)] sm:hidden ${closingPanels.shops ? "ziiply-soft-close" : "ziiply-soft-open"}`}>
-            <div className="h-[min(68dvh,630px)] w-full max-w-[28rem] overflow-visible overscroll-none rounded-[1.65rem] bg-white/90 p-2.5 shadow-2xl ring-1 ring-white/70 backdrop-blur-2xl">
+            <div className="h-[min(70dvh,650px)] w-full max-w-[28rem] overflow-visible overscroll-none rounded-[1.65rem] bg-white/90 p-2.5 shadow-2xl ring-1 ring-white/70 backdrop-blur-2xl">
               <section className="flex h-full min-h-0 flex-col overflow-hidden rounded-[1.35rem] bg-white/95 p-3.5 shadow-[0_18px_55px_rgba(15,23,42,0.10)] ring-1 ring-slate-100">
                 <div className="mb-2 flex shrink-0 items-center gap-2">
                   <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-green-50 text-xl shadow-sm ring-1 ring-green-100">
@@ -6440,6 +6438,18 @@ return (
                   </div>
                 ) : (
                   <div className="relative min-h-0 flex-1 overflow-hidden ziiply-soft-open-fast">
+                    <div className="mb-1.5 flex justify-start">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setStoreDrillViewV320("main");
+                          setOpenStorePicker(null);
+                        }}
+                        className="rounded-full bg-white px-3.5 py-2 text-xs font-black text-slate-700 shadow-sm ring-1 ring-slate-200 active:scale-[0.98]"
+                      >
+                        ← Kaupat
+                      </button>
+                    </div>
 
                     {!storeModeChosenV299 && storeCompareScope !== "within_chain" && (
                       <div className="mb-1.5 grid grid-cols-2 gap-2">
@@ -6564,7 +6574,7 @@ return (
             <div
               ref={compareOverlayScrollRef}
               onClick={(event) => event.stopPropagation()}
-              className="h-[min(68dvh,630px)] w-full max-w-[28rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.65rem] border border-white/70 bg-white/95 p-3 shadow-2xl backdrop-blur sm:min-h-0 sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none"
+              className="h-[min(70dvh,650px)] w-full max-w-[28rem] overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.65rem] border border-white/70 bg-white/95 p-3 shadow-2xl backdrop-blur sm:min-h-0 sm:max-h-none sm:max-w-none sm:overflow-visible sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none"
             >
             <div className="grid min-w-0 max-w-full gap-3 sm:gap-4 overflow-hidden lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
             {activeResult === "compare" && showCheapestSticky && cheapest && (
@@ -7503,7 +7513,7 @@ return (
 
       {searchPanelOpen && (
         <div className={`fixed inset-0 z-40 flex items-end justify-center overflow-hidden overscroll-none bg-transparent px-2 pb-[calc(env(safe-area-inset-bottom)+6.45rem)] pt-[calc(env(safe-area-inset-top)+5.0rem)] sm:items-center sm:p-6 ${closingPanels.search ? "ziiply-soft-close" : "ziiply-soft-open"}`}>
-          <div className="h-[min(68dvh,630px)] w-full max-w-[28rem] overflow-visible overscroll-none rounded-[1.65rem] bg-white/90 p-2.5 shadow-2xl ring-1 ring-white/70 backdrop-blur-2xl">
+          <div className="h-[min(70dvh,650px)] w-full max-w-[28rem] overflow-visible overscroll-none rounded-[1.65rem] bg-white/90 p-2.5 shadow-2xl ring-1 ring-white/70 backdrop-blur-2xl">
             <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-[1.35rem] border border-white/80 bg-white/95 p-3 shadow-[0_18px_55px_rgba(15,23,42,0.10)] ring-1 ring-slate-100 sm:rounded-[2rem] sm:p-4">
               <div className="flex h-full min-h-0 flex-col">
                 <div className="shrink-0">
