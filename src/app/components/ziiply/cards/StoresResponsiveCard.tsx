@@ -19,19 +19,38 @@ export type StoresResponsiveCardProps = {
   onManualArea?: () => void;
 };
 
-function getChainMeta(chain?: StoreOption["chain"]) {
-  const normalized = String(chain || "").toLowerCase();
+type ChainMeta = {
+  label: string;
+  letter: string;
+  border: string;
+  surface: string;
+  circle: string;
+  ring: string;
+  labelText: string;
+  nameText: string;
+  mutedText: string;
+  selectedPill: string;
+};
+
+function normalizeChain(chain?: StoreOption["chain"]) {
+  return String(chain || "").trim().toLowerCase();
+}
+
+function getChainMeta(chain?: StoreOption["chain"]): ChainMeta {
+  const normalized = normalizeChain(chain);
 
   if (normalized === "s" || normalized.includes("s-ryhmä") || normalized.includes("s-ryhma")) {
     return {
       label: "S-RYHMÄ",
       letter: "S",
-      border: "border-emerald-600",
-      bg: "bg-emerald-50",
-      badgeBg: "bg-emerald-600",
-      badgeRing: "ring-emerald-100",
-      text: "text-emerald-700",
-      selectedButton: "bg-emerald-50 text-slate-400 border-slate-200",
+      border: "border-[#05A83F]",
+      surface: "bg-[#EEFBF4]",
+      circle: "bg-[#009A3D]",
+      ring: "ring-[#D8F7E4]",
+      labelText: "text-[#68768D]",
+      nameText: "text-[#19243A]",
+      mutedText: "text-[#9AA8BC]",
+      selectedPill: "border-[#D9E2EC] bg-[#F5F8FB] text-[#98A7BB]",
     };
   }
 
@@ -39,12 +58,14 @@ function getChainMeta(chain?: StoreOption["chain"]) {
     return {
       label: "K-RYHMÄ",
       letter: "K",
-      border: "border-red-600",
-      bg: "bg-red-50",
-      badgeBg: "bg-red-600",
-      badgeRing: "ring-red-100",
-      text: "text-red-700",
-      selectedButton: "bg-slate-50 text-slate-400 border-slate-200",
+      border: "border-[#F1191F]",
+      surface: "bg-[#FFF1F1]",
+      circle: "bg-[#D9000D]",
+      ring: "ring-[#FFE0E0]",
+      labelText: "text-[#68768D]",
+      nameText: "text-[#19243A]",
+      mutedText: "text-[#9AA8BC]",
+      selectedPill: "border-[#D9E2EC] bg-[#F5F8FB] text-[#98A7BB]",
     };
   }
 
@@ -52,37 +73,43 @@ function getChainMeta(chain?: StoreOption["chain"]) {
     return {
       label: "LIDL",
       letter: "L",
-      border: "border-slate-200",
-      bg: "bg-white",
-      badgeBg: "bg-blue-500",
-      badgeRing: "ring-blue-100",
-      text: "text-slate-400",
-      selectedButton: "bg-slate-50 text-slate-400 border-slate-200",
+      border: "border-[#E8EDF3]",
+      surface: "bg-white",
+      circle: "bg-[#7096F8]",
+      ring: "ring-[#E5EDFF]",
+      labelText: "text-[#A2ADBC]",
+      nameText: "text-[#6B7280]",
+      mutedText: "text-[#A2ADBC]",
+      selectedPill: "border-[#E5EAF1] bg-[#F8FAFC] text-[#B4BECC]",
     };
   }
 
-  if (normalized.includes("tokmanni") || normalized.includes("spar")) {
+  if (normalized.includes("tokmanni") || normalized.includes("spar") || normalized === "t") {
     return {
       label: "TOKMANNI",
       letter: "T",
-      border: "border-slate-200",
-      bg: "bg-white",
-      badgeBg: "bg-yellow-300",
-      badgeRing: "ring-yellow-100",
-      text: "text-slate-400",
-      selectedButton: "bg-slate-50 text-slate-400 border-slate-200",
+      border: "border-[#E8EDF3]",
+      surface: "bg-white",
+      circle: "bg-[#FFDB55]",
+      ring: "ring-[#FFF5C9]",
+      labelText: "text-[#A2ADBC]",
+      nameText: "text-[#6B7280]",
+      mutedText: "text-[#A2ADBC]",
+      selectedPill: "border-[#E5EAF1] bg-[#F8FAFC] text-[#B4BECC]",
     };
   }
 
   return {
     label: chain ? String(chain).toUpperCase() : "KAUPPA",
     letter: chain ? String(chain).slice(0, 1).toUpperCase() : "K",
-    border: "border-slate-200",
-    bg: "bg-white",
-    badgeBg: "bg-slate-400",
-    badgeRing: "ring-slate-100",
-    text: "text-slate-500",
-    selectedButton: "bg-slate-50 text-slate-400 border-slate-200",
+    border: "border-[#E8EDF3]",
+    surface: "bg-white",
+    circle: "bg-[#94A3B8]",
+    ring: "ring-[#EEF2F7]",
+    labelText: "text-[#A2ADBC]",
+    nameText: "text-[#19243A]",
+    mutedText: "text-[#A2ADBC]",
+    selectedPill: "border-[#E5EAF1] bg-[#F8FAFC] text-[#B4BECC]",
   };
 }
 
@@ -90,112 +117,102 @@ function getFallbackStores(): StoreOption[] {
   return [
     { id: "s", name: "Prisma Hyvinkää", chain: "S", distance: "10 km", selected: true },
     { id: "k", name: "K-Citymarket Hyvinkää", chain: "K", distance: "10 km", selected: true },
-    { id: "lidl", name: "Tulossa", chain: "Lidl", distance: "", selected: false },
-    { id: "tokmanni", name: "Tulossa", chain: "Tokmanni", distance: "", selected: false },
+    { id: "lidl", name: "Tulossa", chain: "Lidl", selected: false },
+    { id: "tokmanni", name: "Tulossa", chain: "Tokmanni", selected: false },
   ];
+}
+
+function isComingSoon(store: StoreOption) {
+  const text = `${store.name || ""} ${store.badge || ""} ${store.distance || ""}`.toLowerCase();
+  return text.includes("tulossa");
+}
+
+function getDisplayName(store: StoreOption, disabled: boolean) {
+  if (disabled) return "Tulossa";
+  return store.name;
 }
 
 export function StoresResponsiveCard({
   stores,
   title = "Ketjujen väliltä",
-  subtitle = "Valitse kaupat",
   onSelectStore,
-  onUseGps,
   onManualArea,
 }: StoresResponsiveCardProps) {
   const shown = stores.length ? stores : getFallbackStores();
 
   return (
-    <section className="overflow-hidden rounded-[28px] border border-slate-200/80 bg-white/92 text-slate-900 shadow-[0_10px_34px_rgba(15,23,42,0.10)] backdrop-blur lg:rounded-[36px]">
-      <div className="relative px-4 pb-5 pt-4 lg:px-8 lg:pb-8 lg:pt-6">
-        <div className="flex items-center justify-between gap-3">
+    <section className="overflow-hidden rounded-[32px] border border-[#E5EBF2] bg-white/95 text-[#19243A] shadow-[0_8px_26px_rgba(15,23,42,0.08)] backdrop-blur lg:rounded-[38px]">
+      <div className="px-4 pb-5 pt-4 lg:px-8 lg:pb-8 lg:pt-6">
+        <div className="mb-6 flex items-center justify-between gap-3 lg:mb-7">
           <button
             type="button"
             onClick={onManualArea}
-            className="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-slate-200 bg-white px-4 text-base font-black text-slate-800 shadow-[0_3px_10px_rgba(15,23,42,0.08)] active:scale-[0.98] lg:px-5 lg:text-lg"
+            className="inline-flex min-h-[48px] items-center gap-2 rounded-full border border-[#DCE3EC] bg-white px-5 text-[18px] font-black text-[#24324A] shadow-[0_4px_10px_rgba(15,23,42,0.08)] active:scale-[0.98] lg:px-6 lg:text-xl"
           >
-            <span className="text-lg leading-none">←</span>
+            <span className="text-[20px] leading-none">←</span>
             <span>Kaupat</span>
           </button>
 
-          <div className="inline-flex min-h-[44px] items-center rounded-full border border-emerald-100 bg-emerald-50 px-5 text-sm font-black uppercase tracking-[0.04em] text-emerald-800 shadow-[0_3px_10px_rgba(16,185,129,0.08)] lg:px-6 lg:text-base">
+          <div className="inline-flex min-h-[48px] items-center rounded-full border border-[#D9F4E3] bg-[#F0FBF4] px-6 text-[17px] font-black uppercase tracking-[0.04em] text-[#087A3A] shadow-[0_4px_10px_rgba(16,185,129,0.08)] lg:px-8 lg:text-xl">
             {title}
           </div>
         </div>
 
-        <div className="sr-only">
-          <h2>{subtitle}</h2>
-        </div>
-
-        <div className="mt-6 grid grid-cols-2 gap-3 lg:mt-7 lg:gap-4">
+        <div className="grid grid-cols-2 gap-3.5 lg:gap-5">
           {shown.map((store) => {
             const meta = getChainMeta(store.chain);
-            const isDisabled = /tulossa/i.test(store.name) || store.badge?.toLowerCase() === "tulossa";
-            const isSelected = Boolean(store.selected);
+            const disabled = isComingSoon(store);
+            const selected = Boolean(store.selected);
+            const showSelected = selected && !disabled;
 
             return (
               <button
                 key={store.id}
                 type="button"
                 onClick={() => {
-                  if (!isDisabled) onSelectStore?.(store.id);
+                  if (!disabled) onSelectStore?.(store.id);
                 }}
-                disabled={isDisabled}
-                className={`relative min-h-[168px] rounded-[24px] border-2 p-3 text-center transition active:scale-[0.99] lg:min-h-[190px] lg:p-5 ${
-                  isSelected ? `${meta.border} ${meta.bg} shadow-[0_4px_14px_rgba(15,23,42,0.10)]` : "border-slate-200 bg-white shadow-[0_3px_12px_rgba(15,23,42,0.05)]"
-                } ${isDisabled ? "opacity-70" : ""}`}
+                disabled={disabled}
+                className={`relative min-h-[220px] overflow-hidden rounded-[28px] border-2 p-4 text-center transition active:scale-[0.985] lg:min-h-[250px] lg:p-5 ${
+                  showSelected
+                    ? `${meta.border} ${meta.surface} shadow-[0_5px_14px_rgba(15,23,42,0.10)]`
+                    : `${meta.border} ${meta.surface} shadow-[0_3px_12px_rgba(15,23,42,0.04)]`
+                } ${disabled ? "opacity-65" : ""}`}
               >
-                <div className={`mx-auto flex h-16 w-16 items-center justify-center rounded-full text-3xl font-black text-white ring-[10px] ${meta.badgeBg} ${meta.badgeRing} lg:h-20 lg:w-20 lg:text-4xl`}>
-                  {meta.letter}
-                </div>
-
-                {isSelected ? (
-                  <div className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-emerald-600 text-xl font-black text-white shadow-[0_4px_10px_rgba(15,23,42,0.22)]">
+                {showSelected ? (
+                  <div className="absolute right-4 top-4 flex h-10 w-10 items-center justify-center rounded-full bg-[#008F3A] text-[22px] font-black text-white shadow-[0_5px_12px_rgba(15,23,42,0.25)] lg:h-11 lg:w-11">
                     ✓
                   </div>
                 ) : (
-                  <div className="absolute right-4 top-4 h-9 w-9 rounded-full bg-slate-50" />
+                  <div className="absolute right-4 top-4 h-10 w-10 rounded-full bg-[#F6F8FA]" />
                 )}
 
-                <div className={`mt-4 text-[13px] font-black uppercase tracking-wide ${isDisabled ? "text-slate-400" : "text-slate-500"} lg:text-sm`}>
+                <div className={`mx-auto flex h-[76px] w-[76px] items-center justify-center rounded-full text-[38px] font-black text-white ring-[10px] ${meta.circle} ${meta.ring} lg:h-[92px] lg:w-[92px] lg:text-[46px]`}>
+                  {meta.letter}
+                </div>
+
+                <div className={`mt-4 text-[15px] font-black uppercase tracking-wide ${meta.labelText} lg:text-[16px]`}>
                   {meta.label}
                 </div>
 
-                <div className={`mt-2 min-h-[44px] text-[16px] font-black leading-tight lg:text-xl ${isDisabled ? "text-slate-500" : "text-slate-900"}`}>
-                  {store.name}
+                <div className={`mx-auto mt-2 min-h-[46px] max-w-[190px] text-[18px] font-black leading-tight ${disabled ? "text-[#7B8493]" : meta.nameText} lg:text-[21px]`}>
+                  {getDisplayName(store, disabled)}
                 </div>
 
-                {store.distance ? (
-                  <div className="mt-3 text-sm font-black text-slate-400 lg:text-base">{store.distance}</div>
+                {!disabled && store.distance ? (
+                  <div className={`mt-2 text-[16px] font-black ${meta.mutedText} lg:text-[17px]`}>
+                    {store.distance}
+                  </div>
                 ) : null}
 
-                {isDisabled ? (
-                  <div className="mt-2 text-[13px] font-black text-slate-500 lg:text-base">Tulossa</div>
-                ) : (
-                  <div className={`mx-auto mt-3 inline-flex min-h-[34px] items-center rounded-full border px-4 text-sm font-black ${meta.selectedButton}`}>
-                    {isSelected ? "Valittu" : "Valitse"}
+                {!disabled ? (
+                  <div className={`mx-auto mt-4 inline-flex min-h-[36px] items-center rounded-full border px-5 text-[15px] font-black ${meta.selectedPill} lg:text-[16px]`}>
+                    {selected ? "Valittu" : "Valitse"}
                   </div>
-                )}
+                ) : null}
               </button>
             );
           })}
-        </div>
-
-        <div className="mt-5 grid grid-cols-2 gap-3 lg:hidden">
-          <button
-            type="button"
-            onClick={onManualArea}
-            className="min-h-[48px] rounded-2xl border border-slate-200 bg-white px-3 text-sm font-black text-slate-700 shadow-sm"
-          >
-            Alue
-          </button>
-          <button
-            type="button"
-            onClick={onUseGps}
-            className="min-h-[48px] rounded-2xl bg-slate-950 px-3 text-sm font-black text-white shadow-lg"
-          >
-            Sijainti
-          </button>
         </div>
       </div>
     </section>
