@@ -7,7 +7,7 @@ import type {
   Area, StoreSearchItem, Match, ChainResult, SingleProductCompareResult, StoreMode,
   QualityMode, StoreCompareScope, OptimizationSnapshot, PriceSnapshot, SavedShoppingList, SearchDebugEntry,
   SearchIntentCategory, SearchIntent, ScoredProduct, ScoredOfferResult,
-} from "./ziiplyCore";
+} from "./components/ziiply/ziiplyCore";
 import {
   MAX_ITEMS, ALTERNATIVES_AUTO_CLOSE_MS, PRICE_HISTORY_STORAGE_KEY, RECENT_CART_ITEMS_STORAGE_KEY, SAVED_SHOPPING_LISTS_STORAGE_KEY, MAX_RECENT_CART_ITEMS,
   MAX_SAVED_SHOPPING_LISTS, HTML5_QRCODE_SCRIPT_URL, EAN_SCANNER_REGION_ID, SAME_EAN_RESCAN_LOCK_MS, APP_VERSION, SHOW_SEARCH_DEBUG_PANEL,
@@ -30,8 +30,11 @@ import {
   findArea, storeText, isPrisma, isKCitymarket, isSLocalStore, isKLocalStore,
   pickStore, offerToProduct, scoreOfferForTerm, rankOfferSearchResults, convertKProductToProduct, getPrimaryBrand,
   isAllowedByQualityMode, scoreQualityMode, pickBestSProduct, pickBestKProduct,
-} from "./ziiplyCore";
-import { ZiiplyLaunchScreen, ZiiplyBottomNav } from "./ziiplyComponents";
+} from "./components/ziiply/ziiplyCore";
+import {
+  ZiiplyLaunchScreen,
+  ZiiplyBottomNav,
+} from "./components/ziiply/ziiplyComponents";
 
 export default function Page() {
   const [input, setInput] = useState("");
