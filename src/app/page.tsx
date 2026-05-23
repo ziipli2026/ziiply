@@ -5679,7 +5679,7 @@ export default function Page() {
     }
 
     return (
-      <div className={compact ? "mt-2 grid grid-cols-2 gap-2" : "mt-3 grid grid-cols-4 gap-2 sm:gap-3"}>
+      <div className={compact ? "mt-4 grid grid-cols-2 gap-3" : "mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4"}>
         {comparedStoreCards.map((store) => {
           const selected = selectedChains[store.key];
           const isRealChain = store.key === "s" || store.key === "k";
@@ -5687,19 +5687,48 @@ export default function Page() {
           const pickerKey = `${store.key}-${storeMode}`;
           const selectedStoreForCard = chain ? findStoreForSelectionV320(chain, storeMode) : null;
           const distanceForCard = getStoreDistanceLabelV320(selectedStoreForCard);
+          const isComingSoon = Boolean(store.comingSoon);
+
+          const cardTone =
+            store.key === "s"
+              ? selected
+                ? "border-[#08A343] bg-[#EEF9F2] text-[#1F2B42] shadow-[0_5px_16px_rgba(8,163,67,0.16)]"
+                : "border-slate-200 bg-white text-slate-500 opacity-70"
+              : store.key === "k"
+              ? selected
+                ? "border-[#E3000F] bg-[#FFF1F1] text-[#1F2B42] shadow-[0_5px_16px_rgba(227,0,15,0.13)]"
+                : "border-slate-200 bg-white text-slate-500 opacity-70"
+              : "border-slate-200 bg-white text-slate-500 opacity-60";
+
+          const logoTone =
+            store.key === "s"
+              ? "bg-[#009A36] text-white ring-[#DFF5E7]"
+              : store.key === "k"
+              ? "bg-[#E3000F] text-white ring-[#FFE0E0]"
+              : store.key === "lidl"
+              ? "bg-[#6D95F8] text-white ring-[#E9F0FF]"
+              : "bg-[#F5D75C] text-[#344054] ring-[#FFF4BF]";
+
+          const cardLabel =
+            store.key === "s"
+              ? "S-RYHMÄ"
+              : store.key === "k"
+              ? "K-RYHMÄ"
+              : store.key === "lidl"
+              ? "LIDL"
+              : "TOKMANNI";
 
           return (
             <div
               key={store.key}
-              className={`${compact ? "min-w-0 rounded-2xl px-2 py-2" : "min-w-0 rounded-2xl px-2.5 py-3"} relative flex flex-col items-center justify-start border text-center shadow-sm ring-1 transition ${
-                selected
-                  ? `${store.selectedTone} ring-current/20`
-                  : "border-slate-200 bg-white text-slate-600 opacity-60 ring-slate-200"
-              }`}
+              className={`relative flex min-h-[9.7rem] flex-col items-center justify-start rounded-[1.7rem] border-2 px-2.5 pb-3 pt-4 text-center transition active:scale-[0.985] ${
+                compact ? "min-h-[9.9rem]" : "min-h-[10.6rem]"
+              } ${cardTone}`}
             >
               <button
                 type="button"
                 aria-pressed={selected}
+                disabled={isComingSoon}
                 onClick={() => {
                   if (store.comingSoon) return;
                   setSelectedChains((current) => ({
@@ -5708,31 +5737,47 @@ export default function Page() {
                   }));
                   setOpenStorePicker(null);
                 }}
-                className="block w-full text-center active:scale-[0.98]"
+                className="flex w-full flex-1 flex-col items-center text-center disabled:cursor-default"
               >
                 <span
-                  className={`absolute ${compact ? "right-2 top-2 h-5 w-5 text-xs" : "right-2 top-2 h-5 w-5 text-xs"} flex items-center justify-center rounded-full font-black ${
-                    selected ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white" : "bg-slate-100 text-slate-300"
+                  className={`absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full text-base font-black shadow-[0_4px_10px_rgba(15,23,42,0.18)] ${
+                    selected ? "bg-[#008C35] text-white" : "bg-slate-50 text-transparent"
                   }`}
                 >
-                  {selected ? "✓" : ""}
+                  ✓
                 </span>
-                <div className={`mx-auto flex ${compact ? "h-8 w-8 text-sm" : "h-9 w-9 text-sm"} items-center justify-center rounded-full font-black shadow-sm ring-4 ${store.tone}`}>
+
+                <div className={`flex h-16 w-16 items-center justify-center rounded-full text-3xl font-black shadow-inner ring-[9px] ${logoTone}`}>
                   {store.logo}
                 </div>
-                <p className={compact ? "mt-1 truncate text-[9px] font-black uppercase tracking-wide text-slate-500" : "mt-2 truncate text-[10px] font-black uppercase tracking-wide text-slate-500"}>
-                  {store.title}
+
+                <p className="mt-4 text-[12px] font-black uppercase tracking-wide text-slate-400">
+                  {cardLabel}
                 </p>
-                <p className={compact ? "mt-1 min-h-[1.55rem] whitespace-normal break-words text-[10px] font-extrabold leading-tight text-slate-800" : "mt-1 min-h-[2.1rem] whitespace-normal break-words text-xs font-extrabold leading-tight text-slate-800"}>
-                  {store.name}
+
+                <p className={`mt-2 min-h-[2.25rem] max-w-full whitespace-normal break-words text-[15px] font-black leading-tight ${
+                  isComingSoon ? "text-slate-500" : "text-slate-900"
+                }`}>
+                  {isComingSoon ? "Tulossa" : store.name}
                 </p>
-                {distanceForCard && <p className="mt-1 text-[9px] font-black text-slate-400">{distanceForCard}</p>}
+
+                {isRealChain && distanceForCard && (
+                  <p className="mt-2 text-[12px] font-black text-slate-400">
+                    {distanceForCard}
+                  </p>
+                )}
+
+                {!isComingSoon && (
+                  <span className="mt-3 inline-flex min-h-[1.85rem] items-center rounded-full border border-slate-200 bg-slate-50 px-4 text-[12px] font-black text-slate-400">
+                    {selected ? "Valittu" : "Valitse"}
+                  </span>
+                )}
               </button>
 
               {isRealChain && chain && selected && (
                 <div
                   onClick={(event) => event.stopPropagation()}
-                  className="relative block"
+                  className="relative mt-2 block"
                 >
                   {renderStoreChoiceButton(chain, storeMode, pickerKey, compact)}
                   {renderStorePickerMenu(chain, storeMode, pickerKey, compact)}
