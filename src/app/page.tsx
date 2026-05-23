@@ -5850,10 +5850,10 @@ export default function Page() {
         />
       </div>
 
-      {/* v321_MOBILE_INFO_STRIP: mobile-only help text in normal layout flow, between topbar and first card. */}
-      <div className="mx-auto w-full max-w-6xl px-3 mt-1 mb-2 sm:hidden">
-        <div className="w-full rounded-xl border border-[#E8D38A] bg-[#F6F2DD] px-3 py-2 text-center text-[13px] font-semibold leading-[1.3] text-[#9A5A00] shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-          Valitse ensin mistä kaupoista haetaan ja miten kauppoja vertaillaan.
+      {/* v323_MOBILE_INFO_STRIP_COMPACT: mobile-only help text fitted into the gap between topbar and the first card. */}
+      <div className="mx-auto w-full max-w-6xl px-3 mt-0 mb-1 sm:hidden">
+        <div className="w-full overflow-hidden whitespace-nowrap rounded-full border border-[#E6C96A] bg-[#F6F2DD] px-3 py-[3px] text-center text-[10px] font-bold leading-none text-[#9A5A00] shadow-[0_1px_1px_rgba(0,0,0,0.03)]">
+          Valitse kaupat ja vertailutapa.
         </div>
       </div>
 
