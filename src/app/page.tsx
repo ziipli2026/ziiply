@@ -5746,7 +5746,7 @@ export default function Page() {
   }
 
   return (
-    <main className={`min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top,#ecfdf3_0%,#f8fafc_42%,#f1f5f9_100%)] px-2 pb-44 sm:pb-32 pt-[7.25rem] text-slate-950 sm:px-4 sm:py-4 md:pb-4 ${suppressUiForEanClose ? "pointer-events-none" : ""}`}>
+    <main className={`min-h-screen overflow-x-hidden bg-[radial-gradient(circle_at_top,#ecfdf3_0%,#f8fafc_42%,#f1f5f9_100%)] px-2 pb-44 sm:pb-32 pt-[1.25rem] text-slate-950 sm:px-4 sm:py-3 sm:py-4 md:pb-4 ${suppressUiForEanClose ? "pointer-events-none" : ""}`}>
       <style jsx global>{`
         @keyframes ziiply-soft-open {
           from { opacity: 0; transform: translateY(10px) scale(0.985); filter: blur(2px); }
@@ -5812,32 +5812,24 @@ export default function Page() {
       `}</style>
       {showLaunchScreen && <ZiiplyLaunchScreen appVersion={APP_VERSION} />}
 
-      <div className="fixed left-0 right-0 top-0 z-[70] px-4 pt-[calc(env(safe-area-inset-top)+0.55rem)]">
+      <div className="relative z-[20] mb-4">
         <TopbarResponsiveCard
-          appVersion={APP_VERSION}
           areaLabel={activeArea.label}
           storeModeLabel={
             storeModeChosenV299
               ? storeMode === "hyper"
                 ? "Tavaratalot"
                 : "Lähikaupat"
-              : "Valitse hakutapa"
+              : ""
           }
-          logoImageSrc="/ziiply.png"
-          logoText="Ziiply"
-          infoItems={[]}
+          logoImageSrc="/ziiplylogo_mobile.png"
+          infoItems={[
+            { id: "weather", label: "SÄÄ", value: "+18°", emoji: "🌤️" },
+            { id: "electricity", label: "SÄHKÖ", value: "4,2", emoji: "⚡" },
+            { id: "fuel", label: "BENSA", value: "1,65", emoji: "⛽" },
+            { id: "calendar", label: "KAL", value: "3", emoji: "📅" },
+          ]}
           onOpenArea={() => {
-            setSearchPanelOpen(false);
-            setCartModalOpen(false);
-            setCartSavePanelOpen(false);
-            setEanModalOpen(false);
-            setActiveResult("none");
-            setShopsPanelOpen(true);
-          }}
-          onOpenInfo={() => {
-            setLocationMessageVisible(true);
-          }}
-          onOpenMenu={() => {
             setSearchPanelOpen(false);
             setCartModalOpen(false);
             setCartSavePanelOpen(false);
