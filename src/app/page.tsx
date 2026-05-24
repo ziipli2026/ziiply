@@ -4573,9 +4573,9 @@ export default function Page() {
 
   function getQualityModeLabel(mode: QualityMode) {
     if (mode === "cheapest") return "Halvin";
-    if (mode === "same_quality") return "Lähin vastaava";
-    if (mode === "own_brands") return "Kaupan omat";
-    return "Laadukkaampi";
+    if (mode === "same_quality") return "Sama taso";
+    if (mode === "own_brands") return "Omat merkit";
+    return "Sama brändi";
   }
 
   function getMatchQualityMode(match: Match) {
@@ -7095,31 +7095,38 @@ return (
                                       - renderöidään fixed-overlayna
                                       - mobiili priorisoitu
                                       ========================= */}
-                                    {expandedAlternatives[getAlternativeKey(chain.key, match, index)] && (
+                                    {expandedAlternatives[getAlternativeKey(chain.key, match, index)] && typeof document !== "undefined" && createPortal(
                                       <div
                                         onPointerDown={() => startAlternativesAutoCloseTimer(getAlternativeKey(chain.key, match, index))}
-                                        className="fixed inset-0 z-[80] flex items-end justify-center bg-slate-950/45 px-3 pb-3 pt-16"
+                                        className="fixed inset-0 z-[9999] flex items-end justify-center bg-slate-950/55 px-3 pb-3 pt-20"
+                                        style={{
+                                          position: "fixed",
+                                          inset: 0,
+                                          isolation: "isolate",
+                                          paddingBottom: "max(12px, env(safe-area-inset-bottom))",
+                                        }}
                                       >
                                         <div
-                                          className="w-full max-w-xl overflow-hidden rounded-t-[2rem] bg-slate-50 text-slate-700 shadow-2xl ring-1 ring-white/70"
+                                          onPointerDown={(event) => event.stopPropagation()}
+                                          className="w-full max-w-xl overflow-hidden rounded-t-[2rem] bg-slate-50 text-slate-800 shadow-2xl ring-1 ring-white/70"
                                           style={{
-                                            maxHeight: "74vh",
-                                            paddingBottom: "max(12px, env(safe-area-inset-bottom))",
+                                            maxHeight: "76dvh",
+                                            transform: "translateZ(0)",
                                           }}
                                         >
                                           <div className="mx-auto mt-2 h-1.5 w-14 rounded-full bg-slate-300" />
 
-                                          <div className="sticky top-0 z-10 border-b border-slate-200/80 bg-slate-50/95 px-4 pb-3 pt-3 backdrop-blur">
+                                          <div className="border-b border-slate-200/80 bg-slate-50 px-4 pb-3 pt-3">
                                             <div className="flex items-start justify-between gap-3">
                                               <div className="min-w-0 flex-1">
                                                 <p className="text-[11px] font-black uppercase tracking-[0.18em] text-green-700">
                                                   Korvaa tuotteella
                                                 </p>
-                                                <h3 className="mt-1 truncate text-lg font-black leading-tight text-slate-950">
+                                                <h3 className="mt-1 line-clamp-2 text-lg font-black leading-tight text-slate-950">
                                                   {fixText(match.product.name)}
                                                 </h3>
                                                 <p className="mt-1 text-sm font-extrabold text-slate-500">
-                                                  Nykyinen hinta {formatEuro(match.price)}
+                                                  Nykyinen {formatEuro(match.price)}
                                                 </p>
                                               </div>
 
@@ -7139,13 +7146,7 @@ return (
                                                 ["same_quality", "🎯", "Lähin vastaava"],
                                                 [
                                                   "own_brands",
-                                                  chain.key === "s"
-                                                    ? "🟢"
-                                                    : chain.key === "k"
-                                                    ? "🔴"
-                                                    : chain.key === "lidl"
-                                                    ? "🔵"
-                                                    : "🛒",
+                                                  chain.key === "s" ? "🟢" : chain.key === "k" ? "🔴" : chain.key === "lidl" ? "🔵" : "🛒",
                                                   chain.key === "s"
                                                     ? "Coop / Kotimaista / Xtra"
                                                     : chain.key === "k"
@@ -7174,41 +7175,27 @@ return (
                                                   }`}
                                                 >
                                                   <span className="mr-1">{icon}</span>
-                                                  <span>{label}</span>
+                                                  {label}
                                                 </button>
                                               ))}
                                             </div>
                                           </div>
 
-                                          <div className="max-h-[calc(74vh-190px)] overflow-y-auto px-4 pb-4 pt-3">
+                                          <div
+                                            className="overflow-y-auto px-4 pb-4 pt-3"
+                                            style={{ maxHeight: "calc(76dvh - 190px)" }}
+                                          >
                                             {loadingAlternatives[getAlternativeKey(chain.key, match, index)] && (
-                                              <div className="rounded-3xl bg-white p-5 text-center text-sm font-bold text-slate-500 ring-1 ring-slate-200">
+                                              <div className="rounded-3xl bg-white p-4 text-sm font-bold text-slate-500 ring-1 ring-slate-100">
                                                 Haetaan vaihtoehtoja...
                                               </div>
                                             )}
 
                                             {!loadingAlternatives[getAlternativeKey(chain.key, match, index)] &&
                                               (alternativeResults[getAlternativeKey(chain.key, match, index)] || []).length === 0 && (
-                                                <div className="rounded-3xl bg-white p-5 text-center text-sm font-bold text-slate-500 ring-1 ring-slate-200">
-                                                  Ei löytynyt muita järkeviä vaihtoehtoja.
-                                                </div>
-                                              )}
-
-                                            {getCheaperAlternatives(chain.key, match, index).length > 0 && (
-                                              <button
-                                                type="button"
-                                                onClick={() =>
-                                                  replaceMatchProduct(
-                                                    chain.key,
-                                                    match,
-                                                    getCheaperAlternatives(chain.key, match, index)[0],
-                                                    getAlternativeKey(chain.key, match, index)
-                                                  )
-                                                }
-                                                className="mb-3 flex min-h-[54px] w-full items-center justify-center rounded-2xl bg-green-600 px-4 text-base font-black text-white shadow-lg shadow-green-900/20 active:scale-[0.98]"
-                                              >
-                                                Vaihda suositukseen · säästö {formatEuro(match.price - getProductPrice(getCheaperAlternatives(chain.key, match, index)[0]))}
-                                              </button>
+                                              <div className="rounded-3xl bg-white p-4 text-sm font-bold text-slate-500 ring-1 ring-slate-100">
+                                                Ei löytynyt muita järkeviä vaihtoehtoja.
+                                              </div>
                                             )}
 
                                             <div className="space-y-3">
@@ -7335,7 +7322,8 @@ return (
                                             </div>
                                           </div>
                                         </div>
-                                      </div>
+                                      </div>,
+                                      document.body
                                     )}
 
                                     {match.fallbackStoreName && (
