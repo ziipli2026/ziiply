@@ -271,7 +271,7 @@ export default function Page() {
     (storeCompareScope === "between_chains" && storeModeChosenV299) || withinChainStoresReadyV320
   );
   const initialStoreSelectionLocked = !storesReadyForSearch && cart.length === 0;
-  const searchBottomNavDisabled = searchNavigationLocked;
+  const searchBottomNavDisabled = searchNavigationLocked || initialStoreSelectionLocked;
   const [searchReadyBounceKeyV320, setSearchReadyBounceKeyV320] = useState(0);
   const previousSearchReadySignatureV320 = useRef("");
 
@@ -453,7 +453,22 @@ export default function Page() {
   }, [eanModalOpen]);
 
   useEffect(() => {
-    const overlayOpen = searchPanelOpen || cartModalOpen || shopsPanelOpen || activeResult === "compare" || activeResult === "offers";
+    const emptyStartViewOpen =
+      !showLaunchScreen &&
+      !searchPanelOpen &&
+      !cartModalOpen &&
+      !shopsPanelOpen &&
+      !eanModalOpen &&
+      activeResult === "none";
+
+    const overlayOpen =
+      showLaunchScreen ||
+      emptyStartViewOpen ||
+      searchPanelOpen ||
+      cartModalOpen ||
+      shopsPanelOpen ||
+      activeResult === "compare" ||
+      activeResult === "offers";
 
     if (!overlayOpen || typeof document === "undefined") return;
 
@@ -476,7 +491,7 @@ export default function Page() {
       body.style.width = previousWidth;
       window.scrollTo(0, scrollY);
     };
-  }, [searchPanelOpen, cartModalOpen, shopsPanelOpen, activeResult]);
+  }, [showLaunchScreen, searchPanelOpen, cartModalOpen, shopsPanelOpen, eanModalOpen, activeResult]);
 
 
   useEffect(() => {
@@ -6217,18 +6232,18 @@ export default function Page() {
         </section>
 
         {!showLaunchScreen && !searchPanelOpen && !cartModalOpen && !shopsPanelOpen && !eanModalOpen && activeResult === "none" && (
-          <section className="flex min-h-[calc(100dvh-12rem)] flex-col items-center justify-start px-7 pt-[18dvh] text-center sm:hidden">
+          <section className="flex h-[calc(100dvh-12rem)] overflow-hidden flex-col items-center justify-start px-7 pt-[18dvh] text-center sm:hidden">
             <div className="relative flex w-full max-w-[300px] items-center justify-center">
-              <div className="pointer-events-none absolute h-28 w-28 rounded-full bg-green-400/18 blur-2xl ziiply-logo-halo" />
+              <div className="pointer-events-none absolute h-28 w-28 rounded-full bg-green-400/18 blur-2xl" />
 
               <img
                 src="/ziiply.png"
                 alt="Ziiply"
-                className="relative h-auto w-full max-w-[238px] object-contain ziiply-logo-rise"
+                className="relative h-auto w-full max-w-[238px] object-contain"
               />
             </div>
 
-            <div className="ziiply-welcome-copy mt-7 max-w-[21.5rem] text-center sm:hidden">
+            <div className="mt-7 max-w-[21.5rem] text-center sm:hidden">
               <p className="text-[1.22rem] font-black leading-[1.05] tracking-[-0.045em] text-slate-950">
                 Viilaa ruokakorisi halvemmaks.
               </p>
@@ -6237,77 +6252,6 @@ export default function Page() {
                 Gösta ja Justiina auttavat arjen valinnoissa.
               </p>
             </div>
-
-            <style>{`
-              .ziiply-logo-rise {
-                animation: ziiplyLogoRise 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
-                will-change: transform, opacity;
-              }
-
-              .ziiply-logo-halo {
-                animation: ziiplyHaloPulse 1100ms ease-out both;
-                will-change: transform, opacity;
-              }
-
-              .ziiply-welcome-copy {
-                animation: ziiplyCopyRise 720ms cubic-bezier(0.22, 1, 0.36, 1) 160ms both;
-                will-change: transform, opacity;
-              }
-
-              @keyframes ziiplyLogoRise {
-                0% {
-                  opacity: 0;
-                  transform: translateY(14px) scale(0.96);
-                }
-
-                70% {
-                  opacity: 1;
-                  transform: translateY(-2px) scale(1.01);
-                }
-
-                100% {
-                  opacity: 1;
-                  transform: translateY(0) scale(1);
-                }
-              }
-
-              @keyframes ziiplyHaloPulse {
-                0% {
-                  opacity: 0;
-                  transform: scale(0.72);
-                }
-
-                35% {
-                  opacity: 1;
-                  transform: scale(1);
-                }
-
-                100% {
-                  opacity: 0;
-                  transform: scale(1.55);
-                }
-              }
-
-              @keyframes ziiplyCopyRise {
-                0% {
-                  opacity: 0;
-                  transform: translateY(12px);
-                }
-
-                100% {
-                  opacity: 1;
-                  transform: translateY(0);
-                }
-              }
-
-              @media (prefers-reduced-motion: reduce) {
-                .ziiply-logo-rise,
-                .ziiply-logo-halo,
-                .ziiply-welcome-copy {
-                  animation: none !important;
-                }
-              }
-            `}</style>
           </section>
         )}
 
