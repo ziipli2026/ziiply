@@ -5064,6 +5064,36 @@ export default function Page() {
     scrollToNormalResults();
   }
 
+  function handleJustiinaProductSearch() {
+    if (!hasSearchInput || loadingNormal || singleProductCompareLoading) return;
+
+    const searchQueryForMode = terms.join(", ") || input.trim();
+
+    trackZiiplyEvent("justiina_product_search_clicked", {
+      query: searchQueryForMode,
+      searchType: "normal_prices",
+      cartItemsCount: cart.length,
+    });
+
+    setSearchCompareMode("cart");
+    setSearchPanelOpen(false);
+    void searchNormalPrices();
+    scrollToNormalResults();
+  }
+
+  function handleGostaOfferSearch() {
+    if (!hasSearchInput || loadingOffers) return;
+
+    trackZiiplyEvent("gosta_offer_search_clicked", {
+      query: terms.join(", ") || input.trim(),
+      searchType: "offers",
+      cartItemsCount: cart.length,
+    });
+
+    setSearchPanelOpen(false);
+    void searchOffers();
+  }
+
   function handleMainOfferSearch() {
     if (!hasSearchInput || loadingOffers) return;
 
@@ -6786,11 +6816,15 @@ export default function Page() {
 
     // Desktop: pidetään vanha, korttiin ankkuroitu absolute-sijoittelu.
     // Älä portaloi desktopia, koska se muutti valintaikkunoiden paikan vääräksi.
-    if (!compact) {
+    const desktopPickerOpen =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(min-width: 1280px)").matches;
+
+    if (!compact || desktopPickerOpen) {
       return (
         <div
-          className="absolute left-1/2 top-full z-50 mt-2 max-h-64 w-[min(62vw,244px)] -translate-x-1/2 overflow-hidden rounded-2xl bg-white p-2 text-left text-sm shadow-2xl ring-1 ring-slate-200"
-          style={{ minWidth: "206px", maxWidth: "244px" }}
+          className="absolute left-0 top-full z-50 mt-2 max-h-64 w-[min(78vw,286px)] overflow-hidden rounded-2xl bg-white p-2 text-left text-sm shadow-2xl ring-1 ring-slate-200"
+          style={{ minWidth: "224px", maxWidth: "286px" }}
           onClick={(event) => event.stopPropagation()}
         >
           {menuBody}
@@ -7366,7 +7400,15 @@ export default function Page() {
         {!showLaunchScreen && (
           <div className="mx-auto grid h-full max-w-[1540px] grid-rows-[auto_minmax(0,1fr)] gap-2">
             <header className="rounded-[1.6rem] border-[5px] border-[#073b2d] bg-[#fff4d8] p-2 shadow-[0_5px_0_#073b2d]">
-              <div className="grid grid-cols-[1fr_230px] items-stretch gap-2">
+              <div className="grid grid-cols-[150px_1fr_230px] items-stretch gap-2">
+                <div className="flex items-center justify-center overflow-hidden rounded-[1.4rem] border border-[#d7bd87] bg-[#fffaf0] px-4">
+                  <img
+                    src="/ziiplylogo_mobile.png"
+                    alt="Ziiply"
+                    className="h-14 w-auto object-contain"
+                  />
+                </div>
+
                 <div className="grid grid-cols-4 overflow-hidden rounded-[1.4rem] border border-[#d7bd87] bg-[#fffaf0]">
                   {[
                     { id: "weather", label: "SÄÄ", value: "+18°", emoji: "🌤️" },
@@ -7414,68 +7456,26 @@ export default function Page() {
               </div>
             </header>
 
-            <div className="grid min-h-0 grid-cols-[0.72fr_1.85fr_1.05fr] gap-2 overflow-hidden">
+            <div className="grid min-h-0 grid-cols-[0.72fr_1.95fr_1.05fr] gap-2 overflow-hidden">
               <aside className="min-h-0 space-y-2 overflow-y-auto pr-1">
-                <section className="rounded-[1.6rem] border border-[#d6bf8f] bg-[#fff8e8] p-5 shadow-[0_3px_0_rgba(7,59,45,0.16)] ring-1 ring-white/60">
-                  <img
-                    src="/ziiplylogo_mobile.png"
-                    alt="Ziiply"
-                    className="mx-auto h-auto max-h-[112px] object-contain"
-                  />
-                  <p className="mt-3 text-center text-lg font-black tracking-[-0.04em] text-[#1f2619]">
-                    Viilaa ruokakorisi halvemmaks.
+                <section className="rounded-[1.6rem] border border-[#d6bf8f] bg-[#fff8e8] px-5 py-6 text-center shadow-[0_3px_0_rgba(7,59,45,0.16)] ring-1 ring-white/60">
+                  <p
+                    className="text-[2.05rem] font-black italic leading-[0.95] tracking-[-0.055em] text-[#28492e]"
+                    style={{ fontFamily: 'Georgia, Baskerville, serif' }}
+                  >
+                    Viilaa ruokakorisi
+                    <br />
+                    halvemmaksi.
                   </p>
-                  <p className="mt-1 text-center text-sm font-bold text-[#6f6b59]">
-                    Gösta ja Justiina auttavat arjen valinnoissa.
+                  <div className="mx-auto my-4 h-[3px] w-20 rounded-full bg-[#d6bf8f]" />
+                  <p
+                    className="text-[1rem] font-bold leading-snug text-[#6f6b59]"
+                    style={{ fontFamily: 'Trebuchet MS, Arial, sans-serif' }}
+                  >
+                    Gösta ja Justiina auttavat
+                    <br />
+                    arjen valinnoissa.
                   </p>
-                </section>
-
-                <section className="rounded-[1.6rem] border border-[#d6bf8f] bg-[#fff8e8] p-4 shadow-[0_3px_0_rgba(7,59,45,0.16)] ring-1 ring-white/60">
-                  <p className="text-xs font-black uppercase tracking-wide text-[#8e896f]">
-                    Apurit
-                  </p>
-                  <div className="mt-3 grid grid-cols-2 gap-2">
-                    <div className="overflow-hidden rounded-2xl bg-[#eaf6e8] ring-1 ring-[#b8d6b6]">
-                      <div className="aspect-[16/10] bg-[#dcefd9]">
-                        <img
-                          src="/assistants/gosta.png"
-                          alt="Gösta"
-                          onError={(event) => {
-                            event.currentTarget.style.display = "none";
-                          }}
-                          className="h-full w-full object-cover object-top"
-                        />
-                      </div>
-                      <div className="p-3">
-                        <p className="font-serif text-xl font-black italic text-[#315f2f]">
-                          Gösta
-                        </p>
-                        <p className="mt-1 text-xs font-bold leading-tight text-[#315f2f]">
-                          Tarjoukset ja säästö.
-                        </p>
-                      </div>
-                    </div>
-                    <div className="overflow-hidden rounded-2xl bg-[#fff2c9] ring-1 ring-[#e1c678]">
-                      <div className="aspect-[16/10] bg-[#f8e8ba]">
-                        <img
-                          src="/assistants/justiina.png"
-                          alt="Justiina"
-                          onError={(event) => {
-                            event.currentTarget.style.display = "none";
-                          }}
-                          className="h-full w-full object-cover object-top"
-                        />
-                      </div>
-                      <div className="p-3">
-                        <p className="font-serif text-xl font-black italic text-[#8a3f16]">
-                          Justiina
-                        </p>
-                        <p className="mt-1 text-xs font-bold leading-tight text-[#8a3f16]">
-                          Tuotteet ja listat.
-                        </p>
-                      </div>
-                    </div>
-                  </div>
                 </section>
 
                 <section className="rounded-[1.6rem] border border-[#d6bf8f] bg-[#fff8e8] p-5 shadow-[0_3px_0_rgba(7,59,45,0.16)] ring-1 ring-white/60">
@@ -7617,27 +7617,92 @@ export default function Page() {
                     className="mt-4 h-28 w-full resize-none rounded-[1.2rem] border border-[#d6bf8f] bg-white px-4 py-3 text-base font-semibold outline-none focus:border-green-600 focus:ring-4 focus:ring-[#b8d6b6]"
                   />
 
-                  <div className="mt-3 grid grid-cols-2 gap-3">
+                  <div className="mt-3 grid grid-cols-[1fr_1fr_0.9fr] gap-3">
+                    <button
+                      type="button"
+                      onClick={handleGostaOfferSearch}
+                      disabled={!hasSearchInput || loadingOffers}
+                      aria-disabled={!hasSearchInput || loadingOffers}
+                      className={`group flex min-h-[108px] items-center gap-3 overflow-hidden rounded-[1.35rem] border-2 border-[#b6d6a7] bg-[#eaf6e8] px-3 py-3 text-left shadow-[0_3px_0_rgba(7,59,45,0.16)] transition active:translate-y-[1px] ${!hasSearchInput || loadingOffers ? "cursor-not-allowed opacity-55" : "hover:brightness-105"}`}
+                      title="Gösta etsii tarjoukset"
+                    >
+                      <span className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl bg-[#dcefd9] ring-1 ring-[#b8d6b6]">
+                        <img
+                          src="/assistants/gosta.png"
+                          alt=""
+                          onError={(event) => {
+                            event.currentTarget.style.display = "none";
+                          }}
+                          className="h-full w-full object-cover object-top"
+                        />
+                      </span>
+                      <span className="min-w-0">
+                        <span
+                          className="block text-2xl font-black italic leading-none text-[#315f2f]"
+                          style={{ fontFamily: 'Georgia, Baskerville, serif' }}
+                        >
+                          Gösta
+                        </span>
+                        <span className="mt-1 block text-sm font-black leading-tight text-[#315f2f]">
+                          {loadingOffers ? "Etsii tarjouksia…" : "Etsi tarjoukset"}
+                        </span>
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleJustiinaProductSearch}
+                      disabled={!hasSearchInput || loadingNormal || singleProductCompareLoading}
+                      aria-disabled={!hasSearchInput || loadingNormal || singleProductCompareLoading}
+                      className={`group flex min-h-[108px] items-center gap-3 overflow-hidden rounded-[1.35rem] border-2 border-[#e1c678] bg-[#fff2c9] px-3 py-3 text-left shadow-[0_3px_0_rgba(7,59,45,0.16)] transition active:translate-y-[1px] ${!hasSearchInput || loadingNormal || singleProductCompareLoading ? "cursor-not-allowed opacity-55" : "hover:brightness-105"}`}
+                      title="Justiina etsii ostokset"
+                    >
+                      <span className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl bg-[#f8e8ba] ring-1 ring-[#e1c678]">
+                        <img
+                          src="/assistants/justiina.png"
+                          alt=""
+                          onError={(event) => {
+                            event.currentTarget.style.display = "none";
+                          }}
+                          className="h-full w-full object-cover object-top"
+                        />
+                      </span>
+                      <span className="min-w-0">
+                        <span
+                          className="block text-2xl font-black italic leading-none text-[#8a3f16]"
+                          style={{ fontFamily: 'Georgia, Baskerville, serif' }}
+                        >
+                          Justiina
+                        </span>
+                        <span className="mt-1 block text-sm font-black leading-tight text-[#8a3f16]">
+                          {loadingNormal || singleProductCompareLoading
+                            ? "Etsii ostoksia…"
+                            : "Etsi ostokset"}
+                        </span>
+                      </span>
+                    </button>
+
                     <button
                       type="button"
                       onClick={() => void pasteFromClipboardToSearch()}
-                      className="rounded-2xl bg-[#0c7c38] px-4 py-3 text-sm font-black text-white shadow-[inset_0_-3px_0_rgba(0,0,0,0.14)] transition hover:brightness-105 active:translate-y-[1px]"
+                      className="flex min-h-[108px] items-center justify-center rounded-[1.35rem] border-2 border-[#0f5f31] bg-[#0c7c38] px-4 py-3 text-center text-lg font-black leading-tight text-white shadow-[inset_0_-3px_0_rgba(0,0,0,0.14)] transition hover:brightness-105 active:translate-y-[1px]"
                     >
-                      Lisää / liitä
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => openDesktopScanner()}
-                      className="flex items-center justify-center gap-3 overflow-hidden rounded-2xl border-2 border-[#b39a62] bg-[#2f3d28] px-4 py-3 text-center text-[#fff4d8] shadow-[inset_0_0_0_2px_rgba(255,244,216,0.08),0_3px_0_rgba(7,59,45,0.24)] transition hover:brightness-105 active:translate-y-[1px]"
-                    >
-                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#f4dfa1] text-xl text-[#2f3d28] ring-2 ring-[#b49a61]">
-                        📸
-                      </span>
-                      <span className="font-serif text-2xl font-black italic leading-none">
-                        Skanneri
-                      </span>
+                      Lisää vihkosesta
                     </button>
                   </div>
+
+                  <button
+                    type="button"
+                    onClick={() => openDesktopScanner()}
+                    className="mt-3 flex min-h-[76px] w-full items-center justify-center gap-3 overflow-hidden rounded-2xl border-2 border-[#b39a62] bg-[#2f3d28] px-4 py-3 text-center text-[#fff4d8] shadow-[inset_0_0_0_2px_rgba(255,244,216,0.08),0_3px_0_rgba(7,59,45,0.24)] transition hover:brightness-105 active:translate-y-[1px]"
+                  >
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#f4dfa1] text-xl text-[#2f3d28] ring-2 ring-[#b49a61]">
+                      📸
+                    </span>
+                    <span className="font-serif text-2xl font-black italic leading-none">
+                      Skanneri
+                    </span>
+                  </button>
                 </section>
 
                 <div className="grid grid-cols-[minmax(0,1.35fr)_minmax(340px,0.95fr)] gap-3">
@@ -7770,6 +7835,7 @@ export default function Page() {
                     shoppingItemRefs={shoppingItemRefs}
                     onRemoveItem={removeCartItem}
                     onAddMore={openSearchPanel}
+                    onClearCart={clearCart}
                     onCompare={() => {
                       if (!cart.length || comparisonLoading) return;
                       void updateChainComparison(cart, { openCompare: true });
