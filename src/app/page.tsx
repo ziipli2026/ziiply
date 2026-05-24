@@ -3668,6 +3668,13 @@ export default function Page() {
   }
 
   function openDesktopScanner() {
+    // Desktopissa sama Skanneri-nappi toimii togglena: jos kamera tai EAN-ikkuna on jo auki,
+    // suljetaan koko scanner-flow varmasti eikä käynnistetä uutta kamera-instanssia päällekkäin.
+    if (eanModalOpen || eanScannerOpen || eanHtml5ScannerRef.current) {
+      void closeEanModal();
+      return;
+    }
+
     trackZiiplyEvent("desktop_scanner_opened", {
       cartItemsCount: cart.length,
     });
@@ -7572,16 +7579,24 @@ export default function Page() {
                     <button
                       type="button"
                       onClick={() => handleMainNormalSearch()}
-                      disabled={loadingNormal || singleProductCompareLoading || !hasSearchInput}
+                      disabled={
+                        loadingNormal ||
+                        singleProductCompareLoading ||
+                        !hasSearchInput
+                      }
                       className="rounded-2xl bg-[#0c7c38] px-4 py-3 text-sm font-black text-white shadow-[inset_0_-3px_0_rgba(0,0,0,0.14)] transition hover:brightness-105 active:translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      {loadingNormal || singleProductCompareLoading ? "Haetaan…" : "Hae"}
+                      {loadingNormal || singleProductCompareLoading
+                        ? "Haetaan…"
+                        : "Hae"}
                     </button>
                     <button
                       type="button"
                       onClick={() => {
                         if (!cart.length || comparisonLoading) return;
-                        void updateChainComparison(cart, { openCompare: false });
+                        void updateChainComparison(cart, {
+                          openCompare: false,
+                        });
                       }}
                       disabled={!cart.length || comparisonLoading}
                       className="rounded-2xl bg-[#1d241b] px-4 py-3 text-sm font-black text-white shadow-[inset_0_-3px_0_rgba(0,0,0,0.18)] transition hover:brightness-105 active:translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-50"
@@ -7873,6 +7888,106 @@ export default function Page() {
                   </section>
                 </div>
               </aside>
+            </div>
+          </div>
+        )}
+
+        {eanModalOpen && (
+          <div
+            className={`fixed inset-0 z-[120] hidden items-center justify-center bg-[#102018]/70 p-6 backdrop-blur-sm xl:flex ${eanModalClosing ? "ziiply-soft-close" : "ziiply-soft-open"}`}
+          >
+            <div className="w-full max-w-[34rem] overflow-hidden rounded-[2rem] border-4 border-[#d6bf8f] bg-[#fff8e8] p-5 shadow-2xl ring-4 ring-[#073b2d]/40">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="font-serif text-4xl font-black italic leading-none text-[#2f3d28]">
+                    Skanneri
+                  </p>
+                  <p className="mt-1 text-xs font-black uppercase tracking-[0.25em] text-[#8e896f]">
+                    EAN / viivakoodi
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void closeEanModal()}
+                  className="rounded-2xl bg-[#1d241b] px-5 py-3 text-sm font-black text-white shadow-sm active:scale-[0.98]"
+                >
+                  Sulje
+                </button>
+              </div>
+
+              {eanScannerMessage && (
+                <div className="mt-4 rounded-2xl bg-[#f7efd9] p-3 text-sm font-bold text-[#504a39] ring-1 ring-[#ead7aa]">
+                  {eanScannerMessage}
+                </div>
+              )}
+
+              <div
+                className="relative mt-4 aspect-square w-full overflow-hidden rounded-[1.5rem] bg-slate-950 ring-2 ring-[#d6bf8f]"
+                onPointerDown={(event) => void focusScannerCameraAtPoint(event)}
+              >
+                <div
+                  id={EAN_SCANNER_REGION_ID}
+                  className="absolute inset-0 h-full w-full overflow-hidden rounded-[1.5rem] bg-slate-950 [&_*]:!box-border [&_canvas]:!hidden [&_div]:!border-0 [&_div]:!shadow-none [&_video]:!absolute [&_video]:!inset-0 [&_video]:!h-full [&_video]:!w-full [&_video]:rounded-[1.5rem] [&_video]:!object-cover"
+                />
+                <div className="pointer-events-none absolute inset-0 rounded-[1.5rem] border-[3px] border-[#9fc263] shadow-[inset_0_0_0_999px_rgba(2,6,23,0.04)]">
+                  <div className="absolute -left-1 -top-1 h-8 w-8 rounded-tl-2xl border-l-4 border-t-4 border-[#fff8e8]" />
+                  <div className="absolute -right-1 -top-1 h-8 w-8 rounded-tr-2xl border-r-4 border-t-4 border-[#fff8e8]" />
+                  <div className="absolute -bottom-1 -left-1 h-8 w-8 rounded-bl-2xl border-b-4 border-l-4 border-[#fff8e8]" />
+                  <div className="absolute -bottom-1 -right-1 h-8 w-8 rounded-br-2xl border-b-4 border-r-4 border-[#fff8e8]" />
+                </div>
+              </div>
+
+              <div className="mt-4 grid grid-cols-3 gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEanManualInputOpen((open) => !open);
+                    window.setTimeout(() => eanInputRef.current?.focus(), 0);
+                  }}
+                  className="rounded-2xl bg-[#f7efd9] px-4 py-3 text-sm font-black text-[#504a39] ring-1 ring-[#ead7aa] active:scale-[0.98]"
+                >
+                  ✍️ EAN
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void toggleScannerTorch()}
+                  className={`rounded-2xl px-4 py-3 text-sm font-black ring-1 active:scale-[0.98] ${scannerTorchOn ? "bg-yellow-100 text-yellow-900 ring-yellow-200" : "bg-[#f7efd9] text-[#504a39] ring-[#ead7aa]"}`}
+                >
+                  🔦 Valo
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void stopEanCameraScanner()}
+                  className="rounded-2xl bg-[#8a3f16] px-4 py-3 text-sm font-black text-white active:scale-[0.98]"
+                >
+                  Sammuta kamera
+                </button>
+              </div>
+
+              {eanManualInputOpen && (
+                <div className="mt-3 flex gap-2">
+                  <input
+                    ref={eanInputRef}
+                    value={eanInput}
+                    onChange={(event) =>
+                      setEanInput(event.target.value.replace(/\D/g, ""))
+                    }
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") void searchByEan();
+                    }}
+                    inputMode="numeric"
+                    placeholder="Syötä EAN, esim. 641..."
+                    className="min-w-0 flex-1 rounded-2xl border border-[#d6bf8f] bg-white px-4 py-3 text-base font-bold tracking-wide outline-none focus:border-green-600"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => void searchByEan()}
+                    className="rounded-2xl bg-[#0c7c38] px-5 py-3 text-sm font-black text-white"
+                  >
+                    Hae
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         )}
