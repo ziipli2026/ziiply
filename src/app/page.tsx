@@ -7336,14 +7336,14 @@ export default function Page() {
             store.key === "s"
               ? selected
                 ? "border-[#08A343] bg-[#EEF9F2] text-[#1F2B42] shadow-[0_5px_16px_rgba(8,163,67,0.16)]"
-                : "border-slate-200 bg-white text-slate-500 opacity-70"
+                : "border-[#d9c79a] bg-[#fff9ea] text-[#6f6b59] opacity-70"
               : store.key === "k"
                 ? selected
                   ? "border-[#E3000F] bg-[#FFF1F1] text-[#1F2B42] shadow-[0_5px_16px_rgba(227,0,15,0.13)]"
-                  : "border-slate-200 bg-white text-slate-500 opacity-70"
+                  : "border-[#d9c79a] bg-[#fff9ea] text-[#6f6b59] opacity-70"
                 : selected
-                  ? "border-slate-300 bg-slate-50 text-slate-600 opacity-90"
-                  : "border-slate-200 bg-white text-slate-500 opacity-60";
+                  ? "border-[#d9c79a] bg-[#f5ead0] text-[#6f6b59] opacity-90"
+                  : "border-[#d9c79a] bg-[#fff9ea] text-[#6f6b59] opacity-60";
 
           const logoTone =
             store.key === "s"
@@ -7366,7 +7366,7 @@ export default function Page() {
           return (
             <div
               key={store.key}
-              className={`relative flex min-h-[10.4rem] flex-col items-center justify-start rounded-[1.45rem] border-2 px-2 pb-2.5 pt-3 text-center transition active:scale-[0.985] ${cardTone}`}
+              className={`relative flex min-h-[10.4rem] flex-col items-center justify-start rounded-[1.55rem] border-[3px] px-2 pb-2.5 pt-3 text-center shadow-[0_4px_0_rgba(89,65,27,0.12),inset_0_0_0_1px_rgba(255,255,255,0.5)] transition active:scale-[0.985] ${cardTone}`}
             >
               <button
                 type="button"
@@ -7538,9 +7538,9 @@ export default function Page() {
                   </p>
                 </section>
 
-                <section className="relative overflow-hidden rounded-[1.8rem] border-2 border-[#c9ad76] bg-[#fff3d8] p-4 shadow-[0_5px_0_rgba(36,48,30,0.18),inset_0_0_0_2px_rgba(255,255,255,0.42)] ring-1 ring-white/60">
-                  <div className="pointer-events-none absolute inset-0 opacity-[0.1] [background-image:radial-gradient(#6f5a31_1px,transparent_1px)] [background-size:13px_13px]" />
-                  <p className="relative text-xs font-black uppercase tracking-[0.2em] text-[#7d744f]">
+                <section className="relative overflow-hidden rounded-[2.1rem] border-[3px] border-[#b99d62] bg-gradient-to-b from-[#fbf2dc] via-[#f4e8c9] to-[#e9d9b8] p-4 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80">
+                  <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:radial-gradient(#b59c67_1.15px,transparent_1.15px)] [background-size:15px_15px]" />
+                  <p className="relative font-black uppercase tracking-[0.28em] text-[#746742] text-[13px] drop-shadow-[0_1px_0_#fff7df]">
                     Kauppavalinta
                   </p>
 
@@ -7552,14 +7552,14 @@ export default function Page() {
                     <button
                       type="button"
                       onClick={() => handleStoreModeChange("hyper")}
-                      className={`rounded-2xl px-3 py-3 text-sm font-black ring-1 ${storeMode === "hyper" && storeModeChosenV299 ? "bg-[#0c7c38] text-white ring-green-800" : "bg-white text-[#3b3a30] ring-[#d6bf8f]"}`}
+                      className={`rounded-[1.2rem] border-2 px-3 py-3 text-sm font-black shadow-[0_3px_0_rgba(89,65,27,0.16)] ring-1 ${storeMode === "hyper" && storeModeChosenV299 ? "border-[#0b5f32] bg-[#0c7c38] text-white ring-green-800" : "border-[#c8ab70] bg-[#fff9ea] text-[#3b3a30] ring-[#d6bf8f]"}`}
                     >
                       🏬 Tavaratalot
                     </button>
                     <button
                       type="button"
                       onClick={() => handleStoreModeChange("local")}
-                      className={`rounded-2xl px-3 py-3 text-sm font-black ring-1 ${storeMode === "local" && storeModeChosenV299 ? "bg-[#0c7c38] text-white ring-green-800" : "bg-white text-[#3b3a30] ring-[#d6bf8f]"}`}
+                      className={`rounded-[1.2rem] border-2 px-3 py-3 text-sm font-black shadow-[0_3px_0_rgba(89,65,27,0.16)] ring-1 ${storeMode === "local" && storeModeChosenV299 ? "border-[#0b5f32] bg-[#0c7c38] text-white ring-green-800" : "border-[#c8ab70] bg-[#fff9ea] text-[#3b3a30] ring-[#d6bf8f]"}`}
                     >
                       🏪 Lähikaupat
                     </button>
@@ -7568,7 +7568,7 @@ export default function Page() {
                       onClick={() =>
                         handleStoreCompareScopeChange("between_chains")
                       }
-                      className={`rounded-2xl px-3 py-3 text-sm font-black ring-1 ${storeCompareScope === "between_chains" ? "bg-[#0c7c38] text-white ring-green-800" : "bg-white text-[#3b3a30] ring-[#d6bf8f]"}`}
+                      className={`rounded-[1.2rem] border-2 px-3 py-3 text-sm font-black shadow-[0_3px_0_rgba(89,65,27,0.16)] ring-1 ${storeCompareScope === "between_chains" ? "border-[#0b5f32] bg-[#0c7c38] text-white ring-green-800" : "border-[#c8ab70] bg-[#fff9ea] text-[#3b3a30] ring-[#d6bf8f]"}`}
                     >
                       Ketjujen väliltä
                     </button>
@@ -7577,7 +7577,7 @@ export default function Page() {
                       onClick={() =>
                         handleStoreCompareScopeChange("within_chain")
                       }
-                      className={`rounded-2xl px-3 py-3 text-sm font-black ring-1 ${storeCompareScope === "within_chain" ? "bg-[#0c7c38] text-white ring-green-800" : "bg-white text-[#3b3a30] ring-[#d6bf8f]"}`}
+                      className={`rounded-[1.2rem] border-2 px-3 py-3 text-sm font-black shadow-[0_3px_0_rgba(89,65,27,0.16)] ring-1 ${storeCompareScope === "within_chain" ? "border-[#0b5f32] bg-[#0c7c38] text-white ring-green-800" : "border-[#c8ab70] bg-[#fff9ea] text-[#3b3a30] ring-[#d6bf8f]"}`}
                     >
                       Ketjun sisältä
                     </button>
@@ -7586,9 +7586,9 @@ export default function Page() {
               </aside>
 
               <main className="min-h-0 space-y-2 overflow-y-auto pr-1">
-                <section className="relative overflow-hidden rounded-[1.8rem] border-2 border-[#c9ad76] bg-[#fff3d8] p-4 shadow-[0_5px_0_rgba(36,48,30,0.18),inset_0_0_0_2px_rgba(255,255,255,0.42)] ring-1 ring-white/60">
-                  <div className="pointer-events-none absolute inset-0 opacity-[0.1] [background-image:radial-gradient(#6f5a31_1px,transparent_1px)] [background-size:13px_13px]" />
-                  <p className="relative mb-2 text-xs font-black uppercase tracking-[0.22em] text-[#7d744f]">
+                <section className="relative overflow-hidden rounded-[2.1rem] border-[3px] border-[#b99d62] bg-gradient-to-b from-[#fbf2dc] via-[#f4e8c9] to-[#e9d9b8] p-4 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80">
+                  <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:radial-gradient(#b59c67_1.15px,transparent_1.15px)] [background-size:15px_15px]" />
+                  <p className="relative mb-2 font-black uppercase tracking-[0.28em] text-[#746742] text-[13px] drop-shadow-[0_1px_0_#fff7df]">
                     Kaupat ja sijainti
                   </p>
                   <div className="relative flex items-center gap-3">
@@ -7626,12 +7626,12 @@ export default function Page() {
                         setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
                       }}
                       placeholder="05510 tai Hyvinkää"
-                      className="min-w-0 flex-1 rounded-2xl border border-[#d6bf8f] px-5 py-3 text-base font-black outline-none focus:border-green-600 focus:ring-4 focus:ring-[#b8d6b6]"
+                      className="min-w-0 flex-1 rounded-[1.35rem] border-2 border-[#c6a86d] bg-[#fff9ea] px-5 py-3 text-base font-black text-[#27412a] shadow-[inset_0_2px_8px_rgba(91,65,28,0.10),0_1px_0_#fff6dc] outline-none placeholder:text-[#8b846f] focus:border-[#0b7f3a] focus:ring-4 focus:ring-[#c4dfbd]"
                     />
                     <button
                       type="button"
                       onClick={() => void applyLocation()}
-                      className="rounded-2xl bg-[#1d241b] px-8 py-3 text-base font-black text-white"
+                      className="rounded-[1.25rem] border-2 border-[#0b2118] bg-[#182116] px-8 py-3 text-base font-black text-[#fff9e8] shadow-[0_4px_0_#07140f,0_8px_14px_rgba(20,15,8,0.18)] active:translate-y-[2px] active:shadow-[0_2px_0_#07140f]"
                     >
                       Käytä
                     </button>
@@ -7639,11 +7639,11 @@ export default function Page() {
                   </div>
                 </section>
 
-                <section className="relative overflow-hidden rounded-[1.8rem] border-2 border-[#c9ad76] bg-[#fff3d8] p-5 shadow-[0_5px_0_rgba(36,48,30,0.18),inset_0_0_0_2px_rgba(255,255,255,0.42)] ring-1 ring-white/60">
-                  <div className="pointer-events-none absolute inset-0 opacity-[0.1] [background-image:radial-gradient(#6f5a31_1px,transparent_1px)] [background-size:13px_13px]" />
+                <section className="relative overflow-hidden rounded-[2.1rem] border-[3px] border-[#b99d62] bg-gradient-to-b from-[#fbf2dc] via-[#f4e8c9] to-[#e9d9b8] p-5 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80">
+                  <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:radial-gradient(#b59c67_1.15px,transparent_1.15px)] [background-size:15px_15px]" />
                   <div className="relative flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-xs font-black uppercase tracking-wide text-[#8e896f]">
+                      <p className="text-[13px] font-black uppercase tracking-[0.28em] text-[#746742] drop-shadow-[0_1px_0_#fff7df]">
                         Haku
                       </p>
                       <h2 className="text-2xl font-black tracking-[-0.04em] text-[#1f2619]">
@@ -7683,7 +7683,7 @@ export default function Page() {
                         ? "Kirjoita yksi tuote"
                         : "maito, kahvi, jauheliha"
                     }
-                    className="relative mt-4 h-28 w-full resize-none rounded-[1.2rem] border border-[#d6bf8f] bg-white/95 px-4 py-3 text-base font-semibold outline-none focus:border-green-600 focus:ring-4 focus:ring-[#b8d6b6]"
+                    className="relative mt-4 h-28 w-full resize-none rounded-[1.45rem] border-2 border-[#c6a86d] bg-[#fff9ea] px-5 py-4 text-base font-bold text-[#273322] shadow-[inset_0_3px_10px_rgba(91,65,28,0.10),0_1px_0_#fff6dc] outline-none placeholder:text-[#8b846f] focus:border-[#0b7f3a] focus:ring-4 focus:ring-[#c4dfbd]"
                   />
 
                   <div className="relative mt-3 grid grid-cols-[1fr_1fr_0.9fr] gap-3">
@@ -7775,10 +7775,10 @@ export default function Page() {
                 </section>
 
                 <div className="grid grid-cols-[minmax(0,1.35fr)_minmax(340px,0.95fr)] gap-3">
-                  <section className="relative overflow-hidden rounded-[1.8rem] border-2 border-[#c9ad76] bg-[#fff3d8] p-5 shadow-[0_5px_0_rgba(36,48,30,0.18),inset_0_0_0_2px_rgba(255,255,255,0.42)] ring-1 ring-white/60">
-                    <div className="pointer-events-none absolute inset-0 opacity-[0.12] [background-image:radial-gradient(#6f5a31_1px,transparent_1px)] [background-size:13px_13px]" />
+                  <section className="relative overflow-hidden rounded-[2.1rem] border-[3px] border-[#b99d62] bg-gradient-to-b from-[#fbf2dc] via-[#f4e8c9] to-[#e9d9b8] p-5 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80">
+                    <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:radial-gradient(#b59c67_1.15px,transparent_1.15px)] [background-size:15px_15px]" />
                     <div className="relative flex items-center justify-between gap-3">
-                      <p className="text-xs font-black uppercase tracking-wide text-[#8e896f]">
+                      <p className="text-[13px] font-black uppercase tracking-[0.28em] text-[#746742] drop-shadow-[0_1px_0_#fff7df]">
                         {activeResult === "offers" || loadingOffers
                           ? "Tarjoukset"
                           : "Hakutulokset"}
@@ -7819,7 +7819,7 @@ export default function Page() {
 
                       {activeResult === "offers" || loadingOffers ? (
                         loadingOffers ? (
-                          <p className="rounded-2xl bg-[#f7efd9] p-4 text-sm font-black text-[#6f6b59]">
+                          <p className="rounded-[1.25rem] border border-[#dec890] bg-[#f7efd9] p-4 text-sm font-black text-[#6f6b59] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
                             Gösta etsii tarjouksia…
                           </p>
                         ) : hasSearchedOffers && filteredOffers.length > 0 ? (
@@ -7830,7 +7830,7 @@ export default function Page() {
                             return (
                               <div
                                 key={`desktop-offer-${item.id}`}
-                                className="rounded-2xl bg-[#f7efd9] p-3 ring-1 ring-[#ead7aa]"
+                                className="rounded-[1.2rem] border-2 border-[#d5bd82] bg-[#fff3d5] p-3 shadow-[0_3px_0_rgba(113,82,31,0.16),inset_0_0_0_1px_rgba(255,255,255,0.55)]"
                               >
                                 <div className="flex items-center gap-3">
                                   {item.offer.item.pictureUrl && (
@@ -7896,23 +7896,23 @@ export default function Page() {
                             );
                           })
                         ) : hasSearchedOffers ? (
-                          <p className="rounded-2xl bg-[#f7efd9] p-4 text-sm font-black text-[#6f6b59]">
+                          <p className="rounded-[1.25rem] border border-[#dec890] bg-[#f7efd9] p-4 text-sm font-black text-[#6f6b59] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
                             Ei tarjouksia: {offerSearchLabel}
                           </p>
                         ) : (
-                          <p className="rounded-2xl bg-[#f7efd9] p-4 text-sm font-black text-[#6f6b59]">
+                          <p className="rounded-[1.25rem] border border-[#dec890] bg-[#f7efd9] p-4 text-sm font-black text-[#6f6b59] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
                             Gösta näyttää tarjoukset tässä.
                           </p>
                         )
                       ) : loadingNormal || singleProductCompareLoading ? (
-                        <p className="rounded-2xl bg-[#f7efd9] p-4 text-sm font-black text-[#6f6b59]">
+                        <p className="rounded-[1.25rem] border border-[#dec890] bg-[#f7efd9] p-4 text-sm font-black text-[#6f6b59] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
                           Justiina etsii ostoksia…
                         </p>
                       ) : visibleNormalResults.length > 0 ? (
                         visibleNormalResults.slice(0, 10).map((product) => (
                           <div
                             key={`desktop-product-${product.id}-${product.ean || product.name}`}
-                            className="flex items-center gap-3 rounded-2xl bg-[#f7efd9] p-3 ring-1 ring-[#ead7aa]"
+                            className="flex items-center gap-3 rounded-[1.2rem] border-2 border-[#d5bd82] bg-[#fff3d5] p-3 shadow-[0_3px_0_rgba(113,82,31,0.16),inset_0_0_0_1px_rgba(255,255,255,0.55)]"
                           >
                             {product.pictureUrl && (
                               <img
@@ -7944,7 +7944,7 @@ export default function Page() {
                           .map((result, index) => (
                             <div
                               key={`desktop-single-${index}-${result.chain}-${result.storeName}-${result.productName}`}
-                              className="rounded-2xl bg-[#f7efd9] p-3 ring-1 ring-[#ead7aa]"
+                              className="rounded-[1.2rem] border-2 border-[#d5bd82] bg-[#fff3d5] p-3 shadow-[0_3px_0_rgba(113,82,31,0.16),inset_0_0_0_1px_rgba(255,255,255,0.55)]"
                             >
                               <p className="truncate text-sm font-black text-[#1f2619]">
                                 {fixText(result.productName)}
@@ -7955,16 +7955,16 @@ export default function Page() {
                             </div>
                           ))
                       ) : (
-                        <p className="rounded-2xl bg-[#f7efd9] p-4 text-sm font-black text-[#6f6b59]">
+                        <p className="rounded-[1.25rem] border border-[#dec890] bg-[#f7efd9] p-4 text-sm font-black text-[#6f6b59] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
                           Ei hakutuloksia vielä.
                         </p>
                       )}
                     </div>
                   </section>
 
-                  <section className="relative overflow-hidden rounded-[1.8rem] border-2 border-[#c9ad76] bg-[#fff3d8] p-5 shadow-[0_5px_0_rgba(36,48,30,0.18),inset_0_0_0_2px_rgba(255,255,255,0.42)] ring-1 ring-white/60">
-                    <div className="pointer-events-none absolute inset-0 opacity-[0.12] [background-image:radial-gradient(#6f5a31_1px,transparent_1px)] [background-size:13px_13px]" />
-                    <p className="relative text-xs font-black uppercase tracking-[0.18em] text-[#7d744f]">
+                  <section className="relative overflow-hidden rounded-[2.1rem] border-[3px] border-[#b99d62] bg-gradient-to-b from-[#fbf2dc] via-[#f4e8c9] to-[#e9d9b8] p-5 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80">
+                    <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:radial-gradient(#b59c67_1.15px,transparent_1.15px)] [background-size:15px_15px]" />
+                    <p className="relative text-[13px] font-black uppercase tracking-[0.28em] text-[#746742] drop-shadow-[0_1px_0_#fff7df]">
                       Vertailu
                     </p>
                     <div className="relative mt-3 grid gap-3">
@@ -7972,7 +7972,7 @@ export default function Page() {
                         chainResults.map((result) => (
                           <div
                             key={`desktop-chain-${result.key}`}
-                            className="rounded-2xl border border-[#d6bf8f] bg-[#fbf2dc] p-4 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.5)]"
+                            className="rounded-[1.25rem] border-2 border-[#c8ab70] bg-gradient-to-b from-[#fff5db] to-[#f0dfbd] p-4 shadow-[0_4px_0_rgba(89,65,27,0.16),inset_0_0_0_1px_rgba(255,255,255,0.58)]"
                           >
                             <div className="flex items-center justify-between gap-3">
                               <div>
@@ -7996,7 +7996,7 @@ export default function Page() {
                           </div>
                         ))
                       ) : (
-                        <p className="rounded-2xl bg-[#f7efd9] p-4 text-sm font-black text-[#6f6b59]">
+                        <p className="rounded-[1.25rem] border border-[#dec890] bg-[#f7efd9] p-4 text-sm font-black text-[#6f6b59] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
                           Vertailu näkyy tässä, kun korissa on tuotteita.
                         </p>
                       )}
