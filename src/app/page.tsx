@@ -7672,7 +7672,7 @@ export default function Page() {
                   </div>
 
                   {locationMessageVisible ? (
-                    <div className="pointer-events-none absolute left-1/2 top-[6px] z-30 inline-flex w-max max-w-none -translate-x-1/2 whitespace-nowrap rounded-[1.05rem] border border-[#caa35d] bg-[#ffe9a8] px-5 py-2 text-[13px] font-black uppercase tracking-[0.14em] text-[#8a3f16] shadow-[0_3px_0_rgba(91,72,44,0.20),0_8px_18px_rgba(80,50,10,0.12)]">
+                    <div className="pointer-events-none absolute left-1/2 top-[-24px] z-50 inline-flex w-max max-w-none -translate-x-1/2 whitespace-nowrap rounded-[1.05rem] border border-[#caa35d] bg-[#ffe9a8] px-5 py-2 text-[13px] font-black uppercase tracking-[0.14em] text-[#8a3f16] shadow-[0_3px_0_rgba(91,72,44,0.20),0_8px_18px_rgba(80,50,10,0.12)]">
                       {storeSearchLoading ? "HAETAAN KAUPPOJA..." : locationMessage}
                     </div>
                   ) : null}
@@ -7859,7 +7859,8 @@ export default function Page() {
 </section>
 
                 <div className="fixed bottom-0 left-[max(18px,calc((100vw-1720px)/2+410px))] right-[max(18px,calc((100vw-1720px)/2+520px))] z-40 grid grid-cols-[minmax(0,1fr)_minmax(300px,0.82fr)] items-end gap-3 px-2 pointer-events-none">
-  <div className="pointer-events-auto"><section className="group relative max-h-[86px] overflow-hidden rounded-t-[2.1rem] rounded-b-none transition-[max-height] duration-300 ease-out hover:max-h-[48dvh] focus-within:max-h-[48dvh] border-[3px] border-[#b99d62] bg-gradient-to-b from-[#f7e9c3] via-[#f0d9a4] to-[#dfbf7e] p-5 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80">
+  <div className="pointer-events-auto"><div className="fixed bottom-[18px] left-[max(18px,calc((100vw-1720px)/2+390px))] right-[max(18px,calc((100vw-1720px)/2+520px))] z-40 grid grid-cols-[minmax(0,1fr)_minmax(280px,0.8fr)] items-end gap-3 px-2 pointer-events-none">
+  <div className="pointer-events-auto"><section className="group relative h-[76px] overflow-hidden rounded-t-[2.1rem] rounded-b-none transition-[height] duration-300 ease-out hover:h-[42dvh] focus-within:h-[42dvh]">
                     <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:radial-gradient(#b59c67_1.15px,transparent_1.15px)] [background-size:15px_15px]" />
                     <div className="relative flex items-center justify-between gap-3">
                       <p className="text-[13px] font-black uppercase tracking-[0.28em] text-[#746742] drop-shadow-[0_1px_0_#fff7df]">
@@ -7894,7 +7895,7 @@ export default function Page() {
                       )}
                     </div>
 
-                    <div className="relative mt-3 max-h-[29dvh] space-y-2 overflow-auto pr-1">
+                    <div className="relative mt-3 max-h-[32dvh] space-y-2 overflow-auto pr-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100">
                       {notFoundSearchTerms.length > 0 && activeResult !== "offers" && !loadingOffers && (
                         <div className="rounded-2xl border border-[#d6bf8f] bg-[#fff8e8] p-3 text-sm font-black text-[#8a3f16]">
                           Ei löytynyt: {notFoundSearchTerms.join(", ")}. Jatketaan seuraaviin hakusanoihin.
@@ -8045,7 +8046,7 @@ export default function Page() {
                       )}
                     </div>
                   </section></div>
-  <div className="pointer-events-auto"><section className="group relative max-h-[86px] overflow-hidden rounded-t-[2.1rem] rounded-b-none transition-[max-height] duration-300 ease-out hover:max-h-[48dvh] focus-within:max-h-[48dvh] border-[3px] border-[#b99d62] bg-gradient-to-b from-[#f7e9c3] via-[#f0d9a4] to-[#dfbf7e] p-5 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80">
+  <div className="pointer-events-auto"><section className="group relative h-[76px] overflow-hidden rounded-t-[2.1rem] rounded-b-none transition-[height] duration-300 ease-out hover:h-[42dvh] focus-within:h-[42dvh]">
                     <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:radial-gradient(#b59c67_1.15px,transparent_1.15px)] [background-size:15px_15px]" />
                     <p className="relative text-[13px] font-black uppercase tracking-[0.28em] text-[#746742] drop-shadow-[0_1px_0_#fff7df]">
                       Vertailu
@@ -8085,6 +8086,7 @@ export default function Page() {
                       )}
                     </div>
                   </section></div>
+</div></div>
 </div>
               </main>
 
