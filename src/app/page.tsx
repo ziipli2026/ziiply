@@ -6192,7 +6192,7 @@ export default function Page() {
       })()}
 
       <div className="mx-auto max-w-6xl space-y-3 sm:space-y-4 sm:space-y-6">
-        <section className="-mx-2 hidden bg-slate-100/95 px-2 pb-2 pt-2 sm:-mx-4 sm:block sm:px-4 sm:pb-4 sm:pt-4">
+        <section className={`-mx-2 hidden bg-slate-100/95 px-2 pb-2 pt-2 sm:-mx-4 sm:px-4 sm:pb-4 sm:pt-4 ${showLaunchScreen ? "sm:hidden" : "sm:block"}`}>
           <div className="mx-auto max-w-6xl">
           <div className="overflow-hidden rounded-[1.75rem] bg-white px-4 py-1 shadow-sm sm:rounded-[2rem] sm:px-6">
             <img
@@ -6212,7 +6212,7 @@ export default function Page() {
           </div>
         </section>
 
-        {!searchPanelOpen && !cartModalOpen && !shopsPanelOpen && !eanModalOpen && activeResult === "none" && (
+        {!showLaunchScreen && !searchPanelOpen && !cartModalOpen && !shopsPanelOpen && !eanModalOpen && activeResult === "none" && (
           <section className="flex min-h-[calc(100dvh-12rem)] flex-col items-center justify-start px-7 pt-[18dvh] text-center">
             <div className="relative flex w-full max-w-[300px] items-center justify-center">
               <div className="pointer-events-none absolute h-28 w-28 rounded-full bg-green-400/18 blur-2xl ziiply-logo-halo" />
