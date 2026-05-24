@@ -380,6 +380,8 @@ export default function Page() {
   const [offers, setOffers] = useState<ZiiplyOffer[]>([]);
   const [hasSearchedOffers, setHasSearchedOffers] = useState(false);
   const [loadingOffers, setLoadingOffers] = useState(false);
+  const [offerSearchQuerySnapshot, setOfferSearchQuerySnapshot] = useState("");
+  const [offerSearchDoneForQuery, setOfferSearchDoneForQuery] = useState("");
   const [chainFilter, setChainFilter] = useState<"all" | "S" | "K">("all");
   const [justAdded, setJustAdded] = useState<string | null>(null);
 
@@ -722,6 +724,8 @@ export default function Page() {
   // Varsinainen komponenttijako kannattaa tehdä myöhemmin omiin tiedostoihin.
 
   const terms = useMemo(() => parseTerms(input), [input]);
+  const currentSearchQueryKey = useMemo(() => terms.join(", ").trim() || input.trim(), [terms, input]);
+  const gostaSearchDisabled = !currentSearchQueryKey || loadingOffers || offerSearchDoneForQuery === currentSearchQueryKey;
   const hasSearchInput = terms.length > 0;
 
   function getSingleSearchTerm(
@@ -1836,13 +1840,14 @@ export default function Page() {
     const chainFilteredOffers = offers.filter(
       (item) => chainFilter === "all" || item.chain === chainFilter,
     );
-    return rankOfferSearchResults(chainFilteredOffers, terms);
-  }, [offers, terms, chainFilter]);
+    const offerTerms = parseTerms(offerSearchQuerySnapshot || currentSearchQueryKey);
+    return rankOfferSearchResults(chainFilteredOffers, offerTerms);
+  }, [offers, offerSearchQuerySnapshot, currentSearchQueryKey, chainFilter]);
 
   const offerSearchLabel = useMemo(() => {
-    const label = terms.join(", ").trim() || input.trim();
+    const label = offerSearchQuerySnapshot || currentSearchQueryKey;
     return label || "haku";
-  }, [terms, input]);
+  }, [offerSearchQuerySnapshot, currentSearchQueryKey]);
 
   const cartTotal = useMemo(() => {
     return cart.reduce(
@@ -2848,6 +2853,8 @@ export default function Page() {
     }
 
     const isMainOfferSearch = !termOverride;
+    const offerQuerySnapshot = useTerms.join(", ").trim() || String(termOverride || input).trim();
+    setOfferSearchQuerySnapshot(offerQuerySnapshot);
 
     trackZiiplyEvent("offers_search_used", {
       query: useTerms.join(", "),
@@ -2900,6 +2907,7 @@ export default function Page() {
       }));
 
       setOffers([...sItems, ...kItems]);
+      setOfferSearchDoneForQuery(offerQuerySnapshot);
     } catch (error) {
       console.error(error);
       const gpsErrorCode =
@@ -5116,6 +5124,8 @@ export default function Page() {
   }
 
   function handleJustiinaProductSearch() {
+    setOfferSearchDoneForQuery("");
+    setOfferSearchQuerySnapshot("");
     if (!hasSearchInput || loadingNormal || singleProductCompareLoading) return;
 
     const searchQueryForMode = terms.join(", ") || input.trim();
@@ -5133,10 +5143,10 @@ export default function Page() {
   }
 
   function handleGostaOfferSearch() {
-    if (!hasSearchInput || loadingOffers) return;
+    if (gostaSearchDisabled) return;
 
     trackZiiplyEvent("gosta_offer_search_clicked", {
-      query: terms.join(", ") || input.trim(),
+      query: currentSearchQueryKey,
       searchType: "offers",
       cartItemsCount: cart.length,
     });
@@ -5951,7 +5961,7 @@ export default function Page() {
   }
 
   function getOptimizeCartLabel(chain: ChainResult) {
-    if (optimizingChains[chain.key]) return "Haetaan halvimmat...";
+    if (optimizingChains[chain.key]) return "Haetaan huokeimmat...";
 
     const savings = getKnownOptimizationSavings(chain);
 
@@ -7657,7 +7667,7 @@ export default function Page() {
                       <button
                         type="button"
                         onClick={() => setSearchCompareMode("cart")}
-                        className={`rounded-xl px-4 py-2 text-[15px] font-black uppercase tracking-[0.04em] ${searchCompareMode === "cart" ? "bg-white text-[#315f2f] shadow-sm" : "text-[#6f6b59]"}`}
+                        className={`rounded-xl px-5 py-2 text-[18px] font-black tracking-[0.01em] ${searchCompareMode === "cart" ? "bg-white text-[#315f2f] shadow-sm" : "text-[#6f6b59]"}`}
                       >
                         Koko kori
                       </button>
@@ -7669,7 +7679,7 @@ export default function Page() {
                             getSingleSearchTerm(currentInput),
                           );
                         }}
-                        className={`rounded-xl px-4 py-2 text-[15px] font-black uppercase tracking-[0.04em] ${searchCompareMode === "single" ? "bg-white text-[#315f2f] shadow-sm" : "text-[#6f6b59]"}`}
+                        className={`rounded-xl px-5 py-2 text-[18px] font-black tracking-[0.01em] ${searchCompareMode === "single" ? "bg-white text-[#315f2f] shadow-sm" : "text-[#6f6b59]"}`}
                       >
                         Yksi tuote
                       </button>
@@ -7686,16 +7696,16 @@ export default function Page() {
                         ? "Kirjoita yksi tuote"
                         : "maito, kahvi, jauheliha"
                     }
-                    className="relative mt-4 h-28 w-full resize-none rounded-[1.45rem] border-2 border-[#c6a86d] bg-[#fff9ea] px-5 py-4 text-base font-bold text-[#273322] shadow-[inset_0_3px_10px_rgba(91,65,28,0.10),0_1px_0_#fff6dc] outline-none placeholder:text-[#8b846f] focus:border-[#0b7f3a] focus:ring-4 focus:ring-[#c4dfbd]"
+                    className="relative mt-4 h-28 w-full resize-none rounded-[1.7rem] border-[3px] border-[#b99d62] bg-[#fff9e8] px-6 py-5 text-[22px] font-black leading-snug text-[#172417] shadow-[inset_0_4px_12px_rgba(91,65,28,0.14),0_2px_0_#fff6dc] outline-none placeholder:text-[#8b846f] focus:border-[#0b7f3a] focus:ring-4 focus:ring-[#c4dfbd]" style={{ fontFamily: '"Trebuchet MS", "Gill Sans", sans-serif' }}
                   />
 
                   <div className="relative mt-3 grid grid-cols-[1fr_1fr_0.9fr] gap-3">
                     <button
                       type="button"
                       onClick={handleGostaOfferSearch}
-                      disabled={!hasSearchInput || loadingOffers}
-                      aria-disabled={!hasSearchInput || loadingOffers}
-                      className={`group flex min-h-[108px] items-center gap-3 overflow-hidden rounded-[1.35rem] border-2 border-[#b6d6a7] bg-[#eaf6e8] px-3 py-3 text-left shadow-[0_3px_0_rgba(7,59,45,0.16)] transition active:translate-y-[1px] ${!hasSearchInput || loadingOffers ? "cursor-not-allowed opacity-55" : "hover:brightness-105"}`}
+                      disabled={gostaSearchDisabled}
+                      aria-disabled={gostaSearchDisabled}
+                      className={`group flex min-h-[108px] items-center gap-3 overflow-hidden rounded-[1.35rem] border-[3px] border-[#9dbd8b] bg-gradient-to-b from-[#eef8e7] to-[#d9edcf] px-3 py-3 text-left shadow-[0_4px_0_rgba(91,72,44,0.20),inset_0_0_0_2px_rgba(255,255,255,0.5)] transition active:translate-y-[1px] ${gostaSearchDisabled ? "cursor-not-allowed opacity-55" : "hover:brightness-105"}`}
                       title="Gösta etsii tarjoukset"
                     >
                       <span className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl bg-[#dcefd9] ring-1 ring-[#b8d6b6]">
@@ -7716,7 +7726,7 @@ export default function Page() {
                           Gösta
                         </span>
                         <span className="mt-1 block text-sm font-black leading-tight text-[#315f2f]">
-                          {loadingOffers ? "Etsii tarjouksia…" : "Etsi tarjoukset"}
+                          {loadingOffers ? "Etsii tarjouksia…" : offerSearchDoneForQuery === currentSearchQueryKey ? "Tarjoukset haettu" : "Etsi tarjoukset"}
                         </span>
                       </span>
                     </button>
@@ -7726,7 +7736,7 @@ export default function Page() {
                       onClick={handleJustiinaProductSearch}
                       disabled={!hasSearchInput || loadingNormal || singleProductCompareLoading}
                       aria-disabled={!hasSearchInput || loadingNormal || singleProductCompareLoading}
-                      className={`group flex min-h-[108px] items-center gap-3 overflow-hidden rounded-[1.35rem] border-2 border-[#e1c678] bg-[#fff2c9] px-3 py-3 text-left shadow-[0_3px_0_rgba(7,59,45,0.16)] transition active:translate-y-[1px] ${!hasSearchInput || loadingNormal || singleProductCompareLoading ? "cursor-not-allowed opacity-55" : "hover:brightness-105"}`}
+                      className={`group flex min-h-[108px] items-center gap-3 overflow-hidden rounded-[1.35rem] border-[3px] border-[#d3b25f] bg-gradient-to-b from-[#fff0bd] to-[#f1d98d] px-3 py-3 text-left shadow-[0_4px_0_rgba(91,72,44,0.20),inset_0_0_0_2px_rgba(255,255,255,0.5)] transition active:translate-y-[1px] ${!hasSearchInput || loadingNormal || singleProductCompareLoading ? "cursor-not-allowed opacity-55" : "hover:brightness-105"}`}
                       title="Justiina etsii ostokset"
                     >
                       <span className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl bg-[#f8e8ba] ring-1 ring-[#e1c678]">
