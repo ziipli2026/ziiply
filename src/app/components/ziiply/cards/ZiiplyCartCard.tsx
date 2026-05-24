@@ -12,6 +12,12 @@ export type ZiiplyCartCardItem = {
   ean?: string;
 };
 
+type SavedListLike = {
+  id: string;
+  name: string;
+  items: unknown[];
+};
+
 type AnyMatch = {
   product: {
     id?: number | string;
@@ -55,6 +61,14 @@ export type ZiiplyCartCardProps = {
   onClearCart?: () => void;
   onCompare?: () => void;
   onAddMore?: () => void;
+  cartSavePanelOpen?: boolean;
+  onToggleSavePanel?: () => void;
+  savedListName?: string;
+  setSavedListName?: (value: string) => void;
+  onSaveCurrentCartAsList?: () => void;
+  savedShoppingLists?: SavedListLike[];
+  onAddSavedListToCart?: (list: any) => void;
+  onDeleteSavedShoppingList?: (listId: string) => void;
 };
 
 function fallbackFormatEuro(value?: number | null) {
@@ -95,6 +109,14 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
     onClearCart,
     onCompare,
     onAddMore,
+    cartSavePanelOpen,
+    onToggleSavePanel,
+    savedListName,
+    setSavedListName,
+    onSaveCurrentCartAsList,
+    savedShoppingLists = [],
+    onAddSavedListToCart,
+    onDeleteSavedShoppingList,
   } = props;
 
   const items = props.items || props.cart || [];
@@ -278,10 +300,72 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
           </button>
         </div>
 
-        {hasItems && onClearCart && (
-          <button type="button" onClick={onClearCart} className="mt-2 min-h-[40px] w-full rounded-2xl bg-[#8a3f16] px-4 text-sm font-black text-[#fff4d8] active:scale-[0.98]">
-            Tyhjennä kori
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={onToggleSavePanel}
+            className="min-h-[42px] rounded-2xl bg-[#efe0bf] px-4 text-sm font-black text-[#3a3325] ring-1 ring-[#b99e67] disabled:opacity-40"
+            disabled={!onToggleSavePanel}
+          >
+            Näytä/tallenna vihkonen
           </button>
+          {hasItems && onClearCart ? (
+            <button type="button" onClick={onClearCart} className="min-h-[42px] rounded-2xl bg-[#8a3f16] px-4 text-sm font-black text-[#fff4d8] active:scale-[0.98]">
+              Tyhjennä kori
+            </button>
+          ) : (
+            <button type="button" disabled className="min-h-[42px] rounded-2xl bg-[#efe0bf] px-4 text-sm font-black text-[#8d8265] opacity-60 ring-1 ring-[#b99e67]">
+              Tyhjennä kori
+            </button>
+          )}
+        </div>
+
+        {cartSavePanelOpen && (
+          <div className="mt-3 rounded-2xl border border-[#b99e67] bg-[#fbf2dc] p-3">
+            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-[#5f6848]">
+              Ostosvihkonen
+            </p>
+            <div className="mt-2 flex gap-2">
+              <input
+                value={savedListName || ""}
+                onChange={(event) => setSavedListName?.(event.target.value)}
+                placeholder="Esim. Viikko-ostos"
+                className="min-w-0 flex-1 rounded-xl border border-[#d6bf8f] bg-white px-3 py-2 text-sm font-black text-[#2e2b21] outline-none focus:border-green-700"
+              />
+              <button
+                type="button"
+                onClick={onSaveCurrentCartAsList}
+                className="rounded-xl bg-[#0c7c38] px-3 py-2 text-xs font-black text-white disabled:opacity-40"
+                disabled={!onSaveCurrentCartAsList || !hasItems}
+              >
+                Tallenna
+              </button>
+            </div>
+
+            {savedShoppingLists.length > 0 && (
+              <div className="mt-3 grid gap-2">
+                {savedShoppingLists.slice(0, 4).map((list) => (
+                  <div key={list.id} className="flex items-center justify-between gap-2 rounded-xl bg-[#efe0bf] p-2 ring-1 ring-[#d6bf8f]">
+                    <button
+                      type="button"
+                      onClick={() => onAddSavedListToCart?.(list)}
+                      className="min-w-0 flex-1 text-left text-xs font-black text-[#31402c] active:scale-[0.99]"
+                    >
+                      <span className="block truncate">{list.name}</span>
+                      <span className="block text-[10px] text-[#6f6b59]">{list.items.length} riviä · lisää koriin</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onDeleteSavedShoppingList?.(list.id)}
+                      className="rounded-lg bg-[#8a3f16] px-2 py-1 text-[10px] font-black text-[#fff4d8]"
+                    >
+                      Poista
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         )}
       </div>
     </section>
