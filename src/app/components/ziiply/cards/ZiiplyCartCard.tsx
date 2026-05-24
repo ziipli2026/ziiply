@@ -167,7 +167,7 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
   };
 
   return (
-    <section className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-[34px] border-[4px] border-[#5b482c] bg-[#f4e7c7] p-4 text-[#20301f] shadow-[0_0_0_2px_#d4b978_inset,0_16px_26px_rgba(60,45,20,0.28)]">
+    <section className="relative flex h-[calc(100vh-118px)] max-h-[calc(100vh-118px)] min-h-[620px] flex-col overflow-hidden rounded-[34px] border-[4px] border-[#5b482c] bg-[#f4e7c7] p-4 text-[#20301f] shadow-[0_0_0_2px_#d4b978_inset,0_16px_26px_rgba(60,45,20,0.28)]">
       <div className="pointer-events-none absolute inset-0 opacity-45 [background-image:radial-gradient(#c7aa67_1px,transparent_1px)] [background-size:15px_15px]" />
 
       <div className="relative z-10 shrink-0">
@@ -177,7 +177,7 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
               Kori ja keräily
             </div>
             <h2
-              className="mt-1 text-[46px] font-black italic leading-none text-[#28402a]"
+              className="mt-1 text-[42px] font-black italic leading-none text-[#28402a]"
               style={{ fontFamily: '"Georgia", "Times New Roman", serif' }}
             >
               Ostoskori
@@ -232,31 +232,31 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
           </div>
         </div>
 
-        <div className="mt-4 rounded-[24px] bg-[#182b1a] p-4 text-white shadow-[0_0_0_4px_#2a3d27_inset]">
+        <div className="mt-4 rounded-[24px] border-[3px] border-[#b99d64] bg-gradient-to-b from-[#f7edcf] to-[#e8d4a8] p-4 text-[#243d28] shadow-[0_0_0_2px_#fff6dc_inset,0_5px_0_rgba(91,72,44,0.25)]">
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0">
-              <div className="text-[13px] font-black uppercase tracking-[0.28em] text-[#b4c89d]">Keräily kaupassa</div>
-              <div className="mt-1 truncate text-[24px] font-black">
-                {cheapest?.storeName || "Valitse halvin kori"}
+              <div className="text-[13px] font-black uppercase tracking-[0.28em] text-[#746742]">Tavaran keräys</div>
+              <div className="mt-1 truncate text-[25px] font-black italic" style={{ fontFamily: '"Georgia", "Baskerville", serif' }}>
+                {cheapest?.storeName || "Valitse huokein kori"}
               </div>
             </div>
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-[#12d664] text-[23px] font-black text-[#062311]">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-[3px] border-[#b99d64] bg-[#fff6df] text-[23px] font-black text-[#26412a] shadow-[0_0_0_2px_#f4e4bc_inset]">
               {progress}%
             </div>
           </div>
-          <div className="mt-3 h-3 overflow-hidden rounded-full bg-white/18">
-            <div className="h-full rounded-full bg-[#12d664]" style={{ width: `${Math.min(100, Math.max(0, progress))}%` }} />
+          <div className="mt-3 h-3 overflow-hidden rounded-full border border-[#c6ac72] bg-[#e7d3a6]">
+            <div className="h-full rounded-full bg-[#0b8c3d]" style={{ width: `${Math.min(100, Math.max(0, progress))}%` }} />
           </div>
         </div>
       </div>
 
-      <div className="relative z-10 mt-4 min-h-0 flex-1 overflow-y-auto overscroll-contain pr-2 [scrollbar-gutter:stable]">
+      <div className="relative z-10 mt-4 min-h-0 flex-1 overflow-y-auto overscroll-contain pr-2 [scrollbar-gutter:stable] [touch-action:pan-y]">
         {!hasItems ? (
           <div className="rounded-[28px] border-[2px] border-dashed border-[#b99d64] bg-[#f8eed2] px-5 py-8 text-center">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[18px] bg-[#e9d9af] text-2xl">🧺</div>
             <div className="mt-4 text-[24px] font-black text-[#28402a]">Kori on vielä tyhjä</div>
             <p className="mx-auto mt-2 max-w-[320px] text-[16px] font-bold leading-snug text-[#6b6656]">
-              Lisää tuotteita hausta, tarjouksista tai Justiinalta.
+              Lisää tuotteita Göstan tarjouksista tai Justiinan ostoshaulla.
             </p>
           </div>
         ) : (
@@ -275,7 +275,7 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
               return (
                 <article
                   key={key}
-                  className={`grid h-[116px] grid-cols-[58px_64px_minmax(0,1fr)_70px] items-center gap-3 rounded-[24px] border-[2px] bg-[#f8efd7] px-3 shadow-[0_1px_0_#fff8df_inset] ${
+                  className={`grid h-[128px] min-h-[128px] max-h-[128px] grid-cols-[58px_64px_minmax(0,1fr)_78px] items-center gap-3 overflow-hidden rounded-[24px] border-[2px] bg-[#f8efd7] px-3 shadow-[0_1px_0_#fff8df_inset] ${
                     checked ? "border-[#0b8c3d] opacity-70" : "border-[#d1b77d]"
                   }`}
                 >
@@ -304,8 +304,8 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
                     )}
                   </div>
 
-                  <div className="min-w-0">
-                    <div className={`line-clamp-2 text-[18px] font-black leading-tight ${checked ? "line-through" : ""}`}>
+                  <div className="min-w-0 overflow-hidden">
+                    <div className={`line-clamp-2 max-h-[46px] text-[18px] font-black leading-tight ${checked ? "line-through" : ""}`}>
                       {name}
                     </div>
                     <div className="mt-1 text-[16px] font-black text-[#6d6757]">{quantity} kpl</div>
@@ -347,44 +347,12 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
         )}
       </div>
 
-      {hasItems && (
-        <div className="relative z-10 mt-3 grid shrink-0 grid-cols-2 gap-3">
-          <button
-            type="button"
-            onClick={markAllShoppingListItemsChecked}
-            className="min-h-[48px] rounded-[18px] bg-[#0b8c3d] px-4 text-[16px] font-black text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]"
-          >
-            Kaikki kerätty
-          </button>
-          <button
-            type="button"
-            onClick={clearShoppingListChecks}
-            className="min-h-[48px] rounded-[18px] border-[2px] border-[#d0b77e] bg-[#efe2bd] px-4 text-[16px] font-black text-[#51442b]"
-          >
-            Nollaa keräily
-          </button>
-          <button
-            type="button"
-            onClick={onAddMore}
-            className="min-h-[48px] rounded-[18px] border-[2px] border-[#b99d64] bg-[#fff6df] px-4 text-[16px] font-black text-[#28402a]"
-          >
-            Lisää tuotteita
-          </button>
-          <button
-            type="button"
-            onClick={onCompare}
-            className="min-h-[48px] rounded-[18px] bg-[#243b23] px-4 text-[16px] font-black text-white"
-          >
-            Vertaile
-          </button>
-        </div>
-      )}
 
       {isSaveOpen && (
-        <div className="absolute inset-4 z-30 flex flex-col rounded-[28px] border-[3px] border-[#6f5732] bg-[#f3e5c3] p-4 shadow-2xl">
+        <div className="absolute inset-4 z-30 flex flex-col overflow-hidden rounded-[30px] border-[4px] border-[#6f5732] bg-gradient-to-b from-[#f7edcf] to-[#ead7ad] p-4 shadow-2xl shadow-black/35">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <div className="text-[13px] font-black uppercase tracking-[0.25em] text-[#68705a]">Vihkonen</div>
+              <div className="text-[13px] font-black uppercase tracking-[0.32em] text-[#68705a]">Vihkonen</div>
               <div className="text-[28px] font-black italic text-[#28402a]" style={{ fontFamily: '"Georgia", serif' }}>
                 Tallenna tai avaa ostoslista
               </div>
