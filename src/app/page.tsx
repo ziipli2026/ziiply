@@ -725,7 +725,7 @@ export default function Page() {
 
   const terms = useMemo(() => parseTerms(input), [input]);
   const currentSearchQueryKey = useMemo(() => terms.join(", ").trim() || input.trim(), [terms, input]);
-  const gostaSearchDisabled = !currentSearchQueryKey || loadingOffers || offerSearchDoneForQuery === currentSearchQueryKey;
+  const gostaSearchDisabled = !currentSearchQueryKey || loadingOffers;
   const hasSearchInput = terms.length > 0;
 
   function getSingleSearchTerm(
@@ -2720,9 +2720,7 @@ export default function Page() {
       clearStoreBackedSearchState();
 
       // v352_DESKTOP_GPS_DEFAULT_STORE_SELECTION:
-      // Kun GPS löytää sijainnin reloadissa/käynnistyksessä, valitaan oletukseksi
-      // Tavaratalot + Ketjujen väliltä. Näin S- ja K-kortit syttyvät vihreiksi
-      // ilman erillistä käyttäjän painallusta. Selain hoitaa varsinaisen GPS-luvan.
+      // GPS-löydön jälkeen oletuksena Tavaratalot + Ketjujen väliltä.
       if (source === "gps") {
         selectedStoreModeRefV302.current = "hyper";
         setStoreMode("hyper");
@@ -2743,15 +2741,15 @@ export default function Page() {
         activeElement?.blur?.();
       }
 
-      const effectiveModeForLocationMessage = source === "gps" ? "hyper" : storeMode;
+      const effectiveStoreModeForLocationMessage = source === "gps" ? "hyper" : storeMode;
       const modeMissing =
-        effectiveModeForLocationMessage === "local"
+        effectiveStoreModeForLocationMessage === "local"
           ? !ranked.sLocal || !ranked.kLocal
           : !ranked.sHyper || !ranked.kHyper;
 
       if (modeMissing) {
         setLocationMessage(
-          `${nextArea.label || query} löytyi, mutta kaikkia ${effectiveModeForLocationMessage === "local" ? "lähikauppoja" : "tavarataloja"} ei löytynyt. Voit valita kaupat listasta.`,
+          `${nextArea.label || query} löytyi, mutta kaikkia ${effectiveStoreModeForLocationMessage === "local" ? "lähikauppoja" : "tavarataloja"} ei löytynyt. Voit valita kaupat listasta.`,
         );
       } else {
         setLocationMessage(`${nextArea.label || query} käytössä.`);
@@ -2888,7 +2886,7 @@ export default function Page() {
 
     if (termOverride) setInput(termOverride);
 
-    // Uusi tarjoushaku ei enää tyhjennä ostoskoria. Käyttäjä voi lisätä tuotteita nykyiseen koriin.
+    // Uusi hinnanhuojennushaku ei enää tyhjennä ostoskoria. Käyttäjä voi lisätä tuotteita nykyiseen koriin.
     if (isMainOfferSearch && cart.length > 0) {
       setSMatches({});
       setKMatches({});
@@ -7538,8 +7536,8 @@ export default function Page() {
                     <span className="block truncate text-xl font-black leading-tight">
                       {activeArea.label}
                     </span>
-                    <span className="mt-0.5 block h-[1.15rem] truncate text-[11px] font-black uppercase tracking-[0.08em] text-[#8a3f16]">
-                      {locationMessage}
+                    <span className="mt-0.5 block h-[1.15rem] truncate text-[11px] font-black uppercase tracking-[0.14em] text-[#8a3f16]">
+                      {activeArea.label.toUpperCase()} KÄYTÖSSÄ.
                     </span>
                   </span>
                 </button>
@@ -7551,7 +7549,7 @@ export default function Page() {
                 <section className="rounded-[1.6rem] border border-[#d6bf8f] bg-[#fff8e8] px-5 py-6 text-center shadow-[0_3px_0_rgba(7,59,45,0.16)] ring-1 ring-white/60">
                   <p
                     className="text-[2.05rem] font-black italic leading-[0.95] tracking-[-0.055em] text-[#28492e]"
-                    style={{ fontFamily: 'Georgia, Baskerville, serif' }}
+                    style={{ fontFamily: '"Cooper Black", "Cooper Std Black", Georgia, serif' }}
                   >
                     Viilaa ruokakorisi
                     <br />
@@ -7568,9 +7566,9 @@ export default function Page() {
                   </p>
                 </section>
 
-                <section className="relative overflow-hidden rounded-[2.1rem] border-[3px] border-[#b99d62] bg-gradient-to-b from-[#fbf2dc] via-[#f4e8c9] to-[#e9d9b8] p-4 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80">
+                <section className="relative overflow-hidden rounded-[2.1rem] border-[3px] border-[#b99d62] bg-gradient-to-b from-[#f7e9c3] via-[#f0d9a4] to-[#dfbf7e] p-4 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80">
                   <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:radial-gradient(#b59c67_1.15px,transparent_1.15px)] [background-size:15px_15px]" />
-                  <p className="relative font-black uppercase tracking-[0.28em] text-[#746742] text-[13px] drop-shadow-[0_1px_0_#fff7df]">
+                  <p className="relative font-black uppercase tracking-[0.34em] text-[#746742] text-[13px] drop-shadow-[0_1px_0_#fff7df]" style={{ fontFamily: '"Copperplate", "Baskerville", Georgia, serif' }}>
                     Kauppavalinta
                   </p>
 
@@ -7616,9 +7614,9 @@ export default function Page() {
               </aside>
 
               <main className="min-h-0 space-y-2 overflow-y-auto pr-1">
-                <section className="relative overflow-hidden rounded-[2.1rem] border-[3px] border-[#b99d62] bg-gradient-to-b from-[#fbf2dc] via-[#f4e8c9] to-[#e9d9b8] p-4 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80">
+                <section className="relative overflow-hidden rounded-[2.1rem] border-[3px] border-[#b99d62] bg-gradient-to-b from-[#f7e9c3] via-[#f0d9a4] to-[#dfbf7e] p-4 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80">
                   <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:radial-gradient(#b59c67_1.15px,transparent_1.15px)] [background-size:15px_15px]" />
-                  <p className="relative mb-2 font-black uppercase tracking-[0.28em] text-[#746742] text-[13px] drop-shadow-[0_1px_0_#fff7df]">
+                  <p className="relative mb-2 font-black uppercase tracking-[0.34em] text-[#746742] text-[13px] drop-shadow-[0_1px_0_#fff7df]" style={{ fontFamily: '"Copperplate", "Baskerville", Georgia, serif' }}>
                     Kaupat ja sijainti
                   </p>
                   <div className="relative flex items-center gap-3">
@@ -7667,18 +7665,22 @@ export default function Page() {
                     </button>
                     <span className="hidden h-[46px] min-w-[1px] 2xl:block" aria-hidden="true" />
                   </div>
+
+                  <div className="relative mt-3 min-h-[34px] rounded-[1.1rem] border border-[#d2b170] bg-[#fff1bf] px-4 py-2 text-[13px] font-black uppercase tracking-[0.12em] text-[#8a3f16] shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
+                    {storeSearchLoading ? "HAETAAN KAUPPOJA..." : locationMessage}
+                  </div>
                 </section>
 
-                <section className="relative overflow-hidden rounded-[2.1rem] border-[3px] border-[#b99d62] bg-gradient-to-b from-[#fbf2dc] via-[#f4e8c9] to-[#e9d9b8] p-5 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80">
+                <section className="relative overflow-hidden rounded-[2.1rem] border-[3px] border-[#b99d62] bg-gradient-to-b from-[#f7e9c3] via-[#f0d9a4] to-[#dfbf7e] p-5 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80">
                   <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:radial-gradient(#b59c67_1.15px,transparent_1.15px)] [background-size:15px_15px]" />
                   <div className="relative flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-[15px] font-black uppercase tracking-[0.38em] text-[#746742] drop-shadow-[0_1px_0_#fff7df]">
+                      <p className="text-[15px] font-black uppercase tracking-[0.40em] text-[#746742] drop-shadow-[0_1px_0_#fff7df]" style={{ fontFamily: '"Copperplate", "Baskerville", Georgia, serif' }}>
                         Haku
                       </p>
                       <h2
                         className="text-[2.15rem] font-black italic leading-none tracking-[-0.05em] text-[#243d28] drop-shadow-[0_1px_0_#fff7df]"
-                        style={{ fontFamily: '"Georgia", "Baskerville", "Times New Roman", serif' }}
+                        style={{ fontFamily: '"Cooper Black", "Cooper Std Black", Georgia, serif' }}
                       >
                         Tuotteet ja vertailu
                       </h2>
@@ -7716,7 +7718,7 @@ export default function Page() {
                         ? "Kirjoita yksi tuote"
                         : "maito, kahvi, jauheliha"
                     }
-                    className="relative mt-4 h-28 w-full resize-none rounded-[1.7rem] border-[3px] border-[#b99d62] bg-[#fff9e8] px-6 py-5 text-[22px] font-black leading-snug text-[#172417] shadow-[inset_0_4px_12px_rgba(91,65,28,0.14),0_2px_0_#fff6dc] outline-none placeholder:text-[#8b846f] focus:border-[#0b7f3a] focus:ring-4 focus:ring-[#c4dfbd]" style={{ fontFamily: '"Trebuchet MS", "Gill Sans", sans-serif' }}
+                    className="relative mt-4 h-28 w-full resize-none rounded-[1.7rem] border-[3px] border-[#b99d62] bg-[#fff9e8] px-6 py-5 text-[22px] font-black leading-snug text-[#172417] shadow-[inset_0_4px_12px_rgba(91,65,28,0.14),0_2px_0_#fff6dc] outline-none placeholder:text-[#8b846f] focus:border-[#0b7f3a] focus:ring-4 focus:ring-[#c4dfbd]" style={{ fontFamily: '"Baskerville", "Georgia", serif' }}
                   />
 
                   <div className="relative mt-3 grid grid-cols-[1fr_1fr_0.9fr] gap-3">
@@ -7726,7 +7728,7 @@ export default function Page() {
                       disabled={gostaSearchDisabled}
                       aria-disabled={gostaSearchDisabled}
                       className={`group flex min-h-[108px] items-center gap-3 overflow-hidden rounded-[1.35rem] border-[3px] border-[#9dbd8b] bg-gradient-to-b from-[#eef8e7] to-[#d9edcf] px-3 py-3 text-left shadow-[0_4px_0_rgba(91,72,44,0.20),inset_0_0_0_2px_rgba(255,255,255,0.5)] transition active:translate-y-[1px] ${gostaSearchDisabled ? "cursor-not-allowed opacity-55" : "hover:brightness-105"}`}
-                      title="Gösta etsii tarjoukset"
+                      title="Gösta etsii hinnanhuojennukset"
                     >
                       <span className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl bg-[#dcefd9] ring-1 ring-[#b8d6b6]">
                         <img
@@ -7741,12 +7743,12 @@ export default function Page() {
                       <span className="min-w-0">
                         <span
                           className="block text-2xl font-black italic leading-none text-[#315f2f]"
-                          style={{ fontFamily: 'Georgia, Baskerville, serif' }}
+                          style={{ fontFamily: '"Cooper Black", "Cooper Std Black", Georgia, serif' }}
                         >
                           Gösta
                         </span>
                         <span className="mt-1 block text-sm font-black leading-tight text-[#315f2f]">
-                          {loadingOffers ? "Etsii tarjouksia…" : offerSearchDoneForQuery === currentSearchQueryKey ? "Tarjoukset haettu" : "Etsi tarjoukset"}
+                          {loadingOffers ? "Etsii hinnanhuojennuksia…" : "Etsi hinnanhuojennukset"}
                         </span>
                       </span>
                     </button>
@@ -7772,7 +7774,7 @@ export default function Page() {
                       <span className="min-w-0">
                         <span
                           className="block text-2xl font-black italic leading-none text-[#8a3f16]"
-                          style={{ fontFamily: 'Georgia, Baskerville, serif' }}
+                          style={{ fontFamily: '"Cooper Black", "Cooper Std Black", Georgia, serif' }}
                         >
                           Justiina
                         </span>
@@ -7808,12 +7810,12 @@ export default function Page() {
                 </section>
 
                 <div className="grid grid-cols-[minmax(0,1.35fr)_minmax(340px,0.95fr)] gap-3">
-                  <section className="relative overflow-hidden rounded-[2.1rem] border-[3px] border-[#b99d62] bg-gradient-to-b from-[#fbf2dc] via-[#f4e8c9] to-[#e9d9b8] p-5 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80">
+                  <section className="relative overflow-hidden rounded-[2.1rem] border-[3px] border-[#b99d62] bg-gradient-to-b from-[#f7e9c3] via-[#f0d9a4] to-[#dfbf7e] p-5 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80">
                     <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:radial-gradient(#b59c67_1.15px,transparent_1.15px)] [background-size:15px_15px]" />
                     <div className="relative flex items-center justify-between gap-3">
                       <p className="text-[13px] font-black uppercase tracking-[0.28em] text-[#746742] drop-shadow-[0_1px_0_#fff7df]">
                         {activeResult === "offers" || loadingOffers
-                          ? "Tarjoukset"
+                          ? "Hinnanhuojennukset"
                           : "Hakutulokset"}
                       </p>
                       {(activeResult === "offers" || loadingOffers) && (
@@ -7853,7 +7855,7 @@ export default function Page() {
                       {activeResult === "offers" || loadingOffers ? (
                         loadingOffers ? (
                           <p className="rounded-[1.25rem] border border-[#dec890] bg-[#f7efd9] p-4 text-sm font-black text-[#6f6b59] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
-                            Gösta etsii tarjouksia…
+                            Gösta etsii hinnanhuojennuksia…
                           </p>
                         ) : hasSearchedOffers && filteredOffers.length > 0 ? (
                           filteredOffers.slice(0, 12).map((item) => {
@@ -7877,7 +7879,7 @@ export default function Page() {
                                   <div className="min-w-0 flex-1">
                                     <div className="mb-1 flex flex-wrap gap-1">
                                       <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-red-700">
-                                        Tarjous
+                                        Hinnanhuojennus
                                       </span>
                                       <span
                                         className={`rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wide ${item.chain === "S" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
@@ -7930,11 +7932,11 @@ export default function Page() {
                           })
                         ) : hasSearchedOffers ? (
                           <p className="rounded-[1.25rem] border border-[#dec890] bg-[#f7efd9] p-4 text-sm font-black text-[#6f6b59] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
-                            Ei tarjouksia: {offerSearchLabel}
+                            Ei hinnanhuojennuksia: {offerSearchLabel}
                           </p>
                         ) : (
                           <p className="rounded-[1.25rem] border border-[#dec890] bg-[#f7efd9] p-4 text-sm font-black text-[#6f6b59] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
-                            Gösta näyttää tarjoukset tässä.
+                            Gösta näyttää hinnanhuojennukset tässä.
                           </p>
                         )
                       ) : loadingNormal || singleProductCompareLoading ? (
@@ -7995,7 +7997,7 @@ export default function Page() {
                     </div>
                   </section>
 
-                  <section className="relative overflow-hidden rounded-[2.1rem] border-[3px] border-[#b99d62] bg-gradient-to-b from-[#fbf2dc] via-[#f4e8c9] to-[#e9d9b8] p-5 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80">
+                  <section className="relative overflow-hidden rounded-[2.1rem] border-[3px] border-[#b99d62] bg-gradient-to-b from-[#f7e9c3] via-[#f0d9a4] to-[#dfbf7e] p-5 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80">
                     <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:radial-gradient(#b59c67_1.15px,transparent_1.15px)] [background-size:15px_15px]" />
                     <p className="relative text-[13px] font-black uppercase tracking-[0.28em] text-[#746742] drop-shadow-[0_1px_0_#fff7df]">
                       Vertailu
@@ -8112,7 +8114,7 @@ export default function Page() {
                         </div>
                         <div className="flex gap-3">
                           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#465638] text-white">2</span>
-                          <span>Skanneri etsii hinnat ja tarjoukset</span>
+                          <span>Skanneri etsii hinnat ja hinnanhuojennukset</span>
                         </div>
                         <div className="flex gap-3">
                           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#465638] text-white">3</span>
@@ -8152,7 +8154,7 @@ export default function Page() {
                     <div className="mb-3 grid grid-cols-[1fr] gap-3">
                       <div>
                         <p className="flex min-h-[4.25rem] items-center rounded-2xl bg-[#efe0bf] px-5 py-3 font-serif text-[1.45rem] italic leading-tight text-[#31402c] shadow-sm">
-                          Kuva otetaan, tarjoukset talteen. Säästöt esiin!
+                          Kuva otetaan, hinnanhuojennukset talteen. Säästöt esiin!
                         </p>
                       </div>
                     </div>
@@ -9358,10 +9360,10 @@ export default function Page() {
               >
                 <div className="mb-3 rounded-2xl bg-green-700 p-4 text-white shadow-sm sm:rounded-[2rem] sm:p-6">
                   <p className="text-xs font-bold uppercase tracking-wide text-green-100 sm:text-sm">
-                    Tarjousmoottori
+                    Hinnanhuojennusmoottori
                   </p>
                   <h2 className="mt-1 text-2xl font-extrabold sm:text-2xl sm:text-3xl">
-                    Tarjoukset
+                    Hinnanhuojennukset
                   </h2>
                   <p className="mt-2 min-w-0 break-words text-sm font-bold text-green-100">
                     Hakusana: {offerSearchLabel}
@@ -9372,13 +9374,13 @@ export default function Page() {
                   <section className="rounded-[1.5rem] bg-white p-6 text-center shadow-sm sm:rounded-[2rem]">
                     <div className="mx-auto mb-3 h-9 w-9 animate-spin rounded-full border-4 border-green-100 border-t-green-600" />
                     <p className="text-sm font-black text-slate-700">
-                      Haetaan tarjouksia...
+                      Haetaan hinnanhuojennuksia...
                     </p>
                   </section>
                 ) : hasSearchedOffers && filteredOffers.length === 0 ? (
                   <section className="rounded-[1.5rem] bg-white p-6 text-center shadow-sm sm:rounded-[2rem]">
                     <p className="text-lg font-black text-slate-900">
-                      Ei tarjouksia: {offerSearchLabel}
+                      Ei hinnanhuojennuksia: {offerSearchLabel}
                     </p>
                   </section>
                 ) : hasSearchedOffers ? (
@@ -9386,10 +9388,10 @@ export default function Page() {
                     <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                       <div>
                         <h2 className="text-2xl font-extrabold">
-                          Löytyneet tarjoukset
+                          Löytyneet hinnanhuojennukset
                         </h2>
                         <p className="min-w-0 break-words text-xs font-semibold text-slate-500 sm:text-sm">
-                          {filteredOffers.length} tarjousta
+                          {filteredOffers.length} hinnanhuojennusta
                         </p>
                       </div>
                       <div className="flex flex-wrap gap-2">
@@ -9431,7 +9433,7 @@ export default function Page() {
                             <div className="min-w-0 max-w-full flex-1 overflow-hidden">
                               <div className="mb-2 flex flex-wrap gap-2">
                                 <span className="rounded-full bg-red-100 px-2 py-1 text-xs font-extrabold text-green-700">
-                                  🔥 Tarjous
+                                  🔥 Hinnanhuojennus
                                 </span>
                                 <span
                                   className={`rounded-full px-2 py-1 text-xs font-bold ${item.chain === "S" ? "bg-green-100 text-green-700" : "bg-red-100 text-green-700"}`}
@@ -9509,7 +9511,7 @@ export default function Page() {
                 ) : (
                   <section className="rounded-[1.5rem] bg-white p-6 text-center shadow-sm sm:rounded-[2rem]">
                     <p className="text-sm font-black text-slate-700">
-                      Aloita hakemalla tarjouksia.
+                      Aloita hakemalla hinnanhuojennuksia.
                     </p>
                   </section>
                 )}
@@ -10075,7 +10077,7 @@ export default function Page() {
                                   </span>
                                   <span className="text-slate-300">·</span>
                                   <span className="text-yellow-700">
-                                    {chain.offerCount} tarjousta
+                                    {chain.offerCount} hinnanhuojennusta
                                   </span>
                                   {!chain.comingSoon && (
                                     <span className="ml-auto text-[10px] uppercase tracking-wide text-green-700">
@@ -10743,7 +10745,7 @@ export default function Page() {
                 <div>
                   <h2 className="text-2xl font-extrabold">Ostoskori</h2>
                   <p className="text-sm text-green-100">
-                    Ostoskorin tuotteille voi hakea tarjoukset ja vertailla
+                    Ostoskorin tuotteille voi hakea hinnanhuojennukset ja vertailla
                     normaalihintoja.
                   </p>
                 </div>
@@ -10998,7 +11000,7 @@ export default function Page() {
 
               {cart.length === 0 ? (
                 <div className="rounded-2xl bg-white/10 p-4 text-green-50">
-                  Lisää tuotteita hausta, tarjouksista, EAN-haulla tai
+                  Lisää tuotteita hausta, hinnanhuojennuksista, EAN-haulla tai
                   muistilistana.
                 </div>
               ) : (
@@ -11049,11 +11051,11 @@ export default function Page() {
                           type="button"
                           disabled
                           className="flex h-10 min-w-[6.25rem] flex-1 items-center justify-center rounded-xl bg-amber-100 px-2 text-[12px] font-black leading-tight text-amber-700 opacity-85 active:scale-[0.98] sm:text-sm"
-                          title="Tuotekohtainen tarjoushaku rakennetaan myöhemmin"
-                          aria-label="Tarjoukset tulossa"
+                          title="Tuotekohtainen hinnanhuojennushaku rakennetaan myöhemmin"
+                          aria-label="Hinnanhuojennukset tulossa"
                         >
                           <span className="mr-1">🔥</span>
-                          <span className="whitespace-nowrap">Tarjoukset</span>
+                          <span className="whitespace-nowrap">Hinnanhuojennukset</span>
                         </button>
 
                         <div className="flex shrink-0 items-center rounded-xl bg-white p-1 shadow-sm ring-1 ring-slate-200">
@@ -11135,11 +11137,11 @@ export default function Page() {
                           setShopsPanelOpen(false);
                           setEanModalOpen(false);
                           setActiveResult("none");
-                          setCartModalOpen(false);
+                          setCartModalOpen(true);
                         }}
                         className="rounded-full bg-green-700 px-4 py-2 text-sm font-black text-white shadow-sm active:scale-[0.98]"
                       >
-                        Säilytä
+                        Jatka
                       </button>
                       <button
                         type="button"
@@ -11471,7 +11473,7 @@ export default function Page() {
                             : "bg-rose-100 text-rose-700 shadow-sm ring-1 ring-rose-200 active:scale-[0.98]"
                         }`}
                       >
-                        {loadingOffers ? "Haetaan..." : "🔥 Tarjoukset"}
+                        {loadingOffers ? "Haetaan..." : "🔥 Hinnanhuojennukset"}
                       </button>
                       <button
                         type="button"
