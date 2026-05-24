@@ -7485,7 +7485,7 @@ return (
           <div ref={cartOverlayScrollRef} className="max-h-[calc(100dvh-12.5rem)] w-full max-w-3xl overflow-y-auto overscroll-contain overflow-x-hidden rounded-[1.6rem] bg-gradient-to-br from-slate-950 via-emerald-950 to-green-800 p-4 text-white shadow-[0_24px_80px_rgba(15,23,42,0.35)] sm:max-h-none sm:rounded-[2rem] sm:p-6">
             <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
               <div>
-                <h2 className="text-2xl font-extrabold">Ostoskori ({cart.length}/{MAX_ITEMS})</h2>
+                <h2 className="text-2xl font-extrabold">Ostoskori</h2>
                 <p className="text-sm text-green-100">Ostoskorin tuotteille voi hakea tarjoukset ja vertailla normaalihintoja.</p>
               </div>
               <div className="flex flex-wrap gap-2 sm:justify-end">
@@ -7570,7 +7570,7 @@ return (
                     <p className="text-xs font-black uppercase tracking-wide text-green-300">Keräily kaupassa</p>
                     <h3 className="mt-1 text-xl font-black">{cheapest?.storeName || "Muistilista"}</h3>
                     <p className="mt-1 text-sm font-bold text-slate-300">
-                      {checkedCount}/{shoppingListCount} ostosta kerätty{cheapest ? ` · kori ${formatEuro(cheapest.totalPrice)}` : " · ei hintavertailussa"}
+                      {cheapest ? `Kori ${formatEuro(cheapest.totalPrice)}` : "Muistilista"}
                       {checkedCount === shoppingListCount && shoppingListCount > 0 && (
                         <span className="mt-2 block rounded-xl bg-green-500 px-3 py-2 text-center text-xs font-black uppercase tracking-wide text-slate-950">
                           ✓ Valmis kassalle
@@ -7644,7 +7644,7 @@ return (
                                 <p className={`line-clamp-2 text-sm font-black leading-tight ${checked ? "line-through opacity-70" : ""}`}>
                                   {match.quantity} × {fixText(match.product.name)}
                                 </p>
-                                <p className="mt-1 text-xs font-bold text-slate-400">Merkitse kerätyksi</p>
+                                
                               </div>
                             </button>
                           );
