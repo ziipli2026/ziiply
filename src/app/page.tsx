@@ -6064,7 +6064,7 @@ export default function Page() {
 
   return (
     <main className={`min-h-screen overflow-x-hidden bg-[#EAF4F1] px-2 pb-44 pt-0 text-slate-950 sm:bg-[radial-gradient(circle_at_top,#ecfdf3_0%,#f8fafc_42%,#f1f5f9_100%)] sm:px-4 sm:pb-32 sm:py-3 sm:py-4 md:pb-4 ${suppressUiForEanClose ? "pointer-events-none" : ""}`}>
-      <style jsx global>{`
+      <style>{`
         html,
         body {
           background: #EAF4F1 !important;
@@ -6232,7 +6232,7 @@ export default function Page() {
               </p>
             </div>
 
-            <style jsx global>{`
+            <style>{`
               @keyframes ziiplyLogoIntro {
                 0% {
                   opacity: 0;
