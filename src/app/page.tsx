@@ -7672,7 +7672,7 @@ export default function Page() {
                   </div>
 
                   {locationMessageVisible ? (
-                    <div className="pointer-events-none absolute left-1/2 top-[8px] z-30 inline-flex w-max max-w-none -translate-x-1/2 whitespace-nowrap rounded-[1.05rem] border border-[#caa35d] bg-[#ffe9a8] px-5 py-2 text-[13px] font-black uppercase tracking-[0.14em] text-[#8a3f16] shadow-[0_3px_0_rgba(91,72,44,0.20),0_8px_18px_rgba(80,50,10,0.12)]">
+                    <div className="pointer-events-none absolute left-1/2 top-[6px] z-30 inline-flex w-max max-w-none -translate-x-1/2 whitespace-nowrap rounded-[1.05rem] border border-[#caa35d] bg-[#ffe9a8] px-5 py-2 text-[13px] font-black uppercase tracking-[0.14em] text-[#8a3f16] shadow-[0_3px_0_rgba(91,72,44,0.20),0_8px_18px_rgba(80,50,10,0.12)]">
                       {storeSearchLoading ? "HAETAAN KAUPPOJA..." : locationMessage}
                     </div>
                   ) : null}
@@ -7743,7 +7743,7 @@ export default function Page() {
       </div>
     </div>
 
-    <div className="mt-4 grid grid-cols-[1fr_1fr_1fr] gap-3">
+    <div className="mt-4 grid grid-cols-[1.08fr_1fr_1fr] gap-3">
       <button
         type="button"
         onClick={handleGostaOfferSearch}
@@ -7754,7 +7754,7 @@ export default function Page() {
         }`}
         title="Gösta etsii hinnanhuojennukset"
       >
-        <span className="h-[68px] w-[68px] shrink-0 overflow-hidden rounded-[18px] border-[2px] border-[#9eb17a] bg-[#e7edc4]">
+        <span className="h-[62px] w-[62px] shrink-0 overflow-hidden rounded-[18px] border-[2px] border-[#9eb17a] bg-[#e7edc4]">
           <img
             src="/assistants/gosta.png"
             alt=""
@@ -7858,8 +7858,8 @@ export default function Page() {
   </div>
 </section>
 
-                <div className="fixed bottom-0 left-[max(24px,calc((100vw-1720px)/2+390px))] right-[max(24px,calc((100vw-1720px)/2+520px))] z-40 grid max-h-[42dvh] grid-cols-[minmax(0,1.35fr)_minmax(340px,0.95fr)] gap-3 rounded-t-[2rem] bg-[#efe2bf]/95 px-3 pt-3 pb-4 shadow-[0_-10px_30px_rgba(60,45,20,0.20)] backdrop-blur-sm">
-                  <section className="relative overflow-hidden rounded-[2.1rem] border-[3px] border-[#b99d62] bg-gradient-to-b from-[#f7e9c3] via-[#f0d9a4] to-[#dfbf7e] p-5 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80">
+                <div className="fixed bottom-0 left-[max(18px,calc((100vw-1720px)/2+410px))] right-[max(18px,calc((100vw-1720px)/2+520px))] z-40 grid grid-cols-[minmax(0,1fr)_minmax(300px,0.82fr)] items-end gap-3 px-2 pointer-events-none">
+  <div className="pointer-events-auto"><section className="group relative max-h-[86px] overflow-hidden rounded-t-[2.1rem] rounded-b-none transition-[max-height] duration-300 ease-out hover:max-h-[48dvh] focus-within:max-h-[48dvh] border-[3px] border-[#b99d62] bg-gradient-to-b from-[#f7e9c3] via-[#f0d9a4] to-[#dfbf7e] p-5 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80">
                     <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:radial-gradient(#b59c67_1.15px,transparent_1.15px)] [background-size:15px_15px]" />
                     <div className="relative flex items-center justify-between gap-3">
                       <p className="text-[13px] font-black uppercase tracking-[0.28em] text-[#746742] drop-shadow-[0_1px_0_#fff7df]">
@@ -8044,9 +8044,8 @@ export default function Page() {
                         </p>
                       )}
                     </div>
-                  </section>
-
-                  <section className="relative overflow-hidden rounded-[2.1rem] border-[3px] border-[#b99d62] bg-gradient-to-b from-[#f7e9c3] via-[#f0d9a4] to-[#dfbf7e] p-5 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80">
+                  </section></div>
+  <div className="pointer-events-auto"><section className="group relative max-h-[86px] overflow-hidden rounded-t-[2.1rem] rounded-b-none transition-[max-height] duration-300 ease-out hover:max-h-[48dvh] focus-within:max-h-[48dvh] border-[3px] border-[#b99d62] bg-gradient-to-b from-[#f7e9c3] via-[#f0d9a4] to-[#dfbf7e] p-5 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80">
                     <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:radial-gradient(#b59c67_1.15px,transparent_1.15px)] [background-size:15px_15px]" />
                     <p className="relative text-[13px] font-black uppercase tracking-[0.28em] text-[#746742] drop-shadow-[0_1px_0_#fff7df]">
                       Vertailu
@@ -8085,8 +8084,8 @@ export default function Page() {
                         </p>
                       )}
                     </div>
-                  </section>
-                </div>
+                  </section></div>
+</div>
               </main>
 
               <aside className="min-h-0">
@@ -8215,7 +8214,7 @@ export default function Page() {
                     )}
 
                     <div className="relative overflow-hidden rounded-[2rem] border-[10px] border-[#1f211a] bg-[#10140f] p-4 shadow-[inset_0_0_0_2px_rgba(255,255,255,0.16),0_10px_20px_rgba(0,0,0,0.25)]">
-                      <div className="absolute left-1/2 top-3 z-10 h-9 w-28 -translate-x-1/2 rounded-xl border-2 border-[#cfc1a0] bg-black/70 shadow-inner" />
+                      <div className="absolute left-1/2 top-3 z-10 h-9 w-28 -translate-x-1/2 rounded-xl border-2 border-[#cfc1a0] bg-transparent/70 shadow-inner" />
                       <div className="absolute right-5 top-4 z-10 h-11 w-11 rounded-full border-4 border-[#cfc1a0] bg-[#0c0d0b] shadow-inner" />
                       <div
                         className="relative aspect-[4/3] w-full overflow-hidden rounded-[1.5rem] border-4 border-[#5d5037] bg-slate-950"
@@ -8234,7 +8233,7 @@ export default function Page() {
                           <div className="absolute -bottom-1 -right-1 h-10 w-10 rounded-br-2xl border-b-4 border-r-4 border-[#f7ead0]" />
                         </div>
                         {!eanScannerOpen && (
-                          <div className="absolute inset-0 flex items-center justify-center bg-black/45 p-6 text-center">
+                          <div className="absolute inset-0 flex items-center justify-center bg-transparent/45 p-6 text-center">
                             <p className="max-w-sm rounded-2xl bg-[#fbf2dc] px-5 py-4 text-sm font-black text-[#2f3d28] shadow-xl">
                               Kamera on pois päältä. Avaa skanneri uudelleen painikkeesta.
                             </p>
