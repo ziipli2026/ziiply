@@ -551,7 +551,7 @@ export default function Page() {
   });
 
   const [isOnline, setIsOnline] = useState(true);
-  const [showLaunchScreen, setShowLaunchScreen] = useState(true);
+  const [showLaunchScreen, setShowLaunchScreen] = useState(false);
   const [suppressUiForEanClose, setSuppressUiForEanClose] = useState(false);
   const [eanModalClosing, setEanModalClosing] = useState(false);
   const PANEL_FADE_MS = 260;
@@ -597,8 +597,8 @@ export default function Page() {
   }, []);
 
   useEffect(() => {
-    const timeout = window.setTimeout(() => setShowLaunchScreen(false), 900);
-    return () => window.clearTimeout(timeout);
+    // Launch/splash overlay disabled: keep initial reload/startup view visible immediately.
+    setShowLaunchScreen(false);
   }, []);
 
   useEffect(() => {
