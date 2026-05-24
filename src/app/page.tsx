@@ -6585,9 +6585,9 @@ return (
                       </div>
                     ))}
                     {singleProductCompareResults.slice(0, 4).map((result) => (
-                      <div key={`desktop-single-${result.chain}-${result.storeName}-${result.product.id}`} className="rounded-xl bg-slate-50 p-2">
-                        <p className="truncate text-sm font-black text-slate-900">{fixText(result.product.name)}</p>
-                        <p className="text-xs font-bold text-slate-500">{result.storeName} · {formatEuro(getProductPrice(result.product))}</p>
+                      <div key={`desktop-single-${result.key}-${result.storeName}-${result.productName}`} className="rounded-xl bg-slate-50 p-2">
+                        <p className="truncate text-sm font-black text-slate-900">{fixText(result.productName)}</p>
+                        <p className="text-xs font-bold text-slate-500">{result.storeName} · {formatEuro(result.price)}</p>
                       </div>
                     ))}
                   </div>
