@@ -288,18 +288,25 @@ export default function Page() {
     setLocationMessageVisible(true);
 
     const lower = locationMessage.toLowerCase();
+
+    // v360_LOCATION_STATUS_AUTO_HIDE:
+    // GPS-/kauppainfo näkyy hetken aikaa Kaupat ja sijainti -paneelissa
+    // ja katoaa automaattisesti, kun tila on vakaa.
     const shouldAutoHide =
       !storeSearchLoading &&
-      (lower.endsWith("käytössä.") ||
-        lower.includes(" löytyi.") ||
-        (lower.includes(" valittu") && !lower.includes("valitse")));
+      (
+        lower.includes("käytössä") ||
+        lower.includes("löytyi") ||
+        lower.includes("valittu") ||
+        lower.includes("gps")
+      );
 
     if (!shouldAutoHide) return;
 
-    const timer = window.setTimeout(
-      () => setLocationMessageVisible(false),
-      1700,
-    );
+    const timer = window.setTimeout(() => {
+      setLocationMessageVisible(false);
+    }, 2600);
+
     return () => window.clearTimeout(timer);
   }, [locationMessage, storeSearchLoading]);
 
@@ -7536,9 +7543,7 @@ export default function Page() {
                     <span className="block truncate text-xl font-black leading-tight">
                       {activeArea.label}
                     </span>
-                    <span className="mt-0.5 block h-[1.15rem] truncate text-[11px] font-black uppercase tracking-[0.14em] text-[#8a3f16]">
-                      {activeArea.label.toUpperCase()} KÄYTÖSSÄ.
-                    </span>
+
                   </span>
                 </button>
               </div>
@@ -7666,148 +7671,180 @@ export default function Page() {
                     <span className="hidden h-[46px] min-w-[1px] 2xl:block" aria-hidden="true" />
                   </div>
 
-                  <div className="relative mt-3 min-h-[34px] rounded-[1.1rem] border border-[#d2b170] bg-[#fff1bf] px-4 py-2 text-[13px] font-black uppercase tracking-[0.12em] text-[#8a3f16] shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
-                    {storeSearchLoading ? "HAETAAN KAUPPOJA..." : locationMessage}
-                  </div>
+                  {locationMessageVisible ? (
+                    <div className="relative mt-3 min-h-[34px] rounded-[1.1rem] border border-[#d2b170] bg-[#fff1bf] px-4 py-2 text-[13px] font-black uppercase tracking-[0.12em] text-[#8a3f16] shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
+                      {storeSearchLoading ? "HAETAAN KAUPPOJA..." : locationMessage}
+                    </div>
+                  ) : null}
                 </section>
 
-                <section className="relative overflow-hidden rounded-[2.1rem] border-[3px] border-[#b99d62] bg-gradient-to-b from-[#f7e9c3] via-[#f0d9a4] to-[#dfbf7e] p-5 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80">
-                  <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:radial-gradient(#b59c67_1.15px,transparent_1.15px)] [background-size:15px_15px]" />
-                  <div className="relative flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-[15px] font-black uppercase tracking-[0.40em] text-[#746742] drop-shadow-[0_1px_0_#fff7df]" style={{ fontFamily: '"Copperplate", "Baskerville", Georgia, serif' }}>
-                        Haku
-                      </p>
-                      <h2
-                        className="text-[2.15rem] font-black italic leading-none tracking-[-0.05em] text-[#243d28] drop-shadow-[0_1px_0_#fff7df]"
-                        style={{ fontFamily: '"Cooper Black", "Cooper Std Black", Georgia, serif' }}
-                      >
-                        Tuotteet ja vertailu
-                      </h2>
-                    </div>
-                    <div className="flex rounded-2xl bg-[#eadfca] p-1">
-                      <button
-                        type="button"
-                        onClick={() => setSearchCompareMode("cart")}
-                        className={`rounded-xl px-5 py-2 text-[18px] font-black tracking-[0.01em] ${searchCompareMode === "cart" ? "bg-white text-[#315f2f] shadow-sm" : "text-[#6f6b59]"}`}
-                      >
-                        Koko kori
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSearchCompareMode("single");
-                          setInput((currentInput) =>
-                            getSingleSearchTerm(currentInput),
-                          );
-                        }}
-                        className={`rounded-xl px-5 py-2 text-[18px] font-black tracking-[0.01em] ${searchCompareMode === "single" ? "bg-white text-[#315f2f] shadow-sm" : "text-[#6f6b59]"}`}
-                      >
-                        Yksi tuote
-                      </button>
-                    </div>
-                  </div>
+                <section className="relative overflow-hidden rounded-[2.25rem] border-[4px] border-[#5b482c] bg-[#f4e7c7] p-5 text-[#20301f] shadow-[0_0_0_2px_#d4b978_inset,0_12px_0_rgba(91,72,44,0.22),0_20px_30px_rgba(60,45,20,0.18)]">
+  <div className="pointer-events-none absolute inset-0 opacity-[0.22] [background-image:radial-gradient(#c7aa67_1px,transparent_1px)] [background-size:15px_15px]" />
 
-                  <textarea
-                    value={input}
-                    onChange={(event) =>
-                      setSearchInputForMode(event.target.value)
-                    }
-                    placeholder={
-                      searchCompareMode === "single"
-                        ? "Kirjoita yksi tuote"
-                        : "maito, kahvi, jauheliha"
-                    }
-                    className="relative mt-4 h-28 w-full resize-none rounded-[1.7rem] border-[3px] border-[#b99d62] bg-[#fff9e8] px-6 py-5 text-[22px] font-black leading-snug text-[#172417] shadow-[inset_0_4px_12px_rgba(91,65,28,0.14),0_2px_0_#fff6dc] outline-none placeholder:text-[#8b846f] focus:border-[#0b7f3a] focus:ring-4 focus:ring-[#c4dfbd]" style={{ fontFamily: '"Baskerville", "Georgia", serif' }}
-                  />
+  <div className="relative z-10">
+    <div className="flex items-start justify-between gap-5">
+      <div className="min-w-0">
+        <p
+          className="text-[15px] font-black uppercase tracking-[0.40em] text-[#746742] drop-shadow-[0_1px_0_#fff7df]"
+          style={{ fontFamily: '"Copperplate", "Baskerville", Georgia, serif' }}
+        >
+          Haku
+        </p>
+        <h2
+          className="mt-1 text-[44px] font-black italic leading-none text-[#28402a] drop-shadow-[0_1px_0_#fff7df]"
+          style={{ fontFamily: '"Cooper Black", "Cooper Std Black", Georgia, serif' }}
+        >
+          Tuotteet ja vertailu
+        </h2>
+      </div>
 
-                  <div className="relative mt-3 grid grid-cols-[1fr_1fr_0.9fr] gap-3">
-                    <button
-                      type="button"
-                      onClick={handleGostaOfferSearch}
-                      disabled={gostaSearchDisabled}
-                      aria-disabled={gostaSearchDisabled}
-                      className={`group flex min-h-[108px] items-center gap-3 overflow-hidden rounded-[1.35rem] border-[3px] border-[#9dbd8b] bg-gradient-to-b from-[#eef8e7] to-[#d9edcf] px-3 py-3 text-left shadow-[0_4px_0_rgba(91,72,44,0.20),inset_0_0_0_2px_rgba(255,255,255,0.5)] transition active:translate-y-[1px] ${gostaSearchDisabled ? "cursor-not-allowed opacity-55" : "hover:brightness-105"}`}
-                      title="Gösta etsii hinnanhuojennukset"
-                    >
-                      <span className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl bg-[#dcefd9] ring-1 ring-[#b8d6b6]">
-                        <img
-                          src="/assistants/gosta.png"
-                          alt=""
-                          onError={(event) => {
-                            event.currentTarget.style.display = "none";
-                          }}
-                          className="h-full w-full object-cover object-top"
-                        />
-                      </span>
-                      <span className="min-w-0">
-                        <span
-                          className="block text-2xl font-black italic leading-none text-[#315f2f]"
-                          style={{ fontFamily: '"Cooper Black", "Cooper Std Black", Georgia, serif' }}
-                        >
-                          Gösta
-                        </span>
-                        <span className="mt-1 block text-sm font-black leading-tight text-[#315f2f]">
-                          {loadingOffers ? "Etsii hinnanhuojennuksia…" : "Etsi hinnanhuojennukset"}
-                        </span>
-                      </span>
-                    </button>
+      <div className="flex shrink-0 rounded-[24px] border-[3px] border-[#b99d64] bg-[#ead7a5] p-1.5 shadow-[0_0_0_2px_#fff4cc_inset,0_4px_0_rgba(91,72,44,0.18)]">
+        <button
+          type="button"
+          onClick={() => setSearchCompareMode("cart")}
+          className={`min-h-[44px] rounded-[18px] px-6 text-[18px] font-black leading-none transition ${
+            searchCompareMode === "cart"
+              ? "bg-[#fff4cf] text-[#23502c] shadow-[inset_0_0_0_2px_#d9bd77,0_2px_0_rgba(91,72,44,0.18)]"
+              : "text-[#7a6842]"
+          }`}
+          style={{ fontFamily: '"Cooper Black", "Cooper Std Black", Georgia, serif' }}
+        >
+          Koko kori
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setSearchCompareMode("single");
+            setInput((currentInput) => getSingleSearchTerm(currentInput));
+          }}
+          className={`min-h-[44px] rounded-[18px] px-6 text-[18px] font-black leading-none transition ${
+            searchCompareMode === "single"
+              ? "bg-[#fff4cf] text-[#23502c] shadow-[inset_0_0_0_2px_#d9bd77,0_2px_0_rgba(91,72,44,0.18)]"
+              : "text-[#7a6842]"
+          }`}
+          style={{ fontFamily: '"Cooper Black", "Cooper Std Black", Georgia, serif' }}
+        >
+          Yksi tuote
+        </button>
+      </div>
+    </div>
 
-                    <button
-                      type="button"
-                      onClick={handleJustiinaProductSearch}
-                      disabled={!hasSearchInput || loadingNormal || singleProductCompareLoading}
-                      aria-disabled={!hasSearchInput || loadingNormal || singleProductCompareLoading}
-                      className={`group flex min-h-[108px] items-center gap-3 overflow-hidden rounded-[1.35rem] border-[3px] border-[#d3b25f] bg-gradient-to-b from-[#fff0bd] to-[#f1d98d] px-3 py-3 text-left shadow-[0_4px_0_rgba(91,72,44,0.20),inset_0_0_0_2px_rgba(255,255,255,0.5)] transition active:translate-y-[1px] ${!hasSearchInput || loadingNormal || singleProductCompareLoading ? "cursor-not-allowed opacity-55" : "hover:brightness-105"}`}
-                      title="Justiina etsii ostokset"
-                    >
-                      <span className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl bg-[#f8e8ba] ring-1 ring-[#e1c678]">
-                        <img
-                          src="/assistants/justiina.png"
-                          alt=""
-                          onError={(event) => {
-                            event.currentTarget.style.display = "none";
-                          }}
-                          className="h-full w-full object-cover object-top"
-                        />
-                      </span>
-                      <span className="min-w-0">
-                        <span
-                          className="block text-2xl font-black italic leading-none text-[#8a3f16]"
-                          style={{ fontFamily: '"Cooper Black", "Cooper Std Black", Georgia, serif' }}
-                        >
-                          Justiina
-                        </span>
-                        <span className="mt-1 block text-sm font-black leading-tight text-[#8a3f16]">
-                          {loadingNormal || singleProductCompareLoading
-                            ? "Etsii ostoksia…"
-                            : "Etsi ostokset"}
-                        </span>
-                      </span>
-                    </button>
+    <div className="mt-5 rounded-[30px] border-[3px] border-[#9d8350] bg-[#fff4d3] p-3 shadow-[inset_0_4px_12px_rgba(91,65,28,0.14),0_2px_0_#fff6dc]">
+      <textarea
+        value={input}
+        onChange={(event) => setSearchInputForMode(event.target.value)}
+        placeholder={
+          searchCompareMode === "single"
+            ? "Kirjoita yksi tuote"
+            : "maito, kahvi, jauheliha"
+        }
+        className="h-[104px] w-full resize-none rounded-[22px] border-0 bg-[#fff9e8] px-6 py-5 text-[24px] font-black leading-snug text-[#172417] outline-none placeholder:text-[#8b846f]"
+        style={{ fontFamily: '"Baskerville", "Georgia", serif' }}
+      />
+    </div>
 
-                    <button
-                      type="button"
-                      onClick={() => void pasteFromClipboardToSearch()}
-                      className="flex min-h-[108px] items-center justify-center rounded-[1.35rem] border-2 border-[#0f5f31] bg-[#0c7c38] px-4 py-3 text-center text-lg font-black leading-tight text-white shadow-[inset_0_-3px_0_rgba(0,0,0,0.14)] transition hover:brightness-105 active:translate-y-[1px]"
-                    >
-                      Lisää vihkosesta
-                    </button>
-                  </div>
+    <div className="mt-4 grid grid-cols-[1fr_1fr_1fr] gap-3">
+      <button
+        type="button"
+        onClick={handleGostaOfferSearch}
+        disabled={gostaSearchDisabled}
+        aria-disabled={gostaSearchDisabled}
+        className={`group flex min-h-[102px] items-center gap-3 overflow-hidden rounded-[26px] border-[3px] border-[#7b935f] bg-gradient-to-b from-[#eff2d2] to-[#cdd99b] px-3 py-3 text-left shadow-[0_5px_0_rgba(91,72,44,0.22),inset_0_0_0_2px_rgba(255,255,255,0.5)] transition active:translate-y-[1px] ${
+          gostaSearchDisabled ? "cursor-not-allowed opacity-55" : "hover:brightness-105"
+        }`}
+        title="Gösta etsii hinnanhuojennukset"
+      >
+        <span className="h-[74px] w-[74px] shrink-0 overflow-hidden rounded-[19px] border-[2px] border-[#9eb17a] bg-[#e7edc4]">
+          <img
+            src="/assistants/gosta.png"
+            alt=""
+            onError={(event) => {
+              event.currentTarget.style.display = "none";
+            }}
+            className="h-full w-full object-cover object-top"
+          />
+        </span>
+        <span className="min-w-0">
+          <span
+            className="block text-[27px] font-black italic leading-none text-[#315f2f]"
+            style={{ fontFamily: '"Cooper Black", "Cooper Std Black", Georgia, serif' }}
+          >
+            Gösta
+          </span>
+          <span
+            className="mt-1 block text-[15px] font-black leading-tight text-[#315f2f]"
+            style={{ fontFamily: '"Baskerville", "Georgia", serif' }}
+          >
+            {loadingOffers ? "Etsii hinnanhuojennuksia…" : "Etsi hinnanhuojennukset"}
+          </span>
+        </span>
+      </button>
 
-                  <button
-                    type="button"
-                    onClick={() => openDesktopScanner()}
-                    className="relative mt-3 flex min-h-[76px] w-full items-center justify-center gap-3 overflow-hidden rounded-2xl border-2 border-[#b39a62] bg-[#2f3d28] px-4 py-3 text-center text-[#fff4d8] shadow-[inset_0_0_0_2px_rgba(255,244,216,0.08),0_3px_0_rgba(7,59,45,0.24)] transition hover:brightness-105 active:translate-y-[1px]"
-                  >
-                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#f4dfa1] text-xl text-[#2f3d28] ring-2 ring-[#b49a61]">
-                      📸
-                    </span>
-                    <span className="font-serif text-2xl font-black italic leading-none">
-                      Skanneri
-                    </span>
-                  </button>
-                </section>
+      <button
+        type="button"
+        onClick={handleJustiinaProductSearch}
+        disabled={!hasSearchInput || loadingNormal || singleProductCompareLoading}
+        aria-disabled={!hasSearchInput || loadingNormal || singleProductCompareLoading}
+        className={`group flex min-h-[102px] items-center gap-3 overflow-hidden rounded-[26px] border-[3px] border-[#c69f48] bg-gradient-to-b from-[#fff0bd] to-[#eec965] px-3 py-3 text-left shadow-[0_5px_0_rgba(91,72,44,0.22),inset_0_0_0_2px_rgba(255,255,255,0.5)] transition active:translate-y-[1px] ${
+          !hasSearchInput || loadingNormal || singleProductCompareLoading ? "cursor-not-allowed opacity-55" : "hover:brightness-105"
+        }`}
+        title="Justiina etsii ostokset"
+      >
+        <span className="h-[74px] w-[74px] shrink-0 overflow-hidden rounded-[19px] border-[2px] border-[#d8b457] bg-[#f8e8ba]">
+          <img
+            src="/assistants/justiina.png"
+            alt=""
+            onError={(event) => {
+              event.currentTarget.style.display = "none";
+            }}
+            className="h-full w-full object-cover object-top"
+          />
+        </span>
+        <span className="min-w-0">
+          <span
+            className="block text-[27px] font-black italic leading-none text-[#8a3f16]"
+            style={{ fontFamily: '"Cooper Black", "Cooper Std Black", Georgia, serif' }}
+          >
+            Justiina
+          </span>
+          <span
+            className="mt-1 block text-[15px] font-black leading-tight text-[#8a3f16]"
+            style={{ fontFamily: '"Baskerville", "Georgia", serif' }}
+          >
+            {loadingNormal || singleProductCompareLoading ? "Etsii ostoksia…" : "Etsi ostokset"}
+          </span>
+        </span>
+      </button>
+
+      <button
+        type="button"
+        onClick={() => void pasteFromClipboardToSearch()}
+        className="flex min-h-[102px] items-center justify-center rounded-[26px] border-[3px] border-[#165d32] bg-gradient-to-b from-[#169448] to-[#0b7334] px-4 py-3 text-center text-[25px] font-black italic leading-tight text-[#ffe7db] shadow-[0_5px_0_rgba(91,72,44,0.22),inset_0_0_0_2px_rgba(255,255,255,0.18)] transition hover:brightness-105 active:translate-y-[1px]"
+        style={{ fontFamily: '"Cooper Black", "Cooper Std Black", Georgia, serif' }}
+      >
+        Lisää
+        <br />
+        vihkosesta
+      </button>
+    </div>
+
+    <button
+      type="button"
+      onClick={() => openDesktopScanner()}
+      className="mt-4 flex min-h-[76px] w-full items-center justify-center gap-3 rounded-[26px] border-[3px] border-[#7a6338] bg-gradient-to-b from-[#f0d39a] to-[#c89a52] px-4 py-3 text-center text-[#26351f] shadow-[0_5px_0_rgba(91,72,44,0.22),inset_0_0_0_2px_rgba(255,255,255,0.35)] transition hover:brightness-105 active:translate-y-[1px]"
+    >
+      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border-[2px] border-[#806637] bg-[#fff2cf] text-xl text-[#2f3d28]">
+        📸
+      </span>
+      <span
+        className="text-[31px] font-black italic leading-none"
+        style={{ fontFamily: '"Cooper Black", "Cooper Std Black", Georgia, serif' }}
+      >
+        Skanneri
+      </span>
+    </button>
+  </div>
+</section>
 
                 <div className="grid grid-cols-[minmax(0,1.35fr)_minmax(340px,0.95fr)] gap-3">
                   <section className="relative overflow-hidden rounded-[2.1rem] border-[3px] border-[#b99d62] bg-gradient-to-b from-[#f7e9c3] via-[#f0d9a4] to-[#dfbf7e] p-5 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80">
