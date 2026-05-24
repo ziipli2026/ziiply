@@ -6200,8 +6200,8 @@ export default function Page() {
               alt="Ziiply"
               className="mx-auto max-h-[150px] w-auto object-contain py-2 sm:max-h-[180px] sm:py-3"
             />
-            <div className="mx-auto mt-3 max-w-3xl rounded-[1.5rem] border border-white/80 bg-white/82 px-5 py-4 text-center shadow-[0_18px_55px_rgba(15,23,42,0.10)] backdrop-blur-xl">
-              <p className="text-lg font-black leading-snug tracking-[-0.03em] text-slate-900">
+            <div className="mx-auto mt-4 max-w-3xl text-center">
+              <p className="text-xl font-black leading-tight tracking-[-0.04em] text-slate-950">
                 Viilaa ruokakorisi halvemmaks.
               </p>
               <p className="mt-2 text-base font-semibold leading-snug text-slate-500">
@@ -6213,80 +6213,93 @@ export default function Page() {
         </section>
 
         {!searchPanelOpen && !cartModalOpen && !shopsPanelOpen && !eanModalOpen && activeResult === "none" && (
-          <section className="flex min-h-[calc(100dvh-12rem)] flex-col items-center justify-center px-7 text-center">
-            <div className="relative">
-              <div className="absolute inset-0 rounded-full bg-green-400/20 blur-3xl animate-[ziiplyGlow_1.8s_ease-out_forwards]" />
+          <section className="flex min-h-[calc(100dvh-12rem)] flex-col items-center justify-start px-7 pt-[18dvh] text-center">
+            <div className="relative flex w-full max-w-[300px] items-center justify-center">
+              <div className="pointer-events-none absolute h-28 w-28 rounded-full bg-green-400/18 blur-2xl ziiply-logo-halo" />
+
               <img
                 src="/ziiply.png"
                 alt="Ziiply"
-                className="relative h-auto w-full max-w-[245px] object-contain animate-[ziiplyLogoIntro_1.25s_cubic-bezier(0.22,1,0.36,1)_forwards]"
+                className="relative h-auto w-full max-w-[238px] object-contain ziiply-logo-rise"
               />
             </div>
 
-            <div className="mt-6 max-w-[21rem] rounded-[1.6rem] border border-white/80 bg-white/82 px-5 py-4 text-center shadow-[0_18px_55px_rgba(15,23,42,0.10)] backdrop-blur-xl animate-[ziiplyTextIntro_1.25s_ease-out_0.18s_both] sm:hidden">
-              <p className="text-[1.08rem] font-black leading-snug tracking-[-0.03em] text-slate-900">
+            <div className="ziiply-welcome-copy mt-7 max-w-[21.5rem] text-center sm:hidden">
+              <p className="text-[1.22rem] font-black leading-[1.05] tracking-[-0.045em] text-slate-950">
                 Viilaa ruokakorisi halvemmaks.
               </p>
-              <p className="mt-2 text-[0.92rem] font-semibold leading-snug text-slate-500">
+
+              <p className="mx-auto mt-3 max-w-[19rem] text-[0.94rem] font-semibold leading-snug tracking-[-0.015em] text-slate-500">
                 Gösta ja Justiina auttavat arjen valinnoissa.
               </p>
             </div>
 
             <style>{`
-              @keyframes ziiplyLogoIntro {
-                0% {
-                  opacity: 0;
-                  transform: scale(0.92) translateY(10px);
-                  filter: blur(10px);
-                }
-
-                55% {
-                  opacity: 1;
-                  transform: scale(1.02) translateY(0);
-                  filter: blur(0);
-                }
-
-                100% {
-                  opacity: 1;
-                  transform: scale(1);
-                  filter: blur(0);
-                }
+              .ziiply-logo-rise {
+                animation: ziiplyLogoRise 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+                will-change: transform, opacity;
               }
 
-              @keyframes ziiplyGlow {
-                0% {
-                  opacity: 0;
-                  transform: scale(0.7);
-                }
-
-                40% {
-                  opacity: 1;
-                }
-
-                100% {
-                  opacity: 0;
-                  transform: scale(1.35);
-                }
+              .ziiply-logo-halo {
+                animation: ziiplyHaloPulse 1100ms ease-out both;
+                will-change: transform, opacity;
               }
 
-              @keyframes ziiplyTextIntro {
+              .ziiply-welcome-copy {
+                animation: ziiplyCopyRise 720ms cubic-bezier(0.22, 1, 0.36, 1) 160ms both;
+                will-change: transform, opacity;
+              }
+
+              @keyframes ziiplyLogoRise {
                 0% {
                   opacity: 0;
-                  transform: translateY(10px) scale(0.98);
-                  filter: blur(6px);
+                  transform: translateY(14px) scale(0.96);
+                }
+
+                70% {
+                  opacity: 1;
+                  transform: translateY(-2px) scale(1.01);
                 }
 
                 100% {
                   opacity: 1;
                   transform: translateY(0) scale(1);
-                  filter: blur(0);
+                }
+              }
+
+              @keyframes ziiplyHaloPulse {
+                0% {
+                  opacity: 0;
+                  transform: scale(0.72);
+                }
+
+                35% {
+                  opacity: 1;
+                  transform: scale(1);
+                }
+
+                100% {
+                  opacity: 0;
+                  transform: scale(1.55);
+                }
+              }
+
+              @keyframes ziiplyCopyRise {
+                0% {
+                  opacity: 0;
+                  transform: translateY(12px);
+                }
+
+                100% {
+                  opacity: 1;
+                  transform: translateY(0);
                 }
               }
 
               @media (prefers-reduced-motion: reduce) {
-                .animate-[ziiplyGlow_1.8s_ease-out_forwards],
-                .animate-[ziiplyLogoIntro_1.25s_cubic-bezier(0.22,1,0.36,1)_forwards],
-                .animate-[ziiplyTextIntro_1.25s_ease-out_0.18s_both] {
+                .ziiply-logo-rise,
+                .ziiply-logo-halo,
+                .ziiply-welcome-copy {
                   animation: none !important;
                 }
               }
