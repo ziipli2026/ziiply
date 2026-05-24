@@ -7,12 +7,86 @@ type ZiiplyLaunchScreenProps = {
 export function ZiiplyLaunchScreen({ appVersion: _appVersion }: ZiiplyLaunchScreenProps) {
   return (
     <div className="fixed inset-0 z-[90] flex items-center justify-center bg-white ziiply-soft-open">
-      <div className="mx-auto flex w-full max-w-[340px] flex-col items-center px-8 text-center">
-        <img
-          src="/ziiply.png"
-          alt="Ziiply"
-          className="h-auto w-full max-w-[280px] object-contain"
-        />
+      <div className="mx-auto flex w-full max-w-[360px] flex-col items-center px-7 text-center">
+        <div className="relative">
+          <div className="absolute inset-0 rounded-full bg-green-400/20 blur-3xl animate-[ziiplyGlow_1.8s_ease-out_forwards]" />
+
+          <img
+            src="/ziiply.png"
+            alt="Ziiply"
+            className="relative h-auto w-full max-w-[245px] object-contain animate-[ziiplyLogoIntro_1.25s_cubic-bezier(0.22,1,0.36,1)_forwards]"
+          />
+        </div>
+
+        <div className="mt-6 rounded-[1.6rem] border border-white/80 bg-white/82 px-5 py-4 text-center shadow-[0_18px_55px_rgba(15,23,42,0.10)] backdrop-blur-xl animate-[ziiplyTextIntro_1.25s_ease-out_0.18s_both]">
+          <p className="text-[1.08rem] font-black leading-snug tracking-[-0.03em] text-slate-900">
+            Viilaa ruokakorisi halvemmaks.
+          </p>
+
+          <p className="mt-2 text-[0.92rem] font-semibold leading-snug text-slate-500">
+            Gösta ja Justiina auttavat arjen valinnoissa.
+          </p>
+        </div>
+
+        <style jsx global>{`
+          @keyframes ziiplyLogoIntro {
+            0% {
+              opacity: 0;
+              transform: scale(0.92) translateY(10px);
+              filter: blur(10px);
+            }
+
+            55% {
+              opacity: 1;
+              transform: scale(1.02) translateY(0);
+              filter: blur(0);
+            }
+
+            100% {
+              opacity: 1;
+              transform: scale(1);
+              filter: blur(0);
+            }
+          }
+
+          @keyframes ziiplyGlow {
+            0% {
+              opacity: 0;
+              transform: scale(0.7);
+            }
+
+            40% {
+              opacity: 1;
+            }
+
+            100% {
+              opacity: 0;
+              transform: scale(1.35);
+            }
+          }
+
+          @keyframes ziiplyTextIntro {
+            0% {
+              opacity: 0;
+              transform: translateY(10px) scale(0.98);
+              filter: blur(6px);
+            }
+
+            100% {
+              opacity: 1;
+              transform: translateY(0) scale(1);
+              filter: blur(0);
+            }
+          }
+
+          @media (prefers-reduced-motion: reduce) {
+            .animate-[ziiplyGlow_1.8s_ease-out_forwards],
+            .animate-[ziiplyLogoIntro_1.25s_cubic-bezier(0.22,1,0.36,1)_forwards],
+            .animate-[ziiplyTextIntro_1.25s_ease-out_0.18s_both] {
+              animation: none !important;
+            }
+          }
+        `}</style>
       </div>
     </div>
   );
