@@ -7040,24 +7040,6 @@ export default function Page() {
               );
             })}
           </div>
-
-          {compact && (
-            <div className="relative my-2.5 h-10">
-              <button
-                type="button"
-                onClick={() => {
-                  setStoreDrillViewV320("main");
-                  setOpenStorePicker(null);
-                }}
-                className="absolute left-0 top-1/2 -translate-y-1/2 rounded-full bg-white px-3.5 py-2 text-xs font-black text-slate-700 shadow-sm ring-1 ring-slate-200 active:scale-[0.98]"
-              >
-                ← Kaupat
-              </button>
-              <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-green-50 px-4 py-2 text-[10px] font-black uppercase tracking-wide text-green-800 ring-1 ring-green-100">
-                KETJUN SISÄLTÄ
-              </span>
-            </div>
-          )}
         </div>
       );
     }
@@ -7070,7 +7052,6 @@ export default function Page() {
         (store) => store.key !== "s" && store.key !== "k",
       );
 
-      const scopeLabel = "Ketjujen väliltä";
 
       const renderBetweenChainCard = (
         store: (typeof comparedStoreCards)[number],
@@ -7244,22 +7225,6 @@ export default function Page() {
             {topStores.map((store) => renderBetweenChainCard(store, true))}
           </div>
 
-          <div className="relative my-2.5 h-10">
-            <button
-              type="button"
-              onClick={() => {
-                setStoreDrillViewV320("main");
-                setOpenStorePicker(null);
-              }}
-              className="absolute left-0 top-1/2 -translate-y-1/2 rounded-full bg-white px-3.5 py-2 text-xs font-black text-slate-700 shadow-sm ring-1 ring-slate-200 active:scale-[0.98]"
-            >
-              ← Kaupat
-            </button>
-            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 whitespace-nowrap rounded-full bg-green-50 px-4 py-2 text-[10px] font-black uppercase tracking-wide text-green-800 ring-1 ring-green-100">
-              {scopeLabel}
-            </span>
-          </div>
-
           <div className="grid grid-cols-2 gap-x-3 gap-y-2">
             {bottomStores.map((store) => renderBetweenChainCard(store, false))}
           </div>
@@ -7401,15 +7366,7 @@ export default function Page() {
         {!showLaunchScreen && (
           <div className="mx-auto grid h-full max-w-[1540px] grid-rows-[auto_minmax(0,1fr)] gap-2">
             <header className="rounded-[1.6rem] border-[5px] border-[#073b2d] bg-[#fff4d8] p-2 shadow-[0_5px_0_#073b2d]">
-              <div className="grid grid-cols-[130px_1fr_230px] items-stretch gap-2">
-                <div className="flex min-h-[88px] items-center justify-center rounded-[1.2rem] bg-[#fffaf0] ring-1 ring-[#d7bd87]">
-                  <img
-                    src="/ziiplylogo_mobile.png"
-                    alt="Ziiply"
-                    className="h-[82px] w-[82px] object-contain"
-                  />
-                </div>
-
+              <div className="grid grid-cols-[1fr_230px] items-stretch gap-2">
                 <div className="grid grid-cols-4 overflow-hidden rounded-[1.4rem] border border-[#d7bd87] bg-[#fffaf0]">
                   {[
                     { id: "weather", label: "SÄÄ", value: "+18°", emoji: "🌤️" },
@@ -7457,7 +7414,7 @@ export default function Page() {
               </div>
             </header>
 
-            <div className="grid min-h-0 grid-cols-[300px_minmax(650px,1fr)_420px] gap-2 overflow-hidden">
+            <div className="grid min-h-0 grid-cols-[0.72fr_1.85fr_1.05fr] gap-2 overflow-hidden">
               <aside className="min-h-0 space-y-2 overflow-y-auto pr-1">
                 <section className="rounded-[1.6rem] border border-[#d6bf8f] bg-[#fff8e8] p-5 shadow-[0_3px_0_rgba(7,59,45,0.16)] ring-1 ring-white/60">
                   <img
@@ -7473,14 +7430,92 @@ export default function Page() {
                   </p>
                 </section>
 
+                <section className="rounded-[1.6rem] border border-[#d6bf8f] bg-[#fff8e8] p-4 shadow-[0_3px_0_rgba(7,59,45,0.16)] ring-1 ring-white/60">
+                  <p className="text-xs font-black uppercase tracking-wide text-[#8e896f]">
+                    Apurit
+                  </p>
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    <div className="overflow-hidden rounded-2xl bg-[#eaf6e8] ring-1 ring-[#b8d6b6]">
+                      <div className="aspect-[16/10] bg-[#dcefd9]">
+                        <img
+                          src="/assistants/gosta.png"
+                          alt="Gösta"
+                          onError={(event) => {
+                            event.currentTarget.style.display = "none";
+                          }}
+                          className="h-full w-full object-cover object-top"
+                        />
+                      </div>
+                      <div className="p-3">
+                        <p className="font-serif text-xl font-black italic text-[#315f2f]">
+                          Gösta
+                        </p>
+                        <p className="mt-1 text-xs font-bold leading-tight text-[#315f2f]">
+                          Tarjoukset ja säästö.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="overflow-hidden rounded-2xl bg-[#fff2c9] ring-1 ring-[#e1c678]">
+                      <div className="aspect-[16/10] bg-[#f8e8ba]">
+                        <img
+                          src="/assistants/justiina.png"
+                          alt="Justiina"
+                          onError={(event) => {
+                            event.currentTarget.style.display = "none";
+                          }}
+                          className="h-full w-full object-cover object-top"
+                        />
+                      </div>
+                      <div className="p-3">
+                        <p className="font-serif text-xl font-black italic text-[#8a3f16]">
+                          Justiina
+                        </p>
+                        <p className="mt-1 text-xs font-bold leading-tight text-[#8a3f16]">
+                          Tuotteet ja listat.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
                 <section className="rounded-[1.6rem] border border-[#d6bf8f] bg-[#fff8e8] p-5 shadow-[0_3px_0_rgba(7,59,45,0.16)] ring-1 ring-white/60">
                   <p className="text-xs font-black uppercase tracking-wide text-[#8e896f]">
                     Kaupat ja sijainti
                   </p>
                   <div className="mt-3 flex gap-2">
+                    <button
+                      type="button"
+                      aria-pressed={usingOwnLocation}
+                      onClick={() => {
+                        if (usingOwnLocation) {
+                          stopOwnLocationV306(
+                            "GPS pois päältä. Kirjoita alue tai postinumero.",
+                          );
+                          return;
+                        }
+                        setLocationInput("");
+                        void useOwnLocation();
+                      }}
+                      title={usingOwnLocation ? "GPS käytössä" : "GPS pois päältä"}
+                      className={`flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-2xl text-xl font-black shadow-sm ring-1 transition active:scale-[0.98] ${
+                        usingOwnLocation
+                          ? "bg-green-50 text-green-700 ring-green-200"
+                          : "bg-red-50 text-red-700 ring-red-200"
+                      }`}
+                    >
+                      📍
+                    </button>
                     <input
                       value={locationInput}
-                      onChange={(event) => setLocationInput(event.target.value)}
+                      onChange={(event) => {
+                        const nextValue = event.target.value;
+                        setLocationInput(nextValue);
+                        if (nextValue.trim()) {
+                          gpsUserDisabledRefV306.current = true;
+                          setUsingOwnLocation(false);
+                        }
+                        setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
+                      }}
                       placeholder="05510 tai Hyvinkää"
                       className="min-w-0 flex-1 rounded-2xl border border-[#d6bf8f] px-4 py-3 text-sm font-bold outline-none focus:border-green-600 focus:ring-4 focus:ring-[#b8d6b6]"
                     />
@@ -7582,33 +7617,13 @@ export default function Page() {
                     className="mt-4 h-28 w-full resize-none rounded-[1.2rem] border border-[#d6bf8f] bg-white px-4 py-3 text-base font-semibold outline-none focus:border-green-600 focus:ring-4 focus:ring-[#b8d6b6]"
                   />
 
-                  <div className="mt-3 grid grid-cols-3 gap-3">
+                  <div className="mt-3 grid grid-cols-2 gap-3">
                     <button
                       type="button"
-                      onClick={() => handleMainNormalSearch()}
-                      disabled={
-                        loadingNormal ||
-                        singleProductCompareLoading ||
-                        !hasSearchInput
-                      }
-                      className="rounded-2xl bg-[#0c7c38] px-4 py-3 text-sm font-black text-white shadow-[inset_0_-3px_0_rgba(0,0,0,0.14)] transition hover:brightness-105 active:translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-50"
+                      onClick={() => void pasteFromClipboardToSearch()}
+                      className="rounded-2xl bg-[#0c7c38] px-4 py-3 text-sm font-black text-white shadow-[inset_0_-3px_0_rgba(0,0,0,0.14)] transition hover:brightness-105 active:translate-y-[1px]"
                     >
-                      {loadingNormal || singleProductCompareLoading
-                        ? "Haetaan…"
-                        : "Hae"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (!cart.length || comparisonLoading) return;
-                        void updateChainComparison(cart, {
-                          openCompare: false,
-                        });
-                      }}
-                      disabled={!cart.length || comparisonLoading}
-                      className="rounded-2xl bg-[#1d241b] px-4 py-3 text-sm font-black text-white shadow-[inset_0_-3px_0_rgba(0,0,0,0.18)] transition hover:brightness-105 active:translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      {comparisonLoading ? "Vertaillaan…" : "Vertaile"}
+                      Lisää / liitä
                     </button>
                     <button
                       type="button"
@@ -7625,7 +7640,7 @@ export default function Page() {
                   </div>
                 </section>
 
-                <div className="grid grid-cols-[minmax(0,1.7fr)_minmax(240px,0.75fr)] gap-3">
+                <div className="grid grid-cols-[minmax(0,1.35fr)_minmax(340px,0.95fr)] gap-3">
                   <section className="rounded-[1.6rem] border border-[#d6bf8f] bg-[#fff8e8] p-5 shadow-[0_3px_0_rgba(7,59,45,0.16)] ring-1 ring-white/60">
                     <p className="text-xs font-black uppercase tracking-wide text-[#8e896f]">
                       Hakutulokset
@@ -7760,54 +7775,6 @@ export default function Page() {
                       void updateChainComparison(cart, { openCompare: true });
                     }}
                   />
-
-                  <section className="rounded-[1.6rem] border border-[#d6bf8f] bg-[#fff8e8] p-5 shadow-[0_3px_0_rgba(7,59,45,0.16)] ring-1 ring-white/60">
-                    <p className="text-xs font-black uppercase tracking-wide text-[#8e896f]">
-                      Gösta & Justiina
-                    </p>
-                    <div className="mt-3 grid grid-cols-2 gap-3">
-                      <div className="overflow-hidden rounded-2xl bg-[#eaf6e8] ring-1 ring-[#b8d6b6]">
-                        <div className="aspect-[16/10] bg-[#dcefd9]">
-                          <img
-                            src="/assistants/gosta.png"
-                            alt="Gösta"
-                            onError={(event) => {
-                              event.currentTarget.style.display = "none";
-                            }}
-                            className="h-full w-full object-cover object-top"
-                          />
-                        </div>
-                        <div className="p-4">
-                          <p className="font-serif text-2xl font-black italic text-[#315f2f]">
-                            Gösta
-                          </p>
-                          <p className="mt-1 text-sm font-bold text-[#315f2f]">
-                            Hinta­haistelija löytää järkevän korin.
-                          </p>
-                        </div>
-                      </div>
-                      <div className="overflow-hidden rounded-2xl bg-[#fff2c9] ring-1 ring-[#e1c678]">
-                        <div className="aspect-[16/10] bg-[#f8e8ba]">
-                          <img
-                            src="/assistants/justiina.png"
-                            alt="Justiina"
-                            onError={(event) => {
-                              event.currentTarget.style.display = "none";
-                            }}
-                            className="h-full w-full object-cover object-top"
-                          />
-                        </div>
-                        <div className="p-4">
-                          <p className="font-serif text-2xl font-black italic text-[#8a3f16]">
-                            Justiina
-                          </p>
-                          <p className="mt-1 text-sm font-bold text-[#8a3f16]">
-                            Muistaa arjen valinnat ja listat.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </section>
                 </div>
               </aside>
             </div>
