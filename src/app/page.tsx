@@ -6090,6 +6090,21 @@ export default function Page() {
           min-height: 100dvh;
         }
 
+        @media (min-width: 640px) {
+          .ziiply-desktop-debug-compact {
+            max-width: 1180px;
+          }
+
+          .ziiply-desktop-debug-compact img[src="/ziiplylogo_mobile.png"] {
+            max-height: 96px !important;
+          }
+
+          .ziiply-desktop-debug-compact input,
+          .ziiply-desktop-debug-compact button {
+            min-height: 0;
+          }
+        }
+
         @keyframes ziiply-soft-open {
           from { opacity: 0; transform: translateY(10px) scale(0.985); filter: blur(2px); }
           to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
@@ -6154,7 +6169,7 @@ export default function Page() {
       `}</style>
       {showLaunchScreen && <ZiiplyLaunchScreen appVersion={APP_VERSION} />}
 
-      <div className={`relative z-[80] m-0 p-0 mt-1 mb-0 ${showLaunchScreen ? "hidden" : ""}`}>
+      <div className={`relative z-[80] m-0 p-0 mt-1 mb-0 ziiply-desktop-debug-compact sm:mx-auto sm:max-w-[1180px] sm:px-4 ${showLaunchScreen ? "hidden" : ""}`}>
         <TopbarResponsiveCard
           areaLabel={activeArea.label}
           // v332: älä näytä storeModeLabeliä yläpalkissa.
@@ -6206,24 +6221,24 @@ export default function Page() {
         );
       })()}
 
-      <div className="mx-auto max-w-6xl space-y-3 sm:space-y-4 sm:space-y-6">
+      <div className="mx-auto max-w-6xl space-y-2 sm:space-y-3">
         <section
-          className={`-mx-2 bg-slate-100/95 px-2 pb-2 pt-2 sm:-mx-4 sm:px-4 sm:pb-4 sm:pt-4 ${
+          className={`-mx-2 bg-transparent px-2 pb-1 pt-1 sm:-mx-4 sm:px-4 sm:pb-2 sm:pt-2 ${
             showLaunchScreen ? "hidden" : "hidden sm:block"
           }`}
         >
           <div className="mx-auto max-w-6xl">
-          <div className="overflow-hidden rounded-[1.75rem] bg-white px-4 py-1 shadow-sm sm:rounded-[2rem] sm:px-6">
+          <div className="overflow-hidden rounded-[1.25rem] bg-white/95 px-4 py-2 shadow-sm ring-1 ring-slate-100 sm:rounded-[1.5rem] sm:px-5 sm:py-2">
             <img
               src="/ziiply.png"
               alt="Ziiply"
-              className="mx-auto max-h-[150px] w-auto object-contain py-2 sm:max-h-[180px] sm:py-3"
+              className="mx-auto max-h-[90px] w-auto object-contain py-1 sm:max-h-[108px] sm:py-1"
             />
-            <div className="mx-auto mt-4 max-w-3xl text-center">
-              <p className="text-xl font-black leading-tight tracking-[-0.04em] text-slate-950">
+            <div className="mx-auto mt-1 max-w-3xl text-center">
+              <p className="text-base font-black leading-tight tracking-[-0.04em] text-slate-950">
                 Viilaa ruokakorisi halvemmaks.
               </p>
-              <p className="mt-2 text-base font-semibold leading-snug text-slate-500">
+              <p className="mt-1 text-sm font-semibold leading-snug text-slate-500">
                 Gösta ja Justiina auttavat arjen valinnoissa.
               </p>
             </div>
@@ -6255,7 +6270,7 @@ export default function Page() {
           </section>
         )}
 
-        <section className="hidden rounded-[1.25rem] border border-slate-200 bg-white/95 p-2 shadow-sm sm:block sm:rounded-[1.75rem] sm:p-4">
+        <section className="hidden rounded-[1.25rem] border border-slate-200 bg-white/95 p-2 shadow-sm sm:block sm:rounded-[1.35rem] sm:p-3">
           <div className="flex items-center gap-2 sm:gap-3">
             <button
               type="button"
