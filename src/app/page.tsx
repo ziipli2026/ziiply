@@ -7346,7 +7346,7 @@ export default function Page() {
   return (
     <>
       <section
-        className={`hidden xl:block min-h-screen overflow-x-hidden bg-[#efe5cf] p-4 text-[#1f2619] ${suppressUiForEanClose ? "pointer-events-none" : ""}`}
+        className={`hidden xl:block h-screen overflow-y-auto overflow-x-hidden bg-[#efe5cf] px-3 pb-8 pt-3 text-[#1f2619] ${suppressUiForEanClose ? "pointer-events-none" : ""}`}
       >
         <style>{`
           html, body, #__next { background: #efe5cf !important; }
@@ -7355,14 +7355,14 @@ export default function Page() {
         {showLaunchScreen && <ZiiplyLaunchScreen appVersion={APP_VERSION} />}
 
         {!showLaunchScreen && (
-          <div className="mx-auto max-w-[1680px] space-y-4">
-            <header className="rounded-[2rem] border-[8px] border-[#073b2d] bg-[#fff4d8] p-4 shadow-[0_10px_0_#073b2d]">
-              <div className="grid grid-cols-[180px_1fr_280px] items-stretch gap-4">
-                <div className="flex min-h-[132px] items-center justify-center rounded-[1.4rem] bg-[#fffaf0] ring-1 ring-[#d7bd87]">
+          <div className="mx-auto max-w-[1680px] space-y-3">
+            <header className="rounded-[2rem] border-[7px] border-[#073b2d] bg-[#fff4d8] p-3 shadow-[0_8px_0_#073b2d]">
+              <div className="grid grid-cols-[170px_1fr_270px] items-stretch gap-3">
+                <div className="flex min-h-[118px] items-center justify-center rounded-[1.4rem] bg-[#fffaf0] ring-1 ring-[#d7bd87]">
                   <img
                     src="/ziiplylogo_mobile.png"
                     alt="Ziiply"
-                    className="h-[124px] w-[124px] object-contain"
+                    className="h-[108px] w-[108px] object-contain"
                   />
                 </div>
 
@@ -7413,8 +7413,8 @@ export default function Page() {
               </div>
             </header>
 
-            <div className="grid grid-cols-12 gap-4">
-              <aside className="col-span-3 space-y-4">
+            <div className="grid grid-cols-12 gap-3">
+              <aside className="col-span-3 space-y-3">
                 <section className="rounded-[1.6rem] border border-[#d6bf8f] bg-[#fff8e8] p-5 shadow-[0_3px_0_rgba(7,59,45,0.16)] ring-1 ring-white/60">
                   <img
                     src="/ziiplylogo_mobile.png"
@@ -7491,7 +7491,7 @@ export default function Page() {
                 </section>
               </aside>
 
-              <main className="col-span-5 space-y-4">
+              <main className="col-span-5 space-y-3">
                 <section className="rounded-[1.6rem] border border-[#d6bf8f] bg-[#fff8e8] p-5 shadow-[0_3px_0_rgba(7,59,45,0.16)] ring-1 ring-white/60">
                   <div className="flex items-center justify-between gap-3">
                     <div>
@@ -7538,60 +7538,47 @@ export default function Page() {
                     className="mt-4 h-28 w-full resize-none rounded-[1.2rem] border border-[#d6bf8f] bg-white px-4 py-3 text-base font-semibold outline-none focus:border-green-600 focus:ring-4 focus:ring-[#b8d6b6]"
                   />
 
-                  <div className="mt-3 grid grid-cols-3 gap-2">
+                  <div className="mt-3 grid grid-cols-[1fr_1fr_280px] gap-3">
                     <button
                       type="button"
-                      onClick={handleMainNormalSearch}
-                      disabled={
-                        searchBottomNavDisabled ||
-                        loadingNormal ||
-                        singleProductCompareLoading
-                      }
-                      className="rounded-2xl bg-[#0c7c38] px-4 py-3 text-sm font-black text-white disabled:opacity-50"
+                      onClick={() => handleMainNormalSearch()}
+                      disabled={loadingNormal || singleProductCompareLoading || !hasSearchInput}
+                      className="rounded-2xl bg-[#0c7c38] px-4 py-3 text-sm font-black text-white shadow-[inset_0_-3px_0_rgba(0,0,0,0.14)] transition hover:brightness-105 active:translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      Hae
+                      {loadingNormal || singleProductCompareLoading ? "Haetaan…" : "Hae"}
                     </button>
                     <button
                       type="button"
-                      onClick={() =>
-                        void updateChainComparison(cart, { openCompare: false })
-                      }
+                      onClick={() => {
+                        if (!cart.length || comparisonLoading) return;
+                        void updateChainComparison(cart, { openCompare: false });
+                      }}
                       disabled={!cart.length || comparisonLoading}
-                      className="rounded-2xl bg-[#1d241b] px-4 py-3 text-sm font-black text-white disabled:opacity-50"
+                      className="rounded-2xl bg-[#1d241b] px-4 py-3 text-sm font-black text-white shadow-[inset_0_-3px_0_rgba(0,0,0,0.18)] transition hover:brightness-105 active:translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      Vertaile
+                      {comparisonLoading ? "Vertaillaan…" : "Vertaile"}
                     </button>
                     <button
                       type="button"
-                      onClick={() => setEanModalOpen(true)}
-                      className="rounded-2xl border border-[#a7884f] bg-[#f4dfa1] px-4 py-3 text-sm font-black text-[#5b3715] shadow-[inset_0_-3px_0_rgba(91,55,21,0.16)] ring-1 ring-[#e1c678]"
+                      onClick={() => openEanModal()}
+                      className="flex items-center justify-between overflow-hidden rounded-2xl border-2 border-[#b39a62] bg-[#2f3d28] px-4 py-3 text-left text-[#fff4d8] shadow-[inset_0_0_0_2px_rgba(255,244,216,0.08),0_3px_0_rgba(7,59,45,0.24)] transition hover:brightness-105 active:translate-y-[1px]"
                     >
-                      📷 Skanneri
+                      <span className="flex items-center gap-3">
+                        <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#f4dfa1] text-xl text-[#2f3d28] ring-2 ring-[#b49a61]">
+                          📸
+                        </span>
+                        <span>
+                          <span className="block font-serif text-2xl font-black italic leading-none">
+                            Skanneri
+                          </span>
+                          <span className="mt-1 block text-[10px] font-black uppercase tracking-[0.20em] text-[#d7c391]">
+                            50-luvun kamera
+                          </span>
+                        </span>
+                      </span>
+                      <span className="text-xl font-black text-[#d7c391]">→</span>
                     </button>
                   </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setEanModalOpen(true)}
-                    className="mt-4 flex w-full items-center justify-between overflow-hidden rounded-[1.4rem] border border-[#8c7042] bg-[#2f3d28] p-4 text-left text-[#fff4d8] shadow-[inset_0_0_0_2px_rgba(255,244,216,0.08),0_4px_0_rgba(7,59,45,0.22)]"
-                  >
-                    <span className="flex items-center gap-4">
-                      <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[#f4dfa1] text-2xl text-[#2f3d28] ring-2 ring-[#b49a61]">
-                        📸
-                      </span>
-                      <span>
-                        <span className="block font-serif text-3xl font-black italic leading-none">
-                          Skanneri
-                        </span>
-                        <span className="mt-1 block text-xs font-black uppercase tracking-[0.22em] text-[#d7c391]">
-                          50-luvun kameraskanneri
-                        </span>
-                      </span>
-                    </span>
-                    <span className="rounded-full bg-[#8fb15b] px-4 py-2 text-sm font-black text-[#132012]">
-                      Avaa →
-                    </span>
-                  </button>
                 </section>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -7701,7 +7688,7 @@ export default function Page() {
               </main>
 
               <aside className="col-span-4">
-                <div className="sticky top-4 max-h-[calc(100vh-2rem)] space-y-4 overflow-y-auto pr-1">
+                <div className="sticky top-3 max-h-[calc(100vh-1.5rem)] space-y-3 overflow-y-auto pr-1">
                   <section className="rounded-[1.6rem] border border-[#d6bf8f] bg-[#fff8e8] p-5 shadow-[0_3px_0_rgba(7,59,45,0.16)] ring-1 ring-white/60">
                     <div className="flex items-center justify-between gap-3">
                       <div>
@@ -7804,9 +7791,9 @@ export default function Page() {
                     </p>
                     <div className="mt-3 grid grid-cols-2 gap-3">
                       <div className="overflow-hidden rounded-2xl bg-[#eaf6e8] ring-1 ring-[#b8d6b6]">
-                        <div className="aspect-[4/3] bg-[#dcefd9]">
+                        <div className="aspect-[16/10] bg-[#dcefd9]">
                           <img
-                            src="/gosta_hintahaisteilija.png"
+                            src="/assistants/gosta.png"
                             alt="Gösta"
                             onError={(event) => {
                               event.currentTarget.style.display = "none";
@@ -7824,9 +7811,9 @@ export default function Page() {
                         </div>
                       </div>
                       <div className="overflow-hidden rounded-2xl bg-[#fff2c9] ring-1 ring-[#e1c678]">
-                        <div className="aspect-[4/3] bg-[#f8e8ba]">
+                        <div className="aspect-[16/10] bg-[#f8e8ba]">
                           <img
-                            src="/justiina.png"
+                            src="/assistants/justiina.png"
                             alt="Justiina"
                             onError={(event) => {
                               event.currentTarget.style.display = "none";
