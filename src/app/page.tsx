@@ -6078,7 +6078,230 @@ export default function Page() {
   }
 
   return (
-    <main className={`min-h-screen overflow-x-hidden bg-[#EAF4F1] px-2 pb-44 pt-0 text-slate-950 sm:bg-[radial-gradient(circle_at_top,#ecfdf3_0%,#f8fafc_42%,#f1f5f9_100%)] sm:px-4 sm:pb-32 sm:py-3 sm:py-4 md:pb-4 ${suppressUiForEanClose ? "pointer-events-none" : ""}`}>
+    <>
+      <section className={`hidden xl:block min-h-screen overflow-x-hidden bg-[#EAF4F1] p-4 text-slate-950 ${suppressUiForEanClose ? "pointer-events-none" : ""}`}>
+        <style>{`
+          html, body, #__next { background: #EAF4F1 !important; }
+        `}</style>
+
+        {showLaunchScreen && <ZiiplyLaunchScreen appVersion={APP_VERSION} />}
+
+        {!showLaunchScreen && (
+          <div className="mx-auto max-w-[1560px] space-y-4">
+            <header className="rounded-[2rem] border-[8px] border-[#003B2E] bg-[#FFF7DF] p-4 shadow-sm">
+              <div className="grid grid-cols-[160px_1fr_240px] items-stretch gap-4">
+                <div className="flex min-h-[120px] items-center justify-center rounded-[1.4rem] bg-white/70 ring-1 ring-[#E8D7B5]">
+                  <img src="/ziiplylogo_mobile.png" alt="Ziiply" className="h-[112px] w-[112px] object-contain" />
+                </div>
+
+                <div className="grid grid-cols-4 overflow-hidden rounded-[1.4rem] border border-[#E4D3B6] bg-[#FFF9EA]">
+                  {[
+                    { id: "weather", label: "SÄÄ", value: "+18°", emoji: "🌤️" },
+                    { id: "electricity", label: "SÄHKÖ", value: "4,2", emoji: "⚡" },
+                    { id: "fuel", label: "BENSA", value: "1,65", emoji: "⛽" },
+                    { id: "calendar", label: "KAL", value: "3", emoji: "📅" },
+                  ].map((item) => (
+                    <div key={item.id} className="flex items-center justify-center gap-3 border-r border-[#E4D3B6] px-4 last:border-r-0">
+                      <span className="text-4xl">{item.emoji}</span>
+                      <div>
+                        <p className="text-sm font-black text-[#003B2E]">{item.label}</p>
+                        <p className="text-3xl font-black text-[#003B2E]">{item.value}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchPanelOpen(false);
+                    setCartModalOpen(false);
+                    setCartSavePanelOpen(false);
+                    setEanModalOpen(false);
+                    setActiveResult("none");
+                    setShopsPanelOpen(true);
+                  }}
+                  className="flex items-center justify-center gap-3 rounded-[1.4rem] border border-[#E4D3B6] bg-[#FFF9EA] px-6 text-xl font-black text-[#003B2E]"
+                >
+                  <span>📍</span>
+                  <span>{activeArea.label}</span>
+                </button>
+              </div>
+            </header>
+
+            <div className="grid grid-cols-12 gap-4">
+              <aside className="col-span-3 space-y-4">
+                <section className="rounded-[1.6rem] bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                  <img src="/ziiply.png" alt="Ziiply" className="mx-auto h-auto max-h-[92px] object-contain" />
+                  <p className="mt-3 text-center text-lg font-black tracking-[-0.04em] text-slate-950">Viilaa ruokakorisi halvemmaks.</p>
+                  <p className="mt-1 text-center text-sm font-bold text-slate-500">Gösta ja Justiina auttavat arjen valinnoissa.</p>
+                </section>
+
+                <section className="rounded-[1.6rem] bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                  <p className="text-xs font-black uppercase tracking-wide text-slate-400">Kaupat ja sijainti</p>
+                  <div className="mt-3 flex gap-2">
+                    <input
+                      value={locationInput}
+                      onChange={(event) => setLocationInput(event.target.value)}
+                      placeholder="05510 tai Hyvinkää"
+                      className="min-w-0 flex-1 rounded-2xl border border-slate-300 px-4 py-3 text-sm font-bold outline-none focus:border-green-600 focus:ring-4 focus:ring-green-100"
+                    />
+                    <button type="button" onClick={() => void applyLocation()} className="rounded-2xl bg-slate-950 px-4 py-3 text-sm font-black text-white">Käytä</button>
+                  </div>
+                  <p className="mt-2 rounded-2xl bg-amber-50 px-3 py-2 text-xs font-black text-amber-800 ring-1 ring-amber-100">{locationMessage}</p>
+
+                  {renderChainSelectionGrid({ compact: true })}
+
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    <button type="button" onClick={() => handleStoreModeChange("hyper")} className={`rounded-2xl px-3 py-3 text-sm font-black ring-1 ${storeMode === "hyper" && storeModeChosenV299 ? "bg-green-700 text-white ring-green-800" : "bg-white text-slate-700 ring-slate-200"}`}>🏬 Tavaratalot</button>
+                    <button type="button" onClick={() => handleStoreModeChange("local")} className={`rounded-2xl px-3 py-3 text-sm font-black ring-1 ${storeMode === "local" && storeModeChosenV299 ? "bg-green-700 text-white ring-green-800" : "bg-white text-slate-700 ring-slate-200"}`}>🏪 Lähikaupat</button>
+                    <button type="button" onClick={() => handleStoreCompareScopeChange("between_chains")} className={`rounded-2xl px-3 py-3 text-sm font-black ring-1 ${storeCompareScope === "between_chains" ? "bg-green-700 text-white ring-green-800" : "bg-white text-slate-700 ring-slate-200"}`}>Ketjujen väliltä</button>
+                    <button type="button" onClick={() => handleStoreCompareScopeChange("within_chain")} className={`rounded-2xl px-3 py-3 text-sm font-black ring-1 ${storeCompareScope === "within_chain" ? "bg-green-700 text-white ring-green-800" : "bg-white text-slate-700 ring-slate-200"}`}>Ketjun sisältä</button>
+                  </div>
+                </section>
+              </aside>
+
+              <main className="col-span-5 space-y-4">
+                <section className="rounded-[1.6rem] bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-wide text-slate-400">Haku</p>
+                      <h2 className="text-2xl font-black tracking-[-0.04em] text-slate-950">Tuotteet ja vertailu</h2>
+                    </div>
+                    <div className="flex rounded-2xl bg-slate-100 p-1">
+                      <button type="button" onClick={() => setSearchCompareMode("cart")} className={`rounded-xl px-3 py-2 text-sm font-black ${searchCompareMode === "cart" ? "bg-white text-green-800 shadow-sm" : "text-slate-500"}`}>Koko kori</button>
+                      <button type="button" onClick={() => { setSearchCompareMode("single"); setInput((currentInput) => getSingleSearchTerm(currentInput)); }} className={`rounded-xl px-3 py-2 text-sm font-black ${searchCompareMode === "single" ? "bg-white text-green-800 shadow-sm" : "text-slate-500"}`}>Yksi tuote</button>
+                    </div>
+                  </div>
+
+                  <textarea
+                    value={input}
+                    onChange={(event) => setSearchInputForMode(event.target.value)}
+                    placeholder={searchCompareMode === "single" ? "Kirjoita yksi tuote" : "maito, kahvi, jauheliha"}
+                    className="mt-4 h-28 w-full resize-none rounded-[1.2rem] border border-slate-300 bg-white px-4 py-3 text-base font-semibold outline-none focus:border-green-600 focus:ring-4 focus:ring-green-100"
+                  />
+
+                  <div className="mt-3 grid grid-cols-3 gap-2">
+                    <button type="button" onClick={handleMainNormalSearch} disabled={searchBottomNavDisabled || loadingNormal || singleProductCompareLoading} className="rounded-2xl bg-green-700 px-4 py-3 text-sm font-black text-white disabled:opacity-50">Hae</button>
+                    <button type="button" onClick={() => void updateChainComparison(cart, { openCompare: false })} disabled={!cart.length || comparisonLoading} className="rounded-2xl bg-slate-950 px-4 py-3 text-sm font-black text-white disabled:opacity-50">Vertaile</button>
+                    <button type="button" onClick={() => setEanModalOpen(true)} className="rounded-2xl bg-amber-100 px-4 py-3 text-sm font-black text-amber-900 ring-1 ring-amber-200">EAN</button>
+                  </div>
+                </section>
+
+                <section className="rounded-[1.6rem] bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                  <p className="text-xs font-black uppercase tracking-wide text-slate-400">Hakutulokset</p>
+                  <div className="mt-3 max-h-[360px] space-y-2 overflow-auto pr-1">
+                    {loadingNormal || singleProductCompareLoading ? (
+                      <p className="rounded-2xl bg-slate-50 p-4 text-sm font-black text-slate-500">Haetaan…</p>
+                    ) : visibleNormalResults.length > 0 ? (
+                      visibleNormalResults.slice(0, 10).map((product) => (
+                        <div key={`desktop-product-${product.id}-${product.ean || product.name}`} className="flex items-center gap-3 rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-100">
+                          {product.pictureUrl && <img src={product.pictureUrl} alt="" className="h-12 w-12 rounded-xl object-contain bg-white" />}
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-black text-slate-950">{fixText(product.name)}</p>
+                            <p className="text-xs font-bold text-slate-500">{formatEuro(getProductPrice(product))}</p>
+                          </div>
+                          <button type="button" onClick={() => addProductToCart(product)} className="rounded-xl bg-green-600 px-3 py-2 text-xs font-black text-white">Lisää</button>
+                        </div>
+                      ))
+                    ) : singleProductCompareResults.length > 0 ? (
+                      singleProductCompareResults.slice(0, 10).map((result, index) => (
+                        <div key={`desktop-single-${index}-${result.chain}-${result.storeName}-${result.productName}`} className="rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-100">
+                          <p className="truncate text-sm font-black text-slate-950">{fixText(result.productName)}</p>
+                          <p className="text-xs font-bold text-slate-500">{result.storeName} · {formatEuro(result.price)}</p>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="rounded-2xl bg-slate-50 p-4 text-sm font-black text-slate-500">Ei hakutuloksia vielä.</p>
+                    )}
+                  </div>
+                </section>
+
+                <section className="rounded-[1.6rem] bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                  <p className="text-xs font-black uppercase tracking-wide text-slate-400">Vertailu</p>
+                  <div className="mt-3 grid gap-3">
+                    {chainResults.length > 0 ? chainResults.map((result) => (
+                      <div key={`desktop-chain-${result.key}`} className="rounded-2xl bg-slate-50 p-4 ring-1 ring-slate-100">
+                        <div className="flex items-center justify-between gap-3">
+                          <div>
+                            <p className="text-base font-black text-slate-950">{result.icon} {result.chain}</p>
+                            <p className="text-xs font-bold text-slate-500">{result.storeName}</p>
+                          </div>
+                          <p className="text-xl font-black text-slate-950">{result.comingSoon ? "Tulossa" : formatEuro(result.totalPrice)}</p>
+                        </div>
+                        <p className="mt-2 text-xs font-bold text-slate-500">Löytyi {result.foundItems}/{comparableCart.length} · puuttuu {result.missingItems}</p>
+                      </div>
+                    )) : (
+                      <p className="rounded-2xl bg-slate-50 p-4 text-sm font-black text-slate-500">Vertailu näkyy tässä, kun korissa on tuotteita.</p>
+                    )}
+                  </div>
+                </section>
+              </main>
+
+              <aside className="col-span-4 space-y-4">
+                <section className="rounded-[1.6rem] bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-wide text-slate-400">Kori</p>
+                      <h2 className="text-2xl font-black tracking-[-0.04em] text-slate-950">{cart.length} tuotetta</h2>
+                    </div>
+                    <p className="rounded-2xl bg-green-100 px-4 py-2 text-lg font-black text-green-900">{formatEuro(cartTotal)}</p>
+                  </div>
+                  <div className="mt-4 max-h-[320px] space-y-2 overflow-auto pr-1">
+                    {cart.length > 0 ? cart.map((item) => (
+                      <div key={`desktop-cart-${item.id}`} className="flex items-center gap-3 rounded-2xl bg-slate-50 p-3 ring-1 ring-slate-100">
+                        {item.image && <img src={item.image} alt="" className="h-11 w-11 rounded-xl object-contain bg-white" />}
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-black text-slate-950">{fixText(item.name)}</p>
+                          <p className="text-xs font-bold text-slate-500">{item.quantity} kpl · {formatEuro(item.price || 0)}</p>
+                        </div>
+                        <button type="button" onClick={() => removeCartItem(item.id)} className="rounded-xl bg-white px-3 py-2 text-xs font-black text-red-700 ring-1 ring-red-100">Pois</button>
+                      </div>
+                    )) : (
+                      <p className="rounded-2xl bg-slate-50 p-4 text-sm font-black text-slate-500">Kori on tyhjä.</p>
+                    )}
+                  </div>
+                </section>
+
+                <section className="rounded-[1.6rem] bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                  <p className="text-xs font-black uppercase tracking-wide text-slate-400">Ostoslista / Share</p>
+                  <div className="mt-3 max-h-[300px] space-y-2 overflow-auto pr-1">
+                    {shoppingListItems.length > 0 ? shoppingListItems.slice(0, 12).map((match, index) => {
+                      const key = getShoppingListItemKey(match, index);
+                      return (
+                        <button key={`desktop-shopping-${key}`} type="button" onClick={() => setCheckedCartItems((current) => ({ ...current, [key]: !current[key] }))} className={`flex w-full items-center gap-3 rounded-2xl p-3 text-left ring-1 ${checkedCartItems[key] ? "bg-green-50 ring-green-100" : "bg-slate-50 ring-slate-100"}`}>
+                          <span className={`flex h-7 w-7 items-center justify-center rounded-full text-sm font-black ${checkedCartItems[key] ? "bg-green-600 text-white" : "bg-white text-slate-400 ring-1 ring-slate-200"}`}>{checkedCartItems[key] ? "✓" : index + 1}</span>
+                          <span className="min-w-0 flex-1 truncate text-sm font-black text-slate-950">{fixText(match.product.name)}</span>
+                          <span className="text-sm font-black text-slate-700">{formatEuro(match.price)}</span>
+                        </button>
+                      );
+                    }) : (
+                      <p className="rounded-2xl bg-slate-50 p-4 text-sm font-black text-slate-500">Ostoslista muodostuu halvimmasta korista.</p>
+                    )}
+                  </div>
+                </section>
+
+                <section className="rounded-[1.6rem] bg-white p-5 shadow-sm ring-1 ring-slate-200">
+                  <p className="text-xs font-black uppercase tracking-wide text-slate-400">Gösta & Justiina</p>
+                  <div className="mt-3 grid grid-cols-2 gap-3">
+                    <div className="rounded-2xl bg-green-50 p-4 ring-1 ring-green-100">
+                      <p className="text-lg font-black text-green-900">Gösta</p>
+                      <p className="mt-1 text-sm font-bold text-green-800">Auttaa löytämään järkevän korin.</p>
+                    </div>
+                    <div className="rounded-2xl bg-amber-50 p-4 ring-1 ring-amber-100">
+                      <p className="text-lg font-black text-amber-900">Justiina</p>
+                      <p className="mt-1 text-sm font-bold text-amber-800">Muistaa arjen valinnat ja listat.</p>
+                    </div>
+                  </div>
+                  <p className="mt-3 rounded-2xl bg-slate-50 p-4 text-sm font-bold text-slate-600">Desktop-debug näyttää pääflowt yhtä aikaa. Mobiili käyttää edelleen vanhaa näkymää erillisenä.</p>
+                </section>
+              </aside>
+            </div>
+          </div>
+        )}
+      </section>
+
+      <main className={`xl:hidden min-h-screen overflow-x-hidden bg-[#EAF4F1] px-2 pb-44 pt-0 text-slate-950 sm:bg-[radial-gradient(circle_at_top,#ecfdf3_0%,#f8fafc_42%,#f1f5f9_100%)] sm:px-4 sm:pb-32 sm:py-3 sm:py-4 md:pb-4 ${suppressUiForEanClose ? "pointer-events-none" : ""}`}>
       <style>{`
         html,
         body {
@@ -6095,7 +6318,7 @@ export default function Page() {
             max-width: 1180px;
           }
 
-          .ziiply-desktop-debug-compact img[src="/ziiply_mobile.png"] {
+          .ziiply-desktop-debug-compact img[src="/ziiplylogo_mobile.png"] {
             max-height: 96px !important;
           }
 
@@ -6175,7 +6398,7 @@ export default function Page() {
           // v332: älä näytä storeModeLabeliä yläpalkissa.
           // Se kavensi sijaintipillin leveyttä mobiilissa, jolloin "Hyvinkää" katkesi valintojen jälkeen.
           storeModeLabel=""
-          logoImageSrc="/ziiply_mobile.png"
+          logoImageSrc="/ziiplylogo_mobile.png"
           infoItems={[
             { id: "weather", label: "SÄÄ", value: "+18°", emoji: "🌤️" },
             { id: "electricity", label: "SÄHKÖ", value: "4,2", emoji: "⚡" },
@@ -8534,5 +8757,6 @@ return (
       `}</style>
 
 </main>
+    </>
   );
 }
