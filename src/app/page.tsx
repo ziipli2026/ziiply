@@ -7980,7 +7980,7 @@ export default function Page() {
                       >
                         <div
                           id={EAN_SCANNER_REGION_ID}
-                          className="absolute inset-0 h-full w-full overflow-hidden rounded-[1.2rem] bg-slate-950 [&_*]:!box-border [&_canvas]:!hidden [&_div]:!border-0 [&_div]:!shadow-none [&_video]:!absolute [&_video]:!inset-0 [&_video]:!h-full [&_video]:!w-full [&_video]:rounded-[1.2rem] [&_video]:!object-cover"
+                          className="ziiply-desktop-scanner-region absolute inset-0 h-full w-full overflow-hidden rounded-[1.2rem] bg-slate-950 [&_*]:!box-border [&_canvas]:!hidden [&_div]:!border-0 [&_div]:!shadow-none [&_video]:!absolute [&_video]:!inset-0 [&_video]:!h-full [&_video]:!w-full [&_video]:rounded-[1.2rem] [&_video]:!object-cover"
                         />
                         <div className="pointer-events-none absolute inset-0 rounded-[1.2rem] bg-[radial-gradient(circle_at_center,transparent_0%,transparent_58%,rgba(0,0,0,0.38)_84%)]" />
                         <div className="pointer-events-none absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 bg-[#9fbe66]/70 shadow-[0_0_18px_4px_rgba(159,190,102,0.45)]" />
@@ -8155,6 +8155,14 @@ export default function Page() {
         }
         #ziiply-ean-scanner-region video {
           object-fit: cover !important;
+        }
+
+        /* Desktop scanner preview mirror: fixes left/right direction in camera view only. */
+        @media (min-width: 1280px) {
+          .ziiply-desktop-scanner-region video {
+            transform: scaleX(-1) !important;
+            transform-origin: center center !important;
+          }
         }
         #ziiply-ean-scanner-region canvas,
         #ziiply-ean-scanner-region svg {
