@@ -4666,6 +4666,7 @@ export default function Page() {
       setEanModalOpen(false);
       closeProductSelectionOverlay();
       setCartSavePanelOpen(false);
+      setActiveResult("none");
       setCartModalOpen(true);
       window.requestAnimationFrame(() => {
         cartOverlayScrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
@@ -4766,6 +4767,7 @@ export default function Page() {
       setCartSavePanelOpen(false);
       setEanModalOpen(false);
       closeProductSelectionOverlay();
+      setActiveResult("none");
       setInitialStoreNavPrompt(false);
       setShopsPanelOpen(true);
     });
@@ -9033,7 +9035,6 @@ export default function Page() {
                         <span className="flex items-center gap-3">
                           <span className="text-xl">🏬</span> Tavaratalot
                         </span>
-                        <span className="text-xl opacity-70">›</span>
                       </button>
 
                       <button
@@ -9054,7 +9055,6 @@ export default function Page() {
                         <span className="flex items-center gap-3">
                           <span className="text-xl">🏪</span> Lähikaupat
                         </span>
-                        <span className="text-xl opacity-70">›</span>
                       </button>
 
                       <button
