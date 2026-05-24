@@ -157,12 +157,17 @@ import {
   ZiiplyBottomNav,
 } from "./components/ziiply/ziiplyComponents";
 import * as TopbarResponsiveCardModule from "./components/ziiply/cards/TopbarResponsiveCard";
+import * as ZiiplyCartCardModule from "./components/ziiply/cards/ZiiplyCartCard";
 
 export default function Page() {
   const TopbarResponsiveCard = ((TopbarResponsiveCardModule as any).default ||
     (TopbarResponsiveCardModule as any).TopbarResponsiveCard ||
     (TopbarResponsiveCardModule as any).ZiiplyTopBar ||
     (TopbarResponsiveCardModule as any).ZiiplyTopbarResponsiveCard) as any;
+  const ZiiplyCartCard = ((ZiiplyCartCardModule as any).default ||
+    (ZiiplyCartCardModule as any).ZiiplyCartCard ||
+    (ZiiplyCartCardModule as any).CartResponsiveCard ||
+    (ZiiplyCartCardModule as any).ZiiplyCartResponsiveCard) as any;
 
   const [input, setInput] = useState("");
   const [searchCompareMode, setSearchCompareMode] = useState<"cart" | "single">(
@@ -10642,138 +10647,163 @@ export default function Page() {
               )}
 
               {cart.length > 0 && (
-                <div className="mb-4 rounded-[1.25rem] bg-slate-950 p-4 text-white">
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-xs font-black uppercase tracking-wide text-green-300">
-                        Keräily kaupassa
-                      </p>
-                      <h3 className="mt-1 text-xl font-black">
-                        {cheapest?.storeName || "Muistilista"}
-                      </h3>
-                      <p className="mt-1 text-sm font-bold text-slate-300">
-                        {cheapest
-                          ? `Kori ${formatEuro(cheapest.totalPrice)}`
-                          : "Muistilista"}
-                        {checkedCount === shoppingListCount &&
-                          shoppingListCount > 0 && (
-                            <span className="mt-2 block rounded-xl bg-green-500 px-3 py-2 text-center text-xs font-black uppercase tracking-wide text-slate-950">
-                              ✓ Valmis kassalle
-                            </span>
-                          )}
-                      </p>
-                    </div>
-                    <div className="rounded-2xl bg-green-500 px-3 py-2 text-sm font-black text-slate-950">
-                      {shoppingProgressPercent} %
-                    </div>
-                  </div>
-
-                  <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-800">
-                    <div
-                      className="h-full rounded-full bg-green-400 transition-all"
-                      style={{ width: `${shoppingProgressPercent}%` }}
+                <>
+                  <div className="mb-4 hidden sm:block">
+                    <ZiiplyCartCard
+                      cart={cart}
+                      shoppingListItems={shoppingListItems}
+                      checkedCartItems={checkedCartItems}
+                      checkedCount={checkedCount}
+                      shoppingListCount={shoppingListCount}
+                      shoppingProgressPercent={shoppingProgressPercent}
+                      cheapest={cheapest}
+                      secondCheapest={secondCheapest}
+                      savings={savings}
+                      savingsPercent={savingsPercent}
+                      bestShoppingListGroups={bestShoppingListGroups}
+                      getShoppingListItemKey={getShoppingListItemKey}
+                      toggleShoppingListItem={toggleShoppingListItem}
+                      markAllShoppingListItemsChecked={markAllShoppingListItemsChecked}
+                      clearShoppingListChecks={clearShoppingListChecks}
+                      formatEuro={formatEuro}
+                      fixText={fixText}
+                      setCheckedCartItems={setCheckedCartItems}
+                      shoppingItemRefs={shoppingItemRefs}
                     />
                   </div>
 
-                  <div className="mt-3 grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={markAllShoppingListItemsChecked}
-                      disabled={
-                        shoppingListCount === 0 ||
-                        checkedCount === shoppingListCount
-                      }
-                      className="rounded-xl bg-green-400 px-3 py-2 text-xs font-black text-slate-950 transition active:scale-[0.98] disabled:opacity-50"
-                    >
-                      Kaikki kerätty
-                    </button>
-                    <button
-                      type="button"
-                      onClick={clearShoppingListChecks}
-                      disabled={checkedCount === 0}
-                      className="rounded-xl bg-white/10 px-3 py-2 text-xs font-black text-white transition active:scale-[0.98] disabled:opacity-50"
-                    >
-                      Nollaa keräily
-                    </button>
-                  </div>
-
-                  <p className="mt-3 text-center text-xs font-bold text-slate-400">
-                    Merkitse tuote kerätyksi, kun olet poiminut sen hyllystä.
-                    Merkinnät säilyvät sivun päivityksen jälkeen.
-                  </p>
-
-                  <div
-                    className="mt-4 max-h-[46vh] space-y-3 sm:space-y-4 overflow-auto pr-1"
-                    style={{ width: "100%" }}
-                  >
-                    {(
-                      Object.entries(bestShoppingListGroups) as [
-                        string,
-                        Match[],
-                      ][]
-                    ).map(([category, matches]) => (
-                      <div key={category}>
-                        <p className="mb-2 flex items-center justify-between text-xs font-black uppercase tracking-wide text-slate-400">
-                          <span>{category}</span>
-                          <span>
-                            {
-                              matches.filter(
-                                (match, index) =>
-                                  checkedCartItems[
-                                    getShoppingListItemKey(match, index)
-                                  ],
-                              ).length
-                            }
-                            /{matches.length}
-                          </span>
+                  <div className="mb-4 rounded-[1.25rem] bg-slate-950 p-4 text-white sm:hidden">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-black uppercase tracking-wide text-green-300">
+                          Keräily kaupassa
                         </p>
-                        <div className="space-y-2" style={{ width: "100%" }}>
-                          {matches.map((match, index) => {
-                            const key = getShoppingListItemKey(match, index);
-                            const checked = Boolean(checkedCartItems[key]);
+                        <h3 className="mt-1 text-xl font-black">
+                          {cheapest?.storeName || "Muistilista"}
+                        </h3>
+                        <p className="mt-1 text-sm font-bold text-slate-300">
+                          {cheapest
+                            ? `Kori ${formatEuro(cheapest.totalPrice)}`
+                            : "Muistilista"}
+                          {checkedCount === shoppingListCount &&
+                            shoppingListCount > 0 && (
+                              <span className="mt-2 block rounded-xl bg-green-500 px-3 py-2 text-center text-xs font-black uppercase tracking-wide text-slate-950">
+                                ✓ Valmis kassalle
+                              </span>
+                            )}
+                        </p>
+                      </div>
+                      <div className="rounded-2xl bg-green-500 px-3 py-2 text-sm font-black text-slate-950">
+                        {shoppingProgressPercent} %
+                      </div>
+                    </div>
 
-                            return (
-                              <button
-                                key={key}
-                                ref={(element) => {
-                                  shoppingItemRefs.current[key] = element;
-                                }}
-                                data-shopping-key={key}
-                                type="button"
-                                onClick={() =>
-                                  toggleShoppingListItem(match, index)
-                                }
-                                className={`flex w-full items-center gap-3 rounded-2xl p-3 text-left transition active:scale-[0.99] ${
-                                  checked
-                                    ? "bg-green-500/20 text-slate-300"
-                                    : "bg-white/10 text-white"
-                                }`}
-                              >
-                                <span
-                                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-sm font-black ${
+                    <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-800">
+                      <div
+                        className="h-full rounded-full bg-green-400 transition-all"
+                        style={{ width: `${shoppingProgressPercent}%` }}
+                      />
+                    </div>
+
+                    <div className="mt-3 grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={markAllShoppingListItemsChecked}
+                        disabled={
+                          shoppingListCount === 0 ||
+                          checkedCount === shoppingListCount
+                        }
+                        className="rounded-xl bg-green-400 px-3 py-2 text-xs font-black text-slate-950 transition active:scale-[0.98] disabled:opacity-50"
+                      >
+                        Kaikki kerätty
+                      </button>
+                      <button
+                        type="button"
+                        onClick={clearShoppingListChecks}
+                        disabled={checkedCount === 0}
+                        className="rounded-xl bg-white/10 px-3 py-2 text-xs font-black text-white transition active:scale-[0.98] disabled:opacity-50"
+                      >
+                        Nollaa keräily
+                      </button>
+                    </div>
+
+                    <p className="mt-3 text-center text-xs font-bold text-slate-400">
+                      Merkitse tuote kerätyksi, kun olet poiminut sen hyllystä.
+                      Merkinnät säilyvät sivun päivityksen jälkeen.
+                    </p>
+
+                    <div
+                      className="mt-4 max-h-[46vh] space-y-3 overflow-auto pr-1"
+                      style={{ width: "100%" }}
+                    >
+                      {(
+                        Object.entries(bestShoppingListGroups) as [
+                          string,
+                          Match[],
+                        ][]
+                      ).map(([category, matches]) => (
+                        <div key={category}>
+                          <p className="mb-2 flex items-center justify-between text-xs font-black uppercase tracking-wide text-slate-400">
+                            <span>{category}</span>
+                            <span>
+                              {
+                                matches.filter(
+                                  (match, index) =>
+                                    checkedCartItems[
+                                      getShoppingListItemKey(match, index)
+                                    ],
+                                ).length
+                              }
+                              /{matches.length}
+                            </span>
+                          </p>
+                          <div className="space-y-2" style={{ width: "100%" }}>
+                            {matches.map((match, index) => {
+                              const key = getShoppingListItemKey(match, index);
+                              const checked = Boolean(checkedCartItems[key]);
+
+                              return (
+                                <button
+                                  key={key}
+                                  ref={(element) => {
+                                    shoppingItemRefs.current[key] = element;
+                                  }}
+                                  data-shopping-key={key}
+                                  type="button"
+                                  onClick={() =>
+                                    toggleShoppingListItem(match, index)
+                                  }
+                                  className={`flex w-full items-center gap-3 rounded-2xl p-3 text-left transition active:scale-[0.99] ${
                                     checked
-                                      ? "border-green-300 bg-green-400 text-slate-950"
-                                      : "border-white/30"
+                                      ? "bg-green-500/20 text-slate-300"
+                                      : "bg-white/10 text-white"
                                   }`}
                                 >
-                                  {checked ? "✓" : ""}
-                                </span>
-                                <div className="min-w-0 flex-1">
-                                  <p
-                                    className={`line-clamp-2 text-sm font-black leading-tight ${checked ? "line-through opacity-70" : ""}`}
+                                  <span
+                                    className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-sm font-black ${
+                                      checked
+                                        ? "border-green-300 bg-green-400 text-slate-950"
+                                        : "border-white/30"
+                                    }`}
                                   >
-                                    {match.quantity} ×{" "}
-                                    {fixText(match.product.name)}
-                                  </p>
-                                </div>
-                              </button>
-                            );
-                          })}
+                                    {checked ? "✓" : ""}
+                                  </span>
+                                  <div className="min-w-0 flex-1">
+                                    <p
+                                      className={`line-clamp-2 text-sm font-black leading-tight ${checked ? "line-through opacity-70" : ""}`}
+                                    >
+                                      {match.quantity} × {fixText(match.product.name)}
+                                    </p>
+                                  </div>
+                                </button>
+                              );
+                            })}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
+                </>
               )}
 
               {cart.length === 0 ? (
