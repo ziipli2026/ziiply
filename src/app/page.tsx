@@ -7538,7 +7538,7 @@ export default function Page() {
                     className="mt-4 h-28 w-full resize-none rounded-[1.2rem] border border-[#d6bf8f] bg-white px-4 py-3 text-base font-semibold outline-none focus:border-green-600 focus:ring-4 focus:ring-[#b8d6b6]"
                   />
 
-                  <div className="mt-3 grid grid-cols-[1fr_1fr_280px] gap-3">
+                  <div className="mt-3 grid grid-cols-3 gap-3">
                     <button
                       type="button"
                       onClick={() => handleMainNormalSearch()}
@@ -7561,22 +7561,14 @@ export default function Page() {
                     <button
                       type="button"
                       onClick={() => openEanModal()}
-                      className="flex items-center justify-between overflow-hidden rounded-2xl border-2 border-[#b39a62] bg-[#2f3d28] px-4 py-3 text-left text-[#fff4d8] shadow-[inset_0_0_0_2px_rgba(255,244,216,0.08),0_3px_0_rgba(7,59,45,0.24)] transition hover:brightness-105 active:translate-y-[1px]"
+                      className="flex items-center justify-center gap-3 overflow-hidden rounded-2xl border-2 border-[#b39a62] bg-[#2f3d28] px-4 py-3 text-center text-[#fff4d8] shadow-[inset_0_0_0_2px_rgba(255,244,216,0.08),0_3px_0_rgba(7,59,45,0.24)] transition hover:brightness-105 active:translate-y-[1px]"
                     >
-                      <span className="flex items-center gap-3">
-                        <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#f4dfa1] text-xl text-[#2f3d28] ring-2 ring-[#b49a61]">
-                          📸
-                        </span>
-                        <span>
-                          <span className="block font-serif text-2xl font-black italic leading-none">
-                            Skanneri
-                          </span>
-                          <span className="mt-1 block text-[10px] font-black uppercase tracking-[0.20em] text-[#d7c391]">
-                            50-luvun kamera
-                          </span>
-                        </span>
+                      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#f4dfa1] text-xl text-[#2f3d28] ring-2 ring-[#b49a61]">
+                        📸
                       </span>
-                      <span className="text-xl font-black text-[#d7c391]">→</span>
+                      <span className="font-serif text-2xl font-black italic leading-none">
+                        Skanneri
+                      </span>
                     </button>
                   </div>
                 </section>
