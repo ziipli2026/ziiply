@@ -4685,6 +4685,7 @@ export default function Page() {
 
     setCart(nextCart);
     persistCartImmediately(nextCart);
+    setCartSavePanelOpen(false);
     showCartToast(`Lisätty lista: ${list.name}`);
     setSearchPanelOpen(false);
     setCartModalOpen(true);
@@ -8018,6 +8019,8 @@ export default function Page() {
                     fixText={fixText}
                     setCheckedCartItems={setCheckedCartItems}
                     shoppingItemRefs={shoppingItemRefs}
+                    onIncreaseQuantity={(itemId: string) => changeQuantity(itemId, 1)}
+                    onDecreaseQuantity={(itemId: string) => changeQuantity(itemId, -1)}
                     onRemoveItem={removeCartItem}
                     onAddMore={openSearchPanel}
                     onClearCart={clearCart}
@@ -10810,6 +10813,9 @@ export default function Page() {
                       fixText={fixText}
                       setCheckedCartItems={setCheckedCartItems}
                       shoppingItemRefs={shoppingItemRefs}
+                      onIncreaseQuantity={(itemId: string) => changeQuantity(itemId, 1)}
+                      onDecreaseQuantity={(itemId: string) => changeQuantity(itemId, -1)}
+                      onRemoveItem={removeCartItem}
                     />
                   </div>
 
