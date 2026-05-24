@@ -8153,8 +8153,6 @@ export default function Page() {
         }
         #ziiply-ean-scanner-region video {
           object-fit: cover !important;
-          transform: none !important;
-          -webkit-transform: none !important;
         }
         #ziiply-ean-scanner-region canvas,
         #ziiply-ean-scanner-region svg {
