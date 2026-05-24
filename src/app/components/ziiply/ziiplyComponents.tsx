@@ -6,83 +6,109 @@ type ZiiplyLaunchScreenProps = {
 
 export function ZiiplyLaunchScreen({ appVersion: _appVersion }: ZiiplyLaunchScreenProps) {
   return (
-    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-white ziiply-soft-open">
-      <div className="mx-auto flex w-full max-w-[360px] flex-col items-center px-7 text-center">
-        <div className="relative">
-          <div className="absolute inset-0 rounded-full bg-green-400/20 blur-3xl animate-[ziiplyGlow_1.8s_ease-out_forwards]" />
+    <div className="fixed inset-0 z-[2147483646] flex items-start justify-center bg-[#EAF4F1] px-7 pt-[18dvh] ziiply-launch-root">
+      <div className="mx-auto flex w-full max-w-[360px] flex-col items-center text-center">
+        <div className="relative flex w-full max-w-[300px] items-center justify-center">
+          <div className="pointer-events-none absolute h-28 w-28 rounded-full bg-green-400/18 blur-2xl ziiply-launch-halo" />
 
           <img
             src="/ziiply.png"
             alt="Ziiply"
-            className="relative h-auto w-full max-w-[245px] object-contain animate-[ziiplyLogoIntro_1.25s_cubic-bezier(0.22,1,0.36,1)_forwards]"
+            className="relative h-auto w-full max-w-[238px] object-contain ziiply-launch-logo"
           />
         </div>
 
-        <div className="mt-6 rounded-[1.6rem] border border-white/80 bg-white/82 px-5 py-4 text-center shadow-[0_18px_55px_rgba(15,23,42,0.10)] backdrop-blur-xl animate-[ziiplyTextIntro_1.25s_ease-out_0.18s_both]">
-          <p className="text-[1.08rem] font-black leading-snug tracking-[-0.03em] text-slate-900">
+        <div className="ziiply-launch-copy mt-7 max-w-[21.5rem] text-center">
+          <p className="text-[1.22rem] font-black leading-[1.05] tracking-[-0.045em] text-slate-950">
             Viilaa ruokakorisi halvemmaks.
           </p>
 
-          <p className="mt-2 text-[0.92rem] font-semibold leading-snug text-slate-500">
+          <p className="mx-auto mt-3 max-w-[19rem] text-[0.94rem] font-semibold leading-snug tracking-[-0.015em] text-slate-500">
             Gösta ja Justiina auttavat arjen valinnoissa.
           </p>
         </div>
 
-        <style jsx global>{`
-          @keyframes ziiplyLogoIntro {
+        <style>{`
+          .ziiply-launch-root {
+            animation: ziiplyLaunchRoot 220ms ease-out both;
+          }
+
+          .ziiply-launch-logo {
+            animation: ziiplyLaunchLogo 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+            will-change: transform, opacity;
+          }
+
+          .ziiply-launch-halo {
+            animation: ziiplyLaunchHalo 1100ms ease-out both;
+            will-change: transform, opacity;
+          }
+
+          .ziiply-launch-copy {
+            animation: ziiplyLaunchCopy 720ms cubic-bezier(0.22, 1, 0.36, 1) 160ms both;
+            will-change: transform, opacity;
+          }
+
+          @keyframes ziiplyLaunchRoot {
             0% {
               opacity: 0;
-              transform: scale(0.92) translateY(10px);
-              filter: blur(10px);
-            }
-
-            55% {
-              opacity: 1;
-              transform: scale(1.02) translateY(0);
-              filter: blur(0);
             }
 
             100% {
               opacity: 1;
-              transform: scale(1);
-              filter: blur(0);
             }
           }
 
-          @keyframes ziiplyGlow {
+          @keyframes ziiplyLaunchLogo {
             0% {
               opacity: 0;
-              transform: scale(0.7);
+              transform: translateY(14px) scale(0.96);
             }
 
-            40% {
+            70% {
               opacity: 1;
-            }
-
-            100% {
-              opacity: 0;
-              transform: scale(1.35);
-            }
-          }
-
-          @keyframes ziiplyTextIntro {
-            0% {
-              opacity: 0;
-              transform: translateY(10px) scale(0.98);
-              filter: blur(6px);
+              transform: translateY(-2px) scale(1.01);
             }
 
             100% {
               opacity: 1;
               transform: translateY(0) scale(1);
-              filter: blur(0);
+            }
+          }
+
+          @keyframes ziiplyLaunchHalo {
+            0% {
+              opacity: 0;
+              transform: scale(0.72);
+            }
+
+            35% {
+              opacity: 1;
+              transform: scale(1);
+            }
+
+            100% {
+              opacity: 0;
+              transform: scale(1.55);
+            }
+          }
+
+          @keyframes ziiplyLaunchCopy {
+            0% {
+              opacity: 0;
+              transform: translateY(12px);
+            }
+
+            100% {
+              opacity: 1;
+              transform: translateY(0);
             }
           }
 
           @media (prefers-reduced-motion: reduce) {
-            .animate-[ziiplyGlow_1.8s_ease-out_forwards],
-            .animate-[ziiplyLogoIntro_1.25s_cubic-bezier(0.22,1,0.36,1)_forwards],
-            .animate-[ziiplyTextIntro_1.25s_ease-out_0.18s_both] {
+            .ziiply-launch-root,
+            .ziiply-launch-logo,
+            .ziiply-launch-halo,
+            .ziiply-launch-copy {
               animation: none !important;
             }
           }
@@ -173,8 +199,8 @@ export function ZiiplyBottomNav({
         <button
           type="button"
           onClick={onCompareClick}
-          disabled={initialStoreSelectionLocked || cartLength === 0}
-          aria-disabled={initialStoreSelectionLocked || cartLength === 0}
+          disabled={cartLength === 0}
+          aria-disabled={cartLength === 0}
           className={`flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition ${cartLength === 0 ? (initialStoreSelectionLocked ? "cursor-not-allowed bg-red-50 text-red-300 ring-1 ring-red-100 opacity-80" : "cursor-not-allowed bg-slate-100 text-slate-300 opacity-70") : activeResult === "compare" && !searchPanelOpen && !cartModalOpen ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white shadow-md active:scale-[0.98]" : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
         >
           <span className="text-lg leading-none">⚖️</span>
