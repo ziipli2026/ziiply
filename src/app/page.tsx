@@ -8021,6 +8021,8 @@ export default function Page() {
                     bestShoppingListGroups={bestShoppingListGroups}
                     getShoppingListItemKey={getShoppingListItemKey}
                     toggleShoppingListItem={toggleShoppingListItem}
+                    onToggleShoppingListItem={toggleShoppingListItem}
+                    onToggleCollected={toggleShoppingListItem}
                     markAllShoppingListItemsChecked={markAllShoppingListItemsChecked}
                     clearShoppingListChecks={clearShoppingListChecks}
                     formatEuro={formatEuro}
