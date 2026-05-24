@@ -266,9 +266,9 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
         {!hasItems ? (
           <div className="rounded-[28px] border-[2px] border-dashed border-[#b99d64] bg-[#f8eed2] px-5 py-8 text-center">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[18px] bg-[#e9d9af] text-2xl">🧺</div>
-            <div className="mt-4 text-[24px] font-black text-[#28402a]">Kori on vielä tyhjä.</div>
+            <div className="mt-4 text-[24px] font-black text-[#28402a]">Kori on vielä tyhjä</div>
             <p className="mx-auto mt-2 max-w-[320px] text-[16px] font-bold leading-snug text-[#6b6656]">
-              Lisää muonaa koriin Göstan hinnanhuojennuksista tahi Justiinalta.
+              Lisää muonaa koriin Göstan hinnanhuojennuksista tai Justiinan ostoshaulla.
             </p>
           </div>
         ) : (
