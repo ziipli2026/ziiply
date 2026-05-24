@@ -6095,7 +6095,7 @@ export default function Page() {
             max-width: 1180px;
           }
 
-          .ziiply-desktop-debug-compact img[src="/ziiplylogo_mobile.png"] {
+          .ziiply-desktop-debug-compact img[src="/ziiply_mobile.png"] {
             max-height: 96px !important;
           }
 
@@ -6175,7 +6175,7 @@ export default function Page() {
           // v332: älä näytä storeModeLabeliä yläpalkissa.
           // Se kavensi sijaintipillin leveyttä mobiilissa, jolloin "Hyvinkää" katkesi valintojen jälkeen.
           storeModeLabel=""
-          logoImageSrc="/ziiplylogo_mobile.png"
+          logoImageSrc="/ziiply_mobile.png"
           infoItems={[
             { id: "weather", label: "SÄÄ", value: "+18°", emoji: "🌤️" },
             { id: "electricity", label: "SÄHKÖ", value: "4,2", emoji: "⚡" },
