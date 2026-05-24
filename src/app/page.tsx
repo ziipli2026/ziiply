@@ -3667,6 +3667,36 @@ export default function Page() {
     }, 120);
   }
 
+  function openDesktopScanner() {
+    trackZiiplyEvent("desktop_scanner_opened", {
+      cartItemsCount: cart.length,
+    });
+
+    setSearchPanelOpen(false);
+    setCartModalOpen(false);
+    setCartSavePanelOpen(false);
+    setShopsPanelOpen(false);
+    setActiveResult("none");
+    setEanModalClosing(false);
+    setSuppressUiForEanClose(false);
+    setEanModalOpen(true);
+    setEanScannerOpen(true);
+    setEanManualInputOpen(false);
+    setEanMessage("");
+    setEanResults([]);
+    setLastAutoEanSearch("");
+    setEanSearchStartedAutomatically(false);
+    eanAutoSearchActiveRef.current = false;
+    setEanScannerMessage("Ladataan kameraskanneria...");
+
+    // Desktopin nappi avaa ensin modalin ja scanner-regionin renderöitäväksi.
+    // Kamera käynnistetään vasta seuraavalla render-kierroksella, jotta
+    // html5-qrcode löytää EAN_SCANNER_REGION_ID-elementin varmasti.
+    window.setTimeout(() => {
+      void startEanCameraScanner();
+    }, 260);
+  }
+
   function clearEanSearch() {
     if (eanAutoSearchTimeoutRef.current) {
       window.clearTimeout(eanAutoSearchTimeoutRef.current);
@@ -7560,7 +7590,7 @@ export default function Page() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => openEanModal()}
+                      onClick={() => openDesktopScanner()}
                       className="flex items-center justify-center gap-3 overflow-hidden rounded-2xl border-2 border-[#b39a62] bg-[#2f3d28] px-4 py-3 text-center text-[#fff4d8] shadow-[inset_0_0_0_2px_rgba(255,244,216,0.08),0_3px_0_rgba(7,59,45,0.24)] transition hover:brightness-105 active:translate-y-[1px]"
                     >
                       <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#f4dfa1] text-xl text-[#2f3d28] ring-2 ring-[#b49a61]">
