@@ -106,8 +106,8 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
 
   const [localSaveOpen, setLocalSaveOpen] = useState(false);
   const isSaveOpen = typeof cartSavePanelOpen === "boolean" ? cartSavePanelOpen : localSaveOpen;
-
   const hasItems = cart.length > 0;
+
   const listItems = useMemo(() => {
     if (shoppingListItems && shoppingListItems.length > 0) return shoppingListItems;
     return cart.map((item) => ({
@@ -161,13 +161,17 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
     if (toggleShoppingListItem) return toggleShoppingListItem(match, index);
     if (onToggleShoppingListItem) return onToggleShoppingListItem(match, index);
     if (onToggleCollected) return onToggleCollected(match, index);
-
     const key = keys[index];
     props.setCheckedCartItems?.((current) => ({ ...current, [key]: !current[key] }));
   };
 
+  const resetCollecting = () => {
+    if (clearShoppingListChecks) return clearShoppingListChecks();
+    props.setCheckedCartItems?.({});
+  };
+
   return (
-    <section className="relative flex h-[calc(100vh-118px)] max-h-[calc(100vh-118px)] min-h-[620px] flex-col overflow-hidden rounded-[34px] border-[4px] border-[#5b482c] bg-[#f4e7c7] p-4 text-[#20301f] shadow-[0_0_0_2px_#d4b978_inset,0_16px_26px_rgba(60,45,20,0.28)]">
+    <section className="relative flex h-[calc(100dvh-118px)] max-h-[calc(100dvh-118px)] min-h-[620px] flex-col overflow-hidden rounded-[34px] border-[4px] border-[#5b482c] bg-[#f4e7c7] p-4 text-[#20301f] shadow-[0_0_0_2px_#d4b978_inset,0_16px_26px_rgba(60,45,20,0.28)]">
       <div className="pointer-events-none absolute inset-0 opacity-45 [background-image:radial-gradient(#c7aa67_1px,transparent_1px)] [background-size:15px_15px]" />
 
       <div className="relative z-10 shrink-0">
@@ -177,8 +181,8 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
               Kori ja keräily
             </div>
             <h2
-              className="mt-1 text-[42px] font-black italic leading-none text-[#28402a]"
-              style={{ fontFamily: '"Georgia", "Times New Roman", serif' }}
+              className="mt-1 text-[48px] font-black italic leading-none text-[#28402a]"
+              style={{ fontFamily: '"Cooper Black", "Cooper Std Black", Georgia, serif' }}
             >
               Ostoskori
             </h2>
@@ -197,25 +201,33 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-3">
+        <div className="mt-4 grid grid-cols-[1fr_1fr_1.35fr] gap-2">
+          <button
+            type="button"
+            onClick={resetCollecting}
+            disabled={!hasItems || checkedCount === 0}
+            className="min-h-[46px] rounded-[17px] border-[2px] border-[#b99d64] bg-[#f1e3be] px-3 text-[14px] font-black uppercase tracking-wide text-[#283926] shadow-[0_0_0_2px_#f8edcf_inset] disabled:cursor-not-allowed disabled:opacity-35"
+          >
+            Nollaa keräily
+          </button>
           <button
             type="button"
             onClick={hasItems ? onClearCart : undefined}
             disabled={!hasItems || !onClearCart}
-            className="min-h-[50px] rounded-[18px] border border-[#8f4a23] bg-[#934519] px-4 text-[17px] font-black uppercase tracking-wide text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18)] disabled:cursor-not-allowed disabled:opacity-35"
+            className="min-h-[46px] rounded-[17px] border border-[#8f4a23] bg-[#934519] px-3 text-[14px] font-black uppercase tracking-wide text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18)] disabled:cursor-not-allowed disabled:opacity-35"
           >
             Tyhjennä kori
           </button>
           <button
             type="button"
             onClick={toggleSavePanel}
-            className="min-h-[50px] rounded-[18px] border-[2px] border-[#b99d64] bg-[#f1e3be] px-4 text-[16px] font-black uppercase tracking-wide text-[#283926] shadow-[0_0_0_2px_#f8edcf_inset]"
+            className="min-h-[46px] rounded-[17px] border-[2px] border-[#b99d64] bg-[#f1e3be] px-3 text-[14px] font-black uppercase tracking-wide text-[#283926] shadow-[0_0_0_2px_#f8edcf_inset]"
           >
             Näytä/tallenna vihkonen
           </button>
         </div>
 
-        <div className="my-4 h-[3px] bg-[#b99d64]" />
+        <div className="my-3 h-[3px] bg-[#b99d64]" />
 
         <div className="grid grid-cols-3 gap-3">
           <div className="rounded-[18px] border-[2px] border-[#c2a46d] bg-[#f6ecd2] p-3 text-center">
@@ -235,8 +247,8 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
         <div className="mt-4 rounded-[24px] border-[3px] border-[#b99d64] bg-gradient-to-b from-[#f7edcf] to-[#e8d4a8] p-4 text-[#243d28] shadow-[0_0_0_2px_#fff6dc_inset,0_5px_0_rgba(91,72,44,0.25)]">
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0">
-              <div className="text-[13px] font-black uppercase tracking-[0.28em] text-[#746742]">Tavaran keräys</div>
-              <div className="mt-1 truncate text-[25px] font-black italic" style={{ fontFamily: '"Georgia", "Baskerville", serif' }}>
+              <div className="text-[15px] font-black uppercase tracking-[0.30em] text-[#746742]">Tavarain keräys</div>
+              <div className="mt-1 truncate text-[25px] font-black italic" style={{ fontFamily: '"Cooper Black", Georgia, serif' }}>
                 {cheapest?.storeName || "Valitse huokein kori"}
               </div>
             </div>
@@ -256,7 +268,7 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[18px] bg-[#e9d9af] text-2xl">🧺</div>
             <div className="mt-4 text-[24px] font-black text-[#28402a]">Kori on vielä tyhjä</div>
             <p className="mx-auto mt-2 max-w-[320px] text-[16px] font-bold leading-snug text-[#6b6656]">
-              Lisää tuotteita Göstan tarjouksista tai Justiinan ostoshaulla.
+              Lisää muonaa koriin Göstan tarjouksista tai Justiinan ostoshaulla.
             </p>
           </div>
         ) : (
@@ -275,8 +287,8 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
               return (
                 <article
                   key={key}
-                  className={`grid h-[128px] min-h-[128px] max-h-[128px] grid-cols-[58px_64px_minmax(0,1fr)_78px] items-center gap-3 overflow-hidden rounded-[24px] border-[2px] bg-[#f8efd7] px-3 shadow-[0_1px_0_#fff8df_inset] ${
-                    checked ? "border-[#0b8c3d] opacity-70" : "border-[#d1b77d]"
+                  className={`grid h-[116px] min-h-[116px] max-h-[116px] grid-cols-[52px_58px_minmax(0,1fr)_72px] items-center gap-3 overflow-hidden rounded-[23px] border-[2px] bg-gradient-to-b from-[#fff5db] to-[#f3e4c4] px-3 shadow-[0_3px_0_rgba(113,82,31,0.14),inset_0_0_0_1px_rgba(255,255,255,0.58)] ${
+                    checked ? "border-[#0b8c3d] opacity-75" : "border-[#d1b77d]"
                   }`}
                 >
                   <button
@@ -285,7 +297,7 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
                     }}
                     type="button"
                     onClick={() => handleToggleItem(match, index)}
-                    className={`flex h-14 w-14 items-center justify-center rounded-full border-[3px] text-[21px] font-black transition active:scale-95 ${
+                    className={`flex h-12 w-12 items-center justify-center rounded-full border-[3px] text-[18px] font-black transition active:scale-95 ${
                       checked
                         ? "border-[#07883a] bg-[#0b8c3d] text-white"
                         : "border-[#bfa66b] bg-[#fff8e8] text-[#7d6b43]"
@@ -295,9 +307,8 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
                     {checked ? "✓" : index + 1}
                   </button>
 
-                  <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-[16px] border border-[#d6be84] bg-white">
+                  <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-[15px] border border-[#d6be84] bg-white">
                     {image ? (
-                      // eslint-disable-next-line @next/next/no-img-element
                       <img src={image} alt="" className="h-full w-full object-contain" />
                     ) : (
                       <span className="text-2xl">🛒</span>
@@ -305,16 +316,20 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
                   </div>
 
                   <div className="min-w-0 overflow-hidden">
-                    <div className={`line-clamp-2 max-h-[46px] text-[18px] font-black leading-tight ${checked ? "line-through" : ""}`}>
+                    <div
+                      className={`text-[17px] font-black leading-tight text-[#1d281b] ${checked ? "line-through" : ""}`}
+                      title={name}
+                      style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}
+                    >
                       {name}
                     </div>
-                    <div className="mt-1 text-[16px] font-black text-[#6d6757]">{quantity} kpl</div>
-                    <div className="mt-1 flex gap-2">
+                    <div className="mt-1 flex items-center gap-2">
+                      <span className="min-w-[48px] text-[14px] font-black text-[#6d6757]">{quantity} kpl</span>
                       <button
                         type="button"
                         onClick={() => onDecreaseQuantity?.(cartItemId)}
                         disabled={!onDecreaseQuantity || quantity <= 1}
-                        className="h-8 w-10 rounded-[10px] border border-[#d0b77e] bg-[#efe2bd] text-[22px] font-black disabled:opacity-35"
+                        className="h-8 w-9 rounded-[10px] border border-[#d0b77e] bg-[#efe2bd] text-[20px] font-black disabled:opacity-35"
                       >
                         −
                       </button>
@@ -322,7 +337,7 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
                         type="button"
                         onClick={() => onIncreaseQuantity?.(cartItemId)}
                         disabled={!onIncreaseQuantity}
-                        className="h-8 w-10 rounded-[10px] bg-[#0b8c3d] text-[22px] font-black text-white disabled:opacity-35"
+                        className="h-8 w-9 rounded-[10px] bg-[#0b8c3d] text-[20px] font-black text-white disabled:opacity-35"
                       >
                         +
                       </button>
@@ -330,14 +345,14 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
                         type="button"
                         onClick={() => onRemoveItem?.(cartItemId)}
                         disabled={!onRemoveItem}
-                        className="h-8 rounded-[10px] bg-[#934519] px-3 text-[15px] font-black text-white disabled:opacity-35"
+                        className="h-8 rounded-[10px] bg-[#934519] px-3 text-[14px] font-black text-white disabled:opacity-35"
                       >
                         Pois
                       </button>
                     </div>
                   </div>
 
-                  <div className="text-right text-[18px] font-black text-[#28402a]">
+                  <div className="text-right text-[17px] font-black text-[#28402a]">
                     {price > 0 ? formatEuro(price * quantity) : "—"}
                   </div>
                 </article>
@@ -347,21 +362,16 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
         )}
       </div>
 
-
       {isSaveOpen && (
         <div className="absolute inset-4 z-30 flex flex-col overflow-hidden rounded-[30px] border-[4px] border-[#6f5732] bg-gradient-to-b from-[#f7edcf] to-[#ead7ad] p-4 shadow-2xl shadow-black/35">
           <div className="flex items-start justify-between gap-3">
             <div>
               <div className="text-[13px] font-black uppercase tracking-[0.32em] text-[#68705a]">Vihkonen</div>
-              <div className="text-[28px] font-black italic text-[#28402a]" style={{ fontFamily: '"Georgia", serif' }}>
+              <div className="text-[28px] font-black italic text-[#28402a]" style={{ fontFamily: '"Cooper Black", Georgia, serif' }}>
                 Tallenna tai avaa ostoslista
               </div>
             </div>
-            <button
-              type="button"
-              onClick={closeSavePanel}
-              className="rounded-full border border-[#b99d64] bg-[#fff6df] px-4 py-2 text-sm font-black"
-            >
+            <button type="button" onClick={closeSavePanel} className="rounded-full border border-[#b99d64] bg-[#fff6df] px-4 py-2 text-sm font-black">
               Sulje
             </button>
           </div>
@@ -373,12 +383,7 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
               placeholder="Nimeä vihkonen"
               className="min-h-[46px] min-w-0 flex-1 rounded-[16px] border-[2px] border-[#c8ad72] bg-[#fff8e8] px-4 text-[16px] font-black outline-none"
             />
-            <button
-              type="button"
-              onClick={handleSaveCurrent}
-              disabled={!hasItems}
-              className="rounded-[16px] bg-[#0b8c3d] px-5 text-[16px] font-black text-white disabled:opacity-35"
-            >
+            <button type="button" onClick={handleSaveCurrent} disabled={!hasItems} className="rounded-[16px] bg-[#0b8c3d] px-5 text-[16px] font-black text-white disabled:opacity-35">
               Tallenna
             </button>
           </div>
@@ -391,23 +396,12 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
             ) : (
               <div className="space-y-2">
                 {savedShoppingLists.map((list) => (
-                  <div
-                    key={list.id}
-                    className="flex items-center justify-between gap-3 rounded-[18px] border border-[#d0b77e] bg-[#fff6df] p-3"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => handleChooseSavedList(String(list.id))}
-                      className="min-w-0 flex-1 text-left"
-                    >
+                  <div key={list.id} className="flex items-center justify-between gap-3 rounded-[18px] border border-[#d0b77e] bg-[#fff6df] p-3">
+                    <button type="button" onClick={() => handleChooseSavedList(String(list.id))} className="min-w-0 flex-1 text-left">
                       <div className="truncate text-[17px] font-black text-[#28402a]">{list.name}</div>
                       <div className="text-sm font-bold text-[#6b6656]">{Array.isArray(list.items) ? list.items.length : 0} tuotetta</div>
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => onDeleteSavedShoppingList?.(String(list.id))}
-                      className="rounded-[12px] bg-[#934519] px-3 py-2 text-sm font-black text-white"
-                    >
+                    <button type="button" onClick={() => onDeleteSavedShoppingList?.(String(list.id))} className="rounded-[12px] bg-[#934519] px-3 py-2 text-sm font-black text-white">
                       Poista
                     </button>
                   </div>
