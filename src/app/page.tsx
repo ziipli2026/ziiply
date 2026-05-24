@@ -474,6 +474,7 @@ export default function Page() {
   }, [storesReadyForSearch, searchReadySignatureV320]);
   const [visibleNormalCount, setVisibleNormalCount] = useState(8);
   const [activeNormalSearchTerm, setActiveNormalSearchTerm] = useState("");
+  const [notFoundSearchTerms, setNotFoundSearchTerms] = useState<string[]>([]);
   const [eanModalOpen, setEanModalOpen] = useState(false);
   const [eanInput, setEanInput] = useState("");
   const [eanLoading, setEanLoading] = useState(false);
@@ -2987,6 +2988,7 @@ export default function Page() {
     setNormalSearchAttempted(true);
     setSearchDebug([]);
     setVisibleNormalCount(8);
+    if (isMainSearch) setNotFoundSearchTerms([]);
     setActiveNormalSearchTerm(focusedSearchTerms[0] || "");
     // Normaali haku avaa hakutulosten valintanäkymän, ei korivertailua.
     // Korivertailu avataan vain Vertailu-tabista tai ostoslistatoiminnoista.
@@ -3138,6 +3140,25 @@ export default function Page() {
 
       setSearchDebug(debugEntries);
       setNormalResults(unique);
+
+      if (unique.length === 0) {
+        const missingTerm = focusedSearchTerms[0] || useTerms[0] || "";
+        if (missingTerm) {
+          setNotFoundSearchTerms((current) =>
+            current.includes(missingTerm) ? current : [...current, missingTerm],
+          );
+        }
+
+        const remainingTerms = useTerms.slice(focusedSearchTerms.length);
+        if (remainingTerms.length > 0) {
+          const remainingInput = remainingTerms.join(", ");
+          setInput(remainingInput);
+          window.setTimeout(() => {
+            void searchNormalPrices(remainingInput);
+          }, 80);
+          return;
+        }
+      }
 
       if (unique.length === 0 && isMainSearch) {
         setSearchPanelOpen(true);
@@ -3326,6 +3347,32 @@ export default function Page() {
     }
   }
 
+  useEffect(() => {
+    if (cart.length === 0 || !hasActiveStores) {
+      if (cart.length === 0) {
+        setSMatches({});
+        setKMatches({});
+      }
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      void updateChainComparison(cart, { openCompare: false });
+    }, 300);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    cart,
+    hasActiveStores,
+    activeStores.sStoreId,
+    activeStores.kStoreId,
+    activeStores.sStoreName,
+    activeStores.kStoreName,
+    storeMode,
+    storeCompareScope,
+    withinChain,
+  ]);
+
   function addOfferToCart(item: ZiiplyOffer) {
     setJustAdded(item.id);
     setTimeout(() => setJustAdded(null), 1200);
@@ -3351,8 +3398,11 @@ export default function Page() {
       product,
     };
 
-    setCart((prev) => [...prev, newItem]);
+    const nextCart = [...cart, newItem];
+    setCart(nextCart);
+    persistCartImmediately(nextCart);
     showCartToast(`Lisätty ostoskoriin: ${name}`);
+    void updateChainComparison(nextCart, { openCompare: false });
   }
 
   function loadHtml5QrCodeScript() {
@@ -7480,53 +7530,9 @@ export default function Page() {
 
                 <section className="rounded-[1.6rem] border border-[#d6bf8f] bg-[#fff8e8] p-5 shadow-[0_3px_0_rgba(7,59,45,0.16)] ring-1 ring-white/60">
                   <p className="text-xs font-black uppercase tracking-wide text-[#8e896f]">
-                    Kaupat ja sijainti
+                    Kauppavalinta
                   </p>
-                  <div className="mt-3 flex gap-2">
-                    <button
-                      type="button"
-                      aria-pressed={usingOwnLocation}
-                      onClick={() => {
-                        if (usingOwnLocation) {
-                          stopOwnLocationV306(
-                            "GPS pois päältä. Kirjoita alue tai postinumero.",
-                          );
-                          return;
-                        }
-                        setLocationInput("");
-                        void useOwnLocation();
-                      }}
-                      title={usingOwnLocation ? "GPS käytössä" : "GPS pois päältä"}
-                      className={`flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-2xl text-xl font-black shadow-sm ring-1 transition active:scale-[0.98] ${
-                        usingOwnLocation
-                          ? "bg-green-50 text-green-700 ring-green-200"
-                          : "bg-red-50 text-red-700 ring-red-200"
-                      }`}
-                    >
-                      📍
-                    </button>
-                    <input
-                      value={locationInput}
-                      onChange={(event) => {
-                        const nextValue = event.target.value;
-                        setLocationInput(nextValue);
-                        if (nextValue.trim()) {
-                          gpsUserDisabledRefV306.current = true;
-                          setUsingOwnLocation(false);
-                        }
-                        setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
-                      }}
-                      placeholder="05510 tai Hyvinkää"
-                      className="min-w-0 flex-1 rounded-2xl border border-[#d6bf8f] px-4 py-3 text-sm font-bold outline-none focus:border-green-600 focus:ring-4 focus:ring-[#b8d6b6]"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => void applyLocation()}
-                      className="rounded-2xl bg-[#1d241b] px-4 py-3 text-sm font-black text-white"
-                    >
-                      Käytä
-                    </button>
-                  </div>
+
                   <p className="mt-2 rounded-2xl bg-[#fff2c9] px-3 py-2 text-xs font-black text-[#8a3f16] ring-1 ring-[#e1c678]">
                     {locationMessage}
                   </p>
@@ -7571,6 +7577,60 @@ export default function Page() {
               </aside>
 
               <main className="min-h-0 space-y-2 overflow-y-auto pr-1">
+                <section className="rounded-[1.6rem] border border-[#d6bf8f] bg-[#fff8e8] p-4 shadow-[0_3px_0_rgba(7,59,45,0.16)] ring-1 ring-white/60">
+                  <p className="mb-2 text-xs font-black uppercase tracking-[0.18em] text-[#8e896f]">
+                    Kaupat ja sijainti
+                  </p>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      aria-pressed={usingOwnLocation}
+                      onClick={() => {
+                        if (usingOwnLocation) {
+                          stopOwnLocationV306(
+                            "GPS pois päältä. Kirjoita alue tai postinumero.",
+                          );
+                          return;
+                        }
+                        setLocationInput("");
+                        void useOwnLocation();
+                      }}
+                      title={usingOwnLocation ? "GPS käytössä" : "GPS pois päältä"}
+                      className={`flex h-[46px] w-[64px] shrink-0 items-center justify-center rounded-2xl text-xl font-black shadow-sm ring-1 transition active:scale-[0.98] ${
+                        usingOwnLocation
+                          ? "bg-green-50 text-green-700 ring-green-200"
+                          : "bg-red-50 text-red-700 ring-red-200"
+                      }`}
+                    >
+                      📍
+                    </button>
+                    <input
+                      value={locationInput}
+                      onChange={(event) => {
+                        const nextValue = event.target.value;
+                        setLocationInput(nextValue);
+                        if (nextValue.trim()) {
+                          gpsUserDisabledRefV306.current = true;
+                          setUsingOwnLocation(false);
+                        }
+                        setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
+                      }}
+                      placeholder="05510 tai Hyvinkää"
+                      className="min-w-0 flex-1 rounded-2xl border border-[#d6bf8f] px-5 py-3 text-base font-black outline-none focus:border-green-600 focus:ring-4 focus:ring-[#b8d6b6]"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => void applyLocation()}
+                      className="rounded-2xl bg-[#1d241b] px-8 py-3 text-base font-black text-white"
+                    >
+                      Käytä
+                    </button>
+                    <span className="hidden min-w-[180px] rounded-2xl bg-[#fff2c9] px-4 py-3 text-sm font-black text-[#8a3f16] ring-1 ring-[#e1c678] 2xl:block">
+                      {locationMessage}
+                    </span>
+                  </div>
+                </section>
+
                 <section className="rounded-[1.6rem] border border-[#d6bf8f] bg-[#fff8e8] p-5 shadow-[0_3px_0_rgba(7,59,45,0.16)] ring-1 ring-white/60">
                   <div className="flex items-center justify-between gap-3">
                     <div>
@@ -7706,14 +7766,138 @@ export default function Page() {
                 </section>
 
                 <div className="grid grid-cols-[minmax(0,1.35fr)_minmax(340px,0.95fr)] gap-3">
-                  <section className="rounded-[1.6rem] border border-[#d6bf8f] bg-[#fff8e8] p-5 shadow-[0_3px_0_rgba(7,59,45,0.16)] ring-1 ring-white/60">
-                    <p className="text-xs font-black uppercase tracking-wide text-[#8e896f]">
-                      Hakutulokset
-                    </p>
-                    <div className="mt-3 max-h-[360px] space-y-2 overflow-auto pr-1">
-                      {loadingNormal || singleProductCompareLoading ? (
+                  <section className="relative overflow-hidden rounded-[1.8rem] border-2 border-[#c9ad76] bg-[#fff3d8] p-5 shadow-[0_5px_0_rgba(36,48,30,0.18),inset_0_0_0_2px_rgba(255,255,255,0.42)] ring-1 ring-white/60">
+                    <div className="pointer-events-none absolute inset-0 opacity-[0.12] [background-image:radial-gradient(#6f5a31_1px,transparent_1px)] [background-size:13px_13px]" />
+                    <div className="relative flex items-center justify-between gap-3">
+                      <p className="text-xs font-black uppercase tracking-wide text-[#8e896f]">
+                        {activeResult === "offers" || loadingOffers
+                          ? "Tarjoukset"
+                          : "Hakutulokset"}
+                      </p>
+                      {(activeResult === "offers" || loadingOffers) && (
+                        <div className="flex gap-1 rounded-full bg-[#f7efd9] p-1 ring-1 ring-[#ead7aa]">
+                          <button
+                            type="button"
+                            onClick={() => setChainFilter("all")}
+                            className={`rounded-full px-3 py-1 text-[11px] font-black ${chainFilter === "all" ? "bg-[#1d241b] text-white" : "text-[#6f6b59]"}`}
+                          >
+                            Kaikki
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setChainFilter("S")}
+                            className={`rounded-full px-3 py-1 text-[11px] font-black ${chainFilter === "S" ? "bg-green-700 text-white" : "text-[#6f6b59]"}`}
+                          >
+                            S
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setChainFilter("K")}
+                            className={`rounded-full px-3 py-1 text-[11px] font-black ${chainFilter === "K" ? "bg-red-700 text-white" : "text-[#6f6b59]"}`}
+                          >
+                            K
+                          </button>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="relative mt-3 max-h-[360px] space-y-2 overflow-auto pr-1">
+                      {notFoundSearchTerms.length > 0 && activeResult !== "offers" && !loadingOffers && (
+                        <div className="rounded-2xl border border-[#d6bf8f] bg-[#fff8e8] p-3 text-sm font-black text-[#8a3f16]">
+                          Ei löytynyt: {notFoundSearchTerms.join(", ")}. Jatketaan seuraaviin hakusanoihin.
+                        </div>
+                      )}
+
+                      {activeResult === "offers" || loadingOffers ? (
+                        loadingOffers ? (
+                          <p className="rounded-2xl bg-[#f7efd9] p-4 text-sm font-black text-[#6f6b59]">
+                            Gösta etsii tarjouksia…
+                          </p>
+                        ) : hasSearchedOffers && filteredOffers.length > 0 ? (
+                          filteredOffers.slice(0, 12).map((item) => {
+                            const product = offerToProduct(item);
+                            const price = item.offer.storeItem?.price || 0;
+
+                            return (
+                              <div
+                                key={`desktop-offer-${item.id}`}
+                                className="rounded-2xl bg-[#f7efd9] p-3 ring-1 ring-[#ead7aa]"
+                              >
+                                <div className="flex items-center gap-3">
+                                  {item.offer.item.pictureUrl && (
+                                    <img
+                                      src={item.offer.item.pictureUrl}
+                                      alt=""
+                                      className="h-16 w-16 shrink-0 rounded-xl bg-white object-contain"
+                                    />
+                                  )}
+
+                                  <div className="min-w-0 flex-1">
+                                    <div className="mb-1 flex flex-wrap gap-1">
+                                      <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-red-700">
+                                        Tarjous
+                                      </span>
+                                      <span
+                                        className={`rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wide ${item.chain === "S" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
+                                      >
+                                        {item.chain === "S" ? "S-ryhmä" : "K-ryhmä"}
+                                      </span>
+                                    </div>
+
+                                    <p className="line-clamp-2 text-base font-black leading-tight text-[#1f2619]">
+                                      {fixText(item.offer.item.name)}
+                                    </p>
+                                    <p className="truncate text-xs font-bold text-[#6f6b59]">
+                                      {item.storeName}
+                                    </p>
+                                  </div>
+
+                                  <div className="shrink-0 text-right">
+                                    <p className="text-xl font-black leading-none text-green-700">
+                                      {formatEuro(price)}
+                                    </p>
+                                    {item.offer.discountPercent ? (
+                                      <p className="mt-1 inline-flex rounded-full bg-red-600 px-2 py-1 text-[11px] font-black text-white">
+                                        -{item.offer.discountPercent} %
+                                      </p>
+                                    ) : null}
+                                  </div>
+                                </div>
+
+                                <div className="mt-3 flex items-end justify-between gap-3">
+                                  <div className="min-w-0 text-xs font-bold text-[#6f6b59]">
+                                    <p className="truncate">
+                                      Yksikköhinta: {item.offer.storeItem?.comparisonPrice
+                                        ? `${formatEuro(item.offer.storeItem.comparisonPrice)} / ${item.offer.storeItem.comparisonPriceUnit || ""}`
+                                        : "—"}
+                                    </p>
+                                    <p className="truncate">
+                                      Voimassa asti: {formatDate(item.offer.expiresAt)}
+                                    </p>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => addOfferToCart(item)}
+                                    className={`rounded-xl px-3 py-2 text-xs font-black text-white transition ${justAdded === item.id ? "bg-emerald-700" : "bg-green-600 hover:bg-green-700"}`}
+                                  >
+                                    {justAdded === item.id ? "✓ Lisätty" : "Lisää"}
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })
+                        ) : hasSearchedOffers ? (
+                          <p className="rounded-2xl bg-[#f7efd9] p-4 text-sm font-black text-[#6f6b59]">
+                            Ei tarjouksia: {offerSearchLabel}
+                          </p>
+                        ) : (
+                          <p className="rounded-2xl bg-[#f7efd9] p-4 text-sm font-black text-[#6f6b59]">
+                            Gösta näyttää tarjoukset tässä.
+                          </p>
+                        )
+                      ) : loadingNormal || singleProductCompareLoading ? (
                         <p className="rounded-2xl bg-[#f7efd9] p-4 text-sm font-black text-[#6f6b59]">
-                          Haetaan…
+                          Justiina etsii ostoksia…
                         </p>
                       ) : visibleNormalResults.length > 0 ? (
                         visibleNormalResults.slice(0, 10).map((product) => (
@@ -7769,16 +7953,17 @@ export default function Page() {
                     </div>
                   </section>
 
-                  <section className="rounded-[1.6rem] border border-[#d6bf8f] bg-[#fff8e8] p-5 shadow-[0_3px_0_rgba(7,59,45,0.16)] ring-1 ring-white/60">
-                    <p className="text-xs font-black uppercase tracking-wide text-[#8e896f]">
+                  <section className="relative overflow-hidden rounded-[1.8rem] border-2 border-[#c9ad76] bg-[#fff3d8] p-5 shadow-[0_5px_0_rgba(36,48,30,0.18),inset_0_0_0_2px_rgba(255,255,255,0.42)] ring-1 ring-white/60">
+                    <div className="pointer-events-none absolute inset-0 opacity-[0.12] [background-image:radial-gradient(#6f5a31_1px,transparent_1px)] [background-size:13px_13px]" />
+                    <p className="relative text-xs font-black uppercase tracking-[0.18em] text-[#7d744f]">
                       Vertailu
                     </p>
-                    <div className="mt-3 grid gap-3">
+                    <div className="relative mt-3 grid gap-3">
                       {chainResults.length > 0 ? (
                         chainResults.map((result) => (
                           <div
                             key={`desktop-chain-${result.key}`}
-                            className="rounded-2xl bg-[#f7efd9] p-4 ring-1 ring-[#ead7aa]"
+                            className="rounded-2xl border border-[#d6bf8f] bg-[#fbf2dc] p-4 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.5)]"
                           >
                             <div className="flex items-center justify-between gap-3">
                               <div>
@@ -7789,7 +7974,7 @@ export default function Page() {
                                   {result.storeName}
                                 </p>
                               </div>
-                              <p className="text-xl font-black text-[#1f2619]">
+                              <p className="shrink-0 whitespace-nowrap text-xl font-black text-[#1f2619]">
                                 {result.comingSoon
                                   ? "Tulossa"
                                   : formatEuro(result.totalPrice)}
@@ -7840,6 +8025,14 @@ export default function Page() {
                       if (!cart.length || comparisonLoading) return;
                       void updateChainComparison(cart, { openCompare: true });
                     }}
+                    cartSavePanelOpen={cartSavePanelOpen}
+                    onToggleSavePanel={() => setCartSavePanelOpen((value) => !value)}
+                    savedListName={savedListName}
+                    setSavedListName={setSavedListName}
+                    onSaveCurrentCartAsList={saveCurrentCartAsList}
+                    savedShoppingLists={savedShoppingLists}
+                    onAddSavedListToCart={addSavedListToCart}
+                    onDeleteSavedShoppingList={deleteSavedShoppingList}
                   />
                 </div>
               </aside>
