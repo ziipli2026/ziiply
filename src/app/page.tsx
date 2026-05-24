@@ -160,12 +160,6 @@ import * as TopbarResponsiveCardModule from "./components/ziiply/cards/TopbarRes
 import * as ZiiplyCartCardModule from "./components/ziiply/cards/ZiiplyCartCard";
 
 export default function Page() {
-
-const retroHeadingStyleV501 = {
-  fontFamily: '"Cooper Black", "Cooper Std Black", Georgia, serif',
-  letterSpacing: "0.02em",
-} as const;
-
   const TopbarResponsiveCard = ((TopbarResponsiveCardModule as any).default ||
     (TopbarResponsiveCardModule as any).TopbarResponsiveCard ||
     (TopbarResponsiveCardModule as any).ZiiplyTopBar ||
@@ -195,7 +189,7 @@ const retroHeadingStyleV501 = {
     "main" | "selection"
   >("main");
   const [locationMessage, setLocationMessage] = useState(
-    "GPS käytössä · kirjoita alue tai postinumero",
+    "Kirjoita alue tai käytä omaa sijaintia.",
   );
   const [locationMessageVisible, setLocationMessageVisible] = useState(true);
   const [usingOwnLocation, setUsingOwnLocation] = useState(true);
@@ -731,7 +725,7 @@ const retroHeadingStyleV501 = {
 
   const terms = useMemo(() => parseTerms(input), [input]);
   const currentSearchQueryKey = useMemo(() => terms.join(", ").trim() || input.trim(), [terms, input]);
-  const gostaSearchDisabled = !currentSearchQueryKey || loadingOffers;
+  const gostaSearchDisabled = !currentSearchQueryKey || loadingOffers || offerSearchDoneForQuery === currentSearchQueryKey;
   const hasSearchInput = terms.length > 0;
 
   function getSingleSearchTerm(
@@ -2725,19 +2719,39 @@ const retroHeadingStyleV501 = {
 
       clearStoreBackedSearchState();
 
+      // v352_DESKTOP_GPS_DEFAULT_STORE_SELECTION:
+      // Kun GPS löytää sijainnin reloadissa/käynnistyksessä, valitaan oletukseksi
+      // Tavaratalot + Ketjujen väliltä. Näin S- ja K-kortit syttyvät vihreiksi
+      // ilman erillistä käyttäjän painallusta. Selain hoitaa varsinaisen GPS-luvan.
+      if (source === "gps") {
+        selectedStoreModeRefV302.current = "hyper";
+        setStoreMode("hyper");
+        setStoreModeChosenV299(true);
+        setStoreCompareScope("between_chains");
+        setWithinChain(null);
+        setSelectedChains((current) => ({
+          ...current,
+          s: true,
+          k: true,
+          lidl: false,
+          tokmanni: false,
+        }));
+      }
+
       if (typeof document !== "undefined") {
         const activeElement = document.activeElement as HTMLElement | null;
         activeElement?.blur?.();
       }
 
+      const effectiveModeForLocationMessage = source === "gps" ? "hyper" : storeMode;
       const modeMissing =
-        storeMode === "local"
+        effectiveModeForLocationMessage === "local"
           ? !ranked.sLocal || !ranked.kLocal
           : !ranked.sHyper || !ranked.kHyper;
 
       if (modeMissing) {
         setLocationMessage(
-          `${nextArea.label || query} löytyi, mutta kaikkia ${storeMode === "local" ? "lähikauppoja" : "tavarataloja"} ei löytynyt. Voit valita kaupat listasta.`,
+          `${nextArea.label || query} löytyi, mutta kaikkia ${effectiveModeForLocationMessage === "local" ? "lähikauppoja" : "tavarataloja"} ei löytynyt. Voit valita kaupat listasta.`,
         );
       } else {
         setLocationMessage(`${nextArea.label || query} käytössä.`);
@@ -2874,7 +2888,7 @@ const retroHeadingStyleV501 = {
 
     if (termOverride) setInput(termOverride);
 
-    // Uusi hinnanhuojennushaku ei enää tyhjennä ostoskoria. Käyttäjä voi lisätä tuotteita nykyiseen koriin.
+    // Uusi tarjoushaku ei enää tyhjennä ostoskoria. Käyttäjä voi lisätä tuotteita nykyiseen koriin.
     if (isMainOfferSearch && cart.length > 0) {
       setSMatches({});
       setKMatches({});
@@ -7639,7 +7653,7 @@ const retroHeadingStyleV501 = {
                           gpsUserDisabledRefV306.current = true;
                           setUsingOwnLocation(false);
                         }
-                        setLocationMessage("GPS käytössä · kirjoita alue tai postinumero");
+                        setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
                       }}
                       placeholder="05510 tai Hyvinkää"
                       className="min-w-0 flex-1 rounded-[1.35rem] border-2 border-[#c6a86d] bg-[#fff9ea] px-5 py-3 text-base font-black text-[#27412a] shadow-[inset_0_2px_8px_rgba(91,65,28,0.10),0_1px_0_#fff6dc] outline-none placeholder:text-[#8b846f] focus:border-[#0b7f3a] focus:ring-4 focus:ring-[#c4dfbd]"
@@ -7712,7 +7726,7 @@ const retroHeadingStyleV501 = {
                       disabled={gostaSearchDisabled}
                       aria-disabled={gostaSearchDisabled}
                       className={`group flex min-h-[108px] items-center gap-3 overflow-hidden rounded-[1.35rem] border-[3px] border-[#9dbd8b] bg-gradient-to-b from-[#eef8e7] to-[#d9edcf] px-3 py-3 text-left shadow-[0_4px_0_rgba(91,72,44,0.20),inset_0_0_0_2px_rgba(255,255,255,0.5)] transition active:translate-y-[1px] ${gostaSearchDisabled ? "cursor-not-allowed opacity-55" : "hover:brightness-105"}`}
-                      title="Gösta etsii hinnanhuojennukset"
+                      title="Gösta etsii tarjoukset"
                     >
                       <span className="h-20 w-20 shrink-0 overflow-hidden rounded-2xl bg-[#dcefd9] ring-1 ring-[#b8d6b6]">
                         <img
@@ -7732,7 +7746,7 @@ const retroHeadingStyleV501 = {
                           Gösta
                         </span>
                         <span className="mt-1 block text-sm font-black leading-tight text-[#315f2f]">
-                          {loadingOffers ? "Etsii tarjouksia…" : offerSearchDoneForQuery === currentSearchQueryKey ? "Hinnanhuojennukset haettu" : "Etsi hinnanhuojennukset"}
+                          {loadingOffers ? "Etsii tarjouksia…" : offerSearchDoneForQuery === currentSearchQueryKey ? "Tarjoukset haettu" : "Etsi tarjoukset"}
                         </span>
                       </span>
                     </button>
@@ -7799,7 +7813,7 @@ const retroHeadingStyleV501 = {
                     <div className="relative flex items-center justify-between gap-3">
                       <p className="text-[13px] font-black uppercase tracking-[0.28em] text-[#746742] drop-shadow-[0_1px_0_#fff7df]">
                         {activeResult === "offers" || loadingOffers
-                          ? "Hinnanhuojennukset"
+                          ? "Tarjoukset"
                           : "Hakutulokset"}
                       </p>
                       {(activeResult === "offers" || loadingOffers) && (
@@ -7920,7 +7934,7 @@ const retroHeadingStyleV501 = {
                           </p>
                         ) : (
                           <p className="rounded-[1.25rem] border border-[#dec890] bg-[#f7efd9] p-4 text-sm font-black text-[#6f6b59] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
-                            Gösta näyttää hinnanhuojennukset tässä.
+                            Gösta näyttää tarjoukset tässä.
                           </p>
                         )
                       ) : loadingNormal || singleProductCompareLoading ? (
@@ -8098,7 +8112,7 @@ const retroHeadingStyleV501 = {
                         </div>
                         <div className="flex gap-3">
                           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#465638] text-white">2</span>
-                          <span>Skanneri etsii hinnat ja hinnanhuojennukset</span>
+                          <span>Skanneri etsii hinnat ja tarjoukset</span>
                         </div>
                         <div className="flex gap-3">
                           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#465638] text-white">3</span>
@@ -8138,7 +8152,7 @@ const retroHeadingStyleV501 = {
                     <div className="mb-3 grid grid-cols-[1fr] gap-3">
                       <div>
                         <p className="flex min-h-[4.25rem] items-center rounded-2xl bg-[#efe0bf] px-5 py-3 font-serif text-[1.45rem] italic leading-tight text-[#31402c] shadow-sm">
-                          Kuva otetaan, hinnanhuojennukset talteen. Säästöt esiin!
+                          Kuva otetaan, tarjoukset talteen. Säästöt esiin!
                         </p>
                       </div>
                     </div>
@@ -8491,7 +8505,7 @@ const retroHeadingStyleV501 = {
                     gpsUserDisabledRefV306.current = true;
                     setUsingOwnLocation(false);
                   }
-                  setLocationMessage("GPS käytössä · kirjoita alue tai postinumero");
+                  setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
                 }}
                 placeholder="05510 tai Hyvinkää"
                 className="min-w-0 flex-1 max-w-[280px] rounded-xl border border-slate-300 px-3 py-2 text-[16px] outline-none focus:border-green-600 sm:mx-auto sm:rounded-2xl sm:px-4 sm:py-3"
@@ -9178,7 +9192,7 @@ const retroHeadingStyleV501 = {
                             setUsingOwnLocation(false);
                           }
                           setLocationMessage(
-                            "GPS käytössä · kirjoita alue tai postinumero",
+                            "Kirjoita alue tai käytä omaa sijaintia.",
                           );
                         }}
                         placeholder="05510 tai Hyvinkää"
@@ -9347,7 +9361,7 @@ const retroHeadingStyleV501 = {
                     Tarjousmoottori
                   </p>
                   <h2 className="mt-1 text-2xl font-extrabold sm:text-2xl sm:text-3xl">
-                    Hinnanhuojennukset
+                    Tarjoukset
                   </h2>
                   <p className="mt-2 min-w-0 break-words text-sm font-bold text-green-100">
                     Hakusana: {offerSearchLabel}
@@ -9372,10 +9386,10 @@ const retroHeadingStyleV501 = {
                     <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                       <div>
                         <h2 className="text-2xl font-extrabold">
-                          Löytyneet hinnanhuojennukset
+                          Löytyneet tarjoukset
                         </h2>
                         <p className="min-w-0 break-words text-xs font-semibold text-slate-500 sm:text-sm">
-                          {filteredOffers.length} hinnanhuojennusta
+                          {filteredOffers.length} tarjousta
                         </p>
                       </div>
                       <div className="flex flex-wrap gap-2">
@@ -10061,7 +10075,7 @@ const retroHeadingStyleV501 = {
                                   </span>
                                   <span className="text-slate-300">·</span>
                                   <span className="text-yellow-700">
-                                    {chain.offerCount} hinnanhuojennusta
+                                    {chain.offerCount} tarjousta
                                   </span>
                                   {!chain.comingSoon && (
                                     <span className="ml-auto text-[10px] uppercase tracking-wide text-green-700">
@@ -10729,7 +10743,7 @@ const retroHeadingStyleV501 = {
                 <div>
                   <h2 className="text-2xl font-extrabold">Ostoskori</h2>
                   <p className="text-sm text-green-100">
-                    Ostoskorin tuotteille voi hakea hinnanhuojennukset ja vertailla
+                    Ostoskorin tuotteille voi hakea tarjoukset ja vertailla
                     normaalihintoja.
                   </p>
                 </div>
@@ -11035,11 +11049,11 @@ const retroHeadingStyleV501 = {
                           type="button"
                           disabled
                           className="flex h-10 min-w-[6.25rem] flex-1 items-center justify-center rounded-xl bg-amber-100 px-2 text-[12px] font-black leading-tight text-amber-700 opacity-85 active:scale-[0.98] sm:text-sm"
-                          title="Tuotekohtainen hinnanhuojennushaku rakennetaan myöhemmin"
-                          aria-label="Hinnanhuojennukset tulossa"
+                          title="Tuotekohtainen tarjoushaku rakennetaan myöhemmin"
+                          aria-label="Tarjoukset tulossa"
                         >
                           <span className="mr-1">🔥</span>
-                          <span className="whitespace-nowrap">Hinnanhuojennukset</span>
+                          <span className="whitespace-nowrap">Tarjoukset</span>
                         </button>
 
                         <div className="flex shrink-0 items-center rounded-xl bg-white p-1 shadow-sm ring-1 ring-slate-200">
@@ -11106,7 +11120,7 @@ const retroHeadingStyleV501 = {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-black text-slate-950">
-                      Edellinen ostoskori palautettu
+                      Säilytetäänkö ostoskori?
                     </p>
                     <p className="mt-0.5 text-xs font-semibold text-slate-500">
                       {restoredCartPromptV320.count} tuotetta valmiina
@@ -11121,11 +11135,11 @@ const retroHeadingStyleV501 = {
                           setShopsPanelOpen(false);
                           setEanModalOpen(false);
                           setActiveResult("none");
-                          setCartModalOpen(true);
+                          setCartModalOpen(false);
                         }}
                         className="rounded-full bg-green-700 px-4 py-2 text-sm font-black text-white shadow-sm active:scale-[0.98]"
                       >
-                        Jatka
+                        Säilytä
                       </button>
                       <button
                         type="button"
@@ -11457,7 +11471,7 @@ const retroHeadingStyleV501 = {
                             : "bg-rose-100 text-rose-700 shadow-sm ring-1 ring-rose-200 active:scale-[0.98]"
                         }`}
                       >
-                        {loadingOffers ? "Haetaan..." : "🔥 Hinnanhuojennukset"}
+                        {loadingOffers ? "Haetaan..." : "🔥 Tarjoukset"}
                       </button>
                       <button
                         type="button"
