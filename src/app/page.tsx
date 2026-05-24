@@ -7905,9 +7905,6 @@ export default function Page() {
                       <p className="font-serif text-[3.25rem] font-black italic leading-[0.88] text-[#31402c] drop-shadow-sm">
                         Skanneri
                       </p>
-                      <p className="mt-1 text-center text-xs font-black uppercase tracking-[0.28em] text-[#3f4935]">
-                        50-luvun kamera skanneri
-                      </p>
                     </div>
 
                     <div className="rounded-[1.2rem] border-2 border-[#7b5f32] bg-[#efe0bf] p-4 text-[#2e2b21] shadow-[inset_0_0_0_3px_rgba(255,255,255,0.35)]">
@@ -7961,7 +7958,7 @@ export default function Page() {
                     <div className="mb-3 grid grid-cols-[1fr] gap-3">
                       <div>
                         <p className="flex min-h-[4.25rem] items-center rounded-2xl bg-[#efe0bf] px-5 py-3 font-serif text-[1.45rem] italic leading-tight text-[#31402c] shadow-sm">
-                          Kuvan otetaan, tarjoukset talteen. Säästöt esiin!
+                          Kuva otetaan, tarjoukset talteen. Säästöt esiin!
                         </p>
                       </div>
                     </div>
@@ -8004,8 +8001,10 @@ export default function Page() {
                         <button
                           type="button"
                           onClick={() => {
+                            // Desktop: älä auto-focusoi EAN-kenttää.
+                            // Focus aiheutti selain-scrollin, joka pomputti kamerakorttia ylöspäin.
+                            // Kenttä pidetään myös aina varattuna tilana alempana, joten kortin korkeus ei muutu.
                             setEanManualInputOpen((open) => !open);
-                            window.setTimeout(() => eanInputRef.current?.focus(), 0);
                           }}
                           className="rounded-xl border border-[#8b744b] bg-[#d7c196] px-4 py-3 text-sm font-black text-[#3a3325] shadow-[inset_0_1px_0_rgba(255,255,255,0.4)] active:scale-[0.98]"
                         >
@@ -8029,30 +8028,31 @@ export default function Page() {
                       </div>
                     </div>
 
-                    {eanManualInputOpen && (
-                      <div className="mt-3 flex gap-2 rounded-2xl border border-[#d6bf8f] bg-[#efe0bf] p-2">
-                        <input
-                          ref={eanInputRef}
-                          value={eanInput}
-                          onChange={(event) =>
-                            setEanInput(event.target.value.replace(/\D/g, ""))
-                          }
-                          onKeyDown={(event) => {
-                            if (event.key === "Enter") void searchByEan();
-                          }}
-                          inputMode="numeric"
-                          placeholder="Syötä EAN, esim. 641..."
-                          className="min-w-0 flex-1 rounded-xl border border-[#d6bf8f] bg-white px-4 py-3 text-base font-bold tracking-wide text-[#172016] outline-none focus:border-green-700"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => void searchByEan()}
-                          className="rounded-xl bg-[#0c7c38] px-5 py-3 text-sm font-black text-white"
-                        >
-                          Hae
-                        </button>
-                      </div>
-                    )}
+                    <div
+                      className={`mt-3 flex min-h-[4.25rem] gap-2 rounded-2xl border border-[#d6bf8f] bg-[#efe0bf] p-2 transition-opacity duration-150 ${eanManualInputOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}
+                      aria-hidden={!eanManualInputOpen}
+                    >
+                      <input
+                        ref={eanInputRef}
+                        value={eanInput}
+                        onChange={(event) =>
+                          setEanInput(event.target.value.replace(/\D/g, ""))
+                        }
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") void searchByEan();
+                        }}
+                        inputMode="numeric"
+                        placeholder="Syötä EAN, esim. 641..."
+                        className="min-w-0 flex-1 rounded-xl border border-[#d6bf8f] bg-white px-4 py-3 text-base font-bold tracking-wide text-[#172016] outline-none focus:border-green-700"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => void searchByEan()}
+                        className="rounded-xl bg-[#0c7c38] px-5 py-3 text-sm font-black text-white"
+                      >
+                        Hae
+                      </button>
+                    </div>
 
                     {eanResults.length > 0 && (
                       <div className="mt-3 rounded-2xl border border-[#d6bf8f] bg-[#fbf2dc] p-3 text-sm font-bold text-[#3a3325]">
