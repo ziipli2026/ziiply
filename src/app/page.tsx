@@ -4573,9 +4573,9 @@ export default function Page() {
 
   function getQualityModeLabel(mode: QualityMode) {
     if (mode === "cheapest") return "Halvin";
-    if (mode === "same_quality") return "Sama taso";
-    if (mode === "own_brands") return "Omat merkit";
-    return "Sama brändi";
+    if (mode === "same_quality") return "Lähin vastaava";
+    if (mode === "own_brands") return "Kaupan omat";
+    return "Laadukkaampi";
   }
 
   function getMatchQualityMode(match: Match) {
@@ -7098,166 +7098,242 @@ return (
                                     {expandedAlternatives[getAlternativeKey(chain.key, match, index)] && (
                                       <div
                                         onPointerDown={() => startAlternativesAutoCloseTimer(getAlternativeKey(chain.key, match, index))}
-                                        className="fixed inset-0 z-[80] flex items-end justify-center bg-black/40 px-3 pb-3 pt-10 sm:items-center sm:p-4"
+                                        className="fixed inset-0 z-[80] flex items-end justify-center bg-slate-950/45 px-3 pb-3 pt-16"
                                       >
-                                        <div className="max-h-[82vh] w-full max-w-xl overflow-y-auto rounded-t-[1.75rem] bg-slate-50 p-3 text-xs text-slate-600 shadow-2xl ring-1 ring-slate-200 sm:rounded-[1.75rem]" style={{ width: "100%" }}><div className="flex items-center justify-between gap-3">
-                                          <div className="min-w-0 flex-1 overflow-hidden">
-                                            <p className="font-extrabold text-slate-700">Vaihtoehdot tuotteelle</p>
-                                            <p className="mt-0.5 truncate text-xs font-bold text-slate-500">{fixText(match.product.name)}</p>
-                                            <p className="mt-0.5 text-[10px] font-bold text-slate-400">
-                                              {getQualityModeLabel(getMatchQualityMode(match))}
-                                            </p>
+                                        <div
+                                          className="w-full max-w-xl overflow-hidden rounded-t-[2rem] bg-slate-50 text-slate-700 shadow-2xl ring-1 ring-white/70"
+                                          style={{
+                                            maxHeight: "74vh",
+                                            paddingBottom: "max(12px, env(safe-area-inset-bottom))",
+                                          }}
+                                        >
+                                          <div className="mx-auto mt-2 h-1.5 w-14 rounded-full bg-slate-300" />
+
+                                          <div className="sticky top-0 z-10 border-b border-slate-200/80 bg-slate-50/95 px-4 pb-3 pt-3 backdrop-blur">
+                                            <div className="flex items-start justify-between gap-3">
+                                              <div className="min-w-0 flex-1">
+                                                <p className="text-[11px] font-black uppercase tracking-[0.18em] text-green-700">
+                                                  Korvaa tuotteella
+                                                </p>
+                                                <h3 className="mt-1 truncate text-lg font-black leading-tight text-slate-950">
+                                                  {fixText(match.product.name)}
+                                                </h3>
+                                                <p className="mt-1 text-sm font-extrabold text-slate-500">
+                                                  Nykyinen hinta {formatEuro(match.price)}
+                                                </p>
+                                              </div>
+
+                                              <button
+                                                type="button"
+                                                onClick={() => closeAlternatives(getAlternativeKey(chain.key, match, index))}
+                                                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white text-xl font-black text-slate-700 shadow-sm ring-1 ring-slate-200 active:scale-[0.96]"
+                                                aria-label="Sulje vaihtoehtoikkuna"
+                                              >
+                                                ×
+                                              </button>
+                                            </div>
+
+                                            <div className="mt-3 grid grid-cols-2 gap-2">
+                                              {([
+                                                ["cheapest", "💰", "Halvin"],
+                                                ["same_quality", "🎯", "Lähin vastaava"],
+                                                [
+                                                  "own_brands",
+                                                  chain.key === "s"
+                                                    ? "🟢"
+                                                    : chain.key === "k"
+                                                    ? "🔴"
+                                                    : chain.key === "lidl"
+                                                    ? "🔵"
+                                                    : "🛒",
+                                                  chain.key === "s"
+                                                    ? "Coop / Kotimaista / Xtra"
+                                                    : chain.key === "k"
+                                                    ? "Pirkka / K-Menu"
+                                                    : chain.key === "lidl"
+                                                    ? "Lidl-tuotteet"
+                                                    : "Kaupan omat",
+                                                ],
+                                                ["keep_brands", "⭐", "Laadukkaampi"],
+                                              ] as const).map(([mode, icon, label]) => (
+                                                <button
+                                                  key={`${chain.key}-${match.cartItemId || match.product.id}-${mode}`}
+                                                  type="button"
+                                                  onClick={() =>
+                                                    setMatchQualityMode(
+                                                      match,
+                                                      mode as QualityMode,
+                                                      getAlternativeKey(chain.key, match, index),
+                                                      chain.key
+                                                    )
+                                                  }
+                                                  className={`min-h-[48px] rounded-2xl px-3 py-2 text-left text-[12px] font-black leading-tight transition active:scale-[0.98] ${
+                                                    getMatchQualityMode(match) === mode
+                                                      ? "bg-green-700 text-white shadow-md shadow-green-900/20 ring-1 ring-green-800"
+                                                      : "bg-white text-slate-700 shadow-sm ring-1 ring-slate-200"
+                                                  }`}
+                                                >
+                                                  <span className="mr-1">{icon}</span>
+                                                  <span>{label}</span>
+                                                </button>
+                                              ))}
+                                            </div>
                                           </div>
 
-                                          <button
-                                            type="button"
-                                            onClick={() => closeAlternatives(getAlternativeKey(chain.key, match, index))}
-                                            className="shrink-0 rounded-lg bg-slate-200 px-2.5 py-1.5 text-[10px] font-extrabold text-slate-700 transition hover:bg-slate-300 active:scale-[0.98]"
-                                            aria-label="Sulje vaihtoehtoikkuna"
-                                          >
-                                            Sulje
-                                          </button>
-                                        </div>
+                                          <div className="max-h-[calc(74vh-190px)] overflow-y-auto px-4 pb-4 pt-3">
+                                            {loadingAlternatives[getAlternativeKey(chain.key, match, index)] && (
+                                              <div className="rounded-3xl bg-white p-5 text-center text-sm font-bold text-slate-500 ring-1 ring-slate-200">
+                                                Haetaan vaihtoehtoja...
+                                              </div>
+                                            )}
 
-                                        <div className="mt-3 rounded-xl bg-white p-2 ring-1 ring-slate-100">
-                                          <p className="mb-1 text-[10px] font-extrabold uppercase tracking-wide text-slate-400">
-                                            Korvaustapa
-                                          </p>
-                                          <p className="mb-2 text-[10px] font-bold text-slate-400">
-                                            Valitse korvaustapa ja vaihda tuote. Sulje-painike palauttaa kauppavertailuun.
-                                          </p>
-                                          <div className="grid grid-cols-2 gap-1 sm:grid-cols-4">
-                                            {[
-                                              ["cheapest", "💰 Halvin"],
-                                              ["same_quality", "⭐ Sama taso"],
-                                              ["own_brands", "🏷️ Omat"],
-                                              ["keep_brands", "🔒 Brändi"],
-                                            ].map(([mode, label]) => (
+                                            {!loadingAlternatives[getAlternativeKey(chain.key, match, index)] &&
+                                              (alternativeResults[getAlternativeKey(chain.key, match, index)] || []).length === 0 && (
+                                                <div className="rounded-3xl bg-white p-5 text-center text-sm font-bold text-slate-500 ring-1 ring-slate-200">
+                                                  Ei löytynyt muita järkeviä vaihtoehtoja.
+                                                </div>
+                                              )}
+
+                                            {getCheaperAlternatives(chain.key, match, index).length > 0 && (
                                               <button
-                                                key={`${chain.key}-${match.cartItemId || match.product.id}-${mode}`}
                                                 type="button"
                                                 onClick={() =>
-                                                  setMatchQualityMode(
+                                                  replaceMatchProduct(
+                                                    chain.key,
                                                     match,
-                                                    mode as QualityMode,
-                                                    getAlternativeKey(chain.key, match, index),
-                                                    chain.key
+                                                    getCheaperAlternatives(chain.key, match, index)[0],
+                                                    getAlternativeKey(chain.key, match, index)
                                                   )
                                                 }
-                                                className={`rounded-lg px-2 py-1.5 text-[10px] font-extrabold transition ${
-                                                  getMatchQualityMode(match) === mode
-                                                    ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
-                                                    : "bg-slate-50 text-slate-600 ring-1 ring-slate-200"
-                                                }`}
+                                                className="mb-3 flex min-h-[54px] w-full items-center justify-center rounded-2xl bg-green-600 px-4 text-base font-black text-white shadow-lg shadow-green-900/20 active:scale-[0.98]"
                                               >
-                                                {label}
+                                                Vaihda suositukseen · säästö {formatEuro(match.price - getProductPrice(getCheaperAlternatives(chain.key, match, index)[0]))}
                                               </button>
-                                            ))}
-                                          </div>
-                                        </div>
+                                            )}
 
-                                        {loadingAlternatives[getAlternativeKey(chain.key, match, index)] && (
-                                          <p className="mt-2 text-slate-500">Haetaan vaihtoehtoja...</p>
-                                        )}
+                                            <div className="space-y-3">
+                                              {(alternativeResults[getAlternativeKey(chain.key, match, index)] || []).map((alternative, alternativeIndex) => {
+                                                const alternativePrice = getProductPrice(alternative);
+                                                const priceDiff = alternativePrice - match.price;
+                                                const isCurrentAlternative = isSameAlternativeAsMatch(match, alternative);
+                                                const isRecommendedAlternative = alternativeIndex === 0 && !isCurrentAlternative;
+                                                const comparisonLabel = formatComparisonPrice(alternative);
+                                                const imageUrl = alternative.pictureUrl || "";
+                                                const productText = normalize(`${alternative.name} ${alternative.brandName || ""}`);
 
-                                        {!loadingAlternatives[getAlternativeKey(chain.key, match, index)] &&
-                                          (alternativeResults[getAlternativeKey(chain.key, match, index)] || []).length === 0 && (
-                                          <p className="mt-2 text-slate-500">Ei löytynyt muita järkeviä vaihtoehtoja.</p>
-                                        )}
+                                                const ownBrandLabel =
+                                                  chain.key === "s" && hasAnyToken(productText, ["coop", "kotimaista", "xtra"])
+                                                    ? "Coop / Kotimaista / Xtra"
+                                                    : chain.key === "k" && hasAnyToken(productText, ["pirkka", "k-menu", "k menu"])
+                                                    ? "Pirkka / K-Menu"
+                                                    : chain.key === "lidl"
+                                                    ? "Lidl-tuote"
+                                                    : "";
 
-                                        {getCheaperAlternatives(chain.key, match, index).length > 0 && (
-                                          <button
-                                            type="button"
-                                            onClick={() =>
-                                              replaceMatchProduct(
-                                                chain.key,
-                                                match,
-                                                getCheaperAlternatives(chain.key, match, index)[0],
-                                                getAlternativeKey(chain.key, match, index)
-                                              )
-                                            }
-                                            className="mt-2 w-full rounded-xl bg-green-600 px-3 py-2 text-xs font-extrabold text-white transition active:scale-[0.98]"
-                                          >
-                                            Korvaa halvimmalla · säästö {formatEuro(match.price - getProductPrice(getCheaperAlternatives(chain.key, match, index)[0]))}
-                                          </button>
-                                        )}
+                                                const primaryBadge = isCurrentAlternative
+                                                  ? "Nykyinen valinta"
+                                                  : isRecommendedAlternative
+                                                  ? "Suositus"
+                                                  : ownBrandLabel || (priceDiff <= 0 ? "Säästö" : "Vaihtoehto");
 
-                                        <div className="mt-2 space-y-2" style={{ width: "100%" }}>
-                                          {(alternativeResults[getAlternativeKey(chain.key, match, index)] || []).map((alternative, alternativeIndex) => {
-                                            const alternativePrice = getProductPrice(alternative);
-                                            const priceDiff = alternativePrice - match.price;
-                                            const isCurrentAlternative = isSameAlternativeAsMatch(match, alternative);
-                                            const isRecommendedAlternative = alternativeIndex === 0 && !isCurrentAlternative;
-                                            return (
-                                              <div
-                                                key={`${chain.key}-alt-${alternative.id}-${alternative.name}`}
-                                                className={`rounded-xl bg-white p-3 ring-1 ${
-                                                  isRecommendedAlternative
-                                                    ? "ring-2 ring-green-300"
-                                                    : "ring-slate-100"
-                                                }`}
-                                              >
-                                                <div className="grid grid-cols-[1fr_auto] items-start gap-3">
-                                                  <div className="min-w-0 text-left">
-                                                    <p className="font-bold leading-tight text-slate-800">
-                                                      {fixText(alternative.name)}
-                                                    </p>
-                                                    <div className="mt-2 flex flex-wrap gap-1.5">
-                                                      {isRecommendedAlternative && (
-                                                        <span className="rounded-full bg-green-100 px-2 py-0.5 font-extrabold text-green-700">
-                                                          Suositus
-                                                        </span>
-                                                      )}
-                                                      {isCurrentAlternative && (
-                                                        <span className="rounded-full bg-slate-100 px-2 py-0.5 font-extrabold text-slate-500">
-                                                          Nykyinen valinta
-                                                        </span>
-                                                      )}
-                                                      {formatComparisonPrice(alternative) && (
-                                                        <span className="rounded-full bg-slate-100 px-2 py-0.5 font-bold text-slate-600">
-                                                          {formatComparisonPrice(alternative)}
-                                                        </span>
-                                                      )}
-                                                      <span
-                                                        className={`rounded-full px-2 py-0.5 font-extrabold ${
-                                                          priceDiff <= 0
-                                                            ? "bg-green-100 text-green-700"
-                                                            : "bg-amber-100 text-amber-700"
-                                                        }`}
-                                                      >
-                                                        {formatPriceDifference(match.price, alternativePrice)}
-                                                      </span>
+                                                return (
+                                                  <article
+                                                    key={`${chain.key}-alt-${alternative.id}-${alternative.name}`}
+                                                    className={`rounded-[1.55rem] bg-white p-3 shadow-sm ring-1 ${
+                                                      isRecommendedAlternative
+                                                        ? "ring-2 ring-green-300"
+                                                        : "ring-slate-200"
+                                                    }`}
+                                                  >
+                                                    <div className="flex gap-3">
+                                                      <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-slate-50 ring-1 ring-slate-100">
+                                                        {imageUrl ? (
+                                                          <img
+                                                            src={imageUrl}
+                                                            alt=""
+                                                            className="h-full w-full object-contain p-1"
+                                                          />
+                                                        ) : (
+                                                          <span className="text-3xl">🛒</span>
+                                                        )}
+                                                      </div>
+
+                                                      <div className="min-w-0 flex-1">
+                                                        <div className="flex items-start justify-between gap-2">
+                                                          <div className="min-w-0">
+                                                            <span
+                                                              className={`inline-flex rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-wide ${
+                                                                isRecommendedAlternative
+                                                                  ? "bg-green-100 text-green-700"
+                                                                  : isCurrentAlternative
+                                                                  ? "bg-slate-100 text-slate-500"
+                                                                  : priceDiff <= 0
+                                                                  ? "bg-emerald-100 text-emerald-700"
+                                                                  : "bg-amber-100 text-amber-700"
+                                                              }`}
+                                                            >
+                                                              {primaryBadge}
+                                                            </span>
+
+                                                            <h4 className="mt-2 line-clamp-2 text-base font-black leading-tight text-slate-950">
+                                                              {fixText(alternative.name)}
+                                                            </h4>
+                                                          </div>
+
+                                                          <p className="shrink-0 text-xl font-black leading-none text-green-700">
+                                                            {formatEuro(alternativePrice)}
+                                                          </p>
+                                                        </div>
+
+                                                        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                                                          {comparisonLabel && (
+                                                            <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-extrabold text-slate-500">
+                                                              {comparisonLabel}
+                                                            </span>
+                                                          )}
+
+                                                          {!isCurrentAlternative && (
+                                                            <span
+                                                              className={`rounded-full px-2.5 py-1 text-xs font-black ${
+                                                                priceDiff <= 0
+                                                                  ? "bg-green-100 text-green-700"
+                                                                  : "bg-amber-100 text-amber-700"
+                                                              }`}
+                                                            >
+                                                              {priceDiff <= 0
+                                                                ? `Säästö ${formatEuro(Math.abs(priceDiff))}`
+                                                                : `Lisähinta ${formatEuro(priceDiff)}`}
+                                                            </span>
+                                                          )}
+                                                        </div>
+
+                                                        {isCurrentAlternative ? (
+                                                          <div className="mt-3 flex min-h-[44px] items-center justify-center rounded-2xl bg-slate-100 px-4 text-sm font-black text-slate-500">
+                                                            Nykyinen valinta
+                                                          </div>
+                                                        ) : (
+                                                          <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                              replaceMatchProduct(
+                                                                chain.key,
+                                                                match,
+                                                                alternative,
+                                                                getAlternativeKey(chain.key, match, index)
+                                                              )
+                                                            }
+                                                            className="mt-3 flex min-h-[46px] w-full items-center justify-center rounded-2xl bg-green-600 px-4 text-sm font-black text-white shadow-md shadow-green-900/15 active:scale-[0.98]"
+                                                          >
+                                                            Vaihda tähän
+                                                          </button>
+                                                        )}
+                                                      </div>
                                                     </div>
-                                                  </div>
-
-                                                  <div className="shrink-0 text-right">
-                                                    <p className="font-extrabold text-green-700">{formatEuro(alternativePrice)}</p>
-                                                    {isCurrentAlternative ? (
-                                                      <span className="mt-2 inline-block rounded-lg bg-slate-100 px-2.5 py-1 text-[10px] font-extrabold text-slate-500">
-                                                        Nykyinen
-                                                      </span>
-                                                    ) : (
-                                                      <button
-                                                        type="button"
-                                                        onClick={() =>
-                                                          replaceMatchProduct(
-                                                            chain.key,
-                                                            match,
-                                                            alternative,
-                                                            getAlternativeKey(chain.key, match, index)
-                                                          )
-                                                        }
-                                                        className="mt-2 rounded-lg bg-green-600 px-2.5 py-1 text-[10px] font-extrabold text-white transition active:scale-[0.98]"
-                                                      >
-                                                        {getAlternativeActionText(match.price, alternativePrice)}
-                                                      </button>
-                                                    )}
-                                                  </div>
-                                                </div>
-                                              </div>
-                                            );
-                                          })}
-                                        </div>
+                                                  </article>
+                                                );
+                                              })}
+                                            </div>
+                                          </div>
                                         </div>
                                       </div>
                                     )}
