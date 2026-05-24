@@ -6213,7 +6213,7 @@ export default function Page() {
         </section>
 
         {!showLaunchScreen && !searchPanelOpen && !cartModalOpen && !shopsPanelOpen && !eanModalOpen && activeResult === "none" && (
-          <section className="flex min-h-[calc(100dvh-12rem)] flex-col items-center justify-start px-7 pt-[18dvh] text-center">
+          <section className="flex min-h-[calc(100dvh-12rem)] flex-col items-center justify-start px-7 pt-[18dvh] text-center sm:hidden">
             <div className="relative flex w-full max-w-[300px] items-center justify-center">
               <div className="pointer-events-none absolute h-28 w-28 rounded-full bg-green-400/18 blur-2xl ziiply-logo-halo" />
 
