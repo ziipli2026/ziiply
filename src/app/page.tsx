@@ -7672,7 +7672,7 @@ export default function Page() {
                   </div>
 
                   {locationMessageVisible ? (
-                    <div className="pointer-events-none absolute left-1/2 top-[18px] z-20 -translate-x-1/2 whitespace-nowrap rounded-[1.05rem] border border-[#caa35d] bg-[#ffe9a8] px-5 py-2 text-[13px] font-black uppercase tracking-[0.14em] text-[#8a3f16] shadow-[0_3px_0_rgba(91,72,44,0.20),0_8px_18px_rgba(80,50,10,0.12)]">
+                    <div className="pointer-events-none absolute left-1/2 top-[8px] z-30 inline-flex w-max max-w-none -translate-x-1/2 whitespace-nowrap rounded-[1.05rem] border border-[#caa35d] bg-[#ffe9a8] px-5 py-2 text-[13px] font-black uppercase tracking-[0.14em] text-[#8a3f16] shadow-[0_3px_0_rgba(91,72,44,0.20),0_8px_18px_rgba(80,50,10,0.12)]">
                       {storeSearchLoading ? "HAETAAN KAUPPOJA..." : locationMessage}
                     </div>
                   ) : null}
@@ -7706,12 +7706,12 @@ export default function Page() {
             ? "Kirjoita yksi tuote"
             : "maito, kahvi, jauheliha"
         }
-        className="h-[62px] w-full resize-none rounded-[22px] border-0 bg-[#fff9e8] px-6 py-4 text-[22px] font-black leading-snug text-[#172417] outline-none placeholder:text-[#8b846f]"
+        className="h-[58px] w-full resize-none rounded-[22px] border-0 bg-[#fff9e8] px-6 py-3 text-[22px] font-black leading-snug text-[#172417] outline-none placeholder:text-[#8b846f]"
         style={{ fontFamily: '"Baskerville", "Georgia", serif' }}
       />
     </div>
 
-    <div className="relative z-20 -mt-2 flex justify-center">
+    <div className="relative z-20 mt-3 flex justify-center">
       <div className="flex rounded-[22px] border-[3px] border-[#b99d64] bg-[#ead7a5] p-1.5 shadow-[0_0_0_2px_#fff4cc_inset,0_4px_0_rgba(91,72,44,0.18)]">
         <button
           type="button"
@@ -7772,10 +7772,22 @@ export default function Page() {
             Gösta
           </span>
           <span
-            className="mt-1 block truncate text-[14px] font-black leading-tight text-[#315f2f]"
+            className="mt-1 block text-[14px] font-black leading-tight text-[#315f2f]"
             style={{ fontFamily: '"Baskerville", "Georgia", serif' }}
           >
-            {loadingOffers ? "Etsii hinnanhuojennuksia…" : "Etsi hinnanhuojennukset"}
+            {loadingOffers ? (
+              <>
+                Etsii
+                <br />
+                hinnanhuojennuksia…
+              </>
+            ) : (
+              <>
+                Etsi
+                <br />
+                hinnanhuojennukset
+              </>
+            )}
           </span>
         </span>
       </button>
@@ -7846,7 +7858,7 @@ export default function Page() {
   </div>
 </section>
 
-                <div className="grid grid-cols-[minmax(0,1.35fr)_minmax(340px,0.95fr)] gap-3">
+                <div className="fixed bottom-0 left-[max(24px,calc((100vw-1720px)/2+390px))] right-[max(24px,calc((100vw-1720px)/2+520px))] z-40 grid max-h-[42dvh] grid-cols-[minmax(0,1.35fr)_minmax(340px,0.95fr)] gap-3 rounded-t-[2rem] bg-[#efe2bf]/95 px-3 pt-3 pb-4 shadow-[0_-10px_30px_rgba(60,45,20,0.20)] backdrop-blur-sm">
                   <section className="relative overflow-hidden rounded-[2.1rem] border-[3px] border-[#b99d62] bg-gradient-to-b from-[#f7e9c3] via-[#f0d9a4] to-[#dfbf7e] p-5 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80">
                     <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:radial-gradient(#b59c67_1.15px,transparent_1.15px)] [background-size:15px_15px]" />
                     <div className="relative flex items-center justify-between gap-3">
@@ -7882,7 +7894,7 @@ export default function Page() {
                       )}
                     </div>
 
-                    <div className="relative mt-3 max-h-[360px] space-y-2 overflow-auto pr-1">
+                    <div className="relative mt-3 max-h-[29dvh] space-y-2 overflow-auto pr-1">
                       {notFoundSearchTerms.length > 0 && activeResult !== "offers" && !loadingOffers && (
                         <div className="rounded-2xl border border-[#d6bf8f] bg-[#fff8e8] p-3 text-sm font-black text-[#8a3f16]">
                           Ei löytynyt: {notFoundSearchTerms.join(", ")}. Jatketaan seuraaviin hakusanoihin.
