@@ -7390,7 +7390,7 @@ export default function Page() {
   return (
     <>
       <section
-        className={`hidden xl:block h-screen overflow-y-auto overflow-x-hidden bg-[#efe5cf] px-3 pb-8 pt-3 text-[#1f2619] ${suppressUiForEanClose ? "pointer-events-none" : ""}`}
+        className={`hidden xl:block h-[100dvh] overflow-hidden bg-[#efe5cf] px-2 py-2 text-[#1f2619] ${suppressUiForEanClose ? "pointer-events-none" : ""}`}
       >
         <style>{`
           html, body, #__next { background: #efe5cf !important; }
@@ -7399,14 +7399,14 @@ export default function Page() {
         {showLaunchScreen && <ZiiplyLaunchScreen appVersion={APP_VERSION} />}
 
         {!showLaunchScreen && (
-          <div className="mx-auto max-w-[1680px] space-y-3">
-            <header className="rounded-[2rem] border-[7px] border-[#073b2d] bg-[#fff4d8] p-3 shadow-[0_8px_0_#073b2d]">
-              <div className="grid grid-cols-[170px_1fr_270px] items-stretch gap-3">
-                <div className="flex min-h-[118px] items-center justify-center rounded-[1.4rem] bg-[#fffaf0] ring-1 ring-[#d7bd87]">
+          <div className="mx-auto grid h-full max-w-[1540px] grid-rows-[auto_minmax(0,1fr)] gap-2">
+            <header className="rounded-[1.6rem] border-[5px] border-[#073b2d] bg-[#fff4d8] p-2 shadow-[0_5px_0_#073b2d]">
+              <div className="grid grid-cols-[130px_1fr_230px] items-stretch gap-2">
+                <div className="flex min-h-[88px] items-center justify-center rounded-[1.2rem] bg-[#fffaf0] ring-1 ring-[#d7bd87]">
                   <img
                     src="/ziiplylogo_mobile.png"
                     alt="Ziiply"
-                    className="h-[108px] w-[108px] object-contain"
+                    className="h-[82px] w-[82px] object-contain"
                   />
                 </div>
 
@@ -7457,8 +7457,8 @@ export default function Page() {
               </div>
             </header>
 
-            <div className="grid grid-cols-12 gap-3">
-              <aside className="col-span-3 space-y-3">
+            <div className="grid min-h-0 grid-cols-[300px_minmax(650px,1fr)_420px] gap-2 overflow-hidden">
+              <aside className="min-h-0 space-y-2 overflow-y-auto pr-1">
                 <section className="rounded-[1.6rem] border border-[#d6bf8f] bg-[#fff8e8] p-5 shadow-[0_3px_0_rgba(7,59,45,0.16)] ring-1 ring-white/60">
                   <img
                     src="/ziiplylogo_mobile.png"
@@ -7535,7 +7535,7 @@ export default function Page() {
                 </section>
               </aside>
 
-              <main className="col-span-5 space-y-3">
+              <main className="min-h-0 space-y-2 overflow-y-auto pr-1">
                 <section className="rounded-[1.6rem] border border-[#d6bf8f] bg-[#fff8e8] p-5 shadow-[0_3px_0_rgba(7,59,45,0.16)] ring-1 ring-white/60">
                   <div className="flex items-center justify-between gap-3">
                     <div>
@@ -7625,7 +7625,7 @@ export default function Page() {
                   </div>
                 </section>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-[minmax(0,1.7fr)_minmax(240px,0.75fr)] gap-3">
                   <section className="rounded-[1.6rem] border border-[#d6bf8f] bg-[#fff8e8] p-5 shadow-[0_3px_0_rgba(7,59,45,0.16)] ring-1 ring-white/60">
                     <p className="text-xs font-black uppercase tracking-wide text-[#8e896f]">
                       Hakutulokset
@@ -7645,11 +7645,11 @@ export default function Page() {
                               <img
                                 src={product.pictureUrl}
                                 alt=""
-                                className="h-12 w-12 rounded-xl object-contain bg-white"
+                                className="h-16 w-16 rounded-xl object-contain bg-white"
                               />
                             )}
                             <div className="min-w-0 flex-1">
-                              <p className="truncate text-sm font-black text-[#1f2619]">
+                              <p className="line-clamp-2 text-base font-black leading-tight text-[#1f2619]">
                                 {fixText(product.name)}
                               </p>
                               <p className="text-xs font-bold text-[#6f6b59]">
@@ -7731,103 +7731,35 @@ export default function Page() {
                 </div>
               </main>
 
-              <aside className="col-span-4">
-                <div className="sticky top-3 max-h-[calc(100vh-1.5rem)] space-y-3 overflow-y-auto pr-1">
-                  <section className="rounded-[1.6rem] border border-[#d6bf8f] bg-[#fff8e8] p-5 shadow-[0_3px_0_rgba(7,59,45,0.16)] ring-1 ring-white/60">
-                    <div className="flex items-center justify-between gap-3">
-                      <div>
-                        <p className="text-xs font-black uppercase tracking-wide text-[#8e896f]">
-                          Kori
-                        </p>
-                        <h2 className="text-2xl font-black tracking-[-0.04em] text-[#1f2619]">
-                          {cart.length} tuotetta
-                        </h2>
-                      </div>
-                      <p className="rounded-2xl bg-[#d8f4dc] px-4 py-2 text-lg font-black text-[#315f2f]">
-                        {formatEuro(cartTotal)}
-                      </p>
-                    </div>
-                    <div className="mt-4 max-h-[320px] space-y-2 overflow-auto pr-1">
-                      {cart.length > 0 ? (
-                        cart.map((item) => (
-                          <div
-                            key={`desktop-cart-${item.id}`}
-                            className="flex items-center gap-3 rounded-2xl bg-[#f7efd9] p-3 ring-1 ring-[#ead7aa]"
-                          >
-                            {item.image && (
-                              <img
-                                src={item.image}
-                                alt=""
-                                className="h-11 w-11 rounded-xl object-contain bg-white"
-                              />
-                            )}
-                            <div className="min-w-0 flex-1">
-                              <p className="truncate text-sm font-black text-[#1f2619]">
-                                {fixText(item.name)}
-                              </p>
-                              <p className="text-xs font-bold text-[#6f6b59]">
-                                {item.quantity} kpl ·{" "}
-                                {formatEuro(item.price || 0)}
-                              </p>
-                            </div>
-                            <button
-                              type="button"
-                              onClick={() => removeCartItem(item.id)}
-                              className="rounded-xl bg-white px-3 py-2 text-xs font-black text-red-700 ring-1 ring-red-100"
-                            >
-                              Pois
-                            </button>
-                          </div>
-                        ))
-                      ) : (
-                        <p className="rounded-2xl bg-[#f7efd9] p-4 text-sm font-black text-[#6f6b59]">
-                          Kori on tyhjä.
-                        </p>
-                      )}
-                    </div>
-                  </section>
-
-                  <section className="rounded-[1.6rem] border border-[#d6bf8f] bg-[#fff8e8] p-5 shadow-[0_3px_0_rgba(7,59,45,0.16)] ring-1 ring-white/60">
-                    <p className="text-xs font-black uppercase tracking-wide text-[#8e896f]">
-                      Ostoslista / Share
-                    </p>
-                    <div className="mt-3 max-h-[300px] space-y-2 overflow-auto pr-1">
-                      {shoppingListItems.length > 0 ? (
-                        shoppingListItems.slice(0, 12).map((match, index) => {
-                          const key = getShoppingListItemKey(match, index);
-                          return (
-                            <button
-                              key={`desktop-shopping-${key}`}
-                              type="button"
-                              onClick={() =>
-                                setCheckedCartItems((current) => ({
-                                  ...current,
-                                  [key]: !current[key],
-                                }))
-                              }
-                              className={`flex w-full items-center gap-3 rounded-2xl p-3 text-left ring-1 ${checkedCartItems[key] ? "bg-[#eaf6e8] ring-[#b8d6b6]" : "bg-[#f7efd9] ring-[#ead7aa]"}`}
-                            >
-                              <span
-                                className={`flex h-7 w-7 items-center justify-center rounded-full text-sm font-black ${checkedCartItems[key] ? "bg-green-600 text-white" : "bg-white text-[#8e896f] ring-1 ring-[#d6bf8f]"}`}
-                              >
-                                {checkedCartItems[key] ? "✓" : index + 1}
-                              </span>
-                              <span className="min-w-0 flex-1 truncate text-sm font-black text-[#1f2619]">
-                                {fixText(match.product.name)}
-                              </span>
-                              <span className="text-sm font-black text-[#3b3a30]">
-                                {formatEuro(match.price)}
-                              </span>
-                            </button>
-                          );
-                        })
-                      ) : (
-                        <p className="rounded-2xl bg-[#f7efd9] p-4 text-sm font-black text-[#6f6b59]">
-                          Ostoslista muodostuu halvimmasta korista.
-                        </p>
-                      )}
-                    </div>
-                  </section>
+              <aside className="min-h-0">
+                <div className="h-full min-h-0 space-y-2 overflow-y-auto pr-1">
+                  <ZiiplyCartCard
+                    cart={cart}
+                    shoppingListItems={shoppingListItems}
+                    checkedCartItems={checkedCartItems}
+                    checkedCount={checkedCount}
+                    shoppingListCount={shoppingListCount}
+                    shoppingProgressPercent={shoppingProgressPercent}
+                    cheapest={cheapest}
+                    secondCheapest={secondCheapest}
+                    savings={savings}
+                    savingsPercent={savingsPercent}
+                    bestShoppingListGroups={bestShoppingListGroups}
+                    getShoppingListItemKey={getShoppingListItemKey}
+                    toggleShoppingListItem={toggleShoppingListItem}
+                    markAllShoppingListItemsChecked={markAllShoppingListItemsChecked}
+                    clearShoppingListChecks={clearShoppingListChecks}
+                    formatEuro={formatEuro}
+                    fixText={fixText}
+                    setCheckedCartItems={setCheckedCartItems}
+                    shoppingItemRefs={shoppingItemRefs}
+                    onRemoveItem={removeCartItem}
+                    onAddMore={openSearchPanel}
+                    onCompare={() => {
+                      if (!cart.length || comparisonLoading) return;
+                      void updateChainComparison(cart, { openCompare: true });
+                    }}
+                  />
 
                   <section className="rounded-[1.6rem] border border-[#d6bf8f] bg-[#fff8e8] p-5 shadow-[0_3px_0_rgba(7,59,45,0.16)] ring-1 ring-white/60">
                     <p className="text-xs font-black uppercase tracking-wide text-[#8e896f]">
@@ -7873,23 +7805,6 @@ export default function Page() {
                             Muistaa arjen valinnat ja listat.
                           </p>
                         </div>
-                      </div>
-                    </div>
-                    <div className="mt-3 rounded-2xl bg-[#f7efd9] p-4 text-xs font-bold text-[#504a39] ring-1 ring-[#ead7aa]">
-                      <p className="font-black uppercase tracking-wide text-[#8e896f]">
-                        State
-                      </p>
-                      <div className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1">
-                        <span>Mode: {searchCompareMode}</span>
-                        <span>Active: {activeResult}</span>
-                        <span>Store: {storeMode}</span>
-                        <span>Scope: {storeCompareScope}</span>
-                        <span>
-                          Results:{" "}
-                          {visibleNormalResults.length +
-                            singleProductCompareResults.length}
-                        </span>
-                        <span>Cart: {cart.length}</span>
                       </div>
                     </div>
                   </section>
