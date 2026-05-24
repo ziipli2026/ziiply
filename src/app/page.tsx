@@ -1869,7 +1869,7 @@ export default function Page() {
 
   const comparableCart = useMemo(() => {
     // Muistilistarivit ovat keräilyä varten, eivät hintavertailua varten.
-    // Näin pelkkä "maito,kala,cola"-muistilista ei riko halvinta koria tai ketjuvertailua.
+    // Näin pelkkä "maito,kala,cola"-muistilista ei riko huokeinta koria tai ketjuvertailua.
     return cart.filter((item) => !isManualShoppingItem(item));
   }, [cart]);
 
@@ -1995,14 +1995,14 @@ export default function Page() {
 
   const topSavingsText = useMemo(() => {
     if (cheapest && secondCheapest && savings > 0) {
-      return `Halvin täysi kori: ${cheapest.storeName} · ${savingsPercent.toFixed(1).replace(".", ",")} % edullisempi kuin seuraava`;
+      return `Huokein täysi kori: ${cheapest.storeName} · ${savingsPercent.toFixed(1).replace(".", ",")} % huokeampi kuin seuraava`;
     }
 
-    return cheapest ? `Halvin täysi kori: ${cheapest.storeName}` : "";
+    return cheapest ? `Huokein täysi kori: ${cheapest.storeName}` : "";
   }, [cheapest, secondCheapest, savings, savingsPercent]);
 
   const showCheapestSticky = useMemo(() => {
-    // v319: Vertailu avautuu aina yleisnäkymään. Näytä iso halvin kori -kortti heti,
+    // v319: Vertailu avautuu aina yleisnäkymään. Näytä iso huokein kori -kortti heti,
     // vaikka vertailussa olisi vain yksi valmis kauppa tai säästöä ei vielä synny.
     return cart.length > 0 && Boolean(cheapest);
   }, [cart.length, cheapest]);
@@ -5563,7 +5563,7 @@ export default function Page() {
   }
 
   function getQualityModeLabel(mode: QualityMode) {
-    if (mode === "cheapest") return "Halvin";
+    if (mode === "cheapest") return "Huokein";
     if (mode === "same_quality") return "Sama taso";
     if (mode === "own_brands") return "Omat merkit";
     return "Sama brändi";
@@ -7525,7 +7525,7 @@ export default function Page() {
                   >
                     Viilaa ruokakorisi
                     <br />
-                    halvemmaksi.
+                    huokeammaksi.
                   </p>
                   <div className="mx-auto my-4 h-[3px] w-20 rounded-full bg-[#d6bf8f]" />
                   <p
@@ -7643,10 +7643,13 @@ export default function Page() {
                   <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:radial-gradient(#b59c67_1.15px,transparent_1.15px)] [background-size:15px_15px]" />
                   <div className="relative flex items-center justify-between gap-3">
                     <div>
-                      <p className="text-[13px] font-black uppercase tracking-[0.28em] text-[#746742] drop-shadow-[0_1px_0_#fff7df]">
+                      <p className="text-[15px] font-black uppercase tracking-[0.38em] text-[#746742] drop-shadow-[0_1px_0_#fff7df]">
                         Haku
                       </p>
-                      <h2 className="text-2xl font-black tracking-[-0.04em] text-[#1f2619]">
+                      <h2
+                        className="text-[2.15rem] font-black italic leading-none tracking-[-0.05em] text-[#243d28] drop-shadow-[0_1px_0_#fff7df]"
+                        style={{ fontFamily: '"Georgia", "Baskerville", "Times New Roman", serif' }}
+                      >
                         Tuotteet ja vertailu
                       </h2>
                     </div>
@@ -7654,7 +7657,7 @@ export default function Page() {
                       <button
                         type="button"
                         onClick={() => setSearchCompareMode("cart")}
-                        className={`rounded-xl px-3 py-2 text-sm font-black ${searchCompareMode === "cart" ? "bg-white text-[#315f2f] shadow-sm" : "text-[#6f6b59]"}`}
+                        className={`rounded-xl px-4 py-2 text-[15px] font-black uppercase tracking-[0.04em] ${searchCompareMode === "cart" ? "bg-white text-[#315f2f] shadow-sm" : "text-[#6f6b59]"}`}
                       >
                         Koko kori
                       </button>
@@ -7666,7 +7669,7 @@ export default function Page() {
                             getSingleSearchTerm(currentInput),
                           );
                         }}
-                        className={`rounded-xl px-3 py-2 text-sm font-black ${searchCompareMode === "single" ? "bg-white text-[#315f2f] shadow-sm" : "text-[#6f6b59]"}`}
+                        className={`rounded-xl px-4 py-2 text-[15px] font-black uppercase tracking-[0.04em] ${searchCompareMode === "single" ? "bg-white text-[#315f2f] shadow-sm" : "text-[#6f6b59]"}`}
                       >
                         Yksi tuote
                       </button>
@@ -8399,7 +8402,7 @@ export default function Page() {
                 />
                 <div className="mx-auto mt-1 max-w-3xl text-center">
                   <p className="text-base font-black leading-tight tracking-[-0.04em] text-slate-950">
-                    Viilaa ruokakorisi halvemmaks.
+                    Viilaa ruokakorisi huokeammaks.
                   </p>
                   <p className="mt-1 text-sm font-semibold leading-snug text-slate-500">
                     Gösta ja Justiina auttavat arjen valinnoissa.
@@ -8428,7 +8431,7 @@ export default function Page() {
 
                 <div className="mt-7 max-w-[21.5rem] text-center sm:hidden">
                   <p className="text-[1.22rem] font-black leading-[1.05] tracking-[-0.045em] text-slate-950">
-                    Viilaa ruokakorisi halvemmaks.
+                    Viilaa ruokakorisi huokeammaks.
                   </p>
 
                   <p className="mx-auto mt-3 max-w-[19rem] text-[0.94rem] font-semibold leading-snug tracking-[-0.015em] text-slate-500">
@@ -9521,7 +9524,7 @@ export default function Page() {
                           <div className="relative mx-auto max-w-sm overflow-hidden rounded-[1.5rem] border border-green-100 bg-white px-5 py-3 sm:py-5 shadow-xl">
                             <div className="flex items-start justify-between gap-3">
                               <p className="text-[12px] font-extrabold uppercase tracking-wide text-green-700">
-                                Halvin täysi kori
+                                Huokein täysi kori
                               </p>
                               {secondCheapest && savings > 0 && (
                                 <span className="shrink-0 rounded-full bg-red-50 px-3 py-1 text-xl font-black leading-none text-red-500">
@@ -9630,7 +9633,7 @@ export default function Page() {
                                     </span>
                                     {isCheapestSingle && (
                                       <span className="rounded-full bg-green-600 px-2 py-0.5 text-[10px] font-black text-white">
-                                        Halvin
+                                        Huokein
                                       </span>
                                     )}
                                   </div>
@@ -9999,7 +10002,7 @@ export default function Page() {
                                     <div className="shrink-0 text-right">
                                       {isCheapest && (
                                         <div className="mb-1 inline-flex rounded-full bg-green-600 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wide text-white">
-                                          Halvin kori
+                                          Huokein kori
                                         </div>
                                       )}
                                       {!isComplete && !chain.comingSoon && (
@@ -10251,7 +10254,7 @@ export default function Page() {
                                                             [
                                                               "cheapest",
                                                               "💰",
-                                                              "Halvin",
+                                                              "Huokein",
                                                             ],
                                                             [
                                                               "same_quality",
@@ -10609,7 +10612,7 @@ export default function Page() {
                                     <div className="min-w-0 text-center">
                                       {isCheapest && (
                                         <div className="mb-2 inline-block rounded-full bg-green-600 px-4 py-1 text-sm font-bold text-white">
-                                          Halvin
+                                          Huokein
                                         </div>
                                       )}
                                       {!isComplete && !chain.comingSoon && (
@@ -11825,7 +11828,7 @@ export default function Page() {
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-[11px] font-black uppercase tracking-wide text-green-300">
-                    Halvin täysi kori
+                    Huokein täysi kori
                   </p>
                   <p className="truncate text-sm font-black">
                     {cheapest.storeName}
