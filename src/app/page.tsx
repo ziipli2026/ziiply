@@ -6150,7 +6150,7 @@ export default function Page() {
                   </div>
                   <p className="mt-2 rounded-2xl bg-amber-50 px-3 py-2 text-xs font-black text-amber-800 ring-1 ring-amber-100">{locationMessage}</p>
 
-                  {renderChainSelectionGrid({ compact: true })}
+                  {renderComparedStoreCards(true)}
 
                   <div className="mt-3 grid grid-cols-2 gap-2">
                     <button type="button" onClick={() => handleStoreModeChange("hyper")} className={`rounded-2xl px-3 py-3 text-sm font-black ring-1 ${storeMode === "hyper" && storeModeChosenV299 ? "bg-green-700 text-white ring-green-800" : "bg-white text-slate-700 ring-slate-200"}`}>🏬 Tavaratalot</button>
