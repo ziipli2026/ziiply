@@ -244,7 +244,7 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
           </div>
         </div>
 
-        <div className="mt-4 rounded-[24px] border-[3px] border-[#b99d64] bg-gradient-to-b from-[#f7edcf] to-[#e8d4a8] p-4 text-[#243d28] shadow-[0_0_0_2px_#fff6dc_inset,0_5px_0_rgba(91,72,44,0.25)]">
+        <div className="mt-4 rounded-[24px] border-[3px] border-[#b99d64] bg-gradient-to-b from-[#f4e2b8] to-[#d7b37a] p-4 text-[#243d28] shadow-[0_0_0_2px_#fff6dc_inset,0_5px_0_rgba(91,72,44,0.25)]">
           <div className="flex items-center justify-between gap-4">
             <div className="min-w-0">
               <div className="text-[15px] font-black uppercase tracking-[0.30em] text-[#746742]">Tavarain keräys</div>
@@ -266,9 +266,9 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
         {!hasItems ? (
           <div className="rounded-[28px] border-[2px] border-dashed border-[#b99d64] bg-[#f8eed2] px-5 py-8 text-center">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-[18px] bg-[#e9d9af] text-2xl">🧺</div>
-            <div className="mt-4 text-[24px] font-black text-[#28402a]">Kori on vielä tyhjä</div>
+            <div className="mt-4 text-[24px] font-black text-[#28402a]">Kori on vielä tyhjä.</div>
             <p className="mx-auto mt-2 max-w-[320px] text-[16px] font-bold leading-snug text-[#6b6656]">
-              Lisää muonaa koriin Göstan tarjouksista tai Justiinan ostoshaulla.
+              Lisää muonaa koriin Göstan hinnanhuojennuksista tahi Justiinalta.
             </p>
           </div>
         ) : (
