@@ -7451,7 +7451,7 @@ export default function Page() {
         {!showLaunchScreen && (
           <div className="mx-auto grid h-full max-w-[1540px] grid-rows-[auto_minmax(0,1fr)] gap-2">
             <header className="rounded-[1.6rem] border-[5px] border-[#073b2d] bg-[#fff4d8] p-2 shadow-[0_5px_0_#073b2d]">
-              <div className="grid grid-cols-[150px_1fr_230px] items-stretch gap-2">
+              <div className="grid grid-cols-[150px_minmax(0,1fr)_320px] items-stretch gap-2">
                 <div className="flex items-center justify-center overflow-hidden rounded-[1.4rem] border border-[#d7bd87] bg-[#fffaf0] px-4">
                   <img
                     src="/ziiplylogo_mobile.png"
@@ -7499,10 +7499,19 @@ export default function Page() {
                     setActiveResult("none");
                     setShopsPanelOpen(true);
                   }}
-                  className="flex items-center justify-center gap-3 rounded-[1.4rem] border border-[#d7bd87] bg-[#fffaf0] px-6 text-xl font-black text-[#003B2E]"
+                  className="flex min-w-0 items-center gap-4 rounded-[1.4rem] border border-[#d7bd87] bg-[#fffaf0] px-5 text-left text-[#003B2E]"
                 >
-                  <span>📍</span>
-                  <span>{activeArea.label}</span>
+                  <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-2xl ring-1 ${usingOwnLocation ? "bg-green-50 ring-green-200" : "bg-red-50 ring-red-200"}`}>
+                    📍
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-xl font-black leading-tight">
+                      {activeArea.label}
+                    </span>
+                    <span className="mt-0.5 block h-[1.15rem] truncate text-[11px] font-black uppercase tracking-[0.08em] text-[#8a3f16]">
+                      {locationMessage}
+                    </span>
+                  </span>
                 </button>
               </div>
             </header>
@@ -7529,18 +7538,17 @@ export default function Page() {
                   </p>
                 </section>
 
-                <section className="rounded-[1.6rem] border border-[#d6bf8f] bg-[#fff8e8] p-5 shadow-[0_3px_0_rgba(7,59,45,0.16)] ring-1 ring-white/60">
-                  <p className="text-xs font-black uppercase tracking-wide text-[#8e896f]">
+                <section className="relative overflow-hidden rounded-[1.8rem] border-2 border-[#c9ad76] bg-[#fff3d8] p-4 shadow-[0_5px_0_rgba(36,48,30,0.18),inset_0_0_0_2px_rgba(255,255,255,0.42)] ring-1 ring-white/60">
+                  <div className="pointer-events-none absolute inset-0 opacity-[0.1] [background-image:radial-gradient(#6f5a31_1px,transparent_1px)] [background-size:13px_13px]" />
+                  <p className="relative text-xs font-black uppercase tracking-[0.2em] text-[#7d744f]">
                     Kauppavalinta
                   </p>
 
-                  <p className="mt-2 rounded-2xl bg-[#fff2c9] px-3 py-2 text-xs font-black text-[#8a3f16] ring-1 ring-[#e1c678]">
-                    {locationMessage}
-                  </p>
+                  <div className="relative mt-3">
+                    {renderComparedStoreCards(true)}
+                  </div>
 
-                  {renderComparedStoreCards(true)}
-
-                  <div className="mt-3 grid grid-cols-2 gap-2">
+                  <div className="relative mt-3 grid grid-cols-2 gap-2">
                     <button
                       type="button"
                       onClick={() => handleStoreModeChange("hyper")}
@@ -7578,11 +7586,12 @@ export default function Page() {
               </aside>
 
               <main className="min-h-0 space-y-2 overflow-y-auto pr-1">
-                <section className="rounded-[1.6rem] border border-[#d6bf8f] bg-[#fff8e8] p-4 shadow-[0_3px_0_rgba(7,59,45,0.16)] ring-1 ring-white/60">
-                  <p className="mb-2 text-xs font-black uppercase tracking-[0.18em] text-[#8e896f]">
+                <section className="relative overflow-hidden rounded-[1.8rem] border-2 border-[#c9ad76] bg-[#fff3d8] p-4 shadow-[0_5px_0_rgba(36,48,30,0.18),inset_0_0_0_2px_rgba(255,255,255,0.42)] ring-1 ring-white/60">
+                  <div className="pointer-events-none absolute inset-0 opacity-[0.1] [background-image:radial-gradient(#6f5a31_1px,transparent_1px)] [background-size:13px_13px]" />
+                  <p className="relative mb-2 text-xs font-black uppercase tracking-[0.22em] text-[#7d744f]">
                     Kaupat ja sijainti
                   </p>
-                  <div className="flex items-center gap-3">
+                  <div className="relative flex items-center gap-3">
                     <button
                       type="button"
                       aria-pressed={usingOwnLocation}
@@ -7626,14 +7635,13 @@ export default function Page() {
                     >
                       Käytä
                     </button>
-                    <span className="hidden min-w-[180px] rounded-2xl bg-[#fff2c9] px-4 py-3 text-sm font-black text-[#8a3f16] ring-1 ring-[#e1c678] 2xl:block">
-                      {locationMessage}
-                    </span>
+                    <span className="hidden h-[46px] min-w-[1px] 2xl:block" aria-hidden="true" />
                   </div>
                 </section>
 
-                <section className="rounded-[1.6rem] border border-[#d6bf8f] bg-[#fff8e8] p-5 shadow-[0_3px_0_rgba(7,59,45,0.16)] ring-1 ring-white/60">
-                  <div className="flex items-center justify-between gap-3">
+                <section className="relative overflow-hidden rounded-[1.8rem] border-2 border-[#c9ad76] bg-[#fff3d8] p-5 shadow-[0_5px_0_rgba(36,48,30,0.18),inset_0_0_0_2px_rgba(255,255,255,0.42)] ring-1 ring-white/60">
+                  <div className="pointer-events-none absolute inset-0 opacity-[0.1] [background-image:radial-gradient(#6f5a31_1px,transparent_1px)] [background-size:13px_13px]" />
+                  <div className="relative flex items-center justify-between gap-3">
                     <div>
                       <p className="text-xs font-black uppercase tracking-wide text-[#8e896f]">
                         Haku
@@ -7675,10 +7683,10 @@ export default function Page() {
                         ? "Kirjoita yksi tuote"
                         : "maito, kahvi, jauheliha"
                     }
-                    className="mt-4 h-28 w-full resize-none rounded-[1.2rem] border border-[#d6bf8f] bg-white px-4 py-3 text-base font-semibold outline-none focus:border-green-600 focus:ring-4 focus:ring-[#b8d6b6]"
+                    className="relative mt-4 h-28 w-full resize-none rounded-[1.2rem] border border-[#d6bf8f] bg-white/95 px-4 py-3 text-base font-semibold outline-none focus:border-green-600 focus:ring-4 focus:ring-[#b8d6b6]"
                   />
 
-                  <div className="mt-3 grid grid-cols-[1fr_1fr_0.9fr] gap-3">
+                  <div className="relative mt-3 grid grid-cols-[1fr_1fr_0.9fr] gap-3">
                     <button
                       type="button"
                       onClick={handleGostaOfferSearch}
@@ -7755,7 +7763,7 @@ export default function Page() {
                   <button
                     type="button"
                     onClick={() => openDesktopScanner()}
-                    className="mt-3 flex min-h-[76px] w-full items-center justify-center gap-3 overflow-hidden rounded-2xl border-2 border-[#b39a62] bg-[#2f3d28] px-4 py-3 text-center text-[#fff4d8] shadow-[inset_0_0_0_2px_rgba(255,244,216,0.08),0_3px_0_rgba(7,59,45,0.24)] transition hover:brightness-105 active:translate-y-[1px]"
+                    className="relative mt-3 flex min-h-[76px] w-full items-center justify-center gap-3 overflow-hidden rounded-2xl border-2 border-[#b39a62] bg-[#2f3d28] px-4 py-3 text-center text-[#fff4d8] shadow-[inset_0_0_0_2px_rgba(255,244,216,0.08),0_3px_0_rgba(7,59,45,0.24)] transition hover:brightness-105 active:translate-y-[1px]"
                   >
                     <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[#f4dfa1] text-xl text-[#2f3d28] ring-2 ring-[#b49a61]">
                       📸
