@@ -4884,11 +4884,11 @@ export default function Page() {
     const savings = getKnownOptimizationSavings(chain);
 
     if (savings > 0) {
-      return `Optimoi kori · säästä ${formatEuro(savings)}`;
+      return `Viilaa · säästä ${formatEuro(savings)}`;
     }
 
     if (hasUncheckedOptimizationCandidates(chain)) {
-      return "Optimoi kori";
+      return "Viilaa";
     }
 
     return "Ei optimoitavaa";
@@ -7127,7 +7127,7 @@ return (
                                     <button
                                       type="button"
                                       onClick={() => toggleAlternatives(getAlternativeKey(chain.key, match, index), chain.key, match)}
-                                      className="mt-1.5 rounded-lg bg-white px-2 py-1 text-xs font-extrabold text-slate-600 ring-1 ring-slate-100 transition hover:bg-slate-100 active:scale-[0.98]"
+                                      className="mt-3 w-full rounded-2xl bg-green-600 px-4 py-3 text-sm font-black text-white shadow-[0_10px_22px_rgba(22,163,74,0.22)] ring-1 ring-green-500/40 transition hover:bg-green-700 active:scale-[0.98]"
                                     >
                                       {expandedAlternatives[getAlternativeKey(chain.key, match, index)]
                                         ? "Piilota vaihtoehdot"
@@ -7381,9 +7381,7 @@ return (
                                         fallback: {match.fallbackStoreName}
                                       </p>
                                     )}
-                                    {match.product.ean && (
-                                      <p className="mt-0.5 truncate text-xs text-slate-400">EAN: {match.product.ean}</p>
-                                    )}
+
                                   </div>
                                 );
                               })}
@@ -7438,17 +7436,17 @@ return (
                             <div className="mt-3 grid grid-cols-2 gap-3">
                               <button
                                 type="button"
-                                onClick={() => void shareShoppingList(chain)}
-                                className="rounded-xl bg-green-600 px-3 py-2.5 text-xs font-extrabold text-white transition active:scale-[0.98]"
-                              >
-                                Jaa
-                              </button>
-                              <button
-                                type="button"
                                 onClick={() => void buyShoppingList(chain)}
                                 className="rounded-xl bg-green-600 px-3 py-2.5 text-xs font-extrabold text-white transition active:scale-[0.98]"
                               >
                                 Osta
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => void shareShoppingList(chain)}
+                                className="rounded-xl bg-green-600 px-3 py-2.5 text-xs font-extrabold text-white transition active:scale-[0.98]"
+                              >
+                                Jaa
                               </button>
 
                               <button
