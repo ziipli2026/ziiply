@@ -7896,16 +7896,16 @@ export default function Page() {
           <div
             className={`fixed inset-0 z-[120] hidden items-center justify-center overflow-y-auto bg-[#13251b]/78 px-4 py-5 backdrop-blur-sm xl:flex ${eanModalClosing ? "ziiply-soft-close" : "ziiply-soft-open"}`}
           >
-            <div className="relative w-full max-w-[48rem] overflow-hidden rounded-[2.25rem] border-4 border-[#d5b982] bg-[#f7ead0] p-5 shadow-[0_30px_80px_rgba(0,0,0,0.45)] ring-4 ring-[#263b24]/50">
+            <div className="relative w-full max-w-[58rem] overflow-hidden rounded-[2.25rem] border-4 border-[#d5b982] bg-[#f7ead0] p-5 shadow-[0_30px_80px_rgba(0,0,0,0.45)] ring-4 ring-[#263b24]/50">
               <div className="pointer-events-none absolute inset-0 opacity-[0.14] [background-image:radial-gradient(#6f5a31_1px,transparent_1px)] [background-size:14px_14px]" />
               <div className="relative rounded-[1.7rem] border border-[#b99e67] bg-[#fbf2dc]/90 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
                 <div className="grid grid-cols-[14rem_1fr] gap-4">
                   <aside className="space-y-4">
                     <div>
-                      <p className="font-serif text-[4.2rem] font-black italic leading-none text-[#31402c] drop-shadow-sm">
+                      <p className="font-serif text-[3.25rem] font-black italic leading-[0.88] text-[#31402c] drop-shadow-sm">
                         Skanneri
                       </p>
-                      <p className="mt-1 text-center text-sm font-black uppercase tracking-[0.35em] text-[#3f4935]">
+                      <p className="mt-1 text-center text-xs font-black uppercase tracking-[0.28em] text-[#3f4935]">
                         50-luvun kamera skanneri
                       </p>
                     </div>
@@ -7958,16 +7958,16 @@ export default function Page() {
                   </aside>
 
                   <main className="min-w-0">
-                    <div className="mb-3 flex items-start justify-between gap-4">
+                    <div className="mb-3 grid grid-cols-[1fr] gap-3">
                       <div>
-                        <p className="rounded-2xl bg-[#efe0bf] px-4 py-3 font-serif text-2xl italic leading-snug text-[#31402c] shadow-sm">
+                        <p className="flex min-h-[4.25rem] items-center rounded-2xl bg-[#efe0bf] px-5 py-3 font-serif text-[1.45rem] italic leading-tight text-[#31402c] shadow-sm">
                           Kuvan otetaan, tarjoukset talteen. Säästöt esiin!
                         </p>
                       </div>
                     </div>
 
                     {eanScannerMessage && (
-                      <div className="mb-3 rounded-2xl bg-[#f2e3c4] p-3 text-sm font-black text-[#4f4733] ring-1 ring-[#d8bd86]">
+                      <div className="mb-3 rounded-2xl bg-[#f2e3c4] px-4 py-3 text-sm font-black leading-snug text-[#4f4733] ring-1 ring-[#d8bd86]">
                         {eanScannerMessage}
                       </div>
                     )}
