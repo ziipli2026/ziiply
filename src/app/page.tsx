@@ -6139,7 +6139,7 @@ export default function Page() {
       `}</style>
       {showLaunchScreen && <ZiiplyLaunchScreen appVersion={APP_VERSION} />}
 
-      <div className="relative z-[80] m-0 p-0 mt-1 mb-0">
+      <div className={`relative z-[80] m-0 p-0 mt-1 mb-0 ${showLaunchScreen ? "hidden" : ""}`}>
         <TopbarResponsiveCard
           areaLabel={activeArea.label}
           // v332: älä näytä storeModeLabeliä yläpalkissa.
