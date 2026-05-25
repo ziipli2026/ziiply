@@ -7700,7 +7700,7 @@ export default function Page() {
                   </div>
 
                   {locationMessageVisible ? (
-                    <div className="pointer-events-none absolute left-1/2 top-[18px] z-50 flex max-w-[calc(100%-360px)] -translate-x-1/2 justify-center">
+                    <div className="pointer-events-none absolute left-1/2 top-[6px] z-50 flex max-w-[calc(100%-360px)] -translate-x-1/2 justify-center">
                       <div className="max-w-full overflow-hidden text-ellipsis whitespace-nowrap rounded-[0.95rem] border border-[#caa35d] bg-[#ffe9a8] px-4 py-1.5 text-center text-[12px] font-black uppercase leading-none tracking-[0.10em] text-[#8a3f16] shadow-[0_2px_0_rgba(91,72,44,0.18),0_5px_10px_rgba(80,50,10,0.10)]">
                         {storeSearchLoading ? "HAETAAN KAUPPOJA..." : locationMessage}
                       </div>
@@ -7737,7 +7737,7 @@ export default function Page() {
     </div>
 
     {!hasSearchInput ? (
-      <div className="mt-5 grid grid-cols-[minmax(190px,0.78fr)_minmax(245px,0.66fr)_minmax(190px,0.78fr)] items-start gap-3">
+      <div className="mt-5 grid grid-cols-[minmax(250px,290px)_minmax(156px,176px)_minmax(250px,290px)] justify-center items-start gap-3">
         <button
           type="button"
           onClick={handleGostaOfferSearch}
@@ -7858,7 +7858,7 @@ export default function Page() {
           />
         </div>
 
-        <div className="mt-3 grid grid-cols-[260px_minmax(320px,420px)_260px] items-start justify-between gap-4">
+        <div className="mt-3 grid grid-cols-[minmax(250px,290px)_minmax(156px,176px)_minmax(250px,290px)] justify-center items-start gap-3">
           <button
             type="button"
             onClick={handleGostaOfferSearch}
@@ -7907,11 +7907,11 @@ export default function Page() {
             </span>
           </button>
 
-          <div className="mx-auto mt-2 flex w-full max-w-[420px] rounded-[22px] border-[3px] border-[#b99d64] bg-[#ead7a5] p-1.5 shadow-[0_0_0_2px_#fff4cc_inset,0_4px_0_rgba(91,72,44,0.18)]">
+          <div className="mx-auto mt-2 flex w-full max-w-[176px] rounded-[20px] border-[3px] border-[#b99d64] bg-[#ead7a5] p-1.5 shadow-[0_0_0_2px_#fff4cc_inset,0_4px_0_rgba(91,72,44,0.18)]">
             <button
               type="button"
               onClick={() => setSearchCompareMode("cart")}
-              className={`min-h-[42px] flex-1 rounded-[17px] px-4 text-[17px] font-black leading-none transition ${
+              className={`min-h-[40px] flex-1 rounded-[15px] px-1 text-[12px] font-black leading-none transition ${
                 searchCompareMode === "cart"
                   ? "bg-[#fff4cf] text-[#23502c] shadow-[inset_0_0_0_2px_#d9bd77,0_2px_0_rgba(91,72,44,0.18)]"
                   : "text-[#7a6842]"
@@ -7926,7 +7926,7 @@ export default function Page() {
                 setSearchCompareMode("single");
                 setInput((currentInput) => getSingleSearchTerm(currentInput));
               }}
-              className={`min-h-[42px] flex-1 rounded-[17px] px-4 text-[17px] font-black leading-none transition ${
+              className={`min-h-[40px] flex-1 rounded-[15px] px-1 text-[12px] font-black leading-none transition ${
                 searchCompareMode === "single"
                   ? "bg-[#fff4cf] text-[#23502c] shadow-[inset_0_0_0_2px_#d9bd77,0_2px_0_rgba(91,72,44,0.18)]"
                   : "text-[#7a6842]"
@@ -7988,7 +7988,7 @@ export default function Page() {
       </>
     )}
 
-    <div className="mt-3 min-h-[58px] max-h-[92px] overflow-hidden rounded-[22px] border-[2px] border-[#d2b170] bg-[#fff1bf] px-4 py-3 text-[15px] font-black text-[#7a6842] shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
+    <div className="relative z-30 mt-3 mb-[92px] min-h-[58px] max-h-[58px] overflow-hidden rounded-[22px] border-[2px] border-[#d2b170] bg-[#fff1bf] px-4 py-3 text-[15px] font-black text-[#7a6842] shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
       {hasSearchInput ? (
         <div className="flex flex-wrap items-center gap-2">
           {notFoundSearchTerms.length > 0 ? (
@@ -8017,26 +8017,8 @@ export default function Page() {
       )}
     </div>
 
-    <button
-      type="button"
-      onClick={() => openDesktopScanner()}
-      className="absolute bottom-0 left-1/2 flex min-h-[58px] w-full max-w-[640px] -translate-x-1/2 items-center justify-center gap-3 rounded-[25px] border-[3px] border-[#7a6338] bg-gradient-to-b from-[#f0d39a] to-[#c89a52] px-4 py-3 text-center text-[#26351f] shadow-[0_5px_0_rgba(91,72,44,0.22),inset_0_0_0_2px_rgba(255,255,255,0.35)] transition hover:brightness-105 active:translate-y-[1px]"
-    >
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-[2px] border-[#806637] bg-[#fff2cf] text-xl text-[#2f3d28]">
-        📸
-      </span>
-      <span
-        className="text-[27px] font-black italic leading-none"
-        style={{ fontFamily: '"Cooper Black", "Cooper Std Black", Georgia, serif' }}
-      >
-        Skanneri
-      </span>
-    </button>
-  </div>
-</section>
-
-                <div className="fixed bottom-[28px] left-[max(18px,calc((100vw-1720px)/2+410px))] right-[max(18px,calc((100vw-1720px)/2+410px))] z-40 grid grid-cols-2 items-end gap-5 px-2 pointer-events-none">
-  <div className="pointer-events-auto"><section className="group relative max-h-[64px] overflow-hidden rounded-t-[2.1rem] rounded-b-none transition-[max-height] duration-300 ease-out hover:max-h-[calc(100dvh-250px)] focus-within:max-h-[calc(100dvh-250px)] border-[3px] border-[#b99d62] bg-gradient-to-b from-[#f7e9c3] via-[#f0d9a4] to-[#dfbf7e] px-5 py-4 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80">
+    <div className="pointer-events-none absolute left-0 right-0 top-[86px] z-40 grid grid-cols-2 items-start gap-4">
+  <div className="pointer-events-auto"><section className="group relative max-h-[64px] overflow-hidden rounded-t-[2.1rem] rounded-b-none transition-[max-height] duration-300 ease-out hover:max-h-[278px] focus-within:max-h-[278px] border-[3px] border-[#b99d62] bg-gradient-to-b from-[#f7e9c3] via-[#f0d9a4] to-[#dfbf7e] px-5 py-4 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80">
                     <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:radial-gradient(#b59c67_1.15px,transparent_1.15px)] [background-size:15px_15px]" />
                     <div className="relative flex items-center justify-between gap-3">
                       <p className="text-[13px] font-black uppercase tracking-[0.28em] text-[#746742] drop-shadow-[0_1px_0_#fff7df]">
@@ -8072,7 +8054,7 @@ export default function Page() {
                       )}
                     </div>
 
-                    <div className="relative mt-3 max-h-[calc(100dvh-345px)] space-y-2 overflow-auto pr-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100">
+                    <div className="relative mt-3 max-h-[198px] space-y-2 overflow-auto pr-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100">
                       {activeResult === "offers" || loadingOffers ? (
                         loadingOffers ? (
                           <div className="h-1" />
@@ -8213,13 +8195,13 @@ export default function Page() {
                       )}
                     </div>
                   </section></div>
-  <div className="pointer-events-auto"><section className="group relative max-h-[64px] overflow-hidden rounded-t-[2.1rem] rounded-b-none transition-[max-height] duration-300 ease-out hover:max-h-[calc(100dvh-250px)] focus-within:max-h-[calc(100dvh-250px)] border-[3px] border-[#b99d62] bg-gradient-to-b from-[#f7e9c3] via-[#f0d9a4] to-[#dfbf7e] px-5 py-4 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80">
+  <div className="pointer-events-auto"><section className="group relative max-h-[64px] overflow-hidden rounded-t-[2.1rem] rounded-b-none transition-[max-height] duration-300 ease-out hover:max-h-[278px] focus-within:max-h-[278px] border-[3px] border-[#b99d62] bg-gradient-to-b from-[#f7e9c3] via-[#f0d9a4] to-[#dfbf7e] px-5 py-4 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80">
                     <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:radial-gradient(#b59c67_1.15px,transparent_1.15px)] [background-size:15px_15px]" />
                     <p className="relative text-[13px] font-black uppercase tracking-[0.28em] text-[#746742] drop-shadow-[0_1px_0_#fff7df]">
                       Vertailu
                     </p>
                     <span className="absolute left-1/2 top-[44px] h-[4px] w-16 -translate-x-1/2 rounded-full bg-[#8d7444]/45" />
-                    <div className="relative mt-3 grid max-h-[23dvh] gap-3 overflow-auto pr-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100">
+                    <div className="relative mt-3 grid max-h-[198px] gap-3 overflow-auto pr-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100">
                       {chainResults.length > 0 ? (
                         chainResults.map((result) => (
                           <div
@@ -8253,6 +8235,26 @@ export default function Page() {
                     </div>
                   </section></div>
 </div>
+
+    <button
+      type="button"
+      onClick={() => openDesktopScanner()}
+      className="absolute bottom-0 left-1/2 z-50 flex min-h-[58px] w-full max-w-[640px] -translate-x-1/2 items-center justify-center gap-3 rounded-[25px] border-[3px] border-[#7a6338] bg-gradient-to-b from-[#f0d39a] to-[#c89a52] px-4 py-3 text-center text-[#26351f] shadow-[0_5px_0_rgba(91,72,44,0.22),inset_0_0_0_2px_rgba(255,255,255,0.35)] transition hover:brightness-105 active:translate-y-[1px]"
+    >
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-[2px] border-[#806637] bg-[#fff2cf] text-xl text-[#2f3d28]">
+        📸
+      </span>
+      <span
+        className="text-[27px] font-black italic leading-none"
+        style={{ fontFamily: '"Cooper Black", "Cooper Std Black", Georgia, serif' }}
+      >
+        Skanneri
+      </span>
+    </button>
+  </div>
+</section>
+
+
               </main>
 
               <aside className="min-h-0">
@@ -9605,7 +9607,7 @@ export default function Page() {
                         <h2 className="text-2xl font-extrabold">
                           Löytyneet hinnanhuojennukset
                         </h2>
-                        <p className="min-w-0 break-words text-xs font-semibold text-slate-500 sm:text-sm">
+                        <p className="min-w-0 break-words text-xs font-bold text-[#6f6b59] sm:text-sm">
                           {filteredOffers.length} hinnanhuojennusta
                         </p>
                       </div>
@@ -11223,21 +11225,21 @@ export default function Page() {
                   {cart.map((item) => (
                     <div
                       key={item.id}
-                      className="flex min-w-0 max-w-full flex-col gap-3 overflow-hidden rounded-2xl bg-white p-3 text-slate-950 sm:p-4 md:flex-row md:items-center md:justify-between"
+                      className="flex min-w-0 max-w-full flex-col gap-3 overflow-hidden rounded-[1.45rem] border-[3px] border-[#b99d62] bg-gradient-to-b from-[#fff8e8] to-[#ecd39b] p-3 text-[#20301f] shadow-[0_4px_0_rgba(80,58,25,0.22),inset_0_0_0_2px_rgba(255,255,255,0.45)] sm:p-4"
                     >
-                      <div className="flex min-w-0 max-w-full items-center gap-2.5 overflow-hidden">
+                      <div className="grid min-w-0 max-w-full grid-cols-[64px_minmax(0,1fr)] items-center gap-3 overflow-hidden">
                         {item.image && (
                           <img
                             src={item.image}
                             alt={item.name}
-                            className="h-14 w-14 shrink-0 object-contain"
+                            className="h-16 w-16 shrink-0 rounded-[1rem] border-2 border-[#d6bf8f] bg-white object-contain p-1 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.7)]"
                           />
                         )}
                         <div className="min-w-0 flex-1 overflow-hidden">
-                          <p className="line-clamp-2 break-words font-bold leading-tight">
+                          <p className="line-clamp-2 break-words text-base font-black leading-tight text-[#20301f]">
                             {item.name}
                           </p>
-                          <p className="min-w-0 break-words text-xs font-semibold text-slate-500 sm:text-sm">
+                          <p className="min-w-0 break-words text-xs font-bold text-[#6f6b59] sm:text-sm">
                             {item.storeName
                               ? `${item.storeName} · ${item.chain}`
                               : "Muistilistarivi · ei mukana hintavertailussa"}
@@ -11261,11 +11263,11 @@ export default function Page() {
                         </div>
                       </div>
 
-                      <div className="mt-1 flex w-full min-w-0 items-center gap-2 rounded-2xl bg-slate-100 p-1.5">
+                      <div className="mt-1 grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2 rounded-[1.2rem] border-2 border-[#d6bf8f] bg-[#fff4cf] p-1.5">
                         <button
                           type="button"
                           disabled
-                          className="flex h-10 min-w-[6.25rem] flex-1 items-center justify-center rounded-xl bg-amber-100 px-2 text-[12px] font-black leading-tight text-amber-700 opacity-85 active:scale-[0.98] sm:text-sm"
+                          className="flex h-10 min-w-0 items-center justify-center rounded-xl border border-[#d9bd77] bg-[#ffe6a8] px-2 text-[11px] font-black leading-tight text-[#8a3f16] opacity-90 shadow-[0_2px_0_rgba(91,72,44,0.14)] active:scale-[0.98] sm:text-sm"
                           title="Tuotekohtainen hinnanhuojennushaku rakennetaan myöhemmin"
                           aria-label="Hinnanhuojennukset tulossa"
                         >
@@ -11273,7 +11275,7 @@ export default function Page() {
                           <span className="whitespace-nowrap">Hinnanhuojennukset</span>
                         </button>
 
-                        <div className="flex shrink-0 items-center rounded-xl bg-white p-1 shadow-sm ring-1 ring-slate-200">
+                        <div className="flex shrink-0 items-center rounded-xl border border-[#d9bd77] bg-white p-1 shadow-[0_2px_0_rgba(91,72,44,0.14)]">
                           <button
                             type="button"
                             onClick={() => changeQuantity(item.id, -1)}
@@ -11311,7 +11313,7 @@ export default function Page() {
                         <button
                           type="button"
                           onClick={() => removeCartItem(item.id)}
-                          className="flex h-10 min-w-0 flex-1 items-center justify-center rounded-xl bg-red-100 px-2 text-[12px] font-black leading-tight text-green-700 transition active:scale-[0.98] sm:text-sm"
+                          className="flex h-10 w-[82px] shrink-0 items-center justify-center rounded-xl border border-[#d69a8e] bg-[#ffe1d6] px-2 text-[12px] font-black leading-tight text-[#8a2f1a] transition shadow-[0_2px_0_rgba(91,72,44,0.14)] active:scale-[0.98] sm:text-sm"
                           aria-label={`Poista ${item.name} ostoskorista`}
                         >
                           <span className="mr-1">🗑</span>
