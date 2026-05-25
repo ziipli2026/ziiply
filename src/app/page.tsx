@@ -735,6 +735,20 @@ export default function Page() {
   const gostaSearchDisabled = !currentSearchQueryKey || loadingOffers;
   const hasSearchInput = terms.length > 0;
 
+  useEffect(() => {
+    if (!hasSearchInput) return;
+    const frame = window.requestAnimationFrame(() => {
+      const inputElement = searchInputRef.current;
+      if (!inputElement) return;
+      const selectionEnd = inputElement.value.length;
+      inputElement.focus();
+      try {
+        inputElement.setSelectionRange(selectionEnd, selectionEnd);
+      } catch {}
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [hasSearchInput]);
+
   function getSingleSearchTerm(
     value: string,
     options: { preserveTypingSpace?: boolean } = {},
@@ -7672,13 +7686,13 @@ export default function Page() {
                   </div>
 
                   {locationMessageVisible ? (
-                    <div className="pointer-events-none absolute left-1/2 top-[-24px] z-50 inline-flex w-max max-w-none -translate-x-1/2 whitespace-nowrap rounded-[1.05rem] border border-[#caa35d] bg-[#ffe9a8] px-5 py-2 text-[13px] font-black uppercase tracking-[0.14em] text-[#8a3f16] shadow-[0_3px_0_rgba(91,72,44,0.20),0_8px_18px_rgba(80,50,10,0.12)]">
+                    <div className="pointer-events-none absolute left-[58%] top-[9px] z-50 inline-flex w-max max-w-none -translate-x-1/2 whitespace-nowrap rounded-[1.05rem] border border-[#caa35d] bg-[#ffe9a8] px-5 py-2 text-[13px] font-black uppercase tracking-[0.14em] text-[#8a3f16] shadow-[0_3px_0_rgba(91,72,44,0.20),0_8px_18px_rgba(80,50,10,0.12)]">
                       {storeSearchLoading ? "HAETAAN KAUPPOJA..." : locationMessage}
                     </div>
                   ) : null}
                 </section>
 
-                <section className="relative overflow-hidden rounded-[2.25rem] border-[4px] border-[#5b482c] bg-[#f6ebc6] p-5 text-[#20301f] shadow-[0_0_0_2px_#d4b978_inset,0_10px_0_rgba(91,72,44,0.20),0_18px_28px_rgba(60,45,20,0.16)]">
+                <section className="relative min-h-[520px] overflow-hidden rounded-[2.25rem] border-[4px] border-[#5b482c] bg-[#f6ebc6] p-5 text-[#20301f] shadow-[0_0_0_2px_#d4b978_inset,0_10px_0_rgba(91,72,44,0.20),0_18px_28px_rgba(60,45,20,0.16)]">
   <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:radial-gradient(#c7aa67_1px,transparent_1px)] [background-size:15px_15px]" />
 
   <div className="relative z-10">
@@ -7707,13 +7721,13 @@ export default function Page() {
     </div>
 
     {!hasSearchInput ? (
-      <div className="mt-5 grid grid-cols-[1fr_minmax(280px,0.9fr)_1fr] items-start gap-4">
+      <div className="mt-5 grid grid-cols-[1fr_minmax(360px,0.96fr)_1fr] items-start gap-4">
         <button
           type="button"
           onClick={handleGostaOfferSearch}
           disabled={gostaSearchDisabled}
           aria-disabled={gostaSearchDisabled}
-          className={`group flex min-h-[98px] items-start gap-3 overflow-hidden rounded-[25px] border-[3px] border-[#7b935f] bg-gradient-to-b from-[#eff2d2] to-[#cdd99b] px-3 py-3 text-left shadow-[0_5px_0_rgba(91,72,44,0.22),inset_0_0_0_2px_rgba(255,255,255,0.5)] transition active:translate-y-[1px] ${
+          className={`group flex min-h-[98px] items-start gap-3 overflow-visible rounded-[25px] border-[3px] border-[#7b935f] bg-gradient-to-b from-[#eff2d2] to-[#cdd99b] px-3 py-3 text-left shadow-[0_5px_0_rgba(91,72,44,0.22),inset_0_0_0_2px_rgba(255,255,255,0.5)] transition active:translate-y-[1px] ${
             gostaSearchDisabled ? "cursor-not-allowed opacity-55" : "hover:brightness-105"
           }`}
           title="Gösta etsii hinnanhuojennukset"
@@ -7730,13 +7744,13 @@ export default function Page() {
           </span>
           <span className="min-w-0 pt-1">
             <span
-              className="block text-[25px] font-black italic leading-none text-[#315f2f]"
+              className="block text-[23px] font-black italic leading-none text-[#315f2f]"
               style={{ fontFamily: '"Cooper Black", "Cooper Std Black", Georgia, serif' }}
             >
               Gösta
             </span>
             <span
-              className="mt-1 block whitespace-normal text-[13px] font-black leading-[1.06] text-[#315f2f]"
+              className="mt-1 block whitespace-normal text-[14px] font-black leading-[1.05] text-[#315f2f]"
               style={{ fontFamily: '"Baskerville", "Georgia", serif' }}
             >
               {loadingOffers ? (
@@ -7758,6 +7772,7 @@ export default function Page() {
 
         <div className="rounded-[28px] border-[3px] border-[#9d8350] bg-[#fff4d3] p-2 shadow-[inset_0_4px_10px_rgba(91,65,28,0.12),0_2px_0_#fff6dc]">
           <textarea
+            ref={searchInputRef}
             value={input}
             onChange={(event) => setSearchInputForMode(event.target.value)}
             placeholder={
@@ -7765,7 +7780,7 @@ export default function Page() {
                 ? "Kirjoita yksi tuote"
                 : "maito, kahvi, jauheliha"
             }
-            className="h-[58px] w-full resize-none rounded-[22px] border-0 bg-[#fff9e8] px-5 py-3 text-[21px] font-black leading-snug text-[#172417] outline-none placeholder:text-[#8b846f]"
+            className="h-[86px] w-full resize-none overflow-hidden rounded-[22px] border-0 bg-[#fff9e8] px-6 py-6 text-[24px] font-black leading-[1.15] text-[#172417] outline-none placeholder:text-[#8b846f]"
             style={{ fontFamily: '"Baskerville", "Georgia", serif' }}
           />
         </div>
@@ -7775,7 +7790,7 @@ export default function Page() {
           onClick={handleJustiinaProductSearch}
           disabled={!hasSearchInput || loadingNormal || singleProductCompareLoading}
           aria-disabled={!hasSearchInput || loadingNormal || singleProductCompareLoading}
-          className={`group flex min-h-[98px] items-start gap-3 overflow-hidden rounded-[25px] border-[3px] border-[#c69f48] bg-gradient-to-b from-[#fff0bd] to-[#eec965] px-3 py-3 text-left shadow-[0_5px_0_rgba(91,72,44,0.22),inset_0_0_0_2px_rgba(255,255,255,0.5)] transition active:translate-y-[1px] ${
+          className={`group flex min-h-[98px] items-start gap-3 overflow-visible rounded-[25px] border-[3px] border-[#c69f48] bg-gradient-to-b from-[#fff0bd] to-[#eec965] px-3 py-3 text-left shadow-[0_5px_0_rgba(91,72,44,0.22),inset_0_0_0_2px_rgba(255,255,255,0.5)] transition active:translate-y-[1px] ${
             !hasSearchInput || loadingNormal || singleProductCompareLoading ? "cursor-not-allowed opacity-55" : "hover:brightness-105"
           }`}
           title="Justiina etsii ostokset"
@@ -7792,13 +7807,13 @@ export default function Page() {
           </span>
           <span className="min-w-0 pt-1">
             <span
-              className="block text-[25px] font-black italic leading-none text-[#8a3f16]"
+              className="block text-[23px] font-black italic leading-none text-[#8a3f16]"
               style={{ fontFamily: '"Cooper Black", "Cooper Std Black", Georgia, serif' }}
             >
               Justiina
             </span>
             <span
-              className="mt-1 block text-[13px] font-black leading-[1.06] text-[#8a3f16]"
+              className="mt-1 block text-[14px] font-black leading-[1.05] text-[#8a3f16]"
               style={{ fontFamily: '"Baskerville", "Georgia", serif' }}
             >
               Etsi
@@ -7812,6 +7827,7 @@ export default function Page() {
       <>
         <div className="mt-5 rounded-[28px] border-[3px] border-[#9d8350] bg-[#fff4d3] p-2 shadow-[inset_0_4px_10px_rgba(91,65,28,0.12),0_2px_0_#fff6dc]">
           <textarea
+            ref={searchInputRef}
             value={input}
             onChange={(event) => setSearchInputForMode(event.target.value)}
             placeholder={
@@ -7819,7 +7835,7 @@ export default function Page() {
                 ? "Kirjoita yksi tuote"
                 : "maito, kahvi, jauheliha"
             }
-            className="h-[58px] w-full resize-none rounded-[22px] border-0 bg-[#fff9e8] px-6 py-3 text-[22px] font-black leading-snug text-[#172417] outline-none placeholder:text-[#8b846f]"
+            className="h-[86px] w-full resize-none overflow-hidden rounded-[22px] border-0 bg-[#fff9e8] px-6 py-6 text-[24px] font-black leading-[1.15] text-[#172417] outline-none placeholder:text-[#8b846f]"
             style={{ fontFamily: '"Baskerville", "Georgia", serif' }}
           />
         </div>
@@ -7830,7 +7846,7 @@ export default function Page() {
             onClick={handleGostaOfferSearch}
             disabled={gostaSearchDisabled}
             aria-disabled={gostaSearchDisabled}
-            className={`group flex min-h-[94px] items-start gap-3 overflow-hidden rounded-[25px] border-[3px] border-[#7b935f] bg-gradient-to-b from-[#eff2d2] to-[#cdd99b] px-3 py-3 text-left shadow-[0_5px_0_rgba(91,72,44,0.22),inset_0_0_0_2px_rgba(255,255,255,0.5)] transition active:translate-y-[1px] ${
+            className={`group flex min-h-[94px] items-start gap-3 overflow-visible rounded-[25px] border-[3px] border-[#7b935f] bg-gradient-to-b from-[#eff2d2] to-[#cdd99b] px-3 py-3 text-left shadow-[0_5px_0_rgba(91,72,44,0.22),inset_0_0_0_2px_rgba(255,255,255,0.5)] transition active:translate-y-[1px] ${
               gostaSearchDisabled ? "cursor-not-allowed opacity-55" : "hover:brightness-105"
             }`}
             title="Gösta etsii hinnanhuojennukset"
@@ -7847,13 +7863,13 @@ export default function Page() {
             </span>
             <span className="min-w-0 pt-1">
               <span
-                className="block text-[25px] font-black italic leading-none text-[#315f2f]"
+                className="block text-[23px] font-black italic leading-none text-[#315f2f]"
                 style={{ fontFamily: '"Cooper Black", "Cooper Std Black", Georgia, serif' }}
               >
                 Gösta
               </span>
               <span
-                className="mt-1 block whitespace-normal text-[13px] font-black leading-[1.06] text-[#315f2f]"
+                className="mt-1 block whitespace-normal text-[14px] font-black leading-[1.05] text-[#315f2f]"
                 style={{ fontFamily: '"Baskerville", "Georgia", serif' }}
               >
                 {loadingOffers ? (
@@ -7908,7 +7924,7 @@ export default function Page() {
             onClick={handleJustiinaProductSearch}
             disabled={!hasSearchInput || loadingNormal || singleProductCompareLoading}
             aria-disabled={!hasSearchInput || loadingNormal || singleProductCompareLoading}
-            className={`group flex min-h-[94px] items-start gap-3 overflow-hidden rounded-[25px] border-[3px] border-[#c69f48] bg-gradient-to-b from-[#fff0bd] to-[#eec965] px-3 py-3 text-left shadow-[0_5px_0_rgba(91,72,44,0.22),inset_0_0_0_2px_rgba(255,255,255,0.5)] transition active:translate-y-[1px] ${
+            className={`group flex min-h-[94px] items-start gap-3 overflow-visible rounded-[25px] border-[3px] border-[#c69f48] bg-gradient-to-b from-[#fff0bd] to-[#eec965] px-3 py-3 text-left shadow-[0_5px_0_rgba(91,72,44,0.22),inset_0_0_0_2px_rgba(255,255,255,0.5)] transition active:translate-y-[1px] ${
               !hasSearchInput || loadingNormal || singleProductCompareLoading ? "cursor-not-allowed opacity-55" : "hover:brightness-105"
             }`}
             title="Justiina etsii ostokset"
@@ -7925,13 +7941,13 @@ export default function Page() {
             </span>
             <span className="min-w-0 pt-1">
               <span
-                className="block text-[25px] font-black italic leading-none text-[#8a3f16]"
+                className="block text-[23px] font-black italic leading-none text-[#8a3f16]"
                 style={{ fontFamily: '"Cooper Black", "Cooper Std Black", Georgia, serif' }}
               >
                 Justiina
               </span>
               <span
-                className="mt-1 block text-[13px] font-black leading-[1.06] text-[#8a3f16]"
+                className="mt-1 block text-[14px] font-black leading-[1.05] text-[#8a3f16]"
                 style={{ fontFamily: '"Baskerville", "Georgia", serif' }}
               >
                 {loadingNormal || singleProductCompareLoading ? (
@@ -7954,7 +7970,7 @@ export default function Page() {
       </>
     )}
 
-    <div className="mt-3 min-h-[42px] rounded-[22px] border-[2px] border-[#d2b170] bg-[#fff1bf] px-4 py-2 text-[15px] font-black text-[#7a6842] shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
+    <div className="mt-3 min-h-[72px] max-h-[104px] overflow-hidden rounded-[22px] border-[2px] border-[#d2b170] bg-[#fff1bf] px-4 py-3 text-[15px] font-black text-[#7a6842] shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
       {hasSearchInput ? (
         <div className="flex flex-wrap items-center gap-2">
           {notFoundSearchTerms.length > 0 ? (
@@ -8001,8 +8017,8 @@ export default function Page() {
   </div>
 </section>
 
-                <div className="fixed bottom-[22px] left-[max(22px,calc((100vw-1720px)/2+430px))] right-[max(22px,calc((100vw-1720px)/2+500px))] z-40 grid grid-cols-[minmax(0,1fr)_minmax(310px,0.78fr)] items-end gap-3 px-2 pointer-events-none">
-  <div className="pointer-events-auto"><section className="group relative max-h-[72px] overflow-hidden rounded-t-[2.1rem] rounded-b-none transition-[max-height] duration-300 ease-out hover:max-h-[39dvh] focus-within:max-h-[39dvh] border-[3px] border-[#b99d62] bg-gradient-to-b from-[#f7e9c3] via-[#f0d9a4] to-[#dfbf7e] px-5 py-4 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80">
+                <div className="fixed bottom-[34px] left-[max(18px,calc((100vw-1720px)/2+400px))] right-[max(18px,calc((100vw-1720px)/2+520px))] z-40 grid grid-cols-[minmax(0,1fr)_minmax(300px,0.82fr)] items-end gap-3 px-2 pointer-events-none">
+  <div className="pointer-events-auto"><section className="group relative max-h-[68px] overflow-hidden rounded-t-[2.1rem] rounded-b-none transition-[max-height] duration-300 ease-out hover:max-h-[36dvh] focus-within:max-h-[36dvh] border-[3px] border-[#b99d62] bg-gradient-to-b from-[#f7e9c3] via-[#f0d9a4] to-[#dfbf7e] px-5 py-4 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80">
                     <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:radial-gradient(#b59c67_1.15px,transparent_1.15px)] [background-size:15px_15px]" />
                     <div className="relative flex items-center justify-between gap-3">
                       <p className="text-[13px] font-black uppercase tracking-[0.28em] text-[#746742] drop-shadow-[0_1px_0_#fff7df]">
@@ -8038,7 +8054,7 @@ export default function Page() {
                       )}
                     </div>
 
-                    <div className="relative mt-3 max-h-[28dvh] space-y-2 overflow-auto pr-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100">
+                    <div className="relative mt-3 max-h-[25dvh] space-y-2 overflow-auto pr-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100">
                       {notFoundSearchTerms.length > 0 && activeResult !== "offers" && !loadingOffers && (
                         <div className="rounded-2xl border border-[#d6bf8f] bg-[#fff8e8] p-3 text-sm font-black text-[#8a3f16]">
                           Ei löytynyt: {notFoundSearchTerms.join(", ")}. Jatketaan seuraaviin hakusanoihin.
@@ -8187,13 +8203,13 @@ export default function Page() {
                       )}
                     </div>
                   </section></div>
-  <div className="pointer-events-auto"><section className="group relative max-h-[72px] overflow-hidden rounded-t-[2.1rem] rounded-b-none transition-[max-height] duration-300 ease-out hover:max-h-[39dvh] focus-within:max-h-[39dvh] border-[3px] border-[#b99d62] bg-gradient-to-b from-[#f7e9c3] via-[#f0d9a4] to-[#dfbf7e] px-5 py-4 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80">
+  <div className="pointer-events-auto"><section className="group relative max-h-[68px] overflow-hidden rounded-t-[2.1rem] rounded-b-none transition-[max-height] duration-300 ease-out hover:max-h-[36dvh] focus-within:max-h-[36dvh] border-[3px] border-[#b99d62] bg-gradient-to-b from-[#f7e9c3] via-[#f0d9a4] to-[#dfbf7e] px-5 py-4 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80">
                     <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:radial-gradient(#b59c67_1.15px,transparent_1.15px)] [background-size:15px_15px]" />
                     <p className="relative text-[13px] font-black uppercase tracking-[0.28em] text-[#746742] drop-shadow-[0_1px_0_#fff7df]">
                       Vertailu
                     </p>
                     <span className="absolute left-1/2 top-[44px] h-[4px] w-16 -translate-x-1/2 rounded-full bg-[#8d7444]/45" />
-                    <div className="relative mt-3 grid max-h-[28dvh] gap-3 overflow-auto pr-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100">
+                    <div className="relative mt-3 grid max-h-[25dvh] gap-3 overflow-auto pr-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100">
                       {chainResults.length > 0 ? (
                         chainResults.map((result) => (
                           <div
@@ -9147,7 +9163,7 @@ export default function Page() {
                     type="button"
                     onClick={() => setCartSavePanelOpen(true)}
                     disabled={cart.length === 0}
-                    className="rounded-[1rem] bg-slate-900 px-3 py-3 text-sm font-black text-white disabled:bg-slate-200 disabled:text-slate-400"
+                    className="rounded-[1rem] bg-slate-900 px-3 py-3 text-sm font-black text-[#26351f] disabled:bg-slate-200 disabled:text-slate-400"
                   >
                     Ostoslista
                   </button>
@@ -9174,7 +9190,7 @@ export default function Page() {
                     type="button"
                     onClick={toggleComparisonView}
                     disabled={cart.length === 0 || comparisonLoading}
-                    className="rounded-full bg-green-700 px-3 py-1.5 text-xs font-black text-white disabled:bg-slate-200 disabled:text-slate-400"
+                    className="rounded-full bg-green-700 px-3 py-1.5 text-xs font-black text-[#26351f] disabled:bg-slate-200 disabled:text-slate-400"
                   >
                     {comparisonLoading ? "Vertaillaan..." : "Näytä"}
                   </button>
