@@ -25,6 +25,9 @@ export type SearchCardProps = {
   resultsPanel?: React.ReactNode;
   comparePanel?: React.ReactNode;
   activePanel?: SearchPanelKind;
+  notFoundTerms?: string[];
+  gostaLoading?: boolean;
+  justiinaLoading?: boolean;
   onOpenResults?: () => void;
   onOpenCompare?: () => void;
   className?: string;
@@ -206,6 +209,9 @@ export default function ZiiplySearchCard({
   resultsPanel,
   comparePanel,
   activePanel = "none",
+  notFoundTerms = [],
+  gostaLoading = false,
+  justiinaLoading = false,
   onOpenResults,
   onOpenCompare,
   className,
@@ -235,14 +241,22 @@ export default function ZiiplySearchCard({
     onChange(event.target.value);
   };
 
-  const infoContent = chips.length > 0 ? (
-    <div className="flex min-w-0 flex-wrap items-center justify-center gap-2">
-      {chips.slice(0, 4).map((chip) => (
+  const cleanNotFoundTerms = notFoundTerms
+    .map((term) => String(term || "").trim())
+    .filter(Boolean);
+
+  const infoContent = cleanNotFoundTerms.length > 0 ? (
+    <span className="block w-full truncate text-center text-[#8a3f16]">
+      Hakemaasi {cleanNotFoundTerms.join(", ")} ei löytynyt.
+    </span>
+  ) : chips.length > 0 ? (
+    <div className="flex min-w-0 flex-nowrap items-center justify-center gap-2 overflow-hidden">
+      {chips.slice(0, 3).map((chip) => (
         <button
           key={chip.id}
           type="button"
           onClick={chip.onClick}
-          className="max-w-[230px] truncate rounded-full border-[2px] border-[#c4a05d] bg-[#fffaf0] px-4 py-1.5 text-[16px] font-black text-[#2e6b34] shadow-[0_2px_0_rgba(90,70,35,0.18)]"
+          className="max-w-[260px] shrink truncate rounded-full border-[2px] border-[#c4a05d] bg-[#fffaf0] px-4 py-1.5 text-[16px] font-black text-[#2e6b34] shadow-[0_2px_0_rgba(90,70,35,0.18)]"
           style={{ fontFamily: cooperFont }}
         >
           {chip.label}
@@ -285,7 +299,7 @@ export default function ZiiplySearchCard({
 
       {!hasText ? (
         <div className="relative z-10 mt-3 grid grid-cols-[minmax(250px,290px)_minmax(170px,210px)_minmax(250px,290px)] items-start justify-center gap-3">
-          <GostaButton onClick={onGostaSearch} disabled={!value.trim()} />
+          <GostaButton onClick={onGostaSearch} disabled={!value.trim()} loading={gostaLoading} />
 
           <div className="h-[86px] rounded-[28px] border-[3px] border-[#9d8350] bg-[#fff4d3] p-2 shadow-[inset_0_4px_10px_rgba(91,65,28,0.12),0_2px_0_#fff6dc]">
             <textarea
@@ -299,7 +313,7 @@ export default function ZiiplySearchCard({
             />
           </div>
 
-          <JustiinaButton onClick={onJustiinaSearch} disabled={!value.trim()} />
+          <JustiinaButton onClick={onJustiinaSearch} disabled={!value.trim()} loading={justiinaLoading} />
         </div>
       ) : (
         <>
@@ -316,9 +330,9 @@ export default function ZiiplySearchCard({
           </div>
 
           <div className="relative z-10 mt-3 grid grid-cols-[minmax(250px,290px)_minmax(156px,176px)_minmax(250px,290px)] items-start justify-center gap-3">
-            <GostaButton onClick={onGostaSearch} />
+            <GostaButton onClick={onGostaSearch} loading={gostaLoading} />
             <ModeToggle mode={mode} onModeChange={onModeChange} />
-            <JustiinaButton onClick={onJustiinaSearch} />
+            <JustiinaButton onClick={onJustiinaSearch} loading={justiinaLoading} />
           </div>
         </>
       )}
@@ -341,7 +355,7 @@ export default function ZiiplySearchCard({
           style={{ fontFamily: cooperFont }}
         >
           <span className="mr-5 inline-flex h-[42px] w-[42px] items-center justify-center rounded-full border-[3px] border-[#7a653e] bg-[#f8f0d8] text-[22px] not-italic">
-            ▦
+            📸
           </span>
           Skanneri
         </button>
