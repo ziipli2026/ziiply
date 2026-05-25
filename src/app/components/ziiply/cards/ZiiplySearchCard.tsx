@@ -164,32 +164,32 @@ function JustiinaButton({
 
 function ModeToggle({ mode, onModeChange }: { mode: SearchMode; onModeChange: (mode: SearchMode) => void }) {
   return (
-    <div className="mx-auto flex h-[54px] w-full max-w-[176px] shrink-0 rounded-[20px] border-[3px] border-[#b99d64] bg-[#ead7a5] p-1.5 shadow-[0_0_0_2px_#fff4cc_inset,0_4px_0_rgba(91,72,44,0.18)]">
+    <div className="mx-auto flex h-[72px] w-full max-w-[300px] shrink-0 rounded-[28px] border-[4px] border-[#b99d64] bg-[#ead7a5] p-2 shadow-[0_0_0_3px_#fff4cc_inset,0_6px_0_rgba(91,72,44,0.22)]">
       <button
         type="button"
         onClick={() => onModeChange("cart")}
         className={cx(
-          "min-h-[38px] flex-1 rounded-[15px] px-1 text-[12px] font-black leading-none transition",
+          "min-h-[52px] flex-1 rounded-[22px] px-3 text-[22px] font-black leading-[0.9] transition",
           mode === "cart"
-            ? "bg-[#fff4cf] text-[#23502c] shadow-[inset_0_0_0_2px_#d9bd77,0_2px_0_rgba(91,72,44,0.18)]"
+            ? "bg-[#fff4cf] text-[#23502c] shadow-[inset_0_0_0_3px_#d9bd77,0_3px_0_rgba(91,72,44,0.18)]"
             : "text-[#7a6842]",
         )}
         style={{ fontFamily: cooperFont }}
       >
-        Koko kori
+        Koko<br />kori
       </button>
       <button
         type="button"
         onClick={() => onModeChange("single")}
         className={cx(
-          "min-h-[38px] flex-1 rounded-[15px] px-1 text-[12px] font-black leading-none transition",
+          "min-h-[52px] flex-1 rounded-[22px] px-3 text-[22px] font-black leading-[0.9] transition",
           mode === "single"
-            ? "bg-[#fff4cf] text-[#23502c] shadow-[inset_0_0_0_2px_#d9bd77,0_2px_0_rgba(91,72,44,0.18)]"
+            ? "bg-[#fff4cf] text-[#23502c] shadow-[inset_0_0_0_3px_#d9bd77,0_3px_0_rgba(91,72,44,0.18)]"
             : "text-[#7a6842]",
         )}
         style={{ fontFamily: cooperFont }}
       >
-        Yksi tuote
+        Yksi<br />tuote
       </button>
     </div>
   );
@@ -220,7 +220,7 @@ export default function ZiiplySearchCard({
   const hasText = value.trim().length > 0;
   const [typingViewOpen, setTypingViewOpen] = useState(false);
   const showTypingView = hasText || typingViewOpen;
-  const showModeToggle = hasText;
+  const showModeToggle = showTypingView;
   const showResults = activePanel === "results";
   const showCompare = activePanel === "compare";
 
@@ -284,11 +284,11 @@ export default function ZiiplySearchCard({
     >
       <div className="pointer-events-none absolute inset-0 rounded-[28px] opacity-45 [background-image:radial-gradient(#d8bd75_1.2px,transparent_1.2px)] [background-size:18px_18px]" />
 
-      <div className="relative z-10 flex h-[82px] items-start justify-between gap-4">
+      <div className="relative z-10 flex h-[78px] items-start justify-between gap-4">
         <div className="min-w-0">
-          <div className="text-[14px] font-black uppercase leading-none tracking-[0.42em] text-[#6f674f]">Haku</div>
+          <div className="text-[15px] font-black uppercase leading-none tracking-[0.42em] text-[#6f674f]">Haku</div>
           <h1
-            className="mt-2 whitespace-nowrap text-[clamp(42px,4.7vw,64px)] font-black italic leading-[0.82] text-[#203b25]"
+            className="mt-2 whitespace-nowrap text-[clamp(44px,4.8vw,66px)] font-black italic leading-[0.82] text-[#203b25]"
             style={{ fontFamily: cooperFont }}
           >
             Tuotteet ja vertailu
@@ -298,7 +298,7 @@ export default function ZiiplySearchCard({
         <button
           type="button"
           onClick={onAddFromNotebook}
-          className="mt-1 h-[58px] shrink-0 rounded-[24px] border-[4px] border-[#0b6330] bg-gradient-to-b from-[#159b46] to-[#087a35] px-9 text-[24px] font-black italic leading-none text-[#fff0d5] shadow-[0_0_0_3px_rgba(255,255,255,0.20)_inset,0_6px_0_#064a26] active:translate-y-1 active:shadow-[0_2px_0_#064a26]"
+          className="mt-1 h-[62px] shrink-0 rounded-[28px] border-[4px] border-[#0b6330] bg-gradient-to-b from-[#159b46] to-[#087a35] px-10 text-[28px] font-black italic leading-none text-[#fff0d5] shadow-[0_0_0_4px_rgba(255,255,255,0.20)_inset,0_6px_0_#064a26] active:translate-y-1 active:shadow-[0_2px_0_#064a26]"
           style={{ fontFamily: cooperFont }}
         >
           Lisää vihkosesta
@@ -339,13 +339,9 @@ export default function ZiiplySearchCard({
             />
           </div>
 
-          <div className="relative z-10 mt-3 grid grid-cols-[minmax(250px,290px)_minmax(156px,176px)_minmax(250px,290px)] items-start justify-center gap-3">
+          <div className="relative z-10 mt-3 grid grid-cols-[minmax(250px,290px)_minmax(276px,300px)_minmax(250px,290px)] items-start justify-center gap-5">
             <GostaButton onClick={onGostaSearch} loading={gostaLoading} />
-            {showModeToggle ? (
-              <ModeToggle mode={mode} onModeChange={onModeChange} />
-            ) : (
-              <div aria-hidden="true" className="h-[54px]" />
-            )}
+            <ModeToggle mode={mode} onModeChange={onModeChange} />
             <JustiinaButton onClick={onJustiinaSearch} loading={justiinaLoading} />
           </div>
         </>
