@@ -7729,13 +7729,13 @@ export default function Page() {
                     onClick: () => applyInstantSearchSuggestion(suggestion.label),
                   }))}
                   instructionText="Justiina ehdottaa sopivia hakusanoja kirjoituksen mukaan."
+                  notFoundTerms={notFoundSearchTerms}
+                  gostaLoading={loadingOffers}
+                  justiinaLoading={loadingNormal || singleProductCompareLoading}
                   activePanel={
                     activeResult === "compare"
                       ? "compare"
-                      : activeResult === "offers" ||
-                          loadingOffers ||
-                          hasSearchedOffers ||
-                          loadingNormal ||
+                      : filteredOffers.length > 0 ||
                           visibleNormalResults.length > 0 ||
                           singleProductCompareResults.length > 0
                         ? "results"
@@ -7755,11 +7755,7 @@ export default function Page() {
                   }}
                   resultsPanel={
                     <div className="space-y-3">
-                      {loadingOffers ? (
-                        <p className="rounded-[1.25rem] border border-[#dec890] bg-[#f7efd9] p-4 text-sm font-black text-[#6f6b59] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
-                          Gösta etsii hinnanhuojennuksia…
-                        </p>
-                      ) : activeResult === "offers" && filteredOffers.length > 0 ? (
+                      {loadingOffers ? null : activeResult === "offers" && filteredOffers.length > 0 ? (
                         filteredOffers.slice(0, 12).map((item) => {
                           const product = offerToProduct(item);
                           return (
@@ -7794,11 +7790,7 @@ export default function Page() {
                             </div>
                           );
                         })
-                      ) : loadingNormal || singleProductCompareLoading ? (
-                        <p className="rounded-[1.25rem] border border-[#dec890] bg-[#f7efd9] p-4 text-sm font-black text-[#6f6b59] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
-                          Justiina etsii ostoksia…
-                        </p>
-                      ) : visibleNormalResults.length > 0 ? (
+                      ) : loadingNormal || singleProductCompareLoading ? null : visibleNormalResults.length > 0 ? (
                         visibleNormalResults.slice(0, 12).map((product) => (
                           <div
                             key={`desktop-product-card-${product.id}-${product.ean || product.name}`}
@@ -7842,15 +7834,7 @@ export default function Page() {
                             </p>
                           </div>
                         ))
-                      ) : hasSearchedOffers ? (
-                        <p className="rounded-[1.25rem] border border-[#dec890] bg-[#f7efd9] p-4 text-sm font-black text-[#6f6b59] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
-                          Ei hinnanhuojennuksia: {offerSearchLabel}
-                        </p>
-                      ) : (
-                        <p className="rounded-[1.25rem] border border-[#dec890] bg-[#f7efd9] p-4 text-sm font-black text-[#6f6b59] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
-                          Gösta ja Justiina näyttävät tulokset tässä.
-                        </p>
-                      )}
+                      ) : hasSearchedOffers ? null : null}
                     </div>
                   }
                   comparePanel={
