@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 export type SearchMode = "cart" | "single";
 export type SearchPanelKind = "none" | "results" | "compare";
@@ -218,13 +218,16 @@ export default function ZiiplySearchCard({
 }: SearchCardProps) {
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const hasText = value.trim().length > 0;
+  const [typingViewOpen, setTypingViewOpen] = useState(false);
+  const showTypingView = hasText || typingViewOpen;
+  const showModeToggle = hasText;
   const showResults = activePanel === "results";
   const showCompare = activePanel === "compare";
 
   useEffect(() => {
     // Kun ensimmäinen kirjain vaihtaa tyhjänäkymän kirjoitusnäkymäksi, textarea remounttaa.
     // Tämä palauttaa fokuksen ja kursorin loppuun, jotta kirjoittaminen ei katkea.
-    if (!hasText) return;
+    if (!showTypingView) return;
     const frame = window.requestAnimationFrame(() => {
       const input = inputRef.current;
       if (!input) return;
@@ -235,10 +238,15 @@ export default function ZiiplySearchCard({
       } catch {}
     });
     return () => window.cancelAnimationFrame(frame);
-  }, [hasText]);
+  }, [showTypingView]);
 
   const handleTextChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setTypingViewOpen(true);
     onChange(event.target.value);
+  };
+
+  const handleTextFocus = () => {
+    setTypingViewOpen(true);
   };
 
   const cleanNotFoundTerms = notFoundTerms
@@ -276,11 +284,11 @@ export default function ZiiplySearchCard({
     >
       <div className="pointer-events-none absolute inset-0 rounded-[28px] opacity-45 [background-image:radial-gradient(#d8bd75_1.2px,transparent_1.2px)] [background-size:18px_18px]" />
 
-      <div className="relative z-10 flex items-center justify-between gap-3">
+      <div className="relative z-10 flex h-[82px] items-start justify-between gap-4">
         <div className="min-w-0">
-          <div className="text-[12px] font-black uppercase tracking-[0.38em] text-[#6f674f]">Haku</div>
+          <div className="text-[14px] font-black uppercase leading-none tracking-[0.42em] text-[#6f674f]">Haku</div>
           <h1
-            className="mt-0.5 whitespace-nowrap text-[clamp(29px,3.0vw,42px)] font-black italic leading-none text-[#203b25]"
+            className="mt-2 whitespace-nowrap text-[clamp(42px,4.7vw,64px)] font-black italic leading-[0.82] text-[#203b25]"
             style={{ fontFamily: cooperFont }}
           >
             Tuotteet ja vertailu
@@ -290,14 +298,14 @@ export default function ZiiplySearchCard({
         <button
           type="button"
           onClick={onAddFromNotebook}
-          className="h-[56px] shrink-0 rounded-[22px] border-[4px] border-[#0f6d34] bg-gradient-to-b from-[#16a34a] to-[#087a35] px-6 text-[23px] font-black italic leading-none text-[#fff0d5] shadow-[0_0_0_3px_rgba(255,255,255,0.18)_inset,0_5px_0_#07552b] active:translate-y-1 active:shadow-[0_2px_0_#07552b]"
+          className="mt-1 h-[58px] shrink-0 rounded-[24px] border-[4px] border-[#0b6330] bg-gradient-to-b from-[#159b46] to-[#087a35] px-9 text-[24px] font-black italic leading-none text-[#fff0d5] shadow-[0_0_0_3px_rgba(255,255,255,0.20)_inset,0_6px_0_#064a26] active:translate-y-1 active:shadow-[0_2px_0_#064a26]"
           style={{ fontFamily: cooperFont }}
         >
           Lisää vihkosesta
         </button>
       </div>
 
-      {!hasText ? (
+      {!showTypingView ? (
         <div className="relative z-10 mt-3 grid grid-cols-[minmax(250px,290px)_minmax(170px,210px)_minmax(250px,290px)] items-start justify-center gap-3">
           <GostaButton onClick={onGostaSearch} disabled={!value.trim()} loading={gostaLoading} />
 
@@ -306,6 +314,7 @@ export default function ZiiplySearchCard({
               ref={inputRef}
               value={value}
               onChange={handleTextChange}
+              onFocus={handleTextFocus}
               rows={1}
               placeholder={"maito, kahvi,\njauheliha"}
               className="block h-full w-full resize-none overflow-hidden rounded-[22px] border-0 bg-[#fffaf0] px-4 py-3 text-center text-[25px] font-black leading-[1.05] text-[#102216] outline-none placeholder:text-[#7d7461]"
@@ -322,6 +331,7 @@ export default function ZiiplySearchCard({
               ref={inputRef}
               value={value}
               onChange={handleTextChange}
+              onFocus={handleTextFocus}
               rows={1}
               placeholder={mode === "single" ? "Kirjoita yksi tuote" : "maito, kahvi, jauheliha"}
               className="block h-[64px] w-full resize-none overflow-hidden rounded-[22px] border-0 bg-[#fff9e8] px-6 py-4 text-[22px] font-black leading-[1.05] text-[#172417] outline-none placeholder:text-[#8b846f]"
@@ -331,17 +341,16 @@ export default function ZiiplySearchCard({
 
           <div className="relative z-10 mt-3 grid grid-cols-[minmax(250px,290px)_minmax(156px,176px)_minmax(250px,290px)] items-start justify-center gap-3">
             <GostaButton onClick={onGostaSearch} loading={gostaLoading} />
-            <ModeToggle mode={mode} onModeChange={onModeChange} />
+            {showModeToggle ? (
+              <ModeToggle mode={mode} onModeChange={onModeChange} />
+            ) : (
+              <div aria-hidden="true" className="h-[54px]" />
+            )}
             <JustiinaButton onClick={onJustiinaSearch} loading={justiinaLoading} />
           </div>
         </>
       )}
 
-      {!hasText && (
-        <div className="relative z-10 mt-3 flex justify-center">
-          <ModeToggle mode={mode} onModeChange={onModeChange} />
-        </div>
-      )}
 
       <div className="relative z-10 mt-3 flex h-[52px] min-h-[52px] max-h-[52px] items-center justify-center overflow-hidden rounded-[20px] border-[2px] border-[#d2b170] bg-[#fff1bf] px-4 py-2 text-[14px] font-black text-[#7a6842] shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
         {infoContent}
