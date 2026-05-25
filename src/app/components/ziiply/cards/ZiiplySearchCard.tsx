@@ -37,84 +37,156 @@ function cx(...classes: Array<string | false | null | undefined>) {
 const cooperFont = '"Cooper Black", "Cooper Std Black", Georgia, serif';
 const bodyFont = 'Georgia, "Times New Roman", serif';
 
-function GostaButton({ onClick, compact = false }: { onClick?: () => void; compact?: boolean }) {
+function GostaButton({
+  onClick,
+  disabled = false,
+  loading = false,
+}: {
+  onClick?: () => void;
+  disabled?: boolean;
+  loading?: boolean;
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
+      disabled={disabled}
+      aria-disabled={disabled}
       className={cx(
-        "min-w-0 overflow-hidden rounded-[28px] border-[4px] border-[#789664] bg-gradient-to-b from-[#eef6cd] to-[#d5e8a8] px-5 text-left shadow-[0_0_0_3px_rgba(255,255,255,0.38)_inset,0_8px_0_rgba(83,104,59,0.22)]",
-        compact ? "h-[108px]" : "h-[118px]",
+        "group flex h-[86px] min-h-[86px] w-full min-w-0 items-start gap-3 overflow-hidden rounded-[25px] border-[3px] border-[#7b935f] bg-gradient-to-b from-[#eff2d2] to-[#cdd99b] px-3 py-3 text-left shadow-[0_5px_0_rgba(91,72,44,0.22),inset_0_0_0_2px_rgba(255,255,255,0.5)] transition active:translate-y-[1px]",
+        disabled ? "cursor-not-allowed opacity-55" : "hover:brightness-105",
       )}
+      title="Gösta etsii hinnanhuojennukset"
     >
-      <div className="flex h-full items-center gap-5">
-        <div className="flex h-[76px] w-[76px] shrink-0 items-center justify-center rounded-[22px] border-[3px] border-[#9ab985] bg-[#eee1bd] text-[34px]">
-          🕵️
-        </div>
-        <div className="min-w-0">
-          <div className="truncate text-[34px] font-black italic text-[#2f6d36]" style={{ fontFamily: cooperFont }}>
-            Gösta
-          </div>
-          <div className="text-[18px] font-black leading-tight text-[#2e6936]" style={{ fontFamily: bodyFont }}>
-            Etsi<br />hinnanhuojennukset
-          </div>
-        </div>
-      </div>
+      <span className="h-[58px] w-[58px] shrink-0 overflow-hidden rounded-[18px] border-[2px] border-[#9eb17a] bg-[#e7edc4]">
+        <img
+          src="/assistants/gosta.png"
+          alt=""
+          onError={(event) => {
+            event.currentTarget.style.display = "none";
+          }}
+          className="h-full w-full object-cover object-top"
+        />
+      </span>
+      <span className="min-w-0 pt-1">
+        <span
+          className="block truncate text-[23px] font-black italic leading-none text-[#315f2f]"
+          style={{ fontFamily: cooperFont }}
+        >
+          Gösta
+        </span>
+        <span
+          className="mt-1 block whitespace-normal text-[13px] font-black leading-[1.04] text-[#315f2f]"
+          style={{ fontFamily: bodyFont }}
+        >
+          {loading ? (
+            <>
+              Etsii
+              <br />
+              hinnanhuojennuksia…
+            </>
+          ) : (
+            <>
+              Etsi
+              <br />
+              hinnanhuojennukset
+            </>
+          )}
+        </span>
+      </span>
     </button>
   );
 }
 
-function JustiinaButton({ onClick, compact = false }: { onClick?: () => void; compact?: boolean }) {
+function JustiinaButton({
+  onClick,
+  disabled = false,
+  loading = false,
+}: {
+  onClick?: () => void;
+  disabled?: boolean;
+  loading?: boolean;
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
+      disabled={disabled}
+      aria-disabled={disabled}
       className={cx(
-        "min-w-0 overflow-hidden rounded-[28px] border-[4px] border-[#c49b39] bg-gradient-to-b from-[#fff2b8] to-[#f2cf62] px-5 text-left shadow-[0_0_0_3px_rgba(255,255,255,0.34)_inset,0_8px_0_rgba(140,100,25,0.22)]",
-        compact ? "h-[108px]" : "h-[118px]",
+        "group flex h-[86px] min-h-[86px] w-full min-w-0 items-start gap-3 overflow-hidden rounded-[25px] border-[3px] border-[#c69f48] bg-gradient-to-b from-[#fff0bd] to-[#eec965] px-3 py-3 text-left shadow-[0_5px_0_rgba(91,72,44,0.22),inset_0_0_0_2px_rgba(255,255,255,0.5)] transition active:translate-y-[1px]",
+        disabled ? "cursor-not-allowed opacity-55" : "hover:brightness-105",
       )}
+      title="Justiina etsii ostokset"
     >
-      <div className="flex h-full items-center gap-5">
-        <div className="flex h-[76px] w-[76px] shrink-0 items-center justify-center rounded-[22px] border-[3px] border-[#d6b44d] bg-[#eee1bd] text-[34px]">
-          👩‍🍳
-        </div>
-        <div className="min-w-0">
-          <div className="truncate text-[34px] font-black italic text-[#9b4a2b]" style={{ fontFamily: cooperFont }}>
-            Justiina
-          </div>
-          <div className="text-[18px] font-black leading-tight text-[#8d4b2a]" style={{ fontFamily: bodyFont }}>
-            Etsi<br />ostokset
-          </div>
-        </div>
-      </div>
+      <span className="h-[58px] w-[58px] shrink-0 overflow-hidden rounded-[18px] border-[2px] border-[#d8b457] bg-[#f8e8ba]">
+        <img
+          src="/assistants/justiina.png"
+          alt=""
+          onError={(event) => {
+            event.currentTarget.style.display = "none";
+          }}
+          className="h-full w-full object-cover object-top"
+        />
+      </span>
+      <span className="min-w-0 pt-1">
+        <span
+          className="block truncate text-[23px] font-black italic leading-none text-[#8a3f16]"
+          style={{ fontFamily: cooperFont }}
+        >
+          Justiina
+        </span>
+        <span
+          className="mt-1 block text-[13px] font-black leading-[1.04] text-[#8a3f16]"
+          style={{ fontFamily: bodyFont }}
+        >
+          {loading ? (
+            <>
+              Etsii
+              <br />
+              ostoksia…
+            </>
+          ) : (
+            <>
+              Etsi
+              <br />
+              ostokset
+            </>
+          )}
+        </span>
+      </span>
     </button>
   );
 }
 
 function ModeToggle({ mode, onModeChange }: { mode: SearchMode; onModeChange: (mode: SearchMode) => void }) {
   return (
-    <div className="mx-auto flex h-[82px] w-full max-w-[280px] shrink-0 items-center rounded-[26px] border-[4px] border-[#a68a50] bg-[#ead9a8] p-2 shadow-[0_0_0_2px_#fff2c8_inset,0_6px_0_rgba(90,70,35,0.24)]">
+    <div className="mx-auto flex w-full max-w-[176px] rounded-[20px] border-[3px] border-[#b99d64] bg-[#ead7a5] p-1.5 shadow-[0_0_0_2px_#fff4cc_inset,0_4px_0_rgba(91,72,44,0.18)]">
       <button
         type="button"
         onClick={() => onModeChange("cart")}
         className={cx(
-          "h-full flex-1 rounded-[20px] text-[22px] font-black leading-none transition",
-          mode === "cart" ? "bg-[#fff5d3] text-[#1d4d29] shadow-[0_0_0_2px_#d3b568_inset]" : "text-[#786b4d]",
+          "min-h-[40px] flex-1 rounded-[15px] px-1 text-[12px] font-black leading-none transition",
+          mode === "cart"
+            ? "bg-[#fff4cf] text-[#23502c] shadow-[inset_0_0_0_2px_#d9bd77,0_2px_0_rgba(91,72,44,0.18)]"
+            : "text-[#7a6842]",
         )}
         style={{ fontFamily: cooperFont }}
       >
-        Koko<br />kori
+        Koko kori
       </button>
       <button
         type="button"
         onClick={() => onModeChange("single")}
         className={cx(
-          "h-full flex-1 rounded-[20px] text-[22px] font-black leading-none transition",
-          mode === "single" ? "bg-[#fff5d3] text-[#1d4d29] shadow-[0_0_0_2px_#d3b568_inset]" : "text-[#786b4d]",
+          "min-h-[40px] flex-1 rounded-[15px] px-1 text-[12px] font-black leading-none transition",
+          mode === "single"
+            ? "bg-[#fff4cf] text-[#23502c] shadow-[inset_0_0_0_2px_#d9bd77,0_2px_0_rgba(91,72,44,0.18)]"
+            : "text-[#7a6842]",
         )}
         style={{ fontFamily: cooperFont }}
       >
-        Yksi<br />tuote
+        Yksi tuote
       </button>
     </div>
   );
@@ -145,7 +217,7 @@ export default function ZiiplySearchCard({
   return (
     <section
       className={cx(
-        "ziiply-search-card relative isolate min-h-[720px] overflow-visible rounded-[34px] border-[5px] border-[#5d4b2f] bg-[#f6edcf] px-[34px] pb-[120px] pt-[30px] text-[#20301f] shadow-[0_0_0_2px_#d8bd75_inset,0_16px_0_rgba(60,45,20,0.28)]",
+        "ziiply-search-card relative isolate h-[455px] min-h-[455px] overflow-visible rounded-[36px] border-[4px] border-[#5b482c] bg-[#f6ebc6] px-5 pb-[110px] pt-5 text-[#20301f] shadow-[0_0_0_2px_#d8bd75_inset,0_16px_0_rgba(60,45,20,0.28)]",
         className,
       )}
     >
@@ -175,10 +247,10 @@ export default function ZiiplySearchCard({
       </div>
 
       {!hasText ? (
-        <div className="relative z-10 mt-10 grid grid-cols-[minmax(300px,360px)_minmax(300px,440px)_minmax(300px,360px)] items-center justify-between gap-[clamp(16px,2.4vw,42px)]">
-          <GostaButton onClick={onGostaSearch} compact />
+        <div className="relative z-10 mt-5 grid grid-cols-[minmax(250px,290px)_minmax(156px,176px)_minmax(250px,290px)] items-start justify-center gap-3">
+          <GostaButton onClick={onGostaSearch} disabled={!value.trim()} />
 
-          <div className="h-[124px] min-w-0 rounded-[28px] border-[5px] border-[#9a7f4b] bg-[#fbf6e6] p-3 shadow-[0_0_0_2px_#f9edc4_inset]">
+          <div className="rounded-[28px] border-[3px] border-[#9d8350] bg-[#fff4d3] p-2 shadow-[inset_0_4px_10px_rgba(91,65,28,0.12),0_2px_0_#fff6dc]">
             <textarea
               value={value}
               onChange={(event) => onChange(event.target.value)}
@@ -189,22 +261,22 @@ export default function ZiiplySearchCard({
             />
           </div>
 
-          <JustiinaButton onClick={onJustiinaSearch} compact />
+          <JustiinaButton onClick={onJustiinaSearch} disabled={!value.trim()} />
         </div>
       ) : (
         <>
-          <div className="relative z-10 mt-8 rounded-[34px] border-[5px] border-[#9a7f4b] bg-[#fbf6e6] p-4 shadow-[0_0_0_2px_#f9edc4_inset]">
+          <div className="relative z-10 mt-5 rounded-[28px] border-[3px] border-[#9d8350] bg-[#fff4d3] p-2 shadow-[inset_0_4px_10px_rgba(91,65,28,0.12),0_2px_0_#fff6dc]">
             <textarea
               value={value}
               onChange={(event) => onChange(event.target.value)}
               rows={1}
               placeholder="maito, kahvi, jauheliha"
-              className="block h-[92px] w-full resize-none rounded-[28px] border-0 bg-[#fffaf0] px-8 py-7 text-[34px] font-black leading-none text-[#102216] outline-none placeholder:text-[#7d7461]"
-              style={{ fontFamily: cooperFont }}
+              className="block h-[64px] w-full resize-none overflow-hidden rounded-[22px] border-0 bg-[#fff9e8] px-6 py-4 text-[22px] font-black leading-[1.05] text-[#172417] outline-none placeholder:text-[#8b846f]"
+              style={{ fontFamily: bodyFont }}
             />
           </div>
 
-          <div className="relative z-10 mt-6 grid grid-cols-[360px_280px_360px] items-center justify-between gap-[clamp(16px,2.4vw,42px)]">
+          <div className="relative z-10 mt-3 grid grid-cols-[minmax(250px,290px)_minmax(156px,176px)_minmax(250px,290px)] items-start justify-center gap-3">
             <GostaButton onClick={onGostaSearch} />
             <ModeToggle mode={mode} onModeChange={onModeChange} />
             <JustiinaButton onClick={onJustiinaSearch} />
@@ -218,7 +290,7 @@ export default function ZiiplySearchCard({
         </div>
       )}
 
-      <div className="relative z-10 mt-5 flex min-h-[74px] items-center overflow-hidden rounded-[26px] border-[3px] border-[#d2ad61] bg-[#fff1b8] px-7 text-[22px] font-black text-[#746749] shadow-[0_0_0_2px_rgba(255,255,255,0.34)_inset]">
+      <div className="relative z-10 mt-3 flex min-h-[58px] max-h-[58px] items-center overflow-hidden rounded-[22px] border-[2px] border-[#d2b170] bg-[#fff1bf] px-4 py-3 text-[15px] font-black text-[#7a6842] shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
         {chips.length > 0 ? (
           <div className="flex min-w-0 flex-wrap gap-3">
             {chips.map((chip) => (
@@ -237,14 +309,14 @@ export default function ZiiplySearchCard({
         )}
       </div>
 
-      <div className="relative z-10 mt-5 flex justify-center">
+      <div className="relative z-10 mt-4 flex justify-center">
         <button
           type="button"
           onClick={onScan}
-          className="relative z-[3] h-[100px] w-[86%] rounded-[32px] border-[5px] border-[#856b3d] bg-gradient-to-b from-[#efd295] to-[#d3a258] text-[42px] font-black italic text-[#1f3b25] shadow-[0_0_0_2px_#fff1c5_inset,0_8px_0_rgba(70,50,24,0.38)] active:translate-y-1 active:shadow-[0_4px_0_rgba(70,50,24,0.38)]"
+          className="relative z-[3] h-[76px] w-[82%] rounded-[30px] border-[4px] border-[#856b3d] bg-gradient-to-b from-[#efd295] to-[#d3a258] text-[34px] font-black italic text-[#1f3b25] shadow-[0_0_0_2px_#fff1c5_inset,0_6px_0_rgba(70,50,24,0.38)] active:translate-y-1 active:shadow-[0_3px_0_rgba(70,50,24,0.38)]"
           style={{ fontFamily: cooperFont }}
         >
-          <span className="mr-5 inline-flex h-[58px] w-[58px] items-center justify-center rounded-full border-[4px] border-[#7a653e] bg-[#f8f0d8] text-[28px] not-italic">
+          <span className="mr-5 inline-flex h-[48px] w-[48px] items-center justify-center rounded-full border-[3px] border-[#7a653e] bg-[#f8f0d8] text-[24px] not-italic">
             📸
           </span>
           Skanneri
