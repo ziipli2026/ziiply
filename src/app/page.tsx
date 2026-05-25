@@ -158,6 +158,8 @@ import {
 } from "./components/ziiply/ziiplyComponents";
 import * as TopbarResponsiveCardModule from "./components/ziiply/cards/TopbarResponsiveCard";
 import * as ZiiplyCartCardModule from "./components/ziiply/cards/ZiiplyCartCard";
+import ZiiplySearchCard from "./components/ziiply/cards/ZiiplySearchCard";
+import * as ZiiplyCompareCardModule from "./components/ziiply/cards/ZiiplyCompareCard";
 
 export default function Page() {
   const TopbarResponsiveCard = ((TopbarResponsiveCardModule as any).default ||
@@ -168,6 +170,10 @@ export default function Page() {
     (ZiiplyCartCardModule as any).ZiiplyCartCard ||
     (ZiiplyCartCardModule as any).CartResponsiveCard ||
     (ZiiplyCartCardModule as any).ZiiplyCartResponsiveCard) as any;
+  const ZiiplyCompareCard = ((ZiiplyCompareCardModule as any).default ||
+    (ZiiplyCompareCardModule as any).ZiiplyCompareCard ||
+    (ZiiplyCompareCardModule as any).CompareResponsiveCard ||
+    (ZiiplyCompareCardModule as any).ZiiplyCompareResponsiveCard) as any;
 
   const [input, setInput] = useState("");
   const [searchCompareMode, setSearchCompareMode] = useState<"cart" | "single">(
@@ -7708,453 +7714,101 @@ export default function Page() {
                   ) : null}
                 </section>
 
-                <section className="relative h-[455px] min-h-[455px] overflow-visible rounded-[2.25rem] border-[4px] border-[#5b482c] bg-[#f6ebc6] p-5 text-[#20301f] shadow-[0_0_0_2px_#d4b978_inset,0_10px_0_rgba(91,72,44,0.20),0_18px_28px_rgba(60,45,20,0.16)]">
-  <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:radial-gradient(#c7aa67_1px,transparent_1px)] [background-size:15px_15px]" />
-
-  <div className="relative z-10 flex h-full min-h-0 flex-col pb-[86px]">
-    <button
-      type="button"
-      onClick={() => void pasteFromClipboardToSearch()}
-      className="absolute right-0 top-0 z-20 min-h-[58px] rounded-[25px] border-[3px] border-[#165d32] bg-gradient-to-b from-[#169448] to-[#0b7334] px-6 py-3 text-center text-[22px] font-black italic leading-tight text-[#ffe7db] shadow-[0_5px_0_rgba(91,72,44,0.22),inset_0_0_0_2px_rgba(255,255,255,0.18)] transition hover:brightness-105 active:translate-y-[1px]"
-      style={{ fontFamily: '"Cooper Black", "Cooper Std Black", Georgia, serif' }}
-    >
-      Lisää vihkosesta
-    </button>
-
-    <div className="min-w-0 pr-[235px]">
-      <p
-        className="text-[15px] font-black uppercase tracking-[0.40em] text-[#746742] drop-shadow-[0_1px_0_#fff7df]"
-        style={{ fontFamily: '"Copperplate", "Baskerville", Georgia, serif' }}
-      >
-        Haku
-      </p>
-      <h2
-        className="mt-1 text-[40px] font-black italic leading-[0.95] text-[#28402a] drop-shadow-[0_1px_0_#fff7df]"
-        style={{ fontFamily: '"Cooper Black", "Cooper Std Black", Georgia, serif' }}
-      >
-        Tuotteet ja vertailu
-      </h2>
-    </div>
-
-    {!hasSearchInput ? (
-      <div className="mt-5 grid grid-cols-[minmax(250px,290px)_minmax(156px,176px)_minmax(250px,290px)] justify-center items-start gap-3">
-        <button
-          type="button"
-          onClick={handleGostaOfferSearch}
-          disabled={gostaSearchDisabled}
-          aria-disabled={gostaSearchDisabled}
-          className={`group flex min-h-[86px] min-w-0 items-start gap-3 overflow-hidden rounded-[25px] border-[3px] border-[#7b935f] bg-gradient-to-b from-[#eff2d2] to-[#cdd99b] px-3 py-3 text-left shadow-[0_5px_0_rgba(91,72,44,0.22),inset_0_0_0_2px_rgba(255,255,255,0.5)] transition active:translate-y-[1px] ${
-            gostaSearchDisabled ? "cursor-not-allowed opacity-55" : "hover:brightness-105"
-          }`}
-          title="Gösta etsii hinnanhuojennukset"
-        >
-          <span className="h-[58px] w-[58px] shrink-0 overflow-hidden rounded-[18px] border-[2px] border-[#9eb17a] bg-[#e7edc4]">
-            <img
-              src="/assistants/gosta.png"
-              alt=""
-              onError={(event) => {
-                event.currentTarget.style.display = "none";
-              }}
-              className="h-full w-full object-cover object-top"
-            />
-          </span>
-          <span className="min-w-0 pt-1">
-            <span
-              className="block text-[23px] font-black italic leading-none text-[#315f2f]"
-              style={{ fontFamily: '"Cooper Black", "Cooper Std Black", Georgia, serif' }}
-            >
-              Gösta
-            </span>
-            <span
-              className="mt-1 block whitespace-normal text-[13px] font-black leading-[1.04] text-[#315f2f]"
-              style={{ fontFamily: '"Baskerville", "Georgia", serif' }}
-            >
-              {loadingOffers ? (
-                <>
-                  Etsii
-                  <br />
-                  hinnanhuojennuksia…
-                </>
-              ) : (
-                <>
-                  Etsi
-                  <br />
-                  hinnanhuojennukset
-                </>
-              )}
-            </span>
-          </span>
-        </button>
-
-        <div className="rounded-[28px] border-[3px] border-[#9d8350] bg-[#fff4d3] p-2 shadow-[inset_0_4px_10px_rgba(91,65,28,0.12),0_2px_0_#fff6dc]">
-          <textarea
-            ref={searchInputRef}
-            rows={1}
-            value={input}
-            onChange={(event) => setSearchInputForMode(event.target.value)}
-            placeholder={
-              searchCompareMode === "single"
-                ? "Kirjoita yksi tuote"
-                : "maito, kahvi, jauheliha"
-            }
-            className="h-[64px] w-full resize-none overflow-hidden rounded-[22px] border-0 bg-[#fff9e8] px-6 py-4 text-[22px] font-black leading-[1.05] text-[#172417] outline-none placeholder:text-[#8b846f]"
-            style={{ fontFamily: '"Baskerville", "Georgia", serif' }}
-          />
-        </div>
-
-        <button
-          type="button"
-          onClick={handleJustiinaProductSearch}
-          disabled={!hasSearchInput || loadingNormal || singleProductCompareLoading}
-          aria-disabled={!hasSearchInput || loadingNormal || singleProductCompareLoading}
-          className={`group flex min-h-[86px] min-w-0 items-start gap-3 overflow-hidden rounded-[25px] border-[3px] border-[#c69f48] bg-gradient-to-b from-[#fff0bd] to-[#eec965] px-3 py-3 text-left shadow-[0_5px_0_rgba(91,72,44,0.22),inset_0_0_0_2px_rgba(255,255,255,0.5)] transition active:translate-y-[1px] ${
-            !hasSearchInput || loadingNormal || singleProductCompareLoading ? "cursor-not-allowed opacity-55" : "hover:brightness-105"
-          }`}
-          title="Justiina etsii ostokset"
-        >
-          <span className="h-[58px] w-[58px] shrink-0 overflow-hidden rounded-[18px] border-[2px] border-[#d8b457] bg-[#f8e8ba]">
-            <img
-              src="/assistants/justiina.png"
-              alt=""
-              onError={(event) => {
-                event.currentTarget.style.display = "none";
-              }}
-              className="h-full w-full object-cover object-top"
-            />
-          </span>
-          <span className="min-w-0 pt-1">
-            <span
-              className="block text-[23px] font-black italic leading-none text-[#8a3f16]"
-              style={{ fontFamily: '"Cooper Black", "Cooper Std Black", Georgia, serif' }}
-            >
-              Justiina
-            </span>
-            <span
-              className="mt-1 block text-[13px] font-black leading-[1.04] text-[#8a3f16]"
-              style={{ fontFamily: '"Baskerville", "Georgia", serif' }}
-            >
-              Etsi
-              <br />
-              ostokset
-            </span>
-          </span>
-        </button>
-      </div>
-    ) : (
-      <>
-        <div className="mt-5 rounded-[28px] border-[3px] border-[#9d8350] bg-[#fff4d3] p-2 shadow-[inset_0_4px_10px_rgba(91,65,28,0.12),0_2px_0_#fff6dc]">
-          <textarea
-            ref={searchInputRef}
-            rows={1}
-            value={input}
-            onChange={(event) => setSearchInputForMode(event.target.value)}
-            placeholder={
-              searchCompareMode === "single"
-                ? "Kirjoita yksi tuote"
-                : "maito, kahvi, jauheliha"
-            }
-            className="h-[64px] w-full resize-none overflow-hidden rounded-[22px] border-0 bg-[#fff9e8] px-6 py-4 text-[22px] font-black leading-[1.05] text-[#172417] outline-none placeholder:text-[#8b846f]"
-            style={{ fontFamily: '"Baskerville", "Georgia", serif' }}
-          />
-        </div>
-
-        <div className="mt-3 grid grid-cols-[minmax(250px,290px)_minmax(156px,176px)_minmax(250px,290px)] justify-center items-start gap-3">
-          <button
-            type="button"
-            onClick={handleGostaOfferSearch}
-            disabled={gostaSearchDisabled}
-            aria-disabled={gostaSearchDisabled}
-            className={`group flex min-h-[86px] min-w-0 items-start gap-3 overflow-hidden rounded-[25px] border-[3px] border-[#7b935f] bg-gradient-to-b from-[#eff2d2] to-[#cdd99b] px-3 py-3 text-left shadow-[0_5px_0_rgba(91,72,44,0.22),inset_0_0_0_2px_rgba(255,255,255,0.5)] transition active:translate-y-[1px] ${
-              gostaSearchDisabled ? "cursor-not-allowed opacity-55" : "hover:brightness-105"
-            }`}
-            title="Gösta etsii hinnanhuojennukset"
-          >
-            <span className="h-[58px] w-[58px] shrink-0 overflow-hidden rounded-[18px] border-[2px] border-[#9eb17a] bg-[#e7edc4]">
-              <img
-                src="/assistants/gosta.png"
-                alt=""
-                onError={(event) => {
-                  event.currentTarget.style.display = "none";
-                }}
-                className="h-full w-full object-cover object-top"
-              />
-            </span>
-            <span className="min-w-0 pt-1">
-              <span
-                className="block text-[23px] font-black italic leading-none text-[#315f2f]"
-                style={{ fontFamily: '"Cooper Black", "Cooper Std Black", Georgia, serif' }}
-              >
-                Gösta
-              </span>
-              <span
-                className="mt-1 block whitespace-normal text-[13px] font-black leading-[1.04] text-[#315f2f]"
-                style={{ fontFamily: '"Baskerville", "Georgia", serif' }}
-              >
-                {loadingOffers ? (
-                  <>
-                    Etsii
-                    <br />
-                    hinnanhuojennuksia…
-                  </>
-                ) : (
-                  <>
-                    Etsi
-                    <br />
-                    hinnanhuojennukset
-                  </>
-                )}
-              </span>
-            </span>
-          </button>
-
-          <div className="mx-auto mt-2 flex w-full max-w-[176px] rounded-[20px] border-[3px] border-[#b99d64] bg-[#ead7a5] p-1.5 shadow-[0_0_0_2px_#fff4cc_inset,0_4px_0_rgba(91,72,44,0.18)]">
-            <button
-              type="button"
-              onClick={() => setSearchCompareMode("cart")}
-              className={`min-h-[40px] flex-1 rounded-[15px] px-1 text-[12px] font-black leading-none transition ${
-                searchCompareMode === "cart"
-                  ? "bg-[#fff4cf] text-[#23502c] shadow-[inset_0_0_0_2px_#d9bd77,0_2px_0_rgba(91,72,44,0.18)]"
-                  : "text-[#7a6842]"
-              }`}
-              style={{ fontFamily: '"Cooper Black", "Cooper Std Black", Georgia, serif' }}
-            >
-              Koko kori
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setSearchCompareMode("single");
-                setInput((currentInput) => getSingleSearchTerm(currentInput));
-              }}
-              className={`min-h-[40px] flex-1 rounded-[15px] px-1 text-[12px] font-black leading-none transition ${
-                searchCompareMode === "single"
-                  ? "bg-[#fff4cf] text-[#23502c] shadow-[inset_0_0_0_2px_#d9bd77,0_2px_0_rgba(91,72,44,0.18)]"
-                  : "text-[#7a6842]"
-              }`}
-              style={{ fontFamily: '"Cooper Black", "Cooper Std Black", Georgia, serif' }}
-            >
-              Yksi tuote
-            </button>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleJustiinaProductSearch}
-            disabled={!hasSearchInput || loadingNormal || singleProductCompareLoading}
-            aria-disabled={!hasSearchInput || loadingNormal || singleProductCompareLoading}
-            className={`group flex min-h-[86px] min-w-0 items-start gap-3 overflow-hidden rounded-[25px] border-[3px] border-[#c69f48] bg-gradient-to-b from-[#fff0bd] to-[#eec965] px-3 py-3 text-left shadow-[0_5px_0_rgba(91,72,44,0.22),inset_0_0_0_2px_rgba(255,255,255,0.5)] transition active:translate-y-[1px] ${
-              !hasSearchInput || loadingNormal || singleProductCompareLoading ? "cursor-not-allowed opacity-55" : "hover:brightness-105"
-            }`}
-            title="Justiina etsii ostokset"
-          >
-            <span className="h-[58px] w-[58px] shrink-0 overflow-hidden rounded-[18px] border-[2px] border-[#d8b457] bg-[#f8e8ba]">
-              <img
-                src="/assistants/justiina.png"
-                alt=""
-                onError={(event) => {
-                  event.currentTarget.style.display = "none";
-                }}
-                className="h-full w-full object-cover object-top"
-              />
-            </span>
-            <span className="min-w-0 pt-1">
-              <span
-                className="block text-[23px] font-black italic leading-none text-[#8a3f16]"
-                style={{ fontFamily: '"Cooper Black", "Cooper Std Black", Georgia, serif' }}
-              >
-                Justiina
-              </span>
-              <span
-                className="mt-1 block text-[13px] font-black leading-[1.04] text-[#8a3f16]"
-                style={{ fontFamily: '"Baskerville", "Georgia", serif' }}
-              >
-                {loadingNormal || singleProductCompareLoading ? (
-                  <>
-                    Etsii
-                    <br />
-                    ostoksia…
-                  </>
-                ) : (
-                  <>
-                    Etsi
-                    <br />
-                    ostokset
-                  </>
-                )}
-              </span>
-            </span>
-          </button>
-        </div>
-      </>
-    )}
-
-    <div className="relative z-30 mt-3 mb-[108px] min-h-[42px] max-h-[42px] overflow-hidden rounded-[18px] border-[2px] border-[#d2b170] bg-[#fff1bf] px-6 py-2 text-[15px] font-black leading-none text-[#7a6842] shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
-      {hasSearchInput ? (
-        <div className="flex h-full flex-nowrap items-center gap-2 overflow-hidden whitespace-nowrap">
-          {notFoundSearchTerms.length > 0 ? (
-            <span className="rounded-full border border-[#d3a45c] bg-[#ffe5a1] px-3 py-1 text-[#8a3f16]">
-              Ei löytynyt: {notFoundSearchTerms.join(", ")}
-            </span>
-          ) : null}
-
-          {instantSearchSuggestions.length > 0 ? (
-            instantSearchSuggestions.map((suggestion) => (
-              <button
-                key={suggestion.label}
-                type="button"
-                onClick={() => applyInstantSearchSuggestion(suggestion.label)}
-                className="rounded-full border border-[#c5a566] bg-[#fff8e8] px-3 py-1 text-sm font-black text-[#315f2f] shadow-[0_2px_0_rgba(91,72,44,0.14)]"
-              >
-                {suggestion.label}
-              </button>
-            ))
-          ) : (
-            <span className="truncate">Justiina ehdottaa sopivia hakusanoja kirjoituksen mukaan.</span>
-          )}
-        </div>
-      ) : (
-        <span className="block truncate leading-[1.1]">Syötä tuotteet pilkulla eroteltuna tai liitä vihkosesta.</span>
-      )}
-    </div>
-
-    <div className="pointer-events-none absolute bottom-[76px] left-0 right-0 z-40 grid grid-cols-2 items-end gap-4">
-  <div className="pointer-events-auto"><section className="group relative h-[64px] max-h-[64px] overflow-hidden rounded-t-[2.1rem] rounded-b-none border-[3px] border-[#b99d62] bg-gradient-to-b from-[#f7e9c3] via-[#f0d9a4] to-[#dfbf7e] px-5 py-4 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80 transition-all duration-300 ease-out hover:absolute hover:inset-x-0 hover:bottom-0 hover:z-[70] hover:h-[520px] hover:max-h-[520px] focus-within:absolute focus-within:inset-x-0 focus-within:bottom-0 focus-within:z-[70] focus-within:h-[520px] focus-within:max-h-[520px]">
-                    <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:radial-gradient(#b59c67_1.15px,transparent_1.15px)] [background-size:15px_15px]" />
-                    <div className="relative flex items-center justify-between gap-3">
-                      <p className="text-[13px] font-black uppercase tracking-[0.28em] text-[#746742] drop-shadow-[0_1px_0_#fff7df]">
-                        {activeResult === "offers" || loadingOffers
-                          ? "Hinnanhuojennukset"
-                          : "Hakutulokset"}
-                      </p>
-                      <span className="absolute left-1/2 top-[44px] h-[4px] w-16 -translate-x-1/2 rounded-full bg-[#8d7444]/45" />
-                      {(activeResult === "offers" || loadingOffers) && (
-                        <div className="flex gap-1 rounded-full bg-[#f7efd9] p-1 ring-1 ring-[#ead7aa]">
-                          <button
-                            type="button"
-                            onClick={() => setChainFilter("all")}
-                            className={`rounded-full px-3 py-1 text-[11px] font-black ${chainFilter === "all" ? "bg-[#1d241b] text-white" : "text-[#6f6b59]"}`}
-                          >
-                            Kaikki
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setChainFilter("S")}
-                            className={`rounded-full px-3 py-1 text-[11px] font-black ${chainFilter === "S" ? "bg-green-700 text-white" : "text-[#6f6b59]"}`}
-                          >
-                            S
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setChainFilter("K")}
-                            className={`rounded-full px-3 py-1 text-[11px] font-black ${chainFilter === "K" ? "bg-red-700 text-white" : "text-[#6f6b59]"}`}
-                          >
-                            K
-                          </button>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="relative mt-3 max-h-[436px] space-y-2 overflow-auto pr-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100">
-                      {activeResult === "offers" || loadingOffers ? (
-                        loadingOffers ? (
-                          <div className="h-1" />
-                        ) : hasSearchedOffers && filteredOffers.length > 0 ? (
-                          filteredOffers.slice(0, 12).map((item) => {
-                            const product = offerToProduct(item);
-                            const price = item.offer.storeItem?.price || 0;
-
-                            return (
-                              <div
-                                key={`desktop-offer-${item.id}`}
-                                className="rounded-[1.2rem] border-2 border-[#d5bd82] bg-[#fff3d5] p-3 shadow-[0_3px_0_rgba(113,82,31,0.16),inset_0_0_0_1px_rgba(255,255,255,0.55)]"
-                              >
-                                <div className="flex items-center gap-3">
-                                  {item.offer.item.pictureUrl && (
-                                    <img
-                                      src={item.offer.item.pictureUrl}
-                                      alt=""
-                                      className="h-16 w-16 shrink-0 rounded-xl bg-white object-contain"
-                                    />
-                                  )}
-
-                                  <div className="min-w-0 flex-1">
-                                    <div className="mb-1 flex flex-wrap gap-1">
-                                      <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-red-700">
-                                        Hinnanhuojennus
-                                      </span>
-                                      <span
-                                        className={`rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wide ${item.chain === "S" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
-                                      >
-                                        {item.chain === "S" ? "S-ryhmä" : "K-ryhmä"}
-                                      </span>
-                                    </div>
-
-                                    <p className="line-clamp-2 text-base font-black leading-tight text-[#1f2619]">
-                                      {fixText(item.offer.item.name)}
-                                    </p>
-                                    <p className="truncate text-xs font-bold text-[#6f6b59]">
-                                      {item.storeName}
-                                    </p>
-                                  </div>
-
-                                  <div className="shrink-0 text-right">
-                                    <p className="text-xl font-black leading-none text-green-700">
-                                      {formatEuro(price)}
-                                    </p>
-                                    {item.offer.discountPercent ? (
-                                      <p className="mt-1 inline-flex rounded-full bg-red-600 px-2 py-1 text-[11px] font-black text-white">
-                                        -{item.offer.discountPercent} %
-                                      </p>
-                                    ) : null}
-                                  </div>
+                <ZiiplySearchCard
+                  value={input}
+                  onChange={setSearchInputForMode}
+                  mode={searchCompareMode}
+                  onModeChange={setSearchCompareMode}
+                  onAddFromNotebook={() => void pasteFromClipboardToSearch()}
+                  onScan={() => openDesktopScanner()}
+                  onGostaSearch={handleGostaOfferSearch}
+                  onJustiinaSearch={handleJustiinaProductSearch}
+                  chips={instantSearchSuggestions.map((suggestion) => ({
+                    id: suggestion.label,
+                    label: suggestion.label,
+                    onClick: () => applyInstantSearchSuggestion(suggestion.label),
+                  }))}
+                  instructionText="Justiina ehdottaa sopivia hakusanoja kirjoituksen mukaan."
+                  activePanel={
+                    activeResult === "compare"
+                      ? "compare"
+                      : activeResult === "offers" ||
+                          loadingOffers ||
+                          hasSearchedOffers ||
+                          loadingNormal ||
+                          visibleNormalResults.length > 0 ||
+                          singleProductCompareResults.length > 0
+                        ? "results"
+                        : "none"
+                  }
+                  onOpenResults={() => setActiveResult((current) => current === "offers" ? "none" : "offers")}
+                  onOpenCompare={() => {
+                    if (activeResult === "compare") {
+                      setActiveResult("none");
+                      return;
+                    }
+                    if (cart.length > 0 && !comparisonLoading) {
+                      void updateChainComparison(cart, { openCompare: true });
+                      return;
+                    }
+                    setActiveResult("compare");
+                  }}
+                  resultsPanel={
+                    <div className="space-y-3">
+                      {loadingOffers ? (
+                        <p className="rounded-[1.25rem] border border-[#dec890] bg-[#f7efd9] p-4 text-sm font-black text-[#6f6b59] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
+                          Gösta etsii hinnanhuojennuksia…
+                        </p>
+                      ) : activeResult === "offers" && filteredOffers.length > 0 ? (
+                        filteredOffers.slice(0, 12).map((item) => {
+                          const product = offerToProduct(item);
+                          return (
+                            <div
+                              key={`desktop-offer-card-${item.id}`}
+                              className="rounded-[1.2rem] border-2 border-[#d5bd82] bg-[#fff3d5] p-3 shadow-[0_3px_0_rgba(113,82,31,0.16),inset_0_0_0_1px_rgba(255,255,255,0.55)]"
+                            >
+                              <div className="flex items-center gap-3">
+                                {product.pictureUrl && (
+                                  <img
+                                    src={product.pictureUrl}
+                                    alt=""
+                                    className="h-16 w-16 shrink-0 rounded-xl bg-white object-contain"
+                                  />
+                                )}
+                                <div className="min-w-0 flex-1">
+                                  <p className="line-clamp-2 text-base font-black leading-tight text-[#1f2619]">
+                                    {fixText(product.name)}
+                                  </p>
+                                  <p className="text-xs font-bold text-[#6f6b59]">
+                                    {item.storeName} · {formatEuro(getProductPrice(product))}
+                                  </p>
                                 </div>
-
-                                <div className="mt-3 flex items-end justify-between gap-3">
-                                  <div className="min-w-0 text-xs font-bold text-[#6f6b59]">
-                                    <p className="truncate">
-                                      Yksikköhinta: {item.offer.storeItem?.comparisonPrice
-                                        ? `${formatEuro(item.offer.storeItem.comparisonPrice)} / ${item.offer.storeItem.comparisonPriceUnit || ""}`
-                                        : "—"}
-                                    </p>
-                                    <p className="truncate">
-                                      Voimassa asti: {formatDate(item.offer.expiresAt)}
-                                    </p>
-                                  </div>
-                                  <button
-                                    type="button"
-                                    onClick={() => addOfferToCart(item)}
-                                    className={`rounded-xl px-3 py-2 text-xs font-black text-white transition ${justAdded === item.id ? "bg-emerald-700" : "bg-green-600 hover:bg-green-700"}`}
-                                  >
-                                    {justAdded === item.id ? "✓ Lisätty" : "Lisää"}
-                                  </button>
-                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => addOfferToCart(item)}
+                                  className={`rounded-xl px-3 py-2 text-xs font-black text-white transition ${justAdded === item.id ? "bg-emerald-700" : "bg-green-600 hover:bg-green-700"}`}
+                                >
+                                  {justAdded === item.id ? "✓ Lisätty" : "Lisää"}
+                                </button>
                               </div>
-                            );
-                          })
-                        ) : hasSearchedOffers ? (
-                          <p className="rounded-[1.25rem] border border-[#dec890] bg-[#f7efd9] p-4 text-sm font-black text-[#6f6b59] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
-                            Ei hinnanhuojennuksia: {offerSearchLabel}
-                          </p>
-                        ) : (
-                          <p className="rounded-[1.25rem] border border-[#dec890] bg-[#f7efd9] p-4 text-sm font-black text-[#6f6b59] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
-                            Gösta näyttää hinnanhuojennukset tässä.
-                          </p>
-                        )
+                            </div>
+                          );
+                        })
                       ) : loadingNormal || singleProductCompareLoading ? (
                         <p className="rounded-[1.25rem] border border-[#dec890] bg-[#f7efd9] p-4 text-sm font-black text-[#6f6b59] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
                           Justiina etsii ostoksia…
                         </p>
                       ) : visibleNormalResults.length > 0 ? (
-                        visibleNormalResults.slice(0, 10).map((product) => (
+                        visibleNormalResults.slice(0, 12).map((product) => (
                           <div
-                            key={`desktop-product-${product.id}-${product.ean || product.name}`}
+                            key={`desktop-product-card-${product.id}-${product.ean || product.name}`}
                             className="flex items-center gap-3 rounded-[1.2rem] border-2 border-[#d5bd82] bg-[#fff3d5] p-3 shadow-[0_3px_0_rgba(113,82,31,0.16),inset_0_0_0_1px_rgba(255,255,255,0.55)]"
                           >
                             {product.pictureUrl && (
                               <img
                                 src={product.pictureUrl}
                                 alt=""
-                                className="h-16 w-16 rounded-xl object-contain bg-white"
+                                className="h-16 w-16 shrink-0 rounded-xl bg-white object-contain"
                               />
                             )}
                             <div className="min-w-0 flex-1">
@@ -8175,84 +7829,49 @@ export default function Page() {
                           </div>
                         ))
                       ) : singleProductCompareResults.length > 0 ? (
-                        singleProductCompareResults
-                          .slice(0, 10)
-                          .map((result, index) => (
-                            <div
-                              key={`desktop-single-${index}-${result.chain}-${result.storeName}-${result.productName}`}
-                              className="rounded-[1.2rem] border-2 border-[#d5bd82] bg-[#fff3d5] p-3 shadow-[0_3px_0_rgba(113,82,31,0.16),inset_0_0_0_1px_rgba(255,255,255,0.55)]"
-                            >
-                              <p className="truncate text-sm font-black text-[#1f2619]">
-                                {fixText(result.productName)}
-                              </p>
-                              <p className="text-xs font-bold text-[#6f6b59]">
-                                {result.storeName} · {formatEuro(result.price)}
-                              </p>
-                            </div>
-                          ))
-                      ) : (
-                        <div className="h-1" aria-hidden="true" />
-                      )}
-                    </div>
-                  </section></div>
-  <div className="pointer-events-auto"><section className="group relative h-[64px] max-h-[64px] overflow-hidden rounded-t-[2.1rem] rounded-b-none border-[3px] border-[#b99d62] bg-gradient-to-b from-[#f7e9c3] via-[#f0d9a4] to-[#dfbf7e] px-5 py-4 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80 transition-all duration-300 ease-out hover:absolute hover:inset-x-0 hover:bottom-0 hover:z-[70] hover:h-[520px] hover:max-h-[520px] focus-within:absolute focus-within:inset-x-0 focus-within:bottom-0 focus-within:z-[70] focus-within:h-[520px] focus-within:max-h-[520px]">
-                    <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:radial-gradient(#b59c67_1.15px,transparent_1.15px)] [background-size:15px_15px]" />
-                    <p className="relative text-[13px] font-black uppercase tracking-[0.28em] text-[#746742] drop-shadow-[0_1px_0_#fff7df]">
-                      Vertailu
-                    </p>
-                    <span className="absolute left-1/2 top-[44px] h-[4px] w-16 -translate-x-1/2 rounded-full bg-[#8d7444]/45" />
-                    <div className="relative mt-3 grid max-h-[436px] gap-3 overflow-auto pr-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100">
-                      {chainResults.length > 0 ? (
-                        chainResults.map((result) => (
+                        singleProductCompareResults.slice(0, 12).map((result, index) => (
                           <div
-                            key={`desktop-chain-${result.key}`}
-                            className="rounded-[1.25rem] border-2 border-[#c8ab70] bg-gradient-to-b from-[#fff5db] to-[#f0dfbd] p-4 shadow-[0_4px_0_rgba(89,65,27,0.16),inset_0_0_0_1px_rgba(255,255,255,0.58)]"
+                            key={`desktop-single-card-${index}-${result.chain}-${result.storeName}-${result.productName}`}
+                            className="rounded-[1.2rem] border-2 border-[#d5bd82] bg-[#fff3d5] p-3 shadow-[0_3px_0_rgba(113,82,31,0.16),inset_0_0_0_1px_rgba(255,255,255,0.55)]"
                           >
-                            <div className="flex items-center justify-between gap-3">
-                              <div>
-                                <p className="text-base font-black text-[#1f2619]">
-                                  {result.icon} {result.chain}
-                                </p>
-                                <p className="text-xs font-bold text-[#6f6b59]">
-                                  {result.storeName}
-                                </p>
-                              </div>
-                              <p className="shrink-0 whitespace-nowrap text-xl font-black text-[#1f2619]">
-                                {result.comingSoon
-                                  ? "Tulossa"
-                                  : formatEuro(result.totalPrice)}
-                              </p>
-                            </div>
-                            <p className="mt-2 text-xs font-bold text-[#6f6b59]">
-                              Löytyi {result.foundItems}/{comparableCart.length}{" "}
-                              · puuttuu {result.missingItems}
+                            <p className="truncate text-sm font-black text-[#1f2619]">
+                              {fixText(result.productName)}
+                            </p>
+                            <p className="text-xs font-bold text-[#6f6b59]">
+                              {result.storeName} · {formatEuro(result.price)}
                             </p>
                           </div>
                         ))
+                      ) : hasSearchedOffers ? (
+                        <p className="rounded-[1.25rem] border border-[#dec890] bg-[#f7efd9] p-4 text-sm font-black text-[#6f6b59] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
+                          Ei hinnanhuojennuksia: {offerSearchLabel}
+                        </p>
                       ) : (
-                        <div className="h-1" />
+                        <p className="rounded-[1.25rem] border border-[#dec890] bg-[#f7efd9] p-4 text-sm font-black text-[#6f6b59] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
+                          Gösta ja Justiina näyttävät tulokset tässä.
+                        </p>
                       )}
                     </div>
-                  </section></div>
-</div>
-
-    <button
-      type="button"
-      onClick={() => openDesktopScanner()}
-      className="absolute bottom-0 left-1/2 z-20 flex min-h-[58px] w-full max-w-[640px] -translate-x-1/2 items-center justify-center gap-3 rounded-[25px] border-[3px] border-[#7a6338] bg-gradient-to-b from-[#f0d39a] to-[#c89a52] px-4 py-3 text-center text-[#26351f] shadow-[0_5px_0_rgba(91,72,44,0.22),inset_0_0_0_2px_rgba(255,255,255,0.35)] transition hover:brightness-105 active:translate-y-[1px]"
-    >
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-[2px] border-[#806637] bg-[#fff2cf] text-xl text-[#2f3d28]">
-        📸
-      </span>
-      <span
-        className="text-[27px] font-black italic leading-none"
-        style={{ fontFamily: '"Cooper Black", "Cooper Std Black", Georgia, serif' }}
-      >
-        Skanneri
-      </span>
-    </button>
-  </div>
-</section>
+                  }
+                  comparePanel={
+                    <ZiiplyCompareCard
+                      stores={chainResults
+                        .filter((result) => !result.comingSoon)
+                        .map((result) => ({
+                          id: result.key,
+                          name: result.storeName || result.chain,
+                          chain: result.key === "s" ? "S" : result.key === "k" ? "K" : undefined,
+                          totalPrice: Math.round((result.totalPrice || 0) * 100),
+                          itemCount: result.foundItems,
+                          isBest: cheapest?.key === result.key,
+                          badge: result.missingItems > 0 ? `${result.missingItems} puuttuu` : "Täysi kori",
+                        }))}
+                      title="Vertailu"
+                      subtitle={cart.length > 0 ? `${cart.length} tuotetta korissa` : "Lisää tuotteita koriin ja vertaile kauppoja"}
+                      loading={comparisonLoading}
+                    />
+                  }
+                />
 
 
               </main>
