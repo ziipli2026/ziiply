@@ -7577,7 +7577,7 @@ export default function Page() {
               </div>
             </header>
 
-            <div className="grid min-h-0 grid-cols-[0.72fr_1.95fr_1.05fr] gap-2 overflow-hidden">
+            <div className="grid min-h-0 grid-cols-[0.62fr_1.72fr_1.28fr] gap-2 overflow-hidden">
               <aside className="min-h-0 space-y-2 overflow-y-auto pr-1">
                 <section className="rounded-[1.6rem] border border-[#d6bf8f] bg-[#fff8e8] px-5 py-6 text-center shadow-[0_3px_0_rgba(7,59,45,0.16)] ring-1 ring-white/60">
                   <p
@@ -7700,15 +7700,15 @@ export default function Page() {
                   </div>
 
                   {locationMessageVisible ? (
-                    <div className="pointer-events-none absolute left-1/2 top-[6px] z-50 flex max-w-[calc(100%-360px)] -translate-x-1/2 justify-center">
-                      <div className="max-w-full overflow-hidden text-ellipsis whitespace-nowrap rounded-[0.95rem] border border-[#caa35d] bg-[#ffe9a8] px-4 py-1.5 text-center text-[12px] font-black uppercase leading-none tracking-[0.10em] text-[#8a3f16] shadow-[0_2px_0_rgba(91,72,44,0.18),0_5px_10px_rgba(80,50,10,0.10)]">
+                    <div className="pointer-events-none absolute left-[82px] right-[118px] top-[3px] z-50 flex justify-center overflow-visible">
+                      <div className="max-w-full whitespace-nowrap rounded-[0.95rem] border border-[#caa35d] bg-[#ffe9a8] px-3 py-1.5 text-center text-[clamp(8px,0.82vw,12px)] font-black uppercase leading-none tracking-[0.07em] text-[#8a3f16] shadow-[0_2px_0_rgba(91,72,44,0.18),0_5px_10px_rgba(80,50,10,0.10)]">
                         {storeSearchLoading ? "HAETAAN KAUPPOJA..." : locationMessage}
                       </div>
                     </div>
                   ) : null}
                 </section>
 
-                <section className="relative h-[455px] min-h-[455px] overflow-hidden rounded-[2.25rem] border-[4px] border-[#5b482c] bg-[#f6ebc6] p-5 text-[#20301f] shadow-[0_0_0_2px_#d4b978_inset,0_10px_0_rgba(91,72,44,0.20),0_18px_28px_rgba(60,45,20,0.16)]">
+                <section className="relative h-[455px] min-h-[455px] overflow-visible rounded-[2.25rem] border-[4px] border-[#5b482c] bg-[#f6ebc6] p-5 text-[#20301f] shadow-[0_0_0_2px_#d4b978_inset,0_10px_0_rgba(91,72,44,0.20),0_18px_28px_rgba(60,45,20,0.16)]">
   <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:radial-gradient(#c7aa67_1px,transparent_1px)] [background-size:15px_15px]" />
 
   <div className="relative z-10 flex h-full min-h-0 flex-col pb-[86px]">
@@ -7988,9 +7988,9 @@ export default function Page() {
       </>
     )}
 
-    <div className="relative z-30 mt-3 mb-[92px] min-h-[58px] max-h-[58px] overflow-hidden rounded-[22px] border-[2px] border-[#d2b170] bg-[#fff1bf] px-4 py-3 text-[15px] font-black text-[#7a6842] shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
+    <div className="relative z-30 mt-3 mb-[108px] min-h-[42px] max-h-[42px] overflow-hidden rounded-[18px] border-[2px] border-[#d2b170] bg-[#fff1bf] px-6 py-2 text-[15px] font-black leading-none text-[#7a6842] shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
       {hasSearchInput ? (
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex h-full flex-nowrap items-center gap-2 overflow-hidden whitespace-nowrap">
           {notFoundSearchTerms.length > 0 ? (
             <span className="rounded-full border border-[#d3a45c] bg-[#ffe5a1] px-3 py-1 text-[#8a3f16]">
               Ei löytynyt: {notFoundSearchTerms.join(", ")}
@@ -8009,16 +8009,16 @@ export default function Page() {
               </button>
             ))
           ) : (
-            <span>Justiina ehdottaa sopivia hakusanoja kirjoituksen mukaan.</span>
+            <span className="truncate">Justiina ehdottaa sopivia hakusanoja kirjoituksen mukaan.</span>
           )}
         </div>
       ) : (
-        <span>Syötä tuotteet pilkulla eroteltuna tai liitä vihkosesta.</span>
+        <span className="block truncate leading-[1.1]">Syötä tuotteet pilkulla eroteltuna tai liitä vihkosesta.</span>
       )}
     </div>
 
-    <div className="pointer-events-none absolute bottom-[-8px] left-0 right-0 z-40 grid grid-cols-2 items-end gap-4">
-  <div className="pointer-events-auto"><section className="group relative max-h-[64px] overflow-hidden rounded-t-[2.1rem] rounded-b-none transition-[max-height] duration-300 ease-out hover:max-h-[278px] focus-within:max-h-[278px] border-[3px] border-[#b99d62] bg-gradient-to-b from-[#f7e9c3] via-[#f0d9a4] to-[#dfbf7e] px-5 py-4 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80">
+    <div className="pointer-events-none absolute bottom-[-64px] left-0 right-0 z-40 grid grid-cols-2 items-end gap-4">
+  <div className="pointer-events-auto"><section className="group relative max-h-[64px] overflow-hidden rounded-t-[2.1rem] rounded-b-none transition-[max-height] duration-300 ease-out hover:max-h-[360px] focus-within:max-h-[360px] border-[3px] border-[#b99d62] bg-gradient-to-b from-[#f7e9c3] via-[#f0d9a4] to-[#dfbf7e] px-5 py-4 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80">
                     <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:radial-gradient(#b59c67_1.15px,transparent_1.15px)] [background-size:15px_15px]" />
                     <div className="relative flex items-center justify-between gap-3">
                       <p className="text-[13px] font-black uppercase tracking-[0.28em] text-[#746742] drop-shadow-[0_1px_0_#fff7df]">
@@ -8054,7 +8054,7 @@ export default function Page() {
                       )}
                     </div>
 
-                    <div className="relative mt-3 max-h-[198px] space-y-2 overflow-auto pr-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100">
+                    <div className="relative mt-3 max-h-[280px] space-y-2 overflow-auto pr-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100">
                       {activeResult === "offers" || loadingOffers ? (
                         loadingOffers ? (
                           <div className="h-1" />
@@ -8195,13 +8195,13 @@ export default function Page() {
                       )}
                     </div>
                   </section></div>
-  <div className="pointer-events-auto"><section className="group relative max-h-[64px] overflow-hidden rounded-t-[2.1rem] rounded-b-none transition-[max-height] duration-300 ease-out hover:max-h-[278px] focus-within:max-h-[278px] border-[3px] border-[#b99d62] bg-gradient-to-b from-[#f7e9c3] via-[#f0d9a4] to-[#dfbf7e] px-5 py-4 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80">
+  <div className="pointer-events-auto"><section className="group relative max-h-[64px] overflow-hidden rounded-t-[2.1rem] rounded-b-none transition-[max-height] duration-300 ease-out hover:max-h-[360px] focus-within:max-h-[360px] border-[3px] border-[#b99d62] bg-gradient-to-b from-[#f7e9c3] via-[#f0d9a4] to-[#dfbf7e] px-5 py-4 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80">
                     <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:radial-gradient(#b59c67_1.15px,transparent_1.15px)] [background-size:15px_15px]" />
                     <p className="relative text-[13px] font-black uppercase tracking-[0.28em] text-[#746742] drop-shadow-[0_1px_0_#fff7df]">
                       Vertailu
                     </p>
                     <span className="absolute left-1/2 top-[44px] h-[4px] w-16 -translate-x-1/2 rounded-full bg-[#8d7444]/45" />
-                    <div className="relative mt-3 grid max-h-[198px] gap-3 overflow-auto pr-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100">
+                    <div className="relative mt-3 grid max-h-[280px] gap-3 overflow-auto pr-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100">
                       {chainResults.length > 0 ? (
                         chainResults.map((result) => (
                           <div
@@ -8258,7 +8258,7 @@ export default function Page() {
               </main>
 
               <aside className="min-h-0">
-                <div className="h-full min-h-0 space-y-2 overflow-y-auto pr-1">
+                <div className="ziiply-cart-retro-fix h-full min-h-0 space-y-2 overflow-y-auto pr-1">
                   <ZiiplyCartCard
                     cart={cart}
                     shoppingListItems={shoppingListItems}
@@ -10051,6 +10051,12 @@ export default function Page() {
         />
 
         <style>{`
+
+          .ziiply-cart-retro-fix * { min-width: 0; }
+          .ziiply-cart-retro-fix button { white-space: nowrap; }
+          .ziiply-cart-retro-fix img { object-fit: contain; }
+          .ziiply-cart-retro-fix [class*="rounded"] { box-sizing: border-box; }
+          .ziiply-cart-retro-fix [class*="Pois"] { flex-shrink: 0; }
         @keyframes ziiplyFade {
           0% { opacity: 0; transform: translateY(10px); }
           12% { opacity: 1; transform: translateY(0); }
