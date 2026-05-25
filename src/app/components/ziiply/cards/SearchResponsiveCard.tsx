@@ -15,6 +15,18 @@ export type SearchResponsiveCardProps = {
   onSearch?: () => void;
   onScan?: () => void;
   onQuickAction?: (id: string) => void;
+
+  /** Optional drawer controls. These keep the bottom cards inside this search card. */
+  resultsOpen?: boolean;
+  compareOpen?: boolean;
+  onToggleResults?: () => void;
+  onToggleCompare?: () => void;
+  resultsTitle?: string;
+  compareTitle?: string;
+  resultsPanel?: React.ReactNode;
+  comparePanel?: React.ReactNode;
+  resultsCount?: number;
+  compareCount?: number;
 };
 
 export function SearchResponsiveCard({
@@ -31,13 +43,25 @@ export function SearchResponsiveCard({
   onSearch,
   onScan,
   onQuickAction,
+  resultsOpen = false,
+  compareOpen = false,
+  onToggleResults,
+  onToggleCompare,
+  resultsTitle = "Hakutulokset",
+  compareTitle = "Vertailu",
+  resultsPanel,
+  comparePanel,
+  resultsCount,
+  compareCount,
 }: SearchResponsiveCardProps) {
-  return (
-    <section className="overflow-hidden rounded-[28px] border border-amber-900/15 bg-gradient-to-br from-stone-100 via-amber-50 to-emerald-50 text-zinc-950 shadow-2xl shadow-amber-900/10 lg:rounded-[40px]">
-      <div className="relative p-4 lg:p-8">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(180,83,9,0.12),transparent_40%)]" />
+  const expandedPanelOpen = resultsOpen || compareOpen;
 
-        <div className="relative grid gap-4 lg:grid-cols-[260px_1fr] lg:items-center">
+  return (
+    <section className="relative overflow-visible rounded-[28px] border border-amber-900/15 bg-gradient-to-br from-stone-100 via-amber-50 to-emerald-50 text-zinc-950 shadow-2xl shadow-amber-900/10 lg:rounded-[40px]">
+      <div className="relative overflow-visible p-4 pb-[118px] lg:p-8 lg:pb-[138px]">
+        <div className="pointer-events-none absolute inset-0 rounded-[inherit] bg-[radial-gradient(circle_at_top_left,rgba(180,83,9,0.12),transparent_40%)]" />
+
+        <div className="relative z-10 grid gap-4 lg:grid-cols-[260px_1fr] lg:items-center">
           <div className="flex items-center gap-3 lg:block">
             <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-3xl bg-white text-5xl shadow-xl shadow-amber-900/10 lg:h-64 lg:w-full lg:text-[150px]">
               🔍
@@ -64,7 +88,7 @@ export function SearchResponsiveCard({
           </div>
         </div>
 
-        <div className="relative mt-4 rounded-[30px] border border-amber-900/10 bg-white/80 p-4 shadow-lg shadow-amber-900/10 backdrop-blur lg:mt-8 lg:p-6">
+        <div className="relative z-20 mt-4 rounded-[30px] border border-amber-900/10 bg-white/80 p-4 shadow-lg shadow-amber-900/10 backdrop-blur lg:mt-8 lg:p-6">
           <label className="text-xs font-black uppercase tracking-[0.16em] text-emerald-800">
             Tuotehaku
           </label>
@@ -80,7 +104,7 @@ export function SearchResponsiveCard({
             <button
               type="button"
               onClick={onScan}
-              className="flex min-h-[58px] w-[58px] shrink-0 items-center justify-center rounded-3xl bg-zinc-950 text-2xl text-white lg:w-[72px]"
+              className="relative z-10 flex min-h-[58px] w-[58px] shrink-0 items-center justify-center rounded-3xl bg-zinc-950 text-2xl text-white lg:w-[72px]"
               aria-label="Avaa skanneri"
             >
               ▦
@@ -113,6 +137,64 @@ export function SearchResponsiveCard({
             “Hyvä haku säästää monta hyllyväliä.”
           </div>
         </div>
+
+        {/* Bottom cards stay anchored at the bottom of the search card. */}
+        <div className="absolute inset-x-4 bottom-4 z-30 grid grid-cols-2 gap-3 lg:inset-x-8 lg:bottom-8 lg:gap-5">
+          <button
+            type="button"
+            onClick={onToggleResults}
+            className="min-h-[78px] rounded-[28px] border-[3px] border-[#5b482c] bg-[#f4e7c7] px-4 text-left shadow-[0_0_0_2px_#d4b978_inset,0_10px_20px_rgba(60,45,20,0.20)] transition active:scale-[0.99]"
+          >
+            <div className="text-[11px] font-black uppercase tracking-[0.24em] text-[#6c624b]">
+              {resultsCount != null ? `${resultsCount} osumaa` : "Selaa"}
+            </div>
+            <div className="mt-1 text-[22px] font-black italic leading-none text-[#28402a] lg:text-[28px]">
+              {resultsTitle}
+            </div>
+          </button>
+
+          <button
+            type="button"
+            onClick={onToggleCompare}
+            className="min-h-[78px] rounded-[28px] border-[3px] border-[#5b482c] bg-[#f4e7c7] px-4 text-left shadow-[0_0_0_2px_#d4b978_inset,0_10px_20px_rgba(60,45,20,0.20)] transition active:scale-[0.99]"
+          >
+            <div className="text-[11px] font-black uppercase tracking-[0.24em] text-[#6c624b]">
+              {compareCount != null ? `${compareCount} vertailussa` : "Avaa"}
+            </div>
+            <div className="mt-1 text-[22px] font-black italic leading-none text-[#28402a] lg:text-[28px]">
+              {compareTitle}
+            </div>
+          </button>
+        </div>
+
+        {/* Drawers open upward from the bottom cards. They sit above the scanner button. */}
+        {expandedPanelOpen && (
+          <div className="absolute inset-x-4 bottom-[108px] z-50 lg:inset-x-8 lg:bottom-[126px]">
+            {resultsOpen && (
+              <div className="h-[min(620px,calc(100dvh-260px))] overflow-hidden rounded-[34px] border-[4px] border-[#5b482c] bg-[#f4e7c7] shadow-[0_0_0_2px_#d4b978_inset,0_22px_44px_rgba(60,45,20,0.34)]">
+                <div className="h-full overflow-y-auto p-4 lg:p-6">
+                  {resultsPanel || (
+                    <div className="flex h-full items-center justify-center text-center text-lg font-black text-[#66583d]">
+                      Hakutulokset avautuvat tähän.
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {compareOpen && (
+              <div className="h-[min(620px,calc(100dvh-260px))] overflow-hidden rounded-[34px] border-[4px] border-[#5b482c] bg-[#f4e7c7] shadow-[0_0_0_2px_#d4b978_inset,0_22px_44px_rgba(60,45,20,0.34)]">
+                <div className="h-full overflow-y-auto p-4 lg:p-6">
+                  {comparePanel || (
+                    <div className="flex h-full items-center justify-center text-center text-lg font-black text-[#66583d]">
+                      Vertailu avautuu tähän koko hakuruudun levyisenä.
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </section>
   );
