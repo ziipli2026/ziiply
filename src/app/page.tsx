@@ -7692,7 +7692,7 @@ export default function Page() {
                     <button
                       type="button"
                       onClick={() => void applyLocation()}
-                      className="rounded-[1.25rem] border-2 border-[#0b2118] bg-[#182116] px-8 py-3 text-base font-black text-[#fff9e8] shadow-[0_4px_0_#07140f,0_8px_14px_rgba(20,15,8,0.18)] active:translate-y-[2px] active:shadow-[0_2px_0_#07140f]"
+                      className="rounded-[1.35rem] border-[3px] border-[#7a6338] bg-gradient-to-b from-[#f0d39a] to-[#c89a52] px-8 py-3 text-base font-black text-[#26351f] shadow-[0_4px_0_rgba(91,72,44,0.30),inset_0_0_0_2px_rgba(255,255,255,0.35)] transition hover:brightness-105 active:translate-y-[1px] active:shadow-[0_2px_0_rgba(91,72,44,0.30),inset_0_0_0_2px_rgba(255,255,255,0.35)]" style={{ fontFamily: '"Cooper Black", "Cooper Std Black", Georgia, serif' }}
                     >
                       Käytä
                     </button>
@@ -7700,16 +7700,18 @@ export default function Page() {
                   </div>
 
                   {locationMessageVisible ? (
-                    <div className="pointer-events-none absolute left-[32px] top-[54px] z-50 inline-flex w-[72px] -translate-x-0 items-center justify-center whitespace-normal rounded-[0.85rem] border border-[#caa35d] bg-[#ffe9a8] px-1.5 py-1 text-center text-[9px] font-black uppercase leading-[1.05] tracking-[0.08em] text-[#8a3f16] shadow-[0_2px_0_rgba(91,72,44,0.18),0_5px_10px_rgba(80,50,10,0.10)]">
-                      {storeSearchLoading ? "HAETAAN KAUPPOJA..." : locationMessage}
+                    <div className="relative mt-2 flex justify-center px-[84px]">
+                      <div className="pointer-events-none max-w-full overflow-hidden text-ellipsis whitespace-nowrap rounded-[0.95rem] border border-[#caa35d] bg-[#ffe9a8] px-4 py-1.5 text-center text-[12px] font-black uppercase leading-none tracking-[0.10em] text-[#8a3f16] shadow-[0_2px_0_rgba(91,72,44,0.18),0_5px_10px_rgba(80,50,10,0.10)]">
+                        {storeSearchLoading ? "HAETAAN KAUPPOJA..." : locationMessage}
+                      </div>
                     </div>
                   ) : null}
                 </section>
 
-                <section className="relative min-h-[455px] overflow-hidden rounded-[2.25rem] border-[4px] border-[#5b482c] bg-[#f6ebc6] p-5 text-[#20301f] shadow-[0_0_0_2px_#d4b978_inset,0_10px_0_rgba(91,72,44,0.20),0_18px_28px_rgba(60,45,20,0.16)]">
+                <section className="relative h-[455px] min-h-[455px] overflow-hidden rounded-[2.25rem] border-[4px] border-[#5b482c] bg-[#f6ebc6] p-5 text-[#20301f] shadow-[0_0_0_2px_#d4b978_inset,0_10px_0_rgba(91,72,44,0.20),0_18px_28px_rgba(60,45,20,0.16)]">
   <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:radial-gradient(#c7aa67_1px,transparent_1px)] [background-size:15px_15px]" />
 
-  <div className="relative z-10 flex min-h-[405px] flex-col">
+  <div className="relative z-10 flex h-full min-h-0 flex-col pb-[86px]">
     <button
       type="button"
       onClick={() => void pasteFromClipboardToSearch()}
@@ -8018,7 +8020,7 @@ export default function Page() {
     <button
       type="button"
       onClick={() => openDesktopScanner()}
-      className="mx-auto mb-2 mt-auto flex min-h-[58px] w-full max-w-[640px] items-center justify-center gap-3 rounded-[25px] border-[3px] border-[#7a6338] bg-gradient-to-b from-[#f0d39a] to-[#c89a52] px-4 py-3 text-center text-[#26351f] shadow-[0_5px_0_rgba(91,72,44,0.22),inset_0_0_0_2px_rgba(255,255,255,0.35)] transition hover:brightness-105 active:translate-y-[1px]"
+      className="absolute bottom-0 left-1/2 flex min-h-[58px] w-full max-w-[640px] -translate-x-1/2 items-center justify-center gap-3 rounded-[25px] border-[3px] border-[#7a6338] bg-gradient-to-b from-[#f0d39a] to-[#c89a52] px-4 py-3 text-center text-[#26351f] shadow-[0_5px_0_rgba(91,72,44,0.22),inset_0_0_0_2px_rgba(255,255,255,0.35)] transition hover:brightness-105 active:translate-y-[1px]"
     >
       <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-[2px] border-[#806637] bg-[#fff2cf] text-xl text-[#2f3d28]">
         📸
@@ -8033,7 +8035,7 @@ export default function Page() {
   </div>
 </section>
 
-                <div className="fixed bottom-[28px] left-[max(18px,calc((100vw-1720px)/2+395px))] right-[max(18px,calc((100vw-1720px)/2+590px))] z-40 grid grid-cols-[minmax(0,1fr)_minmax(260px,0.70fr)] items-end gap-3 px-2 pointer-events-none">
+                <div className="fixed bottom-[28px] left-[max(18px,calc((100vw-1720px)/2+395px))] right-[max(18px,calc((100vw-1720px)/2+590px))] z-40 grid grid-cols-2 items-end gap-3 px-2 pointer-events-none">
   <div className="pointer-events-auto"><section className="group relative max-h-[64px] overflow-hidden rounded-t-[2.1rem] rounded-b-none transition-[max-height] duration-300 ease-out hover:max-h-[34dvh] focus-within:max-h-[34dvh] border-[3px] border-[#b99d62] bg-gradient-to-b from-[#f7e9c3] via-[#f0d9a4] to-[#dfbf7e] px-5 py-4 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80">
                     <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:radial-gradient(#b59c67_1.15px,transparent_1.15px)] [background-size:15px_15px]" />
                     <div className="relative flex items-center justify-between gap-3">
@@ -8071,12 +8073,6 @@ export default function Page() {
                     </div>
 
                     <div className="relative mt-3 max-h-[23dvh] space-y-2 overflow-auto pr-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-within:opacity-100">
-                      {notFoundSearchTerms.length > 0 && activeResult !== "offers" && !loadingOffers && (
-                        <div className="rounded-2xl border border-[#d6bf8f] bg-[#fff8e8] p-3 text-sm font-black text-[#8a3f16]">
-                          Ei löytynyt: {notFoundSearchTerms.join(", ")}. Jatketaan seuraaviin hakusanoihin.
-                        </div>
-                      )}
-
                       {activeResult === "offers" || loadingOffers ? (
                         loadingOffers ? (
                           <div className="h-1" />
@@ -8213,9 +8209,7 @@ export default function Page() {
                             </div>
                           ))
                       ) : (
-                        <p className="rounded-[1.25rem] border border-[#dec890] bg-[#f7efd9] p-4 text-sm font-black text-[#6f6b59] shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
-                          Ei hakutuloksia vielä.
-                        </p>
+                        <div className="h-1" aria-hidden="true" />
                       )}
                     </div>
                   </section></div>
