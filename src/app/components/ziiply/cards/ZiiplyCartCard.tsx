@@ -206,7 +206,7 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
             type="button"
             onClick={resetCollecting}
             disabled={!hasItems || checkedCount === 0}
-            className="min-h-[46px] rounded-[17px] border-[2px] border-[#b99d64] bg-[#f1e3be] px-3 text-[14px] font-black uppercase tracking-wide text-[#283926] shadow-[0_0_0_2px_#f8edcf_inset] disabled:cursor-not-allowed disabled:opacity-35"
+            className="min-h-[46px] rounded-[17px] border-[2px] border-[#b99d64] bg-[#f1e3be] px-3 text-center text-[13px] font-black uppercase leading-none tracking-[0.08em] text-[#283926] shadow-[0_0_0_2px_#f8edcf_inset] disabled:cursor-not-allowed disabled:opacity-35"
           >
             Nollaa keräily
           </button>
@@ -214,14 +214,14 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
             type="button"
             onClick={hasItems ? onClearCart : undefined}
             disabled={!hasItems || !onClearCart}
-            className="min-h-[46px] rounded-[17px] border border-[#8f4a23] bg-[#934519] px-3 text-[14px] font-black uppercase tracking-wide text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.18)] disabled:cursor-not-allowed disabled:opacity-35"
+            className="min-h-[46px] rounded-[17px] border-[2px] border-[#7b3516] bg-[#934519] px-3 text-center text-[13px] font-black uppercase leading-none tracking-[0.08em] text-[#fff6df] shadow-[0_0_0_2px_rgba(255,235,198,0.18)_inset] disabled:cursor-not-allowed disabled:opacity-35"
           >
             Tyhjennä kori
           </button>
           <button
             type="button"
             onClick={toggleSavePanel}
-            className="min-h-[46px] rounded-[17px] border-[2px] border-[#b99d64] bg-[#f1e3be] px-3 text-[14px] font-black uppercase tracking-wide text-[#283926] shadow-[0_0_0_2px_#f8edcf_inset]"
+            className="min-h-[46px] rounded-[17px] border-[2px] border-[#087434] bg-[#0b8c3d] px-3 text-center text-[13px] font-black uppercase leading-none tracking-[0.08em] text-[#fff6df] shadow-[0_0_0_2px_rgba(255,246,223,0.18)_inset,0_4px_0_rgba(6,80,35,0.25)] active:translate-y-[1px]"
           >
             Näytä/tallenna vihkonen
           </button>
@@ -287,73 +287,86 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
               return (
                 <article
                   key={key}
-                  className={`grid h-[116px] min-h-[116px] max-h-[116px] grid-cols-[52px_58px_minmax(0,1fr)_72px] items-center gap-3 overflow-hidden rounded-[23px] border-[2px] bg-gradient-to-b from-[#fff5db] to-[#f3e4c4] px-3 shadow-[0_3px_0_rgba(113,82,31,0.14),inset_0_0_0_1px_rgba(255,255,255,0.58)] ${
-                    checked ? "border-[#0b8c3d] opacity-75" : "border-[#d1b77d]"
+                  className={`relative overflow-hidden rounded-[24px] border-[3px] bg-gradient-to-b from-[#fff7df] to-[#f1dfb8] p-3 shadow-[0_4px_0_rgba(91,72,44,0.20),0_0_0_2px_rgba(255,255,255,0.55)_inset] ${
+                    checked ? "border-[#0b8c3d] opacity-80" : "border-[#c7aa67]"
                   }`}
                 >
-                  <button
-                    ref={(node) => {
-                      if (shoppingItemRefs?.current) shoppingItemRefs.current[key] = node;
-                    }}
-                    type="button"
-                    onClick={() => handleToggleItem(match, index)}
-                    className={`flex h-12 w-12 items-center justify-center rounded-full border-[3px] text-[18px] font-black transition active:scale-95 ${
-                      checked
-                        ? "border-[#07883a] bg-[#0b8c3d] text-white"
-                        : "border-[#bfa66b] bg-[#fff8e8] text-[#7d6b43]"
-                    }`}
-                    aria-label={checked ? "Poista keräilymerkintä" : "Merkitse kerätyksi"}
-                  >
-                    {checked ? "✓" : index + 1}
-                  </button>
-
-                  <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-[15px] border border-[#d6be84] bg-white">
-                    {image ? (
-                      <img src={image} alt="" className="h-full w-full object-contain" />
-                    ) : (
-                      <span className="text-2xl">🛒</span>
-                    )}
-                  </div>
-
-                  <div className="min-w-0 overflow-hidden">
-                    <div
-                      className={`text-[17px] font-black leading-tight text-[#1d281b] ${checked ? "line-through" : ""}`}
-                      title={name}
-                      style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}
+                  <div className="grid grid-cols-[52px_66px_minmax(0,1fr)_92px] items-center gap-3">
+                    <button
+                      ref={(node) => {
+                        if (shoppingItemRefs?.current) shoppingItemRefs.current[key] = node;
+                      }}
+                      type="button"
+                      onClick={() => handleToggleItem(match, index)}
+                      className={`flex h-12 w-12 items-center justify-center rounded-full border-[3px] text-[18px] font-black leading-none transition active:scale-95 ${
+                        checked
+                          ? "border-[#07883a] bg-[#0b8c3d] text-[#fff6df]"
+                          : "border-[#bfa66b] bg-[#fff8e8] text-[#7d6b43]"
+                      }`}
+                      aria-label={checked ? "Poista keräilymerkintä" : "Merkitse kerätyksi"}
                     >
-                      {name}
+                      {checked ? "✓" : index + 1}
+                    </button>
+
+                    <div className="flex h-[66px] w-[66px] items-center justify-center overflow-hidden rounded-[18px] border-[2px] border-[#d6be84] bg-[#fffdf3] shadow-[0_0_0_2px_rgba(255,255,255,0.6)_inset]">
+                      {image ? (
+                        <img src={image} alt="" className="h-full w-full object-contain p-1" />
+                      ) : (
+                        <span className="text-3xl">🛒</span>
+                      )}
                     </div>
-                    <div className="mt-1 flex items-center gap-2">
-                      <span className="min-w-[48px] text-[14px] font-black text-[#6d6757]">{quantity} kpl</span>
-                      <button
-                        type="button"
-                        onClick={() => onDecreaseQuantity?.(cartItemId)}
-                        disabled={!onDecreaseQuantity || quantity <= 1}
-                        className="h-8 w-9 rounded-[10px] border border-[#d0b77e] bg-[#efe2bd] text-[20px] font-black disabled:opacity-35"
+
+                    <div className="min-w-0 pr-1">
+                      <div
+                        className={`text-[18px] font-black leading-[1.12] text-[#1d281b] ${checked ? "line-through" : ""}`}
+                        title={name}
+                        style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}
                       >
-                        −
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => onIncreaseQuantity?.(cartItemId)}
-                        disabled={!onIncreaseQuantity}
-                        className="h-8 w-9 rounded-[10px] bg-[#0b8c3d] text-[20px] font-black text-white disabled:opacity-35"
-                      >
-                        +
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => onRemoveItem?.(cartItemId)}
-                        disabled={!onRemoveItem}
-                        className="h-8 rounded-[10px] bg-[#934519] px-3 text-[14px] font-black text-white disabled:opacity-35"
-                      >
-                        Pois
-                      </button>
+                        {name}
+                      </div>
+                      <div className="mt-1 text-[13px] font-black uppercase tracking-[0.08em] text-[#776d55]">
+                        {quantity} kpl · {price > 0 ? formatEuro(price) : "hinta —"}
+                      </div>
+                    </div>
+
+                    <div className="shrink-0 text-right">
+                      <div className="text-[18px] font-black leading-none text-[#28402a]">
+                        {price > 0 ? formatEuro(price * quantity) : "—"}
+                      </div>
+                      <div className="mt-1 text-[11px] font-black uppercase tracking-[0.10em] text-[#776d55]">
+                        yhteensä
+                      </div>
                     </div>
                   </div>
 
-                  <div className="text-right text-[17px] font-black text-[#28402a]">
-                    {price > 0 ? formatEuro(price * quantity) : "—"}
+                  <div className="mt-3 grid grid-cols-[1fr_46px_46px_72px] items-center gap-2">
+                    <div className="min-h-[38px] rounded-[14px] border-[2px] border-[#d0b77e] bg-[#f7ebc9] px-3 py-2 text-[13px] font-black uppercase leading-none tracking-[0.08em] text-[#6d6757] shadow-[0_0_0_1px_rgba(255,255,255,0.65)_inset]">
+                      Määrä {quantity}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => onDecreaseQuantity?.(cartItemId)}
+                      disabled={!onDecreaseQuantity || quantity <= 1}
+                      className="flex h-[38px] w-[46px] items-center justify-center rounded-[14px] border-[2px] border-[#d0b77e] bg-[#efe2bd] text-[22px] font-black leading-none text-[#283926] disabled:opacity-35"
+                    >
+                      −
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onIncreaseQuantity?.(cartItemId)}
+                      disabled={!onIncreaseQuantity}
+                      className="flex h-[38px] w-[46px] items-center justify-center rounded-[14px] border-[2px] border-[#087434] bg-[#0b8c3d] text-[22px] font-black leading-none text-[#fff6df] disabled:opacity-35"
+                    >
+                      +
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onRemoveItem?.(cartItemId)}
+                      disabled={!onRemoveItem}
+                      className="flex h-[38px] items-center justify-center rounded-[14px] border-[2px] border-[#7b3516] bg-[#934519] px-3 text-[13px] font-black uppercase leading-none tracking-[0.06em] text-[#fff6df] disabled:opacity-35"
+                    >
+                      Pois
+                    </button>
                   </div>
                 </article>
               );
@@ -371,7 +384,7 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
                 Tallenna tai avaa ostoslista
               </div>
             </div>
-            <button type="button" onClick={closeSavePanel} className="rounded-full border border-[#b99d64] bg-[#fff6df] px-4 py-2 text-sm font-black">
+            <button type="button" onClick={closeSavePanel} className="rounded-full border-[2px] border-[#b99d64] bg-[#fff6df] px-4 py-2 text-[13px] font-black uppercase leading-none tracking-[0.08em] text-[#283926]">
               Sulje
             </button>
           </div>
@@ -383,7 +396,7 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
               placeholder="Nimeä vihkonen"
               className="min-h-[46px] min-w-0 flex-1 rounded-[16px] border-[2px] border-[#c8ad72] bg-[#fff8e8] px-4 text-[16px] font-black outline-none"
             />
-            <button type="button" onClick={handleSaveCurrent} disabled={!hasItems} className="rounded-[16px] bg-[#0b8c3d] px-5 text-[16px] font-black text-white disabled:opacity-35">
+            <button type="button" onClick={handleSaveCurrent} disabled={!hasItems} className="rounded-[16px] border-[2px] border-[#087434] bg-[#0b8c3d] px-5 text-[15px] font-black uppercase leading-none tracking-[0.08em] text-[#fff6df] disabled:opacity-35">
               Tallenna
             </button>
           </div>
@@ -401,7 +414,7 @@ export function ZiiplyCartCard(props: ZiiplyCartCardProps) {
                       <div className="truncate text-[17px] font-black text-[#28402a]">{list.name}</div>
                       <div className="text-sm font-bold text-[#6b6656]">{Array.isArray(list.items) ? list.items.length : 0} tuotetta</div>
                     </button>
-                    <button type="button" onClick={() => onDeleteSavedShoppingList?.(String(list.id))} className="rounded-[12px] bg-[#934519] px-3 py-2 text-sm font-black text-white">
+                    <button type="button" onClick={() => onDeleteSavedShoppingList?.(String(list.id))} className="rounded-[12px] border-[2px] border-[#7b3516] bg-[#934519] px-3 py-2 text-[12px] font-black uppercase leading-none tracking-[0.06em] text-[#fff6df]">
                       Poista
                     </button>
                   </div>
