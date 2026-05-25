@@ -9252,7 +9252,9 @@ export default function Page() {
               )}
             </div>
           </div>
+        </section>
         )}
+        </div>
 
         {restoredCartPromptV320.open &&
           cart.length > 0 &&
