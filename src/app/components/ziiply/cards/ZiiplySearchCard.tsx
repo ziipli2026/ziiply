@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useRef } from "react";
 
 export type SearchMode = "cart" | "single";
 export type SearchPanelKind = "none" | "results" | "compare";
@@ -35,7 +35,7 @@ function cx(...classes: Array<string | false | null | undefined>) {
 }
 
 const cooperFont = '"Cooper Black", "Cooper Std Black", Georgia, serif';
-const bodyFont = 'Georgia, "Times New Roman", serif';
+const serifFont = '"Baskerville", Georgia, serif';
 
 function GostaButton({
   onClick,
@@ -76,8 +76,8 @@ function GostaButton({
           Gösta
         </span>
         <span
-          className="mt-1 block whitespace-normal text-[13px] font-black leading-[1.04] text-[#315f2f]"
-          style={{ fontFamily: bodyFont }}
+          className="mt-1 block text-[13px] font-black leading-[1.04] text-[#315f2f]"
+          style={{ fontFamily: serifFont }}
         >
           {loading ? (
             <>
@@ -138,7 +138,7 @@ function JustiinaButton({
         </span>
         <span
           className="mt-1 block text-[13px] font-black leading-[1.04] text-[#8a3f16]"
-          style={{ fontFamily: bodyFont }}
+          style={{ fontFamily: serifFont }}
         >
           {loading ? (
             <>
@@ -161,12 +161,12 @@ function JustiinaButton({
 
 function ModeToggle({ mode, onModeChange }: { mode: SearchMode; onModeChange: (mode: SearchMode) => void }) {
   return (
-    <div className="mx-auto flex w-full max-w-[176px] rounded-[20px] border-[3px] border-[#b99d64] bg-[#ead7a5] p-1.5 shadow-[0_0_0_2px_#fff4cc_inset,0_4px_0_rgba(91,72,44,0.18)]">
+    <div className="mx-auto flex h-[54px] w-full max-w-[176px] shrink-0 rounded-[20px] border-[3px] border-[#b99d64] bg-[#ead7a5] p-1.5 shadow-[0_0_0_2px_#fff4cc_inset,0_4px_0_rgba(91,72,44,0.18)]">
       <button
         type="button"
         onClick={() => onModeChange("cart")}
         className={cx(
-          "min-h-[40px] flex-1 rounded-[15px] px-1 text-[12px] font-black leading-none transition",
+          "min-h-[38px] flex-1 rounded-[15px] px-1 text-[12px] font-black leading-none transition",
           mode === "cart"
             ? "bg-[#fff4cf] text-[#23502c] shadow-[inset_0_0_0_2px_#d9bd77,0_2px_0_rgba(91,72,44,0.18)]"
             : "text-[#7a6842]",
@@ -179,7 +179,7 @@ function ModeToggle({ mode, onModeChange }: { mode: SearchMode; onModeChange: (m
         type="button"
         onClick={() => onModeChange("single")}
         className={cx(
-          "min-h-[40px] flex-1 rounded-[15px] px-1 text-[12px] font-black leading-none transition",
+          "min-h-[38px] flex-1 rounded-[15px] px-1 text-[12px] font-black leading-none transition",
           mode === "single"
             ? "bg-[#fff4cf] text-[#23502c] shadow-[inset_0_0_0_2px_#d9bd77,0_2px_0_rgba(91,72,44,0.18)]"
             : "text-[#7a6842]",
@@ -210,26 +210,63 @@ export default function ZiiplySearchCard({
   onOpenCompare,
   className,
 }: SearchCardProps) {
+  const inputRef = useRef<HTMLTextAreaElement | null>(null);
+  const hasText = value.trim().length > 0;
   const showResults = activePanel === "results";
   const showCompare = activePanel === "compare";
-  const hasText = value.trim().length > 0;
+
+  useEffect(() => {
+    // Kun ensimmäinen kirjain vaihtaa tyhjänäkymän kirjoitusnäkymäksi, textarea remounttaa.
+    // Tämä palauttaa fokuksen ja kursorin loppuun, jotta kirjoittaminen ei katkea.
+    if (!hasText) return;
+    const frame = window.requestAnimationFrame(() => {
+      const input = inputRef.current;
+      if (!input) return;
+      const cursor = input.value.length;
+      input.focus();
+      try {
+        input.setSelectionRange(cursor, cursor);
+      } catch {}
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [hasText]);
+
+  const handleTextChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    onChange(event.target.value);
+  };
+
+  const infoContent = chips.length > 0 ? (
+    <div className="flex min-w-0 flex-wrap items-center justify-center gap-2">
+      {chips.slice(0, 4).map((chip) => (
+        <button
+          key={chip.id}
+          type="button"
+          onClick={chip.onClick}
+          className="max-w-[230px] truncate rounded-full border-[2px] border-[#c4a05d] bg-[#fffaf0] px-4 py-1.5 text-[16px] font-black text-[#2e6b34] shadow-[0_2px_0_rgba(90,70,35,0.18)]"
+          style={{ fontFamily: cooperFont }}
+        >
+          {chip.label}
+        </button>
+      ))}
+    </div>
+  ) : (
+    <span className="block w-full truncate text-center">{instructionText}</span>
+  );
 
   return (
     <section
       className={cx(
-        "ziiply-search-card relative isolate h-[455px] min-h-[455px] overflow-visible rounded-[36px] border-[4px] border-[#5b482c] bg-[#f6ebc6] px-5 pb-[110px] pt-5 text-[#20301f] shadow-[0_0_0_2px_#d8bd75_inset,0_16px_0_rgba(60,45,20,0.28)]",
+        "ziiply-search-card relative isolate h-[455px] min-h-[455px] overflow-visible rounded-[36px] border-[4px] border-[#5b482c] bg-[#f6ebc6] px-5 pb-[120px] pt-3 text-[#20301f] shadow-[0_0_0_2px_#d8bd75_inset,0_16px_0_rgba(60,45,20,0.28)]",
         className,
       )}
     >
       <div className="pointer-events-none absolute inset-0 rounded-[28px] opacity-45 [background-image:radial-gradient(#d8bd75_1.2px,transparent_1.2px)] [background-size:18px_18px]" />
 
-      <div className="relative z-10 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-6">
+      <div className="relative z-10 flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <div className="text-[18px] font-black uppercase tracking-[0.45em] text-[#6f674f]">
-            Haku
-          </div>
+          <div className="text-[12px] font-black uppercase tracking-[0.38em] text-[#6f674f]">Haku</div>
           <h1
-            className="mt-2 max-w-full whitespace-nowrap text-[clamp(42px,5.0vw,74px)] font-black italic leading-none text-[#203b25]"
+            className="mt-0.5 whitespace-nowrap text-[clamp(29px,3.0vw,42px)] font-black italic leading-none text-[#203b25]"
             style={{ fontFamily: cooperFont }}
           >
             Tuotteet ja vertailu
@@ -239,7 +276,7 @@ export default function ZiiplySearchCard({
         <button
           type="button"
           onClick={onAddFromNotebook}
-          className="mt-1 shrink-0 rounded-[28px] border-[5px] border-[#0f6d34] bg-gradient-to-b from-[#16a34a] to-[#087a35] px-[clamp(22px,2.5vw,40px)] py-4 text-[clamp(25px,2.6vw,38px)] font-black italic text-[#fff0d5] shadow-[0_0_0_3px_rgba(255,255,255,0.18)_inset,0_8px_0_#07552b] active:translate-y-1 active:shadow-[0_4px_0_#07552b]"
+          className="h-[56px] shrink-0 rounded-[22px] border-[4px] border-[#0f6d34] bg-gradient-to-b from-[#16a34a] to-[#087a35] px-6 text-[23px] font-black italic leading-none text-[#fff0d5] shadow-[0_0_0_3px_rgba(255,255,255,0.18)_inset,0_5px_0_#07552b] active:translate-y-1 active:shadow-[0_2px_0_#07552b]"
           style={{ fontFamily: cooperFont }}
         >
           Lisää vihkosesta
@@ -247,16 +284,17 @@ export default function ZiiplySearchCard({
       </div>
 
       {!hasText ? (
-        <div className="relative z-10 mt-5 grid grid-cols-[minmax(250px,290px)_minmax(156px,176px)_minmax(250px,290px)] items-start justify-center gap-3">
+        <div className="relative z-10 mt-3 grid grid-cols-[minmax(250px,290px)_minmax(170px,210px)_minmax(250px,290px)] items-start justify-center gap-3">
           <GostaButton onClick={onGostaSearch} disabled={!value.trim()} />
 
-          <div className="rounded-[28px] border-[3px] border-[#9d8350] bg-[#fff4d3] p-2 shadow-[inset_0_4px_10px_rgba(91,65,28,0.12),0_2px_0_#fff6dc]">
+          <div className="h-[86px] rounded-[28px] border-[3px] border-[#9d8350] bg-[#fff4d3] p-2 shadow-[inset_0_4px_10px_rgba(91,65,28,0.12),0_2px_0_#fff6dc]">
             <textarea
+              ref={inputRef}
               value={value}
-              onChange={(event) => onChange(event.target.value)}
-              rows={2}
-              placeholder="maito, kahvi,\njauheliha"
-              className="block h-full w-full resize-none rounded-[22px] border-0 bg-[#fffaf0] px-7 py-5 text-center text-[30px] font-black leading-[1.05] text-[#102216] outline-none placeholder:text-[#7d7461]"
+              onChange={handleTextChange}
+              rows={1}
+              placeholder={"maito, kahvi,\njauheliha"}
+              className="block h-full w-full resize-none overflow-hidden rounded-[22px] border-0 bg-[#fffaf0] px-4 py-3 text-center text-[25px] font-black leading-[1.05] text-[#102216] outline-none placeholder:text-[#7d7461]"
               style={{ fontFamily: cooperFont }}
             />
           </div>
@@ -265,14 +303,15 @@ export default function ZiiplySearchCard({
         </div>
       ) : (
         <>
-          <div className="relative z-10 mt-5 rounded-[28px] border-[3px] border-[#9d8350] bg-[#fff4d3] p-2 shadow-[inset_0_4px_10px_rgba(91,65,28,0.12),0_2px_0_#fff6dc]">
+          <div className="relative z-10 mt-3 rounded-[28px] border-[3px] border-[#9d8350] bg-[#fff4d3] p-2 shadow-[inset_0_4px_10px_rgba(91,65,28,0.12),0_2px_0_#fff6dc]">
             <textarea
+              ref={inputRef}
               value={value}
-              onChange={(event) => onChange(event.target.value)}
+              onChange={handleTextChange}
               rows={1}
-              placeholder="maito, kahvi, jauheliha"
+              placeholder={mode === "single" ? "Kirjoita yksi tuote" : "maito, kahvi, jauheliha"}
               className="block h-[64px] w-full resize-none overflow-hidden rounded-[22px] border-0 bg-[#fff9e8] px-6 py-4 text-[22px] font-black leading-[1.05] text-[#172417] outline-none placeholder:text-[#8b846f]"
-              style={{ fontFamily: bodyFont }}
+              style={{ fontFamily: serifFont }}
             />
           </div>
 
@@ -285,39 +324,24 @@ export default function ZiiplySearchCard({
       )}
 
       {!hasText && (
-        <div className="relative z-10 mt-6 flex justify-center">
+        <div className="relative z-10 mt-3 flex justify-center">
           <ModeToggle mode={mode} onModeChange={onModeChange} />
         </div>
       )}
 
-      <div className="relative z-10 mt-3 flex min-h-[58px] max-h-[58px] items-center overflow-hidden rounded-[22px] border-[2px] border-[#d2b170] bg-[#fff1bf] px-4 py-3 text-[15px] font-black text-[#7a6842] shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
-        {chips.length > 0 ? (
-          <div className="flex min-w-0 flex-wrap gap-3">
-            {chips.map((chip) => (
-              <button
-                key={chip.id}
-                type="button"
-                onClick={chip.onClick}
-                className="max-w-[520px] truncate rounded-full border-[2px] border-[#c4a05d] bg-[#fffaf0] px-5 py-2 text-[20px] font-black text-[#2e6b34] shadow-[0_2px_0_rgba(90,70,35,0.18)]"
-              >
-                {chip.label}
-              </button>
-            ))}
-          </div>
-        ) : (
-          <span className="truncate">{instructionText}</span>
-        )}
+      <div className="relative z-10 mt-3 flex h-[52px] min-h-[52px] max-h-[52px] items-center justify-center overflow-hidden rounded-[20px] border-[2px] border-[#d2b170] bg-[#fff1bf] px-4 py-2 text-[14px] font-black text-[#7a6842] shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
+        {infoContent}
       </div>
 
-      <div className="relative z-10 mt-4 flex justify-center">
+      <div className="relative z-10 mt-3 flex justify-center">
         <button
           type="button"
           onClick={onScan}
-          className="relative z-[3] h-[76px] w-[82%] rounded-[30px] border-[4px] border-[#856b3d] bg-gradient-to-b from-[#efd295] to-[#d3a258] text-[34px] font-black italic text-[#1f3b25] shadow-[0_0_0_2px_#fff1c5_inset,0_6px_0_rgba(70,50,24,0.38)] active:translate-y-1 active:shadow-[0_3px_0_rgba(70,50,24,0.38)]"
+          className="relative z-[3] h-[68px] w-[82%] rounded-[28px] border-[4px] border-[#856b3d] bg-gradient-to-b from-[#efd295] to-[#d3a258] text-[30px] font-black italic text-[#1f3b25] shadow-[0_0_0_2px_#fff1c5_inset,0_6px_0_rgba(70,50,24,0.38)] active:translate-y-1 active:shadow-[0_3px_0_rgba(70,50,24,0.38)]"
           style={{ fontFamily: cooperFont }}
         >
-          <span className="mr-5 inline-flex h-[48px] w-[48px] items-center justify-center rounded-full border-[3px] border-[#7a653e] bg-[#f8f0d8] text-[24px] not-italic">
-            📸
+          <span className="mr-5 inline-flex h-[42px] w-[42px] items-center justify-center rounded-full border-[3px] border-[#7a653e] bg-[#f8f0d8] text-[22px] not-italic">
+            ▦
           </span>
           Skanneri
         </button>
@@ -329,9 +353,7 @@ export default function ZiiplySearchCard({
           onClick={onOpenResults}
           className="h-[112px] rounded-t-[34px] border-[4px] border-[#b99755] bg-[#ead39a] px-7 text-left shadow-[0_0_0_2px_#fff4cd_inset,0_8px_0_rgba(70,50,24,0.25)]"
         >
-          <div className="text-[22px] font-black uppercase tracking-[0.38em] text-[#746749]">
-            Hakutulokset
-          </div>
+          <div className="text-[22px] font-black uppercase tracking-[0.38em] text-[#746749]">Hakutulokset</div>
         </button>
 
         <button
@@ -339,27 +361,21 @@ export default function ZiiplySearchCard({
           onClick={onOpenCompare}
           className="h-[112px] rounded-t-[34px] border-[4px] border-[#b99755] bg-[#ead39a] px-7 text-left shadow-[0_0_0_2px_#fff4cd_inset,0_8px_0_rgba(70,50,24,0.25)]"
         >
-          <div className="text-[22px] font-black uppercase tracking-[0.38em] text-[#746749]">
-            Vertailu
-          </div>
+          <div className="text-[22px] font-black uppercase tracking-[0.38em] text-[#746749]">Vertailu</div>
           <div className="mx-auto mt-6 h-2 w-[120px] rounded-full bg-[#bca267]" />
         </button>
       </div>
 
       {showResults && (
         <div className="absolute bottom-[-78px] left-[34px] z-[60] h-[600px] w-[calc(50%-44px)] overflow-hidden rounded-t-[34px] border-[4px] border-[#b99755] bg-[#ead39a] p-6 shadow-[0_0_0_2px_#fff4cd_inset,0_20px_38px_rgba(50,35,10,0.35)]">
-          <div className="mb-5 text-[22px] font-black uppercase tracking-[0.38em] text-[#746749]">
-            Hakutulokset
-          </div>
+          <div className="mb-5 text-[22px] font-black uppercase tracking-[0.38em] text-[#746749]">Hakutulokset</div>
           <div className="h-[calc(100%-54px)] overflow-y-auto pr-2">{resultsPanel}</div>
         </div>
       )}
 
       {showCompare && (
         <div className="absolute bottom-[-78px] left-[34px] right-[34px] z-[60] h-[600px] overflow-hidden rounded-t-[34px] border-[4px] border-[#b99755] bg-[#ead39a] p-6 shadow-[0_0_0_2px_#fff4cd_inset,0_20px_38px_rgba(50,35,10,0.35)]">
-          <div className="mb-5 text-[22px] font-black uppercase tracking-[0.38em] text-[#746749]">
-            Vertailu
-          </div>
+          <div className="mb-5 text-[22px] font-black uppercase tracking-[0.38em] text-[#746749]">Vertailu</div>
           <div className="h-[calc(100%-54px)] overflow-y-auto pr-2">{comparePanel}</div>
         </div>
       )}
