@@ -33,17 +33,19 @@ export default function ZiiplyMobileTopBar({
   hidden = false,
   onOpenArea,
 }: ZiiplyMobileTopBarProps) {
+  if (hidden) return null;
+
   return (
-    <div
-      className={`relative z-[80] m-0 p-0 mt-1 mb-0 ziiply-desktop-debug-compact sm:mx-auto sm:max-w-[1180px] sm:px-4 ${hidden ? "hidden" : ""}`}
-    >
-      <TopbarResponsiveCard
-        areaLabel={areaLabel}
-        storeModeLabel=""
-        logoImageSrc="/ziiplylogo_mobile.png"
-        infoItems={MOBILE_INFO_ITEMS}
-        onOpenArea={onOpenArea}
-      />
+    <div className="fixed inset-x-0 top-[max(env(safe-area-inset-top),0px)] z-[80] m-0 px-2 pt-1 pb-0 sm:relative sm:top-auto sm:z-auto sm:mx-auto sm:max-w-[1180px] sm:px-4 sm:pt-1">
+      <div className="mx-auto w-[calc(100vw-16px)] max-w-[820px] sm:w-full sm:max-w-none">
+        <TopbarResponsiveCard
+          areaLabel={areaLabel}
+          storeModeLabel=""
+          logoImageSrc="/ziiplylogo_mobile.png"
+          infoItems={MOBILE_INFO_ITEMS}
+          onOpenArea={onOpenArea}
+        />
+      </div>
     </div>
   );
 }
