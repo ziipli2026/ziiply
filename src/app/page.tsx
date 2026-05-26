@@ -159,6 +159,7 @@ import {
 import * as TopbarResponsiveCardModule from "./components/ziiply/cards/TopbarResponsiveCard";
 import * as ZiiplyCartCardModule from "./components/ziiply/cards/ZiiplyCartCard";
 import ZiiplySearchCard from "./components/ziiply/cards/ZiiplySearchCard";
+import ZiiplyStoreLocaCard from "./components/ziiply/cards/ZiiplyStoreLocaCard";
 import * as ZiiplyCompareCardModule from "./components/ziiply/cards/ZiiplyCompareCard";
 
 export default function Page() {
@@ -7697,66 +7698,29 @@ export default function Page() {
               </aside>
 
               <main className="min-h-0 space-y-2 overflow-y-auto pr-1">
-                <section className="relative overflow-hidden rounded-[2.1rem] border-[3px] border-[#b99d62] bg-gradient-to-b from-[#f7e9c3] via-[#f0d9a4] to-[#dfbf7e] p-4 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80">
-                  <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:radial-gradient(#b59c67_1.15px,transparent_1.15px)] [background-size:15px_15px]" />
-                  <p className="relative mb-2 font-black uppercase tracking-[0.34em] text-[#746742] text-[13px] drop-shadow-[0_1px_0_#fff7df]" style={{ fontFamily: '"Copperplate", "Baskerville", Georgia, serif' }}>
-                    Kaupat ja sijainti
-                  </p>
-                  <div className="relative flex items-center gap-3">
-                    <button
-                      type="button"
-                      aria-pressed={usingOwnLocation}
-                      onClick={() => {
-                        if (usingOwnLocation) {
-                          stopOwnLocationV306(
-                            "GPS pois päältä. Kirjoita alue tai postinumero.",
-                          );
-                          return;
-                        }
-                        setLocationInput("");
-                        void useOwnLocation();
-                      }}
-                      aria-label={usingOwnLocation ? "GPS käytössä" : "GPS pois päältä"}
-                      className={`flex h-[46px] w-[64px] shrink-0 items-center justify-center rounded-2xl text-xl font-black shadow-sm ring-1 transition active:scale-[0.98] ${
-                        usingOwnLocation
-                          ? "bg-green-50 text-green-700 ring-green-200"
-                          : "bg-red-50 text-red-700 ring-red-200"
-                      }`}
-                    >
-                      📍
-                    </button>
-                    <input
-                      value={locationInput}
-                      onChange={(event) => {
-                        const nextValue = event.target.value;
-                        setLocationInput(nextValue);
-                        if (nextValue.trim()) {
-                          gpsUserDisabledRefV306.current = true;
-                          setUsingOwnLocation(false);
-                        }
-                        setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
-                      }}
-                      placeholder="05510 tai Hyvinkää"
-                      className="min-w-0 flex-1 rounded-[1.35rem] border-2 border-[#c6a86d] bg-[#fff9ea] px-5 py-3 text-base font-black text-[#27412a] shadow-[inset_0_2px_8px_rgba(91,65,28,0.10),0_1px_0_#fff6dc] outline-none placeholder:text-[#8b846f] focus:border-[#0b7f3a] focus:ring-4 focus:ring-[#c4dfbd]"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => void applyLocation()}
-                      className="rounded-[1.35rem] border-[3px] border-[#7a6338] bg-gradient-to-b from-[#f0d39a] to-[#c89a52] px-8 py-3 text-base font-black text-[#26351f] shadow-[0_4px_0_rgba(91,72,44,0.30),inset_0_0_0_2px_rgba(255,255,255,0.35)] transition hover:brightness-105 active:translate-y-[1px] active:shadow-[0_2px_0_rgba(91,72,44,0.30),inset_0_0_0_2px_rgba(255,255,255,0.35)]" style={{ fontFamily: '"Cooper Black", "Cooper Std Black", Georgia, serif' }}
-                    >
-                      Käytä
-                    </button>
-                    <span className="hidden h-[46px] min-w-[1px] 2xl:block" aria-hidden="true" />
-                  </div>
-
-                  {locationMessageVisible ? (
-                    <div className="pointer-events-none absolute left-[82px] right-[118px] top-[3px] z-50 flex justify-center overflow-visible">
-                      <div className="max-w-full whitespace-nowrap rounded-[0.95rem] border border-[#caa35d] bg-[#ffe9a8] px-3 py-1.5 text-center text-[clamp(8px,0.82vw,12px)] font-black uppercase leading-none tracking-[0.07em] text-[#8a3f16] shadow-[0_2px_0_rgba(91,72,44,0.18),0_5px_10px_rgba(80,50,10,0.10)]">
-                        {storeSearchLoading ? "HAETAAN KAUPPOJA..." : locationMessage}
-                      </div>
-                    </div>
-                  ) : null}
-                </section>
+                <ZiiplyStoreLocaCard
+                  locationInput={locationInput}
+                  onLocationInputChange={(nextValue) => {
+                    setLocationInput(nextValue);
+                    if (nextValue.trim()) {
+                      gpsUserDisabledRefV306.current = true;
+                      setUsingOwnLocation(false);
+                    }
+                    setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
+                  }}
+                  onApplyLocation={() => void applyLocation()}
+                  onUseOwnLocation={() => void useOwnLocation()}
+                  onDisableOwnLocation={() =>
+                    stopOwnLocationV306(
+                      "GPS pois päältä. Kirjoita alue tai postinumero.",
+                    )
+                  }
+                  usingOwnLocation={usingOwnLocation}
+                  locationMessage={locationMessage}
+                  locationMessageVisible={locationMessageVisible}
+                  storeSearchLoading={storeSearchLoading}
+                  placeholder="05510 tai Hyvinkää"
+                />
 
                 <ZiiplySearchCard
                   value={input}
