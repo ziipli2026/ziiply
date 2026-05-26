@@ -47,17 +47,21 @@ export default function ZiiplyMobileShopsView({
 }: ZiiplyMobileShopsViewProps) {
   return (
     <div className="sm:hidden">
-      <ZiiplyMobileLocationBar
-        locationInput={locationInput}
-        usingOwnLocation={usingOwnLocation}
-        storeSearchLoading={storeSearchLoading}
-        gpsErrorMessage={gpsErrorMessage}
-        onLocationInputChange={onLocationInputChange}
-        onGpsClick={onGpsClick}
-        onApplyLocation={onApplyLocation}
-      />
+      <div className="h-[92px]" aria-hidden="true" />
 
-      <div className="mt-2 space-y-3 pb-2">
+      <div className="sticky top-[92px] z-[75] bg-[#eaf7f1]/95 px-2 pb-2 pt-1 backdrop-blur">
+        <ZiiplyMobileLocationBar
+          locationInput={locationInput}
+          usingOwnLocation={usingOwnLocation}
+          storeSearchLoading={storeSearchLoading}
+          gpsErrorMessage={gpsErrorMessage}
+          onLocationInputChange={onLocationInputChange}
+          onGpsClick={onGpsClick}
+          onApplyLocation={onApplyLocation}
+        />
+      </div>
+
+      <div className="space-y-4 px-2 pb-[140px] pt-3">
         <ZiiplyMobileStoreModeSelector
           storeMode={storeMode}
           storeModeChosen={storeModeChosen}
