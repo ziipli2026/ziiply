@@ -7376,7 +7376,7 @@ export default function Page() {
             </span>
 
             <div
-              className={`absolute left-2 top-2 flex items-center justify-center rounded-xl bg-white/95 p-1.5 shadow-sm ring-1 ring-slate-200 ${
+              className={`absolute left-3 top-3 z-30 flex items-center justify-center rounded-xl bg-white p-1.5 shadow-md ring-1 ring-slate-200 ${
                 isTopRow ? "h-9 w-9" : "h-8 w-8"
               }`}
             >
@@ -7391,7 +7391,7 @@ export default function Page() {
               />
             </div>
 
-            <div className={isTopRow ? "h-5" : "h-4"} aria-hidden="true" />
+            <div className={isTopRow ? "h-2" : "h-1"} aria-hidden="true" />
 
             <p
               className={`font-black uppercase tracking-wide text-slate-400 ${isTopRow ? "mt-0 text-[9px]" : "mt-0 text-[8px]"}`}
@@ -7606,7 +7606,7 @@ export default function Page() {
 
         {!showLaunchScreen && (
           <div className="mx-auto grid h-full max-w-[1540px] grid-rows-[auto_minmax(0,1fr)] gap-2">
-            <header className="rounded-[1.6rem] border-[5px] border-[#073b2d] bg-[#fff4d8] p-2 shadow-[0_5px_0_#073b2d]">
+            <header className="h-[6.2rem] rounded-[1.6rem] border-[5px] border-[#073b2d] bg-[#fff4d8] p-2 shadow-[0_5px_0_#073b2d]">
               <div className="grid grid-cols-[150px_minmax(0,1fr)_320px] items-stretch gap-2">
                 <div className="flex items-center justify-center overflow-hidden rounded-[1.4rem] border border-[#d7bd87] bg-[#fffaf0] px-4">
                   <img
@@ -7672,7 +7672,7 @@ export default function Page() {
 
             <div className="grid min-h-0 grid-cols-[0.62fr_1.72fr_1.28fr] gap-2 overflow-hidden">
               <aside className="min-h-0 space-y-2 overflow-y-auto pr-1">
-                <section className="rounded-[1.6rem] border border-[#d6bf8f] bg-[#fff8e8] px-5 py-6 text-center shadow-[0_3px_0_rgba(7,59,45,0.16)] ring-1 ring-white/60">
+                <section className="h-[6.2rem] rounded-[1.6rem] border border-[#d6bf8f] bg-[#fff8e8] px-5 py-6 text-center shadow-[0_3px_0_rgba(7,59,45,0.16)] ring-1 ring-white/60">
                   <p
                     className="text-[2.05rem] font-black italic leading-[0.95] tracking-[-0.055em] text-[#28492e]"
                     style={{ fontFamily: '"Cooper Black", "Cooper Std Black", Georgia, serif' }}
@@ -8055,7 +8055,7 @@ export default function Page() {
                         <button
                           type="button"
                           onClick={() => void openDesktopCameraScanner()}
-                          className="group flex flex-col justify-between rounded-[1.6rem] border-[4px] border-[#1f211a] bg-[#10140f] p-4 text-left shadow-[inset_0_0_0_2px_rgba(255,255,255,0.14),0_8px_0_rgba(61,42,18,0.30)] transition hover:brightness-110 active:translate-y-[1px]"
+                          className="group flex flex-col justify-between h-[6.2rem] rounded-[1.6rem] border-[4px] border-[#1f211a] bg-[#10140f] p-4 text-left shadow-[inset_0_0_0_2px_rgba(255,255,255,0.14),0_8px_0_rgba(61,42,18,0.30)] transition hover:brightness-110 active:translate-y-[1px]"
                         >
                           <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[1.25rem] border-4 border-[#5d5037] bg-slate-950">
                             <div className="absolute left-1/2 top-1/2 h-1 w-[72%] -translate-x-1/2 -translate-y-1/2 bg-[#9fbe66]/75 shadow-[0_0_18px_4px_rgba(159,190,102,0.45)]" />
@@ -8076,7 +8076,7 @@ export default function Page() {
                         <button
                           type="button"
                           onClick={() => openDesktopKeyboardScanner()}
-                          className="group flex flex-col justify-between rounded-[1.6rem] border-[4px] border-[#7b5f32] bg-[#f6e7c4] p-4 text-left shadow-[inset_0_0_0_3px_rgba(255,255,255,0.35),0_8px_0_rgba(61,42,18,0.25)] transition hover:brightness-105 active:translate-y-[1px]"
+                          className="group flex flex-col justify-between h-[6.2rem] rounded-[1.6rem] border-[4px] border-[#7b5f32] bg-[#f6e7c4] p-4 text-left shadow-[inset_0_0_0_3px_rgba(255,255,255,0.35),0_8px_0_rgba(61,42,18,0.25)] transition hover:brightness-105 active:translate-y-[1px]"
                         >
                           <div className="relative flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-[1.25rem] border-4 border-[#b99e67] bg-[#fff8e7]">
                             <div className="absolute inset-x-8 top-1/2 h-3 -translate-y-1/2 rounded-full bg-[#9fbe66]/70 shadow-[0_0_18px_4px_rgba(159,190,102,0.28)]" />
