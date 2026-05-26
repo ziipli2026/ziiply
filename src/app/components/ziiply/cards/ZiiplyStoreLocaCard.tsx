@@ -8,6 +8,7 @@ export type ZiiplyStoreLocaCardProps = {
   onApplyLocation?: () => void | Promise<void>;
   onUseOwnLocation?: () => void | Promise<void>;
   onDisableOwnLocation?: () => void;
+  onOpenShops?: () => void;
   usingOwnLocation?: boolean;
   locationMessage?: string;
   locationMessageVisible?: boolean;
@@ -29,6 +30,7 @@ export default function ZiiplyStoreLocaCard({
   onApplyLocation,
   onUseOwnLocation,
   onDisableOwnLocation,
+  onOpenShops,
   usingOwnLocation = false,
   locationMessage = "Kirjoita alue tai käytä omaa sijaintia.",
   locationMessageVisible = false,
@@ -85,19 +87,28 @@ export default function ZiiplyStoreLocaCard({
           value={locationInput}
           onChange={(event) => onLocationInputChange(event.target.value)}
           placeholder={placeholder}
-          className="min-w-0 flex-1 rounded-[1.35rem] border-2 border-[#c6a86d] bg-[#fff9ea] px-5 py-3 text-base font-black text-[#27412a] shadow-[inset_0_2px_8px_rgba(91,65,28,0.10),0_1px_0_#fff6dc] outline-none placeholder:text-[#8b846f] focus:border-[#0b7f3a] focus:ring-4 focus:ring-[#c4dfbd]"
+          className="h-[50px] min-w-[210px] basis-1/3 rounded-[1.35rem] border-2 border-[#c6a86d] bg-[#fff9ea] px-5 py-3 text-base font-black text-[#27412a] shadow-[inset_0_2px_8px_rgba(91,65,28,0.10),0_1px_0_#fff6dc] outline-none placeholder:text-[#8b846f] focus:border-[#0b7f3a] focus:ring-4 focus:ring-[#c4dfbd]"
         />
 
         <button
           type="button"
           onClick={() => void onApplyLocation?.()}
-          className="rounded-[1.35rem] border-[3px] border-[#7a6338] bg-gradient-to-b from-[#f0d39a] to-[#c89a52] px-8 py-3 text-base font-black text-[#26351f] shadow-[0_4px_0_rgba(91,72,44,0.30),inset_0_0_0_2px_rgba(255,255,255,0.35)] transition hover:brightness-105 active:translate-y-[1px] active:shadow-[0_2px_0_rgba(91,72,44,0.30),inset_0_0_0_2px_rgba(255,255,255,0.35)]"
-          style={{ fontFamily: cooperFont }}
+          className="h-[42px] shrink-0 rounded-[1.1rem] border-2 border-[#b99d62] bg-[#fff4cf] px-4 text-xs font-black uppercase tracking-[0.14em] text-[#7a6338] opacity-80 shadow-[0_3px_0_rgba(91,72,44,0.18),inset_0_0_0_1px_rgba(255,255,255,0.45)] transition hover:opacity-100 active:translate-y-[1px]"
+          style={{ fontFamily: copperplateFont }}
+          title="Hae sijainti käsin"
         >
-          Käytä
+          Hae
         </button>
 
-        <span className="hidden h-[46px] min-w-[1px] 2xl:block" aria-hidden="true" />
+        <button
+          type="button"
+          onClick={() => void onOpenShops?.()}
+          className="ml-auto flex h-[50px] shrink-0 items-center gap-2 rounded-[1.35rem] border-[3px] border-[#0b4d32] bg-gradient-to-b from-[#f6e7b8] via-[#e3c06f] to-[#b98233] px-7 text-base font-black text-[#143b24] shadow-[0_5px_0_rgba(50,36,16,0.32),inset_0_0_0_2px_rgba(255,255,255,0.34)] transition hover:brightness-105 active:translate-y-[1px] active:shadow-[0_2px_0_rgba(50,36,16,0.32),inset_0_0_0_2px_rgba(255,255,255,0.34)]"
+          style={{ fontFamily: cooperFont }}
+        >
+          <span aria-hidden="true">🏪</span>
+          Kaupat
+        </button>
       </div>
 
       {showStatus ? (
