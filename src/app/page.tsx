@@ -8476,20 +8476,36 @@ export default function Page() {
                 📍
               </button>
 
-              <input
-                value={locationInput}
-                onChange={(event) => {
-                  const nextValue = event.target.value;
-                  setLocationInput(nextValue);
-                  if (nextValue.trim()) {
-                    gpsUserDisabledRefV306.current = true;
-                    setUsingOwnLocation(false);
-                  }
-                  setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
-                }}
-                placeholder="05510 tai Hyvinkää"
-                className="min-w-0 flex-1 max-w-[280px] rounded-xl border border-slate-300 px-3 py-2 text-[16px] outline-none focus:border-green-600 sm:mx-auto sm:rounded-2xl sm:px-4 sm:py-3"
-              />
+              <div className="relative min-w-0 flex-1 max-w-[280px] sm:mx-auto">
+                <input
+                  value={locationInput}
+                  onChange={(event) => {
+                    const nextValue = event.target.value;
+                    setLocationInput(nextValue);
+                    if (nextValue.trim()) {
+                      gpsUserDisabledRefV306.current = true;
+                      setUsingOwnLocation(false);
+                    }
+                    setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
+                  }}
+                  placeholder="05510 tai Hyvinkää"
+                  className={`h-11 w-full rounded-xl border border-slate-300 px-3 text-[16px] outline-none focus:border-green-600 sm:rounded-2xl sm:px-4 ${
+                    usingOwnLocation || gpsErrorMessage
+                      ? "pb-4 pt-1"
+                      : "py-2"
+                  }`}
+                />
+
+                {(usingOwnLocation || gpsErrorMessage) && (
+                  <div
+                    className={`pointer-events-none absolute inset-x-3 bottom-1.5 truncate text-[10px] font-black leading-none ${
+                      gpsErrorMessage ? "text-red-700" : "text-green-700"
+                    }`}
+                  >
+                    {gpsErrorMessage || "Käytetään nykyistä sijaintia"}
+                  </div>
+                )}
+              </div>
 
               <button
                 type="button"
@@ -8500,14 +8516,6 @@ export default function Page() {
                 Käytä
               </button>
             </div>
-
-            {gpsErrorMessage && (
-              <div className="mt-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-center text-sm font-extrabold text-red-700 shadow-sm">
-                {gpsErrorMessage}
-              </div>
-            )}
-
-            {renderComparedStoreCards(false)}
           </section>
 
           <section className="rounded-[2rem] bg-white p-5 shadow-sm">
@@ -8590,6 +8598,8 @@ export default function Page() {
                   </p>
                 )}
             </div>
+
+            {renderComparedStoreCards(false)}
 
             {false && foundStores.length > 0 && (
               <div className="mt-3 rounded-2xl bg-white p-3 text-xs text-slate-600 ring-1 ring-slate-200">
