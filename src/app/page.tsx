@@ -580,6 +580,7 @@ export default function Page() {
     {},
   );
   const [eanScannerOpen, setEanScannerOpen] = useState(false);
+  const [desktopKeyboardScannerOpen, setDesktopKeyboardScannerOpen] = useState(false);
   const [eanScannerMessage, setEanScannerMessage] = useState("");
   const [scannerTorchOn, setScannerTorchOn] = useState(false);
   const [eanManualInputOpen, setEanManualInputOpen] = useState(false);
@@ -3756,6 +3757,7 @@ export default function Page() {
     eanAutoSearchActiveRef.current = false;
 
     setEanScannerOpen(false);
+    setDesktopKeyboardScannerOpen(false);
     setEanModalOpen(false);
     setEanModalClosing(false);
     setSuppressUiForEanClose(false);
@@ -3776,6 +3778,7 @@ export default function Page() {
     setActiveResult("none");
     setEanModalClosing(false);
     setEanModalOpen(true);
+    setDesktopKeyboardScannerOpen(false);
     setEanManualInputOpen(false);
     setEanMessage("");
     setEanResults([]);
@@ -3790,14 +3793,16 @@ export default function Page() {
   }
 
   function openDesktopScanner() {
-    // Desktopissa sama Skanneri-nappi toimii togglena: jos kamera tai EAN-ikkuna on jo auki,
-    // suljetaan koko scanner-flow varmasti eikä käynnistetä uutta kamera-instanssia päällekkäin.
-    if (eanModalOpen || eanScannerOpen || eanHtml5ScannerRef.current) {
+    // Desktopissa Skanneri-nappi avaa ensin valinnan:
+    // 1) nykyinen kameraskanneri
+    // 2) erillinen USB/Bluetooth-viivakoodinlukija, joka toimii näppäimistönä.
+    // Mobiilin kameraskanneriflow'hun ei kosketa tässä.
+    if (eanModalOpen) {
       void closeEanModal();
       return;
     }
 
-    trackZiiplyEvent("desktop_scanner_opened", {
+    trackZiiplyEvent("desktop_scanner_selector_opened", {
       cartItemsCount: cart.length,
     });
 
@@ -3809,21 +3814,60 @@ export default function Page() {
     setEanModalClosing(false);
     setSuppressUiForEanClose(false);
     setEanModalOpen(true);
-    setEanScannerOpen(true);
+    setDesktopKeyboardScannerOpen(false);
+    setEanScannerOpen(false);
     setEanManualInputOpen(false);
+    setEanInput("");
+    setEanMessage("");
+    setEanResults([]);
+    setEanScannerMessage("");
+    setLastAutoEanSearch("");
+    setEanSearchStartedAutomatically(false);
+    eanAutoSearchActiveRef.current = false;
+  }
+
+  function openDesktopCameraScanner() {
+    trackZiiplyEvent("desktop_camera_scanner_opened", {
+      cartItemsCount: cart.length,
+    });
+
+    setDesktopKeyboardScannerOpen(false);
+    setEanManualInputOpen(false);
+    setEanInput("");
     setEanMessage("");
     setEanResults([]);
     setLastAutoEanSearch("");
     setEanSearchStartedAutomatically(false);
     eanAutoSearchActiveRef.current = false;
-    setEanScannerMessage("Ladataan kameraskanneria...");
+    setEanScannerMessage("Suuntaa tuotteen viivakoodi kameralle.");
+    setEanScannerOpen(true);
 
-    // Desktopin nappi avaa ensin modalin ja scanner-regionin renderöitäväksi.
-    // Kamera käynnistetään vasta seuraavalla render-kierroksella, jotta
-    // html5-qrcode löytää EAN_SCANNER_REGION_ID-elementin varmasti.
     window.setTimeout(() => {
       void startEanCameraScanner();
-    }, 260);
+    }, 120);
+  }
+
+  function openDesktopKeyboardScanner() {
+    trackZiiplyEvent("desktop_barcode_reader_opened", {
+      cartItemsCount: cart.length,
+    });
+
+    setDesktopKeyboardScannerOpen(true);
+    setEanScannerOpen(false);
+    setEanManualInputOpen(true);
+    setEanInput("");
+    setEanMessage("");
+    setEanResults([]);
+    setLastAutoEanSearch("");
+    setEanSearchStartedAutomatically(false);
+    eanAutoSearchActiveRef.current = false;
+    setEanScannerMessage(
+      "Skannaa viivakoodi USB- tai Bluetooth-lukijalla. Lukija kirjoittaa EAN-koodin tähän kenttään ja lähettää yleensä Enterin lopuksi.",
+    );
+
+    window.setTimeout(() => {
+      eanInputRef.current?.focus();
+    }, 80);
   }
 
   function clearEanSearch() {
@@ -7974,7 +8018,11 @@ export default function Page() {
                     <div className="mb-3 grid grid-cols-[1fr] gap-3">
                       <div>
                         <p className="flex min-h-[4.25rem] items-center rounded-2xl bg-[#efe0bf] px-5 py-3 font-serif text-[1.45rem] italic leading-tight text-[#31402c] shadow-sm">
-                          Kuva otetaan, hinnanhuojennukset talteen. Säästöt esiin!
+                          {desktopKeyboardScannerOpen
+                            ? "Piippaa tuote lukijalla. Ziiply lukee koodin kuin näppäimistösyötön."
+                            : eanScannerOpen
+                              ? "Kuva otetaan, hinnanhuojennukset talteen. Säästöt esiin!"
+                              : "Valitse skannaustapa: kamera tai erillinen viivakoodinlukija."}
                         </p>
                       </div>
                     </div>
@@ -7985,90 +8033,206 @@ export default function Page() {
                       </div>
                     )}
 
-                    <div className="relative overflow-hidden rounded-[2rem] border-[10px] border-[#1f211a] bg-[#10140f] p-4 shadow-[inset_0_0_0_2px_rgba(255,255,255,0.16),0_10px_20px_rgba(0,0,0,0.25)]">
-                      <div className="absolute left-1/2 top-3 z-10 h-9 w-28 -translate-x-1/2 rounded-xl border-2 border-[#cfc1a0] bg-transparent/70 shadow-inner" />
-                      <div className="absolute right-5 top-4 z-10 h-11 w-11 rounded-full border-4 border-[#cfc1a0] bg-[#0c0d0b] shadow-inner" />
-                      <div
-                        className="relative aspect-[4/3] w-full overflow-hidden rounded-[1.5rem] border-4 border-[#5d5037] bg-slate-950"
-                        onPointerDown={(event) => void focusScannerCameraAtPoint(event)}
-                      >
-                        <div
-                          id={EAN_SCANNER_REGION_ID}
-                          className="ziiply-desktop-scanner-region absolute inset-0 h-full w-full overflow-hidden rounded-[1.2rem] bg-slate-950 [&_*]:!box-border [&_canvas]:!hidden [&_div]:!border-0 [&_div]:!shadow-none [&_video]:!absolute [&_video]:!inset-0 [&_video]:!h-full [&_video]:!w-full [&_video]:rounded-[1.2rem] [&_video]:!object-cover"
-                        />
-                        <div className="pointer-events-none absolute inset-0 rounded-[1.2rem] bg-[radial-gradient(circle_at_center,transparent_0%,transparent_58%,rgba(0,0,0,0.38)_84%)]" />
-                        <div className="pointer-events-none absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 bg-[#9fbe66]/70 shadow-[0_0_18px_4px_rgba(159,190,102,0.45)]" />
-                        <div className="pointer-events-none absolute inset-[13%] rounded-2xl border-4 border-[#f7ead0]/80">
-                          <div className="absolute -left-1 -top-1 h-10 w-10 rounded-tl-2xl border-l-4 border-t-4 border-[#f7ead0]" />
-                          <div className="absolute -right-1 -top-1 h-10 w-10 rounded-tr-2xl border-r-4 border-t-4 border-[#f7ead0]" />
-                          <div className="absolute -bottom-1 -left-1 h-10 w-10 rounded-bl-2xl border-b-4 border-l-4 border-[#f7ead0]" />
-                          <div className="absolute -bottom-1 -right-1 h-10 w-10 rounded-br-2xl border-b-4 border-r-4 border-[#f7ead0]" />
-                        </div>
-                        {!eanScannerOpen && (
-                          <div className="absolute inset-0 flex items-center justify-center bg-transparent/45 p-6 text-center">
-                            <p className="max-w-sm rounded-2xl bg-[#fbf2dc] px-5 py-4 text-sm font-black text-[#2f3d28] shadow-xl">
-                              Kamera on pois päältä. Avaa skanneri uudelleen painikkeesta.
-                            </p>
+                    {!eanScannerOpen && !desktopKeyboardScannerOpen && (
+                      <div className="grid min-h-[26rem] grid-cols-2 gap-4 rounded-[2rem] border-[6px] border-[#7b5f32] bg-[#efe0bf] p-5 shadow-[inset_0_0_0_3px_rgba(255,255,255,0.35),0_10px_20px_rgba(0,0,0,0.16)]">
+                        <button
+                          type="button"
+                          onClick={() => void openDesktopCameraScanner()}
+                          className="group flex flex-col justify-between rounded-[1.6rem] border-[4px] border-[#1f211a] bg-[#10140f] p-4 text-left shadow-[inset_0_0_0_2px_rgba(255,255,255,0.14),0_8px_0_rgba(61,42,18,0.30)] transition hover:brightness-110 active:translate-y-[1px]"
+                        >
+                          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[1.25rem] border-4 border-[#5d5037] bg-slate-950">
+                            <div className="absolute left-1/2 top-1/2 h-1 w-[72%] -translate-x-1/2 -translate-y-1/2 bg-[#9fbe66]/75 shadow-[0_0_18px_4px_rgba(159,190,102,0.45)]" />
+                            <div className="absolute inset-[14%] rounded-2xl border-4 border-[#f7ead0]/80">
+                              <div className="absolute -left-1 -top-1 h-8 w-8 rounded-tl-2xl border-l-4 border-t-4 border-[#f7ead0]" />
+                              <div className="absolute -right-1 -top-1 h-8 w-8 rounded-tr-2xl border-r-4 border-t-4 border-[#f7ead0]" />
+                              <div className="absolute -bottom-1 -left-1 h-8 w-8 rounded-bl-2xl border-b-4 border-l-4 border-[#f7ead0]" />
+                              <div className="absolute -bottom-1 -right-1 h-8 w-8 rounded-br-2xl border-b-4 border-r-4 border-[#f7ead0]" />
+                            </div>
+                            <div className="absolute inset-0 flex items-center justify-center text-6xl">📷</div>
                           </div>
-                        )}
-                      </div>
+                          <div className="mt-4 rounded-2xl bg-[#fbf2dc] px-4 py-3 text-[#2f3d28] shadow-sm">
+                            <p className="font-serif text-[1.8rem] font-black italic leading-none">Käytä kameraa</p>
+                            <p className="mt-2 text-sm font-black leading-tight text-[#4f4733]">Nykyinen kameraskanneri. Sopii erilliselle webkameralle tai hyvälle laitekameralle.</p>
+                          </div>
+                        </button>
 
-                      <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
                         <button
                           type="button"
-                          onClick={() => {
-                            // Desktop: älä auto-focusoi EAN-kenttää.
-                            // Focus aiheutti selain-scrollin, joka pomputti kamerakorttia ylöspäin.
-                            // Kenttä pidetään myös aina varattuna tilana alempana, joten kortin korkeus ei muutu.
-                            setEanManualInputOpen((open) => !open);
-                          }}
-                          className="rounded-xl border border-[#8b744b] bg-[#d7c196] px-4 py-3 text-sm font-black text-[#3a3325] shadow-[inset_0_1px_0_rgba(255,255,255,0.4)] active:scale-[0.98]"
+                          onClick={() => openDesktopKeyboardScanner()}
+                          className="group flex flex-col justify-between rounded-[1.6rem] border-[4px] border-[#7b5f32] bg-[#f6e7c4] p-4 text-left shadow-[inset_0_0_0_3px_rgba(255,255,255,0.35),0_8px_0_rgba(61,42,18,0.25)] transition hover:brightness-105 active:translate-y-[1px]"
                         >
-                          EAN käsin
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => void toggleScannerTorch()}
-                          className={`flex h-16 w-16 items-center justify-center rounded-full border-4 border-[#d6bf8f] text-2xl shadow-lg active:scale-[0.98] ${scannerTorchOn ? "bg-yellow-100 text-yellow-900" : "bg-[#789155] text-[#f7ead0]"}`}
-                          aria-label="Valo"
-                        >
-                          📷
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => void closeEanModal()}
-                          className="rounded-xl bg-[#3d5a2f] px-4 py-3 text-sm font-black text-[#f7ead0] shadow-[inset_0_1px_0_rgba(255,255,255,0.25)] active:scale-[0.98]"
-                        >
-                          Sulje kamera
+                          <div className="relative flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-[1.25rem] border-4 border-[#b99e67] bg-[#fff8e7]">
+                            <div className="absolute inset-x-8 top-1/2 h-3 -translate-y-1/2 rounded-full bg-[#9fbe66]/70 shadow-[0_0_18px_4px_rgba(159,190,102,0.28)]" />
+                            <div className="flex items-end gap-2 text-[#23351f]">
+                              {[8, 18, 11, 28, 14, 22, 9, 30, 16, 24, 10, 20].map((height, index) => (
+                                <span
+                                  key={index}
+                                  className="w-2 rounded-sm bg-[#23351f]"
+                                  style={{ height }}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                          <div className="mt-4 rounded-2xl bg-[#fbf2dc] px-4 py-3 text-[#2f3d28] shadow-sm">
+                            <p className="font-serif text-[1.8rem] font-black italic leading-none">Käytä viivakoodinlukijaa</p>
+                            <p className="mt-2 text-sm font-black leading-tight text-[#4f4733]">USB- tai Bluetooth-lukija syöttää EAN-koodin automaattisesti.</p>
+                          </div>
                         </button>
                       </div>
-                    </div>
+                    )}
 
-                    <div
-                      className={`mt-3 flex min-h-[4.25rem] gap-2 rounded-2xl border border-[#d6bf8f] bg-[#efe0bf] p-2 transition-opacity duration-150 ${eanManualInputOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}
-                      aria-hidden={!eanManualInputOpen}
-                    >
-                      <input
-                        ref={eanInputRef}
-                        value={eanInput}
-                        onChange={(event) =>
-                          setEanInput(event.target.value.replace(/\D/g, ""))
-                        }
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter") void searchByEan();
-                        }}
-                        inputMode="numeric"
-                        placeholder="Syötä EAN, esim. 641..."
-                        className="min-w-0 flex-1 rounded-xl border border-[#d6bf8f] bg-white px-4 py-3 text-base font-bold tracking-wide text-[#172016] outline-none focus:border-green-700"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => void searchByEan()}
-                        className="rounded-xl bg-[#0c7c38] px-5 py-3 text-sm font-black text-white"
-                      >
-                        Hae
-                      </button>
-                    </div>
+                    {eanScannerOpen && (
+                      <>
+                        <div className="relative overflow-hidden rounded-[2rem] border-[10px] border-[#1f211a] bg-[#10140f] p-4 shadow-[inset_0_0_0_2px_rgba(255,255,255,0.16),0_10px_20px_rgba(0,0,0,0.25)]">
+                          <div className="absolute left-1/2 top-3 z-10 h-9 w-28 -translate-x-1/2 rounded-xl border-2 border-[#cfc1a0] bg-transparent/70 shadow-inner" />
+                          <div className="absolute right-5 top-4 z-10 h-11 w-11 rounded-full border-4 border-[#cfc1a0] bg-[#0c0d0b] shadow-inner" />
+                          <div
+                            className="relative aspect-[4/3] w-full overflow-hidden rounded-[1.5rem] border-4 border-[#5d5037] bg-slate-950"
+                            onPointerDown={(event) => void focusScannerCameraAtPoint(event)}
+                          >
+                            <div
+                              id={EAN_SCANNER_REGION_ID}
+                              className="ziiply-desktop-scanner-region absolute inset-0 h-full w-full overflow-hidden rounded-[1.2rem] bg-slate-950 [&_*]:!box-border [&_canvas]:!hidden [&_div]:!border-0 [&_div]:!shadow-none [&_video]:!absolute [&_video]:!inset-0 [&_video]:!h-full [&_video]:!w-full [&_video]:rounded-[1.2rem] [&_video]:!object-cover"
+                            />
+                            <div className="pointer-events-none absolute inset-0 rounded-[1.2rem] bg-[radial-gradient(circle_at_center,transparent_0%,transparent_58%,rgba(0,0,0,0.38)_84%)]" />
+                            <div className="pointer-events-none absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 bg-[#9fbe66]/70 shadow-[0_0_18px_4px_rgba(159,190,102,0.45)]" />
+                            <div className="pointer-events-none absolute inset-[13%] rounded-2xl border-4 border-[#f7ead0]/80">
+                              <div className="absolute -left-1 -top-1 h-10 w-10 rounded-tl-2xl border-l-4 border-t-4 border-[#f7ead0]" />
+                              <div className="absolute -right-1 -top-1 h-10 w-10 rounded-tr-2xl border-r-4 border-t-4 border-[#f7ead0]" />
+                              <div className="absolute -bottom-1 -left-1 h-10 w-10 rounded-bl-2xl border-b-4 border-l-4 border-[#f7ead0]" />
+                              <div className="absolute -bottom-1 -right-1 h-10 w-10 rounded-br-2xl border-b-4 border-r-4 border-[#f7ead0]" />
+                            </div>
+                          </div>
+
+                          <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+                            <button
+                              type="button"
+                              onClick={() => setEanManualInputOpen((open) => !open)}
+                              className="rounded-xl border border-[#8b744b] bg-[#d7c196] px-4 py-3 text-sm font-black text-[#3a3325] shadow-[inset_0_1px_0_rgba(255,255,255,0.4)] active:scale-[0.98]"
+                            >
+                              EAN käsin
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => void toggleScannerTorch()}
+                              className={`flex h-16 w-16 items-center justify-center rounded-full border-4 border-[#d6bf8f] text-2xl shadow-lg active:scale-[0.98] ${scannerTorchOn ? "bg-yellow-100 text-yellow-900" : "bg-[#789155] text-[#f7ead0]"}`}
+                              aria-label="Valo"
+                            >
+                              📷
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => void closeEanModal()}
+                              className="rounded-xl bg-[#3d5a2f] px-4 py-3 text-sm font-black text-[#f7ead0] shadow-[inset_0_1px_0_rgba(255,255,255,0.25)] active:scale-[0.98]"
+                            >
+                              Sulje kamera
+                            </button>
+                          </div>
+                        </div>
+
+                        <div
+                          className={`mt-3 flex min-h-[4.25rem] gap-2 rounded-2xl border border-[#d6bf8f] bg-[#efe0bf] p-2 transition-opacity duration-150 ${eanManualInputOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}
+                          aria-hidden={!eanManualInputOpen}
+                        >
+                          <input
+                            ref={eanInputRef}
+                            value={eanInput}
+                            onChange={(event) =>
+                              setEanInput(event.target.value.replace(/\D/g, ""))
+                            }
+                            onKeyDown={(event) => {
+                              if (event.key === "Enter") void searchByEan();
+                            }}
+                            inputMode="numeric"
+                            placeholder="Syötä EAN, esim. 641..."
+                            className="min-w-0 flex-1 rounded-xl border border-[#d6bf8f] bg-white px-4 py-3 text-base font-bold tracking-wide text-[#172016] outline-none focus:border-green-700"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => void searchByEan()}
+                            className="rounded-xl bg-[#0c7c38] px-5 py-3 text-sm font-black text-white"
+                          >
+                            Hae
+                          </button>
+                        </div>
+                      </>
+                    )}
+
+                    {desktopKeyboardScannerOpen && !eanScannerOpen && (
+                      <div className="rounded-[2rem] border-[6px] border-[#7b5f32] bg-[#efe0bf] p-5 shadow-[inset_0_0_0_3px_rgba(255,255,255,0.35),0_10px_20px_rgba(0,0,0,0.16)]">
+                        <div className="rounded-[1.5rem] border-[4px] border-[#b99e67] bg-[#fff8e7] p-5 text-center shadow-[inset_0_0_0_2px_rgba(255,255,255,0.65)]">
+                          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border-4 border-[#2f7c3f] bg-[#dff2c4] text-3xl shadow-[0_0_0_4px_rgba(47,124,63,0.12)]">
+                            ▌▌▌
+                          </div>
+                          <p className="mt-4 font-serif text-[2.35rem] font-black italic leading-none text-[#31402c]">
+                            Valmis lukemaan
+                          </p>
+                          <p className="mx-auto mt-2 max-w-[30rem] text-sm font-black leading-snug text-[#4f4733]">
+                            Klikkaa kenttään ja piippaa tuote lukijalla. Lukija kirjoittaa koodin ja lähettää yleensä Enterin lopuksi.
+                          </p>
+
+                          <div className="mt-5 flex gap-3">
+                            <input
+                              ref={eanInputRef}
+                              value={eanInput}
+                              onChange={(event) =>
+                                setEanInput(event.target.value.replace(/\D/g, ""))
+                              }
+                              onKeyDown={(event) => {
+                                if (event.key === "Enter") void searchByEan();
+                              }}
+                              inputMode="numeric"
+                              autoComplete="off"
+                              placeholder="Skannaa EAN-koodi"
+                              className="min-w-0 flex-1 rounded-[1.25rem] border-[3px] border-[#b99e67] bg-white px-5 py-5 text-center text-2xl font-black tracking-[0.22em] text-[#172016] shadow-[inset_0_2px_8px_rgba(91,65,28,0.10)] outline-none placeholder:tracking-normal placeholder:text-[#8b846f] focus:border-[#2f7c3f] focus:ring-4 focus:ring-[#c4dfbd]"
+                              onPaste={(event) => {
+                                const pastedText = event.clipboardData.getData("text");
+                                const code = normalizeEan(pastedText);
+                                if (!code) return;
+                                event.preventDefault();
+                                setEanInput(code);
+                                window.setTimeout(() => void searchByEan(code), 30);
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => void searchByEan()}
+                              className="rounded-[1.25rem] border-[3px] border-[#0b6330] bg-gradient-to-b from-[#159b46] to-[#087a35] px-8 py-4 text-base font-black text-[#fff0d5] shadow-[0_5px_0_#064a26] active:translate-y-1 active:shadow-[0_2px_0_#064a26]"
+                            >
+                              Hae
+                            </button>
+                          </div>
+
+                          {eanMessage && (
+                            <div className="mt-4 rounded-2xl bg-[#f2e3c4] px-4 py-3 text-sm font-black text-[#4f4733] ring-1 ring-[#d8bd86]">
+                              {eanMessage}
+                            </div>
+                          )}
+
+                          <div className="mt-5 flex justify-between gap-3">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setDesktopKeyboardScannerOpen(false);
+                                setEanScannerMessage("");
+                                setEanInput("");
+                                setEanMessage("");
+                              }}
+                              className="rounded-xl border border-[#8b744b] bg-[#d7c196] px-5 py-3 text-sm font-black text-[#3a3325] shadow-[inset_0_1px_0_rgba(255,255,255,0.4)] active:scale-[0.98]"
+                            >
+                              Takaisin
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => void closeEanModal()}
+                              className="rounded-xl bg-[#3d5a2f] px-5 py-3 text-sm font-black text-[#f7ead0] shadow-[inset_0_1px_0_rgba(255,255,255,0.25)] active:scale-[0.98]"
+                            >
+                              Sulje
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
 
                     {eanResults.length > 0 && (
                       <div className="mt-3 rounded-2xl border border-[#d6bf8f] bg-[#fbf2dc] p-3 text-sm font-bold text-[#3a3325]">
@@ -8265,6 +8429,7 @@ export default function Page() {
           </section>
 
           {!showLaunchScreen &&
+            !storesReadyForSearch &&
             !searchPanelOpen &&
             !cartModalOpen &&
             !shopsPanelOpen &&
@@ -8293,7 +8458,7 @@ export default function Page() {
               </section>
             )}
 
-          <section className="hidden rounded-[1.25rem] border border-slate-200 bg-white/95 p-2 shadow-sm sm:block sm:rounded-[1.35rem] sm:p-3">
+          <section className="rounded-[1.25rem] border border-slate-200 bg-white/95 p-2 shadow-sm sm:rounded-[1.35rem] sm:p-3">
             <div className="flex items-center gap-2 sm:gap-3">
               <button
                 type="button"
@@ -8352,7 +8517,7 @@ export default function Page() {
             {renderComparedStoreCards(false)}
           </section>
 
-          <section className="hidden rounded-[2rem] bg-white p-5 shadow-sm sm:block">
+          <section className="rounded-[2rem] bg-white p-5 shadow-sm">
             <p className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-500">
               Hakutapa
             </p>
@@ -9339,6 +9504,75 @@ export default function Page() {
               {eanScannerMessage && !eanScannerOpen && (
                 <div className="mt-3 rounded-2xl bg-slate-100 p-3 text-sm font-bold text-slate-700 ziiply-soft-open-fast">
                   {eanScannerMessage}
+                </div>
+              )}
+
+              {desktopKeyboardScannerOpen && !eanScannerOpen && (
+                <div className="mt-3 rounded-[1.5rem] border border-slate-200 bg-white p-3 shadow-sm ziiply-soft-open">
+                  <div className="rounded-2xl bg-green-50 px-3 py-2 text-center text-sm font-black leading-snug text-green-900 ring-1 ring-green-100">
+                    USB/Bluetooth-lukija toimii kuten näppäimistö. Klikkaa kenttään ja skannaa viivakoodi.
+                  </div>
+
+                  <div className="mt-3 flex gap-2">
+                    <input
+                      ref={eanInputRef}
+                      value={eanInput}
+                      onChange={(event) =>
+                        setEanInput(event.target.value.replace(/\D/g, ""))
+                      }
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") void searchByEan();
+                      }}
+                      inputMode="numeric"
+                      autoComplete="off"
+                      placeholder="Skannaa tai syötä EAN-koodi"
+                      className="min-w-0 flex-1 rounded-2xl border border-slate-300 px-4 py-4 text-lg font-black tracking-[0.18em] text-slate-950 outline-none transition placeholder:tracking-normal placeholder:text-slate-400 focus:border-green-600 focus:ring-4 focus:ring-green-100"
+                      onPaste={(event) => {
+                        const pastedText = event.clipboardData.getData("text");
+                        const code = normalizeEan(pastedText);
+
+                        if (!isUsableEan(code)) return;
+
+                        event.preventDefault();
+
+                        if (eanAutoSearchTimeoutRef.current) {
+                          window.clearTimeout(eanAutoSearchTimeoutRef.current);
+                          eanAutoSearchTimeoutRef.current = null;
+                        }
+
+                        setEanInput(code);
+                        setLastAutoEanSearch(code);
+                        setEanSearchStartedAutomatically(true);
+                        eanAutoSearchActiveRef.current = true;
+                        setEanMessage(`Luettu koodi: ${code}. Haetaan...`);
+                        void searchByEan(code);
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={clearEanSearch}
+                      disabled={!eanInput && eanResults.length === 0 && !eanMessage}
+                      className="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-extrabold text-slate-700 transition active:scale-[0.98] disabled:opacity-40"
+                    >
+                      Tyhjennä
+                    </button>
+                  </div>
+
+                  {eanMessage && (
+                    <div className="mt-3 rounded-2xl bg-slate-100 p-3 text-sm font-bold text-slate-700">
+                      {eanMessage}
+                    </div>
+                  )}
+
+                  <div className="mt-3 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={closeEanModal}
+                      className="rounded-2xl bg-slate-900 px-5 py-3 text-sm font-black text-white shadow-sm transition active:scale-[0.98]"
+                    >
+                      Sulje
+                    </button>
+                  </div>
                 </div>
               )}
 
