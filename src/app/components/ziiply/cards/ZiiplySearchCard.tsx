@@ -39,31 +39,56 @@ function cx(...classes: Array<string | false | null | undefined>) {
 
 const cooperFont = '"Cooper Black", "Cooper Std Black", Georgia, serif';
 const serifFont = '"Baskerville", Georgia, serif';
+const copperplateFont = '"Copperplate", "Baskerville", Georgia, serif';
 
-function GostaButton({
+function AssistantButton({
+  kind,
   onClick,
   disabled = false,
   loading = false,
 }: {
+  kind: "gosta" | "justiina";
   onClick?: () => void;
   disabled?: boolean;
   loading?: boolean;
 }) {
+  const isGosta = kind === "gosta";
+  const name = isGosta ? "Gösta" : "Justiina";
+  const image = isGosta ? "/assistants/gosta.png" : "/assistants/justiina.png";
+  const title = isGosta
+    ? "Gösta etsii hinnanhuojennukset"
+    : "Justiina etsii ostokset";
+  const subline = isGosta
+    ? loading
+      ? ["Etsii", "hinnanhuojennuksia…"]
+      : ["Etsi", "hinnanhuojennukset"]
+    : loading
+      ? ["Etsii", "ostoksia…"]
+      : ["Etsi", "ostokset"];
+
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
       aria-disabled={disabled}
+      title={title}
       className={cx(
-        "group flex h-[92px] min-h-[92px] w-full min-w-0 items-center gap-2 overflow-hidden rounded-[24px] border-[3px] border-[#7b935f] bg-gradient-to-b from-[#eff2d2] to-[#cdd99b] px-2 py-2 text-left shadow-[0_5px_0_rgba(91,72,44,0.22),inset_0_0_0_2px_rgba(255,255,255,0.5)] transition active:translate-y-[1px]",
+        "flex h-[86px] min-w-0 items-center gap-2 overflow-hidden rounded-[24px] border-[3px] px-2.5 text-left shadow-[0_5px_0_rgba(91,72,44,0.20),inset_0_0_0_2px_rgba(255,255,255,0.48)] transition active:translate-y-[1px]",
+        isGosta
+          ? "border-[#7f9866] bg-gradient-to-b from-[#f0f3d7] to-[#d0dda0] text-[#315f2f]"
+          : "border-[#d3b255] bg-gradient-to-b from-[#fff2c4] to-[#efd06f] text-[#9a5a36]",
         disabled ? "cursor-not-allowed opacity-55" : "hover:brightness-105",
       )}
-      title="Gösta etsii hinnanhuojennukset"
     >
-      <span className="h-[76px] w-[76px] shrink-0 overflow-hidden rounded-[22px] border-[2px] border-[#9eb17a] bg-[#e7edc4]">
+      <span
+        className={cx(
+          "grid h-[68px] w-[68px] shrink-0 place-items-center overflow-hidden rounded-[19px] border-[2px] bg-[#f7edc6]",
+          isGosta ? "border-[#98ae78]" : "border-[#d7b85d]",
+        )}
+      >
         <img
-          src="/assistants/gosta.png"
+          src={image}
           alt=""
           onError={(event) => {
             event.currentTarget.style.display = "none";
@@ -71,105 +96,40 @@ function GostaButton({
           className="h-full w-full object-cover object-top"
         />
       </span>
+
       <span className="min-w-0 flex-1 overflow-hidden">
         <span
-          className="block max-w-full truncate text-[22px] font-black italic leading-none text-[#315f2f]"
+          className="block truncate text-[24px] font-black italic leading-[0.95]"
           style={{ fontFamily: cooperFont }}
         >
-          Gösta
+          {name}
         </span>
         <span
-          className="mt-1 block text-[12px] font-black leading-[1.02] text-[#315f2f]"
+          className="mt-1 block overflow-hidden text-[13px] font-black leading-[1.04]"
           style={{ fontFamily: serifFont }}
         >
-          {loading ? (
-            <>
-              Etsii
-              <br />
-              hinnanhuojennuksia…
-            </>
-          ) : (
-            <>
-              Etsi
-              <br />
-              hinnanhuojennukset
-            </>
-          )}
+          <span className="block truncate">{subline[0]}</span>
+          <span className="block truncate">{subline[1]}</span>
         </span>
       </span>
     </button>
   );
 }
 
-function JustiinaButton({
-  onClick,
-  disabled = false,
-  loading = false,
+function ModeToggle({
+  mode,
+  onModeChange,
 }: {
-  onClick?: () => void;
-  disabled?: boolean;
-  loading?: boolean;
+  mode: SearchMode;
+  onModeChange: (mode: SearchMode) => void;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      aria-disabled={disabled}
-      className={cx(
-        "group flex h-[92px] min-h-[92px] w-full min-w-0 items-center gap-2 overflow-hidden rounded-[24px] border-[3px] border-[#c69f48] bg-gradient-to-b from-[#fff0bd] to-[#eec965] px-2 py-2 text-left shadow-[0_5px_0_rgba(91,72,44,0.22),inset_0_0_0_2px_rgba(255,255,255,0.5)] transition active:translate-y-[1px]",
-        disabled ? "cursor-not-allowed opacity-55" : "hover:brightness-105",
-      )}
-      title="Justiina etsii ostokset"
-    >
-      <span className="h-[76px] w-[76px] shrink-0 overflow-hidden rounded-[22px] border-[2px] border-[#d8b457] bg-[#f8e8ba]">
-        <img
-          src="/assistants/justiina.png"
-          alt=""
-          onError={(event) => {
-            event.currentTarget.style.display = "none";
-          }}
-          className="h-full w-full object-cover object-top"
-        />
-      </span>
-      <span className="min-w-0 flex-1 overflow-hidden">
-        <span
-          className="block max-w-full truncate text-[22px] font-black italic leading-none text-[#8a3f16]"
-          style={{ fontFamily: cooperFont }}
-        >
-          Justiina
-        </span>
-        <span
-          className="mt-1 block text-[12px] font-black leading-[1.02] text-[#8a3f16]"
-          style={{ fontFamily: serifFont }}
-        >
-          {loading ? (
-            <>
-              Etsii
-              <br />
-              ostoksia…
-            </>
-          ) : (
-            <>
-              Etsi
-              <br />
-              ostokset
-            </>
-          )}
-        </span>
-      </span>
-    </button>
-  );
-}
-
-function ModeToggle({ mode, onModeChange }: { mode: SearchMode; onModeChange: (mode: SearchMode) => void }) {
-  return (
-    <div className="mx-auto flex h-[72px] w-full max-w-[292px] shrink-0 rounded-[26px] border-[4px] border-[#b99d64] bg-[#ead7a5] p-2 shadow-[0_0_0_3px_#fff4cc_inset,0_6px_0_rgba(91,72,44,0.22)]">
+    <div className="mx-auto grid h-[64px] w-full max-w-[220px] grid-cols-2 rounded-[24px] border-[4px] border-[#b99d64] bg-[#ead7a5] p-2 shadow-[0_0_0_3px_#fff4cc_inset,0_5px_0_rgba(91,72,44,0.22)]">
       <button
         type="button"
         onClick={() => onModeChange("cart")}
         className={cx(
-          "min-h-[52px] flex-1 rounded-[20px] px-3 text-[20px] font-black leading-[0.9] transition",
+          "rounded-[18px] px-2 text-[17px] font-black leading-[0.9] transition",
           mode === "cart"
             ? "bg-[#fff4cf] text-[#23502c] shadow-[inset_0_0_0_3px_#d9bd77,0_3px_0_rgba(91,72,44,0.18)]"
             : "text-[#7a6842]",
@@ -182,7 +142,7 @@ function ModeToggle({ mode, onModeChange }: { mode: SearchMode; onModeChange: (m
         type="button"
         onClick={() => onModeChange("single")}
         className={cx(
-          "min-h-[52px] flex-1 rounded-[20px] px-3 text-[20px] font-black leading-[0.9] transition",
+          "rounded-[18px] px-2 text-[17px] font-black leading-[0.9] transition",
           mode === "single"
             ? "bg-[#fff4cf] text-[#23502c] shadow-[inset_0_0_0_3px_#d9bd77,0_3px_0_rgba(91,72,44,0.18)]"
             : "text-[#7a6842]",
@@ -205,7 +165,7 @@ export default function ZiiplySearchCard({
   onGostaSearch,
   onJustiinaSearch,
   chips = [],
-  instructionText = "Syötä tuotteet pilkulla eroteltuna tai liitä vihkosesta.",
+  instructionText = "Justiina ehdottaa sopivia hakusanoja kirjoituksen mukaan.",
   resultsPanel,
   comparePanel,
   activePanel = "none",
@@ -220,23 +180,24 @@ export default function ZiiplySearchCard({
   const hasText = value.trim().length > 0;
   const [typingViewOpen, setTypingViewOpen] = useState(false);
   const showTypingView = hasText || typingViewOpen;
-  const showModeToggle = showTypingView;
   const showResults = activePanel === "results";
   const showCompare = activePanel === "compare";
 
   useEffect(() => {
-    // Kun ensimmäinen kirjain vaihtaa tyhjänäkymän kirjoitusnäkymäksi, textarea remounttaa.
-    // Tämä palauttaa fokuksen ja kursorin loppuun, jotta kirjoittaminen ei katkea.
     if (!showTypingView) return;
+
     const frame = window.requestAnimationFrame(() => {
       const input = inputRef.current;
       if (!input) return;
+
       const cursor = input.value.length;
       input.focus();
+
       try {
         input.setSelectionRange(cursor, cursor);
       } catch {}
     });
+
     return () => window.cancelAnimationFrame(frame);
   }, [showTypingView]);
 
@@ -255,40 +216,47 @@ export default function ZiiplySearchCard({
 
   const infoContent = cleanNotFoundTerms.length > 0 ? (
     <span className="block w-full truncate text-center text-[#8a3f16]">
-      Hakemaasi {cleanNotFoundTerms.join(", ")} ei löytynyt.
+      Etsimääsi {cleanNotFoundTerms.join(", ")} ei löytynyt.
     </span>
   ) : chips.length > 0 ? (
-    <div className="flex min-w-0 flex-nowrap items-center justify-center gap-2 overflow-hidden">
+    <div className="flex min-w-0 flex-nowrap items-center justify-center gap-3 overflow-hidden">
       {chips.slice(0, 3).map((chip) => (
         <button
           key={chip.id}
           type="button"
           onClick={chip.onClick}
-          className="max-w-[260px] shrink truncate rounded-full border-[2px] border-[#c4a05d] bg-[#fffaf0] px-4 py-1.5 text-[16px] font-black text-[#2e6b34] shadow-[0_2px_0_rgba(90,70,35,0.18)]"
+          className="max-w-[300px] shrink truncate rounded-full border-[2px] border-[#c4a05d] bg-[#fffaf0] px-5 py-1 text-[17px] font-black text-[#2e6b34] shadow-[0_2px_0_rgba(90,70,35,0.18)]"
           style={{ fontFamily: cooperFont }}
         >
           {chip.label}
         </button>
       ))}
     </div>
-  ) : (
+  ) : !hasText ? (
     <span className="block w-full truncate text-center">{instructionText}</span>
+  ) : (
+    <span aria-hidden="true" className="block h-5 w-full" />
   );
 
   return (
     <section
       className={cx(
-        "ziiply-search-card relative isolate h-[455px] min-h-[455px] overflow-visible rounded-[36px] border-[4px] border-[#5b482c] bg-[#f6ebc6] px-8 pb-[112px] pt-5 text-[#20301f] shadow-[0_0_0_2px_#d8bd75_inset,0_16px_0_rgba(60,45,20,0.28)]",
+        "ziiply-search-card relative isolate h-[430px] min-h-[430px] overflow-visible rounded-[36px] border-[4px] border-[#5b482c] bg-[#f6ebc6] px-5 pt-3 text-[#20301f] shadow-[0_0_0_2px_#d8bd75_inset,0_13px_0_rgba(60,45,20,0.28)]",
         className,
       )}
     >
       <div className="pointer-events-none absolute inset-0 rounded-[28px] opacity-45 [background-image:radial-gradient(#d8bd75_1.2px,transparent_1.2px)] [background-size:18px_18px]" />
 
-      <div className="relative z-10 grid min-h-[82px] grid-cols-[minmax(0,1fr)_auto] items-start gap-5">
-        <div className="min-w-0 overflow-hidden pt-1">
-          <div className="text-[15px] font-black uppercase leading-none tracking-[0.42em] text-[#6f674f]">Haku</div>
+      <div className="relative z-10 grid h-[84px] grid-cols-[minmax(0,1fr)_minmax(280px,390px)] items-start gap-4">
+        <div className="min-w-0 overflow-hidden">
+          <div
+            className="text-[15px] font-black uppercase leading-none tracking-[0.38em] text-[#6f674f]"
+            style={{ fontFamily: copperplateFont }}
+          >
+            Haku
+          </div>
           <h1
-            className="mt-2 max-w-full truncate whitespace-nowrap text-[clamp(42px,4.2vw,66px)] font-black italic leading-[0.88] text-[#203b25]"
+            className="mt-1 max-w-full truncate whitespace-nowrap text-[clamp(34px,3.65vw,52px)] font-black italic leading-[0.95] text-[#203b25]"
             style={{ fontFamily: cooperFont }}
           >
             Tuotteet ja vertailu
@@ -298,7 +266,7 @@ export default function ZiiplySearchCard({
         <button
           type="button"
           onClick={onAddFromNotebook}
-          className="mt-0 h-[70px] min-w-[330px] shrink-0 rounded-[32px] border-[5px] border-[#0a5f2e] bg-gradient-to-b from-[#169c48] via-[#0f8d3e] to-[#087936] px-10 text-[30px] font-black italic leading-none text-[#fff1d8] shadow-[0_0_0_3px_rgba(255,255,255,0.18)_inset,0_7px_0_#064a26,0_12px_16px_rgba(35,25,10,0.22)] transition hover:brightness-105 active:translate-y-1 active:shadow-[0_0_0_3px_rgba(255,255,255,0.18)_inset,0_3px_0_#064a26]"
+          className="h-[60px] justify-self-end rounded-[27px] border-[4px] border-[#0b6330] bg-gradient-to-b from-[#139143] to-[#087237] px-8 text-[24px] font-black italic leading-none text-[#fff0d5] shadow-[0_0_0_3px_rgba(255,255,255,0.18)_inset,0_5px_0_#064a26] transition hover:brightness-105 active:translate-y-1 active:shadow-[0_2px_0_#064a26]"
           style={{ fontFamily: cooperFont }}
         >
           Lisää vihkosesta
@@ -306,57 +274,78 @@ export default function ZiiplySearchCard({
       </div>
 
       {!showTypingView ? (
-        <div className="relative z-10 mt-3 grid grid-cols-[minmax(285px,315px)_minmax(250px,300px)_minmax(285px,315px)] items-start justify-center gap-5">
-          <GostaButton onClick={onGostaSearch} disabled={!value.trim()} loading={gostaLoading} />
+        <div className="relative z-10 mt-1 grid grid-cols-[minmax(205px,1fr)_minmax(220px,275px)_minmax(205px,1fr)] items-center gap-4">
+          <AssistantButton
+            kind="gosta"
+            onClick={onGostaSearch}
+            disabled={!value.trim()}
+            loading={gostaLoading}
+          />
 
-          <div className="h-[92px] rounded-[28px] border-[3px] border-[#9d8350] bg-[#fff4d3] p-2 shadow-[inset_0_4px_10px_rgba(91,65,28,0.12),0_2px_0_#fff6dc]">
+          <div className="h-[86px] rounded-[28px] border-[4px] border-[#9d8350] bg-[#fff4d3] p-2 shadow-[inset_0_4px_10px_rgba(91,65,28,0.12),0_2px_0_#fff6dc]">
             <textarea
               ref={inputRef}
               value={value}
               onChange={handleTextChange}
               onFocus={handleTextFocus}
-              rows={1}
+              rows={2}
               placeholder={"maito, kahvi,\njauheliha"}
-              className="block h-full w-full resize-none overflow-hidden rounded-[22px] border-0 bg-[#fffaf0] px-4 py-3 text-center text-[25px] font-black leading-[1.05] text-[#102216] outline-none placeholder:text-[#7d7461]"
+              className="block h-full w-full resize-none overflow-hidden rounded-[22px] border-0 bg-[#fffaf0] px-4 py-[13px] text-center text-[25px] font-black leading-[1.03] text-[#102216] outline-none placeholder:text-[#7d7461]"
               style={{ fontFamily: cooperFont }}
             />
           </div>
 
-          <JustiinaButton onClick={onJustiinaSearch} disabled={!value.trim()} loading={justiinaLoading} />
+          <AssistantButton
+            kind="justiina"
+            onClick={onJustiinaSearch}
+            disabled={!value.trim()}
+            loading={justiinaLoading}
+          />
         </div>
       ) : (
         <>
-          <div className="relative z-10 mt-4 rounded-[34px] border-[4px] border-[#9d8350] bg-[#fff4d3] p-3 shadow-[inset_0_4px_10px_rgba(91,65,28,0.12),0_4px_0_rgba(91,72,44,0.18)]">
+          <div className="relative z-10 mt-1 h-[82px] rounded-[29px] border-[4px] border-[#9d8350] bg-[#fff4d3] p-2 shadow-[inset_0_4px_10px_rgba(91,65,28,0.12),0_2px_0_#fff6dc]">
             <textarea
               ref={inputRef}
               value={value}
               onChange={handleTextChange}
               onFocus={handleTextFocus}
               rows={1}
-              placeholder={mode === "single" ? "Kirjoita yksi tuote" : "maito, kahvi, jauheliha"}
-              className="block h-[86px] w-full resize-none overflow-hidden rounded-[28px] border-0 bg-[#fff9e8] px-10 py-6 text-[30px] font-black leading-[1.05] text-[#172417] outline-none placeholder:text-[#8b846f]"
-              style={{ fontFamily: cooperFont }}
+              placeholder={
+                mode === "single"
+                  ? "Kirjoita yksi tuote"
+                  : "maito, kahvi, jauheliha"
+              }
+              className="block h-full w-full resize-none overflow-hidden rounded-[23px] border-0 bg-[#fff9e8] px-8 py-[17px] text-[28px] font-black leading-none text-[#172417] outline-none placeholder:text-[#8b846f]"
+              style={{ fontFamily: serifFont }}
             />
           </div>
 
-          <div className="relative z-10 mt-5 grid grid-cols-[minmax(240px,310px)_minmax(260px,292px)_minmax(240px,310px)] items-center justify-center gap-6">
-            <GostaButton onClick={onGostaSearch} loading={gostaLoading} />
+          <div className="relative z-10 mt-3 grid grid-cols-[minmax(205px,1fr)_minmax(180px,220px)_minmax(205px,1fr)] items-center gap-4">
+            <AssistantButton
+              kind="gosta"
+              onClick={onGostaSearch}
+              loading={gostaLoading}
+            />
             <ModeToggle mode={mode} onModeChange={onModeChange} />
-            <JustiinaButton onClick={onJustiinaSearch} loading={justiinaLoading} />
+            <AssistantButton
+              kind="justiina"
+              onClick={onJustiinaSearch}
+              loading={justiinaLoading}
+            />
           </div>
         </>
       )}
 
-
-      <div className="absolute bottom-[112px] left-[52px] right-[52px] z-10 flex h-[50px] min-h-[50px] max-h-[50px] items-center justify-center overflow-hidden rounded-[20px] border-[2px] border-[#d2b170] bg-[#fff1bf] px-4 py-2 text-[14px] font-black text-[#7a6842] shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
+      <div className="absolute bottom-[84px] left-[46px] right-[46px] z-20 flex h-[44px] items-center justify-center overflow-hidden rounded-[19px] border-[3px] border-[#d2b170] bg-[#fff1bf] px-5 text-[16px] font-black text-[#7a6842] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_4px_0_rgba(91,72,44,0.12)]">
         {infoContent}
       </div>
 
-      <div className="absolute bottom-[24px] left-0 right-0 z-10 flex justify-center">
+      <div className="absolute bottom-[14px] left-[58px] right-[58px] z-10">
         <button
           type="button"
           onClick={onScan}
-          className="relative h-[72px] w-[86%] rounded-[28px] border-[4px] border-[#856b3d] bg-gradient-to-b from-[#efd295] to-[#d3a258] text-[30px] font-black italic text-[#1f3b25] shadow-[0_0_0_2px_#fff1c5_inset,0_6px_0_rgba(70,50,24,0.38)] active:translate-y-1 active:shadow-[0_3px_0_rgba(70,50,24,0.38)]"
+          className="relative h-[62px] w-full rounded-[28px] border-[4px] border-[#856b3d] bg-gradient-to-b from-[#efd295] to-[#d3a258] text-[31px] font-black italic text-[#1f3b25] shadow-[0_0_0_2px_#fff1c5_inset,0_6px_0_rgba(70,50,24,0.38)] transition hover:brightness-105 active:translate-y-1 active:shadow-[0_3px_0_rgba(70,50,24,0.38)]"
           style={{ fontFamily: cooperFont }}
         >
           <span className="mr-5 inline-flex h-[42px] w-[42px] items-center justify-center rounded-full border-[3px] border-[#7a653e] bg-[#f8f0d8] text-[22px] not-italic">
@@ -366,36 +355,60 @@ export default function ZiiplySearchCard({
         </button>
       </div>
 
-      <div className="absolute bottom-[-78px] left-[52px] right-[52px] z-[4] grid grid-cols-2 gap-5">
+      <div className="absolute bottom-[-72px] left-[36px] right-[36px] z-[4] grid grid-cols-2 gap-5">
         <button
           type="button"
           onClick={onOpenResults}
-          className="h-[112px] rounded-t-[34px] border-[4px] border-[#b99755] bg-[#ead39a] px-7 text-left shadow-[0_0_0_2px_#fff4cd_inset,0_8px_0_rgba(70,50,24,0.25)]"
+          className="h-[102px] rounded-t-[34px] border-[4px] border-[#b99755] bg-[#ead39a] px-7 pt-7 text-left shadow-[0_0_0_2px_#fff4cd_inset,0_8px_0_rgba(70,50,24,0.25)]"
         >
-          <div className="text-[22px] font-black uppercase tracking-[0.38em] text-[#746749]">Hakutulokset</div>
+          <div
+            className="text-[20px] font-black uppercase tracking-[0.38em] text-[#746749]"
+            style={{ fontFamily: copperplateFont }}
+          >
+            Hakutulokset
+          </div>
         </button>
 
         <button
           type="button"
           onClick={onOpenCompare}
-          className="h-[112px] rounded-t-[34px] border-[4px] border-[#b99755] bg-[#ead39a] px-7 text-left shadow-[0_0_0_2px_#fff4cd_inset,0_8px_0_rgba(70,50,24,0.25)]"
+          className="h-[102px] rounded-t-[34px] border-[4px] border-[#b99755] bg-[#ead39a] px-7 pt-7 text-left shadow-[0_0_0_2px_#fff4cd_inset,0_8px_0_rgba(70,50,24,0.25)]"
         >
-          <div className="text-[22px] font-black uppercase tracking-[0.38em] text-[#746749]">Vertailu</div>
-          <div className="mx-auto mt-6 h-2 w-[120px] rounded-full bg-[#bca267]" />
+          <div
+            className="text-[20px] font-black uppercase tracking-[0.38em] text-[#746749]"
+            style={{ fontFamily: copperplateFont }}
+          >
+            Vertailu
+          </div>
+          <div className="mx-auto mt-6 h-2 w-[95px] rounded-full bg-[#bca267]" />
         </button>
       </div>
 
       {showResults && (
-        <div className="absolute bottom-[-78px] left-[52px] z-[60] h-[600px] w-[calc(50%-44px)] overflow-hidden rounded-t-[34px] border-[4px] border-[#b99755] bg-[#ead39a] p-6 shadow-[0_0_0_2px_#fff4cd_inset,0_20px_38px_rgba(50,35,10,0.35)]">
-          <div className="mb-5 text-[22px] font-black uppercase tracking-[0.38em] text-[#746749]">Hakutulokset</div>
-          <div className="h-[calc(100%-54px)] overflow-y-auto pr-2">{resultsPanel}</div>
+        <div className="absolute bottom-[-72px] left-[36px] z-[60] h-[560px] w-[calc(50%-46px)] overflow-hidden rounded-t-[34px] border-[4px] border-[#b99755] bg-[#ead39a] p-6 shadow-[0_0_0_2px_#fff4cd_inset,0_20px_38px_rgba(50,35,10,0.35)]">
+          <div
+            className="mb-5 text-[21px] font-black uppercase tracking-[0.38em] text-[#746749]"
+            style={{ fontFamily: copperplateFont }}
+          >
+            Hakutulokset
+          </div>
+          <div className="h-[calc(100%-54px)] overflow-y-auto pr-2">
+            {resultsPanel}
+          </div>
         </div>
       )}
 
       {showCompare && (
-        <div className="absolute bottom-[-78px] left-[52px] right-[52px] z-[60] h-[600px] overflow-hidden rounded-t-[34px] border-[4px] border-[#b99755] bg-[#ead39a] p-6 shadow-[0_0_0_2px_#fff4cd_inset,0_20px_38px_rgba(50,35,10,0.35)]">
-          <div className="mb-5 text-[22px] font-black uppercase tracking-[0.38em] text-[#746749]">Vertailu</div>
-          <div className="h-[calc(100%-54px)] overflow-y-auto pr-2">{comparePanel}</div>
+        <div className="absolute bottom-[-72px] left-[36px] right-[36px] z-[60] h-[560px] overflow-hidden rounded-t-[34px] border-[4px] border-[#b99755] bg-[#ead39a] p-6 shadow-[0_0_0_2px_#fff4cd_inset,0_20px_38px_rgba(50,35,10,0.35)]">
+          <div
+            className="mb-5 text-[21px] font-black uppercase tracking-[0.38em] text-[#746749]"
+            style={{ fontFamily: copperplateFont }}
+          >
+            Vertailu
+          </div>
+          <div className="h-[calc(100%-54px)] overflow-y-auto pr-2">
+            {comparePanel}
+          </div>
         </div>
       )}
     </section>
