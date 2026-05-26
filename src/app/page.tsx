@@ -7087,7 +7087,7 @@ export default function Page() {
     ) {
       return (
         <div className="mt-3 rounded-2xl bg-amber-50 px-4 py-3 text-center text-sm font-extrabold text-amber-800 ring-1 ring-amber-200">
-          Valitse kaupat ja vertailutapa.
+          
         </div>
       );
     }
@@ -8374,36 +8374,7 @@ export default function Page() {
             }}
           />
         </div>
-
-        {/* v333_MOBILE_INFO_STRIP_VISIBILITY:
-          Näytetään aloitusohje vain silloin kun kauppakortti ei ole auki eikä valintoja ole tehty.
-          Kun Kaupat-kortti avataan, ohje poistuu kokonaan taustalta, ettei se jää kortin alle. */}
-        {(() => {
-          const missingStoreSelectionsV333 =
-            storeCompareScope === "none" ||
-            (storeCompareScope === "between_chains" && !storeModeChosenV299) ||
-            (storeCompareScope === "within_chain" && !withinChain);
-
-          const showMobileStoreInstructionV333 =
-            missingStoreSelectionsV333 &&
-            !shopsPanelOpen &&
-            !searchPanelOpen &&
-            !cartModalOpen &&
-            !eanModalOpen &&
-            activeResult === "none";
-
-          if (!showMobileStoreInstructionV333) return null;
-
-          return (
-            <div className="mx-auto w-full max-w-6xl px-3 mt-1 mb-2 sm:hidden">
-              <div className="w-full overflow-hidden whitespace-nowrap rounded-full border border-[#E6C96A] bg-[#F6F2DD] px-4 py-[6px] text-center text-[12px] font-extrabold leading-none text-[#9A5A00] shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-                Valitse kaupat ja vertailutapa.
-              </div>
-            </div>
-          );
-        })()}
-
-        <div className="mx-auto max-w-6xl space-y-2 sm:space-y-3">
+<div className="mx-auto max-w-6xl space-y-2 sm:space-y-3">
           <section
             className={`-mx-2 bg-transparent px-2 pb-1 pt-1 sm:-mx-4 sm:px-4 sm:pb-2 sm:pt-2 ${
               showLaunchScreen ? "hidden" : "hidden sm:block"
