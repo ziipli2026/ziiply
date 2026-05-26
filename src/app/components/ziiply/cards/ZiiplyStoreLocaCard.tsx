@@ -46,6 +46,7 @@ export default function ZiiplyStoreLocaCard({
       onDisableOwnLocation?.();
       return;
     }
+
     onLocationInputChange("");
     void onUseOwnLocation?.();
   };
@@ -66,7 +67,7 @@ export default function ZiiplyStoreLocaCard({
         Kaupat ja sijainti
       </p>
 
-      <div className="relative flex items-center gap-3">
+      <div className="relative flex items-center gap-4">
         <button
           type="button"
           aria-pressed={usingOwnLocation}
@@ -74,10 +75,10 @@ export default function ZiiplyStoreLocaCard({
           title={usingOwnLocation ? "GPS käytössä" : "GPS pois päältä"}
           onClick={handleGpsClick}
           className={cx(
-            "flex h-[46px] w-[64px] shrink-0 items-center justify-center rounded-2xl text-xl font-black shadow-sm ring-1 transition active:scale-[0.98]",
+            "flex h-[56px] w-[72px] shrink-0 items-center justify-center rounded-[1.35rem] border-2 text-2xl font-black shadow-[0_3px_0_rgba(91,72,44,0.16),inset_0_0_0_1px_rgba(255,255,255,0.65)] ring-1 transition active:scale-[0.98]",
             usingOwnLocation
-              ? "bg-green-50 text-green-700 ring-green-200"
-              : "bg-red-50 text-red-700 ring-red-200",
+              ? "border-[#9ac68d] bg-[#ecf9e8] text-green-700 ring-green-200"
+              : "border-[#efc5c5] bg-[#fff1f1] text-red-700 ring-red-200",
           )}
         >
           📍
@@ -86,28 +87,40 @@ export default function ZiiplyStoreLocaCard({
         <input
           value={locationInput}
           onChange={(event) => onLocationInputChange(event.target.value)}
+          onBlur={() => {
+            if (locationInput.trim()) void onApplyLocation?.();
+          }}
           placeholder={placeholder}
-          className="h-[50px] min-w-[210px] basis-1/3 rounded-[1.35rem] border-2 border-[#c6a86d] bg-[#fff9ea] px-5 py-3 text-base font-black text-[#27412a] shadow-[inset_0_2px_8px_rgba(91,65,28,0.10),0_1px_0_#fff6dc] outline-none placeholder:text-[#8b846f] focus:border-[#0b7f3a] focus:ring-4 focus:ring-[#c4dfbd]"
+          className="h-[56px] min-w-[220px] basis-[32%] rounded-[1.45rem] border-2 border-[#c6a86d] bg-[#fff9ea] px-5 text-base font-black text-[#27412a] shadow-[inset_0_2px_8px_rgba(91,65,28,0.10),0_1px_0_#fff6dc] outline-none placeholder:text-[#8b846f] focus:border-[#0b7f3a] focus:ring-4 focus:ring-[#c4dfbd]"
         />
 
         <button
           type="button"
-          onClick={() => void onApplyLocation?.()}
-          className="h-[42px] shrink-0 rounded-[1.1rem] border-2 border-[#b99d62] bg-[#fff4cf] px-4 text-xs font-black uppercase tracking-[0.14em] text-[#7a6338] opacity-80 shadow-[0_3px_0_rgba(91,72,44,0.18),inset_0_0_0_1px_rgba(255,255,255,0.45)] transition hover:opacity-100 active:translate-y-[1px]"
-          style={{ fontFamily: copperplateFont }}
-          title="Hae sijainti käsin"
-        >
-          Hae
-        </button>
-
-        <button
-          type="button"
           onClick={() => void onOpenShops?.()}
-          className="ml-auto flex h-[50px] shrink-0 items-center gap-2 rounded-[1.35rem] border-[3px] border-[#0b4d32] bg-gradient-to-b from-[#f6e7b8] via-[#e3c06f] to-[#b98233] px-7 text-base font-black text-[#143b24] shadow-[0_5px_0_rgba(50,36,16,0.32),inset_0_0_0_2px_rgba(255,255,255,0.34)] transition hover:brightness-105 active:translate-y-[1px] active:shadow-[0_2px_0_rgba(50,36,16,0.32),inset_0_0_0_2px_rgba(255,255,255,0.34)]"
+          className="ml-auto flex h-[74px] min-w-[250px] shrink-0 items-center justify-center gap-4 overflow-hidden rounded-[1.6rem] border-[3px] border-[#17452f] bg-gradient-to-b from-[#f8edc8] via-[#e2bf72] to-[#b98233] px-5 text-[#143b24] shadow-[0_6px_0_rgba(50,36,16,0.34),0_12px_18px_rgba(70,44,14,0.12),inset_0_0_0_2px_rgba(255,255,255,0.36)] transition hover:brightness-105 active:translate-y-[1px] active:shadow-[0_3px_0_rgba(50,36,16,0.34),inset_0_0_0_2px_rgba(255,255,255,0.36)]"
           style={{ fontFamily: cooperFont }}
+          aria-label="Avaa kauppavalikot"
+          title="Avaa kauppavalikot"
         >
-          <span aria-hidden="true">🏪</span>
-          Kaupat
+          <span className="flex h-[58px] w-[112px] shrink-0 items-center justify-center overflow-hidden rounded-[1.15rem] border-2 border-[#194b31] bg-[#f5e1a7] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.36)]">
+            <img
+              src="/icons/storesel.png"
+              alt=""
+              className="h-full w-full object-cover"
+              draggable={false}
+            />
+          </span>
+          <span className="flex flex-col items-start leading-none">
+            <span
+              className="text-[11px] font-black uppercase tracking-[0.28em] text-[#6f623f]"
+              style={{ fontFamily: copperplateFont }}
+            >
+              Valitse
+            </span>
+            <span className="mt-1 text-[25px] font-black text-[#143b24] drop-shadow-[0_1px_0_#fff0c6]">
+              Kaupat
+            </span>
+          </span>
         </button>
       </div>
 
