@@ -18,16 +18,16 @@ export default function ZiiplyMobileHomeView({
       <section
         className="flex flex-col items-center text-center"
         style={{
-          minHeight: "32vh",
+          minHeight: "29vh",
           justifyContent: "flex-start",
-          paddingTop: "4vh",
+          paddingTop: "3vh",
         }}
       >
         <img
           src="/ziiplylogo_mobile.png"
           alt="Ziiply"
           draggable={false}
-          className="mb-4 w-[132px] select-none object-contain"
+          className="mb-3 w-[106px] select-none object-contain"
           onError={(event) => {
             event.currentTarget.style.display = "none";
           }}
@@ -42,7 +42,7 @@ export default function ZiiplyMobileHomeView({
         </p>
       </section>
 
-      <section className="rounded-[2rem] bg-white/92 p-4 shadow-[0_14px_40px_rgba(15,23,42,0.08)] ring-1 ring-white/80">
+      <section className="-mt-2 rounded-[2rem] bg-white/92 p-4 shadow-[0_14px_40px_rgba(15,23,42,0.08)] ring-1 ring-white/80">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-[15px] font-black uppercase tracking-[0.18em] text-[#6c7693]">
             AI-APULAISET
