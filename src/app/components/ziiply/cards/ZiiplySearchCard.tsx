@@ -274,6 +274,7 @@ export default function ZiiplySearchCard({
       )}
     >
       <div className="pointer-events-none absolute inset-0 rounded-[28px] opacity-45 [background-image:radial-gradient(#d8bd75_1.2px,transparent_1.2px)] [background-size:18px_18px]" />
+      <div className="pointer-events-none absolute bottom-[38px] right-[10px] top-[142px] z-[5] w-[82px] bg-[#f6ebc6] opacity-100 [background-image:radial-gradient(#d8bd75_1.2px,transparent_1.2px)] [background-size:18px_18px]" />
 
       <div className="relative z-10 grid h-[64px] grid-cols-[minmax(0,1fr)_minmax(220px,286px)] items-start gap-4">
         <div className="min-w-0 overflow-hidden">
