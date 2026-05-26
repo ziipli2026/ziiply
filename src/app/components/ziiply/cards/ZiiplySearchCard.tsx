@@ -302,33 +302,35 @@ export default function ZiiplySearchCard({
       </div>
 
       {!showTypingView ? (
-        <div className="relative z-10 mt-1 grid grid-cols-[minmax(215px,1fr)_minmax(220px,270px)_minmax(215px,1fr)] items-center gap-4">
-          <AssistantButton
-            kind="gosta"
-            onClick={onGostaSearch}
-            disabled={!value.trim()}
-            loading={gostaLoading}
-          />
+        <div className="relative z-10 mt-0 flex h-[176px] items-center">
+          <div className="grid w-full grid-cols-[minmax(215px,1fr)_minmax(220px,270px)_minmax(215px,1fr)] items-center gap-4">
+            <AssistantButton
+              kind="gosta"
+              onClick={onGostaSearch}
+              disabled={!value.trim()}
+              loading={gostaLoading}
+            />
 
-          <div className="h-[78px] overflow-hidden rounded-[26px] border-[4px] border-[#9d8350] bg-[#fff4d3] p-2 shadow-[inset_0_3px_8px_rgba(91,65,28,0.10)]">
-            <textarea
-              ref={inputRef}
-              value={value}
-              onChange={handleTextChange}
-              onFocus={handleTextFocus}
-              rows={2}
-              placeholder={"maito, kahvi,\njauheliha"}
-              className="block h-full w-full resize-none overflow-hidden rounded-[22px] border-0 bg-[#fffaf0] px-4 py-[10px] text-center text-[24px] font-black leading-[1.03] text-[#102216] outline-none placeholder:text-[#7d7461]"
-              style={{ fontFamily: cooperFont }}
+            <div className="h-[78px] overflow-hidden rounded-[26px] border-[4px] border-[#9d8350] bg-[#fff4d3] p-2 shadow-[inset_0_3px_8px_rgba(91,65,28,0.10)]">
+              <textarea
+                ref={inputRef}
+                value={value}
+                onChange={handleTextChange}
+                onFocus={handleTextFocus}
+                rows={2}
+                placeholder={"maito, kahvi,\njauheliha"}
+                className="block h-full w-full resize-none overflow-hidden rounded-[22px] border-0 bg-[#fffaf0] px-4 py-[10px] text-center text-[24px] font-black leading-[1.03] text-[#102216] outline-none placeholder:text-[#7d7461]"
+                style={{ fontFamily: cooperFont }}
+              />
+            </div>
+
+            <AssistantButton
+              kind="justiina"
+              onClick={onJustiinaSearch}
+              disabled={!value.trim()}
+              loading={justiinaLoading}
             />
           </div>
-
-          <AssistantButton
-            kind="justiina"
-            onClick={onJustiinaSearch}
-            disabled={!value.trim()}
-            loading={justiinaLoading}
-          />
         </div>
       ) : (
         <>
