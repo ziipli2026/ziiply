@@ -47,9 +47,9 @@ export default function ZiiplyMobileShopsView({
 }: ZiiplyMobileShopsViewProps) {
   return (
     <div className="sm:hidden">
-      <div className="h-[74px]" aria-hidden="true" />
+      <div className="h-[88px]" aria-hidden="true" />
 
-      <div className="sticky top-[74px] z-[75] bg-[#eaf7f1]/95 px-2 pb-1 pt-0 backdrop-blur">
+      <div className="sticky top-[88px] z-[75] bg-[#eaf7f1]/95 px-2 pb-1 pt-1 backdrop-blur">
         <ZiiplyMobileLocationBar
           locationInput={locationInput}
           usingOwnLocation={usingOwnLocation}
