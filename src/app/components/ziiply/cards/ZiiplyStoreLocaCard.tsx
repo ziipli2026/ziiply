@@ -101,7 +101,7 @@ export default function ZiiplyStoreLocaCard({
       </div>
 
       {showStatus ? (
-        <div className="pointer-events-none absolute left-1/2 top-[22px] z-20 inline-flex w-max max-w-[calc(100%-220px)] -translate-x-1/2 items-center justify-center whitespace-nowrap rounded-[1.05rem] border border-[#caa35d] bg-[#ffe9a8] px-5 py-1.5 text-[13px] font-black uppercase tracking-[0.14em] text-[#8a3f16] shadow-[0_3px_0_rgba(91,72,44,0.20),0_8px_18px_rgba(80,50,10,0.12)]">
+        <div className="pointer-events-none absolute left-[32px] top-[12px] z-30 inline-flex w-max max-w-[360px] items-center justify-center whitespace-nowrap rounded-[1.05rem] border border-[#caa35d] bg-[#ffe9a8] px-5 py-1.5 text-[13px] font-black uppercase tracking-[0.14em] text-[#8a3f16] shadow-[0_3px_0_rgba(91,72,44,0.20),0_8px_18px_rgba(80,50,10,0.12)]">
           <span className="block max-w-full truncate">{statusText}</span>
         </div>
       ) : null}
