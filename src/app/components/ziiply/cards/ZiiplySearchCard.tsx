@@ -214,9 +214,37 @@ export default function ZiiplySearchCard({
     .map((term) => String(term || "").trim())
     .filter(Boolean);
 
-  const infoContent = cleanNotFoundTerms.length > 0 ? (
+  const normalizeUiText = (text: string) =>
+    text
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9åäö]+/gi, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+  const normalizedValue = normalizeUiText(value);
+  const normalizedValueTerms = value
+    .split(/[,;\n]/)
+    .map(normalizeUiText)
+    .filter(Boolean);
+
+  // NOT_FOUND_STALE_GUARD:
+  // Parent state may briefly keep the previous not-found term after the user starts
+  // typing a new query. Do not let that stale error hide the predictive chips.
+  // Show the error only while the current input still exactly matches that failed term.
+  const activeNotFoundTerms = cleanNotFoundTerms.filter((term) => {
+    const normalizedTerm = normalizeUiText(term);
+    if (!normalizedTerm || !normalizedValue) return false;
+    return (
+      normalizedValue === normalizedTerm ||
+      normalizedValueTerms.some((valueTerm) => valueTerm === normalizedTerm)
+    );
+  });
+
+  const infoContent = activeNotFoundTerms.length > 0 ? (
     <span className="block w-full truncate text-center text-[#8a3f16]">
-      Etsimääsi {cleanNotFoundTerms.join(", ")} ei löytynyt.
+      Etsimääsi {activeNotFoundTerms.join(", ")} ei löytynyt.
     </span>
   ) : chips.length > 0 ? (
     <div className="flex min-w-0 flex-nowrap items-center justify-center gap-3 overflow-hidden">
@@ -321,7 +349,7 @@ export default function ZiiplySearchCard({
             />
           </div>
 
-          <div className="relative z-10 mt-2 grid grid-cols-[minmax(215px,1fr)_minmax(170px,204px)_minmax(215px,1fr)] items-center gap-4">
+          <div className="relative z-10 mt-4 grid grid-cols-[minmax(215px,1fr)_minmax(170px,204px)_minmax(215px,1fr)] items-center gap-4">
             <AssistantButton
               kind="gosta"
               onClick={onGostaSearch}
