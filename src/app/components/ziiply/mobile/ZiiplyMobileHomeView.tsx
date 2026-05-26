@@ -37,12 +37,12 @@ export default function ZiiplyMobileHomeView({
           Viilaa ruokakorisi huokeammaks.
         </h1>
 
-        <p className="mt-3 max-w-[340px] text-[17px] font-black leading-snug tracking-[-0.02em] text-[#7480a1]">
+        <p className="mt-2 mb-2 max-w-[340px] text-[17px] font-black leading-snug tracking-[-0.02em] text-[#7480a1]">
           Gösta, Justiina ja Arvo auttavat arjen valinnoissa.
         </p>
       </section>
 
-      <section className="-mt-1 rounded-[2rem] bg-white/92 px-4 pb-4 pt-3 shadow-[0_14px_40px_rgba(15,23,42,0.08)] ring-1 ring-white/80">
+      <section className="mt-0 rounded-[2rem] bg-white/92 px-4 pb-4 pt-3 shadow-[0_14px_40px_rgba(15,23,42,0.08)] ring-1 ring-white/80">
         <div className="grid grid-cols-3 gap-3">
           <ZiiplyMobileAssistantButton
             assistant="gosta"
