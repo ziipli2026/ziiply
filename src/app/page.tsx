@@ -152,16 +152,24 @@ import {
   pickBestSProduct,
   pickBestKProduct,
 } from "./components/ziiply/ziiplyCore";
-import { ZiiplyLaunchScreen } from "./components/ziiply/ziiplyComponents";
+import {
+  ZiiplyLaunchScreen,
+  ZiiplyBottomNav,
+} from "./components/ziiply/ziiplyComponents";
+import * as TopbarResponsiveCardModule from "./components/ziiply/cards/TopbarResponsiveCard";
 import * as ZiiplyCartCardModule from "./components/ziiply/cards/ZiiplyCartCard";
 import ZiiplySearchCard from "./components/ziiply/cards/ZiiplySearchCard";
 import ZiiplyStoreLocaCard from "./components/ziiply/cards/ZiiplyStoreLocaCard";
 import * as ZiiplyCompareCardModule from "./components/ziiply/cards/ZiiplyCompareCard";
-import ZiiplyMobileTopBar from "./components/ziiply/mobile/ZiiplyMobileTopBar";
-import ZiiplyMobileBottomNav from "./components/ziiply/mobile/ZiiplyMobileBottomNav";
-import ZiiplyMobileShopsView from "./components/ziiply/mobile/ZiiplyMobileShopsView";
+import ZiiplyMobileHomeView from "./components/ziiply/mobile/ZiiplyMobileHomeView";
+import ZiiplyMobileAssistantPanel from "./components/ziiply/mobile/ZiiplyMobileAssistantPanel";
+import type { ZiiplyAssistantKey } from "./components/ziiply/mobile/ZiiplyMobileAssistantButton";
 
 export default function Page() {
+  const TopbarResponsiveCard = ((TopbarResponsiveCardModule as any).default ||
+    (TopbarResponsiveCardModule as any).TopbarResponsiveCard ||
+    (TopbarResponsiveCardModule as any).ZiiplyTopBar ||
+    (TopbarResponsiveCardModule as any).ZiiplyTopbarResponsiveCard) as any;
   const ZiiplyCartCard = ((ZiiplyCartCardModule as any).default ||
     (ZiiplyCartCardModule as any).ZiiplyCartCard ||
     (ZiiplyCartCardModule as any).CartResponsiveCard ||
@@ -397,6 +405,8 @@ export default function Page() {
   const [activeResult, setActiveResult] = useState<
     "none" | "offers" | "compare" | "singleCompare"
   >("none");
+  const [activeAssistant, setActiveAssistant] =
+    useState<ZiiplyAssistantKey | null>(null);
   const [searchPanelOpen, setSearchPanelOpen] = useState(false);
   const [cartModalOpen, setCartModalOpen] = useState(false);
   const [cartSavePanelOpen, setCartSavePanelOpen] = useState(false);
@@ -8339,18 +8349,31 @@ export default function Page() {
       `}</style>
         {showLaunchScreen && <ZiiplyLaunchScreen appVersion={APP_VERSION} />}
 
-        <ZiiplyMobileTopBar
-          areaLabel={activeArea.label}
-          hidden={showLaunchScreen}
-          onOpenArea={() => {
-            setSearchPanelOpen(false);
-            setCartModalOpen(false);
-            setCartSavePanelOpen(false);
-            setEanModalOpen(false);
-            setActiveResult("none");
-            setShopsPanelOpen(true);
-          }}
-        />
+        <div
+          className={`relative z-[80] m-0 p-0 mt-1 mb-0 ziiply-desktop-debug-compact sm:mx-auto sm:max-w-[1180px] sm:px-4 ${showLaunchScreen ? "hidden" : ""}`}
+        >
+          <TopbarResponsiveCard
+            areaLabel={activeArea.label}
+            // v332: älä näytä storeModeLabeliä yläpalkissa.
+            // Se kavensi sijaintipillin leveyttä mobiilissa, jolloin "Hyvinkää" katkesi valintojen jälkeen.
+            storeModeLabel=""
+            logoImageSrc="/ziiplylogo_mobile.png"
+            infoItems={[
+              { id: "weather", label: "SÄÄ", value: "+18°", emoji: "🌤️" },
+              { id: "electricity", label: "SÄHKÖ", value: "4,2", emoji: "⚡" },
+              { id: "fuel", label: "BENSA", value: "1,65", emoji: "⛽" },
+              { id: "calendar", label: "KAL", value: "3", emoji: "📅" },
+            ]}
+            onOpenArea={() => {
+              setSearchPanelOpen(false);
+              setCartModalOpen(false);
+              setCartSavePanelOpen(false);
+              setEanModalOpen(false);
+              setActiveResult("none");
+              setShopsPanelOpen(true);
+            }}
+          />
+        </div>
 
         {/* v333_MOBILE_INFO_STRIP_VISIBILITY:
           Näytetään aloitusohje vain silloin kun kauppakortti ei ole auki eikä valintoja ole tehty.
@@ -8406,76 +8429,329 @@ export default function Page() {
           </section>
 
           {!showLaunchScreen &&
-            !storesReadyForSearch &&
             !searchPanelOpen &&
             !cartModalOpen &&
             !shopsPanelOpen &&
             !eanModalOpen &&
             activeResult === "none" && (
-              <section className="flex h-[calc(100dvh-12rem)] overflow-hidden flex-col items-center justify-start px-7 pt-[18dvh] text-center sm:hidden">
-                <div className="relative flex w-full max-w-[300px] items-center justify-center">
-                  <div className="pointer-events-none absolute h-28 w-28 rounded-full bg-green-400/18 blur-2xl" />
+              <>
+                <ZiiplyMobileHomeView
+                  activeAssistant={activeAssistant}
+                  onSelectAssistant={setActiveAssistant}
+                />
 
-                  <img
-                    src="/ziiply.png"
-                    alt="Ziiply"
-                    className="relative h-auto w-full max-w-[238px] object-contain"
-                  />
-                </div>
-
-                <div className="mt-7 max-w-[21.5rem] text-center sm:hidden">
-                  <p className="text-[1.22rem] font-black leading-[1.05] tracking-[-0.045em] text-slate-950">
-                    Viilaa ruokakorisi huokeammaks.
-                  </p>
-
-                  <p className="mx-auto mt-3 max-w-[19rem] text-[0.94rem] font-semibold leading-snug tracking-[-0.015em] text-slate-500">
-                    Gösta ja Justiina auttavat arjen valinnoissa.
-                  </p>
-                </div>
-              </section>
+                <ZiiplyMobileAssistantPanel
+                  activeAssistant={activeAssistant}
+                  onClose={() => setActiveAssistant(null)}
+                />
+              </>
             )}
 
-          {!showLaunchScreen && shopsPanelOpen && (
-            <ZiiplyMobileShopsView
-              locationInput={locationInput}
-            usingOwnLocation={usingOwnLocation}
-            storeSearchLoading={storeSearchLoading}
-            gpsErrorMessage={gpsErrorMessage}
-            storeMode={storeMode}
-            storeModeChosen={storeModeChosenV299}
-            storeCompareScope={storeCompareScope}
-            withinChain={withinChain}
-            selectedRealChainCount={selectedRealChainCount}
-            missingStoresMessageVisible={
-              (storeMode === "local" &&
+          {!showLaunchScreen && (
+            <div
+              className={`${shopsPanelOpen ? "fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-[#edf8f4] px-3 pb-[calc(env(safe-area-inset-bottom)+6.1rem)] pt-[calc(env(safe-area-inset-top)+5.2rem)] sm:static sm:contents sm:overflow-visible sm:bg-transparent sm:p-0" : "hidden sm:contents"} ${closingPanels.shops ? "ziiply-soft-close" : shopsPanelOpen ? "ziiply-soft-open" : ""}`}
+            >
+              <div className="mb-3 flex items-center justify-between rounded-[1.25rem] bg-white/90 px-4 py-3 shadow-sm ring-1 ring-slate-100 sm:hidden">
+                <div>
+                  <p className="text-[11px] font-black uppercase tracking-[0.16em] text-green-700">Kaupat</p>
+                  <p className="text-sm font-extrabold text-slate-700">Valitse sijainti ja kauppatapa</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={closeShopsPanel}
+                  className="rounded-full bg-slate-900 px-4 py-2 text-sm font-black text-white active:scale-[0.98]"
+                >
+                  Sulje
+                </button>
+              </div>
+
+          <section className="rounded-[1.25rem] border border-slate-200 bg-white/95 p-2 shadow-sm sm:rounded-[1.35rem] sm:p-3">
+            <div className="flex items-center gap-2 sm:gap-3">
+              <button
+                type="button"
+                aria-pressed={usingOwnLocation}
+                onClick={() => {
+                  if (usingOwnLocation) {
+                    stopOwnLocationV306(
+                      "GPS pois päältä. Kirjoita alue tai postinumero.",
+                    );
+                    return;
+                  }
+                  setLocationInput("");
+                  useOwnLocation();
+                }}
+                title="Käytä omaa sijaintia"
+                className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-xl font-black shadow-sm ring-1 transition active:scale-[0.98] ${
+                  usingOwnLocation
+                    ? "bg-green-50 text-green-600 ring-green-100"
+                    : "bg-red-50 text-red-600 ring-red-100"
+                }`}
+              >
+                📍
+              </button>
+
+              <input
+                value={locationInput}
+                onChange={(event) => {
+                  const nextValue = event.target.value;
+                  setLocationInput(nextValue);
+                  if (nextValue.trim()) {
+                    gpsUserDisabledRefV306.current = true;
+                    setUsingOwnLocation(false);
+                  }
+                  setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
+                }}
+                placeholder="05510 tai Hyvinkää"
+                className="min-w-0 flex-1 max-w-[280px] rounded-xl border border-slate-300 px-3 py-2 text-[16px] outline-none focus:border-green-600 sm:mx-auto sm:rounded-2xl sm:px-4 sm:py-3"
+              />
+
+              <button
+                type="button"
+                onClick={() => applyLocation()}
+                disabled={storeSearchLoading}
+                className="min-w-[76px] shrink-0 rounded-xl bg-slate-900 px-3 py-2 text-sm font-extrabold text-white transition disabled:cursor-not-allowed active:scale-[0.98] sm:min-w-[92px] sm:rounded-2xl sm:px-5 sm:py-3 sm:text-base"
+              >
+                Käytä
+              </button>
+            </div>
+
+            {gpsErrorMessage && (
+              <div className="mt-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-center text-sm font-extrabold text-red-700 shadow-sm">
+                {gpsErrorMessage}
+              </div>
+            )}
+
+            {renderComparedStoreCards(false)}
+          </section>
+
+          <section className="rounded-[2rem] bg-white p-5 shadow-sm">
+            <p className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-500">
+              Hakutapa
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                disabled={storeCompareScope === "within_chain"}
+                onClick={() => handleStoreModeChange("hyper")}
+                className={`rounded-2xl px-4 py-3 sm:py-3 text-base font-extrabold transition disabled:cursor-not-allowed ${
+                  storeCompareScope === "within_chain" ||
+                  (storeModeChosenV299 && storeMode === "hyper")
+                    ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
+                    : "bg-white text-slate-700 ring-1 ring-slate-200"
+                }`}
+              >
+                🏬 Tavaratalot
+              </button>
+              <button
+                type="button"
+                disabled={storeCompareScope === "within_chain"}
+                onClick={() => handleStoreModeChange("local")}
+                className={`rounded-2xl px-4 py-3 sm:py-3 text-base font-extrabold transition disabled:cursor-not-allowed ${
+                  storeCompareScope === "within_chain" ||
+                  (storeModeChosenV299 && storeMode === "local")
+                    ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
+                    : "bg-white text-slate-700 ring-1 ring-slate-200"
+                }`}
+              >
+                🏪 Lähikaupat
+              </button>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => handleStoreCompareScopeChange("between_chains")}
+                className={`rounded-2xl px-4 py-3 text-sm font-extrabold transition ${
+                  storeCompareScope === "between_chains"
+                    ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
+                    : "bg-white text-slate-700 ring-1 ring-slate-200"
+                }`}
+              >
+                Ketjujen väliltä
+              </button>
+              <button
+                type="button"
+                onClick={() => handleStoreCompareScopeChange("within_chain")}
+                className={`rounded-2xl px-4 py-3 text-sm font-extrabold transition ${
+                  storeCompareScope === "within_chain"
+                    ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
+                    : "bg-white text-slate-700 ring-1 ring-slate-200"
+                }`}
+              >
+                Ketjun sisältä
+              </button>
+            </div>
+            <div className="mt-3 rounded-2xl bg-slate-50 p-3 text-sm text-slate-600 ring-1 ring-slate-200 empty:hidden">
+              {storeCompareScope === "between_chains" &&
+                selectedRealChainCount < 2 && (
+                  <p className="mt-2 rounded-xl bg-amber-50 px-4 py-3 font-black text-amber-800 ring-1 ring-amber-100">
+                    Vertailu ei ole mahdollinen vain yhdellä valitulla ketjulla.
+                  </p>
+                )}
+              {storeCompareScope === "within_chain" && !withinChain && (
+                <p className="mt-2 rounded-xl bg-amber-50 px-4 py-3 font-black text-amber-800 ring-1 ring-amber-100">
+                  Valitse S-ryhmä tai K-ryhmä ketjun sisäistä vertailua varten.
+                </p>
+              )}
+
+              {((storeMode === "local" &&
                 (!activeArea.sLocalStoreId || !activeArea.kLocalStoreId)) ||
-              (storeMode === "hyper" &&
-                (!activeArea.sStoreId || !activeArea.kStoreId))
-            }
-            foundStoresCount={foundStores.length}
-            storeCards={renderComparedStoreCards(false)}
-            onLocationInputChange={(nextValue) => {
-              setLocationInput(nextValue);
-              if (nextValue.trim()) {
-                gpsUserDisabledRefV306.current = true;
-                setUsingOwnLocation(false);
-              }
-              setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
-            }}
-            onGpsClick={() => {
-              if (usingOwnLocation) {
-                stopOwnLocationV306(
-                  "GPS pois päältä. Kirjoita alue tai postinumero.",
-                );
-                return;
-              }
-              setLocationInput("");
-              useOwnLocation();
-            }}
-            onApplyLocation={() => applyLocation()}
-            onStoreModeChange={handleStoreModeChange}
-              onStoreCompareScopeChange={handleStoreCompareScopeChange}
-            />
+                (storeMode === "hyper" &&
+                  (!activeArea.sStoreId || !activeArea.kStoreId))) &&
+                foundStores.length === 0 && (
+                  <p className="mt-2 text-amber-700">
+                    Hae alue tai käytä omaa sijaintia, niin Ziiply hakee kaupat
+                    dynaamisesti.
+                  </p>
+                )}
+            </div>
+
+            {false && foundStores.length > 0 && (
+              <div className="mt-3 rounded-2xl bg-white p-3 text-xs text-slate-600 ring-1 ring-slate-200">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <p className="font-bold text-slate-700">
+                    Valitse kaupat ({foundStores.length})
+                  </p>
+                </div>
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <p className="mb-2 text-xs font-bold uppercase tracking-wide text-green-700">
+                      S-ryhmä
+                    </p>
+                    <div className="max-h-44 space-y-2 overflow-auto pr-1">
+                      {foundStores
+                        .filter((store) => {
+                          if (store.type !== "S") return false;
+                          if (storeCompareScope === "within_chain") return true;
+                          if (!storeModeChosenV299) return true;
+                          const storeNameForMode = normalize(store.name || "");
+                          const isLocalStoreForMode = hasAnyToken(
+                            storeNameForMode,
+                            ["market", "alepa", "sale", "s-market", "s market"],
+                          );
+                          return storeMode === "local"
+                            ? isLocalStoreForMode
+                            : !isLocalStoreForMode;
+                        })
+                        .map((store) => {
+                          const selected =
+                            storeMode === "local"
+                              ? activeArea.sLocalStoreId === store.id
+                              : activeArea.sStoreId === store.id;
+
+                          return (
+                            <button
+                              key={store.id}
+                              type="button"
+                              onClick={() =>
+                                selectStoreForCurrentMode(store, storeMode)
+                              }
+                              className={`w-full min-w-[min(86vw,360px)] rounded-xl px-4 py-3 text-left transition ${
+                                selected
+                                  ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
+                                  : "bg-slate-50 text-slate-700 hover:bg-green-50"
+                              }`}
+                            >
+                              <span className="block font-bold break-words">
+                                {store.name}
+                              </span>
+                              <span
+                                className={`block text-xs ${selected ? "text-green-50" : "text-slate-400"}`}
+                              >
+                                ID {store.id} · {store.city || ""}{" "}
+                                {store.postalCode || ""}
+                              </span>
+                            </button>
+                          );
+                        })}
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="mb-2 text-xs font-bold uppercase tracking-wide text-red-700">
+                      K-ryhmä
+                    </p>
+                    <div className="max-h-44 space-y-2 overflow-auto pr-1">
+                      {foundStores
+                        .filter((store) => {
+                          if (store.type !== "K") return false;
+                          if (storeCompareScope === "within_chain") return true;
+                          if (!storeModeChosenV299) return true;
+                          const storeNameForMode = normalize(store.name || "");
+                          const isLocalStoreForMode = hasAnyToken(
+                            storeNameForMode,
+                            [
+                              "market",
+                              "k-market",
+                              "k market",
+                              "k-supermarket",
+                              "k supermarket",
+                            ],
+                          );
+                          return storeMode === "local"
+                            ? isLocalStoreForMode
+                            : !isLocalStoreForMode;
+                        })
+                        .map((store) => {
+                          const selected =
+                            storeMode === "local"
+                              ? activeArea.kLocalStoreId === store.id
+                              : activeArea.kStoreId === store.id;
+
+                          // AUTO_GPS_DEFAULT_DISABLED_V305
+                          // Ei automaattista GPS-kyselyä latauksessa. GPS käynnistyy vain käyttäjän napista.
+
+                          // DEFAULT_STORE_MODE_DISABLED_V305
+                          // Ei automaattista Tavaratalot-oletusta refreshissä.
+                          useEffect(() => {
+                            setStoreModeChosenV299(false);
+                            setStoreCompareScope("none");
+                            setOpenStorePicker(null);
+                            setStoreDrillViewV320("main");
+                          }, []);
+
+                          // GPS_STICKY_STATE_DISABLED_V305
+                          // Ei palauteta GPS-tilaa localStoragesta.
+
+                          // GPS_DEFAULT_VISUAL_ON_V307
+                          // GPS-nuppineula pidetään oletuksena vihreänä kaupat-näkymässä.
+
+                          // STORE_SELECTION_DOES_NOT_PICK_MODE_V307
+                          // Kaupan valinta ei saa itsessään valita Tavaratalot/Lähikaupat-hakutapaa.
+
+                          return (
+                            <button
+                              key={store.id}
+                              type="button"
+                              onClick={() =>
+                                selectStoreForCurrentMode(store, storeMode)
+                              }
+                              className={`w-full min-w-[min(86vw,360px)] rounded-xl px-4 py-3 text-left transition ${
+                                selected
+                                  ? "bg-red-700 shadow-md ring-1 ring-black/10 text-white"
+                                  : "bg-slate-50 text-slate-700 hover:bg-red-50"
+                              }`}
+                            >
+                              <span className="block whitespace-normal break-words font-bold leading-tight">
+                                {store.name}
+                              </span>
+                              <span
+                                className={`block text-xs ${selected ? "text-red-50" : "text-slate-400"}`}
+                              >
+                                ID {store.id} · {store.city || ""}{" "}
+                                {store.postalCode || ""}
+                              </span>
+                            </button>
+                          );
+                        })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </section>
+
+            </div>
           )}
 
           {/* v358_DESKTOP_DEBUG_ALL_FLOWS:
@@ -9604,7 +9880,7 @@ export default function Page() {
           </div>
         )}
 
-        <ZiiplyMobileBottomNav
+        <ZiiplyBottomNav
           shopsPanelOpen={shopsPanelOpen}
           initialStoreNavPrompt={initialStoreNavPrompt}
           searchBottomNavDisabled={searchBottomNavDisabled}
