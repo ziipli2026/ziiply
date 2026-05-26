@@ -8453,6 +8453,24 @@ export default function Page() {
               </section>
             )}
 
+          {!showLaunchScreen && (
+            <div
+              className={`${shopsPanelOpen ? "fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-[#edf8f4] px-3 pb-[calc(env(safe-area-inset-bottom)+6.1rem)] pt-[calc(env(safe-area-inset-top)+5.2rem)] sm:static sm:contents sm:overflow-visible sm:bg-transparent sm:p-0" : "hidden sm:contents"} ${closingPanels.shops ? "ziiply-soft-close" : shopsPanelOpen ? "ziiply-soft-open" : ""}`}
+            >
+              <div className="mb-3 flex items-center justify-between rounded-[1.25rem] bg-white/90 px-4 py-3 shadow-sm ring-1 ring-slate-100 sm:hidden">
+                <div>
+                  <p className="text-[11px] font-black uppercase tracking-[0.16em] text-green-700">Kaupat</p>
+                  <p className="text-sm font-extrabold text-slate-700">Valitse sijainti ja kauppatapa</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={closeShopsPanel}
+                  className="rounded-full bg-slate-900 px-4 py-2 text-sm font-black text-white active:scale-[0.98]"
+                >
+                  Sulje
+                </button>
+              </div>
+
           <section className="rounded-[1.25rem] border border-slate-200 bg-white/95 p-2 shadow-sm sm:rounded-[1.35rem] sm:p-3">
             <div className="flex items-center gap-2 sm:gap-3">
               <button
@@ -8738,6 +8756,9 @@ export default function Page() {
               </div>
             )}
           </section>
+
+            </div>
+          )}
 
           {/* v358_DESKTOP_DEBUG_ALL_FLOWS:
             Desktop-only debug board. Mobile CSS/classes below 640px are not touched.
