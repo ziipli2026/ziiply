@@ -46,10 +46,10 @@ export default function ZiiplyMobileAssistantPanel({
   const content = assistantContent[activeAssistant];
 
   return (
-    <div className="fixed inset-x-0 bottom-[116px] z-[70] px-4 sm:hidden">
-      <section className="mx-auto max-w-[520px] overflow-hidden rounded-[2rem] border-[3px] border-[#b99d62] bg-[#fff7df] shadow-[0_22px_60px_rgba(7,47,37,0.28)]">
-        <div className="flex items-center gap-3 bg-gradient-to-b from-[#fff1c6] to-[#e3c17b] p-3">
-          <div className="h-[64px] w-[64px] shrink-0 overflow-hidden rounded-full border-[3px] border-[#f8e8bf] bg-[#314633]">
+    <div className="fixed inset-x-0 bottom-[102px] z-[70] px-4 sm:hidden">
+      <section className="mx-auto max-w-[520px] overflow-hidden rounded-[1.8rem] border-[3px] border-[#b99d62] bg-[#fff7df] shadow-[0_22px_60px_rgba(7,47,37,0.28)]">
+        <div className="flex items-center gapx-4 py-3 bg-gradient-to-b from-[#fff1c6] to-[#e3c17b] px-4 py-3">
+          <div className="h-[58px] w-[58px] shrink-0 overflow-hidden rounded-full border-[3px] border-[#f8e8bf] bg-[#314633]">
             <img
               src={content.imageSrc}
               alt={content.name}
@@ -59,10 +59,10 @@ export default function ZiiplyMobileAssistantPanel({
           </div>
 
           <div className="min-w-0 flex-1">
-            <div className="text-[24px] font-black leading-none text-[#27412a]">
+            <div className="text-[22px] font-black leading-none text-[#27412a]">
               {content.name}
             </div>
-            <div className="mt-1 text-[13px] font-black uppercase tracking-[0.08em] text-[#705f37]">
+            <div className="mt-1 text-[12px] font-black uppercase tracking-[0.08em] text-[#705f37]">
               {content.title}
             </div>
           </div>
@@ -70,7 +70,7 @@ export default function ZiiplyMobileAssistantPanel({
           <button
             type="button"
             onClick={onClose}
-            className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full bg-white/80 text-[24px] font-black text-[#3e3420] shadow-inner active:scale-[0.98]"
+            className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-full bg-white/80 text-[22px] font-black text-[#3e3420] shadow-inner active:scale-[0.98]"
             aria-label="Sulje"
             title="Sulje"
           >
@@ -78,7 +78,7 @@ export default function ZiiplyMobileAssistantPanel({
           </button>
         </div>
 
-        <div className="p-4 text-[15px] font-bold leading-snug text-[#374151]">
+        <div className="px-4 pb-4 pt-3 text-[14px] font-bold leading-snug text-[#374151]">
           {content.body}
         </div>
       </section>
