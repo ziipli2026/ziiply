@@ -7718,39 +7718,42 @@ export default function Page() {
               </aside>
 
               <main className="min-h-0 space-y-2 overflow-y-auto pr-1">
-                <ZiiplyStoreLocaCard
-                  locationInput={locationInput}
-                  onLocationInputChange={(nextValue) => {
-                    setLocationInput(nextValue);
-                    if (nextValue.trim()) {
-                      gpsUserDisabledRefV306.current = true;
-                      setUsingOwnLocation(false);
+                <div className="relative z-10 overflow-hidden rounded-[36px]">
+                  <ZiiplyStoreLocaCard
+                    locationInput={locationInput}
+                    onLocationInputChange={(nextValue) => {
+                      setLocationInput(nextValue);
+                      if (nextValue.trim()) {
+                        gpsUserDisabledRefV306.current = true;
+                        setUsingOwnLocation(false);
+                      }
+                      setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
+                    }}
+                    onApplyLocation={() => void applyLocation()}
+                    onUseOwnLocation={() => void useOwnLocation()}
+                    onDisableOwnLocation={() =>
+                      stopOwnLocationV306(
+                        "GPS pois päältä. Kirjoita alue tai postinumero.",
+                      )
                     }
-                    setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
-                  }}
-                  onApplyLocation={() => void applyLocation()}
-                  onUseOwnLocation={() => void useOwnLocation()}
-                  onDisableOwnLocation={() =>
-                    stopOwnLocationV306(
-                      "GPS pois päältä. Kirjoita alue tai postinumero.",
-                    )
-                  }
-                  onOpenShops={() => {
-                    setCartModalOpen(false);
-                    setCartSavePanelOpen(false);
-                    setEanModalOpen(false);
-                    closeProductSelectionOverlay();
-                    setSearchPanelOpen(false);
-                    setShopsPanelOpen(true);
-                  }}
-                  usingOwnLocation={usingOwnLocation}
-                  locationMessage={locationMessage}
-                  locationMessageVisible={locationMessageVisible}
-                  storeSearchLoading={storeSearchLoading}
-                  placeholder="05510 tai Hyvinkää"
-                />
+                    onOpenShops={() => {
+                      setCartModalOpen(false);
+                      setCartSavePanelOpen(false);
+                      setEanModalOpen(false);
+                      closeProductSelectionOverlay();
+                      setSearchPanelOpen(false);
+                      setShopsPanelOpen(true);
+                    }}
+                    usingOwnLocation={usingOwnLocation}
+                    locationMessage={locationMessage}
+                    locationMessageVisible={locationMessageVisible}
+                    storeSearchLoading={storeSearchLoading}
+                    placeholder="05510 tai Hyvinkää"
+                  />
+                </div>
 
                 <ZiiplySearchCard
+                  className="z-20"
                   value={input}
                   onChange={setSearchInputForMode}
                   mode={searchCompareMode}
