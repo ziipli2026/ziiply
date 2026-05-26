@@ -302,8 +302,8 @@ export default function ZiiplySearchCard({
       </div>
 
       {!showTypingView ? (
-        <div className="relative z-10 mt-0 flex h-[176px] items-center">
-          <div className="grid w-full grid-cols-[minmax(215px,1fr)_minmax(220px,270px)_minmax(215px,1fr)] items-center gap-4">
+        <div className="relative z-10 mt-1 flex w-full items-center justify-center overflow-hidden px-6">
+          <div className="grid w-full max-w-[940px] grid-cols-[240px_minmax(220px,270px)_240px] items-center justify-items-center gap-7">
             <AssistantButton
               kind="gosta"
               onClick={onGostaSearch}
