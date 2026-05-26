@@ -47,9 +47,9 @@ export default function ZiiplyMobileShopsView({
 }: ZiiplyMobileShopsViewProps) {
   return (
     <div className="sm:hidden">
-      <div className="h-[88px]" aria-hidden="true" />
+      <div className="h-[86px]" aria-hidden="true" />
 
-      <div className="sticky top-[88px] z-[75] bg-[#eaf7f1]/95 px-2 pb-1 pt-1 backdrop-blur">
+      <div className="sticky top-[86px] z-[75] bg-[#eaf7f1]/95 px-2 pb-1 pt-1 backdrop-blur">
         <ZiiplyMobileLocationBar
           locationInput={locationInput}
           usingOwnLocation={usingOwnLocation}
@@ -61,7 +61,7 @@ export default function ZiiplyMobileShopsView({
         />
       </div>
 
-      <div className="space-y-3 px-2 pb-[140px] pt-1">
+      <div className="space-y-2 px-2 pb-[140px] pt-1">
         <ZiiplyMobileStoreModeSelector
           storeMode={storeMode}
           storeModeChosen={storeModeChosen}
@@ -74,7 +74,7 @@ export default function ZiiplyMobileShopsView({
           onStoreCompareScopeChange={onStoreCompareScopeChange}
         />
 
-        <section className="rounded-[1.75rem] bg-white/96 p-3 shadow-[0_18px_45px_rgba(15,23,42,0.08)] ring-1 ring-white/80">
+        <section className="rounded-[1.75rem] bg-white/96 p-2.5 shadow-[0_14px_36px_rgba(15,23,42,0.08)] ring-1 ring-white/80">
           {storeCards}
         </section>
       </div>
