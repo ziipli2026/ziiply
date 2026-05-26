@@ -7204,7 +7204,7 @@ export default function Page() {
                           {storeNameA}
                         </p>
                         {distanceA && (
-                          <p className="mt-0.5 text-[9px] font-black text-slate-400">
+                          <p className="mt-0 text-[9px] font-black text-slate-400">
                             {distanceA}
                           </p>
                         )}
@@ -7241,7 +7241,7 @@ export default function Page() {
                           {storeNameB}
                         </p>
                         {distanceB && (
-                          <p className="mt-0.5 text-[9px] font-black text-slate-400">
+                          <p className="mt-0 text-[9px] font-black text-slate-400">
                             {distanceB}
                           </p>
                         )}
@@ -7326,6 +7326,15 @@ export default function Page() {
                 ? "LIDL"
                 : "TOKMANNI";
 
+        const storeLogoSrc =
+          store.key === "s"
+            ? "/storelogos/s-group.png"
+            : store.key === "k"
+              ? "/storelogos/k-group.png"
+              : store.key === "lidl"
+                ? "/storelogos/lidl.png"
+                : "/storelogos/spar.png";
+
         const displayName = isComingSoon ? "Tulossa" : store.name;
 
         return (
@@ -7354,8 +7363,8 @@ export default function Page() {
             }}
             className={`relative cursor-pointer overflow-visible rounded-[1.35rem] border-2 text-center transition active:scale-[0.985] ${
               isTopRow
-                ? "min-h-[9.05rem] px-2.5 pb-2 pt-2.5"
-                : "min-h-[6.15rem] px-2 pb-1.5 pt-2"
+                ? "aspect-square min-h-0 px-2.5 pb-2 pt-2"
+                : "aspect-square min-h-0 px-2 pb-1.5 pt-2"
             } ${cardTone}`}
           >
             <span
@@ -7367,17 +7376,25 @@ export default function Page() {
             </span>
 
             <div
-              className={`mx-auto flex items-center justify-center rounded-full font-black shadow-inner ${
-                isTopRow
-                  ? "h-10 w-10 text-xl ring-[6px]"
-                  : "h-9 w-9 text-lg ring-[5px]"
-              } ${logoTone}`}
+              className={`absolute left-2 top-2 flex items-center justify-center rounded-xl bg-white/95 p-1.5 shadow-sm ring-1 ring-slate-200 ${
+                isTopRow ? "h-9 w-9" : "h-8 w-8"
+              }`}
             >
-              {store.logo}
+              <img
+                src={storeLogoSrc}
+                alt={cardLabel}
+                draggable={false}
+                className="h-full w-full object-contain"
+                onError={(event) => {
+                  event.currentTarget.style.display = "none";
+                }}
+              />
             </div>
 
+            <div className={isTopRow ? "h-5" : "h-4"} aria-hidden="true" />
+
             <p
-              className={`font-black uppercase tracking-wide text-slate-400 ${isTopRow ? "mt-1 text-[9px]" : "mt-1 text-[8px]"}`}
+              className={`font-black uppercase tracking-wide text-slate-400 ${isTopRow ? "mt-0 text-[9px]" : "mt-0 text-[8px]"}`}
             >
               {cardLabel}
             </p>
@@ -7385,7 +7402,7 @@ export default function Page() {
             {isTopRow ? (
               <>
                 <p
-                  className={`mx-auto mt-0.5 h-[1.7rem] max-w-[8.2rem] overflow-hidden text-center text-[11px] font-black leading-tight ${
+                  className={`mx-auto mt-0 h-[1.7rem] max-w-[8.2rem] overflow-hidden text-center text-[11px] font-black leading-tight ${
                     isComingSoon ? "text-slate-500" : "text-slate-900"
                   }`}
                   style={{
@@ -7398,13 +7415,13 @@ export default function Page() {
                 </p>
 
                 {distanceForCard && (
-                  <p className="mt-0.5 text-[9px] font-black text-slate-400">
+                  <p className="mt-0 text-[9px] font-black text-slate-400">
                     {distanceForCard}
                   </p>
                 )}
 
                 <div
-                  className="relative z-20 mt-1 flex justify-center"
+                  className="relative z-20 mt-0.5 flex justify-center"
                   onClick={(event) => event.stopPropagation()}
                 >
                   {chain ? (
@@ -7430,7 +7447,7 @@ export default function Page() {
                   {displayName}
                 </p>
                 <div
-                  className="relative z-20 mt-1 flex justify-center"
+                  className="relative z-20 mt-0.5 flex justify-center"
                   onClick={(event) => event.stopPropagation()}
                 >
                   <span className="rounded-full bg-slate-50 px-2.5 py-1 text-[9px] font-black text-slate-400 ring-1 ring-slate-200">
