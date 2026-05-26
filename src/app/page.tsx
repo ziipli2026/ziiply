@@ -6946,7 +6946,7 @@ export default function Page() {
         </div>
 
         <div
-          className={`${compact ? "max-h-[30dvh]" : "max-h-56"} overflow-y-auto overscroll-contain pr-1 [-webkit-overflow-scrolling:touch] touch-pan-y`}
+          className={`${compact ? "max-h-[29dvh]" : "max-h-56"} overflow-y-auto overscroll-contain pr-1 [-webkit-overflow-scrolling:touch] touch-pan-y`}
         >
           {options.length === 0 ? (
             <p className="rounded-xl bg-slate-50 px-3 py-3 font-bold text-slate-400">
@@ -7025,10 +7025,12 @@ export default function Page() {
     if (typeof document === "undefined") return null;
 
     const portalContent = (
-      <div className="fixed inset-x-0 top-0 z-[2147483647] pointer-events-none">
+      <div
+        className="fixed inset-0 z-[2147483647] pointer-events-none bg-transparent"
+        onClick={() => setOpenStorePicker(null)}
+      >
         <div
-          className="absolute left-1/2 top-[calc(env(safe-area-inset-top)+20.25rem)] max-h-[38dvh] w-[min(calc(100vw-8.5rem),15.25rem)] -translate-x-1/2 overflow-hidden rounded-[1.35rem] bg-white p-2 text-left text-xs shadow-2xl ring-1 ring-slate-200 pointer-events-auto"
-          style={{ minWidth: "206px", maxWidth: "244px" }}
+          className="absolute inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+8.75rem)] max-h-[36dvh] overflow-hidden rounded-[1.35rem] bg-white p-3 text-left text-xs shadow-[0_18px_50px_rgba(15,23,42,0.22)] ring-1 ring-slate-200 pointer-events-auto"
           onClick={(event) => event.stopPropagation()}
           onPointerDown={(event) => event.stopPropagation()}
           onTouchStart={(event) => event.stopPropagation()}
@@ -7161,15 +7163,24 @@ export default function Page() {
                       {selected ? "✓" : ""}
                     </span>
                     <div
-                      className={`mx-auto flex ${compact ? "h-8 w-8 text-[13px]" : "h-10 w-10 text-sm"} items-center justify-center rounded-full font-black shadow-sm ring-4 ${store.tone}`}
+                      className={`absolute left-2 top-2 z-30 flex items-center justify-center rounded-xl bg-white p-1.5 shadow-md ring-1 ring-slate-200 ${compact ? "h-8 w-8" : "h-9 w-9"}`}
                     >
-                      {store.logo}
+                      <img
+                        src={store.key === "s" ? "/storelogos/s-group.png" : "/storelogos/k-group.png"}
+                        alt={store.title}
+                        draggable={false}
+                        className="h-full w-full object-contain"
+                        onError={(event) => {
+                          event.currentTarget.style.display = "none";
+                        }}
+                      />
                     </div>
+                    <div className={compact ? "h-3" : "h-5"} aria-hidden="true" />
                     <p
                       className={
                         compact
-                          ? "mt-1 text-[9px] font-black uppercase tracking-tight text-slate-500"
-                          : "mt-2 text-[10px] font-black uppercase tracking-wide text-slate-500"
+                          ? "mt-0 text-[9px] font-black uppercase tracking-tight text-slate-500"
+                          : "mt-0 text-[10px] font-black uppercase tracking-wide text-slate-500"
                       }
                     >
                       {store.title}
@@ -7391,7 +7402,7 @@ export default function Page() {
               />
             </div>
 
-            <div className={isTopRow ? "h-2" : "h-1"} aria-hidden="true" />
+            <div className={isTopRow ? "h-1" : "h-0"} aria-hidden="true" />
 
             <p
               className={`font-black uppercase tracking-wide text-slate-400 ${isTopRow ? "mt-0 text-[9px]" : "mt-0 text-[8px]"}`}
@@ -7461,7 +7472,7 @@ export default function Page() {
       };
 
       return (
-        <div className="mt-0 pb-1">
+        <div className="mt-0 pb-1 overflow-visible">
           <div className="grid grid-cols-2 gap-x-3 gap-y-2">
             {topStores.map((store) => renderBetweenChainCard(store, true))}
           </div>
@@ -7519,10 +7530,19 @@ export default function Page() {
                   ? "LIDL"
                   : "TOKMANNI";
 
+          const storeLogoSrc =
+            store.key === "s"
+              ? "/storelogos/s-group.png"
+              : store.key === "k"
+                ? "/storelogos/k-group.png"
+                : store.key === "lidl"
+                  ? "/storelogos/lidl.png"
+                  : "/storelogos/spar.png";
+
           return (
             <div
               key={store.key}
-              className={`relative flex min-h-[10.4rem] flex-col items-center justify-start rounded-[1.55rem] border-[3px] px-2 pb-2.5 pt-3 text-center shadow-[0_4px_0_rgba(89,65,27,0.12),inset_0_0_0_1px_rgba(255,255,255,0.5)] transition active:scale-[0.985] ${cardTone}`}
+              className={`relative flex aspect-square min-h-0 flex-col items-center justify-start rounded-[1.55rem] border-[3px] px-2 pb-2 pt-2 text-center shadow-[0_4px_0_rgba(89,65,27,0.12),inset_0_0_0_1px_rgba(255,255,255,0.5)] transition active:scale-[0.985] ${cardTone}`}
             >
               <button
                 type="button"
@@ -7547,18 +7567,26 @@ export default function Page() {
                   ✓
                 </span>
 
-                <div
-                  className={`flex h-16 w-16 items-center justify-center rounded-full text-3xl font-black shadow-inner ring-[9px] ${logoTone}`}
-                >
-                  {store.logo}
+                <div className="absolute left-2.5 top-2.5 z-30 flex h-9 w-9 items-center justify-center rounded-xl bg-white p-1.5 shadow-md ring-1 ring-slate-200">
+                  <img
+                    src={storeLogoSrc}
+                    alt={cardLabel}
+                    draggable={false}
+                    className="h-full w-full object-contain"
+                    onError={(event) => {
+                      event.currentTarget.style.display = "none";
+                    }}
+                  />
                 </div>
 
-                <p className="mt-4 text-[12px] font-black uppercase tracking-wide text-slate-400">
+                <div className="h-5" aria-hidden="true" />
+
+                <p className="mt-0 text-[11px] font-black uppercase tracking-wide text-slate-400">
                   {cardLabel}
                 </p>
 
                 <p
-                  className={`mt-1.5 min-h-[1.95rem] max-w-full whitespace-normal break-words text-[13px] font-black leading-tight ${
+                  className={`mt-0.5 min-h-[1.75rem] max-w-full whitespace-normal break-words text-[12px] font-black leading-tight ${
                     isComingSoon ? "text-slate-500" : "text-slate-900"
                   }`}
                 >
@@ -7566,7 +7594,7 @@ export default function Page() {
                 </p>
 
                 {isRealChain && distanceForCard && (
-                  <p className="mt-1.5 text-[11px] font-black text-slate-400">
+                  <p className="mt-0.5 text-[10px] font-black text-slate-400">
                     {distanceForCard}
                   </p>
                 )}
