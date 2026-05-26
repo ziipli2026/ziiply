@@ -410,6 +410,7 @@ export default function Page() {
   const [gpsErrorMessage, setGpsErrorMessage] = useState("");
   const [gpsAutoActivatedV287, setGpsAutoActivatedV287] = useState(false);
   const gpsUserDisabledRefV306 = useRef(false);
+  const lastAutoAppliedLocationRefV361 = useRef("");
 
   function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
     gpsUserDisabledRefV306.current = true;
@@ -2821,6 +2822,25 @@ export default function Page() {
       setStoreSearchLoading(false);
     }
   }
+
+
+  useEffect(() => {
+    const query = locationInput.trim();
+
+    if (!query || usingOwnLocation || storeSearchLoading) return;
+    if (lastAutoAppliedLocationRefV361.current === query) return;
+
+    const timer = window.setTimeout(() => {
+      const nextQuery = locationInput.trim();
+      if (!nextQuery || usingOwnLocation) return;
+      if (lastAutoAppliedLocationRefV361.current === nextQuery) return;
+
+      lastAutoAppliedLocationRefV361.current = nextQuery;
+      void applyLocation(nextQuery, "manual");
+    }, 800);
+
+    return () => window.clearTimeout(timer);
+  }, [locationInput, usingOwnLocation, storeSearchLoading]);
 
   async function useOwnLocation() {
     if (storeSearchLoading) return;
@@ -7715,6 +7735,14 @@ export default function Page() {
                       "GPS pois päältä. Kirjoita alue tai postinumero.",
                     )
                   }
+                  onOpenShops={() => {
+                    setCartModalOpen(false);
+                    setCartSavePanelOpen(false);
+                    setEanModalOpen(false);
+                    closeProductSelectionOverlay();
+                    setSearchPanelOpen(false);
+                    setShopsPanelOpen(true);
+                  }}
                   usingOwnLocation={usingOwnLocation}
                   locationMessage={locationMessage}
                   locationMessageVisible={locationMessageVisible}
