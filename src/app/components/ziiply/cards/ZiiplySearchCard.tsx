@@ -269,17 +269,18 @@ export default function ZiiplySearchCard({
   return (
     <section
       className={cx(
-        "ziiply-search-card relative isolate z-[30] h-[374px] min-h-[374px] overflow-visible rounded-[36px] border-[4px] border-[#5b482c] bg-[#f6ebc6] px-5 pt-3 text-[#20301f] shadow-[0_0_0_2px_#d8bd75_inset,0_13px_0_rgba(60,45,20,0.28)]",
+        "ziiply-search-card relative isolate h-[374px] min-h-[374px] overflow-visible rounded-[36px] border-[4px] border-[#5b482c] bg-transparent px-5 pt-3 text-[#20301f] shadow-[0_0_0_2px_#d8bd75_inset,0_13px_0_rgba(60,45,20,0.28)]",
         className,
       )}
     >
-      <div className="pointer-events-none absolute inset-0 rounded-[28px] opacity-45 [background-image:radial-gradient(#d8bd75_1.2px,transparent_1.2px)] [background-size:18px_18px] [background-position:9px_0]" />
-
-      {/* RIGHT_EDGE_LAYER_GUARD:
-          Peittää desktopissa oikeaan reunaan vuotavan, edellisestä/viereisestä layerista
-          tulevan pyöreän grafiikkapalan. Tämä ei muuta kortin mittasuhteita eikä
-          elementtien sijoittelua; se maskaa vain tekstikentän oikean ulkopuolisen alueen. */}
-      <div className="pointer-events-none absolute right-0 top-[132px] z-[70] h-[190px] w-[104px] bg-[#f6ebc6] [background-image:radial-gradient(#d8bd75_1.2px,transparent_1.2px)] [background-size:18px_18px] [background-position:9px_0]" />
+      {/* CARD_BACKGROUND_LAYER:
+          One clean, clipped background layer at the very bottom.
+          The old full-card background + separate right-side patch caused the
+          visible right-edge artifact. Nothing is rendered as a fixed/pasted
+          graphic on the right side anymore. */}
+      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[30px] bg-[#f6ebc6]">
+        <div className="absolute inset-0 opacity-45 [background-image:radial-gradient(#d8bd75_1.2px,transparent_1.2px)] [background-size:18px_18px]" />
+      </div>
 
       <div className="relative z-10 grid h-[64px] grid-cols-[minmax(0,1fr)_minmax(220px,286px)] items-start gap-4">
         <div className="min-w-0 overflow-hidden">
