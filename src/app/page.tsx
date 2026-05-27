@@ -8418,10 +8418,10 @@ export default function Page() {
           to { opacity: 1; filter: blur(0); }
         }
         .ziiply-store-picker-fade {
-          animation: ziiply-store-picker-fade 220ms ease-out both;
+          animation: ziiply-store-picker-fade 440ms ease-out both;
         }
         .ziiply-store-picker-panel-fade {
-          animation: ziiply-store-picker-fade 260ms ease-out both;
+          animation: ziiply-store-picker-fade 520ms ease-out both;
         }
 
         @keyframes ziiply-soft-open {
