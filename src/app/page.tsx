@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type {
   Offer,
   ZiiplyOffer,
@@ -212,11 +213,79 @@ export default function Page() {
     Record<string, number>
   >({});
   const [keyboardOpenV320, setKeyboardOpenV320] = useState(false);
+  const [storePickerViewportStyle, setStorePickerViewportStyle] = useState<{
+    top: number;
+    width: number;
+  }>({ top: 0, width: 304 });
+
+  const gpsStoreLocationPendingV366 =
+    usingOwnLocation && !gpsCoordsV320 && foundStores.length === 0;
+  const storePickerCanOpenV366 =
+    foundStores.length > 0 && !storeSearchLoading && !gpsStoreLocationPendingV366;
+
 
   useEffect(() => {
-    // Store picker ei lukitse bodya position: fixed -tyylillä.
-    // iOS Safari + portaalit + shopsPanelin oma scroll-lock aiheutti väärän sijainnin.
+    if (!openStorePicker || typeof document === "undefined") return;
+
+    const body = document.body;
+    const previousOverflow = body.style.overflow;
+    const previousTouchAction = body.style.touchAction;
+
+    body.style.overflow = "hidden";
+    body.style.touchAction = "none";
+
+    return () => {
+      body.style.overflow = previousOverflow;
+      body.style.touchAction = previousTouchAction;
+    };
   }, [openStorePicker]);
+
+  useEffect(() => {
+    if (!openStorePicker || typeof window === "undefined") return;
+
+    const updateStorePickerViewportStyle = () => {
+      const visualViewport = window.visualViewport;
+      const viewportWidth = visualViewport?.width ?? window.innerWidth;
+      const viewportHeight = visualViewport?.height ?? window.innerHeight;
+      const viewportTop = visualViewport?.offsetTop ?? 0;
+
+      const pickerWidth = Math.min(304, Math.max(286, viewportWidth - 88));
+
+      // iPhone Safarin ala-toolbar + oma bottom nav:
+      // pidetään valintaikkuna alempana. Narrow-versiossa tämä ei saa hypätä
+      // ylös, kun Safari/visualViewport antaa reloadin jälkeen väliaikaisen korkeuden.
+      const bottomGap = 92;
+      const estimatedPickerHeight = Math.min(430, viewportHeight * 0.46);
+      const top = Math.max(
+        viewportTop + 150,
+        viewportTop + viewportHeight - bottomGap - estimatedPickerHeight,
+      );
+
+      setStorePickerViewportStyle({
+        top,
+        width: pickerWidth,
+      });
+    };
+
+    updateStorePickerViewportStyle();
+
+    window.visualViewport?.addEventListener("resize", updateStorePickerViewportStyle);
+    window.visualViewport?.addEventListener("scroll", updateStorePickerViewportStyle);
+    window.addEventListener("resize", updateStorePickerViewportStyle);
+
+    return () => {
+      window.visualViewport?.removeEventListener("resize", updateStorePickerViewportStyle);
+      window.visualViewport?.removeEventListener("scroll", updateStorePickerViewportStyle);
+      window.removeEventListener("resize", updateStorePickerViewportStyle);
+    };
+  }, [openStorePicker]);
+
+  useEffect(() => {
+    if (!openStorePicker) return;
+    if (storePickerCanOpenV366) return;
+
+    setOpenStorePicker(null);
+  }, [openStorePicker, storePickerCanOpenV366]);
 
 
   useEffect(() => {
@@ -6903,6 +6972,7 @@ export default function Page() {
     compact: boolean,
   ) {
     if (openStorePicker !== pickerKey) return null;
+    if (!storePickerCanOpenV366) return null;
 
     const options = getStoresForPickerContext(chain, mode);
     const selectedName = getSelectedStoreNameFor(chain, mode);
@@ -6934,7 +7004,7 @@ export default function Page() {
 
     const menuBody = (
       <>
-        <div className="mb-1.5 flex items-center justify-between gap-1.5 px-0.5">
+        <div className="mb-2 flex items-center justify-between gap-2 px-0.5">
           <p className="min-w-0 truncate text-[11px] font-black uppercase tracking-wide text-slate-500">
             {menuTitle}
           </p>
@@ -6952,7 +7022,7 @@ export default function Page() {
         </div>
 
         <div
-          className="max-h-[34dvh] overflow-y-auto overscroll-contain pr-1 [-webkit-overflow-scrolling:touch] touch-pan-y"
+          className="max-h-[38dvh] overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] touch-pan-y"
           onTouchMove={(event) => event.stopPropagation()}
           onWheel={(event) => event.stopPropagation()}
         >
@@ -6973,7 +7043,7 @@ export default function Page() {
                   key={`${pickerKey}-${store.type || chain}-${store.id || index}-${normalize(store.name || "")}`}
                   type="button"
                   onClick={(event) => selectFromPicker(event, store)}
-                  className={`mb-1.5 flex w-full touch-manipulation items-center justify-between gap-1.5 rounded-xl px-2 py-2.5 text-left font-extrabold transition last:mb-0 active:scale-[0.99] ${
+                  className={`mb-2 flex w-full touch-manipulation items-center justify-between gap-1.5 rounded-xl px-2 py-2.5 text-left font-extrabold transition last:mb-0 active:scale-[0.99] ${
                     selected
                       ? chain === "S"
                         ? "bg-green-700 text-white"
@@ -6999,7 +7069,7 @@ export default function Page() {
                   </span>
                   {(selected || distanceLabel) && (
                     <span
-                      className={`shrink-0 rounded-full px-1.5 py-1 text-[9px] font-black ${selected ? "bg-white/20 text-white" : "bg-white text-slate-400"}`}
+                      className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-black ${selected ? "bg-white/20 text-white" : "bg-white text-slate-400"}`}
                     >
                       {selected ? "Valittu" : distanceLabel}
                     </span>
@@ -7016,14 +7086,19 @@ export default function Page() {
 
     const portalContent = (
       <div
-        className="fixed inset-0 z-[2147483647] bg-slate-950/30 overscroll-none touch-none"
+        className="fixed inset-0 z-[2147483647] bg-slate-950/30"
         onClick={() => setOpenStorePicker(null)}
         onTouchMove={(event) => {
           event.preventDefault();
         }}
       >
         <div
-          className="absolute left-1/2 bottom-[calc(env(safe-area-inset-bottom)+8.65rem)] w-[min(16.75rem,calc(100vw-7.25rem))] -translate-x-1/2 overflow-hidden rounded-[1.25rem] bg-white p-1.5 text-left text-xs shadow-[0_18px_55px_rgba(15,23,42,0.28)] ring-1 ring-slate-200"
+          className="fixed left-1/2 overflow-hidden rounded-[1.35rem] bg-white p-2 text-left text-xs shadow-[0_18px_55px_rgba(15,23,42,0.28)] ring-1 ring-slate-200"
+          style={{
+            top: `${storePickerViewportStyle.top}px`,
+            width: `${storePickerViewportStyle.width}px`,
+            transform: "translateX(-50%)",
+          }}
           onClick={(event) => event.stopPropagation()}
           onPointerDown={(event) => event.stopPropagation()}
           onTouchStart={(event) => event.stopPropagation()}
@@ -7034,7 +7109,7 @@ export default function Page() {
       </div>
     );
 
-    return portalContent;
+    return createPortal(portalContent, document.body);
   }
 
   function renderStoreChoiceButton(
@@ -7055,6 +7130,15 @@ export default function Page() {
         onClick={(event) => {
           event.preventDefault();
           event.stopPropagation();
+          if (!storePickerCanOpenV366) {
+            setOpenStorePicker(null);
+            setLocationMessage(
+              storeSearchLoading || gpsStoreLocationPendingV366
+                ? "Haetaan vielä sijaintia ja kauppoja..."
+                : "Hae alue tai käytä omaa sijaintia ensin.",
+            );
+            return;
+          }
           if (!hasMany) {
             setOpenStorePicker(null);
             return;
