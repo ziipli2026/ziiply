@@ -213,6 +213,11 @@ export default function Page() {
     Record<string, number>
   >({});
   const [keyboardOpenV320, setKeyboardOpenV320] = useState(false);
+  const [storePickerViewportStyle, setStorePickerViewportStyle] = useState<{
+    top: number;
+    width: number;
+  }>({ top: 0, width: 304 });
+
 
   useEffect(() => {
     if (!openStorePicker || typeof document === "undefined") return;
@@ -227,6 +232,45 @@ export default function Page() {
     return () => {
       body.style.overflow = previousOverflow;
       body.style.touchAction = previousTouchAction;
+    };
+  }, [openStorePicker]);
+
+  useEffect(() => {
+    if (!openStorePicker || typeof window === "undefined") return;
+
+    const updateStorePickerViewportStyle = () => {
+      const visualViewport = window.visualViewport;
+      const viewportWidth = visualViewport?.width ?? window.innerWidth;
+      const viewportHeight = visualViewport?.height ?? window.innerHeight;
+      const viewportTop = visualViewport?.offsetTop ?? 0;
+
+      const pickerWidth = Math.min(286, Math.max(264, viewportWidth - 104));
+
+      // iPhone Safarin ala-toolbar + oma bottom nav: pidetään ikkuna alempana,
+      // mutta jätetään pieni hengitysrako bottom navin yläreunaan.
+      const bottomGap = 154;
+      const estimatedPickerHeight = Math.min(430, viewportHeight * 0.46);
+      const top = Math.max(
+        viewportTop + 112,
+        viewportTop + viewportHeight - bottomGap - estimatedPickerHeight,
+      );
+
+      setStorePickerViewportStyle({
+        top,
+        width: pickerWidth,
+      });
+    };
+
+    updateStorePickerViewportStyle();
+
+    window.visualViewport?.addEventListener("resize", updateStorePickerViewportStyle);
+    window.visualViewport?.addEventListener("scroll", updateStorePickerViewportStyle);
+    window.addEventListener("resize", updateStorePickerViewportStyle);
+
+    return () => {
+      window.visualViewport?.removeEventListener("resize", updateStorePickerViewportStyle);
+      window.visualViewport?.removeEventListener("scroll", updateStorePickerViewportStyle);
+      window.removeEventListener("resize", updateStorePickerViewportStyle);
     };
   }, [openStorePicker]);
 
@@ -6964,7 +7008,7 @@ export default function Page() {
         </div>
 
         <div
-          className="max-h-[34dvh] overflow-y-auto overscroll-contain pr-1 [-webkit-overflow-scrolling:touch] touch-pan-y"
+          className="max-h-[38dvh] overflow-y-auto overscroll-contain pr-1 [-webkit-overflow-scrolling:touch] touch-pan-y"
           onTouchMove={(event) => event.stopPropagation()}
           onWheel={(event) => event.stopPropagation()}
         >
@@ -6985,7 +7029,7 @@ export default function Page() {
                   key={`${pickerKey}-${store.type || chain}-${store.id || index}-${normalize(store.name || "")}`}
                   type="button"
                   onClick={(event) => selectFromPicker(event, store)}
-                  className={`mb-2 flex w-full touch-manipulation items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-left font-extrabold transition last:mb-0 active:scale-[0.99] ${
+                  className={`mb-2 flex w-full touch-manipulation items-center justify-between gap-2 rounded-xl px-2.5 py-2.5 text-left font-extrabold transition last:mb-0 active:scale-[0.99] ${
                     selected
                       ? chain === "S"
                         ? "bg-green-700 text-white"
@@ -7028,14 +7072,19 @@ export default function Page() {
 
     const portalContent = (
       <div
-        className="fixed inset-0 z-[2147483647] flex items-end justify-center bg-slate-950/30 px-4 pb-[calc(env(safe-area-inset-bottom)+7.75rem)] pt-6"
+        className="fixed inset-0 z-[2147483647] bg-slate-950/30"
         onClick={() => setOpenStorePicker(null)}
         onTouchMove={(event) => {
           event.preventDefault();
         }}
       >
         <div
-          className="w-full max-w-[19rem] overflow-hidden rounded-[1.35rem] bg-white p-2.5 text-left text-xs shadow-[0_18px_55px_rgba(15,23,42,0.28)] ring-1 ring-slate-200"
+          className="fixed left-1/2 overflow-hidden rounded-[1.35rem] bg-white p-2 text-left text-xs shadow-[0_18px_55px_rgba(15,23,42,0.28)] ring-1 ring-slate-200"
+          style={{
+            top: `${storePickerViewportStyle.top}px`,
+            width: `${storePickerViewportStyle.width}px`,
+            transform: "translateX(-50%)",
+          }}
           onClick={(event) => event.stopPropagation()}
           onPointerDown={(event) => event.stopPropagation()}
           onTouchStart={(event) => event.stopPropagation()}
