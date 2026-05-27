@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 export type ZiiplyMobileLocationBarProps = {
   locationInput: string;
@@ -21,20 +21,58 @@ export default function ZiiplyMobileLocationBar({
   onGpsClick,
   onApplyLocation,
 }: ZiiplyMobileLocationBarProps) {
+  const [gpsClickLocked, setGpsClickLocked] = useState(false);
+  const gpsClickUnlockTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (gpsClickUnlockTimerRef.current) {
+        window.clearTimeout(gpsClickUnlockTimerRef.current);
+        gpsClickUnlockTimerRef.current = null;
+      }
+    };
+  }, []);
+
+  const gpsButtonDisabled = storeSearchLoading || gpsClickLocked;
+
+  function handleGpsClick() {
+    // v382_GPS_BUTTON_DEBOUNCE:
+    // Estää GPS pois/päälle -tuplapainalluksesta syntyvän välirenderin,
+    // jossa kaupan valintaikkuna ehtii vilahtaa ennen kuin uusi sijaintihaku on valmis.
+    if (gpsButtonDisabled) return;
+
+    setGpsClickLocked(true);
+    onGpsClick();
+
+    if (gpsClickUnlockTimerRef.current) {
+      window.clearTimeout(gpsClickUnlockTimerRef.current);
+    }
+
+    gpsClickUnlockTimerRef.current = window.setTimeout(() => {
+      setGpsClickLocked(false);
+      gpsClickUnlockTimerRef.current = null;
+    }, 900);
+  }
+
   const statusText = gpsErrorMessage
     ? gpsErrorMessage
-    : usingOwnLocation
-      ? "Käytetään nykyistä sijaintia"
-      : "";
+    : storeSearchLoading && usingOwnLocation
+      ? "Haetaan sijaintia..."
+      : usingOwnLocation
+        ? "Käytetään nykyistä sijaintia"
+        : "";
 
   return (
     <section className="rounded-[1.45rem] bg-white/96 px-2.5 py-1.5 shadow-[0_10px_26px_rgba(15,23,42,0.10)] ring-1 ring-white/80">
       <div className="flex h-[56px] items-stretch gap-2">
         <button
           type="button"
-          onClick={onGpsClick}
-          className="flex h-[52px] w-[52px] shrink-0 items-center justify-center self-center rounded-[1.05rem] border-2 border-[#d7f1dd] bg-[#eef9f0] text-[25px] shadow-inner active:scale-[0.98]"
+          onClick={handleGpsClick}
+          onMouseDown={(event) => event.preventDefault()}
+          disabled={gpsButtonDisabled}
+          className="flex h-[52px] w-[52px] shrink-0 items-center justify-center self-center rounded-[1.05rem] border-2 border-[#d7f1dd] bg-[#eef9f0] text-[25px] shadow-inner active:scale-[0.98] disabled:opacity-70"
           aria-label="Käytä GPS-sijaintia"
+          aria-pressed={usingOwnLocation}
         >
           📍
         </button>
