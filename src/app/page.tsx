@@ -7477,7 +7477,7 @@ export default function Page() {
               setOpenStorePicker(null);
               triggerHaptic();
             }}
-            className={`relative cursor-pointer overflow-hidden rounded-[1.35rem] border-2 px-2.5 pb-1.5 pt-1.5 text-center transition active:scale-[0.985] h-[112px] min-h-[112px] max-h-[112px] ${cardTone}`}
+            className={`relative cursor-pointer overflow-hidden rounded-[1.35rem] border-2 px-2.5 pb-1.5 pt-1.5 text-center transition active:scale-[0.985] h-[122px] min-h-[122px] max-h-[122px] ${cardTone}`}
           >
             <span
               className={`absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full text-sm font-black shadow-[0_4px_10px_rgba(15,23,42,0.18)] ${selected ? "bg-[#008C35] text-white" : "bg-slate-50 text-transparent"}`}
@@ -7499,7 +7499,7 @@ export default function Page() {
               />
             </div>
 
-            <div className="h-6" aria-hidden="true" />
+            <div className="h-9" aria-hidden="true" />
 
             {store.key !== "s" && store.key !== "k" && (
               <p
@@ -7511,7 +7511,7 @@ export default function Page() {
 
             <>
               <p
-                className={`mx-auto mt-0 h-[1.35rem] max-w-[8.2rem] overflow-hidden text-center text-[11px] font-black leading-tight ${
+                className={`mx-auto mt-0 h-[2.05rem] max-w-[7.6rem] overflow-hidden text-center text-[10.5px] font-black leading-tight ${
                   isComingSoon ? "text-slate-500" : "text-slate-900"
                 }`}
                 style={{
@@ -7524,13 +7524,13 @@ export default function Page() {
               </p>
 
               {isTopRow && distanceForCard && (
-                <p className="mt-1.5 text-[9px] font-black leading-none text-slate-400">
+                <p className="mt-0.5 text-[9px] font-black leading-none text-slate-400">
                   {distanceForCard}
                 </p>
               )}
 
               <div
-                className="absolute bottom-1.5 left-0 right-0 z-20 flex justify-center"
+                className="absolute bottom-2 left-0 right-0 z-20 flex justify-center"
                 onClick={(event) => event.stopPropagation()}
               >
                 {chain ? (
@@ -7565,7 +7565,7 @@ export default function Page() {
           <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 overflow-visible">
             {topStores.map((store) => renderBetweenChainCard(store, true))}
           </div>
-          <div className="mt-1.5 grid grid-cols-2 gap-x-3 gap-y-1.5">
+          <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-2">
             {bottomStores.map((store) => renderBetweenChainCard(store, false))}
           </div>
         </div>
