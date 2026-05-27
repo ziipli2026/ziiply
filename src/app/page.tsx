@@ -216,7 +216,7 @@ export default function Page() {
   const [storePickerViewportStyle, setStorePickerViewportStyle] = useState<{
     top: number;
     width: number;
-  }>({ top: 0, width: 286 });
+  }>({ top: 286, width: 286 });
 
   const gpsStoreLocationPendingV366 =
     usingOwnLocation && !gpsCoordsV320 && foundStores.length === 0;
@@ -7511,7 +7511,7 @@ export default function Page() {
 
             <>
               <p
-                className={`mx-auto mt-0 h-[2.05rem] max-w-[7.6rem] overflow-hidden text-center text-[10.5px] font-black leading-tight ${
+                className={`absolute left-3 right-3 top-[50px] mx-auto h-[1.65rem] max-w-[7.8rem] overflow-hidden text-center text-[10.5px] font-black leading-tight ${
                   isComingSoon ? "text-slate-500" : "text-slate-900"
                 }`}
                 style={{
@@ -7524,13 +7524,13 @@ export default function Page() {
               </p>
 
               {isTopRow && distanceForCard && (
-                <p className="mt-0.5 text-[9px] font-black leading-none text-slate-400">
+                <p className="absolute left-0 right-0 top-[78px] text-[9px] font-black leading-none text-slate-400">
                   {distanceForCard}
                 </p>
               )}
 
               <div
-                className="absolute bottom-2 left-0 right-0 z-20 flex justify-center"
+                className="absolute bottom-[9px] left-0 right-0 z-20 flex justify-center"
                 onClick={(event) => event.stopPropagation()}
               >
                 {chain ? (
@@ -7667,7 +7667,7 @@ export default function Page() {
                   />
                 </div>
 
-                <div className="h-10" aria-hidden="true" />
+                <div className="h-8" aria-hidden="true" />
 
                 {store.key !== "s" && store.key !== "k" && (
                   <p className="mt-0 text-[11px] font-black uppercase tracking-wide text-slate-400">
@@ -7676,7 +7676,7 @@ export default function Page() {
                 )}
 
                 <p
-                  className={`mt-1 min-h-[1.45rem] max-w-full whitespace-normal break-words text-[11px] font-black leading-tight ${
+                  className={`absolute left-4 right-4 top-[54px] mx-auto max-w-[8.8rem] whitespace-normal break-words text-center text-[11px] font-black leading-tight ${
                     isComingSoon ? "text-slate-500" : "text-slate-900"
                   }`}
                 >
@@ -7684,7 +7684,7 @@ export default function Page() {
                 </p>
 
                 {isRealChain && distanceForCard && (
-                  <p className="mt-2.5 text-[10px] font-black text-slate-400">
+                  <p className="absolute left-0 right-0 top-[88px] text-[10px] font-black text-slate-400">
                     {distanceForCard}
                   </p>
                 )}
@@ -7693,7 +7693,7 @@ export default function Page() {
               {!compact && isRealChain && chain && selected && (
                 <div
                   onClick={(event) => event.stopPropagation()}
-                  className="relative mt-1.5 block"
+                  className="absolute bottom-[10px] left-0 right-0 z-20 block"
                 >
                   {renderStoreChoiceButton(
                     chain,
