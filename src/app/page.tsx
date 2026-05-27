@@ -159,7 +159,7 @@ import {
 import * as TopbarResponsiveCardModule from "./components/ziiply/cards/TopbarResponsiveCard";
 import * as ZiiplyCartCardModule from "./components/ziiply/cards/ZiiplyCartCard";
 import ZiiplySearchCard from "./components/ziiply/cards/ZiiplySearchCard";
-import ZiiplyStoreLocaCard from "./components/ziiply/cards/ZiiplyStoreLocaCard";
+import ZiiplyMobileLocationBar from "./components/ziiply/mobile/ZiiplyMobileLocationBar";
 import * as ZiiplyCompareCardModule from "./components/ziiply/cards/ZiiplyCompareCard";
 import ZiiplyMobileHomeView from "./components/ziiply/mobile/ZiiplyMobileHomeView";
 import ZiiplyMobileAssistantPanel from "./components/ziiply/mobile/ZiiplyMobileAssistantPanel";
@@ -3308,6 +3308,48 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
         maximumAge: 0,
       });
     });
+  }
+
+
+  function getMapSearchNameV392(value?: string | number | null) {
+    return String(value || "")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function openSelectedStoresMapV392() {
+    if (typeof window === "undefined") return;
+
+    const sName = getMapSearchNameV392(activeStores.sStoreName || activeArea.sStoreName);
+    const kName = getMapSearchNameV392(activeStores.kStoreName || activeArea.kStoreName);
+    const area = getMapSearchNameV392(activeArea.label || locationInput || "");
+
+    const hasBothStores =
+      sName &&
+      kName &&
+      !sName.toLowerCase().includes("ei valittu") &&
+      !kName.toLowerCase().includes("ei valittu") &&
+      !sName.toLowerCase().includes("valitse ensin") &&
+      !kName.toLowerCase().includes("valitse ensin");
+
+    if (hasBothStores) {
+      const origin = encodeURIComponent(`${sName} ${area} Suomi`);
+      const destination = encodeURIComponent(`${kName} ${area} Suomi`);
+
+      window.open(
+        `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=driving`,
+        "_blank",
+        "noopener,noreferrer",
+      );
+      return;
+    }
+
+    const fallback = encodeURIComponent(`${area || "kauppa"} ruokakauppa Suomi`);
+    window.open(
+      `https://www.google.com/maps/search/?api=1&query=${fallback}`,
+      "_blank",
+      "noopener,noreferrer",
+    );
   }
 
   async function applyLocation(
@@ -8419,7 +8461,7 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
 
               <main className="min-h-0 space-y-2 overflow-y-auto pr-1">
                 <div className="relative z-10 overflow-hidden rounded-[36px]">
-                  <ZiiplyStoreLocaCard
+                  <ZiiplyMobileLocationBar
                     locationInput={locationInput}
                     onLocationInputChange={(nextValue) => {
                       setLocationInput(nextValue);
@@ -8430,25 +8472,21 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
                       setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
                     }}
                     onApplyLocation={() => void applyLocation()}
-                    onUseOwnLocation={() => void useOwnLocation()}
-                    onDisableOwnLocation={() =>
-                      stopOwnLocationV306(
-                        "GPS pois päältä. Kirjoita alue tai postinumero.",
-                      )
-                    }
-                    onOpenShops={() => {
-                      setCartModalOpen(false);
-                      setCartSavePanelOpen(false);
-                      setEanModalOpen(false);
-                      closeProductSelectionOverlay();
-                      setSearchPanelOpen(false);
-                      setShopsPanelOpen(true);
+                    onGpsClick={() => {
+                      if (usingOwnLocation) {
+                        stopOwnLocationV306(
+                          "GPS pois päältä. Kirjoita alue tai postinumero.",
+                        );
+                        return;
+                      }
+
+                      void useOwnLocation();
                     }}
+                    onOpenMap={() => openSelectedStoresMapV392()}
                     usingOwnLocation={usingOwnLocation}
-                    locationMessage={locationMessage}
-                    locationMessageVisible={locationMessageVisible}
+                    gpsStatusText={locationMessageVisible ? locationMessage : undefined}
+                    gpsErrorMessage={gpsErrorMessage}
                     storeSearchLoading={storeSearchLoading}
-                    placeholder="05510 tai Hyvinkää"
                   />
                 </div>
 
