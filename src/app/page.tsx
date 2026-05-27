@@ -6956,8 +6956,8 @@ export default function Page() {
 
     const menuBody = (
       <>
-        <div className="mb-2 flex items-center justify-between gap-2 px-1">
-          <p className="min-w-0 truncate text-[12px] font-black uppercase tracking-wide text-slate-500">
+        <div className="mb-2 flex items-center justify-between gap-2 px-0.5">
+          <p className="min-w-0 truncate text-[11px] font-black uppercase tracking-wide text-slate-500">
             {menuTitle}
           </p>
           <button
@@ -6967,14 +6967,14 @@ export default function Page() {
               event.stopPropagation();
               setOpenStorePicker(null);
             }}
-            className="shrink-0 rounded-full bg-slate-100 px-3 py-1.5 text-[11px] font-black text-slate-600 active:scale-[0.98]"
+            className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1.5 text-[10px] font-black text-slate-600 active:scale-[0.98]"
           >
             Sulje
           </button>
         </div>
 
         <div
-          className="max-h-[46dvh] overflow-y-auto overscroll-contain pr-1 [-webkit-overflow-scrolling:touch] touch-pan-y"
+          className="max-h-[40dvh] overflow-y-auto overscroll-contain pr-1 [-webkit-overflow-scrolling:touch] touch-pan-y"
           onTouchMove={(event) => event.stopPropagation()}
           onWheel={(event) => event.stopPropagation()}
         >
@@ -6995,7 +6995,7 @@ export default function Page() {
                   key={`${pickerKey}-${store.type || chain}-${store.id || index}-${normalize(store.name || "")}`}
                   type="button"
                   onClick={(event) => selectFromPicker(event, store)}
-                  className={`mb-2 flex w-full touch-manipulation items-center justify-between gap-2 rounded-xl px-3 py-3 text-left font-extrabold transition last:mb-0 active:scale-[0.99] ${
+                  className={`mb-2 flex w-full touch-manipulation items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-left font-extrabold transition last:mb-0 active:scale-[0.99] ${
                     selected
                       ? chain === "S"
                         ? "bg-green-700 text-white"
@@ -7038,14 +7038,14 @@ export default function Page() {
 
     const portalContent = (
       <div
-        className="fixed inset-0 z-[2147483647] flex items-center justify-center bg-slate-950/30 px-4 py-6"
+        className="fixed inset-0 z-[2147483647] flex items-end justify-center bg-slate-950/30 px-4 pb-[calc(env(safe-area-inset-bottom)+9.25rem)] pt-6"
         onClick={() => setOpenStorePicker(null)}
         onTouchMove={(event) => {
           event.preventDefault();
         }}
       >
         <div
-          className="w-full max-w-[22rem] overflow-hidden rounded-[1.35rem] bg-white p-3 text-left text-xs shadow-[0_18px_55px_rgba(15,23,42,0.28)] ring-1 ring-slate-200"
+          className="w-full max-w-[20.25rem] overflow-hidden rounded-[1.35rem] bg-white p-2.5 text-left text-xs shadow-[0_18px_55px_rgba(15,23,42,0.28)] ring-1 ring-slate-200"
           onClick={(event) => event.stopPropagation()}
           onPointerDown={(event) => event.stopPropagation()}
           onTouchStart={(event) => event.stopPropagation()}
