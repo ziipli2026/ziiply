@@ -43,13 +43,12 @@ export default function ZiiplyMobileStorePicker({
       className="
         fixed
         left-1/2
-        bottom-[calc(env(safe-area-inset-bottom)+7.75rem)]
+        bottom-[calc(env(safe-area-inset-bottom)+6.85rem)]
         z-[999999]
-        w-[min(16.65rem,calc(100vw-8.2rem))]
-        -translate-x-1/2
-        rounded-[1.5rem]
+        w-[min(15.85rem,calc(100vw-9.15rem))]
+        rounded-[1.45rem]
         bg-white
-        p-2.5
+        p-2
         text-left
         text-xs
         shadow-[0_22px_60px_rgba(15,23,42,0.22)]
@@ -98,7 +97,7 @@ export default function ZiiplyMobileStorePicker({
                 type="button"
                 onClick={() => onSelect(option.id)}
                 className={[
-                  "flex w-full items-center justify-between gap-2 rounded-xl px-2.5 py-3 text-left font-extrabold transition",
+                  "flex w-full items-center justify-between gap-1.5 rounded-xl px-2.5 py-3 text-left font-extrabold transition",
                   active
                     ? activeClass
                     : "bg-slate-50 text-slate-700 hover:bg-slate-100",
