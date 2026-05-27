@@ -7113,14 +7113,14 @@ export default function Page() {
 
     const portalContent = (
       <div
-        className="fixed inset-0 z-[2147483647] bg-transparent"
+        className="fixed inset-0 z-[2147483647] bg-transparent ziiply-store-picker-fade"
         onClick={() => setOpenStorePicker(null)}
         onTouchMove={(event) => {
           event.preventDefault();
         }}
       >
         <div
-          className="fixed left-1/2 overflow-hidden rounded-[1.35rem] bg-white p-1.5 text-left text-xs shadow-[0_18px_55px_rgba(15,23,42,0.28)] ring-1 ring-slate-200"
+          className="fixed left-1/2 overflow-hidden rounded-[1.35rem] bg-white p-1.5 text-left text-xs shadow-[0_18px_55px_rgba(15,23,42,0.28)] ring-1 ring-slate-200 ziiply-store-picker-panel-fade"
           style={{
             top: `${storePickerViewportStyle.top}px`,
             width: `${storePickerViewportStyle.width}px`,
@@ -7524,7 +7524,7 @@ export default function Page() {
               </p>
 
               {isTopRow && distanceForCard && (
-                <p className="absolute left-0 right-0 top-[78px] text-[9px] font-black leading-none text-slate-400">
+                <p className="absolute left-0 right-0 top-[70px] text-[9px] font-black leading-none text-slate-400">
                   {distanceForCard}
                 </p>
               )}
@@ -8410,6 +8410,18 @@ export default function Page() {
           .ziiply-desktop-debug-compact button {
             min-height: 0;
           }
+        }
+
+
+        @keyframes ziiply-store-picker-fade {
+          from { opacity: 0; filter: blur(3px); }
+          to { opacity: 1; filter: blur(0); }
+        }
+        .ziiply-store-picker-fade {
+          animation: ziiply-store-picker-fade 220ms ease-out both;
+        }
+        .ziiply-store-picker-panel-fade {
+          animation: ziiply-store-picker-fade 260ms ease-out both;
         }
 
         @keyframes ziiply-soft-open {
