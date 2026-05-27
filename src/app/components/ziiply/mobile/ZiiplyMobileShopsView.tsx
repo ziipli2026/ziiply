@@ -46,7 +46,7 @@ export default function ZiiplyMobileShopsView({
   onStoreCompareScopeChange,
 }: ZiiplyMobileShopsViewProps) {
   return (
-    <div className="sm:hidden">
+    <div className="h-[100svh] overflow-hidden sm:hidden">
       <div className="h-[86px]" aria-hidden="true" />
 
       <div className="sticky top-[86px] z-[75] bg-[#eaf7f1]/95 px-2 pb-1 pt-1 backdrop-blur">
@@ -61,29 +61,17 @@ export default function ZiiplyMobileShopsView({
         />
       </div>
 
-      <div className="space-y-2 px-2 pb-[140px] pt-1">
+      <div className="space-y-2 overflow-hidden px-2 pb-0 pt-1">
         <ZiiplyMobileStoreModeSelector
-          mode={
-            storeMode === "local"
-              ? "distance"
-              : storeCompareScope === "within_chain"
-                ? "speed"
-                : "price"
-          }
-          onChange={(mode) => {
-            if (mode === "distance") {
-              onStoreModeChange("local");
-              return;
-            }
-
-            if (mode === "speed") {
-              onStoreCompareScopeChange("within_chain");
-              return;
-            }
-
-            onStoreModeChange("hyper");
-            onStoreCompareScopeChange("between_chains");
-          }}
+          storeMode={storeMode}
+          storeModeChosen={storeModeChosen}
+          storeCompareScope={storeCompareScope}
+          withinChain={withinChain}
+          selectedRealChainCount={selectedRealChainCount}
+          missingStoresMessageVisible={missingStoresMessageVisible}
+          foundStoresCount={foundStoresCount}
+          onStoreModeChange={onStoreModeChange}
+          onStoreCompareScopeChange={onStoreCompareScopeChange}
         />
 
         <section className="rounded-[1.75rem] bg-white/96 p-2.5 shadow-[0_14px_36px_rgba(15,23,42,0.08)] ring-1 ring-white/80">
