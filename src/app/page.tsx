@@ -373,7 +373,7 @@ function KauppiasMobileTopBar({
     },
     {
       id: "fuel" as const,
-      title: "BENSA",
+      title: "AJOAINE",
       value: "—",
       unit: "",
       detail: "Ei hintaa",
@@ -382,7 +382,7 @@ function KauppiasMobileTopBar({
     {
       id: "calendar" as const,
       title: "KAL",
-      value: dayValue,
+      value: calendarDisplay.day,
       unit: "",
       detail: "Avaa",
       graphic: <KauppiasCalendarGraphic day={dayValue} />,
@@ -395,7 +395,7 @@ function KauppiasMobileTopBar({
   return (
     <div className="fixed inset-x-0 top-[max(env(safe-area-inset-top),0px)] z-[90] mx-auto block w-full px-[6px] pt-[4px] sm:hidden">
       <div className="mx-auto flex h-[78px] w-[calc(100vw-12px)] max-w-none items-center overflow-hidden rounded-[1.65rem] border-[4px] border-[#073d32] bg-[#fff5d9] px-[7px] shadow-[0_10px_28px_rgba(8,42,35,0.18),inset_0_0_0_2px_rgba(255,255,255,0.7)]">
-        <div className="grid min-w-0 flex-1 grid-cols-4 gap-[6px]">
+        <div className="grid min-w-0 flex-1 grid-cols-[1fr_1fr_1.24fr_0.86fr] gap-[6px]">
           {panels.map((panel) => {
             const inner = (
               <>
@@ -414,6 +414,11 @@ function KauppiasMobileTopBar({
                     <span className="text-[18px] font-black leading-none tracking-[-0.04em] text-[#041b19]">
                       {panel.value}
                     </span>
+                    {panel.id === "electricity" && (
+                      <span className={`pb-[1px] text-[14px] font-black leading-none ${electricityTrendClass}`}>
+                        {electricityTrendArrow}
+                      </span>
+                    )}
                     {panel.unit && (
                       <span className="pb-[1px] text-[8px] font-black leading-none opacity-80">
                         {panel.unit}
