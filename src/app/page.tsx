@@ -213,6 +213,7 @@ export default function Page() {
     Record<string, number>
   >({});
   const [keyboardOpenV320, setKeyboardOpenV320] = useState(false);
+  const [gpsStorePickerBlockedV382, setGpsStorePickerBlockedV382] = useState(false);
   const [storePickerViewportStyle, setStorePickerViewportStyle] = useState<{
     top: number;
     width: number;
@@ -221,7 +222,10 @@ export default function Page() {
   const gpsStoreLocationPendingV366 =
     usingOwnLocation && !gpsCoordsV320 && foundStores.length === 0;
   const storePickerCanOpenV366 =
-    foundStores.length > 0 && !storeSearchLoading && !gpsStoreLocationPendingV366;
+    foundStores.length > 0 &&
+    !storeSearchLoading &&
+    !gpsStoreLocationPendingV366 &&
+    !gpsStorePickerBlockedV382;
 
 
   useEffect(() => {
@@ -290,6 +294,16 @@ export default function Page() {
 
     setOpenStorePicker(null);
   }, [openStorePicker, storePickerCanOpenV366]);
+
+  // v382_GPS_PICKER_RACE_FIX:
+  // GPS:n päälle/pois-vaihto ei saa jättää kaupan valintaikkunaa auki eikä avata sitä
+  // välirenderissä ennen kuin sijainti ja kauppalista ovat taas vakaat.
+  useEffect(() => {
+    if (!openStorePicker) return;
+    if (!storeSearchLoading && !gpsStoreLocationPendingV366 && !gpsStorePickerBlockedV382) return;
+
+    setOpenStorePicker(null);
+  }, [openStorePicker, storeSearchLoading, gpsStoreLocationPendingV366, gpsStorePickerBlockedV382]);
 
 
   useEffect(() => {
@@ -497,6 +511,8 @@ export default function Page() {
 
   function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
     gpsUserDisabledRefV306.current = true;
+    setOpenStorePicker(null);
+    setGpsStorePickerBlockedV382(false);
     setUsingOwnLocation(false);
     setGpsErrorMessage("");
     setLocationInput("");
@@ -2929,6 +2945,8 @@ export default function Page() {
   async function useOwnLocation() {
     if (storeSearchLoading) return;
 
+    setOpenStorePicker(null);
+    setGpsStorePickerBlockedV382(true);
     gpsUserDisabledRefV306.current = false;
     setGpsErrorMessage("");
     setUsingOwnLocation(true);
@@ -2981,6 +2999,10 @@ export default function Page() {
       gpsUserDisabledRefV306.current = true;
       setUsingOwnLocation(false);
       setStoreSearchLoading(false);
+    } finally {
+      window.setTimeout(() => {
+        setGpsStorePickerBlockedV382(false);
+      }, 180);
     }
   }
 
@@ -7160,7 +7182,7 @@ export default function Page() {
           if (!storePickerCanOpenV366) {
             setOpenStorePicker(null);
             setLocationMessage(
-              storeSearchLoading || gpsStoreLocationPendingV366
+              storeSearchLoading || gpsStoreLocationPendingV366 || gpsStorePickerBlockedV382
                 ? "Haetaan vielä sijaintia ja kauppoja..."
                 : "Hae alue tai käytä omaa sijaintia ensin.",
             );
