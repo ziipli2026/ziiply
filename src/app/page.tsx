@@ -7667,7 +7667,7 @@ export default function Page() {
                   />
                 </div>
 
-                <div className="h-8" aria-hidden="true" />
+                <div className="h-10" aria-hidden="true" />
 
                 {store.key !== "s" && store.key !== "k" && (
                   <p className="mt-0 text-[11px] font-black uppercase tracking-wide text-slate-400">
@@ -7676,7 +7676,7 @@ export default function Page() {
                 )}
 
                 <p
-                  className={`mt-0.5 min-h-[1.75rem] max-w-full whitespace-normal break-words text-[11px] font-black leading-tight ${
+                  className={`mt-1 min-h-[1.45rem] max-w-full whitespace-normal break-words text-[11px] font-black leading-tight ${
                     isComingSoon ? "text-slate-500" : "text-slate-900"
                   }`}
                 >
@@ -7684,7 +7684,7 @@ export default function Page() {
                 </p>
 
                 {isRealChain && distanceForCard && (
-                  <p className="mt-1.5 text-[10px] font-black text-slate-400">
+                  <p className="mt-2.5 text-[10px] font-black text-slate-400">
                     {distanceForCard}
                   </p>
                 )}
@@ -7693,7 +7693,7 @@ export default function Page() {
               {!compact && isRealChain && chain && selected && (
                 <div
                   onClick={(event) => event.stopPropagation()}
-                  className="relative mt-1 block"
+                  className="relative mt-1.5 block"
                 >
                   {renderStoreChoiceButton(
                     chain,
