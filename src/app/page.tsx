@@ -214,7 +214,6 @@ export default function Page() {
   >({});
   const [keyboardOpenV320, setKeyboardOpenV320] = useState(false);
   const [gpsStorePickerBlockedV382, setGpsStorePickerBlockedV382] = useState(false);
-  const [gpsResolvingV383, setGpsResolvingV383] = useState(false);
   const [storePickerViewportStyle, setStorePickerViewportStyle] = useState<{
     top: number;
     width: number;
@@ -226,8 +225,7 @@ export default function Page() {
     foundStores.length > 0 &&
     !storeSearchLoading &&
     !gpsStoreLocationPendingV366 &&
-    !gpsStorePickerBlockedV382 &&
-    !gpsResolvingV383;
+    !gpsStorePickerBlockedV382;
 
 
   useEffect(() => {
@@ -296,6 +294,9 @@ export default function Page() {
 
     setOpenStorePicker(null);
   }, [openStorePicker, storePickerCanOpenV366]);
+
+  // v384_GPS_KEEP_SHOPS_VISIBLE:
+  // Kauppanäkymää ei enää piiloteta GPS-haun ajaksi; vain store picker suljetaan/estetään.
 
   // v382_GPS_PICKER_RACE_FIX:
   // GPS:n päälle/pois-vaihto ei saa jättää kaupan valintaikkunaa auki eikä avata sitä
@@ -511,23 +512,10 @@ export default function Page() {
   const gpsUserDisabledRefV306 = useRef(false);
   const lastAutoAppliedLocationRefV361 = useRef("");
 
-  
-  // v383_GPS_RESOLVE_GUARD:
-  // Estää store pickerin mounttauksen GPS:n välirenderin aikana.
-  function beginGpsResolveV383() {
-    setGpsResolvingV383(true);
-    setOpenStorePicker(null);
-  }
-
-  function endGpsResolveV383() {
-    setGpsResolvingV383(false);
-  }
-
-function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
+  function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
     gpsUserDisabledRefV306.current = true;
     setOpenStorePicker(null);
     setGpsStorePickerBlockedV382(false);
-    setGpsResolvingV383(false);
     setUsingOwnLocation(false);
     setGpsErrorMessage("");
     setLocationInput("");
@@ -2804,7 +2792,6 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
       setGpsCoordsV320(null);
     }
 
-    beginGpsResolveV383();
     setStoreSearchLoading(true);
     setLocationMessage(
       source === "gps"
@@ -2936,7 +2923,6 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
       );
     } finally {
       setStoreSearchLoading(false);
-      endGpsResolveV383();
     }
   }
 
@@ -2968,7 +2954,6 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
     setGpsErrorMessage("");
     setUsingOwnLocation(true);
     setLocationInput("");
-    beginGpsResolveV383();
     setStoreSearchLoading(true);
     setLocationMessage("Haetaan sijaintia...");
 
@@ -2994,7 +2979,6 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
       setLocationMessage(`${city} löytyi. Haetaan kaupat...`);
       setLocationInput("");
       setStoreSearchLoading(false);
-      endGpsResolveV383();
       await applyLocation(city, "gps", {
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
@@ -3018,11 +3002,9 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
       gpsUserDisabledRefV306.current = true;
       setUsingOwnLocation(false);
       setStoreSearchLoading(false);
-      endGpsResolveV383();
     } finally {
       window.setTimeout(() => {
         setGpsStorePickerBlockedV382(false);
-    setGpsResolvingV383(false);
       }, 180);
     }
   }
@@ -5082,7 +5064,7 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
       closeProductSelectionOverlay();
       setActiveResult("none");
       setInitialStoreNavPrompt(false);
-      setShopsPanelOpen(false);
+      setShopsPanelOpen(true);
       setOpenStorePicker(null);
       setLocationMessage(
         storeSearchLoading
@@ -8610,7 +8592,7 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
 
           {!showLaunchScreen && (
             <div
-              className={`${shopsPanelOpen && !gpsStoreLocationPendingV366 && !storeSearchLoading ? "fixed inset-0 z-50 overflow-hidden bg-[#edf8f4] px-3 pb-[calc(env(safe-area-inset-bottom)+5.6rem)] pt-[calc(env(safe-area-inset-top)+5.2rem)] sm:static sm:contents sm:overflow-visible sm:bg-transparent sm:p-0" : "hidden sm:contents"} ${closingPanels.shops ? "ziiply-soft-close" : shopsPanelOpen && !gpsStoreLocationPendingV366 && !storeSearchLoading ? "ziiply-soft-open" : ""}`}
+              className={`${shopsPanelOpen ? "fixed inset-0 z-50 overflow-hidden bg-[#edf8f4] px-3 pb-[calc(env(safe-area-inset-bottom)+5.6rem)] pt-[calc(env(safe-area-inset-top)+5.2rem)] sm:static sm:contents sm:overflow-visible sm:bg-transparent sm:p-0" : "hidden sm:contents"} ${closingPanels.shops ? "ziiply-soft-close" : shopsPanelOpen ? "ziiply-soft-open" : ""}`}
             >
           <section className="rounded-[1.25rem] border border-slate-200 bg-white/95 p-2 shadow-sm sm:rounded-[1.35rem] sm:p-3">
             <div className="flex items-center gap-2 sm:gap-3">
