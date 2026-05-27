@@ -215,6 +215,34 @@ export default function Page() {
   const [keyboardOpenV320, setKeyboardOpenV320] = useState(false);
 
   useEffect(() => {
+    if (!openStorePicker || typeof document === "undefined") return;
+
+    const body = document.body;
+    const scrollY = window.scrollY;
+    const previousOverflow = body.style.overflow;
+    const previousPosition = body.style.position;
+    const previousTop = body.style.top;
+    const previousWidth = body.style.width;
+    const previousTouchAction = body.style.touchAction;
+
+    body.style.overflow = "hidden";
+    body.style.position = "fixed";
+    body.style.top = `-${scrollY}px`;
+    body.style.width = "100%";
+    body.style.touchAction = "none";
+
+    return () => {
+      body.style.overflow = previousOverflow;
+      body.style.position = previousPosition;
+      body.style.top = previousTop;
+      body.style.width = previousWidth;
+      body.style.touchAction = previousTouchAction;
+      window.scrollTo(0, scrollY);
+    };
+  }, [openStorePicker]);
+
+
+  useEffect(() => {
     if (typeof window === "undefined") return;
 
     const updateKeyboardState = () => {
@@ -6929,7 +6957,7 @@ export default function Page() {
     const menuBody = (
       <>
         <div className="mb-2 flex items-center justify-between gap-2 px-1">
-          <p className="min-w-0 truncate text-[11px] font-black uppercase tracking-wide text-slate-500">
+          <p className="min-w-0 truncate text-[12px] font-black uppercase tracking-wide text-slate-500">
             {menuTitle}
           </p>
           <button
@@ -6939,15 +6967,16 @@ export default function Page() {
               event.stopPropagation();
               setOpenStorePicker(null);
             }}
-            className="shrink-0 rounded-full bg-slate-100 px-2 py-1 text-[10px] font-black text-slate-600 active:scale-[0.98]"
+            className="shrink-0 rounded-full bg-slate-100 px-3 py-1.5 text-[11px] font-black text-slate-600 active:scale-[0.98]"
           >
             Sulje
           </button>
         </div>
 
         <div
-          className={`${compact ? "max-h-[42dvh]" : "max-h-64"} overflow-y-auto overscroll-contain pr-1 [-webkit-overflow-scrolling:touch] touch-pan-y`}
+          className="max-h-[46dvh] overflow-y-auto overscroll-contain pr-1 [-webkit-overflow-scrolling:touch] touch-pan-y"
           onTouchMove={(event) => event.stopPropagation()}
+          onWheel={(event) => event.stopPropagation()}
         >
           {options.length === 0 ? (
             <p className="rounded-xl bg-slate-50 px-3 py-3 font-bold text-slate-400">
@@ -6966,7 +6995,7 @@ export default function Page() {
                   key={`${pickerKey}-${store.type || chain}-${store.id || index}-${normalize(store.name || "")}`}
                   type="button"
                   onClick={(event) => selectFromPicker(event, store)}
-                  className={`mb-1.5 flex w-full touch-manipulation items-center justify-between gap-1.5 rounded-xl px-2.5 py-2.5 text-left font-extrabold transition last:mb-0 active:scale-[0.99] ${
+                  className={`mb-2 flex w-full touch-manipulation items-center justify-between gap-2 rounded-xl px-3 py-3 text-left font-extrabold transition last:mb-0 active:scale-[0.99] ${
                     selected
                       ? chain === "S"
                         ? "bg-green-700 text-white"
@@ -6975,11 +7004,11 @@ export default function Page() {
                   }`}
                 >
                   <span className="min-w-0 flex-1">
-                    <span className="block whitespace-normal break-words text-[12.5px] leading-tight">
+                    <span className="block whitespace-normal break-words text-[13px] leading-tight">
                       {store.name}
                     </span>
                     <span
-                      className={`mt-1 block text-[10.5px] leading-tight ${selected ? "text-white/80" : "text-slate-400"}`}
+                      className={`mt-1 block text-[11px] leading-tight ${selected ? "text-white/80" : "text-slate-400"}`}
                     >
                       {[
                         store.city || activeArea.label || "",
@@ -6992,7 +7021,7 @@ export default function Page() {
                   </span>
                   {(selected || distanceLabel) && (
                     <span
-                      className={`shrink-0 rounded-full px-1.5 py-1 text-[9px] font-black ${selected ? "bg-white/20 text-white" : "bg-white text-slate-400"}`}
+                      className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-black ${selected ? "bg-white/20 text-white" : "bg-white text-slate-400"}`}
                     >
                       {selected ? "Valittu" : distanceLabel}
                     </span>
@@ -7005,34 +7034,18 @@ export default function Page() {
       </>
     );
 
-    // Desktop: pidetään vanha, korttiin ankkuroitu absolute-sijoittelu.
-    // Älä portaloi desktopia, koska se muutti valintaikkunoiden paikan vääräksi.
-    const desktopPickerOpen =
-      typeof window !== "undefined" &&
-      window.matchMedia?.("(min-width: 1280px)").matches;
-
-    if (!compact || desktopPickerOpen) {
-      return (
-        <div
-          className="absolute left-0 top-full z-50 mt-2 max-h-64 w-[min(78vw,286px)] overflow-hidden rounded-2xl bg-white p-2 text-left text-sm shadow-2xl ring-1 ring-slate-200"
-          style={{ minWidth: "224px", maxWidth: "286px" }}
-          onClick={(event) => event.stopPropagation()}
-        >
-          {menuBody}
-        </div>
-      );
-    }
-
     if (typeof document === "undefined") return null;
 
     const portalContent = (
       <div
-        className="fixed inset-0 z-[2147483647] flex items-center justify-center bg-slate-950/20 px-4 py-6"
+        className="fixed inset-0 z-[2147483647] flex items-center justify-center bg-slate-950/30 px-4 py-6"
         onClick={() => setOpenStorePicker(null)}
-        onTouchMove={(event) => event.preventDefault()}
+        onTouchMove={(event) => {
+          event.preventDefault();
+        }}
       >
         <div
-          className="w-full max-w-[22rem] overflow-hidden rounded-[1.35rem] bg-white p-3 text-left text-xs shadow-[0_18px_55px_rgba(15,23,42,0.26)] ring-1 ring-slate-200"
+          className="w-full max-w-[22rem] overflow-hidden rounded-[1.35rem] bg-white p-3 text-left text-xs shadow-[0_18px_55px_rgba(15,23,42,0.28)] ring-1 ring-slate-200"
           onClick={(event) => event.stopPropagation()}
           onPointerDown={(event) => event.stopPropagation()}
           onTouchStart={(event) => event.stopPropagation()}
