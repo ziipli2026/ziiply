@@ -28,7 +28,10 @@ export default function ZiiplyMobileStoreCard({
       type="button"
       onClick={onClick}
       className={[
-        "relative aspect-square overflow-hidden rounded-[1.35rem] border-2 bg-white px-2 pb-1.5 pt-1.5 text-center transition active:scale-[0.985]",
+        // v371_MOBILE_STORE_CARD_RECT:
+        // Ei aspect-squarea. Kortti on tarkoituksella matalampi suorakaide,
+        // jotta 2x2 kaupparyhmäruudukko mahtuu mobiilinäkymään ilman pystyscrollia.
+        "relative h-[128px] min-h-[128px] max-h-[128px] w-full overflow-hidden rounded-[1.35rem] border-2 bg-white px-2 pb-1.5 pt-1.5 text-center transition active:scale-[0.985]",
         selected
           ? "border-[#0a8f43] bg-[#eef9f2] shadow-[0_4px_12px_rgba(8,163,67,0.14)]"
           : "border-slate-200",
@@ -36,8 +39,8 @@ export default function ZiiplyMobileStoreCard({
     >
       <div
         className={[
-          "absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-black",
-          selected ? "bg-[#008C35] text-white" : "bg-slate-100 text-transparent",
+          "absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full text-[15px] font-black shadow-[0_8px_20px_rgba(15,23,42,0.12)]",
+          selected ? "bg-[#008C35] text-white" : "bg-white text-transparent",
         ].join(" ")}
       >
         ✓
@@ -52,21 +55,31 @@ export default function ZiiplyMobileStoreCard({
         />
       </div>
 
-      <div className="h-4" />
+      <div className="flex h-full flex-col items-center justify-center pt-4">
+        <p className="mt-0 text-[10px] font-black uppercase tracking-wide text-slate-400">
+          {chainLabel}
+        </p>
 
-      <p className="mt-0 text-[7px] font-black uppercase tracking-wide text-slate-400">
-        {chainLabel}
-      </p>
+        <p className="mx-auto mt-1 max-h-[2.05rem] max-w-[8.7rem] overflow-hidden text-center text-[12px] font-black leading-tight text-slate-900">
+          {name}
+        </p>
 
-      <p className="mx-auto mt-0 h-[1.55rem] max-w-[8.2rem] overflow-hidden text-center text-[10px] font-black leading-tight text-slate-900">
-        {name}
-      </p>
+        {distance && (
+          <p className="mt-1 text-[10px] font-black leading-none text-slate-400">
+            {distance}
+          </p>
+        )}
 
-      {distance && <p className="mt-0 text-[8px] font-black text-slate-400">{distance}</p>}
+        <div className="relative z-20 mt-1 flex min-h-[24px] justify-center">
+          {children}
+        </div>
+      </div>
 
-      <div className="relative z-20 mt-0.5 flex justify-center">{children}</div>
-
-      {featured && <div className="pointer-events-none absolute inset-0 rounded-[1.35rem] ring-2 ring-[#f0d36c]" />}
+      {featured && (
+        <div className="pointer-events-none absolute inset-0 rounded-[1.35rem] ring-2 ring-[#f0d36c]" />
+      )}
     </button>
   );
 }
+
+export { ZiiplyMobileStoreCard };
