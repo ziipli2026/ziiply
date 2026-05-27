@@ -43,9 +43,9 @@ export default function ZiiplyMobileStorePicker({
       className="
         fixed
         left-1/2
-        bottom-[calc(env(safe-area-inset-bottom)+6.85rem)]
+        bottom-[calc(env(safe-area-inset-bottom)+5.95rem)]
         z-[999999]
-        w-[min(15.85rem,calc(100vw-9.15rem))]
+        w-[min(14.9rem,calc(100vw-10.8rem))]
         rounded-[1.45rem]
         bg-white
         p-2
@@ -62,8 +62,18 @@ export default function ZiiplyMobileStorePicker({
       onTouchStart={(event) => event.stopPropagation()}
     >
       <div className="mb-2 flex items-center justify-between gap-2">
-        <div className="min-w-0 truncate text-[12px] font-black uppercase tracking-wide text-slate-500">
-          {title}
+        <div
+          className="
+            min-w-0
+            flex-1
+            truncate
+            text-[15px]
+            font-black
+            tracking-[-0.02em]
+            text-[#66728A]
+          "
+        >
+          VALITSE LÄHIKAUPPA
         </div>
 
         {onClose && (
