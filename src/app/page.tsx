@@ -265,7 +265,8 @@ export default function Page() {
         );
 
       setStorePickerViewportStyle({
-        top,
+        // v376: nostetaan valintaikkunan yläreuna samaan pystykorkoon S/K-kauppakorttirivin kanssa.
+        top: top + 16,
         width: pickerWidth,
       });
     };
@@ -7112,7 +7113,7 @@ export default function Page() {
 
     const portalContent = (
       <div
-        className="fixed inset-0 z-[2147483647] bg-slate-950/30"
+        className="fixed inset-0 z-[2147483647] bg-transparent"
         onClick={() => setOpenStorePicker(null)}
         onTouchMove={(event) => {
           event.preventDefault();
@@ -7498,17 +7499,19 @@ export default function Page() {
               />
             </div>
 
-            <div className="h-7" aria-hidden="true" />
+            <div className="h-6" aria-hidden="true" />
 
-            <p
-              className="mx-auto mt-0 max-w-[70%] font-black uppercase tracking-wide text-slate-400 text-[9px]"
-            >
-              {cardLabel}
-            </p>
+            {store.key !== "s" && store.key !== "k" && (
+              <p
+                className="mx-auto mt-0 max-w-[70%] font-black uppercase tracking-wide text-slate-400 text-[9px]"
+              >
+                {cardLabel}
+              </p>
+            )}
 
             <>
               <p
-                className={`mx-auto mt-0 h-[1.55rem] max-w-[8.2rem] overflow-hidden text-center text-[11px] font-black leading-tight ${
+                className={`mx-auto mt-0 h-[1.35rem] max-w-[8.2rem] overflow-hidden text-center text-[11px] font-black leading-tight ${
                   isComingSoon ? "text-slate-500" : "text-slate-900"
                 }`}
                 style={{
@@ -7521,7 +7524,7 @@ export default function Page() {
               </p>
 
               {isTopRow && distanceForCard && (
-                <p className="mt-0 text-[9px] font-black leading-none text-slate-400">
+                <p className="mt-1.5 text-[9px] font-black leading-none text-slate-400">
                   {distanceForCard}
                 </p>
               )}
@@ -7666,9 +7669,11 @@ export default function Page() {
 
                 <div className="h-8" aria-hidden="true" />
 
-                <p className="mt-0 text-[11px] font-black uppercase tracking-wide text-slate-400">
-                  {cardLabel}
-                </p>
+                {store.key !== "s" && store.key !== "k" && (
+                  <p className="mt-0 text-[11px] font-black uppercase tracking-wide text-slate-400">
+                    {cardLabel}
+                  </p>
+                )}
 
                 <p
                   className={`mt-0.5 min-h-[1.75rem] max-w-full whitespace-normal break-words text-[11px] font-black leading-tight ${
@@ -7679,7 +7684,7 @@ export default function Page() {
                 </p>
 
                 {isRealChain && distanceForCard && (
-                  <p className="mt-0.5 text-[10px] font-black text-slate-400">
+                  <p className="mt-1.5 text-[10px] font-black text-slate-400">
                     {distanceForCard}
                   </p>
                 )}
