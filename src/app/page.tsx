@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import type {
   Offer,
   ZiiplyOffer,
@@ -6946,7 +6945,7 @@ export default function Page() {
         </div>
 
         <div
-          className={`${compact ? "max-h-[29dvh]" : "max-h-56"} overflow-y-auto overscroll-contain pr-1 [-webkit-overflow-scrolling:touch] touch-pan-y`}
+          className={`${compact ? "max-h-[20dvh]" : "max-h-48"} overflow-y-auto overscroll-contain pr-1 [-webkit-overflow-scrolling:touch] touch-pan-y`}
         >
           {options.length === 0 ? (
             <p className="rounded-xl bg-slate-50 px-3 py-3 font-bold text-slate-400">
@@ -7024,23 +7023,11 @@ export default function Page() {
 
     if (typeof document === "undefined") return null;
 
-    const portalContent = (
-      <div
-        className="fixed inset-0 z-[2147483647] pointer-events-none bg-transparent"
-        onClick={() => setOpenStorePicker(null)}
-      >
-        <div
-          className="absolute inset-x-4 bottom-[calc(env(safe-area-inset-bottom)+8.75rem)] max-h-[36dvh] overflow-hidden rounded-[1.35rem] bg-white p-3 text-left text-xs shadow-[0_18px_50px_rgba(15,23,42,0.22)] ring-1 ring-slate-200 pointer-events-auto"
-          onClick={(event) => event.stopPropagation()}
-          onPointerDown={(event) => event.stopPropagation()}
-          onTouchStart={(event) => event.stopPropagation()}
-        >
-          {menuBody}
-        </div>
+    return (
+      <div className="mt-2 w-full rounded-[1.35rem] bg-white p-3 text-left text-xs shadow-[0_12px_32px_rgba(15,23,42,0.14)] ring-1 ring-slate-200">
+        {menuBody}
       </div>
     );
-
-    return createPortal(portalContent, document.body);
   }
 
   function renderStoreChoiceButton(
@@ -7175,7 +7162,7 @@ export default function Page() {
                         }}
                       />
                     </div>
-                    <div className={compact ? "h-3" : "h-5"} aria-hidden="true" />
+                    <div className={compact ? "h-9" : "h-10"} aria-hidden="true" />
                     <p
                       className={
                         compact
@@ -7402,10 +7389,10 @@ export default function Page() {
               />
             </div>
 
-            <div className={isTopRow ? "h-1" : "h-0"} aria-hidden="true" />
+            <div className={isTopRow ? "h-9" : "h-8"} aria-hidden="true" />
 
             <p
-              className={`font-black uppercase tracking-wide text-slate-400 ${isTopRow ? "mt-0 text-[9px]" : "mt-0 text-[8px]"}`}
+              className={`mx-auto max-w-[70%] font-black uppercase tracking-wide text-slate-400 ${isTopRow ? "mt-0 text-[9px]" : "mt-0 text-[8px]"}`}
             >
               {cardLabel}
             </p>
@@ -7443,7 +7430,6 @@ export default function Page() {
                         pickerKey,
                         true,
                       )}
-                      {renderStorePickerMenu(chain, storeMode, pickerKey, true)}
                     </>
                   ) : (
                     <span className="mt-1 rounded-full bg-slate-50 px-2.5 py-1 text-[9px] font-black text-slate-400 ring-1 ring-slate-200">
@@ -7473,11 +7459,17 @@ export default function Page() {
 
       return (
         <div className="mt-0 pb-1 overflow-visible">
-          <div className="grid grid-cols-2 gap-x-3 gap-y-2">
+          <div className="grid grid-cols-2 gap-x-3 gap-y-2 overflow-visible">
             {topStores.map((store) => renderBetweenChainCard(store, true))}
           </div>
 
-          <div className="grid grid-cols-2 gap-x-3 gap-y-2">
+          {openStorePicker === `s-${storeMode}-between` &&
+            renderStorePickerMenu("S", storeMode, `s-${storeMode}-between`, true)}
+
+          {openStorePicker === `k-${storeMode}-between` &&
+            renderStorePickerMenu("K", storeMode, `k-${storeMode}-between`, true)}
+
+          <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-2">
             {bottomStores.map((store) => renderBetweenChainCard(store, false))}
           </div>
         </div>
@@ -7579,14 +7571,14 @@ export default function Page() {
                   />
                 </div>
 
-                <div className="h-5" aria-hidden="true" />
+                <div className="h-10" aria-hidden="true" />
 
                 <p className="mt-0 text-[11px] font-black uppercase tracking-wide text-slate-400">
                   {cardLabel}
                 </p>
 
                 <p
-                  className={`mt-0.5 min-h-[1.75rem] max-w-full whitespace-normal break-words text-[12px] font-black leading-tight ${
+                  className={`mt-0.5 min-h-[1.75rem] max-w-full whitespace-normal break-words text-[11px] font-black leading-tight ${
                     isComingSoon ? "text-slate-500" : "text-slate-900"
                   }`}
                 >
@@ -8538,7 +8530,7 @@ export default function Page() {
             <p className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-500">
               Hakutapa
             </p>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 overflow-visible">
               <button
                 type="button"
                 disabled={storeCompareScope === "within_chain"}
