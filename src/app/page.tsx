@@ -251,6 +251,21 @@ function kauppiasWeatherTextFromCode(code?: number) {
   return "Sää";
 }
 
+const KAUPPIAS_FI_MONTH_SHORT = [
+  "TAM",
+  "HEL",
+  "MAA",
+  "HUI",
+  "TOU",
+  "KES",
+  "HEI",
+  "ELO",
+  "SYY",
+  "LOK",
+  "MAR",
+  "JOU",
+];
+
 function KauppiasMobileTopBar({
   hidden = false,
   areaLabel = "Hyvinkää",
@@ -264,6 +279,7 @@ function KauppiasMobileTopBar({
   const [weatherText, setWeatherText] = useState(areaLabel);
   const [electricityValue, setElectricityValue] = useState("4,2");
   const [electricityText, setElectricityText] = useState("c/kWh");
+  const [electricityTrend, setElectricityTrend] = useState<"up" | "down" | "flat">("flat");
 
   useEffect(() => {
     if (hidden || typeof window === "undefined" || !navigator.geolocation) return;
@@ -322,13 +338,30 @@ function KauppiasMobileTopBar({
         const prices = Array.isArray(data?.prices) ? data.prices : [];
         const now = Date.now();
 
-        const current = prices.find((item: any) => {
-          const start = new Date(item.startDate).getTime();
-          const end = new Date(item.endDate).getTime();
-          return Number.isFinite(start) && Number.isFinite(end) && start <= now && now < end;
-        });
+        const enrichedPrices = prices
+          .map((item: any) => ({
+            ...item,
+            priceNumber: Number(item.price),
+            startMs: new Date(item.startDate).getTime(),
+            endMs: new Date(item.endDate).getTime(),
+          }))
+          .filter(
+            (item: any) =>
+              Number.isFinite(item.priceNumber) &&
+              Number.isFinite(item.startMs) &&
+              Number.isFinite(item.endMs),
+          )
+          .sort((a: any, b: any) => a.startMs - b.startMs);
 
-        const price = Number(current?.price);
+        const currentIndex = enrichedPrices.findIndex(
+          (item: any) => item.startMs <= now && now < item.endMs,
+        );
+
+        const current = currentIndex >= 0 ? enrichedPrices[currentIndex] : null;
+        const nextWindow =
+          currentIndex >= 0 ? enrichedPrices.slice(currentIndex + 1, currentIndex + 4) : [];
+
+        const price = Number(current?.priceNumber);
         if (Number.isFinite(price)) {
           setElectricityValue(
             price.toLocaleString("fi-FI", {
@@ -337,6 +370,17 @@ function KauppiasMobileTopBar({
             }),
           );
           setElectricityText("c/kWh");
+
+          const nextAverage =
+            nextWindow.length > 0
+              ? nextWindow.reduce((sum: number, item: any) => sum + item.priceNumber, 0) /
+                nextWindow.length
+              : price;
+
+          const diff = nextAverage - price;
+          if (diff > 0.4) setElectricityTrend("up");
+          else if (diff < -0.4) setElectricityTrend("down");
+          else setElectricityTrend("flat");
         }
       } catch {
         // Pidetään viimeisin arvo näkyvissä, jos haku epäonnistuu.
@@ -352,7 +396,24 @@ function KauppiasMobileTopBar({
     };
   }, [hidden]);
 
-  const dayValue = String(new Date().getDate());
+  const calendarDisplay = useMemo(() => {
+    const now = new Date();
+    return {
+      day: String(now.getDate()),
+      month: KAUPPIAS_FI_MONTH_SHORT[now.getMonth()] || "",
+    };
+  }, []);
+
+  const dayValue = calendarDisplay.day;
+
+  const electricityTrendArrow =
+    electricityTrend === "up" ? "↗" : electricityTrend === "down" ? "↘" : "→";
+  const electricityTrendClass =
+    electricityTrend === "up"
+      ? "text-[#bc1f1f]"
+      : electricityTrend === "down"
+        ? "text-[#087a3a]"
+        : "text-[#68727c]";
 
   const panels = [
     {
@@ -384,7 +445,7 @@ function KauppiasMobileTopBar({
       title: "KAL",
       value: calendarDisplay.day,
       unit: "",
-      detail: "Avaa",
+      detail: calendarDisplay.month,
       graphic: <KauppiasCalendarGraphic day={dayValue} />,
       onClick: onOpenCalendar,
     },
