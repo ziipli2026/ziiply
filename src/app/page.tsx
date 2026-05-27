@@ -572,6 +572,11 @@ export default function Page() {
   >({});
   const [keyboardOpenV320, setKeyboardOpenV320] = useState(false);
   const [gpsStorePickerBlockedV382, setGpsStorePickerBlockedV382] = useState(false);
+  const gpsInitialVisiblePhaseRefV391 = useRef(true);
+  const gpsWatchIdRefV391 = useRef<number | null>(null);
+  const gpsLastSilentCoordsRefV391 = useRef<{ latitude: number; longitude: number } | null>(null);
+  const gpsLastSilentAreaRefV391 = useRef("");
+  const gpsFailTimerRefV391 = useRef<number | null>(null);
   const [storePickerViewportStyle, setStorePickerViewportStyle] = useState<{
     top: number;
     width: number;
@@ -870,8 +875,116 @@ export default function Page() {
   const gpsUserDisabledRefV306 = useRef(false);
   const lastAutoAppliedLocationRefV361 = useRef("");
 
-  function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
+  
+  function getDistanceMetersV391(
+    from: { latitude: number; longitude: number },
+    to: { latitude: number; longitude: number },
+  ) {
+    const radius = 6371000;
+    const toRad = (value: number) => (value * Math.PI) / 180;
+    const dLat = toRad(to.latitude - from.latitude);
+    const dLon = toRad(to.longitude - from.longitude);
+    const lat1 = toRad(from.latitude);
+    const lat2 = toRad(to.latitude);
+
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
+
+    return 2 * radius * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+
+  function getNearestAreaFromGpsV391(coords: { latitude: number; longitude: number }) {
+    const areasWithCoords = AREAS
+      .map((area) => {
+        const latitude = Number((area as any).latitude ?? (area as any).lat);
+        const longitude = Number((area as any).longitude ?? (area as any).lng ?? (area as any).lon);
+
+        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+
+        return {
+          area,
+          distance: getDistanceMetersV391(coords, { latitude, longitude }),
+        };
+      })
+      .filter(Boolean) as Array<{ area: Area; distance: number }>;
+
+    if (areasWithCoords.length === 0) return activeArea;
+
+    return areasWithCoords.sort((a, b) => a.distance - b.distance)[0]?.area || activeArea;
+  }
+
+  function setGpsVisibleMessageV391(areaLabel: string) {
+    setLocationMessage(`Käytetään GPS ${areaLabel}`);
+    setLocationMessageVisible(true);
+  }
+
+  function setGpsSilentLocationV391(coords: { latitude: number; longitude: number }) {
+    gpsLastSilentCoordsRefV391.current = coords;
+
+    const nearestArea = getNearestAreaFromGpsV391(coords);
+    const nextAreaLabel = nearestArea?.label || activeArea.label;
+
+    setGpsCoordsV320(coords);
+
+    if (nearestArea && nearestArea.label !== activeArea.label) {
+      setActiveArea(nearestArea);
+    }
+
+    if (gpsLastSilentAreaRefV391.current !== nextAreaLabel) {
+      gpsLastSilentAreaRefV391.current = nextAreaLabel;
+      setGpsVisibleMessageV391(nextAreaLabel);
+    }
+  }
+
+  function startSilentGpsWatchV391() {
+    if (typeof window === "undefined" || !navigator.geolocation) return;
+    if (gpsWatchIdRefV391.current != null) return;
+
+    gpsWatchIdRefV391.current = navigator.geolocation.watchPosition(
+      (position) => {
+        const coords = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        };
+
+        const previous = gpsLastSilentCoordsRefV391.current;
+        const movedEnough =
+          !previous || getDistanceMetersV391(previous, coords) >= 1000;
+
+        if (!movedEnough) return;
+
+        setGpsSilentLocationV391(coords);
+      },
+      () => {
+        // Hiljaisessa seurannassa virhettä ei näytetä käyttäjälle.
+      },
+      {
+        enableHighAccuracy: false,
+        maximumAge: 60000,
+        timeout: 15000,
+      },
+    );
+  }
+
+  function stopSilentGpsWatchV391() {
+    if (
+      typeof navigator !== "undefined" &&
+      navigator.geolocation &&
+      gpsWatchIdRefV391.current != null
+    ) {
+      navigator.geolocation.clearWatch(gpsWatchIdRefV391.current);
+      gpsWatchIdRefV391.current = null;
+    }
+  }
+
+function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
     gpsUserDisabledRefV306.current = true;
+    stopSilentGpsWatchV391();
+    if (gpsFailTimerRefV391.current) {
+      window.clearTimeout(gpsFailTimerRefV391.current);
+      gpsFailTimerRefV391.current = null;
+    }
     setOpenStorePicker(null);
     setGpsStorePickerBlockedV382(false);
     setUsingOwnLocation(false);
@@ -1083,6 +1196,57 @@ export default function Page() {
   useEffect(() => {
     // Launch/splash overlay disabled: keep initial reload/startup view visible immediately.
     setShowLaunchScreen(false);
+  }, []);
+
+  // v391_GPS_VISIBLE_ONLY_ON_START:
+  // Start/reload näyttää GPS-tilan käyttäjälle. Sen jälkeen GPS päivittyy taustalla.
+  useEffect(() => {
+    if (typeof window === "undefined" || !navigator.geolocation) return;
+    if (!usingOwnLocation) return;
+
+    if (gpsInitialVisiblePhaseRefV391.current) {
+      setLocationMessage("Paikannetaan GPS…");
+      setLocationMessageVisible(true);
+
+      if (gpsFailTimerRefV391.current) {
+        window.clearTimeout(gpsFailTimerRefV391.current);
+      }
+
+      gpsFailTimerRefV391.current = window.setTimeout(() => {
+        if (!gpsCoordsV320 && gpsInitialVisiblePhaseRefV391.current) {
+          setLocationMessage("GPS ei löydy");
+          setLocationMessageVisible(true);
+        }
+      }, 15000);
+    }
+
+    return () => {
+      if (gpsFailTimerRefV391.current) {
+        window.clearTimeout(gpsFailTimerRefV391.current);
+        gpsFailTimerRefV391.current = null;
+      }
+    };
+  }, [usingOwnLocation, gpsCoordsV320]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !navigator.geolocation) return;
+    if (!usingOwnLocation) {
+      stopSilentGpsWatchV391();
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      gpsInitialVisiblePhaseRefV391.current = false;
+      startSilentGpsWatchV391();
+    }, 15000);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [usingOwnLocation]);
+
+  useEffect(() => {
+    return () => stopSilentGpsWatchV391();
   }, []);
 
   useEffect(() => {
@@ -1436,6 +1600,19 @@ export default function Page() {
 
   const hasActiveStores =
     activeStores.sStoreId > 0 && activeStores.kStoreId > 0;
+
+  const hyperStorePairMissingV391 =
+    storeMode === "hyper" &&
+    storeModeChosenV299 &&
+    storeCompareScope === "between_chains" &&
+    (!activeArea.sStoreId || !activeArea.kStoreId);
+
+  useEffect(() => {
+    if (!hyperStorePairMissingV391) return;
+
+    setLocationMessage("Alueelta ei löytynyt kahta vertailtavaa tavarataloa. Kokeile lähikauppoja.");
+    setLocationMessageVisible(true);
+  }, [hyperStorePairMissingV391]);
 
   function shouldUseLocalFallback(chain: "S" | "K") {
     if (storeMode !== "local") return false;
