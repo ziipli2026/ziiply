@@ -214,6 +214,7 @@ export default function Page() {
   >({});
   const [keyboardOpenV320, setKeyboardOpenV320] = useState(false);
   const [gpsStorePickerBlockedV382, setGpsStorePickerBlockedV382] = useState(false);
+  const [gpsResolvingV383, setGpsResolvingV383] = useState(false);
   const [storePickerViewportStyle, setStorePickerViewportStyle] = useState<{
     top: number;
     width: number;
@@ -225,7 +226,8 @@ export default function Page() {
     foundStores.length > 0 &&
     !storeSearchLoading &&
     !gpsStoreLocationPendingV366 &&
-    !gpsStorePickerBlockedV382;
+    !gpsStorePickerBlockedV382 &&
+    !gpsResolvingV383;
 
 
   useEffect(() => {
@@ -509,10 +511,23 @@ export default function Page() {
   const gpsUserDisabledRefV306 = useRef(false);
   const lastAutoAppliedLocationRefV361 = useRef("");
 
-  function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
+  
+  // v383_GPS_RESOLVE_GUARD:
+  // Estää store pickerin mounttauksen GPS:n välirenderin aikana.
+  function beginGpsResolveV383() {
+    setGpsResolvingV383(true);
+    setOpenStorePicker(null);
+  }
+
+  function endGpsResolveV383() {
+    setGpsResolvingV383(false);
+  }
+
+function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
     gpsUserDisabledRefV306.current = true;
     setOpenStorePicker(null);
     setGpsStorePickerBlockedV382(false);
+    setGpsResolvingV383(false);
     setUsingOwnLocation(false);
     setGpsErrorMessage("");
     setLocationInput("");
@@ -2789,6 +2804,7 @@ export default function Page() {
       setGpsCoordsV320(null);
     }
 
+    beginGpsResolveV383();
     setStoreSearchLoading(true);
     setLocationMessage(
       source === "gps"
@@ -2920,6 +2936,7 @@ export default function Page() {
       );
     } finally {
       setStoreSearchLoading(false);
+      endGpsResolveV383();
     }
   }
 
@@ -2951,6 +2968,7 @@ export default function Page() {
     setGpsErrorMessage("");
     setUsingOwnLocation(true);
     setLocationInput("");
+    beginGpsResolveV383();
     setStoreSearchLoading(true);
     setLocationMessage("Haetaan sijaintia...");
 
@@ -2976,6 +2994,7 @@ export default function Page() {
       setLocationMessage(`${city} löytyi. Haetaan kaupat...`);
       setLocationInput("");
       setStoreSearchLoading(false);
+      endGpsResolveV383();
       await applyLocation(city, "gps", {
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
@@ -2999,9 +3018,11 @@ export default function Page() {
       gpsUserDisabledRefV306.current = true;
       setUsingOwnLocation(false);
       setStoreSearchLoading(false);
+      endGpsResolveV383();
     } finally {
       window.setTimeout(() => {
         setGpsStorePickerBlockedV382(false);
+    setGpsResolvingV383(false);
       }, 180);
     }
   }
