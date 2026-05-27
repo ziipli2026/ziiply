@@ -7585,7 +7585,7 @@ export default function Page() {
     }
 
     return (
-      <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="mt-2 grid grid-cols-2 gap-4 sm:grid-cols-4">
         {comparedStoreCards.map((store) => {
           const isRealChain = store.key === "s" || store.key === "k";
           const selected = Boolean(selectedChains[store.key]);
@@ -8634,16 +8634,13 @@ export default function Page() {
             </div>
           </section>
 
-          <section className="rounded-[2rem] bg-white p-5 shadow-sm">
-            <p className="mb-3 text-xs font-bold uppercase tracking-wide text-slate-500">
-              Hakutapa
-            </p>
+          <section className="rounded-[2rem] bg-white px-5 pb-4 pt-4 shadow-sm">
             <div className="grid grid-cols-2 gap-3 overflow-visible">
               <button
                 type="button"
                 disabled={storeCompareScope === "within_chain"}
                 onClick={() => handleStoreModeChange("hyper")}
-                className={`rounded-2xl px-4 py-3 sm:py-3 text-base font-extrabold transition disabled:cursor-not-allowed ${
+                className={`rounded-2xl px-4 py-2 sm:py-2 text-base font-extrabold transition disabled:cursor-not-allowed ${
                   storeCompareScope === "within_chain" ||
                   (storeModeChosenV299 && storeMode === "hyper")
                     ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
@@ -8656,7 +8653,7 @@ export default function Page() {
                 type="button"
                 disabled={storeCompareScope === "within_chain"}
                 onClick={() => handleStoreModeChange("local")}
-                className={`rounded-2xl px-4 py-3 sm:py-3 text-base font-extrabold transition disabled:cursor-not-allowed ${
+                className={`rounded-2xl px-4 py-2 sm:py-2 text-base font-extrabold transition disabled:cursor-not-allowed ${
                   storeCompareScope === "within_chain" ||
                   (storeModeChosenV299 && storeMode === "local")
                     ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
@@ -8666,11 +8663,16 @@ export default function Page() {
                 🏪 Lähikaupat
               </button>
             </div>
-            <div className="mt-3 grid grid-cols-2 gap-3">
+
+            <p className="my-2 text-center text-xs font-bold uppercase tracking-wide text-slate-500">
+              Hakutapa
+            </p>
+
+            <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={() => handleStoreCompareScopeChange("between_chains")}
-                className={`rounded-2xl px-4 py-3 text-sm font-extrabold transition ${
+                className={`rounded-2xl px-4 py-2 text-sm font-extrabold transition ${
                   storeCompareScope === "between_chains"
                     ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                     : "bg-white text-slate-700 ring-1 ring-slate-200"
@@ -8681,7 +8683,7 @@ export default function Page() {
               <button
                 type="button"
                 onClick={() => handleStoreCompareScopeChange("within_chain")}
-                className={`rounded-2xl px-4 py-3 text-sm font-extrabold transition ${
+                className={`rounded-2xl px-4 py-2 text-sm font-extrabold transition ${
                   storeCompareScope === "within_chain"
                     ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
                     : "bg-white text-slate-700 ring-1 ring-slate-200"
@@ -8690,7 +8692,7 @@ export default function Page() {
                 Ketjun sisältä
               </button>
             </div>
-            <div className="mt-3 rounded-2xl bg-slate-50 p-3 text-sm text-slate-600 ring-1 ring-slate-200 empty:hidden">
+            <div className="mt-2 rounded-2xl bg-slate-50 p-3 text-sm text-slate-600 ring-1 ring-slate-200 empty:hidden">
               {storeCompareScope === "between_chains" &&
                 selectedRealChainCount < 2 && (
                   <p className="mt-2 rounded-xl bg-amber-50 px-4 py-3 font-black text-amber-800 ring-1 ring-amber-100">
