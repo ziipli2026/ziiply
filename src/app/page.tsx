@@ -8950,7 +8950,7 @@ export default function Page() {
             !eanModalOpen &&
             activeResult === "none" && (
               <>
-                <div className="ziiply-mobile-home-layer-lock">
+                <div className="ziiply-mobile-home-layer-lock -translate-y-[24px] transform-gpu">
                   <ZiiplyMobileHomeView
                     activeAssistant={activeAssistant}
                     onSelectAssistant={setActiveAssistant}
