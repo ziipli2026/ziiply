@@ -24,7 +24,7 @@ export default function ZiiplyMobileStorePicker({
   selectedId,
   onSelect,
   onClose,
-  title = "Valitse lähikauppa",
+  title = "Valitse kauppa",
   tone = "neutral",
 }: Props) {
   if (!open) return null;
@@ -46,7 +46,6 @@ export default function ZiiplyMobileStorePicker({
         bottom-[calc(env(safe-area-inset-bottom)+6.85rem)]
         z-[999999]
         w-[min(15.85rem,calc(100vw-9.15rem))]
-        min-h-[25.5rem]
         rounded-[1.45rem]
         bg-white
         p-2
