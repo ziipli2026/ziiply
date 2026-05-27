@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 type StoreMode = "hyper" | "local";
 type StoreCompareScope = "none" | "between_chains" | "within_chain";
@@ -13,6 +13,7 @@ type Props = {
   selectedRealChainCount: number;
   missingStoresMessageVisible?: boolean;
   foundStoresCount?: number;
+  hyperStorePairMissing?: boolean;
   onStoreModeChange: (mode: StoreMode) => void;
   onStoreCompareScopeChange: (scope: StoreCompareScope) => void;
   onWithinChainChange?: (chain: "S" | "K" | null) => void;
@@ -37,16 +38,53 @@ export default function ZiiplyMobileStoreModeSelector({
   selectedRealChainCount,
   missingStoresMessageVisible = false,
   foundStoresCount = 0,
+  hyperStorePairMissing = false,
   onStoreModeChange,
   onStoreCompareScopeChange,
   onWithinChainChange,
 }: Props) {
+  const [hakutapaNoticeVisible, setHakutapaNoticeVisible] = useState(false);
+
   const hyperActive = storeModeChosen && storeMode === "hyper";
   const localActive = storeModeChosen && storeMode === "local";
   const modeButtonsDisabled = storeCompareScope === "within_chain";
 
+  useEffect(() => {
+    if (!hyperStorePairMissing) return;
+
+    setHakutapaNoticeVisible(true);
+    const timer = window.setTimeout(() => {
+      setHakutapaNoticeVisible(false);
+    }, 2400);
+
+    return () => window.clearTimeout(timer);
+  }, [hyperStorePairMissing]);
+
   return (
     <section className="rounded-[1.9rem] bg-white px-4 pb-3 pt-3 shadow-[0_6px_18px_rgba(15,23,42,0.10)] ring-1 ring-slate-100">
+      <style>{`
+        @keyframes ziiplyNoticePop {
+          0% {
+            opacity: 0;
+            transform: translateY(-50%) scale(0.86);
+          }
+          12% {
+            opacity: 1;
+            transform: translateY(-50%) scale(1.04);
+          }
+          22% {
+            transform: translateY(-50%) scale(1);
+          }
+          82% {
+            opacity: 1;
+            transform: translateY(-50%) scale(1);
+          }
+          100% {
+            opacity: 0;
+            transform: translateY(-50%) scale(0.94);
+          }
+        }
+      `}</style>
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
         <button
           type="button"
@@ -57,9 +95,29 @@ export default function ZiiplyMobileStoreModeSelector({
           🏬 Tavaratalot
         </button>
 
-        <p className="whitespace-nowrap text-center text-[15px] font-black uppercase tracking-wide text-slate-500">
-          Hakutapa
-        </p>
+        <div className="relative flex min-h-[32px] items-center justify-center overflow-visible">
+          <p
+            className={[
+              "relative z-10 whitespace-nowrap rounded-full px-2 py-1 text-center text-[15px] font-black uppercase tracking-wide transition-all duration-200",
+              hakutapaNoticeVisible
+                ? "bg-[#ffe68a] text-[#634100] shadow-[0_4px_12px_rgba(180,119,0,0.20)] ring-1 ring-[#d6aa33]"
+                : "text-slate-500",
+            ].join(" ")}
+          >
+            Hakutapa
+          </p>
+
+          {hakutapaNoticeVisible && (
+            <>
+              <span className="pointer-events-none absolute right-[calc(100%-4px)] top-1/2 z-20 -translate-y-1/2 animate-[ziiplyNoticePop_2400ms_ease-in-out_forwards] whitespace-nowrap rounded-full bg-[#ffe68a] px-2 py-1 text-[10px] font-black uppercase tracking-wide text-[#634100] shadow-[0_4px_12px_rgba(180,119,0,0.20)] ring-1 ring-[#d6aa33]">
+                Ei tavarataloja
+              </span>
+              <span className="pointer-events-none absolute left-[calc(100%-4px)] top-1/2 z-20 -translate-y-1/2 animate-[ziiplyNoticePop_2400ms_ease-in-out_forwards] whitespace-nowrap rounded-full bg-[#ffe68a] px-2 py-1 text-[10px] font-black uppercase tracking-wide text-[#634100] shadow-[0_4px_12px_rgba(180,119,0,0.20)] ring-1 ring-[#d6aa33]">
+                tällä alueella
+              </span>
+            </>
+          )}
+        </div>
 
         <button
           type="button"
@@ -118,6 +176,9 @@ export default function ZiiplyMobileStoreModeSelector({
         )}
         {missingStoresMessageVisible && foundStoresCount === 0 && (
           <p>Hae alue tai käytä omaa sijaintia ensin.</p>
+        )}
+        {hyperStorePairMissing && (
+          <p>Alueelta ei löytynyt kahta vertailtavaa tavarataloa. Kokeile lähikauppoja.</p>
         )}
       </div>
     </section>
