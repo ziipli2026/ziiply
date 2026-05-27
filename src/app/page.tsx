@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type {
   Offer,
   ZiiplyOffer,
@@ -6945,7 +6946,8 @@ export default function Page() {
         </div>
 
         <div
-          className={`${compact ? "max-h-[20dvh]" : "max-h-48"} overflow-y-auto overscroll-contain pr-1 [-webkit-overflow-scrolling:touch] touch-pan-y`}
+          className={`${compact ? "max-h-[42dvh]" : "max-h-64"} overflow-y-auto overscroll-contain pr-1 [-webkit-overflow-scrolling:touch] touch-pan-y`}
+          onTouchMove={(event) => event.stopPropagation()}
         >
           {options.length === 0 ? (
             <p className="rounded-xl bg-slate-50 px-3 py-3 font-bold text-slate-400">
@@ -7023,11 +7025,25 @@ export default function Page() {
 
     if (typeof document === "undefined") return null;
 
-    return (
-      <div className="mt-2 w-full rounded-[1.35rem] bg-white p-3 text-left text-xs shadow-[0_12px_32px_rgba(15,23,42,0.14)] ring-1 ring-slate-200">
-        {menuBody}
+    const portalContent = (
+      <div
+        className="fixed inset-0 z-[2147483647] flex items-center justify-center bg-slate-950/20 px-4 py-6"
+        onClick={() => setOpenStorePicker(null)}
+        onTouchMove={(event) => event.preventDefault()}
+      >
+        <div
+          className="w-full max-w-[22rem] overflow-hidden rounded-[1.35rem] bg-white p-3 text-left text-xs shadow-[0_18px_55px_rgba(15,23,42,0.26)] ring-1 ring-slate-200"
+          onClick={(event) => event.stopPropagation()}
+          onPointerDown={(event) => event.stopPropagation()}
+          onTouchStart={(event) => event.stopPropagation()}
+          onTouchMove={(event) => event.stopPropagation()}
+        >
+          {menuBody}
+        </div>
       </div>
     );
+
+    return createPortal(portalContent, document.body);
   }
 
   function renderStoreChoiceButton(
@@ -7430,6 +7446,7 @@ export default function Page() {
                         pickerKey,
                         true,
                       )}
+                      {renderStorePickerMenu(chain, storeMode, pickerKey, true)}
                     </>
                   ) : (
                     <span className="mt-1 rounded-full bg-slate-50 px-2.5 py-1 text-[9px] font-black text-slate-400 ring-1 ring-slate-200">
@@ -7462,13 +7479,6 @@ export default function Page() {
           <div className="grid grid-cols-2 gap-x-3 gap-y-2 overflow-visible">
             {topStores.map((store) => renderBetweenChainCard(store, true))}
           </div>
-
-          {openStorePicker === `s-${storeMode}-between` &&
-            renderStorePickerMenu("S", storeMode, `s-${storeMode}-between`, true)}
-
-          {openStorePicker === `k-${storeMode}-between` &&
-            renderStorePickerMenu("K", storeMode, `k-${storeMode}-between`, true)}
-
           <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-2">
             {bottomStores.map((store) => renderBetweenChainCard(store, false))}
           </div>
