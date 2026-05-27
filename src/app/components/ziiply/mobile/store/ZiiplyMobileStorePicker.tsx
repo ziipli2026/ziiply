@@ -36,7 +36,24 @@ export default function ZiiplyMobileStorePicker({
         : "bg-slate-900 text-white";
 
   return (
-    <div className="col-span-2 mt-2 w-full rounded-[1.35rem] bg-white p-3 text-left text-xs shadow-[0_12px_32px_rgba(15,23,42,0.14)] ring-1 ring-slate-200">
+    <div
+      className="
+        fixed
+        left-1/2
+        bottom-[calc(env(safe-area-inset-bottom)+7.6rem)]
+        z-[999999]
+        w-[min(18.5rem,calc(100vw-5.5rem))]
+        -translate-x-1/2
+        rounded-[1.6rem]
+        bg-white
+        p-3
+        text-left
+        text-xs
+        shadow-[0_22px_60px_rgba(15,23,42,0.22)]
+        ring-1
+        ring-slate-200
+      "
+    >
       <div className="mb-2 flex items-center justify-between gap-2">
         <div className="truncate text-[13px] font-black uppercase tracking-[0.05em] text-slate-500">
           {title}
@@ -53,7 +70,16 @@ export default function ZiiplyMobileStorePicker({
         )}
       </div>
 
-      <div className="max-h-[24dvh] overflow-y-auto overscroll-contain pr-1 [-webkit-overflow-scrolling:touch] touch-pan-y">
+      <div
+        className="
+          max-h-[33dvh]
+          overflow-y-auto
+          overscroll-contain
+          pr-0.5
+          [-webkit-overflow-scrolling:touch]
+          touch-pan-y
+        "
+      >
         <div className="space-y-2">
           {options.map((option) => {
             const active = option.id === selectedId;
