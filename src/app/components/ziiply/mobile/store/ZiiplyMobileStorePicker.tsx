@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { createPortal } from "react-dom";
 
 type Option = {
   id: string;
@@ -35,14 +36,16 @@ export default function ZiiplyMobileStorePicker({
         ? "bg-[#008f3a] text-white"
         : "bg-slate-900 text-white";
 
-  return (
+  if (typeof document === "undefined") return null;
+
+  const pickerCard = (
     <div
       className="
         fixed
         left-1/2
-        bottom-[calc(env(safe-area-inset-bottom)+8.65rem)]
+        bottom-[calc(env(safe-area-inset-bottom)+7.75rem)]
         z-[999999]
-        w-[min(17.35rem,calc(100vw-7.25rem))]
+        w-[min(16.65rem,calc(100vw-8.2rem))]
         -translate-x-1/2
         rounded-[1.5rem]
         bg-white
@@ -52,7 +55,12 @@ export default function ZiiplyMobileStorePicker({
         shadow-[0_22px_60px_rgba(15,23,42,0.22)]
         ring-1
         ring-slate-200
+        will-change-transform
+        [transform:translate3d(-50%,0,0)]
       "
+      onClick={(event) => event.stopPropagation()}
+      onPointerDown={(event) => event.stopPropagation()}
+      onTouchStart={(event) => event.stopPropagation()}
     >
       <div className="mb-2 flex items-center justify-between gap-2">
         <div className="min-w-0 truncate text-[12px] font-black uppercase tracking-wide text-slate-500">
@@ -90,7 +98,7 @@ export default function ZiiplyMobileStorePicker({
                 type="button"
                 onClick={() => onSelect(option.id)}
                 className={[
-                  "flex w-full items-center justify-between gap-2 rounded-xl px-2.5 py-3 text-left font-extrabold transition active:scale-[0.99]",
+                  "flex w-full items-center justify-between gap-2 rounded-xl px-2.5 py-3 text-left font-extrabold transition",
                   active
                     ? activeClass
                     : "bg-slate-50 text-slate-700 hover:bg-slate-100",
@@ -137,6 +145,8 @@ export default function ZiiplyMobileStorePicker({
       </div>
     </div>
   );
+
+  return createPortal(pickerCard, document.body);
 }
 
 export { ZiiplyMobileStorePicker };
