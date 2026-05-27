@@ -8876,6 +8876,21 @@ export default function Page() {
         #ziiply-ean-scanner-region svg {
           display: none !important;
         }
+
+        .ziiply-mobile-home-layer-lock {
+          position: relative;
+          z-index: 1;
+          transform: translate3d(0, 0, 0);
+          contain: layout paint;
+          isolation: isolate;
+          min-height: 0;
+        }
+
+        @media (max-width: 639px) {
+          .ziiply-mobile-home-layer-lock {
+            margin-top: 0 !important;
+          }
+        }
       `}</style>
         {showLaunchScreen && <ZiiplyLaunchScreen appVersion={APP_VERSION} />}
 
@@ -8895,6 +8910,14 @@ export default function Page() {
             }}
           />
         </div>
+        {/* v389_MOBILE_HOME_LAYER_ANCHOR:
+            KauppiasMobileTopBar is fixed, so it must reserve a permanent
+            non-render-dependent background slot. This prevents iOS Safari from
+            pulling the mobile home artwork upward after idle/reload/viewport restore. */}
+        <div
+          aria-hidden="true"
+          className="block h-[104px] shrink-0 select-none sm:hidden"
+        />
 <div className="mx-auto max-w-6xl space-y-2 sm:space-y-3">
           <section
             className={`-mx-2 bg-transparent px-2 pb-1 pt-1 sm:-mx-4 sm:px-4 sm:pb-2 sm:pt-2 ${
@@ -8927,10 +8950,12 @@ export default function Page() {
             !eanModalOpen &&
             activeResult === "none" && (
               <>
-                <ZiiplyMobileHomeView
-                  activeAssistant={activeAssistant}
-                  onSelectAssistant={setActiveAssistant}
-                />
+                <div className="ziiply-mobile-home-layer-lock">
+                  <ZiiplyMobileHomeView
+                    activeAssistant={activeAssistant}
+                    onSelectAssistant={setActiveAssistant}
+                  />
+                </div>
 
                 <ZiiplyMobileAssistantPanel
                   activeAssistant={activeAssistant}
