@@ -7475,8 +7475,8 @@ export default function Page() {
             }}
             className={`relative cursor-pointer overflow-visible rounded-[1.35rem] border-2 text-center transition active:scale-[0.985] ${
               isTopRow
-                ? "h-[126px] min-h-0 px-2.5 pb-2 pt-1.5"
-                : "h-[112px] min-h-0 px-2 pb-1.5 pt-1.5"
+                ? "h-[116px] min-h-0 px-2.5 pb-1.5 pt-1"
+                : "h-[96px] min-h-0 px-2 pb-1 pt-1"
             } ${cardTone}`}
           >
             <span
@@ -7503,7 +7503,7 @@ export default function Page() {
               />
             </div>
 
-            <div className={isTopRow ? "h-9" : "h-8"} aria-hidden="true" />
+            <div className={isTopRow ? "h-8" : "h-7"} aria-hidden="true" />
 
             <p
               className={`mx-auto max-w-[70%] font-black uppercase tracking-wide text-slate-400 ${isTopRow ? "mt-0 text-[9px]" : "mt-0 text-[8px]"}`}
@@ -7533,7 +7533,7 @@ export default function Page() {
                 )}
 
                 <div
-                  className="relative z-20 mt-0.5 flex justify-center"
+                  className="relative z-20 mt-0 flex justify-center"
                   onClick={(event) => event.stopPropagation()}
                 >
                   {chain ? (
@@ -7577,7 +7577,7 @@ export default function Page() {
           <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 overflow-visible">
             {topStores.map((store) => renderBetweenChainCard(store, true))}
           </div>
-          <div className="mt-1.5 grid grid-cols-2 gap-x-3 gap-y-1.5">
+          <div className="mt-1 grid grid-cols-2 gap-x-3 gap-y-1">
             {bottomStores.map((store) => renderBetweenChainCard(store, false))}
           </div>
         </div>
@@ -8717,7 +8717,7 @@ export default function Page() {
                 )}
             </div>
 
-            {renderComparedStoreCards(false)}
+            {renderComparedStoreCards(true)}
 
             {false && foundStores.length > 0 && (
               <div className="mt-3 rounded-2xl bg-white p-3 text-xs text-slate-600 ring-1 ring-slate-200">
