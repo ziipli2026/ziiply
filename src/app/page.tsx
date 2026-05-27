@@ -218,26 +218,15 @@ export default function Page() {
     if (!openStorePicker || typeof document === "undefined") return;
 
     const body = document.body;
-    const scrollY = window.scrollY;
     const previousOverflow = body.style.overflow;
-    const previousPosition = body.style.position;
-    const previousTop = body.style.top;
-    const previousWidth = body.style.width;
     const previousTouchAction = body.style.touchAction;
 
     body.style.overflow = "hidden";
-    body.style.position = "fixed";
-    body.style.top = `-${scrollY}px`;
-    body.style.width = "100%";
     body.style.touchAction = "none";
 
     return () => {
       body.style.overflow = previousOverflow;
-      body.style.position = previousPosition;
-      body.style.top = previousTop;
-      body.style.width = previousWidth;
       body.style.touchAction = previousTouchAction;
-      window.scrollTo(0, scrollY);
     };
   }, [openStorePicker]);
 
@@ -714,7 +703,7 @@ export default function Page() {
       activeResult === "compare" ||
       activeResult === "offers";
 
-    if (!overlayOpen || typeof document === "undefined") return;
+    if (!overlayOpen || openStorePicker || typeof document === "undefined") return;
 
     const body = document.body;
     const scrollY = window.scrollY;
@@ -742,6 +731,7 @@ export default function Page() {
     shopsPanelOpen,
     eanModalOpen,
     activeResult,
+    openStorePicker,
   ]);
 
   useEffect(() => {
@@ -6974,7 +6964,7 @@ export default function Page() {
         </div>
 
         <div
-          className="max-h-[40dvh] overflow-y-auto overscroll-contain pr-1 [-webkit-overflow-scrolling:touch] touch-pan-y"
+          className="max-h-[34dvh] overflow-y-auto overscroll-contain pr-1 [-webkit-overflow-scrolling:touch] touch-pan-y"
           onTouchMove={(event) => event.stopPropagation()}
           onWheel={(event) => event.stopPropagation()}
         >
@@ -7038,14 +7028,14 @@ export default function Page() {
 
     const portalContent = (
       <div
-        className="fixed inset-0 z-[2147483647] flex items-end justify-center bg-slate-950/30 px-4 pb-[calc(env(safe-area-inset-bottom)+9.25rem)] pt-6"
+        className="fixed inset-0 z-[2147483647] flex items-end justify-center bg-slate-950/30 px-4 pb-[calc(env(safe-area-inset-bottom)+7.75rem)] pt-6"
         onClick={() => setOpenStorePicker(null)}
         onTouchMove={(event) => {
           event.preventDefault();
         }}
       >
         <div
-          className="w-full max-w-[20.25rem] overflow-hidden rounded-[1.35rem] bg-white p-2.5 text-left text-xs shadow-[0_18px_55px_rgba(15,23,42,0.28)] ring-1 ring-slate-200"
+          className="w-full max-w-[19rem] overflow-hidden rounded-[1.35rem] bg-white p-2.5 text-left text-xs shadow-[0_18px_55px_rgba(15,23,42,0.28)] ring-1 ring-slate-200"
           onClick={(event) => event.stopPropagation()}
           onPointerDown={(event) => event.stopPropagation()}
           onTouchStart={(event) => event.stopPropagation()}
