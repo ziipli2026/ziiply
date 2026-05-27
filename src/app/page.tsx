@@ -7475,8 +7475,8 @@ export default function Page() {
             }}
             className={`relative cursor-pointer overflow-visible rounded-[1.35rem] border-2 text-center transition active:scale-[0.985] ${
               isTopRow
-                ? "aspect-square min-h-0 px-2.5 pb-2 pt-2"
-                : "aspect-square min-h-0 px-2 pb-1.5 pt-2"
+                ? "h-[126px] min-h-0 px-2.5 pb-2 pt-1.5"
+                : "h-[112px] min-h-0 px-2 pb-1.5 pt-1.5"
             } ${cardTone}`}
           >
             <span
@@ -7574,10 +7574,10 @@ export default function Page() {
 
       return (
         <div className="mt-0 pb-1 overflow-visible">
-          <div className="grid grid-cols-2 gap-x-3 gap-y-2 overflow-visible">
+          <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 overflow-visible">
             {topStores.map((store) => renderBetweenChainCard(store, true))}
           </div>
-          <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-2">
+          <div className="mt-1.5 grid grid-cols-2 gap-x-3 gap-y-1.5">
             {bottomStores.map((store) => renderBetweenChainCard(store, false))}
           </div>
         </div>
@@ -7585,7 +7585,7 @@ export default function Page() {
     }
 
     return (
-      <div className="mt-2 grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="mt-1.5 grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-4">
         {comparedStoreCards.map((store) => {
           const isRealChain = store.key === "s" || store.key === "k";
           const selected = Boolean(selectedChains[store.key]);
@@ -7642,7 +7642,7 @@ export default function Page() {
           return (
             <div
               key={store.key}
-              className={`relative flex aspect-square min-h-0 flex-col items-center justify-start rounded-[1.55rem] border-[3px] px-2 pb-2 pt-2 text-center shadow-[0_4px_0_rgba(89,65,27,0.12),inset_0_0_0_1px_rgba(255,255,255,0.5)] transition active:scale-[0.985] ${cardTone}`}
+              className={`relative flex h-[152px] min-h-0 flex-col items-center justify-start rounded-[1.55rem] border-[3px] px-2 pb-1.5 pt-1.5 text-center shadow-[0_4px_0_rgba(89,65,27,0.12),inset_0_0_0_1px_rgba(255,255,255,0.5)] transition active:scale-[0.985] ${cardTone}`}
             >
               <button
                 type="button"
@@ -7655,7 +7655,7 @@ export default function Page() {
                   }));
                   setOpenStorePicker(null);
                 }}
-                className="flex w-full flex-1 flex-col items-center text-center"
+                className="flex w-full flex-1 flex-col items-center justify-start text-center"
               >
                 <span
                   className={`absolute right-2.5 top-2.5 flex h-7 w-7 items-center justify-center rounded-full text-base font-black shadow-[0_4px_10px_rgba(15,23,42,0.18)] ${
@@ -7679,7 +7679,7 @@ export default function Page() {
                   />
                 </div>
 
-                <div className="h-10" aria-hidden="true" />
+                <div className="h-8" aria-hidden="true" />
 
                 <p className="mt-0 text-[11px] font-black uppercase tracking-wide text-slate-400">
                   {cardLabel}
@@ -7703,7 +7703,7 @@ export default function Page() {
               {!compact && isRealChain && chain && selected && (
                 <div
                   onClick={(event) => event.stopPropagation()}
-                  className="relative mt-2 block"
+                  className="relative mt-1 block"
                 >
                   {renderStoreChoiceButton(
                     chain,
@@ -8565,7 +8565,7 @@ export default function Page() {
 
           {!showLaunchScreen && (
             <div
-              className={`${shopsPanelOpen && !gpsStoreLocationPendingV366 && !storeSearchLoading ? "fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-[#edf8f4] px-3 pb-[calc(env(safe-area-inset-bottom)+6.1rem)] pt-[calc(env(safe-area-inset-top)+5.2rem)] sm:static sm:contents sm:overflow-visible sm:bg-transparent sm:p-0" : "hidden sm:contents"} ${closingPanels.shops ? "ziiply-soft-close" : shopsPanelOpen && !gpsStoreLocationPendingV366 && !storeSearchLoading ? "ziiply-soft-open" : ""}`}
+              className={`${shopsPanelOpen && !gpsStoreLocationPendingV366 && !storeSearchLoading ? "fixed inset-0 z-50 overflow-hidden bg-[#edf8f4] px-3 pb-[calc(env(safe-area-inset-bottom)+5.6rem)] pt-[calc(env(safe-area-inset-top)+5.2rem)] sm:static sm:contents sm:overflow-visible sm:bg-transparent sm:p-0" : "hidden sm:contents"} ${closingPanels.shops ? "ziiply-soft-close" : shopsPanelOpen && !gpsStoreLocationPendingV366 && !storeSearchLoading ? "ziiply-soft-open" : ""}`}
             >
           <section className="rounded-[1.25rem] border border-slate-200 bg-white/95 p-2 shadow-sm sm:rounded-[1.35rem] sm:p-3">
             <div className="flex items-center gap-2 sm:gap-3">
@@ -8634,7 +8634,7 @@ export default function Page() {
             </div>
           </section>
 
-          <section className="rounded-[2rem] bg-white px-5 pb-3 pt-3 shadow-sm">
+          <section className="rounded-[2rem] bg-white px-5 pb-2 pt-2 shadow-sm">
             <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 overflow-visible">
               <button
                 type="button"
@@ -8692,7 +8692,7 @@ export default function Page() {
                 Ketjun sisältä
               </button>
             </div>
-            <div className="mt-2 rounded-2xl bg-slate-50 p-3 text-sm text-slate-600 ring-1 ring-slate-200 empty:hidden">
+            <div className="mt-1 rounded-2xl bg-slate-50 p-2 text-sm text-slate-600 ring-1 ring-slate-200 empty:hidden">
               {storeCompareScope === "between_chains" &&
                 selectedRealChainCount < 2 && (
                   <p className="mt-2 rounded-xl bg-amber-50 px-4 py-3 font-black text-amber-800 ring-1 ring-amber-100">
