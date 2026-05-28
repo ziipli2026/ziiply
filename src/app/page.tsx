@@ -1,5 +1,13 @@
 "use client";
 
+// V433_MAP_OVERLAY_BOTH_STORES: karttanappi näyttää overlayn, molemmat valitut kaupat ja reittilinkit.
+
+// V432_GPS_INITIAL_ONCE_NO_SECOND_SPIN: GPS käynnistyy reloadissa vain kerran eikä jää toiseen Paikannetaan-tilaan.
+
+// V431_GPS_OFF_STAYS_OFF_AND_COMPASS_2X: GPS off ei kytkeydy itsestään päälle, kompassi 2x, vanha dynaaminen taustateksti pois.
+
+// V429_GPS_TEXTS_FIXED: GPS-tekstit palautettu lyhyiksi ja oikeiksi.
+
 // V428_ROUTE_OVERLAY_BUTTON: kompassi avaa kartta-overlayn ja Näytä reitti -napin.
 
 // V427_TOPBAR_GRAPHICS_AND_HAKUTAPA_NOTICE: palautettu graafinen yläpalkki ja lisätty hakutapa-huomio.
@@ -578,7 +586,7 @@ export default function Page() {
     "main" | "selection"
   >("main");
   const [locationMessage, setLocationMessage] = useState(
-    "Kirjoita alue tai postinumero.",
+    "Paikannetaan GPS…",
   );
   const [locationMessageVisible, setLocationMessageVisible] = useState(true);
   const [usingOwnLocation, setUsingOwnLocation] = useState(true);
@@ -768,9 +776,14 @@ export default function Page() {
     setActiveResult("none");
     setShopsPanelOpen(false);
     setInitialStoreNavPrompt(true);
-    // v310_STEP1_2_GPS_REFRESH_FIX: refreshissä valinnat nollaan, GPS päälle.
+    // V432_GPS_INITIAL_ONCE:
+    // Reloadissa GPS saa käynnistyä kerran, mutta onnistumisen jälkeen se ei saa käynnistyä uudelleen.
     gpsUserDisabledRefV306.current = false;
+    gpsInitialVisiblePhaseRefV391.current = true;
     setUsingOwnLocation(true);
+    setGpsCoordsV320(null);
+    setLocationMessage("Paikannetaan GPS…");
+    setLocationMessageVisible(true);
   }, []);
 
   useEffect(() => {
@@ -787,7 +800,7 @@ export default function Page() {
         lower.includes("käytössä") ||
         lower.includes("löytyi") ||
         lower.includes("valittu") ||
-        lower.includes("gps")
+        false && false && lower.includes("gps")
       );
 
     if (!shouldAutoHide) return;
@@ -890,6 +903,7 @@ export default function Page() {
   const [cartModalOpen, setCartModalOpen] = useState(false);
   const [cartSavePanelOpen, setCartSavePanelOpen] = useState(false);
   const [shopsPanelOpen, setShopsPanelOpen] = useState(false);
+  const [mapStoresOverlayOpenV433, setMapStoresOverlayOpenV433] = useState(false);
   const [mapRouteOverlayOpenV428, setMapRouteOverlayOpenV428] = useState(false);  const [initialStoreNavPrompt, setInitialStoreNavPrompt] = useState(true);
   const [gpsErrorMessage, setGpsErrorMessage] = useState("");
   const [gpsAutoActivatedV287, setGpsAutoActivatedV287] = useState(false);
@@ -936,7 +950,15 @@ export default function Page() {
   }
 
   function setGpsVisibleMessageV391(areaLabel: string) {
+    gpsInitialVisiblePhaseRefV391.current = false;
+
+    if (gpsFailTimerRefV391.current) {
+      window.clearTimeout(gpsFailTimerRefV391.current);
+      gpsFailTimerRefV391.current = null;
+    }
+
     setGpsErrorMessage("");
+    setStoreSearchLoading(false);
     setLocationMessage(`Käytetään GPS ${areaLabel}`);
     setLocationMessageVisible(true);
   }
@@ -1000,8 +1022,9 @@ export default function Page() {
     }
   }
 
-function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
+function stopOwnLocationV306(message = "GPS pois päältä.") {
     gpsUserDisabledRefV306.current = true;
+    gpsInitialVisiblePhaseRefV391.current = false;
     stopSilentGpsWatchV391();
     if (gpsFailTimerRefV391.current) {
       window.clearTimeout(gpsFailTimerRefV391.current);
@@ -1227,7 +1250,7 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
   // Start/reload näyttää GPS-tilan käyttäjälle. Sen jälkeen GPS päivittyy taustalla.
   useEffect(() => {
     if (typeof window === "undefined" || !navigator.geolocation) return;
-    if (!usingOwnLocation) return;
+    if (!usingOwnLocation || gpsUserDisabledRefV306.current || gpsCoordsV320 || !gpsInitialVisiblePhaseRefV391.current) return;
 
     if (gpsInitialVisiblePhaseRefV391.current) {
       setLocationMessage("Paikannetaan GPS…");
@@ -1239,10 +1262,11 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
 
       gpsFailTimerRefV391.current = window.setTimeout(() => {
         if (!gpsCoordsV320 && gpsInitialVisiblePhaseRefV391.current) {
+          setStoreSearchLoading(false);
           setLocationMessage("GPS ei löydy");
           setLocationMessageVisible(true);
         }
-      }, 15000);
+      }, 12000);
     }
 
     return () => {
@@ -1626,15 +1650,28 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
   const hasActiveStores =
     activeStores.sStoreId > 0 && activeStores.kStoreId > 0;
 
-  const selectedRouteStoreV428 = useMemo(() => {
-    const targetName =
-      activeStores.sStoreName &&
-      !activeStores.sStoreName.includes("Valitse ensin") &&
-      !activeStores.sStoreName.includes("ei valittu")
-        ? activeStores.sStoreName
-        : activeStores.kStoreName;
+  const selectedMapStoresV433 = useMemo(() => {
+    const selected = [
+      {
+        key: "s",
+        name: activeStores.sStoreName,
+        chain: "S",
+        id: activeStores.sStoreId,
+      },
+      {
+        key: "k",
+        name: activeStores.kStoreName,
+        chain: "K",
+        id: activeStores.kStoreId,
+      },
+    ].filter(
+      (store) =>
+        store.name &&
+        !store.name.includes("Valitse ensin") &&
+        !store.name.includes("ei valittu"),
+    );
 
-    const candidates = foundStores.map((store: any, index: number) => {
+    const normalizedFound = foundStores.map((store: any, index: number) => {
       const latitude = Number(
         store.latitude ??
           store.lat ??
@@ -1652,6 +1689,7 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
 
       return {
         key: String(store.id ?? store.storeId ?? store.name ?? index),
+        id: store.id ?? store.storeId ?? index,
         name: String(store.name ?? store.storeName ?? `Kauppa ${index + 1}`),
         address: String(store.address ?? store.streetAddress ?? ""),
         city: String(store.city ?? activeArea.label ?? "Suomi"),
@@ -1660,44 +1698,62 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
       };
     });
 
-    const normalizedTarget = normalize(String(targetName || ""));
-    const exact =
-      normalizedTarget &&
-      candidates.find((store) => normalize(store.name).includes(normalizedTarget) || normalizedTarget.includes(normalize(store.name)));
+    const withCoords = selected.map((store) => {
+      const targetName = normalize(String(store.name || ""));
+      const match = normalizedFound.find((candidate) => {
+        const candidateName = normalize(String(candidate.name || ""));
+        return (
+          String(candidate.id || "") === String(store.id || "") ||
+          (targetName &&
+            candidateName &&
+            (candidateName.includes(targetName) ||
+              targetName.includes(candidateName)))
+        );
+      });
 
-    return (
-      exact ||
-      candidates[0] || {
-        key: "area",
-        name: targetName || activeArea.label || "Valittu kauppa",
-        address: "",
-        city: activeArea.label || "Suomi",
-        latitude: null,
-        longitude: null,
-      }
-    );
-  }, [activeStores.sStoreName, activeStores.kStoreName, foundStores, activeArea.label]);
+      return {
+        ...store,
+        address: match?.address || "",
+        city: match?.city || activeArea.label || "Suomi",
+        latitude: match?.latitude ?? null,
+        longitude: match?.longitude ?? null,
+      };
+    });
 
-  function getRouteDestinationV428() {
-    if (
-      selectedRouteStoreV428.latitude != null &&
-      selectedRouteStoreV428.longitude != null
-    ) {
-      return `${selectedRouteStoreV428.latitude},${selectedRouteStoreV428.longitude}`;
+    return withCoords.length > 0 ? withCoords : normalizedFound.slice(0, 2);
+  }, [
+    activeStores.sStoreId,
+    activeStores.sStoreName,
+    activeStores.kStoreId,
+    activeStores.kStoreName,
+    foundStores,
+    activeArea.label,
+  ]);
+
+  function getMapStoreQueryV433(store?: {
+    name?: string;
+    address?: string;
+    city?: string;
+    latitude?: number | null;
+    longitude?: number | null;
+  }) {
+    if (store?.latitude != null && store?.longitude != null) {
+      return `${store.latitude},${store.longitude}`;
     }
 
-    return [
-      selectedRouteStoreV428.name,
-      selectedRouteStoreV428.address,
-      selectedRouteStoreV428.city,
-      "Suomi",
-    ]
+    return [store?.name, store?.address, store?.city, "Suomi"]
       .filter(Boolean)
       .join(", ");
   }
 
-  function getRouteUrlV428() {
-    const destination = encodeURIComponent(getRouteDestinationV428());
+  function getMapRouteUrlV433(store?: {
+    name?: string;
+    address?: string;
+    city?: string;
+    latitude?: number | null;
+    longitude?: number | null;
+  }) {
+    const destination = encodeURIComponent(getMapStoreQueryV433(store));
     const origin =
       gpsCoordsV320?.latitude != null && gpsCoordsV320?.longitude != null
         ? encodeURIComponent(`${gpsCoordsV320.latitude},${gpsCoordsV320.longitude}`)
@@ -1708,14 +1764,16 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
       : `https://www.google.com/maps/search/?api=1&query=${destination}`;
   }
 
-  function openRouteInMapsV428() {
-    const url = getRouteUrlV428();
-    if (typeof window !== "undefined") {
-      window.open(url, "_blank", "noopener,noreferrer");
-    }
-  }
+  const mapStoresQueryV433 =
+    selectedMapStoresV433.length > 1
+      ? selectedMapStoresV433
+          .map((store) => [store.name, store.city].filter(Boolean).join(", "))
+          .join(" | ")
+      : getMapStoreQueryV433(selectedMapStoresV433[0]) ||
+        `${activeArea.label || "Hyvinkää"}, Suomi`;
 
-  const mapRouteIframeSrcV428 = `https://maps.google.com/maps?q=${encodeURIComponent(getRouteDestinationV428())}&z=14&output=embed`;
+  const mapStoresIframeSrcV433 = `https://maps.google.com/maps?q=${encodeURIComponent(mapStoresQueryV433)}&z=13&output=embed`;
+
 
   const storePairMissingNoticeVisibleV427 =
     storeModeChosenV299 &&
@@ -3679,6 +3737,13 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
       }
 
       setGpsErrorMessage("");
+      gpsInitialVisiblePhaseRefV391.current = false;
+      if (gpsFailTimerRefV391.current) {
+        window.clearTimeout(gpsFailTimerRefV391.current);
+        gpsFailTimerRefV391.current = null;
+      }
+      setGpsErrorMessage("");
+      setStoreSearchLoading(false);
       setLocationMessage(`Käytetään GPS ${city}`);
       setLocationMessageVisible(true);
       setLocationInput("");
@@ -8603,7 +8668,7 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
                     onUseOwnLocation={() => void useOwnLocation()}
                     onDisableOwnLocation={() =>
                       stopOwnLocationV306(
-                        "GPS pois päältä. Kirjoita alue tai postinumero.",
+                        "GPS pois päältä.",
                       )
                     }
                     onOpenShops={() => {
@@ -9322,8 +9387,8 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
               storeSearchLoading={storeSearchLoading}
               gpsErrorMessage={gpsErrorMessage}
               gpsStatusText={locationMessageVisible ? locationMessage : ""}
-              onApplyLocation={() => setMapRouteOverlayOpenV428(true)}
-              onOpenMap={() => setMapRouteOverlayOpenV428(true)}
+              onApplyLocation={() => setMapStoresOverlayOpenV433(true)}
+              onOpenMap={() => setMapStoresOverlayOpenV433(true)}
               onLocationInputChange={(nextValue: string) => {
                 setLocationInput(nextValue);
                 if (nextValue.trim()) {
@@ -9336,13 +9401,13 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
               }}
               onGpsClick={() => {
                 if (usingOwnLocation) {
-                  stopOwnLocationV306(
-                    "GPS pois päältä. Kirjoita alue tai postinumero.",
-                  );
+                  stopOwnLocationV306("GPS pois päältä.");
                   setLocationMessageVisible(true);
                   return;
                 }
                 gpsUserDisabledRefV306.current = false;
+                gpsInitialVisiblePhaseRefV391.current = true;
+                setUsingOwnLocation(true);
                 setGpsErrorMessage("");
                 setLocationInput("");
                 setLocationMessage("Paikannetaan GPS…");
@@ -10896,32 +10961,33 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
         
 
 
-        {mapRouteOverlayOpenV428 && (
+
+        {mapStoresOverlayOpenV433 && (
           <div className="fixed inset-0 z-[120] bg-[#062f29]/45 px-3 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-[calc(env(safe-area-inset-top)+1rem)] backdrop-blur-sm sm:hidden">
             <div className="mx-auto flex h-full max-w-[430px] flex-col overflow-hidden rounded-[2rem] border-[3px] border-[#c9a85c] bg-[#fff8dc] shadow-[0_24px_60px_rgba(0,0,0,0.35)]">
               <div className="flex items-center justify-between border-b border-[#d6bd76] bg-[#073d32] px-4 py-3 text-white">
                 <div className="flex items-center gap-3">
-                  <div className="grid h-12 w-12 place-items-center rounded-full bg-[#fff7dc] shadow-inner ring-1 ring-[#d6bd76]">
+                  <div className="grid h-12 w-12 place-items-center rounded-full bg-[#9fd8d0] shadow-inner ring-1 ring-[#6dbbb2]">
                     <img
                       src="/icons/ziiply-compass.png"
                       alt=""
-                      className="h-10 w-10 object-contain"
+                      className="h-16 w-16 object-contain drop-shadow-[0_3px_7px_rgba(7,61,50,0.38)]"
                       draggable={false}
                     />
                   </div>
                   <div>
                     <div className="text-sm font-black uppercase tracking-[0.18em] text-[#f6d77b]">
-                      Reitti
+                      Kartta
                     </div>
-                    <div className="max-w-[220px] truncate text-lg font-black leading-tight">
-                      {selectedRouteStoreV428.name}
+                    <div className="text-lg font-black leading-tight">
+                      Valitut kaupat
                     </div>
                   </div>
                 </div>
 
                 <button
                   type="button"
-                  onClick={() => setMapRouteOverlayOpenV428(false)}
+                  onClick={() => setMapStoresOverlayOpenV433(false)}
                   className="grid h-10 w-10 place-items-center rounded-full bg-white/12 text-2xl font-black active:scale-95"
                   aria-label="Sulje kartta"
                 >
@@ -10931,8 +10997,8 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
 
               <div className="relative min-h-0 flex-1 bg-white">
                 <iframe
-                  title="Ziiply kartta"
-                  src={mapRouteIframeSrcV428}
+                  title="Ziiply kauppakartta"
+                  src={mapStoresIframeSrcV433}
                   className="h-full w-full border-0"
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
@@ -10942,7 +11008,7 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
               <div className="space-y-2 border-t border-[#d6bd76] bg-[#fff8dc] p-3">
                 {gpsCoordsV320 ? (
                   <div className="rounded-2xl bg-[#e7f6ee] px-3 py-2 text-sm font-black text-[#087a3a]">
-                    Oma sijainti mukana reittiohjeessa.
+                    Oma sijainti mukana reittilinkeissä.
                   </div>
                 ) : (
                   <div className="rounded-2xl bg-[#fff1c7] px-3 py-2 text-sm font-black text-[#7b5a14]">
@@ -10950,14 +11016,27 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
                   </div>
                 )}
 
-                <button
-                  type="button"
-                  onClick={openRouteInMapsV428}
-                  className="flex w-full items-center justify-center gap-3 rounded-2xl bg-[#073d32] px-4 py-4 text-lg font-black text-[#fff7dc] shadow-[0_8px_18px_rgba(7,61,50,0.24)] active:scale-[0.99]"
-                >
-                  <span>Näytä reitti</span>
-                  <span className="text-2xl">↗</span>
-                </button>
+                <div className="grid grid-cols-1 gap-2">
+                  {selectedMapStoresV433.map((store) => (
+                    <a
+                      key={`${store.key}-${store.name}`}
+                      href={getMapRouteUrlV433(store)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center justify-between rounded-2xl bg-white px-4 py-3 text-left shadow-sm ring-1 ring-[#ead99f] active:scale-[0.99]"
+                    >
+                      <span>
+                        <span className="block text-base font-black text-[#17223b]">
+                          {store.name}
+                        </span>
+                        <span className="block text-xs font-black uppercase tracking-[0.12em] text-[#7a6a43]">
+                          Näytä reitti
+                        </span>
+                      </span>
+                      <span className="text-2xl">↗</span>
+                    </a>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
