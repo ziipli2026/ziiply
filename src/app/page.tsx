@@ -1,9 +1,10 @@
 "use client";
 
+// V502_WEATHER_RESTORED_HAE_READY_BADGE: säämoduuli takaisin page-GPS-koordinaateilla, Hae-valmiusbadge ilman pomppua.
+// V503_REMOVE_GPS_DEBUG_LOGGING: poistettu GPS debug-loggaus ja overlay.
 // V500_BUILD_FIX_ACTIVE_AREA_STATUS_NO_BOUNCE: korjaa status-scope buildin ja poistaa suurennuslasin pompun, mutta jättää Hae-valmiuslogiikan.
 // V495_GPS_SUCCESS_UI_RELEASE: GPS onnistumisen jälkeen vapautetaan UI eksplisiittisesti pois pending/jumi-tilasta.
 // V496_GPS_STATUS_RENDER_FORCE: GPS onnistumisen jälkeen status pakotetaan renderöintiin; logi + karttatoiminnot pois testistä.
-// V492_GPS_DEBUG_LOG_MAP_DISABLED: ruudulle näkyvä GPS-logi + karttatoiminnot pois testistä.
 // V491_GPS_SINGLE_PROMISE_CONTROLLED_RETRY: getCurrentPosition dedupataan yhteen promiseen ja ensimmäisen hutiyrityksen jälkeen tehdään yksi sisäinen retry ilman uutta UI-starttia.
 
 // V458_MOBILE_VOICE_TOGGLE_SILENCE_SEARCH: mobiilin mikki toimii toggle-na; 2,5s hiljaisuudesta stop + automaattinen haku.
@@ -372,7 +373,7 @@ function formatLocationNoticeV465(message: string) {
     .trim();
 }
 
-const WEATHER_APP_DISABLED_TEST_V487 = true;
+const WEATHER_APP_DISABLED_TEST_V487 = false;
 
 function KauppiasMobileTopBar({
   hidden = false,
@@ -729,15 +730,9 @@ export default function Page() {
   const gpsManualSuccessCoordsRefV485 = useRef<{ latitude: number; longitude: number } | null>(null);
   const [gpsDebugLogV492, setGpsDebugLogV492] = useState<string[]>([]);
 
-  function pushGpsDebugLogV492(message: string) {
-    const stamp = new Date().toLocaleTimeString("fi-FI", {
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    });
-    const line = `${stamp} ${message}`;
-    console.log(`[ZIIPLY GPS] ${line}`);
-    setGpsDebugLogV492((current) => [line, ...current].slice(0, 18));
+  function pushGpsDebugLogV492(_message: string) {
+    // V503: GPS debug logging disabled.
+    return;
   }
   const [storePickerViewportStyle, setStorePickerViewportStyle] = useState<{
     top: number;
@@ -1225,9 +1220,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (previousSearchReadySignatureV320.current !== searchReadySignatureV320) {
       previousSearchReadySignatureV320.current = searchReadySignatureV320;
       // V500: storesReadyForSearch jää toimintaan, mutta suurennuslasin pomppuanimaatio pois.
+      // // V502: Hae-valmius säilyy storesReadyForSearch-logiikalla, mutta suurennuslasin pomppu on pois.
       // setSearchReadyBounceKeyV320((value) => value + 1);
     }
   }, [storesReadyForSearch, searchReadySignatureV320]);
+  const haeReadyBadgeVisibleV502 = storesReadyForSearch && !searchPanelOpen;
+  const haeReadyBadgeTextV502 = haeReadyBadgeVisibleV502 ? "Valmis" : "";
   const [visibleNormalCount, setVisibleNormalCount] = useState(8);
   const [activeNormalSearchTerm, setActiveNormalSearchTerm] = useState("");
   const [notFoundSearchTerms, setNotFoundSearchTerms] = useState<string[]>([]);
@@ -11114,7 +11112,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           </div>
         )}
 
-        <ZiiplyBottomNav
+        {/* V502_HAE_READY_BADGE_RENDER */}
+          {haeReadyBadgeVisibleV502 ? (
+            <div className="pointer-events-none fixed bottom-[calc(env(safe-area-inset-bottom)+4.25rem)] left-1/2 z-[96] -translate-x-1/2 rounded-[0.65rem] border border-[#8a6a1f] bg-[#f6dd84] px-2 py-1 text-[10px] font-black uppercase tracking-[0.04em] text-[#4b3200] shadow-[0_4px_10px_rgba(60,45,20,0.20)] sm:hidden">
+              Hae valmis
+            </div>
+          ) : null}
+          <ZiiplyBottomNav
           shopsPanelOpen={shopsPanelOpen}
           initialStoreNavPrompt={initialStoreNavPrompt}
           searchBottomNavDisabled={searchNavigationLocked}
