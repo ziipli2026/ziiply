@@ -1,5 +1,7 @@
 "use client";
 
+// V456_REMOVE_HAE_OLD_THREE_BUTTON_ROW: poistettu Hae-kortin vanha Huojennukset/Lisää koriin/Vertailu -rivi kokonaan.
+
 // V454_MOBILE_SEARCH_REMOVE_OLD_ACTION_TAILS: poistettu Hae-paneelin vanhat kovakoodatut sanelu/skanneri-hännät ja WEBP-paikkarenderit page.tsx:stä.
 
 // V452_FIX_ON_WORKING_V444_BASE: korjattu Hakutapa-ilmoitus toimivan V444-pohjan sisällä ilman JSX-haaran poistoa.
@@ -10358,59 +10360,6 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
                       </button>
                     </div>
 
-                    <div className="mt-2 grid grid-cols-3 gap-1.5">
-                      <button
-                        type="button"
-                        onClick={handleMainOfferSearch}
-                        disabled={!hasSearchInput || loadingOffers}
-                        aria-disabled={!hasSearchInput || loadingOffers}
-                        className={`min-h-[2.45rem] touch-manipulation rounded-[0.95rem] px-2 text-xs font-black leading-tight transition ${
-                          !hasSearchInput || loadingOffers
-                            ? "cursor-not-allowed bg-slate-100 text-slate-400 ring-1 ring-slate-200"
-                            : "bg-rose-100 text-rose-700 shadow-sm ring-1 ring-rose-200 active:scale-[0.98]"
-                        }`}
-                      >
-                        {loadingOffers ? "Haetaan..." : "🔥 Huojennukset"}
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={addInputToCart}
-                        disabled={!hasSearchInput}
-                        aria-disabled={!hasSearchInput}
-                        className={`min-h-[2.45rem] touch-manipulation rounded-[0.95rem] px-2 text-xs font-black leading-tight transition ${
-                          !hasSearchInput
-                            ? "cursor-not-allowed bg-slate-100 text-slate-400 ring-1 ring-slate-200"
-                            : "bg-white text-slate-800 shadow-sm ring-1 ring-slate-200 active:scale-[0.98]"
-                        }`}
-                      >
-                        Lisää koriin
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={handleMainNormalSearch}
-                        disabled={
-                          !hasSearchInput ||
-                          loadingNormal ||
-                          singleProductCompareLoading
-                        }
-                        aria-disabled={
-                          !hasSearchInput ||
-                          loadingNormal ||
-                          singleProductCompareLoading
-                        }
-                        className={`min-h-[2.45rem] touch-manipulation rounded-[0.95rem] px-2 text-xs font-black leading-tight transition ${
-                          !hasSearchInput ||
-                          loadingNormal ||
-                          singleProductCompareLoading
-                            ? "cursor-not-allowed bg-slate-100 text-slate-400 ring-1 ring-slate-200"
-                            : "bg-green-700 text-white shadow-md shadow-green-600/20 ring-1 ring-black/10 active:scale-[0.98]"
-                        }`}
-                      >
-                        {loadingNormal || singleProductCompareLoading ? "Haetaan..." : "🔎 Vertailu"}
-                      </button>
-                    </div>
                   </div>
                 </div>
               </div>
