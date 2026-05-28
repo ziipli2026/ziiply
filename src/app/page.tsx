@@ -1,5 +1,6 @@
 "use client";
 
+// V500_BUILD_FIX_ACTIVE_AREA_STATUS_NO_BOUNCE: korjaa status-scope buildin ja poistaa suurennuslasin pompun, mutta jättää Hae-valmiuslogiikan.
 // V495_GPS_SUCCESS_UI_RELEASE: GPS onnistumisen jälkeen vapautetaan UI eksplisiittisesti pois pending/jumi-tilasta.
 // V496_GPS_STATUS_RENDER_FORCE: GPS onnistumisen jälkeen status pakotetaan renderöintiin; logi + karttatoiminnot pois testistä.
 // V492_GPS_DEBUG_LOG_MAP_DISABLED: ruudulle näkyvä GPS-logi + karttatoiminnot pois testistä.
@@ -1223,7 +1224,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     if (previousSearchReadySignatureV320.current !== searchReadySignatureV320) {
       previousSearchReadySignatureV320.current = searchReadySignatureV320;
-      setSearchReadyBounceKeyV320((value) => value + 1);
+      // V500: storesReadyForSearch jää toimintaan, mutta suurennuslasin pomppuanimaatio pois.
+      // setSearchReadyBounceKeyV320((value) => value + 1);
     }
   }, [storesReadyForSearch, searchReadySignatureV320]);
   const [visibleNormalCount, setVisibleNormalCount] = useState(8);
@@ -3914,7 +3916,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           `${nextArea.label || query} löytyi, mutta kaikkia ${effectiveStoreModeForLocationMessage === "local" ? "lähikauppoja" : "tavarataloja"} ei löytynyt. Voit valita kaupat listasta.`,
         );
       } else {
-        setLocationMessage(`${query} käytössä`);
+        setLocationMessage(`${activeArea.label || "GPS"} käytössä`);
       }
     } catch (error) {
       pushGpsDebugLogV492(`useOwnLocation CATCH code=${String((error as any)?.code ?? "?")}`);
@@ -3941,7 +3943,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setStoreSearchLoading(false);
       if (source === "gps") {
         setGpsErrorMessage("");
-        setLocationMessage(`${query} käytössä`);
+        setLocationMessage(`${activeArea.label || "GPS"} käytössä`);
         setLocationMessageVisible(true);
       }
     }
