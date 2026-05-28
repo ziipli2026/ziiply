@@ -1,27 +1,20 @@
 "use client";
 
-// V429_AQUAMARINE_COMPASS_GPS_TOGGLE: merilasi/aquamarine kompassinappi ja varma GPS on/off väri.
+// V430_LOCATIONBAR_CLEAN_REBUILD:
+// Puhdas build-kelpoinen versio. GPS-nappi on/off-väreillä ja kompassinappi merilasi/aquamarine-taustalla.
 
-// V427_LIGHT_COMPASS_AND_GPS_OFF_RED: vaaleampi kompassinappi ja punainen GPS off -tila.
-
-// V417_COMPASS_IMAGE_MAP_BUTTON: Kartta-napissa public/icons/compass.png ilman tekstiä.
-
-// V417_MAP_BUTTON_ICON_ONLY: -napin tekstin tilalla pelkkä kompassi/karttakuvake.
-
-// V405_GPS_CAN_ALWAYS_TOGGLE_OFF: GPS-nappi ei lukitu storeSearchLoading-tilassa.
-
-import React, { useEffect, useRef, useState } from "react";
+import React from "react";
 
 export type ZiiplyMobileLocationBarProps = {
   locationInput: string;
   usingOwnLocation: boolean;
   storeSearchLoading: boolean;
   gpsErrorMessage?: string;
+  gpsStatusText?: string;
   onLocationInputChange: (value: string) => void;
   onGpsClick: () => void;
   onApplyLocation: () => void | Promise<void>;
   onOpenMap?: () => void | Promise<void>;
-  gpsStatusText?: string;
 };
 
 export default function ZiiplyMobileLocationBar({
@@ -29,115 +22,88 @@ export default function ZiiplyMobileLocationBar({
   usingOwnLocation,
   storeSearchLoading,
   gpsErrorMessage,
+  gpsStatusText,
   onLocationInputChange,
   onGpsClick,
   onApplyLocation,
   onOpenMap,
-  gpsStatusText,
 }: ZiiplyMobileLocationBarProps) {
-  const [gpsClickLocked, setGpsClickLocked] = useState(false);
-  const gpsClickUnlockTimerRef = useRef<number | null>(null);
+  const statusText =
+    gpsErrorMessage ||
+    gpsStatusText ||
+    (usingOwnLocation ? "Paikannetaan GPS…" : "GPS pois päältä.");
 
-  useEffect(() => {
-    return () => {
-      if (gpsClickUnlockTimerRef.current) {
-        window.clearTimeout(gpsClickUnlockTimerRef.current);
-        gpsClickUnlockTimerRef.current = null;
-      }
-    };
-  }, []);
+  const gpsButtonStyle: React.CSSProperties = {
+    borderColor: usingOwnLocation ? "#b7efcf" : "#ef4444",
+    background: usingOwnLocation ? "#eafff2" : "#fff1f1",
+    boxShadow: usingOwnLocation
+      ? "0 0 0 2px rgba(34,197,94,0.14)"
+      : "0 0 0 2px rgba(239,68,68,0.22)",
+  };
 
-  // GPS pitää saada aina pois päältä myös paikannuksen/kauppahaun aikana.
-  // Estetään vain tuplaklikkaus, ei storeSearchLoading-tilaa.
-  const gpsButtonDisabled = gpsClickLocked;
-
-  function handleGpsClick() {
-    // v382_GPS_BUTTON_DEBOUNCE:
-    // Estää GPS pois/päälle -tuplapainalluksesta syntyvän välirenderin,
-    // jossa kaupan valintaikkuna ehtii vilahtaa ennen kuin uusi sijaintihaku on valmis.
-    if (gpsButtonDisabled) return;
-
-    setGpsClickLocked(true);
-    onGpsClick();
-
-    if (gpsClickUnlockTimerRef.current) {
-      window.clearTimeout(gpsClickUnlockTimerRef.current);
+  const handleMapClick = () => {
+    if (onOpenMap) {
+      void onOpenMap();
+      return;
     }
 
-    gpsClickUnlockTimerRef.current = window.setTimeout(() => {
-      setGpsClickLocked(false);
-      gpsClickUnlockTimerRef.current = null;
-    }, 900);
-  }
-
-  const statusText = gpsErrorMessage
-    ? gpsErrorMessage
-    : gpsStatusText
-      ? gpsStatusText
-      : storeSearchLoading && usingOwnLocation
-        ? "Paikannetaan GPS…"
-        : usingOwnLocation ? "Käytetään GPS" : "border-[#ef4444] bg-[#fff1f1] shadow-[0_0_0_2px_rgba(239,68,68,0.18)]";
+    void onApplyLocation();
+  };
 
   return (
-    <section className="rounded-[1.45rem] bg-white/96 px-2.5 py-1.5 shadow-[0_10px_26px_rgba(15,23,42,0.10)] ring-1 ring-white/80">
-      <div className="flex h-[56px] items-stretch gap-2">
+    <section className="w-full">
+      <div className="mx-auto grid h-[72px] w-full grid-cols-[58px_minmax(0,1fr)_86px] items-center gap-2 rounded-[1.7rem] bg-white/96 p-2 shadow-[0_10px_26px_rgba(15,23,42,0.10)] ring-1 ring-white/80">
         <button
           type="button"
-          onClick={handleGpsClick}
-          onMouseDown={(event) =
-        style={{
-          borderColor: usingOwnLocation ? "#b7efcf" : "#ef4444",
-          background: usingOwnLocation ? "#eafff2" : "#fff1f1",
-          boxShadow: usingOwnLocation
-            ? "0 0 0 2px rgba(34,197,94,0.14)"
-            : "0 0 0 2px rgba(239,68,68,0.22)",
-        }}> event.preventDefault()}
-          disabled={gpsButtonDisabled}
-          className="flex h-[52px] w-[52px] shrink-0 items-center justify-center self-center rounded-[1.05rem] border-2 border-[#d7f1dd] bg-[#eef9f0] text-[25px] shadow-inner active:scale-[0.98] disabled:opacity-70"
-          aria-label="Käytä GPS-sijaintia"
-          aria-pressed={usingOwnLocation}
+          onClick={onGpsClick}
+          onMouseDown={(event) => event.preventDefault()}
+          className="grid h-[56px] w-[56px] place-items-center rounded-[1.25rem] border-2 transition-transform duration-150 active:scale-95"
+          style={gpsButtonStyle}
+          aria-label={usingOwnLocation ? "GPS päällä" : "GPS pois päältä"}
         >
-          📍
+          <span className="text-[26px] leading-none drop-shadow-sm">📍</span>
         </button>
 
-        <div className="relative min-w-0 flex-1">
+        <div className="min-w-0 rounded-[1.25rem] border-[2px] border-[#d7dfec] bg-white/90 px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.9)]">
           <input
             value={locationInput}
             onChange={(event) => onLocationInputChange(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.currentTarget.blur();
+                void onApplyLocation();
+              }
+            }}
             placeholder="05510 tai Hyvinkää"
-            className={[
-              "h-[52px] w-full rounded-[1.05rem] border-2 border-[#d7dfec] bg-[#fcfcff] px-3 font-black tracking-[-0.02em] text-[#324255] outline-none placeholder:text-[#96a2b7]",
-              statusText ? "pb-[17px] pt-1 text-[15px]" : "py-0 text-[16px]",
-            ].join(" ")}
+            className="block h-[27px] w-full min-w-0 bg-transparent text-[18px] font-black leading-none text-[#17223b] outline-none placeholder:text-[#94a3b8]"
           />
 
-          {statusText && (
-            <div
-              className={[
-                "pointer-events-none absolute inset-x-[12px] bottom-[7px] truncate text-[10px] font-black leading-none",
-                gpsErrorMessage ? "text-[#b42318]" : "text-[#3d8654]",
-              ].join(" ")}
-            >
-              {statusText}
-            </div>
-          )}
+          <div
+            className={`mt-[1px] truncate text-[12px] font-black leading-none ${
+              gpsErrorMessage
+                ? "text-[#dc2626]"
+                : usingOwnLocation
+                  ? "text-[#087a3a]"
+                  : "text-[#b91c1c]"
+            }`}
+          >
+            {storeSearchLoading ? "Haetaan kauppoja…" : statusText}
+          </div>
         </div>
 
         <button
           type="button"
-          onClick={onOpenMap || onApplyLocation}
-          disabled={false}
-          className="flex h-[52px] w-[78px] shrink-0 items-center justify-center self-center rounded-[1.05rem] bg-[#03133f] px-2 text-[13px] font-black text-[#073d32] shadow-[0_7px_18px_rgba(3,19,63,0.20)] active:scale-[0.98]"
-          aria-label="Avaa valitut kaupat kartalla"
-          title="Avaa kartta"
+          onClick={handleMapClick}
+          className="group grid h-[56px] w-[86px] place-items-center rounded-[1.25rem] bg-[#9fd8d0] shadow-[0_8px_18px_rgba(7,61,50,0.18),inset_0_1px_0_rgba(255,255,255,0.55)] ring-1 ring-[#6dbbb2] transition-transform duration-150 active:scale-95"
+          aria-label="Avaa kartta"
         >
-        <img
-          src="/icons/ziiply-compass.png"
-          alt="Kartta"
-          className="h-11 w-11 object-contain drop-shadow-[0_2px_4px_rgba(61,38,7,0.28)] transition-transform duration-150 group-hover:scale-105 group-active:scale-95"
-          draggable={false}
-        />
-      </button>
+          <img
+            src="/icons/ziiply-compass.png"
+            alt=""
+            className="h-11 w-11 object-contain drop-shadow-[0_2px_5px_rgba(7,61,50,0.35)] transition-transform duration-150 group-hover:scale-105 group-active:scale-95"
+            draggable={false}
+          />
+        </button>
       </div>
     </section>
   );
