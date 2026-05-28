@@ -2,6 +2,7 @@
 
 // V502_WEATHER_RESTORED_HAE_READY_BADGE: säämoduuli takaisin page-GPS-koordinaateilla, Hae-valmiusbadge ilman pomppua.
 // V503_REMOVE_GPS_DEBUG_LOGGING: poistettu GPS debug-loggaus ja overlay.
+// V504_SEARCH_CLOSE_FIX: Hae-nappi ei ole disabled kun Hae-kortti on auki, joten se voi sulkea kortin.
 // V500_BUILD_FIX_ACTIVE_AREA_STATUS_NO_BOUNCE: korjaa status-scope buildin ja poistaa suurennuslasin pompun, mutta jättää Hae-valmiuslogiikan.
 // V495_GPS_SUCCESS_UI_RELEASE: GPS onnistumisen jälkeen vapautetaan UI eksplisiittisesti pois pending/jumi-tilasta.
 // V496_GPS_STATUS_RENDER_FORCE: GPS onnistumisen jälkeen status pakotetaan renderöintiin; logi + karttatoiminnot pois testistä.
@@ -728,12 +729,9 @@ export default function Page() {
   // -nappi tyhjentää lukon, joten käyttäjä voi käynnistää GPS:n myöhemmin uudestaan.
   const gpsManualSuccessGuardUntilRefV485 = useRef(0);
   const gpsManualSuccessCoordsRefV485 = useRef<{ latitude: number; longitude: number } | null>(null);
-  const [gpsDebugLogV492, setGpsDebugLogV492] = useState<string[]>([]);
+  // gps debug removed
 
-  function pushGpsDebugLogV492(_message: string) {
-    // V503: GPS debug logging disabled.
-    return;
-  }
+  function pushGpsDebugLogV492(_message: string) { return; }
   const [storePickerViewportStyle, setStorePickerViewportStyle] = useState<{
     top: number;
     width: number;
@@ -11121,7 +11119,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           <ZiiplyBottomNav
           shopsPanelOpen={shopsPanelOpen}
           initialStoreNavPrompt={initialStoreNavPrompt}
-          searchBottomNavDisabled={searchNavigationLocked}
+          searchBottomNavDisabled={searchBottomNavDisabled}
           initialStoreSelectionLocked={initialStoreSelectionLocked}
           searchPanelOpen={searchPanelOpen}
           searchReadyBounceKeyV320={searchReadyBounceKeyV320}
