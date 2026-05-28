@@ -1,5 +1,7 @@
 "use client";
 
+// V427_LIGHT_COMPASS_AND_GPS_OFF_RED: vaaleampi kompassinappi ja punainen GPS off -tila.
+
 // V417_COMPASS_IMAGE_MAP_BUTTON: Kartta-napissa public/icons/compass.png ilman tekstiä.
 
 // V417_MAP_BUTTON_ICON_ONLY: -napin tekstin tilalla pelkkä kompassi/karttakuvake.
@@ -72,9 +74,7 @@ export default function ZiiplyMobileLocationBar({
       ? gpsStatusText
       : storeSearchLoading && usingOwnLocation
         ? "Paikannetaan GPS…"
-        : usingOwnLocation
-          ? "Käytetään GPS"
-          : "";
+        : usingOwnLocation ? "Käytetään GPS" : "border-[#ef4444] bg-[#fff1f1] shadow-[0_0_0_2px_rgba(239,68,68,0.18)]";
 
   return (
     <section className="rounded-[1.45rem] bg-white/96 px-2.5 py-1.5 shadow-[0_10px_26px_rgba(15,23,42,0.10)] ring-1 ring-white/80">
@@ -118,14 +118,14 @@ export default function ZiiplyMobileLocationBar({
           type="button"
           onClick={onOpenMap || onApplyLocation}
           disabled={false}
-          className="flex h-[52px] w-[78px] shrink-0 items-center justify-center self-center rounded-[1.05rem] bg-[#03133f] px-2 text-[13px] font-black text-white shadow-[0_7px_18px_rgba(3,19,63,0.20)] active:scale-[0.98]"
+          className="flex h-[52px] w-[78px] shrink-0 items-center justify-center self-center rounded-[1.05rem] bg-[#03133f] px-2 text-[13px] font-black text-[#073d32] shadow-[0_7px_18px_rgba(3,19,63,0.20)] active:scale-[0.98]"
           aria-label="Avaa valitut kaupat kartalla"
           title="Avaa kartta"
         >
         <img
           src="/icons/ziiply-compass.png"
           alt="Kartta"
-          className="h-10 w-10 object-contain drop-shadow-sm transition-transform duration-150 group-hover:scale-105 group-active:scale-95"
+          className="h-12 w-12 object-contain drop-shadow-[0_2px_4px_rgba(61,38,7,0.28)] transition-transform duration-150 group-hover:scale-105 group-active:scale-95"
           draggable={false}
         />
       </button>
