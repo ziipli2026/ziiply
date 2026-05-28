@@ -1,6 +1,7 @@
 "use client";
 
-// V6_HAKUTAPA_NOTICE_TRIGGER_FIXED: ilmoitus näkyy varmasti, kun vertailu-/tavaratalopari puuttuu.
+// V7_MOBILE_SELECTOR_SPACING_AND_STABLE_LAYOUT:
+// poistettu hyppivä keskialue, kasvatettu nappirivien välit ja vakautettu mobile-layout.
 
 import React, { useEffect, useState } from "react";
 
@@ -91,7 +92,7 @@ export default function ZiiplyMobileStoreModeSelector({
         }
       `}</style>
 
-      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
         <button
           type="button"
           disabled={modeButtonsDisabled}
@@ -101,10 +102,10 @@ export default function ZiiplyMobileStoreModeSelector({
           🏬 Tavaratalot
         </button>
 
-        <div className="relative flex min-h-[32px] items-center justify-center overflow-hidden">
+        <div className="relative flex min-h-[42px] items-center justify-center overflow-visible">
           <p
             className={[
-              "relative z-10 whitespace-nowrap rounded-full px-3 py-1 text-center text-[14px] font-black uppercase tracking-wide transition-all duration-200",
+              "relative z-10 whitespace-nowrap rounded-full px-3 py-[0.42rem] text-center text-[13px] font-black uppercase tracking-[0.08em] transition-none",
               hakutapaNoticeVisible
                 ? "bg-[#ffe68a] text-[#634100] shadow-[0_4px_12px_rgba(180,119,0,0.20)] ring-1 ring-[#d6aa33] animate-[ziiplyNoticePop_2200ms_ease-out_forwards]"
                 : "text-slate-500",
@@ -130,7 +131,7 @@ export default function ZiiplyMobileStoreModeSelector({
         </button>
       </div>
 
-      <div className="mt-3 grid grid-cols-2 gap-3">
+      <div className="mt-5 grid grid-cols-2 gap-4">
         <button
           type="button"
           onClick={() => onStoreCompareScopeChange("between_chains")}
@@ -149,7 +150,7 @@ export default function ZiiplyMobileStoreModeSelector({
       </div>
 
       {storeCompareScope === "within_chain" && onWithinChainChange && (
-        <div className="mt-3 grid grid-cols-2 gap-3">
+        <div className="mt-4 grid grid-cols-2 gap-4">
           <button
             type="button"
             onClick={() => onWithinChainChange(withinChain === "S" ? null : "S")}
