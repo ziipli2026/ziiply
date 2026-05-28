@@ -1,5 +1,9 @@
 "use client";
 
+// V424_REMOVE_DANGLING_GPS_CONDITIONAL: poistettu overlayn jäljelle jäänyt gpsCoordsV320-ehdollinen fragmentti.
+
+// V423_FINAL_REMOVE_MAP_OVERLAY_FRAGMENT: poistettu viimeinen keskeneräinen kartta-overlay fragmentti.
+
 // V422_REMOVE_ALL_BROKEN_MAP_OVERLAY_REMNANTS: poistettu kaikki rikkinäisen kartta-overlayn JSX-jäänteet.
 
 // V421_REMOVE_BROKEN_MAP_OVERLAY_JSX: poistettu rikkinäinen kartta-overlay JSX buildin korjaamiseksi.
@@ -10451,8 +10455,6 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
 
         
 
-                {!gpsCoordsV320 && (
-                  <div className="rounded-2xl bg-[#fff1c7] px-3 py-2 text-sm font-black text-[#7b5a14]">
 
       </main>
     </>
