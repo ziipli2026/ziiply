@@ -1,6 +1,7 @@
 "use client";
 
 // V397_FUNCTIONAL_ROLLBACK: palautettu P394:n oma toimiva mobiili-Kori/Vertailu/Hae-renderöinti.
+// V400_REMOVE_CART_ITEM_NAME_FIX: mobiili-Kori käyttää oikeaa P394-funktiota removeCartItem.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -10649,7 +10650,7 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
                 shoppingItemRefs={shoppingItemRefs}
                 onIncreaseQuantity={(itemId: string) => changeQuantity(itemId, 1)}
                 onDecreaseQuantity={(itemId: string) => changeQuantity(itemId, -1)}
-                onRemoveItem={removeFromCart}
+                onRemoveItem={removeCartItem}
                 onAddMore={openSearchPanel}
                 onClearCart={clearCart}
                 onCompare={openComparisonView}
