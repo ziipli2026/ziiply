@@ -328,6 +328,10 @@ let ziiplyGpsBootSearchStartedV466 = false;
 let ziiplyGpsBootSearchStartedAtV466 = 0;
 let ziiplyGpsHardInFlightV469 = false;
 let ziiplyGpsHardLastFinishedAtV469 = 0;
+// V472: automaattinen boot/reload-GPS saa onnistua vain kerran per sivulataus.
+// Käyttäjän GPS-nappi ei käytä tätä lukkoa, jotta GPS:n voi sammuttaa ja käynnistää käsin.
+let ziiplyGpsBootAttemptedV472 = false;
+let ziiplyGpsBootSucceededV472 = false;
 
 type ZiiplyGpsWindowLockV470 = {
   inFlight: boolean;
@@ -3850,9 +3854,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return () => window.clearTimeout(timer);
   }, [locationInput, usingOwnLocation, storeSearchLoading]);
 
-  async function useOwnLocation() {
+  async function useOwnLocation(source: "boot" | "manual" = "manual") {
     const now = Date.now();
     const gpsWindowLockV470 = getZiiplyGpsWindowLockV470();
+    const isBootGpsRunV472 = source === "boot";
+
+    // V472: boot/reload saa yrittää automaattista GPS-hakua vain kerran.
+    // Tämä EI koske käyttäjän GPS-nappia, jotta GPS:n saa pois ja uudelleen päälle käsin.
+    if (isBootGpsRunV472) {
+      if (ziiplyGpsBootAttemptedV472 || ziiplyGpsBootSucceededV472) return;
+      ziiplyGpsBootAttemptedV472 = true;
+    }
 
     // V470: yksi ainoa GPS-ajo kerrallaan. Lukko on sekä komponentin refissä,
     // moduulitasolla että window-tasolla, koska reload/avaa voi remountata Page-komponentin
@@ -3929,6 +3941,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
       });
+
+      if (isBootGpsRunV472) {
+        ziiplyGpsBootSucceededV472 = true;
+      }
     } catch (error) {
       console.error(error);
       const gpsErrorCode =
@@ -3989,9 +4005,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setGpsErrorMessage("");
     setLocationInput("");
 
-    // V471: käynnistä GPS heti tästä yhdestä paikasta. Ei erillistä timeriä,
-    // koska StrictMode/reload/fallback voi ehtiä väliin ennen ajon lukittumista.
-    void useOwnLocation();
+    // V472: boot/reload-käynnistys käyttää omaa kertalukkoaan.
+    // Manuaalinen GPS-nappi kutsuu edelleen useOwnLocation("manual") ja toimii normaalisti.
+    void useOwnLocation("boot");
   }, []);
 
   async function searchOffers(termOverride?: string) {
@@ -8864,7 +8880,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       setLocationMessage("Kirjoita alue tai postinumero");
                     }}
                     
-                    onUseOwnLocation={() => void useOwnLocation()}
+                    onUseOwnLocation={() => void useOwnLocation("manual")}
                     onDisableOwnLocation={() =>
                       stopOwnLocationV306(
                         "GPS pois päältä",
@@ -9609,7 +9625,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 gpsInitialVisiblePhaseRefV391.current = false;
                 setGpsErrorMessage("");
                 setLocationInput("");
-                void useOwnLocation();
+                void useOwnLocation("manual");
               }}
               
               
