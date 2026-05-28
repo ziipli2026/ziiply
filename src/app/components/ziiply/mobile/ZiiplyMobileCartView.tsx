@@ -1,5 +1,7 @@
 "use client";
 
+// ZIIPLY_MOBILE_CART_VIEW_GROUPS_RECORD_FIX: bestShoppingListGroups accepts P394 Record<string, Match[]> shape.
+
 import React from "react";
 import * as ZiiplyCartCardModule from "../cards/ZiiplyCartCard";
 
@@ -26,7 +28,7 @@ export type ZiiplyMobileCartViewProps = {
   secondCheapest?: any;
   savings?: number;
   savingsPercent?: number;
-  bestShoppingListGroups?: any[];
+  bestShoppingListGroups?: any[] | Record<string, any[]>;
 
   getShoppingListItemKey?: (item: any) => string;
   toggleShoppingListItem?: (key: string) => void;
