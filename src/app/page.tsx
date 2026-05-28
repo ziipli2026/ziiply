@@ -1,5 +1,7 @@
 "use client";
 
+// V394_MOBILE_EXTRACT_NAV_FIX applied: Cart Lisää tuote and Vertailu route through page.tsx panel state.
+
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import type {
@@ -2493,6 +2495,33 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
 
   function closeSearchPanel() {
     closePanelWithFade("search", () => setSearchPanelOpen(false));
+  }
+
+  // V394_MOBILE_EXTRACT_NAV_FIX:
+  // Uudet MobileCartView/MobileCompareView-komponentit tarvitsevat suorat
+  // paneelinvaihtajat. Nämä eivät muuta hakumoottoria, vaan palauttavat
+  // P394:n vanhan käytöksen: Lisää tuote avaa Hae-paneelin ja Vertailu
+  // sulkee korin ennen vertailun avaamista.
+  function openSearchFromCartViewV394() {
+    if (searchNavigationLocked) return;
+
+    setRestoredCartPromptV320({ open: false, count: 0 });
+    setCartModalOpen(false);
+    setCartSavePanelOpen(false);
+    setShopsPanelOpen(false);
+    setEanModalOpen(false);
+    closeProductSelectionOverlay();
+    setActiveResult("none");
+    setSearchPanelOpen(true);
+
+    window.setTimeout(() => {
+      searchInputRef.current?.focus();
+    }, 50);
+  }
+
+  function openCompareFromCartViewV394() {
+    if (!cart.length || comparisonLoading) return;
+    openComparisonView();
   }
 
   function openSearchPanelAndStartVoice() {
@@ -8670,12 +8699,9 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
                     onIncreaseQuantity={(itemId: string) => changeQuantity(itemId, 1)}
                     onDecreaseQuantity={(itemId: string) => changeQuantity(itemId, -1)}
                     onRemoveItem={removeCartItem}
-                    onAddMore={openSearchPanel}
+                    onAddMore={openSearchFromCartViewV394}
                     onClearCart={clearCart}
-                    onCompare={() => {
-                      if (!cart.length || comparisonLoading) return;
-                      void updateChainComparison(cart, { openCompare: true });
-                    }}
+                    onCompare={openCompareFromCartViewV394}
                     cartSavePanelOpen={cartSavePanelOpen}
                     onToggleSavePanel={() => setCartSavePanelOpen((value) => !value)}
                     savedListName={savedListName}
@@ -8718,12 +8744,9 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
           onIncreaseQuantity={(itemId: string) => changeQuantity(itemId, 1)}
           onDecreaseQuantity={(itemId: string) => changeQuantity(itemId, -1)}
           onRemoveItem={removeCartItem}
-          onAddMore={openSearchPanel}
+          onAddMore={openSearchFromCartViewV394}
           onClearCart={clearCart}
-          onCompare={() => {
-            if (!cart.length || comparisonLoading) return;
-            void updateChainComparison(cart, { openCompare: true });
-          }}
+          onCompare={openCompareFromCartViewV394}
           cartSavePanelOpen={cartSavePanelOpen}
           onToggleSavePanel={() => setCartSavePanelOpen((value) => !value)}
           savedListName={savedListName}
@@ -8735,13 +8758,7 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
         />
 
         <ZiiplyMobileCompareView
-          open={
-            activeResult === "compare" &&
-            !searchPanelOpen &&
-            !cartModalOpen &&
-            !shopsPanelOpen &&
-            !eanModalOpen
-          }
+          open={activeResult === "compare"}
           closing={Boolean(closingPanels.compare)}
           compareOverlayScrollRef={compareOverlayScrollRef}
           onClose={() => closePanelWithFade("compare", () => setActiveResult("none"))}
@@ -8770,7 +8787,7 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
             setKMatches({});
             setLastOptimizationSnapshot(null);
           }}
-          onAddMore={openSearchPanel}
+          onAddMore={openSearchFromCartViewV394}
           onOpenCart={showCart}
         />
 
