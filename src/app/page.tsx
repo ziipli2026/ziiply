@@ -3,7 +3,7 @@
 // V458_MOBILE_VOICE_TOGGLE_SILENCE_SEARCH: mobiilin mikki toimii toggle-na; 2,5s hiljaisuudesta stop + automaattinen haku.
 // V465_GPS_SINGLE_START_AND_CLEAN_NOTICES: estää reloadin tupla-GPS-haun ja siistii GPS-ilmoituksista pisteet.
 // V466_GPS_BOOT_SINGLE_FLIGHT: estää reload/avaa-tupla-GPS-haun ja siistii GPS-ilmoitukset ilman pisteitä.
-// V469_GPS_ONE_BOOT_CALL_NO_SILENT_WATCH: GPS käynnistyy avauksessa vain yhdestä getCurrentPosition-kutsusta; hiljainen watchPosition ei starttaa automaattisesti.
+// V470_GPS_ATOMIC_BOOT_RUN: GPS + kauppahaku ajetaan yhtenä jakamattomana ajona; window-tason lukko estää reload/avaa-tuplakäynnistyksen.
 
 // V457_REMOVE_FULL_OLD_HAE_INLINE_RENDER: page.tsx:n vanha Hae-paneeli poistettu; mobiilihaku renderöidään ZiiplyMobileSearchCard-komponentilla.
 
@@ -328,6 +328,25 @@ let ziiplyGpsBootSearchStartedV466 = false;
 let ziiplyGpsBootSearchStartedAtV466 = 0;
 let ziiplyGpsHardInFlightV469 = false;
 let ziiplyGpsHardLastFinishedAtV469 = 0;
+
+type ZiiplyGpsWindowLockV470 = {
+  inFlight: boolean;
+  lastStartedAt: number;
+  lastFinishedAt: number;
+};
+
+function getZiiplyGpsWindowLockV470(): ZiiplyGpsWindowLockV470 | null {
+  if (typeof window === "undefined") return null;
+
+  const key = "__ziiplyGpsWindowLockV470";
+  const holder = window as any;
+
+  if (!holder[key]) {
+    holder[key] = { inFlight: false, lastStartedAt: 0, lastFinishedAt: 0 };
+  }
+
+  return holder[key] as ZiiplyGpsWindowLockV470;
+}
 
 function formatLocationNoticeV465(message: string) {
   return String(message || "")
@@ -3849,16 +3868,23 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   async function useOwnLocation() {
     const now = Date.now();
-    // V469: sekä komponentti- että moduulitason lukko. Tämä estää tuplahaun myös
-    // React/Next-remountissa sekä tilanteessa, jossa Kaupat-paneeli yrittää käynnistää
-    // GPS:n samaan aikaan avauksen automaattihaun kanssa.
-    if (gpsSearchInFlightRefV465.current || ziiplyGpsHardInFlightV469) return;
+    const gpsWindowLockV470 = getZiiplyGpsWindowLockV470();
+
+    // V470: yksi ainoa GPS-ajo kerrallaan. Lukko on sekä komponentin refissä,
+    // moduulitasolla että window-tasolla, koska reload/avaa voi remountata Page-komponentin
+    // ennen kuin Reactin state ehtii kertoa toiselle polulle, että GPS on jo käynnissä.
+    if (gpsSearchInFlightRefV465.current || ziiplyGpsHardInFlightV469 || gpsWindowLockV470?.inFlight) return;
     if (storeSearchLoading && now - gpsLastFinishedAtRefV466.current < 3000) return;
     if (now - gpsLastFinishedAtRefV466.current < 1200) return;
     if (now - ziiplyGpsHardLastFinishedAtV469 < 2500) return;
+    if (gpsWindowLockV470 && now - gpsWindowLockV470.lastFinishedAt < 2500) return;
 
     gpsSearchInFlightRefV465.current = true;
     ziiplyGpsHardInFlightV469 = true;
+    if (gpsWindowLockV470) {
+      gpsWindowLockV470.inFlight = true;
+      gpsWindowLockV470.lastStartedAt = now;
+    }
 
     setOpenStorePicker(null);
     setGpsStorePickerBlockedV382(true);
@@ -3897,11 +3923,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         gpsFailTimerRefV391.current = null;
       }
       setGpsErrorMessage("");
-      setStoreSearchLoading(false);
       setLocationMessage(`${city} käytössä`);
       setLocationMessageVisible(true);
       setLocationInput("");
-      setStoreSearchLoading(false);
+      // V470: älä pudota storeSearchLoadingia pois päältä tässä välissä.
+      // GPS-paikannus ja sitä seuraava kauppahaku ovat yksi atominen ajo, jotta
+      // Kaupat-paneelin fallback tai toinen effect ei voi startata uutta GPS-hakua väliin.
       await applyLocation(city, "gps", {
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
@@ -3930,6 +3957,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const finishedAt = Date.now();
       gpsLastFinishedAtRefV466.current = finishedAt;
       ziiplyGpsHardLastFinishedAtV469 = finishedAt;
+      if (gpsWindowLockV470) {
+        gpsWindowLockV470.lastFinishedAt = finishedAt;
+        gpsWindowLockV470.inFlight = false;
+      }
       gpsSearchInFlightRefV465.current = false;
       ziiplyGpsHardInFlightV469 = false;
       window.setTimeout(() => {
