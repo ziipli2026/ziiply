@@ -1,5 +1,7 @@
 "use client";
 
+// V420_MAP_OVERLAY_NO_ACTIVESTORES_EARLY_REF: kartta-overlay ei viittaa activeStoresiin ennen määrittelyä.
+
 // V418_COMPASS_MAP_ROUTE_OVERLAY: kompassikuvake ja kartta-overlay reittilinkeillä.
 
 // V402_MOBILE_SEARCH_CARD_CONNECTED: ZiiplyMobileSearchCard kytketty mobiilin hakutuloksiin.
@@ -200,59 +202,57 @@ function kauppiasTopBarPanelClass(kind: KauppiasTopBarKind) {
 
 function kauppiasCornerBolts() {
   const mapOverlayStoresV417 = useMemo(() => {
-    const rawStores = [
-      {
-        key: "s",
-        name: activeStores.sStoreName,
-        chain: "S",
-        id: activeStores.sStoreId,
-      },
-      {
-        key: "k",
-        name: activeStores.kStoreName,
-        chain: "K",
-        id: activeStores.kStoreId,
-      },
-    ];
+    const stores = foundStores.map((store: any, index: number) => {
+      const latitude = Number(
+        store.latitude ??
+          store.lat ??
+          store.location?.lat ??
+          store.coordinates?.latitude,
+      );
+      const longitude = Number(
+        store.longitude ??
+          store.lng ??
+          store.lon ??
+          store.location?.lng ??
+          store.location?.lon ??
+          store.coordinates?.longitude,
+      );
 
-    const foundNormalized = foundStores.map((store: any) => {
-      const latitude = Number(store.latitude ?? store.lat ?? store.location?.lat ?? store.coordinates?.latitude);
-      const longitude = Number(store.longitude ?? store.lng ?? store.lon ?? store.location?.lng ?? store.location?.lon ?? store.coordinates?.longitude);
       return {
-        id: store.id ?? store.storeId ?? store.name,
-        name: store.name ?? store.storeName ?? "",
-        chain: store.chain ?? store.chainName ?? "",
-        address: store.address ?? store.streetAddress ?? "",
-        city: store.city ?? activeArea.label,
+        key: String(store.id ?? store.storeId ?? store.name ?? index),
+        name: String(store.name ?? store.storeName ?? `Kauppa ${index + 1}`),
+        chain: String(store.chain ?? store.chainName ?? ""),
+        id: store.id ?? store.storeId ?? index,
+        address: String(store.address ?? store.streetAddress ?? ""),
+        city: String(store.city ?? activeArea.label ?? "Suomi"),
         latitude: Number.isFinite(latitude) ? latitude : null,
         longitude: Number.isFinite(longitude) ? longitude : null,
       };
     });
 
-    return rawStores
-      .filter((store) => store.id || store.name)
-      .map((store) => {
-        const match = foundNormalized.find((candidate) => {
-          const candidateName = normalize(String(candidate.name || ""));
-          const storeName = normalize(String(store.name || ""));
-          return (
-            String(candidate.id || "") === String(store.id || "") ||
-            (candidateName && storeName && (candidateName.includes(storeName) || storeName.includes(candidateName)))
-          );
-        });
+    if (stores.length > 0) return stores.slice(0, 6);
 
-        return {
-          ...store,
-          name: store.name || match?.name || "Kauppa",
-          address: match?.address || "",
-          city: match?.city || activeArea.label,
-          latitude: match?.latitude ?? null,
-          longitude: match?.longitude ?? null,
-        };
-      });
-  }, [activeStores.sStoreId, activeStores.sStoreName, activeStores.kStoreId, activeStores.kStoreName, foundStores, activeArea.label]);
+    return [
+      {
+        key: "area",
+        name: activeArea.label || "Valittu alue",
+        chain: "",
+        id: "area",
+        address: "",
+        city: activeArea.label || "Suomi",
+        latitude: null,
+        longitude: null,
+      },
+    ];
+  }, [foundStores, activeArea.label]);
 
-  function getMapQueryV417(store?: { name?: string; address?: string; city?: string; latitude?: number | null; longitude?: number | null }) {
+  function getMapQueryV417(store?: {
+    name?: string;
+    address?: string;
+    city?: string;
+    latitude?: number | null;
+    longitude?: number | null;
+  }) {
     if (store?.latitude != null && store?.longitude != null) {
       return `${store.latitude},${store.longitude}`;
     }
@@ -262,7 +262,13 @@ function kauppiasCornerBolts() {
       .join(", ");
   }
 
-  function getDirectionsUrlV417(store?: { name?: string; address?: string; city?: string; latitude?: number | null; longitude?: number | null }) {
+  function getDirectionsUrlV417(store?: {
+    name?: string;
+    address?: string;
+    city?: string;
+    latitude?: number | null;
+    longitude?: number | null;
+  }) {
     const destination = encodeURIComponent(getMapQueryV417(store));
     const origin =
       gpsCoordsV320?.latitude != null && gpsCoordsV320?.longitude != null
@@ -274,10 +280,10 @@ function kauppiasCornerBolts() {
       : `https://www.google.com/maps/search/?api=1&query=${destination}`;
   }
 
-  const mapOverlayPrimaryStoreV417 = mapOverlayStoresV417[0] || mapOverlayStoresV417[1];
+  const mapOverlayPrimaryStoreV417 = mapOverlayStoresV417[0];
   const mapOverlayQueryV417 = mapOverlayPrimaryStoreV417
     ? getMapQueryV417(mapOverlayPrimaryStoreV417)
-    : activeArea.label + ", Suomi";
+    : `${activeArea.label || "Hyvinkää"}, Suomi`;
   const mapOverlayIframeSrcV417 = `https://maps.google.com/maps?q=${encodeURIComponent(mapOverlayQueryV417)}&z=14&output=embed`;
 
   return (
