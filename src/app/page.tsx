@@ -4,6 +4,8 @@
 // V503_REMOVE_GPS_DEBUG_LOGGING: poistettu GPS debug-loggaus ja overlay.
 // V504_SEARCH_CLOSE_FIX: Hae-nappi ei ole disabled kun Hae-kortti on auki, joten se voi sulkea kortin.
 // V506_REMOVE_REMAINING_GPS_DEBUG_PANEL: poistettu jäljelle jäänyt GPS DEBUG v492 -paneeli.
+// V507_WEATHER_AND_SEARCH_EXIT_FIX: sää päälle page-GPS-koordinaateilla ja alapalkki Hae-kortin päälle sulkemista varten.
+// V508_ELECTRICITY_FETCH_ROBUST: sähköhinta hakee useammalla muodolla ja kestää API-vastausten vaihtelut.
 // V500_BUILD_FIX_ACTIVE_AREA_STATUS_NO_BOUNCE: korjaa status-scope buildin ja poistaa suurennuslasin pompun, mutta jättää Hae-valmiuslogiikan.
 // V495_GPS_SUCCESS_UI_RELEASE: GPS onnistumisen jälkeen vapautetaan UI eksplisiittisesti pois pending/jumi-tilasta.
 // V496_GPS_STATUS_RENDER_FORCE: GPS onnistumisen jälkeen status pakotetaan renderöintiin; logi + karttatoiminnot pois testistä.
@@ -400,7 +402,7 @@ function KauppiasMobileTopBar({
   // Oma page-boot-GPS pysyy silti pois päältä.
   const [weatherValue, setWeatherValue] = useState("—°");
   const [weatherText, setWeatherText] = useState(areaLabel);
-  const [electricityValue, setElectricityValue] = useState("4,2");
+  const [electricityValue, setElectricityValue] = useState("—");
   const [electricityText, setElectricityText] = useState("c/kWh");
   const [electricityTrend, setElectricityTrend] = useState<"up" | "down" | "flat">("flat");
 
@@ -463,28 +465,114 @@ function KauppiasMobileTopBar({
 
     let cancelled = false;
 
+    const readNumber = (value: unknown) => {
+      const number =
+        typeof value === "number"
+          ? value
+          : Number(String(value ?? "").replace(",", "."));
+      return Number.isFinite(number) ? number : null;
+    };
+
+    const formatElectricityPrice = (price: number) =>
+      price.toLocaleString("fi-FI", {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+      });
+
+    const getCurrentFinnishDateHour = () => {
+      const parts = new Intl.DateTimeFormat("sv-SE", {
+        timeZone: "Europe/Helsinki",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        hourCycle: "h23",
+      }).formatToParts(new Date());
+
+      const get = (type: string) => parts.find((part) => part.type === type)?.value || "";
+      return {
+        date: `${get("year")}-${get("month")}-${get("day")}`,
+        hour: get("hour") || String(new Date().getHours()).padStart(2, "0"),
+      };
+    };
+
+    const readElectricityPriceFromObject = (item: any) => {
+      if (!item || typeof item !== "object") return null;
+
+      // Porssisahko.net returns price in c/kWh as "price".
+      // Other open APIs may use slightly different field names.
+      return (
+        readNumber(item.price) ??
+        readNumber(item.value) ??
+        readNumber(item.priceWithTax) ??
+        readNumber(item.PriceWithTax) ??
+        readNumber(item.priceNoTax) ??
+        readNumber(item.PriceNoTax) ??
+        readNumber(item.spotPrice) ??
+        readNumber(item.SpotPrice)
+      );
+    };
+
     async function loadElectricity() {
       try {
-        const response = await fetch("https://api.porssisahko.net/v1/latest-prices.json", {
+        setElectricityText("haetaan");
+
+        const { date, hour } = getCurrentFinnishDateHour();
+
+        // 1) First try direct current-hour endpoint.
+        const directUrl = `https://api.porssisahko.net/v1/price.json?date=${encodeURIComponent(date)}&hour=${encodeURIComponent(hour)}`;
+        try {
+          const directResponse = await fetch(directUrl, { cache: "no-store" });
+          if (directResponse.ok && !cancelled) {
+            const directData = await directResponse.json();
+            const directPrice = readElectricityPriceFromObject(directData);
+            if (directPrice != null) {
+              setElectricityValue(formatElectricityPrice(directPrice));
+              setElectricityText("c/kWh");
+              setElectricityTrend("flat");
+              return;
+            }
+          }
+        } catch {
+          // jatketaan listahakuun
+        }
+
+        // 2) Fallback: latest-prices list and pick currently active window.
+        const latestResponse = await fetch("https://api.porssisahko.net/v1/latest-prices.json", {
           cache: "no-store",
         });
 
-        if (!response.ok || cancelled) return;
+        if (!latestResponse.ok || cancelled) {
+          setElectricityValue("—");
+          setElectricityText("ei hintaa");
+          return;
+        }
 
-        const data = await response.json();
-        const prices = Array.isArray(data?.prices) ? data.prices : [];
+        const latestData = await latestResponse.json();
+        const prices = Array.isArray(latestData?.prices)
+          ? latestData.prices
+          : Array.isArray(latestData)
+            ? latestData
+            : [];
+
         const now = Date.now();
 
         const enrichedPrices = prices
-          .map((item: any) => ({
-            ...item,
-            priceNumber: Number(item.price),
-            startMs: new Date(item.startDate).getTime(),
-            endMs: new Date(item.endDate).getTime(),
-          }))
+          .map((item: any) => {
+            const priceNumber = readElectricityPriceFromObject(item);
+            const startMs = new Date(item.startDate ?? item.start ?? item.StartDate).getTime();
+            const endMs = new Date(item.endDate ?? item.end ?? item.EndDate).getTime();
+
+            return {
+              ...item,
+              priceNumber,
+              startMs,
+              endMs,
+            };
+          })
           .filter(
             (item: any) =>
-              Number.isFinite(item.priceNumber) &&
+              item.priceNumber != null &&
               Number.isFinite(item.startMs) &&
               Number.isFinite(item.endMs),
           )
@@ -495,32 +583,35 @@ function KauppiasMobileTopBar({
         );
 
         const current = currentIndex >= 0 ? enrichedPrices[currentIndex] : null;
+        const price = Number(current?.priceNumber);
+
+        if (!Number.isFinite(price) || cancelled) {
+          setElectricityValue("—");
+          setElectricityText("ei hintaa");
+          return;
+        }
+
+        setElectricityValue(formatElectricityPrice(price));
+        setElectricityText("c/kWh");
+
         const nextWindow =
           currentIndex >= 0 ? enrichedPrices.slice(currentIndex + 1, currentIndex + 4) : [];
+        const nextAverage =
+          nextWindow.length > 0
+            ? nextWindow.reduce((sum: number, item: any) => sum + Number(item.priceNumber), 0) /
+              nextWindow.length
+            : price;
 
-        const price = Number(current?.priceNumber);
-        if (Number.isFinite(price)) {
-          setElectricityValue(
-            price.toLocaleString("fi-FI", {
-              minimumFractionDigits: 1,
-              maximumFractionDigits: 1,
-            }),
-          );
-          setElectricityText("c/kWh");
-
-          const nextAverage =
-            nextWindow.length > 0
-              ? nextWindow.reduce((sum: number, item: any) => sum + item.priceNumber, 0) /
-                nextWindow.length
-              : price;
-
-          const diff = nextAverage - price;
-          if (diff > 0.4) setElectricityTrend("up");
-          else if (diff < -0.4) setElectricityTrend("down");
-          else setElectricityTrend("flat");
-        }
+        const diff = nextAverage - price;
+        if (diff > 0.4) setElectricityTrend("up");
+        else if (diff < -0.4) setElectricityTrend("down");
+        else setElectricityTrend("flat");
       } catch {
-        // pidetään nykyinen arvo
+        if (!cancelled) {
+          setElectricityValue("—");
+          setElectricityText("ei hintaa");
+          setElectricityTrend("flat");
+        }
       }
     }
 
@@ -2806,13 +2897,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function toggleSearchPanel() {
-    // V476: jos Hae-kortti on jo auki, Hae-painike sulkee sen aina.
-    // Älä estä sulkemista searchNavigationLocked-tilalla.
+    // V507: jos Hae-kortti on jo auki, Hae-painike sulkee sen heti.
+    // Ei fade-viivettä tässä, koska mobiili-Hae voi peittää alapalkin klikkikerroksen.
     if (searchPanelOpen) {
-      closePanelWithFade("search", () => {
-        setSearchPanelOpen(false);
-        closeProductSelectionOverlay();
-      });
+      setSearchPanelOpen(false);
+      closeProductSelectionOverlay();
       return;
     }
 
@@ -6279,10 +6368,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // V476: alapalkin muut napit sulkevat Hae-kortin myös silloin,
     // kun niiden omaa näkymää ei voida avata esimerkiksi tyhjän korin vuoksi.
     if (searchPanelOpen) {
-      closePanelWithFade("search", () => {
-        setSearchPanelOpen(false);
-        closeProductSelectionOverlay();
-      });
+      setSearchPanelOpen(false);
+      closeProductSelectionOverlay();
     }
 
     if (cart.length === 0) {
@@ -6347,10 +6434,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   function toggleComparisonView() {
     // V476: Vertailu-nappi sulkee Hae-kortin aina, vaikka kori olisi tyhjä.
     if (searchPanelOpen) {
-      closePanelWithFade("search", () => {
-        setSearchPanelOpen(false);
-        closeProductSelectionOverlay();
-      });
+      setSearchPanelOpen(false);
+      closeProductSelectionOverlay();
     }
 
     if (cart.length === 0) {
@@ -6422,6 +6507,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (shopsPanelOpen) {
       closePanelWithFade("shops", () => setShopsPanelOpen(false));
       return;
+    }
+
+    if (searchPanelOpen) {
+      setSearchPanelOpen(false);
+      closeProductSelectionOverlay();
     }
 
     openShopsPanel();
@@ -9871,7 +9961,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             hidden={showLaunchScreen}
             areaLabel={activeArea.label}
             gpsCoords={gpsCoordsV320}
-            weatherEnabled={false /* V487_TEST: sääappi pois pelistä */}
+            weatherEnabled={Boolean(gpsCoordsV320)}
             onOpenCalendar={() => {
               try {
                 window.location.href = "calshow://";
@@ -11117,6 +11207,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               Hae valmis
             </div>
           ) : null}
+          <div className="V507_BOTTOM_NAV_CLICK_LAYER relative z-[10000]">
           <ZiiplyBottomNav
           shopsPanelOpen={shopsPanelOpen}
           initialStoreNavPrompt={initialStoreNavPrompt}
@@ -11133,6 +11224,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           onCartClick={toggleCartModal}
           onCompareClick={toggleComparisonView}
         />
+          </div>
 
         <style>{`
 
