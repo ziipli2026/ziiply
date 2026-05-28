@@ -55,10 +55,12 @@ export default function ZiiplyMobileShopsView({
 }: ZiiplyMobileShopsViewProps) {
   return (
     <div className="w-full sm:hidden">
-      {/* V406_SHOPS_VIEW_LAYOUT_RESET:
-          Ei omaa h-[100svh]/sticky/top-spacer-rakennetta.
-          Page.tsx hoitaa overlayn; tämä komponentti hoitaa vain Kaupat-sisällön. */}
-      <div className="mx-auto flex w-full max-w-[390px] flex-col gap-2.5 px-0">
+      {/* V407_SHOPS_VIEW_TOP_SPACER_RESTORE:
+          Palautetaan topbarin vaatima ylätila, mutta ei palauteta vanhaa
+          h-[100svh]/overflow-hidden/sticky-rakennetta. */}
+      <div className="h-[86px]" aria-hidden="true" />
+
+      <div className="mx-auto flex w-full max-w-[390px] flex-col gap-2.5 px-2">
         <ZiiplyMobileLocationBar
           locationInput={locationInput}
           usingOwnLocation={usingOwnLocation}
