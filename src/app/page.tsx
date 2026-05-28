@@ -1,5 +1,7 @@
 "use client";
 
+// V402_MOBILE_SEARCH_CARD_CONNECTED: ZiiplyMobileSearchCard kytketty mobiilin hakutuloksiin.
+
 // V401_SYNTAX_REPAIR_ONLY: fixed missing JSX closing div in mobile shops section.
 
 // V397_FUNCTIONAL_ROLLBACK: palautettu P394:n oma toimiva mobiili-Kori/Vertailu/Hae-renderöinti.
@@ -164,6 +166,7 @@ import {
 import * as TopbarResponsiveCardModule from "./components/ziiply/cards/TopbarResponsiveCard";
 import * as ZiiplyCartCardModule from "./components/ziiply/cards/ZiiplyCartCard";
 import ZiiplySearchCard from "./components/ziiply/cards/ZiiplySearchCard";
+import ZiiplyMobileSearchCard from "./components/ziiply/cards/ZiiplyMobileSearchCard";
 import ZiiplyStoreLocaCard from "./components/ziiply/cards/ZiiplyStoreLocaCard";
 import * as ZiiplyCompareCardModule from "./components/ziiply/cards/ZiiplyCompareCard";
 import ZiiplyMobileHomeView from "./components/ziiply/mobile/ZiiplyMobileHomeView";
@@ -10183,6 +10186,39 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
             </div>
           </div>
         )}
+
+        {/* V402_MOBILE_SEARCH_CARD_RENDER:
+            Vanha Hae-paneeli säilyttää hakukentän ja hakumoottorin.
+            Tämä uusi mobiilikortti näyttää varsinaisen tuotteen valintaikkunan tulosvaiheessa. */}
+        {searchPanelOpen &&
+          !keyboardOpenV320 &&
+          (loadingNormal || normalSearchAttempted || normalResults.length > 0) && (
+            <ZiiplyMobileSearchCard
+              open={true}
+              title="HAKUTULOKSET"
+              subtitle={activeNormalSearchTerm || undefined}
+              loading={loadingNormal}
+              products={normalResults}
+              emptyText={
+                activeNormalSearchTerm
+                  ? `Haulle “${activeNormalSearchTerm}” ei löytynyt tuotteita.`
+                  : "Ei hakutuloksia."
+              }
+              onClose={() => {
+                setNormalResults([]);
+                setNormalSearchAttempted(false);
+                setVisibleNormalCount(8);
+                setActiveNormalSearchTerm("");
+              }}
+              onAddProduct={(product: any) => {
+                addProductToCart(product as Product);
+                setNormalResults([]);
+                setNormalSearchAttempted(false);
+                setVisibleNormalCount(8);
+                setActiveNormalSearchTerm("");
+              }}
+            />
+          )}
 
         {lastCartToast && (
           <div className="fixed left-3 right-3 bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] z-[60] mx-auto max-w-md animate-[ziiplyFade_2.6s_ease-in-out] rounded-2xl bg-emerald-600 px-4 py-3 text-center text-sm font-black text-white shadow-2xl sm:hidden">
