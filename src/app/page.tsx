@@ -9214,7 +9214,7 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
                 onUseOwnLocation={useOwnLocation}
                 onStopOwnLocation={stopOwnLocationV306}
                 onLocationInputChange={(value: string) => setLocationInput(value)}
-                onLocationSearch={() => applyLocationSearch(locationInput)}
+                onLocationSearch={() => applyLocation(locationInput)}
                 storeMode={storeMode}
                 storeModeChosen={storeModeChosenV299}
                 onStoreModeChange={handleStoreModeChange}
