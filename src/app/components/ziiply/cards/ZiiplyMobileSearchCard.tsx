@@ -1,6 +1,9 @@
 "use client";
 
-// V459_ASSET_WEBP_ACTION_BUTTONS: Äänitä/Filmaa-napit renderöidään /public/ui/voice ja /public/ui/scanner .webp -asseteista.
+// V460_DESKTOP_STYLE_MOBILE: mobiilin hakukortti rakennettu desktop-hakukortin tyyliin.
+// Äänitä- ja Skanneri-napeissa käytetään 3 .webp-tilaa per nappi:
+// voice: aanita-off.webp / aanita-on.webp / aanita-search.webp
+// scanner: scanner-idle.webp / scanner-on.webp / scanner-search.webp
 
 import React from "react";
 
@@ -50,6 +53,18 @@ export type ZiiplyMobileSearchCardProps = {
   scannerState?: "idle" | "active" | "processing";
 };
 
+const VOICE_IMAGES = {
+  idle: "/ui/voice/aanita-off.webp",
+  recording: "/ui/voice/aanita-on.webp",
+  processing: "/ui/voice/aanita-search.webp",
+} as const;
+
+const SCANNER_IMAGES = {
+  idle: "/ui/scanner/scanner-idle.webp",
+  active: "/ui/scanner/scanner-on.webp",
+  processing: "/ui/scanner/scanner-search.webp",
+} as const;
+
 function getProductName(product: ZiiplyMobileSearchCardProduct) {
   return String(product.name || product.title || product.productName || product.brandName || "Tuote");
 }
@@ -70,9 +85,8 @@ function formatProductPrice(value: unknown) {
 
 function truncateProductName(name: string) {
   const clean = name.replace(/\s+/g, " ").trim();
-  return clean.length <= 18 ? clean : clean.slice(0, 15).trimEnd() + "...";
+  return clean.length <= 22 ? clean : clean.slice(0, 19).trimEnd() + "...";
 }
-
 
 function RetroActionButton({
   kind,
@@ -82,36 +96,22 @@ function RetroActionButton({
 }: {
   kind: "voice" | "scanner";
   label: string;
-  sublabel: string;
   state: "idle" | "recording" | "processing" | "active";
   onClick?: () => void;
 }) {
   const imageSrc =
     kind === "voice"
-      ? state === "recording"
-        ? "/ui/voice/aanita-on.webp"
-        : state === "processing"
-          ? "/ui/voice/aanita-search.webp"
-          : "/ui/voice/aanita-off.webp"
-      : state === "active"
-        ? "/ui/scanner/scanner-on.webp"
-        : state === "processing"
-          ? "/ui/scanner/scanner-search.webp"
-          : "/ui/scanner/scanner-idle.webp";
+      ? VOICE_IMAGES[state === "active" ? "recording" : (state as "idle" | "recording" | "processing")]
+      : SCANNER_IMAGES[state === "recording" ? "active" : (state as "idle" | "active" | "processing")];
 
   return (
     <button
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="relative min-h-[5.2rem] overflow-hidden rounded-[1.35rem] bg-transparent shadow-[0_8px_0_rgba(92,70,26,0.16)] active:translate-y-[1px] active:shadow-[0_4px_0_rgba(92,70,26,0.12)]"
+      className="relative min-h-[4.85rem] overflow-hidden rounded-[1.05rem] bg-transparent shadow-[0_5px_0_rgba(91,55,14,0.24)] ring-1 ring-[#6f4a14]/20 active:translate-y-[1px] active:shadow-[0_2px_0_rgba(91,55,14,0.18)]"
     >
-      <img
-        src={imageSrc}
-        alt={label}
-        className="absolute inset-0 h-full w-full object-cover"
-        draggable={false}
-      />
+      <img src={imageSrc} alt={label} className="absolute inset-0 h-full w-full object-cover" draggable={false} />
     </button>
   );
 }
@@ -129,10 +129,10 @@ function ModeButton({
     <button
       type="button"
       onClick={onClick}
-      className={`min-h-[2.7rem] rounded-[1.15rem] px-3 py-1 text-[1rem] font-black transition active:scale-[0.98] ${
+      className={`min-h-[2.85rem] rounded-[1rem] px-3 py-1 text-[0.98rem] font-black leading-none transition active:scale-[0.98] ${
         active
-          ? "bg-[#008c3a] text-white shadow-[0_4px_0_rgba(0,83,32,0.24)] ring-1 ring-black/10"
-          : "bg-white text-[#253247] ring-2 ring-[#e2e8f0]"
+          ? "bg-[#fff8df] text-[#073f28] shadow-inner ring-1 ring-[#b98222]/40"
+          : "bg-[#d9a45d]/45 text-[#7b5531] shadow-inner ring-1 ring-[#a87226]/30"
       }`}
     >
       {children}
@@ -157,12 +157,9 @@ export default function ZiiplyMobileSearchCard({
   searchMode = "cart",
   onSearchModeChange,
   onAddInputToCart,
-  onOfferSearch,
-  onNormalSearch,
   hasSearchInput = false,
   loadingOffers = false,
   loadingNormal = false,
-  singleProductCompareLoading = false,
   inputRef,
   onVoiceClick,
   onScannerClick,
@@ -177,37 +174,41 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      className={`fixed inset-0 z-[72] flex items-end justify-center overflow-hidden bg-transparent px-2 pb-[calc(env(safe-area-inset-bottom)+6.45rem)] pt-[calc(env(safe-area-inset-top)+5.0rem)] sm:items-center sm:p-6 ${className}`}
+      className={`fixed inset-0 z-[72] flex items-end justify-center overflow-hidden bg-transparent px-2 pb-[calc(env(safe-area-inset-bottom)+6.15rem)] pt-[calc(env(safe-area-inset-top)+5.0rem)] sm:items-center sm:p-6 ${className}`}
     >
-      <div className="h-[min(70dvh,650px)] w-full max-w-[28rem] overflow-visible overscroll-none rounded-[1.9rem] bg-white/80 p-2.5 shadow-2xl ring-1 ring-white/80 backdrop-blur-2xl">
-        <div className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-[1.55rem] border-[3px] border-[#f2f6f3] bg-[#fffdf7] p-3 shadow-[0_18px_55px_rgba(15,23,42,0.10)] ring-1 ring-white sm:rounded-[2rem] sm:p-4">
-          <div className="pointer-events-none absolute inset-0 opacity-[0.16] [background-image:radial-gradient(#d9c171_1px,transparent_1px)] [background-size:13px_13px]" />
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.85),transparent_42%)]" />
+      <div className="h-[min(70dvh,650px)] w-full max-w-[28rem] overflow-visible rounded-[1.75rem] bg-[#f3dfb6] p-1.5 shadow-2xl ring-2 ring-[#8d662e]/45">
+        <div className="relative flex h-full min-h-0 flex-col overflow-hidden rounded-[1.45rem] border border-[#7b531e]/35 bg-[#ffe8bd] p-3 shadow-[inset_0_0_0_2px_rgba(255,255,255,0.45)]">
+          <div className="pointer-events-none absolute inset-0 opacity-[0.20] [background-image:radial-gradient(#b77622_1px,transparent_1px)] [background-size:12px_12px]" />
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,250,235,0.95),transparent_46%)]" />
 
           <div className="relative z-10 flex h-full min-h-0 flex-col">
             <div className="shrink-0">
-              <div className="flex items-start gap-3">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[1.25rem] bg-[#eafff2] text-[1.55rem] shadow-sm ring-2 ring-[#c6f7d8]">
-                  🔎
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0 flex-1">
+                  <p className="text-[0.72rem] font-black uppercase tracking-[0.42em] text-[#5b3216]">{title}</p>
+                  <h1 className="font-serif text-[2.05rem] font-black italic leading-[0.9] tracking-[-0.055em] text-[#0f3d26] drop-shadow-[0_1px_0_rgba(255,255,255,0.8)]">
+                    {showResults ? "Hakutulokset" : "Tuotteet ja vertailu"}
+                  </h1>
                 </div>
 
-                <div className="min-w-0 flex-1">
-                  <p className="text-[11px] font-black uppercase tracking-[0.48em] text-[#008c3a]">
-                    {title}
-                  </p>
-                  <h1 className="mt-0.5 text-[1.32rem] font-black leading-[1.02] tracking-[-0.045em] text-[#08111f]">
-                    {showResults ? "Hakutulokset" : "Mitä haluat ostaa?"}
-                  </h1>
-                  <p className="mt-1 text-[0.82rem] font-black leading-snug text-[#64748b]">
-                    {subtitle || "Kirjoita tuotteet ja valitse toiminto alta."}
-                  </p>
-                </div>
+                <button
+                  type="button"
+                  onClick={onAddInputToCart}
+                  disabled={!hasSearchInput && !input.trim()}
+                  className={`shrink-0 rounded-[1rem] border-2 px-3.5 py-2 font-serif text-[1.05rem] font-black italic shadow-[0_4px_0_rgba(56,35,8,0.30)] active:translate-y-[1px] ${
+                    hasSearchInput || input.trim()
+                      ? "border-[#d6aa46] bg-[#0d4a2e] text-[#fff2c8] ring-2 ring-[#112e1f]"
+                      : "border-[#dec68d] bg-[#efe4cb] text-[#b7a98d]"
+                  }`}
+                >
+                  Lisää vihkosesta
+                </button>
 
                 {onClose && (
                   <button
                     type="button"
                     onClick={onClose}
-                    className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-slate-100 text-lg font-black text-slate-500 shadow-sm ring-1 ring-slate-200 active:scale-[0.96]"
+                    className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#fff2d2] text-xl font-black text-[#6d5234] shadow-sm ring-2 ring-[#c98a2c]/55 active:scale-[0.96]"
                     aria-label="Sulje"
                   >
                     ×
@@ -215,82 +216,78 @@ export default function ZiiplyMobileSearchCard({
                 )}
               </div>
 
-              <div className="mt-3 rounded-[1.45rem] bg-white/80 p-1 ring-2 ring-[#e7eef4]">
-                <div className="grid grid-cols-2 gap-1.5">
-                  <ModeButton active={searchMode === "cart"} onClick={() => onSearchModeChange?.("cart")}>
-                    🛒 Koko kori
-                  </ModeButton>
-                  <ModeButton active={searchMode === "single"} onClick={() => onSearchModeChange?.("single")}>
-                    🔎 Yksi tuote
-                  </ModeButton>
+              <div className="mt-3 rounded-[1rem] bg-[#f8e8c6] p-1.5 shadow-[0_4px_0_rgba(105,64,13,0.18)] ring-2 ring-[#b97920]/50">
+                <div className="flex items-center gap-2 rounded-[0.8rem] bg-[#fff8e8] px-3 py-2 shadow-inner ring-1 ring-white/70">
+                  <textarea
+                    ref={inputRef}
+                    value={input}
+                    onChange={(event) => onInputChange?.(event.target.value)}
+                    rows={1}
+                    placeholder="maito, kahvi, jauheliha"
+                    className="max-h-[5.4rem] min-h-[2.35rem] flex-1 resize-none bg-transparent font-serif text-[1.38rem] font-black leading-tight text-[#50361f] outline-none placeholder:text-[#8d6f55]"
+                  />
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-[1.75rem] text-[#6c4a2d]">⌕</span>
                 </div>
               </div>
 
-              <div className="mt-3 rounded-[1.45rem] border border-[#c8f6d5] bg-white/92 p-3 shadow-sm ring-1 ring-[#dcffe8]">
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <p className="text-[0.82rem] font-black uppercase tracking-[0.08em] text-[#516178]">
-                    Tuotteet
-                  </p>
-                  <button
-                    type="button"
-                    onClick={onAddInputToCart}
-                    disabled={!hasSearchInput}
-                    className={`rounded-full px-4 py-1.5 text-sm font-black ring-2 ${
-                      hasSearchInput
-                        ? "bg-[#f2fff6] text-[#087a3a] ring-[#b7efcf] active:scale-[0.98]"
-                        : "cursor-not-allowed bg-slate-50 text-slate-300 ring-slate-100"
-                    }`}
-                  >
-                    Liitä
-                  </button>
+              <div className="mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+                <div className="rounded-[1rem] bg-[#ccd39b] p-1.5 shadow-[0_4px_0_rgba(87,73,22,0.20)] ring-2 ring-[#9a862f]/55">
+                  <div className="flex items-center gap-2">
+                    <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[#e7d083] text-[1.35rem] shadow-inner ring-1 ring-[#85581e]/30">🕵️</div>
+                    <div className="min-w-0">
+                      <div className="font-serif text-[1.35rem] font-black italic leading-none text-[#164127]">Gösta</div>
+                      <div className="mt-0.5 text-[0.72rem] font-black leading-tight text-[#22301f]">Etsii huojennukset</div>
+                    </div>
+                  </div>
                 </div>
 
-                <textarea
-                  ref={inputRef}
-                  value={input}
-                  onChange={(event) => onInputChange?.(event.target.value)}
-                  rows={2}
-                  placeholder="Kirjoita tuotteet riveittäin tai pilkulla, esim. maito, kahvi, jauheliha"
-                  className="min-h-[5.25rem] w-full resize-none rounded-[1.25rem] border-[4px] border-[#00a747] bg-white px-4 py-3 text-[1.08rem] font-black leading-snug text-slate-900 outline-none placeholder:text-slate-400 focus:border-[#008c3a] focus:ring-4 focus:ring-green-100"
-                />
+                <div className="rounded-[1.1rem] bg-[#d8a15b] p-1 shadow-[0_4px_0_rgba(91,55,14,0.18)] ring-2 ring-[#9d6b21]/55">
+                  <div className="grid grid-cols-2 gap-1 rounded-[0.95rem] bg-[#d7a15c]/60 p-1">
+                    <ModeButton active={searchMode === "cart"} onClick={() => onSearchModeChange?.("cart")}>
+                      Koko<br />kori
+                    </ModeButton>
+                    <ModeButton active={searchMode === "single"} onClick={() => onSearchModeChange?.("single")}>
+                      Yksi<br />tuote
+                    </ModeButton>
+                  </div>
+                </div>
 
-                <p className="mt-2 text-[0.78rem] font-black text-slate-400">
-                  Max 8 tuotetta. Liitä muistilistasta.
+                <div className="rounded-[1rem] bg-[#ffd565] p-1.5 shadow-[0_4px_0_rgba(87,73,22,0.20)] ring-2 ring-[#c99021]/55">
+                  <div className="flex items-center gap-2">
+                    <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-[#e7d083] text-[1.35rem] shadow-inner ring-1 ring-[#85581e]/30">👩‍🍳</div>
+                    <div className="min-w-0">
+                      <div className="font-serif text-[1.35rem] font-black italic leading-none text-[#a43c1b]">Justiina</div>
+                      <div className="mt-0.5 text-[0.72rem] font-black leading-tight text-[#573417]">Etsii ostokset</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-3 flex items-center gap-2 rounded-[0.9rem] bg-[#fff0cf] px-3 py-2 shadow-[0_3px_0_rgba(121,75,18,0.16)] ring-1 ring-[#c88a31]/45">
+                <span className="text-xl">📣</span>
+                <p className="min-w-0 flex-1 truncate text-[0.84rem] font-black text-[#6d3e1e]">
+                  {subtitle || "Justiina ehdottaa sopivia hakusanoja kirjoituksen mukaan."}
                 </p>
+                <span className="text-xl font-black text-[#834a1e]">›</span>
               </div>
 
-              <div className="mt-3 rounded-[1.25rem] bg-white/72 p-2 shadow-sm ring-1 ring-[#e7eef4]">
-                <div className="grid grid-cols-2 gap-3">
-                  <RetroActionButton
-                    kind="voice"
-                    label="Äänitä"
-                    sublabel="RCA-mikki"
-                    state={voiceState}
-                    onClick={onVoiceClick}
-                  />
-
-                  <RetroActionButton
-                    kind="scanner"
-                    label="Skanneri"
-                    sublabel="EAN / viivakoodi"
-                    state={scannerState}
-                    onClick={onScannerClick}
-                  />
-                </div>
+              <div className="mt-3 grid grid-cols-2 gap-3">
+                <RetroActionButton kind="voice" label="Äänitä" state={voiceState} onClick={onVoiceClick} />
+                <RetroActionButton kind="scanner" label="Skanneri" state={scannerState} onClick={onScannerClick} />
               </div>
             </div>
 
             {showResults && (
-              <div className="mt-3 min-h-0 flex-1 overflow-hidden rounded-[1.35rem]">
+              <div className="mt-3 min-h-0 flex-1 overflow-hidden rounded-[1.15rem]">
                 <div className="h-full space-y-3 overflow-y-auto py-1 pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                   {loading && (
-                    <div className="rounded-[1.35rem] bg-[#fff5d8] px-5 py-6 text-center text-base font-black text-[#78633a] shadow-[0_5px_0_rgba(132,104,48,0.18)] ring-2 ring-[#d6bd76]">
+                    <div className="rounded-[1.15rem] bg-[#fff5d8] px-5 py-6 text-center text-base font-black text-[#78633a] shadow-[0_5px_0_rgba(132,104,48,0.18)] ring-2 ring-[#d6bd76]">
                       Haetaan tuotteita…
                     </div>
                   )}
 
                   {!loading && items.length === 0 && (
-                    <div className="rounded-[1.35rem] bg-[#fff5d8] px-5 py-6 text-center text-base font-black text-[#78633a] shadow-[0_5px_0_rgba(132,104,48,0.18)] ring-2 ring-[#d6bd76]">
+                    <div className="rounded-[1.15rem] bg-[#fff5d8] px-5 py-6 text-center text-base font-black text-[#78633a] shadow-[0_5px_0_rgba(132,104,48,0.18)] ring-2 ring-[#d6bd76]">
                       {emptyText}
                     </div>
                   )}
@@ -305,11 +302,10 @@ export default function ZiiplyMobileSearchCard({
                       return (
                         <div
                           key={key}
-                          className="grid grid-cols-[4.8rem_1fr_auto] items-center gap-3 rounded-[1.35rem] bg-[#fff4d9] px-3 py-3 shadow-[0_5px_0_rgba(132,104,48,0.20)] ring-2 ring-[#d6bd76]"
+                          className="grid grid-cols-[4.4rem_1fr_auto] items-center gap-3 rounded-[1.15rem] bg-[#fff4d9] px-3 py-3 shadow-[0_5px_0_rgba(132,104,48,0.20)] ring-2 ring-[#d6bd76]"
                         >
-                          <div className="grid h-[4.45rem] w-[4.45rem] place-items-center overflow-hidden rounded-[1rem] bg-white shadow-inner">
+                          <div className="grid h-[4.1rem] w-[4.1rem] place-items-center overflow-hidden rounded-[0.9rem] bg-white shadow-inner">
                             {image ? (
-                              // eslint-disable-next-line @next/next/no-img-element
                               <img src={image} alt="" className="h-full w-full object-contain p-1.5" loading="lazy" />
                             ) : (
                               <span className="text-2xl">🛒</span>
@@ -317,20 +313,14 @@ export default function ZiiplyMobileSearchCard({
                           </div>
 
                           <div className="min-w-0">
-                            <div className="text-[19px] font-black leading-[1.06] tracking-[-0.03em] text-[#1f251c]">
-                              {truncateProductName(name)}
-                            </div>
-                            {price && (
-                              <div className="mt-1 text-[16px] font-black leading-none text-[#817451]">
-                                {price}
-                              </div>
-                            )}
+                            <div className="text-[18px] font-black leading-[1.06] tracking-[-0.03em] text-[#1f251c]">{truncateProductName(name)}</div>
+                            {price && <div className="mt-1 text-[15px] font-black leading-none text-[#817451]">{price}</div>}
                           </div>
 
                           <button
                             type="button"
                             onClick={() => addHandler?.(product)}
-                            className="rounded-[0.95rem] bg-[#00b948] px-4 py-3 text-[15px] font-black text-white shadow-[0_4px_0_rgba(0,98,39,0.25)] active:translate-y-[1px] active:shadow-none"
+                            className="rounded-[0.9rem] bg-[#0d8f3f] px-4 py-3 text-[15px] font-black text-white shadow-[0_4px_0_rgba(0,98,39,0.25)] active:translate-y-[1px] active:shadow-none"
                           >
                             Lisää
                           </button>
