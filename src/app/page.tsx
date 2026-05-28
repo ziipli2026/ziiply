@@ -1,5 +1,7 @@
 "use client";
 
+// V422_REMOVE_ALL_BROKEN_MAP_OVERLAY_REMNANTS: poistettu kaikki rikkinäisen kartta-overlayn JSX-jäänteet.
+
 // V421_REMOVE_BROKEN_MAP_OVERLAY_JSX: poistettu rikkinäinen kartta-overlay JSX buildin korjaamiseksi.
 
 // V420_MAP_OVERLAY_NO_ACTIVESTORES_EARLY_REF: kartta-overlay ei viittaa activeStoresiin ennen määrittelyä.
@@ -10451,11 +10453,6 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
 
                 {!gpsCoordsV320 && (
                   <div className="rounded-2xl bg-[#fff1c7] px-3 py-2 text-sm font-black text-[#7b5a14]">
-                    GPS ei ole päällä. Reitti avautuu ilman lähtöpistettä.
-                  </div>
-                )}
-
-                <div className="grid grid-cols-1 gap-2">
 
       </main>
     </>
