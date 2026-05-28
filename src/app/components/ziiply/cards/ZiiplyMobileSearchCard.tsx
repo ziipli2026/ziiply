@@ -1,9 +1,13 @@
 "use client";
 
-// V465_MOBILE_SEARCH_DESKTOP_LAYOUT:
- // Desktop-mallin järjestys myös mobiilissa:
- // otsikko + vihkonappi, leveä hakukenttä, Gösta + Koko kori/Yksi tuote + Justiina,
- // info-banneri, yksi Äänitä-nappi ja yksi kamera/skanneri idle-nappi.
+// V467_MOBILE_SEARCH_LAYOUT_REFINEMENT:
+// - otsikko adaptiiviseksi ilman "Tuotteet ja vertailu" katkaisua
+// - vihkonappi pienemmäksi
+// - hakukenttä matalammaksi
+// - Gösta/Justiina suuremmiksi
+// - hakutapa pystypalkiksi
+// - ohjeteksti mahtuu banneriin
+// - mikki/kamera lähemmäs alareunaa
 
 import React from "react";
 
@@ -79,7 +83,7 @@ function formatProductPrice(value: unknown) {
   return text.includes("€") ? text : text;
 }
 
-function truncateProductName(name: string) {
+function ProductName(name: string) {
   const clean = name.replace(/\s+/g, " ").trim();
   return clean.length <= 22 ? clean : clean.slice(0, 19).trimEnd() + "...";
 }
@@ -177,10 +181,10 @@ function NotebookButton({
     <button
       type="button"
       onClick={onClick}
-      className="h-[2.75rem] shrink-0 rounded-[1.35rem] border-[3px] border-[#0b6330] bg-gradient-to-b from-[#139143] to-[#087237] px-3.5 text-[0.95rem] font-black italic leading-none text-[#fff0d5] shadow-[0_0_0_2px_rgba(255,255,255,0.18)_inset,0_4px_0_#064a26] transition active:translate-y-[1px] active:shadow-[0_2px_0_#064a26]"
+      className="h-[2.45rem] shrink-0 rounded-[1.2rem] border-[3px] border-[#0b6330] bg-gradient-to-b from-[#139143] to-[#087237] px-3 text-[0.88rem] font-black italic leading-none text-[#fff0d5] shadow-[0_0_0_2px_rgba(255,255,255,0.18)_inset,0_4px_0_#064a26] transition active:translate-y-[1px] active:shadow-[0_2px_0_#064a26]"
       style={{ fontFamily: cooperFont }}
     >
-      Lisää vihkosesta
+      Vihkonen
     </button>
   );
 }
@@ -217,9 +221,8 @@ function RetroAssetButton({
         alt={label}
         className={cx(
           "absolute left-0 top-0 w-full select-none",
-          // Scanner asset can contain two camera states in one vertical image.
-          // Show only the top/idle half so the button is always one camera, like the mic button.
-          kind === "scanner" ? "h-[200%] object-fill object-top" : "h-full object-fill",
+          // Scanner is a single idle button image here: no 200% zoom/crop.
+          kind === "scanner" ? "h-full object-fill object-center" : "h-full object-fill",
         )}
         draggable={false}
       />
@@ -275,7 +278,7 @@ export default function ZiiplyMobileSearchCard({
         </div>
 
         <div className="relative z-10 flex h-full min-h-0 flex-col">
-          <div className="grid h-[3.35rem] grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
+          <div className="grid h-[3.5rem] grid-cols-[minmax(0,1fr)_auto] items-start gap-2.5">
             <div className="min-w-0 overflow-hidden">
               <div
                 className="text-[0.72rem] font-black uppercase leading-none tracking-[0.42em] text-[#6f674f]"
@@ -284,51 +287,79 @@ export default function ZiiplyMobileSearchCard({
                 {title}
               </div>
               <h1
-                className="mt-1 truncate whitespace-nowrap text-[1.72rem] font-black italic leading-[0.92] text-[#203b25] min-[390px]:text-[1.9rem]"
+                className="mt-0.5 text-[1.36rem] font-black italic leading-[0.88] text-[#203b25] min-[390px]:text-[1.56rem]"
                 style={{ fontFamily: cooperFont }}
               >
-                Tuotteet...
+                Tuotteet ja vertailu
               </h1>
             </div>
 
             <NotebookButton onClick={onAddInputToCart} />
           </div>
 
-          <div className="relative z-10 mt-3 h-[4.6rem] overflow-hidden rounded-[1.45rem] border-[3px] border-[#9d8350] bg-[#fff4d3] p-1.5 shadow-[inset_0_3px_8px_rgba(91,65,28,0.10)]">
+          <div className="relative z-10 mt-3 h-[3.2rem] overflow-hidden rounded-[1.45rem] border-[3px] border-[#9d8350] bg-[#fff4d3] p-1.5 shadow-[inset_0_3px_8px_rgba(91,65,28,0.10)]">
             <textarea
               ref={inputRef}
               value={input}
               onChange={(event) => onInputChange?.(event.target.value)}
               rows={2}
               placeholder={searchMode === "single" ? "Kirjoita yksi tuote" : "maito, kahvi"}
-              className="block h-full w-full resize-none overflow-hidden rounded-[1.15rem] border-0 bg-[#fffaf0] px-4 py-2 text-center text-[1.34rem] font-black leading-[1.02] text-[#102216] outline-none placeholder:text-[#7d7461]"
+              className="block h-full w-full resize-none overflow-hidden rounded-[1.15rem] border-0 bg-[#fffaf0] px-4 py-1 text-center text-[1.18rem] font-black leading-[1.02] text-[#102216] outline-none placeholder:text-[#7d7461]"
               style={{ fontFamily: hasText ? serifFont : cooperFont }}
             />
           </div>
 
-          <div className="relative z-10 mt-3 grid grid-cols-[minmax(0,1fr)_minmax(9.8rem,10.9rem)_minmax(0,1fr)] items-center gap-2">
+          <div className="relative z-10 mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-2.5">
             <AssistantButton
               kind="gosta"
               onClick={onOfferSearch}
               disabled={!hasText}
               loading={loadingOffers}
+              className="scale-[1.45]"
             />
-            <ModeToggle mode={searchMode} onModeChange={onSearchModeChange} />
+
+            <div className="flex flex-col items-center justify-center gap-2 rounded-[1.25rem] border-[3px] border-[#b99d64] bg-[#ead7a5] px-2 py-2 shadow-[0_0_0_2px_#fff4cc_inset,0_4px_0_rgba(91,72,44,0.20)]">
+              <button
+                type="button"
+                onClick={() => onSearchModeChange?.("cart")}
+                className={`min-w-[5.8rem] rounded-[0.9rem] px-2 py-1 text-[0.78rem] font-black leading-[0.92] ${
+                  searchMode === "cart"
+                    ? "bg-[#fff0c8] text-[#1c5c2e] shadow-[0_2px_0_rgba(91,72,44,0.18)]"
+                    : "text-[#7a6948]"
+                }`}
+              >
+                Koko<br />kori
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onSearchModeChange?.("single")}
+                className={`min-w-[5.8rem] rounded-[0.9rem] px-2 py-1 text-[0.78rem] font-black leading-[0.92] ${
+                  searchMode === "single"
+                    ? "bg-[#fff0c8] text-[#1c5c2e] shadow-[0_2px_0_rgba(91,72,44,0.18)]"
+                    : "text-[#7a6948]"
+                }`}
+              >
+                Yksi<br />tuote
+              </button>
+            </div>
+
             <AssistantButton
               kind="justiina"
               onClick={onNormalSearch}
               disabled={!hasText}
               loading={justiinaLoading}
+              className="scale-[1.45]"
             />
           </div>
 
-          <div className="relative z-10 mt-3 flex h-[2.65rem] items-center justify-center overflow-hidden rounded-[1.18rem] border-[3px] border-[#d2b170] bg-[#fff1bf] px-3 text-center text-[0.84rem] font-black text-[#7a6842] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_3px_0_rgba(91,72,44,0.12)]">
-            <span className="block truncate">
+          <div className="relative z-10 mt-3 flex min-h-[3rem] items-center justify-center overflow-hidden rounded-[1.18rem] border-[3px] border-[#d2b170] bg-[#fff1bf] px-3 text-center text-[0.84rem] font-black text-[#7a6842] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_3px_0_rgba(91,72,44,0.12)]">
+            <span className="block ">
               {subtitle || "Justiina ehdottaa sopivia hakusanoja kirjoituksen mukaan."}
             </span>
           </div>
 
-          <div className="relative z-10 mt-3 grid grid-cols-2 gap-3">
+          <div className="relative z-10 mt-6 grid grid-cols-2 gap-3">
             <RetroAssetButton
               kind="voice"
               label="Äänitä"
@@ -346,7 +377,7 @@ export default function ZiiplyMobileSearchCard({
           {showResults && (
             <div className="relative z-20 mt-3 min-h-0 flex-1 overflow-hidden rounded-[1.45rem] border-[3px] border-[#b99755] bg-[#ead39a] p-3 shadow-[0_0_0_2px_#fff4cd_inset,0_8px_0_rgba(70,50,24,0.18)]">
               <div
-                className="mb-2 truncate text-[0.82rem] font-black uppercase tracking-[0.34em] text-[#746749]"
+                className="mb-2  text-[0.82rem] font-black uppercase tracking-[0.34em] text-[#746749]"
                 style={{ fontFamily: copperplateFont }}
               >
                 Hakutulokset
@@ -387,10 +418,10 @@ export default function ZiiplyMobileSearchCard({
 
                         <div className="min-w-0">
                           <div
-                            className="truncate text-[1.02rem] font-black leading-[1.05] text-[#1f251c]"
+                            className=" text-[1.02rem] font-black leading-[1.05] text-[#1f251c]"
                             style={{ fontFamily: serifFont }}
                           >
-                            {truncateProductName(name)}
+                            {ProductName(name)}
                           </div>
                           {price && (
                             <div className="mt-1 text-[0.9rem] font-black leading-none text-[#817451]">
