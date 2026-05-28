@@ -1,7 +1,5 @@
 "use client";
 
-// V405_GPS_CAN_ALWAYS_TOGGLE_OFF: GPS-nappi ei lukitu storeSearchLoading-tilassa.
-
 import React, { useEffect, useRef, useState } from "react";
 
 export type ZiiplyMobileLocationBarProps = {
@@ -39,9 +37,7 @@ export default function ZiiplyMobileLocationBar({
     };
   }, []);
 
-  // GPS pitää saada aina pois päältä myös paikannuksen/kauppahaun aikana.
-  // Estetään vain tuplaklikkaus, ei storeSearchLoading-tilaa.
-  const gpsButtonDisabled = gpsClickLocked;
+  const gpsButtonDisabled = storeSearchLoading || gpsClickLocked;
 
   function handleGpsClick() {
     // v382_GPS_BUTTON_DEBOUNCE:
