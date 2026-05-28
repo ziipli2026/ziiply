@@ -74,7 +74,13 @@ export default function ZiiplyMobileShopsView({
           onStoreCompareScopeChange={onStoreCompareScopeChange}
         />
 
-        <section className="rounded-[1.75rem] bg-white/96 p-2.5 shadow-[0_14px_36px_rgba(15,23,42,0.08)] ring-1 ring-white/80">
+        <section
+          className={`rounded-[1.75rem] bg-white/96 shadow-[0_14px_36px_rgba(15,23,42,0.08)] ring-1 ring-white/80 ${
+            storeMode === "local"
+              ? "pt-4 pb-2.5 px-2.5"
+              : "p-2.5"
+          }`}
+        >
           {storeCards}
         </section>
       </div>
