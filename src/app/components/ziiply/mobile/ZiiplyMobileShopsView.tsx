@@ -11,7 +11,6 @@ export type ZiiplyMobileShopsViewProps = {
   usingOwnLocation: boolean;
   storeSearchLoading: boolean;
   gpsErrorMessage?: string;
-  gpsStatusText?: string;
   storeMode: StoreMode;
   storeModeChosen: boolean;
   storeCompareScope: StoreCompareScope;
@@ -19,15 +18,12 @@ export type ZiiplyMobileShopsViewProps = {
   selectedRealChainCount: number;
   missingStoresMessageVisible: boolean;
   foundStoresCount: number;
-  hyperStorePairMissing?: boolean;
   storeCards: ReactNode;
   onLocationInputChange: (value: string) => void;
   onGpsClick: () => void;
   onApplyLocation: () => void | Promise<void>;
-  onOpenMap?: () => void | Promise<void>;
   onStoreModeChange: (mode: StoreMode) => void;
   onStoreCompareScopeChange: (scope: StoreCompareScope) => void;
-  onWithinChainChange?: (chain: "S" | "K" | null) => void;
 };
 
 export default function ZiiplyMobileShopsView({
@@ -35,7 +31,6 @@ export default function ZiiplyMobileShopsView({
   usingOwnLocation,
   storeSearchLoading,
   gpsErrorMessage,
-  gpsStatusText,
   storeMode,
   storeModeChosen,
   storeCompareScope,
@@ -43,60 +38,45 @@ export default function ZiiplyMobileShopsView({
   selectedRealChainCount,
   missingStoresMessageVisible,
   foundStoresCount,
-  hyperStorePairMissing,
   storeCards,
   onLocationInputChange,
   onGpsClick,
   onApplyLocation,
-  onOpenMap,
   onStoreModeChange,
   onStoreCompareScopeChange,
-  onWithinChainChange,
 }: ZiiplyMobileShopsViewProps) {
   return (
-    <div className="w-full sm:hidden">
-      {/* V409_SHOPS_VIEW_SOFT_RESET:
-          Lähellä alkuperäistä rakennetta, mutta ilman:
-          - h-[100svh]
-          - overflow-hidden koko näkymässä
-          - sticky top-[86px]
-          Page.tsx hoitaa overlay-scrollin. */}
+    <div className="h-[100svh] overflow-hidden sm:hidden">
       <div className="h-[86px]" aria-hidden="true" />
 
-      <div className="mx-auto w-full max-w-[390px] px-2">
-        <div className="bg-[#eaf7f1]/95 pb-1 pt-1">
-          <ZiiplyMobileLocationBar
-            locationInput={locationInput}
-            usingOwnLocation={usingOwnLocation}
-            storeSearchLoading={storeSearchLoading}
-            gpsErrorMessage={gpsErrorMessage}
-            gpsStatusText={gpsStatusText}
-            onLocationInputChange={onLocationInputChange}
-            onGpsClick={onGpsClick}
-            onApplyLocation={onApplyLocation}
-            onOpenMap={onOpenMap}
-          />
-        </div>
+      <div className="sticky top-[86px] z-[75] bg-[#eaf7f1]/95 px-2 pb-1 pt-1 backdrop-blur">
+        <ZiiplyMobileLocationBar
+          locationInput={locationInput}
+          usingOwnLocation={usingOwnLocation}
+          storeSearchLoading={storeSearchLoading}
+          gpsErrorMessage={gpsErrorMessage}
+          onLocationInputChange={onLocationInputChange}
+          onGpsClick={onGpsClick}
+          onApplyLocation={onApplyLocation}
+        />
+      </div>
 
-        <div className="space-y-2 pb-0 pt-1">
-          <ZiiplyMobileStoreModeSelector
-            storeMode={storeMode}
-            storeModeChosen={storeModeChosen}
-            storeCompareScope={storeCompareScope}
-            withinChain={withinChain}
-            selectedRealChainCount={selectedRealChainCount}
-            missingStoresMessageVisible={missingStoresMessageVisible}
-            foundStoresCount={foundStoresCount}
-            hyperStorePairMissing={hyperStorePairMissing}
-            onStoreModeChange={onStoreModeChange}
-            onStoreCompareScopeChange={onStoreCompareScopeChange}
-            onWithinChainChange={onWithinChainChange}
-          />
+      <div className="space-y-2 overflow-hidden px-2 pb-0 pt-1">
+        <ZiiplyMobileStoreModeSelector
+          storeMode={storeMode}
+          storeModeChosen={storeModeChosen}
+          storeCompareScope={storeCompareScope}
+          withinChain={withinChain}
+          selectedRealChainCount={selectedRealChainCount}
+          missingStoresMessageVisible={missingStoresMessageVisible}
+          foundStoresCount={foundStoresCount}
+          onStoreModeChange={onStoreModeChange}
+          onStoreCompareScopeChange={onStoreCompareScopeChange}
+        />
 
-          <section className="rounded-[1.75rem] bg-white/96 p-2.5 shadow-[0_14px_36px_rgba(15,23,42,0.08)] ring-1 ring-white/80">
-            {storeCards}
-          </section>
-        </div>
+        <section className="rounded-[1.75rem] bg-white/96 p-2.5 shadow-[0_14px_36px_rgba(15,23,42,0.08)] ring-1 ring-white/80">
+          {storeCards}
+        </section>
       </div>
     </div>
   );
