@@ -3915,7 +3915,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         setLocationMessage(`${nextArea.label || query} käytössä`);
       }
     } catch (error) {
-      pushGpsDebugLogV492(`useOwnLocation(${source}) CATCH code=${String((error as any)?.code ?? "?")}`);
+      pushGpsDebugLogV492(`useOwnLocation CATCH code=${String((error as any)?.code ?? "?")}`);
       console.error(error);
       const gpsErrorCode =
         typeof error === "object" && error !== null && "code" in error
@@ -3980,7 +3980,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const city = await reverseGeocodeCity(coords.latitude, coords.longitude);
 
       if (!city) {
-        pushGpsDebugLogV492("applyWeatherBootGpsV481 reverse geocode EMPTY");
+        pushGpsDebugLogV492(`useOwnLocation reverse geocode EMPTY`);
         setGpsErrorMessage("GPS ei löydy");
         setLocationMessage("GPS ei löydy");
         setLocationMessageVisible(true);
@@ -3996,7 +3996,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setLocationInput("");
       await applyLocation(city, "gps", coords);
     } catch (error) {
-      pushGpsDebugLogV492(`applyWeatherBootGpsV481 CATCH code=${String((error as any)?.code ?? "?")}`);
+      pushGpsDebugLogV492(`useOwnLocation CATCH code=${String((error as any)?.code ?? "?")}`);
       console.error(error);
       setGpsErrorMessage("GPS ei löydy");
       setLocationMessage("GPS ei löydy");
@@ -4011,7 +4011,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   async function useOwnLocation(source: "boot" | "manual" = "manual") {
-    pushGpsDebugLogV492(`useOwnLocation(${source}) ENTRY using=${String(usingOwnLocation)} loading=${String(storeSearchLoading)} coords=${gpsCoordsV320 ? "yes" : "no"} stores=${String(foundStores.length)}`);
+    pushGpsDebugLogV492(`useOwnLocation ENTRY using=${String(usingOwnLocation)} loading=${String(storeSearchLoading)} coords=${gpsCoordsV320 ? "yes" : "no"} stores=${String(foundStores.length)}`);
     const now = Date.now();
     const gpsWindowLockV470 = getZiiplyGpsWindowLockV470();
     const isBootGpsRunV472 = source === "boot";
@@ -4071,7 +4071,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return;
     }
 
-    pushGpsDebugLogV492(`useOwnLocation(${source}) START accepted`);
+    pushGpsDebugLogV492(`useOwnLocation START accepted`);
     gpsSearchInFlightRefV465.current = true;
     ziiplyGpsHardInFlightV469 = true;
     if (gpsWindowLockV470) {
@@ -4088,7 +4088,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // V491: watchdog on pidempi, koska getCurrentPosition tekee tarvittaessa yhden sisäisen retryn.
     gpsFailTimerRefV391.current = window.setTimeout(() => {
       if (gpsSearchInFlightRefV465.current) {
-        pushGpsDebugLogV492(`WATCHDOG FIRED source=${source}`);
+        pushGpsDebugLogV492(`WATCHDOG FIRED`);
         const finishedAt = Date.now();
         setGpsErrorMessage("GPS ei löydy");
         setLocationMessage("GPS ei löydy");
@@ -4116,7 +4116,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setLocationMessage("Paikannetaan GPS");
 
     try {
-      pushGpsDebugLogV492(`useOwnLocation(${source}) before getCurrentPosition`);
+      pushGpsDebugLogV492(`useOwnLocation before getCurrentPosition`);
       const position = await getCurrentPosition(
         isBootGpsRunV472
           ? { enableHighAccuracy: false, timeout: 18000, maximumAge: 30000 }
@@ -4126,7 +4126,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
       };
-      pushGpsDebugLogV492(`useOwnLocation(${source}) got coords, reverse geocode start`);
+      pushGpsDebugLogV492(`useOwnLocation got coords, reverse geocode start`);
       setGpsCoordsV320(nextGpsCoordsV485);
       const city = await reverseGeocodeCity(
         nextGpsCoordsV485.latitude,
@@ -4134,7 +4134,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       );
 
       if (!city) {
-        pushGpsDebugLogV492("applyWeatherBootGpsV481 reverse geocode EMPTY");
+        pushGpsDebugLogV492(`useOwnLocation reverse geocode EMPTY`);
         setGpsErrorMessage("GPS ei löydy");
         setLocationMessage("GPS ei löydy");
         setLocationMessageVisible(true);
@@ -4144,7 +4144,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         return;
       }
 
-      pushGpsDebugLogV492(`useOwnLocation(${source}) city=${city}`);
+      pushGpsDebugLogV492(`useOwnLocation city=${city}`);
       setGpsErrorMessage("");
       gpsInitialVisiblePhaseRefV391.current = false;
       if (gpsFailTimerRefV391.current) {
@@ -4158,9 +4158,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // V470: älä pudota storeSearchLoadingia pois päältä tässä välissä.
       // GPS-paikannus ja sitä seuraava kauppahaku ovat yksi atominen ajo, jotta
       // Kaupat-paneelin fallback tai toinen effect ei voi startata uutta GPS-hakua väliin.
-      pushGpsDebugLogV492(`useOwnLocation(${source}) applyLocation start`);
+      pushGpsDebugLogV492(`useOwnLocation applyLocation start`);
       await applyLocation(city, "gps", nextGpsCoordsV485);
-      pushGpsDebugLogV492(`useOwnLocation(${source}) applyLocation done`);
+      pushGpsDebugLogV492(`useOwnLocation applyLocation done`);
 
       if (source === "manual") {
         gpsManualSuccessCoordsRefV485.current = nextGpsCoordsV485;
@@ -4171,7 +4171,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         ziiplyGpsBootSucceededV472 = true;
       }
     } catch (error) {
-      pushGpsDebugLogV492(`useOwnLocation(${source}) CATCH code=${String((error as any)?.code ?? "?")}`);
+      pushGpsDebugLogV492(`useOwnLocation CATCH code=${String((error as any)?.code ?? "?")}`);
       console.error(error);
       const gpsErrorCode =
         typeof error === "object" && error !== null && "code" in error
@@ -4194,7 +4194,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setUsingOwnLocation(false);
       setStoreSearchLoading(false);
     } finally {
-      pushGpsDebugLogV492(`useOwnLocation(${source}) FINALLY`);
+      pushGpsDebugLogV492(`useOwnLocation FINALLY`);
       const finishedAt = Date.now();
       gpsLastFinishedAtRefV466.current = finishedAt;
       ziiplyGpsHardLastFinishedAtV469 = finishedAt;
@@ -4367,7 +4367,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setOffers([...sItems, ...kItems]);
       setOfferSearchDoneForQuery(offerQuerySnapshot);
     } catch (error) {
-      pushGpsDebugLogV492(`useOwnLocation(${source}) CATCH code=${String((error as any)?.code ?? "?")}`);
+      pushGpsDebugLogV492(`useOwnLocation CATCH code=${String((error as any)?.code ?? "?")}`);
       console.error(error);
       const gpsErrorCode =
         typeof error === "object" && error !== null && "code" in error
@@ -4631,7 +4631,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         setSearchPanelOpen(true);
       }
     } catch (error) {
-      pushGpsDebugLogV492(`useOwnLocation(${source}) CATCH code=${String((error as any)?.code ?? "?")}`);
+      pushGpsDebugLogV492(`useOwnLocation CATCH code=${String((error as any)?.code ?? "?")}`);
       console.error(error);
       const gpsErrorCode =
         typeof error === "object" && error !== null && "code" in error
@@ -5097,7 +5097,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         void applyBestEffortScannerCameraTuning();
       });
     } catch (error) {
-      pushGpsDebugLogV492(`useOwnLocation(${source}) CATCH code=${String((error as any)?.code ?? "?")}`);
+      pushGpsDebugLogV492(`useOwnLocation CATCH code=${String((error as any)?.code ?? "?")}`);
       console.error(error);
       const gpsErrorCode =
         typeof error === "object" && error !== null && "code" in error
@@ -5494,7 +5494,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         );
       }
     } catch (error) {
-      pushGpsDebugLogV492(`useOwnLocation(${source}) CATCH code=${String((error as any)?.code ?? "?")}`);
+      pushGpsDebugLogV492(`useOwnLocation CATCH code=${String((error as any)?.code ?? "?")}`);
       console.error(error);
       const gpsErrorCode =
         typeof error === "object" && error !== null && "code" in error
@@ -7341,7 +7341,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         [key]: alternatives,
       }));
     } catch (error) {
-      pushGpsDebugLogV492(`useOwnLocation(${source}) CATCH code=${String((error as any)?.code ?? "?")}`);
+      pushGpsDebugLogV492(`useOwnLocation CATCH code=${String((error as any)?.code ?? "?")}`);
       console.error(error);
       const gpsErrorCode =
         typeof error === "object" && error !== null && "code" in error
@@ -7694,7 +7694,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         ...keysToClose,
       }));
     } catch (error) {
-      pushGpsDebugLogV492(`useOwnLocation(${source}) CATCH code=${String((error as any)?.code ?? "?")}`);
+      pushGpsDebugLogV492(`useOwnLocation CATCH code=${String((error as any)?.code ?? "?")}`);
       console.error(error);
       const gpsErrorCode =
         typeof error === "object" && error !== null && "code" in error
