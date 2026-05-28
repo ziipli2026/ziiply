@@ -4137,12 +4137,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     gpsBootTimerRefV483.current = window.setTimeout(() => {
       gpsBootTimerRefV483.current = null;
-      if (gpsUserDisabledRefV306.current) {
+      if (gpsUserDisabledRefV306.current || gpsCoordsV320 || gpsSearchInFlightRefV465.current) {
         setGpsBootReadyV473(true);
         return;
       }
       void useOwnLocation("boot");
-    }, 0);
+    }, 250);
 
     return () => {
       if (gpsBootTimerRefV483.current) {
@@ -9776,8 +9776,48 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 setLocationMessage("Kirjoita alue tai postinumero");
                 setLocationMessageVisible(true);
               }}
-              // V486: GPS-nappi pois testistä; ei manuaalista käynnistystä eikä sammutusta.
-              onGpsClick={() => undefined}
+              // V488: GPS-nappi palautettu.
+              // - jos GPS on päällä tai paikannus on kesken, painallus sammuttaa GPS:n
+              // - jos GPS on pois päältä, painallus käynnistää manuaalisen GPS-haun
+              onGpsClick={() => {
+                if (usingOwnLocation || storeSearchLoading || gpsCoordsV320) {
+                  gpsUserDisabledRefV306.current = true;
+                  gpsManualSuccessGuardUntilRefV485.current = 0;
+                  gpsManualSuccessCoordsRefV485.current = null;
+                  if (gpsFailTimerRefV391.current) {
+                    window.clearTimeout(gpsFailTimerRefV391.current);
+                    gpsFailTimerRefV391.current = null;
+                  }
+                  if (gpsBootTimerRefV483.current) {
+                    window.clearTimeout(gpsBootTimerRefV483.current);
+                    gpsBootTimerRefV483.current = null;
+                  }
+                  if (gpsBootWatchdogRefV483.current) {
+                    window.clearTimeout(gpsBootWatchdogRefV483.current);
+                    gpsBootWatchdogRefV483.current = null;
+                  }
+                  const gpsWindowLock = getZiiplyGpsWindowLockV470();
+                  if (gpsWindowLock) {
+                    gpsWindowLock.inFlight = false;
+                    gpsWindowLock.lastFinishedAt = Date.now();
+                  }
+                  gpsSearchInFlightRefV465.current = false;
+                  ziiplyGpsHardInFlightV469 = false;
+                  setUsingOwnLocation(false);
+                  setGpsCoordsV320(null);
+                  setStoreSearchLoading(false);
+                  setGpsStorePickerBlockedV382(false);
+                  setGpsErrorMessage("");
+                  setLocationMessage("GPS pois päältä");
+                  setLocationMessageVisible(true);
+                  return;
+                }
+
+                gpsUserDisabledRefV306.current = false;
+                gpsManualSuccessGuardUntilRefV485.current = 0;
+                gpsManualSuccessCoordsRefV485.current = null;
+                void useOwnLocation("manual");
+              }}
               
               
             />
