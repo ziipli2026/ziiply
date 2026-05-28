@@ -1,6 +1,6 @@
 "use client";
 
-// V431_COMPASS_2X_STATUS_TEXT: kompassi 2x ja GPS-status lyhyenä ilman katkeilua.
+// V432_NO_MAP_LOCATION_FALLBACK: kompassi ei fallbackaa sijaintihakuun; avaa vain kartan.
 
 // V430_LOCATIONBAR_CLEAN_REBUILD:
 // Puhdas build-kelpoinen versio. GPS-nappi on/off-väreillä ja kompassinappi merilasi/aquamarine-taustalla.
@@ -49,12 +49,11 @@ export default function ZiiplyMobileLocationBar({
   };
 
   const handleMapClick = () => {
+    // Kompassi/karttanappi ei saa koskaan käynnistää GPS- tai sijaintihakua.
+    // Jos kartta-overlayä ei ole annettu, nappi ei tee mitään.
     if (onOpenMap) {
       void onOpenMap();
-      return;
     }
-
-    void onApplyLocation();
   };
 
   return (
