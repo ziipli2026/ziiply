@@ -366,6 +366,8 @@ function formatLocationNoticeV465(message: string) {
     .trim();
 }
 
+const WEATHER_APP_DISABLED_TEST_V487 = true;
+
 function KauppiasMobileTopBar({
   hidden = false,
   areaLabel = "Hyvinkää",
@@ -398,7 +400,13 @@ function KauppiasMobileTopBar({
   // Page omistaa yhden GPS-haun ja antaa koordinaatit tänne säätä varten.
 
   useEffect(() => {
-    if (hidden) return;
+    // V487_TEST: sääappi kokonaan pois pelistä.
+    // Ei sääfetchiä eikä mitään GPS/koordinaattien käsittelyä tästä komponentista.
+    if (hidden || WEATHER_APP_DISABLED_TEST_V487) {
+      setWeatherValue("—°");
+      setWeatherText(areaLabel);
+      return;
+    }
     if (!weatherEnabled || !gpsCoords) {
       setWeatherValue("—°");
       setWeatherText(areaLabel);
@@ -9681,7 +9689,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             hidden={showLaunchScreen}
             areaLabel={activeArea.label}
             gpsCoords={gpsCoordsV320}
-            weatherEnabled={Boolean(gpsCoordsV320) && !storeSearchLoading}
+            weatherEnabled={false /* V487_TEST: sääappi pois pelistä */}
             onOpenCalendar={() => {
               try {
                 window.location.href = "calshow://";
