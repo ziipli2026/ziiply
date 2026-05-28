@@ -1,14 +1,6 @@
 "use client";
 
-// V449_REMOVE_BAD_RESTORED_PROMPT_CLOSE: poistettu virheellinen </div> )} ennen restoredCartPromptia.
-
-// V448_RESTORE_MOBILE_WRAPPER_CLOSE: palautettu mobiiliwrapperin oikea </div> ja )} ennen restoredCartPromptia.
-
-// V447_FIX_DANGLING_MOBILE_SECTION_CLOSE: poistettu toinen vanhan inline-mobiiliosion ylimääräinen sulku.
-
-// V446_FIX_DANGLING_INLINE_SELECTOR_CLOSE: poistettu vanhan inline-hakutapakortin ylimääräinen sulku.
-
-// V445_USE_STORE_MODE_SELECTOR_ONLY: poistettu page.tsx:n vanha inline-hakutapakortti, käytetään vain ZiiplyMobileStoreModeSelector-komponenttia.
+// V452_FIX_ON_WORKING_V444_BASE: korjattu Hakutapa-ilmoitus toimivan V444-pohjan sisällä ilman JSX-haaran poistoa.
 
 // V444_PAGE_REMOVE_DUPLICATE_HAKUTAPA_NOTICE: poistettu page.tsx:n vanha vilkkuva hakutapa-ilmoitus; ilmoitus tulee StoreModeSelectorista.
 
@@ -225,7 +217,6 @@ import ZiiplyMobileHomeView from "./components/ziiply/mobile/ZiiplyMobileHomeVie
 import ZiiplyMobileAssistantPanel from "./components/ziiply/mobile/ZiiplyMobileAssistantPanel";
 import ZiiplyMobileShopsView from "./components/ziiply/mobile/ZiiplyMobileShopsView";
 import ZiiplyMobileLocationBar from "./components/ziiply/mobile/ZiiplyMobileLocationBar";
-import ZiiplyMobileStoreModeSelector from "./components/ziiply/mobile/ZiiplyMobileStoreModeSelector";
 import type { ZiiplyAssistantKey } from "./components/ziiply/mobile/ZiiplyMobileAssistantButton";
 
 type KauppiasTopBarKind = "weather" | "electricity" | "fuel" | "calendar";
@@ -930,6 +921,7 @@ export default function Page() {
   const [cartModalOpen, setCartModalOpen] = useState(false);
   const [cartSavePanelOpen, setCartSavePanelOpen] = useState(false);
   const [shopsPanelOpen, setShopsPanelOpen] = useState(false);
+  const [inlineHakutapaNoticeVisibleV452, setInlineHakutapaNoticeVisibleV452] = useState(false);
   const [mapStoresOverlayOpenV433, setMapStoresOverlayOpenV433] = useState(false);
   const [mapRouteOverlayOpenV428, setMapRouteOverlayOpenV428] = useState(false);
   const [initialStoreNavPrompt, setInitialStoreNavPrompt] = useState(false);
@@ -1822,6 +1814,43 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
     setLocationMessage("");
     setLocationMessageVisible(true);
   }, [hyperStorePairMissingV391]);
+
+    useEffect(() => {
+    if (!hyperStorePairMissingV391) return;
+
+    setLocationMessage("Alueelta ei löytynyt kahta vertailtavaa tavarataloa. Kokeile lähikauppoja.");
+    setLocationMessageVisible(true);
+  }, [hyperStorePairMissingV391]);
+
+  // V452_INLINE_HAKUTAPA_NOTICE_EFFECT:
+  // Näyttää ilmoituksen kerran suoraan Hakutapa-tekstin kohdalla.
+  useEffect(() => {
+    const selectedChainCount =
+      Number(Boolean(selectedChains.s)) + Number(Boolean(selectedChains.k));
+
+    const shouldShow =
+      hyperStorePairMissingV391 ||
+      (storeCompareScope === "between_chains" && selectedChainCount < 2) ||
+      (storeCompareScope === "within_chain" && !withinChain);
+
+    if (!shouldShow) {
+      setInlineHakutapaNoticeVisibleV452(false);
+      return;
+    }
+
+    setInlineHakutapaNoticeVisibleV452(true);
+    const timer = window.setTimeout(() => {
+      setInlineHakutapaNoticeVisibleV452(false);
+    }, 2200);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    hyperStorePairMissingV391,
+    storeCompareScope,
+    selectedChains.s,
+    selectedChains.k,
+    withinChain,
+  ]);
 
   function shouldUseLocalFallback(chain: "S" | "K") {
     if (storeMode !== "local") return false;
@@ -8638,23 +8667,881 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
                     {renderComparedStoreCards(true)}
                   </div>
 
-            <ZiiplyMobileStoreModeSelector
-              storeMode={storeMode}
-              storeModeChosen={storeModeChosenV299}
-              storeCompareScope={storeCompareScope}
-              withinChain={withinChain}
-              selectedRealChainCount={selectedRealChainCount}
-              missingStoresMessageVisible={
-                Boolean(locationMessageVisible) &&
-                foundStores.length === 0 &&
-                !gpsStoreLocationPendingV366
+                  <div className="relative mt-3 grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleStoreModeChange("hyper")}
+                      className={`rounded-[1.2rem] border-2 px-3 py-3 text-sm font-black shadow-[0_3px_0_rgba(89,65,27,0.16)] ring-1 ${storeMode === "hyper" && storeModeChosenV299 ? "border-[#0b5f32] bg-[#0c7c38] text-white ring-green-800" : "border-[#c8ab70] bg-[#fff9ea] text-[#3b3a30] ring-[#d6bf8f]"}`}
+                    >
+                      🏬 Tavaratalot
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleStoreModeChange("local")}
+                      className={`rounded-[1.2rem] border-2 px-3 py-3 text-sm font-black shadow-[0_3px_0_rgba(89,65,27,0.16)] ring-1 ${storeMode === "local" && storeModeChosenV299 ? "border-[#0b5f32] bg-[#0c7c38] text-white ring-green-800" : "border-[#c8ab70] bg-[#fff9ea] text-[#3b3a30] ring-[#d6bf8f]"}`}
+                    >
+                      🏪 Lähikaupat
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleStoreCompareScopeChange("between_chains")
+                      }
+                      className={`rounded-[1.2rem] border-2 px-3 py-3 text-sm font-black shadow-[0_3px_0_rgba(89,65,27,0.16)] ring-1 ${storeCompareScope === "between_chains" ? "border-[#0b5f32] bg-[#0c7c38] text-white ring-green-800" : "border-[#c8ab70] bg-[#fff9ea] text-[#3b3a30] ring-[#d6bf8f]"}`}
+                    >
+                      Ketjujen väliltä
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleStoreCompareScopeChange("within_chain")
+                      }
+                      className={`rounded-[1.2rem] border-2 px-3 py-3 text-sm font-black shadow-[0_3px_0_rgba(89,65,27,0.16)] ring-1 ${storeCompareScope === "within_chain" ? "border-[#0b5f32] bg-[#0c7c38] text-white ring-green-800" : "border-[#c8ab70] bg-[#fff9ea] text-[#3b3a30] ring-[#d6bf8f]"}`}
+                    >
+                      Ketjun sisältä
+                    </button>
+                  </div>
+                </section>
+              </aside>
+
+              <main className="min-h-0 space-y-2 overflow-y-auto pr-1">
+                <div className="relative z-10 overflow-hidden rounded-[36px]">
+                  <ZiiplyStoreLocaCard
+                    locationInput={locationInput}
+                    onLocationInputChange={(nextValue) => {
+                      setLocationInput(nextValue);
+                      if (nextValue.trim()) {
+                        gpsUserDisabledRefV306.current = true;
+                        setUsingOwnLocation(false);
+                      }
+                      setLocationMessage("Kirjoita alue tai postinumero.");
+                    }}
+                    
+                    onUseOwnLocation={() => void useOwnLocation()}
+                    onDisableOwnLocation={() =>
+                      stopOwnLocationV306(
+                        "GPS pois päältä.",
+                      )
+                    }
+                    onOpenShops={() => {
+                      setCartModalOpen(false);
+                      setCartSavePanelOpen(false);
+                      setEanModalOpen(false);
+                      closeProductSelectionOverlay();
+                      setSearchPanelOpen(false);
+                      setShopsPanelOpen(true);
+                    }}
+                    usingOwnLocation={usingOwnLocation}
+                    locationMessage={locationMessage}
+                    locationMessageVisible={locationMessageVisible}
+                    storeSearchLoading={storeSearchLoading}
+                    placeholder="05510 tai Hyvinkää"
+                  />
+                </div>
+
+                <ZiiplySearchCard
+                  className="z-20"
+                  value={input}
+                  onChange={setSearchInputForMode}
+                  mode={searchCompareMode}
+                  onModeChange={setSearchCompareMode}
+                  onAddFromNotebook={() => void pasteFromClipboardToSearch()}
+                  onScan={() => openDesktopScanner()}
+                  onGostaSearch={handleGostaOfferSearch}
+                  onJustiinaSearch={handleJustiinaProductSearch}
+                  chips={instantSearchSuggestions.map((suggestion) => ({
+                    id: suggestion.label,
+                    label: suggestion.label,
+                    onClick: () => applyInstantSearchSuggestion(suggestion.label),
+                  }))}
+                  instructionText="Justiina ehdottaa sopivia hakusanoja kirjoituksen mukaan."
+                  notFoundTerms={notFoundSearchTerms}
+                  gostaLoading={loadingOffers}
+                  justiinaLoading={loadingNormal || singleProductCompareLoading}
+                  activePanel={
+                    activeResult === "compare"
+                      ? "compare"
+                      : filteredOffers.length > 0 ||
+                          visibleNormalResults.length > 0 ||
+                          singleProductCompareResults.length > 0
+                        ? "results"
+                        : "none"
+                  }
+                  onOpenResults={() => setActiveResult((current) => current === "offers" ? "none" : "offers")}
+                  onOpenCompare={() => {
+                    if (activeResult === "compare") {
+                      setActiveResult("none");
+                      return;
+                    }
+                    if (cart.length > 0 && !comparisonLoading) {
+                      void updateChainComparison(cart, { openCompare: true });
+                      return;
+                    }
+                    setActiveResult("compare");
+                  }}
+                  resultsPanel={
+                    <div className="space-y-3">
+                      {loadingOffers ? null : activeResult === "offers" && filteredOffers.length > 0 ? (
+                        filteredOffers.slice(0, 12).map((item) => {
+                          const product = offerToProduct(item);
+                          return (
+                            <div
+                              key={`desktop-offer-card-${item.id}`}
+                              className="rounded-[1.2rem] border-2 border-[#d5bd82] bg-[#fff3d5] p-3 shadow-[0_3px_0_rgba(113,82,31,0.16),inset_0_0_0_1px_rgba(255,255,255,0.55)]"
+                            >
+                              <div className="flex items-center gap-3">
+                                {product.pictureUrl && (
+                                  <img
+                                    src={product.pictureUrl}
+                                    alt=""
+                                    className="h-16 w-16 shrink-0 rounded-xl bg-white object-contain"
+                                  />
+                                )}
+                                <div className="min-w-0 flex-1">
+                                  <p className="line-clamp-2 text-base font-black leading-tight text-[#1f2619]">
+                                    {fixText(product.name)}
+                                  </p>
+                                  <p className="text-xs font-bold text-[#6f6b59]">
+                                    {item.storeName} · {formatEuro(getProductPrice(product))}
+                                  </p>
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => addOfferToCart(item)}
+                                  className={`rounded-xl px-3 py-2 text-xs font-black text-white transition ${justAdded === item.id ? "bg-emerald-700" : "bg-green-600 hover:bg-green-700"}`}
+                                >
+                                  {justAdded === item.id ? "✓ Lisätty" : "Lisää"}
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })
+                      ) : loadingNormal || singleProductCompareLoading ? null : visibleNormalResults.length > 0 ? (
+                        visibleNormalResults.slice(0, 12).map((product) => (
+                          <div
+                            key={`desktop-product-card-${product.id}-${product.ean || product.name}`}
+                            className="flex items-center gap-3 rounded-[1.2rem] border-2 border-[#d5bd82] bg-[#fff3d5] p-3 shadow-[0_3px_0_rgba(113,82,31,0.16),inset_0_0_0_1px_rgba(255,255,255,0.55)]"
+                          >
+                            {product.pictureUrl && (
+                              <img
+                                src={product.pictureUrl}
+                                alt=""
+                                className="h-16 w-16 shrink-0 rounded-xl bg-white object-contain"
+                              />
+                            )}
+                            <div className="min-w-0 flex-1">
+                              <p className="line-clamp-2 text-base font-black leading-tight text-[#1f2619]">
+                                {fixText(product.name)}
+                              </p>
+                              <p className="text-xs font-bold text-[#6f6b59]">
+                                {formatEuro(getProductPrice(product))}
+                              </p>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => addProductToCart(product)}
+                              className="rounded-xl bg-green-600 px-3 py-2 text-xs font-black text-white"
+                            >
+                              Lisää
+                            </button>
+                          </div>
+                        ))
+                      ) : singleProductCompareResults.length > 0 ? (
+                        singleProductCompareResults.slice(0, 12).map((result, index) => (
+                          <div
+                            key={`desktop-single-card-${index}-${result.chain}-${result.storeName}-${result.productName}`}
+                            className="rounded-[1.2rem] border-2 border-[#d5bd82] bg-[#fff3d5] p-3 shadow-[0_3px_0_rgba(113,82,31,0.16),inset_0_0_0_1px_rgba(255,255,255,0.55)]"
+                          >
+                            <p className="truncate text-sm font-black text-[#1f2619]">
+                              {fixText(result.productName)}
+                            </p>
+                            <p className="text-xs font-bold text-[#6f6b59]">
+                              {result.storeName} · {formatEuro(result.price)}
+                            </p>
+                          </div>
+                        ))
+                      ) : hasSearchedOffers ? null : null}
+                    </div>
+                  }
+                  comparePanel={
+                    <ZiiplyCompareCard
+                      stores={chainResults
+                        .filter((result) => !result.comingSoon)
+                        .map((result) => ({
+                          id: result.key,
+                          name: result.storeName || result.chain,
+                          chain: result.key === "s" ? "S" : result.key === "k" ? "K" : undefined,
+                          totalPrice: Math.round((result.totalPrice || 0) * 100),
+                          itemCount: result.foundItems,
+                          isBest: cheapest?.key === result.key,
+                          badge: result.missingItems > 0 ? `${result.missingItems} puuttuu` : "Täysi kori",
+                        }))}
+                      title="Vertailu"
+                      subtitle={cart.length > 0 ? `${cart.length} tuotetta korissa` : "Lisää tuotteita koriin ja vertaile kauppoja"}
+                      loading={comparisonLoading}
+                    />
+                  }
+                />
+
+
+              </main>
+
+              <aside className="min-h-0">
+                <div className="ziiply-cart-retro-fix h-full min-h-0 space-y-2 overflow-y-auto pr-1">
+                  <ZiiplyCartCard
+                    cart={cart}
+                    shoppingListItems={shoppingListItems}
+                    checkedCartItems={checkedCartItems}
+                    checkedCount={checkedCount}
+                    shoppingListCount={shoppingListCount}
+                    shoppingProgressPercent={shoppingProgressPercent}
+                    cheapest={cheapest}
+                    secondCheapest={secondCheapest}
+                    savings={savings}
+                    savingsPercent={savingsPercent}
+                    bestShoppingListGroups={bestShoppingListGroups}
+                    getShoppingListItemKey={getShoppingListItemKey}
+                    toggleShoppingListItem={toggleShoppingListItem}
+                    onToggleShoppingListItem={toggleShoppingListItem}
+                    onToggleCollected={toggleShoppingListItem}
+                    markAllShoppingListItemsChecked={markAllShoppingListItemsChecked}
+                    clearShoppingListChecks={clearShoppingListChecks}
+                    formatEuro={formatEuro}
+                    fixText={fixText}
+                    setCheckedCartItems={setCheckedCartItems}
+                    shoppingItemRefs={shoppingItemRefs}
+                    onIncreaseQuantity={(itemId: string) => changeQuantity(itemId, 1)}
+                    onDecreaseQuantity={(itemId: string) => changeQuantity(itemId, -1)}
+                    onRemoveItem={removeCartItem}
+                    onAddMore={openSearchPanel}
+                    onClearCart={clearCart}
+                    onCompare={() => {
+                      if (!cart.length || comparisonLoading) return;
+                      void updateChainComparison(cart, { openCompare: true });
+                    }}
+                    cartSavePanelOpen={cartSavePanelOpen}
+                    onToggleSavePanel={() => setCartSavePanelOpen((value) => !value)}
+                    savedListName={savedListName}
+                    setSavedListName={setSavedListName}
+                    onSaveCurrentCartAsList={saveCurrentCartAsList}
+                    savedShoppingLists={savedShoppingLists}
+                    onAddSavedListToCart={addSavedListToCart}
+                    onDeleteSavedShoppingList={deleteSavedShoppingList}
+                  />
+                </div>
+              </aside>
+            </div>
+          </div>
+        )}
+
+        {eanModalOpen && (
+          <div
+            className={`fixed inset-0 z-[120] hidden items-center justify-center overflow-y-auto bg-[#13251b]/78 px-4 py-5 backdrop-blur-sm xl:flex ${eanModalClosing ? "ziiply-soft-close" : "ziiply-soft-open"}`}
+          >
+            <div className="relative w-full max-w-[58rem] overflow-hidden rounded-[2.25rem] border-4 border-[#d5b982] bg-[#f7ead0] p-5 shadow-[0_30px_80px_rgba(0,0,0,0.45)] ring-4 ring-[#263b24]/50">
+              <div className="pointer-events-none absolute inset-0 opacity-[0.14] [background-image:radial-gradient(#6f5a31_1px,transparent_1px)] [background-size:14px_14px]" />
+              <div className="relative rounded-[1.7rem] border border-[#b99e67] bg-[#fbf2dc]/90 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
+                <div className="grid grid-cols-[14rem_1fr] gap-4">
+                  <aside className="space-y-4">
+                    <div>
+                      <p className="font-serif text-[3.25rem] font-black italic leading-[0.88] text-[#31402c] drop-shadow-sm">
+                        Skanneri
+                      </p>
+                    </div>
+
+                    <div className="rounded-[1.2rem] border-2 border-[#7b5f32] bg-[#efe0bf] p-4 text-[#2e2b21] shadow-[inset_0_0_0_3px_rgba(255,255,255,0.35)]">
+                      <p className="font-serif text-2xl font-black italic text-[#2f3d28]">
+                        Näin se toimii:
+                      </p>
+                      <div className="mt-4 space-y-4 text-sm font-bold leading-tight">
+                        <div className="flex gap-3">
+                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#465638] text-white">1</span>
+                          <span>Ota kuva kuitista tai tuotteesta</span>
+                        </div>
+                        <div className="flex gap-3">
+                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#465638] text-white">2</span>
+                          <span>Skanneri etsii hinnat ja hinnanhuojennukset</span>
+                        </div>
+                        <div className="flex gap-3">
+                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#465638] text-white">3</span>
+                          <span>Säästöt näkyviin heti</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="rounded-[1.2rem] border-2 border-[#7b5f32] bg-[#efe0bf] p-4 text-center shadow-[inset_0_0_0_3px_rgba(255,255,255,0.35)]">
+                      <p className="text-xs font-black uppercase tracking-[0.16em] text-[#4c4633]">
+                        Tänään skannattu
+                      </p>
+                      <div className="mt-3 grid grid-cols-2 divide-x divide-[#b99e67]">
+                        <div>
+                          <p className="text-4xl font-black text-[#3f4935]">
+                            {Math.max(0, eanResults.length)}
+                          </p>
+                          <p className="text-xs font-bold text-[#5d5845]">osumaa</p>
+                        </div>
+                        <div>
+                          <p className="text-4xl font-black text-[#3f4935]">
+                            {cart.length}
+                          </p>
+                          <p className="text-xs font-bold text-[#5d5845]">korissa</p>
+                        </div>
+                      </div>
+                      <p className="mt-4 text-xs font-black uppercase tracking-[0.12em] text-[#4c4633]">
+                        Säästöpotentiaali
+                      </p>
+                      <p className="text-4xl font-black text-[#5f7a45]">
+                        {formatEuro(savings > 0 ? savings : 0)}
+                      </p>
+                    </div>
+                  </aside>
+
+                  <main className="min-w-0">
+                    <div className="mb-3 grid grid-cols-[1fr] gap-3">
+                      <div>
+                        <p className="flex min-h-[4.25rem] items-center rounded-2xl bg-[#efe0bf] px-5 py-3 font-serif text-[1.45rem] italic leading-tight text-[#31402c] shadow-sm">
+                          {desktopKeyboardScannerOpen
+                            ? "Piippaa tuote lukijalla. Ziiply lukee koodin kuin näppäimistösyötön."
+                            : eanScannerOpen
+                              ? "Kuva otetaan, hinnanhuojennukset talteen. Säästöt esiin!"
+                              : "Valitse skannaustapa: kamera tai erillinen viivakoodinlukija."}
+                        </p>
+                      </div>
+                    </div>
+
+                    {eanScannerMessage && (
+                      <div className="mb-3 rounded-2xl bg-[#f2e3c4] px-4 py-3 text-sm font-black leading-snug text-[#4f4733] ring-1 ring-[#d8bd86]">
+                        {eanScannerMessage}
+                      </div>
+                    )}
+
+                    {!eanScannerOpen && !desktopKeyboardScannerOpen && (
+                      <div className="grid min-h-[26rem] grid-cols-2 gap-4 rounded-[2rem] border-[6px] border-[#7b5f32] bg-[#efe0bf] p-5 shadow-[inset_0_0_0_3px_rgba(255,255,255,0.35),0_10px_20px_rgba(0,0,0,0.16)]">
+                        <button
+                          type="button"
+                          onClick={() => void openDesktopCameraScanner()}
+                          className="group flex flex-col justify-between h-[6.2rem] rounded-[1.6rem] border-[4px] border-[#1f211a] bg-[#10140f] p-4 text-left shadow-[inset_0_0_0_2px_rgba(255,255,255,0.14),0_8px_0_rgba(61,42,18,0.30)] transition hover:brightness-110 active:translate-y-[1px]"
+                        >
+                          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-[1.25rem] border-4 border-[#5d5037] bg-slate-950">
+                            <div className="absolute left-1/2 top-1/2 h-1 w-[72%] -translate-x-1/2 -translate-y-1/2 bg-[#9fbe66]/75 shadow-[0_0_18px_4px_rgba(159,190,102,0.45)]" />
+                            <div className="absolute inset-[14%] rounded-2xl border-4 border-[#f7ead0]/80">
+                              <div className="absolute -left-1 -top-1 h-8 w-8 rounded-tl-2xl border-l-4 border-t-4 border-[#f7ead0]" />
+                              <div className="absolute -right-1 -top-1 h-8 w-8 rounded-tr-2xl border-r-4 border-t-4 border-[#f7ead0]" />
+                              <div className="absolute -bottom-1 -left-1 h-8 w-8 rounded-bl-2xl border-b-4 border-l-4 border-[#f7ead0]" />
+                              <div className="absolute -bottom-1 -right-1 h-8 w-8 rounded-br-2xl border-b-4 border-r-4 border-[#f7ead0]" />
+                            </div>
+                            <div className="absolute inset-0 flex items-center justify-center text-6xl">📷</div>
+                          </div>
+                          <div className="mt-4 rounded-2xl bg-[#fbf2dc] px-4 py-3 text-[#2f3d28] shadow-sm">
+                            <p className="font-serif text-[1.8rem] font-black italic leading-none">Käytä kameraa</p>
+                            <p className="mt-2 text-sm font-black leading-tight text-[#4f4733]">Nykyinen kameraskanneri. Sopii erilliselle webkameralle tai hyvälle laitekameralle.</p>
+                          </div>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => openDesktopKeyboardScanner()}
+                          className="group flex flex-col justify-between h-[6.2rem] rounded-[1.6rem] border-[4px] border-[#7b5f32] bg-[#f6e7c4] p-4 text-left shadow-[inset_0_0_0_3px_rgba(255,255,255,0.35),0_8px_0_rgba(61,42,18,0.25)] transition hover:brightness-105 active:translate-y-[1px]"
+                        >
+                          <div className="relative flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-[1.25rem] border-4 border-[#b99e67] bg-[#fff8e7]">
+                            <div className="absolute inset-x-8 top-1/2 h-3 -translate-y-1/2 rounded-full bg-[#9fbe66]/70 shadow-[0_0_18px_4px_rgba(159,190,102,0.28)]" />
+                            <div className="flex items-end gap-2 text-[#23351f]">
+                              {[8, 18, 11, 28, 14, 22, 9, 30, 16, 24, 10, 20].map((height, index) => (
+                                <span
+                                  key={index}
+                                  className="w-2 rounded-sm bg-[#23351f]"
+                                  style={{ height }}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                          <div className="mt-4 rounded-2xl bg-[#fbf2dc] px-4 py-3 text-[#2f3d28] shadow-sm">
+                            <p className="font-serif text-[1.8rem] font-black italic leading-none">Käytä viivakoodinlukijaa</p>
+                            <p className="mt-2 text-sm font-black leading-tight text-[#4f4733]">USB- tai Bluetooth-lukija syöttää EAN-koodin automaattisesti.</p>
+                          </div>
+                        </button>
+                      </div>
+                    )}
+
+                    {eanScannerOpen && (
+                      <>
+                        <div className="relative overflow-hidden rounded-[2rem] border-[10px] border-[#1f211a] bg-[#10140f] p-4 shadow-[inset_0_0_0_2px_rgba(255,255,255,0.16),0_10px_20px_rgba(0,0,0,0.25)]">
+                          <div className="absolute left-1/2 top-3 z-10 h-9 w-28 -translate-x-1/2 rounded-xl border-2 border-[#cfc1a0] bg-transparent/70 shadow-inner" />
+                          <div className="absolute right-5 top-4 z-10 h-11 w-11 rounded-full border-4 border-[#cfc1a0] bg-[#0c0d0b] shadow-inner" />
+                          <div
+                            className="relative aspect-[4/3] w-full overflow-hidden rounded-[1.5rem] border-4 border-[#5d5037] bg-slate-950"
+                            onPointerDown={(event) => void focusScannerCameraAtPoint(event)}
+                          >
+                            <div
+                              id={EAN_SCANNER_REGION_ID}
+                              className="ziiply-desktop-scanner-region absolute inset-0 h-full w-full overflow-hidden rounded-[1.2rem] bg-slate-950 [&_*]:!box-border [&_canvas]:!hidden [&_div]:!border-0 [&_div]:!shadow-none [&_video]:!absolute [&_video]:!inset-0 [&_video]:!h-full [&_video]:!w-full [&_video]:rounded-[1.2rem] [&_video]:!object-cover"
+                            />
+                            <div className="pointer-events-none absolute inset-0 rounded-[1.2rem] bg-[radial-gradient(circle_at_center,transparent_0%,transparent_58%,rgba(0,0,0,0.38)_84%)]" />
+                            <div className="pointer-events-none absolute inset-x-0 top-1/2 h-1 -translate-y-1/2 bg-[#9fbe66]/70 shadow-[0_0_18px_4px_rgba(159,190,102,0.45)]" />
+                            <div className="pointer-events-none absolute inset-[13%] rounded-2xl border-4 border-[#f7ead0]/80">
+                              <div className="absolute -left-1 -top-1 h-10 w-10 rounded-tl-2xl border-l-4 border-t-4 border-[#f7ead0]" />
+                              <div className="absolute -right-1 -top-1 h-10 w-10 rounded-tr-2xl border-r-4 border-t-4 border-[#f7ead0]" />
+                              <div className="absolute -bottom-1 -left-1 h-10 w-10 rounded-bl-2xl border-b-4 border-l-4 border-[#f7ead0]" />
+                              <div className="absolute -bottom-1 -right-1 h-10 w-10 rounded-br-2xl border-b-4 border-r-4 border-[#f7ead0]" />
+                            </div>
+                          </div>
+
+                          <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+                            <button
+                              type="button"
+                              onClick={() => setEanManualInputOpen((open) => !open)}
+                              className="rounded-xl border border-[#8b744b] bg-[#d7c196] px-4 py-3 text-sm font-black text-[#3a3325] shadow-[inset_0_1px_0_rgba(255,255,255,0.4)] active:scale-[0.98]"
+                            >
+                              EAN käsin
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => void toggleScannerTorch()}
+                              className={`flex h-16 w-16 items-center justify-center rounded-full border-4 border-[#d6bf8f] text-2xl shadow-lg active:scale-[0.98] ${scannerTorchOn ? "bg-yellow-100 text-yellow-900" : "bg-[#789155] text-[#f7ead0]"}`}
+                              aria-label="Valo"
+                            >
+                              📷
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => void closeEanModal()}
+                              className="rounded-xl bg-[#3d5a2f] px-4 py-3 text-sm font-black text-[#f7ead0] shadow-[inset_0_1px_0_rgba(255,255,255,0.25)] active:scale-[0.98]"
+                            >
+                              Sulje kamera
+                            </button>
+                          </div>
+                        </div>
+
+                        <div
+                          className={`mt-3 flex min-h-[4.25rem] gap-2 rounded-2xl border border-[#d6bf8f] bg-[#efe0bf] p-2 transition-opacity duration-150 ${eanManualInputOpen ? "opacity-100" : "pointer-events-none opacity-0"}`}
+                          aria-hidden={!eanManualInputOpen}
+                        >
+                          <input
+                            ref={eanInputRef}
+                            value={eanInput}
+                            onChange={(event) =>
+                              setEanInput(event.target.value.replace(/\D/g, ""))
+                            }
+                            onKeyDown={(event) => {
+                              if (event.key === "Enter") void searchByEan();
+                            }}
+                            inputMode="numeric"
+                            placeholder="Syötä EAN, esim. 641..."
+                            className="min-w-0 flex-1 rounded-xl border border-[#d6bf8f] bg-white px-4 py-3 text-base font-bold tracking-wide text-[#172016] outline-none focus:border-green-700"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => void searchByEan()}
+                            className="rounded-xl bg-[#0c7c38] px-5 py-3 text-sm font-black text-white"
+                          >
+                            Hae
+                          </button>
+                        </div>
+                      </>
+                    )}
+
+                    {desktopKeyboardScannerOpen && !eanScannerOpen && (
+                      <div className="rounded-[2rem] border-[6px] border-[#7b5f32] bg-[#efe0bf] p-5 shadow-[inset_0_0_0_3px_rgba(255,255,255,0.35),0_10px_20px_rgba(0,0,0,0.16)]">
+                        <div className="rounded-[1.5rem] border-[4px] border-[#b99e67] bg-[#fff8e7] p-5 text-center shadow-[inset_0_0_0_2px_rgba(255,255,255,0.65)]">
+                          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border-4 border-[#2f7c3f] bg-[#dff2c4] text-3xl shadow-[0_0_0_4px_rgba(47,124,63,0.12)]">
+                            ▌▌▌
+                          </div>
+                          <p className="mt-4 font-serif text-[2.35rem] font-black italic leading-none text-[#31402c]">
+                            Valmis lukemaan
+                          </p>
+                          <p className="mx-auto mt-2 max-w-[30rem] text-sm font-black leading-snug text-[#4f4733]">
+                            Klikkaa kenttään ja piippaa tuote lukijalla. Lukija kirjoittaa koodin ja lähettää yleensä Enterin lopuksi.
+                          </p>
+
+                          <div className="mt-5 flex gap-3">
+                            <input
+                              ref={eanInputRef}
+                              value={eanInput}
+                              onChange={(event) =>
+                                setEanInput(event.target.value.replace(/\D/g, ""))
+                              }
+                              onKeyDown={(event) => {
+                                if (event.key === "Enter") void searchByEan();
+                              }}
+                              inputMode="numeric"
+                              autoComplete="off"
+                              placeholder="Skannaa EAN-koodi"
+                              className="min-w-0 flex-1 rounded-[1.25rem] border-[3px] border-[#b99e67] bg-white px-5 py-5 text-center text-2xl font-black tracking-[0.22em] text-[#172016] shadow-[inset_0_2px_8px_rgba(91,65,28,0.10)] outline-none placeholder:tracking-normal placeholder:text-[#8b846f] focus:border-[#2f7c3f] focus:ring-4 focus:ring-[#c4dfbd]"
+                              onPaste={(event) => {
+                                const pastedText = event.clipboardData.getData("text");
+                                const code = normalizeEan(pastedText);
+                                if (!code) return;
+                                event.preventDefault();
+                                setEanInput(code);
+                                window.setTimeout(() => void searchByEan(code), 30);
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => void searchByEan()}
+                              className="rounded-[1.25rem] border-[3px] border-[#0b6330] bg-gradient-to-b from-[#159b46] to-[#087a35] px-8 py-4 text-base font-black text-[#fff0d5] shadow-[0_5px_0_#064a26] active:translate-y-1 active:shadow-[0_2px_0_#064a26]"
+                            >
+                              Hae
+                            </button>
+                          </div>
+
+                          {eanMessage && (
+                            <div className="mt-4 rounded-2xl bg-[#f2e3c4] px-4 py-3 text-sm font-black text-[#4f4733] ring-1 ring-[#d8bd86]">
+                              {eanMessage}
+                            </div>
+                          )}
+
+                          <div className="mt-5 flex justify-between gap-3">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setDesktopKeyboardScannerOpen(false);
+                                setEanScannerMessage("");
+                                setEanInput("");
+                                setEanMessage("");
+                              }}
+                              className="rounded-xl border border-[#8b744b] bg-[#d7c196] px-5 py-3 text-sm font-black text-[#3a3325] shadow-[inset_0_1px_0_rgba(255,255,255,0.4)] active:scale-[0.98]"
+                            >
+                              Takaisin
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => void closeEanModal()}
+                              className="rounded-xl bg-[#3d5a2f] px-5 py-3 text-sm font-black text-[#f7ead0] shadow-[inset_0_1px_0_rgba(255,255,255,0.25)] active:scale-[0.98]"
+                            >
+                              Sulje
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {eanResults.length > 0 && (
+                      <div className="mt-3 rounded-2xl border border-[#d6bf8f] bg-[#fbf2dc] p-3 text-sm font-bold text-[#3a3325]">
+                        Löysin {eanResults.length} tulosta. Lisää tuotteet koriin normaalista EAN-tuloslistasta.
+                      </div>
+                    )}
+                  </main>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+      </section>
+
+      <main
+        className={`xl:hidden min-h-screen overflow-x-hidden bg-[#EAF4F1] px-2 pb-44 pt-0 text-slate-950 sm:bg-[radial-gradient(circle_at_top,#ecfdf3_0%,#f8fafc_42%,#f1f5f9_100%)] sm:px-4 sm:pb-32 sm:py-3 sm:py-4 md:pb-4 ${suppressUiForEanClose ? "pointer-events-none" : ""}`}
+      >
+        <style>{`
+        html,
+        body {
+          background: #EAF4F1 !important;
+        }
+
+        #__next {
+          background: #EAF4F1 !important;
+          min-height: 100dvh;
+        }
+
+        @media (min-width: 640px) {
+          .ziiply-desktop-debug-compact {
+            max-width: 1180px;
+          }
+
+          .ziiply-desktop-debug-compact img[src="/ziiplylogo_mobile.png"] {
+            max-height: 96px !important;
+          }
+
+          .ziiply-desktop-debug-compact input,
+          .ziiply-desktop-debug-compact button {
+            min-height: 0;
+          }
+        }
+
+
+        @keyframes ziiply-store-picker-fade {
+          from { opacity: 0; filter: blur(3px); }
+          to { opacity: 1; filter: blur(0); }
+        }
+        .ziiply-store-picker-fade {
+          animation: ziiply-store-picker-fade 440ms ease-out both;
+        }
+        .ziiply-store-picker-panel-fade {
+          animation: ziiply-store-picker-fade 520ms ease-out both;
+        }
+
+        @keyframes ziiply-soft-open {
+          from { opacity: 0; transform: translateY(10px) scale(0.985); filter: blur(2px); }
+          to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+        }
+        .ziiply-soft-open {
+          animation: ziiply-soft-open 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+          transform-origin: top center;
+        }
+        .ziiply-soft-open-fast {
+          animation: ziiply-soft-open 190ms cubic-bezier(0.16, 1, 0.3, 1) both;
+          transform-origin: top center;
+        }
+        @keyframes ziiply-soft-close {
+          from { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+          to { opacity: 0; transform: translateY(10px) scale(0.985); filter: blur(2px); }
+        }
+        .ziiply-soft-close {
+          animation: ziiply-soft-close 260ms cubic-bezier(0.7, 0, 0.84, 0) both;
+          pointer-events: none;
+          transform-origin: top center;
+        }
+        @keyframes ziiply-search-ready-bounce {
+          0% { transform: translateY(0) scale(1); }
+          24% { transform: translateY(-9px) scale(1.08); }
+          48% { transform: translateY(0) scale(1); }
+          68% { transform: translateY(-4px) scale(1.03); }
+          100% { transform: translateY(0) scale(1); }
+        }
+        @keyframes ziiply-search-ready-attention {
+          0%, 100% { background-color: transparent; box-shadow: none; filter: none; }
+          18%, 58% { background-color: rgba(250, 204, 21, 0.95); box-shadow: 0 0 0 4px rgba(250, 204, 21, 0.22), 0 8px 18px rgba(202, 138, 4, 0.28); filter: saturate(1.18); }
+        }
+        .ziiply-search-ready-bounce {
+          animation: ziiply-search-ready-bounce 1.15s cubic-bezier(0.22, 1, 0.36, 1) both, ziiply-search-ready-attention 1.15s ease-in-out both;
+          transform-origin: center bottom;
+          will-change: transform, background-color, box-shadow, filter;
+          display: inline-flex;
+          min-width: 1.75rem;
+          min-height: 1.75rem;
+          align-items: center;
+          justify-content: center;
+          border-radius: 9999px;
+        }
+
+        #ziiply-ean-scanner-region,
+        #ziiply-ean-scanner-region > div,
+        #ziiply-ean-scanner-region video {
+          width: 100% !important;
+          height: 100% !important;
+          max-width: none !important;
+          max-height: none !important;
+          overflow: hidden !important;
+          border-radius: 1rem !important;
+        }
+        #ziiply-ean-scanner-region video {
+          object-fit: cover !important;
+        }
+
+        /* Desktop scanner preview mirror: fixes left/right direction in camera view only. */
+        @media (min-width: 1280px) {
+          .ziiply-desktop-scanner-region video {
+            transform: scaleX(-1) !important;
+            transform-origin: center center !important;
+          }
+        }
+        #ziiply-ean-scanner-region canvas,
+        #ziiply-ean-scanner-region svg {
+          display: none !important;
+        }
+
+        .ziiply-mobile-home-layer-lock {
+          position: relative;
+          z-index: 1;
+          transform: translate3d(0, 0, 0);
+          contain: layout paint;
+          isolation: isolate;
+          min-height: 0;
+        }
+
+        @media (max-width: 639px) {
+          .ziiply-mobile-home-layer-lock {
+            margin-top: 0 !important;
+          }
+        }
+      `}</style>
+        {showLaunchScreen && <ZiiplyLaunchScreen appVersion={APP_VERSION} />}
+
+        <div
+          className={`relative z-[80] m-0 p-0 mt-1 mb-0 ziiply-desktop-debug-compact sm:mx-auto sm:max-w-[1180px] sm:px-4 ${showLaunchScreen ? "hidden" : ""}`}
+        >
+          {/* v388_TOPBAR_BACKGROUND_LOCK: keeps Safari from pulling the hero/background upward after idle/reload. */}
+        <KauppiasMobileTopBar
+            hidden={showLaunchScreen}
+            areaLabel={activeArea.label}
+            onOpenCalendar={() => {
+              try {
+                window.location.href = "calshow://";
+              } catch {
+                window.location.href = "webcal://";
               }
-              foundStoresCount={foundStores.length}
-              hyperStorePairMissing={hyperStorePairMissingV391}
-              onStoreModeChange={handleStoreModeChange}
-              onStoreCompareScopeChange={handleStoreCompareScopeChange}
-              onWithinChainChange={setWithinChain}
+            }}
+          />
+        </div>
+        {/* v389_MOBILE_HOME_LAYER_ANCHOR:
+            KauppiasMobileTopBar is fixed, so it must reserve a permanent
+            non-render-dependent background slot. This prevents iOS Safari from
+            pulling the mobile home artwork upward after idle/reload/viewport restore. */}
+        <div
+          aria-hidden="true"
+          className="block h-[104px] shrink-0 select-none sm:hidden"
+        />
+<div className="mx-auto max-w-6xl space-y-2 sm:space-y-3">
+          <section
+            className={`-mx-2 bg-transparent px-2 pb-1 pt-1 sm:-mx-4 sm:px-4 sm:pb-2 sm:pt-2 ${
+              showLaunchScreen ? "hidden" : "hidden sm:block"
+            }`}
+          >
+            <div className="mx-auto max-w-6xl">
+              <div className="overflow-hidden rounded-[1.25rem] bg-white/95 px-4 py-2 shadow-sm ring-1 ring-slate-100 sm:rounded-[1.5rem] sm:px-5 sm:py-2">
+                <img
+                  src="/ziiply.png"
+                  alt="Ziiply"
+                  className="mx-auto max-h-[90px] w-auto object-contain py-1 sm:max-h-[108px] sm:py-1"
+                />
+                <div className="mx-auto mt-1 max-w-3xl text-center">
+                  <p className="text-base font-black leading-tight tracking-[-0.04em] text-slate-950">
+                    Viilaa ruokakorisi huokeammaks.
+                  </p>
+                  <p className="mt-1 text-sm font-semibold leading-snug text-slate-500">
+                    Gösta ja Justiina auttavat arjen valinnoissa.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {!showLaunchScreen &&
+            !searchPanelOpen &&
+            !cartModalOpen &&
+            !shopsPanelOpen &&
+            !eanModalOpen &&
+            activeResult === "none" && (
+              <>
+                <div className="ziiply-mobile-home-layer-lock -translate-y-[24px] transform-gpu">
+                  <ZiiplyMobileHomeView
+                    activeAssistant={activeAssistant}
+                    onSelectAssistant={setActiveAssistant}
+                  />
+                </div>
+
+                <ZiiplyMobileAssistantPanel
+                  activeAssistant={activeAssistant}
+                  onClose={() => setActiveAssistant(null)}
+                />
+              </>
+            )}
+
+          {!showLaunchScreen && (
+            <div
+              className={`${shopsPanelOpen ? "fixed inset-0 z-50 overflow-hidden bg-[#edf8f4] px-3 pb-[calc(env(safe-area-inset-bottom)+5.6rem)] pt-[calc(env(safe-area-inset-top)+5.2rem)] sm:static sm:contents sm:overflow-visible sm:bg-transparent sm:p-0" : "hidden sm:contents"} ${closingPanels.shops ? "ziiply-soft-close" : shopsPanelOpen ? "ziiply-soft-open" : ""}`}
+            >
+          <div className="mb-2">
+            <ZiiplyMobileLocationBar
+              locationInput={locationInput}
+              usingOwnLocation={usingOwnLocation}
+              storeSearchLoading={storeSearchLoading}
+              gpsErrorMessage={gpsErrorMessage}
+              gpsStatusText={locationMessageVisible ? locationMessage : ""}
+              onApplyLocation={() => { if (!gpsStoreLocationPendingV366) setMapStoresOverlayOpenV433(true); }}
+              onOpenMap={() => { if (!gpsStoreLocationPendingV366) setMapStoresOverlayOpenV433(true); }}
+              onLocationInputChange={(nextValue: string) => {
+                setLocationInput(nextValue);
+                if (nextValue.trim()) {
+                  gpsUserDisabledRefV306.current = true;
+                  setUsingOwnLocation(false);
+                  setGpsErrorMessage("");
+                }
+                setLocationMessage("Kirjoita alue tai postinumero.");
+                setLocationMessageVisible(true);
+              }}
+              onGpsClick={() => {
+                if (usingOwnLocation) {
+                  stopOwnLocationV306("GPS pois päältä.");
+                  setLocationMessageVisible(true);
+                  return;
+                }
+                gpsUserDisabledRefV306.current = false;
+                gpsInitialVisiblePhaseRefV391.current = true;
+                setUsingOwnLocation(true);
+                setGpsErrorMessage("");
+                setLocationInput("");
+                setLocationMessage("Paikannetaan GPS…");
+                setLocationMessageVisible(true);
+                void useOwnLocation();
+              }}
+              
+              
             />
+          </div>
+
+          <section className="rounded-[2rem] bg-white px-5 pb-2 pt-2 shadow-sm">
+            <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 overflow-visible">
+              <button
+                type="button"
+                disabled={storeCompareScope === "within_chain"}
+                onClick={() => handleStoreModeChange("hyper")}
+                className={`rounded-2xl px-4 py-[0.325rem] text-base font-extrabold leading-tight transition disabled:cursor-not-allowed ${
+                  storeCompareScope === "within_chain" ||
+                  (storeModeChosenV299 && storeMode === "hyper")
+                    ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
+                    : "bg-white text-slate-700 ring-1 ring-slate-200"
+                }`}
+              >
+                🏬 Tavaratalot
+              </button>
+              <button
+                type="button"
+                disabled={storeCompareScope === "within_chain"}
+                onClick={() => handleStoreModeChange("local")}
+                className={`rounded-2xl px-4 py-[0.325rem] text-base font-extrabold leading-tight transition disabled:cursor-not-allowed ${
+                  storeCompareScope === "within_chain" ||
+                  (storeModeChosenV299 && storeMode === "local")
+                    ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
+                    : "bg-white text-slate-700 ring-1 ring-slate-200"
+                }`}
+              >
+                🏪 Lähikaupat
+              </button>
+
+              <div className="col-span-2 flex h-6 items-center justify-center">
+                <span
+                  className={`rounded-full px-3 py-1 text-center text-[11px] font-black uppercase leading-none tracking-wide transition-all duration-150 ${
+                    inlineHakutapaNoticeVisibleV452
+                      ? "border border-[#d7ad3a] bg-[#fff2a8] text-[#7c4200] shadow-[0_5px_12px_rgba(124,66,0,0.18),inset_0_1px_0_rgba(255,255,255,0.85)] animate-[ziiplyInlineNoticeFade_2.2s_ease-out_1_forwards]"
+                      : "bg-white text-slate-500"
+                  }`}
+                >
+                  {inlineHakutapaNoticeVisibleV452
+                    ? hyperStorePairMissingV391
+                      ? "Tavarataloparia ei löytynyt"
+                      : "Vertailuparia ei löytynyt"
+                    : storeModeChosenV299 && storeCompareScope !== "none"
+                      ? "Hakutapa"
+                      : "Valitse hakutapa"}
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => handleStoreCompareScopeChange("between_chains")}
+                className={`rounded-2xl px-4 py-[0.325rem] text-sm font-extrabold leading-tight transition ${
+                  storeCompareScope === "between_chains"
+                    ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
+                    : "bg-white text-slate-700 ring-1 ring-slate-200"
+                }`}
+              >
+                Ketjujen väliltä
+              </button>
+              <button
+                type="button"
+                onClick={() => handleStoreCompareScopeChange("within_chain")}
+                className={`rounded-2xl px-4 py-[0.325rem] text-sm font-extrabold leading-tight transition ${
+                  storeCompareScope === "within_chain"
+                    ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
+                    : "bg-white text-slate-700 ring-1 ring-slate-200"
+                }`}
+              >
+                Ketjun sisältä
+              </button>
+            </div>
+            
 
             {renderComparedStoreCards(true)}
 
@@ -8803,6 +9690,9 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
               </div>
             )}
           </section>
+
+            </div>
+          )}
 
           {/* v358_DESKTOP_DEBUG_ALL_FLOWS:
             Desktop-only debug board. Mobile CSS/classes below 640px are not touched.
@@ -9081,6 +9971,8 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
             </div>
           </div>
         </section>
+        )}
+        </div>
 
         {restoredCartPromptV320.open &&
           cart.length > 0 &&
@@ -10099,6 +10991,13 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
           0%, 100% { opacity: 0; transform: translateY(4px) scale(0.96); }
           18%, 78% { opacity: 1; transform: translateY(0) scale(1); }
         }
+        @keyframes ziiplyInlineNoticeFade {
+          0% { opacity: 0; transform: scale(0.96); }
+          12% { opacity: 1; transform: scale(1); }
+          82% { opacity: 1; transform: scale(1); }
+          100% { opacity: 0; transform: scale(0.98); }
+        }
+
         @keyframes ziiplyFade {
           0% { opacity: 0; transform: translateY(10px); }
           12% { opacity: 1; transform: translateY(0); }
