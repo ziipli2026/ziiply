@@ -55,37 +55,44 @@ export default function ZiiplyMobileShopsView({
 }: ZiiplyMobileShopsViewProps) {
   return (
     <div className="w-full sm:hidden">
-      {/* V407_SHOPS_VIEW_TOP_SPACER_RESTORE:
-          Palautetaan topbarin vaatima ylätila, mutta ei palauteta vanhaa
-          h-[100svh]/overflow-hidden/sticky-rakennetta. */}
+      {/* V408_SHOPS_VIEW_BAR_SCALE_REPAIR:
+          Palautetaan palkkien alkuperäinen mittakaava:
+          - topbarin alle spacer
+          - location omassa taskussa
+          - hakutapa omassa kortissa
+          - ei h-[100svh], ei overflow-hidden koko näkymässä */}
       <div className="h-[86px]" aria-hidden="true" />
 
       <div className="mx-auto flex w-full max-w-[390px] flex-col gap-2.5 px-2">
-        <ZiiplyMobileLocationBar
-          locationInput={locationInput}
-          usingOwnLocation={usingOwnLocation}
-          storeSearchLoading={storeSearchLoading}
-          gpsErrorMessage={gpsErrorMessage}
-          gpsStatusText={gpsStatusText}
-          onLocationInputChange={onLocationInputChange}
-          onGpsClick={onGpsClick}
-          onApplyLocation={onApplyLocation}
-          onOpenMap={onOpenMap}
-        />
+        <div className="rounded-[1.7rem] bg-white/95 p-1.5 shadow-[0_10px_26px_rgba(15,23,42,0.10)] ring-1 ring-white/80">
+          <ZiiplyMobileLocationBar
+            locationInput={locationInput}
+            usingOwnLocation={usingOwnLocation}
+            storeSearchLoading={storeSearchLoading}
+            gpsErrorMessage={gpsErrorMessage}
+            gpsStatusText={gpsStatusText}
+            onLocationInputChange={onLocationInputChange}
+            onGpsClick={onGpsClick}
+            onApplyLocation={onApplyLocation}
+            onOpenMap={onOpenMap}
+          />
+        </div>
 
-        <ZiiplyMobileStoreModeSelector
-          storeMode={storeMode}
-          storeModeChosen={storeModeChosen}
-          storeCompareScope={storeCompareScope}
-          withinChain={withinChain}
-          selectedRealChainCount={selectedRealChainCount}
-          missingStoresMessageVisible={missingStoresMessageVisible}
-          foundStoresCount={foundStoresCount}
-          hyperStorePairMissing={hyperStorePairMissing}
-          onStoreModeChange={onStoreModeChange}
-          onStoreCompareScopeChange={onStoreCompareScopeChange}
-          onWithinChainChange={onWithinChainChange}
-        />
+        <div className="rounded-[1.9rem] bg-white/95 p-0 shadow-[0_10px_26px_rgba(15,23,42,0.10)] ring-1 ring-white/80">
+          <ZiiplyMobileStoreModeSelector
+            storeMode={storeMode}
+            storeModeChosen={storeModeChosen}
+            storeCompareScope={storeCompareScope}
+            withinChain={withinChain}
+            selectedRealChainCount={selectedRealChainCount}
+            missingStoresMessageVisible={missingStoresMessageVisible}
+            foundStoresCount={foundStoresCount}
+            hyperStorePairMissing={hyperStorePairMissing}
+            onStoreModeChange={onStoreModeChange}
+            onStoreCompareScopeChange={onStoreCompareScopeChange}
+            onWithinChainChange={onWithinChainChange}
+          />
+        </div>
 
         <section className="rounded-[1.75rem] bg-white/96 p-2.5 shadow-[0_14px_36px_rgba(15,23,42,0.08)] ring-1 ring-white/80">
           {storeCards}
