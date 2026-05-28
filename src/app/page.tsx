@@ -1,5 +1,7 @@
 "use client";
 
+// V434_HIDE_OLD_GPS_PENDING_SHOPS_MESSAGE: piilotettu vanha oranssi dynaaminen kauppahakuviesti GPS-paikannuksen ajaksi.
+
 // V433_MAP_OVERLAY_BOTH_STORES: karttanappi näyttää overlayn, molemmat valitut kaupat ja reittilinkit.
 
 // V432_GPS_INITIAL_ONCE_NO_SECOND_SPIN: GPS käynnistyy reloadissa vain kerran eikä jää toiseen Paikannetaan-tilaan.
