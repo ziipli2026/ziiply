@@ -3,6 +3,7 @@
 // V458_MOBILE_VOICE_TOGGLE_SILENCE_SEARCH: mobiilin mikki toimii toggle-na; 2,5s hiljaisuudesta stop + automaattinen haku.
 // V465_GPS_SINGLE_START_AND_CLEAN_NOTICES: estää reloadin tupla-GPS-haun ja siistii GPS-ilmoituksista pisteet.
 // V466_GPS_BOOT_SINGLE_FLIGHT: estää reload/avaa-tupla-GPS-haun ja siistii GPS-ilmoitukset ilman pisteitä.
+// V467_TOPBAR_NO_GEOLOCATION: yläpalkin sää ei käynnistä omaa navigator.geolocation-hakua, jotta reloadissa GPS käynnistyy vain page-logiikasta.
 
 // V457_REMOVE_FULL_OLD_HAE_INLINE_RENDER: page.tsx:n vanha Hae-paneeli poistettu; mobiilihaku renderöidään ZiiplyMobileSearchCard-komponentilla.
 
@@ -350,43 +351,13 @@ function KauppiasMobileTopBar({
   const [electricityTrend, setElectricityTrend] = useState<"up" | "down" | "flat">("flat");
 
   useEffect(() => {
-    if (hidden || typeof window === "undefined" || !navigator.geolocation) return;
+    // V467_TOPBAR_NO_GEOLOCATION:
+    // Yläpalkki ei saa tehdä omaa navigator.geolocation.getCurrentPosition-kutsua.
+    // Muuten selain/reload käynnistää kaksi GPS-hakua: yhden yläpalkin säälle ja
+    // toisen varsinaiselle Kaupat/page-logiikalle, mikä aiheutti toisen "Paikannetaan GPS" -jumin.
+    if (hidden) return;
 
-    let cancelled = false;
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        try {
-          const { latitude, longitude } = position.coords;
-          const response = await fetch(
-            `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(latitude)}&longitude=${encodeURIComponent(longitude)}&current=temperature_2m,weather_code&timezone=auto`,
-            { cache: "no-store" },
-          );
-
-          if (!response.ok || cancelled) return;
-
-          const data = await response.json();
-          const temp = Number(data?.current?.temperature_2m);
-          const code = Number(data?.current?.weather_code);
-
-          if (Number.isFinite(temp)) {
-            setWeatherValue(`${temp >= 0 ? "+" : ""}${Math.round(temp)}°`);
-          }
-
-          setWeatherText(kauppiasWeatherTextFromCode(Number.isFinite(code) ? code : undefined));
-        } catch {
-          if (!cancelled) setWeatherText(areaLabel);
-        }
-      },
-      () => {
-        if (!cancelled) setWeatherText(areaLabel);
-      },
-      { enableHighAccuracy: false, timeout: 5500, maximumAge: 300000 },
-    );
-
-    return () => {
-      cancelled = true;
-    };
+    setWeatherText(areaLabel);
   }, [areaLabel, hidden]);
 
   useEffect(() => {
