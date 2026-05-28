@@ -1,10 +1,13 @@
 "use client";
 
-// V463_MOBILE_IDLE_TYPING_LAYOUT:
-// Mobiili-Haku noudattaa desktop-kortin kahta tilaa:
-// 1) tyhjä hakukenttä: pieni kenttä Göstan ja Justiinan välissä
-// 2) tekstiä syötetty: leveä hakukenttä ylhäällä, alla Gösta + mode-toggle + Justiina.
-// Äänitä/Skanneri ovat kiinteäkokoiset WEBP-napit ilman erillistä taustalaatikkoa.
+// V464_MOBILE_SEARCH_DESKTOP_BEHAVIOR:
+// Mobiili-Haku mukailee desktop-korttia mobiiliin sovitettuna:
+// - ei omaa sulkemisnappia; kortin sulkeminen ohjataan parent/page-tasolla Hae/alapalkista
+// - Lisää vihkosesta on desktop-tyylinen vihreä nappi
+// - tyhjä kenttä: pieni hakukenttä Göstan ja Justiinan välissä
+// - tekstiä: leveä kenttä ylhäällä, alla Gösta + moodikytkin + Justiina
+// - Äänitä/Skanneri ovat kiinteäkokoiset WEBP-napit ilman erillistä taustalaatikkoa
+// - Skanneri näyttää vain idle-kuvan yläosan, jotta sprite/tilakuva ei näytä kahta kameraa.
 
 import React from "react";
 
@@ -169,6 +172,23 @@ function ModeToggle({
   );
 }
 
+function NotebookButton({
+  onClick,
+}: {
+  onClick?: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="h-[2.9rem] shrink-0 rounded-[1.4rem] border-[3px] border-[#0b6330] bg-gradient-to-b from-[#139143] to-[#087237] px-4 text-[1rem] font-black italic leading-none text-[#fff0d5] shadow-[0_0_0_2px_rgba(255,255,255,0.18)_inset,0_4px_0_#064a26] transition active:translate-y-[1px] active:shadow-[0_2px_0_#064a26]"
+      style={{ fontFamily: cooperFont }}
+    >
+      Lisää vihkosesta
+    </button>
+  );
+}
+
 function RetroAssetButton({
   kind,
   label,
@@ -194,12 +214,15 @@ function RetroAssetButton({
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="relative block h-[5.35rem] min-h-[5.35rem] w-full overflow-visible border-0 bg-transparent p-0 shadow-none outline-none active:translate-y-[1px]"
+      className="relative block h-[5.35rem] min-h-[5.35rem] w-full overflow-hidden border-0 bg-transparent p-0 shadow-none outline-none active:translate-y-[1px]"
     >
       <img
         src={imageSrc}
         alt={label}
-        className="absolute inset-0 h-full w-full object-fill"
+        className={cx(
+          "absolute left-0 top-0 w-full select-none",
+          kind === "scanner" ? "h-auto min-h-full object-cover object-top" : "h-full object-fill",
+        )}
         draggable={false}
       />
     </button>
@@ -247,14 +270,14 @@ export default function ZiiplyMobileSearchCard({
     <div
       className={`fixed inset-0 z-[72] flex items-end justify-center overflow-hidden bg-transparent px-2 pb-[calc(env(safe-area-inset-bottom)+6.25rem)] pt-[calc(env(safe-area-inset-top)+5rem)] sm:items-center sm:p-6 ${className}`}
     >
-      <section className="relative isolate h-[min(68dvh,38rem)] w-full max-w-[28rem] overflow-visible rounded-[2rem] border-[4px] border-[#5b482c] bg-transparent px-3 pt-3 text-[#20301f] shadow-[0_0_0_2px_#d8bd75_inset,0_12px_0_rgba(60,45,20,0.24),0_22px_45px_rgba(15,23,42,0.18)]">
+      <section className="relative isolate h-[min(66dvh,37.5rem)] w-full max-w-[28rem] overflow-visible rounded-[2rem] border-[4px] border-[#5b482c] bg-transparent px-3 pt-3 text-[#20301f] shadow-[0_0_0_2px_#d8bd75_inset,0_12px_0_rgba(60,45,20,0.24),0_22px_45px_rgba(15,23,42,0.18)]">
         <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[1.65rem] bg-[#f6ebc6]">
           <div className="absolute inset-0 opacity-45 [background-image:radial-gradient(#d8bd75_1.15px,transparent_1.15px)] [background-size:16px_16px]" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.55),transparent_54%)]" />
         </div>
 
         <div className="relative z-10 flex h-full min-h-0 flex-col">
-          <div className="grid h-[3.4rem] grid-cols-[minmax(0,1fr)_auto_auto] items-start gap-2">
+          <div className="grid h-[3.55rem] grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
             <div className="min-w-0 overflow-hidden">
               <div
                 className="text-[0.72rem] font-black uppercase leading-none tracking-[0.42em] text-[#6f674f]"
@@ -263,38 +286,14 @@ export default function ZiiplyMobileSearchCard({
                 {title}
               </div>
               <h1
-                className="mt-1 truncate whitespace-nowrap text-[1.9rem] font-black italic leading-[0.92] text-[#203b25]"
+                className="mt-1 truncate whitespace-nowrap text-[1.62rem] font-black italic leading-[0.92] text-[#203b25] min-[390px]:text-[1.76rem]"
                 style={{ fontFamily: cooperFont }}
               >
                 Tuotteet ja vertailu
               </h1>
             </div>
 
-            <button
-              type="button"
-              onClick={onAddInputToCart}
-              disabled={!hasSearchInput}
-              className={cx(
-                "h-[2.65rem] rounded-[1.25rem] border-[3px] px-3 text-[0.96rem] font-black italic leading-none shadow-[0_0_0_2px_rgba(255,255,255,0.18)_inset,0_4px_0_#064a26] active:translate-y-[1px]",
-                hasSearchInput
-                  ? "border-[#0b6330] bg-gradient-to-b from-[#139143] to-[#087237] text-[#fff0d5]"
-                  : "cursor-not-allowed border-[#a9a08a] bg-[#ddd1aa] text-[#9d9173] shadow-[0_0_0_2px_rgba(255,255,255,0.18)_inset,0_4px_0_rgba(91,72,44,0.18)]",
-              )}
-              style={{ fontFamily: cooperFont }}
-            >
-              Lisää
-            </button>
-
-            {onClose && (
-              <button
-                type="button"
-                onClick={onClose}
-                className="grid h-[2.65rem] w-[2.65rem] place-items-center rounded-full border-[3px] border-[#b99d64] bg-[#fff4cf] text-[1.45rem] font-black leading-none text-[#7a6842] shadow-[0_3px_0_rgba(91,72,44,0.18)] active:translate-y-[1px]"
-                aria-label="Sulje"
-              >
-                ×
-              </button>
-            )}
+            <NotebookButton onClick={onAddInputToCart} />
           </div>
 
           {!hasText ? (
