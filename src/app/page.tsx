@@ -3914,7 +3914,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           `${nextArea.label || query} löytyi, mutta kaikkia ${effectiveStoreModeForLocationMessage === "local" ? "lähikauppoja" : "tavarataloja"} ei löytynyt. Voit valita kaupat listasta.`,
         );
       } else {
-        setLocationMessage(`${nextArea.label || query} käytössä`);
+        setLocationMessage(`${query} käytössä`);
       }
     } catch (error) {
       pushGpsDebugLogV492(`useOwnLocation CATCH code=${String((error as any)?.code ?? "?")}`);
@@ -3941,7 +3941,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setStoreSearchLoading(false);
       if (source === "gps") {
         setGpsErrorMessage("");
-        setLocationMessage(`${nextArea.label || query} käytössä`);
+        setLocationMessage(`${query} käytössä`);
         setLocationMessageVisible(true);
       }
     }
