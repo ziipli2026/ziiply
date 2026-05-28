@@ -1,5 +1,7 @@
 "use client";
 
+// V421_REMOVE_BROKEN_MAP_OVERLAY_JSX: poistettu rikkinäinen kartta-overlay JSX buildin korjaamiseksi.
+
 // V420_MAP_OVERLAY_NO_ACTIVESTORES_EARLY_REF: kartta-overlay ei viittaa activeStoresiin ennen määrittelyä.
 
 // V418_COMPASS_MAP_ROUTE_OVERLAY: kompassikuvake ja kartta-overlay reittilinkeillä.
@@ -10454,30 +10456,6 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
                 )}
 
                 <div className="grid grid-cols-1 gap-2">
-                  {mapOverlayStoresV417.map((store) => (
-                    <a
-                      key={`${store.key}-${store.name}`}
-                      href={getDirectionsUrlV417(store)}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex items-center justify-between rounded-2xl bg-white px-4 py-3 text-left shadow-sm ring-1 ring-[#ead99f] active:scale-[0.99]"
-                    >
-                      <span>
-                        <span className="block text-base font-black text-[#17223b]">
-                          {store.name}
-                        </span>
-                        <span className="block text-xs font-black uppercase tracking-[0.12em] text-[#7a6a43]">
-                          Avaa reitti
-                        </span>
-                      </span>
-                      <span className="text-2xl">↗</span>
-                    </a>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
       </main>
     </>
