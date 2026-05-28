@@ -1,6 +1,6 @@
 "use client";
 
-// V453_MOBILE_SEARCH_ASSET_BUTTONS_CONNECTED: Hae-näkymän Äänitä/Skanneri käyttää public/ui assetteja ja tuloskortti saa voice/scanner propsit.
+// V454_MOBILE_SEARCH_REMOVE_OLD_ACTION_TAILS: poistettu Hae-paneelin vanhat kovakoodatut sanelu/skanneri-hännät ja WEBP-paikkarenderit page.tsx:stä.
 
 // V452_FIX_ON_WORKING_V444_BASE: korjattu Hakutapa-ilmoitus toimivan V444-pohjan sisällä ilman JSX-haaran poistoa.
 
@@ -10302,7 +10302,7 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
                                 />
                               </svg>
                               <span className="block leading-none">
-                                Skanneri
+                                EAN / SKANNAA
                               </span>
                             </span>
                           </button>
@@ -10311,63 +10311,60 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
                     )}
                   </div>
                   <div
-                    className={`${keyboardOpenV320 ? "hidden" : ""} mt-1 shrink-0 rounded-[1.35rem] bg-white/95 p-2 shadow-[0_-8px_28px_rgba(15,23,42,0.07)] ring-1 ring-slate-100`}
+                    className={`${keyboardOpenV320 ? "hidden" : ""} mt-2 shrink-0 rounded-[1.35rem] bg-white/95 p-2 shadow-[0_-8px_28px_rgba(15,23,42,0.07)] ring-1 ring-slate-100`}
                   >
+                    {/* V454_MOBILE_SEARCH_ACTIONS_NO_ASSET_PLACEHOLDERS:
+                        Ei enää kovakoodattuja WEBP-kuvapaikkoja tai vanhaa sinistä Sanele-nappia.
+                        Toiminnot jäävät page.tsx:n nykyisiin handlereihin, ulkoasu on kevyt tekstipohjainen
+                        kunnes oikeat /public/ui/voice ja /public/ui/scanner -grafiikat lisätään. */}
                     <div className="grid grid-cols-2 gap-2">
                       <button
                         type="button"
                         onClick={() => startVoiceInput()}
-                        disabled={!speechSupported && !recognitionRef.current}
-                        aria-disabled={!speechSupported && !recognitionRef.current}
-                        className={`relative min-h-[4.15rem] touch-manipulation overflow-hidden rounded-[1.25rem] border-[3px] border-[#caa24f] bg-[#214734] px-1.5 py-1 shadow-[0_6px_0_rgba(82,58,18,0.26),inset_0_1px_0_rgba(255,255,255,0.14)] transition active:translate-y-[1px] active:shadow-[0_3px_0_rgba(82,58,18,0.18)] ${
-                          !speechSupported && !recognitionRef.current
-                            ? "cursor-not-allowed opacity-45 grayscale"
-                            : ""
+                        disabled={!speechSupported && !isListening}
+                        aria-disabled={!speechSupported && !isListening}
+                        className={`relative min-h-[4.85rem] overflow-hidden rounded-[1.15rem] border-[3px] px-3 text-left shadow-[0_5px_0_rgba(82,58,18,0.22)] transition active:translate-y-[1px] active:shadow-[0_2px_0_rgba(82,58,18,0.18)] ${
+                          isListening
+                            ? "border-[#b83a2f] bg-[#fff0ea] text-[#8f1f18]"
+                            : speechSupported
+                              ? "border-[#caa24f] bg-[#214734] text-[#fff7d6]"
+                              : "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
                         }`}
                       >
-                        <span className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.16),transparent_50%)]" />
-                        <img
-                          src={
-                            isListening
-                              ? "/ui/voice/aanita-rec.webp"
-                              : loadingNormal || loadingOffers || singleProductCompareLoading
-                                ? "/ui/voice/aanita-processing.webp"
-                                : "/ui/voice/aanita-idle.webp"
-                          }
-                          alt={isListening ? "Äänittää" : "Äänitä"}
-                          className="relative z-10 h-full max-h-[4rem] w-full object-contain"
-                          draggable={false}
-                        />
+                        <span className="absolute right-3 top-3 h-4 w-4 rounded-full border-2 border-[#f3d284] bg-[#2a332b] shadow-inner" />
+                        {isListening && (
+                          <span className="absolute right-3 top-3 h-4 w-4 animate-pulse rounded-full border-2 border-[#ffd0c8] bg-[#e3271d] shadow-[0_0_14px_rgba(227,39,29,0.72)]" />
+                        )}
+                        <span className="block text-[1.35rem] font-black leading-none tracking-[-0.04em]">
+                          {isListening ? "Äänittää" : "Äänitä"}
+                        </span>
+                        <span className="mt-2 block text-[0.72rem] font-black uppercase tracking-[0.16em] opacity-80">
+                          RCA-mikki
+                        </span>
                       </button>
 
                       <button
                         type="button"
                         onClick={openEanModal}
-                        className="relative min-h-[4.15rem] touch-manipulation overflow-hidden rounded-[1.25rem] border-[3px] border-[#caa24f] bg-[#214734] px-1.5 py-1 shadow-[0_6px_0_rgba(82,58,18,0.26),inset_0_1px_0_rgba(255,255,255,0.14)] transition active:translate-y-[1px] active:shadow-[0_3px_0_rgba(82,58,18,0.18)]"
+                        className="relative min-h-[4.85rem] overflow-hidden rounded-[1.15rem] border-[3px] border-[#caa24f] bg-[#214734] px-3 text-left text-[#fff7d6] shadow-[0_5px_0_rgba(82,58,18,0.22)] transition active:translate-y-[1px] active:shadow-[0_2px_0_rgba(82,58,18,0.18)]"
                       >
-                        <span className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.16),transparent_50%)]" />
-                        <img
-                          src={
-                            eanLoading
-                              ? "/ui/scanner/scanner-processing.webp"
-                              : eanScannerOpen
-                                ? "/ui/scanner/scanner-active.webp"
-                                : "/ui/scanner/scanner-idle.webp"
-                          }
-                          alt="Skanneri"
-                          className="relative z-10 h-full max-h-[4rem] w-full object-contain"
-                          draggable={false}
-                        />
+                        <span className="absolute right-3 top-3 h-4 w-4 rounded-full border-2 border-[#f3d284] bg-[#2a332b] shadow-inner" />
+                        <span className="block text-[1.35rem] font-black leading-none tracking-[-0.04em]">
+                          Skanneri
+                        </span>
+                        <span className="mt-2 block text-[0.72rem] font-black uppercase tracking-[0.16em] opacity-80">
+                          EAN / viivakoodi
+                        </span>
                       </button>
                     </div>
 
-                    <div className="mt-1.5 grid grid-cols-3 gap-1.5">
+                    <div className="mt-2 grid grid-cols-3 gap-1.5">
                       <button
                         type="button"
                         onClick={handleMainOfferSearch}
                         disabled={!hasSearchInput || loadingOffers}
                         aria-disabled={!hasSearchInput || loadingOffers}
-                        className={`min-h-[2.35rem] touch-manipulation rounded-[0.85rem] px-2 text-xs font-black leading-tight transition ${
+                        className={`min-h-[2.45rem] touch-manipulation rounded-[0.95rem] px-2 text-xs font-black leading-tight transition ${
                           !hasSearchInput || loadingOffers
                             ? "cursor-not-allowed bg-slate-100 text-slate-400 ring-1 ring-slate-200"
                             : "bg-rose-100 text-rose-700 shadow-sm ring-1 ring-rose-200 active:scale-[0.98]"
@@ -10375,12 +10372,13 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
                       >
                         {loadingOffers ? "Haetaan..." : "🔥 Huojennukset"}
                       </button>
+
                       <button
                         type="button"
                         onClick={addInputToCart}
                         disabled={!hasSearchInput}
                         aria-disabled={!hasSearchInput}
-                        className={`min-h-[2.35rem] touch-manipulation rounded-[0.85rem] px-2 text-xs font-black leading-tight transition ${
+                        className={`min-h-[2.45rem] touch-manipulation rounded-[0.95rem] px-2 text-xs font-black leading-tight transition ${
                           !hasSearchInput
                             ? "cursor-not-allowed bg-slate-100 text-slate-400 ring-1 ring-slate-200"
                             : "bg-white text-slate-800 shadow-sm ring-1 ring-slate-200 active:scale-[0.98]"
@@ -10388,6 +10386,7 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
                       >
                         Lisää koriin
                       </button>
+
                       <button
                         type="button"
                         onClick={handleMainNormalSearch}
@@ -10401,7 +10400,7 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
                           loadingNormal ||
                           singleProductCompareLoading
                         }
-                        className={`min-h-[2.35rem] touch-manipulation rounded-[0.85rem] px-2 text-xs font-black leading-tight transition ${
+                        className={`min-h-[2.45rem] touch-manipulation rounded-[0.95rem] px-2 text-xs font-black leading-tight transition ${
                           !hasSearchInput ||
                           loadingNormal ||
                           singleProductCompareLoading
@@ -10409,7 +10408,7 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
                             : "bg-green-700 text-white shadow-md shadow-green-600/20 ring-1 ring-black/10 active:scale-[0.98]"
                         }`}
                       >
-                        {loadingNormal || singleProductCompareLoading ? "Haetaan..." : "Vertailu"}
+                        {loadingNormal || singleProductCompareLoading ? "Haetaan..." : "🔎 Vertailu"}
                       </button>
                     </div>
                   </div>
@@ -10930,20 +10929,8 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
               }}
               onVoiceClick={() => startVoiceInput()}
               onScannerClick={openEanModal}
-              voiceState={
-                isListening
-                  ? "recording"
-                  : loadingNormal || loadingOffers || singleProductCompareLoading
-                    ? "processing"
-                    : "idle"
-              }
-              scannerState={
-                eanLoading
-                  ? "processing"
-                  : eanScannerOpen
-                    ? "active"
-                    : "idle"
-              }
+              voiceState={isListening ? "recording" : "idle"}
+              scannerState={eanScannerOpen || eanModalOpen ? "active" : "idle"}
               onAddProduct={(product: any) => {
                 addProductToCart(product as Product);
                 setNormalResults([]);
