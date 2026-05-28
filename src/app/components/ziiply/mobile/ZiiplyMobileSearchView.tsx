@@ -1,5 +1,7 @@
 "use client";
 
+// ZIIPLY_MOBILE_SEARCH_VIEW_STRICT_ANY_FIX_V2: typed callback params for Next strict build.
+
 // ZIIPLY_MOBILE_SEARCH_VIEW_TS_STRICT_FIX: functional setInput callbacks typed.
 
 import React from "react";
@@ -189,7 +191,7 @@ export default function ZiiplyMobileSearchView(props: ZiiplyMobileSearchViewProp
                               <span className="shrink-0 rounded-full bg-slate-50 px-2 py-1 text-[10px] font-black uppercase tracking-wide text-slate-400 ring-1 ring-slate-100">
                                 Ehdotukset
                               </span>
-                              {instantSearchSuggestions.map((suggestion) => (
+                              {instantSearchSuggestions.map((suggestion: any) => (
                                 <button
                                   key={`${suggestion.hint}-${suggestion.label}`}
                                   type="button"
