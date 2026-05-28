@@ -9017,10 +9017,10 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
         className={`xl:hidden min-h-screen overflow-x-hidden bg-[#EAF4F1] px-2 pb-44 pt-0 text-slate-950 sm:bg-[radial-gradient(circle_at_top,#ecfdf3_0%,#f8fafc_42%,#f1f5f9_100%)] sm:px-4 sm:pb-32 sm:py-3 sm:py-4 md:pb-4 ${suppressUiForEanClose ? "pointer-events-none" : ""}`}
       >
 
-        {/* V395_MOBILE_PANEL_RENDER_FIX:
-            Cart/Compare mobile overlays must live inside the xl:hidden mobile tree.
-            Earlier extracted render placed them inside the hidden xl:block desktop section,
-            so state changed but mobile saw only the home/start view. */}
+        {/* V396_MOBILE_OVERLAY_RENDER_ROOT_FIX:
+            Cart/Compare overlays must be direct children of the mobile main,
+            before the CSS <style> block. The previous extraction left them in
+            the xl:block desktop tree, so mobile state changed but rendered home. */}
         <ZiiplyMobileCartView
           cartModalOpen={cartModalOpen}
           closing={Boolean(closingPanels.cart)}
@@ -9094,7 +9094,6 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
           onAddMore={openSearchFromCartViewV394}
           onOpenCart={showCart}
         />
-
 
         <style>{`
         html,
