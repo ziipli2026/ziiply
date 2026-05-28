@@ -10611,6 +10611,116 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
             </div>
           )}
 
+        {/* V399_MOBILE_CART_COMPARE_RENDER_FIX:
+            Bottom nav already toggles cartModalOpen / activeResult="compare".
+            The rollback file was missing the actual mobile render blocks for Kori and Vertailu,
+            which made the app fall back to the home layer even though state had changed. */}
+        {!showLaunchScreen && cartModalOpen && (
+          <div
+            className={`fixed inset-0 z-[52] overflow-y-auto bg-[#edf8f4] px-3 pb-[calc(env(safe-area-inset-bottom)+5.9rem)] pt-[calc(env(safe-area-inset-top)+5.35rem)] sm:hidden ${
+              closingPanels.cart ? "ziiply-soft-close" : "ziiply-soft-open"
+            }`}
+          >
+            <div
+              ref={cartOverlayScrollRef}
+              className="ziiply-cart-retro-fix mx-auto max-w-md space-y-2"
+            >
+              <ZiiplyCartCard
+                cart={cart}
+                shoppingListItems={shoppingListItems}
+                checkedCartItems={checkedCartItems}
+                checkedCount={checkedCount}
+                shoppingListCount={shoppingListCount}
+                shoppingProgressPercent={shoppingProgressPercent}
+                cheapest={cheapest}
+                secondCheapest={secondCheapest}
+                savings={savings}
+                savingsPercent={savingsPercent}
+                bestShoppingListGroups={bestShoppingListGroups}
+                getShoppingListItemKey={getShoppingListItemKey}
+                toggleShoppingListItem={toggleShoppingListItem}
+                onToggleShoppingListItem={toggleShoppingListItem}
+                onToggleCollected={toggleShoppingListItem}
+                markAllShoppingListItemsChecked={markAllShoppingListItemsChecked}
+                clearShoppingListChecks={clearShoppingListChecks}
+                formatEuro={formatEuro}
+                fixText={fixText}
+                setCheckedCartItems={setCheckedCartItems}
+                shoppingItemRefs={shoppingItemRefs}
+                onIncreaseQuantity={(itemId: string) => changeQuantity(itemId, 1)}
+                onDecreaseQuantity={(itemId: string) => changeQuantity(itemId, -1)}
+                onRemoveItem={removeFromCart}
+                onAddMore={openSearchPanel}
+                onClearCart={clearCart}
+                onCompare={openComparisonView}
+                cartSavePanelOpen={cartSavePanelOpen}
+                onToggleSavePanel={() => setCartSavePanelOpen((current) => !current)}
+                savedListName={savedListName}
+                setSavedListName={setSavedListName}
+                onSaveCurrentCartAsList={saveCurrentCartAsList}
+                savedShoppingLists={savedShoppingLists}
+                onAddSavedListToCart={addSavedListToCart}
+                onDeleteSavedShoppingList={deleteSavedShoppingList}
+              />
+            </div>
+          </div>
+        )}
+
+        {!showLaunchScreen && activeResult === "compare" && !searchPanelOpen && !cartModalOpen && !shopsPanelOpen && !eanModalOpen && (
+          <div
+            className={`fixed inset-0 z-[53] overflow-y-auto bg-[#edf8f4] px-3 pb-[calc(env(safe-area-inset-bottom)+5.9rem)] pt-[calc(env(safe-area-inset-top)+5.35rem)] sm:hidden ${
+              closingPanels.compare ? "ziiply-soft-close" : "ziiply-soft-open"
+            }`}
+          >
+            <div
+              ref={compareOverlayScrollRef}
+              className="mx-auto max-w-md space-y-3"
+            >
+              <ZiiplyCompareCard
+                stores={chainResults
+                  .filter((result) => !result.comingSoon)
+                  .map((result) => ({
+                    id: result.key,
+                    name: result.storeName || result.chain,
+                    chain: result.key === "s" ? "S" : result.key === "k" ? "K" : undefined,
+                    totalPrice: Math.round((result.totalPrice || 0) * 100),
+                    itemCount: result.foundItems,
+                    isBest: cheapest?.key === result.key,
+                    badge: result.missingItems > 0 ? `${result.missingItems} puuttuu` : "Täysi kori",
+                  }))}
+                title="Vertailu"
+                subtitle={cart.length > 0 ? `${cart.length} tuotetta korissa` : "Lisää tuotteita koriin ja vertaile kauppoja"}
+                loading={comparisonLoading}
+              />
+
+              <div className="rounded-[1.5rem] bg-white/95 p-3 shadow-sm ring-1 ring-slate-100">
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={openSearchPanel}
+                    className="rounded-[1rem] bg-green-700 px-3 py-3 text-sm font-black text-white shadow-sm active:scale-[0.98]"
+                  >
+                    Lisää tuote
+                  </button>
+                  <button
+                    type="button"
+                    onClick={showCart}
+                    className="rounded-[1rem] bg-slate-900 px-3 py-3 text-sm font-black text-white shadow-sm active:scale-[0.98]"
+                  >
+                    Avaa kori
+                  </button>
+                </div>
+
+                {!storesReadyForSearch && (
+                  <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-center text-xs font-black text-amber-800 ring-1 ring-amber-100">
+                    Valitse kaupat, niin vertailu hakee hinnat.
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {lastCartToast && (
           <div className="fixed left-3 right-3 bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] z-[60] mx-auto max-w-md animate-[ziiplyFade_2.6s_ease-in-out] rounded-2xl bg-emerald-600 px-4 py-3 text-center text-sm font-black text-white shadow-2xl sm:hidden">
             ✓ {lastCartToast}
