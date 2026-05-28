@@ -1,5 +1,6 @@
 "use client";
 
+// V458_MOBILE_VOICE_TOGGLE_SILENCE_SEARCH: mobiilin mikki toimii toggle-na; 2,5s hiljaisuudesta stop + automaattinen haku.
 // V457_REMOVE_FULL_OLD_HAE_INLINE_RENDER: page.tsx:n vanha Hae-paneeli poistettu; mobiilihaku renderöidään ZiiplyMobileSearchCard-komponentilla.
 
 // V456_REMOVE_HAE_OLD_THREE_BUTTON_ROW: poistettu Hae-kortin vanha Huojennukset/Lisää koriin/Vertailu -rivi kokonaan.
@@ -1152,6 +1153,9 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<any>(null);
   const voiceOpenSearchPanelAfterResultRef = useRef(false);
+  const voiceSilenceTimeoutRef = useRef<number | null>(null);
+  const voiceAutoSearchAfterStopRef = useRef(false);
+  const voiceLatestCleanedInputRef = useRef("");
   const cartSectionRef = useRef<HTMLElement | null>(null);
   const comparisonSectionRef = useRef<HTMLElement | null>(null);
   const compareOverlayScrollRef = useRef<HTMLDivElement | null>(null);
@@ -2560,8 +2564,8 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
     const recognition = new SpeechRecognition();
 
     recognition.lang = "fi-FI";
-    recognition.continuous = false;
-    recognition.interimResults = false;
+    recognition.continuous = true;
+    recognition.interimResults = true;
 
     recognition.onstart = () => {
       setIsListening(true);
@@ -2569,10 +2573,37 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
 
     recognition.onend = () => {
       setIsListening(false);
+
+      if (voiceSilenceTimeoutRef.current) {
+        window.clearTimeout(voiceSilenceTimeoutRef.current);
+        voiceSilenceTimeoutRef.current = null;
+      }
+
+      if (voiceAutoSearchAfterStopRef.current) {
+        voiceAutoSearchAfterStopRef.current = false;
+        const cleaned = voiceLatestCleanedInputRef.current.trim();
+        if (cleaned) {
+          const searchTerm = searchCompareMode === "single" ? getSingleSearchTerm(cleaned) : cleaned;
+          setSearchPanelOpen(false);
+          window.setTimeout(() => {
+            if (searchCompareMode === "single") {
+              setInput(searchTerm);
+              void searchNormalPrices(searchTerm);
+            } else {
+              void searchNormalPrices(cleaned);
+            }
+            scrollToNormalResults();
+          }, 80);
+        }
+      }
     };
 
     recognition.onerror = () => {
       setIsListening(false);
+      if (voiceSilenceTimeoutRef.current) {
+        window.clearTimeout(voiceSilenceTimeoutRef.current);
+        voiceSilenceTimeoutRef.current = null;
+      }
     };
 
     recognition.onresult = (event: any) => {
@@ -2588,6 +2619,7 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
         .replace(/^,|,$/g, "")
         .trim();
 
+      voiceLatestCleanedInputRef.current = cleaned;
       setInput(cleaned);
 
       if (voiceOpenSearchPanelAfterResultRef.current) {
@@ -2598,6 +2630,19 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
           searchInputRef.current?.focus();
         }, 50);
       }
+
+      if (voiceSilenceTimeoutRef.current) {
+        window.clearTimeout(voiceSilenceTimeoutRef.current);
+      }
+
+      voiceSilenceTimeoutRef.current = window.setTimeout(() => {
+        voiceAutoSearchAfterStopRef.current = true;
+        try {
+          recognitionRef.current?.stop?.();
+        } catch {
+          setIsListening(false);
+        }
+      }, 2500);
     };
 
     recognitionRef.current = recognition;
@@ -2741,6 +2786,30 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
     startVoiceInput();
   }
 
+  function stopVoiceInput(searchAfterStop = false) {
+    voiceAutoSearchAfterStopRef.current = Boolean(searchAfterStop);
+
+    if (voiceSilenceTimeoutRef.current) {
+      window.clearTimeout(voiceSilenceTimeoutRef.current);
+      voiceSilenceTimeoutRef.current = null;
+    }
+
+    try {
+      recognitionRef.current?.stop?.();
+    } catch {
+      setIsListening(false);
+    }
+  }
+
+  function toggleVoiceInput() {
+    if (isListening) {
+      stopVoiceInput(false);
+      return;
+    }
+
+    startVoiceInput();
+  }
+
   function startVoiceInput(openPanelAfterResult = false) {
     if (openPanelAfterResult) {
       voiceOpenSearchPanelAfterResultRef.current = true;
@@ -2754,6 +2823,17 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
     }
 
     if (isListening) return;
+
+    voiceAutoSearchAfterStopRef.current = false;
+    voiceLatestCleanedInputRef.current = "";
+
+    if (voiceSilenceTimeoutRef.current) {
+      window.clearTimeout(voiceSilenceTimeoutRef.current);
+    }
+
+    voiceSilenceTimeoutRef.current = window.setTimeout(() => {
+      stopVoiceInput(false);
+    }, 2500);
 
     try {
       recognitionRef.current.start();
@@ -10063,7 +10143,7 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
             onAddInputToCart={addInputToCart}
             onOfferSearch={handleMainOfferSearch}
             onNormalSearch={handleMainNormalSearch}
-            onVoiceClick={() => startVoiceInput()}
+            onVoiceClick={() => toggleVoiceInput()}
             onScannerClick={openEanModal}
             voiceState={isListening ? "recording" : "idle"}
             scannerState={eanScannerOpen || eanModalOpen ? "active" : "idle"}
