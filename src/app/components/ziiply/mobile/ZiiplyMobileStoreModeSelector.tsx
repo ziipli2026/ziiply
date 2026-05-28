@@ -22,7 +22,7 @@ type Props = {
 
 function buttonClass(active: boolean, disabled = false) {
   return [
-    "rounded-[1.25rem] px-3 py-[0.48rem] text-[15px] font-black leading-tight transition active:scale-[0.985]",
+    "min-h-[38px] rounded-[1.25rem] px-3 py-[0.48rem] text-[15px] font-black leading-tight transition active:scale-[0.985]",
     disabled ? "cursor-not-allowed opacity-60" : "",
     active
       ? "bg-[#008c35] text-white shadow-[0_8px_18px_rgba(0,140,53,0.22)] ring-1 ring-black/10"
@@ -61,7 +61,7 @@ export default function ZiiplyMobileStoreModeSelector({
   }, [hyperStorePairMissing]);
 
   return (
-    <section className="rounded-[1.9rem] bg-white px-4 pb-3 pt-3 shadow-[0_6px_18px_rgba(15,23,42,0.10)] ring-1 ring-slate-100">
+    <section className="mx-auto w-full max-w-[390px] rounded-[1.9rem] bg-white px-4 pb-3 pt-3 shadow-[0_6px_18px_rgba(15,23,42,0.10)] ring-1 ring-slate-100">
       <style>{`
         @keyframes ziiplyNoticePop {
           0% {
@@ -85,6 +85,7 @@ export default function ZiiplyMobileStoreModeSelector({
           }
         }
       `}</style>
+
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
         <button
           type="button"
@@ -184,3 +185,5 @@ export default function ZiiplyMobileStoreModeSelector({
     </section>
   );
 }
+
+export { ZiiplyMobileStoreModeSelector };
