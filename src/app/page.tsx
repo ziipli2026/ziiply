@@ -394,12 +394,13 @@ function KauppiasMobileTopBar({
       return;
     }
 
+    const pageGpsCoords = gpsCoords;
     let cancelled = false;
 
     async function loadWeatherFromPageGps() {
       try {
         const response = await fetch(
-          `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(gpsCoords.latitude)}&longitude=${encodeURIComponent(gpsCoords.longitude)}&current=temperature_2m,weather_code&timezone=auto`,
+          `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(pageGpsCoords.latitude)}&longitude=${encodeURIComponent(pageGpsCoords.longitude)}&current=temperature_2m,weather_code&timezone=auto`,
           { cache: "no-store" },
         );
 
@@ -1143,8 +1144,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   );
   const initialStoreSelectionLocked =
     !storesReadyForSearch && cart.length === 0;
+  // V476: Hae-napin pitää pystyä sulkemaan Hae-kortti myös silloin,
+  // kun haku/lataus lukitsee uuden navigoinnin. Lukitus koskee vain avausta.
   const searchBottomNavDisabled =
-    searchNavigationLocked || initialStoreSelectionLocked;
+    !searchPanelOpen && (searchNavigationLocked || initialStoreSelectionLocked);
   const [searchReadyBounceKeyV320, setSearchReadyBounceKeyV320] = useState(0);
   const previousSearchReadySignatureV320 = useRef("");
 
@@ -2756,15 +2759,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function toggleSearchPanel() {
-    if (searchNavigationLocked) return;
-
-    // v342_RESTORE_CART_SEARCH_NAV_FIX:
-    // Älä hyppää Kaupat-paneeliin, jos korissa on palautettuja tuotteita.
-    // Tällöin käyttäjä saa avata Hae-paneelin ja bottom navin aktiivinen tila pysyy oikein vihreänä.
-    // V475: Hae-toggle ei saa avata Kaupat-paneelia eikä sivuvaikutuksena käynnistää GPS-polkuja.
-    // Kaupat avataan vain Kaupat-napista, GPS vain bootista tai GPS-napista.
-
-    // Toinen painallus sulkee Hae-näkymän. Jos Kori on auki, vaihdetaan suoraan Hae-näkymään.
+    // V476: jos Hae-kortti on jo auki, Hae-painike sulkee sen aina.
+    // Älä estä sulkemista searchNavigationLocked-tilalla.
     if (searchPanelOpen) {
       closePanelWithFade("search", () => {
         setSearchPanelOpen(false);
@@ -2773,6 +2769,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return;
     }
 
+    if (searchNavigationLocked) return;
+
+    // v342_RESTORE_CART_SEARCH_NAV_FIX:
+    // Älä hyppää Kaupat-paneeliin, jos korissa on palautettuja tuotteita.
+    // Tällöin käyttäjä saa avata Hae-paneelin ja bottom navin aktiivinen tila pysyy oikein vihreänä.
+    // V475: Hae-toggle ei saa avata Kaupat-paneelia eikä sivuvaikutuksena käynnistää GPS-polkuja.
+    // Kaupat avataan vain Kaupat-napista, GPS vain bootista tai GPS-napista.
+
+    // Jos Kori on auki, vaihdetaan suoraan Hae-näkymään.
     openSearchPanel();
   }
 
@@ -5956,6 +5961,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function toggleCartModal() {
+    // V476: alapalkin muut napit sulkevat Hae-kortin myös silloin,
+    // kun niiden omaa näkymää ei voida avata esimerkiksi tyhjän korin vuoksi.
+    if (searchPanelOpen) {
+      closePanelWithFade("search", () => {
+        setSearchPanelOpen(false);
+        closeProductSelectionOverlay();
+      });
+    }
+
     if (cart.length === 0) {
       showCartToast("Lisää ensin tuote koriin.");
       return;
@@ -6016,6 +6030,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function toggleComparisonView() {
+    // V476: Vertailu-nappi sulkee Hae-kortin aina, vaikka kori olisi tyhjä.
+    if (searchPanelOpen) {
+      closePanelWithFade("search", () => {
+        setSearchPanelOpen(false);
+        closeProductSelectionOverlay();
+      });
+    }
+
     if (cart.length === 0) {
       showCartToast("Lisää ensin tuote koriin.");
       return;
