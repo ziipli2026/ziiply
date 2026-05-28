@@ -1,6 +1,6 @@
 "use client";
 
-// V490_PAGE_GPS_SINGLE_BOOT_NO_FAKE_STATUS: page.tsx GPS-korjaus: yksi boot-startti, ei sää-GPS:ää, ei kartta/location fallback -GPS:ää, eikä kauppahaun aikana näytetä virheellistä Paikannetaan GPS -tekstiä.
+// V491_GPS_SINGLE_PROMISE_CONTROLLED_RETRY: getCurrentPosition dedupataan yhteen promiseen ja ensimmäisen hutiyrityksen jälkeen tehdään yksi sisäinen retry ilman uutta UI-starttia.
 
 // V458_MOBILE_VOICE_TOGGLE_SILENCE_SEARCH: mobiilin mikki toimii toggle-na; 2,5s hiljaisuudesta stop + automaattinen haku.
 // V465_GPS_SINGLE_START_AND_CLEAN_NOTICES: estää reloadin tupla-GPS-haun ja siistii GPS-ilmoituksista pisteet.
@@ -3657,18 +3657,62 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function getCurrentPosition(options?: PositionOptions) {
-    return new Promise<GeolocationPosition>((resolve, reject) => {
-      if (typeof navigator === "undefined" || !navigator.geolocation) {
-        reject(new Error("Geolocation is not supported"));
-        return;
-      }
+    // V491_GPS_SINGLE_PROMISE_CONTROLLED_RETRY:
+    // Kaikki GPS-haut kulkevat tämän yhden portin kautta. Jos toinen polku yrittää
+    // paikantaa samaan aikaan, se saa saman promisen eikä käynnistä selaimen GPS:ää uudelleen.
+    // Jos ensimmäinen yritys hutaa, tehdään yksi sisäinen retry samassa ajossa ilman uutta UI-starttia.
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      return Promise.reject(new Error("Geolocation is not supported"));
+    }
 
-      navigator.geolocation.getCurrentPosition(resolve, reject, {
-        enableHighAccuracy: options?.enableHighAccuracy ?? true,
-        timeout: options?.timeout ?? 15000,
-        maximumAge: options?.maximumAge ?? 0,
+    const holder = window as typeof window & {
+      __ziiplyCurrentPositionPromiseV491?: Promise<GeolocationPosition> | null;
+      __ziiplyCurrentPositionLastV491?: GeolocationPosition | null;
+      __ziiplyCurrentPositionLastAtV491?: number;
+    };
+
+    const now = Date.now();
+    const cachedPosition = holder.__ziiplyCurrentPositionLastV491;
+    const cachedAt = holder.__ziiplyCurrentPositionLastAtV491 || 0;
+
+    // Jos juuri saatiin koordinaatit, älä pyydä selaimelta heti uutta sijaintia.
+    if (cachedPosition && now - cachedAt < 30000) {
+      return Promise.resolve(cachedPosition);
+    }
+
+    if (holder.__ziiplyCurrentPositionPromiseV491) {
+      return holder.__ziiplyCurrentPositionPromiseV491;
+    }
+
+    const requestPosition = (requestOptions: PositionOptions) =>
+      new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, requestOptions);
       });
-    });
+
+    const firstOptions: PositionOptions = {
+      enableHighAccuracy: options?.enableHighAccuracy ?? true,
+      timeout: options?.timeout ?? 15000,
+      maximumAge: options?.maximumAge ?? 0,
+    };
+
+    const retryOptions: PositionOptions = {
+      enableHighAccuracy: true,
+      timeout: 18000,
+      maximumAge: 0,
+    };
+
+    holder.__ziiplyCurrentPositionPromiseV491 = requestPosition(firstOptions)
+      .catch(() => requestPosition(retryOptions))
+      .then((position) => {
+        holder.__ziiplyCurrentPositionLastV491 = position;
+        holder.__ziiplyCurrentPositionLastAtV491 = Date.now();
+        return position;
+      })
+      .finally(() => {
+        holder.__ziiplyCurrentPositionPromiseV491 = null;
+      });
+
+    return holder.__ziiplyCurrentPositionPromiseV491;
   }
 
 
@@ -3980,6 +4024,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       window.clearTimeout(gpsFailTimerRefV391.current);
       gpsFailTimerRefV391.current = null;
     }
+    // V491: watchdog on pidempi, koska getCurrentPosition tekee tarvittaessa yhden sisäisen retryn.
     gpsFailTimerRefV391.current = window.setTimeout(() => {
       if (gpsSearchInFlightRefV465.current) {
         const finishedAt = Date.now();
@@ -4000,7 +4045,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         setGpsBootReadyV473(true);
         window.setTimeout(() => setGpsStorePickerBlockedV382(false), 180);
       }
-    }, 22000);
+    }, 45000);
     gpsUserDisabledRefV306.current = false;
     setGpsErrorMessage("");
     setUsingOwnLocation(true);
