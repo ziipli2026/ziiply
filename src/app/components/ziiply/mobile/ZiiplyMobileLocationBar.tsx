@@ -109,13 +109,13 @@ export default function ZiiplyMobileLocationBar({
         <button
           type="button"
           onClick={onOpenMap || onApplyLocation}
-          disabled={false}
-          className="flex h-[52px] w-[78px] shrink-0 items-center justify-center self-center rounded-[1.05rem] bg-[#03133f] px-2 text-[13px] font-black text-white shadow-[0_7px_18px_rgba(3,19,63,0.20)] active:scale-[0.98]"
+          disabled={storeSearchLoading}
+          className="flex h-[52px] w-[74px] shrink-0 items-center justify-center self-center rounded-[1.05rem] bg-[#03133f] px-2 text-[13px] font-black text-white shadow-[0_7px_18px_rgba(3,19,63,0.20)] active:scale-[0.98] disabled:opacity-60"
           aria-label="Avaa valitut kaupat kartalla"
           title="Avaa kartta"
         >
           <span className="mr-1 text-[18px] leading-none">🗺️</span>
-          <span>Kartta</span>
+          <span>{storeSearchLoading ? "..." : "Kartta"}</span>
         </button>
       </div>
     </section>
