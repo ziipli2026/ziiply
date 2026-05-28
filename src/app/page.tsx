@@ -10,6 +10,7 @@
 // V511_NO_SEARCH_BOUNCE_AND_LOCAL_STORE_GAP: suurennuslasin bounce pois bottom navista ja lähikauppakorteille lisää yläväliä.
 // V512_DIRECT_SEARCH_TO_SHOPS_SWITCH: Hae-kortilta Kaupat-kortille vaihto ilman pääsivun välähdystä.
 // V513_LOCAL_COMPACT_STORECARD_REAL_GAP: lähikaupan vertailun kauppalaatikkojen väli korjattu oikeassa compact-renderissä.
+// V514_OLD_INLINE_SHOPS_RENDER_GAP: korjattu vanhan inline-Kauppavalinta-renderin nappien ja kauppalaatikoiden väli.
 // V500_BUILD_FIX_ACTIVE_AREA_STATUS_NO_BOUNCE: korjaa status-scope buildin ja poistaa suurennuslasin pompun, mutta jättää Hae-valmiuslogiikan.
 // V495_GPS_SUCCESS_UI_RELEASE: GPS onnistumisen jälkeen vapautetaan UI eksplisiittisesti pois pending/jumi-tilasta.
 // V496_GPS_STATUS_RENDER_FORCE: GPS onnistumisen jälkeen status pakotetaan renderöintiin; logi + karttatoiminnot pois testistä.
@@ -10210,7 +10211,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             </div>
             
 
-            {renderComparedStoreCards(true)}
+            <div className={storeMode === "local" ? "mt-5" : "mt-3"}>
+              {renderComparedStoreCards(true)}
+            </div>
 
             {false && foundStores.length > 0 && (
               <div className="mt-3 rounded-2xl bg-white p-3 text-xs text-slate-600 ring-1 ring-slate-200">
