@@ -1,5 +1,7 @@
 "use client";
 
+// V490_PAGE_GPS_SINGLE_BOOT_NO_FAKE_STATUS: page.tsx GPS-korjaus: yksi boot-startti, ei sää-GPS:ää, ei kartta/location fallback -GPS:ää, eikä kauppahaun aikana näytetä virheellistä Paikannetaan GPS -tekstiä.
+
 // V458_MOBILE_VOICE_TOGGLE_SILENCE_SEARCH: mobiilin mikki toimii toggle-na; 2,5s hiljaisuudesta stop + automaattinen haku.
 // V465_GPS_SINGLE_START_AND_CLEAN_NOTICES: estää reloadin tupla-GPS-haun ja siistii GPS-ilmoituksista pisteet.
 // V466_GPS_BOOT_SINGLE_FLIGHT: estää reload/avaa-tupla-GPS-haun ja siistii GPS-ilmoitukset ilman pisteitä.
@@ -3731,7 +3733,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setLocationMessage(
       source === "gps"
         ? `Haetaan kauppoja alueelle ${rawQuery}`
-        : "Paikannetaan GPS",
+        : `Haetaan kauppoja alueelle ${rawQuery}`,
     );
 
     try {
@@ -3760,9 +3762,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       });
 
       setLocationMessage(
-        source === "gps"
-          ? `Haetaan kauppoja alueelle ${query}`
-          : "Paikannetaan GPS",
+        `Haetaan kauppoja alueelle ${query}`,
       );
       const stores = await fetchStoresForLocationQuery(
         query,
@@ -3881,6 +3881,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }, [locationInput, usingOwnLocation, storeSearchLoading]);
 
   async function applyWeatherBootGpsV481(coords: { latitude: number; longitude: number }) {
+    // V490: sää/topbar ei saa enää koskaan käynnistää tai soveltaa GPS-paikannusta.
+    // Yksi automaattinen GPS-startti tulee vain page-tason boot-effectistä.
+    return;
     if (weatherBootApplyInFlightRefV481.current) return;
     if (gpsCoordsV320 && foundStores.length > 0) return;
 
@@ -4116,11 +4119,22 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setGpsBootReadyV473(true);
   }, []);
 
-  // V486_BOOT_GPS_ONLY_GPS_BUTTON_DISABLED:
-  // Hätätesti: palautetaan alun automaattinen GPS-startti ja poistetaan
-  // GPS-napin manuaalinen käynnistys käytöstä. Näin nähdään tuleeko toinen
-  // GPS-kierros nimenomaan manuaalinapin / vihreän nuppineulan reitistä.
+  // V490_BOOT_GPS_SINGLE_SESSION_START:
+  // Avauksessa/reloadissa saa syntyä vain yksi automaattinen GPS-startti koko selainikkunassa.
+  // React StrictMode / remount / korttien tilamuutokset eivät saa käynnistää toista starttia.
+  // Manuaalinen GPS-nappi ei käytä tätä boot-lukkoa, joten se toimii edelleen päälle/pois.
   useEffect(() => {
+    const windowWithZiiplyGps = window as typeof window & {
+      __ziiplyBootGpsStartedV490?: boolean;
+    };
+
+    if (windowWithZiiplyGps.__ziiplyBootGpsStartedV490) {
+      setGpsBootReadyV473(true);
+      return;
+    }
+
+    windowWithZiiplyGps.__ziiplyBootGpsStartedV490 = true;
+
     if (gpsBootTimerRefV483.current) {
       window.clearTimeout(gpsBootTimerRefV483.current);
       gpsBootTimerRefV483.current = null;
@@ -4142,7 +4156,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         return;
       }
       void useOwnLocation("boot");
-    }, 250);
+    }, 450);
 
     return () => {
       if (gpsBootTimerRefV483.current) {
