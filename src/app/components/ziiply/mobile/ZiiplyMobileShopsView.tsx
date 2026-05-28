@@ -55,16 +55,16 @@ export default function ZiiplyMobileShopsView({
 }: ZiiplyMobileShopsViewProps) {
   return (
     <div className="w-full sm:hidden">
-      {/* V408_SHOPS_VIEW_BAR_SCALE_REPAIR:
-          Palautetaan palkkien alkuperäinen mittakaava:
-          - topbarin alle spacer
-          - location omassa taskussa
-          - hakutapa omassa kortissa
-          - ei h-[100svh], ei overflow-hidden koko näkymässä */}
+      {/* V409_SHOPS_VIEW_SOFT_RESET:
+          Lähellä alkuperäistä rakennetta, mutta ilman:
+          - h-[100svh]
+          - overflow-hidden koko näkymässä
+          - sticky top-[86px]
+          Page.tsx hoitaa overlay-scrollin. */}
       <div className="h-[86px]" aria-hidden="true" />
 
-      <div className="mx-auto flex w-full max-w-[390px] flex-col gap-2.5 px-2">
-        <div className="rounded-[1.7rem] bg-white/95 p-1.5 shadow-[0_10px_26px_rgba(15,23,42,0.10)] ring-1 ring-white/80">
+      <div className="mx-auto w-full max-w-[390px] px-2">
+        <div className="bg-[#eaf7f1]/95 pb-1 pt-1">
           <ZiiplyMobileLocationBar
             locationInput={locationInput}
             usingOwnLocation={usingOwnLocation}
@@ -78,7 +78,7 @@ export default function ZiiplyMobileShopsView({
           />
         </div>
 
-        <div className="rounded-[1.9rem] bg-white/95 p-0 shadow-[0_10px_26px_rgba(15,23,42,0.10)] ring-1 ring-white/80">
+        <div className="space-y-2 pb-0 pt-1">
           <ZiiplyMobileStoreModeSelector
             storeMode={storeMode}
             storeModeChosen={storeModeChosen}
@@ -92,11 +92,11 @@ export default function ZiiplyMobileShopsView({
             onStoreCompareScopeChange={onStoreCompareScopeChange}
             onWithinChainChange={onWithinChainChange}
           />
-        </div>
 
-        <section className="rounded-[1.75rem] bg-white/96 p-2.5 shadow-[0_14px_36px_rgba(15,23,42,0.08)] ring-1 ring-white/80">
-          {storeCards}
-        </section>
+          <section className="rounded-[1.75rem] bg-white/96 p-2.5 shadow-[0_14px_36px_rgba(15,23,42,0.08)] ring-1 ring-white/80">
+            {storeCards}
+          </section>
+        </div>
       </div>
     </div>
   );
