@@ -7,6 +7,7 @@
 // V507_WEATHER_AND_SEARCH_EXIT_FIX: sää päälle page-GPS-koordinaateilla ja alapalkki Hae-kortin päälle sulkemista varten.
 // V508_ELECTRICITY_FETCH_ROBUST: sähköhinta hakee useammalla muodolla ja kestää API-vastausten vaihtelut.
 // V510_ELECTRICITY_V2_AND_STATIC_FALLBACK: sähköhinta hakee porssisahko v2/v1 + sahkonhintatanaan fallback.
+// V511_NO_SEARCH_BOUNCE_AND_LOCAL_STORE_GAP: suurennuslasin bounce pois bottom navista ja lähikauppakorteille lisää yläväliä.
 // V500_BUILD_FIX_ACTIVE_AREA_STATUS_NO_BOUNCE: korjaa status-scope buildin ja poistaa suurennuslasin pompun, mutta jättää Hae-valmiuslogiikan.
 // V495_GPS_SUCCESS_UI_RELEASE: GPS onnistumisen jälkeen vapautetaan UI eksplisiittisesti pois pending/jumi-tilasta.
 // V496_GPS_STATUS_RENDER_FORCE: GPS onnistumisen jälkeen status pakotetaan renderöintiin; logi + karttatoiminnot pois testistä.
@@ -8671,7 +8672,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         withinChain === "S" ? "s" : withinChain === "K" ? "k" : null;
 
       return (
-        <div className={compact ? "mt-0" : "mt-3"}>
+        <div className={compact ? (storeMode === "local" ? "mt-4" : "mt-0") : "mt-3"}>
           <div
             className={
               compact ? "grid grid-cols-2 gap-2" : "grid grid-cols-2 gap-3"
@@ -9025,7 +9026,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       };
 
       return (
-        <div className="mt-3 pb-1 overflow-visible">
+        <div className={`${storeMode === "local" ? "mt-5" : "mt-3"} pb-1 overflow-visible`}>
           <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 overflow-visible">
             {topStores.map((store) => renderBetweenChainCard(store, true))}
           </div>
@@ -9037,7 +9038,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     return (
-      <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-4">
+      <div className={`${storeMode === "local" ? "mt-5" : "mt-3"} grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-4`}>
         {comparedStoreCards.map((store) => {
           const isRealChain = store.key === "s" || store.key === "k";
           const selected = Boolean(selectedChains[store.key]);
@@ -11227,7 +11228,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         {/* V502_HAE_READY_BADGE_RENDER */}
           {haeReadyBadgeVisibleV502 ? (
-            <div className="pointer-events-none fixed bottom-[calc(env(safe-area-inset-bottom)+4.25rem)] left-1/2 z-[96] -translate-x-1/2 rounded-[0.65rem] border border-[#8a6a1f] bg-[#f6dd84] px-2 py-1 text-[10px] font-black uppercase tracking-[0.04em] text-[#4b3200] shadow-[0_4px_10px_rgba(60,45,20,0.20)] sm:hidden">
+            <div className="pointer-events-none fixed bottom-[calc(env(safe-area-inset-bottom)+5.65rem)] left-1/2 z-[10001] -translate-x-1/2 rounded-[0.75rem] border-[2px] border-[#8a6a1f] bg-[#f6dd84] px-3 py-[5px] text-[11px] font-black uppercase tracking-[0.04em] text-[#4b3200] shadow-[0_8px_18px_rgba(60,45,20,0.26)] sm:hidden">
               Hae valmis
             </div>
           ) : null}
@@ -11238,8 +11239,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           searchBottomNavDisabled={searchBottomNavDisabled}
           initialStoreSelectionLocked={initialStoreSelectionLocked}
           searchPanelOpen={searchPanelOpen}
-          searchReadyBounceKeyV320={searchReadyBounceKeyV320}
-          storesReadyForSearch={storesReadyForSearch}
+          searchReadyBounceKeyV320={0}
+          storesReadyForSearch={false}
           cartLength={cart.length}
           cartModalOpen={cartModalOpen}
           activeResult={activeResult}
