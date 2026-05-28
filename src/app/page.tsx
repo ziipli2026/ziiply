@@ -336,6 +336,10 @@ let ziiplyGpsHardLastFinishedAtV469 = 0;
 // Käyttäjän GPS-nappi ei käytä tätä lukkoa, jotta GPS:n voi sammuttaa ja käynnistää käsin.
 let ziiplyGpsBootAttemptedV472 = false;
 let ziiplyGpsBootSucceededV472 = false;
+// V478: vain sääkomponentti saa tehdä automaattisen geolocation-startin avauksessa.
+// Tämä moduulitason lukko estää tuplakäynnistyksen myös remountissa.
+let ziiplyWeatherBootGpsStartedV478 = false;
+let ziiplyWeatherBootGpsHandledV478 = false;
 
 type ZiiplyGpsWindowLockV470 = {
   inFlight: boolean;
@@ -390,10 +394,11 @@ function KauppiasMobileTopBar({
   const [electricityTrend, setElectricityTrend] = useState<"up" | "down" | "flat">("flat");
 
   useEffect(() => {
-    if (hidden || gpsCoords || weatherBootGpsStartedRef.current) return;
+    if (hidden || gpsCoords || weatherBootGpsStartedRef.current || ziiplyWeatherBootGpsStartedV478) return;
     if (typeof navigator === "undefined" || !navigator.geolocation) return;
 
     weatherBootGpsStartedRef.current = true;
+    ziiplyWeatherBootGpsStartedV478 = true;
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -406,7 +411,7 @@ function KauppiasMobileTopBar({
         setWeatherValue("Sää");
         setWeatherText(areaLabel);
       },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 },
     );
   }, [hidden, gpsCoords, onWeatherGpsPosition, areaLabel]);
 
@@ -692,7 +697,7 @@ export default function Page() {
     "main" | "selection"
   >("main");
   const [locationMessage, setLocationMessage] = useState(
-    "Paikannetaan GPS",
+    "GPS pois päältä",
   );
   const [locationMessageVisible, setLocationMessageVisible] = useState(true);
   const [usingOwnLocation, setUsingOwnLocation] = useState(false);
@@ -887,14 +892,14 @@ export default function Page() {
     setActiveResult("none");
     setShopsPanelOpen(false);
     setInitialStoreNavPrompt(false);
-    // V466_GPS_BOOT_SINGLE_FLIGHT:
-    // Älä käynnistä GPS:ää tässä reset-efektissä. Varsinainen alkuhaku tehdään
-    // alempana yhdessä kontrolloidussa efektissä, jotta avaus/reload ei tee kahta GPS-hakua.
-    gpsUserDisabledRefV306.current = false;
-    // V471: älä laita GPS:ää pending-tilaan reset-efektistä.
-    // Ainoa avausstartti on alempana boot-efektissä, joka kutsuu useOwnLocation().
+    // V478_OWN_GPS_DEFAULT_OFF:
+    // Oman sovelluksen GPS-oletus on nolla. Automaattinen avauspaikannus tulee vain sääkentältä.
+    // GPS-nappi saa silti käynnistää/sammuttaa oman GPS:n käsin.
+    gpsUserDisabledRefV306.current = true;
     gpsInitialVisiblePhaseRefV391.current = false;
+    setUsingOwnLocation(false);
     setGpsCoordsV320(null);
+    setLocationMessage("GPS pois päältä");
     setLocationMessageVisible(true);
   }, []);
 
@@ -3706,7 +3711,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   async function applyLocation(
     queryOverride?: string,
-    source: "manual" | "gps" = "manual",
+    source: "manual" | "gps" | "weather" = "manual",
     coordsOverride?: { latitude: number; longitude: number } | null,
   ) {
     const rawQuery = (queryOverride || locationInput).trim();
@@ -3723,7 +3728,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     setStoreSearchLoading(true);
     setLocationMessage(
-      source === "gps"
+      (source === "gps" || source === "weather")
         ? `Haetaan kauppoja alueelle ${rawQuery}`
         : "Paikannetaan GPS",
     );
@@ -3754,13 +3759,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       });
 
       setLocationMessage(
-        source === "gps"
+        (source === "gps" || source === "weather")
           ? `Haetaan kauppoja alueelle ${query}`
           : "Paikannetaan GPS",
       );
       const stores = await fetchStoresForLocationQuery(
         query,
-        source === "gps" ? coordsOverride || gpsCoordsV320 : null,
+        (source === "gps" || source === "weather") ? coordsOverride || gpsCoordsV320 : null,
       );
       setFoundStores(stores);
 
@@ -3788,6 +3793,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       if (source === "gps") {
         setUsingOwnLocation(true);
         setLocationInput("");
+      } else if (source === "weather") {
+        // Sää-GPS:n koordinaatti riittää kauppahaulle, mutta oman softan GPS-nappi pidetään pois päältä.
+        setUsingOwnLocation(false);
+        setLocationInput("");
       } else {
         setUsingOwnLocation(false);
         setLocationInput(nextArea.label || query);
@@ -3797,7 +3806,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       // v352_DESKTOP_GPS_DEFAULT_STORE_SELECTION:
       // GPS-löydön jälkeen oletuksena Tavaratalot + Ketjujen väliltä.
-      if (source === "gps") {
+      if (source === "gps" || source === "weather") {
         selectedStoreModeRefV302.current = "hyper";
         setStoreMode("hyper");
         setStoreModeChosenV299(true);
@@ -3817,7 +3826,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         activeElement?.blur?.();
       }
 
-      const effectiveStoreModeForLocationMessage = source === "gps" ? "hyper" : storeMode;
+      const effectiveStoreModeForLocationMessage = source === "gps" || source === "weather" ? "hyper" : storeMode;
       const modeMissing =
         effectiveStoreModeForLocationMessage === "local"
           ? !ranked.sLocal || !ranked.kLocal
@@ -3846,7 +3855,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         setGpsErrorMessage("GPS ei löydy");
       }
       setLocationMessage(
-        source === "gps"
+        (source === "gps" || source === "weather")
           ? "Sijainti löytyi, mutta kauppahaku epäonnistui. Valitse alue käsin."
           : "Kauppahaku epäonnistui. Valitse alue käsin.",
       );
@@ -3875,10 +3884,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }, [locationInput, usingOwnLocation, storeSearchLoading]);
 
   async function useWeatherBootLocationV477(coords: { latitude: number; longitude: number }) {
-    if (weatherBootGpsHandledRefV477.current) return;
+    if (weatherBootGpsHandledRefV477.current || ziiplyWeatherBootGpsHandledV478) return;
     if (gpsSearchInFlightRefV465.current || storeSearchLoading) return;
 
     weatherBootGpsHandledRefV477.current = true;
+    ziiplyWeatherBootGpsHandledV478 = true;
     gpsInitialSearchStartedRefV465.current = true;
     ziiplyGpsBootAttemptedV472 = true;
     ziiplyGpsBootSearchStartedV466 = true;
@@ -3886,14 +3896,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     setOpenStorePicker(null);
     setGpsStorePickerBlockedV382(true);
-    gpsUserDisabledRefV306.current = false;
+    // Sään automaattinen koordinaatti ei kytke oman softan GPS-nappia päälle.
+    gpsUserDisabledRefV306.current = true;
     gpsInitialVisiblePhaseRefV391.current = false;
     setGpsErrorMessage("");
-    setUsingOwnLocation(true);
+    setUsingOwnLocation(false);
     setGpsCoordsV320(coords);
     setLocationInput("");
     setStoreSearchLoading(true);
-    setLocationMessage("Paikannetaan GPS");
+    setLocationMessage("Haetaan kauppoja");
     setLocationMessageVisible(true);
 
     try {
@@ -3911,7 +3922,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       setLocationMessage(`${city} käytössä`);
       setLocationMessageVisible(true);
-      await applyLocation(city, "gps", coords);
+      await applyLocation(city, "weather", coords);
       ziiplyGpsBootSucceededV472 = true;
     } catch (error) {
       console.error(error);
@@ -4068,30 +4079,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
   }
 
-  // V469_GPS_BOOT_SINGLE_FLIGHT
-  // Refreshissä GPS käynnistetään tasan yhdestä paikasta. Moduulitason lukko estää
-  // React/Nextin avaus-remountin, Kaupat-paneelin fallbackin ja taustawatchin tuplahaun.
+  // V478_OWN_GPS_DEFAULT_OFF:
+  // Page ei tee avauksessa omaa GPS-starttia lainkaan. Automaattinen koordinaatti
+  // tulee vain sääkentältä, ja käyttäjän GPS-nappi käynnistää useOwnLocation("manual").
   useEffect(() => {
-    if (gpsInitialSearchStartedRefV465.current) return;
-
-    const now = Date.now();
-    if (ziiplyGpsBootSearchStartedV466 && now - ziiplyGpsBootSearchStartedAtV466 < 10000) {
-      return;
-    }
-
     gpsInitialSearchStartedRefV465.current = true;
-    ziiplyGpsBootSearchStartedV466 = true;
-    ziiplyGpsBootSearchStartedAtV466 = now;
-
-    gpsUserDisabledRefV306.current = false;
+    gpsUserDisabledRefV306.current = true;
     gpsInitialVisiblePhaseRefV391.current = false;
     setGpsErrorMessage("");
-    setLocationInput("");
-    setGpsBootReadyV473(false);
-
-    // V477: automaattinen boot-GPS tulee nyt sääkentältä.
-    // Tämä effect vain merkkaa bootin valmiiksi odottamaan sää-GPS:n koordinaattia.
-    setGpsBootReadyV473(false);
+    setGpsBootReadyV473(true);
   }, []);
 
   async function searchOffers(termOverride?: string) {
