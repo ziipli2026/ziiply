@@ -1,5 +1,7 @@
 "use client";
 
+// V426_LOCATIONBAR_REQUIRED_PROPS: lisätty onApplyLocation/onOpenMap kaikkiin ZiiplyMobileLocationBar-kutsuihin.
+
 // V425_RESTORE_TOPBAR_COMPONENT: palautettu KauppiasMobileTopBar build-virheen korjaamiseksi.
 
 // V424_REMOVE_DANGLING_GPS_CONDITIONAL: poistettu overlayn jäljelle jäänyt gpsCoordsV320-ehdollinen fragmentti.
@@ -8943,6 +8945,8 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
               storeSearchLoading={storeSearchLoading}
               gpsErrorMessage={gpsErrorMessage}
               gpsStatusText={locationMessageVisible ? locationMessage : ""}
+              onApplyLocation={() => openSelectedStoresMapV393()}
+              onOpenMap={() => openSelectedStoresMapV393()}
               onLocationInputChange={(nextValue: string) => {
                 setLocationInput(nextValue);
                 if (nextValue.trim()) {
