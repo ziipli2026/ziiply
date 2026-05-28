@@ -1,5 +1,7 @@
 "use client";
 
+// V401_SYNTAX_REPAIR_ONLY: fixed missing JSX closing div in mobile shops section.
+
 // V397_FUNCTIONAL_ROLLBACK: palautettu P394:n oma toimiva mobiili-Kori/Vertailu/Hae-renderöinti.
 // V401_REMOVE_OLD_MOBILE_SHOPS_RENDER: vanha Kaupat-paneelin JSX poistettu ja ohjattu ZiiplyMobileShopsView-komponenttiin.
 
@@ -540,6 +542,7 @@ export default function Page() {
     (ZiiplyCompareCardModule as any).ZiiplyCompareCard ||
     (ZiiplyCompareCardModule as any).CompareResponsiveCard ||
     (ZiiplyCompareCardModule as any).ZiiplyCompareResponsiveCard) as any;
+  const ZiiplyMobileShopsViewAny = ZiiplyMobileShopsView as any;
 
   const [input, setInput] = useState("");
   const [searchCompareMode, setSearchCompareMode] = useState<"cart" | "single">(
@@ -9192,7 +9195,7 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
                 closingPanels.shops ? "ziiply-soft-close" : "ziiply-soft-open"
               }`}
             >
-              <ZiiplyMobileShopsView
+              <ZiiplyMobileShopsViewAny
                 locationInput={locationInput}
                 usingOwnLocation={usingOwnLocation}
                 storeSearchLoading={storeSearchLoading}
@@ -9229,6 +9232,7 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
               />
             </div>
           )}
+        </div>
 
         {restoredCartPromptV320.open &&
           cart.length > 0 &&
