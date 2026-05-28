@@ -11,6 +11,7 @@ export type ZiiplyMobileShopsViewProps = {
   usingOwnLocation: boolean;
   storeSearchLoading: boolean;
   gpsErrorMessage?: string;
+  gpsStatusText?: string;
   storeMode: StoreMode;
   storeModeChosen: boolean;
   storeCompareScope: StoreCompareScope;
@@ -18,10 +19,12 @@ export type ZiiplyMobileShopsViewProps = {
   selectedRealChainCount: number;
   missingStoresMessageVisible: boolean;
   foundStoresCount: number;
+  hyperStorePairMissing?: boolean;
   storeCards: ReactNode;
   onLocationInputChange: (value: string) => void;
   onGpsClick: () => void;
   onApplyLocation: () => void | Promise<void>;
+  onOpenMap?: () => void | Promise<void>;
   onStoreModeChange: (mode: StoreMode) => void;
   onStoreCompareScopeChange: (scope: StoreCompareScope) => void;
   onWithinChainChange?: (chain: "S" | "K" | null) => void;
@@ -32,6 +35,7 @@ export default function ZiiplyMobileShopsView({
   usingOwnLocation,
   storeSearchLoading,
   gpsErrorMessage,
+  gpsStatusText,
   storeMode,
   storeModeChosen,
   storeCompareScope,
@@ -39,31 +43,34 @@ export default function ZiiplyMobileShopsView({
   selectedRealChainCount,
   missingStoresMessageVisible,
   foundStoresCount,
+  hyperStorePairMissing,
   storeCards,
   onLocationInputChange,
   onGpsClick,
   onApplyLocation,
+  onOpenMap,
   onStoreModeChange,
   onStoreCompareScopeChange,
   onWithinChainChange,
 }: ZiiplyMobileShopsViewProps) {
   return (
-    <div className="sm:hidden">
-      <div className="h-[86px]" aria-hidden="true" />
-
-      <div className="sticky top-[86px] z-[75] bg-[#eaf7f1]/95 px-2 pb-1 pt-1 backdrop-blur">
+    <div className="w-full sm:hidden">
+      {/* V406_SHOPS_VIEW_LAYOUT_RESET:
+          Ei omaa h-[100svh]/sticky/top-spacer-rakennetta.
+          Page.tsx hoitaa overlayn; tämä komponentti hoitaa vain Kaupat-sisällön. */}
+      <div className="mx-auto flex w-full max-w-[390px] flex-col gap-2.5 px-0">
         <ZiiplyMobileLocationBar
           locationInput={locationInput}
           usingOwnLocation={usingOwnLocation}
           storeSearchLoading={storeSearchLoading}
           gpsErrorMessage={gpsErrorMessage}
+          gpsStatusText={gpsStatusText}
           onLocationInputChange={onLocationInputChange}
           onGpsClick={onGpsClick}
           onApplyLocation={onApplyLocation}
+          onOpenMap={onOpenMap}
         />
-      </div>
 
-      <div className="space-y-2 px-2 pb-[140px] pt-1">
         <ZiiplyMobileStoreModeSelector
           storeMode={storeMode}
           storeModeChosen={storeModeChosen}
@@ -72,6 +79,7 @@ export default function ZiiplyMobileShopsView({
           selectedRealChainCount={selectedRealChainCount}
           missingStoresMessageVisible={missingStoresMessageVisible}
           foundStoresCount={foundStoresCount}
+          hyperStorePairMissing={hyperStorePairMissing}
           onStoreModeChange={onStoreModeChange}
           onStoreCompareScopeChange={onStoreCompareScopeChange}
           onWithinChainChange={onWithinChainChange}
