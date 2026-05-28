@@ -3980,7 +3980,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const city = await reverseGeocodeCity(coords.latitude, coords.longitude);
 
       if (!city) {
-        pushGpsDebugLogV492(`useOwnLocation(${source}) reverse geocode EMPTY`);
+        pushGpsDebugLogV492("applyWeatherBootGpsV481 reverse geocode EMPTY");
         setGpsErrorMessage("GPS ei löydy");
         setLocationMessage("GPS ei löydy");
         setLocationMessageVisible(true);
@@ -3996,7 +3996,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setLocationInput("");
       await applyLocation(city, "gps", coords);
     } catch (error) {
-      pushGpsDebugLogV492(`useOwnLocation(${source}) CATCH code=${String((error as any)?.code ?? "?")}`);
+      pushGpsDebugLogV492(`applyWeatherBootGpsV481 CATCH code=${String((error as any)?.code ?? "?")}`);
       console.error(error);
       setGpsErrorMessage("GPS ei löydy");
       setLocationMessage("GPS ei löydy");
@@ -4134,7 +4134,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       );
 
       if (!city) {
-        pushGpsDebugLogV492(`useOwnLocation(${source}) reverse geocode EMPTY`);
+        pushGpsDebugLogV492("applyWeatherBootGpsV481 reverse geocode EMPTY");
         setGpsErrorMessage("GPS ei löydy");
         setLocationMessage("GPS ei löydy");
         setLocationMessageVisible(true);
