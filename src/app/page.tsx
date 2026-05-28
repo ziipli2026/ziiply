@@ -3,7 +3,7 @@
 // V458_MOBILE_VOICE_TOGGLE_SILENCE_SEARCH: mobiilin mikki toimii toggle-na; 2,5s hiljaisuudesta stop + automaattinen haku.
 // V465_GPS_SINGLE_START_AND_CLEAN_NOTICES: estää reloadin tupla-GPS-haun ja siistii GPS-ilmoituksista pisteet.
 // V466_GPS_BOOT_SINGLE_FLIGHT: estää reload/avaa-tupla-GPS-haun ja siistii GPS-ilmoitukset ilman pisteitä.
-// V467_TOPBAR_NO_GEOLOCATION: yläpalkin sää ei käynnistä omaa navigator.geolocation-hakua, jotta reloadissa GPS käynnistyy vain page-logiikasta.
+// V469_GPS_ONE_BOOT_CALL_NO_SILENT_WATCH: GPS käynnistyy avauksessa vain yhdestä getCurrentPosition-kutsusta; hiljainen watchPosition ei starttaa automaattisesti.
 
 // V457_REMOVE_FULL_OLD_HAE_INLINE_RENDER: page.tsx:n vanha Hae-paneeli poistettu; mobiilihaku renderöidään ZiiplyMobileSearchCard-komponentilla.
 
@@ -326,6 +326,8 @@ const KAUPPIAS_FI_MONTH_SHORT = [
 // Tämä moduulitason lukko säilyy StrictMode-remountin yli, mutta nollautuu oikeassa selaimen reloadissa.
 let ziiplyGpsBootSearchStartedV466 = false;
 let ziiplyGpsBootSearchStartedAtV466 = 0;
+let ziiplyGpsHardInFlightV469 = false;
+let ziiplyGpsHardLastFinishedAtV469 = 0;
 
 function formatLocationNoticeV465(message: string) {
   return String(message || "")
@@ -338,10 +340,12 @@ function formatLocationNoticeV465(message: string) {
 function KauppiasMobileTopBar({
   hidden = false,
   areaLabel = "Hyvinkää",
+  gpsCoords = null,
   onOpenCalendar,
 }: {
   hidden?: boolean;
   areaLabel?: string;
+  gpsCoords?: { latitude: number; longitude: number } | null;
   onOpenCalendar?: () => void;
 }) {
   const [weatherValue, setWeatherValue] = useState("+12°");
@@ -351,14 +355,54 @@ function KauppiasMobileTopBar({
   const [electricityTrend, setElectricityTrend] = useState<"up" | "down" | "flat">("flat");
 
   useEffect(() => {
-    // V467_TOPBAR_NO_GEOLOCATION:
-    // Yläpalkki ei saa tehdä omaa navigator.geolocation.getCurrentPosition-kutsua.
-    // Muuten selain/reload käynnistää kaksi GPS-hakua: yhden yläpalkin säälle ja
-    // toisen varsinaiselle Kaupat/page-logiikalle, mikä aiheutti toisen "Paikannetaan GPS" -jumin.
+    // V468_TOPBAR_WEATHER_FROM_PAGE_COORDS:
+    // Yläpalkki ei tee omaa navigator.geolocation-kutsua. Se käyttää page.tsx:n jo
+    // hakemia GPS-koordinaatteja, joten sää toimii ilman toista GPS-käynnistystä.
     if (hidden) return;
 
     setWeatherText(areaLabel);
-  }, [areaLabel, hidden]);
+
+    const latitude = Number(gpsCoords?.latitude);
+    const longitude = Number(gpsCoords?.longitude);
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+      setWeatherValue("—°");
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadWeatherFromPageCoords() {
+      try {
+        const response = await fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(latitude)}&longitude=${encodeURIComponent(longitude)}&current=temperature_2m,weather_code&timezone=auto`,
+          { cache: "no-store" },
+        );
+
+        if (!response.ok || cancelled) return;
+
+        const data = await response.json();
+        const temp = Number(data?.current?.temperature_2m);
+        const code = Number(data?.current?.weather_code);
+
+        if (Number.isFinite(temp)) {
+          setWeatherValue(`${temp >= 0 ? "+" : ""}${Math.round(temp)}°`);
+        }
+
+        setWeatherText(kauppiasWeatherTextFromCode(Number.isFinite(code) ? code : undefined));
+      } catch {
+        if (!cancelled) {
+          setWeatherValue("—°");
+          setWeatherText(areaLabel);
+        }
+      }
+    }
+
+    loadWeatherFromPageCoords();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [areaLabel, gpsCoords?.latitude, gpsCoords?.longitude, hidden]);
 
   useEffect(() => {
     if (hidden || typeof window === "undefined") return;
@@ -998,33 +1042,10 @@ export default function Page() {
   }
 
   function startSilentGpsWatchV391() {
-    if (typeof window === "undefined" || !navigator.geolocation) return;
-    if (gpsWatchIdRefV391.current != null) return;
-
-    gpsWatchIdRefV391.current = navigator.geolocation.watchPosition(
-      (position) => {
-        const coords = {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        };
-
-        const previous = gpsLastSilentCoordsRefV391.current;
-        const movedEnough =
-          !previous || getDistanceMetersV391(previous, coords) >= 1000;
-
-        if (!movedEnough) return;
-
-        setGpsSilentLocationV391(coords);
-      },
-      () => {
-        // Hiljaisessa seurannassa virhettä ei näytetä käyttäjälle.
-      },
-      {
-        enableHighAccuracy: false,
-        maximumAge: 60000,
-        timeout: 15000,
-      },
-    );
+    // V469: älä käynnistä watchPositionia automaattisesti avauksessa.
+    // Aiemmin tämä aiheutti toisen GPS-paikannuksen heti alkuhaun jälkeen ja UI jäi
+    // joillakin puhelimilla pysyvään "Paikannetaan GPS" -tilaan.
+    return;
   }
 
   function stopSilentGpsWatchV391() {
@@ -1297,20 +1318,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }, [usingOwnLocation, gpsCoordsV320]);
 
   useEffect(() => {
-    if (typeof window === "undefined" || !navigator.geolocation) return;
+    // V469: ei automaattista tausta-GPS-watchia reloadin jälkeen.
+    // GPS päivitetään vain, kun käyttäjä painaa GPS-nappia tai kun avauksen yksi
+    // hallittu useOwnLocation()-haku ajetaan.
     if (!usingOwnLocation) {
       stopSilentGpsWatchV391();
-      return;
     }
-
-    const timer = window.setTimeout(() => {
-      gpsInitialVisiblePhaseRefV391.current = false;
-      startSilentGpsWatchV391();
-    }, 15000);
-
-    return () => {
-      window.clearTimeout(timer);
-    };
   }, [usingOwnLocation]);
 
   useEffect(() => {
@@ -3836,13 +3849,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   async function useOwnLocation() {
     const now = Date.now();
-    // V466: estä päällekkäinen tai heti perään laukeava toinen GPS-haku.
-    // Tämä poistaa avaus/reload-tilanteen tuplakäynnistyksen, joka jätti UI:n "Paikannetaan GPS" -tilaan.
-    if (gpsSearchInFlightRefV465.current) return;
+    // V469: sekä komponentti- että moduulitason lukko. Tämä estää tuplahaun myös
+    // React/Next-remountissa sekä tilanteessa, jossa Kaupat-paneeli yrittää käynnistää
+    // GPS:n samaan aikaan avauksen automaattihaun kanssa.
+    if (gpsSearchInFlightRefV465.current || ziiplyGpsHardInFlightV469) return;
     if (storeSearchLoading && now - gpsLastFinishedAtRefV466.current < 3000) return;
     if (now - gpsLastFinishedAtRefV466.current < 1200) return;
+    if (now - ziiplyGpsHardLastFinishedAtV469 < 2500) return;
 
     gpsSearchInFlightRefV465.current = true;
+    ziiplyGpsHardInFlightV469 = true;
 
     setOpenStorePicker(null);
     setGpsStorePickerBlockedV382(true);
@@ -3911,17 +3927,20 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setUsingOwnLocation(false);
       setStoreSearchLoading(false);
     } finally {
-      gpsLastFinishedAtRefV466.current = Date.now();
+      const finishedAt = Date.now();
+      gpsLastFinishedAtRefV466.current = finishedAt;
+      ziiplyGpsHardLastFinishedAtV469 = finishedAt;
       gpsSearchInFlightRefV465.current = false;
+      ziiplyGpsHardInFlightV469 = false;
       window.setTimeout(() => {
         setGpsStorePickerBlockedV382(false);
       }, 180);
     }
   }
 
-  // V466_GPS_BOOT_SINGLE_FLIGHT
+  // V469_GPS_BOOT_SINGLE_FLIGHT
   // Refreshissä GPS käynnistetään tasan yhdestä paikasta. Moduulitason lukko estää
-  // React/Nextin mahdollisen avaus-remountin aiheuttaman toisen heti perään laukeavan GPS-haun.
+  // React/Nextin avaus-remountin, Kaupat-paneelin fallbackin ja taustawatchin tuplahaun.
   useEffect(() => {
     if (gpsInitialSearchStartedRefV465.current) return;
 
@@ -9468,6 +9487,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         <KauppiasMobileTopBar
             hidden={showLaunchScreen}
             areaLabel={activeArea.label}
+            gpsCoords={gpsCoordsV320}
             onOpenCalendar={() => {
               try {
                 window.location.href = "calshow://";
