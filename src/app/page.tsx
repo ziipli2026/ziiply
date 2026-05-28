@@ -1,5 +1,7 @@
 "use client";
 
+// V453_MOBILE_SEARCH_ASSET_BUTTONS_CONNECTED: Hae-näkymän Äänitä/Skanneri käyttää public/ui assetteja ja tuloskortti saa voice/scanner propsit.
+
 // V452_FIX_ON_WORKING_V444_BASE: korjattu Hakutapa-ilmoitus toimivan V444-pohjan sisällä ilman JSX-haaran poistoa.
 
 // V444_PAGE_REMOVE_DUPLICATE_HAKUTAPA_NOTICE: poistettu page.tsx:n vanha vilkkuva hakutapa-ilmoitus; ilmoitus tulee StoreModeSelectorista.
@@ -10300,7 +10302,7 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
                                 />
                               </svg>
                               <span className="block leading-none">
-                                EAN / SKANNAA
+                                Skanneri
                               </span>
                             </span>
                           </button>
@@ -10311,20 +10313,55 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
                   <div
                     className={`${keyboardOpenV320 ? "hidden" : ""} mt-1 shrink-0 rounded-[1.35rem] bg-white/95 p-2 shadow-[0_-8px_28px_rgba(15,23,42,0.07)] ring-1 ring-slate-100`}
                   >
-                    <div className="grid grid-cols-3 gap-1.5">
+                    <div className="grid grid-cols-2 gap-2">
                       <button
                         type="button"
                         onClick={() => startVoiceInput()}
-                        className={`min-h-[2.35rem] touch-manipulation rounded-[0.85rem] px-2 text-xs font-black leading-tight shadow-sm transition active:scale-[0.98] ${
-                          isListening
-                            ? "bg-red-600 text-white"
-                            : speechSupported
-                              ? "bg-blue-600 text-white shadow-md shadow-blue-500/20 ring-1 ring-blue-700/10"
-                              : "bg-slate-100 text-slate-400 ring-1 ring-slate-200"
+                        disabled={!speechSupported && !recognitionRef.current}
+                        aria-disabled={!speechSupported && !recognitionRef.current}
+                        className={`relative min-h-[4.15rem] touch-manipulation overflow-hidden rounded-[1.25rem] border-[3px] border-[#caa24f] bg-[#214734] px-1.5 py-1 shadow-[0_6px_0_rgba(82,58,18,0.26),inset_0_1px_0_rgba(255,255,255,0.14)] transition active:translate-y-[1px] active:shadow-[0_3px_0_rgba(82,58,18,0.18)] ${
+                          !speechSupported && !recognitionRef.current
+                            ? "cursor-not-allowed opacity-45 grayscale"
+                            : ""
                         }`}
                       >
-                        {isListening ? "🎙️ Kuuntelee" : "🎤 Sanele"}
+                        <span className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.16),transparent_50%)]" />
+                        <img
+                          src={
+                            isListening
+                              ? "/ui/voice/aanita-rec.webp"
+                              : loadingNormal || loadingOffers || singleProductCompareLoading
+                                ? "/ui/voice/aanita-processing.webp"
+                                : "/ui/voice/aanita-idle.webp"
+                          }
+                          alt={isListening ? "Äänittää" : "Äänitä"}
+                          className="relative z-10 h-full max-h-[4rem] w-full object-contain"
+                          draggable={false}
+                        />
                       </button>
+
+                      <button
+                        type="button"
+                        onClick={openEanModal}
+                        className="relative min-h-[4.15rem] touch-manipulation overflow-hidden rounded-[1.25rem] border-[3px] border-[#caa24f] bg-[#214734] px-1.5 py-1 shadow-[0_6px_0_rgba(82,58,18,0.26),inset_0_1px_0_rgba(255,255,255,0.14)] transition active:translate-y-[1px] active:shadow-[0_3px_0_rgba(82,58,18,0.18)]"
+                      >
+                        <span className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.16),transparent_50%)]" />
+                        <img
+                          src={
+                            eanLoading
+                              ? "/ui/scanner/scanner-processing.webp"
+                              : eanScannerOpen
+                                ? "/ui/scanner/scanner-active.webp"
+                                : "/ui/scanner/scanner-idle.webp"
+                          }
+                          alt="Skanneri"
+                          className="relative z-10 h-full max-h-[4rem] w-full object-contain"
+                          draggable={false}
+                        />
+                      </button>
+                    </div>
+
+                    <div className="mt-1.5 grid grid-cols-3 gap-1.5">
                       <button
                         type="button"
                         onClick={handleMainOfferSearch}
@@ -10336,7 +10373,7 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
                             : "bg-rose-100 text-rose-700 shadow-sm ring-1 ring-rose-200 active:scale-[0.98]"
                         }`}
                       >
-                        {loadingOffers ? "Haetaan..." : "🔥 Hinnanhuojennukset"}
+                        {loadingOffers ? "Haetaan..." : "🔥 Huojennukset"}
                       </button>
                       <button
                         type="button"
@@ -10351,9 +10388,6 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
                       >
                         Lisää koriin
                       </button>
-                    </div>
-
-                    <div className="mt-1.5 grid grid-cols-2 gap-2">
                       <button
                         type="button"
                         onClick={handleMainNormalSearch}
@@ -10367,7 +10401,7 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
                           loadingNormal ||
                           singleProductCompareLoading
                         }
-                        className={`min-h-[2.65rem] touch-manipulation rounded-[1rem] px-3 text-sm font-black transition ${
+                        className={`min-h-[2.35rem] touch-manipulation rounded-[0.85rem] px-2 text-xs font-black leading-tight transition ${
                           !hasSearchInput ||
                           loadingNormal ||
                           singleProductCompareLoading
@@ -10375,63 +10409,10 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
                             : "bg-green-700 text-white shadow-md shadow-green-600/20 ring-1 ring-black/10 active:scale-[0.98]"
                         }`}
                       >
-                        {loadingNormal || singleProductCompareLoading ? (
-                          "Haetaan..."
-                        ) : (
-                          <span className="inline-flex items-center justify-center gap-2 whitespace-nowrap">
-                            🔎<span>Vertailu</span>
-                          </span>
-                        )}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={openEanModal}
-                        className="flex min-h-[2.65rem] touch-manipulation items-center justify-center rounded-[1rem] bg-green-700 px-3 text-sm font-black text-white shadow-md shadow-green-600/20 ring-1 ring-black/10 transition active:scale-[0.98]"
-                      >
-                        <span className="inline-flex h-full w-full items-center justify-center gap-2 whitespace-nowrap leading-none">
-                          <svg
-                            aria-hidden="true"
-                            viewBox="0 0 24 24"
-                            className="block h-5 w-5 shrink-0 text-white"
-                            fill="currentColor"
-                          >
-                            <rect x="3" y="5" width="2" height="14" rx=".4" />
-                            <rect
-                              x="7"
-                              y="5"
-                              width="1.2"
-                              height="14"
-                              rx=".35"
-                            />
-                            <rect
-                              x="10"
-                              y="5"
-                              width="2.6"
-                              height="14"
-                              rx=".4"
-                            />
-                            <rect
-                              x="15"
-                              y="5"
-                              width="1.2"
-                              height="14"
-                              rx=".35"
-                            />
-                            <rect
-                              x="18.5"
-                              y="5"
-                              width="2.5"
-                              height="14"
-                              rx=".4"
-                            />
-                          </svg>
-                          <span className="block leading-none">
-                            EAN / SKANNAA
-                          </span>
-                        </span>
+                        {loadingNormal || singleProductCompareLoading ? "Haetaan..." : "Vertailu"}
                       </button>
                     </div>
-                  </div>{" "}
+                  </div>
                 </div>
               </div>
             </div>
@@ -10947,6 +10928,22 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
                 setVisibleNormalCount(8);
                 setActiveNormalSearchTerm("");
               }}
+              onVoiceClick={() => startVoiceInput()}
+              onScannerClick={openEanModal}
+              voiceState={
+                isListening
+                  ? "recording"
+                  : loadingNormal || loadingOffers || singleProductCompareLoading
+                    ? "processing"
+                    : "idle"
+              }
+              scannerState={
+                eanLoading
+                  ? "processing"
+                  : eanScannerOpen
+                    ? "active"
+                    : "idle"
+              }
               onAddProduct={(product: any) => {
                 addProductToCart(product as Product);
                 setNormalResults([]);
