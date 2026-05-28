@@ -9,6 +9,8 @@
 
 // V475_WEATHER_FROM_PAGE_GPS_NO_NAV_GPS_COUPLING: sääkenttä ei käynnistä mitään effectiä/fetchiä/GPS:ää; vain page-GPS saa paikantaa.
 
+// V483_BOOT_GPS_DELAYED_SINGLE_TRY: boot-GPS pienellä viiveellä, vain yksi automaattinen yritys, watchdog vapauttaa loadingin.
+
 // V457_REMOVE_FULL_OLD_HAE_INLINE_RENDER: page.tsx:n vanha Hae-paneeli poistettu; mobiilihaku renderöidään ZiiplyMobileSearchCard-komponentilla.
 
 // V456_REMOVE_HAE_OLD_THREE_BUTTON_ROW: poistettu Hae-kortin vanha Huojennukset/Lisää koriin/Vertailu -rivi kokonaan.
@@ -702,6 +704,8 @@ export default function Page() {
   const gpsInitialSearchStartedRefV465 = useRef(false);
   const gpsLastFinishedAtRefV466 = useRef(0);
   const weatherBootApplyInFlightRefV481 = useRef(false);
+  const gpsBootTimerRefV483 = useRef<number | null>(null);
+  const gpsBootWatchdogRefV483 = useRef<number | null>(null);
   const [storePickerViewportStyle, setStorePickerViewportStyle] = useState<{
     top: number;
     width: number;
@@ -3633,7 +3637,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return getCityFromGeocodeAddress(firstMatch?.address || {});
   }
 
-  function getCurrentPosition() {
+  function getCurrentPosition(options?: PositionOptions) {
     return new Promise<GeolocationPosition>((resolve, reject) => {
       if (typeof navigator === "undefined" || !navigator.geolocation) {
         reject(new Error("Geolocation is not supported"));
@@ -3641,9 +3645,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
 
       navigator.geolocation.getCurrentPosition(resolve, reject, {
-        enableHighAccuracy: true,
-        timeout: 15000,
-        maximumAge: 0,
+        enableHighAccuracy: options?.enableHighAccuracy ?? true,
+        timeout: options?.timeout ?? 15000,
+        maximumAge: options?.maximumAge ?? 0,
       });
     });
   }
@@ -3944,12 +3948,25 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
     gpsFailTimerRefV391.current = window.setTimeout(() => {
       if (gpsSearchInFlightRefV465.current) {
+        const finishedAt = Date.now();
         setGpsErrorMessage("GPS ei löydy");
         setLocationMessage("GPS ei löydy");
         setLocationMessageVisible(true);
         setStoreSearchLoading(false);
+        setUsingOwnLocation(false);
+        gpsLastFinishedAtRefV466.current = finishedAt;
+        ziiplyGpsHardLastFinishedAtV469 = finishedAt;
+        const gpsWindowLock = getZiiplyGpsWindowLockV470();
+        if (gpsWindowLock) {
+          gpsWindowLock.lastFinishedAt = finishedAt;
+          gpsWindowLock.inFlight = false;
+        }
+        gpsSearchInFlightRefV465.current = false;
+        ziiplyGpsHardInFlightV469 = false;
+        setGpsBootReadyV473(true);
+        window.setTimeout(() => setGpsStorePickerBlockedV382(false), 180);
       }
-    }, 15000);
+    }, 22000);
     gpsUserDisabledRefV306.current = false;
     setGpsErrorMessage("");
     setUsingOwnLocation(true);
@@ -3958,7 +3975,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setLocationMessage("Paikannetaan GPS");
 
     try {
-      const position = await getCurrentPosition();
+      const position = await getCurrentPosition(
+        isBootGpsRunV472
+          ? { enableHighAccuracy: false, timeout: 18000, maximumAge: 30000 }
+          : { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
+      );
       setGpsCoordsV320({
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
@@ -4034,6 +4055,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       gpsSearchInFlightRefV465.current = false;
       ziiplyGpsHardInFlightV469 = false;
       setGpsBootReadyV473(true);
+      if (gpsBootWatchdogRefV483.current) {
+        window.clearTimeout(gpsBootWatchdogRefV483.current);
+        gpsBootWatchdogRefV483.current = null;
+      }
       window.setTimeout(() => {
         setGpsStorePickerBlockedV382(false);
       }, 180);
@@ -4046,29 +4071,50 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   // Manuaalinen GPS-nappi käyttää edelleen useOwnLocation("manual") ja toimii normaalisti.
   useEffect(() => {
     gpsInitialSearchStartedRefV465.current = true;
-    gpsUserDisabledRefV306.current = true;
+    // Boot saa tehdä yhden viivästetyn yrityksen, mutta usingOwnLocation pysyy
+    // false ennen varsinaista GPS-ajoa. Käyttäjän GPS-pois-nappi asettaa tämän trueksi.
+    gpsUserDisabledRefV306.current = false;
     gpsInitialVisiblePhaseRefV391.current = false;
     setUsingOwnLocation(false);
     setGpsErrorMessage("");
     setGpsBootReadyV473(true);
   }, []);
 
-  // V482_WEATHER_FIRST_SINGLE_OWNER_BOOT:
-  // Käynnistyksessä tehdään yksi GPS-haku page-tasolta säätä + kauppoja varten.
-  // Topbar ei tee omaa GPS:ää, joten manuaalinapin onnistuminen ei voi laukaista
-  // erillistä sää-GPS:ää perään.
+  // V483_BOOT_GPS_DELAYED_SINGLE_TRY:
+  // iOS/Safari voi antaa avauksen aivan ensimmäiselle GPS-kutsulle hutiosuman ja
+  // sen jälkeen toinen vanha polku jäädä loadingiin. Käynnistetään boot-GPS siksi
+  // pienellä viiveellä ja vain kerran. Jos se epäonnistuu, UI vapautetaan eikä
+  // automaattista toista starttia tehdä; GPS-nappi toimii edelleen käsin.
   useEffect(() => {
     if (typeof window === "undefined") return;
 
     const bootWindow = window as any;
-    if (bootWindow.__ziiplySingleOwnerBootGpsStartedV482) return;
-    bootWindow.__ziiplySingleOwnerBootGpsStartedV482 = true;
+    if (bootWindow.__ziiplyDelayedBootGpsStartedV483) return;
+    bootWindow.__ziiplyDelayedBootGpsStartedV483 = true;
 
-    const timer = window.setTimeout(() => {
-      void useOwnLocation("boot");
-    }, 0);
+    gpsBootTimerRefV483.current = window.setTimeout(() => {
+      if (!gpsUserDisabledRefV306.current && !gpsCoordsV320 && !gpsSearchInFlightRefV465.current) {
+        void useOwnLocation("boot");
+      }
+    }, 900);
 
-    return () => window.clearTimeout(timer);
+    gpsBootWatchdogRefV483.current = window.setTimeout(() => {
+      if (gpsSearchInFlightRefV465.current) return;
+      setStoreSearchLoading(false);
+      setGpsStorePickerBlockedV382(false);
+      setGpsBootReadyV473(true);
+    }, 26000);
+
+    return () => {
+      if (gpsBootTimerRefV483.current) {
+        window.clearTimeout(gpsBootTimerRefV483.current);
+        gpsBootTimerRefV483.current = null;
+      }
+      if (gpsBootWatchdogRefV483.current) {
+        window.clearTimeout(gpsBootWatchdogRefV483.current);
+        gpsBootWatchdogRefV483.current = null;
+      }
+    };
   }, []);
 
   async function searchOffers(termOverride?: string) {
