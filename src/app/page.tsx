@@ -1,6 +1,6 @@
 "use client";
 
-// V416_GPS_NOTIFICATION_AND_TOGGLE_STATE: GPS-tekstit mallin mukaisiksi ja off-tila pysyy punaisena.
+// V418_COMPASS_MAP_ROUTE_OVERLAY: kompassikuvake ja kartta-overlay reittilinkeillä.
 
 // V402_MOBILE_SEARCH_CARD_CONNECTED: ZiiplyMobileSearchCard kytketty mobiilin hakutuloksiin.
 
@@ -199,6 +199,87 @@ function kauppiasTopBarPanelClass(kind: KauppiasTopBarKind) {
 }
 
 function kauppiasCornerBolts() {
+  const mapOverlayStoresV417 = useMemo(() => {
+    const rawStores = [
+      {
+        key: "s",
+        name: activeStores.sStoreName,
+        chain: "S",
+        id: activeStores.sStoreId,
+      },
+      {
+        key: "k",
+        name: activeStores.kStoreName,
+        chain: "K",
+        id: activeStores.kStoreId,
+      },
+    ];
+
+    const foundNormalized = foundStores.map((store: any) => {
+      const latitude = Number(store.latitude ?? store.lat ?? store.location?.lat ?? store.coordinates?.latitude);
+      const longitude = Number(store.longitude ?? store.lng ?? store.lon ?? store.location?.lng ?? store.location?.lon ?? store.coordinates?.longitude);
+      return {
+        id: store.id ?? store.storeId ?? store.name,
+        name: store.name ?? store.storeName ?? "",
+        chain: store.chain ?? store.chainName ?? "",
+        address: store.address ?? store.streetAddress ?? "",
+        city: store.city ?? activeArea.label,
+        latitude: Number.isFinite(latitude) ? latitude : null,
+        longitude: Number.isFinite(longitude) ? longitude : null,
+      };
+    });
+
+    return rawStores
+      .filter((store) => store.id || store.name)
+      .map((store) => {
+        const match = foundNormalized.find((candidate) => {
+          const candidateName = normalize(String(candidate.name || ""));
+          const storeName = normalize(String(store.name || ""));
+          return (
+            String(candidate.id || "") === String(store.id || "") ||
+            (candidateName && storeName && (candidateName.includes(storeName) || storeName.includes(candidateName)))
+          );
+        });
+
+        return {
+          ...store,
+          name: store.name || match?.name || "Kauppa",
+          address: match?.address || "",
+          city: match?.city || activeArea.label,
+          latitude: match?.latitude ?? null,
+          longitude: match?.longitude ?? null,
+        };
+      });
+  }, [activeStores.sStoreId, activeStores.sStoreName, activeStores.kStoreId, activeStores.kStoreName, foundStores, activeArea.label]);
+
+  function getMapQueryV417(store?: { name?: string; address?: string; city?: string; latitude?: number | null; longitude?: number | null }) {
+    if (store?.latitude != null && store?.longitude != null) {
+      return `${store.latitude},${store.longitude}`;
+    }
+
+    return [store?.name, store?.address, store?.city, "Suomi"]
+      .filter(Boolean)
+      .join(", ");
+  }
+
+  function getDirectionsUrlV417(store?: { name?: string; address?: string; city?: string; latitude?: number | null; longitude?: number | null }) {
+    const destination = encodeURIComponent(getMapQueryV417(store));
+    const origin =
+      gpsCoordsV320?.latitude != null && gpsCoordsV320?.longitude != null
+        ? encodeURIComponent(`${gpsCoordsV320.latitude},${gpsCoordsV320.longitude}`)
+        : "";
+
+    return origin
+      ? `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=driving`
+      : `https://www.google.com/maps/search/?api=1&query=${destination}`;
+  }
+
+  const mapOverlayPrimaryStoreV417 = mapOverlayStoresV417[0] || mapOverlayStoresV417[1];
+  const mapOverlayQueryV417 = mapOverlayPrimaryStoreV417
+    ? getMapQueryV417(mapOverlayPrimaryStoreV417)
+    : activeArea.label + ", Suomi";
+  const mapOverlayIframeSrcV417 = `https://maps.google.com/maps?q=${encodeURIComponent(mapOverlayQueryV417)}&z=14&output=embed`;
+
   return (
     <>
       <span className="absolute left-[4px] top-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
@@ -882,6 +963,7 @@ export default function Page() {
   const [cartModalOpen, setCartModalOpen] = useState(false);
   const [cartSavePanelOpen, setCartSavePanelOpen] = useState(false);
   const [shopsPanelOpen, setShopsPanelOpen] = useState(false);
+  const [mapOverlayOpenV417, setMapOverlayOpenV417] = useState(false);
   const [initialStoreNavPrompt, setInitialStoreNavPrompt] = useState(true);
   const [gpsErrorMessage, setGpsErrorMessage] = useState("");
   const [gpsAutoActivatedV287, setGpsAutoActivatedV287] = useState(false);
@@ -8492,7 +8574,7 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
                       }
                       setLocationMessage("Kirjoita alue tai postinumero.");
                     }}
-                    onApplyLocation={() => openSelectedStoresMapV393()}
+                    onApplyLocation={() => setMapOverlayOpenV417(true)}
                     onUseOwnLocation={() => void useOwnLocation()}
                     onDisableOwnLocation={() =>
                       stopOwnLocationV306(
@@ -9240,8 +9322,8 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
                 setLocationMessageVisible(true);
                 void useOwnLocation();
               }}
-              onApplyLocation={() => openSelectedStoresMapV393()}
-              onOpenMap={() => openSelectedStoresMapV393()}
+              onApplyLocation={() => setMapOverlayOpenV417(true)}
+              onOpenMap={() => setMapOverlayOpenV417(true)}
             />
           </div>
 
@@ -10779,6 +10861,86 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
           100% { opacity: 0; transform: translateY(8px); }
         }
       `}</style>
+
+        {mapOverlayOpenV417 && (
+          <div className="fixed inset-0 z-[120] bg-[#072d27]/45 px-3 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-[calc(env(safe-area-inset-top)+1rem)] backdrop-blur-sm sm:hidden">
+            <div className="mx-auto flex h-full max-w-[430px] flex-col overflow-hidden rounded-[2rem] border-[3px] border-[#c9a85c] bg-[#fff8dc] shadow-[0_24px_60px_rgba(0,0,0,0.35)]">
+              <div className="flex items-center justify-between border-b border-[#d6bd76] bg-[#073d32] px-4 py-3 text-white">
+                <div className="flex items-center gap-3">
+                  <img
+                    src="/icons/ziiply-compass.png"
+                    alt=""
+                    className="h-10 w-10 rounded-full object-contain"
+                    draggable={false}
+                  />
+                  <div>
+                    <div className="text-sm font-black uppercase tracking-[0.18em] text-[#f6d77b]">
+                      Kartta
+                    </div>
+                    <div className="text-lg font-black leading-tight">
+                      Reitti kauppaan
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setMapOverlayOpenV417(false)}
+                  className="grid h-10 w-10 place-items-center rounded-full bg-white/12 text-2xl font-black active:scale-95"
+                  aria-label="Sulje kartta"
+                >
+                  ×
+                </button>
+              </div>
+
+              <div className="relative min-h-0 flex-1 bg-white">
+                <iframe
+                  title="Ziiply kartta"
+                  src={mapOverlayIframeSrcV417}
+                  className="h-full w-full border-0"
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+              </div>
+
+              <div className="space-y-2 border-t border-[#d6bd76] bg-[#fff8dc] p-3">
+                {gpsCoordsV320 && (
+                  <div className="rounded-2xl bg-[#e7f6ee] px-3 py-2 text-sm font-black text-[#087a3a]">
+                    Oma sijainti mukana reittilinkissä.
+                  </div>
+                )}
+
+                {!gpsCoordsV320 && (
+                  <div className="rounded-2xl bg-[#fff1c7] px-3 py-2 text-sm font-black text-[#7b5a14]">
+                    GPS ei ole päällä. Reitti avautuu ilman lähtöpistettä.
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 gap-2">
+                  {mapOverlayStoresV417.map((store) => (
+                    <a
+                      key={`${store.key}-${store.name}`}
+                      href={getDirectionsUrlV417(store)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="flex items-center justify-between rounded-2xl bg-white px-4 py-3 text-left shadow-sm ring-1 ring-[#ead99f] active:scale-[0.99]"
+                    >
+                      <span>
+                        <span className="block text-base font-black text-[#17223b]">
+                          {store.name}
+                        </span>
+                        <span className="block text-xs font-black uppercase tracking-[0.12em] text-[#7a6a43]">
+                          Avaa reitti
+                        </span>
+                      </span>
+                      <span className="text-2xl">↗</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
       </main>
     </>
   );
