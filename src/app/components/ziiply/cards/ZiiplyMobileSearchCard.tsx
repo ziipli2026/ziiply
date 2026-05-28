@@ -310,13 +310,14 @@ export default function ZiiplyMobileSearchCard({
           </div>
 
           <div className="relative z-10 mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-2.5">
-            <AssistantButton
-              kind="gosta"
-              onClick={onOfferSearch}
-              disabled={!hasText}
-              loading={loadingOffers}
-              className="scale-[1.45]"
-            />
+            <div className="scale-[1.45]">
+              <AssistantButton
+                kind="gosta"
+                onClick={onOfferSearch}
+                disabled={!hasText}
+                loading={loadingOffers}
+              />
+            </div>
 
             <div className="flex flex-col items-center justify-center gap-2 rounded-[1.25rem] border-[3px] border-[#b99d64] bg-[#ead7a5] px-2 py-2 shadow-[0_0_0_2px_#fff4cc_inset,0_4px_0_rgba(91,72,44,0.20)]">
               <button
@@ -344,13 +345,14 @@ export default function ZiiplyMobileSearchCard({
               </button>
             </div>
 
-            <AssistantButton
-              kind="justiina"
-              onClick={onNormalSearch}
-              disabled={!hasText}
-              loading={justiinaLoading}
-              className="scale-[1.45]"
-            />
+            <div className="scale-[1.45]">
+              <AssistantButton
+                kind="justiina"
+                onClick={onNormalSearch}
+                disabled={!hasText}
+                loading={justiinaLoading}
+              />
+            </div>
           </div>
 
           <div className="relative z-10 mt-3 flex min-h-[3rem] items-center justify-center overflow-hidden rounded-[1.18rem] border-[3px] border-[#d2b170] bg-[#fff1bf] px-3 text-center text-[0.84rem] font-black text-[#7a6842] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_3px_0_rgba(91,72,44,0.12)]">
