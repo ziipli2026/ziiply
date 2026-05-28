@@ -1,5 +1,7 @@
 "use client";
 
+// V408_SHOPS_RENDER_PATH_TEST_FILE: Kaupat-renderissä testipaneeli ShopsViewin tilalla.
+
 // V402_MOBILE_SEARCH_CARD_CONNECTED: ZiiplyMobileSearchCard kytketty mobiilin hakutuloksiin.
 
 // V401_SYNTAX_REPAIR_ONLY: fixed missing JSX closing div in mobile shops section.
@@ -9198,43 +9200,21 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
                 closingPanels.shops ? "ziiply-soft-close" : "ziiply-soft-open"
               }`}
             >
-              <div style={{ padding: "0 12px" }}>
-              <ZiiplyMobileShopsViewAny
-                locationInput={locationInput}
-                usingOwnLocation={usingOwnLocation}
-                storeSearchLoading={storeSearchLoading}
-                gpsErrorMessage={gpsErrorMessage}
-                storeMode={storeMode}
-                storeModeChosen={storeModeChosenV299}
-                storeCompareScope={storeCompareScope}
-                withinChain={withinChain}
-                selectedRealChainCount={selectedRealChainCount}
-                missingStoresMessageVisible={hyperStorePairMissingV391}
-                foundStoresCount={foundStores.length}
-                storeCards={renderComparedStoreCards(true)}
-                onLocationInputChange={(nextValue: string) => {
-                  setLocationInput(nextValue);
-                  if (nextValue.trim()) {
-                    gpsUserDisabledRefV306.current = true;
-                    setUsingOwnLocation(false);
-                  }
-                  setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
-                }}
-                onGpsClick={() => {
-                  if (usingOwnLocation) {
-                    stopOwnLocationV306(
-                      "GPS pois päältä. Kirjoita alue tai postinumero.",
-                    );
-                    return;
-                  }
-                  setLocationInput("");
-                  void useOwnLocation();
-                }}
-                onApplyLocation={() => openSelectedStoresMapV393()}
-                onStoreModeChange={handleStoreModeChange}
-                onStoreCompareScopeChange={handleStoreCompareScopeChange}
-              />
-            </div>
+              {/* V408_SHOPS_RENDER_PATH_TEST:
+                  Jos näet tämän punaisen TESTI-paneelin Kaupat-näkymässä,
+                  page.tsx:n tämä render-kohta on oikea.
+                  Jos et näe tätä, Kaupat tulee jostain toisesta render-polusta. */}
+              <div className="mx-auto mt-6 w-[calc(100vw-24px)] max-w-[390px] rounded-[2rem] border-4 border-red-600 bg-white p-6 text-center shadow-2xl">
+                <div className="text-[34px] font-black text-red-600">
+                  KAUPAT TESTI
+                </div>
+                <div className="mt-3 text-[18px] font-black text-slate-900">
+                  Tämä korvaa ZiiplyMobileShopsViewAny-renderin.
+                </div>
+                <div className="mt-3 rounded-xl bg-yellow-100 p-3 text-[15px] font-black text-yellow-900">
+                  Jos tämä näkyy, page.tsx:n Kaupat-render on oikea kohta.
+                </div>
+              </div>
             </div>
           )}
         </div>
