@@ -1,5 +1,7 @@
 "use client";
 
+// ZIIPLY_MOBILE_CART_VIEW_ADD_MORE_FIX_V3: Lisää tuote calls P394 openSearchPanel via aliases and safe button.
+
 // ZIIPLY_MOBILE_CART_VIEW_TOGGLE_SIGNATURE_FIX: accepts P394 toggleShoppingListItem(match, index).
 
 // ZIIPLY_MOBILE_CART_VIEW_GROUPS_RECORD_FIX: bestShoppingListGroups accepts P394 Record<string, Match[]> shape.
@@ -46,6 +48,10 @@ export type ZiiplyMobileCartViewProps = {
   onDecreaseQuantity?: (itemId: string) => void;
   onRemoveItem?: (itemId: string) => void;
   onAddMore?: () => void;
+  onOpenSearch?: () => void;
+  onSearchClick?: () => void;
+  onAddProduct?: () => void;
+  onContinueShopping?: () => void;
   onClearCart?: () => void;
   onCompare?: () => void;
 
@@ -97,6 +103,10 @@ export default function ZiiplyMobileCartView({
   onDecreaseQuantity = () => undefined,
   onRemoveItem = () => undefined,
   onAddMore = () => undefined,
+  onOpenSearch,
+  onSearchClick,
+  onAddProduct,
+  onContinueShopping,
   onClearCart = () => undefined,
   onCompare = () => undefined,
 
@@ -125,6 +135,19 @@ export default function ZiiplyMobileCartView({
     setSavedListName ||
     (((_value: any) => undefined) as React.Dispatch<React.SetStateAction<string>>);
 
+  function handleAddMoreFromCartView() {
+    const handler =
+      onAddMore ||
+      onOpenSearch ||
+      onSearchClick ||
+      onAddProduct ||
+      onContinueShopping;
+
+    if (typeof handler === "function") {
+      handler();
+    }
+  }
+
   return (
     <div
       className={`fixed inset-0 z-[85] block bg-[#eef7f2]/95 px-3 pb-[calc(env(safe-area-inset-bottom)+6.1rem)] pt-[calc(env(safe-area-inset-top)+6.8rem)] backdrop-blur-xl sm:hidden ${
@@ -148,6 +171,19 @@ export default function ZiiplyMobileCartView({
         )}
 
         <div className={`ziiply-cart-retro-fix ${className}`}>
+          {/* ZIIPLY_CART_ADD_MORE_SAFE_BUTTON:
+              Vanhan P394:n Lisää tuote -toiminto kutsui openSearchPanel-funktiota.
+              Tämä varmistaa, että toiminto ei jää riippumaan ZiiplyCartCardin sisäisestä prop-nimestä. */}
+          <div className="mb-2 flex justify-center sm:hidden">
+            <button
+              type="button"
+              onClick={handleAddMoreFromCartView}
+              className="rounded-full bg-green-700 px-5 py-2.5 text-sm font-black text-white shadow-md shadow-green-700/20 active:scale-95"
+            >
+              Lisää tuote
+            </button>
+          </div>
+
           <ZiiplyCartCard
             cart={cart}
             shoppingListItems={shoppingListItems}
@@ -173,7 +209,11 @@ export default function ZiiplyMobileCartView({
             onIncreaseQuantity={onIncreaseQuantity}
             onDecreaseQuantity={onDecreaseQuantity}
             onRemoveItem={onRemoveItem}
-            onAddMore={onAddMore}
+            onAddMore={handleAddMoreFromCartView}
+            onOpenSearch={handleAddMoreFromCartView}
+            onSearchClick={handleAddMoreFromCartView}
+            onAddProduct={handleAddMoreFromCartView}
+            onContinueShopping={handleAddMoreFromCartView}
             onClearCart={onClearCart}
             onCompare={onCompare}
             cartSavePanelOpen={cartSavePanelOpen}
