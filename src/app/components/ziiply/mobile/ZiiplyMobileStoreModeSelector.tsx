@@ -1,5 +1,7 @@
 "use client";
 
+// V6_HAKUTAPA_NOTICE_TRIGGER_FIXED: ilmoitus näkyy varmasti, kun vertailu-/tavaratalopari puuttuu.
+
 import React, { useEffect, useState } from "react";
 
 type StoreMode = "hyper" | "local";
@@ -49,16 +51,22 @@ export default function ZiiplyMobileStoreModeSelector({
   const localActive = storeModeChosen && storeMode === "local";
   const modeButtonsDisabled = storeCompareScope === "within_chain";
 
+  const shouldShowHakutapaNotice =
+    hyperStorePairMissing ||
+    (missingStoresMessageVisible && foundStoresCount === 0) ||
+    (storeCompareScope === "between_chains" && selectedRealChainCount < 2) ||
+    (storeCompareScope === "within_chain" && !withinChain);
+
   useEffect(() => {
-    if (!hyperStorePairMissing) return;
+    if (!shouldShowHakutapaNotice) return;
 
     setHakutapaNoticeVisible(true);
     const timer = window.setTimeout(() => {
       setHakutapaNoticeVisible(false);
-    }, 2400);
+    }, 2200);
 
     return () => window.clearTimeout(timer);
-  }, [hyperStorePairMissing]);
+  }, [shouldShowHakutapaNotice]);
 
   return (
     <section className="mx-auto w-full max-w-[390px] rounded-[1.9rem] bg-white px-4 pb-3 pt-3 shadow-[0_6px_18px_rgba(15,23,42,0.10)] ring-1 ring-slate-100">
@@ -103,7 +111,9 @@ export default function ZiiplyMobileStoreModeSelector({
             ].join(" ")}
           >
             {hakutapaNoticeVisible
-              ? "Vertailuparia ei löytynyt"
+              ? hyperStorePairMissing
+                ? "Tavarataloparia ei löytynyt"
+                : "Vertailuparia ei löytynyt"
               : !storeModeChosen || storeCompareScope === "none"
                 ? "Valitse hakutapa"
                 : "Hakutapa"}
@@ -162,9 +172,6 @@ export default function ZiiplyMobileStoreModeSelector({
 
         {storeCompareScope === "within_chain" && !withinChain && (
           <p>Valitse S-ryhmä tai K-ryhmä ketjun sisäistä vertailua varten.</p>
-        )}
-        {missingStoresMessageVisible && foundStoresCount === 0 && (
-          <p>Hae alue tai käytä omaa sijaintia ensin.</p>
         )}
 
       </div>
