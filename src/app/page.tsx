@@ -1,6 +1,6 @@
 "use client";
 
-// V404_SHOPS_INNER_WIDTH_ONLY_FILE: Kaupat-paneelin sisäleveys lukittu ilman pystyasettelun muutosta.
+// V405_SHOPS_DIRECT_CARD_RENDER_FILE: Kaupat renderöi LocationBar ja StoreModeSelector suoraan.
 
 // V402_MOBILE_SEARCH_CARD_CONNECTED: ZiiplyMobileSearchCard kytketty mobiilin hakutuloksiin.
 
@@ -174,6 +174,8 @@ import * as ZiiplyCompareCardModule from "./components/ziiply/cards/ZiiplyCompar
 import ZiiplyMobileHomeView from "./components/ziiply/mobile/ZiiplyMobileHomeView";
 import ZiiplyMobileAssistantPanel from "./components/ziiply/mobile/ZiiplyMobileAssistantPanel";
 import ZiiplyMobileShopsView from "./components/ziiply/mobile/ZiiplyMobileShopsView";
+import ZiiplyMobileLocationBar from "./components/ziiply/mobile/ZiiplyMobileLocationBar";
+import ZiiplyMobileStoreModeSelector from "./components/ziiply/mobile/ZiiplyMobileStoreModeSelector";
 import type { ZiiplyAssistantKey } from "./components/ziiply/mobile/ZiiplyMobileAssistantButton";
 
 type KauppiasTopBarKind = "weather" | "electricity" | "fuel" | "calendar";
@@ -9196,53 +9198,65 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
 
           {!showLaunchScreen && shopsPanelOpen && (
             <div
-              className={`fixed inset-0 z-50 overflow-y-auto bg-[#edf8f4] pb-[calc(env(safe-area-inset-bottom)+5.6rem)] pt-0 sm:hidden ${
+              className={`fixed inset-0 z-50 overflow-y-auto bg-[#edf8f4] px-3 pb-[calc(env(safe-area-inset-bottom)+5.6rem)] pt-[calc(env(safe-area-inset-top)+5.35rem)] sm:hidden ${
                 closingPanels.shops ? "ziiply-soft-close" : "ziiply-soft-open"
               }`}
             >
-              {/* V404_SHOPS_INNER_WIDTH_ONLY:
-                  Älä muuta Kaupat-paneelin pystyasettelua. Rajaa vain sisällön leveys,
-                  jotta LocationBar ja StoreModeSelector eivät veny koko viewporttiin. */}
-              <div className="mx-auto w-full max-w-[390px] px-3">
-                <ZiiplyMobileShopsViewAny
+              {/* V405_SHOPS_DIRECT_CARD_RENDER:
+                  Ohitetaan ZiiplyMobileShopsView, koska sen sisäinen wrapper/parent
+                  venytti LocationBar- ja StoreModeSelector-kortit väärään näkymään.
+                  Renderöidään vain tunnetusti oikeat kortit suoraan rajatussa mobiilikontissa. */}
+              <div className="mx-auto flex w-full max-w-[390px] flex-col gap-3">
+                <ZiiplyMobileLocationBar
                   locationInput={locationInput}
-                usingOwnLocation={usingOwnLocation}
-                storeSearchLoading={storeSearchLoading}
-                gpsErrorMessage={gpsErrorMessage}
-                storeMode={storeMode}
-                storeModeChosen={storeModeChosenV299}
-                storeCompareScope={storeCompareScope}
-                withinChain={withinChain}
-                selectedRealChainCount={selectedRealChainCount}
-                missingStoresMessageVisible={hyperStorePairMissingV391}
-                foundStoresCount={foundStores.length}
-                storeCards={renderComparedStoreCards(true)}
-                onLocationInputChange={(nextValue: string) => {
-                  setLocationInput(nextValue);
-                  if (nextValue.trim()) {
-                    gpsUserDisabledRefV306.current = true;
-                    setUsingOwnLocation(false);
-                  }
-                  setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
-                }}
-                onGpsClick={() => {
-                  if (usingOwnLocation) {
-                    stopOwnLocationV306(
-                      "GPS pois päältä. Kirjoita alue tai postinumero.",
-                    );
-                    return;
-                  }
-                  setLocationInput("");
-                  void useOwnLocation();
-                }}
-                onApplyLocation={() => openSelectedStoresMapV393()}
+                  usingOwnLocation={usingOwnLocation}
+                  storeSearchLoading={storeSearchLoading}
+                  gpsErrorMessage={gpsErrorMessage}
+                  gpsStatusText={locationMessageVisible ? locationMessage : ""}
+                  onLocationInputChange={(nextValue: string) => {
+                    setLocationInput(nextValue);
+                    if (nextValue.trim()) {
+                      gpsUserDisabledRefV306.current = true;
+                      setUsingOwnLocation(false);
+                    }
+                    setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
+                  }}
+                  onGpsClick={() => {
+                    if (usingOwnLocation) {
+                      stopOwnLocationV306(
+                        "GPS pois päältä. Kirjoita alue tai postinumero.",
+                      );
+                      return;
+                    }
+                    setLocationInput("");
+                    void useOwnLocation();
+                  }}
+                  onApplyLocation={() => openSelectedStoresMapV393()}
+                  onOpenMap={() => openSelectedStoresMapV393()}
+                />
+
+                <ZiiplyMobileStoreModeSelector
+                  storeMode={storeMode}
+                  storeModeChosen={storeModeChosenV299}
+                  storeCompareScope={storeCompareScope}
+                  withinChain={withinChain}
+                  selectedRealChainCount={selectedRealChainCount}
+                  missingStoresMessageVisible={hyperStorePairMissingV391}
+                  foundStoresCount={foundStores.length}
+                  hyperStorePairMissing={hyperStorePairMissingV391}
                   onStoreModeChange={handleStoreModeChange}
                   onStoreCompareScopeChange={handleStoreCompareScopeChange}
+                  onWithinChainChange={(chain: "S" | "K" | null) => {
+                    setWithinChain(chain);
+                  }}
                 />
+
+                <div className="space-y-3">
+                  {renderComparedStoreCards(true)}
+                </div>
               </div>
             </div>
           )}
-        </div>
 
         {restoredCartPromptV320.open &&
           cart.length > 0 &&
