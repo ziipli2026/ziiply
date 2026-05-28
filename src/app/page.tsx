@@ -8717,80 +8717,6 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
           </div>
         )}
 
-        <ZiiplyMobileCartView
-          cartModalOpen={cartModalOpen}
-          closing={Boolean(closingPanels.cart)}
-          cartOverlayScrollRef={cartOverlayScrollRef}
-          onClose={closeCartModal}
-          cart={cart}
-          shoppingListItems={shoppingListItems}
-          checkedCartItems={checkedCartItems}
-          checkedCount={checkedCount}
-          shoppingListCount={shoppingListCount}
-          shoppingProgressPercent={shoppingProgressPercent}
-          cheapest={cheapest}
-          secondCheapest={secondCheapest}
-          savings={savings}
-          savingsPercent={savingsPercent}
-          bestShoppingListGroups={bestShoppingListGroups}
-          getShoppingListItemKey={getShoppingListItemKey}
-          toggleShoppingListItem={toggleShoppingListItem}
-          markAllShoppingListItemsChecked={markAllShoppingListItemsChecked}
-          clearShoppingListChecks={clearShoppingListChecks}
-          formatEuro={formatEuro}
-          fixText={fixText}
-          setCheckedCartItems={setCheckedCartItems}
-          shoppingItemRefs={shoppingItemRefs}
-          onIncreaseQuantity={(itemId: string) => changeQuantity(itemId, 1)}
-          onDecreaseQuantity={(itemId: string) => changeQuantity(itemId, -1)}
-          onRemoveItem={removeCartItem}
-          onAddMore={openSearchFromCartViewV394}
-          onClearCart={clearCart}
-          onCompare={openCompareFromCartViewV394}
-          cartSavePanelOpen={cartSavePanelOpen}
-          onToggleSavePanel={() => setCartSavePanelOpen((value) => !value)}
-          savedListName={savedListName}
-          setSavedListName={setSavedListName}
-          onSaveCurrentCartAsList={saveCurrentCartAsList}
-          savedShoppingLists={savedShoppingLists}
-          onAddSavedListToCart={addSavedListToCart}
-          onDeleteSavedShoppingList={deleteSavedShoppingList}
-        />
-
-        <ZiiplyMobileCompareView
-          open={activeResult === "compare"}
-          closing={Boolean(closingPanels.compare)}
-          compareOverlayScrollRef={compareOverlayScrollRef}
-          onClose={() => closePanelWithFade("compare", () => setActiveResult("none"))}
-          cart={cart}
-          selectedChains={selectedChains}
-          setSelectedChains={setSelectedChains}
-          comparisonLoading={comparisonLoading}
-          sMatches={sMatches}
-          kMatches={kMatches}
-          expandedAlternatives={expandedAlternatives}
-          alternativeResults={alternativeResults}
-          loadingAlternatives={loadingAlternatives}
-          optimizingChains={optimizingChains}
-          qualityModesByCart={qualityModesByCart}
-          cheapest={cheapest}
-          secondCheapest={secondCheapest}
-          savings={savings}
-          savingsPercent={savingsPercent}
-          chainResults={chainResults}
-          lastOptimizationSnapshot={lastOptimizationSnapshot}
-          formatEuro={formatEuro}
-          fixText={fixText}
-          onCompareCart={() => void updateChainComparison(cart)}
-          onClearComparison={() => {
-            setSMatches({});
-            setKMatches({});
-            setLastOptimizationSnapshot(null);
-          }}
-          onAddMore={openSearchFromCartViewV394}
-          onOpenCart={showCart}
-        />
-
         {eanModalOpen && (
           <div
             className={`fixed inset-0 z-[120] hidden items-center justify-center overflow-y-auto bg-[#13251b]/78 px-4 py-5 backdrop-blur-sm xl:flex ${eanModalClosing ? "ziiply-soft-close" : "ziiply-soft-open"}`}
@@ -9090,6 +9016,86 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
       <main
         className={`xl:hidden min-h-screen overflow-x-hidden bg-[#EAF4F1] px-2 pb-44 pt-0 text-slate-950 sm:bg-[radial-gradient(circle_at_top,#ecfdf3_0%,#f8fafc_42%,#f1f5f9_100%)] sm:px-4 sm:pb-32 sm:py-3 sm:py-4 md:pb-4 ${suppressUiForEanClose ? "pointer-events-none" : ""}`}
       >
+
+        {/* V395_MOBILE_PANEL_RENDER_FIX:
+            Cart/Compare mobile overlays must live inside the xl:hidden mobile tree.
+            Earlier extracted render placed them inside the hidden xl:block desktop section,
+            so state changed but mobile saw only the home/start view. */}
+        <ZiiplyMobileCartView
+          cartModalOpen={cartModalOpen}
+          closing={Boolean(closingPanels.cart)}
+          cartOverlayScrollRef={cartOverlayScrollRef}
+          onClose={closeCartModal}
+          cart={cart}
+          shoppingListItems={shoppingListItems}
+          checkedCartItems={checkedCartItems}
+          checkedCount={checkedCount}
+          shoppingListCount={shoppingListCount}
+          shoppingProgressPercent={shoppingProgressPercent}
+          cheapest={cheapest}
+          secondCheapest={secondCheapest}
+          savings={savings}
+          savingsPercent={savingsPercent}
+          bestShoppingListGroups={bestShoppingListGroups}
+          getShoppingListItemKey={getShoppingListItemKey}
+          toggleShoppingListItem={toggleShoppingListItem}
+          markAllShoppingListItemsChecked={markAllShoppingListItemsChecked}
+          clearShoppingListChecks={clearShoppingListChecks}
+          formatEuro={formatEuro}
+          fixText={fixText}
+          setCheckedCartItems={setCheckedCartItems}
+          shoppingItemRefs={shoppingItemRefs}
+          onIncreaseQuantity={(itemId: string) => changeQuantity(itemId, 1)}
+          onDecreaseQuantity={(itemId: string) => changeQuantity(itemId, -1)}
+          onRemoveItem={removeCartItem}
+          onAddMore={openSearchFromCartViewV394}
+          onClearCart={clearCart}
+          onCompare={openCompareFromCartViewV394}
+          cartSavePanelOpen={cartSavePanelOpen}
+          onToggleSavePanel={() => setCartSavePanelOpen((value) => !value)}
+          savedListName={savedListName}
+          setSavedListName={setSavedListName}
+          onSaveCurrentCartAsList={saveCurrentCartAsList}
+          savedShoppingLists={savedShoppingLists}
+          onAddSavedListToCart={addSavedListToCart}
+          onDeleteSavedShoppingList={deleteSavedShoppingList}
+        />
+
+        <ZiiplyMobileCompareView
+          open={activeResult === "compare"}
+          closing={Boolean(closingPanels.compare)}
+          compareOverlayScrollRef={compareOverlayScrollRef}
+          onClose={() => closePanelWithFade("compare", () => setActiveResult("none"))}
+          cart={cart}
+          selectedChains={selectedChains}
+          setSelectedChains={setSelectedChains}
+          comparisonLoading={comparisonLoading}
+          sMatches={sMatches}
+          kMatches={kMatches}
+          expandedAlternatives={expandedAlternatives}
+          alternativeResults={alternativeResults}
+          loadingAlternatives={loadingAlternatives}
+          optimizingChains={optimizingChains}
+          qualityModesByCart={qualityModesByCart}
+          cheapest={cheapest}
+          secondCheapest={secondCheapest}
+          savings={savings}
+          savingsPercent={savingsPercent}
+          chainResults={chainResults}
+          lastOptimizationSnapshot={lastOptimizationSnapshot}
+          formatEuro={formatEuro}
+          fixText={fixText}
+          onCompareCart={() => void updateChainComparison(cart)}
+          onClearComparison={() => {
+            setSMatches({});
+            setKMatches({});
+            setLastOptimizationSnapshot(null);
+          }}
+          onAddMore={openSearchFromCartViewV394}
+          onOpenCart={showCart}
+        />
+
+
         <style>{`
         html,
         body {
