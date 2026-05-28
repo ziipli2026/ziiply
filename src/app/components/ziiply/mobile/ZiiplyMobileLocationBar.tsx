@@ -1,5 +1,11 @@
 "use client";
 
+// V417_COMPASS_IMAGE_MAP_BUTTON: Kartta-napissa public/icons/compass.png ilman tekstiä.
+
+// V417_MAP_BUTTON_ICON_ONLY: -napin tekstin tilalla pelkkä kompassi/karttakuvake.
+
+// V405_GPS_CAN_ALWAYS_TOGGLE_OFF: GPS-nappi ei lukitu storeSearchLoading-tilassa.
+
 import React, { useEffect, useRef, useState } from "react";
 
 export type ZiiplyMobileLocationBarProps = {
@@ -37,7 +43,9 @@ export default function ZiiplyMobileLocationBar({
     };
   }, []);
 
-  const gpsButtonDisabled = storeSearchLoading || gpsClickLocked;
+  // GPS pitää saada aina pois päältä myös paikannuksen/kauppahaun aikana.
+  // Estetään vain tuplaklikkaus, ei storeSearchLoading-tilaa.
+  const gpsButtonDisabled = gpsClickLocked;
 
   function handleGpsClick() {
     // v382_GPS_BUTTON_DEBOUNCE:
@@ -109,14 +117,18 @@ export default function ZiiplyMobileLocationBar({
         <button
           type="button"
           onClick={onOpenMap || onApplyLocation}
-          disabled={storeSearchLoading}
-          className="flex h-[52px] w-[74px] shrink-0 items-center justify-center self-center rounded-[1.05rem] bg-[#03133f] px-2 text-[13px] font-black text-white shadow-[0_7px_18px_rgba(3,19,63,0.20)] active:scale-[0.98] disabled:opacity-60"
+          disabled={false}
+          className="flex h-[52px] w-[78px] shrink-0 items-center justify-center self-center rounded-[1.05rem] bg-[#03133f] px-2 text-[13px] font-black text-white shadow-[0_7px_18px_rgba(3,19,63,0.20)] active:scale-[0.98]"
           aria-label="Avaa valitut kaupat kartalla"
           title="Avaa kartta"
         >
-          <span className="mr-1 text-[18px] leading-none">🗺️</span>
-          <span>{storeSearchLoading ? "..." : "Kartta"}</span>
-        </button>
+        <img
+          src="/icons/ziiply-compass.png"
+          alt="Kartta"
+          className="h-10 w-10 object-contain drop-shadow-sm transition-transform duration-150 group-hover:scale-105 group-active:scale-95"
+          draggable={false}
+        />
+      </button>
       </div>
     </section>
   );
