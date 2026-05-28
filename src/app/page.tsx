@@ -1,5 +1,7 @@
 "use client";
 
+// V435_REMOVE_OLD_GPS_PENDING_CARD: poistettu vanha oranssi GPS-pending/Hae alue -kortti ja estetty karttanapin vanha pending-näkymä.
+
 // V434_HIDE_OLD_GPS_PENDING_SHOPS_MESSAGE: piilotettu vanha oranssi dynaaminen kauppahakuviesti GPS-paikannuksen ajaksi.
 
 // V433_MAP_OVERLAY_BOTH_STORES: karttanappi näyttää overlayn, molemmat valitut kaupat ja reittilinkit.
@@ -3556,7 +3558,7 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
     setLocationMessage(
       source === "gps"
         ? `Haetaan kauppoja alueelle ${rawQuery}...`
-        : "Haetaan kauppoja...",
+        : "Paikannetaan GPS…",
     );
 
     try {
@@ -3587,7 +3589,7 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
       setLocationMessage(
         source === "gps"
           ? `Haetaan kauppoja alueelle ${query}...`
-          : "Haetaan kauppoja...",
+          : "Paikannetaan GPS…",
       );
       const stores = await fetchStoresForLocationQuery(
         query,
@@ -9389,8 +9391,8 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
               storeSearchLoading={storeSearchLoading}
               gpsErrorMessage={gpsErrorMessage}
               gpsStatusText={locationMessageVisible ? locationMessage : ""}
-              onApplyLocation={() => setMapStoresOverlayOpenV433(true)}
-              onOpenMap={() => setMapStoresOverlayOpenV433(true)}
+              onApplyLocation={() => { if (!gpsStoreLocationPendingV366) setMapStoresOverlayOpenV433(true); }}
+              onOpenMap={() => { if (!gpsStoreLocationPendingV366) setMapStoresOverlayOpenV433(true); }}
               onLocationInputChange={(nextValue: string) => {
                 setLocationInput(nextValue);
                 if (nextValue.trim()) {
