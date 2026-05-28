@@ -1,5 +1,7 @@
 "use client";
 
+// V444_PAGE_REMOVE_DUPLICATE_HAKUTAPA_NOTICE: poistettu page.tsx:n vanha vilkkuva hakutapa-ilmoitus; ilmoitus tulee StoreModeSelectorista.
+
 // V441_DEFAULT_HYPERMARKETS_READY: oletuksena alueen tavaratalot valmiiksi aktiivisena.
 
 // V440_REVERT_DEFAULT_LOCAL_PAIR: palautettu hakutavan oletus entiselleen, ei pakoteta lähikauppoja oletukseksi.
@@ -918,7 +920,8 @@ export default function Page() {
   const [cartSavePanelOpen, setCartSavePanelOpen] = useState(false);
   const [shopsPanelOpen, setShopsPanelOpen] = useState(false);
   const [mapStoresOverlayOpenV433, setMapStoresOverlayOpenV433] = useState(false);
-  const [mapRouteOverlayOpenV428, setMapRouteOverlayOpenV428] = useState(false);  const [initialStoreNavPrompt, setInitialStoreNavPrompt] = useState(true);
+  const [mapRouteOverlayOpenV428, setMapRouteOverlayOpenV428] = useState(false);
+  const [initialStoreNavPrompt, setInitialStoreNavPrompt] = useState(false);
   const [gpsErrorMessage, setGpsErrorMessage] = useState("");
   const [gpsAutoActivatedV287, setGpsAutoActivatedV287] = useState(false);
   const gpsUserDisabledRefV306 = useRef(false);
@@ -1796,19 +1799,6 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
       (storeMode === "hyper" && (!activeArea.sStoreId || !activeArea.kStoreId)) ||
       (storeMode === "local" && (!activeArea.sLocalStoreId || !activeArea.kLocalStoreId))
     );
-
-  const storePairMissingNoticeVisibleV436 =
-    (storeCompareScope === "between_chains" && (Number(Boolean(selectedChains.s)) + Number(Boolean(selectedChains.k))) < 2) ||
-    (storeCompareScope === "within_chain" && !withinChain) ||
-    (
-      storeModeChosenV299 &&
-      storeCompareScope === "between_chains" &&
-      (
-        (storeMode === "hyper" && (!activeArea.sStoreId || !activeArea.kStoreId)) ||
-        (storeMode === "local" && (!activeArea.sLocalStoreId || !activeArea.kLocalStoreId))
-      )
-    );
-
   const hyperStorePairMissingV391 =
     storeMode === "hyper" &&
     storeModeChosenV299 &&
@@ -1818,7 +1808,7 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
   useEffect(() => {
     if (!hyperStorePairMissingV391) return;
 
-    setLocationMessage("Alueelta ei löytynyt kahta vertailtavaa tavarataloa. Kokeile lähikauppoja.");
+    setLocationMessage("");
     setLocationMessageVisible(true);
   }, [hyperStorePairMissingV391]);
 
@@ -9474,12 +9464,6 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
                 <span className="rounded-full bg-white px-3 text-center text-[11px] font-black uppercase leading-none tracking-wide text-slate-500">
                   Hakutapa
                 </span>
-
-                {storePairMissingNoticeVisibleV436 && (
-                  <div className="pointer-events-none absolute left-1/2 top-[130%] z-50 -translate-x-1/2 animate-[ziiplyEnamelHint_3s_ease-in-out_infinite] whitespace-nowrap rounded-full border border-[#d7ad3a] bg-[#fff2a8] px-4 py-1.5 text-[11px] font-black uppercase tracking-[0.08em] text-[#7c4200] shadow-[0_5px_12px_rgba(124,66,0,0.18),inset_0_1px_0_rgba(255,255,255,0.85)]">
-                    Vertailuparia ei löytynyt
-                  </div>
-                )}
               </div>
 
               <button
@@ -10954,10 +10938,6 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
         @keyframes ziiplyHintPop {
           0%, 100% { opacity: 0; transform: translateY(4px) scale(0.96); }
           18%, 78% { opacity: 1; transform: translateY(0) scale(1); }
-        }
-        @keyframes ziiplyEnamelHint {
-          0%, 100% { opacity: 0; transform: translate(-50%, 7px) scale(0.96); }
-          14%, 78% { opacity: 1; transform: translate(-50%, 0) scale(1); }
         }
         @keyframes ziiplyFade {
           0% { opacity: 0; transform: translateY(10px); }
