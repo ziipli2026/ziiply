@@ -6,6 +6,7 @@
 // V506_REMOVE_REMAINING_GPS_DEBUG_PANEL: poistettu jäljelle jäänyt GPS DEBUG v492 -paneeli.
 // V507_WEATHER_AND_SEARCH_EXIT_FIX: sää päälle page-GPS-koordinaateilla ja alapalkki Hae-kortin päälle sulkemista varten.
 // V508_ELECTRICITY_FETCH_ROBUST: sähköhinta hakee useammalla muodolla ja kestää API-vastausten vaihtelut.
+// V509_HAE_READY_VISIBLE_AND_DIRECT_SHOPS_SWITCH: Hae-valmis näkyväksi ja Hae->Kaupat ilman aloitussivun välähdystä.
 // V500_BUILD_FIX_ACTIVE_AREA_STATUS_NO_BOUNCE: korjaa status-scope buildin ja poistaa suurennuslasin pompun, mutta jättää Hae-valmiuslogiikan.
 // V495_GPS_SUCCESS_UI_RELEASE: GPS onnistumisen jälkeen vapautetaan UI eksplisiittisesti pois pending/jumi-tilasta.
 // V496_GPS_STATUS_RENDER_FORCE: GPS onnistumisen jälkeen status pakotetaan renderöintiin; logi + karttatoiminnot pois testistä.
@@ -6489,7 +6490,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       kStoreName: activeStores.kStoreName,
     });
 
-    transitionMobilePanel("shops", () => {
+    const applyShopsPanelV509 = () => {
       setSearchPanelOpen(false);
       setCartModalOpen(false);
       setCartSavePanelOpen(false);
@@ -6498,7 +6499,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setActiveResult("none");
       setInitialStoreNavPrompt(false);
       setShopsPanelOpen(true);
-    });
+    };
+
+    // V509: Hae -> Kaupat ei saa näyttää tyhjää aloitussivua välissä.
+    // Siksi vaihdetaan suoraan ilman PANEL_FADE_MS-viivettä, kun Hae on auki.
+    if (searchPanelOpen) {
+      applyShopsPanelV509();
+      return;
+    }
+
+    transitionMobilePanel("shops", applyShopsPanelV509);
   }
 
   function toggleShopsPanel() {
@@ -6507,11 +6517,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (shopsPanelOpen) {
       closePanelWithFade("shops", () => setShopsPanelOpen(false));
       return;
-    }
-
-    if (searchPanelOpen) {
-      setSearchPanelOpen(false);
-      closeProductSelectionOverlay();
     }
 
     openShopsPanel();
@@ -11201,9 +11206,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           </div>
         )}
 
-        {/* V502_HAE_READY_BADGE_RENDER */}
+        {/* V509_HAE_READY_BADGE_RENDER: näkyy navin yläpuolella eikä jää alapalkin alle */}
           {haeReadyBadgeVisibleV502 ? (
-            <div className="pointer-events-none fixed bottom-[calc(env(safe-area-inset-bottom)+4.25rem)] left-1/2 z-[96] -translate-x-1/2 rounded-[0.65rem] border border-[#8a6a1f] bg-[#f6dd84] px-2 py-1 text-[10px] font-black uppercase tracking-[0.04em] text-[#4b3200] shadow-[0_4px_10px_rgba(60,45,20,0.20)] sm:hidden">
+            <div className="pointer-events-none fixed bottom-[calc(env(safe-area-inset-bottom)+5.65rem)] left-1/2 z-[10001] -translate-x-1/2 animate-[ziiplyFade_3.8s_ease-in-out] rounded-[0.75rem] border-[2px] border-[#8a6a1f] bg-[#f6dd84] px-3 py-[5px] text-[11px] font-black uppercase tracking-[0.04em] text-[#4b3200] shadow-[0_8px_18px_rgba(60,45,20,0.26)] sm:hidden">
               Hae valmis
             </div>
           ) : null}
