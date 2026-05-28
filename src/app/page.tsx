@@ -1,5 +1,7 @@
 "use client";
 
+// V410_SHOPS_SINGLE_SCROLL_OWNER: yksi arvauskorjaus, Kaupat-overlay ei scrollaa page-tasolla.
+
 // V402_MOBILE_SEARCH_CARD_CONNECTED: ZiiplyMobileSearchCard kytketty mobiilin hakutuloksiin.
 
 // V401_SYNTAX_REPAIR_ONLY: fixed missing JSX closing div in mobile shops section.
@@ -9194,7 +9196,7 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
 
           {!showLaunchScreen && shopsPanelOpen && (
             <div
-              className={`fixed inset-0 z-50 overflow-y-auto bg-[#edf8f4] pb-[calc(env(safe-area-inset-bottom)+5.6rem)] pt-0 sm:hidden ${
+              className={`fixed inset-0 z-50 overflow-hidden bg-[#edf8f4] pb-[calc(env(safe-area-inset-bottom)+5.6rem)] pt-0 sm:hidden ${
                 closingPanels.shops ? "ziiply-soft-close" : "ziiply-soft-open"
               }`}
             >
