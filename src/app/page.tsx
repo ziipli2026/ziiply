@@ -6,7 +6,7 @@
 // V506_REMOVE_REMAINING_GPS_DEBUG_PANEL: poistettu jäljelle jäänyt GPS DEBUG v492 -paneeli.
 // V507_WEATHER_AND_SEARCH_EXIT_FIX: sää päälle page-GPS-koordinaateilla ja alapalkki Hae-kortin päälle sulkemista varten.
 // V508_ELECTRICITY_FETCH_ROBUST: sähköhinta hakee useammalla muodolla ja kestää API-vastausten vaihtelut.
-// V509_HAE_READY_VISIBLE_AND_DIRECT_SHOPS_SWITCH: Hae-valmis näkyväksi ja Hae->Kaupat ilman aloitussivun välähdystä.
+// V510_ELECTRICITY_V2_AND_STATIC_FALLBACK: sähköhinta hakee porssisahko v2/v1 + sahkonhintatanaan fallback.
 // V500_BUILD_FIX_ACTIVE_AREA_STATUS_NO_BOUNCE: korjaa status-scope buildin ja poistaa suurennuslasin pompun, mutta jättää Hae-valmiuslogiikan.
 // V495_GPS_SUCCESS_UI_RELEASE: GPS onnistumisen jälkeen vapautetaan UI eksplisiittisesti pois pending/jumi-tilasta.
 // V496_GPS_STATUS_RENDER_FORCE: GPS onnistumisen jälkeen status pakotetaan renderöintiin; logi + karttatoiminnot pois testistä.
@@ -474,8 +474,8 @@ function KauppiasMobileTopBar({
       return Number.isFinite(number) ? number : null;
     };
 
-    const formatElectricityPrice = (price: number) =>
-      price.toLocaleString("fi-FI", {
+    const formatElectricityPrice = (priceCentsPerKwh: number) =>
+      priceCentsPerKwh.toLocaleString("fi-FI", {
         minimumFractionDigits: 1,
         maximumFractionDigits: 1,
       });
@@ -492,6 +492,9 @@ function KauppiasMobileTopBar({
 
       const get = (type: string) => parts.find((part) => part.type === type)?.value || "";
       return {
+        year: get("year"),
+        month: get("month"),
+        day: get("day"),
         date: `${get("year")}-${get("month")}-${get("day")}`,
         hour: get("hour") || String(new Date().getHours()).padStart(2, "0"),
       };
@@ -500,9 +503,7 @@ function KauppiasMobileTopBar({
     const readElectricityPriceFromObject = (item: any) => {
       if (!item || typeof item !== "object") return null;
 
-      // Porssisahko.net returns price in c/kWh as "price".
-      // Other open APIs may use slightly different field names.
-      return (
+      const directCents =
         readNumber(item.price) ??
         readNumber(item.value) ??
         readNumber(item.priceWithTax) ??
@@ -510,103 +511,125 @@ function KauppiasMobileTopBar({
         readNumber(item.priceNoTax) ??
         readNumber(item.PriceNoTax) ??
         readNumber(item.spotPrice) ??
-        readNumber(item.SpotPrice)
-      );
+        readNumber(item.SpotPrice);
+
+      if (directCents != null) return directCents;
+
+      // sahkonhintatanaan.fi antaa EUR/kWh. Muunnetaan c/kWh:ksi.
+      const eurPerKwh =
+        readNumber(item.EUR_per_kWh) ??
+        readNumber(item.eur_per_kwh) ??
+        readNumber(item.eurPerKwh);
+
+      if (eurPerKwh != null) return eurPerKwh * 100;
+
+      return null;
     };
+
+    async function tryReadDirectPrice(url: string) {
+      const response = await fetch(url, { cache: "no-store" });
+      if (!response.ok || cancelled) return null;
+      const data = await response.json();
+      return readElectricityPriceFromObject(data);
+    }
+
+    async function tryReadCurrentFromList(url: string) {
+      const response = await fetch(url, { cache: "no-store" });
+      if (!response.ok || cancelled) return null;
+
+      const data = await response.json();
+      const prices = Array.isArray(data?.prices)
+        ? data.prices
+        : Array.isArray(data)
+          ? data
+          : [];
+
+      const now = Date.now();
+
+      const enrichedPrices = prices
+        .map((item: any) => {
+          const priceNumber = readElectricityPriceFromObject(item);
+          const startRaw = item.startDate ?? item.start ?? item.StartDate ?? item.time_start;
+          const endRaw = item.endDate ?? item.end ?? item.EndDate ?? item.time_end;
+          const startMs = new Date(startRaw).getTime();
+          const endMs = new Date(endRaw).getTime();
+
+          return {
+            priceNumber,
+            startMs,
+            endMs,
+          };
+        })
+        .filter(
+          (item: any) =>
+            item.priceNumber != null &&
+            Number.isFinite(item.startMs) &&
+            Number.isFinite(item.endMs),
+        )
+        .sort((a: any, b: any) => a.startMs - b.startMs);
+
+      const currentIndex = enrichedPrices.findIndex(
+        (item: any) => item.startMs <= now && now < item.endMs,
+      );
+
+      if (currentIndex < 0) return null;
+
+      const currentPrice = Number(enrichedPrices[currentIndex]?.priceNumber);
+      if (!Number.isFinite(currentPrice)) return null;
+
+      const nextWindow = enrichedPrices.slice(currentIndex + 1, currentIndex + 4);
+      const nextAverage =
+        nextWindow.length > 0
+          ? nextWindow.reduce((sum: number, item: any) => sum + Number(item.priceNumber), 0) /
+            nextWindow.length
+          : currentPrice;
+
+      const diff = nextAverage - currentPrice;
+      if (diff > 0.4) setElectricityTrend("up");
+      else if (diff < -0.4) setElectricityTrend("down");
+      else setElectricityTrend("flat");
+
+      return currentPrice;
+    }
 
     async function loadElectricity() {
       try {
         setElectricityText("haetaan");
 
-        const { date, hour } = getCurrentFinnishDateHour();
+        const { year, month, day, date, hour } = getCurrentFinnishDateHour();
 
-        // 1) First try direct current-hour endpoint.
-        const directUrl = `https://api.porssisahko.net/v1/price.json?date=${encodeURIComponent(date)}&hour=${encodeURIComponent(hour)}`;
-        try {
-          const directResponse = await fetch(directUrl, { cache: "no-store" });
-          if (directResponse.ok && !cancelled) {
-            const directData = await directResponse.json();
-            const directPrice = readElectricityPriceFromObject(directData);
-            if (directPrice != null) {
-              setElectricityValue(formatElectricityPrice(directPrice));
+        const candidates = [
+          () => tryReadDirectPrice(
+            `https://api.porssisahko.net/v2/price.json?date=${encodeURIComponent(date)}&hour=${encodeURIComponent(hour)}`,
+          ),
+          () => tryReadDirectPrice(
+            `https://api.porssisahko.net/v1/price.json?date=${encodeURIComponent(date)}&hour=${encodeURIComponent(hour)}`,
+          ),
+          () => tryReadCurrentFromList("https://api.porssisahko.net/v2/latest-prices.json"),
+          () => tryReadCurrentFromList("https://api.porssisahko.net/v1/latest-prices.json"),
+          () => tryReadCurrentFromList(
+            `https://www.sahkonhintatanaan.fi/api/v1/prices/${encodeURIComponent(year)}/${encodeURIComponent(month)}-${encodeURIComponent(day)}.json`,
+          ),
+        ];
+
+        for (const readCandidate of candidates) {
+          try {
+            const price = await readCandidate();
+            if (cancelled) return;
+
+            if (price != null && Number.isFinite(price)) {
+              setElectricityValue(formatElectricityPrice(price));
               setElectricityText("c/kWh");
-              setElectricityTrend("flat");
               return;
             }
+          } catch {
+            // kokeillaan seuraavaa lähdettä
           }
-        } catch {
-          // jatketaan listahakuun
         }
 
-        // 2) Fallback: latest-prices list and pick currently active window.
-        const latestResponse = await fetch("https://api.porssisahko.net/v1/latest-prices.json", {
-          cache: "no-store",
-        });
-
-        if (!latestResponse.ok || cancelled) {
-          setElectricityValue("—");
-          setElectricityText("ei hintaa");
-          return;
-        }
-
-        const latestData = await latestResponse.json();
-        const prices = Array.isArray(latestData?.prices)
-          ? latestData.prices
-          : Array.isArray(latestData)
-            ? latestData
-            : [];
-
-        const now = Date.now();
-
-        const enrichedPrices = prices
-          .map((item: any) => {
-            const priceNumber = readElectricityPriceFromObject(item);
-            const startMs = new Date(item.startDate ?? item.start ?? item.StartDate).getTime();
-            const endMs = new Date(item.endDate ?? item.end ?? item.EndDate).getTime();
-
-            return {
-              ...item,
-              priceNumber,
-              startMs,
-              endMs,
-            };
-          })
-          .filter(
-            (item: any) =>
-              item.priceNumber != null &&
-              Number.isFinite(item.startMs) &&
-              Number.isFinite(item.endMs),
-          )
-          .sort((a: any, b: any) => a.startMs - b.startMs);
-
-        const currentIndex = enrichedPrices.findIndex(
-          (item: any) => item.startMs <= now && now < item.endMs,
-        );
-
-        const current = currentIndex >= 0 ? enrichedPrices[currentIndex] : null;
-        const price = Number(current?.priceNumber);
-
-        if (!Number.isFinite(price) || cancelled) {
-          setElectricityValue("—");
-          setElectricityText("ei hintaa");
-          return;
-        }
-
-        setElectricityValue(formatElectricityPrice(price));
-        setElectricityText("c/kWh");
-
-        const nextWindow =
-          currentIndex >= 0 ? enrichedPrices.slice(currentIndex + 1, currentIndex + 4) : [];
-        const nextAverage =
-          nextWindow.length > 0
-            ? nextWindow.reduce((sum: number, item: any) => sum + Number(item.priceNumber), 0) /
-              nextWindow.length
-            : price;
-
-        const diff = nextAverage - price;
-        if (diff > 0.4) setElectricityTrend("up");
-        else if (diff < -0.4) setElectricityTrend("down");
-        else setElectricityTrend("flat");
+        setElectricityValue("—");
+        setElectricityText("ei hintaa");
+        setElectricityTrend("flat");
       } catch {
         if (!cancelled) {
           setElectricityValue("—");
@@ -6490,7 +6513,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       kStoreName: activeStores.kStoreName,
     });
 
-    const applyShopsPanelV509 = () => {
+    transitionMobilePanel("shops", () => {
       setSearchPanelOpen(false);
       setCartModalOpen(false);
       setCartSavePanelOpen(false);
@@ -6499,16 +6522,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setActiveResult("none");
       setInitialStoreNavPrompt(false);
       setShopsPanelOpen(true);
-    };
-
-    // V509: Hae -> Kaupat ei saa näyttää tyhjää aloitussivua välissä.
-    // Siksi vaihdetaan suoraan ilman PANEL_FADE_MS-viivettä, kun Hae on auki.
-    if (searchPanelOpen) {
-      applyShopsPanelV509();
-      return;
-    }
-
-    transitionMobilePanel("shops", applyShopsPanelV509);
+    });
   }
 
   function toggleShopsPanel() {
@@ -6517,6 +6531,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (shopsPanelOpen) {
       closePanelWithFade("shops", () => setShopsPanelOpen(false));
       return;
+    }
+
+    if (searchPanelOpen) {
+      setSearchPanelOpen(false);
+      closeProductSelectionOverlay();
     }
 
     openShopsPanel();
@@ -11206,9 +11225,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           </div>
         )}
 
-        {/* V509_HAE_READY_BADGE_RENDER: näkyy navin yläpuolella eikä jää alapalkin alle */}
+        {/* V502_HAE_READY_BADGE_RENDER */}
           {haeReadyBadgeVisibleV502 ? (
-            <div className="pointer-events-none fixed bottom-[calc(env(safe-area-inset-bottom)+5.65rem)] left-1/2 z-[10001] -translate-x-1/2 animate-[ziiplyFade_3.8s_ease-in-out] rounded-[0.75rem] border-[2px] border-[#8a6a1f] bg-[#f6dd84] px-3 py-[5px] text-[11px] font-black uppercase tracking-[0.04em] text-[#4b3200] shadow-[0_8px_18px_rgba(60,45,20,0.26)] sm:hidden">
+            <div className="pointer-events-none fixed bottom-[calc(env(safe-area-inset-bottom)+4.25rem)] left-1/2 z-[96] -translate-x-1/2 rounded-[0.65rem] border border-[#8a6a1f] bg-[#f6dd84] px-2 py-1 text-[10px] font-black uppercase tracking-[0.04em] text-[#4b3200] shadow-[0_4px_10px_rgba(60,45,20,0.20)] sm:hidden">
               Hae valmis
             </div>
           ) : null}
