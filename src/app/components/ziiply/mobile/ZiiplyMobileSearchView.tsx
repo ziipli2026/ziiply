@@ -1,5 +1,7 @@
 "use client";
 
+// ZIIPLY_MOBILE_SEARCH_VIEW_TS_STRICT_FIX: functional setInput callbacks typed.
+
 import React from "react";
 
 export type ZiiplyMobileSearchViewProps = {
@@ -133,7 +135,7 @@ export default function ZiiplyMobileSearchView(props: ZiiplyMobileSearchViewProp
                                 type="button"
                                 onClick={() => {
                                   setSearchCompareMode("single");
-                                  setInput((currentInput) =>
+                                  setInput((currentInput: string) =>
                                     getSingleSearchTerm(currentInput),
                                   );
                                   setNormalResults([]);
