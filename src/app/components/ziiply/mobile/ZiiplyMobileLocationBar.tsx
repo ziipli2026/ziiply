@@ -1,5 +1,7 @@
 "use client";
 
+// V405_GPS_CAN_ALWAYS_TOGGLE_OFF: GPS-nappi ei lukitu storeSearchLoading-tilassa.
+
 import React, { useEffect, useRef, useState } from "react";
 
 export type ZiiplyMobileLocationBarProps = {
@@ -37,9 +39,14 @@ export default function ZiiplyMobileLocationBar({
     };
   }, []);
 
-  const gpsButtonDisabled = storeSearchLoading || gpsClickLocked;
+  // GPS pitää saada aina pois päältä myös paikannuksen/kauppahaun aikana.
+  // Estetään vain tuplaklikkaus, ei storeSearchLoading-tilaa.
+  const gpsButtonDisabled = gpsClickLocked;
 
   function handleGpsClick() {
+    // v382_GPS_BUTTON_DEBOUNCE:
+    // Estää GPS pois/päälle -tuplapainalluksesta syntyvän välirenderin,
+    // jossa kaupan valintaikkuna ehtii vilahtaa ennen kuin uusi sijaintihaku on valmis.
     if (gpsButtonDisabled) return;
 
     setGpsClickLocked(true);
@@ -66,7 +73,7 @@ export default function ZiiplyMobileLocationBar({
           : "";
 
   return (
-    <section className="mx-auto w-full max-w-[390px] rounded-[1.45rem] bg-white/96 px-2.5 py-1.5 shadow-[0_10px_26px_rgba(15,23,42,0.10)] ring-1 ring-white/80">
+    <section className="rounded-[1.45rem] bg-white/96 px-2.5 py-1.5 shadow-[0_10px_26px_rgba(15,23,42,0.10)] ring-1 ring-white/80">
       <div className="flex h-[56px] items-stretch gap-2">
         <button
           type="button"
@@ -80,13 +87,7 @@ export default function ZiiplyMobileLocationBar({
           📍
         </button>
 
-        <form
-          className="relative min-w-0 flex-1"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void onApplyLocation();
-          }}
-        >
+        <div className="relative min-w-0 flex-1">
           <input
             value={locationInput}
             onChange={(event) => onLocationInputChange(event.target.value)}
@@ -107,11 +108,12 @@ export default function ZiiplyMobileLocationBar({
               {statusText}
             </div>
           )}
-        </form>
+        </div>
 
         <button
           type="button"
           onClick={onOpenMap || onApplyLocation}
+          disabled={false}
           className="flex h-[52px] w-[78px] shrink-0 items-center justify-center self-center rounded-[1.05rem] bg-[#03133f] px-2 text-[13px] font-black text-white shadow-[0_7px_18px_rgba(3,19,63,0.20)] active:scale-[0.98]"
           aria-label="Avaa valitut kaupat kartalla"
           title="Avaa kartta"
