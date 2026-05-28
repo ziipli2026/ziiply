@@ -1,5 +1,7 @@
 "use client";
 
+// V437_REMOVE_OLD_WARNINGS_ENAMEL_ONLY: poistettu vanhat varoituslaatikot, vain HAKUTAPA-emalikyltti jää.
+
 // V436_ENAMEL_HAKUTAPA_NOTICE: pieni emalikyltti HAKUTAPA-otsikon päälle, kun vertailuparia ei löydy.
 
 // V435_REMOVE_OLD_GPS_PENDING_CARD: poistettu vanha oranssi GPS-pending/Hae alue -kortti ja estetty karttanapin vanha pending-näkymä.
@@ -1790,11 +1792,15 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
     );
 
   const storePairMissingNoticeVisibleV436 =
-    storeModeChosenV299 &&
-    storeCompareScope === "between_chains" &&
+    (storeCompareScope === "between_chains" && (Number(Boolean(selectedChains.s)) + Number(Boolean(selectedChains.k))) < 2) ||
+    (storeCompareScope === "within_chain" && !withinChain) ||
     (
-      (storeMode === "hyper" && (!activeArea.sStoreId || !activeArea.kStoreId)) ||
-      (storeMode === "local" && (!activeArea.sLocalStoreId || !activeArea.kLocalStoreId))
+      storeModeChosenV299 &&
+      storeCompareScope === "between_chains" &&
+      (
+        (storeMode === "hyper" && (!activeArea.sStoreId || !activeArea.kStoreId)) ||
+        (storeMode === "local" && (!activeArea.sLocalStoreId || !activeArea.kLocalStoreId))
+      )
     );
 
   const hyperStorePairMissingV391 =
@@ -7316,7 +7322,7 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
     }));
     clearSearchAndComparisonState();
     setLocationMessage(
-      "Valitse S-ryhmä tai K-ryhmä ketjun sisäistä vertailua varten.",
+      " ketjun sisäistä vertailua varten.",
     );
   }
 
@@ -7970,8 +7976,8 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
             setOpenStorePicker(null);
             setLocationMessage(
               storeSearchLoading || gpsStoreLocationPendingV366 || gpsStorePickerBlockedV382
-                ? "Haetaan vielä sijaintia ja kauppoja..."
-                : "Hae alue tai käytä omaa sijaintia ensin.",
+                ? "Paikannetaan GPS…"
+                : "Paikannetaan GPS…",
             );
             return;
           }
@@ -8001,11 +8007,7 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
       storeCompareScope === "none" ||
       (storeCompareScope === "between_chains" && !storeModeChosenV299)
     ) {
-      return (
-        <div className="mt-3 rounded-2xl bg-amber-50 px-4 py-3 text-center text-sm font-extrabold text-amber-800 ring-1 ring-amber-200">
-          
-        </div>
-      );
+      return null;
     }
 
     if (storeCompareScope === "within_chain") {
@@ -9468,7 +9470,7 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
                 </span>
 
                 {storePairMissingNoticeVisibleV436 && (
-                  <div className="pointer-events-none absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2 animate-[ziiplyEnamelHint_2.8s_ease-in-out_infinite] whitespace-nowrap rounded-full border border-[#d7ad3a] bg-[#fff2a8] px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.08em] text-[#7c4200] shadow-[0_5px_12px_rgba(124,66,0,0.18),inset_0_1px_0_rgba(255,255,255,0.85)]">
+                  <div className="pointer-events-none absolute left-1/2 top-[130%] z-50 -translate-x-1/2 animate-[ziiplyEnamelHint_3s_ease-in-out_infinite] whitespace-nowrap rounded-full border border-[#d7ad3a] bg-[#fff2a8] px-4 py-1.5 text-[11px] font-black uppercase tracking-[0.08em] text-[#7c4200] shadow-[0_5px_12px_rgba(124,66,0,0.18),inset_0_1px_0_rgba(255,255,255,0.85)]">
                     Vertailuparia ei löytynyt
                   </div>
                 )}
@@ -9497,30 +9499,7 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
                 Ketjun sisältä
               </button>
             </div>
-            <div className="mt-1 rounded-2xl bg-slate-50 p-2 text-sm text-slate-600 ring-1 ring-slate-200 empty:hidden">
-              {storeCompareScope === "between_chains" &&
-                selectedRealChainCount < 2 && (
-                  <p className="mt-2 rounded-xl bg-amber-50 px-4 py-3 font-black text-amber-800 ring-1 ring-amber-100">
-                    Valitse kaksi ketjua vertailuun.
-                  </p>
-                )}
-              {storeCompareScope === "within_chain" && !withinChain && (
-                <p className="mt-2 rounded-xl bg-amber-50 px-4 py-3 font-black text-amber-800 ring-1 ring-amber-100">
-                  Valitse S-ryhmä tai K-ryhmä ketjun sisäistä vertailua varten.
-                </p>
-              )}
-
-              {((storeMode === "local" &&
-                (!activeArea.sLocalStoreId || !activeArea.kLocalStoreId)) ||
-                (storeMode === "hyper" &&
-                  (!activeArea.sStoreId || !activeArea.kStoreId))) &&
-                foundStores.length === 0 && (
-                  <p className="mt-2 text-amber-700">
-                    Hae alue tai käytä omaa sijaintia, niin Ziiply hakee kaupat
-                    dynaamisesti.
-                  </p>
-                )}
-            </div>
+            
 
             {renderComparedStoreCards(true)}
 
@@ -10971,8 +10950,8 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
           18%, 78% { opacity: 1; transform: translateY(0) scale(1); }
         }
         @keyframes ziiplyEnamelHint {
-          0%, 100% { opacity: 0; transform: translate(-50%, calc(-50% + 7px)) scale(0.96); }
-          14%, 78% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+          0%, 100% { opacity: 0; transform: translate(-50%, 7px) scale(0.96); }
+          14%, 78% { opacity: 1; transform: translate(-50%, 0) scale(1); }
         }
         @keyframes ziiplyFade {
           0% { opacity: 0; transform: translateY(10px); }
