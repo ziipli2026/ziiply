@@ -1,5 +1,7 @@
 "use client";
 
+// V436_ENAMEL_HAKUTAPA_NOTICE: pieni emalikyltti HAKUTAPA-otsikon päälle, kun vertailuparia ei löydy.
+
 // V435_REMOVE_OLD_GPS_PENDING_CARD: poistettu vanha oranssi GPS-pending/Hae alue -kortti ja estetty karttanapin vanha pending-näkymä.
 
 // V434_HIDE_OLD_GPS_PENDING_SHOPS_MESSAGE: piilotettu vanha oranssi dynaaminen kauppahakuviesti GPS-paikannuksen ajaksi.
@@ -1780,6 +1782,14 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
 
 
   const storePairMissingNoticeVisibleV427 =
+    storeModeChosenV299 &&
+    storeCompareScope === "between_chains" &&
+    (
+      (storeMode === "hyper" && (!activeArea.sStoreId || !activeArea.kStoreId)) ||
+      (storeMode === "local" && (!activeArea.sLocalStoreId || !activeArea.kLocalStoreId))
+    );
+
+  const storePairMissingNoticeVisibleV436 =
     storeModeChosenV299 &&
     storeCompareScope === "between_chains" &&
     (
@@ -9452,10 +9462,16 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
                 🏪 Lähikaupat
               </button>
 
-              <div className="col-span-2 flex h-5 items-center justify-center">
+              <div className="relative col-span-2 flex h-5 items-center justify-center">
                 <span className="rounded-full bg-white px-3 text-center text-[11px] font-black uppercase leading-none tracking-wide text-slate-500">
                   Hakutapa
                 </span>
+
+                {storePairMissingNoticeVisibleV436 && (
+                  <div className="pointer-events-none absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2 animate-[ziiplyEnamelHint_2.8s_ease-in-out_infinite] whitespace-nowrap rounded-full border border-[#d7ad3a] bg-[#fff2a8] px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.08em] text-[#7c4200] shadow-[0_5px_12px_rgba(124,66,0,0.18),inset_0_1px_0_rgba(255,255,255,0.85)]">
+                    Vertailuparia ei löytynyt
+                  </div>
+                )}
               </div>
 
               <button
@@ -10953,6 +10969,10 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
         @keyframes ziiplyHintPop {
           0%, 100% { opacity: 0; transform: translateY(4px) scale(0.96); }
           18%, 78% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes ziiplyEnamelHint {
+          0%, 100% { opacity: 0; transform: translate(-50%, calc(-50% + 7px)) scale(0.96); }
+          14%, 78% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
         }
         @keyframes ziiplyFade {
           0% { opacity: 0; transform: translateY(10px); }
