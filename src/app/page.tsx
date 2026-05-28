@@ -1,6 +1,6 @@
 "use client";
 
-// V412_RESTORE_DIRECT_MOBILE_SHOPS_FROM_P391: palautettu eilisen P391:n suora mobiili-Kaupat-render page.tsx:ään.
+// V415_DIRECT_SHOPS_MAPS_LOCATIONBAR: vanha inline GPS/Käytä-palkki korvattu maps-version ZiiplyMobileLocationBar-komponentilla.
 
 // V402_MOBILE_SEARCH_CARD_CONNECTED: ZiiplyMobileSearchCard kytketty mobiilin hakutuloksiin.
 
@@ -174,6 +174,7 @@ import * as ZiiplyCompareCardModule from "./components/ziiply/cards/ZiiplyCompar
 import ZiiplyMobileHomeView from "./components/ziiply/mobile/ZiiplyMobileHomeView";
 import ZiiplyMobileAssistantPanel from "./components/ziiply/mobile/ZiiplyMobileAssistantPanel";
 import ZiiplyMobileShopsView from "./components/ziiply/mobile/ZiiplyMobileShopsView";
+import ZiiplyMobileLocationBar from "./components/ziiply/mobile/ZiiplyMobileLocationBar";
 import type { ZiiplyAssistantKey } from "./components/ziiply/mobile/ZiiplyMobileAssistantButton";
 
 type KauppiasTopBarKind = "weather" | "electricity" | "fuel" | "calendar";
@@ -9198,72 +9199,35 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
             <div
               className={`${shopsPanelOpen ? "fixed inset-0 z-50 overflow-hidden bg-[#edf8f4] px-3 pb-[calc(env(safe-area-inset-bottom)+5.6rem)] pt-[calc(env(safe-area-inset-top)+5.2rem)] sm:static sm:contents sm:overflow-visible sm:bg-transparent sm:p-0" : "hidden sm:contents"} ${closingPanels.shops ? "ziiply-soft-close" : shopsPanelOpen ? "ziiply-soft-open" : ""}`}
             >
-          <section className="rounded-[1.25rem] border border-slate-200 bg-white/95 p-2 shadow-sm sm:rounded-[1.35rem] sm:p-3">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <button
-                type="button"
-                aria-pressed={usingOwnLocation}
-                onClick={() => {
-                  if (usingOwnLocation) {
-                    stopOwnLocationV306(
-                      "GPS pois päältä. Kirjoita alue tai postinumero.",
-                    );
-                    return;
-                  }
-                  setLocationInput("");
-                  useOwnLocation();
-                }}
-                title="Käytä omaa sijaintia"
-                className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-xl font-black shadow-sm ring-1 transition active:scale-[0.98] ${
-                  usingOwnLocation
-                    ? "bg-green-50 text-green-600 ring-green-100"
-                    : "bg-red-50 text-red-600 ring-red-100"
-                }`}
-              >
-                📍
-              </button>
-
-              <div className="relative min-w-0 flex-1 max-w-[280px] sm:mx-auto">
-                <input
-                  value={locationInput}
-                  onChange={(event) => {
-                    const nextValue = event.target.value;
-                    setLocationInput(nextValue);
-                    if (nextValue.trim()) {
-                      gpsUserDisabledRefV306.current = true;
-                      setUsingOwnLocation(false);
-                    }
-                    setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
-                  }}
-                  placeholder="05510 tai Hyvinkää"
-                  className={`h-11 w-full rounded-xl border border-slate-300 px-3 text-[16px] outline-none focus:border-green-600 sm:rounded-2xl sm:px-4 ${
-                    usingOwnLocation || gpsErrorMessage
-                      ? "pb-4 pt-1"
-                      : "py-2"
-                  }`}
-                />
-
-                {(usingOwnLocation || gpsErrorMessage) && (
-                  <div
-                    className={`pointer-events-none absolute inset-x-3 bottom-1.5 truncate text-[10px] font-black leading-none ${
-                      gpsErrorMessage ? "text-red-700" : "text-green-700"
-                    }`}
-                  >
-                    {gpsErrorMessage || "Käytetään nykyistä sijaintia"}
-                  </div>
-                )}
-              </div>
-
-              <button
-                type="button"
-                onClick={() => applyLocation()}
-                disabled={storeSearchLoading}
-                className="min-w-[76px] shrink-0 rounded-xl bg-slate-900 px-3 py-2 text-sm font-extrabold text-white transition disabled:cursor-not-allowed active:scale-[0.98] sm:min-w-[92px] sm:rounded-2xl sm:px-5 sm:py-3 sm:text-base"
-              >
-                Käytä
-              </button>
-            </div>
-          </section>
+          <div className="mb-2">
+            <ZiiplyMobileLocationBar
+              locationInput={locationInput}
+              usingOwnLocation={usingOwnLocation}
+              storeSearchLoading={storeSearchLoading}
+              gpsErrorMessage={gpsErrorMessage}
+              gpsStatusText={locationMessageVisible ? locationMessage : ""}
+              onLocationInputChange={(nextValue: string) => {
+                setLocationInput(nextValue);
+                if (nextValue.trim()) {
+                  gpsUserDisabledRefV306.current = true;
+                  setUsingOwnLocation(false);
+                }
+                setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
+              }}
+              onGpsClick={() => {
+                if (usingOwnLocation) {
+                  stopOwnLocationV306(
+                    "GPS pois päältä. Kirjoita alue tai postinumero.",
+                  );
+                  return;
+                }
+                setLocationInput("");
+                void useOwnLocation();
+              }}
+              onApplyLocation={() => openSelectedStoresMapV393()}
+              onOpenMap={() => openSelectedStoresMapV393()}
+            />
+          </div>
 
           <section className="rounded-[2rem] bg-white px-5 pb-2 pt-2 shadow-sm">
             <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 overflow-visible">
