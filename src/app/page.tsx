@@ -1,5 +1,7 @@
 "use client";
 
+// V425_RESTORE_TOPBAR_COMPONENT: palautettu KauppiasMobileTopBar build-virheen korjaamiseksi.
+
 // V424_REMOVE_DANGLING_GPS_CONDITIONAL: poistettu overlayn jäljelle jäänyt gpsCoordsV320-ehdollinen fragmentti.
 
 // V423_FINAL_REMOVE_MAP_OVERLAY_FRAGMENT: poistettu viimeinen keskeneräinen kartta-overlay fragmentti.
@@ -208,6 +210,59 @@ function kauppiasTopBarPanelClass(kind: KauppiasTopBarKind) {
   return `${base} border-[#caa66d] bg-[linear-gradient(180deg,#fff9de_0%,#ffe9a8_100%)] text-[#3f2b00]`;
 }
 
+
+
+function KauppiasMobileTopBar({
+  hidden = false,
+  areaLabel = "Hyvinkää",
+  onOpenCalendar,
+}: {
+  hidden?: boolean;
+  areaLabel?: string;
+  onOpenCalendar?: () => void;
+}) {
+  if (hidden) return null;
+
+  const now = new Date();
+  const day = String(now.getDate());
+
+  return (
+    <div className="fixed inset-x-0 top-[max(env(safe-area-inset-top),0px)] z-[90] mx-auto block w-full translate-y-0 transform-gpu px-[6px] pt-[4px] sm:hidden">
+      <div className="mx-auto flex h-[78px] w-[calc(100vw-12px)] max-w-none items-center overflow-hidden rounded-[1.65rem] border-[4px] border-[#073d32] bg-[#fff5d9] px-[7px] shadow-[0_10px_28px_rgba(8,42,35,0.18),inset_0_0_0_2px_rgba(255,255,255,0.7)]">
+        <div className="grid min-w-0 flex-1 grid-cols-[1fr_1fr_1.24fr_0.86fr] gap-[6px]">
+          <div className="relative h-[56px] min-w-0 overflow-hidden rounded-[0.42rem] border-[1.5px] border-[#b9d0ba] bg-[linear-gradient(180deg,#fff9e4_0%,#fff2c5_100%)] px-[5px] py-[4px] text-center text-[#083c32] shadow-[inset_0_1px_0_rgba(255,255,255,0.86),0_1px_0_rgba(0,0,0,0.08)]">
+            <div className="text-[10px] font-black uppercase tracking-[0.04em]">SÄÄ</div>
+            <div className="mt-1 text-[18px] font-black">—°</div>
+            <div className="truncate text-[8px] font-black opacity-75">{areaLabel}</div>
+          </div>
+
+          <div className="relative h-[56px] min-w-0 overflow-hidden rounded-[0.42rem] border-[1.5px] border-[#d6b667] bg-[linear-gradient(180deg,#fff4c8_0%,#ffe499_100%)] px-[5px] py-[4px] text-center text-[#593300] shadow-[inset_0_1px_0_rgba(255,255,255,0.86),0_1px_0_rgba(0,0,0,0.08)]">
+            <div className="text-[10px] font-black uppercase tracking-[0.04em]">SÄHKÖ</div>
+            <div className="mt-1 text-[18px] font-black">—</div>
+            <div className="truncate text-[8px] font-black opacity-75">c/kWh</div>
+          </div>
+
+          <div className="relative h-[56px] min-w-0 overflow-hidden rounded-[0.42rem] border-[1.5px] border-[#c98d65] bg-[linear-gradient(180deg,#fff0d7_0%,#ffd3af_100%)] px-[5px] py-[4px] text-center text-[#5a1f00] shadow-[inset_0_1px_0_rgba(255,255,255,0.86),0_1px_0_rgba(0,0,0,0.08)]">
+            <div className="text-[10px] font-black uppercase tracking-[0.04em]">AJOAINE</div>
+            <div className="mt-1 text-[18px] font-black">—</div>
+            <div className="truncate text-[8px] font-black opacity-75">Ei hintaa</div>
+          </div>
+
+          <button
+            type="button"
+            onClick={onOpenCalendar}
+            className="relative h-[56px] min-w-0 overflow-hidden rounded-[0.42rem] border-[1.5px] border-[#caa66d] bg-[linear-gradient(180deg,#fff9de_0%,#ffe9a8_100%)] px-[5px] py-[4px] text-center text-[#3f2b00] shadow-[inset_0_1px_0_rgba(255,255,255,0.86),0_1px_0_rgba(0,0,0,0.08)] active:scale-[0.985]"
+            aria-label="Kalenteri"
+          >
+            <div className="text-[10px] font-black uppercase tracking-[0.04em]">PVM</div>
+            <div className="mt-1 text-[18px] font-black">{day}</div>
+            <div className="truncate text-[8px] font-black opacity-75">Kalenteri</div>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function Page() {
   const TopbarResponsiveCard = ((TopbarResponsiveCardModule as any).default ||
