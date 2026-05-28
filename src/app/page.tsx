@@ -1,6 +1,6 @@
 "use client";
 
-// V415_DIRECT_SHOPS_MAPS_LOCATIONBAR: vanha inline GPS/Käytä-palkki korvattu maps-version ZiiplyMobileLocationBar-komponentilla.
+// V416_GPS_NOTIFICATION_AND_TOGGLE_STATE: GPS-tekstit mallin mukaisiksi ja off-tila pysyy punaisena.
 
 // V402_MOBILE_SEARCH_CARD_CONNECTED: ZiiplyMobileSearchCard kytketty mobiilin hakutuloksiin.
 
@@ -570,7 +570,7 @@ export default function Page() {
     "main" | "selection"
   >("main");
   const [locationMessage, setLocationMessage] = useState(
-    "Kirjoita alue tai käytä omaa sijaintia.",
+    "Kirjoita alue tai postinumero.",
   );
   const [locationMessageVisible, setLocationMessageVisible] = useState(true);
   const [usingOwnLocation, setUsingOwnLocation] = useState(true);
@@ -928,6 +928,7 @@ export default function Page() {
   }
 
   function setGpsVisibleMessageV391(areaLabel: string) {
+    setGpsErrorMessage("");
     setLocationMessage(`Käytetään GPS ${areaLabel}`);
     setLocationMessageVisible(true);
   }
@@ -1001,9 +1002,12 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
     setOpenStorePicker(null);
     setGpsStorePickerBlockedV382(false);
     setUsingOwnLocation(false);
+    setGpsCoordsV320(null);
+    setStoreSearchLoading(false);
     setGpsErrorMessage("");
     setLocationInput("");
     setLocationMessage(message);
+    setLocationMessageVisible(true);
     try {
       localStorage.removeItem("ziiply-use-own-location");
     } catch {}
@@ -3497,13 +3501,13 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
           ? Number((error as { code?: number }).code)
           : 0;
       if (gpsErrorCode === 1) {
-        setGpsErrorMessage("GPS-paikannus estetty selaimen asetuksissa.");
+        setGpsErrorMessage("GPS ei löydy");
       } else if (gpsErrorCode === 2) {
-        setGpsErrorMessage("GPS-sijaintia ei saatu haettua.");
+        setGpsErrorMessage("GPS ei löydy");
       } else if (gpsErrorCode === 3) {
-        setGpsErrorMessage("GPS-paikannus aikakatkaistiin.");
+        setGpsErrorMessage("GPS ei löydy");
       } else {
-        setGpsErrorMessage("GPS-paikannus ei ole käytettävissä.");
+        setGpsErrorMessage("GPS ei löydy");
       }
       setLocationMessage(
         source === "gps"
@@ -3558,14 +3562,18 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
       );
 
       if (!city) {
-        setLocationMessage("Sijaintia ei saatu. Valitse alue käsin.");
+        setGpsErrorMessage("GPS ei löydy");
+        setLocationMessage("GPS ei löydy");
+        setLocationMessageVisible(true);
         gpsUserDisabledRefV306.current = true;
         setUsingOwnLocation(false);
         setGpsCoordsV320(null);
         return;
       }
 
-      setLocationMessage(`${city} löytyi. Haetaan kaupat...`);
+      setGpsErrorMessage("");
+      setLocationMessage(`Käytetään GPS ${city}`);
+      setLocationMessageVisible(true);
       setLocationInput("");
       setStoreSearchLoading(false);
       await applyLocation(city, "gps", {
@@ -3579,15 +3587,16 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
           ? Number((error as { code?: number }).code)
           : 0;
       if (gpsErrorCode === 1) {
-        setGpsErrorMessage("GPS-paikannus estetty selaimen asetuksissa.");
+        setGpsErrorMessage("GPS ei löydy");
       } else if (gpsErrorCode === 2) {
-        setGpsErrorMessage("GPS-sijaintia ei saatu haettua.");
+        setGpsErrorMessage("GPS ei löydy");
       } else if (gpsErrorCode === 3) {
-        setGpsErrorMessage("GPS-paikannus aikakatkaistiin.");
+        setGpsErrorMessage("GPS ei löydy");
       } else {
-        setGpsErrorMessage("GPS-paikannus ei ole käytettävissä.");
+        setGpsErrorMessage("GPS ei löydy");
       }
-      setLocationMessage("Sijaintia ei saatu. Valitse alue käsin.");
+      setLocationMessage("GPS ei löydy");
+      setLocationMessageVisible(true);
       gpsUserDisabledRefV306.current = true;
       setUsingOwnLocation(false);
       setStoreSearchLoading(false);
@@ -3694,13 +3703,13 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
           ? Number((error as { code?: number }).code)
           : 0;
       if (gpsErrorCode === 1) {
-        setGpsErrorMessage("GPS-paikannus estetty selaimen asetuksissa.");
+        setGpsErrorMessage("GPS ei löydy");
       } else if (gpsErrorCode === 2) {
-        setGpsErrorMessage("GPS-sijaintia ei saatu haettua.");
+        setGpsErrorMessage("GPS ei löydy");
       } else if (gpsErrorCode === 3) {
-        setGpsErrorMessage("GPS-paikannus aikakatkaistiin.");
+        setGpsErrorMessage("GPS ei löydy");
       } else {
-        setGpsErrorMessage("GPS-paikannus ei ole käytettävissä.");
+        setGpsErrorMessage("GPS ei löydy");
       }
       setOffers([]);
     } finally {
@@ -3957,13 +3966,13 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
           ? Number((error as { code?: number }).code)
           : 0;
       if (gpsErrorCode === 1) {
-        setGpsErrorMessage("GPS-paikannus estetty selaimen asetuksissa.");
+        setGpsErrorMessage("GPS ei löydy");
       } else if (gpsErrorCode === 2) {
-        setGpsErrorMessage("GPS-sijaintia ei saatu haettua.");
+        setGpsErrorMessage("GPS ei löydy");
       } else if (gpsErrorCode === 3) {
-        setGpsErrorMessage("GPS-paikannus aikakatkaistiin.");
+        setGpsErrorMessage("GPS ei löydy");
       } else {
-        setGpsErrorMessage("GPS-paikannus ei ole käytettävissä.");
+        setGpsErrorMessage("GPS ei löydy");
       }
       setSearchDebug(debugEntries);
       setNormalResults([]);
@@ -4422,13 +4431,13 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
           ? Number((error as { code?: number }).code)
           : 0;
       if (gpsErrorCode === 1) {
-        setGpsErrorMessage("GPS-paikannus estetty selaimen asetuksissa.");
+        setGpsErrorMessage("GPS ei löydy");
       } else if (gpsErrorCode === 2) {
-        setGpsErrorMessage("GPS-sijaintia ei saatu haettua.");
+        setGpsErrorMessage("GPS ei löydy");
       } else if (gpsErrorCode === 3) {
-        setGpsErrorMessage("GPS-paikannus aikakatkaistiin.");
+        setGpsErrorMessage("GPS ei löydy");
       } else {
-        setGpsErrorMessage("GPS-paikannus ei ole käytettävissä.");
+        setGpsErrorMessage("GPS ei löydy");
       }
       await stopEanCameraScanner();
       setEanScannerMessage(
@@ -4818,13 +4827,13 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
           ? Number((error as { code?: number }).code)
           : 0;
       if (gpsErrorCode === 1) {
-        setGpsErrorMessage("GPS-paikannus estetty selaimen asetuksissa.");
+        setGpsErrorMessage("GPS ei löydy");
       } else if (gpsErrorCode === 2) {
-        setGpsErrorMessage("GPS-sijaintia ei saatu haettua.");
+        setGpsErrorMessage("GPS ei löydy");
       } else if (gpsErrorCode === 3) {
-        setGpsErrorMessage("GPS-paikannus aikakatkaistiin.");
+        setGpsErrorMessage("GPS ei löydy");
       } else {
-        setGpsErrorMessage("GPS-paikannus ei ole käytettävissä.");
+        setGpsErrorMessage("GPS ei löydy");
       }
       setEanResults([]);
       setEanSearchStartedAutomatically(false);
@@ -6646,13 +6655,13 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
           ? Number((error as { code?: number }).code)
           : 0;
       if (gpsErrorCode === 1) {
-        setGpsErrorMessage("GPS-paikannus estetty selaimen asetuksissa.");
+        setGpsErrorMessage("GPS ei löydy");
       } else if (gpsErrorCode === 2) {
-        setGpsErrorMessage("GPS-sijaintia ei saatu haettua.");
+        setGpsErrorMessage("GPS ei löydy");
       } else if (gpsErrorCode === 3) {
-        setGpsErrorMessage("GPS-paikannus aikakatkaistiin.");
+        setGpsErrorMessage("GPS ei löydy");
       } else {
-        setGpsErrorMessage("GPS-paikannus ei ole käytettävissä.");
+        setGpsErrorMessage("GPS ei löydy");
       }
       setAlternativeResults((prev) => ({
         ...prev,
@@ -6998,13 +7007,13 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
           ? Number((error as { code?: number }).code)
           : 0;
       if (gpsErrorCode === 1) {
-        setGpsErrorMessage("GPS-paikannus estetty selaimen asetuksissa.");
+        setGpsErrorMessage("GPS ei löydy");
       } else if (gpsErrorCode === 2) {
-        setGpsErrorMessage("GPS-sijaintia ei saatu haettua.");
+        setGpsErrorMessage("GPS ei löydy");
       } else if (gpsErrorCode === 3) {
-        setGpsErrorMessage("GPS-paikannus aikakatkaistiin.");
+        setGpsErrorMessage("GPS ei löydy");
       } else {
-        setGpsErrorMessage("GPS-paikannus ei ole käytettävissä.");
+        setGpsErrorMessage("GPS ei löydy");
       }
       alert(
         "Korivaihtoehtojen haku epäonnistui. Kokeile hetken päästä uudelleen.",
@@ -8481,7 +8490,7 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
                         gpsUserDisabledRefV306.current = true;
                         setUsingOwnLocation(false);
                       }
-                      setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
+                      setLocationMessage("Kirjoita alue tai postinumero.");
                     }}
                     onApplyLocation={() => openSelectedStoresMapV393()}
                     onUseOwnLocation={() => void useOwnLocation()}
@@ -9211,17 +9220,24 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
                 if (nextValue.trim()) {
                   gpsUserDisabledRefV306.current = true;
                   setUsingOwnLocation(false);
+                  setGpsErrorMessage("");
                 }
-                setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
+                setLocationMessage("Kirjoita alue tai postinumero.");
+                setLocationMessageVisible(true);
               }}
               onGpsClick={() => {
                 if (usingOwnLocation) {
                   stopOwnLocationV306(
                     "GPS pois päältä. Kirjoita alue tai postinumero.",
                   );
+                  setLocationMessageVisible(true);
                   return;
                 }
+                gpsUserDisabledRefV306.current = false;
+                setGpsErrorMessage("");
                 setLocationInput("");
+                setLocationMessage("Paikannetaan GPS…");
+                setLocationMessageVisible(true);
                 void useOwnLocation();
               }}
               onApplyLocation={() => openSelectedStoresMapV393()}
