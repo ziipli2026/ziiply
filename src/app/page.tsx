@@ -1,6 +1,8 @@
 "use client";
 
-// V426_LOCATIONBAR_REQUIRED_PROPS: lisätty onApplyLocation/onOpenMap kaikkiin ZiiplyMobileLocationBar-kutsuihin.
+// V428_ROUTE_OVERLAY_BUTTON: kompassi avaa kartta-overlayn ja Näytä reitti -napin.
+
+// V427_TOPBAR_GRAPHICS_AND_HAKUTAPA_NOTICE: palautettu graafinen yläpalkki ja lisätty hakutapa-huomio.
 
 // V425_RESTORE_TOPBAR_COMPONENT: palautettu KauppiasMobileTopBar build-virheen korjaamiseksi.
 
@@ -214,6 +216,75 @@ function kauppiasTopBarPanelClass(kind: KauppiasTopBarKind) {
 
 
 
+function KauppiasWeatherGraphic() {
+  return (
+    <svg viewBox="0 0 64 64" className="h-[24px] w-[24px] drop-shadow-sm" aria-hidden="true">
+      <circle cx="24" cy="23" r="11" fill="#ffd84d" stroke="#e2a400" strokeWidth="3" />
+      <path d="M24 4v8M24 34v8M5 23h8M35 23h8M10 9l6 6M38 9l-6 6" stroke="#f5b400" strokeWidth="4" strokeLinecap="round" />
+      <path d="M25 47h25a10 10 0 0 0 0-20 14 14 0 0 0-26-3 12 12 0 0 0 1 23Z" fill="#f4fbff" stroke="#b6d5ea" strokeWidth="3" />
+    </svg>
+  );
+}
+
+function KauppiasElectricityGraphic() {
+  return (
+    <svg viewBox="0 0 64 64" className="h-[25px] w-[25px] drop-shadow-sm" aria-hidden="true">
+      <path d="M37 3 14 36h18L25 61l25-36H32L37 3Z" fill="#ffc226" stroke="#e58b00" strokeWidth="4" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function KauppiasFuelGraphic() {
+  return (
+    <svg viewBox="0 0 64 64" className="h-[25px] w-[25px] drop-shadow-sm" aria-hidden="true">
+      <rect x="14" y="9" width="28" height="45" rx="5" fill="#d71920" stroke="#9b1117" strokeWidth="4" />
+      <rect x="19" y="15" width="18" height="12" rx="2" fill="#fff4e8" />
+      <path d="M42 18h6l6 8v24a5 5 0 0 1-10 0V32" fill="none" stroke="#9b1117" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M48 18v12h7" fill="none" stroke="#9b1117" strokeWidth="4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function KauppiasCalendarGraphic({ day }: { day: string }) {
+  return (
+    <svg viewBox="0 0 64 64" className="h-[25px] w-[25px] drop-shadow-sm" aria-hidden="true">
+      <rect x="10" y="12" width="44" height="42" rx="6" fill="#fff9e8" stroke="#8a5b1d" strokeWidth="4" />
+      <path d="M10 22h44" stroke="#c83927" strokeWidth="8" />
+      <path d="M22 8v10M42 8v10" stroke="#8a5b1d" strokeWidth="5" strokeLinecap="round" />
+      <text x="32" y="46" textAnchor="middle" fontSize="22" fontWeight="900" fill="#17322a">
+        {day}
+      </text>
+    </svg>
+  );
+}
+
+function kauppiasWeatherTextFromCode(code?: number) {
+  if (code == null) return "Sää";
+  if (code === 0) return "Selkeää";
+  if ([1, 2, 3].includes(code)) return "Puolipilvistä";
+  if ([45, 48].includes(code)) return "Sumua";
+  if ([51, 53, 55, 56, 57].includes(code)) return "Tihkua";
+  if ([61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return "Sadetta";
+  if ([71, 73, 75, 77, 85, 86].includes(code)) return "Lunta";
+  if ([95, 96, 99].includes(code)) return "Ukkosta";
+  return "Sää";
+}
+
+const KAUPPIAS_FI_MONTH_SHORT = [
+  "TAM",
+  "HEL",
+  "MAA",
+  "HUI",
+  "TOU",
+  "KES",
+  "HEI",
+  "ELO",
+  "SYY",
+  "LOK",
+  "MAR",
+  "JOU",
+];
+
 function KauppiasMobileTopBar({
   hidden = false,
   areaLabel = "Hyvinkää",
@@ -223,48 +294,254 @@ function KauppiasMobileTopBar({
   areaLabel?: string;
   onOpenCalendar?: () => void;
 }) {
-  if (hidden) return null;
+  const [weatherValue, setWeatherValue] = useState("+12°");
+  const [weatherText, setWeatherText] = useState(areaLabel);
+  const [electricityValue, setElectricityValue] = useState("4,2");
+  const [electricityText, setElectricityText] = useState("c/kWh");
+  const [electricityTrend, setElectricityTrend] = useState<"up" | "down" | "flat">("flat");
 
-  const now = new Date();
-  const day = String(now.getDate());
+  useEffect(() => {
+    if (hidden || typeof window === "undefined" || !navigator.geolocation) return;
+
+    let cancelled = false;
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const { latitude, longitude } = position.coords;
+          const response = await fetch(
+            `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(latitude)}&longitude=${encodeURIComponent(longitude)}&current=temperature_2m,weather_code&timezone=auto`,
+            { cache: "no-store" },
+          );
+
+          if (!response.ok || cancelled) return;
+
+          const data = await response.json();
+          const temp = Number(data?.current?.temperature_2m);
+          const code = Number(data?.current?.weather_code);
+
+          if (Number.isFinite(temp)) {
+            setWeatherValue(`${temp >= 0 ? "+" : ""}${Math.round(temp)}°`);
+          }
+
+          setWeatherText(kauppiasWeatherTextFromCode(Number.isFinite(code) ? code : undefined));
+        } catch {
+          if (!cancelled) setWeatherText(areaLabel);
+        }
+      },
+      () => {
+        if (!cancelled) setWeatherText(areaLabel);
+      },
+      { enableHighAccuracy: false, timeout: 5500, maximumAge: 300000 },
+    );
+
+    return () => {
+      cancelled = true;
+    };
+  }, [areaLabel, hidden]);
+
+  useEffect(() => {
+    if (hidden || typeof window === "undefined") return;
+
+    let cancelled = false;
+
+    async function loadElectricity() {
+      try {
+        const response = await fetch("https://api.porssisahko.net/v1/latest-prices.json", {
+          cache: "no-store",
+        });
+
+        if (!response.ok || cancelled) return;
+
+        const data = await response.json();
+        const prices = Array.isArray(data?.prices) ? data.prices : [];
+        const now = Date.now();
+
+        const enrichedPrices = prices
+          .map((item: any) => ({
+            ...item,
+            priceNumber: Number(item.price),
+            startMs: new Date(item.startDate).getTime(),
+            endMs: new Date(item.endDate).getTime(),
+          }))
+          .filter(
+            (item: any) =>
+              Number.isFinite(item.priceNumber) &&
+              Number.isFinite(item.startMs) &&
+              Number.isFinite(item.endMs),
+          )
+          .sort((a: any, b: any) => a.startMs - b.startMs);
+
+        const currentIndex = enrichedPrices.findIndex(
+          (item: any) => item.startMs <= now && now < item.endMs,
+        );
+
+        const current = currentIndex >= 0 ? enrichedPrices[currentIndex] : null;
+        const nextWindow =
+          currentIndex >= 0 ? enrichedPrices.slice(currentIndex + 1, currentIndex + 4) : [];
+
+        const price = Number(current?.priceNumber);
+        if (Number.isFinite(price)) {
+          setElectricityValue(
+            price.toLocaleString("fi-FI", {
+              minimumFractionDigits: 1,
+              maximumFractionDigits: 1,
+            }),
+          );
+          setElectricityText("c/kWh");
+
+          const nextAverage =
+            nextWindow.length > 0
+              ? nextWindow.reduce((sum: number, item: any) => sum + item.priceNumber, 0) /
+                nextWindow.length
+              : price;
+
+          const diff = nextAverage - price;
+          if (diff > 0.4) setElectricityTrend("up");
+          else if (diff < -0.4) setElectricityTrend("down");
+          else setElectricityTrend("flat");
+        }
+      } catch {
+        // pidetään nykyinen arvo
+      }
+    }
+
+    loadElectricity();
+    const interval = window.setInterval(loadElectricity, 5 * 60 * 1000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, [hidden]);
+
+  const calendarDisplay = useMemo(() => {
+    const now = new Date();
+    return {
+      day: String(now.getDate()),
+      month: KAUPPIAS_FI_MONTH_SHORT[now.getMonth()] || "",
+    };
+  }, []);
+
+  const electricityTrendArrow =
+    electricityTrend === "up" ? "↗" : electricityTrend === "down" ? "↘" : "→";
+  const electricityTrendClass =
+    electricityTrend === "up"
+      ? "text-[#bc1f1f]"
+      : electricityTrend === "down"
+        ? "text-[#087a3a]"
+        : "text-[#68727c]";
+
+  const panels = [
+    {
+      id: "weather" as const,
+      title: "SÄÄ",
+      value: weatherValue,
+      unit: "",
+      detail: weatherText,
+      graphic: <KauppiasWeatherGraphic />,
+    },
+    {
+      id: "electricity" as const,
+      title: "SÄHKÖ",
+      value: electricityValue,
+      unit: "c/kWh",
+      detail: electricityText,
+      graphic: <KauppiasElectricityGraphic />,
+    },
+    {
+      id: "fuel" as const,
+      title: "AJOAINE",
+      value: "—",
+      unit: "",
+      detail: "Ei hintaa",
+      graphic: <KauppiasFuelGraphic />,
+    },
+    {
+      id: "calendar" as const,
+      title: calendarDisplay.month,
+      value: calendarDisplay.day,
+      unit: "",
+      detail: "Kalenteri",
+      graphic: <KauppiasCalendarGraphic day={calendarDisplay.day} />,
+      onClick: onOpenCalendar,
+    },
+  ];
+
+  if (hidden) return null;
 
   return (
     <div className="fixed inset-x-0 top-[max(env(safe-area-inset-top),0px)] z-[90] mx-auto block w-full translate-y-0 transform-gpu px-[6px] pt-[4px] sm:hidden">
       <div className="mx-auto flex h-[78px] w-[calc(100vw-12px)] max-w-none items-center overflow-hidden rounded-[1.65rem] border-[4px] border-[#073d32] bg-[#fff5d9] px-[7px] shadow-[0_10px_28px_rgba(8,42,35,0.18),inset_0_0_0_2px_rgba(255,255,255,0.7)]">
         <div className="grid min-w-0 flex-1 grid-cols-[1fr_1fr_1.24fr_0.86fr] gap-[6px]">
-          <div className="relative h-[56px] min-w-0 overflow-hidden rounded-[0.42rem] border-[1.5px] border-[#b9d0ba] bg-[linear-gradient(180deg,#fff9e4_0%,#fff2c5_100%)] px-[5px] py-[4px] text-center text-[#083c32] shadow-[inset_0_1px_0_rgba(255,255,255,0.86),0_1px_0_rgba(0,0,0,0.08)]">
-            <div className="text-[10px] font-black uppercase tracking-[0.04em]">SÄÄ</div>
-            <div className="mt-1 text-[18px] font-black">—°</div>
-            <div className="truncate text-[8px] font-black opacity-75">{areaLabel}</div>
-          </div>
+          {panels.map((panel) => {
+            const inner = (
+              <>
+                <span className="absolute left-[4px] top-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
+                <span className="absolute right-[4px] top-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
+                <span className="absolute bottom-[4px] left-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
+                <span className="absolute bottom-[4px] right-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.70),transparent_55%)]" />
 
-          <div className="relative h-[56px] min-w-0 overflow-hidden rounded-[0.42rem] border-[1.5px] border-[#d6b667] bg-[linear-gradient(180deg,#fff4c8_0%,#ffe499_100%)] px-[5px] py-[4px] text-center text-[#593300] shadow-[inset_0_1px_0_rgba(255,255,255,0.86),0_1px_0_rgba(0,0,0,0.08)]">
-            <div className="text-[10px] font-black uppercase tracking-[0.04em]">SÄHKÖ</div>
-            <div className="mt-1 text-[18px] font-black">—</div>
-            <div className="truncate text-[8px] font-black opacity-75">c/kWh</div>
-          </div>
+                <div className="relative z-10 flex h-full flex-col items-center justify-center text-center leading-none">
+                  <div className="flex items-center justify-center gap-[2px]">
+                    {panel.graphic}
+                    <div className="text-[10px] font-black uppercase tracking-[0.04em]">
+                      {panel.title}
+                    </div>
+                  </div>
 
-          <div className="relative h-[56px] min-w-0 overflow-hidden rounded-[0.42rem] border-[1.5px] border-[#c98d65] bg-[linear-gradient(180deg,#fff0d7_0%,#ffd3af_100%)] px-[5px] py-[4px] text-center text-[#5a1f00] shadow-[inset_0_1px_0_rgba(255,255,255,0.86),0_1px_0_rgba(0,0,0,0.08)]">
-            <div className="text-[10px] font-black uppercase tracking-[0.04em]">AJOAINE</div>
-            <div className="mt-1 text-[18px] font-black">—</div>
-            <div className="truncate text-[8px] font-black opacity-75">Ei hintaa</div>
-          </div>
+                  <div className="mt-[1px] flex items-end justify-center gap-[2px]">
+                    <span className="text-[18px] font-black leading-none tracking-[-0.04em] text-[#041b19]">
+                      {panel.value}
+                    </span>
+                    {panel.id === "electricity" && (
+                      <span className={`pb-[1px] text-[14px] font-black leading-none ${electricityTrendClass}`}>
+                        {electricityTrendArrow}
+                      </span>
+                    )}
+                    {panel.unit && (
+                      <span className="pb-[1px] text-[8px] font-black leading-none opacity-80">
+                        {panel.unit}
+                      </span>
+                    )}
+                  </div>
 
-          <button
-            type="button"
-            onClick={onOpenCalendar}
-            className="relative h-[56px] min-w-0 overflow-hidden rounded-[0.42rem] border-[1.5px] border-[#caa66d] bg-[linear-gradient(180deg,#fff9de_0%,#ffe9a8_100%)] px-[5px] py-[4px] text-center text-[#3f2b00] shadow-[inset_0_1px_0_rgba(255,255,255,0.86),0_1px_0_rgba(0,0,0,0.08)] active:scale-[0.985]"
-            aria-label="Kalenteri"
-          >
-            <div className="text-[10px] font-black uppercase tracking-[0.04em]">PVM</div>
-            <div className="mt-1 text-[18px] font-black">{day}</div>
-            <div className="truncate text-[8px] font-black opacity-75">Kalenteri</div>
-          </button>
+                  <div className="mt-[2px] max-w-full truncate px-1 text-[8px] font-black leading-none opacity-75">
+                    {panel.detail}
+                  </div>
+                </div>
+              </>
+            );
+
+            const className = kauppiasTopBarPanelClass(panel.id);
+
+            if (panel.onClick) {
+              return (
+                <button
+                  key={panel.id}
+                  type="button"
+                  onClick={panel.onClick}
+                  className={className}
+                  aria-label={panel.title}
+                >
+                  {inner}
+                </button>
+              );
+            }
+
+            return (
+              <div key={panel.id} className={className}>
+                {inner}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
   );
 }
+
 
 export default function Page() {
   const TopbarResponsiveCard = ((TopbarResponsiveCardModule as any).default ||
@@ -612,7 +889,8 @@ export default function Page() {
   const [searchPanelOpen, setSearchPanelOpen] = useState(false);
   const [cartModalOpen, setCartModalOpen] = useState(false);
   const [cartSavePanelOpen, setCartSavePanelOpen] = useState(false);
-  const [shopsPanelOpen, setShopsPanelOpen] = useState(false);  const [initialStoreNavPrompt, setInitialStoreNavPrompt] = useState(true);
+  const [shopsPanelOpen, setShopsPanelOpen] = useState(false);
+  const [mapRouteOverlayOpenV428, setMapRouteOverlayOpenV428] = useState(false);  const [initialStoreNavPrompt, setInitialStoreNavPrompt] = useState(true);
   const [gpsErrorMessage, setGpsErrorMessage] = useState("");
   const [gpsAutoActivatedV287, setGpsAutoActivatedV287] = useState(false);
   const gpsUserDisabledRefV306 = useRef(false);
@@ -1347,6 +1625,105 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
 
   const hasActiveStores =
     activeStores.sStoreId > 0 && activeStores.kStoreId > 0;
+
+  const selectedRouteStoreV428 = useMemo(() => {
+    const targetName =
+      activeStores.sStoreName &&
+      !activeStores.sStoreName.includes("Valitse ensin") &&
+      !activeStores.sStoreName.includes("ei valittu")
+        ? activeStores.sStoreName
+        : activeStores.kStoreName;
+
+    const candidates = foundStores.map((store: any, index: number) => {
+      const latitude = Number(
+        store.latitude ??
+          store.lat ??
+          store.location?.lat ??
+          store.coordinates?.latitude,
+      );
+      const longitude = Number(
+        store.longitude ??
+          store.lng ??
+          store.lon ??
+          store.location?.lng ??
+          store.location?.lon ??
+          store.coordinates?.longitude,
+      );
+
+      return {
+        key: String(store.id ?? store.storeId ?? store.name ?? index),
+        name: String(store.name ?? store.storeName ?? `Kauppa ${index + 1}`),
+        address: String(store.address ?? store.streetAddress ?? ""),
+        city: String(store.city ?? activeArea.label ?? "Suomi"),
+        latitude: Number.isFinite(latitude) ? latitude : null,
+        longitude: Number.isFinite(longitude) ? longitude : null,
+      };
+    });
+
+    const normalizedTarget = normalize(String(targetName || ""));
+    const exact =
+      normalizedTarget &&
+      candidates.find((store) => normalize(store.name).includes(normalizedTarget) || normalizedTarget.includes(normalize(store.name)));
+
+    return (
+      exact ||
+      candidates[0] || {
+        key: "area",
+        name: targetName || activeArea.label || "Valittu kauppa",
+        address: "",
+        city: activeArea.label || "Suomi",
+        latitude: null,
+        longitude: null,
+      }
+    );
+  }, [activeStores.sStoreName, activeStores.kStoreName, foundStores, activeArea.label]);
+
+  function getRouteDestinationV428() {
+    if (
+      selectedRouteStoreV428.latitude != null &&
+      selectedRouteStoreV428.longitude != null
+    ) {
+      return `${selectedRouteStoreV428.latitude},${selectedRouteStoreV428.longitude}`;
+    }
+
+    return [
+      selectedRouteStoreV428.name,
+      selectedRouteStoreV428.address,
+      selectedRouteStoreV428.city,
+      "Suomi",
+    ]
+      .filter(Boolean)
+      .join(", ");
+  }
+
+  function getRouteUrlV428() {
+    const destination = encodeURIComponent(getRouteDestinationV428());
+    const origin =
+      gpsCoordsV320?.latitude != null && gpsCoordsV320?.longitude != null
+        ? encodeURIComponent(`${gpsCoordsV320.latitude},${gpsCoordsV320.longitude}`)
+        : "";
+
+    return origin
+      ? `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=driving`
+      : `https://www.google.com/maps/search/?api=1&query=${destination}`;
+  }
+
+  function openRouteInMapsV428() {
+    const url = getRouteUrlV428();
+    if (typeof window !== "undefined") {
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
+  }
+
+  const mapRouteIframeSrcV428 = `https://maps.google.com/maps?q=${encodeURIComponent(getRouteDestinationV428())}&z=14&output=embed`;
+
+  const storePairMissingNoticeVisibleV427 =
+    storeModeChosenV299 &&
+    storeCompareScope === "between_chains" &&
+    (
+      (storeMode === "hyper" && (!activeArea.sStoreId || !activeArea.kStoreId)) ||
+      (storeMode === "local" && (!activeArea.sLocalStoreId || !activeArea.kLocalStoreId))
+    );
 
   const hyperStorePairMissingV391 =
     storeMode === "hyper" &&
@@ -8945,8 +9322,8 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
               storeSearchLoading={storeSearchLoading}
               gpsErrorMessage={gpsErrorMessage}
               gpsStatusText={locationMessageVisible ? locationMessage : ""}
-              onApplyLocation={() => openSelectedStoresMapV393()}
-              onOpenMap={() => openSelectedStoresMapV393()}
+              onApplyLocation={() => setMapRouteOverlayOpenV428(true)}
+              onOpenMap={() => setMapRouteOverlayOpenV428(true)}
               onLocationInputChange={(nextValue: string) => {
                 setLocationInput(nextValue);
                 if (nextValue.trim()) {
@@ -9039,7 +9416,7 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
               {storeCompareScope === "between_chains" &&
                 selectedRealChainCount < 2 && (
                   <p className="mt-2 rounded-xl bg-amber-50 px-4 py-3 font-black text-amber-800 ring-1 ring-amber-100">
-                    Vertailu ei ole mahdollinen vain yhdellä valitulla ketjulla.
+                    Valitse kaksi ketjua vertailuun.
                   </p>
                 )}
               {storeCompareScope === "within_chain" && !withinChain && (
@@ -10504,6 +10881,10 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
           .ziiply-cart-retro-fix img { object-fit: contain; }
           .ziiply-cart-retro-fix [class*="rounded"] { box-sizing: border-box; }
           .ziiply-cart-retro-fix [class*="Pois"] { flex-shrink: 0; }
+        @keyframes ziiplyHintPop {
+          0%, 100% { opacity: 0; transform: translateY(4px) scale(0.96); }
+          18%, 78% { opacity: 1; transform: translateY(0) scale(1); }
+        }
         @keyframes ziiplyFade {
           0% { opacity: 0; transform: translateY(10px); }
           12% { opacity: 1; transform: translateY(0); }
@@ -10513,6 +10894,74 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
       `}</style>
 
         
+
+
+        {mapRouteOverlayOpenV428 && (
+          <div className="fixed inset-0 z-[120] bg-[#062f29]/45 px-3 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-[calc(env(safe-area-inset-top)+1rem)] backdrop-blur-sm sm:hidden">
+            <div className="mx-auto flex h-full max-w-[430px] flex-col overflow-hidden rounded-[2rem] border-[3px] border-[#c9a85c] bg-[#fff8dc] shadow-[0_24px_60px_rgba(0,0,0,0.35)]">
+              <div className="flex items-center justify-between border-b border-[#d6bd76] bg-[#073d32] px-4 py-3 text-white">
+                <div className="flex items-center gap-3">
+                  <div className="grid h-12 w-12 place-items-center rounded-full bg-[#fff7dc] shadow-inner ring-1 ring-[#d6bd76]">
+                    <img
+                      src="/icons/ziiply-compass.png"
+                      alt=""
+                      className="h-10 w-10 object-contain"
+                      draggable={false}
+                    />
+                  </div>
+                  <div>
+                    <div className="text-sm font-black uppercase tracking-[0.18em] text-[#f6d77b]">
+                      Reitti
+                    </div>
+                    <div className="max-w-[220px] truncate text-lg font-black leading-tight">
+                      {selectedRouteStoreV428.name}
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setMapRouteOverlayOpenV428(false)}
+                  className="grid h-10 w-10 place-items-center rounded-full bg-white/12 text-2xl font-black active:scale-95"
+                  aria-label="Sulje kartta"
+                >
+                  ×
+                </button>
+              </div>
+
+              <div className="relative min-h-0 flex-1 bg-white">
+                <iframe
+                  title="Ziiply kartta"
+                  src={mapRouteIframeSrcV428}
+                  className="h-full w-full border-0"
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+              </div>
+
+              <div className="space-y-2 border-t border-[#d6bd76] bg-[#fff8dc] p-3">
+                {gpsCoordsV320 ? (
+                  <div className="rounded-2xl bg-[#e7f6ee] px-3 py-2 text-sm font-black text-[#087a3a]">
+                    Oma sijainti mukana reittiohjeessa.
+                  </div>
+                ) : (
+                  <div className="rounded-2xl bg-[#fff1c7] px-3 py-2 text-sm font-black text-[#7b5a14]">
+                    GPS ei ole päällä. Reitti avautuu ilman lähtöpistettä.
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={openRouteInMapsV428}
+                  className="flex w-full items-center justify-center gap-3 rounded-2xl bg-[#073d32] px-4 py-4 text-lg font-black text-[#fff7dc] shadow-[0_8px_18px_rgba(7,61,50,0.24)] active:scale-[0.99]"
+                >
+                  <span>Näytä reitti</span>
+                  <span className="text-2xl">↗</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
 
       </main>
