@@ -5,6 +5,8 @@
 // V466_GPS_BOOT_SINGLE_FLIGHT: estää reload/avaa-tupla-GPS-haun ja siistii GPS-ilmoitukset ilman pisteitä.
 // V471_GPS_SINGLE_OWNER_BOOT: GPS:n avausajo omistaa kaiken paikannuksen; vanha status-effect/fallback ei saa käynnistää toista hakua.
 
+// V473_TOPBAR_WEATHER_NO_GPS_NO_BOOT_RACE: sää-yläpalkki ei voi käynnistää GPS:ää eikä sääfetch käynnisty ennen kuin boot-GPS on valmis.
+
 // V457_REMOVE_FULL_OLD_HAE_INLINE_RENDER: page.tsx:n vanha Hae-paneeli poistettu; mobiilihaku renderöidään ZiiplyMobileSearchCard-komponentilla.
 
 // V456_REMOVE_HAE_OLD_THREE_BUTTON_ROW: poistettu Hae-kortin vanha Huojennukset/Lisää koriin/Vertailu -rivi kokonaan.
@@ -364,11 +366,13 @@ function KauppiasMobileTopBar({
   hidden = false,
   areaLabel = "Hyvinkää",
   gpsCoords = null,
+  weatherEnabled = false,
   onOpenCalendar,
 }: {
   hidden?: boolean;
   areaLabel?: string;
   gpsCoords?: { latitude: number; longitude: number } | null;
+  weatherEnabled?: boolean;
   onOpenCalendar?: () => void;
 }) {
   const [weatherValue, setWeatherValue] = useState("+12°");
@@ -378,16 +382,17 @@ function KauppiasMobileTopBar({
   const [electricityTrend, setElectricityTrend] = useState<"up" | "down" | "flat">("flat");
 
   useEffect(() => {
-    // V468_TOPBAR_WEATHER_FROM_PAGE_COORDS:
-    // Yläpalkki ei tee omaa navigator.geolocation-kutsua. Se käyttää page.tsx:n jo
-    // hakemia GPS-koordinaatteja, joten sää toimii ilman toista GPS-käynnistystä.
+    // V473_TOPBAR_WEATHER_NO_GPS:
+    // Sääkenttä ei saa koskaan kutsua navigator.geolocationia eikä käynnistyä
+    // boot-paikannuksen aikana. Se käyttää vain page.tsx:n valmiiksi hyväksyttyjä
+    // koordinaatteja, jotta sääappi ei aiheuta toista GPS-starttia.
     if (hidden) return;
 
     setWeatherText(areaLabel);
 
     const latitude = Number(gpsCoords?.latitude);
     const longitude = Number(gpsCoords?.longitude);
-    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    if (!weatherEnabled || !Number.isFinite(latitude) || !Number.isFinite(longitude)) {
       setWeatherValue("—°");
       return;
     }
@@ -425,7 +430,7 @@ function KauppiasMobileTopBar({
     return () => {
       cancelled = true;
     };
-  }, [areaLabel, gpsCoords?.latitude, gpsCoords?.longitude, hidden]);
+  }, [areaLabel, gpsCoords?.latitude, gpsCoords?.longitude, hidden, weatherEnabled]);
 
   useEffect(() => {
     if (hidden || typeof window === "undefined") return;
@@ -675,6 +680,7 @@ export default function Page() {
     latitude: number;
     longitude: number;
   } | null>(null);
+  const [gpsBootReadyV473, setGpsBootReadyV473] = useState(false);
   const [storeDistanceFallbacksV320, setStoreDistanceFallbacksV320] = useState<
     Record<string, number>
   >({});
@@ -3979,6 +3985,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
       gpsSearchInFlightRefV465.current = false;
       ziiplyGpsHardInFlightV469 = false;
+      setGpsBootReadyV473(true);
       window.setTimeout(() => {
         setGpsStorePickerBlockedV382(false);
       }, 180);
@@ -4004,6 +4011,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     gpsInitialVisiblePhaseRefV391.current = false;
     setGpsErrorMessage("");
     setLocationInput("");
+    setGpsBootReadyV473(false);
 
     // V472: boot/reload-käynnistys käyttää omaa kertalukkoaan.
     // Manuaalinen GPS-nappi kutsuu edelleen useOwnLocation("manual") ja toimii normaalisti.
@@ -9529,6 +9537,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             hidden={showLaunchScreen}
             areaLabel={activeArea.label}
             gpsCoords={gpsCoordsV320}
+            weatherEnabled={gpsBootReadyV473 && !storeSearchLoading}
             onOpenCalendar={() => {
               try {
                 window.location.href = "calshow://";
