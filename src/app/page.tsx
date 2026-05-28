@@ -1,6 +1,7 @@
 "use client";
 
 // V495_GPS_SUCCESS_UI_RELEASE: GPS onnistumisen jälkeen vapautetaan UI eksplisiittisesti pois pending/jumi-tilasta.
+// V496_GPS_STATUS_RENDER_FORCE: GPS onnistumisen jälkeen status pakotetaan renderöintiin; logi + karttatoiminnot pois testistä.
 // V492_GPS_DEBUG_LOG_MAP_DISABLED: ruudulle näkyvä GPS-logi + karttatoiminnot pois testistä.
 // V491_GPS_SINGLE_PROMISE_CONTROLLED_RETRY: getCurrentPosition dedupataan yhteen promiseen ja ensimmäisen hutiyrityksen jälkeen tehdään yksi sisäinen retry ilman uutta UI-starttia.
 
@@ -3938,6 +3939,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       );
     } finally {
       setStoreSearchLoading(false);
+      if (source === "gps") {
+        setGpsErrorMessage("");
+        setLocationMessage(`${nextArea.label || query} käytössä`);
+        setLocationMessageVisible(true);
+      }
     }
   }
 
@@ -6381,11 +6387,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setInitialStoreNavPrompt(false);
       setShopsPanelOpen(true);
       setOpenStorePicker(null);
-      setLocationMessage(
-        storeSearchLoading
-          ? "Haetaan kauppoja sijainnin perusteella"
-          : "Haetaan nykyistä sijaintia",
-      );
+      if (!(usingOwnLocation && gpsCoordsV320 && foundStores.length > 0)) {
+        setLocationMessage(
+          storeSearchLoading
+            ? "Haetaan kauppoja sijainnin perusteella"
+            : "Haetaan nykyistä sijaintia",
+        );
+      }
       // V471: älä starttaa GPS:ää Kaupat-paneelin fallbackista.
       // Jos boot-haku on kesken, näytä vain tila; jos käyttäjä haluaa uuden haun, GPS-nappi tekee sen.
       return;
@@ -8502,11 +8510,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           event.stopPropagation();
           if (!storePickerCanOpenV366) {
             setOpenStorePicker(null);
-            setLocationMessage(
-              storeSearchLoading || gpsStoreLocationPendingV366 || gpsStorePickerBlockedV382
-                ? "Paikannetaan GPS"
-                : "Paikannetaan GPS",
-            );
+            if (usingOwnLocation && gpsCoordsV320 && foundStores.length > 0) {
+              setLocationMessage(`${activeArea.label || "Sijainti"} käytössä`);
+            } else {
+              setLocationMessage(
+                storeSearchLoading || gpsStoreLocationPendingV366 || gpsStorePickerBlockedV382
+                  ? "Haetaan kauppoja sijainnin perusteella"
+                  : "GPS ei vielä valmis",
+              );
+            }
             return;
           }
           if (!hasMany) {
@@ -9222,8 +9234,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       setShopsPanelOpen(true);
                     }}
                     usingOwnLocation={usingOwnLocation}
-                    locationMessage={formatLocationNoticeV465(locationMessage)}
-                    locationMessageVisible={locationMessageVisible}
+                    locationMessage={
+                      usingOwnLocation && !storeSearchLoading && !gpsErrorMessage
+                        ? `${activeArea.label || "Sijainti"} käytössä`
+                        : formatLocationNoticeV465(locationMessage)
+                    }
+                    locationMessageVisible={true}
                     storeSearchLoading={storeSearchLoading}
                     placeholder="05510 tai Hyvinkää"
                   />
@@ -9930,7 +9946,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               usingOwnLocation={usingOwnLocation}
               storeSearchLoading={storeSearchLoading}
               gpsErrorMessage={gpsErrorMessage}
-              gpsStatusText={locationMessageVisible ? formatLocationNoticeV465(locationMessage) : ""}
+              gpsStatusText={
+                usingOwnLocation && !storeSearchLoading && !gpsErrorMessage
+                  ? `${activeArea.label || "Sijainti"} käytössä`
+                  : locationMessageVisible
+                    ? formatLocationNoticeV465(locationMessage)
+                    : ""
+              }
               onApplyLocation={() => {
                 pushGpsDebugLogV492("MAP/APPLY disabled in v492 test");
               }}
