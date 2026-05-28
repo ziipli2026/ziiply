@@ -1,6 +1,7 @@
 "use client";
 
 // V458_MOBILE_VOICE_TOGGLE_SILENCE_SEARCH: mobiilin mikki toimii toggle-na; 2,5s hiljaisuudesta stop + automaattinen haku.
+// V465_GPS_SINGLE_START_AND_CLEAN_NOTICES: estää reloadin tupla-GPS-haun ja siistii GPS-ilmoituksista pisteet.
 // V457_REMOVE_FULL_OLD_HAE_INLINE_RENDER: page.tsx:n vanha Hae-paneeli poistettu; mobiilihaku renderöidään ZiiplyMobileSearchCard-komponentilla.
 
 // V456_REMOVE_HAE_OLD_THREE_BUTTON_ROW: poistettu Hae-kortin vanha Huojennukset/Lisää koriin/Vertailu -rivi kokonaan.
@@ -318,6 +319,14 @@ const KAUPPIAS_FI_MONTH_SHORT = [
   "JOU",
 ];
 
+function formatLocationNoticeV465(message: string) {
+  return String(message || "")
+    .replace(/…/g, "")
+    .replace(/\.\.\.+/g, "")
+    .replace(/[.!?]+$/g, "")
+    .trim();
+}
+
 function KauppiasMobileTopBar({
   hidden = false,
   areaLabel = "Hyvinkää",
@@ -611,7 +620,7 @@ export default function Page() {
     "main" | "selection"
   >("main");
   const [locationMessage, setLocationMessage] = useState(
-    "Paikannetaan GPS…",
+    "Paikannetaan GPS",
   );
   const [locationMessageVisible, setLocationMessageVisible] = useState(true);
   const [usingOwnLocation, setUsingOwnLocation] = useState(true);
@@ -631,6 +640,8 @@ export default function Page() {
   const gpsLastSilentCoordsRefV391 = useRef<{ latitude: number; longitude: number } | null>(null);
   const gpsLastSilentAreaRefV391 = useRef("");
   const gpsFailTimerRefV391 = useRef<number | null>(null);
+  const gpsSearchInFlightRefV465 = useRef(false);
+  const gpsInitialSearchStartedRefV465 = useRef(false);
   const [storePickerViewportStyle, setStorePickerViewportStyle] = useState<{
     top: number;
     width: number;
@@ -807,7 +818,7 @@ export default function Page() {
     gpsInitialVisiblePhaseRefV391.current = true;
     setUsingOwnLocation(true);
     setGpsCoordsV320(null);
-    setLocationMessage("Paikannetaan GPS…");
+    setLocationMessage("Paikannetaan GPS");
     setLocationMessageVisible(true);
   }, []);
 
@@ -986,7 +997,7 @@ export default function Page() {
 
     setGpsErrorMessage("");
     setStoreSearchLoading(false);
-    setLocationMessage(`Käytetään GPS ${areaLabel}`);
+    setLocationMessage(`${areaLabel} käytössä`);
     setLocationMessageVisible(true);
   }
 
@@ -1049,7 +1060,7 @@ export default function Page() {
     }
   }
 
-function stopOwnLocationV306(message = "GPS pois päältä.") {
+function stopOwnLocationV306(message = "GPS pois päältä") {
     gpsUserDisabledRefV306.current = true;
     gpsInitialVisiblePhaseRefV391.current = false;
     stopSilentGpsWatchV391();
@@ -1283,7 +1294,7 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
     if (!usingOwnLocation || gpsUserDisabledRefV306.current || gpsCoordsV320 || !gpsInitialVisiblePhaseRefV391.current) return;
 
     if (gpsInitialVisiblePhaseRefV391.current) {
-      setLocationMessage("Paikannetaan GPS…");
+      setLocationMessage("Paikannetaan GPS");
       setLocationMessageVisible(true);
 
       if (gpsFailTimerRefV391.current) {
@@ -3696,7 +3707,7 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
     setLocationMessage(
       source === "gps"
         ? `Haetaan kauppoja alueelle ${rawQuery}...`
-        : "Paikannetaan GPS…",
+        : "Paikannetaan GPS",
     );
 
     try {
@@ -3727,7 +3738,7 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
       setLocationMessage(
         source === "gps"
           ? `Haetaan kauppoja alueelle ${query}...`
-          : "Paikannetaan GPS…",
+          : "Paikannetaan GPS",
       );
       const stores = await fetchStoresForLocationQuery(
         query,
@@ -3799,7 +3810,7 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
           `${nextArea.label || query} löytyi, mutta kaikkia ${effectiveStoreModeForLocationMessage === "local" ? "lähikauppoja" : "tavarataloja"} ei löytynyt. Voit valita kaupat listasta.`,
         );
       } else {
-        setLocationMessage(`${nextArea.label || query} käytössä.`);
+        setLocationMessage(`${nextArea.label || query} käytössä`);
       }
     } catch (error) {
       console.error(error);
@@ -3846,7 +3857,8 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
   }, [locationInput, usingOwnLocation, storeSearchLoading]);
 
   async function useOwnLocation() {
-    if (storeSearchLoading) return;
+    if (storeSearchLoading || gpsSearchInFlightRefV465.current) return;
+    gpsSearchInFlightRefV465.current = true;
 
     setOpenStorePicker(null);
     setGpsStorePickerBlockedV382(true);
@@ -3855,7 +3867,7 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
     setUsingOwnLocation(true);
     setLocationInput("");
     setStoreSearchLoading(true);
-    setLocationMessage("Paikannetaan GPS…");
+    setLocationMessage("Paikannetaan GPS");
 
     try {
       const position = await getCurrentPosition();
@@ -3886,7 +3898,7 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
       }
       setGpsErrorMessage("");
       setStoreSearchLoading(false);
-      setLocationMessage(`Käytetään GPS ${city}`);
+      setLocationMessage(`${city} käytössä`);
       setLocationMessageVisible(true);
       setLocationInput("");
       setStoreSearchLoading(false);
@@ -3915,6 +3927,7 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
       setUsingOwnLocation(false);
       setStoreSearchLoading(false);
     } finally {
+      gpsSearchInFlightRefV465.current = false;
       window.setTimeout(() => {
         setGpsStorePickerBlockedV382(false);
       }, 180);
@@ -3925,13 +3938,19 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
   // Refreshissä GPS on aina päällä riippumatta siitä, oliko käyttäjä sammuttanut sen ennen refreshiä.
   // Käynnistetään sijaintihaku kerran, jotta kauppalistat löytyvät ilman GPS-togglea.
   useEffect(() => {
+    if (gpsInitialSearchStartedRefV465.current) return;
+    gpsInitialSearchStartedRefV465.current = true;
+
     gpsUserDisabledRefV306.current = false;
     setUsingOwnLocation(true);
-    window.setTimeout(() => {
-      if (!gpsUserDisabledRefV306.current) {
-        useOwnLocation();
+
+    const timer = window.setTimeout(() => {
+      if (!gpsUserDisabledRefV306.current && !gpsSearchInFlightRefV465.current) {
+        void useOwnLocation();
       }
     }, 0);
+
+    return () => window.clearTimeout(timer);
   }, []);
 
   async function searchOffers(termOverride?: string) {
@@ -8098,8 +8117,8 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
             setOpenStorePicker(null);
             setLocationMessage(
               storeSearchLoading || gpsStoreLocationPendingV366 || gpsStorePickerBlockedV382
-                ? "Paikannetaan GPS…"
-                : "Paikannetaan GPS…",
+                ? "Paikannetaan GPS"
+                : "Paikannetaan GPS",
             );
             return;
           }
@@ -8800,13 +8819,13 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
                         gpsUserDisabledRefV306.current = true;
                         setUsingOwnLocation(false);
                       }
-                      setLocationMessage("Kirjoita alue tai postinumero.");
+                      setLocationMessage("Kirjoita alue tai postinumero");
                     }}
                     
                     onUseOwnLocation={() => void useOwnLocation()}
                     onDisableOwnLocation={() =>
                       stopOwnLocationV306(
-                        "GPS pois päältä.",
+                        "GPS pois päältä",
                       )
                     }
                     onOpenShops={() => {
@@ -8818,7 +8837,7 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
                       setShopsPanelOpen(true);
                     }}
                     usingOwnLocation={usingOwnLocation}
-                    locationMessage={locationMessage}
+                    locationMessage={formatLocationNoticeV465(locationMessage)}
                     locationMessageVisible={locationMessageVisible}
                     storeSearchLoading={storeSearchLoading}
                     placeholder="05510 tai Hyvinkää"
@@ -9524,7 +9543,7 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
               usingOwnLocation={usingOwnLocation}
               storeSearchLoading={storeSearchLoading}
               gpsErrorMessage={gpsErrorMessage}
-              gpsStatusText={locationMessageVisible ? locationMessage : ""}
+              gpsStatusText={locationMessageVisible ? formatLocationNoticeV465(locationMessage) : ""}
               onApplyLocation={() => { if (!gpsStoreLocationPendingV366) setMapStoresOverlayOpenV433(true); }}
               onOpenMap={() => { if (!gpsStoreLocationPendingV366) setMapStoresOverlayOpenV433(true); }}
               onLocationInputChange={(nextValue: string) => {
@@ -9534,12 +9553,12 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
                   setUsingOwnLocation(false);
                   setGpsErrorMessage("");
                 }
-                setLocationMessage("Kirjoita alue tai postinumero.");
+                setLocationMessage("Kirjoita alue tai postinumero");
                 setLocationMessageVisible(true);
               }}
               onGpsClick={() => {
                 if (usingOwnLocation) {
-                  stopOwnLocationV306("GPS pois päältä.");
+                  stopOwnLocationV306("GPS pois päältä");
                   setLocationMessageVisible(true);
                   return;
                 }
@@ -9548,7 +9567,7 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
                 setUsingOwnLocation(true);
                 setGpsErrorMessage("");
                 setLocationInput("");
-                setLocationMessage("Paikannetaan GPS…");
+                setLocationMessage("Paikannetaan GPS");
                 setLocationMessageVisible(true);
                 void useOwnLocation();
               }}
