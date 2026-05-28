@@ -336,10 +336,12 @@ let ziiplyGpsHardLastFinishedAtV469 = 0;
 // Käyttäjän GPS-nappi ei käytä tätä lukkoa, jotta GPS:n voi sammuttaa ja käynnistää käsin.
 let ziiplyGpsBootAttemptedV472 = false;
 let ziiplyGpsBootSucceededV472 = false;
-// V478: vain sääkomponentti saa tehdä automaattisen geolocation-startin avauksessa.
+// V479: automaattinen geolocation-startti kulkee vain page-tason requestWeatherBootGpsV479-portista.
 // Tämä moduulitason lukko estää tuplakäynnistyksen myös remountissa.
 let ziiplyWeatherBootGpsStartedV478 = false;
 let ziiplyWeatherBootGpsHandledV478 = false;
+let ziiplyWeatherBootGpsRequestInFlightV479 = false;
+let ziiplyWeatherBootGpsRequestDoneV479 = false;
 
 type ZiiplyGpsWindowLockV470 = {
   inFlight: boolean;
@@ -373,14 +375,14 @@ function KauppiasMobileTopBar({
   areaLabel = "Hyvinkää",
   gpsCoords = null,
   weatherEnabled = false,
-  onWeatherGpsPosition,
+  onWeatherBootGpsRequest,
   onOpenCalendar,
 }: {
   hidden?: boolean;
   areaLabel?: string;
   gpsCoords?: { latitude: number; longitude: number } | null;
   weatherEnabled?: boolean;
-  onWeatherGpsPosition?: (coords: { latitude: number; longitude: number }) => void;
+  onWeatherBootGpsRequest?: () => void;
   onOpenCalendar?: () => void;
 }) {
   // V477_WEATHER_OWNS_BOOT_GPS:
@@ -395,25 +397,11 @@ function KauppiasMobileTopBar({
 
   useEffect(() => {
     if (hidden || gpsCoords || weatherBootGpsStartedRef.current || ziiplyWeatherBootGpsStartedV478) return;
-    if (typeof navigator === "undefined" || !navigator.geolocation) return;
 
     weatherBootGpsStartedRef.current = true;
     ziiplyWeatherBootGpsStartedV478 = true;
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        onWeatherGpsPosition?.({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        });
-      },
-      () => {
-        setWeatherValue("Sää");
-        setWeatherText(areaLabel);
-      },
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 },
-    );
-  }, [hidden, gpsCoords, onWeatherGpsPosition, areaLabel]);
+    onWeatherBootGpsRequest?.();
+  }, [hidden, gpsCoords, onWeatherBootGpsRequest]);
 
   useEffect(() => {
     if (hidden) return;
@@ -3882,6 +3870,32 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     return () => window.clearTimeout(timer);
   }, [locationInput, usingOwnLocation, storeSearchLoading]);
+
+  function requestWeatherBootGpsV479() {
+    // V479: Kaikki automaattinen avauksen GPS kulkee tästä yhdestä portista.
+    // Topbar ei kutsu navigator.geolocationia itse. Manuaalinen GPS-nappi käyttää edelleen useOwnLocation("manual").
+    if (ziiplyWeatherBootGpsRequestDoneV479 || ziiplyWeatherBootGpsRequestInFlightV479) return;
+    if (gpsSearchInFlightRefV465.current || storeSearchLoading) return;
+    if (typeof navigator === "undefined" || !navigator.geolocation) return;
+
+    ziiplyWeatherBootGpsRequestInFlightV479 = true;
+    ziiplyWeatherBootGpsRequestDoneV479 = true;
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        ziiplyWeatherBootGpsRequestInFlightV479 = false;
+        void useWeatherBootLocationV477({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+      },
+      () => {
+        ziiplyWeatherBootGpsRequestInFlightV479 = false;
+        setGpsBootReadyV473(true);
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 },
+    );
+  }
 
   async function useWeatherBootLocationV477(coords: { latitude: number; longitude: number }) {
     if (weatherBootGpsHandledRefV477.current || ziiplyWeatherBootGpsHandledV478) return;
@@ -9627,9 +9641,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             areaLabel={activeArea.label}
             gpsCoords={gpsCoordsV320}
             weatherEnabled={Boolean(gpsCoordsV320) && !storeSearchLoading}
-            onWeatherGpsPosition={(coords) => {
-              void useWeatherBootLocationV477(coords);
-            }}
+            onWeatherBootGpsRequest={requestWeatherBootGpsV479}
             onOpenCalendar={() => {
               try {
                 window.location.href = "calshow://";
