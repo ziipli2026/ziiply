@@ -66,22 +66,19 @@ export default function ZiiplyMobileStoreModeSelector({
         @keyframes ziiplyNoticePop {
           0% {
             opacity: 0;
-            transform: translateY(-50%) scale(0.86);
+            transform: scale(0.92);
           }
           12% {
             opacity: 1;
-            transform: translateY(-50%) scale(1.04);
-          }
-          22% {
-            transform: translateY(-50%) scale(1);
+            transform: scale(1);
           }
           82% {
             opacity: 1;
-            transform: translateY(-50%) scale(1);
+            transform: scale(1);
           }
           100% {
             opacity: 0;
-            transform: translateY(-50%) scale(0.94);
+            transform: scale(0.96);
           }
         }
       `}</style>
@@ -96,28 +93,21 @@ export default function ZiiplyMobileStoreModeSelector({
           🏬 Tavaratalot
         </button>
 
-        <div className="relative flex min-h-[32px] items-center justify-center overflow-visible">
+        <div className="relative flex min-h-[32px] items-center justify-center overflow-hidden">
           <p
             className={[
-              "relative z-10 whitespace-nowrap rounded-full px-2 py-1 text-center text-[15px] font-black uppercase tracking-wide transition-all duration-200",
+              "relative z-10 whitespace-nowrap rounded-full px-3 py-1 text-center text-[14px] font-black uppercase tracking-wide transition-all duration-200",
               hakutapaNoticeVisible
-                ? "bg-[#ffe68a] text-[#634100] shadow-[0_4px_12px_rgba(180,119,0,0.20)] ring-1 ring-[#d6aa33]"
+                ? "bg-[#ffe68a] text-[#634100] shadow-[0_4px_12px_rgba(180,119,0,0.20)] ring-1 ring-[#d6aa33] animate-[ziiplyNoticePop_2200ms_ease-out_forwards]"
                 : "text-slate-500",
             ].join(" ")}
           >
-            Hakutapa
+            {hakutapaNoticeVisible
+              ? "Vertailuparia ei löytynyt"
+              : !storeModeChosen || storeCompareScope === "none"
+                ? "Valitse hakutapa"
+                : "Hakutapa"}
           </p>
-
-          {hakutapaNoticeVisible && (
-            <>
-              <span className="pointer-events-none absolute right-[calc(100%-4px)] top-1/2 z-20 -translate-y-1/2 animate-[ziiplyNoticePop_2400ms_ease-in-out_forwards] whitespace-nowrap rounded-full bg-[#ffe68a] px-2 py-1 text-[10px] font-black uppercase tracking-wide text-[#634100] shadow-[0_4px_12px_rgba(180,119,0,0.20)] ring-1 ring-[#d6aa33]">
-                Ei tavarataloja
-              </span>
-              <span className="pointer-events-none absolute left-[calc(100%-4px)] top-1/2 z-20 -translate-y-1/2 animate-[ziiplyNoticePop_2400ms_ease-in-out_forwards] whitespace-nowrap rounded-full bg-[#ffe68a] px-2 py-1 text-[10px] font-black uppercase tracking-wide text-[#634100] shadow-[0_4px_12px_rgba(180,119,0,0.20)] ring-1 ring-[#d6aa33]">
-                tällä alueella
-              </span>
-            </>
-          )}
         </div>
 
         <button
@@ -169,18 +159,14 @@ export default function ZiiplyMobileStoreModeSelector({
       )}
 
       <div className="mt-2 min-h-[0.25rem] text-[12px] font-black leading-tight text-amber-700">
-        {storeCompareScope === "between_chains" && selectedRealChainCount < 2 && (
-          <p>Vertailu ei ole mahdollinen vain yhdellä valitulla ketjulla.</p>
-        )}
+
         {storeCompareScope === "within_chain" && !withinChain && (
           <p>Valitse S-ryhmä tai K-ryhmä ketjun sisäistä vertailua varten.</p>
         )}
         {missingStoresMessageVisible && foundStoresCount === 0 && (
           <p>Hae alue tai käytä omaa sijaintia ensin.</p>
         )}
-        {hyperStorePairMissing && (
-          <p>Alueelta ei löytynyt kahta vertailtavaa tavarataloa. Kokeile lähikauppoja.</p>
-        )}
+
       </div>
     </section>
   );
