@@ -163,6 +163,9 @@ import ZiiplyStoreLocaCard from "./components/ziiply/cards/ZiiplyStoreLocaCard";
 import * as ZiiplyCompareCardModule from "./components/ziiply/cards/ZiiplyCompareCard";
 import ZiiplyMobileHomeView from "./components/ziiply/mobile/ZiiplyMobileHomeView";
 import ZiiplyMobileAssistantPanel from "./components/ziiply/mobile/ZiiplyMobileAssistantPanel";
+import ZiiplyMobileSearchView from "./components/ziiply/mobile/ZiiplyMobileSearchView";
+import ZiiplyMobileCartView from "./components/ziiply/mobile/ZiiplyMobileCartView";
+import ZiiplyMobileCompareView from "./components/ziiply/mobile/ZiiplyMobileCompareView";
 import type { ZiiplyAssistantKey } from "./components/ziiply/mobile/ZiiplyMobileAssistantButton";
 
 type KauppiasTopBarKind = "weather" | "electricity" | "fuel" | "calendar";
@@ -8688,6 +8691,89 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
           </div>
         )}
 
+        <ZiiplyMobileCartView
+          cartModalOpen={cartModalOpen}
+          closing={Boolean(closingPanels.cart)}
+          cartOverlayScrollRef={cartOverlayScrollRef}
+          onClose={closeCartModal}
+          cart={cart}
+          shoppingListItems={shoppingListItems}
+          checkedCartItems={checkedCartItems}
+          checkedCount={checkedCount}
+          shoppingListCount={shoppingListCount}
+          shoppingProgressPercent={shoppingProgressPercent}
+          cheapest={cheapest}
+          secondCheapest={secondCheapest}
+          savings={savings}
+          savingsPercent={savingsPercent}
+          bestShoppingListGroups={bestShoppingListGroups}
+          getShoppingListItemKey={getShoppingListItemKey}
+          toggleShoppingListItem={toggleShoppingListItem}
+          markAllShoppingListItemsChecked={markAllShoppingListItemsChecked}
+          clearShoppingListChecks={clearShoppingListChecks}
+          formatEuro={formatEuro}
+          fixText={fixText}
+          setCheckedCartItems={setCheckedCartItems}
+          shoppingItemRefs={shoppingItemRefs}
+          onIncreaseQuantity={(itemId: string) => changeQuantity(itemId, 1)}
+          onDecreaseQuantity={(itemId: string) => changeQuantity(itemId, -1)}
+          onRemoveItem={removeCartItem}
+          onAddMore={openSearchPanel}
+          onClearCart={clearCart}
+          onCompare={() => {
+            if (!cart.length || comparisonLoading) return;
+            void updateChainComparison(cart, { openCompare: true });
+          }}
+          cartSavePanelOpen={cartSavePanelOpen}
+          onToggleSavePanel={() => setCartSavePanelOpen((value) => !value)}
+          savedListName={savedListName}
+          setSavedListName={setSavedListName}
+          onSaveCurrentCartAsList={saveCurrentCartAsList}
+          savedShoppingLists={savedShoppingLists}
+          onAddSavedListToCart={addSavedListToCart}
+          onDeleteSavedShoppingList={deleteSavedShoppingList}
+        />
+
+        <ZiiplyMobileCompareView
+          open={
+            activeResult === "compare" &&
+            !searchPanelOpen &&
+            !cartModalOpen &&
+            !shopsPanelOpen &&
+            !eanModalOpen
+          }
+          closing={Boolean(closingPanels.compare)}
+          compareOverlayScrollRef={compareOverlayScrollRef}
+          onClose={() => closePanelWithFade("compare", () => setActiveResult("none"))}
+          cart={cart}
+          selectedChains={selectedChains}
+          setSelectedChains={setSelectedChains}
+          comparisonLoading={comparisonLoading}
+          sMatches={sMatches}
+          kMatches={kMatches}
+          expandedAlternatives={expandedAlternatives}
+          alternativeResults={alternativeResults}
+          loadingAlternatives={loadingAlternatives}
+          optimizingChains={optimizingChains}
+          qualityModesByCart={qualityModesByCart}
+          cheapest={cheapest}
+          secondCheapest={secondCheapest}
+          savings={savings}
+          savingsPercent={savingsPercent}
+          chainResults={chainResults}
+          lastOptimizationSnapshot={lastOptimizationSnapshot}
+          formatEuro={formatEuro}
+          fixText={fixText}
+          onCompareCart={() => void updateChainComparison(cart)}
+          onClearComparison={() => {
+            setSMatches({});
+            setKMatches({});
+            setLastOptimizationSnapshot(null);
+          }}
+          onAddMore={openSearchPanel}
+          onOpenCart={showCart}
+        />
+
         {eanModalOpen && (
           <div
             className={`fixed inset-0 z-[120] hidden items-center justify-center overflow-y-auto bg-[#13251b]/78 px-4 py-5 backdrop-blur-sm xl:flex ${eanModalClosing ? "ziiply-soft-close" : "ziiply-soft-open"}`}
@@ -9815,12 +9901,11 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
             </div>
           )}
 
-        {searchPanelOpen && (
-          <div
-            className={`fixed inset-0 z-40 flex items-end justify-center overflow-hidden overscroll-none bg-transparent px-2 pb-[calc(env(safe-area-inset-bottom)+6.45rem)] pt-[calc(env(safe-area-inset-top)+5.0rem)] sm:items-center sm:p-6 ${closingPanels.search ? "ziiply-soft-close" : "ziiply-soft-open"}`}
-          >
-            <div className="h-[min(70dvh,650px)] w-full max-w-[28rem] overflow-visible overscroll-none rounded-[1.65rem] bg-white/90 p-2.5 shadow-2xl ring-1 ring-white/70 backdrop-blur-2xl">
-              <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-[1.35rem] border border-white/80 bg-white/95 p-3 shadow-[0_18px_55px_rgba(15,23,42,0.10)] ring-1 ring-slate-100 sm:rounded-[2rem] sm:p-4">
+        <ZiiplyMobileSearchView
+          open={searchPanelOpen}
+          closing={Boolean(closingPanels.search)}
+          className="ziiply-mobile-search-view"
+        >
                 <div className="flex h-full min-h-0 flex-col">
                   <div className="shrink-0">
                     <div className="flex items-start gap-3">
@@ -10228,10 +10313,7 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
                     </div>
                   </div>{" "}
                 </div>
-              </div>
-            </div>
-          </div>
-        )}
+        </ZiiplyMobileSearchView>
 
         {eanModalOpen && (
           <div
