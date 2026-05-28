@@ -1,5 +1,11 @@
 "use client";
 
+// V441_DEFAULT_HYPERMARKETS_READY: oletuksena alueen tavaratalot valmiiksi aktiivisena.
+
+// V440_REVERT_DEFAULT_LOCAL_PAIR: palautettu hakutavan oletus entiselleen, ei pakoteta lähikauppoja oletukseksi.
+
+// V439_DEFAULT_LOCAL_MARKET_PAIR: oletuksena Lähikaupat + Ketjujen väliltä, eli paikallinen vertailupari valmiiksi.
+
 // V437_REMOVE_OLD_WARNINGS_ENAMEL_ONLY: poistettu vanhat varoituslaatikot, vain HAKUTAPA-emalikyltti jää.
 
 // V436_ENAMEL_HAKUTAPA_NOTICE: pieni emalikyltti HAKUTAPA-otsikon päälle, kun vertailuparia ei löydy.
@@ -581,13 +587,13 @@ export default function Page() {
   const [locationInput, setLocationInput] = useState("");
   const [activeArea, setActiveArea] = useState<Area>(AREAS[0]);
   const [storeMode, setStoreMode] = useState<StoreMode>("hyper");
-  const [storeModeChosenV299, setStoreModeChosenV299] = useState(false);
+  const [storeModeChosenV299, setStoreModeChosenV299] = useState(true);
   const selectedStoreModeRefV302 = useRef<StoreMode>("hyper");
   const storeSelectionHydratedRefV343 = useRef(false);
   const storeSelectionPersistenceReadyRefV343 = useRef(false);
   const STORE_SELECTION_STORAGE_KEY_V343 = "ziiply-store-selection-v343";
   const [storeCompareScope, setStoreCompareScope] =
-    useState<StoreCompareScope>("none");
+    useState<StoreCompareScope>("between_chains");
   const [withinChain, setWithinChain] = useState<"S" | "K" | null>(null);
   const [openStorePicker, setOpenStorePicker] = useState<string | null>(null);
   const [storeDrillViewV320, setStoreDrillViewV320] = useState<
@@ -772,8 +778,8 @@ export default function Page() {
 
     selectedStoreModeRefV302.current = "hyper";
     setStoreMode("hyper");
-    setStoreModeChosenV299(false);
-    setStoreCompareScope("none");
+    setStoreModeChosenV299(true);
+    setStoreCompareScope("between_chains");
     setWithinChain(null);
     // v315_INITIAL_NAV_PROMPT: refresh/ensimmäinen avaus ei avaa mitään korttia.
     // Vain Kaupat-nappi on käytettävissä, mutta se ei ole vielä aktiivinen ennen käyttäjän painallusta.
@@ -783,7 +789,7 @@ export default function Page() {
     setEanModalOpen(false);
     setActiveResult("none");
     setShopsPanelOpen(false);
-    setInitialStoreNavPrompt(true);
+    setInitialStoreNavPrompt(false);
     // V432_GPS_INITIAL_ONCE:
     // Reloadissa GPS saa käynnistyä kerran, mutta onnistumisen jälkeen se ei saa käynnistyä uudelleen.
     gpsUserDisabledRefV306.current = false;
@@ -7301,7 +7307,7 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
       setLocationMessage(
         hadStoreModeChoice
           ? `${activeArea.label || "Alue"} käytössä.`
-          : `${activeArea.label || "Alue"} käytössä. Valitse hakutapa: Tavaratalot tai Lähikaupat.`,
+          : `${activeArea.label || "Alue"} käytössä. Hakutapa: Tavaratalot tai Lähikaupat.`,
       );
       return;
     }
