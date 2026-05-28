@@ -1,5 +1,7 @@
 "use client";
 
+// V404_SHOPS_INNER_WIDTH_ONLY_FILE: Kaupat-paneelin sisäleveys lukittu ilman pystyasettelun muutosta.
+
 // V402_MOBILE_SEARCH_CARD_CONNECTED: ZiiplyMobileSearchCard kytketty mobiilin hakutuloksiin.
 
 // V401_SYNTAX_REPAIR_ONLY: fixed missing JSX closing div in mobile shops section.
@@ -9198,8 +9200,12 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
                 closingPanels.shops ? "ziiply-soft-close" : "ziiply-soft-open"
               }`}
             >
-              <ZiiplyMobileShopsViewAny
-                locationInput={locationInput}
+              {/* V404_SHOPS_INNER_WIDTH_ONLY:
+                  Älä muuta Kaupat-paneelin pystyasettelua. Rajaa vain sisällön leveys,
+                  jotta LocationBar ja StoreModeSelector eivät veny koko viewporttiin. */}
+              <div className="mx-auto w-full max-w-[390px] px-3">
+                <ZiiplyMobileShopsViewAny
+                  locationInput={locationInput}
                 usingOwnLocation={usingOwnLocation}
                 storeSearchLoading={storeSearchLoading}
                 gpsErrorMessage={gpsErrorMessage}
@@ -9230,9 +9236,10 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
                   void useOwnLocation();
                 }}
                 onApplyLocation={() => openSelectedStoresMapV393()}
-                onStoreModeChange={handleStoreModeChange}
-                onStoreCompareScopeChange={handleStoreCompareScopeChange}
-              />
+                  onStoreModeChange={handleStoreModeChange}
+                  onStoreCompareScopeChange={handleStoreCompareScopeChange}
+                />
+              </div>
             </div>
           )}
         </div>
