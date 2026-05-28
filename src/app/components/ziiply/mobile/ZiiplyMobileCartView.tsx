@@ -1,5 +1,7 @@
 "use client";
 
+// ZIIPLY_MOBILE_CART_VIEW_TOGGLE_SIGNATURE_FIX: accepts P394 toggleShoppingListItem(match, index).
+
 // ZIIPLY_MOBILE_CART_VIEW_GROUPS_RECORD_FIX: bestShoppingListGroups accepts P394 Record<string, Match[]> shape.
 
 import React from "react";
@@ -30,8 +32,8 @@ export type ZiiplyMobileCartViewProps = {
   savingsPercent?: number;
   bestShoppingListGroups?: any[] | Record<string, any[]>;
 
-  getShoppingListItemKey?: (item: any) => string;
-  toggleShoppingListItem?: (key: string) => void;
+  getShoppingListItemKey?: (...args: any[]) => string;
+  toggleShoppingListItem?: (...args: any[]) => void;
   markAllShoppingListItemsChecked?: () => void;
   clearShoppingListChecks?: () => void;
 
