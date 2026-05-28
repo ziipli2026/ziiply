@@ -1,6 +1,6 @@
 "use client";
 
-// V394_MOBILE_EXTRACT_NAV_FIX applied: Cart Lisää tuote and Vertailu route through page.tsx panel state.
+// V397_FUNCTIONAL_ROLLBACK: palautettu P394:n oma toimiva mobiili-Kori/Vertailu/Hae-renderöinti.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -165,9 +165,6 @@ import ZiiplyStoreLocaCard from "./components/ziiply/cards/ZiiplyStoreLocaCard";
 import * as ZiiplyCompareCardModule from "./components/ziiply/cards/ZiiplyCompareCard";
 import ZiiplyMobileHomeView from "./components/ziiply/mobile/ZiiplyMobileHomeView";
 import ZiiplyMobileAssistantPanel from "./components/ziiply/mobile/ZiiplyMobileAssistantPanel";
-import ZiiplyMobileSearchView from "./components/ziiply/mobile/ZiiplyMobileSearchView";
-import ZiiplyMobileCartView from "./components/ziiply/mobile/ZiiplyMobileCartView";
-import ZiiplyMobileCompareView from "./components/ziiply/mobile/ZiiplyMobileCompareView";
 import type { ZiiplyAssistantKey } from "./components/ziiply/mobile/ZiiplyMobileAssistantButton";
 
 type KauppiasTopBarKind = "weather" | "electricity" | "fuel" | "calendar";
@@ -2495,33 +2492,6 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
 
   function closeSearchPanel() {
     closePanelWithFade("search", () => setSearchPanelOpen(false));
-  }
-
-  // V394_MOBILE_EXTRACT_NAV_FIX:
-  // Uudet MobileCartView/MobileCompareView-komponentit tarvitsevat suorat
-  // paneelinvaihtajat. Nämä eivät muuta hakumoottoria, vaan palauttavat
-  // P394:n vanhan käytöksen: Lisää tuote avaa Hae-paneelin ja Vertailu
-  // sulkee korin ennen vertailun avaamista.
-  function openSearchFromCartViewV394() {
-    if (searchNavigationLocked) return;
-
-    setRestoredCartPromptV320({ open: false, count: 0 });
-    setCartModalOpen(false);
-    setCartSavePanelOpen(false);
-    setShopsPanelOpen(false);
-    setEanModalOpen(false);
-    closeProductSelectionOverlay();
-    setActiveResult("none");
-    setSearchPanelOpen(true);
-
-    window.setTimeout(() => {
-      searchInputRef.current?.focus();
-    }, 50);
-  }
-
-  function openCompareFromCartViewV394() {
-    if (!cart.length || comparisonLoading) return;
-    openComparisonView();
   }
 
   function openSearchPanelAndStartVoice() {
@@ -8699,9 +8669,12 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
                     onIncreaseQuantity={(itemId: string) => changeQuantity(itemId, 1)}
                     onDecreaseQuantity={(itemId: string) => changeQuantity(itemId, -1)}
                     onRemoveItem={removeCartItem}
-                    onAddMore={openSearchFromCartViewV394}
+                    onAddMore={openSearchPanel}
                     onClearCart={clearCart}
-                    onCompare={openCompareFromCartViewV394}
+                    onCompare={() => {
+                      if (!cart.length || comparisonLoading) return;
+                      void updateChainComparison(cart, { openCompare: true });
+                    }}
                     cartSavePanelOpen={cartSavePanelOpen}
                     onToggleSavePanel={() => setCartSavePanelOpen((value) => !value)}
                     savedListName={savedListName}
@@ -9016,85 +8989,6 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
       <main
         className={`xl:hidden min-h-screen overflow-x-hidden bg-[#EAF4F1] px-2 pb-44 pt-0 text-slate-950 sm:bg-[radial-gradient(circle_at_top,#ecfdf3_0%,#f8fafc_42%,#f1f5f9_100%)] sm:px-4 sm:pb-32 sm:py-3 sm:py-4 md:pb-4 ${suppressUiForEanClose ? "pointer-events-none" : ""}`}
       >
-
-        {/* V396_MOBILE_OVERLAY_RENDER_ROOT_FIX:
-            Cart/Compare overlays must be direct children of the mobile main,
-            before the CSS <style> block. The previous extraction left them in
-            the xl:block desktop tree, so mobile state changed but rendered home. */}
-        <ZiiplyMobileCartView
-          cartModalOpen={cartModalOpen}
-          closing={Boolean(closingPanels.cart)}
-          cartOverlayScrollRef={cartOverlayScrollRef}
-          onClose={closeCartModal}
-          cart={cart}
-          shoppingListItems={shoppingListItems}
-          checkedCartItems={checkedCartItems}
-          checkedCount={checkedCount}
-          shoppingListCount={shoppingListCount}
-          shoppingProgressPercent={shoppingProgressPercent}
-          cheapest={cheapest}
-          secondCheapest={secondCheapest}
-          savings={savings}
-          savingsPercent={savingsPercent}
-          bestShoppingListGroups={bestShoppingListGroups}
-          getShoppingListItemKey={getShoppingListItemKey}
-          toggleShoppingListItem={toggleShoppingListItem}
-          markAllShoppingListItemsChecked={markAllShoppingListItemsChecked}
-          clearShoppingListChecks={clearShoppingListChecks}
-          formatEuro={formatEuro}
-          fixText={fixText}
-          setCheckedCartItems={setCheckedCartItems}
-          shoppingItemRefs={shoppingItemRefs}
-          onIncreaseQuantity={(itemId: string) => changeQuantity(itemId, 1)}
-          onDecreaseQuantity={(itemId: string) => changeQuantity(itemId, -1)}
-          onRemoveItem={removeCartItem}
-          onAddMore={openSearchFromCartViewV394}
-          onClearCart={clearCart}
-          onCompare={openCompareFromCartViewV394}
-          cartSavePanelOpen={cartSavePanelOpen}
-          onToggleSavePanel={() => setCartSavePanelOpen((value) => !value)}
-          savedListName={savedListName}
-          setSavedListName={setSavedListName}
-          onSaveCurrentCartAsList={saveCurrentCartAsList}
-          savedShoppingLists={savedShoppingLists}
-          onAddSavedListToCart={addSavedListToCart}
-          onDeleteSavedShoppingList={deleteSavedShoppingList}
-        />
-
-        <ZiiplyMobileCompareView
-          open={activeResult === "compare"}
-          closing={Boolean(closingPanels.compare)}
-          compareOverlayScrollRef={compareOverlayScrollRef}
-          onClose={() => closePanelWithFade("compare", () => setActiveResult("none"))}
-          cart={cart}
-          selectedChains={selectedChains}
-          setSelectedChains={setSelectedChains}
-          comparisonLoading={comparisonLoading}
-          sMatches={sMatches}
-          kMatches={kMatches}
-          expandedAlternatives={expandedAlternatives}
-          alternativeResults={alternativeResults}
-          loadingAlternatives={loadingAlternatives}
-          optimizingChains={optimizingChains}
-          qualityModesByCart={qualityModesByCart}
-          cheapest={cheapest}
-          secondCheapest={secondCheapest}
-          savings={savings}
-          savingsPercent={savingsPercent}
-          chainResults={chainResults}
-          lastOptimizationSnapshot={lastOptimizationSnapshot}
-          formatEuro={formatEuro}
-          fixText={fixText}
-          onCompareCart={() => void updateChainComparison(cart)}
-          onClearComparison={() => {
-            setSMatches({});
-            setKMatches({});
-            setLastOptimizationSnapshot(null);
-          }}
-          onAddMore={openSearchFromCartViewV394}
-          onOpenCart={showCart}
-        />
-
         <style>{`
         html,
         body {
@@ -9923,11 +9817,12 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
             </div>
           )}
 
-        <ZiiplyMobileSearchView
-          open={searchPanelOpen}
-          closing={Boolean(closingPanels.search)}
-          className="ziiply-mobile-search-view"
-        >
+        {searchPanelOpen && (
+          <div
+            className={`fixed inset-0 z-40 flex items-end justify-center overflow-hidden overscroll-none bg-transparent px-2 pb-[calc(env(safe-area-inset-bottom)+6.45rem)] pt-[calc(env(safe-area-inset-top)+5.0rem)] sm:items-center sm:p-6 ${closingPanels.search ? "ziiply-soft-close" : "ziiply-soft-open"}`}
+          >
+            <div className="h-[min(70dvh,650px)] w-full max-w-[28rem] overflow-visible overscroll-none rounded-[1.65rem] bg-white/90 p-2.5 shadow-2xl ring-1 ring-white/70 backdrop-blur-2xl">
+              <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-[1.35rem] border border-white/80 bg-white/95 p-3 shadow-[0_18px_55px_rgba(15,23,42,0.10)] ring-1 ring-slate-100 sm:rounded-[2rem] sm:p-4">
                 <div className="flex h-full min-h-0 flex-col">
                   <div className="shrink-0">
                     <div className="flex items-start gap-3">
@@ -10335,7 +10230,10 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
                     </div>
                   </div>{" "}
                 </div>
-        </ZiiplyMobileSearchView>
+              </div>
+            </div>
+          </div>
+        )}
 
         {eanModalOpen && (
           <div
