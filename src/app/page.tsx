@@ -540,6 +540,7 @@ export default function Page() {
     (ZiiplyCompareCardModule as any).ZiiplyCompareCard ||
     (ZiiplyCompareCardModule as any).CompareResponsiveCard ||
     (ZiiplyCompareCardModule as any).ZiiplyCompareResponsiveCard) as any;
+  const ZiiplyMobileShopsViewAny = ZiiplyMobileShopsView as any;
 
   const [input, setInput] = useState("");
   const [searchCompareMode, setSearchCompareMode] = useState<"cart" | "single">(
@@ -9192,7 +9193,7 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
                 closingPanels.shops ? "ziiply-soft-close" : "ziiply-soft-open"
               }`}
             >
-              <ZiiplyMobileShopsView
+              <ZiiplyMobileShopsViewAny
                 locationInput={locationInput}
                 usingOwnLocation={usingOwnLocation}
                 storeSearchLoading={storeSearchLoading}
@@ -9229,6 +9230,7 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
               />
             </div>
           )}
+        </div>
 
         {restoredCartPromptV320.open &&
           cart.length > 0 &&
