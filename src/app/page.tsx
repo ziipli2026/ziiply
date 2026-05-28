@@ -1,5 +1,7 @@
 "use client";
 
+// V449_REMOVE_BAD_RESTORED_PROMPT_CLOSE: poistettu virheellinen </div> )} ennen restoredCartPromptia.
+
 // V448_RESTORE_MOBILE_WRAPPER_CLOSE: palautettu mobiiliwrapperin oikea </div> ja )} ennen restoredCartPromptia.
 
 // V447_FIX_DANGLING_MOBILE_SECTION_CLOSE: poistettu toinen vanhan inline-mobiiliosion ylimääräinen sulku.
@@ -9079,8 +9081,6 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
             </div>
           </div>
         </section>
-        </div>
-        )}
 
         {restoredCartPromptV320.open &&
           cart.length > 0 &&
