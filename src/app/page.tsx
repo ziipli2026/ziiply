@@ -9,6 +9,7 @@
 // V510_ELECTRICITY_V2_AND_STATIC_FALLBACK: sähköhinta hakee porssisahko v2/v1 + sahkonhintatanaan fallback.
 // V511_NO_SEARCH_BOUNCE_AND_LOCAL_STORE_GAP: suurennuslasin bounce pois bottom navista ja lähikauppakorteille lisää yläväliä.
 // V512_DIRECT_SEARCH_TO_SHOPS_SWITCH: Hae-kortilta Kaupat-kortille vaihto ilman pääsivun välähdystä.
+// V513_LOCAL_COMPACT_STORECARD_REAL_GAP: lähikaupan vertailun kauppalaatikkojen väli korjattu oikeassa compact-renderissä.
 // V500_BUILD_FIX_ACTIVE_AREA_STATUS_NO_BOUNCE: korjaa status-scope buildin ja poistaa suurennuslasin pompun, mutta jättää Hae-valmiuslogiikan.
 // V495_GPS_SUCCESS_UI_RELEASE: GPS onnistumisen jälkeen vapautetaan UI eksplisiittisesti pois pending/jumi-tilasta.
 // V496_GPS_STATUS_RENDER_FORCE: GPS onnistumisen jälkeen status pakotetaan renderöintiin; logi + karttatoiminnot pois testistä.
@@ -8677,10 +8678,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         withinChain === "S" ? "s" : withinChain === "K" ? "k" : null;
 
       return (
-        <div className={compact ? (storeMode === "local" ? "mt-4" : "mt-0") : "mt-3"}>
+        <div className={compact ? (storeMode === "local" ? "mt-8" : "mt-0") : "mt-3"}>
           <div
             className={
-              compact ? "grid grid-cols-2 gap-2" : "grid grid-cols-2 gap-3"
+              compact ? `${storeMode === "local" ? "pt-2 " : ""}grid grid-cols-2 gap-2` : "grid grid-cols-2 gap-3"
             }
           >
             {chainCards.map((store) => {
@@ -9031,8 +9032,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       };
 
       return (
-        <div className={`${storeMode === "local" ? "mt-5" : "mt-3"} pb-1 overflow-visible`}>
-          <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 overflow-visible">
+        <div className={`${storeMode === "local" ? "mt-8" : "mt-3"} pb-1 overflow-visible`}>
+          <div className={`${storeMode === "local" ? "pt-2" : ""} grid grid-cols-2 gap-x-3 gap-y-1.5 overflow-visible`}>
             {topStores.map((store) => renderBetweenChainCard(store, true))}
           </div>
           <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-2">
