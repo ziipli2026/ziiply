@@ -706,6 +706,13 @@ export default function Page() {
   const weatherBootApplyInFlightRefV481 = useRef(false);
   const gpsBootTimerRefV483 = useRef<number | null>(null);
   const gpsBootWatchdogRefV483 = useRef<number | null>(null);
+  // V485_MANUAL_GPS_SUCCESS_GUARD:
+  // Kun manuaalinen GPS-haku onnistuu, vihreä nuppineula / LocationBar / StoreLocaCard
+  // ei saa laukaista samaa GPS-hakua uudestaan. Tämä lukko koskee vain uutta
+  // useOwnLocation("manual") -starttia onnistuneen haun jälkeen. GPS pois päältä
+  // -nappi tyhjentää lukon, joten käyttäjä voi käynnistää GPS:n myöhemmin uudestaan.
+  const gpsManualSuccessGuardUntilRefV485 = useRef(0);
+  const gpsManualSuccessCoordsRefV485 = useRef<{ latitude: number; longitude: number } | null>(null);
   const [storePickerViewportStyle, setStorePickerViewportStyle] = useState<{
     top: number;
     width: number;
@@ -1112,6 +1119,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
     setOpenStorePicker(null);
     setGpsStorePickerBlockedV382(false);
+    gpsManualSuccessGuardUntilRefV485.current = 0;
+    gpsManualSuccessCoordsRefV485.current = null;
     setUsingOwnLocation(false);
     setGpsCoordsV320(null);
     setStoreSearchLoading(false);
@@ -3914,6 +3923,20 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const gpsWindowLockV470 = getZiiplyGpsWindowLockV470();
     const isBootGpsRunV472 = source === "boot";
 
+    // V485: Jos edellinen manuaalinen GPS-haku juuri onnistui, älä anna
+    // vihreän nuppineulan / child-komponentin / fallbackin käynnistää samaa
+    // hakua uudestaan. Käyttäjän pois-painallus tyhjentää tämän lukon.
+    if (source === "manual" && now < gpsManualSuccessGuardUntilRefV485.current) {
+      const lockedCoords = gpsManualSuccessCoordsRefV485.current;
+      if (lockedCoords) {
+        setGpsCoordsV320(lockedCoords);
+        setUsingOwnLocation(true);
+        setStoreSearchLoading(false);
+        setGpsStorePickerBlockedV382(false);
+      }
+      return;
+    }
+
     // V472: boot/reload saa yrittää automaattista GPS-hakua vain kerran.
     // Tämä EI koske käyttäjän GPS-nappia, jotta GPS:n saa pois ja uudelleen päälle käsin.
     if (isBootGpsRunV472) {
@@ -3980,13 +4003,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           ? { enableHighAccuracy: false, timeout: 18000, maximumAge: 30000 }
           : { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
       );
-      setGpsCoordsV320({
+      const nextGpsCoordsV485 = {
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
-      });
+      };
+      setGpsCoordsV320(nextGpsCoordsV485);
       const city = await reverseGeocodeCity(
-        position.coords.latitude,
-        position.coords.longitude,
+        nextGpsCoordsV485.latitude,
+        nextGpsCoordsV485.longitude,
       );
 
       if (!city) {
@@ -4012,10 +4036,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // V470: älä pudota storeSearchLoadingia pois päältä tässä välissä.
       // GPS-paikannus ja sitä seuraava kauppahaku ovat yksi atominen ajo, jotta
       // Kaupat-paneelin fallback tai toinen effect ei voi startata uutta GPS-hakua väliin.
-      await applyLocation(city, "gps", {
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-      });
+      await applyLocation(city, "gps", nextGpsCoordsV485);
+
+      if (source === "manual") {
+        gpsManualSuccessCoordsRefV485.current = nextGpsCoordsV485;
+        gpsManualSuccessGuardUntilRefV485.current = Date.now() + 30000;
+      }
 
       if (isBootGpsRunV472) {
         ziiplyGpsBootSucceededV472 = true;
@@ -4038,6 +4064,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setLocationMessage("GPS ei löydy");
       setLocationMessageVisible(true);
       gpsUserDisabledRefV306.current = true;
+      gpsManualSuccessGuardUntilRefV485.current = 0;
+      gpsManualSuccessCoordsRefV485.current = null;
       setUsingOwnLocation(false);
       setStoreSearchLoading(false);
     } finally {
