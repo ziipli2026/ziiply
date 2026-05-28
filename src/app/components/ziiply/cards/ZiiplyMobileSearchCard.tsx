@@ -1,8 +1,8 @@
 "use client";
 
-// V461_DESKTOP_CARD_STYLE_MOBILE:
+// V462_MOBILE_DESKTOP_BEHAVIOR:
 // Mobiili-Haku sovellettu ZiiplySearchCard desktop-kortin visuaalisesta kielestä.
-// Säilyttää V459:n propsit ja /public/ui/voice + /public/ui/scanner .webp -tilakuvat.
+// Mobiili-Haku: desktop-tyylinen toiminta, kuvanapit, keskitetty mode-toggle ja rajauksettomat webp-toimintonapit.
 
 import React from "react";
 
@@ -97,8 +97,6 @@ function AssistantButton({
   const isGosta = kind === "gosta";
   const name = isGosta ? "Gösta" : "Justiina";
   const image = isGosta ? "/assistants/gosta.png" : "/assistants/justiina.png";
-  const line1 = loading ? "Etsii" : "Etsii";
-  const line2 = isGosta ? (loading ? "huojennuksia…" : "huojennukset") : loading ? "ostoksia…" : "ostokset";
 
   return (
     <button
@@ -106,45 +104,26 @@ function AssistantButton({
       onClick={onClick}
       disabled={disabled}
       aria-disabled={disabled}
+      aria-label={name}
+      title={name}
       className={cx(
-        "grid h-[4.45rem] min-w-0 grid-cols-[3.25rem_minmax(0,1fr)] items-center gap-1.5 overflow-hidden rounded-[1.25rem] border-[2.5px] px-1.5 text-left shadow-[0_4px_0_rgba(91,72,44,0.20),inset_0_0_0_2px_rgba(255,255,255,0.45)] active:translate-y-[1px]",
+        "relative h-[4.45rem] min-w-0 overflow-hidden rounded-[1.25rem] border-[2.5px] p-0 shadow-[0_4px_0_rgba(91,72,44,0.20),inset_0_0_0_2px_rgba(255,255,255,0.45)] active:translate-y-[1px]",
         isGosta
-          ? "border-[#7f9866] bg-gradient-to-b from-[#f0f3d7] to-[#d0dda0] text-[#315f2f]"
-          : "border-[#d3b255] bg-gradient-to-b from-[#fff2c4] to-[#efd06f] text-[#9a5a36]",
-        disabled ? "cursor-not-allowed opacity-55" : "hover:brightness-105",
+          ? "border-[#7f9866] bg-gradient-to-b from-[#f0f3d7] to-[#d0dda0]"
+          : "border-[#d3b255] bg-gradient-to-b from-[#fff2c4] to-[#efd06f]",
+        disabled ? "cursor-not-allowed opacity-45" : "hover:brightness-105",
+        loading && "animate-pulse",
       )}
     >
-      <span
-        className={cx(
-          "grid h-[3.25rem] w-[3.25rem] place-items-center overflow-hidden rounded-[0.95rem] border-[2px] bg-[#f7edc6]",
-          isGosta ? "border-[#98ae78]" : "border-[#d7b85d]",
-        )}
-      >
-        <img
-          src={image}
-          alt=""
-          className="h-full w-full object-contain"
-          onError={(event) => {
-            event.currentTarget.style.display = "none";
-          }}
-        />
-      </span>
-
-      <span className="min-w-0 overflow-hidden">
-        <span
-          className="block truncate whitespace-nowrap text-[1.2rem] font-black italic leading-[0.95]"
-          style={{ fontFamily: cooperFont }}
-        >
-          {name}
-        </span>
-        <span
-          className="mt-1 block overflow-hidden text-[0.62rem] font-black leading-[1.02]"
-          style={{ fontFamily: serifFont }}
-        >
-          <span className="block whitespace-nowrap">{line1}</span>
-          <span className="block truncate whitespace-nowrap tracking-[-0.03em]">{line2}</span>
-        </span>
-      </span>
+      <img
+        src={image}
+        alt=""
+        className="absolute inset-0 h-full w-full object-cover"
+        draggable={false}
+        onError={(event) => {
+          event.currentTarget.style.display = "none";
+        }}
+      />
     </button>
   );
 }
@@ -206,20 +185,21 @@ function RetroAssetButton({
         : state === "processing"
           ? "/ui/voice/aanita-search.webp"
           : "/ui/voice/aanita-off.webp"
-      : state === "active"
-        ? "/ui/scanner/scanner-on.webp"
-        : state === "processing"
-          ? "/ui/scanner/scanner-search.webp"
-          : "/ui/scanner/scanner-idle.webp";
+      : "/ui/scanner/scanner-idle.webp";
 
   return (
     <button
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="relative h-[4.85rem] overflow-hidden rounded-[1.25rem] border-[2px] border-[#856b3d] bg-[#d3a258] shadow-[0_5px_0_rgba(70,50,24,0.34),0_0_0_2px_#fff1c5_inset] active:translate-y-[1px] active:shadow-[0_2px_0_rgba(70,50,24,0.34)]"
+      className="relative h-[5.25rem] overflow-visible rounded-[1.35rem] bg-transparent p-0 shadow-none active:scale-[0.985]"
     >
-      <img src={imageSrc} alt={label} className="absolute inset-0 h-full w-full object-cover" draggable={false} />
+      <img
+        src={imageSrc}
+        alt={label}
+        className="h-full w-full object-contain"
+        draggable={false}
+      />
     </button>
   );
 }
@@ -315,6 +295,10 @@ export default function ZiiplyMobileSearchCard({
             )}
           </div>
 
+          <div className="relative z-10 mt-2 flex justify-center">
+            <ModeToggle mode={searchMode} onModeChange={onSearchModeChange} />
+          </div>
+
           <div className="relative z-10 mt-2 h-[4.65rem] overflow-hidden rounded-[1.45rem] border-[3px] border-[#9d8350] bg-[#fff4d3] p-1.5 shadow-[inset_0_3px_8px_rgba(91,65,28,0.10)]">
             <textarea
               ref={inputRef}
@@ -322,19 +306,18 @@ export default function ZiiplyMobileSearchCard({
               onChange={(event) => onInputChange?.(event.target.value)}
               rows={2}
               placeholder={searchMode === "single" ? "Kirjoita yksi tuote" : "maito, kahvi, jauheliha"}
-              className="block h-full w-full resize-none overflow-hidden rounded-[1.15rem] border-0 bg-[#fffaf0] px-4 py-2 text-[1.32rem] font-black leading-[1.05] text-[#102216] outline-none placeholder:text-[#7d7461]"
+              className="block h-full w-full resize-none overflow-hidden rounded-[1.15rem] border-0 bg-[#fffaf0] px-4 py-2 text-center text-[1.32rem] font-black leading-[1.05] text-[#102216] outline-none placeholder:text-[#7d7461]"
               style={{ fontFamily: hasText ? serifFont : cooperFont }}
             />
           </div>
 
-          <div className="relative z-10 mt-3 grid grid-cols-[minmax(0,1fr)_7.8rem_minmax(0,1fr)] items-center gap-2">
+          <div className="relative z-10 mt-3 grid grid-cols-2 items-center gap-3">
             <AssistantButton
               kind="gosta"
               onClick={onOfferSearch}
               disabled={!hasText}
               loading={loadingOffers}
             />
-            <ModeToggle mode={searchMode} onModeChange={onSearchModeChange} />
             <AssistantButton
               kind="justiina"
               onClick={onNormalSearch}
