@@ -1,5 +1,7 @@
 "use client";
 
+// V446_FIX_DANGLING_INLINE_SELECTOR_CLOSE: poistettu vanhan inline-hakutapakortin ylimääräinen sulku.
+
 // V445_USE_STORE_MODE_SELECTOR_ONLY: poistettu page.tsx:n vanha inline-hakutapakortti, käytetään vain ZiiplyMobileStoreModeSelector-komponenttia.
 
 // V444_PAGE_REMOVE_DUPLICATE_HAKUTAPA_NOTICE: poistettu page.tsx:n vanha vilkkuva hakutapa-ilmoitus; ilmoitus tulee StoreModeSelectorista.
@@ -8795,9 +8797,6 @@ function stopOwnLocationV306(message = "GPS pois päältä.") {
               </div>
             )}
           </section>
-
-            </div>
-          )}
 
           {/* v358_DESKTOP_DEBUG_ALL_FLOWS:
             Desktop-only debug board. Mobile CSS/classes below 640px are not touched.
