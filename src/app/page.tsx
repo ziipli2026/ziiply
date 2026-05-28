@@ -8,6 +8,7 @@
 // V508_ELECTRICITY_FETCH_ROBUST: sähköhinta hakee useammalla muodolla ja kestää API-vastausten vaihtelut.
 // V510_ELECTRICITY_V2_AND_STATIC_FALLBACK: sähköhinta hakee porssisahko v2/v1 + sahkonhintatanaan fallback.
 // V511_NO_SEARCH_BOUNCE_AND_LOCAL_STORE_GAP: suurennuslasin bounce pois bottom navista ja lähikauppakorteille lisää yläväliä.
+// V512_DIRECT_SEARCH_TO_SHOPS_SWITCH: Hae-kortilta Kaupat-kortille vaihto ilman pääsivun välähdystä.
 // V500_BUILD_FIX_ACTIVE_AREA_STATUS_NO_BOUNCE: korjaa status-scope buildin ja poistaa suurennuslasin pompun, mutta jättää Hae-valmiuslogiikan.
 // V495_GPS_SUCCESS_UI_RELEASE: GPS onnistumisen jälkeen vapautetaan UI eksplisiittisesti pois pending/jumi-tilasta.
 // V496_GPS_STATUS_RENDER_FORCE: GPS onnistumisen jälkeen status pakotetaan renderöintiin; logi + karttatoiminnot pois testistä.
@@ -6487,6 +6488,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // ehtinyt antaa koordinaatit/kaupat, älä avaa vanhaa Kaupat-paneelin renderiä.
     // Se oli mobiilissa vain välivaiheen fallback ja näkyi välähdyksenä.
     if (gpsStoreLocationPendingV366 || storeSearchLoading) {
+      setShopsPanelOpen(true);
       setSearchPanelOpen(false);
       setCartModalOpen(false);
       setCartSavePanelOpen(false);
@@ -6494,7 +6496,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       closeProductSelectionOverlay();
       setActiveResult("none");
       setInitialStoreNavPrompt(false);
-      setShopsPanelOpen(true);
       setOpenStorePicker(null);
       if (!(usingOwnLocation && gpsCoordsV320 && foundStores.length > 0)) {
         setLocationMessage(
@@ -6514,7 +6515,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       kStoreName: activeStores.kStoreName,
     });
 
-    transitionMobilePanel("shops", () => {
+    const applyShopsPanelV512 = () => {
+      // V512: avaa Kaupat samassa tilapäivityksessä kuin Hae suljetaan.
+      // Tämä estää välirenderin, jossa kaikki paneelit ovat kiinni ja pääsivu vilahtaa.
+      setShopsPanelOpen(true);
       setSearchPanelOpen(false);
       setCartModalOpen(false);
       setCartSavePanelOpen(false);
@@ -6522,8 +6526,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       closeProductSelectionOverlay();
       setActiveResult("none");
       setInitialStoreNavPrompt(false);
-      setShopsPanelOpen(true);
-    });
+    };
+
+    if (searchPanelOpen) {
+      applyShopsPanelV512();
+      return;
+    }
+
+    transitionMobilePanel("shops", applyShopsPanelV512);
   }
 
   function toggleShopsPanel() {
@@ -6532,11 +6542,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (shopsPanelOpen) {
       closePanelWithFade("shops", () => setShopsPanelOpen(false));
       return;
-    }
-
-    if (searchPanelOpen) {
-      setSearchPanelOpen(false);
-      closeProductSelectionOverlay();
     }
 
     openShopsPanel();
