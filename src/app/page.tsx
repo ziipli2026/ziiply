@@ -3,6 +3,7 @@
 // V502_WEATHER_RESTORED_HAE_READY_BADGE: säämoduuli takaisin page-GPS-koordinaateilla, Hae-valmiusbadge ilman pomppua.
 // V503_REMOVE_GPS_DEBUG_LOGGING: poistettu GPS debug-loggaus ja overlay.
 // V504_SEARCH_CLOSE_FIX: Hae-nappi ei ole disabled kun Hae-kortti on auki, joten se voi sulkea kortin.
+// V506_REMOVE_REMAINING_GPS_DEBUG_PANEL: poistettu jäljelle jäänyt GPS DEBUG v492 -paneeli.
 // V500_BUILD_FIX_ACTIVE_AREA_STATUS_NO_BOUNCE: korjaa status-scope buildin ja poistaa suurennuslasin pompun, mutta jättää Hae-valmiuslogiikan.
 // V495_GPS_SUCCESS_UI_RELEASE: GPS onnistumisen jälkeen vapautetaan UI eksplisiittisesti pois pending/jumi-tilasta.
 // V496_GPS_STATUS_RENDER_FORCE: GPS onnistumisen jälkeen status pakotetaan renderöintiin; logi + karttatoiminnot pois testistä.
@@ -11244,35 +11245,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         )}
 
 
-        <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+5.9rem)] left-2 right-2 z-[9999] max-h-[38vh] overflow-hidden rounded-2xl border-2 border-[#7c2d12] bg-[#fff7ed]/95 p-2 text-[11px] font-black text-[#431407] shadow-2xl sm:left-auto sm:right-4 sm:w-[420px]">
-          <div className="mb-1 flex items-center justify-between gap-2">
-            <span>GPS DEBUG v492</span>
-            <button
-              type="button"
-              onClick={() => setGpsDebugLogV492([])}
-              className="rounded-full bg-[#fed7aa] px-2 py-1 text-[10px] active:scale-95"
-            >
-              Tyhjennä
-            </button>
-          </div>
-          <div className="mb-1 grid grid-cols-2 gap-1 text-[10px] text-[#7c2d12]">
-            <div>using: {String(usingOwnLocation)}</div>
-            <div>loading: {String(storeSearchLoading)}</div>
-            <div>coords: {gpsCoordsV320 ? "yes" : "no"}</div>
-            <div>stores: {foundStores.length}</div>
-          </div>
-          <div className="max-h-[27vh] space-y-1 overflow-y-auto rounded-xl bg-white/75 p-2">
-            {gpsDebugLogV492.length === 0 ? (
-              <div>Ei lokia vielä</div>
-            ) : (
-              gpsDebugLogV492.map((line, index) => (
-                <div key={`${line}-${index}`} className="break-words leading-tight">
-                  {line}
-                </div>
-              ))
-            )}
-          </div>
-        </div>
+        {/* V506 GPS debug panel removed */}
 
 
       </main>
