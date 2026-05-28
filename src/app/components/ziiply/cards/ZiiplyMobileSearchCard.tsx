@@ -1,5 +1,7 @@
 "use client";
 
+// V459_ASSET_WEBP_ACTION_BUTTONS: Äänitä/Filmaa-napit renderöidään /public/ui/voice ja /public/ui/scanner .webp -asseteista.
+
 import React from "react";
 
 export type ZiiplyMobileSearchCardProduct = {
@@ -71,50 +73,10 @@ function truncateProductName(name: string) {
   return clean.length <= 18 ? clean : clean.slice(0, 15).trimEnd() + "...";
 }
 
-function BroadcastWaves({ active }: { active: boolean }) {
-  return (
-    <div className="pointer-events-none absolute inset-y-0 left-1/2 z-[1] w-[70%] -translate-x-1/2">
-      <span
-        className={`absolute left-[8%] top-1/2 h-8 w-8 -translate-y-1/2 rounded-full border-l-[3px] border-[#f4d98c] opacity-55 ${
-          active ? "animate-[ziiplyVoicePulse_1.05s_ease-in-out_infinite]" : ""
-        }`}
-      />
-      <span
-        className={`absolute left-[2%] top-1/2 h-12 w-12 -translate-y-1/2 rounded-full border-l-[3px] border-[#f4d98c] opacity-35 ${
-          active ? "animate-[ziiplyVoicePulse_1.2s_ease-in-out_infinite]" : ""
-        }`}
-      />
-      <span
-        className={`absolute right-[8%] top-1/2 h-8 w-8 -translate-y-1/2 rounded-full border-r-[3px] border-[#f4d98c] opacity-55 ${
-          active ? "animate-[ziiplyVoicePulse_1.05s_ease-in-out_infinite]" : ""
-        }`}
-      />
-      <span
-        className={`absolute right-[2%] top-1/2 h-12 w-12 -translate-y-1/2 rounded-full border-r-[3px] border-[#f4d98c] opacity-35 ${
-          active ? "animate-[ziiplyVoicePulse_1.2s_ease-in-out_infinite]" : ""
-        }`}
-      />
-    </div>
-  );
-}
-
-function StatusLight({ state }: { state: "idle" | "recording" | "processing" | "active" }) {
-  const className =
-    state === "recording" || state === "active"
-      ? "bg-[#e43227] shadow-[0_0_0_3px_rgba(119,23,16,0.18),0_0_18px_rgba(228,50,39,0.8)]"
-      : state === "processing"
-        ? "bg-[#f4c542] shadow-[0_0_0_3px_rgba(123,86,13,0.18),0_0_18px_rgba(244,197,66,0.75)]"
-        : "bg-[#173f2d] shadow-[inset_0_0_0_3px_rgba(255,226,160,0.95)]";
-
-  return (
-    <span className={`absolute right-4 top-4 z-20 h-5 w-5 rounded-full border-[3px] border-[#f6d98d] ${className}`} />
-  );
-}
 
 function RetroActionButton({
   kind,
   label,
-  sublabel,
   state,
   onClick,
 }: {
@@ -124,35 +86,32 @@ function RetroActionButton({
   state: "idle" | "recording" | "processing" | "active";
   onClick?: () => void;
 }) {
-  const active = state === "recording" || state === "processing" || state === "active";
+  const imageSrc =
+    kind === "voice"
+      ? state === "recording"
+        ? "/ui/voice/aanita-on.webp"
+        : state === "processing"
+          ? "/ui/voice/aanita-search.webp"
+          : "/ui/voice/aanita-off.webp"
+      : state === "active"
+        ? "/ui/scanner/scanner-on.webp"
+        : state === "processing"
+          ? "/ui/scanner/scanner-search.webp"
+          : "/ui/scanner/scanner-idle.webp";
 
   return (
     <button
       type="button"
       onClick={onClick}
-      className="relative min-h-[5.2rem] overflow-hidden rounded-[1.35rem] border-[4px] border-[#cfaa56] bg-[#163f2d] px-4 py-3 text-left text-[#fff2bf] shadow-[0_8px_0_rgba(92,70,26,0.22),inset_0_1px_0_rgba(255,255,255,0.16)] active:translate-y-[1px] active:shadow-[0_4px_0_rgba(92,70,26,0.18)]"
+      aria-label={label}
+      className="relative min-h-[5.2rem] overflow-hidden rounded-[1.35rem] bg-transparent shadow-[0_8px_0_rgba(92,70,26,0.16)] active:translate-y-[1px] active:shadow-[0_4px_0_rgba(92,70,26,0.12)]"
     >
-      <div className="pointer-events-none absolute inset-[5px] rounded-[0.95rem] border border-[#77a889]/45" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_28%_0%,rgba(255,255,255,0.22),transparent_48%),linear-gradient(180deg,rgba(255,255,255,0.10),transparent_50%)]" />
-      <div className="pointer-events-none absolute inset-0 opacity-[0.14] [background-image:radial-gradient(#ffe9a7_1px,transparent_1px)] [background-size:10px_10px]" />
-
-      {kind === "voice" && <BroadcastWaves active={active} />}
-      <StatusLight state={state} />
-
-      <div className="relative z-10 flex h-full flex-col justify-between">
-        <span className="max-w-[80%] text-[1.62rem] font-black leading-none tracking-[-0.05em]">
-          {label}
-        </span>
-
-        <div className="mt-3 flex items-end justify-between gap-2">
-          <span className="block text-[0.73rem] font-black uppercase tracking-[0.22em] opacity-85">
-            {sublabel}
-          </span>
-          <span className="text-[1.28rem] leading-none opacity-90">
-            {kind === "voice" ? "◉" : "▥"}
-          </span>
-        </div>
-      </div>
+      <img
+        src={imageSrc}
+        alt={label}
+        className="absolute inset-0 h-full w-full object-cover"
+        draggable={false}
+      />
     </button>
   );
 }
@@ -384,13 +343,6 @@ export default function ZiiplyMobileSearchCard({
           </div>
         </div>
       </div>
-
-      <style jsx>{`
-        @keyframes ziiplyVoicePulse {
-          0%, 100% { transform: translateY(-50%) scale(0.92); opacity: 0.28; }
-          50% { transform: translateY(-50%) scale(1.06); opacity: 0.72; }
-        }
-      `}</style>
     </div>
   );
 }
