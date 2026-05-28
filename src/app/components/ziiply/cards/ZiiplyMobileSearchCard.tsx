@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Image from "next/image";
 
 export type ZiiplyMobileSearchCardProduct = {
   id?: string | number;
@@ -28,6 +29,10 @@ export type ZiiplyMobileSearchCardProps = {
   onAddProduct?: (product: ZiiplyMobileSearchCardProduct) => void;
   onAdd?: (product: ZiiplyMobileSearchCardProduct) => void;
   onClose?: () => void;
+  onVoiceClick?: () => void;
+  onScannerClick?: () => void;
+  voiceState?: "idle" | "recording" | "processing";
+  scannerState?: "idle" | "active" | "processing";
   className?: string;
 };
 
@@ -90,10 +95,28 @@ export default function ZiiplyMobileSearchCard({
   onAddProduct,
   onAdd,
   onClose,
+  onVoiceClick,
+  onScannerClick,
+  voiceState = "idle",
+  scannerState = "idle",
   className = "",
 }: ZiiplyMobileSearchCardProps) {
   const items = Array.isArray(products) ? products : Array.isArray(results) ? results : [];
   const addHandler = onAddProduct || onAdd;
+
+  const voiceAsset =
+    voiceState === "recording"
+      ? "/ui/voice/aanita-rec.webp"
+      : voiceState === "processing"
+        ? "/ui/voice/aanita-processing.webp"
+        : "/ui/voice/aanita-idle.webp";
+
+  const scannerAsset =
+    scannerState === "active"
+      ? "/ui/scanner/scanner-active.webp"
+      : scannerState === "processing"
+        ? "/ui/scanner/scanner-processing.webp"
+        : "/ui/scanner/scanner-idle.webp";
 
   if (!open) return null;
 
@@ -195,6 +218,46 @@ export default function ZiiplyMobileSearchCard({
                 })}
             </div>
           </div>
+
+          <div className="mt-5 grid grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={onVoiceClick}
+              className="group relative overflow-hidden rounded-[1.7rem] border-[3px] border-[#caa24f] bg-[#214734] shadow-[0_7px_0_rgba(82,58,18,0.28),inset_0_1px_0_rgba(255,255,255,0.14)] active:translate-y-[1px] active:shadow-[0_3px_0_rgba(82,58,18,0.22)]"
+            >
+              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.18),transparent_45%)]" />
+
+              <div className="relative flex items-center justify-center px-3 py-2">
+                <Image
+                  src={voiceAsset}
+                  alt="Äänitä"
+                  width={260}
+                  height={84}
+                  className="h-auto w-full object-contain"
+                  priority
+                />
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={onScannerClick}
+              className="group relative overflow-hidden rounded-[1.7rem] border-[3px] border-[#caa24f] bg-[#214734] shadow-[0_7px_0_rgba(82,58,18,0.28),inset_0_1px_0_rgba(255,255,255,0.14)] active:translate-y-[1px] active:shadow-[0_3px_0_rgba(82,58,18,0.22)]"
+            >
+              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.18),transparent_45%)]" />
+
+              <div className="relative flex items-center justify-center px-3 py-2">
+                <Image
+                  src={scannerAsset}
+                  alt="Skanneri"
+                  width={260}
+                  height={84}
+                  className="h-auto w-full object-contain"
+                />
+              </div>
+            </button>
+          </div>
+
         </div>
       </div>
     </div>
