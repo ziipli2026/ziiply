@@ -7,6 +7,8 @@
 
 // V473_TOPBAR_WEATHER_NO_GPS_NO_BOOT_RACE: sää-yläpalkki ei voi käynnistää GPS:ää eikä sääfetch käynnisty ennen kuin boot-GPS on valmis.
 
+// V474_WEATHER_TOPBAR_STATIC_NO_EFFECT: sääkenttä ei käynnistä mitään effectiä/fetchiä/GPS:ää; vain page-GPS saa paikantaa.
+
 // V457_REMOVE_FULL_OLD_HAE_INLINE_RENDER: page.tsx:n vanha Hae-paneeli poistettu; mobiilihaku renderöidään ZiiplyMobileSearchCard-komponentilla.
 
 // V456_REMOVE_HAE_OLD_THREE_BUTTON_ROW: poistettu Hae-kortin vanha Huojennukset/Lisää koriin/Vertailu -rivi kokonaan.
@@ -375,62 +377,18 @@ function KauppiasMobileTopBar({
   weatherEnabled?: boolean;
   onOpenCalendar?: () => void;
 }) {
-  const [weatherValue, setWeatherValue] = useState("+12°");
-  const [weatherText, setWeatherText] = useState(areaLabel);
+  // V474_WEATHER_TOPBAR_STATIC_NO_EFFECT:
+  // Sääkenttä ei saa tehdä omaa effectiä, fetchiä eikä GPS-kutsua. Se näyttää
+  // väliaikaisesti vain staattisen arvon + alueen. Varsinainen sää voidaan kytkeä
+  // myöhemmin GPS coreen, jossa koordinaatit tulevat ulkopuolelta ilman paikannusta.
+  const weatherValue = "—°";
+  const weatherText = areaLabel;
   const [electricityValue, setElectricityValue] = useState("4,2");
   const [electricityText, setElectricityText] = useState("c/kWh");
   const [electricityTrend, setElectricityTrend] = useState<"up" | "down" | "flat">("flat");
 
-  useEffect(() => {
-    // V473_TOPBAR_WEATHER_NO_GPS:
-    // Sääkenttä ei saa koskaan kutsua navigator.geolocationia eikä käynnistyä
-    // boot-paikannuksen aikana. Se käyttää vain page.tsx:n valmiiksi hyväksyttyjä
-    // koordinaatteja, jotta sääappi ei aiheuta toista GPS-starttia.
-    if (hidden) return;
-
-    setWeatherText(areaLabel);
-
-    const latitude = Number(gpsCoords?.latitude);
-    const longitude = Number(gpsCoords?.longitude);
-    if (!weatherEnabled || !Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-      setWeatherValue("—°");
-      return;
-    }
-
-    let cancelled = false;
-
-    async function loadWeatherFromPageCoords() {
-      try {
-        const response = await fetch(
-          `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(latitude)}&longitude=${encodeURIComponent(longitude)}&current=temperature_2m,weather_code&timezone=auto`,
-          { cache: "no-store" },
-        );
-
-        if (!response.ok || cancelled) return;
-
-        const data = await response.json();
-        const temp = Number(data?.current?.temperature_2m);
-        const code = Number(data?.current?.weather_code);
-
-        if (Number.isFinite(temp)) {
-          setWeatherValue(`${temp >= 0 ? "+" : ""}${Math.round(temp)}°`);
-        }
-
-        setWeatherText(kauppiasWeatherTextFromCode(Number.isFinite(code) ? code : undefined));
-      } catch {
-        if (!cancelled) {
-          setWeatherValue("—°");
-          setWeatherText(areaLabel);
-        }
-      }
-    }
-
-    loadWeatherFromPageCoords();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [areaLabel, gpsCoords?.latitude, gpsCoords?.longitude, hidden, weatherEnabled]);
+  // V474: Ei weather-useEffectiä tässä komponentissa.
+  // Tämä estää sääkenttää remounttaamasta/fetchaamasta ja sotkemasta GPS-boot-ketjua.
 
   useEffect(() => {
     if (hidden || typeof window === "undefined") return;
