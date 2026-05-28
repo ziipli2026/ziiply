@@ -1,5 +1,7 @@
 "use client";
 
+// V429_AQUAMARINE_COMPASS_GPS_TOGGLE: merilasi/aquamarine kompassinappi ja varma GPS on/off väri.
+
 // V427_LIGHT_COMPASS_AND_GPS_OFF_RED: vaaleampi kompassinappi ja punainen GPS off -tila.
 
 // V417_COMPASS_IMAGE_MAP_BUTTON: Kartta-napissa public/icons/compass.png ilman tekstiä.
@@ -82,7 +84,14 @@ export default function ZiiplyMobileLocationBar({
         <button
           type="button"
           onClick={handleGpsClick}
-          onMouseDown={(event) => event.preventDefault()}
+          onMouseDown={(event) =
+        style={{
+          borderColor: usingOwnLocation ? "#b7efcf" : "#ef4444",
+          background: usingOwnLocation ? "#eafff2" : "#fff1f1",
+          boxShadow: usingOwnLocation
+            ? "0 0 0 2px rgba(34,197,94,0.14)"
+            : "0 0 0 2px rgba(239,68,68,0.22)",
+        }}> event.preventDefault()}
           disabled={gpsButtonDisabled}
           className="flex h-[52px] w-[52px] shrink-0 items-center justify-center self-center rounded-[1.05rem] border-2 border-[#d7f1dd] bg-[#eef9f0] text-[25px] shadow-inner active:scale-[0.98] disabled:opacity-70"
           aria-label="Käytä GPS-sijaintia"
@@ -125,7 +134,7 @@ export default function ZiiplyMobileLocationBar({
         <img
           src="/icons/ziiply-compass.png"
           alt="Kartta"
-          className="h-12 w-12 object-contain drop-shadow-[0_2px_4px_rgba(61,38,7,0.28)] transition-transform duration-150 group-hover:scale-105 group-active:scale-95"
+          className="h-11 w-11 object-contain drop-shadow-[0_2px_4px_rgba(61,38,7,0.28)] transition-transform duration-150 group-hover:scale-105 group-active:scale-95"
           draggable={false}
         />
       </button>
