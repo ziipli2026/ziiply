@@ -1,5 +1,6 @@
 "use client";
 
+// V492_GPS_DEBUG_LOG_MAP_DISABLED: ruudulle näkyvä GPS-logi + karttatoiminnot pois testistä.
 // V491_GPS_SINGLE_PROMISE_CONTROLLED_RETRY: getCurrentPosition dedupataan yhteen promiseen ja ensimmäisen hutiyrityksen jälkeen tehdään yksi sisäinen retry ilman uutta UI-starttia.
 
 // V458_MOBILE_VOICE_TOGGLE_SILENCE_SEARCH: mobiilin mikki toimii toggle-na; 2,5s hiljaisuudesta stop + automaattinen haku.
@@ -723,6 +724,18 @@ export default function Page() {
   // -nappi tyhjentää lukon, joten käyttäjä voi käynnistää GPS:n myöhemmin uudestaan.
   const gpsManualSuccessGuardUntilRefV485 = useRef(0);
   const gpsManualSuccessCoordsRefV485 = useRef<{ latitude: number; longitude: number } | null>(null);
+  const [gpsDebugLogV492, setGpsDebugLogV492] = useState<string[]>([]);
+
+  function pushGpsDebugLogV492(message: string) {
+    const stamp = new Date().toLocaleTimeString("fi-FI", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+    const line = `${stamp} ${message}`;
+    console.log(`[ZIIPLY GPS] ${line}`);
+    setGpsDebugLogV492((current) => [line, ...current].slice(0, 18));
+  }
   const [storePickerViewportStyle, setStorePickerViewportStyle] = useState<{
     top: number;
     width: number;
@@ -3657,11 +3670,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function getCurrentPosition(options?: PositionOptions) {
+    pushGpsDebugLogV492(`getCurrentPosition() ENTRY high=${String(options?.enableHighAccuracy)} timeout=${String(options?.timeout)} maxAge=${String(options?.maximumAge)}`);
     // V491_GPS_SINGLE_PROMISE_CONTROLLED_RETRY:
     // Kaikki GPS-haut kulkevat tämän yhden portin kautta. Jos toinen polku yrittää
     // paikantaa samaan aikaan, se saa saman promisen eikä käynnistä selaimen GPS:ää uudelleen.
     // Jos ensimmäinen yritys hutaa, tehdään yksi sisäinen retry samassa ajossa ilman uutta UI-starttia.
     if (typeof navigator === "undefined" || !navigator.geolocation) {
+      pushGpsDebugLogV492("getCurrentPosition() FAIL no navigator.geolocation");
       return Promise.reject(new Error("Geolocation is not supported"));
     }
 
@@ -3677,16 +3692,29 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     // Jos juuri saatiin koordinaatit, älä pyydä selaimelta heti uutta sijaintia.
     if (cachedPosition && now - cachedAt < 30000) {
+      pushGpsDebugLogV492("getCurrentPosition() CACHE HIT");
       return Promise.resolve(cachedPosition);
     }
 
     if (holder.__ziiplyCurrentPositionPromiseV491) {
+      pushGpsDebugLogV492("getCurrentPosition() REUSE IN-FLIGHT PROMISE");
       return holder.__ziiplyCurrentPositionPromiseV491;
     }
 
-    const requestPosition = (requestOptions: PositionOptions) =>
+    const requestPosition = (requestOptions: PositionOptions, label: string) =>
       new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, requestOptions);
+        pushGpsDebugLogV492(`BROWSER GPS START ${label} high=${String(requestOptions.enableHighAccuracy)} timeout=${String(requestOptions.timeout)} maxAge=${String(requestOptions.maximumAge)}`);
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            pushGpsDebugLogV492(`BROWSER GPS SUCCESS ${label} lat=${position.coords.latitude.toFixed(5)} lon=${position.coords.longitude.toFixed(5)}`);
+            resolve(position);
+          },
+          (error) => {
+            pushGpsDebugLogV492(`BROWSER GPS ERROR ${label} code=${String(error.code)} msg=${error.message || ""}`);
+            reject(error);
+          },
+          requestOptions,
+        );
       });
 
     const firstOptions: PositionOptions = {
@@ -3701,14 +3729,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       maximumAge: 0,
     };
 
-    holder.__ziiplyCurrentPositionPromiseV491 = requestPosition(firstOptions)
-      .catch(() => requestPosition(retryOptions))
+    holder.__ziiplyCurrentPositionPromiseV491 = requestPosition(firstOptions, "first")
+      .catch((error) => {
+        pushGpsDebugLogV492(`getCurrentPosition() INTERNAL RETRY after code=${String((error as any)?.code ?? "?")}`);
+        return requestPosition(retryOptions, "retry");
+      })
       .then((position) => {
+        pushGpsDebugLogV492("getCurrentPosition() RESOLVED");
         holder.__ziiplyCurrentPositionLastV491 = position;
         holder.__ziiplyCurrentPositionLastAtV491 = Date.now();
         return position;
       })
       .finally(() => {
+        pushGpsDebugLogV492("getCurrentPosition() PROMISE CLEARED");
         holder.__ziiplyCurrentPositionPromiseV491 = null;
       });
 
@@ -3761,6 +3794,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     source: "manual" | "gps" = "manual",
     coordsOverride?: { latitude: number; longitude: number } | null,
   ) {
+    pushGpsDebugLogV492(`applyLocation() ENTRY source=${source} query=${String(queryOverride || locationInput)}`);
     const rawQuery = (queryOverride || locationInput).trim();
 
     if (!rawQuery) {
@@ -3881,6 +3915,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         setLocationMessage(`${nextArea.label || query} käytössä`);
       }
     } catch (error) {
+      pushGpsDebugLogV492(`useOwnLocation(${source}) CATCH code=${String((error as any)?.code ?? "?")}`);
       console.error(error);
       const gpsErrorCode =
         typeof error === "object" && error !== null && "code" in error
@@ -3945,6 +3980,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const city = await reverseGeocodeCity(coords.latitude, coords.longitude);
 
       if (!city) {
+        pushGpsDebugLogV492(`useOwnLocation(${source}) reverse geocode EMPTY`);
         setGpsErrorMessage("GPS ei löydy");
         setLocationMessage("GPS ei löydy");
         setLocationMessageVisible(true);
@@ -3960,6 +3996,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setLocationInput("");
       await applyLocation(city, "gps", coords);
     } catch (error) {
+      pushGpsDebugLogV492(`useOwnLocation(${source}) CATCH code=${String((error as any)?.code ?? "?")}`);
       console.error(error);
       setGpsErrorMessage("GPS ei löydy");
       setLocationMessage("GPS ei löydy");
@@ -3974,6 +4011,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   async function useOwnLocation(source: "boot" | "manual" = "manual") {
+    pushGpsDebugLogV492(`useOwnLocation(${source}) ENTRY using=${String(usingOwnLocation)} loading=${String(storeSearchLoading)} coords=${gpsCoordsV320 ? "yes" : "no"} stores=${String(foundStores.length)}`);
     const now = Date.now();
     const gpsWindowLockV470 = getZiiplyGpsWindowLockV470();
     const isBootGpsRunV472 = source === "boot";
@@ -3982,6 +4020,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // vihreän nuppineulan / child-komponentin / fallbackin käynnistää samaa
     // hakua uudestaan. Käyttäjän pois-painallus tyhjentää tämän lukon.
     if (source === "manual" && now < gpsManualSuccessGuardUntilRefV485.current) {
+      pushGpsDebugLogV492("useOwnLocation(manual) BLOCKED by manual success guard");
       const lockedCoords = gpsManualSuccessCoordsRefV485.current;
       if (lockedCoords) {
         setGpsCoordsV320(lockedCoords);
@@ -3995,22 +4034,44 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // V472: boot/reload saa yrittää automaattista GPS-hakua vain kerran.
     // Tämä EI koske käyttäjän GPS-nappia, jotta GPS:n saa pois ja uudelleen päälle käsin.
     if (isBootGpsRunV472) {
-      if (ziiplyGpsBootAttemptedV472 || ziiplyGpsBootSucceededV472) return;
+      if (ziiplyGpsBootAttemptedV472 || ziiplyGpsBootSucceededV472) {
+        pushGpsDebugLogV492("useOwnLocation(boot) BLOCKED boot attempted/succeeded");
+        return;
+      }
       // Jos jokin aiempi reitti on jo saanut sijainnin ja kaupat, boot ei saa enää
       // koskea GPS:ään saman sivulatauksen aikana.
-      if (gpsCoordsV320 && foundStores.length > 0) return;
+      if (gpsCoordsV320 && foundStores.length > 0) {
+        pushGpsDebugLogV492("useOwnLocation(boot) BLOCKED coords+stores already ready");
+        return;
+      }
       ziiplyGpsBootAttemptedV472 = true;
     }
 
     // V470: yksi ainoa GPS-ajo kerrallaan. Lukko on sekä komponentin refissä,
     // moduulitasolla että window-tasolla, koska reload/avaa voi remountata Page-komponentin
     // ennen kuin Reactin state ehtii kertoa toiselle polulle, että GPS on jo käynnissä.
-    if (gpsSearchInFlightRefV465.current || ziiplyGpsHardInFlightV469 || gpsWindowLockV470?.inFlight) return;
-    if (storeSearchLoading && now - gpsLastFinishedAtRefV466.current < 3000) return;
-    if (now - gpsLastFinishedAtRefV466.current < 1200) return;
-    if (now - ziiplyGpsHardLastFinishedAtV469 < 2500) return;
-    if (gpsWindowLockV470 && now - gpsWindowLockV470.lastFinishedAt < 2500) return;
+    if (gpsSearchInFlightRefV465.current || ziiplyGpsHardInFlightV469 || gpsWindowLockV470?.inFlight) {
+      pushGpsDebugLogV492("useOwnLocation() BLOCKED in-flight lock");
+      return;
+    }
+    if (storeSearchLoading && now - gpsLastFinishedAtRefV466.current < 3000) {
+      pushGpsDebugLogV492("useOwnLocation() BLOCKED storeSearchLoading recent finish");
+      return;
+    }
+    if (now - gpsLastFinishedAtRefV466.current < 1200) {
+      pushGpsDebugLogV492("useOwnLocation() BLOCKED component recent finish");
+      return;
+    }
+    if (now - ziiplyGpsHardLastFinishedAtV469 < 2500) {
+      pushGpsDebugLogV492("useOwnLocation() BLOCKED module recent finish");
+      return;
+    }
+    if (gpsWindowLockV470 && now - gpsWindowLockV470.lastFinishedAt < 2500) {
+      pushGpsDebugLogV492("useOwnLocation() BLOCKED window recent finish");
+      return;
+    }
 
+    pushGpsDebugLogV492(`useOwnLocation(${source}) START accepted`);
     gpsSearchInFlightRefV465.current = true;
     ziiplyGpsHardInFlightV469 = true;
     if (gpsWindowLockV470) {
@@ -4027,6 +4088,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // V491: watchdog on pidempi, koska getCurrentPosition tekee tarvittaessa yhden sisäisen retryn.
     gpsFailTimerRefV391.current = window.setTimeout(() => {
       if (gpsSearchInFlightRefV465.current) {
+        pushGpsDebugLogV492(`WATCHDOG FIRED source=${source}`);
         const finishedAt = Date.now();
         setGpsErrorMessage("GPS ei löydy");
         setLocationMessage("GPS ei löydy");
@@ -4054,6 +4116,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setLocationMessage("Paikannetaan GPS");
 
     try {
+      pushGpsDebugLogV492(`useOwnLocation(${source}) before getCurrentPosition`);
       const position = await getCurrentPosition(
         isBootGpsRunV472
           ? { enableHighAccuracy: false, timeout: 18000, maximumAge: 30000 }
@@ -4063,6 +4126,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
       };
+      pushGpsDebugLogV492(`useOwnLocation(${source}) got coords, reverse geocode start`);
       setGpsCoordsV320(nextGpsCoordsV485);
       const city = await reverseGeocodeCity(
         nextGpsCoordsV485.latitude,
@@ -4070,6 +4134,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       );
 
       if (!city) {
+        pushGpsDebugLogV492(`useOwnLocation(${source}) reverse geocode EMPTY`);
         setGpsErrorMessage("GPS ei löydy");
         setLocationMessage("GPS ei löydy");
         setLocationMessageVisible(true);
@@ -4079,6 +4144,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         return;
       }
 
+      pushGpsDebugLogV492(`useOwnLocation(${source}) city=${city}`);
       setGpsErrorMessage("");
       gpsInitialVisiblePhaseRefV391.current = false;
       if (gpsFailTimerRefV391.current) {
@@ -4092,7 +4158,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // V470: älä pudota storeSearchLoadingia pois päältä tässä välissä.
       // GPS-paikannus ja sitä seuraava kauppahaku ovat yksi atominen ajo, jotta
       // Kaupat-paneelin fallback tai toinen effect ei voi startata uutta GPS-hakua väliin.
+      pushGpsDebugLogV492(`useOwnLocation(${source}) applyLocation start`);
       await applyLocation(city, "gps", nextGpsCoordsV485);
+      pushGpsDebugLogV492(`useOwnLocation(${source}) applyLocation done`);
 
       if (source === "manual") {
         gpsManualSuccessCoordsRefV485.current = nextGpsCoordsV485;
@@ -4103,6 +4171,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         ziiplyGpsBootSucceededV472 = true;
       }
     } catch (error) {
+      pushGpsDebugLogV492(`useOwnLocation(${source}) CATCH code=${String((error as any)?.code ?? "?")}`);
       console.error(error);
       const gpsErrorCode =
         typeof error === "object" && error !== null && "code" in error
@@ -4125,6 +4194,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setUsingOwnLocation(false);
       setStoreSearchLoading(false);
     } finally {
+      pushGpsDebugLogV492(`useOwnLocation(${source}) FINALLY`);
       const finishedAt = Date.now();
       gpsLastFinishedAtRefV466.current = finishedAt;
       ziiplyGpsHardLastFinishedAtV469 = finishedAt;
@@ -4154,6 +4224,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   // Tämä poistaa vanhan fallback/autostart-polun, joka pakotti GPS:n päälle avauksessa.
   // Manuaalinen GPS-nappi käyttää edelleen useOwnLocation("manual") ja toimii normaalisti.
   useEffect(() => {
+    pushGpsDebugLogV492("boot init effect ENTRY");
     gpsInitialSearchStartedRefV465.current = true;
     // Boot saa tehdä yhden viivästetyn yrityksen, mutta usingOwnLocation pysyy
     // false ennen varsinaista GPS-ajoa. Käyttäjän GPS-pois-nappi asettaa tämän trueksi.
@@ -4169,11 +4240,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   // React StrictMode / remount / korttien tilamuutokset eivät saa käynnistää toista starttia.
   // Manuaalinen GPS-nappi ei käytä tätä boot-lukkoa, joten se toimii edelleen päälle/pois.
   useEffect(() => {
+    pushGpsDebugLogV492("boot gps effect ENTRY");
     const windowWithZiiplyGps = window as typeof window & {
       __ziiplyBootGpsStartedV490?: boolean;
     };
 
     if (windowWithZiiplyGps.__ziiplyBootGpsStartedV490) {
+      pushGpsDebugLogV492("boot gps effect BLOCKED window boot already started");
       setGpsBootReadyV473(true);
       return;
     }
@@ -4195,8 +4268,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     gpsUserDisabledRefV306.current = false;
 
     gpsBootTimerRefV483.current = window.setTimeout(() => {
+      pushGpsDebugLogV492("boot gps timer FIRED");
       gpsBootTimerRefV483.current = null;
       if (gpsUserDisabledRefV306.current || gpsCoordsV320 || gpsSearchInFlightRefV465.current) {
+        pushGpsDebugLogV492(`boot gps timer BLOCKED disabled=${String(gpsUserDisabledRefV306.current)} coords=${gpsCoordsV320 ? "yes" : "no"} inFlight=${String(gpsSearchInFlightRefV465.current)}`);
         setGpsBootReadyV473(true);
         return;
       }
@@ -4292,6 +4367,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setOffers([...sItems, ...kItems]);
       setOfferSearchDoneForQuery(offerQuerySnapshot);
     } catch (error) {
+      pushGpsDebugLogV492(`useOwnLocation(${source}) CATCH code=${String((error as any)?.code ?? "?")}`);
       console.error(error);
       const gpsErrorCode =
         typeof error === "object" && error !== null && "code" in error
@@ -4555,6 +4631,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         setSearchPanelOpen(true);
       }
     } catch (error) {
+      pushGpsDebugLogV492(`useOwnLocation(${source}) CATCH code=${String((error as any)?.code ?? "?")}`);
       console.error(error);
       const gpsErrorCode =
         typeof error === "object" && error !== null && "code" in error
@@ -5020,6 +5097,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         void applyBestEffortScannerCameraTuning();
       });
     } catch (error) {
+      pushGpsDebugLogV492(`useOwnLocation(${source}) CATCH code=${String((error as any)?.code ?? "?")}`);
       console.error(error);
       const gpsErrorCode =
         typeof error === "object" && error !== null && "code" in error
@@ -5416,6 +5494,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         );
       }
     } catch (error) {
+      pushGpsDebugLogV492(`useOwnLocation(${source}) CATCH code=${String((error as any)?.code ?? "?")}`);
       console.error(error);
       const gpsErrorCode =
         typeof error === "object" && error !== null && "code" in error
@@ -7262,6 +7341,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         [key]: alternatives,
       }));
     } catch (error) {
+      pushGpsDebugLogV492(`useOwnLocation(${source}) CATCH code=${String((error as any)?.code ?? "?")}`);
       console.error(error);
       const gpsErrorCode =
         typeof error === "object" && error !== null && "code" in error
@@ -7614,6 +7694,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         ...keysToClose,
       }));
     } catch (error) {
+      pushGpsDebugLogV492(`useOwnLocation(${source}) CATCH code=${String((error as any)?.code ?? "?")}`);
       console.error(error);
       const gpsErrorCode =
         typeof error === "object" && error !== null && "code" in error
@@ -9096,7 +9177,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     onLocationInputChange={(nextValue) => {
                       setLocationInput(nextValue);
                       if (nextValue.trim()) {
-                        gpsUserDisabledRefV306.current = true;
+                        pushGpsDebugLogV492("GPS BUTTON -> OFF");
+                  gpsUserDisabledRefV306.current = true;
                         setUsingOwnLocation(false);
                       }
                       setLocationMessage("Kirjoita alue tai postinumero");
@@ -9823,8 +9905,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               storeSearchLoading={storeSearchLoading}
               gpsErrorMessage={gpsErrorMessage}
               gpsStatusText={locationMessageVisible ? formatLocationNoticeV465(locationMessage) : ""}
-              onApplyLocation={() => { if (!gpsStoreLocationPendingV366) setMapStoresOverlayOpenV433(true); }}
-              onOpenMap={() => { if (!gpsStoreLocationPendingV366) setMapStoresOverlayOpenV433(true); }}
+              onApplyLocation={() => {
+                pushGpsDebugLogV492("MAP/APPLY disabled in v492 test");
+              }}
+              onOpenMap={() => {
+                pushGpsDebugLogV492("MAP button disabled in v492 test");
+              }}
               onLocationInputChange={(nextValue: string) => {
                 setLocationInput(nextValue);
                 if (nextValue.trim()) {
@@ -9839,6 +9925,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               // - jos GPS on päällä tai paikannus on kesken, painallus sammuttaa GPS:n
               // - jos GPS on pois päältä, painallus käynnistää manuaalisen GPS-haun
               onGpsClick={() => {
+                pushGpsDebugLogV492(`GPS BUTTON click using=${String(usingOwnLocation)} loading=${String(storeSearchLoading)} coords=${gpsCoordsV320 ? "yes" : "no"}`);
                 if (usingOwnLocation || storeSearchLoading || gpsCoordsV320) {
                   gpsUserDisabledRefV306.current = true;
                   gpsManualSuccessGuardUntilRefV485.current = 0;
@@ -9872,6 +9959,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   return;
                 }
 
+                pushGpsDebugLogV492("GPS BUTTON -> MANUAL START");
                 gpsUserDisabledRefV306.current = false;
                 gpsManualSuccessGuardUntilRefV485.current = 0;
                 gpsManualSuccessCoordsRefV485.current = null;
@@ -11102,6 +11190,37 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             </div>
           </div>
         )}
+
+
+        <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+5.9rem)] left-2 right-2 z-[9999] max-h-[38vh] overflow-hidden rounded-2xl border-2 border-[#7c2d12] bg-[#fff7ed]/95 p-2 text-[11px] font-black text-[#431407] shadow-2xl sm:left-auto sm:right-4 sm:w-[420px]">
+          <div className="mb-1 flex items-center justify-between gap-2">
+            <span>GPS DEBUG v492</span>
+            <button
+              type="button"
+              onClick={() => setGpsDebugLogV492([])}
+              className="rounded-full bg-[#fed7aa] px-2 py-1 text-[10px] active:scale-95"
+            >
+              Tyhjennä
+            </button>
+          </div>
+          <div className="mb-1 grid grid-cols-2 gap-1 text-[10px] text-[#7c2d12]">
+            <div>using: {String(usingOwnLocation)}</div>
+            <div>loading: {String(storeSearchLoading)}</div>
+            <div>coords: {gpsCoordsV320 ? "yes" : "no"}</div>
+            <div>stores: {foundStores.length}</div>
+          </div>
+          <div className="max-h-[27vh] space-y-1 overflow-y-auto rounded-xl bg-white/75 p-2">
+            {gpsDebugLogV492.length === 0 ? (
+              <div>Ei lokia vielä</div>
+            ) : (
+              gpsDebugLogV492.map((line, index) => (
+                <div key={`${line}-${index}`} className="break-words leading-tight">
+                  {line}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
 
 
       </main>
