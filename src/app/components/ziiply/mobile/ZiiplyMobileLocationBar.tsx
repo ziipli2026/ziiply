@@ -1,5 +1,7 @@
 "use client";
 
+// V431_COMPASS_2X_STATUS_TEXT: kompassi 2x ja GPS-status lyhyenä ilman katkeilua.
+
 // V430_LOCATIONBAR_CLEAN_REBUILD:
 // Puhdas build-kelpoinen versio. GPS-nappi on/off-väreillä ja kompassinappi merilasi/aquamarine-taustalla.
 
@@ -28,10 +30,15 @@ export default function ZiiplyMobileLocationBar({
   onApplyLocation,
   onOpenMap,
 }: ZiiplyMobileLocationBarProps) {
-  const statusText =
+  const rawStatusText =
     gpsErrorMessage ||
     gpsStatusText ||
     (usingOwnLocation ? "Paikannetaan GPS…" : "GPS pois päältä.");
+
+  const statusText =
+    rawStatusText === "GPS pois päältä. Kirjoita alue tai postinumero."
+      ? "GPS pois päältä."
+      : rawStatusText;
 
   const gpsButtonStyle: React.CSSProperties = {
     borderColor: usingOwnLocation ? "#b7efcf" : "#ef4444",
@@ -75,11 +82,11 @@ export default function ZiiplyMobileLocationBar({
               }
             }}
             placeholder="05510 tai Hyvinkää"
-            className="block h-[27px] w-full min-w-0 bg-transparent text-[18px] font-black leading-none text-[#17223b] outline-none placeholder:text-[#94a3b8]"
+            className="block h-[27px] w-full min-w-0 bg-transparent text-[17px] font-black leading-none text-[#17223b] outline-none placeholder:text-[#94a3b8]"
           />
 
           <div
-            className={`mt-[1px] truncate text-[12px] font-black leading-none ${
+            className={`mt-[1px] truncate text-[11px] font-black leading-none tracking-[-0.02em] ${
               gpsErrorMessage
                 ? "text-[#dc2626]"
                 : usingOwnLocation
@@ -94,13 +101,13 @@ export default function ZiiplyMobileLocationBar({
         <button
           type="button"
           onClick={handleMapClick}
-          className="group grid h-[56px] w-[86px] place-items-center rounded-[1.25rem] bg-[#9fd8d0] shadow-[0_8px_18px_rgba(7,61,50,0.18),inset_0_1px_0_rgba(255,255,255,0.55)] ring-1 ring-[#6dbbb2] transition-transform duration-150 active:scale-95"
+          className="group grid h-[56px] w-[86px] place-items-center overflow-visible rounded-[1.25rem] bg-[#9fd8d0] shadow-[0_8px_18px_rgba(7,61,50,0.18),inset_0_1px_0_rgba(255,255,255,0.55)] ring-1 ring-[#6dbbb2] transition-transform duration-150 active:scale-95"
           aria-label="Avaa kartta"
         >
           <img
             src="/icons/ziiply-compass.png"
             alt=""
-            className="h-11 w-11 object-contain drop-shadow-[0_2px_5px_rgba(7,61,50,0.35)] transition-transform duration-150 group-hover:scale-105 group-active:scale-95"
+            className="h-[64px] w-[64px] object-contain drop-shadow-[0_3px_7px_rgba(7,61,50,0.38)] transition-transform duration-150 group-hover:scale-105 group-active:scale-95"
             draggable={false}
           />
         </button>
