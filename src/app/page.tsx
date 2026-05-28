@@ -7,7 +7,7 @@
 
 // V473_TOPBAR_WEATHER_NO_GPS_NO_BOOT_RACE: sää-yläpalkki ei voi käynnistää GPS:ää eikä sääfetch käynnisty ennen kuin boot-GPS on valmis.
 
-// V474_WEATHER_TOPBAR_STATIC_NO_EFFECT: sääkenttä ei käynnistä mitään effectiä/fetchiä/GPS:ää; vain page-GPS saa paikantaa.
+// V475_WEATHER_FROM_PAGE_GPS_NO_NAV_GPS_COUPLING: sääkenttä ei käynnistä mitään effectiä/fetchiä/GPS:ää; vain page-GPS saa paikantaa.
 
 // V457_REMOVE_FULL_OLD_HAE_INLINE_RENDER: page.tsx:n vanha Hae-paneeli poistettu; mobiilihaku renderöidään ZiiplyMobileSearchCard-komponentilla.
 
@@ -377,18 +377,57 @@ function KauppiasMobileTopBar({
   weatherEnabled?: boolean;
   onOpenCalendar?: () => void;
 }) {
-  // V474_WEATHER_TOPBAR_STATIC_NO_EFFECT:
-  // Sääkenttä ei saa tehdä omaa effectiä, fetchiä eikä GPS-kutsua. Se näyttää
-  // väliaikaisesti vain staattisen arvon + alueen. Varsinainen sää voidaan kytkeä
-  // myöhemmin GPS coreen, jossa koordinaatit tulevat ulkopuolelta ilman paikannusta.
-  const weatherValue = "—°";
-  const weatherText = areaLabel;
+  // V475_WEATHER_FROM_PAGE_GPS_NO_NAV_GPS_COUPLING:
+  // Sääkenttä ei saa koskaan kutsua navigator.geolocationia. Se saa vain page.tsx:n
+  // jo valmiiksi hakemat koordinaatit propsina ja hakee sään niillä.
+  const [weatherValue, setWeatherValue] = useState("—°");
+  const [weatherText, setWeatherText] = useState(areaLabel);
   const [electricityValue, setElectricityValue] = useState("4,2");
   const [electricityText, setElectricityText] = useState("c/kWh");
   const [electricityTrend, setElectricityTrend] = useState<"up" | "down" | "flat">("flat");
 
-  // V474: Ei weather-useEffectiä tässä komponentissa.
-  // Tämä estää sääkenttää remounttaamasta/fetchaamasta ja sotkemasta GPS-boot-ketjua.
+  useEffect(() => {
+    if (hidden) return;
+    if (!weatherEnabled || !gpsCoords) {
+      setWeatherValue("—°");
+      setWeatherText(areaLabel);
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadWeatherFromPageGps() {
+      try {
+        const response = await fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(gpsCoords.latitude)}&longitude=${encodeURIComponent(gpsCoords.longitude)}&current=temperature_2m,weather_code&timezone=auto`,
+          { cache: "no-store" },
+        );
+
+        if (!response.ok || cancelled) return;
+
+        const data = await response.json();
+        const temp = Number(data?.current?.temperature_2m);
+        const code = Number(data?.current?.weather_code);
+
+        if (Number.isFinite(temp)) {
+          setWeatherValue(`${temp >= 0 ? "+" : ""}${Math.round(temp)}°`);
+        }
+
+        setWeatherText(kauppiasWeatherTextFromCode(Number.isFinite(code) ? code : undefined));
+      } catch {
+        if (!cancelled) {
+          setWeatherValue("—°");
+          setWeatherText(areaLabel);
+        }
+      }
+    }
+
+    loadWeatherFromPageGps();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [hidden, weatherEnabled, gpsCoords?.latitude, gpsCoords?.longitude, areaLabel]);
 
   useEffect(() => {
     if (hidden || typeof window === "undefined") return;
@@ -2681,15 +2720,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // Reloadin jälkeen ostoskori voi olla palautettu, vaikka kauppavalintoja ei ole vielä tehty.
     // Hae-napin pitää silloin avata Hae-paneeli normaalisti eikä ohjata Kaupat-paneeliin.
     // Kaupat-paneeliin ohjataan vain täysin tyhjässä aloitustilassa, kun ei ole kauppavalintoja eikä korissa tuotteita.
-    if (!storesReadyForSearch && cart.length === 0) {
-      setCartModalOpen(false);
-      setCartSavePanelOpen(false);
-      setEanModalOpen(false);
-      closeProductSelectionOverlay();
-      setSearchPanelOpen(false);
-      setShopsPanelOpen(true);
-      return;
-    }
+    // V475: Hae-nappi ei saa enää ohjata Kaupat-paneeliin eikä sitä kautta koskea GPS-tilaan.
+    // Jos kaupat eivät ole vielä valmiit, avataan silti Hae-paneeli; itse haku näyttää tarvittaessa
+    // ohjeen kauppojen valinnasta. GPS:n käynnistys kuuluu vain boot-efektille tai GPS-napille.
 
     // v236: Aloitussivu pysyy tyhjänä v234-tyyliin. Hae avataan kiinteänä yhtenä näkymänä, ei skrollattavana sivuna.
     // Hae-paneeli toimii mobiilissa erillisenä näkymänä: se sulkee korin/EANin/vertailun ja näkyy aina viewportissa.
@@ -2728,15 +2761,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // v342_RESTORE_CART_SEARCH_NAV_FIX:
     // Älä hyppää Kaupat-paneeliin, jos korissa on palautettuja tuotteita.
     // Tällöin käyttäjä saa avata Hae-paneelin ja bottom navin aktiivinen tila pysyy oikein vihreänä.
-    if (!storesReadyForSearch && cart.length === 0) {
-      setCartModalOpen(false);
-      setCartSavePanelOpen(false);
-      setEanModalOpen(false);
-      setActiveResult("none");
-      setSearchPanelOpen(false);
-      setShopsPanelOpen(true);
-      return;
-    }
+    // V475: Hae-toggle ei saa avata Kaupat-paneelia eikä sivuvaikutuksena käynnistää GPS-polkuja.
+    // Kaupat avataan vain Kaupat-napista, GPS vain bootista tai GPS-napista.
 
     // Toinen painallus sulkee Hae-näkymän. Jos Kori on auki, vaihdetaan suoraan Hae-näkymään.
     if (searchPanelOpen) {
@@ -3827,6 +3853,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // Tämä EI koske käyttäjän GPS-nappia, jotta GPS:n saa pois ja uudelleen päälle käsin.
     if (isBootGpsRunV472) {
       if (ziiplyGpsBootAttemptedV472 || ziiplyGpsBootSucceededV472) return;
+      // Jos jokin aiempi reitti on jo saanut sijainnin ja kaupat, boot ei saa enää
+      // koskea GPS:ään saman sivulatauksen aikana.
+      if (gpsCoordsV320 && foundStores.length > 0) return;
       ziiplyGpsBootAttemptedV472 = true;
     }
 
@@ -10696,7 +10725,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         <ZiiplyBottomNav
           shopsPanelOpen={shopsPanelOpen}
           initialStoreNavPrompt={initialStoreNavPrompt}
-          searchBottomNavDisabled={searchBottomNavDisabled}
+          searchBottomNavDisabled={searchNavigationLocked}
           initialStoreSelectionLocked={initialStoreSelectionLocked}
           searchPanelOpen={searchPanelOpen}
           searchReadyBounceKeyV320={searchReadyBounceKeyV320}
