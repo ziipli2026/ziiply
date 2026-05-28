@@ -1,8 +1,10 @@
 "use client";
 
-// V462_MOBILE_DESKTOP_BEHAVIOR:
-// Mobiili-Haku sovellettu ZiiplySearchCard desktop-kortin visuaalisesta kielestä.
-// Mobiili-Haku: desktop-tyylinen toiminta, kuvanapit, keskitetty mode-toggle ja rajauksettomat webp-toimintonapit.
+// V463_MOBILE_IDLE_TYPING_LAYOUT:
+// Mobiili-Haku noudattaa desktop-kortin kahta tilaa:
+// 1) tyhjä hakukenttä: pieni kenttä Göstan ja Justiinan välissä
+// 2) tekstiä syötetty: leveä hakukenttä ylhäällä, alla Gösta + mode-toggle + Justiina.
+// Äänitä/Skanneri ovat kiinteäkokoiset WEBP-napit ilman erillistä taustalaatikkoa.
 
 import React from "react";
 
@@ -192,12 +194,12 @@ function RetroAssetButton({
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="relative h-[5.25rem] overflow-visible rounded-[1.35rem] bg-transparent p-0 shadow-none active:scale-[0.985]"
+      className="relative block h-[5.35rem] min-h-[5.35rem] w-full overflow-visible border-0 bg-transparent p-0 shadow-none outline-none active:translate-y-[1px]"
     >
       <img
         src={imageSrc}
         alt={label}
-        className="h-full w-full object-contain"
+        className="absolute inset-0 h-full w-full object-fill"
         draggable={false}
       />
     </button>
@@ -295,36 +297,63 @@ export default function ZiiplyMobileSearchCard({
             )}
           </div>
 
-          <div className="relative z-10 mt-2 flex justify-center">
-            <ModeToggle mode={searchMode} onModeChange={onSearchModeChange} />
-          </div>
+          {!hasText ? (
+            <div className="relative z-10 mt-3 grid grid-cols-[minmax(0,1fr)_minmax(7.5rem,9.2rem)_minmax(0,1fr)] items-center gap-2">
+              <AssistantButton
+                kind="gosta"
+                onClick={onOfferSearch}
+                disabled={!hasText}
+                loading={loadingOffers}
+              />
 
-          <div className="relative z-10 mt-2 h-[4.65rem] overflow-hidden rounded-[1.45rem] border-[3px] border-[#9d8350] bg-[#fff4d3] p-1.5 shadow-[inset_0_3px_8px_rgba(91,65,28,0.10)]">
-            <textarea
-              ref={inputRef}
-              value={input}
-              onChange={(event) => onInputChange?.(event.target.value)}
-              rows={2}
-              placeholder={searchMode === "single" ? "Kirjoita yksi tuote" : "maito, kahvi, jauheliha"}
-              className="block h-full w-full resize-none overflow-hidden rounded-[1.15rem] border-0 bg-[#fffaf0] px-4 py-2 text-center text-[1.32rem] font-black leading-[1.05] text-[#102216] outline-none placeholder:text-[#7d7461]"
-              style={{ fontFamily: hasText ? serifFont : cooperFont }}
-            />
-          </div>
+              <div className="h-[4.65rem] overflow-hidden rounded-[1.45rem] border-[3px] border-[#9d8350] bg-[#fff4d3] p-1.5 shadow-[inset_0_3px_8px_rgba(91,65,28,0.10)]">
+                <textarea
+                  ref={inputRef}
+                  value={input}
+                  onChange={(event) => onInputChange?.(event.target.value)}
+                  rows={2}
+                  placeholder={searchMode === "single" ? "Yksi tuote" : "maito,\nkahvi"}
+                  className="block h-full w-full resize-none overflow-hidden rounded-[1.15rem] border-0 bg-[#fffaf0] px-2 py-2 text-center text-[1.15rem] font-black leading-[1.02] text-[#102216] outline-none placeholder:text-[#7d7461]"
+                  style={{ fontFamily: cooperFont }}
+                />
+              </div>
 
-          <div className="relative z-10 mt-3 grid grid-cols-2 items-center gap-3">
-            <AssistantButton
-              kind="gosta"
-              onClick={onOfferSearch}
-              disabled={!hasText}
-              loading={loadingOffers}
-            />
-            <AssistantButton
-              kind="justiina"
-              onClick={onNormalSearch}
-              disabled={!hasText}
-              loading={justiinaLoading}
-            />
-          </div>
+              <AssistantButton
+                kind="justiina"
+                onClick={onNormalSearch}
+                disabled={!hasText}
+                loading={justiinaLoading}
+              />
+            </div>
+          ) : (
+            <>
+              <div className="relative z-10 mt-2 h-[4.65rem] overflow-hidden rounded-[1.45rem] border-[3px] border-[#9d8350] bg-[#fff4d3] p-1.5 shadow-[inset_0_3px_8px_rgba(91,65,28,0.10)]">
+                <textarea
+                  ref={inputRef}
+                  value={input}
+                  onChange={(event) => onInputChange?.(event.target.value)}
+                  rows={2}
+                  placeholder={searchMode === "single" ? "Kirjoita yksi tuote" : "maito, kahvi, jauheliha"}
+                  className="block h-full w-full resize-none overflow-hidden rounded-[1.15rem] border-0 bg-[#fffaf0] px-4 py-2 text-center text-[1.32rem] font-black leading-[1.05] text-[#102216] outline-none placeholder:text-[#7d7461]"
+                  style={{ fontFamily: serifFont }}
+                />
+              </div>
+
+              <div className="relative z-10 mt-3 grid grid-cols-[minmax(0,1fr)_minmax(10.8rem,12.2rem)_minmax(0,1fr)] items-center gap-2">
+                <AssistantButton
+                  kind="gosta"
+                  onClick={onOfferSearch}
+                  loading={loadingOffers}
+                />
+                <ModeToggle mode={searchMode} onModeChange={onSearchModeChange} />
+                <AssistantButton
+                  kind="justiina"
+                  onClick={onNormalSearch}
+                  loading={justiinaLoading}
+                />
+              </div>
+            </>
+          )}
 
           <div className="relative z-10 mt-3 flex h-[2.75rem] items-center justify-center overflow-hidden rounded-[1.18rem] border-[3px] border-[#d2b170] bg-[#fff1bf] px-3 text-center text-[0.84rem] font-black text-[#7a6842] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_3px_0_rgba(91,72,44,0.12)]">
             <span className="block truncate">
