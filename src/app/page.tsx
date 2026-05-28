@@ -4108,12 +4108,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setGpsBootReadyV473(true);
   }, []);
 
-  // V484_NO_AUTOMATIC_GPS_BOOT:
-  // Ensimmäinen automaattinen boot/reload-GPS-startti poistettu kokonaan.
-  // Tämä oli se polku, joka teki avauksessa aina ensin hutiosuman ja sen jälkeen
-  // jokin toinen reitti pääsi käynnistämään paikannuksen uudestaan.
-  // GPS käynnistyy tästä eteenpäin vain käyttäjän GPS-napista:
-  // onGpsClick -> useOwnLocation("manual").
+  // V486_BOOT_GPS_ONLY_GPS_BUTTON_DISABLED:
+  // Hätätesti: palautetaan alun automaattinen GPS-startti ja poistetaan
+  // GPS-napin manuaalinen käynnistys käytöstä. Näin nähdään tuleeko toinen
+  // GPS-kierros nimenomaan manuaalinapin / vihreän nuppineulan reitistä.
   useEffect(() => {
     if (gpsBootTimerRefV483.current) {
       window.clearTimeout(gpsBootTimerRefV483.current);
@@ -4126,7 +4124,28 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     setStoreSearchLoading(false);
     setGpsStorePickerBlockedV382(false);
-    setGpsBootReadyV473(true);
+    setGpsBootReadyV473(false);
+    gpsUserDisabledRefV306.current = false;
+
+    gpsBootTimerRefV483.current = window.setTimeout(() => {
+      gpsBootTimerRefV483.current = null;
+      if (gpsUserDisabledRefV306.current) {
+        setGpsBootReadyV473(true);
+        return;
+      }
+      void useOwnLocation("boot");
+    }, 0);
+
+    return () => {
+      if (gpsBootTimerRefV483.current) {
+        window.clearTimeout(gpsBootTimerRefV483.current);
+        gpsBootTimerRefV483.current = null;
+      }
+      if (gpsBootWatchdogRefV483.current) {
+        window.clearTimeout(gpsBootWatchdogRefV483.current);
+        gpsBootWatchdogRefV483.current = null;
+      }
+    };
   }, []);
 
   async function searchOffers(termOverride?: string) {
@@ -9016,12 +9035,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       setLocationMessage("Kirjoita alue tai postinumero");
                     }}
                     
-                    onUseOwnLocation={() => void useOwnLocation("manual")}
-                    onDisableOwnLocation={() =>
-                      stopOwnLocationV306(
-                        "GPS pois päältä",
-                      )
-                    }
+                    // V486: GPS-nappi pois testistä; automaattinen boot-startti hoitaa paikannuksen.
+                    onUseOwnLocation={() => undefined}
+                    onDisableOwnLocation={() => undefined}
                     onOpenShops={() => {
                       setCartModalOpen(false);
                       setCartSavePanelOpen(false);
@@ -9752,18 +9768,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 setLocationMessage("Kirjoita alue tai postinumero");
                 setLocationMessageVisible(true);
               }}
-              onGpsClick={() => {
-                if (usingOwnLocation || gpsSearchInFlightRefV465.current) {
-                  stopOwnLocationV306("GPS pois päältä");
-                  setLocationMessageVisible(true);
-                  return;
-                }
-                gpsUserDisabledRefV306.current = false;
-                gpsInitialVisiblePhaseRefV391.current = false;
-                setGpsErrorMessage("");
-                setLocationInput("");
-                void useOwnLocation("manual");
-              }}
+              // V486: GPS-nappi pois testistä; ei manuaalista käynnistystä eikä sammutusta.
+              onGpsClick={() => undefined}
               
               
             />
