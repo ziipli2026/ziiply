@@ -1,5 +1,6 @@
 "use client";
 
+// V495_GPS_SUCCESS_UI_RELEASE: GPS onnistumisen jälkeen vapautetaan UI eksplisiittisesti pois pending/jumi-tilasta.
 // V492_GPS_DEBUG_LOG_MAP_DISABLED: ruudulle näkyvä GPS-logi + karttatoiminnot pois testistä.
 // V491_GPS_SINGLE_PROMISE_CONTROLLED_RETRY: getCurrentPosition dedupataan yhteen promiseen ja ensimmäisen hutiyrityksen jälkeen tehdään yksi sisäinen retry ilman uutta UI-starttia.
 
@@ -4015,6 +4016,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const now = Date.now();
     const gpsWindowLockV470 = getZiiplyGpsWindowLockV470();
     const isBootGpsRunV472 = source === "boot";
+    let gpsResolvedCityV495 = "";
+    let gpsResolvedCoordsV495: { latitude: number; longitude: number } | null = null;
+    let gpsApplyLocationDoneV495 = false;
 
     // V485: Jos edellinen manuaalinen GPS-haku juuri onnistui, älä anna
     // vihreän nuppineulan / child-komponentin / fallbackin käynnistää samaa
@@ -4145,6 +4149,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
 
       pushGpsDebugLogV492(`useOwnLocation city=${city}`);
+      gpsResolvedCityV495 = city;
+      gpsResolvedCoordsV495 = nextGpsCoordsV485;
       setGpsErrorMessage("");
       gpsInitialVisiblePhaseRefV391.current = false;
       if (gpsFailTimerRefV391.current) {
@@ -4160,6 +4166,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // Kaupat-paneelin fallback tai toinen effect ei voi startata uutta GPS-hakua väliin.
       pushGpsDebugLogV492(`useOwnLocation applyLocation start`);
       await applyLocation(city, "gps", nextGpsCoordsV485);
+      gpsApplyLocationDoneV495 = true;
       pushGpsDebugLogV492(`useOwnLocation applyLocation done`);
 
       if (source === "manual") {
@@ -4208,6 +4215,25 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
       gpsSearchInFlightRefV465.current = false;
       ziiplyGpsHardInFlightV469 = false;
+
+      // V495_GPS_SUCCESS_UI_RELEASE:
+      // Lokin mukaan GPS-startti ei enää tuplaannu, mutta UI voi jäädä näyttämään
+      // vanhaa pending-tilaa. Jos GPS + kauppahaku valmistuivat, vapautetaan tila
+      // vielä lopuksi eksplisiittisesti onnistuneeksi.
+      if (gpsApplyLocationDoneV495 && gpsResolvedCityV495) {
+        pushGpsDebugLogV492(`useOwnLocation success UI release city=${gpsResolvedCityV495}`);
+        setGpsErrorMessage("");
+        setUsingOwnLocation(true);
+        if (gpsResolvedCoordsV495) setGpsCoordsV320(gpsResolvedCoordsV495);
+        setStoreSearchLoading(false);
+        setGpsStorePickerBlockedV382(false);
+        setLocationInput("");
+        setLocationMessage(`${gpsResolvedCityV495} käytössä`);
+        setLocationMessageVisible(true);
+      } else {
+        setStoreSearchLoading(false);
+      }
+
       setGpsBootReadyV473(true);
       if (gpsBootWatchdogRefV483.current) {
         window.clearTimeout(gpsBootWatchdogRefV483.current);
