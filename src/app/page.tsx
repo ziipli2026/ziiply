@@ -1,7 +1,7 @@
 "use client";
 
 // V397_FUNCTIONAL_ROLLBACK: palautettu P394:n oma toimiva mobiili-Kori/Vertailu/Hae-renderöinti.
-// V400_REMOVE_CART_ITEM_NAME_FIX: mobiili-Kori käyttää oikeaa P394-funktiota removeCartItem.
+// V401_REMOVE_OLD_MOBILE_SHOPS_RENDER: vanha Kaupat-paneelin JSX poistettu ja ohjattu ZiiplyMobileShopsView-komponenttiin.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -166,6 +166,7 @@ import ZiiplyStoreLocaCard from "./components/ziiply/cards/ZiiplyStoreLocaCard";
 import * as ZiiplyCompareCardModule from "./components/ziiply/cards/ZiiplyCompareCard";
 import ZiiplyMobileHomeView from "./components/ziiply/mobile/ZiiplyMobileHomeView";
 import ZiiplyMobileAssistantPanel from "./components/ziiply/mobile/ZiiplyMobileAssistantPanel";
+import ZiiplyMobileShopsView from "./components/ziiply/mobile/ZiiplyMobileShopsView";
 import type { ZiiplyAssistantKey } from "./components/ziiply/mobile/ZiiplyMobileAssistantButton";
 
 type KauppiasTopBarKind = "weather" | "electricity" | "fuel" | "calendar";
@@ -9185,16 +9186,34 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
               </>
             )}
 
-          {!showLaunchScreen && (
+          {!showLaunchScreen && shopsPanelOpen && (
             <div
-              className={`${shopsPanelOpen ? "fixed inset-0 z-50 overflow-hidden bg-[#edf8f4] px-3 pb-[calc(env(safe-area-inset-bottom)+5.6rem)] pt-[calc(env(safe-area-inset-top)+5.2rem)] sm:static sm:contents sm:overflow-visible sm:bg-transparent sm:p-0" : "hidden sm:contents"} ${closingPanels.shops ? "ziiply-soft-close" : shopsPanelOpen ? "ziiply-soft-open" : ""}`}
+              className={`fixed inset-0 z-50 overflow-y-auto bg-[#edf8f4] pb-[calc(env(safe-area-inset-bottom)+5.6rem)] pt-0 sm:hidden ${
+                closingPanels.shops ? "ziiply-soft-close" : "ziiply-soft-open"
+              }`}
             >
-          <section className="rounded-[1.25rem] border border-slate-200 bg-white/95 p-2 shadow-sm sm:rounded-[1.35rem] sm:p-3">
-            <div className="flex items-center gap-2 sm:gap-3">
-              <button
-                type="button"
-                aria-pressed={usingOwnLocation}
-                onClick={() => {
+              <ZiiplyMobileShopsView
+                locationInput={locationInput}
+                usingOwnLocation={usingOwnLocation}
+                storeSearchLoading={storeSearchLoading}
+                gpsErrorMessage={gpsErrorMessage}
+                storeMode={storeMode}
+                storeModeChosen={storeModeChosenV299}
+                storeCompareScope={storeCompareScope}
+                withinChain={withinChain}
+                selectedRealChainCount={selectedRealChainCount}
+                missingStoresMessageVisible={hyperStorePairMissingV391}
+                foundStoresCount={foundStores.length}
+                storeCards={renderComparedStoreCards(true)}
+                onLocationInputChange={(nextValue: string) => {
+                  setLocationInput(nextValue);
+                  if (nextValue.trim()) {
+                    gpsUserDisabledRefV306.current = true;
+                    setUsingOwnLocation(false);
+                  }
+                  setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
+                }}
+                onGpsClick={() => {
                   if (usingOwnLocation) {
                     stopOwnLocationV306(
                       "GPS pois päältä. Kirjoita alue tai postinumero.",
@@ -9202,575 +9221,14 @@ function stopOwnLocationV306(message = "Kirjoita alue tai postinumero.") {
                     return;
                   }
                   setLocationInput("");
-                  useOwnLocation();
+                  void useOwnLocation();
                 }}
-                title="Käytä omaa sijaintia"
-                className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-xl font-black shadow-sm ring-1 transition active:scale-[0.98] ${
-                  usingOwnLocation
-                    ? "bg-green-50 text-green-600 ring-green-100"
-                    : "bg-red-50 text-red-600 ring-red-100"
-                }`}
-              >
-                📍
-              </button>
-
-              <div className="relative min-w-0 flex-1 max-w-[280px] sm:mx-auto">
-                <input
-                  value={locationInput}
-                  onChange={(event) => {
-                    const nextValue = event.target.value;
-                    setLocationInput(nextValue);
-                    if (nextValue.trim()) {
-                      gpsUserDisabledRefV306.current = true;
-                      setUsingOwnLocation(false);
-                    }
-                    setLocationMessage("Kirjoita alue tai käytä omaa sijaintia.");
-                  }}
-                  placeholder="05510 tai Hyvinkää"
-                  className={`h-11 w-full rounded-xl border border-slate-300 px-3 text-[16px] outline-none focus:border-green-600 sm:rounded-2xl sm:px-4 ${
-                    usingOwnLocation || gpsErrorMessage
-                      ? "pb-4 pt-1"
-                      : "py-2"
-                  }`}
-                />
-
-                {(usingOwnLocation || gpsErrorMessage) && (
-                  <div
-                    className={`pointer-events-none absolute inset-x-3 bottom-1.5 truncate text-[10px] font-black leading-none ${
-                      gpsErrorMessage ? "text-red-700" : "text-green-700"
-                    }`}
-                  >
-                    {gpsErrorMessage || locationMessage || `Käytetään GPS ${activeArea.label}`}
-                  </div>
-                )}
-              </div>
-
-              <button
-                type="button"
-                onClick={() => openSelectedStoresMapV393()}
-                className="flex min-w-[82px] shrink-0 items-center justify-center rounded-xl bg-slate-900 px-3 py-2 text-sm font-extrabold text-white transition active:scale-[0.98] sm:min-w-[92px] sm:rounded-2xl sm:px-4 sm:py-3 sm:text-base"
-                aria-label="Avaa valitut kaupat kartalla"
-                title="Avaa kartta"
-              >
-                <span className="mr-1 text-[17px] leading-none">🗺️</span>
-                <span>Kartta</span>
-              </button>
-            </div>
-          </section>
-
-          <section className="rounded-[2rem] bg-white px-5 pb-2 pt-2 shadow-sm">
-            <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 overflow-visible">
-              <button
-                type="button"
-                disabled={storeCompareScope === "within_chain"}
-                onClick={() => handleStoreModeChange("hyper")}
-                className={`rounded-2xl px-4 py-[0.325rem] text-base font-extrabold leading-tight transition disabled:cursor-not-allowed ${
-                  storeCompareScope === "within_chain" ||
-                  (storeModeChosenV299 && storeMode === "hyper")
-                    ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
-                    : "bg-white text-slate-700 ring-1 ring-slate-200"
-                }`}
-              >
-                🏬 Tavaratalot
-              </button>
-              <button
-                type="button"
-                disabled={storeCompareScope === "within_chain"}
-                onClick={() => handleStoreModeChange("local")}
-                className={`rounded-2xl px-4 py-[0.325rem] text-base font-extrabold leading-tight transition disabled:cursor-not-allowed ${
-                  storeCompareScope === "within_chain" ||
-                  (storeModeChosenV299 && storeMode === "local")
-                    ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
-                    : "bg-white text-slate-700 ring-1 ring-slate-200"
-                }`}
-              >
-                🏪 Lähikaupat
-              </button>
-
-              <div className="col-span-2 flex h-5 items-center justify-center">
-                <span className="rounded-full bg-white px-3 text-center text-[11px] font-black uppercase leading-none tracking-wide text-slate-500">
-                  Hakutapa
-                </span>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => handleStoreCompareScopeChange("between_chains")}
-                className={`rounded-2xl px-4 py-[0.325rem] text-sm font-extrabold leading-tight transition ${
-                  storeCompareScope === "between_chains"
-                    ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
-                    : "bg-white text-slate-700 ring-1 ring-slate-200"
-                }`}
-              >
-                Ketjujen väliltä
-              </button>
-              <button
-                type="button"
-                onClick={() => handleStoreCompareScopeChange("within_chain")}
-                className={`rounded-2xl px-4 py-[0.325rem] text-sm font-extrabold leading-tight transition ${
-                  storeCompareScope === "within_chain"
-                    ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
-                    : "bg-white text-slate-700 ring-1 ring-slate-200"
-                }`}
-              >
-                Ketjun sisältä
-              </button>
-            </div>
-            <div className="mt-1 rounded-2xl bg-slate-50 p-2 text-sm text-slate-600 ring-1 ring-slate-200 empty:hidden">
-              {storeCompareScope === "between_chains" &&
-                selectedRealChainCount < 2 && (
-                  <p className="mt-2 rounded-xl bg-amber-50 px-4 py-3 font-black text-amber-800 ring-1 ring-amber-100">
-                    Vertailu ei ole mahdollinen vain yhdellä valitulla ketjulla.
-                  </p>
-                )}
-              {storeCompareScope === "within_chain" && !withinChain && (
-                <p className="mt-2 rounded-xl bg-amber-50 px-4 py-3 font-black text-amber-800 ring-1 ring-amber-100">
-                  Valitse S-ryhmä tai K-ryhmä ketjun sisäistä vertailua varten.
-                </p>
-              )}
-
-              {((storeMode === "local" &&
-                (!activeArea.sLocalStoreId || !activeArea.kLocalStoreId)) ||
-                (storeMode === "hyper" &&
-                  (!activeArea.sStoreId || !activeArea.kStoreId))) &&
-                foundStores.length === 0 && (
-                  <p className="mt-2 text-amber-700">
-                    Hae alue tai käytä omaa sijaintia, niin Ziiply hakee kaupat
-                    dynaamisesti.
-                  </p>
-                )}
-            </div>
-
-            {renderComparedStoreCards(true)}
-
-            {false && foundStores.length > 0 && (
-              <div className="mt-3 rounded-2xl bg-white p-3 text-xs text-slate-600 ring-1 ring-slate-200">
-                <div className="mb-3 flex items-center justify-between gap-3">
-                  <p className="font-bold text-slate-700">
-                    Valitse kaupat ({foundStores.length})
-                  </p>
-                </div>
-
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div>
-                    <p className="mb-2 text-xs font-bold uppercase tracking-wide text-green-700">
-                      S-ryhmä
-                    </p>
-                    <div className="max-h-44 space-y-2 overflow-auto pr-1">
-                      {foundStores
-                        .filter((store) => {
-                          if (store.type !== "S") return false;
-                          if (storeCompareScope === "within_chain") return true;
-                          if (!storeModeChosenV299) return true;
-                          const storeNameForMode = normalize(store.name || "");
-                          const isLocalStoreForMode = hasAnyToken(
-                            storeNameForMode,
-                            ["market", "alepa", "sale", "s-market", "s market"],
-                          );
-                          return storeMode === "local"
-                            ? isLocalStoreForMode
-                            : !isLocalStoreForMode;
-                        })
-                        .map((store) => {
-                          const selected =
-                            storeMode === "local"
-                              ? activeArea.sLocalStoreId === store.id
-                              : activeArea.sStoreId === store.id;
-
-                          return (
-                            <button
-                              key={store.id}
-                              type="button"
-                              onClick={() =>
-                                selectStoreForCurrentMode(store, storeMode)
-                              }
-                              className={`w-full min-w-[min(86vw,360px)] rounded-xl px-4 py-3 text-left transition ${
-                                selected
-                                  ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
-                                  : "bg-slate-50 text-slate-700 hover:bg-green-50"
-                              }`}
-                            >
-                              <span className="block font-bold break-words">
-                                {store.name}
-                              </span>
-                              <span
-                                className={`block text-xs ${selected ? "text-green-50" : "text-slate-400"}`}
-                              >
-                                ID {store.id} · {store.city || ""}{" "}
-                                {store.postalCode || ""}
-                              </span>
-                            </button>
-                          );
-                        })}
-                    </div>
-                  </div>
-
-                  <div>
-                    <p className="mb-2 text-xs font-bold uppercase tracking-wide text-red-700">
-                      K-ryhmä
-                    </p>
-                    <div className="max-h-44 space-y-2 overflow-auto pr-1">
-                      {foundStores
-                        .filter((store) => {
-                          if (store.type !== "K") return false;
-                          if (storeCompareScope === "within_chain") return true;
-                          if (!storeModeChosenV299) return true;
-                          const storeNameForMode = normalize(store.name || "");
-                          const isLocalStoreForMode = hasAnyToken(
-                            storeNameForMode,
-                            [
-                              "market",
-                              "k-market",
-                              "k market",
-                              "k-supermarket",
-                              "k supermarket",
-                            ],
-                          );
-                          return storeMode === "local"
-                            ? isLocalStoreForMode
-                            : !isLocalStoreForMode;
-                        })
-                        .map((store) => {
-                          const selected =
-                            storeMode === "local"
-                              ? activeArea.kLocalStoreId === store.id
-                              : activeArea.kStoreId === store.id;
-
-                          // AUTO_GPS_DEFAULT_DISABLED_V305
-                          // Ei automaattista GPS-kyselyä latauksessa. GPS käynnistyy vain käyttäjän napista.
-
-                          // DEFAULT_STORE_MODE_DISABLED_V305
-                          // Ei automaattista Tavaratalot-oletusta refreshissä.
-                          useEffect(() => {
-                            setStoreModeChosenV299(false);
-                            setStoreCompareScope("none");
-                            setOpenStorePicker(null);
-                            setStoreDrillViewV320("main");
-                          }, []);
-
-                          // GPS_STICKY_STATE_DISABLED_V305
-                          // Ei palauteta GPS-tilaa localStoragesta.
-
-                          // GPS_DEFAULT_VISUAL_ON_V307
-                          // GPS-nuppineula pidetään oletuksena vihreänä kaupat-näkymässä.
-
-                          // STORE_SELECTION_DOES_NOT_PICK_MODE_V307
-                          // Kaupan valinta ei saa itsessään valita Tavaratalot/Lähikaupat-hakutapaa.
-
-                          return (
-                            <button
-                              key={store.id}
-                              type="button"
-                              onClick={() =>
-                                selectStoreForCurrentMode(store, storeMode)
-                              }
-                              className={`w-full min-w-[min(86vw,360px)] rounded-xl px-4 py-3 text-left transition ${
-                                selected
-                                  ? "bg-red-700 shadow-md ring-1 ring-black/10 text-white"
-                                  : "bg-slate-50 text-slate-700 hover:bg-red-50"
-                              }`}
-                            >
-                              <span className="block whitespace-normal break-words font-bold leading-tight">
-                                {store.name}
-                              </span>
-                              <span
-                                className={`block text-xs ${selected ? "text-red-50" : "text-slate-400"}`}
-                              >
-                                ID {store.id} · {store.city || ""}{" "}
-                                {store.postalCode || ""}
-                              </span>
-                            </button>
-                          );
-                        })}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </section>
-
+                onApplyLocation={() => openSelectedStoresMapV393()}
+                onStoreModeChange={handleStoreModeChange}
+                onStoreCompareScopeChange={handleStoreCompareScopeChange}
+              />
             </div>
           )}
-
-          {/* v358_DESKTOP_DEBUG_ALL_FLOWS:
-            Desktop-only debug board. Mobile CSS/classes below 640px are not touched.
-            Purpose: keep the existing mobile app flow intact, but expose the main states and actions
-            side-by-side on desktop so debugging does not require opening one mobile bottom-sheet at a time. */}
-          {!showLaunchScreen && (
-            <section className="hidden sm:grid sm:grid-cols-2 xl:grid-cols-4 gap-4 rounded-[2rem] bg-white/95 p-4 shadow-sm ring-1 ring-slate-100">
-              <div className="rounded-[1.5rem] bg-slate-50 p-4 ring-1 ring-slate-200">
-                <div className="mb-3 flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-[11px] font-black uppercase tracking-wide text-slate-400">
-                      Debug
-                    </p>
-                    <h2 className="text-lg font-black tracking-[-0.03em] text-slate-950">
-                      Haku
-                    </h2>
-                  </div>
-                  <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-black text-green-800 ring-1 ring-green-200">
-                    {searchCompareMode === "single"
-                      ? "Yksi tuote"
-                      : "Koko kori"}
-                  </span>
-                </div>
-
-                <textarea
-                  value={input}
-                  onChange={(event) =>
-                    setSearchInputForMode(event.target.value)
-                  }
-                  placeholder={
-                    searchCompareMode === "single"
-                      ? "Kirjoita yksi tuote"
-                      : "maito, kahvi, jauheliha"
-                  }
-                  className="h-28 w-full resize-none rounded-[1.15rem] border border-slate-300 bg-white px-3 py-3 text-[15px] font-semibold text-slate-950 outline-none focus:border-green-600 focus:ring-4 focus:ring-green-100"
-                />
-
-                <div className="mt-3 grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setSearchCompareMode("cart")}
-                    className={`rounded-[1rem] px-3 py-2 text-sm font-black ring-1 transition ${searchCompareMode === "cart" ? "bg-green-700 text-white ring-green-800" : "bg-white text-slate-700 ring-slate-200"}`}
-                  >
-                    Koko kori
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSearchCompareMode("single");
-                      setInput((currentInput) =>
-                        getSingleSearchTerm(currentInput),
-                      );
-                    }}
-                    className={`rounded-[1rem] px-3 py-2 text-sm font-black ring-1 transition ${searchCompareMode === "single" ? "bg-green-700 text-white ring-green-800" : "bg-white text-slate-700 ring-slate-200"}`}
-                  >
-                    Yksi tuote
-                  </button>
-                </div>
-
-                <div className="mt-3 grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={handleMainNormalSearch}
-                    disabled={
-                      !hasSearchInput ||
-                      loadingNormal ||
-                      singleProductCompareLoading
-                    }
-                    className="rounded-[1rem] bg-slate-900 px-3 py-3 text-sm font-black text-white transition disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-400"
-                  >
-                    {loadingNormal || singleProductCompareLoading
-                      ? "Haetaan..."
-                      : "Hae"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={openEanModal}
-                    className="rounded-[1rem] bg-green-700 px-3 py-3 text-sm font-black text-white"
-                  >
-                    EAN / Skannaa
-                  </button>
-                </div>
-
-                <div className="mt-3 max-h-64 overflow-auto rounded-[1.15rem] bg-white p-2 ring-1 ring-slate-200">
-                  <p className="mb-2 px-1 text-xs font-black uppercase tracking-wide text-slate-400">
-                    Hakutulokset
-                  </p>
-                  {visibleNormalResults.length === 0 &&
-                  singleProductCompareResults.length === 0 ? (
-                    <p className="px-1 py-6 text-center text-sm font-bold text-slate-400">
-                      Ei hakutuloksia vielä.
-                    </p>
-                  ) : (
-                    <div className="space-y-2">
-                      {visibleNormalResults.slice(0, 6).map((product) => (
-                        <div
-                          key={`desktop-normal-${product.id}-${product.ean || product.name}`}
-                          className="flex items-center gap-2 rounded-xl bg-slate-50 p-2"
-                        >
-                          {product.pictureUrl && (
-                            <img
-                              src={product.pictureUrl}
-                              alt=""
-                              className="h-10 w-10 shrink-0 rounded-lg object-contain bg-white"
-                            />
-                          )}
-                          <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-black text-slate-900">
-                              {fixText(product.name)}
-                            </p>
-                            <p className="text-xs font-bold text-green-700">
-                              {formatEuro(getProductPrice(product))}
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => addProductToCart(product)}
-                            className="rounded-xl bg-green-600 px-3 py-2 text-xs font-black text-white"
-                          >
-                            Lisää
-                          </button>
-                        </div>
-                      ))}
-                      {singleProductCompareResults.slice(0, 4).map((result) => (
-                        <div
-                          key={`desktop-single-${result.key}-${result.storeName}-${result.productName}`}
-                          className="rounded-xl bg-slate-50 p-2"
-                        >
-                          <p className="truncate text-sm font-black text-slate-900">
-                            {fixText(result.productName)}
-                          </p>
-                          <p className="text-xs font-bold text-slate-500">
-                            {result.storeName} · {formatEuro(result.price)}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="rounded-[1.5rem] bg-slate-50 p-4 ring-1 ring-slate-200">
-                <div className="mb-3 flex items-center justify-between gap-3">
-                  <div>
-                    <p className="text-[11px] font-black uppercase tracking-wide text-slate-400">
-                      Debug
-                    </p>
-                    <h2 className="text-lg font-black tracking-[-0.03em] text-slate-950">
-                      Kori
-                    </h2>
-                  </div>
-                  <span className="rounded-full bg-slate-900 px-3 py-1 text-xs font-black text-white">
-                    {cart.length} tuotetta
-                  </span>
-                </div>
-                <div className="max-h-[27rem] overflow-auto rounded-[1.15rem] bg-white p-2 ring-1 ring-slate-200">
-                  {cart.length === 0 ? (
-                    <p className="px-1 py-10 text-center text-sm font-bold text-slate-400">
-                      Kori on tyhjä.
-                    </p>
-                  ) : (
-                    <div className="space-y-2">
-                      {cart.map((item, cartIndex) => (
-                    <div
-                      key={item.id}
-                      className="relative min-w-0 overflow-hidden rounded-[1.65rem] border-[3px] border-[#c2a05e] bg-gradient-to-b from-[#fff8e8] via-[#f6e8c5] to-[#ead19a] p-3 text-[#20301f] shadow-[0_5px_0_rgba(80,58,25,0.22),inset_0_0_0_2px_rgba(255,255,255,0.55)]"
-                    >
-                      <div className="pointer-events-none absolute inset-0 opacity-[0.13] [background-image:radial-gradient(#b59c67_1px,transparent_1px)] [background-size:13px_13px]" />
-                      <div className="relative grid min-w-0 grid-cols-[42px_82px_minmax(0,1fr)_auto] items-center gap-3">
-                        <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-[3px] border-[#b99d62] bg-[#fff7df] text-lg font-black text-[#7a6842] shadow-[inset_0_0_0_2px_rgba(255,255,255,0.65)]">
-                          {cartIndex + 1}
-                        </span>
-
-                        <span className="flex h-[74px] w-[82px] shrink-0 items-center justify-center overflow-hidden rounded-[1.25rem] border-2 border-[#d6bf8f] bg-white shadow-[inset_0_0_0_1px_rgba(255,255,255,0.7)]">
-                          {item.image ? (
-                            <img
-                              src={item.image}
-                              alt={item.name}
-                              className="h-full w-full object-contain p-1"
-                            />
-                          ) : (
-                            <span className="text-2xl">🛒</span>
-                          )}
-                        </span>
-
-                        <div className="min-w-0 overflow-hidden">
-                          <p className="line-clamp-2 break-words text-[17px] font-black leading-[1.05] text-[#20301f]">
-                            {item.name}
-                          </p>
-                          <p className="mt-1 truncate text-[12px] font-bold text-[#6f6b59]">
-                            {item.storeName
-                              ? `${item.storeName} · ${item.chain}`
-                              : "Muistilistarivi"}
-                          </p>
-                          <p className="mt-1 text-[13px] font-black text-[#6f6b59]">
-                            {item.quantity} kpl
-                          </p>
-                        </div>
-
-                        <div className="shrink-0 text-right">
-                          <p className="whitespace-nowrap text-[18px] font-black text-[#20301f]">
-                            {item.price ? formatEuro(item.price * item.quantity) : "—"}
-                          </p>
-                          {item.price ? (
-                            <p className="mt-1 whitespace-nowrap text-[11px] font-bold text-[#6f6b59]">
-                              {formatEuro(item.price)} / kpl
-                            </p>
-                          ) : null}
-                        </div>
-                      </div>
-
-                      <div className="relative mt-3 grid grid-cols-[1fr_auto] items-center gap-3">
-                        <div className="flex min-w-0 items-center gap-2">
-                          <button
-                            type="button"
-                            disabled
-                            className="min-w-0 rounded-full border-2 border-[#d6bf8f] bg-[#fff4cf] px-3 py-2 text-[11px] font-black leading-none text-[#8a3f16] opacity-75 shadow-[0_2px_0_rgba(91,72,44,0.14)]"
-                            title="Tuotekohtainen hinnanhuojennushaku rakennetaan myöhemmin"
-                            aria-label="Hinnanhuojennukset tulossa"
-                          >
-                            🔥 Hinnanhuojennukset
-                          </button>
-                          {item.price
-                            ? renderPriceHistoryBadge(
-                                getPriceHistoryKeyFromCartItem(item),
-                                item.price,
-                              )
-                            : null}
-                        </div>
-
-                        <div className="flex shrink-0 items-center gap-2">
-                          <div className="flex items-center rounded-full border-2 border-[#d6bf8f] bg-[#fff7df] p-1 shadow-[0_2px_0_rgba(91,72,44,0.14)]">
-                            <button
-                              type="button"
-                              onClick={() => changeQuantity(item.id, -1)}
-                              className="flex h-8 w-8 items-center justify-center rounded-full bg-[#f7ecd0] text-xl font-black text-[#8a7a52] transition active:scale-[0.94]"
-                              aria-label={
-                                item.quantity <= 1
-                                  ? `Poista ${item.name} ostoskorista`
-                                  : `Vähennä tuotteen ${item.name} määrää`
-                              }
-                              title={item.quantity <= 1 ? "Poista korista" : "Vähennä määrää"}
-                            >
-                              −
-                            </button>
-                            <span
-                              className="min-w-[30px] px-1 text-center text-base font-black text-[#20301f]"
-                              aria-label={`Määrä ${item.quantity}`}
-                            >
-                              {item.quantity}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => changeQuantity(item.id, 1)}
-                              className="flex h-8 w-8 items-center justify-center rounded-full bg-[#07a445] text-xl font-black text-white shadow-sm transition active:scale-[0.94]"
-                              aria-label={`Lisää tuotteen ${item.name} määrää`}
-                              title="Lisää määrää"
-                            >
-                              +
-                            </button>
-                          </div>
-
-                          <button
-                            type="button"
-                            onClick={() => removeCartItem(item.id)}
-                            className="flex h-10 min-w-[68px] shrink-0 items-center justify-center rounded-full border-2 border-[#8a3f16] bg-[#a4471c] px-3 text-[13px] font-black leading-none text-[#fff7df] shadow-[0_2px_0_rgba(91,72,44,0.22)] transition active:scale-[0.98]"
-                            aria-label={`Poista ${item.name} ostoskorista`}
-                          >
-                            Pois
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}                </div>
-              )}
-            </div>
-          </div>
-        </section>
-        )}
-        </div>
 
         {restoredCartPromptV320.open &&
           cart.length > 0 &&
