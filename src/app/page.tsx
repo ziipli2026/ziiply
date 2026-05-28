@@ -4080,41 +4080,25 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setGpsBootReadyV473(true);
   }, []);
 
-  // V483_BOOT_GPS_DELAYED_SINGLE_TRY:
-  // iOS/Safari voi antaa avauksen aivan ensimmäiselle GPS-kutsulle hutiosuman ja
-  // sen jälkeen toinen vanha polku jäädä loadingiin. Käynnistetään boot-GPS siksi
-  // pienellä viiveellä ja vain kerran. Jos se epäonnistuu, UI vapautetaan eikä
-  // automaattista toista starttia tehdä; GPS-nappi toimii edelleen käsin.
+  // V484_NO_AUTOMATIC_GPS_BOOT:
+  // Ensimmäinen automaattinen boot/reload-GPS-startti poistettu kokonaan.
+  // Tämä oli se polku, joka teki avauksessa aina ensin hutiosuman ja sen jälkeen
+  // jokin toinen reitti pääsi käynnistämään paikannuksen uudestaan.
+  // GPS käynnistyy tästä eteenpäin vain käyttäjän GPS-napista:
+  // onGpsClick -> useOwnLocation("manual").
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (gpsBootTimerRefV483.current) {
+      window.clearTimeout(gpsBootTimerRefV483.current);
+      gpsBootTimerRefV483.current = null;
+    }
+    if (gpsBootWatchdogRefV483.current) {
+      window.clearTimeout(gpsBootWatchdogRefV483.current);
+      gpsBootWatchdogRefV483.current = null;
+    }
 
-    const bootWindow = window as any;
-    if (bootWindow.__ziiplyDelayedBootGpsStartedV483) return;
-    bootWindow.__ziiplyDelayedBootGpsStartedV483 = true;
-
-    gpsBootTimerRefV483.current = window.setTimeout(() => {
-      if (!gpsUserDisabledRefV306.current && !gpsCoordsV320 && !gpsSearchInFlightRefV465.current) {
-        void useOwnLocation("boot");
-      }
-    }, 900);
-
-    gpsBootWatchdogRefV483.current = window.setTimeout(() => {
-      if (gpsSearchInFlightRefV465.current) return;
-      setStoreSearchLoading(false);
-      setGpsStorePickerBlockedV382(false);
-      setGpsBootReadyV473(true);
-    }, 26000);
-
-    return () => {
-      if (gpsBootTimerRefV483.current) {
-        window.clearTimeout(gpsBootTimerRefV483.current);
-        gpsBootTimerRefV483.current = null;
-      }
-      if (gpsBootWatchdogRefV483.current) {
-        window.clearTimeout(gpsBootWatchdogRefV483.current);
-        gpsBootWatchdogRefV483.current = null;
-      }
-    };
+    setStoreSearchLoading(false);
+    setGpsStorePickerBlockedV382(false);
+    setGpsBootReadyV473(true);
   }, []);
 
   async function searchOffers(termOverride?: string) {
