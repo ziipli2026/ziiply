@@ -1,6 +1,6 @@
 "use client";
 
-// V562_MOBILE_SCANNER_CARD_CONNECTED: mobiilin EAN-skanneri käyttää erillistä ZiiplyMobileScannerCard-korttia; scanner-logiikka säilyy page.tsx:ssä.
+// V563_MOBILE_SCANNER_CARD_COMPACT_FIXED: mobiilin skanneri mahtuu yhteen ruutuun; camera region on oma tyhjä mount-div; tap-focus saa regionId:n.
 // V561_ELECTRICITY_CACHE_TYPE_FIX: korjaa localStorage-sähköcachen TypeScript-narrowing virheen cached.value/setState-kutsussa.
 // V560_ELECTRICITY_CACHE_AUTO_CLEANUP: poistaa liian vanhan sähkön hintamuistin automaattisesti localStoragesta.
 // V559_ELECTRICITY_LOCAL_CACHE: pörssisähkö käyttää selaimen localStorage-muistia; viimeisin hinta näytetään heti ja uusi haetaan taustalla.
@@ -10082,7 +10082,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                           <div className="absolute right-5 top-4 z-10 h-11 w-11 rounded-full border-4 border-[#cfc1a0] bg-[#0c0d0b] shadow-inner" />
                           <div
                             className="relative aspect-[4/3] w-full overflow-hidden rounded-[1.5rem] border-4 border-[#5d5037] bg-slate-950"
-                            onPointerDown={(event) => void focusScannerCameraAtPoint(event)}
+                            onPointerDown={(event) => void (focusScannerCameraAtPoint as any)(EAN_SCANNER_REGION_ID, event)}
                           >
                             <div
                               id={EAN_SCANNER_REGION_ID}
@@ -11154,10 +11154,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         {eanModalOpen && (
           <div
-            className={`fixed inset-0 z-[80] flex items-start justify-center overflow-y-auto overscroll-none bg-[#EAF4F1] px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.35rem)] sm:items-center sm:p-4 ${eanModalClosing ? "ziiply-soft-close" : "ziiply-soft-open"}`}
+            className={`fixed inset-0 z-[80] flex items-stretch justify-center overflow-hidden overscroll-none bg-[#EAF4F1] px-2 pb-[calc(env(safe-area-inset-bottom)+5.55rem)] pt-[calc(env(safe-area-inset-top)+5.05rem)] sm:items-center sm:p-4 ${eanModalClosing ? "ziiply-soft-close" : "ziiply-soft-open"}`}
           >
             <div
-              className={`w-full max-w-[430px] overflow-visible transition-opacity duration-200 ${eanModalClosing ? "opacity-0" : "opacity-100"}`}
+              className={`flex h-full w-full max-w-[430px] flex-col overflow-hidden transition-opacity duration-200 ${eanModalClosing ? "opacity-0" : "opacity-100"}`}
             >
 
               {eanScannerMessage && !eanScannerOpen && (
@@ -11238,12 +11238,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               {eanScannerOpen && (
                 <ZiiplyMobileScannerCard
                   regionId={EAN_SCANNER_REGION_ID}
-                  flashState={scanSuccessFlash ? "success" : scanMissFlash ? "error" : eanLoading ? "searching" : "idle"}
+                  flashState={scanSuccessFlash ? "success" : scanMissFlash ? "error" : "idle"}
                   loading={eanLoading}
                   scannerMessage={eanScannerMessage || "Kuva otetaan, hinnanhuojennukset talteen. Säästöt esiin!"}
                   torchOn={scannerTorchOn}
                   manualInputOpen={eanManualInputOpen}
-                  onCameraTap={(event) => void focusScannerCameraAtPoint(event)}
+                  onCameraTap={(event) => void (focusScannerCameraAtPoint as any)(EAN_SCANNER_REGION_ID, event)}
                   onManualEan={() => {
                     setEanManualInputOpen((open) => {
                       const nextOpen = !open;
