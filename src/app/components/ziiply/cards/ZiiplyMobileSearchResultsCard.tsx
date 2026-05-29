@@ -1,12 +1,18 @@
 "use client";
 
-// ZIIPLY_MOBILE_SEARCH_RESULTS_CARD_V3_MOBILE_PRESENTATION
+// ZIIPLY_MOBILE_SEARCH_RESULTS_CARD_V4_POINTER_AND_PRODUCT_PRESENTATION_FIX
 // Mobiilin erillinen Löydökset-kortti.
 // V3:
 // - oikeampi mobiiliesitys
 // - hinnat korjataan: 269 -> 2,69 €, 84 -> 0,84 €, 185 -> 1,85 €
 // - otsikko näkyy Löydökset-termillä
 // - tyhjä tila: Ei löydöksiä vielä
+// V4:
+// - korjaa overlayn pointer-events-jumin: vain itse löydöskortti vastaanottaa painallukset
+// - lisää/sulje-napit nostettu varmemmin päällimmäiseksi
+// - raakakoodit poistettu tuoteriveiltä
+// - näytetään vertailuhinta €/kg, €/l tai €/kpl muodossa kun data löytyy
+// - tuotenimelle annettu enemmän tilaa; Lisää-nappi oikeaan alakulmaan
 
 import React from "react";
 
@@ -98,24 +104,75 @@ function formatPrice(price: unknown) {
   );
 }
 
-function shortName(name: string) {
-  const clean = name.replace(/\s+/g, " ").trim();
+function displayName(name: string) {
+  return name.replace(/\s+/g, " ").trim();
+}
 
-  if (clean.length <= 34) return clean;
+function normalizeComparisonValue(value: unknown) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return Math.abs(value) > 20 ? value / 100 : value;
+  }
 
-  return clean.slice(0, 31).trimEnd() + "…";
+  const raw = String(value ?? "").trim();
+  if (!raw) return null;
+
+  if (raw.includes("€") || raw.includes("/")) return raw;
+
+  const cleaned = raw.replace(/\s/g, "").replace(",", ".");
+  const parsed = Number(cleaned.replace(/[^\d.-]/g, ""));
+  if (!Number.isFinite(parsed)) return null;
+
+  return Math.abs(parsed) > 20 ? parsed / 100 : parsed;
+}
+
+function inferComparisonUnit(product: ZiiplyMobileSearchResultProduct) {
+  const raw = [
+    product.comparisonUnit,
+    product.priceUnit,
+    product.unit,
+    product.packageSize,
+    product.name,
+    product.title,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  if (/\b(l|ltr|litra|litran|ml|cl)\b/.test(raw)) return "€/l";
+  if (/\b(kpl|pkt|pari|rll|rs|ps|tlk)\b/.test(raw)) return "€/kpl";
+
+  return "€/kg";
+}
+
+function formatComparisonPrice(product: ZiiplyMobileSearchResultProduct) {
+  const candidates = [
+    product.comparisonPrice,
+    product.unitPrice,
+    product.pricePerUnit,
+    product.comparisonPriceText,
+    product.product?.comparisonPrice,
+    product.product?.unitPrice,
+  ];
+
+  for (const candidate of candidates) {
+    const value = normalizeComparisonValue(candidate);
+    if (value == null) continue;
+
+    if (typeof value === "string") {
+      return value;
+    }
+
+    return `${value.toLocaleString("fi-FI", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })} ${inferComparisonUnit(product)}`;
+  }
+
+  return "";
 }
 
 function getSubText(product: ZiiplyMobileSearchResultProduct) {
-  const parts = [
-    product.packageSize,
-    product.unit,
-    product.comparisonPrice ? String(product.comparisonPrice) : "",
-  ]
-    .map((item) => String(item || "").trim())
-    .filter(Boolean);
-
-  return parts.slice(0, 2).join(" · ");
+  return formatComparisonPrice(product);
 }
 
 export default function ZiiplyMobileSearchResultsCard({
@@ -129,8 +186,8 @@ export default function ZiiplyMobileSearchResultsCard({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[95] flex items-end justify-center bg-slate-950/22 px-2 pb-[calc(env(safe-area-inset-bottom)+5.45rem)] pt-[calc(env(safe-area-inset-top)+5.8rem)] backdrop-blur-[3px] sm:hidden">
-      <section className="relative flex h-[min(72dvh,38rem)] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2rem] border-[4px] border-[#5b482c] bg-[#e8d39c] shadow-[0_12px_0_rgba(60,45,20,0.20),0_22px_48px_rgba(0,0,0,0.25)]">
+    <div className="pointer-events-none fixed inset-0 z-[95] flex items-end justify-center bg-slate-950/22 px-2 pb-[calc(env(safe-area-inset-bottom)+5.45rem)] pt-[calc(env(safe-area-inset-top)+5.8rem)] backdrop-blur-[3px] sm:hidden">
+      <section className="pointer-events-auto relative flex h-[min(72dvh,38rem)] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2rem] border-[4px] border-[#5b482c] bg-[#e8d39c] shadow-[0_12px_0_rgba(60,45,20,0.20),0_22px_48px_rgba(0,0,0,0.25)]">
         <div className="pointer-events-none absolute inset-0 opacity-35 [background-image:radial-gradient(#c6aa63_1.15px,transparent_1.15px)] [background-size:16px_16px]" />
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.45),transparent_58%)]" />
 
@@ -155,7 +212,7 @@ export default function ZiiplyMobileSearchResultsCard({
             <button
               type="button"
               onClick={onClose}
-              className="grid h-[2.7rem] w-[2.7rem] shrink-0 place-items-center rounded-full border-[3px] border-[#6f5730] bg-[#fff2cb] text-[1.35rem] font-black leading-none text-[#513d1f] shadow-[0_3px_0_rgba(91,72,44,0.24)] active:translate-y-[1px]"
+              className="pointer-events-auto relative z-30 grid h-[2.7rem] w-[2.7rem] shrink-0 place-items-center rounded-full border-[3px] border-[#6f5730] bg-[#fff2cb] text-[1.35rem] font-black leading-none text-[#513d1f] shadow-[0_3px_0_rgba(91,72,44,0.24)] active:translate-y-[1px]"
               aria-label="Sulje löydökset"
               title="Sulje"
             >
@@ -188,7 +245,7 @@ export default function ZiiplyMobileSearchResultsCard({
                 return (
                   <article
                     key={String(product.id ?? product.ean ?? index)}
-                    className="grid grid-cols-[4.7rem_minmax(0,1fr)_5.2rem] items-center gap-3 rounded-[1.55rem] border-[3px] border-[#d4ba73] bg-[#fff5d9] p-3 shadow-[0_5px_0_rgba(91,72,44,0.14)]"
+                    className="relative grid min-h-[7.4rem] grid-cols-[4.7rem_minmax(0,1fr)] items-start gap-3 rounded-[1.55rem] border-[3px] border-[#d4ba73] bg-[#fff5d9] p-3 pr-[6.3rem] shadow-[0_5px_0_rgba(91,72,44,0.14)]"
                   >
                     <div className="grid h-[4.7rem] w-[4.7rem] place-items-center overflow-hidden rounded-[1rem] bg-white shadow-[inset_0_1px_8px_rgba(0,0,0,0.08)]">
                       {image ? (
@@ -203,16 +260,16 @@ export default function ZiiplyMobileSearchResultsCard({
                       )}
                     </div>
 
-                    <div className="min-w-0">
+                    <div className="min-w-0 pb-[2.65rem]">
                       <div
-                        className="text-[1.02rem] font-black leading-[1.04] text-[#1f251c]"
+                        className="text-[0.96rem] font-black leading-[1.02] text-[#1f251c]"
                         style={{ fontFamily: cooper }}
                       >
-                        {shortName(name)}
+                        {displayName(name)}
                       </div>
 
                       {subText && (
-                        <div className="mt-1 truncate text-[0.72rem] font-black text-[#8a7a55]">
+                        <div className="mt-1 truncate text-[0.76rem] font-black text-[#8a7a55]">
                           {subText}
                         </div>
                       )}
@@ -227,7 +284,7 @@ export default function ZiiplyMobileSearchResultsCard({
                     <button
                       type="button"
                       onClick={() => onAddProduct?.(product)}
-                      className="h-[3.4rem] rounded-[1rem] bg-[#08a63d] px-2 text-[0.98rem] font-black text-[#fff3d8] shadow-[0_4px_0_rgba(0,74,24,0.24)] active:translate-y-[1px] active:shadow-[0_2px_0_rgba(0,74,24,0.24)]"
+                      className="pointer-events-auto absolute bottom-3 right-3 z-30 h-[3.25rem] w-[5.1rem] rounded-[1rem] bg-[#08a63d] px-2 text-[0.98rem] font-black text-[#fff3d8] shadow-[0_4px_0_rgba(0,74,24,0.24)] active:translate-y-[1px] active:shadow-[0_2px_0_rgba(0,74,24,0.24)]"
                     >
                       Lisää
                     </button>
