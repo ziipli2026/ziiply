@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_CART_CARD_V15_COORDINATE_COLOR_ONLY_FIX
+// ZIIPLY_MOBILE_CART_CARD_V16_COORDINATE_TOTAL_FORMAT_FIX
 // Mobiilin Tavarainkeruu-paperivihko.
 // V3:
 // - "Ostoskori" poistettu kokonaan näkyvästä UI:sta.
@@ -151,6 +151,11 @@ function getCartItemQuantityForTotalV8(item: ZiiplyMobileCartItem) {
 }
 
 function readCartItemPriceForTotalV8(item: ZiiplyMobileCartItem) {
+  const normalizeTotalPrice = (value: number) => {
+    if (!Number.isFinite(value)) return 0;
+    return Math.abs(value) > 20 ? value / 100 : value;
+  };
+
   const candidates = [
     (item as any).price,
     (item as any).unitPrice,
@@ -162,13 +167,13 @@ function readCartItemPriceForTotalV8(item: ZiiplyMobileCartItem) {
 
   for (const candidate of candidates) {
     if (typeof candidate === "number" && Number.isFinite(candidate)) {
-      return candidate;
+      return normalizeTotalPrice(candidate);
     }
 
     if (typeof candidate === "string") {
       const normalized = candidate.replace(/\s/g, "").replace(",", ".");
       const parsed = Number(normalized.replace(/[^\d.-]/g, ""));
-      if (Number.isFinite(parsed)) return parsed;
+      if (Number.isFinite(parsed)) return normalizeTotalPrice(parsed);
     }
   }
 
@@ -229,7 +234,7 @@ function QuantityCell({
       <button
         type="button"
         onClick={() => onIncrease?.(item)}
-        className="grid h-full w-full place-items-center pl-[0.34rem] rounded-[0.32rem] bg-[#fff1c6]/10 text-[0.98rem] font-black leading-none text-[#3d301a] active:translate-y-[1px] active:bg-[#fff1c6]/34"
+        className="grid h-full w-full place-items-center pl-[1.10rem] rounded-[0.32rem] bg-[#fff1c6]/10 text-[0.98rem] font-black leading-none text-[#3d301a] active:translate-y-[1px] active:bg-[#fff1c6]/34"
         style={{ fontFamily: serifFont }}
         aria-label="Lisää määrää"
         title="Lisää määrää"
@@ -244,8 +249,8 @@ function QuantityCell({
         }}
         disabled={!canDecrease}
         className={cx(
-          "absolute left-[1.02rem] top-1/2 grid h-[1.55rem] w-[1.05rem] -translate-y-1/2 place-items-center rounded-[0.24rem] text-[0.82rem] font-black leading-none !text-[#d01913] active:translate-y-[calc(-50%+1px)]",
-          canDecrease ? "!text-[#d01913] active:bg-[#fff1c6]/38" : "!text-[#d01913]/25",
+          "absolute left-[1.20rem] top-1/2 grid h-[1.55rem] w-[1.05rem] -translate-y-1/2 place-items-center rounded-[0.24rem] text-[0.92rem] font-black leading-none !text-[#e11d12] active:translate-y-[calc(-50%+1px)]",
+          canDecrease ? "!text-[#e11d12] active:bg-[#fff1c6]/38" : "!text-[#e11d12]/25",
         )}
         aria-label="Vähennä määrää"
         title="Vähennä määrää"
@@ -425,7 +430,7 @@ export default function ZiiplyMobileCartCard({
         <footer className="relative z-10 shrink-0 px-5 pb-4 pt-1">
           <div className="relative mb-2 border-t-[2px] border-[#9b7b3d]/62 pt-2 text-[#473719]">
             <span
-              className="absolute left-[61.0%] top-[0.58rem] -translate-x-1/2 text-[0.76rem] font-black uppercase tracking-[0.04em]"
+              className="absolute left-[66.2%] top-[0.58rem] -translate-x-1/2 text-[0.76rem] font-black uppercase tracking-[0.04em]"
               style={{ fontFamily: copperplateFont }}
             >
               Yht.
