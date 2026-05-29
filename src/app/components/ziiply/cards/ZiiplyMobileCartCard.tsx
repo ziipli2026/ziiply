@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_CART_CARD_V18_QUANTITY_SYNTAX_FIX
+// ZIIPLY_MOBILE_CART_CARD_V19_CLOSE_YHT_TARGETED_FIX
 // Mobiilin Tavarainkeruu-paperivihko.
 // V3:
 // - "Ostoskori" poistettu kokonaan näkyvästä UI:sta.
@@ -26,8 +26,7 @@
 // V14: määrä-sarakkeen asettelu mockupin mukaiseksi; miinus aidosti punaiseksi ja määrän keskitys korjattu.
 // V15: pakottaa määrän ja miinuksen näkyvän sijainnin suoraan QuantityCellin renderiin.
 // V16: siirtää Yht.-merkinnän pois keskeltä paperia ja alas määrä-sarakkeen yhteissummariville.
-// V17: siirtää vihkosen sulje-painikkeen Virtanen-otsikon vaakatasoon ja pehmentää symbolin vanhan ajan tyyliin.
-// V18: korjaa QuantityCelliin jääneen ylimääräisen tyyppihännän syntaksivirheen.
+// V19: kohdistettu korjaus Sulje-nappiin ja Yht.-tekstin paikkaan.
 
 import React from "react";
 
@@ -241,6 +240,7 @@ function QuantityCell({
 
   return (
     <div className="relative h-[2.05rem] w-full">
+      {/* koko määräsolu lisää määrää, mutta näkyvä asu pysyy paperimaisena */}
       <button
         type="button"
         onClick={() => onIncrease?.(item)}
@@ -274,6 +274,51 @@ function QuantityCell({
       >
         {quantity}
       </span>
+    </div>
+  );
+}: {
+  item: ZiiplyMobileCartItem;
+  quantity: number;
+  onDecrease?: (item: ZiiplyMobileCartItem) => void;
+  onIncrease?: (item: ZiiplyMobileCartItem) => void;
+}) {
+  const canDecrease = quantity > 1;
+
+  return (
+    <div className="relative h-[2.05rem] w-full">
+      <button
+        type="button"
+        onClick={() => onIncrease?.(item)}
+        className="absolute inset-0 rounded-[0.32rem] bg-[#fff1c6]/5 active:translate-y-[1px] active:bg-[#fff1c6]/28"
+        aria-label="Lisää määrää"
+        title="Lisää määrää"
+      />
+
+      <button
+        type="button"
+        onClick={() => {
+          if (canDecrease) onDecrease?.(item);
+        }}
+        disabled={!canDecrease}
+        className={cx(
+          "absolute left-[-0.12rem] top-1/2 z-10 grid h-[1.52rem] w-[0.92rem] -translate-y-1/2 place-items-center rounded-[0.2rem] text-[0.92rem] font-black leading-none",
+          canDecrease
+            ? "text-[#c1291d] active:bg-[#fff1c6]/36"
+            : "text-[#c1291d]/18",
+        )}
+        style={{ fontFamily: serifFont }}
+        aria-label="Vähennä määrää"
+        title="Vähennä määrää"
+      >
+        −
+      </button>
+
+      <div
+        className="absolute left-[1.1rem] top-1/2 z-10 min-w-[1.1rem] -translate-y-1/2 text-center text-[0.98rem] font-black leading-none text-[#2f281b]"
+        style={{ fontFamily: serifFont }}
+      >
+        {quantity}
+      </div>
     </div>
   );
 }
@@ -328,11 +373,11 @@ export default function ZiiplyMobileCartCard({
             <button
               type="button"
               onClick={onClose}
-              className="mr-[0.08rem] mt-[-0.78rem] grid h-[2rem] w-[2rem] shrink-0 place-items-center rounded-full border-[2px] border-[#6f5730] bg-[#fff2cb]/82 text-[1.02rem] font-black leading-none text-[#513d1f] shadow-[0_2px_0_rgba(91,72,44,0.15)] active:translate-y-[1px]"
+              className="mr-[0.08rem] mt-[-2.02rem] grid h-[2.25rem] w-[2.25rem] shrink-0 place-items-center rounded-full border-[2px] border-[#6f5730] bg-[#fff2cb]/86 text-[1.08rem] font-black leading-none text-[#513d1f] shadow-[0_2px_0_rgba(91,72,44,0.15)] active:translate-y-[1px]"
               aria-label="Sulje"
               title="Sulje"
             >
-              ×
+              ✕
             </button>
           </div>
 
@@ -461,7 +506,7 @@ export default function ZiiplyMobileCartCard({
           </div>
 
           <div
-            className="pointer-events-none absolute bottom-[4.74rem] right-[8.55rem] z-20 min-w-[2.4rem] text-center text-[0.86rem] font-black leading-none text-[#4b3a1d]/82"
+            className="pointer-events-none absolute bottom-[4.74rem] right-[7.15rem] z-20 min-w-[2.4rem] text-center text-[0.86rem] font-black leading-none text-[#4b3a1d]/82"
             style={{ fontFamily: serifFont }}
           >
             Yht.
