@@ -518,7 +518,19 @@ function KauppiasMobileTopBar({
         readNumber(item.spotPrice) ??
         readNumber(item.SpotPrice);
 
-      if (directCents != null) return directCents;
+      if (directCents != null) {
+        // API voi palauttaa EUR/kWh tai virheellisen nolla-arvon.
+        // Muunnetaan pienet euroarvot senteiksi ja ohitetaan 0-arvot.
+        if (directCents > 0 && directCents < 1) {
+          return directCents * 100;
+        }
+
+        if (directCents <= 0) {
+          return null;
+        }
+
+        return directCents;
+      }
 
       // sahkonhintatanaan.fi antaa EUR/kWh. Muunnetaan c/kWh:ksi.
       const eurPerKwh =
@@ -622,7 +634,11 @@ function KauppiasMobileTopBar({
             const price = await readCandidate();
             if (cancelled) return;
 
-            if (price != null && Number.isFinite(price)) {
+            if (
+              price != null &&
+              Number.isFinite(price) &&
+              price > 0.01
+            ) {
               setElectricityValue(formatElectricityPrice(price));
               setElectricityText("c/kWh");
               return;
