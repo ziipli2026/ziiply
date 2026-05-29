@@ -1,5 +1,6 @@
 "use client";
 
+// V544_MOBILE_CART_TAVARAINKERUU_PAPER_V2: page käyttää ZiiplyMobileCartCardia; kortin V2-asussa Tavarainkeruu, Tallenna/Näytä ostoslistat ja leveämpi paperi.
 // V543_MOBILE_CART_REMOVEITEM_TYPE_FIX: korjaa mobiilin paperikorin Poista-kutsun; removeCartItem saa string-avaimen eikä CartItem-oliota.
 // V542_MOBILE_CART_PAPER_CARD_CONNECTED: mobiili-Kori käyttää uutta ZiiplyMobileCartCard-paperivihko/keräilylista-komponenttia.
 // V527_MOBILE_SEARCH_RESULTS_CARD_AND_ELECTRICITY_REPAIR: mobiilin hakutulokset omalle kortille ja pörssisähkö korjattu suorahaulla.
