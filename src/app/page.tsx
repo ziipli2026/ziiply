@@ -1,5 +1,6 @@
 "use client";
 
+// V561_ELECTRICITY_CACHE_TYPE_FIX: korjaa localStorage-sähköcachen TypeScript-narrowing virheen cached.value/setState-kutsussa.
 // V560_ELECTRICITY_CACHE_AUTO_CLEANUP: poistaa liian vanhan sähkön hintamuistin automaattisesti localStoragesta.
 // V559_ELECTRICITY_LOCAL_CACHE: pörssisähkö käyttää selaimen localStorage-muistia; viimeisin hinta näytetään heti ja uusi haetaan taustalla.
 // V558_ELECTRICITY_RETRO_SIGNAL_LAMP: korvaa sähkön kolmionuolen vanhan ajan pienellä merkkivalolla.
@@ -562,14 +563,21 @@ function KauppiasMobileTopBar({
       const cached = readCachedElectricity();
       if (!cached) return false;
 
+      const cachedValue = String(cached.value);
+      const cachedText = String(cached.text || "c/kWh");
+      const cachedTrend: "up" | "down" | "flat" =
+        cached.trend === "up" || cached.trend === "down" || cached.trend === "flat"
+          ? cached.trend
+          : "flat";
+
       const ageMs = Date.now() - Number(cached.savedAt);
       const ageMinutes = Math.max(0, Math.round(ageMs / 60000));
 
-      setElectricityValue(cached.value);
-      setElectricityTrend(cached.trend || "flat");
+      setElectricityValue(cachedValue);
+      setElectricityTrend(cachedTrend);
 
       if (ageMinutes <= 20) {
-        setElectricityText(cached.text || "c/kWh");
+        setElectricityText(cachedText);
       } else if (ageMinutes < 120) {
         setElectricityText("muistista");
       } else {
