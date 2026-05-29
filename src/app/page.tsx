@@ -1,6 +1,7 @@
 "use client";
 
 // V522_ELECTRICITY_ROBUST_FALLBACK: sähköhinta ei jää 0,0/viivaksi, kentät ja fallbackit korjattu.
+// V523_ELECTRICITY_RETRO_ARROWS: pörssisähkön trendi-indikaattori vanhan ajan ▲/▼ merkeiksi, punainen nousulle ja vihreä laskulle.
 // V520_HAE_READY_BADGE_SCOPE_TIMER: Hae valmis näkyy vain pää-/kaupat-näkymässä ja sammuu 2,5s jälkeen.
 // V502_WEATHER_RESTORED_HAE_READY_BADGE: säämoduuli takaisin page-GPS-koordinaateilla, Hae-valmiusbadge ilman pomppua.
 // V503_REMOVE_GPS_DEBUG_LOGGING: poistettu GPS debug-loggaus ja overlay.
@@ -701,7 +702,7 @@ function KauppiasMobileTopBar({
   }, []);
 
   const electricityTrendArrow =
-    electricityTrend === "up" ? "↗" : electricityTrend === "down" ? "↘" : "→";
+    electricityTrend === "up" ? "▲" : electricityTrend === "down" ? "▼" : "—";
   const electricityTrendClass =
     electricityTrend === "up"
       ? "text-[#bc1f1f]"
@@ -773,7 +774,7 @@ function KauppiasMobileTopBar({
                       {panel.value}
                     </span>
                     {panel.id === "electricity" && (
-                      <span className={`pb-[1px] text-[14px] font-black leading-none ${electricityTrendClass}`}>
+                      <span className={`pb-[1px] text-[13px] font-black leading-none ${electricityTrendClass}`}>
                         {electricityTrendArrow}
                       </span>
                     )}
