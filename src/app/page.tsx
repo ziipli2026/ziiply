@@ -11154,7 +11154,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         {eanModalOpen && (
           <div
-            className={`fixed inset-0 z-[80] flex items-stretch justify-center overflow-hidden overscroll-none bg-[#EAF4F1] px-2 pb-[calc(env(safe-area-inset-bottom)+5.55rem)] pt-[calc(env(safe-area-inset-top)+5.05rem)] sm:items-center sm:p-4 ${eanModalClosing ? "ziiply-soft-close" : "ziiply-soft-open"}`}
+            className={`fixed inset-0 z-[160] flex items-stretch justify-center overflow-hidden overscroll-none bg-[#EAF4F1] px-2 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-[calc(env(safe-area-inset-top)+4.95rem)] sm:items-center sm:p-4 ${eanModalClosing ? "ziiply-soft-close" : "ziiply-soft-open"}`}
           >
             <div
               className={`flex h-full w-full max-w-[430px] flex-col overflow-hidden transition-opacity duration-200 ${eanModalClosing ? "opacity-0" : "opacity-100"}`}
@@ -11240,7 +11240,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   regionId={EAN_SCANNER_REGION_ID}
                   flashState={scanSuccessFlash ? "success" : scanMissFlash ? "error" : "idle"}
                   loading={eanLoading}
-                  scannerMessage={eanScannerMessage || "Kuva otetaan, hinnanhuojennukset talteen. Säästöt esiin!"}
+                  scannerMessage={
+                    scanSuccessFlash
+                      ? "Lisätty koriin"
+                      : scanMissFlash
+                        ? "Ei löytynyt"
+                        : ""
+                  }
                   torchOn={scannerTorchOn}
                   manualInputOpen={eanManualInputOpen}
                   onCameraTap={(event) => void (focusScannerCameraAtPoint as any)(EAN_SCANNER_REGION_ID, event)}
