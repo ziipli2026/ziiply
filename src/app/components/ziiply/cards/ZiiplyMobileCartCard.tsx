@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_CART_CARD_V20_TOUCH_AREAS_FIX
+// ZIIPLY_MOBILE_CART_CARD_V18_TEXT_FIELD_EXTENDED
 // Mobiilin Tavarainkeruu-paperivihko.
 // V3:
 // - "Ostoskori" poistettu kokonaan näkyvästä UI:sta.
@@ -23,6 +23,7 @@
 // V11: korjaa hasAlcoholItemsV8-muuttujan scopen ja vaihtaa pääkomponentin yhteissumman alkoholittomaksi.
 // V12: vain koordinaatti/UI-säätö; Tavarainkeruu hieman ylemmäs ja erillinen poisto-ruksi korvattu hinta/kassa-tekstin painalluksella.
 // V13: sulje-nappi kohdistettu A. Virtanen -tekstin vaakatasoon ja symboli pehmennetty.
+// V18B: nimikekentälle lisää vaakasuuntaista tilaa; määrä-/välikenttiä kavennettu maltillisesti.
 
 import React from "react";
 
@@ -234,7 +235,7 @@ function QuantityCell({
       <button
         type="button"
         onClick={() => onIncrease?.(item)}
-        className="grid h-full w-full place-items-center pl-[3.28rem] rounded-[0.32rem] bg-[#fff1c6]/10 text-[0.98rem] font-extrabold leading-none text-[#3d301a] active:translate-y-[1px] active:bg-[#fff1c6]/34"
+        className="grid h-full w-full place-items-center pl-[3.58rem] rounded-[0.32rem] bg-[#fff1c6]/10 text-[0.98rem] font-extrabold leading-none text-[#3d301a] active:translate-y-[1px] active:bg-[#fff1c6]/34"
         style={{ fontFamily: serifFont }}
         aria-label="Lisää määrää"
         title="Lisää määrää"
@@ -368,7 +369,7 @@ export default function ZiiplyMobileCartCard({
                   <article
                     key={String(item.id ?? item.ean ?? index)}
                     className={cx(
-                      "grid min-h-[2.22rem] grid-cols-[2.05rem_minmax(0,1fr)_3.35rem_1.35rem_4.2rem] items-center gap-1 border-b-[1.35px] border-[#b9944d]/68 bg-transparent px-1 py-[0.28rem]",
+                      "grid min-h-[2.22rem] grid-cols-[2.05rem_minmax(0,1fr)_2.85rem_1.10rem_4.2rem] items-center gap-1 border-b-[1.35px] border-[#b9944d]/68 bg-transparent px-1 py-[0.28rem]",
                       checked && "opacity-55",
                     )}
                   >
