@@ -1,5 +1,6 @@
 "use client";
 
+// V525_ELECTRICITY_LIVE_REFRESH_AND_COMPASS: sähköhaku hakee nykyhetken listasta cache-busterilla ja kompassi/karttanappi palautettu.
 // V522_ELECTRICITY_ROBUST_FALLBACK: sähköhinta ei jää 0,0/viivaksi, kentät ja fallbackit korjattu.
 // V523_ELECTRICITY_RETRO_ARROWS: pörssisähkön trendi-indikaattori vanhan ajan ▲/▼ merkeiksi, punainen nousulle ja vihreä laskulle.
 // V520_HAE_READY_BADGE_SCOPE_TIMER: Hae valmis näkyy vain pää-/kaupat-näkymässä ja sammuu 2,5s jälkeen.
@@ -564,8 +565,13 @@ function KauppiasMobileTopBar({
       return null;
     };
 
+    const withElectricityCacheBust = (url: string) => {
+      const separator = url.includes("?") ? "&" : "?";
+      return `${url}${separator}_ziiply_ts=${Date.now()}`;
+    };
+
     async function tryReadDirectPrice(url: string) {
-      const response = await fetch(url, { cache: "no-store" });
+      const response = await fetch(withElectricityCacheBust(url), { cache: "no-store" });
       if (!response.ok || cancelled) return null;
       const data = await response.json();
       const price = readElectricityPriceFromObject(data);
@@ -573,7 +579,7 @@ function KauppiasMobileTopBar({
     }
 
     async function tryReadCurrentFromList(url: string) {
-      const response = await fetch(url, { cache: "no-store" });
+      const response = await fetch(withElectricityCacheBust(url), { cache: "no-store" });
       if (!response.ok || cancelled) return null;
 
       const data = await response.json();
@@ -639,19 +645,24 @@ function KauppiasMobileTopBar({
         const nowIso = new Date().toISOString();
 
         const candidates = [
-          // Porssisahko.netin nykyinen v2-esimerkki käyttää dateTime-parametria.
+          // Ensisijaisesti listahaku, koska se antaa nykyhetken aikavälin ja samalla seuraavat hinnat trendinuolelle.
+          () => tryReadCurrentFromList("https://api.porssisahko.net/v2/latest-prices.json"),
+          () => tryReadCurrentFromList("https://api.porssisahko.net/v1/latest-prices.json"),
+
+          // Yksittäinen ajanhetki Porssisahko.netin dokumentoidulla date-parametrilla.
           () => tryReadDirectPrice(
-            `https://api.porssisahko.net/v2/price.json?dateTime=${encodeURIComponent(nowIso)}`,
+            `https://api.porssisahko.net/v2/price.json?date=${encodeURIComponent(nowIso)}`,
           ),
-          // Säilytetään vanhat date/hour-muodot fallbackeina.
+
+          // Vanhemmat muodot jätetään viimeisiksi fallbackeiksi.
           () => tryReadDirectPrice(
             `https://api.porssisahko.net/v2/price.json?date=${encodeURIComponent(date)}&hour=${encodeURIComponent(hour)}`,
           ),
           () => tryReadDirectPrice(
             `https://api.porssisahko.net/v1/price.json?date=${encodeURIComponent(date)}&hour=${encodeURIComponent(hour)}`,
           ),
-          () => tryReadCurrentFromList("https://api.porssisahko.net/v2/latest-prices.json"),
-          () => tryReadCurrentFromList("https://api.porssisahko.net/v1/latest-prices.json"),
+
+          // Staattinen varalähde.
           () => tryReadCurrentFromList(
             `https://www.sahkonhintatanaan.fi/api/v1/prices/${encodeURIComponent(year)}/${encodeURIComponent(month)}-${encodeURIComponent(day)}.json`,
           ),
@@ -685,7 +696,7 @@ function KauppiasMobileTopBar({
     }
 
     loadElectricity();
-    const interval = window.setInterval(loadElectricity, 5 * 60 * 1000);
+    const interval = window.setInterval(loadElectricity, 60 * 1000);
 
     return () => {
       cancelled = true;
@@ -9424,6 +9435,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       setSearchPanelOpen(false);
                       setShopsPanelOpen(true);
                     }}
+                    onOpenMap={() => {
+                      setMapStoresOverlayOpenV433(true);
+                    }}
                     usingOwnLocation={usingOwnLocation}
                     locationMessage={
                       usingOwnLocation && !storeSearchLoading && !gpsErrorMessage
@@ -10148,7 +10162,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 pushGpsDebugLogV492("MAP/APPLY disabled in v492 test");
               }}
               onOpenMap={() => {
-                pushGpsDebugLogV492("MAP button disabled in v492 test");
+                setMapStoresOverlayOpenV433(true);
               }}
               onLocationInputChange={(nextValue: string) => {
                 setLocationInput(nextValue);
@@ -10761,12 +10775,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           )}
 
         {searchPanelOpen && (
-          <>
-            <div className="fixed left-2 top-24 z-[9999] rounded bg-red-700 px-3 py-2 text-sm font-black text-white shadow-lg">
-              PAGE MOBILE HAE RENDER
-            </div>
-
-            <ZiiplyMobileSearchCard
+          <ZiiplyMobileSearchCard
             open={true}
             title="HAKU"
             subtitle={activeNormalSearchTerm || undefined}
@@ -10814,7 +10823,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               setActiveNormalSearchTerm("");
             }}
           />
-          </>
         )}
 
         {eanModalOpen && (
