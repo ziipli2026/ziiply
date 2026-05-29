@@ -23,6 +23,7 @@
 // V11: korjaa hasAlcoholItemsV8-muuttujan scopen ja vaihtaa pääkomponentin yhteissumman alkoholittomaksi.
 // V12: korjaa paperisarakkeiden visuaalisen kohdistuksen, kassa/huomio-tekstit ja yhteissumman sentti/euro-indeksivirheen.
 // V13: miinusmerkki ja poisto-ruksi korostettu punertaviksi sekä siirretty lähemmäs sarakeviivoja.
+// V14: määrä-sarakkeen asettelu mockupin mukaiseksi; miinus aidosti punaiseksi ja määrän keskitys korjattu.
 
 import React from "react";
 
@@ -235,17 +236,14 @@ function QuantityCell({
   const canDecrease = quantity > 1;
 
   return (
-    <div className="relative grid h-[2.05rem] w-full place-items-center">
+    <div className="relative h-[2.05rem] w-full">
       <button
         type="button"
         onClick={() => onIncrease?.(item)}
-        className="grid h-full w-full place-items-center rounded-[0.32rem] bg-[#fff1c6]/10 pl-[0.52rem] text-[0.98rem] font-black leading-none text-[#3d301a] active:translate-y-[1px] active:bg-[#fff1c6]/34"
-        style={{ fontFamily: serifFont }}
+        className="absolute inset-0 rounded-[0.32rem] bg-[#fff1c6]/5 active:translate-y-[1px] active:bg-[#fff1c6]/28"
         aria-label="Lisää määrää"
         title="Lisää määrää"
-      >
-        {quantity}
-      </button>
+      />
 
       <button
         type="button"
@@ -254,14 +252,24 @@ function QuantityCell({
         }}
         disabled={!canDecrease}
         className={cx(
-          "absolute left-[-0.02rem] top-1/2 grid h-[1.55rem] w-[1.05rem] -translate-y-1/2 place-items-center rounded-[0.24rem] text-[0.86rem] font-black leading-none active:translate-y-[calc(-50%+1px)]",
-          canDecrease ? "text-[#a2382b]/88 active:bg-[#fff1c6]/38" : "text-[#a2382b]/20",
+          "absolute left-[-0.12rem] top-1/2 z-10 grid h-[1.52rem] w-[0.92rem] -translate-y-1/2 place-items-center rounded-[0.2rem] text-[0.92rem] font-black leading-none",
+          canDecrease
+            ? "text-[#c1291d] active:bg-[#fff1c6]/36"
+            : "text-[#c1291d]/18",
         )}
+        style={{ fontFamily: serifFont }}
         aria-label="Vähennä määrää"
         title="Vähennä määrää"
       >
         −
       </button>
+
+      <div
+        className="absolute left-[1.1rem] top-1/2 z-10 min-w-[1.1rem] -translate-y-1/2 text-center text-[0.98rem] font-black leading-none text-[#2f281b]"
+        style={{ fontFamily: serifFont }}
+      >
+        {quantity}
+      </div>
     </div>
   );
 }
