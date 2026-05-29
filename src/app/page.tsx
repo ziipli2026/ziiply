@@ -1,6 +1,7 @@
 "use client";
 
 // V527_MOBILE_SEARCH_RESULTS_CARD_AND_ELECTRICITY_REPAIR: mobiilin hakutulokset omalle kortille ja pörssisähkö korjattu suorahaulla.
+// V538_MOBILE_SEARCH_RESULTS_OPEN_AND_READY_BADGE_FIX: Justiina-haku ei sulje Hae-paneelia; tuloskortti voi aueta vain löydetyillä tuloksilla; 'Voit hakea' ei syty haun aikana.
 // V537_MOBILE_RESULTS_ONLY_CURRENT_FOUND_QUERY: tuloskortti ei aukea ei-löytynyt-haulla eikä vanhoilla tuloksilla.
 // V536_MOBILE_RESULTS_NO_JUMP_WHILE_SEARCHING: mobiilin hakutuloskortti ei aukea haun aikana eikä tyhjällä tuloksella.
 // V534_HAE_READY_BADGE_TRUE_SEARCH_TAB_CENTER: 'Voit hakea' -badge korjattu Hae-tabin todelliselle keskilinjalle prosenttipaikalla.
@@ -1481,7 +1482,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     !cartModalOpen &&
     !eanModalOpen &&
     activeResult === "none" &&
-    activeAssistant === null;
+    activeAssistant === null &&
+    !loadingNormal &&
+    !loadingOffers &&
+    !singleProductCompareLoading;
 
   const haeReadyBadgeVisibleV502 =
     storesReadyForSearch &&
@@ -6976,14 +6980,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // Yksi tuote -tila hakee vain yhden kokonaisen termin. Jos kentässä on pilkuilla
     // useampi tuote, niitä ei ajeta jonona eikä näytetä single-product flowssa.
     // Useamman tuotteen jono kuuluu vain Koko kori -tilaan.
-    setSearchPanelOpen(false);
+    // V538: mobiili-Hae pysyy auki haun aikana. Tuloskortti avataan vasta jos osumia löytyy.
+    setSearchPanelOpen(true);
     if (searchCompareMode === "single") {
       setInput(singleModeTerm);
       void searchNormalPrices(singleModeTerm);
     } else {
       void searchNormalPrices();
     }
-    scrollToNormalResults();
+    if (typeof window !== "undefined" && window.innerWidth >= 768) {
+      scrollToNormalResults();
+    }
   }
 
   function handleJustiinaProductSearch() {
@@ -7000,9 +7007,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     });
 
     setSearchCompareMode("cart");
-    setSearchPanelOpen(false);
+    // V538: älä sulje Hae-paneelia Justiina-haussa; tyhjällä haulla näytetään vain ohjepalkin ei-löytynyt.
+    setSearchPanelOpen(true);
     void searchNormalPrices();
-    scrollToNormalResults();
+    // Ei scrollata mobiilissa tyhjään/puuttuvaan valintakorttiin.
+    if (typeof window !== "undefined" && window.innerWidth >= 768) {
+      scrollToNormalResults();
+    }
   }
 
   function handleGostaOfferSearch() {
@@ -10905,10 +10916,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
             <ZiiplyMobileSearchResultsCard
               open={
+                searchPanelOpen &&
                 !loadingNormal &&
                 normalResults.length > 0 &&
-                mobileResultsReadyQueryV537.length > 0 &&
-                mobileResultsReadyQueryV537 === activeNormalSearchTerm
+                mobileResultsReadyQueryV537.length > 0
               }
               loading={false}
               title={activeNormalSearchTerm || "Tuotteet"}
