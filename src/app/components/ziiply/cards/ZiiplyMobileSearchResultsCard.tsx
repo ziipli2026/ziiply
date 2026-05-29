@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_SEARCH_RESULTS_CARD_V1
+// ZIIPLY_MOBILE_SEARCH_RESULTS_CARD_V2_LOYDOKSET_TERMS
 // Mobiilin erillinen hakutuloskortti.
 // Tarkoitus:
 // - EI sotke varsinaista hakukorttia
@@ -75,7 +75,7 @@ function formatPrice(price: unknown) {
 export default function ZiiplyMobileSearchResultsCard({
   open = false,
   loading = false,
-  title = "Hakutulokset",
+  title = "Löydökset",
   products = [],
   onClose,
   onAddProduct,
@@ -94,7 +94,7 @@ export default function ZiiplyMobileSearchResultsCard({
               className="text-[0.78rem] font-black uppercase tracking-[0.48em] text-[#7d6b45]"
               style={{ fontFamily: copper }}
             >
-              HAKUTULOKSET
+              LÖYDÖKSET
             </div>
 
             <div
@@ -125,7 +125,7 @@ export default function ZiiplyMobileSearchResultsCard({
 
             {!loading && products.length === 0 && (
               <div className="rounded-[1.3rem] border-[3px] border-[#d4ba73] bg-[#fff4d6] px-5 py-8 text-center text-[1rem] font-black text-[#78633a]">
-                Ei hakutuloksia.
+                Ei löydöksiä vielä.
               </div>
             )}
 
