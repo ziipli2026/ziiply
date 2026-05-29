@@ -1,5 +1,6 @@
 "use client";
 
+// V562_MOBILE_SCANNER_CARD_CONNECTED: mobiilin EAN-skanneri käyttää erillistä ZiiplyMobileScannerCard-korttia; scanner-logiikka säilyy page.tsx:ssä.
 // V561_ELECTRICITY_CACHE_TYPE_FIX: korjaa localStorage-sähköcachen TypeScript-narrowing virheen cached.value/setState-kutsussa.
 // V560_ELECTRICITY_CACHE_AUTO_CLEANUP: poistaa liian vanhan sähkön hintamuistin automaattisesti localStoragesta.
 // V559_ELECTRICITY_LOCAL_CACHE: pörssisähkö käyttää selaimen localStorage-muistia; viimeisin hinta näytetään heti ja uusi haetaan taustalla.
@@ -283,6 +284,7 @@ import ZiiplySearchCard from "./components/ziiply/cards/ZiiplySearchCard";
 import ZiiplyMobileSearchCard from "./components/ziiply/cards/ZiiplyMobileSearchCard";
 import ZiiplyMobileSearchResultsCard from "./components/ziiply/cards/ZiiplyMobileSearchResultsCard";
 import ZiiplyMobileCartCard from "./components/ziiply/cards/ZiiplyMobileCartCard";
+import ZiiplyMobileScannerCard from "./components/ziiply/cards/ZiiplyMobileScannerCard";
 import ZiiplyStoreLocaCard from "./components/ziiply/cards/ZiiplyStoreLocaCard";
 import * as ZiiplyCompareCardModule from "./components/ziiply/cards/ZiiplyCompareCard";
 import ZiiplyMobileHomeView from "./components/ziiply/mobile/ZiiplyMobileHomeView";
@@ -11152,16 +11154,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         {eanModalOpen && (
           <div
-            className={`fixed inset-0 z-[80] flex items-end justify-center overflow-hidden overscroll-none bg-slate-950/35 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] transition-opacity duration-700 ease-out sm:items-center sm:p-4 ${eanModalClosing ? "ziiply-soft-close" : "ziiply-soft-open"}`}
+            className={`fixed inset-0 z-[80] flex items-start justify-center overflow-y-auto overscroll-none bg-[#EAF4F1] px-2 pb-[calc(env(safe-area-inset-bottom)+6rem)] pt-[calc(env(safe-area-inset-top)+5.35rem)] sm:items-center sm:p-4 ${eanModalClosing ? "ziiply-soft-close" : "ziiply-soft-open"}`}
           >
             <div
-              className={`max-h-[calc(100dvh-7rem)] w-full max-w-[42rem] overflow-y-auto overscroll-contain rounded-[1.75rem] border border-white/70 bg-white/95 p-3 shadow-2xl backdrop-blur transition-all duration-700 ease-out [WebkitOverflowScrolling:touch] sm:max-h-[calc(100dvh-2rem)] sm:p-5 ${eanModalClosing ? "translate-y-3 scale-[0.98] opacity-0" : "translate-y-0 scale-100 opacity-100"}`}
+              className={`w-full max-w-[430px] overflow-visible transition-opacity duration-200 ${eanModalClosing ? "opacity-0" : "opacity-100"}`}
             >
-              <div className="flex items-center justify-center px-1">
-                <p className="min-w-0 text-center text-lg font-black text-slate-950">
-                  EAN-skanneri
-                </p>
-              </div>
 
               {eanScannerMessage && !eanScannerOpen && (
                 <div className="mt-3 rounded-2xl bg-slate-100 p-3 text-sm font-bold text-slate-700 ziiply-soft-open-fast">
@@ -11239,186 +11236,98 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               )}
 
               {eanScannerOpen && (
-                <div className="mt-3 rounded-2xl bg-white ziiply-soft-open">
-                  <div
-                    className="relative mx-auto aspect-[3/4] max-h-[calc(100dvh-21rem)] min-h-[20rem] w-full overflow-hidden rounded-[1.5rem] bg-slate-950 ring-1 ring-slate-200 sm:aspect-square sm:max-w-[430px]"
-                    onPointerDown={(event) =>
-                      void focusScannerCameraAtPoint(event)
+                <ZiiplyMobileScannerCard
+                  regionId={EAN_SCANNER_REGION_ID}
+                  flashState={scanSuccessFlash ? "success" : scanMissFlash ? "error" : eanLoading ? "searching" : "idle"}
+                  loading={eanLoading}
+                  scannerMessage={eanScannerMessage || "Kuva otetaan, hinnanhuojennukset talteen. Säästöt esiin!"}
+                  torchOn={scannerTorchOn}
+                  manualInputOpen={eanManualInputOpen}
+                  onCameraTap={(event) => void focusScannerCameraAtPoint(event)}
+                  onManualEan={() => {
+                    setEanManualInputOpen((open) => {
+                      const nextOpen = !open;
+                      if (nextOpen) {
+                        window.setTimeout(() => eanInputRef.current?.focus(), 0);
+                      }
+                      return nextOpen;
+                    });
+                  }}
+                  onPasteEan={async () => {
+                    try {
+                      const text = await navigator.clipboard.readText();
+                      const code = normalizeEan(text);
+                      if (!isUsableEan(code)) {
+                        setEanMessage("Leikepöydältä ei löytynyt kelvollista EAN-koodia.");
+                        return;
+                      }
+                      setEanManualInputOpen(true);
+                      setEanInput(code);
+                      setLastAutoEanSearch(code);
+                      setEanSearchStartedAutomatically(true);
+                      eanAutoSearchActiveRef.current = true;
+                      setEanMessage(`Liitetty koodi: ${code}. Haetaan...`);
+                      void searchByEan(code);
+                    } catch {
+                      setEanManualInputOpen(true);
+                      window.setTimeout(() => eanInputRef.current?.focus(), 0);
                     }
-                  >
-                    <div
-                      id={EAN_SCANNER_REGION_ID}
-                      className="absolute inset-0 h-full w-full overflow-hidden rounded-2xl bg-slate-950 [&_*]:!box-border [&_canvas]:!hidden [&_div]:!border-0 [&_div]:!shadow-none [&_video]:!absolute [&_video]:!inset-0 [&_video]:!h-full [&_video]:!w-full [&_video]:rounded-2xl [&_video]:!object-cover"
-                    />
-                    <div className="pointer-events-none absolute inset-0 rounded-[1.5rem] border-[3px] border-green-400 shadow-[inset_0_0_0_999px_rgba(2,6,23,0.04)]">
-                      <div className="absolute -left-1 -top-1 h-7 w-7 rounded-tl-2xl border-l-4 border-t-4 border-white/95" />
-                      <div className="absolute -right-1 -top-1 h-7 w-7 rounded-tr-2xl border-r-4 border-t-4 border-white/95" />
-                      <div className="absolute -bottom-1 -left-1 h-7 w-7 rounded-bl-2xl border-b-4 border-l-4 border-white/95" />
-                      <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-br-2xl border-b-4 border-r-4 border-white/95" />
-                    </div>
+                  }}
+                  onTorch={() => void toggleScannerTorch()}
+                  onClose={closeEanModal}
+                >
+                  {eanManualInputOpen && (
+                    <div className="flex gap-2 ziiply-soft-open-fast">
+                      <input
+                        ref={eanInputRef}
+                        value={eanInput}
+                        onChange={(event) =>
+                          setEanInput(event.target.value.replace(/\D/g, ""))
+                        }
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") void searchByEan();
+                        }}
+                        inputMode="numeric"
+                        placeholder="Syötä EAN, esim. 641..."
+                        className="min-w-0 flex-1 rounded-2xl border border-[#d6bf8f] bg-white px-4 py-3 text-base font-bold tracking-wide text-[#172016] outline-none transition focus:border-[#2f7c3f]"
+                        onPaste={(event) => {
+                          const pastedText = event.clipboardData.getData("text");
+                          const code = normalizeEan(pastedText);
 
-                    {eanLoading && (
-                      <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-xl bg-slate-700/45 backdrop-blur-[1px]">
-                        <div className="flex flex-col items-center gap-3 rounded-3xl bg-slate-900/80 px-6 py-3 sm:py-5 text-white shadow-2xl ring-2 ring-white/20">
-                          <div className="flex h-12 sm:h-16 w-16 items-center justify-center rounded-full bg-white/15 text-4xl font-black animate-pulse">
-                            ⏳
-                          </div>
-                          <div className="text-sm font-black uppercase tracking-[0.22em] text-white/90">
-                            Haetaan
-                          </div>
-                        </div>
-                      </div>
-                    )}
+                          if (!isUsableEan(code)) return;
 
-                    {scanSuccessFlash && (
-                      <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-xl bg-green-400/35 backdrop-brightness-125 transition-opacity duration-700">
-                        <div className="flex h-24 w-24 items-center justify-center rounded-full bg-green-500 text-5xl font-black text-white shadow-2xl ring-4 ring-white/80 animate-pulse">
-                          ✓
-                        </div>
-                        <div className="absolute bottom-5 rounded-full bg-green-600 px-4 py-2 text-sm font-black text-white shadow-xl ring-2 ring-white/70">
-                          Lisätty koriin
-                        </div>
-                      </div>
-                    )}
+                          event.preventDefault();
 
-                    {scanMissFlash && (
-                      <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-xl bg-red-500/35 backdrop-brightness-90 transition-opacity duration-700">
-                        <div className="flex h-24 w-24 items-center justify-center rounded-full bg-red-600 text-5xl font-black text-white shadow-2xl ring-4 ring-white/80 animate-pulse">
-                          ?
-                        </div>
-                        <div className="absolute bottom-5 rounded-full bg-red-600 px-4 py-2 text-sm font-black text-white shadow-xl ring-2 ring-white/70">
-                          Ei löytynyt
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                  <div className="mt-4 min-h-[3.75rem]">
-                    {eanManualInputOpen && (
-                      <div className="flex gap-2 ziiply-soft-open-fast">
-                        <input
-                          ref={eanInputRef}
-                          value={eanInput}
-                          onChange={(event) =>
-                            setEanInput(event.target.value.replace(/\D/g, ""))
-                          }
-                          onKeyDown={(event) => {
-                            if (event.key === "Enter") void searchByEan();
-                          }}
-                          inputMode="numeric"
-                          placeholder="Syötä EAN, esim. 641..."
-                          className="min-w-0 flex-1 rounded-2xl border border-slate-300 px-4 py-3 text-base font-bold tracking-wide outline-none transition focus:border-green-600"
-                          onPaste={(event) => {
-                            const pastedText =
-                              event.clipboardData.getData("text");
-                            const code = normalizeEan(pastedText);
-
-                            if (!isUsableEan(code)) return;
-
-                            event.preventDefault();
-
-                            if (eanAutoSearchTimeoutRef.current) {
-                              window.clearTimeout(
-                                eanAutoSearchTimeoutRef.current,
-                              );
-                              eanAutoSearchTimeoutRef.current = null;
-                            }
-
-                            setEanInput(code);
-                            setLastAutoEanSearch(code);
-                            setEanSearchStartedAutomatically(true);
-                            eanAutoSearchActiveRef.current = true;
-                            setEanMessage(
-                              `Liitetty koodi: ${code}. Haetaan...`,
+                          if (eanAutoSearchTimeoutRef.current) {
+                            window.clearTimeout(
+                              eanAutoSearchTimeoutRef.current,
                             );
-                            void searchByEan(code);
-                          }}
-                        />
-                        <button
-                          type="button"
-                          onClick={clearEanSearch}
-                          disabled={
-                            !eanInput && eanResults.length === 0 && !eanMessage
+                            eanAutoSearchTimeoutRef.current = null;
                           }
-                          className="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-extrabold text-slate-700 transition active:scale-[0.98] disabled:opacity-40"
-                        >
-                          Tyhjennä
-                        </button>
-                      </div>
-                    )}
-                  </div>
 
-                  <div className="mt-2 rounded-2xl border border-slate-200 bg-slate-50/90 px-3 py-2 text-center text-xs font-black leading-snug text-slate-700 shadow-sm">
-                    Aseta viivakoodi kehykseen. Napauta kuvaa tarkennusta
-                    varten.
-                  </div>
-                  <div className="sticky bottom-0 z-10 mt-3 grid grid-cols-4 gap-2 rounded-[1.35rem] border border-slate-200 bg-white/95 p-2 shadow-[0_-12px_35px_rgba(15,23,42,0.08)] backdrop-blur">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEanManualInputOpen((open) => {
-                          const nextOpen = !open;
-                          if (nextOpen) {
-                            window.setTimeout(
-                              () => eanInputRef.current?.focus(),
-                              0,
-                            );
-                          }
-                          return nextOpen;
-                        });
-                      }}
-                      className={`min-h-[3rem] touch-manipulation rounded-[1rem] px-2 text-sm font-black ring-1 transition active:scale-[0.98] ${eanManualInputOpen ? "bg-green-100 text-green-900 ring-green-200" : "bg-slate-100 text-slate-800 ring-slate-200"}`}
-                      aria-pressed={eanManualInputOpen}
-                    >
-                      ✍️ EAN
-                    </button>
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        try {
-                          const text = await navigator.clipboard.readText();
-                          const code = normalizeEan(text);
-                          if (!isUsableEan(code)) {
-                            setEanMessage(
-                              "Leikepöydältä ei löytynyt kelvollista EAN-koodia.",
-                            );
-                            return;
-                          }
-                          setEanManualInputOpen(true);
                           setEanInput(code);
                           setLastAutoEanSearch(code);
                           setEanSearchStartedAutomatically(true);
                           eanAutoSearchActiveRef.current = true;
-                          setEanMessage(`Liitetty koodi: ${code}. Haetaan...`);
-                          void searchByEan(code);
-                        } catch {
-                          setEanManualInputOpen(true);
-                          window.setTimeout(
-                            () => eanInputRef.current?.focus(),
-                            0,
+                          setEanMessage(
+                            `Liitetty koodi: ${code}. Haetaan...`,
                           );
+                          void searchByEan(code);
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={clearEanSearch}
+                        disabled={
+                          !eanInput && eanResults.length === 0 && !eanMessage
                         }
-                      }}
-                      className="min-h-[3rem] touch-manipulation rounded-[1rem] bg-slate-100 px-2 text-sm font-black text-slate-800 ring-1 ring-slate-200 transition active:scale-[0.98]"
-                    >
-                      Liitä
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => void toggleScannerTorch()}
-                      className={`min-h-[3rem] touch-manipulation rounded-[1rem] px-2 text-sm font-black ring-1 transition active:scale-[0.98] ${scannerTorchOn ? "bg-yellow-100 text-yellow-900 ring-yellow-200" : "bg-slate-100 text-slate-800 ring-slate-200"}`}
-                      aria-label="Taskulamppu"
-                    >
-                      🔦
-                    </button>
-                    <button
-                      type="button"
-                      onClick={closeEanModal}
-                      className="min-h-[3rem] touch-manipulation rounded-[1rem] bg-slate-900 px-2 text-sm font-black text-white shadow-sm transition active:scale-[0.98]"
-                    >
-                      Sulje
-                    </button>
-                  </div>
-                </div>
+                        className="rounded-2xl bg-[#efe0bf] px-4 py-3 text-sm font-extrabold text-[#3a3325] ring-1 ring-[#d6bf8f] transition active:scale-[0.98] disabled:opacity-40"
+                      >
+                        Tyhjennä
+                      </button>
+                    </div>
+                  )}
+                </ZiiplyMobileScannerCard>
               )}
 
               {eanMessage && !eanSearchStartedAutomatically && (
