@@ -19,6 +19,7 @@
 // V7: määrä/poisto/hinta kohdistettu paperisarakeisiin; alkoholijuomat näkyvät keräilyssä mutta eivät kuulu yhteissummaan.
 // V8: alkoholin yhteissummalaskenta ei enää riipu myöhemmin määritellyistä getCartItemQuantity/readCartItemPrice-funktioista.
 // V9: korjaa hasAlcoholItemsV7 → hasAlcoholItemsV8 nimeämisvirheen buildissä.
+// V10: varmistaa, että hasAlcoholItemsV8 määritellään komponentin sisällä ennen renderiä.
 
 import React from "react";
 
@@ -122,6 +123,8 @@ function LedgerButton({
   disabled?: boolean;
   wide?: boolean;
 }) {
+  const hasAlcoholItemsV8 = hasAlcoholCartItemsV8(items);
+
   return (
     <button
       type="button"
