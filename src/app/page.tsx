@@ -1,5 +1,6 @@
 "use client";
 
+// V542_MOBILE_CART_PAPER_CARD_CONNECTED: mobiili-Kori käyttää uutta ZiiplyMobileCartCard-paperivihko/keräilylista-komponenttia.
 // V527_MOBILE_SEARCH_RESULTS_CARD_AND_ELECTRICITY_REPAIR: mobiilin hakutulokset omalle kortille ja pörssisähkö korjattu suorahaulla.
 // V541_READY_BADGE_ONLY_ON_STORE_READY_CHANGE: 'Voit hakea' ei syty korttien välillä siirtyessä eikä results-kortilta poistuttaessa.
 // V538_MOBILE_SEARCH_RESULTS_OPEN_AND_READY_BADGE_FIX: Justiina-haku ei sulje Hae-paneelia; tuloskortti voi aueta vain löydetyillä tuloksilla; 'Voit hakea' ei syty haun aikana.
@@ -261,6 +262,7 @@ import * as ZiiplyCartCardModule from "./components/ziiply/cards/ZiiplyCartCard"
 import ZiiplySearchCard from "./components/ziiply/cards/ZiiplySearchCard";
 import ZiiplyMobileSearchCard from "./components/ziiply/cards/ZiiplyMobileSearchCard";
 import ZiiplyMobileSearchResultsCard from "./components/ziiply/cards/ZiiplyMobileSearchResultsCard";
+import ZiiplyMobileCartCard from "./components/ziiply/cards/ZiiplyMobileCartCard";
 import ZiiplyStoreLocaCard from "./components/ziiply/cards/ZiiplyStoreLocaCard";
 import * as ZiiplyCompareCardModule from "./components/ziiply/cards/ZiiplyCompareCard";
 import ZiiplyMobileHomeView from "./components/ziiply/mobile/ZiiplyMobileHomeView";
@@ -11331,59 +11333,69 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             </div>
           )}
 
-        {/* V399_MOBILE_CART_COMPARE_RENDER_FIX:
-            Bottom nav already toggles cartModalOpen / activeResult="compare".
-            The rollback file was missing the actual mobile render blocks for Kori and Vertailu,
-            which made the app fall back to the home layer even though state had changed. */}
+        {/* V542_MOBILE_CART_PAPER_CARD_CONNECTED:
+            Mobiili-Kori renderöidään erillisellä paperivihko/keräilylista-komponentilla.
+            Desktop käyttää edelleen ZiiplyCartCardia muualla. */}
         {!showLaunchScreen && cartModalOpen && (
-          <div
-            className={`fixed inset-0 z-[52] overflow-y-auto bg-[#edf8f4] px-3 pb-[calc(env(safe-area-inset-bottom)+5.9rem)] pt-[calc(env(safe-area-inset-top)+5.35rem)] sm:hidden ${
-              closingPanels.cart ? "ziiply-soft-close" : "ziiply-soft-open"
-            }`}
-          >
-            <div
-              ref={cartOverlayScrollRef}
-              className="ziiply-cart-retro-fix mx-auto max-w-md space-y-2"
-            >
-              <ZiiplyCartCard
-                cart={cart}
-                shoppingListItems={shoppingListItems}
-                checkedCartItems={checkedCartItems}
-                checkedCount={checkedCount}
-                shoppingListCount={shoppingListCount}
-                shoppingProgressPercent={shoppingProgressPercent}
-                cheapest={cheapest}
-                secondCheapest={secondCheapest}
-                savings={savings}
-                savingsPercent={savingsPercent}
-                bestShoppingListGroups={bestShoppingListGroups}
-                getShoppingListItemKey={getShoppingListItemKey}
-                toggleShoppingListItem={toggleShoppingListItem}
-                onToggleShoppingListItem={toggleShoppingListItem}
-                onToggleCollected={toggleShoppingListItem}
-                markAllShoppingListItemsChecked={markAllShoppingListItemsChecked}
-                clearShoppingListChecks={clearShoppingListChecks}
-                formatEuro={formatEuro}
-                fixText={fixText}
-                setCheckedCartItems={setCheckedCartItems}
-                shoppingItemRefs={shoppingItemRefs}
-                onIncreaseQuantity={(itemId: string) => changeQuantity(itemId, 1)}
-                onDecreaseQuantity={(itemId: string) => changeQuantity(itemId, -1)}
-                onRemoveItem={removeCartItem}
-                onAddMore={openSearchPanel}
-                onClearCart={clearCart}
-                onCompare={openComparisonView}
-                cartSavePanelOpen={cartSavePanelOpen}
-                onToggleSavePanel={() => setCartSavePanelOpen((current) => !current)}
-                savedListName={savedListName}
-                setSavedListName={setSavedListName}
-                onSaveCurrentCartAsList={saveCurrentCartAsList}
-                savedShoppingLists={savedShoppingLists}
-                onAddSavedListToCart={addSavedListToCart}
-                onDeleteSavedShoppingList={deleteSavedShoppingList}
-              />
-            </div>
-          </div>
+          <ZiiplyMobileCartCard
+            open={true}
+            items={cart.map((item: any) => {
+              const key =
+                item.id ??
+                item.ean ??
+                item.name ??
+                item.product?.id ??
+                item.product?.ean ??
+                JSON.stringify(item);
+
+              return {
+                ...item,
+                id: key,
+                name: item.name ?? item.product?.name ?? item.title ?? item.productName,
+                price:
+                  item.price ??
+                  item.product?.price ??
+                  item.product?.unitPrice ??
+                  item.product?.comparisonPrice,
+                image:
+                  item.image ??
+                  item.imageUrl ??
+                  item.pictureUrl ??
+                  item.product?.image ??
+                  item.product?.imageUrl ??
+                  item.product?.pictureUrl,
+                checked: Boolean(checkedCartItems[String(key)]),
+              };
+            })}
+            savedListsCount={savedShoppingLists.length}
+            onClose={closeCartModal}
+            onSaveList={() => setCartSavePanelOpen(true)}
+            onOpenSavedLists={() => setCartSavePanelOpen((current) => !current)}
+            onClearCart={clearCart}
+            onCompare={openComparisonView}
+            onRemoveItem={(item: any) => {
+              const match = cart.find((cartItem: any) => {
+                const key =
+                  cartItem.id ??
+                  cartItem.ean ??
+                  cartItem.name ??
+                  cartItem.product?.id ??
+                  cartItem.product?.ean ??
+                  JSON.stringify(cartItem);
+
+                return String(key) === String(item.id);
+              });
+
+              if (match) removeCartItem(match as CartItem);
+            }}
+            onToggleItem={(item: any) => {
+              const key = String(item.id ?? "");
+              setCheckedCartItems((current) => ({
+                ...current,
+                [key]: !current[key],
+              }));
+            }}
+          />
         )}
 
         {!showLaunchScreen && activeResult === "compare" && !searchPanelOpen && !cartModalOpen && !shopsPanelOpen && !eanModalOpen && (
