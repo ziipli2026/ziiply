@@ -10761,7 +10761,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           )}
 
         {searchPanelOpen && (
-          <ZiiplyMobileSearchCard
+          <>
+            <div className="fixed left-2 top-24 z-[9999] rounded bg-red-700 px-3 py-2 text-sm font-black text-white shadow-lg">
+              PAGE MOBILE HAE RENDER
+            </div>
+
+            <ZiiplyMobileSearchCard
             open={true}
             title="HAKU"
             subtitle={activeNormalSearchTerm || undefined}
@@ -10809,6 +10814,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               setActiveNormalSearchTerm("");
             }}
           />
+          </>
         )}
 
         {eanModalOpen && (
