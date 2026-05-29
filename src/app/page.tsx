@@ -1,5 +1,6 @@
 "use client";
 
+// V546_MOBILE_CART_QUANTITY_HANDLER_SCOPE_FIX: siirtää mobiilikorin määrähandlerit pois KauppiasWeatherGraphicin sisältä Page-komponentin scopeen.
 // V545_MOBILE_CART_QUANTITY_HANDLERS: mobiilin Tavarainkeruu saa määrän +/− toimimaan ja CartCard V6 siirtää poisto-X:n hinnan vasemmalle.
 // V544_MOBILE_CART_TAVARAINKERUU_PAPER_V2: page käyttää ZiiplyMobileCartCardia; kortin V2-asussa Tavarainkeruu, Tallenna/Näytä ostoslistat ja leveämpi paperi.
 // V543_MOBILE_CART_REMOVEITEM_TYPE_FIX: korjaa mobiilin paperikorin Poista-kutsun; removeCartItem saa string-avaimen eikä CartItem-oliota.
@@ -298,40 +299,6 @@ function kauppiasTopBarPanelClass(kind: KauppiasTopBarKind) {
 
 
 function KauppiasWeatherGraphic() {
-
-  function getMobileCartItemKeyV545(item: any) {
-    return String(
-      item?.id ??
-        item?.ean ??
-        item?.name ??
-        item?.product?.id ??
-        item?.product?.ean ??
-        JSON.stringify(item),
-    );
-  }
-
-  function updateMobileCartItemQuantityV545(item: any, delta: number) {
-    const targetKey = String(item?.id ?? "");
-
-    setCart((current) =>
-      current.map((cartItem: any) => {
-        const key = getMobileCartItemKeyV545(cartItem);
-        if (key !== targetKey) return cartItem;
-
-        const currentQuantity = Number(cartItem.quantity ?? cartItem.amount ?? 1);
-        const nextQuantity = Math.max(
-          1,
-          (Number.isFinite(currentQuantity) ? currentQuantity : 1) + delta,
-        );
-
-        return {
-          ...cartItem,
-          quantity: nextQuantity,
-          amount: nextQuantity,
-        };
-      }),
-    );
-  }
 
   return (
     <svg viewBox="0 0 64 64" className="h-[24px] w-[24px] drop-shadow-sm" aria-hidden="true">
@@ -1434,6 +1401,41 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     savedAt?: number;
   }>({ open: false, count: 0 });
   const cartIsEmpty = cart.length === 0;
+
+  function getMobileCartItemKeyV546(item: any) {
+    return String(
+      item?.id ??
+        item?.ean ??
+        item?.name ??
+        item?.product?.id ??
+        item?.product?.ean ??
+        JSON.stringify(item),
+    );
+  }
+
+  function updateMobileCartItemQuantityV546(item: any, delta: number) {
+    const targetKey = String(item?.id ?? "");
+
+    setCart((current) =>
+      current.map((cartItem: any) => {
+        const key = getMobileCartItemKeyV546(cartItem);
+        if (key !== targetKey) return cartItem;
+
+        const currentQuantity = Number(cartItem.quantity ?? cartItem.amount ?? 1);
+        const nextQuantity = Math.max(
+          1,
+          (Number.isFinite(currentQuantity) ? currentQuantity : 1) + delta,
+        );
+
+        return {
+          ...cartItem,
+          quantity: nextQuantity,
+          amount: nextQuantity,
+        };
+      }),
+    );
+  }
+
 
   const [normalResults, setNormalResults] = useState<Product[]>([]);
   const [normalSearchAttempted, setNormalSearchAttempted] = useState(false);
@@ -11443,8 +11445,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 [key]: !current[key],
               }));
             }}
-            onIncreaseItem={(item: any) => updateMobileCartItemQuantityV545(item, 1)}
-            onDecreaseItem={(item: any) => updateMobileCartItemQuantityV545(item, -1)}
+            onIncreaseItem={(item: any) => updateMobileCartItemQuantityV546(item, 1)}
+            onDecreaseItem={(item: any) => updateMobileCartItemQuantityV546(item, -1)}
           />
         )}
 
