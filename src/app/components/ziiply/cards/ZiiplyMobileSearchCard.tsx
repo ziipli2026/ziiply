@@ -1,13 +1,12 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V505_AUTOSUGGEST_ERASER_AUTOSEARCH
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V506_AUTOSUGGEST_NO_PREMATURE_NOTFOUND
 // UUSI: rakennettu puhtaalta pohjalta ilman V472-historiaa.
-// UUSI: yksirivinen ohje/ennustepalkki, ei näppiksen alle valuvaa kaksirivistä tekstiä.
-// UUSI: pieni 50-retro pyyhekumi tyhjentää tekstikentän yhdellä painalluksella.
-// UUSI: 2,5 s kirjoitustauon jälkeen käynnistyy automaattinen haku.
-// UUSI: koriin-nappi on tekstikentän pystykeskilinjassa.
+// UUSI: ennustepalkki ei näytä 'ei löytynyt' kirjoituksen aikana.
+// UUSI: 'ei löytynyt' näkyy vasta, kun haku on oikeasti käynnistetty ja tulos on tyhjä.
+// UUSI: pyyhekumi tyhjentää tekstikentän ja 2,5 s kirjoitustauko käynnistää automaattihaun.
 
-import React, { useEffect, useMemo, useRef } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 export type ZiiplyMobileSearchCardProduct = {
   id?: string | number;
@@ -292,6 +291,15 @@ export default function ZiiplyMobileSearchCard({
   const showResults = loading || items.length > 0 || Boolean(subtitle);
   const justiinaLoading = loadingNormal || singleProductCompareLoading;
   const autoSearchInputRef = useRef("");
+  const [triggeredSearchInput, setTriggeredSearchInput] = useState("");
+
+  const cleanInput = input.trim();
+  const notFoundCanShow =
+    triggeredSearchInput.length > 0 &&
+    triggeredSearchInput === cleanInput &&
+    !loading &&
+    items.length === 0 &&
+    cleanInput.length >= 2;
 
   const predictiveText = useMemo(() => {
     const clean = input.trim();
@@ -300,7 +308,7 @@ export default function ZiiplyMobileSearchCard({
       return "Kirjoita hakusana tai sano ostos ääneen.";
     }
 
-    if (!loading && items.length === 0 && clean.length >= 3) {
+    if (notFoundCanShow) {
       return `Hakemaasi “${clean}” ei löytynyt.`;
     }
 
@@ -313,10 +321,15 @@ export default function ZiiplyMobileSearchCard({
     ];
 
     return suggestions.join(" · ");
-  }, [input, loading, items.length]);
+  }, [input, notFoundCanShow]);
 
   useEffect(() => {
     const clean = input.trim();
+
+    // Kun käyttäjä muuttaa tekstiä, vanha "ei löytynyt" -tila poistuu heti.
+    if (triggeredSearchInput && clean !== triggeredSearchInput) {
+      setTriggeredSearchInput("");
+    }
 
     if (!open || !clean || clean.length < 2) return;
     if (loadingOffers || loadingNormal || singleProductCompareLoading) return;
@@ -328,27 +341,35 @@ export default function ZiiplyMobileSearchCard({
       if (autoSearchInputRef.current === latest) return;
 
       autoSearchInputRef.current = latest;
+      setTriggeredSearchInput(latest);
 
-      if (searchMode === "single") {
-        onNormalSearch?.();
-      } else {
-        onNormalSearch?.();
-      }
+      onNormalSearch?.();
     }, 2500);
 
     return () => window.clearTimeout(timer);
   }, [
     input,
     open,
-    searchMode,
+    triggeredSearchInput,
     loadingOffers,
     loadingNormal,
     singleProductCompareLoading,
     onNormalSearch,
   ]);
 
+  const handleManualSearch = (handler?: () => void) => {
+    const clean = input.trim();
+    if (clean.length >= 2) {
+      autoSearchInputRef.current = clean;
+      setTriggeredSearchInput(clean);
+    }
+
+    handler?.();
+  };
+
   const handleClearInput = () => {
     autoSearchInputRef.current = "";
+    setTriggeredSearchInput("");
     onInputChange?.("");
   };
 
@@ -356,7 +377,7 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V505_AUTOSUGGEST_ERASER_AUTOSEARCH"
+      data-ziiply-mobile-search-card-version="UUSI_V506_AUTOSUGGEST_NO_PREMATURE_NOTFOUND"
       className={`fixed inset-0 z-[72] flex items-end justify-center overflow-hidden bg-transparent px-2 pb-[calc(env(safe-area-inset-bottom)+6.15rem)] pt-[calc(env(safe-area-inset-top)+5rem)] sm:items-center sm:p-6 ${className}`}
     >
       <section className="relative isolate h-[min(64dvh,36.5rem)] w-full max-w-[28rem] overflow-visible rounded-[2rem] border-[4px] border-[#5b482c] bg-transparent px-3 pt-3 text-[#20301f] shadow-[0_0_0_2px_#d8bd75_inset,0_12px_0_rgba(60,45,20,0.24),0_22px_45px_rgba(15,23,42,0.18)]">
@@ -387,6 +408,7 @@ export default function ZiiplyMobileSearchCard({
                   value={input}
                   onChange={(event) => {
                     autoSearchInputRef.current = "";
+                    setTriggeredSearchInput("");
                     onInputChange?.(event.target.value);
                   }}
                   rows={2}
@@ -409,7 +431,7 @@ export default function ZiiplyMobileSearchCard({
           <div className="relative z-10 mt-3 grid grid-cols-[1fr_7.15rem_1fr] items-center gap-2.5">
             <AssistantButton
               kind="gosta"
-              onClick={onOfferSearch}
+              onClick={() => handleManualSearch(onOfferSearch)}
               disabled={!hasText}
               loading={loadingOffers}
             />
@@ -418,7 +440,7 @@ export default function ZiiplyMobileSearchCard({
 
             <AssistantButton
               kind="justiina"
-              onClick={onNormalSearch}
+              onClick={() => handleManualSearch(onNormalSearch)}
               disabled={!hasText}
               loading={justiinaLoading}
             />
