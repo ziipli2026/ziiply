@@ -1,10 +1,11 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V506_AUTOSUGGEST_NO_PREMATURE_NOTFOUND
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V507_AUTOSUGGEST_7S_KORIIN_ALIGN
 // UUSI: rakennettu puhtaalta pohjalta ilman V472-historiaa.
 // UUSI: ennustepalkki ei näytä 'ei löytynyt' kirjoituksen aikana.
 // UUSI: 'ei löytynyt' näkyy vasta, kun haku on oikeasti käynnistetty ja tulos on tyhjä.
-// UUSI: pyyhekumi tyhjentää tekstikentän ja 2,5 s kirjoitustauko käynnistää automaattihaun.
+// UUSI: automaattihaku käynnistyy 7 s kirjoitustauon jälkeen.
+// UUSI: koriin-nappi linjattu tekstikentän pystykeskilinjaan.
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
@@ -344,7 +345,7 @@ export default function ZiiplyMobileSearchCard({
       setTriggeredSearchInput(latest);
 
       onNormalSearch?.();
-    }, 2500);
+    }, 7000);
 
     return () => window.clearTimeout(timer);
   }, [
@@ -377,7 +378,7 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V506_AUTOSUGGEST_NO_PREMATURE_NOTFOUND"
+      data-ziiply-mobile-search-card-version="UUSI_V507_AUTOSUGGEST_7S_KORIIN_ALIGN"
       className={`fixed inset-0 z-[72] flex items-end justify-center overflow-hidden bg-transparent px-2 pb-[calc(env(safe-area-inset-bottom)+6.15rem)] pt-[calc(env(safe-area-inset-top)+5rem)] sm:items-center sm:p-6 ${className}`}
     >
       <section className="relative isolate h-[min(64dvh,36.5rem)] w-full max-w-[28rem] overflow-visible rounded-[2rem] border-[4px] border-[#5b482c] bg-transparent px-3 pt-3 text-[#20301f] shadow-[0_0_0_2px_#d8bd75_inset,0_12px_0_rgba(60,45,20,0.24),0_22px_45px_rgba(15,23,42,0.18)]">
@@ -420,7 +421,7 @@ export default function ZiiplyMobileSearchCard({
               </div>
             </div>
 
-            <div className="grid w-[6.9rem] shrink-0 grid-rows-[auto_3.65rem] gap-3 pt-[0.1rem]">
+            <div className="grid w-[6.9rem] shrink-0 grid-rows-[auto_3.65rem] gap-[1.35rem] pt-[0.1rem]">
               <GreenPillButton label="Vihkonen" onClick={onAddInputToCart} />
               <div className="flex items-center">
                 <GreenPillButton label="koriin" onClick={onAddInputToCart} disabled={!hasText} />
