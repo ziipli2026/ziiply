@@ -1,11 +1,9 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V507_AUTOSUGGEST_7S_KORIIN_ALIGN
-// UUSI: rakennettu puhtaalta pohjalta ilman V472-historiaa.
-// UUSI: ennustepalkki ei näytä 'ei löytynyt' kirjoituksen aikana.
-// UUSI: 'ei löytynyt' näkyy vasta, kun haku on oikeasti käynnistetty ja tulos on tyhjä.
-// UUSI: automaattihaku käynnistyy 7 s kirjoitustauon jälkeen.
-// UUSI: koriin-nappi linjattu tekstikentän pystykeskilinjaan.
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V509_LOYDOKSET_TERMS
+// UUSI: SearchCard ei renderöi hakutuloksia sisäänsä lainkaan.
+// UUSI: Äänitä ja Filmaa napit pysyvät paikallaan myös silloin, kun erillinen tuloskortti aukeaa.
+// UUSI: tulokset kuuluvat erilliseen ZiiplyMobileSearchResultsCard-komponenttiin.
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
@@ -266,7 +264,7 @@ export default function ZiiplyMobileSearchCard({
   products,
   results,
   loading = false,
-  emptyText = "Ei hakutuloksia.",
+  emptyText = "Ei löydöksiä vielä.",
   onAddProduct,
   onAdd,
   className = "",
@@ -378,7 +376,7 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V507_AUTOSUGGEST_7S_KORIIN_ALIGN"
+      data-ziiply-mobile-search-card-version="UUSI_V508_NO_INTERNAL_RESULTS_FIXED_BUTTONS"
       className={`fixed inset-0 z-[72] flex items-end justify-center overflow-hidden bg-transparent px-2 pb-[calc(env(safe-area-inset-bottom)+6.15rem)] pt-[calc(env(safe-area-inset-top)+5rem)] sm:items-center sm:p-6 ${className}`}
     >
       <section className="relative isolate h-[min(64dvh,36.5rem)] w-full max-w-[28rem] overflow-visible rounded-[2rem] border-[4px] border-[#5b482c] bg-transparent px-3 pt-3 text-[#20301f] shadow-[0_0_0_2px_#d8bd75_inset,0_12px_0_rgba(60,45,20,0.24),0_22px_45px_rgba(15,23,42,0.18)]">
@@ -468,75 +466,8 @@ export default function ZiiplyMobileSearchCard({
             />
           </div>
 
-          {showResults && (
-            <div className="relative z-20 mt-3 min-h-0 flex-1 overflow-hidden rounded-[1.45rem] border-[3px] border-[#b99755] bg-[#ead39a] p-3 shadow-[0_0_0_2px_#fff4cd_inset,0_8px_0_rgba(70,50,24,0.18)]">
-              <div
-                className="mb-2 text-[0.82rem] font-black uppercase tracking-[0.34em] text-[#746749]"
-                style={{ fontFamily: copperplateFont }}
-              >
-                Hakutulokset
-              </div>
-
-              <div className="h-[calc(100%-1.65rem)] space-y-2 overflow-y-auto pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                {loading && (
-                  <div className="rounded-[1.1rem] bg-[#fff4d3] px-4 py-5 text-center text-[1rem] font-black text-[#78633a] shadow-[0_4px_0_rgba(132,104,48,0.18)] ring-2 ring-[#d6bd76]">
-                    Haetaan tuotteita…
-                  </div>
-                )}
-
-                {!loading && items.length === 0 && (
-                  <div className="rounded-[1.1rem] bg-[#fff4d3] px-4 py-5 text-center text-[1rem] font-black text-[#78633a] shadow-[0_4px_0_rgba(132,104,48,0.18)] ring-2 ring-[#d6bd76]">
-                    {emptyText}
-                  </div>
-                )}
-
-                {!loading &&
-                  items.map((product, index) => {
-                    const name = getProductName(product);
-                    const image = getProductImage(product);
-                    const price = formatProductPrice(product.price);
-                    const key = String(product.id ?? product.ean ?? `${name}-${index}`);
-
-                    return (
-                      <div
-                        key={key}
-                        className="grid grid-cols-[4rem_1fr_auto] items-center gap-2 rounded-[1.1rem] bg-[#fff4d9] px-2.5 py-2.5 shadow-[0_4px_0_rgba(132,104,48,0.20)] ring-2 ring-[#d6bd76]"
-                      >
-                        <div className="grid h-[3.75rem] w-[3.75rem] place-items-center overflow-hidden rounded-[0.85rem] bg-white shadow-inner">
-                          {image ? (
-                            <img src={image} alt="" className="h-full w-full object-contain p-1.5" loading="lazy" />
-                          ) : (
-                            <span className="text-2xl">🛒</span>
-                          )}
-                        </div>
-
-                        <div className="min-w-0">
-                          <div
-                            className="text-[1.02rem] font-black leading-[1.05] text-[#1f251c]"
-                            style={{ fontFamily: serifFont }}
-                          >
-                            {shortProductName(name)}
-                          </div>
-                          {price && (
-                            <div className="mt-1 text-[0.9rem] font-black leading-none text-[#817451]">
-                              {price}
-                            </div>
-                          )}
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => addHandler?.(product)}
-                          className="rounded-[0.9rem] bg-[#0a8b3c] px-3 py-2.5 text-[0.84rem] font-black text-[#fff0d5] shadow-[0_3px_0_rgba(0,83,32,0.30)] active:translate-y-[1px] active:shadow-none"
-                        >
-                          Lisää
-                        </button>
-                      </div>
-                    );
-                  })}
-              </div>
-            </div>
-          )}
+          {/* V508: hakutuloksia ei renderöidä tämän kortin sisään.
+              Erillinen ZiiplyMobileSearchResultsCard avataan page.tsx:ssä vain kun tuloksia löytyy. */}
         </div>
       </section>
     </div>
