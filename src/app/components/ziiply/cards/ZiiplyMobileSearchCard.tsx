@@ -1,10 +1,10 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V503_MOCKUP_GRID_FINAL
-// UUSI: puhdas mobiilin Hae-kortti.
-// UUSI: tekstikenttä ei mene nappien alle, vaan päättyy ennen oikean yläkulman Vihkonen/koriin-nappeja.
-// UUSI: Vihkonen ja koriin ovat samankokoiset; koriin on pienillä kirjaimilla ja harmaana tyhjällä kentällä.
-// UUSI: Gösta, kori/yksi tuote ja Justiina ovat neliöitä ja samalla korkeudella.
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V504_MOCKUP_GRID_AI_SQUARE
+// UUSI: rakennettu puhtaalta pohjalta ilman V472-historiaa.
+// UUSI: tekstikenttä päättyy ennen oikean yläkulman Vihkonen/koriin-nappeja.
+// UUSI: Gösta ja Justiina ovat neliöitä; kuvat mahtuvat laatikkoon niin, että tekstit näkyvät.
+// UUSI: Koko kori / Yksi tuote -valitsin on puolitettu pystykorkeudelta ja keskitetty AI-neliöiden keskilinjaan.
 
 import React from "react";
 
@@ -102,7 +102,7 @@ function GreenPillButton({
       className={cx(
         "h-[2.55rem] w-[6.9rem] shrink-0 rounded-[1.25rem] border-[3px] px-0 text-[0.92rem] font-black italic leading-none shadow-[0_0_0_2px_rgba(255,255,255,0.18)_inset,0_4px_0_#064a26] transition active:translate-y-[1px] active:shadow-[0_2px_0_#064a26]",
         disabled
-          ? "cursor-not-allowed border-[#9eb49a] bg-gradient-to-b from-[#b8d3b5] to-[#8cab88] text-[#eef5df] opacity-75 shadow-[0_0_0_2px_rgba(255,255,255,0.16)_inset,0_4px_0_#789174]"
+          ? "cursor-not-allowed border-[#9eb49a] bg-gradient-to-b from-[#c7dcc2] to-[#9db996] text-[#eef5df] opacity-80 shadow-[0_0_0_2px_rgba(255,255,255,0.16)_inset,0_4px_0_#789174]"
           : "border-[#0b6330] bg-gradient-to-b from-[#139143] to-[#087237] text-[#fff0d5]",
       )}
       style={{ fontFamily: cooperFont }}
@@ -147,7 +147,7 @@ function AssistantButton({
       <img
         src={image}
         alt=""
-        className="absolute left-1/2 top-1/2 h-[138%] w-[138%] -translate-x-1/2 -translate-y-1/2 object-cover object-center"
+        className="absolute left-1/2 top-1/2 h-[96%] w-[96%] -translate-x-1/2 -translate-y-1/2 object-contain object-center"
         draggable={false}
         onError={(event) => {
           event.currentTarget.style.display = "none";
@@ -165,14 +165,14 @@ function ModeToggle({
   onModeChange?: (mode: "cart" | "single") => void;
 }) {
   return (
-    <div className="mx-auto flex aspect-square w-full max-w-[7.15rem] flex-col items-center justify-center gap-1 rounded-[1.35rem] border-[3px] border-[#b99d64] bg-[#ead7a5] p-1.5 shadow-[0_0_0_2px_#fff4cc_inset,0_4px_0_rgba(91,72,44,0.20)]">
+    <div className="mx-auto flex h-[3.15rem] w-[7.15rem] flex-col items-center justify-center gap-[0.15rem] rounded-[1.05rem] border-[3px] border-[#b99d64] bg-[#ead7a5] p-1 shadow-[0_0_0_2px_#fff4cc_inset,0_3px_0_rgba(91,72,44,0.18)]">
       <button
         type="button"
         onClick={() => onModeChange?.("cart")}
         className={cx(
-          "w-full rounded-[0.95rem] px-2 py-1 text-[0.8rem] font-black leading-[0.9] transition active:scale-[0.98]",
+          "w-full rounded-[0.75rem] px-1 py-[0.13rem] text-[0.68rem] font-black leading-[0.82] transition active:scale-[0.98]",
           mode === "cart"
-            ? "bg-[#fff4cf] text-[#23502c] shadow-[inset_0_0_0_2px_#d9bd77,0_2px_0_rgba(91,72,44,0.18)]"
+            ? "bg-[#fff4cf] text-[#23502c] shadow-[inset_0_0_0_2px_#d9bd77,0_1px_0_rgba(91,72,44,0.16)]"
             : "text-[#7a6842]",
         )}
         style={{ fontFamily: cooperFont }}
@@ -183,9 +183,9 @@ function ModeToggle({
         type="button"
         onClick={() => onModeChange?.("single")}
         className={cx(
-          "w-full rounded-[0.95rem] px-2 py-1 text-[0.8rem] font-black leading-[0.9] transition active:scale-[0.98]",
+          "w-full rounded-[0.75rem] px-1 py-[0.13rem] text-[0.68rem] font-black leading-[0.82] transition active:scale-[0.98]",
           mode === "single"
-            ? "bg-[#fff4cf] text-[#23502c] shadow-[inset_0_0_0_2px_#d9bd77,0_2px_0_rgba(91,72,44,0.18)]"
+            ? "bg-[#fff4cf] text-[#23502c] shadow-[inset_0_0_0_2px_#d9bd77,0_1px_0_rgba(91,72,44,0.16)]"
             : "text-[#7a6842]",
         )}
         style={{ fontFamily: cooperFont }}
@@ -272,7 +272,7 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V503_MOCKUP_GRID_FINAL"
+      data-ziiply-mobile-search-card-version="UUSI_V504_MOCKUP_GRID_AI_SQUARE"
       className={`fixed inset-0 z-[72] flex items-end justify-center overflow-hidden bg-transparent px-2 pb-[calc(env(safe-area-inset-bottom)+6.15rem)] pt-[calc(env(safe-area-inset-top)+5rem)] sm:items-center sm:p-6 ${className}`}
     >
       <section className="relative isolate h-[min(64dvh,36.5rem)] w-full max-w-[28rem] overflow-visible rounded-[2rem] border-[4px] border-[#5b482c] bg-transparent px-3 pt-3 text-[#20301f] shadow-[0_0_0_2px_#d8bd75_inset,0_12px_0_rgba(60,45,20,0.24),0_22px_45px_rgba(15,23,42,0.18)]">
@@ -282,8 +282,8 @@ export default function ZiiplyMobileSearchCard({
         </div>
 
         <div className="relative z-10 flex h-full min-h-0 flex-col">
-          <div className="grid min-h-[6rem] grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
-            <div className="flex min-w-0 flex-col">
+          <div className="grid grid-cols-[minmax(0,1fr)_6.9rem] items-start gap-3">
+            <div className="min-w-0">
               <div
                 className="text-[0.72rem] font-black uppercase leading-none tracking-[0.42em] text-[#6f674f]"
                 style={{ fontFamily: copperplateFont }}
@@ -297,14 +297,14 @@ export default function ZiiplyMobileSearchCard({
                 Tuotteet ja<br />vertailu
               </h1>
 
-              <div className="mt-2 h-[3.45rem] overflow-hidden rounded-[1.45rem] border-[3px] border-[#9d8350] bg-[#fff4d3] p-1.5 shadow-[inset_0_3px_8px_rgba(91,65,28,0.10)]">
+              <div className="mt-3 h-[3.65rem] overflow-hidden rounded-[1.45rem] border-[3px] border-[#9d8350] bg-[#fff4d3] p-1.5 shadow-[inset_0_3px_8px_rgba(91,65,28,0.10)]">
                 <textarea
                   ref={inputRef}
                   value={input}
                   onChange={(event) => onInputChange?.(event.target.value)}
                   rows={2}
                   placeholder={searchMode === "single" ? "Kirjoita yksi tuote" : "maito, kahvi"}
-                  className="block h-full w-full resize-none overflow-hidden rounded-[1.15rem] border-0 bg-[#fffaf0] px-4 py-1.5 text-center text-[1.18rem] font-black leading-[1.02] text-[#102216] outline-none placeholder:text-[#7d7461]"
+                  className="block h-full w-full resize-none overflow-hidden rounded-[1.15rem] border-0 bg-[#fffaf0] px-3 py-2 text-center text-[1.18rem] font-black leading-[1.02] text-[#102216] outline-none placeholder:text-[#7d7461]"
                   style={{ fontFamily: hasText ? serifFont : cooperFont }}
                 />
               </div>
