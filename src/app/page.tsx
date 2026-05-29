@@ -1,5 +1,6 @@
 "use client";
 
+// V527_MOBILE_SEARCH_RESULTS_CARD_AND_ELECTRICITY_REPAIR: mobiilin hakutulokset omalle kortille ja pörssisähkö korjattu suorahaulla.
 // V526_ELECTRICITY_ZERO_REBUILD: pörssisähkön haku rakennettu kokonaan uudelleen yhdestä listalähteestä.
 // V525_ELECTRICITY_LIVE_REFRESH_AND_COMPASS: sähköhaku hakee nykyhetken listasta cache-busterilla ja kompassi/karttanappi palautettu.
 // V522_ELECTRICITY_ROBUST_FALLBACK: sähköhinta ei jää 0,0/viivaksi, kentät ja fallbackit korjattu.
@@ -249,6 +250,7 @@ import * as TopbarResponsiveCardModule from "./components/ziiply/cards/TopbarRes
 import * as ZiiplyCartCardModule from "./components/ziiply/cards/ZiiplyCartCard";
 import ZiiplySearchCard from "./components/ziiply/cards/ZiiplySearchCard";
 import ZiiplyMobileSearchCard from "./components/ziiply/cards/ZiiplyMobileSearchCard";
+import ZiiplyMobileSearchResultsCard from "./components/ziiply/cards/ZiiplyMobileSearchResultsCard";
 import ZiiplyStoreLocaCard from "./components/ziiply/cards/ZiiplyStoreLocaCard";
 import * as ZiiplyCompareCardModule from "./components/ziiply/cards/ZiiplyCompareCard";
 import ZiiplyMobileHomeView from "./components/ziiply/mobile/ZiiplyMobileHomeView";
@@ -490,34 +492,36 @@ function KauppiasMobileTopBar({
       return Number.isFinite(number) ? number : null;
     };
 
+    const normalizeCentsPerKwh = (value: unknown, unit: "cents" | "eur" = "cents") => {
+      const number = parseElectricityNumber(value);
+      if (number == null) return null;
+
+      const cents = unit === "eur" ? number * 100 : number;
+      if (!Number.isFinite(cents) || Math.abs(cents) > 500) return null;
+
+      return cents;
+    };
+
     const readPriceCentsPerKwh = (item: any) => {
       if (!item || typeof item !== "object") return null;
 
-      // porssisahko.net latest-prices palauttaa price-kentän c/kWh-muodossa.
       const cents =
-        parseElectricityNumber(item.price) ??
-        parseElectricityNumber(item.value) ??
-        parseElectricityNumber(item.priceWithTax) ??
-        parseElectricityNumber(item.PriceWithTax) ??
-        parseElectricityNumber(item.centsPerKwh) ??
-        parseElectricityNumber(item.cents_per_kwh);
+        normalizeCentsPerKwh(item.price, "cents") ??
+        normalizeCentsPerKwh(item.value, "cents") ??
+        normalizeCentsPerKwh(item.priceWithTax, "cents") ??
+        normalizeCentsPerKwh(item.PriceWithTax, "cents") ??
+        normalizeCentsPerKwh(item.centsPerKwh, "cents") ??
+        normalizeCentsPerKwh(item.cents_per_kwh, "cents") ??
+        normalizeCentsPerKwh(item.spotPrice, "cents") ??
+        normalizeCentsPerKwh(item.SpotPrice, "cents");
 
-      if (cents != null && Number.isFinite(cents) && Math.abs(cents) < 500) {
-        return cents;
-      }
+      if (cents != null) return cents;
 
-      // Varalle euro/kWh-muodot, jos lähde vaihtuu joskus.
-      const eur =
-        parseElectricityNumber(item.EUR_per_kWh) ??
-        parseElectricityNumber(item.eur_per_kwh) ??
-        parseElectricityNumber(item.eurPerKwh);
-
-      if (eur != null && Number.isFinite(eur)) {
-        const converted = eur * 100;
-        return Math.abs(converted) < 500 ? converted : null;
-      }
-
-      return null;
+      return (
+        normalizeCentsPerKwh(item.EUR_per_kWh, "eur") ??
+        normalizeCentsPerKwh(item.eur_per_kwh, "eur") ??
+        normalizeCentsPerKwh(item.eurPerKwh, "eur")
+      );
     };
 
     const readTimeMs = (...values: unknown[]) => {
@@ -535,66 +539,112 @@ function KauppiasMobileTopBar({
         maximumFractionDigits: 1,
       });
 
+    async function fetchJson(url: string) {
+      const separator = url.includes("?") ? "&" : "?";
+      const response = await fetch(`${url}${separator}_ziiply_ts=${Date.now()}`, {
+        cache: "no-store",
+      });
+
+      if (!response.ok || cancelled) return null;
+
+      return response.json();
+    }
+
+    function readCurrentFromList(data: any) {
+      const rawPrices = Array.isArray(data?.prices)
+        ? data.prices
+        : Array.isArray(data)
+          ? data
+          : [];
+
+      const priceWindows = rawPrices
+        .map((item: any) => {
+          const price = readPriceCentsPerKwh(item);
+          const startMs = readTimeMs(item.startDate, item.start, item.StartDate, item.time_start);
+          const endMs = readTimeMs(item.endDate, item.end, item.EndDate, item.time_end);
+
+          if (price == null || startMs == null || endMs == null) return null;
+
+          return { price, startMs, endMs };
+        })
+        .filter(Boolean)
+        .sort((a: any, b: any) => a.startMs - b.startMs) as Array<{
+          price: number;
+          startMs: number;
+          endMs: number;
+        }>;
+
+      const now = Date.now();
+      const currentIndex = priceWindows.findIndex(
+        (item) => item.startMs <= now && now < item.endMs,
+      );
+
+      if (currentIndex < 0) return null;
+
+      return {
+        current: priceWindows[currentIndex],
+        next: priceWindows[currentIndex + 1] || null,
+      };
+    }
+
     async function loadElectricity() {
       try {
         setElectricityText("haetaan");
 
-        const url = `https://api.porssisahko.net/v1/latest-prices.json?_ziiply_ts=${Date.now()}`;
-        const response = await fetch(url, { cache: "no-store" });
+        // Ensisijainen: suorahinta nykyhetkelle. Tämä vastaa porssisahko.netin tuntihintaa parhaiten.
+        const nowIso = new Date().toISOString();
+        const directData = await fetchJson(
+          `https://api.porssisahko.net/v2/price.json?date=${encodeURIComponent(nowIso)}`,
+        );
 
-        if (!response.ok || cancelled) {
-          if (!cancelled) {
+        if (cancelled) return;
+
+        const directPrice = readPriceCentsPerKwh(directData);
+        if (directPrice != null) {
+          setElectricityValue(formatElectricityPrice(directPrice));
+          setElectricityText("c/kWh");
+        } else {
+          // Varalla listahaku, josta valitaan nykyinen aikaväli.
+          const listData =
+            (await fetchJson("https://api.porssisahko.net/v2/latest-prices.json")) ??
+            (await fetchJson("https://api.porssisahko.net/v1/latest-prices.json"));
+
+          if (cancelled) return;
+
+          const result = readCurrentFromList(listData);
+
+          if (!result) {
             setElectricityValue("—");
             setElectricityText("ei hintaa");
             setElectricityTrend("flat");
+            return;
           }
+
+          setElectricityValue(formatElectricityPrice(result.current.price));
+          setElectricityText("c/kWh");
+
+          if (result.next) {
+            const diff = result.next.price - result.current.price;
+            if (diff > 0.05) setElectricityTrend("up");
+            else if (diff < -0.05) setElectricityTrend("down");
+            else setElectricityTrend("flat");
+          } else {
+            setElectricityTrend("flat");
+          }
+
           return;
         }
 
-        const data = await response.json();
-        const rawPrices = Array.isArray(data?.prices)
-          ? data.prices
-          : Array.isArray(data)
-            ? data
-            : [];
+        // Haetaan trendi erikseen listasta, jos suorahinta onnistui.
+        const trendData =
+          (await fetchJson("https://api.porssisahko.net/v2/latest-prices.json")) ??
+          (await fetchJson("https://api.porssisahko.net/v1/latest-prices.json"));
 
-        const priceWindows = rawPrices
-          .map((item: any) => {
-            const price = readPriceCentsPerKwh(item);
-            const startMs = readTimeMs(item.startDate, item.start, item.StartDate, item.time_start);
-            const endMs = readTimeMs(item.endDate, item.end, item.EndDate, item.time_end);
+        if (cancelled) return;
 
-            if (price == null || startMs == null || endMs == null) return null;
-
-            return { price, startMs, endMs };
-          })
-          .filter(Boolean)
-          .sort((a: any, b: any) => a.startMs - b.startMs) as Array<{
-            price: number;
-            startMs: number;
-            endMs: number;
-          }>;
-
-        const now = Date.now();
-        const currentIndex = priceWindows.findIndex(
-          (item) => item.startMs <= now && now < item.endMs,
-        );
-
-        if (currentIndex < 0) {
-          setElectricityValue("—");
-          setElectricityText("ei hintaa");
-          setElectricityTrend("flat");
-          return;
-        }
-
-        const current = priceWindows[currentIndex];
-        const next = priceWindows[currentIndex + 1];
-
-        setElectricityValue(formatElectricityPrice(current.price));
-        setElectricityText("c/kWh");
-
-        if (next) {
-          const diff = next.price - current.price;
+        const trend = readCurrentFromList(trendData);
+        if (trend?.next && trend.current) {
+          const diff = trend.next.price - trend.current.price;
           if (diff > 0.05) setElectricityTrend("up");
           else if (diff < -0.05) setElectricityTrend("down");
           else setElectricityTrend("flat");
@@ -10690,54 +10740,71 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           )}
 
         {searchPanelOpen && (
-          <ZiiplyMobileSearchCard
-            open={true}
-            title="HAKU"
-            subtitle={activeNormalSearchTerm || undefined}
-            input={input}
-            onInputChange={setSearchInputForMode}
-            inputRef={searchInputRef}
-            searchMode={searchCompareMode}
-            onSearchModeChange={(mode) => {
-              setSearchCompareMode(mode);
-              setNormalResults([]);
-              setSingleProductCompareResults([]);
-              setSingleProductCompareTerm("");
-              setVisibleNormalCount(8);
-            }}
-            hasSearchInput={hasSearchInput}
-            loading={loadingNormal}
-            loadingOffers={loadingOffers}
-            loadingNormal={loadingNormal}
-            singleProductCompareLoading={singleProductCompareLoading}
-            products={normalResults}
-            emptyText={
-              activeNormalSearchTerm
-                ? `Haulle “${activeNormalSearchTerm}” ei löytynyt tuotteita.`
-                : "Kirjoita tuotteet hakukenttään."
-            }
-            onClose={() => {
-              setSearchPanelOpen(false);
-              setNormalResults([]);
-              setNormalSearchAttempted(false);
-              setVisibleNormalCount(8);
-              setActiveNormalSearchTerm("");
-            }}
-            onAddInputToCart={addInputToCart}
-            onOfferSearch={handleMainOfferSearch}
-            onNormalSearch={handleMainNormalSearch}
-            onVoiceClick={() => toggleVoiceInput()}
-            onScannerClick={openEanModal}
-            voiceState={isListening ? "recording" : "idle"}
-            scannerState={eanScannerOpen || eanModalOpen ? "active" : "idle"}
-            onAddProduct={(product: any) => {
-              addProductToCart(product as Product);
-              setNormalResults([]);
-              setNormalSearchAttempted(false);
-              setVisibleNormalCount(8);
-              setActiveNormalSearchTerm("");
-            }}
-          />
+          <>
+            <ZiiplyMobileSearchCard
+              open={true}
+              title="HAKU"
+              input={input}
+              onInputChange={setSearchInputForMode}
+              inputRef={searchInputRef}
+              searchMode={searchCompareMode}
+              onSearchModeChange={(mode) => {
+                setSearchCompareMode(mode);
+                setNormalResults([]);
+                setSingleProductCompareResults([]);
+                setSingleProductCompareTerm("");
+                setVisibleNormalCount(8);
+              }}
+              hasSearchInput={hasSearchInput}
+              loading={loadingNormal}
+              loadingOffers={loadingOffers}
+              loadingNormal={loadingNormal}
+              singleProductCompareLoading={singleProductCompareLoading}
+              products={[]}
+              emptyText="Kirjoita tuotteet hakukenttään."
+              onClose={() => {
+                setSearchPanelOpen(false);
+                setNormalResults([]);
+                setNormalSearchAttempted(false);
+                setVisibleNormalCount(8);
+                setActiveNormalSearchTerm("");
+              }}
+              onAddInputToCart={addInputToCart}
+              onOfferSearch={handleMainOfferSearch}
+              onNormalSearch={handleMainNormalSearch}
+              onVoiceClick={() => toggleVoiceInput()}
+              onScannerClick={openEanModal}
+              voiceState={isListening ? "recording" : "idle"}
+              scannerState={eanScannerOpen || eanModalOpen ? "active" : "idle"}
+              onAddProduct={(product: any) => {
+                addProductToCart(product as Product);
+                setNormalResults([]);
+                setNormalSearchAttempted(false);
+                setVisibleNormalCount(8);
+                setActiveNormalSearchTerm("");
+              }}
+            />
+
+            <ZiiplyMobileSearchResultsCard
+              open={loadingNormal || normalResults.length > 0 || (normalSearchAttempted && Boolean(activeNormalSearchTerm))}
+              loading={loadingNormal}
+              title={activeNormalSearchTerm || "Tuotteet"}
+              products={normalResults}
+              onClose={() => {
+                setNormalResults([]);
+                setNormalSearchAttempted(false);
+                setVisibleNormalCount(8);
+                setActiveNormalSearchTerm("");
+              }}
+              onAddProduct={(product: any) => {
+                addProductToCart(product as Product);
+                setNormalResults([]);
+                setNormalSearchAttempted(false);
+                setVisibleNormalCount(8);
+                setActiveNormalSearchTerm("");
+              }}
+            />
+          </>
         )}
 
         {eanModalOpen && (
