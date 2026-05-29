@@ -1,5 +1,6 @@
 "use client";
 
+// V547_CART_COMPARE_TRANSITION_AND_ELECTRICITY_REBUILD: Kori/Vertailu-siirtymät rauhoitettu ja pörssisähkön haku rakennettu suoraviivaisemmaksi.
 // V546_MOBILE_CART_QUANTITY_HANDLER_SCOPE_FIX: siirtää mobiilikorin määrähandlerit pois KauppiasWeatherGraphicin sisältä Page-komponentin scopeen.
 // V545_MOBILE_CART_QUANTITY_HANDLERS: mobiilin Tavarainkeruu saa määrän +/− toimimaan ja CartCard V6 siirtää poisto-X:n hinnan vasemmalle.
 // V544_MOBILE_CART_TAVARAINKERUU_PAPER_V2: page käyttää ZiiplyMobileCartCardia; kortin V2-asussa Tavarainkeruu, Tallenna/Näytä ostoslistat ja leveämpi paperi.
@@ -515,7 +516,6 @@ function KauppiasMobileTopBar({
 
       const cents = unit === "eur" ? number * 100 : number;
 
-      // Pörssisähkö voi olla negatiivinen. Estetään vain selvästi rikkinäiset luvut.
       if (!Number.isFinite(cents) || Math.abs(cents) > 500) return null;
 
       return cents;
@@ -524,7 +524,7 @@ function KauppiasMobileTopBar({
     const readPriceFromAnyObject = (item: any) => {
       if (!item || typeof item !== "object") return null;
 
-      const cents =
+      return (
         toCentsPerKwh(item.price, "cents") ??
         toCentsPerKwh(item.value, "cents") ??
         toCentsPerKwh(item.priceWithTax, "cents") ??
@@ -534,42 +534,12 @@ function KauppiasMobileTopBar({
         toCentsPerKwh(item.spotPrice, "cents") ??
         toCentsPerKwh(item.SpotPrice, "cents") ??
         toCentsPerKwh(item.centsPerKwh, "cents") ??
-        toCentsPerKwh(item.cents_per_kwh, "cents");
-
-      if (cents != null) return cents;
-
-      return (
+        toCentsPerKwh(item.cents_per_kwh, "cents") ??
         toCentsPerKwh(item.EUR_per_kWh, "eur") ??
         toCentsPerKwh(item.eur_per_kwh, "eur") ??
         toCentsPerKwh(item.eurPerKwh, "eur")
       );
     };
-
-    const formatElectricityPrice = (priceCentsPerKwh: number) =>
-      priceCentsPerKwh.toLocaleString("fi-FI", {
-        minimumFractionDigits: 1,
-        maximumFractionDigits: 1,
-      });
-
-    const cacheBust = (url: string) => {
-      const separator = url.includes("?") ? "&" : "?";
-      return `${url}${separator}ziiply_no_cache=${Date.now()}`;
-    };
-
-    async function fetchJson(url: string) {
-      const response = await fetch(cacheBust(url), {
-        cache: "no-store",
-        headers: {
-          accept: "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      return response.json();
-    }
 
     const parseTime = (...values: unknown[]) => {
       for (const value of values) {
@@ -582,7 +552,25 @@ function KauppiasMobileTopBar({
       return null;
     };
 
-    const buildElectricityWindows = (data: any) => {
+    const formatElectricityPrice = (priceCentsPerKwh: number) =>
+      priceCentsPerKwh.toLocaleString("fi-FI", {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+      });
+
+    async function fetchJson(url: string) {
+      const separator = url.includes("?") ? "&" : "?";
+      const response = await fetch(`${url}${separator}ziiply_no_cache=${Date.now()}`, {
+        cache: "no-store",
+        headers: { accept: "application/json" },
+      });
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+      return response.json();
+    }
+
+    function getWindowsFromLatestPrices(data: any) {
       const rawPrices = Array.isArray(data?.prices)
         ? data.prices
         : Array.isArray(data)
@@ -600,12 +588,7 @@ function KauppiasMobileTopBar({
             item.date,
             item.Date,
           );
-          const endMs = parseTime(
-            item.endDate,
-            item.end,
-            item.EndDate,
-            item.time_end,
-          );
+          const endMs = parseTime(item.endDate, item.end, item.EndDate, item.time_end);
 
           if (price == null || startMs == null || endMs == null) return null;
 
@@ -617,33 +600,28 @@ function KauppiasMobileTopBar({
           startMs: number;
           endMs: number;
         }>;
-    };
+    }
 
-    async function readFromLatestPrices() {
+    async function readCurrentFromLatestPrices() {
       const urls = [
         "https://api.porssisahko.net/v1/latest-prices.json",
         "https://api.porssisahko.net/v2/latest-prices.json",
       ];
 
-      let lastMessage = "ei listaa";
+      let lastError = "ei listaa";
 
       for (const url of urls) {
         try {
           const data = await fetchJson(url);
-          const windows = buildElectricityWindows(data);
-
-          if (windows.length === 0) {
-            lastMessage = "tyhjä lista";
-            continue;
-          }
-
+          const windows = getWindowsFromLatestPrices(data);
           const now = Date.now();
+
           const currentIndex = windows.findIndex(
-            (item) => item.startMs <= now && now < item.endMs,
+            (windowItem) => windowItem.startMs <= now && now < windowItem.endMs,
           );
 
           if (currentIndex < 0) {
-            lastMessage = "ei nykyhetkeä";
+            lastError = "ei nykyhetkeä";
             continue;
           }
 
@@ -661,58 +639,23 @@ function KauppiasMobileTopBar({
 
           return current.price;
         } catch (error) {
-          lastMessage = error instanceof Error ? error.message : "api virhe";
+          lastError = error instanceof Error ? error.message : "api virhe";
         }
       }
 
-      throw new Error(lastMessage);
+      throw new Error(lastError);
     }
 
-    async function readFromDirectPrice() {
-      const now = new Date();
+    async function readCurrentDirectPrice() {
+      const iso = new Date().toISOString();
+      const url = `https://api.porssisahko.net/v2/price.json?date=${encodeURIComponent(iso)}`;
+      const data = await fetchJson(url);
+      const price = readPriceFromAnyObject(data);
 
-      const helsinkiParts = new Intl.DateTimeFormat("sv-SE", {
-        timeZone: "Europe/Helsinki",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        hourCycle: "h23",
-      }).formatToParts(now);
+      if (price == null) throw new Error("ei hintaa");
 
-      const part = (type: string) =>
-        helsinkiParts.find((item) => item.type === type)?.value || "";
-
-      const date = `${part("year")}-${part("month")}-${part("day")}`;
-      const hour = part("hour") || String(now.getHours()).padStart(2, "0");
-      const iso = now.toISOString();
-
-      const urls = [
-        `https://api.porssisahko.net/v2/price.json?date=${encodeURIComponent(iso)}`,
-        `https://api.porssisahko.net/v2/price.json?dateTime=${encodeURIComponent(iso)}`,
-        `https://api.porssisahko.net/v2/price.json?date=${encodeURIComponent(date)}&hour=${encodeURIComponent(hour)}`,
-        `https://api.porssisahko.net/v1/price.json?date=${encodeURIComponent(date)}&hour=${encodeURIComponent(hour)}`,
-      ];
-
-      let lastMessage = "ei suorahintaa";
-
-      for (const url of urls) {
-        try {
-          const data = await fetchJson(url);
-          const price = readPriceFromAnyObject(data);
-
-          if (price != null) {
-            setElectricityTrend("flat");
-            return price;
-          }
-
-          lastMessage = "ei hintakenttää";
-        } catch (error) {
-          lastMessage = error instanceof Error ? error.message : "api virhe";
-        }
-      }
-
-      throw new Error(lastMessage);
+      setElectricityTrend("flat");
+      return price;
     }
 
     async function loadElectricity() {
@@ -721,22 +664,21 @@ function KauppiasMobileTopBar({
       setElectricityText("haetaan");
 
       try {
-        // Listahaku ensin, koska samalla saadaan trendi seuraavaan tuntiin.
         let price: number | null = null;
-        let listError = "";
+        let latestError = "";
 
         try {
-          price = await readFromLatestPrices();
+          price = await readCurrentFromLatestPrices();
         } catch (error) {
-          listError = error instanceof Error ? error.message : "listahaku virhe";
+          latestError = error instanceof Error ? error.message : "listahaku virhe";
         }
 
         if (price == null) {
           try {
-            price = await readFromDirectPrice();
+            price = await readCurrentDirectPrice();
           } catch (error) {
             const directError = error instanceof Error ? error.message : "suorahaku virhe";
-            throw new Error(`${listError || "listahaku virhe"} / ${directError}`);
+            throw new Error(`${latestError || "listahaku virhe"} / ${directError}`);
           }
         }
 
@@ -751,28 +693,23 @@ function KauppiasMobileTopBar({
         setElectricityTrend("flat");
 
         const message = error instanceof Error ? error.message : "";
-        if (message.includes("Failed to fetch")) {
-          setElectricityText("fetch virhe");
-        } else if (message.includes("HTTP")) {
-          setElectricityText(message.slice(0, 12));
-        } else if (message.includes("ei nykyhetkeä")) {
-          setElectricityText("ei nykyhetkeä");
-        } else if (message.includes("tyhjä lista")) {
-          setElectricityText("tyhjä lista");
-        } else {
-          setElectricityText("api virhe");
-        }
+        if (message.includes("Failed to fetch")) setElectricityText("fetch virhe");
+        else if (message.includes("HTTP")) setElectricityText(message.slice(0, 12));
+        else if (message.includes("ei nykyhetkeä")) setElectricityText("ei nykyhetkeä");
+        else if (message.includes("ei hintaa")) setElectricityText("ei hintaa");
+        else setElectricityText("api virhe");
       }
     }
 
     loadElectricity();
-    const interval = window.setInterval(loadElectricity, 60 * 1000);
+    const interval = window.setInterval(loadElectricity, 5 * 60 * 1000);
 
     return () => {
       cancelled = true;
       window.clearInterval(interval);
     };
   }, [hidden]);
+
 
   const calendarDisplay = useMemo(() => {
     const now = new Date();
@@ -6596,42 +6533,35 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return;
     }
 
-    // Kori-paneeli toimii erillisenä näkymänä: se sulkee Haen/EANin/vertailun ja avautuu heti näkyville.
-    transitionMobilePanel("cart", () => {
-      setSearchPanelOpen(false);
-      setShopsPanelOpen(false);
-      setEanModalOpen(false);
-      closeProductSelectionOverlay();
-      setCartSavePanelOpen(false);
-      setActiveResult("none");
-      setCartModalOpen(true);
-      window.requestAnimationFrame(() => {
-        cartOverlayScrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
-      });
+    // V547: Kori avataan suoralla overlay-state-vaihdolla ilman vanhaa scroll/ref-hyppelyä.
+    suppressHaeReadyBadgeV541();
+    closeProductSelectionOverlay();
+    setSearchPanelOpen(false);
+    setShopsPanelOpen(false);
+    setEanModalOpen(false);
+    setCartSavePanelOpen(false);
+    setActiveResult("none");
+    setCartModalOpen(true);
+
+    if (storesReadyForSearch) {
       void updateChainComparison(cart);
-    });
+    }
   }
 
   function toggleCartModal() {
-    // V476: alapalkin muut napit sulkevat Hae-kortin myös silloin,
-    // kun niiden omaa näkymää ei voida avata esimerkiksi tyhjän korin vuoksi.
-    if (searchPanelOpen) {
-      setSearchPanelOpen(false);
-      closeProductSelectionOverlay();
-    }
+    suppressHaeReadyBadgeV541();
 
     if (cart.length === 0) {
+      setSearchPanelOpen(false);
+      closeProductSelectionOverlay();
       showCartToast("Lisää ensin tuote koriin.");
       return;
     }
 
-    // Toinen painallus sulkee Korin. Jos Hae on auki, vaihdetaan suoraan Koriin.
     if (cartModalOpen) {
-      closePanelWithFade("cart", () => {
-        setCartModalOpen(false);
-        setCartSavePanelOpen(false);
-        setActiveResult("none");
-      });
+      setCartModalOpen(false);
+      setCartSavePanelOpen(false);
+      setActiveResult("none");
       return;
     }
 
@@ -6639,11 +6569,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function closeCartModal() {
-    closePanelWithFade("cart", () => {
-      setCartModalOpen(false);
-      setCartSavePanelOpen(false);
-      setActiveResult("none");
-    });
+    suppressHaeReadyBadgeV541();
+    setCartModalOpen(false);
+    setCartSavePanelOpen(false);
+    setActiveResult("none");
   }
 
   function openComparisonView() {
@@ -6652,41 +6581,34 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return;
     }
 
-    // Vertailu avautuu aina puhtaana vakionäkymänä:
-    // ei hakutuloksia, ei valintamodaalia, ei vanhaa overlay-statea.
-    transitionMobilePanel("compare", () => {
-      setRestoredCartPromptV320({ open: false, count: 0 });
-      setSearchPanelOpen(false);
-      setCartModalOpen(false);
-      setCartSavePanelOpen(false);
-      setShopsPanelOpen(false);
-      setEanModalOpen(false);
-      setLoadingNormal(false);
-      setNormalResults([]);
-      setVisibleNormalCount(8);
-      setActiveResult("compare");
+    // V547: Vertailu avataan samalla suoralla overlay-logiikalla kuin uudet mobiilikortit.
+    suppressHaeReadyBadgeV541();
+    closeProductSelectionOverlay();
+    setRestoredCartPromptV320({ open: false, count: 0 });
+    setSearchPanelOpen(false);
+    setCartModalOpen(false);
+    setCartSavePanelOpen(false);
+    setShopsPanelOpen(false);
+    setEanModalOpen(false);
+    setLoadingNormal(false);
+    setNormalResults([]);
+    setVisibleNormalCount(8);
+    setActiveResult("compare");
 
-      window.requestAnimationFrame(() => {
-        compareOverlayScrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
-      });
-
-      if (storesReadyForSearch) {
-        void updateChainComparison(cart);
-      } else {
-        setComparisonLoading(false);
-        showCartToast("Valitse kaupat, niin vertailu hakee hinnat.");
-      }
-    });
+    if (storesReadyForSearch) {
+      void updateChainComparison(cart);
+    } else {
+      setComparisonLoading(false);
+      showCartToast("Valitse kaupat, niin vertailu hakee hinnat.");
+    }
   }
 
   function toggleComparisonView() {
-    // V476: Vertailu-nappi sulkee Hae-kortin aina, vaikka kori olisi tyhjä.
-    if (searchPanelOpen) {
-      setSearchPanelOpen(false);
-      closeProductSelectionOverlay();
-    }
+    suppressHaeReadyBadgeV541();
 
     if (cart.length === 0) {
+      setSearchPanelOpen(false);
+      closeProductSelectionOverlay();
       showCartToast("Lisää ensin tuote koriin.");
       return;
     }
@@ -6697,7 +6619,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       !cartModalOpen &&
       !eanModalOpen
     ) {
-      closePanelWithFade("compare", () => setActiveResult("none"));
+      setActiveResult("none");
       return;
     }
 
@@ -11452,9 +11374,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         {!showLaunchScreen && activeResult === "compare" && !searchPanelOpen && !cartModalOpen && !shopsPanelOpen && !eanModalOpen && (
           <div
-            className={`fixed inset-0 z-[53] overflow-y-auto bg-[#edf8f4] px-3 pb-[calc(env(safe-area-inset-bottom)+5.9rem)] pt-[calc(env(safe-area-inset-top)+5.35rem)] sm:hidden ${
-              closingPanels.compare ? "ziiply-soft-close" : "ziiply-soft-open"
-            }`}
+            className={`fixed inset-0 z-[53] overflow-y-auto bg-[#edf8f4] px-3 pb-[calc(env(safe-area-inset-bottom)+5.9rem)] pt-[calc(env(safe-area-inset-top)+5.35rem)] sm:hidden ziiply-soft-open`}
           >
             <div
               ref={compareOverlayScrollRef}
