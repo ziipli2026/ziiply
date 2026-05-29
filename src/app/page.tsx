@@ -1,5 +1,6 @@
 "use client";
 
+// V526_ELECTRICITY_ZERO_REBUILD: pörssisähkön haku rakennettu kokonaan uudelleen yhdestä listalähteestä.
 // V525_ELECTRICITY_LIVE_REFRESH_AND_COMPASS: sähköhaku hakee nykyhetken listasta cache-busterilla ja kompassi/karttanappi palautettu.
 // V522_ELECTRICITY_ROBUST_FALLBACK: sähköhinta ei jää 0,0/viivaksi, kentät ja fallbackit korjattu.
 // V523_ELECTRICITY_RETRO_ARROWS: pörssisähkön trendi-indikaattori vanhan ajan ▲/▼ merkeiksi, punainen nousulle ja vihreä laskulle.
@@ -474,38 +475,58 @@ function KauppiasMobileTopBar({
 
     let cancelled = false;
 
-    const readNumber = (value: unknown) => {
+    const parseElectricityNumber = (value: unknown) => {
       if (typeof value === "number") return Number.isFinite(value) ? value : null;
 
-      const cleaned = String(value ?? "")
+      const text = String(value ?? "")
         .trim()
         .replace(/\s/g, "")
         .replace(",", ".");
 
-      const match = cleaned.match(/-?\d+(?:\.\d+)?/);
+      const match = text.match(/-?\d+(?:\.\d+)?/);
       if (!match) return null;
 
       const number = Number(match[0]);
       return Number.isFinite(number) ? number : null;
     };
 
-    const normalizeElectricityPriceCents = (
-      value: unknown,
-      unit: "cents" | "eur" = "cents",
-    ) => {
-      const number = readNumber(value);
-      if (number == null) return null;
+    const readPriceCentsPerKwh = (item: any) => {
+      if (!item || typeof item !== "object") return null;
 
-      // Nollahinta jäi aiemmin ruudulle virheellisenä 0,0-arvona.
-      // Todellinen pörssihinta voi olla negatiivinen, joten hylätään vain tarkka nolla.
-      if (Math.abs(number) < 0.000001) return null;
+      // porssisahko.net latest-prices palauttaa price-kentän c/kWh-muodossa.
+      const cents =
+        parseElectricityNumber(item.price) ??
+        parseElectricityNumber(item.value) ??
+        parseElectricityNumber(item.priceWithTax) ??
+        parseElectricityNumber(item.PriceWithTax) ??
+        parseElectricityNumber(item.centsPerKwh) ??
+        parseElectricityNumber(item.cents_per_kwh);
 
-      const cents = unit === "eur" ? number * 100 : number;
+      if (cents != null && Number.isFinite(cents) && Math.abs(cents) < 500) {
+        return cents;
+      }
 
-      // Suojataan selvästi rikkoutuneilta arvoilta, jotta UI ei näytä roskaa.
-      if (!Number.isFinite(cents) || Math.abs(cents) > 500) return null;
+      // Varalle euro/kWh-muodot, jos lähde vaihtuu joskus.
+      const eur =
+        parseElectricityNumber(item.EUR_per_kWh) ??
+        parseElectricityNumber(item.eur_per_kwh) ??
+        parseElectricityNumber(item.eurPerKwh);
 
-      return cents;
+      if (eur != null && Number.isFinite(eur)) {
+        const converted = eur * 100;
+        return Math.abs(converted) < 500 ? converted : null;
+      }
+
+      return null;
+    };
+
+    const readTimeMs = (...values: unknown[]) => {
+      for (const value of values) {
+        if (value == null) continue;
+        const ms = new Date(String(value)).getTime();
+        if (Number.isFinite(ms)) return ms;
+      }
+      return null;
     };
 
     const formatElectricityPrice = (priceCentsPerKwh: number) =>
@@ -514,178 +535,72 @@ function KauppiasMobileTopBar({
         maximumFractionDigits: 1,
       });
 
-    const getCurrentFinnishDateHour = () => {
-      const parts = new Intl.DateTimeFormat("sv-SE", {
-        timeZone: "Europe/Helsinki",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        hourCycle: "h23",
-      }).formatToParts(new Date());
-
-      const get = (type: string) => parts.find((part) => part.type === type)?.value || "";
-      return {
-        year: get("year"),
-        month: get("month"),
-        day: get("day"),
-        date: `${get("year")}-${get("month")}-${get("day")}`,
-        hour: get("hour") || String(new Date().getHours()).padStart(2, "0"),
-      };
-    };
-
-    const readElectricityPriceFromObject = (item: any) => {
-      if (!item || typeof item !== "object") return null;
-
-      // Porssisahko.net palauttaa price-kentän c/kWh-muodossa.
-      // Sahkonhintatanaan.fi palauttaa EUR_per_kWh-kentän euroina/kWh.
-      const directCents =
-        normalizeElectricityPriceCents(item.price, "cents") ??
-        normalizeElectricityPriceCents(item.value, "cents") ??
-        normalizeElectricityPriceCents(item.priceWithTax, "cents") ??
-        normalizeElectricityPriceCents(item.PriceWithTax, "cents") ??
-        normalizeElectricityPriceCents(item.priceNoTax, "cents") ??
-        normalizeElectricityPriceCents(item.PriceNoTax, "cents") ??
-        normalizeElectricityPriceCents(item.spotPrice, "cents") ??
-        normalizeElectricityPriceCents(item.SpotPrice, "cents") ??
-        normalizeElectricityPriceCents(item.centsPerKwh, "cents") ??
-        normalizeElectricityPriceCents(item.cents_per_kwh, "cents");
-
-      if (directCents != null) return directCents;
-
-      const eurPerKwh =
-        normalizeElectricityPriceCents(item.EUR_per_kWh, "eur") ??
-        normalizeElectricityPriceCents(item.eur_per_kwh, "eur") ??
-        normalizeElectricityPriceCents(item.eurPerKwh, "eur") ??
-        normalizeElectricityPriceCents(item.eurPerMWh != null ? Number(item.eurPerMWh) / 1000 : null, "eur") ??
-        normalizeElectricityPriceCents(item.EUR_per_MWh != null ? Number(item.EUR_per_MWh) / 1000 : null, "eur");
-
-      if (eurPerKwh != null) return eurPerKwh;
-
-      return null;
-    };
-
-    const withElectricityCacheBust = (url: string) => {
-      const separator = url.includes("?") ? "&" : "?";
-      return `${url}${separator}_ziiply_ts=${Date.now()}`;
-    };
-
-    async function tryReadDirectPrice(url: string) {
-      const response = await fetch(withElectricityCacheBust(url), { cache: "no-store" });
-      if (!response.ok || cancelled) return null;
-      const data = await response.json();
-      const price = readElectricityPriceFromObject(data);
-      return price;
-    }
-
-    async function tryReadCurrentFromList(url: string) {
-      const response = await fetch(withElectricityCacheBust(url), { cache: "no-store" });
-      if (!response.ok || cancelled) return null;
-
-      const data = await response.json();
-      const prices = Array.isArray(data?.prices)
-        ? data.prices
-        : Array.isArray(data)
-          ? data
-          : [];
-
-      const now = Date.now();
-
-      const enrichedPrices = prices
-        .map((item: any) => {
-          const priceNumber = readElectricityPriceFromObject(item);
-          const startRaw = item.startDate ?? item.start ?? item.StartDate ?? item.time_start;
-          const endRaw = item.endDate ?? item.end ?? item.EndDate ?? item.time_end;
-          const startMs = new Date(startRaw).getTime();
-          const endMs = new Date(endRaw).getTime();
-
-          return {
-            priceNumber,
-            startMs,
-            endMs,
-          };
-        })
-        .filter(
-          (item: any) =>
-            item.priceNumber != null &&
-            Number.isFinite(item.startMs) &&
-            Number.isFinite(item.endMs),
-        )
-        .sort((a: any, b: any) => a.startMs - b.startMs);
-
-      const currentIndex = enrichedPrices.findIndex(
-        (item: any) => item.startMs <= now && now < item.endMs,
-      );
-
-      if (currentIndex < 0) return null;
-
-      const currentPrice = Number(enrichedPrices[currentIndex]?.priceNumber);
-      if (!Number.isFinite(currentPrice)) return null;
-
-      const nextWindow = enrichedPrices.slice(currentIndex + 1, currentIndex + 4);
-      const nextAverage =
-        nextWindow.length > 0
-          ? nextWindow.reduce((sum: number, item: any) => sum + Number(item.priceNumber), 0) /
-            nextWindow.length
-          : currentPrice;
-
-      const diff = nextAverage - currentPrice;
-      if (diff > 0.4) setElectricityTrend("up");
-      else if (diff < -0.4) setElectricityTrend("down");
-      else setElectricityTrend("flat");
-
-      return currentPrice;
-    }
-
     async function loadElectricity() {
       try {
         setElectricityText("haetaan");
 
-        const { year, month, day, date, hour } = getCurrentFinnishDateHour();
-        const nowIso = new Date().toISOString();
+        const url = `https://api.porssisahko.net/v1/latest-prices.json?_ziiply_ts=${Date.now()}`;
+        const response = await fetch(url, { cache: "no-store" });
 
-        const candidates = [
-          // Ensisijaisesti listahaku, koska se antaa nykyhetken aikavälin ja samalla seuraavat hinnat trendinuolelle.
-          () => tryReadCurrentFromList("https://api.porssisahko.net/v2/latest-prices.json"),
-          () => tryReadCurrentFromList("https://api.porssisahko.net/v1/latest-prices.json"),
-
-          // Yksittäinen ajanhetki Porssisahko.netin dokumentoidulla date-parametrilla.
-          () => tryReadDirectPrice(
-            `https://api.porssisahko.net/v2/price.json?date=${encodeURIComponent(nowIso)}`,
-          ),
-
-          // Vanhemmat muodot jätetään viimeisiksi fallbackeiksi.
-          () => tryReadDirectPrice(
-            `https://api.porssisahko.net/v2/price.json?date=${encodeURIComponent(date)}&hour=${encodeURIComponent(hour)}`,
-          ),
-          () => tryReadDirectPrice(
-            `https://api.porssisahko.net/v1/price.json?date=${encodeURIComponent(date)}&hour=${encodeURIComponent(hour)}`,
-          ),
-
-          // Staattinen varalähde.
-          () => tryReadCurrentFromList(
-            `https://www.sahkonhintatanaan.fi/api/v1/prices/${encodeURIComponent(year)}/${encodeURIComponent(month)}-${encodeURIComponent(day)}.json`,
-          ),
-        ];
-
-        for (const readCandidate of candidates) {
-          try {
-            const price = await readCandidate();
-            if (cancelled) return;
-
-            if (price != null && Number.isFinite(price) && Math.abs(price) > 0.000001) {
-              setElectricityValue(formatElectricityPrice(price));
-              setElectricityText("c/kWh");
-              return;
-            }
-          } catch {
-            // kokeillaan seuraavaa lähdettä
+        if (!response.ok || cancelled) {
+          if (!cancelled) {
+            setElectricityValue("—");
+            setElectricityText("ei hintaa");
+            setElectricityTrend("flat");
           }
+          return;
         }
 
-        setElectricityValue("—");
-        setElectricityText("ei hintaa");
-        setElectricityTrend("flat");
+        const data = await response.json();
+        const rawPrices = Array.isArray(data?.prices)
+          ? data.prices
+          : Array.isArray(data)
+            ? data
+            : [];
+
+        const priceWindows = rawPrices
+          .map((item: any) => {
+            const price = readPriceCentsPerKwh(item);
+            const startMs = readTimeMs(item.startDate, item.start, item.StartDate, item.time_start);
+            const endMs = readTimeMs(item.endDate, item.end, item.EndDate, item.time_end);
+
+            if (price == null || startMs == null || endMs == null) return null;
+
+            return { price, startMs, endMs };
+          })
+          .filter(Boolean)
+          .sort((a: any, b: any) => a.startMs - b.startMs) as Array<{
+            price: number;
+            startMs: number;
+            endMs: number;
+          }>;
+
+        const now = Date.now();
+        const currentIndex = priceWindows.findIndex(
+          (item) => item.startMs <= now && now < item.endMs,
+        );
+
+        if (currentIndex < 0) {
+          setElectricityValue("—");
+          setElectricityText("ei hintaa");
+          setElectricityTrend("flat");
+          return;
+        }
+
+        const current = priceWindows[currentIndex];
+        const next = priceWindows[currentIndex + 1];
+
+        setElectricityValue(formatElectricityPrice(current.price));
+        setElectricityText("c/kWh");
+
+        if (next) {
+          const diff = next.price - current.price;
+          if (diff > 0.05) setElectricityTrend("up");
+          else if (diff < -0.05) setElectricityTrend("down");
+          else setElectricityTrend("flat");
+        } else {
+          setElectricityTrend("flat");
+        }
       } catch {
         if (!cancelled) {
           setElectricityValue("—");
