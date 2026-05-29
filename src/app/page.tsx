@@ -1,6 +1,7 @@
 "use client";
 
 // V527_MOBILE_SEARCH_RESULTS_CARD_AND_ELECTRICITY_REPAIR: mobiilin hakutulokset omalle kortille ja pörssisähkö korjattu suorahaulla.
+// V531_HAE_READY_MICRO_BADGE: vanha HAE VALMIS -badge korvattu pienellä retro 'Voit hakea' -mikrobadgella Hae-napin yläpuolella.
 // V530_CLEAR_SEARCH_INPUT_ON_CLOSE: Hae-kortin tekstikenttä tyhjennetään aina kun Hae suljetaan tai vaihdetaan pois.
 // V529_ELECTRICITY_INTERNAL_TOPBAR_FINAL: KauppiasMobileTopBarin sisäinen sähköhaku korjattu; page ei käytä erillistä ZiiplyMobileTopBaria.
 // V528_ELECTRICITY_VISIBLE_ERROR_AND_FALLBACKS: sähköhinta hakee suoraan + listasta ja näyttää virhetilan detailissä.
@@ -1481,7 +1482,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     haeReadyBadgeAllowedViewV520 &&
     haeReadyBadgeTimerVisibleV520;
 
-  const haeReadyBadgeTextV502 = haeReadyBadgeVisibleV502 ? "HAE VALMIS" : "";
+  const haeReadyBadgeTextV502 = haeReadyBadgeVisibleV502 ? "Voit hakea" : "";
 
   useEffect(() => {
     if (!storesReadyForSearch || !haeReadyBadgeAllowedViewV520) {
@@ -11404,12 +11405,39 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           </div>
         )}
 
-        {/* V502_HAE_READY_BADGE_RENDER */}
+        {/* V531_HAE_READY_MICRO_BADGE_RENDER */}
           {haeReadyBadgeVisibleV502 ? (
-            <div className="pointer-events-none fixed bottom-[calc(env(safe-area-inset-bottom)+5.65rem)] left-1/2 z-[10001] -translate-x-1/2 rounded-[0.75rem] border-[2px] border-[#8a6a1f] bg-[#f6dd84] px-3 py-[5px] text-[11px] font-black uppercase tracking-[0.04em] text-[#4b3200] shadow-[0_8px_18px_rgba(60,45,20,0.26)] sm:hidden">
-              {haeReadyBadgeTextV502}
+            <div className="pointer-events-none fixed bottom-[calc(env(safe-area-inset-bottom)+5.05rem)] left-1/2 z-[10001] translate-x-[-8%] animate-[ziiplyMicroReady_2.15s_ease-out_forwards] sm:hidden">
+              <div className="relative rounded-[0.58rem] border-[2px] border-[#0b5b31] bg-[linear-gradient(180deg,#0c9143_0%,#087237_100%)] px-2.5 py-[3px] text-[9px] font-black italic leading-none text-[#fff1c8] shadow-[0_3px_0_#064a26,0_8px_18px_rgba(8,75,42,0.24),inset_0_0_0_1px_rgba(255,255,255,0.20)]">
+                <span className="absolute -left-[5px] -top-[6px] text-[10px] leading-none text-[#f8c94b] drop-shadow-[0_1px_0_#6c4a10]">✦</span>
+                {haeReadyBadgeTextV502}
+              </div>
             </div>
           ) : null}
+          <style jsx>{`
+            @keyframes ziiplyMicroReady {
+              0% {
+                opacity: 0;
+                transform: translate(-8%, 7px) scale(0.72) rotate(-2deg);
+              }
+              16% {
+                opacity: 1;
+                transform: translate(-8%, -2px) scale(1.04) rotate(-1deg);
+              }
+              28% {
+                opacity: 1;
+                transform: translate(-8%, 0) scale(1) rotate(0deg);
+              }
+              78% {
+                opacity: 1;
+                transform: translate(-8%, 0) scale(1) rotate(0deg);
+              }
+              100% {
+                opacity: 0;
+                transform: translate(-8%, 4px) scale(0.86) rotate(1deg);
+              }
+            }
+          `}</style>
           <div className="V507_BOTTOM_NAV_CLICK_LAYER relative z-[10000]">
           <ZiiplyBottomNav
           shopsPanelOpen={shopsPanelOpen}
