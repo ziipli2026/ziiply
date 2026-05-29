@@ -1,5 +1,6 @@
 "use client";
 
+// V551_ELECTRICITY_RENDER_PROBE: pakottaa sähköruutuun TESTI/DEBUG-arvon, jotta nähdään renderöityykö tämä topbar-polku lainkaan.
 // V550_RESTORE_INTERNAL_KAUPPIAS_TOPBAR_RENDER: palauttaa renderiin sisäisen KauppiasMobileTopBarin; poistaa ZiiplyMobileTopBar-viittauksen kokonaan.
 // V549_PAGE_INTERNAL_TOPBAR_ACTIVE
 // page.tsx käyttää sisäistä KauppiasMobileTopBar-komponenttia.
@@ -743,9 +744,9 @@ function KauppiasMobileTopBar({
     {
       id: "electricity" as const,
       title: "SÄHKÖ",
-      value: electricityValue,
-      unit: "c/kWh",
-      detail: electricityText,
+      value: "TESTI",
+      unit: "",
+      detail: "DEBUG",
       graphic: <KauppiasElectricityGraphic />,
     },
     {
