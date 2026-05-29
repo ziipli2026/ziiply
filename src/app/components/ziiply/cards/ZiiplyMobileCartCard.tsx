@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_CART_CARD_V12_VISUAL_ALIGN_TOTAL_FIX
+// ZIIPLY_MOBILE_CART_CARD_V17_CLOSE_BUTTON_ALIGN
 // Mobiilin Tavarainkeruu-paperivihko.
 // V3:
 // - "Ostoskori" poistettu kokonaan näkyvästä UI:sta.
@@ -24,6 +24,9 @@
 // V12: korjaa paperisarakkeiden visuaalisen kohdistuksen, kassa/huomio-tekstit ja yhteissumman sentti/euro-indeksivirheen.
 // V13: miinusmerkki ja poisto-ruksi korostettu punertaviksi sekä siirretty lähemmäs sarakeviivoja.
 // V14: määrä-sarakkeen asettelu mockupin mukaiseksi; miinus aidosti punaiseksi ja määrän keskitys korjattu.
+// V15: pakottaa määrän ja miinuksen näkyvän sijainnin suoraan QuantityCellin renderiin.
+// V16: siirtää Yht.-merkinnän pois keskeltä paperia ja alas määrä-sarakkeen yhteissummariville.
+// V17: siirtää vihkosen sulje-painikkeen Virtanen-otsikon vaakatasoon ja pehmentää symbolin vanhan ajan tyyliin.
 
 import React from "react";
 
@@ -237,6 +240,52 @@ function QuantityCell({
 
   return (
     <div className="relative h-[2.05rem] w-full">
+      {/* koko määräsolu lisää määrää, mutta näkyvä asu pysyy paperimaisena */}
+      <button
+        type="button"
+        onClick={() => onIncrease?.(item)}
+        className="absolute inset-y-0 left-0 right-0 z-0 rounded-[0.32rem] bg-transparent active:bg-[#fff1c6]/24"
+        aria-label="Lisää määrää"
+        title="Lisää määrää"
+      />
+
+      <button
+        type="button"
+        onClick={() => {
+          if (canDecrease) onDecrease?.(item);
+        }}
+        disabled={!canDecrease}
+        className={cx(
+          "absolute left-[-0.28rem] top-1/2 z-20 grid h-[1.6rem] w-[1.05rem] -translate-y-1/2 place-items-center rounded-[0.18rem] text-[1.02rem] font-black leading-none",
+          canDecrease
+            ? "text-[#d52218] drop-shadow-[0_1px_0_rgba(255,238,190,0.65)] active:bg-[#fff1c6]/34"
+            : "text-[#d52218]/22",
+        )}
+        style={{ fontFamily: serifFont }}
+        aria-label="Vähennä määrää"
+        title="Vähennä määrää"
+      >
+        −
+      </button>
+
+      <span
+        className="pointer-events-none absolute left-[1.38rem] top-1/2 z-10 block min-w-[1.05rem] -translate-y-1/2 text-center text-[1.02rem] font-black leading-none text-[#2f281b]"
+        style={{ fontFamily: serifFont }}
+      >
+        {quantity}
+      </span>
+    </div>
+  );
+}: {
+  item: ZiiplyMobileCartItem;
+  quantity: number;
+  onDecrease?: (item: ZiiplyMobileCartItem) => void;
+  onIncrease?: (item: ZiiplyMobileCartItem) => void;
+}) {
+  const canDecrease = quantity > 1;
+
+  return (
+    <div className="relative h-[2.05rem] w-full">
       <button
         type="button"
         onClick={() => onIncrease?.(item)}
@@ -417,7 +466,7 @@ export default function ZiiplyMobileCartCard({
                     <button
                       type="button"
                       onClick={() => onRemoveItem?.(item)}
-                      className="grid h-[1.7rem] w-full place-items-center pr-[0.02rem] text-[0.84rem] font-black leading-none text-[#b03b2c]/84 active:translate-y-[1px]"
+                      className="grid h-[1.7rem] w-full place-items-center pr-[0.02rem] text-[0.84rem] font-black leading-none text-[#b33a2b]/86 active:translate-y-[1px]"
                       aria-label="Poista"
                       title="Poista"
                     >
@@ -457,7 +506,7 @@ export default function ZiiplyMobileCartCard({
           </div>
 
           <div
-            className="pointer-events-none absolute bottom-[7.42rem] right-[8.3rem] z-20 min-w-[2.4rem] text-center text-[0.92rem] font-black leading-none text-[#4b3a1d]/82"
+            className="pointer-events-none absolute bottom-[4.74rem] right-[8.55rem] z-20 min-w-[2.4rem] text-center text-[0.86rem] font-black leading-none text-[#4b3a1d]/82"
             style={{ fontFamily: serifFont }}
           >
             Yht.
