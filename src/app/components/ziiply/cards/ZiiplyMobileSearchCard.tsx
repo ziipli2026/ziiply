@@ -1,9 +1,8 @@
 "use client";
 
-// V472_MOBILE_SEARCH_PAGE_COMPAT_MOCKUP_INSIDE_ONLY:
- // - Sisäinen asettelu mockupin mukaiseksi ilman kortin ulkokuoren/fonttien vaihtoa
- // - Gösta/Justiina-kehys säilyy, vain kuvaa suurennettu napin sisällä
- // - Hakukenttä korkeampi; KORIIN-nappi samaa pill-muotoa/fonttia kuin Vihkonen
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V500_CLEAN_REBUILD
+// UUSI: täysin puhtaalta pöydältä rakennettu mobiilin Hae-kortti.
+// UUSI: tämä tiedosto EI ole V472-versio.
 
 import React from "react";
 
@@ -79,9 +78,34 @@ function formatProductPrice(value: unknown) {
   return text.includes("€") ? text : text;
 }
 
-function ProductName(name: string) {
+function shortProductName(name: string) {
   const clean = name.replace(/\s+/g, " ").trim();
-  return clean.length <= 22 ? clean : clean.slice(0, 19).trimEnd() + "...";
+  return clean.length <= 24 ? clean : clean.slice(0, 21).trimEnd() + "...";
+}
+
+function GreenPillButton({
+  label,
+  onClick,
+  disabled,
+}: {
+  label: string;
+  onClick?: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={cx(
+        "h-[2.55rem] shrink-0 rounded-[1.25rem] border-[3px] border-[#0b6330] bg-gradient-to-b from-[#139143] to-[#087237] px-4 text-[0.92rem] font-black italic leading-none text-[#fff0d5] shadow-[0_0_0_2px_rgba(255,255,255,0.18)_inset,0_4px_0_#064a26] transition active:translate-y-[1px] active:shadow-[0_2px_0_#064a26]",
+        disabled && "cursor-not-allowed opacity-45",
+      )}
+      style={{ fontFamily: cooperFont }}
+    >
+      {label}
+    </button>
+  );
 }
 
 function AssistantButton({
@@ -108,7 +132,7 @@ function AssistantButton({
       aria-label={name}
       title={name}
       className={cx(
-        "relative h-[4.15rem] w-full min-w-0 overflow-hidden rounded-[1.15rem] border-[2.5px] p-0 shadow-[0_4px_0_rgba(91,72,44,0.20),inset_0_0_0_2px_rgba(255,255,255,0.45)] active:translate-y-[1px]",
+        "relative h-[4.75rem] w-full min-w-0 overflow-hidden rounded-[1.25rem] border-[2.5px] p-0 shadow-[0_4px_0_rgba(91,72,44,0.20),inset_0_0_0_2px_rgba(255,255,255,0.45)] active:translate-y-[1px]",
         isGosta
           ? "border-[#7f9866] bg-gradient-to-b from-[#f0f3d7] to-[#d0dda0]"
           : "border-[#d3b255] bg-gradient-to-b from-[#fff2c4] to-[#efd06f]",
@@ -119,7 +143,7 @@ function AssistantButton({
       <img
         src={image}
         alt=""
-        className="absolute inset-[-12%] h-[124%] w-[124%] object-cover object-center"
+        className="absolute left-1/2 top-1/2 h-[134%] w-[134%] -translate-x-1/2 -translate-y-1/2 object-cover object-center"
         draggable={false}
         onError={(event) => {
           event.currentTarget.style.display = "none";
@@ -137,12 +161,12 @@ function ModeToggle({
   onModeChange?: (mode: "cart" | "single") => void;
 }) {
   return (
-    <div className="mx-auto grid h-[3.3rem] w-full max-w-[10.9rem] grid-cols-2 rounded-[1.35rem] border-[3px] border-[#b99d64] bg-[#ead7a5] p-1.5 shadow-[0_0_0_2px_#fff4cc_inset,0_4px_0_rgba(91,72,44,0.20)]">
+    <div className="mx-auto flex h-[5.15rem] w-[7.7rem] flex-col items-center justify-center gap-1 rounded-[1.35rem] border-[3px] border-[#b99d64] bg-[#ead7a5] p-1.5 shadow-[0_0_0_2px_#fff4cc_inset,0_4px_0_rgba(91,72,44,0.20)]">
       <button
         type="button"
         onClick={() => onModeChange?.("cart")}
         className={cx(
-          "rounded-[0.95rem] px-1 text-[0.84rem] font-black leading-[0.92] transition active:scale-[0.98]",
+          "w-full rounded-[0.95rem] px-2 py-1 text-[0.82rem] font-black leading-[0.9] transition active:scale-[0.98]",
           mode === "cart"
             ? "bg-[#fff4cf] text-[#23502c] shadow-[inset_0_0_0_2px_#d9bd77,0_2px_0_rgba(91,72,44,0.18)]"
             : "text-[#7a6842]",
@@ -155,7 +179,7 @@ function ModeToggle({
         type="button"
         onClick={() => onModeChange?.("single")}
         className={cx(
-          "rounded-[0.95rem] px-1 text-[0.84rem] font-black leading-[0.92] transition active:scale-[0.98]",
+          "w-full rounded-[0.95rem] px-2 py-1 text-[0.82rem] font-black leading-[0.9] transition active:scale-[0.98]",
           mode === "single"
             ? "bg-[#fff4cf] text-[#23502c] shadow-[inset_0_0_0_2px_#d9bd77,0_2px_0_rgba(91,72,44,0.18)]"
             : "text-[#7a6842]",
@@ -166,42 +190,6 @@ function ModeToggle({
       </button>
     </div>
   );
-}
-
-function GreenPillButton({
-  label,
-  onClick,
-  disabled,
-  className = "",
-}: {
-  label: string;
-  onClick?: () => void;
-  disabled?: boolean;
-  className?: string;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      className={cx(
-        "h-[2.45rem] shrink-0 rounded-[1.2rem] border-[3px] border-[#0b6330] bg-gradient-to-b from-[#139143] to-[#087237] px-3 text-[0.88rem] font-black italic leading-none text-[#fff0d5] shadow-[0_0_0_2px_rgba(255,255,255,0.18)_inset,0_4px_0_#064a26] transition active:translate-y-[1px] active:shadow-[0_2px_0_#064a26]",
-        disabled && "cursor-not-allowed opacity-45",
-        className,
-      )}
-      style={{ fontFamily: cooperFont }}
-    >
-      {label}
-    </button>
-  );
-}
-
-function NotebookButton({
-  onClick,
-}: {
-  onClick?: () => void;
-}) {
-  return <GreenPillButton label="Vihkonen" onClick={onClick} />;
 }
 
 function RetroAssetButton({
@@ -222,19 +210,16 @@ function RetroAssetButton({
         : state === "processing"
           ? "/ui/voice/aanita-search.webp"
           : "/ui/voice/aanita-off.webp"
-      : "/ui/scanner/scanner-idle.webp";
+      : state === "active" || state === "processing"
+        ? "/ui/scanner/scanner-on.webp"
+        : "/ui/scanner/scanner-idle.webp";
 
   return (
     <button
       type="button"
       onClick={onClick}
       aria-label={label}
-      className={cx(
-        "relative block w-full overflow-hidden border-0 bg-transparent p-0 shadow-none outline-none active:translate-y-[1px]",
-        kind === "scanner"
-          ? "aspect-[850/295]"
-          : "h-[4.95rem] min-h-[4.95rem]",
-      )}
+      className="relative block h-[4.85rem] w-full overflow-hidden border-0 bg-transparent p-0 shadow-none outline-none active:translate-y-[1px]"
     >
       <img
         src={imageSrc}
@@ -248,7 +233,7 @@ function RetroAssetButton({
 
 export default function ZiiplyMobileSearchCard({
   open = true,
-  title = "Haku",
+  title = "HAKU",
   subtitle,
   products,
   results,
@@ -256,7 +241,6 @@ export default function ZiiplyMobileSearchCard({
   emptyText = "Ei hakutuloksia.",
   onAddProduct,
   onAdd,
-  onClose,
   className = "",
   input = "",
   onInputChange,
@@ -265,7 +249,6 @@ export default function ZiiplyMobileSearchCard({
   onAddInputToCart,
   onOfferSearch,
   onNormalSearch,
-  hasSearchInput = false,
   loadingOffers = false,
   loadingNormal = false,
   singleProductCompareLoading = false,
@@ -285,6 +268,7 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
+      data-ziiply-mobile-search-card-version="UUSI_V500_CLEAN_REBUILD"
       className={`fixed inset-0 z-[72] flex items-end justify-center overflow-hidden bg-transparent px-2 pb-[calc(env(safe-area-inset-bottom)+6.15rem)] pt-[calc(env(safe-area-inset-top)+5rem)] sm:items-center sm:p-6 ${className}`}
     >
       <section className="relative isolate h-[min(64dvh,36.5rem)] w-full max-w-[28rem] overflow-visible rounded-[2rem] border-[4px] border-[#5b482c] bg-transparent px-3 pt-3 text-[#20301f] shadow-[0_0_0_2px_#d8bd75_inset,0_12px_0_rgba(60,45,20,0.24),0_22px_45px_rgba(15,23,42,0.18)]">
@@ -294,8 +278,8 @@ export default function ZiiplyMobileSearchCard({
         </div>
 
         <div className="relative z-10 flex h-full min-h-0 flex-col">
-          <div className="grid h-[3.5rem] grid-cols-[minmax(0,1fr)_auto_auto] items-start gap-2.5">
-            <div className="min-w-0 overflow-hidden">
+          <div className="relative min-h-[5.35rem]">
+            <div className="absolute left-0 top-0 max-w-[12.3rem] overflow-hidden">
               <div
                 className="text-[0.72rem] font-black uppercase leading-none tracking-[0.42em] text-[#6f674f]"
                 style={{ fontFamily: copperplateFont }}
@@ -303,82 +287,56 @@ export default function ZiiplyMobileSearchCard({
                 {title}
               </div>
               <h1
-                className="mt-0.5 text-[1.36rem] font-black italic leading-[0.88] text-[#203b25] min-[390px]:text-[1.56rem]"
+                className="mt-0.5 text-[1.48rem] font-black italic leading-[0.9] text-[#203b25]"
                 style={{ fontFamily: cooperFont }}
               >
-                Tuotteet ja vertailu
+                Tuotteet ja<br />vertailu
               </h1>
             </div>
 
-            <NotebookButton onClick={onAddInputToCart} />
-            <GreenPillButton label="KORIIN" onClick={onAddInputToCart} disabled={!hasText} />
+            <div className="absolute right-0 top-0 flex items-center gap-2">
+              <GreenPillButton label="Vihkonen" onClick={onAddInputToCart} />
+              <GreenPillButton label="KORIIN" onClick={onAddInputToCart} disabled={!hasText} />
+            </div>
           </div>
 
-          <div className="relative z-10 mt-3 h-[4.35rem] overflow-hidden rounded-[1.45rem] border-[3px] border-[#9d8350] bg-[#fff4d3] p-1.5 shadow-[inset_0_3px_8px_rgba(91,65,28,0.10)]">
+          <div className="relative z-10 h-[4.2rem] overflow-hidden rounded-[1.45rem] border-[3px] border-[#9d8350] bg-[#fff4d3] p-1.5 shadow-[inset_0_3px_8px_rgba(91,65,28,0.10)]">
             <textarea
               ref={inputRef}
               value={input}
               onChange={(event) => onInputChange?.(event.target.value)}
               rows={3}
               placeholder={searchMode === "single" ? "Kirjoita yksi tuote" : "maito, kahvi"}
-              className="block h-full w-full resize-none overflow-hidden rounded-[1.15rem] border-0 bg-[#fffaf0] px-4 py-2 text-center text-[1.18rem] font-black leading-[1.02] text-[#102216] outline-none placeholder:text-[#7d7461]"
+              className="block h-full w-full resize-none overflow-hidden rounded-[1.15rem] border-0 bg-[#fffaf0] px-4 py-2 text-center text-[1.28rem] font-black leading-[1.02] text-[#102216] outline-none placeholder:text-[#7d7461]"
               style={{ fontFamily: hasText ? serifFont : cooperFont }}
             />
           </div>
 
           <div className="relative z-10 mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-2.5">
-            <div className="w-full">
-              <AssistantButton
-                kind="gosta"
-                onClick={onOfferSearch}
-                disabled={!hasText}
-                loading={loadingOffers}
-              />
-            </div>
+            <AssistantButton
+              kind="gosta"
+              onClick={onOfferSearch}
+              disabled={!hasText}
+              loading={loadingOffers}
+            />
 
-            <div className="flex flex-col items-center justify-center gap-2 rounded-[1.25rem] border-[3px] border-[#b99d64] bg-[#ead7a5] px-2 py-2 shadow-[0_0_0_2px_#fff4cc_inset,0_4px_0_rgba(91,72,44,0.20)]">
-              <button
-                type="button"
-                onClick={() => onSearchModeChange?.("cart")}
-                className={`min-w-[5.8rem] rounded-[0.9rem] px-2 py-1 text-[0.78rem] font-black leading-[0.92] ${
-                  searchMode === "cart"
-                    ? "bg-[#fff0c8] text-[#1c5c2e] shadow-[0_2px_0_rgba(91,72,44,0.18)]"
-                    : "text-[#7a6948]"
-                }`}
-              >
-                Koko<br />kori
-              </button>
+            <ModeToggle mode={searchMode} onModeChange={onSearchModeChange} />
 
-              <button
-                type="button"
-                onClick={() => onSearchModeChange?.("single")}
-                className={`min-w-[5.8rem] rounded-[0.9rem] px-2 py-1 text-[0.78rem] font-black leading-[0.92] ${
-                  searchMode === "single"
-                    ? "bg-[#fff0c8] text-[#1c5c2e] shadow-[0_2px_0_rgba(91,72,44,0.18)]"
-                    : "text-[#7a6948]"
-                }`}
-              >
-                Yksi<br />tuote
-              </button>
-            </div>
-
-            <div className="w-full">
-              <AssistantButton
-                kind="justiina"
-                onClick={onNormalSearch}
-                disabled={!hasText}
-                loading={justiinaLoading}
-              />
-            </div>
+            <AssistantButton
+              kind="justiina"
+              onClick={onNormalSearch}
+              disabled={!hasText}
+              loading={justiinaLoading}
+            />
           </div>
 
           <div className="relative z-10 mt-3 flex min-h-[3rem] items-center justify-center overflow-hidden rounded-[1.18rem] border-[3px] border-[#d2b170] bg-[#fff1bf] px-3 text-center text-[0.84rem] font-black text-[#7a6842] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_3px_0_rgba(91,72,44,0.12)]">
-            <span className="block ">
+            <span className="block">
               {subtitle || "Justiina ehdottaa sopivia hakusanoja kirjoituksen mukaan."}
             </span>
           </div>
 
-          <div className="relative z-10 mt-6 grid grid-cols-2 gap-3">
+          <div className="relative z-10 mt-5 grid grid-cols-2 gap-3">
             <RetroAssetButton
               kind="voice"
               label="Äänitä"
@@ -396,7 +354,7 @@ export default function ZiiplyMobileSearchCard({
           {showResults && (
             <div className="relative z-20 mt-3 min-h-0 flex-1 overflow-hidden rounded-[1.45rem] border-[3px] border-[#b99755] bg-[#ead39a] p-3 shadow-[0_0_0_2px_#fff4cd_inset,0_8px_0_rgba(70,50,24,0.18)]">
               <div
-                className="mb-2  text-[0.82rem] font-black uppercase tracking-[0.34em] text-[#746749]"
+                className="mb-2 text-[0.82rem] font-black uppercase tracking-[0.34em] text-[#746749]"
                 style={{ fontFamily: copperplateFont }}
               >
                 Hakutulokset
@@ -437,10 +395,10 @@ export default function ZiiplyMobileSearchCard({
 
                         <div className="min-w-0">
                           <div
-                            className=" text-[1.02rem] font-black leading-[1.05] text-[#1f251c]"
+                            className="text-[1.02rem] font-black leading-[1.05] text-[#1f251c]"
                             style={{ fontFamily: serifFont }}
                           >
-                            {ProductName(name)}
+                            {shortProductName(name)}
                           </div>
                           {price && (
                             <div className="mt-1 text-[0.9rem] font-black leading-none text-[#817451]">
