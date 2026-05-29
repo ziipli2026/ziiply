@@ -1,5 +1,6 @@
 "use client";
 
+// V558_ELECTRICITY_RETRO_SIGNAL_LAMP: korvaa sähkön kolmionuolen vanhan ajan pienellä merkkivalolla.
 // V557_ELECTRICITY_QUARTER_PRICING_SAHKOTIN: käyttää ensisijaisesti Sähköttimen varttihinta-API:a quarter&fix&vat ja vertaa trendin seuraavaan 15 min jaksoon.
 // V556_ELECTRICITY_INDICATOR_FORCE_VISIBLE: trendi-indikaattori renderöidään sähköpaneelin absoluuttiseksi omaksi merkiksi, ei hinnan rivin sisään.
 // V555_ELECTRICITY_UNIT_ALIGN_AND_VISIBLE_INDICATOR: nostaa c/kWh:n numeron keskilinjaan ja sijoittaa trendi-indikaattorin näkyvästi sähköruudun oikeaan yläosaan.
@@ -840,14 +841,19 @@ function KauppiasMobileTopBar({
     };
   }, []);
 
-  const electricityTrendArrow =
-    electricityTrend === "up" ? "▲" : electricityTrend === "down" ? "▼" : "—";
-  const electricityTrendClass =
+  const electricityTrendTitle =
     electricityTrend === "up"
-      ? "text-[#b21f17] drop-shadow-[0_1px_0_rgba(255,240,200,0.72)]"
+      ? "Kallistuu seuraavassa vartissa"
       : electricityTrend === "down"
-        ? "text-[#087a3a] drop-shadow-[0_1px_0_rgba(255,240,200,0.72)]"
-        : "text-[#6d6047]/82 drop-shadow-[0_1px_0_rgba(255,240,200,0.55)]";
+        ? "Halpenee seuraavassa vartissa"
+        : "Vakaa seuraavassa vartissa";
+
+  const electricityTrendLampClass =
+    electricityTrend === "up"
+      ? "border-[#7f1f16] bg-[radial-gradient(circle_at_35%_30%,#ffd1c8_0%,#d94a38_38%,#8f1f18_100%)] shadow-[0_0_5px_rgba(178,31,23,0.62),inset_0_1px_1px_rgba(255,255,255,0.72)]"
+      : electricityTrend === "down"
+        ? "border-[#0f5f31] bg-[radial-gradient(circle_at_35%_30%,#c9ffd8_0%,#238a48_42%,#0d5a30_100%)] shadow-[0_0_5px_rgba(8,122,58,0.58),inset_0_1px_1px_rgba(255,255,255,0.72)]"
+        : "border-[#786f5a] bg-[radial-gradient(circle_at_35%_30%,#f4ecd3_0%,#a7a08b_45%,#736d5d_100%)] opacity-70 shadow-[inset_0_1px_1px_rgba(255,255,255,0.62)]";
 
   const panels = [
     {
@@ -902,17 +908,10 @@ function KauppiasMobileTopBar({
 
                 {panel.id === "electricity" && (
                   <span
-                    className={`pointer-events-none absolute right-[16px] top-[25px] z-30 block text-[16px] font-black italic leading-none opacity-95 ${electricityTrendClass}`}
-                    title={
-                      electricityTrend === "up"
-                        ? "Nousussa"
-                        : electricityTrend === "down"
-                          ? "Laskussa"
-                          : "Vakaa"
-                    }
-                  >
-                    {electricityTrendArrow}
-                  </span>
+                    className={`pointer-events-none absolute right-[14px] top-[25px] z-30 block h-[9px] w-[9px] rounded-full border ${electricityTrendLampClass}`}
+                    title={electricityTrendTitle}
+                    aria-hidden="true"
+                  />
                 )}
 
                 <div className="relative z-10 flex h-full flex-col items-center justify-center text-center leading-none">
