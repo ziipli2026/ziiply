@@ -1,5 +1,6 @@
 "use client";
 
+// V549_USE_ZIIPLY_MOBILE_TOPBAR: mobiilin yläpalkki renderöidään erillisestä ZiiplyMobileTopBar-komponentista, ei page.tsx:n sisäisestä KauppiasMobileTopBarista.
 // V548_PAGE_INTERNAL_TOPBAR_ELECTRICITY_VISIBLE: korjaa sähkön suoraan page.tsx:n sisäiseen KauppiasMobileTopBariin, koska erillinen ZiiplyMobileTopBar ei välttämättä ole käytössä.
 // V547_CART_COMPARE_TRANSITION_AND_ELECTRICITY_REBUILD: Kori/Vertailu-siirtymät rauhoitettu ja pörssisähkön haku rakennettu suoraviivaisemmaksi.
 // V546_MOBILE_CART_QUANTITY_HANDLER_SCOPE_FIX: siirtää mobiilikorin määrähandlerit pois KauppiasWeatherGraphicin sisältä Page-komponentin scopeen.
@@ -268,6 +269,7 @@ import * as ZiiplyCartCardModule from "./components/ziiply/cards/ZiiplyCartCard"
 import ZiiplySearchCard from "./components/ziiply/cards/ZiiplySearchCard";
 import ZiiplyMobileSearchCard from "./components/ziiply/cards/ZiiplyMobileSearchCard";
 import ZiiplyMobileSearchResultsCard from "./components/ziiply/cards/ZiiplyMobileSearchResultsCard";
+import ZiiplyMobileTopBar from "./components/ziiply/cards/ZiiplyMobileTopBar";
 import ZiiplyMobileCartCard from "./components/ziiply/cards/ZiiplyMobileCartCard";
 import ZiiplyStoreLocaCard from "./components/ziiply/cards/ZiiplyStoreLocaCard";
 import * as ZiiplyCompareCardModule from "./components/ziiply/cards/ZiiplyCompareCard";
@@ -10140,11 +10142,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           className={`relative z-[80] m-0 p-0 mt-1 mb-0 ziiply-desktop-debug-compact sm:mx-auto sm:max-w-[1180px] sm:px-4 ${showLaunchScreen ? "hidden" : ""}`}
         >
           {/* v388_TOPBAR_BACKGROUND_LOCK: keeps Safari from pulling the hero/background upward after idle/reload. */}
-        <KauppiasMobileTopBar
+        <ZiiplyMobileTopBar
             hidden={showLaunchScreen}
             areaLabel={activeArea.label}
-            gpsCoords={gpsCoordsV320}
-            weatherEnabled={Boolean(gpsCoordsV320)}
             onOpenCalendar={() => {
               try {
                 window.location.href = "calshow://";
@@ -10155,7 +10155,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           />
         </div>
         {/* v389_MOBILE_HOME_LAYER_ANCHOR:
-            KauppiasMobileTopBar is fixed, so it must reserve a permanent
+            ZiiplyMobileTopBar is fixed, so it must reserve a permanent
             non-render-dependent background slot. This prevents iOS Safari from
             pulling the mobile home artwork upward after idle/reload/viewport restore. */}
         <div
