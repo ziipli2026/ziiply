@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_CART_CARD_V7_VISUAL_ALIGN_AND_ALCOHOL_EXCLUDED
+// ZIIPLY_MOBILE_CART_CARD_V8_ALCOHOL_HELPER_SCOPE_FIX
 // Mobiilin Tavarainkeruu-paperivihko.
 // V3:
 // - "Ostoskori" poistettu kokonaan näkyvästä UI:sta.
@@ -17,6 +17,7 @@
 // V5: Tavarainkeruu siirretty Pvm-kohdan vasemmalle puolelle pienempänä; määräsolusta tehty sormiystävällinen; N:o-merkki keskitetty ja suurennettu.
 // V6: poisto-X siirretty hinnan vasemmalle puolelle, jotta HINTA-sarake jää puhtaaksi.
 // V7: määrä/poisto/hinta kohdistettu paperisarakeisiin; alkoholijuomat näkyvät keräilyssä mutta eivät kuulu yhteissummaan.
+// V8: alkoholin yhteissummalaskenta ei enää riipu myöhemmin määritellyistä getCartItemQuantity/readCartItemPrice-funktioista.
 
 import React from "react";
 
@@ -138,7 +139,37 @@ function LedgerButton({
 }
 
 
-function isAlcoholCartItemV7(item: ZiiplyMobileCartItem) {
+function getCartItemQuantityForTotalV8(item: ZiiplyMobileCartItem) {
+  const quantity = Number((item as any).quantity ?? (item as any).amount ?? 1);
+  return Number.isFinite(quantity) && quantity > 0 ? quantity : 1;
+}
+
+function readCartItemPriceForTotalV8(item: ZiiplyMobileCartItem) {
+  const candidates = [
+    (item as any).price,
+    (item as any).unitPrice,
+    (item as any).currentPrice,
+    (item as any).product?.price,
+    (item as any).product?.unitPrice,
+    (item as any).product?.currentPrice,
+  ];
+
+  for (const candidate of candidates) {
+    if (typeof candidate === "number" && Number.isFinite(candidate)) {
+      return candidate;
+    }
+
+    if (typeof candidate === "string") {
+      const normalized = candidate.replace(/\s/g, "").replace(",", ".");
+      const parsed = Number(normalized.replace(/[^\d.-]/g, ""));
+      if (Number.isFinite(parsed)) return parsed;
+    }
+  }
+
+  return 0;
+}
+
+function isAlcoholCartItemV8(item: ZiiplyMobileCartItem) {
   const text = [
     item.name,
     (item as any).brand,
@@ -146,6 +177,9 @@ function isAlcoholCartItemV7(item: ZiiplyMobileCartItem) {
     (item as any).categoryName,
     (item as any).productGroup,
     (item as any).department,
+    (item as any).product?.name,
+    (item as any).product?.category,
+    (item as any).product?.categoryName,
   ]
     .filter(Boolean)
     .join(" ")
@@ -156,19 +190,19 @@ function isAlcoholCartItemV7(item: ZiiplyMobileCartItem) {
   );
 }
 
-function getDisplayCartTotalV7(items: ZiiplyMobileCartItem[]) {
+function getDisplayCartTotalV8(items: ZiiplyMobileCartItem[]) {
   return items.reduce((sum, item) => {
-    if (isAlcoholCartItemV7(item)) return sum;
+    if (isAlcoholCartItemV8(item)) return sum;
 
-    const quantity = getCartItemQuantity(item);
-    const unitPrice = readCartItemPrice(item);
+    const quantity = getCartItemQuantityForTotalV8(item);
+    const unitPrice = readCartItemPriceForTotalV8(item);
 
     return sum + unitPrice * quantity;
   }, 0);
 }
 
-function hasAlcoholCartItemsV7(items: ZiiplyMobileCartItem[]) {
-  return items.some(isAlcoholCartItemV7);
+function hasAlcoholCartItemsV8(items: ZiiplyMobileCartItem[]) {
+  return items.some(isAlcoholCartItemV8);
 }
 
 function QuantityCell({
@@ -371,14 +405,14 @@ export default function ZiiplyMobileCartCard({
                     <div
                       className={cx(
                         "min-w-0 pr-[0.08rem] text-right font-black leading-none",
-                        isAlcoholCartItemV7(item)
+                        isAlcoholCartItemV8(item)
                           ? "text-[0.58rem] italic text-[#7b3215]/78"
                           : "text-[0.84rem] text-[#3f321f]",
                       )}
                       style={{ fontFamily: serifFont }}
-                      title={isAlcoholCartItemV7(item) ? "Maksetaan kassalla" : undefined}
+                      title={isAlcoholCartItemV8(item) ? "Maksetaan kassalla" : undefined}
                     >
-                      {isAlcoholCartItemV7(item) ? "kassa" : price}
+                      {isAlcoholCartItemV8(item) ? "kassa" : price}
                     </div>
                   </article>
                 );
