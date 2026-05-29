@@ -1,5 +1,7 @@
 "use client";
 
+// V3_RESTORE_COMPASS_MAP_BUTTON: palautettu kompassi/karttanappi StoreLoca-korttiin onOpenMap-propilla.
+
 import React from "react";
 
 export type ZiiplyStoreLocaCardProps = {
@@ -8,6 +10,7 @@ export type ZiiplyStoreLocaCardProps = {
   onApplyLocation?: () => void | Promise<void>;
   onUseOwnLocation?: () => void | Promise<void>;
   onDisableOwnLocation?: () => void;
+  onOpenMap?: () => void;
   onOpenShops?: () => void;
   usingOwnLocation?: boolean;
   locationMessage?: string;
@@ -30,6 +33,7 @@ export default function ZiiplyStoreLocaCard({
   onApplyLocation,
   onUseOwnLocation,
   onDisableOwnLocation,
+  onOpenMap,
   onOpenShops,
   usingOwnLocation = false,
   locationMessage = "Kirjoita alue tai käytä omaa sijaintia.",
@@ -93,6 +97,20 @@ export default function ZiiplyStoreLocaCard({
           placeholder={placeholder}
           className="h-[56px] min-w-[220px] basis-[32%] rounded-[1.45rem] border-2 border-[#c6a86d] bg-[#fff9ea] px-5 text-base font-black text-[#27412a] shadow-[inset_0_2px_8px_rgba(91,65,28,0.10),0_1px_0_#fff6dc] outline-none placeholder:text-[#8b846f] focus:border-[#0b7f3a] focus:ring-4 focus:ring-[#c4dfbd]"
         />
+
+        <button
+          type="button"
+          onClick={() => void onOpenMap?.()}
+          disabled={!onOpenMap}
+          aria-label="Avaa kartta ja reitit"
+          title="Avaa kartta ja reitit"
+          className={cx(
+            "flex h-[56px] w-[72px] shrink-0 items-center justify-center rounded-[1.35rem] border-2 bg-[#fff9ea] text-[2rem] font-black text-[#143b24] shadow-[0_3px_0_rgba(91,72,44,0.16),inset_0_0_0_1px_rgba(255,255,255,0.65)] ring-1 ring-[#d6bf8f] transition hover:brightness-105 active:scale-[0.98]",
+            !onOpenMap && "cursor-not-allowed opacity-45",
+          )}
+        >
+          🧭
+        </button>
 
         <button
           type="button"
