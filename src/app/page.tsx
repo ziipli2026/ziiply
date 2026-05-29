@@ -1,5 +1,6 @@
 "use client";
 
+// V559_ELECTRICITY_LOCAL_CACHE: pörssisähkö käyttää selaimen localStorage-muistia; viimeisin hinta näytetään heti ja uusi haetaan taustalla.
 // V558_ELECTRICITY_RETRO_SIGNAL_LAMP: korvaa sähkön kolmionuolen vanhan ajan pienellä merkkivalolla.
 // V557_ELECTRICITY_QUARTER_PRICING_SAHKOTIN: käyttää ensisijaisesti Sähköttimen varttihinta-API:a quarter&fix&vat ja vertaa trendin seuraavaan 15 min jaksoon.
 // V556_ELECTRICITY_INDICATOR_FORCE_VISIBLE: trendi-indikaattori renderöidään sähköpaneelin absoluuttiseksi omaksi merkiksi, ei hinnan rivin sisään.
@@ -420,6 +421,9 @@ function formatLocationNoticeV465(message: string) {
 }
 
 const WEATHER_APP_DISABLED_TEST_V487 = false;
+const ZIIPLY_ELECTRICITY_PRICE_CACHE_KEY_V559 =
+  "ziiply-electricity-price-cache-v1";
+
 
 function KauppiasMobileTopBar({
   hidden = false,
@@ -507,6 +511,66 @@ function KauppiasMobileTopBar({
 
     let cancelled = false;
 
+    function readCachedElectricity() {
+      try {
+        const raw = window.localStorage.getItem(ZIIPLY_ELECTRICITY_PRICE_CACHE_KEY_V559);
+        if (!raw) return null;
+
+        const cached = JSON.parse(raw) as {
+          value?: string;
+          text?: string;
+          trend?: "up" | "down" | "flat";
+          savedAt?: number;
+        };
+
+        if (!cached?.value || !cached?.savedAt) return null;
+
+        return cached;
+      } catch {
+        return null;
+      }
+    }
+
+    function writeCachedElectricity(next: {
+      value: string;
+      text: string;
+      trend: "up" | "down" | "flat";
+    }) {
+      try {
+        window.localStorage.setItem(
+          ZIIPLY_ELECTRICITY_PRICE_CACHE_KEY_V559,
+          JSON.stringify({
+            ...next,
+            savedAt: Date.now(),
+          }),
+        );
+      } catch {
+        // localStorage voi olla estetty; silloin jatketaan ilman muistia.
+      }
+    }
+
+    function showCachedElectricityIfAvailable() {
+      const cached = readCachedElectricity();
+      if (!cached) return false;
+
+      const ageMs = Date.now() - Number(cached.savedAt);
+      const ageMinutes = Math.max(0, Math.round(ageMs / 60000));
+
+      setElectricityValue(cached.value);
+      setElectricityTrend(cached.trend || "flat");
+
+      if (ageMinutes <= 20) {
+        setElectricityText(cached.text || "c/kWh");
+      } else if (ageMinutes < 120) {
+        setElectricityText("muistista");
+      } else {
+        setElectricityText("vanha tieto");
+      }
+
+      return true;
+    }
+
+
     function readNumber(value: unknown) {
       if (typeof value === "number") return Number.isFinite(value) ? value : null;
 
@@ -580,16 +644,21 @@ function KauppiasMobileTopBar({
       return response.json();
     }
 
+    let latestResolvedTrend: "up" | "down" | "flat" = "flat";
+
     function setTrendFromNext(currentPrice: number, nextPrice: number | null) {
       if (nextPrice == null) {
+        latestResolvedTrend = "flat";
         setElectricityTrend("flat");
         return;
       }
 
       const diff = nextPrice - currentPrice;
-      if (diff > 0.05) setElectricityTrend("up");
-      else if (diff < -0.05) setElectricityTrend("down");
-      else setElectricityTrend("flat");
+      if (diff > 0.05) latestResolvedTrend = "up";
+      else if (diff < -0.05) latestResolvedTrend = "down";
+      else latestResolvedTrend = "flat";
+
+      setElectricityTrend(latestResolvedTrend);
     }
 
     function formatLocalDateParts() {
@@ -779,8 +848,12 @@ function KauppiasMobileTopBar({
     async function loadElectricity() {
       if (cancelled) return;
 
-      setElectricityValue("…");
-      setElectricityText("haetaan");
+      const hadCachedElectricity = showCachedElectricityIfAvailable();
+
+      if (!hadCachedElectricity) {
+        setElectricityValue("…");
+        setElectricityText("haetaan");
+      }
 
       const readers = [
         readSahkotinQuarter,
@@ -796,13 +869,20 @@ function KauppiasMobileTopBar({
           const price = await reader();
           if (cancelled) return;
 
-          setElectricityValue(
-            price.toLocaleString("fi-FI", {
-              minimumFractionDigits: 1,
-              maximumFractionDigits: 1,
-            }),
-          );
+          const formattedPrice = price.toLocaleString("fi-FI", {
+            minimumFractionDigits: 1,
+            maximumFractionDigits: 1,
+          });
+
+          setElectricityValue(formattedPrice);
           setElectricityText("c/kWh");
+
+          writeCachedElectricity({
+            value: formattedPrice,
+            text: "c/kWh",
+            trend: latestResolvedTrend,
+          });
+
           return;
         } catch (error) {
           errors.push(error instanceof Error ? error.message : "api virhe");
@@ -810,6 +890,9 @@ function KauppiasMobileTopBar({
       }
 
       if (cancelled) return;
+
+      const hadCachedElectricityAfterFailure = showCachedElectricityIfAvailable();
+      if (hadCachedElectricityAfterFailure) return;
 
       setElectricityValue("—");
       setElectricityTrend("flat");
