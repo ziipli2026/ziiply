@@ -11408,7 +11408,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         {/* V531_HAE_READY_MICRO_BADGE_RENDER */}
           {haeReadyBadgeVisibleV502 ? (
-            <div className="pointer-events-none fixed bottom-[calc(env(safe-area-inset-bottom)+5.05rem)] left-[calc(50%+3.9rem)] z-[10001] -translate-x-1/2 animate-[ziiplyMicroReady_2.15s_ease-out_forwards] sm:hidden">
+            <div className="pointer-events-none fixed bottom-[calc(env(safe-area-inset-bottom)+5.05rem)] left-[calc(50%-5.2rem)] z-[10001] -translate-x-1/2 animate-[ziiplyMicroReady_2.15s_ease-out_forwards] sm:hidden">
               <div className="relative rounded-[0.58rem] border-[2px] border-[#0b5b31] bg-[linear-gradient(180deg,#0c9143_0%,#087237_100%)] px-2.5 py-[3px] text-[9px] font-black italic leading-none text-[#fff1c8] shadow-[0_3px_0_#064a26,0_8px_18px_rgba(8,75,42,0.24),inset_0_0_0_1px_rgba(255,255,255,0.20)]">
                 <span className="absolute -left-[5px] -top-[6px] text-[10px] leading-none text-[#f8c94b] drop-shadow-[0_1px_0_#6c4a10]">✦</span>
                 {haeReadyBadgeTextV502}
