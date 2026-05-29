@@ -1,5 +1,6 @@
 "use client";
 
+// V543_MOBILE_CART_REMOVEITEM_TYPE_FIX: korjaa mobiilin paperikorin Poista-kutsun; removeCartItem saa string-avaimen eikä CartItem-oliota.
 // V542_MOBILE_CART_PAPER_CARD_CONNECTED: mobiili-Kori käyttää uutta ZiiplyMobileCartCard-paperivihko/keräilylista-komponenttia.
 // V527_MOBILE_SEARCH_RESULTS_CARD_AND_ELECTRICITY_REPAIR: mobiilin hakutulokset omalle kortille ja pörssisähkö korjattu suorahaulla.
 // V541_READY_BADGE_ONLY_ON_STORE_READY_CHANGE: 'Voit hakea' ei syty korttien välillä siirtyessä eikä results-kortilta poistuttaessa.
@@ -11386,7 +11387,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 return String(key) === String(item.id);
               });
 
-              if (match) removeCartItem(match as CartItem);
+              if (match) {
+                const key =
+                  (match as any).id ??
+                  (match as any).ean ??
+                  (match as any).name ??
+                  (match as any).product?.id ??
+                  (match as any).product?.ean ??
+                  JSON.stringify(match);
+
+                removeCartItem(String(key));
+              }
             }}
             onToggleItem={(item: any) => {
               const key = String(item.id ?? "");
