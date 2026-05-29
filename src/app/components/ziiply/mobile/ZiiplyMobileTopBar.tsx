@@ -1,5 +1,8 @@
 "use client";
 
+// ZIIPLY_MOBILE_TOPBAR_V4_ELECTRICITY_STEP_REBUILD
+// Pörssisähkö rakennettu uudelleen samaan suoraviivaiseen state -> render -malliin kuin sää.
+
 import React, { useEffect, useMemo, useState } from "react";
 
 type InfoKind = "weather" | "electricity" | "fuel" | "calendar";
@@ -151,8 +154,8 @@ export default function ZiiplyMobileTopBar({
 }: ZiiplyMobileTopBarProps) {
   const [autoWeatherValue, setAutoWeatherValue] = useState("+18°");
   const [autoWeatherText, setAutoWeatherText] = useState(areaLabel);
-  const [autoElectricityValue, setAutoElectricityValue] = useState("4,2");
-  const [autoElectricityText, setAutoElectricityText] = useState("5 min");
+  const [autoElectricityValue, setAutoElectricityValue] = useState("—");
+  const [autoElectricityText, setAutoElectricityText] = useState("haetaan");
 
   useEffect(() => {
     if (hidden || typeof window === "undefined" || !navigator.geolocation) return;
@@ -203,31 +206,196 @@ export default function ZiiplyMobileTopBar({
 
     let cancelled = false;
 
-    async function loadElectricity() {
-      try {
-        const response = await fetch("https://api.porssisahko.net/v1/latest-prices.json", {
-          cache: "no-store",
-        });
+    function readNumber(value: unknown) {
+      if (typeof value === "number") return Number.isFinite(value) ? value : null;
 
-        if (!response.ok || cancelled) return;
+      const text = String(value ?? "")
+        .trim()
+        .replace(/\s/g, "")
+        .replace(",", ".");
 
-        const data = await response.json();
-        const prices = Array.isArray(data?.prices) ? data.prices : [];
-        const now = Date.now();
+      const match = text.match(/-?\d+(?:\.\d+)?/);
+      if (!match) return null;
 
-        const current = prices.find((item: any) => {
-          const start = new Date(item.startDate).getTime();
-          const end = new Date(item.endDate).getTime();
-          return Number.isFinite(start) && Number.isFinite(end) && start <= now && now < end;
-        });
+      const number = Number(match[0]);
+      return Number.isFinite(number) ? number : null;
+    }
 
-        const price = Number(current?.price);
-        if (Number.isFinite(price)) {
-          setAutoElectricityValue(fmtFi(price, 1));
-          setAutoElectricityText("c/kWh");
+    function toCentsPerKwh(value: unknown, unit: "cents" | "eur" = "cents") {
+      const number = readNumber(value);
+      if (number == null) return null;
+
+      const cents = unit === "eur" ? number * 100 : number;
+
+      if (!Number.isFinite(cents) || Math.abs(cents) > 500) return null;
+
+      return cents;
+    }
+
+    function readPrice(item: any) {
+      if (!item || typeof item !== "object") return null;
+
+      return (
+        toCentsPerKwh(item.price, "cents") ??
+        toCentsPerKwh(item.value, "cents") ??
+        toCentsPerKwh(item.priceWithTax, "cents") ??
+        toCentsPerKwh(item.PriceWithTax, "cents") ??
+        toCentsPerKwh(item.spotPrice, "cents") ??
+        toCentsPerKwh(item.SpotPrice, "cents") ??
+        toCentsPerKwh(item.centsPerKwh, "cents") ??
+        toCentsPerKwh(item.cents_per_kwh, "cents") ??
+        toCentsPerKwh(item.EUR_per_kWh, "eur") ??
+        toCentsPerKwh(item.eur_per_kwh, "eur") ??
+        toCentsPerKwh(item.eurPerKwh, "eur")
+      );
+    }
+
+    function readTime(...values: unknown[]) {
+      for (const value of values) {
+        if (value == null) continue;
+
+        const time = new Date(String(value)).getTime();
+        if (Number.isFinite(time)) return time;
+      }
+
+      return null;
+    }
+
+    async function fetchJson(url: string) {
+      const separator = url.includes("?") ? "&" : "?";
+      const response = await fetch(`${url}${separator}ziiply_no_cache=${Date.now()}`, {
+        cache: "no-store",
+        headers: {
+          accept: "application/json",
+        },
+      });
+
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+      return response.json();
+    }
+
+    async function readFromLatestPrices() {
+      const urls = [
+        "https://api.porssisahko.net/v1/latest-prices.json",
+        "https://api.porssisahko.net/v2/latest-prices.json",
+      ];
+
+      let lastMessage = "ei listaa";
+
+      for (const url of urls) {
+        try {
+          const data = await fetchJson(url);
+          const rawPrices = Array.isArray(data?.prices)
+            ? data.prices
+            : Array.isArray(data)
+              ? data
+              : [];
+
+          const windows = rawPrices
+            .map((item: any) => {
+              const price = readPrice(item);
+              const startMs = readTime(
+                item.startDate,
+                item.start,
+                item.StartDate,
+                item.time_start,
+                item.date,
+                item.Date,
+              );
+              const endMs = readTime(
+                item.endDate,
+                item.end,
+                item.EndDate,
+                item.time_end,
+              );
+
+              if (price == null || startMs == null || endMs == null) return null;
+
+              return { price, startMs, endMs };
+            })
+            .filter(Boolean)
+            .sort((a: any, b: any) => a.startMs - b.startMs) as Array<{
+              price: number;
+              startMs: number;
+              endMs: number;
+            }>;
+
+          if (windows.length === 0) {
+            lastMessage = "tyhjä lista";
+            continue;
+          }
+
+          const now = Date.now();
+          const current = windows.find((item) => item.startMs <= now && now < item.endMs);
+
+          if (!current) {
+            lastMessage = "ei nykyhetkeä";
+            continue;
+          }
+
+          return current.price;
+        } catch (error) {
+          lastMessage = error instanceof Error ? error.message : "api virhe";
         }
-      } catch {
-        // jätetään viimeisin arvo
+      }
+
+      throw new Error(lastMessage);
+    }
+
+    async function readFromDirectPrice() {
+      const iso = new Date().toISOString();
+      const data = await fetchJson(
+        `https://api.porssisahko.net/v2/price.json?date=${encodeURIComponent(iso)}`,
+      );
+
+      const price = readPrice(data);
+      if (price == null) throw new Error("ei hintaa");
+
+      return price;
+    }
+
+    async function loadElectricity() {
+      if (cancelled) return;
+
+      setAutoElectricityText("haetaan");
+
+      try {
+        let price: number | null = null;
+        let latestError = "";
+
+        try {
+          price = await readFromLatestPrices();
+        } catch (error) {
+          latestError = error instanceof Error ? error.message : "listahaku";
+        }
+
+        if (price == null) {
+          try {
+            price = await readFromDirectPrice();
+          } catch (error) {
+            const directError = error instanceof Error ? error.message : "suorahaku";
+            throw new Error(`${latestError} / ${directError}`);
+          }
+        }
+
+        if (cancelled) return;
+
+        setAutoElectricityValue(fmtFi(price, 1));
+        setAutoElectricityText("c/kWh");
+      } catch (error) {
+        if (cancelled) return;
+
+        const message = error instanceof Error ? error.message : "api virhe";
+
+        setAutoElectricityValue("—");
+
+        if (message.includes("Failed to fetch")) setAutoElectricityText("fetch virhe");
+        else if (message.includes("HTTP")) setAutoElectricityText(message.slice(0, 12));
+        else if (message.includes("ei nykyhetkeä")) setAutoElectricityText("ei nykyhetkeä");
+        else if (message.includes("tyhjä lista")) setAutoElectricityText("tyhjä lista");
+        else if (message.includes("ei hintaa")) setAutoElectricityText("ei hintaa");
+        else setAutoElectricityText("api virhe");
       }
     }
 
