@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_CART_CARD_V14_COORDINATE_ONLY_ALIGNMENT
+// ZIIPLY_MOBILE_CART_CARD_V15_COORDINATE_COLOR_ONLY_FIX
 // Mobiilin Tavarainkeruu-paperivihko.
 // V3:
 // - "Ostoskori" poistettu kokonaan näkyvästä UI:sta.
@@ -229,7 +229,7 @@ function QuantityCell({
       <button
         type="button"
         onClick={() => onIncrease?.(item)}
-        className="grid h-full w-full place-items-center pl-[0.82rem] rounded-[0.32rem] bg-[#fff1c6]/10 text-[0.98rem] font-black leading-none text-[#3d301a] active:translate-y-[1px] active:bg-[#fff1c6]/34"
+        className="grid h-full w-full place-items-center pl-[0.34rem] rounded-[0.32rem] bg-[#fff1c6]/10 text-[0.98rem] font-black leading-none text-[#3d301a] active:translate-y-[1px] active:bg-[#fff1c6]/34"
         style={{ fontFamily: serifFont }}
         aria-label="Lisää määrää"
         title="Lisää määrää"
@@ -244,8 +244,8 @@ function QuantityCell({
         }}
         disabled={!canDecrease}
         className={cx(
-          "absolute left-[0.86rem] top-1/2 grid h-[1.55rem] w-[1.05rem] -translate-y-1/2 place-items-center rounded-[0.24rem] text-[0.82rem] font-black leading-none text-[#c83228] active:translate-y-[calc(-50%+1px)]",
-          canDecrease ? "active:bg-[#fff1c6]/38" : "opacity-20",
+          "absolute left-[1.02rem] top-1/2 grid h-[1.55rem] w-[1.05rem] -translate-y-1/2 place-items-center rounded-[0.24rem] text-[0.82rem] font-black leading-none !text-[#d01913] active:translate-y-[calc(-50%+1px)]",
+          canDecrease ? "!text-[#d01913] active:bg-[#fff1c6]/38" : "!text-[#d01913]/25",
         )}
         aria-label="Vähennä määrää"
         title="Vähennä määrää"
@@ -425,7 +425,7 @@ export default function ZiiplyMobileCartCard({
         <footer className="relative z-10 shrink-0 px-5 pb-4 pt-1">
           <div className="relative mb-2 border-t-[2px] border-[#9b7b3d]/62 pt-2 text-[#473719]">
             <span
-              className="absolute left-[55.6%] top-[0.58rem] -translate-x-1/2 text-[0.76rem] font-black uppercase tracking-[0.04em]"
+              className="absolute left-[61.0%] top-[0.58rem] -translate-x-1/2 text-[0.76rem] font-black uppercase tracking-[0.04em]"
               style={{ fontFamily: copperplateFont }}
             >
               Yht.
