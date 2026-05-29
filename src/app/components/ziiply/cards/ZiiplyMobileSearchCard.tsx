@@ -1,13 +1,9 @@
 "use client";
 
-// V467_MOBILE_SEARCH_LAYOUT_REFINEMENT:
-// - otsikko adaptiiviseksi ilman "Tuotteet ja vertailu" katkaisua
-// - vihkonappi pienemmäksi
-// - hakukenttä matalammaksi
-// - Gösta/Justiina suuremmiksi
-// - hakutapa pystypalkiksi
-// - ohjeteksti mahtuu banneriin
-// - mikki/kamera lähemmäs alareunaa
+// V469_MOBILE_SEARCH_FIX_ASSISTANTS_SCANNER_ADD_BUTTON:
+ // - Gösta/Justiina näkyviin: AssistantButton sai w-full-leveyden
+ // - kamera/skanneri normaaliksi ilman väärää täyttöskaalausta
+ // - lisätty erillinen Lisää koriin -nappi abstraktin muistilistatuotteen lisäämiseen
 
 import React from "react";
 
@@ -112,7 +108,7 @@ function AssistantButton({
       aria-label={name}
       title={name}
       className={cx(
-        "relative h-[4.15rem] min-w-0 overflow-hidden rounded-[1.15rem] border-[2.5px] p-0 shadow-[0_4px_0_rgba(91,72,44,0.20),inset_0_0_0_2px_rgba(255,255,255,0.45)] active:translate-y-[1px]",
+        "relative h-[4.15rem] w-full min-w-0 overflow-hidden rounded-[1.15rem] border-[2.5px] p-0 shadow-[0_4px_0_rgba(91,72,44,0.20),inset_0_0_0_2px_rgba(255,255,255,0.45)] active:translate-y-[1px]",
         isGosta
           ? "border-[#7f9866] bg-gradient-to-b from-[#f0f3d7] to-[#d0dda0]"
           : "border-[#d3b255] bg-gradient-to-b from-[#fff2c4] to-[#efd06f]",
@@ -221,8 +217,8 @@ function RetroAssetButton({
         alt={label}
         className={cx(
           "absolute left-0 top-0 w-full select-none",
-          // Scanner is a single idle button image here: no 200% zoom/crop.
-          kind === "scanner" ? "h-full object-fill object-center" : "h-full object-fill",
+          // Scanner is a single idle button image here: keep normal proportions.
+          kind === "scanner" ? "h-full object-contain object-center" : "h-full object-fill",
         )}
         draggable={false}
       />
@@ -309,8 +305,25 @@ export default function ZiiplyMobileSearchCard({
             />
           </div>
 
-          <div className="relative z-10 mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-2.5">
-            <div className="scale-[1.45]">
+          <div className="relative z-10 mt-2 flex justify-center">
+            <button
+              type="button"
+              onClick={onAddInputToCart}
+              disabled={!hasText}
+              className={cx(
+                "rounded-[1.05rem] border-[2.5px] px-5 py-2 text-[0.9rem] font-black leading-none shadow-[0_3px_0_rgba(60,45,20,0.22)] transition active:translate-y-[1px] active:shadow-none",
+                hasText
+                  ? "border-[#0b6330] bg-[#0b8f3e] text-[#fff0d5]"
+                  : "cursor-not-allowed border-[#c7b37c] bg-[#ead7a5] text-[#9a885c] opacity-55",
+              )}
+              style={{ fontFamily: cooperFont }}
+            >
+              Lisää koriin
+            </button>
+          </div>
+
+          <div className="relative z-10 mt-2 grid grid-cols-[1fr_auto_1fr] items-center gap-2.5">
+            <div className="w-full scale-[1.28]">
               <AssistantButton
                 kind="gosta"
                 onClick={onOfferSearch}
@@ -345,7 +358,7 @@ export default function ZiiplyMobileSearchCard({
               </button>
             </div>
 
-            <div className="scale-[1.45]">
+            <div className="w-full scale-[1.28]">
               <AssistantButton
                 kind="justiina"
                 onClick={onNormalSearch}
