@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_CART_CARD_V17_CLOSE_BUTTON_ALIGN
+// ZIIPLY_MOBILE_CART_CARD_V18_QUANTITY_SYNTAX_FIX
 // Mobiilin Tavarainkeruu-paperivihko.
 // V3:
 // - "Ostoskori" poistettu kokonaan näkyvästä UI:sta.
@@ -27,6 +27,7 @@
 // V15: pakottaa määrän ja miinuksen näkyvän sijainnin suoraan QuantityCellin renderiin.
 // V16: siirtää Yht.-merkinnän pois keskeltä paperia ja alas määrä-sarakkeen yhteissummariville.
 // V17: siirtää vihkosen sulje-painikkeen Virtanen-otsikon vaakatasoon ja pehmentää symbolin vanhan ajan tyyliin.
+// V18: korjaa QuantityCelliin jääneen ylimääräisen tyyppihännän syntaksivirheen.
 
 import React from "react";
 
@@ -240,7 +241,6 @@ function QuantityCell({
 
   return (
     <div className="relative h-[2.05rem] w-full">
-      {/* koko määräsolu lisää määrää, mutta näkyvä asu pysyy paperimaisena */}
       <button
         type="button"
         onClick={() => onIncrease?.(item)}
@@ -274,51 +274,6 @@ function QuantityCell({
       >
         {quantity}
       </span>
-    </div>
-  );
-}: {
-  item: ZiiplyMobileCartItem;
-  quantity: number;
-  onDecrease?: (item: ZiiplyMobileCartItem) => void;
-  onIncrease?: (item: ZiiplyMobileCartItem) => void;
-}) {
-  const canDecrease = quantity > 1;
-
-  return (
-    <div className="relative h-[2.05rem] w-full">
-      <button
-        type="button"
-        onClick={() => onIncrease?.(item)}
-        className="absolute inset-0 rounded-[0.32rem] bg-[#fff1c6]/5 active:translate-y-[1px] active:bg-[#fff1c6]/28"
-        aria-label="Lisää määrää"
-        title="Lisää määrää"
-      />
-
-      <button
-        type="button"
-        onClick={() => {
-          if (canDecrease) onDecrease?.(item);
-        }}
-        disabled={!canDecrease}
-        className={cx(
-          "absolute left-[-0.12rem] top-1/2 z-10 grid h-[1.52rem] w-[0.92rem] -translate-y-1/2 place-items-center rounded-[0.2rem] text-[0.92rem] font-black leading-none",
-          canDecrease
-            ? "text-[#c1291d] active:bg-[#fff1c6]/36"
-            : "text-[#c1291d]/18",
-        )}
-        style={{ fontFamily: serifFont }}
-        aria-label="Vähennä määrää"
-        title="Vähennä määrää"
-      >
-        −
-      </button>
-
-      <div
-        className="absolute left-[1.1rem] top-1/2 z-10 min-w-[1.1rem] -translate-y-1/2 text-center text-[0.98rem] font-black leading-none text-[#2f281b]"
-        style={{ fontFamily: serifFont }}
-      >
-        {quantity}
-      </div>
     </div>
   );
 }
