@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_CART_CARD_V16_COORDINATE_TOTAL_FORMAT_FIX
+// ZIIPLY_MOBILE_CART_CARD_V17_STRONGER_HORIZONTAL_OFFSETS
 // Mobiilin Tavarainkeruu-paperivihko.
 // V3:
 // - "Ostoskori" poistettu kokonaan näkyvästä UI:sta.
@@ -234,7 +234,7 @@ function QuantityCell({
       <button
         type="button"
         onClick={() => onIncrease?.(item)}
-        className="grid h-full w-full place-items-center pl-[1.10rem] rounded-[0.32rem] bg-[#fff1c6]/10 text-[0.98rem] font-black leading-none text-[#3d301a] active:translate-y-[1px] active:bg-[#fff1c6]/34"
+        className="grid h-full w-full place-items-center pl-[3.35rem] rounded-[0.32rem] bg-[#fff1c6]/10 text-[0.98rem] font-black leading-none text-[#3d301a] active:translate-y-[1px] active:bg-[#fff1c6]/34"
         style={{ fontFamily: serifFont }}
         aria-label="Lisää määrää"
         title="Lisää määrää"
@@ -430,7 +430,7 @@ export default function ZiiplyMobileCartCard({
         <footer className="relative z-10 shrink-0 px-5 pb-4 pt-1">
           <div className="relative mb-2 border-t-[2px] border-[#9b7b3d]/62 pt-2 text-[#473719]">
             <span
-              className="absolute left-[66.2%] top-[0.58rem] -translate-x-1/2 text-[0.76rem] font-black uppercase tracking-[0.04em]"
+              className="absolute left-[71.4%] top-[0.58rem] -translate-x-1/2 text-[0.76rem] font-black uppercase tracking-[0.04em]"
               style={{ fontFamily: copperplateFont }}
             >
               Yht.
