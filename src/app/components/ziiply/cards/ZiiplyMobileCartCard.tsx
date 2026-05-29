@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_CART_CARD_V6_DELETE_BEFORE_PRICE
+// ZIIPLY_MOBILE_CART_CARD_V7_VISUAL_ALIGN_AND_ALCOHOL_EXCLUDED
 // Mobiilin Tavarainkeruu-paperivihko.
 // V3:
 // - "Ostoskori" poistettu kokonaan näkyvästä UI:sta.
@@ -16,6 +16,7 @@
 // V4: yläosan tekstit ja toiminnot sovitettu paremmin paperin omaan painatukseen.
 // V5: Tavarainkeruu siirretty Pvm-kohdan vasemmalle puolelle pienempänä; määräsolusta tehty sormiystävällinen; N:o-merkki keskitetty ja suurennettu.
 // V6: poisto-X siirretty hinnan vasemmalle puolelle, jotta HINTA-sarake jää puhtaaksi.
+// V7: määrä/poisto/hinta kohdistettu paperisarakeisiin; alkoholijuomat näkyvät keräilyssä mutta eivät kuulu yhteissummaan.
 
 import React from "react";
 
@@ -136,6 +137,40 @@ function LedgerButton({
   );
 }
 
+
+function isAlcoholCartItemV7(item: ZiiplyMobileCartItem) {
+  const text = [
+    item.name,
+    (item as any).brand,
+    (item as any).category,
+    (item as any).categoryName,
+    (item as any).productGroup,
+    (item as any).department,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  return /\b(olut|lonkero|siideri|viini|kuohuviini|alkoholijuoma|alkoholi|gin|vodka|rommi|viski|whisky|konjakki|brandy)\b/.test(
+    text,
+  );
+}
+
+function getDisplayCartTotalV7(items: ZiiplyMobileCartItem[]) {
+  return items.reduce((sum, item) => {
+    if (isAlcoholCartItemV7(item)) return sum;
+
+    const quantity = getCartItemQuantity(item);
+    const unitPrice = readCartItemPrice(item);
+
+    return sum + unitPrice * quantity;
+  }, 0);
+}
+
+function hasAlcoholCartItemsV7(items: ZiiplyMobileCartItem[]) {
+  return items.some(isAlcoholCartItemV7);
+}
+
 function QuantityCell({
   item,
   quantity,
@@ -150,11 +185,11 @@ function QuantityCell({
   const canDecrease = quantity > 1;
 
   return (
-    <div className="grid h-[2.05rem] grid-cols-[1fr_1.35rem] items-center gap-[0.08rem]">
+    <div className="relative grid h-[2.05rem] w-full place-items-center">
       <button
         type="button"
         onClick={() => onIncrease?.(item)}
-        className="grid h-full min-w-[2.55rem] place-items-center rounded-[0.35rem] bg-[#fff1c6]/20 text-[0.95rem] font-black leading-none text-[#3d301a] active:translate-y-[1px] active:bg-[#fff1c6]/38"
+        className="grid h-full w-full place-items-center rounded-[0.32rem] bg-[#fff1c6]/10 text-[0.98rem] font-black leading-none text-[#3d301a] active:translate-y-[1px] active:bg-[#fff1c6]/34"
         style={{ fontFamily: serifFont }}
         aria-label="Lisää määrää"
         title="Lisää määrää"
@@ -169,8 +204,8 @@ function QuantityCell({
         }}
         disabled={!canDecrease}
         className={cx(
-          "grid h-[1.72rem] w-[1.35rem] place-items-center rounded-[0.28rem] text-[0.9rem] font-black leading-none active:translate-y-[1px]",
-          canDecrease ? "text-[#6d5430] active:bg-[#fff1c6]/38" : "text-[#6d5430]/20",
+          "absolute left-[0.08rem] top-1/2 grid h-[1.55rem] w-[1.05rem] -translate-y-1/2 place-items-center rounded-[0.24rem] text-[0.78rem] font-black leading-none active:translate-y-[calc(-50%+1px)]",
+          canDecrease ? "text-[#8c5a38]/72 active:bg-[#fff1c6]/38" : "text-[#8c5a38]/16",
         )}
         aria-label="Vähennä määrää"
         title="Vähennä määrää"
@@ -291,7 +326,7 @@ export default function ZiiplyMobileCartCard({
                   <article
                     key={String(item.id ?? item.ean ?? index)}
                     className={cx(
-                      "grid min-h-[2.22rem] grid-cols-[2.05rem_minmax(0,1fr)_3.95rem_1.22rem_4.45rem] items-center gap-1 border-b-[1.35px] border-[#b9944d]/68 bg-transparent px-1 py-[0.28rem]",
+                      "grid min-h-[2.22rem] grid-cols-[2.05rem_minmax(0,1fr)_3.35rem_1.35rem_4.2rem] items-center gap-1 border-b-[1.35px] border-[#b9944d]/68 bg-transparent px-1 py-[0.28rem]",
                       checked && "opacity-55",
                     )}
                   >
@@ -326,15 +361,24 @@ export default function ZiiplyMobileCartCard({
                     <button
                       type="button"
                       onClick={() => onRemoveItem?.(item)}
-                      className="h-[1.4rem] w-full text-center text-[0.66rem] font-black leading-none text-[#7b3215]/50 active:translate-y-[1px]"
+                      className="grid h-[1.7rem] w-full place-items-center text-[0.72rem] font-black leading-none text-[#9a4c2a]/62 active:translate-y-[1px]"
                       aria-label="Poista"
                       title="Poista"
                     >
                       ×
                     </button>
 
-                    <div className="min-w-0 pr-[0.06rem] text-right text-[0.84rem] font-black leading-none text-[#3f321f]" style={{ fontFamily: serifFont }}>
-                      {price}
+                    <div
+                      className={cx(
+                        "min-w-0 pr-[0.08rem] text-right font-black leading-none",
+                        isAlcoholCartItemV7(item)
+                          ? "text-[0.58rem] italic text-[#7b3215]/78"
+                          : "text-[0.84rem] text-[#3f321f]",
+                      )}
+                      style={{ fontFamily: serifFont }}
+                      title={isAlcoholCartItemV7(item) ? "Maksetaan kassalla" : undefined}
+                    >
+                      {isAlcoholCartItemV7(item) ? "kassa" : price}
                     </div>
                   </article>
                 );
@@ -355,6 +399,15 @@ export default function ZiiplyMobileCartCard({
               })} €
             </span>
           </div>
+
+          {hasAlcoholItemsV7 && (
+            <div
+              className="mx-auto mb-1 max-w-[14rem] rounded-[0.35rem] border border-[#9a6137]/45 bg-[#fff0c7]/44 px-2 py-1 text-center text-[0.52rem] font-black italic leading-tight text-[#7b3215]/82"
+              style={{ fontFamily: serifFont }}
+            >
+              Alkoholijuomat maksetaan kassalla, eivätkä sisälly yhteissummaan.
+            </div>
+          )}
 
           <button
             type="button"
