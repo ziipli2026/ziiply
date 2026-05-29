@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_CART_CARD_V19_CLOSE_YHT_TARGETED_FIX
+// ZIIPLY_MOBILE_CART_CARD_V20_COORDINATE_ONLY_FIX
 // Mobiilin Tavarainkeruu-paperivihko.
 // V3:
 // - "Ostoskori" poistettu kokonaan näkyvästä UI:sta.
@@ -20,13 +20,10 @@
 // V8: alkoholin yhteissummalaskenta ei enää riipu myöhemmin määritellyistä getCartItemQuantity/readCartItemPrice-funktioista.
 // V9: korjaa hasAlcoholItemsV7 → hasAlcoholItemsV8 nimeämisvirheen buildissä.
 // V10: varmistaa, että hasAlcoholItemsV8 määritellään komponentin sisällä ennen renderiä.
+// V20: vain koordinaattisäätö; ei muutoksia QuantityCell-rakenteeseen.
 // V11: korjaa hasAlcoholItemsV8-muuttujan scopen ja vaihtaa pääkomponentin yhteissumman alkoholittomaksi.
 // V12: korjaa paperisarakkeiden visuaalisen kohdistuksen, kassa/huomio-tekstit ja yhteissumman sentti/euro-indeksivirheen.
 // V13: miinusmerkki ja poisto-ruksi korostettu punertaviksi sekä siirretty lähemmäs sarakeviivoja.
-// V14: määrä-sarakkeen asettelu mockupin mukaiseksi; miinus aidosti punaiseksi ja määrän keskitys korjattu.
-// V15: pakottaa määrän ja miinuksen näkyvän sijainnin suoraan QuantityCellin renderiin.
-// V16: siirtää Yht.-merkinnän pois keskeltä paperia ja alas määrä-sarakkeen yhteissummariville.
-// V19: kohdistettu korjaus Sulje-nappiin ja Yht.-tekstin paikkaan.
 
 import React from "react";
 
@@ -230,24 +227,18 @@ function QuantityCell({
   quantity,
   onDecrease,
   onIncrease,
-}: {
-  item: ZiiplyMobileCartItem;
-  quantity: number;
-  onDecrease?: (item: ZiiplyMobileCartItem) => void;
-  onIncrease?: (item: ZiiplyMobileCartItem) => void;
-}) {
-  const canDecrease = quantity > 1;
-
-  return (
-    <div className="relative h-[2.05rem] w-full">
-      {/* koko määräsolu lisää määrää, mutta näkyvä asu pysyy paperimaisena */}
+return (
+    <div className="relative grid h-[2.05rem] w-full place-items-center">
       <button
         type="button"
         onClick={() => onIncrease?.(item)}
-        className="absolute inset-y-0 left-0 right-0 z-0 rounded-[0.32rem] bg-transparent active:bg-[#fff1c6]/24"
+        className="grid h-full w-full place-items-center rounded-[0.32rem] bg-[#fff1c6]/10 pl-[0.52rem] text-[0.98rem] font-black leading-none text-[#3d301a] active:translate-y-[1px] active:bg-[#fff1c6]/34"
+        style={{ fontFamily: serifFont }}
         aria-label="Lisää määrää"
         title="Lisää määrää"
-      />
+      >
+        {quantity}
+      </button>
 
       <button
         type="button"
@@ -256,69 +247,14 @@ function QuantityCell({
         }}
         disabled={!canDecrease}
         className={cx(
-          "absolute left-[-0.28rem] top-1/2 z-20 grid h-[1.6rem] w-[1.05rem] -translate-y-1/2 place-items-center rounded-[0.18rem] text-[1.02rem] font-black leading-none",
-          canDecrease
-            ? "text-[#d52218] drop-shadow-[0_1px_0_rgba(255,238,190,0.65)] active:bg-[#fff1c6]/34"
-            : "text-[#d52218]/22",
+          "absolute left-[-0.02rem] top-1/2 grid h-[1.55rem] w-[1.05rem] -translate-y-1/2 place-items-center rounded-[0.24rem] text-[0.86rem] font-black leading-none active:translate-y-[calc(-50%+1px)]",
+          canDecrease ? "text-[#a2382b]/88 active:bg-[#fff1c6]/38" : "text-[#a2382b]/20",
         )}
-        style={{ fontFamily: serifFont }}
         aria-label="Vähennä määrää"
         title="Vähennä määrää"
       >
         −
       </button>
-
-      <span
-        className="pointer-events-none absolute left-[1.38rem] top-1/2 z-10 block min-w-[1.05rem] -translate-y-1/2 text-center text-[1.02rem] font-black leading-none text-[#2f281b]"
-        style={{ fontFamily: serifFont }}
-      >
-        {quantity}
-      </span>
-    </div>
-  );
-}: {
-  item: ZiiplyMobileCartItem;
-  quantity: number;
-  onDecrease?: (item: ZiiplyMobileCartItem) => void;
-  onIncrease?: (item: ZiiplyMobileCartItem) => void;
-}) {
-  const canDecrease = quantity > 1;
-
-  return (
-    <div className="relative h-[2.05rem] w-full">
-      <button
-        type="button"
-        onClick={() => onIncrease?.(item)}
-        className="absolute inset-0 rounded-[0.32rem] bg-[#fff1c6]/5 active:translate-y-[1px] active:bg-[#fff1c6]/28"
-        aria-label="Lisää määrää"
-        title="Lisää määrää"
-      />
-
-      <button
-        type="button"
-        onClick={() => {
-          if (canDecrease) onDecrease?.(item);
-        }}
-        disabled={!canDecrease}
-        className={cx(
-          "absolute left-[-0.12rem] top-1/2 z-10 grid h-[1.52rem] w-[0.92rem] -translate-y-1/2 place-items-center rounded-[0.2rem] text-[0.92rem] font-black leading-none",
-          canDecrease
-            ? "text-[#c1291d] active:bg-[#fff1c6]/36"
-            : "text-[#c1291d]/18",
-        )}
-        style={{ fontFamily: serifFont }}
-        aria-label="Vähennä määrää"
-        title="Vähennä määrää"
-      >
-        −
-      </button>
-
-      <div
-        className="absolute left-[1.1rem] top-1/2 z-10 min-w-[1.1rem] -translate-y-1/2 text-center text-[0.98rem] font-black leading-none text-[#2f281b]"
-        style={{ fontFamily: serifFont }}
-      >
-        {quantity}
-      </div>
     </div>
   );
 }
@@ -373,12 +309,11 @@ export default function ZiiplyMobileCartCard({
             <button
               type="button"
               onClick={onClose}
-              className="mr-[0.08rem] mt-[-2.02rem] grid h-[2.25rem] w-[2.25rem] shrink-0 place-items-center rounded-full border-[2px] border-[#6f5730] bg-[#fff2cb]/86 text-[1.08rem] font-black leading-none text-[#513d1f] shadow-[0_2px_0_rgba(91,72,44,0.15)] active:translate-y-[1px]"
+              className="mr-[0.08rem] mt-[-2.02rem] grid h-[2.25rem] w-[2.25rem] shrink-0 place-items-center rounded-full border-[2px] border-[#6f5730] bg-[#fff2cb]/82 text-[1.08rem] font-black leading-none text-[#513d1f] shadow-[0_2px_0_rgba(91,72,44,0.15)] active:translate-y-[1px]"
               aria-label="Sulje"
               title="Sulje"
             >
-              ✕
-            </button>
+              ✕</button>
           </div>
 
           <div className="mt-4 grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-2">
@@ -466,7 +401,7 @@ export default function ZiiplyMobileCartCard({
                     <button
                       type="button"
                       onClick={() => onRemoveItem?.(item)}
-                      className="grid h-[1.7rem] w-full place-items-center pr-[0.02rem] text-[0.84rem] font-black leading-none text-[#b33a2b]/86 active:translate-y-[1px]"
+                      className="grid h-[1.7rem] w-full place-items-center pr-[0.02rem] text-[0.84rem] font-black leading-none text-[#b03b2c]/84 active:translate-y-[1px]"
                       aria-label="Poista"
                       title="Poista"
                     >
@@ -506,7 +441,7 @@ export default function ZiiplyMobileCartCard({
           </div>
 
           <div
-            className="pointer-events-none absolute bottom-[4.74rem] right-[7.15rem] z-20 min-w-[2.4rem] text-center text-[0.86rem] font-black leading-none text-[#4b3a1d]/82"
+            className="pointer-events-none absolute bottom-[4.74rem] right-[7.15rem] z-20 min-w-[2.4rem] text-center text-[0.92rem] font-black leading-none text-[#4b3a1d]/82"
             style={{ fontFamily: serifFont }}
           >
             Yht.
