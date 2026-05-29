@@ -1,5 +1,6 @@
 "use client";
 
+// V555_ELECTRICITY_UNIT_ALIGN_AND_VISIBLE_INDICATOR: nostaa c/kWh:n numeron keskilinjaan ja sijoittaa trendi-indikaattorin näkyvästi sähköruudun oikeaan yläosaan.
 // V554_ELECTRICITY_RETRO_INDICATOR_REPOSITION: siirtää sähkön retrotrendin hinnan vierestä otsikkoalueelle.
 // V553_ELECTRICITY_RETRO_TREND_ARROWS: palauttaa pörssisähkön 50-luvun retroindikaattorit: vihreä alas, punainen ylös, viiva vakaalle.
 // V552_ELECTRICITY_SIMULATED_RENDER_PATH_AND_FALLBACKS: varmistettu render-polku; sähkö näkyy ensin haetaan-tilana ja hakee porssisahko + sahkonhintatanaan fallbackeilla.
@@ -844,7 +845,7 @@ function KauppiasMobileTopBar({
                     </div>
                   </div>
 
-                  <div className="mt-[1px] flex items-end justify-center gap-[2px]">
+                  <div className="mt-[1px] flex items-center justify-center gap-[2px]">
                     <span className="text-[18px] font-black leading-none tracking-[-0.04em] text-[#041b19]">
                       {panel.value}
                     </span>
@@ -852,7 +853,7 @@ function KauppiasMobileTopBar({
                       panel.value !== "…" &&
                       panel.value !== "—" && (
                         <span
-                          className={`absolute right-[16px] top-[38px] text-[15px] font-black italic leading-none opacity-90 ${electricityTrendClass}`}
+                          className={`absolute right-[15px] top-[25px] z-20 text-[17px] font-black italic leading-none opacity-95 ${electricityTrendClass}`}
                           title={
                             electricityTrend === "up"
                               ? "Nousussa"
@@ -865,7 +866,7 @@ function KauppiasMobileTopBar({
                         </span>
                       )}
                     {panel.unit && (
-                      <span className="pb-[1px] text-[8px] font-black leading-none opacity-80">
+                      <span className="pt-[2px] text-[8px] font-black leading-none opacity-80">
                         {panel.unit}
                       </span>
                     )}
