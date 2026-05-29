@@ -1,5 +1,7 @@
 "use client";
 
+// V554_ELECTRICITY_RETRO_INDICATOR_REPOSITION: siirtää sähkön retrotrendin hinnan vierestä otsikkoalueelle.
+// V553_ELECTRICITY_RETRO_TREND_ARROWS: palauttaa pörssisähkön 50-luvun retroindikaattorit: vihreä alas, punainen ylös, viiva vakaalle.
 // V552_ELECTRICITY_SIMULATED_RENDER_PATH_AND_FALLBACKS: varmistettu render-polku; sähkö näkyy ensin haetaan-tilana ja hakee porssisahko + sahkonhintatanaan fallbackeilla.
 // V550_RESTORE_INTERNAL_KAUPPIAS_TOPBAR_RENDER: palauttaa renderiin sisäisen KauppiasMobileTopBarin; poistaa ZiiplyMobileTopBar-viittauksen kokonaan.
 // V549_PAGE_INTERNAL_TOPBAR_ACTIVE
@@ -778,10 +780,10 @@ function KauppiasMobileTopBar({
     electricityTrend === "up" ? "▲" : electricityTrend === "down" ? "▼" : "—";
   const electricityTrendClass =
     electricityTrend === "up"
-      ? "text-[#bc1f1f]"
+      ? "text-[#b21f17] drop-shadow-[0_1px_0_rgba(255,240,200,0.72)]"
       : electricityTrend === "down"
-        ? "text-[#087a3a]"
-        : "text-[#68727c]";
+        ? "text-[#087a3a] drop-shadow-[0_1px_0_rgba(255,240,200,0.72)]"
+        : "text-[#6d6047]/82 drop-shadow-[0_1px_0_rgba(255,240,200,0.55)]";
 
   const panels = [
     {
@@ -846,11 +848,22 @@ function KauppiasMobileTopBar({
                     <span className="text-[18px] font-black leading-none tracking-[-0.04em] text-[#041b19]">
                       {panel.value}
                     </span>
-                    {panel.id === "electricity" && panel.value !== "…" && panel.value !== "—" && (
-                      <span className={`pb-[1px] text-[13px] font-black leading-none ${electricityTrendClass}`}>
-                        {electricityTrendArrow}
-                      </span>
-                    )}
+                    {panel.id === "electricity" &&
+                      panel.value !== "…" &&
+                      panel.value !== "—" && (
+                        <span
+                          className={`absolute right-[16px] top-[38px] text-[15px] font-black italic leading-none opacity-90 ${electricityTrendClass}`}
+                          title={
+                            electricityTrend === "up"
+                              ? "Nousussa"
+                              : electricityTrend === "down"
+                                ? "Laskussa"
+                                : "Vakaa"
+                          }
+                        >
+                          {electricityTrendArrow}
+                        </span>
+                      )}
                     {panel.unit && (
                       <span className="pb-[1px] text-[8px] font-black leading-none opacity-80">
                         {panel.unit}
