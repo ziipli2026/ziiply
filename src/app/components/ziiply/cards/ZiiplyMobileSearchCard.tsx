@@ -1,12 +1,13 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V504_MOCKUP_GRID_AI_SQUARE
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V505_AUTOSUGGEST_ERASER_AUTOSEARCH
 // UUSI: rakennettu puhtaalta pohjalta ilman V472-historiaa.
-// UUSI: tekstikenttä päättyy ennen oikean yläkulman Vihkonen/koriin-nappeja.
-// UUSI: Gösta ja Justiina ovat neliöitä; kuvat mahtuvat laatikkoon niin, että tekstit näkyvät.
-// UUSI: Koko kori / Yksi tuote -valitsin on puolitettu pystykorkeudelta ja keskitetty AI-neliöiden keskilinjaan.
+// UUSI: yksirivinen ohje/ennustepalkki, ei näppiksen alle valuvaa kaksirivistä tekstiä.
+// UUSI: pieni 50-retro pyyhekumi tyhjentää tekstikentän yhdellä painalluksella.
+// UUSI: 2,5 s kirjoitustauon jälkeen käynnistyy automaattinen haku.
+// UUSI: koriin-nappi on tekstikentän pystykeskilinjassa.
 
-import React from "react";
+import React, { useEffect, useMemo, useRef } from "react";
 
 export type ZiiplyMobileSearchCardProduct = {
   id?: string | number;
@@ -108,6 +109,29 @@ function GreenPillButton({
       style={{ fontFamily: cooperFont }}
     >
       {label}
+    </button>
+  );
+}
+
+
+function EraserButton({
+  visible,
+  onClick,
+}: {
+  visible: boolean;
+  onClick?: () => void;
+}) {
+  if (!visible) return null;
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label="Tyhjennä hakukenttä"
+      title="Tyhjennä hakukenttä"
+      className="absolute right-[0.62rem] top-1/2 z-20 grid h-[2.05rem] w-[2.05rem] -translate-y-1/2 place-items-center rounded-full border-[2px] border-[#9d8350] bg-[#fff1c9] text-[1.05rem] shadow-[0_2px_0_rgba(91,72,44,0.18),inset_0_0_0_1px_rgba(255,255,255,0.65)] active:translate-y-[calc(-50%+1px)]"
+    >
+      🧽
     </button>
   );
 }
@@ -267,12 +291,72 @@ export default function ZiiplyMobileSearchCard({
   const hasText = input.trim().length > 0;
   const showResults = loading || items.length > 0 || Boolean(subtitle);
   const justiinaLoading = loadingNormal || singleProductCompareLoading;
+  const autoSearchInputRef = useRef("");
+
+  const predictiveText = useMemo(() => {
+    const clean = input.trim();
+
+    if (!clean) {
+      return "Kirjoita hakusana tai sano ostos ääneen.";
+    }
+
+    if (!loading && items.length === 0 && clean.length >= 3) {
+      return `Hakemaasi “${clean}” ei löytynyt.`;
+    }
+
+    const lastWord = clean.split(/[,\s]+/).filter(Boolean).at(-1) || clean;
+
+    const suggestions = [
+      `${lastWord} tarjous`,
+      `${lastWord} halvin`,
+      `${lastWord} kotimainen`,
+    ];
+
+    return suggestions.join(" · ");
+  }, [input, loading, items.length]);
+
+  useEffect(() => {
+    const clean = input.trim();
+
+    if (!open || !clean || clean.length < 2) return;
+    if (loadingOffers || loadingNormal || singleProductCompareLoading) return;
+    if (autoSearchInputRef.current === clean) return;
+
+    const timer = window.setTimeout(() => {
+      const latest = input.trim();
+      if (!latest || latest.length < 2) return;
+      if (autoSearchInputRef.current === latest) return;
+
+      autoSearchInputRef.current = latest;
+
+      if (searchMode === "single") {
+        onNormalSearch?.();
+      } else {
+        onNormalSearch?.();
+      }
+    }, 2500);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    input,
+    open,
+    searchMode,
+    loadingOffers,
+    loadingNormal,
+    singleProductCompareLoading,
+    onNormalSearch,
+  ]);
+
+  const handleClearInput = () => {
+    autoSearchInputRef.current = "";
+    onInputChange?.("");
+  };
 
   if (!open) return null;
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V504_MOCKUP_GRID_AI_SQUARE"
+      data-ziiply-mobile-search-card-version="UUSI_V505_AUTOSUGGEST_ERASER_AUTOSEARCH"
       className={`fixed inset-0 z-[72] flex items-end justify-center overflow-hidden bg-transparent px-2 pb-[calc(env(safe-area-inset-bottom)+6.15rem)] pt-[calc(env(safe-area-inset-top)+5rem)] sm:items-center sm:p-6 ${className}`}
     >
       <section className="relative isolate h-[min(64dvh,36.5rem)] w-full max-w-[28rem] overflow-visible rounded-[2rem] border-[4px] border-[#5b482c] bg-transparent px-3 pt-3 text-[#20301f] shadow-[0_0_0_2px_#d8bd75_inset,0_12px_0_rgba(60,45,20,0.24),0_22px_45px_rgba(15,23,42,0.18)]">
@@ -297,22 +381,28 @@ export default function ZiiplyMobileSearchCard({
                 Tuotteet ja<br />vertailu
               </h1>
 
-              <div className="mt-3 h-[3.65rem] overflow-hidden rounded-[1.45rem] border-[3px] border-[#9d8350] bg-[#fff4d3] p-1.5 shadow-[inset_0_3px_8px_rgba(91,65,28,0.10)]">
+              <div className="relative mt-3 h-[3.65rem] overflow-hidden rounded-[1.45rem] border-[3px] border-[#9d8350] bg-[#fff4d3] p-1.5 shadow-[inset_0_3px_8px_rgba(91,65,28,0.10)]">
                 <textarea
                   ref={inputRef}
                   value={input}
-                  onChange={(event) => onInputChange?.(event.target.value)}
+                  onChange={(event) => {
+                    autoSearchInputRef.current = "";
+                    onInputChange?.(event.target.value);
+                  }}
                   rows={2}
                   placeholder={searchMode === "single" ? "Kirjoita yksi tuote" : "maito, kahvi"}
-                  className="block h-full w-full resize-none overflow-hidden rounded-[1.15rem] border-0 bg-[#fffaf0] px-3 py-2 text-center text-[1.18rem] font-black leading-[1.02] text-[#102216] outline-none placeholder:text-[#7d7461]"
+                  className="block h-full w-full resize-none overflow-hidden rounded-[1.15rem] border-0 bg-[#fffaf0] px-3 py-2 pr-[2.7rem] text-center text-[1.18rem] font-black leading-[1.02] text-[#102216] outline-none placeholder:text-[#7d7461]"
                   style={{ fontFamily: hasText ? serifFont : cooperFont }}
                 />
+                <EraserButton visible={hasText} onClick={handleClearInput} />
               </div>
             </div>
 
-            <div className="flex w-[6.9rem] shrink-0 flex-col items-stretch gap-2 pt-[0.1rem]">
+            <div className="grid w-[6.9rem] shrink-0 grid-rows-[auto_3.65rem] gap-3 pt-[0.1rem]">
               <GreenPillButton label="Vihkonen" onClick={onAddInputToCart} />
-              <GreenPillButton label="koriin" onClick={onAddInputToCart} disabled={!hasText} />
+              <div className="flex items-center">
+                <GreenPillButton label="koriin" onClick={onAddInputToCart} disabled={!hasText} />
+              </div>
             </div>
           </div>
 
@@ -334,13 +424,13 @@ export default function ZiiplyMobileSearchCard({
             />
           </div>
 
-          <div className="relative z-10 mt-3 flex min-h-[3rem] items-center justify-center overflow-hidden rounded-[1.18rem] border-[3px] border-[#d2b170] bg-[#fff1bf] px-3 text-center text-[0.84rem] font-black text-[#7a6842] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_3px_0_rgba(91,72,44,0.12)]">
-            <span className="block">
-              {subtitle || "Justiina ehdottaa sopivia hakusanoja kirjoituksen mukaan."}
+          <div className="relative z-10 mt-2 flex h-[2.15rem] items-center justify-center overflow-hidden rounded-[1rem] border-[3px] border-[#d2b170] bg-[#fff1bf] px-3 text-center text-[clamp(0.62rem,2.25vw,0.82rem)] font-black leading-none text-[#7a6842] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_3px_0_rgba(91,72,44,0.12)]">
+            <span className="block w-full whitespace-nowrap">
+              {subtitle || predictiveText}
             </span>
           </div>
 
-          <div className="relative z-10 mt-5 grid grid-cols-2 gap-3">
+          <div className="relative z-10 mt-4 grid grid-cols-2 gap-3">
             <RetroAssetButton
               kind="voice"
               label="Äänitä"
