@@ -1,5 +1,6 @@
 "use client";
 
+// V520_HAE_READY_BADGE_SCOPE_TIMER: Hae valmis näkyy vain pää-/kaupat-näkymässä ja sammuu 2,5s jälkeen.
 // V502_WEATHER_RESTORED_HAE_READY_BADGE: säämoduuli takaisin page-GPS-koordinaateilla, Hae-valmiusbadge ilman pomppua.
 // V503_REMOVE_GPS_DEBUG_LOGGING: poistettu GPS debug-loggaus ja overlay.
 // V504_SEARCH_CLOSE_FIX: Hae-nappi ei ole disabled kun Hae-kortti on auki, joten se voi sulkea kortin.
@@ -1311,6 +1312,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const searchBottomNavDisabled =
     !searchPanelOpen && (searchNavigationLocked || initialStoreSelectionLocked);
   const [searchReadyBounceKeyV320, setSearchReadyBounceKeyV320] = useState(0);
+  const [haeReadyBadgeTimerVisibleV520, setHaeReadyBadgeTimerVisibleV520] =
+    useState(false);
   const previousSearchReadySignatureV320 = useRef("");
 
   const searchReadySignatureV320 = storesReadyForSearch
@@ -1342,12 +1345,39 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // setSearchReadyBounceKeyV320((value) => value + 1);
     }
   }, [storesReadyForSearch, searchReadySignatureV320]);
-  const haeReadyBadgeVisibleV502 = storesReadyForSearch && !searchPanelOpen;
-  const haeReadyBadgeTextV502 = haeReadyBadgeVisibleV502 ? "Valmis" : "";
   const [visibleNormalCount, setVisibleNormalCount] = useState(8);
   const [activeNormalSearchTerm, setActiveNormalSearchTerm] = useState("");
   const [notFoundSearchTerms, setNotFoundSearchTerms] = useState<string[]>([]);
   const [eanModalOpen, setEanModalOpen] = useState(false);
+
+  const haeReadyBadgeAllowedViewV520 =
+    !searchPanelOpen &&
+    !cartModalOpen &&
+    !eanModalOpen &&
+    activeResult === "none" &&
+    activeAssistant === null;
+
+  const haeReadyBadgeVisibleV502 =
+    storesReadyForSearch &&
+    haeReadyBadgeAllowedViewV520 &&
+    haeReadyBadgeTimerVisibleV520;
+
+  const haeReadyBadgeTextV502 = haeReadyBadgeVisibleV502 ? "HAE VALMIS" : "";
+
+  useEffect(() => {
+    if (!storesReadyForSearch || !haeReadyBadgeAllowedViewV520) {
+      setHaeReadyBadgeTimerVisibleV520(false);
+      return;
+    }
+
+    setHaeReadyBadgeTimerVisibleV520(true);
+
+    const timer = window.setTimeout(() => {
+      setHaeReadyBadgeTimerVisibleV520(false);
+    }, 2500);
+
+    return () => window.clearTimeout(timer);
+  }, [storesReadyForSearch, haeReadyBadgeAllowedViewV520, shopsPanelOpen]);
   const [eanInput, setEanInput] = useState("");
   const [eanLoading, setEanLoading] = useState(false);
   const [eanResults, setEanResults] = useState<EanSearchResult[]>([]);
@@ -11238,7 +11268,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         {/* V502_HAE_READY_BADGE_RENDER */}
           {haeReadyBadgeVisibleV502 ? (
             <div className="pointer-events-none fixed bottom-[calc(env(safe-area-inset-bottom)+5.65rem)] left-1/2 z-[10001] -translate-x-1/2 rounded-[0.75rem] border-[2px] border-[#8a6a1f] bg-[#f6dd84] px-3 py-[5px] text-[11px] font-black uppercase tracking-[0.04em] text-[#4b3200] shadow-[0_8px_18px_rgba(60,45,20,0.26)] sm:hidden">
-              Hae valmis
+              {haeReadyBadgeTextV502}
             </div>
           ) : null}
           <div className="V507_BOTTOM_NAV_CLICK_LAYER relative z-[10000]">
