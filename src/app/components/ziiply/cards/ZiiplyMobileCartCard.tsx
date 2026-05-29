@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_CART_CARD_V17_STRONGER_HORIZONTAL_OFFSETS
+// ZIIPLY_MOBILE_CART_CARD_V18_FINAL_MICRO_ALIGNMENT
 // Mobiilin Tavarainkeruu-paperivihko.
 // V3:
 // - "Ostoskori" poistettu kokonaan näkyvästä UI:sta.
@@ -133,7 +133,7 @@ function LedgerButton({
       onClick={onClick}
       disabled={disabled}
       className={cx(
-        "rounded-[0.54rem] border-[1.5px] border-[#8a6b32] bg-[#fff0c7]/72 px-2.5 py-[0.42rem] text-[0.62rem] font-black leading-none text-[#533819] shadow-[0_1px_0_rgba(91,72,44,0.12),inset_0_0_0_1px_rgba(255,255,255,0.42)] active:translate-y-[1px]",
+        "rounded-[0.54rem] border-[1.5px] border-[#8a6b32] bg-[#fff0c7]/72 px-2.5 py-[0.42rem] text-[0.62rem] font-extrabold leading-none text-[#533819] shadow-[0_1px_0_rgba(91,72,44,0.12),inset_0_0_0_1px_rgba(255,255,255,0.42)] active:translate-y-[1px]",
         wide && "min-w-[7.45rem]",
         disabled && "cursor-not-allowed opacity-45",
       )}
@@ -234,7 +234,7 @@ function QuantityCell({
       <button
         type="button"
         onClick={() => onIncrease?.(item)}
-        className="grid h-full w-full place-items-center pl-[3.35rem] rounded-[0.32rem] bg-[#fff1c6]/10 text-[0.98rem] font-black leading-none text-[#3d301a] active:translate-y-[1px] active:bg-[#fff1c6]/34"
+        className="grid h-full w-full place-items-center pl-[3.58rem] rounded-[0.32rem] bg-[#fff1c6]/10 text-[0.98rem] font-extrabold leading-none text-[#3d301a] active:translate-y-[1px] active:bg-[#fff1c6]/34"
         style={{ fontFamily: serifFont }}
         aria-label="Lisää määrää"
         title="Lisää määrää"
@@ -249,7 +249,7 @@ function QuantityCell({
         }}
         disabled={!canDecrease}
         className={cx(
-          "absolute left-[1.20rem] top-1/2 grid h-[1.55rem] w-[1.05rem] -translate-y-1/2 place-items-center rounded-[0.24rem] text-[0.92rem] font-black leading-none !text-[#e11d12] active:translate-y-[calc(-50%+1px)]",
+          "absolute left-[1.20rem] top-1/2 grid h-[1.55rem] w-[1.05rem] -translate-y-1/2 place-items-center rounded-[0.24rem] text-[1.15rem] font-extrabold leading-none !text-[#e11d12] active:translate-y-[calc(-50%+1px)]",
           canDecrease ? "!text-[#e11d12] active:bg-[#fff1c6]/38" : "!text-[#e11d12]/25",
         )}
         aria-label="Vähennä määrää"
@@ -301,7 +301,7 @@ export default function ZiiplyMobileCartCard({
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <h2
-                className="ml-[0.95rem] mt-[-0.04rem] rotate-[-0.45deg] text-[0.92rem] font-black italic leading-none text-[#314226]/76 drop-shadow-[0_1px_0_rgba(255,247,211,0.52)]"
+                className="ml-[0.95rem] mt-[-0.04rem] rotate-[-0.45deg] text-[1.15rem] font-extrabold italic leading-none text-[#314226]/76 drop-shadow-[0_1px_0_rgba(255,247,211,0.52)]"
                 style={{ fontFamily: serifFont }}
               >
                 {title}
@@ -311,7 +311,7 @@ export default function ZiiplyMobileCartCard({
             <button
               type="button"
               onClick={onClose}
-              className="mr-[0.08rem] mt-[-1.82rem] grid h-[2.15rem] w-[2.15rem] shrink-0 place-items-center rounded-full border-[2px] border-[#6f5730] bg-[#fff2cb]/82 text-[1.04rem] font-black leading-none text-[#513d1f] shadow-[0_2px_0_rgba(91,72,44,0.15)] active:translate-y-[1px]"
+              className="mr-[0.08rem] mt-[-1.82rem] grid h-[2.15rem] w-[2.15rem] shrink-0 place-items-center rounded-full border-[2px] border-[#6f5730] bg-[#fff2cb]/82 text-[1.04rem] font-extrabold leading-none text-[#513d1f] shadow-[0_2px_0_rgba(91,72,44,0.15)] active:translate-y-[1px]"
               aria-label="Sulje"
               title="Sulje"
             >
@@ -333,7 +333,7 @@ export default function ZiiplyMobileCartCard({
               <button
                 type="button"
                 onClick={onClearCart}
-                className="mt-[0.62rem] rounded-[0.48rem] border-[1.5px] border-[#9a6137] bg-[#ffe0bc]/42 px-2 py-1 text-[0.56rem] font-black lowercase leading-none text-[#7d3414]/82 shadow-[0_1px_0_rgba(91,72,44,0.08)] active:translate-y-[1px]"
+                className="mt-[0.62rem] rounded-[0.48rem] border-[1.5px] border-[#9a6137] bg-[#ffe0bc]/42 px-2 py-1 text-[0.56rem] font-extrabold lowercase leading-none text-[#7d3414]/82 shadow-[0_1px_0_rgba(91,72,44,0.08)] active:translate-y-[1px]"
                 style={{ fontFamily: serifFont }}
               >
                 tyhjennä
@@ -347,10 +347,10 @@ export default function ZiiplyMobileCartCard({
         <div className="relative z-10 min-h-0 flex-1 overflow-y-auto px-5 pb-2 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {!hasItems ? (
             <div className="mt-5 rounded-[1.1rem] border-[2px] border-dashed border-[#9a7a3d] bg-[#fff4d4]/48 px-4 py-8 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
-              <div className="text-[1.02rem] font-black italic text-[#59401e]" style={{ fontFamily: serifFont }}>
+              <div className="text-[1.02rem] font-extrabold italic text-[#59401e]" style={{ fontFamily: serifFont }}>
                 Vihkonen on vielä tyhjä
               </div>
-              <div className="mt-2 text-[0.78rem] font-black text-[#8a7650]">
+              <div className="mt-2 text-[0.78rem] font-extrabold text-[#8a7650]">
                 Lisää löydöksiä koriin.
               </div>
             </div>
@@ -375,7 +375,7 @@ export default function ZiiplyMobileCartCard({
                     <button
                       type="button"
                       onClick={() => onToggleItem?.(item)}
-                      className="grid h-[1.9rem] w-full place-items-center text-center text-[1.08rem] font-black leading-none text-[#4a3921] active:translate-y-[1px]"
+                      className="grid h-[1.9rem] w-full place-items-center text-center text-[1.08rem] font-extrabold leading-none text-[#4a3921] active:translate-y-[1px]"
                       style={{ fontFamily: serifFont }}
                       aria-label={checked ? "Poista keräilymerkintä" : "Merkitse kerätyksi"}
                     >
@@ -384,7 +384,7 @@ export default function ZiiplyMobileCartCard({
 
                     <div
                       className={cx(
-                        "min-w-0 truncate text-[0.96rem] font-black leading-none text-[#2f2a1c]",
+                        "min-w-0 truncate text-[0.96rem] font-extrabold leading-none text-[#2f2a1c]",
                         checked && "line-through",
                       )}
                       style={{ fontFamily: serifFont }}
@@ -409,7 +409,7 @@ export default function ZiiplyMobileCartCard({
                       type="button"
                       onClick={() => onRemoveItem?.(item)}
                       className={cx(
-                        "min-w-0 rounded-[0.24rem] pr-[0.08rem] text-right font-black leading-none active:translate-y-[1px] active:bg-[#ffe0bc]/36",
+                        "min-w-0 rounded-[0.24rem] pr-[0.08rem] text-right font-extrabold leading-none active:translate-y-[1px] active:bg-[#ffe0bc]/36",
                         isAlcoholCartItemV8(item)
                           ? "text-center text-[0.86rem] italic text-[#7b3215]/86"
                           : "text-[0.84rem] text-[#3f321f]",
@@ -430,14 +430,14 @@ export default function ZiiplyMobileCartCard({
         <footer className="relative z-10 shrink-0 px-5 pb-4 pt-1">
           <div className="relative mb-2 border-t-[2px] border-[#9b7b3d]/62 pt-2 text-[#473719]">
             <span
-              className="absolute left-[71.4%] top-[0.58rem] -translate-x-1/2 text-[0.76rem] font-black uppercase tracking-[0.04em]"
+              className="absolute left-[71.4%] top-[0.58rem] -translate-x-1/2 text-[0.76rem] font-extrabold uppercase tracking-[0.04em]"
               style={{ fontFamily: copperplateFont }}
             >
               Yht.
             </span>
 
             <div className="flex justify-end">
-              <span className="text-[1rem] font-black" style={{ fontFamily: serifFont }}>
+              <span className="text-[1rem] font-extrabold" style={{ fontFamily: serifFont }}>
                 {totalPrice.toLocaleString("fi-FI", {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
@@ -448,7 +448,7 @@ export default function ZiiplyMobileCartCard({
 
           {hasAlcoholItemsV8 && (
             <div
-              className="mx-auto mb-1 max-w-[14rem] rounded-[0.35rem] border border-[#9a6137]/45 bg-[#fff0c7]/44 px-2 py-1 text-center text-[0.52rem] font-black italic leading-tight text-[#7b3215]/82"
+              className="mx-auto mb-1 max-w-[14rem] rounded-[0.35rem] border border-[#9a6137]/45 bg-[#fff0c7]/44 px-2 py-1 text-center text-[0.52rem] font-extrabold italic leading-tight text-[#7b3215]/82"
               style={{ fontFamily: serifFont }}
             >
               Alkoholijuomat maksetaan kassalla, eivätkä sisälly yhteissummaan.
@@ -460,7 +460,7 @@ export default function ZiiplyMobileCartCard({
             onClick={onCompare}
             disabled={!hasItems}
             className={cx(
-              "mx-auto mt-[0.25rem] block rounded-[0.86rem] border-[3px] border-[#0b6330] bg-gradient-to-b from-[#139143] to-[#087237] px-5 py-[0.44rem] text-[0.82rem] font-black italic text-[#fff0d5] shadow-[0_0_0_2px_rgba(255,255,255,0.18)_inset,0_3px_0_#064a26] active:translate-y-[1px]",
+              "mx-auto mt-[0.25rem] block rounded-[0.86rem] border-[3px] border-[#0b6330] bg-gradient-to-b from-[#139143] to-[#087237] px-5 py-[0.44rem] text-[0.82rem] font-extrabold italic text-[#fff0d5] shadow-[0_0_0_2px_rgba(255,255,255,0.18)_inset,0_3px_0_#064a26] active:translate-y-[1px]",
               !hasItems && "cursor-not-allowed opacity-45",
             )}
             style={{ fontFamily: cooperFont }}
