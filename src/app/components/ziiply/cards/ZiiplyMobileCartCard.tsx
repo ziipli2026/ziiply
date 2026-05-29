@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_CART_CARD_V5_TOUCH_QUANTITY_PVM_TITLE
+// ZIIPLY_MOBILE_CART_CARD_V6_DELETE_BEFORE_PRICE
 // Mobiilin Tavarainkeruu-paperivihko.
 // V3:
 // - "Ostoskori" poistettu kokonaan näkyvästä UI:sta.
@@ -15,6 +15,7 @@
 // - Kortilla pieni sisääntulopomppu.
 // V4: yläosan tekstit ja toiminnot sovitettu paremmin paperin omaan painatukseen.
 // V5: Tavarainkeruu siirretty Pvm-kohdan vasemmalle puolelle pienempänä; määräsolusta tehty sormiystävällinen; N:o-merkki keskitetty ja suurennettu.
+// V6: poisto-X siirretty hinnan vasemmalle puolelle, jotta HINTA-sarake jää puhtaaksi.
 
 import React from "react";
 
@@ -290,7 +291,7 @@ export default function ZiiplyMobileCartCard({
                   <article
                     key={String(item.id ?? item.ean ?? index)}
                     className={cx(
-                      "grid min-h-[2.22rem] grid-cols-[2.05rem_minmax(0,1fr)_3.95rem_4.45rem_1.18rem] items-center gap-1 border-b-[1.35px] border-[#b9944d]/68 bg-transparent px-1 py-[0.28rem]",
+                      "grid min-h-[2.22rem] grid-cols-[2.05rem_minmax(0,1fr)_3.95rem_1.22rem_4.45rem] items-center gap-1 border-b-[1.35px] border-[#b9944d]/68 bg-transparent px-1 py-[0.28rem]",
                       checked && "opacity-55",
                     )}
                   >
@@ -322,19 +323,19 @@ export default function ZiiplyMobileCartCard({
                       onIncrease={onIncreaseItem}
                     />
 
-                    <div className="min-w-0 pr-[0.06rem] text-right text-[0.84rem] font-black leading-none text-[#3f321f]" style={{ fontFamily: serifFont }}>
-                      {price}
-                    </div>
-
                     <button
                       type="button"
                       onClick={() => onRemoveItem?.(item)}
-                      className="h-[1.4rem] w-full text-center text-[0.68rem] font-black leading-none text-[#7b3215]/58 active:translate-y-[1px]"
+                      className="h-[1.4rem] w-full text-center text-[0.66rem] font-black leading-none text-[#7b3215]/50 active:translate-y-[1px]"
                       aria-label="Poista"
                       title="Poista"
                     >
                       ×
                     </button>
+
+                    <div className="min-w-0 pr-[0.06rem] text-right text-[0.84rem] font-black leading-none text-[#3f321f]" style={{ fontFamily: serifFont }}>
+                      {price}
+                    </div>
                   </article>
                 );
               })}
