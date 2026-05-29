@@ -1,5 +1,6 @@
 "use client";
 
+// V545_MOBILE_CART_QUANTITY_HANDLERS: mobiilin Tavarainkeruu saa määrän +/− toimimaan ja CartCard V6 siirtää poisto-X:n hinnan vasemmalle.
 // V544_MOBILE_CART_TAVARAINKERUU_PAPER_V2: page käyttää ZiiplyMobileCartCardia; kortin V2-asussa Tavarainkeruu, Tallenna/Näytä ostoslistat ja leveämpi paperi.
 // V543_MOBILE_CART_REMOVEITEM_TYPE_FIX: korjaa mobiilin paperikorin Poista-kutsun; removeCartItem saa string-avaimen eikä CartItem-oliota.
 // V542_MOBILE_CART_PAPER_CARD_CONNECTED: mobiili-Kori käyttää uutta ZiiplyMobileCartCard-paperivihko/keräilylista-komponenttia.
@@ -297,6 +298,41 @@ function kauppiasTopBarPanelClass(kind: KauppiasTopBarKind) {
 
 
 function KauppiasWeatherGraphic() {
+
+  function getMobileCartItemKeyV545(item: any) {
+    return String(
+      item?.id ??
+        item?.ean ??
+        item?.name ??
+        item?.product?.id ??
+        item?.product?.ean ??
+        JSON.stringify(item),
+    );
+  }
+
+  function updateMobileCartItemQuantityV545(item: any, delta: number) {
+    const targetKey = String(item?.id ?? "");
+
+    setCart((current) =>
+      current.map((cartItem: any) => {
+        const key = getMobileCartItemKeyV545(cartItem);
+        if (key !== targetKey) return cartItem;
+
+        const currentQuantity = Number(cartItem.quantity ?? cartItem.amount ?? 1);
+        const nextQuantity = Math.max(
+          1,
+          (Number.isFinite(currentQuantity) ? currentQuantity : 1) + delta,
+        );
+
+        return {
+          ...cartItem,
+          quantity: nextQuantity,
+          amount: nextQuantity,
+        };
+      }),
+    );
+  }
+
   return (
     <svg viewBox="0 0 64 64" className="h-[24px] w-[24px] drop-shadow-sm" aria-hidden="true">
       <circle cx="24" cy="23" r="11" fill="#ffd84d" stroke="#e2a400" strokeWidth="3" />
@@ -11407,6 +11443,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 [key]: !current[key],
               }));
             }}
+            onIncreaseItem={(item: any) => updateMobileCartItemQuantityV545(item, 1)}
+            onDecreaseItem={(item: any) => updateMobileCartItemQuantityV545(item, -1)}
           />
         )}
 
