@@ -1,5 +1,6 @@
 "use client";
 
+// V557_ELECTRICITY_QUARTER_PRICING_SAHKOTIN: käyttää ensisijaisesti Sähköttimen varttihinta-API:a quarter&fix&vat ja vertaa trendin seuraavaan 15 min jaksoon.
 // V556_ELECTRICITY_INDICATOR_FORCE_VISIBLE: trendi-indikaattori renderöidään sähköpaneelin absoluuttiseksi omaksi merkiksi, ei hinnan rivin sisään.
 // V555_ELECTRICITY_UNIT_ALIGN_AND_VISIBLE_INDICATOR: nostaa c/kWh:n numeron keskilinjaan ja sijoittaa trendi-indikaattorin näkyvästi sähköruudun oikeaan yläosaan.
 // V554_ELECTRICITY_RETRO_INDICATOR_REPOSITION: siirtää sähkön retrotrendin hinnan vierestä otsikkoalueelle.
@@ -535,8 +536,8 @@ function KauppiasMobileTopBar({
       if (!item || typeof item !== "object") return null;
 
       const centFields = [
-        item.price,
         item.value,
+        item.price,
         item.priceWithTax,
         item.PriceWithTax,
         item.priceNoTax,
@@ -578,6 +579,18 @@ function KauppiasMobileTopBar({
       return response.json();
     }
 
+    function setTrendFromNext(currentPrice: number, nextPrice: number | null) {
+      if (nextPrice == null) {
+        setElectricityTrend("flat");
+        return;
+      }
+
+      const diff = nextPrice - currentPrice;
+      if (diff > 0.05) setElectricityTrend("up");
+      else if (diff < -0.05) setElectricityTrend("down");
+      else setElectricityTrend("flat");
+    }
+
     function formatLocalDateParts() {
       const formatter = new Intl.DateTimeFormat("fi-FI", {
         timeZone: "Europe/Helsinki",
@@ -592,6 +605,54 @@ function KauppiasMobileTopBar({
       const day = parts.find((part) => part.type === "day")?.value || "";
 
       return { year, month, day };
+    }
+
+    async function readSahkotinQuarter() {
+      const now = new Date();
+      const start = new Date(now.getTime() - 60 * 60 * 1000).toISOString();
+      const end = new Date(now.getTime() + 8 * 60 * 60 * 1000).toISOString();
+
+      const data = await fetchJson(
+        `https://sahkotin.fi/prices?quarter&fix&vat&start=${encodeURIComponent(start)}&end=${encodeURIComponent(end)}`,
+      );
+
+      const rawPrices = Array.isArray(data?.prices)
+        ? data.prices
+        : Array.isArray(data)
+          ? data
+          : [];
+
+      const windows = rawPrices
+        .map((item: any, index: number, all: any[]) => {
+          const price = readPriceCents(item);
+          const startMs = readTime(item.date, item.time_start, item.startDate, item.start);
+          const explicitEndMs = readTime(item.time_end, item.endDate, item.end);
+          const nextStartMs = readTime(all[index + 1]?.date, all[index + 1]?.time_start, all[index + 1]?.startDate, all[index + 1]?.start);
+          const endMs = explicitEndMs ?? nextStartMs ?? (startMs == null ? null : startMs + 15 * 60 * 1000);
+
+          if (price == null || startMs == null || endMs == null) return null;
+
+          return { price, startMs, endMs };
+        })
+        .filter(Boolean)
+        .sort((a: any, b: any) => a.startMs - b.startMs) as Array<{
+          price: number;
+          startMs: number;
+          endMs: number;
+        }>;
+
+      const currentIndex = windows.findIndex(
+        (item) => item.startMs <= now.getTime() && now.getTime() < item.endMs,
+      );
+
+      if (currentIndex < 0) throw new Error("ei nykyvarttia");
+
+      const current = windows[currentIndex];
+      const next = windows[currentIndex + 1];
+
+      setTrendFromNext(current.price, next?.price ?? null);
+
+      return current.price;
     }
 
     async function readPorssisahkoLatest() {
@@ -648,14 +709,7 @@ function KauppiasMobileTopBar({
           const current = windows[currentIndex];
           const next = windows[currentIndex + 1];
 
-          if (next) {
-            const diff = next.price - current.price;
-            if (diff > 0.05) setElectricityTrend("up");
-            else if (diff < -0.05) setElectricityTrend("down");
-            else setElectricityTrend("flat");
-          } else {
-            setElectricityTrend("flat");
-          }
+          setTrendFromNext(current.price, next?.price ?? null);
 
           return current.price;
         } catch (error) {
@@ -690,10 +744,12 @@ function KauppiasMobileTopBar({
       const rawPrices = Array.isArray(data) ? data : Array.isArray(data?.prices) ? data.prices : [];
 
       const windows = rawPrices
-        .map((item: any) => {
+        .map((item: any, index: number, all: any[]) => {
           const price = readPriceCents(item);
           const startMs = readTime(item.time_start, item.startDate, item.start, item.date);
-          const endMs = readTime(item.time_end, item.endDate, item.end);
+          const explicitEndMs = readTime(item.time_end, item.endDate, item.end);
+          const nextStartMs = readTime(all[index + 1]?.time_start, all[index + 1]?.startDate, all[index + 1]?.start, all[index + 1]?.date);
+          const endMs = explicitEndMs ?? nextStartMs;
 
           if (price == null || startMs == null || endMs == null) return null;
 
@@ -707,11 +763,15 @@ function KauppiasMobileTopBar({
         }>;
 
       const now = Date.now();
-      const current = windows.find((item) => item.startMs <= now && now < item.endMs);
+      const currentIndex = windows.findIndex((item) => item.startMs <= now && now < item.endMs);
 
-      if (!current) throw new Error("ei nykyhetkeä");
+      if (currentIndex < 0) throw new Error("ei nykyhetkeä");
 
-      setElectricityTrend("flat");
+      const current = windows[currentIndex];
+      const next = windows[currentIndex + 1];
+
+      setTrendFromNext(current.price, next?.price ?? null);
+
       return current.price;
     }
 
@@ -722,6 +782,7 @@ function KauppiasMobileTopBar({
       setElectricityText("haetaan");
 
       const readers = [
+        readSahkotinQuarter,
         readPorssisahkoLatest,
         readPorssisahkoDirect,
         readSahkonHintaTanaan,
@@ -755,13 +816,14 @@ function KauppiasMobileTopBar({
       const message = errors.join(" / ");
       if (message.includes("Failed to fetch")) setElectricityText("fetch virhe");
       else if (message.includes("HTTP")) setElectricityText(message.match(/HTTP \d+/)?.[0] || "HTTP");
+      else if (message.includes("ei nykyvarttia")) setElectricityText("ei varttia");
       else if (message.includes("ei nykyhetkeä")) setElectricityText("ei nykyhetkeä");
       else if (message.includes("ei hintaa")) setElectricityText("ei hintaa");
       else setElectricityText("api virhe");
     }
 
     loadElectricity();
-    const interval = window.setInterval(loadElectricity, 5 * 60 * 1000);
+    const interval = window.setInterval(loadElectricity, 60 * 1000);
 
     return () => {
       cancelled = true;
@@ -840,7 +902,7 @@ function KauppiasMobileTopBar({
 
                 {panel.id === "electricity" && (
                   <span
-                    className={`pointer-events-none absolute right-[14px] top-[22px] z-30 block text-[18px] font-black italic leading-none opacity-95 ${electricityTrendClass}`}
+                    className={`pointer-events-none absolute right-[16px] top-[25px] z-30 block text-[16px] font-black italic leading-none opacity-95 ${electricityTrendClass}`}
                     title={
                       electricityTrend === "up"
                         ? "Nousussa"
