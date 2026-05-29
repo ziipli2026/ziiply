@@ -1,5 +1,6 @@
 "use client";
 
+// V548_PAGE_INTERNAL_TOPBAR_ELECTRICITY_VISIBLE: korjaa sähkön suoraan page.tsx:n sisäiseen KauppiasMobileTopBariin, koska erillinen ZiiplyMobileTopBar ei välttämättä ole käytössä.
 // V547_CART_COMPARE_TRANSITION_AND_ELECTRICITY_REBUILD: Kori/Vertailu-siirtymät rauhoitettu ja pörssisähkön haku rakennettu suoraviivaisemmaksi.
 // V546_MOBILE_CART_QUANTITY_HANDLER_SCOPE_FIX: siirtää mobiilikorin määrähandlerit pois KauppiasWeatherGraphicin sisältä Page-komponentin scopeen.
 // V545_MOBILE_CART_QUANTITY_HANDLERS: mobiilin Tavarainkeruu saa määrän +/− toimimaan ja CartCard V6 siirtää poisto-X:n hinnan vasemmalle.
@@ -495,7 +496,7 @@ function KauppiasMobileTopBar({
 
     let cancelled = false;
 
-    const readNumber = (value: unknown) => {
+    function readNumber(value: unknown) {
       if (typeof value === "number") return Number.isFinite(value) ? value : null;
 
       const text = String(value ?? "")
@@ -508,40 +509,40 @@ function KauppiasMobileTopBar({
 
       const number = Number(match[0]);
       return Number.isFinite(number) ? number : null;
-    };
+    }
 
-    const toCentsPerKwh = (value: unknown, unit: "cents" | "eur" = "cents") => {
-      const number = readNumber(value);
-      if (number == null) return null;
-
-      const cents = unit === "eur" ? number * 100 : number;
-
-      if (!Number.isFinite(cents) || Math.abs(cents) > 500) return null;
-
-      return cents;
-    };
-
-    const readPriceFromAnyObject = (item: any) => {
+    function readPrice(item: any) {
       if (!item || typeof item !== "object") return null;
 
-      return (
-        toCentsPerKwh(item.price, "cents") ??
-        toCentsPerKwh(item.value, "cents") ??
-        toCentsPerKwh(item.priceWithTax, "cents") ??
-        toCentsPerKwh(item.PriceWithTax, "cents") ??
-        toCentsPerKwh(item.priceNoTax, "cents") ??
-        toCentsPerKwh(item.PriceNoTax, "cents") ??
-        toCentsPerKwh(item.spotPrice, "cents") ??
-        toCentsPerKwh(item.SpotPrice, "cents") ??
-        toCentsPerKwh(item.centsPerKwh, "cents") ??
-        toCentsPerKwh(item.cents_per_kwh, "cents") ??
-        toCentsPerKwh(item.EUR_per_kWh, "eur") ??
-        toCentsPerKwh(item.eur_per_kwh, "eur") ??
-        toCentsPerKwh(item.eurPerKwh, "eur")
-      );
-    };
+      const centsCandidates = [
+        item.price,
+        item.value,
+        item.priceWithTax,
+        item.PriceWithTax,
+        item.priceNoTax,
+        item.PriceNoTax,
+        item.spotPrice,
+        item.SpotPrice,
+        item.centsPerKwh,
+        item.cents_per_kwh,
+      ];
 
-    const parseTime = (...values: unknown[]) => {
+      for (const value of centsCandidates) {
+        const number = readNumber(value);
+        if (number != null && Math.abs(number) <= 500) return number;
+      }
+
+      const eurCandidates = [item.EUR_per_kWh, item.eur_per_kwh, item.eurPerKwh];
+
+      for (const value of eurCandidates) {
+        const number = readNumber(value);
+        if (number != null && Math.abs(number * 100) <= 500) return number * 100;
+      }
+
+      return null;
+    }
+
+    function readTime(...values: unknown[]) {
       for (const value of values) {
         if (value == null) continue;
 
@@ -550,13 +551,7 @@ function KauppiasMobileTopBar({
       }
 
       return null;
-    };
-
-    const formatElectricityPrice = (priceCentsPerKwh: number) =>
-      priceCentsPerKwh.toLocaleString("fi-FI", {
-        minimumFractionDigits: 1,
-        maximumFractionDigits: 1,
-      });
+    }
 
     async function fetchJson(url: string) {
       const separator = url.includes("?") ? "&" : "?";
@@ -570,39 +565,7 @@ function KauppiasMobileTopBar({
       return response.json();
     }
 
-    function getWindowsFromLatestPrices(data: any) {
-      const rawPrices = Array.isArray(data?.prices)
-        ? data.prices
-        : Array.isArray(data)
-          ? data
-          : [];
-
-      return rawPrices
-        .map((item: any) => {
-          const price = readPriceFromAnyObject(item);
-          const startMs = parseTime(
-            item.startDate,
-            item.start,
-            item.StartDate,
-            item.time_start,
-            item.date,
-            item.Date,
-          );
-          const endMs = parseTime(item.endDate, item.end, item.EndDate, item.time_end);
-
-          if (price == null || startMs == null || endMs == null) return null;
-
-          return { price, startMs, endMs };
-        })
-        .filter(Boolean)
-        .sort((a: any, b: any) => a.startMs - b.startMs) as Array<{
-          price: number;
-          startMs: number;
-          endMs: number;
-        }>;
-    }
-
-    async function readCurrentFromLatestPrices() {
+    async function readLatestListPrice() {
       const urls = [
         "https://api.porssisahko.net/v1/latest-prices.json",
         "https://api.porssisahko.net/v2/latest-prices.json",
@@ -613,11 +576,39 @@ function KauppiasMobileTopBar({
       for (const url of urls) {
         try {
           const data = await fetchJson(url);
-          const windows = getWindowsFromLatestPrices(data);
-          const now = Date.now();
+          const rawPrices = Array.isArray(data?.prices)
+            ? data.prices
+            : Array.isArray(data)
+              ? data
+              : [];
 
+          const windows = rawPrices
+            .map((item: any) => {
+              const price = readPrice(item);
+              const startMs = readTime(
+                item.startDate,
+                item.start,
+                item.StartDate,
+                item.time_start,
+                item.date,
+                item.Date,
+              );
+              const endMs = readTime(item.endDate, item.end, item.EndDate, item.time_end);
+
+              if (price == null || startMs == null || endMs == null) return null;
+
+              return { price, startMs, endMs };
+            })
+            .filter(Boolean)
+            .sort((a: any, b: any) => a.startMs - b.startMs) as Array<{
+              price: number;
+              startMs: number;
+              endMs: number;
+            }>;
+
+          const now = Date.now();
           const currentIndex = windows.findIndex(
-            (windowItem) => windowItem.startMs <= now && now < windowItem.endMs,
+            (item) => item.startMs <= now && now < item.endMs,
           );
 
           if (currentIndex < 0) {
@@ -646,12 +637,13 @@ function KauppiasMobileTopBar({
       throw new Error(lastError);
     }
 
-    async function readCurrentDirectPrice() {
+    async function readDirectPrice() {
       const iso = new Date().toISOString();
-      const url = `https://api.porssisahko.net/v2/price.json?date=${encodeURIComponent(iso)}`;
-      const data = await fetchJson(url);
-      const price = readPriceFromAnyObject(data);
+      const data = await fetchJson(
+        `https://api.porssisahko.net/v2/price.json?date=${encodeURIComponent(iso)}`,
+      );
 
+      const price = readPrice(data);
       if (price == null) throw new Error("ei hintaa");
 
       setElectricityTrend("flat");
@@ -661,38 +653,45 @@ function KauppiasMobileTopBar({
     async function loadElectricity() {
       if (cancelled) return;
 
+      setElectricityValue("—");
       setElectricityText("haetaan");
 
       try {
         let price: number | null = null;
-        let latestError = "";
+        let listError = "";
 
         try {
-          price = await readCurrentFromLatestPrices();
+          price = await readLatestListPrice();
         } catch (error) {
-          latestError = error instanceof Error ? error.message : "listahaku virhe";
+          listError = error instanceof Error ? error.message : "listahaku";
         }
 
         if (price == null) {
           try {
-            price = await readCurrentDirectPrice();
+            price = await readDirectPrice();
           } catch (error) {
-            const directError = error instanceof Error ? error.message : "suorahaku virhe";
-            throw new Error(`${latestError || "listahaku virhe"} / ${directError}`);
+            const directError = error instanceof Error ? error.message : "suorahaku";
+            throw new Error(`${listError} / ${directError}`);
           }
         }
 
         if (cancelled) return;
 
-        setElectricityValue(formatElectricityPrice(price));
+        setElectricityValue(
+          price.toLocaleString("fi-FI", {
+            minimumFractionDigits: 1,
+            maximumFractionDigits: 1,
+          }),
+        );
         setElectricityText("c/kWh");
       } catch (error) {
         if (cancelled) return;
 
+        const message = error instanceof Error ? error.message : "api virhe";
+
         setElectricityValue("—");
         setElectricityTrend("flat");
 
-        const message = error instanceof Error ? error.message : "";
         if (message.includes("Failed to fetch")) setElectricityText("fetch virhe");
         else if (message.includes("HTTP")) setElectricityText(message.slice(0, 12));
         else if (message.includes("ei nykyhetkeä")) setElectricityText("ei nykyhetkeä");
