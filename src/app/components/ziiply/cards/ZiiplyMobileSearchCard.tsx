@@ -1,8 +1,10 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V500_CLEAN_REBUILD
-// UUSI: täysin puhtaalta pöydältä rakennettu mobiilin Hae-kortti.
-// UUSI: tämä tiedosto EI ole V472-versio.
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V503_MOCKUP_GRID_FINAL
+// UUSI: puhdas mobiilin Hae-kortti.
+// UUSI: tekstikenttä ei mene nappien alle, vaan päättyy ennen oikean yläkulman Vihkonen/koriin-nappeja.
+// UUSI: Vihkonen ja koriin ovat samankokoiset; koriin on pienillä kirjaimilla ja harmaana tyhjällä kentällä.
+// UUSI: Gösta, kori/yksi tuote ja Justiina ovat neliöitä ja samalla korkeudella.
 
 import React from "react";
 
@@ -98,8 +100,10 @@ function GreenPillButton({
       onClick={onClick}
       disabled={disabled}
       className={cx(
-        "h-[2.55rem] shrink-0 rounded-[1.25rem] border-[3px] border-[#0b6330] bg-gradient-to-b from-[#139143] to-[#087237] px-4 text-[0.92rem] font-black italic leading-none text-[#fff0d5] shadow-[0_0_0_2px_rgba(255,255,255,0.18)_inset,0_4px_0_#064a26] transition active:translate-y-[1px] active:shadow-[0_2px_0_#064a26]",
-        disabled && "cursor-not-allowed opacity-45",
+        "h-[2.55rem] w-[6.9rem] shrink-0 rounded-[1.25rem] border-[3px] px-0 text-[0.92rem] font-black italic leading-none shadow-[0_0_0_2px_rgba(255,255,255,0.18)_inset,0_4px_0_#064a26] transition active:translate-y-[1px] active:shadow-[0_2px_0_#064a26]",
+        disabled
+          ? "cursor-not-allowed border-[#9eb49a] bg-gradient-to-b from-[#b8d3b5] to-[#8cab88] text-[#eef5df] opacity-75 shadow-[0_0_0_2px_rgba(255,255,255,0.16)_inset,0_4px_0_#789174]"
+          : "border-[#0b6330] bg-gradient-to-b from-[#139143] to-[#087237] text-[#fff0d5]",
       )}
       style={{ fontFamily: cooperFont }}
     >
@@ -132,7 +136,7 @@ function AssistantButton({
       aria-label={name}
       title={name}
       className={cx(
-        "relative h-[4.75rem] w-full min-w-0 overflow-hidden rounded-[1.25rem] border-[2.5px] p-0 shadow-[0_4px_0_rgba(91,72,44,0.20),inset_0_0_0_2px_rgba(255,255,255,0.45)] active:translate-y-[1px]",
+        "relative aspect-square w-full min-w-0 overflow-hidden rounded-[1.25rem] border-[2.5px] p-0 shadow-[0_4px_0_rgba(91,72,44,0.20),inset_0_0_0_2px_rgba(255,255,255,0.45)] active:translate-y-[1px]",
         isGosta
           ? "border-[#7f9866] bg-gradient-to-b from-[#f0f3d7] to-[#d0dda0]"
           : "border-[#d3b255] bg-gradient-to-b from-[#fff2c4] to-[#efd06f]",
@@ -143,7 +147,7 @@ function AssistantButton({
       <img
         src={image}
         alt=""
-        className="absolute left-1/2 top-1/2 h-[134%] w-[134%] -translate-x-1/2 -translate-y-1/2 object-cover object-center"
+        className="absolute left-1/2 top-1/2 h-[138%] w-[138%] -translate-x-1/2 -translate-y-1/2 object-cover object-center"
         draggable={false}
         onError={(event) => {
           event.currentTarget.style.display = "none";
@@ -161,12 +165,12 @@ function ModeToggle({
   onModeChange?: (mode: "cart" | "single") => void;
 }) {
   return (
-    <div className="mx-auto flex h-[5.15rem] w-[7.7rem] flex-col items-center justify-center gap-1 rounded-[1.35rem] border-[3px] border-[#b99d64] bg-[#ead7a5] p-1.5 shadow-[0_0_0_2px_#fff4cc_inset,0_4px_0_rgba(91,72,44,0.20)]">
+    <div className="mx-auto flex aspect-square w-full max-w-[7.15rem] flex-col items-center justify-center gap-1 rounded-[1.35rem] border-[3px] border-[#b99d64] bg-[#ead7a5] p-1.5 shadow-[0_0_0_2px_#fff4cc_inset,0_4px_0_rgba(91,72,44,0.20)]">
       <button
         type="button"
         onClick={() => onModeChange?.("cart")}
         className={cx(
-          "w-full rounded-[0.95rem] px-2 py-1 text-[0.82rem] font-black leading-[0.9] transition active:scale-[0.98]",
+          "w-full rounded-[0.95rem] px-2 py-1 text-[0.8rem] font-black leading-[0.9] transition active:scale-[0.98]",
           mode === "cart"
             ? "bg-[#fff4cf] text-[#23502c] shadow-[inset_0_0_0_2px_#d9bd77,0_2px_0_rgba(91,72,44,0.18)]"
             : "text-[#7a6842]",
@@ -179,7 +183,7 @@ function ModeToggle({
         type="button"
         onClick={() => onModeChange?.("single")}
         className={cx(
-          "w-full rounded-[0.95rem] px-2 py-1 text-[0.82rem] font-black leading-[0.9] transition active:scale-[0.98]",
+          "w-full rounded-[0.95rem] px-2 py-1 text-[0.8rem] font-black leading-[0.9] transition active:scale-[0.98]",
           mode === "single"
             ? "bg-[#fff4cf] text-[#23502c] shadow-[inset_0_0_0_2px_#d9bd77,0_2px_0_rgba(91,72,44,0.18)]"
             : "text-[#7a6842]",
@@ -268,7 +272,7 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V500_CLEAN_REBUILD"
+      data-ziiply-mobile-search-card-version="UUSI_V503_MOCKUP_GRID_FINAL"
       className={`fixed inset-0 z-[72] flex items-end justify-center overflow-hidden bg-transparent px-2 pb-[calc(env(safe-area-inset-bottom)+6.15rem)] pt-[calc(env(safe-area-inset-top)+5rem)] sm:items-center sm:p-6 ${className}`}
     >
       <section className="relative isolate h-[min(64dvh,36.5rem)] w-full max-w-[28rem] overflow-visible rounded-[2rem] border-[4px] border-[#5b482c] bg-transparent px-3 pt-3 text-[#20301f] shadow-[0_0_0_2px_#d8bd75_inset,0_12px_0_rgba(60,45,20,0.24),0_22px_45px_rgba(15,23,42,0.18)]">
@@ -278,8 +282,8 @@ export default function ZiiplyMobileSearchCard({
         </div>
 
         <div className="relative z-10 flex h-full min-h-0 flex-col">
-          <div className="relative min-h-[5.35rem]">
-            <div className="absolute left-0 top-0 max-w-[12.3rem] overflow-hidden">
+          <div className="grid min-h-[6rem] grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+            <div className="flex min-w-0 flex-col">
               <div
                 className="text-[0.72rem] font-black uppercase leading-none tracking-[0.42em] text-[#6f674f]"
                 style={{ fontFamily: copperplateFont }}
@@ -292,27 +296,27 @@ export default function ZiiplyMobileSearchCard({
               >
                 Tuotteet ja<br />vertailu
               </h1>
+
+              <div className="mt-2 h-[3.45rem] overflow-hidden rounded-[1.45rem] border-[3px] border-[#9d8350] bg-[#fff4d3] p-1.5 shadow-[inset_0_3px_8px_rgba(91,65,28,0.10)]">
+                <textarea
+                  ref={inputRef}
+                  value={input}
+                  onChange={(event) => onInputChange?.(event.target.value)}
+                  rows={2}
+                  placeholder={searchMode === "single" ? "Kirjoita yksi tuote" : "maito, kahvi"}
+                  className="block h-full w-full resize-none overflow-hidden rounded-[1.15rem] border-0 bg-[#fffaf0] px-4 py-1.5 text-center text-[1.18rem] font-black leading-[1.02] text-[#102216] outline-none placeholder:text-[#7d7461]"
+                  style={{ fontFamily: hasText ? serifFont : cooperFont }}
+                />
+              </div>
             </div>
 
-            <div className="absolute right-0 top-0 flex items-center gap-2">
+            <div className="flex w-[6.9rem] shrink-0 flex-col items-stretch gap-2 pt-[0.1rem]">
               <GreenPillButton label="Vihkonen" onClick={onAddInputToCart} />
-              <GreenPillButton label="KORIIN" onClick={onAddInputToCart} disabled={!hasText} />
+              <GreenPillButton label="koriin" onClick={onAddInputToCart} disabled={!hasText} />
             </div>
           </div>
 
-          <div className="relative z-10 h-[4.2rem] overflow-hidden rounded-[1.45rem] border-[3px] border-[#9d8350] bg-[#fff4d3] p-1.5 shadow-[inset_0_3px_8px_rgba(91,65,28,0.10)]">
-            <textarea
-              ref={inputRef}
-              value={input}
-              onChange={(event) => onInputChange?.(event.target.value)}
-              rows={3}
-              placeholder={searchMode === "single" ? "Kirjoita yksi tuote" : "maito, kahvi"}
-              className="block h-full w-full resize-none overflow-hidden rounded-[1.15rem] border-0 bg-[#fffaf0] px-4 py-2 text-center text-[1.28rem] font-black leading-[1.02] text-[#102216] outline-none placeholder:text-[#7d7461]"
-              style={{ fontFamily: hasText ? serifFont : cooperFont }}
-            />
-          </div>
-
-          <div className="relative z-10 mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-2.5">
+          <div className="relative z-10 mt-3 grid grid-cols-[1fr_7.15rem_1fr] items-center gap-2.5">
             <AssistantButton
               kind="gosta"
               onClick={onOfferSearch}
