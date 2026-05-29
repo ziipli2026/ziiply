@@ -1,6 +1,8 @@
 "use client";
 
-// V527_MOBILE_SEARCH_RESULTS_CARD_AND_ELECTRICITY_REPAIR: mobiilin hakutulokset omalle kortille ja pörssisähkö korjattu suorahaulla.
+// V527_MOBILE_SEARCH_RESULTS_CARD_AND_ELECTRICITY_REPAIR: mobiilin löydökset omalle kortille ja pörssisähkö korjattu suorahaulla.
+// V540_LOYDOKSET_TERMS: näkyvä termi Hakutulokset korvattu Löydökset-termillä ja tyhjä tila muodolla Ei löydöksiä vielä.
+// V539_MOBILE_RESULTS_CONDITIONAL_MOUNT_NO_LAYOUT_JUMP: tuloskorttia ei mountata ilman tuloksia, eikä se liikuta Hae-kortin nappeja.
 // V538_MOBILE_SEARCH_RESULTS_OPEN_AND_READY_BADGE_FIX: Justiina-haku ei sulje Hae-paneelia; tuloskortti voi aueta vain löydetyillä tuloksilla; 'Voit hakea' ei syty haun aikana.
 // V537_MOBILE_RESULTS_ONLY_CURRENT_FOUND_QUERY: tuloskortti ei aukea ei-löytynyt-haulla eikä vanhoilla tuloksilla.
 // V536_MOBILE_RESULTS_NO_JUMP_WHILE_SEARCHING: mobiilin hakutuloskortti ei aukea haun aikana eikä tyhjällä tuloksella.
@@ -6599,7 +6601,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     // Vertailu avautuu aina puhtaana vakionäkymänä:
-    // ei hakutuloksia, ei valintamodaalia, ei vanhaa overlay-statea.
+    // ei löydöksiä vielä, ei valintamodaalia, ei vanhaa overlay-statea.
     transitionMobilePanel("compare", () => {
       setRestoredCartPromptV320({ open: false, count: 0 });
       setSearchPanelOpen(false);
@@ -10624,12 +10626,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
                 <div className="mt-3 max-h-64 overflow-auto rounded-[1.15rem] bg-white p-2 ring-1 ring-slate-200">
                   <p className="mb-2 px-1 text-xs font-black uppercase tracking-wide text-slate-400">
-                    Hakutulokset
+                    Löydökset
                   </p>
                   {visibleNormalResults.length === 0 &&
                   singleProductCompareResults.length === 0 ? (
                     <p className="px-1 py-6 text-center text-sm font-bold text-slate-400">
-                      Ei hakutuloksia vielä.
+                      Ei löydöksiä vielä vielä.
                     </p>
                   ) : (
                     <div className="space-y-2">
@@ -10914,32 +10916,32 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               }}
             />
 
-            <ZiiplyMobileSearchResultsCard
-              open={
-                searchPanelOpen &&
-                !loadingNormal &&
-                normalResults.length > 0 &&
-                mobileResultsReadyQueryV537.length > 0
-              }
-              loading={false}
-              title={activeNormalSearchTerm || "Tuotteet"}
-              products={normalResults}
-              onClose={() => {
-                setNormalResults([]);
-                setMobileResultsReadyQueryV537("");
-                setNormalSearchAttempted(false);
-                setVisibleNormalCount(8);
-                setActiveNormalSearchTerm("");
-              }}
-              onAddProduct={(product: any) => {
-                addProductToCart(product as Product);
-                setNormalResults([]);
-                setMobileResultsReadyQueryV537("");
-                setNormalSearchAttempted(false);
-                setVisibleNormalCount(8);
-                setActiveNormalSearchTerm("");
-              }}
-            />
+            {searchPanelOpen &&
+            !loadingNormal &&
+            normalResults.length > 0 &&
+            mobileResultsReadyQueryV537.length > 0 ? (
+              <ZiiplyMobileSearchResultsCard
+                open={true}
+                loading={false}
+                title={activeNormalSearchTerm || "Tuotteet"}
+                products={normalResults}
+                onClose={() => {
+                  setNormalResults([]);
+                  setMobileResultsReadyQueryV537("");
+                  setNormalSearchAttempted(false);
+                  setVisibleNormalCount(8);
+                  setActiveNormalSearchTerm("");
+                }}
+                onAddProduct={(product: any) => {
+                  addProductToCart(product as Product);
+                  setNormalResults([]);
+                  setMobileResultsReadyQueryV537("");
+                  setNormalSearchAttempted(false);
+                  setVisibleNormalCount(8);
+                  setActiveNormalSearchTerm("");
+                }}
+              />
+            ) : null}
           </>
         )}
 
