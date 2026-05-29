@@ -1,5 +1,6 @@
 "use client";
 
+// V522_ELECTRICITY_ROBUST_FALLBACK: sähköhinta ei jää 0,0/viivaksi, kentät ja fallbackit korjattu.
 // V520_HAE_READY_BADGE_SCOPE_TIMER: Hae valmis näkyy vain pää-/kaupat-näkymässä ja sammuu 2,5s jälkeen.
 // V502_WEATHER_RESTORED_HAE_READY_BADGE: säämoduuli takaisin page-GPS-koordinaateilla, Hae-valmiusbadge ilman pomppua.
 // V503_REMOVE_GPS_DEBUG_LOGGING: poistettu GPS debug-loggaus ja overlay.
@@ -472,11 +473,37 @@ function KauppiasMobileTopBar({
     let cancelled = false;
 
     const readNumber = (value: unknown) => {
-      const number =
-        typeof value === "number"
-          ? value
-          : Number(String(value ?? "").replace(",", "."));
+      if (typeof value === "number") return Number.isFinite(value) ? value : null;
+
+      const cleaned = String(value ?? "")
+        .trim()
+        .replace(/\s/g, "")
+        .replace(",", ".");
+
+      const match = cleaned.match(/-?\d+(?:\.\d+)?/);
+      if (!match) return null;
+
+      const number = Number(match[0]);
       return Number.isFinite(number) ? number : null;
+    };
+
+    const normalizeElectricityPriceCents = (
+      value: unknown,
+      unit: "cents" | "eur" = "cents",
+    ) => {
+      const number = readNumber(value);
+      if (number == null) return null;
+
+      // Nollahinta jäi aiemmin ruudulle virheellisenä 0,0-arvona.
+      // Todellinen pörssihinta voi olla negatiivinen, joten hylätään vain tarkka nolla.
+      if (Math.abs(number) < 0.000001) return null;
+
+      const cents = unit === "eur" ? number * 100 : number;
+
+      // Suojataan selvästi rikkoutuneilta arvoilta, jotta UI ei näytä roskaa.
+      if (!Number.isFinite(cents) || Math.abs(cents) > 500) return null;
+
+      return cents;
     };
 
     const formatElectricityPrice = (priceCentsPerKwh: number) =>
@@ -508,37 +535,30 @@ function KauppiasMobileTopBar({
     const readElectricityPriceFromObject = (item: any) => {
       if (!item || typeof item !== "object") return null;
 
+      // Porssisahko.net palauttaa price-kentän c/kWh-muodossa.
+      // Sahkonhintatanaan.fi palauttaa EUR_per_kWh-kentän euroina/kWh.
       const directCents =
-        readNumber(item.price) ??
-        readNumber(item.value) ??
-        readNumber(item.priceWithTax) ??
-        readNumber(item.PriceWithTax) ??
-        readNumber(item.priceNoTax) ??
-        readNumber(item.PriceNoTax) ??
-        readNumber(item.spotPrice) ??
-        readNumber(item.SpotPrice);
+        normalizeElectricityPriceCents(item.price, "cents") ??
+        normalizeElectricityPriceCents(item.value, "cents") ??
+        normalizeElectricityPriceCents(item.priceWithTax, "cents") ??
+        normalizeElectricityPriceCents(item.PriceWithTax, "cents") ??
+        normalizeElectricityPriceCents(item.priceNoTax, "cents") ??
+        normalizeElectricityPriceCents(item.PriceNoTax, "cents") ??
+        normalizeElectricityPriceCents(item.spotPrice, "cents") ??
+        normalizeElectricityPriceCents(item.SpotPrice, "cents") ??
+        normalizeElectricityPriceCents(item.centsPerKwh, "cents") ??
+        normalizeElectricityPriceCents(item.cents_per_kwh, "cents");
 
-      if (directCents != null) {
-        // API voi palauttaa EUR/kWh tai virheellisen nolla-arvon.
-        // Muunnetaan pienet euroarvot senteiksi ja ohitetaan 0-arvot.
-        if (directCents > 0 && directCents < 1) {
-          return directCents * 100;
-        }
+      if (directCents != null) return directCents;
 
-        if (directCents <= 0) {
-          return null;
-        }
-
-        return directCents;
-      }
-
-      // sahkonhintatanaan.fi antaa EUR/kWh. Muunnetaan c/kWh:ksi.
       const eurPerKwh =
-        readNumber(item.EUR_per_kWh) ??
-        readNumber(item.eur_per_kwh) ??
-        readNumber(item.eurPerKwh);
+        normalizeElectricityPriceCents(item.EUR_per_kWh, "eur") ??
+        normalizeElectricityPriceCents(item.eur_per_kwh, "eur") ??
+        normalizeElectricityPriceCents(item.eurPerKwh, "eur") ??
+        normalizeElectricityPriceCents(item.eurPerMWh != null ? Number(item.eurPerMWh) / 1000 : null, "eur") ??
+        normalizeElectricityPriceCents(item.EUR_per_MWh != null ? Number(item.EUR_per_MWh) / 1000 : null, "eur");
 
-      if (eurPerKwh != null) return eurPerKwh * 100;
+      if (eurPerKwh != null) return eurPerKwh;
 
       return null;
     };
@@ -547,7 +567,8 @@ function KauppiasMobileTopBar({
       const response = await fetch(url, { cache: "no-store" });
       if (!response.ok || cancelled) return null;
       const data = await response.json();
-      return readElectricityPriceFromObject(data);
+      const price = readElectricityPriceFromObject(data);
+      return price;
     }
 
     async function tryReadCurrentFromList(url: string) {
@@ -614,8 +635,14 @@ function KauppiasMobileTopBar({
         setElectricityText("haetaan");
 
         const { year, month, day, date, hour } = getCurrentFinnishDateHour();
+        const nowIso = new Date().toISOString();
 
         const candidates = [
+          // Porssisahko.netin nykyinen v2-esimerkki käyttää dateTime-parametria.
+          () => tryReadDirectPrice(
+            `https://api.porssisahko.net/v2/price.json?dateTime=${encodeURIComponent(nowIso)}`,
+          ),
+          // Säilytetään vanhat date/hour-muodot fallbackeina.
           () => tryReadDirectPrice(
             `https://api.porssisahko.net/v2/price.json?date=${encodeURIComponent(date)}&hour=${encodeURIComponent(hour)}`,
           ),
@@ -634,11 +661,7 @@ function KauppiasMobileTopBar({
             const price = await readCandidate();
             if (cancelled) return;
 
-            if (
-              price != null &&
-              Number.isFinite(price) &&
-              price > 0.01
-            ) {
+            if (price != null && Number.isFinite(price) && Math.abs(price) > 0.000001) {
               setElectricityValue(formatElectricityPrice(price));
               setElectricityText("c/kWh");
               return;
