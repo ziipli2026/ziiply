@@ -20,6 +20,7 @@
 // V8: alkoholin yhteissummalaskenta ei enää riipu myöhemmin määritellyistä getCartItemQuantity/readCartItemPrice-funktioista.
 // V9: korjaa hasAlcoholItemsV7 → hasAlcoholItemsV8 nimeämisvirheen buildissä.
 // V10: varmistaa, että hasAlcoholItemsV8 määritellään komponentin sisällä ennen renderiä.
+// V11: korjaa hasAlcoholItemsV8-muuttujan scopen ja vaihtaa pääkomponentin yhteissumman alkoholittomaksi.
 
 import React from "react";
 
@@ -123,7 +124,6 @@ function LedgerButton({
   disabled?: boolean;
   wide?: boolean;
 }) {
-  const hasAlcoholItemsV8 = hasAlcoholCartItemsV8(items);
 
   return (
     <button
@@ -273,10 +273,8 @@ export default function ZiiplyMobileCartCard({
   if (!open) return null;
 
   const hasItems = items.length > 0;
-  const totalPrice = items.reduce((sum, item) => {
-    const quantity = Number(item.quantity ?? item.amount ?? 1);
-    return sum + getNumericPrice(item.price) * (Number.isFinite(quantity) ? Math.max(1, quantity) : 1);
-  }, 0);
+  const totalPrice = getDisplayCartTotalV8(items);
+  const hasAlcoholItemsV8 = hasAlcoholCartItemsV8(items);
 
   return (
     <div
