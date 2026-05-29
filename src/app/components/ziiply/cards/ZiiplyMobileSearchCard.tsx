@@ -1,9 +1,9 @@
 "use client";
 
-// V471_MOBILE_SEARCH_MOCKUP_LAYOUT_REFINEMENT:
+// V472_MOBILE_SEARCH_PAGE_COMPAT_MOCKUP_INSIDE_ONLY:
  // - Sisäinen asettelu mockupin mukaiseksi ilman kortin ulkokuoren/fonttien vaihtoa
  // - Gösta/Justiina-kehys säilyy, vain kuvaa suurennettu napin sisällä
- // - Hakukenttä korkeampi ja Lisää koriin -nappi samaa pill-muotoa/fonttia kuin Vihkonen
+ // - Hakukenttä korkeampi; KORIIN-nappi samaa pill-muotoa/fonttia kuin Vihkonen
 
 import React from "react";
 
@@ -294,7 +294,7 @@ export default function ZiiplyMobileSearchCard({
         </div>
 
         <div className="relative z-10 flex h-full min-h-0 flex-col">
-          <div className="grid h-[3.5rem] grid-cols-[minmax(0,1fr)_auto] items-start gap-2.5">
+          <div className="grid h-[3.5rem] grid-cols-[minmax(0,1fr)_auto_auto] items-start gap-2.5">
             <div className="min-w-0 overflow-hidden">
               <div
                 className="text-[0.72rem] font-black uppercase leading-none tracking-[0.42em] text-[#6f674f]"
@@ -311,9 +311,10 @@ export default function ZiiplyMobileSearchCard({
             </div>
 
             <NotebookButton onClick={onAddInputToCart} />
+            <GreenPillButton label="KORIIN" onClick={onAddInputToCart} disabled={!hasText} />
           </div>
 
-          <div className="relative z-10 mt-3 h-[4.1rem] overflow-hidden rounded-[1.45rem] border-[3px] border-[#9d8350] bg-[#fff4d3] p-1.5 shadow-[inset_0_3px_8px_rgba(91,65,28,0.10)]">
+          <div className="relative z-10 mt-3 h-[4.35rem] overflow-hidden rounded-[1.45rem] border-[3px] border-[#9d8350] bg-[#fff4d3] p-1.5 shadow-[inset_0_3px_8px_rgba(91,65,28,0.10)]">
             <textarea
               ref={inputRef}
               value={input}
@@ -325,16 +326,7 @@ export default function ZiiplyMobileSearchCard({
             />
           </div>
 
-          <div className="relative z-10 mt-2 flex justify-center">
-            <GreenPillButton
-              label="Lisää koriin"
-              onClick={onAddInputToCart}
-              disabled={!hasText}
-              className="px-5"
-            />
-          </div>
-
-          <div className="relative z-10 mt-2 grid grid-cols-[1fr_auto_1fr] items-center gap-2.5">
+          <div className="relative z-10 mt-3 grid grid-cols-[1fr_auto_1fr] items-center gap-2.5">
             <div className="w-full">
               <AssistantButton
                 kind="gosta"
