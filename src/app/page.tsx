@@ -1,6 +1,7 @@
 "use client";
 
 // V527_MOBILE_SEARCH_RESULTS_CARD_AND_ELECTRICITY_REPAIR: mobiilin hakutulokset omalle kortille ja pörssisähkö korjattu suorahaulla.
+// V530_CLEAR_SEARCH_INPUT_ON_CLOSE: Hae-kortin tekstikenttä tyhjennetään aina kun Hae suljetaan tai vaihdetaan pois.
 // V529_ELECTRICITY_INTERNAL_TOPBAR_FINAL: KauppiasMobileTopBarin sisäinen sähköhaku korjattu; page ei käytä erillistä ZiiplyMobileTopBaria.
 // V528_ELECTRICITY_VISIBLE_ERROR_AND_FALLBACKS: sähköhinta hakee suoraan + listasta ja näyttää virhetilan detailissä.
 // V526_ELECTRICITY_ZERO_REBUILD: pörssisähkön haku rakennettu kokonaan uudelleen yhdestä listalähteestä.
@@ -1455,6 +1456,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const [activeNormalSearchTerm, setActiveNormalSearchTerm] = useState("");
   const [notFoundSearchTerms, setNotFoundSearchTerms] = useState<string[]>([]);
   const [eanModalOpen, setEanModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (searchPanelOpen) return;
+
+    setInput("");
+    setActiveNormalSearchTerm("");
+    setNotFoundSearchTerms([]);
+    setOfferSearchQuerySnapshot("");
+    setOfferSearchDoneForQuery("");
+    setNormalSearchAttempted(false);
+  }, [searchPanelOpen]);
+
 
   const haeReadyBadgeAllowedViewV520 =
     !searchPanelOpen &&
