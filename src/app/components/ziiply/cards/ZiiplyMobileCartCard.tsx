@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_CART_CARD_V8_ALCOHOL_HELPER_SCOPE_FIX
+// ZIIPLY_MOBILE_CART_CARD_V13_CLOSE_BUTTON_ALIGNMENT
 // Mobiilin Tavarainkeruu-paperivihko.
 // V3:
 // - "Ostoskori" poistettu kokonaan näkyvästä UI:sta.
@@ -21,6 +21,8 @@
 // V9: korjaa hasAlcoholItemsV7 → hasAlcoholItemsV8 nimeämisvirheen buildissä.
 // V10: varmistaa, että hasAlcoholItemsV8 määritellään komponentin sisällä ennen renderiä.
 // V11: korjaa hasAlcoholItemsV8-muuttujan scopen ja vaihtaa pääkomponentin yhteissumman alkoholittomaksi.
+// V12: vain koordinaatti/UI-säätö; Tavarainkeruu hieman ylemmäs ja erillinen poisto-ruksi korvattu hinta/kassa-tekstin painalluksella.
+// V13: sulje-nappi kohdistettu A. Virtanen -tekstin vaakatasoon ja symboli pehmennetty.
 
 import React from "react";
 
@@ -290,11 +292,11 @@ export default function ZiiplyMobileCartCard({
         />
         <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[linear-gradient(180deg,rgba(255,250,226,0.30),rgba(238,214,156,0.10))]" />
 
-        <header className="relative z-10 shrink-0 px-5 pb-2 pt-[3.95rem]">
+        <header className="relative z-10 shrink-0 px-5 pb-2 pt-[3.74rem]">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <h2
-                className="ml-[0.95rem] mt-[0.05rem] rotate-[-0.45deg] text-[0.92rem] font-black italic leading-none text-[#314226]/76 drop-shadow-[0_1px_0_rgba(255,247,211,0.52)]"
+                className="ml-[0.95rem] mt-[-0.04rem] rotate-[-0.45deg] text-[0.92rem] font-black italic leading-none text-[#314226]/76 drop-shadow-[0_1px_0_rgba(255,247,211,0.52)]"
                 style={{ fontFamily: serifFont }}
               >
                 {title}
@@ -304,12 +306,11 @@ export default function ZiiplyMobileCartCard({
             <button
               type="button"
               onClick={onClose}
-              className="mr-[0.08rem] mt-[-0.78rem] grid h-[2rem] w-[2rem] shrink-0 place-items-center rounded-full border-[2px] border-[#6f5730] bg-[#fff2cb]/82 text-[1.02rem] font-black leading-none text-[#513d1f] shadow-[0_2px_0_rgba(91,72,44,0.15)] active:translate-y-[1px]"
+              className="mr-[0.08rem] mt-[-1.82rem] grid h-[2.15rem] w-[2.15rem] shrink-0 place-items-center rounded-full border-[2px] border-[#6f5730] bg-[#fff2cb]/82 text-[1.04rem] font-black leading-none text-[#513d1f] shadow-[0_2px_0_rgba(91,72,44,0.15)] active:translate-y-[1px]"
               aria-label="Sulje"
               title="Sulje"
             >
-              ×
-            </button>
+              ✕</button>
           </div>
 
           <div className="mt-4 grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-2">
@@ -394,28 +395,26 @@ export default function ZiiplyMobileCartCard({
                       onIncrease={onIncreaseItem}
                     />
 
+                    <span
+                      aria-hidden="true"
+                      className="block h-[1.7rem] w-full"
+                    />
+
                     <button
                       type="button"
                       onClick={() => onRemoveItem?.(item)}
-                      className="grid h-[1.7rem] w-full place-items-center text-[0.72rem] font-black leading-none text-[#9a4c2a]/62 active:translate-y-[1px]"
-                      aria-label="Poista"
-                      title="Poista"
-                    >
-                      ×
-                    </button>
-
-                    <div
                       className={cx(
-                        "min-w-0 pr-[0.08rem] text-right font-black leading-none",
+                        "min-w-0 rounded-[0.24rem] pr-[0.08rem] text-right font-black leading-none active:translate-y-[1px] active:bg-[#ffe0bc]/36",
                         isAlcoholCartItemV8(item)
-                          ? "text-[0.58rem] italic text-[#7b3215]/78"
+                          ? "text-center text-[0.86rem] italic text-[#7b3215]/86"
                           : "text-[0.84rem] text-[#3f321f]",
                       )}
                       style={{ fontFamily: serifFont }}
-                      title={isAlcoholCartItemV8(item) ? "Maksetaan kassalla" : undefined}
+                      title={isAlcoholCartItemV8(item) ? "Poista kassalla maksettava tuote" : "Poista tuote"}
+                      aria-label="Poista tuote"
                     >
                       {isAlcoholCartItemV8(item) ? "kassa" : price}
-                    </div>
+                    </button>
                   </article>
                 );
               })}
