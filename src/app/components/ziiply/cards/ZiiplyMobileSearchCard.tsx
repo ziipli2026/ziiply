@@ -210,16 +210,17 @@ function RetroAssetButton({
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="relative block h-[4.95rem] min-h-[4.95rem] w-full overflow-hidden border-0 bg-transparent p-0 shadow-none outline-none active:translate-y-[1px]"
+      className={cx(
+        "relative block w-full overflow-hidden border-0 bg-transparent p-0 shadow-none outline-none active:translate-y-[1px]",
+        kind === "scanner"
+          ? "aspect-[850/295]"
+          : "h-[4.95rem] min-h-[4.95rem]",
+      )}
     >
       <img
         src={imageSrc}
         alt={label}
-        className={cx(
-          "absolute left-0 top-0 w-full select-none",
-          // Scanner is a single idle button image here: keep normal proportions.
-          kind === "scanner" ? "h-full object-contain object-center" : "h-full object-fill",
-        )}
+        className="absolute inset-0 h-full w-full object-contain object-center select-none"
         draggable={false}
       />
     </button>
