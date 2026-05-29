@@ -1,6 +1,8 @@
 "use client";
 
 // V527_MOBILE_SEARCH_RESULTS_CARD_AND_ELECTRICITY_REPAIR: mobiilin hakutulokset omalle kortille ja pörssisähkö korjattu suorahaulla.
+// V537_MOBILE_RESULTS_ONLY_CURRENT_FOUND_QUERY: tuloskortti ei aukea ei-löytynyt-haulla eikä vanhoilla tuloksilla.
+// V536_MOBILE_RESULTS_NO_JUMP_WHILE_SEARCHING: mobiilin hakutuloskortti ei aukea haun aikana eikä tyhjällä tuloksella.
 // V534_HAE_READY_BADGE_TRUE_SEARCH_TAB_CENTER: 'Voit hakea' -badge korjattu Hae-tabin todelliselle keskilinjalle prosenttipaikalla.
 // V532_HAE_READY_BADGE_OVER_SEARCH_ICON: 'Voit hakea' -mikrobadge ankkuroitu suurennuslasi/Hae-napin yläpuolelle.
 // V531_HAE_READY_MICRO_BADGE: vanha HAE VALMIS -badge korvattu pienellä retro 'Voit hakea' -mikrobadgella Hae-napin yläpuolella.
@@ -1457,6 +1459,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }, [storesReadyForSearch, searchReadySignatureV320]);
   const [visibleNormalCount, setVisibleNormalCount] = useState(8);
   const [activeNormalSearchTerm, setActiveNormalSearchTerm] = useState("");
+  const [mobileResultsReadyQueryV537, setMobileResultsReadyQueryV537] = useState("");
   const [notFoundSearchTerms, setNotFoundSearchTerms] = useState<string[]>([]);
   const [eanModalOpen, setEanModalOpen] = useState(false);
 
@@ -1465,6 +1468,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     setInput("");
     setActiveNormalSearchTerm("");
+    setMobileResultsReadyQueryV537("");
     setNotFoundSearchTerms([]);
     setOfferSearchQuerySnapshot("");
     setOfferSearchDoneForQuery("");
@@ -4723,6 +4727,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setVisibleNormalCount(8);
       setActiveNormalSearchTerm(focusedSearchTerms[0] || "");
       setNormalResults([]);
+      setMobileResultsReadyQueryV537("");
       setActiveResult("none");
       setSearchPanelOpen(true);
       return;
@@ -4751,6 +4756,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setLastOptimizationSnapshot(null);
     }
 
+    // V537: uusi haku ei saa näyttää vanhoja hakutuloksia eikä avata tuloskorttia ennen uusia osumia.
+    setNormalResults([]);
+    setMobileResultsReadyQueryV537("");
     setLoadingNormal(true);
     setNormalSearchAttempted(true);
     setSearchDebug([]);
@@ -4907,6 +4915,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       setSearchDebug(debugEntries);
       setNormalResults(unique);
+      setMobileResultsReadyQueryV537(unique.length > 0 ? focusedSearchTerms[0] || useTerms[0] || "" : "");
 
       if (unique.length === 0) {
         const missingTerm = focusedSearchTerms[0] || useTerms[0] || "";
@@ -4948,6 +4957,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
       setSearchDebug(debugEntries);
       setNormalResults([]);
+      setMobileResultsReadyQueryV537("");
       if (isMainSearch) {
         setSearchPanelOpen(true);
       }
@@ -10871,6 +10881,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               onClose={() => {
                 setSearchPanelOpen(false);
                 setNormalResults([]);
+                setMobileResultsReadyQueryV537("");
                 setNormalSearchAttempted(false);
                 setVisibleNormalCount(8);
                 setActiveNormalSearchTerm("");
@@ -10885,6 +10896,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               onAddProduct={(product: any) => {
                 addProductToCart(product as Product);
                 setNormalResults([]);
+                setMobileResultsReadyQueryV537("");
                 setNormalSearchAttempted(false);
                 setVisibleNormalCount(8);
                 setActiveNormalSearchTerm("");
@@ -10892,12 +10904,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             />
 
             <ZiiplyMobileSearchResultsCard
-              open={loadingNormal || normalResults.length > 0 || (normalSearchAttempted && Boolean(activeNormalSearchTerm))}
-              loading={loadingNormal}
+              open={
+                !loadingNormal &&
+                normalResults.length > 0 &&
+                mobileResultsReadyQueryV537.length > 0 &&
+                mobileResultsReadyQueryV537 === activeNormalSearchTerm
+              }
+              loading={false}
               title={activeNormalSearchTerm || "Tuotteet"}
               products={normalResults}
               onClose={() => {
                 setNormalResults([]);
+                setMobileResultsReadyQueryV537("");
                 setNormalSearchAttempted(false);
                 setVisibleNormalCount(8);
                 setActiveNormalSearchTerm("");
@@ -10905,6 +10923,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               onAddProduct={(product: any) => {
                 addProductToCart(product as Product);
                 setNormalResults([]);
+                setMobileResultsReadyQueryV537("");
                 setNormalSearchAttempted(false);
                 setVisibleNormalCount(8);
                 setActiveNormalSearchTerm("");
