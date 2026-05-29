@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_CART_CARD_V3_LEDGER_COLUMNS_BOUNCE
+// ZIIPLY_MOBILE_CART_CARD_V4_HEADER_BALANCE
 // Mobiilin Tavarainkeruu-paperivihko.
 // V3:
 // - "Ostoskori" poistettu kokonaan näkyvästä UI:sta.
@@ -13,6 +13,7 @@
 // - Halpuusvertailu-termi käytössä.
 // - Lista scrollaa näkymättömästi.
 // - Kortilla pieni sisääntulopomppu.
+// V4: yläosan tekstit ja toiminnot sovitettu paremmin paperin omaan painatukseen.
 
 import React from "react";
 
@@ -122,8 +123,8 @@ function LedgerButton({
       onClick={onClick}
       disabled={disabled}
       className={cx(
-        "rounded-[0.62rem] border-[2px] border-[#8a6b32] bg-[#fff0c7]/84 px-2.5 py-1.5 text-[0.68rem] font-black leading-none text-[#533819] shadow-[0_2px_0_rgba(91,72,44,0.14),inset_0_0_0_1px_rgba(255,255,255,0.48)] active:translate-y-[1px]",
-        wide && "min-w-[7.9rem]",
+        "rounded-[0.54rem] border-[1.5px] border-[#8a6b32] bg-[#fff0c7]/72 px-2.5 py-[0.42rem] text-[0.62rem] font-black leading-none text-[#533819] shadow-[0_1px_0_rgba(91,72,44,0.12),inset_0_0_0_1px_rgba(255,255,255,0.42)] active:translate-y-[1px]",
+        wide && "min-w-[7.45rem]",
         disabled && "cursor-not-allowed opacity-45",
       )}
       style={{ fontFamily: cooperFont }}
@@ -145,24 +146,24 @@ function QuantityCell({
   onIncrease?: (item: ZiiplyMobileCartItem) => void;
 }) {
   return (
-    <div className="flex h-[1.55rem] items-center justify-center gap-[0.15rem] text-[#3d301a]">
+    <div className="flex h-[1.55rem] items-center justify-center gap-[0.02rem] text-[#3d301a]">
       <button
         type="button"
         onClick={() => onDecrease?.(item)}
-        className="grid h-[1.25rem] w-[1.05rem] place-items-center rounded-[0.22rem] text-[0.92rem] font-black leading-none text-[#6d5430] active:translate-y-[1px]"
+        className="grid h-[1.25rem] w-[0.86rem] place-items-center rounded-[0.22rem] text-[0.86rem] font-black leading-none text-[#6d5430] active:translate-y-[1px]"
         aria-label="Vähennä määrää"
       >
         −
       </button>
 
-      <span className="min-w-[1.05rem] text-center text-[0.82rem] font-black leading-none" style={{ fontFamily: serifFont }}>
+      <span className="min-w-[0.9rem] text-center text-[0.82rem] font-black leading-none" style={{ fontFamily: serifFont }}>
         {quantity}
       </span>
 
       <button
         type="button"
         onClick={() => onIncrease?.(item)}
-        className="grid h-[1.25rem] w-[1.05rem] place-items-center rounded-[0.22rem] text-[0.86rem] font-black leading-none text-[#6d5430] active:translate-y-[1px]"
+        className="grid h-[1.25rem] w-[0.86rem] place-items-center rounded-[0.22rem] text-[0.82rem] font-black leading-none text-[#6d5430] active:translate-y-[1px]"
         aria-label="Lisää määrää"
       >
         +
@@ -209,11 +210,11 @@ export default function ZiiplyMobileCartCard({
         />
         <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[linear-gradient(180deg,rgba(255,250,226,0.30),rgba(238,214,156,0.10))]" />
 
-        <header className="relative z-10 shrink-0 px-5 pb-2 pt-[4.45rem]">
+        <header className="relative z-10 shrink-0 px-5 pb-2 pt-[4.72rem]">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <h2
-                className="ml-[0.35rem] rotate-[-1.2deg] text-[1.52rem] font-black italic leading-none text-[#314226]/88 drop-shadow-[0_1px_0_rgba(255,247,211,0.75)]"
+                className="ml-[0.15rem] mt-[0.15rem] rotate-[-0.8deg] text-[1.34rem] font-black italic leading-none text-[#314226]/84 drop-shadow-[0_1px_0_rgba(255,247,211,0.66)]"
                 style={{ fontFamily: serifFont }}
               >
                 {title}
@@ -223,7 +224,7 @@ export default function ZiiplyMobileCartCard({
             <button
               type="button"
               onClick={onClose}
-              className="grid h-[2.25rem] w-[2.25rem] shrink-0 place-items-center rounded-full border-[2px] border-[#6f5730] bg-[#fff2cb]/90 text-[1.16rem] font-black leading-none text-[#513d1f] shadow-[0_2px_0_rgba(91,72,44,0.18)] active:translate-y-[1px]"
+              className="mr-[0.08rem] mt-[-0.28rem] grid h-[2rem] w-[2rem] shrink-0 place-items-center rounded-full border-[2px] border-[#6f5730] bg-[#fff2cb]/82 text-[1.02rem] font-black leading-none text-[#513d1f] shadow-[0_2px_0_rgba(91,72,44,0.15)] active:translate-y-[1px]"
               aria-label="Sulje"
               title="Sulje"
             >
@@ -231,23 +232,28 @@ export default function ZiiplyMobileCartCard({
             </button>
           </div>
 
-          <div className="mt-2.5 flex flex-wrap items-center gap-2">
+          <div className="mt-3 grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-2">
             <LedgerButton onClick={onSaveList} disabled={!hasItems}>
               Tallenna
             </LedgerButton>
 
-            <LedgerButton onClick={onOpenSavedLists} wide>
-              Näytä ostoslistat{savedListsCount ? ` ${savedListsCount}` : ""}
-            </LedgerButton>
+            <div className="flex justify-start">
+              <LedgerButton onClick={onOpenSavedLists} wide>
+                Näytä ostoslistat{savedListsCount ? ` ${savedListsCount}` : ""}
+              </LedgerButton>
+            </div>
 
-            {hasItems && (
+            {hasItems ? (
               <button
                 type="button"
                 onClick={onClearCart}
-                className="ml-auto rounded-[0.55rem] border-[2px] border-[#9a6137] bg-[#ffe0bc]/62 px-2 py-1.5 text-[0.63rem] font-black leading-none text-[#7d3414] shadow-[0_1px_0_rgba(91,72,44,0.10)] active:translate-y-[1px]"
+                className="mt-[0.62rem] rounded-[0.48rem] border-[1.5px] border-[#9a6137] bg-[#ffe0bc]/42 px-2 py-1 text-[0.56rem] font-black lowercase leading-none text-[#7d3414]/82 shadow-[0_1px_0_rgba(91,72,44,0.08)] active:translate-y-[1px]"
+                style={{ fontFamily: serifFont }}
               >
-                Tyhjennä
+                tyhjennä
               </button>
+            ) : (
+              <span />
             )}
           </div>
         </header>
@@ -276,7 +282,7 @@ export default function ZiiplyMobileCartCard({
                   <article
                     key={String(item.id ?? item.ean ?? index)}
                     className={cx(
-                      "grid min-h-[2.05rem] grid-cols-[1.85rem_minmax(0,1fr)_3.92rem_4.15rem_1.3rem] items-center gap-1 border-b-[1.35px] border-[#b9944d]/68 bg-transparent px-1 py-[0.28rem]",
+                      "grid min-h-[2.05rem] grid-cols-[1.85rem_minmax(0,1fr)_3.65rem_4.35rem_1.15rem] items-center gap-1 border-b-[1.35px] border-[#b9944d]/68 bg-transparent px-1 py-[0.28rem]",
                       checked && "opacity-55",
                     )}
                   >
@@ -315,7 +321,7 @@ export default function ZiiplyMobileCartCard({
                     <button
                       type="button"
                       onClick={() => onRemoveItem?.(item)}
-                      className="h-[1.4rem] w-full text-center text-[0.72rem] font-black leading-none text-[#7b3215]/82 active:translate-y-[1px]"
+                      className="h-[1.4rem] w-full text-center text-[0.68rem] font-black leading-none text-[#7b3215]/58 active:translate-y-[1px]"
                       aria-label="Poista"
                       title="Poista"
                     >
@@ -328,7 +334,7 @@ export default function ZiiplyMobileCartCard({
           )}
         </div>
 
-        <footer className="relative z-10 shrink-0 px-5 pb-5 pt-2">
+        <footer className="relative z-10 shrink-0 px-5 pb-4 pt-1">
           <div className="mb-2 flex items-center justify-between border-t-[2px] border-[#9b7b3d]/62 pt-2 text-[#473719]">
             <span className="text-[0.76rem] font-black uppercase tracking-[0.16em]" style={{ fontFamily: copperplateFont }}>
               Yhteissumma
@@ -346,7 +352,7 @@ export default function ZiiplyMobileCartCard({
             onClick={onCompare}
             disabled={!hasItems}
             className={cx(
-              "mx-auto block rounded-[0.92rem] border-[3px] border-[#0b6330] bg-gradient-to-b from-[#139143] to-[#087237] px-5 py-2 text-[0.86rem] font-black italic text-[#fff0d5] shadow-[0_0_0_2px_rgba(255,255,255,0.18)_inset,0_3px_0_#064a26] active:translate-y-[1px]",
+              "mx-auto mt-[0.25rem] block rounded-[0.86rem] border-[3px] border-[#0b6330] bg-gradient-to-b from-[#139143] to-[#087237] px-5 py-[0.44rem] text-[0.82rem] font-black italic text-[#fff0d5] shadow-[0_0_0_2px_rgba(255,255,255,0.18)_inset,0_3px_0_#064a26] active:translate-y-[1px]",
               !hasItems && "cursor-not-allowed opacity-45",
             )}
             style={{ fontFamily: cooperFont }}
