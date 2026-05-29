@@ -1,5 +1,6 @@
 "use client";
 
+// V556_ELECTRICITY_INDICATOR_FORCE_VISIBLE: trendi-indikaattori renderöidään sähköpaneelin absoluuttiseksi omaksi merkiksi, ei hinnan rivin sisään.
 // V555_ELECTRICITY_UNIT_ALIGN_AND_VISIBLE_INDICATOR: nostaa c/kWh:n numeron keskilinjaan ja sijoittaa trendi-indikaattorin näkyvästi sähköruudun oikeaan yläosaan.
 // V554_ELECTRICITY_RETRO_INDICATOR_REPOSITION: siirtää sähkön retrotrendin hinnan vierestä otsikkoalueelle.
 // V553_ELECTRICITY_RETRO_TREND_ARROWS: palauttaa pörssisähkön 50-luvun retroindikaattorit: vihreä alas, punainen ylös, viiva vakaalle.
@@ -837,6 +838,21 @@ function KauppiasMobileTopBar({
                 <span className="absolute bottom-[4px] right-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.70),transparent_55%)]" />
 
+                {panel.id === "electricity" && (
+                  <span
+                    className={`pointer-events-none absolute right-[14px] top-[22px] z-30 block text-[18px] font-black italic leading-none opacity-95 ${electricityTrendClass}`}
+                    title={
+                      electricityTrend === "up"
+                        ? "Nousussa"
+                        : electricityTrend === "down"
+                          ? "Laskussa"
+                          : "Vakaa"
+                    }
+                  >
+                    {electricityTrendArrow}
+                  </span>
+                )}
+
                 <div className="relative z-10 flex h-full flex-col items-center justify-center text-center leading-none">
                   <div className="flex items-center justify-center gap-[2px]">
                     {panel.graphic}
@@ -849,22 +865,7 @@ function KauppiasMobileTopBar({
                     <span className="text-[18px] font-black leading-none tracking-[-0.04em] text-[#041b19]">
                       {panel.value}
                     </span>
-                    {panel.id === "electricity" &&
-                      panel.value !== "…" &&
-                      panel.value !== "—" && (
-                        <span
-                          className={`absolute right-[15px] top-[25px] z-20 text-[17px] font-black italic leading-none opacity-95 ${electricityTrendClass}`}
-                          title={
-                            electricityTrend === "up"
-                              ? "Nousussa"
-                              : electricityTrend === "down"
-                                ? "Laskussa"
-                                : "Vakaa"
-                          }
-                        >
-                          {electricityTrendArrow}
-                        </span>
-                      )}
+
                     {panel.unit && (
                       <span className="pt-[2px] text-[8px] font-black leading-none opacity-80">
                         {panel.unit}
