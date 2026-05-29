@@ -1,5 +1,6 @@
 "use client";
 
+// V560_ELECTRICITY_CACHE_AUTO_CLEANUP: poistaa liian vanhan sähkön hintamuistin automaattisesti localStoragesta.
 // V559_ELECTRICITY_LOCAL_CACHE: pörssisähkö käyttää selaimen localStorage-muistia; viimeisin hinta näytetään heti ja uusi haetaan taustalla.
 // V558_ELECTRICITY_RETRO_SIGNAL_LAMP: korvaa sähkön kolmionuolen vanhan ajan pienellä merkkivalolla.
 // V557_ELECTRICITY_QUARTER_PRICING_SAHKOTIN: käyttää ensisijaisesti Sähköttimen varttihinta-API:a quarter&fix&vat ja vertaa trendin seuraavaan 15 min jaksoon.
@@ -524,6 +525,14 @@ function KauppiasMobileTopBar({
         };
 
         if (!cached?.value || !cached?.savedAt) return null;
+
+        const ageMs = Date.now() - Number(cached.savedAt);
+
+        // yli 12h vanha tieto poistetaan kokonaan muistista
+        if (ageMs > 12 * 60 * 60 * 1000) {
+          window.localStorage.removeItem(ZIIPLY_ELECTRICITY_PRICE_CACHE_KEY_V559);
+          return null;
+        }
 
         return cached;
       } catch {
