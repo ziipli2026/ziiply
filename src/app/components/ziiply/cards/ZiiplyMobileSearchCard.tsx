@@ -1,9 +1,9 @@
 "use client";
 
-// V469_MOBILE_SEARCH_FIX_ASSISTANTS_SCANNER_ADD_BUTTON:
- // - Gösta/Justiina näkyviin: AssistantButton sai w-full-leveyden
- // - kamera/skanneri normaaliksi ilman väärää täyttöskaalausta
- // - lisätty erillinen Lisää koriin -nappi abstraktin muistilistatuotteen lisäämiseen
+// V471_MOBILE_SEARCH_MOCKUP_LAYOUT_REFINEMENT:
+ // - Sisäinen asettelu mockupin mukaiseksi ilman kortin ulkokuoren/fonttien vaihtoa
+ // - Gösta/Justiina-kehys säilyy, vain kuvaa suurennettu napin sisällä
+ // - Hakukenttä korkeampi ja Lisää koriin -nappi samaa pill-muotoa/fonttia kuin Vihkonen
 
 import React from "react";
 
@@ -119,7 +119,7 @@ function AssistantButton({
       <img
         src={image}
         alt=""
-        className="absolute inset-0 h-full w-full object-cover"
+        className="absolute inset-[-12%] h-[124%] w-[124%] object-cover object-center"
         draggable={false}
         onError={(event) => {
           event.currentTarget.style.display = "none";
@@ -168,21 +168,40 @@ function ModeToggle({
   );
 }
 
-function NotebookButton({
+function GreenPillButton({
+  label,
   onClick,
+  disabled,
+  className = "",
 }: {
+  label: string;
   onClick?: () => void;
+  disabled?: boolean;
+  className?: string;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="h-[2.45rem] shrink-0 rounded-[1.2rem] border-[3px] border-[#0b6330] bg-gradient-to-b from-[#139143] to-[#087237] px-3 text-[0.88rem] font-black italic leading-none text-[#fff0d5] shadow-[0_0_0_2px_rgba(255,255,255,0.18)_inset,0_4px_0_#064a26] transition active:translate-y-[1px] active:shadow-[0_2px_0_#064a26]"
+      disabled={disabled}
+      className={cx(
+        "h-[2.45rem] shrink-0 rounded-[1.2rem] border-[3px] border-[#0b6330] bg-gradient-to-b from-[#139143] to-[#087237] px-3 text-[0.88rem] font-black italic leading-none text-[#fff0d5] shadow-[0_0_0_2px_rgba(255,255,255,0.18)_inset,0_4px_0_#064a26] transition active:translate-y-[1px] active:shadow-[0_2px_0_#064a26]",
+        disabled && "cursor-not-allowed opacity-45",
+        className,
+      )}
       style={{ fontFamily: cooperFont }}
     >
-      Vihkonen
+      {label}
     </button>
   );
+}
+
+function NotebookButton({
+  onClick,
+}: {
+  onClick?: () => void;
+}) {
+  return <GreenPillButton label="Vihkonen" onClick={onClick} />;
 }
 
 function RetroAssetButton({
@@ -294,37 +313,29 @@ export default function ZiiplyMobileSearchCard({
             <NotebookButton onClick={onAddInputToCart} />
           </div>
 
-          <div className="relative z-10 mt-3 h-[3.2rem] overflow-hidden rounded-[1.45rem] border-[3px] border-[#9d8350] bg-[#fff4d3] p-1.5 shadow-[inset_0_3px_8px_rgba(91,65,28,0.10)]">
+          <div className="relative z-10 mt-3 h-[4.1rem] overflow-hidden rounded-[1.45rem] border-[3px] border-[#9d8350] bg-[#fff4d3] p-1.5 shadow-[inset_0_3px_8px_rgba(91,65,28,0.10)]">
             <textarea
               ref={inputRef}
               value={input}
               onChange={(event) => onInputChange?.(event.target.value)}
-              rows={2}
+              rows={3}
               placeholder={searchMode === "single" ? "Kirjoita yksi tuote" : "maito, kahvi"}
-              className="block h-full w-full resize-none overflow-hidden rounded-[1.15rem] border-0 bg-[#fffaf0] px-4 py-1 text-center text-[1.18rem] font-black leading-[1.02] text-[#102216] outline-none placeholder:text-[#7d7461]"
+              className="block h-full w-full resize-none overflow-hidden rounded-[1.15rem] border-0 bg-[#fffaf0] px-4 py-2 text-center text-[1.18rem] font-black leading-[1.02] text-[#102216] outline-none placeholder:text-[#7d7461]"
               style={{ fontFamily: hasText ? serifFont : cooperFont }}
             />
           </div>
 
           <div className="relative z-10 mt-2 flex justify-center">
-            <button
-              type="button"
+            <GreenPillButton
+              label="Lisää koriin"
               onClick={onAddInputToCart}
               disabled={!hasText}
-              className={cx(
-                "rounded-[1.05rem] border-[2.5px] px-5 py-2 text-[0.9rem] font-black leading-none shadow-[0_3px_0_rgba(60,45,20,0.22)] transition active:translate-y-[1px] active:shadow-none",
-                hasText
-                  ? "border-[#0b6330] bg-[#0b8f3e] text-[#fff0d5]"
-                  : "cursor-not-allowed border-[#c7b37c] bg-[#ead7a5] text-[#9a885c] opacity-55",
-              )}
-              style={{ fontFamily: cooperFont }}
-            >
-              Lisää koriin
-            </button>
+              className="px-5"
+            />
           </div>
 
           <div className="relative z-10 mt-2 grid grid-cols-[1fr_auto_1fr] items-center gap-2.5">
-            <div className="w-full scale-[1.28]">
+            <div className="w-full">
               <AssistantButton
                 kind="gosta"
                 onClick={onOfferSearch}
@@ -359,7 +370,7 @@ export default function ZiiplyMobileSearchCard({
               </button>
             </div>
 
-            <div className="w-full scale-[1.28]">
+            <div className="w-full">
               <AssistantButton
                 kind="justiina"
                 onClick={onNormalSearch}
