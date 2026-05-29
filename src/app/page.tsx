@@ -1,5 +1,6 @@
 "use client";
 
+// V550_RESTORE_INTERNAL_KAUPPIAS_TOPBAR_RENDER: palauttaa renderiin sisäisen KauppiasMobileTopBarin; poistaa ZiiplyMobileTopBar-viittauksen kokonaan.
 // V549_PAGE_INTERNAL_TOPBAR_ACTIVE
 // page.tsx käyttää sisäistä KauppiasMobileTopBar-komponenttia.
 // Erillistä ZiiplyMobileTopBar-importtia ei käytetä.
@@ -10143,9 +10144,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           className={`relative z-[80] m-0 p-0 mt-1 mb-0 ziiply-desktop-debug-compact sm:mx-auto sm:max-w-[1180px] sm:px-4 ${showLaunchScreen ? "hidden" : ""}`}
         >
           {/* v388_TOPBAR_BACKGROUND_LOCK: keeps Safari from pulling the hero/background upward after idle/reload. */}
-        <ZiiplyMobileTopBar
+        <KauppiasMobileTopBar
             hidden={showLaunchScreen}
             areaLabel={activeArea.label}
+            gpsCoords={gpsCoordsV320}
+            weatherEnabled={Boolean(gpsCoordsV320)}
             onOpenCalendar={() => {
               try {
                 window.location.href = "calshow://";
@@ -10156,7 +10159,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           />
         </div>
         {/* v389_MOBILE_HOME_LAYER_ANCHOR:
-            ZiiplyMobileTopBar is fixed, so it must reserve a permanent
+            KauppiasMobileTopBar is fixed, so it must reserve a permanent
             non-render-dependent background slot. This prevents iOS Safari from
             pulling the mobile home artwork upward after idle/reload/viewport restore. */}
         <div
