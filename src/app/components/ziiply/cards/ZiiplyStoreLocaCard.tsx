@@ -1,7 +1,5 @@
 "use client";
 
-// V3_RESTORE_COMPASS_MAP_BUTTON: palautettu kompassi/karttanappi StoreLoca-korttiin onOpenMap-propilla.
-
 import React from "react";
 
 export type ZiiplyStoreLocaCardProps = {
@@ -10,8 +8,8 @@ export type ZiiplyStoreLocaCardProps = {
   onApplyLocation?: () => void | Promise<void>;
   onUseOwnLocation?: () => void | Promise<void>;
   onDisableOwnLocation?: () => void;
-  onOpenMap?: () => void;
   onOpenShops?: () => void;
+  onOpenMap?: () => void;
   usingOwnLocation?: boolean;
   locationMessage?: string;
   locationMessageVisible?: boolean;
@@ -33,8 +31,8 @@ export default function ZiiplyStoreLocaCard({
   onApplyLocation,
   onUseOwnLocation,
   onDisableOwnLocation,
-  onOpenMap,
   onOpenShops,
+  onOpenMap,
   usingOwnLocation = false,
   locationMessage = "Kirjoita alue tai käytä omaa sijaintia.",
   locationMessageVisible = false,
@@ -101,15 +99,16 @@ export default function ZiiplyStoreLocaCard({
         <button
           type="button"
           onClick={() => void onOpenMap?.()}
-          disabled={!onOpenMap}
-          aria-label="Avaa kartta ja reitit"
-          title="Avaa kartta ja reitit"
-          className={cx(
-            "flex h-[56px] w-[72px] shrink-0 items-center justify-center rounded-[1.35rem] border-2 bg-[#fff9ea] text-[2rem] font-black text-[#143b24] shadow-[0_3px_0_rgba(91,72,44,0.16),inset_0_0_0_1px_rgba(255,255,255,0.65)] ring-1 ring-[#d6bf8f] transition hover:brightness-105 active:scale-[0.98]",
-            !onOpenMap && "cursor-not-allowed opacity-45",
-          )}
+          className="flex h-[56px] w-[72px] shrink-0 items-center justify-center overflow-hidden rounded-[1.35rem] border-2 border-[#17452f] bg-gradient-to-b from-[#f8edc8] via-[#e2bf72] to-[#b98233] text-[#143b24] shadow-[0_3px_0_rgba(91,72,44,0.18),inset_0_0_0_1px_rgba(255,255,255,0.55)] ring-1 ring-[#d6bf8f] transition hover:brightness-105 active:scale-[0.98]"
+          aria-label="Avaa kartta"
+          title="Avaa kartta"
         >
-          🧭
+          <img
+            src="/icons/ziiply-compass.png"
+            alt=""
+            className="h-[72px] w-[72px] object-contain drop-shadow-[0_3px_6px_rgba(7,61,50,0.32)]"
+            draggable={false}
+          />
         </button>
 
         <button
