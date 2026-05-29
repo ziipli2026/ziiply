@@ -18,6 +18,7 @@
 // V6: poisto-X siirretty hinnan vasemmalle puolelle, jotta HINTA-sarake jää puhtaaksi.
 // V7: määrä/poisto/hinta kohdistettu paperisarakeisiin; alkoholijuomat näkyvät keräilyssä mutta eivät kuulu yhteissummaan.
 // V8: alkoholin yhteissummalaskenta ei enää riipu myöhemmin määritellyistä getCartItemQuantity/readCartItemPrice-funktioista.
+// V9: korjaa hasAlcoholItemsV7 → hasAlcoholItemsV8 nimeämisvirheen buildissä.
 
 import React from "react";
 
@@ -434,7 +435,7 @@ export default function ZiiplyMobileCartCard({
             </span>
           </div>
 
-          {hasAlcoholItemsV7 && (
+          {hasAlcoholItemsV8 && (
             <div
               className="mx-auto mb-1 max-w-[14rem] rounded-[0.35rem] border border-[#9a6137]/45 bg-[#fff0c7]/44 px-2 py-1 text-center text-[0.52rem] font-black italic leading-tight text-[#7b3215]/82"
               style={{ fontFamily: serifFont }}
