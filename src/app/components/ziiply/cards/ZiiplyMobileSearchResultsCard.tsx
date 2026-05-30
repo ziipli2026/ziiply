@@ -349,9 +349,9 @@ export default function ZiiplyMobileSearchResultsCard({
                       )}
                     </div>
 
-                    <div className="min-w-0 pr-[7.2rem] pt-[0.02rem]">
+                    <div className="min-w-0 pr-[6.1rem] pt-0">
                       <div
-                        className="line-clamp-2 text-[0.86rem] font-black leading-[1.02] text-[#123d32] [transform:translateZ(0)]"
+                        className="line-clamp-2 -translate-y-[1px] text-[0.86rem] font-black leading-[1.02] text-[#123d32] [transform:translateZ(0)]"
                         style={{ fontFamily: cooper }}
                       >
                         {name}
