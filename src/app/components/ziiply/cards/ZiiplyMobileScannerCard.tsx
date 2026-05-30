@@ -1,10 +1,10 @@
 "use client";
 
 /**
- * ZiiplyMobileScannerCard-v589-slower-soft-radar.tsx
+ * ZiiplyMobileScannerCard-v590-status-selection-fix.tsx
  * 2026-05-30
  *
- * Mobiiliskannerikortin v589-revisio.
+ * Mobiiliskannerikortin v590-revisio.
  *
  * Muutokset:
  * - Ei käytä WEBP-taustakuvaa lainkaan.
@@ -42,6 +42,9 @@
  * - v588: korjaa tutka-aallon liikeradan kulkemaan koko kameraruudun korkeudelta ylhäältä alas.
  * - v588: säilyttää v587:n pehmeän yhden aallon ulkoasun.
  * - v589: hidastaa tutka-aallon liikkeen noin 0.5x nopeuteen pehmeämmän liikkeen saavuttamiseksi.
+ * - v590: palauttaa kameraruudun päällä näkyvän HAETAAN-statusilmoituksen loading/scannerMessage-tilasta.
+ * - v590: siistii useamman EAN-osuman valintapaneelin koko kameraruudun overlayksi.
+ * - v590: piilottaa tutkan valintapaneelin ja hakuoverlayn alta.
  */
 
 import React, { useEffect, useMemo, useState } from "react";
@@ -119,11 +122,13 @@ export default function ZiiplyMobileScannerCard({
   }, [flashState]);
 
   const visibleMessage =
-    flashState === "success"
-      ? "Lisätty koriin"
-      : flashState === "error"
-        ? "Ei löytynyt"
-        : scannerMessage || "";
+    loading
+      ? "Haetaan tuotetta"
+      : flashState === "success"
+        ? "Lisätty koriin"
+        : flashState === "error"
+          ? "Ei löytynyt"
+          : scannerMessage || "";
 
   const hasSelectionResults = selectionResults.length > 1;
 
@@ -348,12 +353,14 @@ export default function ZiiplyMobileScannerCard({
             aria-hidden="true"
           />
           {/* Radar sweep */}
-          <div
-            className="pointer-events-none absolute inset-0 z-[28] ziiply-radar-sweep"
-            aria-hidden="true"
-          >
-            <div className="ziiply-radar-band" />
-          </div>
+          {!loading && !hasSelectionResults && (
+            <div
+              className="pointer-events-none absolute inset-0 z-[28] ziiply-radar-sweep"
+              aria-hidden="true"
+            >
+              <div className="ziiply-radar-band" />
+            </div>
+          )}
 
 
           {/* Kohdistuskulmat */}
@@ -373,12 +380,12 @@ export default function ZiiplyMobileScannerCard({
           {visibleMessage && (
             <div
               className={[
-                "pointer-events-none absolute inset-x-5 bottom-[18%] z-[40] rounded-[1rem] px-3 py-2 text-center text-[14px] font-black uppercase tracking-[0.035em] shadow-[0_8px_18px_rgba(0,0,0,0.20)]",
+                "pointer-events-none absolute left-1/2 top-1/2 z-[45] w-[min(82%,320px)] -translate-x-1/2 -translate-y-1/2 rounded-[1rem] px-4 py-3 text-center text-[15px] font-black uppercase tracking-[0.05em] shadow-[0_10px_24px_rgba(0,0,0,0.28)]",
                 flashState === "success"
                   ? "border-[2px] border-[#245c28] bg-[#d7ffd2]/95 text-[#123d18]"
                   : flashState === "error"
                     ? "border-[2px] border-[#7a1b15] bg-[#ffd6cf]/95 text-[#61130e]"
-                    : "border-[2px] border-[#d1b06f] bg-[#fff4d1]/92 text-[#163d32]",
+                    : "border-[2px] border-[#245c28] bg-[#d7ffd2]/88 text-[#123d18] backdrop-blur-[2px]",
               ].join(" ")}
             >
               {visibleMessage}
@@ -386,9 +393,9 @@ export default function ZiiplyMobileScannerCard({
           )}
 
           {hasSelectionResults && (
-            <div className="absolute inset-0 z-[55] flex flex-col rounded-[1.05rem] border-[2px] border-[#e4c27c] bg-[#fff5d9]/96 p-3 shadow-[inset_0_0_0_2px_rgba(255,255,255,0.72)]">
-              <div className="mb-2 rounded-[0.9rem] border-[2px] border-[#9a7a47] bg-[#efe0b8] px-3 py-2 text-center text-[14px] font-black uppercase tracking-[0.04em] text-[#163d32]">
-                Valitse oikea tuote
+            <div className="absolute inset-0 z-[60] flex flex-col rounded-[1.05rem] bg-[#fff5d9]/98 p-2 shadow-[inset_0_0_0_3px_rgba(21,61,50,0.18)]">
+              <div className="mb-2 rounded-[0.85rem] border-[2px] border-[#9a7a47] bg-[#efe0b8] px-3 py-2 text-center text-[13px] font-black uppercase tracking-[0.035em] text-[#163d32]">
+                Valitse lisättävä tuote
               </div>
 
               <div className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
@@ -402,22 +409,30 @@ export default function ZiiplyMobileScannerCard({
                       key={`${name}-${index}`}
                       type="button"
                       onClick={() => onSelectResult?.(result)}
-                      className="w-full rounded-[1rem] border-[2px] border-[#8d6e3d] bg-[#f8ecd0] px-3 py-3 text-left shadow-[inset_0_2px_0_rgba(255,255,255,0.70)] active:scale-[0.99]"
+                      className="flex min-h-[86px] w-full items-center gap-3 rounded-[1rem] border-[2px] border-[#8d6e3d] bg-[#fffaf0] px-3 py-2 text-left shadow-[0_3px_10px_rgba(0,0,0,0.10),inset_0_2px_0_rgba(255,255,255,0.75)] active:scale-[0.99]"
                     >
-                      <div className="line-clamp-2 text-[15px] font-black leading-tight text-[#173d31]">
-                        {name}
+                      <div className="flex h-[56px] w-[56px] shrink-0 items-center justify-center rounded-[0.8rem] border border-[#d5bd83] bg-[#f8ecd0] text-[22px]">
+                        🛒
                       </div>
 
-                      <div className="mt-2 flex items-center justify-between gap-2">
-                        <span className="truncate text-[12px] font-bold text-[#6b5735]">
-                          {meta || "Viivakoodilöydös"}
-                        </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="line-clamp-2 text-[14px] font-black leading-tight text-[#173d31]">
+                          {name}
+                        </div>
+
+                        <div className="mt-1 truncate text-[11px] font-bold text-[#6b5735]">
+                          {meta || "Tarkka EAN-osuma"}
+                        </div>
 
                         {price && (
-                          <span className="shrink-0 rounded-full border border-[#245b32] bg-[#d8ffd0] px-2 py-1 text-[12px] font-black text-[#123d18]">
+                          <div className="mt-1 inline-flex rounded-full border border-[#245b32] bg-[#d8ffd0] px-2 py-[2px] text-[12px] font-black text-[#123d18]">
                             {price}
-                          </span>
+                          </div>
                         )}
+                      </div>
+
+                      <div className="shrink-0 rounded-full bg-[#04933c] px-3 py-2 text-[12px] font-black uppercase text-white shadow-[0_4px_10px_rgba(0,0,0,0.18)]">
+                        Lisää
                       </div>
                     </button>
                   );
