@@ -1,10 +1,10 @@
 "use client";
 
 /**
- * ZiiplyMobileScannerCard-v586-fullheight-soft-single-wave.tsx
+ * ZiiplyMobileScannerCard-v587-soft-single-band-no-ghosts.tsx
  * 2026-05-30
  *
- * Mobiiliskannerikortin v586-revisio.
+ * Mobiiliskannerikortin v587-revisio.
  *
  * Muutokset:
  * - Ei käytä WEBP-taustakuvaa lainkaan.
@@ -36,6 +36,9 @@
  * - v585: tutka on yksi fyysisesti kapea liikkuva elementti, ei koko ruudun korkuinen gradientti.
  * - v586: palauttaa koko kameraruudun korkuisen liikeradan.
  * - v586: yksi pehmeä tutka-aalto, ei kapeaa laser-viivaa eikä useita haamuaaltoja.
+ * - v587: poistaa full-height-gradientin aiheuttamat haamuaallot.
+ * - v587: ulompi alue on koko kameraruudun korkuinen, mutta vain yksi pehmeä sisäinen aalto liikkuu.
+ * - v587: näkyvimmän aallon pehmeys säilytetty ilman terävää laser-viivaa.
  */
 
 import React, { useEffect, useMemo, useState } from "react";
@@ -212,7 +215,7 @@ export default function ZiiplyMobileScannerCard({
 
         @keyframes ziiplyRadarSweep {
           0% {
-            transform: translateY(-100%);
+            transform: translateY(-24%);
             opacity: 0;
           }
 
@@ -225,23 +228,33 @@ export default function ZiiplyMobileScannerCard({
           }
 
           100% {
-            transform: translateY(100%);
+            transform: translateY(124%);
             opacity: 0;
           }
         }
 
         .ziiply-radar-sweep {
+          overflow: hidden;
+        }
+
+        .ziiply-radar-band {
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: 0;
+          height: 24%;
+          min-height: 72px;
+          max-height: 132px;
+
           background:
             linear-gradient(
               180deg,
               rgba(120,255,120,0.00) 0%,
-              rgba(120,255,120,0.00) 41%,
-              rgba(120,255,120,0.16) 45%,
-              rgba(120,255,120,0.44) 48%,
+              rgba(120,255,120,0.10) 20%,
+              rgba(120,255,120,0.34) 38%,
               rgba(150,255,132,0.72) 50%,
-              rgba(120,255,120,0.44) 52%,
-              rgba(120,255,120,0.16) 55%,
-              rgba(120,255,120,0.00) 59%,
+              rgba(120,255,120,0.34) 62%,
+              rgba(120,255,120,0.10) 80%,
               rgba(120,255,120,0.00) 100%
             );
 
@@ -333,9 +346,11 @@ export default function ZiiplyMobileScannerCard({
           />
           {/* Radar sweep */}
           <div
-            className="pointer-events-none absolute inset-x-0 top-0 z-[28] h-full ziiply-radar-sweep"
+            className="pointer-events-none absolute inset-0 z-[28] ziiply-radar-sweep"
             aria-hidden="true"
-          />
+          >
+            <div className="ziiply-radar-band" />
+          </div>
 
 
           {/* Kohdistuskulmat */}
