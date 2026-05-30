@@ -4,6 +4,7 @@
 // V595_SCANNER_NO_HINT_AND_BOTTOM_UP_SWEEP: poistaa skannerin kameraruudun ohjetekstit näkyvistä ja käyttää v595 ScannerCardia, jossa efekti liikkuu alhaalta ylöspäin.
 // V594_SCANNER_BEEP_ON_DETECT_AND_TRANSPARENT_SELECTION_INFO: piip soitetaan heti skannerin tunnistustapahtumassa ennen hakua; aloitusohje poistettu ScannerCardista; valintapaneelin lisäys näyttää läpikuultavan Tuote lisätty -kuittauksen ilman piippiä/flashia.
 // V593_SCANNER_WINDOW_FLASH_ERROR_SOUND_AND_SELECTION_INFO: flash vain kameraikkunaan ScannerCardissa; page soittaa error/tööt-äänen ei-löydy-tilassa ja näyttää valinnan jälkeen Tuote lisätty -viestin ilman piippiä/flashia.
+// V597_SCANNER_BEEP_BEFORE_DUPLICATE_LOCK: piip soitetaan heti EAN-tunnistuksessa ennen sama-EAN-tuplahaun lukkoa; valintaikkunan lisäys ei piippaa.
 // V590_SCANNER_STATUS_BEEP_FLOW: piip kuuluu EAN-koodin tunnistushetkellä, ei koriin lisäyksessä; scannerMessage näyttää HAETAAN kameraruudulla loading-tilassa.
 // V582_MOBILE_SCANNER_TORCH_FULLHEIGHT_RADAR_AND_BEEP: korjaa taskulamppu-propin, koko kameraruudun tutkaefektin sekä siirtää piip-äänen EAN-koodin löytymishetkeen pois koriinlisäyksestä.
 // V581_MOBILE_SCANNER_TORCH_AND_FULLHEIGHT_RADAR: varmistaa taskulamppupropin välityksen ScannerCardille ja käyttää v581-koko kameraruudun tutkaefektiä.
@@ -1860,11 +1861,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const normalized = normalizeEan(ean);
     if (!normalized) return;
 
-    // V592: piip kuuluu aina, kun uusi EAN-haku oikeasti käynnistyy.
-    // Tätä ei sidota osumien määrään eikä koriin lisäykseen, jotta myös
-    // usean tuotteen valintapaneeli antaa lukukuittauksen.
+    // V597: piip kuuluu skannerin tunnistushetkellä riippumatta siitä,
+    // onko sama EAN juuri luettu tai löytyykö tuotteita 1 vai useampi.
+    // EAN-lukko saa estää tuplahaun, mutta se ei saa mykistää lukukuittausta.
+    // Lyhyt aikaraja estää vain saman kameraframen aiheuttaman konekivääripiipityksen.
+    const now = Date.now();
+    if (now - lastScannerBeepAtRefV594.current < 220) return;
+
     lastScannerBeepEanRefV582.current = normalized;
-    lastScannerBeepAtRefV594.current = Date.now();
+    lastScannerBeepAtRefV594.current = now;
     playScanSuccessFeedback();
   }
 
@@ -5522,6 +5527,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const normalizedCode = normalizeEan(code);
     if (!isUsableEan(normalizedCode)) return;
 
+    // V597: lukukuittaus annetaan ennen sama-EAN-lukkoa.
+    // Näin myös aiemmin luettu / useana osumana löytyvä EAN piippaa heti,
+    // vaikka varsinainen tuplahaku estettäisiin hetken ajaksi.
+    playScannerBarcodeFoundBeepV582(normalizedCode);
+
     const now = Date.now();
     const previous = lastContinuousScanRef.current;
 
@@ -5535,10 +5545,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     lastContinuousScanRef.current = { code: normalizedCode, at: now };
-
-    // V594: ääni heti kun skanneri lukee kelvollisen EANin ja haku käynnistetään.
-    // Ei odoteta hakutulosten määrää, jotta myös 2+ osuman valintapaneeli piippaa.
-    playScannerBarcodeFoundBeepV582(normalizedCode);
 
     if (eanAutoSearchTimeoutRef.current) {
       window.clearTimeout(eanAutoSearchTimeoutRef.current);
