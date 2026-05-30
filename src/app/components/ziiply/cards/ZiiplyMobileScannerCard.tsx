@@ -1,10 +1,10 @@
 "use client";
 
 /**
- * ZiiplyMobileScannerCard-v576-visible-mount-wait.tsx
+ * ZiiplyMobileScannerCard-v579-selection-props-radar.tsx
  * 2026-05-30
  *
- * Mobiiliskannerikortin v576-revisio.
+ * Mobiiliskannerikortin v579-revisio.
  *
  * Muutokset:
  * - Ei käytä WEBP-taustakuvaa lainkaan.
@@ -24,11 +24,24 @@
  * - v577/v578: tutkaefekti vahvistettu merkittävästi.
  * - v578: sweep liikkuu lähes koko kameraruudun alueella.
  * - v578: hitaampi ja näkyvämpi radar-animaatio mobiilikäyttöön.
+ * - v579: lisää selectionResults/onSelectResult propsit page-v577/v578-yhteensopivaksi.
+ * - v579: tuotevalinta peittää koko kameraruudun.
  */
 
 import React, { useEffect, useMemo, useState } from "react";
 
 export type ZiiplyMobileScannerFlashState = "idle" | "success" | "error";
+
+export type ZiiplyMobileScannerSelectionResult = {
+  product?: unknown;
+  name?: string;
+  title?: string;
+  displayName?: string;
+  store?: string;
+  chain?: string;
+  price?: number | string;
+  [key: string]: unknown;
+};
 
 export type ZiiplyMobileScannerCardProps = {
   regionId: string;
@@ -37,6 +50,10 @@ export type ZiiplyMobileScannerCardProps = {
   scannerMessage?: string;
   torchOn?: boolean;
   manualInputOpen?: boolean;
+  selectionResults?: ZiiplyMobileScannerSelectionResult[];
+  onSelectResult?: (result: ZiiplyMobileScannerSelectionResult) => void;
+  formatPrice?: (value: number) => string;
+  getProductPrice?: (result: ZiiplyMobileScannerSelectionResult) => number | null | undefined;
   onToggleTorch?: () => void;
   onToggleManualInput?: () => void;
   onCameraTap?: React.PointerEventHandler<HTMLDivElement>;
@@ -51,6 +68,10 @@ export default function ZiiplyMobileScannerCard({
   scannerMessage = "",
   torchOn = false,
   manualInputOpen = false,
+  selectionResults = [],
+  onSelectResult,
+  formatPrice,
+  getProductPrice,
   onToggleTorch,
   onToggleManualInput,
   onCameraTap,
@@ -85,6 +106,45 @@ export default function ZiiplyMobileScannerCard({
       : flashState === "error"
         ? "Ei löytynyt"
         : scannerMessage || "";
+
+  const hasSelectionResults = selectionResults.length > 1;
+
+  function getSelectionName(result: ZiiplyMobileScannerSelectionResult) {
+    return String(
+      result.name ||
+        result.title ||
+        result.displayName ||
+        (result.product as any)?.name ||
+        (result.product as any)?.title ||
+        "Tuote",
+    );
+  }
+
+  function getSelectionMeta(result: ZiiplyMobileScannerSelectionResult) {
+    const store = String(result.store || (result.product as any)?.store || "");
+    const chain = String(result.chain || (result.product as any)?.chain || "");
+    return [store, chain].filter(Boolean).join(" · ");
+  }
+
+  function getSelectionPrice(result: ZiiplyMobileScannerSelectionResult) {
+    const directPrice =
+      typeof result.price === "number"
+        ? result.price
+        : typeof result.price === "string"
+          ? Number(String(result.price).replace(",", "."))
+          : null;
+
+    const resolvedPrice =
+      getProductPrice?.(result) ??
+      directPrice ??
+      (typeof (result.product as any)?.price === "number"
+        ? (result.product as any).price
+        : null);
+
+    if (typeof resolvedPrice !== "number" || !Number.isFinite(resolvedPrice)) return "";
+
+    return formatPrice ? formatPrice(resolvedPrice) : `${resolvedPrice.toFixed(2).replace(".", ",")} €`;
+  }
 
   return (
     <section
@@ -282,6 +342,47 @@ export default function ZiiplyMobileScannerCard({
               {visibleMessage}
             </div>
           )}
+
+          {hasSelectionResults && (
+            <div className="absolute inset-0 z-[55] flex flex-col rounded-[1.05rem] border-[2px] border-[#e4c27c] bg-[#fff5d9]/96 p-3 shadow-[inset_0_0_0_2px_rgba(255,255,255,0.72)]">
+              <div className="mb-2 rounded-[0.9rem] border-[2px] border-[#9a7a47] bg-[#efe0b8] px-3 py-2 text-center text-[14px] font-black uppercase tracking-[0.04em] text-[#163d32]">
+                Valitse oikea tuote
+              </div>
+
+              <div className="min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
+                {selectionResults.map((result, index) => {
+                  const name = getSelectionName(result);
+                  const meta = getSelectionMeta(result);
+                  const price = getSelectionPrice(result);
+
+                  return (
+                    <button
+                      key={`${name}-${index}`}
+                      type="button"
+                      onClick={() => onSelectResult?.(result)}
+                      className="w-full rounded-[1rem] border-[2px] border-[#8d6e3d] bg-[#f8ecd0] px-3 py-3 text-left shadow-[inset_0_2px_0_rgba(255,255,255,0.70)] active:scale-[0.99]"
+                    >
+                      <div className="line-clamp-2 text-[15px] font-black leading-tight text-[#173d31]">
+                        {name}
+                      </div>
+
+                      <div className="mt-2 flex items-center justify-between gap-2">
+                        <span className="truncate text-[12px] font-bold text-[#6b5735]">
+                          {meta || "Viivakoodilöydös"}
+                        </span>
+
+                        {price && (
+                          <span className="shrink-0 rounded-full border border-[#245b32] bg-[#d8ffd0] px-2 py-1 text-[12px] font-black text-[#123d18]">
+                            {price}
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </main>
 
@@ -323,12 +424,6 @@ export default function ZiiplyMobileScannerCard({
           Sulje kamera
         </button>
       </footer>
-
-      {loading && (
-        <div className="pointer-events-none absolute right-4 top-[66px] z-[45] rounded-full border-[2px] border-[#d1b06f] bg-[#fff4d1]/95 px-3 py-1 text-[11px] font-black uppercase tracking-[0.06em] text-[#163d32] shadow-[0_5px_14px_rgba(0,0,0,0.14)]">
-          Luetaan
-        </div>
-      )}
     </section>
   );
 }
