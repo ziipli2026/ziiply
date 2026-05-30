@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * ZiiplyMobileScannerCard-v573-rebuild.tsx
+ * ZiiplyMobileScannerCard-v574-unique-region-visible-video.tsx
  * 2026-05-30
  *
  * Uudelleenrakennettu mobiiliskannerikortti.
@@ -14,9 +14,10 @@
  * - Kortti on yhden ruudun fixed-height UI:lle sopiva.
  * - Ei "EAN käsin" -nappia.
  * - Säilyttää "Liitä EAN", kameratoiminnon ja "Sulje kamera".
- * - Ohje näytetään kameraruudun päällä vain 1,8 s.
+ * - Ohje näytetään kameraruudun päällä vain 2,5 s.
  * - Vihreä/punainen väläys koko kortin päällä success/error-tiloissa.
  * - Ei backdrop-bluria, ei WEBP-layeria, ei ylimääräisiä pointer-events-kikkailuja.
+ * - v574: startup-ohje 2,5s ja tarkoitettu käytettäväksi mobiilin omalla regionId:llä.
  */
 
 import React, { useEffect, useMemo, useState } from "react";
@@ -55,7 +56,7 @@ export default function ZiiplyMobileScannerCard({
   useEffect(() => {
     const timer = window.setTimeout(() => {
       setShowStartupHint(false);
-    }, 1800);
+    }, 2500);
 
     return () => window.clearTimeout(timer);
   }, []);
