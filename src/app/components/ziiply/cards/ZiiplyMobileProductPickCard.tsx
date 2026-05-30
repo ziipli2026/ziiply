@@ -1,9 +1,20 @@
 "use client";
 
+// ZiiplyMobileProductPickCard v6
+// - Ei yläpalkkia lainkaan.
+// - Tuoteruudut jakavat tilan 50/50 silloin kun tuotteita on kaksi.
+// - Tuoteruudut pakotetaan samankorkuisiksi.
+// - Tuotekuva isompi.
+// - Tekstidata oikealle, Lisää-nappi oikeaan alanurkkaan.
+// - Hinta + vertailuhinta näkyvät samassa logiikassa kuin SearchResultsCardissa.
+// - Yhteensopiva page.tsx:n nykyisten propsien kanssa: compact, title, subtitle, results,
+//   formatPrice, getProductPrice, onAdd / onSelectResult.
+
 import React from "react";
 
 export type ZiiplyProductPickResult = {
   id?: string | number;
+  key?: string | number;
   ean?: string | number;
   name?: string;
   title?: string;
@@ -12,81 +23,116 @@ export type ZiiplyProductPickResult = {
   chain?: string;
   store?: string;
   storeName?: string;
-  price?: number | string;
+  price?: number | string | null;
   image?: string;
   imageUrl?: string;
   pictureUrl?: string;
   comparisonPrice?: string | number | null;
-  comparisonUnit?: string;
-  priceUnit?: string;
-  unit?: string;
-  packageSize?: string;
+  comparisonPriceText?: string | number | null;
   unitPrice?: string | number | null;
   pricePerUnit?: string | number | null;
-  comparisonPriceText?: string | number | null;
+  comparisonUnit?: string;
+  priceUnit?: string;
+  packageSize?: string;
+  unit?: string;
   product?: any;
-  [key: string]: unknown;
+  [key: string]: any;
 };
 
-type Props = {
+export type ZiiplyMobileProductPickCardProps = {
+  compact?: boolean;
   title?: string;
   subtitle?: string;
   results: ZiiplyProductPickResult[];
   onAdd?: (result: ZiiplyProductPickResult) => void;
-  /** page.tsx antaa tähän yleensä formatEuro, joka odottaa senttejä. */
+  onSelectResult?: (result: ZiiplyProductPickResult) => void;
   formatPrice?: (value: number) => string;
   getProductPrice?: (result: ZiiplyProductPickResult) => number | null | undefined;
-  compact?: boolean;
-  className?: string;
 };
 
 const cooper = '"Cooper Black","Cooper Std Black",Georgia,serif';
-const copper = '"Copperplate","Baskerville",Georgia,serif';
 
-function normalizeText(value: unknown) {
-  return String(value ?? "").replace(/\s+/g, " ").trim();
+function firstText(...values: unknown[]) {
+  for (const value of values) {
+    const text = String(value ?? "").trim();
+    if (text) return text;
+  }
+  return "";
 }
 
-function readNumber(value: unknown) {
-  if (typeof value === "number" && Number.isFinite(value)) return value;
+function getName(result: ZiiplyProductPickResult) {
+  return firstText(
+    result.name,
+    result.title,
+    result.displayName,
+    result.brandName,
+    result.product?.name,
+    result.product?.title,
+    result.product?.displayName,
+    "Tuote",
+  );
+}
 
-  const raw = String(value ?? "")
-    .trim()
+function getImage(result: ZiiplyProductPickResult) {
+  return firstText(
+    result.image,
+    result.imageUrl,
+    result.pictureUrl,
+    result.product?.image,
+    result.product?.imageUrl,
+    result.product?.pictureUrl,
+  );
+}
+
+function getStore(result: ZiiplyProductPickResult) {
+  const chain = firstText(result.chain, result.product?.chain);
+  const store = firstText(
+    result.storeName,
+    result.store,
+    result.product?.storeName,
+    result.product?.store,
+  );
+
+  if (chain && store) return `${chain} · ${store}`;
+  return chain || store;
+}
+
+function normalizePriceToEuros(price: unknown) {
+  if (typeof price === "number" && Number.isFinite(price)) {
+    return Math.abs(price) > 20 ? price / 100 : price;
+  }
+
+  const raw = String(price ?? "").trim();
+  if (!raw) return null;
+
+  const cleaned = raw
     .replace(/\s/g, "")
     .replace("€", "")
     .replace(",", ".");
 
-  if (!raw) return null;
+  const number = Number(cleaned);
+  if (!Number.isFinite(number)) return raw;
 
-  const parsed = Number(raw.replace(/[^\d.-]/g, ""));
-  return Number.isFinite(parsed) ? parsed : null;
-}
-
-function normalizePriceToEuros(price: unknown) {
-  const number = readNumber(price);
-  if (number == null) return null;
   return Math.abs(number) > 20 ? number / 100 : number;
 }
 
-function formatDisplayPrice(
-  price: unknown,
-  externalFormatter?: (value: number) => string,
-) {
-  const number = readNumber(price);
-  if (number == null) return "";
+function formatEuroPrice(price: unknown, externalFormatPrice?: (value: number) => string) {
+  const value = normalizePriceToEuros(price);
 
-  // Ziiplyn page.tsx:n formatEuro odottaa senttejä.
-  // Rajapinnoista hinta taas voi tulla joko sentteinä (278) tai euroina (2.78).
-  if (externalFormatter) {
-    const cents = Math.abs(number) > 20 ? number : number * 100;
-    return externalFormatter(cents);
+  if (value == null) return "";
+
+  if (typeof value === "string") {
+    return value.includes("€") ? value : `${value} €`;
   }
 
-  const euros = Math.abs(number) > 20 ? number / 100 : number;
-  return `${euros.toLocaleString("fi-FI", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  })} €`;
+  if (externalFormatPrice) return externalFormatPrice(value);
+
+  return (
+    value.toLocaleString("fi-FI", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }) + " €"
+  );
 }
 
 function normalizeComparisonValue(value: unknown) {
@@ -96,15 +142,17 @@ function normalizeComparisonValue(value: unknown) {
 
   const raw = String(value ?? "").trim();
   if (!raw) return null;
+
   if (raw.includes("€") || raw.includes("/")) return raw;
 
-  const parsed = readNumber(raw);
-  if (parsed == null) return null;
+  const cleaned = raw.replace(/\s/g, "").replace(",", ".");
+  const parsed = Number(cleaned.replace(/[^\d.-]/g, ""));
+  if (!Number.isFinite(parsed)) return null;
+
   return Math.abs(parsed) > 20 ? parsed / 100 : parsed;
 }
 
 function inferComparisonUnit(result: ZiiplyProductPickResult) {
-  const product = result.product ?? {};
   const raw = [
     result.comparisonUnit,
     result.priceUnit,
@@ -112,12 +160,12 @@ function inferComparisonUnit(result: ZiiplyProductPickResult) {
     result.packageSize,
     result.name,
     result.title,
-    product.comparisonUnit,
-    product.priceUnit,
-    product.unit,
-    product.packageSize,
-    product.name,
-    product.title,
+    result.product?.comparisonUnit,
+    result.product?.priceUnit,
+    result.product?.unit,
+    result.product?.packageSize,
+    result.product?.name,
+    result.product?.title,
   ]
     .filter(Boolean)
     .join(" ")
@@ -125,20 +173,20 @@ function inferComparisonUnit(result: ZiiplyProductPickResult) {
 
   if (/\b(l|ltr|litra|litran|ml|cl)\b/.test(raw)) return "€/l";
   if (/\b(kpl|pkt|pari|rll|rs|ps|tlk)\b/.test(raw)) return "€/kpl";
+
   return "€/kg";
 }
 
 function formatComparisonPrice(result: ZiiplyProductPickResult) {
-  const product = result.product ?? {};
   const candidates = [
     result.comparisonPrice,
     result.unitPrice,
     result.pricePerUnit,
     result.comparisonPriceText,
-    product.comparisonPrice,
-    product.unitPrice,
-    product.pricePerUnit,
-    product.comparisonPriceText,
+    result.product?.comparisonPrice,
+    result.product?.unitPrice,
+    result.product?.pricePerUnit,
+    result.product?.comparisonPriceText,
   ];
 
   for (const candidate of candidates) {
@@ -156,182 +204,146 @@ function formatComparisonPrice(result: ZiiplyProductPickResult) {
   return "";
 }
 
+function getResolvedPrice(
+  result: ZiiplyProductPickResult,
+  getProductPrice?: (result: ZiiplyProductPickResult) => number | null | undefined,
+) {
+  const fromCallback = getProductPrice?.(result);
+  if (typeof fromCallback === "number" && Number.isFinite(fromCallback)) return fromCallback;
+
+  const candidates = [
+    result.price,
+    result.product?.price,
+    result.product?.currentPrice,
+    result.product?.salePrice,
+  ];
+
+  for (const candidate of candidates) {
+    if (candidate == null || candidate === "") continue;
+    return candidate;
+  }
+
+  return null;
+}
+
+function displayName(name: string) {
+  return name.replace(/\s+/g, " ").trim();
+}
+
 export default function ZiiplyMobileProductPickCard({
-  title = "Valitse lisättävä tuote",
-  subtitle = "Sama EAN löytyi useammasta kaupasta",
+  compact = false,
   results,
   onAdd,
+  onSelectResult,
   formatPrice,
   getProductPrice,
-  compact = false,
-  className = "",
-}: Props) {
-  function getName(result: ZiiplyProductPickResult) {
-    return normalizeText(
-      result.name ||
-        result.title ||
-        result.displayName ||
-        result.brandName ||
-        result.product?.name ||
-        result.product?.title ||
-        result.product?.brandName ||
-        "Tuote",
-    );
-  }
-
-  function getStore(result: ZiiplyProductPickResult) {
-    const chain = normalizeText(result.chain || result.product?.chain);
-    const store = normalizeText(
-      result.storeName ||
-        result.store ||
-        result.product?.storeName ||
-        result.product?.store,
-    );
-
-    if (chain && store) return `${chain} · ${store}`;
-    return chain || store;
-  }
-
-  function getImage(result: ZiiplyProductPickResult) {
-    return normalizeText(
-      result.image ||
-        result.imageUrl ||
-        result.pictureUrl ||
-        result.product?.image ||
-        result.product?.imageUrl ||
-        result.product?.pictureUrl,
-    );
-  }
-
-  function getMainPrice(result: ZiiplyProductPickResult) {
-    const product = result.product ?? {};
-    const raw =
-      getProductPrice?.(result) ??
-      result.price ??
-      product.price ??
-      product.currentPrice ??
-      null;
-
-    return formatDisplayPrice(raw, formatPrice);
-  }
+}: ZiiplyMobileProductPickCardProps) {
+  const visibleResults = Array.isArray(results) ? results : [];
+  const isTwoItems = visibleResults.length === 2;
 
   return (
-    <div
+    <section
       className={[
-        "relative w-full overflow-hidden rounded-[1.45rem]",
-        compact ? "max-w-[430px]" : "",
-        "border-[4px] border-[#6d5128] bg-[#fff5d9]",
-        "shadow-[0_14px_34px_rgba(0,0,0,0.20),inset_0_0_0_2px_rgba(255,255,255,0.68)]",
-        "text-[#163d32]",
-        className,
+        "relative flex w-full flex-col overflow-hidden rounded-[2rem] border-[5px] border-[#6d5128] bg-[#fff6db]",
+        "shadow-[0_12px_0_rgba(72,51,22,0.22),0_22px_48px_rgba(0,0,0,0.22),inset_0_0_0_2px_rgba(255,255,255,0.74)]",
+        compact ? "max-w-[27.5rem]" : "",
       ].join(" ")}
     >
       <div
-        className="pointer-events-none absolute inset-0 opacity-[0.055] mix-blend-multiply"
+        className="pointer-events-none absolute inset-0 opacity-[0.055]"
         style={{
-          backgroundImage: "radial-gradient(#3f2f16 0.45px, transparent 0.45px)",
-          backgroundSize: "7px 7px",
+          backgroundImage: "radial-gradient(#4b3417 0.55px, transparent 0.55px)",
+          backgroundSize: "8px 8px",
         }}
         aria-hidden="true"
       />
 
-      <div className="relative z-10 p-3 pb-2">
-        <div className="rounded-[1rem] border-[3px] border-[#9a7a47] bg-[#efe0b8] px-3 py-3 text-center shadow-[inset_0_2px_0_rgba(255,255,255,0.76)]">
-          <div
-            className="truncate text-[20px] font-black uppercase leading-none tracking-[0.055em] text-[#163d32]"
-            style={{ fontFamily: cooper }}
-            title={title}
-          >
-            {title}
-          </div>
-
-          {!!subtitle && (
-            <div
-              className="mt-2 truncate text-[11px] font-black uppercase tracking-[0.16em] text-[#7b6544]"
-              style={{ fontFamily: copper }}
-              title={subtitle}
-            >
-              {subtitle}
-            </div>
-          )}
-        </div>
-      </div>
-
-      <div className="relative z-10 flex max-h-[min(54vh,420px)] flex-col gap-3 overflow-y-auto px-3 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {results.map((result, index) => {
-          const name = getName(result);
+      <div className="relative z-10 flex min-h-0 flex-1 flex-col gap-3 p-3">
+        {visibleResults.map((result, index) => {
           const image = getImage(result);
+          const name = displayName(getName(result));
           const store = getStore(result);
-          const price = getMainPrice(result);
-          const comparisonPrice = formatComparisonPrice(result);
+          const comparison = formatComparisonPrice(result);
+          const price = formatEuroPrice(
+            getResolvedPrice(result, getProductPrice),
+            formatPrice,
+          );
 
           return (
             <article
-              key={String(result.id ?? result.ean ?? `${name}-${store}-${index}`)}
-              className="relative grid min-h-[138px] grid-cols-[minmax(0,1fr)_118px] gap-3 overflow-hidden rounded-[1.35rem] border-[3px] border-[#8e6d39] bg-[#fffdf8] p-3 shadow-[0_8px_20px_rgba(0,0,0,0.12)]"
+              key={String(result.key ?? result.id ?? result.ean ?? index)}
+              className={[
+                "relative grid min-h-[10.4rem] grid-cols-[42%_minmax(0,1fr)] overflow-hidden rounded-[1.55rem] border-[4px] border-[#8c6934] bg-[#fffdf8] shadow-[0_6px_0_rgba(91,72,44,0.14)]",
+                isTwoItems ? "flex-1" : "",
+              ].join(" ")}
             >
-              <div className="min-w-0 pb-[2.75rem]">
+              <div className="flex h-full min-h-0 items-center justify-center p-3 pr-2">
+                <div className="grid h-full max-h-[8.9rem] min-h-[7.7rem] w-full place-items-center overflow-hidden rounded-[1.25rem] border-[4px] border-[#dbc37f] bg-[#fff6dd] shadow-[inset_0_1px_9px_rgba(0,0,0,0.08)]">
+                  {image ? (
+                    <img
+                      src={image}
+                      alt=""
+                      className="h-full w-full object-contain p-2"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <span className="text-[3.2rem]">🛒</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="relative min-w-0 px-2 py-4 pb-[4.35rem] pr-3">
                 <div
-                  className="text-[19px] font-black leading-[1.05] tracking-[-0.025em] text-[#173a31] line-clamp-3"
+                  className="line-clamp-3 text-[1.28rem] font-black leading-[0.98] text-[#123d32]"
                   style={{ fontFamily: cooper }}
-                  title={name}
                 >
                   {name}
                 </div>
 
-                {!!store && (
-                  <div
-                    className="mt-2 truncate text-[13px] font-black uppercase tracking-[0.02em] text-[#6d5430]"
-                    title={store}
-                  >
+                {store && (
+                  <div className="mt-2 line-clamp-2 text-[0.92rem] font-black uppercase leading-[1.02] text-[#6c532c]">
                     {store}
                   </div>
                 )}
 
-                {comparisonPrice && (
-                  <div
-                    className="mt-1 truncate text-[12px] font-black text-[#8a7a55]"
-                    title={comparisonPrice}
-                  >
-                    {comparisonPrice}
+                {comparison && (
+                  <div className="mt-2 text-[0.84rem] font-black leading-none text-[#8a7a55]">
+                    {comparison}
                   </div>
                 )}
 
-                {price && (
-                  <div className="absolute bottom-3 left-3 inline-flex rounded-full border-[3px] border-[#3c7a43] bg-[#cbefc2] px-4 py-[5px] text-[18px] font-black leading-none text-[#14381c] shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
-                    {price}
-                  </div>
-                )}
-              </div>
-
-              <div className="flex min-w-0 flex-col items-stretch gap-2">
-                <div className="grid h-[84px] w-full place-items-center overflow-hidden rounded-[1.08rem] border-[3px] border-[#d8bf82] bg-[#fff7df] shadow-[inset_0_1px_8px_rgba(0,0,0,0.08)]">
-                  {image ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={image}
-                      alt=""
-                      className="h-full w-full object-contain p-1"
-                      loading="lazy"
-                    />
+                <div className="absolute bottom-3 left-2 right-3 flex items-end justify-between gap-2">
+                  {price ? (
+                    <div className="inline-flex min-w-[5.15rem] items-center justify-center rounded-full border-[3px] border-[#347a3f] bg-[#d2f1c8] px-3 py-[0.38rem] text-[1.18rem] font-black leading-none text-[#153d1c] shadow-[inset_0_1px_0_rgba(255,255,255,0.70)]">
+                      {price}
+                    </div>
                   ) : (
-                    <span className="text-[38px] opacity-70">🛒</span>
+                    <span />
                   )}
-                </div>
 
-                <button
-                  type="button"
-                  onClick={() => onAdd?.(result)}
-                  className="z-20 h-[40px] w-full rounded-[0.9rem] border-[3px] border-[#2d8b3d] bg-[#00a339] px-2 text-[14px] font-black uppercase tracking-[0.03em] text-white shadow-[0_6px_12px_rgba(0,0,0,0.16),inset_0_1px_0_rgba(255,255,255,0.28)] active:translate-y-[1px]"
-                >
-                  Lisää
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onAdd?.(result);
+                      onSelectResult?.(result);
+                    }}
+                    className="shrink-0 rounded-[0.95rem] border-[3px] border-[#178338] bg-[#08a63d] px-4 py-[0.86rem] text-[1rem] font-black uppercase leading-none tracking-[0.02em] text-[#fff3d8] shadow-[0_4px_0_rgba(0,74,24,0.24),inset_0_1px_0_rgba(255,255,255,0.26)] active:translate-y-[1px] active:shadow-[0_2px_0_rgba(0,74,24,0.24)]"
+                  >
+                    Lisää
+                  </button>
+                </div>
               </div>
             </article>
           );
         })}
+
+        {visibleResults.length === 0 && (
+          <div className="relative z-10 rounded-[1.45rem] border-[3px] border-[#d4ba73] bg-[#fff4d6] px-5 py-8 text-center text-[1rem] font-black text-[#78633a] shadow-[0_4px_0_rgba(91,72,44,0.12)]">
+            Ei tuotteita.
+          </div>
+        )}
       </div>
-    </div>
+    </section>
   );
 }
 
