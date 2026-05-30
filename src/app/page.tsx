@@ -1,5 +1,6 @@
 "use client";
 
+// V576_MOBILE_SCANNER_VISIBLE_MOUNT_WAIT: mobiiliskanneri odottaa näkyvän MOBILE_EAN_SCANNER_REGION_ID-divin renderöitymistä eikä fallbackaa piilossa olevaan desktop-regioniin; estää käynnistyvän kameran näkymättömän videon.
 // V573_MOBILE_SCANNER_CHILDREN_REMOVED: uusi puhdas ScannerCard on self-closing; page ei enää anna children-sisältöä eikä vanhoja onManualEan/onPasteEan/onTorch-proppeja.
 // V572_CLEAN_SCANNER_CSS_ONLY: mobiiliskanneri käyttää puhdasta CSS-korttia ilman WEBP-taustakuvaa; vanha scanner-kuva ja cache-ongelma poistettu.
 // V570_MOBILE_SCANNER_NO_ARTWORK_PROP: poistaa page-kutsusta artworkSrc-propin; kuva määritetään kortissa, jotta build ei kaadu vanhaan props-tyyppiin.
@@ -298,6 +299,8 @@ import ZiiplyMobileAssistantPanel from "./components/ziiply/mobile/ZiiplyMobileA
 import ZiiplyMobileShopsView from "./components/ziiply/mobile/ZiiplyMobileShopsView";
 import ZiiplyMobileLocationBar from "./components/ziiply/mobile/ZiiplyMobileLocationBar";
 import type { ZiiplyAssistantKey } from "./components/ziiply/mobile/ZiiplyMobileAssistantButton";
+
+const MOBILE_EAN_SCANNER_REGION_ID = `${EAN_SCANNER_REGION_ID}-mobile`;
 
 type KauppiasTopBarKind = "weather" | "electricity" | "fuel" | "calendar";
 
@@ -5578,7 +5581,36 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         window.requestAnimationFrame(() => resolve()),
       );
 
-      const scannerElement = document.getElementById(EAN_SCANNER_REGION_ID);
+      const isMobileScannerViewport =
+        window.matchMedia?.("(max-width: 767px)").matches ?? false;
+
+      const preferredScannerRegionId = isMobileScannerViewport
+        ? MOBILE_EAN_SCANNER_REGION_ID
+        : EAN_SCANNER_REGION_ID;
+
+      const waitForScannerRegion = async (regionId: string) => {
+        for (let attempt = 0; attempt < 16; attempt += 1) {
+          const element = document.getElementById(regionId);
+          if (element) return element;
+
+          await new Promise<void>((resolve) =>
+            window.requestAnimationFrame(() => resolve()),
+          );
+        }
+
+        return null;
+      };
+
+      // V576: mobiilissa EI fallbackata desktopin EAN_SCANNER_REGION_ID-diviin.
+      // Muuten kamera voi käynnistyä piilossa olevaan vanhaan/desktop-mounttiin,
+      // jolloin iOS näyttää kameran olevan päällä mutta video ei näy kortissa.
+      const scannerElement = isMobileScannerViewport
+        ? await waitForScannerRegion(MOBILE_EAN_SCANNER_REGION_ID)
+        : (await waitForScannerRegion(EAN_SCANNER_REGION_ID)) ||
+          (await waitForScannerRegion(MOBILE_EAN_SCANNER_REGION_ID));
+
+      const activeScannerRegionId =
+        scannerElement?.id || preferredScannerRegionId;
 
       if (!scannerElement) {
         setEanScannerMessage(
@@ -5586,6 +5618,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         );
         return;
       }
+
+      scannerElement.innerHTML = "";
 
       const supportedFormats = (window as any).Html5QrcodeSupportedFormats;
       const formatsToSupport = supportedFormats
@@ -5598,7 +5632,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         : undefined;
 
       const scanner = new Html5Qrcode(
-        EAN_SCANNER_REGION_ID,
+        activeScannerRegionId,
         formatsToSupport ? { formatsToSupport } : undefined,
       );
       eanHtml5ScannerRef.current = scanner;
@@ -5638,7 +5672,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       );
 
       window.requestAnimationFrame(() => {
-        void applyBestEffortScannerCameraTuning();
+        void (applyBestEffortScannerCameraTuning as any)(activeScannerRegionId);
       });
     } catch (error) {
       pushGpsDebugLogV492(`useOwnLocation CATCH code=${String((error as any)?.code ?? "?")}`);
@@ -11164,10 +11198,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         {eanModalOpen && (
           <div
-            className={`fixed inset-0 z-[160] flex items-stretch justify-center overflow-hidden overscroll-none bg-[#EAF4F1] px-2 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-[calc(env(safe-area-inset-top)+4.95rem)] sm:items-center sm:p-4 ${eanModalClosing ? "ziiply-soft-close" : "ziiply-soft-open"}`}
+            className="fixed inset-0 z-[9999] flex items-stretch justify-center overflow-hidden overscroll-none bg-[#EAF4F1] px-2 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-[calc(env(safe-area-inset-top)+4.95rem)] sm:items-center sm:p-4"
           >
             <div
-              className={`flex h-full w-full max-w-[430px] flex-col overflow-hidden transition-opacity duration-200 ${eanModalClosing ? "opacity-0" : "opacity-100"}`}
+              className={`flex h-full w-full max-w-[430px] flex-col overflow-hidden ${eanModalClosing ? "opacity-0" : "opacity-100"}`}
             >
 
               {eanScannerMessage && !eanScannerOpen && (
@@ -11247,7 +11281,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
               {(eanScannerOpen || (!desktopKeyboardScannerOpen && eanModalOpen)) && (
                 <ZiiplyMobileScannerCard
-                  regionId={EAN_SCANNER_REGION_ID}
+                  regionId={MOBILE_EAN_SCANNER_REGION_ID}
                   flashState={scanSuccessFlash ? "success" : scanMissFlash ? "error" : "idle"}
                   loading={eanLoading}
                   scannerMessage={
@@ -11260,7 +11294,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   torchOn={scannerTorchOn}
                   manualInputOpen={eanManualInputOpen}
                   onCameraTap={(event) =>
-                    void (focusScannerCameraAtPoint as any)(EAN_SCANNER_REGION_ID, event)
+                    void (focusScannerCameraAtPoint as any)(MOBILE_EAN_SCANNER_REGION_ID, event)
                   }
                   onToggleManualInput={async () => {
                     try {
