@@ -23,6 +23,7 @@ type Props = {
   onAdd?: (result: ZiiplyProductPickResult) => void;
   formatPrice?: (value: number) => string;
   getProductPrice?: (result: ZiiplyProductPickResult) => number | null | undefined;
+  compact?: boolean;
   className?: string;
 };
 
@@ -33,6 +34,7 @@ export default function ZiiplyMobileProductPickCard({
   onAdd,
   formatPrice,
   getProductPrice,
+  compact = false,
   className = "",
 }: Props) {
   function getName(result: ZiiplyProductPickResult) {
@@ -82,6 +84,7 @@ export default function ZiiplyMobileProductPickCard({
     <div
       className={[
         "relative w-full overflow-hidden rounded-[1.45rem]",
+        compact ? "max-w-[430px]" : "",
         "border-[4px] border-[#6d5128] bg-[#fff5d9]",
         "shadow-[0_14px_34px_rgba(0,0,0,0.20),inset_0_0_0_2px_rgba(255,255,255,0.68)]",
         "text-[#163d32]",
