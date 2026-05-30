@@ -1,6 +1,6 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V601_REFINED_MOCKUP
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V603_CLICKABLE_SUGGESTIONS
 // Puhtaalta pöydältä tehty fullscreen Hae-näkymä mockupin mukaan.
 // - Ei sääpalkkia tämän kortin sisällä
 // - Ei yläpalkkia tämän kortin sisällä
@@ -192,7 +192,7 @@ function AssistantButton({
       <img
         src={image}
         alt=""
-        className="absolute left-1/2 top-1/2 h-[129%] w-[129%] -translate-x-1/2 -translate-y-1/2 object-contain object-center"
+        className="absolute left-1/2 top-1/2 h-[148%] w-[148%] -translate-x-1/2 -translate-y-1/2 object-contain object-center"
         draggable={false}
         onError={(event) => {
           event.currentTarget.style.display = "none";
@@ -205,7 +205,7 @@ function AssistantButton({
 function CenterPromoSlot() {
   return (
     <div className="flex h-full items-center justify-center">
-      <div className="flex h-[6.35rem] w-full max-w-[8.2rem] flex-col items-center justify-center rounded-[1.25rem] border-[3px] border-[#d8bd75] bg-[#fff1bf]/70 px-2 text-center shadow-[0_3px_0_rgba(91,72,44,0.16),inset_0_0_0_2px_rgba(255,255,255,0.45)]">
+      <div className="flex h-[5.8rem] w-full max-w-[5.4rem] flex-col items-center justify-center rounded-[1.1rem] border-[3px] border-[#d8bd75] bg-[#fff1bf]/70 px-1.5 text-center shadow-[0_3px_0_rgba(91,72,44,0.16),inset_0_0_0_2px_rgba(255,255,255,0.45)]">
         <div className="text-[0.72rem] font-black uppercase leading-[0.95] text-[#174c2c]">
           Tänään halvin
         </div>
@@ -297,6 +297,20 @@ export default function ZiiplyMobileSearchCard({
     items.length === 0 &&
     cleanInput.length >= 2;
 
+  const suggestionWords = useMemo(() => {
+    const clean = input.trim();
+
+    if (!clean || notFoundCanShow) return [];
+
+    const lastWord = clean.split(/[,\s]+/).filter(Boolean).at(-1) || clean;
+
+    return [
+      `${lastWord} tarjous`,
+      `${lastWord} halvin`,
+      `${lastWord} kotimainen`,
+    ];
+  }, [input, notFoundCanShow]);
+
   const predictiveText = useMemo(() => {
     const clean = input.trim();
 
@@ -308,9 +322,7 @@ export default function ZiiplyMobileSearchCard({
       return `Hakemaasi “${clean}” ei löytynyt.`;
     }
 
-    const lastWord = clean.split(/[,\s]+/).filter(Boolean).at(-1) || clean;
-
-    return [`${lastWord} tarjous`, `${lastWord} halvin`, `${lastWord} kotimainen`].join(" · ");
+    return "";
   }, [input, notFoundCanShow]);
 
   useEffect(() => {
@@ -361,11 +373,21 @@ export default function ZiiplyMobileSearchCard({
     onInputChange?.("");
   };
 
+  const handleSuggestionClick = (suggestion: string) => {
+    autoSearchInputRef.current = suggestion;
+    setTriggeredSearchInput(suggestion);
+    onInputChange?.(suggestion);
+
+    window.setTimeout(() => {
+      onNormalSearch?.();
+    }, 0);
+  };
+
   if (!open) return null;
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V601_REFINED_MOCKUP"
+      data-ziiply-mobile-search-card-version="UUSI_V603_CLICKABLE_SUGGESTIONS"
       className={`fixed inset-0 z-[140] flex items-stretch justify-center overflow-hidden bg-[#f8edc9] px-2 pb-[calc(env(safe-area-inset-bottom)+5.15rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] sm:hidden ${className}`}
     >
       <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.8rem] bg-[#f6ebc6] px-3 pb-3 pt-5 text-[#20301f] shadow-[inset_0_0_0_2px_rgba(216,189,117,0.58)]">
@@ -407,6 +429,12 @@ export default function ZiiplyMobileSearchCard({
                   setTriggeredSearchInput("");
                   onInputChange?.(event.target.value);
                 }}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && !event.shiftKey) {
+                    event.preventDefault();
+                    handleManualSearch(onNormalSearch);
+                  }
+                }}
                 rows={2}
                 placeholder={searchMode === "single" ? "Kirjoita yksi tuote" : "maito, kahvi"}
                 className="block h-full w-full resize-none overflow-hidden rounded-[1.2rem] border-0 bg-[#fffaf0] px-3 py-2 pr-[2.7rem] text-center text-[1.28rem] font-black leading-[1.02] text-[#102216] outline-none placeholder:text-[#7d7461]"
@@ -427,7 +455,7 @@ export default function ZiiplyMobileSearchCard({
             <ModeToggle mode={searchMode} onModeChange={onSearchModeChange} />
           </div>
 
-          <div className="mt-4 grid grid-cols-[1.16fr_0.84fr_1.16fr] items-center gap-3">
+          <div className="mt-4 grid grid-cols-[1.28fr_0.56fr_1.28fr] items-center gap-2.5">
             <AssistantButton
               kind="gosta"
               onClick={() => handleManualSearch(onOfferSearch)}
@@ -445,13 +473,34 @@ export default function ZiiplyMobileSearchCard({
             />
           </div>
 
-          <div className="mt-5 flex min-h-[3.75rem] items-center justify-center overflow-hidden rounded-[1.25rem] border-[3px] border-[#d2b170] bg-[#fff1bf] px-4 text-center text-[clamp(0.76rem,2.45vw,0.92rem)] font-black leading-[1.05] text-[#6f5630] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_3px_0_rgba(91,72,44,0.12)]">
-            <span className="block w-full">
-              {subtitle || predictiveText}
-            </span>
+          <div className="mt-6 flex min-h-[5.6rem] items-center justify-center overflow-hidden rounded-[1.25rem] border-[3px] border-[#d2b170] bg-[#fff1bf] px-4 text-center text-[clamp(0.78rem,2.55vw,0.96rem)] font-black leading-[1.12] text-[#6f5630] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_3px_0_rgba(91,72,44,0.12)]">
+            {suggestionWords.length > 0 ? (
+              <div className="flex w-full flex-col items-center justify-center gap-2">
+                <div className="text-[0.78rem] font-black leading-none text-[#6f5630]">
+                  Justiina ehdottaa hakusanoja:
+                </div>
+
+                <div className="flex w-full flex-wrap items-center justify-center gap-1.5">
+                  {suggestionWords.map((suggestion) => (
+                    <button
+                      key={suggestion}
+                      type="button"
+                      onClick={() => handleSuggestionClick(suggestion)}
+                      className="rounded-full border-[2px] border-[#b8944f] bg-[#fff8d9] px-2.5 py-1 text-[0.72rem] font-black leading-none text-[#174c2c] shadow-[0_2px_0_rgba(91,72,44,0.14)] active:translate-y-[1px]"
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <span className="block w-full">
+                {subtitle || predictiveText}
+              </span>
+            )}
           </div>
 
-          <div className="mt-5 grid grid-cols-2 gap-3">
+          <div className="mt-4 grid grid-cols-2 gap-3">
             <RetroAssetButton
               kind="voice"
               label="Äänitä"
