@@ -1,5 +1,6 @@
 "use client";
 
+// V590_SCANNER_STATUS_BEEP_FLOW: piip kuuluu EAN-koodin tunnistushetkellä, ei koriin lisäyksessä; scannerMessage näyttää HAETAAN kameraruudulla loading-tilassa.
 // V582_MOBILE_SCANNER_TORCH_FULLHEIGHT_RADAR_AND_BEEP: korjaa taskulamppu-propin, koko kameraruudun tutkaefektin sekä siirtää piip-äänen EAN-koodin löytymishetkeen pois koriinlisäyksestä.
 // V581_MOBILE_SCANNER_TORCH_AND_FULLHEIGHT_RADAR: varmistaa taskulamppupropin välityksen ScannerCardille ja käyttää v581-koko kameraruudun tutkaefektiä.
 // V580_MOBILE_SCANNER_FULLSCREEN_MODE: tekee mobiiliskannerista koko ikkunan tilan; poistaa kortin max-width/padding-rajoitteet ja välittää fullscreen-propin ScannerCardille.
@@ -11307,13 +11308,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   fullscreen
                   flashState={scanSuccessFlash ? "success" : scanMissFlash ? "error" : "idle"}
                   loading={eanLoading}
-                  scannerMessage={
-                    scanSuccessFlash
-                      ? "Lisätty koriin"
-                      : scanMissFlash
-                        ? "Ei löytynyt"
-                        : ""
-                  }
+                  scannerMessage={eanLoading ? "Haetaan tuotetta" : ""}
                   torchOn={scannerTorchOn}
                   manualInputOpen={eanManualInputOpen}
                   selectionResults={
