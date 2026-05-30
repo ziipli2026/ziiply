@@ -1,10 +1,10 @@
 "use client";
 
 /**
- * ZiiplyMobileScannerCard-v587-soft-single-band-no-ghosts.tsx
+ * ZiiplyMobileScannerCard-v588-soft-single-band-full-travel.tsx
  * 2026-05-30
  *
- * Mobiiliskannerikortin v587-revisio.
+ * Mobiiliskannerikortin v588-revisio.
  *
  * Muutokset:
  * - Ei käytä WEBP-taustakuvaa lainkaan.
@@ -39,6 +39,8 @@
  * - v587: poistaa full-height-gradientin aiheuttamat haamuaallot.
  * - v587: ulompi alue on koko kameraruudun korkuinen, mutta vain yksi pehmeä sisäinen aalto liikkuu.
  * - v587: näkyvimmän aallon pehmeys säilytetty ilman terävää laser-viivaa.
+ * - v588: korjaa tutka-aallon liikeradan kulkemaan koko kameraruudun korkeudelta ylhäältä alas.
+ * - v588: säilyttää v587:n pehmeän yhden aallon ulkoasun.
  */
 
 import React, { useEffect, useMemo, useState } from "react";
@@ -215,7 +217,7 @@ export default function ZiiplyMobileScannerCard({
 
         @keyframes ziiplyRadarSweep {
           0% {
-            transform: translateY(-24%);
+            top: -26%;
             opacity: 0;
           }
 
@@ -228,7 +230,7 @@ export default function ZiiplyMobileScannerCard({
           }
 
           100% {
-            transform: translateY(124%);
+            top: 100%;
             opacity: 0;
           }
         }
@@ -241,7 +243,7 @@ export default function ZiiplyMobileScannerCard({
           position: absolute;
           left: 0;
           right: 0;
-          top: 0;
+          top: -26%;
           height: 24%;
           min-height: 72px;
           max-height: 132px;
