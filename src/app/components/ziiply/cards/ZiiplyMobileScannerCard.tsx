@@ -1,10 +1,10 @@
 "use client";
 
 /**
- * ZiiplyMobileScannerCard-v583-single-radar-wave.tsx
+ * ZiiplyMobileScannerCard-v584-clean-single-radar-line.tsx
  * 2026-05-30
  *
- * Mobiiliskannerikortin v583-revisio.
+ * Mobiiliskannerikortin v584-revisio.
  *
  * Muutokset:
  * - Ei käytä WEBP-taustakuvaa lainkaan.
@@ -33,6 +33,7 @@
  * - v581: taskulampun nappi pysyy puhtaana pass-through-toimintona page-logiikalle.
  * - v582: taskulamppunappi pysäyttää event-kuplan ja kutsuu vain page-propin.
  * - v583: tutkaefekti muutettu yhdeksi vahvaksi aalloksi ilman etu-/takahaamuja.
+ * - v584: poistaa haaleat ylä-/ala-aallot; jäljelle jää vain yksi kapea vahva tutkalinja.
  */
 
 import React, { useEffect, useMemo, useState } from "react";
@@ -209,21 +210,21 @@ export default function ZiiplyMobileScannerCard({
 
         @keyframes ziiplyRadarSweep {
           0% {
-            transform: translateY(-100%);
-            opacity: 0.0;
+            transform: translateY(-105%);
+            opacity: 0;
           }
 
-          12% {
-            opacity: 0.95;
+          8% {
+            opacity: 1;
           }
 
-          88% {
-            opacity: 0.95;
+          92% {
+            opacity: 1;
           }
 
           100% {
-            transform: translateY(100%);
-            opacity: 0.0;
+            transform: translateY(105%);
+            opacity: 0;
           }
         }
 
@@ -232,19 +233,19 @@ export default function ZiiplyMobileScannerCard({
             linear-gradient(
               180deg,
               rgba(120,255,120,0.00) 0%,
-              rgba(120,255,120,0.00) 42%,
-              rgba(120,255,120,0.86) 49%,
-              rgba(120,255,120,0.98) 50%,
-              rgba(120,255,120,0.86) 51%,
-              rgba(120,255,120,0.00) 58%,
+              rgba(120,255,120,0.00) 47.5%,
+              rgba(120,255,120,0.96) 49.4%,
+              rgba(185,255,170,1.00) 50.0%,
+              rgba(120,255,120,0.96) 50.6%,
+              rgba(120,255,120,0.00) 52.5%,
               rgba(120,255,120,0.00) 100%
             );
 
-          filter: blur(2px);
+          filter: none;
 
           box-shadow:
-            0 0 34px rgba(120,255,120,0.62),
-            0 0 74px rgba(120,255,120,0.28);
+            0 0 16px rgba(120,255,120,0.70),
+            0 0 32px rgba(120,255,120,0.35);
 
           animation: ziiplyRadarSweep 3.4s ease-in-out infinite;
           will-change: transform, opacity;
