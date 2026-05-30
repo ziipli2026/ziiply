@@ -310,7 +310,7 @@ export default function ZiiplyMobileSearchResultsCard({
         </header>
 
         <div className="relative z-10 min-h-0 flex-1 overflow-y-auto px-3 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {loading && (
               <div className="rounded-[1.45rem] border-[3px] border-[#d4ba73] bg-[#fff4d6] px-5 py-8 text-center text-[1rem] font-black text-[#78633a] shadow-[0_4px_0_rgba(91,72,44,0.12)]">
                 Haetaan löydöksiä…
@@ -335,14 +335,14 @@ export default function ZiiplyMobileSearchResultsCard({
                 return (
                   <article
                     key={String(product.id ?? product.ean ?? index)}
-                    className="relative grid min-h-[8.15rem] grid-cols-[6.15rem_minmax(0,1fr)] overflow-hidden rounded-[1.55rem] border-[4px] border-[#8c6934] bg-[#fffdf8] p-3 shadow-[0_6px_0_rgba(91,72,44,0.14)]"
+                    className="relative grid min-h-[6.45rem] grid-cols-[5.25rem_minmax(0,1fr)] overflow-hidden rounded-[1.35rem] border-[3px] border-[#8c6934] bg-[#fffdf8] p-2.5 shadow-[0_4px_0_rgba(91,72,44,0.14)]"
                   >
-                    <div className="flex h-full min-h-[6.2rem] items-center justify-center overflow-visible pr-2">
+                    <div className="flex h-full min-h-[5.0rem] items-center justify-center overflow-visible pr-2">
                       {image ? (
                         <img
                           src={image}
                           alt=""
-                          className="h-full max-h-[7.4rem] w-full scale-[1.18] object-contain"
+                          className="h-full max-h-[5.9rem] w-full scale-[1.10] object-contain"
                           loading="lazy"
                         />
                       ) : (
@@ -350,29 +350,29 @@ export default function ZiiplyMobileSearchResultsCard({
                       )}
                     </div>
 
-                    <div className="relative min-w-0 pb-[3.35rem]">
+                    <div className="relative min-w-0 pb-[2.65rem]">
                       <div
-                        className="line-clamp-2 text-[1.02rem] font-black leading-[0.98] text-[#123d32]"
+                        className="line-clamp-2 text-[0.92rem] font-black leading-[0.95] text-[#123d32]"
                         style={{ fontFamily: cooper }}
                       >
                         {name}
                       </div>
 
                       {store && (
-                        <div className="mt-3 truncate whitespace-nowrap text-[0.78rem] font-black uppercase leading-none text-[#6c532c]">
+                        <div className="mt-2 truncate whitespace-nowrap text-[0.72rem] font-black uppercase leading-none text-[#6c532c]">
                           {store}
                         </div>
                       )}
 
                       {comparison && (
-                        <div className="mt-1 text-[0.76rem] font-black leading-none text-[#8a7a55]">
+                        <div className="mt-1 text-[0.70rem] font-black leading-none text-[#8a7a55]">
                           {comparison}
                         </div>
                       )}
 
                       <div className="absolute bottom-0 right-0 flex items-center justify-end gap-2">
                         {price && (
-                          <div className="inline-flex min-w-[5.35rem] items-center justify-center rounded-full border-[3px] border-[#347a3f] bg-[#d2f1c8] px-2.5 py-[0.42rem] text-[1rem] font-black leading-none text-[#153d1c] shadow-[inset_0_1px_0_rgba(255,255,255,0.70)]">
+                          <div className="inline-flex min-w-[4.75rem] items-center justify-center rounded-full border-[2.5px] border-[#347a3f] bg-[#d2f1c8] px-2 py-[0.34rem] text-[0.88rem] font-black leading-none text-[#153d1c] shadow-[inset_0_1px_0_rgba(255,255,255,0.70)]">
                             {price}
                           </div>
                         )}
@@ -380,7 +380,7 @@ export default function ZiiplyMobileSearchResultsCard({
                         <button
                           type="button"
                           onClick={() => onAddProduct?.(product)}
-                          className="pointer-events-auto shrink-0 rounded-[0.88rem] border-[3px] border-[#178338] bg-[#08a63d] px-3.5 py-[0.75rem] text-[0.9rem] font-black uppercase leading-none tracking-[0.02em] text-[#fff3d8] shadow-[0_4px_0_rgba(0,74,24,0.24),inset_0_1px_0_rgba(255,255,255,0.26)] active:translate-y-[1px] active:shadow-[0_2px_0_rgba(0,74,24,0.24)]"
+                          className="pointer-events-auto shrink-0 rounded-[0.78rem] border-[2.5px] border-[#178338] bg-[#08a63d] px-3 py-[0.62rem] text-[0.82rem] font-black uppercase leading-none tracking-[0.02em] text-[#fff3d8] shadow-[0_3px_0_rgba(0,74,24,0.24),inset_0_1px_0_rgba(255,255,255,0.26)] active:translate-y-[1px] active:shadow-[0_1px_0_rgba(0,74,24,0.24)]"
                         >
                           Lisää
                         </button>
