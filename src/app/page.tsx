@@ -1948,6 +1948,23 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const scanSuccessFlashTimeoutRef = useRef<number | null>(null);
   const scanMissFlashTimeoutRef = useRef<number | null>(null);
 
+  function resetPendingEanPickCardV606() {
+    setEanResults([]);
+    setEanMessage("");
+    setEanScannerMessage("");
+    setEanLoading(false);
+    eanSearchInFlightRef.current = null;
+    setLastAutoEanSearch("");
+    setEanSearchStartedAutomatically(false);
+    eanAutoSearchActiveRef.current = false;
+
+    if (eanAutoSearchTimeoutRef.current) {
+      window.clearTimeout(eanAutoSearchTimeoutRef.current);
+      eanAutoSearchTimeoutRef.current = null;
+    }
+  }
+
+
   // =========================
   // MOBILE APP SHELL
   // =========================
@@ -5588,6 +5605,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     lastContinuousScanRef.current = { code: normalizedCode, at: now };
+    resetPendingEanPickCardV606();
 
     // Piip soitetaan vasta hyväksytylle uudelle lukutapahtumalle.
     // Ei enää ennen sama-EAN-lukkoa.
@@ -5651,13 +5669,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const scanner = eanHtml5ScannerRef.current;
     eanHtml5ScannerRef.current = null;
     lastContinuousScanRef.current = null;
-    setEanResults([]);
-    setEanMessage("");
-    setEanScannerMessage("");
-    eanSearchInFlightRef.current = null;
-    setLastAutoEanSearch("");
-    setEanSearchStartedAutomatically(false);
-    eanAutoSearchActiveRef.current = false;
+    resetPendingEanPickCardV606();
     setScannerTorchOn(false);
 
     if (scanner && !eanScannerStoppingRef.current) {
@@ -5977,20 +5989,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function clearEanSearch() {
-    if (eanAutoSearchTimeoutRef.current) {
-      window.clearTimeout(eanAutoSearchTimeoutRef.current);
-      eanAutoSearchTimeoutRef.current = null;
-    }
-
     setEanInput("");
-    setEanResults([]);
-    setEanMessage("");
-    setEanScannerMessage("");
-    setEanLoading(false);
-    eanSearchInFlightRef.current = null;
-    setLastAutoEanSearch("");
-    setEanSearchStartedAutomatically(false);
-    eanAutoSearchActiveRef.current = false;
+    resetPendingEanPickCardV606();
 
     window.setTimeout(() => {
       eanInputRef.current?.focus();
@@ -10595,7 +10595,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 />
                 <div className="mx-auto mt-1 max-w-3xl text-center">
                   <p className="text-base font-black leading-tight tracking-[-0.04em] text-slate-950">
-                    Viilaa ruokakorisi huokeammaks.
+                    Viilaa ruokakorisi huokeammaks
                   </p>
                   <p className="mt-1 text-sm font-semibold leading-snug text-slate-500">
                     Gösta ja Justiina auttavat arjen valinnoissa.
