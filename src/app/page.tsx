@@ -1,6 +1,7 @@
 "use client";
 
 // V592_SCANNER_BEEP_ALWAYS_ON_SEARCH_START: piip kuuluu aina, kun EAN-haku oikeasti käynnistyy; ei piippiä enää valintapaneelin kautta lisäyksessä.
+// V595_SCANNER_NO_HINT_AND_BOTTOM_UP_SWEEP: poistaa skannerin kameraruudun ohjetekstit näkyvistä ja käyttää v595 ScannerCardia, jossa efekti liikkuu alhaalta ylöspäin.
 // V594_SCANNER_BEEP_ON_DETECT_AND_TRANSPARENT_SELECTION_INFO: piip soitetaan heti skannerin tunnistustapahtumassa ennen hakua; aloitusohje poistettu ScannerCardista; valintapaneelin lisäys näyttää läpikuultavan Tuote lisätty -kuittauksen ilman piippiä/flashia.
 // V593_SCANNER_WINDOW_FLASH_ERROR_SOUND_AND_SELECTION_INFO: flash vain kameraikkunaan ScannerCardissa; page soittaa error/tööt-äänen ei-löydy-tilassa ja näyttää valinnan jälkeen Tuote lisätty -viestin ilman piippiä/flashia.
 // V590_SCANNER_STATUS_BEEP_FLOW: piip kuuluu EAN-koodin tunnistushetkellä, ei koriin lisäyksessä; scannerMessage näyttää HAETAAN kameraruudulla loading-tilassa.
@@ -5549,9 +5550,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setEanSearchStartedAutomatically(true);
     eanAutoSearchActiveRef.current = true;
     setEanScannerOpen(true);
-    setEanScannerMessage(
-      `Luettu ${normalizedCode}. Kamera pysyy päällä seuraavaa tuotetta varten.`,
-    );
+    setEanScannerMessage("");
     setEanMessage(`Skannattu EAN: ${normalizedCode}. Haetaan...`);
     void searchByEan(normalizedCode);
   }
@@ -5638,7 +5637,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     try {
       await stopEanCameraScanner();
       setEanScannerOpen(true);
-      setEanScannerMessage("Ladataan kameraskanneria...");
+      setEanScannerMessage("");
 
       const Html5Qrcode = await loadHtml5QrCodeScript();
 
@@ -5702,9 +5701,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       );
       eanHtml5ScannerRef.current = scanner;
 
-      setEanScannerMessage(
-        "Aseta viivakoodi kehykseen. Napauta kuvaa tarkennusta varten.",
-      );
+      setEanScannerMessage("");
 
       await scanner.start(
         {
@@ -5887,7 +5884,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setLastAutoEanSearch("");
     setEanSearchStartedAutomatically(false);
     eanAutoSearchActiveRef.current = false;
-    setEanScannerMessage("Suuntaa tuotteen viivakoodi kameralle.");
+    setEanScannerMessage("");
     setEanScannerOpen(true);
 
     window.setTimeout(() => {
