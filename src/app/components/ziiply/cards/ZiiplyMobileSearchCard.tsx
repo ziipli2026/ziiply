@@ -1,6 +1,6 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V608_SAFE_V510_SEARCH_LOGIC
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V611_IDENTICAL_SAFE_V608
 // UUSI: SearchCard ei renderöi hakutuloksia sisäänsä lainkaan.
 // UUSI: Äänitä ja Filmaa napit pysyvät paikallaan myös silloin, kun erillinen tuloskortti aukeaa.
 // UUSI: tulokset kuuluvat erilliseen ZiiplyMobileSearchResultsCard-komponenttiin.
@@ -376,7 +376,7 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V608_SAFE_V510_SEARCH_LOGIC"
+      data-ziiply-mobile-search-card-version="UUSI_V611_IDENTICAL_SAFE_V608"
       className={`fixed inset-0 z-[72] flex items-stretch justify-center overflow-hidden bg-transparent px-2 pb-[calc(env(safe-area-inset-bottom)+5.45rem)] pt-[calc(env(safe-area-inset-top)+0.75rem)] sm:items-center sm:p-6 ${className}`}
     >
       <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-visible rounded-[2rem] border-[4px] border-[#5b482c] bg-transparent px-3 pt-3 text-[#20301f] shadow-[0_0_0_2px_#d8bd75_inset,0_12px_0_rgba(60,45,20,0.24),0_22px_45px_rgba(15,23,42,0.18)]">
