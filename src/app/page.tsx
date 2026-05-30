@@ -1,5 +1,6 @@
 "use client";
 
+// V620_HIDE_APP_TOPBAR_DURING_MOBILE_SEARCH: appin oma yläpalkki piilotetaan Hae-näkymässä searchPanelOpenilla.
 // V611_HUOKEAMMAKS_NO_DOT_FINAL: pääsivun hero-teksti on täsmälleen "Viilaa ruokakorisi huokeammaks" ilman pistettä.
 
 // V592_SCANNER_BEEP_ALWAYS_ON_SEARCH_START: piip kuuluu aina, kun EAN-haku oikeasti käynnistyy; ei piippiä enää valintapaneelin kautta lisäyksessä.
@@ -1460,7 +1461,7 @@ export default function Page() {
     useState<ZiiplyAssistantKey | null>(null);
   const [searchPanelOpen, setSearchPanelOpen] = useState(false);
 
-  const searchFullscreenOpenV617 = searchPanelOpen;
+  const searchFullscreenOpenV620 = searchPanelOpen;
 
   const [cartModalOpen, setCartModalOpen] = useState(false);
   const [cartSavePanelOpen, setCartSavePanelOpen] = useState(false);
