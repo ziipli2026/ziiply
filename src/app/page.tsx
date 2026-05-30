@@ -1,6 +1,6 @@
 "use client";
 
-// V621_FORCE_HIDE_MOBILE_TOPBAR_DURING_SEARCH: appin oma yläpalkki piilotetaan Hae-näkymässä searchPanelOpenilla.
+// V622_BUILD_FIX_HIDE_TOPBAR_WITH_PROP_ONLY: appin oma yläpalkki piilotetaan Hae-näkymässä searchPanelOpenilla.
 // V611_HUOKEAMMAKS_NO_DOT_FINAL: pääsivun hero-teksti on täsmälleen "Viilaa ruokakorisi huokeammaks" ilman pistettä.
 
 // V592_SCANNER_BEEP_ALWAYS_ON_SEARCH_START: piip kuuluu aina, kun EAN-haku oikeasti käynnistyy; ei piippiä enää valintapaneelin kautta lisäyksessä.
@@ -10578,12 +10578,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           className={`relative z-[80] m-0 p-0 mt-1 mb-0 ziiply-desktop-debug-compact sm:mx-auto sm:max-w-[1180px] sm:px-4 ${showLaunchScreen ? "hidden" : ""}`}
         >
           {/* v388_TOPBAR_BACKGROUND_LOCK: keeps Safari from pulling the hero/background upward after idle/reload. */}
-        
-      <style jsx global>{`
-        body.ziiply-mobile-search-fullscreen-active div.fixed.inset-x-0.top-\[max\(env\(safe-area-inset-top\),0px\)\].z-\[90\] {
-          display: none !important;
-        }
-      `}</style>
 <KauppiasMobileTopBar
             hidden={searchFullscreenOpenV621}
             areaLabel={activeArea.label}
