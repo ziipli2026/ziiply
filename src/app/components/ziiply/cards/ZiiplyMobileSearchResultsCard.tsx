@@ -334,7 +334,7 @@ export default function ZiiplyMobileSearchResultsCard({
                 return (
                   <article
                     key={String(product.id ?? product.ean ?? index)}
-                    className="relative grid min-h-[4.95rem] grid-cols-[4.15rem_minmax(0,1fr)_5.35rem] items-start gap-2 overflow-hidden rounded-[1.15rem] border-[3px] border-[#8c6934] bg-[#fffdf8] px-2.5 pb-1.5 pt-2 shadow-[0_3px_0_rgba(91,72,44,0.12)]"
+                    className="relative grid min-h-[4.95rem] grid-cols-[4.15rem_minmax(0,1fr)] items-start gap-2 overflow-hidden rounded-[1.15rem] border-[3px] border-[#8c6934] bg-[#fffdf8] px-2.5 pb-1.5 pt-2 shadow-[0_3px_0_rgba(91,72,44,0.12)]"
                   >
                     <div className="flex h-full min-h-[3.95rem] items-center justify-center overflow-visible">
                       {image ? (
