@@ -1,13 +1,15 @@
 "use client";
 
-// ZiiplyMobileProductPickCard v8
-// Korjaukset:
-// - Ei yläpalkkia.
-// - Kaksi tuotetta ovat samankorkoiset.
-// - Tuotekuva on suurempi eikä siinä ole erillistä värillistä taustaruutua.
-// - Tekstit vasemmalla, kuva oikealla ylhäällä, Lisää-nappi oikealla alhaalla.
-// - Hinta renderöidään kortin sisällä oikein: 2.78 -> 2,78 €, 278 -> 2,78 €.
-// - Vertailuhinta haetaan useista kentistä ja lasketaan tarvittaessa hinnasta + pakkauskoosta.
+// ZiiplyMobileProductPickCard v11
+// Mockup-korjaus:
+// - Tuotekuva oikeaan yläkulmaan/top-sijoittelulla.
+// - Tuotenimi vasemmalle ylös, enemmän hengitystilaa.
+// - Kaupan nimi alemmaksi valmiiksi, jotta pitkä tuotenimi saa tilaa.
+// - Kaupan nimi aina yhdelle riville ja katkeaa tarvittaessa.
+// - Vertailuhinta kaupan nimen alle.
+// - Hinta ja LISÄÄ-nappi samalle alariville vierekkäin.
+// - Ei erillistä kuvan kehys-/taustaruutua.
+// - Kaksi tuotetta samankorkoisina.
 
 import React from "react";
 
@@ -122,9 +124,6 @@ function numericValue(value: unknown) {
 function priceToEuros(value: unknown) {
   const n = numericValue(value);
   if (n == null) return null;
-
-  // Ruoanhinta.fi / S/K-data voi tulla joko euroina tai sentteinä.
-  // 2.78 on euro, 278 on sentti.
   return Math.abs(n) > 20 ? n / 100 : n;
 }
 
@@ -314,20 +313,21 @@ export default function ZiiplyMobileProductPickCard({
             <article
               key={String(result.key ?? result.id ?? result.ean ?? index)}
               className={[
-                "relative grid min-h-0 grid-cols-[minmax(0,1fr)_42%] overflow-hidden rounded-[1.55rem] border-[4px] border-[#8c6934] bg-[#fffdf8] shadow-[0_6px_0_rgba(91,72,44,0.14)]",
+                "relative min-h-0 overflow-hidden rounded-[1.55rem] border-[4px] border-[#8c6934] bg-[#fffdf8] shadow-[0_6px_0_rgba(91,72,44,0.14)]",
                 isTwoItems ? "flex-1" : "min-h-[10.5rem]",
               ].join(" ")}
             >
-              <div className="relative min-w-0 px-4 py-4 pb-[5.0rem]">
+              {/* vasen tekstialue */}
+              <div className="absolute bottom-[4.8rem] left-4 right-[43%] top-4 min-w-0">
                 <div
-                  className="line-clamp-3 text-[1.16rem] font-black leading-[0.98] text-[#123d32]"
+                  className="line-clamp-4 text-[1.18rem] font-black leading-[0.98] text-[#123d32]"
                   style={{ fontFamily: cooper }}
                 >
                   {name}
                 </div>
 
                 {store && (
-                  <div className="mt-6 truncate whitespace-nowrap text-[0.86rem] font-black uppercase leading-none text-[#6c532c]">
+                  <div className="mt-7 truncate whitespace-nowrap text-[0.86rem] font-black uppercase leading-none text-[#6c532c]">
                     {store}
                   </div>
                 )}
@@ -337,27 +337,24 @@ export default function ZiiplyMobileProductPickCard({
                     {comparison}
                   </div>
                 )}
-
               </div>
 
-              <div className="relative flex min-w-0 flex-col p-3 pl-1">
-                <div className="grid min-h-[6.6rem] flex-1 place-items-center overflow-visible">
-                  {image ? (
-                    <img
-                      src={image}
-                      alt=""
-                      className="h-full max-h-[9.4rem] w-full scale-[1.28] object-contain p-0"
-                      loading="lazy"
-                    />
-                  ) : (
-                    <span className="text-[3.2rem]">🛒</span>
-                  )}
-                </div>
-
-
+              {/* oikea kuva-alue: top-sijoitettu, ei kehystä */}
+              <div className="absolute right-4 top-4 h-[46%] w-[39%] overflow-visible">
+                {image ? (
+                  <img
+                    src={image}
+                    alt=""
+                    className="h-full w-full object-contain object-top scale-[1.25]"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div className="grid h-full w-full place-items-center text-[3rem]">🛒</div>
+                )}
               </div>
 
-              <div className="absolute bottom-3 left-4 right-4 flex items-center justify-end gap-3">
+              {/* alarivi: hinta ja lisää vierekkäin */}
+              <div className="absolute bottom-4 left-4 right-4 flex items-center justify-end gap-3">
                 {price && (
                   <div className="inline-flex min-w-[5.9rem] items-center justify-center rounded-full border-[3px] border-[#347a3f] bg-[#d2f1c8] px-3 py-[0.50rem] text-[1.16rem] font-black leading-none text-[#153d1c] shadow-[inset_0_1px_0_rgba(255,255,255,0.70)]">
                     {price}
