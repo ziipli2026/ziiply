@@ -1,6 +1,6 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V604_NOTFOUND_AFTER_SEARCH
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V606_DESKTOP_SEARCH_SEQUENCE
 // Puhtaalta pöydältä tehty fullscreen Hae-näkymä mockupin mukaan.
 // - Ei sääpalkkia tämän kortin sisällä
 // - Ei yläpalkkia tämän kortin sisällä
@@ -55,6 +55,14 @@ export type ZiiplyMobileSearchCardProps = {
   onScannerClick?: () => void;
   voiceState?: "idle" | "recording" | "processing";
   scannerState?: "idle" | "active" | "processing";
+
+  chips?: Array<{
+    id: string;
+    label: string;
+    onClick?: () => void;
+  }>;
+  instructionText?: string;
+  notFoundTerms?: string[];
 };
 
 function cx(...classes: Array<string | false | null | undefined>) {
@@ -282,49 +290,74 @@ export default function ZiiplyMobileSearchCard({
   onScannerClick,
   voiceState = "idle",
   scannerState = "idle",
+  chips = [],
+  instructionText = "Justiina ehdottaa sopivia hakusanoja kirjoittaessasi.",
+  notFoundTerms = [],
 }: ZiiplyMobileSearchCardProps) {
   const items = Array.isArray(products) ? products : Array.isArray(results) ? results : [];
   const hasText = input.trim().length > 0;
   const justiinaLoading = loadingNormal || singleProductCompareLoading;
-  const anySearchLoading = loading || loadingOffers || loadingNormal || singleProductCompareLoading;
   const autoSearchInputRef = useRef("");
   const [triggeredSearchInput, setTriggeredSearchInput] = useState("");
 
   const cleanInput = input.trim();
-  const notFoundCanShow =
-    triggeredSearchInput.length > 0 &&
-    triggeredSearchInput === cleanInput &&
-    !anySearchLoading &&
-    items.length === 0 &&
-    cleanInput.length >= 2;
 
-  const suggestionWords = useMemo(() => {
-    const clean = input.trim();
+  const normalizeUiText = (value: string) =>
+    value
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9åäö]+/gi, " ")
+      .replace(/\s+/g, " ")
+      .trim();
 
-    if (!clean || notFoundCanShow) return [];
+  const cleanNotFoundTerms = notFoundTerms
+    .map((term) => String(term || "").trim())
+    .filter(Boolean);
 
-    const lastWord = clean.split(/[,\s]+/).filter(Boolean).at(-1) || clean;
+  const normalizedInput = normalizeUiText(cleanInput);
+  const normalizedInputTerms = input
+    .split(/[,;\n]/)
+    .map(normalizeUiText)
+    .filter(Boolean);
+
+  const activeNotFoundTerms = cleanNotFoundTerms.filter((term) => {
+    const normalizedTerm = normalizeUiText(term);
+    if (!normalizedTerm || !normalizedInput) return false;
+
+    return (
+      normalizedInput === normalizedTerm ||
+      normalizedInputTerms.some((inputTerm) => inputTerm === normalizedTerm)
+    );
+  });
+
+  const notFoundCanShow = activeNotFoundTerms.length > 0;
+
+  const fallbackSuggestionWords = useMemo(() => {
+    if (!cleanInput || notFoundCanShow) return [];
+
+    const lastWord = cleanInput.split(/[,\s]+/).filter(Boolean).at(-1) || cleanInput;
 
     return [
       `${lastWord} tarjous`,
       `${lastWord} halvin`,
       `${lastWord} kotimainen`,
     ];
-  }, [input, notFoundCanShow]);
+  }, [cleanInput, notFoundCanShow]);
+
+  const suggestionWords = chips.length > 0 ? [] : fallbackSuggestionWords;
 
   const predictiveText = useMemo(() => {
-    const clean = input.trim();
-
-    if (!clean) {
-      return "Justiina ehdottaa sopivia hakusanoja kirjoittaessasi.";
+    if (notFoundCanShow) {
+      return `Hakemaasi “${activeNotFoundTerms.join(", ")}” ei löytynyt.`;
     }
 
-    if (notFoundCanShow) {
-      return `Hakemaasi “${clean}” ei löytynyt.`;
+    if (!cleanInput) {
+      return instructionText;
     }
 
     return "";
-  }, [input, notFoundCanShow]);
+  }, [cleanInput, instructionText, notFoundCanShow, activeNotFoundTerms]);
 
   useEffect(() => {
     const clean = input.trim();
@@ -332,42 +365,17 @@ export default function ZiiplyMobileSearchCard({
     if (triggeredSearchInput && clean !== triggeredSearchInput) {
       setTriggeredSearchInput("");
     }
+  }, [input, triggeredSearchInput]);
 
-    if (!open || !clean || clean.length < 2) return;
-    if (loadingOffers || loadingNormal || singleProductCompareLoading) return;
-    if (autoSearchInputRef.current === clean) return;
-
-    const timer = window.setTimeout(() => {
-      const latest = input.trim();
-      if (!latest || latest.length < 2) return;
-      if (autoSearchInputRef.current === latest) return;
-
-      autoSearchInputRef.current = latest;
-      setTriggeredSearchInput("");
-      onNormalSearch?.();
-    }, 7000);
-
-    return () => window.clearTimeout(timer);
-  }, [
-    input,
-    open,
-    triggeredSearchInput,
-    loadingOffers,
-    loadingNormal,
-    singleProductCompareLoading,
-    onNormalSearch,
-  ]);
-
-  useEffect(() => {
-    const clean = input.trim();
-
-    if (!open || clean.length < 2) return;
-    if (anySearchLoading) return;
-    if (items.length > 0) return;
-    if (autoSearchInputRef.current !== clean) return;
-
-    setTriggeredSearchInput(clean);
-  }, [open, input, anySearchLoading, items.length]);
+  const runSearchAfterInputSettles = (handler?: () => void) => {
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(() => {
+        window.setTimeout(() => {
+          handler?.();
+        }, 0);
+      });
+    });
+  };
 
   const handleManualSearch = (handler?: () => void) => {
     const clean = input.trim();
@@ -390,16 +398,27 @@ export default function ZiiplyMobileSearchCard({
     setTriggeredSearchInput("");
     onInputChange?.(suggestion);
 
-    window.setTimeout(() => {
-      onNormalSearch?.();
-    }, 0);
+    runSearchAfterInputSettles(onNormalSearch);
+  };
+
+  const handleChipClick = (chip: { id: string; label: string; onClick?: () => void }) => {
+    autoSearchInputRef.current = chip.label;
+    setTriggeredSearchInput("");
+    onInputChange?.(chip.label);
+
+    if (chip.onClick) {
+      runSearchAfterInputSettles(chip.onClick);
+      return;
+    }
+
+    runSearchAfterInputSettles(onNormalSearch);
   };
 
   if (!open) return null;
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V604_NOTFOUND_AFTER_SEARCH"
+      data-ziiply-mobile-search-card-version="UUSI_V606_DESKTOP_SEARCH_SEQUENCE"
       className={`fixed inset-0 z-[140] flex items-stretch justify-center overflow-hidden bg-[#f8edc9] px-2 pb-[calc(env(safe-area-inset-bottom)+5.15rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] sm:hidden ${className}`}
     >
       <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.8rem] bg-[#f6ebc6] px-3 pb-3 pt-5 text-[#20301f] shadow-[inset_0_0_0_2px_rgba(216,189,117,0.58)]">
@@ -486,7 +505,26 @@ export default function ZiiplyMobileSearchCard({
           </div>
 
           <div className="mt-6 flex min-h-[5.6rem] items-center justify-center overflow-hidden rounded-[1.25rem] border-[3px] border-[#d2b170] bg-[#fff1bf] px-4 text-center text-[clamp(0.78rem,2.55vw,0.96rem)] font-black leading-[1.12] text-[#6f5630] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_3px_0_rgba(91,72,44,0.12)]">
-            {suggestionWords.length > 0 ? (
+            {chips.length > 0 ? (
+              <div className="flex w-full flex-col items-center justify-center gap-2">
+                <div className="text-[0.78rem] font-black leading-none text-[#6f5630]">
+                  Justiina ehdottaa hakusanoja:
+                </div>
+
+                <div className="flex w-full flex-wrap items-center justify-center gap-1.5">
+                  {chips.slice(0, 3).map((chip) => (
+                    <button
+                      key={chip.id}
+                      type="button"
+                      onClick={() => handleChipClick(chip)}
+                      className="rounded-full border-[2px] border-[#b8944f] bg-[#fff8d9] px-2.5 py-1 text-[0.72rem] font-black leading-none text-[#174c2c] shadow-[0_2px_0_rgba(91,72,44,0.14)] active:translate-y-[1px]"
+                    >
+                      {chip.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : suggestionWords.length > 0 ? (
               <div className="flex w-full flex-col items-center justify-center gap-2">
                 <div className="text-[0.78rem] font-black leading-none text-[#6f5630]">
                   Justiina ehdottaa hakusanoja:
