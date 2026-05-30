@@ -1,13 +1,13 @@
 "use client";
 
-// ZiiplyMobileProductPickCard v7
-// Korjaus v6:n jälkeen:
-// - yläpalkki pois kokonaan
-// - kaksi tuoteruutua saman kokoisiksi
-// - tekstit vasemmalle, kuva oikealle ylös, Lisää-nappi oikealle alas
-// - hinta vasemmalle alas ja vertailuhinta sen yläpuolelle
-// - korjaa 0,03 € -virheen: ulkoiselle formatPrice-funktiolle annetaan alkuperäinen hintaluku,
-//   ei valmiiksi euroiksi normalisoitua lukua.
+// ZiiplyMobileProductPickCard v8
+// Korjaukset:
+// - Ei yläpalkkia.
+// - Kaksi tuotetta ovat samankorkoiset.
+// - Tuotekuva on suurempi eikä siinä ole erillistä värillistä taustaruutua.
+// - Tekstit vasemmalla, kuva oikealla ylhäällä, Lisää-nappi oikealla alhaalla.
+// - Hinta renderöidään kortin sisällä oikein: 2.78 -> 2,78 €, 278 -> 2,78 €.
+// - Vertailuhinta haetaan useista kentistä ja lasketaan tarvittaessa hinnasta + pakkauskoosta.
 
 import React from "react";
 
@@ -59,17 +59,23 @@ function firstText(...values: unknown[]) {
   return "";
 }
 
+function cleanText(value: string) {
+  return value.replace(/\s+/g, " ").trim();
+}
+
 function getName(result: ZiiplyProductPickResult) {
-  return firstText(
-    result.name,
-    result.title,
-    result.displayName,
-    result.brandName,
-    result.product?.name,
-    result.product?.title,
-    result.product?.displayName,
-    "Tuote",
-  ).replace(/\s+/g, " ").trim();
+  return cleanText(
+    firstText(
+      result.name,
+      result.title,
+      result.displayName,
+      result.brandName,
+      result.product?.name,
+      result.product?.title,
+      result.product?.displayName,
+      "Tuote",
+    ),
+  );
 }
 
 function getImage(result: ZiiplyProductPickResult) {
@@ -96,21 +102,42 @@ function getStore(result: ZiiplyProductPickResult) {
   return chain || store;
 }
 
-function normalizePriceToEuros(price: unknown) {
-  if (typeof price === "number" && Number.isFinite(price)) {
-    return Math.abs(price) > 20 ? price / 100 : price;
-  }
+function numericValue(value: unknown) {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
 
-  const raw = String(price ?? "").trim();
+  const raw = String(value ?? "").trim();
   if (!raw) return null;
 
-  if (raw.includes("€")) return raw;
+  const match = raw
+    .replace(/\s/g, "")
+    .replace(",", ".")
+    .match(/-?\d+(?:\.\d+)?/);
 
-  const cleaned = raw.replace(/\s/g, "").replace(",", ".");
-  const number = Number(cleaned);
-  if (!Number.isFinite(number)) return raw;
+  if (!match) return null;
 
-  return Math.abs(number) > 20 ? number / 100 : number;
+  const parsed = Number(match[0]);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function priceToEuros(value: unknown) {
+  const n = numericValue(value);
+  if (n == null) return null;
+
+  // Ruoanhinta.fi / S/K-data voi tulla joko euroina tai sentteinä.
+  // 2.78 on euro, 278 on sentti.
+  return Math.abs(n) > 20 ? n / 100 : n;
+}
+
+function formatMainPrice(value: unknown) {
+  const euros = priceToEuros(value);
+  if (euros == null) return "";
+
+  return (
+    euros.toLocaleString("fi-FI", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }) + " €"
+  );
 }
 
 function pickRawPrice(
@@ -135,29 +162,6 @@ function pickRawPrice(
   return null;
 }
 
-function formatMainPrice(
-  rawPrice: unknown,
-  externalFormatPrice?: (value: number) => string,
-) {
-  if (typeof rawPrice === "number" && Number.isFinite(rawPrice) && externalFormatPrice) {
-    return externalFormatPrice(rawPrice);
-  }
-
-  const value = normalizePriceToEuros(rawPrice);
-  if (value == null) return "";
-
-  if (typeof value === "string") {
-    return value.includes("€") ? value : `${value} €`;
-  }
-
-  return (
-    value.toLocaleString("fi-FI", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }) + " €"
-  );
-}
-
 function normalizeComparisonValue(value: unknown) {
   if (typeof value === "number" && Number.isFinite(value)) {
     return Math.abs(value) > 20 ? value / 100 : value;
@@ -168,9 +172,8 @@ function normalizeComparisonValue(value: unknown) {
 
   if (raw.includes("€") || raw.includes("/")) return raw;
 
-  const cleaned = raw.replace(/\s/g, "").replace(",", ".");
-  const parsed = Number(cleaned.replace(/[^\d.-]/g, ""));
-  if (!Number.isFinite(parsed)) return null;
+  const parsed = numericValue(raw);
+  if (parsed == null) return null;
 
   return Math.abs(parsed) > 20 ? parsed / 100 : parsed;
 }
@@ -200,7 +203,38 @@ function inferComparisonUnit(result: ZiiplyProductPickResult) {
   return "€/kg";
 }
 
-function formatComparisonPrice(result: ZiiplyProductPickResult) {
+function parsePackageAmount(result: ZiiplyProductPickResult) {
+  const raw = [
+    result.packageSize,
+    result.unit,
+    result.name,
+    result.title,
+    result.product?.packageSize,
+    result.product?.unit,
+    result.product?.name,
+    result.product?.title,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase()
+    .replace(",", ".");
+
+  const kg = raw.match(/(\d+(?:\.\d+)?)\s*kg\b/);
+  if (kg) return { amount: Number(kg[1]), unit: "kg" as const };
+
+  const g = raw.match(/(\d+(?:\.\d+)?)\s*g\b/);
+  if (g) return { amount: Number(g[1]) / 1000, unit: "kg" as const };
+
+  const l = raw.match(/(\d+(?:\.\d+)?)\s*(?:l|ltr|litra)\b/);
+  if (l) return { amount: Number(l[1]), unit: "l" as const };
+
+  const ml = raw.match(/(\d+(?:\.\d+)?)\s*ml\b/);
+  if (ml) return { amount: Number(ml[1]) / 1000, unit: "l" as const };
+
+  return null;
+}
+
+function formatComparisonPrice(result: ZiiplyProductPickResult, rawPrice: unknown) {
   const candidates = [
     result.comparisonPrice,
     result.unitPrice,
@@ -224,6 +258,19 @@ function formatComparisonPrice(result: ZiiplyProductPickResult) {
     })} ${inferComparisonUnit(result)}`;
   }
 
+  const euros = priceToEuros(rawPrice);
+  const packageAmount = parsePackageAmount(result);
+
+  if (euros != null && packageAmount?.amount && packageAmount.amount > 0) {
+    const unitPrice = euros / packageAmount.amount;
+    const unit = packageAmount.unit === "l" ? "€/l" : "€/kg";
+
+    return `${unitPrice.toLocaleString("fi-FI", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })} ${unit}`;
+  }
+
   return "";
 }
 
@@ -232,7 +279,6 @@ export default function ZiiplyMobileProductPickCard({
   results,
   onAdd,
   onSelectResult,
-  formatPrice,
   getProductPrice,
 }: ZiiplyMobileProductPickCardProps) {
   const visibleResults = Array.isArray(results) ? results : [];
@@ -241,7 +287,7 @@ export default function ZiiplyMobileProductPickCard({
   return (
     <section
       className={[
-        "relative flex w-full flex-col overflow-hidden rounded-[2rem] border-[5px] border-[#6d5128] bg-[#fff6db]",
+        "relative flex h-full w-full flex-col overflow-hidden rounded-[2rem] border-[5px] border-[#6d5128] bg-[#fff6db]",
         "shadow-[0_12px_0_rgba(72,51,22,0.22),0_22px_48px_rgba(0,0,0,0.22),inset_0_0_0_2px_rgba(255,255,255,0.74)]",
         compact ? "max-w-[27.5rem]" : "",
       ].join(" ")}
@@ -260,28 +306,28 @@ export default function ZiiplyMobileProductPickCard({
           const image = getImage(result);
           const name = getName(result);
           const store = getStore(result);
-          const comparison = formatComparisonPrice(result);
           const rawPrice = pickRawPrice(result, getProductPrice);
-          const price = formatMainPrice(rawPrice, formatPrice);
+          const price = formatMainPrice(rawPrice);
+          const comparison = formatComparisonPrice(result, rawPrice);
 
           return (
             <article
               key={String(result.key ?? result.id ?? result.ean ?? index)}
               className={[
-                "relative grid min-h-[10.2rem] grid-cols-[minmax(0,1fr)_38%] overflow-hidden rounded-[1.55rem] border-[4px] border-[#8c6934] bg-[#fffdf8] shadow-[0_6px_0_rgba(91,72,44,0.14)]",
-                isTwoItems ? "flex-1" : "",
+                "relative grid min-h-0 grid-cols-[minmax(0,1fr)_38%] overflow-hidden rounded-[1.55rem] border-[4px] border-[#8c6934] bg-[#fffdf8] shadow-[0_6px_0_rgba(91,72,44,0.14)]",
+                isTwoItems ? "flex-1" : "min-h-[10.5rem]",
               ].join(" ")}
             >
-              <div className="relative min-w-0 px-4 py-4 pb-[4.25rem]">
+              <div className="relative min-w-0 px-4 py-4 pb-[4.0rem]">
                 <div
-                  className="line-clamp-3 text-[1.24rem] font-black leading-[0.98] text-[#123d32]"
+                  className="line-clamp-3 text-[1.22rem] font-black leading-[0.98] text-[#123d32]"
                   style={{ fontFamily: cooper }}
                 >
                   {name}
                 </div>
 
                 {store && (
-                  <div className="mt-2 line-clamp-2 text-[0.90rem] font-black uppercase leading-[1.02] text-[#6c532c]">
+                  <div className="mt-2 line-clamp-2 text-[0.88rem] font-black uppercase leading-[1.02] text-[#6c532c]">
                     {store}
                   </div>
                 )}
@@ -300,12 +346,12 @@ export default function ZiiplyMobileProductPickCard({
               </div>
 
               <div className="relative flex min-w-0 flex-col p-3 pl-1">
-                <div className="grid min-h-[5.6rem] flex-1 place-items-center overflow-hidden rounded-[1.15rem] border-[4px] border-[#dbc37f] bg-[#fff6dd] shadow-[inset_0_1px_9px_rgba(0,0,0,0.08)]">
+                <div className="grid min-h-[5.4rem] flex-1 place-items-center overflow-hidden rounded-[1rem] bg-white shadow-[inset_0_1px_8px_rgba(0,0,0,0.08)]">
                   {image ? (
                     <img
                       src={image}
                       alt=""
-                      className="h-full w-full object-contain p-2"
+                      className="h-full w-full object-contain p-1"
                       loading="lazy"
                     />
                   ) : (
