@@ -1460,8 +1460,7 @@ export default function Page() {
     useState<ZiiplyAssistantKey | null>(null);
   const [searchPanelOpen, setSearchPanelOpen] = useState(false);
 
-  const searchFullscreenOpenV617 =
-    searchPanelOpen && activeMobileTab === "search";
+  const searchFullscreenOpenV617 = searchPanelOpen;
 
   const [cartModalOpen, setCartModalOpen] = useState(false);
   const [cartSavePanelOpen, setCartSavePanelOpen] = useState(false);
