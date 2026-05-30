@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * ZiiplyMobileScannerCard-v590-status-selection-fix.tsx
+ * ZiiplyMobileScannerCard-v594-window-flash-no-startup-hint.tsx
  * 2026-05-30
  *
  * Mobiiliskannerikortin v590-revisio.
@@ -15,6 +15,7 @@
  * - Ei "EAN käsin" -nappia.
  * - Säilyttää "Liitä EAN", kameratoiminnon ja "Sulje kamera".
  * - Ohje näytetään kameraruudun päällä vain 2,5 s.
+ * - V593: vihreä/punainen väläys rajattu vain kameraruudun/skanneri-ikkunan sisään.
  * - Vihreä/punainen väläys koko kortin päällä success/error-tiloissa.
  * - Ei backdrop-bluria, ei WEBP-layeria, ei ylimääräisiä pointer-events-kikkailuja.
  * - v576: yhteensopiva page-v576:n näkyvän mountin odotuksen kanssa.
@@ -47,7 +48,7 @@
  * - v590: piilottaa tutkan valintapaneelin ja hakuoverlayn alta.
  */
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo } from "react";
 
 export type ZiiplyMobileScannerFlashState = "idle" | "success" | "error";
 
@@ -99,16 +100,6 @@ export default function ZiiplyMobileScannerCard({
   className = "",
   fullscreen = false,
 }: ZiiplyMobileScannerCardProps) {
-  const [showStartupHint, setShowStartupHint] = useState(true);
-
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setShowStartupHint(false);
-    }, 2500);
-
-    return () => window.clearTimeout(timer);
-  }, []);
-
   const flashClass = useMemo(() => {
     if (flashState === "success") {
       return "bg-[#56ff72]/28 shadow-[inset_0_0_90px_rgba(70,255,100,0.72)]";
@@ -278,14 +269,6 @@ export default function ZiiplyMobileScannerCard({
 
       `}</style>
 
-      {/* koko kortin palauteväläys */}
-      <div
-        className={[
-          "pointer-events-none absolute inset-0 z-[80] transition-colors duration-150",
-          flashClass,
-        ].join(" ")}
-        aria-hidden="true"
-      />
 
       {/* paperi/emali tekstuuri */}
       <div
@@ -352,6 +335,15 @@ export default function ZiiplyMobileScannerCard({
             className="pointer-events-none absolute inset-0 z-[5] rounded-[1.05rem] bg-[radial-gradient(circle_at_50%_35%,rgba(255,255,255,0.08),transparent_48%),linear-gradient(180deg,rgba(0,0,0,0.10),rgba(0,0,0,0.22))]"
             aria-hidden="true"
           />
+
+          {/* V593: palauteväläys vain kameraruudun/skanneri-ikkunan sisällä */}
+          <div
+            className={[
+              "pointer-events-none absolute inset-0 z-[24] rounded-[1.05rem] transition-colors duration-150",
+              flashClass,
+            ].join(" ")}
+            aria-hidden="true"
+          />
           {/* Radar sweep */}
           {!loading && !hasSelectionResults && (
             <div
@@ -369,12 +361,7 @@ export default function ZiiplyMobileScannerCard({
           <ScannerCorner className="bottom-5 left-5 -rotate-90" />
           <ScannerCorner className="bottom-5 right-5 rotate-180" />
 
-          {/* Hetken näkyvä alkuohje */}
-          {showStartupHint && (
-            <div className="pointer-events-none absolute inset-x-4 top-4 z-[35] rounded-[1rem] border-[2px] border-[#d1b06f] bg-[#fff4d1]/95 px-3 py-2 text-center text-[14px] font-black leading-tight text-[#163d32] shadow-[0_8px_20px_rgba(0,0,0,0.18)]">
-              Aseta viivakoodi kehykseen
-            </div>
-          )}
+          {/* V594: kameran käynnistyksen ohjeteksti poistettu kokonaan. */}
 
           {/* Palauteviesti, ei loaderia */}
           {visibleMessage && (
@@ -385,7 +372,9 @@ export default function ZiiplyMobileScannerCard({
                   ? "border-[2px] border-[#245c28] bg-[#d7ffd2]/95 text-[#123d18]"
                   : flashState === "error"
                     ? "border-[2px] border-[#7a1b15] bg-[#ffd6cf]/95 text-[#61130e]"
-                    : "border-[2px] border-[#245c28] bg-[#d7ffd2]/88 text-[#123d18] backdrop-blur-[2px]",
+                    : visibleMessage === "Tuote lisätty"
+                      ? "border-[2px] border-[#245c28]/70 bg-[#d7ffd2]/52 text-[#123d18] backdrop-blur-[1px]"
+                      : "border-[2px] border-[#245c28] bg-[#d7ffd2]/88 text-[#123d18] backdrop-blur-[2px]",
               ].join(" ")}
             >
               {visibleMessage}
