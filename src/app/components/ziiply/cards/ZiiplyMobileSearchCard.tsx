@@ -1,6 +1,6 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V603_CLICKABLE_SUGGESTIONS
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V604_NOTFOUND_AFTER_SEARCH
 // Puhtaalta pöydältä tehty fullscreen Hae-näkymä mockupin mukaan.
 // - Ei sääpalkkia tämän kortin sisällä
 // - Ei yläpalkkia tämän kortin sisällä
@@ -286,6 +286,7 @@ export default function ZiiplyMobileSearchCard({
   const items = Array.isArray(products) ? products : Array.isArray(results) ? results : [];
   const hasText = input.trim().length > 0;
   const justiinaLoading = loadingNormal || singleProductCompareLoading;
+  const anySearchLoading = loading || loadingOffers || loadingNormal || singleProductCompareLoading;
   const autoSearchInputRef = useRef("");
   const [triggeredSearchInput, setTriggeredSearchInput] = useState("");
 
@@ -293,7 +294,7 @@ export default function ZiiplyMobileSearchCard({
   const notFoundCanShow =
     triggeredSearchInput.length > 0 &&
     triggeredSearchInput === cleanInput &&
-    !loading &&
+    !anySearchLoading &&
     items.length === 0 &&
     cleanInput.length >= 2;
 
@@ -342,7 +343,7 @@ export default function ZiiplyMobileSearchCard({
       if (autoSearchInputRef.current === latest) return;
 
       autoSearchInputRef.current = latest;
-      setTriggeredSearchInput(latest);
+      setTriggeredSearchInput("");
       onNormalSearch?.();
     }, 7000);
 
@@ -357,11 +358,22 @@ export default function ZiiplyMobileSearchCard({
     onNormalSearch,
   ]);
 
+  useEffect(() => {
+    const clean = input.trim();
+
+    if (!open || clean.length < 2) return;
+    if (anySearchLoading) return;
+    if (items.length > 0) return;
+    if (autoSearchInputRef.current !== clean) return;
+
+    setTriggeredSearchInput(clean);
+  }, [open, input, anySearchLoading, items.length]);
+
   const handleManualSearch = (handler?: () => void) => {
     const clean = input.trim();
     if (clean.length >= 2) {
       autoSearchInputRef.current = clean;
-      setTriggeredSearchInput(clean);
+      setTriggeredSearchInput("");
     }
 
     handler?.();
@@ -375,7 +387,7 @@ export default function ZiiplyMobileSearchCard({
 
   const handleSuggestionClick = (suggestion: string) => {
     autoSearchInputRef.current = suggestion;
-    setTriggeredSearchInput(suggestion);
+    setTriggeredSearchInput("");
     onInputChange?.(suggestion);
 
     window.setTimeout(() => {
@@ -387,7 +399,7 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V603_CLICKABLE_SUGGESTIONS"
+      data-ziiply-mobile-search-card-version="UUSI_V604_NOTFOUND_AFTER_SEARCH"
       className={`fixed inset-0 z-[140] flex items-stretch justify-center overflow-hidden bg-[#f8edc9] px-2 pb-[calc(env(safe-area-inset-bottom)+5.15rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] sm:hidden ${className}`}
     >
       <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.8rem] bg-[#f6ebc6] px-3 pb-3 pt-5 text-[#20301f] shadow-[inset_0_0_0_2px_rgba(216,189,117,0.58)]">
