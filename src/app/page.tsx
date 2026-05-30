@@ -1,5 +1,7 @@
 "use client";
 
+// V569_MOBILE_SCANNER_ARTWORK_HARDWIRED:
+// page antaa uuden scanner-screenv2.webp-polun suoraan ZiiplyMobileScannerCardille, jotta vanha assetti ei voi jäädä käyttöön.
 // V568_MOBILE_SCAN_BUTTON_FORCE_NEW_SCANNER_CARD: SCAN-nappi renderöi uuden mobiiliskannerikortin heti eanModalOpen-tilassa.
 // V563_MOBILE_SCANNER_CARD_COMPACT_FIXED: mobiilin skanneri mahtuu yhteen ruutuun; camera region on oma tyhjä mount-div; tap-focus saa regionId:n.
 // V561_ELECTRICITY_CACHE_TYPE_FIX: korjaa localStorage-sähköcachen TypeScript-narrowing virheen cached.value/setState-kutsussa.
@@ -11243,6 +11245,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               {(eanScannerOpen || (!desktopKeyboardScannerOpen && eanModalOpen)) && (
                 <ZiiplyMobileScannerCard
                   regionId={EAN_SCANNER_REGION_ID}
+                  artworkSrc="/ui/scanner/scanner-screenv2.webp?ziiply=page-v569-hardwired"
                   flashState={scanSuccessFlash ? "success" : scanMissFlash ? "error" : "idle"}
                   loading={eanLoading}
                   scannerMessage={
