@@ -1,6 +1,7 @@
 "use client";
 
 // V592_SCANNER_BEEP_ALWAYS_ON_SEARCH_START: piip kuuluu aina, kun EAN-haku oikeasti käynnistyy; ei piippiä enää valintapaneelin kautta lisäyksessä.
+// V593_SCANNER_WINDOW_FLASH_ERROR_SOUND_AND_SELECTION_INFO: flash vain kameraikkunaan ScannerCardissa; page soittaa error/tööt-äänen ei-löydy-tilassa ja näyttää valinnan jälkeen Tuote lisätty -viestin ilman piippiä/flashia.
 // V590_SCANNER_STATUS_BEEP_FLOW: piip kuuluu EAN-koodin tunnistushetkellä, ei koriin lisäyksessä; scannerMessage näyttää HAETAAN kameraruudulla loading-tilassa.
 // V582_MOBILE_SCANNER_TORCH_FULLHEIGHT_RADAR_AND_BEEP: korjaa taskulamppu-propin, koko kameraruudun tutkaefektin sekä siirtää piip-äänen EAN-koodin löytymishetkeen pois koriinlisäyksestä.
 // V581_MOBILE_SCANNER_TORCH_AND_FULLHEIGHT_RADAR: varmistaa taskulamppupropin välityksen ScannerCardille ja käyttää v581-koko kameraruudun tutkaefektiä.
@@ -1862,6 +1863,41 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     playScanSuccessFeedback();
   }
 
+  function playScannerErrorToneV593() {
+    // Lyhyt matala "tööt" vain epäonnistuneelle EAN-haulle.
+    // Ei käytetä valintaikkunan kautta lisäyksessä, jotta valinnasta ei tule uutta ääntä.
+    if (typeof window === "undefined") return;
+
+    try {
+      const AudioContextClass =
+        (window as any).AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContextClass) return;
+
+      const audioContext = new AudioContextClass();
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+
+      oscillator.type = "square";
+      oscillator.frequency.setValueAtTime(145, audioContext.currentTime);
+      oscillator.frequency.setValueAtTime(105, audioContext.currentTime + 0.12);
+
+      gain.gain.setValueAtTime(0.0001, audioContext.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.11, audioContext.currentTime + 0.018);
+      gain.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + 0.28);
+
+      oscillator.connect(gain);
+      gain.connect(audioContext.destination);
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + 0.3);
+
+      window.setTimeout(() => {
+        void audioContext.close?.();
+      }, 420);
+    } catch {
+      // Ääni ei saa koskaan kaataa skanneriflow'ta.
+    }
+  }
+
   const lastContinuousScanRef = useRef<{ code: string; at: number } | null>(
     null,
   );
@@ -2617,6 +2653,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function showScanMissFlash() {
+    playScannerErrorToneV593();
     setScanSuccessFlash(false);
     setScanMissFlash(true);
 
@@ -5919,6 +5956,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     eanSearchInFlightRef.current = ean;
     setEanLoading(true);
     setEanMessage("");
+    setEanScannerMessage("");
     setEanResults([]);
 
     try {
@@ -6406,9 +6444,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setEanMessage("");
     if (eanHtml5ScannerRef.current) {
       setEanScannerOpen(true);
-      setEanScannerMessage(
-        "Lisätty koriin. Kamera pysyy päällä seuraavaa tuotetta varten.",
-      );
+      setEanScannerMessage("Tuote lisätty");
+      window.setTimeout(() => {
+        setEanScannerMessage((current) =>
+          current === "Tuote lisätty" ? "" : current,
+        );
+      }, 1800);
     }
     setLastAutoEanSearch("");
 
@@ -11314,7 +11355,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   fullscreen
                   flashState={scanSuccessFlash ? "success" : scanMissFlash ? "error" : "idle"}
                   loading={eanLoading}
-                  scannerMessage={eanLoading ? "Haetaan tuotetta" : ""}
+                  scannerMessage={eanLoading ? "Haetaan tuotetta" : eanScannerMessage}
                   torchOn={scannerTorchOn}
                   manualInputOpen={eanManualInputOpen}
                   selectionResults={
