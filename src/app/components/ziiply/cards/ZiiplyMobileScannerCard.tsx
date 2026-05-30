@@ -1,36 +1,34 @@
 "use client";
 
 /**
- * ZiiplyMobileScannerCard-v577-radar-selection-overlay.tsx
+ * ZiiplyMobileScannerCard-v576-visible-mount-wait.tsx
  * 2026-05-30
  *
- * Mobiiliskannerikortin v577-revisio.
+ * Mobiiliskannerikortin v576-revisio.
  *
  * Muutokset:
  * - Ei käytä WEBP-taustakuvaa lainkaan.
+ * - Ei cache-riippuvaista scanner-screen-kuvaa.
  * - Kamera mountataan vain yhteen tyhjään diviin: id={regionId}.
  * - Video/canvas pakotetaan täyttämään skanneriruutu.
  * - Kortti on yhden ruudun fixed-height UI:lle sopiva.
  * - Ei "EAN käsin" -nappia.
  * - Säilyttää "Liitä EAN", kameratoiminnon ja "Sulje kamera".
  * - Ohje näytetään kameraruudun päällä vain 2,5 s.
- * - v577: kova neonviiva korvattu pehmeällä haaleanvihreällä ylös/alas tutkaefektillä.
- * - v577: loading näkyy viivakoodialueen päällä läpikuultavana "HAETAAN TUOTETTA" -ilmoituksena, ei oikeassa yläkulmassa.
- * - v577: usean EAN-osuman valintapaneeli peittää koko kameraruudun, jotta tuotteet näkyvät selkeästi.
- * - v577: tutka pysähtyy loadingin ja tuotevalinnan ajaksi.
+ * - Vihreä/punainen väläys koko kortin päällä success/error-tiloissa.
  * - Ei backdrop-bluria, ei WEBP-layeria, ei ylimääräisiä pointer-events-kikkailuja.
+ * - v576: yhteensopiva page-v576:n näkyvän mountin odotuksen kanssa.
+ * - v576: scanner mount pidetään aina näkyvässä kameraruudussa ja video/canvas nostetaan varmistetusti näkyviin.
+ * - v576: startup-hyppyä ei tehdä kortin sisällä; ei transform-/scale-animaatiota mountissa.
+
+ * - v577/v578: tutkaefekti vahvistettu merkittävästi.
+ * - v578: sweep liikkuu lähes koko kameraruudun alueella.
+ * - v578: hitaampi ja näkyvämpi radar-animaatio mobiilikäyttöön.
  */
 
 import React, { useEffect, useMemo, useState } from "react";
 
 export type ZiiplyMobileScannerFlashState = "idle" | "success" | "error";
-
-export type ZiiplyMobileScannerSelectionResult = {
-  key: string;
-  product: any;
-  storeName?: string;
-  chain?: string;
-};
 
 export type ZiiplyMobileScannerCardProps = {
   regionId: string;
@@ -41,10 +39,6 @@ export type ZiiplyMobileScannerCardProps = {
   manualInputOpen?: boolean;
   onToggleTorch?: () => void;
   onToggleManualInput?: () => void;
-  selectionResults?: ZiiplyMobileScannerSelectionResult[];
-  onSelectResult?: (result: ZiiplyMobileScannerSelectionResult) => void;
-  formatPrice?: (value: number) => string;
-  getProductPrice?: (product: any) => number;
   onCameraTap?: React.PointerEventHandler<HTMLDivElement>;
   onClose?: () => void | Promise<void>;
   className?: string;
@@ -59,10 +53,6 @@ export default function ZiiplyMobileScannerCard({
   manualInputOpen = false,
   onToggleTorch,
   onToggleManualInput,
-  selectionResults = [],
-  onSelectResult,
-  formatPrice,
-  getProductPrice,
   onCameraTap,
   onClose,
   className = "",
@@ -95,29 +85,6 @@ export default function ZiiplyMobileScannerCard({
       : flashState === "error"
         ? "Ei löytynyt"
         : scannerMessage || "";
-
-  const hasSelectionResults = selectionResults.length > 1;
-  const radarActive = !loading && !hasSelectionResults;
-
-  const readProductPrice = (product: any) => {
-    try {
-      const value =
-        typeof getProductPrice === "function"
-          ? getProductPrice(product)
-          : Number(product?.price ?? product?.priceValue ?? product?.currentPrice ?? 0);
-      return Number.isFinite(value) ? value : 0;
-    } catch {
-      return 0;
-    }
-  };
-
-  const formatProductPrice = (price: number) => {
-    if (typeof formatPrice === "function") return formatPrice(price);
-    return price.toLocaleString("fi-FI", {
-      style: "currency",
-      currency: "EUR",
-    });
-  };
 
   return (
     <section
@@ -171,20 +138,43 @@ export default function ZiiplyMobileScannerCard({
           max-width: none !important;
         }
 
-        @keyframes ziiply-scanner-radar-v577 {
+        @keyframes ziiplyRadarSweep {
           0% {
-            transform: translateY(-38%);
-            opacity: 0.28;
+            transform: translateY(-115%);
+            opacity: 0.18;
           }
+
           50% {
-            transform: translateY(38%);
-            opacity: 0.58;
+            opacity: 0.46;
           }
+
           100% {
-            transform: translateY(-38%);
-            opacity: 0.28;
+            transform: translateY(115%);
+            opacity: 0.18;
           }
         }
+
+        .ziiply-radar-sweep {
+          background:
+            linear-gradient(
+              180deg,
+              rgba(120,255,120,0.00) 0%,
+              rgba(120,255,120,0.12) 18%,
+              rgba(120,255,120,0.38) 50%,
+              rgba(120,255,120,0.12) 82%,
+              rgba(120,255,120,0.00) 100%
+            );
+
+          filter: blur(6px);
+
+          box-shadow:
+            0 0 24px rgba(120,255,120,0.34),
+            0 0 64px rgba(120,255,120,0.18);
+
+          animation: ziiplyRadarSweep 2.6s ease-in-out infinite;
+          will-change: transform, opacity;
+        }
+
       `}</style>
 
       {/* koko kortin palauteväläys */}
@@ -257,19 +247,12 @@ export default function ZiiplyMobileScannerCard({
             className="pointer-events-none absolute inset-0 z-[5] rounded-[1.05rem] bg-[radial-gradient(circle_at_50%_35%,rgba(255,255,255,0.08),transparent_48%),linear-gradient(180deg,rgba(0,0,0,0.10),rgba(0,0,0,0.22))]"
             aria-hidden="true"
           />
+          {/* Radar sweep */}
+          <div
+            className="pointer-events-none absolute inset-x-0 top-0 z-[12] h-[26%] ziiply-radar-sweep"
+            aria-hidden="true"
+          />
 
-          {/* V577: pehmeä tutkaefekti korvaa kovan neonviivan. */}
-          {radarActive && (
-            <div
-              className="pointer-events-none absolute inset-x-0 top-0 z-[12] h-full"
-              aria-hidden="true"
-            >
-              <div
-                className="absolute left-0 top-1/2 h-[34%] w-full -translate-y-1/2 bg-[linear-gradient(180deg,transparent_0%,rgba(145,255,116,0.10)_22%,rgba(145,255,116,0.34)_50%,rgba(145,255,116,0.10)_78%,transparent_100%)] shadow-[0_0_28px_rgba(120,255,100,0.32)]"
-                style={{ animation: "ziiply-scanner-radar-v577 2.2s ease-in-out infinite" }}
-              />
-            </div>
-          )}
 
           {/* Kohdistuskulmat */}
           <ScannerCorner className="left-5 top-5" />
@@ -285,7 +268,7 @@ export default function ZiiplyMobileScannerCard({
           )}
 
           {/* Palauteviesti, ei loaderia */}
-          {visibleMessage && !hasSelectionResults && (
+          {visibleMessage && (
             <div
               className={[
                 "pointer-events-none absolute inset-x-5 bottom-5 z-[35] rounded-[1rem] px-3 py-2 text-center text-[14px] font-black uppercase tracking-[0.035em] shadow-[0_8px_18px_rgba(0,0,0,0.20)]",
@@ -297,79 +280,6 @@ export default function ZiiplyMobileScannerCard({
               ].join(" ")}
             >
               {visibleMessage}
-            </div>
-          )}
-
-          {loading && !hasSelectionResults && (
-            <div className="pointer-events-none absolute inset-0 z-[40] flex items-center justify-center bg-[#082017]/18">
-              <div className="rounded-[1.1rem] border-[2px] border-[#9ee98e]/70 bg-[#103722]/78 px-5 py-3 text-center text-[15px] font-black uppercase tracking-[0.10em] text-[#e8ffe4] shadow-[0_10px_28px_rgba(0,0,0,0.28),0_0_32px_rgba(145,255,116,0.24)]">
-                Haetaan tuotetta
-              </div>
-            </div>
-          )}
-
-          {hasSelectionResults && (
-            <div className="absolute inset-0 z-[50] flex flex-col rounded-[1.05rem] bg-[#f8ecd0]/96 p-3 text-[#163d32] shadow-[inset_0_0_0_2px_rgba(255,255,255,0.58)]">
-              <div className="shrink-0 rounded-[0.95rem] border-[2px] border-[#9a7a47] bg-[#efe0b8] px-3 py-2 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
-                <div className="text-[14px] font-black uppercase tracking-[0.08em]">
-                  Valitse oikea tuote
-                </div>
-                <div className="mt-0.5 text-[11px] font-bold text-[#42604b]">
-                  Sama viivakoodi löytyi useammasta tuotteesta
-                </div>
-              </div>
-
-              <div className="mt-3 min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
-                {selectionResults.map((result) => {
-                  const product = result.product || {};
-                  const price = readProductPrice(product);
-                  const image = product.pictureUrl || product.image || product.imageUrl;
-
-                  return (
-                    <button
-                      key={result.key}
-                      type="button"
-                      onClick={() => onSelectResult?.(result)}
-                      className="flex w-full items-center gap-3 rounded-[1rem] border-[2px] border-[#d0b071] bg-[#fff7df] p-2 text-left shadow-[0_3px_0_rgba(80,58,28,0.14)] active:scale-[0.99]"
-                    >
-                      {image ? (
-                        <img
-                          src={image}
-                          alt={String(product.name || "Tuote")}
-                          className="h-16 w-16 shrink-0 rounded-[0.75rem] border border-[#e0c996] bg-white object-contain"
-                        />
-                      ) : (
-                        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-[0.75rem] border border-[#e0c996] bg-[#f1dfb3] text-2xl">
-                          ▦
-                        </div>
-                      )}
-
-                      <div className="min-w-0 flex-1">
-                        <div className="line-clamp-2 text-[13px] font-black leading-tight text-[#142f24]">
-                          {String(product.name || "Tuote")}
-                        </div>
-                        <div className="mt-1 flex flex-wrap gap-1.5">
-                          {result.storeName && (
-                            <span className="rounded-full bg-[#e8d8ae] px-2 py-0.5 text-[10px] font-black text-[#4d3f22]">
-                              {result.storeName}
-                            </span>
-                          )}
-                          <span className="rounded-full bg-[#d8ffd0] px-2 py-0.5 text-[10px] font-black text-[#125020]">
-                            Tarkka EAN
-                          </span>
-                        </div>
-                        <div className="mt-1 text-[17px] font-black text-[#107331]">
-                          {price > 0 ? formatProductPrice(price) : ""}
-                        </div>
-                      </div>
-
-                      <div className="flex h-10 min-w-[58px] shrink-0 items-center justify-center rounded-full bg-[#0f7f36] px-3 text-[12px] font-black uppercase text-white shadow-sm">
-                        Lisää
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
             </div>
           )}
         </div>
@@ -414,6 +324,11 @@ export default function ZiiplyMobileScannerCard({
         </button>
       </footer>
 
+      {loading && (
+        <div className="pointer-events-none absolute right-4 top-[66px] z-[45] rounded-full border-[2px] border-[#d1b06f] bg-[#fff4d1]/95 px-3 py-1 text-[11px] font-black uppercase tracking-[0.06em] text-[#163d32] shadow-[0_5px_14px_rgba(0,0,0,0.14)]">
+          Luetaan
+        </div>
+      )}
     </section>
   );
 }
