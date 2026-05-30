@@ -303,6 +303,7 @@ import ZiiplyMobileSearchCard from "./components/ziiply/cards/ZiiplyMobileSearch
 import ZiiplyMobileSearchResultsCard from "./components/ziiply/cards/ZiiplyMobileSearchResultsCard";
 import ZiiplyMobileCartCard from "./components/ziiply/cards/ZiiplyMobileCartCard";
 import ZiiplyMobileScannerCard from "./components/ziiply/cards/ZiiplyMobileScannerCard";
+import ZiiplyMobileProductPickCard from "./components/ziiply/cards/ZiiplyMobileProductPickCard";
 import ZiiplyStoreLocaCard from "./components/ziiply/cards/ZiiplyStoreLocaCard";
 import * as ZiiplyCompareCardModule from "./components/ziiply/cards/ZiiplyCompareCard";
 import ZiiplyMobileHomeView from "./components/ziiply/mobile/ZiiplyMobileHomeView";
@@ -11365,20 +11366,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   scannerMessage={eanLoading ? "Haetaan tuotetta" : eanScannerMessage}
                   torchOn={scannerTorchOn}
                   manualInputOpen={eanManualInputOpen}
-                  selectionResults={
-                    eanResults.length > 1 && !desktopKeyboardScannerOpen
-                      ? eanResults
-                      : []
-                  }
-                  onSelectResult={(result) =>
-                    addEanResultToCart(
-                      {
-                        ...result,
-                        eanMatch: true,
-                      } as EanSearchResult,
-                      { showFlash: false },
-                    )
-                  }
+                  selectionResults={[]}
                   formatPrice={formatEuro}
                   getProductPrice={(result) =>
                     getProductPrice(((result as any).product ?? result) as Product)
@@ -11415,6 +11403,37 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 />
               )}
 
+              {eanResults.length > 1 &&
+                !desktopKeyboardScannerOpen &&
+                (eanScannerOpen || (!desktopKeyboardScannerOpen && eanModalOpen)) && (
+                  <div className="fixed inset-0 z-[175] flex h-[100dvh] w-screen items-center justify-center bg-black/18 px-3 py-[max(env(safe-area-inset-top),12px)] sm:hidden">
+                    <ZiiplyMobileProductPickCard
+                      compact
+                      title="Valitse lisättävä tuote"
+                      subtitle="Sama EAN löytyi useammasta kaupasta"
+                      results={eanResults.map((result) => ({
+                        ...result,
+                        store: result.storeName,
+                        image: result.product.pictureUrl,
+                        price: getProductPrice(result.product),
+                      }))}
+                      formatPrice={formatEuro}
+                      getProductPrice={(result) =>
+                        getProductPrice(((result as any).product ?? result) as Product)
+                      }
+                      onAdd={(result) =>
+                        addEanResultToCart(
+                          {
+                            ...result,
+                            eanMatch: true,
+                          } as EanSearchResult,
+                          { showFlash: false },
+                        )
+                      }
+                    />
+                  </div>
+                )}
+
               {eanMessage &&
                 !eanSearchStartedAutomatically &&
                 !(eanScannerOpen || (!desktopKeyboardScannerOpen && eanModalOpen)) && (
@@ -11426,66 +11445,32 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               {eanResults.length > 0 &&
                 !eanSearchStartedAutomatically &&
                 !(eanScannerOpen || (!desktopKeyboardScannerOpen && eanModalOpen)) && (
-                <div
-                  ref={eanResultsRef}
-                  className="mt-4 grid gap-2 scroll-mt-4"
-                >
-                  {eanResults.map((result) => (
-                    <div
-                      key={result.key}
-                      className="rounded-[1.25rem] border border-slate-200 bg-white p-2 shadow-sm"
-                    >
-                      <div className="flex min-w-0 items-center gap-3">
-                        {result.product.pictureUrl && (
-                          <img
-                            src={result.product.pictureUrl}
-                            alt={result.product.name}
-                            className="h-14 w-14 shrink-0 rounded-xl object-contain"
-                          />
-                        )}
-                        <div className="min-w-0 flex-1">
-                          <p className="line-clamp-2 font-extrabold leading-tight text-slate-900">
-                            {fixText(result.product.name)}
-                          </p>
-                          <div className="mt-1 flex flex-wrap gap-1.5">
-                            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-extrabold text-slate-600">
-                              {result.storeName}
-                            </span>
-                            <span className="rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-extrabold text-green-700">
-                              Tarkka EAN-osuma
-                            </span>
-                            {result.product.ean && (
-                              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-extrabold text-slate-500">
-                                EAN {result.product.ean}
-                              </span>
-                            )}
-                          </div>
-                          <div className="mt-2 flex flex-wrap items-center gap-2">
-                            <p className="text-lg font-black text-green-700">
-                              {formatEuro(getProductPrice(result.product))}
-                            </p>
-                            {renderPriceHistoryBadge(
-                              getPriceHistoryKeyFromProduct(
-                                result.product,
-                                result.storeName,
-                                result.chain,
-                              ),
-                              getProductPrice(result.product),
-                            )}
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => addEanResultToCart(result, { showFlash: false })}
-                          className="min-h-[2.75rem] shrink-0 touch-manipulation rounded-[1rem] bg-green-600 px-3 text-sm font-black text-white shadow-sm shadow-green-600/20 transition active:scale-[0.98]"
-                        >
-                          Lisää ostoskoriin
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+                  <div ref={eanResultsRef} className="mt-4 scroll-mt-4">
+                    <ZiiplyMobileProductPickCard
+                      title={eanResults.length === 1 ? "Löytynyt tuote" : "Valitse lisättävä tuote"}
+                      subtitle={eanResults.length === 1 ? "Tarkka EAN-osuma" : "Sama EAN löytyi useammasta kaupasta"}
+                      results={eanResults.map((result) => ({
+                        ...result,
+                        store: result.storeName,
+                        image: result.product.pictureUrl,
+                        price: getProductPrice(result.product),
+                      }))}
+                      formatPrice={formatEuro}
+                      getProductPrice={(result) =>
+                        getProductPrice(((result as any).product ?? result) as Product)
+                      }
+                      onAdd={(result) =>
+                        addEanResultToCart(
+                          {
+                            ...result,
+                            eanMatch: true,
+                          } as EanSearchResult,
+                          { showFlash: false },
+                        )
+                      }
+                    />
+                  </div>
+                )}
             </div>
           </div>
         )}
