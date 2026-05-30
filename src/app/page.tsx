@@ -1,5 +1,6 @@
 "use client";
 
+// V578_MOBILE_SCANNER_SELECTION_TYPE_FIX: korjaa scannerin valintapaneelin onSelectResult-tyypityksen; selection-result muunnetaan EanSearchResultiksi lisäämällä eanMatch true ennen addEanResultToCart-kutsua.
 // V577_MOBILE_SCANNER_RADAR_AND_CAMERA_SELECTION_OVERLAY: skannerin loading renderöidään kameraruudun päälle; tutkaefekti korvaa kovan viivan; usean EAN-osuman valinta peittää koko kameraruudun eikä vihreä välähdys syty ennen tuotteen valintaa.
 // V576_MOBILE_SCANNER_VISIBLE_MOUNT_WAIT: mobiiliskanneri odottaa näkyvän MOBILE_EAN_SCANNER_REGION_ID-divin renderöitymistä eikä fallbackaa piilossa olevaan desktop-regioniin; estää käynnistyvän kameran näkymättömän videon.
 // V573_MOBILE_SCANNER_CHILDREN_REMOVED: uusi puhdas ScannerCard on self-closing; page ei enää anna children-sisältöä eikä vanhoja onManualEan/onPasteEan/onTorch-proppeja.
@@ -11298,7 +11299,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       ? eanResults
                       : []
                   }
-                  onSelectResult={addEanResultToCart}
+                  onSelectResult={(result) =>
+                    addEanResultToCart({
+                      ...result,
+                      eanMatch: true,
+                    } as EanSearchResult)
+                  }
                   formatPrice={formatEuro}
                   getProductPrice={getProductPrice}
                   onCameraTap={(event) =>
