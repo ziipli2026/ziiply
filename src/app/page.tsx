@@ -1861,10 +1861,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const normalized = normalizeEan(ean);
     if (!normalized) return;
 
-    // V597: piip kuuluu skannerin tunnistushetkellä riippumatta siitä,
-    // onko sama EAN juuri luettu tai löytyykö tuotteita 1 vai useampi.
-    // EAN-lukko saa estää tuplahaun, mutta se ei saa mykistää lukukuittausta.
-    // Lyhyt aikaraja estää vain saman kameraframen aiheuttaman konekivääripiipityksen.
+    // V598: soitetaan vain hyväksytylle lukutapahtumalle finishScannedEan()-kohdasta.
+    // Varsinainen sama-EAN-lukko on ennen tätä kutsua, jotta sama kameraframe/jatkuva
+    // tunnistus ei aiheuta konekivääripiippauksia.
     const now = Date.now();
     if (now - lastScannerBeepAtRefV594.current < 220) return;
 
@@ -5527,16 +5526,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const normalizedCode = normalizeEan(code);
     if (!isUsableEan(normalizedCode)) return;
 
-    // V597: lukukuittaus annetaan ennen sama-EAN-lukkoa.
-    // Näin myös aiemmin luettu / useana osumana löytyvä EAN piippaa heti,
-    // vaikka varsinainen tuplahaku estettäisiin hetken ajaksi.
-    playScannerBarcodeFoundBeepV582(normalizedCode);
-
     const now = Date.now();
     const previous = lastContinuousScanRef.current;
 
-    // TÄRKEÄ: älä pysäytä kameraa onnistuneen skannauksen jälkeen.
-    // Sarjaskannauksessa kamera pysyy päällä ja käyttäjä voi lukea seuraavan tuotteen heti.
+    // V598: sama kameraruudussa pysyvä EAN saa aiheuttaa vain yhden tunnistuksen,
+    // yhden piipin ja yhden haun lukitusajan sisällä.
+    // Tämä estää jatkuvan taustapiippauksen, kun kamera tunnistaa samaa koodia
+    // useasta peräkkäisestä framesta.
     if (
       previous?.code === normalizedCode &&
       now - previous.at < SAME_EAN_RESCAN_LOCK_MS
@@ -5545,6 +5541,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     lastContinuousScanRef.current = { code: normalizedCode, at: now };
+
+    // Piip soitetaan vasta hyväksytylle uudelle lukutapahtumalle.
+    // Ei enää ennen sama-EAN-lukkoa.
+    playScannerBarcodeFoundBeepV582(normalizedCode);
 
     if (eanAutoSearchTimeoutRef.current) {
       window.clearTimeout(eanAutoSearchTimeoutRef.current);
