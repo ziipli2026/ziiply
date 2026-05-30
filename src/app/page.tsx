@@ -1857,15 +1857,54 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const normalized = normalizeEan(ean);
     if (!normalized) return;
 
-    // V598: soitetaan vain hyväksytylle lukutapahtumalle finishScannedEan()-kohdasta.
-    // Varsinainen sama-EAN-lukko on ennen tätä kutsua, jotta sama kameraframe/jatkuva
-    // tunnistus ei aiheuta konekivääripiippauksia.
     const now = Date.now();
     if (now - lastScannerBeepAtRefV594.current < 220) return;
 
     lastScannerBeepEanRefV582.current = normalized;
     lastScannerBeepAtRefV594.current = now;
-    playScanSuccessFeedback();
+
+    // V605: kovempi ja selkeämpi kauppaskannerimainen piip.
+    // iPhonen kaiuttimella vanha haptics/helper jäi liian hiljaiseksi taustahälyssä.
+    if (typeof window === "undefined") return;
+
+    try {
+      const AudioContextClass =
+        (window as any).AudioContext || (window as any).webkitAudioContext;
+
+      if (!AudioContextClass) {
+        playScanSuccessFeedback();
+        return;
+      }
+
+      const audioContext = new AudioContextClass();
+      const nowAudio = audioContext.currentTime;
+
+      const gain = audioContext.createGain();
+      gain.gain.setValueAtTime(0.0001, nowAudio);
+      gain.gain.exponentialRampToValueAtTime(0.26, nowAudio + 0.012);
+      gain.gain.exponentialRampToValueAtTime(0.0001, nowAudio + 0.18);
+      gain.connect(audioContext.destination);
+
+      const oscA = audioContext.createOscillator();
+      oscA.type = "square";
+      oscA.frequency.setValueAtTime(1180, nowAudio);
+      oscA.connect(gain);
+      oscA.start(nowAudio);
+      oscA.stop(nowAudio + 0.18);
+
+      const oscB = audioContext.createOscillator();
+      oscB.type = "triangle";
+      oscB.frequency.setValueAtTime(2360, nowAudio);
+      oscB.connect(gain);
+      oscB.start(nowAudio);
+      oscB.stop(nowAudio + 0.11);
+
+      window.setTimeout(() => {
+        void audioContext.close?.();
+      }, 320);
+    } catch {
+      playScanSuccessFeedback();
+    }
   }
 
   function playScannerErrorToneV593() {
@@ -3149,6 +3188,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
     };
   }, [cart, normalResults, offers, eanResults, activeStores.sStoreName]);
+
+  useEffect(() => {
+    if (eanScannerOpen) return;
+
+    setEanResults([]);
+    setEanMessage("");
+    setEanScannerMessage("");
+    eanSearchInFlightRef.current = null;
+    setLastAutoEanSearch("");
+    setEanSearchStartedAutomatically(false);
+    eanAutoSearchActiveRef.current = false;
+  }, [eanScannerOpen]);
 
   useEffect(() => {
     try {
@@ -5600,6 +5651,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const scanner = eanHtml5ScannerRef.current;
     eanHtml5ScannerRef.current = null;
     lastContinuousScanRef.current = null;
+    setEanResults([]);
+    setEanMessage("");
+    setEanScannerMessage("");
+    eanSearchInFlightRef.current = null;
+    setLastAutoEanSearch("");
+    setEanSearchStartedAutomatically(false);
+    eanAutoSearchActiveRef.current = false;
     setScannerTorchOn(false);
 
     if (scanner && !eanScannerStoppingRef.current) {
@@ -6123,6 +6181,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           );
         }
 
+        eanSearchInFlightRef.current = null;
         setEanSearchStartedAutomatically(false);
         eanAutoSearchActiveRef.current = false;
         return;
@@ -6130,6 +6189,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       setEanResults([]);
 
+      eanSearchInFlightRef.current = null;
       setEanSearchStartedAutomatically(false);
       eanAutoSearchActiveRef.current = false;
 
