@@ -1,111 +1,92 @@
 "use client";
 
-// ZIIPLY_MOBILE_SEARCH_RESULTS_CARD_V4_POINTER_AND_PRODUCT_PRESENTATION_FIX
-// Mobiilin erillinen Löydökset-kortti.
-// V3:
-// - oikeampi mobiiliesitys
-// - hinnat korjataan: 269 -> 2,69 €, 84 -> 0,84 €, 185 -> 1,85 €
-// - otsikko näkyy Löydökset-termillä
-// - tyhjä tila: Ei löydöksiä vielä
-// V4:
-// - korjaa overlayn pointer-events-jumin: vain itse löydöskortti vastaanottaa painallukset
-// - lisää/sulje-napit nostettu varmemmin päällimmäiseksi
-// - raakakoodit poistettu tuoteriveiltä
-// - näytetään vertailuhinta €/kg, €/l tai €/kpl muodossa kun data löytyy
-// - tuotenimelle annettu enemmän tilaa; Lisää-nappi oikeaan alakulmaan
-
 import React from "react";
 
-export type ZiiplyMobileSearchResultProduct = {
+export type ZiiplyProductPickResult = {
   id?: string | number;
   ean?: string | number;
   name?: string;
   title?: string;
+  displayName?: string;
   brandName?: string;
+  chain?: string;
+  store?: string;
+  storeName?: string;
   price?: number | string;
   image?: string;
   imageUrl?: string;
   pictureUrl?: string;
   comparisonPrice?: string | number | null;
-  packageSize?: string;
+  comparisonUnit?: string;
+  priceUnit?: string;
   unit?: string;
-  [key: string]: any;
+  packageSize?: string;
+  unitPrice?: string | number | null;
+  pricePerUnit?: string | number | null;
+  comparisonPriceText?: string | number | null;
+  product?: any;
+  [key: string]: unknown;
 };
 
-export type ZiiplyMobileSearchResultsCardProps = {
-  open?: boolean;
-  loading?: boolean;
+type Props = {
   title?: string;
-  products?: ZiiplyMobileSearchResultProduct[];
-  onClose?: () => void;
-  onAddProduct?: (product: ZiiplyMobileSearchResultProduct) => void;
+  subtitle?: string;
+  results: ZiiplyProductPickResult[];
+  onAdd?: (result: ZiiplyProductPickResult) => void;
+  /** page.tsx antaa tähän yleensä formatEuro, joka odottaa senttejä. */
+  formatPrice?: (value: number) => string;
+  getProductPrice?: (result: ZiiplyProductPickResult) => number | null | undefined;
+  compact?: boolean;
+  className?: string;
 };
 
-const cooper =
-  '"Cooper Black","Cooper Std Black",Georgia,serif';
+const cooper = '"Cooper Black","Cooper Std Black",Georgia,serif';
+const copper = '"Copperplate","Baskerville",Georgia,serif';
 
-const copper =
-  '"Copperplate","Baskerville",Georgia,serif';
-
-function getName(product: ZiiplyMobileSearchResultProduct) {
-  return String(
-    product.name ||
-    product.title ||
-    product.brandName ||
-    "Tuote",
-  );
+function normalizeText(value: unknown) {
+  return String(value ?? "").replace(/\s+/g, " ").trim();
 }
 
-function getImage(product: ZiiplyMobileSearchResultProduct) {
-  return String(
-    product.image ||
-    product.imageUrl ||
-    product.pictureUrl ||
-    "",
-  );
-}
+function readNumber(value: unknown) {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
 
-function normalizePriceToEuros(price: unknown) {
-  if (typeof price === "number" && Number.isFinite(price)) {
-    // S-ryhmän/K-rajapinnoista hinta voi tulla sentteinä:
-    // 269 -> 2,69 €, 84 -> 0,84 €, 185 -> 1,85 €.
-    // Jos luku on yli 20, se on tässä käyttöliittymässä käytännössä senttiarvo.
-    return Math.abs(price) > 20 ? price / 100 : price;
-  }
-
-  const raw = String(price ?? "").trim();
-  if (!raw) return null;
-
-  const cleaned = raw
+  const raw = String(value ?? "")
+    .trim()
     .replace(/\s/g, "")
     .replace("€", "")
     .replace(",", ".");
 
-  const number = Number(cleaned);
-  if (!Number.isFinite(number)) return raw;
+  if (!raw) return null;
 
+  const parsed = Number(raw.replace(/[^\d.-]/g, ""));
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function normalizePriceToEuros(price: unknown) {
+  const number = readNumber(price);
+  if (number == null) return null;
   return Math.abs(number) > 20 ? number / 100 : number;
 }
 
-function formatPrice(price: unknown) {
-  const value = normalizePriceToEuros(price);
+function formatDisplayPrice(
+  price: unknown,
+  externalFormatter?: (value: number) => string,
+) {
+  const number = readNumber(price);
+  if (number == null) return "";
 
-  if (value == null) return "";
-
-  if (typeof value === "string") {
-    return value.includes("€") ? value : `${value} €`;
+  // Ziiplyn page.tsx:n formatEuro odottaa senttejä.
+  // Rajapinnoista hinta taas voi tulla joko sentteinä (278) tai euroina (2.78).
+  if (externalFormatter) {
+    const cents = Math.abs(number) > 20 ? number : number * 100;
+    return externalFormatter(cents);
   }
 
-  return (
-    value.toLocaleString("fi-FI", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }) + " €"
-  );
-}
-
-function displayName(name: string) {
-  return name.replace(/\s+/g, " ").trim();
+  const euros = Math.abs(number) > 20 ? number / 100 : number;
+  return `${euros.toLocaleString("fi-FI", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })} €`;
 }
 
 function normalizeComparisonValue(value: unknown) {
@@ -115,18 +96,22 @@ function normalizeComparisonValue(value: unknown) {
 
   const raw = String(value ?? "").trim();
   if (!raw) return null;
-
   if (raw.includes("€") || raw.includes("/")) return raw;
 
-  const cleaned = raw.replace(/\s/g, "").replace(",", ".");
-  const parsed = Number(cleaned.replace(/[^\d.-]/g, ""));
-  if (!Number.isFinite(parsed)) return null;
-
+  const parsed = readNumber(raw);
+  if (parsed == null) return null;
   return Math.abs(parsed) > 20 ? parsed / 100 : parsed;
 }
 
-function inferComparisonUnit(product: ZiiplyMobileSearchResultProduct) {
+function inferComparisonUnit(result: ZiiplyProductPickResult) {
+  const product = result.product ?? {};
   const raw = [
+    result.comparisonUnit,
+    result.priceUnit,
+    result.unit,
+    result.packageSize,
+    result.name,
+    result.title,
     product.comparisonUnit,
     product.priceUnit,
     product.unit,
@@ -140,162 +125,214 @@ function inferComparisonUnit(product: ZiiplyMobileSearchResultProduct) {
 
   if (/\b(l|ltr|litra|litran|ml|cl)\b/.test(raw)) return "€/l";
   if (/\b(kpl|pkt|pari|rll|rs|ps|tlk)\b/.test(raw)) return "€/kpl";
-
   return "€/kg";
 }
 
-function formatComparisonPrice(product: ZiiplyMobileSearchResultProduct) {
+function formatComparisonPrice(result: ZiiplyProductPickResult) {
+  const product = result.product ?? {};
   const candidates = [
+    result.comparisonPrice,
+    result.unitPrice,
+    result.pricePerUnit,
+    result.comparisonPriceText,
     product.comparisonPrice,
     product.unitPrice,
     product.pricePerUnit,
     product.comparisonPriceText,
-    product.product?.comparisonPrice,
-    product.product?.unitPrice,
   ];
 
   for (const candidate of candidates) {
     const value = normalizeComparisonValue(candidate);
     if (value == null) continue;
 
-    if (typeof value === "string") {
-      return value;
-    }
+    if (typeof value === "string") return value;
 
     return `${value.toLocaleString("fi-FI", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
-    })} ${inferComparisonUnit(product)}`;
+    })} ${inferComparisonUnit(result)}`;
   }
 
   return "";
 }
 
-function getSubText(product: ZiiplyMobileSearchResultProduct) {
-  return formatComparisonPrice(product);
-}
+export default function ZiiplyMobileProductPickCard({
+  title = "Valitse lisättävä tuote",
+  subtitle = "Sama EAN löytyi useammasta kaupasta",
+  results,
+  onAdd,
+  formatPrice,
+  getProductPrice,
+  compact = false,
+  className = "",
+}: Props) {
+  function getName(result: ZiiplyProductPickResult) {
+    return normalizeText(
+      result.name ||
+        result.title ||
+        result.displayName ||
+        result.brandName ||
+        result.product?.name ||
+        result.product?.title ||
+        result.product?.brandName ||
+        "Tuote",
+    );
+  }
 
-export default function ZiiplyMobileSearchResultsCard({
-  open = false,
-  loading = false,
-  title = "Tuotteet",
-  products = [],
-  onClose,
-  onAddProduct,
-}: ZiiplyMobileSearchResultsCardProps) {
-  if (!open) return null;
+  function getStore(result: ZiiplyProductPickResult) {
+    const chain = normalizeText(result.chain || result.product?.chain);
+    const store = normalizeText(
+      result.storeName ||
+        result.store ||
+        result.product?.storeName ||
+        result.product?.store,
+    );
+
+    if (chain && store) return `${chain} · ${store}`;
+    return chain || store;
+  }
+
+  function getImage(result: ZiiplyProductPickResult) {
+    return normalizeText(
+      result.image ||
+        result.imageUrl ||
+        result.pictureUrl ||
+        result.product?.image ||
+        result.product?.imageUrl ||
+        result.product?.pictureUrl,
+    );
+  }
+
+  function getMainPrice(result: ZiiplyProductPickResult) {
+    const product = result.product ?? {};
+    const raw =
+      getProductPrice?.(result) ??
+      result.price ??
+      product.price ??
+      product.currentPrice ??
+      null;
+
+    return formatDisplayPrice(raw, formatPrice);
+  }
 
   return (
-    <div className="pointer-events-none fixed inset-0 z-[95] flex items-end justify-center bg-slate-950/22 px-2 pb-[calc(env(safe-area-inset-bottom)+5.45rem)] pt-[calc(env(safe-area-inset-top)+5.8rem)] backdrop-blur-[3px] sm:hidden">
-      <section className="pointer-events-auto relative flex h-[min(72dvh,38rem)] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2rem] border-[4px] border-[#5b482c] bg-[#e8d39c] shadow-[0_12px_0_rgba(60,45,20,0.20),0_22px_48px_rgba(0,0,0,0.25)]">
-        <div className="pointer-events-none absolute inset-0 opacity-35 [background-image:radial-gradient(#c6aa63_1.15px,transparent_1.15px)] [background-size:16px_16px]" />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.45),transparent_58%)]" />
+    <div
+      className={[
+        "relative w-full overflow-hidden rounded-[1.45rem]",
+        compact ? "max-w-[430px]" : "",
+        "border-[4px] border-[#6d5128] bg-[#fff5d9]",
+        "shadow-[0_14px_34px_rgba(0,0,0,0.20),inset_0_0_0_2px_rgba(255,255,255,0.68)]",
+        "text-[#163d32]",
+        className,
+      ].join(" ")}
+    >
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.055] mix-blend-multiply"
+        style={{
+          backgroundImage: "radial-gradient(#3f2f16 0.45px, transparent 0.45px)",
+          backgroundSize: "7px 7px",
+        }}
+        aria-hidden="true"
+      />
 
-        <header className="relative z-10 shrink-0 border-b-[3px] border-[#b99858] bg-[#e7cf91]/75 px-5 pb-4 pt-5">
-          <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0">
-              <div
-                className="text-[0.82rem] font-black uppercase tracking-[0.48em] text-[#7d6b45]"
-                style={{ fontFamily: copper }}
-              >
-                LÖYDÖKSET
-              </div>
+      <div className="relative z-10 p-3 pb-2">
+        <div className="rounded-[1rem] border-[3px] border-[#9a7a47] bg-[#efe0b8] px-3 py-3 text-center shadow-[inset_0_2px_0_rgba(255,255,255,0.76)]">
+          <div
+            className="truncate text-[20px] font-black uppercase leading-none tracking-[0.055em] text-[#163d32]"
+            style={{ fontFamily: cooper }}
+            title={title}
+          >
+            {title}
+          </div>
 
-              <div
-                className="mt-1 truncate text-[1.1rem] font-black italic text-[#28422a]"
-                style={{ fontFamily: cooper }}
-              >
-                {title || "Tuotteet"}
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={onClose}
-              className="pointer-events-auto relative z-30 grid h-[2.7rem] w-[2.7rem] shrink-0 place-items-center rounded-full border-[3px] border-[#6f5730] bg-[#fff2cb] text-[1.35rem] font-black leading-none text-[#513d1f] shadow-[0_3px_0_rgba(91,72,44,0.24)] active:translate-y-[1px]"
-              aria-label="Sulje löydökset"
-              title="Sulje"
+          {!!subtitle && (
+            <div
+              className="mt-2 truncate text-[11px] font-black uppercase tracking-[0.16em] text-[#7b6544]"
+              style={{ fontFamily: copper }}
+              title={subtitle}
             >
-              ×
-            </button>
-          </div>
-        </header>
-
-        <div className="relative z-10 min-h-0 flex-1 overflow-y-auto px-3 py-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <div className="space-y-3 pb-2">
-            {loading && (
-              <div className="rounded-[1.35rem] border-[3px] border-[#d4ba73] bg-[#fff4d6] px-5 py-8 text-center text-[1rem] font-black text-[#78633a] shadow-[0_4px_0_rgba(91,72,44,0.12)]">
-                Haetaan löydöksiä…
-              </div>
-            )}
-
-            {!loading && products.length === 0 && (
-              <div className="rounded-[1.35rem] border-[3px] border-[#d4ba73] bg-[#fff4d6] px-5 py-8 text-center text-[1rem] font-black text-[#78633a] shadow-[0_4px_0_rgba(91,72,44,0.12)]">
-                Ei löydöksiä vielä.
-              </div>
-            )}
-
-            {!loading &&
-              products.map((product, index) => {
-                const name = getName(product);
-                const image = getImage(product);
-                const price = formatPrice(product.price);
-                const subText = getSubText(product);
-
-                return (
-                  <article
-                    key={String(product.id ?? product.ean ?? index)}
-                    className="relative grid min-h-[7.4rem] grid-cols-[4.7rem_minmax(0,1fr)] items-start gap-3 rounded-[1.55rem] border-[3px] border-[#d4ba73] bg-[#fff5d9] p-3 pr-[6.3rem] shadow-[0_5px_0_rgba(91,72,44,0.14)]"
-                  >
-                    <div className="grid h-[4.7rem] w-[4.7rem] place-items-center overflow-hidden rounded-[1rem] bg-white shadow-[inset_0_1px_8px_rgba(0,0,0,0.08)]">
-                      {image ? (
-                        <img
-                          src={image}
-                          alt=""
-                          className="h-full w-full object-contain p-2"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <span className="text-3xl">🛒</span>
-                      )}
-                    </div>
-
-                    <div className="min-w-0 pb-[2.65rem]">
-                      <div
-                        className="text-[0.96rem] font-black leading-[1.02] text-[#1f251c]"
-                        style={{ fontFamily: cooper }}
-                      >
-                        {displayName(name)}
-                      </div>
-
-                      {subText && (
-                        <div className="mt-1 truncate text-[0.76rem] font-black text-[#8a7a55]">
-                          {subText}
-                        </div>
-                      )}
-
-                      {price && (
-                        <div className="mt-1 text-[1rem] font-black leading-none text-[#6f6548]">
-                          {price}
-                        </div>
-                      )}
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => onAddProduct?.(product)}
-                      className="pointer-events-auto absolute bottom-3 right-3 z-30 h-[3.25rem] w-[5.1rem] rounded-[1rem] bg-[#08a63d] px-2 text-[0.98rem] font-black text-[#fff3d8] shadow-[0_4px_0_rgba(0,74,24,0.24)] active:translate-y-[1px] active:shadow-[0_2px_0_rgba(0,74,24,0.24)]"
-                    >
-                      Lisää
-                    </button>
-                  </article>
-                );
-              })}
-          </div>
+              {subtitle}
+            </div>
+          )}
         </div>
-      </section>
+      </div>
+
+      <div className="relative z-10 flex max-h-[min(54vh,420px)] flex-col gap-3 overflow-y-auto px-3 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {results.map((result, index) => {
+          const name = getName(result);
+          const image = getImage(result);
+          const store = getStore(result);
+          const price = getMainPrice(result);
+          const comparisonPrice = formatComparisonPrice(result);
+
+          return (
+            <article
+              key={String(result.id ?? result.ean ?? `${name}-${store}-${index}`)}
+              className="relative grid min-h-[138px] grid-cols-[minmax(0,1fr)_118px] gap-3 overflow-hidden rounded-[1.35rem] border-[3px] border-[#8e6d39] bg-[#fffdf8] p-3 shadow-[0_8px_20px_rgba(0,0,0,0.12)]"
+            >
+              <div className="min-w-0 pb-[2.75rem]">
+                <div
+                  className="text-[19px] font-black leading-[1.05] tracking-[-0.025em] text-[#173a31] line-clamp-3"
+                  style={{ fontFamily: cooper }}
+                  title={name}
+                >
+                  {name}
+                </div>
+
+                {!!store && (
+                  <div
+                    className="mt-2 truncate text-[13px] font-black uppercase tracking-[0.02em] text-[#6d5430]"
+                    title={store}
+                  >
+                    {store}
+                  </div>
+                )}
+
+                {comparisonPrice && (
+                  <div
+                    className="mt-1 truncate text-[12px] font-black text-[#8a7a55]"
+                    title={comparisonPrice}
+                  >
+                    {comparisonPrice}
+                  </div>
+                )}
+
+                {price && (
+                  <div className="absolute bottom-3 left-3 inline-flex rounded-full border-[3px] border-[#3c7a43] bg-[#cbefc2] px-4 py-[5px] text-[18px] font-black leading-none text-[#14381c] shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
+                    {price}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex min-w-0 flex-col items-stretch gap-2">
+                <div className="grid h-[84px] w-full place-items-center overflow-hidden rounded-[1.08rem] border-[3px] border-[#d8bf82] bg-[#fff7df] shadow-[inset_0_1px_8px_rgba(0,0,0,0.08)]">
+                  {image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={image}
+                      alt=""
+                      className="h-full w-full object-contain p-1"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <span className="text-[38px] opacity-70">🛒</span>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => onAdd?.(result)}
+                  className="z-20 h-[40px] w-full rounded-[0.9rem] border-[3px] border-[#2d8b3d] bg-[#00a339] px-2 text-[14px] font-black uppercase tracking-[0.03em] text-white shadow-[0_6px_12px_rgba(0,0,0,0.16),inset_0_1px_0_rgba(255,255,255,0.28)] active:translate-y-[1px]"
+                >
+                  Lisää
+                </button>
+              </div>
+            </article>
+          );
+        })}
+      </div>
     </div>
   );
 }
 
-export { ZiiplyMobileSearchResultsCard };
+export { ZiiplyMobileProductPickCard };
