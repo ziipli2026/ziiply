@@ -9835,7 +9835,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   >
                     Viilaa ruokakorisi
                     <br />
-                    huokeammaksi.
+                    huokeammaks
                   </p>
                   <div className="mx-auto my-4 h-[3px] w-20 rounded-full bg-[#d6bf8f]" />
                   <p
