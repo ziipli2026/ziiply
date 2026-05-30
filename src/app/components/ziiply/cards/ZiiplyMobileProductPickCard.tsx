@@ -318,7 +318,7 @@ export default function ZiiplyMobileProductPickCard({
                 isTwoItems ? "flex-1" : "min-h-[10.5rem]",
               ].join(" ")}
             >
-              <div className="relative min-w-0 px-4 py-4 pb-[4.0rem]">
+              <div className="relative min-w-0 px-4 py-4 pb-[5.0rem]">
                 <div
                   className="line-clamp-3 text-[1.16rem] font-black leading-[0.98] text-[#123d32]"
                   style={{ fontFamily: cooper }}
@@ -327,7 +327,7 @@ export default function ZiiplyMobileProductPickCard({
                 </div>
 
                 {store && (
-                  <div className="mt-2 truncate whitespace-nowrap text-[0.86rem] font-black uppercase leading-none text-[#6c532c]">
+                  <div className="mt-6 truncate whitespace-nowrap text-[0.86rem] font-black uppercase leading-none text-[#6c532c]">
                     {store}
                   </div>
                 )}
@@ -338,11 +338,6 @@ export default function ZiiplyMobileProductPickCard({
                   </div>
                 )}
 
-                {price && (
-                  <div className="absolute bottom-3 left-4 inline-flex min-w-[5.7rem] items-center justify-center rounded-full border-[3px] border-[#347a3f] bg-[#d2f1c8] px-3 py-[0.42rem] text-[1.16rem] font-black leading-none text-[#153d1c] shadow-[inset_0_1px_0_rgba(255,255,255,0.70)]">
-                    {price}
-                  </div>
-                )}
               </div>
 
               <div className="relative flex min-w-0 flex-col p-3 pl-1">
@@ -351,7 +346,7 @@ export default function ZiiplyMobileProductPickCard({
                     <img
                       src={image}
                       alt=""
-                      className="h-full max-h-[8.6rem] w-full scale-[1.18] object-contain p-0"
+                      className="h-full max-h-[9.4rem] w-full scale-[1.28] object-contain p-0"
                       loading="lazy"
                     />
                   ) : (
@@ -359,13 +354,23 @@ export default function ZiiplyMobileProductPickCard({
                   )}
                 </div>
 
+
+              </div>
+
+              <div className="absolute bottom-3 left-4 right-4 flex items-center justify-end gap-3">
+                {price && (
+                  <div className="inline-flex min-w-[5.9rem] items-center justify-center rounded-full border-[3px] border-[#347a3f] bg-[#d2f1c8] px-3 py-[0.50rem] text-[1.16rem] font-black leading-none text-[#153d1c] shadow-[inset_0_1px_0_rgba(255,255,255,0.70)]">
+                    {price}
+                  </div>
+                )}
+
                 <button
                   type="button"
                   onClick={() => {
                     onAdd?.(result);
                     onSelectResult?.(result);
                   }}
-                  className="mt-3 shrink-0 rounded-[0.95rem] border-[3px] border-[#178338] bg-[#08a63d] px-3 py-[0.82rem] text-[0.96rem] font-black uppercase leading-none tracking-[0.02em] text-[#fff3d8] shadow-[0_4px_0_rgba(0,74,24,0.24),inset_0_1px_0_rgba(255,255,255,0.26)] active:translate-y-[1px] active:shadow-[0_2px_0_rgba(0,74,24,0.24)]"
+                  className="shrink-0 rounded-[0.95rem] border-[3px] border-[#178338] bg-[#08a63d] px-5 py-[0.90rem] text-[0.98rem] font-black uppercase leading-none tracking-[0.02em] text-[#fff3d8] shadow-[0_4px_0_rgba(0,74,24,0.24),inset_0_1px_0_rgba(255,255,255,0.26)] active:translate-y-[1px] active:shadow-[0_2px_0_rgba(0,74,24,0.24)]"
                 >
                   Lisää
                 </button>
