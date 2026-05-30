@@ -1,7 +1,7 @@
 "use client";
 
-// ZiiplyMobileSearchResultsCard v12
-// Mockup-rakenne korjattu:
+// ZiiplyMobileSearchResultsCard v11-price-pill
+// Mockup-rakenne:
 // - tuotekuva vasemmalla ylhäällä
 // - yksi Lisää-nappi vasemmalla kuvan alla
 // - tuotenimi oikealla ja saa käyttää koko oikean tekstialueen
@@ -321,53 +321,53 @@ export default function ZiiplyMobileSearchResultsCard({
                 return (
                   <article
                     key={String(product.id ?? product.ean ?? index)}
-                    className="relative grid min-h-[5.35rem] grid-cols-[4.25rem_minmax(0,1fr)] overflow-hidden rounded-[1.15rem] border-[3px] border-[#8c6934] bg-[#fffdf8] px-2.5 py-2 shadow-[0_3px_0_rgba(91,72,44,0.12)]"
+                    className="relative grid min-h-[6.15rem] grid-cols-[4.35rem_minmax(0,1fr)] items-start gap-2 overflow-hidden rounded-[1.15rem] border-[3px] border-[#8c6934] bg-[#fffdf8] px-2.5 py-2 shadow-[0_3px_0_rgba(91,72,44,0.12)]"
                   >
-                    <div className="flex h-full flex-col items-center justify-start pr-1">
-                      <div className="flex h-[2.85rem] w-full items-center justify-center overflow-visible">
+                    <div className="flex min-h-[5.35rem] flex-col items-center justify-between overflow-visible">
+                      <div className="flex h-[3.45rem] w-full items-center justify-center overflow-visible">
                         {image ? (
                           <img
                             src={image}
                             alt=""
-                            className="h-full w-full scale-[1.1] object-contain"
+                            className="h-full w-full scale-[1.08] object-contain"
                             loading="lazy"
                           />
                         ) : (
-                          <span className="text-[2.2rem]">🛒</span>
+                          <span className="text-[2.45rem]">🛒</span>
                         )}
                       </div>
+
+                      <button
+                        type="button"
+                        onClick={() => onAddProduct?.(product)}
+                        className="pointer-events-auto mt-1 w-full rounded-[0.78rem] border-[2.5px] border-[#178338] bg-[#08a63d] px-2 py-[0.52rem] text-[0.74rem] font-black uppercase leading-none tracking-[0.02em] text-[#fff3d8] shadow-[0_3px_0_rgba(0,74,24,0.24),inset_0_1px_0_rgba(255,255,255,0.26)] active:translate-y-[1px] active:shadow-[0_1px_0_rgba(0,74,24,0.24)]"
+                      >
+                        Lisää
+                      </button>
                     </div>
 
-                    <div className="min-w-0 pr-[5.25rem] pt-[0.05rem]">
+                    <div className="min-w-0 pt-[0.05rem]">
                       <div
-                        className="line-clamp-2 text-[0.87rem] font-black leading-[0.88] text-[#123d32]"
+                        className="line-clamp-2 pr-1 text-[0.88rem] font-black leading-[0.90] text-[#123d32]"
                         style={{ fontFamily: cooper }}
                       >
                         {name}
                       </div>
 
-                      <div className="mt-[0.42rem] flex min-w-0 items-center gap-1.5 text-[0.68rem] font-black leading-none text-[#7a6947]">
-                        {comparison && <span className="shrink-0">{comparison}</span>}
-
-                        {comparison && price && (
-                          <span className="shrink-0 opacity-50">•</span>
+                      <div className="mt-[0.34rem] min-w-0">
+                        {comparison && (
+                          <div className="truncate text-[0.68rem] font-black leading-none text-[#8a7a55]">
+                            {comparison}
+                          </div>
                         )}
 
                         {price && (
-                          <span className="shrink-0 text-[0.88rem] text-[#234b24]">
+                          <div className="mt-1 inline-flex min-w-[4.85rem] items-center justify-center rounded-full border-[2.5px] border-[#347a3f] bg-[#d2f1c8] px-2.5 py-[0.34rem] text-[0.88rem] font-black leading-none text-[#153d1c] shadow-[inset_0_1px_0_rgba(255,255,255,0.70)]">
                             {price}
-                          </span>
+                          </div>
                         )}
                       </div>
                     </div>
-
-                    <button
-                      type="button"
-                      onClick={() => onAddProduct?.(product)}
-                      className="pointer-events-auto absolute bottom-2 right-2.5 rounded-[0.78rem] border-[2.5px] border-[#178338] bg-[#08a63d] px-2.5 py-[0.58rem] text-[0.78rem] font-black uppercase leading-none tracking-[0.02em] text-[#fff3d8] shadow-[0_3px_0_rgba(0,74,24,0.24),inset_0_1px_0_rgba(255,255,255,0.26)] active:translate-y-[1px] active:shadow-[0_1px_0_rgba(0,74,24,0.24)]"
-                    >
-                      Lisää
-                    </button>
                   </article>
                 );
               })}
