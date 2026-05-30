@@ -1,5 +1,6 @@
 "use client";
 
+// V577_MOBILE_SCANNER_RADAR_AND_CAMERA_SELECTION_OVERLAY: skannerin loading renderöidään kameraruudun päälle; tutkaefekti korvaa kovan viivan; usean EAN-osuman valinta peittää koko kameraruudun eikä vihreä välähdys syty ennen tuotteen valintaa.
 // V576_MOBILE_SCANNER_VISIBLE_MOUNT_WAIT: mobiiliskanneri odottaa näkyvän MOBILE_EAN_SCANNER_REGION_ID-divin renderöitymistä eikä fallbackaa piilossa olevaan desktop-regioniin; estää käynnistyvän kameran näkymättömän videon.
 // V573_MOBILE_SCANNER_CHILDREN_REMOVED: uusi puhdas ScannerCard on self-closing; page ei enää anna children-sisältöä eikä vanhoja onManualEan/onPasteEan/onTorch-proppeja.
 // V572_CLEAN_SCANNER_CSS_ONLY: mobiiliskanneri käyttää puhdasta CSS-korttia ilman WEBP-taustakuvaa; vanha scanner-kuva ja cache-ongelma poistettu.
@@ -6042,10 +6043,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           setEanResults(exactResults.slice(0, 8));
           setEanMessage("Löytyi 1 tarkka EAN-osuma.");
         } else {
-          // Kamera löysi oikean EANin, vaikka käyttäjän pitää valita useasta osumasta.
-          // Näytetään vihreä palaute myös tässä tilanteessa, ei punaista virhettä.
-          if (eanScannerOpen || eanHtml5ScannerRef.current)
-            showScanSuccessFlash();
+          // V577: usean EAN-osuman kohdalla EI näytetä vihreää onnistumisvälähdystä.
+          // Skannaus ei ole vielä valmis ennen kuin käyttäjä valitsee oikean tuotteen.
+          // Valinta renderöidään mobiilissa suoraan kameraruudun päälle ScannerCardissa.
           setEanResults(exactResults.slice(0, 8));
           setEanMessage(
             `Löytyi ${exactResults.length} tarkkaa EAN-osumaa. Valitse lisättävä tuote.`,
@@ -11198,7 +11198,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         {eanModalOpen && (
           <div
-            className="fixed inset-0 z-[9999] flex items-stretch justify-center overflow-hidden overscroll-none bg-[#EAF4F1] px-2 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-[calc(env(safe-area-inset-top)+4.95rem)] sm:items-center sm:p-4"
+            className="fixed inset-0 z-[9999] flex items-stretch justify-center overflow-hidden overscroll-none bg-[#EAF4F1] px-2 pb-[calc(env(safe-area-inset-bottom)+5.65rem)] pt-[calc(env(safe-area-inset-top)+5.05rem)] sm:items-center sm:p-4"
           >
             <div
               className={`flex h-full w-full max-w-[430px] flex-col overflow-hidden ${eanModalClosing ? "opacity-0" : "opacity-100"}`}
@@ -11293,6 +11293,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   }
                   torchOn={scannerTorchOn}
                   manualInputOpen={eanManualInputOpen}
+                  selectionResults={
+                    eanResults.length > 1 && !desktopKeyboardScannerOpen
+                      ? eanResults
+                      : []
+                  }
+                  onSelectResult={addEanResultToCart}
+                  formatPrice={formatEuro}
+                  getProductPrice={getProductPrice}
                   onCameraTap={(event) =>
                     void (focusScannerCameraAtPoint as any)(MOBILE_EAN_SCANNER_REGION_ID, event)
                   }
@@ -11325,13 +11333,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 />
               )}
 
-              {eanMessage && !eanSearchStartedAutomatically && (
-                <div className="mt-3 rounded-2xl bg-slate-100 p-3 text-sm font-bold text-slate-700">
-                  {eanMessage}
-                </div>
-              )}
+              {eanMessage &&
+                !eanSearchStartedAutomatically &&
+                !(eanScannerOpen || (!desktopKeyboardScannerOpen && eanModalOpen)) && (
+                  <div className="mt-3 rounded-2xl bg-slate-100 p-3 text-sm font-bold text-slate-700">
+                    {eanMessage}
+                  </div>
+                )}
 
-              {eanResults.length > 0 && !eanSearchStartedAutomatically && (
+              {eanResults.length > 0 &&
+                !eanSearchStartedAutomatically &&
+                !(eanScannerOpen || (!desktopKeyboardScannerOpen && eanModalOpen)) && (
                 <div
                   ref={eanResultsRef}
                   className="mt-4 grid gap-2 scroll-mt-4"
