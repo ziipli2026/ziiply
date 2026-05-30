@@ -334,19 +334,29 @@ export default function ZiiplyMobileSearchResultsCard({
                 return (
                   <article
                     key={String(product.id ?? product.ean ?? index)}
-                    className="relative grid min-h-[4.95rem] grid-cols-[4.15rem_minmax(0,1fr)] items-start gap-2 overflow-hidden rounded-[1.15rem] border-[3px] border-[#8c6934] bg-[#fffdf8] px-2.5 pb-1.5 pt-2 shadow-[0_3px_0_rgba(91,72,44,0.12)]"
+                    className="relative grid min-h-[6.15rem] grid-cols-[4.35rem_minmax(0,1fr)] items-start gap-2 overflow-hidden rounded-[1.15rem] border-[3px] border-[#8c6934] bg-[#fffdf8] px-2.5 py-2 shadow-[0_3px_0_rgba(91,72,44,0.12)]"
                   >
-                    <div className="flex h-full min-h-[3.95rem] items-center justify-center overflow-visible">
-                      {image ? (
-                        <img
-                          src={image}
-                          alt=""
-                          className="h-full max-h-[4.45rem] w-full scale-[1.08] object-contain"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <span className="text-[3rem]">🛒</span>
-                      )}
+                    <div className="flex min-h-[5.35rem] flex-col items-center justify-between overflow-visible">
+                      <div className="flex h-[3.45rem] w-full items-center justify-center overflow-visible">
+                        {image ? (
+                          <img
+                            src={image}
+                            alt=""
+                            className="h-full w-full scale-[1.08] object-contain"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <span className="text-[2.45rem]">🛒</span>
+                        )}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => onAddProduct?.(product)}
+                        className="pointer-events-auto mt-1 w-full rounded-[0.78rem] border-[2.5px] border-[#178338] bg-[#08a63d] px-2 py-[0.52rem] text-[0.74rem] font-black uppercase leading-none tracking-[0.02em] text-[#fff3d8] shadow-[0_3px_0_rgba(0,74,24,0.24),inset_0_1px_0_rgba(255,255,255,0.26)] active:translate-y-[1px] active:shadow-[0_1px_0_rgba(0,74,24,0.24)]"
+                      >
+                        Lisää
+                      </button>
                     </div>
 
                     <div className="min-w-0">
