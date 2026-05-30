@@ -1,5 +1,7 @@
 "use client";
 
+// V610_HUOKEAMMAKS_FINAL: pääsivun hero-teksti on täsmälleen "Viilaa ruokakorisi huokeammaks" ilman pistettä.
+
 // V592_SCANNER_BEEP_ALWAYS_ON_SEARCH_START: piip kuuluu aina, kun EAN-haku oikeasti käynnistyy; ei piippiä enää valintapaneelin kautta lisäyksessä.
 // V595_SCANNER_NO_HINT_AND_BOTTOM_UP_SWEEP: poistaa skannerin kameraruudun ohjetekstit näkyvistä ja käyttää v595 ScannerCardia, jossa efekti liikkuu alhaalta ylöspäin.
 // V594_SCANNER_BEEP_ON_DETECT_AND_TRANSPARENT_SELECTION_INFO: piip soitetaan heti skannerin tunnistustapahtumassa ennen hakua; aloitusohje poistettu ScannerCardista; valintapaneelin lisäys näyttää läpikuultavan Tuote lisätty -kuittauksen ilman piippiä/flashia.
