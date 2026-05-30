@@ -1,6 +1,6 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V617_V612_TOP_ONLY_FULLSCREEN
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V618_FINAL_VISUAL_LAYOUT_SAFE_SEARCH
 // Pohja: v608/v510 toimiva hakulogiikka.
 // Muutettu vain JSX/CSS layout vastaamaan annettua finalleiska-mallia.
 
@@ -147,7 +147,7 @@ function AssistantButton({
       <img
         src={image}
         alt=""
-        className="absolute left-1/2 top-1/2 h-[118%] w-[118%] -translate-x-1/2 -translate-y-1/2 object-contain object-center"
+        className="absolute left-1/2 top-1/2 h-[126%] w-[126%] -translate-x-1/2 -translate-y-1/2 object-contain object-center"
         draggable={false}
         onError={(event) => {
           event.currentTarget.style.display = "none";
@@ -280,7 +280,7 @@ export default function ZiiplyMobileSearchCard({
     const clean = input.trim();
 
     if (!clean) {
-      return "Kirjoita hakusana tai sano ostos ääneen.";
+      return "Justiina ehdottaa sopivia hakusanoja kirjoittaessasi.";
     }
 
     if (notFoundCanShow) {
@@ -352,8 +352,8 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V617_V612_TOP_ONLY_FULLSCREEN"
-      className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.35rem)] bottom-[calc(env(safe-area-inset-bottom)+5.2rem)] z-[72] flex items-stretch justify-center overflow-hidden bg-transparent px-2 sm:hidden ${className}`}
+      data-ziiply-mobile-search-card-version="UUSI_V618_FINAL_VISUAL_LAYOUT_SAFE_SEARCH"
+      className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.25rem)] bottom-[calc(env(safe-area-inset-bottom)+5.2rem)] z-[72] flex items-stretch justify-center overflow-hidden bg-transparent px-2 sm:hidden ${className}`}
     >
       <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.8rem] border-[2px] border-[#ead9a8] bg-[#f6ebc6] px-3 pb-3 pt-5 text-[#20301f] shadow-[inset_0_0_0_2px_rgba(216,189,117,0.34)]">
         <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[1.55rem] bg-[#f6ebc6]">
@@ -414,13 +414,13 @@ export default function ZiiplyMobileSearchCard({
             </div>
           </div>
 
-          <div className="relative z-10 mt-5 flex min-h-[4.45rem] items-center justify-center overflow-hidden rounded-[1.25rem] border-[3px] border-[#d2b170] bg-[#fff1bf] px-4 text-center text-[clamp(0.78rem,2.55vw,0.96rem)] font-black leading-[1.12] text-[#6f5630] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_3px_0_rgba(91,72,44,0.12)]">
+          <div className="relative z-10 mt-4 flex min-h-[4.1rem] items-center justify-center overflow-hidden rounded-[1.25rem] border-[3px] border-[#d2b170] bg-[#fff1bf] px-4 text-center text-[clamp(0.78rem,2.55vw,0.96rem)] font-black leading-[1.12] text-[#6f5630] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_3px_0_rgba(91,72,44,0.12)]">
             <span className="block w-full whitespace-normal">
               {subtitle || predictiveText}
             </span>
           </div>
 
-          <div className="relative z-10 mt-4 grid grid-cols-[1.18fr_0.72fr_1.18fr] items-center gap-3">
+          <div className="relative z-10 mt-3 grid grid-cols-[1.18fr_0.72fr_1.18fr] items-center gap-3">
             <AssistantButton
               kind="gosta"
               onClick={() => handleManualSearch(onOfferSearch)}
@@ -447,7 +447,7 @@ export default function ZiiplyMobileSearchCard({
             />
           </div>
 
-          <div className="relative z-10 mt-6 flex justify-center">
+          <div className="relative z-10 mt-5 flex justify-center">
             <ModeToggle mode={searchMode} onModeChange={onSearchModeChange} />
           </div>
 
