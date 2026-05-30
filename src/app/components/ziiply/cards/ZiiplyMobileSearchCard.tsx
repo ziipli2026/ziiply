@@ -1,6 +1,6 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V512_FULLSCREEN_MOCKUP_LAYOUT
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V513_BIGGER_ICONS
 // UUSI: SearchCard ei renderöi hakutuloksia sisäänsä lainkaan.
 // UUSI: Äänitä ja Filmaa napit pysyvät paikallaan myös silloin, kun erillinen tuloskortti aukeaa.
 // UUSI: tulokset kuuluvat erilliseen ZiiplyMobileSearchResultsCard-komponenttiin.
@@ -169,7 +169,7 @@ function AssistantButton({
       <img
         src={image}
         alt=""
-        className="absolute left-1/2 top-1/2 h-[96%] w-[96%] -translate-x-1/2 -translate-y-1/2 object-contain object-center"
+        className="absolute left-1/2 top-1/2 h-[108%] w-[108%] -translate-x-1/2 -translate-y-1/2 object-contain object-center"
         draggable={false}
         onError={(event) => {
           event.currentTarget.style.display = "none";
@@ -245,7 +245,7 @@ function RetroAssetButton({
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="relative block h-[4.85rem] w-full overflow-hidden border-0 bg-transparent p-0 shadow-none outline-none active:translate-y-[1px]"
+      className="relative block h-[5.45rem] w-full overflow-hidden border-0 bg-transparent p-0 shadow-none outline-none active:translate-y-[1px]"
     >
       <img
         src={imageSrc}
@@ -376,7 +376,7 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V512_FULLSCREEN_MOCKUP_LAYOUT"
+      data-ziiply-mobile-search-card-version="UUSI_V513_BIGGER_ICONS"
       className={`fixed inset-0 z-[72] flex items-stretch justify-center overflow-hidden bg-transparent px-2 pb-[calc(env(safe-area-inset-bottom)+5.45rem)] pt-[calc(env(safe-area-inset-top)+0.35rem)] sm:items-center sm:p-6 ${className}`}
     >
       <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-visible rounded-[2rem] border-[4px] border-[#5b482c] bg-transparent px-3 pt-3 text-[#20301f] shadow-[0_0_0_2px_#d8bd75_inset,0_12px_0_rgba(60,45,20,0.24),0_22px_45px_rgba(15,23,42,0.18)]">
@@ -431,7 +431,7 @@ export default function ZiiplyMobileSearchCard({
             <ModeToggle mode={searchMode} onModeChange={onSearchModeChange} />
           </div>
 
-          <div className="relative z-10 mt-4 grid grid-cols-[1fr_7.15rem_1fr] items-center gap-2.5">
+          <div className="relative z-10 mt-4 grid grid-cols-[1.18fr_5.9rem_1.18fr] items-center gap-2.5">
             <AssistantButton
               kind="gosta"
               onClick={() => handleManualSearch(onOfferSearch)}
@@ -440,7 +440,7 @@ export default function ZiiplyMobileSearchCard({
             />
 
             <div className="flex h-full items-center justify-center">
-              <div className="h-[3.15rem] w-[7.15rem] rounded-[1.05rem] border-[3px] border-[#d8bd75] bg-[#fff1bf]/55 shadow-[inset_0_0_0_2px_rgba(255,255,255,0.45)]" />
+              <div className="h-[3.25rem] w-[5.9rem] rounded-[1.05rem] border-[3px] border-[#d8bd75] bg-[#fff1bf]/55 shadow-[inset_0_0_0_2px_rgba(255,255,255,0.45)]" />
             </div>
 
             <AssistantButton
@@ -457,7 +457,7 @@ export default function ZiiplyMobileSearchCard({
             </span>
           </div>
 
-          <div className="relative z-10 mt-5 grid grid-cols-2 gap-3">
+          <div className="relative z-10 mt-5 grid grid-cols-2 gap-2.5">
             <RetroAssetButton
               kind="voice"
               label="Äänitä"
