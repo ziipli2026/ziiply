@@ -334,7 +334,7 @@ export default function ZiiplyMobileSearchResultsCard({
                 return (
                   <article
                     key={String(product.id ?? product.ean ?? index)}
-                    className="relative grid min-h-[4.95rem] grid-cols-[4.15rem_minmax(0,1fr)_5.35rem] items-start gap-2 overflow-hidden rounded-[1.15rem] border-[3px] border-[#8c6934] bg-[#fffdf8] px-2.5 pb-1.5 pt-2 shadow-[0_3px_0_rgba(91,72,44,0.12)]"
+                    className="relative grid min-h-[4.95rem] grid-cols-[4.15rem_minmax(0,1fr)] items-start gap-2 overflow-hidden rounded-[1.15rem] border-[3px] border-[#8c6934] bg-[#fffdf8] px-2.5 pb-1.5 pt-2 shadow-[0_3px_0_rgba(91,72,44,0.12)]"
                   >
                     <div className="flex h-full min-h-[3.95rem] items-center justify-center overflow-visible">
                       {image ? (
@@ -349,36 +349,36 @@ export default function ZiiplyMobileSearchResultsCard({
                       )}
                     </div>
 
-                    <div className="min-w-0">
+                    <div className="min-w-0 pr-[10.45rem] pt-[0.02rem]">
                       <div
-                        className="line-clamp-2 text-[0.86rem] font-black leading-[0.88] text-[#123d32]"
+                        className="line-clamp-2 text-[0.86rem] font-black leading-[1.02] text-[#123d32] [transform:translateZ(0)]"
                         style={{ fontFamily: cooper }}
                       >
                         {name}
                       </div>
 
-                      <div className="mt-[0.18rem] min-w-0">
-                        {comparison && (
-                          <div className="truncate text-[0.68rem] font-black leading-none text-[#8a7a55]">
-                            {comparison}
-                          </div>
-                        )}
-
-                        {price && (
-                          <div className="mt-1 inline-flex min-w-[4.85rem] items-center justify-center rounded-full border-[2.5px] border-[#347a3f] bg-[#d2f1c8] px-2.5 py-[0.34rem] text-[0.88rem] font-black leading-none text-[#153d1c] shadow-[inset_0_1px_0_rgba(255,255,255,0.70)]">
-                            {price}
-                          </div>
-                        )}
-                      </div>
+                      {comparison && (
+                        <div className="mt-[0.30rem] truncate text-[0.68rem] font-black leading-none text-[#8a7a55]">
+                          {comparison}
+                        </div>
+                      )}
                     </div>
 
-                    <button
-                      type="button"
-                      onClick={() => onAddProduct?.(product)}
-                      className="pointer-events-auto mt-auto shrink-0 self-end rounded-[0.78rem] border-[2.5px] border-[#178338] bg-[#08a63d] px-2.5 py-[0.60rem] text-[0.78rem] font-black uppercase leading-none tracking-[0.02em] text-[#fff3d8] shadow-[0_3px_0_rgba(0,74,24,0.24),inset_0_1px_0_rgba(255,255,255,0.26)] active:translate-y-[1px] active:shadow-[0_1px_0_rgba(0,74,24,0.24)]"
-                    >
-                      Lisää
-                    </button>
+                    <div className="absolute bottom-2 right-2.5 flex items-center justify-end gap-2">
+                      {price && (
+                        <div className="inline-flex min-w-[4.85rem] items-center justify-center rounded-full border-[2.5px] border-[#347a3f] bg-[#d2f1c8] px-2.5 py-[0.34rem] text-[0.88rem] font-black leading-none text-[#153d1c] shadow-[inset_0_1px_0_rgba(255,255,255,0.70)]">
+                          {price}
+                        </div>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => onAddProduct?.(product)}
+                        className="pointer-events-auto shrink-0 rounded-[0.78rem] border-[2.5px] border-[#178338] bg-[#08a63d] px-2.5 py-[0.60rem] text-[0.78rem] font-black uppercase leading-none tracking-[0.02em] text-[#fff3d8] shadow-[0_3px_0_rgba(0,74,24,0.24),inset_0_1px_0_rgba(255,255,255,0.26)] active:translate-y-[1px] active:shadow-[0_1px_0_rgba(0,74,24,0.24)]"
+                      >
+                        Lisää
+                      </button>
+                    </div>
                   </article>
                 );
               })}
