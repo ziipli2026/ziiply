@@ -1,5 +1,6 @@
 "use client";
 
+// V571_MOBILE_SCANNER_PROP_CONTRACT_FIXED: page ei välitä artworkSrc-propia; ScannerCard määrittää kuvan itse ja hyväksyy silti propin varmuuden vuoksi.
 // V570_MOBILE_SCANNER_NO_ARTWORK_PROP: poistaa page-kutsusta artworkSrc-propin; kuva määritetään kortissa, jotta build ei kaadu vanhaan props-tyyppiin.
 // V569_MOBILE_SCANNER_ARTWORK_HARDWIRED:
 // page antaa uuden scanner-screenv2.webp-polun suoraan ZiiplyMobileScannerCardille, jotta vanha assetti ei voi jäädä käyttöön.
