@@ -327,13 +327,13 @@ export default function ZiiplyMobileProductPickCard({
                 </div>
 
                 {store && (
-                  <div className="mt-7 truncate whitespace-nowrap text-[0.86rem] font-black uppercase leading-none text-[#6c532c]">
+                  <div className="mt-11 truncate whitespace-nowrap text-[0.86rem] font-black uppercase leading-none text-[#6c532c]">
                     {store}
                   </div>
                 )}
 
                 {comparison && (
-                  <div className="mt-2 text-[0.82rem] font-black leading-none text-[#8a7a55]">
+                  <div className="mt-3 text-[0.82rem] font-black leading-none text-[#8a7a55]">
                     {comparison}
                   </div>
                 )}
