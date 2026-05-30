@@ -2,30 +2,28 @@
 
 import React from "react";
 
-export type ZiiplyMobileProductPickResult = {
+export type ZiiplyProductPickResult = {
   id?: string | number;
-  ean?: string;
   name?: string;
   title?: string;
   displayName?: string;
-  store?: string;
   chain?: string;
-  price?: number | string | null;
+  store?: string;
+  price?: number | string;
   image?: string;
+  imageUrl?: string;
   product?: any;
   [key: string]: unknown;
 };
 
-export type ZiiplyMobileProductPickCardProps = {
+type Props = {
   title?: string;
   subtitle?: string;
-  results: ZiiplyMobileProductPickResult[];
-  onAdd?: (result: ZiiplyMobileProductPickResult) => void;
-  onBack?: () => void;
+  results: ZiiplyProductPickResult[];
+  onAdd?: (result: ZiiplyProductPickResult) => void;
   formatPrice?: (value: number) => string;
-  getProductPrice?: (result: ZiiplyMobileProductPickResult) => number | null | undefined;
+  getProductPrice?: (result: ZiiplyProductPickResult) => number | null | undefined;
   className?: string;
-  compact?: boolean;
 };
 
 export default function ZiiplyMobileProductPickCard({
@@ -33,73 +31,65 @@ export default function ZiiplyMobileProductPickCard({
   subtitle = "Sama EAN löytyi useammasta kaupasta",
   results,
   onAdd,
-  onBack,
   formatPrice,
   getProductPrice,
   className = "",
-  compact = false,
-}: ZiiplyMobileProductPickCardProps) {
-  const shown = Array.isArray(results) ? results : [];
-
-  function getName(result: ZiiplyMobileProductPickResult) {
+}: Props) {
+  function getName(result: ZiiplyProductPickResult) {
     return String(
       result.name ||
         result.title ||
         result.displayName ||
         result.product?.name ||
         result.product?.title ||
-        result.product?.displayName ||
         "Tuote",
     );
   }
 
-  function getStore(result: ZiiplyMobileProductPickResult) {
-    const store = String(result.store || result.product?.store || "").trim();
+  function getStore(result: ZiiplyProductPickResult) {
     const chain = String(result.chain || result.product?.chain || "").trim();
+    const store = String(result.store || result.product?.store || "").trim();
 
-    if (store && chain && store.toLowerCase() !== chain.toLowerCase()) {
-      return `${chain} · ${store}`;
-    }
-
-    return store || chain || "";
+    if (chain && store) return `${chain} · ${store}`;
+    return chain || store;
   }
 
-  function getPrice(result: ZiiplyMobileProductPickResult) {
-    const directPrice =
-      typeof result.price === "number"
+  function getImage(result: ZiiplyProductPickResult) {
+    return String(
+      result.image ||
+        result.imageUrl ||
+        result.product?.image ||
+        result.product?.imageUrl ||
+        "",
+    );
+  }
+
+  function getPrice(result: ZiiplyProductPickResult) {
+    const raw =
+      getProductPrice?.(result) ??
+      (typeof result.price === "number"
         ? result.price
         : typeof result.price === "string"
-          ? Number(result.price.replace(",", "."))
-          : null;
+          ? Number(String(result.price).replace(",", "."))
+          : null) ??
+      (typeof result.product?.price === "number" ? result.product.price : null);
 
-    const productPrice =
-      typeof result.product?.price === "number"
-        ? result.product.price
-        : typeof result.product?.price === "string"
-          ? Number(String(result.product.price).replace(",", "."))
-          : null;
-
-    const resolvedPrice = getProductPrice?.(result) ?? directPrice ?? productPrice;
-
-    if (typeof resolvedPrice !== "number" || !Number.isFinite(resolvedPrice)) return "";
-
-    return formatPrice
-      ? formatPrice(resolvedPrice)
-      : `${resolvedPrice.toFixed(2).replace(".", ",")} €`;
+    if (typeof raw !== "number" || !Number.isFinite(raw)) return "";
+    return formatPrice ? formatPrice(raw) : `${raw.toFixed(2).replace(".", ",")} €`;
   }
 
   return (
-    <section
+    <div
       className={[
-        "relative isolate w-full overflow-hidden rounded-[1.7rem] border-[5px] border-[#6d5128] bg-[#fff5d9] text-[#163d32]",
-        "shadow-[0_16px_40px_rgba(0,0,0,0.18),inset_0_0_0_2px_rgba(255,255,255,0.62)]",
-        compact ? "max-w-[430px]" : "",
+        "relative w-full overflow-hidden rounded-[1.45rem]",
+        "border-[4px] border-[#6d5128] bg-[#fff5d9]",
+        "shadow-[0_14px_34px_rgba(0,0,0,0.20),inset_0_0_0_2px_rgba(255,255,255,0.68)]",
+        "text-[#163d32]",
         className,
       ].join(" ")}
-      aria-label={title}
     >
       <div
-        className="pointer-events-none absolute inset-0 z-0 opacity-[0.055] mix-blend-multiply"
+        className="pointer-events-none absolute inset-0 opacity-[0.055] mix-blend-multiply"
         style={{
           backgroundImage: "radial-gradient(#3f2f16 0.45px, transparent 0.45px)",
           backgroundSize: "7px 7px",
@@ -107,89 +97,79 @@ export default function ZiiplyMobileProductPickCard({
         aria-hidden="true"
       />
 
-      <div className="relative z-10 px-3 pb-3 pt-3">
-        <div className="rounded-[1.05rem] border-[3px] border-[#9a7a47] bg-[#efe0b8] px-3 py-3 text-center shadow-[inset_0_2px_0_rgba(255,255,255,0.74)]">
+      <div className="relative z-10 p-3">
+        <div className="rounded-[1rem] border-[3px] border-[#9a7a47] bg-[#efe0b8] px-3 py-3 text-center shadow-[inset_0_2px_0_rgba(255,255,255,0.76)]">
           <div
-            className="text-[17px] font-black uppercase leading-none tracking-[0.055em] text-[#163d32]"
+            className="truncate text-[20px] font-black uppercase leading-none tracking-[0.06em] text-[#163d32]"
             style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
           >
             {title}
           </div>
-          {subtitle && (
-            <div className="mt-1 text-[10px] font-black uppercase tracking-[0.08em] text-[#6d5430] opacity-80">
+
+          {!!subtitle && (
+            <div className="mt-2 truncate text-[11px] font-black uppercase tracking-[0.16em] text-[#7b6544]">
               {subtitle}
             </div>
           )}
         </div>
       </div>
 
-      <div className="relative z-10 max-h-[min(54vh,430px)] space-y-3 overflow-y-auto px-3 pb-3">
-        {shown.map((result, index) => {
-          const name = getName(result);
-          const meta = getStore(result);
+      <div className="relative z-10 flex max-h-[min(54vh,420px)] flex-col gap-3 overflow-y-auto px-3 pb-3">
+        {results.map((result, index) => {
+          const image = getImage(result);
           const price = getPrice(result);
-          const image = String(result.image || result.product?.image || "");
+          const store = getStore(result);
 
           return (
             <article
-              key={`${String(result.id || result.ean || name)}-${index}`}
-              className="relative overflow-hidden rounded-[1.45rem] border-[3px] border-[#8e6d39] bg-[#fffdf8] p-3 shadow-[0_10px_22px_rgba(0,0,0,0.10)]"
+              key={`${getName(result)}-${store}-${index}`}
+              className="relative min-h-[128px] overflow-hidden rounded-[1.35rem] border-[3px] border-[#8e6d39] bg-[#fffdf8] p-3 pr-[108px] shadow-[0_8px_20px_rgba(0,0,0,0.12)]"
             >
-              <div className="flex items-center gap-3">
-                <div className="flex h-[70px] w-[70px] shrink-0 items-center justify-center overflow-hidden rounded-[1.05rem] border-[2.5px] border-[#d8bf82] bg-[#f8efd5] shadow-[inset_0_1px_0_rgba(255,255,255,0.78)]">
+              <div className="flex min-w-0 gap-3">
+                <div className="flex h-[74px] w-[74px] shrink-0 items-center justify-center overflow-hidden rounded-[1rem] border-[3px] border-[#d8bf82] bg-[#f8efd5] shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]">
                   {image ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={image} alt="" className="h-full w-full object-contain p-1" />
+                    <img
+                      src={image}
+                      alt=""
+                      className="h-full w-full object-contain p-1"
+                      loading="lazy"
+                    />
                   ) : (
-                    <span className="text-[31px] opacity-70" aria-hidden="true">
-                      🛒
-                    </span>
+                    <span className="text-[34px] opacity-70">🛒</span>
                   )}
                 </div>
 
-                <div className="min-w-0 flex-1">
-                  <div className="line-clamp-2 text-[17px] font-black leading-[1.12] text-[#173a31]">
-                    {name}
+                <div className="min-w-0 flex-1 pb-10">
+                  <div className="line-clamp-2 text-[20px] font-black leading-[1.08] tracking-[-0.02em] text-[#173a31]">
+                    {getName(result)}
                   </div>
 
-                  {meta && (
-                    <div className="mt-2 truncate text-[14px] font-black uppercase text-[#6d5430]">
-                      {meta}
-                    </div>
-                  )}
-
-                  {price && (
-                    <div className="mt-2 inline-flex items-center rounded-full border-[2.5px] border-[#3c7a43] bg-[#cbefc2] px-3 py-[5px] text-[16px] font-black leading-none text-[#14381c] shadow-[inset_0_1px_0_rgba(255,255,255,0.7)]">
-                      {price}
+                  {!!store && (
+                    <div className="mt-2 truncate text-[15px] font-black uppercase tracking-[0.02em] text-[#6d5430]">
+                      {store}
                     </div>
                   )}
                 </div>
-
-                <button
-                  type="button"
-                  onClick={() => onAdd?.(result)}
-                  className="shrink-0 rounded-full border-[3px] border-[#2d8b3d] bg-[#00a339] px-5 py-3 text-[15px] font-black uppercase tracking-[0.03em] text-white shadow-[0_9px_16px_rgba(0,0,0,0.16),inset_0_1px_0_rgba(255,255,255,0.28)] active:scale-[0.98]"
-                >
-                  Lisää
-                </button>
               </div>
+
+              {!!price && (
+                <div className="absolute bottom-3 left-[90px] inline-flex rounded-full border-[3px] border-[#3c7a43] bg-[#cbefc2] px-4 py-[5px] text-[18px] font-black leading-none text-[#14381c] shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
+                  {price}
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={() => onAdd?.(result)}
+                className="absolute bottom-3 right-3 rounded-full border-[3px] border-[#2d8b3d] bg-[#00a339] px-5 py-3 text-[17px] font-black uppercase tracking-[0.03em] text-white shadow-[0_9px_17px_rgba(0,0,0,0.18),inset_0_1px_0_rgba(255,255,255,0.28)] active:scale-[0.98]"
+              >
+                Lisää
+              </button>
             </article>
           );
         })}
       </div>
-
-      {onBack && (
-        <div className="relative z-10 px-3 pb-3">
-          <button
-            type="button"
-            onClick={onBack}
-            className="min-h-[46px] w-full rounded-[1.1rem] border-[2.5px] border-[#9a7a47] bg-[#efe0b8] px-4 text-[14px] font-black uppercase tracking-[0.05em] text-[#163d32] shadow-[inset_0_2px_0_rgba(255,255,255,0.74)] active:scale-[0.99]"
-          >
-            Takaisin
-          </button>
-        </div>
-      )}
-    </section>
+    </div>
   );
 }
-
