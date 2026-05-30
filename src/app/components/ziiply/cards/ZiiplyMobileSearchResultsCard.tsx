@@ -1,6 +1,6 @@
 "use client";
 
-// ZiiplyMobileSearchResultsCard v8-price-pill-only
+// ZiiplyMobileSearchResultsCard v13-fullscreen
 // - Pitkälle / loputtomalle listalle optimoitu matala tuoterivi.
 // - Tuotekuva vasemmalla, jotta rivi pysyy matalana.
 // - Ulkoasu linjassa PickCardin paperi/emali-tyylin kanssa.
@@ -267,8 +267,8 @@ export default function ZiiplyMobileSearchResultsCard({
   if (!open) return null;
 
   return (
-    <div className="pointer-events-none fixed inset-0 z-[95] flex items-end justify-center bg-slate-950/22 px-2 pb-[calc(env(safe-area-inset-bottom)+5.45rem)] pt-[calc(env(safe-area-inset-top)+5.8rem)] backdrop-blur-[3px] sm:hidden">
-      <section className="pointer-events-auto relative flex h-[min(76dvh,42rem)] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2rem] border-[5px] border-[#6d5128] bg-[#fff6db] shadow-[0_12px_0_rgba(72,51,22,0.22),0_22px_48px_rgba(0,0,0,0.22),inset_0_0_0_2px_rgba(255,255,255,0.74)]">
+    <div className="pointer-events-none fixed inset-0 z-[95] flex items-stretch justify-center bg-slate-950/22 px-2 pb-[calc(env(safe-area-inset-bottom)+5.45rem)] pt-[calc(env(safe-area-inset-top)+0.75rem)] backdrop-blur-[3px] sm:hidden">
+      <section className="pointer-events-auto relative flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[2rem] border-[5px] border-[#6d5128] bg-[#fff6db] shadow-[0_12px_0_rgba(72,51,22,0.22),0_22px_48px_rgba(0,0,0,0.22),inset_0_0_0_2px_rgba(255,255,255,0.74)]">
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.055]"
           style={{
