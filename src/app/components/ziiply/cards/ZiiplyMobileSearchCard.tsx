@@ -1,6 +1,6 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V613_TRUE_FULLSCREEN_SAFE_V608_LOGIC
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V614_RAISED_LAYOUT_JUSTIINA_TEXT
 // Pohja: v608/v510 toimiva hakulogiikka.
 // Muutettu vain JSX/CSS layout vastaamaan annettua finalleiska-mallia.
 
@@ -280,7 +280,7 @@ export default function ZiiplyMobileSearchCard({
     const clean = input.trim();
 
     if (!clean) {
-      return "Kirjoita hakusana tai sano ostos ääneen.";
+      return "Justiina ehdottaa sopivia hakusanoja kirjoittaessasi.";
     }
 
     if (notFoundCanShow) {
@@ -352,10 +352,10 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V613_TRUE_FULLSCREEN_SAFE_V608_LOGIC"
-      className={`fixed inset-0 z-[140] flex items-stretch justify-center overflow-hidden bg-[#f8edc9] px-2 pb-[calc(env(safe-area-inset-bottom)+5.15rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] sm:hidden ${className}`}
+      data-ziiply-mobile-search-card-version="UUSI_V614_RAISED_LAYOUT_JUSTIINA_TEXT"
+      className={`fixed inset-0 z-[140] flex items-stretch justify-center overflow-hidden bg-[#f8edc9] px-2 pb-[calc(env(safe-area-inset-bottom)+5.15rem)] pt-[calc(env(safe-area-inset-top)+0.15rem)] sm:hidden ${className}`}
     >
-      <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.8rem] border-[2px] border-[#ead9a8] bg-[#f6ebc6] px-3 pb-3 pt-5 text-[#20301f] shadow-[inset_0_0_0_2px_rgba(216,189,117,0.34)]">
+      <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.8rem] border-[2px] border-[#ead9a8] bg-[#f6ebc6] px-3 pb-3 pt-3 text-[#20301f] shadow-[inset_0_0_0_2px_rgba(216,189,117,0.34)]">
         <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[1.55rem] bg-[#f6ebc6]">
           <div className="absolute inset-0 opacity-45 [background-image:radial-gradient(#d8bd75_1.15px,transparent_1.15px)] [background-size:16px_16px]" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.48),transparent_54%)]" />
@@ -386,7 +386,7 @@ export default function ZiiplyMobileSearchCard({
             />
           </div>
 
-          <div className="mt-5 grid grid-cols-[minmax(0,1fr)_8.1rem] items-center gap-3">
+          <div className="mt-4 grid grid-cols-[minmax(0,1fr)_8.1rem] items-center gap-3">
             <div className="relative h-[4.15rem] overflow-hidden rounded-[1.6rem] border-[3px] border-[#9d8350] bg-[#fff4d3] p-1.5 shadow-[0_4px_0_rgba(91,72,44,0.18),inset_0_3px_8px_rgba(91,65,28,0.10)]">
               <textarea
                 ref={inputRef}
@@ -414,13 +414,13 @@ export default function ZiiplyMobileSearchCard({
             </div>
           </div>
 
-          <div className="relative z-10 mt-5 flex min-h-[4.45rem] items-center justify-center overflow-hidden rounded-[1.25rem] border-[3px] border-[#d2b170] bg-[#fff1bf] px-4 text-center text-[clamp(0.78rem,2.55vw,0.96rem)] font-black leading-[1.12] text-[#6f5630] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_3px_0_rgba(91,72,44,0.12)]">
+          <div className="relative z-10 mt-4 flex min-h-[4.45rem] items-center justify-center overflow-hidden rounded-[1.25rem] border-[3px] border-[#d2b170] bg-[#fff1bf] px-4 text-center text-[clamp(0.78rem,2.55vw,0.96rem)] font-black leading-[1.12] text-[#6f5630] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_3px_0_rgba(91,72,44,0.12)]">
             <span className="block w-full whitespace-normal">
               {subtitle || predictiveText}
             </span>
           </div>
 
-          <div className="relative z-10 mt-4 grid grid-cols-[1.18fr_0.72fr_1.18fr] items-center gap-3">
+          <div className="relative z-10 mt-3 grid grid-cols-[1.18fr_0.72fr_1.18fr] items-center gap-3">
             <AssistantButton
               kind="gosta"
               onClick={() => handleManualSearch(onOfferSearch)}
@@ -447,11 +447,11 @@ export default function ZiiplyMobileSearchCard({
             />
           </div>
 
-          <div className="relative z-10 mt-6 flex justify-center">
+          <div className="relative z-10 mt-4 flex justify-center">
             <ModeToggle mode={searchMode} onModeChange={onSearchModeChange} />
           </div>
 
-          <div className="relative z-10 mt-auto grid grid-cols-2 gap-3 pb-1 pt-4">
+          <div className="relative z-10 mt-auto grid grid-cols-2 gap-3 pb-1 pt-3">
             <RetroAssetButton
               kind="voice"
               label="Äänitä"
