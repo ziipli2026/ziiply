@@ -11408,7 +11408,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               {eanResults.length > 1 &&
                 !desktopKeyboardScannerOpen &&
                 (eanScannerOpen || (!desktopKeyboardScannerOpen && eanModalOpen)) && (
-                  <div className="fixed inset-x-0 bottom-[calc(env(safe-area-inset-bottom)+5.65rem)] top-[calc(env(safe-area-inset-top)+0.85rem)] z-[175] flex w-screen items-stretch justify-center bg-black/18 px-2 sm:hidden">
+                  <div className="fixed inset-0 z-[175] flex w-screen items-stretch justify-center bg-black/18 px-2 pb-[calc(env(safe-area-inset-bottom)+5.65rem)] pt-[calc(env(safe-area-inset-top)+0.85rem)] sm:hidden">
                     <ZiiplyMobileProductPickCard
                       title="Valitse lisättävä tuote"
                       subtitle="Sama EAN löytyi useammasta kaupasta"
@@ -11422,15 +11422,21 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       getProductPrice={(result) =>
                         getProductPrice(((result as any).product ?? result) as Product)
                       }
-                      onAdd={(result) =>
+                      onAdd={(result) => {
                         addEanResultToCart(
                           {
                             ...result,
                             eanMatch: true,
                           } as EanSearchResult,
                           { showFlash: false },
-                        )
-                      }
+                        );
+                        setEanResults([]);
+                        setEanMessage("");
+                        setEanScannerMessage("Tuote lisätty");
+                        window.setTimeout(() => {
+                          setEanScannerMessage("");
+                        }, 900);
+                      }}
                     />
                   </div>
                 )}
@@ -11460,15 +11466,21 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       getProductPrice={(result) =>
                         getProductPrice(((result as any).product ?? result) as Product)
                       }
-                      onAdd={(result) =>
+                      onAdd={(result) => {
                         addEanResultToCart(
                           {
                             ...result,
                             eanMatch: true,
                           } as EanSearchResult,
                           { showFlash: false },
-                        )
-                      }
+                        );
+                        setEanResults([]);
+                        setEanMessage("");
+                        setEanScannerMessage("Tuote lisätty");
+                        window.setTimeout(() => {
+                          setEanScannerMessage("");
+                        }, 900);
+                      }}
                     />
                   </div>
                 )}
