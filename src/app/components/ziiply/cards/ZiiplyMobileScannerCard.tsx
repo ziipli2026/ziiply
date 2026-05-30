@@ -1,10 +1,10 @@
 "use client";
 
 /**
- * ZiiplyMobileScannerCard-v579-selection-props-radar.tsx
+ * ZiiplyMobileScannerCard-v582-fullheight-radar-torch.tsx
  * 2026-05-30
  *
- * Mobiiliskannerikortin v579-revisio.
+ * Mobiiliskannerikortin v582-revisio.
  *
  * Muutokset:
  * - Ei käytä WEBP-taustakuvaa lainkaan.
@@ -26,6 +26,12 @@
  * - v578: hitaampi ja näkyvämpi radar-animaatio mobiilikäyttöön.
  * - v579: lisää selectionResults/onSelectResult propsit page-v577/v578-yhteensopivaksi.
  * - v579: tuotevalinta peittää koko kameraruudun.
+ * - v580: fullscreen-tila ilman max-width/pyöristettyä korttireunaa.
+ * - v580: tutkaefekti vahvistettu selvästi ja sweep-alue kasvatettu.
+ * - v580: scanner mode täyttää koko mobiili-ikkunan.
+ * - v581: tutkaefekti muutettu koko kameraruudun korkuiseksi ylhäältä alas.
+ * - v581: taskulampun nappi pysyy puhtaana pass-through-toimintona page-logiikalle.
+ * - v582: taskulamppunappi pysäyttää event-kuplan ja kutsuu vain page-propin.
  */
 
 import React, { useEffect, useMemo, useState } from "react";
@@ -59,6 +65,7 @@ export type ZiiplyMobileScannerCardProps = {
   onCameraTap?: React.PointerEventHandler<HTMLDivElement>;
   onClose?: () => void | Promise<void>;
   className?: string;
+  fullscreen?: boolean;
 };
 
 export default function ZiiplyMobileScannerCard({
@@ -77,6 +84,7 @@ export default function ZiiplyMobileScannerCard({
   onCameraTap,
   onClose,
   className = "",
+  fullscreen = false,
 }: ZiiplyMobileScannerCardProps) {
   const [showStartupHint, setShowStartupHint] = useState(true);
 
@@ -149,10 +157,10 @@ export default function ZiiplyMobileScannerCard({
   return (
     <section
       className={[
-        "relative isolate mx-auto flex h-full w-full max-w-[430px] flex-col overflow-hidden transform-none",
-        "rounded-[1.65rem] border-[4px] border-[#073d32]",
+"relative isolate mx-auto flex h-full w-full flex-col overflow-hidden transform-none",
+        fullscreen ? "max-w-none rounded-none border-0" : "max-w-[430px] rounded-[1.65rem] border-[4px] border-[#073d32]",
         "bg-[#fff5d9]",
-        "shadow-[0_16px_38px_rgba(8,42,35,0.24),inset_0_0_0_2px_rgba(255,255,255,0.74)]",
+        fullscreen ? "shadow-none" : "shadow-[0_16px_38px_rgba(8,42,35,0.24),inset_0_0_0_2px_rgba(255,255,255,0.74)]",
         "text-[#163d32]",
         className,
       ].join(" ")}
@@ -200,17 +208,17 @@ export default function ZiiplyMobileScannerCard({
 
         @keyframes ziiplyRadarSweep {
           0% {
-            transform: translateY(-115%);
-            opacity: 0.18;
+            transform: translateY(-100%);
+            opacity: 0.32;
           }
 
-          50% {
-            opacity: 0.46;
+          48% {
+            opacity: 0.92;
           }
 
           100% {
-            transform: translateY(115%);
-            opacity: 0.18;
+            transform: translateY(100%);
+            opacity: 0.32;
           }
         }
 
@@ -219,19 +227,22 @@ export default function ZiiplyMobileScannerCard({
             linear-gradient(
               180deg,
               rgba(120,255,120,0.00) 0%,
-              rgba(120,255,120,0.12) 18%,
-              rgba(120,255,120,0.38) 50%,
-              rgba(120,255,120,0.12) 82%,
+              rgba(120,255,120,0.16) 18%,
+              rgba(120,255,120,0.52) 42%,
+              rgba(120,255,120,0.78) 50%,
+              rgba(120,255,120,0.52) 58%,
+              rgba(120,255,120,0.16) 82%,
               rgba(120,255,120,0.00) 100%
             );
 
-          filter: blur(6px);
+          filter: blur(3px);
 
           box-shadow:
-            0 0 24px rgba(120,255,120,0.34),
-            0 0 64px rgba(120,255,120,0.18);
+            0 0 40px rgba(120,255,120,0.62),
+            0 0 110px rgba(120,255,120,0.36),
+            inset 0 0 42px rgba(120,255,120,0.30);
 
-          animation: ziiplyRadarSweep 2.6s ease-in-out infinite;
+          animation: ziiplyRadarSweep 3.4s ease-in-out infinite;
           will-change: transform, opacity;
         }
 
@@ -275,7 +286,11 @@ export default function ZiiplyMobileScannerCard({
 
         <button
           type="button"
-          onClick={onToggleTorch}
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            onToggleTorch?.();
+          }}
           className={[
             "flex h-[40px] w-[54px] shrink-0 items-center justify-center rounded-[0.8rem] border-[2px] text-[18px] font-black shadow-[inset_0_1px_0_rgba(255,255,255,0.65)] active:scale-[0.98]",
             torchOn
@@ -309,7 +324,7 @@ export default function ZiiplyMobileScannerCard({
           />
           {/* Radar sweep */}
           <div
-            className="pointer-events-none absolute inset-x-0 top-0 z-[12] h-[26%] ziiply-radar-sweep"
+            className="pointer-events-none absolute inset-x-0 top-0 z-[28] h-full ziiply-radar-sweep"
             aria-hidden="true"
           />
 
@@ -331,7 +346,7 @@ export default function ZiiplyMobileScannerCard({
           {visibleMessage && (
             <div
               className={[
-                "pointer-events-none absolute inset-x-5 bottom-5 z-[35] rounded-[1rem] px-3 py-2 text-center text-[14px] font-black uppercase tracking-[0.035em] shadow-[0_8px_18px_rgba(0,0,0,0.20)]",
+                "pointer-events-none absolute inset-x-5 bottom-[18%] z-[40] rounded-[1rem] px-3 py-2 text-center text-[14px] font-black uppercase tracking-[0.035em] shadow-[0_8px_18px_rgba(0,0,0,0.20)]",
                 flashState === "success"
                   ? "border-[2px] border-[#245c28] bg-[#d7ffd2]/95 text-[#123d18]"
                   : flashState === "error"
