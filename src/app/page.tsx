@@ -1,5 +1,6 @@
 "use client";
 
+// V568_MOBILE_SCAN_BUTTON_FORCE_NEW_SCANNER_CARD: SCAN-nappi renderöi uuden mobiiliskannerikortin heti eanModalOpen-tilassa.
 // V563_MOBILE_SCANNER_CARD_COMPACT_FIXED: mobiilin skanneri mahtuu yhteen ruutuun; camera region on oma tyhjä mount-div; tap-focus saa regionId:n.
 // V561_ELECTRICITY_CACHE_TYPE_FIX: korjaa localStorage-sähköcachen TypeScript-narrowing virheen cached.value/setState-kutsussa.
 // V560_ELECTRICITY_CACHE_AUTO_CLEANUP: poistaa liian vanhan sähkön hintamuistin automaattisesti localStoragesta.
@@ -5717,6 +5718,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setActiveResult("none");
     setEanModalClosing(false);
     setEanModalOpen(true);
+    // Mobiilin SCAN-nappi avaa aina uuden ZiiplyMobileScannerCard-näkymän heti.
+    // Kamera käynnistetään perässä, mutta renderi ei saa jäädä riippumaan
+    // startEanCameraScannerin asynkronisesta onnistumisesta.
+    setEanScannerOpen(true);
     setDesktopKeyboardScannerOpen(false);
     setEanManualInputOpen(false);
     setEanMessage("");
@@ -11235,7 +11240,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 </div>
               )}
 
-              {eanScannerOpen && (
+              {(eanScannerOpen || (!desktopKeyboardScannerOpen && eanModalOpen)) && (
                 <ZiiplyMobileScannerCard
                   regionId={EAN_SCANNER_REGION_ID}
                   flashState={scanSuccessFlash ? "success" : scanMissFlash ? "error" : "idle"}
