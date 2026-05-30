@@ -1169,7 +1169,11 @@ export default function Page() {
     width: number;
   }>({ top: 286, width: 286 });
 
-  const gpsStoreLocationPendingV366 =
+  
+  const searchFullscreenOpenV617 =
+    searchPanelOpen && activeMobileTab === "search";
+
+const gpsStoreLocationPendingV366 =
     usingOwnLocation && !gpsCoordsV320 && foundStores.length === 0;
   const storePickerCanOpenV366 =
     foundStores.length > 0 &&
