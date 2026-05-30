@@ -1,5 +1,8 @@
 "use client";
 
+// V582_MOBILE_SCANNER_TORCH_FULLHEIGHT_RADAR_AND_BEEP: korjaa taskulamppu-propin, koko kameraruudun tutkaefektin sekä siirtää piip-äänen EAN-koodin löytymishetkeen pois koriinlisäyksestä.
+// V581_MOBILE_SCANNER_TORCH_AND_FULLHEIGHT_RADAR: varmistaa taskulamppupropin välityksen ScannerCardille ja käyttää v581-koko kameraruudun tutkaefektiä.
+// V580_MOBILE_SCANNER_FULLSCREEN_MODE: tekee mobiiliskannerista koko ikkunan tilan; poistaa kortin max-width/padding-rajoitteet ja välittää fullscreen-propin ScannerCardille.
 // V579_MOBILE_SCANNER_GET_PRODUCT_PRICE_TYPE_FIX: korjaa ScannerCardin getProductPrice-propin tyyppierot; välitetään wrapperi, joka käyttää result.productia tai resultiä Productina.
 // V578_MOBILE_SCANNER_SELECTION_TYPE_FIX: korjaa scannerin valintapaneelin onSelectResult-tyypityksen; selection-result muunnetaan EanSearchResultiksi lisäämällä eanMatch true ennen addEanResultToCart-kutsua.
 // V577_MOBILE_SCANNER_RADAR_AND_CAMERA_SELECTION_OVERLAY: skannerin loading renderöidään kameraruudun päälle; tutkaefekti korvaa kovan viivan; usean EAN-osuman valinta peittää koko kameraruudun eikä vihreä välähdys syty ennen tuotteen valintaa.
@@ -1844,6 +1847,23 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const [scanMissFlash, setScanMissFlash] = useState(false);
   const eanHtml5ScannerRef = useRef<any | null>(null);
   const eanScannerStoppingRef = useRef(false);
+  const lastScannerBeepEanRefV582 = useRef("");
+
+  function playScannerBarcodeFoundBeepV582(ean: string) {
+    const normalized = normalizeEan(ean);
+    if (!normalized) return;
+    if (lastScannerBeepEanRefV582.current === normalized) return;
+
+    lastScannerBeepEanRefV582.current = normalized;
+    playScanSuccessFeedback();
+
+    window.setTimeout(() => {
+      if (lastScannerBeepEanRefV582.current === normalized) {
+        lastScannerBeepEanRefV582.current = "";
+      }
+    }, SAME_EAN_RESCAN_LOCK_MS);
+  }
+
   const lastContinuousScanRef = useRef<{ code: string; at: number } | null>(
     null,
   );
@@ -2547,6 +2567,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   async function fetchOpenFoodFactsNames(ean: string) {
     const normalizedEan = normalizeEan(ean);
+    playScannerBarcodeFoundBeepV582(normalizedEan);
     if (!isUsableEan(normalizedEan)) return [];
 
     const response = await fetch(
@@ -6303,7 +6324,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     });
 
     triggerHaptic();
-    playScanSuccessFeedback();
     showScanSuccessFlash();
 
     let cartLimitReached = false;
@@ -11269,7 +11289,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     </div>
                   )}
 
-                  <div className="mt-3 flex justify-end">
+                  <div className="fixed inset-0 z-[160] h-[100dvh] w-screen overflow-hidden bg-[#fff5d9] sm:hidden">
                     <button
                       type="button"
                       onClick={closeEanModal}
@@ -11284,6 +11304,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               {(eanScannerOpen || (!desktopKeyboardScannerOpen && eanModalOpen)) && (
                 <ZiiplyMobileScannerCard
                   regionId={MOBILE_EAN_SCANNER_REGION_ID}
+                  fullscreen
                   flashState={scanSuccessFlash ? "success" : scanMissFlash ? "error" : "idle"}
                   loading={eanLoading}
                   scannerMessage={
