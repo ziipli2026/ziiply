@@ -1,6 +1,6 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V509_LOYDOKSET_TERMS
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V511_FULLSCREEN_BALANCED_LAYOUT
 // UUSI: SearchCard ei renderöi hakutuloksia sisäänsä lainkaan.
 // UUSI: Äänitä ja Filmaa napit pysyvät paikallaan myös silloin, kun erillinen tuloskortti aukeaa.
 // UUSI: tulokset kuuluvat erilliseen ZiiplyMobileSearchResultsCard-komponenttiin.
@@ -245,7 +245,7 @@ function RetroAssetButton({
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="relative block h-[4.85rem] w-full overflow-hidden border-0 bg-transparent p-0 shadow-none outline-none active:translate-y-[1px]"
+      className="relative block h-[4.55rem] w-full overflow-hidden border-0 bg-transparent p-0 shadow-none outline-none active:translate-y-[1px]"
     >
       <img
         src={imageSrc}
@@ -376,7 +376,7 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V508_NO_INTERNAL_RESULTS_FIXED_BUTTONS"
+      data-ziiply-mobile-search-card-version="UUSI_V511_FULLSCREEN_BALANCED_LAYOUT"
       className={`fixed inset-0 z-[72] flex items-stretch justify-center overflow-hidden bg-transparent px-2 pb-[calc(env(safe-area-inset-bottom)+5.45rem)] pt-[calc(env(safe-area-inset-top)+0.75rem)] sm:items-center sm:p-6 ${className}`}
     >
       <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-visible rounded-[2rem] border-[4px] border-[#5b482c] bg-transparent px-3 pt-3 text-[#20301f] shadow-[0_0_0_2px_#d8bd75_inset,0_12px_0_rgba(60,45,20,0.24),0_22px_45px_rgba(15,23,42,0.18)]">
@@ -385,7 +385,7 @@ export default function ZiiplyMobileSearchCard({
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.55),transparent_54%)]" />
         </div>
 
-        <div className="relative z-10 flex h-full min-h-0 flex-col">
+        <div className="relative z-10 flex h-full min-h-0 flex-col justify-center py-4">
           <div className="grid grid-cols-[minmax(0,1fr)_6.9rem] items-start gap-3">
             <div className="min-w-0">
               <div
@@ -427,7 +427,7 @@ export default function ZiiplyMobileSearchCard({
             </div>
           </div>
 
-          <div className="relative z-10 mt-3 grid grid-cols-[1fr_7.15rem_1fr] items-center gap-2.5">
+          <div className="relative z-10 mt-5 grid grid-cols-[1fr_7.15rem_1fr] items-center gap-2.5">
             <AssistantButton
               kind="gosta"
               onClick={() => handleManualSearch(onOfferSearch)}
@@ -445,13 +445,13 @@ export default function ZiiplyMobileSearchCard({
             />
           </div>
 
-          <div className="relative z-10 mt-2 flex h-[2.15rem] items-center justify-center overflow-hidden rounded-[1rem] border-[3px] border-[#d2b170] bg-[#fff1bf] px-3 text-center text-[clamp(0.62rem,2.25vw,0.82rem)] font-black leading-none text-[#7a6842] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_3px_0_rgba(91,72,44,0.12)]">
+          <div className="relative z-10 mt-4 flex h-[2.15rem] items-center justify-center overflow-hidden rounded-[1rem] border-[3px] border-[#d2b170] bg-[#fff1bf] px-3 text-center text-[clamp(0.62rem,2.25vw,0.82rem)] font-black leading-none text-[#7a6842] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_3px_0_rgba(91,72,44,0.12)]">
             <span className="block w-full whitespace-nowrap">
               {subtitle || predictiveText}
             </span>
           </div>
 
-          <div className="relative z-10 mt-4 grid grid-cols-2 gap-3">
+          <div className="relative z-10 mt-6 grid grid-cols-2 gap-3">
             <RetroAssetButton
               kind="voice"
               label="Äänitä"
