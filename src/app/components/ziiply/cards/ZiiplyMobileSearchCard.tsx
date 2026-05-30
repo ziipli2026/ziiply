@@ -1,6 +1,6 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V600_CLEAN_FULLSCREEN_MOCKUP
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V601_REFINED_MOCKUP
 // Puhtaalta pöydältä tehty fullscreen Hae-näkymä mockupin mukaan.
 // - Ei sääpalkkia tämän kortin sisällä
 // - Ei yläpalkkia tämän kortin sisällä
@@ -125,12 +125,12 @@ function ModeToggle({
   onModeChange?: (mode: "cart" | "single") => void;
 }) {
   return (
-    <div className="mx-auto grid h-[3.25rem] w-[11rem] grid-cols-2 overflow-hidden rounded-[1.25rem] border-[3px] border-[#a88442] bg-[#ead7a5] p-1 shadow-[0_0_0_2px_#fff4cc_inset,0_4px_0_rgba(91,72,44,0.20)]">
+    <div className="mx-auto grid h-[2.55rem] w-[14.4rem] grid-cols-2 overflow-hidden rounded-[1.15rem] border-[3px] border-[#a88442] bg-[#ead7a5] p-1 shadow-[0_0_0_2px_#fff4cc_inset,0_4px_0_rgba(91,72,44,0.20)]">
       <button
         type="button"
         onClick={() => onModeChange?.("cart")}
         className={cx(
-          "rounded-[0.95rem] px-2 text-[0.78rem] font-black leading-[0.92] transition active:scale-[0.98]",
+          "rounded-[0.85rem] px-2 text-[0.76rem] font-black leading-[0.86] transition active:scale-[0.98]",
           mode === "cart"
             ? "bg-[#fff4cf] text-[#144b2c] shadow-[inset_0_0_0_2px_#d9bd77,0_1px_0_rgba(91,72,44,0.16)]"
             : "text-[#7a6842]",
@@ -144,7 +144,7 @@ function ModeToggle({
         type="button"
         onClick={() => onModeChange?.("single")}
         className={cx(
-          "rounded-[0.95rem] px-2 text-[0.78rem] font-black leading-[0.92] transition active:scale-[0.98]",
+          "rounded-[0.85rem] px-2 text-[0.76rem] font-black leading-[0.86] transition active:scale-[0.98]",
           mode === "single"
             ? "bg-[#fff4cf] text-[#144b2c] shadow-[inset_0_0_0_2px_#d9bd77,0_1px_0_rgba(91,72,44,0.16)]"
             : "text-[#7a6842]",
@@ -192,7 +192,7 @@ function AssistantButton({
       <img
         src={image}
         alt=""
-        className="absolute left-1/2 top-1/2 h-[112%] w-[112%] -translate-x-1/2 -translate-y-1/2 object-contain object-center"
+        className="absolute left-1/2 top-1/2 h-[129%] w-[129%] -translate-x-1/2 -translate-y-1/2 object-contain object-center"
         draggable={false}
         onError={(event) => {
           event.currentTarget.style.display = "none";
@@ -301,7 +301,7 @@ export default function ZiiplyMobileSearchCard({
     const clean = input.trim();
 
     if (!clean) {
-      return "Kirjoita hakusana tai sano ostos ääneen.";
+      return "Justiina ehdottaa sopivia hakusanoja kirjoittaessasi.";
     }
 
     if (notFoundCanShow) {
@@ -365,7 +365,7 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V600_CLEAN_FULLSCREEN_MOCKUP"
+      data-ziiply-mobile-search-card-version="UUSI_V601_REFINED_MOCKUP"
       className={`fixed inset-0 z-[140] flex items-stretch justify-center overflow-hidden bg-[#f8edc9] px-2 pb-[calc(env(safe-area-inset-bottom)+5.15rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] sm:hidden ${className}`}
     >
       <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.8rem] bg-[#f6ebc6] px-3 pb-3 pt-5 text-[#20301f] shadow-[inset_0_0_0_2px_rgba(216,189,117,0.58)]">
@@ -398,7 +398,7 @@ export default function ZiiplyMobileSearchCard({
           </header>
 
           <div className="mt-5 grid grid-cols-[minmax(0,1fr)_6.9rem] items-center gap-3">
-            <div className="relative h-[4.05rem] overflow-hidden rounded-[1.6rem] border-[3px] border-[#9d8350] bg-[#fff4d3] p-1.5 shadow-[0_4px_0_rgba(91,72,44,0.18),inset_0_3px_8px_rgba(91,65,28,0.10)]">
+            <div className="relative h-[4.35rem] overflow-hidden rounded-[1.6rem] border-[3px] border-[#9d8350] bg-[#fff4d3] p-1.5 shadow-[0_4px_0_rgba(91,72,44,0.18),inset_0_3px_8px_rgba(91,65,28,0.10)]">
               <textarea
                 ref={inputRef}
                 value={input}
@@ -409,7 +409,7 @@ export default function ZiiplyMobileSearchCard({
                 }}
                 rows={2}
                 placeholder={searchMode === "single" ? "Kirjoita yksi tuote" : "maito, kahvi"}
-                className="block h-full w-full resize-none overflow-hidden rounded-[1.2rem] border-0 bg-[#fffaf0] px-3 py-2 pr-[2.7rem] text-center text-[1.2rem] font-black leading-[1.02] text-[#102216] outline-none placeholder:text-[#7d7461]"
+                className="block h-full w-full resize-none overflow-hidden rounded-[1.2rem] border-0 bg-[#fffaf0] px-3 py-2 pr-[2.7rem] text-center text-[1.28rem] font-black leading-[1.02] text-[#102216] outline-none placeholder:text-[#7d7461]"
                 style={{ fontFamily: hasText ? serifFont : cooperFont }}
               />
               <EraserButton visible={hasText} onClick={handleClearInput} />
@@ -427,7 +427,7 @@ export default function ZiiplyMobileSearchCard({
             <ModeToggle mode={searchMode} onModeChange={onSearchModeChange} />
           </div>
 
-          <div className="mt-4 grid grid-cols-[1.12fr_0.92fr_1.12fr] items-center gap-3">
+          <div className="mt-4 grid grid-cols-[1.16fr_0.84fr_1.16fr] items-center gap-3">
             <AssistantButton
               kind="gosta"
               onClick={() => handleManualSearch(onOfferSearch)}
@@ -445,7 +445,7 @@ export default function ZiiplyMobileSearchCard({
             />
           </div>
 
-          <div className="mt-5 flex h-[3.1rem] items-center justify-center overflow-hidden rounded-[1.25rem] border-[3px] border-[#d2b170] bg-[#fff1bf] px-4 text-center text-[clamp(0.76rem,2.45vw,0.92rem)] font-black leading-[1.05] text-[#6f5630] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_3px_0_rgba(91,72,44,0.12)]">
+          <div className="mt-5 flex min-h-[3.75rem] items-center justify-center overflow-hidden rounded-[1.25rem] border-[3px] border-[#d2b170] bg-[#fff1bf] px-4 text-center text-[clamp(0.76rem,2.45vw,0.92rem)] font-black leading-[1.05] text-[#6f5630] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_3px_0_rgba(91,72,44,0.12)]">
             <span className="block w-full">
               {subtitle || predictiveText}
             </span>
