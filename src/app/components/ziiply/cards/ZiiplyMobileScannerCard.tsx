@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * ZiiplyMobileScannerCard-v594-window-flash-no-startup-hint.tsx
+ * ZiiplyMobileScannerCard-v595-bottom-up-no-hint.tsx
  * 2026-05-30
  *
  * Mobiiliskannerikortin v590-revisio.
@@ -14,7 +14,7 @@
  * - Kortti on yhden ruudun fixed-height UI:lle sopiva.
  * - Ei "EAN käsin" -nappia.
  * - Säilyttää "Liitä EAN", kameratoiminnon ja "Sulje kamera".
- * - Ohje näytetään kameraruudun päällä vain 2,5 s.
+ * - v595: kameran ohjetekstit piilotettu kokonaan; vain haku-/flash-/valintakuittaukset näytetään.
  * - V593: vihreä/punainen väläys rajattu vain kameraruudun/skanneri-ikkunan sisään.
  * - Vihreä/punainen väläys koko kortin päällä success/error-tiloissa.
  * - Ei backdrop-bluria, ei WEBP-layeria, ei ylimääräisiä pointer-events-kikkailuja.
@@ -119,7 +119,9 @@ export default function ZiiplyMobileScannerCard({
         ? "Lisätty koriin"
         : flashState === "error"
           ? "Ei löytynyt"
-          : scannerMessage || "";
+          : scannerMessage === "Tuote lisätty"
+            ? "Tuote lisätty"
+            : "";
 
   const hasSelectionResults = selectionResults.length > 1;
 
@@ -214,7 +216,7 @@ export default function ZiiplyMobileScannerCard({
 
         @keyframes ziiplyRadarSweep {
           0% {
-            top: -26%;
+            top: 100%;
             opacity: 0;
           }
 
@@ -227,7 +229,7 @@ export default function ZiiplyMobileScannerCard({
           }
 
           100% {
-            top: 100%;
+            top: -26%;
             opacity: 0;
           }
         }
@@ -240,7 +242,7 @@ export default function ZiiplyMobileScannerCard({
           position: absolute;
           left: 0;
           right: 0;
-          top: -26%;
+          top: 100%;
           height: 24%;
           min-height: 72px;
           max-height: 132px;
