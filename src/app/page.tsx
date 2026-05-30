@@ -1,6 +1,5 @@
 "use client";
 
-// V591_SCANNER_FLASH_ONLY_AUTO_CART: piip säilyy EAN-koodin tunnistushetkellä; vihreä välähdys näytetään vain, kun yksi automaattinen osuma lisätään suoraan koriin.
 // V590_SCANNER_STATUS_BEEP_FLOW: piip kuuluu EAN-koodin tunnistushetkellä, ei koriin lisäyksessä; scannerMessage näyttää HAETAAN kameraruudulla loading-tilassa.
 // V582_MOBILE_SCANNER_TORCH_FULLHEIGHT_RADAR_AND_BEEP: korjaa taskulamppu-propin, koko kameraruudun tutkaefektin sekä siirtää piip-äänen EAN-koodin löytymishetkeen pois koriinlisäyksestä.
 // V581_MOBILE_SCANNER_TORCH_AND_FULLHEIGHT_RADAR: varmistaa taskulamppupropin välityksen ScannerCardille ja käyttää v581-koko kameraruudun tutkaefektiä.
@@ -6058,12 +6057,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             await stopEanCameraScanner();
             await compareEanResultAsSingle(exactResults[0]);
           } else {
-            // V591: vain tämä polku saa näyttää vihreän onnistumisvälähdyksen:
-            // yksi automaattinen EAN-osuma menee suoraan ostoskoriin.
-            addEanResultToCart(exactResults[0], { showSuccessFlash: true });
+            // Automaattisen EAN-haun yhden täsmäosuman polku pidetään hiljaisena:
+            // ei renderöidä välissä tuloskorttia, jotta EAN-ikkuna ei hypi.
+            addEanResultToCart(exactResults[0]);
           }
         } else if (exactResults.length === 1) {
-          // V591: ei vihreää välähdystä tässä, koska tuote ei mene automaattisesti koriin.
+          if (eanScannerOpen || eanHtml5ScannerRef.current)
+            showScanSuccessFlash();
           setEanResults(exactResults.slice(0, 8));
           setEanMessage("Löytyi 1 tarkka EAN-osuma.");
         } else {
@@ -6294,10 +6294,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
   }
 
-  function addEanResultToCart(
-    result: EanSearchResult,
-    options: { showSuccessFlash?: boolean } = {},
-  ) {
+  function addEanResultToCart(result: EanSearchResult) {
     const ean = normalizeEan(result.product.ean || eanInput);
     if (isUsableEan(ean)) {
       lastContinuousScanRef.current = { code: ean, at: Date.now() };
@@ -6328,12 +6325,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     });
 
     triggerHaptic();
-
-    // V591: käyttäjän valintapaneelista tehty lisäys ei saa väläyttää vihreää.
-    // Välähdys sallitaan vain yhden automaattisen EAN-osuman suoralisäyksessä.
-    if (options.showSuccessFlash) {
-      showScanSuccessFlash();
-    }
+    showScanSuccessFlash();
 
     let cartLimitReached = false;
 
