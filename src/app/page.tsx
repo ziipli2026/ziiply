@@ -1,6 +1,7 @@
 "use client";
 
-// V571_MOBILE_SCANNER_PROP_CONTRACT_FIXED: page ei välitä artworkSrc-propia; ScannerCard määrittää kuvan itse ja hyväksyy silti propin varmuuden vuoksi.
+// V573_MOBILE_SCANNER_CHILDREN_REMOVED: uusi puhdas ScannerCard on self-closing; page ei enää anna children-sisältöä eikä vanhoja onManualEan/onPasteEan/onTorch-proppeja.
+// V572_CLEAN_SCANNER_CSS_ONLY: mobiiliskanneri käyttää puhdasta CSS-korttia ilman WEBP-taustakuvaa; vanha scanner-kuva ja cache-ongelma poistettu.
 // V570_MOBILE_SCANNER_NO_ARTWORK_PROP: poistaa page-kutsusta artworkSrc-propin; kuva määritetään kortissa, jotta build ei kaadu vanhaan props-tyyppiin.
 // V569_MOBILE_SCANNER_ARTWORK_HARDWIRED:
 // page antaa uuden scanner-screenv2.webp-polun suoraan ZiiplyMobileScannerCardille, jotta vanha assetti ei voi jäädä käyttöön.
@@ -11258,24 +11259,21 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   }
                   torchOn={scannerTorchOn}
                   manualInputOpen={eanManualInputOpen}
-                  onCameraTap={(event) => void (focusScannerCameraAtPoint as any)(EAN_SCANNER_REGION_ID, event)}
-                  onManualEan={() => {
-                    setEanManualInputOpen((open) => {
-                      const nextOpen = !open;
-                      if (nextOpen) {
-                        window.setTimeout(() => eanInputRef.current?.focus(), 0);
-                      }
-                      return nextOpen;
-                    });
-                  }}
-                  onPasteEan={async () => {
+                  onCameraTap={(event) =>
+                    void (focusScannerCameraAtPoint as any)(EAN_SCANNER_REGION_ID, event)
+                  }
+                  onToggleManualInput={async () => {
                     try {
                       const text = await navigator.clipboard.readText();
                       const code = normalizeEan(text);
+
                       if (!isUsableEan(code)) {
+                        setEanManualInputOpen(true);
                         setEanMessage("Leikepöydältä ei löytynyt kelvollista EAN-koodia.");
+                        window.setTimeout(() => eanInputRef.current?.focus(), 0);
                         return;
                       }
+
                       setEanManualInputOpen(true);
                       setEanInput(code);
                       setLastAutoEanSearch(code);
@@ -11288,61 +11286,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       window.setTimeout(() => eanInputRef.current?.focus(), 0);
                     }
                   }}
-                  onTorch={() => void toggleScannerTorch()}
+                  onToggleTorch={() => void toggleScannerTorch()}
                   onClose={closeEanModal}
-                >
-                  {eanManualInputOpen && (
-                    <div className="flex gap-2 ziiply-soft-open-fast">
-                      <input
-                        ref={eanInputRef}
-                        value={eanInput}
-                        onChange={(event) =>
-                          setEanInput(event.target.value.replace(/\D/g, ""))
-                        }
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter") void searchByEan();
-                        }}
-                        inputMode="numeric"
-                        placeholder="Syötä EAN, esim. 641..."
-                        className="min-w-0 flex-1 rounded-2xl border border-[#d6bf8f] bg-white px-4 py-3 text-base font-bold tracking-wide text-[#172016] outline-none transition focus:border-[#2f7c3f]"
-                        onPaste={(event) => {
-                          const pastedText = event.clipboardData.getData("text");
-                          const code = normalizeEan(pastedText);
-
-                          if (!isUsableEan(code)) return;
-
-                          event.preventDefault();
-
-                          if (eanAutoSearchTimeoutRef.current) {
-                            window.clearTimeout(
-                              eanAutoSearchTimeoutRef.current,
-                            );
-                            eanAutoSearchTimeoutRef.current = null;
-                          }
-
-                          setEanInput(code);
-                          setLastAutoEanSearch(code);
-                          setEanSearchStartedAutomatically(true);
-                          eanAutoSearchActiveRef.current = true;
-                          setEanMessage(
-                            `Liitetty koodi: ${code}. Haetaan...`,
-                          );
-                          void searchByEan(code);
-                        }}
-                      />
-                      <button
-                        type="button"
-                        onClick={clearEanSearch}
-                        disabled={
-                          !eanInput && eanResults.length === 0 && !eanMessage
-                        }
-                        className="rounded-2xl bg-[#efe0bf] px-4 py-3 text-sm font-extrabold text-[#3a3325] ring-1 ring-[#d6bf8f] transition active:scale-[0.98] disabled:opacity-40"
-                      >
-                        Tyhjennä
-                      </button>
-                    </div>
-                  )}
-                </ZiiplyMobileScannerCard>
+                />
               )}
 
               {eanMessage && !eanSearchStartedAutomatically && (
