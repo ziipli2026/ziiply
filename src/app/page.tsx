@@ -1,5 +1,6 @@
 "use client";
 
+// V592_SCANNER_BEEP_ALWAYS_ON_SEARCH_START: piip kuuluu aina, kun EAN-haku oikeasti käynnistyy; ei piippiä enää valintapaneelin kautta lisäyksessä.
 // V590_SCANNER_STATUS_BEEP_FLOW: piip kuuluu EAN-koodin tunnistushetkellä, ei koriin lisäyksessä; scannerMessage näyttää HAETAAN kameraruudulla loading-tilassa.
 // V582_MOBILE_SCANNER_TORCH_FULLHEIGHT_RADAR_AND_BEEP: korjaa taskulamppu-propin, koko kameraruudun tutkaefektin sekä siirtää piip-äänen EAN-koodin löytymishetkeen pois koriinlisäyksestä.
 // V581_MOBILE_SCANNER_TORCH_AND_FULLHEIGHT_RADAR: varmistaa taskulamppupropin välityksen ScannerCardille ja käyttää v581-koko kameraruudun tutkaefektiä.
@@ -1853,16 +1854,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   function playScannerBarcodeFoundBeepV582(ean: string) {
     const normalized = normalizeEan(ean);
     if (!normalized) return;
-    if (lastScannerBeepEanRefV582.current === normalized) return;
 
+    // V592: piip kuuluu aina, kun uusi EAN-haku oikeasti käynnistyy.
+    // Tätä ei sidota osumien määrään eikä koriin lisäykseen, jotta myös
+    // usean tuotteen valintapaneeli antaa lukukuittauksen.
     lastScannerBeepEanRefV582.current = normalized;
     playScanSuccessFeedback();
-
-    window.setTimeout(() => {
-      if (lastScannerBeepEanRefV582.current === normalized) {
-        lastScannerBeepEanRefV582.current = "";
-      }
-    }, SAME_EAN_RESCAN_LOCK_MS);
   }
 
   const lastContinuousScanRef = useRef<{ code: string; at: number } | null>(
@@ -2568,7 +2565,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   async function fetchOpenFoodFactsNames(ean: string) {
     const normalizedEan = normalizeEan(ean);
-    playScannerBarcodeFoundBeepV582(normalizedEan);
     if (!isUsableEan(normalizedEan)) return [];
 
     const response = await fetch(
@@ -5910,6 +5906,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     if (eanSearchInFlightRef.current === ean) return;
 
+    // V592: lukukuittaus heti haun alussa. Tämä ajetaan ennen
+    // cache-/OpenFoodFacts-/osumamäärähaaroja, joten piip kuuluu myös
+    // silloin, kun samalla EANilla löytyy 2+ tuotetta ja avataan valintapaneeli.
+    playScannerBarcodeFoundBeepV582(ean);
+
     trackZiiplyEvent("barcode_search_used", {
       ean,
       cartItemsCount: cart.length,
@@ -6294,7 +6295,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
   }
 
-  function addEanResultToCart(result: EanSearchResult) {
+  function addEanResultToCart(
+    result: EanSearchResult,
+    options: { showFlash?: boolean } = {},
+  ) {
     const ean = normalizeEan(result.product.ean || eanInput);
     if (isUsableEan(ean)) {
       lastContinuousScanRef.current = { code: ean, at: Date.now() };
@@ -6325,7 +6329,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     });
 
     triggerHaptic();
-    showScanSuccessFlash();
+    if (options.showFlash !== false) {
+      showScanSuccessFlash();
+    }
 
     let cartLimitReached = false;
 
@@ -11317,10 +11323,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       : []
                   }
                   onSelectResult={(result) =>
-                    addEanResultToCart({
-                      ...result,
-                      eanMatch: true,
-                    } as EanSearchResult)
+                    addEanResultToCart(
+                      {
+                        ...result,
+                        eanMatch: true,
+                      } as EanSearchResult,
+                      { showFlash: false },
+                    )
                   }
                   formatPrice={formatEuro}
                   getProductPrice={(result) =>
@@ -11419,7 +11428,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                         </div>
                         <button
                           type="button"
-                          onClick={() => addEanResultToCart(result)}
+                          onClick={() => addEanResultToCart(result, { showFlash: false })}
                           className="min-h-[2.75rem] shrink-0 touch-manipulation rounded-[1rem] bg-green-600 px-3 text-sm font-black text-white shadow-sm shadow-green-600/20 transition active:scale-[0.98]"
                         >
                           Lisää ostoskoriin
