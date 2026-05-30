@@ -314,20 +314,20 @@ export default function ZiiplyMobileProductPickCard({
             <article
               key={String(result.key ?? result.id ?? result.ean ?? index)}
               className={[
-                "relative grid min-h-0 grid-cols-[minmax(0,1fr)_38%] overflow-hidden rounded-[1.55rem] border-[4px] border-[#8c6934] bg-[#fffdf8] shadow-[0_6px_0_rgba(91,72,44,0.14)]",
+                "relative grid min-h-0 grid-cols-[minmax(0,1fr)_42%] overflow-hidden rounded-[1.55rem] border-[4px] border-[#8c6934] bg-[#fffdf8] shadow-[0_6px_0_rgba(91,72,44,0.14)]",
                 isTwoItems ? "flex-1" : "min-h-[10.5rem]",
               ].join(" ")}
             >
               <div className="relative min-w-0 px-4 py-4 pb-[4.0rem]">
                 <div
-                  className="line-clamp-3 text-[1.22rem] font-black leading-[0.98] text-[#123d32]"
+                  className="line-clamp-3 text-[1.16rem] font-black leading-[0.98] text-[#123d32]"
                   style={{ fontFamily: cooper }}
                 >
                   {name}
                 </div>
 
                 {store && (
-                  <div className="mt-2 line-clamp-2 text-[0.88rem] font-black uppercase leading-[1.02] text-[#6c532c]">
+                  <div className="mt-2 truncate whitespace-nowrap text-[0.86rem] font-black uppercase leading-none text-[#6c532c]">
                     {store}
                   </div>
                 )}
@@ -346,16 +346,16 @@ export default function ZiiplyMobileProductPickCard({
               </div>
 
               <div className="relative flex min-w-0 flex-col p-3 pl-1">
-                <div className="grid min-h-[5.4rem] flex-1 place-items-center overflow-hidden rounded-[1rem] bg-white shadow-[inset_0_1px_8px_rgba(0,0,0,0.08)]">
+                <div className="grid min-h-[6.6rem] flex-1 place-items-center overflow-visible">
                   {image ? (
                     <img
                       src={image}
                       alt=""
-                      className="h-full w-full object-contain p-1"
+                      className="h-full max-h-[8.6rem] w-full scale-[1.18] object-contain p-0"
                       loading="lazy"
                     />
                   ) : (
-                    <span className="text-[2.7rem]">🛒</span>
+                    <span className="text-[3.2rem]">🛒</span>
                   )}
                 </div>
 
