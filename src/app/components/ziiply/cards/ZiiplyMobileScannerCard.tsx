@@ -1,10 +1,10 @@
 "use client";
 
 /**
- * ZiiplyMobileScannerCard-v585-clean-single-moving-line.tsx
+ * ZiiplyMobileScannerCard-v586-fullheight-soft-single-wave.tsx
  * 2026-05-30
  *
- * Mobiiliskannerikortin v585-revisio.
+ * Mobiiliskannerikortin v586-revisio.
  *
  * Muutokset:
  * - Ei käytä WEBP-taustakuvaa lainkaan.
@@ -34,6 +34,8 @@
  * - v582: taskulamppunappi pysäyttää event-kuplan ja kutsuu vain page-propin.
  * - v585: palauttaa v582-tyylisen selkeän tutkalinjan, mutta poistaa haamu-/varjoviivat.
  * - v585: tutka on yksi fyysisesti kapea liikkuva elementti, ei koko ruudun korkuinen gradientti.
+ * - v586: palauttaa koko kameraruudun korkuisen liikeradan.
+ * - v586: yksi pehmeä tutka-aalto, ei kapeaa laser-viivaa eikä useita haamuaaltoja.
  */
 
 import React, { useEffect, useMemo, useState } from "react";
@@ -210,42 +212,46 @@ export default function ZiiplyMobileScannerCard({
 
         @keyframes ziiplyRadarSweep {
           0% {
-            transform: translateY(-18px);
-            opacity: 0.0;
+            transform: translateY(-100%);
+            opacity: 0;
           }
 
-          8% {
+          10% {
             opacity: 1;
           }
 
-          92% {
+          90% {
             opacity: 1;
           }
 
           100% {
-            transform: translateY(calc(100% + 18px));
-            opacity: 0.0;
+            transform: translateY(100%);
+            opacity: 0;
           }
         }
 
         .ziiply-radar-sweep {
           background:
             linear-gradient(
-              90deg,
+              180deg,
               rgba(120,255,120,0.00) 0%,
-              rgba(120,255,120,0.88) 14%,
-              rgba(185,255,170,1.00) 50%,
-              rgba(120,255,120,0.88) 86%,
+              rgba(120,255,120,0.00) 41%,
+              rgba(120,255,120,0.16) 45%,
+              rgba(120,255,120,0.44) 48%,
+              rgba(150,255,132,0.72) 50%,
+              rgba(120,255,120,0.44) 52%,
+              rgba(120,255,120,0.16) 55%,
+              rgba(120,255,120,0.00) 59%,
               rgba(120,255,120,0.00) 100%
             );
 
-          filter: none;
+          filter: blur(5px);
 
           box-shadow:
-            0 0 12px rgba(120,255,120,0.72),
-            0 0 22px rgba(120,255,120,0.34);
+            0 0 26px rgba(120,255,120,0.38),
+            0 0 58px rgba(120,255,120,0.18);
 
-          animation: ziiplyRadarSweep 3.2s ease-in-out infinite;
+          animation: ziiplyRadarSweep 3.4s ease-in-out infinite;
           will-change: transform, opacity;
         }
 
@@ -327,7 +333,7 @@ export default function ZiiplyMobileScannerCard({
           />
           {/* Radar sweep */}
           <div
-            className="pointer-events-none absolute inset-x-0 top-0 z-[28] h-[7px] ziiply-radar-sweep"
+            className="pointer-events-none absolute inset-x-0 top-0 z-[28] h-full ziiply-radar-sweep"
             aria-hidden="true"
           />
 
