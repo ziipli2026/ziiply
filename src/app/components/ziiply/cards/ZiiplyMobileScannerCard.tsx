@@ -1,10 +1,10 @@
 "use client";
 
 /**
- * ZiiplyMobileScannerCard-v574-unique-region-visible-video.tsx
+ * ZiiplyMobileScannerCard-v576-visible-mount-wait.tsx
  * 2026-05-30
  *
- * Uudelleenrakennettu mobiiliskannerikortti.
+ * Mobiiliskannerikortin v576-revisio.
  *
  * Muutokset:
  * - Ei käytä WEBP-taustakuvaa lainkaan.
@@ -17,7 +17,9 @@
  * - Ohje näytetään kameraruudun päällä vain 2,5 s.
  * - Vihreä/punainen väläys koko kortin päällä success/error-tiloissa.
  * - Ei backdrop-bluria, ei WEBP-layeria, ei ylimääräisiä pointer-events-kikkailuja.
- * - v574: startup-ohje 2,5s ja tarkoitettu käytettäväksi mobiilin omalla regionId:llä.
+ * - v576: yhteensopiva page-v576:n näkyvän mountin odotuksen kanssa.
+ * - v576: scanner mount pidetään aina näkyvässä kameraruudussa ja video/canvas nostetaan varmistetusti näkyviin.
+ * - v576: startup-hyppyä ei tehdä kortin sisällä; ei transform-/scale-animaatiota mountissa.
  */
 
 import React, { useEffect, useMemo, useState } from "react";
@@ -83,7 +85,7 @@ export default function ZiiplyMobileScannerCard({
   return (
     <section
       className={[
-        "relative mx-auto flex h-full w-full max-w-[430px] flex-col overflow-hidden",
+        "relative isolate mx-auto flex h-full w-full max-w-[430px] flex-col overflow-hidden transform-none",
         "rounded-[1.65rem] border-[4px] border-[#073d32]",
         "bg-[#fff5d9]",
         "shadow-[0_16px_38px_rgba(8,42,35,0.24),inset_0_0_0_2px_rgba(255,255,255,0.74)]",
@@ -113,9 +115,18 @@ export default function ZiiplyMobileScannerCard({
           border-radius: 1.05rem !important;
         }
 
-        #${regionId} > div {
+        #${regionId} > div,
+        #${regionId}__dashboard,
+        #${regionId}__scan_region {
           width: 100% !important;
           height: 100% !important;
+        }
+
+        #${regionId} video,
+        #${regionId} canvas {
+          display: block !important;
+          position: relative !important;
+          z-index: 2 !important;
         }
 
         #${regionId} img,
@@ -185,6 +196,7 @@ export default function ZiiplyMobileScannerCard({
           {/* AINOA kameran mount-piste. Html5Qrcode saa täyttää tämän. */}
           <div
             id={regionId}
+            data-ziiply-mobile-scanner-region="v576"
             className="absolute inset-0 z-[1] h-full w-full overflow-hidden rounded-[1.05rem] bg-black"
           />
 
