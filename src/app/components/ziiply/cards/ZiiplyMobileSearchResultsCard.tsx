@@ -1,12 +1,12 @@
 "use client";
 
-// ZiiplyMobileSearchResultsCard v5-leftimage
-// - Pitkälle / loputtomalle listalle optimoitu matala tuoterivi.
-// - Tuotekuva vasemmalla, jotta rivi pysyy matalana.
-// - Ulkoasu linjassa PickCardin paperi/emali-tyylin kanssa.
-// - Tuotenimi keskialueelle, kauppa ja vertailuhinta alemmaksi.
-// - Hinta ja Lisää-nappi oikeaan alakulmaan samalle linjalle.
-// - Lista on oma scrollialue.
+// ZiiplyMobileSearchResultsCard v11
+// Mockup-rakenne:
+// - tuotekuva vasemmalla ylhäällä
+// - yksi Lisää-nappi vasemmalla kuvan alla
+// - tuotenimi oikealla ja saa käyttää koko oikean tekstialueen
+// - €/kg + hinta nimen alla
+// - tarkoitettu pitkälle / loputtomalle scrollilistalle
 
 import React from "react";
 
@@ -84,19 +84,6 @@ function getImage(product: ZiiplyMobileSearchResultProduct) {
     product.product?.imageUrl,
     product.product?.pictureUrl,
   );
-}
-
-function getStore(product: ZiiplyMobileSearchResultProduct) {
-  const chain = firstText(product.chain, product.product?.chain);
-  const store = firstText(
-    product.storeName,
-    product.store,
-    product.product?.storeName,
-    product.product?.store,
-  );
-
-  if (chain && store) return `${chain} · ${store}`;
-  return chain || store;
 }
 
 function numericValue(value: unknown) {
@@ -281,7 +268,7 @@ export default function ZiiplyMobileSearchResultsCard({
 
         <header className="relative z-20 shrink-0 px-4 pb-3 pt-4">
           <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0 pt-[0.05rem]">
+            <div className="min-w-0">
               <div
                 className="text-[0.78rem] font-black uppercase tracking-[0.42em] text-[#7d6b45]"
                 style={{ fontFamily: copper }}
@@ -359,38 +346,28 @@ export default function ZiiplyMobileSearchResultsCard({
                       </button>
                     </div>
 
-                    <div className="min-w-0">
+                    <div className="min-w-0 pt-[0.05rem]">
                       <div
-                        className="line-clamp-2 text-[0.86rem] font-black leading-[0.88] text-[#123d32]"
+                        className="line-clamp-2 pr-1 text-[0.88rem] font-black leading-[0.90] text-[#123d32]"
                         style={{ fontFamily: cooper }}
                       >
                         {name}
                       </div>
 
-                      <div className="mt-[0.18rem] flex min-w-0 items-center gap-1.5 text-[0.68rem] font-black leading-none text-[#7a6947]">
-                        {comparison && (
-                          <span className="shrink-0">{comparison}</span>
-                        )}
+                      <div className="mt-[0.34rem] flex min-w-0 items-center gap-1.5 text-[0.68rem] font-black leading-none text-[#7a6947]">
+                        {comparison && <span className="shrink-0">{comparison}</span>}
 
                         {comparison && price && (
                           <span className="shrink-0 opacity-50">•</span>
                         )}
 
                         {price && (
-                          <span className="shrink-0 text-[0.86rem] text-[#234b24]">
+                          <span className="shrink-0 text-[0.88rem] text-[#234b24]">
                             {price}
                           </span>
                         )}
                       </div>
                     </div>
-
-                    <button
-                      type="button"
-                      onClick={() => onAddProduct?.(product)}
-                      className="pointer-events-auto mt-auto shrink-0 self-end rounded-[0.78rem] border-[2.5px] border-[#178338] bg-[#08a63d] px-2.5 py-[0.60rem] text-[0.78rem] font-black uppercase leading-none tracking-[0.02em] text-[#fff3d8] shadow-[0_3px_0_rgba(0,74,24,0.24),inset_0_1px_0_rgba(255,255,255,0.26)] active:translate-y-[1px] active:shadow-[0_1px_0_rgba(0,74,24,0.24)]"
-                    >
-                      Lisää
-                    </button>
                   </article>
                 );
               })}
