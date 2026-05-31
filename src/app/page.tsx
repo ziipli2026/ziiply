@@ -1,5 +1,8 @@
 "use client";
 
+// V630_INLINE_MODE_SELECTOR_VISIBLE_GRAPHICS_FIX:
+// Simuloitu vika: käytössä oleva mobiili-Kaupat-render on page.tsx:n inline-haara. Muutos tehdään nyt juuri siihen haaraan selvästi näkyvänä mode selector -grafiikan muutoksena. Vain ulkoasu, ei click/state/logiikka-muutoksia.
+
 // V629_INLINE_MODE_SELECTOR_GRAPHICS_VISUAL_ONLY:
 // Korjaa käytössä olevan page.tsx inline-Kaupat-renderin mode selector -osion grafiikkaa vain ulkoasun osalta. Ei muutoksia logiikkaan, stateihin, callbackeihin tai click-toimintoihin.
 // V628_INLINE_MOBILE_SHOPS_RETRO_C_VISIBLE_VISUAL_ONLY:
@@ -10753,16 +10756,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               backgroundSize: "15px 15px, 100% 100%, 100% 100%",
             }}
           >
-            <div className="relative z-10 grid grid-cols-2 gap-x-3 gap-y-1.5 overflow-visible">
+            <div className="relative z-10 grid grid-cols-2 gap-x-3 gap-y-2 overflow-visible rounded-[1.55rem] border-[2px] border-[#8e682f] bg-[#ead29a]/78 p-2 shadow-[inset_0_0_0_2px_rgba(255,248,220,0.62),0_4px_0_rgba(92,61,20,0.22)]">
               <button
                 type="button"
                 disabled={storeCompareScope === "within_chain"}
                 onClick={() => handleStoreModeChange("hyper")}
-                className={`relative overflow-hidden rounded-2xl px-4 py-[0.36rem] text-base font-extrabold leading-tight transition disabled:cursor-not-allowed before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.42),transparent_58%)] ${
+                className={`relative overflow-hidden rounded-[1.12rem] border-[2px] px-4 py-[0.44rem] text-base font-black leading-tight tracking-[-0.01em] transition disabled:cursor-not-allowed before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.50),transparent_58%)] ${
                   storeCompareScope === "within_chain" ||
                   (storeModeChosenV299 && storeMode === "hyper")
-                    ? "border-[2px] border-[#043d22] bg-gradient-to-b from-[#0a7540] via-[#076232] to-[#044520] text-[#fff4d4] shadow-[0_5px_0_#03351c,0_10px_22px_rgba(0,62,31,0.26),inset_0_0_0_2px_rgba(255,255,255,0.14)] ring-1 ring-black/10"
-                    : "border-[2px] border-[#b9914d] bg-gradient-to-b from-[#fff8dc] to-[#efdba6] text-[#5a3d18] shadow-[0_3px_0_rgba(94,71,31,0.20),inset_0_0_0_2px_rgba(255,255,255,0.45)] ring-1 ring-[#fff1bf]"
+                    ? "border-[#04351f] bg-gradient-to-b from-[#0b7a3e] via-[#056131] to-[#033f20] text-[#fff1c9] shadow-[0_6px_0_#032d18,0_12px_22px_rgba(0,58,28,0.32),inset_0_0_0_2px_rgba(255,255,255,0.18)] ring-1 ring-black/15"
+                    : "border-[#9f7638] bg-gradient-to-b from-[#fff6d6] via-[#f4dfaa] to-[#e6c984] text-[#4f3718] shadow-[0_4px_0_rgba(88,60,22,0.28),inset_0_0_0_2px_rgba(255,255,255,0.50)] ring-1 ring-[#fff2bf]"
                 }`}
               >
                 🏬 Tavaratalot
@@ -10771,22 +10774,22 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 type="button"
                 disabled={storeCompareScope === "within_chain"}
                 onClick={() => handleStoreModeChange("local")}
-                className={`relative overflow-hidden rounded-2xl px-4 py-[0.36rem] text-base font-extrabold leading-tight transition disabled:cursor-not-allowed before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.42),transparent_58%)] ${
+                className={`relative overflow-hidden rounded-[1.12rem] border-[2px] px-4 py-[0.44rem] text-base font-black leading-tight tracking-[-0.01em] transition disabled:cursor-not-allowed before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.50),transparent_58%)] ${
                   storeCompareScope === "within_chain" ||
                   (storeModeChosenV299 && storeMode === "local")
-                    ? "border-[2px] border-[#043d22] bg-gradient-to-b from-[#0a7540] via-[#076232] to-[#044520] text-[#fff4d4] shadow-[0_5px_0_#03351c,0_10px_22px_rgba(0,62,31,0.26),inset_0_0_0_2px_rgba(255,255,255,0.14)] ring-1 ring-black/10"
-                    : "border-[2px] border-[#b9914d] bg-gradient-to-b from-[#fff8dc] to-[#efdba6] text-[#5a3d18] shadow-[0_3px_0_rgba(94,71,31,0.20),inset_0_0_0_2px_rgba(255,255,255,0.45)] ring-1 ring-[#fff1bf]"
+                    ? "border-[#04351f] bg-gradient-to-b from-[#0b7a3e] via-[#056131] to-[#033f20] text-[#fff1c9] shadow-[0_6px_0_#032d18,0_12px_22px_rgba(0,58,28,0.32),inset_0_0_0_2px_rgba(255,255,255,0.18)] ring-1 ring-black/15"
+                    : "border-[#9f7638] bg-gradient-to-b from-[#fff6d6] via-[#f4dfaa] to-[#e6c984] text-[#4f3718] shadow-[0_4px_0_rgba(88,60,22,0.28),inset_0_0_0_2px_rgba(255,255,255,0.50)] ring-1 ring-[#fff2bf]"
                 }`}
               >
                 🏪 Lähikaupat
               </button>
 
-              <div className="col-span-2 -mt-0.5 flex h-5 items-center justify-center">
+              <div className="col-span-2 -my-0.5 flex h-6 items-center justify-center">
                 <span
-                  className={`rounded-full px-2.5 py-[0.28rem] text-center text-[10px] font-black uppercase leading-none tracking-wide transition-all duration-150 ${
+                  className={`rounded-full border-[2px] px-3 py-[0.32rem] text-center text-[11px] font-black uppercase leading-none tracking-[0.12em] transition-all duration-150 shadow-[0_2px_0_rgba(91,72,44,0.22),inset_0_1px_0_rgba(255,255,255,0.75)] ${
                     inlineHakutapaNoticeVisibleV452
                       ? "border-[#c59628] bg-[#fff2a8] text-[#7c4200] shadow-[0_5px_12px_rgba(124,66,0,0.18),inset_0_1px_0_rgba(255,255,255,0.85)] animate-[ziiplyInlineNoticeFade_2.2s_ease-out_1_forwards]"
-                      : "border-[#c9aa62] bg-[#fff6cf] text-[#6b5a35]"
+                      : "border-[#b8914d] bg-[#fff3c6] text-[#60491f]"
                   }`}
                 >
                   {inlineHakutapaNoticeVisibleV452
@@ -10802,10 +10805,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               <button
                 type="button"
                 onClick={() => handleStoreCompareScopeChange("between_chains")}
-                className={`relative overflow-hidden rounded-2xl px-4 py-[0.36rem] text-sm font-extrabold leading-tight transition before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.42),transparent_58%)] ${
+                className={`relative overflow-hidden rounded-[1.12rem] border-[2px] px-4 py-[0.44rem] text-sm font-black leading-tight tracking-[-0.01em] transition before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.50),transparent_58%)] ${
                   storeCompareScope === "between_chains"
-                    ? "border-[2px] border-[#043d22] bg-gradient-to-b from-[#0a7540] via-[#076232] to-[#044520] text-[#fff4d4] shadow-[0_5px_0_#03351c,0_10px_22px_rgba(0,62,31,0.26),inset_0_0_0_2px_rgba(255,255,255,0.14)] ring-1 ring-black/10"
-                    : "border-[2px] border-[#b9914d] bg-gradient-to-b from-[#fff8dc] to-[#efdba6] text-[#5a3d18] shadow-[0_3px_0_rgba(94,71,31,0.20),inset_0_0_0_2px_rgba(255,255,255,0.45)] ring-1 ring-[#fff1bf]"
+                    ? "border-[#04351f] bg-gradient-to-b from-[#0b7a3e] via-[#056131] to-[#033f20] text-[#fff1c9] shadow-[0_6px_0_#032d18,0_12px_22px_rgba(0,58,28,0.32),inset_0_0_0_2px_rgba(255,255,255,0.18)] ring-1 ring-black/15"
+                    : "border-[#9f7638] bg-gradient-to-b from-[#fff6d6] via-[#f4dfaa] to-[#e6c984] text-[#4f3718] shadow-[0_4px_0_rgba(88,60,22,0.28),inset_0_0_0_2px_rgba(255,255,255,0.50)] ring-1 ring-[#fff2bf]"
                 }`}
               >
                 Ketjujen väliltä
@@ -10813,10 +10816,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               <button
                 type="button"
                 onClick={() => handleStoreCompareScopeChange("within_chain")}
-                className={`relative overflow-hidden rounded-2xl px-4 py-[0.36rem] text-sm font-extrabold leading-tight transition before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.42),transparent_58%)] ${
+                className={`relative overflow-hidden rounded-[1.12rem] border-[2px] px-4 py-[0.44rem] text-sm font-black leading-tight tracking-[-0.01em] transition before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.50),transparent_58%)] ${
                   storeCompareScope === "within_chain"
-                    ? "border-[2px] border-[#043d22] bg-gradient-to-b from-[#0a7540] via-[#076232] to-[#044520] text-[#fff4d4] shadow-[0_5px_0_#03351c,0_10px_22px_rgba(0,62,31,0.26),inset_0_0_0_2px_rgba(255,255,255,0.14)] ring-1 ring-black/10"
-                    : "border-[2px] border-[#b9914d] bg-gradient-to-b from-[#fff8dc] to-[#efdba6] text-[#5a3d18] shadow-[0_3px_0_rgba(94,71,31,0.20),inset_0_0_0_2px_rgba(255,255,255,0.45)] ring-1 ring-[#fff1bf]"
+                    ? "border-[#04351f] bg-gradient-to-b from-[#0b7a3e] via-[#056131] to-[#033f20] text-[#fff1c9] shadow-[0_6px_0_#032d18,0_12px_22px_rgba(0,58,28,0.32),inset_0_0_0_2px_rgba(255,255,255,0.18)] ring-1 ring-black/15"
+                    : "border-[#9f7638] bg-gradient-to-b from-[#fff6d6] via-[#f4dfaa] to-[#e6c984] text-[#4f3718] shadow-[0_4px_0_rgba(88,60,22,0.28),inset_0_0_0_2px_rgba(255,255,255,0.50)] ring-1 ring-[#fff2bf]"
                 }`}
               >
                 Ketjun sisältä
