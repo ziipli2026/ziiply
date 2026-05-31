@@ -1,5 +1,7 @@
 "use client";
 
+// V626_RETRO_SHOPS_POLISH_VISUAL_ONLY:
+// Jatko v625: Kaupat-inline-renderin visuaalinen hienosäätö. Toimintoihin/click-logiikkaan ei kosketa.
 // V625_INLINE_SHOPS_RETRO_C_STEP1_VISUAL_ONLY:
 // Kaupat-näkymän oikea inline-render-polku: poistettu debug, lisätty C-mockupin mukainen paperi/kehys/retro-sävy. Toimintoihin ei kosketa.
 // V623_RESULTS_CLOSE_DOES_NOT_TRIGGER_FALSE_NOTFOUND:
@@ -10732,7 +10734,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           </div>
 
           <section
-            className={`relative overflow-hidden rounded-[2rem] border-[2.5px] border-[#d7bd78] px-5 pb-3 pt-3 shadow-[0_16px_34px_rgba(52,38,14,0.16),inset_0_0_0_2px_rgba(255,255,255,0.55)] ring-1 ring-[#fff8db]/90 ${
+            className={`relative overflow-hidden rounded-[2rem] border-[3px] border-[#d0ae63] px-5 pb-3 pt-3 shadow-[0_18px_36px_rgba(52,38,14,0.18),inset_0_0_0_2px_rgba(255,255,255,0.62)] ring-1 ring-[#fff8db]/90 ${
               storeMode === "local"
                 ? "bg-[#f8edcf]"
                 : "bg-[#fbf0cf]"
@@ -10740,8 +10742,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             style={{
               backgroundImage:
                 storeMode === "local"
-                  ? "radial-gradient(#d6bd78 1px, transparent 1px), linear-gradient(180deg, rgba(255,255,255,0.58), rgba(255,246,219,0.86))"
-                  : "radial-gradient(#d6bd78 1px, transparent 1px), linear-gradient(180deg, rgba(255,255,255,0.54), rgba(255,242,203,0.88))",
+                  ? "radial-gradient(#cfb36d 1px, transparent 1px), linear-gradient(180deg, rgba(255,255,255,0.62), rgba(255,244,214,0.90))"
+                  : "radial-gradient(#cfb36d 1px, transparent 1px), linear-gradient(180deg, rgba(255,255,255,0.58), rgba(255,241,201,0.92))",
               backgroundSize: "15px 15px, 100% 100%",
             }}
           >
@@ -10778,7 +10780,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   className={`rounded-full px-3 py-1 text-center text-[11px] font-black uppercase leading-none tracking-wide transition-all duration-150 ${
                     inlineHakutapaNoticeVisibleV452
                       ? "border border-[#d7ad3a] bg-[#fff2a8] text-[#7c4200] shadow-[0_5px_12px_rgba(124,66,0,0.18),inset_0_1px_0_rgba(255,255,255,0.85)] animate-[ziiplyInlineNoticeFade_2.2s_ease-out_1_forwards]"
-                      : "bg-white text-slate-500"
+                      : "border border-[#e4cf91] bg-[#fff8dc] text-[#6b5a35]"
                   }`}
                 >
                   {inlineHakutapaNoticeVisibleV452
