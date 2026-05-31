@@ -1,5 +1,14 @@
 "use client";
 
+// V674_STORE_CARD_VISUAL_POLISH
+// VISUAL ONLY.
+// - hillitympi paperi/emaltti
+// - pienempi logokyltti
+// - messinkisemmät ruuvit
+// - retrovihreä + maitokahviruskea
+// - litteämpi vanhan ajan hintalappu
+// Ei logiikkamuutoksia.
+
 // V673_STORE_CARD_GRAPHICS_VISIBLE_RETRO_SIGNAGE
 // VISUAL ONLY.
 // Tekee kauppakorttien grafiikan oikeasti näkyväksi vahvistetussa compact-renderissä:
@@ -9667,30 +9676,30 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               setOpenStorePicker(null);
               triggerHaptic();
             }}
-            className={`relative cursor-pointer overflow-hidden rounded-[1.18rem] border-[2.5px] px-2 pb-1 pt-1 text-center transition active:scale-[0.985] h-[104px] min-h-[104px] max-h-[104px] shadow-[0_2px_0_rgba(77,50,18,0.18),0_8px_14px_rgba(52,38,14,0.075),inset_0_0_0_1px_rgba(255,255,255,0.88)] before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.55),transparent_48%),linear-gradient(135deg,rgba(118,82,34,0.08)_0_8%,transparent_8%_16%,rgba(255,255,255,0.10)_16%_24%,transparent_24%_100%)] before:bg-[length:100%_100%,18px_18px] after:pointer-events-none after:absolute after:inset-[5px] after:rounded-[0.9rem] after:border after:border-[#fff4cf]/80 ${
+            className={`relative cursor-pointer overflow-hidden rounded-[1.18rem] border-[2.5px] px-2 pb-1 pt-1 text-center transition active:scale-[0.985] h-[104px] min-h-[104px] max-h-[104px] shadow-[0_1px_0_rgba(77,50,18,0.12),0_5px_10px_rgba(52,38,14,0.05),inset_0_0_0_1px_rgba(255,255,255,0.90)] before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.34),transparent_54%),linear-gradient(135deg,rgba(118,82,34,0.035)_0_8%,transparent_8%_16%,rgba(255,255,255,0.05)_16%_24%,transparent_24%_100%)] before:bg-[length:100%_100%,22px_22px] after:pointer-events-none after:absolute after:inset-[5px] after:rounded-[0.9rem] after:border after:border-[#fff4cf]/80 ${
               store.key === "s"
                 ? selected
-                  ? "border-[#245f3f] bg-[linear-gradient(180deg,#fff9df_0%,#e6efc3_47%,#cbdc9b_100%)] text-[#173525]"
+                  ? "border-[#5c7858] bg-[linear-gradient(180deg,#fffbe7_0%,#edf0d2_47%,#d8dfb5_100%)] text-[#253227]"
                   : "border-[#d9c18e] bg-[linear-gradient(180deg,#fffaf0_0%,#f4e9c7_100%)] text-[#725d35] opacity-[0.78]"
                 : store.key === "k"
                   ? selected
-                    ? "border-[#8b6548] bg-[linear-gradient(180deg,#fff6e6_0%,#eed8b8_54%,#ddb98d_100%)] text-[#2d2218]"
+                    ? "border-[#927259] bg-[linear-gradient(180deg,#fff8ec_0%,#eedcc1_54%,#dfc19a_100%)] text-[#33271f]"
                     : "border-[#d9c18e] bg-[linear-gradient(180deg,#fffaf0_0%,#f4e9c7_100%)] text-[#725d35] opacity-[0.78]"
                   : "border-[#e5d5ad] bg-[linear-gradient(180deg,#fff9ec_0%,#f4e8c8_100%)] text-[#b19d76] opacity-[0.34]"
             }`}
           >
-            <span className="pointer-events-none absolute left-[6px] top-[6px] z-20 h-[5px] w-[5px] rounded-full border border-[#b99658] bg-[#fff3bd] shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]" />
-            <span className="pointer-events-none absolute right-[6px] top-[6px] z-20 h-[5px] w-[5px] rounded-full border border-[#b99658] bg-[#fff3bd] shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]" />
-            <span className="pointer-events-none absolute left-[6px] bottom-[6px] z-20 h-[5px] w-[5px] rounded-full border border-[#b99658] bg-[#fff3bd] shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]" />
-            <span className="pointer-events-none absolute right-[6px] bottom-[6px] z-20 h-[5px] w-[5px] rounded-full border border-[#b99658] bg-[#fff3bd] shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]" />
+            <span className="pointer-events-none absolute left-[6px] top-[6px] z-20 h-[5px] w-[5px] rounded-full border border-[#b59a69] bg-[#ead8a7] shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]" />
+            <span className="pointer-events-none absolute right-[6px] top-[6px] z-20 h-[5px] w-[5px] rounded-full border border-[#b59a69] bg-[#ead8a7] shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]" />
+            <span className="pointer-events-none absolute left-[6px] bottom-[6px] z-20 h-[5px] w-[5px] rounded-full border border-[#b59a69] bg-[#ead8a7] shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]" />
+            <span className="pointer-events-none absolute right-[6px] bottom-[6px] z-20 h-[5px] w-[5px] rounded-full border border-[#b59a69] bg-[#ead8a7] shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]" />
             <span
-              className={`absolute right-2 top-2 z-30 flex h-[18px] w-[18px] items-center justify-center rounded-full text-[11px] font-black shadow-[0_2px_5px_rgba(15,23,42,0.10)] ${selected ? "border border-[#2f5336] bg-[radial-gradient(circle_at_35%_25%,#9abf82_0%,#49794c_48%,#2b5533_100%)] text-[#fff8e7]" : "border border-[#d0ad68] bg-[#fff8dc] text-transparent"}`}
+              className={`absolute right-2 top-2 z-30 flex h-[18px] w-[18px] items-center justify-center rounded-full text-[11px] font-black shadow-[0_2px_5px_rgba(15,23,42,0.10)] ${selected ? "border border-[#536d4f] bg-[radial-gradient(circle_at_35%_25%,#a8bc8c_0%,#648060_48%,#496448_100%)] text-[#fff8e7]" : "border border-[#d0ad68] bg-[#fff8dc] text-transparent"}`}
             >
               ✓
             </span>
 
             <div
-              className="absolute left-2.5 top-2 z-30 flex h-[26px] w-[34px] items-center justify-center rounded-[0.55rem] border border-[#b89552] bg-[linear-gradient(180deg,#fffefa_0%,#f1dda2_100%)] px-[5px] py-[3px] shadow-[0_2px_0_rgba(94,71,31,0.14),inset_0_1px_0_rgba(255,255,255,0.90)] ring-1 ring-[#fff4cc]"
+              className="absolute left-2.5 top-2 z-30 flex h-[22px] w-[30px] items-center justify-center rounded-[0.45rem] border border-[#b89552] bg-[linear-gradient(180deg,#fffef9_0%,#ecd7a0_100%)] px-[5px] py-[3px] shadow-[0_2px_0_rgba(94,71,31,0.14),inset_0_1px_0_rgba(255,255,255,0.90)] ring-1 ring-[#fff4cc]"
             >
               <img
                 src={storeLogoSrc}
@@ -9715,7 +9724,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
             <>
               <p
-                className={`absolute left-3 right-3 top-[42px] z-20 mx-auto h-[1.35rem] max-w-[7.9rem] overflow-hidden text-center text-[10px] font-extrabold leading-tight ${
+                className={`absolute left-3 right-3 top-[39px] z-20 mx-auto h-[1.35rem] max-w-[7.9rem] overflow-hidden text-center text-[10px] font-extrabold leading-tight ${
                   isComingSoon ? "text-[#b9aa86]" : "text-[#26251f]"
                 }`}
                 style={{
@@ -9728,7 +9737,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               </p>
 
               {isTopRow && distanceForCard && storeModeChosenV299 && (
-                <p className="absolute left-0 right-0 top-[61px] z-20 text-[8.5px] font-black leading-none text-[#8a7247]">
+                <p className="absolute left-0 right-0 top-[58px] z-20 text-[8.5px] font-black leading-none text-[#8a7247]">
                   {distanceForCard}
                 </p>
               )}
@@ -9738,7 +9747,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 onClick={(event) => event.stopPropagation()}
               >
                 {!storeModeChosenV299 && chain ? (
-                  <span className="rounded-[0.55rem] border border-[#b89552] bg-[linear-gradient(180deg,#fffdf4_0%,#f1dfaa_100%)] px-2.5 py-[3px] text-[8.5px] font-black text-[#70552a] shadow-[0_1px_0_rgba(94,71,31,0.12),inset_0_1px_0_rgba(255,255,255,0.78)] ring-1 ring-[#fff4cc]">
+                  <span className="rounded-[0.38rem] border border-[#b89552] bg-[linear-gradient(180deg,#fffdf7_0%,#ecd8a2_100%)] px-2 py-[2px] text-[8px] font-black text-[#70552a] shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] ring-1 ring-[#f7ebc7]">
                     Valitse tyyppi
                   </span>
                 ) : chain ? (
@@ -9753,7 +9762,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       {renderStorePickerMenu(chain, storeMode, pickerKey, true)}
                     </>
                   ) : (
-                    <span className="rounded-[0.55rem] border border-[#b89552] bg-[linear-gradient(180deg,#fffdf4_0%,#f1dfaa_100%)] px-2.5 py-[3px] text-[8.5px] font-black text-[#70552a] shadow-[0_1px_0_rgba(94,71,31,0.12),inset_0_1px_0_rgba(255,255,255,0.78)] ring-1 ring-[#fff4cc]">
+                    <span className="rounded-[0.38rem] border border-[#b89552] bg-[linear-gradient(180deg,#fffdf7_0%,#ecd8a2_100%)] px-2 py-[2px] text-[8px] font-black text-[#70552a] shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] ring-1 ring-[#f7ebc7]">
                       Tulossa
                     </span>
                   )
