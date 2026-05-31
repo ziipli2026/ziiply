@@ -1,12 +1,21 @@
 "use client";
 
-// V687_BALANCED_SAFE_VISUALS
-// Build-safe visual tuning only.
-// - Taustakuva alemmas
-// - Vähemmän aggressiivinen opacity
+// V689_STORE_BACKGROUND_V2_ASSETS
+// Päivitetty käyttämään uusia v2-taustakuvia:
+// public/ui/store-backgrounds/store-bg-prisma-v2.svg
+// public/ui/store-backgrounds/store-bg-kcitymarket-v2.svg
+// public/ui/store-backgrounds/store-bg-alepa-v2.svg
+// public/ui/store-backgrounds/store-bg-kmarket-v2.svg
+// Ei logiikka- tai layoutmuutoksia.
+
+// V688_LOWER_ANCHORED_STORE_VISUALS
+// Visual-only update.
+// - Taustakuvat ankkuroidu alemmas
+// - Tekstialue vapautettu
+// - Korkeampi kontrasti
+// - Vahvempi saturaatio
 // - Ei blend-modea
 // - Ei JSX-rakennemuutoksia
-// - Ei uusia elementtejä
 // - Ei logiikka- tai layoutmuutoksia
 
 // V685_REMOVE_SAFARI_BLEND_MODE
@@ -43,10 +52,10 @@
 // V681_REAL_ASSET_STORE_CARD_BACKGROUNDS
 // VISUAL ONLY.
 // Inline-palikkatalot poistettu. Korttitaustat ovat nyt erillisiä SVG-kuva-assetteja public-kansioon:
-// /ui/store-backgrounds/store-bg-prisma-v1.svg
-// /ui/store-backgrounds/store-bg-kcitymarket-v1.svg
-// /ui/store-backgrounds/store-bg-alepa-v1.svg
-// /ui/store-backgrounds/store-bg-kmarket-v1.svg
+// /ui/store-backgrounds/store-bg-prisma-v2.svg
+// /ui/store-backgrounds/store-bg-kcitymarket-v2.svg
+// /ui/store-backgrounds/store-bg-alepa-v2.svg
+// /ui/store-backgrounds/store-bg-kmarket-v2.svg
 // Lisää nämä public/ -kansioon ja tämä page.tsx käyttää niitä.
 // Ei logiikka-, GPS-, haku-, picker-, bottom nav- tai layout-muutoksia.
 
@@ -9508,11 +9517,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   }`}
                 >
                   <img
-                    src={store.key === "s" ? "/ui/store-backgrounds/store-bg-prisma-v1.svg" : "/ui/store-backgrounds/store-bg-kcitymarket-v1.svg"}
+                    src={store.key === "s" ? "/ui/store-backgrounds/store-bg-prisma-v2.svg" : "/ui/store-backgrounds/store-bg-kcitymarket-v2.svg"}
                     alt=""
                     aria-hidden="true"
                     draggable={false}
-                    className="pointer-events-none absolute bottom-[-32px] left-[-24px] right-[-24px] z-[1] mx-auto h-[176px] w-[258px] object-cover object-bottom opacity-[0.50] saturate-[1.08] contrast-[1.04] brightness-[1.02] drop-shadow-[0_7px_16px_rgba(70,45,12,0.16)]"
+                    className="pointer-events-none absolute bottom-[-46px] left-[-30px] right-[-30px] z-[1] mx-auto h-[208px] w-[296px] object-cover object-bottom opacity-[0.70] saturate-[1.14] contrast-[1.10] brightness-[1.04] drop-shadow-[0_10px_18px_rgba(60,40,12,0.18)]"
                   />
                   <button
                     type="button"
@@ -9775,16 +9784,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 src={
                   storeMode === "hyper"
                     ? store.key === "s"
-                      ? "/ui/store-backgrounds/store-bg-prisma-v1.svg"
-                      : "/ui/store-backgrounds/store-bg-kcitymarket-v1.svg"
+                      ? "/ui/store-backgrounds/store-bg-prisma-v2.svg"
+                      : "/ui/store-backgrounds/store-bg-kcitymarket-v2.svg"
                     : store.key === "s"
-                      ? "/ui/store-backgrounds/store-bg-alepa-v1.svg"
-                      : "/ui/store-backgrounds/store-bg-kmarket-v1.svg"
+                      ? "/ui/store-backgrounds/store-bg-alepa-v2.svg"
+                      : "/ui/store-backgrounds/store-bg-kmarket-v2.svg"
                 }
                 alt=""
                 aria-hidden="true"
                 draggable={false}
-                className="pointer-events-none absolute bottom-[-20px] left-[-14px] right-[-14px] z-[1] mx-auto h-[134px] w-[188px] object-cover object-bottom opacity-[0.56] saturate-[1.10] contrast-[1.04] brightness-[1.02] drop-shadow-[0_6px_14px_rgba(60,40,10,0.16)]"
+                className="pointer-events-none absolute bottom-[-34px] left-[-18px] right-[-18px] z-[1] mx-auto h-[154px] w-[214px] object-cover object-bottom opacity-[0.74] saturate-[1.16] contrast-[1.12] brightness-[1.04] drop-shadow-[0_8px_16px_rgba(52,36,10,0.16)]"
               />
             )}
             <span className="pointer-events-none absolute left-[6px] top-[6px] z-20 h-[5px] w-[5px] rounded-full border border-[#b59a69] bg-[#ead8a7] shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]" />
