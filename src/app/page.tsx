@@ -1,5 +1,12 @@
 "use client";
 
+// V654_SHOPS_RENDER_STABLE_Y_AND_VISIBLE_CARDS
+// Korjaukset:
+// - Tavaratalot/Lähikaupat-vaihto ei muuta kauppakorttialueen pystykorkoa.
+// - Ketjujen väliltä -tilassa kortit pysyvät näkyvissä myös ilman Tavaratalot/Lähikaupat-paria.
+// - Vertailuparia ei löytynyt -ilmoitus voi näkyä, mutta korttialue ei katoa.
+// - Ei GPS-, haku-, bottom nav-, state- tai handler-logiikkamuutoksia.
+
 // V653_WITHIN_CHAIN_RENDER_VISUAL_SYNC
 // Löydetty vika: Ketjun sisältä -haara käytti renderComparedStoreCards()-funktion omaa vanhaa slate/white-renderiä.
 // Korjaus: vain storeCompareScope === "within_chain" -haaran visuaalinen synkka retro-tyyliin.
@@ -9307,10 +9314,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const selectedRealChainCount =
     Number(Boolean(selectedChains.s)) + Number(Boolean(selectedChains.k));
   function renderComparedStoreCards(compact = false) {
-    if (
-      storeCompareScope === "none" ||
-      (storeCompareScope === "between_chains" && !storeModeChosenV299)
-    ) {
+    if (storeCompareScope === "none") {
       return null;
     }
 
@@ -9407,6 +9411,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     >
                       {store.title}
                     </p>
+
+                    {!selected && (
+                      <p className="mx-auto mt-3 max-w-[7.5rem] text-[10px] font-black leading-tight text-[#8a7349]">
+                        Valitse tästä
+                      </p>
+                    )}
                   </button>
 
                   {selected && (
@@ -9678,8 +9688,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       };
 
       return (
-        <div className={`${storeMode === "local" ? "mt-3" : "mt-2"} pb-1 overflow-visible`}>
-          <div className={`${storeMode === "local" ? "pt-1" : ""} grid grid-cols-2 gap-x-3 gap-y-1.5 overflow-visible`}>
+        <div className="mt-2 pb-1 overflow-visible">
+          <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 overflow-visible">
             {topStores.map((store) => renderBetweenChainCard(store, true))}
           </div>
           <div className="mt-1.5 grid grid-cols-2 gap-x-3 gap-y-1.5">
