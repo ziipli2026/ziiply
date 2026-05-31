@@ -1,6 +1,6 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V621_MOCKUP_REORDERED_INPUT_ROW
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V622_INPUT_CART_ICON_NO_FOCUS_JUMP
 // Pohja: v608/v510 toimiva hakulogiikka.
 // Muutettu vain JSX/CSS layout vastaamaan annettua finalleiska-mallia.
 
@@ -105,9 +105,40 @@ function EraserButton({
       onClick={onClick}
       aria-label="Tyhjennä hakukenttä"
       title="Tyhjennä hakukenttä"
-      className="absolute right-[0.55rem] top-1/2 z-20 grid h-[1.8rem] w-[1.8rem] -translate-y-1/2 place-items-center rounded-full border-[2px] border-[#d0aa4f] bg-[#fff1c9] text-[1.05rem] shadow-[0_2px_0_rgba(91,72,44,0.18),inset_0_0_0_1px_rgba(255,255,255,0.65)] active:translate-y-[calc(-50%+1px)]"
+      className="absolute right-[2.55rem] top-1/2 z-20 grid h-[1.8rem] w-[1.8rem] -translate-y-1/2 place-items-center rounded-full border-[2px] border-[#d0aa4f] bg-[#fff1c9] text-[1.05rem] shadow-[0_2px_0_rgba(91,72,44,0.18),inset_0_0_0_1px_rgba(255,255,255,0.65)] active:translate-y-[calc(-50%+1px)]"
     >
       🧽
+    </button>
+  );
+}
+
+
+function CartIconButton({
+  visible,
+  disabled,
+  onClick,
+}: {
+  visible: boolean;
+  disabled?: boolean;
+  onClick?: () => void;
+}) {
+  if (!visible) return null;
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label="Lisää koriin"
+      title="Lisää koriin"
+      className={cx(
+        "absolute right-[0.55rem] top-1/2 z-20 grid h-[1.8rem] w-[1.8rem] -translate-y-1/2 place-items-center rounded-full border-[2px] text-[1.0rem] shadow-[0_2px_0_rgba(91,72,44,0.18),inset_0_0_0_1px_rgba(255,255,255,0.55)] active:translate-y-[calc(-50%+1px)]",
+        disabled
+          ? "cursor-not-allowed border-[#9eb49a] bg-[#c7dcc2] text-[#eef5df] opacity-60"
+          : "border-[#0b6330] bg-gradient-to-b from-[#159948] to-[#087237] text-[#fff0d5]",
+      )}
+    >
+      🛒
     </button>
   );
 }
@@ -348,11 +379,24 @@ export default function ZiiplyMobileSearchCard({
     onInputChange?.("");
   };
 
+  const keepViewportStableOnInputFocus = () => {
+    if (typeof window === "undefined") return;
+
+    const scrollX = window.scrollX;
+    const scrollY = window.scrollY;
+
+    window.requestAnimationFrame(() => {
+      window.scrollTo(scrollX, scrollY);
+      window.setTimeout(() => window.scrollTo(scrollX, scrollY), 60);
+      window.setTimeout(() => window.scrollTo(scrollX, scrollY), 180);
+    });
+  };
+
   if (!open) return null;
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V621_MOCKUP_REORDERED_INPUT_ROW"
+      data-ziiply-mobile-search-card-version="UUSI_V622_INPUT_CART_ICON_NO_FOCUS_JUMP"
       className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.25rem)] bottom-[calc(env(safe-area-inset-bottom)+5.2rem)] z-[72] flex items-stretch justify-center overflow-hidden bg-transparent px-2 sm:hidden ${className}`}
     >
       <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.8rem] border-[2px] border-[#ead9a8] bg-[#f6ebc6] px-3 pb-3 pt-3 text-[#20301f] shadow-[inset_0_0_0_2px_rgba(216,189,117,0.34)]">
@@ -419,11 +463,13 @@ export default function ZiiplyMobileSearchCard({
             />
           </div>
 
-          <div className="mt-3 grid grid-cols-[minmax(0,1fr)_8.1rem] items-center gap-3">
+          <div className="mt-3">
             <div className="relative h-[3.0rem] overflow-hidden rounded-[1.35rem] border-[3px] border-[#9d8350] bg-[#fff4d3] p-1 shadow-[0_4px_0_rgba(91,72,44,0.18),inset_0_3px_8px_rgba(91,65,28,0.10)]">
               <textarea
                 ref={inputRef}
                 value={input}
+                onFocus={keepViewportStableOnInputFocus}
+                onClick={keepViewportStableOnInputFocus}
                 onChange={(event) => {
                   autoSearchInputRef.current = "";
                   setTriggeredSearchInput("");
@@ -431,19 +477,15 @@ export default function ZiiplyMobileSearchCard({
                 }}
                 rows={1}
                 placeholder={searchMode === "single" ? "Kirjoita yksi tuote" : "maito, kahvi"}
-                className="block h-full w-full resize-none overflow-hidden rounded-[1.05rem] border-0 bg-[#fffaf0] px-3 py-[0.35rem] pr-[2.45rem] text-center text-[1.18rem] font-black leading-[1.0] text-[#102216] outline-none placeholder:text-[#7d7461]"
+                className="block h-full w-full resize-none overflow-hidden rounded-[1.05rem] border-0 bg-[#fffaf0] px-3 py-[0.35rem] pr-[5.0rem] text-center text-[1.18rem] font-black leading-[1.0] text-[#102216] outline-none placeholder:text-[#7d7461]"
                 style={{ fontFamily: hasText ? serifFont : cooperFont }}
               />
 
               <EraserButton visible={hasText} onClick={handleClearInput} />
-            </div>
-
-            <div className="flex h-[3.0rem] items-center">
-              <GreenPillButton
-                label="koriin"
-                onClick={onAddInputToCart}
+              <CartIconButton
+                visible={hasText}
                 disabled={!hasText}
-                className="h-[3.0rem] w-full text-[1.0rem]"
+                onClick={onAddInputToCart}
               />
             </div>
           </div>
@@ -452,7 +494,7 @@ export default function ZiiplyMobileSearchCard({
             <ModeToggle mode={searchMode} onModeChange={onSearchModeChange} />
           </div>
 
-          <div className="relative z-10 mt-auto grid grid-cols-2 gap-3 pb-1 pt-3">
+          <div className="relative z-10 mt-auto grid grid-cols-2 gap-3 pb-[1.15rem] pt-3">
             <RetroAssetButton
               kind="voice"
               label="Äänitä"
