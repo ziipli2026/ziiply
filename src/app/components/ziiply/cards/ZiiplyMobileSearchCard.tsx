@@ -1,6 +1,6 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V629_KEYBOARD_CLEAR_LIFT
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V630_FINAL_MOCKUP_BALANCED_LIFT
 // Pohja: v608/v510 toimiva hakulogiikka.
 // Muutettu vain JSX/CSS layout vastaamaan annettua finalleiska-mallia.
 
@@ -396,7 +396,7 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V629_KEYBOARD_CLEAR_LIFT"
+      data-ziiply-mobile-search-card-version="UUSI_V630_FINAL_MOCKUP_BALANCED_LIFT"
       className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.25rem)] bottom-[calc(env(safe-area-inset-bottom)+5.2rem)] z-[72] flex items-stretch justify-center overflow-hidden bg-transparent px-2 sm:hidden ${className}`}
     >
       <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.8rem] border-[2px] border-[#ead9a8] bg-[#f6ebc6] px-3 pb-3 pt-3 text-[#20301f] shadow-[inset_0_0_0_2px_rgba(216,189,117,0.34)]">
@@ -430,75 +430,75 @@ export default function ZiiplyMobileSearchCard({
             />
           </div>
 
-          <div className="relative z-10 mt-4 flex min-h-[6.0rem] items-end justify-center overflow-hidden rounded-[1.55rem] border-[3px] border-[#d2b170] bg-[#fff1bf] px-4 pb-4 pt-3 text-center text-[clamp(0.88rem,2.85vw,1.08rem)] font-black leading-[1.16] text-[#6f5630] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_4px_0_rgba(91,72,44,0.13)]">
+          <div className="relative z-10 mt-4 flex min-h-[7.6rem] items-end justify-center overflow-hidden rounded-[1.55rem] border-[3px] border-[#d2b170] bg-[#fff1bf] px-4 pb-5 pt-4 text-center text-[clamp(0.88rem,2.85vw,1.08rem)] font-black leading-[1.16] text-[#6f5630] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_4px_0_rgba(91,72,44,0.13)]">
             <span className="block w-full whitespace-normal">
               {subtitle || predictiveText}
             </span>
           </div>
 
-          {/* V628: koko alakokonaisuus nostetaan staattisesti ylöspäin.
-              Tämä ei riipu iOS visualViewport-tapahtumista, joten muutos näkyy heti myös
-              tilanteessa, jossa näppäimistö peittää näkymää mutta viewport-arvo ei päivity. */}
-          <div className="relative z-10 -translate-y-[2.9rem]">
-            <div className="mt-[0.2rem] grid grid-cols-[1.18fr_0.72fr_1.18fr] items-center gap-3">
-              <AssistantButton
-                kind="gosta"
-                onClick={() => handleManualSearch(onOfferSearch)}
-                disabled={!hasText}
-                loading={loadingOffers}
-              />
+          {/* V630: maltillinen koko alapaketin nosto finaali-mockupin mukaan.
+              Ei aggressiivista -2rem/-3rem siirtoa: hakukenttä jää näkyviin iOS-näppiksen yläpuolelle,
+              mutta kokonaisuus ei karkaa liian ylös eikä infolaatikko mene nappien päälle. */}
+          <div className="relative z-10 -translate-y-[0.85rem]">
+            <div className="mt-[0.45rem] grid grid-cols-[1.18fr_0.72fr_1.18fr] items-center gap-3">
+            <AssistantButton
+              kind="gosta"
+              onClick={() => handleManualSearch(onOfferSearch)}
+              disabled={!hasText}
+              loading={loadingOffers}
+            />
 
-              <div className="flex h-full items-center justify-center">
-                <div className="flex h-[5.45rem] w-full max-w-[5.9rem] flex-col items-center justify-center rounded-[1.1rem] border-[3px] border-[#d8bd75] bg-[#fff1bf]/70 px-1.5 text-center shadow-[0_3px_0_rgba(91,72,44,0.16),inset_0_0_0_2px_rgba(255,255,255,0.45)]">
-                  <div className="text-[0.72rem] font-black uppercase leading-[0.95] text-[#174c2c]">
-                    Tänään<br />halvin
-                  </div>
-                  <div className="mt-1 text-[0.68rem] font-black leading-[0.95] text-[#6f5630]">
-                    kori<br />lähelläsi
-                  </div>
+            <div className="flex h-full items-center justify-center">
+              <div className="flex h-[5.45rem] w-full max-w-[5.9rem] flex-col items-center justify-center rounded-[1.1rem] border-[3px] border-[#d8bd75] bg-[#fff1bf]/70 px-1.5 text-center shadow-[0_3px_0_rgba(91,72,44,0.16),inset_0_0_0_2px_rgba(255,255,255,0.45)]">
+                <div className="text-[0.72rem] font-black uppercase leading-[0.95] text-[#174c2c]">
+                  Tänään<br />halvin
+                </div>
+                <div className="mt-1 text-[0.68rem] font-black leading-[0.95] text-[#6f5630]">
+                  kori<br />lähelläsi
                 </div>
               </div>
+            </div>
 
-              <AssistantButton
-                kind="justiina"
-                onClick={() => handleManualSearch(onNormalSearch)}
+            <AssistantButton
+              kind="justiina"
+              onClick={() => handleManualSearch(onNormalSearch)}
+              disabled={!hasText}
+              loading={justiinaLoading}
+            />
+          </div>
+
+          <div className="mt-2">
+            <div className="relative h-[3.0rem] overflow-hidden rounded-[1.35rem] border-[3px] border-[#9d8350] bg-[#fff4d3] p-1 shadow-[0_4px_0_rgba(91,72,44,0.18),inset_0_3px_8px_rgba(91,65,28,0.10)]">
+              <textarea
+                ref={inputRef}
+                value={input}
+                onFocus={keepViewportStableOnInputFocus}
+                onClick={keepViewportStableOnInputFocus}
+                onChange={(event) => {
+                  autoSearchInputRef.current = "";
+                  setTriggeredSearchInput("");
+                  onInputChange?.(event.target.value);
+                }}
+                rows={1}
+                placeholder={searchMode === "single" ? "Kirjoita yksi tuote" : "maito, kahvi"}
+                className="block h-full w-full resize-none overflow-hidden rounded-[1.05rem] border-0 bg-[#fffaf0] px-3 py-[0.35rem] pr-[5.0rem] text-center text-[1.18rem] font-black leading-[1.0] text-[#102216] outline-none placeholder:text-[#7d7461]"
+                style={{ fontFamily: hasText ? serifFont : cooperFont }}
+              />
+
+              <EraserButton visible={hasText} onClick={handleClearInput} />
+              <CartIconButton
+                visible={hasText}
                 disabled={!hasText}
-                loading={justiinaLoading}
+                onClick={onAddInputToCart}
               />
             </div>
+          </div>
 
-            <div className="mt-2">
-              <div className="relative h-[3.0rem] overflow-hidden rounded-[1.35rem] border-[3px] border-[#9d8350] bg-[#fff4d3] p-1 shadow-[0_4px_0_rgba(91,72,44,0.18),inset_0_3px_8px_rgba(91,65,28,0.10)]">
-                <textarea
-                  ref={inputRef}
-                  value={input}
-                  onFocus={keepViewportStableOnInputFocus}
-                  onClick={keepViewportStableOnInputFocus}
-                  onChange={(event) => {
-                    autoSearchInputRef.current = "";
-                    setTriggeredSearchInput("");
-                    onInputChange?.(event.target.value);
-                  }}
-                  rows={1}
-                  placeholder={searchMode === "single" ? "Kirjoita yksi tuote" : "maito, kahvi"}
-                  className="block h-full w-full resize-none overflow-hidden rounded-[1.05rem] border-0 bg-[#fffaf0] px-3 py-[0.35rem] pr-[5.0rem] text-center text-[1.18rem] font-black leading-[1.0] text-[#102216] outline-none placeholder:text-[#7d7461]"
-                  style={{ fontFamily: hasText ? serifFont : cooperFont }}
-                />
+          <div className="relative z-10 mt-2 flex justify-center">
+            <ModeToggle mode={searchMode} onModeChange={onSearchModeChange} />
+          </div>
 
-                <EraserButton visible={hasText} onClick={handleClearInput} />
-                <CartIconButton
-                  visible={hasText}
-                  disabled={!hasText}
-                  onClick={onAddInputToCart}
-                />
-              </div>
-            </div>
-
-            <div className="mt-2 flex justify-center">
-              <ModeToggle mode={searchMode} onModeChange={onSearchModeChange} />
-            </div>
-
-            <div className="mt-2 grid grid-cols-2 gap-3 pb-[3.1rem] pt-2">
+            <div className="relative z-10 mt-2 grid grid-cols-2 gap-3 pb-[2.2rem] pt-2">
               <RetroAssetButton
                 kind="voice"
                 label="Äänitä"
