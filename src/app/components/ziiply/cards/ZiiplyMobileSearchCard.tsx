@@ -1,6 +1,8 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V625_KEYBOARD_SAFE_LIFT
+// REVISION: v627 - IOS_KEYBOARD_VISIBLE_REVISION
+
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V627_IOS_KEYBOARD_VISIBLE_REVISION
 // Pohja: v608/v510 toimiva hakulogiikka.
 // Muutettu vain JSX/CSS layout vastaamaan annettua finalleiska-mallia.
 
@@ -437,7 +439,7 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V626_IOS_KEYBOARD_LIFT"
+      data-ziiply-mobile-search-card-version="UUSI_V627_IOS_KEYBOARD_VISIBLE_REVISION"
       className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.25rem)] bottom-[calc(env(safe-area-inset-bottom)+5.2rem)] z-[72] flex items-stretch justify-center overflow-hidden bg-transparent px-2 sm:hidden ${className}`}
     >
       <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.8rem] border-[2px] border-[#ead9a8] bg-[#f6ebc6] px-3 pb-3 pt-3 text-[#20301f] shadow-[inset_0_0_0_2px_rgba(216,189,117,0.34)]">
