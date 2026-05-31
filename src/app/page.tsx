@@ -1,29 +1,23 @@
 "use client";
 
-// V676_STORE_BACKGROUND_ART
+// V678_WITHIN_CHAIN_CARD_VISUAL_AND_PICKER_FIX
+// Korjaa Ketjun sisältä -kortit:
+// - sama retro/emaltti-visuaali kuin tavaratalot/lähikaupat-korteissa
+// - ei enää tyhjiä isoja S/K-laatikoita
+// - molemmissa S/K-korteissa näkyy aina kaksi valintaruutua: Kauppa 1 ja Kauppa 2
+// - inline-kauppagrafiikka myös tähän näkymään
+// Ei muutoksia GPS-, haku-, bottom nav- tai pystykorkologiikkaan.
+
+// V677_INLINE_STORE_BACKGROUND_ILLUSTRATIONS
 // VISUAL ONLY.
-// BACKGROUND ART PLACEHOLDER:
-// /store-retro-general.webp
-// voidaan vaihtaa myöhemmin oikeisiin:
-// - tavaratalo.webp
-// - lahikauppa.webp
-
-
-// Lisää:
-// - tavaratalo-taustakuvitukset
-// - lähikauppa-taustakuvitukset
-// - haalea retroillustratio korttien sisään
-// - aamun mockup -tyylinen tunnelma
+// Lisää kauppakortteihin oikeat taustagrafiikat ilman ulkoisia assetteja:
+// - Tavaratalot = haalea tavaratalojulkisivu
+// - Lähikaupat = haalea kyläkauppa/sekatavarakauppa
+// Inline-SVG piirtyy suoraan kortin sisään, joten public-kansion kuvia ei tarvita.
+// Ei state-, GPS-, haku-, picker-, bottom nav- tai pystykorkomuutoksia.
 
 // V675_STORE_GRAPHICS_FULL_RETRO
 // VISUAL ONLY.
-// BACKGROUND ART PLACEHOLDER:
-// /store-retro-general.webp
-// voidaan vaihtaa myöhemmin oikeisiin:
-// - tavaratalo.webp
-// - lahikauppa.webp
-
-
 // Lisää myös:
 // - paperikulumat
 // - emalikylttiheijastukset
@@ -33,13 +27,6 @@
 
 // V674_STORE_CARD_VISUAL_POLISH
 // VISUAL ONLY.
-// BACKGROUND ART PLACEHOLDER:
-// /store-retro-general.webp
-// voidaan vaihtaa myöhemmin oikeisiin:
-// - tavaratalo.webp
-// - lahikauppa.webp
-
-
 // - hillitympi paperi/emaltti
 // - pienempi logokyltti
 // - messinkisemmät ruuvit
@@ -49,13 +36,6 @@
 
 // V673_STORE_CARD_GRAPHICS_VISIBLE_RETRO_SIGNAGE
 // VISUAL ONLY.
-// BACKGROUND ART PLACEHOLDER:
-// /store-retro-general.webp
-// voidaan vaihtaa myöhemmin oikeisiin:
-// - tavaratalo.webp
-// - lahikauppa.webp
-
-
 // Tekee kauppakorttien grafiikan oikeasti näkyväksi vahvistetussa compact-renderissä:
 // - emalikyltti/paperikortti-tausta
 // - kulmaruuvit
@@ -70,13 +50,6 @@
 
 // V671_FORCE_VISIBLE_STORE_CARD_GRAPHICS_OVERRIDE
 // VISUAL ONLY.
-// BACKGROUND ART PLACEHOLDER:
-// /store-retro-general.webp
-// voidaan vaihtaa myöhemmin oikeisiin:
-// - tavaratalo.webp
-// - lahikauppa.webp
-
-
 // v670 marker näkyi, mutta korttigrafiikka jäi vanhaksi.
 // Tämä versio pakottaa näkyvän korttirenderin ulkoasun suoraan card className -tasolla.
 // Ei muutoksia state-, GPS-, haku-, picker-, bottom nav- tai pystykorkologiikkaan.
@@ -9476,14 +9449,28 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               return (
                 <div
                   key={store.key}
-                  className={`${compact ? "h-[214px] min-h-[214px] max-h-[214px] rounded-[1.18rem] px-2 pb-1 pt-1" : "rounded-2xl p-3"} relative overflow-hidden shadow-[inset_0_0_24px_rgba(98,71,21,0.08)] border-[2.5px] text-center transition shadow-[0_3px_0_rgba(94,71,31,0.12),0_9px_14px_rgba(52,38,14,0.06),inset_0_0_0_1px_rgba(255,255,255,0.76)] before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.42),transparent_58%)] after:pointer-events-none after:absolute after:inset-[4px] after:rounded-[0.95rem] after:border after:border-white/35 ${
+                  className={`${compact ? "h-[214px] min-h-[214px] max-h-[214px] rounded-[1.18rem] px-2 pb-1 pt-1" : "rounded-2xl p-3"} relative overflow-hidden border-[2.5px] text-center transition shadow-[0_1px_0_rgba(77,50,18,0.12),0_5px_10px_rgba(52,38,14,0.05),inset_0_0_0_1px_rgba(255,255,255,0.90)] before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.34),transparent_54%),linear-gradient(135deg,rgba(118,82,34,0.035)_0_8%,transparent_8%_16%,rgba(255,255,255,0.05)_16%_24%,transparent_24%_100%)] before:bg-[length:100%_100%,22px_22px] after:pointer-events-none after:absolute after:inset-[5px] after:rounded-[0.9rem] after:border after:border-[#fff4cf]/80 ${
                     selected
                       ? store.key === "s"
-                        ? "border-[#076b3a] bg-[linear-gradient(180deg,#fbffdf_0%,#eef7c1_48%,#dbeaa4_100%)] text-[#17382b]"
-                        : "border-[#8e4a35] bg-[linear-gradient(180deg,#fff7e3_0%,#f7dfb8_54%,#edca93_100%)] text-[#17382b]"
-                      : "border-[#d3b673] bg-[linear-gradient(180deg,#fff8dc_0%,#f7ebc3_100%)] text-[#5f4b25] opacity-[0.82]"
+                        ? "border-[#5c7858] bg-[linear-gradient(180deg,#fffbe7_0%,#edf0d2_47%,#d8dfb5_100%)] text-[#253227]"
+                        : "border-[#927259] bg-[linear-gradient(180deg,#fff8ec_0%,#eedcc1_54%,#dfc19a_100%)] text-[#33271f]"
+                      : "border-[#d9c18e] bg-[linear-gradient(180deg,#fffaf0_0%,#f4e9c7_100%)] text-[#725d35] opacity-[0.86]"
                   }`}
                 >
+                  <svg
+                    viewBox="0 0 160 120"
+                    aria-hidden="true"
+                    className="pointer-events-none absolute bottom-[4px] right-[2px] z-[1] h-[100px] w-[124px] opacity-[0.13]"
+                  >
+                    <rect x="22" y="42" width="108" height="50" rx="4" fill="#7b5a2a" opacity="0.36" />
+                    <rect x="28" y="48" width="96" height="38" rx="2" fill="#f5dfaa" opacity="0.68" />
+                    <path d="M22 42h108l-10-16H34z" fill={store.key === "s" ? "#5c7858" : "#927259"} opacity="0.50" />
+                    <rect x="39" y="58" width="16" height="12" fill="#355f79" opacity="0.42" />
+                    <rect x="62" y="58" width="16" height="12" fill="#355f79" opacity="0.42" />
+                    <rect x="86" y="58" width="16" height="12" fill="#355f79" opacity="0.42" />
+                    <rect x="68" y="72" width="20" height="14" fill="#5d3b22" opacity="0.48" />
+                    <path d="M16 94h126" stroke="#6d4c22" strokeWidth="5" opacity="0.26" />
+                  </svg>
                   <button
                     type="button"
                     aria-pressed={selected}
@@ -9505,16 +9492,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     className="w-full text-center"
                   >
                     <span
-                      className={`absolute ${compact ? "right-2 top-2 h-5 w-5 text-[12px]" : "right-3 top-3 h-6 w-6 text-xs"} z-30 flex items-center justify-center rounded-full font-black shadow-[0_3px_7px_rgba(15,23,42,0.14)] ${
+                      className={`absolute ${compact ? "right-2 top-2 h-[18px] w-[18px] text-[11px]" : "right-3 top-3 h-6 w-6 text-xs"} z-40 flex items-center justify-center rounded-full font-black shadow-[0_2px_5px_rgba(15,23,42,0.10)] ${
                         selected
-                          ? "border border-[#063d22] bg-[radial-gradient(circle_at_35%_25%,#2ca85a_0%,#08743a_48%,#064928_100%)] text-[#fff7de]"
+                          ? "border border-[#536d4f] bg-[radial-gradient(circle_at_35%_25%,#a8bc8c_0%,#648060_48%,#496448_100%)] text-[#fff7de]"
                           : "border border-[#d0ad68] bg-[#fff8dc] text-transparent"
                       }`}
                     >
                       {selected ? "✓" : ""}
                     </span>
                     <div
-                      className={`absolute left-3 top-2.5 z-30 flex items-center justify-center rounded-xl border border-[#d0ad68] bg-[linear-gradient(180deg,#fffdf0_0%,#fff3cf_100%)] p-1 shadow-[0_2px_0_rgba(94,71,31,0.11),inset_0_1px_0_rgba(255,255,255,0.82)] ring-1 ring-[#fff1bf] ${compact ? "h-7 w-7" : "h-9 w-9"}`}
+                      className={`absolute left-2.5 top-2.5 z-40 flex items-center justify-center rounded-lg border border-[#c7a763] bg-[linear-gradient(180deg,#fffefa_0%,#ecd7a0_100%)] p-[3px] shadow-[0_1px_0_rgba(94,71,31,0.18),inset_0_1px_0_rgba(255,255,255,0.88)] ring-1 ring-[#fff4cc] ${compact ? "h-6 w-6" : "h-8 w-8"}`}
                     >
                       <img
                         src={store.key === "s" ? "/storelogos/s-group.png" : "/storelogos/k-group.png"}
@@ -9530,27 +9517,27 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     <p
                       className={
                         compact
-                          ? "mt-0 text-[9px] font-black uppercase tracking-tight text-[#73829a]"
-                          : "mt-0 text-[10px] font-black uppercase tracking-wide text-[#73829a]"
+                          ? "relative z-40 mt-0 text-[9px] font-black uppercase tracking-tight text-[#6d6a63]"
+                          : "relative z-40 mt-0 text-[10px] font-black uppercase tracking-wide text-[#6d6a63]"
                       }
                     >
                       {store.title}
                     </p>
                   </button>
 
-                  {selected && (
+                  {(selected || compact) && (
                     <div
                       className={
                         compact
-                          ? "mt-1.5 grid grid-cols-2 gap-1.5"
+                          ? "relative z-40 mt-1.5 grid grid-cols-2 gap-1.5"
                           : "mt-2 grid grid-cols-2 gap-1.5"
                       }
                     >
                       <div
                         className={
                           compact
-                            ? "relative rounded-lg border border-[#d6bd82] bg-[#fffaf0]/92 px-1.5 py-1 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.70)] ring-1 ring-[#fff1bf]"
-                            : "relative rounded-xl border border-[#d6bd82] bg-[#fffaf0]/88 p-1.5 text-center ring-1 ring-[#fff1bf]"
+                            ? "relative z-40 rounded-[0.55rem] border border-[#b89552] bg-[linear-gradient(180deg,#fffdf7_0%,#ecd8a2_100%)] px-1.5 py-1 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] ring-1 ring-[#f7ebc7]"
+                            : "relative z-40 rounded-xl border border-[#b89552] bg-[#fffaf0]/88 p-1.5 text-center ring-1 ring-[#f7ebc7]"
                         }
                       >
                         <p className="text-[8px] font-black uppercase text-[#8a98ad]">
@@ -9586,24 +9573,24 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       <div
                         className={
                           compact
-                            ? "relative rounded-lg bg-white/90 px-1.5 py-1 text-center ring-1 ring-slate-200"
-                            : "relative rounded-xl bg-white/80 p-1.5 text-center ring-1 ring-slate-200"
+                            ? "relative z-40 rounded-[0.55rem] border border-[#b89552] bg-[linear-gradient(180deg,#fffdf7_0%,#ecd8a2_100%)] px-1.5 py-1 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] ring-1 ring-[#f7ebc7]"
+                            : "relative z-40 rounded-xl border border-[#b89552] bg-[#fffaf0]/88 p-1.5 text-center ring-1 ring-[#f7ebc7]"
                         }
                       >
-                        <p className="text-[9px] font-black uppercase text-slate-400">
+                        <p className="text-[9px] font-black uppercase text-[#8b7f67]">
                           Kauppa 2
                         </p>
                         <p
                           className={
                             compact
-                              ? "min-h-[2.1rem] whitespace-normal break-words text-[9px] font-extrabold leading-tight text-slate-800"
-                              : "min-h-[2.7rem] whitespace-normal break-words text-[11px] font-extrabold leading-tight text-slate-800"
+                              ? "min-h-[2.1rem] whitespace-normal break-words text-[9px] font-extrabold leading-tight text-[#2c2a25]"
+                              : "min-h-[2.7rem] whitespace-normal break-words text-[11px] font-extrabold leading-tight text-[#2c2a25]"
                           }
                         >
                           {storeNameB}
                         </p>
                         {distanceB && (
-                          <p className="mt-0 text-[9px] font-black text-slate-400">
+                          <p className="mt-0 text-[9px] font-black text-[#8b7f67]">
                             {distanceB}
                           </p>
                         )}
@@ -9740,12 +9727,47 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   : "border-[#e5d5ad] bg-[linear-gradient(180deg,#fff9ec_0%,#f4e8c8_100%)] text-[#b19d76] opacity-[0.34]"
             }`}
           >
+            {chain && (
+              <svg
+                viewBox="0 0 160 120"
+                aria-hidden="true"
+                className="pointer-events-none absolute bottom-[2px] right-[2px] z-[1] h-[88px] w-[116px] opacity-[0.18]"
+              >
+                {storeMode === "hyper" ? (
+                  <>
+                    <rect x="16" y="38" width="118" height="54" rx="4" fill="#7b5a2a" opacity="0.42" />
+                    <rect x="22" y="44" width="106" height="42" rx="2" fill="#f5dfaa" opacity="0.72" />
+                    <path d="M18 38h116l-9-15H28z" fill="#3f6b56" opacity="0.55" />
+                    <rect x="31" y="53" width="17" height="13" fill="#355f79" opacity="0.50" />
+                    <rect x="55" y="53" width="17" height="13" fill="#355f79" opacity="0.50" />
+                    <rect x="79" y="53" width="17" height="13" fill="#355f79" opacity="0.50" />
+                    <rect x="103" y="53" width="17" height="13" fill="#355f79" opacity="0.50" />
+                    <rect x="68" y="70" width="24" height="16" fill="#5d3b22" opacity="0.58" />
+                    <path d="M10 92h136" stroke="#6d4c22" strokeWidth="5" opacity="0.36" />
+                    <path d="M34 25h82" stroke="#fff4c9" strokeWidth="3" opacity="0.38" />
+                  </>
+                ) : (
+                  <>
+                    <rect x="34" y="45" width="78" height="45" rx="4" fill="#7b4e28" opacity="0.46" />
+                    <rect x="40" y="52" width="66" height="32" rx="2" fill="#f7e2b1" opacity="0.76" />
+                    <path d="M28 46h90L104 27H42z" fill="#7c2f28" opacity="0.52" />
+                    <path d="M42 27h62" stroke="#fff1c2" strokeWidth="4" opacity="0.46" />
+                    <rect x="48" y="61" width="16" height="13" fill="#355f79" opacity="0.48" />
+                    <rect x="82" y="61" width="16" height="13" fill="#355f79" opacity="0.48" />
+                    <rect x="66" y="68" width="14" height="16" fill="#5d3b22" opacity="0.58" />
+                    <circle cx="124" cy="76" r="12" fill="#52734a" opacity="0.36" />
+                    <rect x="122" y="78" width="4" height="18" fill="#6d4c22" opacity="0.32" />
+                    <path d="M24 92h110" stroke="#6d4c22" strokeWidth="5" opacity="0.32" />
+                  </>
+                )}
+              </svg>
+            )}
             <span className="pointer-events-none absolute left-[6px] top-[6px] z-20 h-[5px] w-[5px] rounded-full border border-[#b59a69] bg-[#ead8a7] shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]" />
             <span className="pointer-events-none absolute right-[6px] top-[6px] z-20 h-[5px] w-[5px] rounded-full border border-[#b59a69] bg-[#ead8a7] shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]" />
             <span className="pointer-events-none absolute left-[6px] bottom-[6px] z-20 h-[5px] w-[5px] rounded-full border border-[#b59a69] bg-[#ead8a7] shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]" />
             <span className="pointer-events-none absolute right-[6px] bottom-[6px] z-20 h-[5px] w-[5px] rounded-full border border-[#b59a69] bg-[#ead8a7] shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]" />
             <span
-              className={`absolute right-2 top-2 z-30 flex h-[18px] w-[18px] items-center justify-center rounded-full text-[11px] font-black shadow-[0_2px_5px_rgba(15,23,42,0.10)] ${selected ? "border border-[#536d4f] bg-[radial-gradient(circle_at_35%_25%,#a8bc8c_0%,#648060_48%,#496448_100%)] text-[#fff8e7]" : "border border-[#d0ad68] bg-[#fff8dc] text-transparent"}`}
+              className={`absolute right-2 top-2 z-40 flex h-[18px] w-[18px] items-center justify-center rounded-full text-[11px] font-black shadow-[0_2px_5px_rgba(15,23,42,0.10)] ${selected ? "border border-[#536d4f] bg-[radial-gradient(circle_at_35%_25%,#a8bc8c_0%,#648060_48%,#496448_100%)] text-[#fff8e7]" : "border border-[#d0ad68] bg-[#fff8dc] text-transparent"}`}
             >
               ✓
             </span>
@@ -9795,7 +9817,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               )}
 
               <div
-                className="absolute bottom-[6px] left-0 right-0 z-30 flex justify-center"
+                className="absolute bottom-[6px] left-0 right-0 z-40 flex justify-center"
                 onClick={(event) => event.stopPropagation()}
               >
                 {!storeModeChosenV299 && chain ? (
@@ -9931,7 +9953,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   ✓
                 </span>
 
-                <div className="absolute left-2.5 top-2.5 z-30 flex h-9 w-9 items-center justify-center rounded-xl bg-white p-1.5 shadow-md ring-1 ring-slate-200">
+                <div className="absolute left-2.5 top-2.5 z-40 flex h-9 w-9 items-center justify-center rounded-xl bg-white p-1.5 shadow-md ring-1 ring-slate-200">
                   <img
                     src={storeLogoSrc}
                     alt={cardLabel}
@@ -9946,7 +9968,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 <div className="h-8" aria-hidden="true" />
 
                 {store.key !== "s" && store.key !== "k" && (
-                  <p className="mt-0 text-[11px] font-black uppercase tracking-wide text-slate-400">
+                  <p className="mt-0 text-[11px] font-black uppercase tracking-wide text-[#8b7f67]">
                     {cardLabel}
                   </p>
                 )}
@@ -9960,7 +9982,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 </p>
 
                 {isRealChain && distanceForCard && (
-                  <p className="absolute left-0 right-0 top-[88px] text-[10px] font-black text-slate-400">
+                  <p className="absolute left-0 right-0 top-[88px] text-[10px] font-black text-[#8b7f67]">
                     {distanceForCard}
                   </p>
                 )}
@@ -10086,7 +10108,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   </p>
                 </section>
 
-                <section className="relative overflow-hidden shadow-[inset_0_0_24px_rgba(98,71,21,0.08)] rounded-[2.1rem] border-[3px] border-[#bfa063] bg-[#fbf3d8] p-3 shadow-[0_5px_0_rgba(80,58,25,0.14),0_16px_24px_rgba(45,31,12,0.10),inset_0_0_0_2px_rgba(255,252,235,0.72)] ring-1 ring-[#fff7df]/80">
+                <section className="relative overflow-hidden rounded-[2.1rem] border-[3px] border-[#bfa063] bg-[#fbf3d8] p-3 shadow-[0_5px_0_rgba(80,58,25,0.14),0_16px_24px_rgba(45,31,12,0.10),inset_0_0_0_2px_rgba(255,252,235,0.72)] ring-1 ring-[#fff7df]/80">
                   <div className="pointer-events-none absolute inset-0 opacity-[0.14] [background-image:radial-gradient(#c9ad6b_0.85px,transparent_0.85px)] [background-size:17px_17px]" />
                   <div className="relative z-10">
               <ZiiplyMobileStoreModeSelector
@@ -10479,7 +10501,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
                     {eanScannerOpen && (
                       <>
-                        <div className="relative overflow-hidden shadow-[inset_0_0_24px_rgba(98,71,21,0.08)] rounded-[2rem] border-[10px] border-[#1f211a] bg-[#10140f] p-4 shadow-[inset_0_0_0_2px_rgba(255,255,255,0.16),0_10px_20px_rgba(0,0,0,0.25)]">
+                        <div className="relative overflow-hidden rounded-[2rem] border-[10px] border-[#1f211a] bg-[#10140f] p-4 shadow-[inset_0_0_0_2px_rgba(255,255,255,0.16),0_10px_20px_rgba(0,0,0,0.25)]">
                           <div className="absolute left-1/2 top-3 z-10 h-9 w-28 -translate-x-1/2 rounded-xl border-2 border-[#cfc1a0] bg-transparent/70 shadow-inner" />
                           <div className="absolute right-5 top-4 z-10 h-11 w-11 rounded-full border-4 border-[#cfc1a0] bg-[#0c0d0b] shadow-inner" />
                           <div
@@ -10927,7 +10949,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           </div>
 
           <section
-            className={`relative overflow-hidden shadow-[inset_0_0_24px_rgba(98,71,21,0.08)] rounded-[2.05rem] border-[4px] border-[#b98e4d] px-5 pb-4 pt-3 shadow-[0_18px_34px_rgba(52,38,14,0.18),0_4px_0_rgba(116,78,31,0.18),inset_0_0_0_2px_rgba(255,252,235,0.96),inset_0_18px_28px_rgba(255,255,255,0.30)] ring-1 ring-[#fff7d6]/95 ${
+            className={`relative overflow-hidden rounded-[2.05rem] border-[4px] border-[#b98e4d] px-5 pb-4 pt-3 shadow-[0_18px_34px_rgba(52,38,14,0.18),0_4px_0_rgba(116,78,31,0.18),inset_0_0_0_2px_rgba(255,252,235,0.96),inset_0_18px_28px_rgba(255,255,255,0.30)] ring-1 ring-[#fff7d6]/95 ${
               storeMode === "local"
                 ? "bg-[#fbf1d2]"
                 : "bg-[#fcf4da]"
