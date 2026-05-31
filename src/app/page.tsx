@@ -1,5 +1,14 @@
 "use client";
 
+// V675_STORE_GRAPHICS_FULL_RETRO
+// VISUAL ONLY.
+// Lisää myös:
+// - paperikulumat
+// - emalikylttiheijastukset
+// - haaleat vinoraidat
+// - kulunut retro-printti
+// - syvempi vanhan tavaratalon ilme
+
 // V674_STORE_CARD_VISUAL_POLISH
 // VISUAL ONLY.
 // - hillitympi paperi/emaltti
@@ -9676,7 +9685,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               setOpenStorePicker(null);
               triggerHaptic();
             }}
-            className={`relative cursor-pointer overflow-hidden rounded-[1.18rem] border-[2.5px] px-2 pb-1 pt-1 text-center transition active:scale-[0.985] h-[104px] min-h-[104px] max-h-[104px] shadow-[0_1px_0_rgba(77,50,18,0.12),0_5px_10px_rgba(52,38,14,0.05),inset_0_0_0_1px_rgba(255,255,255,0.90)] before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.34),transparent_54%),linear-gradient(135deg,rgba(118,82,34,0.035)_0_8%,transparent_8%_16%,rgba(255,255,255,0.05)_16%_24%,transparent_24%_100%)] before:bg-[length:100%_100%,22px_22px] after:pointer-events-none after:absolute after:inset-[5px] after:rounded-[0.9rem] after:border after:border-[#fff4cf]/80 ${
+            className={`relative cursor-pointer overflow-hidden rounded-[1.18rem] border-[2.5px] px-2 pb-1 pt-1 text-center transition active:scale-[0.985] h-[104px] min-h-[104px] max-h-[104px] shadow-[0_1px_0_rgba(77,50,18,0.12),0_5px_10px_rgba(52,38,14,0.05),inset_0_0_0_1px_rgba(255,255,255,0.90)] before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.34),transparent_54%),linear-gradient(135deg,rgba(118,82,34,0.035)_0_8%,transparent_8%_16%,rgba(255,255,255,0.05)_16%_24%,transparent_24%_100%)] before:bg-[length:100%_100%,22px_22px] after:bg-[linear-gradient(115deg,transparent_0%,rgba(255,255,255,0.05)_48%,transparent_52%)] after:bg-[length:120px_120px] after:pointer-events-none after:absolute after:inset-[5px] after:rounded-[0.9rem] after:border after:border-[#fff4cf]/80 ${
               store.key === "s"
                 ? selected
                   ? "border-[#5c7858] bg-[linear-gradient(180deg,#fffbe7_0%,#edf0d2_47%,#d8dfb5_100%)] text-[#253227]"
@@ -9747,7 +9756,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 onClick={(event) => event.stopPropagation()}
               >
                 {!storeModeChosenV299 && chain ? (
-                  <span className="rounded-[0.38rem] border border-[#b89552] bg-[linear-gradient(180deg,#fffdf7_0%,#ecd8a2_100%)] px-2 py-[2px] text-[8px] font-black text-[#70552a] shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] ring-1 ring-[#f7ebc7]">
+                  <span className="rounded-[0.38rem] border border-[#b89552] bg-[linear-gradient(180deg,#fffdf7_0%,#ecd8a2_100%)] px-2 py-[2px] text-[8px] font-black text-[#70552a] shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] ring-1 ring-[#f7ebc7] before:absolute before:left-[2px] before:top-[2px] before:h-[8px] before:w-[8px] before:rounded-full before:bg-[rgba(255,255,255,0.22)]">
                     Valitse tyyppi
                   </span>
                 ) : chain ? (
@@ -9762,7 +9771,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       {renderStorePickerMenu(chain, storeMode, pickerKey, true)}
                     </>
                   ) : (
-                    <span className="rounded-[0.38rem] border border-[#b89552] bg-[linear-gradient(180deg,#fffdf7_0%,#ecd8a2_100%)] px-2 py-[2px] text-[8px] font-black text-[#70552a] shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] ring-1 ring-[#f7ebc7]">
+                    <span className="rounded-[0.38rem] border border-[#b89552] bg-[linear-gradient(180deg,#fffdf7_0%,#ecd8a2_100%)] px-2 py-[2px] text-[8px] font-black text-[#70552a] shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] ring-1 ring-[#f7ebc7] before:absolute before:left-[2px] before:top-[2px] before:h-[8px] before:w-[8px] before:rounded-full before:bg-[rgba(255,255,255,0.22)]">
                       Tulossa
                     </span>
                   )
