@@ -1,6 +1,6 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V620_KEYBOARD_LAYOUT_TUNE
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V621_MOCKUP_REORDERED_INPUT_ROW
 // Pohja: v608/v510 toimiva hakulogiikka.
 // Muutettu vain JSX/CSS layout vastaamaan annettua finalleiska-mallia.
 
@@ -352,7 +352,7 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V620_KEYBOARD_LAYOUT_TUNE"
+      data-ziiply-mobile-search-card-version="UUSI_V621_MOCKUP_REORDERED_INPUT_ROW"
       className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.25rem)] bottom-[calc(env(safe-area-inset-bottom)+5.2rem)] z-[72] flex items-stretch justify-center overflow-hidden bg-transparent px-2 sm:hidden ${className}`}
     >
       <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.8rem] border-[2px] border-[#ead9a8] bg-[#f6ebc6] px-3 pb-3 pt-3 text-[#20301f] shadow-[inset_0_0_0_2px_rgba(216,189,117,0.34)]">
@@ -386,41 +386,13 @@ export default function ZiiplyMobileSearchCard({
             />
           </div>
 
-          <div className="mt-3 grid grid-cols-[minmax(0,1fr)_8.1rem] items-center gap-3">
-            <div className="relative h-[3.0rem] overflow-hidden rounded-[1.35rem] border-[3px] border-[#9d8350] bg-[#fff4d3] p-1 shadow-[0_4px_0_rgba(91,72,44,0.18),inset_0_3px_8px_rgba(91,65,28,0.10)]">
-              <textarea
-                ref={inputRef}
-                value={input}
-                onChange={(event) => {
-                  autoSearchInputRef.current = "";
-                  setTriggeredSearchInput("");
-                  onInputChange?.(event.target.value);
-                }}
-                rows={2}
-                placeholder={searchMode === "single" ? "Kirjoita yksi tuote" : "maito, kahvi"}
-                className="block h-full w-full resize-none overflow-hidden rounded-[1.05rem] border-0 bg-[#fffaf0] px-3 py-[0.35rem] pr-[2.45rem] text-center text-[1.18rem] font-black leading-[1.0] text-[#102216] outline-none placeholder:text-[#7d7461]"
-                style={{ fontFamily: hasText ? serifFont : cooperFont }}
-              />
-              <EraserButton visible={hasText} onClick={handleClearInput} />
-            </div>
-
-            <div className="flex h-[3.0rem] items-center">
-              <GreenPillButton
-                label="koriin"
-                onClick={onAddInputToCart}
-                disabled={!hasText}
-                className="h-[3.0rem] w-full text-[1.0rem]"
-              />
-            </div>
-          </div>
-
-          <div className="relative z-10 mt-3 flex min-h-[3.65rem] items-center justify-center overflow-hidden rounded-[1.25rem] border-[3px] border-[#d2b170] bg-[#fff1bf] px-4 text-center text-[clamp(0.78rem,2.55vw,0.96rem)] font-black leading-[1.12] text-[#6f5630] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_3px_0_rgba(91,72,44,0.12)]">
+          <div className="relative z-10 mt-5 flex min-h-[8.2rem] items-end justify-center overflow-hidden rounded-[1.55rem] border-[3px] border-[#d2b170] bg-[#fff1bf] px-4 pb-5 pt-4 text-center text-[clamp(0.88rem,2.85vw,1.08rem)] font-black leading-[1.16] text-[#6f5630] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_4px_0_rgba(91,72,44,0.13)]">
             <span className="block w-full whitespace-normal">
               {subtitle || predictiveText}
             </span>
           </div>
 
-          <div className="relative z-10 mt-2 grid grid-cols-[1.18fr_0.72fr_1.18fr] items-center gap-3">
+          <div className="relative z-10 mt-3 grid grid-cols-[1.18fr_0.72fr_1.18fr] items-center gap-3">
             <AssistantButton
               kind="gosta"
               onClick={() => handleManualSearch(onOfferSearch)}
@@ -447,7 +419,36 @@ export default function ZiiplyMobileSearchCard({
             />
           </div>
 
-          <div className="relative z-10 mt-[4.2rem] flex justify-center">
+          <div className="mt-3 grid grid-cols-[minmax(0,1fr)_8.1rem] items-center gap-3">
+            <div className="relative h-[3.0rem] overflow-hidden rounded-[1.35rem] border-[3px] border-[#9d8350] bg-[#fff4d3] p-1 shadow-[0_4px_0_rgba(91,72,44,0.18),inset_0_3px_8px_rgba(91,65,28,0.10)]">
+              <textarea
+                ref={inputRef}
+                value={input}
+                onChange={(event) => {
+                  autoSearchInputRef.current = "";
+                  setTriggeredSearchInput("");
+                  onInputChange?.(event.target.value);
+                }}
+                rows={1}
+                placeholder={searchMode === "single" ? "Kirjoita yksi tuote" : "maito, kahvi"}
+                className="block h-full w-full resize-none overflow-hidden rounded-[1.05rem] border-0 bg-[#fffaf0] px-3 py-[0.35rem] pr-[2.45rem] text-center text-[1.18rem] font-black leading-[1.0] text-[#102216] outline-none placeholder:text-[#7d7461]"
+                style={{ fontFamily: hasText ? serifFont : cooperFont }}
+              />
+
+              <EraserButton visible={hasText} onClick={handleClearInput} />
+            </div>
+
+            <div className="flex h-[3.0rem] items-center">
+              <GreenPillButton
+                label="koriin"
+                onClick={onAddInputToCart}
+                disabled={!hasText}
+                className="h-[3.0rem] w-full text-[1.0rem]"
+              />
+            </div>
+          </div>
+
+          <div className="relative z-10 mt-3 flex justify-center">
             <ModeToggle mode={searchMode} onModeChange={onSearchModeChange} />
           </div>
 
