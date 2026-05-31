@@ -1,8 +1,7 @@
 "use client";
 
-// V5_STEP1_VISUAL_BG_ONLY_FROM_SHOPSVIEW_4:
-// Muutettu vain ShopsViewin visuaalinen tausta ja kauppakorttialueen koristekerros.
-// Ei muutoksia propseihin, callbackeihin, storeCards-renderöintiin tai selectorin toimintaan.
+// V6_RETRO_C_VISUAL_ONLY_SHOPS_VIEW
+// Vain ulkoasu: komponenttien toiminnallinen rakenne, propit ja handlerit säilytetty.
 
 import React from "react";
 import type { ReactNode } from "react";
@@ -53,27 +52,12 @@ export default function ZiiplyMobileShopsView({
 
   return (
     <div
-      className={[
-        "relative h-[100svh] overflow-hidden sm:hidden",
-        isLocalMode ? "bg-[#f4ead0]" : "bg-[#eef5df]",
-      ].join(" ")}
+      data-ziiply-mobile-shops-view-version="V6_RETRO_C_VISUAL_ONLY"
+      className="h-[100svh] overflow-hidden bg-[#eaf7f1] sm:hidden"
     >
-      <div className="pointer-events-none absolute inset-0 z-0 opacity-80">
-        <div className="absolute inset-0 [background-image:radial-gradient(rgba(154,124,67,0.16)_1px,transparent_1px)] [background-size:15px_15px]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.72),transparent_56%)]" />
-        <div
-          className={[
-            "absolute left-1/2 top-[8.9rem] h-[11.4rem] w-[21.5rem] -translate-x-1/2 rounded-[2rem] border-[3px] opacity-[0.18] shadow-[inset_0_0_0_3px_rgba(255,255,255,0.55)]",
-            isLocalMode
-              ? "border-[#8f6e35] bg-[linear-gradient(180deg,#d4a65e_0%,#ead09a_42%,#b87442_43%,#b87442_55%,#e8d0a0_56%,#f5e5bd_100%)]"
-              : "border-[#6f9866] bg-[linear-gradient(180deg,#d7e4bf_0%,#edf3d7_38%,#8fae76_39%,#8fae76_50%,#f4edcc_51%,#f8f1d3_100%)]",
-          ].join(" ")}
-        />
-      </div>
+      <div className="h-[86px]" aria-hidden="true" />
 
-      <div className="relative z-10 h-[86px]" aria-hidden="true" />
-
-      <div className="sticky top-[86px] z-[75] bg-[#f6ebc6]/90 px-2 pb-1 pt-1 backdrop-blur">
+      <div className="sticky top-[86px] z-[75] bg-[#eaf7f1]/95 px-2 pb-1 pt-1 backdrop-blur">
         <ZiiplyMobileLocationBar
           locationInput={locationInput}
           usingOwnLocation={usingOwnLocation}
@@ -85,7 +69,7 @@ export default function ZiiplyMobileShopsView({
         />
       </div>
 
-      <div className="relative z-10 space-y-2 overflow-hidden px-2 pb-0 pt-1">
+      <div className="space-y-2 overflow-hidden px-2 pb-0 pt-1">
         <ZiiplyMobileStoreModeSelector
           storeMode={storeMode}
           storeModeChosen={storeModeChosen}
@@ -99,24 +83,31 @@ export default function ZiiplyMobileShopsView({
         />
 
         <section
-          className={`relative overflow-hidden rounded-[1.85rem] border-[2px] border-[#ead9a8] bg-[#f6ebc6]/94 shadow-[inset_0_0_0_2px_rgba(216,189,117,0.28),0_14px_36px_rgba(91,72,44,0.10)] ${
-            storeMode === "local"
-              ? "pt-4 pb-2.5 px-2.5"
-              : "p-2.5"
+          data-store-mode={isLocalMode ? "local" : "hyper"}
+          className={`relative isolate overflow-hidden rounded-[1.9rem] border-[2px] border-[#d9bd77] bg-[#f7edcb] shadow-[inset_0_0_0_2px_rgba(255,255,255,0.34),0_14px_34px_rgba(91,72,44,0.14)] ring-1 ring-white/70 ${
+            isLocalMode ? "px-2.5 pb-2.5 pt-4" : "p-2.5"
           }`}
         >
-          <div className="pointer-events-none absolute inset-0 z-0">
-            <div className="absolute inset-0 opacity-45 [background-image:radial-gradient(#d8bd75_1.05px,transparent_1.05px)] [background-size:16px_16px]" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.55),transparent_58%)]" />
-            <div
-              className={[
-                "absolute -right-8 top-3 h-[8.8rem] w-[13.5rem] rounded-[1.35rem] border-[3px] opacity-[0.16] shadow-[inset_0_0_0_2px_rgba(255,255,255,0.5)]",
-                isLocalMode
-                  ? "border-[#8a6c36] bg-[linear-gradient(180deg,#b87943_0%,#d6a463_34%,#f2d89c_35%,#f2d89c_48%,#a96a3e_49%,#a96a3e_58%,#ecd6a7_59%,#f8e8bd_100%)]"
-                  : "border-[#719261] bg-[linear-gradient(180deg,#8aa86f_0%,#cbd9aa_34%,#f2eac6_35%,#f2eac6_48%,#739b68_49%,#739b68_58%,#f8f0cf_59%,#fff6d7_100%)]",
-              ].join(" ")}
-            />
-          </div>
+          <div className="pointer-events-none absolute inset-0 z-0 opacity-40 [background-image:radial-gradient(#d8bd75_1.1px,transparent_1.1px)] [background-size:15px_15px]" />
+          <div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.55),transparent_58%)]" />
+
+          <div
+            aria-hidden="true"
+            className={`pointer-events-none absolute inset-x-3 top-[7.2rem] z-0 h-[8.2rem] rounded-[1.4rem] border border-[#d8bd75]/35 bg-center bg-no-repeat opacity-[0.20] mix-blend-multiply ${
+              isLocalMode ? "ziiply-village-shop-bg" : "ziiply-department-store-bg"
+            }`}
+          />
+
+          <style>{`
+            .ziiply-department-store-bg {
+              background-size: 92% auto;
+              background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 900 260'%3E%3Cg fill='none' stroke='%23896d34' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M80 205h740'/%3E%3Cpath d='M135 205V92h630v113'/%3E%3Cpath d='M170 92 450 38l280 54'/%3E%3Cpath d='M208 205v-72h76v72M360 205v-78h180v78M616 205v-72h76v72'/%3E%3Cpath d='M191 112h518M236 70v-28h95v15M580 70V42h95v15'/%3E%3Cpath d='M397 164h106'/%3E%3C/g%3E%3Ctext x='450' y='105' text-anchor='middle' font-family='Georgia' font-size='46' font-weight='700' fill='%23896d34'%3ETAVARATALO%3C/text%3E%3C/svg%3E");
+            }
+            .ziiply-village-shop-bg {
+              background-size: 92% auto;
+              background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 900 260'%3E%3Cg fill='none' stroke='%23896d34' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M90 210h720'/%3E%3Cpath d='M145 210V100h520v110'/%3E%3Cpath d='M120 100 405 42l285 58'/%3E%3Cpath d='M660 210v-78h95v78'/%3E%3Cpath d='M197 210v-60h84v60M330 210v-60h84v60M463 210v-60h84v60'/%3E%3Cpath d='M178 119h465M712 132h58M712 158h58M712 184h58'/%3E%3Cpath d='M250 76v-33h85v16'/%3E%3C/g%3E%3Ctext x='405' y='105' text-anchor='middle' font-family='Georgia' font-size='44' font-weight='700' fill='%23896d34'%3EKYLÄKAUPPA%3C/text%3E%3C/svg%3E");
+            }
+          `}</style>
 
           <div className="relative z-10">
             {storeCards}
