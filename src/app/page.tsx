@@ -1,5 +1,9 @@
 "use client";
 
+// V633_REAL_MODE_SELECTOR_LIGHT_OUTER_PAPER:
+// Korjaa oikean render-polun ulomman Kaupat-paperin: tumma rasteri poistettu/vaalennettu.
+// Page käyttää edelleen oikeaa ZiiplyMobileStoreModeSelector-komponenttia. Ei haku/GPS/click/logiikkamuutoksia.
+
 // V632_PAGE_USES_REAL_MODE_SELECTOR_COMPONENT:
 // Korjaus: mobiilin Kaupat-näkymän inline mode selector poistettu ja korvattu oikealla ZiiplyMobileStoreModeSelector-komponentilla.
 // Tämän jälkeen ZiiplyMobileStoreModeSelector.tsx:n visuaalimuutokset näkyvät ruudulla. Ei muutoksia kauppakortteihin, hakuun, GPS-logiikkaan tai click-handlerien sisältöön.
@@ -10748,17 +10752,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           </div>
 
           <section
-            className={`relative overflow-hidden rounded-[2.05rem] border-[4px] border-[#7a5423] px-5 pb-4 pt-3 shadow-[0_24px_48px_rgba(52,38,14,0.32),0_6px_0_rgba(99,65,22,0.36),inset_0_0_0_2px_rgba(255,248,221,0.90),inset_0_18px_28px_rgba(255,255,255,0.22)] ring-1 ring-[#fff3c5]/95 ${
+            className={`relative overflow-hidden rounded-[2.05rem] border-[4px] border-[#b98e4d] px-5 pb-4 pt-3 shadow-[0_18px_34px_rgba(52,38,14,0.18),0_4px_0_rgba(116,78,31,0.18),inset_0_0_0_2px_rgba(255,252,235,0.96),inset_0_18px_28px_rgba(255,255,255,0.30)] ring-1 ring-[#fff7d6]/95 ${
               storeMode === "local"
-                ? "bg-[#f4dfac]"
-                : "bg-[#f7e6ba]"
+                ? "bg-[#fbf1d2]"
+                : "bg-[#fcf4da]"
             }`}
             style={{
               backgroundImage:
                 storeMode === "local"
-                  ? "radial-gradient(#aa8542 1.15px, transparent 1.15px), radial-gradient(circle at 18% 4%, rgba(104,70,25,0.20), transparent 32%), linear-gradient(180deg, rgba(255,252,229,0.78), rgba(239,213,157,0.98))"
-                  : "radial-gradient(#aa8542 1.15px, transparent 1.15px), radial-gradient(circle at 82% 6%, rgba(104,70,25,0.16), transparent 34%), linear-gradient(180deg, rgba(255,252,230,0.78), rgba(244,221,172,0.98))",
-              backgroundSize: "15px 15px, 100% 100%, 100% 100%",
+                  ? "radial-gradient(rgba(190,154,88,0.30) 0.72px, transparent 0.72px), radial-gradient(circle at 18% 4%, rgba(255,255,255,0.50), transparent 34%), linear-gradient(180deg, rgba(255,255,242,0.94), rgba(249,238,203,0.96))"
+                  : "radial-gradient(rgba(190,154,88,0.28) 0.72px, transparent 0.72px), radial-gradient(circle at 82% 6%, rgba(255,255,255,0.48), transparent 35%), linear-gradient(180deg, rgba(255,255,243,0.95), rgba(251,242,211,0.97))",
+              backgroundSize: "18px 18px, 100% 100%, 100% 100%",
             }}
           >
             <div className="relative z-10">
