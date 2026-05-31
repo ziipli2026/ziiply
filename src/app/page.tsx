@@ -1,15 +1,15 @@
 "use client";
 
-// V692_MASKED_STORE_BACKGROUND_POLISH_BUILD_FIX
-// Korjaa v691:n alun kirjoitusvirheen.
-// Visual-only update v690:n päälle:
+// V693_STORE_BACKGROUND_MID_BALANCE
+// Visual-only update v690:n päälle.
+// Korjaa v692:n liian sumuisen lopputuloksen:
+// - blur lähes pois
+// - opacity keskitasolle
+// - rakennus hieman alemmas
+// - kontrasti pidetään mukana
 // - v3-SVG:t säilyvät
-// - kuva alemmas
-// - kevyempi opacity
-// - pieni blur
-// - yläosa fade/maskilla puhtaaksi tekstille
-// - alaosa jää tunnelmakuvaksi
-// - ei uusia JSX-elementtejä, ei logiikka- tai layoutmuutoksia.
+// - ei JSX-rakennemuutoksia
+// - ei logiikka- tai layoutmuutoksia.
 
 // V690_STORE_BACKGROUND_V3_NO_GHOST_TEXT
 // Päivitetty käyttämään uusia v3-taustakuvia:
@@ -9539,7 +9539,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     alt=""
                     aria-hidden="true"
                     draggable={false}
-                    className="pointer-events-none absolute bottom-[-62px] left-[-34px] right-[-34px] z-[1] mx-auto h-[232px] w-[324px] object-cover object-bottom opacity-[0.42] blur-[1.4px] saturate-[1.00] contrast-[1.02] brightness-[1.04] drop-shadow-[0_8px_16px_rgba(60,40,12,0.12)] [mask-image:linear-gradient(to_bottom,transparent_0%,rgba(0,0,0,0.08)_18%,rgba(0,0,0,0.52)_44%,rgba(0,0,0,0.96)_100%)] [-webkit-mask-image:linear-gradient(to_bottom,transparent_0%,rgba(0,0,0,0.08)_18%,rgba(0,0,0,0.52)_44%,rgba(0,0,0,0.96)_100%)]"
+                    className="pointer-events-none absolute bottom-[-54px] left-[-30px] right-[-30px] z-[1] mx-auto h-[220px] w-[310px] object-cover object-bottom opacity-[0.56] blur-[0.3px] saturate-[1.08] contrast-[1.07] brightness-[1.04] drop-shadow-[0_8px_16px_rgba(60,40,12,0.14)]"
                   />
                   <button
                     type="button"
@@ -9811,7 +9811,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 alt=""
                 aria-hidden="true"
                 draggable={false}
-                className="pointer-events-none absolute bottom-[-48px] left-[-20px] right-[-20px] z-[1] mx-auto h-[170px] w-[232px] object-cover object-bottom opacity-[0.46] blur-[1.2px] saturate-[1.02] contrast-[1.02] brightness-[1.04] drop-shadow-[0_7px_14px_rgba(52,36,10,0.12)] [mask-image:linear-gradient(to_bottom,transparent_0%,rgba(0,0,0,0.10)_18%,rgba(0,0,0,0.58)_46%,rgba(0,0,0,0.98)_100%)] [-webkit-mask-image:linear-gradient(to_bottom,transparent_0%,rgba(0,0,0,0.10)_18%,rgba(0,0,0,0.58)_46%,rgba(0,0,0,0.98)_100%)]"
+                className="pointer-events-none absolute bottom-[-42px] left-[-18px] right-[-18px] z-[1] mx-auto h-[164px] w-[226px] object-cover object-bottom opacity-[0.58] blur-[0.3px] saturate-[1.10] contrast-[1.08] brightness-[1.04] drop-shadow-[0_7px_14px_rgba(52,36,10,0.14)]"
               />
             )}
             <span className="pointer-events-none absolute left-[6px] top-[6px] z-20 h-[5px] w-[5px] rounded-full border border-[#b59a69] bg-[#ead8a7] shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]" />
@@ -9850,7 +9850,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
             <>
               <p
-                className={`absolute left-3 right-3 top-[39px] z-40 mx-auto h-[1.35rem] max-w-[7.9rem] overflow-hidden text-center text-[10px] font-extrabold leading-tight ${
+                className={`absolute left-3 right-3 top-[39px] z-20 mx-auto h-[1.35rem] max-w-[7.9rem] overflow-hidden text-center text-[10px] font-extrabold leading-tight ${
                   isComingSoon ? "text-[#b9aa86]" : "text-[#26251f]"
                 }`}
                 style={{
@@ -9863,7 +9863,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               </p>
 
               {isTopRow && distanceForCard && storeModeChosenV299 && (
-                <p className="absolute left-0 right-0 top-[58px] z-40 text-[8.5px] font-black leading-none text-[#8a7247]">
+                <p className="absolute left-0 right-0 top-[58px] z-20 text-[8.5px] font-black leading-none text-[#8a7247]">
                   {distanceForCard}
                 </p>
               )}
