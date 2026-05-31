@@ -1,7 +1,29 @@
 "use client";
 
+// V676_STORE_BACKGROUND_ART
+// VISUAL ONLY.
+// BACKGROUND ART PLACEHOLDER:
+// /store-retro-general.webp
+// voidaan vaihtaa myöhemmin oikeisiin:
+// - tavaratalo.webp
+// - lahikauppa.webp
+
+
+// Lisää:
+// - tavaratalo-taustakuvitukset
+// - lähikauppa-taustakuvitukset
+// - haalea retroillustratio korttien sisään
+// - aamun mockup -tyylinen tunnelma
+
 // V675_STORE_GRAPHICS_FULL_RETRO
 // VISUAL ONLY.
+// BACKGROUND ART PLACEHOLDER:
+// /store-retro-general.webp
+// voidaan vaihtaa myöhemmin oikeisiin:
+// - tavaratalo.webp
+// - lahikauppa.webp
+
+
 // Lisää myös:
 // - paperikulumat
 // - emalikylttiheijastukset
@@ -11,6 +33,13 @@
 
 // V674_STORE_CARD_VISUAL_POLISH
 // VISUAL ONLY.
+// BACKGROUND ART PLACEHOLDER:
+// /store-retro-general.webp
+// voidaan vaihtaa myöhemmin oikeisiin:
+// - tavaratalo.webp
+// - lahikauppa.webp
+
+
 // - hillitympi paperi/emaltti
 // - pienempi logokyltti
 // - messinkisemmät ruuvit
@@ -20,6 +49,13 @@
 
 // V673_STORE_CARD_GRAPHICS_VISIBLE_RETRO_SIGNAGE
 // VISUAL ONLY.
+// BACKGROUND ART PLACEHOLDER:
+// /store-retro-general.webp
+// voidaan vaihtaa myöhemmin oikeisiin:
+// - tavaratalo.webp
+// - lahikauppa.webp
+
+
 // Tekee kauppakorttien grafiikan oikeasti näkyväksi vahvistetussa compact-renderissä:
 // - emalikyltti/paperikortti-tausta
 // - kulmaruuvit
@@ -34,6 +70,13 @@
 
 // V671_FORCE_VISIBLE_STORE_CARD_GRAPHICS_OVERRIDE
 // VISUAL ONLY.
+// BACKGROUND ART PLACEHOLDER:
+// /store-retro-general.webp
+// voidaan vaihtaa myöhemmin oikeisiin:
+// - tavaratalo.webp
+// - lahikauppa.webp
+
+
 // v670 marker näkyi, mutta korttigrafiikka jäi vanhaksi.
 // Tämä versio pakottaa näkyvän korttirenderin ulkoasun suoraan card className -tasolla.
 // Ei muutoksia state-, GPS-, haku-, picker-, bottom nav- tai pystykorkologiikkaan.
@@ -9433,7 +9476,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               return (
                 <div
                   key={store.key}
-                  className={`${compact ? "h-[214px] min-h-[214px] max-h-[214px] rounded-[1.18rem] px-2 pb-1 pt-1" : "rounded-2xl p-3"} relative overflow-hidden border-[2.5px] text-center transition shadow-[0_3px_0_rgba(94,71,31,0.12),0_9px_14px_rgba(52,38,14,0.06),inset_0_0_0_1px_rgba(255,255,255,0.76)] before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.42),transparent_58%)] after:pointer-events-none after:absolute after:inset-[4px] after:rounded-[0.95rem] after:border after:border-white/35 ${
+                  className={`${compact ? "h-[214px] min-h-[214px] max-h-[214px] rounded-[1.18rem] px-2 pb-1 pt-1" : "rounded-2xl p-3"} relative overflow-hidden shadow-[inset_0_0_24px_rgba(98,71,21,0.08)] border-[2.5px] text-center transition shadow-[0_3px_0_rgba(94,71,31,0.12),0_9px_14px_rgba(52,38,14,0.06),inset_0_0_0_1px_rgba(255,255,255,0.76)] before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.42),transparent_58%)] after:pointer-events-none after:absolute after:inset-[4px] after:rounded-[0.95rem] after:border after:border-white/35 ${
                     selected
                       ? store.key === "s"
                         ? "border-[#076b3a] bg-[linear-gradient(180deg,#fbffdf_0%,#eef7c1_48%,#dbeaa4_100%)] text-[#17382b]"
@@ -10043,7 +10086,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   </p>
                 </section>
 
-                <section className="relative overflow-hidden rounded-[2.1rem] border-[3px] border-[#bfa063] bg-[#fbf3d8] p-3 shadow-[0_5px_0_rgba(80,58,25,0.14),0_16px_24px_rgba(45,31,12,0.10),inset_0_0_0_2px_rgba(255,252,235,0.72)] ring-1 ring-[#fff7df]/80">
+                <section className="relative overflow-hidden shadow-[inset_0_0_24px_rgba(98,71,21,0.08)] rounded-[2.1rem] border-[3px] border-[#bfa063] bg-[#fbf3d8] p-3 shadow-[0_5px_0_rgba(80,58,25,0.14),0_16px_24px_rgba(45,31,12,0.10),inset_0_0_0_2px_rgba(255,252,235,0.72)] ring-1 ring-[#fff7df]/80">
                   <div className="pointer-events-none absolute inset-0 opacity-[0.14] [background-image:radial-gradient(#c9ad6b_0.85px,transparent_0.85px)] [background-size:17px_17px]" />
                   <div className="relative z-10">
               <ZiiplyMobileStoreModeSelector
@@ -10436,7 +10479,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
                     {eanScannerOpen && (
                       <>
-                        <div className="relative overflow-hidden rounded-[2rem] border-[10px] border-[#1f211a] bg-[#10140f] p-4 shadow-[inset_0_0_0_2px_rgba(255,255,255,0.16),0_10px_20px_rgba(0,0,0,0.25)]">
+                        <div className="relative overflow-hidden shadow-[inset_0_0_24px_rgba(98,71,21,0.08)] rounded-[2rem] border-[10px] border-[#1f211a] bg-[#10140f] p-4 shadow-[inset_0_0_0_2px_rgba(255,255,255,0.16),0_10px_20px_rgba(0,0,0,0.25)]">
                           <div className="absolute left-1/2 top-3 z-10 h-9 w-28 -translate-x-1/2 rounded-xl border-2 border-[#cfc1a0] bg-transparent/70 shadow-inner" />
                           <div className="absolute right-5 top-4 z-10 h-11 w-11 rounded-full border-4 border-[#cfc1a0] bg-[#0c0d0b] shadow-inner" />
                           <div
@@ -10884,7 +10927,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           </div>
 
           <section
-            className={`relative overflow-hidden rounded-[2.05rem] border-[4px] border-[#b98e4d] px-5 pb-4 pt-3 shadow-[0_18px_34px_rgba(52,38,14,0.18),0_4px_0_rgba(116,78,31,0.18),inset_0_0_0_2px_rgba(255,252,235,0.96),inset_0_18px_28px_rgba(255,255,255,0.30)] ring-1 ring-[#fff7d6]/95 ${
+            className={`relative overflow-hidden shadow-[inset_0_0_24px_rgba(98,71,21,0.08)] rounded-[2.05rem] border-[4px] border-[#b98e4d] px-5 pb-4 pt-3 shadow-[0_18px_34px_rgba(52,38,14,0.18),0_4px_0_rgba(116,78,31,0.18),inset_0_0_0_2px_rgba(255,252,235,0.96),inset_0_18px_28px_rgba(255,255,255,0.30)] ring-1 ring-[#fff7d6]/95 ${
               storeMode === "local"
                 ? "bg-[#fbf1d2]"
                 : "bg-[#fcf4da]"
