@@ -298,6 +298,8 @@ export default function ZiiplyMobileSearchCard({
   const justiinaLoading = loadingNormal || singleProductCompareLoading;
   const autoSearchInputRef = useRef("");
   const [triggeredSearchInput, setTriggeredSearchInput] = useState("");
+  const [searchFieldFocused, setSearchFieldFocused] = useState(false);
+  const [keyboardLiftPx, setKeyboardLiftPx] = useState(0);
 
   const cleanInput = input.trim();
   const notFoundCanShow =
@@ -392,11 +394,50 @@ export default function ZiiplyMobileSearchCard({
     });
   };
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const visualViewport = window.visualViewport;
+
+    const updateKeyboardLift = () => {
+      const activeElement = document.activeElement;
+      const inputIsActive =
+        activeElement instanceof HTMLTextAreaElement ||
+        activeElement instanceof HTMLInputElement;
+
+      if (!open || !searchFieldFocused || !inputIsActive || !visualViewport) {
+        setKeyboardLiftPx(0);
+        return;
+      }
+
+      const keyboardOverlap = Math.max(
+        0,
+        window.innerHeight - visualViewport.height - visualViewport.offsetTop,
+      );
+
+      // iOS Safari does not always reflow fixed elements when the software keyboard opens.
+      // Lift only the lower search cluster enough to keep the input/buttons out from under the keyboard.
+      const nextLift = Math.min(96, Math.max(0, keyboardOverlap - 255));
+      setKeyboardLiftPx(nextLift);
+    };
+
+    updateKeyboardLift();
+    visualViewport?.addEventListener("resize", updateKeyboardLift);
+    visualViewport?.addEventListener("scroll", updateKeyboardLift);
+    window.addEventListener("resize", updateKeyboardLift);
+
+    return () => {
+      visualViewport?.removeEventListener("resize", updateKeyboardLift);
+      visualViewport?.removeEventListener("scroll", updateKeyboardLift);
+      window.removeEventListener("resize", updateKeyboardLift);
+    };
+  }, [open, searchFieldFocused]);
+
   if (!open) return null;
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V625_KEYBOARD_SAFE_LIFT"
+      data-ziiply-mobile-search-card-version="UUSI_V626_IOS_KEYBOARD_LIFT"
       className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.25rem)] bottom-[calc(env(safe-area-inset-bottom)+5.2rem)] z-[72] flex items-stretch justify-center overflow-hidden bg-transparent px-2 sm:hidden ${className}`}
     >
       <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.8rem] border-[2px] border-[#ead9a8] bg-[#f6ebc6] px-3 pb-3 pt-3 text-[#20301f] shadow-[inset_0_0_0_2px_rgba(216,189,117,0.34)]">
@@ -436,8 +477,12 @@ export default function ZiiplyMobileSearchCard({
             </span>
           </div>
 
-          <div className="relative z-10 mt-[0.2rem] grid grid-cols-[1.18fr_0.72fr_1.18fr] items-center gap-3">
-            <AssistantButton
+          <div
+            className="relative z-10 transition-transform duration-200 ease-out"
+            style={{ transform: keyboardLiftPx > 0 ? `translateY(-${keyboardLiftPx}px)` : undefined }}
+          >
+            <div className="mt-[0.2rem] grid grid-cols-[1.18fr_0.72fr_1.18fr] items-center gap-3">
+              <AssistantButton
               kind="gosta"
               onClick={() => handleManualSearch(onOfferSearch)}
               disabled={!hasText}
@@ -463,12 +508,19 @@ export default function ZiiplyMobileSearchCard({
             />
           </div>
 
-          <div className="mt-2">
-            <div className="relative h-[3.0rem] overflow-hidden rounded-[1.35rem] border-[3px] border-[#9d8350] bg-[#fff4d3] p-1 shadow-[0_4px_0_rgba(91,72,44,0.18),inset_0_3px_8px_rgba(91,65,28,0.10)]">
+            <div className="mt-2">
+              <div className="relative h-[3.0rem] overflow-hidden rounded-[1.35rem] border-[3px] border-[#9d8350] bg-[#fff4d3] p-1 shadow-[0_4px_0_rgba(91,72,44,0.18),inset_0_3px_8px_rgba(91,65,28,0.10)]">
               <textarea
                 ref={inputRef}
                 value={input}
-                onFocus={keepViewportStableOnInputFocus}
+                onFocus={() => {
+                  setSearchFieldFocused(true);
+                  keepViewportStableOnInputFocus();
+                }}
+                onBlur={() => {
+                  setSearchFieldFocused(false);
+                  setKeyboardLiftPx(0);
+                }}
                 onClick={keepViewportStableOnInputFocus}
                 onChange={(event) => {
                   autoSearchInputRef.current = "";
@@ -494,19 +546,20 @@ export default function ZiiplyMobileSearchCard({
             <ModeToggle mode={searchMode} onModeChange={onSearchModeChange} />
           </div>
 
-          <div className="relative z-10 mt-2 grid grid-cols-2 gap-3 pb-[2.4rem] pt-2">
-            <RetroAssetButton
-              kind="voice"
-              label="Äänitä"
-              state={voiceState}
-              onClick={onVoiceClick}
-            />
-            <RetroAssetButton
-              kind="scanner"
-              label="Skanneri"
-              state={scannerState}
-              onClick={onScannerClick}
-            />
+            <div className="relative z-10 mt-2 grid grid-cols-2 gap-3 pb-[2.4rem] pt-2">
+              <RetroAssetButton
+                kind="voice"
+                label="Äänitä"
+                state={voiceState}
+                onClick={onVoiceClick}
+              />
+              <RetroAssetButton
+                kind="scanner"
+                label="Skanneri"
+                state={scannerState}
+                onClick={onScannerClick}
+              />
+            </div>
           </div>
 
           {/* Hakutulokset renderöidään erillisessä ZiiplyMobileSearchResultsCard-komponentissa. */}
