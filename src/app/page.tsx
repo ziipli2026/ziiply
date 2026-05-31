@@ -1,23 +1,12 @@
 "use client";
 
-// V655_SHOPS_STATE_LAYOUT_FIX
-// Korjaa Kaupat-näkymän tilakohtaiset render-erot:
-// - Tavaratalot ja Lähikaupat käyttävät samaa kauppakorttien pystykorkoa.
-// - Ketjujen väliltä ilman valittua kauppatyyppiä näyttää kortit ja notifikaation.
-// - Ketjun sisältä ei näytä tyhjiä laatikoita, vaan S/K-valintakortit samalla korttityylillä.
-// Ei muutoksia GPS-, haku-, bottom nav-, state- tai handler-logiikkaan.
-
-// V654_SHOPS_RENDER_STABLE_Y_AND_VISIBLE_CARDS
-// Korjaukset:
-// - Tavaratalot/Lähikaupat-vaihto ei muuta kauppakorttialueen pystykorkoa.
-// - Ketjujen väliltä -tilassa kortit pysyvät näkyvissä myös ilman Tavaratalot/Lähikaupat-paria.
-// - Vertailuparia ei löytynyt -ilmoitus voi näkyä, mutta korttialue ei katoa.
-// - Ei GPS-, haku-, bottom nav-, state- tai handler-logiikkamuutoksia.
-
-// V653_WITHIN_CHAIN_RENDER_VISUAL_SYNC
-// Löydetty vika: Ketjun sisältä -haara käytti renderComparedStoreCards()-funktion omaa vanhaa slate/white-renderiä.
-// Korjaus: vain storeCompareScope === "within_chain" -haaran visuaalinen synkka retro-tyyliin.
-// Ei muutoksia state-, handler-, GPS-, haku- tai valintalogiikkaan.
+// V656_SHOPS_RENDER_BRANCH_FIX
+// Korjaa todelliset Kaupat-näkymän render-haarat:
+// - Ketjun sisältä ei käytä enää vanhaa tyhjää/slate-renderiä.
+// - Ketjun sisältä näyttää saman tyyliset S/K-kortit kuin Ketjujen väliltä; alemmat LIDL/Tokmanni-kortit jäävät pois.
+// - Tavaratalot/Lähikaupat eivät muuta kauppakorttien pystykorkoa.
+// - Ketjujen väliltä ilman kelvollista paria ei piilota kortteja.
+// Ei muutoksia GPS-, haku-, bottom nav- tai store picker -logiikkaan.
 
 // V651_STORE_CARDS_RETRO_VISUAL_ONLY
 // Kaupparuutujen visuaalinen asu viimeistelty page.tsx:n renderComparedStoreCards(true)-polussa:
@@ -2437,9 +2426,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (storeCompareScope !== "within_chain" && !storeModeChosenV299) {
       return {
         sStoreId: 0,
-        sStoreName: "Vertailuparia ei löytynyt",
+        sStoreName: "Valitse ensin Tavaratalot tai Lähikaupat",
         kStoreId: 0,
-        kStoreName: "Vertailuparia ei löytynyt",
+        kStoreName: "Valitse ensin Tavaratalot tai Lähikaupat",
       };
     }
 
@@ -9325,208 +9314,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return null;
     }
 
-    if (storeCompareScope === "within_chain") {
-      const chainCards = comparedStoreCards.filter(
-        (store) => store.key === "s" || store.key === "k",
-      );
-      const selectedChainKey =
-        withinChain === "S" ? "s" : withinChain === "K" ? "k" : null;
-
-      return (
-        <div className={compact ? "mt-2" : "mt-3"}>
-          <div
-            className={
-              compact ? "grid grid-cols-2 gap-x-3 gap-y-1.5" : "grid grid-cols-2 gap-3"
-            }
-          >
-            {chainCards.map((store) => {
-              const selected = selectedChainKey === store.key;
-              const chain = store.key === "s" ? "S" : "K";
-              const modeA: StoreMode = "hyper";
-              const modeB: StoreMode = "local";
-              const storeNameA =
-                getSelectedStoreNameFor(chain, modeA) ||
-                (chain === "S" ? "S-kauppa 1" : "K-kauppa 1");
-              const storeNameB =
-                getSelectedStoreNameFor(chain, modeB) ||
-                (chain === "S" ? "S-kauppa 2" : "K-kauppa 2");
-              const selectedStoreA = findStoreForSelectionV320(chain, modeA);
-              const selectedStoreB = findStoreForSelectionV320(chain, modeB);
-              const distanceA = getStoreDistanceLabelV320(selectedStoreA);
-              const distanceB = getStoreDistanceLabelV320(selectedStoreB);
-
-              return (
-                <div
-                  key={store.key}
-                  className={`${compact ? "h-[104px] min-h-[104px] max-h-[104px] rounded-[1.18rem] px-2 pb-1 pt-1" : "rounded-2xl p-3"} relative overflow-hidden border-[2.5px] text-center transition shadow-[0_3px_0_rgba(94,71,31,0.12),0_9px_14px_rgba(52,38,14,0.06),inset_0_0_0_1px_rgba(255,255,255,0.72)] ${
-                    selected
-                      ? store.key === "s"
-                        ? "border-[#076b3a] bg-[linear-gradient(180deg,#fbffdf_0%,#eef7c1_48%,#dbeaa4_100%)] text-[#17382b]"
-                        : "border-[#8e4a35] bg-[linear-gradient(180deg,#fff7e3_0%,#f7dfb8_54%,#edca93_100%)] text-[#17382b]"
-                      : "border-[#d3b673] bg-[linear-gradient(180deg,#fff8dc_0%,#f7ebc3_100%)] text-[#8f815f] opacity-[0.72]"
-                  }`}
-                >
-                  <button
-                    type="button"
-                    aria-pressed={selected}
-                    onClick={() => {
-                      const nextChain = chain;
-                      setWithinChain(nextChain);
-                      setSelectedChains((current) => ({
-                        ...current,
-                        s: nextChain === "S",
-                        k: nextChain === "K",
-                        lidl: false,
-                        tokmanni: false,
-                      }));
-                      setOpenStorePicker(null);
-                      setLocationMessage(
-                        `${store.title} valittu ketjun sisäiseen vertailuun. Valitse kaksi vertailtavaa kauppaa.`,
-                      );
-                    }}
-                    className="w-full text-center"
-                  >
-                    <span
-                      className={`absolute ${compact ? "right-2 top-2 h-5 w-5 text-[12px]" : "right-3 top-3 h-6 w-6 text-xs"} flex items-center justify-center rounded-full font-black shadow-[0_3px_7px_rgba(15,23,42,0.14)] ${
-                        selected
-                          ? "border border-[#063d22] bg-[radial-gradient(circle_at_35%_25%,#2ca85a_0%,#08743a_48%,#064928_100%)] text-[#fff7de]"
-                          : "border border-[#d0ad68] bg-[#fff8dc] text-transparent"
-                      }`}
-                    >
-                      {selected ? "✓" : ""}
-                    </span>
-                    <div
-                      className={`absolute left-3 top-2.5 z-30 flex items-center justify-center rounded-xl border border-[#d0ad68] bg-[linear-gradient(180deg,#fffdf0_0%,#fff3cf_100%)] p-1 shadow-[0_2px_0_rgba(94,71,31,0.12)] ring-1 ring-[#fff1bf] ${compact ? "h-7 w-7" : "h-9 w-9"}`}
-                    >
-                      <img
-                        src={store.key === "s" ? "/storelogos/s-group.png" : "/storelogos/k-group.png"}
-                        alt={store.title}
-                        draggable={false}
-                        className="h-full w-full object-contain"
-                        onError={(event) => {
-                          event.currentTarget.style.display = "none";
-                        }}
-                      />
-                    </div>
-                    <div className={compact ? "h-7" : "h-10"} aria-hidden="true" />
-                    <p
-                      className={
-                        compact
-                          ? "relative z-20 mt-0 text-[9px] font-black uppercase tracking-tight text-[#73829a]"
-                          : "mt-0 text-[10px] font-black uppercase tracking-wide text-[#73829a]"
-                      }
-                    >
-                      {store.title}
-                    </p>
-
-                    {!selected && (
-                      <div className="absolute inset-x-2 top-[42px] z-20 text-center">
-                        <p className="mx-auto max-w-[7.8rem] text-[10px] font-black leading-tight text-[#132338]">
-                          Valitse {chain === "S" ? "S-ryhmä" : "K-ryhmä"}
-                        </p>
-                      </div>
-                    )}
-                  </button>
-
-                  {selected && (
-                    <div
-                      className={
-                        compact
-                          ? "mt-1 grid grid-cols-2 gap-1.5"
-                          : "mt-2 grid grid-cols-2 gap-1.5"
-                      }
-                    >
-                      <div
-                        className={
-                          compact
-                            ? "relative rounded-lg border border-[#d6bd82] bg-[#fffaf0]/92 px-1.5 py-1 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.70)] ring-1 ring-[#fff1bf]"
-                            : "relative rounded-xl border border-[#d6bd82] bg-[#fffaf0]/88 p-1.5 text-center ring-1 ring-[#fff1bf]"
-                        }
-                      >
-                        <p className="text-[8.5px] font-black uppercase text-[#8a98ad]">
-                          Kauppa 1
-                        </p>
-                        <p
-                          className={
-                            compact
-                              ? "min-h-[1.6rem] whitespace-normal break-words text-[8px] font-extrabold leading-tight text-[#132338]"
-                              : "min-h-[2.7rem] whitespace-normal break-words text-[11px] font-extrabold leading-tight text-[#132338]"
-                          }
-                        >
-                          {storeNameA}
-                        </p>
-                        {distanceA && (
-                          <p className="mt-0 text-[8px] font-black text-[#8a98ad]">
-                            {distanceA}
-                          </p>
-                        )}
-                        {renderStoreChoiceButton(
-                          chain,
-                          modeA,
-                          `${store.key}-within-hyper`,
-                          compact,
-                        )}
-                        {renderStorePickerMenu(
-                          chain,
-                          modeA,
-                          `${store.key}-within-hyper`,
-                          compact,
-                        )}
-                      </div>
-                      <div
-                        className={
-                          compact
-                            ? "relative rounded-lg border border-[#d6bd82] bg-[#fffaf0]/92 px-1.5 py-1 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.70)] ring-1 ring-[#fff1bf]"
-                            : "relative rounded-xl border border-[#d6bd82] bg-[#fffaf0]/88 p-1.5 text-center ring-1 ring-[#fff1bf]"
-                        }
-                      >
-                        <p className="text-[8.5px] font-black uppercase text-[#8a98ad]">
-                          Kauppa 2
-                        </p>
-                        <p
-                          className={
-                            compact
-                              ? "min-h-[1.6rem] whitespace-normal break-words text-[8px] font-extrabold leading-tight text-[#132338]"
-                              : "min-h-[2.7rem] whitespace-normal break-words text-[11px] font-extrabold leading-tight text-[#132338]"
-                          }
-                        >
-                          {storeNameB}
-                        </p>
-                        {distanceB && (
-                          <p className="mt-0 text-[8px] font-black text-[#8a98ad]">
-                            {distanceB}
-                          </p>
-                        )}
-                        {renderStoreChoiceButton(
-                          chain,
-                          modeB,
-                          `${store.key}-within-local`,
-                          compact,
-                        )}
-                        {renderStorePickerMenu(
-                          chain,
-                          modeB,
-                          `${store.key}-within-local`,
-                          compact,
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      );
-    }
+    /* V656: old within_chain render removed; compact branch below handles it with same S/K card style. */
 
     if (compact) {
       const topStores = comparedStoreCards.filter(
         (store) => store.key === "s" || store.key === "k",
       );
-      const bottomStores = comparedStoreCards.filter(
-        (store) => store.key !== "s" && store.key !== "k",
-      );
+      const bottomStores =
+        storeCompareScope === "within_chain"
+          ? []
+          : comparedStoreCards.filter(
+              (store) => store.key !== "s" && store.key !== "k",
+            );
 
 
       const renderBetweenChainCard = (
@@ -9535,7 +9334,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       ) => {
         const isRealChain = store.key === "s" || store.key === "k";
         const chain = store.key === "s" ? "S" : store.key === "k" ? "K" : null;
-        const selected = Boolean(selectedChains[store.key]);
+        const selected =
+          storeCompareScope === "within_chain"
+            ? (chain === "S" && withinChain === "S") ||
+              (chain === "K" && withinChain === "K")
+            : Boolean(selectedChains[store.key]);
         const selectedStoreForCard = chain
           ? findStoreForSelectionV320(chain, storeMode)
           : null;
@@ -9587,7 +9390,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 ? "/storelogos/lidl.png"
                 : "/storelogos/spar.png";
 
-        const displayName = isComingSoon ? "Tulossa" : store.name;
+        const displayName =
+          storeCompareScope === "within_chain" && chain
+            ? selected
+              ? store.title
+              : `Valitse ${store.title}`
+            : isComingSoon
+              ? "Tulossa"
+              : store.name;
 
         return (
           <div
@@ -9596,20 +9406,42 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             tabIndex={0}
             aria-pressed={selected}
             onClick={() => {
-              setSelectedChains((current) => ({
-                ...current,
-                [store.key]: !current[store.key],
-              }));
+              if (storeCompareScope === "within_chain" && chain) {
+                setWithinChain(chain);
+                setSelectedChains((current) => ({
+                  ...current,
+                  s: chain === "S",
+                  k: chain === "K",
+                  lidl: false,
+                  tokmanni: false,
+                }));
+              } else {
+                setSelectedChains((current) => ({
+                  ...current,
+                  [store.key]: !current[store.key],
+                }));
+              }
               setOpenStorePicker(null);
               triggerHaptic();
             }}
             onKeyDown={(event) => {
               if (event.key !== "Enter" && event.key !== " ") return;
               event.preventDefault();
-              setSelectedChains((current) => ({
-                ...current,
-                [store.key]: !current[store.key],
-              }));
+              if (storeCompareScope === "within_chain" && chain) {
+                setWithinChain(chain);
+                setSelectedChains((current) => ({
+                  ...current,
+                  s: chain === "S",
+                  k: chain === "K",
+                  lidl: false,
+                  tokmanni: false,
+                }));
+              } else {
+                setSelectedChains((current) => ({
+                  ...current,
+                  [store.key]: !current[store.key],
+                }));
+              }
               setOpenStorePicker(null);
               triggerHaptic();
             }}
@@ -9669,7 +9501,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 className="absolute bottom-[6px] left-0 right-0 z-30 flex justify-center"
                 onClick={(event) => event.stopPropagation()}
               >
-                {chain ? (
+                {storeCompareScope === "within_chain" && chain ? (
+                  <span className="rounded-full border border-[#d6bd82] bg-[linear-gradient(180deg,#fffaf0_0%,#f4e6bd_100%)] px-2.5 py-[3px] text-[8.5px] font-black text-[#9a8354] shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] ring-1 ring-[#fff1bf]">
+                    {selected ? "Valittu" : "Valitse"}
+                  </span>
+                ) : chain ? (
                   isTopRow ? (
                     <>
                       {renderStoreChoiceButton(
@@ -9701,9 +9537,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 overflow-visible">
             {topStores.map((store) => renderBetweenChainCard(store, true))}
           </div>
-          <div className="mt-1.5 grid grid-cols-2 gap-x-3 gap-y-1.5">
-            {bottomStores.map((store) => renderBetweenChainCard(store, false))}
-          </div>
+          {bottomStores.length > 0 && (
+            <div className="mt-1.5 grid grid-cols-2 gap-x-3 gap-y-1.5">
+              {bottomStores.map((store) => renderBetweenChainCard(store, false))}
+            </div>
+          )}
         </div>
       );
     }
