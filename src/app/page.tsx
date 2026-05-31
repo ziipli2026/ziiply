@@ -1,17 +1,11 @@
 "use client";
 
-// V661_VISIBLE_RENDER_DIRECT_FIX
-// Korjaus tehty V657:llä ruudulla näkyväksi todettuun Kaupat-renderiin.
-// - poistaa V657 debug-merkit
-// - vakioi ulomman renderComparedStoreCards(true)-wrapperin y-välin
-// - vakioi compact-korttirenderin y-välin
-// - Ketjun sisältä compact-tilassa käyttää samaa näkyvää S/K-korttirenderiä eikä vanhaa tyhjää renderiä
-// - Ei GPS-, haku-, bottom nav- tai store picker -muutoksia.
-
-// V657_RENDER_PATH_MARKERS_ONLY
-// VAIN render-polun todentamiseen:
-// lisää näkyvät V657-merkit Kaupat-paneelin todellisiin render-kohtiin.
-// Ei muuta haku-, GPS-, state-, handler-, click- tai layout-logiikkaa.
+// V662_RENDER_TRACE_ONLY
+// VAIN TESTI / DEBUG:
+// - ei korjaa logiikkaa
+// - ei muuta valintoja
+// - lisää näkyvät merkit useaan epäiltyyn render-kohtaan
+// Tavoite: selvittää 100 % mikä render-haara on oikeasti ajossa.
 
 // V651_STORE_CARDS_RETRO_VISUAL_ONLY
 // Kaupparuutujen visuaalinen asu viimeistelty page.tsx:n renderComparedStoreCards(true)-polussa:
@@ -9315,11 +9309,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const selectedRealChainCount =
     Number(Boolean(selectedChains.s)) + Number(Boolean(selectedChains.k));
   function renderComparedStoreCards(compact = false) {
-    if (storeCompareScope === "none") {
+    if (
+      storeCompareScope === "none" ||
+      (storeCompareScope === "between_chains" && !storeModeChosenV299)
+    ) {
       return null;
     }
 
-    if (storeCompareScope === "within_chain" && !compact) {
+    if (storeCompareScope === "within_chain") {
       const chainCards = comparedStoreCards.filter(
         (store) => store.key === "s" || store.key === "k",
       );
@@ -9328,6 +9325,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       return (
         <div className={compact ? (storeMode === "local" ? "mt-8" : "mt-0") : "mt-3"}>
+          <div className="mb-1 rounded-full border border-orange-900 bg-orange-500 px-2 py-[2px] text-center text-[9px] font-black text-white">
+            V662 OLD WITHIN BRANCH
+          </div>
           <div
             className={
               compact ? `${storeMode === "local" ? "pt-2 " : ""}grid grid-cols-2 gap-2` : "grid grid-cols-2 gap-3"
@@ -9508,12 +9508,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const topStores = comparedStoreCards.filter(
         (store) => store.key === "s" || store.key === "k",
       );
-      const bottomStores =
-        storeCompareScope === "within_chain"
-          ? []
-          : comparedStoreCards.filter(
-              (store) => store.key !== "s" && store.key !== "k",
-            );
+      const bottomStores = comparedStoreCards.filter(
+        (store) => store.key !== "s" && store.key !== "k",
+      );
 
 
       const renderBetweenChainCard = (
@@ -9522,10 +9519,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       ) => {
         const isRealChain = store.key === "s" || store.key === "k";
         const chain = store.key === "s" ? "S" : store.key === "k" ? "K" : null;
-        const selected =
-          storeCompareScope === "within_chain" && chain
-            ? withinChain === chain
-            : Boolean(selectedChains[store.key]);
+        const selected = Boolean(selectedChains[store.key]);
         const selectedStoreForCard = chain
           ? findStoreForSelectionV320(chain, storeMode)
           : null;
@@ -9577,16 +9571,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 ? "/storelogos/lidl.png"
                 : "/storelogos/spar.png";
 
-        const displayName =
-          storeCompareScope === "within_chain" && chain
-            ? selected
-              ? store.title
-              : `Valitse ${store.title}`
-            : !storeModeChosenV299 && chain
-              ? "Vertailuparia ei löytynyt"
-              : isComingSoon
-                ? "Tulossa"
-                : store.name;
+        const displayName = isComingSoon ? "Tulossa" : store.name;
 
         return (
           <div
@@ -9595,42 +9580,20 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             tabIndex={0}
             aria-pressed={selected}
             onClick={() => {
-              if (storeCompareScope === "within_chain" && chain) {
-                setWithinChain(chain);
-                setSelectedChains((current) => ({
-                  ...current,
-                  s: chain === "S",
-                  k: chain === "K",
-                  lidl: false,
-                  tokmanni: false,
-                }));
-              } else {
-                setSelectedChains((current) => ({
-                  ...current,
-                  [store.key]: !current[store.key],
-                }));
-              }
+              setSelectedChains((current) => ({
+                ...current,
+                [store.key]: !current[store.key],
+              }));
               setOpenStorePicker(null);
               triggerHaptic();
             }}
             onKeyDown={(event) => {
               if (event.key !== "Enter" && event.key !== " ") return;
               event.preventDefault();
-              if (storeCompareScope === "within_chain" && chain) {
-                setWithinChain(chain);
-                setSelectedChains((current) => ({
-                  ...current,
-                  s: chain === "S",
-                  k: chain === "K",
-                  lidl: false,
-                  tokmanni: false,
-                }));
-              } else {
-                setSelectedChains((current) => ({
-                  ...current,
-                  [store.key]: !current[store.key],
-                }));
-              }
+              setSelectedChains((current) => ({
+                ...current,
+                [store.key]: !current[store.key],
+              }));
               setOpenStorePicker(null);
               triggerHaptic();
             }}
@@ -9680,7 +9643,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 {displayName}
               </p>
 
-              {isTopRow && distanceForCard && storeModeChosenV299 && storeCompareScope !== "within_chain" && (
+              {isTopRow && distanceForCard && (
                 <p className="absolute left-0 right-0 top-[59px] z-20 text-[8.5px] font-black leading-none text-[#8a7247]">
                   {distanceForCard}
                 </p>
@@ -9690,15 +9653,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 className="absolute bottom-[6px] left-0 right-0 z-30 flex justify-center"
                 onClick={(event) => event.stopPropagation()}
               >
-                {storeCompareScope === "within_chain" && chain ? (
-                  <span className="rounded-full border border-[#d6bd82] bg-[linear-gradient(180deg,#fffaf0_0%,#f4e6bd_100%)] px-2.5 py-[3px] text-[8.5px] font-black text-[#9a8354] shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] ring-1 ring-[#fff1bf]">
-                    {selected ? "Valittu" : "Valitse"}
-                  </span>
-                ) : !storeModeChosenV299 && chain ? (
-                  <span className="rounded-full border border-[#d6bd82] bg-[linear-gradient(180deg,#fffaf0_0%,#f4e6bd_100%)] px-2.5 py-[3px] text-[8.5px] font-black text-[#9a8354] shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] ring-1 ring-[#fff1bf]">
-                    Valitse tyyppi
-                  </span>
-                ) : chain ? (
+                {chain ? (
                   isTopRow ? (
                     <>
                       {renderStoreChoiceButton(
@@ -9726,18 +9681,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       };
 
       return (
-        <div className="mt-2 pb-1 overflow-visible">
-          <div className="mb-1 text-center text-[8px] font-black uppercase tracking-[0.16em] text-[#9a8354]">
-            V661
+        <div className={`${storeMode === "local" ? "mt-3" : "mt-2"} pb-1 overflow-visible`}>
+          <div className="mb-1 rounded-full border border-red-900 bg-red-600 px-2 py-[2px] text-center text-[9px] font-black text-white">
+            V662 COMPACT CARDS
           </div>
-          <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 overflow-visible">
+          <div className={`${storeMode === "local" ? "pt-1" : ""} grid grid-cols-2 gap-x-3 gap-y-1.5 overflow-visible`}>
             {topStores.map((store) => renderBetweenChainCard(store, true))}
           </div>
-          {bottomStores.length > 0 && (
-            <div className="mt-1.5 grid grid-cols-2 gap-x-3 gap-y-1.5">
-              {bottomStores.map((store) => renderBetweenChainCard(store, false))}
-            </div>
-          )}
+          <div className="mt-1.5 grid grid-cols-2 gap-x-3 gap-y-1.5">
+            {bottomStores.map((store) => renderBetweenChainCard(store, false))}
+          </div>
         </div>
       );
     }
@@ -9983,7 +9936,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 <section className="relative overflow-hidden rounded-[2.1rem] border-[3px] border-[#bfa063] bg-[#fbf3d8] p-3 shadow-[0_5px_0_rgba(80,58,25,0.14),0_16px_24px_rgba(45,31,12,0.10),inset_0_0_0_2px_rgba(255,252,235,0.72)] ring-1 ring-[#fff7df]/80">
                   <div className="pointer-events-none absolute inset-0 opacity-[0.14] [background-image:radial-gradient(#c9ad6b_0.85px,transparent_0.85px)] [background-size:17px_17px]" />
                   <div className="relative z-10">
-                    <ZiiplyMobileStoreModeSelector
+                    
+              <div className="pointer-events-none mb-1 rounded-full border border-blue-900 bg-blue-600 px-2 py-[2px] text-center text-[9px] font-black text-white">
+                V662 MODE CALL
+              </div>
+              <ZiiplyMobileStoreModeSelector
                       storeMode={storeMode}
                       storeModeChosen={storeModeChosenV299}
                       storeCompareScope={storeCompareScope}
@@ -9999,7 +9956,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   </div>
 
                   <div className="relative z-10 mt-3">
-                    {renderComparedStoreCards(true)}
+                    <div className="mb-1 rounded-full border border-emerald-900 bg-emerald-600 px-2 py-[2px] text-center text-[9px] font-black text-white">
+                V662 BEFORE CARDS CALL
+              </div>
+              {renderComparedStoreCards(true)}
                   </div>
                 </section>
               </aside>
@@ -10667,6 +10627,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           className={`relative z-[80] m-0 p-0 mt-1 mb-0 ziiply-desktop-debug-compact sm:mx-auto sm:max-w-[1180px] sm:px-4 ${showLaunchScreen ? "hidden" : ""}`}
         >
           {/* v388_TOPBAR_BACKGROUND_LOCK: keeps Safari from pulling the hero/background upward after idle/reload. */}
+
+      <div className="pointer-events-none fixed left-2 top-[calc(env(safe-area-inset-top)+86px)] z-[99999] rounded-full border-2 border-black bg-fuchsia-500 px-2 py-1 text-[10px] font-black text-white shadow-xl sm:hidden">
+        V662 PAGE ACTIVE
+      </div>
 <KauppiasMobileTopBar
             hidden={searchFullscreenOpenV621}
             areaLabel={activeArea.label}
@@ -10831,7 +10795,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               backgroundSize: "18px 18px, 100% 100%, 100% 100%",
             }}
           >
-
             <div className="relative z-10">
               <ZiiplyMobileStoreModeSelector
                 storeMode={storeMode}
