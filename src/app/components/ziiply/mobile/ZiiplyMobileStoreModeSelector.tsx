@@ -1,5 +1,9 @@
 "use client";
 
+// V647_MODE_SELECTOR_ALL_BUTTONS_LOW_VISUAL_ONLY
+// Kaikki hakutapa-alueen valintanapit samaan matalaan malliin.
+// Ei props-, state-, callback-, handler- tai logiikkamuutoksia.
+
 // V646_MODE_SELECTOR_RENDER_FIX_COMPACT_2COL
 // Korjaa render-vian: ylärow ei ole enää grid-cols-[1fr_auto_1fr], jossa HAKUTAPA kavensi Tavaratalot/Lähikaupat-napit.
 // Uusi rakenne: 2 nappia omassa grid-cols-2 rivissä, HAKUTAPA omalla koko leveän keskikylttirivillä,
@@ -39,7 +43,7 @@ type Props = {
 
 function buttonClass(active: boolean, disabled = false) {
   return [
-    "relative min-h-[38px] overflow-hidden rounded-[1.25rem] border-[2px] px-3 py-[0.48rem] text-[15px] font-black leading-tight transition active:scale-[0.985]",
+    "relative min-h-[38px] overflow-hidden rounded-[1.25rem] border-[2px] px-3 py-[0.34rem] text-[15px] font-black leading-tight transition active:scale-[0.985]",
     "before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.45),transparent_58%)]",
     disabled ? "cursor-not-allowed opacity-60" : "",
     active
@@ -130,7 +134,7 @@ export default function ZiiplyMobileStoreModeSelector({
         </button>
       </div>
 
-      <div className="relative z-20 my-1.5 flex h-7 items-center justify-center overflow-visible">
+      <div className="relative z-20 my-1 flex h-6 items-center justify-center overflow-visible">
         <p
           className={[
             "relative z-10 whitespace-nowrap rounded-full border-[2px] px-3.5 py-[0.35rem] text-center text-[12px] font-black uppercase leading-none tracking-[0.14em] transition-none shadow-[0_2px_0_rgba(91,72,44,0.16),inset_0_1px_0_rgba(255,255,255,0.72)]",
