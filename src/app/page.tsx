@@ -1,5 +1,11 @@
 "use client";
 
+// V671_FORCE_VISIBLE_STORE_CARD_GRAPHICS_OVERRIDE
+// VISUAL ONLY.
+// v670 marker näkyi, mutta korttigrafiikka jäi vanhaksi.
+// Tämä versio pakottaa näkyvän korttirenderin ulkoasun suoraan card className -tasolla.
+// Ei muutoksia state-, GPS-, haku-, picker-, bottom nav- tai pystykorkologiikkaan.
+
 // V670_CONFIRMED_STORE_CARD_VISUAL_DIRECT_PATCH
 // VISUAL ONLY, v668-pohjasta.
 // Korjaa v669:n ongelman: ei massareplacea, vaan suorat muutokset vahvistetun renderBetweenChainCard()-haaran cardTone/logo/check-kohtiin.
@@ -9647,7 +9653,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               setOpenStorePicker(null);
               triggerHaptic();
             }}
-            className={`relative cursor-pointer overflow-hidden rounded-[1.18rem] border-[2.5px] px-2 pb-1 pt-1 text-center transition active:scale-[0.985] h-[104px] min-h-[104px] max-h-[104px] shadow-[0_2px_0_rgba(94,71,31,0.10),0_6px_12px_rgba(52,38,14,0.045),inset_0_0_0_1px_rgba(255,255,255,0.80)] before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.26),transparent_64%)] after:pointer-events-none after:absolute after:inset-[4px] after:rounded-[0.95rem] after:border after:border-white/22 ${cardTone}`}
+            className={`relative cursor-pointer overflow-hidden rounded-[1.18rem] border-[2.5px] px-2 pb-1 pt-1 text-center transition active:scale-[0.985] h-[104px] min-h-[104px] max-h-[104px] shadow-[0_2px_0_rgba(81,55,19,0.13),0_5px_10px_rgba(52,38,14,0.045),inset_0_0_0_1px_rgba(255,255,255,0.86)] before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:bg-[linear-gradient(180deg,rgba(255,255,255,0.46)_0%,rgba(255,255,255,0.12)_42%,rgba(120,82,30,0.05)_100%)] after:pointer-events-none after:absolute after:inset-[5px] after:rounded-[0.9rem] after:border after:border-[#fff7dd]/70 ${
+              store.key === "s"
+                ? selected
+                  ? "border-[#2d6946] bg-[linear-gradient(180deg,#fffbe7_0%,#eef2cf_48%,#d8e3af_100%)] text-[#20352a]"
+                  : "border-[#d7c08f] bg-[linear-gradient(180deg,#fffaf0_0%,#f5ecd0_100%)] text-[#6f5a34] opacity-[0.76]"
+                : store.key === "k"
+                  ? selected
+                    ? "border-[#916c4e] bg-[linear-gradient(180deg,#fff8ec_0%,#f1dec1_54%,#e3c79f_100%)] text-[#2f261c]"
+                    : "border-[#d7c08f] bg-[linear-gradient(180deg,#fffaf0_0%,#f5ecd0_100%)] text-[#6f5a34] opacity-[0.76]"
+                  : "border-[#e2d0a5] bg-[linear-gradient(180deg,#fffaf0_0%,#f7edcf_100%)] text-[#ad9b76] opacity-[0.36]"
+            }`}
           >
             <span
               className={`absolute right-2 top-2 z-30 flex h-[18px] w-[18px] items-center justify-center rounded-full text-[11px] font-black shadow-[0_2px_5px_rgba(15,23,42,0.10)] ${selected ? "border border-[#365b38] bg-[radial-gradient(circle_at_35%_25%,#7dab70_0%,#477c4b_48%,#2f5e37_100%)] text-[#fff8e7]" : "border border-[#d0ad68] bg-[#fff8dc] text-transparent"}`}
@@ -9656,7 +9672,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             </span>
 
             <div
-              className="absolute left-2.5 top-2.5 z-30 flex h-6 w-6 items-center justify-center rounded-lg border border-[#d5bd82] bg-[linear-gradient(180deg,#fffef7_0%,#f7ebc7_100%)] p-[3px] shadow-[0_1px_0_rgba(94,71,31,0.08),inset_0_1px_0_rgba(255,255,255,0.86)] ring-1 ring-[#f8efcf]"
+              className="absolute left-2.5 top-2.5 z-30 flex h-6 w-6 items-center justify-center rounded-lg border border-[#c7a763] bg-[linear-gradient(180deg,#fffefa_0%,#f4e2ac_100%)] p-[3px] shadow-[0_1px_0_rgba(94,71,31,0.12),inset_0_1px_0_rgba(255,255,255,0.90)] ring-1 ring-[#fff4cc]"
             >
               <img
                 src={storeLogoSrc}
@@ -9681,8 +9697,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
             <>
               <p
-                className={`absolute left-3 right-3 top-[39px] z-20 mx-auto h-[1.45rem] max-w-[7.9rem] overflow-hidden text-center text-[10px] font-black leading-tight ${
-                  isComingSoon ? "text-[#aaa087]" : "text-[#132338]"
+                className={`absolute left-3 right-3 top-[39px] z-20 mx-auto h-[1.45rem] max-w-[7.9rem] overflow-hidden text-center text-[10px] font-extrabold leading-tight ${
+                  isComingSoon ? "text-[#b9aa86]" : "text-[#26251f]"
                 }`}
                 style={{
                   display: "-webkit-box",
@@ -9736,7 +9752,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       return (
         <div className="mt-2 min-h-[214px] max-h-[214px] pb-1 overflow-visible">
-          <div className="mb-1 text-center text-[7px] font-black uppercase tracking-[0.16em] text-[#b49b68]">v670 visual</div>
+          <div className="mb-1 text-center text-[7px] font-black uppercase tracking-[0.16em] text-[#b49b68]">v671 visual</div>
           <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 overflow-visible">
             {topStores.map((store) => renderBetweenChainCard(store, true))}
           </div>
