@@ -1,5 +1,10 @@
 "use client";
 
+// V668_FIX_STORE_MODE_VERTICAL_JUMP_ONLY
+// Korjaa jäljellä olevan Tavaratalot/Lähikaupat-pystypompun.
+// Muutos on rajattu vain renderComparedStoreCards(true)-wrapperien ja fallback-gridin margin-arvoihin.
+// Ei muutoksia GPS-, haku-, ketjun sisältä-, store picker-, bottom nav- tai valintalogiikkaan.
+
 // V667_BUILD_FIX_REMOVE_COMPACT_UNREACHABLE_WITHIN_HANDLERS
 // Korjaa v666 TypeScript-build-virheen:
 // compact between_chains -haarassa TypeScript tietää, ettei storeCompareScope voi olla within_chain,
@@ -9744,7 +9749,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     return (
-      <div className={`${storeMode === "local" ? "mt-5" : "mt-3"} grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-4`}>
+      <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 sm:grid-cols-4">
         {comparedStoreCards.map((store) => {
           const isRealChain = store.key === "s" || store.key === "k";
           const selected = Boolean(selectedChains[store.key]);
@@ -10002,7 +10007,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     />
                   </div>
 
-                  <div className="relative z-10 mt-3">
+                  <div className="relative z-10 mt-2">
               {renderComparedStoreCards(true)}
                   </div>
                 </section>
@@ -10851,7 +10856,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               />
             </div>
 
-            <div className={storeMode === "local" ? "mt-2.5" : "mt-2"}>
+            <div className="mt-2">
               {renderComparedStoreCards(true)}
             </div>
 
