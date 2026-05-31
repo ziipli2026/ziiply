@@ -1,5 +1,11 @@
 "use client";
 
+// V667_BUILD_FIX_REMOVE_COMPACT_UNREACHABLE_WITHIN_HANDLERS
+// Korjaa v666 TypeScript-build-virheen:
+// compact between_chains -haarassa TypeScript tietää, ettei storeCompareScope voi olla within_chain,
+// koska within_chain palautetaan omassa haarassaan ennen compact-haaraa.
+// Siksi compact-haaran onClick/onKeyDown ei saa enää sisältää within_chain-vertailua.
+
 // V666_BUILD_FIX_REMOVE_UNREACHABLE_WITHIN_CHECKS
 // Korjaa v665 TypeScript-build-virheen:
 // within_chain käsitellään nyt omassa haarassaan ennen compact-haaraa,
@@ -9614,42 +9620,20 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             tabIndex={0}
             aria-pressed={selected}
             onClick={() => {
-              if (storeCompareScope === "within_chain" && chain) {
-                setWithinChain(chain);
-                setSelectedChains((current) => ({
-                  ...current,
-                  s: chain === "S",
-                  k: chain === "K",
-                  lidl: false,
-                  tokmanni: false,
-                }));
-              } else {
-                setSelectedChains((current) => ({
-                  ...current,
-                  [store.key]: !current[store.key],
-                }));
-              }
+              setSelectedChains((current) => ({
+                ...current,
+                [store.key]: !current[store.key],
+              }));
               setOpenStorePicker(null);
               triggerHaptic();
             }}
             onKeyDown={(event) => {
               if (event.key !== "Enter" && event.key !== " ") return;
               event.preventDefault();
-              if (storeCompareScope === "within_chain" && chain) {
-                setWithinChain(chain);
-                setSelectedChains((current) => ({
-                  ...current,
-                  s: chain === "S",
-                  k: chain === "K",
-                  lidl: false,
-                  tokmanni: false,
-                }));
-              } else {
-                setSelectedChains((current) => ({
-                  ...current,
-                  [store.key]: !current[store.key],
-                }));
-              }
+              setSelectedChains((current) => ({
+                ...current,
+                [store.key]: !current[store.key],
+              }));
               setOpenStorePicker(null);
               triggerHaptic();
             }}
