@@ -1,7 +1,7 @@
 "use client";
 
-// V5_RETRO_C_VISUAL_ONLY_SHOPS_VIEW:
-// Vain visuaalinen C-tyylinen muutos. StoreCards-toiminnot ja kaikki handlerit jätetty ennalleen.
+// V6_RETRO_C_VISUAL_ONLY_SHOPS_VIEW
+// Vain ulkoasu: komponenttien toiminnallinen rakenne, propit ja handlerit säilytetty.
 
 import React from "react";
 import type { ReactNode } from "react";
@@ -29,12 +29,6 @@ export type ZiiplyMobileShopsViewProps = {
   onStoreCompareScopeChange: (scope: StoreCompareScope) => void;
 };
 
-const hyperMarketBackground =
-  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 420 180'%3E%3Cg fill='none' stroke='%237c5a24' stroke-width='3' opacity='.16' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M34 124h352M50 124V70l160-38 160 38v54M80 124V84h64v40M178 124V80h64v44M276 124V84h64v40'/%3E%3Cpath d='M64 70h292M114 54h190M34 140h352'/%3E%3C/g%3E%3C/svg%3E\")";
-
-const localVillageBackground =
-  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 420 180'%3E%3Cg fill='none' stroke='%237c5a24' stroke-width='3' opacity='.18' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M38 124h344M66 124V78l70-38 70 38v46M218 124V70h120v54'/%3E%3Cpath d='M54 78h166M230 70l48-34 76 34M94 124V92h42v32M158 124V94h28v30M250 124V90h66v34M340 124V92h22'/%3E%3Cpath d='M82 60h108M242 70h110M54 140h328'/%3E%3C/g%3E%3C/svg%3E\")";
-
 export default function ZiiplyMobileShopsView({
   locationInput,
   usingOwnLocation,
@@ -54,10 +48,13 @@ export default function ZiiplyMobileShopsView({
   onStoreModeChange,
   onStoreCompareScopeChange,
 }: ZiiplyMobileShopsViewProps) {
-  const isLocal = storeMode === "local";
+  const isLocalMode = storeMode === "local";
 
   return (
-    <div className="h-[100svh] overflow-hidden bg-[#eaf7f1] sm:hidden">
+    <div
+      data-ziiply-mobile-shops-view-version="V6_RETRO_C_VISUAL_ONLY"
+      className="h-[100svh] overflow-hidden bg-[#eaf7f1] sm:hidden"
+    >
       <div className="h-[86px]" aria-hidden="true" />
 
       <div className="sticky top-[86px] z-[75] bg-[#eaf7f1]/95 px-2 pb-1 pt-1 backdrop-blur">
@@ -86,31 +83,35 @@ export default function ZiiplyMobileShopsView({
         />
 
         <section
-          className={`relative isolate overflow-hidden rounded-[1.75rem] border-[2px] border-[#dec47d] bg-[#fbf0c9] shadow-[0_6px_0_rgba(92,65,25,0.16),0_16px_38px_rgba(15,23,42,0.10),inset_0_0_0_2px_rgba(255,255,255,0.36)] ${
-            isLocal ? "pt-4 pb-2.5 px-2.5" : "p-2.5"
+          data-store-mode={isLocalMode ? "local" : "hyper"}
+          className={`relative isolate overflow-hidden rounded-[1.9rem] border-[2px] border-[#d9bd77] bg-[#f7edcb] shadow-[inset_0_0_0_2px_rgba(255,255,255,0.34),0_14px_34px_rgba(91,72,44,0.14)] ring-1 ring-white/70 ${
+            isLocalMode ? "px-2.5 pb-2.5 pt-4" : "p-2.5"
           }`}
         >
-          <div className="pointer-events-none absolute inset-0 z-0 opacity-42 [background-image:radial-gradient(#d8bd75_1px,transparent_1px)] [background-size:15px_15px]" />
-          <div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.56),transparent_58%)]" />
+          <div className="pointer-events-none absolute inset-0 z-0 opacity-40 [background-image:radial-gradient(#d8bd75_1.1px,transparent_1.1px)] [background-size:15px_15px]" />
+          <div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.55),transparent_58%)]" />
+
           <div
             aria-hidden="true"
-            className={`pointer-events-none absolute inset-x-4 top-[5.4rem] z-0 h-[8.8rem] rounded-[1.35rem] bg-center bg-no-repeat opacity-100 mix-blend-multiply ${
-              isLocal ? "bg-[length:86%_auto]" : "bg-[length:92%_auto]"
-            }`}
-            style={{
-              backgroundImage: isLocal ? localVillageBackground : hyperMarketBackground,
-            }}
-          />
-          <div
-            aria-hidden="true"
-            className={`pointer-events-none absolute inset-x-6 top-[6.15rem] z-0 h-[6.8rem] rounded-[1.4rem] ${
-              isLocal
-                ? "bg-gradient-to-b from-[#fff6d9]/20 via-[#f4db9f]/22 to-transparent"
-                : "bg-gradient-to-b from-[#fff6d9]/16 via-[#e7d4a1]/18 to-transparent"
+            className={`pointer-events-none absolute inset-x-3 top-[7.2rem] z-0 h-[8.2rem] rounded-[1.4rem] border border-[#d8bd75]/35 bg-center bg-no-repeat opacity-[0.20] mix-blend-multiply ${
+              isLocalMode ? "ziiply-village-shop-bg" : "ziiply-department-store-bg"
             }`}
           />
 
-          <div className="relative z-10">{storeCards}</div>
+          <style>{`
+            .ziiply-department-store-bg {
+              background-size: 92% auto;
+              background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 900 260'%3E%3Cg fill='none' stroke='%23896d34' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M80 205h740'/%3E%3Cpath d='M135 205V92h630v113'/%3E%3Cpath d='M170 92 450 38l280 54'/%3E%3Cpath d='M208 205v-72h76v72M360 205v-78h180v78M616 205v-72h76v72'/%3E%3Cpath d='M191 112h518M236 70v-28h95v15M580 70V42h95v15'/%3E%3Cpath d='M397 164h106'/%3E%3C/g%3E%3Ctext x='450' y='105' text-anchor='middle' font-family='Georgia' font-size='46' font-weight='700' fill='%23896d34'%3ETAVARATALO%3C/text%3E%3C/svg%3E");
+            }
+            .ziiply-village-shop-bg {
+              background-size: 92% auto;
+              background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 900 260'%3E%3Cg fill='none' stroke='%23896d34' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M90 210h720'/%3E%3Cpath d='M145 210V100h520v110'/%3E%3Cpath d='M120 100 405 42l285 58'/%3E%3Cpath d='M660 210v-78h95v78'/%3E%3Cpath d='M197 210v-60h84v60M330 210v-60h84v60M463 210v-60h84v60'/%3E%3Cpath d='M178 119h465M712 132h58M712 158h58M712 184h58'/%3E%3Cpath d='M250 76v-33h85v16'/%3E%3C/g%3E%3Ctext x='405' y='105' text-anchor='middle' font-family='Georgia' font-size='44' font-weight='700' fill='%23896d34'%3EKYLÄKAUPPA%3C/text%3E%3C/svg%3E");
+            }
+          `}</style>
+
+          <div className="relative z-10">
+            {storeCards}
+          </div>
         </section>
       </div>
     </div>
