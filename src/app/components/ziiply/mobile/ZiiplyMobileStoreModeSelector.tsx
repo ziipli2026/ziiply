@@ -1,9 +1,12 @@
 "use client";
 
-// V644_MODE_SELECTOR_COMPACT_SOFT_DROPIN:
-// Kopioi tämä sisältö oikeaan repo-tiedostoon:
+// V646_MODE_SELECTOR_RENDER_FIX_COMPACT_2COL
+// Korjaa render-vian: ylärow ei ole enää grid-cols-[1fr_auto_1fr], jossa HAKUTAPA kavensi Tavaratalot/Lähikaupat-napit.
+// Uusi rakenne: 2 nappia omassa grid-cols-2 rivissä, HAKUTAPA omalla koko leveän keskikylttirivillä,
+// ja Ketjujen väliltä / Ketjun sisältä omassa grid-cols-2 rivissä.
+// Vain render-rakenne/ulkoasu. Ei state-, props-, callback-, handler-, haku-, GPS- tai valintalogiikkamuutoksia.
+// Kopioi tämä sisältö oikeaan repo-polkuun:
 // src/app/components/ziiply/mobile/ZiiplyMobileStoreModeSelector.tsx
-// Kompakti V642-pohja, vaalea paperi ja pehmeä rasteri. Ei logiikkamuutoksia.
 
 // V642_MODE_SELECTOR_SOFT_PAPER_CHAIN_GRAPHICS_VISUAL_ONLY
 // V641-pohjasta: vaalennettu paperipohja Hae-näkymän suuntaan, pehmennetty rasteri/pisteet,
@@ -82,7 +85,7 @@ export default function ZiiplyMobileStoreModeSelector({
   }, [shouldShowHakutapaNotice]);
 
   return (
-    <section className="relative mx-auto w-full max-w-[390px] overflow-hidden rounded-[1.9rem] border-[3px] border-[#b38a4a] bg-[#fbf3d8] px-4 pb-3 pt-3 text-[#213224] shadow-[0_5px_0_rgba(105,72,28,0.14),0_14px_24px_rgba(46,32,12,0.10),inset_0_0_0_2px_rgba(255,255,255,0.48)]">
+    <section className="relative mx-auto w-full max-w-[390px] overflow-hidden rounded-[1.9rem] border-[3px] border-[#b38a4a] bg-[#fbf3d8] px-4 pb-2.5 pt-3 text-[#213224] shadow-[0_5px_0_rgba(105,72,28,0.14),0_14px_24px_rgba(46,32,12,0.10),inset_0_0_0_2px_rgba(255,255,255,0.48)]">
       <style>{`
         @keyframes ziiplyNoticePop {
           0% {
@@ -107,7 +110,7 @@ export default function ZiiplyMobileStoreModeSelector({
       <div className="pointer-events-none absolute inset-0 opacity-24 [background-image:radial-gradient(#c9ad6b_0.9px,transparent_0.9px)] [background-size:17px_17px]" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.64),transparent_60%)]" />
 
-      <div className="relative z-10 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+      <div className="relative z-10 grid grid-cols-2 gap-4">
         <button
           type="button"
           disabled={modeButtonsDisabled}
@@ -116,25 +119,6 @@ export default function ZiiplyMobileStoreModeSelector({
         >
           <span className="relative z-10">🏬 Tavaratalot</span>
         </button>
-
-        <div className="relative flex min-h-[42px] items-center justify-center overflow-visible">
-          <p
-            className={[
-              "relative z-10 whitespace-nowrap rounded-full border-[2px] px-3 py-[0.35rem] text-center text-[12px] font-black uppercase tracking-[0.12em] transition-none shadow-[0_2px_0_rgba(91,72,44,0.18),inset_0_1px_0_rgba(255,255,255,0.65)]",
-              hakutapaNoticeVisible
-                ? "border-[#cda34a] bg-[#ffeaa0] text-[#634100] shadow-[0_3px_10px_rgba(180,119,0,0.16)] animate-[ziiplyNoticePop_2200ms_ease-out_forwards]"
-                : "border-[#d7b977] bg-[#fff7d6] text-[#66543a]",
-            ].join(" ")}
-          >
-            {hakutapaNoticeVisible
-              ? hyperStorePairMissing
-                ? "Tavarataloparia ei löytynyt"
-                : "Vertailuparia ei löytynyt"
-              : !storeModeChosen || storeCompareScope === "none"
-                ? "Valitse hakutapa"
-                : "Hakutapa"}
-          </p>
-        </div>
 
         <button
           type="button"
@@ -146,7 +130,26 @@ export default function ZiiplyMobileStoreModeSelector({
         </button>
       </div>
 
-      <div className="relative z-10 mt-5 grid grid-cols-2 gap-4">
+      <div className="relative z-20 my-1.5 flex h-7 items-center justify-center overflow-visible">
+        <p
+          className={[
+            "relative z-10 whitespace-nowrap rounded-full border-[2px] px-3.5 py-[0.35rem] text-center text-[12px] font-black uppercase leading-none tracking-[0.14em] transition-none shadow-[0_2px_0_rgba(91,72,44,0.16),inset_0_1px_0_rgba(255,255,255,0.72)]",
+            hakutapaNoticeVisible
+              ? "border-[#cda34a] bg-[#ffeaa0] text-[#634100] shadow-[0_3px_10px_rgba(180,119,0,0.14)] animate-[ziiplyNoticePop_2200ms_ease-out_forwards]"
+              : "border-[#d7b977] bg-[#fff8da] text-[#66543a]",
+          ].join(" ")}
+        >
+          {hakutapaNoticeVisible
+            ? hyperStorePairMissing
+              ? "Tavarataloparia ei löytynyt"
+              : "Vertailuparia ei löytynyt"
+            : !storeModeChosen || storeCompareScope === "none"
+              ? "Valitse hakutapa"
+              : "Hakutapa"}
+        </p>
+      </div>
+
+      <div className="relative z-10 grid grid-cols-2 gap-4">
         <button
           type="button"
           onClick={() => onStoreCompareScopeChange("between_chains")}
@@ -184,7 +187,7 @@ export default function ZiiplyMobileStoreModeSelector({
         </div>
       )}
 
-      <div className="relative z-10 mt-2 min-h-[0.25rem] text-[12px] font-black leading-tight text-[#7f5a24]">
+      <div className="relative z-10 mt-1 min-h-[0.15rem] text-[12px] font-black leading-tight text-[#7f5a24]">
         {storeCompareScope === "within_chain" && !withinChain && (
           <p>Valitse S-ryhmä tai K-ryhmä ketjun sisäistä vertailua varten.</p>
         )}
