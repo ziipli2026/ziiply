@@ -1,5 +1,9 @@
 "use client";
 
+// V672_REMOVE_VISUAL_MARKER_ONLY
+// Poistaa v671 visual -testitekstin.
+// Ei muita muutoksia.
+
 // V671_FORCE_VISIBLE_STORE_CARD_GRAPHICS_OVERRIDE
 // VISUAL ONLY.
 // v670 marker näkyi, mutta korttigrafiikka jäi vanhaksi.
@@ -9752,7 +9756,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       return (
         <div className="mt-2 min-h-[214px] max-h-[214px] pb-1 overflow-visible">
-          <div className="mb-1 text-center text-[7px] font-black uppercase tracking-[0.16em] text-[#b49b68]">v671 visual</div>
           <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 overflow-visible">
             {topStores.map((store) => renderBetweenChainCard(store, true))}
           </div>
