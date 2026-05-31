@@ -1,5 +1,11 @@
 "use client";
 
+// V699_TYPGRAPHY_POLISH
+// - Kaupan nimi hieman suuremmaksi
+// - Etäisyysteksti ylemmäs
+// - Etäisyysteksti ~2px suuremmaksi
+
+
 // V698_STORE_BACKGROUND_READABILITY_TUNE
 // Visual-only update v697:n päälle.
 // - Etäisyysteksti mustaksi ja luettavammaksi
@@ -9857,7 +9863,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
             <>
               <p
-                className={`absolute left-3 right-3 top-[39px] z-40 mx-auto h-[1.35rem] max-w-[7.9rem] overflow-hidden text-center text-[10px] font-extrabold leading-tight [text-shadow:0_1px_1px_rgba(255,250,232,0.95)] ${
+                className={`absolute left-3 right-3 top-[39px] z-40 mx-auto h-[1.5rem] max-w-[8.4rem] overflow-hidden text-center text-[12px] font-extrabold leading-tight [text-shadow:0_1px_1px_rgba(255,250,232,0.95)] ${
                   isComingSoon ? "text-[#b9aa86]" : "text-[#26251f]"
                 }`}
                 style={{
@@ -9870,7 +9876,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               </p>
 
               {isTopRow && distanceForCard && storeModeChosenV299 && (
-                <p className="absolute left-0 right-0 top-[58px] z-40 text-[8.5px] font-black leading-none text-[#15130f] [text-shadow:0_1px_1px_rgba(255,250,232,0.95)]">
+                <p className="absolute left-0 right-0 top-[54px] z-40 text-[10.5px] font-black leading-none text-[#15130f] [text-shadow:0_1px_1px_rgba(255,250,232,0.95)]">
                   {distanceForCard}
                 </p>
               )}
