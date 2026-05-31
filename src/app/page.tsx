@@ -1,5 +1,12 @@
 "use client";
 
+// V655_SHOPS_STATE_LAYOUT_FIX
+// Korjaa Kaupat-näkymän tilakohtaiset render-erot:
+// - Tavaratalot ja Lähikaupat käyttävät samaa kauppakorttien pystykorkoa.
+// - Ketjujen väliltä ilman valittua kauppatyyppiä näyttää kortit ja notifikaation.
+// - Ketjun sisältä ei näytä tyhjiä laatikoita, vaan S/K-valintakortit samalla korttityylillä.
+// Ei muutoksia GPS-, haku-, bottom nav-, state- tai handler-logiikkaan.
+
 // V654_SHOPS_RENDER_STABLE_Y_AND_VISIBLE_CARDS
 // Korjaukset:
 // - Tavaratalot/Lähikaupat-vaihto ei muuta kauppakorttialueen pystykorkoa.
@@ -2430,9 +2437,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (storeCompareScope !== "within_chain" && !storeModeChosenV299) {
       return {
         sStoreId: 0,
-        sStoreName: "Valitse ensin Tavaratalot tai Lähikaupat",
+        sStoreName: "Vertailuparia ei löytynyt",
         kStoreId: 0,
-        kStoreName: "Valitse ensin Tavaratalot tai Lähikaupat",
+        kStoreName: "Vertailuparia ei löytynyt",
       };
     }
 
@@ -9351,7 +9358,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               return (
                 <div
                   key={store.key}
-                  className={`${compact ? "h-[128px] min-h-[128px] rounded-[1.18rem] px-2 pb-1 pt-1" : "rounded-2xl p-3"} relative overflow-hidden border-[2.5px] text-center transition shadow-[0_3px_0_rgba(94,71,31,0.12),0_9px_14px_rgba(52,38,14,0.06),inset_0_0_0_1px_rgba(255,255,255,0.72)] ${
+                  className={`${compact ? "h-[104px] min-h-[104px] max-h-[104px] rounded-[1.18rem] px-2 pb-1 pt-1" : "rounded-2xl p-3"} relative overflow-hidden border-[2.5px] text-center transition shadow-[0_3px_0_rgba(94,71,31,0.12),0_9px_14px_rgba(52,38,14,0.06),inset_0_0_0_1px_rgba(255,255,255,0.72)] ${
                     selected
                       ? store.key === "s"
                         ? "border-[#076b3a] bg-[linear-gradient(180deg,#fbffdf_0%,#eef7c1_48%,#dbeaa4_100%)] text-[#17382b]"
@@ -9405,7 +9412,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     <p
                       className={
                         compact
-                          ? "mt-0 text-[9px] font-black uppercase tracking-tight text-[#73829a]"
+                          ? "relative z-20 mt-0 text-[9px] font-black uppercase tracking-tight text-[#73829a]"
                           : "mt-0 text-[10px] font-black uppercase tracking-wide text-[#73829a]"
                       }
                     >
@@ -9413,9 +9420,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     </p>
 
                     {!selected && (
-                      <p className="mx-auto mt-3 max-w-[7.5rem] text-[10px] font-black leading-tight text-[#8a7349]">
-                        Valitse tästä
-                      </p>
+                      <div className="absolute inset-x-2 top-[42px] z-20 text-center">
+                        <p className="mx-auto max-w-[7.8rem] text-[10px] font-black leading-tight text-[#132338]">
+                          Valitse {chain === "S" ? "S-ryhmä" : "K-ryhmä"}
+                        </p>
+                      </div>
                     )}
                   </button>
 
@@ -9440,14 +9449,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                         <p
                           className={
                             compact
-                              ? "min-h-[1.9rem] whitespace-normal break-words text-[8.5px] font-extrabold leading-tight text-[#132338]"
+                              ? "min-h-[1.6rem] whitespace-normal break-words text-[8px] font-extrabold leading-tight text-[#132338]"
                               : "min-h-[2.7rem] whitespace-normal break-words text-[11px] font-extrabold leading-tight text-[#132338]"
                           }
                         >
                           {storeNameA}
                         </p>
                         {distanceA && (
-                          <p className="mt-0 text-[8.5px] font-black text-[#8a98ad]">
+                          <p className="mt-0 text-[8px] font-black text-[#8a98ad]">
                             {distanceA}
                           </p>
                         )}
@@ -9477,14 +9486,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                         <p
                           className={
                             compact
-                              ? "min-h-[1.9rem] whitespace-normal break-words text-[8.5px] font-extrabold leading-tight text-[#132338]"
+                              ? "min-h-[1.6rem] whitespace-normal break-words text-[8px] font-extrabold leading-tight text-[#132338]"
                               : "min-h-[2.7rem] whitespace-normal break-words text-[11px] font-extrabold leading-tight text-[#132338]"
                           }
                         >
                           {storeNameB}
                         </p>
                         {distanceB && (
-                          <p className="mt-0 text-[8.5px] font-black text-[#8a98ad]">
+                          <p className="mt-0 text-[8px] font-black text-[#8a98ad]">
                             {distanceB}
                           </p>
                         )}
