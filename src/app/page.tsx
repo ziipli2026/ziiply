@@ -1,11 +1,18 @@
 "use client";
 
+// V690_STORE_BACKGROUND_V3_NO_GHOST_TEXT
+// Päivitetty käyttämään uusia v3-taustakuvia:
+// - ei taustakuvan kauppanimiä / haamutekstiä
+// - rakennus alempana
+// - tekstialue puhtaampi
+// - ei logiikka- tai layoutmuutoksia.
+
 // V689_STORE_BACKGROUND_V2_ASSETS
 // Päivitetty käyttämään uusia v2-taustakuvia:
-// public/ui/store-backgrounds/store-bg-prisma-v2.svg
-// public/ui/store-backgrounds/store-bg-kcitymarket-v2.svg
-// public/ui/store-backgrounds/store-bg-alepa-v2.svg
-// public/ui/store-backgrounds/store-bg-kmarket-v2.svg
+// public/ui/store-backgrounds/store-bg-prisma-v3.svg
+// public/ui/store-backgrounds/store-bg-kcitymarket-v3.svg
+// public/ui/store-backgrounds/store-bg-alepa-v3.svg
+// public/ui/store-backgrounds/store-bg-kmarket-v3.svg
 // Ei logiikka- tai layoutmuutoksia.
 
 // V688_LOWER_ANCHORED_STORE_VISUALS
@@ -52,10 +59,10 @@
 // V681_REAL_ASSET_STORE_CARD_BACKGROUNDS
 // VISUAL ONLY.
 // Inline-palikkatalot poistettu. Korttitaustat ovat nyt erillisiä SVG-kuva-assetteja public-kansioon:
-// /ui/store-backgrounds/store-bg-prisma-v2.svg
-// /ui/store-backgrounds/store-bg-kcitymarket-v2.svg
-// /ui/store-backgrounds/store-bg-alepa-v2.svg
-// /ui/store-backgrounds/store-bg-kmarket-v2.svg
+// /ui/store-backgrounds/store-bg-prisma-v3.svg
+// /ui/store-backgrounds/store-bg-kcitymarket-v3.svg
+// /ui/store-backgrounds/store-bg-alepa-v3.svg
+// /ui/store-backgrounds/store-bg-kmarket-v3.svg
 // Lisää nämä public/ -kansioon ja tämä page.tsx käyttää niitä.
 // Ei logiikka-, GPS-, haku-, picker-, bottom nav- tai layout-muutoksia.
 
@@ -9517,7 +9524,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   }`}
                 >
                   <img
-                    src={store.key === "s" ? "/ui/store-backgrounds/store-bg-prisma-v2.svg" : "/ui/store-backgrounds/store-bg-kcitymarket-v2.svg"}
+                    src={store.key === "s" ? "/ui/store-backgrounds/store-bg-prisma-v3.svg" : "/ui/store-backgrounds/store-bg-kcitymarket-v3.svg"}
                     alt=""
                     aria-hidden="true"
                     draggable={false}
@@ -9784,11 +9791,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 src={
                   storeMode === "hyper"
                     ? store.key === "s"
-                      ? "/ui/store-backgrounds/store-bg-prisma-v2.svg"
-                      : "/ui/store-backgrounds/store-bg-kcitymarket-v2.svg"
+                      ? "/ui/store-backgrounds/store-bg-prisma-v3.svg"
+                      : "/ui/store-backgrounds/store-bg-kcitymarket-v3.svg"
                     : store.key === "s"
-                      ? "/ui/store-backgrounds/store-bg-alepa-v2.svg"
-                      : "/ui/store-backgrounds/store-bg-kmarket-v2.svg"
+                      ? "/ui/store-backgrounds/store-bg-alepa-v3.svg"
+                      : "/ui/store-backgrounds/store-bg-kmarket-v3.svg"
                 }
                 alt=""
                 aria-hidden="true"
