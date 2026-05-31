@@ -1,5 +1,10 @@
 "use client";
 
+// V654_MODE_SELECTOR_REMOVE_CHAIN_BUTTONS
+// S-ryhmä / K-ryhmä -napit poistettu StoreModeSelectorista.
+// Ketjun sisäinen S/K-valinta tehdään vain kauppakorttialueen korteista.
+// Ei state-, handler-, callback-, GPS- tai hakulogiikkamuutoksia.
+
 // V649_MODE_SELECTOR_FINAL_COMPACT_RENDER_FIX
 // Korjaa StoreModeSelectorin näkyvän renderin:
 // - kaikki napit samaan matalaan korkeuteen
@@ -177,31 +182,6 @@ export default function ZiiplyMobileStoreModeSelector({
         </button>
       </div>
 
-      {storeCompareScope === "within_chain" && onWithinChainChange && (
-        <div className="relative z-10 mt-4 grid grid-cols-2 gap-4">
-          <button
-            type="button"
-            onClick={() => onWithinChainChange(withinChain === "S" ? null : "S")}
-            className={buttonClass(withinChain === "S")}
-          >
-            <span className="relative z-10">S-ryhmä</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => onWithinChainChange(withinChain === "K" ? null : "K")}
-            className={buttonClass(withinChain === "K")}
-          >
-            <span className="relative z-10">K-ryhmä</span>
-          </button>
-        </div>
-      )}
-
-      <div className="relative z-10 mt-1 min-h-[0.15rem] text-[12px] font-black leading-tight text-[#7f5a24]">
-        {storeCompareScope === "within_chain" && !withinChain && (
-          <p>Valitse S-ryhmä tai K-ryhmä ketjun sisäistä vertailua varten.</p>
-        )}
-      </div>
     </section>
   );
 }
