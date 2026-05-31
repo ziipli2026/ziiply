@@ -1,6 +1,6 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V628_STATIC_VISIBLE_PACKAGE_SHIFT
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V629_KEYBOARD_CLEAR_LIFT
 // Pohja: v608/v510 toimiva hakulogiikka.
 // Muutettu vain JSX/CSS layout vastaamaan annettua finalleiska-mallia.
 
@@ -396,7 +396,7 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V628_STATIC_VISIBLE_PACKAGE_SHIFT"
+      data-ziiply-mobile-search-card-version="UUSI_V629_KEYBOARD_CLEAR_LIFT"
       className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.25rem)] bottom-[calc(env(safe-area-inset-bottom)+5.2rem)] z-[72] flex items-stretch justify-center overflow-hidden bg-transparent px-2 sm:hidden ${className}`}
     >
       <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.8rem] border-[2px] border-[#ead9a8] bg-[#f6ebc6] px-3 pb-3 pt-3 text-[#20301f] shadow-[inset_0_0_0_2px_rgba(216,189,117,0.34)]">
@@ -430,7 +430,7 @@ export default function ZiiplyMobileSearchCard({
             />
           </div>
 
-          <div className="relative z-10 mt-5 flex min-h-[8.2rem] items-end justify-center overflow-hidden rounded-[1.55rem] border-[3px] border-[#d2b170] bg-[#fff1bf] px-4 pb-5 pt-4 text-center text-[clamp(0.88rem,2.85vw,1.08rem)] font-black leading-[1.16] text-[#6f5630] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_4px_0_rgba(91,72,44,0.13)]">
+          <div className="relative z-10 mt-4 flex min-h-[6.0rem] items-end justify-center overflow-hidden rounded-[1.55rem] border-[3px] border-[#d2b170] bg-[#fff1bf] px-4 pb-4 pt-3 text-center text-[clamp(0.88rem,2.85vw,1.08rem)] font-black leading-[1.16] text-[#6f5630] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_4px_0_rgba(91,72,44,0.13)]">
             <span className="block w-full whitespace-normal">
               {subtitle || predictiveText}
             </span>
@@ -439,7 +439,7 @@ export default function ZiiplyMobileSearchCard({
           {/* V628: koko alakokonaisuus nostetaan staattisesti ylöspäin.
               Tämä ei riipu iOS visualViewport-tapahtumista, joten muutos näkyy heti myös
               tilanteessa, jossa näppäimistö peittää näkymää mutta viewport-arvo ei päivity. */}
-          <div className="relative z-10 -translate-y-[1.6rem]">
+          <div className="relative z-10 -translate-y-[2.9rem]">
             <div className="mt-[0.2rem] grid grid-cols-[1.18fr_0.72fr_1.18fr] items-center gap-3">
               <AssistantButton
                 kind="gosta"
@@ -498,7 +498,7 @@ export default function ZiiplyMobileSearchCard({
               <ModeToggle mode={searchMode} onModeChange={onSearchModeChange} />
             </div>
 
-            <div className="mt-2 grid grid-cols-2 gap-3 pb-[2.4rem] pt-2">
+            <div className="mt-2 grid grid-cols-2 gap-3 pb-[3.1rem] pt-2">
               <RetroAssetButton
                 kind="voice"
                 label="Äänitä"
