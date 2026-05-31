@@ -1,5 +1,10 @@
 "use client";
 
+// V664_MODE_SELECTOR_PERSISTENT_NOTICE
+// Korjaa hakutapa-notifikaation: se ei enää katoa 2,2 sekunnin jälkeen,
+// jos virhetila on edelleen päällä.
+// S/K-napit pysyvät poistettuina selectorista.
+
 // V654_MODE_SELECTOR_REMOVE_CHAIN_BUTTONS
 // S-ryhmä / K-ryhmä -napit poistettu StoreModeSelectorista.
 // Ketjun sisäinen S/K-valinta tehdään vain kauppakorttialueen korteista.
@@ -85,6 +90,7 @@ export default function ZiiplyMobileStoreModeSelector({
   const shouldShowHakutapaNotice =
     hyperStorePairMissing ||
     (missingStoresMessageVisible && foundStoresCount === 0) ||
+    (storeCompareScope === "between_chains" && !storeModeChosen) ||
     (storeCompareScope === "between_chains" && selectedRealChainCount < 2) ||
     (storeCompareScope === "within_chain" && !withinChain);
 
@@ -149,12 +155,12 @@ export default function ZiiplyMobileStoreModeSelector({
         <p
           className={[
             "relative z-10 whitespace-nowrap rounded-full border-[2px] px-3.5 py-[0.35rem] text-center text-[12px] font-black uppercase leading-none tracking-[0.14em] transition-none shadow-[0_2px_0_rgba(91,72,44,0.16),inset_0_1px_0_rgba(255,255,255,0.72)]",
-            hakutapaNoticeVisible
+            shouldShowHakutapaNotice
               ? "border-[#cda34a] bg-[#ffeaa0] text-[#634100] shadow-[0_3px_10px_rgba(180,119,0,0.14)] animate-[ziiplyNoticePop_2200ms_ease-out_forwards]"
               : "border-[#d7b977] bg-[#fff8da] text-[#66543a]",
           ].join(" ")}
         >
-          {hakutapaNoticeVisible
+          {shouldShowHakutapaNotice
             ? hyperStorePairMissing
               ? "Tavarataloparia ei löytynyt"
               : "Vertailuparia ei löytynyt"
