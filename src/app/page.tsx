@@ -1,5 +1,16 @@
 "use client";
 
+// V685_REMOVE_SAFARI_BLEND_MODE
+// Safari/iOS blend-mode poisti taustagrafiikat lähes kokonaan.
+// mix-blend-soft-light poistettu.
+// Muut visual boostit säilytetty:
+// - opacity
+// - contrast
+// - saturation
+// - shadow
+// - suurempi koko
+// Ei logiikka- tai layoutmuutoksia.
+
 // V684_STRONGER_STORE_BACKGROUND_VISUALS_BUILD_FIX
 // Korjaa v683 build-riskin tekemällä muutoksen puhtaasti v682-pohjaan.
 // Visual tuning only:
@@ -9492,7 +9503,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     alt=""
                     aria-hidden="true"
                     draggable={false}
-                    className="pointer-events-none absolute bottom-[-6px] left-[-18px] right-[-18px] z-[1] mx-auto h-[168px] w-[244px] object-cover object-top opacity-[0.66] mix-blend-soft-light saturate-[1.14] contrast-[1.08] brightness-[1.03] drop-shadow-[0_10px_22px_rgba(70,45,12,0.24)]"
+                    className="pointer-events-none absolute bottom-[-6px] left-[-18px] right-[-18px] z-[1] mx-auto h-[168px] w-[244px] object-cover object-top opacity-[0.66] saturate-[1.14] contrast-[1.08] brightness-[1.03] drop-shadow-[0_10px_22px_rgba(70,45,12,0.24)]"
                   />
                   <button
                     type="button"
@@ -9764,7 +9775,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 alt=""
                 aria-hidden="true"
                 draggable={false}
-                className="pointer-events-none absolute bottom-[-2px] left-[-10px] right-[-10px] z-[1] mx-auto h-[124px] w-[178px] object-cover object-top opacity-[0.72] mix-blend-soft-light saturate-[1.18] contrast-[1.08] brightness-[1.02] drop-shadow-[0_8px_18px_rgba(60,40,10,0.22)]"
+                className="pointer-events-none absolute bottom-[-2px] left-[-10px] right-[-10px] z-[1] mx-auto h-[124px] w-[178px] object-cover object-top opacity-[0.72] saturate-[1.18] contrast-[1.08] brightness-[1.02] drop-shadow-[0_8px_18px_rgba(60,40,10,0.22)]"
               />
             )}
             <span className="pointer-events-none absolute left-[6px] top-[6px] z-20 h-[5px] w-[5px] rounded-full border border-[#b59a69] bg-[#ead8a7] shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]" />
