@@ -1,5 +1,10 @@
 "use client";
 
+// V642_MODE_SELECTOR_SOFT_PAPER_CHAIN_GRAPHICS_VISUAL_ONLY
+// V641-pohjasta: vaalennettu paperipohja Hae-näkymän suuntaan, pehmennetty rasteri/pisteet,
+// kevennetty ruskeat kehykset ja säädetty emaltti-/paperinappien kontrastia.
+// Vain ulkoasu; ei props-, state-, callback-, render-rakenne- tai logiikkamuutoksia.
+
 // V641_MODE_SELECTOR_VISUAL_ONLY
 // Muutettu vain ulkoasu: paperitausta, retro-kehykset, emaltti-vihreät aktiivinapit ja lämmin beige passiivipinta.
 // Ei muutoksia props-nimiin, stateihin, callbackeihin, valintalogiikkaan tai renderöintirakenteeseen.
@@ -30,8 +35,8 @@ function buttonClass(active: boolean, disabled = false) {
     "before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.45),transparent_58%)]",
     disabled ? "cursor-not-allowed opacity-60" : "",
     active
-      ? "border-[#064626] bg-gradient-to-b from-[#0b7f3b] via-[#087236] to-[#055427] text-[#fff4d4] shadow-[0_5px_0_#06391f,0_10px_20px_rgba(18,54,32,0.22),inset_0_0_0_2px_rgba(255,255,255,0.16)]"
-      : "border-[#c5a15c] bg-gradient-to-b from-[#fff8e1] to-[#f1dfad] text-[#5b4526] shadow-[0_3px_0_rgba(113,82,38,0.22),inset_0_0_0_2px_rgba(255,255,255,0.45)]",
+      ? "border-[#07502c] bg-gradient-to-b from-[#13864a] via-[#0a6d39] to-[#07502b] text-[#fff4d4] shadow-[0_4px_0_#064123,0_9px_16px_rgba(18,54,32,0.18),inset_0_0_0_2px_rgba(255,255,255,0.20)]"
+      : "border-[#d2ad68] bg-gradient-to-b from-[#fff9e4] via-[#f8ebc1] to-[#edd49a] text-[#5a4424] shadow-[0_2px_0_rgba(113,82,38,0.16),inset_0_0_0_2px_rgba(255,255,255,0.58)]",
   ].join(" ");
 }
 
@@ -72,7 +77,7 @@ export default function ZiiplyMobileStoreModeSelector({
   }, [shouldShowHakutapaNotice]);
 
   return (
-    <section className="relative mx-auto w-full max-w-[390px] overflow-hidden rounded-[1.9rem] border-[3px] border-[#8c6732] bg-[#f6ebc6] px-4 pb-3 pt-3 text-[#213224] shadow-[0_8px_0_rgba(80,55,22,0.20),0_16px_30px_rgba(46,32,12,0.14),inset_0_0_0_2px_rgba(255,255,255,0.35)]">
+    <section className="relative mx-auto w-full max-w-[390px] overflow-hidden rounded-[1.9rem] border-[3px] border-[#b38a4a] bg-[#fbf3d8] px-4 pb-3 pt-3 text-[#213224] shadow-[0_5px_0_rgba(105,72,28,0.14),0_14px_24px_rgba(46,32,12,0.10),inset_0_0_0_2px_rgba(255,255,255,0.48)]">
       <style>{`
         @keyframes ziiplyNoticePop {
           0% {
@@ -94,8 +99,8 @@ export default function ZiiplyMobileStoreModeSelector({
         }
       `}</style>
 
-      <div className="pointer-events-none absolute inset-0 opacity-55 [background-image:radial-gradient(#b8924e_1.05px,transparent_1.05px)] [background-size:16px_16px]" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.54),transparent_58%)]" />
+      <div className="pointer-events-none absolute inset-0 opacity-24 [background-image:radial-gradient(#c9ad6b_0.9px,transparent_0.9px)] [background-size:17px_17px]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.64),transparent_60%)]" />
 
       <div className="relative z-10 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
         <button
@@ -112,8 +117,8 @@ export default function ZiiplyMobileStoreModeSelector({
             className={[
               "relative z-10 whitespace-nowrap rounded-full border-[2px] px-3 py-[0.35rem] text-center text-[12px] font-black uppercase tracking-[0.12em] transition-none shadow-[0_2px_0_rgba(91,72,44,0.18),inset_0_1px_0_rgba(255,255,255,0.65)]",
               hakutapaNoticeVisible
-                ? "border-[#c69624] bg-[#ffe68a] text-[#634100] shadow-[0_4px_12px_rgba(180,119,0,0.20)] animate-[ziiplyNoticePop_2200ms_ease-out_forwards]"
-                : "border-[#d0b16d] bg-[#fff5cf] text-[#6a5a3f]",
+                ? "border-[#cda34a] bg-[#ffeaa0] text-[#634100] shadow-[0_3px_10px_rgba(180,119,0,0.16)] animate-[ziiplyNoticePop_2200ms_ease-out_forwards]"
+                : "border-[#d7b977] bg-[#fff7d6] text-[#66543a]",
             ].join(" ")}
           >
             {hakutapaNoticeVisible
@@ -174,7 +179,7 @@ export default function ZiiplyMobileStoreModeSelector({
         </div>
       )}
 
-      <div className="relative z-10 mt-2 min-h-[0.25rem] text-[12px] font-black leading-tight text-[#8b5f1e]">
+      <div className="relative z-10 mt-2 min-h-[0.25rem] text-[12px] font-black leading-tight text-[#7f5a24]">
         {storeCompareScope === "within_chain" && !withinChain && (
           <p>Valitse S-ryhmä tai K-ryhmä ketjun sisäistä vertailua varten.</p>
         )}
