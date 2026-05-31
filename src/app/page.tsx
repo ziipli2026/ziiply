@@ -1,5 +1,12 @@
 "use client";
 
+// V666_BUILD_FIX_REMOVE_UNREACHABLE_WITHIN_CHECKS
+// Korjaa v665 TypeScript-build-virheen:
+// within_chain käsitellään nyt omassa haarassaan ennen compact-haaraa,
+// joten compact-haarasta poistetaan TypeScriptin mielestä mahdottomat
+// storeCompareScope === "within_chain" -vertailut.
+// Säilyttää v665:n idean: Ketjun sisältä käyttää omaa kahden kaupparuudun korttia.
+
 // V665_WITHIN_CHAIN_TWO_STORE_PICKERS_AND_STABLE_Y
 // Korjaus:
 // - Ketjun sisältä palautetaan toiminnalliseksi: S/K-kortista valitaan ketju ja kortin sisällä on 2 kaupparuutua.
@@ -9530,12 +9537,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const topStores = comparedStoreCards.filter(
         (store) => store.key === "s" || store.key === "k",
       );
-      const bottomStores =
-        storeCompareScope === "within_chain"
-          ? []
-          : comparedStoreCards.filter(
-              (store) => store.key !== "s" && store.key !== "k",
-            );
+      const bottomStores = comparedStoreCards.filter(
+        (store) => store.key !== "s" && store.key !== "k",
+      );
 
 
       const renderBetweenChainCard = (
@@ -9544,10 +9548,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       ) => {
         const isRealChain = store.key === "s" || store.key === "k";
         const chain = store.key === "s" ? "S" : store.key === "k" ? "K" : null;
-        const selected =
-          storeCompareScope === "within_chain" && chain
-            ? withinChain === chain
-            : Boolean(selectedChains[store.key]);
+        const selected = Boolean(selectedChains[store.key]);
         const selectedStoreForCard = chain
           ? findStoreForSelectionV320(chain, storeMode)
           : null;
@@ -9600,15 +9601,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 : "/storelogos/spar.png";
 
         const displayName =
-          storeCompareScope === "within_chain" && chain
-            ? selected
-              ? getSelectedStoreNameFor(chain, storeMode) || store.title
-              : `Valitse ${store.title}`
-            : !storeModeChosenV299 && chain
-              ? "Vertailuparia ei löytynyt"
-              : isComingSoon
-                ? "Tulossa"
-                : store.name;
+          !storeModeChosenV299 && chain
+            ? "Vertailuparia ei löytynyt"
+            : isComingSoon
+              ? "Tulossa"
+              : store.name;
 
         return (
           <div
@@ -9702,7 +9699,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 {displayName}
               </p>
 
-              {isTopRow && distanceForCard && storeModeChosenV299 && storeCompareScope !== "within_chain" && (
+              {isTopRow && distanceForCard && storeModeChosenV299 && (
                 <p className="absolute left-0 right-0 top-[59px] z-20 text-[8.5px] font-black leading-none text-[#8a7247]">
                   {distanceForCard}
                 </p>
@@ -9712,28 +9709,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 className="absolute bottom-[6px] left-0 right-0 z-30 flex justify-center"
                 onClick={(event) => event.stopPropagation()}
               >
-                {storeCompareScope === "within_chain" && chain ? (
-                  selected ? (
-                    <>
-                      {renderStoreChoiceButton(
-                        chain,
-                        storeMode,
-                        `${store.key}-${storeMode}-within-compact`,
-                        true,
-                      )}
-                      {renderStorePickerMenu(
-                        chain,
-                        storeMode,
-                        `${store.key}-${storeMode}-within-compact`,
-                        true,
-                      )}
-                    </>
-                  ) : (
-                    <span className="rounded-full border border-[#d6bd82] bg-[linear-gradient(180deg,#fffaf0_0%,#f4e6bd_100%)] px-2.5 py-[3px] text-[8.5px] font-black text-[#9a8354] shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] ring-1 ring-[#fff1bf]">
-                      Valitse
-                    </span>
-                  )
-                ) : !storeModeChosenV299 && chain ? (
+                {!storeModeChosenV299 && chain ? (
                   <span className="rounded-full border border-[#d6bd82] bg-[linear-gradient(180deg,#fffaf0_0%,#f4e6bd_100%)] px-2.5 py-[3px] text-[8.5px] font-black text-[#9a8354] shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] ring-1 ring-[#fff1bf]">
                     Valitse tyyppi
                   </span>
