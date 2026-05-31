@@ -1,15 +1,14 @@
 "use client";
 
-// V693_STORE_BACKGROUND_MID_BALANCE
+// V694_CRISP_LOWER_STORE_BACKGROUND
 // Visual-only update v690:n päälle.
-// Korjaa v692:n liian sumuisen lopputuloksen:
-// - blur lähes pois
-// - opacity keskitasolle
-// - rakennus hieman alemmas
-// - kontrasti pidetään mukana
+// - blur poistettu
+// - kuva terävämmäksi
+// - rakennus selvästi alemmas
+// - maski piilottaa yläosan, mutta alaosa jää näkyväksi
+// - opacity keskitason näkyväksi
 // - v3-SVG:t säilyvät
-// - ei JSX-rakennemuutoksia
-// - ei logiikka- tai layoutmuutoksia.
+// - ei JSX-rakennemuutoksia, ei logiikka- tai layoutmuutoksia.
 
 // V690_STORE_BACKGROUND_V3_NO_GHOST_TEXT
 // Päivitetty käyttämään uusia v3-taustakuvia:
@@ -9539,7 +9538,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     alt=""
                     aria-hidden="true"
                     draggable={false}
-                    className="pointer-events-none absolute bottom-[-54px] left-[-30px] right-[-30px] z-[1] mx-auto h-[220px] w-[310px] object-cover object-bottom opacity-[0.56] blur-[0.3px] saturate-[1.08] contrast-[1.07] brightness-[1.04] drop-shadow-[0_8px_16px_rgba(60,40,12,0.14)]"
+                    className="pointer-events-none absolute bottom-[-72px] left-[-34px] right-[-34px] z-[1] mx-auto h-[258px] w-[356px] object-cover object-bottom opacity-[0.60] saturate-[1.10] contrast-[1.08] brightness-[1.04] drop-shadow-[0_9px_18px_rgba(60,40,12,0.14)] [mask-image:linear-gradient(to_bottom,transparent_0%,transparent_24%,rgba(0,0,0,0.28)_40%,rgba(0,0,0,0.90)_72%,rgba(0,0,0,1)_100%)] [-webkit-mask-image:linear-gradient(to_bottom,transparent_0%,transparent_24%,rgba(0,0,0,0.28)_40%,rgba(0,0,0,0.90)_72%,rgba(0,0,0,1)_100%)]"
                   />
                   <button
                     type="button"
@@ -9811,7 +9810,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 alt=""
                 aria-hidden="true"
                 draggable={false}
-                className="pointer-events-none absolute bottom-[-42px] left-[-18px] right-[-18px] z-[1] mx-auto h-[164px] w-[226px] object-cover object-bottom opacity-[0.58] blur-[0.3px] saturate-[1.10] contrast-[1.08] brightness-[1.04] drop-shadow-[0_7px_14px_rgba(52,36,10,0.14)]"
+                className="pointer-events-none absolute bottom-[-54px] left-[-22px] right-[-22px] z-[1] mx-auto h-[184px] w-[250px] object-cover object-bottom opacity-[0.64] saturate-[1.12] contrast-[1.10] brightness-[1.04] drop-shadow-[0_8px_16px_rgba(52,36,10,0.14)] [mask-image:linear-gradient(to_bottom,transparent_0%,transparent_22%,rgba(0,0,0,0.30)_38%,rgba(0,0,0,0.92)_72%,rgba(0,0,0,1)_100%)] [-webkit-mask-image:linear-gradient(to_bottom,transparent_0%,transparent_22%,rgba(0,0,0,0.30)_38%,rgba(0,0,0,0.92)_72%,rgba(0,0,0,1)_100%)]"
               />
             )}
             <span className="pointer-events-none absolute left-[6px] top-[6px] z-20 h-[5px] w-[5px] rounded-full border border-[#b59a69] bg-[#ead8a7] shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]" />
