@@ -1,5 +1,10 @@
 "use client";
 
+// V653_WITHIN_CHAIN_RENDER_VISUAL_SYNC
+// Löydetty vika: Ketjun sisältä -haara käytti renderComparedStoreCards()-funktion omaa vanhaa slate/white-renderiä.
+// Korjaus: vain storeCompareScope === "within_chain" -haaran visuaalinen synkka retro-tyyliin.
+// Ei muutoksia state-, handler-, GPS-, haku- tai valintalogiikkaan.
+
 // V651_STORE_CARDS_RETRO_VISUAL_ONLY
 // Kaupparuutujen visuaalinen asu viimeistelty page.tsx:n renderComparedStoreCards(true)-polussa:
 // - lämpimämpi paperi/emaltti-pinta
@@ -9317,10 +9322,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         withinChain === "S" ? "s" : withinChain === "K" ? "k" : null;
 
       return (
-        <div className={compact ? (storeMode === "local" ? "mt-8" : "mt-0") : "mt-3"}>
+        <div className={compact ? "mt-2" : "mt-3"}>
           <div
             className={
-              compact ? `${storeMode === "local" ? "pt-2 " : ""}grid grid-cols-2 gap-2` : "grid grid-cols-2 gap-3"
+              compact ? "grid grid-cols-2 gap-x-3 gap-y-1.5" : "grid grid-cols-2 gap-3"
             }
           >
             {chainCards.map((store) => {
@@ -9342,10 +9347,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               return (
                 <div
                   key={store.key}
-                  className={`${compact ? "min-h-[7.8rem] rounded-xl p-2" : "rounded-2xl p-3"} relative border shadow-sm ring-1 transition ${
+                  className={`${compact ? "h-[128px] min-h-[128px] rounded-[1.18rem] px-2 pb-1 pt-1" : "rounded-2xl p-3"} relative overflow-hidden border-[2.5px] text-center transition shadow-[0_3px_0_rgba(94,71,31,0.12),0_9px_14px_rgba(52,38,14,0.06),inset_0_0_0_1px_rgba(255,255,255,0.72)] ${
                     selected
-                      ? `${store.selectedTone} ring-current/20`
-                      : "border-slate-200 bg-white text-slate-600 ring-slate-200"
+                      ? store.key === "s"
+                        ? "border-[#076b3a] bg-[linear-gradient(180deg,#fbffdf_0%,#eef7c1_48%,#dbeaa4_100%)] text-[#17382b]"
+                        : "border-[#8e4a35] bg-[linear-gradient(180deg,#fff7e3_0%,#f7dfb8_54%,#edca93_100%)] text-[#17382b]"
+                      : "border-[#d3b673] bg-[linear-gradient(180deg,#fff8dc_0%,#f7ebc3_100%)] text-[#8f815f] opacity-[0.72]"
                   }`}
                 >
                   <button
@@ -9369,16 +9376,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     className="w-full text-center"
                   >
                     <span
-                      className={`absolute ${compact ? "right-2 top-2 h-5 w-5 text-[10px]" : "right-3 top-3 h-6 w-6 text-xs"} flex items-center justify-center rounded-full font-black ${
+                      className={`absolute ${compact ? "right-2 top-2 h-5 w-5 text-[12px]" : "right-3 top-3 h-6 w-6 text-xs"} flex items-center justify-center rounded-full font-black shadow-[0_3px_7px_rgba(15,23,42,0.14)] ${
                         selected
-                          ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white"
-                          : "bg-slate-100 text-slate-300"
+                          ? "border border-[#063d22] bg-[radial-gradient(circle_at_35%_25%,#2ca85a_0%,#08743a_48%,#064928_100%)] text-[#fff7de]"
+                          : "border border-[#d0ad68] bg-[#fff8dc] text-transparent"
                       }`}
                     >
                       {selected ? "✓" : ""}
                     </span>
                     <div
-                      className={`absolute left-2 top-2 z-30 flex items-center justify-center rounded-xl bg-white p-1.5 shadow-md ring-1 ring-slate-200 ${compact ? "h-8 w-8" : "h-9 w-9"}`}
+                      className={`absolute left-3 top-2.5 z-30 flex items-center justify-center rounded-xl border border-[#d0ad68] bg-[linear-gradient(180deg,#fffdf0_0%,#fff3cf_100%)] p-1 shadow-[0_2px_0_rgba(94,71,31,0.12)] ring-1 ring-[#fff1bf] ${compact ? "h-7 w-7" : "h-9 w-9"}`}
                     >
                       <img
                         src={store.key === "s" ? "/storelogos/s-group.png" : "/storelogos/k-group.png"}
@@ -9390,12 +9397,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                         }}
                       />
                     </div>
-                    <div className={compact ? "h-9" : "h-10"} aria-hidden="true" />
+                    <div className={compact ? "h-7" : "h-10"} aria-hidden="true" />
                     <p
                       className={
                         compact
-                          ? "mt-0 text-[9px] font-black uppercase tracking-tight text-slate-500"
-                          : "mt-0 text-[10px] font-black uppercase tracking-wide text-slate-500"
+                          ? "mt-0 text-[9px] font-black uppercase tracking-tight text-[#73829a]"
+                          : "mt-0 text-[10px] font-black uppercase tracking-wide text-[#73829a]"
                       }
                     >
                       {store.title}
@@ -9406,31 +9413,31 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     <div
                       className={
                         compact
-                          ? "mt-1.5 grid grid-cols-2 gap-1.5"
+                          ? "mt-1 grid grid-cols-2 gap-1.5"
                           : "mt-2 grid grid-cols-2 gap-1.5"
                       }
                     >
                       <div
                         className={
                           compact
-                            ? "relative rounded-lg bg-white/90 px-1.5 py-1 text-center ring-1 ring-slate-200"
-                            : "relative rounded-xl bg-white/80 p-1.5 text-center ring-1 ring-slate-200"
+                            ? "relative rounded-lg border border-[#d6bd82] bg-[#fffaf0]/92 px-1.5 py-1 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.70)] ring-1 ring-[#fff1bf]"
+                            : "relative rounded-xl border border-[#d6bd82] bg-[#fffaf0]/88 p-1.5 text-center ring-1 ring-[#fff1bf]"
                         }
                       >
-                        <p className="text-[9px] font-black uppercase text-slate-400">
+                        <p className="text-[8.5px] font-black uppercase text-[#8a98ad]">
                           Kauppa 1
                         </p>
                         <p
                           className={
                             compact
-                              ? "min-h-[2.1rem] whitespace-normal break-words text-[9px] font-extrabold leading-tight text-slate-800"
-                              : "min-h-[2.7rem] whitespace-normal break-words text-[11px] font-extrabold leading-tight text-slate-800"
+                              ? "min-h-[1.9rem] whitespace-normal break-words text-[8.5px] font-extrabold leading-tight text-[#132338]"
+                              : "min-h-[2.7rem] whitespace-normal break-words text-[11px] font-extrabold leading-tight text-[#132338]"
                           }
                         >
                           {storeNameA}
                         </p>
                         {distanceA && (
-                          <p className="mt-0 text-[9px] font-black text-slate-400">
+                          <p className="mt-0 text-[8.5px] font-black text-[#8a98ad]">
                             {distanceA}
                           </p>
                         )}
@@ -9450,24 +9457,24 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       <div
                         className={
                           compact
-                            ? "relative rounded-lg bg-white/90 px-1.5 py-1 text-center ring-1 ring-slate-200"
-                            : "relative rounded-xl bg-white/80 p-1.5 text-center ring-1 ring-slate-200"
+                            ? "relative rounded-lg border border-[#d6bd82] bg-[#fffaf0]/92 px-1.5 py-1 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.70)] ring-1 ring-[#fff1bf]"
+                            : "relative rounded-xl border border-[#d6bd82] bg-[#fffaf0]/88 p-1.5 text-center ring-1 ring-[#fff1bf]"
                         }
                       >
-                        <p className="text-[9px] font-black uppercase text-slate-400">
+                        <p className="text-[8.5px] font-black uppercase text-[#8a98ad]">
                           Kauppa 2
                         </p>
                         <p
                           className={
                             compact
-                              ? "min-h-[2.1rem] whitespace-normal break-words text-[9px] font-extrabold leading-tight text-slate-800"
-                              : "min-h-[2.7rem] whitespace-normal break-words text-[11px] font-extrabold leading-tight text-slate-800"
+                              ? "min-h-[1.9rem] whitespace-normal break-words text-[8.5px] font-extrabold leading-tight text-[#132338]"
+                              : "min-h-[2.7rem] whitespace-normal break-words text-[11px] font-extrabold leading-tight text-[#132338]"
                           }
                         >
                           {storeNameB}
                         </p>
                         {distanceB && (
-                          <p className="mt-0 text-[9px] font-black text-slate-400">
+                          <p className="mt-0 text-[8.5px] font-black text-[#8a98ad]">
                             {distanceB}
                           </p>
                         )}
