@@ -1,5 +1,6 @@
 "use client";
 
+// V623_RESULTS_CLOSE_DOES_NOT_TRIGGER_FALSE_NOTFOUND:
 // V622_BUILD_FIX_HIDE_TOPBAR_WITH_PROP_ONLY: appin oma yläpalkki piilotetaan Hae-näkymässä searchPanelOpenilla.
 // V611_HUOKEAMMAKS_NO_DOT_FINAL: pääsivun hero-teksti on täsmälleen "Viilaa ruokakorisi huokeammaks" ilman pistettä.
 
@@ -11300,7 +11301,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               loadingOffers={loadingOffers}
               loadingNormal={loadingNormal}
               singleProductCompareLoading={singleProductCompareLoading}
-              products={[]}
+              products={normalResults}
               emptyText="Kirjoita tuotteet hakukenttään."
               onClose={() => {
                 setSearchPanelOpen(false);
@@ -11338,7 +11339,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               title={activeNormalSearchTerm || "Tuotteet"}
               products={normalResults}
               onClose={() => {
-                setNormalResults([]);
                 setMobileResultsReadyQueryV537("");
                 setNormalSearchAttempted(false);
                 setVisibleNormalCount(8);
