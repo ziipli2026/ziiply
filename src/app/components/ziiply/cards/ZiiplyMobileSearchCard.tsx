@@ -1,6 +1,6 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V631_FINAL_KEYBOARD_GAP_AND_LOW_INFO
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V634_FINAL_VISIBLE_REVISION_LOW_INFO_LIFT
 // Pohja: v608/v510 toimiva hakulogiikka.
 // Muutettu vain JSX/CSS layout vastaamaan annettua finalleiska-mallia.
 
@@ -396,7 +396,7 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V633_FINAL_INFO_LOW_KEYBOARD_CLEARANCE"
+      data-ziiply-mobile-search-card-version="UUSI_V634_FINAL_VISIBLE_REVISION_LOW_INFO_LIFT"
       className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.25rem)] bottom-[calc(env(safe-area-inset-bottom)+5.2rem)] z-[72] flex items-stretch justify-center overflow-hidden bg-transparent px-2 sm:hidden ${className}`}
     >
       <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.8rem] border-[2px] border-[#ead9a8] bg-[#f6ebc6] px-3 pb-3 pt-3 text-[#20301f] shadow-[inset_0_0_0_2px_rgba(216,189,117,0.34)]">
@@ -430,18 +430,18 @@ export default function ZiiplyMobileSearchCard({
             />
           </div>
 
-          <div className="relative z-10 mt-4 flex min-h-[3.35rem] items-center justify-center overflow-hidden rounded-[1.55rem] border-[3px] border-[#d2b170] bg-[#fff1bf] px-4 py-1 text-center text-[clamp(0.88rem,2.85vw,1.08rem)] font-black leading-[1.16] text-[#6f5630] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_4px_0_rgba(91,72,44,0.13)]">
+          <div className="relative z-10 mt-4 flex min-h-[2.75rem] items-center justify-center overflow-hidden rounded-[1.55rem] border-[3px] border-[#d2b170] bg-[#fff1bf] px-4 py-[0.35rem] text-center text-[clamp(0.88rem,2.85vw,1.08rem)] font-black leading-[1.16] text-[#6f5630] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_4px_0_rgba(91,72,44,0.13)]">
             <span className="block w-full whitespace-normal">
               {subtitle || predictiveText}
             </span>
           </div>
 
-          {/* V632: infolaatikon yläreuna pidetään samassa kohdassa, mutta laatikon
-              alareunaa nostetaan madaltamalla korkeutta. AI-riville jätetään
-              selkeä väli ja koko hakupakettia nostetaan vielä maltillisesti,
-              jotta iPhonen näppäimistön apupalkki ei osu tekstihakukenttään. */}
-          <div className="relative z-10 -translate-y-[1.55rem]">
-            <div className="mt-[1.95rem] grid grid-cols-[1.18fr_0.72fr_1.18fr] items-center gap-3">
+          {/* V634: infolaatikon yläreuna pidetään samassa kohdassa, mutta alareuna
+              nostetaan madaltamalla kenttää. AI-rivi alkaa selkeällä raolla.
+              Alempi hakupaketti nousee hieman lisää, jotta iPhonen näppiksen
+              apupalkki ei osu tekstihakukentän päälle. */}
+          <div className="relative z-10 -translate-y-[1.9rem]">
+            <div className="mt-[3.05rem] grid grid-cols-[1.18fr_0.72fr_1.18fr] items-center gap-3">
             <AssistantButton
               kind="gosta"
               onClick={() => handleManualSearch(onOfferSearch)}
