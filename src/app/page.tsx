@@ -1,7 +1,8 @@
 "use client";
 
-// V631_INLINE_SHOPS_SOFT_PAPER_VISIBLE_PATH:
-// Korjattu käytössä oleva näkyvä Kaupat-inline-render-polku. Vaalennettu paperipohja Hae-näkymän suuntaan, pehmennetty rasteri/pisteet ja päivitetty kauppaketjujen kortti-/logografiikat. Ei logiikka-, state-, callback- tai click-muutoksia.
+// V632_PAGE_USES_REAL_MODE_SELECTOR_COMPONENT:
+// Korjaus: mobiilin Kaupat-näkymän inline mode selector poistettu ja korvattu oikealla ZiiplyMobileStoreModeSelector-komponentilla.
+// Tämän jälkeen ZiiplyMobileStoreModeSelector.tsx:n visuaalimuutokset näkyvät ruudulla. Ei muutoksia kauppakortteihin, hakuun, GPS-logiikkaan tai click-handlerien sisältöön.
 
 // V630_INLINE_MODE_SELECTOR_VISIBLE_GRAPHICS_FIX:
 // Simuloitu vika: käytössä oleva mobiili-Kaupat-render on page.tsx:n inline-haara. Muutos tehdään nyt juuri siihen haaraan selvästi näkyvänä mode selector -grafiikan muutoksena. Vain ulkoasu, ei click/state/logiikka-muutoksia.
@@ -330,6 +331,7 @@ import * as ZiiplyCompareCardModule from "./components/ziiply/cards/ZiiplyCompar
 import ZiiplyMobileHomeView from "./components/ziiply/mobile/ZiiplyMobileHomeView";
 import ZiiplyMobileAssistantPanel from "./components/ziiply/mobile/ZiiplyMobileAssistantPanel";
 import ZiiplyMobileShopsView from "./components/ziiply/mobile/ZiiplyMobileShopsView";
+import ZiiplyMobileStoreModeSelector from "./components/ziiply/mobile/ZiiplyMobileStoreModeSelector";
 import ZiiplyMobileLocationBar from "./components/ziiply/mobile/ZiiplyMobileLocationBar";
 import type { ZiiplyAssistantKey } from "./components/ziiply/mobile/ZiiplyMobileAssistantButton";
 
@@ -9349,7 +9351,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                         src={store.key === "s" ? "/storelogos/s-group.png" : "/storelogos/k-group.png"}
                         alt={store.title}
                         draggable={false}
-                        className="h-full w-full object-contain drop-shadow-[0_1px_0_rgba(255,255,255,0.55)]"
+                        className="h-full w-full object-contain"
                         onError={(event) => {
                           event.currentTarget.style.display = "none";
                         }}
@@ -9489,15 +9491,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         const cardTone =
           store.key === "s"
             ? selected
-              ? "border-[#0b5f32] bg-gradient-to-b from-[#fbf6d6] to-[#e7edbd] text-[#17382b] shadow-[0_4px_0_rgba(94,71,31,0.14),0_10px_16px_rgba(8,80,45,0.08),inset_0_0_0_2px_rgba(255,255,255,0.58)]"
-              : "border-[#d5b878] bg-[#fff8dc] text-[#5f4b25] shadow-[0_2px_0_rgba(94,71,31,0.10),inset_0_0_0_1px_rgba(255,255,255,0.65)]"
+              ? "border-[#0b5f32] bg-gradient-to-b from-[#f7f2cd] to-[#dbe7ac] text-[#17382b] shadow-[0_5px_0_rgba(94,71,31,0.20),0_12px_18px_rgba(8,80,45,0.12),inset_0_0_0_2px_rgba(255,255,255,0.48)]"
+              : "border-[#c7a25d] bg-[#fff4cf] text-[#5f4b25] shadow-[0_3px_0_rgba(94,71,31,0.12),inset_0_0_0_1px_rgba(255,255,255,0.55)]"
             : store.key === "k"
               ? selected
-                ? "border-[#9f6248] bg-gradient-to-b from-[#fff6df] to-[#f1d9ad] text-[#17382b] shadow-[0_4px_0_rgba(94,71,31,0.13),0_10px_16px_rgba(120,50,20,0.07),inset_0_0_0_2px_rgba(255,255,255,0.58)]"
-                : "border-[#d5b878] bg-[#fff8dc] text-[#5f4b25] shadow-[0_2px_0_rgba(94,71,31,0.10),inset_0_0_0_1px_rgba(255,255,255,0.65)]"
+                ? "border-[#8f4b35] bg-gradient-to-b from-[#fff1d6] to-[#efd1a1] text-[#17382b] shadow-[0_5px_0_rgba(94,71,31,0.18),0_12px_18px_rgba(120,50,20,0.10),inset_0_0_0_2px_rgba(255,255,255,0.48)]"
+                : "border-[#c7a25d] bg-[#fff4cf] text-[#5f4b25] shadow-[0_3px_0_rgba(94,71,31,0.12),inset_0_0_0_1px_rgba(255,255,255,0.55)]"
               : selected
-                ? "border-[#c9ad6b] bg-[#f5e7c4] text-[#76633f] opacity-82 shadow-[0_3px_0_rgba(94,71,31,0.12)]"
-                : "border-[#dcc48c] bg-[#fff5d8] text-[#8a7247] opacity-52";
+                ? "border-[#b99b57] bg-[#efe2bc] text-[#76633f] opacity-90 shadow-[0_3px_0_rgba(94,71,31,0.12)]"
+                : "border-[#d6bd82] bg-[#fff1c9] text-[#8a7247] opacity-62";
 
         const logoTone =
           store.key === "s"
@@ -9555,19 +9557,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             className={`relative cursor-pointer overflow-hidden rounded-[1.28rem] border-[2.5px] px-2.5 pb-1.5 pt-1.5 text-center transition active:scale-[0.985] h-[122px] min-h-[122px] max-h-[122px] shadow-[0_3px_0_rgba(94,71,31,0.16),inset_0_0_0_1px_rgba(255,255,255,0.68)] ${cardTone}`}
           >
             <span
-              className={`absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full text-sm font-black shadow-[0_4px_10px_rgba(15,23,42,0.18)] ${selected ? "border border-[#07502c] bg-gradient-to-b from-[#13864a] to-[#07502b] text-[#fff7de]" : "border border-[#c6a15b] bg-[#fff7dc] text-transparent"}`}
+              className={`absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full text-sm font-black shadow-[0_4px_10px_rgba(15,23,42,0.18)] ${selected ? "border border-[#063d22] bg-gradient-to-b from-[#0b6f36] to-[#064928] text-[#fff7de]" : "border border-[#c6a15b] bg-[#fff7dc] text-transparent"}`}
             >
               ✓
             </span>
 
             <div
-              className="absolute left-3 top-3 z-30 flex h-8 w-8 items-center justify-center rounded-xl border border-[#d4b56f] bg-[#fff8df] p-1.5 shadow-[0_3px_0_rgba(127,91,37,0.12),0_7px_12px_rgba(42,29,12,0.06),inset_0_1px_0_rgba(255,255,255,0.75)] ring-1 ring-[#fff3c6]"
+              className="absolute left-3 top-3 z-30 flex h-8 w-8 items-center justify-center rounded-xl border border-[#d1b77c] bg-[#fffaf0] p-1.5 shadow-[0_3px_0_rgba(94,71,31,0.14)] ring-1 ring-[#fff1bf]"
             >
               <img
                 src={storeLogoSrc}
                 alt={cardLabel}
                 draggable={false}
-                className="h-full w-full object-contain drop-shadow-[0_1px_0_rgba(255,255,255,0.55)]"
+                className="h-full w-full object-contain"
                 onError={(event) => {
                   event.currentTarget.style.display = "none";
                 }}
@@ -9730,12 +9732,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   ✓
                 </span>
 
-                <div className="absolute left-2.5 top-2.5 z-30 flex h-9 w-9 items-center justify-center rounded-xl border border-[#d4b56f] bg-[#fff8df] p-1.5 shadow-[0_3px_0_rgba(127,91,37,0.12),0_7px_12px_rgba(42,29,12,0.06)] ring-1 ring-[#fff3c6]">
+                <div className="absolute left-2.5 top-2.5 z-30 flex h-9 w-9 items-center justify-center rounded-xl bg-white p-1.5 shadow-md ring-1 ring-slate-200">
                   <img
                     src={storeLogoSrc}
                     alt={cardLabel}
                     draggable={false}
-                    className="h-full w-full object-contain drop-shadow-[0_1px_0_rgba(255,255,255,0.55)]"
+                    className="h-full w-full object-contain"
                     onError={(event) => {
                       event.currentTarget.style.display = "none";
                     }}
@@ -10665,7 +10667,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
           {!showLaunchScreen && (
             <div
-              className={`${shopsPanelOpen ? "fixed inset-0 z-50 overflow-hidden bg-[radial-gradient(circle_at_50%_4%,#fff9e7_0%,#f7edcf_50%,#ead5a4_100%)] px-3 pb-[calc(env(safe-area-inset-bottom)+5.6rem)] pt-[calc(env(safe-area-inset-top)+5.2rem)] sm:static sm:contents sm:overflow-visible sm:bg-transparent sm:p-0" : "hidden sm:contents"} ${closingPanels.shops ? "ziiply-soft-close" : shopsPanelOpen ? "ziiply-soft-open" : ""}`}
+              className={`${shopsPanelOpen ? "fixed inset-0 z-50 overflow-hidden bg-[radial-gradient(circle_at_50%_4%,#fff7df_0%,#f1dfad_48%,#ddbd78_100%)] px-3 pb-[calc(env(safe-area-inset-bottom)+5.6rem)] pt-[calc(env(safe-area-inset-top)+5.2rem)] sm:static sm:contents sm:overflow-visible sm:bg-transparent sm:p-0" : "hidden sm:contents"} ${closingPanels.shops ? "ziiply-soft-close" : shopsPanelOpen ? "ziiply-soft-open" : ""}`}
             >
           <div className="mb-2">
             <ZiiplyMobileLocationBar
@@ -10746,89 +10748,34 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           </div>
 
           <section
-            className={`relative overflow-hidden rounded-[2.05rem] border-[4px] border-[#a77c3f] px-5 pb-4 pt-3 shadow-[0_20px_38px_rgba(52,38,14,0.18),0_4px_0_rgba(99,65,22,0.20),inset_0_0_0_2px_rgba(255,252,236,0.92),inset_0_18px_28px_rgba(255,255,255,0.30)] ring-1 ring-[#fff7d6]/95 ${
+            className={`relative overflow-hidden rounded-[2.05rem] border-[4px] border-[#7a5423] px-5 pb-4 pt-3 shadow-[0_24px_48px_rgba(52,38,14,0.32),0_6px_0_rgba(99,65,22,0.36),inset_0_0_0_2px_rgba(255,248,221,0.90),inset_0_18px_28px_rgba(255,255,255,0.22)] ring-1 ring-[#fff3c5]/95 ${
               storeMode === "local"
-                ? "bg-[#fbf0cf]"
-                : "bg-[#fbf3d8]"
+                ? "bg-[#f4dfac]"
+                : "bg-[#f7e6ba]"
             }`}
             style={{
               backgroundImage:
                 storeMode === "local"
-                  ? "radial-gradient(#c9ad6b 0.85px, transparent 0.85px), radial-gradient(circle at 18% 4%, rgba(104,70,25,0.10), transparent 32%), linear-gradient(180deg, rgba(255,253,235,0.88), rgba(248,235,199,0.96))"
-                  : "radial-gradient(#c9ad6b 0.85px, transparent 0.85px), radial-gradient(circle at 82% 6%, rgba(104,70,25,0.08), transparent 34%), linear-gradient(180deg, rgba(255,253,236,0.90), rgba(250,238,205,0.96))",
-              backgroundSize: "18px 18px, 100% 100%, 100% 100%",
+                  ? "radial-gradient(#aa8542 1.15px, transparent 1.15px), radial-gradient(circle at 18% 4%, rgba(104,70,25,0.20), transparent 32%), linear-gradient(180deg, rgba(255,252,229,0.78), rgba(239,213,157,0.98))"
+                  : "radial-gradient(#aa8542 1.15px, transparent 1.15px), radial-gradient(circle at 82% 6%, rgba(104,70,25,0.16), transparent 34%), linear-gradient(180deg, rgba(255,252,230,0.78), rgba(244,221,172,0.98))",
+              backgroundSize: "15px 15px, 100% 100%, 100% 100%",
             }}
           >
-            <div className="relative z-10 grid grid-cols-2 gap-x-3 gap-y-2 overflow-visible rounded-[1.55rem] border-[2px] border-[#b79250] bg-[#f7edcf]/82 p-2 shadow-[inset_0_0_0_2px_rgba(255,252,235,0.72),0_3px_0_rgba(92,61,20,0.14)]">
-              <button
-                type="button"
-                disabled={storeCompareScope === "within_chain"}
-                onClick={() => handleStoreModeChange("hyper")}
-                className={`relative overflow-hidden rounded-[1.12rem] border-[2px] px-4 py-[0.44rem] text-base font-black leading-tight tracking-[-0.01em] transition disabled:cursor-not-allowed before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.50),transparent_58%)] ${
-                  storeCompareScope === "within_chain" ||
-                  (storeModeChosenV299 && storeMode === "hyper")
-                    ? "border-[#07502c] bg-gradient-to-b from-[#13864a] via-[#0a6d39] to-[#07502b] text-[#fff4d4] shadow-[0_4px_0_#064123,0_9px_16px_rgba(18,54,32,0.18),inset_0_0_0_2px_rgba(255,255,255,0.20)] ring-1 ring-black/15"
-                    : "border-[#d2ad68] bg-gradient-to-b from-[#fff9e4] via-[#f8ebc1] to-[#edd49a] text-[#5a4424] shadow-[0_2px_0_rgba(113,82,38,0.16),inset_0_0_0_2px_rgba(255,255,255,0.58)] ring-1 ring-[#fff2bf]"
-                }`}
-              >
-                🏬 Tavaratalot
-              </button>
-              <button
-                type="button"
-                disabled={storeCompareScope === "within_chain"}
-                onClick={() => handleStoreModeChange("local")}
-                className={`relative overflow-hidden rounded-[1.12rem] border-[2px] px-4 py-[0.44rem] text-base font-black leading-tight tracking-[-0.01em] transition disabled:cursor-not-allowed before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.50),transparent_58%)] ${
-                  storeCompareScope === "within_chain" ||
-                  (storeModeChosenV299 && storeMode === "local")
-                    ? "border-[#07502c] bg-gradient-to-b from-[#13864a] via-[#0a6d39] to-[#07502b] text-[#fff4d4] shadow-[0_4px_0_#064123,0_9px_16px_rgba(18,54,32,0.18),inset_0_0_0_2px_rgba(255,255,255,0.20)] ring-1 ring-black/15"
-                    : "border-[#d2ad68] bg-gradient-to-b from-[#fff9e4] via-[#f8ebc1] to-[#edd49a] text-[#5a4424] shadow-[0_2px_0_rgba(113,82,38,0.16),inset_0_0_0_2px_rgba(255,255,255,0.58)] ring-1 ring-[#fff2bf]"
-                }`}
-              >
-                🏪 Lähikaupat
-              </button>
-
-              <div className="col-span-2 -my-0.5 flex h-6 items-center justify-center">
-                <span
-                  className={`rounded-full border-[2px] px-3 py-[0.32rem] text-center text-[11px] font-black uppercase leading-none tracking-[0.12em] transition-all duration-150 shadow-[0_2px_0_rgba(91,72,44,0.22),inset_0_1px_0_rgba(255,255,255,0.75)] ${
-                    inlineHakutapaNoticeVisibleV452
-                      ? "border-[#c59628] bg-[#fff2a8] text-[#7c4200] shadow-[0_5px_12px_rgba(124,66,0,0.18),inset_0_1px_0_rgba(255,255,255,0.85)] animate-[ziiplyInlineNoticeFade_2.2s_ease-out_1_forwards]"
-                      : "border-[#d7b977] bg-[#fff7d6] text-[#66543a]"
-                  }`}
-                >
-                  {inlineHakutapaNoticeVisibleV452
-                    ? hyperStorePairMissingV391
-                      ? "Tavarataloparia ei löytynyt"
-                      : "Vertailuparia ei löytynyt"
-                    : storeModeChosenV299 && storeCompareScope !== "none"
-                      ? "Hakutapa"
-                      : "Valitse hakutapa"}
-                </span>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => handleStoreCompareScopeChange("between_chains")}
-                className={`relative overflow-hidden rounded-[1.12rem] border-[2px] px-4 py-[0.44rem] text-sm font-black leading-tight tracking-[-0.01em] transition before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.50),transparent_58%)] ${
-                  storeCompareScope === "between_chains"
-                    ? "border-[#07502c] bg-gradient-to-b from-[#13864a] via-[#0a6d39] to-[#07502b] text-[#fff4d4] shadow-[0_4px_0_#064123,0_9px_16px_rgba(18,54,32,0.18),inset_0_0_0_2px_rgba(255,255,255,0.20)] ring-1 ring-black/15"
-                    : "border-[#d2ad68] bg-gradient-to-b from-[#fff9e4] via-[#f8ebc1] to-[#edd49a] text-[#5a4424] shadow-[0_2px_0_rgba(113,82,38,0.16),inset_0_0_0_2px_rgba(255,255,255,0.58)] ring-1 ring-[#fff2bf]"
-                }`}
-              >
-                Ketjujen väliltä
-              </button>
-              <button
-                type="button"
-                onClick={() => handleStoreCompareScopeChange("within_chain")}
-                className={`relative overflow-hidden rounded-[1.12rem] border-[2px] px-4 py-[0.44rem] text-sm font-black leading-tight tracking-[-0.01em] transition before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.50),transparent_58%)] ${
-                  storeCompareScope === "within_chain"
-                    ? "border-[#07502c] bg-gradient-to-b from-[#13864a] via-[#0a6d39] to-[#07502b] text-[#fff4d4] shadow-[0_4px_0_#064123,0_9px_16px_rgba(18,54,32,0.18),inset_0_0_0_2px_rgba(255,255,255,0.20)] ring-1 ring-black/15"
-                    : "border-[#d2ad68] bg-gradient-to-b from-[#fff9e4] via-[#f8ebc1] to-[#edd49a] text-[#5a4424] shadow-[0_2px_0_rgba(113,82,38,0.16),inset_0_0_0_2px_rgba(255,255,255,0.58)] ring-1 ring-[#fff2bf]"
-                }`}
-              >
-                Ketjun sisältä
-              </button>
+            <div className="relative z-10">
+              <ZiiplyMobileStoreModeSelector
+                storeMode={storeMode}
+                storeModeChosen={storeModeChosenV299}
+                storeCompareScope={storeCompareScope}
+                withinChain={withinChain}
+                selectedRealChainCount={selectedRealChainCount}
+                missingStoresMessageVisible={false}
+                foundStoresCount={foundStores.length}
+                hyperStorePairMissing={hyperStorePairMissingV391}
+                onStoreModeChange={handleStoreModeChange}
+                onStoreCompareScopeChange={handleStoreCompareScopeChange}
+                onWithinChainChange={setWithinChain}
+              />
             </div>
-            
 
             <div className={storeMode === "local" ? "mt-5" : "mt-3.5"}>
               {renderComparedStoreCards(true)}
