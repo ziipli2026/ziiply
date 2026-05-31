@@ -1,5 +1,7 @@
 "use client";
 
+// V624_DEBUG_INLINE_SHOPS_RENDER_PATH:
+// Lisätty näkyvä debug-merkki page.tsx:n inline Kaupat-renderiin.
 // V623_RESULTS_CLOSE_DOES_NOT_TRIGGER_FALSE_NOTFOUND:
 // V622_BUILD_FIX_HIDE_TOPBAR_WITH_PROP_ONLY: appin oma yläpalkki piilotetaan Hae-näkymässä searchPanelOpenilla.
 // V611_HUOKEAMMAKS_NO_DOT_FINAL: pääsivun hero-teksti on täsmälleen "Viilaa ruokakorisi huokeammaks" ilman pistettä.
@@ -10651,6 +10653,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             <div
               className={`${shopsPanelOpen ? "fixed inset-0 z-50 overflow-hidden bg-[#edf8f4] px-3 pb-[calc(env(safe-area-inset-bottom)+5.6rem)] pt-[calc(env(safe-area-inset-top)+5.2rem)] sm:static sm:contents sm:overflow-visible sm:bg-transparent sm:p-0" : "hidden sm:contents"} ${closingPanels.shops ? "ziiply-soft-close" : shopsPanelOpen ? "ziiply-soft-open" : ""}`}
             >
+          {/* DEBUG_V624_INLINE_SHOPS_RENDER_PATH:
+              Tämä merkki varmistaa, että Kaupat-ruutu renderöityy page.tsx:n inline- JSX:stä,
+              ei ZiiplyMobileShopsView-komponentista. Poista testin jälkeen. */}
+          <div className="fixed left-2 top-[calc(env(safe-area-inset-top)+5.35rem)] z-[9999] rounded-full bg-red-600 px-3 py-1.5 text-[12px] font-black text-white shadow-lg sm:hidden">
+            DEBUG INLINE KAUPAT PAGE
+          </div>
           <div className="mb-2">
             <ZiiplyMobileLocationBar
               locationInput={locationInput}
