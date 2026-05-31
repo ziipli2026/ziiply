@@ -1,15 +1,14 @@
 "use client";
 
-// V696_VISIBLE_LOWER_STORE_BACKGROUNDS
-// Visual-only update v690:n päälle.
-// Palauttaa grafiikan näkyvämmäksi ilman v692/v695 sumua:
-// - ei bluria
-// - ei maskia
-// - ei blend-modea
-// - v3-SVG:t säilyvät
-// - kuvat hieman alempana kuin v690
-// - opacity näkyvä mutta ei peitä tekstejä
-// - ei JSX-rakennemuutoksia, ei logiikka- tai layoutmuutoksia.
+// V697_OBVIOUS_STORE_BACKGROUND_TEST
+// Visual-only test v690:n päälle.
+// Tämä on tarkoituksella SELVÄSTI näkyvämpi testi:
+// - opacity nostettu selvästi
+// - kuvaa suurennettu
+// - kontrastia ja saturaatiota lisätty
+// - ei maskia, bluria eikä blend-modea
+// - jos tämä ei näy, käytössä ei ole tämä tiedosto tai asset-polku ei osu.
+// Ei logiikka- tai layoutmuutoksia.
 
 // V690_STORE_BACKGROUND_V3_NO_GHOST_TEXT
 // Päivitetty käyttämään uusia v3-taustakuvia:
@@ -9539,7 +9538,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     alt=""
                     aria-hidden="true"
                     draggable={false}
-                    className="pointer-events-none absolute bottom-[-60px] left-[-34px] right-[-34px] z-[1] mx-auto h-[196px] w-[300px] object-cover object-bottom opacity-[0.62] saturate-[1.12] contrast-[1.08] brightness-[1.04] drop-shadow-[0_8px_16px_rgba(60,40,12,0.13)]"
+                    className="pointer-events-none absolute bottom-[-42px] left-[-42px] right-[-42px] z-[1] mx-auto h-[230px] w-[342px] object-cover object-bottom opacity-[0.84] saturate-[1.20] contrast-[1.16] brightness-[1.02] drop-shadow-[0_12px_24px_rgba(60,40,12,0.22)]"
                   />
                   <button
                     type="button"
@@ -9811,7 +9810,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 alt=""
                 aria-hidden="true"
                 draggable={false}
-                className="pointer-events-none absolute bottom-[-44px] left-[-20px] right-[-20px] z-[1] mx-auto h-[148px] w-[218px] object-cover object-bottom opacity-[0.68] saturate-[1.14] contrast-[1.10] brightness-[1.04] drop-shadow-[0_7px_14px_rgba(52,36,10,0.13)]"
+                className="pointer-events-none absolute bottom-[-28px] left-[-26px] right-[-26px] z-[1] mx-auto h-[168px] w-[244px] object-cover object-bottom opacity-[0.88] saturate-[1.24] contrast-[1.18] brightness-[1.02] drop-shadow-[0_10px_20px_rgba(52,36,10,0.22)]"
               />
             )}
             <span className="pointer-events-none absolute left-[6px] top-[6px] z-20 h-[5px] w-[5px] rounded-full border border-[#b59a69] bg-[#ead8a7] shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]" />
