@@ -1,12 +1,14 @@
 "use client";
 
-// V679_BETTER_STORE_BACKGROUND_ART
+// V680_MOCKUP_STYLE_STORE_CARD_BACKGROUNDS
 // VISUAL ONLY.
-// Korvaa monopoly/clipart-henkiset talotaustat paremmilla inline-SVG-kauppakuvituksilla:
-// - Tavaratalot: leveämpi marketti/tavaratalo-julkisivu, useampi ikkuna, lippakatos, sisäänkäynti
-// - Lähikaupat: pienempi sekatavara-/korttelikauppa, markiisi, ikkunat, ovi, puu/lyhty
-// - parempi erottuvuus, mutta edelleen haalea tausta tekstien alla
-// Ei logiikka-, GPS-, haku-, picker-, bottom nav- tai layout-muutoksia.
+// Toteuttaa mockupin suunnan page.tsx:ään:
+// - Tavaratalot: leveä marketti-/tavaratalojulkisivu kortin alaosaan
+// - Lähikaupat: vanha sekatavara-/korttelikauppa markiiseilla ja pienillä yksityiskohdilla
+// - grafiikka piirtyy inline-SVG:nä, ei ulkoisia assetteja
+// - tekstit pysyvät luettavina, kuva jää kortin alaosan taustaksi
+// - sama visuaalinen linja myös Ketjun sisältä -korteissa
+// Ei state-, GPS-, haku-, picker-, bottom nav- tai layout-logiikkamuutoksia.
 
 // V678_WITHIN_CHAIN_CARD_VISUAL_AND_PICKER_FIX
 // Korjaa Ketjun sisältä -kortit:
@@ -9466,22 +9468,23 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   }`}
                 >
                   <svg
-                    viewBox="0 0 420 260"
+                    viewBox="0 0 520 300"
                     aria-hidden="true"
-                    className="pointer-events-none absolute bottom-[-10px] right-[-10px] z-[1] h-[138px] w-[184px] opacity-[0.16]"
+                    className="pointer-events-none absolute bottom-[-22px] left-[-18px] right-[-18px] z-[1] mx-auto h-[156px] w-[214px] opacity-[0.18]"
                   >
-                    <rect x="42" y="222" width="338" height="12" rx="3" fill="#7f6842" opacity="0.28" />
-                    <rect x="58" y="82" width="304" height="128" rx="7" fill="#a89778" opacity="0.42" />
-                    <rect x="68" y="94" width="284" height="106" rx="4" fill="#eadbb9" opacity="0.66" />
-                    <path d="M50 82h322l-28-34H78z" fill={store.key === "s" ? "#5f7958" : "#8d6d55"} opacity="0.54" />
-                    <path d="M82 50h258" stroke="#fff2c5" strokeWidth="8" opacity="0.30" />
-                    <rect x="88" y="116" width="42" height="34" rx="3" fill="#46677a" opacity="0.36" />
-                    <rect x="146" y="116" width="42" height="34" rx="3" fill="#46677a" opacity="0.36" />
-                    <rect x="232" y="116" width="42" height="34" rx="3" fill="#46677a" opacity="0.36" />
-                    <rect x="290" y="116" width="42" height="34" rx="3" fill="#46677a" opacity="0.36" />
-                    <rect x="180" y="158" width="60" height="42" rx="3" fill="#66523c" opacity="0.48" />
-                    <circle cx="386" cy="194" r="18" fill="#6c7f59" opacity="0.24" />
-                    <rect x="383" y="198" width="6" height="28" fill="#6d4c22" opacity="0.20" />
+                    <path d="M42 250h426" stroke="#6b5536" strokeWidth="12" strokeLinecap="round" opacity="0.22" />
+                    <rect x="70" y="86" width="366" height="138" rx="8" fill="#8d806a" opacity="0.30" />
+                    <rect x="84" y="101" width="338" height="108" rx="5" fill="#eadfc6" opacity="0.68" />
+                    <path d="M62 88h382l-42-40H104z" fill={store.key === "s" ? "#5c7658" : "#81624f"} opacity="0.56" />
+                    <path d="M116 51h272" stroke="#fff2c5" strokeWidth="10" strokeLinecap="round" opacity="0.34" />
+                    <rect x="108" y="120" width="52" height="38" rx="3" fill="#456777" opacity="0.32" />
+                    <rect x="174" y="120" width="52" height="38" rx="3" fill="#456777" opacity="0.32" />
+                    <rect x="292" y="120" width="52" height="38" rx="3" fill="#456777" opacity="0.32" />
+                    <rect x="356" y="120" width="42" height="38" rx="3" fill="#456777" opacity="0.30" />
+                    <rect x="218" y="166" width="68" height="43" rx="3" fill="#5e4b37" opacity="0.42" />
+                    <path d="M252 166v43" stroke="#fff8d2" strokeWidth="3" opacity="0.20" />
+                    <circle cx="454" cy="214" r="25" fill="#6c7f59" opacity="0.20" />
+                    <rect x="450" y="218" width="7" height="36" fill="#6d4c22" opacity="0.18" />
                   </svg>
                   <button
                     type="button"
@@ -9741,43 +9744,50 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           >
             {chain && (
               <svg
-                viewBox="0 0 420 260"
+                viewBox="0 0 520 300"
                 aria-hidden="true"
-                className="pointer-events-none absolute bottom-[-8px] right-[-8px] z-[1] h-[118px] w-[168px] opacity-[0.23]"
+                className="pointer-events-none absolute bottom-[-18px] left-[-12px] right-[-12px] z-[1] mx-auto h-[122px] w-[176px] opacity-[0.24]"
               >
                 {storeMode === "hyper" ? (
                   <>
-                    <rect x="42" y="222" width="338" height="12" rx="3" fill="#7f6842" opacity="0.34" />
-                    <rect x="58" y="82" width="304" height="128" rx="7" fill="#a89778" opacity="0.50" />
-                    <rect x="68" y="94" width="284" height="106" rx="4" fill="#eadbb9" opacity="0.74" />
-                    <path d="M50 82h322l-28-34H78z" fill={store.key === "s" ? "#5f7958" : "#8d6d55"} opacity="0.62" />
-                    <path d="M82 50h258" stroke="#fff2c5" strokeWidth="8" opacity="0.35" />
-                    <rect x="88" y="116" width="42" height="34" rx="3" fill="#46677a" opacity="0.42" />
-                    <rect x="146" y="116" width="42" height="34" rx="3" fill="#46677a" opacity="0.42" />
-                    <rect x="232" y="116" width="42" height="34" rx="3" fill="#46677a" opacity="0.42" />
-                    <rect x="290" y="116" width="42" height="34" rx="3" fill="#46677a" opacity="0.42" />
-                    <rect x="180" y="158" width="60" height="42" rx="3" fill="#66523c" opacity="0.54" />
-                    <path d="M180 158h60" stroke="#fff8d2" strokeWidth="4" opacity="0.32" />
-                    <rect x="78" y="180" width="90" height="10" rx="2" fill="#7f6842" opacity="0.26" />
-                    <rect x="252" y="180" width="90" height="10" rx="2" fill="#7f6842" opacity="0.26" />
-                    <circle cx="386" cy="194" r="18" fill="#6c7f59" opacity="0.28" />
-                    <rect x="383" y="198" width="6" height="28" fill="#6d4c22" opacity="0.25" />
+                    <path d="M42 250h426" stroke="#6b5536" strokeWidth="12" strokeLinecap="round" opacity="0.24" />
+                    <rect x="70" y="86" width="366" height="138" rx="8" fill="#8d806a" opacity="0.34" />
+                    <rect x="84" y="101" width="338" height="108" rx="5" fill="#eadfc6" opacity="0.76" />
+                    <path d="M62 88h382l-42-40H104z" fill={store.key === "s" ? "#5c7658" : "#81624f"} opacity="0.64" />
+                    <path d="M116 51h272" stroke="#fff2c5" strokeWidth="10" strokeLinecap="round" opacity="0.42" />
+                    <rect x="108" y="120" width="52" height="38" rx="3" fill="#456777" opacity="0.40" />
+                    <rect x="174" y="120" width="52" height="38" rx="3" fill="#456777" opacity="0.40" />
+                    <rect x="292" y="120" width="52" height="38" rx="3" fill="#456777" opacity="0.40" />
+                    <rect x="356" y="120" width="42" height="38" rx="3" fill="#456777" opacity="0.38" />
+                    <path d="M104 166h298" stroke="#b18b4d" strokeWidth="8" strokeLinecap="round" opacity="0.23" />
+                    <rect x="218" y="166" width="68" height="43" rx="3" fill="#5e4b37" opacity="0.54" />
+                    <path d="M252 166v43" stroke="#fff8d2" strokeWidth="3" opacity="0.26" />
+                    <rect x="98" y="190" width="94" height="11" rx="3" fill="#7f6842" opacity="0.20" />
+                    <rect x="314" y="190" width="84" height="11" rx="3" fill="#7f6842" opacity="0.20" />
+                    <path d="M88 103c36 12 292 12 330 0" stroke="#fff9da" strokeWidth="4" opacity="0.18" />
+                    <circle cx="454" cy="214" r="25" fill="#6c7f59" opacity="0.26" />
+                    <rect x="450" y="218" width="7" height="36" fill="#6d4c22" opacity="0.22" />
+                    <circle cx="58" cy="224" r="16" fill="#7f8d61" opacity="0.18" />
+                    <rect x="56" y="226" width="5" height="25" fill="#6d4c22" opacity="0.18" />
+                    <path d="M74 230h360" stroke="#fff8da" strokeWidth="5" opacity="0.18" />
                   </>
                 ) : (
                   <>
-                    <rect x="70" y="220" width="272" height="12" rx="3" fill="#7f6842" opacity="0.30" />
-                    <rect x="92" y="104" width="210" height="108" rx="8" fill="#8e6842" opacity="0.46" />
-                    <rect x="104" y="118" width="186" height="82" rx="5" fill="#f0ddaf" opacity="0.78" />
-                    <path d="M80 106h234l-38-44H118z" fill={store.key === "s" ? "#667d59" : "#8a5548"} opacity="0.60" />
-                    <path d="M116 64h158" stroke="#fff0c2" strokeWidth="9" opacity="0.38" />
-                    <rect x="122" y="138" width="42" height="34" rx="3" fill="#436577" opacity="0.43" />
-                    <rect x="220" y="138" width="42" height="34" rx="3" fill="#436577" opacity="0.43" />
-                    <rect x="176" y="158" width="28" height="42" rx="3" fill="#604a34" opacity="0.54" />
-                    <path d="M112 128h168" stroke="#b18b4d" strokeWidth="5" opacity="0.22" />
-                    <circle cx="332" cy="188" r="23" fill="#657d55" opacity="0.30" />
-                    <rect x="328" y="192" width="7" height="34" fill="#6b4d2d" opacity="0.28" />
-                    <circle cx="54" cy="197" r="15" fill="#7f8d61" opacity="0.22" />
-                    <rect x="52" y="200" width="4" height="24" fill="#6b4d2d" opacity="0.24" />
+                    <path d="M76 248h328" stroke="#6b5536" strokeWidth="12" strokeLinecap="round" opacity="0.23" />
+                    <rect x="112" y="108" width="248" height="116" rx="9" fill="#8a6440" opacity="0.40" />
+                    <rect x="126" y="126" width="220" height="82" rx="5" fill="#f0dfb6" opacity="0.80" />
+                    <path d="M94 111h286l-58-54H154z" fill={store.key === "s" ? "#657b59" : "#865148"} opacity="0.64" />
+                    <path d="M150 61h174" stroke="#fff1c5" strokeWidth="11" strokeLinecap="round" opacity="0.44" />
+                    <path d="M118 134h236" stroke="#b68f4d" strokeWidth="7" strokeLinecap="round" opacity="0.30" />
+                    <rect x="146" y="150" width="52" height="36" rx="4" fill="#436577" opacity="0.42" />
+                    <rect x="272" y="150" width="48" height="36" rx="4" fill="#436577" opacity="0.40" />
+                    <rect x="216" y="166" width="34" height="42" rx="4" fill="#5d4631" opacity="0.55" />
+                    <path d="M150 190h48M272 190h48" stroke="#fff6d0" strokeWidth="4" opacity="0.22" />
+                    <circle cx="412" cy="210" r="28" fill="#637a55" opacity="0.28" />
+                    <rect x="408" y="216" width="7" height="38" fill="#6b4d2d" opacity="0.24" />
+                    <circle cx="72" cy="218" r="17" fill="#7f8d61" opacity="0.22" />
+                    <rect x="70" y="221" width="4" height="26" fill="#6b4d2d" opacity="0.20" />
+                    <path d="M130 126c27 10 184 10 214 0" stroke="#fff9da" strokeWidth="4" opacity="0.20" />
                   </>
                 )}
               </svg>
