@@ -1,9 +1,17 @@
 "use client";
 
-// V660_BUILD_FIX_SCOPED_RENDER_COMPARED_STORE_CARDS
-// Korjaa v659 build-virheen: funktio korvataan exact string -menetelmällä, ei vanhoilla indekseillä.
-// Muutokset rajattu renderComparedStoreCards()-funktioon.
-// Ei GPS-, haku-, bottom nav- tai store picker -muutoksia.
+// V661_VISIBLE_RENDER_DIRECT_FIX
+// Korjaus tehty V657:llä ruudulla näkyväksi todettuun Kaupat-renderiin.
+// - poistaa V657 debug-merkit
+// - vakioi ulomman renderComparedStoreCards(true)-wrapperin y-välin
+// - vakioi compact-korttirenderin y-välin
+// - Ketjun sisältä compact-tilassa käyttää samaa näkyvää S/K-korttirenderiä eikä vanhaa tyhjää renderiä
+// - Ei GPS-, haku-, bottom nav- tai store picker -muutoksia.
+
+// V657_RENDER_PATH_MARKERS_ONLY
+// VAIN render-polun todentamiseen:
+// lisää näkyvät V657-merkit Kaupat-paneelin todellisiin render-kohtiin.
+// Ei muuta haku-, GPS-, state-, handler-, click- tai layout-logiikkaa.
 
 // V651_STORE_CARDS_RETRO_VISUAL_ONLY
 // Kaupparuutujen visuaalinen asu viimeistelty page.tsx:n renderComparedStoreCards(true)-polussa:
@@ -9719,6 +9727,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       return (
         <div className="mt-2 pb-1 overflow-visible">
+          <div className="mb-1 text-center text-[8px] font-black uppercase tracking-[0.16em] text-[#9a8354]">
+            V661
+          </div>
           <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 overflow-visible">
             {topStores.map((store) => renderBetweenChainCard(store, true))}
           </div>
@@ -10820,6 +10831,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               backgroundSize: "18px 18px, 100% 100%, 100% 100%",
             }}
           >
+
             <div className="relative z-10">
               <ZiiplyMobileStoreModeSelector
                 storeMode={storeMode}
