@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 430">
+  <defs>
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer><feFuncA type="table" tableValues="0 0.12"/></feComponentTransfer>
+    </filter>
+    <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff5d6"/>
+      <stop offset="1" stop-color="#d2b56e"/>
+    </linearGradient>
+    <linearGradient id="window" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#9ba9a2" stop-opacity=".62"/>
+      <stop offset=".5" stop-color="#526f6f" stop-opacity=".48"/>
+      <stop offset="1" stop-color="#ead9a8" stop-opacity=".35"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="430" fill="url(#paper)" opacity=".08"/>
+  <g opacity=".66">
+    <path d="M70 355 C180 326 312 312 450 320 C560 326 660 310 815 300" fill="none" stroke="#917346" stroke-width="10" opacity=".28"/>
+    <path d="M160 155 L620 113 L760 205 L753 308 L183 327 Z" fill="#8c6844" opacity=".32"/>
+    <path d="M188 174 L610 136 L727 211 L724 292 L208 307 Z" fill="#e7d3a8" opacity=".68"/>
+    <path d="M128 158 L618 111 L762 203 L698 144 L207 190 Z" fill="#657b59" opacity=".55"/>
+    <path d="M198 190 L700 144" stroke="#fff1bd" stroke-width="9" opacity=".36"/>
+    <path d="M202 203 L719 155" stroke="#a77f45" stroke-width="13" opacity=".22"/>
+    <rect x="240" y="222" width="110" height="62" rx="5" fill="url(#window)"/>
+    <rect x="520" y="196" width="106" height="62" rx="5" fill="url(#window)"/>
+    <rect x="392" y="232" width="58" height="76" rx="5" fill="#5b442e" opacity=".54"/>
+    <path d="M420 232 L420 308" stroke="#fff5ca" stroke-width="4" opacity=".23"/>
+    <path d="M230 286 L640 250" stroke="#fff6cf" stroke-width="5" opacity=".23"/>
+    <path d="M238 218 C330 194 516 180 635 180" fill="none" stroke="#fff4c5" stroke-width="4" opacity=".26"/>
+    <text x="455" y="173" text-anchor="middle" font-family="Georgia,serif" font-size="38" font-weight="700" fill="#6a3f2b" opacity=".42">ALEPA</text>
+    <g opacity=".32">
+      <path d="M113 287 C98 263 107 241 128 231 C151 220 175 231 181 255 C187 281 164 303 138 302" fill="#637b51"/>
+      <rect x="135" y="294" width="8" height="47" fill="#604623"/>
+      <path d="M735 280 C742 244 770 228 796 244 C820 259 818 294 791 310" fill="#637b51"/>
+      <rect x="779" y="302" width="8" height="43" fill="#604623"/>
+    </g>
+    <g opacity=".30">
+      <circle cx="314" cy="320" r="19" fill="none" stroke="#5c452e" stroke-width="5"/>
+      <circle cx="356" cy="316" r="19" fill="none" stroke="#5c452e" stroke-width="5"/>
+      <path d="M327 316 h16 l25 -37" stroke="#5c452e" stroke-width="4" fill="none"/>
+    </g>
+    <rect x="660" y="244" width="44" height="65" rx="4" fill="#6b4d2d" opacity=".25"/>
+    <path d="M682 244 v-35" stroke="#6b4d2d" stroke-width="6" opacity=".22"/>
+    <circle cx="682" cy="203" r="13" fill="#e8cf8f" opacity=".28"/>
+  </g>
+  <rect width="900" height="430" filter="url(#grain)" opacity=".42"/>
+</svg>
