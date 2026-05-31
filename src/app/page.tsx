@@ -1,5 +1,11 @@
 "use client";
 
+// V648_PAGE_RENDER_PATH_CLEANUP_ONLY:
+// Simuloitu page.tsx render-polku. V647:n liian laajat kauppakorttien tyylikorvaukset palautettu pois.
+// Page pitää v634-korjauksen: vanha raaka Kaupat/mode selector -koodi poistettu ja käytössä on ZiiplyMobileStoreModeSelector-komponentti.
+// Tämä tiedosto EI yritä korjata ModeSelectorin omaa ulkoasua eikä kauppalaatikoiden lopullista grafiikkaa.
+// Tavoite: page takaisin vakaaksi ja siistiksi ennen erillisten moduulien korjaamista.
+
 // V647_STORE_CARDS_VISUAL_POLISH_AND_SELECTOR_LOW_BUTTONS:
 // Kauppojen valintalaatikot päivitetty page.tsx:n renderComparedStoreCards-polusta.
 // ModeSelectorin nappikorkeus korjataan erillisessä V647 ModeSelector -tiedostossa.
@@ -9323,7 +9329,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   className={`${compact ? "min-h-[7.8rem] rounded-xl p-2" : "rounded-2xl p-3"} relative border shadow-sm ring-1 transition ${
                     selected
                       ? `${store.selectedTone} ring-current/20`
-                      : "border-[#dec07a] bg-[#fff8df] text-slate-600 ring-slate-200"
+                      : "border-slate-200 bg-white text-slate-600 ring-slate-200"
                   }`}
                 >
                   <button
@@ -9356,7 +9362,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       {selected ? "✓" : ""}
                     </span>
                     <div
-                      className={`absolute left-2 top-2 z-30 flex items-center justify-center rounded-xl bg-[#fff8df] p-1.5 shadow-md ring-1 ring-slate-200 ${compact ? "h-8 w-8" : "h-9 w-9"}`}
+                      className={`absolute left-2 top-2 z-30 flex items-center justify-center rounded-xl bg-white p-1.5 shadow-md ring-1 ring-slate-200 ${compact ? "h-8 w-8" : "h-9 w-9"}`}
                     >
                       <img
                         src={store.key === "s" ? "/storelogos/s-group.png" : "/storelogos/k-group.png"}
@@ -9372,8 +9378,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     <p
                       className={
                         compact
-                          ? "mt-0 text-[9px] font-black uppercase tracking-tight text-[#8a7349]"
-                          : "mt-0 text-[10px] font-black uppercase tracking-wide text-[#8a7349]"
+                          ? "mt-0 text-[9px] font-black uppercase tracking-tight text-slate-500"
+                          : "mt-0 text-[10px] font-black uppercase tracking-wide text-slate-500"
                       }
                     >
                       {store.title}
@@ -9391,24 +9397,24 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       <div
                         className={
                           compact
-                            ? "relative rounded-lg bg-[#fff8df]/90 px-1.5 py-1 text-center ring-1 ring-slate-200"
-                            : "relative rounded-xl bg-[#fff7dd]/82 p-1.5 text-center ring-1 ring-slate-200"
+                            ? "relative rounded-lg bg-white/90 px-1.5 py-1 text-center ring-1 ring-slate-200"
+                            : "relative rounded-xl bg-white/80 p-1.5 text-center ring-1 ring-slate-200"
                         }
                       >
-                        <p className="text-[9px] font-black uppercase text-[#b7aa8d]">
+                        <p className="text-[9px] font-black uppercase text-slate-400">
                           Kauppa 1
                         </p>
                         <p
                           className={
                             compact
-                              ? "min-h-[2.1rem] whitespace-normal break-words text-[9px] font-extrabold leading-tight text-[#213224]"
-                              : "min-h-[2.7rem] whitespace-normal break-words text-[11px] font-extrabold leading-tight text-[#213224]"
+                              ? "min-h-[2.1rem] whitespace-normal break-words text-[9px] font-extrabold leading-tight text-slate-800"
+                              : "min-h-[2.7rem] whitespace-normal break-words text-[11px] font-extrabold leading-tight text-slate-800"
                           }
                         >
                           {storeNameA}
                         </p>
                         {distanceA && (
-                          <p className="mt-0 text-[9px] font-black text-[#b7aa8d]">
+                          <p className="mt-0 text-[9px] font-black text-slate-400">
                             {distanceA}
                           </p>
                         )}
@@ -9428,24 +9434,24 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       <div
                         className={
                           compact
-                            ? "relative rounded-lg bg-[#fff8df]/90 px-1.5 py-1 text-center ring-1 ring-slate-200"
-                            : "relative rounded-xl bg-[#fff7dd]/82 p-1.5 text-center ring-1 ring-slate-200"
+                            ? "relative rounded-lg bg-white/90 px-1.5 py-1 text-center ring-1 ring-slate-200"
+                            : "relative rounded-xl bg-white/80 p-1.5 text-center ring-1 ring-slate-200"
                         }
                       >
-                        <p className="text-[9px] font-black uppercase text-[#b7aa8d]">
+                        <p className="text-[9px] font-black uppercase text-slate-400">
                           Kauppa 2
                         </p>
                         <p
                           className={
                             compact
-                              ? "min-h-[2.1rem] whitespace-normal break-words text-[9px] font-extrabold leading-tight text-[#213224]"
-                              : "min-h-[2.7rem] whitespace-normal break-words text-[11px] font-extrabold leading-tight text-[#213224]"
+                              ? "min-h-[2.1rem] whitespace-normal break-words text-[9px] font-extrabold leading-tight text-slate-800"
+                              : "min-h-[2.7rem] whitespace-normal break-words text-[11px] font-extrabold leading-tight text-slate-800"
                           }
                         >
                           {storeNameB}
                         </p>
                         {distanceB && (
-                          <p className="mt-0 text-[9px] font-black text-[#b7aa8d]">
+                          <p className="mt-0 text-[9px] font-black text-slate-400">
                             {distanceB}
                           </p>
                         )}
@@ -9591,7 +9597,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
             {store.key !== "s" && store.key !== "k" && (
               <p
-                className="mx-auto mt-0 max-w-[70%] font-black uppercase tracking-wide text-[#b7aa8d] text-[9px]"
+                className="mx-auto mt-0 max-w-[70%] font-black uppercase tracking-wide text-slate-400 text-[9px]"
               >
                 {cardLabel}
               </p>
@@ -9600,7 +9606,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             <>
               <p
                 className={`absolute left-3 right-3 top-[50px] mx-auto h-[1.65rem] max-w-[7.8rem] overflow-hidden text-center text-[10.5px] font-black leading-tight ${
-                  isComingSoon ? "text-[#8a7349]" : "text-[#17322a]"
+                  isComingSoon ? "text-slate-500" : "text-slate-900"
                 }`}
                 style={{
                   display: "-webkit-box",
@@ -9686,7 +9692,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   : "border-[#d9c79a] bg-[#fff9ea] text-[#6f6b59] opacity-70"
                 : selected
                   ? "border-[#d9c79a] bg-[#f5ead0] text-[#6f6b59] opacity-90"
-                  : "border-[#d9c79a] bg-[#fff9ea] text-[#6f6b59] opacity-50";
+                  : "border-[#d9c79a] bg-[#fff9ea] text-[#6f6b59] opacity-60";
 
           const logoTone =
             store.key === "s"
@@ -9743,7 +9749,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   ✓
                 </span>
 
-                <div className="absolute left-2.5 top-2.5 z-30 flex h-9 w-9 items-center justify-center rounded-xl bg-[#fff8df] p-1.5 shadow-md ring-1 ring-slate-200">
+                <div className="absolute left-2.5 top-2.5 z-30 flex h-9 w-9 items-center justify-center rounded-xl bg-white p-1.5 shadow-md ring-1 ring-slate-200">
                   <img
                     src={storeLogoSrc}
                     alt={cardLabel}
@@ -9758,21 +9764,21 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 <div className="h-8" aria-hidden="true" />
 
                 {store.key !== "s" && store.key !== "k" && (
-                  <p className="mt-0 text-[11px] font-black uppercase tracking-wide text-[#b7aa8d]">
+                  <p className="mt-0 text-[11px] font-black uppercase tracking-wide text-slate-400">
                     {cardLabel}
                   </p>
                 )}
 
                 <p
                   className={`absolute left-4 right-4 top-[54px] mx-auto max-w-[8.8rem] whitespace-normal break-words text-center text-[11px] font-black leading-tight ${
-                    isComingSoon ? "text-[#8a7349]" : "text-[#17322a]"
+                    isComingSoon ? "text-slate-500" : "text-slate-900"
                   }`}
                 >
                   {isComingSoon ? "Tulossa" : store.name}
                 </p>
 
                 {isRealChain && distanceForCard && (
-                  <p className="absolute left-0 right-0 top-[88px] text-[10px] font-black text-[#b7aa8d]">
+                  <p className="absolute left-0 right-0 top-[88px] text-[10px] font-black text-slate-400">
                     {distanceForCard}
                   </p>
                 )}
