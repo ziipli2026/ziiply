@@ -1,5 +1,13 @@
 "use client";
 
+// V664_COMPACT_SHOPS_STATE_FIX
+// Korjaa v663:n löydetyt ongelmat:
+// - poistaa V663-testimerkinnän
+// - Ketjun sisältä pitää saman nelikentän korkuisen korttialueen, mutta ilman LIDL/Tokmanni-kortteja
+// - Ketjun sisältä valittu S/K-kortti näyttää kaupan vaihtopainikkeen, jotta kauppoja voi valita
+// - pelkkä Ketjujen väliltä -tila saa pysyvän "Vertailuparia ei löytynyt" -notifikaation ModeSelectorille
+// Ei GPS-, haku- tai bottom nav -muutoksia.
+
 // V663_VISIBLE_COMPACT_RENDER_FIX
 // Korjaa V662:lla vahvistetun näkyvän compact-renderin:
 // - isot V662-debugit poistettu
@@ -9583,7 +9591,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         const displayName =
           storeCompareScope === "within_chain" && chain
             ? selected
-              ? store.title
+              ? getSelectedStoreNameFor(chain, storeMode) || store.title
               : `Valitse ${store.title}`
             : !storeModeChosenV299 && chain
               ? "Vertailuparia ei löytynyt"
@@ -9694,9 +9702,26 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 onClick={(event) => event.stopPropagation()}
               >
                 {storeCompareScope === "within_chain" && chain ? (
-                  <span className="rounded-full border border-[#d6bd82] bg-[linear-gradient(180deg,#fffaf0_0%,#f4e6bd_100%)] px-2.5 py-[3px] text-[8.5px] font-black text-[#9a8354] shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] ring-1 ring-[#fff1bf]">
-                    {selected ? "Valittu" : "Valitse"}
-                  </span>
+                  selected ? (
+                    <>
+                      {renderStoreChoiceButton(
+                        chain,
+                        storeMode,
+                        `${store.key}-${storeMode}-within-compact`,
+                        true,
+                      )}
+                      {renderStorePickerMenu(
+                        chain,
+                        storeMode,
+                        `${store.key}-${storeMode}-within-compact`,
+                        true,
+                      )}
+                    </>
+                  ) : (
+                    <span className="rounded-full border border-[#d6bd82] bg-[linear-gradient(180deg,#fffaf0_0%,#f4e6bd_100%)] px-2.5 py-[3px] text-[8.5px] font-black text-[#9a8354] shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] ring-1 ring-[#fff1bf]">
+                      Valitse
+                    </span>
+                  )
                 ) : !storeModeChosenV299 && chain ? (
                   <span className="rounded-full border border-[#d6bd82] bg-[linear-gradient(180deg,#fffaf0_0%,#f4e6bd_100%)] px-2.5 py-[3px] text-[8.5px] font-black text-[#9a8354] shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] ring-1 ring-[#fff1bf]">
                     Valitse tyyppi
@@ -9730,15 +9755,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       return (
         <div className="mt-2 pb-1 overflow-visible">
-          <div className="mb-1 text-center text-[8px] font-black uppercase tracking-[0.18em] text-[#9a8354]">
-            V663
-          </div>
           <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 overflow-visible">
             {topStores.map((store) => renderBetweenChainCard(store, true))}
           </div>
-          {bottomStores.length > 0 && (
+          {bottomStores.length > 0 ? (
             <div className="mt-1.5 grid grid-cols-2 gap-x-3 gap-y-1.5">
               {bottomStores.map((store) => renderBetweenChainCard(store, false))}
+            </div>
+          ) : (
+            <div className="mt-1.5 grid grid-cols-2 gap-x-3 gap-y-1.5 opacity-0 pointer-events-none" aria-hidden="true">
+              <div className="h-[104px] min-h-[104px] max-h-[104px] rounded-[1.18rem]" />
+              <div className="h-[104px] min-h-[104px] max-h-[104px] rounded-[1.18rem]" />
             </div>
           )}
         </div>
@@ -9994,7 +10021,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       selectedRealChainCount={selectedRealChainCount}
                       missingStoresMessageVisible={false}
                       foundStoresCount={foundStores.length}
-                      hyperStorePairMissing={hyperStorePairMissingV391}
+                      hyperStorePairMissing={
+                        hyperStorePairMissingV391 ||
+                        (storeCompareScope === "between_chains" && !storeModeChosenV299)
+                      }
                       onStoreModeChange={handleStoreModeChange}
                       onStoreCompareScopeChange={handleStoreCompareScopeChange}
                       onWithinChainChange={setWithinChain}
