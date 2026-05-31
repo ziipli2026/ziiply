@@ -1,14 +1,13 @@
 "use client";
 
-// V686_BALANCED_STORE_BACKGROUND_VISUALS
-// Visual tuning only.
-// Korjaa v685:n ongelman:
-// - taustakuvat eivät enää nouse otsikon alle
-// - kaupan haamuteksti ei kilpaile kortin oikean otsikon kanssa
-// - kuva jää alemmas, julistemaiseksi taustaksi
-// - yläosaan lisätty kevyt luettavuuskalvo
-// - Safari-yhteensopiva: ei blend-modea
-// Ei logiikka- tai layoutmuutoksia.
+// V687_BALANCED_SAFE_VISUALS
+// Build-safe visual tuning only.
+// - Taustakuva alemmas
+// - Vähemmän aggressiivinen opacity
+// - Ei blend-modea
+// - Ei JSX-rakennemuutoksia
+// - Ei uusia elementtejä
+// - Ei logiikka- tai layoutmuutoksia
 
 // V685_REMOVE_SAFARI_BLEND_MODE
 // Safari/iOS blend-mode poisti taustagrafiikat lähes kokonaan.
@@ -1251,10 +1250,6 @@ function KauppiasMobileTopBar({
                     className={`pointer-events-none absolute right-[14px] top-[25px] z-30 block h-[9px] w-[9px] rounded-full border ${electricityTrendLampClass}`}
                     title={electricityTrendTitle}
                     aria-hidden="true"
-                  />
-                  <div
-                    aria-hidden="true"
-                    className="pointer-events-none absolute left-0 right-0 top-0 z-[2] h-[74px] rounded-t-[1.18rem] bg-[linear-gradient(180deg,rgba(255,250,232,0.82)_0%,rgba(255,250,232,0.44)_58%,rgba(255,250,232,0)_100%)]"
                   />
                 )}
 
@@ -9517,7 +9512,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     alt=""
                     aria-hidden="true"
                     draggable={false}
-                    className="pointer-events-none absolute bottom-[-34px] left-[-22px] right-[-22px] z-[1] mx-auto h-[174px] w-[252px] object-cover object-bottom opacity-[0.48] saturate-[1.08] contrast-[1.04] brightness-[1.03] drop-shadow-[0_8px_18px_rgba(70,45,12,0.18)]"
+                    className="pointer-events-none absolute bottom-[-32px] left-[-24px] right-[-24px] z-[1] mx-auto h-[176px] w-[258px] object-cover object-bottom opacity-[0.50] saturate-[1.08] contrast-[1.04] brightness-[1.02] drop-shadow-[0_7px_16px_rgba(70,45,12,0.16)]"
                   />
                   <button
                     type="button"
@@ -9789,13 +9784,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 alt=""
                 aria-hidden="true"
                 draggable={false}
-                className="pointer-events-none absolute bottom-[-22px] left-[-14px] right-[-14px] z-[1] mx-auto h-[132px] w-[186px] object-cover object-bottom opacity-[0.54] saturate-[1.10] contrast-[1.04] brightness-[1.03] drop-shadow-[0_7px_14px_rgba(60,40,10,0.16)]"
-              />
-            )}
-            {chain && (
-              <div
-                aria-hidden="true"
-                className="pointer-events-none absolute left-0 right-0 top-0 z-[2] h-[58px] rounded-t-[1.18rem] bg-[linear-gradient(180deg,rgba(255,250,232,0.82)_0%,rgba(255,250,232,0.44)_58%,rgba(255,250,232,0)_100%)]"
+                className="pointer-events-none absolute bottom-[-20px] left-[-14px] right-[-14px] z-[1] mx-auto h-[134px] w-[188px] object-cover object-bottom opacity-[0.56] saturate-[1.10] contrast-[1.04] brightness-[1.02] drop-shadow-[0_6px_14px_rgba(60,40,10,0.16)]"
               />
             )}
             <span className="pointer-events-none absolute left-[6px] top-[6px] z-20 h-[5px] w-[5px] rounded-full border border-[#b59a69] bg-[#ead8a7] shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]" />
@@ -9834,7 +9823,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
             <>
               <p
-                className={`absolute left-3 right-3 top-[39px] z-40 mx-auto h-[1.35rem] max-w-[7.9rem] overflow-hidden text-center text-[10px] font-extrabold leading-tight ${
+                className={`absolute left-3 right-3 top-[39px] z-20 mx-auto h-[1.35rem] max-w-[7.9rem] overflow-hidden text-center text-[10px] font-extrabold leading-tight ${
                   isComingSoon ? "text-[#b9aa86]" : "text-[#26251f]"
                 }`}
                 style={{
@@ -9847,7 +9836,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               </p>
 
               {isTopRow && distanceForCard && storeModeChosenV299 && (
-                <p className="absolute left-0 right-0 top-[58px] z-40 text-[8.5px] font-black leading-none text-[#8a7247]">
+                <p className="absolute left-0 right-0 top-[58px] z-20 text-[8.5px] font-black leading-none text-[#8a7247]">
                   {distanceForCard}
                 </p>
               )}
