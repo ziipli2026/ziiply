@@ -1,6 +1,6 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V636_VISIBLE_REVISION_BALANCED_FIX
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V637_STABLE_LVH_NO_KEYBOARD_PUSH
 // Pohja: v608/v510 toimiva hakulogiikka.
 // Muutettu vain JSX/CSS layout vastaamaan annettua finalleiska-mallia.
 
@@ -379,16 +379,28 @@ export default function ZiiplyMobileSearchCard({
     onInputChange?.("");
   };
 
-  // iOS Safari tekee keyboard-open hetkellä oman viewport-siirtonsa.
-  // V635: ei kutsuta window.scrollTo():ta fokuksessa, koska se aiheutti
-  // näkyvän välähdyksen/hypähdyksen näppäimistön avautuessa.
+  // V637: kortti lukitaan 100lvh-korkeuteen ilman bottom-insettiä, jotta iOS-näppäimistö
+  // ei kutista fixed-korttia eikä työnnä näkymää ylös. Pieni scroll-palautus tehdään
+  // vain jos Safari ehtii vierittää sivua inputin fokuksessa.
+  const keepPageAnchoredOnInputFocus = () => {
+    if (typeof window === "undefined") return;
+    const restoreX = window.scrollX;
+    const restoreY = 0;
+
+    window.requestAnimationFrame(() => {
+      if (window.scrollY !== restoreY) window.scrollTo(restoreX, restoreY);
+      window.setTimeout(() => {
+        if (window.scrollY !== restoreY) window.scrollTo(restoreX, restoreY);
+      }, 90);
+    });
+  };
 
   if (!open) return null;
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V636_VISIBLE_REVISION_BALANCED_FIX"
-      className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.25rem)] bottom-[calc(env(safe-area-inset-bottom)+5.2rem)] z-[72] flex items-stretch justify-center overflow-hidden bg-transparent px-2 sm:hidden ${className}`}
+      data-ziiply-mobile-search-card-version="UUSI_V637_STABLE_LVH_NO_KEYBOARD_PUSH"
+      className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.25rem)] z-[72] flex h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] max-h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] items-stretch justify-center overflow-hidden bg-transparent px-2 sm:hidden [transform:translateZ(0)] [backface-visibility:hidden] ${className}`}
     >
       <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.8rem] border-[2px] border-[#ead9a8] bg-[#f6ebc6] px-3 pb-3 pt-3 text-[#20301f] shadow-[inset_0_0_0_2px_rgba(216,189,117,0.34)]">
         <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[1.55rem] bg-[#f6ebc6]">
@@ -464,6 +476,8 @@ export default function ZiiplyMobileSearchCard({
               <textarea
                 ref={inputRef}
                 value={input}
+                onFocus={keepPageAnchoredOnInputFocus}
+                onClick={keepPageAnchoredOnInputFocus}
                 onChange={(event) => {
                   autoSearchInputRef.current = "";
                   setTriggeredSearchInput("");
