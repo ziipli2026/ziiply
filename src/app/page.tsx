@@ -1,16 +1,5 @@
 "use client";
 
-// V652_FINAL_RETRO_POLISH_VISUAL_ONLY
-// Viimeinen retro/kyläkauppa visual polish nykyiseen toimivaan renderiin.
-// EI layout-, state-, handler-, GPS-, search- tai callback-muutoksia.
-// Vain visuaalinen viimeistely:
-// - paperikuitu / emalttiheijastus
-// - pehmeämmät retro-varjot
-// - logokehysten emalikyltti-fiilis
-// - lämpimämpi beige
-// - haaleammat Tulossa-kortit
-// - syvempi kyläkauppa-vihreä
-
 // V651_STORE_CARDS_RETRO_VISUAL_ONLY
 // Kaupparuutujen visuaalinen asu viimeistelty page.tsx:n renderComparedStoreCards(true)-polussa:
 // - lämpimämpi paperi/emaltti-pinta
@@ -9535,15 +9524,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         const cardTone =
           store.key === "s"
             ? selected
-              ? "border-[#05592f] bg-[linear-gradient(180deg,#fbffe3_0%,#e7f3bc_45%,#cfe08b_100%)] text-[#17382b] shadow-[0_4px_0_rgba(80,58,25,0.16),0_10px_16px_rgba(39,88,44,0.09),inset_0_0_0_2px_rgba(255,255,255,0.68)]"
+              ? "border-[#076b3a] bg-[linear-gradient(180deg,#fbffdf_0%,#eef7c1_48%,#dbeaa4_100%)] text-[#17382b] shadow-[0_4px_0_rgba(80,58,25,0.16),0_10px_16px_rgba(39,88,44,0.09),inset_0_0_0_2px_rgba(255,255,255,0.68)]"
               : "border-[#d3b673] bg-[linear-gradient(180deg,#fff8dc_0%,#f7ebc3_100%)] text-[#5f4b25] shadow-[0_2px_0_rgba(94,71,31,0.10),inset_0_0_0_1px_rgba(255,255,255,0.66)]"
             : store.key === "k"
               ? selected
-                ? "border-[#8e4a35] bg-[linear-gradient(180deg,#fff8e7_0%,#f4ddb3_52%,#e6be83_100%)] text-[#17382b] shadow-[0_4px_0_rgba(80,58,25,0.16),0_10px_16px_rgba(120,50,20,0.08),inset_0_0_0_2px_rgba(255,255,255,0.64)]"
+                ? "border-[#8e4a35] bg-[linear-gradient(180deg,#fff7e3_0%,#f7dfb8_54%,#edca93_100%)] text-[#17382b] shadow-[0_4px_0_rgba(80,58,25,0.16),0_10px_16px_rgba(120,50,20,0.08),inset_0_0_0_2px_rgba(255,255,255,0.64)]"
                 : "border-[#d3b673] bg-[linear-gradient(180deg,#fff8dc_0%,#f7ebc3_100%)] text-[#5f4b25] shadow-[0_2px_0_rgba(94,71,31,0.10),inset_0_0_0_1px_rgba(255,255,255,0.66)]"
               : selected
                 ? "border-[#c2a15d] bg-[linear-gradient(180deg,#fff6d6_0%,#ead9ad_100%)] text-[#76633f] opacity-88 shadow-[0_2px_0_rgba(94,71,31,0.10),inset_0_0_0_1px_rgba(255,255,255,0.60)]"
-                : "border-[#dec88f] bg-[linear-gradient(180deg,#fff8dd_0%,#f4e8c3_100%)] text-[#9b875f] opacity-[0.42]";
+                : "border-[#dec88f] bg-[linear-gradient(180deg,#fff8dd_0%,#f4e8c3_100%)] text-[#9b875f] opacity-50";
 
         const logoTone =
           store.key === "s"
@@ -9598,16 +9587,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               setOpenStorePicker(null);
               triggerHaptic();
             }}
-            className={`relative cursor-pointer overflow-hidden rounded-[1.18rem] border-[2.5px] px-2 pb-1 pt-1 text-center transition active:scale-[0.985] h-[104px] min-h-[104px] max-h-[104px] shadow-[0_3px_0_rgba(94,71,31,0.12),0_8px_12px_rgba(52,38,14,0.045),inset_0_0_0_1px_rgba(255,255,255,0.76)] before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.48),transparent_58%)] after:pointer-events-none after:absolute after:inset-[4px] after:rounded-[0.95rem] after:border after:border-white/35 before:mix-blend-soft-light ${cardTone}`}
+            className={`relative cursor-pointer overflow-hidden rounded-[1.18rem] border-[2.5px] px-2 pb-1 pt-1 text-center transition active:scale-[0.985] h-[104px] min-h-[104px] max-h-[104px] shadow-[0_3px_0_rgba(94,71,31,0.12),0_9px_14px_rgba(52,38,14,0.06),inset_0_0_0_1px_rgba(255,255,255,0.76)] before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.42),transparent_58%)] after:pointer-events-none after:absolute after:inset-[4px] after:rounded-[0.95rem] after:border after:border-white/35 ${cardTone}`}
           >
             <span
-              className={`absolute right-2 top-2 z-30 flex h-5 w-5 items-center justify-center rounded-full text-[12px] font-black shadow-[0_3px_7px_rgba(15,23,42,0.14)] ${selected ? "border border-[#063d22] bg-[radial-gradient(circle_at_35%_25%,#37b766_0%,#08743a_44%,#053b22_100%)] text-[#fff7de]" : "border border-[#d0ad68] bg-[#fff8dc] text-transparent"}`}
+              className={`absolute right-2 top-2 z-30 flex h-5 w-5 items-center justify-center rounded-full text-[12px] font-black shadow-[0_3px_7px_rgba(15,23,42,0.14)] ${selected ? "border border-[#063d22] bg-[radial-gradient(circle_at_35%_25%,#2ca85a_0%,#08743a_48%,#064928_100%)] text-[#fff7de]" : "border border-[#d0ad68] bg-[#fff8dc] text-transparent"}`}
             >
               ✓
             </span>
 
             <div
-              className="absolute left-3 top-2.5 z-30 flex h-7 w-7 items-center justify-center rounded-xl border border-[#d0ad68] bg-[linear-gradient(180deg,#fffef7_0%,#fff2c7_100%)] p-1 shadow-[0_2px_0_rgba(94,71,31,0.11),inset_0_1px_0_rgba(255,255,255,0.82)] ring-1 ring-[#fff1bf]"
+              className="absolute left-3 top-2.5 z-30 flex h-7 w-7 items-center justify-center rounded-xl border border-[#d0ad68] bg-[linear-gradient(180deg,#fffdf0_0%,#fff3cf_100%)] p-1 shadow-[0_2px_0_rgba(94,71,31,0.11),inset_0_1px_0_rgba(255,255,255,0.82)] ring-1 ring-[#fff1bf]"
             >
               <img
                 src={storeLogoSrc}
@@ -9633,7 +9622,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             <>
               <p
                 className={`absolute left-3 right-3 top-[39px] z-20 mx-auto h-[1.45rem] max-w-[7.9rem] overflow-hidden text-center text-[10px] font-black leading-tight ${
-                  isComingSoon ? "text-[#aaa087]" : "text-[#1b2732]"
+                  isComingSoon ? "text-[#aaa087]" : "text-[#132338]"
                 }`}
                 style={{
                   display: "-webkit-box",
@@ -9798,7 +9787,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
                 <p
                   className={`absolute left-4 right-4 top-[54px] mx-auto max-w-[8.8rem] whitespace-normal break-words text-center text-[11px] font-black leading-tight ${
-                    isComingSoon ? "text-[#aaa087]" : "text-[#1b2732]"
+                    isComingSoon ? "text-[#aaa087]" : "text-[#132338]"
                   }`}
                 >
                   {isComingSoon ? "Tulossa" : store.name}
