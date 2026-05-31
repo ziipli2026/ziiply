@@ -1,8 +1,10 @@
 "use client";
 
-// V633_REAL_MODE_SELECTOR_LIGHT_OUTER_PAPER:
-// Korjaa oikean render-polun ulomman Kaupat-paperin: tumma rasteri poistettu/vaalennettu.
-// Page käyttää edelleen oikeaa ZiiplyMobileStoreModeSelector-komponenttia. Ei haku/GPS/click/logiikkamuutoksia.
+// V634_REMOVE_OLD_RAW_SHOPS_SELECTOR_AND_LIGHTEN_RENDER:
+// Tarkastettu simuloimalla: page.tsx:ssä oli yhä vanha raaka Kauppavalinta/mode selector -koodi.
+// Poistettu vanhat inline-napit ja korvattu ne oikealla ZiiplyMobileStoreModeSelector-komponentilla.
+// Lisäksi vaalennettu oikean mobiili-Kaupat-renderin ulompi paperi/rasteri.
+// Ei muutoksia haku-, GPS-, storeCards- tai handler-logiikkaan.
 
 // V632_PAGE_USES_REAL_MODE_SELECTOR_COMPONENT:
 // Korjaus: mobiilin Kaupat-näkymän inline mode selector poistettu ja korvattu oikealla ZiiplyMobileStoreModeSelector-komponentilla.
@@ -9891,49 +9893,26 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   </p>
                 </section>
 
-                <section className="relative overflow-hidden rounded-[2.1rem] border-[3px] border-[#b99d62] bg-gradient-to-b from-[#f7e9c3] via-[#f0d9a4] to-[#dfbf7e] p-4 shadow-[0_0_0_2px_#fff3cf_inset,0_7px_0_rgba(80,58,25,0.28),0_18px_28px_rgba(45,31,12,0.12)] ring-1 ring-[#fff7df]/80">
-                  <div className="pointer-events-none absolute inset-0 opacity-[0.18] [background-image:radial-gradient(#b59c67_1.15px,transparent_1.15px)] [background-size:15px_15px]" />
-                  <p className="relative font-black uppercase tracking-[0.34em] text-[#746742] text-[13px] drop-shadow-[0_1px_0_#fff7df]" style={{ fontFamily: '"Copperplate", "Baskerville", Georgia, serif' }}>
-                    Kauppavalinta
-                  </p>
-
-                  <div className="relative mt-3">
-                    {renderComparedStoreCards(true)}
+                <section className="relative overflow-hidden rounded-[2.1rem] border-[3px] border-[#bfa063] bg-[#fbf3d8] p-3 shadow-[0_5px_0_rgba(80,58,25,0.14),0_16px_24px_rgba(45,31,12,0.10),inset_0_0_0_2px_rgba(255,252,235,0.72)] ring-1 ring-[#fff7df]/80">
+                  <div className="pointer-events-none absolute inset-0 opacity-[0.14] [background-image:radial-gradient(#c9ad6b_0.85px,transparent_0.85px)] [background-size:17px_17px]" />
+                  <div className="relative z-10">
+                    <ZiiplyMobileStoreModeSelector
+                      storeMode={storeMode}
+                      storeModeChosen={storeModeChosenV299}
+                      storeCompareScope={storeCompareScope}
+                      withinChain={withinChain}
+                      selectedRealChainCount={selectedRealChainCount}
+                      missingStoresMessageVisible={false}
+                      foundStoresCount={foundStores.length}
+                      hyperStorePairMissing={hyperStorePairMissingV391}
+                      onStoreModeChange={handleStoreModeChange}
+                      onStoreCompareScopeChange={handleStoreCompareScopeChange}
+                      onWithinChainChange={setWithinChain}
+                    />
                   </div>
 
-                  <div className="relative mt-3 grid grid-cols-2 gap-2">
-                    <button
-                      type="button"
-                      onClick={() => handleStoreModeChange("hyper")}
-                      className={`rounded-[1.2rem] border-2 px-3 py-3 text-sm font-black shadow-[0_3px_0_rgba(89,65,27,0.16)] ring-1 ${storeMode === "hyper" && storeModeChosenV299 ? "border-[#0b5f32] bg-[#0c7c38] text-white ring-green-800" : "border-[#c8ab70] bg-[#fff9ea] text-[#3b3a30] ring-[#d6bf8f]"}`}
-                    >
-                      🏬 Tavaratalot
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleStoreModeChange("local")}
-                      className={`rounded-[1.2rem] border-2 px-3 py-3 text-sm font-black shadow-[0_3px_0_rgba(89,65,27,0.16)] ring-1 ${storeMode === "local" && storeModeChosenV299 ? "border-[#0b5f32] bg-[#0c7c38] text-white ring-green-800" : "border-[#c8ab70] bg-[#fff9ea] text-[#3b3a30] ring-[#d6bf8f]"}`}
-                    >
-                      🏪 Lähikaupat
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        handleStoreCompareScopeChange("between_chains")
-                      }
-                      className={`rounded-[1.2rem] border-2 px-3 py-3 text-sm font-black shadow-[0_3px_0_rgba(89,65,27,0.16)] ring-1 ${storeCompareScope === "between_chains" ? "border-[#0b5f32] bg-[#0c7c38] text-white ring-green-800" : "border-[#c8ab70] bg-[#fff9ea] text-[#3b3a30] ring-[#d6bf8f]"}`}
-                    >
-                      Ketjujen väliltä
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        handleStoreCompareScopeChange("within_chain")
-                      }
-                      className={`rounded-[1.2rem] border-2 px-3 py-3 text-sm font-black shadow-[0_3px_0_rgba(89,65,27,0.16)] ring-1 ${storeCompareScope === "within_chain" ? "border-[#0b5f32] bg-[#0c7c38] text-white ring-green-800" : "border-[#c8ab70] bg-[#fff9ea] text-[#3b3a30] ring-[#d6bf8f]"}`}
-                    >
-                      Ketjun sisältä
-                    </button>
+                  <div className="relative z-10 mt-3">
+                    {renderComparedStoreCards(true)}
                   </div>
                 </section>
               </aside>
@@ -10760,8 +10739,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             style={{
               backgroundImage:
                 storeMode === "local"
-                  ? "radial-gradient(rgba(190,154,88,0.30) 0.72px, transparent 0.72px), radial-gradient(circle at 18% 4%, rgba(255,255,255,0.50), transparent 34%), linear-gradient(180deg, rgba(255,255,242,0.94), rgba(249,238,203,0.96))"
-                  : "radial-gradient(rgba(190,154,88,0.28) 0.72px, transparent 0.72px), radial-gradient(circle at 82% 6%, rgba(255,255,255,0.48), transparent 35%), linear-gradient(180deg, rgba(255,255,243,0.95), rgba(251,242,211,0.97))",
+                  ? "radial-gradient(rgba(190,154,88,0.24) 0.7px, transparent 0.7px), radial-gradient(circle at 18% 4%, rgba(255,255,255,0.55), transparent 34%), linear-gradient(180deg, rgba(255,255,242,0.95), rgba(249,238,203,0.96))"
+                  : "radial-gradient(rgba(190,154,88,0.22) 0.7px, transparent 0.7px), radial-gradient(circle at 82% 6%, rgba(255,255,255,0.52), transparent 35%), linear-gradient(180deg, rgba(255,255,243,0.96), rgba(251,242,211,0.97))",
               backgroundSize: "18px 18px, 100% 100%, 100% 100%",
             }}
           >
