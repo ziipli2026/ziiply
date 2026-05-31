@@ -1,6 +1,6 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V638_PACKAGE_SLIGHT_DOWN_INFO_STRETCH
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V639_STABLE_KEYBOARD_SLIGHT_DOWN_INFO_STRETCH
 // Pohja: v608/v510 toimiva hakulogiikka.
 // Muutettu vain JSX/CSS layout vastaamaan annettua finalleiska-mallia.
 
@@ -379,15 +379,28 @@ export default function ZiiplyMobileSearchCard({
     onInputChange?.("");
   };
 
-  // V638: ei tehdä focus-hetkellä window.scrollTo()-korjausta.
-  // iOS Safari saa avata näppäimistön overlayna; kortti pidetään vakaana 100lvh-korkeudella.
-  // Tämä vähentää näppiksen avauksen välähdystä/hyppyä tässä komponentissa.
+  // V639: pidetään v637:n keyboard-stabiili ankkurointi mukana.
+  // Kortti lukitaan 100lvh-korkeuteen ilman bottom-insettiä, jotta iOS-näppäimistö
+  // ei kutista fixed-korttia eikä työnnä näkymää ylös. Pieni scroll-palautus tehdään
+  // vain jos Safari ehtii vierittää sivua inputin fokuksessa.
+  const keepPageAnchoredOnInputFocus = () => {
+    if (typeof window === "undefined") return;
+    const restoreX = window.scrollX;
+    const restoreY = 0;
+
+    window.requestAnimationFrame(() => {
+      if (window.scrollY !== restoreY) window.scrollTo(restoreX, restoreY);
+      window.setTimeout(() => {
+        if (window.scrollY !== restoreY) window.scrollTo(restoreX, restoreY);
+      }, 90);
+    });
+  };
 
   if (!open) return null;
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V638_PACKAGE_SLIGHT_DOWN_INFO_STRETCH"
+      data-ziiply-mobile-search-card-version="UUSI_V639_STABLE_KEYBOARD_SLIGHT_DOWN_INFO_STRETCH"
       className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.25rem)] z-[72] flex h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] max-h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] items-stretch justify-center overflow-hidden bg-transparent px-2 sm:hidden [transform:translateZ(0)] [backface-visibility:hidden] ${className}`}
     >
       <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.8rem] border-[2px] border-[#ead9a8] bg-[#f6ebc6] px-3 pb-3 pt-3 text-[#20301f] shadow-[inset_0_0_0_2px_rgba(216,189,117,0.34)]">
@@ -427,9 +440,8 @@ export default function ZiiplyMobileSearchCard({
             </span>
           </div>
 
-          {/* V638: koko alapakettia laskettiin vain hieman alemmas nykyisestä.
-              Ohje-/hakusanalootaa kasvatettiin alareunasta, yläreunan vaakakorkoon koskematta.
-              Focus-scrollTo poistettu, jotta iOS-näppäimistön avaus ei välähtäisi yhtä voimakkaasti. */}
+          {/* V639: v638:n pieni visuaalinen alas-siirto ja ohje-/hakusanalootan venytys säilytetään,
+              mutta v637:n keyboard-stabiili ankkurointi palautetaan, jotta näppäimistö ei työnnä näkymää ylös. */}
           <div className="relative z-10 -translate-y-[0.85rem] will-change-transform [backface-visibility:hidden] [transform:translate3d(0,-0.85rem,0)]">
             <div className="mt-[2.6rem] grid grid-cols-[1.18fr_0.72fr_1.18fr] items-center gap-3">
             <AssistantButton
@@ -463,6 +475,8 @@ export default function ZiiplyMobileSearchCard({
               <textarea
                 ref={inputRef}
                 value={input}
+                onFocus={keepPageAnchoredOnInputFocus}
+                onClick={keepPageAnchoredOnInputFocus}
                 onChange={(event) => {
                   autoSearchInputRef.current = "";
                   setTriggeredSearchInput("");
