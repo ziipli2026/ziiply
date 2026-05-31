@@ -1,8 +1,14 @@
 "use client";
 
-// V647_MODE_SELECTOR_ALL_BUTTONS_LOW_VISUAL_ONLY
-// Kaikki hakutapa-alueen valintanapit samaan matalaan malliin.
-// Ei props-, state-, callback-, handler- tai logiikkamuutoksia.
+// V649_MODE_SELECTOR_FINAL_COMPACT_RENDER_FIX
+// Korjaa StoreModeSelectorin näkyvän renderin:
+// - kaikki napit samaan matalaan korkeuteen
+// - HAKUTAPA omalle keskitetylle riville
+// - pehmeä vaalea paperi/rasteri
+// - ei isoja blokkeja tai venynyttä layoutia
+// - ei state-, callback-, handler-, props- tai hakulogiikkamuutoksia
+// Tarkoitettu korvaamaan repositoryn:
+// src/app/components/ziiply/mobile/ZiiplyMobileStoreModeSelector.tsx
 
 // V646_MODE_SELECTOR_RENDER_FIX_COMPACT_2COL
 // Korjaa render-vian: ylärow ei ole enää grid-cols-[1fr_auto_1fr], jossa HAKUTAPA kavensi Tavaratalot/Lähikaupat-napit.
@@ -43,7 +49,7 @@ type Props = {
 
 function buttonClass(active: boolean, disabled = false) {
   return [
-    "relative min-h-[38px] overflow-hidden rounded-[1.25rem] border-[2px] px-3 py-[0.34rem] text-[15px] font-black leading-tight transition active:scale-[0.985]",
+    "relative min-h-[38px] overflow-hidden rounded-[1.25rem] border-[2px] px-3 py-[0.48rem] text-[14px] font-black leading-tight transition active:scale-[0.985]",
     "before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.45),transparent_58%)]",
     disabled ? "cursor-not-allowed opacity-60" : "",
     active
@@ -89,7 +95,7 @@ export default function ZiiplyMobileStoreModeSelector({
   }, [shouldShowHakutapaNotice]);
 
   return (
-    <section className="relative mx-auto w-full max-w-[390px] overflow-hidden rounded-[1.9rem] border-[3px] border-[#b38a4a] bg-[#fbf3d8] px-4 pb-2.5 pt-3 text-[#213224] shadow-[0_5px_0_rgba(105,72,28,0.14),0_14px_24px_rgba(46,32,12,0.10),inset_0_0_0_2px_rgba(255,255,255,0.48)]">
+    <section className="relative mx-auto w-full max-w-[390px] overflow-hidden rounded-[1.9rem] border-[3px] border-[#b38a4a] bg-[#fcf5de] px-4 pb-2.5 pt-3 text-[#213224] shadow-[0_5px_0_rgba(105,72,28,0.14),0_14px_24px_rgba(46,32,12,0.10),inset_0_0_0_2px_rgba(255,255,255,0.48)]">
       <style>{`
         @keyframes ziiplyNoticePop {
           0% {
@@ -134,7 +140,7 @@ export default function ZiiplyMobileStoreModeSelector({
         </button>
       </div>
 
-      <div className="relative z-20 my-1 flex h-6 items-center justify-center overflow-visible">
+      <div className="relative z-20 my-1.5 flex h-7 items-center justify-center overflow-visible">
         <p
           className={[
             "relative z-10 whitespace-nowrap rounded-full border-[2px] px-3.5 py-[0.35rem] text-center text-[12px] font-black uppercase leading-none tracking-[0.14em] transition-none shadow-[0_2px_0_rgba(91,72,44,0.16),inset_0_1px_0_rgba(255,255,255,0.72)]",
