@@ -1,5 +1,14 @@
 "use client";
 
+// V683_STRONGER_STORE_BACKGROUND_VISUALS
+// Visual tuning only.
+// - Taustakuvat nostettu näkyvämmiksi
+// - Soft-light blend
+// - Enemmän opacityä
+// - Rakennukset ylemmäs kortissa
+// - Kevyt vignette + shadow
+// - Ei logiikka- tai layoutmuutoksia
+
 // V682_STORE_BACKGROUNDS_FOLDER_PATHS
 // VISUAL PATH FIX ONLY.
 // Päivitetty käyttämään nykyistä GitHub-kansiorakennetta:
@@ -1221,7 +1230,15 @@ function KauppiasMobileTopBar({
                     title={electricityTrendTitle}
                     aria-hidden="true"
                   />
+                  <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-[10px] z-[2] rounded-[28px] bg-[radial-gradient(circle_at_center,rgba(255,248,220,0)_32%,rgba(75,48,18,0.12)_100%)]"
+                  />
                 )}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-[8px] z-[2] rounded-[24px] bg-[radial-gradient(circle_at_center,rgba(255,248,220,0)_35%,rgba(80,52,18,0.10)_100%)]"
+            />
 
                 <div className="relative z-10 flex h-full flex-col items-center justify-center text-center leading-none">
                   <div className="flex items-center justify-center gap-[2px]">
@@ -9482,7 +9499,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     alt=""
                     aria-hidden="true"
                     draggable={false}
-                    className="pointer-events-none absolute bottom-[-18px] left-[-14px] right-[-14px] z-[1] mx-auto h-[136px] w-[202px] object-cover object-bottom opacity-[0.34] mix-blend-multiply"
+                    className="pointer-events-none absolute bottom-[-6px] left-[-18px] right-[-18px] z-[1] mx-auto h-[168px] w-[244px] object-cover object-top opacity-[0.68] mix-blend-soft-light saturate-[1.14] contrast-[1.08] brightness-[1.03] drop-shadow-[0_10px_22px_rgba(70,45,12,0.24)]"
                   />
                   <button
                     type="button"
@@ -9754,7 +9771,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 alt=""
                 aria-hidden="true"
                 draggable={false}
-                className="pointer-events-none absolute bottom-[-10px] left-[-6px] right-[-6px] z-[1] mx-auto h-[106px] w-[160px] object-cover object-bottom opacity-[0.46] mix-blend-multiply"
+                className="pointer-events-none absolute bottom-[-2px] left-[-10px] right-[-10px] z-[1] mx-auto h-[124px] w-[178px] object-cover object-top opacity-[0.74] mix-blend-soft-light saturate-[1.18] contrast-[1.08] brightness-[1.02] drop-shadow-[0_8px_18px_rgba(60,40,10,0.22)]"
               />
             )}
             <span className="pointer-events-none absolute left-[6px] top-[6px] z-20 h-[5px] w-[5px] rounded-full border border-[#b59a69] bg-[#ead8a7] shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]" />
