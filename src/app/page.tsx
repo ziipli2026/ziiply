@@ -1,12 +1,8 @@
 "use client";
 
-// V659_CONFIRMED_RENDER_FUNCTION_SCOPED_FIX
-// Korjaus tehty vain renderComparedStoreCards()-funktion sisälle.
-// V658 ei näkynyt, koska muutos ei ollut riittävän rajattu vahvistettuun funktioon.
-// Korjaa:
-// - compact Ketjun sisältä ohjataan samaan korttirenderiin kuin Ketjujen väliltä
-// - Tavaratalot/Lähikaupat Y-korko samaksi
-// - ei-paria-tila ei piilota kortteja
+// V660_BUILD_FIX_SCOPED_RENDER_COMPARED_STORE_CARDS
+// Korjaa v659 build-virheen: funktio korvataan exact string -menetelmällä, ei vanhoilla indekseillä.
+// Muutokset rajattu renderComparedStoreCards()-funktioon.
 // Ei GPS-, haku-, bottom nav- tai store picker -muutoksia.
 
 // V651_STORE_CARDS_RETRO_VISUAL_ONLY
@@ -9297,7 +9293,20 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             current === pickerKey ? null : pickerKey,
           );
         }}
-        classNafunction renderComparedStoreCards(compact = false) {
+        className={`mt-1 rounded-full px-2 py-1 font-black ring-1 ${compact ? "text-[9px]" : "text-[10px]"} ${
+          hasMany
+            ? "bg-[#fff8df]/90 text-slate-700 ring-slate-200"
+            : "bg-slate-100 text-[#b7aa8d] ring-slate-200"
+        }`}
+      >
+        {hasMany ? "Vaihda" : "Valittu"}
+      </button>
+    );
+  }
+
+  const selectedRealChainCount =
+    Number(Boolean(selectedChains.s)) + Number(Boolean(selectedChains.k));
+  function renderComparedStoreCards(compact = false) {
     if (storeCompareScope === "none") {
       return null;
     }
@@ -9844,22 +9853,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 <div
                   onClick={(event) => event.stopPropagation()}
                   className="absolute bottom-[10px] left-0 right-0 z-20 block"
-                >
-                  {renderStoreChoiceButton(
-                    chain,
-                    storeMode,
-                    pickerKey,
-                    compact,
-                  )}
-                  {renderStorePickerMenu(chain, storeMode, pickerKey, compact)}
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    );
-  }lute bottom-[10px] left-0 right-0 z-20 block"
                 >
                   {renderStoreChoiceButton(
                     chain,
