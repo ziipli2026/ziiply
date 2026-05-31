@@ -1,5 +1,12 @@
 "use client";
 
+// V650_STORE_CARD_COMPACT_VISIBLE_4_VISUAL_ONLY
+// Korjaa page.tsx:n renderComparedStoreCards(true)-kauppalaatikot:
+// - neljä kaupparuutua mahtuu näkyviin mobiilissa
+// - kortit matalammat ja tekstin/logo/checkin paikat tiiviimmät
+// - lämmin retro-paperi/emaltti-ilme säilyy
+// - ei muutoksia haku-, GPS-, state-, handler- tai valintalogiikkaan
+
 // V648_PAGE_RENDER_PATH_CLEANUP_ONLY:
 // Simuloitu page.tsx render-polku. V647:n liian laajat kauppakorttien tyylikorvaukset palautettu pois.
 // Page pitää v634-korjauksen: vanha raaka Kaupat/mode selector -koodi poistettu ja käytössä on ZiiplyMobileStoreModeSelector-komponentti.
@@ -9571,16 +9578,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               setOpenStorePicker(null);
               triggerHaptic();
             }}
-            className={`relative cursor-pointer overflow-hidden rounded-[1.28rem] border-[2.5px] px-2.5 pb-1.5 pt-1.5 text-center transition active:scale-[0.985] h-[122px] min-h-[122px] max-h-[122px] shadow-[0_3px_0_rgba(94,71,31,0.16),inset_0_0_0_1px_rgba(255,255,255,0.68)] ${cardTone}`}
+            className={`relative cursor-pointer overflow-hidden rounded-[1.18rem] border-[2.5px] px-2 pb-1 pt-1 text-center transition active:scale-[0.985] h-[104px] min-h-[104px] max-h-[104px] shadow-[0_3px_0_rgba(94,71,31,0.13),inset_0_0_0_1px_rgba(255,255,255,0.72)] ${cardTone}`}
           >
             <span
-              className={`absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full text-sm font-black shadow-[0_4px_10px_rgba(15,23,42,0.18)] ${selected ? "border border-[#063d22] bg-gradient-to-b from-[#0b6f36] to-[#064928] text-[#fff7de]" : "border border-[#c6a15b] bg-[#fff7dc] text-transparent"}`}
+              className={`absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full text-[12px] font-black shadow-[0_3px_8px_rgba(15,23,42,0.16)] ${selected ? "border border-[#063d22] bg-gradient-to-b from-[#0b6f36] to-[#064928] text-[#fff7de]" : "border border-[#c6a15b] bg-[#fff7dc] text-transparent"}`}
             >
               ✓
             </span>
 
             <div
-              className="absolute left-3 top-3 z-30 flex h-8 w-8 items-center justify-center rounded-xl border border-[#d1b77c] bg-[#fffaf0] p-1.5 shadow-[0_3px_0_rgba(94,71,31,0.14)] ring-1 ring-[#fff1bf]"
+              className="absolute left-3 top-2.5 z-30 flex h-7 w-7 items-center justify-center rounded-xl border border-[#d1b77c] bg-[#fffaf0] p-1 shadow-[0_2px_0_rgba(94,71,31,0.12)] ring-1 ring-[#fff1bf]"
             >
               <img
                 src={storeLogoSrc}
@@ -9593,11 +9600,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               />
             </div>
 
-            <div className="h-9" aria-hidden="true" />
+            <div className="h-7" aria-hidden="true" />
 
             {store.key !== "s" && store.key !== "k" && (
               <p
-                className="mx-auto mt-0 max-w-[70%] font-black uppercase tracking-wide text-slate-400 text-[9px]"
+                className="mx-auto mt-0 max-w-[72%] font-black uppercase tracking-wide text-slate-400 text-[8px]"
               >
                 {cardLabel}
               </p>
@@ -9605,7 +9612,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
             <>
               <p
-                className={`absolute left-3 right-3 top-[50px] mx-auto h-[1.65rem] max-w-[7.8rem] overflow-hidden text-center text-[10.5px] font-black leading-tight ${
+                className={`absolute left-3 right-3 top-[39px] mx-auto h-[1.45rem] max-w-[7.9rem] overflow-hidden text-center text-[10px] font-black leading-tight ${
                   isComingSoon ? "text-slate-500" : "text-slate-900"
                 }`}
                 style={{
@@ -9618,13 +9625,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               </p>
 
               {isTopRow && distanceForCard && (
-                <p className="absolute left-0 right-0 top-[70px] text-[9px] font-black leading-none text-[#8a7247]">
+                <p className="absolute left-0 right-0 top-[59px] text-[8.5px] font-black leading-none text-[#8a7247]">
                   {distanceForCard}
                 </p>
               )}
 
               <div
-                className="absolute bottom-[9px] left-0 right-0 z-20 flex justify-center"
+                className="absolute bottom-[6px] left-0 right-0 z-20 flex justify-center"
                 onClick={(event) => event.stopPropagation()}
               >
                 {chain ? (
@@ -9639,7 +9646,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       {renderStorePickerMenu(chain, storeMode, pickerKey, true)}
                     </>
                   ) : (
-                    <span className="rounded-full border border-[#d6bd82] bg-[#fff7dc] px-2.5 py-1 text-[9px] font-black text-[#9a8354] ring-1 ring-[#fff1bf]">
+                    <span className="rounded-full border border-[#d6bd82] bg-[#fff7dc] px-2.5 py-[3px] text-[8.5px] font-black text-[#9a8354] ring-1 ring-[#fff1bf]">
                       Tulossa
                     </span>
                   )
@@ -9655,11 +9662,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       };
 
       return (
-        <div className={`${storeMode === "local" ? "mt-8" : "mt-3"} pb-1 overflow-visible`}>
-          <div className={`${storeMode === "local" ? "pt-2" : ""} grid grid-cols-2 gap-x-3 gap-y-1.5 overflow-visible`}>
+        <div className={`${storeMode === "local" ? "mt-3" : "mt-2"} pb-1 overflow-visible`}>
+          <div className={`${storeMode === "local" ? "pt-1" : ""} grid grid-cols-2 gap-x-3 gap-y-1.5 overflow-visible`}>
             {topStores.map((store) => renderBetweenChainCard(store, true))}
           </div>
-          <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-2">
+          <div className="mt-1.5 grid grid-cols-2 gap-x-3 gap-y-1.5">
             {bottomStores.map((store) => renderBetweenChainCard(store, false))}
           </div>
         </div>
@@ -10771,7 +10778,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               />
             </div>
 
-            <div className={storeMode === "local" ? "mt-5" : "mt-3.5"}>
+            <div className={storeMode === "local" ? "mt-2.5" : "mt-2"}>
               {renderComparedStoreCards(true)}
             </div>
 
