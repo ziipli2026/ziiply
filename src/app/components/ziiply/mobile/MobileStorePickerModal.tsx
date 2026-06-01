@@ -1,12 +1,13 @@
 "use client";
 
-// V1_MOBILE_STORE_PICKER_MODAL
+// V2_MOBILE_STORE_PICKER_MODAL_ID_NUMBER_FIX
 // Irrotettu page.tsx:n renderStorePickerMenu-haarasta omaksi komponentiksi.
 // Tarkoitus:
 // - sama toiminnallinen rakenne kuin nykyisessä pickerissä
 // - parempi kontrasti ja luettavuus mobiililla
 // - S/K-valinnan värit hillitymmät, ei liian kirkas punainen/vihreä
 // - ei riippuvuutta page.tsx:n sisäisiin tyyppeihin
+// - id voi olla string tai number, koska page.tsx:n StoreSearchItem käyttää numero-id:tä
 
 import React from "react";
 import { createPortal } from "react-dom";
@@ -14,7 +15,7 @@ import { createPortal } from "react-dom";
 export type MobileStorePickerChain = "S" | "K";
 
 export type MobileStorePickerStore = {
-  id?: string;
+  id?: string | number;
   name?: string;
   type?: string;
   chain?: string;
@@ -203,4 +204,3 @@ export default function MobileStorePickerModal({
 }
 
 export { MobileStorePickerModal };
-
