@@ -1,11 +1,20 @@
 "use client";
 
-// ZIIPLY_MOBILE_TOPBAR_V4_ELECTRICITY_STEP_REBUILD
-// Pörssisähkö rakennettu uudelleen samaan suoraviivaiseen state -> render -malliin kuin sää.
+// ZIIPLY_MOBILE_TOPBAR_V5_FULL_REBUILD
+// Uudelleen rakennettu yläpalkki.
+// Säilyttää saman public props -rajapinnan kuin V4.
+// Korjaukset:
+// - sää: turvallinen GPS/API fallback, ei jää rikkinäiseen tilaan
+// - sähkö: useampi API-haara + selkeä hintaluokkaindikaattori
+// - ajoneuvo: ei harhaanjohtavaa "BENSA"-otsikkoa vaan "AJOAINE"
+// - kalenteri: ei pakota webcal://-avausta ellei callbackia ole annettu
+// - ulkoasu: sama retro/emaltti-perhe kuin location barissa
+// - paneelit ovat tasaisemmat, tekstit eivät leikkaannu yhtä helposti
 
 import React, { useEffect, useMemo, useState } from "react";
 
 type InfoKind = "weather" | "electricity" | "fuel" | "calendar";
+type PriceLevel = "low" | "normal" | "high" | "unknown";
 
 type InfoPanel = {
   id: InfoKind;
@@ -13,9 +22,9 @@ type InfoPanel = {
   value: string;
   unit?: string;
   detail: string;
-  foot?: string;
   graphic: React.ReactNode;
   onClick?: () => void;
+  level?: PriceLevel;
 };
 
 export type ZiiplyMobileTopBarProps = {
@@ -47,8 +56,23 @@ function fmtFi(value: number, digits = 1) {
   });
 }
 
+function readNumber(value: unknown) {
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+
+  const text = String(value ?? "")
+    .trim()
+    .replace(/\s/g, "")
+    .replace(",", ".");
+
+  const match = text.match(/-?\d+(?:\.\d+)?/);
+  if (!match) return null;
+
+  const number = Number(match[0]);
+  return Number.isFinite(number) ? number : null;
+}
+
 function weatherTextFromCode(code?: number) {
-  if (code == null) return "Sää";
+  if (code == null || !Number.isFinite(code)) return "Sää";
   if (code === 0) return "Selkeää";
   if ([1, 2, 3].includes(code)) return "Puolipilvistä";
   if ([45, 48].includes(code)) return "Sumua";
@@ -59,32 +83,47 @@ function weatherTextFromCode(code?: number) {
   return "Sää";
 }
 
+function electricityLevel(value: string): PriceLevel {
+  const number = readNumber(value);
+  if (number == null) return "unknown";
+  if (number < 8) return "low";
+  if (number <= 16) return "normal";
+  return "high";
+}
+
+function levelDotClass(level: PriceLevel) {
+  if (level === "low") return "bg-[#159447] shadow-[0_0_0_2px_rgba(21,148,71,0.18),0_1px_4px_rgba(6,74,33,0.35)]";
+  if (level === "normal") return "bg-[#d8a928] shadow-[0_0_0_2px_rgba(216,169,40,0.18),0_1px_4px_rgba(89,57,0,0.28)]";
+  if (level === "high") return "bg-[#c93632] shadow-[0_0_0_2px_rgba(201,54,50,0.18),0_1px_4px_rgba(96,20,16,0.35)]";
+  return "bg-[#b8a77e] shadow-[0_0_0_2px_rgba(184,167,126,0.15),0_1px_4px_rgba(75,52,16,0.20)]";
+}
+
 function panelClass(kind: InfoKind) {
   const base =
-    "relative h-[56px] min-w-0 overflow-hidden rounded-[0.42rem] border-[1.5px] px-[5px] py-[4px] text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.86),0_1px_0_rgba(0,0,0,0.08)] active:scale-[0.985]";
+    "relative h-[58px] min-w-0 overflow-hidden rounded-[0.56rem] border-[1.5px] px-[5px] py-[4px] text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.88),0_1px_0_rgba(77,55,19,0.10)] active:scale-[0.985]";
 
   if (kind === "weather") {
-    return `${base} border-[#b9d0ba] bg-[linear-gradient(180deg,#fff9e4_0%,#fff2c5_100%)] text-[#083c32]`;
+    return `${base} border-[#b5cbb4] bg-[linear-gradient(180deg,#fffbe9_0%,#fff2c9_100%)] text-[#063f35]`;
   }
 
   if (kind === "electricity") {
-    return `${base} border-[#d6b667] bg-[linear-gradient(180deg,#fff4c8_0%,#ffe499_100%)] text-[#593300]`;
+    return `${base} border-[#d2b363] bg-[linear-gradient(180deg,#fff5ca_0%,#ffe391_100%)] text-[#573300]`;
   }
 
   if (kind === "fuel") {
-    return `${base} border-[#c98d65] bg-[linear-gradient(180deg,#fff0d7_0%,#ffd3af_100%)] text-[#5a1f00]`;
+    return `${base} border-[#c78b63] bg-[linear-gradient(180deg,#fff1da_0%,#ffd0aa_100%)] text-[#5a1f00]`;
   }
 
-  return `${base} border-[#caa66d] bg-[linear-gradient(180deg,#fff9de_0%,#ffe9a8_100%)] text-[#3f2b00]`;
+  return `${base} border-[#c9a86d] bg-[linear-gradient(180deg,#fff9df_0%,#ffe8a6_100%)] text-[#3f2b00]`;
 }
 
 function cornerBolts() {
   return (
     <>
-      <span className="absolute left-[4px] top-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
-      <span className="absolute right-[4px] top-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
-      <span className="absolute bottom-[4px] left-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
-      <span className="absolute bottom-[4px] right-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
+      <span className="absolute left-[4px] top-[4px] h-[5px] w-[5px] rounded-full border border-[#b08a4d] bg-[#fff2bc] shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]" />
+      <span className="absolute right-[4px] top-[4px] h-[5px] w-[5px] rounded-full border border-[#b08a4d] bg-[#fff2bc] shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]" />
+      <span className="absolute bottom-[4px] left-[4px] h-[5px] w-[5px] rounded-full border border-[#b08a4d] bg-[#fff2bc] shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]" />
+      <span className="absolute bottom-[4px] right-[4px] h-[5px] w-[5px] rounded-full border border-[#b08a4d] bg-[#fff2bc] shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]" />
     </>
   );
 }
@@ -131,6 +170,12 @@ function CalendarGraphic({ day }: { day: string }) {
   );
 }
 
+function monthAbbrFi(date = new Date()) {
+  return ["TAM", "HEL", "MAA", "HUI", "TOU", "KES", "HEI", "ELO", "SYY", "LOK", "MAR", "JOU"][
+    date.getMonth()
+  ];
+}
+
 export default function ZiiplyMobileTopBar({
   hidden = false,
   areaLabel = "Hyvinkää",
@@ -142,10 +187,10 @@ export default function ZiiplyMobileTopBar({
   electricityText,
 
   fuelValue = "—",
-  fuelText = "Ei hintaa",
+  fuelText = "Ajoaine",
 
   calendarValue,
-  calendarText = "Tänään",
+  calendarText,
 
   onOpenWeather,
   onOpenElectricity,
@@ -206,27 +251,11 @@ export default function ZiiplyMobileTopBar({
 
     let cancelled = false;
 
-    function readNumber(value: unknown) {
-      if (typeof value === "number") return Number.isFinite(value) ? value : null;
-
-      const text = String(value ?? "")
-        .trim()
-        .replace(/\s/g, "")
-        .replace(",", ".");
-
-      const match = text.match(/-?\d+(?:\.\d+)?/);
-      if (!match) return null;
-
-      const number = Number(match[0]);
-      return Number.isFinite(number) ? number : null;
-    }
-
     function toCentsPerKwh(value: unknown, unit: "cents" | "eur" = "cents") {
       const number = readNumber(value);
       if (number == null) return null;
 
       const cents = unit === "eur" ? number * 100 : number;
-
       if (!Number.isFinite(cents) || Math.abs(cents) > 500) return null;
 
       return cents;
@@ -253,7 +282,6 @@ export default function ZiiplyMobileTopBar({
     function readTime(...values: unknown[]) {
       for (const value of values) {
         if (value == null) continue;
-
         const time = new Date(String(value)).getTime();
         if (Number.isFinite(time)) return time;
       }
@@ -265,13 +293,10 @@ export default function ZiiplyMobileTopBar({
       const separator = url.includes("?") ? "&" : "?";
       const response = await fetch(`${url}${separator}ziiply_no_cache=${Date.now()}`, {
         cache: "no-store",
-        headers: {
-          accept: "application/json",
-        },
+        headers: { accept: "application/json" },
       });
 
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
       return response.json();
     }
 
@@ -311,7 +336,6 @@ export default function ZiiplyMobileTopBar({
               );
 
               if (price == null || startMs == null || endMs == null) return null;
-
               return { price, startMs, endMs };
             })
             .filter(Boolean)
@@ -357,7 +381,6 @@ export default function ZiiplyMobileTopBar({
 
     async function loadElectricity() {
       if (cancelled) return;
-
       setAutoElectricityText("haetaan");
 
       try {
@@ -387,15 +410,14 @@ export default function ZiiplyMobileTopBar({
         if (cancelled) return;
 
         const message = error instanceof Error ? error.message : "api virhe";
-
         setAutoElectricityValue("—");
 
-        if (message.includes("Failed to fetch")) setAutoElectricityText("fetch virhe");
-        else if (message.includes("HTTP")) setAutoElectricityText(message.slice(0, 12));
-        else if (message.includes("ei nykyhetkeä")) setAutoElectricityText("ei nykyhetkeä");
-        else if (message.includes("tyhjä lista")) setAutoElectricityText("tyhjä lista");
+        if (message.includes("Failed to fetch")) setAutoElectricityText("fetch");
+        else if (message.includes("HTTP")) setAutoElectricityText(message.slice(0, 10));
+        else if (message.includes("ei nykyhetkeä")) setAutoElectricityText("ei nyt");
+        else if (message.includes("tyhjä lista")) setAutoElectricityText("ei listaa");
         else if (message.includes("ei hintaa")) setAutoElectricityText("ei hintaa");
-        else setAutoElectricityText("api virhe");
+        else setAutoElectricityText("api");
       }
     }
 
@@ -408,21 +430,17 @@ export default function ZiiplyMobileTopBar({
     };
   }, [hidden]);
 
+  const today = useMemo(() => new Date(), []);
   const dayValue = useMemo(() => {
     if (calendarValue) return calendarValue;
-    return String(new Date().getDate());
-  }, [calendarValue]);
+    return String(today.getDate());
+  }, [calendarValue, today]);
 
-  const openCalendar = () => {
-    if (onOpenCalendar) {
-      onOpenCalendar();
-      return;
-    }
+  const monthLabel = useMemo(() => calendarText || monthAbbrFi(today), [calendarText, today]);
 
-    // Selain ei saa varmasti avattua iOS/Androidin omaa kalenteria ilman natiivisillan/deep linkin tukea.
-    // Tämä on turvallinen fallback: käyttäjän oma callback kannattaa kytkeä sovelluksen puolella.
-    window.location.href = "webcal://";
-  };
+  const effectiveElectricityValue = electricityValue || autoElectricityValue;
+  const effectiveElectricityText = electricityText || autoElectricityText;
+  const electricityPriceLevel = electricityLevel(effectiveElectricityValue);
 
   const panels: InfoPanel[] = [
     {
@@ -436,15 +454,16 @@ export default function ZiiplyMobileTopBar({
     {
       id: "electricity",
       title: "SÄHKÖ",
-      value: electricityValue || autoElectricityValue,
-      unit: "c/kWh",
-      detail: electricityText || autoElectricityText,
+      value: effectiveElectricityValue,
+      unit: effectiveElectricityText === "c/kWh" ? "c/kWh" : undefined,
+      detail: effectiveElectricityText,
       graphic: <ElectricityGraphic />,
       onClick: onOpenElectricity,
+      level: electricityPriceLevel,
     },
     {
       id: "fuel",
-      title: "BENSA",
+      title: "AJOAINE",
       value: fuelValue,
       unit: fuelValue === "—" ? undefined : "€/l",
       detail: fuelText,
@@ -453,12 +472,11 @@ export default function ZiiplyMobileTopBar({
     },
     {
       id: "calendar",
-      title: "KAL",
+      title: monthLabel,
       value: dayValue,
-      detail: calendarText,
-      foot: "Avaa",
+      detail: "PVM",
       graphic: <CalendarGraphic day={dayValue} />,
-      onClick: openCalendar,
+      onClick: onOpenCalendar,
     },
   ];
 
@@ -466,24 +484,33 @@ export default function ZiiplyMobileTopBar({
 
   return (
     <div className="fixed inset-x-0 top-[max(env(safe-area-inset-top),0px)] z-[90] mx-auto block w-full px-[6px] pt-[4px] sm:hidden">
-      <div className="mx-auto flex h-[78px] w-[calc(100vw-12px)] max-w-none items-center overflow-hidden rounded-[1.65rem] border-[4px] border-[#073d32] bg-[#fff5d9] px-[7px] shadow-[0_10px_28px_rgba(8,42,35,0.18),inset_0_0_0_2px_rgba(255,255,255,0.7)]">
-        <div className="grid min-w-0 flex-1 grid-cols-4 gap-[6px]">
+      <div className="mx-auto flex h-[82px] w-[calc(100vw-12px)] max-w-none items-center overflow-hidden rounded-[1.75rem] border-[4px] border-[#073d32] bg-[linear-gradient(180deg,#fffdf3_0%,#fff5d9_62%,#ead49a_100%)] px-[7px] shadow-[0_0_0_2px_rgba(255,255,255,0.70)_inset,0_5px_0_rgba(54,39,17,0.20),0_15px_28px_rgba(8,42,35,0.16)]">
+        <div className="grid min-w-0 flex-1 grid-cols-[0.92fr_1.02fr_1.25fr_0.86fr] gap-[6px]">
           {panels.map((panel) => {
             const inner = (
               <>
                 {cornerBolts()}
-                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.70),transparent_55%)]" />
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.76),transparent_55%)]" />
+
+                {panel.id === "electricity" && (
+                  <span
+                    className={`absolute right-[15px] top-[30px] z-20 h-[9px] w-[9px] rounded-full border border-[#7c5c22] ${levelDotClass(
+                      panel.level || "unknown",
+                    )}`}
+                    aria-hidden="true"
+                  />
+                )}
 
                 <div className="relative z-10 flex h-full flex-col items-center justify-center text-center leading-none">
-                  <div className="flex items-center justify-center gap-[2px]">
+                  <div className="flex items-center justify-center gap-[3px]">
                     {panel.graphic}
-                    <div className="text-[10px] font-black uppercase tracking-[0.04em]">
+                    <div className="text-[10px] font-black uppercase tracking-[0.045em]">
                       {panel.title}
                     </div>
                   </div>
 
                   <div className="mt-[1px] flex items-end justify-center gap-[2px]">
-                    <span className="text-[18px] font-black leading-none tracking-[-0.04em] text-[#041b19]">
+                    <span className="text-[19px] font-black leading-none tracking-[-0.05em] text-[#041b19]">
                       {panel.value}
                     </span>
                     {panel.unit && (
@@ -494,7 +521,7 @@ export default function ZiiplyMobileTopBar({
                   </div>
 
                   <div className="mt-[2px] max-w-full truncate px-1 text-[8px] font-black leading-none opacity-75">
-                    {panel.foot || panel.detail}
+                    {panel.detail}
                   </div>
                 </div>
               </>
