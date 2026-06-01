@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_CART_CARD_V24_LEDGER_ALIGN_TAGS_CLOSE
+// ZIIPLY_MOBILE_CART_CARD_V25_FINAL_LEDGER_COLUMN_ALIGN
 // Mobiilin Tavarainkeruu-paperivihko.
 // V3:
 // - "Ostoskori" poistettu kokonaan näkyvästä UI:sta.
@@ -25,7 +25,7 @@
 // V13: sulje-nappi kohdistettu A. Virtanen -tekstin vaakatasoon ja symboli pehmennetty.
 // V18B: nimikekentälle lisää vaakasuuntaista tilaa; määrä-/välikenttiä kavennettu maltillisesti.
 
-// V24: sarakeotsikot näkymättömiksi ankkureiksi, tuoterivit kohdistettu, määrä +/- erotettu, laput sijoitettu uusiksi ja sulje alas oikealle.
+// V25: YHT. ja summa keskitetty omiin sarakkeisiin, tuoterivin määrä/hinta keskitetty, nimike siirretty hieman oikealle. Miinus-etäisyys pidetty ennallaan.
 // V19: layout-korjaus:
 // - kortti nostettu ylös safe-alueelle, ettei topbar jää näkyviin
 // - korkeus käyttää koko käytettävissä olevan tilan alapalkkia väistäen
@@ -259,7 +259,7 @@ function QuantityCell({
       <button
         type="button"
         onClick={() => onIncrease?.(item)}
-        className="grid h-[1.72rem] min-w-0 place-items-center rounded-[0.32rem] bg-[#fff1c6]/10 text-[0.98rem] font-extrabold leading-none text-[#3d301a] active:translate-y-[1px] active:bg-[#fff1c6]/34"
+        className="grid h-[1.72rem] min-w-0 place-items-center rounded-[0.32rem] bg-[#fff1c6]/10 text-center text-[0.98rem] font-extrabold leading-none text-[#3d301a] active:translate-y-[1px] active:bg-[#fff1c6]/34"
         style={{ fontFamily: serifFont }}
         aria-label="Lisää määrää"
         title="Lisää määrää"
@@ -408,7 +408,7 @@ export default function ZiiplyMobileCartCard({
 
                     <div
                       className={cx(
-                        "min-w-0 truncate text-[0.93rem] font-extrabold leading-none text-[#2f2a1c]",
+                        "min-w-0 truncate pl-[0.34rem] text-[0.93rem] font-extrabold leading-none text-[#2f2a1c]",
                         checked && "line-through",
                       )}
                       style={{ fontFamily: serifFont }}
@@ -428,7 +428,7 @@ export default function ZiiplyMobileCartCard({
                       type="button"
                       onClick={() => onRemoveItem?.(item)}
                       className={cx(
-                        "min-w-0 rounded-[0.24rem] pr-[0.08rem] text-right font-extrabold leading-none active:translate-y-[1px] active:bg-[#ffe0bc]/36",
+                        "min-w-0 rounded-[0.24rem] px-[0.12rem] text-center font-extrabold leading-none active:translate-y-[1px] active:bg-[#ffe0bc]/36",
                         isAlcoholCartItemV8(item)
                           ? "text-center text-[0.86rem] italic text-[#7b3215]/86"
                           : "text-[0.84rem] text-[#3f321f]",
@@ -448,15 +448,21 @@ export default function ZiiplyMobileCartCard({
 
         <footer className="sticky bottom-0 z-20 shrink-0 px-5 pb-3 pt-2 pr-[4.1rem]">
           <div className="relative mb-2 border-t-[2px] border-[#9b7b3d]/62 pt-2 text-[#473719]">
-            <span
-              className="absolute left-[68%] top-[0.58rem] -translate-x-1/2 text-[0.76rem] font-extrabold uppercase tracking-[0.04em]"
-              style={{ fontFamily: copperplateFont }}
-            >
-              Yht.
-            </span>
+            <div className="grid grid-cols-[2.15rem_minmax(0,1fr)_3.55rem_4.25rem] items-center px-1">
+              <span aria-hidden="true" />
+              <span aria-hidden="true" />
 
-            <div className="flex justify-end">
-              <span className="text-[1rem] font-extrabold" style={{ fontFamily: serifFont }}>
+              <span
+                className="text-center text-[0.76rem] font-extrabold uppercase tracking-[0.04em]"
+                style={{ fontFamily: copperplateFont }}
+              >
+                Yht.
+              </span>
+
+              <span
+                className="text-center text-[1rem] font-extrabold"
+                style={{ fontFamily: serifFont }}
+              >
                 {totalPrice.toLocaleString("fi-FI", {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
