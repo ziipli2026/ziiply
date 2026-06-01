@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_CART_CARD_V18_TEXT_FIELD_EXTENDED
+// ZIIPLY_MOBILE_CART_CARD_V19_LEDGER_LAYOUT_REBUILD
 // Mobiilin Tavarainkeruu-paperivihko.
 // V3:
 // - "Ostoskori" poistettu kokonaan näkyvästä UI:sta.
@@ -24,6 +24,13 @@
 // V12: vain koordinaatti/UI-säätö; Tavarainkeruu hieman ylemmäs ja erillinen poisto-ruksi korvattu hinta/kassa-tekstin painalluksella.
 // V13: sulje-nappi kohdistettu A. Virtanen -tekstin vaakatasoon ja symboli pehmennetty.
 // V18B: nimikekentälle lisää vaakasuuntaista tilaa; määrä-/välikenttiä kavennettu maltillisesti.
+
+// V19: layout-korjaus:
+// - kortti nostettu ylös safe-alueelle, ettei topbar jää näkyviin
+// - korkeus käyttää koko käytettävissä olevan tilan alapalkkia väistäen
+// - header / toolbar / taulukko / footer erotettu flex-rakenteeksi
+// - tuoterivit gridillä: N:o | Nimike | Määrä | Hinta
+// - määräsolun sisäinen koordinaattihässäkkä poistettu kevyesti
 
 import React from "react";
 
@@ -235,7 +242,7 @@ function QuantityCell({
       <button
         type="button"
         onClick={() => onIncrease?.(item)}
-        className="grid h-full w-full place-items-center pl-[3.58rem] rounded-[0.32rem] bg-[#fff1c6]/10 text-[0.98rem] font-extrabold leading-none text-[#3d301a] active:translate-y-[1px] active:bg-[#fff1c6]/34"
+        className="grid h-full w-full place-items-center pl-[0.75rem] rounded-[0.32rem] bg-[#fff1c6]/10 text-[0.98rem] font-extrabold leading-none text-[#3d301a] active:translate-y-[1px] active:bg-[#fff1c6]/34"
         style={{ fontFamily: serifFont }}
         aria-label="Lisää määrää"
         title="Lisää määrää"
@@ -250,7 +257,7 @@ function QuantityCell({
         }}
         disabled={!canDecrease}
         className={cx(
-          "absolute left-[1.20rem] top-1/2 grid h-[1.55rem] w-[1.05rem] -translate-y-1/2 place-items-center rounded-[0.24rem] text-[1.15rem] font-extrabold leading-none !text-[#e11d12] active:translate-y-[calc(-50%+1px)]",
+          "absolute left-[0.08rem] top-1/2 grid h-[1.55rem] w-[1.05rem] -translate-y-1/2 place-items-center rounded-[0.24rem] text-[1.15rem] font-extrabold leading-none !text-[#e11d12] active:translate-y-[calc(-50%+1px)]",
           canDecrease ? "!text-[#e11d12] active:bg-[#fff1c6]/38" : "!text-[#e11d12]/25",
         )}
         aria-label="Vähennä määrää"
@@ -286,19 +293,20 @@ export default function ZiiplyMobileCartCard({
 
   return (
     <div
-      className={`fixed inset-0 z-[86] flex items-end justify-center bg-slate-950/14 px-2 pb-[calc(env(safe-area-inset-bottom)+5.55rem)] pt-[calc(env(safe-area-inset-top)+5.25rem)] backdrop-blur-[1.5px] sm:hidden ${className}`}
+      className={`fixed inset-0 z-[92] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+5.95rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
-      <section className="ziiply-cart-paper-pop relative flex h-[min(74dvh,39rem)] w-full max-w-[28rem] flex-col overflow-visible rounded-[2.1rem] border-[4px] border-[#6b512a] bg-[#d7b76e] shadow-[0_12px_0_rgba(60,45,20,0.22),0_24px_52px_rgba(0,0,0,0.27)]">
+      <section className="ziiply-cart-paper-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-6.9rem)] max-h-[46rem] min-h-[31rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[4px] border-[#6b512a] bg-[#d7b76e] shadow-[0_12px_0_rgba(60,45,20,0.22),0_24px_52px_rgba(0,0,0,0.27)]">
         <div
           className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[#f7edcf] bg-center bg-no-repeat opacity-100"
           style={{
             backgroundImage: "url('/ui/cart/vihkonen.webp')",
-            backgroundSize: "148% 106%",
+            backgroundSize: "142% 104%",
+            backgroundPosition: "center top",
           }}
         />
         <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[linear-gradient(180deg,rgba(255,250,226,0.30),rgba(238,214,156,0.10))]" />
 
-        <header className="relative z-10 shrink-0 px-5 pb-2 pt-[3.74rem]">
+        <header className="relative z-10 shrink-0 px-5 pb-2 pt-[3.35rem]">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <h2
@@ -319,7 +327,7 @@ export default function ZiiplyMobileCartCard({
               ✕</button>
           </div>
 
-          <div className="mt-4 grid grid-cols-[auto_minmax(0,1fr)_auto] items-start gap-2">
+          <div className="mt-3 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2">
             <LedgerButton onClick={onSaveList} disabled={!hasItems}>
               Tallenna
             </LedgerButton>
@@ -345,7 +353,14 @@ export default function ZiiplyMobileCartCard({
           </div>
         </header>
 
-        <div className="relative z-10 min-h-0 flex-1 overflow-y-auto px-5 pb-2 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="relative z-10 grid shrink-0 grid-cols-[2.05rem_minmax(0,1fr)_3.25rem_4.45rem] px-6 pt-1 text-[0.54rem] font-black uppercase tracking-[0.18em] text-[#6f5a32]/62" style={{ fontFamily: copperplateFont }}>
+          <span>N:o</span>
+          <span>Nimike</span>
+          <span className="text-center">Määrä</span>
+          <span className="text-right">Hinta</span>
+        </div>
+
+        <div className="relative z-10 min-h-0 flex-1 overflow-y-auto px-5 pb-2 pt-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {!hasItems ? (
             <div className="mt-5 rounded-[1.1rem] border-[2px] border-dashed border-[#9a7a3d] bg-[#fff4d4]/48 px-4 py-8 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
               <div className="text-[1.02rem] font-extrabold italic text-[#59401e]" style={{ fontFamily: serifFont }}>
@@ -369,7 +384,7 @@ export default function ZiiplyMobileCartCard({
                   <article
                     key={String(item.id ?? item.ean ?? index)}
                     className={cx(
-                      "grid min-h-[2.22rem] grid-cols-[2.05rem_minmax(0,1fr)_2.85rem_1.10rem_4.2rem] items-center gap-1 border-b-[1.35px] border-[#b9944d]/68 bg-transparent px-1 py-[0.28rem]",
+                      "grid min-h-[2.35rem] grid-cols-[2.05rem_minmax(0,1fr)_3.25rem_4.45rem] items-center gap-1 border-b-[1.35px] border-[#b9944d]/68 bg-transparent px-1 py-[0.28rem]",
                       checked && "opacity-55",
                     )}
                   >
@@ -385,7 +400,7 @@ export default function ZiiplyMobileCartCard({
 
                     <div
                       className={cx(
-                        "min-w-0 truncate text-[0.96rem] font-extrabold leading-none text-[#2f2a1c]",
+                        "min-w-0 truncate text-[0.93rem] font-extrabold leading-none text-[#2f2a1c]",
                         checked && "line-through",
                       )}
                       style={{ fontFamily: serifFont }}
@@ -399,11 +414,6 @@ export default function ZiiplyMobileCartCard({
                       quantity={safeQuantity}
                       onDecrease={onDecreaseItem}
                       onIncrease={onIncreaseItem}
-                    />
-
-                    <span
-                      aria-hidden="true"
-                      className="block h-[1.7rem] w-full"
                     />
 
                     <button
@@ -428,10 +438,10 @@ export default function ZiiplyMobileCartCard({
           )}
         </div>
 
-        <footer className="relative z-10 shrink-0 px-5 pb-4 pt-1">
+        <footer className="relative z-10 shrink-0 px-5 pb-3 pt-1">
           <div className="relative mb-2 border-t-[2px] border-[#9b7b3d]/62 pt-2 text-[#473719]">
             <span
-              className="absolute left-[71.4%] top-[0.58rem] -translate-x-1/2 text-[0.76rem] font-extrabold uppercase tracking-[0.04em]"
+              className="absolute left-[68%] top-[0.58rem] -translate-x-1/2 text-[0.76rem] font-extrabold uppercase tracking-[0.04em]"
               style={{ fontFamily: copperplateFont }}
             >
               Yht.
