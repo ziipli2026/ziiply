@@ -1,11 +1,13 @@
 "use client";
 
-// V701_STORE_TEXT_READABILITY_TUNE
-// Pohjana käyttäjän lataama V700-tiedosto.
+// V702_STORE_TEXT_RENDER_TRACE
+// DEBUG / TRACE.
+// Tavoite: varmistaa, tuleeko näkyvä kauppakortin teksti tästä page.tsx-renderistä.
 // Muutokset:
-// - kaupan nimi hieman suuremmaksi
-// - etäisyysteksti hieman suuremmaksi ja vähän ylemmäs
-// Ei muita muutoksia.
+// - kaupan nimen perään lisätään näkyvä pieni V702-merkki
+// - etäisyysteksti nostetaan selvästi ja suurennetaan selvästi
+// - jos V702 ei näy kortissa, tämä EI ole oikea näkyvä render-haara.
+// Ei muutoksia store/logiikka/state/click-handleriin.
 
 // V700_REVERT_BAD_STORE_TEXT_SCALING
 // Palauttaa v699:n liian suureksi menneet kauppanimet ja etäisyydet takaisin v698-tasolle.
@@ -9871,7 +9873,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
             <>
               <p
-                className={`absolute left-3 right-3 top-[38px] z-40 mx-auto h-[1.45rem] max-w-[8.2rem] overflow-hidden text-center text-[11px] font-extrabold leading-tight [text-shadow:0_1px_1px_rgba(255,250,232,0.95)] ${
+                className={`absolute left-2 right-2 top-[36px] z-50 mx-auto h-[1.65rem] max-w-[8.8rem] overflow-hidden text-center text-[12px] font-black leading-tight text-[#050505] [text-shadow:0_1px_1px_rgba(255,250,232,1)] ${
                   isComingSoon ? "text-[#b9aa86]" : "text-[#26251f]"
                 }`}
                 style={{
@@ -9881,10 +9883,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 }}
               >
                 {displayName}
+                <span className="ml-1 rounded bg-[#ff00ff] px-1 text-[7px] font-black text-white">V702</span>
               </p>
 
               {isTopRow && distanceForCard && storeModeChosenV299 && (
-                <p className="absolute left-0 right-0 top-[55px] z-40 text-[10px] font-black leading-none text-[#15130f] [text-shadow:0_1px_1px_rgba(255,250,232,0.95)]">
+                <p className="absolute left-0 right-0 top-[52px] z-50 text-[11px] font-black leading-none text-[#000000] [text-shadow:0_1px_1px_rgba(255,250,232,1)]">
                   {distanceForCard}
                 </p>
               )}
