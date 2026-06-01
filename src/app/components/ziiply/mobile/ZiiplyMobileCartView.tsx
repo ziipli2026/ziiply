@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_CART_VIEW_ADD_MORE_FIX_V3: Lisää tuote calls P394 openSearchPanel via aliases and safe button.
+// ZIIPLY_MOBILE_CART_VIEW_V4_FULL_HEIGHT_OVERLAY: kori-overlay alkaa ylhäältä; topbar ei jää näkyviin taustalle.
 
 // ZIIPLY_MOBILE_CART_VIEW_TOGGLE_SIGNATURE_FIX: accepts P394 toggleShoppingListItem(match, index).
 
@@ -150,13 +150,13 @@ export default function ZiiplyMobileCartView({
 
   return (
     <div
-      className={`fixed inset-0 z-[85] block bg-[#eef7f2]/95 px-3 pb-[calc(env(safe-area-inset-bottom)+6.1rem)] pt-[calc(env(safe-area-inset-top)+6.8rem)] backdrop-blur-xl sm:hidden ${
+      className={`fixed inset-0 z-[92] block bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+5.95rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${
         closing ? "ziiply-soft-close" : "ziiply-soft-open"
       }`}
     >
       <div
         ref={cartOverlayScrollRef}
-        className="mx-auto h-full max-w-[34rem] overflow-y-auto rounded-[2rem] bg-white/92 p-3 shadow-[0_18px_55px_rgba(15,23,42,0.16)] ring-1 ring-white/80"
+        className="mx-auto h-full max-w-[34rem] overflow-y-auto rounded-[2rem] bg-white/0 p-0 shadow-none ring-0"
       >
         {onClose && (
           <div className="mb-2 flex justify-end">
@@ -174,7 +174,7 @@ export default function ZiiplyMobileCartView({
           {/* ZIIPLY_CART_ADD_MORE_SAFE_BUTTON:
               Vanhan P394:n Lisää tuote -toiminto kutsui openSearchPanel-funktiota.
               Tämä varmistaa, että toiminto ei jää riippumaan ZiiplyCartCardin sisäisestä prop-nimestä. */}
-          <div className="mb-2 flex justify-center sm:hidden">
+          <div className="hidden">
             <button
               type="button"
               onClick={handleAddMoreFromCartView}
