@@ -1,5 +1,12 @@
 "use client";
 
+// V701_STORE_TEXT_READABILITY_TUNE
+// Pohjana käyttäjän lataama V700-tiedosto.
+// Muutokset:
+// - kaupan nimi hieman suuremmaksi
+// - etäisyysteksti hieman suuremmaksi ja vähän ylemmäs
+// Ei muita muutoksia.
+
 // V700_REVERT_BAD_STORE_TEXT_SCALING
 // Palauttaa v699:n liian suureksi menneet kauppanimet ja etäisyydet takaisin v698-tasolle.
 // Location-palkkia ei muuteta tässä, koska ruudulla näkyvä palkki EI tule ZiiplyStoreLocaCard-tiedostosta,
@@ -9343,7 +9350,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const menuBody = (
       <>
         <div className="mb-2 flex items-center justify-between gap-2 px-0.5">
-          <p className="min-w-0 truncate text-[13px] font-black uppercase tracking-wide text-[#8a7349]">
+          <p className="min-w-0 truncate text-[11px] font-black uppercase tracking-wide text-[#8a7349]">
             {menuTitle}
           </p>
           <button
@@ -9833,7 +9840,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             <span className="pointer-events-none absolute left-[6px] bottom-[6px] z-20 h-[5px] w-[5px] rounded-full border border-[#b59a69] bg-[#ead8a7] shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]" />
             <span className="pointer-events-none absolute right-[6px] bottom-[6px] z-20 h-[5px] w-[5px] rounded-full border border-[#b59a69] bg-[#ead8a7] shadow-[inset_0_1px_0_rgba(255,255,255,0.75)]" />
             <span
-              className={`absolute right-2 top-2 z-40 flex h-[18px] w-[18px] items-center justify-center rounded-full text-[13px] font-black shadow-[0_2px_5px_rgba(15,23,42,0.10)] ${selected ? "border border-[#536d4f] bg-[radial-gradient(circle_at_35%_25%,#a8bc8c_0%,#648060_48%,#496448_100%)] text-[#fff8e7]" : "border border-[#d0ad68] bg-[#fff8dc] text-transparent"}`}
+              className={`absolute right-2 top-2 z-40 flex h-[18px] w-[18px] items-center justify-center rounded-full text-[11px] font-black shadow-[0_2px_5px_rgba(15,23,42,0.10)] ${selected ? "border border-[#536d4f] bg-[radial-gradient(circle_at_35%_25%,#a8bc8c_0%,#648060_48%,#496448_100%)] text-[#fff8e7]" : "border border-[#d0ad68] bg-[#fff8dc] text-transparent"}`}
             >
               ✓
             </span>
@@ -9864,7 +9871,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
             <>
               <p
-                className={`absolute left-3 right-3 top-[39px] z-40 mx-auto h-[1.35rem] max-w-[7.9rem] overflow-hidden text-center text-[10px] font-extrabold leading-tight [text-shadow:0_1px_1px_rgba(255,250,232,0.95)] ${
+                className={`absolute left-3 right-3 top-[38px] z-40 mx-auto h-[1.45rem] max-w-[8.2rem] overflow-hidden text-center text-[11px] font-extrabold leading-tight [text-shadow:0_1px_1px_rgba(255,250,232,0.95)] ${
                   isComingSoon ? "text-[#b9aa86]" : "text-[#26251f]"
                 }`}
                 style={{
@@ -9877,7 +9884,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               </p>
 
               {isTopRow && distanceForCard && storeModeChosenV299 && (
-                <p className="absolute left-0 right-0 top-[58px] z-40 text-[8.5px] font-black leading-none text-[#15130f] [text-shadow:0_1px_1px_rgba(255,250,232,0.95)]">
+                <p className="absolute left-0 right-0 top-[55px] z-40 text-[10px] font-black leading-none text-[#15130f] [text-shadow:0_1px_1px_rgba(255,250,232,0.95)]">
                   {distanceForCard}
                 </p>
               )}
@@ -10034,13 +10041,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 <div className="h-8" aria-hidden="true" />
 
                 {store.key !== "s" && store.key !== "k" && (
-                  <p className="mt-0 text-[13px] font-black uppercase tracking-wide text-[#8b7f67]">
+                  <p className="mt-0 text-[11px] font-black uppercase tracking-wide text-[#8b7f67]">
                     {cardLabel}
                   </p>
                 )}
 
                 <p
-                  className={`absolute left-4 right-4 top-[54px] mx-auto max-w-[8.8rem] whitespace-normal break-words text-center text-[13px] font-black leading-tight ${
+                  className={`absolute left-4 right-4 top-[54px] mx-auto max-w-[8.8rem] whitespace-normal break-words text-center text-[11px] font-black leading-tight ${
                     isComingSoon ? "text-[#aaa087]" : "text-[#132338]"
                   }`}
                 >
@@ -11206,7 +11213,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               <div className="rounded-[1.5rem] bg-slate-50 p-4 ring-1 ring-slate-200">
                 <div className="mb-3 flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-[13px] font-black uppercase tracking-wide text-[#b7aa8d]">
+                    <p className="text-[11px] font-black uppercase tracking-wide text-[#b7aa8d]">
                       Debug
                     </p>
                     <h2 className="text-lg font-black tracking-[-0.03em] text-slate-950">
@@ -11340,7 +11347,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               <div className="rounded-[1.5rem] bg-slate-50 p-4 ring-1 ring-slate-200">
                 <div className="mb-3 flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-[13px] font-black uppercase tracking-wide text-[#b7aa8d]">
+                    <p className="text-[11px] font-black uppercase tracking-wide text-[#b7aa8d]">
                       Debug
                     </p>
                     <h2 className="text-lg font-black tracking-[-0.03em] text-slate-950">
@@ -11412,7 +11419,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                           <button
                             type="button"
                             disabled
-                            className="min-w-0 rounded-full border-2 border-[#d6bf8f] bg-[#fff4cf] px-3 py-2 text-[13px] font-black leading-none text-[#8a3f16] opacity-75 shadow-[0_2px_0_rgba(91,72,44,0.14)]"
+                            className="min-w-0 rounded-full border-2 border-[#d6bf8f] bg-[#fff4cf] px-3 py-2 text-[11px] font-black leading-none text-[#8a3f16] opacity-75 shadow-[0_2px_0_rgba(91,72,44,0.14)]"
                             title="Tuotekohtainen hinnanhuojennushaku rakennetaan myöhemmin"
                             aria-label="Hinnanhuojennukset tulossa"
                           >
@@ -11822,7 +11829,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] left-3 right-3 z-40 mx-auto max-w-md rounded-[1.35rem] border border-white/10 bg-slate-950/92 p-3 text-white shadow-[0_18px_55px_rgba(15,23,42,0.35)] backdrop-blur-2xl sm:hidden">
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-[13px] font-black uppercase tracking-wide text-green-300">
+                  <p className="text-[11px] font-black uppercase tracking-wide text-green-300">
                     Huokein täysi kori
                   </p>
                   <p className="truncate text-sm font-black">
