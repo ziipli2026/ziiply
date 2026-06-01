@@ -1,18 +1,10 @@
 "use client";
 
-// V6_SUBTLE_RETRO_LOCATIONBAR_ORIGINAL_BASE
-// Lähtökohtana alkuperäinen ZiiplyMobileLocationBar-3.tsx.
-// Korjaus on hillitty:
-// - alkuperäinen korkeus ja layout säilyvät
-// - ei tekstin leikkautumista
-// - vain lämmin retro/emaltti-sävytys
-// - GPS- ja kompassinappi hillitymmin samaan ilmeeseen
-// - ei logiikkamuutoksia.
-
-// V432_NO_MAP_LOCATION_FALLBACK: kompassi ei fallbackaa sijaintihakuun; avaa vain kartan.
-
-// V430_LOCATIONBAR_CLEAN_REBUILD:
-// Puhdas build-kelpoinen versio. GPS-nappi on/off-väreillä ja kompassinappi merilasi/aquamarine-taustalla.
+// V7_DEBUG_DIRECT_RETRO_LOCATIONBAR
+// TARKOITUKSELLA ERITTÄIN NÄKYVÄ DEBUG/MOCKUP.
+// Jos ruudulla ei näy violettia "LOCATION DEBUG V7" -merkkiä,
+// tämä komponentti EI ole se layeri, jota ruutu käyttää.
+// Ei logiikkamuutoksia.
 
 import React from "react";
 
@@ -28,6 +20,8 @@ export type ZiiplyMobileLocationBarProps = {
   onOpenMap?: () => void | Promise<void>;
 };
 
+const cooperFont = '"Cooper Black", "Cooper Std Black", Georgia, serif';
+
 export default function ZiiplyMobileLocationBar({
   locationInput,
   usingOwnLocation,
@@ -42,44 +36,50 @@ export default function ZiiplyMobileLocationBar({
   const rawStatusText =
     gpsErrorMessage ||
     gpsStatusText ||
-    (usingOwnLocation ? "Paikannetaan GPS…" : "GPS pois päältä.");
+    (usingOwnLocation ? "Hyvinkää käytössä" : "GPS pois päältä.");
 
   const statusText =
     rawStatusText === "GPS pois päältä. Kirjoita alue tai postinumero."
       ? "GPS pois päältä."
       : rawStatusText;
 
-  const gpsButtonStyle: React.CSSProperties = {
-    borderColor: usingOwnLocation ? "#b7efcf" : "#ef4444",
-    background: usingOwnLocation ? "#eafff2" : "#fff1f1",
-    boxShadow: usingOwnLocation
-      ? "0 0 0 2px rgba(34,197,94,0.14)"
-      : "0 0 0 2px rgba(239,68,68,0.22)",
-  };
-
   const handleMapClick = () => {
-    // Kompassi/karttanappi ei saa koskaan käynnistää GPS- tai sijaintihakua.
-    // Jos kartta-overlayä ei ole annettu, nappi ei tee mitään.
-    if (onOpenMap) {
-      void onOpenMap();
-    }
+    if (onOpenMap) void onOpenMap();
   };
 
   return (
-    <section className="w-full">
-      <div className="mx-auto grid h-[72px] w-full grid-cols-[58px_minmax(0,1fr)_86px] items-center gap-2 rounded-[1.7rem] border border-[#ead8ad] bg-[linear-gradient(180deg,#fffdf7_0%,#f7f0df_100%)] p-2 shadow-[0_10px_26px_rgba(92,64,26,0.12),inset_0_1px_0_rgba(255,255,255,0.90)] ring-1 ring-white/80">
+    <section className="relative w-full">
+      <div className="pointer-events-none absolute -top-[13px] left-[18px] z-[80] rounded-full border-2 border-black bg-[#e100ff] px-3 py-[2px] text-[10px] font-black uppercase tracking-[0.08em] text-white shadow-[0_3px_0_rgba(0,0,0,0.35)]">
+        LOCATION DEBUG V7
+      </div>
+
+      <div className="relative mx-auto grid h-[86px] w-full grid-cols-[70px_minmax(0,1fr)_96px] items-center gap-[10px] rounded-[2.05rem] border-[4px] border-[#0b4638] bg-[linear-gradient(180deg,#fffdf5_0%,#f9efd4_52%,#e9d09a_100%)] p-[8px] shadow-[0_0_0_2px_rgba(255,255,255,0.78)_inset,0_6px_0_rgba(54,39,17,0.24),0_15px_28px_rgba(50,34,12,0.15)]">
+        <div className="pointer-events-none absolute inset-[7px] rounded-[1.65rem] border border-[#ead09a] opacity-80" />
+
         <button
           type="button"
           onClick={onGpsClick}
           onMouseDown={(event) => event.preventDefault()}
-          className="grid h-[56px] w-[56px] place-items-center rounded-[1.25rem] border-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.78),0_2px_6px_rgba(20,40,30,0.08)] transition-transform duration-150 active:scale-95"
-          style={gpsButtonStyle}
+          className={`relative z-10 grid h-[66px] w-[66px] place-items-center rounded-[1.45rem] border-[2px] shadow-[inset_0_1px_0_rgba(255,255,255,0.72),0_3px_8px_rgba(7,61,50,0.12)] active:scale-95 ${
+            usingOwnLocation
+              ? "border-[#93cfa5] bg-[linear-gradient(180deg,#effff4_0%,#cdebd5_100%)]"
+              : "border-[#b9d1bd] bg-[linear-gradient(180deg,#effff4_0%,#d8eee0_100%)]"
+          }`}
           aria-label={usingOwnLocation ? "GPS päällä" : "GPS pois päältä"}
         >
-          <span className="text-[26px] leading-none drop-shadow-sm">📍</span>
+          <span className="pointer-events-none absolute left-[7px] top-[7px] h-[5px] w-[5px] rounded-full border border-[#a98545] bg-[#f3df9f]" />
+          <span className="pointer-events-none absolute right-[7px] top-[7px] h-[5px] w-[5px] rounded-full border border-[#a98545] bg-[#f3df9f]" />
+          <span className="pointer-events-none absolute left-[7px] bottom-[7px] h-[5px] w-[5px] rounded-full border border-[#a98545] bg-[#f3df9f]" />
+          <span className="pointer-events-none absolute right-[7px] bottom-[7px] h-[5px] w-[5px] rounded-full border border-[#a98545] bg-[#f3df9f]" />
+          <span className="text-[28px] leading-none drop-shadow-sm">📍</span>
         </button>
 
-        <div className="min-w-0 rounded-[1.25rem] border-[2px] border-[#cfd8e6] bg-[linear-gradient(180deg,#fffdfa_0%,#f7fafc_100%)] px-3 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.95),0_1px_0_rgba(255,246,220,0.75)]">
+        <div className="relative z-10 min-w-0 rounded-[1.55rem] border-[2px] border-[#b89552] bg-[linear-gradient(180deg,#fff7e3_0%,#f4dfac_54%,#ebca86_100%)] px-4 py-[8px] shadow-[inset_0_2px_8px_rgba(91,65,28,0.15),inset_0_0_0_1px_rgba(255,255,255,0.70),0_2px_0_rgba(80,57,20,0.15)]">
+          <span className="pointer-events-none absolute left-[9px] top-[9px] h-[6px] w-[6px] rounded-full border border-[#9e793d] bg-[#e6c46f]" />
+          <span className="pointer-events-none absolute right-[9px] top-[9px] h-[6px] w-[6px] rounded-full border border-[#9e793d] bg-[#e6c46f]" />
+          <span className="pointer-events-none absolute left-[9px] bottom-[9px] h-[6px] w-[6px] rounded-full border border-[#9e793d] bg-[#e6c46f]" />
+          <span className="pointer-events-none absolute right-[9px] bottom-[9px] h-[6px] w-[6px] rounded-full border border-[#9e793d] bg-[#e6c46f]" />
+
           <input
             value={locationInput}
             onChange={(event) => onLocationInputChange(event.target.value)}
@@ -90,15 +90,16 @@ export default function ZiiplyMobileLocationBar({
               }
             }}
             placeholder="05510 tai Hyvinkää"
-            className="block h-[27px] w-full min-w-0 bg-transparent text-[17px] font-black leading-none text-[#1f2d44] outline-none placeholder:text-[#9aa8bb]"
+            className="block h-[31px] w-full min-w-0 bg-transparent text-center text-[22px] font-black leading-none tracking-[-0.03em] text-[#241b13] outline-none placeholder:text-[#6f6651]"
+            style={{ fontFamily: cooperFont }}
           />
 
           <div
-            className={`mt-[1px] truncate text-[11px] font-black leading-none tracking-[-0.02em] [text-shadow:0_1px_0_rgba(255,255,255,0.78)] ${
+            className={`mt-[3px] truncate text-center text-[13px] font-black leading-none tracking-[-0.02em] [text-shadow:0_1px_0_rgba(255,255,255,0.78)] ${
               gpsErrorMessage
-                ? "text-[#dc2626]"
+                ? "text-[#b91c1c]"
                 : usingOwnLocation
-                  ? "text-[#087a3a]"
+                  ? "text-[#0b6f35]"
                   : "text-[#b91c1c]"
             }`}
           >
@@ -109,13 +110,17 @@ export default function ZiiplyMobileLocationBar({
         <button
           type="button"
           onClick={handleMapClick}
-          className="group grid h-[56px] w-[86px] place-items-center overflow-visible rounded-[1.25rem] border border-[#72bfb4] bg-[linear-gradient(180deg,#b8e7df_0%,#9fd8d0_100%)] shadow-[0_8px_18px_rgba(7,61,50,0.15),inset_0_1px_0_rgba(255,255,255,0.62)] ring-1 ring-[#6dbbb2] transition-transform duration-150 active:scale-95"
+          className="group relative z-10 grid h-[66px] w-[96px] place-items-center overflow-visible rounded-[1.45rem] border-[2px] border-[#65a99c] bg-[linear-gradient(180deg,#b8e4dd_0%,#85c9bd_100%)] shadow-[0_4px_10px_rgba(7,61,50,0.16),inset_0_1px_0_rgba(255,255,255,0.60)] ring-1 ring-[#c7f0e8] active:scale-95"
           aria-label="Avaa kartta"
         >
+          <span className="pointer-events-none absolute left-[8px] top-[8px] h-[5px] w-[5px] rounded-full border border-[#a98545] bg-[#f3df9f]" />
+          <span className="pointer-events-none absolute right-[8px] top-[8px] h-[5px] w-[5px] rounded-full border border-[#a98545] bg-[#f3df9f]" />
+          <span className="pointer-events-none absolute left-[8px] bottom-[8px] h-[5px] w-[5px] rounded-full border border-[#a98545] bg-[#f3df9f]" />
+          <span className="pointer-events-none absolute right-[8px] bottom-[8px] h-[5px] w-[5px] rounded-full border border-[#a98545] bg-[#f3df9f]" />
           <img
             src="/icons/ziiply-compass.png"
             alt=""
-            className="h-[60px] w-[60px] object-contain drop-shadow-[0_3px_6px_rgba(7,61,50,0.30)] transition-transform duration-150 group-hover:scale-105 group-active:scale-95"
+            className="h-[58px] w-[58px] object-contain drop-shadow-[0_3px_6px_rgba(7,61,50,0.28)] transition-transform duration-150 group-hover:scale-105 group-active:scale-95"
             draggable={false}
           />
         </button>
