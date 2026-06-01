@@ -1,5 +1,12 @@
 "use client";
 
+// V704_STORE_DISTANCE_SIZE_BOOST
+// Pohjana V703.
+// Muutos:
+// - etäisyysteksti hieman suuremmaksi
+// - pystysijainti pidetty hyvänä
+// Ei muita muutoksia.
+
 // V703_STORE_TEXT_FIT_AND_DISTANCE_LOCK
 // Pohjana V702-debug, mutta debug-badget poistettu.
 // Korjaus näkyvään kauppakorttien render-haaraan:
@@ -9895,7 +9902,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               </p>
 
               {isTopRow && distanceForCard && storeModeChosenV299 && (
-                <p className="absolute left-0 right-0 top-[62px] z-50 text-[10px] font-black leading-none text-[#000000] [text-shadow:0_1px_1px_rgba(255,250,232,1)]">
+                <p className="absolute left-0 right-0 top-[62px] z-50 text-[11px] font-black leading-none text-[#000000] [text-shadow:0_1px_1px_rgba(255,250,232,1)]">
                   {distanceForCard}
                 </p>
               )}
