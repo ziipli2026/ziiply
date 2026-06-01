@@ -1,6 +1,6 @@
 "use client";
 
-// V4_MOBILE_STORE_PICKER_MODAL_TYPES_FINAL
+// V5_MOBILE_STORE_PICKER_MODAL_VISUAL_REFINEMENT
 // Irrotettu page.tsx:n renderStorePickerMenu-haarasta omaksi komponentiksi.
 // Tarkoitus:
 // - sama toiminnallinen rakenne kuin nykyisessä pickerissä
@@ -75,16 +75,16 @@ function chainStyles(chain: MobileStorePickerChain, selected: boolean) {
         "border-[#0b6f35] bg-[linear-gradient(180deg,#0b9143_0%,#087237_100%)] text-white shadow-[0_6px_14px_rgba(8,114,55,0.22),inset_0_1px_0_rgba(255,255,255,0.24)]",
       name: "text-white",
       meta: "text-[#e7ffe9]",
-      pill: "border-[#bdf1c9]/35 bg-white/18 text-white",
+      pill: "border-[#d7f5de]/22 bg-white/12 text-white/90",
     };
   }
 
   return {
     row:
-      "border-[#9d1f22] bg-[linear-gradient(180deg,#c8141d_0%,#a90813_100%)] text-white shadow-[0_6px_14px_rgba(150,19,26,0.22),inset_0_1px_0_rgba(255,255,255,0.24)]",
+      "border-[#9d1f22] bg-[linear-gradient(180deg,#b8121a_0%,#980711_100%)] text-white shadow-[0_6px_14px_rgba(150,19,26,0.22),inset_0_1px_0_rgba(255,255,255,0.24)]",
     name: "text-white",
     meta: "text-[#ffe7e7]",
-    pill: "border-[#ffd1d1]/35 bg-white/18 text-white",
+    pill: "border-[#ffd9d9]/22 bg-white/12 text-white/90",
   };
 }
 
@@ -136,14 +136,14 @@ export default function MobileStorePickerModal({
               event.stopPropagation();
               onClose();
             }}
-            className="shrink-0 rounded-full border border-[#d9e2ec] bg-[#f4f7fb] px-3 py-1.5 text-[10.5px] font-black text-[#34445c] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_2px_4px_rgba(15,23,42,0.06)] active:scale-[0.98]"
+            className="shrink-0 rounded-full border border-[#d9e2ec] bg-[#f4f7fb] h-9 w-9 text-[18px] font-black text-[#34445c] shadow-[inset_0_1px_0_rgba(255,255,255,0.9),0_2px_4px_rgba(15,23,42,0.06)] active:scale-[0.98]"
           >
-            Sulje
+            ×
           </button>
         </div>
 
         <div
-          className="max-h-[38dvh] overflow-y-auto overscroll-contain pr-[1px] [-webkit-overflow-scrolling:touch] touch-pan-y"
+          className="max-h-[34dvh] overflow-y-auto overscroll-contain pr-[1px] [-webkit-overflow-scrolling:touch] touch-pan-y"
           onTouchMove={(event) => event.stopPropagation()}
           onWheel={(event) => event.stopPropagation()}
         >
@@ -169,7 +169,7 @@ export default function MobileStorePickerModal({
                     event.stopPropagation();
                     onSelectStore(store);
                   }}
-                  className={`mb-2 flex w-full touch-manipulation items-center justify-between gap-2 rounded-[1rem] border px-3 py-2.5 text-left font-extrabold transition last:mb-0 active:scale-[0.99] ${styles.row}`}
+                  className={`mb-2 flex w-full touch-manipulation items-center justify-between gap-2 rounded-[1rem] border px-3 py-2 text-left font-extrabold transition last:mb-0 active:scale-[0.99] ${styles.row}`}
                 >
                   <span className="min-w-0 flex-1">
                     <span className={`block truncate text-[14px] font-black leading-tight ${styles.name}`}>
@@ -188,7 +188,7 @@ export default function MobileStorePickerModal({
 
                   {(selected || distanceLabel) && (
                     <span
-                      className={`shrink-0 rounded-full border px-2.5 py-1 text-[10.5px] font-black leading-none ${styles.pill}`}
+                      className={`shrink-0 rounded-full border px-2 py-[0.32rem] text-[9.5px] font-black leading-none ${styles.pill}`}
                     >
                       {selected ? "Valittu" : distanceLabel}
                     </span>
