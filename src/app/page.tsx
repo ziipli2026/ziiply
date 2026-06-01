@@ -1,5 +1,14 @@
 "use client";
 
+// V703_STORE_TEXT_FIT_AND_DISTANCE_LOCK
+// Pohjana V702-debug, mutta debug-badget poistettu.
+// Korjaus näkyvään kauppakorttien render-haaraan:
+// - kaupan nimi saa olla max 2 riviä
+// - fontti hieman vahvempi, mutta ei leviä yli
+// - etäisyys lukitaan omalle riville nimen alle
+// - K-Citymarket-tyyppiset pitkät nimet eivät saa räjähtää napin päälle
+// - ei logiikka-, state- tai click-muutoksia.
+
 // V702_STORE_TEXT_RENDER_TRACE
 // DEBUG / TRACE.
 // Tavoite: varmistaa, tuleeko näkyvä kauppakortin teksti tästä page.tsx-renderistä.
@@ -9873,7 +9882,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
             <>
               <p
-                className={`absolute left-2 right-2 top-[36px] z-50 mx-auto h-[1.65rem] max-w-[8.8rem] overflow-hidden text-center text-[12px] font-black leading-tight text-[#050505] [text-shadow:0_1px_1px_rgba(255,250,232,1)] ${
+                className={`absolute left-[7px] right-[7px] top-[36px] z-50 mx-auto flex h-[2.05rem] max-w-[8.65rem] items-center justify-center overflow-hidden text-center text-[11.5px] font-black leading-[0.98] text-[#050505] [text-shadow:0_1px_1px_rgba(255,250,232,1)] ${
                   isComingSoon ? "text-[#b9aa86]" : "text-[#26251f]"
                 }`}
                 style={{
@@ -9883,11 +9892,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 }}
               >
                 {displayName}
-                <span className="ml-1 rounded bg-[#ff00ff] px-1 text-[7px] font-black text-white">V702</span>
               </p>
 
               {isTopRow && distanceForCard && storeModeChosenV299 && (
-                <p className="absolute left-0 right-0 top-[52px] z-50 text-[11px] font-black leading-none text-[#000000] [text-shadow:0_1px_1px_rgba(255,250,232,1)]">
+                <p className="absolute left-0 right-0 top-[62px] z-50 text-[10px] font-black leading-none text-[#000000] [text-shadow:0_1px_1px_rgba(255,250,232,1)]">
                   {distanceForCard}
                 </p>
               )}
