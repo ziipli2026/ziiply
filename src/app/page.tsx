@@ -1,5 +1,22 @@
 "use client";
 
+// V719_TOPBAR_SKIN_LAYOUT_REBUILD
+// Pohjana V718.
+// Rakennetaan yläpalkin skin-leiska valitun mockupin hengessä:
+// iso kuvakepainotteinen emaltti/kojelaudan palkki, dynaaminen sää,
+// sähkön suunnan salama, ei merkkivaloa, retro ajoneuvo- ja kalenterikortit.
+// Muut taustat, location bar, modalit ja bottom nav jätetty rauhaan.
+
+// V718_TOPBAR_VISUAL_ONLY_NO_BACKGROUND_CHANGE
+// Pohjana V717.
+// Korjaus:
+// - säilyttää V717:n toiminnalliset muutokset:
+//   sääkuvake vaihtuu, sähkö salamana suunnan mukaan, merkkivalo pois, kalenteri klikattavampi
+// - palauttaa yläpalkin ulkokehyksen ja ympäristöön vaikuttavan asettelun lähemmäs aiempaa,
+//   jotta sivun/taustan värimaailma ei muutu
+// - ei koske page-taustaan, Hae/Kaupat-taustoihin, location bariin, modal-kortteihin tai bottom naviin
+// - yläpalkin sisäisiä paneeleja parannettu hillitysti ilman koko näkymän sävyn vaihtumista.
+
 // V717_TOPBAR_RETRO_REBUILD
 // Pohjana V714.
 // Oikea sisäinen KauppiasMobileTopBar rakennettu uudelleen:
@@ -825,9 +842,9 @@ const ZIIPLY_ELECTRICITY_PRICE_CACHE_KEY_V559 =
 
 
 
+
 function getTopbarWeatherKindV717(detail: string, value: string) {
   const text = `${detail} ${value}`.toLowerCase();
-
   if (text.includes("ukkos")) return "storm";
   if (text.includes("lunta") || text.includes("räntä") || text.includes("snow")) return "snow";
   if (text.includes("sade") || text.includes("sadetta") || text.includes("tihku") || text.includes("rain")) return "rain";
@@ -837,55 +854,49 @@ function getTopbarWeatherKindV717(detail: string, value: string) {
   const number = Number(String(value).replace(",", ".").match(/-?\d+/)?.[0] ?? NaN);
   if (Number.isFinite(number) && number <= -1) return "snow";
   if (Number.isFinite(number) && number >= 16) return "sun";
-
   return "partly";
 }
 
-function KauppiasDynamicWeatherGraphicV717({
-  detail,
-  value,
-}: {
-  detail: string;
-  value: string;
-}) {
+function KauppiasDynamicWeatherGraphicV717({ detail, value }: { detail: string; value: string }) {
   const kind = getTopbarWeatherKindV717(detail, value);
 
   if (kind === "sun") {
     return (
-      <svg viewBox="0 0 64 64" className="h-[25px] w-[25px] drop-shadow-sm" aria-hidden="true">
-        <circle cx="32" cy="32" r="13" fill="#ffd447" stroke="#e79b00" strokeWidth="4" />
-        <path d="M32 4v10M32 50v10M4 32h10M50 32h10M12 12l7 7M52 12l-7 7M12 52l7-7M52 52l-7-7" stroke="#f4a400" strokeWidth="4" strokeLinecap="round" />
+      <svg viewBox="0 0 76 76" className="h-[31px] w-[31px] drop-shadow-[0_2px_2px_rgba(79,52,12,0.28)]" aria-hidden="true">
+        <circle cx="38" cy="38" r="15" fill="#ffd44d" stroke="#e89000" strokeWidth="4" />
+        <circle cx="34" cy="34" r="8" fill="rgba(255,255,255,0.34)" />
+        <path d="M38 5v13M38 58v13M5 38h13M58 38h13M14 14l9 9M62 14l-9 9M14 62l9-9M62 62l-9-9" stroke="#f4a000" strokeWidth="5" strokeLinecap="round" />
       </svg>
     );
   }
 
   if (kind === "rain" || kind === "storm") {
     return (
-      <svg viewBox="0 0 64 64" className="h-[25px] w-[25px] drop-shadow-sm" aria-hidden="true">
-        <path d="M18 41h31a10 10 0 0 0 0-20 15 15 0 0 0-28-4 12 12 0 0 0-3 24Z" fill={kind === "storm" ? "#7e8790" : "#d9e4e9"} stroke={kind === "storm" ? "#505963" : "#9eb5c0"} strokeWidth="4" />
-        <path d="M22 47l-4 8M34 47l-4 8M46 47l-4 8" stroke="#2497d1" strokeWidth="4" strokeLinecap="round" />
-        {kind === "storm" && <path d="M34 31 27 44h7l-4 12 12-18h-7l4-7Z" fill="#ffd84d" stroke="#b87800" strokeWidth="2" />}
+      <svg viewBox="0 0 76 76" className="h-[31px] w-[31px] drop-shadow-[0_2px_2px_rgba(30,42,48,0.28)]" aria-hidden="true">
+        <path d="M20 45h39a12 12 0 0 0 0-24 18 18 0 0 0-34-4 14 14 0 0 0-5 28Z" fill={kind === "storm" ? "#6f7880" : "#d9e5e8"} stroke={kind === "storm" ? "#464e56" : "#93adba"} strokeWidth="4" />
+        <path d="M25 52l-5 10M39 52l-5 10M53 52l-5 10" stroke="#1b97d4" strokeWidth="5" strokeLinecap="round" />
+        {kind === "storm" && <path d="M39 31 30 47h8l-5 15 15-22h-9l5-9Z" fill="#ffd84d" stroke="#a66a00" strokeWidth="2" />}
       </svg>
     );
   }
 
   if (kind === "snow") {
     return (
-      <svg viewBox="0 0 64 64" className="h-[25px] w-[25px] drop-shadow-sm" aria-hidden="true">
-        <path d="M18 39h31a10 10 0 0 0 0-20 15 15 0 0 0-28-4 12 12 0 0 0-3 24Z" fill="#eef5f4" stroke="#b8c8c7" strokeWidth="4" />
-        <text x="22" y="55" fontSize="16" fontWeight="900" fill="#8aa0a0">*</text>
-        <text x="39" y="57" fontSize="16" fontWeight="900" fill="#8aa0a0">*</text>
+      <svg viewBox="0 0 76 76" className="h-[31px] w-[31px] drop-shadow-[0_2px_2px_rgba(30,42,48,0.22)]" aria-hidden="true">
+        <path d="M20 43h39a12 12 0 0 0 0-24 18 18 0 0 0-34-4 14 14 0 0 0-5 28Z" fill="#eef5f4" stroke="#b1c3c2" strokeWidth="4" />
+        <text x="25" y="62" fontSize="19" fontWeight="900" fill="#789494">*</text>
+        <text x="48" y="64" fontSize="19" fontWeight="900" fill="#789494">*</text>
       </svg>
     );
   }
 
   if (kind === "cloud" || kind === "fog") {
     return (
-      <svg viewBox="0 0 64 64" className="h-[25px] w-[25px] drop-shadow-sm" aria-hidden="true">
-        <path d="M17 41h33a10 10 0 0 0 0-20 15 15 0 0 0-28-4 12 12 0 0 0-5 24Z" fill="#e5ece8" stroke="#b7c4bd" strokeWidth="4" />
+      <svg viewBox="0 0 76 76" className="h-[31px] w-[31px] drop-shadow-[0_2px_2px_rgba(30,42,48,0.20)]" aria-hidden="true">
+        <path d="M19 46h40a12 12 0 0 0 0-24 18 18 0 0 0-34-4 14 14 0 0 0-6 28Z" fill="#e6ece8" stroke="#aebdb7" strokeWidth="4" />
         {kind === "fog" && (
           <>
-            <path d="M17 48h31M22 55h25" stroke="#9caba8" strokeWidth="3" strokeLinecap="round" />
+            <path d="M18 54h38M25 63h31" stroke="#91a09d" strokeWidth="4" strokeLinecap="round" />
           </>
         )}
       </svg>
@@ -893,46 +904,65 @@ function KauppiasDynamicWeatherGraphicV717({
   }
 
   return (
-    <svg viewBox="0 0 64 64" className="h-[25px] w-[25px] drop-shadow-sm" aria-hidden="true">
-      <circle cx="24" cy="23" r="11" fill="#ffd84d" stroke="#e2a400" strokeWidth="3" />
-      <path d="M24 4v8M5 23h8M10 9l6 6" stroke="#f5b400" strokeWidth="4" strokeLinecap="round" />
-      <path d="M25 47h25a10 10 0 0 0 0-20 14 14 0 0 0-26-3 12 12 0 0 0 1 23Z" fill="#f4fbff" stroke="#b6d5ea" strokeWidth="3" />
+    <svg viewBox="0 0 76 76" className="h-[31px] w-[31px] drop-shadow-[0_2px_2px_rgba(79,52,12,0.26)]" aria-hidden="true">
+      <circle cx="28" cy="28" r="13" fill="#ffd84d" stroke="#e2a400" strokeWidth="4" />
+      <path d="M28 5v10M5 28h10M13 13l8 8" stroke="#f5b400" strokeWidth="5" strokeLinecap="round" />
+      <path d="M29 55h30a12 12 0 0 0 0-24 16 16 0 0 0-30-4 14 14 0 0 0 0 28Z" fill="#f4fbff" stroke="#b6d5ea" strokeWidth="4" />
     </svg>
   );
 }
 
 function KauppiasElectricityTrendGraphicV717({ trend }: { trend: "up" | "down" | "flat" }) {
-  const rotate = trend === "up" ? "-12deg" : trend === "down" ? "168deg" : "90deg";
-  const fill = trend === "up" ? "#d33128" : trend === "down" ? "#17833e" : "#8b887d";
-  const stroke = trend === "up" ? "#8f1f18" : trend === "down" ? "#0f5a2e" : "#5f5d55";
+  const rotate = trend === "up" ? "-10deg" : trend === "down" ? "170deg" : "90deg";
+  const fill = trend === "up" ? "#d82921" : trend === "down" ? "#16853e" : "#8c8a83";
+  const stroke = trend === "up" ? "#7d1a16" : trend === "down" ? "#0d572d" : "#5f5d55";
 
   return (
-    <svg viewBox="0 0 64 64" className="h-[25px] w-[25px] drop-shadow-sm transition-transform" style={{ transform: `rotate(${rotate})` }} aria-hidden="true">
-      <path d="M37 3 14 36h18L25 61l25-36H32L37 3Z" fill={fill} stroke={stroke} strokeWidth="4" strokeLinejoin="round" />
-      <path d="M34 9 21 33h15l-4 15 13-20H31l3-19Z" fill="rgba(255,255,255,0.22)" />
+    <svg viewBox="0 0 76 76" className="h-[34px] w-[34px] drop-shadow-[0_3px_2px_rgba(92,55,0,0.30)] transition-transform" style={{ transform: `rotate(${rotate})` }} aria-hidden="true">
+      <path d="M43 4 15 42h22L29 72l31-43H38L43 4Z" fill={fill} stroke={stroke} strokeWidth="5" strokeLinejoin="round" />
+      <path d="M40 12 25 39h16l-4 18 16-25H37l3-20Z" fill="rgba(255,255,255,0.28)" />
+    </svg>
+  );
+}
+
+function KauppiasFuelGraphicV719() {
+  return (
+    <svg viewBox="0 0 76 76" className="h-[33px] w-[33px] drop-shadow-[0_3px_2px_rgba(76,31,0,0.28)]" aria-hidden="true">
+      <rect x="18" y="10" width="30" height="54" rx="6" fill="#c8151c" stroke="#8e1117" strokeWidth="5" />
+      <rect x="24" y="17" width="18" height="13" rx="2" fill="#fff2df" />
+      <circle cx="33" cy="48" r="7" fill="#ffe4a2" stroke="#87320c" strokeWidth="3" />
+      <path d="M48 20h7l7 10v29a6 6 0 0 1-12 0V38" fill="none" stroke="#8e1117" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M55 21v15h8" fill="none" stroke="#8e1117" strokeWidth="5" strokeLinecap="round" />
     </svg>
   );
 }
 
 function KauppiasCalendarGraphicV717({ day }: { day: string }) {
   return (
-    <svg viewBox="0 0 64 64" className="h-[27px] w-[27px] drop-shadow-sm" aria-hidden="true">
-      <path d="M12 14h40a5 5 0 0 1 5 5v31a6 6 0 0 1-6 6H13a6 6 0 0 1-6-6V19a5 5 0 0 1 5-5Z" fill="#fff8de" stroke="#825a22" strokeWidth="4" />
-      <path d="M8 24h48" stroke="#c83927" strokeWidth="8" />
-      <path d="M21 9v12M43 9v12" stroke="#543b18" strokeWidth="5" strokeLinecap="round" />
-      <path d="M49 47l5-4-1 7-5 4Z" fill="#ead09b" stroke="#9f7a35" strokeWidth="2" />
-      <text x="32" y="47" textAnchor="middle" fontSize="23" fontWeight="900" fill="#12352d">{day}</text>
+    <svg viewBox="0 0 76 76" className="h-[34px] w-[34px] drop-shadow-[0_3px_2px_rgba(73,48,10,0.28)]" aria-hidden="true">
+      <path d="M13 16h50a6 6 0 0 1 6 6v39a7 7 0 0 1-7 7H14a7 7 0 0 1-7-7V22a6 6 0 0 1 6-6Z" fill="#fff8de" stroke="#754e1c" strokeWidth="5" />
+      <path d="M8 28h60" stroke="#c83927" strokeWidth="10" />
+      <path d="M24 9v15M52 9v15" stroke="#543b18" strokeWidth="6" strokeLinecap="round" />
+      <path d="M59 57l7-5-2 9-6 5Z" fill="#ead09b" stroke="#9f7a35" strokeWidth="2.5" />
+      <text x="38" y="57" textAnchor="middle" fontSize="28" fontWeight="900" fill="#12352d">{day}</text>
     </svg>
   );
 }
 
 function topbarPanelClassV717(kind: "weather" | "electricity" | "fuel" | "calendar") {
-  const base = "relative h-[58px] min-w-0 overflow-hidden rounded-[0.58rem] border-[1.5px] px-[5px] py-[4px] text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.88),0_1px_0_rgba(77,55,19,0.10)] active:scale-[0.985]";
+  const base =
+    "relative h-[68px] min-w-0 overflow-hidden rounded-[0.86rem] border-[2px] px-[6px] py-[5px] text-left shadow-[inset_0_1px_0_rgba(255,255,255,0.90),inset_0_-2px_0_rgba(117,78,24,0.12),0_3px_7px_rgba(70,45,12,0.18)] active:scale-[0.985]";
 
-  if (kind === "weather") return `${base} border-[#9fbfae] bg-[linear-gradient(180deg,#fffcea_0%,#eef7d7_100%)] text-[#063f35]`;
-  if (kind === "electricity") return `${base} border-[#d2b363] bg-[linear-gradient(180deg,#fff5ca_0%,#ffe391_100%)] text-[#573300]`;
-  if (kind === "fuel") return `${base} border-[#c78b63] bg-[linear-gradient(180deg,#fff1da_0%,#ffd0aa_100%)] text-[#5a1f00]`;
-  return `${base} border-[#b4b66b] bg-[linear-gradient(180deg,#fff9df_0%,#edf0b0_100%)] text-[#174032]`;
+  if (kind === "weather") return `${base} border-[#80aaa1] bg-[linear-gradient(145deg,#eef9ef_0%,#fff2c9_68%,#e8d092_100%)] text-[#063f35]`;
+  if (kind === "electricity") return `${base} border-[#d1a23f] bg-[linear-gradient(145deg,#fff7ce_0%,#ffe292_70%,#e7b750_100%)] text-[#573300]`;
+  if (kind === "fuel") return `${base} border-[#c2805a] bg-[linear-gradient(145deg,#fff1da_0%,#ffc99f_74%,#e7a776_100%)] text-[#5a1f00]`;
+  return `${base} border-[#93a85d] bg-[linear-gradient(145deg,#fffbe3_0%,#f4edb2_74%,#d7d586_100%)] text-[#174032]`;
+}
+
+function topbarTrendLabelV719(trend: "up" | "down" | "flat") {
+  if (trend === "up") return "Nousee";
+  if (trend === "down") return "Laskee";
+  return "Vakaa";
 }
 
 function KauppiasMobileTopBar({
@@ -1472,7 +1502,7 @@ function KauppiasMobileTopBar({
       value: "—",
       unit: "",
       detail: "Ei hintaa",
-      graphic: <KauppiasFuelGraphic />,
+      graphic: <KauppiasFuelGraphicV719 />,
     },
     {
       id: "calendar" as const,
@@ -1489,8 +1519,8 @@ function KauppiasMobileTopBar({
 
   return (
     <div className="fixed inset-x-0 top-[max(env(safe-area-inset-top),0px)] z-[90] mx-auto block w-full translate-y-0 transform-gpu px-[6px] pt-[4px] sm:hidden">
-      <div className="mx-auto flex h-[82px] w-[calc(100vw-12px)] max-w-none items-center overflow-hidden rounded-[1.78rem] border-[4px] border-[#073d32] bg-[linear-gradient(180deg,#fffdf3_0%,#fff5d9_62%,#ead49a_100%)] px-[7px] shadow-[0_0_0_2px_rgba(255,255,255,0.72)_inset,0_5px_0_rgba(54,39,17,0.20),0_15px_28px_rgba(8,42,35,0.16)]">
-        <div className="grid min-w-0 flex-1 grid-cols-[0.94fr_1.02fr_1.24fr_0.88fr] gap-[6px]">
+      <div className="mx-auto flex h-[94px] w-[calc(100vw-12px)] max-w-none items-center overflow-hidden rounded-[1.95rem] border-[5px] border-[#073d32] bg-[linear-gradient(180deg,#fff9df_0%,#efd99e_100%)] px-[8px] shadow-[0_0_0_2px_rgba(255,255,255,0.70)_inset,0_6px_0_rgba(31,48,28,0.22),0_17px_30px_rgba(8,42,35,0.18)]">
+        <div className="grid min-w-0 flex-1 grid-cols-[1.08fr_1.02fr_1.26fr_1.02fr] gap-[7px]">
           {panels.map((panel) => {
             const inner = (
               <>
@@ -1500,32 +1530,40 @@ function KauppiasMobileTopBar({
                 <span className="absolute bottom-[4px] right-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.70),transparent_55%)]" />
 
-                <div className="relative z-10 flex h-full flex-col items-center justify-center text-center leading-none">
-                  <div className="flex items-center justify-center gap-[2px]">
+                <div className="relative z-10 grid h-full grid-cols-[auto_minmax(0,1fr)] items-center gap-[5px] text-left leading-none">
+                  <div className="flex items-center justify-center">
                     {panel.graphic}
-                    <div className="text-[10px] font-black uppercase tracking-[0.04em]">
-                      {panel.title}
-                    </div>
                   </div>
 
-                  <div className="mt-[1px] flex items-center justify-center gap-[2px]">
-                    <span className="text-[19px] font-black leading-none tracking-[-0.05em] text-[#041b19]">
-                      {panel.value}
-                    </span>
+                  <div className="min-w-0">
+                    <div className="truncate text-[11px] font-black uppercase tracking-[0.035em] text-[#173b31]">
+                      {panel.title}
+                    </div>
 
-                    {panel.unit && (
-                      <span className="pt-[2px] text-[8px] font-black leading-none opacity-80">
-                        {panel.unit}
+                    <div className="mt-[3px] flex min-w-0 items-end gap-[2px]">
+                      <span className="truncate text-[22px] font-black leading-[0.92] tracking-[-0.06em] text-[#071c19]">
+                        {panel.value}
                       </span>
+                      {panel.unit && (
+                        <span className="pb-[2px] text-[8.5px] font-black leading-none opacity-85">
+                          {panel.unit}
+                        </span>
+                      )}
+                    </div>
+
+                    {panel.id === "electricity" ? (
+                      <div className="mt-[4px] inline-flex max-w-full items-center rounded-full border border-[#b98550] bg-[#fff2c9] px-[6px] py-[2px] text-[8.5px] font-black leading-none text-[#8a2a20] shadow-[inset_0_1px_0_rgba(255,255,255,0.78)]">
+                        {topbarTrendLabelV719(electricityTrend)}
+                      </div>
+                    ) : (
+                      <div className="mt-[3px] max-w-full truncate text-[8.5px] font-black leading-none opacity-75">
+                        {panel.detail}
+                      </div>
                     )}
                   </div>
 
-                  <div className="mt-[2px] max-w-full truncate px-1 text-[8px] font-black leading-none opacity-75">
-                    {panel.detail}
-                  </div>
-
                   {panel.id === "calendar" && (
-                    <span className="absolute right-[7px] top-1/2 flex h-[18px] w-[18px] -translate-y-1/2 items-center justify-center rounded-full border border-[#0d4d3f] bg-[radial-gradient(circle_at_35%_30%,#ffffff_0%,#dff2e8_48%,#0d4d3f_100%)] text-[12px] font-black text-white shadow-[0_1px_4px_rgba(5,40,33,0.28)]">
+                    <span className="absolute right-[6px] top-1/2 flex h-[20px] w-[20px] -translate-y-1/2 items-center justify-center rounded-full border border-[#0d4d3f] bg-[radial-gradient(circle_at_35%_30%,#fffdf0_0%,#d8efe3_50%,#0d4d3f_100%)] text-[14px] font-black text-white shadow-[0_2px_5px_rgba(5,40,33,0.30)]">
                       ›
                     </span>
                   )}
