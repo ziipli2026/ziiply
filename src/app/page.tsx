@@ -1,5 +1,13 @@
 "use client";
 
+// V707_DISTANCE_FINAL_POLISH
+// Pohjana V706 v705-formaatilla.
+// Viimeistely:
+// - etäisyysteksti 1px ylemmäs
+// - etäisyystekstille hieman vahvempi varjo
+// - ei badgeä
+// - ei logiikka-, state- tai click-muutoksia.
+
 // V706_V705_FORMAT_NOWRAP_DISTANCE_UP
 // Pohjana V705-formaatti.
 // Korjaus:
@@ -9915,7 +9923,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               </p>
 
               {isTopRow && distanceForCard && storeModeChosenV299 && (
-                <p className="absolute left-0 right-0 top-[57px] z-50 text-[12px] font-black leading-none text-[#000000] [text-shadow:0_1px_1px_rgba(255,250,232,1)]">
+                <p className="absolute left-0 right-0 top-[56px] z-50 text-[12px] font-black leading-none text-[#000000] [text-shadow:0_1px_0_rgba(255,250,232,0.95),0_2px_2px_rgba(55,38,12,0.22)]">
                   {distanceForCard}
                 </p>
               )}
