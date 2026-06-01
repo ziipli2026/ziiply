@@ -1,5 +1,14 @@
 "use client";
 
+// V713_STORE_PICKER_MODAL_SAFE_STORE_MAPPING
+// Pohjana V712.
+// Korjaus:
+// - ei luoteta siihen, että MobileStorePickerModal v2 on jo varmasti GitHubissa
+// - StoreSearchItem[] muunnetaan page.tsx:ssä modalille turvalliseen muotoon
+// - store.id pakotetaan stringiksi ennen stores-proppia
+// - onSelectStore palauttaa alkuperäisen StoreSearchItemin listasta valintaa varten
+// - build ei enää kaadu id number vs string -tyyppiin.
+
 // V712_STORE_PICKER_MODAL_COMPONENT_TYPE_FIX
 // Pohjana V711.
 // Korjaus:
@@ -9567,24 +9576,36 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           ? `Valitse ${chain === "S" ? "S-ryhmän" : "K-ryhmän"} lähikauppa`
           : `Valitse ${chain === "S" ? "S-ryhmän" : "K-ryhmän"} tavaratalo`;
 
+    const modalStores = options.map((store, index) => ({
+      ...store,
+      id: store.id != null ? String(store.id) : `${chain}-${index}-${normalize(store.name || "")}`,
+      __sourceIndex: index,
+    }));
+
     return (
       <MobileStorePickerModal
         open={openStorePicker === pickerKey}
         chain={chain}
         title={menuTitle}
-        stores={options}
-        selectedId={selectedId}
+        stores={modalStores}
+        selectedId={selectedId != null ? String(selectedId) : selectedId}
         selectedName={selectedName}
         activeAreaLabel={activeArea.label}
         top={storePickerViewportStyle.top}
         width={storePickerViewportStyle.width}
         onClose={() => setOpenStorePicker(null)}
-        getDistanceLabel={(store) => getStoreDistanceLabelV320(store as StoreSearchItem)}
+        getDistanceLabel={(store) => {
+          const sourceIndex = Number((store as any).__sourceIndex);
+          const sourceStore = Number.isFinite(sourceIndex) ? options[sourceIndex] : (store as StoreSearchItem);
+          return getStoreDistanceLabelV320(sourceStore);
+        }}
         getStoreKey={(store, index) =>
-          `${pickerKey}-${(store as StoreSearchItem).type || chain}-${store.id || index}-${normalize(store.name || "")}`
+          `${pickerKey}-${(store as any).type || chain}-${store.id || index}-${normalize(store.name || "")}`
         }
         onSelectStore={(store) => {
-          const normalizedStore = normalizeStoreForPickerV320(store as StoreSearchItem);
+          const sourceIndex = Number((store as any).__sourceIndex);
+          const sourceStore = Number.isFinite(sourceIndex) ? options[sourceIndex] : (store as StoreSearchItem);
+          const normalizedStore = normalizeStoreForPickerV320(sourceStore);
           if (getStoreChainV320(normalizedStore) !== chain) return;
 
           triggerHaptic();
