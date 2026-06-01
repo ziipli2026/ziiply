@@ -1,8 +1,8 @@
 "use client";
 
-// ZIIPLY_MOBILE_CART_CARD_V29_ROW_TOP_FOOTER_TOTAL_FIX
+// ZIIPLY_MOBILE_CART_CARD_V30_ROW_NAME_WRAP_TOTAL_RIGHT
 // Mobiilin Tavarainkeruu-paperivihko.
-// V29: ensimmäinen tuoterivi nostettu ylimmälle kirjoitusriville; footerin YHT. ja hinta kohdistettu paperin alaosan sarakkeisiin.
+// V30: määrä numeroa hieman oikealle, nimikkeelle kahden rivin tila, footerin YHT. ja summa palautettu paperin oikeisiin sarakkeisiin.
 // - "Ostoskori" poistettu kokonaan näkyvästä UI:sta.
 // - Tavarainkeruu sovitettu taustapaperiin kevyempänä mustekirjoituksena.
 // - Tuoterivit sarakkeisiin: N:o | Nimike | Määrä | Hinta | poisto.
@@ -239,7 +239,7 @@ function QuantityCell({
   const canDecrease = quantity > 1;
 
   return (
-    <div className="grid h-[2.05rem] w-full grid-cols-[1.22rem_minmax(0,1fr)] items-center gap-[0.18rem]">
+    <div className="grid h-[2.05rem] w-full grid-cols-[1.22rem_minmax(0,1fr)] items-center gap-[0.28rem]">
       <button
         type="button"
         onClick={() => {
@@ -392,7 +392,7 @@ export default function ZiiplyMobileCartCard({
                   <article
                     key={String(item.id ?? item.ean ?? index)}
                     className={cx(
-                      "grid min-h-[2.20rem] grid-cols-[2.35rem_minmax(0,1fr)_3.95rem_4.55rem] items-center gap-1 border-b-[1.35px] border-[#b9944d]/68 bg-transparent px-1 py-[0.28rem]",
+                      "grid min-h-[2.62rem] grid-cols-[2.35rem_minmax(0,1fr)_3.95rem_4.55rem] items-center gap-1 border-b-[1.35px] border-[#b9944d]/68 bg-transparent px-1 py-[0.28rem]",
                       checked && "opacity-55",
                     )}
                   >
@@ -408,7 +408,7 @@ export default function ZiiplyMobileCartCard({
 
                     <div
                       className={cx(
-                        "min-w-0 truncate pl-[0.68rem] text-[0.93rem] font-extrabold leading-none text-[#2f2a1c]",
+                        "min-w-0 overflow-hidden pl-[0.58rem] text-[0.86rem] font-extrabold leading-[0.98] text-[#2f2a1c] [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical]",
                         checked && "line-through",
                       )}
                       style={{ fontFamily: serifFont }}
@@ -449,14 +449,14 @@ export default function ZiiplyMobileCartCard({
         <footer className="sticky bottom-0 z-20 shrink-0 px-5 pb-3 pt-2 pr-[4.1rem]">
           <div className="relative mb-2 min-h-[1.72rem] border-t-[2px] border-[#9b7b3d]/62 pt-2 text-[#473719]">
             <span
-              className="absolute left-[65.2%] top-[0.36rem] -translate-x-1/2 whitespace-nowrap text-center text-[0.76rem] font-extrabold uppercase tracking-[0.04em]"
+              className="absolute left-[71.0%] top-[0.36rem] -translate-x-1/2 whitespace-nowrap text-center text-[0.76rem] font-extrabold uppercase tracking-[0.04em]"
               style={{ fontFamily: copperplateFont }}
             >
               Yht.
             </span>
 
             <span
-              className="absolute left-[83.0%] top-[0.24rem] -translate-x-1/2 whitespace-nowrap text-center text-[0.98rem] font-extrabold"
+              className="absolute left-[90.2%] top-[0.24rem] -translate-x-1/2 whitespace-nowrap text-center text-[0.92rem] font-extrabold"
               style={{ fontFamily: serifFont }}
             >
               {totalPrice.toLocaleString("fi-FI", {
