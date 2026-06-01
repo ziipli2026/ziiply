@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_CART_CARD_V22_LAYOUT_DEBUG_LAYERS
+// ZIIPLY_MOBILE_CART_CARD_V23_LEATHER_TAGS_STICKY_TOTAL
 // Mobiilin Tavarainkeruu-paperivihko.
 // V3:
 // - "Ostoskori" poistettu kokonaan näkyvästä UI:sta.
@@ -25,7 +25,7 @@
 // V13: sulje-nappi kohdistettu A. Virtanen -tekstin vaakatasoon ja symboli pehmennetty.
 // V18B: nimikekentälle lisää vaakasuuntaista tilaa; määrä-/välikenttiä kavennettu maltillisesti.
 
-// V22 DEBUG: näkyvät layer-rajat otsikolle, napeille, taulukko-otsikolle, riveille ja footerille.
+// V23: nahkakehys, riippulappu-symbolit toiminnoille ja sticky-summa pitkää ostoslistaa varten.
 // V19: layout-korjaus:
 // - kortti nostettu ylös safe-alueelle, ettei topbar jää näkyviin
 // - korkeus käyttää koko käytettävissä olevan tilan alapalkkia väistäen
@@ -296,7 +296,7 @@ export default function ZiiplyMobileCartCard({
     <div
       className={`fixed inset-0 z-[92] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+5.95rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
-      <section data-cart-debug="V22" className="ziiply-cart-paper-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-6.9rem)] max-h-[46rem] min-h-[31rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[4px] border-[#6b512a] bg-[#d7b76e] shadow-[0_12px_0_rgba(60,45,20,0.22),0_24px_52px_rgba(0,0,0,0.27)]">
+      <section className="ziiply-cart-paper-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-6.9rem)] max-h-[46rem] min-h-[31rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
         <div
           className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[#f7edcf] bg-center bg-no-repeat opacity-100"
           style={{
@@ -306,31 +306,16 @@ export default function ZiiplyMobileCartCard({
           }}
         />
         <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[linear-gradient(180deg,rgba(255,250,226,0.30),rgba(238,214,156,0.10))]" />
-
-        {/* V22 DEBUG LAYERS */}
-        <div className="pointer-events-none absolute left-5 right-5 top-[4.05rem] z-[30] h-[2.25rem] rounded border-2 border-fuchsia-500/80 bg-fuchsia-500/10">
-          <span className="absolute -top-4 left-1 rounded bg-fuchsia-600 px-1 text-[9px] font-black text-white">TITLE</span>
-        </div>
-        <div className="pointer-events-none absolute left-5 right-5 top-[6.75rem] z-[30] h-[2.2rem] rounded border-2 border-sky-500/80 bg-sky-500/10">
-          <span className="absolute -top-4 left-1 rounded bg-sky-600 px-1 text-[9px] font-black text-white">BUTTONS</span>
-        </div>
-        <div className="pointer-events-none absolute left-5 right-5 top-[9.02rem] z-[30] h-[1.45rem] rounded border-2 border-orange-500/80 bg-orange-500/10">
-          <span className="absolute -top-4 left-1 rounded bg-orange-600 px-1 text-[9px] font-black text-white">TABLE HEAD</span>
-        </div>
-        <div className="pointer-events-none absolute left-5 right-5 top-[10.6rem] z-[30] h-[4.2rem] rounded border-2 border-lime-500/80 bg-lime-500/10">
-          <span className="absolute -top-4 left-1 rounded bg-lime-600 px-1 text-[9px] font-black text-white">ROWS</span>
-        </div>
-        <div className="pointer-events-none absolute bottom-[5.45rem] left-5 right-5 z-[30] h-[3.1rem] rounded border-2 border-red-500/80 bg-red-500/10">
-          <span className="absolute -top-4 left-1 rounded bg-red-600 px-1 text-[9px] font-black text-white">FOOTER</span>
+        <div className="pointer-events-none absolute inset-[0.42rem] rounded-[1.55rem] border border-dashed border-[#d6a861]/55 shadow-[inset_0_0_0_2px_rgba(27,17,9,0.20)]" />
+        <div className="pointer-events-none absolute right-[0.42rem] top-[0.42rem] z-[8] h-[4.0rem] w-[4.35rem] rounded-bl-[2.0rem] rounded-tr-[1.46rem] border-l-[2px] border-b-[2px] border-[#2c1a0f] bg-[linear-gradient(135deg,#6b4328_0%,#3b2414_70%)] shadow-[inset_0_0_0_1px_rgba(255,214,139,0.18),0_3px_9px_rgba(0,0,0,0.22)]">
+          <span className="absolute right-[1.0rem] top-[0.82rem] h-[0.72rem] w-[0.72rem] rounded-full border border-[#6b421f] bg-[radial-gradient(circle_at_35%_35%,#f6c46c_0%,#b0752a_52%,#65401f_100%)] shadow-[0_1px_2px_rgba(0,0,0,0.28)]" />
         </div>
 
-        <div className="pointer-events-none absolute left-8 top-4 z-[60] rounded-full bg-fuchsia-600 px-3 py-1 text-[10px] font-black text-white shadow">CART DEBUG V22</div>
-
-        <header className="relative z-10 shrink-0 px-5 pb-1 pt-[4.05rem]">
+        <header className="relative z-10 shrink-0 px-5 pb-1 pt-[4.18rem]">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <h2
-                className="ml-[0.98rem] mt-[0.34rem] rotate-[-0.45deg] text-[1.08rem] font-extrabold italic leading-none text-[#314226]/78 drop-shadow-[0_1px_0_rgba(255,247,211,0.52)]"
+                className="ml-[0.98rem] mt-[0.46rem] rotate-[-0.45deg] text-[1.08rem] font-extrabold italic leading-none text-[#314226]/78 drop-shadow-[0_1px_0_rgba(255,247,211,0.52)]"
                 style={{ fontFamily: serifFont }}
               >
                 {title}
@@ -347,54 +332,64 @@ export default function ZiiplyMobileCartCard({
               ✕</button>
           </div>
 
-          <div className="mt-[1.15rem] grid grid-cols-[auto_auto_1fr_auto] items-center gap-[0.38rem]">
+          <div className="absolute right-[4.15rem] top-[1.72rem] z-[22] flex items-start gap-[0.42rem]">
             <button
               type="button"
               onClick={onSaveList}
               disabled={!hasItems}
+              title="Tallenna ostoskori"
+              aria-label="Tallenna ostoskori"
               className={cx(
-                "rounded-[0.46rem] border-[1.5px] border-[#8a6b32] bg-[#fff4d3]/78 px-2.5 py-[0.34rem] text-[0.56rem] font-extrabold leading-none text-[#533819] shadow-[0_1px_0_rgba(91,72,44,0.12),inset_0_0_0_1px_rgba(255,255,255,0.42)] active:translate-y-[1px]",
+                "group relative grid h-[2.35rem] w-[1.92rem] place-items-center rounded-b-[0.34rem] rounded-t-[0.22rem] border-[1.5px] border-[#7b5c2a] bg-[linear-gradient(180deg,#f5dfac_0%,#d6ad66_100%)] text-[#604017] shadow-[0_2px_3px_rgba(50,31,13,0.22),inset_0_0_0_1px_rgba(255,250,224,0.42)] active:translate-y-[1px]",
                 !hasItems && "cursor-not-allowed opacity-45",
               )}
-              style={{ fontFamily: cooperFont }}
             >
-              Tallenna
+              <span className="absolute -top-[0.72rem] left-1/2 h-[0.85rem] w-[1px] -translate-x-1/2 bg-[#5a371c]" />
+              <span className="absolute top-[0.22rem] h-[0.34rem] w-[0.34rem] rounded-full border border-[#7b5c2a] bg-[#fff2c7]" />
+              <span className="text-[1.0rem] leading-none">▣</span>
             </button>
 
             <button
               type="button"
               onClick={onOpenSavedLists}
-              className="rounded-[0.46rem] border-[1.5px] border-[#8a6b32] bg-[#fff4d3]/78 px-2.5 py-[0.34rem] text-[0.56rem] font-extrabold leading-none text-[#533819] shadow-[0_1px_0_rgba(91,72,44,0.12),inset_0_0_0_1px_rgba(255,255,255,0.42)] active:translate-y-[1px]"
-              style={{ fontFamily: cooperFont }}
+              title="Näytä ostoslistat"
+              aria-label="Näytä ostoslistat"
+              className="relative grid h-[2.35rem] w-[1.92rem] place-items-center rounded-b-[0.34rem] rounded-t-[0.22rem] border-[1.5px] border-[#7b5c2a] bg-[linear-gradient(180deg,#f5dfac_0%,#d6ad66_100%)] text-[#604017] shadow-[0_2px_3px_rgba(50,31,13,0.22),inset_0_0_0_1px_rgba(255,250,224,0.42)] active:translate-y-[1px]"
             >
-              Listat{savedListsCount ? ` ${savedListsCount}` : ""}
+              <span className="absolute -top-[0.72rem] left-1/2 h-[0.85rem] w-[1px] -translate-x-1/2 bg-[#5a371c]" />
+              <span className="absolute top-[0.22rem] h-[0.34rem] w-[0.34rem] rounded-full border border-[#7b5c2a] bg-[#fff2c7]" />
+              <span className="text-[1.05rem] leading-none">☷</span>
+              {savedListsCount ? (
+                <span className="absolute -right-[0.28rem] -top-[0.28rem] grid h-[0.82rem] min-w-[0.82rem] place-items-center rounded-full bg-[#0b7f3a] px-[0.16rem] text-[0.46rem] font-black text-white">
+                  {savedListsCount}
+                </span>
+              ) : null}
             </button>
-
-            <span />
 
             {hasItems ? (
               <button
                 type="button"
                 onClick={onClearCart}
-                className="rounded-[0.42rem] border-[1.5px] border-[#9a6137] bg-[#ffe0bc]/48 px-2 py-[0.33rem] text-[0.52rem] font-extrabold lowercase leading-none text-[#7d3414]/84 shadow-[0_1px_0_rgba(91,72,44,0.08)] active:translate-y-[1px]"
-                style={{ fontFamily: serifFont }}
+                title="Tyhjennä ostoskori"
+                aria-label="Tyhjennä ostoskori"
+                className="relative grid h-[2.35rem] w-[1.92rem] place-items-center rounded-b-[0.34rem] rounded-t-[0.22rem] border-[1.5px] border-[#8b3c27] bg-[linear-gradient(180deg,#f3d4a1_0%,#d49a58_100%)] text-[#8d2718] shadow-[0_2px_3px_rgba(50,31,13,0.22),inset_0_0_0_1px_rgba(255,250,224,0.35)] active:translate-y-[1px]"
               >
-                tyhjennä
+                <span className="absolute -top-[0.72rem] left-1/2 h-[0.85rem] w-[1px] -translate-x-1/2 bg-[#5a371c]" />
+                <span className="absolute top-[0.22rem] h-[0.34rem] w-[0.34rem] rounded-full border border-[#8b3c27] bg-[#fff2c7]" />
+                <span className="text-[1.05rem] leading-none">⌫</span>
               </button>
-            ) : (
-              <span />
-            )}
+            ) : null}
           </div>
         </header>
 
-        <div className="relative z-10 grid shrink-0 grid-cols-[2.05rem_minmax(0,1fr)_3.25rem_4.45rem] px-6 pt-2 text-[0.54rem] font-black uppercase tracking-[0.18em] text-[#6f5a32]/62" style={{ fontFamily: copperplateFont }}>
+        <div className="relative z-10 grid shrink-0 grid-cols-[2.05rem_minmax(0,1fr)_3.25rem_4.45rem] px-6 pt-[2.15rem] text-[0.54rem] font-black uppercase tracking-[0.18em] text-[#6f5a32]/62" style={{ fontFamily: copperplateFont }}>
           <span>N:o</span>
           <span>Nimike</span>
           <span className="text-center">Määrä</span>
           <span className="text-right">Hinta</span>
         </div>
 
-        <div className="relative z-10 min-h-0 flex-1 overflow-y-auto px-5 pb-2 pt-[0.62rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="relative z-10 min-h-0 flex-1 overflow-y-auto px-5 pb-[5.8rem] pt-[0.62rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {!hasItems ? (
             <div className="mt-5 rounded-[1.1rem] border-[2px] border-dashed border-[#9a7a3d] bg-[#fff4d4]/48 px-4 py-8 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
               <div className="text-[1.02rem] font-extrabold italic text-[#59401e]" style={{ fontFamily: serifFont }}>
@@ -472,7 +467,7 @@ export default function ZiiplyMobileCartCard({
           )}
         </div>
 
-        <footer className="relative z-10 shrink-0 px-5 pb-3 pt-2">
+        <footer className="sticky bottom-0 z-20 shrink-0 px-5 pb-3 pt-2">
           <div className="relative mb-2 border-t-[2px] border-[#9b7b3d]/62 pt-2 text-[#473719]">
             <span
               className="absolute left-[68%] top-[0.58rem] -translate-x-1/2 text-[0.76rem] font-extrabold uppercase tracking-[0.04em]"
