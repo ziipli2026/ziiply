@@ -1,8 +1,8 @@
 "use client";
 
-// ZIIPLY_MOBILE_CART_CARD_V37_FINE_TUNE_ALIGNMENT
+// ZIIPLY_MOBILE_CART_CARD_V38_MINUS_BETWEEN_QTY_PRICE_FOOTER_LINE
 // Mobiilin Tavarainkeruu-paperivihko.
-// V37: hienosäätö; hinta vasemmalle, YHT. vasemmalle/ylemmäs, nimikekenttä hieman kapeampi ettei osu miinukseen.
+// V38: miinus siirretty määrän ja hinnan väliin; footerin ruskea vaakaviiva jatkettu oikeaan reunaan.
 // - "Ostoskori" poistettu kokonaan näkyvästä UI:sta.
 // - Tavarainkeruu sovitettu taustapaperiin kevyempänä mustekirjoituksena.
 // - Tuoterivit sarakkeisiin: N:o | Nimike | Määrä | Hinta | poisto.
@@ -241,7 +241,7 @@ function QuantityCell({
         }}
         disabled={!canDecrease}
         className={cx(
-          "absolute left-[14.55rem] top-[0.72rem] grid h-[1.72rem] w-[1.10rem] place-items-center rounded-[0.24rem] text-[1.15rem] font-extrabold leading-none !text-[#e11d12] active:translate-y-[1px] active:bg-[#fff1c6]/38",
+          "absolute left-[17.35rem] top-[0.72rem] grid h-[1.72rem] w-[1.10rem] place-items-center rounded-[0.24rem] text-[1.15rem] font-extrabold leading-none !text-[#e11d12] active:translate-y-[1px] active:bg-[#fff1c6]/38",
           !canDecrease && "!text-[#e11d12]/25",
         )}
         aria-label="Vähennä määrää"
@@ -253,7 +253,7 @@ function QuantityCell({
       <button
         type="button"
         onClick={() => onIncrease?.(item)}
-        className="absolute left-[15.95rem] top-[0.73rem] grid h-[1.62rem] w-[2.00rem] place-items-center rounded-[0.32rem] bg-[#fff1c6]/10 text-center text-[0.98rem] font-extrabold leading-none text-[#3d301a] active:translate-y-[1px] active:bg-[#fff1c6]/34"
+        className="absolute left-[15.70rem] top-[0.73rem] grid h-[1.62rem] w-[2.00rem] place-items-center rounded-[0.32rem] bg-[#fff1c6]/10 text-center text-[0.98rem] font-extrabold leading-none text-[#3d301a] active:translate-y-[1px] active:bg-[#fff1c6]/34"
         style={{ fontFamily: serifFont }}
         aria-label="Lisää määrää"
         title="Lisää määrää"
@@ -422,7 +422,7 @@ export default function ZiiplyMobileCartCard({
                       type="button"
                       onClick={() => onRemoveItem?.(item)}
                       className={cx(
-                        "absolute left-[18.15rem] top-[0.73rem] grid h-[1.62rem] w-[3.95rem] place-items-center rounded-[0.24rem] text-center font-extrabold leading-none active:translate-y-[1px] active:bg-[#ffe0bc]/36",
+                        "absolute left-[18.55rem] top-[0.73rem] grid h-[1.62rem] w-[3.95rem] place-items-center rounded-[0.24rem] text-center font-extrabold leading-none active:translate-y-[1px] active:bg-[#ffe0bc]/36",
                         isAlcoholCartItemV8(item)
                           ? "text-center text-[0.86rem] italic text-[#7b3215]/86"
                           : "text-[0.84rem] text-[#3f321f]",
@@ -441,16 +441,20 @@ export default function ZiiplyMobileCartCard({
         </div>
 
         <footer className="sticky bottom-0 z-20 shrink-0 px-5 pb-3 pt-2 pr-[4.1rem]">
-          <div className="relative mb-2 min-h-[1.82rem] border-t-[2px] border-[#9b7b3d]/62 pt-2 text-[#473719]">
+          <div className="relative mb-2 min-h-[1.82rem] border-t-[2px] border-transparent pt-2 text-[#473719]">
             <span
-              className="absolute left-[14.85rem] top-[0.12rem] whitespace-nowrap text-center text-[0.76rem] font-extrabold uppercase tracking-[0.04em]"
+              aria-hidden="true"
+              className="pointer-events-none absolute left-[-0.25rem] right-[-3.85rem] top-0 block h-[2px] bg-[#9b7b3d]/62"
+            />
+            <span
+              className="absolute left-[14.95rem] top-[0.12rem] whitespace-nowrap text-center text-[0.76rem] font-extrabold uppercase tracking-[0.04em]"
               style={{ fontFamily: copperplateFont }}
             >
               Yht.
             </span>
 
             <span
-              className="absolute left-[17.95rem] top-[0.14rem] grid h-[1.4rem] w-[4.05rem] place-items-center whitespace-nowrap text-center text-[0.88rem] font-extrabold"
+              className="absolute left-[18.10rem] top-[0.14rem] grid h-[1.4rem] w-[4.05rem] place-items-center whitespace-nowrap text-center text-[0.88rem] font-extrabold"
               style={{ fontFamily: serifFont }}
             >
               {totalPrice.toLocaleString("fi-FI", {
