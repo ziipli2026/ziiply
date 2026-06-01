@@ -1,5 +1,14 @@
 "use client";
 
+// V721_TOPBAR_TEXT_FIT_AND_CALENDAR_IN_APP
+// Pohjana V720.
+// Korjaukset:
+// - sääkortista poistettu säätilateksti, koska kuvake kertoo säätyypin
+// - sääkorttiin jätetty kuvake + lämpötila, jolloin tila mahtuu paremmin
+// - sähkökortin otsikko/numero/status sovitettu näkymään paremmin
+// - kalenterikortin click pidetään appin sisäisenä callbackina; ei pakoteta webcal-/calendar-siirtymää
+// - ulkoinen topbar-korkeus ennallaan, ei taustavärimuutoksia.
+
 // V720_TOPBAR_ORIGINAL_HEIGHT_FIT_FIX
 // Pohjana V718, EI V719.
 // Tavoite:
@@ -1522,7 +1531,7 @@ function KauppiasMobileTopBar({
   return (
     <div className="fixed inset-x-0 top-[max(env(safe-area-inset-top),0px)] z-[90] mx-auto block w-full translate-y-0 transform-gpu px-[6px] pt-[4px] sm:hidden">
       <div className="mx-auto flex h-[78px] w-[calc(100vw-12px)] max-w-none items-center overflow-hidden rounded-[1.65rem] border-[4px] border-[#073d32] bg-[#fff5d9] px-[7px] shadow-[0_10px_28px_rgba(8,42,35,0.18),inset_0_0_0_2px_rgba(255,255,255,0.7)]">
-        <div className="grid min-w-0 flex-1 grid-cols-[0.96fr_1.06fr_1.24fr_0.94fr] gap-[6px]">
+        <div className="grid min-w-0 flex-1 grid-cols-[0.98fr_1.12fr_1.20fr_0.96fr] gap-[6px]">
           {panels.map((panel) => {
             const inner = (
               <>
@@ -1532,18 +1541,30 @@ function KauppiasMobileTopBar({
                 <span className="absolute bottom-[4px] right-[4px] h-[5px] w-[5px] rounded-full border border-[#b38a4d] bg-[#fff2bc]" />
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.70),transparent_55%)]" />
 
-                <div className="relative z-10 grid h-full grid-cols-[auto_minmax(0,1fr)] items-center gap-[3px] text-left leading-none">
+                <div
+                  className={`relative z-10 grid h-full items-center text-left leading-none ${
+                    panel.id === "weather"
+                      ? "grid-cols-[auto_minmax(0,1fr)] gap-[3px]"
+                      : panel.id === "electricity"
+                        ? "grid-cols-[auto_minmax(0,1fr)] gap-[3px]"
+                        : "grid-cols-[auto_minmax(0,1fr)] gap-[3px]"
+                  }`}
+                >
                   <div className="flex items-center justify-center">
                     {panel.graphic}
                   </div>
 
                   <div className="min-w-0 pr-[1px]">
-                    <div className="truncate text-[9.5px] font-black uppercase tracking-[0.025em] text-[#173b31]">
+                    <div className="truncate text-[9.5px] font-black uppercase tracking-[0.02em] text-[#173b31]">
                       {panel.title}
                     </div>
 
                     <div className="mt-[2px] flex min-w-0 items-end gap-[1px]">
-                      <span className="truncate text-[18px] font-black leading-[0.9] tracking-[-0.055em] text-[#041b19]">
+                      <span
+                        className={`truncate font-black leading-[0.9] tracking-[-0.055em] text-[#041b19] ${
+                          panel.id === "electricity" ? "text-[18px]" : "text-[19px]"
+                        }`}
+                      >
                         {panel.value}
                       </span>
                       {panel.unit && (
@@ -1553,15 +1574,17 @@ function KauppiasMobileTopBar({
                       )}
                     </div>
 
-                    <div className="mt-[2px] max-w-full truncate text-[7.5px] font-black leading-none opacity-75">
-                      {panel.id === "electricity"
-                        ? electricityTrend === "up"
-                          ? "Nousee"
-                          : electricityTrend === "down"
-                            ? "Laskee"
-                            : "Vakaa"
-                        : panel.detail}
-                    </div>
+                    {panel.id === "weather" ? null : (
+                      <div className="mt-[2px] max-w-full truncate text-[7.5px] font-black leading-none opacity-75">
+                        {panel.id === "electricity"
+                          ? electricityTrend === "up"
+                            ? "Nousee"
+                            : electricityTrend === "down"
+                              ? "Laskee"
+                              : "Vakaa"
+                          : panel.detail}
+                      </div>
+                    )}
                   </div>
 
                   {panel.id === "calendar" && (
