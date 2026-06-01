@@ -1,6 +1,6 @@
 "use client";
 
-// V3_MOBILE_STORE_PICKER_MODAL_STORESEARCHITEM_COMPAT
+// V4_MOBILE_STORE_PICKER_MODAL_TYPES_FINAL
 // Irrotettu page.tsx:n renderStorePickerMenu-haarasta omaksi komponentiksi.
 // Tarkoitus:
 // - sama toiminnallinen rakenne kuin nykyisessä pickerissä
@@ -49,7 +49,7 @@ function getDistance(store: MobileStorePickerStore, getDistanceLabel?: (store: M
 
 function isSelectedStore(
   store: MobileStorePickerStore,
-  selectedId?: string | null,
+  selectedId?: string | number | null,
   selectedName?: string | null,
 ) {
   return Boolean(
