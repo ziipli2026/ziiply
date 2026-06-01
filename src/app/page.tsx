@@ -1,5 +1,16 @@
 "use client";
 
+// V710_VERTICAL_SPACING_REBALANCE
+// Pohjana V709.
+// Korjaukset:
+// - kauppapaneeli ei enää osu location bariin
+// - palautettu hieman enemmän väliä location barin alle
+// - samalla tiivistetty sisäisiä pystyrakoja noin 0.5x käyttäjän merkkaamista kohdista
+// - mode selectorin ja hakutapa-osion väliä pienennetty
+// - hakutavan ja alarivin väliä pienennetty
+// - korttien yläväliä pienennetty
+// - alapalkin rako säilytetty
+
 // V709_STORE_PANEL_DOCK_GAP_FIX
 // Pohjana V708.
 // Korjaus:
@@ -10239,7 +10250,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
                 <section className="relative overflow-hidden rounded-[2.1rem] border-[3px] border-[#bfa063] bg-[#fbf3d8] p-3 shadow-[0_5px_0_rgba(80,58,25,0.14),0_16px_24px_rgba(45,31,12,0.10),inset_0_0_0_2px_rgba(255,252,235,0.72)] ring-1 ring-[#fff7df]/80">
                   <div className="pointer-events-none absolute inset-0 opacity-[0.14] [background-image:radial-gradient(#c9ad6b_0.85px,transparent_0.85px)] [background-size:17px_17px]" />
-                  <div className="relative z-10">
+                  <div className="relative z-10 scale-[0.985] origin-top">
               <ZiiplyMobileStoreModeSelector
                       storeMode={storeMode}
                       storeModeChosen={storeModeChosenV299}
@@ -11078,7 +11089,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           </div>
 
           <section
-            className={`relative -translate-y-[12px] transform-gpu overflow-hidden rounded-[2.05rem] border-[4px] border-[#b98e4d] px-5 pb-1 pt-3 shadow-[0_18px_34px_rgba(52,38,14,0.18),0_4px_0_rgba(116,78,31,0.18),inset_0_0_0_2px_rgba(255,252,235,0.96),inset_0_18px_28px_rgba(255,255,255,0.30)] ring-1 ring-[#fff7d6]/95 ${
+            className={`relative -translate-y-[4px] transform-gpu overflow-hidden rounded-[2.05rem] border-[4px] border-[#b98e4d] px-5 pb-1 pt-2 shadow-[0_18px_34px_rgba(52,38,14,0.18),0_4px_0_rgba(116,78,31,0.18),inset_0_0_0_2px_rgba(255,252,235,0.96),inset_0_18px_28px_rgba(255,255,255,0.30)] ring-1 ring-[#fff7d6]/95 ${
               storeMode === "local"
                 ? "bg-[#fbf1d2]"
                 : "bg-[#fcf4da]"
@@ -11107,7 +11118,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               />
             </div>
 
-            <div className="mt-0">
+            <div className="mt-[-6px]">
               {renderComparedStoreCards(true)}
             </div>
 
