@@ -1,13 +1,13 @@
 "use client";
 
-// V706_STORE_DISTANCE_SIDE_BADGE_FIX
-// Pohjana V705.
+// V706_V705_FORMAT_NOWRAP_DISTANCE_UP
+// Pohjana V705-formaatti.
 // Korjaus:
-// - EI nosteta etäisyyttä nimen alle
-// - etäisyys siirretty pois keskeltä pieneksi sivu-badgeksi
-// - kaupan nimelle jää oma rauha eikä rivittyminen pahene
-// - etäisyysteksti pysyy luettavana
-// - ei debug-merkkejä
+// - EI badge-versiota
+// - kaupan nimi pakotettu yhdelle riville
+// - etäisyysteksti pidetään keskellä kuten V705:ssa
+// - etäisyysteksti nostettu hieman ylemmäs
+// - etäisyystekstin koko säilyy V705:n 12px
 // - ei logiikka-, state- tai click-muutoksia.
 
 // V705_STORE_DISTANCE_VISIBLE_FORCE
@@ -9915,7 +9915,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               </p>
 
               {isTopRow && distanceForCard && storeModeChosenV299 && (
-                <p className="absolute left-[18px] bottom-[12px] z-50 rounded-full border border-[#d7bf82] bg-[#fff8df]/85 px-[7px] py-[2px] text-[10.5px] font-black leading-none text-[#000000] shadow-[0_1px_0_rgba(255,255,255,0.75),0_2px_5px_rgba(70,48,14,0.10)] [text-shadow:0_1px_1px_rgba(255,250,232,1)]">
+                <p className="absolute left-0 right-0 top-[57px] z-50 text-[12px] font-black leading-none text-[#000000] [text-shadow:0_1px_1px_rgba(255,250,232,1)]">
                   {distanceForCard}
                 </p>
               )}
