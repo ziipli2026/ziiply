@@ -1,5 +1,13 @@
 "use client";
 
+// V714_STORE_PICKER_MODAL_DISTANCE_TYPE_FIX
+// Pohjana V713.
+// Korjaus:
+// - modalStores muuntaa id:n lisäksi myös distance/distanceLabel-arvot stringiksi
+// - build ei riipu siitä, onko modalissa distance string vai string | number
+// - onSelectStore käyttää edelleen alkuperäistä StoreSearchItemiä __sourceIndexin kautta
+// - ei muutoksia visuaaliin tai logiikkaan.
+
 // V713_STORE_PICKER_MODAL_SAFE_STORE_MAPPING
 // Pohjana V712.
 // Korjaus:
@@ -9579,6 +9587,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const modalStores = options.map((store, index) => ({
       ...store,
       id: store.id != null ? String(store.id) : `${chain}-${index}-${normalize(store.name || "")}`,
+      distance: store.distance != null ? String(store.distance) : undefined,
+      distanceLabel: (store as any).distanceLabel != null ? String((store as any).distanceLabel) : undefined,
       __sourceIndex: index,
     }));
 
