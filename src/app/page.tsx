@@ -1,5 +1,13 @@
 "use client";
 
+// V723_SEARCH_FAIL_OPEN_FIX
+// Pohjana V722.
+// Korjaus hakumoottoriin:
+// - getNormalSearchQueries(term) ei saa enää kaataa hakua, jos se palauttaa tyhjän/huonon listan
+// - alkuperäinen käyttäjän kirjoittama termi lisätään aina hakujonoon fallbackiksi
+// - low-signal early return ei enää pysäytä tavallisia vähintään 2 merkin hakusanoja
+// - lisätty debug-merkintä, jos hakukyselylista jäi tyhjäksi ennen fallbackia.
+
 // V722_TOPBAR_LABEL_AND_PRICE_ALIGN_FIX
 // Pohjana V721.
 // Korjaukset:
@@ -5633,7 +5641,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const isMainSearch = !termOverride;
     const focusedSearchTerms = useTerms.length > 1 ? [useTerms[0]] : useTerms;
 
-    if (focusedSearchTerms.every(isLowSignalProductSearchTerm)) {
+    const allFocusedTermsLowSignal = focusedSearchTerms.every(isLowSignalProductSearchTerm);
+    const allFocusedTermsTooShort = focusedSearchTerms.every(
+      (term) => normalize(term).replace(/\s+/g, "").length < 2,
+    );
+
+    if (allFocusedTermsLowSignal && allFocusedTermsTooShort) {
       if (termOverride) setInput(termOverride);
       setLoadingNormal(false);
       setNormalSearchAttempted(true);
@@ -5694,7 +5707,36 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         // Näin "maito, kahvi, cola" käyttää samaa relevance-logiikkaa kuin yksittäinen haku:
         // valitse maito -> valitse kahvi -> valitse cola.
         // K-vastine haetaan vasta ostoskori-/vertailuvaiheessa.
-        const searchQueries = getNormalSearchQueries(term).slice(0, 8);
+        const generatedSearchQueries = getNormalSearchQueries(term)
+          .map((query) => fixText(String(query || "")).trim())
+          .filter(Boolean);
+
+        const originalSearchFallback = fixText(String(term || "")).trim();
+
+        const searchQueries = Array.from(
+          new Map(
+            [...generatedSearchQueries, originalSearchFallback]
+              .filter(Boolean)
+              .map((query) => [normalize(query), query]),
+          ).values(),
+        ).slice(0, 9);
+
+        if (searchQueries.length === 0) {
+          debugEntries.push({
+            term,
+            query: originalSearchFallback || term,
+            storeName: activeStores.sStoreName,
+            rawCount: 0,
+            pricedCount: 0,
+            badFilterCount: 0,
+            safeCount: 0,
+            finalCount: 0,
+            rejectedByPrice: 0,
+            rejectedByBadFilter: 0,
+            fallbackStoreName: "V723: empty searchQueries",
+          });
+          continue;
+        }
 
         for (const searchQuery of searchQueries) {
           let rawItems: Product[] = await fetchSProducts(
