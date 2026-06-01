@@ -1,5 +1,12 @@
 "use client";
 
+// V712_STORE_PICKER_MODAL_COMPONENT_TYPE_FIX
+// Pohjana V711.
+// Korjaus:
+// - käytä MobileStorePickerModal v2 -komponenttia, jossa store.id sallii string | number
+// - page.tsx:n StoreSearchItem[] kelpaa suoraan stores-proppiin
+// - ei muutoksia renderöintiin tai logiikkaan.
+
 // V711_STORE_PICKER_MODAL_COMPONENT_WIRE
 // Pohjana V710.
 // Muutos:
