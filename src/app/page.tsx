@@ -1,5 +1,14 @@
 "use client";
 
+// V711_STORE_PICKER_MODAL_COMPONENT_WIRE
+// Pohjana V710.
+// Muutos:
+// - page.tsx:n vanha inline store picker modal jätetty tiedostoon kommentoituna legacy-koodina
+// - uusi MobileStorePickerModal-komponentti otettu käyttöön renderStorePickerMenu-haarassa
+// - visuaali ja kontrasti siirtyvät komponentin vastuulle
+// - valinta-, sulku-, distance- ja portal-logiikka säilytetty page.tsx:n kautta
+// - ei muutoksia kauppakortteihin, location bariin, top bariin tai bottom naviin.
+
 // V710_VERTICAL_SPACING_REBALANCE
 // Pohjana V709.
 // Korjaukset:
@@ -641,6 +650,7 @@ import ZiiplyMobileAssistantPanel from "./components/ziiply/mobile/ZiiplyMobileA
 import ZiiplyMobileShopsView from "./components/ziiply/mobile/ZiiplyMobileShopsView";
 import ZiiplyMobileStoreModeSelector from "./components/ziiply/mobile/ZiiplyMobileStoreModeSelector";
 import ZiiplyMobileLocationBar from "./components/ziiply/mobile/ZiiplyMobileLocationBar";
+import MobileStorePickerModal from "./components/ziiply/mobile/MobileStorePickerModal";
 import type { ZiiplyAssistantKey } from "./components/ziiply/mobile/ZiiplyMobileAssistantButton";
 
 const MOBILE_EAN_SCANNER_REGION_ID = `${EAN_SCANNER_REGION_ID}-mobile`;
@@ -9377,6 +9387,158 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return getStoresForPicker(chain, mode);
   }
 
+  /*
+   * V711 LEGACY INLINE STORE PICKER MODAL - POIS KÄYTÖSTÄ
+   * Vanha page.tsx:n sisäinen modal on jätetty tähän talteen.
+   * Uusi käytössä oleva renderStorePickerMenu käyttää MobileStorePickerModal-komponenttia.
+   *   function renderStorePickerMenu(
+   *     chain: "S" | "K",
+   *     mode: StoreMode,
+   *     pickerKey: string,
+   *     compact: boolean,
+   *   ) {
+   *     if (openStorePicker !== pickerKey) return null;
+   *     if (!storePickerCanOpenV366) return null;
+   * 
+   *     const options = getStoresForPickerContext(chain, mode);
+   *     const selectedName = getSelectedStoreNameFor(chain, mode);
+   *     const selectedId = getSelectedStoreIdFor(chain, mode);
+   * 
+   *     const menuTitle =
+   *       storeCompareScope === "within_chain"
+   *         ? `Valitse ${chain === "S" ? "S-ryhmän" : "K-ryhmän"} kauppa`
+   *         : mode === "local"
+   *           ? `Valitse ${chain === "S" ? "S-ryhmän" : "K-ryhmän"} lähikauppa`
+   *           : `Valitse ${chain === "S" ? "S-ryhmän" : "K-ryhmän"} tavaratalo`;
+   * 
+   *     const selectFromPicker = (
+   *       event:
+   *         | React.MouseEvent<HTMLButtonElement>
+   *         | React.PointerEvent<HTMLButtonElement>,
+   *       store: StoreSearchItem,
+   *     ) => {
+   *       event.preventDefault();
+   *       event.stopPropagation();
+   * 
+   *       const normalizedStore = normalizeStoreForPickerV320(store);
+   *       if (getStoreChainV320(normalizedStore) !== chain) return;
+   * 
+   *       triggerHaptic();
+   *       selectStoreForCurrentMode(normalizedStore, mode);
+   *       window.setTimeout(() => setOpenStorePicker(null), 0);
+   *     };
+   * 
+   *     const menuBody = (
+   *       <>
+   *         <div className="mb-2 flex items-center justify-between gap-2 px-0.5">
+   *           <p className="min-w-0 truncate text-[11px] font-black uppercase tracking-wide text-[#8a7349]">
+   *             {menuTitle}
+   *           </p>
+   *           <button
+   *             type="button"
+   *             onClick={(event) => {
+   *               event.preventDefault();
+   *               event.stopPropagation();
+   *               setOpenStorePicker(null);
+   *             }}
+   *             className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1.5 text-[10px] font-black text-slate-600 active:scale-[0.98]"
+   *           >
+   *             Sulje
+   *           </button>
+   *         </div>
+   * 
+   *         <div
+   *           className="max-h-[38dvh] overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] touch-pan-y"
+   *           onTouchMove={(event) => event.stopPropagation()}
+   *           onWheel={(event) => event.stopPropagation()}
+   *         >
+   *           {options.length === 0 ? (
+   *             <p className="rounded-xl bg-slate-50 px-3 py-3 font-bold text-[#b7aa8d]">
+   *               Ei kauppoja valittavana. Hae alue uudelleen.
+   *             </p>
+   *           ) : (
+   *             options.map((store, index) => {
+   *               const selected = Boolean(
+   *                 (selectedId && store.id === selectedId) ||
+   *                 (selectedName && store.name === selectedName),
+   *               );
+   *               const distanceLabel = getStoreDistanceLabelV320(store);
+   * 
+   *               return (
+   *                 <button
+   *                   key={`${pickerKey}-${store.type || chain}-${store.id || index}-${normalize(store.name || "")}`}
+   *                   type="button"
+   *                   onClick={(event) => selectFromPicker(event, store)}
+   *                   className={`mb-2 flex w-full touch-manipulation items-center justify-between gap-1 rounded-xl px-2 py-2.5 text-left font-extrabold transition last:mb-0 active:scale-[0.99] ${
+   *                     selected
+   *                       ? chain === "S"
+   *                         ? "bg-green-700 text-white"
+   *                         : "bg-red-700 text-white"
+   *                       : "bg-slate-50 text-slate-700 active:bg-slate-100"
+   *                   }`}
+   *                 >
+   *                   <span className="min-w-0 flex-1">
+   *                     <span className="block whitespace-normal break-words text-[13px] leading-tight">
+   *                       {store.name}
+   *                     </span>
+   *                     <span
+   *                       className={`mt-1 block text-[11px] leading-tight ${selected ? "text-white/80" : "text-[#b7aa8d]"}`}
+   *                     >
+   *                       {[
+   *                         store.city || activeArea.label || "",
+   *                         store.postalCode || "",
+   *                         distanceLabel,
+   *                       ]
+   *                         .filter(Boolean)
+   *                         .join(" · ")}
+   *                     </span>
+   *                   </span>
+   *                   {(selected || distanceLabel) && (
+   *                     <span
+   *                       className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-black ${selected ? "bg-[#fff8df]/20 text-white" : "bg-[#fff8df] text-[#b7aa8d]"}`}
+   *                     >
+   *                       {selected ? "Valittu" : distanceLabel}
+   *                     </span>
+   *                   )}
+   *                 </button>
+   *               );
+   *             })
+   *           )}
+   *         </div>
+   *       </>
+   *     );
+   * 
+   *     if (typeof document === "undefined") return null;
+   * 
+   *     const portalContent = (
+   *       <div
+   *         className="fixed inset-0 z-[2147483647] bg-transparent ziiply-store-picker-fade"
+   *         onClick={() => setOpenStorePicker(null)}
+   *         onTouchMove={(event) => {
+   *           event.preventDefault();
+   *         }}
+   *       >
+   *         <div
+   *           className="fixed left-1/2 overflow-hidden rounded-[1.35rem] bg-[#fff8df] p-1.5 text-left text-xs shadow-[0_18px_55px_rgba(15,23,42,0.28)] ring-1 ring-slate-200 ziiply-store-picker-panel-fade"
+   *           style={{
+   *             top: `${storePickerViewportStyle.top}px`,
+   *             width: `${storePickerViewportStyle.width}px`,
+   *             transform: "translateX(-50%)",
+   *           }}
+   *           onClick={(event) => event.stopPropagation()}
+   *           onPointerDown={(event) => event.stopPropagation()}
+   *           onTouchStart={(event) => event.stopPropagation()}
+   *           onTouchMove={(event) => event.stopPropagation()}
+   *         >
+   *           {menuBody}
+   *         </div>
+   *       </div>
+   *     );
+   * 
+   *     return createPortal(portalContent, document.body);
+   *   }
+   */
+
   function renderStorePickerMenu(
     chain: "S" | "K",
     mode: StoreMode,
@@ -9385,6 +9547,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   ) {
     if (openStorePicker !== pickerKey) return null;
     if (!storePickerCanOpenV366) return null;
+    if (typeof document === "undefined") return null;
 
     const options = getStoresForPickerContext(chain, mode);
     const selectedName = getSelectedStoreNameFor(chain, mode);
@@ -9397,131 +9560,32 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           ? `Valitse ${chain === "S" ? "S-ryhmän" : "K-ryhmän"} lähikauppa`
           : `Valitse ${chain === "S" ? "S-ryhmän" : "K-ryhmän"} tavaratalo`;
 
-    const selectFromPicker = (
-      event:
-        | React.MouseEvent<HTMLButtonElement>
-        | React.PointerEvent<HTMLButtonElement>,
-      store: StoreSearchItem,
-    ) => {
-      event.preventDefault();
-      event.stopPropagation();
+    return (
+      <MobileStorePickerModal
+        open={openStorePicker === pickerKey}
+        chain={chain}
+        title={menuTitle}
+        stores={options}
+        selectedId={selectedId}
+        selectedName={selectedName}
+        activeAreaLabel={activeArea.label}
+        top={storePickerViewportStyle.top}
+        width={storePickerViewportStyle.width}
+        onClose={() => setOpenStorePicker(null)}
+        getDistanceLabel={(store) => getStoreDistanceLabelV320(store as StoreSearchItem)}
+        getStoreKey={(store, index) =>
+          `${pickerKey}-${(store as StoreSearchItem).type || chain}-${store.id || index}-${normalize(store.name || "")}`
+        }
+        onSelectStore={(store) => {
+          const normalizedStore = normalizeStoreForPickerV320(store as StoreSearchItem);
+          if (getStoreChainV320(normalizedStore) !== chain) return;
 
-      const normalizedStore = normalizeStoreForPickerV320(store);
-      if (getStoreChainV320(normalizedStore) !== chain) return;
-
-      triggerHaptic();
-      selectStoreForCurrentMode(normalizedStore, mode);
-      window.setTimeout(() => setOpenStorePicker(null), 0);
-    };
-
-    const menuBody = (
-      <>
-        <div className="mb-2 flex items-center justify-between gap-2 px-0.5">
-          <p className="min-w-0 truncate text-[11px] font-black uppercase tracking-wide text-[#8a7349]">
-            {menuTitle}
-          </p>
-          <button
-            type="button"
-            onClick={(event) => {
-              event.preventDefault();
-              event.stopPropagation();
-              setOpenStorePicker(null);
-            }}
-            className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1.5 text-[10px] font-black text-slate-600 active:scale-[0.98]"
-          >
-            Sulje
-          </button>
-        </div>
-
-        <div
-          className="max-h-[38dvh] overflow-y-auto overscroll-contain [-webkit-overflow-scrolling:touch] touch-pan-y"
-          onTouchMove={(event) => event.stopPropagation()}
-          onWheel={(event) => event.stopPropagation()}
-        >
-          {options.length === 0 ? (
-            <p className="rounded-xl bg-slate-50 px-3 py-3 font-bold text-[#b7aa8d]">
-              Ei kauppoja valittavana. Hae alue uudelleen.
-            </p>
-          ) : (
-            options.map((store, index) => {
-              const selected = Boolean(
-                (selectedId && store.id === selectedId) ||
-                (selectedName && store.name === selectedName),
-              );
-              const distanceLabel = getStoreDistanceLabelV320(store);
-
-              return (
-                <button
-                  key={`${pickerKey}-${store.type || chain}-${store.id || index}-${normalize(store.name || "")}`}
-                  type="button"
-                  onClick={(event) => selectFromPicker(event, store)}
-                  className={`mb-2 flex w-full touch-manipulation items-center justify-between gap-1 rounded-xl px-2 py-2.5 text-left font-extrabold transition last:mb-0 active:scale-[0.99] ${
-                    selected
-                      ? chain === "S"
-                        ? "bg-green-700 text-white"
-                        : "bg-red-700 text-white"
-                      : "bg-slate-50 text-slate-700 active:bg-slate-100"
-                  }`}
-                >
-                  <span className="min-w-0 flex-1">
-                    <span className="block whitespace-normal break-words text-[13px] leading-tight">
-                      {store.name}
-                    </span>
-                    <span
-                      className={`mt-1 block text-[11px] leading-tight ${selected ? "text-white/80" : "text-[#b7aa8d]"}`}
-                    >
-                      {[
-                        store.city || activeArea.label || "",
-                        store.postalCode || "",
-                        distanceLabel,
-                      ]
-                        .filter(Boolean)
-                        .join(" · ")}
-                    </span>
-                  </span>
-                  {(selected || distanceLabel) && (
-                    <span
-                      className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-black ${selected ? "bg-[#fff8df]/20 text-white" : "bg-[#fff8df] text-[#b7aa8d]"}`}
-                    >
-                      {selected ? "Valittu" : distanceLabel}
-                    </span>
-                  )}
-                </button>
-              );
-            })
-          )}
-        </div>
-      </>
-    );
-
-    if (typeof document === "undefined") return null;
-
-    const portalContent = (
-      <div
-        className="fixed inset-0 z-[2147483647] bg-transparent ziiply-store-picker-fade"
-        onClick={() => setOpenStorePicker(null)}
-        onTouchMove={(event) => {
-          event.preventDefault();
+          triggerHaptic();
+          selectStoreForCurrentMode(normalizedStore, mode);
+          window.setTimeout(() => setOpenStorePicker(null), 0);
         }}
-      >
-        <div
-          className="fixed left-1/2 overflow-hidden rounded-[1.35rem] bg-[#fff8df] p-1.5 text-left text-xs shadow-[0_18px_55px_rgba(15,23,42,0.28)] ring-1 ring-slate-200 ziiply-store-picker-panel-fade"
-          style={{
-            top: `${storePickerViewportStyle.top}px`,
-            width: `${storePickerViewportStyle.width}px`,
-            transform: "translateX(-50%)",
-          }}
-          onClick={(event) => event.stopPropagation()}
-          onPointerDown={(event) => event.stopPropagation()}
-          onTouchStart={(event) => event.stopPropagation()}
-          onTouchMove={(event) => event.stopPropagation()}
-        >
-          {menuBody}
-        </div>
-      </div>
+      />
     );
-
-    return createPortal(portalContent, document.body);
   }
 
   function renderStoreChoiceButton(
