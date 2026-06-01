@@ -1,8 +1,8 @@
 "use client";
 
-// ZIIPLY_MOBILE_CART_CARD_V40_ALIGNMENT_FINAL
+// ZIIPLY_MOBILE_CART_CARD_V41_ROW_OVERLAP_PRICE_LEFT_FIX
 // Mobiilin Tavarainkeruu-paperivihko.
-// V39: vain määrä-numeron vaakasijaintia säädetty keskelle MÄÄRÄ-saraketta.
+// V41: hinta/footer vasemmalle ja rivikorkeus suuremmaksi, jotta kahden rivin tuotenimet eivät mene päällekkäin.
 // - "Ostoskori" poistettu kokonaan näkyvästä UI:sta.
 // - Tavarainkeruu sovitettu taustapaperiin kevyempänä mustekirjoituksena.
 // - Tuoterivit sarakkeisiin: N:o | Nimike | Määrä | Hinta | poisto.
@@ -241,7 +241,7 @@ function QuantityCell({
         }}
         disabled={!canDecrease}
         className={cx(
-          "absolute left-[17.35rem] top-[0.72rem] grid h-[1.72rem] w-[1.10rem] place-items-center rounded-[0.24rem] text-[1.15rem] font-extrabold leading-none !text-[#e11d12] active:translate-y-[1px] active:bg-[#fff1c6]/38",
+          "absolute left-[16.55rem] top-[0.74rem] grid h-[1.72rem] w-[1.10rem] place-items-center rounded-[0.24rem] text-[1.15rem] font-extrabold leading-none !text-[#e11d12] active:translate-y-[1px] active:bg-[#fff1c6]/38",
           !canDecrease && "!text-[#e11d12]/25",
         )}
         aria-label="Vähennä määrää"
@@ -253,7 +253,7 @@ function QuantityCell({
       <button
         type="button"
         onClick={() => onIncrease?.(item)}
-        className="absolute left-[15.42rem] top-[0.73rem] grid h-[1.62rem] w-[2.00rem] place-items-center rounded-[0.32rem] bg-[#fff1c6]/10 text-center text-[0.98rem] font-extrabold leading-none text-[#3d301a] active:translate-y-[1px] active:bg-[#fff1c6]/34"
+        className="absolute left-[15.08rem] top-[0.74rem] grid h-[1.62rem] w-[2.00rem] place-items-center rounded-[0.32rem] bg-[#fff1c6]/10 text-center text-[0.98rem] font-extrabold leading-none text-[#3d301a] active:translate-y-[1px] active:bg-[#fff1c6]/34"
         style={{ fontFamily: serifFont }}
         aria-label="Lisää määrää"
         title="Lisää määrää"
@@ -402,7 +402,7 @@ export default function ZiiplyMobileCartCard({
 
                     <div
                       className={cx(
-                        "absolute left-[3.98rem] top-[0.82rem] max-h-[2.12rem] w-[10.95rem] overflow-hidden text-[0.82rem] font-extrabold leading-[1.02] text-[#2f2a1c] [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical]",
+                        "absolute left-[3.98rem] top-[0.62rem] max-h-[2.12rem] w-[10.65rem] overflow-hidden text-[0.80rem] font-extrabold leading-[1.02] text-[#2f2a1c] [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical]",
                         checked && "line-through",
                       )}
                       style={{ fontFamily: serifFont }}
@@ -422,7 +422,7 @@ export default function ZiiplyMobileCartCard({
                       type="button"
                       onClick={() => onRemoveItem?.(item)}
                       className={cx(
-                        "absolute left-[18.55rem] top-[0.73rem] grid h-[1.62rem] w-[3.95rem] place-items-center rounded-[0.24rem] text-center font-extrabold leading-none active:translate-y-[1px] active:bg-[#ffe0bc]/36",
+                        "absolute left-[17.55rem] top-[0.74rem] grid h-[1.62rem] w-[3.45rem] place-items-center rounded-[0.24rem] text-center font-extrabold leading-none active:translate-y-[1px] active:bg-[#ffe0bc]/36",
                         isAlcoholCartItemV8(item)
                           ? "text-center text-[0.86rem] italic text-[#7b3215]/86"
                           : "text-[0.84rem] text-[#3f321f]",
@@ -447,14 +447,14 @@ export default function ZiiplyMobileCartCard({
               className="pointer-events-none absolute left-[-0.25rem] right-[-3.85rem] top-0 block h-[2px] bg-[#9b7b3d]/62"
             />
             <span
-              className="absolute left-[14.95rem] top-[0.12rem] whitespace-nowrap text-center text-[0.76rem] font-extrabold uppercase tracking-[0.04em]"
+              className="absolute left-[14.25rem] top-[0.12rem] whitespace-nowrap text-center text-[0.76rem] font-extrabold uppercase tracking-[0.04em]"
               style={{ fontFamily: copperplateFont }}
             >
               Yht.
             </span>
 
             <span
-              className="absolute left-[18.10rem] top-[0.14rem] grid h-[1.4rem] w-[4.05rem] place-items-center whitespace-nowrap text-center text-[0.88rem] font-extrabold"
+              className="absolute left-[17.30rem] top-[0.14rem] grid h-[1.4rem] w-[3.45rem] place-items-center whitespace-nowrap text-center text-[0.88rem] font-extrabold"
               style={{ fontFamily: serifFont }}
             >
               {totalPrice.toLocaleString("fi-FI", {
