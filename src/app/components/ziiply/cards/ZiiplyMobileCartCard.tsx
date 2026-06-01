@@ -1,8 +1,8 @@
 "use client";
 
-// ZIIPLY_MOBILE_CART_CARD_V38_MINUS_BETWEEN_QTY_PRICE_FOOTER_LINE
+// ZIIPLY_MOBILE_CART_CARD_V40_ALIGNMENT_FINAL
 // Mobiilin Tavarainkeruu-paperivihko.
-// V38: miinus siirretty määrän ja hinnan väliin; footerin ruskea vaakaviiva jatkettu oikeaan reunaan.
+// V39: vain määrä-numeron vaakasijaintia säädetty keskelle MÄÄRÄ-saraketta.
 // - "Ostoskori" poistettu kokonaan näkyvästä UI:sta.
 // - Tavarainkeruu sovitettu taustapaperiin kevyempänä mustekirjoituksena.
 // - Tuoterivit sarakkeisiin: N:o | Nimike | Määrä | Hinta | poisto.
@@ -253,7 +253,7 @@ function QuantityCell({
       <button
         type="button"
         onClick={() => onIncrease?.(item)}
-        className="absolute left-[15.70rem] top-[0.73rem] grid h-[1.62rem] w-[2.00rem] place-items-center rounded-[0.32rem] bg-[#fff1c6]/10 text-center text-[0.98rem] font-extrabold leading-none text-[#3d301a] active:translate-y-[1px] active:bg-[#fff1c6]/34"
+        className="absolute left-[15.42rem] top-[0.73rem] grid h-[1.62rem] w-[2.00rem] place-items-center rounded-[0.32rem] bg-[#fff1c6]/10 text-center text-[0.98rem] font-extrabold leading-none text-[#3d301a] active:translate-y-[1px] active:bg-[#fff1c6]/34"
         style={{ fontFamily: serifFont }}
         aria-label="Lisää määrää"
         title="Lisää määrää"
