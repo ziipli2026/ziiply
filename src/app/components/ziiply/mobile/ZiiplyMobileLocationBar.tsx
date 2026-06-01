@@ -62,8 +62,8 @@ export default function ZiiplyMobileLocationBar({
           onMouseDown={(event) => event.preventDefault()}
           className={`relative z-10 grid h-[66px] w-[66px] place-items-center rounded-[1.45rem] border-[2px] shadow-[inset_0_1px_0_rgba(255,255,255,0.72),0_3px_8px_rgba(7,61,50,0.12)] active:scale-95 ${
             usingOwnLocation
-              ? "border-[#93cfa5] bg-[linear-gradient(180deg,#effff4_0%,#cdebd5_100%)]"
-              : "border-[#b9d1bd] bg-[linear-gradient(180deg,#effff4_0%,#d8eee0_100%)]"
+              ? "border-[#2f9f58] bg-[linear-gradient(180deg,#ebfff0_0%,#98dfad_100%)] ring-4 ring-[#7ee39c]/40"
+              : "border-[#c77a7a] bg-[linear-gradient(180deg,#fff1f1_0%,#f0caca_100%)] opacity-95"
           }`}
           aria-label={usingOwnLocation ? "GPS päällä" : "GPS pois päältä"}
         >
@@ -71,7 +71,16 @@ export default function ZiiplyMobileLocationBar({
           <span className="pointer-events-none absolute right-[7px] top-[7px] h-[5px] w-[5px] rounded-full border border-[#a98545] bg-[#f3df9f]" />
           <span className="pointer-events-none absolute left-[7px] bottom-[7px] h-[5px] w-[5px] rounded-full border border-[#a98545] bg-[#f3df9f]" />
           <span className="pointer-events-none absolute right-[7px] bottom-[7px] h-[5px] w-[5px] rounded-full border border-[#a98545] bg-[#f3df9f]" />
-          <span className="text-[28px] leading-none drop-shadow-sm">📍</span>
+          <div className="relative h-[34px] w-[22px]">
+            <div
+              className={`absolute left-1/2 top-0 h-[20px] w-[20px] -translate-x-1/2 rounded-full border-2 ${
+                usingOwnLocation
+                  ? "border-[#176b2f] bg-[#35d05d] shadow-[0_0_10px_rgba(53,208,93,0.65)]"
+                  : "border-[#8b1d1d] bg-[#e53935] shadow-[0_0_8px_rgba(229,57,53,0.45)]"
+              }`}
+            />
+            <div className="absolute left-1/2 top-[16px] h-[16px] w-[2px] -translate-x-1/2 rounded-full bg-[#5a4030]" />
+          </div>
         </button>
 
         <div className="relative z-10 min-w-0 rounded-[1.55rem] border-[2px] border-[#b89552] bg-[linear-gradient(180deg,#fff7e3_0%,#f4dfac_54%,#ebca86_100%)] px-4 py-[8px] shadow-[inset_0_2px_8px_rgba(91,65,28,0.15),inset_0_0_0_1px_rgba(255,255,255,0.70),0_2px_0_rgba(80,57,20,0.15)]">
@@ -90,7 +99,7 @@ export default function ZiiplyMobileLocationBar({
               }
             }}
             placeholder="05510 tai Hyvinkää"
-            className="block h-[31px] w-full min-w-0 bg-transparent text-center text-[22px] font-black leading-none tracking-[-0.03em] text-[#241b13] outline-none placeholder:text-[#6f6651]"
+            className="block h-[31px] w-full min-w-0 bg-transparent text-center text-[18px] font-black leading-none tracking-[-0.03em] text-[#241b13] outline-none placeholder:text-[#6f6651] placeholder:text-[18px]"
             style={{ fontFamily: cooperFont }}
           />
 
