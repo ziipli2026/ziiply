@@ -1,5 +1,13 @@
 "use client";
 
+// V709_STORE_PANEL_DOCK_GAP_FIX
+// Pohjana V708.
+// Korjaus:
+// - kauppapaneelin ruskea ulkokehys irrotetaan vaaka-alapalkista
+// - store panelia nostettu maltillisesti, jotta dockin ja paneelin väliin jää selkeä rako
+// - paneelin alapaddingia kiristetty hieman lisää
+// - ei muutoksia kauppateksteihin, location bariin, stateen tai click-logiikkaan.
+
 // V708_STORE_PANEL_BOTTOM_CLEARANCE
 // Pohjana V707.
 // Korjaus:
@@ -10989,7 +10997,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
           {!showLaunchScreen && (
             <div
-              className={`${shopsPanelOpen ? "fixed inset-0 z-50 overflow-hidden bg-[radial-gradient(circle_at_50%_4%,#fff7df_0%,#f1dfad_48%,#ddbd78_100%)] px-3 pb-[calc(env(safe-area-inset-bottom)+6.35rem)] pt-[calc(env(safe-area-inset-top)+5.2rem)] sm:static sm:contents sm:overflow-visible sm:bg-transparent sm:p-0" : "hidden sm:contents"} ${closingPanels.shops ? "ziiply-soft-close" : shopsPanelOpen ? "ziiply-soft-open" : ""}`}
+              className={`${shopsPanelOpen ? "fixed inset-0 z-50 overflow-hidden bg-[radial-gradient(circle_at_50%_4%,#fff7df_0%,#f1dfad_48%,#ddbd78_100%)] px-3 pb-[calc(env(safe-area-inset-bottom)+6.75rem)] pt-[calc(env(safe-area-inset-top)+5.2rem)] sm:static sm:contents sm:overflow-visible sm:bg-transparent sm:p-0" : "hidden sm:contents"} ${closingPanels.shops ? "ziiply-soft-close" : shopsPanelOpen ? "ziiply-soft-open" : ""}`}
             >
           <div className="mb-2">
             <ZiiplyMobileLocationBar
@@ -11070,7 +11078,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           </div>
 
           <section
-            className={`relative overflow-hidden rounded-[2.05rem] border-[4px] border-[#b98e4d] px-5 pb-2 pt-3 shadow-[0_18px_34px_rgba(52,38,14,0.18),0_4px_0_rgba(116,78,31,0.18),inset_0_0_0_2px_rgba(255,252,235,0.96),inset_0_18px_28px_rgba(255,255,255,0.30)] ring-1 ring-[#fff7d6]/95 ${
+            className={`relative -translate-y-[12px] transform-gpu overflow-hidden rounded-[2.05rem] border-[4px] border-[#b98e4d] px-5 pb-1 pt-3 shadow-[0_18px_34px_rgba(52,38,14,0.18),0_4px_0_rgba(116,78,31,0.18),inset_0_0_0_2px_rgba(255,252,235,0.96),inset_0_18px_28px_rgba(255,255,255,0.30)] ring-1 ring-[#fff7d6]/95 ${
               storeMode === "local"
                 ? "bg-[#fbf1d2]"
                 : "bg-[#fcf4da]"
@@ -11099,7 +11107,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               />
             </div>
 
-            <div className="mt-1">
+            <div className="mt-0">
               {renderComparedStoreCards(true)}
             </div>
 
