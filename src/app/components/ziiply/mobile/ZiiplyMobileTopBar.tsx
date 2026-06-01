@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_TOPBAR_V5_FULL_REBUILD
+// ZIIPLY_MOBILE_TOPBAR_V6_DEBUG_VISIBLE
 // Uudelleen rakennettu yläpalkki.
 // Säilyttää saman public props -rajapinnan kuin V4.
 // Korjaukset:
@@ -453,7 +453,7 @@ export default function ZiiplyMobileTopBar({
     },
     {
       id: "electricity",
-      title: "SÄHKÖ",
+      title: "SÄHKÖ V6",
       value: effectiveElectricityValue,
       unit: effectiveElectricityText === "c/kWh" ? "c/kWh" : undefined,
       detail: effectiveElectricityText,
@@ -484,6 +484,9 @@ export default function ZiiplyMobileTopBar({
 
   return (
     <div className="fixed inset-x-0 top-[max(env(safe-area-inset-top),0px)] z-[90] mx-auto block w-full px-[6px] pt-[4px] sm:hidden">
+      <div className="pointer-events-none absolute left-[16px] top-[0px] z-[999] rounded-full bg-fuchsia-600 px-3 py-0.5 text-[11px] font-black text-white shadow-[0_2px_6px_rgba(0,0,0,0.35)]">
+        TOPBAR DEBUG V6
+      </div>
       <div className="mx-auto flex h-[82px] w-[calc(100vw-12px)] max-w-none items-center overflow-hidden rounded-[1.75rem] border-[4px] border-[#073d32] bg-[linear-gradient(180deg,#fffdf3_0%,#fff5d9_62%,#ead49a_100%)] px-[7px] shadow-[0_0_0_2px_rgba(255,255,255,0.70)_inset,0_5px_0_rgba(54,39,17,0.20),0_15px_28px_rgba(8,42,35,0.16)]">
         <div className="grid min-w-0 flex-1 grid-cols-[0.92fr_1.02fr_1.25fr_0.86fr] gap-[6px]">
           {panels.map((panel) => {
