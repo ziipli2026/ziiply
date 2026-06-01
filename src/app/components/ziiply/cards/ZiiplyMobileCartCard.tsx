@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_CART_CARD_V21_TITLE_PVM_TOOLBAR_REBUILD
+// ZIIPLY_MOBILE_CART_CARD_V22_LAYOUT_DEBUG_LAYERS
 // Mobiilin Tavarainkeruu-paperivihko.
 // V3:
 // - "Ostoskori" poistettu kokonaan näkyvästä UI:sta.
@@ -25,7 +25,7 @@
 // V13: sulje-nappi kohdistettu A. Virtanen -tekstin vaakatasoon ja symboli pehmennetty.
 // V18B: nimikekentälle lisää vaakasuuntaista tilaa; määrä-/välikenttiä kavennettu maltillisesti.
 
-// V21: Tavarainkeruu siirretty Pvm-viivan tasolle ja toolbar-napit rakennettu uudelleen pieniksi kelluviksi leimoiksi.
+// V22 DEBUG: näkyvät layer-rajat otsikolle, napeille, taulukko-otsikolle, riveille ja footerille.
 // V19: layout-korjaus:
 // - kortti nostettu ylös safe-alueelle, ettei topbar jää näkyviin
 // - korkeus käyttää koko käytettävissä olevan tilan alapalkkia väistäen
@@ -296,7 +296,7 @@ export default function ZiiplyMobileCartCard({
     <div
       className={`fixed inset-0 z-[92] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+5.95rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
-      <section className="ziiply-cart-paper-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-6.9rem)] max-h-[46rem] min-h-[31rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[4px] border-[#6b512a] bg-[#d7b76e] shadow-[0_12px_0_rgba(60,45,20,0.22),0_24px_52px_rgba(0,0,0,0.27)]">
+      <section data-cart-debug="V22" className="ziiply-cart-paper-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-6.9rem)] max-h-[46rem] min-h-[31rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[4px] border-[#6b512a] bg-[#d7b76e] shadow-[0_12px_0_rgba(60,45,20,0.22),0_24px_52px_rgba(0,0,0,0.27)]">
         <div
           className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[#f7edcf] bg-center bg-no-repeat opacity-100"
           style={{
@@ -306,6 +306,25 @@ export default function ZiiplyMobileCartCard({
           }}
         />
         <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[linear-gradient(180deg,rgba(255,250,226,0.30),rgba(238,214,156,0.10))]" />
+
+        {/* V22 DEBUG LAYERS */}
+        <div className="pointer-events-none absolute left-5 right-5 top-[4.05rem] z-[30] h-[2.25rem] rounded border-2 border-fuchsia-500/80 bg-fuchsia-500/10">
+          <span className="absolute -top-4 left-1 rounded bg-fuchsia-600 px-1 text-[9px] font-black text-white">TITLE</span>
+        </div>
+        <div className="pointer-events-none absolute left-5 right-5 top-[6.75rem] z-[30] h-[2.2rem] rounded border-2 border-sky-500/80 bg-sky-500/10">
+          <span className="absolute -top-4 left-1 rounded bg-sky-600 px-1 text-[9px] font-black text-white">BUTTONS</span>
+        </div>
+        <div className="pointer-events-none absolute left-5 right-5 top-[9.02rem] z-[30] h-[1.45rem] rounded border-2 border-orange-500/80 bg-orange-500/10">
+          <span className="absolute -top-4 left-1 rounded bg-orange-600 px-1 text-[9px] font-black text-white">TABLE HEAD</span>
+        </div>
+        <div className="pointer-events-none absolute left-5 right-5 top-[10.6rem] z-[30] h-[4.2rem] rounded border-2 border-lime-500/80 bg-lime-500/10">
+          <span className="absolute -top-4 left-1 rounded bg-lime-600 px-1 text-[9px] font-black text-white">ROWS</span>
+        </div>
+        <div className="pointer-events-none absolute bottom-[5.45rem] left-5 right-5 z-[30] h-[3.1rem] rounded border-2 border-red-500/80 bg-red-500/10">
+          <span className="absolute -top-4 left-1 rounded bg-red-600 px-1 text-[9px] font-black text-white">FOOTER</span>
+        </div>
+
+        <div className="pointer-events-none absolute left-8 top-4 z-[60] rounded-full bg-fuchsia-600 px-3 py-1 text-[10px] font-black text-white shadow">CART DEBUG V22</div>
 
         <header className="relative z-10 shrink-0 px-5 pb-1 pt-[4.05rem]">
           <div className="flex items-start justify-between gap-3">
