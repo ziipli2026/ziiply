@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_CART_CARD_V20_LEDGER_CONTENT_DOWN_ALIGN
+// ZIIPLY_MOBILE_CART_CARD_V21_TITLE_PVM_TOOLBAR_REBUILD
 // Mobiilin Tavarainkeruu-paperivihko.
 // V3:
 // - "Ostoskori" poistettu kokonaan näkyvästä UI:sta.
@@ -25,7 +25,7 @@
 // V13: sulje-nappi kohdistettu A. Virtanen -tekstin vaakatasoon ja symboli pehmennetty.
 // V18B: nimikekentälle lisää vaakasuuntaista tilaa; määrä-/välikenttiä kavennettu maltillisesti.
 
-// V20: sisältöä siirretty pohjakuvaan nähden alemmas; ei muuteta overlayta, korttikokoa tai taustakuvaa.
+// V21: Tavarainkeruu siirretty Pvm-viivan tasolle ja toolbar-napit rakennettu uudelleen pieniksi kelluviksi leimoiksi.
 // V19: layout-korjaus:
 // - kortti nostettu ylös safe-alueelle, ettei topbar jää näkyviin
 // - korkeus käyttää koko käytettävissä olevan tilan alapalkkia väistäen
@@ -307,11 +307,11 @@ export default function ZiiplyMobileCartCard({
         />
         <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[linear-gradient(180deg,rgba(255,250,226,0.30),rgba(238,214,156,0.10))]" />
 
-        <header className="relative z-10 shrink-0 px-5 pb-2 pt-[3.78rem]">
+        <header className="relative z-10 shrink-0 px-5 pb-1 pt-[4.05rem]">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <h2
-                className="ml-[0.95rem] mt-[0.10rem] rotate-[-0.45deg] text-[1.15rem] font-extrabold italic leading-none text-[#314226]/76 drop-shadow-[0_1px_0_rgba(255,247,211,0.52)]"
+                className="ml-[0.98rem] mt-[0.34rem] rotate-[-0.45deg] text-[1.08rem] font-extrabold italic leading-none text-[#314226]/78 drop-shadow-[0_1px_0_rgba(255,247,211,0.52)]"
                 style={{ fontFamily: serifFont }}
               >
                 {title}
@@ -328,22 +328,36 @@ export default function ZiiplyMobileCartCard({
               ✕</button>
           </div>
 
-          <div className="mt-4 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2">
-            <LedgerButton onClick={onSaveList} disabled={!hasItems}>
+          <div className="mt-[1.15rem] grid grid-cols-[auto_auto_1fr_auto] items-center gap-[0.38rem]">
+            <button
+              type="button"
+              onClick={onSaveList}
+              disabled={!hasItems}
+              className={cx(
+                "rounded-[0.46rem] border-[1.5px] border-[#8a6b32] bg-[#fff4d3]/78 px-2.5 py-[0.34rem] text-[0.56rem] font-extrabold leading-none text-[#533819] shadow-[0_1px_0_rgba(91,72,44,0.12),inset_0_0_0_1px_rgba(255,255,255,0.42)] active:translate-y-[1px]",
+                !hasItems && "cursor-not-allowed opacity-45",
+              )}
+              style={{ fontFamily: cooperFont }}
+            >
               Tallenna
-            </LedgerButton>
+            </button>
 
-            <div className="flex justify-start">
-              <LedgerButton onClick={onOpenSavedLists} wide>
-                Näytä ostoslistat{savedListsCount ? ` ${savedListsCount}` : ""}
-              </LedgerButton>
-            </div>
+            <button
+              type="button"
+              onClick={onOpenSavedLists}
+              className="rounded-[0.46rem] border-[1.5px] border-[#8a6b32] bg-[#fff4d3]/78 px-2.5 py-[0.34rem] text-[0.56rem] font-extrabold leading-none text-[#533819] shadow-[0_1px_0_rgba(91,72,44,0.12),inset_0_0_0_1px_rgba(255,255,255,0.42)] active:translate-y-[1px]"
+              style={{ fontFamily: cooperFont }}
+            >
+              Listat{savedListsCount ? ` ${savedListsCount}` : ""}
+            </button>
+
+            <span />
 
             {hasItems ? (
               <button
                 type="button"
                 onClick={onClearCart}
-                className="mt-[0.62rem] rounded-[0.48rem] border-[1.5px] border-[#9a6137] bg-[#ffe0bc]/42 px-2 py-1 text-[0.56rem] font-extrabold lowercase leading-none text-[#7d3414]/82 shadow-[0_1px_0_rgba(91,72,44,0.08)] active:translate-y-[1px]"
+                className="rounded-[0.42rem] border-[1.5px] border-[#9a6137] bg-[#ffe0bc]/48 px-2 py-[0.33rem] text-[0.52rem] font-extrabold lowercase leading-none text-[#7d3414]/84 shadow-[0_1px_0_rgba(91,72,44,0.08)] active:translate-y-[1px]"
                 style={{ fontFamily: serifFont }}
               >
                 tyhjennä
@@ -354,14 +368,14 @@ export default function ZiiplyMobileCartCard({
           </div>
         </header>
 
-        <div className="relative z-10 grid shrink-0 grid-cols-[2.05rem_minmax(0,1fr)_3.25rem_4.45rem] px-6 pt-3 text-[0.54rem] font-black uppercase tracking-[0.18em] text-[#6f5a32]/62" style={{ fontFamily: copperplateFont }}>
+        <div className="relative z-10 grid shrink-0 grid-cols-[2.05rem_minmax(0,1fr)_3.25rem_4.45rem] px-6 pt-2 text-[0.54rem] font-black uppercase tracking-[0.18em] text-[#6f5a32]/62" style={{ fontFamily: copperplateFont }}>
           <span>N:o</span>
           <span>Nimike</span>
           <span className="text-center">Määrä</span>
           <span className="text-right">Hinta</span>
         </div>
 
-        <div className="relative z-10 min-h-0 flex-1 overflow-y-auto px-5 pb-2 pt-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="relative z-10 min-h-0 flex-1 overflow-y-auto px-5 pb-2 pt-[0.62rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {!hasItems ? (
             <div className="mt-5 rounded-[1.1rem] border-[2px] border-dashed border-[#9a7a3d] bg-[#fff4d4]/48 px-4 py-8 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
               <div className="text-[1.02rem] font-extrabold italic text-[#59401e]" style={{ fontFamily: serifFont }}>
