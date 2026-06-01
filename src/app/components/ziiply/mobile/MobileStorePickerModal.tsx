@@ -1,6 +1,6 @@
 "use client";
 
-// V2_MOBILE_STORE_PICKER_MODAL_ID_NUMBER_FIX
+// V3_MOBILE_STORE_PICKER_MODAL_STORESEARCHITEM_COMPAT
 // Irrotettu page.tsx:n renderStorePickerMenu-haarasta omaksi komponentiksi.
 // Tarkoitus:
 // - sama toiminnallinen rakenne kuin nykyisessä pickerissä
@@ -8,6 +8,7 @@
 // - S/K-valinnan värit hillitymmät, ei liian kirkas punainen/vihreä
 // - ei riippuvuutta page.tsx:n sisäisiin tyyppeihin
 // - id voi olla string tai number, koska page.tsx:n StoreSearchItem käyttää numero-id:tä
+// - distance voi olla string tai number, koska page.tsx:n StoreSearchItem voi antaa numeron
 
 import React from "react";
 import { createPortal } from "react-dom";
@@ -21,8 +22,8 @@ export type MobileStorePickerStore = {
   chain?: string;
   city?: string;
   postalCode?: string;
-  distance?: string;
-  distanceLabel?: string;
+  distance?: string | number;
+  distanceLabel?: string | number;
 };
 
 export type MobileStorePickerModalProps = {
@@ -30,7 +31,7 @@ export type MobileStorePickerModalProps = {
   chain: MobileStorePickerChain;
   title: string;
   stores: MobileStorePickerStore[];
-  selectedId?: string | null;
+  selectedId?: string | number | null;
   selectedName?: string | null;
   activeAreaLabel?: string;
   top: number;
@@ -42,7 +43,8 @@ export type MobileStorePickerModalProps = {
 };
 
 function getDistance(store: MobileStorePickerStore, getDistanceLabel?: (store: MobileStorePickerStore) => string) {
-  return getDistanceLabel?.(store) || store.distanceLabel || store.distance || "";
+  const value = getDistanceLabel?.(store) || store.distanceLabel || store.distance || "";
+  return value == null ? "" : String(value);
 }
 
 function isSelectedStore(
@@ -51,7 +53,7 @@ function isSelectedStore(
   selectedName?: string | null,
 ) {
   return Boolean(
-    (selectedId && store.id === selectedId) ||
+    (selectedId != null && store.id != null && String(store.id) === String(selectedId)) ||
       (selectedName && store.name === selectedName),
   );
 }
