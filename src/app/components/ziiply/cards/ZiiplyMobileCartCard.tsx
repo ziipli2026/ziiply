@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_CART_CARD_V19_LEDGER_LAYOUT_REBUILD
+// ZIIPLY_MOBILE_CART_CARD_V20_LEDGER_CONTENT_DOWN_ALIGN
 // Mobiilin Tavarainkeruu-paperivihko.
 // V3:
 // - "Ostoskori" poistettu kokonaan näkyvästä UI:sta.
@@ -25,6 +25,7 @@
 // V13: sulje-nappi kohdistettu A. Virtanen -tekstin vaakatasoon ja symboli pehmennetty.
 // V18B: nimikekentälle lisää vaakasuuntaista tilaa; määrä-/välikenttiä kavennettu maltillisesti.
 
+// V20: sisältöä siirretty pohjakuvaan nähden alemmas; ei muuteta overlayta, korttikokoa tai taustakuvaa.
 // V19: layout-korjaus:
 // - kortti nostettu ylös safe-alueelle, ettei topbar jää näkyviin
 // - korkeus käyttää koko käytettävissä olevan tilan alapalkkia väistäen
@@ -306,11 +307,11 @@ export default function ZiiplyMobileCartCard({
         />
         <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[linear-gradient(180deg,rgba(255,250,226,0.30),rgba(238,214,156,0.10))]" />
 
-        <header className="relative z-10 shrink-0 px-5 pb-2 pt-[3.35rem]">
+        <header className="relative z-10 shrink-0 px-5 pb-2 pt-[3.78rem]">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <h2
-                className="ml-[0.95rem] mt-[-0.04rem] rotate-[-0.45deg] text-[1.15rem] font-extrabold italic leading-none text-[#314226]/76 drop-shadow-[0_1px_0_rgba(255,247,211,0.52)]"
+                className="ml-[0.95rem] mt-[0.10rem] rotate-[-0.45deg] text-[1.15rem] font-extrabold italic leading-none text-[#314226]/76 drop-shadow-[0_1px_0_rgba(255,247,211,0.52)]"
                 style={{ fontFamily: serifFont }}
               >
                 {title}
@@ -327,7 +328,7 @@ export default function ZiiplyMobileCartCard({
               ✕</button>
           </div>
 
-          <div className="mt-3 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2">
+          <div className="mt-4 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2">
             <LedgerButton onClick={onSaveList} disabled={!hasItems}>
               Tallenna
             </LedgerButton>
@@ -353,14 +354,14 @@ export default function ZiiplyMobileCartCard({
           </div>
         </header>
 
-        <div className="relative z-10 grid shrink-0 grid-cols-[2.05rem_minmax(0,1fr)_3.25rem_4.45rem] px-6 pt-1 text-[0.54rem] font-black uppercase tracking-[0.18em] text-[#6f5a32]/62" style={{ fontFamily: copperplateFont }}>
+        <div className="relative z-10 grid shrink-0 grid-cols-[2.05rem_minmax(0,1fr)_3.25rem_4.45rem] px-6 pt-3 text-[0.54rem] font-black uppercase tracking-[0.18em] text-[#6f5a32]/62" style={{ fontFamily: copperplateFont }}>
           <span>N:o</span>
           <span>Nimike</span>
           <span className="text-center">Määrä</span>
           <span className="text-right">Hinta</span>
         </div>
 
-        <div className="relative z-10 min-h-0 flex-1 overflow-y-auto px-5 pb-2 pt-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className="relative z-10 min-h-0 flex-1 overflow-y-auto px-5 pb-2 pt-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {!hasItems ? (
             <div className="mt-5 rounded-[1.1rem] border-[2px] border-dashed border-[#9a7a3d] bg-[#fff4d4]/48 px-4 py-8 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
               <div className="text-[1.02rem] font-extrabold italic text-[#59401e]" style={{ fontFamily: serifFont }}>
@@ -438,7 +439,7 @@ export default function ZiiplyMobileCartCard({
           )}
         </div>
 
-        <footer className="relative z-10 shrink-0 px-5 pb-3 pt-1">
+        <footer className="relative z-10 shrink-0 px-5 pb-3 pt-2">
           <div className="relative mb-2 border-t-[2px] border-[#9b7b3d]/62 pt-2 text-[#473719]">
             <span
               className="absolute left-[68%] top-[0.58rem] -translate-x-1/2 text-[0.76rem] font-extrabold uppercase tracking-[0.04em]"
