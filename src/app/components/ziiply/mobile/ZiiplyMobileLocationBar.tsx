@@ -1,5 +1,15 @@
 "use client";
 
+// V10_LOCATIONBAR_SEAM_AND_PLACEHOLDER_FIX
+// Pohjana V9.
+// Korjaus:
+// - poistettu näkyvät ylä-/alasaumat location barin ympäriltä
+// - ulkokehän shadowa pehmennetty
+// - keskikentälle lisää todellista leveyttä
+// - placeholder pienemmäksi ja tiukemmaksi, jotta "05510 tai Hyvinkää" näkyy kokonaan
+// - GPS/kompassi säilyvät V8/V9-tyylisinä
+// - ei logiikka-, state- tai handler-muutoksia.
+
 // V9_LOCATIONBAR_FINAL_POLISH
 // Pohjana toimiva V8/V7-debug-haara.
 // Korjaus:
@@ -58,14 +68,14 @@ export default function ZiiplyMobileLocationBar({
 
   return (
     <section className="relative w-full">
-      <div className="relative mx-auto grid h-[84px] w-full grid-cols-[64px_minmax(0,1fr)_88px] items-center gap-[9px] rounded-[2.05rem] border-[4px] border-[#0b4638] bg-[linear-gradient(180deg,#fffdf5_0%,#f9efd4_52%,#e9d09a_100%)] p-[8px] shadow-[0_0_0_2px_rgba(255,255,255,0.78)_inset,0_5px_0_rgba(54,39,17,0.22),0_13px_24px_rgba(50,34,12,0.13)]">
-        <div className="pointer-events-none absolute inset-[7px] rounded-[1.65rem] border border-[#ead09a] opacity-80" />
+      <div className="relative mx-auto grid h-[82px] w-full grid-cols-[60px_minmax(0,1fr)_82px] items-center gap-[7px] rounded-[2.05rem] border-[4px] border-[#0b4638] bg-[linear-gradient(180deg,#fffdf5_0%,#f9efd4_56%,#ecd39d_100%)] p-[8px] shadow-[0_0_0_1px_rgba(255,255,255,0.58)_inset,0_3px_0_rgba(54,39,17,0.14),0_8px_16px_rgba(50,34,12,0.09)]">
+        <div className="pointer-events-none absolute inset-[7px] rounded-[1.65rem] border border-[#ead09a]/35 opacity-35" />
 
         <button
           type="button"
           onClick={onGpsClick}
           onMouseDown={(event) => event.preventDefault()}
-          className={`relative z-10 grid h-[64px] w-[64px] place-items-center rounded-[1.45rem] border-[2px] shadow-[inset_0_1px_0_rgba(255,255,255,0.72),0_3px_8px_rgba(7,61,50,0.12)] active:scale-95 ${
+          className={`relative z-10 grid h-[60px] w-[60px] place-items-center rounded-[1.45rem] border-[2px] shadow-[inset_0_1px_0_rgba(255,255,255,0.72),0_3px_8px_rgba(7,61,50,0.12)] active:scale-95 ${
             usingOwnLocation
               ? "border-[#2f9f58] bg-[linear-gradient(180deg,#ebfff0_0%,#98dfad_100%)] ring-4 ring-[#7ee39c]/40"
               : "border-[#c77a7a] bg-[linear-gradient(180deg,#fff1f1_0%,#f0caca_100%)] opacity-95"
@@ -88,7 +98,7 @@ export default function ZiiplyMobileLocationBar({
           </div>
         </button>
 
-        <div className="relative z-10 min-w-0 rounded-[1.48rem] border-[2px] border-[#b89552] bg-[linear-gradient(180deg,#fff7e3_0%,#f4dfac_54%,#ebca86_100%)] px-3 py-[8px] shadow-[inset_0_2px_8px_rgba(91,65,28,0.15),inset_0_0_0_1px_rgba(255,255,255,0.70),0_2px_0_rgba(80,57,20,0.15)]">
+        <div className="relative z-10 min-w-0 rounded-[1.42rem] border-[2px] border-[#b89552] bg-[linear-gradient(180deg,#fff7e3_0%,#f4dfac_54%,#ebca86_100%)] px-[8px] py-[8px] shadow-[inset_0_2px_8px_rgba(91,65,28,0.15),inset_0_0_0_1px_rgba(255,255,255,0.70),0_2px_0_rgba(80,57,20,0.15)]">
           <span className="pointer-events-none absolute left-[9px] top-[9px] h-[6px] w-[6px] rounded-full border border-[#9e793d] bg-[#e6c46f]" />
           <span className="pointer-events-none absolute right-[9px] top-[9px] h-[6px] w-[6px] rounded-full border border-[#9e793d] bg-[#e6c46f]" />
           <span className="pointer-events-none absolute left-[9px] bottom-[9px] h-[6px] w-[6px] rounded-full border border-[#9e793d] bg-[#e6c46f]" />
@@ -104,12 +114,12 @@ export default function ZiiplyMobileLocationBar({
               }
             }}
             placeholder="05510 tai Hyvinkää"
-            className="block h-[31px] w-full min-w-0 bg-transparent text-center text-[16.5px] font-black leading-none tracking-[-0.04em] text-[#241b13] outline-none placeholder:text-[#6f6651] placeholder:text-[16.5px]"
+            className="block h-[30px] w-full min-w-0 bg-transparent text-center text-[15px] font-black leading-none tracking-[-0.065em] text-[#241b13] outline-none placeholder:text-[#6f6651] placeholder:text-[15px]"
             style={{ fontFamily: cooperFont }}
           />
 
           <div
-            className={`mt-[3px] truncate text-center text-[12px] font-black leading-none tracking-[-0.02em] [text-shadow:0_1px_0_rgba(255,255,255,0.78)] ${
+            className={`mt-[3px] truncate text-center text-[11.5px] font-black leading-none tracking-[-0.02em] [text-shadow:0_1px_0_rgba(255,255,255,0.78)] ${
               gpsErrorMessage
                 ? "text-[#b91c1c]"
                 : usingOwnLocation
@@ -124,7 +134,7 @@ export default function ZiiplyMobileLocationBar({
         <button
           type="button"
           onClick={handleMapClick}
-          className="group relative z-10 grid h-[64px] w-[88px] place-items-center overflow-visible rounded-[1.45rem] border-[2px] border-[#65a99c] bg-[linear-gradient(180deg,#b8e4dd_0%,#85c9bd_100%)] shadow-[0_4px_10px_rgba(7,61,50,0.16),inset_0_1px_0_rgba(255,255,255,0.60)] ring-1 ring-[#c7f0e8] active:scale-95"
+          className="group relative z-10 grid h-[60px] w-[82px] place-items-center overflow-visible rounded-[1.45rem] border-[2px] border-[#65a99c] bg-[linear-gradient(180deg,#b8e4dd_0%,#85c9bd_100%)] shadow-[0_4px_10px_rgba(7,61,50,0.16),inset_0_1px_0_rgba(255,255,255,0.60)] ring-1 ring-[#c7f0e8] active:scale-95"
           aria-label="Avaa kartta"
         >
           <span className="pointer-events-none absolute left-[8px] top-[8px] h-[5px] w-[5px] rounded-full border border-[#a98545] bg-[#f3df9f]" />
@@ -134,7 +144,7 @@ export default function ZiiplyMobileLocationBar({
           <img
             src="/icons/ziiply-compass.png"
             alt=""
-            className="h-[54px] w-[54px] object-contain drop-shadow-[0_3px_6px_rgba(7,61,50,0.28)] transition-transform duration-150 group-hover:scale-105 group-active:scale-95"
+            className="h-[50px] w-[50px] object-contain drop-shadow-[0_3px_6px_rgba(7,61,50,0.28)] transition-transform duration-150 group-hover:scale-105 group-active:scale-95"
             draggable={false}
           />
         </button>
