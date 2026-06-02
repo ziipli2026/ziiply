@@ -1,5 +1,13 @@
 "use client";
 
+// V724_MOBILE_SCANNER_TUNING_AND_UNKNOWN_EAN_CART_FALLBACK
+// Pohjana V723.
+// Korjaukset:
+// - mobiiliskannerin html5-qrcode asetukset terävöitetty: fps 20, qrbox dynaamiseksi, environment-kamera ideal-muotoon
+// - kameraconstraints: 1920x1080/2560x1440 ideal, frameRate 30/60, continuous focus/exposure/white balance
+// - zoom ei enää lukitu arvoon 1, vaan yritetään maltillista lähizoomia scannerCore-tuennan päälle
+// - ei-löytynyt EAN lisätään koriin tuntemattomana tuotteena ja kirjataan localStorage-logiin myöhempää selvitystä varten.
+
 // V723_SEARCH_FAIL_OPEN_FIX
 // Pohjana V722.
 // Korjaus hakumoottoriin:
@@ -2179,7 +2187,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     );
   }
 
-  function buildMobileCartShareTextV730() {
+  function buildMobileCartShareTextV729() {
     const lines = cart.map((item: any, index: number) => {
       const name =
         item.name ??
@@ -2197,24 +2205,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return ["Ziiply ostoskori", ...lines].join("\n");
   }
 
-  async function shareTextV730(title: string, text: string) {
+  async function shareTextV729(title: string, text: string) {
     try {
-      if (typeof window === "undefined") return;
-
-      const nav = window.navigator as Navigator & {
-        share?: (data: { title?: string; text?: string }) => Promise<void>;
-        clipboard?: {
-          writeText?: (value: string) => Promise<void>;
-        };
-      };
-
-      if (typeof nav.share === "function") {
-        await nav.share({ title, text });
+      if (typeof navigator !== "undefined" && "share" in navigator) {
+        await navigator.share({ title, text });
         return;
       }
 
-      if (typeof nav.clipboard?.writeText === "function") {
-        await nav.clipboard.writeText(text);
+      if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
         showCartToast("Kori kopioitu");
         return;
       }
@@ -2225,11 +2224,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
   }
 
-  function shareMobileCartV730() {
-    void shareTextV730("Ziiply ostoskori", buildMobileCartShareTextV730());
+  function shareMobileCartV729() {
+    void shareTextV729("Ziiply ostoskori", buildMobileCartShareTextV729());
   }
 
-  function shareMobileCompareStoreV730(storeId: string) {
+  function shareMobileCompareStoreV729(storeId: string) {
     const result = chainResults.find((chainResult) => chainResult.key === storeId);
     const storeName = result?.storeName || result?.chain || "Kauppa";
     const total =
@@ -2249,7 +2248,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       .filter(Boolean)
       .join("\n");
 
-    void shareTextV730(`Ziiply kori: ${storeName}`, text);
+    void shareTextV729(`Ziiply kori: ${storeName}`, text);
   }
 
 
@@ -6452,16 +6451,29 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       await scanner.start(
         {
-          facingMode: { exact: "environment" },
+          // V724: exact voi epäonnistua tai valita iOS/Androidissa hankalan linssin.
+          // ideal antaa selaimelle luvan valita paras takakamera.
+          facingMode: { ideal: "environment" },
         },
         {
-          fps: 12,
-          aspectRatio: 4 / 3,
-          disableFlip: false,
+          // V724: nopeampi decode-sykli. 20fps on yleensä hyvä kompromissi
+          // mobiilin akun, lämmön ja lukunopeuden välillä.
+          fps: 20,
+          aspectRatio: 16 / 9,
+          disableFlip: true,
+          qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
+            const width = Math.floor(viewfinderWidth * 0.88);
+            const height = Math.floor(Math.min(viewfinderHeight * 0.52, width * 0.58));
+            return {
+              width: Math.max(260, width),
+              height: Math.max(130, height),
+            };
+          },
           videoConstraints: {
-            facingMode: "environment",
-            width: { ideal: 1920 },
-            height: { ideal: 1440 },
+            facingMode: { ideal: "environment" },
+            width: { ideal: 2560, min: 1280 },
+            height: { ideal: 1440, min: 720 },
+            frameRate: { ideal: 60, min: 30 },
             focusMode: "continuous",
             exposureMode: "continuous",
             whiteBalanceMode: "continuous",
@@ -6469,7 +6481,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               { focusMode: "continuous" },
               { exposureMode: "continuous" },
               { whiteBalanceMode: "continuous" },
-              { zoom: 1 },
+              // Varsinainen zoomin rajaaminen tehdään scannerCore:ssa capabilityjen mukaan.
+              // Tämä on vain kevyt fallback selaimille, jotka hyväksyvät suoran constraintin.
+              { zoom: 1.6 },
             ],
           },
         },
@@ -6871,13 +6885,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         showScanMissFlash();
       }
 
+      addUnknownScannedEanToCartV724(ean, { lookupSource: "not_found" });
+
       if (externalNames.length > 0) {
         setEanMessage(
-          "Tuote tunnistettiin osittain, mutta valituista kaupoista ei löytynyt tarkkaa EAN-osumaa.",
+          "Tuote tunnistettiin osittain, mutta valituista kaupoista ei löytynyt tarkkaa EAN-osumaa. Lisättiin koriin tunnisteella ja otettiin talteen.",
         );
       } else {
         setEanMessage(
-          "EAN-koodilla ei löytynyt tarkkaa tuotetta valituista kaupoista.",
+          "EAN-koodilla ei löytynyt tarkkaa tuotetta valituista kaupoista. Lisättiin koriin tunnisteella ja otettiin talteen.",
         );
       }
     } catch (error) {
@@ -6899,8 +6915,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setEanResults([]);
       setEanSearchStartedAutomatically(false);
       eanAutoSearchActiveRef.current = false;
+      addUnknownScannedEanToCartV724(ean, { lookupSource: "lookup_error" });
       setEanMessage(
-        "EAN-haku epäonnistui. Kokeile uudelleen tai käytä normaalia hakua.",
+        "EAN-haku epäonnistui verkossa. Lisättiin koriin viivakoodilla ja otettiin talteen.",
       );
     } finally {
       if (eanSearchInFlightRef.current === ean) {
@@ -7072,6 +7089,131 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       window.requestAnimationFrame(() => {
         compareOverlayScrollRef.current?.scrollTo({ top: 0, behavior: "auto" });
       });
+    }
+  }
+
+  function logUnknownScannedEanV724(ean: string, source: "not_found" | "lookup_error") {
+    if (typeof window === "undefined") return;
+
+    try {
+      const key = "ziiply-unknown-scanned-eans-v1";
+      const raw = window.localStorage.getItem(key);
+      const current = raw ? JSON.parse(raw) : [];
+      const entries = Array.isArray(current) ? current : [];
+      const nextEntry = {
+        ean,
+        source,
+        scannedAt: new Date().toISOString(),
+        areaId: (activeArea as any)?.id ?? activeArea?.label,
+        areaName: activeArea?.label,
+        storeMode,
+        storeCompareScope,
+        sStoreId: activeStores.sStoreId,
+        sStoreName: activeStores.sStoreName,
+        kStoreId: activeStores.kStoreId,
+        kStoreName: activeStores.kStoreName,
+        lookupStatus: "pending",
+      };
+
+      const deduped = [
+        nextEntry,
+        ...entries.filter((entry: any) => normalizeEan(entry?.ean) !== ean),
+      ].slice(0, 200);
+
+      window.localStorage.setItem(key, JSON.stringify(deduped));
+    } catch {
+      // localStorage voi olla estetty. Skannerin käyttöä ei pysäytetä tämän takia.
+    }
+  }
+
+  function addUnknownScannedEanToCartV724(
+    ean: string,
+    options: { lookupSource?: "not_found" | "lookup_error" } = {},
+  ) {
+    const normalizedEan = normalizeEan(ean);
+    if (!isUsableEan(normalizedEan)) return;
+
+    logUnknownScannedEanV724(normalizedEan, options.lookupSource || "not_found");
+
+    const unknownName = `Tuntematon tuote · EAN ${normalizedEan}`;
+    let cartLimitReached = false;
+
+    setCart((currentCart) => {
+      const existingItem = currentCart.find((item) => {
+        const itemEan = normalizeEan(item.ean || item.product?.ean);
+        return itemEan === normalizedEan;
+      });
+
+      if (existingItem) {
+        const nextCart = currentCart.map((item) =>
+          item.id === existingItem.id
+            ? { ...item, quantity: item.quantity + 1 }
+            : item,
+        );
+
+        persistCartImmediately(nextCart);
+        void updateChainComparison(nextCart, { openCompare: false });
+        showCartToast(`Määrä +1: ${existingItem.name}`);
+        return nextCart;
+      }
+
+      if (currentCart.length >= MAX_ITEMS) {
+        cartLimitReached = true;
+        return currentCart;
+      }
+
+      const placeholderProduct = {
+        id: `unknown-ean-${normalizedEan}`,
+        name: unknownName,
+        price: 0,
+        ean: normalizedEan,
+        pictureUrl: "",
+        ziiplyUnknownEan: true,
+        lookupStatus: "pending",
+      } as unknown as Product;
+
+      const newItem: CartItem = {
+        id: `unknown-ean-${normalizedEan}-${Date.now()}`,
+        name: unknownName,
+        price: 0,
+        image: "",
+        chain: undefined,
+        storeName: activeStores.sStoreName || activeStores.kStoreName || activeArea?.label || "",
+        quantity: 1,
+        source: "manual",
+        product: placeholderProduct,
+        ean: normalizedEan,
+      } as CartItem;
+
+      const nextCart = [...currentCart, newItem];
+      persistCartImmediately(nextCart);
+      void updateChainComparison(nextCart, { openCompare: false });
+      showCartToast("Ei löytynyt vielä — lisättiin koriin tunnisteella");
+      return nextCart;
+    });
+
+    if (cartLimitReached) {
+      alert(`Demossa ostoskori on rajattu ${MAX_ITEMS} tuotteeseen.`);
+      return;
+    }
+
+    triggerHaptic();
+    setEanInput("");
+    setEanResults([]);
+    setEanLoading(false);
+    setEanSearchStartedAutomatically(false);
+    eanAutoSearchActiveRef.current = false;
+    setLastAutoEanSearch("");
+    setEanMessage("Tuotetta ei löytynyt vielä. Lisättiin koriin viivakoodilla ja otettiin talteen.");
+
+    if (eanScannerOpen || eanHtml5ScannerRef.current) {
+      setEanScannerOpen(true);
+      setEanScannerMessage("Ei löytynyt vielä — otettiin talteen");
+      window.setTimeout(() => {
+        setEanScannerMessage((current) =>
+          current === "Ei löytynyt vielä — otettiin talteen" ? "" : current,
+        );
+      }, 2600);
     }
   }
 
@@ -12354,7 +12496,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             onOpenSavedLists={() => setCartSavePanelOpen((current) => !current)}
             onClearCart={clearCart}
             onCompare={openComparisonView}
-            onShareCart={shareMobileCartV730}
+            onShareCart={shareMobileCartV729}
             onBack={() => {
               setCartModalOpen(false);
               setActiveResult("none");
@@ -12425,7 +12567,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             subtitle={cart.length > 0 ? `${cart.length} tuotetta korissa` : "Lisää tuotteita koriin ja vertaile kauppoja"}
             loading={comparisonLoading}
             onSelectStore={(storeId) => openMobileShoppingListFromCompareV724(storeId)}
-            onShareStore={(storeId) => shareMobileCompareStoreV730(storeId)}
+            onShareStore={(storeId) => shareMobileCompareStoreV729(storeId)}
             onBackToCart={() => {
               setActiveResult("none");
               setCartModalOpen(true);
