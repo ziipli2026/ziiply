@@ -6311,17 +6311,62 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   async function toggleScannerTorch() {
-    try {
-      const video =
-        typeof document !== "undefined"
-          ? (document.querySelector(`#${MOBILE_EAN_SCANNER_REGION_ID} video`) as HTMLVideoElement | null)
-          : null;
-      const stream = video?.srcObject as MediaStream | null;
-      const track = stream?.getVideoTracks?.()[0] || null;
+    const nextTorchState = !scannerTorchOn;
+
+    function getActiveScannerVideoTrack() {
+      if (typeof document === "undefined") return null;
+
+      const selectors = [
+        `#${MOBILE_EAN_SCANNER_REGION_ID} video`,
+        `#${EAN_SCANNER_REGION_ID} video`,
+        "[data-ziiply-mobile-scanner-region] video",
+        "video",
+      ];
+
+      for (const selector of selectors) {
+        const videos = Array.from(document.querySelectorAll(selector)) as HTMLVideoElement[];
+
+        for (const video of videos) {
+          const stream = video.srcObject as MediaStream | null;
+          const track = stream?.getVideoTracks?.()[0] || null;
+
+          if (track && track.readyState === "live") {
+            return track;
+          }
+        }
+      }
+
+      return null;
+    }
+
+    async function applyTorchWithScannerApi() {
+      const scanner = eanHtml5ScannerRef.current;
+      if (!scanner) return false;
+
+      const attempts = [
+        { advanced: [{ torch: nextTorchState }] },
+        { torch: nextTorchState },
+      ];
+
+      for (const constraints of attempts) {
+        try {
+          if (typeof scanner.applyVideoConstraints === "function") {
+            await scanner.applyVideoConstraints(constraints as any);
+            return true;
+          }
+        } catch {
+          // Try the next torch path.
+        }
+      }
+
+      return false;
+    }
+
+    async function applyTorchWithTrack() {
+      const track = getActiveScannerVideoTrack();
 
       if (!track) {
-        setEanScannerMessage("Valoa voi kokeilla vasta, kun kamera on käynnissä.");
-        return;
+        return "no-track" as const;
       }
 
       const capabilities =
@@ -6329,21 +6374,55 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           ? (track.getCapabilities() as any)
           : {};
 
-      if (!capabilities.torch) {
+      const attempts = [
+        { advanced: [{ torch: nextTorchState }] },
+        { torch: nextTorchState },
+      ];
+
+      for (const constraints of attempts) {
+        try {
+          await track.applyConstraints(constraints as any);
+          return true as const;
+        } catch {
+          // Some browsers only accept torch through one exact constraint shape.
+        }
+      }
+
+      // If torch is explicitly not listed, give a clearer message after the attempts.
+      if (!("torch" in capabilities) || capabilities.torch === false) {
+        return "unsupported" as const;
+      }
+
+      return false as const;
+    }
+
+    try {
+      const scannerApiWorked = await applyTorchWithScannerApi();
+      const trackResult = scannerApiWorked ? true : await applyTorchWithTrack();
+
+      if (trackResult === true) {
+        setScannerTorchOn(nextTorchState);
+        setEanScannerMessage(
+          nextTorchState
+            ? "Valo päällä. Jos pakkaus heijastaa, sammuta valo."
+            : "Valo pois päältä.",
+        );
+        return;
+      }
+
+      if (trackResult === "no-track") {
+        setEanScannerMessage("Valoa voi kokeilla vasta, kun kamera on käynnissä.");
+        return;
+      }
+
+      if (trackResult === "unsupported") {
         setEanScannerMessage(
           "Tämä selain tai kamera ei tue taskuvaloa. Hyvä yleisvalo toimii yleensä paremmin.",
         );
         return;
       }
 
-      const nextTorchState = !scannerTorchOn;
-      await track.applyConstraints({ advanced: [{ torch: nextTorchState }] } as any);
-      setScannerTorchOn(nextTorchState);
-      setEanScannerMessage(
-        nextTorchState
-          ? "Valo päällä. Jos pakkaus heijastaa, sammuta valo."
-          : "Valo pois päältä.",
-      );
+      setEanScannerMessage("Taskuvaloa ei saatu vaihdettua tässä selaimessa.");
     } catch {
       setEanScannerMessage("Taskuvaloa ei saatu vaihdettua tässä selaimessa.");
     }
