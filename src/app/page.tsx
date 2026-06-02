@@ -725,6 +725,7 @@ import ZiiplyMobileSearchResultsCard from "./components/ziiply/cards/ZiiplyMobil
 import ZiiplyMobileCartCard from "./components/ziiply/cards/ZiiplyMobileCartCard";
 import ZiiplyMobileScannerCard from "./components/ziiply/cards/ZiiplyMobileScannerCard";
 import ZiiplyMobileProductPickCard from "./components/ziiply/cards/ZiiplyMobileProductPickCard";
+import ZiiplyMobileCompareCard from "./components/ziiply/cards/ZiiplyMobileCompareCard";
 import ZiiplyStoreLocaCard from "./components/ziiply/cards/ZiiplyStoreLocaCard";
 import * as ZiiplyCompareCardModule from "./components/ziiply/cards/ZiiplyCompareCard";
 import ZiiplyMobileHomeView from "./components/ziiply/mobile/ZiiplyMobileHomeView";
@@ -12305,60 +12306,38 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           />
         )}
 
+        {/* V724_MOBILE_COMPARECARD_V1: vanha mobiilin inline-compare / desktop-ZiiplyCompareCard-renderi on poistettu näkyvästä mobiili-UI:sta.
+            Uusi mobiilivertailu tulee erillisestä ZiiplyMobileCompareCard-komponentista, jotta kortin ulkoasu voidaan säätää
+            samaksi muiden mobiilikorttien kanssa ilman päällekkäisiä compare-näkymiä. */}
         {!showLaunchScreen && activeResult === "compare" && !searchPanelOpen && !cartModalOpen && !shopsPanelOpen && !eanModalOpen && (
-          <div
-            className={`fixed inset-0 z-[53] overflow-y-auto bg-[#edf8f4] px-3 pb-[calc(env(safe-area-inset-bottom)+5.9rem)] pt-[calc(env(safe-area-inset-top)+5.35rem)] sm:hidden ziiply-soft-open`}
-          >
-            <div
-              ref={compareOverlayScrollRef}
-              className="mx-auto max-w-md space-y-3"
-            >
-              <ZiiplyCompareCard
-                stores={chainResults
-                  .filter((result) => !result.comingSoon)
-                  .map((result) => ({
-                    id: result.key,
-                    name: result.storeName || result.chain,
-                    chain: result.key === "s" ? "S" : result.key === "k" ? "K" : undefined,
-                    totalPrice: Math.round((result.totalPrice || 0) * 100),
-                    itemCount: result.foundItems,
-                    isBest: cheapest?.key === result.key,
-                    badge: result.missingItems > 0 ? `${result.missingItems} puuttuu` : "Täysi kori",
-                  }))}
-                title="Vertailu"
-                subtitle={cart.length > 0 ? `${cart.length} tuotetta korissa` : "Lisää tuotteita koriin ja vertaile kauppoja"}
-                loading={comparisonLoading}
-              />
-
-              <div className="rounded-[1.5rem] bg-[#fff8df]/95 p-3 shadow-sm ring-1 ring-slate-100">
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={openSearchPanel}
-                    className="rounded-[1rem] bg-green-700 px-3 py-3 text-sm font-black text-white shadow-sm active:scale-[0.98]"
-                  >
-                    Lisää tuote
-                  </button>
-                  <button
-                    type="button"
-                    onClick={showCart}
-                    className="rounded-[1rem] bg-slate-900 px-3 py-3 text-sm font-black text-white shadow-sm active:scale-[0.98]"
-                  >
-                    Avaa kori
-                  </button>
-                </div>
-
-                {!storesReadyForSearch && (
-                  <p className="mt-3 rounded-xl bg-amber-50 px-3 py-2 text-center text-xs font-black text-amber-800 ring-1 ring-amber-100">
-                    Valitse kaupat, niin vertailu hakee hinnat.
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
+          <ZiiplyMobileCompareCard
+            open
+            stores={chainResults
+              .filter((result) => !result.comingSoon)
+              .map((result) => ({
+                id: result.key,
+                name: result.storeName || result.chain,
+                chain: result.key === "s" ? "S" : result.key === "k" ? "K" : undefined,
+                totalPrice: Math.round((result.totalPrice || 0) * 100),
+                itemCount: result.foundItems,
+                isBest: cheapest?.key === result.key,
+                badge: result.missingItems > 0 ? `${result.missingItems} puuttuu` : "Täysi kori",
+              }))}
+            title="Vertailu"
+            subtitle={cart.length > 0 ? `${cart.length} tuotetta korissa` : "Lisää tuotteita koriin ja vertaile kauppoja"}
+            loading={comparisonLoading}
+            onBackToCart={showCart}
+            onOpenStore={() => {
+              setActiveResult("none");
+              setSearchPanelOpen(false);
+              setCartModalOpen(false);
+              setCartSavePanelOpen(false);
+              setEanModalOpen(false);
+              setShopsPanelOpen(true);
+            }}
+            onClose={() => setActiveResult("none")}
+          />
         )}
-
-        
 
         {lastCartToast && (
           <div className="fixed left-3 right-3 bottom-[calc(env(safe-area-inset-bottom)+5.5rem)] z-[60] mx-auto max-w-md animate-[ziiplyFade_2.6s_ease-in-out] rounded-2xl bg-emerald-600 px-4 py-3 text-center text-sm font-black text-white shadow-2xl sm:hidden">
