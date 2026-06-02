@@ -246,8 +246,8 @@ function QuantityCell({
         }}
         disabled={!canDecrease}
         className={cx(
-          "absolute left-[17.52rem] top-[2.10rem] grid h-[0.90rem] w-[1.10rem] place-items-center rounded-[0.24rem] text-[1.05rem] font-extrabold leading-none !text-[#e11d12] active:translate-y-[1px] active:bg-[#fff1c6]/38",
-          !canDecrease && "!text-[#e11d12]/25",
+          "absolute left-[17.52rem] top-[2.10rem] grid h-[0.90rem] w-[1.10rem] place-items-center rounded-[0.24rem] text-[1.05rem] font-extrabold leading-none !text-[#b51a12] drop-shadow-[0_0_0.4px_rgba(120,0,0,0.45)] active:translate-y-[1px] active:bg-[#fff1c6]/38",
+          !canDecrease && "!text-[#b51a12]/72 drop-shadow-[0_0_0.4px_rgba(120,0,0,0.30)]",
         )}
         aria-label="Vähennä määrää"
         title="Vähennä määrää"
