@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_COMPARE_SELECTION_CARD_V9_NO_BOTTOM_FOOTER
+// ZIIPLY_MOBILE_COMPARE_SELECTION_CARD_V11_BACK_AND_EXAMPLE_HINTS
 // Kauppakohtainen erittely: isot 2x2-painikkeet, aktiivinen tila vihreänä.
 // Erillistä Peru-nappia ei tarvita: Edullisin palauttaa takaisin halvimman vaihtoehdon logiikkaan.
 
@@ -144,6 +144,33 @@ function getProductImage(item: unknown) {
   return data?.image || data?.imageUrl || data?.product?.image || data?.product?.imageUrl || "";
 }
 
+function getStoreOwnBrandExample(chain?: "S" | "K") {
+  if (chain === "K") return "Pirkka / K-Menu";
+  if (chain === "S") return "Kotimaista / Coop / Xtra";
+  return "Kaupan oma";
+}
+
+function getProductBrandExample(item: unknown) {
+  const name = getItemName(item);
+  const first = name.split(/\s+/).find((part) => /[A-Za-zÅÄÖåäö]/.test(part)) || "sama brändi";
+  return first.replace(/[^\wÅÄÖåäö-]/g, "");
+}
+
+function getQualityHint(mode: QualityMode, item: unknown, chain?: "S" | "K") {
+  switch (mode) {
+    case "cheapest":
+      return "Halvin sopiva";
+    case "same_quality":
+      return "Esim. Pepsi / vastaava";
+    case "own_brands":
+      return `Esim. ${getStoreOwnBrandExample(chain)}`;
+    case "same_brand":
+      return `Esim. ${getProductBrandExample(item)}`;
+    default:
+      return "";
+  }
+}
+
 export default function ZiiplyMobileCompareSelectionCard({
   open = true,
   store,
@@ -157,7 +184,6 @@ export default function ZiiplyMobileCompareSelectionCard({
 }: ZiiplyMobileCompareSelectionCardProps) {
   if (!open) return null;
 
-  void onBack;
   void onSelectStore;
 
   const rows = ((store.matches && store.matches.length > 0 ? store.matches : items) || []) as ZiiplyCompareSelectionItem[];
@@ -264,7 +290,7 @@ export default function ZiiplyMobileCompareSelectionCard({
                                 {label}
                               </div>
                               <div className={active ? "mt-0.5 text-[0.49rem] font-extrabold opacity-90" : "mt-0.5 text-[0.49rem] font-extrabold text-[#6b6048]"}>
-                                {active ? "Valittu" : hint}
+                                {active ? "Valittu" : getQualityHint(mode, item, store.chain)}
                               </div>
                             </button>
                           );
@@ -293,6 +319,19 @@ export default function ZiiplyMobileCompareSelectionCard({
           </div>
         </main>
 
+
+
+        {onBack ? (
+          <button
+            type="button"
+            onClick={onBack}
+            className="absolute left-[0.78rem] top-[0.88rem] z-[35] grid h-[2.62rem] w-[2.62rem] place-items-center rounded-[0.72rem] border-[2px] border-[#7a5a2a] bg-[linear-gradient(180deg,#f8df98_0%,#d8a84c_100%)] text-[1.28rem] font-black leading-none text-[#2b1a0e] shadow-[0_3px_8px_rgba(0,0,0,0.22),inset_0_0_0_1px_rgba(255,244,200,0.42)] active:translate-y-[1px]"
+            aria-label="Palaa vertailuun"
+            title="Palaa vertailuun"
+          >
+            ←
+          </button>
+        ) : null}
 
         {onClose ? (
           <button
