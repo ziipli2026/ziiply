@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_COMPARE_CARDRESPONSIVE_V34_MOPED_BESIDE_TITLE
+// ZIIPLY_MOBILE_COMPARE_CARDRESPONSIVE_V37_MOPED_20_PERCENT_BIGGER
 // Päävertailu muutettu mobiilille: isot kauppakortit, isot AVAA KORI / VALITSE -napit,
 // loading-rakenne näkyy heti oikean näköisenä. Visuaalinen linja pysyy Ziiplyn paperi/retro-maailmassa.
 
@@ -108,6 +108,15 @@ function StoreLoadingCard({ index }: { index: number }) {
           {chain}
         </div>
 
+        {index === 0 ? (
+          <div
+            className="absolute left-[12.75rem] top-[1.55rem] z-10 text-[0.72rem] font-black italic tracking-[0.02em] text-[#28402a]/86"
+            style={{ fontFamily: cooperFont }}
+          >
+            Haetaan...
+          </div>
+        ) : null}
+
         <div className="min-w-0">
           <span className="block truncate text-[0.92rem] font-black leading-tight text-transparent">
             Kaupan nimi
@@ -154,19 +163,14 @@ function StoreLoadingCard({ index }: { index: number }) {
 
 function RetroMopedOverlay() {
   return (
-    <div className="pointer-events-none absolute left-[12.9rem] top-[11.15rem] z-[21] h-[6.6rem] w-[12.5rem] overflow-hidden">
-      <div className="ziiply-retro-moped absolute left-0 top-0 flex flex-col items-center">
+    <div className="pointer-events-none absolute left-[13.05rem] top-[11.72rem] z-[21] h-[4.55rem] w-[11.4rem] overflow-hidden">
+      <div className="ziiply-retro-moped-drive absolute left-0 top-0 flex flex-col items-center">
         <img
           src="/icons/ziiply-retro-moped-loader.png"
           alt="Haetaan..."
-          className="h-[4.9rem] w-auto opacity-[0.97] drop-shadow-[0_2px_2px_rgba(44,28,8,0.24)]"
+          className="h-[3.90rem] w-auto opacity-[0.97] drop-shadow-[0_2px_2px_rgba(44,28,8,0.24)]"
         />
-        <div
-          className="mt-[0.05rem] whitespace-nowrap text-[0.62rem] font-black italic tracking-[0.02em] text-[#28402a]/86"
-          style={{ fontFamily: cooperFont }}
-        >
-          Haetaan...
-        </div>
+
       </div>
     </div>
   );
@@ -422,7 +426,7 @@ export default function ZiiplyMobileCompareCardresponsive({
 
           @keyframes ziiplyRetroMopedRide {
             0% {
-              transform: translateX(-4.6rem);
+              transform: translateX(-6.4rem);
               opacity: 0;
             }
 
@@ -435,13 +439,13 @@ export default function ZiiplyMobileCompareCardresponsive({
             }
 
             100% {
-              transform: translateX(7.6rem);
+              transform: translateX(10.4rem);
               opacity: 0;
             }
           }
 
-          .ziiply-retro-moped {
-            animation: ziiplyRetroMopedRide 1.95s linear infinite;
+          .ziiply-retro-moped-drive {
+            animation: ziiplyRetroMopedRide 1.35s linear infinite;
             will-change: transform, opacity;
           }
 
