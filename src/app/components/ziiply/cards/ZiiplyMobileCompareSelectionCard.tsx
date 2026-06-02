@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_COMPARE_SELECTION_CARD_V12_PAPER_BACK_TAG
+// ZIIPLY_MOBILE_COMPARE_SELECTION_CARD_V13_LEATHER_BACK_ARROW
 // Kauppakohtainen erittely: isot 2x2-painikkeet, aktiivinen tila vihreänä.
 // V12: paluu vasempaan yläkulmaan paperilappu-/hintalappu-tyyliin mockupin mukaan.
 // Selection-kortille EI lisätä jaa-koria; vain paluu vertailuun ja sulje.
@@ -326,13 +326,13 @@ export default function ZiiplyMobileCompareSelectionCard({
           <button
             type="button"
             onClick={onBack}
-            className="absolute left-[0.78rem] top-[0.88rem] z-[35] grid h-[2.76rem] w-[2.34rem] place-items-center rounded-b-[0.42rem] rounded-t-[0.22rem] border-[1.8px] border-[#7b5c2a] bg-[linear-gradient(180deg,#f5dfac_0%,#d6ad66_100%)] text-[#2b1a0e] shadow-[0_3px_7px_rgba(50,31,13,0.24),inset_0_0_0_1px_rgba(255,250,224,0.46)] active:translate-y-[1px]"
-            aria-label="Palaa vertailuun"
-            title="Palaa vertailuun"
+            className="absolute left-[0.78rem] top-[0.88rem] z-[35] grid h-[2.30rem] w-[2.58rem] place-items-center rounded-l-[0.42rem] rounded-r-[0.82rem] border-[2px] border-[#2b1a0e] bg-[linear-gradient(135deg,#7a4c2d_0%,#3b2414_78%)] text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.22),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]"
+            aria-label="Takaisin"
+            title="Takaisin"
           >
-            <span className="absolute -top-[0.82rem] left-1/2 h-[0.95rem] w-[1px] -translate-x-1/2 bg-[#5a371c]" />
-            <span className="absolute top-[0.22rem] h-[0.36rem] w-[0.36rem] rounded-full border border-[#7b5c2a] bg-[#fff2c7]" />
-            <span className="mt-[0.34rem] text-[1.32rem] font-black leading-none">←</span>
+            <span className="grid h-[1.42rem] w-[1.42rem] place-items-center rounded-full border border-[#6b421f] bg-[radial-gradient(circle_at_35%_35%,#f6c46c_0%,#b0752a_52%,#65401f_100%)] text-[1rem] text-[#2b1a0e] shadow-[0_1px_2px_rgba(0,0,0,0.28)]">
+              ←
+            </span>
           </button>
         ) : null}
 
