@@ -214,21 +214,26 @@ export function ZiiplyBottomNav({
   onCartClick,
   onCompareClick,
 }: ZiiplyBottomNavProps) {
-  const baseButtonClass =
-    "relative flex flex-col items-center justify-center rounded-[1.05rem] px-2 py-2 text-xs font-black tracking-[-0.01em] transition active:scale-[0.98]";
+  const buttonShellClass =
+    "relative flex min-w-0 items-center justify-center rounded-[1.25rem] px-1 py-1 text-xs font-black tracking-[-0.01em] transition active:scale-[0.985]";
 
-  const activeButtonClass =
-    "bg-[#496f4b] text-[#fff8ea] shadow-[inset_0_1px_0_rgba(255,255,255,0.28),0_4px_10px_rgba(39,58,36,0.22)] ring-1 ring-[#2f4d34]/35";
+  // V4: aktiivinen tila ei enää väritä koko tabia, vaan icon+teksti saavat oman
+  // pienemmän emalttimerkin. Näin palkki pysyy paperipaneelina eikä muutu raskaaksi vihreäksi blokiksi.
+  const innerBaseClass =
+    "relative flex min-h-[58px] w-full max-w-[86px] flex-col items-center justify-center rounded-[1.05rem] px-2 py-1.5 transition";
 
-  const idleButtonClass =
-    "text-[#4e4638] active:bg-[#e7deca]/70";
+  const activeInnerClass =
+    "bg-[linear-gradient(180deg,#5f875e_0%,#466b49_100%)] text-[#fff8ea] shadow-[inset_0_2px_0_rgba(255,255,255,0.20),inset_0_-2px_0_rgba(20,42,24,0.18),0_4px_10px_rgba(42,58,34,0.20)] ring-1 ring-[#2f4d34]/40";
 
-  const promptedButtonClass =
-    "bg-[#edf3df]/72 text-[#36513a] ring-1 ring-[#9fb18f]/45 shadow-[0_0_16px_rgba(82,112,72,0.12)]";
+  const idleInnerClass =
+    "text-[#4e4638] active:bg-[#e7deca]/64";
 
-  const disabledButtonClass = initialStoreSelectionLocked
+  const promptedInnerClass =
+    "bg-[#edf3df]/78 text-[#36513a] shadow-[inset_0_1px_0_rgba(255,255,255,0.70),0_0_13px_rgba(82,112,72,0.12)] ring-1 ring-[#9fb18f]/45";
+
+  const disabledInnerClass = initialStoreSelectionLocked
     ? "cursor-not-allowed bg-[#fff0e7] text-[#c98a73] ring-1 ring-[#e5b49f]/70 opacity-85"
-    : "cursor-not-allowed bg-[#e7e2d7]/70 text-[#9d978b] opacity-70";
+    : "cursor-not-allowed bg-[#e7e2d7]/62 text-[#9d978b] opacity-70";
 
   const badgeClass = cartModalOpen
     ? "bg-[#fff8ea] text-[#2f7041] ring-1 ring-[#2f7041]/25 shadow-[0_2px_5px_rgba(39,58,36,0.14)]"
@@ -241,62 +246,71 @@ export function ZiiplyBottomNav({
   const searchDisabled = searchBottomNavDisabled && !searchPanelOpen;
   const cartDisabled = cartLength === 0;
   const compareDisabled = cartLength === 0;
-  const iconClass = "h-[26px] w-[26px] drop-shadow-[0_1px_0_rgba(255,255,255,0.45)]";
+  const iconClass = "h-[30px] w-[30px] drop-shadow-[0_1px_0_rgba(255,255,255,0.45)]";
+  const labelClass = "mt-0.5 block leading-none";
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-transparent px-3 pb-[calc(env(safe-area-inset-bottom)+0.62rem)] pt-2 sm:hidden">
-      <div className="mx-auto grid max-w-md grid-cols-4 gap-1.5 rounded-[1.55rem] border border-[#9fb18f]/70 bg-[linear-gradient(180deg,#fbf7ef_0%,#f1ebde_100%)] p-1.5 shadow-[0_10px_28px_rgba(64,50,26,0.13)]">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-transparent px-3 pb-[calc(env(safe-area-inset-bottom)+0.58rem)] pt-2 sm:hidden">
+      <div className="mx-auto grid max-w-md grid-cols-4 gap-1 rounded-[1.55rem] border border-[#8f7a55]/35 bg-[linear-gradient(180deg,#fbf7ef_0%,#efe7d7_100%)] p-[5px] shadow-[inset_0_1px_0_rgba(255,255,255,0.86),0_9px_24px_rgba(64,50,26,0.13)] ring-1 ring-[#d7ccb5]/55">
         <button
           type="button"
           onClick={onShopsClick}
           aria-disabled={false}
-          className={`${baseButtonClass} ${shopsPanelOpen ? activeButtonClass : initialStoreNavPrompt ? promptedButtonClass : idleButtonClass}`}
+          className={buttonShellClass}
         >
-          <ZiiplyNavIcon type="shops" active={shopsActive} className={iconClass} />
-          <span className="mt-1 block">Kaupat</span>
+          <span className={`${innerBaseClass} ${shopsActive ? activeInnerClass : initialStoreNavPrompt ? promptedInnerClass : idleInnerClass}`}>
+            <ZiiplyNavIcon type="shops" active={shopsActive} className={iconClass} />
+            <span className={labelClass}>Kaupat</span>
+          </span>
         </button>
 
         <button
           type="button"
           onClick={onSearchClick}
-          disabled={searchBottomNavDisabled && !searchPanelOpen}
-          aria-disabled={searchBottomNavDisabled && !searchPanelOpen}
-          className={`${baseButtonClass} ${searchPanelOpen ? activeButtonClass : searchBottomNavDisabled ? disabledButtonClass : idleButtonClass}`}
+          disabled={searchDisabled}
+          aria-disabled={searchDisabled}
+          className={buttonShellClass}
         >
-          <span
-            key={searchReadyBounceKeyV320}
-            className={!searchBottomNavDisabled && storesReadyForSearch ? "ziiply-search-ready-bounce" : undefined}
-          >
-            <ZiiplyNavIcon type="search" active={searchActive} disabled={searchDisabled} className={iconClass} />
+          <span className={`${innerBaseClass} ${searchActive ? activeInnerClass : searchDisabled ? disabledInnerClass : idleInnerClass}`}>
+            <span
+              key={searchReadyBounceKeyV320}
+              className={!searchDisabled && storesReadyForSearch ? "ziiply-search-ready-bounce" : undefined}
+            >
+              <ZiiplyNavIcon type="search" active={searchActive} disabled={searchDisabled} className={iconClass} />
+            </span>
+            <span className={labelClass}>Hae</span>
           </span>
-          <span className="mt-1 block">Hae</span>
         </button>
 
         <button
           type="button"
           onClick={onCartClick}
-          disabled={cartLength === 0}
-          aria-disabled={cartLength === 0}
-          className={`${baseButtonClass} ${cartLength === 0 ? disabledButtonClass : cartModalOpen ? activeButtonClass : idleButtonClass}`}
+          disabled={cartDisabled}
+          aria-disabled={cartDisabled}
+          className={buttonShellClass}
         >
-          <ZiiplyNavIcon type="cart" active={cartActive} disabled={cartDisabled} className={iconClass} />
-          <span className="mt-1 block">Kori</span>
-          {cartLength > 0 && (
-            <span className={`absolute right-2 top-1 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-black ${badgeClass}`}>
-              {cartLength}
-            </span>
-          )}
+          <span className={`${innerBaseClass} ${cartDisabled ? disabledInnerClass : cartActive ? activeInnerClass : idleInnerClass}`}>
+            <ZiiplyNavIcon type="cart" active={cartActive} disabled={cartDisabled} className={iconClass} />
+            <span className={labelClass}>Kori</span>
+            {cartLength > 0 && (
+              <span className={`absolute right-[7px] top-[5px] flex h-[18px] min-w-[18px] items-center justify-center rounded-full px-1 text-[10px] font-black leading-none ${badgeClass}`}>
+                {cartLength}
+              </span>
+            )}
+          </span>
         </button>
 
         <button
           type="button"
           onClick={onCompareClick}
-          disabled={cartLength === 0}
-          aria-disabled={cartLength === 0}
-          className={`${baseButtonClass} ${cartLength === 0 ? disabledButtonClass : activeResult === "compare" && !searchPanelOpen && !cartModalOpen ? activeButtonClass : idleButtonClass}`}
+          disabled={compareDisabled}
+          aria-disabled={compareDisabled}
+          className={buttonShellClass}
         >
-          <ZiiplyNavIcon type="compare" active={compareActive} disabled={compareDisabled} className={iconClass} />
-          <span className="mt-1 block">Vertailu</span>
+          <span className={`${innerBaseClass} ${compareDisabled ? disabledInnerClass : compareActive ? activeInnerClass : idleInnerClass}`}>
+            <ZiiplyNavIcon type="compare" active={compareActive} disabled={compareDisabled} className={iconClass} />
+            <span className={labelClass}>Vertailu</span>
+          </span>
         </button>
       </div>
     </nav>
