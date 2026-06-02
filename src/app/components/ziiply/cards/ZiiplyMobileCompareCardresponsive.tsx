@@ -1,12 +1,13 @@
 "use client";
 
-// ZIIPLY_MOBILE_COMPARE_CARD_RESPONSIVE_V4_LEDGER_TABLE
-// Vertailu muutettu samaan maailmaan kuin mobiilikorin tavarainkeruuvihko:
-// - ei moderneja isoja kauppakortteja
-// - kaupat paperille riveinä kuin vanha hintavertailuluettelo
-// - PARAS näkyy leimamaisena merkintänä
-// - hinta oikeassa laidassa, kaupan tiedot vasemmalla
-// - footer pysyy selkeänä ja peukalokäyttöisenä
+// ZIIPLY_MOBILE_COMPARE_CARD_RESPONSIVE_V5_LEDGER_SELECT
+// Selkeämpi mobiili-vertailu:
+// - ei modernia dashboardia / kelluvia hintabokseja
+// - sama vihko-/luettelomaailma kuin Tavarainkeruu-korissa
+// - kaupat valittavina riveinä kuten desktopissa
+// - jokaisella rivillä oma "Valitse" toiminto
+// - "Avaa" säilyy erillisenä pienenä toimintona
+// - huokein näkyy hillittynä rivikorostuksena, ei irrallisena widgettinä
 
 import React from "react";
 
@@ -56,7 +57,7 @@ function getCheapestStore(stores: ZiiplyCompareStore[]) {
     .sort((a, b) => (a.totalPrice || 0) - (b.totalPrice || 0))[0];
 }
 
-function chainStamp(chain?: "S" | "K") {
+function getChainLabel(chain?: "S" | "K") {
   if (chain === "S") return "S";
   if (chain === "K") return "K";
   return "–";
@@ -72,6 +73,7 @@ export default function ZiiplyMobileCompareCardresponsive({
   onSelectStore,
   onBack,
   onBackToCart,
+  onOpenStore,
   onClose,
   className = "",
 }: ZiiplyMobileCompareCardresponsiveProps) {
@@ -94,14 +96,15 @@ export default function ZiiplyMobileCompareCardresponsive({
             backgroundPosition: "center top",
           }}
         />
-        <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[linear-gradient(180deg,rgba(255,250,226,0.48),rgba(246,226,172,0.20)_34%,rgba(238,214,156,0.08))]" />
+
+        <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[linear-gradient(180deg,rgba(255,250,226,0.56),rgba(246,226,172,0.22)_32%,rgba(238,214,156,0.10))]" />
         <div className="pointer-events-none absolute inset-[0.42rem] rounded-[1.55rem] border border-dashed border-[#d6a861]/55 shadow-[inset_0_0_0_2px_rgba(27,17,9,0.20)]" />
 
-        <header className="relative z-10 shrink-0 px-5 pb-1 pt-[3.72rem]">
-          <div className="relative min-h-[4.55rem] border-b-[2px] border-[#9b7b3d]/62 pb-2">
-            <div className="pointer-events-none absolute inset-x-[-0.2rem] top-[-0.35rem] h-[4.6rem] rounded-[1.05rem] bg-[#fff6d8]/42" />
+        <header className="relative z-10 shrink-0 px-5 pb-1 pt-[3.62rem]">
+          <div className="relative border-b-[2px] border-[#9b7b3d]/62 pb-2">
+            <div className="pointer-events-none absolute inset-x-[-0.15rem] top-[-0.32rem] h-[4.25rem] rounded-[1.05rem] bg-[#fff6d8]/50" />
 
-            <div className="relative min-w-0 pr-[6.2rem]">
+            <div className="relative min-w-0 pr-[3.25rem]">
               <div
                 className="text-[0.54rem] font-black uppercase tracking-[0.27em] text-[#665d45]/86"
                 style={{ fontFamily: copperplateFont }}
@@ -110,7 +113,7 @@ export default function ZiiplyMobileCompareCardresponsive({
               </div>
 
               <h2
-                className="mt-1 text-[1.92rem] font-black italic leading-none text-[#28402a] drop-shadow-[0_1px_0_rgba(255,247,211,0.68)]"
+                className="mt-1 text-[1.82rem] font-black italic leading-none text-[#28402a] drop-shadow-[0_1px_0_rgba(255,247,211,0.68)]"
                 style={{ fontFamily: cooperFont }}
               >
                 {title}
@@ -120,31 +123,13 @@ export default function ZiiplyMobileCompareCardresponsive({
                 {subtitle || `${comparedCount || stores.length} tuotetta / ${stores.length} kauppaa`}
               </p>
             </div>
-
-            {cheapest ? (
-              <button
-                type="button"
-                onClick={() => onSelectStore?.(cheapest.id)}
-                disabled={!onSelectStore}
-                className="absolute right-[0.02rem] top-[0.54rem] z-10 w-[5.55rem] rotate-[0.2deg] rounded-[0.78rem] border-[2.5px] border-[#0b6330] bg-[linear-gradient(180deg,#139143_0%,#087237_100%)] px-2 py-1.5 text-center text-[#fff0d5] shadow-[0_0_0_2px_rgba(255,255,255,0.18)_inset,0_3px_0_#064a26] active:translate-y-[1px] disabled:opacity-55"
-                title="Valitse huokein"
-                aria-label="Valitse huokein"
-              >
-                <div className="text-[0.45rem] font-black uppercase tracking-[0.15em] opacity-90">
-                  Huokein
-                </div>
-                <div className="mt-0.5 whitespace-nowrap text-[0.90rem] font-black leading-none">
-                  {formatEuro(cheapest.totalPrice)}
-                </div>
-              </button>
-            ) : null}
           </div>
         </header>
 
         <main className="relative z-10 min-h-0 flex-1 overflow-y-auto px-5 pb-3 pt-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <div className="relative overflow-hidden rounded-[1.05rem] border-[2px] border-[#7c663d]/78 bg-[#fff4d8]/66 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.28),0_6px_14px_rgba(72,51,22,0.10)]">
+          <div className="relative overflow-hidden rounded-[1.05rem] border-[2px] border-[#7c663d]/78 bg-[#fff4d8]/72 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]">
             <div
-              className="grid grid-cols-[2.15rem_minmax(0,1fr)_5.55rem] border-b-[1.5px] border-[#9b7b3d]/62 bg-[#efe0b8]/58 px-3 py-1.5 text-[0.52rem] font-black uppercase tracking-[0.14em] text-[#665d45]"
+              className="grid grid-cols-[1.75rem_minmax(0,1fr)_4.72rem] border-b-[1.5px] border-[#9b7b3d]/62 bg-[#efe0b8]/62 px-3 py-1.5 text-[0.52rem] font-black uppercase tracking-[0.14em] text-[#665d45]"
               style={{ fontFamily: copperplateFont }}
             >
               <span>K</span>
@@ -157,14 +142,14 @@ export default function ZiiplyMobileCompareCardresponsive({
                 {Array.from({ length: 4 }).map((_, index) => (
                   <div
                     key={index}
-                    className="grid h-[3.9rem] animate-pulse grid-cols-[2.15rem_minmax(0,1fr)_5.55rem] items-center border-b border-[#d4bd86]/72 px-3"
+                    className="grid h-[4.2rem] animate-pulse grid-cols-[1.75rem_minmax(0,1fr)_4.72rem] items-center border-b border-[#d4bd86]/72 px-3"
                   >
-                    <div className="h-8 w-8 rounded-full bg-[#d1bb7d]" />
+                    <div className="h-7 w-7 rounded-full bg-[#d1bb7d]" />
                     <div>
                       <div className="h-4 w-36 rounded-full bg-[#d1bb7d]" />
                       <div className="mt-2 h-3 w-24 rounded-full bg-[#d1bb7d]" />
                     </div>
-                    <div className="ml-auto h-5 w-20 rounded-full bg-[#d1bb7d]" />
+                    <div className="ml-auto h-5 w-16 rounded-full bg-[#d1bb7d]" />
                   </div>
                 ))}
               </div>
@@ -190,65 +175,107 @@ export default function ZiiplyMobileCompareCardresponsive({
                 const isBest = Boolean(store.isBest || cheapest?.id === store.id);
 
                 return (
-                  <button
+                  <article
                     key={store.id}
-                    type="button"
-                    onClick={() => onSelectStore?.(store.id)}
-                    disabled={!onSelectStore}
                     className={cx(
-                      "relative grid min-h-[3.85rem] w-full grid-cols-[2.15rem_minmax(0,1fr)_5.55rem] items-center border-b border-[#d4bd86]/72 px-3 text-left active:bg-[#fff1c6]/52 disabled:cursor-default",
-                      isBest ? "bg-[#ecf3d5]/72" : "bg-[#fff7df]/48",
+                      "relative grid min-h-[4.72rem] grid-cols-[1.75rem_minmax(0,1fr)_4.72rem] items-center border-b border-[#d4bd86]/72 px-3 py-2",
+                      isBest ? "bg-[#eef4dc]/78" : "bg-[#fff8e5]/50",
                     )}
                   >
-                    <span
+                    <button
+                      type="button"
+                      onClick={() => onSelectStore?.(store.id)}
+                      disabled={!onSelectStore}
                       className={cx(
-                        "grid h-8 w-8 place-items-center rounded-full border-[2px] text-[0.92rem] font-black shadow-[0_1px_2px_rgba(40,28,12,0.18)]",
+                        "grid h-7 w-7 place-items-center rounded-full border-[2px] text-[0.78rem] font-black shadow-[0_1px_2px_rgba(40,28,12,0.18)] active:scale-[0.96] disabled:cursor-default",
                         store.chain === "K"
                           ? "border-[#7e1418] bg-[#c71d24] text-[#fff6d7]"
                           : store.chain === "S"
                             ? "border-[#0b6330] bg-[#0b8f3a] text-[#fff6d7]"
                             : "border-[#5a4427] bg-[#6f6045] text-[#fff6d7]",
                       )}
+                      aria-label={`Valitse ${store.name}`}
+                      title={`Valitse ${store.name}`}
                     >
-                      {chainStamp(store.chain)}
-                    </span>
+                      {getChainLabel(store.chain)}
+                    </button>
 
-                    <span className="min-w-0 pr-2">
-                      <span className="block truncate text-[0.94rem] font-black leading-tight text-[#233020]">
-                        {store.name}
-                      </span>
-
-                      <span className="mt-0.5 flex items-center gap-1.5 text-[0.58rem] font-black uppercase tracking-[0.07em] text-[#6e6d55]">
-                        <span>#{index + 1}</span>
-                        <span>·</span>
-                        <span>{store.itemCount ?? comparedCount ?? 0} tuotetta</span>
-                        {store.distanceKm != null ? (
-                          <>
-                            <span>·</span>
-                            <span>{store.distanceKm.toFixed(1)} km</span>
-                          </>
-                        ) : null}
-                      </span>
-                    </span>
-
-                    <span className="relative flex min-w-0 items-center justify-end">
-                      {isBest ? (
-                        <span className="absolute -left-[0.40rem] top-[1.38rem] rotate-[-2deg] rounded-full border-[2px] border-[#0b6330] bg-[#0b8f3a] px-2 py-[0.12rem] text-[0.52rem] font-black uppercase tracking-[0.07em] text-[#fff6d7] shadow-[0_1px_2px_rgba(20,60,26,0.20)]">
-                          Paras
+                    <div className="min-w-0 pr-2">
+                      <button
+                        type="button"
+                        onClick={() => onSelectStore?.(store.id)}
+                        disabled={!onSelectStore}
+                        className="block max-w-full text-left disabled:cursor-default"
+                        aria-label={`Valitse ${store.name}`}
+                      >
+                        <span className="block truncate text-[0.94rem] font-black leading-tight text-[#233020]">
+                          {store.name}
                         </span>
-                      ) : null}
 
+                        <span className="mt-0.5 flex items-center gap-1.5 text-[0.58rem] font-black uppercase tracking-[0.07em] text-[#6e6d55]">
+                          <span>#{index + 1}</span>
+                          <span>·</span>
+                          <span>{store.itemCount ?? comparedCount ?? 0} tuotetta</span>
+                          {store.distanceKm != null ? (
+                            <>
+                              <span>·</span>
+                              <span>{store.distanceKm.toFixed(1)} km</span>
+                            </>
+                          ) : null}
+                        </span>
+                      </button>
+
+                      <div className="mt-1.5 flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => onSelectStore?.(store.id)}
+                          disabled={!onSelectStore}
+                          className={cx(
+                            "min-h-[1.35rem] rounded-[0.45rem] border-[2px] px-2.5 text-[0.54rem] font-black uppercase tracking-[0.06em] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.25)] active:translate-y-[1px] disabled:opacity-45",
+                            isBest
+                              ? "border-[#0b6330] bg-[#0b8f3a] text-[#fff6d7]"
+                              : "border-[#876b37] bg-[#efe1bd] text-[#28402a]",
+                          )}
+                        >
+                          Valitse
+                        </button>
+
+                        {onOpenStore ? (
+                          <button
+                            type="button"
+                            onClick={() => onOpenStore(store.id)}
+                            className="min-h-[1.35rem] rounded-[0.45rem] border-[2px] border-[#876b37] bg-[#fff1c6]/72 px-2.5 text-[0.54rem] font-black uppercase tracking-[0.06em] text-[#28402a] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.25)] active:translate-y-[1px]"
+                          >
+                            Avaa
+                          </button>
+                        ) : null}
+
+                        {isBest ? (
+                          <span className="rotate-[-2deg] rounded-full border-[2px] border-[#0b6330] bg-[#0b8f3a] px-2 py-[0.08rem] text-[0.50rem] font-black uppercase tracking-[0.07em] text-[#fff6d7] shadow-[0_1px_2px_rgba(20,60,26,0.20)]">
+                            Paras
+                          </span>
+                        ) : null}
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => onSelectStore?.(store.id)}
+                      disabled={!onSelectStore}
+                      className="min-w-0 text-right disabled:cursor-default"
+                      aria-label={`Valitse ${store.name}`}
+                    >
                       <span
                         className={cx(
-                          "block whitespace-nowrap text-right text-[1.14rem] font-black italic leading-none",
+                          "block whitespace-nowrap text-right text-[1.08rem] font-black italic leading-none",
                           isBest ? "text-[#0b7837]" : "text-[#3e301c]",
                         )}
                         style={{ fontFamily: serifFont }}
                       >
                         {formatEuro(store.totalPrice)}
                       </span>
-                    </span>
-                  </button>
+                    </button>
+                  </article>
                 );
               })
             )}
