@@ -2179,6 +2179,70 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     );
   }
 
+  function buildMobileCartShareTextV729() {
+    const lines = cart.map((item: any, index: number) => {
+      const name =
+        item.name ??
+        item.product?.name ??
+        item.title ??
+        item.productName ??
+        "Tuote";
+
+      const quantity = Number(item.quantity ?? item.amount ?? 1);
+      const safeQuantity = Number.isFinite(quantity) && quantity > 0 ? quantity : 1;
+
+      return `${index + 1}. ${name} (${safeQuantity} kpl)`;
+    });
+
+    return ["Ziiply ostoskori", ...lines].join("\n");
+  }
+
+  async function shareTextV729(title: string, text: string) {
+    try {
+      if (typeof navigator !== "undefined" && "share" in navigator) {
+        await navigator.share({ title, text });
+        return;
+      }
+
+      if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        showCartToast("Kori kopioitu");
+        return;
+      }
+
+      showCartToast("Jakaminen ei ole käytettävissä");
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  function shareMobileCartV729() {
+    void shareTextV729("Ziiply ostoskori", buildMobileCartShareTextV729());
+  }
+
+  function shareMobileCompareStoreV729(storeId: string) {
+    const result = chainResults.find((chainResult) => chainResult.key === storeId);
+    const storeName = result?.storeName || result?.chain || "Kauppa";
+    const total =
+      typeof result?.totalPrice === "number"
+        ? `${(result.totalPrice / 100).toFixed(2).replace(".", ",")} €`
+        : "";
+
+    const lines = (result?.matches || []).map((match: Match, index: number) => {
+      const name = match.product?.name || "Tuote";
+      const quantity = Number((match as any).quantity ?? (match as any).cartItem?.quantity ?? 1);
+      const safeQuantity = Number.isFinite(quantity) && quantity > 0 ? quantity : 1;
+
+      return `${index + 1}. ${name} (${safeQuantity} kpl)`;
+    });
+
+    const text = [`Ziiply kori: ${storeName}`, total ? `Yhteensä ${total}` : "", ...lines]
+      .filter(Boolean)
+      .join("\n");
+
+    void shareTextV729(`Ziiply kori: ${storeName}`, text);
+  }
+
 
   const [normalResults, setNormalResults] = useState<Product[]>([]);
   const [normalSearchAttempted, setNormalSearchAttempted] = useState(false);
@@ -12281,6 +12345,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             onOpenSavedLists={() => setCartSavePanelOpen((current) => !current)}
             onClearCart={clearCart}
             onCompare={openComparisonView}
+            onShareCart={shareMobileCartV729}
+            onBack={() => {
+              setCartModalOpen(false);
+              setActiveResult("none");
+            }}
             onRemoveItem={(item: any) => {
               const match = cart.find((cartItem: any) => {
                 const key =
@@ -12336,13 +12405,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 itemCount: result.foundItems,
                 isBest: cheapest?.key === result.key,
                 badge: result.missingItems > 0 ? `${result.missingItems} puuttuu` : "Täysi kori",
-                matches: result.matches || [],
+                matches: (result.matches || []).map((match: Match) => ({
+                  ...match,
+                  chainKey: result.key,
+                  qualityMode: getMatchQualityMode(match),
+                })),
                 missingItems: result.missingItems || 0,
               }))}
             title="Vertailu"
             subtitle={cart.length > 0 ? `${cart.length} tuotetta korissa` : "Lisää tuotteita koriin ja vertaile kauppoja"}
             loading={comparisonLoading}
             onSelectStore={(storeId) => openMobileShoppingListFromCompareV724(storeId)}
+            onShareStore={(storeId) => shareMobileCompareStoreV729(storeId)}
             onBackToCart={() => {
               setActiveResult("none");
               setCartModalOpen(true);
@@ -12350,6 +12424,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             onOpenStore={() => {
               // Mobiilin Avaa/Erittely käsitellään ZiiplyMobileCompareCardresponsive-komponentin sisällä.
               // Ei vaihdeta Kaupat-paneeliin eikä poistuta Vertailu-kortilta.
+            }}
+            onChangeItemQuantity={(match, delta) => {
+              const cartItemId = String((match as any)?.cartItemId || (match as any)?.cartItem?.id || "");
+              if (!cartItemId) return;
+              updateMobileCartItemQuantityV546({ id: cartItemId }, delta);
             }}
             onChangeMatchMode={async (storeId, match, mode) => {
               const chainKey =
@@ -12388,6 +12467,47 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               } catch (error) {
                 console.error(error);
                 showCartToast("Vaihtoehdon haku epäonnistui");
+              }
+            }}
+            onResetMatchMode={async (storeId, match) => {
+              const chainKey =
+                storeId === "k" || storeId === "s"
+                  ? storeId
+                  : ((match as any)?.chainKey === "k" ? "k" : "s");
+
+              const safeMatch = match as Match;
+
+              setMatchQualityMode(
+                safeMatch,
+                "cheapest" as QualityMode,
+                undefined,
+                chainKey as ChainResult["key"],
+              );
+
+              try {
+                const alternatives = await fetchAlternativesForMatch(
+                  chainKey as ChainResult["key"],
+                  safeMatch,
+                  "cheapest" as QualityMode,
+                );
+
+                const replacement = alternatives
+                  .filter((alternative) => getProductPrice(alternative) > 0)
+                  .filter((alternative) =>
+                    productGroupGate(safeMatch.product.name, alternative.name),
+                  )
+                  .sort((a, b) => getProductPrice(a) - getProductPrice(b))[0];
+
+                if (replacement) {
+                  replaceMatchProduct(
+                    chainKey as ChainResult["key"],
+                    safeMatch,
+                    replacement,
+                  );
+                }
+              } catch (error) {
+                console.error(error);
+                showCartToast("Palautus epäonnistui");
               }
             }}
             onClose={() => {
