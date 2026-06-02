@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_COMPARE_CARD_RESPONSIVE_V27_HEADER_NAME_FIX
+// ZIIPLY_MOBILE_COMPARE_CARD_RESPONSIVE_V28_TITLE_SUBTITLE_POSITION
 // Päävertailu muutettu mobiilille: isot kauppakortit, isot AVAA KORI / VALITSE -napit,
 // loading-rakenne näkyy heti oikean näköisenä. Visuaalinen linja pysyy Ziiplyn paperi/retro-maailmassa.
 
@@ -210,15 +210,15 @@ export default function ZiiplyMobileCompareCardresponsive({
         <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[linear-gradient(180deg,rgba(255,250,226,0.58),rgba(246,226,172,0.22)_34%,rgba(238,214,156,0.10))]" />
         <div className="pointer-events-none absolute inset-[0.42rem] rounded-[1.55rem] border border-dashed border-[#d6a861]/55 shadow-[inset_0_0_0_2px_rgba(27,17,9,0.20)]" />
 
-        <header className="relative z-10 shrink-0 px-5 pb-1 pt-[8.86rem]">
-          <div className="mb-2 pl-[2.55rem] pr-1">
+        <header className="relative z-10 shrink-0 px-5 pb-1 pt-[9.02rem]">
+          <div className="mb-2 pl-[3.35rem] pr-1">
             <div
-              className="text-[1.50rem] font-black italic leading-none text-[#28402a] drop-shadow-[0_1px_0_rgba(255,247,211,0.62)]"
+              className="text-[1.46rem] font-black italic leading-none text-[#28402a] drop-shadow-[0_1px_0_rgba(255,247,211,0.62)]"
               style={{ fontFamily: cooperFont }}
             >
               {title}
             </div>
-            <div className="mt-[0.18rem] text-[0.74rem] font-extrabold text-[#5f5034]">
+            <div className="mt-[0.16rem] text-[0.72rem] font-extrabold text-[#5f5034]">
               {subtitle || `${comparedCount || visibleStores.length} tuotetta / ${visibleStores.length} kauppaa`}
             </div>
           </div>
