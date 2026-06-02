@@ -2179,7 +2179,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     );
   }
 
-  function buildMobileCartShareTextV729() {
+  function buildMobileCartShareTextV730() {
     const lines = cart.map((item: any, index: number) => {
       const name =
         item.name ??
@@ -2197,15 +2197,24 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return ["Ziiply ostoskori", ...lines].join("\n");
   }
 
-  async function shareTextV729(title: string, text: string) {
+  async function shareTextV730(title: string, text: string) {
     try {
-      if (typeof navigator !== "undefined" && "share" in navigator) {
-        await navigator.share({ title, text });
+      if (typeof window === "undefined") return;
+
+      const nav = window.navigator as Navigator & {
+        share?: (data: { title?: string; text?: string }) => Promise<void>;
+        clipboard?: {
+          writeText?: (value: string) => Promise<void>;
+        };
+      };
+
+      if (typeof nav.share === "function") {
+        await nav.share({ title, text });
         return;
       }
 
-      if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(text);
+      if (typeof nav.clipboard?.writeText === "function") {
+        await nav.clipboard.writeText(text);
         showCartToast("Kori kopioitu");
         return;
       }
@@ -2216,11 +2225,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
   }
 
-  function shareMobileCartV729() {
-    void shareTextV729("Ziiply ostoskori", buildMobileCartShareTextV729());
+  function shareMobileCartV730() {
+    void shareTextV730("Ziiply ostoskori", buildMobileCartShareTextV730());
   }
 
-  function shareMobileCompareStoreV729(storeId: string) {
+  function shareMobileCompareStoreV730(storeId: string) {
     const result = chainResults.find((chainResult) => chainResult.key === storeId);
     const storeName = result?.storeName || result?.chain || "Kauppa";
     const total =
@@ -2240,7 +2249,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       .filter(Boolean)
       .join("\n");
 
-    void shareTextV729(`Ziiply kori: ${storeName}`, text);
+    void shareTextV730(`Ziiply kori: ${storeName}`, text);
   }
 
 
@@ -12345,7 +12354,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             onOpenSavedLists={() => setCartSavePanelOpen((current) => !current)}
             onClearCart={clearCart}
             onCompare={openComparisonView}
-            onShareCart={shareMobileCartV729}
+            onShareCart={shareMobileCartV730}
             onBack={() => {
               setCartModalOpen(false);
               setActiveResult("none");
@@ -12416,7 +12425,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             subtitle={cart.length > 0 ? `${cart.length} tuotetta korissa` : "Lisää tuotteita koriin ja vertaile kauppoja"}
             loading={comparisonLoading}
             onSelectStore={(storeId) => openMobileShoppingListFromCompareV724(storeId)}
-            onShareStore={(storeId) => shareMobileCompareStoreV729(storeId)}
+            onShareStore={(storeId) => shareMobileCompareStoreV730(storeId)}
             onBackToCart={() => {
               setActiveResult("none");
               setCartModalOpen(true);
