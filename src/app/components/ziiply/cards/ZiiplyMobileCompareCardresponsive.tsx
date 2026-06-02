@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_COMPARE_CARDRESPONSIVE_V31_HEADER_LINE_ALIGN
+// ZIIPLY_MOBILE_COMPARE_CARDRESPONSIVE_V32_RETRO_MOPED_OVERLAY
 // Päävertailu muutettu mobiilille: isot kauppakortit, isot AVAA KORI / VALITSE -napit,
 // loading-rakenne näkyy heti oikean näköisenä. Visuaalinen linja pysyy Ziiplyn paperi/retro-maailmassa.
 
@@ -151,6 +151,19 @@ function StoreLoadingCard({ index }: { index: number }) {
   );
 }
 
+
+function RetroMopedOverlay() {
+  return (
+    <div className="pointer-events-none absolute left-[1.2rem] top-[14.05rem] z-[18] h-[4rem] w-[18rem] overflow-hidden">
+      <img
+        src="/icons/ziiply-retro-moped-loader.png"
+        alt="Selvitetään..."
+        className="ziiply-retro-moped absolute left-0 top-0 h-[3.2rem] w-auto opacity-[0.92]"
+      />
+    </div>
+  );
+}
+
 export default function ZiiplyMobileCompareCardresponsive({
   open = true,
   stores,
@@ -210,7 +223,9 @@ export default function ZiiplyMobileCompareCardresponsive({
         <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[linear-gradient(180deg,rgba(255,250,226,0.58),rgba(246,226,172,0.22)_34%,rgba(238,214,156,0.10))]" />
         <div className="pointer-events-none absolute inset-[0.42rem] rounded-[1.55rem] border border-dashed border-[#d6a861]/55 shadow-[inset_0_0_0_2px_rgba(27,17,9,0.20)]" />
 
-        <header className="pointer-events-none absolute left-[6.15rem] top-[11.95rem] z-20 w-[13.75rem]">
+{showSkeleton ? <RetroMopedOverlay /> : null}
+
+                <header className="pointer-events-none absolute left-[6.15rem] top-[11.95rem] z-20 w-[13.75rem]">
           <div
             className="text-[1.46rem] font-black italic leading-none text-[#28402a] drop-shadow-[0_1px_0_rgba(255,247,211,0.62)]"
             style={{ fontFamily: cooperFont }}
@@ -395,6 +410,32 @@ export default function ZiiplyMobileCompareCardresponsive({
 
 
 
+
+
+          @keyframes ziiplyRetroMopedRide {
+            0% {
+              transform: translateX(-7.5rem);
+              opacity: 0;
+            }
+
+            10% {
+              opacity: 0.92;
+            }
+
+            82% {
+              opacity: 0.92;
+            }
+
+            100% {
+              transform: translateX(17.5rem);
+              opacity: 0;
+            }
+          }
+
+          .ziiply-retro-moped {
+            animation: ziiplyRetroMopedRide 3.8s cubic-bezier(0.2,0.72,0.22,1) infinite;
+            will-change: transform, opacity;
+          }
 
           @media (max-height: 720px) {
             .ziiply-mobile-compare-pop header {
