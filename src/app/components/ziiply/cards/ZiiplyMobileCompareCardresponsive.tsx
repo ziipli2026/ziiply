@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_COMPARE_CARD_RESPONSIVE_V21_RETRO_MOPED_LOADER
+// ZIIPLY_MOBILE_COMPARE_CARD_RESPONSIVE_V22_CLEAN_REPORT_MOPED_LANE
 // Päävertailu muutettu mobiilille: isot kauppakortit, isot AVAA KORI / VALITSE -napit,
 // loading-rakenne näkyy heti oikean näköisenä. Visuaalinen linja pysyy Ziiplyn paperi/retro-maailmassa.
 
@@ -93,67 +93,91 @@ function StoreLoadingCard({ index }: { index: number }) {
       className={[
         "relative overflow-hidden rounded-[1.18rem] border-[2.5px] px-3.5 py-2.5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]",
         best
-          ? "border-[#0b6330] bg-[#ecf3d5]/70"
-          : "border-[#7c663d]/76 bg-[#fff8e5]/70",
+          ? "border-[#0b6330] bg-[#ecf3d5]/54"
+          : "border-[#7c663d]/76 bg-[#fff8e5]/58",
       ].join(" ")}
       aria-label="Haetaan vertailua"
     >
       <div className="grid grid-cols-[2.58rem_minmax(0,1fr)_5.20rem] gap-3">
         <div
           className={[
-            "mt-1 grid h-9 w-9 place-items-center rounded-full border-[2px] text-[1.00rem] font-black shadow-[0_2px_3px_rgba(40,28,12,0.18)]",
+            "mt-1 grid h-9 w-9 place-items-center rounded-full border-[2px] text-[1.00rem] font-black shadow-[0_2px_3px_rgba(40,28,12,0.14)]",
             chain === "K"
-              ? "border-[#7e1418]/55 bg-[#c71d24]/38 text-[#fff6d7]/82"
-              : "border-[#0b6330]/55 bg-[#0b8f3a]/38 text-[#fff6d7]/82",
+              ? "border-[#7e1418]/42 bg-[#c71d24]/26 text-[#fff6d7]/62"
+              : "border-[#0b6330]/42 bg-[#0b8f3a]/26 text-[#fff6d7]/62",
           ].join(" ")}
         >
           {chain}
         </div>
 
         <div className="min-w-0">
-          <div className="h-[1.38rem] w-[86%] rounded-full bg-[#d1bb7d]/48" />
-          <div className="mt-2 h-[0.72rem] w-[58%] rounded-full bg-[#d1bb7d]/42" />
-          <div className="mt-2.5 h-[1.45rem] w-[5.35rem] rounded-[0.45rem] bg-[#d1bb7d]/40" />
+          <div className="h-[1.38rem] w-[86%] rounded-full bg-[#d1bb7d]/32" />
+          <div className="mt-2 h-[0.72rem] w-[58%] rounded-full bg-[#d1bb7d]/26" />
+          <div className="mt-2.5 h-[1.45rem] w-[5.35rem] rounded-[0.45rem] bg-[#d1bb7d]/24" />
         </div>
 
-        <div className="ml-auto mt-2 h-[1.55rem] w-[4.95rem] rounded-full bg-[#d1bb7d]/46" />
+        <div className="ml-auto mt-2 h-[1.55rem] w-[4.95rem] rounded-full bg-[#d1bb7d]/30" />
       </div>
 
       <div className="mt-2.5 grid grid-cols-2 gap-2">
-        <div className="min-h-[2.46rem] rounded-[0.82rem] border-[3px] border-[#0b6330]/45 bg-[#0b8f3a]/30 shadow-[0_0_0_2px_rgba(255,255,255,0.12)_inset]" />
-        <div className="min-h-[2.46rem] rounded-[0.82rem] border-[3px] border-[#7c663d]/55 bg-[#efe1bd]/56 shadow-[0_0_0_2px_rgba(248,237,207,0.55)_inset]" />
+        <div className="min-h-[2.46rem] rounded-[0.82rem] border-[3px] border-[#0b6330]/30 bg-[#0b8f3a]/16 shadow-[0_0_0_2px_rgba(255,255,255,0.10)_inset]" />
+        <div className="min-h-[2.46rem] rounded-[0.82rem] border-[3px] border-[#7c663d]/38 bg-[#efe1bd]/38 shadow-[0_0_0_2px_rgba(248,237,207,0.42)_inset]" />
       </div>
-
-      {index === 0 ? (
-        <div className="pointer-events-none absolute inset-0 overflow-hidden bg-[#fff6d8]/10">
-          <div className="ziiply-moped-loader absolute left-0 top-[43%] flex -translate-y-1/2 items-end gap-2">
-            <div className="ziiply-moped-dust mb-2 h-[0.18rem] w-12 rounded-full bg-[#7c663d]/38" />
-
-            <div className="relative h-11 w-[6.4rem] text-[#28402a] drop-shadow-[0_1px_1px_rgba(44,28,8,0.22)]">
-              <div className="absolute bottom-[0.10rem] left-[0.45rem] h-5 w-5 rounded-full border-[3px] border-current bg-[#fff4d8]/40" />
-              <div className="absolute bottom-[0.10rem] right-[0.56rem] h-5 w-5 rounded-full border-[3px] border-current bg-[#fff4d8]/40" />
-              <div className="absolute bottom-[0.88rem] left-[1.18rem] h-[0.22rem] w-[3.55rem] rotate-[-8deg] rounded-full bg-current" />
-              <div className="absolute bottom-[1.18rem] left-[2.02rem] h-[0.22rem] w-[2.6rem] rotate-[18deg] rounded-full bg-current" />
-              <div className="absolute bottom-[1.70rem] left-[2.45rem] h-[0.34rem] w-[1.62rem] rounded-full bg-current" />
-              <div className="absolute bottom-[2.05rem] right-[1.18rem] h-[0.22rem] w-[1.12rem] rotate-[-22deg] rounded-full bg-current" />
-              <div className="absolute bottom-[2.24rem] right-[0.90rem] h-[0.22rem] w-[0.58rem] rotate-[8deg] rounded-full bg-current" />
-              <div className="absolute bottom-[2.42rem] left-[3.10rem] h-3.5 w-3 rounded-full bg-current" />
-              <div className="absolute bottom-[1.42rem] left-[3.00rem] h-5 w-[0.48rem] rotate-[14deg] rounded-full bg-current" />
-              <div className="absolute bottom-[2.98rem] left-[2.78rem] h-[0.30rem] w-4 rotate-[-8deg] rounded-full bg-current" />
-              <div className="absolute bottom-[1.84rem] left-[0.35rem] h-6 w-7 rounded-[0.25rem] border-[2px] border-current bg-[#fff4d8]/52" />
-              <div className="absolute bottom-[2.36rem] left-[0.58rem] h-[0.20rem] w-4 bg-current" />
-            </div>
-
-            <div
-              className="mb-[-0.10rem] text-[0.86rem] font-black italic text-[#28402a]"
-              style={{ fontFamily: cooperFont }}
-            >
-              Selvitetään...
-            </div>
-          </div>
-        </div>
-      ) : null}
     </article>
+  );
+}
+
+function RetroMopedLoader() {
+  return (
+    <div className="pointer-events-none relative h-[2.85rem] overflow-hidden">
+      <div className="ziiply-moped-lane absolute left-0 top-1/2 flex -translate-y-1/2 items-end gap-2">
+        <svg
+          className="h-[2.35rem] w-[7.15rem] overflow-visible text-[#28402a] drop-shadow-[0_1px_1px_rgba(44,28,8,0.22)]"
+          viewBox="0 0 150 54"
+          aria-hidden="true"
+        >
+          <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="5">
+            <path d="M33 39h44l20-13" />
+            <path d="M59 39 78 22h22" />
+            <path d="M52 24h24" />
+            <path d="M100 26l18-4" />
+            <path d="M34 39l24-15" />
+            <path d="M77 22l-9-11" />
+          </g>
+
+          <g fill="#fff4d8" stroke="currentColor" strokeWidth="5">
+            <circle cx="34" cy="40" r="13" />
+            <circle cx="108" cy="40" r="13" />
+          </g>
+
+          <g fill="currentColor">
+            <path d="M64 11c5 0 9 4 9 9s-4 9-9 9-9-4-9-9 4-9 9-9Z" />
+            <path d="M55 21c9 0 17 7 18 16l-11 1c-1-5-5-9-11-10l4-7Z" />
+            <path d="M44 29c8 2 15 4 23 4l-2 8c-9 0-18-2-26-7l5-5Z" />
+            <path d="M71 36c7-2 16-6 23-10l4 7c-8 5-17 9-25 11l-2-8Z" />
+            <path d="M55 5h24v6H54l1-6Z" />
+          </g>
+
+          <g fill="#fff4d8" stroke="currentColor" strokeWidth="4">
+            <rect x="8" y="15" width="28" height="23" rx="3" />
+            <path d="M13 27h17" />
+          </g>
+
+          <g stroke="currentColor" strokeLinecap="round" strokeWidth="3" opacity="0.45">
+            <path className="ziiply-moped-speedline" d="M-22 39h24" />
+            <path className="ziiply-moped-speedline ziiply-moped-speedline-2" d="M-15 31h18" />
+            <path className="ziiply-moped-speedline ziiply-moped-speedline-3" d="M-8 47h16" />
+          </g>
+        </svg>
+
+        <div
+          className="mb-[0.1rem] whitespace-nowrap text-[0.86rem] font-black italic text-[#28402a]"
+          style={{ fontFamily: cooperFont }}
+        >
+          Selvitetään...
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -241,6 +265,7 @@ export default function ZiiplyMobileCompareCardresponsive({
 
             {showSkeleton ? (
               <>
+                <RetroMopedLoader />
                 <StoreLoadingCard index={0} />
                 <StoreLoadingCard index={1} />
               </>
@@ -408,40 +433,48 @@ export default function ZiiplyMobileCompareCardresponsive({
           }
 
 
-          @keyframes ziiplyMopedDrive {
+          @keyframes ziiplyMopedLaneDrive {
             0% {
               opacity: 0;
-              transform: translate(-7.5rem, -50%) scale(0.96);
+              transform: translate(-9rem, -50%) scale(0.98);
             }
-            12% {
+            10% {
               opacity: 1;
             }
-            82% {
+            84% {
               opacity: 1;
             }
             100% {
               opacity: 0;
-              transform: translate(18.5rem, -50%) scale(0.96);
+              transform: translate(25.5rem, -50%) scale(0.98);
             }
           }
 
-          @keyframes ziiplyMopedDust {
+          @keyframes ziiplyMopedSpeedline {
             0%, 100% {
               opacity: 0.18;
-              transform: translateX(0) scaleX(0.78);
+              transform: translateX(0);
             }
             50% {
-              opacity: 0.50;
-              transform: translateX(-0.25rem) scaleX(1.08);
+              opacity: 0.55;
+              transform: translateX(-0.42rem);
             }
           }
 
-          .ziiply-moped-loader {
-            animation: ziiplyMopedDrive 3.15s cubic-bezier(0.18, 0.72, 0.24, 1) 1 both;
+          .ziiply-moped-lane {
+            animation: ziiplyMopedLaneDrive 4.25s cubic-bezier(0.18, 0.72, 0.24, 1) infinite;
           }
 
-          .ziiply-moped-dust {
-            animation: ziiplyMopedDust 0.72s ease-in-out infinite;
+          .ziiply-moped-speedline {
+            animation: ziiplyMopedSpeedline 0.74s ease-in-out infinite;
+          }
+
+          .ziiply-moped-speedline-2 {
+            animation-delay: 0.14s;
+          }
+
+          .ziiply-moped-speedline-3 {
+            animation-delay: 0.28s;
           }
 
           @media (max-height: 720px) {
