@@ -1,6 +1,6 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V640_SEARCH_OVERLAY_CART_INPUT_FIX
+// ZIIPLY_MOBILE_SEARCH_CARD_V641_NOTEBOOK_BUTTON_WIRED
 // Pohja: v608/v510 toimiva hakulogiikka.
 // Muutettu vain JSX/CSS layout vastaamaan annettua finalleiska-mallia.
 
@@ -48,6 +48,7 @@ export type ZiiplyMobileSearchCardProps = {
 
   onVoiceClick?: () => void;
   onScannerClick?: () => void;
+  onOpenNotebook?: () => void;
   voiceState?: "idle" | "recording" | "processing";
   scannerState?: "idle" | "active" | "processing";
 };
@@ -290,6 +291,7 @@ export default function ZiiplyMobileSearchCard({
   inputRef,
   onVoiceClick,
   onScannerClick,
+  onOpenNotebook,
   voiceState = "idle",
   scannerState = "idle",
 }: ZiiplyMobileSearchCardProps) {
@@ -558,8 +560,8 @@ export default function ZiiplyMobileSearchCard({
 
             <GreenPillButton
               label="Vihkonen"
-              onClick={handleAddInputToCart}
-              disabled={!hasText}
+              onClick={onOpenNotebook}
+              disabled={!onOpenNotebook}
               className="mt-3 h-[3.0rem] w-full text-[1.08rem]"
             />
           </div>
