@@ -26,6 +26,7 @@
 // V18B: nimikekentälle lisää vaakasuuntaista tilaa; määrä-/välikenttiä kavennettu maltillisesti.
 
 // V27: tuoterivi nostettu ensimmäiseen kirjoituskohtaan; YHT. ja summa palautettu oikealle pohjakuvan ala-alueen sarakkeisiin.
+// V47: tasaa tuoterivien pystykorko, rajaa nimike ennen MÄÄRÄ-viivaa ja keskittää alkoholihuomautuksen.
 // V19: layout-korjaus:
 // - kortti nostettu ylös safe-alueelle, ettei topbar jää näkyviin
 // - korkeus käyttää koko käytettävissä olevan tilan alapalkkia väistäen
@@ -244,7 +245,7 @@ function QuantityCell({
         }}
         disabled={!canDecrease}
         className={cx(
-          "absolute left-[17.52rem] top-[2.15rem] grid h-[0.98rem] w-[1.10rem] place-items-center rounded-[0.24rem] text-[1.05rem] font-extrabold leading-none !text-[#e11d12] active:translate-y-[1px] active:bg-[#fff1c6]/38",
+          "absolute left-[17.52rem] top-[2.02rem] grid h-[0.98rem] w-[1.10rem] place-items-center rounded-[0.24rem] text-[1.05rem] font-extrabold leading-none !text-[#e11d12] active:translate-y-[1px] active:bg-[#fff1c6]/38",
           !canDecrease && "!text-[#e11d12]/25",
         )}
         aria-label="Vähennä määrää"
@@ -376,7 +377,7 @@ export default function ZiiplyMobileCartCard({
               </div>
             </div>
           ) : (
-            <div className="space-y-[0.18rem] pb-2">
+            <div className="space-y-0 pb-2">
               {items.map((item, index) => {
                 const originalName = getName(item);
                 const name = ledgerName(originalName);
@@ -389,14 +390,14 @@ export default function ZiiplyMobileCartCard({
                   <article
                     key={String(item.id ?? item.ean ?? index)}
                     className={cx(
-                      "relative block h-[3.35rem] border-b-[1.35px] border-[#b9944d]/68 bg-transparent px-1 py-[0.28rem]",
+                      "relative block h-[3.18rem] border-b-[1.35px] border-[#b9944d]/68 bg-transparent px-1 py-[0.22rem]",
                       checked && "opacity-55",
                     )}
                   >
                     <button
                       type="button"
                       onClick={() => onToggleItem?.(item)}
-                      className="absolute left-[0.24rem] top-[0.58rem] grid h-[1.9rem] w-[2.15rem] place-items-center text-center text-[1.08rem] font-extrabold leading-none text-[#4a3921] active:translate-y-[1px]"
+                      className="absolute left-[0.36rem] top-[0.56rem] grid h-[1.9rem] w-[1.95rem] place-items-center text-center text-[1.08rem] font-extrabold leading-none text-[#4a3921] active:translate-y-[1px]"
                       style={{ fontFamily: serifFont }}
                       aria-label={checked ? "Poista keräilymerkintä" : "Merkitse kerätyksi"}
                     >
@@ -405,7 +406,7 @@ export default function ZiiplyMobileCartCard({
 
                     <div
                       className={cx(
-                        "absolute left-[3.10rem] top-[0.44rem] max-h-[2.12rem] w-[10.75rem] overflow-hidden text-[0.80rem] font-extrabold leading-[1.02] text-[#2f2a1c] [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical]",
+                        "absolute left-[3.36rem] top-[0.43rem] max-h-[2.05rem] w-[9.48rem] overflow-hidden text-[0.80rem] font-extrabold leading-[1.02] text-[#2f2a1c] [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical]",
                         checked && "line-through",
                       )}
                       style={{ fontFamily: serifFont }}
@@ -469,7 +470,7 @@ export default function ZiiplyMobileCartCard({
 
           {hasAlcoholItemsV8 && (
             <div
-              className="mx-auto mb-1 max-w-[18.2rem] rounded-[0.42rem] border border-[#9a6137]/50 bg-[#fff0c7]/52 px-3 py-[0.42rem] text-center text-[0.68rem] font-extrabold italic leading-tight text-[#7b3215]/88"
+              className="relative left-[2.05rem] mx-auto mb-1 max-w-[18.2rem] rounded-[0.42rem] border border-[#9a6137]/50 bg-[#fff0c7]/52 px-3 py-[0.42rem] text-center text-[0.68rem] font-extrabold italic leading-tight text-[#7b3215]/88"
               style={{ fontFamily: serifFont }}
             >
               Alkoholijuomat maksetaan kassalla, eivätkä sisälly yhteissummaan.
