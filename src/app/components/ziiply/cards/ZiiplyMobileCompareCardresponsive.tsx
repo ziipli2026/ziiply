@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_COMPARE_CARDRESPONSIVE_V41_SHARE_TAGS
+// ZIIPLY_MOBILE_COMPARE_CARDRESPONSIVE_V42_SHARE_PROP_FIX
 // Päävertailu muutettu mobiilille: isot kauppakortit, isot AVAA KORI / VALITSE -napit,
 // loading-rakenne näkyy heti oikean näköisenä. Visuaalinen linja pysyy Ziiplyn paperi/retro-maailmassa.
 
@@ -216,6 +216,7 @@ export default function ZiiplyMobileCompareCardresponsive({
   onSelectStore,
   onBack,
   onBackToCart,
+  onShareStore,
   onChangeItemQuantity: _onChangeItemQuantity,
   onChangeMatchMode,
   onResetMatchMode: _onResetMatchMode,
