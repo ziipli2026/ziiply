@@ -643,6 +643,7 @@ import {
   getScannerVideoElement,
   getScannerVideoTrack,
   applyBestEffortScannerCameraTuning,
+  createScannerFallbackLoop,
   focusScannerCameraAtPoint,
   formatDate,
   getProductPrice,
@@ -2486,6 +2487,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const [scanSuccessFlash, setScanSuccessFlash] = useState(false);
   const [scanMissFlash, setScanMissFlash] = useState(false);
   const eanHtml5ScannerRef = useRef<any | null>(null);
+  const eanScannerFallbackStopRef = useRef<null | (() => void)>(null);
   const eanScannerStoppingRef = useRef(false);
   const lastScannerBeepEanRefV582 = useRef("");
   const lastScannerBeepAtRefV594 = useRef(0);
@@ -6433,6 +6435,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   ) {
     const scanner = eanHtml5ScannerRef.current;
     eanHtml5ScannerRef.current = null;
+
+    if (eanScannerFallbackStopRef.current) {
+      eanScannerFallbackStopRef.current();
+      eanScannerFallbackStopRef.current = null;
+    }
     lastContinuousScanRef.current = null;
     resetPendingEanPickCardV606();
     setScannerTorchOn(false);
@@ -6588,6 +6595,21 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       window.requestAnimationFrame(() => {
         void (applyBestEffortScannerCameraTuning as any)(activeScannerRegionId);
+      });
+
+      // V726: html5-qrcode lukee vaakakoodit nyt hyvin. Pysty-EAN jää kuitenkin
+      // joillain selaimilla live-polussa tunnistumatta, joten pidetään rinnalla
+      // oma still-frame fallback, joka kokeilee myös 90/270 asteen rotaatiot.
+      // Tämä ei muuta html5-qrcode:n nopeaa vaakapolkua, vaan täydentää sitä.
+      eanScannerFallbackStopRef.current?.();
+      eanScannerFallbackStopRef.current = createScannerFallbackLoop({
+        regionId: activeScannerRegionId,
+        timeoutMs: 520,
+        onDecoded: (result) => {
+          const code = normalizeEan(result.text);
+          if (isUsableEan(code)) finishScannedEan(code);
+        },
+        onNeedsManualFocus: () => undefined,
       });
     } catch (error) {
       pushGpsDebugLogV492(`useOwnLocation CATCH code=${String((error as any)?.code ?? "?")}`);
