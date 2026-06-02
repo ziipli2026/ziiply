@@ -32,6 +32,7 @@
 // - header / toolbar / taulukko / footer erotettu flex-rakenteeksi
 // - tuoterivit gridillä: N:o | Nimike | Määrä | Hinta
 // - määräsolun sisäinen koordinaattihässäkkä poistettu kevyesti
+// V43: korjaa kuvan perusteella määrä-/hinta-/footer-linjat: määrä keskelle MÄÄRÄ-saraketta, YHT. samaan sarakekeskelle ja summa hinta-sarakkeen keskelle.
 
 import React from "react";
 
@@ -253,7 +254,7 @@ function QuantityCell({
       <button
         type="button"
         onClick={() => onIncrease?.(item)}
-        className="absolute left-[14.92rem] top-[0.74rem] grid h-[1.62rem] w-[2.00rem] place-items-center rounded-[0.32rem] bg-[#fff1c6]/10 text-center text-[0.98rem] font-extrabold leading-none text-[#3d301a] active:translate-y-[1px] active:bg-[#fff1c6]/34"
+        className="absolute left-[14.25rem] top-[0.74rem] grid h-[1.62rem] w-[2.00rem] place-items-center rounded-[0.32rem] bg-[#fff1c6]/10 text-center text-[0.98rem] font-extrabold leading-none text-[#3d301a] active:translate-y-[1px] active:bg-[#fff1c6]/34"
         style={{ fontFamily: serifFont }}
         aria-label="Lisää määrää"
         title="Lisää määrää"
@@ -422,7 +423,7 @@ export default function ZiiplyMobileCartCard({
                       type="button"
                       onClick={() => onRemoveItem?.(item)}
                       className={cx(
-                        "absolute left-[17.02rem] top-[0.74rem] grid h-[1.62rem] w-[3.45rem] place-items-center rounded-[0.24rem] text-center font-extrabold leading-none active:translate-y-[1px] active:bg-[#ffe0bc]/36",
+                        "absolute left-[16.95rem] top-[0.74rem] grid h-[1.62rem] w-[3.45rem] place-items-center rounded-[0.24rem] text-center font-extrabold leading-none active:translate-y-[1px] active:bg-[#ffe0bc]/36",
                         isAlcoholCartItemV8(item)
                           ? "text-center text-[0.86rem] italic text-[#7b3215]/86"
                           : "text-[0.84rem] text-[#3f321f]",
@@ -447,14 +448,14 @@ export default function ZiiplyMobileCartCard({
               className="pointer-events-none absolute left-[-0.25rem] right-[-3.85rem] top-0 block h-[2px] bg-[#9b7b3d]/62"
             />
             <span
-              className="absolute left-[14.02rem] top-[0.12rem] whitespace-nowrap text-center text-[0.76rem] font-extrabold uppercase tracking-[0.04em]"
+              className="absolute left-[13.30rem] top-[0.12rem] grid h-[1.4rem] w-[3.95rem] place-items-center whitespace-nowrap text-center text-[0.76rem] font-extrabold uppercase tracking-[0.04em]"
               style={{ fontFamily: copperplateFont }}
             >
               Yht.
             </span>
 
             <span
-              className="absolute left-[17.02rem] top-[0.14rem] grid h-[1.4rem] w-[3.45rem] place-items-center whitespace-nowrap text-center text-[0.88rem] font-extrabold"
+              className="absolute left-[16.95rem] top-[0.14rem] grid h-[1.4rem] w-[3.45rem] place-items-center whitespace-nowrap text-center text-[0.88rem] font-extrabold"
               style={{ fontFamily: serifFont }}
             >
               {totalPrice.toLocaleString("fi-FI", {
