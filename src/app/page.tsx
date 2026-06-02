@@ -6312,11 +6312,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   async function toggleScannerTorch() {
     try {
-      const track = getScannerVideoTrack();
+      const video =
+        typeof document !== "undefined"
+          ? (document.querySelector(`#${MOBILE_EAN_SCANNER_REGION_ID} video`) as HTMLVideoElement | null)
+          : null;
+      const stream = video?.srcObject as MediaStream | null;
+      const track = stream?.getVideoTracks?.()[0] || null;
+
       if (!track) {
-        setEanScannerMessage(
-          "Valoa voi kokeilla vasta, kun kamera on käynnissä.",
-        );
+        setEanScannerMessage("Valoa voi kokeilla vasta, kun kamera on käynnissä.");
         return;
       }
 
@@ -6324,6 +6328,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         typeof track.getCapabilities === "function"
           ? (track.getCapabilities() as any)
           : {};
+
       if (!capabilities.torch) {
         setEanScannerMessage(
           "Tämä selain tai kamera ei tue taskuvaloa. Hyvä yleisvalo toimii yleensä paremmin.",
@@ -6332,13 +6337,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
 
       const nextTorchState = !scannerTorchOn;
-      await track.applyConstraints({
-        advanced: [{ torch: nextTorchState }],
-      } as any);
+      await track.applyConstraints({ advanced: [{ torch: nextTorchState }] } as any);
       setScannerTorchOn(nextTorchState);
       setEanScannerMessage(
         nextTorchState
-          ? "Valo päällä kokeiluna. Jos pakkaus heijastaa, sammuta valo."
+          ? "Valo päällä. Jos pakkaus heijastaa, sammuta valo."
           : "Valo pois päältä.",
       );
     } catch {
