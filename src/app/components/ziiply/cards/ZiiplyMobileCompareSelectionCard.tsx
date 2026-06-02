@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_COMPARE_SELECTION_CARD_V2_BUILD_FIX
+// ZIIPLY_MOBILE_COMPARE_SELECTION_CARD_V3_MATCH_DETAILS_FIX
 // Kauppakohtainen erittelykortti mobiilin vertailun Avaa-napille.
 // Tärkeää: tämä tiedosto on oikea TSX-moduuli ja exporttaa default-komponentin.
 
@@ -15,6 +15,8 @@ export type ZiiplyCompareSelectionStore = {
   savingsVsHighest?: number;
   distanceKm?: number;
   badge?: string;
+  matches?: unknown[];
+  missingItems?: number;
 };
 
 export type ZiiplyCompareSelectionItem = {
@@ -48,7 +50,7 @@ function formatComparePrice(value: unknown) {
   if (value == null || value === "") return "—";
 
   if (typeof value === "number" && Number.isFinite(value)) {
-    const euros = Math.abs(value) >= 100 ? value / 100 : value;
+    const euros = Math.abs(value) > 20 ? value / 100 : value;
     return `${euros.toFixed(2).replace(".", ",")} €`;
   }
 
@@ -58,7 +60,7 @@ function formatComparePrice(value: unknown) {
 
   const parsed = Number(raw.replace(/\s/g, "").replace(",", "."));
   if (Number.isFinite(parsed)) {
-    const euros = Math.abs(parsed) >= 100 ? parsed / 100 : parsed;
+    const euros = Math.abs(parsed) > 20 ? parsed / 100 : parsed;
     return `${euros.toFixed(2).replace(".", ",")} €`;
   }
 
@@ -67,12 +69,34 @@ function formatComparePrice(value: unknown) {
 
 function getItemName(item: unknown) {
   const data = item as ZiiplyCompareSelectionItem;
-  return String(data?.name || data?.title || data?.productName || "Tuote");
+
+  return String(
+    data?.name ||
+      data?.title ||
+      data?.productName ||
+      data?.product?.name ||
+      data?.cartItem?.name ||
+      data?.originalName ||
+      "Tuote",
+  );
+}
+
+function getItemQuantity(item: unknown) {
+  const data = item as ZiiplyCompareSelectionItem;
+  const quantity = Number(data?.quantity ?? data?.cartItem?.quantity ?? 1);
+  return Number.isFinite(quantity) && quantity > 0 ? quantity : 1;
 }
 
 function getItemPriceForStore(item: unknown, storeId: string) {
   const data = item as ZiiplyCompareSelectionItem;
   const storeSpecific = data?.storePrices?.[storeId];
+
+  // Match-rakenteessa price on yksikköhinta ja quantity rivin määrä.
+  // Näytetään rivin yhteishinta, jotta summa vastaa kaupan kokonaishintaa.
+  if (typeof data?.price === "number" && Number.isFinite(data.price)) {
+    return data.price * getItemQuantity(data);
+  }
+
   return storeSpecific ?? data?.selectedPrice ?? data?.price ?? data?.cheapestPrice;
 }
 
@@ -88,7 +112,7 @@ export default function ZiiplyMobileCompareSelectionCard({
 }: ZiiplyMobileCompareSelectionCardProps) {
   if (!open) return null;
 
-  const rows = items as ZiiplyCompareSelectionItem[];
+  const rows = ((store.matches && store.matches.length > 0 ? store.matches : items) || []) as ZiiplyCompareSelectionItem[];
 
   return (
     <div
@@ -138,7 +162,7 @@ export default function ZiiplyMobileCompareSelectionCard({
 
             {rows.length === 0 ? (
               <div className="px-4 py-8 text-center text-[0.82rem] font-extrabold text-[#6b6048]">
-                Tuote-erittelyä ei ole vielä saatavilla tälle kaupalle.
+                Tälle kaupalle ei löytynyt tuoterivejä vertailusta.
               </div>
             ) : (
               rows.map((item, index) => {
@@ -154,7 +178,7 @@ export default function ZiiplyMobileCompareSelectionCard({
                         {getItemName(item)}
                       </div>
                       <div className="mt-0.5 text-[0.52rem] font-black uppercase tracking-[0.08em] text-[#6e6d55]">
-                        #{index + 1}
+                        #{index + 1} · {getItemQuantity(item)} kpl
                       </div>
                     </div>
 
