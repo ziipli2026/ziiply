@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_COMPARE_SELECTION_CARD_V7_BIG_2X2_ACTIONS
+// ZIIPLY_MOBILE_COMPARE_SELECTION_CARD_V8_FINE_TUNE
 // Kauppakohtainen erittely: isot 2x2-painikkeet, aktiivinen tila vihreänä.
 // Erillistä Peru-nappia ei tarvita: Edullisin palauttaa takaisin halvimman vaihtoehdon logiikkaan.
 
@@ -178,7 +178,7 @@ export default function ZiiplyMobileCompareSelectionCard({
         <header className="relative z-10 shrink-0 px-5 pb-1 pt-[7.65rem]">
           <div className="mb-2 px-1">
             <div
-              className="text-[0.52rem] font-black uppercase tracking-[0.24em] text-[#665d45]/86"
+              className="text-[0.49rem] font-black uppercase tracking-[0.24em] text-[#665d45]/86"
               style={{ fontFamily: copperplateFont }}
             >
               Kaupan erittely
@@ -195,7 +195,7 @@ export default function ZiiplyMobileCompareSelectionCard({
           </div>
         </header>
 
-        <main className="relative z-10 min-h-0 flex-1 overflow-y-auto px-5 pb-3 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <main className="relative z-10 min-h-0 flex-1 overflow-y-auto px-5 pb-[5.6rem] pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div className="space-y-2.5">
             {rows.length === 0 ? (
               <div className="rounded-[1.05rem] border-[2px] border-[#7c663d]/78 bg-[#fff4d8]/72 px-4 py-8 text-center text-[0.82rem] font-extrabold text-[#6b6048] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]">
@@ -212,17 +212,17 @@ export default function ZiiplyMobileCompareSelectionCard({
                     key={String(item.id ?? item.product?.id ?? index)}
                     className="overflow-hidden rounded-[1.05rem] border-[2px] border-[#7c663d]/78 bg-[#fff4d8]/76 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]"
                   >
-                    <div className="grid min-h-[4.05rem] grid-cols-[minmax(0,1fr)_4.65rem] items-center border-b border-[#d4bd86]/72 px-3 py-2">
+                    <div className="grid min-h-[3.72rem] grid-cols-[minmax(0,1fr)_4.65rem] items-center border-b border-[#d4bd86]/72 px-3 py-1.5">
                       <div className="flex min-w-0 items-center gap-2.5 pr-2">
                         {image ? (
-                          <div className="h-11 w-11 shrink-0 overflow-hidden rounded-[0.55rem] border border-[#b99d5c] bg-[#fff8e5]">
+                          <div className="h-10 w-10 shrink-0 overflow-hidden rounded-[0.55rem] border border-[#b99d5c] bg-[#fff8e5]">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src={image} alt="" className="h-full w-full object-contain" />
                           </div>
                         ) : null}
 
                         <div className="min-w-0">
-                          <div className="truncate text-[0.91rem] font-black leading-tight text-[#233020]">
+                          <div className="truncate text-[0.87rem] font-black leading-tight text-[#233020]">
                             {getItemName(item)}
                           </div>
                           <div className="mt-0.5 text-[0.54rem] font-black uppercase tracking-[0.08em] text-[#6e6d55]">
@@ -232,7 +232,7 @@ export default function ZiiplyMobileCompareSelectionCard({
                       </div>
 
                       <div
-                        className="whitespace-nowrap text-right text-[1.02rem] font-black italic text-[#3e301c]"
+                        className="whitespace-nowrap text-right text-[0.98rem] font-black italic text-[#3e301c]"
                         style={{ fontFamily: serifFont }}
                       >
                         {formatComparePrice(price)}
@@ -240,7 +240,7 @@ export default function ZiiplyMobileCompareSelectionCard({
                     </div>
 
                     {onChangeMatchMode ? (
-                      <div className="grid grid-cols-2 gap-2 px-3 py-3">
+                      <div className="grid grid-cols-2 gap-2 px-3 py-2.5">
                         {QUALITY_MODES.map(({ mode, label, hint }) => {
                           const active = currentMode === mode;
 
@@ -249,18 +249,18 @@ export default function ZiiplyMobileCompareSelectionCard({
                               key={mode}
                               type="button"
                               onClick={() => onChangeMatchMode(store.id, item, mode)}
-                              className={`min-h-[2.76rem] rounded-[0.82rem] border-[2.5px] px-2 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.25)] active:translate-y-[1px] ${
+                              className={`min-h-[2.52rem] rounded-[0.82rem] border-[2.5px] px-2 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.25)] active:translate-y-[1px] ${
                                 active
                                   ? "border-[#0b6330] bg-[linear-gradient(180deg,#139143_0%,#087237_100%)] text-[#fff6d7]"
                                   : "border-[#876b37] bg-[#efe1bd] text-[#28402a]"
                               }`}
                               title={label}
                             >
-                              <div className="text-[0.67rem] font-black uppercase tracking-[0.04em]">
+                              <div className="text-[0.62rem] font-black uppercase tracking-[0.04em]">
                                 {active ? "✓ " : ""}
                                 {label}
                               </div>
-                              <div className={active ? "mt-0.5 text-[0.52rem] font-extrabold opacity-90" : "mt-0.5 text-[0.52rem] font-extrabold text-[#6b6048]"}>
+                              <div className={active ? "mt-0.5 text-[0.49rem] font-extrabold opacity-90" : "mt-0.5 text-[0.49rem] font-extrabold text-[#6b6048]"}>
                                 {active ? "Valittu" : hint}
                               </div>
                             </button>
@@ -273,7 +273,7 @@ export default function ZiiplyMobileCompareSelectionCard({
               })
             )}
 
-            <div className="grid grid-cols-[minmax(0,1fr)_5.25rem] items-center rounded-[1.05rem] border-[2px] border-[#7c663d]/78 bg-[#fff7df]/78 px-3 py-2 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]">
+            <div className="grid grid-cols-[minmax(0,1fr)_5.25rem] items-center rounded-[1.05rem] border-[2px] border-[#7c663d]/78 bg-[#fff7df]/78 px-3 py-1.5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]">
               <div
                 className="text-[0.70rem] font-black uppercase tracking-[0.10em] text-[#3e301c]"
                 style={{ fontFamily: copperplateFont }}
@@ -294,7 +294,7 @@ export default function ZiiplyMobileCompareSelectionCard({
           <button
             type="button"
             onClick={onBack}
-            className="min-h-[2.72rem] rounded-[1.0rem] border-[3px] border-[#7c663d] bg-[#efe1bd] px-3 text-[0.75rem] font-black uppercase tracking-[0.04em] text-[#28402a] shadow-[0_0_0_2px_#f8edcf_inset] active:translate-y-[1px]"
+            className="min-h-[2.60rem] rounded-[1.0rem] border-[3px] border-[#7c663d] bg-[#efe1bd] px-3 text-[0.75rem] font-black uppercase tracking-[0.04em] text-[#28402a] shadow-[0_0_0_2px_#f8edcf_inset] active:translate-y-[1px]"
           >
             Takaisin
           </button>
@@ -302,7 +302,7 @@ export default function ZiiplyMobileCompareSelectionCard({
           <button
             type="button"
             onClick={onSelectStore}
-            className="min-h-[2.72rem] rounded-[1.0rem] border-[3px] border-[#0b6330] bg-[linear-gradient(180deg,#139143_0%,#087237_100%)] px-2 text-[0.75rem] font-black uppercase tracking-[0.03em] text-[#fff0d5] shadow-[0_0_0_2px_rgba(255,255,255,0.18)_inset,0_3px_0_#064a26] active:translate-y-[1px]"
+            className="min-h-[2.60rem] rounded-[1.0rem] border-[3px] border-[#0b6330] bg-[linear-gradient(180deg,#139143_0%,#087237_100%)] px-2 text-[0.75rem] font-black uppercase tracking-[0.03em] text-[#fff0d5] shadow-[0_0_0_2px_rgba(255,255,255,0.18)_inset,0_3px_0_#064a26] active:translate-y-[1px]"
           >
             Valitse
           </button>
