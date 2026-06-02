@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_CART_CARD_V42_VISUAL_ALIGNMENT_FIX
+// ZIIPLY_MOBILE_CART_CARD_V52_SHARE_CART_BOTTOM_LEFT
 // Mobiilin Tavarainkeruu-paperivihko.
 // V42: korjaa ostoslistan visuaalisen kohdistuksen: rivit relative, korkeampi rivikorkeus, määrä keskelle, hinnat ja footer vasemmalle samaan linjaan.
 // - "Ostoskori" poistettu kokonaan näkyvästä UI:sta.
@@ -71,6 +71,7 @@ export type ZiiplyMobileCartCardProps = {
   onIncreaseItem?: (item: ZiiplyMobileCartItem) => void;
   onDecreaseItem?: (item: ZiiplyMobileCartItem) => void;
   onCompare?: () => void;
+  onShareCart?: () => void;
   className?: string;
 };
 
@@ -283,6 +284,7 @@ export default function ZiiplyMobileCartCard({
   onIncreaseItem,
   onDecreaseItem,
   onCompare,
+  onShareCart,
   className = "",
 }: ZiiplyMobileCartCardProps) {
   if (!open) return null;
@@ -478,18 +480,32 @@ export default function ZiiplyMobileCartCard({
             </div>
           )}
 
-          <button
-            type="button"
-            onClick={onCompare}
-            disabled={!hasItems}
-            className={cx(
-              "ml-[5.15rem] mt-[0.58rem] block rounded-[0.86rem] border-[3px] border-[#0b6330] bg-gradient-to-b from-[#139143] to-[#087237] px-5 py-[0.44rem] text-[0.82rem] font-extrabold italic text-[#fff0d5] shadow-[0_0_0_2px_rgba(255,255,255,0.18)_inset,0_3px_0_#064a26] active:translate-y-[1px]",
-              !hasItems && "cursor-not-allowed opacity-45",
-            )}
-            style={{ fontFamily: cooperFont }}
-          >
-            Halpuusvertailu
-          </button>
+          <div className="relative mt-[0.58rem] min-h-[2.42rem]">
+            {onShareCart && hasItems ? (
+              <button
+                type="button"
+                onClick={onShareCart}
+                className="absolute left-[0.28rem] top-[-0.10rem] z-[24] grid h-[2.34rem] w-[2.34rem] place-items-center rounded-[0.48rem] border-[2px] border-[#7a5a2a] bg-[linear-gradient(180deg,#f8df98_0%,#d8a84c_100%)] text-[1.12rem] text-[#2b1a0e] shadow-[0_3px_7px_rgba(0,0,0,0.20),inset_0_0_0_1px_rgba(255,244,200,0.42)] active:translate-y-[1px]"
+                aria-label="Jaa ostoskori"
+                title="Jaa ostoskori"
+              >
+                ✉
+              </button>
+            ) : null}
+
+            <button
+              type="button"
+              onClick={onCompare}
+              disabled={!hasItems}
+              className={cx(
+                "ml-[5.15rem] block rounded-[0.86rem] border-[3px] border-[#0b6330] bg-gradient-to-b from-[#139143] to-[#087237] px-5 py-[0.44rem] text-[0.82rem] font-extrabold italic text-[#fff0d5] shadow-[0_0_0_2px_rgba(255,255,255,0.18)_inset,0_3px_0_#064a26] active:translate-y-[1px]",
+                !hasItems && "cursor-not-allowed opacity-45",
+              )}
+              style={{ fontFamily: cooperFont }}
+            >
+              Halpuusvertailu
+            </button>
+          </div>
         </footer>
 
         <button
