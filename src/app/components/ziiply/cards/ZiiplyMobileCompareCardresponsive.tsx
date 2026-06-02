@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_COMPARE_CARD_RESPONSIVE_V12_BIG_ACTION_CARDS
+// ZIIPLY_MOBILE_COMPARE_CARD_RESPONSIVE_V13_BUILD_FIX_NO_RESET_FORWARD
 // Päävertailu muutettu mobiilille: isot kauppakortit, isot AVAA KORI / VALITSE -napit,
 // loading-rakenne näkyy heti oikean näköisenä. Visuaalinen linja pysyy Ziiplyn paperi/retro-maailmassa.
 
@@ -108,7 +108,7 @@ export default function ZiiplyMobileCompareCardresponsive({
   onBack,
   onBackToCart,
   onChangeMatchMode,
-  onResetMatchMode,
+  onResetMatchMode: _onResetMatchMode,
   onClose,
   className = "",
 }: ZiiplyMobileCompareCardresponsiveProps) {
@@ -131,7 +131,6 @@ export default function ZiiplyMobileCompareCardresponsive({
         onBack={() => setDetailsStoreId(null)}
         onSelectStore={() => onSelectStore?.(detailsStore.id)}
         onChangeMatchMode={onChangeMatchMode}
-        onResetMatchMode={onResetMatchMode}
         onClose={onClose}
       />
     );
