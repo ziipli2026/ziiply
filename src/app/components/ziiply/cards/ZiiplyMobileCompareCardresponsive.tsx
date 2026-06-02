@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_COMPARE_CARD_RESPONSIVE_V9_PRICE_DETAILS_FIX
+// ZIIPLY_MOBILE_COMPARE_CARD_RESPONSIVE_V10_FORWARD_QUALITYMODES
 // Selkeämpi mobiili-vertailu:
 // - ei modernia dashboardia / kelluvia hintabokseja
 // - sama vihko-/luettelomaailma kuin Tavarainkeruu-korissa
@@ -37,6 +37,7 @@ export type ZiiplyMobileCompareCardresponsiveProps = {
   onBack?: () => void;
   onBackToCart?: () => void;
   onOpenStore?: (storeId: string) => void; // säilytetty yhteensopivuuden vuoksi, mobiili käyttää sisäistä erittelykorttia
+  onChangeMatchMode?: (storeId: string, match: unknown, mode: "cheapest" | "same_quality" | "own_brands" | "same_brand") => void | Promise<void>;
   onClose?: () => void;
   className?: string;
 };
@@ -82,6 +83,7 @@ export default function ZiiplyMobileCompareCardresponsive({
   onBack,
   onBackToCart,
   onOpenStore,
+  onChangeMatchMode,
   onClose,
   className = "",
 }: ZiiplyMobileCompareCardresponsiveProps) {
@@ -101,6 +103,7 @@ export default function ZiiplyMobileCompareCardresponsive({
         isBest={Boolean(detailsStore.isBest || cheapest?.id === detailsStore.id)}
         onBack={() => setDetailsStoreId(null)}
         onSelectStore={() => onSelectStore?.(detailsStore.id)}
+        onChangeMatchMode={onChangeMatchMode}
         onClose={onClose}
       />
     );
