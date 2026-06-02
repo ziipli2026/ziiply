@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_COMPARE_CARDRESPONSIVE_V38_JS_MOPED_LOADER
+// ZIIPLY_MOBILE_COMPARE_CARDRESPONSIVE_V39_MOPED_SLOWER
 // Päävertailu muutettu mobiilille: isot kauppakortit, isot AVAA KORI / VALITSE -napit,
 // loading-rakenne näkyy heti oikean näköisenä. Visuaalinen linja pysyy Ziiplyn paperi/retro-maailmassa.
 
@@ -167,7 +167,7 @@ function RetroMopedOverlay() {
   useEffect(() => {
     const id = window.setInterval(() => {
       setStep((value) => (value + 1) % 24);
-    }, 55);
+    }, 157);
 
     return () => window.clearInterval(id);
   }, []);
@@ -183,7 +183,7 @@ function RetroMopedOverlay() {
         className="absolute top-0 h-[4.65rem] w-auto opacity-[0.98] drop-shadow-[0_2px_2px_rgba(44,28,8,0.24)]"
         style={{
           transform: `translate3d(${x}px, 0, 0)`,
-          transition: "transform 55ms linear",
+          transition: "transform 157ms linear",
           willChange: "transform",
         }}
       />
