@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_COMPARE_CARD_RESPONSIVE_V13_BUILD_FIX_NO_RESET_FORWARD
+// ZIIPLY_MOBILE_COMPARE_CARD_RESPONSIVE_V14_FINE_TUNE
 // Päävertailu muutettu mobiilille: isot kauppakortit, isot AVAA KORI / VALITSE -napit,
 // loading-rakenne näkyy heti oikean näköisenä. Visuaalinen linja pysyy Ziiplyn paperi/retro-maailmassa.
 
@@ -63,11 +63,18 @@ function getCheapestStore(stores: ZiiplyCompareStore[]) {
     .sort((a, b) => (a.totalPrice || 0) - (b.totalPrice || 0))[0];
 }
 
+function formatEuroCents(value?: number | null) {
+  if (value == null || Number.isNaN(value)) return "—";
+  return `${(value / 100).toFixed(2).replace(".", ",")} €`;
+}
+
 function getStorePriceDiff(store: ZiiplyCompareStore, cheapest?: ZiiplyCompareStore) {
   if (!cheapest || store.totalPrice == null || cheapest.totalPrice == null) return null;
   const diff = store.totalPrice - cheapest.totalPrice;
   if (Math.abs(diff) < 0.001) return "Huokein";
-  return `+${formatEuro(diff)} kalliimpi`;
+  // chainResults.totalPrice ja diff ovat senttejä. Käytä tässä aina senttimuotoilua,
+  // jotta +6 senttiä näkyy +0,06 € eikä +6,00 €.
+  return `+${formatEuroCents(diff)} kalliimpi`;
 }
 
 function getChainLabel(chain?: "S" | "K") {
@@ -78,15 +85,15 @@ function getChainLabel(chain?: "S" | "K") {
 
 function StoreLoadingCard({ index }: { index: number }) {
   return (
-    <article className="relative min-h-[7.8rem] overflow-hidden rounded-[1.18rem] border-[2.5px] border-[#7c663d]/70 bg-[#fff4d8]/74 px-4 py-3 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.28),0_6px_14px_rgba(72,51,22,0.10)]">
+    <article className="relative min-h-[7.35rem] overflow-hidden rounded-[1.18rem] border-[2.5px] border-[#7c663d]/70 bg-[#fff4d8]/74 px-3.5 py-2.5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.28),0_6px_14px_rgba(72,51,22,0.10)]">
       <div className="grid grid-cols-[2.65rem_minmax(0,1fr)_5.2rem] gap-3">
-        <div className="grid h-10 w-10 animate-pulse place-items-center rounded-full border-[2px] border-[#9d8753] bg-[#d1bb7d] text-[0.92rem] font-black text-[#fff6d7]">
+        <div className="grid h-9 w-9 animate-pulse place-items-center rounded-full border-[2px] border-[#9d8753] bg-[#d1bb7d] text-[0.92rem] font-black text-[#fff6d7]">
           {index === 0 ? "S" : "K"}
         </div>
         <div className="min-w-0">
           <div className="h-6 w-[86%] animate-pulse rounded-full bg-[#d1bb7d]" />
           <div className="mt-2 h-3 w-28 animate-pulse rounded-full bg-[#d1bb7d]" />
-          <div className="mt-3 grid grid-cols-2 gap-2">
+          <div className="mt-2.5 grid grid-cols-2 gap-2">
             <div className="h-9 animate-pulse rounded-[0.65rem] bg-[#d1bb7d]" />
             <div className="h-9 animate-pulse rounded-[0.65rem] bg-[#d1bb7d]" />
           </div>
@@ -152,7 +159,7 @@ export default function ZiiplyMobileCompareCardresponsive({
         <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[linear-gradient(180deg,rgba(255,250,226,0.58),rgba(246,226,172,0.22)_34%,rgba(238,214,156,0.10))]" />
         <div className="pointer-events-none absolute inset-[0.42rem] rounded-[1.55rem] border border-dashed border-[#d6a861]/55 shadow-[inset_0_0_0_2px_rgba(27,17,9,0.20)]" />
 
-        <header className="relative z-10 shrink-0 px-5 pb-1 pt-[7.95rem]">
+        <header className="relative z-10 shrink-0 px-5 pb-1 pt-[7.62rem]">
           <div className="mb-2 px-1">
             <div
               className="text-[0.52rem] font-black uppercase tracking-[0.24em] text-[#665d45]/86"
@@ -172,7 +179,7 @@ export default function ZiiplyMobileCompareCardresponsive({
           </div>
         </header>
 
-        <main className="relative z-10 min-h-0 flex-1 overflow-y-auto px-5 pb-3 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <main className="relative z-10 min-h-0 flex-1 overflow-y-auto px-5 pb-[5.6rem] pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div className="space-y-2.5">
             {loading ? (
               <>
@@ -205,16 +212,16 @@ export default function ZiiplyMobileCompareCardresponsive({
                   <article
                     key={store.id}
                     className={cx(
-                      "relative overflow-hidden rounded-[1.18rem] border-[2.5px] px-4 py-3 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]",
+                      "relative overflow-hidden rounded-[1.18rem] border-[2.5px] px-3.5 py-2.5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]",
                       isBest ? "border-[#0b6330] bg-[#ecf3d5]/82" : "border-[#7c663d]/76 bg-[#fff8e5]/72",
                     )}
                   >
-                    <div className="grid grid-cols-[2.75rem_minmax(0,1fr)_5.35rem] gap-3">
+                    <div className="grid grid-cols-[2.58rem_minmax(0,1fr)_5.20rem] gap-3">
                       <button
                         type="button"
                         onClick={() => setDetailsStoreId(store.id)}
                         className={cx(
-                          "mt-1 grid h-10 w-10 place-items-center rounded-full border-[2px] text-[1.05rem] font-black shadow-[0_2px_3px_rgba(40,28,12,0.22)] active:scale-[0.96]",
+                          "mt-1 grid h-9 w-9 place-items-center rounded-full border-[2px] text-[1.00rem] font-black shadow-[0_2px_3px_rgba(40,28,12,0.22)] active:scale-[0.96]",
                           store.chain === "K"
                             ? "border-[#7e1418] bg-[#c71d24] text-[#fff6d7]"
                             : store.chain === "S"
@@ -232,7 +239,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                           onClick={() => setDetailsStoreId(store.id)}
                           className="block max-w-full text-left"
                         >
-                          <span className="block truncate text-[1.10rem] font-black leading-tight text-[#233020]">
+                          <span className="block truncate text-[1.02rem] font-black leading-tight text-[#233020]">
                             {store.name}
                           </span>
                           <span className="mt-1 flex flex-wrap items-center gap-1.5 text-[0.64rem] font-black uppercase tracking-[0.07em] text-[#6e6d55]">
@@ -272,7 +279,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                       >
                         <span
                           className={cx(
-                            "block whitespace-nowrap text-right text-[1.24rem] font-black italic leading-none",
+                            "block whitespace-nowrap text-right text-[1.18rem] font-black italic leading-none",
                             isBest ? "text-[#0b7837]" : "text-[#3e301c]",
                           )}
                           style={{ fontFamily: serifFont }}
@@ -282,11 +289,11 @@ export default function ZiiplyMobileCompareCardresponsive({
                       </button>
                     </div>
 
-                    <div className="mt-3 grid grid-cols-2 gap-2">
+                    <div className="mt-2.5 grid grid-cols-2 gap-2">
                       <button
                         type="button"
                         onClick={() => setDetailsStoreId(store.id)}
-                        className="min-h-[2.62rem] rounded-[0.82rem] border-[3px] border-[#0b6330] bg-[linear-gradient(180deg,#139143_0%,#087237_100%)] px-3 text-[0.72rem] font-black uppercase tracking-[0.04em] text-[#fff0d5] shadow-[0_0_0_2px_rgba(255,255,255,0.18)_inset,0_3px_0_#064a26] active:translate-y-[1px]"
+                        className="min-h-[2.46rem] rounded-[0.82rem] border-[3px] border-[#0b6330] bg-[linear-gradient(180deg,#139143_0%,#087237_100%)] px-3 text-[0.72rem] font-black uppercase tracking-[0.04em] text-[#fff0d5] shadow-[0_0_0_2px_rgba(255,255,255,0.18)_inset,0_3px_0_#064a26] active:translate-y-[1px]"
                       >
                         Avaa kori
                       </button>
@@ -294,7 +301,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                       <button
                         type="button"
                         onClick={() => onSelectStore?.(store.id)}
-                        className="min-h-[2.62rem] rounded-[0.82rem] border-[3px] border-[#7c663d] bg-[#efe1bd] px-3 text-[0.72rem] font-black uppercase tracking-[0.04em] text-[#28402a] shadow-[0_0_0_2px_#f8edcf_inset] active:translate-y-[1px] disabled:opacity-45"
+                        className="min-h-[2.46rem] rounded-[0.82rem] border-[3px] border-[#7c663d] bg-[#efe1bd] px-3 text-[0.72rem] font-black uppercase tracking-[0.04em] text-[#28402a] shadow-[0_0_0_2px_#f8edcf_inset] active:translate-y-[1px] disabled:opacity-45"
                         disabled={!onSelectStore}
                       >
                         Valitse
