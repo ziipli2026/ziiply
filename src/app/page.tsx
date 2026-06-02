@@ -4513,7 +4513,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setSearchPanelOpen(false);
     setEanModalOpen(false);
     setActiveResult("none");
-    setCartModalOpen((current) => !current);
+    setCartModalOpen(true);
+    triggerHaptic();
+  }
+
+  function openMobileShoppingListFromCompareV724(_storeId?: string) {
+    // Mobiilin compare-kortilta valinta vie aina paperiseen keräilylistaan.
+    // Ei toggleta koria, ettei Vertailu -> Kori -siirtymä sulje itseään vahingossa.
+    setSearchPanelOpen(false);
+    setShopsPanelOpen(false);
+    setEanModalOpen(false);
+    setCartSavePanelOpen(false);
+    setActiveResult("none");
+    setCartModalOpen(true);
     triggerHaptic();
   }
 
@@ -12306,7 +12318,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           />
         )}
 
-        {/* V724_MOBILE_COMPARECARD_V1: vanha mobiilin inline-compare / desktop-ZiiplyCompareCard-renderi on poistettu näkyvästä mobiili-UI:sta.
+        {/* V725_MOBILE_COMPARECARD_ROUTE_FIX: vanha mobiilin inline-compare / desktop-ZiiplyCompareCard-renderi on poistettu näkyvästä mobiili-UI:sta.
             Uusi mobiilivertailu tulee erillisestä ZiiplyMobileCompareCard-komponentista, jotta kortin ulkoasu voidaan säätää
             samaksi muiden mobiilikorttien kanssa ilman päällekkäisiä compare-näkymiä. */}
         {!showLaunchScreen && activeResult === "compare" && !searchPanelOpen && !cartModalOpen && !shopsPanelOpen && !eanModalOpen && (
@@ -12326,7 +12338,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             title="Vertailu"
             subtitle={cart.length > 0 ? `${cart.length} tuotetta korissa` : "Lisää tuotteita koriin ja vertaile kauppoja"}
             loading={comparisonLoading}
-            onBackToCart={showCart}
+            onSelectStore={(storeId) => openMobileShoppingListFromCompareV724(storeId)}
+            onBackToCart={() => {
+              setActiveResult("none");
+              setCartModalOpen(true);
+            }}
             onOpenStore={() => {
               setActiveResult("none");
               setSearchPanelOpen(false);
@@ -12335,7 +12351,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               setEanModalOpen(false);
               setShopsPanelOpen(true);
             }}
-            onClose={() => setActiveResult("none")}
+            onClose={() => {
+              setActiveResult("none");
+              setCartModalOpen(false);
+            }}
           />
         )}
 
