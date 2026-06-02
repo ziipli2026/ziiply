@@ -646,7 +646,6 @@ import {
   getScannerVideoElement,
   getScannerVideoTrack,
   applyBestEffortScannerCameraTuning,
-  createScannerFallbackLoop,
   focusScannerCameraAtPoint,
   formatDate,
   getProductPrice,
@@ -749,6 +748,160 @@ import MobileStorePickerModal from "./components/ziiply/mobile/MobileStorePicker
 import type { ZiiplyAssistantKey } from "./components/ziiply/mobile/ZiiplyMobileAssistantButton";
 
 const MOBILE_EAN_SCANNER_REGION_ID = `${EAN_SCANNER_REGION_ID}-mobile`;
+
+
+type ZiiplyPageScannerFallbackDecodeResult = {
+  text: string;
+  format?: string;
+  source: "still" | "enhanced" | "rotated";
+};
+
+function ziiplyRotateCanvasPageFallback(sourceCanvas: HTMLCanvasElement, degrees: 90 | 270) {
+  const canvas = document.createElement("canvas");
+  canvas.width = sourceCanvas.height;
+  canvas.height = sourceCanvas.width;
+
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  if (!ctx) return sourceCanvas;
+
+  ctx.translate(canvas.width / 2, canvas.height / 2);
+  ctx.rotate((degrees * Math.PI) / 180);
+  ctx.drawImage(sourceCanvas, -sourceCanvas.width / 2, -sourceCanvas.height / 2);
+
+  return canvas;
+}
+
+async function ziiplyDecodeBarcodeCanvasPageFallback(
+  canvas: HTMLCanvasElement,
+  source: ZiiplyPageScannerFallbackDecodeResult["source"] = "still",
+): Promise<ZiiplyPageScannerFallbackDecodeResult | null> {
+  try {
+    const BarcodeDetectorCtor = (window as any).BarcodeDetector;
+    if (!BarcodeDetectorCtor) return null;
+
+    const detector = new BarcodeDetectorCtor({
+      formats: ["ean_13", "ean_8", "upc_a", "upc_e", "code_128", "qr_code"],
+    });
+    const results = await detector.detect(canvas);
+    const first = results?.[0];
+
+    if (first?.rawValue) {
+      return {
+        text: String(first.rawValue),
+        format: first.format,
+        source,
+      };
+    }
+  } catch {
+    // Browser fallback only.
+  }
+
+  return null;
+}
+
+function ziiplyCaptureScannerStillPageFallback(regionId: string, cropRatio = 0.96) {
+  const video = getScannerVideoElement(regionId);
+  if (!video || !video.videoWidth || !video.videoHeight) return null;
+
+  const sourceWidth = video.videoWidth;
+  const sourceHeight = video.videoHeight;
+  const ratio = Math.max(0.5, Math.min(1, cropRatio));
+  const cropWidth = Math.round(sourceWidth * ratio);
+  const cropHeight = Math.round(sourceHeight * ratio);
+  const sx = Math.round((sourceWidth - cropWidth) / 2);
+  const sy = Math.round((sourceHeight - cropHeight) / 2);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = cropWidth;
+  canvas.height = cropHeight;
+
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  if (!ctx) return null;
+
+  ctx.drawImage(video, sx, sy, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+  return canvas;
+}
+
+function ziiplyEnhanceScannerCanvasPageFallback(sourceCanvas: HTMLCanvasElement) {
+  const canvas = document.createElement("canvas");
+  canvas.width = sourceCanvas.width;
+  canvas.height = sourceCanvas.height;
+
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  const sourceCtx = sourceCanvas.getContext("2d", { willReadFrequently: true });
+  if (!ctx || !sourceCtx) return sourceCanvas;
+
+  const imageData = sourceCtx.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height);
+  const data = imageData.data;
+
+  for (let i = 0; i < data.length; i += 4) {
+    const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+    const adjusted = Math.max(0, Math.min(255, (gray - 128) * 1.5 + 128 + 4));
+    data[i] = adjusted;
+    data[i + 1] = adjusted;
+    data[i + 2] = adjusted;
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+  return canvas;
+}
+
+async function ziiplyDecodeScannerFallbackStillPage(regionId: string) {
+  const still = ziiplyCaptureScannerStillPageFallback(regionId, 0.96);
+  if (!still) return null;
+
+  const attempts: Array<[HTMLCanvasElement, ZiiplyPageScannerFallbackDecodeResult["source"]]> = [
+    [still, "still"],
+    [ziiplyEnhanceScannerCanvasPageFallback(still), "enhanced"],
+    [ziiplyRotateCanvasPageFallback(still, 90), "rotated"],
+    [ziiplyRotateCanvasPageFallback(still, 270), "rotated"],
+  ];
+
+  for (const [canvas, source] of attempts) {
+    const result = await ziiplyDecodeBarcodeCanvasPageFallback(canvas, source);
+    if (result) return result;
+  }
+
+  return null;
+}
+
+function createZiiplyPageScannerFallbackLoop(args: {
+  regionId: string;
+  timeoutMs?: number;
+  onDecoded: (result: ZiiplyPageScannerFallbackDecodeResult) => void;
+  onNeedsManualFocus?: () => void;
+}) {
+  const timeoutMs = args.timeoutMs ?? 520;
+  let stopped = false;
+  let timer: number | null = null;
+
+  const run = () => {
+    if (stopped) return;
+
+    timer = window.setTimeout(async () => {
+      if (stopped) return;
+
+      const result = await ziiplyDecodeScannerFallbackStillPage(args.regionId);
+      if (stopped) return;
+
+      if (result) {
+        args.onDecoded(result);
+        run();
+        return;
+      }
+
+      args.onNeedsManualFocus?.();
+      run();
+    }, timeoutMs);
+  };
+
+  run();
+
+  return () => {
+    stopped = true;
+    if (timer != null) window.clearTimeout(timer);
+  };
+}
 
 type KauppiasTopBarKind = "weather" | "electricity" | "fuel" | "calendar";
 
@@ -6616,7 +6769,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // oma still-frame fallback, joka kokeilee myös 90/270 asteen rotaatiot.
       // Tämä ei muuta html5-qrcode:n nopeaa vaakapolkua, vaan täydentää sitä.
       eanScannerFallbackStopRef.current?.();
-      eanScannerFallbackStopRef.current = createScannerFallbackLoop({
+      eanScannerFallbackStopRef.current = createZiiplyPageScannerFallbackLoop({
         regionId: activeScannerRegionId,
         timeoutMs: 520,
         onDecoded: (result) => {
