@@ -734,6 +734,7 @@ import ZiiplySearchCard from "./components/ziiply/cards/ZiiplySearchCard";
 import ZiiplyMobileSearchCard from "./components/ziiply/cards/ZiiplyMobileSearchCard";
 import ZiiplyMobileSearchResultsCard from "./components/ziiply/cards/ZiiplyMobileSearchResultsCard";
 import ZiiplyMobileCartCard from "./components/ziiply/cards/ZiiplyMobileCartCard";
+import ZiiplyMobileNotebookCard from "./components/ziiply/cards/ZiiplyMobileNotebookCard";
 import ZiiplyMobileScannerCard from "./components/ziiply/cards/ZiiplyMobileScannerCard";
 import ZiiplyMobileProductPickCard from "./components/ziiply/cards/ZiiplyMobileProductPickCard";
 import ZiiplyMobileCompareCard from "./components/ziiply/cards/ZiiplyMobileCompareCardresponsive";
@@ -2179,6 +2180,7 @@ export default function Page() {
 
   const [cartModalOpen, setCartModalOpen] = useState(false);
   const [cartSavePanelOpen, setCartSavePanelOpen] = useState(false);
+  const [notebookOpen, setNotebookOpen] = useState(false);
   const [shopsPanelOpen, setShopsPanelOpen] = useState(false);
   const [inlineHakutapaNoticeVisibleV452, setInlineHakutapaNoticeVisibleV452] = useState(false);
   const [mapStoresOverlayOpenV433, setMapStoresOverlayOpenV433] = useState(false);
@@ -12461,6 +12463,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 setActiveNormalSearchTerm("");
               }}
               onAddInputToCart={addInputToCart}
+              onOpenNotebook={() => {
+                setNotebookOpen(true);
+                setSearchPanelOpen(false);
+              }}
               onOfferSearch={handleMainOfferSearch}
               onNormalSearch={handleMainNormalSearch}
               onVoiceClick={() => toggleVoiceInput()}
@@ -12792,8 +12798,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             })}
             savedListsCount={savedShoppingLists.length}
             onClose={closeCartModal}
-            onSaveList={() => setCartSavePanelOpen(true)}
-            onOpenSavedLists={() => setCartSavePanelOpen((current) => !current)}
+            onSaveList={() => setNotebookOpen(true)}
+            onOpenSavedLists={() => setNotebookOpen(true)}
             onClearCart={clearCart}
             onCompare={openComparisonView}
             onShareCart={shareMobileCartV729}
@@ -12835,6 +12841,29 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             }}
             onIncreaseItem={(item: any) => updateMobileCartItemQuantityV546(item, 1)}
             onDecreaseItem={(item: any) => updateMobileCartItemQuantityV546(item, -1)}
+          />
+        )}
+
+        {!showLaunchScreen && notebookOpen && (
+          <ZiiplyMobileNotebookCard
+            open={true}
+            lists={savedShoppingLists}
+            currentCartItems={cart}
+            onBack={() => {
+              setNotebookOpen(false);
+              setCartModalOpen(true);
+            }}
+            onClose={() => setNotebookOpen(false)}
+            onSaveCurrentCart={() => {
+              saveCurrentCartAsList();
+              setNotebookOpen(false);
+              setCartModalOpen(true);
+            }}
+            onOpenList={(list) => {
+              addSavedListToCart(list as SavedShoppingList);
+              setNotebookOpen(false);
+            }}
+            onDeleteList={(list) => deleteSavedShoppingList(String(list.id))}
           />
         )}
 
