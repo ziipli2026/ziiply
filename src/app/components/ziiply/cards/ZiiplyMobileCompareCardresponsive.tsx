@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_COMPARE_CARD_RESPONSIVE_V22_CLEAN_REPORT_MOPED_LANE
+// ZIIPLY_MOBILE_COMPARE_CARD_RESPONSIVE_V23_EXACT_EMPTY_REPORT_LOADING
 // Päävertailu muutettu mobiilille: isot kauppakortit, isot AVAA KORI / VALITSE -napit,
 // loading-rakenne näkyy heti oikean näköisenä. Visuaalinen linja pysyy Ziiplyn paperi/retro-maailmassa.
 
@@ -92,92 +92,36 @@ function StoreLoadingCard({ index }: { index: number }) {
     <article
       className={[
         "relative overflow-hidden rounded-[1.18rem] border-[2.5px] px-3.5 py-2.5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]",
-        best
-          ? "border-[#0b6330] bg-[#ecf3d5]/54"
-          : "border-[#7c663d]/76 bg-[#fff8e5]/58",
+        best ? "border-[#0b6330] bg-[#ecf3d5]/70" : "border-[#7c663d]/76 bg-[#fff8e5]/70",
       ].join(" ")}
       aria-label="Haetaan vertailua"
     >
-      <div className="grid grid-cols-[2.58rem_minmax(0,1fr)_5.20rem] gap-3">
+      <div className="grid grid-cols-[2.35rem_minmax(0,1fr)_4.35rem] gap-3">
         <div
           className={[
             "mt-1 grid h-9 w-9 place-items-center rounded-full border-[2px] text-[1.00rem] font-black shadow-[0_2px_3px_rgba(40,28,12,0.14)]",
             chain === "K"
-              ? "border-[#7e1418]/42 bg-[#c71d24]/26 text-[#fff6d7]/62"
-              : "border-[#0b6330]/42 bg-[#0b8f3a]/26 text-[#fff6d7]/62",
+              ? "border-[#7e1418]/40 bg-[#c71d24]/22 text-[#fff6d7]/58"
+              : "border-[#0b6330]/40 bg-[#0b8f3a]/22 text-[#fff6d7]/58",
           ].join(" ")}
         >
           {chain}
         </div>
 
         <div className="min-w-0">
-          <div className="h-[1.38rem] w-[86%] rounded-full bg-[#d1bb7d]/32" />
-          <div className="mt-2 h-[0.72rem] w-[58%] rounded-full bg-[#d1bb7d]/26" />
-          <div className="mt-2.5 h-[1.45rem] w-[5.35rem] rounded-[0.45rem] bg-[#d1bb7d]/24" />
+          <div className="h-[1.30rem] w-[88%] rounded-full bg-[#d1bb7d]/30" />
+          <div className="mt-2 h-[0.72rem] w-[56%] rounded-full bg-[#d1bb7d]/24" />
+          <div className="mt-2.5 h-[1.45rem] w-[5.35rem] rounded-[0.45rem] bg-[#d1bb7d]/22" />
         </div>
 
-        <div className="ml-auto mt-2 h-[1.55rem] w-[4.95rem] rounded-full bg-[#d1bb7d]/30" />
+        <div className="ml-auto mt-2 h-[1.52rem] w-[4.30rem] rounded-full bg-[#d1bb7d]/28" />
       </div>
 
       <div className="mt-2.5 grid grid-cols-2 gap-2">
-        <div className="min-h-[2.46rem] rounded-[0.82rem] border-[3px] border-[#0b6330]/30 bg-[#0b8f3a]/16 shadow-[0_0_0_2px_rgba(255,255,255,0.10)_inset]" />
-        <div className="min-h-[2.46rem] rounded-[0.82rem] border-[3px] border-[#7c663d]/38 bg-[#efe1bd]/38 shadow-[0_0_0_2px_rgba(248,237,207,0.42)_inset]" />
+        <div className="min-h-[2.46rem] rounded-[0.82rem] border-[3px] border-[#0b6330]/30 bg-[#0b8f3a]/15 shadow-[0_0_0_2px_rgba(255,255,255,0.10)_inset]" />
+        <div className="min-h-[2.46rem] rounded-[0.82rem] border-[3px] border-[#7c663d]/38 bg-[#efe1bd]/36 shadow-[0_0_0_2px_rgba(248,237,207,0.40)_inset]" />
       </div>
     </article>
-  );
-}
-
-function RetroMopedLoader() {
-  return (
-    <div className="pointer-events-none relative h-[2.85rem] overflow-hidden">
-      <div className="ziiply-moped-lane absolute left-0 top-1/2 flex -translate-y-1/2 items-end gap-2">
-        <svg
-          className="h-[2.35rem] w-[7.15rem] overflow-visible text-[#28402a] drop-shadow-[0_1px_1px_rgba(44,28,8,0.22)]"
-          viewBox="0 0 150 54"
-          aria-hidden="true"
-        >
-          <g fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="5">
-            <path d="M33 39h44l20-13" />
-            <path d="M59 39 78 22h22" />
-            <path d="M52 24h24" />
-            <path d="M100 26l18-4" />
-            <path d="M34 39l24-15" />
-            <path d="M77 22l-9-11" />
-          </g>
-
-          <g fill="#fff4d8" stroke="currentColor" strokeWidth="5">
-            <circle cx="34" cy="40" r="13" />
-            <circle cx="108" cy="40" r="13" />
-          </g>
-
-          <g fill="currentColor">
-            <path d="M64 11c5 0 9 4 9 9s-4 9-9 9-9-4-9-9 4-9 9-9Z" />
-            <path d="M55 21c9 0 17 7 18 16l-11 1c-1-5-5-9-11-10l4-7Z" />
-            <path d="M44 29c8 2 15 4 23 4l-2 8c-9 0-18-2-26-7l5-5Z" />
-            <path d="M71 36c7-2 16-6 23-10l4 7c-8 5-17 9-25 11l-2-8Z" />
-            <path d="M55 5h24v6H54l1-6Z" />
-          </g>
-
-          <g fill="#fff4d8" stroke="currentColor" strokeWidth="4">
-            <rect x="8" y="15" width="28" height="23" rx="3" />
-            <path d="M13 27h17" />
-          </g>
-
-          <g stroke="currentColor" strokeLinecap="round" strokeWidth="3" opacity="0.45">
-            <path className="ziiply-moped-speedline" d="M-22 39h24" />
-            <path className="ziiply-moped-speedline ziiply-moped-speedline-2" d="M-15 31h18" />
-            <path className="ziiply-moped-speedline ziiply-moped-speedline-3" d="M-8 47h16" />
-          </g>
-        </svg>
-
-        <div
-          className="mb-[0.1rem] whitespace-nowrap text-[0.86rem] font-black italic text-[#28402a]"
-          style={{ fontFamily: cooperFont }}
-        >
-          Selvitetään...
-        </div>
-      </div>
-    </div>
   );
 }
 
@@ -240,7 +184,7 @@ export default function ZiiplyMobileCompareCardresponsive({
         <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[linear-gradient(180deg,rgba(255,250,226,0.58),rgba(246,226,172,0.22)_34%,rgba(238,214,156,0.10))]" />
         <div className="pointer-events-none absolute inset-[0.42rem] rounded-[1.55rem] border border-dashed border-[#d6a861]/55 shadow-[inset_0_0_0_2px_rgba(27,17,9,0.20)]" />
 
-        <header className="relative z-10 shrink-0 px-5 pb-1 pt-[7.62rem]">
+        <header className="relative z-10 shrink-0 px-5 pb-1 pt-[8.10rem]">
           <div className="mb-2 px-1">
             <div
               className="text-[0.52rem] font-black uppercase tracking-[0.24em] text-[#665d45]/86"
@@ -265,7 +209,12 @@ export default function ZiiplyMobileCompareCardresponsive({
 
             {showSkeleton ? (
               <>
-                <RetroMopedLoader />
+                <div
+                  className="rounded-[0.55rem] px-2 pb-1 text-center text-[0.72rem] font-black italic text-[#28402a]/82"
+                  style={{ fontFamily: cooperFont }}
+                >
+                  Selvitetään...
+                </div>
                 <StoreLoadingCard index={0} />
                 <StoreLoadingCard index={1} />
               </>
@@ -299,7 +248,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                       isBest ? "border-[#0b6330] bg-[#ecf3d5]/82" : "border-[#7c663d]/76 bg-[#fff8e5]/72",
                     )}
                   >
-                    <div className="grid grid-cols-[2.58rem_minmax(0,1fr)_5.20rem] gap-3">
+                    <div className="grid grid-cols-[2.35rem_minmax(0,1fr)_4.35rem] gap-3">
                       <button
                         type="button"
                         onClick={() => setDetailsStoreId(store.id)}
@@ -322,7 +271,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                           onClick={() => setDetailsStoreId(store.id)}
                           className="block max-w-full text-left"
                         >
-                          <span className="block truncate text-[1.02rem] font-black leading-tight text-[#233020]">
+                          <span className="block truncate text-[0.96rem] font-black leading-tight text-[#233020]">
                             {store.name}
                           </span>
                           <span className="mt-1 flex flex-wrap items-center gap-1.5 text-[0.64rem] font-black uppercase tracking-[0.07em] text-[#6e6d55]">
@@ -362,7 +311,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                       >
                         <span
                           className={cx(
-                            "block whitespace-nowrap text-right text-[1.18rem] font-black italic leading-none",
+                            "block whitespace-nowrap text-right text-[1.10rem] font-black italic leading-none",
                             isBest ? "text-[#0b7837]" : "text-[#3e301c]",
                           )}
                           style={{ fontFamily: serifFont }}
@@ -433,49 +382,7 @@ export default function ZiiplyMobileCompareCardresponsive({
           }
 
 
-          @keyframes ziiplyMopedLaneDrive {
-            0% {
-              opacity: 0;
-              transform: translate(-9rem, -50%) scale(0.98);
-            }
-            10% {
-              opacity: 1;
-            }
-            84% {
-              opacity: 1;
-            }
-            100% {
-              opacity: 0;
-              transform: translate(25.5rem, -50%) scale(0.98);
-            }
-          }
 
-          @keyframes ziiplyMopedSpeedline {
-            0%, 100% {
-              opacity: 0.18;
-              transform: translateX(0);
-            }
-            50% {
-              opacity: 0.55;
-              transform: translateX(-0.42rem);
-            }
-          }
-
-          .ziiply-moped-lane {
-            animation: ziiplyMopedLaneDrive 4.25s cubic-bezier(0.18, 0.72, 0.24, 1) infinite;
-          }
-
-          .ziiply-moped-speedline {
-            animation: ziiplyMopedSpeedline 0.74s ease-in-out infinite;
-          }
-
-          .ziiply-moped-speedline-2 {
-            animation-delay: 0.14s;
-          }
-
-          .ziiply-moped-speedline-3 {
-            animation-delay: 0.28s;
-          }
 
           @media (max-height: 720px) {
             .ziiply-mobile-compare-pop header {
