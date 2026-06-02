@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_COMPARE_CARD_RESPONSIVE_V26_FIXED_HEADER_TRUE_EMPTY_SKELETON
+// ZIIPLY_MOBILE_COMPARE_CARD_RESPONSIVE_V27_HEADER_NAME_FIX
 // Päävertailu muutettu mobiilille: isot kauppakortit, isot AVAA KORI / VALITSE -napit,
 // loading-rakenne näkyy heti oikean näköisenä. Visuaalinen linja pysyy Ziiplyn paperi/retro-maailmassa.
 
@@ -96,7 +96,7 @@ function StoreLoadingCard({ index }: { index: number }) {
       )}
       aria-label="Haetaan vertailua"
     >
-      <div className="grid grid-cols-[2.35rem_minmax(0,1fr)_4.05rem] gap-3">
+      <div className="grid grid-cols-[2.35rem_minmax(0,1fr)_3.45rem] gap-3">
         <div
           className={cx(
             "mt-1 grid h-9 w-9 place-items-center rounded-full border-[2px] text-[1.00rem] font-black shadow-[0_2px_3px_rgba(40,28,12,0.14)]",
@@ -109,7 +109,7 @@ function StoreLoadingCard({ index }: { index: number }) {
         </div>
 
         <div className="min-w-0">
-          <span className="block truncate text-[0.98rem] font-black leading-tight text-transparent">
+          <span className="block truncate text-[0.92rem] font-black leading-tight text-transparent">
             Kaupan nimi
           </span>
           <span className="mt-1 flex flex-wrap items-center gap-1.5 text-[0.64rem] font-black uppercase tracking-[0.07em] text-transparent">
@@ -134,7 +134,7 @@ function StoreLoadingCard({ index }: { index: number }) {
 
         <div
           className={cx(
-            "block whitespace-nowrap pt-1 text-right text-[1.06rem] font-black italic leading-none text-transparent",
+            "block whitespace-nowrap pt-1 text-right text-[1.00rem] font-black italic leading-none text-transparent",
             best ? "text-transparent" : "text-transparent",
           )}
           style={{ fontFamily: serifFont }}
@@ -210,8 +210,8 @@ export default function ZiiplyMobileCompareCardresponsive({
         <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[linear-gradient(180deg,rgba(255,250,226,0.58),rgba(246,226,172,0.22)_34%,rgba(238,214,156,0.10))]" />
         <div className="pointer-events-none absolute inset-[0.42rem] rounded-[1.55rem] border border-dashed border-[#d6a861]/55 shadow-[inset_0_0_0_2px_rgba(27,17,9,0.20)]" />
 
-        <header className="relative z-10 shrink-0 px-5 pb-1 pt-[8.62rem]">
-          <div className="mb-2 pl-[1.55rem] pr-1">
+        <header className="relative z-10 shrink-0 px-5 pb-1 pt-[8.86rem]">
+          <div className="mb-2 pl-[2.55rem] pr-1">
             <div
               className="text-[1.50rem] font-black italic leading-none text-[#28402a] drop-shadow-[0_1px_0_rgba(255,247,211,0.62)]"
               style={{ fontFamily: cooperFont }}
@@ -262,7 +262,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                       isBest ? "border-[#0b6330] bg-[#ecf3d5]/82" : "border-[#7c663d]/76 bg-[#fff8e5]/72",
                     )}
                   >
-                    <div className="grid grid-cols-[2.35rem_minmax(0,1fr)_4.05rem] gap-3">
+                    <div className="grid grid-cols-[2.35rem_minmax(0,1fr)_3.45rem] gap-3">
                       <button
                         type="button"
                         onClick={() => setDetailsStoreId(store.id)}
@@ -285,7 +285,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                           onClick={() => setDetailsStoreId(store.id)}
                           className="block max-w-full text-left"
                         >
-                          <span className="block truncate text-[0.98rem] font-black leading-tight text-[#233020]">
+                          <span className="block truncate text-[0.92rem] font-black leading-tight text-[#233020]">
                             {store.name}
                           </span>
                           <span className="mt-1 flex flex-wrap items-center gap-1.5 text-[0.64rem] font-black uppercase tracking-[0.07em] text-[#6e6d55]">
@@ -325,7 +325,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                       >
                         <span
                           className={cx(
-                            "block whitespace-nowrap text-right text-[1.06rem] font-black italic leading-none",
+                            "block whitespace-nowrap text-right text-[1.00rem] font-black italic leading-none",
                             isBest ? "text-[#0b7837]" : "text-[#3e301c]",
                           )}
                           style={{ fontFamily: serifFont }}
