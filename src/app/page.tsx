@@ -800,7 +800,7 @@ async function ziiplyDecodeBarcodeCanvasPageFallback(
 }
 
 function ziiplyCaptureScannerStillPageFallback(regionId: string, cropRatio = 0.96) {
-  const video = getScannerVideoElement(regionId);
+  const video = getScannerVideoElement();
   if (!video || !video.videoWidth || !video.videoHeight) return null;
 
   const sourceWidth = video.videoWidth;
