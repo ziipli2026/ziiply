@@ -46,6 +46,8 @@
  * - v590: palauttaa kameraruudun päällä näkyvän HAETAAN-statusilmoituksen loading/scannerMessage-tilasta.
  * - v590: siistii useamman EAN-osuman valintapaneelin koko kameraruudun overlayksi.
  * - v590: piilottaa tutkan valintapaneelin ja hakuoverlayn alta.
+ * - v596/v724: scannerMessage näytetään kameraruudulla myös muille tiloille kuin "Tuote lisätty",
+ *   jotta tuntematon EAN voidaan kuitata käyttäjälle ilman että se näyttää vain virheeltä.
  */
 
 import React, { useMemo } from "react";
@@ -117,10 +119,10 @@ export default function ZiiplyMobileScannerCard({
       ? "Haetaan tuotetta"
       : flashState === "success"
         ? "Lisätty koriin"
-        : flashState === "error"
-          ? "Ei löytynyt"
-          : scannerMessage === "Tuote lisätty"
-            ? "Tuote lisätty"
+        : scannerMessage
+          ? scannerMessage
+          : flashState === "error"
+            ? "Ei löytynyt"
             : "";
 
   const hasSelectionResults = selectionResults.length > 1;
