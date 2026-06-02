@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_CART_CARD_V54_PAPER_SHARE_AND_COMPARE_LABEL
+// ZIIPLY_MOBILE_CART_CARD_V55_FINAL_MOCKUP_LAYOUT
 // Mobiilin Tavarainkeruu-paperivihko.
 // V42: korjaa ostoslistan visuaalisen kohdistuksen: rivit relative, korkeampi rivikorkeus, määrä keskelle, hinnat ja footer vasemmalle samaan linjaan.
 // - "Ostoskori" poistettu kokonaan näkyvästä UI:sta.
@@ -10,7 +10,7 @@
 // - Määrässä pienet − / + säätimet samassa sarakkeessa.
 // - Keräilymerkki on vanhanaikainen numero/✓ ilman modernia nappirinkulaa.
 // - Tuotenimi lyhennetään sanasta 2 + seuraava sana.
-// - Halpuusvertailu-termi käytössä.
+// - Muuta valintoja-termi käytössä.
 // - Lista scrollaa näkymättömästi.
 // - Kortilla pieni sisääntulopomppu.
 // V4: yläosan tekstit ja toiminnot sovitettu paremmin paperin omaan painatukseen.
@@ -492,7 +492,7 @@ export default function ZiiplyMobileCartCard({
             )}
             style={{ fontFamily: cooperFont }}
           >
-            Halpuusvertailu
+            Muuta valintoja
           </button>
         </footer>
 
@@ -514,7 +514,7 @@ export default function ZiiplyMobileCartCard({
           <button
             type="button"
             onClick={onShareCart}
-            className="absolute bottom-[1.05rem] right-[4.05rem] z-[35] grid h-[2.42rem] w-[2.32rem] place-items-center rounded-[0.50rem] border-[2px] border-[#8b713d] bg-[linear-gradient(180deg,#f5e5bd_0%,#d6b875_100%)] text-[#51361a] shadow-[0_3px_8px_rgba(0,0,0,0.18),inset_0_0_0_1px_rgba(255,249,220,0.56)] active:translate-y-[1px]"
+            className="absolute bottom-[1.02rem] right-[0.96rem] z-[35] grid h-[2.42rem] w-[2.32rem] place-items-center rounded-[0.50rem] border-[2px] border-[#8b713d] bg-[linear-gradient(180deg,#f5e5bd_0%,#d6b875_100%)] text-[#51361a] shadow-[0_3px_8px_rgba(0,0,0,0.18),inset_0_0_0_1px_rgba(255,249,220,0.56)] active:translate-y-[1px]"
             aria-label="Jaa ostoskori"
             title="Jaa ostoskori"
           >
