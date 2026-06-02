@@ -151,32 +151,36 @@ export function ZiiplyBottomNav({
   onCartClick,
   onCompareClick,
 }: ZiiplyBottomNavProps) {
-  const baseItemClass =
-    "relative flex flex-col items-center justify-center rounded-[1.12rem] px-2 py-2.5 text-[11px] font-black tracking-[-0.015em] transition active:scale-[0.98]";
+  const baseButtonClass =
+    "relative flex flex-col items-center justify-center rounded-[1.05rem] px-2 py-2 text-xs font-black tracking-[-0.01em] transition active:scale-[0.98]";
 
-  const activeItemClass =
-    "bg-[linear-gradient(180deg,#557a55_0%,#345a3b_100%)] text-[#fff8e8] shadow-[inset_0_1px_0_rgba(255,255,255,0.28),0_5px_12px_rgba(37,62,38,0.20)] ring-1 ring-[#28482f]";
+  const activeButtonClass =
+    "bg-[#496f4b] text-[#fff8ea] shadow-[inset_0_1px_0_rgba(255,255,255,0.28),0_4px_10px_rgba(39,58,36,0.22)] ring-1 ring-[#2f4d34]/35";
 
-  const passiveItemClass =
-    "text-[#4f4638] hover:bg-[#efe7d7]/70 active:bg-[#eadfca]";
+  const idleButtonClass =
+    "text-[#4e4638] active:bg-[#e7deca]/70";
 
-  const promptItemClass =
-    "bg-[linear-gradient(180deg,#f8f1dc_0%,#ecdfbf_100%)] text-[#36553a] shadow-[inset_0_1px_0_rgba(255,255,255,0.68),0_0_16px_rgba(111,139,88,0.16)] ring-1 ring-[#d3c294]";
+  const promptedButtonClass =
+    "bg-[#edf3df]/72 text-[#36513a] ring-1 ring-[#9fb18f]/45 shadow-[0_0_16px_rgba(82,112,72,0.12)]";
 
-  const disabledItemClass = initialStoreSelectionLocked
-    ? "cursor-not-allowed bg-[#fff3ee] text-[#c78472] opacity-80 ring-1 ring-[#efc5b7]"
-    : "cursor-not-allowed bg-[#ebe5da] text-[#aaa090] opacity-70";
+  const disabledButtonClass = initialStoreSelectionLocked
+    ? "cursor-not-allowed bg-[#fff0e7] text-[#c98a73] ring-1 ring-[#e5b49f]/70 opacity-85"
+    : "cursor-not-allowed bg-[#e7e2d7]/70 text-[#9d978b] opacity-70";
+
+  const badgeClass = cartModalOpen
+    ? "bg-[#fff8ea] text-[#2f7041] ring-1 ring-[#2f7041]/25 shadow-[0_2px_5px_rgba(39,58,36,0.14)]"
+    : "bg-[#2f7041] text-[#fff6e8] ring-1 ring-[#214f30]/30 shadow-[0_2px_5px_rgba(29,62,36,0.28)]";
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-transparent px-3 pb-[calc(env(safe-area-inset-bottom)+0.58rem)] pt-1.5 sm:hidden">
-      <div className="mx-auto grid max-w-md grid-cols-4 gap-1.5 rounded-[1.55rem] border border-[#d7c6a5] bg-[linear-gradient(180deg,#fffaf1_0%,#f2eadb_55%,#e8dcc6_100%)] p-2 shadow-[0_10px_28px_rgba(78,58,28,0.16),inset_0_1px_0_rgba(255,255,255,0.82)]">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-transparent px-3 pb-[calc(env(safe-area-inset-bottom)+0.62rem)] pt-2 sm:hidden">
+      <div className="mx-auto grid max-w-md grid-cols-4 gap-1.5 rounded-[1.55rem] border border-[#9fb18f]/70 bg-[linear-gradient(180deg,#fbf7ef_0%,#f1ebde_100%)] p-1.5 shadow-[0_10px_28px_rgba(64,50,26,0.13)]">
         <button
           type="button"
           onClick={onShopsClick}
           aria-disabled={false}
-          className={`${baseItemClass} ${shopsPanelOpen ? activeItemClass : initialStoreNavPrompt ? promptItemClass : passiveItemClass}`}
+          className={`${baseButtonClass} ${shopsPanelOpen ? activeButtonClass : initialStoreNavPrompt ? promptedButtonClass : idleButtonClass}`}
         >
-          <span className="text-[19px] leading-none drop-shadow-[0_1px_0_rgba(255,255,255,0.55)]">🏪</span>
+          <span className="text-lg leading-none drop-shadow-[0_1px_0_rgba(255,255,255,0.55)]">🏪</span>
           <span className="mt-1 block">Kaupat</span>
         </button>
 
@@ -185,11 +189,11 @@ export function ZiiplyBottomNav({
           onClick={onSearchClick}
           disabled={searchBottomNavDisabled && !searchPanelOpen}
           aria-disabled={searchBottomNavDisabled && !searchPanelOpen}
-          className={`${baseItemClass} ${searchPanelOpen ? activeItemClass : searchBottomNavDisabled ? disabledItemClass : passiveItemClass}`}
+          className={`${baseButtonClass} ${searchPanelOpen ? activeButtonClass : searchBottomNavDisabled ? disabledButtonClass : idleButtonClass}`}
         >
           <span
             key={searchReadyBounceKeyV320}
-            className={`text-[19px] leading-none drop-shadow-[0_1px_0_rgba(255,255,255,0.55)] ${!searchBottomNavDisabled && storesReadyForSearch ? "ziiply-search-ready-bounce" : ""}`}
+            className={`text-lg leading-none drop-shadow-[0_1px_0_rgba(255,255,255,0.55)] ${!searchBottomNavDisabled && storesReadyForSearch ? "ziiply-search-ready-bounce" : ""}`}
           >
             🔎
           </span>
@@ -201,12 +205,12 @@ export function ZiiplyBottomNav({
           onClick={onCartClick}
           disabled={cartLength === 0}
           aria-disabled={cartLength === 0}
-          className={`${baseItemClass} ${cartLength === 0 ? disabledItemClass : cartModalOpen ? activeItemClass : passiveItemClass}`}
+          className={`${baseButtonClass} ${cartLength === 0 ? disabledButtonClass : cartModalOpen ? activeButtonClass : idleButtonClass}`}
         >
-          <span className="text-[19px] leading-none drop-shadow-[0_1px_0_rgba(255,255,255,0.55)]">🛒</span>
+          <span className="text-lg leading-none drop-shadow-[0_1px_0_rgba(255,255,255,0.55)]">🛒</span>
           <span className="mt-1 block">Kori</span>
           {cartLength > 0 && (
-            <span className={`absolute right-2 top-1 flex h-5 min-w-5 items-center justify-center rounded-full border px-1 text-[10px] font-black shadow-[0_2px_6px_rgba(40,65,34,0.22)] ${cartModalOpen ? "border-[#fff8e8] bg-[#fff8e8] text-[#345a3b]" : "border-[#24482e] bg-[#2f7041] text-[#fff8e8]"}`}>
+            <span className={`absolute right-2 top-1 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-black ${badgeClass}`}>
               {cartLength}
             </span>
           )}
@@ -217,9 +221,9 @@ export function ZiiplyBottomNav({
           onClick={onCompareClick}
           disabled={cartLength === 0}
           aria-disabled={cartLength === 0}
-          className={`${baseItemClass} ${cartLength === 0 ? disabledItemClass : activeResult === "compare" && !searchPanelOpen && !cartModalOpen ? activeItemClass : passiveItemClass}`}
+          className={`${baseButtonClass} ${cartLength === 0 ? disabledButtonClass : activeResult === "compare" && !searchPanelOpen && !cartModalOpen ? activeButtonClass : idleButtonClass}`}
         >
-          <span className="text-[19px] leading-none drop-shadow-[0_1px_0_rgba(255,255,255,0.55)]">⚖️</span>
+          <span className="text-lg leading-none drop-shadow-[0_1px_0_rgba(255,255,255,0.55)]">⚖️</span>
           <span className="mt-1 block">Vertailu</span>
         </button>
       </div>
