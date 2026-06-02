@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_COMPARE_CARDRESPONSIVE_V44_FINAL_MOCKUP_LAYOUT
+// ZIIPLY_MOBILE_COMPARE_CARDRESPONSIVE_V45_BUILD_FIX_FINAL_LAYOUT
 // Päävertailu muutettu mobiilille: isot kauppakortit, isot AVAA KORI / VALITSE -napit,
 // loading-rakenne näkyy heti oikean näköisenä. Visuaalinen linja pysyy Ziiplyn paperi/retro-maailmassa.
 
@@ -156,61 +156,8 @@ function StoreLoadingCard({ index }: { index: number }) {
       <div className="mt-2.5 grid grid-cols-2 gap-2">
         <div className="min-h-[2.46rem] rounded-[0.82rem] border-[3px] border-[#0b6330] bg-[linear-gradient(180deg,#139143_0%,#087237_100%)] px-3 shadow-[0_0_0_2px_rgba(255,255,255,0.18)_inset,0_3px_0_#064a26]" />
         <div className="min-h-[2.46rem] rounded-[0.82rem] border-[3px] border-[#7c663d] bg-[#efe1bd] px-3 shadow-[0_0_0_2px_#f8edcf_inset]" />
-      
-                    <div className="mt-[0.38rem] flex items-center justify-between px-[0.15rem] pb-[0.10rem]">
-                      <button
-                        type="button"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          onBackToCart?.();
-                        }}
-                        className="grid h-[2.30rem] w-[2.58rem] place-items-center rounded-l-[0.42rem] rounded-r-[0.82rem] border-[2px] border-[#2b1a0e] bg-[linear-gradient(135deg,#7a4c2d_0%,#3b2414_78%)] text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.22),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]"
-                        aria-label="Takaisin"
-                        title="Takaisin"
-                      >
-                        <span className="grid h-[1.42rem] w-[1.42rem] place-items-center rounded-full border border-[#6b421f] bg-[radial-gradient(circle_at_35%_35%,#f6c46c_0%,#b0752a_52%,#65401f_100%)] text-[1rem] text-[#2b1a0e] shadow-[0_1px_2px_rgba(0,0,0,0.28)]">
-                          ←
-                        </span>
-                      </button>
-
-                      {onShareStore ? (
-                        <button
-                          type="button"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            onShareStore(store.id);
-                          }}
-                          className="grid h-[2.18rem] w-[2.18rem] place-items-center rounded-[0.46rem] border-[1.6px] border-[#8b713d] bg-[linear-gradient(180deg,#f5e5bd_0%,#d6b875_100%)] text-[#51361a] shadow-[0_2px_5px_rgba(45,30,10,0.17),inset_0_0_0_1px_rgba(255,249,220,0.55)] active:translate-y-[1px]"
-                          aria-label={`Jaa ${store.name} kori`}
-                          title="Jaa kori"
-                        >
-                          <svg
-                            aria-hidden="true"
-                            viewBox="0 0 24 18"
-                            className="h-[0.94rem] w-[1.12rem]"
-                          >
-                            <path
-                              d="M2.5 3.5h19v11h-19z"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinejoin="round"
-                            />
-                            <path
-                              d="M3 4l9 6.5L21 4M3.2 14.2l6.1-5M20.8 14.2l-6.1-5"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="1.8"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        </button>
-                      ) : (
-                        <div className="w-[2.18rem]" />
-                      )}
-                    </div>
-                  </article>
+      </div>
+    </article>
   );
 }
 
@@ -371,7 +318,6 @@ export default function ZiiplyMobileCompareCardresponsive({
                       isBest ? "border-[#0b6330] bg-[#ecf3d5]/82" : "border-[#7c663d]/76 bg-[#fff8e5]/72",
                     )}
                   >
-
                     <div className="grid grid-cols-[2.35rem_minmax(0,1fr)_3.45rem] gap-3">
                       <button
                         type="button"
@@ -445,23 +391,67 @@ export default function ZiiplyMobileCompareCardresponsive({
                       </button>
                     </div>
 
-                    <div className="mt-2.5 grid grid-cols-2 gap-2">
+                    <div className="mt-2.5 grid grid-cols-[2.58rem_minmax(0,1fr)_2.30rem] items-center gap-2">
                       <button
                         type="button"
-                        onClick={() => setDetailsStoreId(store.id)}
-                        className="min-h-[2.46rem] rounded-[0.82rem] border-[3px] border-[#0b6330] bg-[linear-gradient(180deg,#139143_0%,#087237_100%)] px-3 text-[0.72rem] font-black uppercase tracking-[0.04em] text-[#fff0d5] shadow-[0_0_0_2px_rgba(255,255,255,0.18)_inset,0_3px_0_#064a26] active:translate-y-[1px]"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onBackToCart?.();
+                        }}
+                        className="grid h-[2.34rem] w-[2.58rem] place-items-center rounded-l-[0.42rem] rounded-r-[0.82rem] border-[2px] border-[#2b1a0e] bg-[linear-gradient(135deg,#7a4c2d_0%,#3b2414_78%)] text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.22),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]"
+                        aria-label="Takaisin"
+                        title="Takaisin"
                       >
-                        Avaa kori
+                        <span className="grid h-[1.42rem] w-[1.42rem] place-items-center rounded-full border border-[#6b421f] bg-[radial-gradient(circle_at_35%_35%,#f6c46c_0%,#b0752a_52%,#65401f_100%)] text-[1rem] text-[#2b1a0e] shadow-[0_1px_2px_rgba(0,0,0,0.28)]">
+                          ←
+                        </span>
                       </button>
 
                       <button
                         type="button"
-                        onClick={() => onSelectStore?.(store.id)}
-                        className="min-h-[2.46rem] rounded-[0.82rem] border-[3px] border-[#7c663d] bg-[#efe1bd] px-3 text-[0.72rem] font-black uppercase tracking-[0.04em] text-[#28402a] shadow-[0_0_0_2px_#f8edcf_inset] active:translate-y-[1px] disabled:opacity-45"
-                        disabled={!onSelectStore}
+                        onClick={() => setDetailsStoreId(store.id)}
+                        className="min-h-[2.40rem] rounded-[0.72rem] border-[2.5px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-3 text-[0.72rem] font-black italic tracking-[0.03em] text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58),0_2px_4px_rgba(62,43,20,0.18)] active:translate-y-[1px]"
+                        style={{ fontFamily: cooperFont }}
                       >
-                        Valitse
+                        Muuta valintoja
                       </button>
+
+                      {onShareStore ? (
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onShareStore(store.id);
+                          }}
+                          className="grid h-[2.22rem] w-[2.22rem] place-items-center rounded-[0.46rem] border-[1.6px] border-[#8b713d] bg-[linear-gradient(180deg,#f5e5bd_0%,#d6b875_100%)] text-[#51361a] shadow-[0_2px_5px_rgba(45,30,10,0.17),inset_0_0_0_1px_rgba(255,249,220,0.55)] active:translate-y-[1px]"
+                          aria-label={`Jaa ${store.name} kori`}
+                          title="Jaa kori"
+                        >
+                          <svg
+                            aria-hidden="true"
+                            viewBox="0 0 24 18"
+                            className="h-[0.94rem] w-[1.12rem]"
+                          >
+                            <path
+                              d="M2.5 3.5h19v11h-19z"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinejoin="round"
+                            />
+                            <path
+                              d="M3 4l9 6.5L21 4M3.2 14.2l6.1-5M20.8 14.2l-6.1-5"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="1.8"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            />
+                          </svg>
+                        </button>
+                      ) : (
+                        <span aria-hidden="true" className="block h-[2.22rem] w-[2.22rem]" />
+                      )}
                     </div>
                   </article>
                 );
