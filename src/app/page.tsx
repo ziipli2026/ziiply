@@ -2207,13 +2207,23 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   async function shareTextV729(title: string, text: string) {
     try {
-      if (typeof navigator !== "undefined" && "share" in navigator) {
-        await navigator.share({ title, text });
+      const shareApi =
+        typeof window !== "undefined" && typeof window.navigator !== "undefined"
+          ? window.navigator.share
+          : undefined;
+
+      if (typeof shareApi === "function") {
+        await shareApi.call(window.navigator, { title, text });
         return;
       }
 
-      if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(text);
+      const clipboardApi =
+        typeof window !== "undefined" && typeof window.navigator !== "undefined"
+          ? window.navigator.clipboard
+          : undefined;
+
+      if (typeof clipboardApi?.writeText === "function") {
+        await clipboardApi.writeText(text);
         showCartToast("Kori kopioitu");
         return;
       }
@@ -7939,7 +7949,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     triggerHaptic();
 
     try {
-      const clipboardText = await navigator.clipboard?.readText?.();
+      const clipboardApi =
+        typeof window !== "undefined" && typeof window.navigator !== "undefined"
+          ? window.navigator.clipboard
+          : undefined;
+      const clipboardText =
+        typeof clipboardApi?.readText === "function" ? await clipboardApi.readText() : "";
       const cleanText = String(clipboardText || "").trim();
 
       if (!cleanText) {
@@ -8285,7 +8300,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   async function copyTextToClipboard(textToCopy: string) {
     try {
-      await navigator.clipboard.writeText(textToCopy);
+      const clipboardApi =
+        typeof window !== "undefined" && typeof window.navigator !== "undefined"
+          ? window.navigator.clipboard
+          : undefined;
+
+      if (typeof clipboardApi?.writeText !== "function") {
+        throw new Error("Clipboard API is not available");
+      }
+
+      await clipboardApi.writeText(textToCopy);
       alert("Ostoskori kopioitu leikepöydälle.");
     } catch {
       window.prompt("Kopioi ostoskori:", textToCopy);
@@ -8303,8 +8327,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const textToShare = buildShoppingListText(chain);
 
     try {
-      if (navigator.share) {
-        await navigator.share({
+      const shareApi =
+        typeof window !== "undefined" && typeof window.navigator !== "undefined"
+          ? window.navigator.share
+          : undefined;
+
+      if (typeof shareApi === "function") {
+        await shareApi.call(window.navigator, {
           title: `Ziiply ostoskori — ${chain.storeName}`,
           text: textToShare,
         });
@@ -12312,7 +12341,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   }
                   onToggleManualInput={async () => {
                     try {
-                      const text = await navigator.clipboard.readText();
+                      const clipboardApi =
+                        typeof window !== "undefined" && typeof window.navigator !== "undefined"
+                          ? window.navigator.clipboard
+                          : undefined;
+                      const text =
+                        typeof clipboardApi?.readText === "function" ? await clipboardApi.readText() : "";
                       const code = normalizeEan(text);
 
                       if (!isUsableEan(code)) {
