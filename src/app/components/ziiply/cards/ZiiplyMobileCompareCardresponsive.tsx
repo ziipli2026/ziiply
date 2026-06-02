@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_COMPARE_CARD_RESPONSIVE_V30_FINAL_HEADER_POSITION
+// ZIIPLY_MOBILE_COMPARE_CARDRESPONSIVE_V31_HEADER_LINE_ALIGN
 // Päävertailu muutettu mobiilille: isot kauppakortit, isot AVAA KORI / VALITSE -napit,
 // loading-rakenne näkyy heti oikean näköisenä. Visuaalinen linja pysyy Ziiplyn paperi/retro-maailmassa.
 
@@ -210,7 +210,7 @@ export default function ZiiplyMobileCompareCardresponsive({
         <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[linear-gradient(180deg,rgba(255,250,226,0.58),rgba(246,226,172,0.22)_34%,rgba(238,214,156,0.10))]" />
         <div className="pointer-events-none absolute inset-[0.42rem] rounded-[1.55rem] border border-dashed border-[#d6a861]/55 shadow-[inset_0_0_0_2px_rgba(27,17,9,0.20)]" />
 
-        <header className="pointer-events-none absolute left-[6.15rem] top-[12.95rem] z-20 w-[13.75rem]">
+        <header className="pointer-events-none absolute left-[6.15rem] top-[11.95rem] z-20 w-[13.75rem]">
           <div
             className="text-[1.46rem] font-black italic leading-none text-[#28402a] drop-shadow-[0_1px_0_rgba(255,247,211,0.62)]"
             style={{ fontFamily: cooperFont }}
@@ -222,7 +222,7 @@ export default function ZiiplyMobileCompareCardresponsive({
           </div>
         </header>
 
-        <main className="relative z-10 min-h-0 flex-1 overflow-y-auto px-5 pb-4 pt-[14.15rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <main className="relative z-10 min-h-0 flex-1 overflow-y-auto px-5 pb-4 pt-[14.85rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div className="space-y-2.5">
 
             {showSkeleton ? (
@@ -398,7 +398,7 @@ export default function ZiiplyMobileCompareCardresponsive({
 
           @media (max-height: 720px) {
             .ziiply-mobile-compare-pop header {
-              top: 12.4rem;
+              top: 11.55rem;
             }
           }
         `}</style>
