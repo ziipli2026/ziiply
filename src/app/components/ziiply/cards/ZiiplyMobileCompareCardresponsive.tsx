@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_COMPARE_CARDRESPONSIVE_V32_RETRO_MOPED_OVERLAY
+// ZIIPLY_MOBILE_COMPARE_CARDRESPONSIVE_V33_MOPED_SIZE_POSITION
 // Päävertailu muutettu mobiilille: isot kauppakortit, isot AVAA KORI / VALITSE -napit,
 // loading-rakenne näkyy heti oikean näköisenä. Visuaalinen linja pysyy Ziiplyn paperi/retro-maailmassa.
 
@@ -154,11 +154,11 @@ function StoreLoadingCard({ index }: { index: number }) {
 
 function RetroMopedOverlay() {
   return (
-    <div className="pointer-events-none absolute left-[1.2rem] top-[14.05rem] z-[18] h-[4rem] w-[18rem] overflow-hidden">
+    <div className="pointer-events-none absolute left-[3.85rem] top-[13.25rem] z-[18] h-[4.85rem] w-[19.5rem] overflow-hidden">
       <img
         src="/icons/ziiply-retro-moped-loader.png"
         alt="Selvitetään..."
-        className="ziiply-retro-moped absolute left-0 top-0 h-[3.2rem] w-auto opacity-[0.92]"
+        className="ziiply-retro-moped absolute left-0 top-0 h-[4.35rem] w-auto opacity-[0.94]"
       />
     </div>
   );
@@ -414,7 +414,7 @@ export default function ZiiplyMobileCompareCardresponsive({
 
           @keyframes ziiplyRetroMopedRide {
             0% {
-              transform: translateX(-7.5rem);
+              transform: translateX(-8.8rem);
               opacity: 0;
             }
 
@@ -427,13 +427,13 @@ export default function ZiiplyMobileCompareCardresponsive({
             }
 
             100% {
-              transform: translateX(17.5rem);
+              transform: translateX(18.8rem);
               opacity: 0;
             }
           }
 
           .ziiply-retro-moped {
-            animation: ziiplyRetroMopedRide 3.8s cubic-bezier(0.2,0.72,0.22,1) infinite;
+            animation: ziiplyRetroMopedRide 4.6s cubic-bezier(0.2,0.72,0.22,1) infinite;
             will-change: transform, opacity;
           }
 
