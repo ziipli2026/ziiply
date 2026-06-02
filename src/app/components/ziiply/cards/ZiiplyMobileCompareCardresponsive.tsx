@@ -15,9 +15,16 @@ type Store = {
 };
 
 type Props = {
+  open?: boolean;
   stores: Store[];
+  items?: unknown[];
+  title?: string;
+  subtitle?: string;
+  loading?: boolean;
   onSelectStore?: (id: string) => void;
   onBack?: () => void;
+  onBackToCart?: () => void;
+  onOpenStore?: (id: string) => void;
   onClose?: () => void;
 };
 
@@ -29,11 +36,20 @@ function euro(v?: number) {
 }
 
 export default function ZiiplyMobileCompareCardresponsive({
+  open = true,
   stores,
+  items = [],
+  title = "Vertailu",
+  subtitle,
+  loading = false,
   onSelectStore,
   onBack,
+  onBackToCart,
+  onOpenStore,
   onClose,
 }: Props) {
+  if (!open) return null;
+  const handleBack = onBack || onBackToCart;
   const cheapest = [...stores]
     .filter((s) => typeof s.totalPrice === "number")
     .sort((a, b) => (a.totalPrice || 0) - (b.totalPrice || 0))[0];
@@ -64,11 +80,11 @@ export default function ZiiplyMobileCompareCardresponsive({
                   className="mt-1 text-[2rem] font-black italic leading-none text-[#264129]"
                   style={{ fontFamily: cooper }}
                 >
-                  Vertailu
+                  {title}
                 </h1>
 
                 <p className="mt-1 text-[0.78rem] font-extrabold text-[#5e523b]">
-                  {stores.length} kauppaa vertailtu
+                  {subtitle || `${stores.length} kauppaa vertailtu`}
                 </p>
               </div>
 
@@ -119,7 +135,7 @@ export default function ZiiplyMobileCompareCardresponsive({
 
                     <div className="mt-1 flex items-center gap-2 text-[0.64rem] font-black uppercase tracking-[0.08em] text-[#756b58]">
                       <span>#{index + 1}</span>
-                      <span>{store.itemCount || 0} tuotetta</span>
+                      <span>{store.itemCount || items.length || 0} tuotetta</span>
 
                       {best ? (
                         <span className="rounded-full border border-[#0b6330] bg-[#0c973d] px-2 py-[0.1rem] text-[#fff4d7]">
@@ -145,7 +161,7 @@ export default function ZiiplyMobileCompareCardresponsive({
 
         <footer className="relative z-10 grid shrink-0 grid-cols-2 gap-3 px-5 pb-5 pt-2">
           <button
-            onClick={onBack}
+            onClick={handleBack}
             className="min-h-[3rem] rounded-[1rem] border-[3px] border-[#8a7142] bg-[#efe1bd] text-[0.9rem] font-black uppercase text-[#29412c] shadow-[0_0_0_2px_#f9efd6_inset]"
           >
             Takaisin
