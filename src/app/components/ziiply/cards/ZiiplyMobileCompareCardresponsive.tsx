@@ -1,10 +1,10 @@
 "use client";
 
-// ZIIPLY_MOBILE_COMPARE_CARDRESPONSIVE_V37_MOPED_20_PERCENT_BIGGER
+// ZIIPLY_MOBILE_COMPARE_CARDRESPONSIVE_V38_JS_MOPED_LOADER
 // Päävertailu muutettu mobiilille: isot kauppakortit, isot AVAA KORI / VALITSE -napit,
 // loading-rakenne näkyy heti oikean näköisenä. Visuaalinen linja pysyy Ziiplyn paperi/retro-maailmassa.
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import ZiiplyMobileCompareSelectionCard from "./ZiiplyMobileCompareSelectionCard";
 
 export type ZiiplyCompareStore = {
@@ -110,7 +110,7 @@ function StoreLoadingCard({ index }: { index: number }) {
 
         {index === 0 ? (
           <div
-            className="absolute left-[12.75rem] top-[1.55rem] z-10 text-[0.72rem] font-black italic tracking-[0.02em] text-[#28402a]/86"
+            className="absolute left-[12.75rem] top-[0.95rem] z-10 text-[0.72rem] font-black italic tracking-[0.02em] text-[#28402a]/86"
             style={{ fontFamily: cooperFont }}
           >
             Haetaan...
@@ -162,16 +162,31 @@ function StoreLoadingCard({ index }: { index: number }) {
 
 
 function RetroMopedOverlay() {
-  return (
-    <div className="pointer-events-none absolute left-[13.05rem] top-[11.72rem] z-[21] h-[4.55rem] w-[11.4rem] overflow-hidden">
-      <div className="ziiply-retro-moped-drive absolute left-0 top-0 flex flex-col items-center">
-        <img
-          src="/icons/ziiply-retro-moped-loader.png"
-          alt="Haetaan..."
-          className="h-[3.90rem] w-auto opacity-[0.97] drop-shadow-[0_2px_2px_rgba(44,28,8,0.24)]"
-        />
+  const [step, setStep] = useState(0);
 
-      </div>
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setStep((value) => (value + 1) % 24);
+    }, 55);
+
+    return () => window.clearInterval(id);
+  }, []);
+
+  const progress = step / 23;
+  const x = -72 + progress * 170;
+
+  return (
+    <div className="pointer-events-none absolute left-[13.10rem] top-[11.28rem] z-[21] h-[5.25rem] w-[12.8rem] overflow-hidden">
+      <img
+        src="/icons/ziiply-retro-moped-loader.png?v=2"
+        alt="Haetaan..."
+        className="absolute top-0 h-[4.65rem] w-auto opacity-[0.98] drop-shadow-[0_2px_2px_rgba(44,28,8,0.24)]"
+        style={{
+          transform: `translate3d(${x}px, 0, 0)`,
+          transition: "transform 55ms linear",
+          willChange: "transform",
+        }}
+      />
     </div>
   );
 }
@@ -418,35 +433,6 @@ export default function ZiiplyMobileCompareCardresponsive({
 
           .ziiply-mobile-compare-pop {
             animation: ziiplyMobileComparePop 420ms cubic-bezier(0.2, 0.9, 0.25, 1.2);
-          }
-
-
-
-
-
-          @keyframes ziiplyRetroMopedRide {
-            0% {
-              transform: translateX(-6.4rem);
-              opacity: 0;
-            }
-
-            8% {
-              opacity: 0.96;
-            }
-
-            88% {
-              opacity: 0.96;
-            }
-
-            100% {
-              transform: translateX(10.4rem);
-              opacity: 0;
-            }
-          }
-
-          .ziiply-retro-moped-drive {
-            animation: ziiplyRetroMopedRide 1.35s linear infinite;
-            will-change: transform, opacity;
           }
 
           @media (max-height: 720px) {
