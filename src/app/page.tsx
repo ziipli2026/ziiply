@@ -8,6 +8,9 @@
 // - zoom ei enää lukitu arvoon 1, vaan yritetään maltillista lähizoomia scannerCore-tuennan päälle
 // - ei-löytynyt EAN lisätään koriin tuntemattomana tuotteena ja kirjataan localStorage-logiin myöhempää selvitystä varten.
 
+// V728_UNKNOWN_EAN_NO_REPEAT
+// Ei-löytynyt / tuntematon EAN lisätään koriin vain kerran; sama koodi ei enää kasvata määrää uudelleen.
+
 // V723_SEARCH_FAIL_OPEN_FIX
 // Pohjana V722.
 // Korjaus hakumoottoriin:
@@ -2584,6 +2587,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const lastContinuousScanRef = useRef<{ code: string; at: number } | null>(
     null,
   );
+  const scannedEanSessionSetRef = useRef<Set<string>>(new Set());
   const scanSuccessFlashTimeoutRef = useRef<number | null>(null);
   const scanMissFlashTimeoutRef = useRef<number | null>(null);
 
@@ -6278,6 +6282,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const now = Date.now();
     const previous = lastContinuousScanRef.current;
 
+    // V727: sama EAN hyväksytään vain kerran yhden kameraskanneri-session aikana.
+    // Live-lukija ja fallback voivat molemmat nähdä saman koodin useista frameista,
+    // mutta haun/lisäyksen pitää käynnistyä vain ensimmäisestä hyväksytystä lukemasta.
+    if (scannedEanSessionSetRef.current.has(normalizedCode)) {
+      return;
+    }
+
     // V598: sama kameraruudussa pysyvä EAN saa aiheuttaa vain yhden tunnistuksen,
     // yhden piipin ja yhden haun lukitusajan sisällä.
     // Tämä estää jatkuvan taustapiippauksen, kun kamera tunnistaa samaa koodia
@@ -6289,6 +6300,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return;
     }
 
+    scannedEanSessionSetRef.current.add(normalizedCode);
     lastContinuousScanRef.current = { code: normalizedCode, at: now };
     resetPendingEanPickCardV606();
 
@@ -6441,6 +6453,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       eanScannerFallbackStopRef.current = null;
     }
     lastContinuousScanRef.current = null;
+    scannedEanSessionSetRef.current.clear();
     resetPendingEanPickCardV606();
     setScannerTorchOn(false);
 
@@ -6481,6 +6494,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     try {
       await stopEanCameraScanner();
+      scannedEanSessionSetRef.current.clear();
       setEanScannerOpen(true);
       setEanScannerMessage("");
 
@@ -7259,16 +7273,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       });
 
       if (existingItem) {
-        const nextCart = currentCart.map((item) =>
-          item.id === existingItem.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item,
-        );
-
-        persistCartImmediately(nextCart);
-        void updateChainComparison(nextCart, { openCompare: false });
-        showCartToast(`Määrä +1: ${existingItem.name}`);
-        return nextCart;
+        // V728: tuntematon / ei-löytynyt EAN ei saa kasvattaa määrää,
+        // vaikka kamera lukisi saman koodin monta kertaa peräkkäin.
+        // Yksi talteenotto per EAN riittää; käyttäjä voi nostaa määrää korissa itse.
+        showCartToast("EAN on jo otettu talteen");
+        return currentCart;
       }
 
       if (currentCart.length >= MAX_ITEMS) {
