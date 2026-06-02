@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_COMPARE_CARDRESPONSIVE_V39_MOPED_SLOWER
+// ZIIPLY_MOBILE_COMPARE_CARDRESPONSIVE_V40_SMOOTH_MOPED_ENTRY
 // Päävertailu muutettu mobiilille: isot kauppakortit, isot AVAA KORI / VALITSE -napit,
 // loading-rakenne näkyy heti oikean näköisenä. Visuaalinen linja pysyy Ziiplyn paperi/retro-maailmassa.
 
@@ -162,29 +162,43 @@ function StoreLoadingCard({ index }: { index: number }) {
 
 
 function RetroMopedOverlay() {
-  const [step, setStep] = useState(0);
+  const [frame, setFrame] = useState({ x: -126, opacity: 0 });
 
   useEffect(() => {
-    const id = window.setInterval(() => {
-      setStep((value) => (value + 1) % 24);
-    }, 157);
+    let raf = 0;
+    const durationMs = 4300;
+    const startedAt = window.performance.now();
 
-    return () => window.clearInterval(id);
+    const tick = (now: number) => {
+      const progress = ((now - startedAt) % durationMs) / durationMs;
+      const x = -126 + progress * 252;
+
+      const opacity =
+        progress < 0.20
+          ? progress / 0.20
+          : progress > 0.86
+            ? Math.max(0, (1 - progress) / 0.14)
+            : 1;
+
+      setFrame({ x, opacity: opacity * 0.98 });
+      raf = window.requestAnimationFrame(tick);
+    };
+
+    raf = window.requestAnimationFrame(tick);
+
+    return () => window.cancelAnimationFrame(raf);
   }, []);
 
-  const progress = step / 23;
-  const x = -72 + progress * 170;
-
   return (
-    <div className="pointer-events-none absolute left-[13.10rem] top-[11.28rem] z-[21] h-[5.25rem] w-[12.8rem] overflow-hidden">
+    <div className="pointer-events-none absolute left-[12.65rem] top-[11.28rem] z-[21] h-[5.25rem] w-[14.3rem] overflow-hidden">
       <img
-        src="/icons/ziiply-retro-moped-loader.png?v=2"
+        src="/icons/ziiply-retro-moped-loader.png?v=3"
         alt="Haetaan..."
-        className="absolute top-0 h-[4.65rem] w-auto opacity-[0.98] drop-shadow-[0_2px_2px_rgba(44,28,8,0.24)]"
+        className="absolute top-0 h-[4.65rem] w-auto drop-shadow-[0_2px_2px_rgba(44,28,8,0.24)]"
         style={{
-          transform: `translate3d(${x}px, 0, 0)`,
-          transition: "transform 157ms linear",
-          willChange: "transform",
+          transform: `translate3d(${frame.x}px, 0, 0)`,
+          opacity: frame.opacity,
+          willChange: "transform, opacity",
         }}
       />
     </div>
