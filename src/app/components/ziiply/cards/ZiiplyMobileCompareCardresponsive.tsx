@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_COMPARE_CARD_RESPONSIVE_V7_LOWER_EMPTY_HEADER
+// ZIIPLY_MOBILE_COMPARE_CARD_RESPONSIVE_V8_LOWER_WITH_SELECTION_CARD
 // Selkeämpi mobiili-vertailu:
 // - ei modernia dashboardia / kelluvia hintabokseja
 // - sama vihko-/luettelomaailma kuin Tavarainkeruu-korissa
@@ -9,7 +9,8 @@
 // - "Avaa" säilyy erillisenä pienenä toimintona
 // - huokein näkyy hillittynä rivikorostuksena, ei irrallisena widgettinä
 
-import React from "react";
+import React, { useState } from "react";
+import ZiiplyMobileCompareSelectionCard from "./ZiiplyMobileCompareSelectionCard";
 
 export type ZiiplyCompareStore = {
   id: string;
@@ -33,7 +34,7 @@ export type ZiiplyMobileCompareCardresponsiveProps = {
   onSelectStore?: (storeId: string) => void;
   onBack?: () => void;
   onBackToCart?: () => void;
-  onOpenStore?: (storeId: string) => void;
+  onOpenStore?: (storeId: string) => void; // säilytetty yhteensopivuuden vuoksi, mobiili käyttää sisäistä erittelykorttia
   onClose?: () => void;
   className?: string;
 };
@@ -77,9 +78,26 @@ export default function ZiiplyMobileCompareCardresponsive({
   onClose,
   className = "",
 }: ZiiplyMobileCompareCardresponsiveProps) {
+  const [detailsStoreId, setDetailsStoreId] = useState<string | null>(null);
+
   if (!open) return null;
 
   const cheapest = getCheapestStore(stores);
+  const detailsStore = detailsStoreId ? stores.find((store) => store.id === detailsStoreId) || null : null;
+
+  if (detailsStore) {
+    return (
+      <ZiiplyMobileCompareSelectionCard
+        open
+        store={detailsStore}
+        items={items}
+        isBest={Boolean(detailsStore.isBest || cheapest?.id === detailsStore.id)}
+        onBack={() => setDetailsStoreId(null)}
+        onSelectStore={() => onSelectStore?.(detailsStore.id)}
+        onClose={onClose}
+      />
+    );
+  }
   const handleBack = onBack || onBackToCart;
   const comparedCount = items.length || stores[0]?.itemCount || 0;
 
@@ -100,12 +118,12 @@ export default function ZiiplyMobileCompareCardresponsive({
         <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[linear-gradient(180deg,rgba(255,250,226,0.56),rgba(246,226,172,0.22)_32%,rgba(238,214,156,0.10))]" />
         <div className="pointer-events-none absolute inset-[0.42rem] rounded-[1.55rem] border border-dashed border-[#d6a861]/55 shadow-[inset_0_0_0_2px_rgba(27,17,9,0.20)]" />
 
-        <header className="relative z-10 shrink-0 px-5 pb-0 pt-[5.95rem]">
+        <header className="relative z-10 shrink-0 px-5 pb-0 pt-[7.65rem]">
           {/* Paperin yläosa jätetään tarkoituksella tyhjäksi.
               Taustakuvan oma lomake-/vihkopainatus saa näkyä ilman UI-tekstejä. */}
         </header>
 
-        <main className="relative z-10 min-h-0 flex-1 overflow-y-auto px-5 pb-3 pt-[1.65rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <main className="relative z-10 min-h-0 flex-1 overflow-y-auto px-5 pb-3 pt-[0.35rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div className="mb-2 px-1">
             <div
               className="text-[0.52rem] font-black uppercase tracking-[0.24em] text-[#665d45]/86"
@@ -243,7 +261,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                             onClick={(event) => {
                               event.preventDefault();
                               event.stopPropagation();
-                              onOpenStore(store.id);
+                              setDetailsStoreId(store.id);
                             }}
                             className="min-h-[1.35rem] rounded-[0.45rem] border-[2px] border-[#876b37] bg-[#fff1c6]/72 px-2.5 text-[0.54rem] font-black uppercase tracking-[0.06em] text-[#28402a] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.25)] active:translate-y-[1px]"
                           >
