@@ -24,11 +24,21 @@ export default function ZiiplyMobileHomeView({
     >
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0 -z-10 opacity-[0.28]"
+        className="pointer-events-none absolute inset-0 -z-10 opacity-[0.16]"
         style={{
           backgroundImage:
             "radial-gradient(circle at 18% 16%, rgba(255,255,255,0.58) 0 1px, transparent 1.6px), radial-gradient(circle at 72% 42%, rgba(122,97,49,0.11) 0 1px, transparent 1.8px), linear-gradient(180deg, rgba(255,255,255,0.34), rgba(255,255,255,0))",
-          backgroundSize: "22px 22px, 31px 31px, 100% 100%",
+          backgroundSize: "28px 28px, 40px 40px, 100% 100%",
+        }}
+      />
+
+
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-[180px]"
+        style={{
+          background:
+            "linear-gradient(180deg, rgba(210,222,211,0) 0%, rgba(226,232,219,0.42) 52%, rgba(233,241,237,0.88) 100%)",
         }}
       />
 
@@ -44,22 +54,22 @@ export default function ZiiplyMobileHomeView({
           src="/ziiplylogo_mobile.png"
           alt="Ziiply"
           draggable={false}
-          className="mb-2 w-[106px] select-none object-contain drop-shadow-[0_4px_10px_rgba(21,79,50,0.10)]"
+          className="mb-1.5 w-[98px] select-none object-contain drop-shadow-[0_4px_10px_rgba(21,79,50,0.10)]"
           onError={(event) => {
             event.currentTarget.style.display = "none";
           }}
         />
 
         <h1 className="max-w-[320px] text-[31px] font-black leading-[1.02] tracking-[-0.045em] text-[#050b2b] drop-shadow-[0_1px_0_rgba(255,255,255,0.55)]">
-          Viilaa ruokakorisi huokeammaks.
+          Viilaa ruokakorisi huokeammaks
         </h1>
 
-        <p className="mt-2 mb-2 max-w-[340px] text-[17px] font-black leading-snug tracking-[-0.02em] text-[#65718f] drop-shadow-[0_1px_0_rgba(255,255,255,0.48)]">
-          Gösta, Justiina ja Arvo auttavat arjen valinnoissa.
+        <p className="mt-2 mb-2 max-w-[340px] text-[17px] font-black leading-snug tracking-[-0.02em] text-[#6f725f] drop-shadow-[0_1px_0_rgba(255,255,255,0.48)]">
+          Gösta, Justiina ja Arvo auttavat arjen valinnoissa
         </p>
       </section>
 
-      <section className="mt-0 rounded-[2rem] bg-[#fffdf6]/92 px-4 pb-4 pt-3 shadow-[0_16px_42px_rgba(34,54,43,0.10)] ring-1 ring-white/85 backdrop-blur-[2px]">
+      <section className="mt-0 rounded-[2rem] bg-[#fffdf6]/92 px-4 pb-4 pt-3 shadow-[0_20px_48px_rgba(34,54,43,0.14)] ring-1 ring-white/90 backdrop-blur-[2px]">
         <div className="grid grid-cols-3 gap-3">
           <ZiiplyMobileAssistantButton
             assistant="gosta"
