@@ -1,12 +1,12 @@
 "use client";
 
-// ZIIPLY_MOBILE_COMPARE_CARD_RESPONSIVE_V6_LOWER_LEDGER_AND_OPEN_FIX
+// ZIIPLY_MOBILE_COMPARE_CARD_RESPONSIVE_V7_LOWER_EMPTY_HEADER
 // Selkeämpi mobiili-vertailu:
 // - ei modernia dashboardia / kelluvia hintabokseja
 // - sama vihko-/luettelomaailma kuin Tavarainkeruu-korissa
 // - kaupat valittavina riveinä kuten desktopissa
 // - jokaisella rivillä oma "Valitse" toiminto
-// - "Avaa" säilyy erillisenä pienenä toimintona eikä enää laukaise sulkua/valintaa vahingossa
+// - "Avaa" säilyy erillisenä pienenä toimintona
 // - huokein näkyy hillittynä rivikorostuksena, ei irrallisena widgettinä
 
 import React from "react";
@@ -100,33 +100,30 @@ export default function ZiiplyMobileCompareCardresponsive({
         <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[linear-gradient(180deg,rgba(255,250,226,0.56),rgba(246,226,172,0.22)_32%,rgba(238,214,156,0.10))]" />
         <div className="pointer-events-none absolute inset-[0.42rem] rounded-[1.55rem] border border-dashed border-[#d6a861]/55 shadow-[inset_0_0_0_2px_rgba(27,17,9,0.20)]" />
 
-        <header className="relative z-10 shrink-0 px-5 pb-1 pt-[3.28rem]">
-          <div className="relative border-b-[2px] border-[#9b7b3d]/62 pb-1">
-            <div className="pointer-events-none absolute inset-x-[-0.15rem] top-[-0.32rem] h-[3.30rem] rounded-[1.05rem] bg-[#fff6d8]/50" />
-
-            <div className="relative min-w-0 pr-[3.25rem]">
-              <div
-                className="text-[0.54rem] font-black uppercase tracking-[0.27em] text-[#665d45]/86"
-                style={{ fontFamily: copperplateFont }}
-              >
-                Hintavertailu
-              </div>
-
-              <h2
-                className="mt-1 text-[1.42rem] font-black italic leading-none text-[#28402a] drop-shadow-[0_1px_0_rgba(255,247,211,0.68)]"
-                style={{ fontFamily: cooperFont }}
-              >
-                {title}
-              </h2>
-
-              <p className="mt-0.5 text-[0.70rem] font-extrabold text-[#5f5034]">
-                {subtitle || `${comparedCount || stores.length} tuotetta / ${stores.length} kauppaa`}
-              </p>
-            </div>
-          </div>
+        <header className="relative z-10 shrink-0 px-5 pb-0 pt-[5.95rem]">
+          {/* Paperin yläosa jätetään tarkoituksella tyhjäksi.
+              Taustakuvan oma lomake-/vihkopainatus saa näkyä ilman UI-tekstejä. */}
         </header>
 
-        <main className="relative z-10 min-h-0 flex-1 overflow-y-auto px-5 pb-3 pt-[2.35rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <main className="relative z-10 min-h-0 flex-1 overflow-y-auto px-5 pb-3 pt-[1.65rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="mb-2 px-1">
+            <div
+              className="text-[0.52rem] font-black uppercase tracking-[0.24em] text-[#665d45]/86"
+              style={{ fontFamily: copperplateFont }}
+            >
+              Hintavertailu
+            </div>
+            <div
+              className="mt-0.5 text-[1.34rem] font-black italic leading-none text-[#28402a] drop-shadow-[0_1px_0_rgba(255,247,211,0.62)]"
+              style={{ fontFamily: cooperFont }}
+            >
+              {title}
+            </div>
+            <div className="mt-0.5 text-[0.70rem] font-extrabold text-[#5f5034]">
+              {subtitle || `${comparedCount || stores.length} tuotetta / ${stores.length} kauppaa`}
+            </div>
+          </div>
+
           <div className="relative overflow-hidden rounded-[1.05rem] border-[2px] border-[#7c663d]/78 bg-[#fff4d8]/72 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]">
             <div
               className="grid grid-cols-[1.75rem_minmax(0,1fr)_4.72rem] border-b-[1.5px] border-[#9b7b3d]/62 bg-[#efe0b8]/62 px-3 py-1.5 text-[0.52rem] font-black uppercase tracking-[0.14em] text-[#665d45]"
@@ -178,7 +175,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                   <article
                     key={store.id}
                     className={cx(
-                      "relative grid min-h-[4.58rem] grid-cols-[1.75rem_minmax(0,1fr)_4.72rem] items-center border-b border-[#d4bd86]/72 px-3 py-2",
+                      "relative grid min-h-[4.72rem] grid-cols-[1.75rem_minmax(0,1fr)_4.72rem] items-center border-b border-[#d4bd86]/72 px-3 py-2",
                       isBest ? "bg-[#eef4dc]/78" : "bg-[#fff8e5]/50",
                     )}
                   >
@@ -290,7 +287,7 @@ export default function ZiiplyMobileCompareCardresponsive({
           <button
             type="button"
             onClick={handleBack}
-            className="min-h-[2.48rem] rounded-[1.0rem] border-[3px] border-[#7c663d] bg-[#efe1bd] px-3 text-[0.70rem] font-black uppercase tracking-[0.04em] text-[#28402a] shadow-[0_0_0_2px_#f8edcf_inset] active:translate-y-[1px] disabled:opacity-45"
+            className="min-h-[2.46rem] rounded-[1.0rem] border-[3px] border-[#7c663d] bg-[#efe1bd] px-3 text-[0.70rem] font-black uppercase tracking-[0.04em] text-[#28402a] shadow-[0_0_0_2px_#f8edcf_inset] active:translate-y-[1px] disabled:opacity-45"
             disabled={!handleBack}
           >
             Takaisin
@@ -299,7 +296,7 @@ export default function ZiiplyMobileCompareCardresponsive({
           <button
             type="button"
             onClick={() => cheapest && onSelectStore?.(cheapest.id)}
-            className="min-h-[2.48rem] rounded-[1.0rem] border-[3px] border-[#0b6330] bg-[linear-gradient(180deg,#139143_0%,#087237_100%)] px-2 text-[0.70rem] font-black uppercase tracking-[0.03em] text-[#fff0d5] shadow-[0_0_0_2px_rgba(255,255,255,0.18)_inset,0_3px_0_#064a26] active:translate-y-[1px] disabled:opacity-45"
+            className="min-h-[2.46rem] rounded-[1.0rem] border-[3px] border-[#0b6330] bg-[linear-gradient(180deg,#139143_0%,#087237_100%)] px-2 text-[0.70rem] font-black uppercase tracking-[0.03em] text-[#fff0d5] shadow-[0_0_0_2px_rgba(255,255,255,0.18)_inset,0_3px_0_#064a26] active:translate-y-[1px] disabled:opacity-45"
             disabled={!cheapest || !onSelectStore}
           >
             Huokein
