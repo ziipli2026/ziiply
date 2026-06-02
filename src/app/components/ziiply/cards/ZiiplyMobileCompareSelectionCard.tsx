@@ -178,27 +178,27 @@ export default function ZiiplyMobileCompareSelectionCard({
         <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[linear-gradient(180deg,rgba(255,250,226,0.58),rgba(246,226,172,0.22)_34%,rgba(238,214,156,0.10))]" />
         <div className="pointer-events-none absolute inset-[0.42rem] rounded-[1.55rem] border border-dashed border-[#d6a861]/55 shadow-[inset_0_0_0_2px_rgba(27,17,9,0.20)]" />
 
-        <header className="relative z-10 shrink-0 px-5 pb-1 pt-[7.65rem]">
-          <div className="mb-2 px-1">
+        <header className="relative z-10 shrink-0 px-5 pb-1 pt-[11.1rem]">
+          <div className="mb-2 px-1 text-center">
             <div
-              className="text-[0.49rem] font-black uppercase tracking-[0.24em] text-[#665d45]/86"
+              className="text-[0.52rem] font-black uppercase tracking-[0.24em] text-[#665d45]/86"
               style={{ fontFamily: copperplateFont }}
             >
               Kaupan erittely
             </div>
             <div
-              className="mt-0.5 truncate text-[1.20rem] font-black italic leading-none text-[#28402a] drop-shadow-[0_1px_0_rgba(255,247,211,0.62)]"
+              className="mt-0.5 truncate text-[1.52rem] font-black italic leading-none text-[#28402a] drop-shadow-[0_1px_0_rgba(255,247,211,0.62)]"
               style={{ fontFamily: cooperFont }}
             >
               {store.name}
             </div>
-            <div className="mt-0.5 text-[0.70rem] font-extrabold text-[#5f5034]">
+            <div className="mt-0.5 text-[0.78rem] font-extrabold text-[#5f5034]">
               {isBest ? "Huokein kokonaisuus" : "Kauppakohtainen kori"}
             </div>
           </div>
         </header>
 
-        <main className="relative z-10 min-h-0 flex-1 overflow-y-auto px-5 pb-4 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <main className="relative z-10 min-h-0 flex-1 overflow-y-auto px-5 pb-4 pt-[1.9rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div className="space-y-2.5">
             {rows.length === 0 ? (
               <div className="rounded-[1.05rem] border-[2px] border-[#7c663d]/78 bg-[#fff4d8]/72 px-4 py-8 text-center text-[0.82rem] font-extrabold text-[#6b6048] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]">
