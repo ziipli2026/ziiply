@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_COMPARE_CARD_RESPONSIVE_V23_EXACT_EMPTY_REPORT_LOADING
+// ZIIPLY_MOBILE_COMPARE_CARD_RESPONSIVE_V25_MOCKUP_HEADER_POSITION
 // Päävertailu muutettu mobiilille: isot kauppakortit, isot AVAA KORI / VALITSE -napit,
 // loading-rakenne näkyy heti oikean näköisenä. Visuaalinen linja pysyy Ziiplyn paperi/retro-maailmassa.
 
@@ -85,32 +85,32 @@ function getChainLabel(chain?: "S" | "K") {
 }
 
 function StoreLoadingCard({ index }: { index: number }) {
-  const chain = index === 0 ? "S" : "K";
+  const chain = index === 0 ? "K" : "S";
   const best = index === 0;
 
   return (
     <article
-      className={[
+      className={cx(
         "relative overflow-hidden rounded-[1.18rem] border-[2.5px] px-3.5 py-2.5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]",
         best ? "border-[#0b6330] bg-[#ecf3d5]/70" : "border-[#7c663d]/76 bg-[#fff8e5]/70",
-      ].join(" ")}
+      )}
       aria-label="Haetaan vertailua"
     >
       <div className="grid grid-cols-[2.35rem_minmax(0,1fr)_4.35rem] gap-3">
         <div
-          className={[
+          className={cx(
             "mt-1 grid h-9 w-9 place-items-center rounded-full border-[2px] text-[1.00rem] font-black shadow-[0_2px_3px_rgba(40,28,12,0.14)]",
             chain === "K"
-              ? "border-[#7e1418]/40 bg-[#c71d24]/22 text-[#fff6d7]/58"
-              : "border-[#0b6330]/40 bg-[#0b8f3a]/22 text-[#fff6d7]/58",
-          ].join(" ")}
+              ? "border-[#7e1418]/46 bg-[#c71d24]/26 text-[#fff6d7]/62"
+              : "border-[#0b6330]/46 bg-[#0b8f3a]/26 text-[#fff6d7]/62",
+          )}
         >
           {chain}
         </div>
 
         <div className="min-w-0">
-          <div className="h-[1.30rem] w-[88%] rounded-full bg-[#d1bb7d]/30" />
-          <div className="mt-2 h-[0.72rem] w-[56%] rounded-full bg-[#d1bb7d]/24" />
+          <div className="h-[1.28rem] w-[88%] rounded-full bg-[#d1bb7d]/30" />
+          <div className="mt-2 h-[0.72rem] w-[62%] rounded-full bg-[#d1bb7d]/24" />
           <div className="mt-2.5 h-[1.45rem] w-[5.35rem] rounded-[0.45rem] bg-[#d1bb7d]/22" />
         </div>
 
@@ -184,21 +184,15 @@ export default function ZiiplyMobileCompareCardresponsive({
         <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[linear-gradient(180deg,rgba(255,250,226,0.58),rgba(246,226,172,0.22)_34%,rgba(238,214,156,0.10))]" />
         <div className="pointer-events-none absolute inset-[0.42rem] rounded-[1.55rem] border border-dashed border-[#d6a861]/55 shadow-[inset_0_0_0_2px_rgba(27,17,9,0.20)]" />
 
-        <header className="relative z-10 shrink-0 px-5 pb-1 pt-[8.10rem]">
-          <div className="mb-2 px-1">
+        <header className="relative z-10 shrink-0 px-5 pb-1 pt-[8.72rem]">
+          <div className="mb-2 pl-[3.55rem] pr-1">
             <div
-              className="text-[0.52rem] font-black uppercase tracking-[0.24em] text-[#665d45]/86"
-              style={{ fontFamily: copperplateFont }}
-            >
-              Hintavertailu
-            </div>
-            <div
-              className="mt-0.5 text-[1.46rem] font-black italic leading-none text-[#28402a] drop-shadow-[0_1px_0_rgba(255,247,211,0.62)]"
+              className="text-[1.52rem] font-black italic leading-none text-[#28402a] drop-shadow-[0_1px_0_rgba(255,247,211,0.62)]"
               style={{ fontFamily: cooperFont }}
             >
               {title}
             </div>
-            <div className="mt-0.5 text-[0.72rem] font-extrabold text-[#5f5034]">
+            <div className="mt-[0.18rem] text-[0.74rem] font-extrabold text-[#5f5034]">
               {subtitle || `${comparedCount || visibleStores.length} tuotetta / ${visibleStores.length} kauppaa`}
             </div>
           </div>
@@ -209,12 +203,6 @@ export default function ZiiplyMobileCompareCardresponsive({
 
             {showSkeleton ? (
               <>
-                <div
-                  className="rounded-[0.55rem] px-2 pb-1 text-center text-[0.72rem] font-black italic text-[#28402a]/82"
-                  style={{ fontFamily: cooperFont }}
-                >
-                  Selvitetään...
-                </div>
                 <StoreLoadingCard index={0} />
                 <StoreLoadingCard index={1} />
               </>
@@ -271,7 +259,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                           onClick={() => setDetailsStoreId(store.id)}
                           className="block max-w-full text-left"
                         >
-                          <span className="block truncate text-[0.96rem] font-black leading-tight text-[#233020]">
+                          <span className="block truncate text-[1.02rem] font-black leading-tight text-[#233020]">
                             {store.name}
                           </span>
                           <span className="mt-1 flex flex-wrap items-center gap-1.5 text-[0.64rem] font-black uppercase tracking-[0.07em] text-[#6e6d55]">
