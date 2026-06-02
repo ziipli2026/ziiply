@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_COMPARE_CARD_RESPONSIVE_V15_NO_BOTTOM_FOOTER
+// ZIIPLY_MOBILE_COMPARE_CARD_RESPONSIVE_V17_ALWAYS_SAME_LOADING_SHELL
 // Päävertailu muutettu mobiilille: isot kauppakortit, isot AVAA KORI / VALITSE -napit,
 // loading-rakenne näkyy heti oikean näköisenä. Visuaalinen linja pysyy Ziiplyn paperi/retro-maailmassa.
 
@@ -32,6 +32,7 @@ export type ZiiplyMobileCompareCardresponsiveProps = {
   onBack?: () => void;
   onBackToCart?: () => void;
   onOpenStore?: (storeId: string) => void; // säilytetty yhteensopivuuden vuoksi, mobiili käyttää sisäistä erittelykorttia
+  onChangeItemQuantity?: (match: unknown, delta: number) => void;
   onChangeMatchMode?: (
     storeId: string,
     match: unknown,
@@ -84,21 +85,34 @@ function getChainLabel(chain?: "S" | "K") {
 }
 
 function StoreLoadingCard({ index }: { index: number }) {
+  const chain = index === 0 ? "S" : "K";
+
   return (
-    <article className="relative min-h-[7.35rem] overflow-hidden rounded-[1.18rem] border-[2.5px] border-[#7c663d]/70 bg-[#fff4d8]/74 px-3.5 py-2.5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.28),0_6px_14px_rgba(72,51,22,0.10)]">
-      <div className="grid grid-cols-[2.65rem_minmax(0,1fr)_5.2rem] gap-3">
-        <div className="grid h-9 w-9 animate-pulse place-items-center rounded-full border-[2px] border-[#9d8753] bg-[#d1bb7d] text-[0.92rem] font-black text-[#fff6d7]">
-          {index === 0 ? "S" : "K"}
+    <article
+      className={[
+        "relative overflow-hidden rounded-[1.18rem] border-[2.5px] px-3.5 py-2.5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]",
+        index === 0
+          ? "border-[#0b6330]/75 bg-[#ecf3d5]/54"
+          : "border-[#7c663d]/64 bg-[#fff8e5]/58",
+      ].join(" ")}
+    >
+      <div className="grid grid-cols-[2.58rem_minmax(0,1fr)_5.20rem] gap-3">
+        <div className="mt-1 grid h-9 w-9 place-items-center rounded-full border-[2px] border-[#9d8753]/72 bg-[#d1bb7d]/72 text-[1.00rem] font-black text-[#fff6d7]/78 shadow-[0_2px_3px_rgba(40,28,12,0.14)]">
+          {chain}
         </div>
+
         <div className="min-w-0">
-          <div className="h-6 w-[86%] animate-pulse rounded-full bg-[#d1bb7d]" />
-          <div className="mt-2 h-3 w-28 animate-pulse rounded-full bg-[#d1bb7d]" />
-          <div className="mt-2.5 grid grid-cols-2 gap-2">
-            <div className="h-9 animate-pulse rounded-[0.65rem] bg-[#d1bb7d]" />
-            <div className="h-9 animate-pulse rounded-[0.65rem] bg-[#d1bb7d]" />
-          </div>
+          <div className="h-[1.35rem] w-[82%] rounded-full bg-[#d1bb7d]/60" />
+          <div className="mt-2 h-[0.72rem] w-[58%] rounded-full bg-[#d1bb7d]/52" />
+          <div className="mt-2.5 h-[1.45rem] w-[4.9rem] rounded-[0.45rem] bg-[#d1bb7d]/50" />
         </div>
-        <div className="ml-auto h-7 w-20 animate-pulse rounded-full bg-[#d1bb7d]" />
+
+        <div className="ml-auto mt-2 h-[1.55rem] w-[4.95rem] rounded-full bg-[#d1bb7d]/58" />
+      </div>
+
+      <div className="mt-2.5 grid grid-cols-2 gap-2">
+        <div className="min-h-[2.46rem] rounded-[0.82rem] border-[3px] border-[#0b6330]/45 bg-[#0b8f3a]/34 shadow-[0_0_0_2px_rgba(255,255,255,0.12)_inset]" />
+        <div className="min-h-[2.46rem] rounded-[0.82rem] border-[3px] border-[#7c663d]/55 bg-[#efe1bd]/58 shadow-[0_0_0_2px_rgba(248,237,207,0.55)_inset]" />
       </div>
     </article>
   );
@@ -114,6 +128,7 @@ export default function ZiiplyMobileCompareCardresponsive({
   onSelectStore,
   onBack,
   onBackToCart,
+  onChangeItemQuantity,
   onChangeMatchMode,
   onResetMatchMode: _onResetMatchMode,
   onClose,
@@ -123,11 +138,13 @@ export default function ZiiplyMobileCompareCardresponsive({
 
   if (!open) return null;
 
-  const cheapest = getCheapestStore(stores);
-  const detailsStore = detailsStoreId ? stores.find((store) => store.id === detailsStoreId) || null : null;
+  const visibleStores = stores;
+  const showSkeleton = loading || visibleStores.length === 0;
+  const cheapest = getCheapestStore(visibleStores);
+  const detailsStore = detailsStoreId ? visibleStores.find((store) => store.id === detailsStoreId) || null : null;
   const handleBack = onBack || onBackToCart;
   void handleBack;
-  const comparedCount = items.length || stores[0]?.itemCount || 0;
+  const comparedCount = items.length || visibleStores[0]?.itemCount || 0;
 
   if (detailsStore) {
     return (
@@ -138,6 +155,7 @@ export default function ZiiplyMobileCompareCardresponsive({
         isBest={Boolean(detailsStore.isBest || cheapest?.id === detailsStore.id)}
         onBack={() => setDetailsStoreId(null)}
         onSelectStore={() => onSelectStore?.(detailsStore.id)}
+        onChangeItemQuantity={onChangeItemQuantity}
         onChangeMatchMode={onChangeMatchMode}
         onClose={onClose}
       />
@@ -175,19 +193,20 @@ export default function ZiiplyMobileCompareCardresponsive({
               {title}
             </div>
             <div className="mt-0.5 text-[0.72rem] font-extrabold text-[#5f5034]">
-              {subtitle || `${comparedCount || stores.length} tuotetta / ${stores.length} kauppaa`}
+              {subtitle || `${comparedCount || visibleStores.length} tuotetta / ${visibleStores.length} kauppaa`}
             </div>
           </div>
         </header>
 
         <main className="relative z-10 min-h-0 flex-1 overflow-y-auto px-5 pb-4 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div className="space-y-2.5">
-            {loading ? (
+
+            {showSkeleton ? (
               <>
                 <StoreLoadingCard index={0} />
                 <StoreLoadingCard index={1} />
               </>
-            ) : stores.length === 0 ? (
+            ) : visibleStores.length === 0 ? (
               <div className="flex min-h-[18rem] items-center justify-center rounded-[1.18rem] border-[2.5px] border-[#7c663d]/70 bg-[#fff4d8]/74 px-4 py-8 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.28)]">
                 <div>
                   <div className="mx-auto grid h-14 w-14 place-items-center rounded-[0.85rem] border-[2px] border-[#0b6330] bg-[#0b8f3a] text-[1.75rem] font-black text-[#fff6d7] shadow-[0_0_0_2px_rgba(255,255,255,0.18)_inset]">
@@ -205,7 +224,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                 </div>
               </div>
             ) : (
-              stores.map((store, index) => {
+              visibleStores.map((store, index) => {
                 const isBest = Boolean(store.isBest || cheapest?.id === store.id);
                 const diffLabel = getStorePriceDiff(store, cheapest);
 
