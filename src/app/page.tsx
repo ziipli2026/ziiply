@@ -12330,10 +12330,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 id: result.key,
                 name: result.storeName || result.chain,
                 chain: result.key === "s" ? "S" : result.key === "k" ? "K" : undefined,
-                totalPrice: Math.round((result.totalPrice || 0) * 100),
+                // result.totalPrice on jo samaa yksikköä kuin match.price-summat.
+                // EI kerrota sadalla, muuten mobiilikortilla hinnat näyttävät 100x liian suurilta.
+                totalPrice: result.totalPrice || 0,
                 itemCount: result.foundItems,
                 isBest: cheapest?.key === result.key,
                 badge: result.missingItems > 0 ? `${result.missingItems} puuttuu` : "Täysi kori",
+                matches: result.matches || [],
+                missingItems: result.missingItems || 0,
               }))}
             title="Vertailu"
             subtitle={cart.length > 0 ? `${cart.length} tuotetta korissa` : "Lisää tuotteita koriin ja vertaile kauppoja"}
@@ -12344,12 +12348,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               setCartModalOpen(true);
             }}
             onOpenStore={() => {
-              setActiveResult("none");
-              setSearchPanelOpen(false);
-              setCartModalOpen(false);
-              setCartSavePanelOpen(false);
-              setEanModalOpen(false);
-              setShopsPanelOpen(true);
+              // Mobiilin Avaa/Erittely käsitellään ZiiplyMobileCompareCardresponsive-komponentin sisällä.
+              // Ei vaihdeta Kaupat-paneeliin eikä poistuta Vertailu-kortilta.
             }}
             onClose={() => {
               setActiveResult("none");
