@@ -725,7 +725,7 @@ import ZiiplyMobileSearchResultsCard from "./components/ziiply/cards/ZiiplyMobil
 import ZiiplyMobileCartCard from "./components/ziiply/cards/ZiiplyMobileCartCard";
 import ZiiplyMobileScannerCard from "./components/ziiply/cards/ZiiplyMobileScannerCard";
 import ZiiplyMobileProductPickCard from "./components/ziiply/cards/ZiiplyMobileProductPickCard";
-import ZiiplyMobileCompareCard from "./components/ziiply/cards/ZiiplyMobileCompareCard";
+import ZiiplyMobileCompareCard from "./components/ziiply/cards/ZiiplyMobileCompareCardresponsive";
 import ZiiplyStoreLocaCard from "./components/ziiply/cards/ZiiplyStoreLocaCard";
 import * as ZiiplyCompareCardModule from "./components/ziiply/cards/ZiiplyCompareCard";
 import ZiiplyMobileHomeView from "./components/ziiply/mobile/ZiiplyMobileHomeView";
@@ -12536,3 +12536,5 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 }
 
 export {};
+
+// compare mode route enabled
