@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_COMPARE_CARDRESPONSIVE_V40_SMOOTH_MOPED_ENTRY
+// ZIIPLY_MOBILE_COMPARE_CARDRESPONSIVE_V41_SHARE_TAGS
 // Päävertailu muutettu mobiilille: isot kauppakortit, isot AVAA KORI / VALITSE -napit,
 // loading-rakenne näkyy heti oikean näköisenä. Visuaalinen linja pysyy Ziiplyn paperi/retro-maailmassa.
 
@@ -32,6 +32,7 @@ export type ZiiplyMobileCompareCardresponsiveProps = {
   onBack?: () => void;
   onBackToCart?: () => void;
   onOpenStore?: (storeId: string) => void; // säilytetty yhteensopivuuden vuoksi, mobiili käyttää sisäistä erittelykorttia
+  onShareStore?: (storeId: string) => void;
   onChangeItemQuantity?: (match: unknown, delta: number) => void;
   onChangeMatchMode?: (
     storeId: string,
@@ -316,6 +317,21 @@ export default function ZiiplyMobileCompareCardresponsive({
                       isBest ? "border-[#0b6330] bg-[#ecf3d5]/82" : "border-[#7c663d]/76 bg-[#fff8e5]/72",
                     )}
                   >
+                    {onShareStore ? (
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onShareStore(store.id);
+                        }}
+                        className="absolute right-[0.72rem] top-[0.62rem] z-20 grid h-[2.08rem] w-[1.74rem] place-items-center rounded-[0.34rem] border-[1.5px] border-[#7a5a2a] bg-[linear-gradient(180deg,#f8df98_0%,#d8a84c_100%)] text-[0.88rem] text-[#2b1a0e] shadow-[0_2px_5px_rgba(0,0,0,0.18),inset_0_0_0_1px_rgba(255,244,200,0.42)] active:translate-y-[1px]"
+                        aria-label={`Jaa ${store.name} kori`}
+                        title="Jaa kori"
+                      >
+                        ✉
+                      </button>
+                    ) : null}
+
                     <div className="grid grid-cols-[2.35rem_minmax(0,1fr)_3.45rem] gap-3">
                       <button
                         type="button"
