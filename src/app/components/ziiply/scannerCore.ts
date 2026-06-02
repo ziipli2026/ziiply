@@ -38,6 +38,26 @@ export function getScannerVideoTrack(regionId: string) {
   return stream?.getVideoTracks?.()[0] || null;
 }
 
+
+export async function setScannerTorch(regionId: string, enabled: boolean) {
+  try {
+    const track = getScannerVideoTrack(regionId);
+    if (!track) {
+      return { ok: false, reason: "no-track" as const };
+    }
+
+    const capabilities = typeof track.getCapabilities === "function" ? (track.getCapabilities() as any) : {};
+    if (!capabilities.torch) {
+      return { ok: false, reason: "not-supported" as const };
+    }
+
+    await track.applyConstraints({ advanced: [{ torch: enabled }] } as any);
+    return { ok: true, enabled };
+  } catch {
+    return { ok: false, reason: "apply-failed" as const };
+  }
+}
+
 export async function applyBestEffortScannerCameraTuning(regionId: string): Promise<ScannerCameraTuningResult> {
   const result: ScannerCameraTuningResult = {
     focusApplied: false,
@@ -250,15 +270,60 @@ export async function decodeBarcodeFromCanvas(canvas: HTMLCanvasElement): Promis
   return null;
 }
 
+function rotateScannerCanvas(sourceCanvas: HTMLCanvasElement, degrees: 90 | 270) {
+  const canvas = document.createElement("canvas");
+  canvas.width = sourceCanvas.height;
+  canvas.height = sourceCanvas.width;
+
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  if (!ctx) return null;
+
+  if (degrees === 90) {
+    ctx.translate(canvas.width, 0);
+    ctx.rotate(Math.PI / 2);
+  } else {
+    ctx.translate(0, canvas.height);
+    ctx.rotate(-Math.PI / 2);
+  }
+
+  ctx.drawImage(sourceCanvas, 0, 0);
+  return canvas;
+}
+
+async function decodeBarcodeWithRotationRetries(canvas: HTMLCanvasElement): Promise<ScannerDecodeResult | null> {
+  const direct = await decodeBarcodeFromCanvas(canvas);
+  if (direct) return direct;
+
+  const rotated90 = rotateScannerCanvas(canvas, 90);
+  if (rotated90) {
+    const result90 = await decodeBarcodeFromCanvas(rotated90);
+    if (result90) {
+      return { ...result90, source: "enhanced" };
+    }
+  }
+
+  const rotated270 = rotateScannerCanvas(canvas, 270);
+  if (rotated270) {
+    const result270 = await decodeBarcodeFromCanvas(rotated270);
+    if (result270) {
+      return { ...result270, source: "enhanced" };
+    }
+  }
+
+  return null;
+}
+
 export async function decodeScannerFallbackStill(regionId: string): Promise<ScannerDecodeResult | null> {
   const still = captureScannerStillFrame(regionId);
   if (!still) return null;
 
-  const direct = await decodeBarcodeFromCanvas(still);
-  if (direct) return direct;
+  // V725: ensin pidetään vaakakoodien nopea polku ennallaan, sitten yritetään
+  // sama still-frame myös 90/270 asteen rotaatioilla pystyssä oleville EAN-koodeille.
+  const directOrRotated = await decodeBarcodeWithRotationRetries(still);
+  if (directOrRotated) return directOrRotated;
 
   const enhanced = enhanceBarcodeCanvas(still);
-  const enhancedResult = await decodeBarcodeFromCanvas(enhanced);
+  const enhancedResult = await decodeBarcodeWithRotationRetries(enhanced);
 
   if (enhancedResult) {
     return {
