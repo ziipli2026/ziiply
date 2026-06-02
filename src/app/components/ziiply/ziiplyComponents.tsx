@@ -118,6 +118,69 @@ export function ZiiplyLaunchScreen({ appVersion: _appVersion }: ZiiplyLaunchScre
   );
 }
 
+
+function ZiiplyNavIcon({
+  type,
+  active = false,
+  disabled = false,
+  className = "",
+}: {
+  type: "shops" | "search" | "cart" | "compare";
+  active?: boolean;
+  disabled?: boolean;
+  className?: string;
+}) {
+  const ink = active ? "#fff8ea" : disabled ? "#9d978b" : "#384538";
+  const accent = active ? "#f3d790" : disabled ? "#b9b1a2" : "#2f7041";
+  const brass = active ? "#ffe5a8" : disabled ? "#c7bca9" : "#b88b42";
+  const muted = active ? "rgba(255,248,234,0.36)" : disabled ? "#e4ded3" : "#f6edd8";
+
+  if (type === "shops") {
+    return (
+      <svg viewBox="0 0 48 48" className={className} aria-hidden="true">
+        <path d="M9 21h30v18H9V21Z" fill={muted} stroke={ink} strokeWidth="2.4" strokeLinejoin="round" />
+        <path d="M12 15h24l4 6H8l4-6Z" fill={brass} stroke={ink} strokeWidth="2.4" strokeLinejoin="round" />
+        <path d="M14 39V27h8v12M27 27h7v7h-7z" fill={active ? "rgba(255,248,234,0.18)" : "#fff8ea"} stroke={ink} strokeWidth="2.2" strokeLinejoin="round" />
+        <circle cx="36" cy="13" r="6" fill={active ? "#fff8ea" : accent} stroke={ink} strokeWidth="2" />
+        <path d="M36 10v6M33 13h6" stroke={active ? accent : "#fff8ea"} strokeWidth="1.8" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
+  if (type === "search") {
+    return (
+      <svg viewBox="0 0 48 48" className={className} aria-hidden="true">
+        <circle cx="21" cy="20" r="11" fill={active ? "rgba(255,248,234,0.22)" : "#fff8ea"} stroke={ink} strokeWidth="3" />
+        <path d="M29.5 28.5 40 39" stroke={ink} strokeWidth="4" strokeLinecap="round" />
+        <path d="M15 20a6 6 0 0 1 6-6" stroke={active ? "#fff8ea" : "#b8c3bd"} strokeWidth="2" strokeLinecap="round" />
+        <path d="M35.5 34.5 32 38" stroke={brass} strokeWidth="2.2" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
+  if (type === "cart") {
+    return (
+      <svg viewBox="0 0 48 48" className={className} aria-hidden="true">
+        <path d="M9 11h4l4 21h19l4-14H17" fill="none" stroke={ink} strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M18 22h20M20 27h15" stroke={active ? "#fff8ea" : "#b8a884"} strokeWidth="2" strokeLinecap="round" />
+        <circle cx="21" cy="38" r="3.6" fill={brass} stroke={ink} strokeWidth="2" />
+        <circle cx="34" cy="38" r="3.6" fill={brass} stroke={ink} strokeWidth="2" />
+        <path d="M20 15h18" stroke={accent} strokeWidth="2.2" strokeLinecap="round" />
+      </svg>
+    );
+  }
+
+  return (
+    <svg viewBox="0 0 48 48" className={className} aria-hidden="true">
+      <path d="M24 8v30M15 38h18" stroke={ink} strokeWidth="3" strokeLinecap="round" />
+      <path d="M12 17h24" stroke={ink} strokeWidth="3" strokeLinecap="round" />
+      <path d="M15 17 9 30h12L15 17ZM33 17l-6 13h12L33 17Z" fill={active ? "rgba(255,248,234,0.22)" : "#fff8ea"} stroke={ink} strokeWidth="2.3" strokeLinejoin="round" />
+      <path d="M20 11h8" stroke={brass} strokeWidth="2.4" strokeLinecap="round" />
+      <circle cx="24" cy="17" r="2.5" fill={accent} stroke={ink} strokeWidth="1.6" />
+    </svg>
+  );
+}
+
 type ZiiplyBottomNavProps = {
   shopsPanelOpen: boolean;
   initialStoreNavPrompt: boolean;
@@ -171,6 +234,15 @@ export function ZiiplyBottomNav({
     ? "bg-[#fff8ea] text-[#2f7041] ring-1 ring-[#2f7041]/25 shadow-[0_2px_5px_rgba(39,58,36,0.14)]"
     : "bg-[#2f7041] text-[#fff6e8] ring-1 ring-[#214f30]/30 shadow-[0_2px_5px_rgba(29,62,36,0.28)]";
 
+  const shopsActive = shopsPanelOpen;
+  const searchActive = searchPanelOpen;
+  const cartActive = cartModalOpen && cartLength > 0;
+  const compareActive = activeResult === "compare" && !searchPanelOpen && !cartModalOpen && cartLength > 0;
+  const searchDisabled = searchBottomNavDisabled && !searchPanelOpen;
+  const cartDisabled = cartLength === 0;
+  const compareDisabled = cartLength === 0;
+  const iconClass = "h-[26px] w-[26px] drop-shadow-[0_1px_0_rgba(255,255,255,0.45)]";
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-transparent px-3 pb-[calc(env(safe-area-inset-bottom)+0.62rem)] pt-2 sm:hidden">
       <div className="mx-auto grid max-w-md grid-cols-4 gap-1.5 rounded-[1.55rem] border border-[#9fb18f]/70 bg-[linear-gradient(180deg,#fbf7ef_0%,#f1ebde_100%)] p-1.5 shadow-[0_10px_28px_rgba(64,50,26,0.13)]">
@@ -180,7 +252,7 @@ export function ZiiplyBottomNav({
           aria-disabled={false}
           className={`${baseButtonClass} ${shopsPanelOpen ? activeButtonClass : initialStoreNavPrompt ? promptedButtonClass : idleButtonClass}`}
         >
-          <span className="text-lg leading-none drop-shadow-[0_1px_0_rgba(255,255,255,0.55)]">🏪</span>
+          <ZiiplyNavIcon type="shops" active={shopsActive} className={iconClass} />
           <span className="mt-1 block">Kaupat</span>
         </button>
 
@@ -193,9 +265,9 @@ export function ZiiplyBottomNav({
         >
           <span
             key={searchReadyBounceKeyV320}
-            className={`text-lg leading-none drop-shadow-[0_1px_0_rgba(255,255,255,0.55)] ${!searchBottomNavDisabled && storesReadyForSearch ? "ziiply-search-ready-bounce" : ""}`}
+            className={!searchBottomNavDisabled && storesReadyForSearch ? "ziiply-search-ready-bounce" : undefined}
           >
-            🔎
+            <ZiiplyNavIcon type="search" active={searchActive} disabled={searchDisabled} className={iconClass} />
           </span>
           <span className="mt-1 block">Hae</span>
         </button>
@@ -207,7 +279,7 @@ export function ZiiplyBottomNav({
           aria-disabled={cartLength === 0}
           className={`${baseButtonClass} ${cartLength === 0 ? disabledButtonClass : cartModalOpen ? activeButtonClass : idleButtonClass}`}
         >
-          <span className="text-lg leading-none drop-shadow-[0_1px_0_rgba(255,255,255,0.55)]">🛒</span>
+          <ZiiplyNavIcon type="cart" active={cartActive} disabled={cartDisabled} className={iconClass} />
           <span className="mt-1 block">Kori</span>
           {cartLength > 0 && (
             <span className={`absolute right-2 top-1 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-black ${badgeClass}`}>
@@ -223,7 +295,7 @@ export function ZiiplyBottomNav({
           aria-disabled={cartLength === 0}
           className={`${baseButtonClass} ${cartLength === 0 ? disabledButtonClass : activeResult === "compare" && !searchPanelOpen && !cartModalOpen ? activeButtonClass : idleButtonClass}`}
         >
-          <span className="text-lg leading-none drop-shadow-[0_1px_0_rgba(255,255,255,0.55)]">⚖️</span>
+          <ZiiplyNavIcon type="compare" active={compareActive} disabled={compareDisabled} className={iconClass} />
           <span className="mt-1 block">Vertailu</span>
         </button>
       </div>
