@@ -151,16 +151,32 @@ export function ZiiplyBottomNav({
   onCartClick,
   onCompareClick,
 }: ZiiplyBottomNavProps) {
+  const baseItemClass =
+    "relative flex flex-col items-center justify-center rounded-[1.12rem] px-2 py-2.5 text-[11px] font-black tracking-[-0.015em] transition active:scale-[0.98]";
+
+  const activeItemClass =
+    "bg-[linear-gradient(180deg,#557a55_0%,#345a3b_100%)] text-[#fff8e8] shadow-[inset_0_1px_0_rgba(255,255,255,0.28),0_5px_12px_rgba(37,62,38,0.20)] ring-1 ring-[#28482f]";
+
+  const passiveItemClass =
+    "text-[#4f4638] hover:bg-[#efe7d7]/70 active:bg-[#eadfca]";
+
+  const promptItemClass =
+    "bg-[linear-gradient(180deg,#f8f1dc_0%,#ecdfbf_100%)] text-[#36553a] shadow-[inset_0_1px_0_rgba(255,255,255,0.68),0_0_16px_rgba(111,139,88,0.16)] ring-1 ring-[#d3c294]";
+
+  const disabledItemClass = initialStoreSelectionLocked
+    ? "cursor-not-allowed bg-[#fff3ee] text-[#c78472] opacity-80 ring-1 ring-[#efc5b7]"
+    : "cursor-not-allowed bg-[#ebe5da] text-[#aaa090] opacity-70";
+
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-transparent px-3 pb-[calc(env(safe-area-inset-bottom)+0.7rem)] pt-2 sm:hidden">
-      <div className="mx-auto grid max-w-md grid-cols-4 gap-1.5 rounded-[1.7rem] border border-white/70 bg-white/86 p-2 shadow-[0_18px_55px_rgba(15,23,42,0.18)] backdrop-blur-2xl">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-transparent px-3 pb-[calc(env(safe-area-inset-bottom)+0.58rem)] pt-1.5 sm:hidden">
+      <div className="mx-auto grid max-w-md grid-cols-4 gap-1.5 rounded-[1.55rem] border border-[#d7c6a5] bg-[linear-gradient(180deg,#fffaf1_0%,#f2eadb_55%,#e8dcc6_100%)] p-2 shadow-[0_10px_28px_rgba(78,58,28,0.16),inset_0_1px_0_rgba(255,255,255,0.82)]">
         <button
           type="button"
           onClick={onShopsClick}
           aria-disabled={false}
-          className={`flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition ${shopsPanelOpen ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white active:scale-[0.98]" : initialStoreNavPrompt ? "bg-green-50/60 text-slate-700 ring-1 ring-green-100 shadow-[0_0_18px_rgba(34,197,94,0.10)] active:scale-[0.98]" : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
+          className={`${baseItemClass} ${shopsPanelOpen ? activeItemClass : initialStoreNavPrompt ? promptItemClass : passiveItemClass}`}
         >
-          <span className="text-lg leading-none">🏪</span>
+          <span className="text-[19px] leading-none drop-shadow-[0_1px_0_rgba(255,255,255,0.55)]">🏪</span>
           <span className="mt-1 block">Kaupat</span>
         </button>
 
@@ -169,11 +185,11 @@ export function ZiiplyBottomNav({
           onClick={onSearchClick}
           disabled={searchBottomNavDisabled && !searchPanelOpen}
           aria-disabled={searchBottomNavDisabled && !searchPanelOpen}
-          className={`flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition ${searchPanelOpen ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white active:scale-[0.98]" : searchBottomNavDisabled ? (initialStoreSelectionLocked ? "cursor-not-allowed bg-red-50 text-red-300 ring-1 ring-red-100 opacity-80" : "cursor-not-allowed bg-slate-100 text-slate-300 opacity-70") : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
+          className={`${baseItemClass} ${searchPanelOpen ? activeItemClass : searchBottomNavDisabled ? disabledItemClass : passiveItemClass}`}
         >
           <span
             key={searchReadyBounceKeyV320}
-            className={`text-lg leading-none ${!searchBottomNavDisabled && storesReadyForSearch ? "ziiply-search-ready-bounce" : ""}`}
+            className={`text-[19px] leading-none drop-shadow-[0_1px_0_rgba(255,255,255,0.55)] ${!searchBottomNavDisabled && storesReadyForSearch ? "ziiply-search-ready-bounce" : ""}`}
           >
             🔎
           </span>
@@ -185,12 +201,12 @@ export function ZiiplyBottomNav({
           onClick={onCartClick}
           disabled={cartLength === 0}
           aria-disabled={cartLength === 0}
-          className={`relative flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition ${cartLength === 0 ? (initialStoreSelectionLocked ? "cursor-not-allowed bg-red-50 text-red-300 ring-1 ring-red-100 opacity-80" : "cursor-not-allowed bg-slate-100 text-slate-300 opacity-70") : cartModalOpen ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white active:scale-[0.98]" : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
+          className={`${baseItemClass} ${cartLength === 0 ? disabledItemClass : cartModalOpen ? activeItemClass : passiveItemClass}`}
         >
-          <span className="text-lg leading-none">🛒</span>
+          <span className="text-[19px] leading-none drop-shadow-[0_1px_0_rgba(255,255,255,0.55)]">🛒</span>
           <span className="mt-1 block">Kori</span>
           {cartLength > 0 && (
-            <span className={`absolute right-2 top-1 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[10px] font-black ${cartModalOpen ? "bg-white text-green-700" : "bg-green-700 shadow-md ring-1 ring-black/10 text-white"}`}>
+            <span className={`absolute right-2 top-1 flex h-5 min-w-5 items-center justify-center rounded-full border px-1 text-[10px] font-black shadow-[0_2px_6px_rgba(40,65,34,0.22)] ${cartModalOpen ? "border-[#fff8e8] bg-[#fff8e8] text-[#345a3b]" : "border-[#24482e] bg-[#2f7041] text-[#fff8e8]"}`}>
               {cartLength}
             </span>
           )}
@@ -201,13 +217,12 @@ export function ZiiplyBottomNav({
           onClick={onCompareClick}
           disabled={cartLength === 0}
           aria-disabled={cartLength === 0}
-          className={`flex flex-col items-center justify-center rounded-[1.2rem] px-2 py-2.5 text-xs font-black transition ${cartLength === 0 ? (initialStoreSelectionLocked ? "cursor-not-allowed bg-red-50 text-red-300 ring-1 ring-red-100 opacity-80" : "cursor-not-allowed bg-slate-100 text-slate-300 opacity-70") : activeResult === "compare" && !searchPanelOpen && !cartModalOpen ? "bg-green-700 shadow-md ring-1 ring-black/10 text-white shadow-md active:scale-[0.98]" : "text-slate-700 active:scale-[0.98] active:bg-slate-100"}`}
+          className={`${baseItemClass} ${cartLength === 0 ? disabledItemClass : activeResult === "compare" && !searchPanelOpen && !cartModalOpen ? activeItemClass : passiveItemClass}`}
         >
-          <span className="text-lg leading-none">⚖️</span>
+          <span className="text-[19px] leading-none drop-shadow-[0_1px_0_rgba(255,255,255,0.55)]">⚖️</span>
           <span className="mt-1 block">Vertailu</span>
         </button>
       </div>
     </nav>
   );
 }
-
