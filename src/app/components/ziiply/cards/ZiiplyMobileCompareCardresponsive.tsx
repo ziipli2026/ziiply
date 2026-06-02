@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_COMPARE_CARD_RESPONSIVE_V8_LOWER_WITH_SELECTION_CARD
+// ZIIPLY_MOBILE_COMPARE_CARD_RESPONSIVE_V9_PRICE_DETAILS_FIX
 // Selkeämpi mobiili-vertailu:
 // - ei modernia dashboardia / kelluvia hintabokseja
 // - sama vihko-/luettelomaailma kuin Tavarainkeruu-korissa
@@ -22,6 +22,8 @@ export type ZiiplyCompareStore = {
   distanceKm?: number;
   badge?: string;
   isBest?: boolean;
+  matches?: unknown[];
+  missingItems?: number;
 };
 
 export type ZiiplyMobileCompareCardresponsiveProps = {
@@ -47,9 +49,14 @@ function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
-function formatEuro(cents?: number | null) {
-  if (cents == null || Number.isNaN(cents)) return "—";
-  return `${(cents / 100).toFixed(2).replace(".", ",")} €`;
+function formatEuro(value?: number | null) {
+  if (value == null || Number.isNaN(value)) return "—";
+
+  // Page antaa chainResults.totalPrice-arvon sentteinä.
+  // Jos joskus sisään tulee suoraan euroarvo, alle 20 tulkitaan euroiksi.
+  const euros = Math.abs(value) > 20 ? value / 100 : value;
+
+  return `${euros.toFixed(2).replace(".", ",")} €`;
 }
 
 function getCheapestStore(stores: ZiiplyCompareStore[]) {
