@@ -32,6 +32,7 @@
 // - header / toolbar / taulukko / footer erotettu flex-rakenteeksi
 // - tuoterivit gridillä: N:o | Nimike | Määrä | Hinta
 // - määräsolun sisäinen koordinaattihässäkkä poistettu kevyesti
+// V45: nimike lähemmäs punaista pystyviivaa, miinus hinta-sarakkeen vasempaan alanurkkaan, footerin YHT. ja alkoholihuomio korostettu.
 // V43: korjaa kuvan perusteella määrä-/hinta-/footer-linjat: määrä keskelle MÄÄRÄ-saraketta, YHT. samaan sarakekeskelle ja summa hinta-sarakkeen keskelle.
 // V44: irrottaa tuoterivin kentät omiksi absoluuttisiksi paperikoordinaateiksi ja siirtää nimikkeet, määrän, miinuksen, hinnat sekä footerin linjaan taustakuvan kanssa.
 
@@ -243,7 +244,7 @@ function QuantityCell({
         }}
         disabled={!canDecrease}
         className={cx(
-          "absolute left-[15.35rem] top-[0.74rem] grid h-[1.72rem] w-[1.10rem] place-items-center rounded-[0.24rem] text-[1.15rem] font-extrabold leading-none !text-[#e11d12] active:translate-y-[1px] active:bg-[#fff1c6]/38",
+          "absolute left-[15.78rem] top-[1.48rem] grid h-[1.72rem] w-[1.10rem] place-items-center rounded-[0.24rem] text-[1.15rem] font-extrabold leading-none !text-[#e11d12] active:translate-y-[1px] active:bg-[#fff1c6]/38",
           !canDecrease && "!text-[#e11d12]/25",
         )}
         aria-label="Vähennä määrää"
@@ -404,7 +405,7 @@ export default function ZiiplyMobileCartCard({
 
                     <div
                       className={cx(
-                        "absolute left-[1.06rem] top-[0.44rem] max-h-[2.12rem] w-[13.50rem] overflow-hidden text-[0.80rem] font-extrabold leading-[1.02] text-[#2f2a1c] [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical]",
+                        "absolute left-[2.62rem] top-[0.44rem] max-h-[2.12rem] w-[11.85rem] overflow-hidden text-[0.80rem] font-extrabold leading-[1.02] text-[#2f2a1c] [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical]",
                         checked && "line-through",
                       )}
                       style={{ fontFamily: serifFont }}
@@ -449,14 +450,14 @@ export default function ZiiplyMobileCartCard({
               className="pointer-events-none absolute left-[-0.25rem] right-[-3.85rem] top-0 block h-[2px] bg-[#9b7b3d]/62"
             />
             <span
-              className="absolute left-[12.82rem] top-[0.12rem] grid h-[1.4rem] w-[3.95rem] place-items-center whitespace-nowrap text-center text-[0.76rem] font-extrabold uppercase tracking-[0.04em]"
+              className="absolute left-[12.20rem] top-[0.12rem] grid h-[1.4rem] w-[3.95rem] place-items-center whitespace-nowrap text-center text-[0.76rem] font-extrabold uppercase tracking-[0.04em]"
               style={{ fontFamily: copperplateFont }}
             >
               Yht.
             </span>
 
             <span
-              className="absolute left-[16.35rem] top-[0.14rem] grid h-[1.4rem] w-[3.45rem] place-items-center whitespace-nowrap text-center text-[0.88rem] font-extrabold"
+              className="absolute left-[16.35rem] top-[0.10rem] grid h-[1.45rem] w-[3.45rem] place-items-center whitespace-nowrap text-center text-[1.02rem] font-black italic"
               style={{ fontFamily: serifFont }}
             >
               {totalPrice.toLocaleString("fi-FI", {
@@ -468,7 +469,7 @@ export default function ZiiplyMobileCartCard({
 
           {hasAlcoholItemsV8 && (
             <div
-              className="mx-auto mb-1 max-w-[14rem] rounded-[0.35rem] border border-[#9a6137]/45 bg-[#fff0c7]/44 px-2 py-1 text-center text-[0.52rem] font-extrabold italic leading-tight text-[#7b3215]/82"
+              className="mx-auto mb-1 max-w-[18.2rem] rounded-[0.42rem] border border-[#9a6137]/50 bg-[#fff0c7]/52 px-3 py-[0.42rem] text-center text-[0.68rem] font-extrabold italic leading-tight text-[#7b3215]/88"
               style={{ fontFamily: serifFont }}
             >
               Alkoholijuomat maksetaan kassalla, eivätkä sisälly yhteissummaan.
