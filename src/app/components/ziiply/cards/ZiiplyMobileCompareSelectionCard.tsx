@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_COMPARE_SELECTION_CARD_V3_MATCH_DETAILS_FIX
+// ZIIPLY_MOBILE_COMPARE_SELECTION_CARD_V4_QUALITYMODE_BUTTONS
 // Kauppakohtainen erittelykortti mobiilin vertailun Avaa-napille.
 // Tärkeää: tämä tiedosto on oikea TSX-moduuli ja exporttaa default-komponentin.
 
@@ -38,6 +38,7 @@ export type ZiiplyMobileCompareSelectionCardProps = {
   isBest?: boolean;
   onBack?: () => void;
   onSelectStore?: () => void;
+  onChangeMatchMode?: (storeId: string, match: unknown, mode: "cheapest" | "same_quality" | "own_brands" | "same_brand") => void | Promise<void>;
   onClose?: () => void;
   className?: string;
 };
@@ -100,6 +101,20 @@ function getItemPriceForStore(item: unknown, storeId: string) {
   return storeSpecific ?? data?.selectedPrice ?? data?.price ?? data?.cheapestPrice;
 }
 
+function getQualityModeText(mode: "cheapest" | "same_quality" | "own_brands" | "same_brand") {
+  if (mode === "cheapest") return "Halvin";
+  if (mode === "same_quality") return "Vastaava";
+  if (mode === "own_brands") return "Oma";
+  return "Brändi";
+}
+
+const QUALITY_MODES: Array<"cheapest" | "same_quality" | "own_brands" | "same_brand"> = [
+  "cheapest",
+  "same_quality",
+  "own_brands",
+  "same_brand",
+];
+
 export default function ZiiplyMobileCompareSelectionCard({
   open = true,
   store,
@@ -107,6 +122,7 @@ export default function ZiiplyMobileCompareSelectionCard({
   isBest = false,
   onBack,
   onSelectStore,
+  onChangeMatchMode,
   onClose,
   className = "",
 }: ZiiplyMobileCompareSelectionCardProps) {
@@ -171,15 +187,31 @@ export default function ZiiplyMobileCompareSelectionCard({
                 return (
                   <div
                     key={String(item.id ?? index)}
-                    className="grid min-h-[2.72rem] grid-cols-[minmax(0,1fr)_4.75rem] items-center border-b border-[#d4bd86]/72 px-3 py-1.5"
+                    className="grid min-h-[4.15rem] grid-cols-[minmax(0,1fr)_4.75rem] items-center border-b border-[#d4bd86]/72 px-3 py-1.5"
                   >
                     <div className="min-w-0 pr-2">
-                      <div className="truncate text-[0.82rem] font-black leading-tight text-[#233020]">
+                      <div className="truncate text-[0.80rem] font-black leading-tight text-[#233020]">
                         {getItemName(item)}
                       </div>
-                      <div className="mt-0.5 text-[0.52rem] font-black uppercase tracking-[0.08em] text-[#6e6d55]">
+                      <div className="mt-0.5 text-[0.50rem] font-black uppercase tracking-[0.08em] text-[#6e6d55]">
                         #{index + 1} · {getItemQuantity(item)} kpl
                       </div>
+
+                      {onChangeMatchMode ? (
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {QUALITY_MODES.map((mode) => (
+                            <button
+                              key={mode}
+                              type="button"
+                              onClick={() => onChangeMatchMode(store.id, item, mode)}
+                              className="min-h-[1.18rem] rounded-[0.36rem] border-[1.5px] border-[#876b37] bg-[#fff1c6]/72 px-1.5 text-[0.45rem] font-black uppercase tracking-[0.04em] text-[#28402a] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.25)] active:translate-y-[1px]"
+                              title={`Vaihda: ${getQualityModeText(mode)}`}
+                            >
+                              {getQualityModeText(mode)}
+                            </button>
+                          ))}
+                        </div>
+                      ) : null}
                     </div>
 
                     <div
