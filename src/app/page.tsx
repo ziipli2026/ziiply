@@ -12463,6 +12463,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 setActiveNormalSearchTerm("");
               }}
               onAddInputToCart={addInputToCart}
+              onOpenNotebook={() => {
+                setNotebookOpen(true);
+                setSearchPanelOpen(false);
+              }}
               onOfferSearch={handleMainOfferSearch}
               onNormalSearch={handleMainNormalSearch}
               onVoiceClick={() => toggleVoiceInput()}
