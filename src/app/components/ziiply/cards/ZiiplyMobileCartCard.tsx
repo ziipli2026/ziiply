@@ -391,9 +391,7 @@ export default function ZiiplyMobileCartCard({
                   <article
                     key={String(item.id ?? item.ean ?? index)}
                     className={cx(
-                      index === 0
-                        ? "relative block h-[2.72rem] mb-[0.46rem] border-b-[1.35px] border-[#b9944d]/68 bg-transparent px-1 py-[0.22rem]"
-                        : "relative block h-[3.18rem] border-b-[1.35px] border-[#b9944d]/68 bg-transparent px-1 py-[0.22rem]",
+                      "relative block h-[3.18rem] border-b-[1.35px] border-[#b9944d]/68 bg-transparent px-1 py-[0.22rem]",
                       checked && "opacity-55",
                     )}
                   >
