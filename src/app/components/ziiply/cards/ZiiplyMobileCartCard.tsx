@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_CART_CARD_V56_CART_SHARE_PLACE_FIX
+// ZIIPLY_MOBILE_CART_CARD_V57_SHARE_SYMBOL_MATCH_COMPARE
 // Mobiilin Tavarainkeruu-paperivihko.
 // V42: korjaa ostoslistan visuaalisen kohdistuksen: rivit relative, korkeampi rivikorkeus, määrä keskelle, hinnat ja footer vasemmalle samaan linjaan.
 // - "Ostoskori" poistettu kokonaan näkyvästä UI:sta.
@@ -514,16 +514,14 @@ export default function ZiiplyMobileCartCard({
           <button
             type="button"
             onClick={onShareCart}
-            className="absolute bottom-[1.05rem] left-[3.34rem] z-[35] grid h-[2.42rem] w-[2.32rem] place-items-center rounded-[0.50rem] border-[2px] border-[#8b713d] bg-[linear-gradient(180deg,#f5e5bd_0%,#d6b875_100%)] text-[#51361a] shadow-[0_3px_8px_rgba(0,0,0,0.18),inset_0_0_0_1px_rgba(255,249,220,0.56)] active:translate-y-[1px]"
+            className="absolute bottom-[2.02rem] left-[4.34rem] z-[35] grid h-[2.22rem] w-[2.22rem] place-items-center rounded-[0.46rem] border-[1.6px] border-[#8b713d] bg-[linear-gradient(180deg,#f5e5bd_0%,#d6b875_100%)] text-[#51361a] shadow-[0_2px_5px_rgba(45,30,10,0.17),inset_0_0_0_1px_rgba(255,249,220,0.55)] active:translate-y-[1px]"
             aria-label="Jaa ostoskori"
             title="Jaa ostoskori"
           >
-            <span className="absolute -top-[0.46rem] left-1/2 h-[0.58rem] w-[1px] -translate-x-1/2 bg-[#6c4b22]" />
-            <span className="absolute top-[0.18rem] h-[0.31rem] w-[0.31rem] rounded-full border border-[#8b713d] bg-[#fff4ce]" />
             <svg
               aria-hidden="true"
               viewBox="0 0 24 18"
-              className="mt-[0.30rem] h-[1.05rem] w-[1.24rem]"
+              className="h-[0.94rem] w-[1.12rem]"
             >
               <path
                 d="M2.5 3.5h19v11h-19z"
