@@ -1,6 +1,6 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V639_STABLE_KEYBOARD_SLIGHT_DOWN_INFO_STRETCH
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V640_SEARCH_OVERLAY_CART_INPUT_FIX
 // Pohja: v608/v510 toimiva hakulogiikka.
 // Muutettu vain JSX/CSS layout vastaamaan annettua finalleiska-mallia.
 
@@ -298,6 +298,8 @@ export default function ZiiplyMobileSearchCard({
   const justiinaLoading = loadingNormal || singleProductCompareLoading;
   const autoSearchInputRef = useRef("");
   const [triggeredSearchInput, setTriggeredSearchInput] = useState("");
+  const [searchingAssistant, setSearchingAssistant] = useState<"gosta" | "justiina" | null>(null);
+  const [cartFlash, setCartFlash] = useState(false);
 
   const cleanInput = input.trim();
   const notFoundCanShow =
@@ -363,14 +365,60 @@ export default function ZiiplyMobileSearchCard({
     onNormalSearch,
   ]);
 
-  const handleManualSearch = (handler?: () => void) => {
+  const handleManualSearch = async (
+    assistant: "gosta" | "justiina",
+    handler?: () => void,
+  ) => {
     const clean = input.trim();
     if (clean.length >= 2) {
       autoSearchInputRef.current = clean;
       setTriggeredSearchInput(clean);
     }
 
-    handler?.();
+    if (clean.length < 2) return;
+
+    setSearchingAssistant(assistant);
+    const started = Date.now();
+
+    try {
+      await Promise.resolve(handler?.());
+    } finally {
+      const elapsed = Date.now() - started;
+      const remaining = Math.max(0, 1250 - elapsed);
+
+      window.setTimeout(() => {
+        setSearchingAssistant(null);
+      }, remaining);
+    }
+  };
+
+  const handleAddInputToCart = () => {
+    const clean = input.trim();
+    if (!clean) return;
+
+    onAddInputToCart?.();
+
+    const rows = clean
+      .split(/[,.\n]+/)
+      .map((row) => row.trim())
+      .filter(Boolean);
+
+    if (rows.length > 0 && (onAddProduct || onAdd)) {
+      rows.forEach((name, index) => {
+        const product: ZiiplyMobileSearchCardProduct = {
+          id: `manual-${Date.now()}-${index}`,
+          name,
+          title: name,
+          productName: name,
+        };
+
+        onAddProduct?.(product);
+        onAdd?.(product);
+      });
+    }
+
+    setCartFlash(true);
+    window.setTimeout(() => setCartFlash(false), 950);
   };
 
   const handleClearInput = () => {
@@ -400,7 +448,7 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V639_STABLE_KEYBOARD_SLIGHT_DOWN_INFO_STRETCH"
+      data-ziiply-mobile-search-card-version="UUSI_V640_SEARCH_OVERLAY_CART_INPUT_FIX"
       className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.25rem)] z-[72] flex h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] max-h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] items-stretch justify-center overflow-hidden bg-transparent px-2 sm:hidden [transform:translateZ(0)] [backface-visibility:hidden] ${className}`}
     >
       <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.8rem] border-[2px] border-[#ead9a8] bg-[#f6ebc6] px-3 pb-3 pt-3 text-[#20301f] shadow-[inset_0_0_0_2px_rgba(216,189,117,0.34)]">
@@ -410,6 +458,87 @@ export default function ZiiplyMobileSearchCard({
         </div>
 
         <div className="relative z-10 flex h-full min-h-0 flex-col">
+          {searchingAssistant && (
+            <div className="absolute inset-0 z-[120] flex items-center justify-center overflow-hidden rounded-[1.7rem]">
+              <div className="absolute inset-0 bg-[#1c1408]/42 backdrop-blur-[1.5px]" />
+
+              <div className="absolute inset-0 overflow-hidden">
+                {[...Array(12)].map((_, i) => (
+                  <span
+                    key={i}
+                    className="absolute h-[5px] w-[5px] rounded-full bg-[#ffe08a]/70 animate-pulse"
+                    style={{
+                      left: `${8 + i * 7}%`,
+                      top: `${15 + ((i * 11) % 70)}%`,
+                      animationDelay: `${i * 120}ms`,
+                    }}
+                  />
+                ))}
+              </div>
+
+              <div className="relative z-10 flex flex-col items-center gap-5 px-4 text-center">
+                {searchingAssistant === "gosta" && (
+                  <>
+                    <div className="relative h-[4.8rem] w-[17rem] max-w-[76vw] overflow-hidden rounded-[1.4rem] border-[3px] border-[#d7b15b] bg-[#2c1a08] shadow-[0_0_40px_rgba(255,208,92,0.35)]">
+                      <div className="absolute inset-y-0 left-[-35%] w-[35%] bg-gradient-to-r from-transparent via-[#ffd76b] to-transparent opacity-70 animate-[ziiplyScan_1.15s_linear_infinite]" />
+                      <div className="absolute left-0 right-0 top-1/2 h-[2px] -translate-y-1/2 bg-[#f3d27a]/45" />
+                      <div className="absolute inset-0 flex items-center justify-center gap-3">
+                        <span className="h-[9px] w-[9px] rounded-full bg-[#ffd76b] animate-pulse" />
+                        <span className="h-[9px] w-[9px] rounded-full bg-[#ffd76b] animate-pulse delay-150" />
+                        <span className="h-[9px] w-[9px] rounded-full bg-[#ffd76b] animate-pulse delay-300" />
+                      </div>
+                    </div>
+
+                    <div
+                      className="rounded-full border-[3px] border-[#d5b268] bg-[#f5e4b8] px-6 py-2 text-[1.18rem] font-black italic text-[#20472f] shadow-[0_4px_0_rgba(91,72,44,0.22)]"
+                      style={{ fontFamily: cooperFont }}
+                    >
+                      Gösta penkoo tarjouksia...
+                    </div>
+                  </>
+                )}
+
+                {searchingAssistant === "justiina" && (
+                  <>
+                    <div className="relative h-[7rem] w-[15rem] max-w-[72vw]">
+                      {[0, 1, 2].map((i) => (
+                        <div
+                          key={i}
+                          className="absolute left-1/2 top-1/2 h-[5rem] w-[10rem] rounded-[1rem] border-[2px] border-[#cfb16c] bg-[#fff6de] shadow-[0_4px_0_rgba(91,72,44,0.18)] animate-[ziiplyRecipeFloat_1.4s_ease-in-out_infinite]"
+                          style={{
+                            ["--ziiply-r" as any]: `${(i - 1) * 8}deg`,
+                            animationDelay: `${i * 140}ms`,
+                          }}
+                        >
+                          <div className="p-3 text-[0.82rem] font-black leading-[1.2] text-[#7b5d2f]">
+                            maito<br />
+                            kahvi<br />
+                            leipä
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div
+                      className="rounded-full border-[3px] border-[#d5b268] bg-[#fff1c8] px-6 py-2 text-[1.1rem] font-black italic text-[#7b4b2d] shadow-[0_4px_0_rgba(91,72,44,0.22)]"
+                      style={{ fontFamily: cooperFont }}
+                    >
+                      Justiina etsii tuotteita...
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
+          {cartFlash && (
+            <div
+              className="pointer-events-none absolute left-1/2 top-[46%] z-[130] -translate-x-1/2 rounded-full border-[3px] border-[#0b6330] bg-[#fff1c8] px-5 py-2 text-[1rem] font-black italic text-[#174c2c] shadow-[0_4px_0_rgba(91,72,44,0.22)] animate-[ziiplyCartStamp_0.95s_ease-out_both]"
+              style={{ fontFamily: cooperFont }}
+            >
+              Lisätty koriin
+            </div>
+          )}
           <div className="grid grid-cols-[minmax(0,1fr)_8.1rem] items-start gap-3">
             <div className="min-w-0">
               <div
@@ -429,7 +558,8 @@ export default function ZiiplyMobileSearchCard({
 
             <GreenPillButton
               label="Vihkonen"
-              onClick={onAddInputToCart}
+              onClick={handleAddInputToCart}
+              disabled={!hasText}
               className="mt-3 h-[3.0rem] w-full text-[1.08rem]"
             />
           </div>
@@ -446,7 +576,7 @@ export default function ZiiplyMobileSearchCard({
             <div className="mt-[2.6rem] grid grid-cols-[1.18fr_0.72fr_1.18fr] items-center gap-3">
             <AssistantButton
               kind="gosta"
-              onClick={() => handleManualSearch(onOfferSearch)}
+              onClick={() => handleManualSearch("gosta", onOfferSearch)}
               disabled={!hasText}
               loading={loadingOffers}
             />
@@ -464,7 +594,7 @@ export default function ZiiplyMobileSearchCard({
 
             <AssistantButton
               kind="justiina"
-              onClick={() => handleManualSearch(onNormalSearch)}
+              onClick={() => handleManualSearch("justiina", onNormalSearch)}
               disabled={!hasText}
               loading={justiinaLoading}
             />
@@ -482,6 +612,12 @@ export default function ZiiplyMobileSearchCard({
                   setTriggeredSearchInput("");
                   onInputChange?.(event.target.value);
                 }}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" && !event.shiftKey) {
+                    event.preventDefault();
+                    handleAddInputToCart();
+                  }
+                }}
                 rows={1}
                 placeholder={searchMode === "single" ? "Kirjoita yksi tuote" : "maito, kahvi"}
                 className="block h-full w-full resize-none overflow-hidden rounded-[1.0rem] border-0 bg-[#fffaf0] px-4 py-[0.35rem] pr-[5.65rem] text-center text-[1.18rem] font-black leading-[1.0] text-[#102216] outline-none placeholder:text-[#7d7461]"
@@ -492,7 +628,7 @@ export default function ZiiplyMobileSearchCard({
               <CartIconButton
                 visible={hasText}
                 disabled={!hasText}
-                onClick={onAddInputToCart}
+                onClick={handleAddInputToCart}
               />
             </div>
           </div>
@@ -519,6 +655,26 @@ export default function ZiiplyMobileSearchCard({
 
           {/* Hakutulokset renderöidään erillisessä ZiiplyMobileSearchResultsCard-komponentissa. */}
         </div>
+
+        <style>{`
+          @keyframes ziiplyScan {
+            0% { transform: translateX(-120%); }
+            100% { transform: translateX(420%); }
+          }
+
+          @keyframes ziiplyRecipeFloat {
+            0% { transform: translate(-50%, -50%) rotate(var(--ziiply-r, 0deg)) translateY(0px); }
+            50% { transform: translate(-50%, -50%) rotate(var(--ziiply-r, 0deg)) translateY(-7px); }
+            100% { transform: translate(-50%, -50%) rotate(var(--ziiply-r, 0deg)) translateY(0px); }
+          }
+
+          @keyframes ziiplyCartStamp {
+            0% { opacity: 0; transform: translate(-50%, 8px) scale(0.92); }
+            18% { opacity: 1; transform: translate(-50%, 0) scale(1.04); }
+            72% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -8px) scale(0.98); }
+          }
+        `}</style>
       </section>
     </div>
   );
