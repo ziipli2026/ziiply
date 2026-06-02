@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_COMPARE_CARDRESPONSIVE_V45_BUILD_FIX_FINAL_LAYOUT
+// ZIIPLY_MOBILE_COMPARE_CARDRESPONSIVE_V46_GLOBAL_BACK_ONLY
 // Päävertailu muutettu mobiilille: isot kauppakortit, isot AVAA KORI / VALITSE -napit,
 // loading-rakenne näkyy heti oikean näköisenä. Visuaalinen linja pysyy Ziiplyn paperi/retro-maailmassa.
 
@@ -232,7 +232,6 @@ export default function ZiiplyMobileCompareCardresponsive({
   const cheapest = getCheapestStore(visibleStores);
   const detailsStore = detailsStoreId ? visibleStores.find((store) => store.id === detailsStoreId) || null : null;
   const handleBack = onBack || onBackToCart;
-  void handleBack;
   const comparedCount = items.length || visibleStores[0]?.itemCount || 0;
 
   if (detailsStore) {
@@ -391,22 +390,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                       </button>
                     </div>
 
-                    <div className="mt-2.5 grid grid-cols-[2.58rem_minmax(0,1fr)_2.30rem] items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          onBackToCart?.();
-                        }}
-                        className="grid h-[2.34rem] w-[2.58rem] place-items-center rounded-l-[0.42rem] rounded-r-[0.82rem] border-[2px] border-[#2b1a0e] bg-[linear-gradient(135deg,#7a4c2d_0%,#3b2414_78%)] text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.22),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]"
-                        aria-label="Takaisin"
-                        title="Takaisin"
-                      >
-                        <span className="grid h-[1.42rem] w-[1.42rem] place-items-center rounded-full border border-[#6b421f] bg-[radial-gradient(circle_at_35%_35%,#f6c46c_0%,#b0752a_52%,#65401f_100%)] text-[1rem] text-[#2b1a0e] shadow-[0_1px_2px_rgba(0,0,0,0.28)]">
-                          ←
-                        </span>
-                      </button>
-
+                    <div className="mt-2.5 grid grid-cols-[minmax(0,1fr)_2.30rem] items-center gap-2 pl-[2.58rem]">
                       <button
                         type="button"
                         onClick={() => setDetailsStoreId(store.id)}
@@ -460,6 +444,20 @@ export default function ZiiplyMobileCompareCardresponsive({
           </div>
         </main>
 
+
+        {handleBack ? (
+          <button
+            type="button"
+            onClick={handleBack}
+            className="absolute left-[0.78rem] top-[0.88rem] z-[35] grid h-[2.62rem] w-[2.86rem] place-items-center rounded-l-[0.42rem] rounded-r-[0.8rem] border-[2px] border-[#2b1a0e] bg-[linear-gradient(135deg,#7a4c2d_0%,#3b2414_78%)] text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.25),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]"
+            aria-label="Takaisin"
+            title="Takaisin"
+          >
+            <span className="grid h-[1.50rem] w-[1.50rem] place-items-center rounded-full border border-[#6b421f] bg-[radial-gradient(circle_at_35%_35%,#f6c46c_0%,#b0752a_52%,#65401f_100%)] text-[1.02rem] text-[#2b1a0e] shadow-[0_1px_2px_rgba(0,0,0,0.28)]">
+              ←
+            </span>
+          </button>
+        ) : null}
 
         {onClose ? (
           <button
