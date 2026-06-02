@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_CART_CARD_V53_BACK_AND_SHARE_BOTTOM
+// ZIIPLY_MOBILE_CART_CARD_V54_PAPER_SHARE_AND_COMPARE_LABEL
 // Mobiilin Tavarainkeruu-paperivihko.
 // V42: korjaa ostoslistan visuaalisen kohdistuksen: rivit relative, korkeampi rivikorkeus, määrä keskelle, hinnat ja footer vasemmalle samaan linjaan.
 // - "Ostoskori" poistettu kokonaan näkyvästä UI:sta.
@@ -487,7 +487,7 @@ export default function ZiiplyMobileCartCard({
             onClick={onCompare}
             disabled={!hasItems}
             className={cx(
-              "ml-[5.15rem] mt-[0.58rem] block rounded-[0.86rem] border-[3px] border-[#0b6330] bg-gradient-to-b from-[#139143] to-[#087237] px-5 py-[0.44rem] text-[0.82rem] font-extrabold italic text-[#fff0d5] shadow-[0_0_0_2px_rgba(255,255,255,0.18)_inset,0_3px_0_#064a26] active:translate-y-[1px]",
+              "ml-[5.15rem] mt-[0.68rem] block rounded-[0.50rem] border-[2.5px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-5 py-[0.36rem] text-[0.82rem] font-extrabold italic text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58),0_2px_4px_rgba(62,43,20,0.18)] active:translate-y-[1px]",
               !hasItems && "cursor-not-allowed opacity-45",
             )}
             style={{ fontFamily: cooperFont }}
@@ -514,11 +514,33 @@ export default function ZiiplyMobileCartCard({
           <button
             type="button"
             onClick={onShareCart}
-            className="absolute bottom-[1.05rem] right-[4.08rem] z-[35] grid h-[2.45rem] w-[2.45rem] place-items-center rounded-[0.58rem] border-[2px] border-[#7a5a2a] bg-[linear-gradient(180deg,#f8df98_0%,#d8a84c_100%)] text-[1.12rem] text-[#2b1a0e] shadow-[0_3px_8px_rgba(0,0,0,0.20),inset_0_0_0_1px_rgba(255,244,200,0.42)] active:translate-y-[1px]"
+            className="absolute bottom-[1.05rem] right-[4.05rem] z-[35] grid h-[2.42rem] w-[2.32rem] place-items-center rounded-[0.50rem] border-[2px] border-[#8b713d] bg-[linear-gradient(180deg,#f5e5bd_0%,#d6b875_100%)] text-[#51361a] shadow-[0_3px_8px_rgba(0,0,0,0.18),inset_0_0_0_1px_rgba(255,249,220,0.56)] active:translate-y-[1px]"
             aria-label="Jaa ostoskori"
             title="Jaa ostoskori"
           >
-            ✉
+            <span className="absolute -top-[0.46rem] left-1/2 h-[0.58rem] w-[1px] -translate-x-1/2 bg-[#6c4b22]" />
+            <span className="absolute top-[0.18rem] h-[0.31rem] w-[0.31rem] rounded-full border border-[#8b713d] bg-[#fff4ce]" />
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 18"
+              className="mt-[0.30rem] h-[1.05rem] w-[1.24rem]"
+            >
+              <path
+                d="M2.5 3.5h19v11h-19z"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M3 4l9 6.5L21 4M3.2 14.2l6.1-5M20.8 14.2l-6.1-5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
           </button>
         ) : null}
 
