@@ -19,10 +19,12 @@ export type ScannerCameraTuningResult = {
 };
 
 export const DEFAULT_SCANNER_ENHANCE_OPTIONS: Required<ScannerEnhanceOptions> = {
-  contrast: 1.35,
-  brightness: 8,
+  // V724: mobiiliviivakoodille hieman vahvempi kontrasti, vähemmän kirkkautta
+  // ja laajempi crop, jotta käyttäjän ei tarvitse osua aivan keskelle.
+  contrast: 1.55,
+  brightness: 4,
   sharpen: true,
-  cropRatio: 0.82,
+  cropRatio: 0.94,
 };
 
 export function getScannerVideoElement(regionId: string) {
@@ -34,6 +36,26 @@ export function getScannerVideoTrack(regionId: string) {
   const video = getScannerVideoElement(regionId);
   const stream = video?.srcObject as MediaStream | null;
   return stream?.getVideoTracks?.()[0] || null;
+}
+
+
+export async function setScannerTorch(regionId: string, enabled: boolean) {
+  try {
+    const track = getScannerVideoTrack(regionId);
+    if (!track) {
+      return { ok: false, reason: "no-track" as const };
+    }
+
+    const capabilities = typeof track.getCapabilities === "function" ? (track.getCapabilities() as any) : {};
+    if (!capabilities.torch) {
+      return { ok: false, reason: "not-supported" as const };
+    }
+
+    await track.applyConstraints({ advanced: [{ torch: enabled }] } as any);
+    return { ok: true, enabled };
+  } catch {
+    return { ok: false, reason: "apply-failed" as const };
+  }
 }
 
 export async function applyBestEffortScannerCameraTuning(regionId: string): Promise<ScannerCameraTuningResult> {
@@ -67,7 +89,13 @@ export async function applyBestEffortScannerCameraTuning(regionId: string): Prom
     }
 
     if (capabilities.zoom && typeof capabilities.zoom.min === "number") {
-      advanced.push({ zoom: capabilities.zoom.min });
+      const minZoom = Number(capabilities.zoom.min ?? 1);
+      const maxZoom = Number(capabilities.zoom.max ?? minZoom);
+      const targetZoom = Math.min(maxZoom, Math.max(minZoom, 1.6));
+
+      // V724: älä pakota zoom.min-arvoon. Minimi tekee EAN-koodista usein liian pienen,
+      // ja joillain puhelimilla se voi valita käytännössä huonoimman linssin.
+      advanced.push({ zoom: targetZoom });
       result.zoomApplied = true;
     }
 
@@ -191,17 +219,28 @@ export function enhanceBarcodeCanvas(sourceCanvas: HTMLCanvasElement, options: S
     data[i + 2] = adjusted;
   }
 
+  if (merged.sharpen) {
+    // V724: BarcodeDetector hyötyy usein selvemmistä musta/valkoinen-rajoista
+    // enemmän kuin pehmeästä blur-sekoituksesta. Kevyt threshold riittää mobiilissa.
+    let sum = 0;
+    const pixelCount = data.length / 4;
+
+    for (let i = 0; i < data.length; i += 4) {
+      sum += data[i];
+    }
+
+    const average = pixelCount > 0 ? sum / pixelCount : 128;
+    const threshold = Math.max(96, Math.min(172, average * 0.96));
+
+    for (let i = 0; i < data.length; i += 4) {
+      const value = data[i] > threshold ? 255 : 0;
+      data[i] = value;
+      data[i + 1] = value;
+      data[i + 2] = value;
+    }
+  }
+
   ctx.putImageData(imageData, 0, 0);
-
-  if (!merged.sharpen) return canvas;
-
-  // Lightweight unsharp mask. Keeps this browser-only and fast enough for mobile.
-  ctx.globalAlpha = 0.38;
-  ctx.filter = "blur(1px)";
-  ctx.drawImage(canvas, 0, 0);
-  ctx.filter = "none";
-  ctx.globalAlpha = 1;
-
   return canvas;
 }
 
@@ -231,21 +270,85 @@ export async function decodeBarcodeFromCanvas(canvas: HTMLCanvasElement): Promis
   return null;
 }
 
+function rotateScannerCanvas(sourceCanvas: HTMLCanvasElement, degrees: 90 | 270) {
+  const canvas = document.createElement("canvas");
+  canvas.width = sourceCanvas.height;
+  canvas.height = sourceCanvas.width;
+
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  if (!ctx) return null;
+
+  if (degrees === 90) {
+    ctx.translate(canvas.width, 0);
+    ctx.rotate(Math.PI / 2);
+  } else {
+    ctx.translate(0, canvas.height);
+    ctx.rotate(-Math.PI / 2);
+  }
+
+  ctx.drawImage(sourceCanvas, 0, 0);
+  return canvas;
+}
+
+async function decodeBarcodeWithRotationRetries(canvas: HTMLCanvasElement): Promise<ScannerDecodeResult | null> {
+  const direct = await decodeBarcodeFromCanvas(canvas);
+  if (direct) return direct;
+
+  const rotated90 = rotateScannerCanvas(canvas, 90);
+  if (rotated90) {
+    const result90 = await decodeBarcodeFromCanvas(rotated90);
+    if (result90) {
+      return { ...result90, source: "enhanced" };
+    }
+  }
+
+  const rotated270 = rotateScannerCanvas(canvas, 270);
+  if (rotated270) {
+    const result270 = await decodeBarcodeFromCanvas(rotated270);
+    if (result270) {
+      return { ...result270, source: "enhanced" };
+    }
+  }
+
+  return null;
+}
+
 export async function decodeScannerFallbackStill(regionId: string): Promise<ScannerDecodeResult | null> {
+  // V726: live html5-qrcode saa hoitaa nopean vaakaluvun. Tämä fallback on
+  // lisäpolku pysty-EAN-koodeille: kokeillaan oletuscrop, koko frame ja
+  // molemmat 90/270 asteen rotaatiot sekä raakakuvasta että threshold-kuvasta.
   const still = captureScannerStillFrame(regionId);
   if (!still) return null;
 
-  const direct = await decodeBarcodeFromCanvas(still);
-  if (direct) return direct;
+  const directOrRotated = await decodeBarcodeWithRotationRetries(still);
+  if (directOrRotated) return directOrRotated;
+
+  const fullFrame = captureScannerStillFrame(regionId, { cropRatio: 1 });
+  if (fullFrame && (fullFrame.width !== still.width || fullFrame.height !== still.height)) {
+    const fullFrameResult = await decodeBarcodeWithRotationRetries(fullFrame);
+    if (fullFrameResult) return fullFrameResult;
+  }
 
   const enhanced = enhanceBarcodeCanvas(still);
-  const enhancedResult = await decodeBarcodeFromCanvas(enhanced);
+  const enhancedResult = await decodeBarcodeWithRotationRetries(enhanced);
 
   if (enhancedResult) {
     return {
       ...enhancedResult,
       source: "enhanced",
     };
+  }
+
+  if (fullFrame) {
+    const enhancedFullFrame = enhanceBarcodeCanvas(fullFrame, { cropRatio: 1 });
+    const enhancedFullFrameResult = await decodeBarcodeWithRotationRetries(enhancedFullFrame);
+
+    if (enhancedFullFrameResult) {
+      return {
+        ...enhancedFullFrameResult,
+        source: "enhanced",
+      };
+    }
   }
 
   return null;
@@ -257,7 +360,9 @@ export function createScannerFallbackLoop(args: {
   onDecoded: (result: ScannerDecodeResult) => void;
   onNeedsManualFocus?: () => void;
 }) {
-  const timeoutMs = args.timeoutMs ?? 1600;
+  // V724: 1600 ms tuntuu scannerissa hitaalta. 450 ms antaa nopean fallbackin
+  // ilman että mobiili kuumenee kohtuuttomasti.
+  const timeoutMs = args.timeoutMs ?? 450;
   let stopped = false;
   let timer: number | null = null;
 
