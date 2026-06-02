@@ -1,8 +1,8 @@
 "use client";
 
-// ZIIPLY_MOBILE_COMPARE_SELECTION_CARD_V1
+// ZIIPLY_MOBILE_COMPARE_SELECTION_CARD_V2_BUILD_FIX
 // Kauppakohtainen erittelykortti mobiilin vertailun Avaa-napille.
-// Tämä ei poistu näkymästä, vaan näyttää valitun kaupan sisäisen erittelyn.
+// Tärkeää: tämä tiedosto on oikea TSX-moduuli ja exporttaa default-komponentin.
 
 import React from "react";
 
@@ -48,10 +48,6 @@ function formatComparePrice(value: unknown) {
   if (value == null || value === "") return "—";
 
   if (typeof value === "number" && Number.isFinite(value)) {
-    // Korjaa 100x-virheen turvallisesti:
-    // page voi antaa hinnat joko sentteinä tai euroina.
-    // Ruokakorien kokonaishinnat ovat usein sentteinä, mutta yksittäisissä
-    // hinnoissa voi tulla euroarvo. Alle 100 käsitellään euroina.
     const euros = Math.abs(value) >= 100 ? value / 100 : value;
     return `${euros.toFixed(2).replace(".", ",")} €`;
   }
@@ -225,3 +221,5 @@ export default function ZiiplyMobileCompareSelectionCard({
     </div>
   );
 }
+
+export { ZiiplyMobileCompareSelectionCard };
