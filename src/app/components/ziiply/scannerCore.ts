@@ -19,10 +19,12 @@ export type ScannerCameraTuningResult = {
 };
 
 export const DEFAULT_SCANNER_ENHANCE_OPTIONS: Required<ScannerEnhanceOptions> = {
-  contrast: 1.35,
-  brightness: 8,
+  // V724: mobiiliviivakoodille hieman vahvempi kontrasti, vähemmän kirkkautta
+  // ja laajempi crop, jotta käyttäjän ei tarvitse osua aivan keskelle.
+  contrast: 1.55,
+  brightness: 4,
   sharpen: true,
-  cropRatio: 0.82,
+  cropRatio: 0.94,
 };
 
 export function getScannerVideoElement(regionId: string) {
@@ -67,7 +69,13 @@ export async function applyBestEffortScannerCameraTuning(regionId: string): Prom
     }
 
     if (capabilities.zoom && typeof capabilities.zoom.min === "number") {
-      advanced.push({ zoom: capabilities.zoom.min });
+      const minZoom = Number(capabilities.zoom.min ?? 1);
+      const maxZoom = Number(capabilities.zoom.max ?? minZoom);
+      const targetZoom = Math.min(maxZoom, Math.max(minZoom, 1.6));
+
+      // V724: älä pakota zoom.min-arvoon. Minimi tekee EAN-koodista usein liian pienen,
+      // ja joillain puhelimilla se voi valita käytännössä huonoimman linssin.
+      advanced.push({ zoom: targetZoom });
       result.zoomApplied = true;
     }
 
@@ -191,17 +199,28 @@ export function enhanceBarcodeCanvas(sourceCanvas: HTMLCanvasElement, options: S
     data[i + 2] = adjusted;
   }
 
+  if (merged.sharpen) {
+    // V724: BarcodeDetector hyötyy usein selvemmistä musta/valkoinen-rajoista
+    // enemmän kuin pehmeästä blur-sekoituksesta. Kevyt threshold riittää mobiilissa.
+    let sum = 0;
+    const pixelCount = data.length / 4;
+
+    for (let i = 0; i < data.length; i += 4) {
+      sum += data[i];
+    }
+
+    const average = pixelCount > 0 ? sum / pixelCount : 128;
+    const threshold = Math.max(96, Math.min(172, average * 0.96));
+
+    for (let i = 0; i < data.length; i += 4) {
+      const value = data[i] > threshold ? 255 : 0;
+      data[i] = value;
+      data[i + 1] = value;
+      data[i + 2] = value;
+    }
+  }
+
   ctx.putImageData(imageData, 0, 0);
-
-  if (!merged.sharpen) return canvas;
-
-  // Lightweight unsharp mask. Keeps this browser-only and fast enough for mobile.
-  ctx.globalAlpha = 0.38;
-  ctx.filter = "blur(1px)";
-  ctx.drawImage(canvas, 0, 0);
-  ctx.filter = "none";
-  ctx.globalAlpha = 1;
-
   return canvas;
 }
 
@@ -257,7 +276,9 @@ export function createScannerFallbackLoop(args: {
   onDecoded: (result: ScannerDecodeResult) => void;
   onNeedsManualFocus?: () => void;
 }) {
-  const timeoutMs = args.timeoutMs ?? 1600;
+  // V724: 1600 ms tuntuu scannerissa hitaalta. 450 ms antaa nopean fallbackin
+  // ilman että mobiili kuumenee kohtuuttomasti.
+  const timeoutMs = args.timeoutMs ?? 450;
   let stopped = false;
   let timer: number | null = null;
 
