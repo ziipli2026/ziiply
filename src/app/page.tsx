@@ -12351,6 +12351,45 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               // Mobiilin Avaa/Erittely käsitellään ZiiplyMobileCompareCardresponsive-komponentin sisällä.
               // Ei vaihdeta Kaupat-paneeliin eikä poistuta Vertailu-kortilta.
             }}
+            onChangeMatchMode={async (storeId, match, mode) => {
+              const chainKey =
+                storeId === "k" || storeId === "s"
+                  ? storeId
+                  : storeId === "lidl" || storeId === "tokmanni"
+                    ? storeId
+                    : ((match as any)?.chainKey === "k" ? "k" : "s");
+
+              const safeMode = mode as QualityMode;
+              const safeMatch = match as Match;
+
+              setMatchQualityMode(safeMatch, safeMode, undefined, chainKey as ChainResult["key"]);
+
+              try {
+                const alternatives = await fetchAlternativesForMatch(
+                  chainKey as ChainResult["key"],
+                  safeMatch,
+                  safeMode,
+                );
+
+                const replacement = alternatives
+                  .filter((alternative) => getProductPrice(alternative) > 0)
+                  .filter((alternative) =>
+                    productGroupGate(safeMatch.product.name, alternative.name),
+                  )
+                  .sort((a, b) => getProductPrice(a) - getProductPrice(b))[0];
+
+                if (replacement) {
+                  replaceMatchProduct(
+                    chainKey as ChainResult["key"],
+                    safeMatch,
+                    replacement,
+                  );
+                }
+              } catch (error) {
+                console.error(error);
+                showCartToast("Vaihtoehdon haku epäonnistui");
+              }
+            }}
             onClose={() => {
               setActiveResult("none");
               setCartModalOpen(false);
