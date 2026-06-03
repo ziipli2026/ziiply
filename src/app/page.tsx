@@ -2353,14 +2353,11 @@ export default function Page() {
   function setGpsSilentLocationV391(coords: { latitude: number; longitude: number }) {
     gpsLastSilentCoordsRefV391.current = coords;
 
-    const nearestArea = getNearestAreaFromGpsV391(coords);
-    const nextAreaLabel = nearestArea?.label || activeArea.label;
+    // V38: hiljainen GPS-päivitys ei saa vaihtaa activeAreaa lähimpään kuntaan,
+    // koska se palauttaa kunnanrajalla helposti Hyvinkää-lukon takaisin.
+    const nextAreaLabel = "Oma sijainti";
 
     setGpsCoordsV320(coords);
-
-    if (nearestArea && nearestArea.label !== activeArea.label) {
-      setActiveArea(nearestArea);
-    }
 
     if (gpsLastSilentAreaRefV391.current !== nextAreaLabel) {
       gpsLastSilentAreaRefV391.current = nextAreaLabel;
@@ -3267,18 +3264,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       if (gpsMode === "local") {
         return {
-          sStoreId: ranked.sLocal?.id ?? activeArea.sLocalStoreId ?? 0,
-          sStoreName: ranked.sLocal?.name ?? activeArea.sLocalStoreName ?? "S-lähikauppa ei valittu",
-          kStoreId: ranked.kLocal?.id ?? activeArea.kLocalStoreId ?? 0,
-          kStoreName: ranked.kLocal?.name ?? activeArea.kLocalStoreName ?? "K-lähikauppa ei valittu",
+          sStoreId: ranked.sLocal?.id ?? 0,
+          sStoreName: ranked.sLocal?.name ?? "S-lähikauppa ei valittu",
+          kStoreId: ranked.kLocal?.id ?? 0,
+          kStoreName: ranked.kLocal?.name ?? "K-lähikauppa ei valittu",
         };
       }
 
       return {
-        sStoreId: ranked.sHyper?.id ?? activeArea.sStoreId ?? 0,
-        sStoreName: ranked.sHyper?.name ?? activeArea.sStoreName ?? "S-tavaratalo ei valittu",
-        kStoreId: ranked.kHyper?.id ?? activeArea.kStoreId ?? 0,
-        kStoreName: ranked.kHyper?.name ?? activeArea.kStoreName ?? "K-tavaratalo ei valittu",
+        sStoreId: ranked.sHyper?.id ?? 0,
+        sStoreName: ranked.sHyper?.name ?? "S-tavaratalo ei valittu",
+        kStoreId: ranked.kHyper?.id ?? 0,
+        kStoreName: ranked.kHyper?.name ?? "K-tavaratalo ei valittu",
       };
     }
 
@@ -5721,11 +5718,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       clearStoreBackedSearchState();
 
-      // v352_DESKTOP_GPS_DEFAULT_STORE_SELECTION:
-      // GPS-löydön jälkeen oletuksena Tavaratalot + Ketjujen väliltä.
+      // V38_GPS_NO_FORCED_HYPER_HYVINKAA_LOCK:
+      // GPS ei saa pakottaa Tavaratalot-tilaa, koska kunnanrajalla se lukitsee helposti
+      // Hyvinkään Prisma/K-Citymarket -pariin. Jos käyttäjä ei ole jo valinnut hakutapaa,
+      // oma sijainti avataan Lähikaupat-tilaan, jolloin lähimmät S/K-kaupat voivat tulla
+      // Jokelan/Tuusulan puolelta. Jos käyttäjä on jo valinnut Tavaratalot/Lähikaupat,
+      // säilytetään hänen valintansa.
       if (source === "gps") {
-        selectedStoreModeRefV302.current = "hyper";
-        setStoreMode("hyper");
+        const nextGpsStoreMode: StoreMode = storeModeChosenV299
+          ? selectedStoreModeRefV302.current || storeMode
+          : "local";
+
+        selectedStoreModeRefV302.current = nextGpsStoreMode;
+        setStoreMode(nextGpsStoreMode);
         setStoreModeChosenV299(true);
         setStoreCompareScope("between_chains");
         setWithinChain(null);
@@ -5743,7 +5748,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         activeElement?.blur?.();
       }
 
-      const effectiveStoreModeForLocationMessage = source === "gps" ? "hyper" : storeMode;
+      const effectiveStoreModeForLocationMessage = source === "gps" ? selectedStoreModeRefV302.current || storeMode : storeMode;
       const modeMissing =
         effectiveStoreModeForLocationMessage === "local"
           ? !ranked.sLocal || !ranked.kLocal
@@ -10125,12 +10130,21 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         getStoreModeRankV320(a, mode) - getStoreModeRankV320(b, mode);
       if (modeDiff !== 0) return modeDiff;
 
-      const cityA = normalize(a.city || "");
-      const cityB = normalize(b.city || "");
-      const area = normalize(activeArea.label || "");
-      const aSameCity = area && cityA.includes(area);
-      const bSameCity = area && cityB.includes(area);
-      if (aSameCity !== bSameCity) return aSameCity ? -1 : 1;
+      if (usingOwnLocation && gpsCoordsV320) {
+        const distanceA = readExplicitDistanceKmV320(a);
+        const distanceB = readExplicitDistanceKmV320(b);
+        if (distanceA != null && distanceB != null && distanceA !== distanceB) {
+          return distanceA - distanceB;
+        }
+        if (distanceA != null !== (distanceB != null)) return distanceA != null ? -1 : 1;
+      } else {
+        const cityA = normalize(a.city || "");
+        const cityB = normalize(b.city || "");
+        const area = normalize(activeArea.label || "");
+        const aSameCity = area && cityA.includes(area);
+        const bSameCity = area && cityB.includes(area);
+        if (aSameCity !== bSameCity) return aSameCity ? -1 : 1;
+      }
 
       return normalize(a.name || "").localeCompare(
         normalize(b.name || ""),
