@@ -17,6 +17,11 @@
 // Korjaa V33 build-virheen: nextArea oli try-lohkon scoped-muuttuja, mutta finally viittasi siihen.
 // Finally ei enää yliaja kauppahaun virhe-/puutetilaviestiä, vaan vain vapauttaa loadingin ja näyttää olemassa olevan viestin.
 
+// V37_GPS_IGNORE_API_DISTANCE_AND_AREA_LABEL_LOCK
+// Korjaus: GPS-tilassa API:n palauttama distanceKm ei saa lukita kauppoja reverse-geocodatun kunnan keskukseen.
+// Jos storella on koordinaatit, etäisyys lasketaan aina käyttäjän GPS-koordinaatista.
+// Lisäksi GPS-alueen label ei tule ensimmäisen store-osuman kaupungista vaan muodossa Oma sijainti.
+
 // V36_GPS_ACTIVE_STORES_COORDINATE_PRIORITY
 // Korjaa viimeisen paikkakuntalukon: Kaupat-näkymän aktiivinen S/K-pari johdetaan GPS-tilassa
 // suoraan foundStores + gpsCoords -listasta eikä activeArea/kunta-labelistä.
@@ -5255,8 +5260,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     const scoredStores = candidates
       .map((store) => {
+        const geoStoreForScore = toZiiplyResolverGeoStoreV32(store);
+        if (geoStoreForScore.latitude != null && geoStoreForScore.longitude != null) {
+          // V37: älä käytä API:n valmista distanceKm-arvoa GPS-rankingissa,
+          // koska se voi olla laskettu kunnan/queryn mukaan eikä käyttäjän koordinaatista.
+          geoStoreForScore.distanceKm = undefined;
+        }
+
         const scored = scoreZiiplyStore({
-          store: toZiiplyResolverGeoStoreV32(store),
+          store: geoStoreForScore,
           location: {
             latitude: coords.latitude,
             longitude: coords.longitude,
@@ -5329,12 +5341,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const matchedArea = findArea(query);
     const ranked = rankStoresForMode(stores, mode, coords);
 
-    const detectedCity =
-      ranked.selectedS?.city ||
-      ranked.selectedK?.city ||
-      stores.find((store) => store.city)?.city ||
-      matchedArea?.label ||
-      query;
+    const detectedCity = coords
+      ? "Oma sijainti"
+      : ranked.selectedS?.city ||
+        ranked.selectedK?.city ||
+        stores.find((store) => store.city)?.city ||
+        matchedArea?.label ||
+        query;
 
     return {
       label: detectedCity,
@@ -5431,14 +5444,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (!coords) return mergedStores;
 
     return mergedStores.map((store) => {
-      const explicitDistanceKm = readExplicitDistanceKmV320(store);
-      if (explicitDistanceKm != null) {
-        return {
-          ...store,
-          distanceKm: explicitDistanceKm,
-        };
-      }
-
       const latitude = getStoreCoordinateV320(store, ["latitude", "lat", "y"]);
       const longitude = getStoreCoordinateV320(store, [
         "longitude",
@@ -5447,12 +5452,24 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         "x",
       ]);
 
-      if (latitude == null || longitude == null) return store;
+      // V37: GPS-tilassa API:n distanceKm voi olla laskettu kunnan/queryn keskuksesta
+      // eikä käyttäjän todellisesta sijainnista. Siksi koordinaatit voittavat aina.
+      if (latitude != null && longitude != null) {
+        return {
+          ...store,
+          distanceKm: calculateDistanceKmV320(coords, { latitude, longitude }),
+        };
+      }
 
-      return {
-        ...store,
-        distanceKm: calculateDistanceKmV320(coords, { latitude, longitude }),
-      };
+      const explicitDistanceKm = readExplicitDistanceKmV320(store);
+      if (explicitDistanceKm != null) {
+        return {
+          ...store,
+          distanceKm: explicitDistanceKm,
+        };
+      }
+
+      return store;
     });
   }
 
@@ -5737,7 +5754,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           `${nextArea.label || query} löytyi, mutta kaikkia ${effectiveStoreModeForLocationMessage === "local" ? "lähikauppoja" : "tavarataloja"} ei löytynyt. Voit valita kaupat listasta.`,
         );
       } else {
-        setLocationMessage(`${nextArea.label || query || "GPS"} käytössä`);
+        setLocationMessage(source === "gps" ? "Oma sijainti käytössä" : `${nextArea.label || query || "GPS"} käytössä`);
       }
     } catch (error) {
       pushGpsDebugLogV492(`useOwnLocation CATCH code=${String((error as any)?.code ?? "?")}`);
@@ -6056,7 +6073,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         setStoreSearchLoading(false);
         setGpsStorePickerBlockedV382(false);
         setLocationInput("");
-        setLocationMessage(`${gpsResolvedCityV495} käytössä`);
+        setLocationMessage("Oma sijainti käytössä");
         setLocationMessageVisible(true);
       } else {
         setStoreSearchLoading(false);
