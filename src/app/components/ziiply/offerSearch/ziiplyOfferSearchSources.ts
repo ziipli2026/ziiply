@@ -1,5 +1,5 @@
 // src/app/components/ziiply/offerSearch/ziiplyOfferSearchSources.ts
-// ZIIPLY_OFFER_SEARCH_SOURCES_V2_SKAUPAT_ONLY
+// ZIIPLY_OFFER_SEARCH_SOURCES_V3_INTENT_MEMORY_RANKING
 //
 // Debugin perusteella K-Ruoka palauttaa Vercel-serverille Cloudflare 403 -sivun,
 // joten K-Market ja K-Supermarket pidetään mukana funktioina mutta ei ajeta
@@ -15,6 +15,14 @@ import {
   getCachedOfferResults,
   setCachedOfferResults,
 } from "./ziiplyOfferSearchCache";
+
+import {
+  resolveSearchIntentAI,
+} from "../searchIntentAI";
+
+import {
+  rankProductsWithIntentMemory,
+} from "../searchIntentMemory";
 
 export type {
   ZiiplyOfferChain,
@@ -95,9 +103,36 @@ export async function searchZiiplyOffers(query: string) {
     searchSKaupatOffers(cleanQuery),
   );
 
-  const results = uniqueOfferResults(sKaupatResults)
-    .filter((result) => result.matchScore > 0)
-    .sort((a, b) => b.matchScore - a.matchScore)
+  const intent = resolveSearchIntentAI(cleanQuery);
+
+  const rankedResults = rankProductsWithIntentMemory(
+    uniqueOfferResults(sKaupatResults)
+      .filter((result) => result.matchScore > 0)
+      .map((result) => ({
+        ...result,
+        category:
+          result.rawText ||
+          result.title ||
+          "",
+        brandName: result.storeLabel,
+      })),
+    cleanQuery,
+    (product) => Number(product.matchScore || 0),
+  );
+
+  const results = rankedResults
+    .sort((a, b) => {
+      const aExact =
+        a.title?.toLowerCase().includes(intent.canonicalQuery.toLowerCase()) ? 1 : 0;
+      const bExact =
+        b.title?.toLowerCase().includes(intent.canonicalQuery.toLowerCase()) ? 1 : 0;
+
+      if (aExact !== bExact) {
+        return bExact - aExact;
+      }
+
+      return Number(b.matchScore || 0) - Number(a.matchScore || 0);
+    })
     .slice(0, 40);
 
   setCachedOfferResults(cleanQuery, results);
