@@ -1,6 +1,6 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V644_INLINE_BASKET_STOP_WHEN_READY
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V645_REFRAMED_SEARCH_LAYOUT
 // Pohja: v608/v510 toimiva hakulogiikka.
 // Muutettu vain JSX/CSS layout vastaamaan annettua finalleiska-mallia.
 
@@ -167,7 +167,7 @@ function AssistantButton({
       aria-label={name}
       title={name}
       className={cx(
-        "relative aspect-square w-full min-w-0 overflow-hidden rounded-[1.25rem] border-[2.5px] p-0 shadow-[0_4px_0_rgba(91,72,44,0.20),inset_0_0_0_2px_rgba(255,255,255,0.45)] active:translate-y-[1px]",
+        "relative aspect-square w-full min-w-0 overflow-hidden rounded-[1.05rem] border-[2.5px] p-0 shadow-[0_3px_0_rgba(91,72,44,0.18),inset_0_0_0_2px_rgba(255,255,255,0.45)] active:translate-y-[1px]",
         isGosta
           ? "border-[#7f9866] bg-gradient-to-b from-[#f0f3d7] to-[#d0dda0]"
           : "border-[#d3b255] bg-gradient-to-b from-[#fff2c4] to-[#efd06f]",
@@ -196,12 +196,12 @@ function ModeToggle({
   onModeChange?: (mode: "cart" | "single") => void;
 }) {
   return (
-    <div className="mx-auto grid h-[2.55rem] w-[14.6rem] grid-cols-2 overflow-hidden rounded-[1.15rem] border-[3px] border-[#a88442] bg-[#ead7a5] p-1 shadow-[0_0_0_2px_#fff4cc_inset,0_4px_0_rgba(91,72,44,0.20)]">
+    <div className="mx-auto grid h-[2.28rem] w-[13.1rem] grid-cols-2 overflow-hidden rounded-[1.0rem] border-[2px] border-[#a88442] bg-[#ead7a5] p-1 shadow-[0_0_0_2px_#fff4cc_inset,0_3px_0_rgba(91,72,44,0.16)]">
       <button
         type="button"
         onClick={() => onModeChange?.("cart")}
         className={cx(
-          "rounded-[0.85rem] px-2 text-[0.76rem] font-black leading-[0.86] transition active:scale-[0.98]",
+          "rounded-[0.75rem] px-2 text-[0.68rem] font-black leading-[0.84] transition active:scale-[0.98]",
           mode === "cart"
             ? "bg-[#fff4cf] text-[#23502c] shadow-[inset_0_0_0_2px_#d9bd77,0_1px_0_rgba(91,72,44,0.16)]"
             : "text-[#7a6842]",
@@ -216,7 +216,7 @@ function ModeToggle({
         type="button"
         onClick={() => onModeChange?.("single")}
         className={cx(
-          "rounded-[0.85rem] px-2 text-[0.76rem] font-black leading-[0.86] transition active:scale-[0.98]",
+          "rounded-[0.75rem] px-2 text-[0.68rem] font-black leading-[0.84] transition active:scale-[0.98]",
           mode === "single"
             ? "bg-[#fff4cf] text-[#23502c] shadow-[inset_0_0_0_2px_#d9bd77,0_1px_0_rgba(91,72,44,0.16)]"
             : "text-[#7a6842]",
@@ -258,7 +258,7 @@ function RetroAssetButton({
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="relative block h-[5.0rem] w-full overflow-hidden border-0 bg-transparent p-0 shadow-none outline-none active:translate-y-[1px]"
+      className="relative block h-[4.45rem] w-full overflow-hidden border-0 bg-transparent p-0 shadow-none outline-none active:translate-y-[1px]"
     >
       <img
         src={imageSrc}
@@ -282,7 +282,7 @@ function InlineSearchRunner({
     <div
       aria-hidden={!visible}
       className={cx(
-        "relative z-10 mt-2 h-[3.35rem] overflow-hidden rounded-[1.35rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/72 shadow-[inset_0_0_0_2px_rgba(255,255,255,0.42)] transition-opacity duration-200",
+        "relative z-10 mt-1.5 h-[2.85rem] overflow-hidden rounded-[1.15rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/72 shadow-[inset_0_0_0_2px_rgba(255,255,255,0.42)] transition-opacity duration-200",
         visible ? "opacity-100" : "opacity-0",
       )}
     >
@@ -320,7 +320,7 @@ function InlineSearchRunner({
           )}
 
           <div
-            className="absolute bottom-[0.12rem] left-1/2 -translate-x-1/2 whitespace-nowrap text-[0.78rem] font-black italic text-[#75562b]"
+            className="absolute bottom-[0.04rem] left-1/2 -translate-x-1/2 whitespace-nowrap text-[0.70rem] font-black italic text-[#75562b]"
             style={{ fontFamily: cooperFont }}
           >
             {isGosta
@@ -562,16 +562,16 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V644_INLINE_BASKET_STOP_WHEN_READY"
+      data-ziiply-mobile-search-card-version="UUSI_V645_REFRAMED_SEARCH_LAYOUT"
       className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.25rem)] z-[72] flex h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] max-h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] items-stretch justify-center overflow-hidden bg-transparent px-2 sm:hidden [transform:translateZ(0)] [backface-visibility:hidden] ${className}`}
     >
-      <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.8rem] border-[2px] border-[#ead9a8] bg-[#f6ebc6] px-3 pb-3 pt-3 text-[#20301f] shadow-[inset_0_0_0_2px_rgba(216,189,117,0.34)]">
-        <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[1.55rem] bg-[#f6ebc6]">
+      <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.85rem] border-[3px] border-[#173f2f] bg-[#d9bd77] p-2 text-[#20301f] shadow-[0_7px_0_rgba(91,72,44,0.24),inset_0_0_0_2px_rgba(255,246,207,0.52)]">
+        <div className="pointer-events-none absolute inset-[0.42rem] z-0 overflow-hidden rounded-[1.45rem] border-[2px] border-[#ead9a8] bg-[#f6ebc6] shadow-[inset_0_0_0_2px_rgba(216,189,117,0.30)]">
           <div className="absolute inset-0 opacity-45 [background-image:radial-gradient(#d8bd75_1.15px,transparent_1.15px)] [background-size:16px_16px]" />
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.48),transparent_54%)]" />
         </div>
 
-        <div className="relative z-10 flex h-full min-h-0 flex-col">
+        <div className="relative z-10 flex h-full min-h-0 flex-col px-1.5 pb-1.5 pt-1.5">
           {cartFlash && (
             <div
               className="pointer-events-none absolute left-1/2 top-[46%] z-[130] -translate-x-1/2 rounded-full border-[3px] border-[#0b6330] bg-[#fff1c8] px-5 py-2 text-[1rem] font-black italic text-[#174c2c] shadow-[0_4px_0_rgba(91,72,44,0.22)] animate-[ziiplyCartStamp_0.95s_ease-out_both]"
@@ -580,17 +580,17 @@ export default function ZiiplyMobileSearchCard({
               Lisätty koriin
             </div>
           )}
-          <div className="grid grid-cols-[minmax(0,1fr)_8.1rem] items-start gap-3">
+          <div className="grid grid-cols-[minmax(0,1fr)_6.8rem] items-start gap-2">
             <div className="min-w-0">
               <div
-                className="text-[0.72rem] font-black uppercase leading-none tracking-[0.42em] text-[#6f674f]"
+                className="text-[0.66rem] font-black uppercase leading-none tracking-[0.38em] text-[#6f674f]"
                 style={{ fontFamily: copperplateFont }}
               >
                 {title}
               </div>
 
               <h1
-                className="mt-1 text-[2.02rem] font-black italic leading-[0.84] text-[#123d32]"
+                className="mt-0.5 text-[1.72rem] font-black italic leading-[0.86] text-[#123d32]"
                 style={{ fontFamily: cooperFont }}
               >
                 Tuotteet ja
@@ -602,11 +602,11 @@ export default function ZiiplyMobileSearchCard({
             <GreenPillButton
               label="Vihkonen"
               onClick={onOpenNotebook}
-              className="mt-3 h-[3.0rem] w-full text-[1.08rem]"
+              className="mt-1.5 h-[2.45rem] w-full rounded-[1.05rem] text-[0.92rem]"
             />
           </div>
 
-          <div className="relative z-10 mt-4 flex min-h-[3.85rem] items-center justify-center overflow-hidden rounded-[1.55rem] border-[3px] border-[#d2b170] bg-[#fff1bf] px-4 py-[0.5rem] text-center text-[clamp(0.84rem,2.7vw,1.02rem)] font-black leading-[1.12] text-[#6f5630] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_4px_0_rgba(91,72,44,0.13)]">
+          <div className="relative z-10 mt-2 flex min-h-[3.05rem] items-center justify-center overflow-hidden rounded-[1.2rem] border-[2px] border-[#d2b170] bg-[#fff1bf] px-3 py-[0.42rem] text-center text-[clamp(0.78rem,2.55vw,0.94rem)] font-black leading-[1.08] text-[#6f5630] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_3px_0_rgba(91,72,44,0.12)]">
             <span className="block w-full whitespace-normal">
               {subtitle || predictiveText}
             </span>
@@ -616,8 +616,8 @@ export default function ZiiplyMobileSearchCard({
 
           {/* V641: kevyt hakuanimaatio on nyt omalla varatulla radallaan, ei koko ruudun overlayna.
               mutta v637:n keyboard-stabiili ankkurointi palautetaan, jotta näppäimistö ei työnnä näkymää ylös. */}
-          <div className="relative z-10 -translate-y-[0.35rem] will-change-transform [backface-visibility:hidden] [transform:translate3d(0,-0.35rem,0)]">
-            <div className="mt-[1.0rem] grid grid-cols-[1.18fr_0.72fr_1.18fr] items-center gap-3">
+          <div className="relative z-10 mt-1.5 rounded-[1.35rem] border-[2px] border-[#d8bd75] bg-[#fff7dc]/62 px-2 pb-2 pt-2 shadow-[inset_0_0_0_2px_rgba(255,255,255,0.36),0_3px_0_rgba(91,72,44,0.12)]">
+            <div className="grid grid-cols-[1.12fr_0.74fr_1.12fr] items-center gap-2.5">
               <AssistantButton
                 kind="gosta"
                 onClick={() => handleManualSearch("gosta", onOfferSearch)}
@@ -626,13 +626,13 @@ export default function ZiiplyMobileSearchCard({
               />
 
               <div className="flex h-full items-center justify-center">
-                <div className="flex h-[5.45rem] w-full max-w-[5.9rem] flex-col items-center justify-center rounded-[1.1rem] border-[3px] border-[#d8bd75] bg-[#fff1bf]/70 px-1.5 text-center shadow-[0_3px_0_rgba(91,72,44,0.16),inset_0_0_0_2px_rgba(255,255,255,0.45)]">
-                  <div className="text-[0.72rem] font-black uppercase leading-[0.95] text-[#174c2c]">
+                <div className="flex h-[4.8rem] w-full max-w-[5.35rem] flex-col items-center justify-center rounded-[0.95rem] border-[2px] border-[#d8bd75] bg-[#fff1bf]/78 px-1.5 text-center shadow-[0_2px_0_rgba(91,72,44,0.14),inset_0_0_0_2px_rgba(255,255,255,0.45)]">
+                  <div className="text-[0.66rem] font-black uppercase leading-[0.92] text-[#174c2c]">
                     Tänään
                     <br />
                     halvin
                   </div>
-                  <div className="mt-1 text-[0.68rem] font-black leading-[0.95] text-[#6f5630]">
+                  <div className="mt-1 text-[0.62rem] font-black leading-[0.92] text-[#6f5630]">
                     kori
                     <br />
                     lähelläsi
@@ -649,7 +649,7 @@ export default function ZiiplyMobileSearchCard({
             </div>
 
             <div className="mt-2">
-              <div className="relative isolate h-[3.0rem] overflow-hidden rounded-[1.35rem] border-[3px] border-[#9d8350] bg-[#fff4d3] px-[0.38rem] py-1 shadow-[0_4px_0_rgba(91,72,44,0.18),inset_0_3px_8px_rgba(91,65,28,0.10)]">
+              <div className="relative isolate h-[2.85rem] overflow-hidden rounded-[1.15rem] border-[2px] border-[#9d8350] bg-[#fff4d3] px-[0.34rem] py-[0.32rem] shadow-[0_3px_0_rgba(91,72,44,0.16),inset_0_3px_8px_rgba(91,65,28,0.10)]">
                 <textarea
                   ref={inputRef}
                   value={input}
@@ -672,7 +672,7 @@ export default function ZiiplyMobileSearchCard({
                       ? "Kirjoita yksi tuote"
                       : "maito, kahvi"
                   }
-                  className="block h-full w-full resize-none overflow-hidden rounded-[1.0rem] border-0 bg-[#fffaf0] px-4 py-[0.35rem] pr-[5.65rem] text-center text-[1.18rem] font-black leading-[1.0] text-[#102216] outline-none placeholder:text-[#7d7461]"
+                  className="block h-full w-full resize-none overflow-hidden rounded-[0.92rem] border-0 bg-[#fffaf0] px-4 py-[0.32rem] pr-[5.65rem] text-center text-[1.08rem] font-black leading-[1.0] text-[#102216] outline-none placeholder:text-[#7d7461]"
                   style={{ fontFamily: hasText ? serifFont : cooperFont }}
                 />
 
@@ -689,7 +689,7 @@ export default function ZiiplyMobileSearchCard({
               <ModeToggle mode={searchMode} onModeChange={onSearchModeChange} />
             </div>
 
-            <div className="relative z-10 mt-2 grid grid-cols-2 gap-3 pb-[2.2rem] pt-2">
+            <div className="relative z-10 mt-1.5 grid grid-cols-2 gap-2.5 pb-[0.35rem] pt-1">
               <RetroAssetButton
                 kind="voice"
                 label="Äänitä"
