@@ -251,17 +251,24 @@ function RetroAssetButton({
           : "/ui/voice/aanita-off.webp"
       : "/ui/scanner/scanner-idle.webp";
 
+  const imageClass = cx(
+    "absolute left-1/2 top-1/2 h-[4.18rem] w-[11.95rem] max-w-none -translate-x-1/2 -translate-y-1/2 object-fill object-center select-none drop-shadow-[0_4px_9px_rgba(0,0,0,0.42)]",
+    // V651: scanner-assetissa on repositoryssä enemmän läpinäkyvää pystymarginaalia kuin mikissä.
+    // Pieni pystysuuntainen korjaus tasaa näkyvän nappikoon ilman että wrapperit elävät eri kokoisina.
+    kind === "scanner" && "scale-y-[1.28] scale-x-[1.02]",
+  );
+
   return (
     <button
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="relative block h-[4.05rem] w-full overflow-visible border-0 bg-transparent p-0 shadow-none outline-none transition-transform duration-150 hover:scale-[1.01] active:translate-y-[1px]"
+      className="relative block h-[4.42rem] w-full overflow-visible border-0 bg-transparent p-0 shadow-none outline-none transition-transform duration-150 hover:scale-[1.01] active:translate-y-[1px]"
     >
       <img
         src={imageSrc}
         alt={label}
-        className="absolute left-1/2 top-1/2 h-[3.72rem] w-[10.78rem] max-w-[118%] -translate-x-1/2 -translate-y-1/2 object-contain object-center select-none drop-shadow-[0_4px_9px_rgba(0,0,0,0.42)]"
+        className={imageClass}
         draggable={false}
       />
     </button>
@@ -689,7 +696,7 @@ export default function ZiiplyMobileSearchCard({
 
             <div className="relative z-10 mx-auto mt-2 h-[2px] w-[92%] rounded-full bg-[#b58b3d]/55 shadow-[0_1px_0_rgba(255,255,255,0.55)]" />
 
-            <div className="relative z-10 mx-auto mt-1.5 h-[5.15rem] w-full max-w-[23.4rem] overflow-hidden rounded-[1.55rem] border-[2px] border-[#6f4d1f] bg-gradient-to-b from-[#d3a552] via-[#8b682f] to-[#3b2511] p-[0.34rem] shadow-[0_4px_0_rgba(91,72,44,0.22),0_10px_18px_rgba(0,0,0,0.16),inset_0_1px_0_rgba(255,246,207,0.55)]">
+            <div className="relative z-10 mx-auto mt-1.5 h-[5.35rem] w-full max-w-[23.4rem] overflow-hidden rounded-[1.55rem] border-[2px] border-[#6f4d1f] bg-gradient-to-b from-[#d3a552] via-[#8b682f] to-[#3b2511] p-[0.34rem] shadow-[0_4px_0_rgba(91,72,44,0.22),0_10px_18px_rgba(0,0,0,0.16),inset_0_1px_0_rgba(255,246,207,0.55)]">
               {/* V650: hybridimallinen yhteinen messinkirunko, ei musta laatikko. */}
               <div className="pointer-events-none absolute inset-[0.22rem] rounded-[1.32rem] border border-[#f3d580]/55 shadow-[inset_0_0_0_2px_rgba(45,25,10,0.28)]" />
               <div className="pointer-events-none absolute inset-[0.52rem] rounded-[1.06rem] bg-gradient-to-b from-[#2f3326] via-[#192019] to-[#0f140f] shadow-[inset_0_2px_5px_rgba(0,0,0,0.55),inset_0_0_0_1px_rgba(255,235,165,0.10)]" />
@@ -705,7 +712,7 @@ export default function ZiiplyMobileSearchCard({
                 <div className="absolute left-1/2 top-[2.72rem] h-[0.20rem] w-[0.70rem] -translate-x-1/2 rounded-full bg-[#120f0b]/70 shadow-[0_1px_0_rgba(255,230,150,0.18)]" />
               </div>
 
-              <div className="relative z-10 grid h-full grid-cols-2 items-center gap-[1.05rem] px-[0.18rem]">
+              <div className="relative z-10 grid h-full grid-cols-2 items-center gap-[0.82rem] px-[0.10rem]">
                 <RetroAssetButton
                   kind="voice"
                   label="Äänitä"
