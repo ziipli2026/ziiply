@@ -1,6 +1,6 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V650_HYBRID_PANEL_REWORK
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V657_RESTORE_ORIGINAL_TOOLPANEL
 // Pohja: v608/v510 toimiva hakulogiikka.
 // Muutettu vain JSX/CSS layout vastaamaan annettua finalleiska-mallia.
 
@@ -249,19 +249,21 @@ function RetroAssetButton({
         : state === "processing"
           ? "/ui/voice/aanita-search.webp"
           : "/ui/voice/aanita-off.webp"
-      : "/ui/scanner/scanner-idle.webp";
+      : state === "active" || state === "processing"
+        ? "/ui/scanner/scanner-on.webp"
+        : "/ui/scanner/scanner-idle.webp";
 
   return (
     <button
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="relative block h-full w-full overflow-hidden border-0 bg-transparent p-0 shadow-none outline-none transition-transform duration-150 hover:scale-[1.01] active:translate-y-[1px]"
+      className="relative block h-[4.45rem] w-full overflow-hidden border-0 bg-transparent p-0 shadow-none outline-none active:translate-y-[1px]"
     >
       <img
         src={imageSrc}
         alt={label}
-        className="absolute inset-0 h-full w-full object-fill object-center select-none drop-shadow-[0_3px_7px_rgba(0,0,0,0.36)]"
+        className="absolute inset-0 h-full w-full object-contain object-center select-none"
         draggable={false}
       />
     </button>
@@ -560,7 +562,7 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V656_TOOLPANEL_RESET_EQUAL_NATIVE_ASSETS"
+      data-ziiply-mobile-search-card-version="UUSI_V657_RESTORE_ORIGINAL_TOOLPANEL"
       className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.25rem)] z-[72] flex h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] max-h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] items-stretch justify-center overflow-hidden bg-transparent px-2 sm:hidden [transform:translateZ(0)] [backface-visibility:hidden] ${className}`}
     >
       <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.85rem] border-[3px] border-[#173f2f] bg-[#d9bd77] p-2 text-[#20301f] shadow-[0_7px_0_rgba(91,72,44,0.24),inset_0_0_0_2px_rgba(255,246,207,0.52)]">
@@ -689,31 +691,21 @@ export default function ZiiplyMobileSearchCard({
 
             <div className="relative z-10 mx-auto mt-2 h-[2px] w-[92%] rounded-full bg-[#b58b3d]/55 shadow-[0_1px_0_rgba(255,255,255,0.55)]" />
 
-            <div className="relative z-10 mx-auto mt-2 w-full max-w-[23.6rem] overflow-hidden rounded-[1.38rem] border-[2px] border-[#8a6328] bg-gradient-to-b from-[#c79a45] via-[#765320] to-[#2b1b0d] p-[0.22rem] shadow-[0_4px_0_rgba(91,72,44,0.18),0_8px_14px_rgba(0,0,0,0.14),inset_0_1px_0_rgba(255,246,207,0.48)]">
-              {/* V656: resetti. Ei viewport-croppia, ei erikoisskaalausta.
-                  Molemmat assetit täyttävät identtisen slotin object-fillillä. 
-                  Kuvat ovat nyt itse valmis paneeligrafiikka, joten taustapaneeli on vain ohut yhteinen kehys. */}
-              <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.18rem] border border-[#f0cf7a]/55" />
-              <div className="pointer-events-none absolute left-1/2 top-[0.30rem] bottom-[0.30rem] z-[2] w-[0.84rem] -translate-x-1/2 rounded-[0.42rem] border border-[#b98a3c]/70 bg-gradient-to-b from-[#b7893a] via-[#3a2712] to-[#8a6228] shadow-[inset_0_0_0_1px_rgba(255,240,190,0.18)]" />
-
-              <div className="relative z-10 grid h-[3.92rem] grid-cols-2 items-center gap-[0.16rem]">
-                <div className="relative h-full min-w-0 overflow-hidden rounded-[1.05rem]">
-                  <RetroAssetButton
-                    kind="voice"
-                    label="Äänitä"
-                    state={voiceState}
-                    onClick={onVoiceClick}
-                  />
-                </div>
-
-                <div className="relative h-full min-w-0 overflow-hidden rounded-[1.05rem]">
-                  <RetroAssetButton
-                    kind="scanner"
-                    label="Skanneri"
-                    state={scannerState}
-                    onClick={onScannerClick}
-                  />
-                </div>
+            <div className="relative z-10 mt-1.5 rounded-[1.15rem] border-[2px] border-[#b58b3d] bg-[#ead7a5]/58 px-2 py-1.5 shadow-[0_3px_0_rgba(91,72,44,0.14),inset_0_0_0_2px_rgba(255,246,207,0.48)]">
+              <div className="pointer-events-none absolute inset-x-3 top-1/2 h-[1px] -translate-y-1/2 bg-[#7a5a2a]/18" />
+              <div className="relative grid grid-cols-2 gap-2.5">
+                <RetroAssetButton
+                  kind="voice"
+                  label="Äänitä"
+                  state={voiceState}
+                  onClick={onVoiceClick}
+                />
+                <RetroAssetButton
+                  kind="scanner"
+                  label="Skanneri"
+                  state={scannerState}
+                  onClick={onScannerClick}
+                />
               </div>
             </div>
           </div>
