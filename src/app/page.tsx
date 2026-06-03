@@ -17,6 +17,12 @@
 // Korjaa V33 build-virheen: nextArea oli try-lohkon scoped-muuttuja, mutta finally viittasi siihen.
 // Finally ei enää yliaja kauppahaun virhe-/puutetilaviestiä, vaan vain vapauttaa loadingin ja näyttää olemassa olevan viestin.
 
+// V36_GPS_ACTIVE_STORES_COORDINATE_PRIORITY
+// Korjaa viimeisen paikkakuntalukon: Kaupat-näkymän aktiivinen S/K-pari johdetaan GPS-tilassa
+// suoraan foundStores + gpsCoords -listasta eikä activeArea/kunta-labelistä.
+// Lisäksi GPS-kauppahaku hakee lähimmien AREA-pisteiden ympäriltä useita hakusanoja,
+// jotta kunnanrajalla mukaan tulee myös Jokela/Tuusula eikä pelkkä reverse-geocodattu Hyvinkää.
+
 // V31_GOSTA_ROUTE_PATH_FIX
 // Korjaa Göstan tarjoushaun fetch-polun vastaamaan nykyistä route-sijaintia:
 // src/app/api/offers/search/route.ts -> /api/offers/search
@@ -2275,6 +2281,56 @@ export default function Page() {
     return areasWithCoords.sort((a, b) => a.distance - b.distance)[0]?.area || activeArea;
   }
 
+  function getNearbyAreaSearchQueriesFromGpsV36(
+    coords: { latitude: number; longitude: number },
+    primaryQuery: string,
+  ) {
+    const nearbyAreas = AREAS
+      .map((area) => {
+        const latitude = Number((area as any).latitude ?? (area as any).lat);
+        const longitude = Number((area as any).longitude ?? (area as any).lng ?? (area as any).lon);
+
+        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+
+        return {
+          area,
+          distance: getDistanceMetersV391(coords, { latitude, longitude }),
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => {
+        const areaA = a as { distance: number };
+        const areaB = b as { distance: number };
+        return areaA.distance - areaB.distance;
+      })
+      .slice(0, 8) as Array<{ area: Area; distance: number }>;
+
+    const queries: string[] = [];
+    const addQuery = (value?: string | number | null) => {
+      const cleaned = String(value || "").trim();
+      if (!cleaned) return;
+      if (queries.some((item) => normalize(item) === normalize(cleaned))) return;
+      queries.push(cleaned);
+    };
+
+    // Tyhjä haku ensin, jos API tukee lat/lon-pohjaista lähihakua.
+    addQuery("");
+    addQuery(primaryQuery);
+
+    for (const entry of nearbyAreas) {
+      addQuery(entry.area.label);
+      for (const alias of entry.area.aliases || []) addQuery(alias);
+    }
+
+    // Kunnanrajafallback: nämä ovat tarkoituksella mukana, koska reverse-geocode palauttaa
+    // käyttäjän tapauksessa Hyvinkään, vaikka läheiset kaupat voivat olla Jokelan/Tuusulan puolella.
+    addQuery("Jokela");
+    addQuery("Tuusula");
+    addQuery("Hyvinkää");
+
+    return queries.filter((query, index) => query !== "" || index === 0).slice(0, 14);
+  }
+
   function setGpsVisibleMessageV391(areaLabel: string) {
     gpsInitialVisiblePhaseRefV391.current = false;
 
@@ -3195,6 +3251,32 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       };
     }
 
+    // V36_GPS_ACTIVE_STORES_COORDINATE_PRIORITY:
+    // Tämä on varsinainen viimeinen paikkakuntalukon poisto.
+    // Aiemmin activeStores luettiin aina activeArea-objektista, jolloin GPS:n reverse-geocodattu
+    // kunta/postinumero pystyi lukitsemaan valinnan Hyvinkäälle. GPS-tilassa valitaan S/K-pari
+    // aina koordinaateilla foundStores-listasta.
+    if (usingOwnLocation && gpsCoordsV320 && foundStores.length > 0 && storeModeChosenV299) {
+      const gpsMode = selectedStoreModeRefV302.current || storeMode;
+      const ranked = rankStoresForMode(foundStores, gpsMode, gpsCoordsV320);
+
+      if (gpsMode === "local") {
+        return {
+          sStoreId: ranked.sLocal?.id ?? activeArea.sLocalStoreId ?? 0,
+          sStoreName: ranked.sLocal?.name ?? activeArea.sLocalStoreName ?? "S-lähikauppa ei valittu",
+          kStoreId: ranked.kLocal?.id ?? activeArea.kLocalStoreId ?? 0,
+          kStoreName: ranked.kLocal?.name ?? activeArea.kLocalStoreName ?? "K-lähikauppa ei valittu",
+        };
+      }
+
+      return {
+        sStoreId: ranked.sHyper?.id ?? activeArea.sStoreId ?? 0,
+        sStoreName: ranked.sHyper?.name ?? activeArea.sStoreName ?? "S-tavaratalo ei valittu",
+        kStoreId: ranked.kHyper?.id ?? activeArea.kStoreId ?? 0,
+        kStoreName: ranked.kHyper?.name ?? activeArea.kStoreName ?? "K-tavaratalo ei valittu",
+      };
+    }
+
     if (storeMode === "local") {
       return {
         sStoreId: activeArea.sLocalStoreId ?? 0,
@@ -3210,7 +3292,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       kStoreId: activeArea.kStoreId ?? 0,
       kStoreName: activeArea.kStoreName ?? "K-tavaratalo ei valittu",
     };
-  }, [activeArea, storeMode, storeModeChosenV299, storeCompareScope]);
+  }, [
+    activeArea,
+    foundStores,
+    gpsCoordsV320,
+    storeMode,
+    storeModeChosenV299,
+    storeCompareScope,
+    usingOwnLocation,
+  ]);
 
   const hasActiveStores =
     activeStores.sStoreId > 0 && activeStores.kStoreId > 0;
@@ -5307,7 +5397,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // Jokelassa/Tuusulassa. Siksi GPS-haussa pyydetään ensin koordinaattipohjainen laaja haku
     // tyhjällä search-arvolla ja vasta sen jälkeen query-fallback vanhaa API-käytöstä varten.
     const searchQueries = coords
-      ? ["", query]
+      ? getNearbyAreaSearchQueriesFromGpsV36(coords, query)
       : [query];
 
     const mergedStores: StoreSearchItem[] = [];
@@ -5327,8 +5417,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         mergedStores.push(store);
       }
 
-      // Jos laaja GPS-haku palautti jo riittävästi kauppoja, ei lukita tuloksia enää queryyn.
-      if (coords && search === "" && mergedStores.length >= 4) {
+      // V36: GPS-tilassa ei katkaista hakuja ensimmäiseen kuntaan/tyhjään batchiin.
+      // Kunnanrajalla juuri seuraavat lähialueet voivat sisältää oikeat kaupat.
+      if (!coords && mergedStores.length >= 4) {
         break;
       }
     }
