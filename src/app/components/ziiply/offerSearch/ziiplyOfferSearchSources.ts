@@ -1,5 +1,9 @@
 // src/app/components/ziiply/offerSearch/ziiplyOfferSearchSources.ts
-// ZIIPLY_OFFER_SEARCH_SOURCES_V1
+// ZIIPLY_OFFER_SEARCH_SOURCES_V2_SKAUPAT_ONLY
+//
+// Debugin perusteella K-Ruoka palauttaa Vercel-serverille Cloudflare 403 -sivun,
+// joten K-Market ja K-Supermarket pidetään mukana funktioina mutta ei ajeta
+// yhdistetyssä MVP-haussa. S-kaupat palauttaa HTML:n oikein ja toimii ensin.
 
 import type {
   ZiiplyOfferSearchResult,
@@ -86,17 +90,12 @@ export async function searchZiiplyOffers(query: string) {
   const cached = getCachedOfferResults(cleanQuery);
   if (cached) return cached;
 
-  const [kMarketResults, kSupermarketResults, sKaupatResults] = await Promise.all([
-    safelySearchSource("K-Market", () => searchKMarketOffers(cleanQuery)),
-    safelySearchSource("K-Supermarket", () => searchKSupermarketOffers(cleanQuery)),
-    safelySearchSource("S-kaupat", () => searchSKaupatOffers(cleanQuery)),
-  ]);
+  // V2 MVP: vain S-kaupat aktiivisena, koska K-Ruoka blokkaa serverifetchin 403:lla.
+  const sKaupatResults = await safelySearchSource("S-kaupat", () =>
+    searchSKaupatOffers(cleanQuery),
+  );
 
-  const results = uniqueOfferResults([
-    ...kMarketResults,
-    ...kSupermarketResults,
-    ...sKaupatResults,
-  ])
+  const results = uniqueOfferResults(sKaupatResults)
     .filter((result) => result.matchScore > 0)
     .sort((a, b) => b.matchScore - a.matchScore)
     .slice(0, 40);
