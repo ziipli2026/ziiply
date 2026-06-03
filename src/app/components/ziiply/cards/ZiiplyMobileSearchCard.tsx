@@ -1,6 +1,6 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V648_INSTRUMENT_PANEL
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V650_HYBRID_PANEL_REWORK
 // Pohja: v608/v510 toimiva hakulogiikka.
 // Muutettu vain JSX/CSS layout vastaamaan annettua finalleiska-mallia.
 
@@ -249,21 +249,19 @@ function RetroAssetButton({
         : state === "processing"
           ? "/ui/voice/aanita-search.webp"
           : "/ui/voice/aanita-off.webp"
-      : state === "active" || state === "processing"
-        ? "/ui/scanner/scanner-on.webp"
-        : "/ui/scanner/scanner-idle.webp";
+      : "/ui/scanner/scanner-idle.webp";
 
   return (
     <button
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="relative block h-[4.9rem] w-full overflow-hidden border-0 bg-transparent p-0 shadow-none outline-none transition-transform duration-150 hover:scale-[1.015] active:translate-y-[1px]"
+      className="relative block h-[4.05rem] w-full overflow-visible border-0 bg-transparent p-0 shadow-none outline-none transition-transform duration-150 hover:scale-[1.01] active:translate-y-[1px]"
     >
       <img
         src={imageSrc}
         alt={label}
-        className="absolute inset-0 h-full w-full object-contain object-center select-none drop-shadow-[0_3px_8px_rgba(0,0,0,0.35)]"
+        className="absolute left-1/2 top-1/2 h-[3.72rem] w-[10.78rem] max-w-[118%] -translate-x-1/2 -translate-y-1/2 object-contain object-center select-none drop-shadow-[0_4px_9px_rgba(0,0,0,0.42)]"
         draggable={false}
       />
     </button>
@@ -562,7 +560,7 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V648_INSTRUMENT_PANEL"
+      data-ziiply-mobile-search-card-version="UUSI_V650_HYBRID_PANEL_REWORK"
       className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.25rem)] z-[72] flex h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] max-h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] items-stretch justify-center overflow-hidden bg-transparent px-2 sm:hidden [transform:translateZ(0)] [backface-visibility:hidden] ${className}`}
     >
       <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.85rem] border-[3px] border-[#173f2f] bg-[#d9bd77] p-2 text-[#20301f] shadow-[0_7px_0_rgba(91,72,44,0.24),inset_0_0_0_2px_rgba(255,246,207,0.52)]">
@@ -691,10 +689,23 @@ export default function ZiiplyMobileSearchCard({
 
             <div className="relative z-10 mx-auto mt-2 h-[2px] w-[92%] rounded-full bg-[#b58b3d]/55 shadow-[0_1px_0_rgba(255,255,255,0.55)]" />
 
-            <div className="relative z-10 mt-2 overflow-hidden rounded-[1.45rem] border-[2px] border-[#9f7a36] bg-gradient-to-b from-[#3a3428] via-[#1f241d] to-[#141813] px-3 py-2 shadow-[0_5px_0_rgba(91,72,44,0.20),inset_0_0_0_2px_rgba(255,240,190,0.10),0_12px_18px_rgba(0,0,0,0.18)]">
-              <div className="pointer-events-none absolute inset-x-5 top-1/2 h-[1px] -translate-y-1/2 bg-gradient-to-r from-transparent via-[#c89b44]/40 to-transparent" />
-              <div className="pointer-events-none absolute inset-x-0 top-0 h-[40%] bg-gradient-to-b from-[rgba(255,240,190,0.10)] to-transparent" />
-              <div className="relative grid grid-cols-2 items-center gap-3">
+            <div className="relative z-10 mx-auto mt-1.5 h-[5.15rem] w-full max-w-[23.4rem] overflow-hidden rounded-[1.55rem] border-[2px] border-[#6f4d1f] bg-gradient-to-b from-[#d3a552] via-[#8b682f] to-[#3b2511] p-[0.34rem] shadow-[0_4px_0_rgba(91,72,44,0.22),0_10px_18px_rgba(0,0,0,0.16),inset_0_1px_0_rgba(255,246,207,0.55)]">
+              {/* V650: hybridimallinen yhteinen messinkirunko, ei musta laatikko. */}
+              <div className="pointer-events-none absolute inset-[0.22rem] rounded-[1.32rem] border border-[#f3d580]/55 shadow-[inset_0_0_0_2px_rgba(45,25,10,0.28)]" />
+              <div className="pointer-events-none absolute inset-[0.52rem] rounded-[1.06rem] bg-gradient-to-b from-[#2f3326] via-[#192019] to-[#0f140f] shadow-[inset_0_2px_5px_rgba(0,0,0,0.55),inset_0_0_0_1px_rgba(255,235,165,0.10)]" />
+              <div className="pointer-events-none absolute inset-x-[1.0rem] top-[0.58rem] h-[1px] bg-gradient-to-r from-transparent via-[#f0cf7a]/38 to-transparent" />
+              <div className="pointer-events-none absolute inset-x-[1.0rem] bottom-[0.58rem] h-[1px] bg-gradient-to-r from-transparent via-[#b58b3d]/34 to-transparent" />
+
+              {/* Keskimmäinen mekaaninen liitos / ritilä kuten referenssissä. */}
+              <div className="pointer-events-none absolute left-1/2 top-[0.48rem] bottom-[0.48rem] z-[1] w-[1.42rem] -translate-x-1/2 rounded-[0.55rem] border border-[#b58b3d]/58 bg-gradient-to-b from-[#7d5c2b] via-[#312416] to-[#7d5c2b] shadow-[inset_0_0_0_1px_rgba(255,240,190,0.20),0_0_0_1px_rgba(0,0,0,0.18)]">
+                <div className="absolute left-1/2 top-[0.48rem] h-[0.20rem] w-[0.70rem] -translate-x-1/2 rounded-full bg-[#120f0b]/70 shadow-[0_1px_0_rgba(255,230,150,0.18)]" />
+                <div className="absolute left-1/2 top-[1.04rem] h-[0.20rem] w-[0.70rem] -translate-x-1/2 rounded-full bg-[#120f0b]/70 shadow-[0_1px_0_rgba(255,230,150,0.16)]" />
+                <div className="absolute left-1/2 top-[1.60rem] h-[0.20rem] w-[0.70rem] -translate-x-1/2 rounded-full bg-[#120f0b]/70 shadow-[0_1px_0_rgba(255,230,150,0.16)]" />
+                <div className="absolute left-1/2 top-[2.16rem] h-[0.20rem] w-[0.70rem] -translate-x-1/2 rounded-full bg-[#120f0b]/70 shadow-[0_1px_0_rgba(255,230,150,0.18)]" />
+                <div className="absolute left-1/2 top-[2.72rem] h-[0.20rem] w-[0.70rem] -translate-x-1/2 rounded-full bg-[#120f0b]/70 shadow-[0_1px_0_rgba(255,230,150,0.18)]" />
+              </div>
+
+              <div className="relative z-10 grid h-full grid-cols-2 items-center gap-[1.05rem] px-[0.18rem]">
                 <RetroAssetButton
                   kind="voice"
                   label="Äänitä"
