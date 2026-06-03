@@ -1,6 +1,6 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V645_REFRAMED_SEARCH_LAYOUT
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V647_TOOLPANEL_REFINEMENT
 // Pohja: v608/v510 toimiva hakulogiikka.
 // Muutettu vain JSX/CSS layout vastaamaan annettua finalleiska-mallia.
 
@@ -167,12 +167,12 @@ function AssistantButton({
       aria-label={name}
       title={name}
       className={cx(
-        "relative aspect-square w-full min-w-0 overflow-hidden rounded-[1.05rem] border-[2.5px] p-0 shadow-[0_3px_0_rgba(91,72,44,0.18),inset_0_0_0_2px_rgba(255,255,255,0.45)] active:translate-y-[1px]",
+        "relative aspect-square w-full min-w-0 overflow-hidden rounded-[1.05rem] border-[2.5px] p-0 shadow-[0_5px_0_rgba(91,72,44,0.24),0_7px_14px_rgba(91,72,44,0.12),inset_0_0_0_2px_rgba(255,255,255,0.52)] active:translate-y-[1px]",
         isGosta
-          ? "border-[#7f9866] bg-gradient-to-b from-[#f0f3d7] to-[#d0dda0]"
-          : "border-[#d3b255] bg-gradient-to-b from-[#fff2c4] to-[#efd06f]",
-        disabled ? "cursor-not-allowed opacity-45" : "hover:brightness-105",
-        loading && "animate-pulse",
+          ? "border-[#6f8f56] bg-gradient-to-b from-[#f5f7dc] to-[#c8d98d]"
+          : "border-[#c99f3c] bg-gradient-to-b from-[#fff4c9] to-[#eac85b]",
+        disabled ? "cursor-not-allowed opacity-90 saturate-[1.08]" : "hover:brightness-105 hover:saturate-[1.08]",
+        loading && "animate-pulse ring-2 ring-[#fff1bf]/70",
       )}
     >
       <img
@@ -562,7 +562,7 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V645_REFRAMED_SEARCH_LAYOUT"
+      data-ziiply-mobile-search-card-version="UUSI_V647_TOOLPANEL_REFINEMENT"
       className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.25rem)] z-[72] flex h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] max-h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] items-stretch justify-center overflow-hidden bg-transparent px-2 sm:hidden [transform:translateZ(0)] [backface-visibility:hidden] ${className}`}
     >
       <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.85rem] border-[3px] border-[#173f2f] bg-[#d9bd77] p-2 text-[#20301f] shadow-[0_7px_0_rgba(91,72,44,0.24),inset_0_0_0_2px_rgba(255,246,207,0.52)]">
@@ -602,7 +602,7 @@ export default function ZiiplyMobileSearchCard({
             <GreenPillButton
               label="Vihkonen"
               onClick={onOpenNotebook}
-              className="mt-1.5 h-[2.45rem] w-full rounded-[1.05rem] text-[0.92rem]"
+              className="mt-0.5 h-[2.28rem] w-full rounded-[0.95rem] text-[0.84rem] shadow-[0_0_0_2px_rgba(255,255,255,0.18)_inset,0_3px_0_#064a26]"
             />
           </div>
 
@@ -616,7 +616,7 @@ export default function ZiiplyMobileSearchCard({
 
           {/* V641: kevyt hakuanimaatio on nyt omalla varatulla radallaan, ei koko ruudun overlayna.
               mutta v637:n keyboard-stabiili ankkurointi palautetaan, jotta näppäimistö ei työnnä näkymää ylös. */}
-          <div className="relative z-10 mt-1.5 rounded-[1.35rem] border-[2px] border-[#d8bd75] bg-[#fff7dc]/62 px-2 pb-2 pt-2 shadow-[inset_0_0_0_2px_rgba(255,255,255,0.36),0_3px_0_rgba(91,72,44,0.12)]">
+          <div className="relative z-10 mt-1 rounded-[1.35rem] border-[2px] border-[#d8bd75] bg-[#fff7dc]/62 px-2 pb-2 pt-2 shadow-[inset_0_0_0_2px_rgba(255,255,255,0.36),0_3px_0_rgba(91,72,44,0.12)]">
             <div className="grid grid-cols-[1.12fr_0.74fr_1.12fr] items-center gap-2.5">
               <AssistantButton
                 kind="gosta"
@@ -648,7 +648,7 @@ export default function ZiiplyMobileSearchCard({
               />
             </div>
 
-            <div className="mt-2">
+            <div className="mt-1.5">
               <div className="relative isolate h-[2.85rem] overflow-hidden rounded-[1.15rem] border-[2px] border-[#9d8350] bg-[#fff4d3] px-[0.34rem] py-[0.32rem] shadow-[0_3px_0_rgba(91,72,44,0.16),inset_0_3px_8px_rgba(91,65,28,0.10)]">
                 <textarea
                   ref={inputRef}
@@ -685,23 +685,28 @@ export default function ZiiplyMobileSearchCard({
               </div>
             </div>
 
-            <div className="relative z-10 mt-2 flex justify-center">
+            <div className="relative z-10 mt-1.5 flex justify-center">
               <ModeToggle mode={searchMode} onModeChange={onSearchModeChange} />
             </div>
 
-            <div className="relative z-10 mt-1.5 grid grid-cols-2 gap-2.5 pb-[0.35rem] pt-1">
-              <RetroAssetButton
-                kind="voice"
-                label="Äänitä"
-                state={voiceState}
-                onClick={onVoiceClick}
-              />
-              <RetroAssetButton
-                kind="scanner"
-                label="Skanneri"
-                state={scannerState}
-                onClick={onScannerClick}
-              />
+            <div className="relative z-10 mx-auto mt-2 h-[2px] w-[92%] rounded-full bg-[#b58b3d]/55 shadow-[0_1px_0_rgba(255,255,255,0.55)]" />
+
+            <div className="relative z-10 mt-1.5 rounded-[1.15rem] border-[2px] border-[#b58b3d] bg-[#ead7a5]/58 px-2 py-1.5 shadow-[0_3px_0_rgba(91,72,44,0.14),inset_0_0_0_2px_rgba(255,246,207,0.48)]">
+              <div className="pointer-events-none absolute inset-x-3 top-1/2 h-[1px] -translate-y-1/2 bg-[#7a5a2a]/18" />
+              <div className="relative grid grid-cols-2 gap-2.5">
+                <RetroAssetButton
+                  kind="voice"
+                  label="Äänitä"
+                  state={voiceState}
+                  onClick={onVoiceClick}
+                />
+                <RetroAssetButton
+                  kind="scanner"
+                  label="Skanneri"
+                  state={scannerState}
+                  onClick={onScannerClick}
+                />
+              </div>
             </div>
           </div>
 
