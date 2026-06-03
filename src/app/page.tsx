@@ -1,5 +1,9 @@
 "use client";
 
+// V43_GPS_HYPER_STORES_RANK_SEPARATELY
+// Korjaus V42:n päälle: GPS-tavaratalot rankataan erikseen oikeista Prisma/K-Citymarket-ehdokkaista.
+// Lähikauppojen Jokela/Tuusula-osumat eivät saa ohjata Tavaratalot-tilaa väärään kuntaan.
+
 // V42_GPS_REMOVE_OLD_MODE_FORCE_CLEANUP
 // Siivous V41:n päälle:
 // - GPS ei enää käytä erillistä location-message overridea hakutapaan
@@ -5371,22 +5375,40 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   ) {
     const chainStores = stores.filter((store) => getZiiplyResolverStoreChainV32(store) === chain);
     const candidates = chainStores.length > 0 ? chainStores : stores;
-    const candidatesWithGpsCoordinates = coords
-      ? candidates.filter((store) => storeHasRealCoordinatesForGpsV41(store))
-      : candidates;
-    const rankingCandidates = coords && candidatesWithGpsCoordinates.length > 0
-      ? candidatesWithGpsCoordinates
-      : candidates;
     const hyperPredicate = chain === "S" ? isPrisma : isKCitymarket;
     const localPredicate = chain === "S" ? isSLocalStore : isKLocalStore;
     const preferredPredicate = mode === "hyper" ? hyperPredicate : localPredicate;
     const fallbackPredicate = mode === "hyper" ? localPredicate : hyperPredicate;
 
+    const preferredCandidates = candidates.filter(preferredPredicate);
+    const preferredCandidatesWithGpsCoordinates = coords
+      ? preferredCandidates.filter((store) => storeHasRealCoordinatesForGpsV41(store))
+      : preferredCandidates;
+    const candidatesWithGpsCoordinates = coords
+      ? candidates.filter((store) => storeHasRealCoordinatesForGpsV41(store))
+      : candidates;
+
+    // V43: GPS-tilassa tavaratalot ja lähikaupat eivät saa käyttää samaa ehdokaspoolia.
+    // Muuten lähimmät lähikaupat voivat ohjata Tavaratalot-tilan väärän kunnan/alueen mukaan.
+    // Hyper-tilassa pisteytetään ensin vain oikeat Prisma/K-Citymarket-ehdokkaat,
+    // ja vasta jos niitä ei ole, pudotaan vanhaan fallbackiin.
+    const rankingCandidates = coords
+      ? preferredCandidatesWithGpsCoordinates.length > 0
+        ? preferredCandidatesWithGpsCoordinates
+        : preferredCandidates.length > 0
+          ? preferredCandidates
+          : candidatesWithGpsCoordinates.length > 0
+            ? candidatesWithGpsCoordinates
+            : candidates
+      : preferredCandidates.length > 0
+        ? preferredCandidates
+        : candidates;
+
     const oldPickerPreferred = pickStore(rankingCandidates, preferredPredicate);
-    const oldPickerFallback = pickStore(rankingCandidates, fallbackPredicate);
+    const oldPickerFallback = pickStore(candidates, fallbackPredicate);
 
     if (!coords) {
-      return oldPickerPreferred || oldPickerFallback || rankingCandidates[0];
+      return oldPickerPreferred || oldPickerFallback || rankingCandidates[0] || candidates[0];
     }
 
     const scoredStores = rankingCandidates
@@ -5406,8 +5428,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             capturedAt: Date.now(),
           },
           mode,
-          // GPS-käytössä ei saa pudottaa Hyvinkään kaltaisia kauppoja pois vain siksi,
-          // että ulkoinen API palauttaa koordinaatit/etäisyydet vähän eri muodossa.
+          // V43: hyperille riittää laaja säde, mutta ehdokaspooli on jo rajattu oikeisiin tavarataloihin.
           adaptiveRadiusKm: mode === "hyper" ? 80 : 35,
           minimumRadiusKm: 0,
         });
