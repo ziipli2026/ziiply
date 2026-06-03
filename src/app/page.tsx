@@ -1,5 +1,9 @@
 "use client";
 
+// V29_GOSTA_OFFER_API_WIRED
+// Göstan Tarjoushaku kytketty uuteen /api/ziiply/offers/search -endpointtiin.
+// Page pitää vain hakutilan ja renderöinnin; provider/parser-logiikka pysyy offerSearch-kansiossa.
+
 // V28_GOSTA_OFFER_LEAFLET_PREP_CLEANUP
 // Siivous Göstan tarjoushaun jatkoa varten:
 // - vanha /api/offers-pohjainen tarjoushaku poistettu käytöstä page-rungosta
@@ -2156,6 +2160,7 @@ export default function Page() {
   }, [gpsCoordsV320, foundStores, activeArea.label]);
 
   const [offers, setOffers] = useState<ZiiplyOffer[]>([]);
+  const [offerSearchResults, setOfferSearchResults] = useState<any[]>([]);
   const [hasSearchedOffers, setHasSearchedOffers] = useState(false);
   const [loadingOffers, setLoadingOffers] = useState(false);
   const [offerSearchQuerySnapshot, setOfferSearchQuerySnapshot] = useState("");
@@ -5791,12 +5796,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (!offerQuerySnapshot) {
       setHasSearchedOffers(false);
       setOffers([]);
+      setOfferSearchResults([]);
       setOfferSearchQuerySnapshot("");
       setActiveResult("none");
       return;
     }
 
-    trackZiiplyEvent("gosta_offer_leaflet_card_opened", {
+    trackZiiplyEvent("gosta_offer_api_search_used", {
       query: offerQuerySnapshot,
       cartItemsCount: cart.length,
       storeMode,
@@ -5806,13 +5812,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     if (termOverride) setInput(termOverride);
 
-    // V28: vanha /api/offers-haku on poistettu tästä page-rungosta.
-    // Seuraava toteutus rakennetaan tarjouslehtisten/campaign-datan varaan
-    // ZiiplyMobileOfferSearchCardin ja sen helperien alle.
     setOfferSearchQuerySnapshot(offerQuerySnapshot);
     setHasSearchedOffers(true);
-    setLoadingOffers(false);
+    setLoadingOffers(true);
     setOffers([]);
+    setOfferSearchResults([]);
     setSearchPanelOpen(false);
     setNotebookOpen(false);
     setCartModalOpen(false);
@@ -5820,6 +5824,29 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setCartSavePanelOpen(false);
     setEanModalOpen(false);
     setActiveResult("offers");
+
+    try {
+      const response = await fetch(
+        `/api/ziiply/offers/search?q=${encodeURIComponent(offerQuerySnapshot)}`,
+        { cache: "no-store" },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || data?.ok === false) {
+        throw new Error(String(data?.error || `Tarjoushaku epäonnistui: ${response.status}`));
+      }
+
+      const nextResults = Array.isArray(data?.results) ? data.results : [];
+      setOfferSearchResults(nextResults);
+      setOfferSearchDoneForQuery(offerQuerySnapshot);
+    } catch (error) {
+      console.error("[Ziiply offers] API search failed", error);
+      setOfferSearchResults([]);
+      showCartToast("Tarjoushaku ei onnistunut");
+    } finally {
+      setLoadingOffers(false);
+    }
   }
 
   async function searchNormalPrices(termOverride?: string, forceEan = false) {
@@ -12830,8 +12857,24 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             open={true}
             title="Tarjoushaku"
             query={offerSearchQuerySnapshot || input}
-            offers={[]}
-            subtitle="Tarjouslehtisiin perustuva haku rakennetaan seuraavaksi."
+            offers={offerSearchResults.map((item) => ({
+              id: item.id,
+              name: item.title,
+              title: item.title,
+              productName: item.title,
+              storeName: item.storeLabel,
+              chain: item.chain,
+              price: item.priceText,
+              offerPrice: item.priceText,
+              normalPrice: item.unitPriceText,
+              originalPrice: item.unitPriceText,
+              discountText: item.benefitText || item.validityText,
+              image: item.imageUrl,
+              imageUrl: item.imageUrl,
+              pictureUrl: item.imageUrl,
+              productUrl: item.productUrl,
+              __sourceOfferSearchResult: item,
+            }))}
             loading={loadingOffers}
             emptyText="Gösta ei löytänyt tarjouksia tälle haulle."
             onBack={() => {
@@ -12841,11 +12884,88 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             onClose={() => {
               setActiveResult("none");
             }}
-            onAddOffer={() => {
-              showCartToast("Tarjouslehtihaku kytketään seuraavaksi.");
+            onAddOffer={(offer) => {
+              const name = fixText(String(offer.name || offer.title || offer.productName || "Tarjoustuote"));
+              if (cart.length >= MAX_ITEMS) {
+                alert(`Demossa ostoskori on rajattu ${MAX_ITEMS} tuotteeseen.`);
+                return;
+              }
+              if (cart.some((item) => normalize(item.name) === normalize(name))) {
+                showCartToast("Tuote on jo korissa");
+                return;
+              }
+
+              const numericPrice = Number(
+                String(offer.offerPrice || offer.price || "")
+                  .replace(",", ".")
+                  .replace(/[^\d.-]/g, ""),
+              );
+
+              const newItem: CartItem = {
+                id: String(offer.id || `offer-${Date.now()}`),
+                name,
+                price: Number.isFinite(numericPrice) ? numericPrice : 0,
+                image: String(offer.imageUrl || offer.pictureUrl || offer.image || ""),
+                chain: offer.chain === "S" || offer.chain === "K" ? offer.chain : undefined,
+                storeName: String(offer.storeName || offer.shopName || ""),
+                quantity: 1,
+                source: "offer",
+                product: {
+                  id: String(offer.id || `offer-product-${Date.now()}`),
+                  name,
+                  price: Number.isFinite(numericPrice) ? numericPrice : 0,
+                  pictureUrl: String(offer.imageUrl || offer.pictureUrl || offer.image || ""),
+                } as Product,
+              };
+
+              const nextCart = [...cart, newItem];
+              setCart(nextCart);
+              persistCartImmediately(nextCart);
+              showCartToast(`Lisätty ostoskoriin: ${name}`);
+              void updateChainComparison(nextCart, { openCompare: false });
             }}
-            onAddAllOffers={() => {
-              showCartToast("Tarjouslehtihaku kytketään seuraavaksi.");
+            onAddAllOffers={(offerItems) => {
+              let nextCart = [...cart];
+              let added = 0;
+
+              for (const offer of offerItems) {
+                if (nextCart.length >= MAX_ITEMS) break;
+
+                const name = fixText(String(offer.name || offer.title || offer.productName || "Tarjoustuote"));
+                if (nextCart.some((item) => normalize(item.name) === normalize(name))) continue;
+
+                const numericPrice = Number(
+                  String(offer.offerPrice || offer.price || "")
+                    .replace(",", ".")
+                    .replace(/[^\d.-]/g, ""),
+                );
+
+                nextCart = [
+                  ...nextCart,
+                  {
+                    id: String(offer.id || `offer-${Date.now()}-${added}`),
+                    name,
+                    price: Number.isFinite(numericPrice) ? numericPrice : 0,
+                    image: String(offer.imageUrl || offer.pictureUrl || offer.image || ""),
+                    chain: offer.chain === "S" || offer.chain === "K" ? offer.chain : undefined,
+                    storeName: String(offer.storeName || offer.shopName || ""),
+                    quantity: 1,
+                    source: "offer",
+                    product: {
+                      id: String(offer.id || `offer-product-${Date.now()}-${added}`),
+                      name,
+                      price: Number.isFinite(numericPrice) ? numericPrice : 0,
+                      pictureUrl: String(offer.imageUrl || offer.pictureUrl || offer.image || ""),
+                    } as Product,
+                  } as CartItem,
+                ];
+                added += 1;
+              }
+
+              setCart(nextCart);
+              persistCartImmediately(nextCart);
+              showCartToast(added > 0 ? `Lisätty ${added} tarjousta koriin` : "Ei uusia tarjouksia lisättäväksi");
+              void updateChainComparison(nextCart, { openCompare: false });
             }}
           />
         )}
