@@ -1,6 +1,6 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V650_HYBRID_PANEL_REWORK
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V654_TOOL_ASSET_BALANCE
 // Pohja: v608/v510 toimiva hakulogiikka.
 // Muutettu vain JSX/CSS layout vastaamaan annettua finalleiska-mallia.
 
@@ -263,9 +263,11 @@ function RetroAssetButton({
         alt={label}
         className={cx(
           "absolute inset-0 h-full w-full object-contain object-center select-none drop-shadow-[0_4px_9px_rgba(0,0,0,0.42)]",
-          // V653: scanner-assetissa on enemmän läpinäkyvää canvasia / sisämarginaalia kuin äänitä-assetissa.
-          // Siksi pelkkä sama wrapper ei riitä, vaan kamerakuva kompensoidaan visuaalisesti samankokoiseksi.
-          kind === "scanner" && "scale-[1.56]",
+          // V654: tasataan näkyvä koko ruudulla.
+          // Äänitä-assetti täyttää oman canvasinsa vahvemmin, joten sitä hillitään hieman.
+          // Scanner-assetti saa vain pienen kompensaation, ei enää ylisuurta 1.56-skaalaa.
+          kind === "voice" && "scale-[0.94]",
+          kind === "scanner" && "scale-[1.16]",
         )}
         draggable={false}
       />
@@ -565,7 +567,7 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V652_HYBRID_PANEL_CORRECTED"
+      data-ziiply-mobile-search-card-version="UUSI_V654_TOOL_ASSET_BALANCE"
       className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.25rem)] z-[72] flex h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] max-h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] items-stretch justify-center overflow-hidden bg-transparent px-2 sm:hidden [transform:translateZ(0)] [backface-visibility:hidden] ${className}`}
     >
       <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.85rem] border-[3px] border-[#173f2f] bg-[#d9bd77] p-2 text-[#20301f] shadow-[0_7px_0_rgba(91,72,44,0.24),inset_0_0_0_2px_rgba(255,246,207,0.52)]">
