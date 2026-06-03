@@ -13036,7 +13036,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             }
           `}</style>
           <div className="V507_BOTTOM_NAV_CLICK_LAYER relative z-[10000]">
-          <ZiiplyBottomNav
+  
+        {/*
+          V26_OSTELUSVIHKO_BOTTOM_NAV_DIRECT_EXIT
+          Ostelusvihko on overlay. Jos alapalkista hypätään pois vihkosesta,
+          ei ajeta normaalia toggle-sekvenssiä, koska alla voi olla vielä Kori auki.
+          Muuten syntyy välitila: vihkonen -> kori -> kohdenäkymä / tai kori sulkeutuu.
+        */}
+
+        <ZiiplyBottomNav
           shopsPanelOpen={shopsPanelOpen}
           initialStoreNavPrompt={initialStoreNavPrompt}
           searchBottomNavDisabled={searchBottomNavDisabled}
@@ -13047,10 +13055,93 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           cartLength={cart.length}
           cartModalOpen={cartModalOpen}
           activeResult={activeResult}
-          onShopsClick={() => { suppressHaeReadyBadgeV541(); setNotebookOpen(false); setNormalResults([]); setMobileResultsReadyQueryV537(""); toggleShopsPanel(); }}
-          onSearchClick={() => { suppressHaeReadyBadgeV541(); setNotebookOpen(false); setNormalResults([]); setMobileResultsReadyQueryV537(""); toggleSearchPanel(); }}
-          onCartClick={() => { suppressHaeReadyBadgeV541(); setNotebookOpen(false); setNormalResults([]); setMobileResultsReadyQueryV537(""); toggleCartModal(); }}
-          onCompareClick={() => { suppressHaeReadyBadgeV541(); setNotebookOpen(false); setNormalResults([]); setMobileResultsReadyQueryV537(""); toggleComparisonView(); }}
+          onShopsClick={() => {
+            suppressHaeReadyBadgeV541();
+            setNormalResults([]);
+            setMobileResultsReadyQueryV537("");
+
+            if (notebookOpen) {
+              setNotebookOpen(false);
+              setSearchPanelOpen(false);
+              setCartModalOpen(false);
+              setCartSavePanelOpen(false);
+              setEanModalOpen(false);
+              closeProductSelectionOverlay();
+              setActiveResult("none");
+              setInitialStoreNavPrompt(false);
+              setShopsPanelOpen(true);
+              return;
+            }
+
+            toggleShopsPanel();
+          }}
+          onSearchClick={() => {
+            suppressHaeReadyBadgeV541();
+            setNormalResults([]);
+            setMobileResultsReadyQueryV537("");
+
+            if (notebookOpen) {
+              setNotebookOpen(false);
+              setCartModalOpen(false);
+              setCartSavePanelOpen(false);
+              setShopsPanelOpen(false);
+              setEanModalOpen(false);
+              closeProductSelectionOverlay();
+              setActiveResult("none");
+              setSearchPanelOpen(true);
+              window.setTimeout(() => {
+                searchInputRef.current?.focus();
+              }, 50);
+              return;
+            }
+
+            toggleSearchPanel();
+          }}
+          onCartClick={() => {
+            suppressHaeReadyBadgeV541();
+            setNormalResults([]);
+            setMobileResultsReadyQueryV537("");
+
+            if (notebookOpen) {
+              setNotebookOpen(false);
+              setSearchPanelOpen(false);
+              setShopsPanelOpen(false);
+              setEanModalOpen(false);
+              setCartSavePanelOpen(false);
+              closeProductSelectionOverlay();
+              setActiveResult("none");
+              setCartModalOpen(true);
+              return;
+            }
+
+            toggleCartModal();
+          }}
+          onCompareClick={() => {
+            suppressHaeReadyBadgeV541();
+            setNormalResults([]);
+            setMobileResultsReadyQueryV537("");
+
+            if (notebookOpen) {
+              setNotebookOpen(false);
+              setSearchPanelOpen(false);
+              setCartModalOpen(false);
+              setCartSavePanelOpen(false);
+              setShopsPanelOpen(false);
+              setEanModalOpen(false);
+              closeProductSelectionOverlay();
+              setRestoredCartPromptV320({ open: false, count: 0 });
+              if (cart.length === 0) {
+                showCartToast("Lisää ensin tuote koriin.");
+                setActiveResult("none");
+                return;
+              }
+              setActiveResult("compare");
+              void updateChainComparison(cart);
+              return;
+            }
+
+            toggleComparisonView();
+          }}
         />
           </div>
 
