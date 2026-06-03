@@ -1,5 +1,10 @@
 "use client";
 
+// V32_LOCATION_RESOLVER_CORE_WIRE
+// Page käyttää uutta offerSearch/ziiplyLocationResolverCore.ts-resolveriä GPS-kauppojen pisteytykseen.
+// Muutokset rajattu kauppojen automaattiseen valintaan: adaptiivinen säde, 800 m tarkkuuslogiikka ja kevyempi preferred-painotus tulevat resolveristä.
+// Vanha UI, kortit, haku, kori, skanneri ja Göstan route-polku säilytetty ennallaan.
+
 // V31_GOSTA_ROUTE_PATH_FIX
 // Korjaa Göstan tarjoushaun fetch-polun vastaamaan nykyistä route-sijaintia:
 // src/app/api/offers/search/route.ts -> /api/offers/search
@@ -767,6 +772,13 @@ import ZiiplyMobileStoreModeSelector from "./components/ziiply/mobile/ZiiplyMobi
 import ZiiplyMobileLocationBar from "./components/ziiply/mobile/ZiiplyMobileLocationBar";
 import MobileStorePickerModal from "./components/ziiply/mobile/MobileStorePickerModal";
 import type { ZiiplyAssistantKey } from "./components/ziiply/mobile/ZiiplyMobileAssistantButton";
+import {
+  scoreZiiplyStore,
+  type ZiiplyGeoStore,
+  type ZiiplyStoreChain,
+  type ZiiplyStoreKind,
+  type ZiiplyStoreMode,
+} from "./components/ziiply/offerSearch/ziiplyLocationResolverCore";
 
 const MOBILE_EAN_SCANNER_REGION_ID = `${EAN_SCANNER_REGION_ID}-mobile`;
 
@@ -5005,14 +5017,140 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setLastOptimizationSnapshot(null);
   }
 
-  function rankStoresForMode(stores: StoreSearchItem[], mode: StoreMode) {
-    const sStores = stores.filter((store) => store.type === "S");
-    const kStores = stores.filter((store) => store.type === "K");
+  function getZiiplyResolverStoreChainV32(store: StoreSearchItem): ZiiplyStoreChain {
+    const rawChain = String((store as any).chain || store.type || "").toUpperCase();
 
-    const sHyper = pickStore(sStores, isPrisma);
-    const kHyper = pickStore(kStores, isKCitymarket);
-    const sLocal = pickStore(sStores, isSLocalStore);
-    const kLocal = pickStore(kStores, isKLocalStore);
+    if (rawChain === "S") return "S";
+    if (rawChain === "K") return "K";
+    if (rawChain.includes("LIDL")) return "LIDL";
+    if (rawChain.includes("TOKMANNI")) return "TOKMANNI";
+
+    return "OTHER";
+  }
+
+  function getZiiplyResolverStoreKindV32(store: StoreSearchItem): ZiiplyStoreKind {
+    if (isPrisma(store) || isKCitymarket(store)) return "hypermarket";
+    if (isSLocalStore(store) || isKLocalStore(store)) return "small_store";
+
+    const text = `${store.name || ""} ${(store as any).kind || ""} ${(store as any).typeLabel || ""}`.toLowerCase();
+
+    if (
+      text.includes("prisma") ||
+      text.includes("citymarket") ||
+      text.includes("hyper")
+    ) {
+      return "hypermarket";
+    }
+
+    if (
+      text.includes("abc") ||
+      text.includes("neste") ||
+      text.includes("shell") ||
+      text.includes("seo") ||
+      text.includes("teboil") ||
+      text.includes("asema")
+    ) {
+      return "fuel";
+    }
+
+    if (
+      text.includes("market") ||
+      text.includes("sale") ||
+      text.includes("alepa") ||
+      text.includes("k-super") ||
+      text.includes("k-market") ||
+      text.includes("s-market")
+    ) {
+      return "supermarket";
+    }
+
+    return "other";
+  }
+
+  function toZiiplyResolverGeoStoreV32(store: StoreSearchItem): ZiiplyGeoStore {
+    const latitude = getStoreCoordinateV320(store, ["latitude", "lat", "y"]);
+    const longitude = getStoreCoordinateV320(store, ["longitude", "lng", "lon", "x"]);
+    const explicitDistanceKm = readExplicitDistanceKmV320(store);
+
+    return {
+      id: store.id,
+      name: store.name,
+      chain: getZiiplyResolverStoreChainV32(store),
+      kind: getZiiplyResolverStoreKindV32(store),
+      latitude,
+      longitude,
+      address: (store as any).address,
+      city: store.city,
+      postalCode: store.postalCode,
+      distanceKm: explicitDistanceKm ?? undefined,
+      openingHoursText: (store as any).openingHoursText,
+      isOpenNow: (store as any).isOpenNow,
+      hasOffers: (store as any).hasOffers,
+      offerCount: (store as any).offerCount,
+    };
+  }
+
+  function pickBestResolverStoreForChainV32(
+    stores: StoreSearchItem[],
+    chain: "S" | "K",
+    mode: ZiiplyStoreMode,
+    coords?: { latitude: number; longitude: number } | null,
+  ) {
+    const chainStores = stores.filter((store) => getZiiplyResolverStoreChainV32(store) === chain);
+
+    if (!coords) {
+      if (mode === "hyper") {
+        return pickStore(chainStores, chain === "S" ? isPrisma : isKCitymarket);
+      }
+
+      return pickStore(chainStores, chain === "S" ? isSLocalStore : isKLocalStore);
+    }
+
+    return chainStores
+      .map((store) => {
+        const scored = scoreZiiplyStore({
+          store: toZiiplyResolverGeoStoreV32(store),
+          location: {
+            latitude: coords.latitude,
+            longitude: coords.longitude,
+            capturedAt: Date.now(),
+          },
+          mode,
+        });
+
+        if (!scored) return null;
+
+        return {
+          store: {
+            ...store,
+            distanceKm: scored.distanceKm,
+          } as StoreSearchItem,
+          score: scored.score,
+          distanceKm: scored.distanceKm,
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => {
+        const storeA = a as { score: number; distanceKm: number };
+        const storeB = b as { score: number; distanceKm: number };
+
+        if (storeB.score !== storeA.score) return storeB.score - storeA.score;
+        return storeA.distanceKm - storeB.distanceKm;
+      })[0]?.store;
+  }
+
+  function rankStoresForMode(
+    stores: StoreSearchItem[],
+    mode: StoreMode,
+    coords?: { latitude: number; longitude: number } | null,
+  ) {
+    const sStores = stores.filter((store) => store.type === "S" || getZiiplyResolverStoreChainV32(store) === "S");
+    const kStores = stores.filter((store) => store.type === "K" || getZiiplyResolverStoreChainV32(store) === "K");
+
+    const sHyper = pickBestResolverStoreForChainV32(sStores, "S", "hyper", coords);
+    const kHyper = pickBestResolverStoreForChainV32(kStores, "K", "hyper", coords);
+    const sLocal = pickBestResolverStoreForChainV32(sStores, "S", "local", coords);
+    const kLocal = pickBestResolverStoreForChainV32(kStores, "K", "local", coords);
 
     return {
       sHyper,
@@ -5028,9 +5166,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     query: string,
     stores: StoreSearchItem[],
     mode: StoreMode,
+    coords?: { latitude: number; longitude: number } | null,
   ): Area {
     const matchedArea = findArea(query);
-    const ranked = rankStoresForMode(stores, mode);
+    const ranked = rankStoresForMode(stores, mode, coords);
 
     const detectedCity =
       ranked.selectedS?.city ||
@@ -5331,14 +5470,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         return;
       }
 
+      const locationCoordsForResolverV32 = source === "gps" ? coordsOverride || gpsCoordsV320 : null;
       const ranked = rankStoresForMode(
         stores,
         storeModeChosenV299 ? selectedStoreModeRefV302.current : storeMode,
+        locationCoordsForResolverV32,
       );
       const nextArea = buildDynamicArea(
         query,
         stores,
         storeModeChosenV299 ? selectedStoreModeRefV302.current : storeMode,
+        locationCoordsForResolverV32,
       );
       setActiveArea(nextArea);
 
