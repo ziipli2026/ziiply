@@ -5,6 +5,11 @@
 // GPS hakee neutraalisti ketjutermit + koordinaatit ja valitsee kaupat store.id + oikean etäisyyden mukaan.
 // GPS OFF / manuaalihaku säilyttää vanhan kunta/postinumero-mallin.
 
+// V62_GPS_STRICT_STORE_ID_ONLY_NO_FALLBACK_AREAS
+// GPS ON: poistettu kaikki kovakoodatut AREAS-/paikkakunta-/ketjuhaku-fallbackit.
+// GPS-haku pyytää vain koordinaattipohjaista store-searchiä tyhjällä hakusanalla.
+// Manuaalihaku käyttää edelleen vanhaa kunta/postinumero-mallia.
+
 // V33_LOCATION_RESOLVER_STORE_SHAPE_FALLBACK
 // Korjaa GPS/manuaali-kauppavalinnan: StoreSearchItem voi tulla API:lta eri muodoilla
 // (type/chain puuttuu tai koordinaatit eri kentissä). Resolveri saa nyt vahvan S/K-name fallbackin
@@ -2304,28 +2309,11 @@ export default function Page() {
     _coords: { latitude: number; longitude: number },
     _primaryQuery: string,
   ) {
-    // V61_GPS_STORE_ID_BASED_NO_HARDCODED_CITY_FALLBACK:
-    // GPS-tilassa EI käytetä enää kuntaa, postinumeroa, reverse-geocodea eikä AREAS-listan
-    // paikkakuntia hakukyselyinä. Ne aiheuttivat Hyvinkää/Jokela/Tuusula/Kerava/Oulu/Imatra-
-    // lukkoja. API saa koordinaatit jokaisessa haussa, ja query on vain ketju-/banneritermi,
-    // jolla kerätään myymäläehdokkaita. Lopullinen valinta tehdään store.id + etäisyyden mukaan.
-    return [
-      "",
-      "Prisma",
-      "K-Citymarket",
-      "K Citymarket",
-      "Citymarket",
-      "S-market",
-      "S market",
-      "K-market",
-      "K market",
-      "K-Supermarket",
-      "K Supermarket",
-      "Alepa",
-      "Sale",
-      "Lidl",
-      "Tokmanni",
-    ];
+    // V62_GPS_STRICT_STORE_ID_ONLY_NO_FALLBACK_AREAS:
+    // GPS-tilassa ei käytetä enää mitään paikkakunta-, postinumero-, alue-, ketju- tai
+    // testifallback-hakusanoja. Muuten API voi palauttaa Oulun/Imatran/Hyvinkään/Keravan
+    // kaltaisia vanhoja kovakoodattuja osumia. GPS antaa vain koordinaatit ja tyhjän searchin.
+    return [""];
   }
 
   function setGpsVisibleMessageV391(areaLabel: string) {
@@ -3286,50 +3274,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // kunnanrajalla valinnan Hyvinkäälle.
     for (const store of apiStores) addStore(store);
 
-    // V41: Lisää AREAS-kaupat vain passiiviseksi fallbackiksi ilman aluekeskipisteitä.
-    // Näitä ei saa pisteyttää GPS-etäisyydellä, mutta manuaalinen valinta/lista pysyy ehjänä,
-    // jos API ei palauta mitään.
-    AREAS.forEach((area, areaIndex) => {
-      const base = {
-        city: area.label,
-      } as any;
-
-      if (area.sStoreName) {
-        addStore({
-          ...base,
-          id: area.sStoreId || getGeneratedAreaStoreIdV40(areaIndex, "S", "hyper"),
-          name: area.sStoreName,
-          type: "S",
-        } as StoreSearchItem);
-      }
-
-      if (area.kStoreName) {
-        addStore({
-          ...base,
-          id: area.kStoreId || getGeneratedAreaStoreIdV40(areaIndex, "K", "hyper"),
-          name: area.kStoreName,
-          type: "K",
-        } as StoreSearchItem);
-      }
-
-      if (area.sLocalStoreName) {
-        addStore({
-          ...base,
-          id: area.sLocalStoreId || getGeneratedAreaStoreIdV40(areaIndex, "S", "local"),
-          name: area.sLocalStoreName,
-          type: "S",
-        } as StoreSearchItem);
-      }
-
-      if (area.kLocalStoreName) {
-        addStore({
-          ...base,
-          id: area.kLocalStoreId || getGeneratedAreaStoreIdV40(areaIndex, "K", "local"),
-          name: area.kLocalStoreName,
-          type: "K",
-        } as StoreSearchItem);
-      }
-    });
+    // V62: GPS-pooliin ei lisätä enää yhtään AREAS-kauppaa.
+    // AREAS on vain manuaalihaun fallback. GPS-valinta ja GPS-renderöinti saavat näyttää
+    // ainoastaan API:n palauttamia oikeita myymälöitä/myymälätunnuksia.
 
     return result;
   }
@@ -5545,7 +5492,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // ei aktiivisen kunnan/postinumeron perusteella.
     if (!coords) return mergedStores;
 
-    return mergedStores.map((store) => {
+    const gpsMappedStoresV62 = mergedStores.map((store) => {
       const latitude = getStoreCoordinateV320(store, ["latitude", "lat", "y"]);
       const longitude = getStoreCoordinateV320(store, [
         "longitude",
@@ -5554,8 +5501,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         "x",
       ]);
 
-      // V37: GPS-tilassa API:n distanceKm voi olla laskettu kunnan/queryn keskuksesta
-      // eikä käyttäjän todellisesta sijainnista. Siksi koordinaatit voittavat aina.
+      // V37/V62: GPS-tilassa koordinaatit voittavat aina. Jos koordinaatteja ei ole,
+      // hyväksytään API:n oma explicit distance vain fallback-tietona. Kunta/postinumeroa
+      // ei käytetä etäisyyden arviointiin.
       if (latitude != null && longitude != null) {
         return {
           ...store,
@@ -5572,6 +5520,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
 
       return store;
+    });
+
+    return gpsMappedStoresV62.filter((store) => {
+      const id = Number((store as any).id);
+      if (Number.isFinite(id) && id < 0) return false;
+
+      const latitude = getStoreCoordinateV320(store, ["latitude", "lat", "y"]);
+      const longitude = getStoreCoordinateV320(store, ["longitude", "lng", "lon", "x"]);
+      const explicitDistanceKm = readExplicitDistanceKmV320(store);
+
+      // GPS-renderiin ei päästetä enää puhtaita fallback-osumia ilman koordinaatteja tai
+      // API-etäisyyttä. Tämä poistaa Oulu/Imatra/kovakoodatut listakaupat GPS ON -tilassa.
+      return (latitude != null && longitude != null) || explicitDistanceKm != null;
     });
   }
 
