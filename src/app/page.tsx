@@ -3302,7 +3302,33 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return -(modeOffset + areaIndex * 10 + chainOffset);
   }
 
+  function getGpsHypermarketCoordinateOverrideV47(store: StoreSearchItem) {
+    const text = normalize(
+      `${store.name || ""} ${store.city || ""} ${(store as any).address || ""} ${(store as any).postalCode || ""}`,
+    );
+
+    // V47: AREAS/API-fallbackissa hypermarketilla voi olla vain kunnan/alueen keskipiste.
+    // Kunnanrajalla tämä ohjasi Tavaratalot-tilan Keravalle, vaikka Hyvinkään Prisma/K-Citymarket
+    // ovat käyttäjän sijainnista lähempänä. Näille annetaan omat myymäläkoordinaatit vain
+    // GPS-hypermarket-rankingia varten; lähikauppoihin tämä ei vaikuta.
+    if (text.includes("hyvink") && text.includes("prisma")) {
+      return { latitude: 60.6326, longitude: 24.8589 };
+    }
+
+    if (
+      text.includes("hyvink") &&
+      (text.includes("citymarket") || text.includes("k-citymarket") || text.includes("k citymarket"))
+    ) {
+      return { latitude: 60.6269, longitude: 24.8698 };
+    }
+
+    return null;
+  }
+
   function storeHasRealCoordinatesForGpsV41(store: StoreSearchItem) {
+    const override = getGpsHypermarketCoordinateOverrideV47(store);
+    if (override) return true;
+
     const latitude = getStoreCoordinateV320(store, ["latitude", "lat", "y"]);
     const longitude = getStoreCoordinateV320(store, ["longitude", "lng", "lon", "x"]);
 
@@ -5361,8 +5387,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function toZiiplyResolverGeoStoreV32(store: StoreSearchItem): ZiiplyGeoStore {
-    const latitude = getStoreCoordinateV320(store, ["latitude", "lat", "y"]);
-    const longitude = getStoreCoordinateV320(store, ["longitude", "lng", "lon", "x"]);
+    const hyperCoordinateOverrideV47 = getGpsHypermarketCoordinateOverrideV47(store);
+    const latitude =
+      hyperCoordinateOverrideV47?.latitude ?? getStoreCoordinateV320(store, ["latitude", "lat", "y"]);
+    const longitude =
+      hyperCoordinateOverrideV47?.longitude ?? getStoreCoordinateV320(store, ["longitude", "lng", "lon", "x"]);
     const explicitDistanceKm = readExplicitDistanceKmV320(store);
 
     return {
