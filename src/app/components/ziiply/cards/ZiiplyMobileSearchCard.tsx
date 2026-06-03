@@ -1,6 +1,6 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V647_TOOLPANEL_REFINEMENT
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V648_INSTRUMENT_PANEL
 // Pohja: v608/v510 toimiva hakulogiikka.
 // Muutettu vain JSX/CSS layout vastaamaan annettua finalleiska-mallia.
 
@@ -258,12 +258,12 @@ function RetroAssetButton({
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="relative block h-[4.45rem] w-full overflow-hidden border-0 bg-transparent p-0 shadow-none outline-none active:translate-y-[1px]"
+      className="relative block h-[4.9rem] w-full overflow-hidden border-0 bg-transparent p-0 shadow-none outline-none transition-transform duration-150 hover:scale-[1.015] active:translate-y-[1px]"
     >
       <img
         src={imageSrc}
         alt={label}
-        className="absolute inset-0 h-full w-full object-contain object-center select-none"
+        className="absolute inset-0 h-full w-full object-contain object-center select-none drop-shadow-[0_3px_8px_rgba(0,0,0,0.35)]"
         draggable={false}
       />
     </button>
@@ -562,7 +562,7 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V647_TOOLPANEL_REFINEMENT"
+      data-ziiply-mobile-search-card-version="UUSI_V648_INSTRUMENT_PANEL"
       className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.25rem)] z-[72] flex h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] max-h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] items-stretch justify-center overflow-hidden bg-transparent px-2 sm:hidden [transform:translateZ(0)] [backface-visibility:hidden] ${className}`}
     >
       <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.85rem] border-[3px] border-[#173f2f] bg-[#d9bd77] p-2 text-[#20301f] shadow-[0_7px_0_rgba(91,72,44,0.24),inset_0_0_0_2px_rgba(255,246,207,0.52)]">
@@ -691,9 +691,10 @@ export default function ZiiplyMobileSearchCard({
 
             <div className="relative z-10 mx-auto mt-2 h-[2px] w-[92%] rounded-full bg-[#b58b3d]/55 shadow-[0_1px_0_rgba(255,255,255,0.55)]" />
 
-            <div className="relative z-10 mt-1.5 rounded-[1.15rem] border-[2px] border-[#b58b3d] bg-[#ead7a5]/58 px-2 py-1.5 shadow-[0_3px_0_rgba(91,72,44,0.14),inset_0_0_0_2px_rgba(255,246,207,0.48)]">
-              <div className="pointer-events-none absolute inset-x-3 top-1/2 h-[1px] -translate-y-1/2 bg-[#7a5a2a]/18" />
-              <div className="relative grid grid-cols-2 gap-2.5">
+            <div className="relative z-10 mt-2 overflow-hidden rounded-[1.45rem] border-[2px] border-[#9f7a36] bg-gradient-to-b from-[#3a3428] via-[#1f241d] to-[#141813] px-3 py-2 shadow-[0_5px_0_rgba(91,72,44,0.20),inset_0_0_0_2px_rgba(255,240,190,0.10),0_12px_18px_rgba(0,0,0,0.18)]">
+              <div className="pointer-events-none absolute inset-x-5 top-1/2 h-[1px] -translate-y-1/2 bg-gradient-to-r from-transparent via-[#c89b44]/40 to-transparent" />
+              <div className="pointer-events-none absolute inset-x-0 top-0 h-[40%] bg-gradient-to-b from-[rgba(255,240,190,0.10)] to-transparent" />
+              <div className="relative grid grid-cols-2 items-center gap-3">
                 <RetroAssetButton
                   kind="voice"
                   label="Äänitä"
