@@ -735,6 +735,7 @@ import ZiiplyMobileSearchCard from "./components/ziiply/cards/ZiiplyMobileSearch
 import ZiiplyMobileSearchResultsCard from "./components/ziiply/cards/ZiiplyMobileSearchResultsCard";
 import ZiiplyMobileCartCard from "./components/ziiply/cards/ZiiplyMobileCartCard";
 import ZiiplyMobileNotebookCard from "./components/ziiply/cards/ZiiplyMobileNotebookCard";
+import ZiiplyMobileOfferSearchCard from "./components/ziiply/cards/ZiiplyMobileOfferSearchCard";
 import ZiiplyMobileScannerCard from "./components/ziiply/cards/ZiiplyMobileScannerCard";
 import ZiiplyMobileProductPickCard from "./components/ziiply/cards/ZiiplyMobileProductPickCard";
 import ZiiplyMobileCompareCard from "./components/ziiply/cards/ZiiplyMobileCompareCardresponsive";
@@ -8519,6 +8520,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     });
 
     setSearchPanelOpen(false);
+    setNotebookOpen(false);
+    setCartModalOpen(false);
+    setShopsPanelOpen(false);
+    setCartSavePanelOpen(false);
     void searchOffers();
   }
 
@@ -8532,6 +8537,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     });
 
     setSearchPanelOpen(false);
+    setNotebookOpen(false);
+    setCartModalOpen(false);
+    setShopsPanelOpen(false);
+    setCartSavePanelOpen(false);
     void searchOffers();
   }
 
@@ -12866,6 +12875,56 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           />
         )}
 
+        {!showLaunchScreen && activeResult === "offers" && !searchPanelOpen && !cartModalOpen && !shopsPanelOpen && !eanModalOpen && !notebookOpen && (
+          <ZiiplyMobileOfferSearchCard
+            open={true}
+            title="Tarjoushaku"
+            query={offerSearchQuerySnapshot || input}
+            offers={filteredOffers.map((item) => {
+              const product = offerToProduct(item);
+
+              return {
+                id: item.id,
+                ean: product.ean,
+                name: fixText(product.name),
+                title: fixText(product.name),
+                productName: fixText(product.name),
+                brandName: (product as any).brandName ?? (product as any).brand ?? "",
+                storeName: item.storeName,
+                chain: item.chain,
+                price: item.offer.storeItem?.price ?? getProductPrice(product),
+                offerPrice: item.offer.storeItem?.price ?? getProductPrice(product),
+                normalPrice: (item.offer as any).normalPrice ?? (item.offer as any).regularPrice,
+                originalPrice: (item.offer as any).normalPrice ?? (item.offer as any).regularPrice,
+                discountText: (item.offer as any).discountText ?? (item.offer as any).campaignText,
+                image: product.pictureUrl,
+                imageUrl: product.pictureUrl,
+                pictureUrl: product.pictureUrl,
+                __sourceOffer: item,
+              };
+            })}
+            loading={loadingOffers}
+            emptyText="Gösta ei löytänyt tarjouksia tälle haulle."
+            onBack={() => {
+              setActiveResult("none");
+              setSearchPanelOpen(true);
+            }}
+            onClose={() => {
+              setActiveResult("none");
+            }}
+            onAddOffer={(offer) => {
+              const sourceOffer = (offer as any).__sourceOffer as ZiiplyOffer | undefined;
+              if (sourceOffer) addOfferToCart(sourceOffer);
+            }}
+            onAddAllOffers={(offerItems) => {
+              for (const offer of offerItems) {
+                const sourceOffer = (offer as any).__sourceOffer as ZiiplyOffer | undefined;
+                if (sourceOffer) addOfferToCart(sourceOffer);
+              }
+            }}
+          />
+        )}
+
         {/* V725_MOBILE_COMPARECARD_ROUTE_FIX: vanha mobiilin inline-compare / desktop-ZiiplyCompareCard-renderi on poistettu näkyvästä mobiili-UI:sta.
             Uusi mobiilivertailu tulee erillisestä ZiiplyMobileCompareCard-komponentista, jotta kortin ulkoasu voidaan säätää
             samaksi muiden mobiilikorttien kanssa ilman päällekkäisiä compare-näkymiä. */}
@@ -13073,6 +13132,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               return;
             }
 
+            setActiveResult("none");
             toggleShopsPanel();
           }}
           onSearchClick={() => {
@@ -13095,6 +13155,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               return;
             }
 
+            setActiveResult("none");
             toggleSearchPanel();
           }}
           onCartClick={() => {
@@ -13114,6 +13175,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               return;
             }
 
+            setActiveResult("none");
             toggleCartModal();
           }}
           onCompareClick={() => {
