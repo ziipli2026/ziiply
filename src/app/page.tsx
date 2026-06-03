@@ -1,5 +1,9 @@
 "use client";
 
+// V31_GOSTA_ROUTE_PATH_FIX
+// Korjaa Göstan tarjoushaun fetch-polun vastaamaan nykyistä route-sijaintia:
+// src/app/api/offers/search/route.ts -> /api/offers/search
+
 // V30_GOSTA_OFFER_PRODUCT_CAST_BUILD_FIX
 // Korjaa tarjoushaun koriinlisäyksen Product-castin: väliaikainen tarjous-product castataan unknownin kautta,
 // koska vanhan Product-typen id on number ja API-tarjousrivin id on string.
@@ -5831,7 +5835,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     try {
       const response = await fetch(
-        `/api/ziiply/offers/search?q=${encodeURIComponent(offerQuerySnapshot)}`,
+        `/api/offers/search?q=${encodeURIComponent(offerQuerySnapshot)}`,
         { cache: "no-store" },
       );
 
