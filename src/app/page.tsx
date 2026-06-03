@@ -1,10 +1,8 @@
 "use client";
 
-// V56_GPS_STORE_SELECTION_NO_HARDCODED_AREA_OR_AREAS_POOL
-// Korjaus V41-pohjaan:
-// - GPS-haku ei enää pakota Jokela/Tuusula/Kerava/Nurmijärvi-järjestystä eikä siirrä Hyvinkäätä viimeiseksi.
-// - GPS activeStores ei enää rakenna valintaa koko AREAS-fallback-poolista, vaan käyttää foundStores/API-ehdokkaita.
-// - Manuaalihaku käyttää edelleen vanhaa Area/postinumero-polkuja.
+// V57_GPS_NO_REVERSE_GEOCODE_QUERY_LOCK
+// GPS ON: kauppahaku ei enää käytä reverse-geocodattua kuntaa/postinumeroa querynä.
+// Ehdokaslista haetaan lat/lon + yleisillä kauppatermeillä. GPS OFF / manuaali säilyy vanhalla mallilla.
 
 // V33_LOCATION_RESOLVER_STORE_SHAPE_FALLBACK
 // Korjaa GPS/manuaali-kauppavalinnan: StoreSearchItem voi tulla API:lta eri muodoilla
@@ -2305,55 +2303,39 @@ export default function Page() {
     coords: { latitude: number; longitude: number },
     primaryQuery: string,
   ) {
-    const nearbyAreas = AREAS
-      .map((area) => {
-        const latitude = Number((area as any).latitude ?? (area as any).lat);
-        const longitude = Number((area as any).longitude ?? (area as any).lng ?? (area as any).lon);
-
-        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
-
-        return {
-          area,
-          distance: getDistanceMetersV391(coords, { latitude, longitude }),
-        };
-      })
-      .filter(Boolean)
-      .sort((a, b) => {
-        const areaA = a as { distance: number };
-        const areaB = b as { distance: number };
-        return areaA.distance - areaB.distance;
-      })
-      .slice(0, 8) as Array<{ area: Area; distance: number }>;
+    void coords;
+    void primaryQuery;
 
     const queries: string[] = [];
     const addQuery = (value?: string | number | null) => {
-      const cleaned = String(value || "").trim();
-      if (!cleaned) return;
+      const cleaned = String(value ?? "").trim();
+
+      // GPS ON: tyhjä haku pitää sallia, koska silloin API saa tehdä puhtaan
+      // lat/lon-pohjaisen lähikauppahaun ilman kunta/postinumero-lukkoa.
       if (queries.some((item) => normalize(item) === normalize(cleaned))) return;
       queries.push(cleaned);
     };
 
-    // Tyhjä haku ensin, jos API tukee lat/lon-pohjaista lähihakua.
+    // V57_GPS_NO_REVERSE_GEOCODE_QUERY_LOCK:
+    // GPS-tilassa EI käytetä reverse-geocodattua kuntaa, postinumeroa eikä kovakoodattuja
+    // Jokela/Tuusula/Kerava/Hyvinkää-hakujonoja. Ne lukitsevat ehdokaslistan kuntaan.
+    // Haetaan vain koordinaattien + yleisten kauppatermien avulla.
     addQuery("");
+    addQuery("ruokakauppa");
+    addQuery("market");
+    addQuery("supermarket");
+    addQuery("prisma");
+    addQuery("citymarket");
+    addQuery("k-citymarket");
+    addQuery("s-market");
+    addQuery("k-market");
+    addQuery("k-supermarket");
+    addQuery("sale");
+    addQuery("alepa");
+    addQuery("lidl");
+    addQuery("tokmanni");
 
-    // V56: ei kovakoodattua kunta-/postinumerojärjestystä GPS:lle.
-    // Aiempi Jokela -> Tuusula -> Kerava -> Nurmijärvi -> Hyvinkää -järjestys teki
-    // GPS-valinnasta käytännössä query-/alueperusteisen. Nyt haetaan lähialueet vain
-    // AREAS-koordinaattien etäisyysjärjestyksessä ja lopullinen kauppavalinta tehdään
-    // foundStores-listasta etäisyysrankingilla.
-    for (const entry of nearbyAreas) {
-      const label = String(entry.area.label || "");
-      addQuery(label);
-
-      for (const alias of entry.area.aliases || []) {
-        addQuery(alias);
-      }
-    }
-
-    // Reverse-geocodattu kunta mukaan vasta yhtenä hakusanana, ei pakotettuna alueena.
-    addQuery(primaryQuery);
-
-    return queries.filter((query, index) => query !== "" || index === 0).slice(0, 16);
+    return queries.slice(0, 16);
   }
 
   function setGpsVisibleMessageV391(areaLabel: string) {
@@ -3379,14 +3361,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // aina koordinaateilla foundStores-listasta.
     if (usingOwnLocation && gpsCoordsV320 && storeModeChosenV299) {
       const gpsMode = selectedStoreModeRefV302.current || storeMode;
-      // V56: GPS-tilassa ei käytetä koko AREAS-fallback-poolia activeStores-valintaan.
-      // AREAS sisältää alue-/kuntatason kauppoja ilman todellisia myymäläkoordinaatteja,
-      // jolloin valinta lukittui siihen alueeseen, jonka haku toi ensin. Käytä tässä vain
-      // API/foundStores-ehdokkaita; manuaalihaku saa edelleen pudota activeArea-polkuun.
-      const gpsStorePoolV56 = uniqueStoresByIdAndName(
-        foundStores.map(normalizeStoreForPickerV320),
-      );
-      const ranked = rankStoresForMode(gpsStorePoolV56, gpsMode, gpsCoordsV320);
+      const gpsStorePoolV40 = buildGpsStoreCandidatePoolFromAllAreasV40(foundStores);
+      const ranked = rankStoresForMode(gpsStorePoolV40, gpsMode, gpsCoordsV320);
 
       if (gpsMode === "local") {
         return {
@@ -5984,10 +5960,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
 
       setGpsErrorMessage("");
-      setLocationMessage(`${city} käytössä`);
+      setLocationMessage("Oma sijainti käytössä");
       setLocationMessageVisible(true);
       setLocationInput("");
-      await applyLocation(city, "gps", coords);
+      await applyLocation("Oma sijainti", "gps", coords);
     } catch (error) {
       pushGpsDebugLogV492(`useOwnLocation CATCH code=${String((error as any)?.code ?? "?")}`);
       console.error(error);
@@ -6150,9 +6126,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         gpsFailTimerRefV391.current = null;
       }
       setGpsErrorMessage("");
-      setLocationMessage(`${city} käytössä`);
+      setLocationMessage("Oma sijainti käytössä");
       setLocationMessageVisible(true);
       setLocationInput("");
+      // V57: reverse-geocodattua city-arvoa ei saa käyttää GPS-kauppahaun querynä.
+      // Se lukitsi ehdokaslistan kuntaan/postinumeroon.
       // V470: älä pudota storeSearchLoadingia pois päältä tässä välissä.
       // GPS-paikannus ja sitä seuraava kauppahaku ovat yksi atominen ajo, jotta
       // Kaupat-paneelin fallback tai toinen effect ei voi startata uutta GPS-hakua väliin.
@@ -6161,7 +6139,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setStoreMode("local");
       setStoreModeChosenV299(true);
       pushGpsDebugLogV492(`useOwnLocation applyLocation start`);
-      await applyLocation(city, "gps", nextGpsCoordsV485);
+      await applyLocation("Oma sijainti", "gps", nextGpsCoordsV485);
       gpsApplyLocationDoneV495 = true;
       pushGpsDebugLogV492(`useOwnLocation applyLocation done`);
 
