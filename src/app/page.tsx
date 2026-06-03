@@ -1,5 +1,10 @@
 "use client";
 
+// V50_GPS_TRUE_COORDINATE_STORE_SELECTION
+// Korjaus: GPS-kauppavalinta ei saa enää perustua kovakoodattuun kunta-/postinumerohaun järjestykseen.
+// GPS-tilassa S/K-lähikaupat ja tavaratalot valitaan ensisijaisesti oikeilla store latitude/longitude -koordinaateilla,
+// ja vasta toissijaisesti API:n antamalla distanceKm-arvolla. activeArea/findArea/query ei saa toimia GPS-valinnan tie-breakerina.
+
 // V33_LOCATION_RESOLVER_STORE_SHAPE_FALLBACK
 // Korjaa GPS/manuaali-kauppavalinnan: StoreSearchItem voi tulla API:lta eri muodoilla
 // (type/chain puuttuu tai koordinaatit eri kentissä). Resolveri saa nyt vahvan S/K-name fallbackin
@@ -32,11 +37,6 @@
 // Korjaus: GPS ei enää käytä AREAS-aluekeskipisteitä kauppojen etäisyysrankingissa.
 // Jos kaupalla ei ole oikeaa lat/lon-koordinaattia, se saa olla manuaalifallback mutta ei GPS-prioriteetin lähde.
 // Lisäksi GPS-hakujärjestys ei enää laita reverse-geocodattua Hyvinkää-queryä ensimmäiseksi.
-
-// V49_GPS_TRUE_NEARBY_QUERY_ORDER
-// Korjaus: GPS ei enää kovakoodaa Jokela/Tuusula/Kerava/Nurmijärvi -hakujärjestystä eikä siirrä Hyvinkäätä viimeiseksi.
-// GPS-haku käyttää vain tyhjää koordinaattihakua + AREAS-alueita todellisen etäisyyden mukaisessa järjestyksessä.
-// Kauppavalinnassa GPS-ranking suosii ensin oikean tyypin kauppoja ja järjestää ne todellisen GPS-etäisyyden mukaan.
 
 // V40_GPS_ALL_AREAS_STORE_POOL:
 // GPS-tilassa lähikauppojen valinta ei enää käytä vain API:n paikkakuntakohtaista foundStores-listaa.
@@ -2322,28 +2322,34 @@ export default function Page() {
         const areaB = b as { distance: number };
         return areaA.distance - areaB.distance;
       })
-      .slice(0, 12) as Array<{ area: Area; distance: number }>;
+      .slice(0, 10) as Array<{ area: Area; distance: number }>;
 
     const queries: string[] = [];
     const addQuery = (value?: string | number | null) => {
       const cleaned = String(value || "").trim();
-      if (!cleaned) return;
+
+      // V50: tyhjä haku saa olla mukana vain ensimmäisenä koordinaattihakuna.
+      if (!cleaned) {
+        if (queries.length === 0) queries.push("");
+        return;
+      }
+
       if (queries.some((item) => normalize(item) === normalize(cleaned))) return;
       queries.push(cleaned);
     };
 
-    // V49: tyhjä haku ensin, jos API osaa palauttaa lähikaupat lat/lon-parametreilla.
-    // Sen jälkeen kysytään lähimmät AREAS-alueet todellisessa GPS-etäisyysjärjestyksessä.
-    // Ei enää kovakoodattua Jokela/Tuusula/Kerava/Hämeenlinna/Hyvinkää-prioriteettia.
+    // V50: ensin koordinaattihaku, jos API tukee lat/lon-pohjaista lähihakua.
     addQuery("");
 
+    // V50: ei kovakoodattua Jokela/Tuusula/Kerava/Hyvinkää-järjestystä.
+    // Haetaan lähimmät AREAS-keskipisteet todellisen GPS-etäisyyden mukaan ja rankataan
+    // lopulliset kaupat myymäläkoordinaateilla. Query ei saa ratkaista valintaa.
     for (const entry of nearbyAreas) {
       addQuery(entry.area.label);
       for (const alias of entry.area.aliases || []) addQuery(alias);
     }
 
-    // Reverse-geocodattu kunta/postinumero on vain viimeinen yhteensopivuusfallback,
-    // eikä se saa ohjata järjestystä ennen oikeasti lähimpiä alueita.
+    // Reverse-geocodattu/postinumeroitu label on vain fallback-haku, ei ranking-peruste.
     addQuery(primaryQuery);
 
     return queries.filter((query, index) => query !== "" || index === 0).slice(0, 18);
@@ -5361,60 +5367,59 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const preferredPredicate = mode === "hyper" ? hyperPredicate : localPredicate;
     const fallbackPredicate = mode === "hyper" ? localPredicate : hyperPredicate;
 
-    const oldPickerPreferred = pickStore(candidates, preferredPredicate);
-    const oldPickerFallback = pickStore(candidates, fallbackPredicate);
-
     if (!coords) {
+      const oldPickerPreferred = pickStore(candidates, preferredPredicate);
+      const oldPickerFallback = pickStore(candidates, fallbackPredicate);
       return oldPickerPreferred || oldPickerFallback || candidates[0];
     }
 
-    const withGpsDistance = candidates
-      .map((store) => {
-        const latitude = getStoreCoordinateV320(store, ["latitude", "lat", "y"]);
-        const longitude = getStoreCoordinateV320(store, ["longitude", "lng", "lon", "x"]);
-        const explicitDistanceKm = readExplicitDistanceKmV320(store);
+    const distanceFromGps = (store: StoreSearchItem) => {
+      const latitude = getStoreCoordinateV320(store, ["latitude", "lat", "y"]);
+      const longitude = getStoreCoordinateV320(store, ["longitude", "lng", "lon", "x"]);
 
-        // V49: paras tapa on oikea myymäläkoordinaatti. Jos sitä ei ole, API:n oma
-        // distanceKm kelpaa vasta toisena GPS-fallbackina. Kunta-/AREA-fallbackeilla ei
-        // ole kumpaakaan, joten ne eivät voi voittaa GPS-tilassa.
-        const distanceKm =
-          latitude != null && longitude != null
-            ? calculateDistanceKmV320(coords, { latitude, longitude })
-            : explicitDistanceKm != null
-              ? explicitDistanceKm
-              : null;
+      if (latitude != null && longitude != null) {
+        return calculateDistanceKmV320(coords, { latitude, longitude });
+      }
 
-        if (distanceKm == null || !Number.isFinite(distanceKm)) return null;
+      const explicitDistanceKm = readExplicitDistanceKmV320(store);
+      return explicitDistanceKm ?? null;
+    };
 
-        return {
-          store: {
-            ...store,
+    const sortByTrueGpsDistance = (items: StoreSearchItem[]) =>
+      items
+        .map((store) => {
+          const distanceKm = distanceFromGps(store);
+          if (distanceKm == null) return null;
+          return {
+            store: {
+              ...store,
+              distanceKm,
+            } as StoreSearchItem,
             distanceKm,
-          } as StoreSearchItem,
-          distanceKm,
-          preferred: preferredPredicate(store) ? 1 : 0,
-          fallback: fallbackPredicate(store) ? 1 : 0,
-        };
-      })
-      .filter(Boolean) as Array<{
-        store: StoreSearchItem;
-        distanceKm: number;
-        preferred: number;
-        fallback: number;
-      }>;
+          };
+        })
+        .filter(Boolean)
+        .sort((a, b) => {
+          const storeA = a as { distanceKm: number };
+          const storeB = b as { distanceKm: number };
+          return storeA.distanceKm - storeB.distanceKm;
+        }) as Array<{ store: StoreSearchItem; distanceKm: number }>;
 
-    if (withGpsDistance.length > 0) {
-      const preferred = withGpsDistance.filter((entry) => entry.preferred);
-      const fallback = withGpsDistance.filter((entry) => !entry.preferred && entry.fallback);
-      const pool = preferred.length > 0 ? preferred : fallback.length > 0 ? fallback : withGpsDistance;
+    // V50: GPS-tilassa query/kaupunki/postinumero/activeArea ei saa valita kauppaa.
+    // 1) valitse ensin oikean moodin kaupat, joilla on todellinen myymäläkoordinaatti
+    //    tai API:n suoraan antama distanceKm
+    // 2) jos sellaisia ei löydy, vasta sitten koko ketjun lähin kauppa
+    // 3) älä pudota takaisin pickStore(query-järjestys)-logiikkaan GPS-tilassa
+    const preferredByDistance = sortByTrueGpsDistance(candidates.filter(preferredPredicate));
+    if (preferredByDistance.length > 0) return preferredByDistance[0].store;
 
-      pool.sort((a, b) => a.distanceKm - b.distanceKm);
-      return pool[0]?.store;
-    }
+    const fallbackByDistance = sortByTrueGpsDistance(candidates.filter(fallbackPredicate));
+    if (fallbackByDistance.length > 0) return fallbackByDistance[0].store;
 
-    // GPS-tilassa ei anneta ensimmäisen kunta-/postinumerohaun voittaa ilman mitään
-    // etäisyystietoa. Tämä fallback on vain manuaalisen listan elävänä pitämistä varten.
-    return oldPickerPreferred || oldPickerFallback || candidates[0];
+    const anyChainStoreByDistance = sortByTrueGpsDistance(candidates);
+    if (anyChainStoreByDistance.length > 0) return anyChainStoreByDistance[0].store;
+
+    return undefined;
   }
 
   function rankStoresForMode(
