@@ -1,9 +1,10 @@
 // src/app/components/ziiply/offerSearch/providers/skaupatProvider.ts
-// ZIIPLY_SKAUPAT_OFFER_PROVIDER_V3_VISIBLE_HTML_PARSER
+// ZIIPLY_SKAUPAT_OFFER_PROVIDER_V4_CLEAN_FAVORITE_PREFIX
 //
-// Parsii S-kaupat kampanjasivun serveriltä palautuvasta HTML:stä.
-// Debugin perusteella S-kaupat palauttaa tuotteet näkyvänä tekstinä,
-// mutta skandit/eurot voivat tulla mojibake-muodossa. Parseri normalisoi ne.
+// Korjaus:
+// - S-kaupat UI-teksti "Lisää suosikkeihin," poistetaan tuotenimen alusta.
+// - "Lisää suosikkeihin" ei saa enää näkyä Göstan tarjousriveillä.
+// - Muuten säilyttää V3:n toimivan näkyvän HTML-parserin.
 
 import type {
   ZiiplyOfferSearchResult,
@@ -36,19 +37,32 @@ function fixMojibake(value: string) {
     .trim();
 }
 
+function cleanSKaupatProductTitle(value: string) {
+  return fixMojibake(value)
+    .replace(/^#+\s*/, "")
+    .replace(/^Lisää suosikkeihin\s*,?\s*/i, "")
+    .replace(/^Lisaa suosikkeihin\s*,?\s*/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function normalizeSKaupatTitle(line: string) {
-  return fixMojibake(line).replace(/^#+\s*/, "").trim();
+  return cleanSKaupatProductTitle(line);
 }
 
 function isNoiseLine(line: string) {
+  const clean = fixMojibake(line).trim();
+
   return (
-    !line ||
-    /^(Ohita listaus|Näytä lisää|Poista yksi|Lisää yksi|Lisää suosikkeihin|0 kappaletta|Vertailuhinta|Tuotteet|Kirjaudu|Ohjeet|Ostoskori)$/i.test(line) ||
-    /^Poista yksi kappale ostoskorista/i.test(line) ||
-    /^Lisää yksi kappale ostoskoriin/i.test(line) ||
-    /^0$/.test(line) ||
-    /^kpl$/i.test(line) ||
-    /^\d+\.$/.test(line)
+    !clean ||
+    /^(Lisää suosikkeihin|Lisaa suosikkeihin)$/i.test(clean) ||
+    /^(Ohita listaus|Näytä lisää|Nayta lisaa|Poista yksi|Lisää yksi|Lisaa yksi|0 kappaletta|Vertailuhinta|Tuotteet|Kirjaudu|Ohjeet|Ostoskori)$/i.test(clean) ||
+    /^Poista yksi kappale ostoskorista/i.test(clean) ||
+    /^Lisää yksi kappale ostoskoriin/i.test(clean) ||
+    /^Lisaa yksi kappale ostoskoriin/i.test(clean) ||
+    /^0$/.test(clean) ||
+    /^kpl$/i.test(clean) ||
+    /^\d+\.$/.test(clean)
   );
 }
 
@@ -85,7 +99,7 @@ function parseSKaupatOffersFromHtml(
 
     if (!isLikelyProductTitle(title)) continue;
 
-    const windowLines = lines.slice(index + 1, index + 12);
+    const windowLines = lines.slice(index + 1, index + 12).map(fixMojibake);
     const rawText = [title, ...windowLines].join(" ");
     const matchScore = scoreOfferMatch(title, query, rawText);
 
@@ -95,8 +109,6 @@ function parseSKaupatOffersFromHtml(
     const unitPriceText = windowLines.find(looksLikeUnitPriceLine);
     const validityText = windowLines.find(looksLikeValidityLine);
 
-    // V3: Palautetaan myös osumat, joilta ei löydy hintaa heti perästä.
-    // Näin debugataan hakua ilman että oikeat nimiosumat putoavat pois.
     results.push({
       id: createStableOfferId([source.id, title, priceText, validityText]),
       source: source.id,
