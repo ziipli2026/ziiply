@@ -1,5 +1,12 @@
 "use client";
 
+// V28_GOSTA_OFFER_LEAFLET_PREP_CLEANUP
+// Siivous Göstan tarjoushaun jatkoa varten:
+// - vanha /api/offers-pohjainen tarjoushaku poistettu käytöstä page-rungosta
+// - Gösta avaa nyt vain uuden ZiiplyMobileOfferSearchCard-kortin
+// - varsinainen tarjouslehtisiin perustuva data/fetch/parsaus rakennetaan myöhemmin OfferSearchCardin/helperien alle
+// - page ei enää tee vanhaa S/K-offer-fetchiä eikä muunna vanhoja offerToProduct-osumia mobiilikortille
+
 // V724_MOBILE_SCANNER_TUNING_AND_UNKNOWN_EAN_CART_FALLBACK
 // Pohjana V723.
 // Korjaukset:
@@ -4334,12 +4341,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
   }
 
-  const filteredOffers = useMemo(() => {
-    const chainFilteredOffers = offers.filter(
-      (item) => chainFilter === "all" || item.chain === chainFilter,
-    );
-    const offerTerms = parseTerms(offerSearchQuerySnapshot || currentSearchQueryKey);
-    return rankOfferSearchResults(chainFilteredOffers, offerTerms);
+  const filteredOffers = useMemo<ZiiplyOffer[]>(() => {
+    // V28: vanha tarjoushakumoottori ei enää tuota osumia page-rungossa.
+    // Tarjouslehtisiin perustuva lista rakennetaan myöhemmin erillisessä kortti-/helper-toteutuksessa.
+    void offers;
+    void offerSearchQuerySnapshot;
+    void currentSearchQueryKey;
+    void chainFilter;
+    return [];
   }, [offers, offerSearchQuerySnapshot, currentSearchQueryKey, chainFilter]);
 
   const offerSearchLabel = useMemo(() => {
@@ -5776,32 +5785,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   async function searchOffers(termOverride?: string) {
     const useTerms = termOverride ? parseTerms(termOverride) : terms;
+    const offerQuerySnapshot =
+      useTerms.join(", ").trim() || String(termOverride || input).trim();
 
-    if (useTerms.length === 0) {
+    if (!offerQuerySnapshot) {
       setHasSearchedOffers(false);
       setOffers([]);
+      setOfferSearchQuerySnapshot("");
       setActiveResult("none");
       return;
     }
 
-    if (!hasActiveStores) {
-      setLocationMessage(
-        "Hae ensin alue tai käytä omaa sijaintia, jotta kaupat voidaan valita.",
-      );
-      setHasSearchedOffers(false);
-      setOffers([]);
-      setActiveResult("none");
-      return;
-    }
-
-    const isMainOfferSearch = !termOverride;
-    const offerQuerySnapshot = useTerms.join(", ").trim() || String(termOverride || input).trim();
-    setOfferSearchQuerySnapshot(offerQuerySnapshot);
-
-    trackZiiplyEvent("offers_search_used", {
-      query: useTerms.join(", "),
-      termCount: useTerms.length,
-      isMainSearch: isMainOfferSearch,
+    trackZiiplyEvent("gosta_offer_leaflet_card_opened", {
+      query: offerQuerySnapshot,
       cartItemsCount: cart.length,
       storeMode,
       sStoreName: activeStores.sStoreName,
@@ -5810,66 +5806,20 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     if (termOverride) setInput(termOverride);
 
-    // Uusi hinnanhuojennushaku ei enää tyhjennä ostoskoria. Käyttäjä voi lisätä tuotteita nykyiseen koriin.
-    if (isMainOfferSearch && cart.length > 0) {
-      setSMatches({});
-      setKMatches({});
-      setLastOptimizationSnapshot(null);
-    }
-
-    setLoadingOffers(true);
+    // V28: vanha /api/offers-haku on poistettu tästä page-rungosta.
+    // Seuraava toteutus rakennetaan tarjouslehtisten/campaign-datan varaan
+    // ZiiplyMobileOfferSearchCardin ja sen helperien alle.
+    setOfferSearchQuerySnapshot(offerQuerySnapshot);
     setHasSearchedOffers(true);
+    setLoadingOffers(false);
+    setOffers([]);
+    setSearchPanelOpen(false);
+    setNotebookOpen(false);
+    setCartModalOpen(false);
+    setShopsPanelOpen(false);
+    setCartSavePanelOpen(false);
+    setEanModalOpen(false);
     setActiveResult("offers");
-
-    try {
-      const [sRes, kRes] = await Promise.all([
-        fetch(`/api/offers?storeId=${activeStores.sStoreId}`, {
-          cache: "no-store",
-        }),
-        fetch(`/api/offers?storeId=${activeStores.kStoreId}`, {
-          cache: "no-store",
-        }),
-      ]);
-
-      const sData = await sRes.json();
-      const kData = await kRes.json();
-
-      const sItems: ZiiplyOffer[] = (sData.items || []).map((offer: Offer) => ({
-        id: `S-${offer.id}`,
-        chain: "S",
-        storeName: activeStores.sStoreName,
-        offer,
-      }));
-
-      const kItems: ZiiplyOffer[] = (kData.items || []).map((offer: Offer) => ({
-        id: `K-${offer.id}`,
-        chain: "K",
-        storeName: activeStores.kStoreName,
-        offer,
-      }));
-
-      setOffers([...sItems, ...kItems]);
-      setOfferSearchDoneForQuery(offerQuerySnapshot);
-    } catch (error) {
-      pushGpsDebugLogV492(`useOwnLocation CATCH code=${String((error as any)?.code ?? "?")}`);
-      console.error(error);
-      const gpsErrorCode =
-        typeof error === "object" && error !== null && "code" in error
-          ? Number((error as { code?: number }).code)
-          : 0;
-      if (gpsErrorCode === 1) {
-        setGpsErrorMessage("GPS ei löydy");
-      } else if (gpsErrorCode === 2) {
-        setGpsErrorMessage("GPS ei löydy");
-      } else if (gpsErrorCode === 3) {
-        setGpsErrorMessage("GPS ei löydy");
-      } else {
-        setGpsErrorMessage("GPS ei löydy");
-      }
-      setOffers([]);
-    } finally {
-      setLoadingOffers(false);
-    }
   }
 
   async function searchNormalPrices(termOverride?: string, forceEan = false) {
@@ -12880,29 +12830,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             open={true}
             title="Tarjoushaku"
             query={offerSearchQuerySnapshot || input}
-            offers={filteredOffers.map((item) => {
-              const product = offerToProduct(item);
-
-              return {
-                id: item.id,
-                ean: product.ean,
-                name: fixText(product.name),
-                title: fixText(product.name),
-                productName: fixText(product.name),
-                brandName: (product as any).brandName ?? (product as any).brand ?? "",
-                storeName: item.storeName,
-                chain: item.chain,
-                price: item.offer.storeItem?.price ?? getProductPrice(product),
-                offerPrice: item.offer.storeItem?.price ?? getProductPrice(product),
-                normalPrice: (item.offer as any).normalPrice ?? (item.offer as any).regularPrice,
-                originalPrice: (item.offer as any).normalPrice ?? (item.offer as any).regularPrice,
-                discountText: (item.offer as any).discountText ?? (item.offer as any).campaignText,
-                image: product.pictureUrl,
-                imageUrl: product.pictureUrl,
-                pictureUrl: product.pictureUrl,
-                __sourceOffer: item,
-              };
-            })}
+            offers={[]}
+            subtitle="Tarjouslehtisiin perustuva haku rakennetaan seuraavaksi."
             loading={loadingOffers}
             emptyText="Gösta ei löytänyt tarjouksia tälle haulle."
             onBack={() => {
@@ -12912,15 +12841,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             onClose={() => {
               setActiveResult("none");
             }}
-            onAddOffer={(offer) => {
-              const sourceOffer = (offer as any).__sourceOffer as ZiiplyOffer | undefined;
-              if (sourceOffer) addOfferToCart(sourceOffer);
+            onAddOffer={() => {
+              showCartToast("Tarjouslehtihaku kytketään seuraavaksi.");
             }}
-            onAddAllOffers={(offerItems) => {
-              for (const offer of offerItems) {
-                const sourceOffer = (offer as any).__sourceOffer as ZiiplyOffer | undefined;
-                if (sourceOffer) addOfferToCart(sourceOffer);
-              }
+            onAddAllOffers={() => {
+              showCartToast("Tarjouslehtihaku kytketään seuraavaksi.");
             }}
           />
         )}
