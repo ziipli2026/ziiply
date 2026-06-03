@@ -1,8 +1,8 @@
 "use client";
 
-// ZIIPLY_MOBILE_NOTEBOOK_CARD_V1
-// Vihkonen-näkymä tallennetuille ostoslistoille.
-// - Avaa CartCardin vasemman yläkulman vihko-symbolista tai Hae-kortin Vihkonen-painikkeesta.
+// ZIIPLY_MOBILE_NOTEBOOK_CARD_V2_OSTELUSVIHKO_SAVE_PANEL
+// Ostelusvihko-näkymä tallennetuille ostoslistoille.
+// - Avaa CartCardin vasemman yläkulman vihko-symbolista tai Hae-kortin Ostelusvihko-painikkeesta.
 // - Listat näytetään vanhan kauppiaan vihkon riveinä.
 // - Ei modernia listamodaalia: sama paperi/nahka/retro-linja kuin Tavarainkeruu-kortissa.
 // - Vasen yläkulma: nahkainen takaisin-nuoli.
@@ -10,7 +10,7 @@
 // - Alareuna: tallenna nykyinen kori.
 // - Riviltä voi avata listan koriin. Pieni poistomerkki poistaa tallennetun listan.
 
-import React from "react";
+import React, { useMemo, useState } from "react";
 
 export type ZiiplyNotebookItem = {
   id?: string | number;
@@ -43,7 +43,7 @@ export type ZiiplyMobileNotebookCardProps = {
   currentCartItems?: ZiiplyNotebookItem[];
   onBack?: () => void;
   onClose?: () => void;
-  onSaveCurrentCart?: () => void;
+  onSaveCurrentCart?: (name?: string) => void;
   onOpenList?: (list: ZiiplySavedShoppingList) => void;
   onDeleteList?: (list: ZiiplySavedShoppingList) => void;
   className?: string;
@@ -68,6 +68,27 @@ function formatDate(value: unknown) {
     month: "numeric",
     year: "numeric",
   });
+}
+
+function formatDateForName(date = new Date()) {
+  return date.toLocaleDateString("fi-FI", {
+    day: "numeric",
+    month: "numeric",
+    year: "numeric",
+  });
+}
+
+function getOstelusvihkoDefaultName(lists: ZiiplySavedShoppingList[]) {
+  const today = formatDateForName();
+  const todaySuffix = `Ostelusvihko ${today}`;
+
+  const todayCount = lists.filter((list) => {
+    const name = String(list.name || list.title || "");
+    return name.includes(todaySuffix);
+  }).length;
+
+  // Juokseva numero nollautuu luonnostaan, kun päivä vaihtuu tai kaikki kyseisen päivän vihkot poistetaan.
+  return `${todayCount + 1}. ${todaySuffix}`;
 }
 
 function normalizePrice(price: unknown) {
@@ -160,6 +181,25 @@ export default function ZiiplyMobileNotebookCard({
 
   const hasCurrentCartItems = currentCartItems.length > 0;
   const hasLists = lists.length > 0;
+  const defaultSaveName = useMemo(() => getOstelusvihkoDefaultName(lists), [lists]);
+  const [savePanelOpen, setSavePanelOpen] = useState(false);
+  const [draftName, setDraftName] = useState("");
+
+  const effectiveDraftName = draftName.trim() || defaultSaveName;
+
+  function handleSaveClick() {
+    if (!hasCurrentCartItems || !onSaveCurrentCart) return;
+
+    if (!savePanelOpen) {
+      setDraftName(defaultSaveName);
+      setSavePanelOpen(true);
+      return;
+    }
+
+    onSaveCurrentCart(effectiveDraftName);
+    setDraftName("");
+    setSavePanelOpen(false);
+  }
 
   return (
     <div
@@ -184,8 +224,8 @@ export default function ZiiplyMobileNotebookCard({
             type="button"
             onClick={onClose}
             className="absolute right-[0.78rem] top-[0.88rem] z-[35] grid h-[2.62rem] w-[2.86rem] place-items-center rounded-l-[0.8rem] rounded-r-[0.42rem] border-[2px] border-[#2b1a0e] bg-[linear-gradient(135deg,#7a4c2d_0%,#3b2414_78%)] text-[1.1rem] font-black leading-none text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.25),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]"
-            aria-label="Sulje vihkonen"
-            title="Sulje vihkonen"
+            aria-label="Sulje ostelusvihko"
+            title="Sulje ostelusvihko"
           >
             <span className="grid h-[1.50rem] w-[1.50rem] place-items-center rounded-full border border-[#6b421f] bg-[radial-gradient(circle_at_35%_35%,#f6c46c_0%,#b0752a_52%,#65401f_100%)] text-[0.92rem] text-[#2b1a0e] shadow-[0_1px_2px_rgba(0,0,0,0.28)]">
               ×
@@ -199,10 +239,10 @@ export default function ZiiplyMobileNotebookCard({
               className="text-[1.48rem] font-black italic leading-none text-[#28402a] drop-shadow-[0_1px_0_rgba(255,247,211,0.62)]"
               style={{ fontFamily: cooperFont }}
             >
-              Vihkonen
+              Ostelusvihko
             </div>
             <div className="mt-[0.16rem] text-[0.74rem] font-extrabold text-[#5f5034]">
-              Tallennetut ostoslistat
+              Tallennetut ostelusvihkot
             </div>
           </div>
         </header>
@@ -211,7 +251,7 @@ export default function ZiiplyMobileNotebookCard({
           {!hasLists ? (
             <div className="mt-2 rounded-[1.05rem] border-[2px] border-dashed border-[#9a7a3d] bg-[#fff4d4]/52 px-4 py-8 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
               <div className="text-[1.02rem] font-extrabold italic text-[#59401e]" style={{ fontFamily: serifFont }}>
-                Vihkonen on vielä tyhjä
+                Ostelusvihko on vielä tyhjä
               </div>
               <div className="mt-2 text-[0.78rem] font-extrabold leading-snug text-[#8a7650]">
                 Tallenna nykyinen kori, niin löydät sen myöhemmin tästä.
@@ -281,18 +321,60 @@ export default function ZiiplyMobileNotebookCard({
 
         <footer className="absolute bottom-0 left-0 right-0 z-20 px-5 pb-3 pt-2">
           <div className="relative min-h-[2.65rem]">
-            <button
-              type="button"
-              onClick={onSaveCurrentCart}
-              disabled={!hasCurrentCartItems || !onSaveCurrentCart}
-              className={cx(
-                "mx-auto block min-h-[2.34rem] rounded-[0.62rem] border-[2.5px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-5 py-[0.38rem] text-[0.80rem] font-black italic tracking-[0.03em] text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58),0_2px_4px_rgba(62,43,20,0.18)] active:translate-y-[1px]",
-                (!hasCurrentCartItems || !onSaveCurrentCart) && "cursor-not-allowed opacity-45",
-              )}
-              style={{ fontFamily: cooperFont }}
-            >
-              Tallenna nykyinen kori
-            </button>
+            {savePanelOpen ? (
+              <div className="mx-auto max-w-[20rem] rounded-[0.82rem] border-[2px] border-[#8a6b32] bg-[#fff4d4]/90 px-3 py-2 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.46),0_4px_10px_rgba(62,43,20,0.16)]">
+                <label
+                  className="mb-1 block text-[0.54rem] font-black uppercase tracking-[0.12em] text-[#6e5a34]"
+                  style={{ fontFamily: copperplateFont }}
+                >
+                  Vihkon nimi
+                </label>
+
+                <input
+                  value={draftName}
+                  onChange={(event) => setDraftName(event.target.value)}
+                  placeholder={defaultSaveName}
+                  className="block h-[2.05rem] w-full rounded-[0.48rem] border-[1.5px] border-[#b59654] bg-[#fffaf0] px-2 text-center text-[0.82rem] font-black italic text-[#244525] outline-none"
+                  style={{ fontFamily: serifFont }}
+                />
+
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSavePanelOpen(false);
+                      setDraftName("");
+                    }}
+                    className="rounded-[0.50rem] border-[2px] border-[#7c663d] bg-[#efe1bd] px-3 py-[0.38rem] text-[0.68rem] font-black text-[#533819] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.42)] active:translate-y-[1px]"
+                    style={{ fontFamily: cooperFont }}
+                  >
+                    Peru
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleSaveClick}
+                    className="rounded-[0.50rem] border-[2px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-3 py-[0.38rem] text-[0.68rem] font-black italic text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58)] active:translate-y-[1px]"
+                    style={{ fontFamily: cooperFont }}
+                  >
+                    Tallenna
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={handleSaveClick}
+                disabled={!hasCurrentCartItems || !onSaveCurrentCart}
+                className={cx(
+                  "mx-auto block min-h-[2.34rem] rounded-[0.62rem] border-[2.5px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-5 py-[0.38rem] text-[0.80rem] font-black italic tracking-[0.03em] text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58),0_2px_4px_rgba(62,43,20,0.18)] active:translate-y-[1px]",
+                  (!hasCurrentCartItems || !onSaveCurrentCart) && "cursor-not-allowed opacity-45",
+                )}
+                style={{ fontFamily: cooperFont }}
+              >
+                Tallenna nykyinen kori
+              </button>
+            )}
           </div>
         </footer>
 
@@ -324,4 +406,3 @@ export default function ZiiplyMobileNotebookCard({
 }
 
 export { ZiiplyMobileNotebookCard };
-
