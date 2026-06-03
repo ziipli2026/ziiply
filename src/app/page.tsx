@@ -1,5 +1,11 @@
 "use client";
 
+// V42_GPS_REMOVE_OLD_MODE_FORCE_CLEANUP
+// Siivous V41:n päälle:
+// - GPS ei enää käytä erillistä location-message overridea hakutapaan
+// - poistetaan viimeiset vanhan GPS/hyper-oletuksen jäänteet automaattisesta sijaintipolusta
+// - koordinaattipohjainen V41-kauppavalinta säilyy ennallaan
+
 // V33_LOCATION_RESOLVER_STORE_SHAPE_FALLBACK
 // Korjaa GPS/manuaali-kauppavalinnan: StoreSearchItem voi tulla API:lta eri muodoilla
 // (type/chain puuttuu tai koordinaatit eri kentissä). Resolveri saa nyt vahvan S/K-name fallbackin
@@ -5886,7 +5892,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         activeElement?.blur?.();
       }
 
-      const effectiveStoreModeForLocationMessage = source === "gps" ? "local" : storeMode;
+      const effectiveStoreModeForLocationMessage = storeMode;
       const modeMissing =
         effectiveStoreModeForLocationMessage === "local"
           ? !ranked.sLocal || !ranked.kLocal
