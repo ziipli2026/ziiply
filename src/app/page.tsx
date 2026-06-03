@@ -1,5 +1,11 @@
 "use client";
 
+// V56_GPS_STORE_SELECTION_NO_HARDCODED_AREA_OR_AREAS_POOL
+// Korjaus V41-pohjaan:
+// - GPS-haku ei enää pakota Jokela/Tuusula/Kerava/Nurmijärvi-järjestystä eikä siirrä Hyvinkäätä viimeiseksi.
+// - GPS activeStores ei enää rakenna valintaa koko AREAS-fallback-poolista, vaan käyttää foundStores/API-ehdokkaita.
+// - Manuaalihaku käyttää edelleen vanhaa Area/postinumero-polkuja.
+
 // V33_LOCATION_RESOLVER_STORE_SHAPE_FALLBACK
 // Korjaa GPS/manuaali-kauppavalinnan: StoreSearchItem voi tulla API:lta eri muodoilla
 // (type/chain puuttuu tai koordinaatit eri kentissä). Resolveri saa nyt vahvan S/K-name fallbackin
@@ -2330,30 +2336,22 @@ export default function Page() {
     // Tyhjä haku ensin, jos API tukee lat/lon-pohjaista lähihakua.
     addQuery("");
 
-    // V41: älä laita reverse-geocodattua kuntaa (käyttäjällä usein Hyvinkää) heti kärkeen.
-    // Kunnanrajalla se lukitsee API-haun ja fallback-valinnan väärään kuntaan.
-    // Annetaan ensin naapurialueiden ja koordinaattihakujen tuoda todelliset lähikaupat.
-    addQuery("Jokela");
-    addQuery("Tuusula");
-    addQuery("Kerava");
-    addQuery("Nurmijärvi");
-
+    // V56: ei kovakoodattua kunta-/postinumerojärjestystä GPS:lle.
+    // Aiempi Jokela -> Tuusula -> Kerava -> Nurmijärvi -> Hyvinkää -järjestys teki
+    // GPS-valinnasta käytännössä query-/alueperusteisen. Nyt haetaan lähialueet vain
+    // AREAS-koordinaattien etäisyysjärjestyksessä ja lopullinen kauppavalinta tehdään
+    // foundStores-listasta etäisyysrankingilla.
     for (const entry of nearbyAreas) {
       const label = String(entry.area.label || "");
-      if (normalize(label) === normalize(primaryQuery)) continue;
-      if (normalize(label).includes("hyvink")) continue;
-
       addQuery(label);
+
       for (const alias of entry.area.aliases || []) {
-        const aliasText = String(alias || "");
-        if (normalize(aliasText).includes("hyvink")) continue;
-        addQuery(aliasText);
+        addQuery(alias);
       }
     }
 
-    // Reverse-geocodattu kunta ja Hyvinkää vasta viimeisenä fallbackina.
+    // Reverse-geocodattu kunta mukaan vasta yhtenä hakusanana, ei pakotettuna alueena.
     addQuery(primaryQuery);
-    addQuery("Hyvinkää");
 
     return queries.filter((query, index) => query !== "" || index === 0).slice(0, 16);
   }
@@ -3381,8 +3379,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // aina koordinaateilla foundStores-listasta.
     if (usingOwnLocation && gpsCoordsV320 && storeModeChosenV299) {
       const gpsMode = selectedStoreModeRefV302.current || storeMode;
-      const gpsStorePoolV40 = buildGpsStoreCandidatePoolFromAllAreasV40(foundStores);
-      const ranked = rankStoresForMode(gpsStorePoolV40, gpsMode, gpsCoordsV320);
+      // V56: GPS-tilassa ei käytetä koko AREAS-fallback-poolia activeStores-valintaan.
+      // AREAS sisältää alue-/kuntatason kauppoja ilman todellisia myymäläkoordinaatteja,
+      // jolloin valinta lukittui siihen alueeseen, jonka haku toi ensin. Käytä tässä vain
+      // API/foundStores-ehdokkaita; manuaalihaku saa edelleen pudota activeArea-polkuun.
+      const gpsStorePoolV56 = uniqueStoresByIdAndName(
+        foundStores.map(normalizeStoreForPickerV320),
+      );
+      const ranked = rankStoresForMode(gpsStorePoolV56, gpsMode, gpsCoordsV320);
 
       if (gpsMode === "local") {
         return {
