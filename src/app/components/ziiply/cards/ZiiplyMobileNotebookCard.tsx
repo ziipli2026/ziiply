@@ -1,6 +1,6 @@
 "use client";
 
-// ZIIPLY_MOBILE_NOTEBOOK_CARD_V3_VISIBLE_SAVE_PANEL
+// ZIIPLY_MOBILE_NOTEBOOK_CARD_V4_FIT_ABOVE_BOTTOM_NAV_AND_HEADER_RIGHT
 // Ostelusvihko-näkymä tallennetuille ostoslistoille.
 // - Avaa CartCardin vasemman yläkulman vihko-symbolista tai Hae-kortin Ostelusvihko-painikkeesta.
 // - Listat näytetään vanhan kauppiaan vihkon riveinä.
@@ -205,7 +205,7 @@ export default function ZiiplyMobileNotebookCard({
     <div
       className={`fixed inset-0 z-[93] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
-      <section className="ziiply-notebook-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-2.0rem)] max-h-[46rem] min-h-[31rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
+      <section className="ziiply-notebook-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
         <div
           className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[#f7edcf] bg-center bg-no-repeat opacity-100"
           style={{
@@ -234,7 +234,7 @@ export default function ZiiplyMobileNotebookCard({
         ) : null}
 
         <header className="relative z-10 shrink-0 px-5 pb-1 pt-[8.35rem]">
-          <div className="pl-[2.10rem] pr-[2.20rem]">
+          <div className="pl-[3.15rem] pr-[2.20rem]">
             <div
               className="text-[1.48rem] font-black italic leading-none text-[#28402a] drop-shadow-[0_1px_0_rgba(255,247,211,0.62)]"
               style={{ fontFamily: cooperFont }}
@@ -247,7 +247,7 @@ export default function ZiiplyMobileNotebookCard({
           </div>
         </header>
 
-        <main className="relative z-10 min-h-0 flex-1 overflow-y-auto px-5 pb-[7.15rem] pt-[1.10rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <main className="relative z-10 min-h-0 flex-1 overflow-y-auto px-5 pb-[7.85rem] pt-[1.10rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {!hasLists ? (
             <div className="mt-2 rounded-[1.05rem] border-[2px] border-dashed border-[#9a7a3d] bg-[#fff4d4]/52 px-4 py-8 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
               <div className="text-[1.02rem] font-extrabold italic text-[#59401e]" style={{ fontFamily: serifFont }}>
@@ -319,7 +319,7 @@ export default function ZiiplyMobileNotebookCard({
           )}
         </main>
 
-        <footer className="absolute bottom-[0.62rem] left-0 right-0 z-[40] px-5 pb-2 pt-2">
+        <footer className="absolute bottom-[0.86rem] left-0 right-0 z-[40] px-5 pb-2 pt-2">
           <div className="relative min-h-[2.65rem]">
             {savePanelOpen ? (
               <div className="mx-auto max-w-[20rem] rounded-[0.82rem] border-[2px] border-[#8a6b32] bg-[#fff4d4]/90 px-3 py-2 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.46),0_4px_10px_rgba(62,43,20,0.16)]">
