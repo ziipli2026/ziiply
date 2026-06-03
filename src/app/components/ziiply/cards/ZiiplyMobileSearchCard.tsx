@@ -1,6 +1,6 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V642_INLINE_BASKET_SEARCH_NOTEBOOK_PROP
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V644_INLINE_BASKET_STOP_WHEN_READY
 // Pohja: v608/v510 toimiva hakulogiikka.
 // Muutettu vain JSX/CSS layout vastaamaan annettua finalleiska-mallia.
 
@@ -291,7 +291,7 @@ function InlineSearchRunner({
       {visible && (
         <>
           {isGosta ? (
-            <div className="absolute top-1/2 flex -translate-y-1/2 items-center gap-1 animate-[ziiplyPriceRunner_1.9s_linear_infinite]">
+            <div className="absolute top-1/2 flex -translate-y-1/2 items-center gap-1 animate-[ziiplyPriceRunner_3.8s_linear_infinite]">
               <div className="relative grid h-[2.35rem] w-[2.35rem] place-items-center rounded-full border-[3px] border-[#b58b3d] bg-[#fff0bd] text-[1.25rem] shadow-[0_3px_0_rgba(91,72,44,0.20)]">
                 €
                 <span className="absolute -right-[0.55rem] -bottom-[0.25rem] h-[0.72rem] w-[1.1rem] rotate-[-18deg] rounded-full bg-[#174c2c]" />
@@ -300,8 +300,8 @@ function InlineSearchRunner({
               <span className="h-[0.35rem] w-[0.35rem] rounded-full bg-[#174c2c]" />
             </div>
           ) : (
-            <div className="absolute top-1/2 flex -translate-y-1/2 items-end gap-1 animate-[ziiplyBasketRunner_2.05s_linear_infinite]">
-              <div className="relative h-[2.25rem] w-[2.8rem] animate-[ziiplyBasketBob_0.48s_ease-in-out_infinite]">
+            <div className="absolute top-1/2 flex -translate-y-1/2 items-end gap-1 animate-[ziiplyBasketRunner_4.1s_linear_infinite]">
+              <div className="relative h-[2.25rem] w-[2.8rem] animate-[ziiplyBasketBob_0.72s_ease-in-out_infinite]">
                 <div className="absolute left-[0.38rem] top-[-0.38rem] h-[1.05rem] w-[2.0rem] rounded-t-full border-[3px] border-b-0 border-[#8b6128]" />
                 <div className="absolute left-[0.50rem] top-[0.12rem] h-[1.28rem] w-[0.38rem] rotate-[-14deg] rounded-full border border-[#6f5128] bg-[#f5f0dd]" />
                 <div className="absolute left-[1.28rem] top-[-0.06rem] h-[1.65rem] w-[0.38rem] rotate-[17deg] rounded-full border border-[#9a6b2d] bg-[#d7a34b]" />
@@ -373,6 +373,9 @@ export default function ZiiplyMobileSearchCard({
   const [searchingAssistant, setSearchingAssistant] = useState<
     "gosta" | "justiina" | null
   >(null);
+  const searchStartedAtRef = useRef(0);
+  const searchClearTimerRef = useRef<number | null>(null);
+  const latestSearchLoadingRef = useRef(false);
   const [cartFlash, setCartFlash] = useState(false);
 
   const cleanInput = input.trim();
@@ -382,6 +385,43 @@ export default function ZiiplyMobileSearchCard({
     !loading &&
     items.length === 0 &&
     cleanInput.length >= 2;
+
+
+  useEffect(() => {
+    latestSearchLoadingRef.current =
+      loadingOffers || loadingNormal || singleProductCompareLoading || loading;
+  }, [loadingOffers, loadingNormal, singleProductCompareLoading, loading]);
+
+  useEffect(() => {
+    if (!searchingAssistant) return;
+
+    const stillLoading =
+      loadingOffers || loadingNormal || singleProductCompareLoading || loading;
+
+    if (stillLoading) return;
+
+    // V644: ei pakotettua 3 s minimikestoa.
+    // Animaatio katkeaa heti, kun parent-komponentin loading-tila kertoo haun olevan valmis.
+    if (searchClearTimerRef.current !== null) {
+      window.clearTimeout(searchClearTimerRef.current);
+      searchClearTimerRef.current = null;
+    }
+
+    setSearchingAssistant(null);
+
+    return () => {
+      if (searchClearTimerRef.current !== null) {
+        window.clearTimeout(searchClearTimerRef.current);
+        searchClearTimerRef.current = null;
+      }
+    };
+  }, [
+    searchingAssistant,
+    loadingOffers,
+    loadingNormal,
+    singleProductCompareLoading,
+    loading,
+  ]);
 
   const predictiveText = useMemo(() => {
     const clean = input.trim();
@@ -455,19 +495,15 @@ export default function ZiiplyMobileSearchCard({
 
     if (clean.length < 2) return;
 
-    setSearchingAssistant(assistant);
-    const started = Date.now();
-
-    try {
-      await Promise.resolve(handler?.());
-    } finally {
-      const elapsed = Date.now() - started;
-      const remaining = Math.max(0, 1250 - elapsed);
-
-      window.setTimeout(() => {
-        setSearchingAssistant(null);
-      }, remaining);
+    if (searchClearTimerRef.current !== null) {
+      window.clearTimeout(searchClearTimerRef.current);
+      searchClearTimerRef.current = null;
     }
+
+    searchStartedAtRef.current = Date.now();
+    setSearchingAssistant(assistant);
+
+    await Promise.resolve(handler?.());
   };
 
   const handleAddInputToCart = () => {
@@ -526,7 +562,7 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V642_INLINE_BASKET_SEARCH_NOTEBOOK_PROP"
+      data-ziiply-mobile-search-card-version="UUSI_V644_INLINE_BASKET_STOP_WHEN_READY"
       className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.25rem)] z-[72] flex h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] max-h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] items-stretch justify-center overflow-hidden bg-transparent px-2 sm:hidden [transform:translateZ(0)] [backface-visibility:hidden] ${className}`}
     >
       <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.8rem] border-[2px] border-[#ead9a8] bg-[#f6ebc6] px-3 pb-3 pt-3 text-[#20301f] shadow-[inset_0_0_0_2px_rgba(216,189,117,0.34)]">
