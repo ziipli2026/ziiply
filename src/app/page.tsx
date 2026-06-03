@@ -7941,7 +7941,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     void updateChainComparison(nextCart);
   }
 
-  function saveCurrentCartAsList() {
+  function saveCurrentCartAsList(forcedName?: string) {
     triggerHaptic();
 
     if (cart.length === 0) {
@@ -7949,8 +7949,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return;
     }
 
-    const trimmedName = savedListName.trim();
-    const defaultName = `Ostoslista ${new Date().toLocaleDateString("fi-FI")}`;
+    const trimmedName = (forcedName ?? savedListName).trim();
+    const defaultName = `1. Ostelusvihko ${new Date().toLocaleDateString("fi-FI")}`;
     const listName = trimmedName || defaultName;
     const now = Date.now();
     const items = cart.map(sanitizeCartItemForStorage).slice(0, MAX_ITEMS);
@@ -12854,8 +12854,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               setCartModalOpen(true);
             }}
             onClose={() => setNotebookOpen(false)}
-            onSaveCurrentCart={() => {
-              saveCurrentCartAsList();
+            onSaveCurrentCart={(name?: string) => {
+              saveCurrentCartAsList(name);
               setNotebookOpen(false);
               setCartModalOpen(true);
             }}
