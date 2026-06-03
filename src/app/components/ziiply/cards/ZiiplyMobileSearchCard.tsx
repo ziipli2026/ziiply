@@ -261,7 +261,12 @@ function RetroAssetButton({
       <img
         src={imageSrc}
         alt={label}
-        className="absolute inset-0 h-full w-full object-contain object-center select-none drop-shadow-[0_4px_9px_rgba(0,0,0,0.42)]"
+        className={cx(
+          "absolute inset-0 h-full w-full object-contain object-center select-none drop-shadow-[0_4px_9px_rgba(0,0,0,0.42)]",
+          // V653: scanner-assetissa on enemmän läpinäkyvää canvasia / sisämarginaalia kuin äänitä-assetissa.
+          // Siksi pelkkä sama wrapper ei riitä, vaan kamerakuva kompensoidaan visuaalisesti samankokoiseksi.
+          kind === "scanner" && "scale-[1.56]",
+        )}
         draggable={false}
       />
     </button>
