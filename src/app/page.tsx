@@ -1,5 +1,10 @@
 "use client";
 
+// V44_GPS_HYPER_NO_COORDINATELESS_AREA_FALLBACK
+// Korjaus V43:n päälle: GPS-tilassa Tavaratalot eivät saa pudota koordinaatittomaan AREAS/kuntafallbackiin.
+// Prisma/K-Citymarket valitaan vain oikeilla myymäläkoordinaateilla pisteytetyistä ehdokkaista,
+// jotta lähikauppojen Jokela/Tuusula-suunta tai reverse-geocodattu kunta ei lukitse tavarataloja väärin.
+
 // V43_GPS_HYPER_STORES_RANK_SEPARATELY
 // Korjaus V42:n päälle: GPS-tavaratalot rankataan erikseen oikeista Prisma/K-Citymarket-ehdokkaista.
 // Lähikauppojen Jokela/Tuusula-osumat eivät saa ohjata Tavaratalot-tilaa väärään kuntaan.
@@ -5388,27 +5393,27 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       ? candidates.filter((store) => storeHasRealCoordinatesForGpsV41(store))
       : candidates;
 
-    // V43: GPS-tilassa tavaratalot ja lähikaupat eivät saa käyttää samaa ehdokaspoolia.
-    // Muuten lähimmät lähikaupat voivat ohjata Tavaratalot-tilan väärän kunnan/alueen mukaan.
-    // Hyper-tilassa pisteytetään ensin vain oikeat Prisma/K-Citymarket-ehdokkaat,
-    // ja vasta jos niitä ei ole, pudotaan vanhaan fallbackiin.
+    // V44: GPS-tilassa ei saa koskaan pudota koordinaatittomiin AREAS/kunta-fallbackeihin.
+    // Juuri se lukitsi Tavaratalot-valinnan väärään kuntaan: lähikaupat löytyivät oikein,
+    // mutta hypermarketit putosivat takaisin activeArea/AREAS-listan Prisma/K-Citymarket-nimiin.
+    // Jos GPS on käytössä, rankataan vain oikeilla myymäläkoordinaateilla olevia ehdokkaita.
     const rankingCandidates = coords
       ? preferredCandidatesWithGpsCoordinates.length > 0
         ? preferredCandidatesWithGpsCoordinates
-        : preferredCandidates.length > 0
-          ? preferredCandidates
-          : candidatesWithGpsCoordinates.length > 0
-            ? candidatesWithGpsCoordinates
-            : candidates
+        : candidatesWithGpsCoordinates
       : preferredCandidates.length > 0
         ? preferredCandidates
         : candidates;
 
-    const oldPickerPreferred = pickStore(rankingCandidates, preferredPredicate);
-    const oldPickerFallback = pickStore(candidates, fallbackPredicate);
+    const oldPickerPreferred = !coords ? pickStore(rankingCandidates, preferredPredicate) : null;
+    const oldPickerFallback = !coords ? pickStore(candidates, fallbackPredicate) : null;
 
     if (!coords) {
       return oldPickerPreferred || oldPickerFallback || rankingCandidates[0] || candidates[0];
+    }
+
+    if (rankingCandidates.length === 0) {
+      return undefined;
     }
 
     const scoredStores = rankingCandidates
@@ -5453,13 +5458,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         return storeA.distanceKm - storeB.distanceKm;
       });
 
-    return (
-      scoredStores[0]?.store ||
-      oldPickerPreferred ||
-      oldPickerFallback ||
-      rankingCandidates[0] ||
-      candidates[0]
-    );
+    return scoredStores[0]?.store;
   }
 
   function rankStoresForMode(
