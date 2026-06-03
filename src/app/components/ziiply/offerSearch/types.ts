@@ -8,19 +8,15 @@ export type ZiiplyOfferSearchResult = {
   id: string;
   source: ZiiplyOfferSource;
   chain: ZiiplyOfferChain;
-
   title: string;
   priceText?: string;
   unitPriceText?: string;
   validityText?: string;
   benefitText?: string;
   storeLabel?: string;
-
   imageUrl?: string;
   productUrl?: string;
-
   matchScore: number;
-
   rawText?: string;
 };
 
