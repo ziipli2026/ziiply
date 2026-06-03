@@ -1,5 +1,9 @@
 "use client";
 
+// V30_GOSTA_OFFER_PRODUCT_CAST_BUILD_FIX
+// Korjaa tarjoushaun koriinlisäyksen Product-castin: väliaikainen tarjous-product castataan unknownin kautta,
+// koska vanhan Product-typen id on number ja API-tarjousrivin id on string.
+
 // V29_GOSTA_OFFER_API_WIRED
 // Göstan Tarjoushaku kytketty uuteen /api/ziiply/offers/search -endpointtiin.
 // Page pitää vain hakutilan ja renderöinnin; provider/parser-logiikka pysyy offerSearch-kansiossa.
@@ -12915,7 +12919,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   name,
                   price: Number.isFinite(numericPrice) ? numericPrice : 0,
                   pictureUrl: String(offer.imageUrl || offer.pictureUrl || offer.image || ""),
-                } as Product,
+                } as unknown as Product,
               };
 
               const nextCart = [...cart, newItem];
@@ -12956,7 +12960,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       name,
                       price: Number.isFinite(numericPrice) ? numericPrice : 0,
                       pictureUrl: String(offer.imageUrl || offer.pictureUrl || offer.image || ""),
-                    } as Product,
+                    } as unknown as Product,
                   } as CartItem,
                 ];
                 added += 1;
