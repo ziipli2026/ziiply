@@ -1,6 +1,6 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V641_INLINE_BASKET_SEARCH
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V642_INLINE_BASKET_SEARCH_NOTEBOOK_PROP
 // Pohja: v608/v510 toimiva hakulogiikka.
 // Muutettu vain JSX/CSS layout vastaamaan annettua finalleiska-mallia.
 
@@ -38,6 +38,7 @@ export type ZiiplyMobileSearchCardProps = {
   searchMode?: "cart" | "single";
   onSearchModeChange?: (mode: "cart" | "single") => void;
   onAddInputToCart?: () => void;
+  onOpenNotebook?: () => void;
   onOfferSearch?: () => void;
   onNormalSearch?: () => void;
   hasSearchInput?: boolean;
@@ -348,6 +349,7 @@ export default function ZiiplyMobileSearchCard({
   searchMode = "cart",
   onSearchModeChange,
   onAddInputToCart,
+  onOpenNotebook,
   onOfferSearch,
   onNormalSearch,
   loadingOffers = false,
@@ -524,7 +526,7 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V641_INLINE_BASKET_SEARCH"
+      data-ziiply-mobile-search-card-version="UUSI_V642_INLINE_BASKET_SEARCH_NOTEBOOK_PROP"
       className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.25rem)] z-[72] flex h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] max-h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] items-stretch justify-center overflow-hidden bg-transparent px-2 sm:hidden [transform:translateZ(0)] [backface-visibility:hidden] ${className}`}
     >
       <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.8rem] border-[2px] border-[#ead9a8] bg-[#f6ebc6] px-3 pb-3 pt-3 text-[#20301f] shadow-[inset_0_0_0_2px_rgba(216,189,117,0.34)]">
@@ -563,8 +565,7 @@ export default function ZiiplyMobileSearchCard({
 
             <GreenPillButton
               label="Vihkonen"
-              onClick={handleAddInputToCart}
-              disabled={!hasText}
+              onClick={onOpenNotebook}
               className="mt-3 h-[3.0rem] w-full text-[1.08rem]"
             />
           </div>
