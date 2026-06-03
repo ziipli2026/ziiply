@@ -1,8 +1,9 @@
 "use client";
 
-// V57_GPS_NO_REVERSE_GEOCODE_QUERY_LOCK
-// GPS ON: kauppahaku ei enää käytä reverse-geocodattua kuntaa/postinumeroa querynä.
-// Ehdokaslista haetaan lat/lon + yleisillä kauppatermeillä. GPS OFF / manuaali säilyy vanhalla mallilla.
+// V58_GPS_REMOVE_HARDCODED_CITY_STORE_FALLBACKS
+// GPS ON: poistettu page-tason kovakoodatut paikkakuntahaut ja AREAS-kuntafallback GPS-valinnasta.
+// GPS hakee vain koordinaattipohjaisesti (/api/store-search tyhjällä searchilla + lat/lon).
+// GPS OFF / manuaalihaku käyttää edelleen vanhaa kunta/postinumero-mallia.
 
 // V33_LOCATION_RESOLVER_STORE_SHAPE_FALLBACK
 // Korjaa GPS/manuaali-kauppavalinnan: StoreSearchItem voi tulla API:lta eri muodoilla
@@ -2306,36 +2307,12 @@ export default function Page() {
     void coords;
     void primaryQuery;
 
-    const queries: string[] = [];
-    const addQuery = (value?: string | number | null) => {
-      const cleaned = String(value ?? "").trim();
-
-      // GPS ON: tyhjä haku pitää sallia, koska silloin API saa tehdä puhtaan
-      // lat/lon-pohjaisen lähikauppahaun ilman kunta/postinumero-lukkoa.
-      if (queries.some((item) => normalize(item) === normalize(cleaned))) return;
-      queries.push(cleaned);
-    };
-
-    // V57_GPS_NO_REVERSE_GEOCODE_QUERY_LOCK:
-    // GPS-tilassa EI käytetä reverse-geocodattua kuntaa, postinumeroa eikä kovakoodattuja
-    // Jokela/Tuusula/Kerava/Hyvinkää-hakujonoja. Ne lukitsevat ehdokaslistan kuntaan.
-    // Haetaan vain koordinaattien + yleisten kauppatermien avulla.
-    addQuery("");
-    addQuery("ruokakauppa");
-    addQuery("market");
-    addQuery("supermarket");
-    addQuery("prisma");
-    addQuery("citymarket");
-    addQuery("k-citymarket");
-    addQuery("s-market");
-    addQuery("k-market");
-    addQuery("k-supermarket");
-    addQuery("sale");
-    addQuery("alepa");
-    addQuery("lidl");
-    addQuery("tokmanni");
-
-    return queries.slice(0, 16);
+    // V58: GPS ON ei saa käyttää kovakoodattuja paikkakuntia, reverse-geocode-kuntaa,
+    // postinumeroa eikä AREAS-aluefallbackia ehdokaslistan hakemiseen.
+    // Kauppahaku tehdään vain koordinaateilla. Jos API ei palauta koordinaattipohjaisia
+    // kauppoja, UI saa kertoa ettei kauppoja löytynyt sen sijaan että putoaisi Oulu/Imatra/
+    // Hyvinkää/Jokela/Kerava-tyyppiseen vanhaan paikkakuntapolkuun.
+    return [""];
   }
 
   function setGpsVisibleMessageV391(areaLabel: string) {
@@ -3296,50 +3273,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // kunnanrajalla valinnan Hyvinkäälle.
     for (const store of apiStores) addStore(store);
 
-    // V41: Lisää AREAS-kaupat vain passiiviseksi fallbackiksi ilman aluekeskipisteitä.
-    // Näitä ei saa pisteyttää GPS-etäisyydellä, mutta manuaalinen valinta/lista pysyy ehjänä,
-    // jos API ei palauta mitään.
-    AREAS.forEach((area, areaIndex) => {
-      const base = {
-        city: area.label,
-      } as any;
-
-      if (area.sStoreName) {
-        addStore({
-          ...base,
-          id: area.sStoreId || getGeneratedAreaStoreIdV40(areaIndex, "S", "hyper"),
-          name: area.sStoreName,
-          type: "S",
-        } as StoreSearchItem);
-      }
-
-      if (area.kStoreName) {
-        addStore({
-          ...base,
-          id: area.kStoreId || getGeneratedAreaStoreIdV40(areaIndex, "K", "hyper"),
-          name: area.kStoreName,
-          type: "K",
-        } as StoreSearchItem);
-      }
-
-      if (area.sLocalStoreName) {
-        addStore({
-          ...base,
-          id: area.sLocalStoreId || getGeneratedAreaStoreIdV40(areaIndex, "S", "local"),
-          name: area.sLocalStoreName,
-          type: "S",
-        } as StoreSearchItem);
-      }
-
-      if (area.kLocalStoreName) {
-        addStore({
-          ...base,
-          id: area.kLocalStoreId || getGeneratedAreaStoreIdV40(areaIndex, "K", "local"),
-          name: area.kLocalStoreName,
-          type: "K",
-        } as StoreSearchItem);
-      }
-    });
+    // V58: GPS-kauppapooli ei saa sisältää AREAS-kuntafallback-kauppoja.
+    // Muuten GPS voi päätyä täysin vääriin paikkakuntiin (esim. Oulu/Imatra)
+    // tai lukittua ensimmäiseen reverse-geocodattuun kuntaan.
 
     return result;
   }
@@ -5762,7 +5698,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     try {
       let query = rawQuery;
 
-      if (isFinnishPostalCode(rawQuery)) {
+      if (source !== "gps" && isFinnishPostalCode(rawQuery)) {
         setLocationMessage(`Haetaan aluetta postinumerolle ${rawQuery}`);
         const cityFromPostalCode = await resolvePostalCodeToCity(rawQuery);
 
@@ -5785,7 +5721,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       });
 
       setLocationMessage(
-        `Haetaan kauppoja alueelle ${query}`,
+        source === "gps" ? "Haetaan kauppoja omasta sijainnista" : `Haetaan kauppoja alueelle ${query}`,
       );
       const stores = await fetchStoresForLocationQuery(
         query,
@@ -5795,7 +5731,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       if (stores.length === 0) {
         setLocationMessage(
-          `Alueelle "${query}" ei löytynyt kauppoja. Valitse alue käsin.`,
+          source === "gps"
+            ? "Oman sijainnin ympäriltä ei löytynyt kauppoja. GPS ei käytä kunta- tai postinumero-fallbackia."
+            : `Alueelle "${query}" ei löytynyt kauppoja. Valitse alue käsin.`,
         );
         return;
       }
@@ -5963,6 +5901,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setLocationMessage("Oma sijainti käytössä");
       setLocationMessageVisible(true);
       setLocationInput("");
+      // V58: GPS ei saa käyttää reverse-geocodattua kaupunkia kauppahaun querynä.
       await applyLocation("Oma sijainti", "gps", coords);
     } catch (error) {
       pushGpsDebugLogV492(`useOwnLocation CATCH code=${String((error as any)?.code ?? "?")}`);
@@ -6129,8 +6068,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setLocationMessage("Oma sijainti käytössä");
       setLocationMessageVisible(true);
       setLocationInput("");
-      // V57: reverse-geocodattua city-arvoa ei saa käyttää GPS-kauppahaun querynä.
-      // Se lukitsi ehdokaslistan kuntaan/postinumeroon.
       // V470: älä pudota storeSearchLoadingia pois päältä tässä välissä.
       // GPS-paikannus ja sitä seuraava kauppahaku ovat yksi atominen ajo, jotta
       // Kaupat-paneelin fallback tai toinen effect ei voi startata uutta GPS-hakua väliin.
@@ -6139,6 +6076,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setStoreMode("local");
       setStoreModeChosenV299(true);
       pushGpsDebugLogV492(`useOwnLocation applyLocation start`);
+      // V58: GPS ei saa käyttää reverse-geocodattua kaupunkia kauppahaun querynä.
       await applyLocation("Oma sijainti", "gps", nextGpsCoordsV485);
       gpsApplyLocationDoneV495 = true;
       pushGpsDebugLogV492(`useOwnLocation applyLocation done`);
