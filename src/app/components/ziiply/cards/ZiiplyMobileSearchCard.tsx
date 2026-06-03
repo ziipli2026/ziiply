@@ -251,24 +251,17 @@ function RetroAssetButton({
           : "/ui/voice/aanita-off.webp"
       : "/ui/scanner/scanner-idle.webp";
 
-  const imageClass = cx(
-    "absolute left-1/2 top-1/2 h-[4.18rem] w-[11.95rem] max-w-none -translate-x-1/2 -translate-y-1/2 object-fill object-center select-none drop-shadow-[0_4px_9px_rgba(0,0,0,0.42)]",
-    // V651: scanner-assetissa on repositoryssä enemmän läpinäkyvää pystymarginaalia kuin mikissä.
-    // Pieni pystysuuntainen korjaus tasaa näkyvän nappikoon ilman että wrapperit elävät eri kokoisina.
-    kind === "scanner" && "scale-y-[1.28] scale-x-[1.02]",
-  );
-
   return (
     <button
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="relative block h-[4.42rem] w-full overflow-visible border-0 bg-transparent p-0 shadow-none outline-none transition-transform duration-150 hover:scale-[1.01] active:translate-y-[1px]"
+      className="relative block h-full w-full overflow-visible border-0 bg-transparent p-0 shadow-none outline-none transition-transform duration-150 hover:scale-[1.01] active:translate-y-[1px]"
     >
       <img
         src={imageSrc}
         alt={label}
-        className={imageClass}
+        className="absolute inset-0 h-full w-full object-contain object-center select-none drop-shadow-[0_4px_9px_rgba(0,0,0,0.42)]"
         draggable={false}
       />
     </button>
@@ -567,7 +560,7 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V650_HYBRID_PANEL_REWORK"
+      data-ziiply-mobile-search-card-version="UUSI_V652_HYBRID_PANEL_CORRECTED"
       className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.25rem)] z-[72] flex h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] max-h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] items-stretch justify-center overflow-hidden bg-transparent px-2 sm:hidden [transform:translateZ(0)] [backface-visibility:hidden] ${className}`}
     >
       <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.85rem] border-[3px] border-[#173f2f] bg-[#d9bd77] p-2 text-[#20301f] shadow-[0_7px_0_rgba(91,72,44,0.24),inset_0_0_0_2px_rgba(255,246,207,0.52)]">
@@ -696,35 +689,41 @@ export default function ZiiplyMobileSearchCard({
 
             <div className="relative z-10 mx-auto mt-2 h-[2px] w-[92%] rounded-full bg-[#b58b3d]/55 shadow-[0_1px_0_rgba(255,255,255,0.55)]" />
 
-            <div className="relative z-10 mx-auto mt-1.5 h-[5.35rem] w-full max-w-[23.4rem] overflow-hidden rounded-[1.55rem] border-[2px] border-[#6f4d1f] bg-gradient-to-b from-[#d3a552] via-[#8b682f] to-[#3b2511] p-[0.34rem] shadow-[0_4px_0_rgba(91,72,44,0.22),0_10px_18px_rgba(0,0,0,0.16),inset_0_1px_0_rgba(255,246,207,0.55)]">
-              {/* V650: hybridimallinen yhteinen messinkirunko, ei musta laatikko. */}
-              <div className="pointer-events-none absolute inset-[0.22rem] rounded-[1.32rem] border border-[#f3d580]/55 shadow-[inset_0_0_0_2px_rgba(45,25,10,0.28)]" />
-              <div className="pointer-events-none absolute inset-[0.52rem] rounded-[1.06rem] bg-gradient-to-b from-[#2f3326] via-[#192019] to-[#0f140f] shadow-[inset_0_2px_5px_rgba(0,0,0,0.55),inset_0_0_0_1px_rgba(255,235,165,0.10)]" />
-              <div className="pointer-events-none absolute inset-x-[1.0rem] top-[0.58rem] h-[1px] bg-gradient-to-r from-transparent via-[#f0cf7a]/38 to-transparent" />
-              <div className="pointer-events-none absolute inset-x-[1.0rem] bottom-[0.58rem] h-[1px] bg-gradient-to-r from-transparent via-[#b58b3d]/34 to-transparent" />
+            <div className="relative z-10 mx-auto mt-1.5 h-[5.05rem] w-full max-w-[23.6rem] overflow-visible rounded-[1.52rem] border-[2px] border-[#5f4019] bg-gradient-to-b from-[#c09243] via-[#7b5522] to-[#2a1a0d] p-[0.30rem] shadow-[0_4px_0_rgba(91,72,44,0.22),0_10px_18px_rgba(0,0,0,0.16),inset_0_1px_0_rgba(255,246,207,0.55)]">
+              {/* V652: referenssin mukainen hybridipaneeli: yksi yhteinen messinkirunko, kaksi erillistä upotettua moduulia. */}
+              <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.34rem] border border-[#f3d580]/58 shadow-[inset_0_0_0_2px_rgba(45,25,10,0.28)]" />
+              <div className="pointer-events-none absolute inset-x-[0.60rem] top-[0.54rem] h-[1px] bg-gradient-to-r from-transparent via-[#f0cf7a]/48 to-transparent" />
+              <div className="pointer-events-none absolute inset-x-[0.60rem] bottom-[0.54rem] h-[1px] bg-gradient-to-r from-transparent via-[#f0cf7a]/35 to-transparent" />
 
-              {/* Keskimmäinen mekaaninen liitos / ritilä kuten referenssissä. */}
-              <div className="pointer-events-none absolute left-1/2 top-[0.48rem] bottom-[0.48rem] z-[1] w-[1.42rem] -translate-x-1/2 rounded-[0.55rem] border border-[#b58b3d]/58 bg-gradient-to-b from-[#7d5c2b] via-[#312416] to-[#7d5c2b] shadow-[inset_0_0_0_1px_rgba(255,240,190,0.20),0_0_0_1px_rgba(0,0,0,0.18)]">
-                <div className="absolute left-1/2 top-[0.48rem] h-[0.20rem] w-[0.70rem] -translate-x-1/2 rounded-full bg-[#120f0b]/70 shadow-[0_1px_0_rgba(255,230,150,0.18)]" />
-                <div className="absolute left-1/2 top-[1.04rem] h-[0.20rem] w-[0.70rem] -translate-x-1/2 rounded-full bg-[#120f0b]/70 shadow-[0_1px_0_rgba(255,230,150,0.16)]" />
-                <div className="absolute left-1/2 top-[1.60rem] h-[0.20rem] w-[0.70rem] -translate-x-1/2 rounded-full bg-[#120f0b]/70 shadow-[0_1px_0_rgba(255,230,150,0.16)]" />
-                <div className="absolute left-1/2 top-[2.16rem] h-[0.20rem] w-[0.70rem] -translate-x-1/2 rounded-full bg-[#120f0b]/70 shadow-[0_1px_0_rgba(255,230,150,0.18)]" />
-                <div className="absolute left-1/2 top-[2.72rem] h-[0.20rem] w-[0.70rem] -translate-x-1/2 rounded-full bg-[#120f0b]/70 shadow-[0_1px_0_rgba(255,230,150,0.18)]" />
+              {/* Keskimmäinen mekaaninen ritilä/liitos kuten hybridireferenssissä. */}
+              <div className="pointer-events-none absolute left-1/2 top-[0.32rem] bottom-[0.32rem] z-[2] w-[1.58rem] -translate-x-1/2 rounded-[0.62rem] border border-[#c89b44]/70 bg-gradient-to-b from-[#a87a34] via-[#3b2812] to-[#8e662c] shadow-[inset_0_0_0_1px_rgba(255,240,190,0.24),0_0_0_1px_rgba(0,0,0,0.22)]">
+                {[0.46, 0.98, 1.50, 2.02, 2.54, 3.06].map((top) => (
+                  <span
+                    key={top}
+                    className="absolute left-1/2 h-[0.18rem] w-[0.74rem] -translate-x-1/2 rounded-full bg-[#100d09]/78 shadow-[0_1px_0_rgba(255,230,150,0.18)]"
+                    style={{ top: `${top}rem` }}
+                  />
+                ))}
               </div>
 
-              <div className="relative z-10 grid h-full grid-cols-2 items-center gap-[0.82rem] px-[0.10rem]">
-                <RetroAssetButton
-                  kind="voice"
-                  label="Äänitä"
-                  state={voiceState}
-                  onClick={onVoiceClick}
-                />
-                <RetroAssetButton
-                  kind="scanner"
-                  label="Skanneri"
-                  state={scannerState}
-                  onClick={onScannerClick}
-                />
+              <div className="relative z-10 grid h-full grid-cols-2 items-center gap-[0.34rem]">
+                <div className="relative h-[4.18rem] overflow-visible rounded-[1.18rem] border border-[#c89b44]/42 bg-gradient-to-b from-[#2f3326] via-[#182019] to-[#0f140f] px-[0.10rem] shadow-[inset_0_2px_5px_rgba(0,0,0,0.55),inset_0_0_0_1px_rgba(255,235,165,0.10)]">
+                  <RetroAssetButton
+                    kind="voice"
+                    label="Äänitä"
+                    state={voiceState}
+                    onClick={onVoiceClick}
+                  />
+                </div>
+
+                <div className="relative h-[4.18rem] overflow-visible rounded-[1.18rem] border border-[#c89b44]/42 bg-gradient-to-b from-[#2f3326] via-[#182019] to-[#0f140f] px-[0.10rem] shadow-[inset_0_2px_5px_rgba(0,0,0,0.55),inset_0_0_0_1px_rgba(255,235,165,0.10)]">
+                  <RetroAssetButton
+                    kind="scanner"
+                    label="Skanneri"
+                    state={scannerState}
+                    onClick={onScannerClick}
+                  />
+                </div>
               </div>
             </div>
           </div>
