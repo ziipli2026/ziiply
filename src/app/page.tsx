@@ -10,6 +10,9 @@
 // Muutokset rajattu kauppojen automaattiseen valintaan: adaptiivinen säde, 800 m tarkkuuslogiikka ja kevyempi preferred-painotus tulevat resolveristä.
 // Vanha UI, kortit, haku, kori, skanneri ja Göstan route-polku säilytetty ennallaan.
 
+// V35_GPS_NO_MUNICIPALITY_LOCK
+// GPS-kauppahaku ei enää lukitu reverse-geocodatun kunnan/postinumeron kauppoihin, vaan käyttää koordinaattipohjaista laajaa hakua ennen query-fallbackia.
+
 // V34_GPS_NEXTAREA_SCOPE_FIX
 // Korjaa V33 build-virheen: nextArea oli try-lohkon scoped-muuttuja, mutta finally viittasi siihen.
 // Finally ei enää yliaja kauppahaun virhe-/puutetilaviestiä, vaan vain vapauttaa loadingin ja näyttää olemassa olevan viestin.
@@ -5267,35 +5270,76 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     query: string,
     coords?: { latitude: number; longitude: number } | null,
   ) {
-    const params = new URLSearchParams({ search: query });
-    if (coords) {
-      params.set("lat", String(coords.latitude));
-      params.set("lon", String(coords.longitude));
-      params.set("lng", String(coords.longitude));
-      params.set("latitude", String(coords.latitude));
-      params.set("longitude", String(coords.longitude));
+    async function fetchStoreSearchBatch(search: string) {
+      const params = new URLSearchParams({ search });
+
+      if (coords) {
+        params.set("lat", String(coords.latitude));
+        params.set("lon", String(coords.longitude));
+        params.set("lng", String(coords.longitude));
+        params.set("latitude", String(coords.latitude));
+        params.set("longitude", String(coords.longitude));
+      }
+
+      const response = await fetch(`/api/store-search?${params.toString()}`, {
+        cache: "no-store",
+      });
+
+      if (!response.ok) return [] as StoreSearchItem[];
+
+      const data = await response.json();
+      const rawStores = (
+        data.items ||
+        data.stores ||
+        data.results ||
+        data.data ||
+        []
+      ) as StoreSearchItem[];
+
+      return rawStores.filter(
+        (store) => store && store.id && store.name,
+      );
     }
-    const response = await fetch(`/api/store-search?${params.toString()}`, {
-      cache: "no-store",
-    });
-    const data = await response.json();
-    const rawStores = (
-      data.items ||
-      data.stores ||
-      data.results ||
-      data.data ||
-      []
-    ) as StoreSearchItem[];
-    const stores = rawStores.filter(
-      (store) => store && store.id && store.name,
-    );
 
-    // v320store-11:
+    // V35_GPS_NO_MUNICIPALITY_LOCK:
+    // GPS-tilassa ei saa hakea kauppoja vain reverse-geocodatun kunnan nimellä.
+    // Kunnanrajalla käyttäjä voi olla Hyvinkään puolella, mutta lähimmät kaupat voivat olla
+    // Jokelassa/Tuusulassa. Siksi GPS-haussa pyydetään ensin koordinaattipohjainen laaja haku
+    // tyhjällä search-arvolla ja vasta sen jälkeen query-fallback vanhaa API-käytöstä varten.
+    const searchQueries = coords
+      ? ["", query]
+      : [query];
+
+    const mergedStores: StoreSearchItem[] = [];
+    const seenStoreKeys = new Set<string>();
+
+    for (const search of searchQueries) {
+      const batch = await fetchStoreSearchBatch(search);
+
+      for (const store of batch) {
+        const key = String(
+          store.id ??
+            `${normalize(String(store.name || ""))}:${normalize(String(store.city || ""))}`,
+        );
+
+        if (seenStoreKeys.has(key)) continue;
+        seenStoreKeys.add(key);
+        mergedStores.push(store);
+      }
+
+      // Jos laaja GPS-haku palautti jo riittävästi kauppoja, ei lukita tuloksia enää queryyn.
+      if (coords && search === "" && mergedStores.length >= 4) {
+        break;
+      }
+    }
+
+    // v320store-11 / V35:
     // Varmistetaan etäisyydet myös silloin, kun API ei palauta distance-kenttää.
-    // Jos GPS-koordinaatti on käytössä ja kaupalla on koordinaatit, lasketaan distanceKm mukaan listadataan.
-    if (!coords) return stores;
+    // GPS-koordinaatilla valinta tehdään distanceKm:n perusteella koko palautuneesta listasta,
+    // ei aktiivisen kunnan/postinumeron perusteella.
+    if (!coords) return mergedStores;
 
-    return stores.map((store) => {
+    return mergedStores.map((store) => {
       const explicitDistanceKm = readExplicitDistanceKmV320(store);
       if (explicitDistanceKm != null) {
         return {
