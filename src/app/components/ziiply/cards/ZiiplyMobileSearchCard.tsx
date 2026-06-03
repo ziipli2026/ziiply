@@ -715,7 +715,7 @@ export default function ZiiplyMobileSearchCard({
                   />
                 </div>
               </div>
-            </div>          </div>
+            </div>
           </div>
 
           {/* Hakutulokset renderöidään erillisessä ZiiplyMobileSearchResultsCard-komponentissa. */}
