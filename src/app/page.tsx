@@ -1,9 +1,9 @@
 "use client";
 
-// V50_GPS_TRUE_COORDINATE_STORE_SELECTION
-// Korjaus: GPS-kauppavalinta ei saa enää perustua kovakoodattuun kunta-/postinumerohaun järjestykseen.
-// GPS-tilassa S/K-lähikaupat ja tavaratalot valitaan ensisijaisesti oikeilla store latitude/longitude -koordinaateilla,
-// ja vasta toissijaisesti API:n antamalla distanceKm-arvolla. activeArea/findArea/query ei saa toimia GPS-valinnan tie-breakerina.
+// V51_GPS_SAFE_DISTANCE_WITH_FALLBACK
+// Korjaus V50:n liian tiukkaan GPS-valintaan: jos API/store-data ei anna koordinaatteja eikä distanceKm-arvoa,
+// kauppalistaa ei saa tyhjentää. GPS käyttää edelleen ensisijaisesti todellista etäisyyttä, mutta palautuu turvallisesti
+// vanhaan pickStore-fallbackiin vain silloin, kun etäisyysdataa ei ole lainkaan.
 
 // V33_LOCATION_RESOLVER_STORE_SHAPE_FALLBACK
 // Korjaa GPS/manuaali-kauppavalinnan: StoreSearchItem voi tulla API:lta eri muodoilla
@@ -5419,7 +5419,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const anyChainStoreByDistance = sortByTrueGpsDistance(candidates);
     if (anyChainStoreByDistance.length > 0) return anyChainStoreByDistance[0].store;
 
-    return undefined;
+    // V51: turvallinen fallback. V50 palautti tässä undefinedin, mikä tyhjensi sekä
+    // lähikaupat että tavaratalot, jos API ei antanut myymäläkohtaisia koordinaatteja.
+    // Tätä käytetään vain viimeisenä keinona, kun etäisyysdataa ei ole lainkaan.
+    const oldPickerPreferred = pickStore(candidates, preferredPredicate);
+    const oldPickerFallback = pickStore(candidates, fallbackPredicate);
+
+    return oldPickerPreferred || oldPickerFallback || candidates[0];
   }
 
   function rankStoresForMode(
