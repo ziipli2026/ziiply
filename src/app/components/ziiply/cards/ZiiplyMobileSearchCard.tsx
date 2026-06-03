@@ -1,6 +1,6 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V655_TOOL_ASSET_VIEWPORT_CROP
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V650_HYBRID_PANEL_REWORK
 // Pohja: v608/v510 toimiva hakulogiikka.
 // Muutettu vain JSX/CSS layout vastaamaan annettua finalleiska-mallia.
 
@@ -256,21 +256,16 @@ function RetroAssetButton({
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="relative block h-full w-full overflow-hidden border-0 bg-transparent p-0 shadow-none outline-none transition-transform duration-150 hover:scale-[1.01] active:translate-y-[1px]"
+      className="relative block h-full w-full overflow-visible border-0 bg-transparent p-0 shadow-none outline-none transition-transform duration-150 hover:scale-[1.01] active:translate-y-[1px]"
     >
-      {/*
-        V655: assetteja EI enää yritetä tasata skaalaamalla koko nappia moduulin sisällä.
-        Kameran nykyinen webp sisältää enemmän tyhjää canvasia kuin mikki.
-        Korjaus tehdään viewport-croppina: wrapper rajaa ylimääräisen tyhjän pois ja
-        scanner-kuvaa suurennetaan sisäisesti, jolloin näkyvä fyysinen palkki vastaa mikkiä.
-      */}
       <img
         src={imageSrc}
         alt={label}
         className={cx(
-          "absolute left-1/2 top-1/2 max-w-none select-none drop-shadow-[0_4px_9px_rgba(0,0,0,0.42)]",
-          kind === "voice" && "h-[112%] w-auto -translate-x-1/2 -translate-y-1/2",
-          kind === "scanner" && "h-[265%] w-auto -translate-x-1/2 -translate-y-1/2",
+          "absolute inset-0 h-full w-full object-contain object-center select-none drop-shadow-[0_4px_9px_rgba(0,0,0,0.42)]",
+          // V653: scanner-assetissa on enemmän läpinäkyvää canvasia / sisämarginaalia kuin äänitä-assetissa.
+          // Siksi pelkkä sama wrapper ei riitä, vaan kamerakuva kompensoidaan visuaalisesti samankokoiseksi.
+          kind === "scanner" && "scale-[1.56]",
         )}
         draggable={false}
       />
@@ -570,7 +565,7 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V655_TOOL_ASSET_VIEWPORT_CROP"
+      data-ziiply-mobile-search-card-version="UUSI_V652_HYBRID_PANEL_CORRECTED"
       className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.25rem)] z-[72] flex h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] max-h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] items-stretch justify-center overflow-hidden bg-transparent px-2 sm:hidden [transform:translateZ(0)] [backface-visibility:hidden] ${className}`}
     >
       <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.85rem] border-[3px] border-[#173f2f] bg-[#d9bd77] p-2 text-[#20301f] shadow-[0_7px_0_rgba(91,72,44,0.24),inset_0_0_0_2px_rgba(255,246,207,0.52)]">
@@ -717,7 +712,7 @@ export default function ZiiplyMobileSearchCard({
               </div>
 
               <div className="relative z-10 grid h-full grid-cols-2 items-center gap-[0.34rem]">
-                <div className="relative h-[4.18rem] overflow-hidden rounded-[1.18rem] border border-[#c89b44]/42 bg-gradient-to-b from-[#2f3326] via-[#182019] to-[#0f140f] px-[0.10rem] shadow-[inset_0_2px_5px_rgba(0,0,0,0.55),inset_0_0_0_1px_rgba(255,235,165,0.10)]">
+                <div className="relative h-[4.18rem] overflow-visible rounded-[1.18rem] border border-[#c89b44]/42 bg-gradient-to-b from-[#2f3326] via-[#182019] to-[#0f140f] px-[0.10rem] shadow-[inset_0_2px_5px_rgba(0,0,0,0.55),inset_0_0_0_1px_rgba(255,235,165,0.10)]">
                   <RetroAssetButton
                     kind="voice"
                     label="Äänitä"
@@ -726,7 +721,7 @@ export default function ZiiplyMobileSearchCard({
                   />
                 </div>
 
-                <div className="relative h-[4.18rem] overflow-hidden rounded-[1.18rem] border border-[#c89b44]/42 bg-gradient-to-b from-[#2f3326] via-[#182019] to-[#0f140f] px-[0.10rem] shadow-[inset_0_2px_5px_rgba(0,0,0,0.55),inset_0_0_0_1px_rgba(255,235,165,0.10)]">
+                <div className="relative h-[4.18rem] overflow-visible rounded-[1.18rem] border border-[#c89b44]/42 bg-gradient-to-b from-[#2f3326] via-[#182019] to-[#0f140f] px-[0.10rem] shadow-[inset_0_2px_5px_rgba(0,0,0,0.55),inset_0_0_0_1px_rgba(255,235,165,0.10)]">
                   <RetroAssetButton
                     kind="scanner"
                     label="Skanneri"
@@ -770,3 +765,4 @@ export default function ZiiplyMobileSearchCard({
 }
 
 export { ZiiplyMobileSearchCard };
+
