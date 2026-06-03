@@ -1,6 +1,6 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V655_TOOL_ASSET_VIEWPORT_CROP
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V650_HYBRID_PANEL_REWORK
 // Pohja: v608/v510 toimiva hakulogiikka.
 // Muutettu vain JSX/CSS layout vastaamaan annettua finalleiska-mallia.
 
@@ -258,20 +258,10 @@ function RetroAssetButton({
       aria-label={label}
       className="relative block h-full w-full overflow-hidden border-0 bg-transparent p-0 shadow-none outline-none transition-transform duration-150 hover:scale-[1.01] active:translate-y-[1px]"
     >
-      {/*
-        V655: assetteja EI enää yritetä tasata skaalaamalla koko nappia moduulin sisällä.
-        Kameran nykyinen webp sisältää enemmän tyhjää canvasia kuin mikki.
-        Korjaus tehdään viewport-croppina: wrapper rajaa ylimääräisen tyhjän pois ja
-        scanner-kuvaa suurennetaan sisäisesti, jolloin näkyvä fyysinen palkki vastaa mikkiä.
-      */}
       <img
         src={imageSrc}
         alt={label}
-        className={cx(
-          "absolute left-1/2 top-1/2 max-w-none select-none drop-shadow-[0_4px_9px_rgba(0,0,0,0.42)]",
-          kind === "voice" && "h-[112%] w-auto -translate-x-1/2 -translate-y-1/2",
-          kind === "scanner" && "h-[265%] w-auto -translate-x-1/2 -translate-y-1/2",
-        )}
+        className="absolute inset-0 h-full w-full object-fill object-center select-none drop-shadow-[0_3px_7px_rgba(0,0,0,0.36)]"
         draggable={false}
       />
     </button>
@@ -570,7 +560,7 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V655_TOOL_ASSET_VIEWPORT_CROP"
+      data-ziiply-mobile-search-card-version="UUSI_V656_TOOLPANEL_RESET_EQUAL_NATIVE_ASSETS"
       className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.25rem)] z-[72] flex h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] max-h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] items-stretch justify-center overflow-hidden bg-transparent px-2 sm:hidden [transform:translateZ(0)] [backface-visibility:hidden] ${className}`}
     >
       <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.85rem] border-[3px] border-[#173f2f] bg-[#d9bd77] p-2 text-[#20301f] shadow-[0_7px_0_rgba(91,72,44,0.24),inset_0_0_0_2px_rgba(255,246,207,0.52)]">
@@ -699,25 +689,15 @@ export default function ZiiplyMobileSearchCard({
 
             <div className="relative z-10 mx-auto mt-2 h-[2px] w-[92%] rounded-full bg-[#b58b3d]/55 shadow-[0_1px_0_rgba(255,255,255,0.55)]" />
 
-            <div className="relative z-10 mx-auto mt-1.5 h-[5.05rem] w-full max-w-[23.6rem] overflow-visible rounded-[1.52rem] border-[2px] border-[#5f4019] bg-gradient-to-b from-[#c09243] via-[#7b5522] to-[#2a1a0d] p-[0.30rem] shadow-[0_4px_0_rgba(91,72,44,0.22),0_10px_18px_rgba(0,0,0,0.16),inset_0_1px_0_rgba(255,246,207,0.55)]">
-              {/* V652: referenssin mukainen hybridipaneeli: yksi yhteinen messinkirunko, kaksi erillistä upotettua moduulia. */}
-              <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.34rem] border border-[#f3d580]/58 shadow-[inset_0_0_0_2px_rgba(45,25,10,0.28)]" />
-              <div className="pointer-events-none absolute inset-x-[0.60rem] top-[0.54rem] h-[1px] bg-gradient-to-r from-transparent via-[#f0cf7a]/48 to-transparent" />
-              <div className="pointer-events-none absolute inset-x-[0.60rem] bottom-[0.54rem] h-[1px] bg-gradient-to-r from-transparent via-[#f0cf7a]/35 to-transparent" />
+            <div className="relative z-10 mx-auto mt-2 w-full max-w-[23.6rem] overflow-hidden rounded-[1.38rem] border-[2px] border-[#8a6328] bg-gradient-to-b from-[#c79a45] via-[#765320] to-[#2b1b0d] p-[0.22rem] shadow-[0_4px_0_rgba(91,72,44,0.18),0_8px_14px_rgba(0,0,0,0.14),inset_0_1px_0_rgba(255,246,207,0.48)]">
+              {/* V656: resetti. Ei viewport-croppia, ei erikoisskaalausta.
+                  Molemmat assetit täyttävät identtisen slotin object-fillillä. 
+                  Kuvat ovat nyt itse valmis paneeligrafiikka, joten taustapaneeli on vain ohut yhteinen kehys. */}
+              <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.18rem] border border-[#f0cf7a]/55" />
+              <div className="pointer-events-none absolute left-1/2 top-[0.30rem] bottom-[0.30rem] z-[2] w-[0.84rem] -translate-x-1/2 rounded-[0.42rem] border border-[#b98a3c]/70 bg-gradient-to-b from-[#b7893a] via-[#3a2712] to-[#8a6228] shadow-[inset_0_0_0_1px_rgba(255,240,190,0.18)]" />
 
-              {/* Keskimmäinen mekaaninen ritilä/liitos kuten hybridireferenssissä. */}
-              <div className="pointer-events-none absolute left-1/2 top-[0.32rem] bottom-[0.32rem] z-[2] w-[1.58rem] -translate-x-1/2 rounded-[0.62rem] border border-[#c89b44]/70 bg-gradient-to-b from-[#a87a34] via-[#3b2812] to-[#8e662c] shadow-[inset_0_0_0_1px_rgba(255,240,190,0.24),0_0_0_1px_rgba(0,0,0,0.22)]">
-                {[0.46, 0.98, 1.50, 2.02, 2.54, 3.06].map((top) => (
-                  <span
-                    key={top}
-                    className="absolute left-1/2 h-[0.18rem] w-[0.74rem] -translate-x-1/2 rounded-full bg-[#100d09]/78 shadow-[0_1px_0_rgba(255,230,150,0.18)]"
-                    style={{ top: `${top}rem` }}
-                  />
-                ))}
-              </div>
-
-              <div className="relative z-10 grid h-full grid-cols-2 items-center gap-[0.34rem]">
-                <div className="relative h-[4.18rem] overflow-hidden rounded-[1.18rem] border border-[#c89b44]/42 bg-gradient-to-b from-[#2f3326] via-[#182019] to-[#0f140f] px-[0.10rem] shadow-[inset_0_2px_5px_rgba(0,0,0,0.55),inset_0_0_0_1px_rgba(255,235,165,0.10)]">
+              <div className="relative z-10 grid h-[3.92rem] grid-cols-2 items-center gap-[0.16rem]">
+                <div className="relative h-full min-w-0 overflow-hidden rounded-[1.05rem]">
                   <RetroAssetButton
                     kind="voice"
                     label="Äänitä"
@@ -726,7 +706,7 @@ export default function ZiiplyMobileSearchCard({
                   />
                 </div>
 
-                <div className="relative h-[4.18rem] overflow-hidden rounded-[1.18rem] border border-[#c89b44]/42 bg-gradient-to-b from-[#2f3326] via-[#182019] to-[#0f140f] px-[0.10rem] shadow-[inset_0_2px_5px_rgba(0,0,0,0.55),inset_0_0_0_1px_rgba(255,235,165,0.10)]">
+                <div className="relative h-full min-w-0 overflow-hidden rounded-[1.05rem]">
                   <RetroAssetButton
                     kind="scanner"
                     label="Skanneri"
@@ -735,7 +715,7 @@ export default function ZiiplyMobileSearchCard({
                   />
                 </div>
               </div>
-            </div>
+            </div>          </div>
           </div>
 
           {/* Hakutulokset renderöidään erillisessä ZiiplyMobileSearchResultsCard-komponentissa. */}
