@@ -4154,6 +4154,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const closeFloatingPanels = useCallback(() => {
     setSearchPanelOpen(false);
     setCartModalOpen(false);
+    setNotebookOpen(false);
     setEanModalOpen(false);
   }, []);
 
@@ -12856,8 +12857,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             onClose={() => setNotebookOpen(false)}
             onSaveCurrentCart={(name?: string) => {
               saveCurrentCartAsList(name);
-              setNotebookOpen(false);
-              setCartModalOpen(true);
             }}
             onOpenList={(list) => {
               addSavedListToCart(list as SavedShoppingList);
@@ -13048,10 +13047,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           cartLength={cart.length}
           cartModalOpen={cartModalOpen}
           activeResult={activeResult}
-          onShopsClick={() => { suppressHaeReadyBadgeV541(); setNormalResults([]); setMobileResultsReadyQueryV537(""); toggleShopsPanel(); }}
-          onSearchClick={() => { suppressHaeReadyBadgeV541(); setNormalResults([]); setMobileResultsReadyQueryV537(""); toggleSearchPanel(); }}
-          onCartClick={() => { suppressHaeReadyBadgeV541(); setNormalResults([]); setMobileResultsReadyQueryV537(""); toggleCartModal(); }}
-          onCompareClick={() => { suppressHaeReadyBadgeV541(); setNormalResults([]); setMobileResultsReadyQueryV537(""); toggleComparisonView(); }}
+          onShopsClick={() => { suppressHaeReadyBadgeV541(); setNotebookOpen(false); setNormalResults([]); setMobileResultsReadyQueryV537(""); toggleShopsPanel(); }}
+          onSearchClick={() => { suppressHaeReadyBadgeV541(); setNotebookOpen(false); setNormalResults([]); setMobileResultsReadyQueryV537(""); toggleSearchPanel(); }}
+          onCartClick={() => { suppressHaeReadyBadgeV541(); setNotebookOpen(false); setNormalResults([]); setMobileResultsReadyQueryV537(""); toggleCartModal(); }}
+          onCompareClick={() => { suppressHaeReadyBadgeV541(); setNotebookOpen(false); setNormalResults([]); setMobileResultsReadyQueryV537(""); toggleComparisonView(); }}
         />
           </div>
 
