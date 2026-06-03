@@ -1,5 +1,10 @@
 "use client";
 
+// V33_LOCATION_RESOLVER_STORE_SHAPE_FALLBACK
+// Korjaa GPS/manuaali-kauppavalinnan: StoreSearchItem voi tulla API:lta eri muodoilla
+// (type/chain puuttuu tai koordinaatit eri kentissä). Resolveri saa nyt vahvan S/K-name fallbackin
+// ja jos score-resolver ei voi pisteyttää kauppaa, palataan vanhaan pickStore-logiikkaan.
+
 // V32_LOCATION_RESOLVER_CORE_WIRE
 // Page käyttää uutta offerSearch/ziiplyLocationResolverCore.ts-resolveriä GPS-kauppojen pisteytykseen.
 // Muutokset rajattu kauppojen automaattiseen valintaan: adaptiivinen säde, 800 m tarkkuuslogiikka ja kevyempi preferred-painotus tulevat resolveristä.
@@ -5018,12 +5023,53 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function getZiiplyResolverStoreChainV32(store: StoreSearchItem): ZiiplyStoreChain {
-    const rawChain = String((store as any).chain || store.type || "").toUpperCase();
+    const rawChain = String(
+      (store as any).chain ||
+        (store as any).chainCode ||
+        (store as any).chainId ||
+        (store as any).group ||
+        store.type ||
+        "",
+    ).toUpperCase();
 
-    if (rawChain === "S") return "S";
-    if (rawChain === "K") return "K";
-    if (rawChain.includes("LIDL")) return "LIDL";
-    if (rawChain.includes("TOKMANNI")) return "TOKMANNI";
+    const nameText = normalize(`${store.name || ""} ${(store as any).brand || ""} ${(store as any).banner || ""}`);
+
+    if (
+      rawChain === "S" ||
+      rawChain.includes("SOK") ||
+      rawChain.includes("S_GROUP") ||
+      rawChain.includes("S-RYH") ||
+      rawChain.includes("S RYH") ||
+      rawChain.includes("S-KETJU") ||
+      nameText.includes("prisma") ||
+      nameText.includes("s-market") ||
+      nameText.includes("s market") ||
+      nameText.includes("sale") ||
+      nameText.includes("alepa")
+    ) {
+      return "S";
+    }
+
+    if (
+      rawChain === "K" ||
+      rawChain.includes("KESKO") ||
+      rawChain.includes("K_GROUP") ||
+      rawChain.includes("K-RYH") ||
+      rawChain.includes("K RYH") ||
+      rawChain.includes("K-KETJU") ||
+      nameText.includes("k-citymarket") ||
+      nameText.includes("k citymarket") ||
+      nameText.includes("citymarket") ||
+      nameText.includes("k-supermarket") ||
+      nameText.includes("k supermarket") ||
+      nameText.includes("k-market") ||
+      nameText.includes("k market")
+    ) {
+      return "K";
+    }
+
+    if (rawChain.includes("LIDL") || nameText.includes("lidl")) return "LIDL";
+    if (rawChain.includes("TOKMANNI") || nameText.includes("tokmanni")) return "TOKMANNI";
 
     return "OTHER";
   }
@@ -5097,16 +5143,20 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     coords?: { latitude: number; longitude: number } | null,
   ) {
     const chainStores = stores.filter((store) => getZiiplyResolverStoreChainV32(store) === chain);
+    const candidates = chainStores.length > 0 ? chainStores : stores;
+    const hyperPredicate = chain === "S" ? isPrisma : isKCitymarket;
+    const localPredicate = chain === "S" ? isSLocalStore : isKLocalStore;
+    const preferredPredicate = mode === "hyper" ? hyperPredicate : localPredicate;
+    const fallbackPredicate = mode === "hyper" ? localPredicate : hyperPredicate;
+
+    const oldPickerPreferred = pickStore(candidates, preferredPredicate);
+    const oldPickerFallback = pickStore(candidates, fallbackPredicate);
 
     if (!coords) {
-      if (mode === "hyper") {
-        return pickStore(chainStores, chain === "S" ? isPrisma : isKCitymarket);
-      }
-
-      return pickStore(chainStores, chain === "S" ? isSLocalStore : isKLocalStore);
+      return oldPickerPreferred || oldPickerFallback || candidates[0];
     }
 
-    return chainStores
+    const scoredStores = candidates
       .map((store) => {
         const scored = scoreZiiplyStore({
           store: toZiiplyResolverGeoStoreV32(store),
@@ -5116,6 +5166,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             capturedAt: Date.now(),
           },
           mode,
+          // GPS-käytössä ei saa pudottaa Hyvinkään kaltaisia kauppoja pois vain siksi,
+          // että ulkoinen API palauttaa koordinaatit/etäisyydet vähän eri muodossa.
+          adaptiveRadiusKm: mode === "hyper" ? 80 : 35,
+          minimumRadiusKm: 0,
         });
 
         if (!scored) return null;
@@ -5136,7 +5190,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         if (storeB.score !== storeA.score) return storeB.score - storeA.score;
         return storeA.distanceKm - storeB.distanceKm;
-      })[0]?.store;
+      });
+
+    return (
+      scoredStores[0]?.store ||
+      oldPickerPreferred ||
+      oldPickerFallback ||
+      candidates[0]
+    );
   }
 
   function rankStoresForMode(
@@ -5214,8 +5275,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       cache: "no-store",
     });
     const data = await response.json();
-    const stores = ((data.items || []) as StoreSearchItem[]).filter(
-      (store) => store.id && store.name,
+    const rawStores = (
+      data.items ||
+      data.stores ||
+      data.results ||
+      data.data ||
+      []
+    ) as StoreSearchItem[];
+    const stores = rawStores.filter(
+      (store) => store && store.id && store.name,
     );
 
     // v320store-11:
@@ -5530,7 +5598,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           `${nextArea.label || query} löytyi, mutta kaikkia ${effectiveStoreModeForLocationMessage === "local" ? "lähikauppoja" : "tavarataloja"} ei löytynyt. Voit valita kaupat listasta.`,
         );
       } else {
-        setLocationMessage(`${activeArea.label || "GPS"} käytössä`);
+        setLocationMessage(`${nextArea.label || query || "GPS"} käytössä`);
       }
     } catch (error) {
       pushGpsDebugLogV492(`useOwnLocation CATCH code=${String((error as any)?.code ?? "?")}`);
@@ -5557,7 +5625,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setStoreSearchLoading(false);
       if (source === "gps") {
         setGpsErrorMessage("");
-        setLocationMessage(`${activeArea.label || "GPS"} käytössä`);
+        setLocationMessage(`${nextArea.label || query || "GPS"} käytössä`);
         setLocationMessageVisible(true);
       }
     }
