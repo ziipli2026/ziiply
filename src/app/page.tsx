@@ -1,5 +1,10 @@
 "use client";
 
+// V46_GPS_HYPER_AREA_CENTER_ONLY_FOR_TAVARATALOT
+// Korjaa GPS:n Tavaratalot-valinnan: hypermarketit saavat käyttää AREAS-aluekeskipisteitä fallbackina,
+// jotta lähin Prisma/K-Citymarket ei lukitu Jokela/Tuusula/Kerava-lähikauppahaun mukaan.
+// Lähikaupat eivät käytä aluekeskipisteitä, joten V41:n toimiva kunnanrajakorjaus säilyy.
+
 // V45_SAFE_ROLLBACK_TO_WORKING_GPS_LOCAL
 // Palauttaa V42/V41-toimivan GPS-kauppavalinnan: lähikaupat eivät katoa.
 // V43/V44 hypermarket-kokeilut poistettu, koska ne tyhjensivät kauppapoolin, jos myymäläkoordinaatteja puuttuu.
@@ -3306,6 +3311,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   function buildGpsStoreCandidatePoolFromAllAreasV40(
     apiStores: StoreSearchItem[],
+    modeForAreaFallback?: StoreMode,
   ) {
     const seen = new Set<string>();
     const result: StoreSearchItem[] = [];
@@ -3331,13 +3337,22 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // Näitä ei saa pisteyttää GPS-etäisyydellä, mutta manuaalinen valinta/lista pysyy ehjänä,
     // jos API ei palauta mitään.
     AREAS.forEach((area, areaIndex) => {
+      const areaCoords = getAreaCoordinateForGpsStorePoolV40(area);
       const base = {
         city: area.label,
       } as any;
+      const hyperBase =
+        modeForAreaFallback === "hyper" && areaCoords
+          ? {
+              ...base,
+              latitude: areaCoords.latitude,
+              longitude: areaCoords.longitude,
+            }
+          : base;
 
       if (area.sStoreName) {
         addStore({
-          ...base,
+          ...hyperBase,
           id: area.sStoreId || getGeneratedAreaStoreIdV40(areaIndex, "S", "hyper"),
           name: area.sStoreName,
           type: "S",
@@ -3346,7 +3361,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       if (area.kStoreName) {
         addStore({
-          ...base,
+          ...hyperBase,
           id: area.kStoreId || getGeneratedAreaStoreIdV40(areaIndex, "K", "hyper"),
           name: area.kStoreName,
           type: "K",
@@ -3392,7 +3407,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // aina koordinaateilla foundStores-listasta.
     if (usingOwnLocation && gpsCoordsV320 && storeModeChosenV299) {
       const gpsMode = selectedStoreModeRefV302.current || storeMode;
-      const gpsStorePoolV40 = buildGpsStoreCandidatePoolFromAllAreasV40(foundStores);
+      const gpsStorePoolV40 = buildGpsStoreCandidatePoolFromAllAreasV40(foundStores, gpsMode);
       const ranked = rankStoresForMode(gpsStorePoolV40, gpsMode, gpsCoordsV320);
 
       if (gpsMode === "local") {
@@ -5387,6 +5402,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const preferredPredicate = mode === "hyper" ? hyperPredicate : localPredicate;
     const fallbackPredicate = mode === "hyper" ? localPredicate : hyperPredicate;
 
+    const preferredRankingCandidates = rankingCandidates.filter(preferredPredicate);
+    const gpsRankingCandidates =
+      coords && preferredRankingCandidates.length > 0
+        ? preferredRankingCandidates
+        : rankingCandidates;
+
     const oldPickerPreferred = pickStore(rankingCandidates, preferredPredicate);
     const oldPickerFallback = pickStore(rankingCandidates, fallbackPredicate);
 
@@ -5394,7 +5415,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return oldPickerPreferred || oldPickerFallback || rankingCandidates[0];
     }
 
-    const scoredStores = rankingCandidates
+    const scoredStores = gpsRankingCandidates
       .map((store) => {
         const geoStoreForScore = toZiiplyResolverGeoStoreV32(store);
         if (geoStoreForScore.latitude != null && geoStoreForScore.longitude != null) {
