@@ -28,6 +28,10 @@
 // Lisäksi GPS-kauppahaku hakee lähimmien AREA-pisteiden ympäriltä useita hakusanoja,
 // jotta kunnanrajalla mukaan tulee myös Jokela/Tuusula eikä pelkkä reverse-geocodattu Hyvinkää.
 
+// V40_GPS_ALL_AREAS_STORE_POOL:
+// GPS-tilassa lähikauppojen valinta ei enää käytä vain API:n paikkakuntakohtaista foundStores-listaa.
+// Mukaan rakennetaan ehdokaslista kaikista AREAS-kaupoista, jotta kunnanrajalla Jokela/Tuusula voi voittaa Hyvinkään.
+
 // V31_GOSTA_ROUTE_PATH_FIX
 // Korjaa Göstan tarjoushaun fetch-polun vastaamaan nykyistä route-sijaintia:
 // src/app/api/offers/search/route.ts -> /api/offers/search
@@ -3243,6 +3247,96 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     });
   }
 
+  function getAreaCoordinateForGpsStorePoolV40(area: Area) {
+    const latitude = Number((area as any).latitude ?? (area as any).lat);
+    const longitude = Number(
+      (area as any).longitude ?? (area as any).lng ?? (area as any).lon,
+    );
+
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+
+    return { latitude, longitude };
+  }
+
+  function getGeneratedAreaStoreIdV40(
+    areaIndex: number,
+    chain: "S" | "K",
+    mode: StoreMode,
+  ) {
+    const chainOffset = chain === "S" ? 1 : 2;
+    const modeOffset = mode === "local" ? 20_000 : 10_000;
+    return -(modeOffset + areaIndex * 10 + chainOffset);
+  }
+
+  function buildGpsStoreCandidatePoolFromAllAreasV40(
+    apiStores: StoreSearchItem[],
+  ) {
+    const seen = new Set<string>();
+    const result: StoreSearchItem[] = [];
+
+    const addStore = (store: StoreSearchItem) => {
+      const key = String(
+        (store as any).id ??
+          `${normalize(String(store.name || ""))}:${normalize(String(store.city || ""))}`,
+      );
+
+      if (!key || seen.has(key)) return;
+      seen.add(key);
+      result.push(normalizeStoreForPickerV320(store));
+    };
+
+    for (const store of apiStores) addStore(store);
+
+    AREAS.forEach((area, areaIndex) => {
+      const coordinates = getAreaCoordinateForGpsStorePoolV40(area);
+      const base = {
+        city: area.label,
+        latitude: coordinates?.latitude,
+        longitude: coordinates?.longitude,
+        lat: coordinates?.latitude,
+        lng: coordinates?.longitude,
+      } as any;
+
+      if (area.sStoreName) {
+        addStore({
+          ...base,
+          id: area.sStoreId || getGeneratedAreaStoreIdV40(areaIndex, "S", "hyper"),
+          name: area.sStoreName,
+          type: "S",
+        } as StoreSearchItem);
+      }
+
+      if (area.kStoreName) {
+        addStore({
+          ...base,
+          id: area.kStoreId || getGeneratedAreaStoreIdV40(areaIndex, "K", "hyper"),
+          name: area.kStoreName,
+          type: "K",
+        } as StoreSearchItem);
+      }
+
+      if (area.sLocalStoreName) {
+        addStore({
+          ...base,
+          id: area.sLocalStoreId || getGeneratedAreaStoreIdV40(areaIndex, "S", "local"),
+          name: area.sLocalStoreName,
+          type: "S",
+        } as StoreSearchItem);
+      }
+
+      if (area.kLocalStoreName) {
+        addStore({
+          ...base,
+          id: area.kLocalStoreId || getGeneratedAreaStoreIdV40(areaIndex, "K", "local"),
+          name: area.kLocalStoreName,
+          type: "K",
+        } as StoreSearchItem);
+      }
+    });
+
+    return result;
+  }
+
   const activeStores = useMemo(() => {
     if (storeCompareScope !== "within_chain" && !storeModeChosenV299) {
       return {
@@ -3258,9 +3352,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // Aiemmin activeStores luettiin aina activeArea-objektista, jolloin GPS:n reverse-geocodattu
     // kunta/postinumero pystyi lukitsemaan valinnan Hyvinkäälle. GPS-tilassa valitaan S/K-pari
     // aina koordinaateilla foundStores-listasta.
-    if (usingOwnLocation && gpsCoordsV320 && foundStores.length > 0 && storeModeChosenV299) {
+    if (usingOwnLocation && gpsCoordsV320 && storeModeChosenV299) {
       const gpsMode = selectedStoreModeRefV302.current || storeMode;
-      const ranked = rankStoresForMode(foundStores, gpsMode, gpsCoordsV320);
+      const gpsStorePoolV40 = buildGpsStoreCandidatePoolFromAllAreasV40(foundStores);
+      const ranked = rankStoresForMode(gpsStorePoolV40, gpsMode, gpsCoordsV320);
 
       if (gpsMode === "local") {
         return {
