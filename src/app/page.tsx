@@ -10,6 +10,10 @@
 // Muutokset rajattu kauppojen automaattiseen valintaan: adaptiivinen säde, 800 m tarkkuuslogiikka ja kevyempi preferred-painotus tulevat resolveristä.
 // Vanha UI, kortit, haku, kori, skanneri ja Göstan route-polku säilytetty ennallaan.
 
+// V34_GPS_NEXTAREA_SCOPE_FIX
+// Korjaa V33 build-virheen: nextArea oli try-lohkon scoped-muuttuja, mutta finally viittasi siihen.
+// Finally ei enää yliaja kauppahaun virhe-/puutetilaviestiä, vaan vain vapauttaa loadingin ja näyttää olemassa olevan viestin.
+
 // V31_GOSTA_ROUTE_PATH_FIX
 // Korjaa Göstan tarjoushaun fetch-polun vastaamaan nykyistä route-sijaintia:
 // src/app/api/offers/search/route.ts -> /api/offers/search
@@ -5625,7 +5629,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setStoreSearchLoading(false);
       if (source === "gps") {
         setGpsErrorMessage("");
-        setLocationMessage(`${nextArea.label || query || "GPS"} käytössä`);
         setLocationMessageVisible(true);
       }
     }
