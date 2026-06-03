@@ -1,10 +1,5 @@
 "use client";
 
-// V46_GPS_HYPER_AREA_CENTER_ONLY_FOR_TAVARATALOT
-// Korjaa GPS:n Tavaratalot-valinnan: hypermarketit saavat käyttää AREAS-aluekeskipisteitä fallbackina,
-// jotta lähin Prisma/K-Citymarket ei lukitu Jokela/Tuusula/Kerava-lähikauppahaun mukaan.
-// Lähikaupat eivät käytä aluekeskipisteitä, joten V41:n toimiva kunnanrajakorjaus säilyy.
-
 // V45_SAFE_ROLLBACK_TO_WORKING_GPS_LOCAL
 // Palauttaa V42/V41-toimivan GPS-kauppavalinnan: lähikaupat eivät katoa.
 // V43/V44 hypermarket-kokeilut poistettu, koska ne tyhjensivät kauppapoolin, jos myymäläkoordinaatteja puuttuu.
@@ -2346,32 +2341,25 @@ export default function Page() {
     // Tyhjä haku ensin, jos API tukee lat/lon-pohjaista lähihakua.
     addQuery("");
 
-    // V41: älä laita reverse-geocodattua kuntaa (käyttäjällä usein Hyvinkää) heti kärkeen.
-    // Kunnanrajalla se lukitsee API-haun ja fallback-valinnan väärään kuntaan.
-    // Annetaan ensin naapurialueiden ja koordinaattihakujen tuoda todelliset lähikaupat.
-    addQuery("Jokela");
-    addQuery("Tuusula");
-    addQuery("Kerava");
-    addQuery("Nurmijärvi");
-
+    // V48_GPS_HYPER_TRUE_DISTANCE_NO_QUERY_LOCK:
+    // Älä enää käsin pakota Jokela/Tuusula/Kerava-kyselyitä Hyvinkään edelle.
+    // Se korjasi lähikauppoja, mutta rikkoi Tavaratalot-tilan: hypermarketit jäivät
+    // valitun lähialueen / Keravan query-polun mukaan, vaikka Hyvinkään Prisma/K-Citymarket
+    // oli oikeasti lähempänä. Rakennetaan kyselyt nyt aidosti lähimpien AREA-pisteiden
+    // järjestyksestä, eikä suljeta Hyvinkäätä pois.
     for (const entry of nearbyAreas) {
       const label = String(entry.area.label || "");
-      if (normalize(label) === normalize(primaryQuery)) continue;
-      if (normalize(label).includes("hyvink")) continue;
-
       addQuery(label);
+
       for (const alias of entry.area.aliases || []) {
-        const aliasText = String(alias || "");
-        if (normalize(aliasText).includes("hyvink")) continue;
-        addQuery(aliasText);
+        addQuery(String(alias || ""));
       }
     }
 
-    // Reverse-geocodattu kunta ja Hyvinkää vasta viimeisenä fallbackina.
+    // Reverse-geocodattu kunta mukaan fallbackina, mutta ei enää ohjaavana lukituksena.
     addQuery(primaryQuery);
-    addQuery("Hyvinkää");
 
-    return queries.filter((query, index) => query !== "" || index === 0).slice(0, 16);
+    return queries.filter((query, index) => query !== "" || index === 0).slice(0, 18);
   }
 
   function setGpsVisibleMessageV391(areaLabel: string) {
@@ -3302,33 +3290,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return -(modeOffset + areaIndex * 10 + chainOffset);
   }
 
-  function getGpsHypermarketCoordinateOverrideV47(store: StoreSearchItem) {
-    const text = normalize(
-      `${store.name || ""} ${store.city || ""} ${(store as any).address || ""} ${(store as any).postalCode || ""}`,
-    );
-
-    // V47: AREAS/API-fallbackissa hypermarketilla voi olla vain kunnan/alueen keskipiste.
-    // Kunnanrajalla tämä ohjasi Tavaratalot-tilan Keravalle, vaikka Hyvinkään Prisma/K-Citymarket
-    // ovat käyttäjän sijainnista lähempänä. Näille annetaan omat myymäläkoordinaatit vain
-    // GPS-hypermarket-rankingia varten; lähikauppoihin tämä ei vaikuta.
-    if (text.includes("hyvink") && text.includes("prisma")) {
-      return { latitude: 60.6326, longitude: 24.8589 };
-    }
-
-    if (
-      text.includes("hyvink") &&
-      (text.includes("citymarket") || text.includes("k-citymarket") || text.includes("k citymarket"))
-    ) {
-      return { latitude: 60.6269, longitude: 24.8698 };
-    }
-
-    return null;
-  }
-
   function storeHasRealCoordinatesForGpsV41(store: StoreSearchItem) {
-    const override = getGpsHypermarketCoordinateOverrideV47(store);
-    if (override) return true;
-
     const latitude = getStoreCoordinateV320(store, ["latitude", "lat", "y"]);
     const longitude = getStoreCoordinateV320(store, ["longitude", "lng", "lon", "x"]);
 
@@ -3337,7 +3299,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   function buildGpsStoreCandidatePoolFromAllAreasV40(
     apiStores: StoreSearchItem[],
-    modeForAreaFallback?: StoreMode,
   ) {
     const seen = new Set<string>();
     const result: StoreSearchItem[] = [];
@@ -3363,22 +3324,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // Näitä ei saa pisteyttää GPS-etäisyydellä, mutta manuaalinen valinta/lista pysyy ehjänä,
     // jos API ei palauta mitään.
     AREAS.forEach((area, areaIndex) => {
-      const areaCoords = getAreaCoordinateForGpsStorePoolV40(area);
       const base = {
         city: area.label,
       } as any;
-      const hyperBase =
-        modeForAreaFallback === "hyper" && areaCoords
-          ? {
-              ...base,
-              latitude: areaCoords.latitude,
-              longitude: areaCoords.longitude,
-            }
-          : base;
 
       if (area.sStoreName) {
         addStore({
-          ...hyperBase,
+          ...base,
           id: area.sStoreId || getGeneratedAreaStoreIdV40(areaIndex, "S", "hyper"),
           name: area.sStoreName,
           type: "S",
@@ -3387,7 +3339,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       if (area.kStoreName) {
         addStore({
-          ...hyperBase,
+          ...base,
           id: area.kStoreId || getGeneratedAreaStoreIdV40(areaIndex, "K", "hyper"),
           name: area.kStoreName,
           type: "K",
@@ -3433,7 +3385,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // aina koordinaateilla foundStores-listasta.
     if (usingOwnLocation && gpsCoordsV320 && storeModeChosenV299) {
       const gpsMode = selectedStoreModeRefV302.current || storeMode;
-      const gpsStorePoolV40 = buildGpsStoreCandidatePoolFromAllAreasV40(foundStores, gpsMode);
+      const gpsStorePoolV40 = buildGpsStoreCandidatePoolFromAllAreasV40(foundStores);
       const ranked = rankStoresForMode(gpsStorePoolV40, gpsMode, gpsCoordsV320);
 
       if (gpsMode === "local") {
@@ -5387,11 +5339,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function toZiiplyResolverGeoStoreV32(store: StoreSearchItem): ZiiplyGeoStore {
-    const hyperCoordinateOverrideV47 = getGpsHypermarketCoordinateOverrideV47(store);
-    const latitude =
-      hyperCoordinateOverrideV47?.latitude ?? getStoreCoordinateV320(store, ["latitude", "lat", "y"]);
-    const longitude =
-      hyperCoordinateOverrideV47?.longitude ?? getStoreCoordinateV320(store, ["longitude", "lng", "lon", "x"]);
+    const latitude = getStoreCoordinateV320(store, ["latitude", "lat", "y"]);
+    const longitude = getStoreCoordinateV320(store, ["longitude", "lng", "lon", "x"]);
     const explicitDistanceKm = readExplicitDistanceKmV320(store);
 
     return {
@@ -5431,20 +5380,52 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const preferredPredicate = mode === "hyper" ? hyperPredicate : localPredicate;
     const fallbackPredicate = mode === "hyper" ? localPredicate : hyperPredicate;
 
-    const preferredRankingCandidates = rankingCandidates.filter(preferredPredicate);
-    const gpsRankingCandidates =
-      coords && preferredRankingCandidates.length > 0
-        ? preferredRankingCandidates
-        : rankingCandidates;
-
     const oldPickerPreferred = pickStore(rankingCandidates, preferredPredicate);
     const oldPickerFallback = pickStore(rankingCandidates, fallbackPredicate);
+
+    // V48_GPS_HYPER_TRUE_DISTANCE_NO_QUERY_LOCK:
+    // Tavaratalot-tilassa älä anna kunta-/queryfallbackin tai local-predikaatin ohjata valintaa.
+    // Jos GPS ja oikeilla koordinaateilla olevia Prisma/K-Citymarket-ehdokkaita löytyy,
+    // valitse ketjulle lähin strict hypermarket pelkän todellisen GPS-etäisyyden perusteella.
+    if (coords && mode === "hyper") {
+      const strictHyperWithGpsCoordinates = candidates
+        .filter((store) => hyperPredicate(store) && storeHasRealCoordinatesForGpsV41(store))
+        .map((store) => {
+          const latitude = getStoreCoordinateV320(store, ["latitude", "lat", "y"]);
+          const longitude = getStoreCoordinateV320(store, [
+            "longitude",
+            "lng",
+            "lon",
+            "x",
+          ]);
+
+          if (latitude == null || longitude == null) return null;
+
+          return {
+            store: {
+              ...store,
+              distanceKm: calculateDistanceKmV320(coords, { latitude, longitude }),
+            } as StoreSearchItem,
+            distanceKm: calculateDistanceKmV320(coords, { latitude, longitude }),
+          };
+        })
+        .filter(Boolean)
+        .sort((a, b) => {
+          const storeA = a as { distanceKm: number };
+          const storeB = b as { distanceKm: number };
+          return storeA.distanceKm - storeB.distanceKm;
+        });
+
+      if (strictHyperWithGpsCoordinates.length > 0) {
+        return strictHyperWithGpsCoordinates[0]?.store;
+      }
+    }
 
     if (!coords) {
       return oldPickerPreferred || oldPickerFallback || rankingCandidates[0];
     }
 
-    const scoredStores = gpsRankingCandidates
+    const scoredStores = rankingCandidates
       .map((store) => {
         const geoStoreForScore = toZiiplyResolverGeoStoreV32(store);
         if (geoStoreForScore.latitude != null && geoStoreForScore.longitude != null) {
