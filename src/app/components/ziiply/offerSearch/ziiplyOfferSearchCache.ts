@@ -30,7 +30,10 @@ export function getCachedOfferResults(query: string) {
   return entry.results;
 }
 
-export function setCachedOfferResults(query: string, results: ZiiplyOfferSearchResult[]) {
+export function setCachedOfferResults(
+  query: string,
+  results: ZiiplyOfferSearchResult[],
+) {
   const key = getOfferCacheKey(query);
   cache.set(key, {
     createdAt: Date.now(),

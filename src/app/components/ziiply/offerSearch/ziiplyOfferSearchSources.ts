@@ -1,9 +1,5 @@
 // src/app/components/ziiply/offerSearch/ziiplyOfferSearchSources.ts
 // ZIIPLY_OFFER_SEARCH_SOURCES_V1
-//
-// Göstan tarjoushakukoneen yhdistävä provider.
-// Ensimmäinen vaihe: K-Market + K-Supermarket + S-kaupat.
-// K-Citymarket-lehtimoottori lisätään myöhemmin omana adapterina.
 
 import type {
   ZiiplyOfferSearchResult,
