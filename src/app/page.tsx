@@ -1870,9 +1870,9 @@ export default function Page() {
   );
   const [locationInput, setLocationInput] = useState("");
   const [activeArea, setActiveArea] = useState<Area>(AREAS[0]);
-  const [storeMode, setStoreMode] = useState<StoreMode>("hyper");
-  const [storeModeChosenV299, setStoreModeChosenV299] = useState(true);
-  const selectedStoreModeRefV302 = useRef<StoreMode>("hyper");
+  const [storeMode, setStoreMode] = useState<StoreMode>("local");
+  const [storeModeChosenV299, setStoreModeChosenV299] = useState(false);
+  const selectedStoreModeRefV302 = useRef<StoreMode>("local");
   const storeSelectionHydratedRefV343 = useRef(false);
   const storeSelectionPersistenceReadyRefV343 = useRef(false);
   const STORE_SELECTION_STORAGE_KEY_V343 = "ziiply-store-selection-v343";
@@ -2077,9 +2077,9 @@ export default function Page() {
       localStorage.removeItem("ziiply-use-own-location");
     } catch {}
 
-    selectedStoreModeRefV302.current = "hyper";
-    setStoreMode("hyper");
-    setStoreModeChosenV299(true);
+    selectedStoreModeRefV302.current = "local";
+    setStoreMode("local");
+    setStoreModeChosenV299(false);
     setStoreCompareScope("between_chains");
     setWithinChain(null);
     // v315_INITIAL_NAV_PROMPT: refresh/ensimmäinen avaus ei avaa mitään korttia.
@@ -5692,15 +5692,24 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
 
       const locationCoordsForResolverV32 = source === "gps" ? coordsOverride || gpsCoordsV320 : null;
+      // V39_GPS_RELOAD_NO_HYPER_DEFAULT_LOCK:
+      // GPS/reload ei saa periä page-startin vanhaa Tavaratalot/Hyvinkää-oletusta.
+      // Oma sijainti avataan aina lähikauppatilaan ja kaupat järjestetään koordinaateilla.
+      const effectiveLocationStoreModeV39: StoreMode =
+        source === "gps"
+          ? "local"
+          : storeModeChosenV299
+            ? selectedStoreModeRefV302.current
+            : storeMode;
       const ranked = rankStoresForMode(
         stores,
-        storeModeChosenV299 ? selectedStoreModeRefV302.current : storeMode,
+        effectiveLocationStoreModeV39,
         locationCoordsForResolverV32,
       );
       const nextArea = buildDynamicArea(
         query,
         stores,
-        storeModeChosenV299 ? selectedStoreModeRefV302.current : storeMode,
+        effectiveLocationStoreModeV39,
         locationCoordsForResolverV32,
       );
       setActiveArea(nextArea);
@@ -5718,16 +5727,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       clearStoreBackedSearchState();
 
-      // V38_GPS_NO_FORCED_HYPER_HYVINKAA_LOCK:
+      // V39_GPS_RELOAD_NO_HYPER_DEFAULT_LOCK:
       // GPS ei saa pakottaa Tavaratalot-tilaa, koska kunnanrajalla se lukitsee helposti
       // Hyvinkään Prisma/K-Citymarket -pariin. Jos käyttäjä ei ole jo valinnut hakutapaa,
       // oma sijainti avataan Lähikaupat-tilaan, jolloin lähimmät S/K-kaupat voivat tulla
       // Jokelan/Tuusulan puolelta. Jos käyttäjä on jo valinnut Tavaratalot/Lähikaupat,
       // säilytetään hänen valintansa.
       if (source === "gps") {
-        const nextGpsStoreMode: StoreMode = storeModeChosenV299
-          ? selectedStoreModeRefV302.current || storeMode
-          : "local";
+        // V39: GPS ei koskaan peri reloadin/historian hyper-valintaa.
+        // Käyttäjä voi vaihtaa Tavaratalot-tilaan käsin GPS:n jälkeen, mutta automaatti avaa lähimmät.
+        const nextGpsStoreMode: StoreMode = "local";
 
         selectedStoreModeRefV302.current = nextGpsStoreMode;
         setStoreMode(nextGpsStoreMode);
@@ -5748,7 +5757,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         activeElement?.blur?.();
       }
 
-      const effectiveStoreModeForLocationMessage = source === "gps" ? selectedStoreModeRefV302.current || storeMode : storeMode;
+      const effectiveStoreModeForLocationMessage = source === "gps" ? "local" : storeMode;
       const modeMissing =
         effectiveStoreModeForLocationMessage === "local"
           ? !ranked.sLocal || !ranked.kLocal
@@ -6014,6 +6023,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // V470: älä pudota storeSearchLoadingia pois päältä tässä välissä.
       // GPS-paikannus ja sitä seuraava kauppahaku ovat yksi atominen ajo, jotta
       // Kaupat-paneelin fallback tai toinen effect ei voi startata uutta GPS-hakua väliin.
+      // V39: ennen kauppahaun starttia katkaistaan sivun avaus/reload-hyperlukko.
+      selectedStoreModeRefV302.current = "local";
+      setStoreMode("local");
+      setStoreModeChosenV299(true);
       pushGpsDebugLogV492(`useOwnLocation applyLocation start`);
       await applyLocation(city, "gps", nextGpsCoordsV485);
       gpsApplyLocationDoneV495 = true;
