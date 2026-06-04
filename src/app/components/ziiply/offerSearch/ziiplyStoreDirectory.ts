@@ -13,7 +13,14 @@ export function normalizeApiStoresToZiiplyDirectory(
   return [];
 }
 
-export function resolveZiiplyStoresFromDirectory() {
+export function resolveZiiplyStoresFromDirectory(options?: {
+  latitude: number;
+  longitude: number;
+  stores?: ZiiplyStoreDirectoryEntry[];
+  maxDistanceKm?: number;
+}) {
+  void options;
+
   return {
     nearestStores: [],
     selectedSLocal: undefined,
