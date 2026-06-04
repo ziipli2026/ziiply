@@ -5800,6 +5800,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         source === "gps" ? coordsOverride || gpsCoordsV320 : null,
       );
       const safeStores = stores.filter(Boolean) as StoreSearchItem[];
+
+      if (typeof window !== "undefined") {
+        console.log("ZIIPLY GPS raw stores", stores);
+        console.log("ZIIPLY GPS safeStores", safeStores);
+        console.log(
+          "ZIIPLY GPS first stores JSON",
+          JSON.stringify(safeStores.slice(0, 8), null, 2),
+        );
+      }
+
       setFoundStores(safeStores);
 
       if (safeStores.length === 0) {
