@@ -46,6 +46,10 @@
 // Lisäksi GPS-kauppahaku hakee lähimmien AREA-pisteiden ympäriltä useita hakusanoja,
 // jotta kunnanrajalla mukaan tulee myös Jokela/Tuusula eikä pelkkä reverse-geocodattu Hyvinkää.
 
+// V75_STORE_DIRECTORY_V2_ACTIVE_GPS_SELECTION
+// Page käyttää nyt ziiplyStoreDirectory.ts v2 -helperiä GPS-tilan aktiivisten S/K local/hyper-kauppojen valintaan.
+// Jos directory/API ei anna kelvollista valintaa, palataan V41:n vanhaan foundStores/AREAS-polkuun.
+
 // V41_GPS_NO_AREA_CENTER_STORE_LOCK
 // Korjaus: GPS ei enää käytä AREAS-aluekeskipisteitä kauppojen etäisyysrankingissa.
 // Jos kaupalla ei ole oikeaa lat/lon-koordinaattia, se saa olla manuaalifallback mutta ei GPS-prioriteetin lähde.
@@ -829,6 +833,12 @@ import {
   type ZiiplyStoreKind,
   type ZiiplyStoreMode,
 } from "./components/ziiply/offerSearch/ziiplyLocationResolverCore";
+import {
+  ZIIPLY_STORE_DIRECTORY,
+  mergeZiiplyStoreDirectories,
+  normalizeApiStoresToZiiplyDirectory,
+  resolveZiiplyStoresFromDirectory,
+} from "./components/ziiply/offerSearch/ziiplyStoreDirectory";
 
 const MOBILE_EAN_SCANNER_REGION_ID = `${EAN_SCANNER_REGION_ID}-mobile`;
 
@@ -3334,6 +3344,64 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return result;
   }
 
+  function resolveActiveStoresFromDirectoryV75(
+    apiStores: StoreSearchItem[],
+    mode: StoreMode,
+    coords: { latitude: number; longitude: number },
+  ) {
+    const apiDirectory = normalizeApiStoresToZiiplyDirectory(
+      apiStores as unknown as Array<Record<string, unknown>>,
+      {
+        latitude: coords.latitude,
+        longitude: coords.longitude,
+      },
+    );
+
+    const directory = mergeZiiplyStoreDirectories(
+      ZIIPLY_STORE_DIRECTORY,
+      apiDirectory,
+    );
+
+    if (directory.length === 0) return null;
+
+    const selection = resolveZiiplyStoresFromDirectory({
+      latitude: coords.latitude,
+      longitude: coords.longitude,
+      stores: directory,
+      maxDistanceKm: mode === "hyper" ? 80 : 35,
+    });
+
+    const selectedS =
+      mode === "local" ? selection.selectedSLocal : selection.selectedSHyper;
+    const selectedK =
+      mode === "local" ? selection.selectedKLocal : selection.selectedKHyper;
+
+    if (!selectedS && !selectedK) return null;
+
+    return {
+      sStoreId: selectedS ? Number(selectedS.id) || 0 : 0,
+      sStoreName: selectedS
+        ? `${selectedS.name}${
+            Number.isFinite(selectedS.distanceKm)
+              ? ` (${formatDistanceKmV320(selectedS.distanceKm)})`
+              : ""
+          }`
+        : mode === "local"
+          ? "S-lähikauppa ei valittu"
+          : "S-tavaratalo ei valittu",
+      kStoreId: selectedK ? Number(selectedK.id) || 0 : 0,
+      kStoreName: selectedK
+        ? `${selectedK.name}${
+            Number.isFinite(selectedK.distanceKm)
+              ? ` (${formatDistanceKmV320(selectedK.distanceKm)})`
+              : ""
+          }`
+        : mode === "local"
+          ? "K-lähikauppa ei valittu"
+          : "K-tavaratalo ei valittu",
+    };
+  }
+
   const activeStores = useMemo(() => {
     if (storeCompareScope !== "within_chain" && !storeModeChosenV299) {
       return {
@@ -3351,6 +3419,20 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // aina koordinaateilla foundStores-listasta.
     if (usingOwnLocation && gpsCoordsV320 && storeModeChosenV299) {
       const gpsMode = selectedStoreModeRefV302.current || storeMode;
+
+      // V75: ensisijainen reitti. Käytä API:n/storeDirectoryn storeId + distance/koordinaatti-dataa.
+      // Tämä ei käytä kuntaa, postinumeroa eikä AREAS-aluekeskipistettä lopulliseen valintaan.
+      const directoryStores = resolveActiveStoresFromDirectoryV75(
+        foundStores,
+        gpsMode,
+        gpsCoordsV320,
+      );
+
+      if (directoryStores) {
+        return directoryStores;
+      }
+
+      // Fallback: V41:n vanha polku, jotta näkymä ei tyhjene jos API ei vielä anna storeId/distance-dataa.
       const gpsStorePoolV40 = buildGpsStoreCandidatePoolFromAllAreasV40(foundStores);
       const ranked = rankStoresForMode(gpsStorePoolV40, gpsMode, gpsCoordsV320);
 
