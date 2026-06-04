@@ -17,6 +17,12 @@
 
 "use client";
 
+// V110_GOSTA_EMPTY_OPENS_AND_RELAXED_OFFER_FILTER
+// Pohja: V109 build-ok + V105 GPS/sää/etäisyys.
+// Korjaus: Gösta saa aueta tyhjällä Hae-kortin tekstillä.
+// Tyhjä Gösta-haku tarkoittaa kaikki alueen tarjoukset, eikä Hae-kortin hasSearchInput saa estää sitä.
+// Lisäksi tarjousosumien page-tason roskasuodatus on kevennetty, ettei oikeita tarjouksia katoa jos parserilta puuttuu priceText/benefitText.
+
 // V109_GOSTA_CALLBACK_PARAM_TYPES_BUILD_FIX
 // Pohjana V108. Korjaa Gösta-tarjouskortin callback-parametrien TypeScript noImplicitAny -virheet.
 // Ei muuta V105/V102 GPS-, sää- tai etäisyyskorjauksia.
@@ -4804,7 +4810,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const priceText = String(item?.priceText || item?.offerPrice || item?.price || "").trim();
 
     if (!title || normalize(title).length < 3) return true;
-    if (!priceText && !item?.benefitText && !item?.discountText) return true;
+    // V110: älä hylkää oikeaa tarjoustuotetta vain siksi, että parseri ei vielä anna
+    // hintaa juuri kentässä priceText/benefitText/discountText. Eri tarjoajat nimeävät kentät eri tavalla.
+    // Varsinainen roskasuodatus tehdään alla selkeillä UI-/navigaatio-osumilla.
+    void priceText;
 
     const junkPatterns = [
       /ostoskori/,
@@ -6690,7 +6699,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (hasExplicitOverride) setInput(cleanedOverride);
 
     setOfferSearchQuerySnapshot(offerQuerySnapshot);
-    setOfferCardFilterV106(offerQuerySnapshot);
+    // V110: kun Gösta avataan tyhjällä haulla, älä aseta piilofiltteriä.
+    // Muuten "kaikki alueen tarjoukset" voi näyttää tyhjältä vaikka API palauttaisi dataa.
+    setOfferCardFilterV106(searchAllAreaOffers ? "" : offerQuerySnapshot);
     setOfferShowingAllAreaOffersV106(searchAllAreaOffers);
     setHasSearchedOffers(true);
     setLoadingOffers(true);
@@ -9384,10 +9395,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function handleMainOfferSearch() {
-    if (!hasSearchInput || loadingOffers) return;
+    // V110: Gösta saa avautua myös tyhjällä tekstikentällä.
+    // Tyhjä haku käsitellään searchOffers()-funktiossa "kaikki alueen tarjoukset" -tilana.
+    if (loadingOffers) return;
 
     trackZiiplyEvent("main_search_clicked", {
-      query: terms.join(", "),
+      query: terms.join(", ") || "__all_area_offers__",
       searchType: "offers",
       cartItemsCount: cart.length,
     });
