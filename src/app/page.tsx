@@ -8229,7 +8229,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       // V729: 1. fallback on Open Food Facts. Jos S/K-tarkkaa EAN-osumaa ei löydy,
       // mutta OFF tunnistaa tuotteen, lisätään se koriin nimellä + EANilla.
-      // Hintaa ei lisätä kokonaissummaan: status on käytännössä "maksettava kassalla".
+      // Hintaa ei lisätä kokonaissummaan: tuote on tunnistettu, mutta ei mukana hintavertailussa.
       const openFoodFactsFallback = await fetchOpenFoodFactsFallbackProductV729(ean);
 
       if (openFoodFactsFallback) {
@@ -8602,7 +8602,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         return currentCart;
       }
 
-      const fallbackCartName = `${productName} · maksettava kassalla`;
+      const fallbackCartName = `${productName} · ei mukana hintavertailussa`;
 
       const fallbackProductForCart = {
         id: `off-ean-${normalizedEan}`,
@@ -8611,7 +8611,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         ean: normalizedEan,
         pictureUrl: fallbackProduct.imageUrl || "",
         ziiplyOpenFoodFactsFallback: true,
-        ziiplyPayAtCheckout: true,
+        ziiplyPayAtCheckout: false,
         lookupStatus: "identified_open_food_facts",
         brandName: fallbackProduct.brandName,
         quantity: fallbackProduct.quantity,
@@ -8651,15 +8651,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     eanAutoSearchActiveRef.current = false;
     setLastAutoEanSearch("");
     setEanMessage(
-      "Tuote tunnistettiin Open Food Facts -tietokannasta. Hintaa ei löytynyt valituista kaupoista, joten se lisättiin koriin maksettava kassalla -tuotteena.",
+      "Tuote tunnistettiin. Ei mukana hintavertailussa.",
     );
 
     if (eanScannerOpen || eanHtml5ScannerRef.current) {
       setEanScannerOpen(true);
-      setEanScannerMessage("Tunnistettu — maksettava kassalla");
+      setEanScannerMessage("Tunnistettu — ei mukana hintavertailussa");
       window.setTimeout(() => {
         setEanScannerMessage((current) =>
-          current === "Tunnistettu — maksettava kassalla" ? "" : current,
+          current === "Tunnistettu — ei mukana hintavertailussa" ? "" : current,
         );
       }, 2600);
     }
