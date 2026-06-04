@@ -5571,7 +5571,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         return null;
       })
-      .filter((store): store is StoreSearchItem => {
+      .filter((store) => {
         if (!store) return false;
         const distanceKm = readExplicitDistanceKmV320(store);
         if (distanceKm == null || !Number.isFinite(distanceKm)) return false;
