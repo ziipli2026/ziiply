@@ -1,5 +1,10 @@
 "use client";
 
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V662_ORIGINAL_LAYOUT_GOSTA_EMPTY_SEARCH
+// Pohja: v658 toimiva original-ulkoasu säilytetty sellaisenaan.
+// Muutos: Gösta saa käynnistyä myös tyhjällä hakukentällä, jotta tarjouskortti voi näyttää kaikki alueen tarjoukset.
+// Justiina ja koriinlisäys vaativat edelleen hakutekstin.
+
 // UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V658_SCANNER_SCALE_088
 // Pohja: v608/v510 toimiva hakulogiikka.
 // Muutettu vain JSX/CSS layout vastaamaan annettua finalleiska-mallia.
@@ -496,7 +501,7 @@ export default function ZiiplyMobileSearchCard({
       setTriggeredSearchInput(clean);
     }
 
-    if (clean.length < 2) return;
+    if (assistant === "justiina" && clean.length < 2) return;
 
     if (searchClearTimerRef.current !== null) {
       window.clearTimeout(searchClearTimerRef.current);
@@ -565,7 +570,7 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V658_SCANNER_SCALE_088"
+      data-ziiply-mobile-search-card-version="UUSI_V662_ORIGINAL_LAYOUT_GOSTA_EMPTY_SEARCH"
       className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.25rem)] z-[72] flex h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] max-h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] items-stretch justify-center overflow-hidden bg-transparent px-2 sm:hidden [transform:translateZ(0)] [backface-visibility:hidden] ${className}`}
     >
       <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.85rem] border-[3px] border-[#173f2f] bg-[#d9bd77] p-2 text-[#20301f] shadow-[0_7px_0_rgba(91,72,44,0.24),inset_0_0_0_2px_rgba(255,246,207,0.52)]">
@@ -624,7 +629,7 @@ export default function ZiiplyMobileSearchCard({
               <AssistantButton
                 kind="gosta"
                 onClick={() => handleManualSearch("gosta", onOfferSearch)}
-                disabled={!hasText}
+                disabled={false}
                 loading={loadingOffers}
               />
 
