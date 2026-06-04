@@ -5822,7 +5822,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             ? selectedStoreModeRefV302.current
             : storeMode;
       const ranked = rankStoresForMode(
-        stores,
+        safeStores,
         effectiveLocationStoreModeV39,
         locationCoordsForResolverV32,
       );
