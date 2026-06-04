@@ -1,5 +1,11 @@
 "use client";
 
+// V93_GPS_DISTANCE_LABEL_RESTORE
+// V92-pohja säilyy: GPS ei enää lukitse kauppavalintaa eikä käytä AREAS-fallback-kauppoja.
+// Korjaus: GPS-etäisyys palautetaan kauppakortteihin ja valintaikkunoihin.
+// Etäisyys lasketaan aina käyttäjän GPS-koordinaatista, jos kaupalla on oikeat koordinaatit.
+// Lisäksi kaupan id-vertailu on löysennetty string/number-muotojen yli, ettei valittu kauppa huku.
+
 // V92_GPS_NO_SYNTHETIC_FALLBACK_AND_MANUAL_PICKER_RELEASE
 // Korjaus käyttäjän havaintoihin:
 // - GPS ei enää rakenna valintoja AREAS-fallback-kaupoista, joten Oulu/Espoo/Imatra-tyyppiset ufosijainnit eivät päädy kortteihin tai valintaikkunoihin.
@@ -10229,9 +10235,28 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     store: StoreSearchItem,
   ): StoreSearchItem {
     const chain = getStoreChainV320(store);
+
+    // V93: kun GPS on käytössä, pidä etäisyys mukana myös normalisoiduissa
+    // picker-/korttiolioissa. API:n oma distance voi olla mitä tahansa, joten
+    // jos koordinaatit löytyvät, lasketaan etäisyys aina todellisesta GPS-pisteestä.
+    const latitude = getStoreCoordinateV320(store, ["latitude", "lat", "y"]);
+    const longitude = getStoreCoordinateV320(store, [
+      "longitude",
+      "lng",
+      "lon",
+      "x",
+    ]);
+    const gpsDistanceKm =
+      gpsCoordsV320 && latitude != null && longitude != null
+        ? calculateDistanceKmV320(gpsCoordsV320, { latitude, longitude })
+        : null;
+
     return {
       ...store,
       type: chain || store.type,
+      ...(gpsDistanceKm != null && Number.isFinite(gpsDistanceKm)
+        ? { distanceKm: gpsDistanceKm }
+        : {}),
     };
   }
 
@@ -10258,6 +10283,32 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return 3;
   }
 
+
+  function sameStoreIdV93(a: unknown, b: unknown) {
+    if (a == null || b == null || a === "" || b === "") return false;
+    return String(a) === String(b);
+  }
+
+  function getGpsDistanceKmForStoreV93(store?: StoreSearchItem | null) {
+    if (!store) return null;
+
+    const latitude = getStoreCoordinateV320(store, ["latitude", "lat", "y"]);
+    const longitude = getStoreCoordinateV320(store, [
+      "longitude",
+      "lng",
+      "lon",
+      "x",
+    ]);
+
+    if (gpsCoordsV320 && latitude != null && longitude != null) {
+      const km = calculateDistanceKmV320(gpsCoordsV320, { latitude, longitude });
+      return Number.isFinite(km) ? km : null;
+    }
+
+    const explicitKm = readExplicitDistanceKmV320(store);
+    return explicitKm != null && Number.isFinite(explicitKm) ? explicitKm : null;
+  }
+
   function sortStoresForPickerV320(
     stores: StoreSearchItem[],
     mode: StoreMode,
@@ -10268,11 +10319,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       stores.map(normalizeStoreForPickerV320),
     ).sort((a, b) => {
       const aSelected = Boolean(
-        (selectedId && a.id === selectedId) ||
+        (selectedId && sameStoreIdV93(a.id, selectedId)) ||
         (selectedName && a.name === selectedName),
       );
       const bSelected = Boolean(
-        (selectedId && b.id === selectedId) ||
+        (selectedId && sameStoreIdV93(b.id, selectedId)) ||
         (selectedName && b.name === selectedName),
       );
       if (aSelected !== bSelected) return aSelected ? -1 : 1;
@@ -10282,8 +10333,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       if (modeDiff !== 0) return modeDiff;
 
       if (usingOwnLocation && gpsCoordsV320) {
-        const distanceA = readExplicitDistanceKmV320(a);
-        const distanceB = readExplicitDistanceKmV320(b);
+        const distanceA = getGpsDistanceKmForStoreV93(a);
+        const distanceB = getGpsDistanceKmForStoreV93(b);
         if (distanceA != null && distanceB != null && distanceA !== distanceB) {
           return distanceA - distanceB;
         }
@@ -10567,22 +10618,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   ) {
     if (!store) return "";
 
+    // V93: GPS-tilassa koordinaateista laskettu etäisyys on aina ensisijainen.
+    // Näin API:n puuttuva/vanha distance-kenttä ei vie etäisyyttä pois korteilta.
+    const gpsDistanceKm = getGpsDistanceKmForStoreV93(store);
+    if (gpsDistanceKm != null && Number.isFinite(gpsDistanceKm)) {
+      return formatDistanceKmV320(gpsDistanceKm);
+    }
+
     const explicitKm = readExplicitDistanceKmV320(store);
     if (explicitKm != null && Number.isFinite(explicitKm)) {
       return formatDistanceKmV320(explicitKm);
-    }
-
-    const latitude = getStoreCoordinateV320(store, ["latitude", "lat", "y"]);
-    const longitude = getStoreCoordinateV320(store, [
-      "longitude",
-      "lng",
-      "lon",
-      "x",
-    ]);
-    if (gpsCoordsV320 && latitude != null && longitude != null) {
-      return formatDistanceKmV320(
-        calculateDistanceKmV320(gpsCoordsV320, { latitude, longitude }),
-      );
     }
 
     return "";
@@ -10604,17 +10649,29 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   function findStoreForSelectionV320(chain: "S" | "K", mode: StoreMode) {
     const selectedId = getSelectedStoreIdFor(chain, mode);
     const selectedName = getSelectedStoreNameFor(chain, mode);
+    const normalizedFoundStores = foundStores.map(normalizeStoreForPickerV320);
 
-    return foundStores
-      .map(normalizeStoreForPickerV320)
-      .find(
-        (store) =>
-          getStoreChainV320(store) === chain &&
-          Boolean(
-            (selectedId && store.id === selectedId) ||
-            (selectedName && store.name === selectedName),
-          ),
-      );
+    const directMatch = normalizedFoundStores.find(
+      (store) =>
+        getStoreChainV320(store) === chain &&
+        Boolean(
+          (selectedId && sameStoreIdV93(store.id, selectedId)) ||
+            (selectedName && normalize(store.name || "") === normalize(selectedName)),
+        ),
+    );
+
+    if (directMatch) return directMatch;
+
+    // V93: jos activeArea sisältää käsin valitun nimen/id:n, mutta foundStoresissa
+    // sama kauppa on eri id-tyypillä tai vähän eri muodossa, käytetään lähintä
+    // GPS-rankattua saman ketjun/moodin kauppaa etäisyysnäyttöä varten.
+    if (usingOwnLocation && gpsCoordsV320) {
+      const ranked = rankStoresForMode(normalizedFoundStores, mode, gpsCoordsV320);
+      if (chain === "S") return mode === "local" ? ranked.sLocal : ranked.sHyper;
+      return mode === "local" ? ranked.kLocal : ranked.kHyper;
+    }
+
+    return undefined;
   }
 
   function uniqueStoresByIdAndName(stores: StoreSearchItem[]) {
