@@ -1,6 +1,11 @@
 "use client";
 
-// V93_GPS_DISTANCE_LABEL_RESTORE
+// V94_GPS_DISTANCE_RENDER_RESTORE_FROM_V41
+// Korjaus V93:n päälle: palauttaa V41/V705-tyyppisen etäisyysnäytön näkyvään kauppakorttirenderiin.
+// Etäisyyden resolveri ei enää jää kiinni pelkkään valitun store-id:n osumaan, vaan hakee myös nimen, ketjun ja moodin mukaan.
+// Jos GPS-koordinaatit ovat olemassa, lähin saman ketjun/moodin kauppa saa toimia etäisyyslähteenä myös manuaalisen kauppavalinnan jälkeen.
+
+// V94_GPS_DISTANCE_RENDER_RESTORE_FROM_V41
 // V92-pohja säilyy: GPS ei enää lukitse kauppavalintaa eikä käytä AREAS-fallback-kauppoja.
 // Korjaus: GPS-etäisyys palautetaan kauppakortteihin ja valintaikkunoihin.
 // Etäisyys lasketaan aina käyttäjän GPS-koordinaatista, jos kaupalla on oikeat koordinaatit.
@@ -10319,11 +10324,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       stores.map(normalizeStoreForPickerV320),
     ).sort((a, b) => {
       const aSelected = Boolean(
-        (selectedId && sameStoreIdV93(a.id, selectedId)) ||
+        (selectedId != null && sameStoreIdV93(a.id, selectedId)) ||
         (selectedName && a.name === selectedName),
       );
       const bSelected = Boolean(
-        (selectedId && sameStoreIdV93(b.id, selectedId)) ||
+        (selectedId != null && sameStoreIdV93(b.id, selectedId)) ||
         (selectedName && b.name === selectedName),
       );
       if (aSelected !== bSelected) return aSelected ? -1 : 1;
@@ -10649,23 +10654,41 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   function findStoreForSelectionV320(chain: "S" | "K", mode: StoreMode) {
     const selectedId = getSelectedStoreIdFor(chain, mode);
     const selectedName = getSelectedStoreNameFor(chain, mode);
-    const normalizedFoundStores = foundStores.map(normalizeStoreForPickerV320);
+    const normalizedSelectedName = normalize(selectedName || "");
+    const normalizedFoundStores = foundStores
+      .map(normalizeStoreForPickerV320)
+      .filter((store) => getStoreChainV320(store) === chain);
 
-    const directMatch = normalizedFoundStores.find(
-      (store) =>
-        getStoreChainV320(store) === chain &&
-        Boolean(
-          (selectedId && sameStoreIdV93(store.id, selectedId)) ||
-            (selectedName && normalize(store.name || "") === normalize(selectedName)),
-        ),
+    const directMatch = normalizedFoundStores.find((store) =>
+      Boolean(
+        (selectedId != null && sameStoreIdV93(store.id, selectedId)) ||
+          (normalizedSelectedName && normalize(store.name || "") === normalizedSelectedName),
+      ),
     );
 
     if (directMatch) return directMatch;
 
-    // V93: jos activeArea sisältää käsin valitun nimen/id:n, mutta foundStoresissa
-    // sama kauppa on eri id-tyypillä tai vähän eri muodossa, käytetään lähintä
-    // GPS-rankattua saman ketjun/moodin kauppaa etäisyysnäyttöä varten.
-    if (usingOwnLocation && gpsCoordsV320) {
+    // V94: V41:n etäisyysnäyttö nojasi siihen, että näkyvä kortti saa aina
+    // oikean StoreSearchItemin etäisyyslaskentaan. Uudempi GPS/manuaalivalinta
+    // voi tallentaa activeAreaan id:n/nimen eri muodossa kuin foundStoresissa.
+    // Siksi haetaan vielä pehmeällä nimiosumalla ennen lähin-ketju/moodi-fallbackia.
+    if (normalizedSelectedName) {
+      const looseNameMatch = normalizedFoundStores.find((store) => {
+        const storeName = normalize(store.name || "");
+        return Boolean(
+          storeName &&
+            (storeName.includes(normalizedSelectedName) ||
+              normalizedSelectedName.includes(storeName)),
+        );
+      });
+
+      if (looseNameMatch) return looseNameMatch;
+    }
+
+    // V94: kun GPS-koordinaatit ovat olemassa, etäisyys voidaan näyttää vaikka
+    // käyttäjä olisi vaihtanut kaupan käsin. Ei sidota tätä usingOwnLocation-lippuun,
+    // koska manuaalinen kauppavalinta ei saa sammuttaa etäisyysnäyttöä.
+    if (gpsCoordsV320 && normalizedFoundStores.length > 0) {
       const ranked = rankStoresForMode(normalizedFoundStores, mode, gpsCoordsV320);
       if (chain === "S") return mode === "local" ? ranked.sLocal : ranked.sHyper;
       return mode === "local" ? ranked.kLocal : ranked.kHyper;
@@ -11372,7 +11395,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 {displayName}
               </p>
 
-              {isTopRow && distanceForCard && storeModeChosenV299 && (
+              {isTopRow && chain && distanceForCard && (
                 <p className="absolute left-0 right-0 top-[56px] z-50 text-[12px] font-black leading-none text-[#000000] [text-shadow:0_1px_0_rgba(255,250,232,0.95),0_2px_2px_rgba(55,38,12,0.22)]">
                   {distanceForCard}
                 </p>
