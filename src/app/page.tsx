@@ -17,6 +17,13 @@
 
 "use client";
 
+// V107_GOSTA_CARD_PROP_COMPAT_BUILD_FIX
+// Pohjana V106 + V105 vakaa GPS/sää/etäisyys.
+// Korjaus: page käyttää tarjouskortista loose-aliasia, jotta uudet Gösta-propit
+// (filter/onFilterChange/categorySuggestions) eivät kaada buildiä, vaikka projektiin ei ole
+// vielä vaihdettu uutta ZiiplyMobileOfferSearchCard v2 -komponenttia.
+// Kun v2-komponentti on paikallaan, samat propit aktivoivat Göstan oman hakukentän ja tuoteryhmärajauksen.
+
 // V102_GPS_DISTANCE_V41_PLACEMENT_CLEAN_BUTTON
 // Pohjana V101. Etäisyysketju säilyy toimivana, mutta näyttö palautetaan V41-tyyliin:
 // - Vaihda/Valittu-painikkeessa EI näytetä etäisyyttä.
@@ -888,6 +895,7 @@ import ZiiplyMobileSearchResultsCard from "./components/ziiply/cards/ZiiplyMobil
 import ZiiplyMobileCartCard from "./components/ziiply/cards/ZiiplyMobileCartCard";
 import ZiiplyMobileNotebookCard from "./components/ziiply/cards/ZiiplyMobileNotebookCard";
 import ZiiplyMobileOfferSearchCard from "./components/ziiply/cards/ZiiplyMobileOfferSearchCard";
+const ZiiplyMobileOfferSearchCardLoose: any = ZiiplyMobileOfferSearchCard;
 import ZiiplyMobileScannerCard from "./components/ziiply/cards/ZiiplyMobileScannerCard";
 import ZiiplyMobileProductPickCard from "./components/ziiply/cards/ZiiplyMobileProductPickCard";
 import ZiiplyMobileCompareCard from "./components/ziiply/cards/ZiiplyMobileCompareCardresponsive";
@@ -13890,7 +13898,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         )}
 
         {!showLaunchScreen && activeResult === "offers" && !searchPanelOpen && !cartModalOpen && !shopsPanelOpen && !eanModalOpen && !notebookOpen && (
-          <ZiiplyMobileOfferSearchCard
+          <ZiiplyMobileOfferSearchCardLoose
             open={true}
             title="Tarjoushaku"
             query={offerSearchQuerySnapshot || input}
