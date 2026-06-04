@@ -35,6 +35,13 @@
 // V107_GOSTA_CARD_PROP_COMPAT_BUILD_FIX
 // Pohjana V106 + V105 vakaa GPS/sää/etäisyys.
 // Korjaus: page käyttää tarjouskortista loose-aliasia, jotta uudet Gösta-propit
+// V113_GOSTA_CATEGORY_CLASSIFIER_PRODUCT_TITLE_ONLY
+// Pohja V112. Korjaus tuoteryhmärajauksiin:
+// - tuoteryhmä päätellään ensisijaisesti varsinaisesta tuotteen otsikosta/nimestä, ei koko tarjousrivin sivutekstistä
+// - kategoriavalinnat kuten Maitotuotteet/Liha/Kala suodattavat kategorian mukaan, eivät vapaatekstinä
+// - lasten vaipat, kodin/pesun/lemmikin yms. non-food osumat suljetaan pois ruoka-kategorioista
+// - Kaikki näyttää edelleen kaikki hyväksytyt tarjoukset.
+
 // V112_GOSTA_KAIKKI_FILTER_RELAX_AND_WIDER_SEEDS
 // Korjaus: "Kaikki" ei saa jäädä tekstifiltteriksi eikä UI-roskasanoja saa testata koko offer-tekstistä.
 // Levennetty tyhjän Gösta-haun siemenhakua, jotta alueen tarjoukset eivät jää yhden osuman varaan.
@@ -4791,21 +4798,62 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       .join(" ");
   }
 
-  function getOfferCategoryV106(item: any) {
-    const text = normalize(getOfferSearchTextV106(item));
+  function getOfferProductTitleV113(item: any) {
+    return String(
+      item?.title ||
+        item?.name ||
+        item?.productName ||
+        item?.productTitle ||
+        item?.displayName ||
+        "",
+    ).trim();
+  }
 
-    if (/kahvi|espresso|suodatinjauh|papu/.test(text)) return "Kahvi";
-    if (/maito|jugur|jogur|rahka|juusto|voi|kerma|piima|viili/.test(text)) return "Maitotuotteet";
-    if (/liha|jauheliha|kana|broiler|possu|nauta|makkara|leikkele/.test(text)) return "Liha";
-    if (/kala|lohi|kirjolohi|tonnikala|silakka|katkarapu/.test(text)) return "Kala";
-    if (/leipa|sämpyl|pull|croissant|karjalanpiir|pita/.test(text)) return "Leipomo";
-    if (/hedel|omena|banaani|appelsiini|vihannes|tomaatti|kurkku|salaatti|peruna|sipuli/.test(text)) return "Hevi";
-    if (/koira|kissa|lemmik|pedigree|whiskas|sheba|purina/.test(text)) return "Lemmikit";
-    if (/pesu|pyykin|fairy|astianpesu|wc|siivous|talouspaperi|vessa/.test(text)) return "Koti";
-    if (/limu|cola|mehu|olut|energiajuoma|vesi|virvoitus/.test(text)) return "Juomat";
-    if (/pakaste|jäätelö|pizza/.test(text)) return "Pakasteet";
+  function getOfferCategoryV106(item: any) {
+    // V113: tuoteryhmä luokitellaan vain varsinaisesta tuotteen nimestä/otsikosta.
+    // Koko tarjousrivin yhdistetty teksti sisältää usein sivun yleistekstejä tai toisen
+    // tarjouksen tekstinpätkiä, jolloin esim. vaipat voivat osua maitotuotteisiin.
+    const titleText = normalize(getOfferProductTitleV113(item));
+    const metaText = normalize([item?.category, item?.department, item?.productGroup].filter(Boolean).join(" "));
+    const text = `${titleText} ${metaText}`.trim();
+
+    const nonFoodText = /vaippa|vaipat|pampers|libero|baby|vauva|lastenhoito|pesu|pyykin|fairy|astianpesu|wc|siivous|talouspaperi|vessa|shampoo|saippua|koira|kissa|lemmik|pedigree|whiskas|sheba|purina/;
+    const petText = /koira|kissa|lemmik|pedigree|whiskas|sheba|purina/;
+    const homeText = /vaippa|vaipat|pampers|libero|baby|vauva|lastenhoito|pesu|pyykin|fairy|astianpesu|wc|siivous|talouspaperi|vessa|shampoo|saippua/;
+
+    if (petText.test(text)) return "Lemmikit";
+    if (homeText.test(text)) return "Koti";
+
+    // Food categories: älä anna non-foodin päästä ruoka-ryhmiin, vaikka sivutekstissä
+    // olisi sana maito/liha/kala tms.
+    if (!nonFoodText.test(text)) {
+      if (/kahvi|espresso|suodatinjauh|kahvipapu|papukahvi|cappuccino|latte/.test(text)) return "Kahvi";
+      if (/maito|jugur|jogur|jogurt|rahka|raejuusto|juusto|voi|kerma|piima|viili|kefiiri|proteiinivanukas|vanukas/.test(text)) return "Maitotuotteet";
+      if (/jauheliha|kana|broiler|possu|porsas|nauta|sika|makkara|leikkele|kinkku|pekoni|filee|paisti|lihapulla|liha/.test(text)) return "Liha";
+      if (/kirjolohi|lohi|tonnikala|silakka|katkarapu|kuha|ahven|seiti|kalapuikko|silli|kala/.test(text)) return "Kala";
+      if (/leipa|sämpyl|sampyl|pull|croissant|karjalanpiir|pita|patonki|ruis|paahtoleipa|donitsi/.test(text)) return "Leipomo";
+      if (/hedel|omena|banaani|appelsiini|mandariini|viiniryp|vihannes|tomaatti|kurkku|salaatti|peruna|sipuli|porkkana|kaali|avokado/.test(text)) return "Hevi";
+      if (/limu|cola|mehu|energiajuoma|vesi|kivennäisvesi|kivenn|virvoitus|smoothie/.test(text)) return "Juomat";
+      if (/pakaste|jaatel|jäätel|pizza|ranskalaiset|wokvihannes/.test(text)) return "Pakasteet";
+    }
 
     return "Muut";
+  }
+
+  function isKnownOfferCategoryFilterV113(filter: string) {
+    return [
+      "kahvi",
+      "maitotuotteet",
+      "liha",
+      "kala",
+      "leipomo",
+      "hevi",
+      "juomat",
+      "lemmikit",
+      "koti",
+      "pakasteet",
+      "muut",
+    ].includes(filter);
   }
 
   function isBadOfferSearchResultV106(item: any) {
@@ -4891,8 +4939,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     return cleanOfferSearchResultsV106.filter((item) => {
       const category = normalize(getOfferCategoryV106(item));
-      const text = normalize(getOfferSearchTextV106(item));
-      return category.includes(filter) || text.includes(filter);
+
+      // V113: kun käyttäjä valitsee tunnetun tuoteryhmächipin, älä tee vapaatekstihakua
+      // koko tarjousriviin. Muuten esim. vaipat voivat päätyä Maitotuotteisiin tai Lihaan,
+      // jos parseri on kantanut mukana viereisen tarjouksen/sivun tekstiä.
+      if (isKnownOfferCategoryFilterV113(filter)) {
+        return category === filter;
+      }
+
+      const title = normalize(getOfferProductTitleV113(item));
+      const categoryMeta = normalize([item?.category, item?.department, item?.productGroup].filter(Boolean).join(" "));
+      return title.includes(filter) || categoryMeta.includes(filter);
     });
   }, [cleanOfferSearchResultsV106, offerCardFilterV106]);
 
