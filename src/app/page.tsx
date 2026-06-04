@@ -1,5 +1,12 @@
 "use client";
 
+// V97_GPS_DISTANCE_INJECTED_INTO_FOUND_STORES
+// Pohjana V96/V93. Korjaus: etäisyys ei jää pelkän render-haaran varaan.
+// GPS-haun jälkeen jokainen oikea API-kauppa rikastetaan distanceKm-, distance- ja distanceLabel-kentillä
+// ennen setFoundStores/rankStores/buildDynamicArea-käsittelyä. Näin etäisyys kulkee mukana korttiin,
+// Vaihda/Valittu-painikkeeseen ja MobileStorePickerModalille riippumatta siitä, mikä render-haara on näkyvissä.
+// Ei palauta AREAS/Oulu/Espoo/Imatra-fallback-kauppoja: rikastus tehdään vain API:n palauttamille kaupoille.
+
 // V96_GPS_DISTANCE_BUTTON_VISIBLE_REVISION_FIRST
 // Pohjana V95/V93. Korjaus käyttäjän havaintoon: revisioteksti nostettu tiedoston kärkeen,
 // jotta GitHubissa/vertailussa näkyy varmasti, että tämä on uusi versio.
@@ -5748,9 +5755,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         query,
         source === "gps" ? coordsOverride || gpsCoordsV320 : null,
       );
-      setFoundStores(stores);
 
-      if (stores.length === 0) {
+      // V97: etäisyys kiinnitetään itse store-objektiin heti GPS-haun jälkeen.
+      // Aiemmat V93-V96-korjaukset laskivat etäisyyden renderissä, mutta näkyvä
+      // mobiilihaara / modal saattoi saada storesta version, jossa distance-kenttiä ei ollut.
+      const distanceOriginV97 = source === "gps" ? coordsOverride || gpsCoordsV320 : null;
+      const storesWithDistanceV97 = stores.map((store) =>
+        enrichStoreWithGpsDistanceV97(store, distanceOriginV97),
+      );
+
+      setFoundStores(storesWithDistanceV97);
+
+      if (storesWithDistanceV97.length === 0) {
         setLocationMessage(
           `Alueelle "${query}" ei löytynyt kauppoja. Valitse alue käsin.`,
         );
@@ -5768,13 +5784,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             ? selectedStoreModeRefV302.current
             : storeMode;
       const ranked = rankStoresForMode(
-        stores,
+        storesWithDistanceV97,
         effectiveLocationStoreModeV39,
         locationCoordsForResolverV32,
       );
       const nextArea = buildDynamicArea(
         query,
-        stores,
+        storesWithDistanceV97,
         effectiveLocationStoreModeV39,
         locationCoordsForResolverV32,
       );
@@ -10243,6 +10259,35 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return null;
   }
 
+  function enrichStoreWithGpsDistanceV97(
+    store: StoreSearchItem,
+    origin?: { latitude: number; longitude: number } | null,
+  ): StoreSearchItem {
+    if (!origin) return store;
+
+    const latitude = getStoreCoordinateV320(store, ["latitude", "lat", "y"]);
+    const longitude = getStoreCoordinateV320(store, [
+      "longitude",
+      "lng",
+      "lon",
+      "x",
+    ]);
+
+    if (latitude == null || longitude == null) return store;
+
+    const distanceKm = calculateDistanceKmV320(origin, { latitude, longitude });
+    if (!Number.isFinite(distanceKm)) return store;
+
+    const distanceLabel = formatDistanceKmV320(distanceKm);
+
+    return {
+      ...store,
+      distanceKm,
+      distance: distanceLabel,
+      distanceLabel,
+    } as StoreSearchItem;
+  }
+
   function normalizeStoreForPickerV320(
     store: StoreSearchItem,
   ): StoreSearchItem {
@@ -10267,7 +10312,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       ...store,
       type: chain || store.type,
       ...(gpsDistanceKm != null && Number.isFinite(gpsDistanceKm)
-        ? { distanceKm: gpsDistanceKm }
+        ? {
+            distanceKm: gpsDistanceKm,
+            distance: formatDistanceKmV320(gpsDistanceKm),
+            distanceLabel: formatDistanceKmV320(gpsDistanceKm),
+          }
         : {}),
     };
   }
