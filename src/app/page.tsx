@@ -6689,7 +6689,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const searchAllAreaOffers = !offerQuerySnapshot;
 
     trackZiiplyEvent("gosta_offer_api_search_used", {
-      query: searchAllAreaOffers ? "__all_area_offers__" : offerQuerySnapshot,
+      query: searchAllAreaOffers ? "__all_area_offers_category_seeded__" : offerQuerySnapshot,
       cartItemsCount: cart.length,
       storeMode,
       sStoreName: activeStores.sStoreName,
@@ -6699,8 +6699,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (hasExplicitOverride) setInput(cleanedOverride);
 
     setOfferSearchQuerySnapshot(offerQuerySnapshot);
-    // V110: kun Gösta avataan tyhjällä haulla, älä aseta piilofiltteriä.
-    // Muuten "kaikki alueen tarjoukset" voi näyttää tyhjältä vaikka API palauttaisi dataa.
+    // V111: tyhjä Gösta-haku ei saa asettaa tekstifiltteriä, koska tarkoitus on näyttää
+    // alueen tarjouksia laajasti. Käyttäjän oma tarjoushaku saa edelleen toimia q-haulla.
     setOfferCardFilterV106(searchAllAreaOffers ? "" : offerQuerySnapshot);
     setOfferShowingAllAreaOffersV106(searchAllAreaOffers);
     setHasSearchedOffers(true);
@@ -6716,20 +6716,79 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setActiveResult("offers");
 
     try {
-      const offerSearchUrl = searchAllAreaOffers
-        ? "/api/offers/search"
-        : `/api/offers/search?q=${encodeURIComponent(offerQuerySnapshot)}`;
-      const response = await fetch(offerSearchUrl, { cache: "no-store" });
+      const parseOfferResponse = async (response: Response) => {
+        const data = await response.json();
+        if (!response.ok || data?.ok === false) {
+          throw new Error(String(data?.error || `Tarjoushaku epäonnistui: ${response.status}`));
+        }
+        return Array.isArray(data?.results) ? data.results : [];
+      };
 
-      const data = await response.json();
+      let nextResults: any[] = [];
 
-      if (!response.ok || data?.ok === false) {
-        throw new Error(String(data?.error || `Tarjoushaku epäonnistui: ${response.status}`));
+      if (searchAllAreaOffers) {
+        // V111: nykyinen /api/offers/search tarvitsee käytännössä q-parametrin.
+        // Siksi "kaikki alueen tarjoukset" rakennetaan tuoteryhmäsiemenillä eikä tyhjällä q:lla.
+        const seedQueries = [
+          "kahvi",
+          "maito",
+          "juusto",
+          "jogurtti",
+          "liha",
+          "kana",
+          "kala",
+          "leipä",
+          "hedelmä",
+          "vihannes",
+          "mehu",
+          "limu",
+          "pakaste",
+          "jäätelö",
+          "pesuaine",
+          "koiranruoka",
+        ];
+
+        const settled = await Promise.allSettled(
+          seedQueries.map(async (query) => {
+            const response = await fetch(
+              `/api/offers/search?q=${encodeURIComponent(query)}`,
+              { cache: "no-store" },
+            );
+            return parseOfferResponse(response);
+          }),
+        );
+
+        nextResults = settled.flatMap((result) =>
+          result.status === "fulfilled" ? result.value : [],
+        );
+      } else {
+        const response = await fetch(
+          `/api/offers/search?q=${encodeURIComponent(offerQuerySnapshot)}`,
+          { cache: "no-store" },
+        );
+        nextResults = await parseOfferResponse(response);
       }
 
-      const nextResults = Array.isArray(data?.results) ? data.results : [];
-      setOfferSearchResults(nextResults);
-      setOfferSearchDoneForQuery(searchAllAreaOffers ? "__all_area_offers__" : offerQuerySnapshot);
+      const seen = new Set<string>();
+      const dedupedResults = nextResults.filter((item) => {
+        const key = normalize([
+          item?.id,
+          item?.title,
+          item?.name,
+          item?.productName,
+          item?.storeLabel,
+          item?.priceText,
+          item?.benefitText,
+          item?.validityText,
+        ].filter(Boolean).join("|"));
+
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+
+      setOfferSearchResults(dedupedResults);
+      setOfferSearchDoneForQuery(searchAllAreaOffers ? "__all_area_offers_category_seeded__" : offerQuerySnapshot);
     } catch (error) {
       console.error("[Ziiply offers] API search failed", error);
       setOfferSearchResults([]);
