@@ -33,6 +33,11 @@
 
 "use client";
 
+// V127_OPENFOODFACTS_RECOGNIZED_EAN_NEVER_UNKNOWN
+// Korjaus: jos EAN on kerran tunnistettu kauppa- tai Open Food Facts -tuotteeksi,
+// mikään myöhempi skanneripolku ei saa enää lisätä sitä tuntemattomana.
+// Uusintaskannaus kasvattaa olemassa olevan rivin määrää +1.
+
 // V124_REPEAT_SCAN_CART_REF_LOCK
 // Korjaus: skannerin callbackit voivat nähdä vanhan cart-state-closuren.
 // Pidetään cartRef ajan tasalla ja käytetään sitä EAN-dedupeen ennen fallbackeja.
@@ -3127,6 +3132,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   // V126: pysyvä OFF-cache EAN-varianteille. Jos sama tuote luetaan myöhemmin
   // hieman eri EAN-muodossa, se ei saa pudota tuntemattomaksi fallbackiksi.
   const openFoodFactsProductCacheRefV126 = useRef<Map<string, OpenFoodFactsFallbackProductV729>>(new Map());
+  // V127: kova muistilukko. Kun EAN on kerran tunnistettu kauppa- tai OFF-tuotteeksi,
+  // sitä ei saa enää missään myöhemmässä skannauksessa lisätä tuntemattomana.
+  const recognizedEanLockRefV127 = useRef<Set<string>>(new Set());
   const scanSuccessFlashTimeoutRef = useRef<number | null>(null);
   const scanMissFlashTimeoutRef = useRef<number | null>(null);
 
@@ -8736,8 +8744,75 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   ) {
     const now = Date.now();
     for (const key of getEanVariantKeysV126(ean)) {
+      // V127: tunnistettua EANia ei saa myöhemmin heikentää tuntemattomaksi,
+      // vaikka jokin rinnakkainen skanneripolku päätyisi fallbackiin.
+      if (status === "unknown" && recognizedEanLockRefV127.current.has(key)) {
+        continue;
+      }
+
       eanLookupOutcomeRefV120.current.set(key, { status, at: now });
+
+      if (status === "off" || status === "store") {
+        recognizedEanLockRefV127.current.add(key);
+      }
     }
+  }
+
+  function isRecognizedEanLockedV127(ean: string) {
+    return getEanVariantKeysV126(ean).some((key) => recognizedEanLockRefV127.current.has(key));
+  }
+
+  function increaseExistingCartItemQuantityByEanV127(normalizedEan: string, scannerMessage: string) {
+    let handled = false;
+
+    setCart((currentCart) => {
+      const currentHasEan = currentCart.some((item) =>
+        cartItemMatchesEanV118(item, normalizedEan),
+      );
+      const refHasEan = cartRefV124.current.some((item) =>
+        cartItemMatchesEanV118(item, normalizedEan),
+      );
+      const baseCart = currentHasEan || !refHasEan ? currentCart : cartRefV124.current;
+      const existingIndex = baseCart.findIndex((item) =>
+        cartItemMatchesEanV118(item, normalizedEan),
+      );
+
+      if (existingIndex < 0) return currentCart;
+
+      const nextCart = baseCart.map((item, index) =>
+        index === existingIndex
+          ? ({ ...item, quantity: Number(item.quantity || 1) + 1 } as CartItem)
+          : item,
+      );
+
+      cartRefV124.current = nextCart;
+      persistCartImmediately(nextCart);
+      void updateChainComparison(nextCart, { openCompare: false });
+      handled = true;
+      return nextCart;
+    });
+
+    if (handled) {
+      triggerHaptic();
+      setEanInput("");
+      setEanResults([]);
+      setEanLoading(false);
+      setEanSearchStartedAutomatically(false);
+      eanAutoSearchActiveRef.current = false;
+      setLastAutoEanSearch("");
+      setEanMessage(scannerMessage);
+
+      if (eanScannerOpen || eanHtml5ScannerRef.current) {
+        setEanScannerMessage(scannerMessage);
+        window.setTimeout(() => {
+          setEanScannerMessage((current) =>
+            current === scannerMessage ? "" : current,
+          );
+        }, 2600);
+      }
+    }
+
+    return handled;
   }
 
   function getEanLookupOutcomeForAnyVariantV126(ean: string) {
@@ -8791,6 +8866,26 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   ) {
     const normalizedEan = normalizeEan(ean);
     if (!isUsableEan(normalizedEan)) return;
+
+    // V127: ehdoton portinvartija. Jos EAN on kerran tunnistettu,
+    // tuntematon-fallback ei saa enää koskaan tehdä siitä tuntematonta riviä.
+    if (isRecognizedEanLockedV127(normalizedEan)) {
+      const cachedOffForRecognizedV127 = getCachedOpenFoodFactsProductForAnyVariantV126(normalizedEan);
+      if (cachedOffForRecognizedV127) {
+        addOpenFoodFactsScannedEanToCartV729(cachedOffForRecognizedV127);
+        return;
+      }
+
+      const increasedExistingV127 = increaseExistingCartItemQuantityByEanV127(
+        normalizedEan,
+        "Määrä +1 — tunnistettu aiemmin",
+      );
+
+      if (increasedExistingV127) return;
+
+      setEanMessage("Tuote on tunnistettu aiemmin. Tuntematonta riviä ei lisätty.");
+      return;
+    }
 
     // V126: tuntematon-polku ei saa koskaan lisätä omaa riviä, jos sama EAN
     // on jo OFF-cachella millä tahansa EAN-variantilla.
