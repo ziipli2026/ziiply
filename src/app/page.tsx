@@ -3893,22 +3893,58 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return (data.items || []) as KProduct[];
   }
 
-  async function fetchOpenFoodFactsNames(ean: string) {
+  type OpenFoodFactsFallbackProductV729 = {
+    ean: string;
+    name: string;
+    brandName?: string;
+    imageUrl?: string;
+    quantity?: string;
+  };
+
+  async function fetchOpenFoodFactsFallbackProductV729(
+    ean: string,
+  ): Promise<OpenFoodFactsFallbackProductV729 | null> {
     const normalizedEan = normalizeEan(ean);
-    if (!isUsableEan(normalizedEan)) return [];
+    if (!isUsableEan(normalizedEan)) return null;
 
     const response = await fetch(
-      `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(normalizedEan)}.json?fields=product_name,product_name_fi,generic_name,generic_name_fi,brands,code`,
+      `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(normalizedEan)}.json?fields=product_name,product_name_fi,generic_name,generic_name_fi,brands,code,image_front_url,image_url,quantity`,
       { cache: "no-store" },
     );
 
-    if (!response.ok) return [];
+    if (!response.ok) return null;
 
     const data = await response.json();
+    const product = data?.product;
 
-    if (data?.status !== 1 || !data?.product) return [];
+    if (data?.status !== 1 || !product) return null;
 
-    return getOpenFoodFactsNames(data.product);
+    const names = getOpenFoodFactsNames(product);
+    const cleanName = names
+      .map((name) => cleanExternalProductName(String(name || "")))
+      .find((name) => name.length > 1);
+
+    if (!cleanName) return null;
+
+    const brandName = cleanExternalProductName(String(product.brands || ""));
+    const quantity = cleanExternalProductName(String(product.quantity || ""));
+
+    return {
+      ean: normalizedEan,
+      name: [brandName, cleanName, quantity]
+        .filter(Boolean)
+        .join(" ")
+        .replace(/\s+/g, " ")
+        .trim(),
+      brandName: brandName || undefined,
+      imageUrl: String(product.image_front_url || product.image_url || ""),
+      quantity: quantity || undefined,
+    };
+  }
+
+  async function fetchOpenFoodFactsNames(ean: string) {
+    const fallbackProduct = await fetchOpenFoodFactsFallbackProductV729(ean);
+    return fallbackProduct?.name ? [fallbackProduct.name] : [];
   }
 
   function showCartToast(message: string) {
@@ -8191,6 +8227,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setEanSearchStartedAutomatically(false);
       eanAutoSearchActiveRef.current = false;
 
+      // V729: 1. fallback on Open Food Facts. Jos S/K-tarkkaa EAN-osumaa ei löydy,
+      // mutta OFF tunnistaa tuotteen, lisätään se koriin nimellä + EANilla.
+      // Hintaa ei lisätä kokonaissummaan: status on käytännössä "maksettava kassalla".
+      const openFoodFactsFallback = await fetchOpenFoodFactsFallbackProductV729(ean);
+
+      if (openFoodFactsFallback) {
+        addOpenFoodFactsScannedEanToCartV729(openFoodFactsFallback);
+        return;
+      }
+
+      // V729: 2. fallback säilyy täsmälleen vanhana: täysin tuntematon EAN
+      // lisätään koriin ja localStorage-logiin myöhempää/online-tunnistusta varten.
       if (eanScannerOpen || eanHtml5ScannerRef.current) {
         showScanMissFlash();
       }
@@ -8206,6 +8254,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           "EAN-koodilla ei löytynyt tarkkaa tuotetta valituista kaupoista. Lisättiin koriin tunnisteella ja otettiin talteen.",
         );
       }
+
     } catch (error) {
       pushGpsDebugLogV492(`useOwnLocation CATCH code=${String((error as any)?.code ?? "?")}`);
       console.error(error);
@@ -8517,6 +8566,100 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       window.setTimeout(() => {
         setEanScannerMessage((current) =>
           current === "Ei löytynyt vielä — otettiin talteen" ? "" : current,
+        );
+      }, 2600);
+    }
+  }
+
+
+  function addOpenFoodFactsScannedEanToCartV729(
+    fallbackProduct: OpenFoodFactsFallbackProductV729,
+  ) {
+    const normalizedEan = normalizeEan(fallbackProduct.ean);
+    if (!isUsableEan(normalizedEan)) return;
+
+    const productName =
+      cleanExternalProductName(fallbackProduct.name) ||
+      `Tunnistettu tuote · EAN ${normalizedEan}`;
+
+    let cartLimitReached = false;
+
+    setCart((currentCart) => {
+      const existingItem = currentCart.find((item) => {
+        const itemEan = normalizeEan(item.ean || item.product?.ean);
+        return itemEan === normalizedEan;
+      });
+
+      if (existingItem) {
+        // V729: Open Food Facts -fallback ei saa kasvattaa määrää automaattisesti.
+        // Yksi talteenotto per EAN riittää; käyttäjä voi nostaa määrää korissa itse.
+        showCartToast("EAN on jo otettu talteen");
+        return currentCart;
+      }
+
+      if (currentCart.length >= MAX_ITEMS) {
+        cartLimitReached = true;
+        return currentCart;
+      }
+
+      const fallbackCartName = `${productName} · maksettava kassalla`;
+
+      const fallbackProductForCart = {
+        id: `off-ean-${normalizedEan}`,
+        name: fallbackCartName,
+        price: 0,
+        ean: normalizedEan,
+        pictureUrl: fallbackProduct.imageUrl || "",
+        ziiplyOpenFoodFactsFallback: true,
+        ziiplyPayAtCheckout: true,
+        lookupStatus: "identified_open_food_facts",
+        brandName: fallbackProduct.brandName,
+        quantity: fallbackProduct.quantity,
+      } as unknown as Product;
+
+      const newItem: CartItem = {
+        id: `off-ean-${normalizedEan}-${Date.now()}`,
+        name: fallbackCartName,
+        price: 0,
+        image: fallbackProduct.imageUrl || "",
+        chain: undefined,
+        storeName: activeStores.sStoreName || activeStores.kStoreName || activeArea?.label || "",
+        quantity: 1,
+        source: "manual",
+        product: fallbackProductForCart,
+        ean: normalizedEan,
+      } as CartItem;
+
+      const nextCart = [...currentCart, newItem];
+      persistCartImmediately(nextCart);
+      void updateChainComparison(nextCart, { openCompare: false });
+      showCartToast(`Tunnistettu: ${productName}`);
+      return nextCart;
+    });
+
+    if (cartLimitReached) {
+      alert(`Demossa ostoskori on rajattu ${MAX_ITEMS} tuotteeseen.`);
+      return;
+    }
+
+    triggerHaptic();
+    showScanSuccessFlash();
+    setEanInput("");
+    setEanResults([]);
+    setEanLoading(false);
+    setEanSearchStartedAutomatically(false);
+    eanAutoSearchActiveRef.current = false;
+    setLastAutoEanSearch("");
+    setEanMessage(
+      "Tuote tunnistettiin Open Food Facts -tietokannasta. Hintaa ei löytynyt valituista kaupoista, joten se lisättiin koriin maksettava kassalla -tuotteena.",
+    );
+
+    if (eanScannerOpen || eanHtml5ScannerRef.current) {
+      setEanScannerOpen(true);
+      setEanScannerMessage("Tunnistettu — maksettava kassalla");
+      window.setTimeout(() => {
+        setEanScannerMessage((current) =>
+          current === "Tunnistettu — maksettava kassalla" ? "" : current,
         );
       }, 2600);
     }
