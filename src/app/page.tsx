@@ -8937,6 +8937,56 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     });
   }
 
+  function cartItemMatchesEanLooseV129(item: CartItem, ean: string) {
+    const normalizedEan = normalizeEan(ean);
+    const wantedVariants = getEanVariantKeysV126(normalizedEan);
+    if (wantedVariants.length === 0) return false;
+
+    const productAny = item.product as any;
+    const rawCandidates = [
+      item.ean,
+      productAny?.ean,
+      item.id,
+      productAny?.id,
+      item.name,
+      productAny?.name,
+    ];
+
+    return rawCandidates.some((candidate) => {
+      if (candidate == null) return false;
+      const text = String(candidate);
+      const candidateEan = normalizeEan(text);
+      if (candidateEan && wantedVariants.includes(candidateEan)) return true;
+
+      // V129: viimeinen, brutaali EAN-portti. Joissain skanneripoluissa sama koodi
+      // kulkee id/name-kentässä muun tekstin tai aikaleiman kanssa. Siksi verrataan
+      // myös raakaa numerosisältöä molempiin suuntiin. Näin tunnistettu tuote ei voi
+      // saada rinnalleen tuntematonta riviä samalla EANilla.
+      const digits = text.replace(/\D/g, "");
+      if (digits.length >= 8) {
+        return wantedVariants.some((variant) =>
+          digits.includes(variant) || variant.includes(digits),
+        );
+      }
+
+      return wantedVariants.some((variant) => text.includes(variant));
+    });
+  }
+
+  function mergeCartPoolsByIdV129(currentCart: CartItem[]) {
+    const seen = new Set<string>();
+    const merged: CartItem[] = [];
+
+    for (const item of [...currentCart, ...cartRefV124.current]) {
+      const key = String(item.id || `${item.name}-${item.ean || item.product?.ean || ""}`);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      merged.push(item);
+    }
+
+    return merged;
+  }
+
   function addUnknownScannedEanToCartV724(
     ean: string,
     options: { lookupSource?: "not_found" | "lookup_error" } = {},
@@ -8944,120 +8994,84 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const normalizedEan = normalizeEan(ean);
     if (!isUsableEan(normalizedEan)) return;
 
-    // V128: ehdoton viimeinen portinvartija ennen tuntematonta fallbackia.
-    // Jos sama EAN on joskus tunnistettu, jos OFF-cache tuntee sen, tai jos sama EAN
-    // löytyy jo korista mistä tahansa kentästä, tuntematonta riviä EI saa syntyä.
-    const cachedOffForUnknownV128 = getCachedOpenFoodFactsProductForAnyVariantV126(normalizedEan);
-    if (cachedOffForUnknownV128) {
-      addOpenFoodFactsScannedEanToCartV729(cachedOffForUnknownV128);
+    // V129: tuntematon fallback EI saa koskaan tehdä omaa riviä, jos sama EAN
+    // löytyy jo korista tunnistettuna tai tuntemattomana. Sama koodi vain kasvattaa määrää.
+    const cachedOffForUnknownV129 = getCachedOpenFoodFactsProductForAnyVariantV126(normalizedEan);
+    if (cachedOffForUnknownV129) {
+      addOpenFoodFactsScannedEanToCartV729(cachedOffForUnknownV129);
       return;
     }
 
-    const previousOutcomeForUnknownV128 = getEanLookupOutcomeForAnyVariantV126(normalizedEan)?.status;
-    const existingCartItemForUnknownV128 = getExistingCartItemByEanV128(normalizedEan);
-
-    if (
+    const previousOutcomeForUnknownV129 = getEanLookupOutcomeForAnyVariantV126(normalizedEan)?.status;
+    const recognizedOrKnownV129 =
       wasRecognizedEanPersistedV128(normalizedEan) ||
-      previousOutcomeForUnknownV128 === "off" ||
-      previousOutcomeForUnknownV128 === "store" ||
-      existingCartItemForUnknownV128
-    ) {
-      const increasedExistingV128 = increaseExistingCartItemQuantityByEanV127(
-        normalizedEan,
-        existingCartItemForUnknownV128
-          ? "Määrä +1"
-          : "Tunnistettu aiemmin — tuntematonta riviä ei lisätty",
-      );
+      previousOutcomeForUnknownV129 === "off" ||
+      previousOutcomeForUnknownV129 === "store";
 
-      if (increasedExistingV128) return;
-
-      setEanInput("");
-      setEanResults([]);
-      setEanLoading(false);
-      setEanSearchStartedAutomatically(false);
-      eanAutoSearchActiveRef.current = false;
-      setLastAutoEanSearch("");
-      setEanMessage("Tuote on tunnistettu aiemmin. Tuntematonta riviä ei lisätty.");
-
-      if (eanScannerOpen || eanHtml5ScannerRef.current) {
-        setEanScannerMessage("Tunnistettu aiemmin");
-        window.setTimeout(() => {
-          setEanScannerMessage((current) =>
-            current === "Tunnistettu aiemmin" ? "" : current,
-          );
-        }, 2200);
-      }
-      return;
-    }
-
-    logUnknownScannedEanV724(normalizedEan, options.lookupSource || "not_found");
-
-    const unknownName = `Tuntematon tuote · EAN ${normalizedEan}`;
     let cartLimitReached = false;
-    let handledExistingEanV125 = false;
+    let handledExistingEanV129 = false;
+    let blockedRecognizedWithoutCartRowV129 = false;
+    let handledNameV129 = "";
+    let handledWasOffV129 = false;
+    let handledWasUnknownV129 = false;
 
     setCart((currentCart) => {
-      // V125: käytä aina ajantasaisinta korikuvaa. Skannerin live/still-callbackit
-      // voivat kutsua fallbackia vanhalla React-state-snapshotilla, vaikka cartRefissä
-      // sama EAN on jo OFF-tunnistettuna tai tuntemattomana.
-      const currentHasEan = currentCart.some((item) =>
-        cartItemMatchesEanV118(item, normalizedEan),
-      );
-      const refHasEan = cartRefV124.current.some((item) =>
-        cartItemMatchesEanV118(item, normalizedEan),
-      );
-      const baseCart = currentHasEan || !refHasEan ? currentCart : cartRefV124.current;
+      const baseCart = mergeCartPoolsByIdV129(currentCart);
+      const matchingIndexes = baseCart
+        .map((item, index) => ({ item, index }))
+        .filter(({ item }) => cartItemMatchesEanLooseV129(item, normalizedEan))
+        .map(({ index }) => index);
 
-      const existingIndex = baseCart.findIndex((item) =>
-        cartItemMatchesEanV118(item, normalizedEan),
-      );
-
-      if (existingIndex >= 0) {
-        const existingItem = baseCart[existingIndex];
-        const existingProductAny = existingItem.product as any;
-        const existingName = String(existingItem.name || existingProductAny?.name || unknownName);
-
-        const nextCart = baseCart.map((item, index) =>
-          index === existingIndex
-            ? { ...item, quantity: Number(item.quantity || 1) + 1 }
-            : item,
+      if (matchingIndexes.length > 0) {
+        const keepIndex = matchingIndexes[0];
+        const matchingSet = new Set(matchingIndexes);
+        const matchingItems = matchingIndexes.map((index) => baseCart[index]);
+        const keepItem = baseCart[keepIndex];
+        const keepProductAny = keepItem.product as any;
+        const totalQuantity = matchingItems.reduce(
+          (sum, item) => sum + Math.max(1, Number(item.quantity || 1)),
+          0,
         );
+
+        handledWasOffV129 = matchingItems.some((item) => (item.product as any)?.ziiplyOpenFoodFactsFallback);
+        handledWasUnknownV129 = matchingItems.some((item) => {
+          const productAny = item.product as any;
+          return (
+            productAny?.ziiplyUnknownEan ||
+            String(item.id || "").startsWith("unknown-ean-") ||
+            String(item.name || "").toLowerCase().includes("tuntematon tuote")
+          );
+        });
+        handledNameV129 = String(keepItem.name || keepProductAny?.name || `EAN ${normalizedEan}`);
+
+        const nextCart = baseCart
+          .map((item, index) =>
+            index === keepIndex
+              ? ({
+                  ...item,
+                  quantity: totalQuantity + 1,
+                  ean: normalizedEan,
+                  product: {
+                    ...(item.product as any),
+                    ean: normalizedEan,
+                  } as Product,
+                } as CartItem)
+              : item,
+          )
+          .filter((_, index) => index === keepIndex || !matchingSet.has(index));
 
         cartRefV124.current = nextCart;
         persistCartImmediately(nextCart);
         void updateChainComparison(nextCart, { openCompare: false });
-
-        handledExistingEanV125 = true;
-
-        if (existingProductAny?.ziiplyOpenFoodFactsFallback) {
-          showCartToast(`Määrä +1: ${existingName}`);
-          setEanMessage(
-            "Tuote on jo korissa. Määrä lisättiin +1. Vertailuhintaa ei löytynyt käytettävissä olevista kauppatiedoista.",
-          );
-          if (eanScannerOpen || eanHtml5ScannerRef.current) {
-            setEanScannerMessage("Määrä +1 — ei mukana hintavertailussa");
-            window.setTimeout(() => {
-              setEanScannerMessage((current) =>
-                current === "Määrä +1 — ei mukana hintavertailussa" ? "" : current,
-              );
-            }, 2600);
-          }
-        } else if (existingProductAny?.ziiplyUnknownEan) {
-          showCartToast(`Määrä +1: ${existingName}`);
-          setEanMessage("Sama viivakoodi on jo korissa. Määrä lisättiin +1.");
-          if (eanScannerOpen || eanHtml5ScannerRef.current) {
-            setEanScannerMessage("Määrä +1 — odottaa tunnistusta");
-            window.setTimeout(() => {
-              setEanScannerMessage((current) =>
-                current === "Määrä +1 — odottaa tunnistusta" ? "" : current,
-              );
-            }, 2600);
-          }
-        } else {
-          showCartToast(`Määrä +1: ${existingName}`);
-        }
-
+        handledExistingEanV129 = true;
         return nextCart;
+      }
+
+      // Jos EAN on jo tunnistettu aiemmin, mutta riviä ei löydy juuri nyt Reactin/refsien
+      // välissä, älä silti koskaan luo tuntematonta riviä.
+      if (recognizedOrKnownV129) {
+        blockedRecognizedWithoutCartRowV129 = true;
+        return currentCart;
       }
 
       if (baseCart.length >= MAX_ITEMS) {
@@ -9065,6 +9079,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         return currentCart;
       }
 
+      logUnknownScannedEanV724(normalizedEan, options.lookupSource || "not_found");
+
+      const unknownName = `Tuntematon tuote · EAN ${normalizedEan}`;
       const placeholderProduct = {
         id: `unknown-ean-${normalizedEan}`,
         name: unknownName,
@@ -9101,17 +9118,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return;
     }
 
-    if (handledExistingEanV125) {
-      triggerHaptic();
-      setEanInput("");
-      setEanResults([]);
-      setEanLoading(false);
-      setEanSearchStartedAutomatically(false);
-      eanAutoSearchActiveRef.current = false;
-      setLastAutoEanSearch("");
-      return;
-    }
-
     triggerHaptic();
     setEanInput("");
     setEanResults([]);
@@ -9119,6 +9125,41 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setEanSearchStartedAutomatically(false);
     eanAutoSearchActiveRef.current = false;
     setLastAutoEanSearch("");
+
+    if (handledExistingEanV129) {
+      const message = handledWasOffV129
+        ? "Määrä +1 — ei mukana hintavertailussa"
+        : handledWasUnknownV129
+          ? "Määrä +1 — odottaa tunnistusta"
+          : "Määrä +1";
+      showCartToast(`Määrä +1: ${handledNameV129}`);
+      setEanMessage(
+        handledWasOffV129
+          ? "Tuote on jo korissa. Määrä lisättiin +1. Vertailuhintaa ei löytynyt käytettävissä olevista kauppatiedoista."
+          : "Sama viivakoodi on jo korissa. Määrä lisättiin +1.",
+      );
+      if (eanScannerOpen || eanHtml5ScannerRef.current) {
+        setEanScannerMessage(message);
+        window.setTimeout(() => {
+          setEanScannerMessage((current) => (current === message ? "" : current));
+        }, 2600);
+      }
+      return;
+    }
+
+    if (blockedRecognizedWithoutCartRowV129) {
+      setEanMessage("Tuote on tunnistettu aiemmin. Tuntematonta riviä ei lisätty.");
+      if (eanScannerOpen || eanHtml5ScannerRef.current) {
+        setEanScannerMessage("Tunnistettu aiemmin");
+        window.setTimeout(() => {
+          setEanScannerMessage((current) =>
+            current === "Tunnistettu aiemmin" ? "" : current,
+          );
+        }, 2200);
+      }
+      return;
+    }
+
     setEanMessage("Tuotetta ei löytynyt vielä. Lisättiin koriin viivakoodilla ja otettiin talteen.");
 
     if (eanScannerOpen || eanHtml5ScannerRef.current) {
@@ -9163,66 +9204,51 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     } as unknown as Product;
 
     let cartLimitReached = false;
-    let didAddOrUpgrade = false;
-    let didUpgradeUnknown = false;
+    let mergedExistingV129 = false;
 
     setCart((currentCart) => {
-      // V125: OFF-lisäyskin katsoo cartRefin, jotta se voi päivittää aiemman
-      // tuntemattoman rivin vaikka Reactin currentCart olisi skannericallbackissa vanha.
-      const currentHasEan = currentCart.some((item) =>
-        cartItemMatchesEanV118(item, normalizedEan),
-      );
-      const refHasEan = cartRefV124.current.some((item) =>
-        cartItemMatchesEanV118(item, normalizedEan),
-      );
-      const baseCart = currentHasEan || !refHasEan ? currentCart : cartRefV124.current;
+      const baseCart = mergeCartPoolsByIdV129(currentCart);
+      const matchingIndexes = baseCart
+        .map((item, index) => ({ item, index }))
+        .filter(({ item }) => cartItemMatchesEanLooseV129(item, normalizedEan))
+        .map(({ index }) => index);
 
-      const existingIndex = baseCart.findIndex((item) =>
-        cartItemMatchesEanV118(item, normalizedEan),
-      );
+      if (matchingIndexes.length > 0) {
+        const keepIndex = matchingIndexes[0];
+        const matchingSet = new Set(matchingIndexes);
+        const matchingItems = matchingIndexes.map((index) => baseCart[index]);
+        const totalQuantity = matchingItems.reduce(
+          (sum, item) => sum + Math.max(1, Number(item.quantity || 1)),
+          0,
+        );
+        const alreadyHadRecognized = matchingItems.some((item) =>
+          Boolean((item.product as any)?.ziiplyOpenFoodFactsFallback),
+        );
 
-      if (existingIndex >= 0) {
-        const existingItem = baseCart[existingIndex];
-        const existingProduct = existingItem.product as any;
-        const shouldUpgradeUnknown =
-          existingProduct?.ziiplyUnknownEan ||
-          String(existingItem.id || "").startsWith("unknown-ean-") ||
-          String(existingItem.name || "").toLowerCase().includes("tuntematon tuote");
+        // V129: jos tunnistettu tuote luetaan uudelleen, vain määrä kasvaa.
+        // Jos taas tuntematon rivi ehti syntyä ennen OFF-osumaa, se päivitetään
+        // tunnistetuksi ilman toisen tuoterivin luomista.
+        const nextQuantity = totalQuantity + (alreadyHadRecognized ? 1 : 0);
 
-        const keptItem = shouldUpgradeUnknown
-          ? ({
-              ...existingItem,
-              id: existingItem.id || `off-ean-${normalizedEan}-${Date.now()}`,
-              name: fallbackCartName,
-              price: 0,
-              image: fallbackProduct.imageUrl || existingItem.image || "",
-              chain: undefined,
-              product: fallbackProductForCart,
-              ean: normalizedEan,
-            } as CartItem)
-          : ({
-              ...existingItem,
-              quantity: Number(existingItem.quantity || 1) + 1,
-            } as CartItem);
+        const keptItem = {
+          ...baseCart[keepIndex],
+          name: fallbackCartName,
+          price: 0,
+          image: fallbackProduct.imageUrl || baseCart[keepIndex].image || "",
+          chain: undefined,
+          product: fallbackProductForCart,
+          ean: normalizedEan,
+          quantity: Math.max(1, nextQuantity),
+        } as CartItem;
 
-        // V118: yksi EAN saa jäädä koriin vain kerran. Jos live- ja still-skanneri
-        // tai aiempi tuntematon fallback ehti tehdä rinnakkaisen rivin, poistetaan duplikaatit.
         const nextCart = baseCart
-          .map((item, index) => (index === existingIndex ? keptItem : item))
-          .filter((item, index) => index === existingIndex || !cartItemMatchesEanV118(item, normalizedEan));
+          .map((item, index) => (index === keepIndex ? keptItem : item))
+          .filter((_, index) => index === keepIndex || !matchingSet.has(index));
 
         cartRefV124.current = nextCart;
-        if (nextCart !== currentCart) {
-          persistCartImmediately(nextCart);
-          void updateChainComparison(nextCart, { openCompare: false });
-        }
-
-        didAddOrUpgrade = true;
-        if (shouldUpgradeUnknown) {
-          didUpgradeUnknown = true;
-        }
-
-        // Sama EAN oli jo korissa. Ei toista riviä; kasvatetaan määrää +1.
+        persistCartImmediately(nextCart);
+        void updateChainComparison(nextCart, { openCompare: false });
+        mergedExistingV129 = true;
         return nextCart;
       }
 
@@ -9248,7 +9274,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       cartRefV124.current = nextCart;
       persistCartImmediately(nextCart);
       void updateChainComparison(nextCart, { openCompare: false });
-      didAddOrUpgrade = true;
       return nextCart;
     });
 
@@ -9257,17 +9282,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return;
     }
 
-    // V119: Älä pysäytä ilmoitusta didAddOrUpgrade-flagin perusteella.
-    // setCart(updater) voi ajaa updaterin asynkronisesti, joten flagi voi olla vielä false
-    // vaikka OFF-osuma on löytynyt ja kori päivittyy oikein. OFF-osuman tärkein käyttäjäinfo
-    // on juuri se, että tuote tunnistettiin mutta vertailuhinta puuttuu.
-
     triggerHaptic();
-    // V117: OFF-fallbackissa ei käytetä yleistä "Lisätty koriin" -scanner-tekstiä,
-    // koska käyttäjälle pitää kertoa, että tuote tunnistettiin mutta vertailuhinta puuttuu.
     setScanMissFlash(false);
     setScanSuccessFlash(false);
-    showCartToast(`Tunnistettu — ei mukana hintavertailussa: ${productName}`);
+    showCartToast(
+      mergedExistingV129
+        ? `Määrä +1: ${productName}`
+        : `Tunnistettu — ei mukana hintavertailussa: ${productName}`,
+    );
     setEanInput("");
     setEanResults([]);
     setEanLoading(false);
@@ -9275,15 +9297,20 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     eanAutoSearchActiveRef.current = false;
     setLastAutoEanSearch("");
     setEanMessage(
-      "Tuote tunnistettiin. Vertailuhintaa ei löytynyt käytettävissä olevista kauppatiedoista.",
+      mergedExistingV129
+        ? "Tuote on jo korissa. Määrä lisättiin +1. Vertailuhintaa ei löytynyt käytettävissä olevista kauppatiedoista."
+        : "Tuote tunnistettiin. Vertailuhintaa ei löytynyt käytettävissä olevista kauppatiedoista.",
     );
 
     if (eanScannerOpen || eanHtml5ScannerRef.current) {
+      const scannerMessage = mergedExistingV129
+        ? "Määrä +1 — ei mukana hintavertailussa"
+        : "Tunnistettu — ei mukana hintavertailussa";
       setEanScannerOpen(true);
-      setEanScannerMessage("Tunnistettu — ei mukana hintavertailussa");
+      setEanScannerMessage(scannerMessage);
       window.setTimeout(() => {
         setEanScannerMessage((current) =>
-          current === "Tunnistettu — ei mukana hintavertailussa" ? "" : current,
+          current === scannerMessage ? "" : current,
         );
       }, 2600);
     }
@@ -9330,26 +9357,31 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     let cartLimitReached = false;
 
     setCart((currentCart) => {
-      const existingItem = currentCart.find((item) => {
-        const itemEan = normalizeEan(item.ean || item.product?.ean);
-        if (isUsableEan(ean) && itemEan === ean) return true;
+      const baseCart = mergeCartPoolsByIdV129(currentCart);
+      const existingItem = baseCart.find((item) => {
+        if (isUsableEan(ean) && cartItemMatchesEanLooseV129(item, ean)) return true;
         return normalize(item.name) === normalize(productName);
       });
 
       if (existingItem) {
-        const nextCart = currentCart.map((item) =>
+        const nextCart = baseCart.map((item) =>
           item.id === existingItem.id
-            ? { ...item, quantity: item.quantity + 1 }
+            ? {
+                ...item,
+                quantity: Number(item.quantity || 1) + 1,
+                ean: ean || item.ean || result.product.ean,
+              }
             : item,
         );
 
+        cartRefV124.current = nextCart;
         persistCartImmediately(nextCart);
         void updateChainComparison(nextCart, { openCompare: false });
         showCartToast(`Määrä +1: ${existingItem.name}`);
         return nextCart;
       }
 
-      if (currentCart.length >= MAX_ITEMS) {
+      if (baseCart.length >= MAX_ITEMS) {
         cartLimitReached = true;
         return currentCart;
       }
@@ -9367,7 +9399,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         ean: ean || result.product.ean,
       };
 
-      const nextCart = [...currentCart, newItem];
+      const nextCart = [...baseCart, newItem];
+      cartRefV124.current = nextCart;
       persistCartImmediately(nextCart);
       void updateChainComparison(nextCart, { openCompare: false });
       showCartToast(`Lisätty: ${newItem.name}`);
