@@ -5828,7 +5828,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       );
       const nextArea = buildDynamicArea(
         query,
-        stores,
+        safeStores,
         effectiveLocationStoreModeV39,
         locationCoordsForResolverV32,
       );
