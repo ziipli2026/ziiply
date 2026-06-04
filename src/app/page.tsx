@@ -1,5 +1,10 @@
 "use client";
 
+// V69_GPS_NO_CHAIN_WIDE_FALLBACK_RESULTS
+// Korjaus V68:n jälkeen: GPS ei enää hae ketjutermeillä (Prisma/K-market jne.),
+// koska ne voivat palauttaa koko Suomen fallback-kauppoja.
+// GPS-polussa hyväksytään renderiin vain kaupat, joille saadaan oikea koordinaatti- tai distanceKm-etäisyys.
+
 // V67_GPS_NO_REVERSE_GEOCODE_OWNLOCATION_LOCK
 // GPS ei saa käyttää reverse-geocodattua kuntaa (esim. Hyvinkää) querynä eikä activeArea-labelinä.
 // Oma sijainti = koordinaatit. Kunta/postinumero kuuluu vain manuaalihakuun.
@@ -2315,22 +2320,12 @@ export default function Page() {
     void coords;
     void primaryQuery;
 
-    // V68_GPS_CHAIN_TERMS_NO_CITY_LOCK:
-    // GPS ON -tilassa ei käytetä kuntaa, postinumeroa eikä AREAS-labeliä kauppahaun
-    // lähtöquerynä. Tyhjä search ei nykyisellä API:lla palauta kauppoja luotettavasti,
-    // joten haetaan neutraaleilla ketju-/myymälätyyppitermeillä ja annetaan lat/lon-parametrien
-    // rajata/rankata tulokset.
-    return [
-      "Prisma",
-      "K-Citymarket",
-      "S-market",
-      "K-Supermarket",
-      "K-market",
-      "Sale",
-      "Alepa",
-      "Lidl",
-      "Tokmanni",
-    ];
+    // V69_GPS_NO_CHAIN_WIDE_FALLBACK_RESULTS:
+    // Älä käytä ketjunimiä kuten Prisma/K-market/S-market GPS-haun querynä.
+    // Ne palauttavat API:lta helposti koko Suomen fallback-osumia.
+    // Käytetään yhtä neutraalia teknistä hakua ja suodatetaan tulokset myöhemmin
+    // vain niihin kauppoihin, joilla on todellinen GPS-etäisyys.
+    return ["GPS_STORE_SEARCH"];
   }
 
   function setGpsVisibleMessageV391(areaLabel: string) {
@@ -5544,34 +5539,48 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // ei aktiivisen kunnan/postinumeron perusteella.
     if (!coords) return mergedStores;
 
-    return mergedStores.map((store) => {
-      const latitude = getStoreCoordinateV320(store, ["latitude", "lat", "y"]);
-      const longitude = getStoreCoordinateV320(store, [
-        "longitude",
-        "lng",
-        "lon",
-        "x",
-      ]);
+    return mergedStores
+      .map((store) => {
+        const latitude = getStoreCoordinateV320(store, ["latitude", "lat", "y"]);
+        const longitude = getStoreCoordinateV320(store, [
+          "longitude",
+          "lng",
+          "lon",
+          "x",
+        ]);
 
-      // V37: GPS-tilassa API:n distanceKm voi olla laskettu kunnan/queryn keskuksesta
-      // eikä käyttäjän todellisesta sijainnista. Siksi koordinaatit voittavat aina.
-      if (latitude != null && longitude != null) {
-        return {
-          ...store,
-          distanceKm: calculateDistanceKmV320(coords, { latitude, longitude }),
-        };
-      }
+        // V69: GPS-tilassa hyväksytään vain kaupat, joille saadaan todellinen etäisyys.
+        // Ensisijaisesti lasketaan etäisyys myymäläkoordinaateista.
+        if (latitude != null && longitude != null) {
+          return {
+            ...store,
+            distanceKm: calculateDistanceKmV320(coords, { latitude, longitude }),
+          };
+        }
 
-      const explicitDistanceKm = readExplicitDistanceKmV320(store);
-      if (explicitDistanceKm != null) {
-        return {
-          ...store,
-          distanceKm: explicitDistanceKm,
-        };
-      }
+        // Toissijaisesti hyväksytään API:n nimenomainen etäisyys.
+        // Jos tätäkään ei ole, osuma on todennäköisesti fallback/koko Suomen hakutulos,
+        // eikä sitä saa näyttää GPS-listassa.
+        const explicitDistanceKm = readExplicitDistanceKmV320(store);
+        if (explicitDistanceKm != null) {
+          return {
+            ...store,
+            distanceKm: explicitDistanceKm,
+          };
+        }
 
-      return store;
-    });
+        return null;
+      })
+      .filter((store): store is StoreSearchItem => {
+        if (!store) return false;
+        const distanceKm = readExplicitDistanceKmV320(store);
+        if (distanceKm == null || !Number.isFinite(distanceKm)) return false;
+
+        // Suojaraja: jos API palauttaa vahingossa koko Suomen fallback-osumia,
+        // ne eivät pääse GPS-renderiin. 120 km riittää harvempaankin alueeseen,
+        // mutta poistaa Oulu/Imatra-tyyppiset hutit Etelä-Suomessa.
+        return distanceKm <= 120;
+      });
   }
 
   function getCityFromGeocodeAddress(address: any) {
