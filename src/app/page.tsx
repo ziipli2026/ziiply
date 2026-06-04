@@ -2,6 +2,10 @@
 // Open Food Facts -fallback: sama EAN siivotaan koriin vain kerran.
 // Jos tuntematon EAN ehti ensin koriin, se päivitetään tunnistetuksi eikä lisätä toista riviä.
 
+// V119_OPENFOODFACTS_NOTIFY_AFTER_DEDUP
+// Korjaus: OFF-fallbackin ilmoitus näytetään myös silloin, kun strict EAN-dedup päivittää/siivoaa korin.
+// Reactin setCart-updater ei ole synkroninen, joten ilmoitusta ei saa sitoa updaterin sisällä asetettuun mutable-flagiiin.
+
 // V106_GOSTA_ALL_OFFERS_AND_CATEGORY_FILTER
 // Pohjana V105_STABLE: GPS, V41-etäisyys ja sää pidetään ennallaan.
 // Göstan tarjoushaku avautuu myös tyhjällä haulla ja hakee oletuksena alueen kaikki tarjoukset.
@@ -3092,6 +3096,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     null,
   );
   const scannedEanSessionSetRef = useRef<Set<string>>(new Set());
+  // V120: EAN-haulle oma single-flight-lukko. React-state (eanLoading / lastAutoEanSearch)
+  // ei riitä, koska mobiiliskannerissa live-luku, still-fallback ja useEffect voivat ehtiä
+  // eri mikrotaskeissa. Sama EAN saa olla käsittelyssä vain yhdessä putkessa.
+  const eanLookupPendingRefV120 = useRef<Set<string>>(new Set());
+  const eanLookupOutcomeRefV120 = useRef<Map<string, { status: "off" | "unknown" | "store"; at: number }>>(new Map());
   const scanSuccessFlashTimeoutRef = useRef<number | null>(null);
   const scanMissFlashTimeoutRef = useRef<number | null>(null);
 
@@ -8051,7 +8060,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return;
     }
 
-    if (eanSearchInFlightRef.current === ean) return;
+    // V120: hard single-flight. Estää tilanteen, jossa sama EAN käynnistyy
+    // samanaikaisesti skannerin live-polusta, still-fallbackista tai input-useEffectistä.
+    if (eanLookupPendingRefV120.current.has(ean)) return;
+    eanLookupPendingRefV120.current.add(ean);
+
+    if (eanSearchInFlightRef.current === ean) {
+      eanLookupPendingRefV120.current.delete(ean);
+      return;
+    }
 
     // V594: skanneri soittaa piipin jo tunnistustapahtumassa finishScannedEan()-kohdassa.
     // Tämä varmistus jää käsin käynnistettyyn EAN-hakuun, mutta ei tuplapiippaa skannerilta tullutta hakua.
@@ -8077,9 +8094,20 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         variants.map((variant) => eanCache[variant]).find(Boolean) ||
         eanCache[ean];
 
-      const externalNames = cachedName
-        ? []
-        : await fetchOpenFoodFactsNames(ean);
+      // V120: Open Food Facts haetaan vain kerran per EAN-haku ja samaa tulosta
+      // käytetään sekä nimihakujen apuna että varsinaisena OFF-fallbackina.
+      // Aiemmin nimi saattoi löytyä ensimmäisessä OFF-kutsussa, mutta toinen OFF-kutsu
+      // saattoi epäonnistua, jolloin sama tuote lipsahti tuntemattomana koriin.
+      let openFoodFactsFallbackForSearchV120: OpenFoodFactsFallbackProductV729 | null = null;
+      if (!cachedName) {
+        openFoodFactsFallbackForSearchV120 = await fetchOpenFoodFactsFallbackProductV729(ean).catch(
+          () => null,
+        );
+      }
+
+      const externalNames = openFoodFactsFallbackForSearchV120?.name
+        ? [openFoodFactsFallbackForSearchV120.name]
+        : [];
       const nameCandidates = Array.from(
         new Set([cachedName, ...externalNames].filter(Boolean) as string[]),
       );
@@ -8226,6 +8254,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           );
         }
 
+        eanLookupOutcomeRefV120.current.set(ean, { status: "store", at: Date.now() });
         eanSearchInFlightRef.current = null;
         setEanSearchStartedAutomatically(false);
         eanAutoSearchActiveRef.current = false;
@@ -8243,12 +8272,25 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // V729: 1. fallback on Open Food Facts. Jos S/K-tarkkaa EAN-osumaa ei löydy,
       // mutta OFF tunnistaa tuotteen, lisätään se koriin nimellä + EANilla.
       // Hintaa ei lisätä kokonaissummaan: tuote on tunnistettu, mutta vertailuhintaa ei ole saatavilla.
-      const openFoodFactsFallback = await fetchOpenFoodFactsFallbackProductV729(ean);
+      const openFoodFactsFallback =
+        openFoodFactsFallbackForSearchV120 ||
+        (cachedName
+          ? await fetchOpenFoodFactsFallbackProductV729(ean).catch(() => null)
+          : null);
 
       if (openFoodFactsFallback) {
+        eanLookupOutcomeRefV120.current.set(ean, { status: "off", at: Date.now() });
         addOpenFoodFactsScannedEanToCartV729(openFoodFactsFallback);
         return;
       }
+
+      // V120: jos rinnakkainen polku ehti jo tunnistaa saman EANin OFF-tuotteeksi,
+      // tuntematon fallback ei saa enää yliajaa sitä eikä tehdä toista ilmoitusta.
+      if (eanLookupOutcomeRefV120.current.get(ean)?.status === "off") {
+        return;
+      }
+
+      eanLookupOutcomeRefV120.current.set(ean, { status: "unknown", at: Date.now() });
 
       // V729: 2. fallback säilyy täsmälleen vanhana: täysin tuntematon EAN
       // lisätään koriin ja localStorage-logiin myöhempää/online-tunnistusta varten.
@@ -8287,11 +8329,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setEanResults([]);
       setEanSearchStartedAutomatically(false);
       eanAutoSearchActiveRef.current = false;
-      addUnknownScannedEanToCartV724(ean, { lookupSource: "lookup_error" });
-      setEanMessage(
-        "EAN-haku epäonnistui verkossa. Lisättiin koriin viivakoodilla ja otettiin talteen.",
-      );
+      // V120: verkkovirheen tuntematon-fallbackia ei tehdä, jos sama EAN on jo
+      // tässä sessiossa tunnistettu OFF- tai kauppatuotteeksi.
+      const previousOutcomeV120 = eanLookupOutcomeRefV120.current.get(ean)?.status;
+      if (previousOutcomeV120 !== "off" && previousOutcomeV120 !== "store") {
+        eanLookupOutcomeRefV120.current.set(ean, { status: "unknown", at: Date.now() });
+        addUnknownScannedEanToCartV724(ean, { lookupSource: "lookup_error" });
+        setEanMessage(
+          "EAN-haku epäonnistui verkossa. Lisättiin koriin viivakoodilla ja otettiin talteen.",
+        );
+      }
     } finally {
+      eanLookupPendingRefV120.current.delete(ean);
       if (eanSearchInFlightRef.current === ean) {
         eanSearchInFlightRef.current = null;
       }
@@ -8534,8 +8583,26 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       );
 
       if (existingItem) {
-        // V116: jos sama EAN on jo korissa, älä näytä toista notifikaatiota.
-        // Erityisesti OFF-fallback voi päivittää tuntemattoman rivin hetkeä myöhemmin.
+        const existingProductAny = existingItem.product as any;
+
+        // V120: jos sama EAN on jo korissa OFF-tunnistettuna ja myöhempi rinnakkainen/
+        // uusi haku yrittää pudota tuntemattomaan fallbackiin, älä lisää tuntematonta riviä.
+        // Näytä silti oikea informaatio, ettei käyttäjälle jää hiljaista epäonnistumista.
+        if (existingProductAny?.ziiplyOpenFoodFactsFallback) {
+          showCartToast("Tuote on jo korissa — ei mukana hintavertailussa");
+          setEanMessage(
+            "Tuote on jo korissa. Vertailuhintaa ei löytynyt käytettävissä olevista kauppatiedoista.",
+          );
+          if (eanScannerOpen || eanHtml5ScannerRef.current) {
+            setEanScannerMessage("Jo korissa — ei mukana hintavertailussa");
+            window.setTimeout(() => {
+              setEanScannerMessage((current) =>
+                current === "Jo korissa — ei mukana hintavertailussa" ? "" : current,
+              );
+            }, 2600);
+          }
+        }
+
         return currentCart;
       }
 
@@ -8705,10 +8772,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return;
     }
 
-    if (!didAddOrUpgrade) {
-      setEanLoading(false);
-      return;
-    }
+    // V119: Älä pysäytä ilmoitusta didAddOrUpgrade-flagin perusteella.
+    // setCart(updater) voi ajaa updaterin asynkronisesti, joten flagi voi olla vielä false
+    // vaikka OFF-osuma on löytynyt ja kori päivittyy oikein. OFF-osuman tärkein käyttäjäinfo
+    // on juuri se, että tuote tunnistettiin mutta vertailuhinta puuttuu.
 
     triggerHaptic();
     // V117: OFF-fallbackissa ei käytetä yleistä "Lisätty koriin" -scanner-tekstiä,
