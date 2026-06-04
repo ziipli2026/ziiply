@@ -196,6 +196,11 @@
 // V728_UNKNOWN_EAN_NO_REPEAT
 // Ei-löytynyt / tuntematon EAN lisätään koriin vain kerran; sama koodi ei enää kasvata määrää uudelleen.
 
+// V116_OPENFOODFACTS_NO_DOUBLE_FALLBACK
+// Korjaus: Open Food Facts -fallback pidetään saman EAN-haun sisällä loppuun asti.
+// Tuntematon EAN ei enää ehdi lisätä rinnakkaista riviä ennen OFF-vastausta.
+// Jos tuntematon rivi on jo ehtinyt koriin, OFF-osuma päivittää saman rivin tunnistetuksi eikä lisää toista ilmoitusta/riviä.
+
 // V723_SEARCH_FAIL_OPEN_FIX
 // Pohjana V722.
 // Korjaus hakumoottoriin:
@@ -8223,7 +8228,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       setEanResults([]);
 
-      eanSearchInFlightRef.current = null;
+      // V116: älä vapauta samaa EAN-hakua ennen Open Food Facts -fallbackia.
+      // Muuten mobiiliskannerin live/still-lukupolut voivat käynnistää toisen haun
+      // ja vanha tuntematon-fallback voi ehtiä koriin rinnalle.
       setEanSearchStartedAutomatically(false);
       eanAutoSearchActiveRef.current = false;
 
@@ -8504,10 +8511,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       });
 
       if (existingItem) {
-        // V728: tuntematon / ei-löytynyt EAN ei saa kasvattaa määrää,
-        // vaikka kamera lukisi saman koodin monta kertaa peräkkäin.
-        // Yksi talteenotto per EAN riittää; käyttäjä voi nostaa määrää korissa itse.
-        showCartToast("EAN on jo otettu talteen");
+        // V116: jos sama EAN on jo korissa, älä näytä toista notifikaatiota.
+        // Erityisesti OFF-fallback voi päivittää tuntemattoman rivin hetkeä myöhemmin.
         return currentCart;
       }
 
@@ -8582,18 +8587,59 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       cleanExternalProductName(fallbackProduct.name) ||
       `Tunnistettu tuote · EAN ${normalizedEan}`;
 
+    const fallbackCartName = `${productName} · ei mukana hintavertailussa`;
+
+    const fallbackProductForCart = {
+      id: `off-ean-${normalizedEan}`,
+      name: fallbackCartName,
+      price: 0,
+      ean: normalizedEan,
+      pictureUrl: fallbackProduct.imageUrl || "",
+      ziiplyOpenFoodFactsFallback: true,
+      ziiplyPayAtCheckout: false,
+      lookupStatus: "identified_open_food_facts",
+      brandName: fallbackProduct.brandName,
+      quantity: fallbackProduct.quantity,
+    } as unknown as Product;
+
     let cartLimitReached = false;
+    let didAddOrUpgrade = false;
+    let didUpgradeUnknown = false;
 
     setCart((currentCart) => {
-      const existingItem = currentCart.find((item) => {
+      const existingIndex = currentCart.findIndex((item) => {
         const itemEan = normalizeEan(item.ean || item.product?.ean);
         return itemEan === normalizedEan;
       });
 
-      if (existingItem) {
-        // V729: Open Food Facts -fallback ei saa kasvattaa määrää automaattisesti.
-        // Yksi talteenotto per EAN riittää; käyttäjä voi nostaa määrää korissa itse.
-        showCartToast("EAN on jo otettu talteen");
+      if (existingIndex >= 0) {
+        const existingItem = currentCart[existingIndex];
+        const existingProduct = existingItem.product as any;
+
+        // V116: jos vanha tuntematon fallback ehti jo koriin samalla EANilla,
+        // päivitä sama rivi Open Food Facts -tunnistetuksi. Älä lisää toista riviä.
+        if (existingProduct?.ziiplyUnknownEan || String(existingItem.id || "").startsWith("unknown-ean-")) {
+          const upgradedItem = {
+            ...existingItem,
+            id: existingItem.id || `off-ean-${normalizedEan}-${Date.now()}`,
+            name: fallbackCartName,
+            price: 0,
+            image: fallbackProduct.imageUrl || existingItem.image || "",
+            chain: undefined,
+            product: fallbackProductForCart,
+            ean: normalizedEan,
+          } as CartItem;
+
+          const nextCart = [...currentCart];
+          nextCart[existingIndex] = upgradedItem;
+          persistCartImmediately(nextCart);
+          void updateChainComparison(nextCart, { openCompare: false });
+          didAddOrUpgrade = true;
+          didUpgradeUnknown = true;
+          return nextCart;
+        }
+
+        // Sama tunnistettu EAN on jo korissa. Ei toista riviä eikä toista ilmoitusta.
         return currentCart;
       }
 
@@ -8601,21 +8647,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         cartLimitReached = true;
         return currentCart;
       }
-
-      const fallbackCartName = `${productName} · ei mukana hintavertailussa`;
-
-      const fallbackProductForCart = {
-        id: `off-ean-${normalizedEan}`,
-        name: fallbackCartName,
-        price: 0,
-        ean: normalizedEan,
-        pictureUrl: fallbackProduct.imageUrl || "",
-        ziiplyOpenFoodFactsFallback: true,
-        ziiplyPayAtCheckout: false,
-        lookupStatus: "identified_open_food_facts",
-        brandName: fallbackProduct.brandName,
-        quantity: fallbackProduct.quantity,
-      } as unknown as Product;
 
       const newItem: CartItem = {
         id: `off-ean-${normalizedEan}-${Date.now()}`,
@@ -8633,7 +8664,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const nextCart = [...currentCart, newItem];
       persistCartImmediately(nextCart);
       void updateChainComparison(nextCart, { openCompare: false });
-      showCartToast(`Tunnistettu: ${productName}`);
+      didAddOrUpgrade = true;
       return nextCart;
     });
 
@@ -8642,8 +8673,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return;
     }
 
+    if (!didAddOrUpgrade) {
+      setEanLoading(false);
+      return;
+    }
+
     triggerHaptic();
     showScanSuccessFlash();
+    showCartToast(didUpgradeUnknown ? `Tunnistettu: ${productName}` : `Tunnistettu: ${productName}`);
     setEanInput("");
     setEanResults([]);
     setEanLoading(false);
