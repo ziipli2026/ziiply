@@ -14,6 +14,12 @@
 // Sama EAN uudelleen skannattuna kasvattaa olemassa olevan koririvin määrää +1.
 // Ei enää uutta tuntematonta riviä eikä hiljaista ohitusta, jos OFF-tuote on jo korissa.
 
+// V132_SCANNER_NO_AUTO_UNKNOWN_AFTER_OFF_RACE
+// Korjaus: kameraskannerin automaattinen EAN-polku ei enää saa lisätä tuntematonta riviä,
+// jos S/K ja Open Food Facts eivät ehdi/onnistu palauttaa osumaa samalla lukukierroksella.
+// Tämä estää OFF-tunnistetun tuotteen rinnalle syntyvät tuntematon-rivit.
+// Käsin tehty EAN-haku voi edelleen käyttää vanhaa tuntematon-fallbackia.
+
 // V106_GOSTA_ALL_OFFERS_AND_CATEGORY_FILTER
 // Pohjana V105_STABLE: GPS, V41-etäisyys ja sää pidetään ennallaan.
 // Göstan tarjoushaku avautuu myös tyhjällä haulla ja hakee oletuksena alueen kaikki tarjoukset.
@@ -7619,7 +7625,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setEanScannerOpen(true);
     setEanScannerMessage("");
     setEanMessage(`Skannattu EAN: ${normalizedCode}. Haetaan...`);
-    void searchByEan(normalizedCode);
+    void searchByEan(normalizedCode, { fromScanner: true });
   }
 
   async function toggleScannerTorch() {
@@ -8113,7 +8119,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }, 0);
   }
 
-  async function searchByEan(eanOverride?: string) {
+  async function searchByEan(
+    eanOverride?: string,
+    options: { fromScanner?: boolean } = {},
+  ) {
     const ean = normalizeEan(eanOverride ?? eanInput);
 
     if (!isUsableEan(ean)) {
@@ -8515,14 +8524,37 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         return;
       }
 
-      setEanLookupOutcomeForAllVariantsV126(ean, "unknown");
-
-      // V729: 2. fallback säilyy täsmälleen vanhana: täysin tuntematon EAN
-      // lisätään koriin ja localStorage-logiin myöhempää/online-tunnistusta varten.
-      if (eanScannerOpen || eanHtml5ScannerRef.current) {
-        showScanMissFlash();
+      // V132: kameraskannerissa EI lisätä tuntematonta riviä automaattisesti.
+      // Syy: live-lukija ja still-fallback voivat tuottaa saman fyysisen skannauksen aikana
+      // rinnakkaisia hakuketjuja. Jos Open Food Facts tunnistaa tuotteen yhdessä ketjussa,
+      // toinen ketju saattoi silti päätyä myöhemmin unknown-fallbackiin ja luoda rinnakkaisen
+      // "Tuntematon tuote" -rivin. Käsin käynnistetty EAN-haku saa edelleen tehdä unknown-fallbackin.
+      if (options.fromScanner || eanAutoSearchActiveRef.current || eanScannerOpen || eanHtml5ScannerRef.current) {
+        setEanLookupOutcomeForAllVariantsV126(ean, "unknown");
+        setEanInput("");
+        setEanResults([]);
+        setEanLoading(false);
+        setEanSearchStartedAutomatically(false);
+        eanAutoSearchActiveRef.current = false;
+        setLastAutoEanSearch("");
+        setEanMessage(
+          externalNames.length > 0
+            ? "Tuote tunnistettiin osittain, mutta vertailukelpoista kauppahintaa ei löytynyt. Tuntematonta rinnakkaisriviä ei lisätty."
+            : "EAN-koodille ei löytynyt vertailutietoa. Tuntematonta rinnakkaisriviä ei lisätty.",
+        );
+        setEanScannerMessage("Ei vertailutietoa — ei lisätty tuntemattomana");
+        window.setTimeout(() => {
+          setEanScannerMessage((current) =>
+            current === "Ei vertailutietoa — ei lisätty tuntemattomana" ? "" : current,
+          );
+        }, 2600);
+        return;
       }
 
+      setEanLookupOutcomeForAllVariantsV126(ean, "unknown");
+
+      // V729: käsin haetussa EANissa 2. fallback säilyy: täysin tuntematon EAN
+      // lisätään koriin ja localStorage-logiin myöhempää/online-tunnistusta varten.
       addUnknownScannedEanToCartV724(ean, { lookupSource: "not_found" });
 
       if (externalNames.length > 0) {
@@ -8568,6 +8600,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           return;
         }
 
+        if (options.fromScanner || eanAutoSearchActiveRef.current || eanScannerOpen || eanHtml5ScannerRef.current) {
+          setEanLookupOutcomeForAllVariantsV126(ean, "unknown");
+          setEanMessage("EAN-haku epäonnistui hetkellisesti. Tuntematonta rinnakkaisriviä ei lisätty.");
+          if (eanScannerOpen || eanHtml5ScannerRef.current) {
+            setEanScannerMessage("Haku epäonnistui — yritä uudelleen");
+            window.setTimeout(() => {
+              setEanScannerMessage((current) =>
+                current === "Haku epäonnistui — yritä uudelleen" ? "" : current,
+              );
+            }, 2600);
+          }
+          return;
+        }
         setEanLookupOutcomeForAllVariantsV126(ean, "unknown");
         addUnknownScannedEanToCartV724(ean, { lookupSource: "lookup_error" });
         setEanMessage(
