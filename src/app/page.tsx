@@ -8239,7 +8239,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return;
     }
 
-    // V133: pelkkä pysyvä "tunnistettu joskus" -lukko ei saa pysäyttää uutta skannausta.
+    // V134_NO_EFFECT_DUPLICATE_EAN_SEARCH
+// Korjaus: finishScannedEan() käynnistää skannerihaun suoraan.
+// Samalla setEanInput() voi laukaista useEffectin kautta toisen EAN-haun ilman fromScanner-lippua.
+// Tämä toinen haku päätyi vuorotellen tuntematon-fallbackiin.
+// Estetään useEffectin automaattihaku, jos sama EAN on juuri lähtenyt kameraskannerista.
+
+// V133: pelkkä pysyvä "tunnistettu joskus" -lukko ei saa pysäyttää uutta skannausta.
     // Jos tuote on korissa, se käsitellään yllä määrän kasvatuksena. Jos ei ole korissa
     // eikä OFF-cachea löydy, jatketaan normaaliin S/K -> OFF -hakuun eikä palauteta
     // käyttäjälle virheellistä "tunnistettu aiemmin" -tilaa.
@@ -8637,6 +8643,22 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     if (ean === lastAutoEanSearch || eanLoading) return;
 
+    // V134: kameraskanneri käynnistää searchByEan(ean, { fromScanner: true })
+    // suoraan finishScannedEan()-funktiosta. setEanInput(normalizedCode) saa silti
+    // tämän useEffectin heräämään, ja koska React-state päivittyy viiveellä,
+    // lastAutoEanSearch/eanLoading eivät aina ehdi estää toista hakua.
+    // Juuri se toinen, ilman fromScanner-lippua lähtenyt haku päätyi välillä
+    // tuntematon-fallbackiin. Jos sama EAN on juuri luettu kamerasta, älä siis
+    // käynnistä useEffectistä rinnakkaista automaattihakua.
+    const recentScannerRead = lastContinuousScanRef.current;
+    if (
+      (eanScannerOpen || eanHtml5ScannerRef.current || eanAutoSearchActiveRef.current) &&
+      recentScannerRead?.code === ean &&
+      Date.now() - recentScannerRead.at < 6500
+    ) {
+      return;
+    }
+
     const delay = ean.length >= 13 ? 300 : 650;
 
     // UI debounce / anti-duplicate protection
@@ -8644,7 +8666,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setLastAutoEanSearch(ean);
       setEanSearchStartedAutomatically(true);
       eanAutoSearchActiveRef.current = true;
-      void searchByEan(ean);
+      void searchByEan(ean, { fromScanner: Boolean(eanScannerOpen || eanHtml5ScannerRef.current) });
     }, delay);
 
     return () => {
