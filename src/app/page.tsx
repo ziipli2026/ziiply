@@ -5799,9 +5799,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         query,
         source === "gps" ? coordsOverride || gpsCoordsV320 : null,
       );
-      setFoundStores(stores);
+      const safeStores = stores.filter(Boolean) as StoreSearchItem[];
+      setFoundStores(safeStores);
 
-      if (stores.length === 0) {
+      if (safeStores.length === 0) {
         setLocationMessage(
           source === "gps"
             ? "Oman sijainnin läheltä ei löytynyt kauppoja. Valitse alue käsin."
