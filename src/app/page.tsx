@@ -1,3 +1,9 @@
+// V106_GOSTA_ALL_OFFERS_AND_CATEGORY_FILTER
+// Pohjana V105_STABLE: GPS, V41-etäisyys ja sää pidetään ennallaan.
+// Göstan tarjoushaku avautuu myös tyhjällä haulla ja hakee oletuksena alueen kaikki tarjoukset.
+// Tarjouskortille viedään oma suodatus-/tuoteryhmäkenttä: käyttäjä voi katsoa kaikki tarjoukset tai rajata ryhmällä/sanalla.
+// Roska-/feeluosumat suodatetaan page-tasolla ennen tarjouskortille renderöintiä.
+
 // V105_WEATHER_TEMP_TYPESCRIPT_NULL_FIX
 // Pohjana V104. Build-korjaus: effectiveCoords puretaan lat/lon-vakioiksi ennen async-fetchiä,
 // jolloin TypeScript ei enää tulkitse koordinaattia mahdollisesti nulliksi.
@@ -2400,6 +2406,8 @@ export default function Page() {
   const [loadingOffers, setLoadingOffers] = useState(false);
   const [offerSearchQuerySnapshot, setOfferSearchQuerySnapshot] = useState("");
   const [offerSearchDoneForQuery, setOfferSearchDoneForQuery] = useState("");
+  const [offerCardFilterV106, setOfferCardFilterV106] = useState("");
+  const [offerShowingAllAreaOffersV106, setOfferShowingAllAreaOffersV106] = useState(false);
   const [chainFilter, setChainFilter] = useState<"all" | "S" | "K">("all");
   const [justAdded, setJustAdded] = useState<string | null>(null);
 
@@ -3231,7 +3239,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   const terms = useMemo(() => parseTerms(input), [input]);
   const currentSearchQueryKey = useMemo(() => terms.join(", ").trim() || input.trim(), [terms, input]);
-  const gostaSearchDisabled = !currentSearchQueryKey || loadingOffers;
+  const gostaSearchDisabled = loadingOffers;
   const hasSearchInput = terms.length > 0;
 
   useEffect(() => {
@@ -4735,6 +4743,111 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     void chainFilter;
     return [];
   }, [offers, offerSearchQuerySnapshot, currentSearchQueryKey, chainFilter]);
+
+  function getOfferSearchTextV106(item: any) {
+    return [
+      item?.title,
+      item?.name,
+      item?.productName,
+      item?.brandName,
+      item?.storeLabel,
+      item?.storeName,
+      item?.chain,
+      item?.benefitText,
+      item?.validityText,
+      item?.category,
+      item?.department,
+      item?.productGroup,
+    ]
+      .filter(Boolean)
+      .map(String)
+      .join(" ");
+  }
+
+  function getOfferCategoryV106(item: any) {
+    const text = normalize(getOfferSearchTextV106(item));
+
+    if (/kahvi|espresso|suodatinjauh|papu/.test(text)) return "Kahvi";
+    if (/maito|jugur|jogur|rahka|juusto|voi|kerma|piima|viili/.test(text)) return "Maitotuotteet";
+    if (/liha|jauheliha|kana|broiler|possu|nauta|makkara|leikkele/.test(text)) return "Liha";
+    if (/kala|lohi|kirjolohi|tonnikala|silakka|katkarapu/.test(text)) return "Kala";
+    if (/leipa|sämpyl|pull|croissant|karjalanpiir|pita/.test(text)) return "Leipomo";
+    if (/hedel|omena|banaani|appelsiini|vihannes|tomaatti|kurkku|salaatti|peruna|sipuli/.test(text)) return "Hevi";
+    if (/koira|kissa|lemmik|pedigree|whiskas|sheba|purina/.test(text)) return "Lemmikit";
+    if (/pesu|pyykin|fairy|astianpesu|wc|siivous|talouspaperi|vessa/.test(text)) return "Koti";
+    if (/limu|cola|mehu|olut|energiajuoma|vesi|virvoitus/.test(text)) return "Juomat";
+    if (/pakaste|jäätelö|pizza/.test(text)) return "Pakasteet";
+
+    return "Muut";
+  }
+
+  function isBadOfferSearchResultV106(item: any) {
+    const title = String(item?.title || item?.name || item?.productName || "").trim();
+    const text = normalize(getOfferSearchTextV106(item));
+    const priceText = String(item?.priceText || item?.offerPrice || item?.price || "").trim();
+
+    if (!title || normalize(title).length < 3) return true;
+    if (!priceText && !item?.benefitText && !item?.discountText) return true;
+
+    const junkPatterns = [
+      /ostoskori/,
+      /ostoskorissa/,
+      /0\s*kappaletta/,
+      /tuote lisätty/,
+      /kirjaudu/,
+      /rekisteroidy/,
+      /eväste/,
+      /cookie/,
+      /toimitusmaksu/,
+      /nouto/,
+      /verkkokauppa/,
+      /asiakasomistaja/,
+      /plussa-?kort/,
+      /^kampanja$/,
+      /^tarjous$/,
+      /^osta$/,
+      /^avaa$/,
+      /^lue lisää$/,
+    ];
+
+    if (junkPatterns.some((pattern) => pattern.test(text))) return true;
+
+    const letters = title.replace(/[^A-Za-zÅÄÖåäö]/g, "");
+    if (letters.length < 3) return true;
+
+    return false;
+  }
+
+  const cleanOfferSearchResultsV106 = useMemo(() => {
+    const seen = new Set<string>();
+
+    return offerSearchResults.filter((item) => {
+      if (isBadOfferSearchResultV106(item)) return false;
+
+      const key = normalize([
+        item?.id,
+        item?.title,
+        item?.storeLabel,
+        item?.priceText,
+        item?.benefitText,
+      ].filter(Boolean).join("|"));
+
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [offerSearchResults]);
+
+  const visibleOfferSearchResultsV106 = useMemo(() => {
+    const filter = normalize(offerCardFilterV106).trim();
+    if (!filter) return cleanOfferSearchResultsV106;
+
+    return cleanOfferSearchResultsV106.filter((item) => {
+      const category = normalize(getOfferCategoryV106(item));
+      const text = normalize(getOfferSearchTextV106(item));
+      return category.includes(filter) || text.includes(filter);
+    });
+  }, [cleanOfferSearchResultsV106, offerCardFilterV106]);
 
   const offerSearchLabel = useMemo(() => {
     const label = offerSearchQuerySnapshot || currentSearchQueryKey;
@@ -6542,30 +6655,26 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }, []);
 
   async function searchOffers(termOverride?: string) {
-    const useTerms = termOverride ? parseTerms(termOverride) : terms;
+    const hasExplicitOverride = typeof termOverride === "string";
+    const cleanedOverride = String(termOverride ?? "").trim();
+    const useTerms = hasExplicitOverride ? parseTerms(cleanedOverride) : terms;
     const offerQuerySnapshot =
-      useTerms.join(", ").trim() || String(termOverride || input).trim();
-
-    if (!offerQuerySnapshot) {
-      setHasSearchedOffers(false);
-      setOffers([]);
-      setOfferSearchResults([]);
-      setOfferSearchQuerySnapshot("");
-      setActiveResult("none");
-      return;
-    }
+      useTerms.join(", ").trim() || (hasExplicitOverride ? cleanedOverride : input.trim());
+    const searchAllAreaOffers = !offerQuerySnapshot;
 
     trackZiiplyEvent("gosta_offer_api_search_used", {
-      query: offerQuerySnapshot,
+      query: searchAllAreaOffers ? "__all_area_offers__" : offerQuerySnapshot,
       cartItemsCount: cart.length,
       storeMode,
       sStoreName: activeStores.sStoreName,
       kStoreName: activeStores.kStoreName,
     });
 
-    if (termOverride) setInput(termOverride);
+    if (hasExplicitOverride) setInput(cleanedOverride);
 
     setOfferSearchQuerySnapshot(offerQuerySnapshot);
+    setOfferCardFilterV106(offerQuerySnapshot);
+    setOfferShowingAllAreaOffersV106(searchAllAreaOffers);
     setHasSearchedOffers(true);
     setLoadingOffers(true);
     setOffers([]);
@@ -6579,10 +6688,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setActiveResult("offers");
 
     try {
-      const response = await fetch(
-        `/api/offers/search?q=${encodeURIComponent(offerQuerySnapshot)}`,
-        { cache: "no-store" },
-      );
+      const offerSearchUrl = searchAllAreaOffers
+        ? "/api/offers/search"
+        : `/api/offers/search?q=${encodeURIComponent(offerQuerySnapshot)}`;
+      const response = await fetch(offerSearchUrl, { cache: "no-store" });
 
       const data = await response.json();
 
@@ -6592,7 +6701,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       const nextResults = Array.isArray(data?.results) ? data.results : [];
       setOfferSearchResults(nextResults);
-      setOfferSearchDoneForQuery(offerQuerySnapshot);
+      setOfferSearchDoneForQuery(searchAllAreaOffers ? "__all_area_offers__" : offerQuerySnapshot);
     } catch (error) {
       console.error("[Ziiply offers] API search failed", error);
       setOfferSearchResults([]);
@@ -13785,7 +13894,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             open={true}
             title="Tarjoushaku"
             query={offerSearchQuerySnapshot || input}
-            offers={offerSearchResults.map((item) => ({
+            offers={visibleOfferSearchResultsV106.map((item) => ({
               id: item.id,
               name: item.title,
               title: item.title,
@@ -13801,10 +13910,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               imageUrl: item.imageUrl,
               pictureUrl: item.imageUrl,
               productUrl: item.productUrl,
+              category: getOfferCategoryV106(item),
               __sourceOfferSearchResult: item,
             }))}
+            filter={offerCardFilterV106}
+            onFilterChange={setOfferCardFilterV106}
+            onSearch={(value) => void searchOffers(value)}
+            categorySuggestions={["Kaikki", "Kahvi", "Maitotuotteet", "Liha", "Kala", "Leipomo", "Hevi", "Juomat", "Lemmikit", "Koti", "Pakasteet"]}
             loading={loadingOffers}
-            emptyText="Gösta ei löytänyt tarjouksia tälle haulle."
+            emptyText={offerShowingAllAreaOffersV106 ? "Alueen tarjouksia ei löytynyt vielä." : "Gösta ei löytänyt tarjouksia tälle rajaukselle."}
             onBack={() => {
               setActiveResult("none");
               setSearchPanelOpen(true);
