@@ -1,5 +1,9 @@
 "use client";
 
+// V64_REMOVE_EMPTY_STORE_DIRECTORY_BRANCH
+// Poistaa V63:n tyhjän ziiplyStoreDirectory-haaran aktiivisten kauppojen valinnasta.
+// Page palaa V41-tyyppiseen foundStores/API + GPS-etäisyys -valintaan, jotta tyhjä rekisteri ei vaikuta runtimeen.
+
 // V33_LOCATION_RESOLVER_STORE_SHAPE_FALLBACK
 // Korjaa GPS/manuaali-kauppavalinnan: StoreSearchItem voi tulla API:lta eri muodoilla
 // (type/chain puuttuu tai koordinaatit eri kentissä). Resolveri saa nyt vahvan S/K-name fallbackin
@@ -811,12 +815,6 @@ import {
   type ZiiplyStoreKind,
   type ZiiplyStoreMode,
 } from "./components/ziiply/offerSearch/ziiplyLocationResolverCore";
-import {
-  ZIIPLY_STORE_DIRECTORY,
-  mergeZiiplyStoreDirectories,
-  normalizeApiStoresToZiiplyDirectory,
-  resolveZiiplyStoresFromDirectory,
-} from "./components/ziiply/offerSearch/ziiplyStoreDirectory";
 
 const MOBILE_EAN_SCANNER_REGION_ID = `${EAN_SCANNER_REGION_ID}-mobile`;
 
@@ -3370,55 +3368,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return result;
   }
 
-  function resolveActiveStoresFromDirectoryV63(
-    apiStores: StoreSearchItem[],
-    mode: StoreMode,
-    coords: { latitude: number; longitude: number },
-  ) {
-    const apiDirectory = normalizeApiStoresToZiiplyDirectory(
-      apiStores as unknown as Array<Record<string, unknown>>,
-    );
-
-    const directory = mergeZiiplyStoreDirectories(
-      ZIIPLY_STORE_DIRECTORY,
-      apiDirectory,
-    );
-
-    if (directory.length === 0) return null;
-
-    const selection = resolveZiiplyStoresFromDirectory({
-      latitude: coords.latitude,
-      longitude: coords.longitude,
-      stores: directory,
-      maxDistanceKm: mode === "hyper" ? 80 : 35,
-    });
-
-    const selectedS = mode === "local"
-      ? selection.selectedSLocal
-      : selection.selectedSHyper;
-
-    const selectedK = mode === "local"
-      ? selection.selectedKLocal
-      : selection.selectedKHyper;
-
-    if (!selectedS && !selectedK) return null;
-
-    return {
-      sStoreId: selectedS ? Number(selectedS.id) || 0 : 0,
-      sStoreName: selectedS
-        ? `${selectedS.name}${Number.isFinite(selectedS.distanceKm) ? ` (${formatDistanceKmV320(selectedS.distanceKm)})` : ""}`
-        : mode === "local"
-          ? "S-lähikauppa ei valittu"
-          : "S-tavaratalo ei valittu",
-      kStoreId: selectedK ? Number(selectedK.id) || 0 : 0,
-      kStoreName: selectedK
-        ? `${selectedK.name}${Number.isFinite(selectedK.distanceKm) ? ` (${formatDistanceKmV320(selectedK.distanceKm)})` : ""}`
-        : mode === "local"
-          ? "K-lähikauppa ei valittu"
-          : "K-tavaratalo ei valittu",
-    };
-  }
-
   const activeStores = useMemo(() => {
     if (storeCompareScope !== "within_chain" && !storeModeChosenV299) {
       return {
@@ -3436,16 +3385,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // aina koordinaateilla foundStores-listasta.
     if (usingOwnLocation && gpsCoordsV320 && storeModeChosenV299) {
       const gpsMode = selectedStoreModeRefV302.current || storeMode;
-      const directoryStoresV63 = resolveActiveStoresFromDirectoryV63(
-        foundStores,
-        gpsMode,
-        gpsCoordsV320,
-      );
-
-      if (directoryStoresV63) {
-        return directoryStoresV63;
-      }
-
       const gpsStorePoolV40 = buildGpsStoreCandidatePoolFromAllAreasV40(foundStores);
       const ranked = rankStoresForMode(gpsStorePoolV40, gpsMode, gpsCoordsV320);
 
