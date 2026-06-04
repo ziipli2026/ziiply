@@ -228,6 +228,7 @@
 // V117: Open Food Facts -tuotteen nimeen ei enää lisätä status-tekstiä koriin.
 // Status näytetään ilmoituksena: tunnistettu, mutta ei mukana hintavertailussa.
 // Tuntematon EAN ei enää ehdi lisätä rinnakkaista riviä ennen OFF-vastausta.
+// V130_RECOGNIZED_SCAN_BLOCKS_PARALLEL_UNKNOWN: tunnistetun EAN-skannauksen jälkeen saman lukutapahtuman tuntematon fallback blokataan.
 // Jos tuntematon rivi on jo ehtinyt koriin, OFF-osuma päivittää saman rivin tunnistetuksi eikä lisää toista ilmoitusta/riviä.
 
 // V723_SEARCH_FAIL_OPEN_FIX
@@ -3135,6 +3136,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   // V127: kova muistilukko. Kun EAN on kerran tunnistettu kauppa- tai OFF-tuotteeksi,
   // sitä ei saa enää missään myöhemmässä skannauksessa lisätä tuntemattomana.
   const recognizedEanLockRefV127 = useRef<Set<string>>(new Set());
+  // V130: viimeinen suojakaide rinnakkaislukuihin. Jos sama fyysinen skannaus
+  // tuottaa ensin OFF-/kauppaosuman ja heti perään eri muodossa epäonnistuneen
+  // EANin, tuntematon-fallback ei saa luoda rinnakkaista riviä.
+  const recentRecognizedEanGuardRefV130 = useRef<{
+    at: number;
+    keys: Set<string>;
+    digits: string;
+  } | null>(null);
   const scanSuccessFlashTimeoutRef = useRef<number | null>(null);
   const scanMissFlashTimeoutRef = useRef<number | null>(null);
 
@@ -8424,6 +8433,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         }
 
         setEanLookupOutcomeForAllVariantsV126(ean, "store");
+        markRecentRecognizedEanGuardV130(ean);
         eanSearchInFlightRef.current = null;
         setEanSearchStartedAutomatically(false);
         eanAutoSearchActiveRef.current = false;
@@ -8467,6 +8477,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const cachedOffBeforeUnknownV126 = getCachedOpenFoodFactsProductForAnyVariantV126(ean);
       if (cachedOffBeforeUnknownV126) {
         addOpenFoodFactsScannedEanToCartV729(cachedOffBeforeUnknownV126);
+        return;
+      }
+
+      if (isBlockedByRecentRecognizedGuardV130(ean)) {
         return;
       }
 
@@ -8516,6 +8530,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         const cachedOffOnErrorV126 = getCachedOpenFoodFactsProductForAnyVariantV126(ean);
         if (cachedOffOnErrorV126) {
           addOpenFoodFactsScannedEanToCartV729(cachedOffOnErrorV126);
+          return;
+        }
+
+        if (isBlockedByRecentRecognizedGuardV130(ean)) {
           return;
         }
 
@@ -8825,6 +8843,43 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
   }
 
+  function markRecentRecognizedEanGuardV130(ean: string) {
+    const keys = new Set(getEanVariantKeysV126(ean));
+    const digits = normalizeEan(ean);
+
+    if (keys.size === 0 || !digits) return;
+
+    recentRecognizedEanGuardRefV130.current = {
+      at: Date.now(),
+      keys,
+      digits,
+    };
+  }
+
+  function isBlockedByRecentRecognizedGuardV130(ean: string) {
+    const guard = recentRecognizedEanGuardRefV130.current;
+    if (!guard) return false;
+
+    // Riittävän pitkä kattamaan html5-qrcode live-lukijan + still-fallbackin
+    // rinnakkaiset myöhäiset osumat, mutta ei estä normaalisti seuraavaa tuotetta.
+    if (Date.now() - guard.at > 4500) return false;
+
+    const normalized = normalizeEan(ean);
+    if (!normalized) return false;
+
+    const keys = getEanVariantKeysV126(normalized);
+    if (keys.some((key) => guard.keys.has(key))) return true;
+
+    // Jos selain/detektori palauttaa saman koodin eri numeromuodossa, estetään
+    // tuntematon fallback myös raakavertailulla. Tämä koskee vain lyhyttä
+    // skannausikkunaa tunnistetun osuman jälkeen.
+    if (normalized.length >= 8 && guard.digits.length >= 8) {
+      return normalized.includes(guard.digits) || guard.digits.includes(normalized);
+    }
+
+    return false;
+  }
+
   function getExistingCartItemByEanV128(ean: string) {
     const normalizedEan = normalizeEan(ean);
     if (!isUsableEan(normalizedEan)) return null;
@@ -8993,6 +9048,27 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   ) {
     const normalizedEan = normalizeEan(ean);
     if (!isUsableEan(normalizedEan)) return;
+
+    // V130: jos samasta skanneritapahtumasta on juuri saatu tunnistettu tuote,
+    // rinnakkainen/myöhäinen tuntematon fallback blokataan kokonaan.
+    if (isBlockedByRecentRecognizedGuardV130(normalizedEan)) {
+      setEanInput("");
+      setEanResults([]);
+      setEanLoading(false);
+      setEanSearchStartedAutomatically(false);
+      eanAutoSearchActiveRef.current = false;
+      setLastAutoEanSearch("");
+      setEanMessage("Tuote tunnistettiin. Tuntematonta rinnakkaisriviä ei lisätty.");
+      if (eanScannerOpen || eanHtml5ScannerRef.current) {
+        setEanScannerMessage("Tunnistettu — ei tuntematonta riviä");
+        window.setTimeout(() => {
+          setEanScannerMessage((current) =>
+            current === "Tunnistettu — ei tuntematonta riviä" ? "" : current,
+          );
+        }, 2200);
+      }
+      return;
+    }
 
     // V129: tuntematon fallback EI saa koskaan tehdä omaa riviä, jos sama EAN
     // löytyy jo korista tunnistettuna tai tuntemattomana. Sama koodi vain kasvattaa määrää.
@@ -9183,6 +9259,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     cacheOpenFoodFactsProductForAllVariantsV126(fallbackProduct);
     setEanLookupOutcomeForAllVariantsV126(normalizedEan, "off");
     persistRecognizedEanKeysV128(normalizedEan);
+    markRecentRecognizedEanGuardV130(normalizedEan);
 
     const productName =
       cleanExternalProductName(fallbackProduct.name) ||
