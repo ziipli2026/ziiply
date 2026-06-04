@@ -1,5 +1,13 @@
 "use client";
 
+// V103_WEATHER_TEMP_RESTORE_ROBUST_FALLBACK
+// Pohjana V102. GPS-etäisyys säilyy V41-asettelussa.
+// Korjaus yläpalkin sääkorttiin:
+// - lämpötilaa ei nollata heti viivaksi, jos GPS-koordinaatti on hetkellisesti tyhjä
+// - Open-Meteo haetaan kahdella muodolla: current=temperature_2m ja current_weather=true
+// - viimeisin toimiva lämpötila säilytetään localStoragessa ja näytetään fallbackina
+// - ei muutoksia kauppavalintaan, GPS-etäisyyteen tai tarjoushakuun.
+
 // V102_GPS_DISTANCE_V41_PLACEMENT_CLEAN_BUTTON
 // Pohjana V101. Etäisyysketju säilyy toimivana, mutta näyttö palautetaan V41-tyyliin:
 // - Vaihda/Valittu-painikkeessa EI näytetä etäisyyttä.
@@ -1186,6 +1194,8 @@ function formatLocationNoticeV465(message: string) {
 const WEATHER_APP_DISABLED_TEST_V487 = false;
 const ZIIPLY_ELECTRICITY_PRICE_CACHE_KEY_V559 =
   "ziiply-electricity-price-cache-v1";
+const ZIIPLY_WEATHER_CACHE_KEY_V103 =
+  "ziiply-weather-current-cache-v1";
 
 
 
@@ -1341,48 +1351,127 @@ function KauppiasMobileTopBar({
   // Page omistaa yhden GPS-haun ja antaa koordinaatit tänne säätä varten.
 
   useEffect(() => {
-    // V487_TEST: sääappi kokonaan pois pelistä.
-    // Ei sääfetchiä eikä mitään GPS/koordinaattien käsittelyä tästä komponentista.
+    // V103: Sääkortti ei saa kadottaa viimeistä toimivaa lämpöä vain siksi,
+    // että GPS-koordinaatti on renderin aikana hetken tyhjä tai Open-Meteo vastaa eri muodolla.
     if (hidden || WEATHER_APP_DISABLED_TEST_V487) {
       setWeatherValue("—°");
       setWeatherText(areaLabel);
       return;
     }
+
+    function readCachedWeatherV103() {
+      if (typeof window === "undefined") return null;
+
+      try {
+        const raw = window.localStorage.getItem(ZIIPLY_WEATHER_CACHE_KEY_V103);
+        if (!raw) return null;
+
+        const cached = JSON.parse(raw) as {
+          value?: string;
+          text?: string;
+          savedAt?: number;
+        };
+
+        if (!cached?.value || !cached?.savedAt) return null;
+
+        const ageMs = Date.now() - Number(cached.savedAt);
+        if (ageMs > 90 * 60 * 1000) {
+          window.localStorage.removeItem(ZIIPLY_WEATHER_CACHE_KEY_V103);
+          return null;
+        }
+
+        return cached;
+      } catch {
+        return null;
+      }
+    }
+
+    function showCachedWeatherV103() {
+      const cached = readCachedWeatherV103();
+      if (!cached) return false;
+
+      setWeatherValue(String(cached.value));
+      setWeatherText(String(cached.text || areaLabel));
+      return true;
+    }
+
+    function writeCachedWeatherV103(next: { value: string; text: string }) {
+      if (typeof window === "undefined") return;
+
+      try {
+        window.localStorage.setItem(
+          ZIIPLY_WEATHER_CACHE_KEY_V103,
+          JSON.stringify({ ...next, savedAt: Date.now() }),
+        );
+      } catch {
+        // localStorage voi olla estetty; silloin jatketaan ilman muistia.
+      }
+    }
+
     if (!weatherEnabled || !gpsCoords) {
-      setWeatherValue("—°");
-      setWeatherText(areaLabel);
+      if (!showCachedWeatherV103()) {
+        setWeatherText(areaLabel);
+      }
       return;
     }
 
     const pageGpsCoords = gpsCoords;
     let cancelled = false;
 
+    async function fetchWeatherJsonV103(url: string) {
+      const response = await fetch(url, { cache: "no-store" });
+      if (!response.ok) return null;
+      return response.json();
+    }
+
     async function loadWeatherFromPageGps() {
       try {
-        const response = await fetch(
-          `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(pageGpsCoords.latitude)}&longitude=${encodeURIComponent(pageGpsCoords.longitude)}&current=temperature_2m,weather_code&timezone=auto`,
-          { cache: "no-store" },
+        const lat = encodeURIComponent(pageGpsCoords.latitude);
+        const lon = encodeURIComponent(pageGpsCoords.longitude);
+
+        const primaryUrl =
+          `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&timezone=auto`;
+        const fallbackUrl =
+          `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&timezone=auto`;
+
+        const primary = await fetchWeatherJsonV103(primaryUrl);
+        if (cancelled) return;
+
+        const fallback = primary?.current?.temperature_2m == null
+          ? await fetchWeatherJsonV103(fallbackUrl)
+          : null;
+        if (cancelled) return;
+
+        const temp = Number(
+          primary?.current?.temperature_2m ?? fallback?.current_weather?.temperature,
+        );
+        const code = Number(
+          primary?.current?.weather_code ?? fallback?.current_weather?.weathercode,
         );
 
-        if (!response.ok || cancelled) return;
-
-        const data = await response.json();
-        const temp = Number(data?.current?.temperature_2m);
-        const code = Number(data?.current?.weather_code);
-
         if (Number.isFinite(temp)) {
-          setWeatherValue(`${temp >= 0 ? "+" : ""}${Math.round(temp)}°`);
+          const nextValue = `${temp >= 0 ? "+" : ""}${Math.round(temp)}°`;
+          const nextText = kauppiasWeatherTextFromCode(Number.isFinite(code) ? code : undefined);
+
+          setWeatherValue(nextValue);
+          setWeatherText(nextText);
+          writeCachedWeatherV103({ value: nextValue, text: nextText });
+          return;
         }
 
-        setWeatherText(kauppiasWeatherTextFromCode(Number.isFinite(code) ? code : undefined));
+        if (!showCachedWeatherV103()) {
+          setWeatherValue("—°");
+          setWeatherText(areaLabel);
+        }
       } catch {
-        if (!cancelled) {
+        if (!cancelled && !showCachedWeatherV103()) {
           setWeatherValue("—°");
           setWeatherText(areaLabel);
         }
       }
     }
 
+    showCachedWeatherV103();
     loadWeatherFromPageGps();
 
     return () => {
