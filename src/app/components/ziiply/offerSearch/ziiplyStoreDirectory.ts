@@ -3,6 +3,15 @@ export type ZiiplyStoreDirectoryEntry = {
   name: string;
   latitude: number;
   longitude: number;
+  distanceKm?: number;
+};
+
+export type ZiiplyStoreDirectorySelection = {
+  nearestStores: ZiiplyStoreDirectoryEntry[];
+  selectedSLocal?: ZiiplyStoreDirectoryEntry;
+  selectedKLocal?: ZiiplyStoreDirectoryEntry;
+  selectedSHyper?: ZiiplyStoreDirectoryEntry;
+  selectedKHyper?: ZiiplyStoreDirectoryEntry;
 };
 
 export const ZIIPLY_STORE_DIRECTORY: ZiiplyStoreDirectoryEntry[] = [];
@@ -10,15 +19,18 @@ export const ZIIPLY_STORE_DIRECTORY: ZiiplyStoreDirectoryEntry[] = [];
 export function normalizeApiStoresToZiiplyDirectory(
   stores: unknown[] = [],
 ): ZiiplyStoreDirectoryEntry[] {
+  void stores;
   return [];
 }
 
-export function resolveZiiplyStoresFromDirectory(options?: {
-  latitude: number;
-  longitude: number;
-  stores?: ZiiplyStoreDirectoryEntry[];
-  maxDistanceKm?: number;
-}) {
+export function resolveZiiplyStoresFromDirectory(
+  options?: {
+    latitude: number;
+    longitude: number;
+    stores?: ZiiplyStoreDirectoryEntry[];
+    maxDistanceKm?: number;
+  },
+): ZiiplyStoreDirectorySelection {
   void options;
 
   return {
