@@ -1,8 +1,9 @@
 "use client";
 
-// V83_REMOVE_NOMINATIM_DISTANCE_FALLBACK_ONLY
-// Poistaa vain selaimesta tehtävän Nominatim/OpenStreetMap-etäisyyden varalaskennan.
-// Ei koske GPS-käynnistykseen, applyLocationiin, kauppahakuun eikä aktiivisten kauppojen valintaan.
+// V84_REMOVE_DISTANCE_FALLBACK_ONLY_KEEP_GPS_REVERSE_GEOCODE
+// Palauttaa GPS-napin toimivan V41-polun.
+// Poistaa vain fallback-kauppojen selaimessa tehtävän Nominatim-etäisyyslaskennan.
+// EI koske reverseGeocodeCity-funktioon, GPS-käynnistykseen, applyLocationiin tai kauppahakuun.
 
 // V33_LOCATION_RESOLVER_STORE_SHAPE_FALLBACK
 // Korjaa GPS/manuaali-kauppavalinnan: StoreSearchItem voi tulla API:lta eri muodoilla
@@ -2142,8 +2143,8 @@ export default function Page() {
   }, [locationMessage, storeSearchLoading]);
 
   useEffect(() => {
-    // V83: ei enää selaimen suoraa Nominatim/OpenStreetMap-etäisyyden varalaskentaa.
-    // Tämä poistaa Console-virheet: "Fetch API cannot load nominatim.openstreetmap.org..."
+    // V84: poista vain fallback-kauppojen Nominatim-etäisyyslaskenta.
+    // GPS:n oma reverse geocode jää ennalleen, jotta GPS-nappi ei hajoa.
     setStoreDistanceFallbacksV320({});
   }, [gpsCoordsV320, foundStores, activeArea.label]);
 
@@ -5552,13 +5553,22 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   async function reverseGeocodeCity(latitude: number, longitude: number) {
-    void latitude;
-    void longitude;
-    return "";
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(latitude)}&lon=${encodeURIComponent(longitude)}&accept-language=fi`,
+      { cache: "no-store" },
+    );
+    const data = await response.json();
+    return getCityFromGeocodeAddress(data?.address || {});
   }
 
   async function resolvePostalCodeToCity(postalCode: string) {
-    return postalCode.trim();
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=jsonv2&countrycodes=fi&postalcode=${encodeURIComponent(postalCode)}&addressdetails=1&limit=1&accept-language=fi`,
+      { cache: "no-store" },
+    );
+    const data = await response.json();
+    const firstMatch = Array.isArray(data) ? data[0] : null;
+    return getCityFromGeocodeAddress(firstMatch?.address || {});
   }
 
   function getCurrentPosition(options?: PositionOptions) {
