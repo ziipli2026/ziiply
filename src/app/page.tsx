@@ -1,14 +1,5 @@
 "use client";
 
-// V80_RESTORE_WORKING_GPS_START_BASELINE
-// Palauttaa GPS-napin ja boot-paikannuksen viimeiseen tunnetusti käynnistyvään V41/V76-polkuun.
-// Tällä versiolla ei yritetä vielä korjata Kerava/Jokela/Hyvinkää-valintaa.
-// Tarkoitus: GPS menee taas päälle ja kaupat renderöityvät.
-
-// V76_STORE_DIRECTORY_V2_ON_WORKING_V41_SEARCH_PATH
-// Palauttaa toimivan V41/V63-kauppahaun: GPS saa edelleen API:lta kaupat query+lat/lon-polulla.
-// Uusi ziiplyStoreDirectory.ts v2 käytetään vain aktiivisten kauppojen valintaan, ei tyhjennä hakutuloksia.
-
 // V33_LOCATION_RESOLVER_STORE_SHAPE_FALLBACK
 // Korjaa GPS/manuaali-kauppavalinnan: StoreSearchItem voi tulla API:lta eri muodoilla
 // (type/chain puuttuu tai koordinaatit eri kentissä). Resolveri saa nyt vahvan S/K-name fallbackin
@@ -820,12 +811,6 @@ import {
   type ZiiplyStoreKind,
   type ZiiplyStoreMode,
 } from "./components/ziiply/offerSearch/ziiplyLocationResolverCore";
-import {
-  ZIIPLY_STORE_DIRECTORY,
-  mergeZiiplyStoreDirectories,
-  normalizeApiStoresToZiiplyDirectory,
-  resolveZiiplyStoresFromDirectory,
-} from "./components/ziiply/offerSearch/ziiplyStoreDirectory";
 
 const MOBILE_EAN_SCANNER_REGION_ID = `${EAN_SCANNER_REGION_ID}-mobile`;
 
@@ -2153,8 +2138,77 @@ export default function Page() {
   }, [locationMessage, storeSearchLoading]);
 
   useEffect(() => {
-    // V80: estetään selaimen suora Nominatim-varalaskenta, mutta ei kosketa GPS-käynnistykseen.
-    setStoreDistanceFallbacksV320({});
+    if (!gpsCoordsV320 || foundStores.length === 0) {
+      setStoreDistanceFallbacksV320({});
+      return;
+    }
+
+    const gpsCoordsForFallbackV320 = gpsCoordsV320;
+    let cancelled = false;
+    const controller = new AbortController();
+
+    async function geocodeStoreDistanceFallbacksV320() {
+      const candidates = uniqueStoresByIdAndName(
+        foundStores.map(normalizeStoreForPickerV320),
+      )
+        .filter((store) => !getStoreDistanceLabelWithoutFallbackV320(store))
+        .slice(0, 24);
+
+      if (candidates.length === 0) return;
+
+      const nextDistances: Record<string, number> = {};
+
+      for (const store of candidates) {
+        if (cancelled) return;
+
+        const queryParts = [
+          store.name,
+          store.city || activeArea.label,
+          store.postalCode,
+          "Suomi",
+        ].filter(Boolean);
+        const query = queryParts.join(", ");
+
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=fi&q=${encodeURIComponent(query)}`,
+            { signal: controller.signal },
+          );
+          if (!response.ok) continue;
+
+          const results = await response.json();
+          const first = Array.isArray(results) ? results[0] : null;
+          const latitude = readStoreNumberV320(first?.lat);
+          const longitude = readStoreNumberV320(first?.lon ?? first?.lng);
+          if (latitude == null || longitude == null) continue;
+
+          nextDistances[getStoreDistanceKeyV320(store)] =
+            calculateDistanceKmV320(gpsCoordsForFallbackV320, {
+              latitude,
+              longitude,
+            });
+        } catch (error) {
+          if (!cancelled)
+            console.debug("Etäisyyden varalaskenta epäonnistui", error);
+        }
+      }
+
+      if (cancelled || Object.keys(nextDistances).length === 0) return;
+
+      setStoreDistanceFallbacksV320((current) => {
+        const merged = { ...current, ...nextDistances };
+        return JSON.stringify(merged) === JSON.stringify(current)
+          ? current
+          : merged;
+      });
+    }
+
+    geocodeStoreDistanceFallbacksV320();
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
   }, [gpsCoordsV320, foundStores, activeArea.label]);
 
   const [offers, setOffers] = useState<ZiiplyOffer[]>([]);
@@ -3310,55 +3364,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return result;
   }
 
-  function resolveActiveStoresFromDirectoryV63(
-    apiStores: StoreSearchItem[],
-    mode: StoreMode,
-    coords: { latitude: number; longitude: number },
-  ) {
-    const apiDirectory = normalizeApiStoresToZiiplyDirectory(
-      apiStores as unknown as Array<Record<string, unknown>>,
-    );
-
-    const directory = mergeZiiplyStoreDirectories(
-      ZIIPLY_STORE_DIRECTORY,
-      apiDirectory,
-    );
-
-    if (directory.length === 0) return null;
-
-    const selection = resolveZiiplyStoresFromDirectory({
-      latitude: coords.latitude,
-      longitude: coords.longitude,
-      stores: directory,
-      maxDistanceKm: mode === "hyper" ? 80 : 35,
-    });
-
-    const selectedS = mode === "local"
-      ? selection.selectedSLocal
-      : selection.selectedSHyper;
-
-    const selectedK = mode === "local"
-      ? selection.selectedKLocal
-      : selection.selectedKHyper;
-
-    if (!selectedS && !selectedK) return null;
-
-    return {
-      sStoreId: selectedS ? Number(selectedS.id) || 0 : 0,
-      sStoreName: selectedS
-        ? `${selectedS.name}${Number.isFinite(selectedS.distanceKm) ? ` (${formatDistanceKmV320(selectedS.distanceKm)})` : ""}`
-        : mode === "local"
-          ? "S-lähikauppa ei valittu"
-          : "S-tavaratalo ei valittu",
-      kStoreId: selectedK ? Number(selectedK.id) || 0 : 0,
-      kStoreName: selectedK
-        ? `${selectedK.name}${Number.isFinite(selectedK.distanceKm) ? ` (${formatDistanceKmV320(selectedK.distanceKm)})` : ""}`
-        : mode === "local"
-          ? "K-lähikauppa ei valittu"
-          : "K-tavaratalo ei valittu",
-    };
-  }
-
   const activeStores = useMemo(() => {
     if (storeCompareScope !== "within_chain" && !storeModeChosenV299) {
       return {
@@ -3376,16 +3381,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // aina koordinaateilla foundStores-listasta.
     if (usingOwnLocation && gpsCoordsV320 && storeModeChosenV299) {
       const gpsMode = selectedStoreModeRefV302.current || storeMode;
-      const directoryStoresV63 = resolveActiveStoresFromDirectoryV63(
-        foundStores,
-        gpsMode,
-        gpsCoordsV320,
-      );
-
-      if (directoryStoresV63) {
-        return directoryStoresV63;
-      }
-
       const gpsStorePoolV40 = buildGpsStoreCandidatePoolFromAllAreasV40(foundStores);
       const ranked = rankStoresForMode(gpsStorePoolV40, gpsMode, gpsCoordsV320);
 
@@ -5621,13 +5616,22 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   async function reverseGeocodeCity(latitude: number, longitude: number) {
-    void latitude;
-    void longitude;
-    return "";
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(latitude)}&lon=${encodeURIComponent(longitude)}&accept-language=fi`,
+      { cache: "no-store" },
+    );
+    const data = await response.json();
+    return getCityFromGeocodeAddress(data?.address || {});
   }
 
   async function resolvePostalCodeToCity(postalCode: string) {
-    return postalCode.trim();
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=jsonv2&countrycodes=fi&postalcode=${encodeURIComponent(postalCode)}&addressdetails=1&limit=1&accept-language=fi`,
+      { cache: "no-store" },
+    );
+    const data = await response.json();
+    const firstMatch = Array.isArray(data) ? data[0] : null;
+    return getCityFromGeocodeAddress(firstMatch?.address || {});
   }
 
   function getCurrentPosition(options?: PositionOptions) {
