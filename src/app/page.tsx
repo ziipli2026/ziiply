@@ -1,5 +1,10 @@
 "use client";
 
+// V85_REMOVE_HARDCODED_JOKELA_TUUSULA_KERAVA_PRIORITY
+// V84-pohja: GPS-nappi ja kauppahaku pidetään toimivana.
+// Poistaa getNearbyAreaSearchQueriesFromGpsV36-funktiosta kovakoodatut Jokela/Tuusula/Kerava/Nurmijärvi-haut
+// sekä Hyvinkään ohituksen. Tämä estää Keravan/Jokelan prioriteettia ohittamasta todellista GPS-lähialuetta.
+
 // V84_REMOVE_DISTANCE_FALLBACK_ONLY_KEEP_GPS_REVERSE_GEOCODE
 // Palauttaa GPS-napin toimivan V41-polun.
 // Poistaa vain fallback-kauppojen selaimessa tehtävän Nominatim-etäisyyslaskennan.
@@ -2267,30 +2272,18 @@ export default function Page() {
     // Tyhjä haku ensin, jos API tukee lat/lon-pohjaista lähihakua.
     addQuery("");
 
-    // V41: älä laita reverse-geocodattua kuntaa (käyttäjällä usein Hyvinkää) heti kärkeen.
-    // Kunnanrajalla se lukitsee API-haun ja fallback-valinnan väärään kuntaan.
-    // Annetaan ensin naapurialueiden ja koordinaattihakujen tuoda todelliset lähikaupat.
-    addQuery("Jokela");
-    addQuery("Tuusula");
-    addQuery("Kerava");
-    addQuery("Nurmijärvi");
-
+    // V85: Ei kovakoodattua Jokela/Tuusula/Kerava/Nurmijärvi-prioriteettia.
+    // GPS saa hakea todellisen lähialuejärjestyksen mukaan eikä ohittaa Hyvinkäätä väkisin.
     for (const entry of nearbyAreas) {
       const label = String(entry.area.label || "");
-      if (normalize(label) === normalize(primaryQuery)) continue;
-      if (normalize(label).includes("hyvink")) continue;
-
       addQuery(label);
+
       for (const alias of entry.area.aliases || []) {
-        const aliasText = String(alias || "");
-        if (normalize(aliasText).includes("hyvink")) continue;
-        addQuery(aliasText);
+        addQuery(alias);
       }
     }
 
-    // Reverse-geocodattu kunta ja Hyvinkää vasta viimeisenä fallbackina.
     addQuery(primaryQuery);
-    addQuery("Hyvinkää");
 
     return queries.filter((query, index) => query !== "" || index === 0).slice(0, 16);
   }
