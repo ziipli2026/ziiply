@@ -1,5 +1,16 @@
 "use client";
 
+// V78_GPS_NO_AREA_QUERY_NO_LOCAL_FORCE
+// Korjaa GPS-polun kaksi jäljellä ollutta lukkoa:
+// - GPS ei enää muodosta hakulistaa getNearbyAreaSearchQueriesFromGpsV36(...)-alue-/kaupunkifallbackilla.
+// - GPS ei enää pakota applyLocation-vaiheessa storeModea aina "local"-tilaan.
+// V77:n Nominatim/OpenStreetMap-selainfallbackin poisto säilyy.
+
+// V77_REMOVE_BROWSER_NOMINATIM_FALLBACKS
+// Poistaa selaimesta tehtävät suorat Nominatim/OpenStreetMap fallback-haut.
+// Ne aiheuttivat "Fetch API cannot load nominatim..." -virheitä ja toivat fallback-kauppoja ympäri Suomea.
+// GPS ei enää yritä geokoodata fallback-kauppojen nimiä selaimessa.
+
 // V76_STORE_DIRECTORY_V2_ON_WORKING_V41_SEARCH_PATH
 // Palauttaa toimivan V41/V63-kauppahaun: GPS saa edelleen API:lta kaupat query+lat/lon-polulla.
 // Uusi ziiplyStoreDirectory.ts v2 käytetään vain aktiivisten kauppojen valintaan, ei tyhjennä hakutuloksia.
@@ -2148,77 +2159,9 @@ export default function Page() {
   }, [locationMessage, storeSearchLoading]);
 
   useEffect(() => {
-    if (!gpsCoordsV320 || foundStores.length === 0) {
-      setStoreDistanceFallbacksV320({});
-      return;
-    }
-
-    const gpsCoordsForFallbackV320 = gpsCoordsV320;
-    let cancelled = false;
-    const controller = new AbortController();
-
-    async function geocodeStoreDistanceFallbacksV320() {
-      const candidates = uniqueStoresByIdAndName(
-        foundStores.map(normalizeStoreForPickerV320),
-      )
-        .filter((store) => !getStoreDistanceLabelWithoutFallbackV320(store))
-        .slice(0, 24);
-
-      if (candidates.length === 0) return;
-
-      const nextDistances: Record<string, number> = {};
-
-      for (const store of candidates) {
-        if (cancelled) return;
-
-        const queryParts = [
-          store.name,
-          store.city || activeArea.label,
-          store.postalCode,
-          "Suomi",
-        ].filter(Boolean);
-        const query = queryParts.join(", ");
-
-        try {
-          const response = await fetch(
-            `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=fi&q=${encodeURIComponent(query)}`,
-            { signal: controller.signal },
-          );
-          if (!response.ok) continue;
-
-          const results = await response.json();
-          const first = Array.isArray(results) ? results[0] : null;
-          const latitude = readStoreNumberV320(first?.lat);
-          const longitude = readStoreNumberV320(first?.lon ?? first?.lng);
-          if (latitude == null || longitude == null) continue;
-
-          nextDistances[getStoreDistanceKeyV320(store)] =
-            calculateDistanceKmV320(gpsCoordsForFallbackV320, {
-              latitude,
-              longitude,
-            });
-        } catch (error) {
-          if (!cancelled)
-            console.debug("Etäisyyden varalaskenta epäonnistui", error);
-        }
-      }
-
-      if (cancelled || Object.keys(nextDistances).length === 0) return;
-
-      setStoreDistanceFallbacksV320((current) => {
-        const merged = { ...current, ...nextDistances };
-        return JSON.stringify(merged) === JSON.stringify(current)
-          ? current
-          : merged;
-      });
-    }
-
-    geocodeStoreDistanceFallbacksV320();
-
-    return () => {
-      cancelled = true;
-      controller.abort();
-    };
+    // V77: Ei enää selaimen suoria Nominatim/OpenStreetMap-varalaskentoja.
+    // Fallback-kauppojen geokoodaus aiheutti CORS/Load failed -virheitä ja sotki GPS-valintaa.
+    setStoreDistanceFallbacksV320({});
   }, [gpsCoordsV320, foundStores, activeArea.label]);
 
   const [offers, setOffers] = useState<ZiiplyOffer[]>([]);
@@ -5605,7 +5548,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // Jokelassa/Tuusulassa. Siksi GPS-haussa pyydetään ensin koordinaattipohjainen laaja haku
     // tyhjällä search-arvolla ja vasta sen jälkeen query-fallback vanhaa API-käytöstä varten.
     const searchQueries = coords
-      ? getNearbyAreaSearchQueriesFromGpsV36(coords, query)
+      ? [query].filter((value) => value.trim().length > 0)
       : [query];
 
     const mergedStores: StoreSearchItem[] = [];
@@ -5685,22 +5628,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   async function reverseGeocodeCity(latitude: number, longitude: number) {
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(latitude)}&lon=${encodeURIComponent(longitude)}&accept-language=fi`,
-      { cache: "no-store" },
-    );
-    const data = await response.json();
-    return getCityFromGeocodeAddress(data?.address || {});
+    void latitude;
+    void longitude;
+
+    // V77: GPS ei tarvitse reverse-geocodattua kaupunkia.
+    // Kaupunki lukitsi aiemmin valinnan Hyvinkää/Jokela/Tuusula-polkuun.
+    return "";
   }
 
   async function resolvePostalCodeToCity(postalCode: string) {
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=jsonv2&countrycodes=fi&postalcode=${encodeURIComponent(postalCode)}&addressdetails=1&limit=1&accept-language=fi`,
-      { cache: "no-store" },
-    );
-    const data = await response.json();
-    const firstMatch = Array.isArray(data) ? data[0] : null;
-    return getCityFromGeocodeAddress(firstMatch?.address || {});
+    // V77: Ei selaimen suoraa Nominatim-postinumerohakua.
+    // Palautetaan postinumero sellaisenaan, jolloin vanha manuaalinen findArea/query-polku saa käsitellä sen.
+    return postalCode.trim();
   }
 
   function getCurrentPosition(options?: PositionOptions) {
@@ -5894,11 +5833,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // GPS/reload ei saa periä page-startin vanhaa Tavaratalot/Hyvinkää-oletusta.
       // Oma sijainti avataan aina lähikauppatilaan ja kaupat järjestetään koordinaateilla.
       const effectiveLocationStoreModeV39: StoreMode =
-        source === "gps"
-          ? "local"
-          : storeModeChosenV299
-            ? selectedStoreModeRefV302.current
-            : storeMode;
+        storeModeChosenV299
+          ? selectedStoreModeRefV302.current || storeMode
+          : storeMode;
       const ranked = rankStoresForMode(
         stores,
         effectiveLocationStoreModeV39,
