@@ -1,5 +1,11 @@
 "use client";
 
+// V91_GPS_DYNAMIC_QUERY_LIST_FOR_TRAVEL
+// V90-pohja: GPS-pollaus säilyy.
+// Korjaus: GPS-haun query-lista ei ole enää staattinen Jokela/Tuusula/Hyvinkää/Kerava/Nurmijärvi.
+// Haku käyttää ensin reverse-geocodattua nykyistä kaupunkia ja sen jälkeen GPS-koordinaattien lähimpiä AREAS-alueita.
+// Tämä estää ajossa lukittumisen Etelä-Suomen staattiseen listaan.
+
 // V90_GPS_POLL_REFRESH_WHILE_ACTIVE
 // V87-pohja säilyy: toimiva GPS-startti ja toimiva kauppavalinta.
 // Lisäys: kun GPS on päällä, sijainti päivitetään omalla getCurrentPosition-loopilla.
@@ -2281,15 +2287,9 @@ export default function Page() {
     // Tyhjä haku ensin, jos API tukee lat/lon-pohjaista lähihakua.
     addQuery("");
 
-    // V87: käytännöllinen GPS-järjestys kunnanrajalle.
-    // Lähikaupat: Jokela/Tuusula ensin.
-    // Tavaratalot: Hyvinkää ennen Keravaa.
-    // Tämä estää sekä "kaikki Hyvinkäälle" että "Tavaratalot Keravalle" -tilanteet.
-    addQuery("Jokela");
-    addQuery("Tuusula");
-    addQuery("Hyvinkää");
-    addQuery("Kerava");
-    addQuery("Nurmijärvi");
+    // V91: matka-ajossa ei saa käyttää staattista Etelä-Suomen listaa.
+    // Käytä ensin nykyistä reverse-geocodattua kaupunkia ja sitten GPS:n lähimpiä AREAS-alueita.
+    addQuery(primaryQuery);
 
     for (const entry of nearbyAreas) {
       const label = String(entry.area.label || "");
@@ -2299,8 +2299,6 @@ export default function Page() {
         addQuery(alias);
       }
     }
-
-    addQuery(primaryQuery);
 
     return queries.filter((query, index) => query !== "" || index === 0).slice(0, 16);
   }
@@ -6220,7 +6218,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             setGpsCoordsV320(nextCoords);
 
             // Älä aja kauppahakua joka pienestä GPS-heilahtelusta.
-            if (movedMeters < 500 && elapsedMs < 90000) return;
+            if (movedMeters < 250 && elapsedMs < 45000) return;
 
             gpsPollLastAppliedAtRefV90.current = Date.now();
 
@@ -6267,7 +6265,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     // Ensimmäinen päivitys vähän viiveellä, ettei se törmää boot/manual GPS-starttiin.
     const firstTimer = window.setTimeout(runGpsPollRefreshV90, 12000);
-    const interval = window.setInterval(runGpsPollRefreshV90, 30000);
+    const interval = window.setInterval(runGpsPollRefreshV90, 20000);
 
     return () => {
       cancelled = true;
