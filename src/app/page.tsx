@@ -1,9 +1,10 @@
 "use client";
 
-// V99_GPS_DISTANCE_PREFIX_VISIBLE_IN_NAME_PATH
-// V98-pohja. V98 lisäsi etäisyyden kaupan nimen perään, mutta kortin tekstialue on kapea
-// nowrap + overflow-hidden, joten loppuun laitettu " · 1,3 km" leikkautui pois.
-// Etäisyys on nyt samassa kaupan nimen tekstipolussa mutta alussa: "1,3 km · Kaupan nimi".
+// V100_GPS_DISTANCE_SEPARATE_NAME_LAYER
+// V99-testin perusteella etäisyyttä EI laiteta samaan tekstiletkaan kaupan nimen kanssa.
+// Korjaus: näkyvässä kauppakorttihaarassa kaupan nimi pysyy omassa alkuperäisessä layerissään
+// ja GPS-etäisyys renderöidään omana pienempänä absoluuttisena rivinä heti nimen alapuolella.
+// Tavoite: sama taso/alue kuin alkuperäisessä V41-etäisyydessä, mutta oikeassa nykyisessä render-haarassa.
 
 // V98_GPS_DISTANCE_INLINE_WITH_STORE_NAME
 // Pohjana V97. Korjaus: etäisyys viedään samaan näkyvään render-polkuun kuin kaupan nimi.
@@ -11428,10 +11429,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         const distanceForCard = chain
           ? getStoreDistanceLabelForVisibleCardV98(chain, storeMode, displayName)
           : "";
-        const displayNameWithDistance =
-          distanceForCard && !isComingSoon && storeModeChosenV299
-            ? `${distanceForCard} · ${displayName}`
-            : displayName;
+        const showDistanceForCard = Boolean(
+          distanceForCard && !isComingSoon && storeModeChosenV299,
+        );
 
         return (
           <div
@@ -11531,8 +11531,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   WebkitBoxOrient: "vertical",
                 }}
               >
-                {displayNameWithDistance}
+                {displayName}
               </p>
+
+              {showDistanceForCard && (
+                <p className="absolute left-[6px] right-[6px] top-[59px] z-50 mx-auto flex h-[1rem] max-w-[6.2rem] items-center justify-center rounded-[0.34rem] border border-[#d1b979] bg-[#fff8df]/92 px-1 text-[9px] font-black leading-none text-[#4b3a18] shadow-[inset_0_1px_0_rgba(255,255,255,0.84),0_1px_2px_rgba(77,50,18,0.10)] [text-shadow:0_1px_1px_rgba(255,250,232,0.95)]">
+                  {distanceForCard}
+                </p>
+              )}
 
               <div
                 className="absolute bottom-[6px] left-0 right-0 z-40 flex justify-center"
@@ -11599,10 +11605,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           const distanceForCard = chain
             ? getStoreDistanceLabelForVisibleCardV98(chain, storeMode, store.name)
             : "";
-          const storeNameWithDistance =
-            distanceForCard && isRealChain
-              ? `${distanceForCard} · ${store.name}`
-              : store.name;
+          const showDistanceForCard = Boolean(distanceForCard && isRealChain);
           const isComingSoon = Boolean(store.comingSoon);
 
           const cardTone =
@@ -11698,8 +11701,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     isComingSoon ? "text-[#aaa087]" : "text-[#132338]"
                   }`}
                 >
-                  {isComingSoon ? "Tulossa" : storeNameWithDistance}
+                  {isComingSoon ? "Tulossa" : store.name}
                 </p>
+
+                {showDistanceForCard && !isComingSoon && (
+                  <span className="absolute left-4 right-4 top-[82px] z-20 mx-auto max-w-[6.7rem] rounded-[0.38rem] border border-[#d1b979] bg-[#fff8df]/92 px-1.5 py-[2px] text-[10px] font-black leading-none text-[#4b3a18] shadow-[inset_0_1px_0_rgba(255,255,255,0.84)]">
+                    {distanceForCard}
+                  </span>
+                )}
               </button>
 
               {!compact && isRealChain && chain && selected && (
