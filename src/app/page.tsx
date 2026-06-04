@@ -1,14 +1,9 @@
 "use client";
 
-// V79_RESTORE_GPS_START_KEEP_NOMINATIM_REMOVED
-// Palauttaa GPS-napin/bootin toimivaksi V77-pohjalle.
-// Ei tyhjennetä applyLocation-queryä eikä poisteta GPS:n käynnistymisen tarvitsemaa hakupolkua.
-// Nominatim/OpenStreetMap-selainfallback pysyy poistettuna.
-
-// V77_REMOVE_BROWSER_NOMINATIM_FALLBACKS
-// Poistaa selaimesta tehtävät suorat Nominatim/OpenStreetMap fallback-haut.
-// Ne aiheuttivat "Fetch API cannot load nominatim..." -virheitä ja toivat fallback-kauppoja ympäri Suomea.
-// GPS ei enää yritä geokoodata fallback-kauppojen nimiä selaimessa.
+// V80_RESTORE_WORKING_GPS_START_BASELINE
+// Palauttaa GPS-napin ja boot-paikannuksen viimeiseen tunnetusti käynnistyvään V41/V76-polkuun.
+// Tällä versiolla ei yritetä vielä korjata Kerava/Jokela/Hyvinkää-valintaa.
+// Tarkoitus: GPS menee taas päälle ja kaupat renderöityvät.
 
 // V76_STORE_DIRECTORY_V2_ON_WORKING_V41_SEARCH_PATH
 // Palauttaa toimivan V41/V63-kauppahaun: GPS saa edelleen API:lta kaupat query+lat/lon-polulla.
@@ -2158,8 +2153,7 @@ export default function Page() {
   }, [locationMessage, storeSearchLoading]);
 
   useEffect(() => {
-    // V77: Ei enää selaimen suoria Nominatim/OpenStreetMap-varalaskentoja.
-    // Fallback-kauppojen geokoodaus aiheutti CORS/Load failed -virheitä ja sotki GPS-valintaa.
+    // V80: estetään selaimen suora Nominatim-varalaskenta, mutta ei kosketa GPS-käynnistykseen.
     setStoreDistanceFallbacksV320({});
   }, [gpsCoordsV320, foundStores, activeArea.label]);
 
@@ -5629,15 +5623,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   async function reverseGeocodeCity(latitude: number, longitude: number) {
     void latitude;
     void longitude;
-
-    // V77: GPS ei tarvitse reverse-geocodattua kaupunkia.
-    // Kaupunki lukitsi aiemmin valinnan Hyvinkää/Jokela/Tuusula-polkuun.
     return "";
   }
 
   async function resolvePostalCodeToCity(postalCode: string) {
-    // V77: Ei selaimen suoraa Nominatim-postinumerohakua.
-    // Palautetaan postinumero sellaisenaan, jolloin vanha manuaalinen findArea/query-polku saa käsitellä sen.
     return postalCode.trim();
   }
 
