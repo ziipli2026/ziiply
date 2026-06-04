@@ -8239,24 +8239,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return;
     }
 
-    if (wasRecognizedEanPersistedV128(ean)) {
-      setEanInput("");
-      setEanResults([]);
-      setEanLoading(false);
-      setEanSearchStartedAutomatically(false);
-      eanAutoSearchActiveRef.current = false;
-      setLastAutoEanSearch("");
-      setEanMessage("Tuote on tunnistettu aiemmin. Tuntematonta riviä ei lisätty.");
-      if (eanScannerOpen || eanHtml5ScannerRef.current) {
-        setEanScannerMessage("Tunnistettu aiemmin");
-        window.setTimeout(() => {
-          setEanScannerMessage((current) =>
-            current === "Tunnistettu aiemmin" ? "" : current,
-          );
-        }, 2200);
-      }
-      return;
-    }
+    // V133: pelkkä pysyvä "tunnistettu joskus" -lukko ei saa pysäyttää uutta skannausta.
+    // Jos tuote on korissa, se käsitellään yllä määrän kasvatuksena. Jos ei ole korissa
+    // eikä OFF-cachea löydy, jatketaan normaaliin S/K -> OFF -hakuun eikä palauteta
+    // käyttäjälle virheellistä "tunnistettu aiemmin" -tilaa.
 
     const runLookupPromiseV121 = (async () => {
 
@@ -8530,24 +8516,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // toinen ketju saattoi silti päätyä myöhemmin unknown-fallbackiin ja luoda rinnakkaisen
       // "Tuntematon tuote" -rivin. Käsin käynnistetty EAN-haku saa edelleen tehdä unknown-fallbackin.
       if (options.fromScanner || eanAutoSearchActiveRef.current || eanScannerOpen || eanHtml5ScannerRef.current) {
-        setEanLookupOutcomeForAllVariantsV126(ean, "unknown");
+        // V133: kameran väliluku ei saa merkitä EANia unknowniksi eikä näyttää
+        // "ei lisätty tuntemattomana" -ilmoitusta. Kamera voi lukea saman fyysisen
+        // tuotteen usealla decode-polulla; jos OFF/S/K-osuma tulee seuraavalla
+        // lukukerralla, se saa kasvattaa määrää normaalisti.
         setEanInput("");
         setEanResults([]);
         setEanLoading(false);
         setEanSearchStartedAutomatically(false);
         eanAutoSearchActiveRef.current = false;
         setLastAutoEanSearch("");
-        setEanMessage(
-          externalNames.length > 0
-            ? "Tuote tunnistettiin osittain, mutta vertailukelpoista kauppahintaa ei löytynyt. Tuntematonta rinnakkaisriviä ei lisätty."
-            : "EAN-koodille ei löytynyt vertailutietoa. Tuntematonta rinnakkaisriviä ei lisätty.",
-        );
-        setEanScannerMessage("Ei vertailutietoa — ei lisätty tuntemattomana");
-        window.setTimeout(() => {
-          setEanScannerMessage((current) =>
-            current === "Ei vertailutietoa — ei lisätty tuntemattomana" ? "" : current,
-          );
-        }, 2600);
+        setEanMessage("");
+        setEanScannerMessage("");
         return;
       }
 
@@ -8601,16 +8581,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         }
 
         if (options.fromScanner || eanAutoSearchActiveRef.current || eanScannerOpen || eanHtml5ScannerRef.current) {
-          setEanLookupOutcomeForAllVariantsV126(ean, "unknown");
-          setEanMessage("EAN-haku epäonnistui hetkellisesti. Tuntematonta rinnakkaisriviä ei lisätty.");
-          if (eanScannerOpen || eanHtml5ScannerRef.current) {
-            setEanScannerMessage("Haku epäonnistui — yritä uudelleen");
-            window.setTimeout(() => {
-              setEanScannerMessage((current) =>
-                current === "Haku epäonnistui — yritä uudelleen" ? "" : current,
-              );
-            }, 2600);
-          }
+          // V133: hetkellinen verkkovirhe kameraskannauksessa ei saa tehdä unknown-tilaa
+          // eikä lukita seuraavaa onnistuvaa OFF/S/K-tunnistusta pois.
+          setEanMessage("");
+          setEanScannerMessage("");
           return;
         }
         setEanLookupOutcomeForAllVariantsV126(ean, "unknown");
