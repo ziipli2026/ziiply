@@ -17,6 +17,11 @@
 
 "use client";
 
+// V109_GOSTA_CALLBACK_PARAM_TYPES_BUILD_FIX
+// Pohjana V108. Korjaa Gösta-tarjouskortin callback-parametrien TypeScript noImplicitAny -virheet.
+// Ei muuta V105/V102 GPS-, sää- tai etäisyyskorjauksia.
+
+
 // V108_GOSTA_ONSEARCH_STRING_TYPE_BUILD_FIX
 // Pohjana V107. Korjaa TypeScript-buildin: Göstan onSearch-callbackin value tyypitetään stringiksi.
 // V105/V102 GPS, etäisyys ja sää säilyvät ennallaan.
@@ -13938,7 +13943,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             onClose={() => {
               setActiveResult("none");
             }}
-            onAddOffer={(offer) => {
+            onAddOffer={(offer: any) => {
               const name = fixText(String(offer.name || offer.title || offer.productName || "Tarjoustuote"));
               if (cart.length >= MAX_ITEMS) {
                 alert(`Demossa ostoskori on rajattu ${MAX_ITEMS} tuotteeseen.`);
@@ -13978,7 +13983,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               showCartToast(`Lisätty ostoskoriin: ${name}`);
               void updateChainComparison(nextCart, { openCompare: false });
             }}
-            onAddAllOffers={(offerItems) => {
+            onAddAllOffers={(offerItems: any[]) => {
               let nextCart = [...cart];
               let added = 0;
 
