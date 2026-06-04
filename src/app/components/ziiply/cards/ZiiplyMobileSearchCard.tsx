@@ -5,6 +5,7 @@
 // Korjaus:
 // - Tämä on oikea .tsx-tiedosto, EI diff/patch-tiedosto.
 // - Gösta saa käynnistyä myös tyhjällä hakukentällä.
+// - V661: lisätty nykyisen page.tsx:n käyttämä onOpenNotebook-proppi buildin korjaamiseksi.
 // - Justiina vaatii edelleen hakutekstin.
 // - Koriin/Vihkonen-logiikkaa ei muutettu.
 // - Tyhjä Gösta-haku avaa tarjouskortin, jossa page voi hakea alueen kaikki tarjoukset.
@@ -43,6 +44,7 @@ export type ZiiplyMobileSearchCardProps = {
   searchMode?: "cart" | "single";
   onSearchModeChange?: (mode: "cart" | "single") => void;
   onAddInputToCart?: () => void;
+  onOpenNotebook?: () => void;
   onOfferSearch?: () => void;
   onNormalSearch?: () => void;
   hasSearchInput?: boolean;
@@ -277,6 +279,7 @@ export default function ZiiplyMobileSearchCard({
   searchMode = "cart",
   onSearchModeChange,
   onAddInputToCart,
+  onOpenNotebook,
   onOfferSearch,
   onNormalSearch,
   loadingOffers = false,
@@ -383,7 +386,7 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="V660_GOSTA_EMPTY_SEARCH_FIXED_TSX"
+      data-ziiply-mobile-search-card-version="V661_GOSTA_EMPTY_SEARCH_ONOPENNOTEBOOK_BUILD_FIX"
       className={`fixed inset-0 z-[72] flex items-end justify-center overflow-hidden bg-transparent px-2 pb-[calc(env(safe-area-inset-bottom)+6.15rem)] pt-[calc(env(safe-area-inset-top)+5rem)] sm:items-center sm:p-6 ${className}`}
     >
       <section className="relative isolate h-[min(64dvh,36.5rem)] w-full max-w-[28rem] overflow-visible rounded-[2rem] border-[4px] border-[#5b482c] bg-transparent px-3 pt-3 text-[#20301f] shadow-[0_0_0_2px_#d8bd75_inset,0_12px_0_rgba(60,45,20,0.24),0_22px_45px_rgba(15,23,42,0.18)]">
@@ -427,7 +430,7 @@ export default function ZiiplyMobileSearchCard({
             </div>
 
             <div className="grid w-[6.9rem] shrink-0 grid-rows-[auto_3.65rem] gap-[1.35rem] pt-[0.1rem]">
-              <GreenPillButton label="Vihkonen" onClick={onAddInputToCart} />
+              <GreenPillButton label="Vihkonen" onClick={onOpenNotebook ?? onAddInputToCart} />
               <div className="flex items-center">
                 <GreenPillButton label="koriin" onClick={onAddInputToCart} disabled={!hasText} />
               </div>
