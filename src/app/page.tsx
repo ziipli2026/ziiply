@@ -3144,6 +3144,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     keys: Set<string>;
     digits: string;
   } | null>(null);
+  // V131: fyysisen skannauksen lukujarru. Kun kamera hyväksyy yhden EANin,
+  // live-lukijan ja still-fallbackin seuraavat peräkkäiset frame-osumat ohitetaan hetken.
+  // Tämä estää saman tuotteen ympäriltä tulevat myöhäiset/virheelliset EAN-tulkinnat,
+  // jotka ovat tähän asti päässeet tuntematon-fallbackiin rinnakkaisina riveinä.
+  const scannerDecodeIgnoreUntilRefV131 = useRef(0);
   const scanSuccessFlashTimeoutRef = useRef<number | null>(null);
   const scanMissFlashTimeoutRef = useRef<number | null>(null);
 
@@ -7561,6 +7566,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (!isUsableEan(normalizedCode)) return;
 
     const now = Date.now();
+
+    // V131: älä hyväksy heti perään tulevia live/still-fallback -osumia.
+    // Jos ensimmäinen hyväksytty koodi tunnistuu OFF-/kauppatuotteeksi, nämä
+    // myöhäiset osumat eivät saa ehtiä omaksi tuntematon-hauksi.
+    if (now < scannerDecodeIgnoreUntilRefV131.current) {
+      return;
+    }
+
     const previous = lastContinuousScanRef.current;
 
     // V727: sama EAN hyväksytään vain kerran yhden kameraskanneri-session aikana.
@@ -7583,6 +7596,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     scannedEanSessionSetRef.current.add(normalizedCode);
     lastContinuousScanRef.current = { code: normalizedCode, at: now };
+    // V131: yksi fyysinen lukutapahtuma saa käynnistää vain yhden EAN-ketjun.
+    // Lukko on tarkoituksella lyhyt: se poistaa rinnakkaiset frame-osumat, mutta
+    // ei estä käyttäjän seuraavaa tietoista skannausta hetken kuluttua.
+    scannerDecodeIgnoreUntilRefV131.current = now + 1800;
     resetPendingEanPickCardV606();
 
     // Piip soitetaan vasta hyväksytylle uudelle lukutapahtumalle.
@@ -7735,6 +7752,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
     lastContinuousScanRef.current = null;
     scannedEanSessionSetRef.current.clear();
+    scannerDecodeIgnoreUntilRefV131.current = 0;
     resetPendingEanPickCardV606();
     setScannerTorchOn(false);
 
@@ -7776,6 +7794,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     try {
       await stopEanCameraScanner();
       scannedEanSessionSetRef.current.clear();
+      scannerDecodeIgnoreUntilRefV131.current = 0;
       setEanScannerOpen(true);
       setEanScannerMessage("");
 
@@ -8432,6 +8451,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           );
         }
 
+        scannerDecodeIgnoreUntilRefV131.current = Math.max(
+          scannerDecodeIgnoreUntilRefV131.current,
+          Date.now() + 2200,
+        );
         setEanLookupOutcomeForAllVariantsV126(ean, "store");
         markRecentRecognizedEanGuardV130(ean);
         eanSearchInFlightRef.current = null;
@@ -8481,6 +8504,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
 
       if (isBlockedByRecentRecognizedGuardV130(ean)) {
+        return;
+      }
+
+      // V131: jos kamera on juuri hyväksynyt/tunnistanut jonkin EANin, älä päästä
+      // samaan fyysiseen skannaustapahtumaan kuuluvaa myöhäistä epäonnistunutta
+      // lukua tuntematon-fallbackiin. Käsin syötetty EAN ei jää tähän kiinni, koska
+      // lukujarru asetetaan vain kameran finishScannedEan-polussa.
+      if ((eanScannerOpen || eanHtml5ScannerRef.current) && Date.now() < scannerDecodeIgnoreUntilRefV131.current) {
         return;
       }
 
@@ -9257,6 +9288,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (!isUsableEan(normalizedEan)) return;
 
     cacheOpenFoodFactsProductForAllVariantsV126(fallbackProduct);
+    // V131: kun EAN tunnistui OFF:stä, estä saman fyysisen skannauksen
+    // myöhäiset tuntematon-fallbackit vielä hetken.
+    scannerDecodeIgnoreUntilRefV131.current = Math.max(
+      scannerDecodeIgnoreUntilRefV131.current,
+      Date.now() + 2200,
+    );
     setEanLookupOutcomeForAllVariantsV126(normalizedEan, "off");
     persistRecognizedEanKeysV128(normalizedEan);
     markRecentRecognizedEanGuardV130(normalizedEan);
