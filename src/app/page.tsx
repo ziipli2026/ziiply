@@ -1,5 +1,11 @@
 "use client";
 
+// V92_GPS_NO_SYNTHETIC_FALLBACK_AND_MANUAL_PICKER_RELEASE
+// Korjaus käyttäjän havaintoihin:
+// - GPS ei enää rakenna valintoja AREAS-fallback-kaupoista, joten Oulu/Espoo/Imatra-tyyppiset ufosijainnit eivät päädy kortteihin tai valintaikkunoihin.
+// - GPS-tila ei enää yliaja käyttäjän manuaalisesti valitsemiä kauppoja; activeArea toimii valinnan lähteenä ja GPS-listaa käytetään vain puuttuvien kohtien täyttöön.
+// - GPS-päivitys toimii rauhallisella watchdogilla: aika- tai siirtymäraja laukaisee uuden kauppahaun.
+
 // V91_GPS_DYNAMIC_QUERY_LIST_FOR_TRAVEL
 // V90-pohja: GPS-pollaus säilyy.
 // Korjaus: GPS-haun query-lista ei ole enää staattinen Jokela/Tuusula/Hyvinkää/Kerava/Nurmijärvi.
@@ -836,6 +842,11 @@ import {
 } from "./components/ziiply/offerSearch/ziiplyLocationResolverCore";
 
 const MOBILE_EAN_SCANNER_REGION_ID = `${EAN_SCANNER_REGION_ID}-mobile`;
+
+const ZIIPLY_GPS_REFRESH_INTERVAL_MS_V92 = 60000;
+const ZIIPLY_GPS_REFRESH_FIRST_DELAY_MS_V92 = 20000;
+const ZIIPLY_GPS_REFRESH_MIN_MOVED_METERS_V92 = 300;
+const ZIIPLY_GPS_REFRESH_FORCE_AFTER_MS_V92 = 120000;
 
 
 type ZiiplyPageScannerFallbackDecodeResult = {
@@ -3261,50 +3272,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // kunnanrajalla valinnan Hyvinkäälle.
     for (const store of apiStores) addStore(store);
 
-    // V41: Lisää AREAS-kaupat vain passiiviseksi fallbackiksi ilman aluekeskipisteitä.
-    // Näitä ei saa pisteyttää GPS-etäisyydellä, mutta manuaalinen valinta/lista pysyy ehjänä,
-    // jos API ei palauta mitään.
-    AREAS.forEach((area, areaIndex) => {
-      const base = {
-        city: area.label,
-      } as any;
-
-      if (area.sStoreName) {
-        addStore({
-          ...base,
-          id: area.sStoreId || getGeneratedAreaStoreIdV40(areaIndex, "S", "hyper"),
-          name: area.sStoreName,
-          type: "S",
-        } as StoreSearchItem);
-      }
-
-      if (area.kStoreName) {
-        addStore({
-          ...base,
-          id: area.kStoreId || getGeneratedAreaStoreIdV40(areaIndex, "K", "hyper"),
-          name: area.kStoreName,
-          type: "K",
-        } as StoreSearchItem);
-      }
-
-      if (area.sLocalStoreName) {
-        addStore({
-          ...base,
-          id: area.sLocalStoreId || getGeneratedAreaStoreIdV40(areaIndex, "S", "local"),
-          name: area.sLocalStoreName,
-          type: "S",
-        } as StoreSearchItem);
-      }
-
-      if (area.kLocalStoreName) {
-        addStore({
-          ...base,
-          id: area.kLocalStoreId || getGeneratedAreaStoreIdV40(areaIndex, "K", "local"),
-          name: area.kLocalStoreName,
-          type: "K",
-        } as StoreSearchItem);
-      }
-    });
+    // V92: ÄLÄ lisää AREAS-fallback-kauppoja GPS-pooliin.
+    // Ne ovat alue-/demodataa ja voivat näyttää käyttäjälle täysin vääriä paikkoja
+    // kuten Espoo/Oulu/Imatra, jos oikeita koordinaattikauppoja löytyy vain yksi.
+    // GPS-tilassa valitaan ja listataan vain API:n palauttamia oikeita kauppoja.
 
     return result;
   }
@@ -3329,20 +3300,23 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const gpsStorePoolV40 = buildGpsStoreCandidatePoolFromAllAreasV40(foundStores);
       const ranked = rankStoresForMode(gpsStorePoolV40, gpsMode, gpsCoordsV320);
 
+      // V92: GPS ei saa lukita ensimmäistä lähintä automaattivalintaa pysyvästi.
+      // Käyttäjän valinta kirjoitetaan activeAreaan selectStoreForCurrentMode()-funktiossa,
+      // joten käytetään activeAreaa ensisijaisena ja GPS-rankingia vain puuttuvan S/K-paikan täyttöön.
       if (gpsMode === "local") {
         return {
-          sStoreId: ranked.sLocal?.id ?? 0,
-          sStoreName: ranked.sLocal?.name ?? "S-lähikauppa ei valittu",
-          kStoreId: ranked.kLocal?.id ?? 0,
-          kStoreName: ranked.kLocal?.name ?? "K-lähikauppa ei valittu",
+          sStoreId: activeArea.sLocalStoreId ?? ranked.sLocal?.id ?? 0,
+          sStoreName: activeArea.sLocalStoreName ?? ranked.sLocal?.name ?? "S-lähikauppa ei valittu",
+          kStoreId: activeArea.kLocalStoreId ?? ranked.kLocal?.id ?? 0,
+          kStoreName: activeArea.kLocalStoreName ?? ranked.kLocal?.name ?? "K-lähikauppa ei valittu",
         };
       }
 
       return {
-        sStoreId: ranked.sHyper?.id ?? 0,
-        sStoreName: ranked.sHyper?.name ?? "S-tavaratalo ei valittu",
-        kStoreId: ranked.kHyper?.id ?? 0,
-        kStoreName: ranked.kHyper?.name ?? "K-tavaratalo ei valittu",
+        sStoreId: activeArea.sStoreId ?? ranked.sHyper?.id ?? 0,
+        sStoreName: activeArea.sStoreName ?? ranked.sHyper?.name ?? "S-tavaratalo ei valittu",
+        kStoreId: activeArea.kStoreId ?? ranked.kHyper?.id ?? 0,
+        kStoreName: activeArea.kStoreName ?? ranked.kHyper?.name ?? "K-tavaratalo ei valittu",
       };
     }
 
@@ -6218,7 +6192,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             setGpsCoordsV320(nextCoords);
 
             // Älä aja kauppahakua joka pienestä GPS-heilahtelusta.
-            if (movedMeters < 250 && elapsedMs < 45000) return;
+            if (movedMeters < ZIIPLY_GPS_REFRESH_MIN_MOVED_METERS_V92 && elapsedMs < ZIIPLY_GPS_REFRESH_FORCE_AFTER_MS_V92) return;
 
             gpsPollLastAppliedAtRefV90.current = Date.now();
 
@@ -6264,8 +6238,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     };
 
     // Ensimmäinen päivitys vähän viiveellä, ettei se törmää boot/manual GPS-starttiin.
-    const firstTimer = window.setTimeout(runGpsPollRefreshV90, 12000);
-    const interval = window.setInterval(runGpsPollRefreshV90, 20000);
+    const firstTimer = window.setTimeout(runGpsPollRefreshV90, ZIIPLY_GPS_REFRESH_FIRST_DELAY_MS_V92);
+    const interval = window.setInterval(runGpsPollRefreshV90, ZIIPLY_GPS_REFRESH_INTERVAL_MS_V92);
 
     return () => {
       cancelled = true;
@@ -10362,6 +10336,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const list = getStoresForPickerOptionsV295(chain, mode);
     if (list.length > 0) return list;
 
+    // V92: GPS-tilassa valintaikkuna ei saa näyttää activeArea/AREAS-fallbackia.
+    // Jos API ei palauttanut oikeita kauppoja, näytetään mieluummin tyhjä lista kuin väärä kaupunki.
+    if (usingOwnLocation) return [];
+
     // Fallback vain valittuun ketjuun ja nykyiseen modeen.
     const fallbackId =
       chain === "S"
@@ -10671,10 +10649,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const otherSelectedId = getSelectedStoreIdFor(chain, otherMode);
     const otherSelectedName = getSelectedStoreNameFor(chain, otherMode);
 
-    const fallbackStores = [
-      ...getStoresForPicker(chain, "hyper"),
-      ...getStoresForPicker(chain, "local"),
-    ];
+    const fallbackStores = usingOwnLocation
+      ? []
+      : [
+          ...getStoresForPicker(chain, "hyper"),
+          ...getStoresForPicker(chain, "local"),
+        ];
 
     return sortStoresForPickerV320(
       [...allChainStores, ...fallbackStores],
