@@ -33,6 +33,10 @@
 
 "use client";
 
+// V124_REPEAT_SCAN_CART_REF_LOCK
+// Korjaus: skannerin callbackit voivat nähdä vanhan cart-state-closuren.
+// Pidetään cartRef ajan tasalla ja käytetään sitä EAN-dedupeen ennen fallbackeja.
+
 // V110_GOSTA_EMPTY_OPENS_AND_RELAXED_OFFER_FILTER
 // Pohja: V109 build-ok + V105 GPS/sää/etäisyys.
 // Korjaus: Gösta saa aueta tyhjällä Hae-kortin tekstillä.
@@ -2666,6 +2670,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
   // Mobile comparison view uses the same activeResult state as desktop, but renders as its own overlay.
   const [cart, setCart] = useState<CartItem[]>([]);
+  const cartRefV124 = useRef<CartItem[]>([]);
+
+  useEffect(() => {
+    cartRefV124.current = cart;
+  }, [cart]);
+
   const [restoredCartPromptV320, setRestoredCartPromptV320] = useState<{
     open: boolean;
     count: number;
@@ -8080,7 +8090,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // V122: jos sama EAN on jo korissa, älä käynnistä uutta haku-/fallback-ketjua.
     // Aiemmin seuraava skannaus saattoi mennä uudelleen S/K -> OFF -> unknown -polulle
     // ja pudottaa jo tunnistetyn OFF-tuotteen tuntemattomaksi riviksi.
-    const existingCartItemForEanV122 = cart.find((item) =>
+    const existingCartItemForEanV122 = cartRefV124.current.find((item) =>
       cartItemMatchesEanV118(item, ean),
     );
 
@@ -8097,18 +8107,27 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       triggerHaptic();
 
       setCart((currentCart) => {
-        const existingIndex = currentCart.findIndex((item) =>
+        // V124: skannerin callback voi saada vanhan React-state-snapshotin.
+        // Jos updaterin currentCart ei vielä sisällä aiemmin lisättyä EAN-riviä,
+        // käytetään synkronisesti päivitettyä cartRefiä määrän kasvatuksen pohjana.
+        const currentHasEan = currentCart.some((item) =>
+          cartItemMatchesEanV118(item, ean),
+        );
+        const baseCart = currentHasEan ? currentCart : cartRefV124.current;
+
+        const existingIndex = baseCart.findIndex((item) =>
           cartItemMatchesEanV118(item, ean),
         );
 
         if (existingIndex < 0) return currentCart;
 
-        const nextCart = currentCart.map((item, index) =>
+        const nextCart = baseCart.map((item, index) =>
           index === existingIndex
             ? { ...item, quantity: Number(item.quantity || 1) + 1 }
             : item,
         );
 
+        cartRefV124.current = nextCart;
         persistCartImmediately(nextCart);
         void updateChainComparison(nextCart, { openCompare: false });
         return nextCart;
@@ -8726,6 +8745,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             : item,
         );
 
+        cartRefV124.current = nextCart;
         persistCartImmediately(nextCart);
         void updateChainComparison(nextCart, { openCompare: false });
         showCartToast(`Määrä +1: ${existingItem.name || unknownName}`);
@@ -8761,6 +8781,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       } as CartItem;
 
       const nextCart = [...currentCart, newItem];
+      cartRefV124.current = nextCart;
       persistCartImmediately(nextCart);
       void updateChainComparison(nextCart, { openCompare: false });
       showCartToast("Ei löytynyt vielä — lisättiin koriin tunnisteella");
@@ -8857,6 +8878,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           .map((item, index) => (index === existingIndex ? keptItem : item))
           .filter((item, index) => index === existingIndex || !cartItemMatchesEanV118(item, normalizedEan));
 
+        cartRefV124.current = nextCart;
         if (nextCart !== currentCart) {
           persistCartImmediately(nextCart);
           void updateChainComparison(nextCart, { openCompare: false });
@@ -8890,6 +8912,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       } as CartItem;
 
       const nextCart = [...currentCart, newItem];
+      cartRefV124.current = nextCart;
       persistCartImmediately(nextCart);
       void updateChainComparison(nextCart, { openCompare: false });
       didAddOrUpgrade = true;
