@@ -1,5 +1,10 @@
 "use client";
 
+// V66_GPS_REMOVE_FORCED_CITY_QUERY_ORDER_NO_STORE_DIRECTORY
+// Pohjana V64. StoreDirectory-haaraa ei käytetä.
+// GPS-haun vanha kovakoodattu Jokela/Tuusula/Kerava/Nurmijärvi/Hyvinkää-queryjärjestys poistettu.
+// GPS yrittää ensin puhdasta lat/lon-hakua ja sen jälkeen lähimmät AREAS-labelit todellisessa etäisyysjärjestyksessä.
+
 // V64_REMOVE_EMPTY_STORE_DIRECTORY_BRANCH
 // Poistaa V63:n tyhjän ziiplyStoreDirectory-haaran aktiivisten kauppojen valinnasta.
 // Page palaa V41-tyyppiseen foundStores/API + GPS-etäisyys -valintaan, jotta tyhjä rekisteri ei vaikuta runtimeen.
@@ -2324,40 +2329,34 @@ export default function Page() {
       .slice(0, 8) as Array<{ area: Area; distance: number }>;
 
     const queries: string[] = [];
-    const addQuery = (value?: string | number | null) => {
-      const cleaned = String(value || "").trim();
-      if (!cleaned) return;
+    const addQuery = (value?: string | number | null, allowEmpty = false) => {
+      const cleaned = String(value ?? "").trim();
+
+      // GPS-polussa tyhjä haku on tarkoituksellinen: se antaa API:lle lat/lon-parametrit
+      // ilman kunta-/postinumero-/kaupunkilukkoa.
+      if (!cleaned && !allowEmpty) return;
+
       if (queries.some((item) => normalize(item) === normalize(cleaned))) return;
       queries.push(cleaned);
     };
 
-    // Tyhjä haku ensin, jos API tukee lat/lon-pohjaista lähihakua.
-    addQuery("");
+    // V66: GPS ei saa aloittaa millään kovakoodatulla paikkakunnalla.
+    // Ensimmäinen yritys on puhdas koordinaattihaku: /api/store-search?search=&lat=...&lon=...
+    addQuery("", true);
 
-    // V41: älä laita reverse-geocodattua kuntaa (käyttäjällä usein Hyvinkää) heti kärkeen.
-    // Kunnanrajalla se lukitsee API-haun ja fallback-valinnan väärään kuntaan.
-    // Annetaan ensin naapurialueiden ja koordinaattihakujen tuoda todelliset lähikaupat.
-    addQuery("Jokela");
-    addQuery("Tuusula");
-    addQuery("Kerava");
-    addQuery("Nurmijärvi");
-
+    // Toinen taso: lähimmät tunnetut AREA-labelit aidossa etäisyysjärjestyksessä.
+    // Ei pakotettua Jokela/Tuusula/Kerava/Nurmijärvi-listaa eikä Hyvinkään siirtämistä viimeiseksi.
     for (const entry of nearbyAreas) {
       const label = String(entry.area.label || "");
-      if (normalize(label) === normalize(primaryQuery)) continue;
-      if (normalize(label).includes("hyvink")) continue;
-
       addQuery(label);
+
       for (const alias of entry.area.aliases || []) {
-        const aliasText = String(alias || "");
-        if (normalize(aliasText).includes("hyvink")) continue;
-        addQuery(aliasText);
+        addQuery(alias);
       }
     }
 
-    // Reverse-geocodattu kunta ja Hyvinkää vasta viimeisenä fallbackina.
+    // Reverse-geocodattu kunta vain viimeisenä fallbackina, ei koskaan ensimmäisenä.
     addQuery(primaryQuery);
-    addQuery("Hyvinkää");
 
     return queries.filter((query, index) => query !== "" || index === 0).slice(0, 16);
   }
