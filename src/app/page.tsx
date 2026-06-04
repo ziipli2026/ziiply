@@ -1,3 +1,8 @@
+// V105_WEATHER_TEMP_TYPESCRIPT_NULL_FIX
+// Pohjana V104. Build-korjaus: effectiveCoords puretaan lat/lon-vakioiksi ennen async-fetchiä,
+// jolloin TypeScript ei enää tulkitse koordinaattia mahdollisesti nulliksi.
+// Muutoin V102-etäisyys ja V104-sääfallback säilyvät ennallaan.
+
 // V104_WEATHER_TEMP_OWN_GPS_FALLBACK_KEEP_V102_DISTANCE
 // Pohjana V102: GPS-etäisyys näkyy V41-tyylisesti kaupan nimen alla ja valintapalkki pysyy puhtaana.
 // Korjaus: sääkortti ei enää riipu vain page-gpsCoordsV320-propista. Jos kauppojen GPS-polku ei syötä
@@ -1417,10 +1422,13 @@ function KauppiasMobileTopBar({
       };
     }
 
+    const weatherLatV105 = effectiveCoords.latitude;
+    const weatherLonV105 = effectiveCoords.longitude;
+
     async function loadWeatherFromCoordsV104() {
       try {
         const response = await fetch(
-          `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(effectiveCoords.latitude)}&longitude=${encodeURIComponent(effectiveCoords.longitude)}&current=temperature_2m,weather_code&timezone=auto`,
+          `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(weatherLatV105)}&longitude=${encodeURIComponent(weatherLonV105)}&current=temperature_2m,weather_code&timezone=auto`,
           { cache: "no-store" },
         );
 
