@@ -1,9 +1,10 @@
 "use client";
 
-// V88_GPS_WATCH_POSITION_WHILE_ACTIVE
-// Lisää jatkuvan sijainnin seurannan GPS:n ollessa päällä.
-// Kun käyttäjä liikkuu noin 1 km tai edellisestä päivityksestä on kulunut noin 2 min,
-// haetaan kaupat uudelleen nykyisestä sijainnista. Ei muuta V87:n toimivaa query-järjestystä.
+// V89_GPS_WATCH_REAPPLY_LOCATION_AFTER_SUCCESS
+// V87-pohja: alkuperäinen toimiva GPS-haku säilyy.
+// Lisäys: onnistuneen GPS-haun jälkeen käynnistetään watchPosition,
+// joka ajaa applyLocation(city, "gps", coords) uudelleen kun käyttäjä liikkuu riittävästi.
+// Tämä korjaa ajossa lukittuvan sijainnin.
 
 // V87_GPS_QUERY_ORDER_LOCAL_JOKELA_HYPER_HYVINKAA
 // V84-pohja: GPS-nappi ja kauppahaku säilyvät toimivina.
@@ -1929,8 +1930,8 @@ export default function Page() {
   const gpsWatchIdRefV391 = useRef<number | null>(null);
   const gpsLastSilentCoordsRefV391 = useRef<{ latitude: number; longitude: number } | null>(null);
   const gpsLastSilentAreaRefV391 = useRef("");
-  const gpsWatchApplyInFlightRefV88 = useRef(false);
-  const gpsWatchLastAppliedAtRefV88 = useRef(0);
+  const gpsWatchApplyInFlightRefV89 = useRef(false);
+  const gpsWatchLastAppliedAtRefV89 = useRef(0);
   const gpsFailTimerRefV391 = useRef<number | null>(null);
   const gpsSearchInFlightRefV465 = useRef(false);
   const gpsInitialSearchStartedRefV465 = useRef(false);
@@ -2334,10 +2335,78 @@ export default function Page() {
   }
 
   function startSilentGpsWatchV391() {
-    // V469: älä käynnistä watchPositionia automaattisesti avauksessa.
-    // Aiemmin tämä aiheutti toisen GPS-paikannuksen heti alkuhaun jälkeen ja UI jäi
-    // joillakin puhelimilla pysyvään "Paikannetaan GPS" -tilaan.
-    return;
+    if (typeof navigator === "undefined" || !navigator.geolocation) return;
+    if (gpsWatchIdRefV391.current != null) return;
+
+    gpsLastSilentCoordsRefV391.current = gpsCoordsV320;
+    gpsWatchLastAppliedAtRefV89.current = Date.now();
+
+    gpsWatchIdRefV391.current = navigator.geolocation.watchPosition(
+      async (position) => {
+        const nextCoords = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        };
+
+        const previousCoords = gpsLastSilentCoordsRefV391.current;
+        const movedMeters = previousCoords
+          ? getDistanceMetersV391(previousCoords, nextCoords)
+          : Number.POSITIVE_INFINITY;
+        const elapsedMs = Date.now() - gpsWatchLastAppliedAtRefV89.current;
+
+        // Päivitä koordinaatti heti UI:lle, mutta hae kaupat uudelleen vain järkevällä välillä.
+        setGpsCoordsV320(nextCoords);
+
+        if (movedMeters < 350 && elapsedMs < 45000) return;
+        if (gpsWatchApplyInFlightRefV89.current) return;
+        if (gpsSearchInFlightRefV465.current || ziiplyGpsHardInFlightV469) return;
+        if (gpsUserDisabledRefV306.current) return;
+
+        gpsWatchApplyInFlightRefV89.current = true;
+        gpsLastSilentCoordsRefV391.current = nextCoords;
+        gpsWatchLastAppliedAtRefV89.current = Date.now();
+
+        try {
+          setUsingOwnLocation(true);
+          setGpsErrorMessage("");
+          setLocationMessage("Päivitetään sijaintia");
+          setLocationMessageVisible(true);
+
+          const city = await reverseGeocodeCity(
+            nextCoords.latitude,
+            nextCoords.longitude,
+          );
+
+          if (!city) {
+            setLocationMessage("Oma sijainti käytössä");
+            setLocationMessageVisible(true);
+            return;
+          }
+
+          gpsLastSilentAreaRefV391.current = city;
+          await applyLocation(city, "gps", nextCoords);
+
+          setGpsErrorMessage("");
+          setUsingOwnLocation(true);
+          setStoreSearchLoading(false);
+          setLocationInput("");
+          setLocationMessage("Oma sijainti päivitetty");
+          setLocationMessageVisible(true);
+        } catch (error) {
+          console.error(error);
+        } finally {
+          gpsWatchApplyInFlightRefV89.current = false;
+        }
+      },
+      (error) => {
+        console.error(error);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 20000,
+        maximumAge: 10000,
+      },
+    );
   }
 
   function stopSilentGpsWatchV391() {
@@ -6106,6 +6175,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       await applyLocation(city, "gps", nextGpsCoordsV485);
       gpsApplyLocationDoneV495 = true;
       pushGpsDebugLogV492(`useOwnLocation applyLocation done`);
+      startSilentGpsWatchV391();
 
       if (source === "manual") {
         gpsManualSuccessCoordsRefV485.current = nextGpsCoordsV485;
@@ -6182,95 +6252,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }, 180);
     }
   }
-
-  // V88_GPS_WATCH_POSITION_WHILE_ACTIVE:
-  // Kertapaikannus ei riitä ajossa. Kun GPS on päällä, seurataan sijaintia
-  // ja päivitetään kaupat uudelleen riittävän liikkeen jälkeen.
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (!usingOwnLocation || gpsUserDisabledRefV306.current) {
-      if (gpsWatchIdRefV391.current != null && navigator.geolocation) {
-        navigator.geolocation.clearWatch(gpsWatchIdRefV391.current);
-        gpsWatchIdRefV391.current = null;
-      }
-      gpsLastSilentCoordsRefV391.current = null;
-      gpsWatchApplyInFlightRefV88.current = false;
-      return;
-    }
-
-    if (!navigator.geolocation) return;
-    if (gpsWatchIdRefV391.current != null) return;
-
-    gpsLastSilentCoordsRefV391.current = gpsCoordsV320;
-    gpsWatchLastAppliedAtRefV88.current = Date.now();
-
-    gpsWatchIdRefV391.current = navigator.geolocation.watchPosition(
-      async (position) => {
-        const nextCoords = {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        };
-
-        const previousCoords = gpsLastSilentCoordsRefV391.current;
-        const movedMeters = previousCoords
-          ? getDistanceMetersV391(previousCoords, nextCoords)
-          : Number.POSITIVE_INFINITY;
-        const elapsedMs = Date.now() - gpsWatchLastAppliedAtRefV88.current;
-
-        // Päivitä UI:n koordinaatti kevyesti, mutta älä hae kauppoja joka GPS-pulssilla.
-        setGpsCoordsV320(nextCoords);
-
-        if (movedMeters < 1000 && elapsedMs < 120000) return;
-        if (gpsWatchApplyInFlightRefV88.current) return;
-        if (gpsSearchInFlightRefV465.current || ziiplyGpsHardInFlightV469) return;
-
-        gpsWatchApplyInFlightRefV88.current = true;
-        gpsLastSilentCoordsRefV391.current = nextCoords;
-        gpsWatchLastAppliedAtRefV88.current = Date.now();
-
-        try {
-          setUsingOwnLocation(true);
-          setGpsErrorMessage("");
-          setLocationMessage("Päivitetään sijaintia");
-          setLocationMessageVisible(true);
-
-          const city = await reverseGeocodeCity(
-            nextCoords.latitude,
-            nextCoords.longitude,
-          );
-
-          if (!city) {
-            setLocationMessage("Oma sijainti käytössä");
-            return;
-          }
-
-          gpsLastSilentAreaRefV391.current = city;
-          await applyLocation(city, "gps", nextCoords);
-          setLocationMessage("Oma sijainti päivitetty");
-          setLocationMessageVisible(true);
-        } catch (error) {
-          console.error(error);
-        } finally {
-          gpsWatchApplyInFlightRefV88.current = false;
-        }
-      },
-      (error) => {
-        console.error(error);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 20000,
-        maximumAge: 15000,
-      },
-    );
-
-    return () => {
-      if (gpsWatchIdRefV391.current != null && navigator.geolocation) {
-        navigator.geolocation.clearWatch(gpsWatchIdRefV391.current);
-        gpsWatchIdRefV391.current = null;
-      }
-    };
-  }, [usingOwnLocation]);
 
   // V480_NO_OWN_GPS_BOOT_MANUAL_ONLY:
   // Oma sovellus EI käynnistä GPS-paikannusta reloadissa/startissa.
