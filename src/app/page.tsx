@@ -1,5 +1,12 @@
 "use client";
 
+// V96_GPS_DISTANCE_BUTTON_VISIBLE_REVISION_FIRST
+// Pohjana V95/V93. Korjaus käyttäjän havaintoon: revisioteksti nostettu tiedoston kärkeen,
+// jotta GitHubissa/vertailussa näkyy varmasti, että tämä on uusi versio.
+// Etäisyys näytetään lisäksi suoraan näkyvän Vaihda/Valittu-painikkeen sisällä,
+// koska kauppakortin oma distance-rivi ei osu aktiiviseen mobiilirender-haaraan.
+// Ei muuta V92:n korjausta: GPS ei lukitse käsin valittua kauppaa eikä tuo AREAS-fallback-kauppoja listaan.
+
 // V93_GPS_DISTANCE_LABEL_RESTORE
 // V92-pohja säilyy: GPS ei enää lukitse kauppavalintaa eikä käytä AREAS-fallback-kauppoja.
 // Korjaus: GPS-etäisyys palautetaan kauppakortteihin ja valintaikkunoihin.
