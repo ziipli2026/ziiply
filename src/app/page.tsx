@@ -1,5 +1,11 @@
 "use client";
 
+// V102_GPS_DISTANCE_V41_PLACEMENT_CLEAN_BUTTON
+// Pohjana V101. Etäisyysketju säilyy toimivana, mutta näyttö palautetaan V41-tyyliin:
+// - Vaihda/Valittu-painikkeessa EI näytetä etäisyyttä.
+// - etäisyys näytetään vain kaupan nimen alla omana mustana rivinään samassa kohdassa kuin V41:ssä.
+// - V101:n beige etäisyyslaatikko poistettu näkyvästä between-chain-korttihaarasta.
+
 // V101_RESTORE_V41_DISTANCE_FALLBACK_FOR_REAL_STORES
 // V100 ei näyttänyt etäisyyttä, koska nykyinen V92+ polku poisti V41:n Nominatim-varalaskennan kokonaan.
 // Palautetaan V41:n toimiva etäisyysketju, mutta rajataan se vain API:n/foundStores-listan oikeisiin kauppoihin.
@@ -11199,12 +11205,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         ? []
         : getStoresForPickerContext(chain, mode);
     const hasMany = options.length > 1;
-    const visibleDistanceLabel = getVisibleSelectedStoreDistanceLabelV95(
-      chain,
-      mode,
-      options,
-    );
-
     return (
       <button
         type="button"
@@ -11239,11 +11239,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         }`}
       >
         <span>{hasMany ? "Vaihda" : "Valittu"}</span>
-        {visibleDistanceLabel ? (
-          <span className="ml-1 whitespace-nowrap text-[0.92em] font-black text-[#3f2f17]">
-            · {visibleDistanceLabel}
-          </span>
-        ) : null}
       </button>
     );
   }
@@ -11625,7 +11620,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               </p>
 
               {showDistanceForCard && (
-                <p className="absolute left-[6px] right-[6px] top-[59px] z-50 mx-auto flex h-[1rem] max-w-[6.2rem] items-center justify-center rounded-[0.34rem] border border-[#d1b979] bg-[#fff8df]/92 px-1 text-[9px] font-black leading-none text-[#4b3a18] shadow-[inset_0_1px_0_rgba(255,255,255,0.84),0_1px_2px_rgba(77,50,18,0.10)] [text-shadow:0_1px_1px_rgba(255,250,232,0.95)]">
+                <p className="absolute left-0 right-0 top-[56px] z-50 text-[12px] font-black leading-none text-[#000000] [text-shadow:0_1px_0_rgba(255,250,232,0.95),0_2px_2px_rgba(55,38,12,0.22)]">
                   {distanceForCard}
                 </p>
               )}
