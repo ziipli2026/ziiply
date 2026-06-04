@@ -1,10 +1,9 @@
 "use client";
 
-// V78_GPS_NO_AREA_QUERY_NO_LOCAL_FORCE
-// Korjaa GPS-polun kaksi jäljellä ollutta lukkoa:
-// - GPS ei enää muodosta hakulistaa getNearbyAreaSearchQueriesFromGpsV36(...)-alue-/kaupunkifallbackilla.
-// - GPS ei enää pakota applyLocation-vaiheessa storeModea aina "local"-tilaan.
-// V77:n Nominatim/OpenStreetMap-selainfallbackin poisto säilyy.
+// V79_RESTORE_GPS_START_KEEP_NOMINATIM_REMOVED
+// Palauttaa GPS-napin/bootin toimivaksi V77-pohjalle.
+// Ei tyhjennetä applyLocation-queryä eikä poisteta GPS:n käynnistymisen tarvitsemaa hakupolkua.
+// Nominatim/OpenStreetMap-selainfallback pysyy poistettuna.
 
 // V77_REMOVE_BROWSER_NOMINATIM_FALLBACKS
 // Poistaa selaimesta tehtävät suorat Nominatim/OpenStreetMap fallback-haut.
@@ -5548,7 +5547,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // Jokelassa/Tuusulassa. Siksi GPS-haussa pyydetään ensin koordinaattipohjainen laaja haku
     // tyhjällä search-arvolla ja vasta sen jälkeen query-fallback vanhaa API-käytöstä varten.
     const searchQueries = coords
-      ? [query].filter((value) => value.trim().length > 0)
+      ? getNearbyAreaSearchQueriesFromGpsV36(coords, query)
       : [query];
 
     const mergedStores: StoreSearchItem[] = [];
@@ -5833,9 +5832,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // GPS/reload ei saa periä page-startin vanhaa Tavaratalot/Hyvinkää-oletusta.
       // Oma sijainti avataan aina lähikauppatilaan ja kaupat järjestetään koordinaateilla.
       const effectiveLocationStoreModeV39: StoreMode =
-        storeModeChosenV299
-          ? selectedStoreModeRefV302.current || storeMode
-          : storeMode;
+        source === "gps"
+          ? "local"
+          : storeModeChosenV299
+            ? selectedStoreModeRefV302.current
+            : storeMode;
       const ranked = rankStoresForMode(
         stores,
         effectiveLocationStoreModeV39,
