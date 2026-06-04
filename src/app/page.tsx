@@ -1,5 +1,11 @@
 "use client";
 
+// V101_RESTORE_V41_DISTANCE_FALLBACK_FOR_REAL_STORES
+// V100 ei näyttänyt etäisyyttä, koska nykyinen V92+ polku poisti V41:n Nominatim-varalaskennan kokonaan.
+// Palautetaan V41:n toimiva etäisyysketju, mutta rajataan se vain API:n/foundStores-listan oikeisiin kauppoihin.
+// AREAS/demokauppoja ei lisätä eikä etäisyysfallback saa tuoda Oulu/Espoo/Imatra-ufosijainteja valintoihin.
+// Näyttö käyttää edelleen erillistä etäisyysriviä kaupan nimen alla ja picker saa distanceLabelin samaa ketjua pitkin.
+
 // V100_GPS_DISTANCE_SEPARATE_NAME_LAYER
 // V99-testin perusteella etäisyyttä EI laiteta samaan tekstiletkaan kaupan nimen kanssa.
 // Korjaus: näkyvässä kauppakorttihaarassa kaupan nimi pysyy omassa alkuperäisessä layerissään
@@ -2212,9 +2218,93 @@ export default function Page() {
   }, [locationMessage, storeSearchLoading]);
 
   useEffect(() => {
-    // V84: poista vain fallback-kauppojen Nominatim-etäisyyslaskenta.
-    // GPS:n oma reverse geocode jää ennalleen, jotta GPS-nappi ei hajoa.
-    setStoreDistanceFallbacksV320({});
+    // V101: V41:ssä etäisyys näkyi siksi, että jos API-kaupalla ei ollut
+    // oikeita koordinaatteja tai distance-kenttää, kaupan sijainti haettiin
+    // varovasti Nominatimilla nimen/kaupungin perusteella. V84/V92 poisti
+    // tämän kokonaan, jolloin render-polku oli kunnossa mutta etäisyysdata puuttui.
+    // Palautetaan varalaskenta VAIN foundStores/API-kaupoille. AREAS-fallback-
+    // kauppoja ei rakenneta eikä lisätä listaan, joten tämä ei palauta
+    // Espoo/Oulu/Imatra-ufosijainteja valintaikkunoihin.
+    if (!gpsCoordsV320 || foundStores.length === 0) {
+      setStoreDistanceFallbacksV320({});
+      return;
+    }
+
+    const gpsCoordsForFallbackV101 = gpsCoordsV320;
+    let cancelled = false;
+    const controller = new AbortController();
+
+    async function geocodeStoreDistanceFallbacksV101() {
+      const realApiStoresOnly = foundStores
+        .map(normalizeStoreForPickerV320)
+        .filter((store) => {
+          const idNumber = Number((store as any).id);
+          // V92/V101: negatiiviset id:t ovat vanhoja AREAS/demofallbackeja.
+          // Niille ei lasketa etäisyyttä, koska ne eivät ole varmoja myymäläkoordinaatteja.
+          if (Number.isFinite(idNumber) && idNumber < 0) return false;
+          return Boolean(store.name && getStoreChainV320(store));
+        });
+
+      const candidates = uniqueStoresByIdAndName(realApiStoresOnly)
+        .filter((store) => !getStoreDistanceLabelWithoutFallbackV320(store))
+        .slice(0, 24);
+
+      if (candidates.length === 0) return;
+
+      const nextDistances: Record<string, number> = {};
+
+      for (const store of candidates) {
+        if (cancelled) return;
+
+        const queryParts = [
+          store.name,
+          store.city || activeArea.label,
+          store.postalCode,
+          "Suomi",
+        ].filter(Boolean);
+        const query = queryParts.join(", ");
+
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=fi&q=${encodeURIComponent(query)}`,
+            { signal: controller.signal },
+          );
+          if (!response.ok) continue;
+
+          const results = await response.json();
+          const first = Array.isArray(results) ? results[0] : null;
+          const latitude = readStoreNumberV320(first?.lat);
+          const longitude = readStoreNumberV320(first?.lon ?? first?.lng);
+          if (latitude == null || longitude == null) continue;
+
+          nextDistances[getStoreDistanceKeyV320(store)] =
+            calculateDistanceKmV320(gpsCoordsForFallbackV101, {
+              latitude,
+              longitude,
+            });
+        } catch (error) {
+          if (!cancelled) {
+            console.debug("Etäisyyden varalaskenta epäonnistui", error);
+          }
+        }
+      }
+
+      if (cancelled || Object.keys(nextDistances).length === 0) return;
+
+      setStoreDistanceFallbacksV320((current) => {
+        const merged = { ...current, ...nextDistances };
+        return JSON.stringify(merged) === JSON.stringify(current)
+          ? current
+          : merged;
+      });
+    }
+
+    void geocodeStoreDistanceFallbacksV101();
+
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
   }, [gpsCoordsV320, foundStores, activeArea.label]);
 
   const [offers, setOffers] = useState<ZiiplyOffer[]>([]);
