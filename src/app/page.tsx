@@ -1,12 +1,10 @@
-"use client";
+// V104_WEATHER_TEMP_OWN_GPS_FALLBACK_KEEP_V102_DISTANCE
+// Pohjana V102: GPS-etäisyys näkyy V41-tyylisesti kaupan nimen alla ja valintapalkki pysyy puhtaana.
+// Korjaus: sääkortti ei enää riipu vain page-gpsCoordsV320-propista. Jos kauppojen GPS-polku ei syötä
+// koordinaatteja topbarille ajoissa, sääkortti tekee oman kevyen getCurrentPosition-varahaun ja käyttää
+// viimeisintä toimivaa lämpötilaa muistista. Tämä ei muuta kauppavalintaa eikä foundStores-listaa.
 
-// V103_WEATHER_TEMP_RESTORE_ROBUST_FALLBACK
-// Pohjana V102. GPS-etäisyys säilyy V41-asettelussa.
-// Korjaus yläpalkin sääkorttiin:
-// - lämpötilaa ei nollata heti viivaksi, jos GPS-koordinaatti on hetkellisesti tyhjä
-// - Open-Meteo haetaan kahdella muodolla: current=temperature_2m ja current_weather=true
-// - viimeisin toimiva lämpötila säilytetään localStoragessa ja näytetään fallbackina
-// - ei muutoksia kauppavalintaan, GPS-etäisyyteen tai tarjoushakuun.
+"use client";
 
 // V102_GPS_DISTANCE_V41_PLACEMENT_CLEAN_BUTTON
 // Pohjana V101. Etäisyysketju säilyy toimivana, mutta näyttö palautetaan V41-tyyliin:
@@ -1194,8 +1192,6 @@ function formatLocationNoticeV465(message: string) {
 const WEATHER_APP_DISABLED_TEST_V487 = false;
 const ZIIPLY_ELECTRICITY_PRICE_CACHE_KEY_V559 =
   "ziiply-electricity-price-cache-v1";
-const ZIIPLY_WEATHER_CACHE_KEY_V103 =
-  "ziiply-weather-current-cache-v1";
 
 
 
@@ -1342,6 +1338,10 @@ function KauppiasMobileTopBar({
   // Oma page-boot-GPS pysyy silti pois päältä.
   const [weatherValue, setWeatherValue] = useState("—°");
   const [weatherText, setWeatherText] = useState(areaLabel);
+  const [weatherGpsFallbackCoordsV104, setWeatherGpsFallbackCoordsV104] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
   const [electricityValue, setElectricityValue] = useState("…");
   const [electricityText, setElectricityText] = useState("haetaan");
   const [electricityTrend, setElectricityTrend] = useState<"up" | "down" | "flat">("flat");
@@ -1351,133 +1351,117 @@ function KauppiasMobileTopBar({
   // Page omistaa yhden GPS-haun ja antaa koordinaatit tänne säätä varten.
 
   useEffect(() => {
-    // V103: Sääkortti ei saa kadottaa viimeistä toimivaa lämpöä vain siksi,
-    // että GPS-koordinaatti on renderin aikana hetken tyhjä tai Open-Meteo vastaa eri muodolla.
     if (hidden || WEATHER_APP_DISABLED_TEST_V487) {
       setWeatherValue("—°");
       setWeatherText(areaLabel);
       return;
     }
 
-    function readCachedWeatherV103() {
+    let cancelled = false;
+
+    const readCachedWeatherV104 = () => {
       if (typeof window === "undefined") return null;
-
       try {
-        const raw = window.localStorage.getItem(ZIIPLY_WEATHER_CACHE_KEY_V103);
+        const raw = window.localStorage.getItem("ziiply-weather-temp-cache-v104");
         if (!raw) return null;
-
-        const cached = JSON.parse(raw) as {
-          value?: string;
-          text?: string;
-          savedAt?: number;
-        };
-
+        const cached = JSON.parse(raw) as { value?: string; text?: string; savedAt?: number };
         if (!cached?.value || !cached?.savedAt) return null;
-
-        const ageMs = Date.now() - Number(cached.savedAt);
-        if (ageMs > 90 * 60 * 1000) {
-          window.localStorage.removeItem(ZIIPLY_WEATHER_CACHE_KEY_V103);
-          return null;
-        }
-
+        if (Date.now() - Number(cached.savedAt) > 60 * 60 * 1000) return null;
         return cached;
       } catch {
         return null;
       }
-    }
+    };
 
-    function showCachedWeatherV103() {
-      const cached = readCachedWeatherV103();
-      if (!cached) return false;
-
-      setWeatherValue(String(cached.value));
-      setWeatherText(String(cached.text || areaLabel));
-      return true;
-    }
-
-    function writeCachedWeatherV103(next: { value: string; text: string }) {
+    const writeCachedWeatherV104 = (next: { value: string; text: string }) => {
       if (typeof window === "undefined") return;
-
       try {
         window.localStorage.setItem(
-          ZIIPLY_WEATHER_CACHE_KEY_V103,
+          "ziiply-weather-temp-cache-v104",
           JSON.stringify({ ...next, savedAt: Date.now() }),
         );
       } catch {
-        // localStorage voi olla estetty; silloin jatketaan ilman muistia.
+        // Jatketaan ilman välimuistia.
       }
-    }
+    };
 
-    if (!weatherEnabled || !gpsCoords) {
-      if (!showCachedWeatherV103()) {
+    const effectiveCoords = gpsCoords || weatherGpsFallbackCoordsV104;
+
+    if (!effectiveCoords) {
+      const cached = readCachedWeatherV104();
+      if (cached?.value) {
+        setWeatherValue(cached.value);
+        setWeatherText(cached.text || areaLabel);
+      } else {
         setWeatherText(areaLabel);
       }
-      return;
+
+      if (typeof navigator !== "undefined" && navigator.geolocation && !weatherGpsFallbackCoordsV104) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            if (cancelled) return;
+            setWeatherGpsFallbackCoordsV104({
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+            });
+          },
+          () => {
+            // Ei nollata toimivaa vanhaa arvoa viivaksi pelkän säähaun epäonnistuessa.
+          },
+          { enableHighAccuracy: false, timeout: 8000, maximumAge: 5 * 60 * 1000 },
+        );
+      }
+
+      return () => {
+        cancelled = true;
+      };
     }
 
-    const pageGpsCoords = gpsCoords;
-    let cancelled = false;
-
-    async function fetchWeatherJsonV103(url: string) {
-      const response = await fetch(url, { cache: "no-store" });
-      if (!response.ok) return null;
-      return response.json();
-    }
-
-    async function loadWeatherFromPageGps() {
+    async function loadWeatherFromCoordsV104() {
       try {
-        const lat = encodeURIComponent(pageGpsCoords.latitude);
-        const lon = encodeURIComponent(pageGpsCoords.longitude);
-
-        const primaryUrl =
-          `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&timezone=auto`;
-        const fallbackUrl =
-          `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&timezone=auto`;
-
-        const primary = await fetchWeatherJsonV103(primaryUrl);
-        if (cancelled) return;
-
-        const fallback = primary?.current?.temperature_2m == null
-          ? await fetchWeatherJsonV103(fallbackUrl)
-          : null;
-        if (cancelled) return;
-
-        const temp = Number(
-          primary?.current?.temperature_2m ?? fallback?.current_weather?.temperature,
+        const response = await fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${encodeURIComponent(effectiveCoords.latitude)}&longitude=${encodeURIComponent(effectiveCoords.longitude)}&current=temperature_2m,weather_code&timezone=auto`,
+          { cache: "no-store" },
         );
-        const code = Number(
-          primary?.current?.weather_code ?? fallback?.current_weather?.weathercode,
-        );
+
+        if (!response.ok || cancelled) return;
+
+        const data = await response.json();
+        const temp = Number(data?.current?.temperature_2m);
+        const code = Number(data?.current?.weather_code);
 
         if (Number.isFinite(temp)) {
           const nextValue = `${temp >= 0 ? "+" : ""}${Math.round(temp)}°`;
           const nextText = kauppiasWeatherTextFromCode(Number.isFinite(code) ? code : undefined);
-
           setWeatherValue(nextValue);
           setWeatherText(nextText);
-          writeCachedWeatherV103({ value: nextValue, text: nextText });
-          return;
-        }
-
-        if (!showCachedWeatherV103()) {
-          setWeatherValue("—°");
-          setWeatherText(areaLabel);
+          writeCachedWeatherV104({ value: nextValue, text: nextText });
+        } else {
+          const cached = readCachedWeatherV104();
+          if (cached?.value) {
+            setWeatherValue(cached.value);
+            setWeatherText(cached.text || areaLabel);
+          }
         }
       } catch {
-        if (!cancelled && !showCachedWeatherV103()) {
-          setWeatherValue("—°");
-          setWeatherText(areaLabel);
+        if (!cancelled) {
+          const cached = readCachedWeatherV104();
+          if (cached?.value) {
+            setWeatherValue(cached.value);
+            setWeatherText(cached.text || areaLabel);
+          } else {
+            setWeatherText(areaLabel);
+          }
         }
       }
     }
 
-    showCachedWeatherV103();
-    loadWeatherFromPageGps();
+    loadWeatherFromCoordsV104();
 
     return () => {
       cancelled = true;
     };
-  }, [hidden, weatherEnabled, gpsCoords?.latitude, gpsCoords?.longitude, areaLabel]);
+  }, [hidden, gpsCoords?.latitude, gpsCoords?.longitude, weatherGpsFallbackCoordsV104?.latitude, weatherGpsFallbackCoordsV104?.longitude, areaLabel]);
 
   useEffect(() => {
     if (hidden || typeof window === "undefined") return;
@@ -12699,7 +12683,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             hidden={searchFullscreenOpenV621}
             areaLabel={activeArea.label}
             gpsCoords={gpsCoordsV320}
-            weatherEnabled={Boolean(gpsCoordsV320)}
+            weatherEnabled={true}
             onOpenCalendar={() => {
               try {
                 window.location.href = "calshow://";
