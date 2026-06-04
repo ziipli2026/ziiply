@@ -7,7 +7,9 @@ export type ZiiplyStoreDirectoryEntry = {
 
 export const ZIIPLY_STORE_DIRECTORY: ZiiplyStoreDirectoryEntry[] = [];
 
-export function normalizeApiStoresToZiiplyDirectory() {
+export function normalizeApiStoresToZiiplyDirectory(
+  stores: unknown[] = [],
+): ZiiplyStoreDirectoryEntry[] {
   return [];
 }
 
@@ -19,4 +21,18 @@ export function resolveZiiplyStoresFromDirectory() {
     selectedSHyper: undefined,
     selectedKHyper: undefined,
   };
+}
+
+export function mergeZiiplyStoreDirectories(
+  ...directories: ZiiplyStoreDirectoryEntry[][]
+): ZiiplyStoreDirectoryEntry[] {
+  const byId = new Map<string, ZiiplyStoreDirectoryEntry>();
+
+  for (const directory of directories) {
+    for (const store of directory) {
+      byId.set(store.id, store);
+    }
+  }
+
+  return Array.from(byId.values());
 }
