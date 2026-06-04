@@ -35,6 +35,10 @@
 // V107_GOSTA_CARD_PROP_COMPAT_BUILD_FIX
 // Pohjana V106 + V105 vakaa GPS/sää/etäisyys.
 // Korjaus: page käyttää tarjouskortista loose-aliasia, jotta uudet Gösta-propit
+// V112_GOSTA_KAIKKI_FILTER_RELAX_AND_WIDER_SEEDS
+// Korjaus: "Kaikki" ei saa jäädä tekstifiltteriksi eikä UI-roskasanoja saa testata koko offer-tekstistä.
+// Levennetty tyhjän Gösta-haun siemenhakua, jotta alueen tarjoukset eivät jää yhden osuman varaan.
+
 // (filter/onFilterChange/categorySuggestions) eivät kaada buildiä, vaikka projektiin ei ole
 // vielä vaihdettu uutta ZiiplyMobileOfferSearchCard v2 -komponenttia.
 // Kun v2-komponentti on paikallaan, samat propit aktivoivat Göstan oman hakukentän ja tuoteryhmärajauksen.
@@ -4836,7 +4840,24 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       /^lue lisää$/,
     ];
 
-    if (junkPatterns.some((pattern) => pattern.test(text))) return true;
+    // V112: Älä testaa kovia UI-roskasanoja koko yhdistetystä tekstistä.
+    // Parseri voi kantaa mukana sivun yleisiä tekstejä jokaisessa oikeassa tarjouksessa,
+    // jolloin esim. "ostoskori" pudottaisi lähes kaiken pois.
+    const normalizedTitle = normalize(title);
+    const hardJunkTitlePatterns = [
+      /^(0\s*)?kappaletta(\s+ostoskorissa)?$/,
+      /^ostoskori$/,
+      /^kirjaudu$/,
+      /^rekisteroidy$/,
+      /^eväste$/,
+      /^cookie$/,
+      /^kampanja$/,
+      /^tarjous$/,
+      /^osta$/,
+      /^avaa$/,
+      /^lue lisää$/,
+    ];
+    if (hardJunkTitlePatterns.some((pattern) => pattern.test(normalizedTitle))) return true;
 
     const letters = title.replace(/[^A-Za-zÅÄÖåäö]/g, "");
     if (letters.length < 3) return true;
@@ -4866,7 +4887,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   const visibleOfferSearchResultsV106 = useMemo(() => {
     const filter = normalize(offerCardFilterV106).trim();
-    if (!filter) return cleanOfferSearchResultsV106;
+    if (!filter || filter === "kaikki" || filter === "all") return cleanOfferSearchResultsV106;
 
     return cleanOfferSearchResultsV106.filter((item) => {
       const category = normalize(getOfferCategoryV106(item));
@@ -6727,25 +6748,46 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       let nextResults: any[] = [];
 
       if (searchAllAreaOffers) {
-        // V111: nykyinen /api/offers/search tarvitsee käytännössä q-parametrin.
-        // Siksi "kaikki alueen tarjoukset" rakennetaan tuoteryhmäsiemenillä eikä tyhjällä q:lla.
+        // V112: nykyinen /api/offers/search tarvitsee käytännössä q-parametrin.
+        // "Kaikki" rakennetaan useilla tuoteryhmäsiemenillä. Lista on tarkoituksella leveä,
+        // jotta Prisma/Citymarket-alueella ei jäädä yhden satunnaisen osuman varaan.
         const seedQueries = [
+          "tarjous",
+          "plussa",
+          "s-etukortti",
           "kahvi",
           "maito",
           "juusto",
           "jogurtti",
+          "rahka",
+          "voi",
+          "kerma",
+          "kananmuna",
           "liha",
+          "jauheliha",
           "kana",
+          "broileri",
+          "makkara",
+          "leikkele",
           "kala",
+          "lohi",
           "leipä",
+          "pulla",
           "hedelmä",
           "vihannes",
+          "peruna",
           "mehu",
           "limu",
+          "virvoitusjuoma",
+          "vesi",
           "pakaste",
           "jäätelö",
+          "pizza",
           "pesuaine",
+          "talouspaperi",
+          "wc-paperi",
           "koiranruoka",
+          "kissanruoka",
         ];
 
         const settled = await Promise.allSettled(
