@@ -6,6 +6,10 @@
 // Korjaus: OFF-fallbackin ilmoitus näytetään myös silloin, kun strict EAN-dedup päivittää/siivoaa korin.
 // Reactin setCart-updater ei ole synkroninen, joten ilmoitusta ei saa sitoa updaterin sisällä asetettuun mutable-flagiiin.
 
+// V121_OPENFOODFACTS_WAIT_CHAIN
+// Korjaus: EAN-haku on nyt oikea odottava single-flight ketju: S/K -> Open Food Facts -> tuntematon.
+// Sama EAN odottaa käynnissä olevan haun valmistumista eikä voi käynnistää rinnakkaista tuntematon/OFF-polkuparia.
+
 // V106_GOSTA_ALL_OFFERS_AND_CATEGORY_FILTER
 // Pohjana V105_STABLE: GPS, V41-etäisyys ja sää pidetään ennallaan.
 // Göstan tarjoushaku avautuu myös tyhjällä haulla ja hakee oletuksena alueen kaikki tarjoukset.
@@ -3100,6 +3104,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   // ei riitä, koska mobiiliskannerissa live-luku, still-fallback ja useEffect voivat ehtiä
   // eri mikrotaskeissa. Sama EAN saa olla käsittelyssä vain yhdessä putkessa.
   const eanLookupPendingRefV120 = useRef<Set<string>>(new Set());
+  // V121: varsinainen wait-until/single-flight. Jos sama EAN tulee live- ja still-polusta
+  // tai input-effectistä samaan aikaan, myöhemmät kutsut odottavat tätä samaa promisea.
+  const eanLookupPromiseRefV121 = useRef<Map<string, Promise<void>>>(new Map());
   const eanLookupOutcomeRefV120 = useRef<Map<string, { status: "off" | "unknown" | "store"; at: number }>>(new Map());
   const scanSuccessFlashTimeoutRef = useRef<number | null>(null);
   const scanMissFlashTimeoutRef = useRef<number | null>(null);
@@ -8060,6 +8067,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return;
     }
 
+    const existingLookupPromiseV121 = eanLookupPromiseRefV121.current.get(ean);
+    if (existingLookupPromiseV121) {
+      await existingLookupPromiseV121;
+      return;
+    }
+
+    const runLookupPromiseV121 = (async () => {
+
     // V120: hard single-flight. Estää tilanteen, jossa sama EAN käynnistyy
     // samanaikaisesti skannerin live-polusta, still-fallbackista tai input-useEffectistä.
     if (eanLookupPendingRefV120.current.has(ean)) return;
@@ -8345,6 +8360,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         eanSearchInFlightRef.current = null;
       }
       setEanLoading(false);
+    }
+    })();
+
+    eanLookupPromiseRefV121.current.set(ean, runLookupPromiseV121);
+
+    try {
+      await runLookupPromiseV121;
+    } finally {
+      eanLookupPromiseRefV121.current.delete(ean);
     }
   }
 
