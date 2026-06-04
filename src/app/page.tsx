@@ -1,9 +1,8 @@
 "use client";
 
-// V82_GPS_MODE_STRICT_LOCAL_HYPER_SELECTION
-// Korjaa V41:n jäljellä olleen ongelman: GPS-tilassa Tavaratalot ei saa fallbackata
-// lähikauppoihin eikä lähikauppa-alueen/Jokela-Tuusula-polkuun.
-// Local ja hyper valitaan omista kauppatyypeistään; jos oikeaa tyyppiä ei löydy, näytetään ei valittu.
+// V83_REMOVE_NOMINATIM_DISTANCE_FALLBACK_ONLY
+// Poistaa vain selaimesta tehtävän Nominatim/OpenStreetMap-etäisyyden varalaskennan.
+// Ei koske GPS-käynnistykseen, applyLocationiin, kauppahakuun eikä aktiivisten kauppojen valintaan.
 
 // V33_LOCATION_RESOLVER_STORE_SHAPE_FALLBACK
 // Korjaa GPS/manuaali-kauppavalinnan: StoreSearchItem voi tulla API:lta eri muodoilla
@@ -2143,77 +2142,9 @@ export default function Page() {
   }, [locationMessage, storeSearchLoading]);
 
   useEffect(() => {
-    if (!gpsCoordsV320 || foundStores.length === 0) {
-      setStoreDistanceFallbacksV320({});
-      return;
-    }
-
-    const gpsCoordsForFallbackV320 = gpsCoordsV320;
-    let cancelled = false;
-    const controller = new AbortController();
-
-    async function geocodeStoreDistanceFallbacksV320() {
-      const candidates = uniqueStoresByIdAndName(
-        foundStores.map(normalizeStoreForPickerV320),
-      )
-        .filter((store) => !getStoreDistanceLabelWithoutFallbackV320(store))
-        .slice(0, 24);
-
-      if (candidates.length === 0) return;
-
-      const nextDistances: Record<string, number> = {};
-
-      for (const store of candidates) {
-        if (cancelled) return;
-
-        const queryParts = [
-          store.name,
-          store.city || activeArea.label,
-          store.postalCode,
-          "Suomi",
-        ].filter(Boolean);
-        const query = queryParts.join(", ");
-
-        try {
-          const response = await fetch(
-            `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&accept-language=fi&q=${encodeURIComponent(query)}`,
-            { signal: controller.signal },
-          );
-          if (!response.ok) continue;
-
-          const results = await response.json();
-          const first = Array.isArray(results) ? results[0] : null;
-          const latitude = readStoreNumberV320(first?.lat);
-          const longitude = readStoreNumberV320(first?.lon ?? first?.lng);
-          if (latitude == null || longitude == null) continue;
-
-          nextDistances[getStoreDistanceKeyV320(store)] =
-            calculateDistanceKmV320(gpsCoordsForFallbackV320, {
-              latitude,
-              longitude,
-            });
-        } catch (error) {
-          if (!cancelled)
-            console.debug("Etäisyyden varalaskenta epäonnistui", error);
-        }
-      }
-
-      if (cancelled || Object.keys(nextDistances).length === 0) return;
-
-      setStoreDistanceFallbacksV320((current) => {
-        const merged = { ...current, ...nextDistances };
-        return JSON.stringify(merged) === JSON.stringify(current)
-          ? current
-          : merged;
-      });
-    }
-
-    geocodeStoreDistanceFallbacksV320();
-
-    return () => {
-      cancelled = true;
-      controller.abort();
-    };
+    // V83: ei enää selaimen suoraa Nominatim/OpenStreetMap-etäisyyden varalaskentaa.
+    // Tämä poistaa Console-virheet: "Fetch API cannot load nominatim.openstreetmap.org..."
+    setStoreDistanceFallbacksV320({});
   }, [gpsCoordsV320, foundStores, activeArea.label]);
 
   const [offers, setOffers] = useState<ZiiplyOffer[]>([]);
@@ -3387,11 +3318,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (usingOwnLocation && gpsCoordsV320 && storeModeChosenV299) {
       const gpsMode = selectedStoreModeRefV302.current || storeMode;
       const gpsStorePoolV40 = buildGpsStoreCandidatePoolFromAllAreasV40(foundStores);
-      const gpsModeStorePoolV82 = gpsStorePoolV40.filter((store) => {
-        if (gpsMode === "hyper") return isPrisma(store) || isKCitymarket(store);
-        return isSLocalStore(store) || isKLocalStore(store);
-      });
-      const ranked = rankStoresForMode(gpsModeStorePoolV82, gpsMode, gpsCoordsV320);
+      const ranked = rankStoresForMode(gpsStorePoolV40, gpsMode, gpsCoordsV320);
 
       if (gpsMode === "local") {
         return {
@@ -5392,17 +5319,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return oldPickerPreferred || oldPickerFallback || rankingCandidates[0];
     }
 
-    // V82: GPS-tilassa ei enää vaihdeta tyyppiä ristiin.
-    // Hyper ei saa palauttaa lähikauppaa, eikä local saa palauttaa Prisma/K-Citymarketia.
-    // Muuten kunnanrajalla Tavaratalot seuraa helposti Jokela/Tuusula/Kerava-lähikauppapolkua.
-    const strictModeCandidates = rankingCandidates.filter(preferredPredicate);
-    const gpsRankingCandidates = strictModeCandidates.length > 0 ? strictModeCandidates : [];
-
-    if (gpsRankingCandidates.length === 0) {
-      return undefined;
-    }
-
-    const scoredStores = gpsRankingCandidates
+    const scoredStores = rankingCandidates
       .map((store) => {
         const geoStoreForScore = toZiiplyResolverGeoStoreV32(store);
         if (geoStoreForScore.latitude != null && geoStoreForScore.longitude != null) {
@@ -5445,9 +5362,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         return storeA.distanceKm - storeB.distanceKm;
       });
 
-    // V82: GPS palauttaa vain pisteytetyn saman tyypin kaupan.
-    // Ei oldPickerFallbackia, ei rankingCandidates[0]: ne palauttivat väärän tyypin/alueen.
-    return scoredStores[0]?.store;
+    return (
+      scoredStores[0]?.store ||
+      oldPickerPreferred ||
+      oldPickerFallback ||
+      rankingCandidates[0] ||
+      candidates[0]
+    );
   }
 
   function rankStoresForMode(
@@ -5631,22 +5552,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   async function reverseGeocodeCity(latitude: number, longitude: number) {
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${encodeURIComponent(latitude)}&lon=${encodeURIComponent(longitude)}&accept-language=fi`,
-      { cache: "no-store" },
-    );
-    const data = await response.json();
-    return getCityFromGeocodeAddress(data?.address || {});
+    void latitude;
+    void longitude;
+    return "";
   }
 
   async function resolvePostalCodeToCity(postalCode: string) {
-    const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=jsonv2&countrycodes=fi&postalcode=${encodeURIComponent(postalCode)}&addressdetails=1&limit=1&accept-language=fi`,
-      { cache: "no-store" },
-    );
-    const data = await response.json();
-    const firstMatch = Array.isArray(data) ? data[0] : null;
-    return getCityFromGeocodeAddress(firstMatch?.address || {});
+    return postalCode.trim();
   }
 
   function getCurrentPosition(options?: PositionOptions) {
