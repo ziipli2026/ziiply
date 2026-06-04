@@ -1,11 +1,11 @@
 "use client";
 
-// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V1
-// Göstalle oma Tarjoushaku-kortti.
-// - Näyttää tarjouslöydöt vanhan kaupan ilmoitus-/vihkolehtenä.
-// - Ei muuta hakulogiikkaa: page antaa tarjoukset propsina.
-// - Riviltä voi lisätä yhden tarjouksen koriin.
-// - Alareunasta voi lisätä kaikki koriin tai palata hakuun.
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V2_GOSTA_FILTER_AND_CATEGORIES
+// Pohjana V1.
+// - Göstan kortilla on oma hakukenttä/tuoteryhmärajaus.
+// - Tyhjä Gösta-haku tarkoittaa: näytä alueen kaikki tarjoukset.
+// - Tuoteryhmächipit helpottavat selaamista ilman käyttäjän arvauksia.
+// - Page hoitaa varsinaisen haun ja roskaosumien suodatuksen; kortti vain renderöi annetut tarjoukset.
 
 import React from "react";
 
@@ -19,6 +19,7 @@ export type ZiiplyMobileOfferSearchItem = {
   storeName?: string;
   shopName?: string;
   chain?: string;
+  category?: string;
   price?: number | string;
   offerPrice?: number | string;
   normalPrice?: number | string;
@@ -36,10 +37,14 @@ export type ZiiplyMobileOfferSearchCardProps = {
   title?: string;
   subtitle?: string;
   query?: string;
+  filter?: string;
   offers?: ZiiplyMobileOfferSearchItem[];
   results?: ZiiplyMobileOfferSearchItem[];
   loading?: boolean;
   emptyText?: string;
+  categorySuggestions?: string[];
+  onFilterChange?: (value: string) => void;
+  onSearch?: (value: string) => void;
   onBack?: () => void;
   onClose?: () => void;
   onAddOffer?: (offer: ZiiplyMobileOfferSearchItem) => void;
@@ -48,7 +53,6 @@ export type ZiiplyMobileOfferSearchCardProps = {
 };
 
 const cooperFont = '"Cooper Black", "Cooper Std Black", Georgia, serif';
-const copperplateFont = '"Copperplate", "Baskerville", Georgia, serif';
 const serifFont = '"Baskerville", Georgia, serif';
 
 function cx(...classes: Array<string | false | null | undefined>) {
@@ -58,10 +62,7 @@ function cx(...classes: Array<string | false | null | undefined>) {
 function normalizePrice(price: unknown) {
   if (typeof price === "number" && Number.isFinite(price)) {
     const euros = Math.abs(price) > 20 ? price / 100 : price;
-    return `${euros.toLocaleString("fi-FI", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })} €`;
+    return `${euros.toLocaleString("fi-FI", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
   }
 
   const text = String(price ?? "").trim();
@@ -70,34 +71,22 @@ function normalizePrice(price: unknown) {
   const numeric = Number(text.replace(/\s/g, "").replace("€", "").replace(",", "."));
   if (Number.isFinite(numeric)) {
     const euros = Math.abs(numeric) > 20 ? numeric / 100 : numeric;
-    return `${euros.toLocaleString("fi-FI", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    })} €`;
+    return `${euros.toLocaleString("fi-FI", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
   }
 
   return text.includes("€") ? text : `${text} €`;
 }
 
 function getNumericPrice(price: unknown) {
-  if (typeof price === "number" && Number.isFinite(price)) {
-    return Math.abs(price) > 20 ? price / 100 : price;
-  }
+  if (typeof price === "number" && Number.isFinite(price)) return Math.abs(price) > 20 ? price / 100 : price;
 
   const numeric = Number(String(price ?? "").replace(/\s/g, "").replace("€", "").replace(",", ".").replace(/[^\d.-]/g, ""));
   if (!Number.isFinite(numeric)) return 0;
-
   return Math.abs(numeric) > 20 ? numeric / 100 : numeric;
 }
 
 function getOfferName(offer: ZiiplyMobileOfferSearchItem) {
-  return String(
-    offer.name ||
-      offer.title ||
-      offer.productName ||
-      offer.brandName ||
-      "Tarjoustuote",
-  );
+  return String(offer.name || offer.title || offer.productName || offer.brandName || "Tarjoustuote");
 }
 
 function getStoreName(offer: ZiiplyMobileOfferSearchItem) {
@@ -122,11 +111,27 @@ function getSavingsText(offer: ZiiplyMobileOfferSearchItem) {
   const current = getNumericPrice(offer.offerPrice ?? offer.price);
   const diff = normal - current;
 
-  if (normal > 0 && current > 0 && diff > 0.01) {
-    return `Säästö ${normalizePrice(diff)}`;
-  }
-
+  if (normal > 0 && current > 0 && diff > 0.01) return `Säästö ${normalizePrice(diff)}`;
   return "";
+}
+
+function getOfferImage(offer: ZiiplyMobileOfferSearchItem) {
+  return String(offer.imageUrl || offer.pictureUrl || offer.image || "").trim();
+}
+
+function getCategoryIcon(category?: string) {
+  const text = String(category || "").toLowerCase();
+  if (text.includes("kahvi")) return "☕";
+  if (text.includes("maito")) return "🥛";
+  if (text.includes("liha")) return "🥩";
+  if (text.includes("kala")) return "🐟";
+  if (text.includes("leip")) return "🥐";
+  if (text.includes("hevi")) return "🍎";
+  if (text.includes("juoma")) return "🥤";
+  if (text.includes("lemmik")) return "🐾";
+  if (text.includes("koti")) return "🧽";
+  if (text.includes("pakaste")) return "❄️";
+  return "%";
 }
 
 function LeatherBackButton({ onClick }: { onClick?: () => void }) {
@@ -152,10 +157,14 @@ export default function ZiiplyMobileOfferSearchCard({
   title = "Tarjoushaku",
   subtitle,
   query = "",
+  filter = "",
   offers,
   results,
   loading = false,
   emptyText = "Gösta ei löytänyt tarjouksia vielä.",
+  categorySuggestions = ["Kaikki", "Kahvi", "Maitotuotteet", "Liha", "Kala", "Leipomo", "Hevi", "Juomat", "Lemmikit", "Koti"],
+  onFilterChange,
+  onSearch,
   onBack,
   onClose,
   onAddOffer,
@@ -167,20 +176,19 @@ export default function ZiiplyMobileOfferSearchCard({
   const items = Array.isArray(offers) ? offers : Array.isArray(results) ? results : [];
   const hasOffers = items.length > 0;
   const shownQuery = query.trim();
+  const shownFilter = filter.trim();
+
+  const submitSearch = () => onSearch?.(shownFilter);
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="V1"
+      data-ziiply-mobile-offer-search-card-version="V2_GOSTA_FILTER_AND_CATEGORIES"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
         <div
           className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[#f7edcf] bg-center bg-no-repeat opacity-100"
-          style={{
-            backgroundImage: "url('/ui/cart/vihkonen.webp')",
-            backgroundSize: "142% 104%",
-            backgroundPosition: "center top",
-          }}
+          style={{ backgroundImage: "url('/ui/cart/vihkonen.webp')", backgroundSize: "142% 104%", backgroundPosition: "center top" }}
         />
         <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[linear-gradient(180deg,rgba(255,250,226,0.42),rgba(246,226,172,0.18)_34%,rgba(238,214,156,0.08))]" />
         <div className="pointer-events-none absolute inset-[0.42rem] rounded-[1.55rem] border border-dashed border-[#d6a861]/55 shadow-[inset_0_0_0_2px_rgba(27,17,9,0.20)]" />
@@ -201,45 +209,73 @@ export default function ZiiplyMobileOfferSearchCard({
           </button>
         ) : null}
 
-        <header className="relative z-10 shrink-0 px-5 pb-1 pt-[8.35rem]">
+        <header className="relative z-10 shrink-0 px-5 pb-1 pt-[7.7rem]">
           <div className="pl-[3.15rem] pr-[2.20rem]">
-            <div
-              className="text-[1.42rem] font-black italic leading-none text-[#28402a] drop-shadow-[0_1px_0_rgba(255,247,211,0.62)]"
-              style={{ fontFamily: cooperFont }}
-            >
+            <div className="text-[1.42rem] font-black italic leading-none text-[#28402a] drop-shadow-[0_1px_0_rgba(255,247,211,0.62)]" style={{ fontFamily: cooperFont }}>
               {title}
             </div>
-
             <div className="mt-[0.16rem] text-[0.74rem] font-extrabold text-[#5f5034]">
-              {subtitle || (shownQuery ? `Gösta penkoi: ${shownQuery}` : "Göstän tarjouslöydöt")}
+              {subtitle || (shownQuery ? `Gösta penkoi: ${shownQuery}` : "Alueen kaikki tarjoukset")}
+            </div>
+          </div>
+
+          <div className="mt-3 rounded-[1.05rem] border-[2px] border-[#9d8350] bg-[#fff4d3]/86 p-1.5 shadow-[0_3px_0_rgba(91,72,44,0.14),inset_0_0_0_1px_rgba(255,255,255,0.45)]">
+            <div className="flex gap-1.5">
+              <input
+                value={filter}
+                onChange={(event) => onFilterChange?.(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    submitSearch();
+                  }
+                }}
+                placeholder="Rajaa tuoteryhmällä: kahvi, kala, leipä..."
+                className="min-w-0 flex-1 rounded-[0.82rem] border-0 bg-[#fffaf0] px-3 py-2 text-center text-[0.88rem] font-black text-[#102216] outline-none placeholder:text-[#7d7461]"
+                style={{ fontFamily: serifFont }}
+              />
+              <button
+                type="button"
+                onClick={submitSearch}
+                className="rounded-[0.82rem] border-[2px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-3 text-[0.70rem] font-black italic text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58)] active:translate-y-[1px]"
+                style={{ fontFamily: cooperFont }}
+              >
+                Hae
+              </button>
+            </div>
+            <div className="mt-1.5 flex gap-1.5 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {categorySuggestions.map((category) => {
+                const active = category.toLowerCase() === "kaikki" ? !shownFilter : shownFilter.toLowerCase() === category.toLowerCase();
+                return (
+                  <button
+                    key={category}
+                    type="button"
+                    onClick={() => onFilterChange?.(category.toLowerCase() === "kaikki" ? "" : category)}
+                    className={cx(
+                      "shrink-0 rounded-full border px-2.5 py-1 text-[0.64rem] font-black leading-none shadow-[0_1px_0_rgba(91,72,44,0.12)] active:translate-y-[1px]",
+                      active ? "border-[#174c2c] bg-[#174c2c] text-[#fff4d3]" : "border-[#b8944f] bg-[#fff8d9] text-[#174c2c]",
+                    )}
+                  >
+                    {category}
+                  </button>
+                );
+              })}
             </div>
           </div>
         </header>
 
-        <main className="relative z-10 min-h-0 flex-1 overflow-y-auto px-5 pb-[7.85rem] pt-[1.10rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <main className="relative z-10 min-h-0 flex-1 overflow-y-auto px-5 pb-[7.85rem] pt-[0.75rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {loading ? (
             <div className="mt-2 rounded-[1.05rem] border-[2px] border-dashed border-[#9a7a3d] bg-[#fff4d4]/52 px-4 py-8 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
-              <div
-                className="text-[1.02rem] font-extrabold italic text-[#59401e]"
-                style={{ fontFamily: serifFont }}
-              >
-                Gösta penkoo tarjouksia...
-              </div>
+              <div className="text-[1.02rem] font-extrabold italic text-[#59401e]" style={{ fontFamily: serifFont }}>Gösta penkoo tarjouksia...</div>
               <div className="mx-auto mt-4 h-[0.36rem] w-[12rem] overflow-hidden rounded-full bg-[#dfc387]">
                 <span className="block h-full w-[42%] animate-[ziiplyOfferSearchBar_1.1s_ease-in-out_infinite] rounded-full bg-[#1b7c3d]" />
               </div>
             </div>
           ) : !hasOffers ? (
             <div className="mt-2 rounded-[1.05rem] border-[2px] border-dashed border-[#9a7a3d] bg-[#fff4d4]/52 px-4 py-8 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
-              <div
-                className="text-[1.02rem] font-extrabold italic text-[#59401e]"
-                style={{ fontFamily: serifFont }}
-              >
-                Ei tarjouslöytöjä
-              </div>
-              <div className="mt-2 text-[0.78rem] font-extrabold leading-snug text-[#8a7650]">
-                {emptyText}
-              </div>
+              <div className="text-[1.02rem] font-extrabold italic text-[#59401e]" style={{ fontFamily: serifFont }}>Ei tarjouslöytöjä</div>
+              <div className="mt-2 text-[0.78rem] font-extrabold leading-snug text-[#8a7650]">{emptyText}</div>
             </div>
           ) : (
             <div className="space-y-2.5">
@@ -249,51 +285,35 @@ export default function ZiiplyMobileOfferSearchCard({
                 const offerPrice = getOfferPrice(offer);
                 const normalPrice = getNormalPrice(offer);
                 const savingsText = getSavingsText(offer);
+                const image = getOfferImage(offer);
+                const category = String(offer.category || "");
 
                 return (
-                  <article
-                    key={String(offer.id || offer.ean || `${name}-${index}`)}
-                    className="relative overflow-hidden rounded-[1.05rem] border-[2px] border-[#7c663d]/78 bg-[#fff4d8]/78 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]"
-                  >
+                  <article key={String(offer.id || offer.ean || `${name}-${index}`)} className="relative overflow-hidden rounded-[1.05rem] border-[2px] border-[#7c663d]/78 bg-[#fff4d8]/78 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]">
                     <div className="px-3 py-2.5">
                       <div className="flex items-start gap-2.5">
-                        <div className="mt-[0.1rem] grid h-[2.15rem] w-[2.0rem] shrink-0 place-items-center rounded-b-[0.36rem] rounded-t-[0.22rem] border-[1.5px] border-[#7b5c2a] bg-[linear-gradient(180deg,#f5dfac_0%,#d6ad66_100%)] text-[0.72rem] font-black text-[#604017] shadow-[0_2px_3px_rgba(50,31,13,0.18),inset_0_0_0_1px_rgba(255,250,224,0.42)]">
-                          %
+                        <div className="mt-[0.1rem] grid h-[2.45rem] w-[2.45rem] shrink-0 place-items-center overflow-hidden rounded-[0.52rem] border-[1.5px] border-[#7b5c2a] bg-[linear-gradient(180deg,#f5dfac_0%,#d6ad66_100%)] text-[1.05rem] font-black text-[#604017] shadow-[0_2px_3px_rgba(50,31,13,0.18),inset_0_0_0_1px_rgba(255,250,224,0.42)]">
+                          {image ? <img src={image} alt="" className="h-full w-full object-contain bg-[#fffaf0]" loading="lazy" /> : getCategoryIcon(category)}
                         </div>
 
                         <div className="min-w-0 flex-1 pr-[4.6rem]">
-                          <div className="line-clamp-2 text-[0.92rem] font-black leading-tight text-[#233020]">
-                            {name}
+                          <div className="line-clamp-2 text-[0.92rem] font-black leading-tight text-[#233020]">{name}</div>
+                          <div className="mt-0.5 flex flex-wrap items-center gap-1 text-[0.56rem] font-black uppercase tracking-[0.08em] text-[#6e6d55]">
+                            <span>{storeName}</span>
+                            {category ? <span className="rounded-full bg-[#174c2c]/12 px-1.5 py-0.5 text-[#174c2c]">{category}</span> : null}
                           </div>
-
-                          <div className="mt-0.5 text-[0.56rem] font-black uppercase tracking-[0.08em] text-[#6e6d55]">
-                            {storeName}
-                          </div>
-
                           <div className="mt-1 truncate text-[0.68rem] font-extrabold italic text-[#6b6048]" style={{ fontFamily: serifFont }}>
                             {savingsText || (normalPrice ? `Norm. ${normalPrice}` : "Tarjous voimassa")}
                           </div>
                         </div>
 
-                        <div
-                          className="absolute right-[0.72rem] top-[0.72rem] text-right text-[1.05rem] font-black italic leading-none text-[#087237]"
-                          style={{ fontFamily: cooperFont }}
-                        >
+                        <div className="absolute right-[0.72rem] top-[0.72rem] text-right text-[1.05rem] font-black italic leading-none text-[#087237]" style={{ fontFamily: cooperFont }}>
                           {offerPrice || "—"}
                         </div>
                       </div>
 
                       <div className="mt-2 flex justify-end">
-                        <button
-                          type="button"
-                          onClick={() => onAddOffer?.(offer)}
-                          disabled={!onAddOffer}
-                          className={cx(
-                            "rounded-[0.56rem] border-[2px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-3 py-[0.34rem] text-[0.64rem] font-black italic text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58)] active:translate-y-[1px]",
-                            !onAddOffer && "cursor-not-allowed opacity-45",
-                          )}
-                          style={{ fontFamily: cooperFont }}
-                        >
+                        <button type="button" onClick={() => onAddOffer?.(offer)} disabled={!onAddOffer} className={cx("rounded-[0.56rem] border-[2px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-3 py-[0.34rem] text-[0.64rem] font-black italic text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58)] active:translate-y-[1px]", !onAddOffer && "cursor-not-allowed opacity-45")} style={{ fontFamily: cooperFont }}>
                           Lisää koriin
                         </button>
                       </div>
@@ -307,25 +327,10 @@ export default function ZiiplyMobileOfferSearchCard({
 
         <footer className="absolute bottom-[0.86rem] left-0 right-0 z-[40] px-5 pb-2 pt-2">
           <div className="mx-auto grid max-w-[21rem] grid-cols-[1fr_1.35fr] gap-2">
-            <button
-              type="button"
-              onClick={onBack}
-              className="min-h-[2.34rem] rounded-[0.62rem] border-[2px] border-[#7c663d] bg-[#efe1bd] px-3 py-[0.38rem] text-[0.70rem] font-black text-[#533819] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.42)] active:translate-y-[1px]"
-              style={{ fontFamily: cooperFont }}
-            >
+            <button type="button" onClick={onBack} className="min-h-[2.34rem] rounded-[0.62rem] border-[2px] border-[#7c663d] bg-[#efe1bd] px-3 py-[0.38rem] text-[0.70rem] font-black text-[#533819] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.42)] active:translate-y-[1px]" style={{ fontFamily: cooperFont }}>
               Palaa hakuun
             </button>
-
-            <button
-              type="button"
-              onClick={() => onAddAllOffers?.(items)}
-              disabled={!hasOffers || !onAddAllOffers}
-              className={cx(
-                "min-h-[2.34rem] rounded-[0.62rem] border-[2.5px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-3 py-[0.38rem] text-[0.70rem] font-black italic tracking-[0.03em] text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58),0_2px_4px_rgba(62,43,20,0.18)] active:translate-y-[1px]",
-                (!hasOffers || !onAddAllOffers) && "cursor-not-allowed opacity-45",
-              )}
-              style={{ fontFamily: cooperFont }}
-            >
+            <button type="button" onClick={() => onAddAllOffers?.(items)} disabled={!hasOffers || !onAddAllOffers} className={cx("min-h-[2.34rem] rounded-[0.62rem] border-[2.5px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-3 py-[0.38rem] text-[0.70rem] font-black italic tracking-[0.03em] text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58),0_2px_4px_rgba(62,43,20,0.18)] active:translate-y-[1px]", (!hasOffers || !onAddAllOffers) && "cursor-not-allowed opacity-45")} style={{ fontFamily: cooperFont }}>
               Lisää kaikki
             </button>
           </div>
@@ -335,32 +340,15 @@ export default function ZiiplyMobileOfferSearchCard({
 
         <style jsx>{`
           @keyframes ziiplyOfferPop {
-            0% {
-              opacity: 0;
-              transform: translateY(18px) scale(0.965) rotate(-0.4deg);
-            }
-            58% {
-              opacity: 1;
-              transform: translateY(-3px) scale(1.01) rotate(0.2deg);
-            }
-            100% {
-              opacity: 1;
-              transform: translateY(0) scale(1) rotate(0deg);
-            }
+            0% { opacity: 0; transform: translateY(18px) scale(0.965) rotate(-0.4deg); }
+            58% { opacity: 1; transform: translateY(-3px) scale(1.01) rotate(0.2deg); }
+            100% { opacity: 1; transform: translateY(0) scale(1) rotate(0deg); }
           }
-
           @keyframes ziiplyOfferSearchBar {
-            0% {
-              transform: translateX(-120%);
-            }
-            100% {
-              transform: translateX(260%);
-            }
+            0% { transform: translateX(-120%); }
+            100% { transform: translateX(260%); }
           }
-
-          .ziiply-offer-pop {
-            animation: ziiplyOfferPop 420ms cubic-bezier(0.2, 0.9, 0.25, 1.2);
-          }
+          .ziiply-offer-pop { animation: ziiplyOfferPop 420ms cubic-bezier(0.2, 0.9, 0.25, 1.2); }
         `}</style>
       </section>
     </div>
