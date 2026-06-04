@@ -7582,12 +7582,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     const previous = lastContinuousScanRef.current;
 
-    // V727: sama EAN hyväksytään vain kerran yhden kameraskanneri-session aikana.
-    // Live-lukija ja fallback voivat molemmat nähdä saman koodin useista frameista,
-    // mutta haun/lisäyksen pitää käynnistyä vain ensimmäisestä hyväksytystä lukemasta.
-    if (scannedEanSessionSetRef.current.has(normalizedCode)) {
-      return;
-    }
+    // V135: Älä lukitse samaa EANia koko scanner-session ajaksi.
+    // Sama tuote pitää voida lukea uudelleen ja kasvattaa määrää +1.
+    // Peräkkäiset frame-osumat blokataan alempana lyhyellä aikarajalla.
 
     // V598: sama kameraruudussa pysyvä EAN saa aiheuttaa vain yhden tunnistuksen,
     // yhden piipin ja yhden haun lukitusajan sisällä.
@@ -7595,17 +7592,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // useasta peräkkäisestä framesta.
     if (
       previous?.code === normalizedCode &&
-      now - previous.at < SAME_EAN_RESCAN_LOCK_MS
+      now - previous.at < 1200
     ) {
       return;
     }
 
-    scannedEanSessionSetRef.current.add(normalizedCode);
     lastContinuousScanRef.current = { code: normalizedCode, at: now };
-    // V131: yksi fyysinen lukutapahtuma saa käynnistää vain yhden EAN-ketjun.
-    // Lukko on tarkoituksella lyhyt: se poistaa rinnakkaiset frame-osumat, mutta
-    // ei estä käyttäjän seuraavaa tietoista skannausta hetken kuluttua.
-    scannerDecodeIgnoreUntilRefV131.current = now + 1800;
+    // V135: vain lyhyt decode-jarru live/still-tuplille. Ei koko session lukitusta.
+    scannerDecodeIgnoreUntilRefV131.current = now + 900;
     resetPendingEanPickCardV606();
 
     // Piip soitetaan vasta hyväksytylle uudelle lukutapahtumalle.
@@ -7877,7 +7871,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         {
           // V724: nopeampi decode-sykli. 20fps on yleensä hyvä kompromissi
           // mobiilin akun, lämmön ja lukunopeuden välillä.
-          fps: 20,
+          // V135: 20fps + erillinen still-fallback aiheutti mobiilissa renderöinti-/hakumyrskyä.
+          // 10fps riittää EAN-lukuun ja vähentää tutka-animaation tökkimistä.
+          fps: 10,
           aspectRatio: 16 / 9,
           disableFlip: true,
           qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
@@ -7892,7 +7888,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             facingMode: { ideal: "environment" },
             width: { ideal: 2560, min: 1280 },
             height: { ideal: 1440, min: 720 },
-            frameRate: { ideal: 60, min: 30 },
+            frameRate: { ideal: 30, min: 24 },
             focusMode: "continuous",
             exposureMode: "continuous",
             whiteBalanceMode: "continuous",
@@ -7917,20 +7913,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         void (applyBestEffortScannerCameraTuning as any)(activeScannerRegionId);
       });
 
-      // V726: html5-qrcode lukee vaakakoodit nyt hyvin. Pysty-EAN jää kuitenkin
-      // joillain selaimilla live-polussa tunnistumatta, joten pidetään rinnalla
-      // oma still-frame fallback, joka kokeilee myös 90/270 asteen rotaatiot.
-      // Tämä ei muuta html5-qrcode:n nopeaa vaakapolkua, vaan täydentää sitä.
+      // V135: still-frame fallback poistetaan kameraskannauksen rinnalta toistaiseksi.
+      // Live-lukija ja still-fallback tuottivat vuorottelevia hakuja samasta tuotteesta
+      // (tunnistettu/tuntematon/tunnistettu/tuntematon) ja kuormittivat mobiilia niin,
+      // että tutka-animaatio alkoi tökkiä. Pystykoodit voidaan palauttaa myöhemmin
+      // erillisellä napilla tai vain silloin, kun live-lukija ei ole löytänyt mitään.
       eanScannerFallbackStopRef.current?.();
-      eanScannerFallbackStopRef.current = createZiiplyPageScannerFallbackLoop({
-        regionId: activeScannerRegionId,
-        timeoutMs: 520,
-        onDecoded: (result) => {
-          const code = normalizeEan(result.text);
-          if (isUsableEan(code)) finishScannedEan(code);
-        },
-        onNeedsManualFocus: () => undefined,
-      });
+      eanScannerFallbackStopRef.current = null;
     } catch (error) {
       pushGpsDebugLogV492(`useOwnLocation CATCH code=${String((error as any)?.code ?? "?")}`);
       console.error(error);
@@ -8239,7 +8228,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return;
     }
 
-    // V134_NO_EFFECT_DUPLICATE_EAN_SEARCH
+    // V135_SCANNER_SINGLE_SOURCE_NO_INPUT_EFFECT
+// Korjaus: kameraskannerin EAN-haku saa käynnistyä vain finishScannedEan()-polusta.
+// eanInput-useEffect ei käynnistä hakuja skannerin ollessa auki.
+// Sama EAN sallitaan uudelleen lyhyen frame-lukon jälkeen, jolloin määrä voi kasvaa +1.
+
+// V134_NO_EFFECT_DUPLICATE_EAN_SEARCH
 // Korjaus: finishScannedEan() käynnistää skannerihaun suoraan.
 // Samalla setEanInput() voi laukaista useEffectin kautta toisen EAN-haun ilman fromScanner-lippua.
 // Tämä toinen haku päätyi vuorotellen tuntematon-fallbackiin.
@@ -8638,6 +8632,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (!isUsableEan(ean)) {
       setEanResults([]);
       if (eanMessage.startsWith("Syötä")) setEanMessage("");
+      return;
+    }
+
+    // V135: jos kameraskanneri on auki, EAN-inputin useEffect EI saa koskaan
+    // käynnistää toista hakuketjua. Skannerissa haku lähtee aina suoraan
+    // finishScannedEan(code) -> searchByEan(code, { fromScanner: true }) -polusta.
+    if (eanScannerOpen || eanHtml5ScannerRef.current || eanAutoSearchActiveRef.current) {
       return;
     }
 
