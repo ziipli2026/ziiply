@@ -3,7 +3,7 @@ export type ZiiplyStoreDirectoryEntry = {
   name: string;
   latitude: number;
   longitude: number;
-  distanceKm?: number;
+  distanceKm: number;
 };
 
 export type ZiiplyStoreDirectorySelection = {
