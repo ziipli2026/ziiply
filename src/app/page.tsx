@@ -1,5 +1,10 @@
 "use client";
 
+// V99_GPS_DISTANCE_PREFIX_VISIBLE_IN_NAME_PATH
+// V98-pohja. V98 lisäsi etäisyyden kaupan nimen perään, mutta kortin tekstialue on kapea
+// nowrap + overflow-hidden, joten loppuun laitettu " · 1,3 km" leikkautui pois.
+// Etäisyys on nyt samassa kaupan nimen tekstipolussa mutta alussa: "1,3 km · Kaupan nimi".
+
 // V98_GPS_DISTANCE_INLINE_WITH_STORE_NAME
 // Pohjana V97. Korjaus: etäisyys viedään samaan näkyvään render-polkuun kuin kaupan nimi.
 // Kortin kauppanimen yhteyteen tulostetaan nimi · etäisyys, joten näyttö ei riipu erillisestä distance-rivistä
@@ -11425,7 +11430,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           : "";
         const displayNameWithDistance =
           distanceForCard && !isComingSoon && storeModeChosenV299
-            ? `${displayName} · ${distanceForCard}`
+            ? `${distanceForCard} · ${displayName}`
             : displayName;
 
         return (
@@ -11596,7 +11601,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             : "";
           const storeNameWithDistance =
             distanceForCard && isRealChain
-              ? `${store.name} · ${distanceForCard}`
+              ? `${distanceForCard} · ${store.name}`
               : store.name;
           const isComingSoon = Boolean(store.comingSoon);
 
