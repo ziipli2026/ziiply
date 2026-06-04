@@ -1,5 +1,12 @@
 "use client";
 
+// V98_GPS_DISTANCE_INLINE_WITH_STORE_NAME
+// Pohjana V97. Korjaus: etäisyys viedään samaan näkyvään render-polkuun kuin kaupan nimi.
+// Kortin kauppanimen yhteyteen tulostetaan nimi · etäisyys, joten näyttö ei riipu erillisestä distance-rivistä
+// eikä Vaihda/Valittu-painikkeen render-haarasta. Etäisyys haetaan usealla varmistuksella:
+// 1) valittu store id/nimi, 2) näkyvä kortin nimi, 3) GPS-rankattu lähin S/K-kauppa, 4) picker-listan distance-kentät.
+// Ei palauta AREAS/Oulu/Espoo/Imatra-fallback-kauppoja.
+
 // V97_GPS_DISTANCE_INJECTED_INTO_FOUND_STORES
 // Pohjana V96/V93. Korjaus: etäisyys ei jää pelkän render-haaran varaan.
 // GPS-haun jälkeen jokainen oikea API-kauppa rikastetaan distanceKm-, distance- ja distanceLabel-kentillä
@@ -11035,6 +11042,56 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return getStoreDistanceLabelV320(selectedStore);
   }
 
+  function getStoreDistanceLabelForVisibleCardV98(
+    chain: "S" | "K",
+    mode: StoreMode,
+    visibleStoreName?: string,
+    options: StoreSearchItem[] = [],
+  ) {
+    const direct = getVisibleSelectedStoreDistanceLabelV95(chain, mode, options);
+    if (direct) return direct;
+
+    const normalizedVisibleName = normalize(visibleStoreName || "");
+    const normalizedStores = foundStores.map(normalizeStoreForPickerV320);
+
+    if (normalizedVisibleName) {
+      const byVisibleName = normalizedStores.find((store) => {
+        if (getStoreChainV320(store) !== chain) return false;
+        const storeName = normalize(store.name || "");
+        return (
+          storeName === normalizedVisibleName ||
+          storeName.includes(normalizedVisibleName) ||
+          normalizedVisibleName.includes(storeName)
+        );
+      });
+
+      const label = getStoreDistanceLabelV320(byVisibleName);
+      if (label) return label;
+    }
+
+    if (usingOwnLocation && gpsCoordsV320) {
+      const gpsStorePool = buildGpsStoreCandidatePoolFromAllAreasV40(foundStores);
+      const ranked = rankStoresForMode(gpsStorePool, mode, gpsCoordsV320);
+      const rankedStore =
+        chain === "S"
+          ? mode === "local"
+            ? ranked.sLocal
+            : ranked.sHyper
+          : mode === "local"
+            ? ranked.kLocal
+            : ranked.kHyper;
+
+      const label = getStoreDistanceLabelV320(rankedStore);
+      if (label) return label;
+    }
+
+    const optionWithDistance = options.find(
+      (store) => getStoreChainV320(store) === chain && getStoreDistanceLabelV320(store),
+    );
+
+    return getStoreDistanceLabelV320(optionWithDistance);
+  }
+
   function renderStoreChoiceButton(
     chain: "S" | "K",
     mode: StoreMode,
@@ -11312,12 +11369,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         const isRealChain = store.key === "s" || store.key === "k";
         const chain = store.key === "s" ? "S" : store.key === "k" ? "K" : null;
         const selected = Boolean(selectedChains[store.key]);
-        const selectedStoreForCard = chain
-          ? findStoreForSelectionV320(chain, storeMode)
-          : null;
-        const distanceForCard = chain
-          ? getStoreDistanceLabelV320(selectedStoreForCard)
-          : "";
         const pickerKey = chain
           ? `${store.key}-${storeMode}-between`
           : `${store.key}-coming-soon`;
@@ -11369,6 +11420,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             : isComingSoon
               ? "Tulossa"
               : store.name;
+        const distanceForCard = chain
+          ? getStoreDistanceLabelForVisibleCardV98(chain, storeMode, displayName)
+          : "";
+        const displayNameWithDistance =
+          distanceForCard && !isComingSoon && storeModeChosenV299
+            ? `${displayName} · ${distanceForCard}`
+            : displayName;
 
         return (
           <div
@@ -11468,14 +11526,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   WebkitBoxOrient: "vertical",
                 }}
               >
-                {displayName}
+                {displayNameWithDistance}
               </p>
-
-              {isTopRow && distanceForCard && storeModeChosenV299 && (
-                <p className="absolute left-0 right-0 top-[56px] z-50 text-[12px] font-black leading-none text-[#000000] [text-shadow:0_1px_0_rgba(255,250,232,0.95),0_2px_2px_rgba(55,38,12,0.22)]">
-                  {distanceForCard}
-                </p>
-              )}
 
               <div
                 className="absolute bottom-[6px] left-0 right-0 z-40 flex justify-center"
@@ -11539,11 +11591,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           const chain =
             store.key === "s" ? "S" : store.key === "k" ? "K" : null;
           const pickerKey = `${store.key}-${storeMode}`;
-          const selectedStoreForCard = chain
-            ? findStoreForSelectionV320(chain, storeMode)
-            : null;
-          const distanceForCard =
-            getStoreDistanceLabelV320(selectedStoreForCard);
+          const distanceForCard = chain
+            ? getStoreDistanceLabelForVisibleCardV98(chain, storeMode, store.name)
+            : "";
+          const storeNameWithDistance =
+            distanceForCard && isRealChain
+              ? `${store.name} · ${distanceForCard}`
+              : store.name;
           const isComingSoon = Boolean(store.comingSoon);
 
           const cardTone =
@@ -11639,14 +11693,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     isComingSoon ? "text-[#aaa087]" : "text-[#132338]"
                   }`}
                 >
-                  {isComingSoon ? "Tulossa" : store.name}
+                  {isComingSoon ? "Tulossa" : storeNameWithDistance}
                 </p>
-
-                {isRealChain && distanceForCard && (
-                  <p className="absolute left-0 right-0 top-[88px] text-[10px] font-black text-[#8b7f67]">
-                    {distanceForCard}
-                  </p>
-                )}
               </button>
 
               {!compact && isRealChain && chain && selected && (
