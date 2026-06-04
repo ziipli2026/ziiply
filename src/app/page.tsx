@@ -1,5 +1,10 @@
 "use client";
 
+// V86_GPS_DO_NOT_USE_REVERSE_GEOCODE_CITY_AS_QUERY
+// GPS voi yhä hakea sijainnin, mutta reverse-geocodattua kuntaa (esim. Hyvinkää)
+// ei enää käytetä applyLocation-hakusanana eikä aktiivisen alueen labelinä.
+// Tämä poistaa ownLocation=Hyvinkää-lukon ilman että GPS-nappi hajoaa.
+
 // V85_REMOVE_HARDCODED_JOKELA_TUUSULA_KERAVA_PRIORITY
 // V84-pohja: GPS-nappi ja kauppahaku pidetään toimivana.
 // Poistaa getNearbyAreaSearchQueriesFromGpsV36-funktiosta kovakoodatut Jokela/Tuusula/Kerava/Nurmijärvi-haut
@@ -5771,7 +5776,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         effectiveLocationStoreModeV39,
         locationCoordsForResolverV32,
       );
-      setActiveArea(nextArea);
+      setActiveArea(
+        source === "gps"
+          ? {
+              ...nextArea,
+              label: "Oma sijainti",
+              aliases: Array.from(
+                new Set(["Oma sijainti", ...(nextArea.aliases || [])]),
+              ),
+            }
+          : nextArea,
+      );
 
       // v272: Nuppineula kertoo yksiselitteisesti käytetäänkö omaa sijaintia.
       // - GPS / oma sijainti: vihreä nuppineula, hakukenttä tyhjä ja placeholder näkyy.
@@ -5896,24 +5911,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setLocationMessageVisible(true);
 
     try {
-      const city = await reverseGeocodeCity(coords.latitude, coords.longitude);
-
-      if (!city) {
-        pushGpsDebugLogV492(`useOwnLocation reverse geocode EMPTY`);
-        setGpsErrorMessage("GPS ei löydy");
-        setLocationMessage("GPS ei löydy");
-        setLocationMessageVisible(true);
-        setUsingOwnLocation(false);
-        setGpsCoordsV320(null);
-        setStoreSearchLoading(false);
-        return;
-      }
+      const city = await reverseGeocodeCity(coords.latitude, coords.longitude).catch(() => "");
+      void city;
 
       setGpsErrorMessage("");
-      setLocationMessage(`${city} käytössä`);
+      setLocationMessage("Oma sijainti käytössä");
       setLocationMessageVisible(true);
       setLocationInput("");
-      await applyLocation(city, "gps", coords);
+      await applyLocation("Oma sijainti", "gps", coords);
     } catch (error) {
       pushGpsDebugLogV492(`useOwnLocation CATCH code=${String((error as any)?.code ?? "?")}`);
       console.error(error);
@@ -6053,21 +6058,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const city = await reverseGeocodeCity(
         nextGpsCoordsV485.latitude,
         nextGpsCoordsV485.longitude,
-      );
+      ).catch(() => "");
 
-      if (!city) {
-        pushGpsDebugLogV492(`useOwnLocation reverse geocode EMPTY`);
-        setGpsErrorMessage("GPS ei löydy");
-        setLocationMessage("GPS ei löydy");
-        setLocationMessageVisible(true);
-        gpsUserDisabledRefV306.current = true;
-        setUsingOwnLocation(false);
-        setGpsCoordsV320(null);
-        return;
-      }
-
-      pushGpsDebugLogV492(`useOwnLocation city=${city}`);
-      gpsResolvedCityV495 = city;
+      pushGpsDebugLogV492(`useOwnLocation city=${city || "Oma sijainti"}`);
+      gpsResolvedCityV495 = city || "Oma sijainti";
       gpsResolvedCoordsV495 = nextGpsCoordsV485;
       setGpsErrorMessage("");
       gpsInitialVisiblePhaseRefV391.current = false;
@@ -6076,7 +6070,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         gpsFailTimerRefV391.current = null;
       }
       setGpsErrorMessage("");
-      setLocationMessage(`${city} käytössä`);
+      setLocationMessage("Oma sijainti käytössä");
       setLocationMessageVisible(true);
       setLocationInput("");
       // V470: älä pudota storeSearchLoadingia pois päältä tässä välissä.
@@ -6087,7 +6081,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setStoreMode("local");
       setStoreModeChosenV299(true);
       pushGpsDebugLogV492(`useOwnLocation applyLocation start`);
-      await applyLocation(city, "gps", nextGpsCoordsV485);
+      await applyLocation("Oma sijainti", "gps", nextGpsCoordsV485);
       gpsApplyLocationDoneV495 = true;
       pushGpsDebugLogV492(`useOwnLocation applyLocation done`);
 
