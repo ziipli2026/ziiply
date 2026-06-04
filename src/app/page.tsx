@@ -1,5 +1,10 @@
 "use client";
 
+// V82_GPS_MODE_STRICT_LOCAL_HYPER_SELECTION
+// Korjaa V41:n jäljellä olleen ongelman: GPS-tilassa Tavaratalot ei saa fallbackata
+// lähikauppoihin eikä lähikauppa-alueen/Jokela-Tuusula-polkuun.
+// Local ja hyper valitaan omista kauppatyypeistään; jos oikeaa tyyppiä ei löydy, näytetään ei valittu.
+
 // V33_LOCATION_RESOLVER_STORE_SHAPE_FALLBACK
 // Korjaa GPS/manuaali-kauppavalinnan: StoreSearchItem voi tulla API:lta eri muodoilla
 // (type/chain puuttuu tai koordinaatit eri kentissä). Resolveri saa nyt vahvan S/K-name fallbackin
@@ -3382,7 +3387,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (usingOwnLocation && gpsCoordsV320 && storeModeChosenV299) {
       const gpsMode = selectedStoreModeRefV302.current || storeMode;
       const gpsStorePoolV40 = buildGpsStoreCandidatePoolFromAllAreasV40(foundStores);
-      const ranked = rankStoresForMode(gpsStorePoolV40, gpsMode, gpsCoordsV320);
+      const gpsModeStorePoolV82 = gpsStorePoolV40.filter((store) => {
+        if (gpsMode === "hyper") return isPrisma(store) || isKCitymarket(store);
+        return isSLocalStore(store) || isKLocalStore(store);
+      });
+      const ranked = rankStoresForMode(gpsModeStorePoolV82, gpsMode, gpsCoordsV320);
 
       if (gpsMode === "local") {
         return {
@@ -5383,7 +5392,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return oldPickerPreferred || oldPickerFallback || rankingCandidates[0];
     }
 
-    const scoredStores = rankingCandidates
+    // V82: GPS-tilassa ei enää vaihdeta tyyppiä ristiin.
+    // Hyper ei saa palauttaa lähikauppaa, eikä local saa palauttaa Prisma/K-Citymarketia.
+    // Muuten kunnanrajalla Tavaratalot seuraa helposti Jokela/Tuusula/Kerava-lähikauppapolkua.
+    const strictModeCandidates = rankingCandidates.filter(preferredPredicate);
+    const gpsRankingCandidates = strictModeCandidates.length > 0 ? strictModeCandidates : [];
+
+    if (gpsRankingCandidates.length === 0) {
+      return undefined;
+    }
+
+    const scoredStores = gpsRankingCandidates
       .map((store) => {
         const geoStoreForScore = toZiiplyResolverGeoStoreV32(store);
         if (geoStoreForScore.latitude != null && geoStoreForScore.longitude != null) {
@@ -5426,13 +5445,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         return storeA.distanceKm - storeB.distanceKm;
       });
 
-    return (
-      scoredStores[0]?.store ||
-      oldPickerPreferred ||
-      oldPickerFallback ||
-      rankingCandidates[0] ||
-      candidates[0]
-    );
+    // V82: GPS palauttaa vain pisteytetyn saman tyypin kaupan.
+    // Ei oldPickerFallbackia, ei rankingCandidates[0]: ne palauttivat väärän tyypin/alueen.
+    return scoredStores[0]?.store;
   }
 
   function rankStoresForMode(
