@@ -17,6 +17,10 @@
 
 "use client";
 
+// V108_GOSTA_ONSEARCH_STRING_TYPE_BUILD_FIX
+// Pohjana V107. Korjaa TypeScript-buildin: Göstan onSearch-callbackin value tyypitetään stringiksi.
+// V105/V102 GPS, etäisyys ja sää säilyvät ennallaan.
+
 // V107_GOSTA_CARD_PROP_COMPAT_BUILD_FIX
 // Pohjana V106 + V105 vakaa GPS/sää/etäisyys.
 // Korjaus: page käyttää tarjouskortista loose-aliasia, jotta uudet Gösta-propit
@@ -13923,7 +13927,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             }))}
             filter={offerCardFilterV106}
             onFilterChange={setOfferCardFilterV106}
-            onSearch={(value) => void searchOffers(value)}
+            onSearch={(value: string) => void searchOffers(value)}
             categorySuggestions={["Kaikki", "Kahvi", "Maitotuotteet", "Liha", "Kala", "Leipomo", "Hevi", "Juomat", "Lemmikit", "Koti", "Pakasteet"]}
             loading={loadingOffers}
             emptyText={offerShowingAllAreaOffersV106 ? "Alueen tarjouksia ei löytynyt vielä." : "Gösta ei löytänyt tarjouksia tälle rajaukselle."}
