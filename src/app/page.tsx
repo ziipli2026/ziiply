@@ -196,8 +196,10 @@
 // V728_UNKNOWN_EAN_NO_REPEAT
 // Ei-löytynyt / tuntematon EAN lisätään koriin vain kerran; sama koodi ei enää kasvata määrää uudelleen.
 
-// V116_OPENFOODFACTS_NO_DOUBLE_FALLBACK
+// V117_OPENFOODFACTS_CART_NAME_CLEAN_INFO
 // Korjaus: Open Food Facts -fallback pidetään saman EAN-haun sisällä loppuun asti.
+// V117: Open Food Facts -tuotteen nimeen ei enää lisätä status-tekstiä koriin.
+// Status näytetään ilmoituksena: tunnistettu, mutta ei mukana hintavertailussa.
 // Tuntematon EAN ei enää ehdi lisätä rinnakkaista riviä ennen OFF-vastausta.
 // Jos tuntematon rivi on jo ehtinyt koriin, OFF-osuma päivittää saman rivin tunnistetuksi eikä lisää toista ilmoitusta/riviä.
 
@@ -8236,7 +8238,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       // V729: 1. fallback on Open Food Facts. Jos S/K-tarkkaa EAN-osumaa ei löydy,
       // mutta OFF tunnistaa tuotteen, lisätään se koriin nimellä + EANilla.
-      // Hintaa ei lisätä kokonaissummaan: tuote on tunnistettu, mutta ei mukana hintavertailussa.
+      // Hintaa ei lisätä kokonaissummaan: tuote on tunnistettu, mutta vertailuhintaa ei ole saatavilla.
       const openFoodFactsFallback = await fetchOpenFoodFactsFallbackProductV729(ean);
 
       if (openFoodFactsFallback) {
@@ -8587,7 +8589,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       cleanExternalProductName(fallbackProduct.name) ||
       `Tunnistettu tuote · EAN ${normalizedEan}`;
 
-    const fallbackCartName = `${productName} · ei mukana hintavertailussa`;
+    const fallbackCartName = productName;
 
     const fallbackProductForCart = {
       id: `off-ean-${normalizedEan}`,
@@ -8679,8 +8681,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     triggerHaptic();
-    showScanSuccessFlash();
-    showCartToast(didUpgradeUnknown ? `Tunnistettu: ${productName}` : `Tunnistettu: ${productName}`);
+    // V117: OFF-fallbackissa ei käytetä yleistä "Lisätty koriin" -scanner-tekstiä,
+    // koska käyttäjälle pitää kertoa, että tuote tunnistettiin mutta vertailuhinta puuttuu.
+    setScanMissFlash(false);
+    setScanSuccessFlash(false);
+    showCartToast(`Tunnistettu — ei mukana hintavertailussa: ${productName}`);
     setEanInput("");
     setEanResults([]);
     setEanLoading(false);
@@ -8688,7 +8693,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     eanAutoSearchActiveRef.current = false;
     setLastAutoEanSearch("");
     setEanMessage(
-      "Tuote tunnistettiin. Ei mukana hintavertailussa.",
+      "Tuote tunnistettiin. Vertailuhintaa ei löytynyt käytettävissä olevista kauppatiedoista.",
     );
 
     if (eanScannerOpen || eanHtml5ScannerRef.current) {
