@@ -1,14 +1,17 @@
 // ============================================================================
-// SKAUPAT_PROVIDER_V151_REMOTE_PRODUCTS_DEBUG_VISIBLE_BREAK
-// Revision: V151
+// SKAUPAT_PROVIDER_V152_EXPLICIT_PRODUCTLIST_PATH
+// Revision: V152
 // Date: 2026-06-05
 //
-// Fix after V149:
-// - V150 still returned zero visible results.
-//// - Adds a visible diagnostic offer row if RemoteFilteredProducts returns
-////   no parseable products or throws.
-//// - This tells whether S-kaupat API is reachable from Vercel and whether
-////   parser sees category facets/product-like objects.
+// Fix:
+// - Uses the real S-kaupat RemoteFilteredProducts response structure:
+//   data.store.products.products[]
+//   data.store.products.structuredFacets[]
+// - Reads category facet from structuredFacets where key === "category"
+//   and values are in objectValue[].
+// - Reads product data from each ProductListItem.product.
+// - Reads category path from product.hierarchyPath[].
+// - Keeps fetchSKaupatOffers(query, config) signature unchanged.
 //
 // Install path:
 // src/app/components/ziiply/offerSearch/providers/skaupatProvider.ts
@@ -21,10 +24,10 @@ import type {
 
 type UnknownRecord = Record<string, unknown>;
 
-const SKAUPAT_REMOTE_FILTERED_PRODUCTS_HASH_V150 =
+const SKAUPAT_REMOTE_FILTERED_PRODUCTS_HASH_V152 =
   "44ca017dddccfe49e787b483f471f26217adca807f8c71101d11e881dab9e480";
 
-const DEFAULT_SKAUPAT_STORE_ID_V150 = "513971200";
+const DEFAULT_SKAUPAT_STORE_ID_V152 = "513971200";
 
 function asRecord(value: unknown): UnknownRecord | null {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -57,7 +60,6 @@ function firstString(...values: unknown[]): string {
         objectValue.slug,
         objectValue.value,
         objectValue.text,
-        objectValue.fi,
       );
       if (text) return text;
     }
@@ -87,238 +89,73 @@ function getPathValue(object: unknown, path: string[]): unknown {
       continue;
     }
 
-    const currentRecord = asRecord(current);
-    if (!currentRecord) return undefined;
-    current = currentRecord[key];
+    const record = asRecord(current);
+    if (!record) return undefined;
+    current = record[key];
   }
 
   return current;
 }
 
-function readNestedString(object: UnknownRecord, paths: string[][]): string {
-  for (const path of paths) {
-    const text = firstString(getPathValue(object, path));
-    if (text) return text;
-  }
-
-  return "";
+function getSProductsRoot(data: unknown): UnknownRecord | null {
+  return asRecord(getPathValue(data, ["data", "store", "products"]));
 }
 
-function collectStringArray(value: unknown): string[] {
-  if (!value) return [];
+function getSProductListItems(data: unknown): UnknownRecord[] {
+  const root = getSProductsRoot(data);
+  if (!root) return [];
 
-  if (typeof value === "string" || typeof value === "number") {
-    const text = String(value).trim();
-    return text ? [text] : [];
-  }
+  return asArray(root.products)
+    .map(asRecord)
+    .filter(Boolean) as UnknownRecord[];
+}
 
-  const record = asRecord(value);
-  if (record) {
-    const text = firstString(record);
-    if (text) return [text];
-  }
+function getStructuredFacets(data: unknown): UnknownRecord[] {
+  const root = getSProductsRoot(data);
+  if (!root) return [];
 
-  return asArray(value)
-    .flatMap((entry) => collectStringArray(entry))
-    .map((entry) => entry.trim())
+  return asArray(root.structuredFacets)
+    .map(asRecord)
+    .filter(Boolean) as UnknownRecord[];
+}
+
+function getCategoryFacetNames(data: unknown): string[] {
+  const categoryFacet = getStructuredFacets(data).find(
+    (facet) => normalizeText(facet.key) === "category",
+  );
+
+  if (!categoryFacet) return [];
+
+  return asArray(categoryFacet.objectValue)
+    .map((entry) => {
+      const record = asRecord(entry);
+      if (!record) return firstString(entry);
+
+      return firstString(record.name, record.label, record.title, record.value);
+    })
     .filter(Boolean);
 }
 
-function getProductTitle(item: UnknownRecord): string {
-  return firstString(
-    item.name,
-    item.title,
-    item.productName,
-    item.productTitle,
-    item.displayName,
-    item.localizedName,
-    item.description,
-    readNestedString(item, [
-      ["product", "name"],
-      ["product", "title"],
-      ["product", "displayName"],
-      ["item", "name"],
-      ["node", "name"],
-      ["node", "title"],
-    ]),
+function getCategoryFacetPaths(data: unknown): Array<{ name: string; value: string; count?: number }> {
+  const categoryFacet = getStructuredFacets(data).find(
+    (facet) => normalizeText(facet.key) === "category",
   );
-}
 
-function hasAnyOwnKey(item: UnknownRecord, keys: string[]): boolean {
-  return keys.some((key) => item[key] != null);
-}
+  if (!categoryFacet) return [];
 
-function looksLikeProduct(item: UnknownRecord): boolean {
-  const title = getProductTitle(item);
-  if (!title || title.length < 2) return false;
+  return asArray(categoryFacet.objectValue)
+    .map((entry) => {
+      const record = asRecord(entry);
+      if (!record) return null;
 
-  const typeName = normalizeText(item.__typename);
-  if (
-    typeName.includes("facet") ||
-    typeName.includes("categoryfacet") ||
-    typeName.includes("filter") ||
-    typeName.includes("navigation")
-  ) {
-    return false;
-  }
+      const name = firstString(record.name, record.label, record.title);
+      const value = firstString(record.value, record.slug);
+      const count = typeof record.doc_count === "number" ? record.doc_count : undefined;
 
-  const hasPriceSignal =
-    hasAnyOwnKey(item, [
-      "price",
-      "priceText",
-      "currentPrice",
-      "currentPriceText",
-      "offerPrice",
-      "offerPriceText",
-      "unitPrice",
-      "unitPriceText",
-      "comparisonPrice",
-      "comparisonPriceText",
-      "pricing",
-      "storeItem",
-      "storeItems",
-      "availability",
-    ]) ||
-    Boolean(
-      readNestedString(item, [
-        ["price", "formatted"],
-        ["price", "text"],
-        ["pricing", "priceText"],
-        ["pricing", "currentPriceText"],
-        ["storeItem", "priceText"],
-        ["storeItems", "0", "priceText"],
-      ]),
-    );
-
-  const hasProductSignal =
-    hasAnyOwnKey(item, [
-      "ean",
-      "gtin",
-      "productId",
-      "id",
-      "brandName",
-      "brand",
-      "imageUrl",
-      "pictureUrl",
-      "productUrl",
-      "url",
-    ]) ||
-    Boolean(
-      readNestedString(item, [
-        ["product", "id"],
-        ["product", "ean"],
-        ["product", "gtin"],
-        ["brand", "name"],
-        ["images", "0", "url"],
-      ]),
-    );
-
-  return Boolean(hasPriceSignal || hasProductSignal);
-}
-
-function collectProductObjects(root: unknown): UnknownRecord[] {
-  const queue: unknown[] = [root];
-  const visited = new Set<unknown>();
-  const products: UnknownRecord[] = [];
-  const seenKeys = new Set<string>();
-
-  while (queue.length > 0) {
-    const current = queue.shift();
-    if (!current || visited.has(current)) continue;
-    visited.add(current);
-
-    if (Array.isArray(current)) {
-      for (const item of current) queue.push(item);
-      continue;
-    }
-
-    const record = asRecord(current);
-    if (!record) continue;
-
-    if (looksLikeProduct(record)) {
-      const key = normalizeText(
-        [
-          record.id,
-          record.productId,
-          record.ean,
-          record.gtin,
-          getProductTitle(record),
-          getPriceText(record),
-        ]
-          .filter(Boolean)
-          .join("|"),
-      );
-
-      if (key && !seenKeys.has(key)) {
-        seenKeys.add(key);
-        products.push(record);
-      }
-    }
-
-    for (const value of Object.values(record)) {
-      if (value && typeof value === "object") queue.push(value);
-    }
-  }
-
-  return products.slice(0, 96);
-}
-
-function extractCategoryFacetNames(root: unknown): string[] {
-  const queue: unknown[] = [root];
-  const visited = new Set<unknown>();
-  const names: string[] = [];
-
-  while (queue.length > 0) {
-    const current = queue.shift();
-    if (!current || visited.has(current)) continue;
-    visited.add(current);
-
-    if (Array.isArray(current)) {
-      for (const item of current) queue.push(item);
-      continue;
-    }
-
-    const record = asRecord(current);
-    if (!record) continue;
-
-    const key = normalizeText(record.key || record.id || record.name || record.label || record.__typename);
-    const looksCategoryFacet =
-      key === "category" ||
-      key.includes("category") ||
-      normalizeText(record.__typename).includes("categoryfacet");
-
-    if (looksCategoryFacet) {
-      const values =
-        asArray(record.values).length > 0
-          ? asArray(record.values)
-          : asArray(record.options).length > 0
-            ? asArray(record.options)
-            : asArray(record.items).length > 0
-              ? asArray(record.items)
-              : asArray(record.buckets);
-
-      for (const value of values) {
-        const valueRecord = asRecord(value);
-        const name = valueRecord
-          ? firstString(
-              valueRecord.name,
-              valueRecord.title,
-              valueRecord.label,
-              valueRecord.value,
-              valueRecord.slug,
-              valueRecord.displayName,
-            )
-          : firstString(value);
-        if (name) names.push(name);
-      }
-    }
-
-    for (const value of Object.values(record)) {
-      if (value && typeof value === "object") queue.push(value);
-    }
-  }
-
-  return Array.from(new Set(names));
+      if (!name && !value) return null;
+      return { name, value, count };
+    })
+    .filter(Boolean) as Array<{ name: string; value: string; count?: number }>;
 }
 
 function numberFromUnknown(value: unknown): number | null {
@@ -330,152 +167,130 @@ function numberFromUnknown(value: unknown): number | null {
   return null;
 }
 
-function formatPriceNumber(value: unknown): string {
+function formatPrice(value: unknown): string {
   const number = numberFromUnknown(value);
   if (number == null) return "";
   return `${number.toFixed(2).replace(".", ",")} €`;
 }
 
-function getPriceText(item: UnknownRecord): string {
-  const direct = firstString(
-    item.priceText,
-    item.offerPriceText,
-    item.currentPriceText,
-    item.formattedPrice,
-    item.displayPrice,
-    readNestedString(item, [
-      ["price", "formatted"],
-      ["price", "text"],
-      ["currentPrice", "formatted"],
-      ["currentPrice", "text"],
-      ["pricing", "priceText"],
-      ["pricing", "currentPriceText"],
-      ["storeItem", "priceText"],
-      ["storeItems", "0", "priceText"],
-    ]),
-  );
-  if (direct) return direct;
+function formatComparisonPrice(price: unknown, unit: unknown): string {
+  const number = numberFromUnknown(price);
+  const unitText = firstString(unit);
+  if (number == null || !unitText) return "";
 
-  return formatPriceNumber(
-    item.price ??
-      item.currentPrice ??
-      item.offerPrice ??
-      getPathValue(item, ["pricing", "price"]) ??
-      getPathValue(item, ["pricing", "currentPrice"]) ??
-      getPathValue(item, ["storeItem", "price"]) ??
-      getPathValue(item, ["storeItems", "0", "price"]),
-  );
+  const normalizedUnit = unitText
+    .replace("KGM", "kg")
+    .replace("KG", "kg")
+    .replace("LTR", "l")
+    .replace("L", "l")
+    .replace("PCE", "kpl");
+
+  return `${number.toFixed(2).replace(".", ",")} €/${normalizedUnit.toLowerCase()}`;
 }
 
-function getUnitPriceText(item: UnknownRecord): string {
-  return firstString(
-    item.unitPriceText,
-    item.comparisonPriceText,
-    item.comparisonPrice,
-    readNestedString(item, [
-      ["pricing", "comparisonPriceText"],
-      ["pricing", "unitPriceText"],
-      ["storeItem", "comparisonPriceText"],
-      ["storeItem", "unitPriceText"],
-      ["storeItems", "0", "comparisonPriceText"],
-      ["storeItems", "0", "unitPriceText"],
-    ]),
-  );
+function buildSCloudImageUrl(urlTemplate: string): string {
+  if (!urlTemplate) return "";
+
+  return urlTemplate
+    .replace("{MODIFIERS}", "w_400,h_400,c_fit")
+    .replace("{EXTENSION}", "jpg");
 }
 
-function getImageUrl(item: UnknownRecord): string {
-  const image = firstString(
-    item.imageUrl,
-    item.pictureUrl,
-    item.image,
-    item.thumbnail,
-    readNestedString(item, [
-      ["product", "imageUrl"],
-      ["product", "pictureUrl"],
-      ["images", "0", "url"],
-      ["image", "url"],
-      ["media", "0", "url"],
-    ]),
-  );
-
-  if (!image) return "";
-  if (image.startsWith("//")) return `https:${image}`;
-  return image;
+function getHierarchyItems(product: UnknownRecord): UnknownRecord[] {
+  return asArray(product.hierarchyPath)
+    .map(asRecord)
+    .filter(Boolean) as UnknownRecord[];
 }
 
-function getProductUrl(item: UnknownRecord): string {
-  const url = firstString(
-    item.productUrl,
-    item.url,
-    item.href,
-    readNestedString(item, [["product", "url"], ["link", "url"]]),
-  );
+function getCategoryMeta(product: UnknownRecord, fallbackFacetNames: string[]) {
+  const hierarchy = getHierarchyItems(product);
 
-  if (!url) return "";
-  if (url.startsWith("http")) return url;
-  if (url.startsWith("/")) return `https://www.s-kaupat.fi${url}`;
-  return url;
-}
+  // S-kaupat gives hierarchy leaf-first:
+  // [specific category, parent category, main category]
+  const names = hierarchy
+    .map((item) => firstString(item.name))
+    .filter(Boolean);
 
-function extractCategoryMeta(item: UnknownRecord, fallbackFacetNames: string[]) {
-  const categoryPathParts = [
-    ...collectStringArray(item.categoryPath),
-    ...collectStringArray(item.categories),
-    ...collectStringArray(item.breadcrumbs),
-    ...collectStringArray(item.breadcrumb),
-    ...collectStringArray(item.taxonomy),
-    ...collectStringArray(item.hierarchy),
-    ...collectStringArray(getPathValue(item, ["product", "categories"])),
-    ...collectStringArray(getPathValue(item, ["product", "categoryPath"])),
-  ];
+  const slugs = hierarchy
+    .map((item) => firstString(item.slug))
+    .filter(Boolean);
 
-  const category = firstString(
-    item.category,
-    item.categoryName,
-    item.mainCategory,
-    item.subCategory,
-    readNestedString(item, [
-      ["product", "category"],
-      ["product", "categoryName"],
-      ["category", "name"],
-      ["category", "title"],
-      ["category", "label"],
-      ["department", "name"],
-      ["productGroup", "name"],
-    ]),
-    categoryPathParts.at(-1),
-    fallbackFacetNames[0],
-  );
+  const leaf = names[0] || fallbackFacetNames[0] || "";
+  const parent = names[1] || "";
+  const main = names[names.length - 1] || parent || leaf || "";
 
-  const department = firstString(
-    item.department,
-    item.departmentName,
-    item.mainCategory,
-    readNestedString(item, [["department", "name"], ["department", "title"]]),
-    categoryPathParts[0],
-  );
+  const categoryPath = names.length > 0
+    ? [...names].reverse().join(" / ")
+    : fallbackFacetNames.slice(0, 3).join(" / ");
 
-  const productGroup = firstString(
-    item.productGroup,
-    item.productGroupName,
-    item.subCategory,
-    readNestedString(item, [["productGroup", "name"], ["productGroup", "title"]]),
-    categoryPathParts.at(-1),
-  );
-
-  const categoryPath = Array.from(
-    new Set([department, ...categoryPathParts, category].filter(Boolean)),
-  ).join(" / ");
+  const slugPath = slugs.length > 0 ? [...slugs].reverse().join(" / ") : "";
 
   return {
-    category,
+    category: leaf,
     categoryPath,
-    breadcrumbs: categoryPath || category,
-    department,
-    productGroup,
-    mainCategory: department,
-    subCategory: productGroup || category,
+    breadcrumbs: categoryPath,
+    hierarchy: categoryPath,
+    taxonomy: slugPath,
+    department: main,
+    productGroup: parent || leaf,
+    mainCategory: main,
+    subCategory: leaf,
   };
+}
+
+function getProductFromListItem(item: UnknownRecord): UnknownRecord | null {
+  return asRecord(item.product);
+}
+
+function getPricing(product: UnknownRecord): UnknownRecord {
+  const storePricing = asRecord(getPathValue(product, ["store", "pricing"]));
+  const pricing = asRecord(product.pricing);
+
+  return storePricing || pricing || {};
+}
+
+function getLabels(listItem: UnknownRecord, product: UnknownRecord): string {
+  const labels = [
+    ...asArray(listItem.labels),
+    ...asArray(getPathValue(product, ["store", "labels"])),
+  ];
+
+  return labels
+    .map((label) => {
+      const record = asRecord(label);
+      return record ? firstString(record.labelText, record.labelType, record.name) : firstString(label);
+    })
+    .filter(Boolean)
+    .join(" ");
+}
+
+function getImageUrl(product: UnknownRecord): string {
+  const mainImageTemplate = firstString(
+    getPathValue(product, ["productDetails", "productImages", "mobileReadyHeroImage", "urlTemplate"]),
+    getPathValue(product, ["productDetails", "productImages", "mainImage", "urlTemplate"]),
+  );
+
+  if (mainImageTemplate) return buildSCloudImageUrl(mainImageTemplate);
+
+  const direct = firstString(
+    product.imageUrl,
+    product.pictureUrl,
+    getPathValue(product, ["image", "url"]),
+  );
+
+  if (direct.startsWith("//")) return `https:${direct}`;
+  return direct;
+}
+
+function getProductUrl(product: UnknownRecord): string {
+  const slug = firstString(product.slug);
+  if (slug) return `https://www.s-kaupat.fi/tuote/${slug}/${firstString(product.ean, product.id)}`;
+
+  const direct = firstString(product.productUrl, product.url);
+  if (!direct) return "";
+  if (direct.startsWith("http")) return direct;
+  if (direct.startsWith("/")) return `https://www.s-kaupat.fi${direct}`;
+  return direct;
 }
 
 function getMatchScore(query: string, title: string, categoryText: string): number {
@@ -499,50 +314,75 @@ function getMatchScore(query: string, title: string, categoryText: string): numb
   return score;
 }
 
-function mapSProductToOfferResult(
-  item: UnknownRecord,
+function mapSProductListItemToOfferResult(
+  listItem: UnknownRecord,
   options: {
     query: string;
     config: ZiiplyOfferSearchSourceConfig;
     fallbackFacetNames: string[];
     index: number;
   },
-): ZiiplyOfferSearchResult {
-  const title = getProductTitle(item);
+): ZiiplyOfferSearchResult | null {
+  const product = getProductFromListItem(listItem);
+  if (!product) return null;
 
-  const brandName = firstString(
-    item.brandName,
-    item.brand,
-    readNestedString(item, [["brand", "name"], ["product", "brandName"]]),
-  );
+  const title = firstString(product.name);
+  if (!title) return null;
 
-  const categoryMeta = extractCategoryMeta(item, options.fallbackFacetNames);
-  const priceText = getPriceText(item);
-  const unitPriceText = getUnitPriceText(item);
-  const imageUrl = getImageUrl(item);
-  const productUrl = getProductUrl(item);
+  const pricing = getPricing(product);
+  const currentPrice =
+    pricing.campaignPrice ??
+    pricing.currentPrice ??
+    product.price;
+
+  const regularPrice =
+    pricing.regularPrice ??
+    product.price;
+
+  const comparisonPrice =
+    pricing.comparisonPrice ??
+    product.comparisonPrice;
+
+  const comparisonUnit =
+    pricing.comparisonUnit ??
+    product.comparisonUnit;
+
+  const priceText = formatPrice(currentPrice);
+  const unitPriceText = formatComparisonPrice(comparisonPrice, comparisonUnit);
+  const categoryMeta = getCategoryMeta(product, options.fallbackFacetNames);
+  const imageUrl = getImageUrl(product);
+  const productUrl = getProductUrl(product);
+  const labelsText = getLabels(listItem, product);
+
+  const campaignValidUntil = firstString(pricing.campaignPriceValidUntil);
+  const isCampaign =
+    currentPrice != null &&
+    regularPrice != null &&
+    Number(currentPrice) < Number(regularPrice);
+
+  const benefitText = isCampaign
+    ? `Kampanja${regularPrice ? `, normaalisti ${formatPrice(regularPrice)}` : ""}`
+    : labelsText;
 
   const rawText = [
     title,
-    brandName,
+    product.brandName,
     priceText,
     unitPriceText,
+    labelsText,
     categoryMeta.category,
     categoryMeta.categoryPath,
     categoryMeta.department,
     categoryMeta.productGroup,
-    firstString(item.labels),
   ]
     .filter(Boolean)
     .join(" ");
 
   const id = firstString(
-    item.id,
-    item.productId,
-    item.ean,
-    item.gtin,
-    readNestedString(item, [["product", "id"], ["product", "ean"], ["item", "id"]]),
-    `skaupat-remote-${options.query}-${options.index}`,
+    product.ean,
+    product.id,
+    product.sokId,
+    `skaupat-product-${options.query}-${options.index}`,
   );
 
   return {
@@ -551,11 +391,11 @@ function mapSProductToOfferResult(
     sourceUrl: options.config.url,
     chain: options.config.chain,
     storeLabel: options.config.storeLabel,
-    title: title || options.query,
+    title,
     priceText,
     unitPriceText,
-    benefitText: firstString(item.benefitText, item.campaignText, item.discountText, item.labels),
-    validityText: firstString(item.validityText, item.validUntil, item.campaignValidity),
+    benefitText,
+    validityText: campaignValidUntil ? `Voimassa ${campaignValidUntil}` : "",
     imageUrl,
     productUrl,
     rawText,
@@ -565,14 +405,18 @@ function mapSProductToOfferResult(
       `${categoryMeta.category} ${categoryMeta.categoryPath}`,
     ),
 
+    // Category metadata consumed by ziiplyOfferCategoryCore.ts
     category: categoryMeta.category,
     categoryPath: categoryMeta.categoryPath,
     breadcrumbs: categoryMeta.breadcrumbs,
+    hierarchy: categoryMeta.hierarchy,
+    taxonomy: categoryMeta.taxonomy,
     department: categoryMeta.department,
     productGroup: categoryMeta.productGroup,
     mainCategory: categoryMeta.mainCategory,
     subCategory: categoryMeta.subCategory,
-    brandName,
+    brandName: firstString(product.brandName),
+    ean: firstString(product.ean),
   } as unknown as ZiiplyOfferSearchResult;
 }
 
@@ -583,19 +427,19 @@ function buildRemoteFilteredProductsUrl(query: string): string {
       { key: "category" },
       { key: "labels" },
     ],
-    generatedSessionId: "ziiply-gosta-v150",
+    generatedSessionId: "ziiply-gosta-v152",
     fetchSponsoredContent: true,
     limit: 48,
     queryString: query,
-    storeId: DEFAULT_SKAUPAT_STORE_ID_V150,
+    storeId: DEFAULT_SKAUPAT_STORE_ID_V152,
     useRandomId: false,
-    marketingId: "ziiply-gosta-v150",
+    marketingId: "ziiply-gosta-v152",
   };
 
   const extensions = {
     persistedQuery: {
       version: 1,
-      sha256Hash: SKAUPAT_REMOTE_FILTERED_PRODUCTS_HASH_V150,
+      sha256Hash: SKAUPAT_REMOTE_FILTERED_PRODUCTS_HASH_V152,
     },
   };
 
@@ -606,7 +450,7 @@ function buildRemoteFilteredProductsUrl(query: string): string {
   return url.toString();
 }
 
-async function fetchSKaupatRemoteFilteredProductsV150(
+async function fetchSKaupatRemoteFilteredProductsV152(
   query: string,
   config: ZiiplyOfferSearchSourceConfig,
 ): Promise<ZiiplyOfferSearchResult[]> {
@@ -627,51 +471,21 @@ async function fetchSKaupatRemoteFilteredProductsV150(
   }
 
   const data = await response.json();
-  const fallbackFacetNames = extractCategoryFacetNames(data);
-  const productItems = collectProductObjects(data);
+  const fallbackFacetNames = getCategoryFacetNames(data);
+  void getCategoryFacetPaths;
 
-  const results = productItems
+  const listItems = getSProductListItems(data);
+
+  return listItems
     .map((item, index) =>
-      mapSProductToOfferResult(item, {
+      mapSProductListItemToOfferResult(item, {
         query,
         config,
         fallbackFacetNames,
         index,
       }),
     )
-    .filter((item) => String((item as any).title || "").trim().length > 1);
-
-  if (results.length === 0) {
-    const topKeys = asRecord(data)
-      ? Object.keys(data as UnknownRecord).slice(0, 8).join(", ")
-      : typeof data;
-
-    return [
-      {
-        id: `skaupat-debug-empty-${Date.now()}`,
-        source: config.id,
-        sourceUrl: config.url,
-        chain: config.chain,
-        storeLabel: config.storeLabel,
-        title: `DEBUG S-kaupat: API vastasi, mutta tuotteita ei parsittu`,
-        priceText: "",
-        unitPriceText: "",
-        benefitText: `query="${query}" facets=${fallbackFacetNames.length} products=${productItems.length} topKeys=${topKeys}`,
-        validityText: "V151 diagnostics",
-        imageUrl: "",
-        productUrl: "",
-        rawText: `DEBUG SKAUPAT EMPTY query ${query} facets ${fallbackFacetNames.join(" ")}`,
-        matchScore: 999,
-        category: "Muut",
-        categoryPath: fallbackFacetNames.join(" / "),
-        breadcrumbs: fallbackFacetNames.join(" / "),
-        department: "",
-        productGroup: "",
-      } as unknown as ZiiplyOfferSearchResult,
-    ];
-  }
-
-  return results;
+    .filter(Boolean) as ZiiplyOfferSearchResult[];
 }
 
 export async function fetchSKaupatOffers(
@@ -682,32 +496,9 @@ export async function fetchSKaupatOffers(
   if (!cleanQuery) return [];
 
   try {
-    return await fetchSKaupatRemoteFilteredProductsV150(cleanQuery, config);
+    return await fetchSKaupatRemoteFilteredProductsV152(cleanQuery, config);
   } catch (error) {
     console.warn("[Ziiply offers] S-kaupat RemoteFilteredProducts failed", error);
-
-    return [
-      {
-        id: `skaupat-debug-error-${Date.now()}`,
-        source: config.id,
-        sourceUrl: config.url,
-        chain: config.chain,
-        storeLabel: config.storeLabel,
-        title: `DEBUG S-kaupat: API-haku epäonnistui`,
-        priceText: "",
-        unitPriceText: "",
-        benefitText: String(error instanceof Error ? error.message : error),
-        validityText: "V151 diagnostics",
-        imageUrl: "",
-        productUrl: "",
-        rawText: `DEBUG SKAUPAT ERROR query ${cleanQuery}`,
-        matchScore: 999,
-        category: "Muut",
-        categoryPath: "",
-        breadcrumbs: "",
-        department: "",
-        productGroup: "",
-      } as unknown as ZiiplyOfferSearchResult,
-    ];
+    return [];
   }
 }
