@@ -1,3 +1,8 @@
+// V141_WITHIN_CHAIN_RESPECTS_SELECTED_STORE_LEVEL
+// Korjaus: Ketjun sisältä ei enää pakota Kauppa 1 = tavaratalo ja Kauppa 2 = lähikauppa.
+// Molemmat valintaruudut käyttävät valittua tasoa (Tavaratalot tai Lähikaupat).
+// Toisen ruudun valinta tallennetaan edelleen toiseen slottiin, mutta valintaikkunan vaihtoehdot suodatetaan samaan tasoon.
+
 // V140_STORE_PICKER_SAME_SOURCE_AND_EXCLUDE_ABC
 // Pohja V139 + V138 build-ok. Korjaus kauppavalintoihin:
 // - ABC/huoltoasema-myymälät suodatetaan pois ruokakorivertailusta.
@@ -12437,18 +12442,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   function getStoresForWithinChainPicker(
     chain: "S" | "K",
     slotMode: StoreMode,
+    levelMode: StoreMode = slotMode,
   ) {
-    // V140: Ketjun sisältä ei saa käyttää omaa yleislistaa.
-    // Sen pitää näyttää täsmälleen sama tasokohtainen kauppajoukko kuin Ketjujen väliltä:
-    // hyper-slotissa vain Prisma/K-Citymarket, local-slotissa vain S-market/Sale/Alepa/K-Super/K-Market.
-    // ABC:t ja muut huoltoasemamyymälät jäävät getStoresForPicker()-suodatuksen ulkopuolelle.
+    // V141: Ketjun sisällä -näkymässä slotMode kertoo mihin activeArea-slottiin valinta tallennetaan
+    // (Kauppa 1 / Kauppa 2), mutta levelMode kertoo mitä kauppatasoa käyttäjä oikeasti katsoo.
+    // Näin Tavaratalot ei enää näytä Sale/K-Marketia toisessa ruudussa, eikä Lähikaupat näytä Prismaa/KCM:ää.
     const selectedId = getSelectedStoreIdFor(chain, slotMode);
     const selectedName = getSelectedStoreNameFor(chain, slotMode);
     const otherMode: StoreMode = slotMode === "hyper" ? "local" : "hyper";
     const otherSelectedId = getSelectedStoreIdFor(chain, otherMode);
     const otherSelectedName = getSelectedStoreNameFor(chain, otherMode);
 
-    return getStoresForPicker(chain, slotMode).filter((store) => {
+    return getStoresForPicker(chain, levelMode).filter((store) => {
       if (otherSelectedId && sameStoreIdV93(store.id, otherSelectedId)) return false;
       if (
         otherSelectedName &&
@@ -12465,10 +12470,45 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     });
   }
 
-  function getStoresForPickerContext(chain: "S" | "K", mode: StoreMode) {
+  function getStoresForPickerContext(
+    chain: "S" | "K",
+    mode: StoreMode,
+    optionMode: StoreMode = mode,
+  ) {
     if (storeCompareScope === "within_chain")
-      return getStoresForWithinChainPicker(chain, mode);
+      return getStoresForWithinChainPicker(chain, mode, optionMode);
     return getStoresForPicker(chain, mode);
+  }
+
+  function findStoreForWithinChainSlotV141(
+    chain: "S" | "K",
+    slotMode: StoreMode,
+    levelMode: StoreMode,
+  ) {
+    const selectedId = getSelectedStoreIdFor(chain, slotMode);
+    const selectedName = getSelectedStoreNameFor(chain, slotMode);
+    if (!selectedId && !selectedName) return undefined;
+
+    return getStoresForPicker(chain, levelMode).find(
+      (store) =>
+        storeMatchesStrictChainAndModeV139(store, chain, levelMode) &&
+        Boolean(
+          (selectedId && sameStoreIdV93(store.id, selectedId)) ||
+            (selectedName &&
+              normalize(store.name || "") === normalize(selectedName)),
+        ),
+    );
+  }
+
+  function getWithinChainSlotPlaceholderV141(
+    levelMode: StoreMode,
+    slotNumber: 1 | 2,
+  ) {
+    if (levelMode === "hyper") {
+      return slotNumber === 1 ? "Valitse tavaratalo" : "Ei toista tavarataloa";
+    }
+
+    return slotNumber === 1 ? "Valitse lähikauppa" : "Ei toista lähikauppaa";
   }
 
   /*
@@ -12484,7 +12524,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
    *     if (openStorePicker !== pickerKey) return null;
    *     if (!storePickerCanOpenV366) return null;
    * 
-   *     const options = getStoresForPickerContext(chain, mode);
+   *     const options = getStoresForPickerContext(chain, mode, optionMode);
    *     const selectedName = getSelectedStoreNameFor(chain, mode);
    *     const selectedId = getSelectedStoreIdFor(chain, mode);
    * 
@@ -12628,18 +12668,21 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     mode: StoreMode,
     pickerKey: string,
     compact: boolean,
+    optionMode: StoreMode = mode,
   ) {
     if (openStorePicker !== pickerKey) return null;
     if (!storePickerCanOpenV366) return null;
     if (typeof document === "undefined") return null;
 
-    const options = getStoresForPickerContext(chain, mode);
+    const options = getStoresForPickerContext(chain, mode, optionMode);
     const selectedName = getSelectedStoreNameFor(chain, mode);
     const selectedId = getSelectedStoreIdFor(chain, mode);
 
     const menuTitle =
       storeCompareScope === "within_chain"
-        ? `Valitse ${chain === "S" ? "S-ryhmän" : "K-ryhmän"} kauppa`
+        ? optionMode === "local"
+          ? `Valitse ${chain === "S" ? "S-ryhmän" : "K-ryhmän"} lähikauppa`
+          : `Valitse ${chain === "S" ? "S-ryhmän" : "K-ryhmän"} tavaratalo`
         : mode === "local"
           ? `Valitse ${chain === "S" ? "S-ryhmän" : "K-ryhmän"} lähikauppa`
           : `Valitse ${chain === "S" ? "S-ryhmän" : "K-ryhmän"} tavaratalo`;
@@ -12769,12 +12812,25 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     mode: StoreMode,
     pickerKey: string,
     compact: boolean,
+    optionMode: StoreMode = mode,
   ) {
     const options =
       storeCompareScope !== "within_chain" && !storeModeChosenV299
         ? []
-        : getStoresForPickerContext(chain, mode);
-    const hasMany = options.length > 1;
+        : getStoresForPickerContext(chain, mode, optionMode);
+    const selectedStoreForButton =
+      storeCompareScope === "within_chain"
+        ? findStoreForWithinChainSlotV141(chain, mode, optionMode)
+        : findStoreForSelectionV320(chain, mode);
+    const canOpenPicker =
+      options.length > 1 || (!selectedStoreForButton && options.length > 0);
+    const buttonLabel = selectedStoreForButton
+      ? canOpenPicker
+        ? "Vaihda"
+        : "Valittu"
+      : options.length > 0
+        ? "Valitse"
+        : "Ei paria";
     return (
       <button
         type="button"
@@ -12794,7 +12850,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             }
             return;
           }
-          if (!hasMany) {
+          if (!canOpenPicker) {
             setOpenStorePicker(null);
             return;
           }
@@ -12803,12 +12859,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           );
         }}
         className={`mt-1 rounded-full px-2 py-1 font-black ring-1 ${compact ? "text-[9px]" : "text-[10px]"} ${
-          hasMany
+          canOpenPicker
             ? "bg-[#fff8df]/90 text-slate-700 ring-slate-200"
             : "bg-slate-100 text-[#b7aa8d] ring-slate-200"
         }`}
       >
-        <span>{hasMany ? "Vaihda" : "Valittu"}</span>
+        <span>{buttonLabel}</span>
       </button>
     );
   }
@@ -12837,16 +12893,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             {chainCards.map((store) => {
               const selected = selectedChainKey === store.key;
               const chain = store.key === "s" ? "S" : "K";
-              const modeA: StoreMode = "hyper";
-              const modeB: StoreMode = "local";
+              const levelMode: StoreMode = storeMode;
+              // V141: activeArea:ssa on vain kaksi slottia per ketju. Käytetään valittua tasoa
+              // ensisijaisena slottina ja toista slottia saman tason toiselle kaupalle.
+              // Vaihtoehdot suodatetaan silti aina levelModeen, joten väärän tason kauppa ei näy.
+              const modeA: StoreMode = levelMode;
+              const modeB: StoreMode = levelMode === "hyper" ? "local" : "hyper";
+              const selectedStoreA = findStoreForWithinChainSlotV141(chain, modeA, levelMode);
+              const selectedStoreB = findStoreForWithinChainSlotV141(chain, modeB, levelMode);
               const storeNameA =
-                getSelectedStoreNameFor(chain, modeA) ||
-                (chain === "S" ? "S-kauppa 1" : "K-kauppa 1");
+                selectedStoreA?.name || getWithinChainSlotPlaceholderV141(levelMode, 1);
               const storeNameB =
-                getSelectedStoreNameFor(chain, modeB) ||
-                (chain === "S" ? "S-kauppa 2" : "K-kauppa 2");
-              const selectedStoreA = findStoreForSelectionV320(chain, modeA);
-              const selectedStoreB = findStoreForSelectionV320(chain, modeB);
+                selectedStoreB?.name || getWithinChainSlotPlaceholderV141(levelMode, 2);
               const distanceA = getStoreDistanceLabelV320(selectedStoreA);
               const distanceB = getStoreDistanceLabelV320(selectedStoreB);
 
@@ -12959,12 +13017,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                           modeA,
                           `${store.key}-within-hyper`,
                           compact,
+                          levelMode,
                         )}
                         {renderStorePickerMenu(
                           chain,
                           modeA,
                           `${store.key}-within-hyper`,
                           compact,
+                          levelMode,
                         )}
                       </div>
                       <div
@@ -12996,12 +13056,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                           modeB,
                           `${store.key}-within-local`,
                           compact,
+                          levelMode,
                         )}
                         {renderStorePickerMenu(
                           chain,
                           modeB,
                           `${store.key}-within-local`,
                           compact,
+                          levelMode,
                         )}
                       </div>
                     </div>
