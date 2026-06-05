@@ -1025,19 +1025,11 @@ import {
   type ZiiplyStoreMode,
 } from "./components/ziiply/location";
 import {
-  GOSTA_CATEGORY_LABELS_V136,
-  getGostaCategoryLabelFromFilterV136,
-  getGostaCategorySeedQueriesV136,
-  getOfferCategoryV106,
-  getOfferProductTitleV113,
-  getOfferSearchTextV106,
-  isBadOfferSearchResultV106,
-  isGostaCategorySelectionV136,
-  isKnownOfferCategoryFilterV113,
-} from "./components/ziiply/offerSearch/ziiplyOfferCategoryCore";
-import {
+  GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147,
   cleanZiiplyGostaOfferResultsV146,
   filterZiiplyGostaOfferResultsV146,
+  isZiiplyGostaCategorySelectionV147,
+  mapZiiplyGostaOfferToCardOfferV147,
   searchZiiplyGostaOffersV146,
 } from "./components/ziiply/offerSearch/ziiplyOfferSearchCore";
 
@@ -6901,41 +6893,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const hasExplicitOverride = typeof termOverride === "string";
     const cleanedOverride = String(termOverride ?? "").trim();
     const useTerms = hasExplicitOverride ? parseTerms(cleanedOverride) : terms;
-    const offerQuerySnapshot =
-      useTerms.join(", ").trim() || (hasExplicitOverride ? cleanedOverride : input.trim());
-    const categorySearchLabelV136 = isGostaCategorySelectionV136(offerQuerySnapshot)
-      ? getGostaCategoryLabelFromFilterV136(offerQuerySnapshot)
-      : "";
-    const normalizedCategorySearchV136 = normalize(categorySearchLabelV136).trim();
-    const searchAllAreaOffers = !offerQuerySnapshot || normalizedCategorySearchV136 === "kaikki";
-    const searchByCategoryV136 =
-      !!categorySearchLabelV136 &&
-      normalizedCategorySearchV136 !== "kaikki" &&
-      isKnownOfferCategoryFilterV113(normalizedCategorySearchV136);
-    const offerSearchTrackingKeyV136 = searchAllAreaOffers
-      ? "__all_area_offers_category_seeded__"
-      : searchByCategoryV136
-        ? `__category_${normalizedCategorySearchV136}__`
-        : offerQuerySnapshot;
-
-    trackZiiplyEvent("gosta_offer_api_search_used", {
-      query: offerSearchTrackingKeyV136,
-      cartItemsCount: cart.length,
-      storeMode,
-      sStoreName: activeStores.sStoreName,
-      kStoreName: activeStores.kStoreName,
-    });
 
     if (hasExplicitOverride) setInput(cleanedOverride);
 
-    setOfferSearchQuerySnapshot(searchByCategoryV136 ? categorySearchLabelV136 : offerQuerySnapshot);
-    // V136: tuoteryhmächip ei ole enää pelkkä jälkisuodatin "Kaikki"-massalle,
-    // vaan se käynnistää oman ryhmäkohtaisen tarjoushaun. Filtteri pidetään silti
-    // valitussa ryhmässä, jotta mahdolliset väärät sivuosumat poistuvat.
-    setOfferCardFilterV106(
-      searchAllAreaOffers ? "" : searchByCategoryV136 ? categorySearchLabelV136 : offerQuerySnapshot,
-    );
-    setOfferShowingAllAreaOffersV106(searchAllAreaOffers);
     setHasSearchedOffers(true);
     setLoadingOffers(true);
     setOffers([]);
@@ -6954,6 +6914,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         terms: useTerms,
       });
 
+      trackZiiplyEvent("gosta_offer_api_search_used", {
+        query: offerSearchCoreResult.trackingKey,
+        cartItemsCount: cart.length,
+        storeMode,
+        sStoreName: activeStores.sStoreName,
+        kStoreName: activeStores.kStoreName,
+      });
+
+      setOfferSearchQuerySnapshot(offerSearchCoreResult.querySnapshot);
+      setOfferCardFilterV106(offerSearchCoreResult.cardFilter);
+      setOfferShowingAllAreaOffersV106(offerSearchCoreResult.showingAllAreaOffers);
       setOfferSearchResults(offerSearchCoreResult.results);
       setOfferSearchDoneForQuery(offerSearchCoreResult.trackingKey);
     } catch (error) {
@@ -6969,7 +6940,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const nextValue = String(value || "").trim();
     setOfferCardFilterV106(nextValue);
 
-    if (isGostaCategorySelectionV136(nextValue)) {
+    if (isZiiplyGostaCategorySelectionV147(nextValue)) {
       void searchOffers(nextValue);
     }
   }
@@ -15055,29 +15026,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             open={true}
             title="Tarjoushaku"
             query={offerSearchQuerySnapshot || input}
-            offers={visibleOfferSearchResultsV106.map((item) => ({
-              id: item.id,
-              name: item.title,
-              title: item.title,
-              productName: item.title,
-              storeName: item.storeLabel,
-              chain: item.chain,
-              price: item.priceText,
-              offerPrice: item.priceText,
-              normalPrice: item.unitPriceText,
-              originalPrice: item.unitPriceText,
-              discountText: item.benefitText || item.validityText,
-              image: item.imageUrl,
-              imageUrl: item.imageUrl,
-              pictureUrl: item.imageUrl,
-              productUrl: item.productUrl,
-              category: getOfferCategoryV106(item),
-              __sourceOfferSearchResult: item,
-            }))}
+            offers={visibleOfferSearchResultsV106.map(mapZiiplyGostaOfferToCardOfferV147)}
             filter={offerCardFilterV106}
             onFilterChange={handleGostaFilterChangeV136}
             onSearch={(value: string) => void searchOffers(value)}
-            categorySuggestions={GOSTA_CATEGORY_LABELS_V136}
+            categorySuggestions={GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147}
             loading={loadingOffers}
             emptyText={offerShowingAllAreaOffersV106 ? "Alueen tarjouksia ei löytynyt vielä." : "Gösta ei löytänyt tarjouksia tälle rajaukselle."}
             onBack={() => {
