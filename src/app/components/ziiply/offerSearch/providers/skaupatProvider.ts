@@ -1,17 +1,11 @@
 // ============================================================================
-// SKAUPAT_PROVIDER_V148_REMOTE_FILTERED_PRODUCTS_CATEGORY_FACETS
-// Revision: V148
+// SKAUPAT_PROVIDER_V149_TYPESCRIPT_RETURN_FIX
+// Revision: V149
 // Date: 2026-06-05
 //
-// Purpose:
-// - Replaces/extends S-kaupat offer provider with RemoteFilteredProducts lookup.
-// - Uses S-kaupat GraphQL persisted query discovered from browser Network:
-//   operationName=RemoteFilteredProducts
-//   facets: brandName, category, labels
-// - Adds category/categoryPath/breadcrumbs/productGroup metadata to results
-//   whenever S-kaupat response exposes it.
-// - Keeps output compatible with existing offerSearch/types.ts and
-//   ziiplyOfferSearchSources.ts fetchSKaupatOffers(query, config).
+// Fix:
+// - Adds explicit return type to recursive firstString helper.
+// - Keeps V148 RemoteFilteredProducts/category facet logic unchanged.
 //
 // Install path:
 // src/app/components/ziiply/offerSearch/providers/skaupatProvider.ts
@@ -40,7 +34,7 @@ function asArray(value: unknown): unknown[] {
   return Array.isArray(value) ? value : [];
 }
 
-function firstString(...values: unknown[]) {
+function firstString(...values: unknown[]): string {
   for (const value of values) {
     if (value == null) continue;
 
