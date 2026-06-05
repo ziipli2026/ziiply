@@ -1,6 +1,6 @@
 // ============================================================================
 // SKAUPAT_PROVIDER_V153_EXPLICIT_PATH_VISIBLE_DIAGNOSTICS
-// Revision: V157
+// Revision: V158
 // Date: 2026-06-05
 //
 // Fix:
@@ -266,6 +266,31 @@ function formatComparisonPrice(price: unknown, unit: unknown): string {
   return `${number.toFixed(2).replace(".", ",")} €/${normalizedUnit.toLowerCase()}`;
 }
 
+function formatRawPriceDebugValue(label: string, value: unknown): string {
+  if (value == null || value === "") return `${label}=∅`;
+  if (typeof value === "number") return `${label}=${value}`;
+  if (typeof value === "string") return `${label}="${value}"`;
+  const record = asRecord(value);
+  if (record) return `${label}={${Object.keys(record).slice(0, 6).join(",")}}`;
+  return `${label}=${String(value)}`;
+}
+
+function buildSPriceDebugText(product: UnknownRecord, pricing: UnknownRecord): string {
+  return [
+    formatRawPriceDebugValue("p.price", product.price),
+    formatRawPriceDebugValue("p.comp", product.comparisonPrice),
+    formatRawPriceDebugValue("p.compUnit", product.comparisonUnit),
+    formatRawPriceDebugValue("cur", pricing.currentPrice),
+    formatRawPriceDebugValue("camp", pricing.campaignPrice),
+    formatRawPriceDebugValue("reg", pricing.regularPrice),
+    formatRawPriceDebugValue("low30", pricing.lowest30DayPrice),
+    formatRawPriceDebugValue("cmp", pricing.comparisonPrice),
+    formatRawPriceDebugValue("cmpUnit", pricing.comparisonUnit),
+    formatRawPriceDebugValue("salesUnit", pricing.salesUnit),
+    formatRawPriceDebugValue("valid", pricing.campaignPriceValidUntil),
+  ].join(" | ");
+}
+
 function buildSCloudImageUrl(urlTemplate: string): string {
   if (!urlTemplate) return "";
 
@@ -443,9 +468,16 @@ function mapSProductListItemToOfferResult(
     regularPrice != null &&
     Number(currentPrice) < Number(regularPrice);
 
-  const benefitText = isCampaign
-    ? `Kampanja${regularPrice ? `, normaalisti ${formatPrice(regularPrice)}` : ""}`
-    : labelsText;
+  const priceDebugText = buildSPriceDebugText(product, pricing);
+
+  const benefitText = [
+    isCampaign
+      ? `Kampanja${regularPrice ? `, normaalisti ${formatPrice(regularPrice)}` : ""}`
+      : labelsText,
+    `DEBUG HINTA: ${priceDebugText}`,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
   const rawText = [
     title,
