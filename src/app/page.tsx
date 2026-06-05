@@ -1,3 +1,8 @@
+// V142_WITHIN_CHAIN_HYPER_LOCAL_RESTORE
+// Korjaus V141:n väärään tulkintaan: Ketjun sisältä vertailee saman ketjun tavarataloa ja lähikauppaa.
+// S-ryhmä: Prisma vs S-market/Sale/Alepa. K-ryhmä: K-Citymarket vs K-Supermarket/K-Market.
+// V139/V140 säilyvät: Ketjujen väliltä käyttää samaa tasoa eikä ABC/huoltoasemamyymälöitä oteta mukaan.
+
 // V141_WITHIN_CHAIN_RESPECTS_SELECTED_STORE_LEVEL
 // Korjaus: Ketjun sisältä ei enää pakota Kauppa 1 = tavaratalo ja Kauppa 2 = lähikauppa.
 // Molemmat valintaruudut käyttävät valittua tasoa (Tavaratalot tai Lähikaupat).
@@ -12444,9 +12449,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     slotMode: StoreMode,
     levelMode: StoreMode = slotMode,
   ) {
-    // V141: Ketjun sisällä -näkymässä slotMode kertoo mihin activeArea-slottiin valinta tallennetaan
-    // (Kauppa 1 / Kauppa 2), mutta levelMode kertoo mitä kauppatasoa käyttäjä oikeasti katsoo.
-    // Näin Tavaratalot ei enää näytä Sale/K-Marketia toisessa ruudussa, eikä Lähikaupat näytä Prismaa/KCM:ää.
+    // V142: Ketjun sisällä -näkymässä slotMode kertoo mihin activeArea-slottiin valinta tallennetaan
+    // ja levelMode kertoo valintaikkunan kauppatason. Kauppa 1 = tavaratalo, Kauppa 2 = lähikauppa.
+    // Tämä palauttaa V136/V140-käytöksen, mutta säilyttää ABC-poiston ja tiukan S/K-formaattijaon.
     const selectedId = getSelectedStoreIdFor(chain, slotMode);
     const selectedName = getSelectedStoreNameFor(chain, slotMode);
     const otherMode: StoreMode = slotMode === "hyper" ? "local" : "hyper";
@@ -12893,18 +12898,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             {chainCards.map((store) => {
               const selected = selectedChainKey === store.key;
               const chain = store.key === "s" ? "S" : "K";
-              const levelMode: StoreMode = storeMode;
-              // V141: activeArea:ssa on vain kaksi slottia per ketju. Käytetään valittua tasoa
-              // ensisijaisena slottina ja toista slottia saman tason toiselle kaupalle.
-              // Vaihtoehdot suodatetaan silti aina levelModeen, joten väärän tason kauppa ei näy.
-              const modeA: StoreMode = levelMode;
-              const modeB: StoreMode = levelMode === "hyper" ? "local" : "hyper";
-              const selectedStoreA = findStoreForWithinChainSlotV141(chain, modeA, levelMode);
-              const selectedStoreB = findStoreForWithinChainSlotV141(chain, modeB, levelMode);
+              // V142: Ketjun sisällä verrataan nimenomaan saman ketjun formaatteja:
+              // Kauppa 1 = tavaratalo, Kauppa 2 = lähikauppa.
+              // Ylävalinta Tavaratalot/Lähikaupat ei saa lukita ketjun sisäistä näkymää kahteen saman tason kauppaan.
+              const modeA: StoreMode = "hyper";
+              const modeB: StoreMode = "local";
+              const selectedStoreA = findStoreForWithinChainSlotV141(chain, modeA, modeA);
+              const selectedStoreB = findStoreForWithinChainSlotV141(chain, modeB, modeB);
               const storeNameA =
-                selectedStoreA?.name || getWithinChainSlotPlaceholderV141(levelMode, 1);
+                selectedStoreA?.name || getWithinChainSlotPlaceholderV141(modeA, 1);
               const storeNameB =
-                selectedStoreB?.name || getWithinChainSlotPlaceholderV141(levelMode, 2);
+                selectedStoreB?.name || getWithinChainSlotPlaceholderV141(modeB, 2);
               const distanceA = getStoreDistanceLabelV320(selectedStoreA);
               const distanceB = getStoreDistanceLabelV320(selectedStoreB);
 
@@ -13017,14 +13021,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                           modeA,
                           `${store.key}-within-hyper`,
                           compact,
-                          levelMode,
+                          modeA,
                         )}
                         {renderStorePickerMenu(
                           chain,
                           modeA,
                           `${store.key}-within-hyper`,
                           compact,
-                          levelMode,
+                          modeA,
                         )}
                       </div>
                       <div
@@ -13056,14 +13060,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                           modeB,
                           `${store.key}-within-local`,
                           compact,
-                          levelMode,
+                          modeB,
                         )}
                         {renderStorePickerMenu(
                           chain,
                           modeB,
                           `${store.key}-within-local`,
                           compact,
-                          levelMode,
+                          modeB,
                         )}
                       </div>
                     </div>
