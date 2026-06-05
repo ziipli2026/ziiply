@@ -1,15 +1,14 @@
 // ============================================================================
-// SKAUPAT_PROVIDER_V150_REMOTE_PRODUCTS_DEEP_SCAN_NO_EMPTY_BREAK
-// Revision: V150
+// SKAUPAT_PROVIDER_V151_REMOTE_PRODUCTS_DEBUG_VISIBLE_BREAK
+// Revision: V151
 // Date: 2026-06-05
 //
 // Fix after V149:
-// - V149 build passed but Gösta returned zero results.
-// - This version does NOT stop at the first matching array.
-// - It deep-scans the whole S-kaupat RemoteFilteredProducts JSON tree for
-//   product-like objects.
-// - If S-kaupat response shape changes, this is much more tolerant.
-// - Keeps category/facet metadata support from V148/V149.
+// - V150 still returned zero visible results.
+//// - Adds a visible diagnostic offer row if RemoteFilteredProducts returns
+////   no parseable products or throws.
+//// - This tells whether S-kaupat API is reachable from Vercel and whether
+////   parser sees category facets/product-like objects.
 //
 // Install path:
 // src/app/components/ziiply/offerSearch/providers/skaupatProvider.ts
@@ -631,7 +630,7 @@ async function fetchSKaupatRemoteFilteredProductsV150(
   const fallbackFacetNames = extractCategoryFacetNames(data);
   const productItems = collectProductObjects(data);
 
-  return productItems
+  const results = productItems
     .map((item, index) =>
       mapSProductToOfferResult(item, {
         query,
@@ -641,6 +640,38 @@ async function fetchSKaupatRemoteFilteredProductsV150(
       }),
     )
     .filter((item) => String((item as any).title || "").trim().length > 1);
+
+  if (results.length === 0) {
+    const topKeys = asRecord(data)
+      ? Object.keys(data as UnknownRecord).slice(0, 8).join(", ")
+      : typeof data;
+
+    return [
+      {
+        id: `skaupat-debug-empty-${Date.now()}`,
+        source: config.id,
+        sourceUrl: config.url,
+        chain: config.chain,
+        storeLabel: config.storeLabel,
+        title: `DEBUG S-kaupat: API vastasi, mutta tuotteita ei parsittu`,
+        priceText: "",
+        unitPriceText: "",
+        benefitText: `query="${query}" facets=${fallbackFacetNames.length} products=${productItems.length} topKeys=${topKeys}`,
+        validityText: "V151 diagnostics",
+        imageUrl: "",
+        productUrl: "",
+        rawText: `DEBUG SKAUPAT EMPTY query ${query} facets ${fallbackFacetNames.join(" ")}`,
+        matchScore: 999,
+        category: "Muut",
+        categoryPath: fallbackFacetNames.join(" / "),
+        breadcrumbs: fallbackFacetNames.join(" / "),
+        department: "",
+        productGroup: "",
+      } as unknown as ZiiplyOfferSearchResult,
+    ];
+  }
+
+  return results;
 }
 
 export async function fetchSKaupatOffers(
@@ -654,6 +685,29 @@ export async function fetchSKaupatOffers(
     return await fetchSKaupatRemoteFilteredProductsV150(cleanQuery, config);
   } catch (error) {
     console.warn("[Ziiply offers] S-kaupat RemoteFilteredProducts failed", error);
-    return [];
+
+    return [
+      {
+        id: `skaupat-debug-error-${Date.now()}`,
+        source: config.id,
+        sourceUrl: config.url,
+        chain: config.chain,
+        storeLabel: config.storeLabel,
+        title: `DEBUG S-kaupat: API-haku epäonnistui`,
+        priceText: "",
+        unitPriceText: "",
+        benefitText: String(error instanceof Error ? error.message : error),
+        validityText: "V151 diagnostics",
+        imageUrl: "",
+        productUrl: "",
+        rawText: `DEBUG SKAUPAT ERROR query ${cleanQuery}`,
+        matchScore: 999,
+        category: "Muut",
+        categoryPath: "",
+        breadcrumbs: "",
+        department: "",
+        productGroup: "",
+      } as unknown as ZiiplyOfferSearchResult,
+    ];
   }
 }
