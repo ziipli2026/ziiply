@@ -1,11 +1,13 @@
 // ============================================================================
 // SKAUPAT_PROVIDER_V153_EXPLICIT_PATH_VISIBLE_DIAGNOSTICS
-// Revision: V153
+// Revision: V154
 // Date: 2026-06-05
 //
 // Fix:
-// - Adds visible diagnostics on top of V152.
-// - Uses the real S-kaupat RemoteFilteredProducts response structure:
+// - Fixes real S-kaupat product list field:
+////   data.store.products.productListItems[]
+//// - V153 proved rootKeys include productListItems, not products.
+//// - Keeps visible diagnostics temporarily.
 //   data.store.products.products[]
 //   data.store.products.structuredFacets[]
 // - Reads category facet from structuredFacets where key === "category"
@@ -106,7 +108,16 @@ function getSProductListItems(data: unknown): UnknownRecord[] {
   const root = getSProductsRoot(data);
   if (!root) return [];
 
-  return asArray(root.products)
+  const list =
+    asArray(root.productListItems).length > 0
+      ? asArray(root.productListItems)
+      : asArray(root.products).length > 0
+        ? asArray(root.products)
+        : asArray(root.items).length > 0
+          ? asArray(root.items)
+          : [];
+
+  return list
     .map(asRecord)
     .filter(Boolean) as UnknownRecord[];
 }
@@ -127,12 +138,21 @@ function getCategoryFacetNames(data: unknown): string[] {
 
   if (!categoryFacet) return [];
 
-  return asArray(categoryFacet.objectValue)
+  const values =
+    asArray(categoryFacet.objectValue).length > 0
+      ? asArray(categoryFacet.objectValue)
+      : asArray(categoryFacet.stringValue).length > 0
+        ? asArray(categoryFacet.stringValue)
+        : asArray(categoryFacet.values).length > 0
+          ? asArray(categoryFacet.values)
+          : [];
+
+  return values
     .map((entry) => {
       const record = asRecord(entry);
       if (!record) return firstString(entry);
 
-      return firstString(record.name, record.label, record.title, record.value);
+      return firstString(record.name, record.label, record.title, record.value, record.slug);
     })
     .filter(Boolean);
 }
@@ -144,13 +164,26 @@ function getCategoryFacetPaths(data: unknown): Array<{ name: string; value: stri
 
   if (!categoryFacet) return [];
 
-  return asArray(categoryFacet.objectValue)
+  const values =
+    asArray(categoryFacet.objectValue).length > 0
+      ? asArray(categoryFacet.objectValue)
+      : asArray(categoryFacet.stringValue).length > 0
+        ? asArray(categoryFacet.stringValue)
+        : asArray(categoryFacet.values).length > 0
+          ? asArray(categoryFacet.values)
+          : [];
+
+  return values
     .map((entry) => {
       const record = asRecord(entry);
-      if (!record) return null;
 
-      const name = firstString(record.name, record.label, record.title);
-      const value = firstString(record.value, record.slug);
+      if (!record) {
+        const name = firstString(entry);
+        return name ? { name, value: name } : null;
+      }
+
+      const name = firstString(record.name, record.label, record.title, record.value);
+      const value = firstString(record.value, record.slug, record.name);
       const count = typeof record.doc_count === "number" ? record.doc_count : undefined;
 
       if (!name && !value) return null;
@@ -428,13 +461,13 @@ function buildRemoteFilteredProductsUrl(query: string): string {
       { key: "category" },
       { key: "labels" },
     ],
-    generatedSessionId: "ziiply-gosta-v153",
+    generatedSessionId: "ziiply-gosta-v154",
     fetchSponsoredContent: true,
     limit: 48,
     queryString: query,
     storeId: DEFAULT_SKAUPAT_STORE_ID_V152,
     useRandomId: false,
-    marketingId: "ziiply-gosta-v153",
+    marketingId: "ziiply-gosta-v154",
   };
 
   const extensions = {
@@ -493,19 +526,19 @@ async function fetchSKaupatRemoteFilteredProductsV152(
   const rootKeys = root ? Object.keys(root).join(",") : "NO_ROOT";
 
   const debugRow = {
-    id: `skaupat-debug-v153-${query}`,
+    id: `skaupat-debug-v154-${query}`,
     source: config.id,
     sourceUrl: config.url,
     chain: config.chain,
     storeLabel: config.storeLabel,
-    title: `DEBUG V153 S-kaupat polku`,
+    title: `DEBUG V154 S-kaupat polku`,
     priceText: "",
     unitPriceText: "",
     benefitText: `query="${query}" rootKeys=${rootKeys} listItems=${listItems.length} mapped=${mappedResults.length} facets=${fallbackFacetNames.length} catPaths=${categoryFacetPaths.length} first="${firstTitle}"`,
-    validityText: "V153 diagnostics",
+    validityText: "V154 diagnostics",
     imageUrl: "",
     productUrl: "",
-    rawText: `DEBUG V153 S-kaupat ${query} ${firstTitle} ${fallbackFacetNames.join(" ")}`,
+    rawText: `DEBUG V154 S-kaupat ${query} ${firstTitle} ${fallbackFacetNames.join(" ")}`,
     matchScore: 9999,
     category: "Muut",
     categoryPath: fallbackFacetNames.slice(0, 5).join(" / "),
