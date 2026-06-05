@@ -1,3 +1,9 @@
+// V137_GPS_BACKGROUND_WATCHDOG_SILENT_REFRESH
+// Pohja V136. GPS-watchdog päivittää kauppalistan taustalla, kun liike ylittää rajan
+// tai edellisestä taustapäivityksestä on kulunut tarpeeksi aikaa.
+// Taustapäivitys EI näytä "Päivitetään sijaintia" / "Oma sijainti päivitetty" -notif-tekstejä.
+// Manuaalinen GPS-nappi näyttää edelleen normaalit GPS-tilatekstit.
+
 // V136_GOSTA_CATEGORY_SEARCH_ONLY_NO_POSTFILTER_MASS
 // Pohja: käyttäjän viimeisin V135 page.
 // Korjaus Göstaan:
@@ -2169,6 +2175,9 @@ export default function Page() {
   const gpsLastSilentAreaRefV391 = useRef("");
   const gpsPollRefreshInFlightRefV90 = useRef(false);
   const gpsPollLastAppliedAtRefV90 = useRef(0);
+  const gpsPollLastAppliedCoordsRefV137 = useRef<{ latitude: number; longitude: number } | null>(null);
+  const gpsCoordsLatestRefV137 = useRef<{ latitude: number; longitude: number } | null>(null);
+  const storeSearchLoadingLatestRefV137 = useRef(false);
   const gpsFailTimerRefV391 = useRef<number | null>(null);
   const gpsSearchInFlightRefV465 = useRef(false);
   const gpsInitialSearchStartedRefV465 = useRef(false);
@@ -2176,6 +2185,15 @@ export default function Page() {
   const weatherBootApplyInFlightRefV481 = useRef(false);
   const gpsBootTimerRefV483 = useRef<number | null>(null);
   const gpsBootWatchdogRefV483 = useRef<number | null>(null);
+
+  useEffect(() => {
+    gpsCoordsLatestRefV137.current = gpsCoordsV320;
+  }, [gpsCoordsV320]);
+
+  useEffect(() => {
+    storeSearchLoadingLatestRefV137.current = storeSearchLoading;
+  }, [storeSearchLoading]);
+
   // V485_MANUAL_GPS_SUCCESS_GUARD:
   // Kun manuaalinen GPS-haku onnistuu, vihreä nuppineula / LocationBar / StoreLocaCard
   // ei saa laukaista samaa GPS-hakua uudestaan. Tämä lukko koskee vain uutta
@@ -6306,12 +6324,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     queryOverride?: string,
     source: "manual" | "gps" = "manual",
     coordsOverride?: { latitude: number; longitude: number } | null,
+    silentStatusV137 = false,
   ) {
     pushGpsDebugLogV492(`applyLocation() ENTRY source=${source} query=${String(queryOverride || locationInput)}`);
     const rawQuery = (queryOverride || locationInput).trim();
+    const setLocationStatusV137 = (message: string) => {
+      if (!silentStatusV137) setLocationMessage(message);
+    };
 
     if (!rawQuery) {
-      setLocationMessage("Kirjoita ensin kaupunki, alue tai postinumero");
+      setLocationStatusV137("Kirjoita ensin kaupunki, alue tai postinumero");
       return;
     }
 
@@ -6321,7 +6343,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     setStoreSearchLoading(true);
-    setLocationMessage(
+    setLocationStatusV137(
       source === "gps"
         ? `Haetaan kauppoja alueelle ${rawQuery}`
         : `Haetaan kauppoja alueelle ${rawQuery}`,
@@ -6331,12 +6353,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       let query = rawQuery;
 
       if (isFinnishPostalCode(rawQuery)) {
-        setLocationMessage(`Haetaan aluetta postinumerolle ${rawQuery}`);
+        setLocationStatusV137(`Haetaan aluetta postinumerolle ${rawQuery}`);
         const cityFromPostalCode = await resolvePostalCodeToCity(rawQuery);
 
         if (!cityFromPostalCode) {
           setFoundStores([]);
-          setLocationMessage(
+          setLocationStatusV137(
             `Postinumeroa "${rawQuery}" ei tunnistettu. Valitse alue käsin.`,
           );
           return;
@@ -6352,7 +6374,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         source,
       });
 
-      setLocationMessage(
+      setLocationStatusV137(
         `Haetaan kauppoja alueelle ${query}`,
       );
       const stores = await fetchStoresForLocationQuery(
@@ -6371,7 +6393,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setFoundStores(storesWithDistanceV97);
 
       if (storesWithDistanceV97.length === 0) {
-        setLocationMessage(
+        setLocationStatusV137(
           `Alueelle "${query}" ei löytynyt kauppoja. Valitse alue käsin.`,
         );
         return;
@@ -6450,11 +6472,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           : !ranked.sHyper || !ranked.kHyper;
 
       if (modeMissing) {
-        setLocationMessage(
+        setLocationStatusV137(
           `${nextArea.label || query} löytyi, mutta kaikkia ${effectiveStoreModeForLocationMessage === "local" ? "lähikauppoja" : "tavarataloja"} ei löytynyt. Voit valita kaupat listasta.`,
         );
       } else {
-        setLocationMessage(source === "gps" ? "Oma sijainti käytössä" : `${nextArea.label || query || "GPS"} käytössä`);
+        setLocationStatusV137(source === "gps" ? "Oma sijainti käytössä" : `${nextArea.label || query || "GPS"} käytössä`);
       }
     } catch (error) {
       pushGpsDebugLogV492(`useOwnLocation CATCH code=${String((error as any)?.code ?? "?")}`);
@@ -6472,7 +6494,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       } else {
         setGpsErrorMessage("GPS ei löydy");
       }
-      setLocationMessage(
+      setLocationStatusV137(
         source === "gps"
           ? "Sijainti löytyi, mutta kauppahaku epäonnistui. Valitse alue käsin."
           : "Kauppahaku epäonnistui. Valitse alue käsin.",
@@ -6481,7 +6503,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setStoreSearchLoading(false);
       if (source === "gps") {
         setGpsErrorMessage("");
-        setLocationMessageVisible(true);
+        if (!silentStatusV137) setLocationMessageVisible(true);
       }
     }
   }
@@ -6519,7 +6541,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setUsingOwnLocation(true);
     setGpsCoordsV320(coords);
     setStoreSearchLoading(true);
-    setLocationMessage("Paikannetaan GPS");
+    setLocationStatusV137("Paikannetaan GPS");
     setLocationMessageVisible(true);
 
     try {
@@ -6528,7 +6550,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       if (!city) {
         pushGpsDebugLogV492(`useOwnLocation reverse geocode EMPTY`);
         setGpsErrorMessage("GPS ei löydy");
-        setLocationMessage("GPS ei löydy");
+        setLocationStatusV137("GPS ei löydy");
         setLocationMessageVisible(true);
         setUsingOwnLocation(false);
         setGpsCoordsV320(null);
@@ -6537,7 +6559,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
 
       setGpsErrorMessage("");
-      setLocationMessage(`${city} käytössä`);
+      setLocationStatusV137(`${city} käytössä`);
       setLocationMessageVisible(true);
       setLocationInput("");
       await applyLocation(city, "gps", coords);
@@ -6545,7 +6567,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       pushGpsDebugLogV492(`useOwnLocation CATCH code=${String((error as any)?.code ?? "?")}`);
       console.error(error);
       setGpsErrorMessage("GPS ei löydy");
-      setLocationMessage("GPS ei löydy");
+      setLocationStatusV137("GPS ei löydy");
       setLocationMessageVisible(true);
       setUsingOwnLocation(false);
       setGpsCoordsV320(null);
@@ -6715,6 +6737,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setStoreModeChosenV299(true);
       pushGpsDebugLogV492(`useOwnLocation applyLocation start`);
       await applyLocation(city, "gps", nextGpsCoordsV485);
+      gpsPollLastAppliedCoordsRefV137.current = nextGpsCoordsV485;
+      gpsPollLastAppliedAtRefV90.current = Date.now();
       gpsApplyLocationDoneV495 = true;
       pushGpsDebugLogV492(`useOwnLocation applyLocation done`);
 
@@ -6794,20 +6818,27 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
   }
 
-  // V480_NO_OWN_GPS_BOOT_MANUAL_ONLY:
-  // Oma sovellus EI käynnistä GPS-paikannusta reloadissa/startissa.
-  // Tämä poistaa vanhan fallback/autostart-polun, joka pakotti GPS:n päälle avauksessa.
+  // V137_GPS_BACKGROUND_WATCHDOG_SILENT_REFRESH:
+  // Kun GPS on päällä, paikkatieto tarkistetaan taustalla. Kaupat haetaan uudelleen vain,
+  // jos liike edellisestä kauppahakuun käytetystä sijainnista ylittää rajan tai
+  // edellisestä päivityksestä on kulunut riittävästi aikaa. Taustapäivitys ei näytä
+  // sijainnin notif-tekstejä.
   useEffect(() => {
     if (!usingOwnLocation || gpsUserDisabledRefV306.current) return;
     if (typeof navigator === "undefined" || !navigator.geolocation) return;
 
     let cancelled = false;
 
-    const runGpsPollRefreshV90 = () => {
+    if (!gpsPollLastAppliedCoordsRefV137.current && gpsCoordsLatestRefV137.current) {
+      gpsPollLastAppliedCoordsRefV137.current = gpsCoordsLatestRefV137.current;
+      gpsPollLastAppliedAtRefV90.current = Date.now();
+    }
+
+    const runGpsBackgroundWatchdogV137 = () => {
       if (cancelled) return;
       if (gpsPollRefreshInFlightRefV90.current) return;
       if (gpsSearchInFlightRefV465.current || ziiplyGpsHardInFlightV469) return;
-      if (storeSearchLoading) return;
+      if (storeSearchLoadingLatestRefV137.current) return;
 
       gpsPollRefreshInFlightRefV90.current = true;
 
@@ -6821,18 +6852,22 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               longitude: position.coords.longitude,
             };
 
-            const previousCoords = gpsCoordsV320;
-            const movedMeters = previousCoords
-              ? getDistanceMetersV391(previousCoords, nextCoords)
+            gpsCoordsLatestRefV137.current = nextCoords;
+            setGpsCoordsV320(nextCoords);
+
+            const previousAppliedCoords = gpsPollLastAppliedCoordsRefV137.current;
+            const movedMeters = previousAppliedCoords
+              ? getDistanceMetersV391(previousAppliedCoords, nextCoords)
               : Number.POSITIVE_INFINITY;
             const elapsedMs = Date.now() - gpsPollLastAppliedAtRefV90.current;
 
-            setGpsCoordsV320(nextCoords);
-
-            // Älä aja kauppahakua joka pienestä GPS-heilahtelusta.
-            if (movedMeters < ZIIPLY_GPS_REFRESH_MIN_MOVED_METERS_V92 && elapsedMs < ZIIPLY_GPS_REFRESH_FORCE_AFTER_MS_V92) return;
-
-            gpsPollLastAppliedAtRefV90.current = Date.now();
+            if (
+              previousAppliedCoords &&
+              movedMeters < ZIIPLY_GPS_REFRESH_MIN_MOVED_METERS_V92 &&
+              elapsedMs < ZIIPLY_GPS_REFRESH_FORCE_AFTER_MS_V92
+            ) {
+              return;
+            }
 
             const city = await reverseGeocodeCity(
               nextCoords.latitude,
@@ -6841,13 +6876,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
             if (!city || cancelled) return;
 
+            gpsPollLastAppliedCoordsRefV137.current = nextCoords;
+            gpsPollLastAppliedAtRefV90.current = Date.now();
+
             setUsingOwnLocation(true);
             setGpsErrorMessage("");
             setLocationInput("");
-            setLocationMessage("Päivitetään sijaintia");
-            setLocationMessageVisible(true);
 
-            await applyLocation(city, "gps", nextCoords);
+            await applyLocation(city, "gps", nextCoords, true);
 
             if (cancelled) return;
 
@@ -6855,8 +6891,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             setGpsErrorMessage("");
             setLocationInput("");
             setStoreSearchLoading(false);
-            setLocationMessage("Oma sijainti päivitetty");
-            setLocationMessageVisible(true);
+            setLocationMessageVisible(false);
           } catch (error) {
             console.error(error);
           } finally {
@@ -6875,16 +6910,21 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       );
     };
 
-    // Ensimmäinen päivitys vähän viiveellä, ettei se törmää boot/manual GPS-starttiin.
-    const firstTimer = window.setTimeout(runGpsPollRefreshV90, ZIIPLY_GPS_REFRESH_FIRST_DELAY_MS_V92);
-    const interval = window.setInterval(runGpsPollRefreshV90, ZIIPLY_GPS_REFRESH_INTERVAL_MS_V92);
+    const firstTimer = window.setTimeout(
+      runGpsBackgroundWatchdogV137,
+      ZIIPLY_GPS_REFRESH_FIRST_DELAY_MS_V92,
+    );
+    const interval = window.setInterval(
+      runGpsBackgroundWatchdogV137,
+      ZIIPLY_GPS_REFRESH_INTERVAL_MS_V92,
+    );
 
     return () => {
       cancelled = true;
       window.clearTimeout(firstTimer);
       window.clearInterval(interval);
     };
-  }, [usingOwnLocation, gpsCoordsV320, storeSearchLoading]);
+  }, [usingOwnLocation]);
 
 
   // Manuaalinen GPS-nappi käyttää edelleen useOwnLocation("manual") ja toimii normaalisti.
