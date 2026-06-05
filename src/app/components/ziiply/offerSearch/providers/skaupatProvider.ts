@@ -1,6 +1,6 @@
 // ============================================================================
 // SKAUPAT_PROVIDER_V153_EXPLICIT_PATH_VISIBLE_DIAGNOSTICS
-// Revision: V154
+// Revision: V155
 // Date: 2026-06-05
 //
 // Fix:
@@ -40,6 +40,46 @@ function asRecord(value: unknown): UnknownRecord | null {
 
 function asArray(value: unknown): unknown[] {
   return Array.isArray(value) ? value : [];
+}
+
+function coerceUnknownList(value: unknown): unknown[] {
+  if (Array.isArray(value)) return value;
+
+  const record = asRecord(value);
+  if (!record) return [];
+
+  const directArrays = [
+    record.items,
+    record.results,
+    record.nodes,
+    record.edges,
+    record.productListItems,
+    record.products,
+    record.listItems,
+  ];
+
+  for (const candidate of directArrays) {
+    if (Array.isArray(candidate)) {
+      if (candidate === record.edges) {
+        return candidate.map((edge) => {
+          const edgeRecord = asRecord(edge);
+          return edgeRecord?.node ?? edge;
+        });
+      }
+
+      return candidate;
+    }
+  }
+
+  const values = Object.values(record);
+  const objectValues = values.filter((entry) => entry && typeof entry === "object");
+
+  // Last-resort support for object maps like { "0": {...}, "1": {...} }.
+  if (objectValues.length > 0 && objectValues.length === values.length) {
+    return objectValues;
+  }
+
+  return [];
 }
 
 function firstString(...values: unknown[]): string {
@@ -109,28 +149,32 @@ function getSProductListItems(data: unknown): UnknownRecord[] {
   if (!root) return [];
 
   const list =
-    asArray(root.productListItems).length > 0
-      ? asArray(root.productListItems)
-      : asArray(root.products).length > 0
-        ? asArray(root.products)
-        : asArray(root.items).length > 0
-          ? asArray(root.items)
+    coerceUnknownList(root.productListItems).length > 0
+      ? coerceUnknownList(root.productListItems)
+      : coerceUnknownList(root.products).length > 0
+        ? coerceUnknownList(root.products)
+        : coerceUnknownList(root.items).length > 0
+          ? coerceUnknownList(root.items)
           : [];
 
   return list
-    .map(asRecord)
+    .map((entry) => {
+      const record = asRecord(entry);
+      if (!record) return null;
+
+      // Some GraphQL clients wrap list items in node/item/data.
+      return asRecord(record.node) || asRecord(record.item) || asRecord(record.data) || record;
+    })
     .filter(Boolean) as UnknownRecord[];
 }
-
 function getStructuredFacets(data: unknown): UnknownRecord[] {
   const root = getSProductsRoot(data);
   if (!root) return [];
 
-  return asArray(root.structuredFacets)
+  return coerceUnknownList(root.structuredFacets)
     .map(asRecord)
     .filter(Boolean) as UnknownRecord[];
 }
-
 function getCategoryFacetNames(data: unknown): string[] {
   const categoryFacet = getStructuredFacets(data).find(
     (facet) => normalizeText(facet.key) === "category",
@@ -273,7 +317,12 @@ function getCategoryMeta(product: UnknownRecord, fallbackFacetNames: string[]) {
 }
 
 function getProductFromListItem(item: UnknownRecord): UnknownRecord | null {
-  return asRecord(item.product);
+  return (
+    asRecord(item.product) ||
+    asRecord(item.node) ||
+    asRecord(item.item) ||
+    (firstString(item.name, item.ean, item.id) ? item : null)
+  );
 }
 
 function getPricing(product: UnknownRecord): UnknownRecord {
@@ -461,13 +510,13 @@ function buildRemoteFilteredProductsUrl(query: string): string {
       { key: "category" },
       { key: "labels" },
     ],
-    generatedSessionId: "ziiply-gosta-v154",
+    generatedSessionId: "ziiply-gosta-v155",
     fetchSponsoredContent: true,
     limit: 48,
     queryString: query,
     storeId: DEFAULT_SKAUPAT_STORE_ID_V152,
     useRandomId: false,
-    marketingId: "ziiply-gosta-v154",
+    marketingId: "ziiply-gosta-v155",
   };
 
   const extensions = {
@@ -521,24 +570,31 @@ async function fetchSKaupatRemoteFilteredProductsV152(
     )
     .filter(Boolean) as ZiiplyOfferSearchResult[];
 
-  const firstProduct = asRecord(listItems[0]?.product);
+  const firstListItem = asRecord(listItems[0]);
+  const firstProduct = firstListItem ? getProductFromListItem(firstListItem) : null;
   const firstTitle = firstProduct ? firstString(firstProduct.name, firstProduct.ean, firstProduct.id) : "";
   const rootKeys = root ? Object.keys(root).join(",") : "NO_ROOT";
+  const pli = root?.productListItems;
+  const pliType = Array.isArray(pli)
+    ? `array:${pli.length}`
+    : pli && typeof pli === "object"
+      ? `object:${Object.keys(pli as UnknownRecord).slice(0, 8).join(",")}`
+      : typeof pli;
 
   const debugRow = {
-    id: `skaupat-debug-v154-${query}`,
+    id: `skaupat-debug-v155-${query}`,
     source: config.id,
     sourceUrl: config.url,
     chain: config.chain,
     storeLabel: config.storeLabel,
-    title: `DEBUG V154 S-kaupat polku`,
+    title: `DEBUG V155 S-kaupat polku`,
     priceText: "",
     unitPriceText: "",
-    benefitText: `query="${query}" rootKeys=${rootKeys} listItems=${listItems.length} mapped=${mappedResults.length} facets=${fallbackFacetNames.length} catPaths=${categoryFacetPaths.length} first="${firstTitle}"`,
-    validityText: "V154 diagnostics",
+    benefitText: `query="${query}" rootKeys=${rootKeys} productListItems=${pliType} listItems=${listItems.length} mapped=${mappedResults.length} facets=${fallbackFacetNames.length} catPaths=${categoryFacetPaths.length} first="${firstTitle}"`,
+    validityText: "V155 diagnostics",
     imageUrl: "",
     productUrl: "",
-    rawText: `DEBUG V154 S-kaupat ${query} ${firstTitle} ${fallbackFacetNames.join(" ")}`,
+    rawText: `DEBUG V155 S-kaupat ${query} ${firstTitle} ${fallbackFacetNames.join(" ")}`,
     matchScore: 9999,
     category: "Muut",
     categoryPath: fallbackFacetNames.slice(0, 5).join(" / "),
