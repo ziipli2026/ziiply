@@ -1,3 +1,5 @@
+// V143_LOCATION_IMPORT_FROM_LOCATION_MODULE
+// Location resolver import siirretty offerSearch-polusta uuteen location-moduuliin.
 // V142_WITHIN_CHAIN_HYPER_LOCAL_RESTORE
 // Korjaus V141:n väärään tulkintaan: Ketjun sisältä vertailee saman ketjun tavarataloa ja lähikauppaa.
 // S-ryhmä: Prisma vs S-market/Sale/Alepa. K-ryhmä: K-Citymarket vs K-Supermarket/K-Market.
@@ -1023,7 +1025,7 @@ import {
   type ZiiplyStoreChain,
   type ZiiplyStoreKind,
   type ZiiplyStoreMode,
-} from "./components/ziiply/offerSearch/ziiplyLocationResolverCore";
+} from "./components/ziiply/location";
 
 const MOBILE_EAN_SCANNER_REGION_ID = `${EAN_SCANNER_REGION_ID}-mobile`;
 
