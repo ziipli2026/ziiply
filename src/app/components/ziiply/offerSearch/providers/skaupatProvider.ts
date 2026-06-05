@@ -1,6 +1,6 @@
 // ============================================================================
 // SKAUPAT_PROVIDER_V153_EXPLICIT_PATH_VISIBLE_DIAGNOSTICS
-// Revision: V156
+// Revision: V157
 // Date: 2026-06-05
 //
 // Fix:
@@ -563,7 +563,7 @@ async function fetchSKaupatRemoteFilteredProductsV152(
   const categoryFacetPaths = getCategoryFacetPaths(data);
   const listItems = getSProductListItems(data);
 
-  const mappedResults = listItems
+  return listItems
     .map((item, index) =>
       mapSProductListItemToOfferResult(item, {
         query,
@@ -573,50 +573,6 @@ async function fetchSKaupatRemoteFilteredProductsV152(
       }),
     )
     .filter(Boolean) as ZiiplyOfferSearchResult[];
-
-  const firstListItem = asRecord(listItems[0]);
-  const firstProduct = firstListItem ? getProductFromListItem(firstListItem) : null;
-  const firstTitle = firstProduct ? firstString(firstProduct.name, firstProduct.ean, firstProduct.id) : "";
-  const rootKeys = root ? Object.keys(root).join(",") : "NO_ROOT";
-  const pli = root?.productListItems;
-  const pliType = Array.isArray(pli)
-    ? `array:${pli.length}`
-    : pli && typeof pli === "object"
-      ? `object:${Object.keys(pli as UnknownRecord).slice(0, 8).join(",")}`
-      : typeof pli;
-  const total = firstString(root?.total);
-  const from = firstString(root?.from);
-  const limit = firstString(root?.limit);
-  const facetRaw = root?.structuredFacets;
-  const facetType = Array.isArray(facetRaw)
-    ? `array:${facetRaw.length}`
-    : facetRaw && typeof facetRaw === "object"
-      ? `object:${Object.keys(facetRaw as UnknownRecord).slice(0, 8).join(",")}`
-      : typeof facetRaw;
-
-  const debugRow = {
-    id: `skaupat-debug-v156-${query}`,
-    source: config.id,
-    sourceUrl: config.url,
-    chain: config.chain,
-    storeLabel: config.storeLabel,
-    title: `DEBUG V156 S-kaupat polku`,
-    priceText: "",
-    unitPriceText: "",
-    benefitText: `query="${query}" total=${total} from=${from} limit=${limit} rootKeys=${rootKeys} productListItems=${pliType} structuredFacets=${facetType} listItems=${listItems.length} mapped=${mappedResults.length} facets=${fallbackFacetNames.length} catPaths=${categoryFacetPaths.length} first="${firstTitle}"`,
-    validityText: "V156 diagnostics",
-    imageUrl: "",
-    productUrl: "",
-    rawText: `DEBUG V156 S-kaupat ${query} ${firstTitle} ${fallbackFacetNames.join(" ")}`,
-    matchScore: 9999,
-    category: "Muut",
-    categoryPath: fallbackFacetNames.slice(0, 5).join(" / "),
-    breadcrumbs: fallbackFacetNames.slice(0, 5).join(" / "),
-    department: "",
-    productGroup: "",
-  } as unknown as ZiiplyOfferSearchResult;
-
-  return [debugRow, ...mappedResults];
 }
 
 export async function fetchSKaupatOffers(
