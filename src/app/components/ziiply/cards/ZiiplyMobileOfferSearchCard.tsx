@@ -1,5 +1,17 @@
 "use client";
 
+// ============================================================================
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V3_PRICE_NO_CENTS_DIVISION
+// Revision: V3
+// Date: 2026-06-05
+//
+// Fix:
+// - S-kaupat RemoteFilteredProducts returns prices already in euros.
+// - Removed old >20 => /100 conversion from normalizePrice() and getNumericPrice().
+// - Fixes false prices like 59,90 € becoming 0,60 €.
+// - Keeps V2 Gösta filter/category UI unchanged.
+// ============================================================================
+
 // ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V2_GOSTA_FILTER_AND_CATEGORIES
 // Pohjana V1.
 // - Göstan kortilla on oma hakukenttä/tuoteryhmärajaus.
@@ -61,28 +73,43 @@ function cx(...classes: Array<string | false | null | undefined>) {
 
 function normalizePrice(price: unknown) {
   if (typeof price === "number" && Number.isFinite(price)) {
-    const euros = Math.abs(price) > 20 ? price / 100 : price;
-    return `${euros.toLocaleString("fi-FI", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
+    return `${price.toLocaleString("fi-FI", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })} €`;
   }
 
   const text = String(price ?? "").trim();
   if (!text) return "";
 
-  const numeric = Number(text.replace(/\s/g, "").replace("€", "").replace(",", "."));
+  const numeric = Number(
+    text.replace(/\s/g, "").replace("€", "").replace(",", "."),
+  );
+
   if (Number.isFinite(numeric)) {
-    const euros = Math.abs(numeric) > 20 ? numeric / 100 : numeric;
-    return `${euros.toLocaleString("fi-FI", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
+    return `${numeric.toLocaleString("fi-FI", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })} €`;
   }
 
   return text.includes("€") ? text : `${text} €`;
 }
 
 function getNumericPrice(price: unknown) {
-  if (typeof price === "number" && Number.isFinite(price)) return Math.abs(price) > 20 ? price / 100 : price;
+  if (typeof price === "number" && Number.isFinite(price)) {
+    return price;
+  }
 
-  const numeric = Number(String(price ?? "").replace(/\s/g, "").replace("€", "").replace(",", ".").replace(/[^\d.-]/g, ""));
-  if (!Number.isFinite(numeric)) return 0;
-  return Math.abs(numeric) > 20 ? numeric / 100 : numeric;
+  const numeric = Number(
+    String(price ?? "")
+      .replace(/\s/g, "")
+      .replace("€", "")
+      .replace(",", ".")
+      .replace(/[^\d.-]/g, ""),
+  );
+
+  return Number.isFinite(numeric) ? numeric : 0;
 }
 
 function getOfferName(offer: ZiiplyMobileOfferSearchItem) {
@@ -182,7 +209,7 @@ export default function ZiiplyMobileOfferSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="V2_GOSTA_FILTER_AND_CATEGORIES"
+      data-ziiply-mobile-offer-search-card-version="V3_PRICE_NO_CENTS_DIVISION"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
