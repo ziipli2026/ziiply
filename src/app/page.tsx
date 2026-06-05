@@ -1,3 +1,8 @@
+// V139_STORE_PICKER_STRICT_SAME_LEVEL_ONLY
+// Korjaus: Tavaratalot-valinta näyttää ja käyttää vain Prisma/K-Citymarket-kauppoja.
+// Lähikaupat-valinta näyttää ja käyttää vain S-market/Sale/Alepa/K-Supermarket/K-Market-kauppoja.
+// Jos saman tason S/K-paria ei löydy, puuttuvaa paikkaa ei täytetä väärän tason kaupalla.
+
 // V137_GPS_BACKGROUND_WATCHDOG_SILENT_REFRESH
 // Pohja V136. GPS-watchdog päivittää kauppalistan taustalla, kun liike ylittää rajan
 // tai edellisestä taustapäivityksestä on kulunut tarpeeksi aikaa.
@@ -3643,6 +3648,64 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return result;
   }
 
+  function storeMatchesStrictChainAndModeV139(
+    store: StoreSearchItem | null | undefined,
+    chain: "S" | "K",
+    mode: StoreMode,
+  ) {
+    if (!store) return false;
+    if (getStoreChainV320(store) !== chain) return false;
+
+    if (mode === "hyper") {
+      return chain === "S" ? isPrisma(store) : isKCitymarket(store);
+    }
+
+    return chain === "S" ? isSLocalStore(store) : isKLocalStore(store);
+  }
+
+  function getActiveAreaStoreCandidateV139(
+    chain: "S" | "K",
+    mode: StoreMode,
+  ): StoreSearchItem | null {
+    const id =
+      chain === "S"
+        ? mode === "local"
+          ? activeArea.sLocalStoreId
+          : activeArea.sStoreId
+        : mode === "local"
+          ? activeArea.kLocalStoreId
+          : activeArea.kStoreId;
+
+    const name =
+      chain === "S"
+        ? mode === "local"
+          ? activeArea.sLocalStoreName
+          : activeArea.sStoreName
+        : mode === "local"
+          ? activeArea.kLocalStoreName
+          : activeArea.kStoreName;
+
+    if (!id && !name) return null;
+
+    const normalizedStores = foundStores.map(normalizeStoreForPickerV320);
+    const matched = normalizedStores.find(
+      (store) =>
+        getStoreChainV320(store) === chain &&
+        Boolean(
+          (id && sameStoreIdV93(store.id, id)) ||
+            (name && normalize(store.name || "") === normalize(name)),
+        ),
+    );
+
+    const candidate =
+      matched ||
+      ({ id: id || 0, name: name || "", type: chain } as StoreSearchItem);
+
+    return storeMatchesStrictChainAndModeV139(candidate, chain, mode)
+      ? candidate
+      : null;
+  }
+
   const activeStores = useMemo(() => {
     if (storeCompareScope !== "within_chain" && !storeModeChosenV299) {
       return {
@@ -3667,36 +3730,48 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // Käyttäjän valinta kirjoitetaan activeAreaan selectStoreForCurrentMode()-funktiossa,
       // joten käytetään activeAreaa ensisijaisena ja GPS-rankingia vain puuttuvan S/K-paikan täyttöön.
       if (gpsMode === "local") {
+        const selectedSLocal = getActiveAreaStoreCandidateV139("S", "local");
+        const selectedKLocal = getActiveAreaStoreCandidateV139("K", "local");
+
         return {
-          sStoreId: activeArea.sLocalStoreId ?? ranked.sLocal?.id ?? 0,
-          sStoreName: activeArea.sLocalStoreName ?? ranked.sLocal?.name ?? "S-lähikauppa ei valittu",
-          kStoreId: activeArea.kLocalStoreId ?? ranked.kLocal?.id ?? 0,
-          kStoreName: activeArea.kLocalStoreName ?? ranked.kLocal?.name ?? "K-lähikauppa ei valittu",
+          sStoreId: selectedSLocal?.id ?? ranked.sLocal?.id ?? 0,
+          sStoreName: selectedSLocal?.name ?? ranked.sLocal?.name ?? "S-lähikauppa ei valittu",
+          kStoreId: selectedKLocal?.id ?? ranked.kLocal?.id ?? 0,
+          kStoreName: selectedKLocal?.name ?? ranked.kLocal?.name ?? "K-lähikauppa ei valittu",
         };
       }
 
+      const selectedSHyper = getActiveAreaStoreCandidateV139("S", "hyper");
+      const selectedKHyper = getActiveAreaStoreCandidateV139("K", "hyper");
+
       return {
-        sStoreId: activeArea.sStoreId ?? ranked.sHyper?.id ?? 0,
-        sStoreName: activeArea.sStoreName ?? ranked.sHyper?.name ?? "S-tavaratalo ei valittu",
-        kStoreId: activeArea.kStoreId ?? ranked.kHyper?.id ?? 0,
-        kStoreName: activeArea.kStoreName ?? ranked.kHyper?.name ?? "K-tavaratalo ei valittu",
+        sStoreId: selectedSHyper?.id ?? ranked.sHyper?.id ?? 0,
+        sStoreName: selectedSHyper?.name ?? ranked.sHyper?.name ?? "S-tavaratalo ei valittu",
+        kStoreId: selectedKHyper?.id ?? ranked.kHyper?.id ?? 0,
+        kStoreName: selectedKHyper?.name ?? ranked.kHyper?.name ?? "K-tavaratalo ei valittu",
       };
     }
 
     if (storeMode === "local") {
+      const selectedSLocal = getActiveAreaStoreCandidateV139("S", "local");
+      const selectedKLocal = getActiveAreaStoreCandidateV139("K", "local");
+
       return {
-        sStoreId: activeArea.sLocalStoreId ?? 0,
-        sStoreName: activeArea.sLocalStoreName ?? "S-lähikauppa ei valittu",
-        kStoreId: activeArea.kLocalStoreId ?? 0,
-        kStoreName: activeArea.kLocalStoreName ?? "K-lähikauppa ei valittu",
+        sStoreId: selectedSLocal?.id ?? 0,
+        sStoreName: selectedSLocal?.name ?? "S-lähikauppa ei valittu",
+        kStoreId: selectedKLocal?.id ?? 0,
+        kStoreName: selectedKLocal?.name ?? "K-lähikauppa ei valittu",
       };
     }
 
+    const selectedSHyper = getActiveAreaStoreCandidateV139("S", "hyper");
+    const selectedKHyper = getActiveAreaStoreCandidateV139("K", "hyper");
+
     return {
-      sStoreId: activeArea.sStoreId ?? 0,
-      sStoreName: activeArea.sStoreName ?? "S-tavaratalo ei valittu",
-      kStoreId: activeArea.kStoreId ?? 0,
-      kStoreName: activeArea.kStoreName ?? "K-tavaratalo ei valittu",
+      sStoreId: selectedSHyper?.id ?? 0,
+      sStoreName: selectedSHyper?.name ?? "S-tavaratalo ei valittu",
+      kStoreId: selectedKHyper?.id ?? 0,
+      kStoreName: selectedKHyper?.name ?? "K-tavaratalo ei valittu",
     };
   }, [
     activeArea,
@@ -5946,16 +6021,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const hyperPredicate = chain === "S" ? isPrisma : isKCitymarket;
     const localPredicate = chain === "S" ? isSLocalStore : isKLocalStore;
     const preferredPredicate = mode === "hyper" ? hyperPredicate : localPredicate;
-    const fallbackPredicate = mode === "hyper" ? localPredicate : hyperPredicate;
+    const strictModeCandidates = rankingCandidates.filter(preferredPredicate);
+    const oldPickerPreferred = pickStore(strictModeCandidates, preferredPredicate);
 
-    const oldPickerPreferred = pickStore(rankingCandidates, preferredPredicate);
-    const oldPickerFallback = pickStore(rankingCandidates, fallbackPredicate);
+    // V139: älä koskaan täytä puuttuvaa tavarataloa lähikaupalla tai päinvastoin.
+    // Jos saman tason kauppaa ei löydy, palautetaan undefined ja UI näyttää puuttuvan parin.
+    if (strictModeCandidates.length === 0) return undefined;
 
     if (!coords) {
-      return oldPickerPreferred || oldPickerFallback || rankingCandidates[0];
+      return oldPickerPreferred || strictModeCandidates[0];
     }
 
-    const scoredStores = rankingCandidates
+    const scoredStores = strictModeCandidates
       .map((store) => {
         const geoStoreForScore = toZiiplyResolverGeoStoreV32(store);
         if (geoStoreForScore.latitude != null && geoStoreForScore.longitude != null) {
@@ -6001,9 +6078,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return (
       scoredStores[0]?.store ||
       oldPickerPreferred ||
-      oldPickerFallback ||
-      rankingCandidates[0] ||
-      candidates[0]
+      strictModeCandidates[0]
     );
   }
 
@@ -12000,22 +12075,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const selectedId = getSelectedStoreIdFor(chain, mode);
     const selectedName = getSelectedStoreNameFor(chain, mode);
 
-    // Tavaratalot = vain Prisma / K-Citymarket jos niitä löytyy.
-    // Lähikaupat = vain ketjun ei-tavaratalot jos niitä löytyy.
-    // Jos API palauttaa suppean datan, fallback näyttää silti koko ketjun eikä tyhjää/virheellistä ikkunaa.
-    const hyperStores = chainStores.filter(isHyperStoreForModeV295);
-    const localStores = chainStores.filter(
-      (store) => !isHyperStoreForModeV295(store),
+    // V139: Tavaratalot = vain Prisma / K-Citymarket.
+    // Lähikaupat = vain S-market/Sale/Alepa/K-Supermarket/K-Market.
+    // Ei enää chainStores-fallbackia, koska se sotki puuttuvan tavaratalon tilalle lähikaupan.
+    const scoped = chainStores.filter((store) =>
+      storeMatchesStrictChainAndModeV139(store, chain, mode),
     );
-
-    const scoped =
-      mode === "hyper"
-        ? hyperStores.length > 0
-          ? hyperStores
-          : chainStores
-        : localStores.length > 0
-          ? localStores
-          : chainStores;
 
     return sortStoresForPickerV320(scoped, mode, selectedId, selectedName);
   }
@@ -12048,14 +12113,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           : activeArea.kStoreName;
 
     if (fallbackId && fallbackName) {
-      return [
-        {
-          id: fallbackId,
-          name: fallbackName,
-          type: chain,
-          city: activeArea.label,
-        } as StoreSearchItem,
-      ];
+      const fallbackStore = {
+        id: fallbackId,
+        name: fallbackName,
+        type: chain,
+        city: activeArea.label,
+      } as StoreSearchItem;
+
+      if (!storeMatchesStrictChainAndModeV139(fallbackStore, chain, mode)) {
+        return [];
+      }
+
+      return [fallbackStore];
     }
 
     return [];
