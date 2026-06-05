@@ -1035,6 +1035,11 @@ import {
   isGostaCategorySelectionV136,
   isKnownOfferCategoryFilterV113,
 } from "./components/ziiply/offerSearch/ziiplyOfferCategoryCore";
+import {
+  cleanZiiplyGostaOfferResultsV146,
+  filterZiiplyGostaOfferResultsV146,
+  searchZiiplyGostaOffersV146,
+} from "./components/ziiply/offerSearch/ziiplyOfferSearchCore";
 
 const MOBILE_EAN_SCANNER_REGION_ID = `${EAN_SCANNER_REGION_ID}-mobile`;
 
@@ -5044,46 +5049,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return [];
   }, [offers, offerSearchQuerySnapshot, currentSearchQueryKey, chainFilter]);
 
-  // V145: Göstan tarjoushaun kategoriat, siemenhaut ja roskasuodatus on siirretty offerSearch/ziiplyOfferCategoryCore.ts -moduuliin.
+  // V146: Göstan tarjoushaun orkestrointi, dedupe ja näkyvien tulosten suodatus
+  // on siirretty offerSearch/ziiplyOfferSearchCore.ts -moduuliin.
 
   const cleanOfferSearchResultsV106 = useMemo(() => {
-    const seen = new Set<string>();
-
-    return offerSearchResults.filter((item) => {
-      if (isBadOfferSearchResultV106(item)) return false;
-
-      const key = normalize([
-        item?.id,
-        item?.title,
-        item?.storeLabel,
-        item?.priceText,
-        item?.benefitText,
-      ].filter(Boolean).join("|"));
-
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
+    return cleanZiiplyGostaOfferResultsV146(offerSearchResults);
   }, [offerSearchResults]);
 
   const visibleOfferSearchResultsV106 = useMemo(() => {
-    const filter = normalize(offerCardFilterV106).trim();
-    if (!filter || filter === "kaikki" || filter === "all") return cleanOfferSearchResultsV106;
-
-    return cleanOfferSearchResultsV106.filter((item) => {
-      const category = normalize(getOfferCategoryV106(item));
-
-      // V113: kun käyttäjä valitsee tunnetun tuoteryhmächipin, älä tee vapaatekstihakua
-      // koko tarjousriviin. Muuten esim. vaipat voivat päätyä Maitotuotteisiin tai Lihaan,
-      // jos parseri on kantanut mukana viereisen tarjouksen/sivun tekstiä.
-      if (isKnownOfferCategoryFilterV113(filter)) {
-        return category === filter;
-      }
-
-      const title = normalize(getOfferProductTitleV113(item));
-      const categoryMeta = normalize([item?.category, item?.department, item?.productGroup].filter(Boolean).join(" "));
-      return title.includes(filter) || categoryMeta.includes(filter);
-    });
+    return filterZiiplyGostaOfferResultsV146(cleanOfferSearchResultsV106, offerCardFilterV106);
   }, [cleanOfferSearchResultsV106, offerCardFilterV106]);
 
   const offerSearchLabel = useMemo(() => {
@@ -6975,71 +6949,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setActiveResult("offers");
 
     try {
-      const parseOfferResponse = async (response: Response) => {
-        const data = await response.json();
-        if (!response.ok || data?.ok === false) {
-          throw new Error(String(data?.error || `Tarjoushaku epäonnistui: ${response.status}`));
-        }
-        return Array.isArray(data?.results) ? data.results : [];
-      };
-
-      let nextResults: any[] = [];
-
-      if (searchAllAreaOffers || searchByCategoryV136) {
-        // V136: tyhjä Gösta = alueen kaikki tarjousten siemenhaku.
-        // Tuoteryhmächip = vain kyseisen tuoteryhmän siemenhaku. Tämä on tärkeää,
-        // koska tarjouslehtisten raakateksti on sekavaa eikä "Kaikki"-massan jälkisuodatus riitä.
-        const seedQueries = getGostaCategorySeedQueriesV136(
-          searchByCategoryV136 ? categorySearchLabelV136 : "Kaikki",
-        );
-
-        const settled = await Promise.allSettled(
-          seedQueries.map(async (query) => {
-            const response = await fetch(
-              `/api/offers/search?q=${encodeURIComponent(query)}`,
-              { cache: "no-store" },
-            );
-            return parseOfferResponse(response);
-          }),
-        );
-
-        nextResults = settled.flatMap((result) =>
-          result.status === "fulfilled" ? result.value : [],
-        );
-
-        if (searchByCategoryV136) {
-          nextResults = nextResults.filter((item) =>
-            normalize(getOfferCategoryV106(item)) === normalizedCategorySearchV136,
-          );
-        }
-      } else {
-        const response = await fetch(
-          `/api/offers/search?q=${encodeURIComponent(offerQuerySnapshot)}`,
-          { cache: "no-store" },
-        );
-        nextResults = await parseOfferResponse(response);
-      }
-
-      const seen = new Set<string>();
-      const dedupedResults = nextResults.filter((item) => {
-        const key = normalize([
-          item?.id,
-          item?.title,
-          item?.name,
-          item?.productName,
-          item?.storeLabel,
-          item?.priceText,
-          item?.benefitText,
-          item?.validityText,
-        ].filter(Boolean).join("|"));
-
-        if (!key || seen.has(key)) return false;
-        seen.add(key);
-        return true;
+      const offerSearchCoreResult = await searchZiiplyGostaOffersV146({
+        query: hasExplicitOverride ? cleanedOverride : input.trim(),
+        terms: useTerms,
       });
 
-      setOfferSearchResults(dedupedResults);
-      setOfferSearchDoneForQuery(offerSearchTrackingKeyV136);
+      setOfferSearchResults(offerSearchCoreResult.results);
+      setOfferSearchDoneForQuery(offerSearchCoreResult.trackingKey);
     } catch (error) {
       console.error("[Ziiply offers] API search failed", error);
       setOfferSearchResults([]);
