@@ -1,3 +1,19 @@
+// ============================================================================
+// ZIIPLY_OFFER_SEARCH_CORE_V147_EXPORT_FIX
+// Revision: V147
+// Date: 2026-06-05
+//
+// Purpose:
+// - Keeps V146 Gösta offer search orchestration.
+// - Adds V147 compatibility exports required by page.tsx:
+//   - GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147
+//   - isZiiplyGostaCategorySelectionV147
+//   - mapZiiplyGostaOfferToCardOfferV147
+//
+// Install path:
+// src/app/components/ziiply/offerSearch/ziiplyOfferSearchCore.ts
+// ============================================================================
+
 // src/app/components/ziiply/offerSearch/ziiplyOfferSearchCore.ts
 // V146_GOSTA_SEARCH_CORE_ORCHESTRATOR
 // Göstan tarjoushaun orkestrointi pois page.tsx:stä.
@@ -186,4 +202,33 @@ export async function searchZiiplyGostaOffersV146(options: {
     searchByCategory,
     categoryLabel: categorySearchLabel,
   } satisfies ZiiplyGostaOfferSearchCoreResult;
+}
+
+// V147 compatibility exports for thin page.tsx.
+export { GOSTA_CATEGORY_LABELS_V136 as GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147 } from "./ziiplyOfferCategoryCore";
+
+export function isZiiplyGostaCategorySelectionV147(value: string) {
+  return isGostaCategorySelectionV136(value);
+}
+
+export function mapZiiplyGostaOfferToCardOfferV147(item: ZiiplyGostaOfferLike) {
+  return {
+    id: item.id,
+    name: item.title,
+    title: item.title,
+    productName: item.title,
+    storeName: item.storeLabel,
+    chain: item.chain,
+    price: item.priceText,
+    offerPrice: item.priceText,
+    normalPrice: item.unitPriceText,
+    originalPrice: item.unitPriceText,
+    discountText: item.benefitText || item.validityText,
+    image: item.imageUrl,
+    imageUrl: item.imageUrl,
+    pictureUrl: item.imageUrl,
+    productUrl: item.productUrl,
+    category: getOfferCategoryV106(item),
+    __sourceOfferSearchResult: item,
+  };
 }
