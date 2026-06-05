@@ -1,3 +1,8 @@
+// V158_GOSTA_STICKY_PANEL_AGAINST_GPS_REFRESH
+// Korjaus: Gösta-kortti ei saa sammua taustalla tapahtuvan GPS-/kauppapäivityksen takia.
+// Kun Gösta-haku on käyttäjän avaama, pidetään tarjouskortti aktiivisena, ellei käyttäjä itse sulje sitä
+// tai siirry alapalkista Kaupat/Hae/Kori/Vertailu-näkymään.
+
 // V142_WITHIN_CHAIN_HYPER_LOCAL_RESTORE
 // Korjaus V141:n väärään tulkintaan: Ketjun sisältä vertailee saman ketjun tavarataloa ja lähikauppaa.
 // S-ryhmä: Prisma vs S-market/Sale/Alepa. K-ryhmä: K-Citymarket vs K-Supermarket/K-Market.
@@ -2551,6 +2556,7 @@ export default function Page() {
   const [activeResult, setActiveResult] = useState<
     "none" | "offers" | "compare" | "singleCompare"
   >("none");
+  const gostaPanelStickyOpenRefV158 = useRef(false);
   const [activeAssistant, setActiveAssistant] =
     useState<ZiiplyAssistantKey | null>(null);
   const [searchPanelOpen, setSearchPanelOpen] = useState(false);
@@ -4904,6 +4910,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function openSearchPanel() {
+    gostaPanelStickyOpenRefV158.current = false;
     if (searchNavigationLocked) return;
 
     // v342_RESTORE_CART_SEARCH_NAV_FIX:
@@ -5051,6 +5058,39 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const visibleOfferSearchResultsV106 = useMemo(() => {
     return filterZiiplyGostaOfferResultsV146(cleanOfferSearchResultsV106, offerCardFilterV106);
   }, [cleanOfferSearchResultsV106, offerCardFilterV106]);
+
+  useEffect(() => {
+    // V158: GPS-watchdog / kauppapäivitys voi muuttaa ympäröiviä paneelitiloja.
+    // Jos käyttäjä on avannut Göstan, taustapäivitys ei saa sulkea tarjouskorttia.
+    if (!gostaPanelStickyOpenRefV158.current) return;
+    if (showLaunchScreen || eanModalOpen || notebookOpen) return;
+    if (!loadingOffers && visibleOfferSearchResultsV106.length === 0) return;
+
+    if (
+      activeResult !== "offers" ||
+      searchPanelOpen ||
+      shopsPanelOpen ||
+      cartModalOpen ||
+      cartSavePanelOpen
+    ) {
+      setSearchPanelOpen(false);
+      setShopsPanelOpen(false);
+      setCartModalOpen(false);
+      setCartSavePanelOpen(false);
+      setActiveResult("offers");
+    }
+  }, [
+    activeResult,
+    cartModalOpen,
+    cartSavePanelOpen,
+    eanModalOpen,
+    loadingOffers,
+    notebookOpen,
+    searchPanelOpen,
+    shopsPanelOpen,
+    showLaunchScreen,
+    visibleOfferSearchResultsV106.length,
+  ]);
 
   const offerSearchLabel = useMemo(() => {
     const label = offerSearchQuerySnapshot || currentSearchQueryKey;
@@ -6896,6 +6936,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     if (hasExplicitOverride) setInput(cleanedOverride);
 
+    gostaPanelStickyOpenRefV158.current = true;
     setHasSearchedOffers(true);
     setLoadingOffers(true);
     setOffers([]);
@@ -10059,6 +10100,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function openShopsPanel() {
+    gostaPanelStickyOpenRefV158.current = false;
     // v367_MOBILE_GPS_PENDING_NO_OLD_SHOPS_RENDER:
     // Jos Kaupat-nappia painetaan heti käynnistyksen jälkeen ennen kuin GPS on
     // ehtinyt antaa koordinaatit/kaupat, älä avaa vanhaa Kaupat-paneelin renderiä.
@@ -15034,10 +15076,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             loading={loadingOffers}
             emptyText={offerShowingAllAreaOffersV106 ? "Alueen tarjouksia ei löytynyt vielä." : "Gösta ei löytänyt tarjouksia tälle rajaukselle."}
             onBack={() => {
+              gostaPanelStickyOpenRefV158.current = false;
               setActiveResult("none");
               setSearchPanelOpen(true);
             }}
             onClose={() => {
+              gostaPanelStickyOpenRefV158.current = false;
               setActiveResult("none");
             }}
             onAddOffer={(offer: any) => {
@@ -15316,6 +15360,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           cartModalOpen={cartModalOpen}
           activeResult={activeResult}
           onShopsClick={() => {
+            gostaPanelStickyOpenRefV158.current = false;
             suppressHaeReadyBadgeV541();
             setNormalResults([]);
             setMobileResultsReadyQueryV537("");
@@ -15337,6 +15382,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             toggleShopsPanel();
           }}
           onSearchClick={() => {
+            gostaPanelStickyOpenRefV158.current = false;
             suppressHaeReadyBadgeV541();
             setNormalResults([]);
             setMobileResultsReadyQueryV537("");
@@ -15360,6 +15406,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             toggleSearchPanel();
           }}
           onCartClick={() => {
+            gostaPanelStickyOpenRefV158.current = false;
             suppressHaeReadyBadgeV541();
             setNormalResults([]);
             setMobileResultsReadyQueryV537("");
@@ -15380,6 +15427,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             toggleCartModal();
           }}
           onCompareClick={() => {
+            gostaPanelStickyOpenRefV158.current = false;
             suppressHaeReadyBadgeV541();
             setNormalResults([]);
             setMobileResultsReadyQueryV537("");
