@@ -1,5 +1,3 @@
-// V143_LOCATION_IMPORT_FROM_LOCATION_MODULE
-// Location resolver import siirretty offerSearch-polusta uuteen location-moduuliin.
 // V142_WITHIN_CHAIN_HYPER_LOCAL_RESTORE
 // Korjaus V141:n väärään tulkintaan: Ketjun sisältä vertailee saman ketjun tavarataloa ja lähikauppaa.
 // S-ryhmä: Prisma vs S-market/Sale/Alepa. K-ryhmä: K-Citymarket vs K-Supermarket/K-Market.
@@ -1026,6 +1024,17 @@ import {
   type ZiiplyStoreKind,
   type ZiiplyStoreMode,
 } from "./components/ziiply/location";
+import {
+  GOSTA_CATEGORY_LABELS_V136,
+  getGostaCategoryLabelFromFilterV136,
+  getGostaCategorySeedQueriesV136,
+  getOfferCategoryV106,
+  getOfferProductTitleV113,
+  getOfferSearchTextV106,
+  isBadOfferSearchResultV106,
+  isGostaCategorySelectionV136,
+  isKnownOfferCategoryFilterV113,
+} from "./components/ziiply/offerSearch/ziiplyOfferCategoryCore";
 
 const MOBILE_EAN_SCANNER_REGION_ID = `${EAN_SCANNER_REGION_ID}-mobile`;
 
@@ -5035,219 +5044,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return [];
   }, [offers, offerSearchQuerySnapshot, currentSearchQueryKey, chainFilter]);
 
-  function getOfferSearchTextV106(item: any) {
-    return [
-      item?.title,
-      item?.name,
-      item?.productName,
-      item?.brandName,
-      item?.storeLabel,
-      item?.storeName,
-      item?.chain,
-      item?.benefitText,
-      item?.validityText,
-      item?.category,
-      item?.department,
-      item?.productGroup,
-    ]
-      .filter(Boolean)
-      .map(String)
-      .join(" ");
-  }
-
-  function getOfferProductTitleV113(item: any) {
-    return String(
-      item?.title ||
-        item?.name ||
-        item?.productName ||
-        item?.productTitle ||
-        item?.displayName ||
-        "",
-    ).trim();
-  }
-
-  function getOfferCategoryV106(item: any) {
-    // V113: tuoteryhmä luokitellaan vain varsinaisesta tuotteen nimestä/otsikosta.
-    // Koko tarjousrivin yhdistetty teksti sisältää usein sivun yleistekstejä tai toisen
-    // tarjouksen tekstinpätkiä, jolloin esim. vaipat voivat osua maitotuotteisiin.
-    const titleText = normalize(getOfferProductTitleV113(item));
-    const metaText = normalize([item?.category, item?.department, item?.productGroup].filter(Boolean).join(" "));
-    const text = `${titleText} ${metaText}`.trim();
-
-    const nonFoodText = /vaippa|vaipat|pampers|libero|baby|vauva|lastenhoito|pesu|pyykin|fairy|astianpesu|wc|siivous|talouspaperi|vessa|shampoo|saippua|koira|kissa|lemmik|pedigree|whiskas|sheba|purina/;
-    const petText = /koira|kissa|lemmik|pedigree|whiskas|sheba|purina/;
-    const homeText = /vaippa|vaipat|pampers|libero|baby|vauva|lastenhoito|pesu|pyykin|fairy|astianpesu|wc|siivous|talouspaperi|vessa|shampoo|saippua/;
-
-    if (petText.test(text)) return "Lemmikit";
-    if (homeText.test(text)) return "Koti";
-
-    // Food categories: älä anna non-foodin päästä ruoka-ryhmiin, vaikka sivutekstissä
-    // olisi sana maito/liha/kala tms.
-    if (!nonFoodText.test(text)) {
-      if (/kahvi|espresso|suodatinjauh|kahvipapu|papukahvi|cappuccino|latte/.test(text)) return "Kahvi";
-      if (/maito|jugur|jogur|jogurt|rahka|raejuusto|juusto|voi|kerma|piima|viili|kefiiri|proteiinivanukas|vanukas/.test(text)) return "Maitotuotteet";
-      if (/jauheliha|kana|broiler|possu|porsas|nauta|sika|makkara|leikkele|kinkku|pekoni|filee|paisti|lihapulla|liha/.test(text)) return "Liha";
-      if (/kirjolohi|lohi|tonnikala|silakka|katkarapu|kuha|ahven|seiti|kalapuikko|silli|kala/.test(text)) return "Kala";
-      if (/leipa|sämpyl|sampyl|pull|croissant|karjalanpiir|pita|patonki|ruis|paahtoleipa|donitsi/.test(text)) return "Leipomo";
-      if (/hedel|omena|banaani|appelsiini|mandariini|viiniryp|vihannes|tomaatti|kurkku|salaatti|peruna|sipuli|porkkana|kaali|avokado/.test(text)) return "Hevi";
-      if (/limu|cola|mehu|energiajuoma|vesi|kivennäisvesi|kivenn|virvoitus|smoothie/.test(text)) return "Juomat";
-      if (/pakaste|jaatel|jäätel|pizza|ranskalaiset|wokvihannes/.test(text)) return "Pakasteet";
-    }
-
-    return "Muut";
-  }
-
-  function isKnownOfferCategoryFilterV113(filter: string) {
-    return [
-      "kahvi",
-      "maitotuotteet",
-      "liha",
-      "kala",
-      "leipomo",
-      "hevi",
-      "juomat",
-      "lemmikit",
-      "koti",
-      "pakasteet",
-      "muut",
-    ].includes(filter);
-  }
-
-  const GOSTA_CATEGORY_LABELS_V136 = [
-    "Kaikki",
-    "Kahvi",
-    "Maitotuotteet",
-    "Liha",
-    "Kala",
-    "Leipomo",
-    "Hevi",
-    "Juomat",
-    "Lemmikit",
-    "Koti",
-    "Pakasteet",
-  ];
-
-  function getGostaCategorySeedQueriesV136(categoryOrFilter: string) {
-    const key = normalize(categoryOrFilter).trim();
-
-    if (!key || key === "kaikki" || key === "all") {
-      return [
-        "kahvi",
-        "maito",
-        "juusto",
-        "jogurtti",
-        "rahka",
-        "voi",
-        "kerma",
-        "kananmuna",
-        "jauheliha",
-        "kana",
-        "broileri",
-        "makkara",
-        "leikkele",
-        "lohi",
-        "kala",
-        "leipä",
-        "pulla",
-        "hedelmä",
-        "vihannes",
-        "peruna",
-        "mehu",
-        "limu",
-        "pakaste",
-        "jäätelö",
-        "pizza",
-        "pesuaine",
-        "talouspaperi",
-        "wc-paperi",
-        "koiranruoka",
-        "kissanruoka",
-      ];
-    }
-
-    const seedsByCategory: Record<string, string[]> = {
-      kahvi: ["kahvi", "espresso", "suodatinjauhettu kahvi", "kahvipapu"],
-      maitotuotteet: ["maito", "juusto", "jogurtti", "rahka", "raejuusto", "voi", "kerma", "viili", "kefiiri", "vanukas"],
-      liha: ["jauheliha", "kana", "broileri", "nauta", "possu", "porsas", "makkara", "leikkele", "kinkku", "pekoni", "lihapulla"],
-      kala: ["lohi", "kirjolohi", "kala", "tonnikala", "silakka", "katkarapu", "seiti", "kalapuikko", "silli"],
-      leipomo: ["leipä", "sämpylä", "pulla", "croissant", "karjalanpiirakka", "patonki", "ruisleipä", "paahtoleipä"],
-      hevi: ["hedelmä", "omena", "banaani", "appelsiini", "vihannes", "tomaatti", "kurkku", "salaatti", "peruna", "sipuli", "porkkana"],
-      juomat: ["mehu", "limu", "cola", "energiajuoma", "vesi", "kivennäisvesi", "virvoitusjuoma", "smoothie"],
-      lemmikit: ["koiranruoka", "kissanruoka", "lemmikkiruoka", "pedigree", "whiskas", "sheba", "purina"],
-      koti: ["pesuaine", "pyykinpesuaine", "astianpesuaine", "fairy", "wc-paperi", "talouspaperi", "siivous"],
-      pakasteet: ["pakaste", "jäätelö", "pizza", "ranskalaiset", "pakastevihannes"],
-      muut: ["tarjous"],
-    };
-
-    return seedsByCategory[key] ?? [];
-  }
-
-  function getGostaCategoryLabelFromFilterV136(filter: string) {
-    const normalized = normalize(filter).trim();
-    return GOSTA_CATEGORY_LABELS_V136.find((label) => normalize(label) === normalized) || filter;
-  }
-
-  function isGostaCategorySelectionV136(value: string) {
-    const normalized = normalize(value).trim();
-    return normalized === "kaikki" || isKnownOfferCategoryFilterV113(normalized);
-  }
-
-  function isBadOfferSearchResultV106(item: any) {
-    const title = String(item?.title || item?.name || item?.productName || "").trim();
-    const text = normalize(getOfferSearchTextV106(item));
-    const priceText = String(item?.priceText || item?.offerPrice || item?.price || "").trim();
-
-    if (!title || normalize(title).length < 3) return true;
-    // V110: älä hylkää oikeaa tarjoustuotetta vain siksi, että parseri ei vielä anna
-    // hintaa juuri kentässä priceText/benefitText/discountText. Eri tarjoajat nimeävät kentät eri tavalla.
-    // Varsinainen roskasuodatus tehdään alla selkeillä UI-/navigaatio-osumilla.
-    void priceText;
-
-    const junkPatterns = [
-      /ostoskori/,
-      /ostoskorissa/,
-      /0\s*kappaletta/,
-      /tuote lisätty/,
-      /kirjaudu/,
-      /rekisteroidy/,
-      /eväste/,
-      /cookie/,
-      /toimitusmaksu/,
-      /nouto/,
-      /verkkokauppa/,
-      /asiakasomistaja/,
-      /plussa-?kort/,
-      /^kampanja$/,
-      /^tarjous$/,
-      /^osta$/,
-      /^avaa$/,
-      /^lue lisää$/,
-    ];
-
-    // V112: Älä testaa kovia UI-roskasanoja koko yhdistetystä tekstistä.
-    // Parseri voi kantaa mukana sivun yleisiä tekstejä jokaisessa oikeassa tarjouksessa,
-    // jolloin esim. "ostoskori" pudottaisi lähes kaiken pois.
-    const normalizedTitle = normalize(title);
-    const hardJunkTitlePatterns = [
-      /^(0\s*)?kappaletta(\s+ostoskorissa)?$/,
-      /^ostoskori$/,
-      /^kirjaudu$/,
-      /^rekisteroidy$/,
-      /^eväste$/,
-      /^cookie$/,
-      /^kampanja$/,
-      /^tarjous$/,
-      /^osta$/,
-      /^avaa$/,
-      /^lue lisää$/,
-    ];
-    if (hardJunkTitlePatterns.some((pattern) => pattern.test(normalizedTitle))) return true;
-
-    const letters = title.replace(/[^A-Za-zÅÄÖåäö]/g, "");
-    if (letters.length < 3) return true;
-
-    return false;
-  }
+  // V145: Göstan tarjoushaun kategoriat, siemenhaut ja roskasuodatus on siirretty offerSearch/ziiplyOfferCategoryCore.ts -moduuliin.
 
   const cleanOfferSearchResultsV106 = useMemo(() => {
     const seen = new Set<string>();
