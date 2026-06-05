@@ -12,6 +12,12 @@
 // - Kaikki käyttää edelleen laajaa aluehakua, mutta Maitotuotteet/Liha/Kala jne. hakevat vain oman ryhmän siemenillä
 // - ryhmähaun tulokset rajataan vielä kategorian mukaan, jotta esim. vaipat eivät päädy maitotuotteisiin/lihaan
 
+// V138_GPS_WATCHDOG_BUILD_FIX_NO_STATUS_DEAD_CODE
+// Korjaus V137 build-virheeseen: applyWeatherBootGpsV481-funktion kuolleessa koodissa oli
+// setLocationStatusV137-kutsuja funktion oman scopen ulkopuolella. Koska funktio palauttaa heti eikä sää/topbar
+// saa käynnistää GPS:ää, lisätään paikallinen no-op jotta TypeScript-build ei kaadu eikä käyttäjälle tule
+// taustapäivityksen status-notifikaatioita.
+
 // V118_OPENFOODFACTS_STRICT_EAN_DEDUP
 // Open Food Facts -fallback: sama EAN siivotaan koriin vain kerran.
 // Jos tuntematon EAN ehti ensin koriin, se päivitetään tunnistetuksi eikä lisätä toista riviä.
@@ -6528,6 +6534,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }, [locationInput, usingOwnLocation, storeSearchLoading]);
 
   async function applyWeatherBootGpsV481(coords: { latitude: number; longitude: number }) {
+    // V138: tämä funktio palauttaa heti. Alla oleva vanha dead code jää vain historian vuoksi,
+    // joten status-kutsut no-opataan paikallisesti buildin ja hiljaisen GPS-watchdogin vuoksi.
+    const setLocationStatusV137 = (_message: string) => {};
+
     // V490: sää/topbar ei saa enää koskaan käynnistää tai soveltaa GPS-paikannusta.
     // Yksi automaattinen GPS-startti tulee vain page-tason boot-effectistä.
     return;
