@@ -1,3 +1,10 @@
+// V140_STORE_PICKER_SAME_SOURCE_AND_EXCLUDE_ABC
+// Pohja V139 + V138 build-ok. Korjaus kauppavalintoihin:
+// - ABC/huoltoasema-myymälät suodatetaan pois ruokakorivertailusta.
+// - Ketjun sisältä -valinta käyttää samaa tasokohtaista kauppalistaa kuin Ketjujen väliltä.
+// - Tavaratalo-slotissa näkyy vain Prisma/K-Citymarket, lähikauppa-slotissa vain S-market/Sale/Alepa/K-Super/K-Market.
+// - Puuttuvaa kauppatasoa ei paikata eri tasolla eikä ABC:llä.
+
 // V139_STORE_PICKER_STRICT_SAME_LEVEL_ONLY
 // Korjaus: Tavaratalot-valinta näyttää ja käyttää vain Prisma/K-Citymarket-kauppoja.
 // Lähikaupat-valinta näyttää ja käyttää vain S-market/Sale/Alepa/K-Supermarket/K-Market-kauppoja.
@@ -3624,6 +3631,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const result: StoreSearchItem[] = [];
 
     const addStore = (store: StoreSearchItem) => {
+      if (isExcludedGroceryComparisonStoreV140(store)) return;
+
       const key = String(
         (store as any).id ??
           `${normalize(String(store.name || ""))}:${normalize(String(store.city || ""))}`,
@@ -3648,12 +3657,31 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return result;
   }
 
+  function isExcludedGroceryComparisonStoreV140(
+    store: StoreSearchItem | null | undefined,
+  ) {
+    if (!store) return true;
+
+    const text = normalize(
+      `${store.name || ""} ${(store as any).brand || ""} ${(store as any).banner || ""} ${(store as any).kind || ""} ${(store as any).typeLabel || ""}`,
+    );
+
+    // ABC on liikenneasema-/ravintola-/myymälähybridi, ei sama ruokakorivertailun
+    // formaatti kuin Prisma/S-market/Sale tai K-ryhmän marketit.
+    return (
+      text.includes("abc") ||
+      text.includes("liikenneasema") ||
+      text.includes("huoltoasema")
+    );
+  }
+
   function storeMatchesStrictChainAndModeV139(
     store: StoreSearchItem | null | undefined,
     chain: "S" | "K",
     mode: StoreMode,
   ) {
     if (!store) return false;
+    if (isExcludedGroceryComparisonStoreV140(store)) return false;
     if (getStoreChainV320(store) !== chain) return false;
 
     if (mode === "hyper") {
@@ -6010,8 +6038,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     mode: ZiiplyStoreMode,
     coords?: { latitude: number; longitude: number } | null,
   ) {
-    const chainStores = stores.filter((store) => getZiiplyResolverStoreChainV32(store) === chain);
-    const candidates = chainStores.length > 0 ? chainStores : stores;
+    const allowedStores = stores.filter(
+      (store) => !isExcludedGroceryComparisonStoreV140(store),
+    );
+    const chainStores = allowedStores.filter((store) => getZiiplyResolverStoreChainV32(store) === chain);
+    const candidates = chainStores.length > 0 ? chainStores : allowedStores;
     const candidatesWithGpsCoordinates = coords
       ? candidates.filter((store) => storeHasRealCoordinatesForGpsV41(store))
       : candidates;
@@ -6087,8 +6118,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     mode: StoreMode,
     coords?: { latitude: number; longitude: number } | null,
   ) {
-    const sStores = stores.filter((store) => store.type === "S" || getZiiplyResolverStoreChainV32(store) === "S");
-    const kStores = stores.filter((store) => store.type === "K" || getZiiplyResolverStoreChainV32(store) === "K");
+    const comparisonStores = stores.filter(
+      (store) => !isExcludedGroceryComparisonStoreV140(store),
+    );
+    const sStores = comparisonStores.filter((store) => store.type === "S" || getZiiplyResolverStoreChainV32(store) === "S");
+    const kStores = comparisonStores.filter((store) => store.type === "K" || getZiiplyResolverStoreChainV32(store) === "K");
 
     const sHyper = pickBestResolverStoreForChainV32(sStores, "S", "hyper", coords);
     const kHyper = pickBestResolverStoreForChainV32(kStores, "K", "hyper", coords);
@@ -12070,7 +12104,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   function getStoresForPickerOptionsV295(chain: "S" | "K", mode: StoreMode) {
     const chainStores = foundStores
       .map(normalizeStoreForPickerV320)
-      .filter((store) => getStoreChainV320(store) === chain);
+      .filter(
+        (store) =>
+          getStoreChainV320(store) === chain &&
+          !isExcludedGroceryComparisonStoreV140(store),
+      );
 
     const selectedId = getSelectedStoreIdFor(chain, mode);
     const selectedName = getSelectedStoreNameFor(chain, mode);
@@ -12400,33 +12438,29 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     chain: "S" | "K",
     slotMode: StoreMode,
   ) {
-    // Ketjun sisällä: molemmat valintaikkunat näyttävät saman ketjun kaikki löydetyt kaupat.
-    // Ainoa suodatus: toisessa slotissa jo valittu kauppa poistetaan, jotta vertailuun tulee kaksi eri kauppaa.
-    const allChainStores = foundStores
-      .map(normalizeStoreForPickerV320)
-      .filter((store) => getStoreChainV320(store) === chain);
-
+    // V140: Ketjun sisältä ei saa käyttää omaa yleislistaa.
+    // Sen pitää näyttää täsmälleen sama tasokohtainen kauppajoukko kuin Ketjujen väliltä:
+    // hyper-slotissa vain Prisma/K-Citymarket, local-slotissa vain S-market/Sale/Alepa/K-Super/K-Market.
+    // ABC:t ja muut huoltoasemamyymälät jäävät getStoresForPicker()-suodatuksen ulkopuolelle.
     const selectedId = getSelectedStoreIdFor(chain, slotMode);
     const selectedName = getSelectedStoreNameFor(chain, slotMode);
     const otherMode: StoreMode = slotMode === "hyper" ? "local" : "hyper";
     const otherSelectedId = getSelectedStoreIdFor(chain, otherMode);
     const otherSelectedName = getSelectedStoreNameFor(chain, otherMode);
 
-    const fallbackStores = usingOwnLocation
-      ? []
-      : [
-          ...getStoresForPicker(chain, "hyper"),
-          ...getStoresForPicker(chain, "local"),
-        ];
-
-    return sortStoresForPickerV320(
-      [...allChainStores, ...fallbackStores],
-      slotMode,
-      selectedId,
-      selectedName,
-    ).filter((store) => {
-      if (otherSelectedId && store.id === otherSelectedId) return false;
-      if (otherSelectedName && store.name === otherSelectedName) return false;
+    return getStoresForPicker(chain, slotMode).filter((store) => {
+      if (otherSelectedId && sameStoreIdV93(store.id, otherSelectedId)) return false;
+      if (
+        otherSelectedName &&
+        normalize(store.name || "") === normalize(otherSelectedName)
+      )
+        return false;
+      if (selectedId && sameStoreIdV93(store.id, selectedId)) return true;
+      if (
+        selectedName &&
+        normalize(store.name || "") === normalize(selectedName)
+      )
+        return true;
       return true;
     });
   }
