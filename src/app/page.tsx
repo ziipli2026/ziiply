@@ -1,3 +1,11 @@
+// V136_GOSTA_CATEGORY_SEARCH_ONLY_NO_POSTFILTER_MASS
+// Pohja: käyttäjän viimeisin V135 page.
+// Korjaus Göstaan:
+// - tuoteryhmächipin klikkaus käynnistää oman tuoteryhmäkohtaisen tarjoushaun valmiilla siemenhakusanoilla
+// - kategoria ei enää ole pelkkä jälkisuodatin "Kaikki"-massalle
+// - Kaikki käyttää edelleen laajaa aluehakua, mutta Maitotuotteet/Liha/Kala jne. hakevat vain oman ryhmän siemenillä
+// - ryhmähaun tulokset rajataan vielä kategorian mukaan, jotta esim. vaipat eivät päädy maitotuotteisiin/lihaan
+
 // V118_OPENFOODFACTS_STRICT_EAN_DEDUP
 // Open Food Facts -fallback: sama EAN siivotaan koriin vain kerran.
 // Jos tuntematon EAN ehti ensin koriin, se päivitetään tunnistetuksi eikä lisätä toista riviä.
@@ -4966,6 +4974,85 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     ].includes(filter);
   }
 
+  const GOSTA_CATEGORY_LABELS_V136 = [
+    "Kaikki",
+    "Kahvi",
+    "Maitotuotteet",
+    "Liha",
+    "Kala",
+    "Leipomo",
+    "Hevi",
+    "Juomat",
+    "Lemmikit",
+    "Koti",
+    "Pakasteet",
+  ];
+
+  function getGostaCategorySeedQueriesV136(categoryOrFilter: string) {
+    const key = normalize(categoryOrFilter).trim();
+
+    if (!key || key === "kaikki" || key === "all") {
+      return [
+        "kahvi",
+        "maito",
+        "juusto",
+        "jogurtti",
+        "rahka",
+        "voi",
+        "kerma",
+        "kananmuna",
+        "jauheliha",
+        "kana",
+        "broileri",
+        "makkara",
+        "leikkele",
+        "lohi",
+        "kala",
+        "leipä",
+        "pulla",
+        "hedelmä",
+        "vihannes",
+        "peruna",
+        "mehu",
+        "limu",
+        "pakaste",
+        "jäätelö",
+        "pizza",
+        "pesuaine",
+        "talouspaperi",
+        "wc-paperi",
+        "koiranruoka",
+        "kissanruoka",
+      ];
+    }
+
+    const seedsByCategory: Record<string, string[]> = {
+      kahvi: ["kahvi", "espresso", "suodatinjauhettu kahvi", "kahvipapu"],
+      maitotuotteet: ["maito", "juusto", "jogurtti", "rahka", "raejuusto", "voi", "kerma", "viili", "kefiiri", "vanukas"],
+      liha: ["jauheliha", "kana", "broileri", "nauta", "possu", "porsas", "makkara", "leikkele", "kinkku", "pekoni", "lihapulla"],
+      kala: ["lohi", "kirjolohi", "kala", "tonnikala", "silakka", "katkarapu", "seiti", "kalapuikko", "silli"],
+      leipomo: ["leipä", "sämpylä", "pulla", "croissant", "karjalanpiirakka", "patonki", "ruisleipä", "paahtoleipä"],
+      hevi: ["hedelmä", "omena", "banaani", "appelsiini", "vihannes", "tomaatti", "kurkku", "salaatti", "peruna", "sipuli", "porkkana"],
+      juomat: ["mehu", "limu", "cola", "energiajuoma", "vesi", "kivennäisvesi", "virvoitusjuoma", "smoothie"],
+      lemmikit: ["koiranruoka", "kissanruoka", "lemmikkiruoka", "pedigree", "whiskas", "sheba", "purina"],
+      koti: ["pesuaine", "pyykinpesuaine", "astianpesuaine", "fairy", "wc-paperi", "talouspaperi", "siivous"],
+      pakasteet: ["pakaste", "jäätelö", "pizza", "ranskalaiset", "pakastevihannes"],
+      muut: ["tarjous"],
+    };
+
+    return seedsByCategory[key] ?? [];
+  }
+
+  function getGostaCategoryLabelFromFilterV136(filter: string) {
+    const normalized = normalize(filter).trim();
+    return GOSTA_CATEGORY_LABELS_V136.find((label) => normalize(label) === normalized) || filter;
+  }
+
+  function isGostaCategorySelectionV136(value: string) {
+    const normalized = normalize(value).trim();
+    return normalized === "kaikki" || isKnownOfferCategoryFilterV113(normalized);
+  }
+
   function isBadOfferSearchResultV106(item: any) {
     const title = String(item?.title || item?.name || item?.productName || "").trim();
     const text = normalize(getOfferSearchTextV106(item));
@@ -6874,10 +6961,23 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const useTerms = hasExplicitOverride ? parseTerms(cleanedOverride) : terms;
     const offerQuerySnapshot =
       useTerms.join(", ").trim() || (hasExplicitOverride ? cleanedOverride : input.trim());
-    const searchAllAreaOffers = !offerQuerySnapshot;
+    const categorySearchLabelV136 = isGostaCategorySelectionV136(offerQuerySnapshot)
+      ? getGostaCategoryLabelFromFilterV136(offerQuerySnapshot)
+      : "";
+    const normalizedCategorySearchV136 = normalize(categorySearchLabelV136).trim();
+    const searchAllAreaOffers = !offerQuerySnapshot || normalizedCategorySearchV136 === "kaikki";
+    const searchByCategoryV136 =
+      !!categorySearchLabelV136 &&
+      normalizedCategorySearchV136 !== "kaikki" &&
+      isKnownOfferCategoryFilterV113(normalizedCategorySearchV136);
+    const offerSearchTrackingKeyV136 = searchAllAreaOffers
+      ? "__all_area_offers_category_seeded__"
+      : searchByCategoryV136
+        ? `__category_${normalizedCategorySearchV136}__`
+        : offerQuerySnapshot;
 
     trackZiiplyEvent("gosta_offer_api_search_used", {
-      query: searchAllAreaOffers ? "__all_area_offers_category_seeded__" : offerQuerySnapshot,
+      query: offerSearchTrackingKeyV136,
       cartItemsCount: cart.length,
       storeMode,
       sStoreName: activeStores.sStoreName,
@@ -6886,10 +6986,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     if (hasExplicitOverride) setInput(cleanedOverride);
 
-    setOfferSearchQuerySnapshot(offerQuerySnapshot);
-    // V111: tyhjä Gösta-haku ei saa asettaa tekstifiltteriä, koska tarkoitus on näyttää
-    // alueen tarjouksia laajasti. Käyttäjän oma tarjoushaku saa edelleen toimia q-haulla.
-    setOfferCardFilterV106(searchAllAreaOffers ? "" : offerQuerySnapshot);
+    setOfferSearchQuerySnapshot(searchByCategoryV136 ? categorySearchLabelV136 : offerQuerySnapshot);
+    // V136: tuoteryhmächip ei ole enää pelkkä jälkisuodatin "Kaikki"-massalle,
+    // vaan se käynnistää oman ryhmäkohtaisen tarjoushaun. Filtteri pidetään silti
+    // valitussa ryhmässä, jotta mahdolliset väärät sivuosumat poistuvat.
+    setOfferCardFilterV106(
+      searchAllAreaOffers ? "" : searchByCategoryV136 ? categorySearchLabelV136 : offerQuerySnapshot,
+    );
     setOfferShowingAllAreaOffersV106(searchAllAreaOffers);
     setHasSearchedOffers(true);
     setLoadingOffers(true);
@@ -6914,48 +7017,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       let nextResults: any[] = [];
 
-      if (searchAllAreaOffers) {
-        // V112: nykyinen /api/offers/search tarvitsee käytännössä q-parametrin.
-        // "Kaikki" rakennetaan useilla tuoteryhmäsiemenillä. Lista on tarkoituksella leveä,
-        // jotta Prisma/Citymarket-alueella ei jäädä yhden satunnaisen osuman varaan.
-        const seedQueries = [
-          "tarjous",
-          "plussa",
-          "s-etukortti",
-          "kahvi",
-          "maito",
-          "juusto",
-          "jogurtti",
-          "rahka",
-          "voi",
-          "kerma",
-          "kananmuna",
-          "liha",
-          "jauheliha",
-          "kana",
-          "broileri",
-          "makkara",
-          "leikkele",
-          "kala",
-          "lohi",
-          "leipä",
-          "pulla",
-          "hedelmä",
-          "vihannes",
-          "peruna",
-          "mehu",
-          "limu",
-          "virvoitusjuoma",
-          "vesi",
-          "pakaste",
-          "jäätelö",
-          "pizza",
-          "pesuaine",
-          "talouspaperi",
-          "wc-paperi",
-          "koiranruoka",
-          "kissanruoka",
-        ];
+      if (searchAllAreaOffers || searchByCategoryV136) {
+        // V136: tyhjä Gösta = alueen kaikki tarjousten siemenhaku.
+        // Tuoteryhmächip = vain kyseisen tuoteryhmän siemenhaku. Tämä on tärkeää,
+        // koska tarjouslehtisten raakateksti on sekavaa eikä "Kaikki"-massan jälkisuodatus riitä.
+        const seedQueries = getGostaCategorySeedQueriesV136(
+          searchByCategoryV136 ? categorySearchLabelV136 : "Kaikki",
+        );
 
         const settled = await Promise.allSettled(
           seedQueries.map(async (query) => {
@@ -6970,6 +7038,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         nextResults = settled.flatMap((result) =>
           result.status === "fulfilled" ? result.value : [],
         );
+
+        if (searchByCategoryV136) {
+          nextResults = nextResults.filter((item) =>
+            normalize(getOfferCategoryV106(item)) === normalizedCategorySearchV136,
+          );
+        }
       } else {
         const response = await fetch(
           `/api/offers/search?q=${encodeURIComponent(offerQuerySnapshot)}`,
@@ -6997,13 +7071,22 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       });
 
       setOfferSearchResults(dedupedResults);
-      setOfferSearchDoneForQuery(searchAllAreaOffers ? "__all_area_offers_category_seeded__" : offerQuerySnapshot);
+      setOfferSearchDoneForQuery(offerSearchTrackingKeyV136);
     } catch (error) {
       console.error("[Ziiply offers] API search failed", error);
       setOfferSearchResults([]);
       showCartToast("Tarjoushaku ei onnistunut");
     } finally {
       setLoadingOffers(false);
+    }
+  }
+
+  function handleGostaFilterChangeV136(value: string) {
+    const nextValue = String(value || "").trim();
+    setOfferCardFilterV106(nextValue);
+
+    if (isGostaCategorySelectionV136(nextValue)) {
+      void searchOffers(nextValue);
     }
   }
 
@@ -15058,9 +15141,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               __sourceOfferSearchResult: item,
             }))}
             filter={offerCardFilterV106}
-            onFilterChange={setOfferCardFilterV106}
+            onFilterChange={handleGostaFilterChangeV136}
             onSearch={(value: string) => void searchOffers(value)}
-            categorySuggestions={["Kaikki", "Kahvi", "Maitotuotteet", "Liha", "Kala", "Leipomo", "Hevi", "Juomat", "Lemmikit", "Koti", "Pakasteet"]}
+            categorySuggestions={GOSTA_CATEGORY_LABELS_V136}
             loading={loadingOffers}
             emptyText={offerShowingAllAreaOffersV106 ? "Alueen tarjouksia ei löytynyt vielä." : "Gösta ei löytänyt tarjouksia tälle rajaukselle."}
             onBack={() => {
