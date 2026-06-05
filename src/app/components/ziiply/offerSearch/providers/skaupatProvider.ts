@@ -1,9 +1,10 @@
 // ============================================================================
-// SKAUPAT_PROVIDER_V152_EXPLICIT_PRODUCTLIST_PATH
-// Revision: V152
+// SKAUPAT_PROVIDER_V153_EXPLICIT_PATH_VISIBLE_DIAGNOSTICS
+// Revision: V153
 // Date: 2026-06-05
 //
 // Fix:
+// - Adds visible diagnostics on top of V152.
 // - Uses the real S-kaupat RemoteFilteredProducts response structure:
 //   data.store.products.products[]
 //   data.store.products.structuredFacets[]
@@ -427,13 +428,13 @@ function buildRemoteFilteredProductsUrl(query: string): string {
       { key: "category" },
       { key: "labels" },
     ],
-    generatedSessionId: "ziiply-gosta-v152",
+    generatedSessionId: "ziiply-gosta-v153",
     fetchSponsoredContent: true,
     limit: 48,
     queryString: query,
     storeId: DEFAULT_SKAUPAT_STORE_ID_V152,
     useRandomId: false,
-    marketingId: "ziiply-gosta-v152",
+    marketingId: "ziiply-gosta-v153",
   };
 
   const extensions = {
@@ -471,12 +472,12 @@ async function fetchSKaupatRemoteFilteredProductsV152(
   }
 
   const data = await response.json();
+  const root = getSProductsRoot(data);
   const fallbackFacetNames = getCategoryFacetNames(data);
-  void getCategoryFacetPaths;
-
+  const categoryFacetPaths = getCategoryFacetPaths(data);
   const listItems = getSProductListItems(data);
 
-  return listItems
+  const mappedResults = listItems
     .map((item, index) =>
       mapSProductListItemToOfferResult(item, {
         query,
@@ -486,6 +487,34 @@ async function fetchSKaupatRemoteFilteredProductsV152(
       }),
     )
     .filter(Boolean) as ZiiplyOfferSearchResult[];
+
+  const firstProduct = asRecord(listItems[0]?.product);
+  const firstTitle = firstProduct ? firstString(firstProduct.name, firstProduct.ean, firstProduct.id) : "";
+  const rootKeys = root ? Object.keys(root).join(",") : "NO_ROOT";
+
+  const debugRow = {
+    id: `skaupat-debug-v153-${query}`,
+    source: config.id,
+    sourceUrl: config.url,
+    chain: config.chain,
+    storeLabel: config.storeLabel,
+    title: `DEBUG V153 S-kaupat polku`,
+    priceText: "",
+    unitPriceText: "",
+    benefitText: `query="${query}" rootKeys=${rootKeys} listItems=${listItems.length} mapped=${mappedResults.length} facets=${fallbackFacetNames.length} catPaths=${categoryFacetPaths.length} first="${firstTitle}"`,
+    validityText: "V153 diagnostics",
+    imageUrl: "",
+    productUrl: "",
+    rawText: `DEBUG V153 S-kaupat ${query} ${firstTitle} ${fallbackFacetNames.join(" ")}`,
+    matchScore: 9999,
+    category: "Muut",
+    categoryPath: fallbackFacetNames.slice(0, 5).join(" / "),
+    breadcrumbs: fallbackFacetNames.slice(0, 5).join(" / "),
+    department: "",
+    productGroup: "",
+  } as unknown as ZiiplyOfferSearchResult;
+
+  return [debugRow, ...mappedResults];
 }
 
 export async function fetchSKaupatOffers(
