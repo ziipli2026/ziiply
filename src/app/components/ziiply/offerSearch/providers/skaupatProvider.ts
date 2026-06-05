@@ -1,6 +1,6 @@
 // ============================================================================
 // SKAUPAT_PROVIDER_V153_EXPLICIT_PATH_VISIBLE_DIAGNOSTICS
-// Revision: V158
+// Revision: V159
 // Date: 2026-06-05
 //
 // Fix:
@@ -266,31 +266,6 @@ function formatComparisonPrice(price: unknown, unit: unknown): string {
   return `${number.toFixed(2).replace(".", ",")} €/${normalizedUnit.toLowerCase()}`;
 }
 
-function formatRawPriceDebugValue(label: string, value: unknown): string {
-  if (value == null || value === "") return `${label}=∅`;
-  if (typeof value === "number") return `${label}=${value}`;
-  if (typeof value === "string") return `${label}="${value}"`;
-  const record = asRecord(value);
-  if (record) return `${label}={${Object.keys(record).slice(0, 6).join(",")}}`;
-  return `${label}=${String(value)}`;
-}
-
-function buildSPriceDebugText(product: UnknownRecord, pricing: UnknownRecord): string {
-  return [
-    formatRawPriceDebugValue("p.price", product.price),
-    formatRawPriceDebugValue("p.comp", product.comparisonPrice),
-    formatRawPriceDebugValue("p.compUnit", product.comparisonUnit),
-    formatRawPriceDebugValue("cur", pricing.currentPrice),
-    formatRawPriceDebugValue("camp", pricing.campaignPrice),
-    formatRawPriceDebugValue("reg", pricing.regularPrice),
-    formatRawPriceDebugValue("low30", pricing.lowest30DayPrice),
-    formatRawPriceDebugValue("cmp", pricing.comparisonPrice),
-    formatRawPriceDebugValue("cmpUnit", pricing.comparisonUnit),
-    formatRawPriceDebugValue("salesUnit", pricing.salesUnit),
-    formatRawPriceDebugValue("valid", pricing.campaignPriceValidUntil),
-  ].join(" | ");
-}
-
 function buildSCloudImageUrl(urlTemplate: string): string {
   if (!urlTemplate) return "";
 
@@ -372,6 +347,31 @@ function getLabels(listItem: UnknownRecord, product: UnknownRecord): string {
     .join(" ");
 }
 
+function isSponsoredSProductListItem(listItem: UnknownRecord, product: UnknownRecord): boolean {
+  const text = normalizeText(
+    [
+      listItem.__typename,
+      listItem.adId,
+      listItem.sponsored,
+      listItem.isSponsored,
+      listItem.sponsoredMetadata,
+      product.adId,
+      product.sponsored,
+      product.isSponsored,
+      getLabels(listItem, product),
+    ]
+      .filter(Boolean)
+      .join(" "),
+  );
+
+  return (
+    text.includes("sponsoroitu") ||
+    text.includes("sponsored") ||
+    text.includes("sponsoredmetadata") ||
+    text.includes("advertisement")
+  );
+}
+
 function getImageUrl(product: UnknownRecord): string {
   const mainImageTemplate = firstString(
     getPathValue(product, ["productDetails", "productImages", "mobileReadyHeroImage", "urlTemplate"]),
@@ -437,6 +437,8 @@ function mapSProductListItemToOfferResult(
   const title = firstString(product.name);
   if (!title) return null;
 
+  if (isSponsoredSProductListItem(listItem, product)) return null;
+
   const pricing = getPricing(product);
   const currentPrice =
     pricing.campaignPrice ??
@@ -468,16 +470,9 @@ function mapSProductListItemToOfferResult(
     regularPrice != null &&
     Number(currentPrice) < Number(regularPrice);
 
-  const priceDebugText = buildSPriceDebugText(product, pricing);
-
-  const benefitText = [
-    isCampaign
-      ? `Kampanja${regularPrice ? `, normaalisti ${formatPrice(regularPrice)}` : ""}`
-      : labelsText,
-    `DEBUG HINTA: ${priceDebugText}`,
-  ]
-    .filter(Boolean)
-    .join(" · ");
+  const benefitText = isCampaign
+    ? `Kampanja${regularPrice ? `, normaalisti ${formatPrice(regularPrice)}` : ""}`
+    : labelsText;
 
   const rawText = [
     title,
@@ -543,7 +538,7 @@ function buildRemoteFilteredProductsUrl(query: string): string {
       { key: "labels" },
     ],
     generatedSessionId: "1d6b5de9-df99-4608-af07-7d754955df82",
-    fetchSponsoredContent: true,
+    fetchSponsoredContent: false,
     limit: 48,
     queryString: query,
     storeId: DEFAULT_SKAUPAT_STORE_ID_V156,
