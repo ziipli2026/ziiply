@@ -1,6 +1,6 @@
 // ============================================================================
 // SKAUPAT_PROVIDER_V153_EXPLICIT_PATH_VISIBLE_DIAGNOSTICS
-// Revision: V155
+// Revision: V156
 // Date: 2026-06-05
 //
 // Fix:
@@ -27,10 +27,10 @@ import type {
 
 type UnknownRecord = Record<string, unknown>;
 
-const SKAUPAT_REMOTE_FILTERED_PRODUCTS_HASH_V152 =
+const SKAUPAT_REMOTE_FILTERED_PRODUCTS_HASH_V156 =
   "44ca017dddccfe49e787b483f471f26217adca807f8c71101d11e881dab9e480";
 
-const DEFAULT_SKAUPAT_STORE_ID_V152 = "513971200";
+const DEFAULT_SKAUPAT_STORE_ID_V156 = "513971200";
 
 function asRecord(value: unknown): UnknownRecord | null {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -510,19 +510,19 @@ function buildRemoteFilteredProductsUrl(query: string): string {
       { key: "category" },
       { key: "labels" },
     ],
-    generatedSessionId: "ziiply-gosta-v155",
+    generatedSessionId: "1d6b5de9-df99-4608-af07-7d754955df82",
     fetchSponsoredContent: true,
     limit: 48,
     queryString: query,
-    storeId: DEFAULT_SKAUPAT_STORE_ID_V152,
+    storeId: DEFAULT_SKAUPAT_STORE_ID_V156,
     useRandomId: false,
-    marketingId: "ziiply-gosta-v155",
+    marketingId: "d0bcc6e5-6130-494e-b6fb-12b5cb9c60cf",
   };
 
   const extensions = {
     persistedQuery: {
       version: 1,
-      sha256Hash: SKAUPAT_REMOTE_FILTERED_PRODUCTS_HASH_V152,
+      sha256Hash: SKAUPAT_REMOTE_FILTERED_PRODUCTS_HASH_V156,
     },
   };
 
@@ -543,8 +543,12 @@ async function fetchSKaupatRemoteFilteredProductsV152(
       accept: "application/json",
       "content-type": "application/json",
       "accept-language": "fi",
+      origin: "https://www.s-kaupat.fi",
+      referer: "https://www.s-kaupat.fi/",
       "x-client-name": "skaupat-web",
       "x-client-version": "production-45c31f7a746096c6da12e16aba1887e031fbd9de",
+      "user-agent":
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3.1 Safari/605.1.15",
     },
     cache: "no-store",
   });
@@ -580,21 +584,30 @@ async function fetchSKaupatRemoteFilteredProductsV152(
     : pli && typeof pli === "object"
       ? `object:${Object.keys(pli as UnknownRecord).slice(0, 8).join(",")}`
       : typeof pli;
+  const total = firstString(root?.total);
+  const from = firstString(root?.from);
+  const limit = firstString(root?.limit);
+  const facetRaw = root?.structuredFacets;
+  const facetType = Array.isArray(facetRaw)
+    ? `array:${facetRaw.length}`
+    : facetRaw && typeof facetRaw === "object"
+      ? `object:${Object.keys(facetRaw as UnknownRecord).slice(0, 8).join(",")}`
+      : typeof facetRaw;
 
   const debugRow = {
-    id: `skaupat-debug-v155-${query}`,
+    id: `skaupat-debug-v156-${query}`,
     source: config.id,
     sourceUrl: config.url,
     chain: config.chain,
     storeLabel: config.storeLabel,
-    title: `DEBUG V155 S-kaupat polku`,
+    title: `DEBUG V156 S-kaupat polku`,
     priceText: "",
     unitPriceText: "",
-    benefitText: `query="${query}" rootKeys=${rootKeys} productListItems=${pliType} listItems=${listItems.length} mapped=${mappedResults.length} facets=${fallbackFacetNames.length} catPaths=${categoryFacetPaths.length} first="${firstTitle}"`,
-    validityText: "V155 diagnostics",
+    benefitText: `query="${query}" total=${total} from=${from} limit=${limit} rootKeys=${rootKeys} productListItems=${pliType} structuredFacets=${facetType} listItems=${listItems.length} mapped=${mappedResults.length} facets=${fallbackFacetNames.length} catPaths=${categoryFacetPaths.length} first="${firstTitle}"`,
+    validityText: "V156 diagnostics",
     imageUrl: "",
     productUrl: "",
-    rawText: `DEBUG V155 S-kaupat ${query} ${firstTitle} ${fallbackFacetNames.join(" ")}`,
+    rawText: `DEBUG V156 S-kaupat ${query} ${firstTitle} ${fallbackFacetNames.join(" ")}`,
     matchScore: 9999,
     category: "Muut",
     categoryPath: fallbackFacetNames.slice(0, 5).join(" / "),
