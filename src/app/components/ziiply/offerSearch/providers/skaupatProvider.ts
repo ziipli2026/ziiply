@@ -35,6 +35,12 @@
 // - Category chips can then filter this master dataset locally without new seed searches.
 //
 // V170 safe pagination:
+// V173 store context:
+// - fetchSKaupatOffers accepts an optional storeId/storeName context.
+// - RemoteFilteredProducts uses the selected S-store id instead of the hardcoded default.
+// - Product storeId validation also uses that selected store id.
+//
+// V170 safe pagination:
 // - Keeps the original working S-kaupat RemoteFilteredProducts limit at 48.
 // - Fetches several 48-item pages with offset/page variables instead of raising limit.
 // - If S-kaupat ignores offset/page variables, dedupe keeps the result stable.
@@ -53,6 +59,18 @@ const SKAUPAT_REMOTE_FILTERED_PRODUCTS_HASH_V156 =
   "44ca017dddccfe49e787b483f471f26217adca807f8c71101d11e881dab9e480";
 
 const DEFAULT_SKAUPAT_STORE_ID_V156 = "513971200";
+
+export type SKaupatOfferProviderOptionsV173 = {
+  storeId?: string | number | null;
+  storeName?: string | null;
+};
+
+function getEffectiveSKaupatStoreIdV173(options?: SKaupatOfferProviderOptionsV173): string {
+  const raw = firstString(options?.storeId);
+  // S-kaupat RemoteFilteredProducts expects the numeric S-store id.
+  // If the UI/store resolver gives no usable id, keep the old MVP default as a fallback.
+  return /^\d{5,}$/.test(raw) ? raw : DEFAULT_SKAUPAT_STORE_ID_V156;
+}
 const SKAUPAT_GOSTA_MASTER_QUERY_V171 = "__ziiply_all_offers__";
 
 const SKAUPAT_GOSTA_MASTER_SEED_QUERIES_V172 = Array.from(new Set([
@@ -572,13 +590,16 @@ function hasSOfferSignal(
 }
 
 
-function belongsToSelectedSHypermarketV163(product: UnknownRecord): boolean {
+function belongsToSelectedSHypermarketV163(
+  product: UnknownRecord,
+  selectedStoreId = DEFAULT_SKAUPAT_STORE_ID_V156,
+): boolean {
   const productStoreId = firstString(product.storeId);
 
-  // RemoteFilteredProducts is already scoped with storeId.
-  // If product has a storeId, it must match that same store.
+  // RemoteFilteredProducts is scoped with storeId, but some rows may still include storeId.
+  // If product has a storeId, it must match the selected S-store, not the old hardcoded MVP store.
   // If S-kaupat omits it for some rows, allow the row instead of killing all results.
-  return !productStoreId || productStoreId === DEFAULT_SKAUPAT_STORE_ID_V156;
+  return !productStoreId || productStoreId === selectedStoreId;
 }
 
 
@@ -639,6 +660,7 @@ function mapSProductListItemToOfferResult(
     config: ZiiplyOfferSearchSourceConfig;
     fallbackFacetNames: string[];
     index: number;
+    selectedStoreId: string;
   },
 ): ZiiplyOfferSearchResult | null {
   const product = getProductFromListItem(listItem);
@@ -648,7 +670,7 @@ function mapSProductListItemToOfferResult(
   if (!title) return null;
 
   if (isSponsoredSProductListItem(listItem, product)) return null;
-  if (!belongsToSelectedSHypermarketV163(product)) return null;
+  if (!belongsToSelectedSHypermarketV163(product, options.selectedStoreId)) return null;
 
   const pricing = getPricing(product);
 
@@ -746,7 +768,7 @@ function mapSProductListItemToOfferResult(
   } as unknown as ZiiplyOfferSearchResult;
 }
 
-function buildRemoteFilteredProductsUrl(query: string, offset = 0): string {
+function buildRemoteFilteredProductsUrl(query: string, offset = 0, selectedStoreId = DEFAULT_SKAUPAT_STORE_ID_V156): string {
   const page = Math.floor(offset / 48) + 1;
   const queryString = query;
 
@@ -763,7 +785,7 @@ function buildRemoteFilteredProductsUrl(query: string, offset = 0): string {
     skip: offset,
     page,
     queryString,
-    storeId: DEFAULT_SKAUPAT_STORE_ID_V156,
+    storeId: selectedStoreId,
     useRandomId: false,
     marketingId: "d0bcc6e5-6130-494e-b6fb-12b5cb9c60cf",
   };
@@ -786,8 +808,9 @@ async function fetchSKaupatRemoteFilteredProductsPageV170(
   query: string,
   config: ZiiplyOfferSearchSourceConfig,
   offset: number,
+  selectedStoreId: string,
 ): Promise<ZiiplyOfferSearchResult[]> {
-  const response = await fetch(buildRemoteFilteredProductsUrl(query, offset), {
+  const response = await fetch(buildRemoteFilteredProductsUrl(query, offset, selectedStoreId), {
     method: "GET",
     headers: {
       accept: "application/json",
@@ -820,6 +843,7 @@ async function fetchSKaupatRemoteFilteredProductsPageV170(
         config,
         fallbackFacetNames,
         index,
+        selectedStoreId,
       }),
     )
     .filter(Boolean) as ZiiplyOfferSearchResult[];
@@ -830,7 +854,9 @@ async function fetchSKaupatRemoteFilteredProductsPageV170(
 async function fetchSKaupatRemoteFilteredProductsV170(
   query: string,
   config: ZiiplyOfferSearchSourceConfig,
+  options?: SKaupatOfferProviderOptionsV173,
 ): Promise<ZiiplyOfferSearchResult[]> {
+  const selectedStoreId = getEffectiveSKaupatStoreIdV173(options);
   const pageOffsets = isGostaMasterQueryV171(query)
     ? [0, 48, 96, 144, 192, 240, 288, 336, 384, 432, 480, 528, 576, 624, 672, 720, 768, 816, 864, 912]
     : [0, 48, 96, 144, 192];
@@ -838,7 +864,7 @@ async function fetchSKaupatRemoteFilteredProductsV170(
 
   for (const offset of pageOffsets) {
     try {
-      const pageResults = await fetchSKaupatRemoteFilteredProductsPageV170(query, config, offset);
+      const pageResults = await fetchSKaupatRemoteFilteredProductsPageV170(query, config, offset, selectedStoreId);
       pages.push(pageResults);
 
       // Stop early if S-kaupat returns a short page. If offset is ignored, the
@@ -858,6 +884,7 @@ async function fetchSKaupatRemoteFilteredProductsV170(
 export async function fetchSKaupatOffers(
   query: string,
   config: ZiiplyOfferSearchSourceConfig,
+  options?: SKaupatOfferProviderOptionsV173,
 ): Promise<ZiiplyOfferSearchResult[]> {
   const cleanQuery = String(query || "").trim();
   if (!cleanQuery) return [];
@@ -866,7 +893,7 @@ export async function fetchSKaupatOffers(
     if (isGostaMasterQueryV171(cleanQuery)) {
       const pages = await Promise.allSettled(
         SKAUPAT_GOSTA_MASTER_SEED_QUERIES_V172.map((seedQuery) =>
-          fetchSKaupatRemoteFilteredProductsV170(seedQuery, config),
+          fetchSKaupatRemoteFilteredProductsV170(seedQuery, config, options),
         ),
       );
 
@@ -877,7 +904,7 @@ export async function fetchSKaupatOffers(
       );
     }
 
-    return await fetchSKaupatRemoteFilteredProductsV170(cleanQuery, config);
+    return await fetchSKaupatRemoteFilteredProductsV170(cleanQuery, config, options);
   } catch (error) {
     console.warn("[Ziiply offers] S-kaupat RemoteFilteredProducts failed", error);
     return [];
