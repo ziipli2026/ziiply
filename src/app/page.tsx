@@ -1,11 +1,10 @@
-// V172_GOSTA_MASTER_DATASET_RESTORED_ON_V171_BASE
-// Korjaus tähän V171-pohjaan:
-// - Palauttaa V169:n toimivan Gösta master-dataset + page-cache -logiikan.
-// - Tuoteryhmät eivät enää katoa tyhjällä/paluuhaulla.
-// - Lisää aktiivisen alueen/kaupan contextin vain master-kutsuun, rikkomatta kategoriacachea.
-
-// V170_GOSTA_CONTEXT_OPTION_TYPE_COMPAT_BUILD_FIX
-// Build-fix: Göstan search-options pidetään yhteensopivana sekä vanhan että uuden search coren kanssa.
+// V170_GOSTA_MASTER_SEARCH_PASSES_STORE_CONTEXT
+// Korjaus: master-dataset haku välittää activeStores-kontekstin corelle/routeen/providerille.
+// V169_GOSTA_MASTER_OFFER_DATASET_LOCAL_CATEGORY_FILTER
+// Korjaus: Gösta ei enää tee tuoteryhmän klikkauksesta uutta hakusanapohjaista tarjoushakua.
+// Ensimmäinen Gösta-avaus hakee alueen/kauppaparin tarjousmassan kerran ja tallettaa sen page-muistiin.
+// Tuoteryhmäpalkit ja Göstan oma tekstihaku suodattavat tätä muistissa olevaa tarjousdataa paikallisesti.
+// Tämä estää kategoriavaihdoissa toistuvan koko tarjouspotin uudelleenhaun ja tekee määristä realistisemmat.
 
 // V160_GOSTA_ISOLATED_FROM_MAIN_SEARCH_INPUT_AND_AUTORUN
 // Korjaus:
@@ -110,18 +109,6 @@
 // viimeisintä toimivaa lämpötilaa muistista. Tämä ei muuta kauppavalintaa eikä foundStores-listaa.
 
 "use client";
-
-// V169_GOSTA_PASSES_ACTIVE_STORE_CONTEXT_TO_OFFER_CORE
-// Korjaus:
-// - Göstan tarjoushaku välittää aktiivisen alueen, kauppatilan ja valitut S/K-kaupat offerSearchCorelle.
-// - Tämä estää Varkaus/Mikkeli-tyyppistä vanhan tarjoushaun välimuistilukkoa selaimessa/Vercelissä.
-
-// V170_GOSTA_CONTEXT_OPTION_TYPE_COMPAT_BUILD_FIX
-// Korjaus: page antaa tarjoushaulle kauppa-/aluekontekstin any-välivakion kautta,
-// jotta build ei kaadu, vaikka ziiplyOfferSearchCore.ts olisi vielä vanhalla query/terms-tyypillä.
-
-// V171_GOSTA_CONTEXT_TYPE_COMPAT_BUILD_FIX
-// Korjaus: Göstan search-core-kutsun context välitetään tyypitysturvallisesti/yhteensopivasti, jotta page ei kaadu jos core-tyyppi on hetkeksi vanha.
 
 // V168_EMPTY_STORE_AREA_CLEARS_STALE_SELECTION_AND_PAIR_NOTICE
 // Korjaus:
@@ -7289,7 +7276,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     try {
-      const gostaMasterSearchOptionsV172 = {
+      const offerSearchCoreResult = await searchZiiplyGostaOffersV146({
         query: "",
         terms: [],
         context: {
@@ -7301,9 +7288,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           kStoreId: activeStores.kStoreId,
           kStoreName: activeStores.kStoreName,
         },
-      } as any;
-
-      const offerSearchCoreResult = await searchZiiplyGostaOffersV146(gostaMasterSearchOptionsV172);
+      });
 
       const masterResults = offerSearchCoreResult.results || [];
       const nextFilter = requestedFilter || "";
