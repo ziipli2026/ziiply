@@ -1,10 +1,11 @@
 // ============================================================================
-// ZIIPLY_OFFER_SEARCH_CORE_V155_COMMENT_SYNTAX_BUILD_FIX
-// Revision: V155
+// ZIIPLY_OFFER_SEARCH_CORE_V156_GOSTA_MASTER_CACHE_LOCAL_CATEGORY
+// Revision: V156
 // Date: 2026-06-06
 //
 // Purpose:
 // - Keeps V146 Gösta offer search orchestration.
+// - V156: Kaikki/category searches use one master offer dataset and local category filtering.
 // - V152: store/area context is included in request URLs so old Varkaus/Mikkeli results cannot be reused silently.
 // - V153: category seed searches use the food-basket scoped S-kanava map from ziiplyOfferCategoryCore.
 // - V153: keeps cache-busting/store context params ready for S-kanava Kampanjat/offer route support.
@@ -32,7 +33,6 @@
 
 import {
   getGostaCategoryLabelFromFilterV136,
-  getGostaCategorySeedQueriesV136,
   getOfferCategoryV106,
   getOfferProductTitleV113,
   isBadOfferSearchResultV106,
@@ -98,6 +98,10 @@ function buildOfferSearchContextKeyV152(context?: ZiiplyGostaOfferSearchContextV
     .join("|");
 }
 
+const ZIIPLY_GOSTA_MASTER_QUERY_V156 = "__ziiply_all_offers__";
+const ZIIPLY_GOSTA_MASTER_CACHE_TTL_MS_V156 = 5 * 60 * 1000;
+const ziiplyGostaMasterCacheV156 = new Map<string, { expiresAt: number; promise: Promise<ZiiplyGostaOfferLike[]> }>();
+
 async function fetchOfferSearchResults(query: string, context?: ZiiplyGostaOfferSearchContextV152) {
   const params = new URLSearchParams();
   params.set("q", query);
@@ -121,6 +125,29 @@ async function fetchOfferSearchResults(query: string, context?: ZiiplyGostaOffer
   return parseOfferSearchResponse(response);
 }
 
+async function fetchGostaMasterOfferResultsV156(context?: ZiiplyGostaOfferSearchContextV152) {
+  const contextKey = buildOfferSearchContextKeyV152(context) || "global";
+  const now = Date.now();
+  const cached = ziiplyGostaMasterCacheV156.get(contextKey);
+
+  if (cached && cached.expiresAt > now) {
+    return cached.promise;
+  }
+
+  const promise = fetchOfferSearchResults(ZIIPLY_GOSTA_MASTER_QUERY_V156, context)
+    .then((results) => cleanZiiplyGostaOfferResultsV146(results))
+    .catch((error) => {
+      ziiplyGostaMasterCacheV156.delete(contextKey);
+      throw error;
+    });
+
+  ziiplyGostaMasterCacheV156.set(contextKey, {
+    expiresAt: now + ZIIPLY_GOSTA_MASTER_CACHE_TTL_MS_V156,
+    promise,
+  });
+
+  return promise;
+}
 
 
 function getCompactGostaTitleKeyV149(value: unknown) {
@@ -263,28 +290,20 @@ export async function searchZiiplyGostaOffersV146(options: {
   let nextResults: ZiiplyGostaOfferLike[] = [];
 
   if (searchAllAreaOffers || searchByCategory) {
-    const seedQueries = getGostaCategorySeedQueriesV136(
-      searchByCategory ? categorySearchLabel : "Kaikki",
-    );
+    const masterResults = await fetchGostaMasterOfferResultsV156(options.context);
 
-    const settled = await Promise.allSettled(
-      seedQueries.map((seedQuery) => fetchOfferSearchResults(seedQuery, options.context)),
-    );
-
-    nextResults = settled.flatMap((result) =>
-      result.status === "fulfilled" ? result.value : [],
-    );
-
-    if (searchByCategory) {
-      nextResults = nextResults.filter(
-        (item) => normalizeGostaCoreText(getOfferCategoryV106(item)) === normalizedCategorySearch,
-      );
-    }
+    nextResults = searchByCategory
+      ? masterResults.filter(
+          (item) => normalizeGostaCoreText(getOfferCategoryV106(item)) === normalizedCategorySearch,
+        )
+      : masterResults;
   } else {
     nextResults = await fetchOfferSearchResults(offerQuerySnapshot, options.context);
   }
 
-  const results = cleanZiiplyGostaOfferResultsV146(nextResults);
+  const results = searchAllAreaOffers || searchByCategory
+    ? dedupeZiiplyGostaOfferResultsV146(nextResults)
+    : cleanZiiplyGostaOfferResultsV146(nextResults);
 
   return {
     results,
