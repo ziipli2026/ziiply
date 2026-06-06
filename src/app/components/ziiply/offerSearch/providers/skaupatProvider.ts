@@ -1,6 +1,6 @@
 // ============================================================================
 // SKAUPAT_PROVIDER_V153_EXPLICIT_PATH_VISIBLE_DIAGNOSTICS
-// Revision: V159
+// Revision: V160
 // Date: 2026-06-05
 //
 // Fix:
@@ -18,6 +18,16 @@
 //
 // Install path:
 // src/app/components/ziiply/offerSearch/providers/skaupatProvider.ts
+// ============================================================================
+//
+// V160 fix:
+// - Gösta is an offer search: normal-priced shelf products are filtered out.
+// - Includes only products with campaign/offer signal:
+//   campaignPrice, lowest30DayPrice, campaignPriceValidUntil, campaign label,
+//   or currentPrice < regularPrice.
+// - Sponsored/ad-labelled rows remain filtered out.
+// - S-kaupat prices remain in euros; no cents conversion here.
+//
 // ============================================================================
 
 import type {
@@ -372,6 +382,45 @@ function isSponsoredSProductListItem(listItem: UnknownRecord, product: UnknownRe
   );
 }
 
+function hasSOfferSignal(
+  listItem: UnknownRecord,
+  product: UnknownRecord,
+  pricing: UnknownRecord,
+): boolean {
+  const labelsText = normalizeText(getLabels(listItem, product));
+  const currentPrice = numberFromUnknown(
+    pricing.campaignPrice ?? pricing.currentPrice ?? product.price,
+  );
+  const regularPrice = numberFromUnknown(pricing.regularPrice ?? product.price);
+  const campaignPrice = numberFromUnknown(pricing.campaignPrice);
+  const lowest30DayPrice = numberFromUnknown(pricing.lowest30DayPrice);
+  const validUntil = firstString(pricing.campaignPriceValidUntil);
+
+  const hasCampaignPrice = campaignPrice != null;
+  const hasValidCampaignDate = Boolean(validUntil);
+  const hasLowest30DayReference = lowest30DayPrice != null;
+  const hasDiscountAgainstRegular =
+    currentPrice != null &&
+    regularPrice != null &&
+    regularPrice > 0 &&
+    currentPrice < regularPrice - 0.005;
+
+  const hasCampaignLabel =
+    labelsText.includes("kampanja") ||
+    labelsText.includes("tarjous") ||
+    labelsText.includes("campaign") ||
+    labelsText.includes("discount");
+
+  return (
+    hasCampaignPrice ||
+    hasValidCampaignDate ||
+    hasLowest30DayReference ||
+    hasDiscountAgainstRegular ||
+    hasCampaignLabel
+  );
+}
+
+
 function getImageUrl(product: UnknownRecord): string {
   const mainImageTemplate = firstString(
     getPathValue(product, ["productDetails", "productImages", "mobileReadyHeroImage", "urlTemplate"]),
@@ -440,6 +489,9 @@ function mapSProductListItemToOfferResult(
   if (isSponsoredSProductListItem(listItem, product)) return null;
 
   const pricing = getPricing(product);
+
+  if (!hasSOfferSignal(listItem, product, pricing)) return null;
+
   const currentPrice =
     pricing.campaignPrice ??
     pricing.currentPrice ??
