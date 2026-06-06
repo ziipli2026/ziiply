@@ -102,6 +102,11 @@
 
 "use client";
 
+// V169_GOSTA_PASSES_ACTIVE_STORE_CONTEXT_TO_OFFER_CORE
+// Korjaus:
+// - Göstan tarjoushaku välittää aktiivisen alueen, kauppatilan ja valitut S/K-kaupat offerSearchCorelle.
+// - Tämä estää Varkaus/Mikkeli-tyyppistä vanhan tarjoushaun välimuistilukkoa selaimessa/Vercelissä.
+
 // V168_EMPTY_STORE_AREA_CLEARS_STALE_SELECTION_AND_PAIR_NOTICE
 // Korjaus:
 // - jos uusi GPS/manuaalihaku palauttaa 0 kauppaa, vanha activeArea/kauppavalinta tyhjennetään eikä Joroinen/vanhat kaupat jää näkyviin.
@@ -7092,6 +7097,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const offerSearchCoreResult = await searchZiiplyGostaOffersV146({
         query: hasExplicitOverride ? cleanedOverride : input.trim(),
         terms: useTerms,
+        context: {
+          areaLabel: activeArea.label,
+          storeMode,
+          storeCompareScope,
+          sStoreId: activeStores.sStoreId,
+          sStoreName: activeStores.sStoreName,
+          kStoreId: activeStores.kStoreId,
+          kStoreName: activeStores.kStoreName,
+        },
       });
 
       trackZiiplyEvent("gosta_offer_api_search_used", {
