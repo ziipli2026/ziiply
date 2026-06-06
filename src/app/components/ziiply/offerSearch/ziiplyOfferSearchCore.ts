@@ -1,11 +1,13 @@
 // ============================================================================
-// ZIIPLY_OFFER_SEARCH_CORE_V150_ULTRA_FUZZY_DEDUPE
-// Revision: V150
-// Date: 2026-06-05
+// ZIIPLY_OFFER_SEARCH_CORE_V153_NO_STALE_STORE_CONTEXT_AND_KAMPANJAT_READY
+// Revision: V153
+// Date: 2026-06-06
 //
 // Purpose:
 // - Keeps V146 Gösta offer search orchestration.
-// - V148: strict and fuzzy dedupe by EAN/title so category seed searches cannot duplicate the same product.
+// - V152: store/area context is included in request URLs so old Varkaus/Mikkeli results cannot be reused silently.
+// - V153: category seed searches use the food-basket scoped S-kanava map from ziiplyOfferCategoryCore.
+// - V153: keeps cache-busting/store context params ready for S-kanava Kampanjat/offer route support.
 // - Keeps V147 compatibility exports required by page.tsx:
 //   - GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147
 //   - isZiiplyGostaCategorySelectionV147
@@ -37,6 +39,16 @@ import {
   type ZiiplyGostaOfferLike,
 } from "./ziiplyOfferCategoryCore";
 
+export type ZiiplyGostaOfferSearchContextV152 = {
+  areaLabel?: string;
+  storeMode?: string;
+  storeCompareScope?: string;
+  sStoreId?: string | number;
+  sStoreName?: string;
+  kStoreId?: string | number;
+  kStoreName?: string;
+};
+
 export type ZiiplyGostaOfferSearchCoreResult = {
   results: ZiiplyGostaOfferLike[];
   querySnapshot: string;
@@ -67,8 +79,41 @@ async function parseOfferSearchResponse(response: Response) {
   return Array.isArray(data?.results) ? (data.results as ZiiplyGostaOfferLike[]) : [];
 }
 
-async function fetchOfferSearchResults(query: string) {
-  const response = await fetch(`/api/offers/search?q=${encodeURIComponent(query)}`, {
+function buildOfferSearchContextKeyV152(context?: ZiiplyGostaOfferSearchContextV152) {
+  if (!context) return "";
+
+  return [
+    context.areaLabel,
+    context.storeMode,
+    context.storeCompareScope,
+    context.sStoreId,
+    context.sStoreName,
+    context.kStoreId,
+    context.kStoreName,
+  ]
+    .map((value) => normalizeGostaCoreText(value))
+    .filter(Boolean)
+    .join("|");
+}
+
+async function fetchOfferSearchResults(query: string, context?: ZiiplyGostaOfferSearchContextV152) {
+  const params = new URLSearchParams();
+  params.set("q", query);
+
+  // V152: nämä parametrit toimivat vähintään cache-avaimena selaimelle/Vercelille.
+  // Jos route tukee niitä myöhemmin, sama koodi rajaa tarjoukset myös oikeaan aktiiviseen alueeseen/kauppaan.
+  const contextKey = buildOfferSearchContextKeyV152(context);
+  if (contextKey) params.set("ctx", contextKey);
+  if (context?.areaLabel) params.set("area", String(context.areaLabel));
+  if (context?.storeMode) params.set("storeMode", String(context.storeMode));
+  if (context?.storeCompareScope) params.set("scope", String(context.storeCompareScope));
+  if (context?.sStoreId) params.set("sStoreId", String(context.sStoreId));
+  if (context?.sStoreName) params.set("sStoreName", String(context.sStoreName));
+  if (context?.kStoreId) params.set("kStoreId", String(context.kStoreId));
+  if (context?.kStoreName) params.set("kStoreName", String(context.kStoreName));
+  params.set("_", `${Date.now()}-${Math.random().toString(36).slice(2)}`);
+
+  const response = await fetch(`/api/offers/search?${params.toString()}`, {
     cache: "no-store",
   });
   return parseOfferSearchResponse(response);
@@ -190,6 +235,7 @@ export function filterZiiplyGostaOfferResultsV146(
 export async function searchZiiplyGostaOffersV146(options: {
   query: string;
   terms?: string[];
+  context?: ZiiplyGostaOfferSearchContextV152;
 }) {
   const cleanedQuery = String(options.query || "").trim();
   const termSnapshot = (options.terms || []).join(", ").trim();
@@ -220,7 +266,7 @@ export async function searchZiiplyGostaOffersV146(options: {
     );
 
     const settled = await Promise.allSettled(
-      seedQueries.map((seedQuery) => fetchOfferSearchResults(seedQuery)),
+      seedQueries.map((seedQuery) => fetchOfferSearchResults(seedQuery, options.context)),
     );
 
     nextResults = settled.flatMap((result) =>
@@ -233,10 +279,10 @@ export async function searchZiiplyGostaOffersV146(options: {
       );
     }
   } else {
-    nextResults = await fetchOfferSearchResults(offerQuerySnapshot);
+    nextResults = await fetchOfferSearchResults(offerQuerySnapshot, options.context);
   }
 
-  const results = dedupeZiiplyGostaOfferResultsV146(nextResults);
+  const results = cleanZiiplyGostaOfferResultsV146(nextResults);
 
   return {
     results,
