@@ -52,7 +52,7 @@ import type {
   ZiiplyOfferSearchResult,
   ZiiplyOfferSearchSourceConfig,
 } from "../types";
-import { resolveSKaupatStoreIdFromDirectoryV1 } from "./sKaupatStoreDirectory-v1-url-id-resolver";
+import { resolveSKaupatStoreIdFromDirectoryV1 } from "../../location/ziiplyStoreDirectory";
 
 type UnknownRecord = Record<string, unknown>;
 
