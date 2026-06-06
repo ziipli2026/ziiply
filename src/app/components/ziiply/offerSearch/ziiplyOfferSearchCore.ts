@@ -1,11 +1,11 @@
 // ============================================================================
-// ZIIPLY_OFFER_SEARCH_CORE_V148_STRICT_DEDUPE
-// Revision: V148
+// ZIIPLY_OFFER_SEARCH_CORE_V149_FUZZY_DEDUPE
+// Revision: V149
 // Date: 2026-06-05
 //
 // Purpose:
 // - Keeps V146 Gösta offer search orchestration.
-// - V148: strict dedupe by EAN/title so category seed searches cannot duplicate the same product.
+// - V148: strict and fuzzy dedupe by EAN/title so category seed searches cannot duplicate the same product.
 // - Keeps V147 compatibility exports required by page.tsx:
 //   - GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147
 //   - isZiiplyGostaCategorySelectionV147
@@ -75,19 +75,34 @@ async function fetchOfferSearchResults(query: string) {
 }
 
 
+
+function getCompactGostaTitleKeyV149(value: unknown) {
+  const normalized = normalizeGostaCoreText(value)
+    .replace(/\b\d+[,.]?\d*\s*(g|kg|ml|l|kpl|pkt|ps|plo|prk)\b/g, " ")
+    .replace(/\b\d+\s*x\s*\d+\b/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const words = normalized
+    .split(/\s+/)
+    .filter((word) => word.length > 1);
+
+  return words.slice(0, 4).join(" ");
+}
+
 function getGostaOfferDedupeKeyV148(item: ZiiplyGostaOfferLike) {
   const anyItem = item as any;
   const ean = normalizeGostaCoreText(anyItem?.ean || anyItem?.gtin || anyItem?.barcode || "");
 
   if (ean) return `ean:${ean}`;
 
-  const title = normalizeGostaCoreText(
-    item?.title || item?.name || item?.productName || "",
-  );
+  const title =
+    item?.title || item?.name || item?.productName || "";
+  const compactTitle = getCompactGostaTitleKeyV149(title);
   const store = normalizeGostaCoreText(item?.storeLabel || "");
   const price = normalizeGostaCoreText(item?.priceText || "");
 
-  if (title) return `title:${title}|store:${store}`;
+  if (compactTitle) return `title4:${compactTitle}|price:${price}|store:${store}`;
 
   return normalizeGostaCoreText([item?.id, title, price].filter(Boolean).join("|"));
 }
