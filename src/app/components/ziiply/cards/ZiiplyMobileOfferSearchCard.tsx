@@ -1,14 +1,14 @@
 "use client";
 
 // ============================================================================
-// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V6_COUNTS_AND_HOME_RETURN
-// Revision: V6
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V7_CLEAN_LANDING_NO_FOOTER
+// Revision: V7
 // Date: 2026-06-05
 //
 // Fix:
 // - S-kaupat RemoteFilteredProducts returns prices already in euros.
 // - Removed old >20 => /100 conversion from normalizePrice() and getNumericPrice().
-// - Fixes false prices like 59,90 € becoming 0,60 €. Removes Kaikki chip, dedupes repeated campaign text, and shows a landing view before first category/search, hides empty categories and adds category-home return.
+// - Fixes false prices like 59,90 € becoming 0,60 €. Removes Kaikki chip, dedupes repeated campaign text, and shows a clean landing view, keeps categories visible before first fetch, removes internal footer buttons and updates help texts.
 // - Keeps V2 Gösta filter/category UI unchanged.
 // ============================================================================
 
@@ -241,9 +241,17 @@ export default function ZiiplyMobileOfferSearchCard({
   const visibleItems = showLandingView ? [] : items;
   const hasVisibleOffers = visibleItems.length > 0;
 
+  const hasKnownCategoryCounts =
+    Boolean(categoryOfferCounts) &&
+    Object.values(categoryOfferCounts || {}).some((value) => Number(value || 0) > 0);
+
   const visibleCategorySuggestions = categorySuggestions.filter((category) => {
     const normalized = category.toLowerCase();
     if (normalized === "kaikki") return false;
+
+    // On the landing page before any category/search fetch, counts are unknown.
+    // Do not hide every category just because the current results array is empty.
+    if (!hasKnownCategoryCounts) return true;
 
     const count =
       categoryOfferCounts?.[category] ??
@@ -261,7 +269,7 @@ export default function ZiiplyMobileOfferSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="V6_COUNTS_AND_HOME_RETURN"
+      data-ziiply-mobile-offer-search-card-version="V7_CLEAN_LANDING_NO_FOOTER"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
@@ -294,7 +302,7 @@ export default function ZiiplyMobileOfferSearchCard({
               {title}
             </div>
             <div className="mt-[0.16rem] text-[0.74rem] font-extrabold text-[#5f5034]">
-              {subtitle || (shownQuery ? `Gösta penkoi: ${shownQuery}` : "Alueen kaikki tarjoukset")}
+              {subtitle || (shownQuery ? `Gösta penkoi: ${shownQuery}` : "Valitse tuoteryhmä tai hae tarjousta")}
             </div>
           </div>
 
@@ -309,7 +317,7 @@ export default function ZiiplyMobileOfferSearchCard({
                     submitSearch();
                   }
                 }}
-                placeholder="Rajaa tuoteryhmällä: kahvi, kala, leipä..."
+                placeholder="Kirjoita esim. kahvi, lohi, leipä..."
                 className="min-w-0 flex-1 rounded-[0.82rem] border-0 bg-[#fffaf0] px-3 py-2 text-center text-[0.88rem] font-black text-[#102216] outline-none placeholder:text-[#7d7461]"
                 style={{ fontFamily: serifFont }}
               />
@@ -366,7 +374,7 @@ export default function ZiiplyMobileOfferSearchCard({
                 Mitä etsitään tänään?
               </div>
               <div className="mx-auto mt-2 max-w-[16rem] text-[0.82rem] font-extrabold leading-snug text-[#6d5d3f]">
-                Valitse tuoteryhmä ylhäältä tai kirjoita hakusana. Gösta näyttää tuotteet vasta valinnan jälkeen.
+                Valitse tuoteryhmä alta tai kirjoita hakusana. Gösta näyttää vain löydetyt tarjoukset.
               </div>
               <div className="mt-4 grid grid-cols-2 gap-2">
                 {visibleCategorySuggestions
@@ -438,19 +446,7 @@ export default function ZiiplyMobileOfferSearchCard({
             </div>
           )}
         </main>
-
-        {!showLandingView ? (
-        <footer className="absolute bottom-[0.86rem] left-0 right-0 z-[40] px-5 pb-2 pt-2">
-          <div className="mx-auto grid max-w-[21rem] grid-cols-[1fr_1.35fr] gap-2">
-            <button type="button" onClick={onBack} className="min-h-[2.34rem] rounded-[0.62rem] border-[2px] border-[#7c663d] bg-[#efe1bd] px-3 py-[0.38rem] text-[0.70rem] font-black text-[#533819] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.42)] active:translate-y-[1px]" style={{ fontFamily: cooperFont }}>
-              Palaa hakuun
-            </button>
-            <button type="button" onClick={() => onAddAllOffers?.(visibleItems)} disabled={!hasVisibleOffers || !onAddAllOffers} className={cx("min-h-[2.34rem] rounded-[0.62rem] border-[2.5px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-3 py-[0.38rem] text-[0.70rem] font-black italic tracking-[0.03em] text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58),0_2px_4px_rgba(62,43,20,0.18)] active:translate-y-[1px]", (!hasVisibleOffers || !onAddAllOffers) && "cursor-not-allowed opacity-45")} style={{ fontFamily: cooperFont }}>
-              Lisää kaikki
-            </button>
-          </div>
-        </footer>
-        ) : null}
+        {/* V7: internal footer buttons removed. Browser/back controls and category buttons handle navigation. */}
 
         <div className="pointer-events-none absolute -bottom-[0.72rem] left-[1.1rem] right-[1.1rem] h-[1.3rem] rounded-[50%] bg-[#cfaa61] opacity-55 blur-[1px]" />
 
