@@ -1,5 +1,10 @@
-// V170_GOSTA_CONTEXT_OPTION_TYPE_COMPAT_BUILD_FIX
-// Build-fix: Göstan search-options pidetään yhteensopivana sekä vanhan että uuden search coren kanssa.
+// V170_GOSTA_MASTER_SEARCH_PASSES_STORE_CONTEXT
+// Korjaus: master-dataset haku välittää activeStores-kontekstin corelle/routeen/providerille.
+// V169_GOSTA_MASTER_OFFER_DATASET_LOCAL_CATEGORY_FILTER
+// Korjaus: Gösta ei enää tee tuoteryhmän klikkauksesta uutta hakusanapohjaista tarjoushakua.
+// Ensimmäinen Gösta-avaus hakee alueen/kauppaparin tarjousmassan kerran ja tallettaa sen page-muistiin.
+// Tuoteryhmäpalkit ja Göstan oma tekstihaku suodattavat tätä muistissa olevaa tarjousdataa paikallisesti.
+// Tämä estää kategoriavaihdoissa toistuvan koko tarjouspotin uudelleenhaun ja tekee määristä realistisemmat.
 
 // V160_GOSTA_ISOLATED_FROM_MAIN_SEARCH_INPUT_AND_AUTORUN
 // Korjaus:
@@ -104,18 +109,6 @@
 // viimeisintä toimivaa lämpötilaa muistista. Tämä ei muuta kauppavalintaa eikä foundStores-listaa.
 
 "use client";
-
-// V169_GOSTA_PASSES_ACTIVE_STORE_CONTEXT_TO_OFFER_CORE
-// Korjaus:
-// - Göstan tarjoushaku välittää aktiivisen alueen, kauppatilan ja valitut S/K-kaupat offerSearchCorelle.
-// - Tämä estää Varkaus/Mikkeli-tyyppistä vanhan tarjoushaun välimuistilukkoa selaimessa/Vercelissä.
-
-// V170_GOSTA_CONTEXT_OPTION_TYPE_COMPAT_BUILD_FIX
-// Korjaus: page antaa tarjoushaulle kauppa-/aluekontekstin any-välivakion kautta,
-// jotta build ei kaadu, vaikka ziiplyOfferSearchCore.ts olisi vielä vanhalla query/terms-tyypillä.
-
-// V171_GOSTA_CONTEXT_TYPE_COMPAT_BUILD_FIX
-// Korjaus: Göstan search-core-kutsun context välitetään tyypitysturvallisesti/yhteensopivasti, jotta page ei kaadu jos core-tyyppi on hetkeksi vanha.
 
 // V168_EMPTY_STORE_AREA_CLEARS_STALE_SELECTION_AND_PAIR_NOTICE
 // Korjaus:
@@ -2586,6 +2579,8 @@ export default function Page() {
   const [offerSearchQuerySnapshot, setOfferSearchQuerySnapshot] = useState("");
   const [offerSearchDoneForQuery, setOfferSearchDoneForQuery] = useState("");
   const [offerCardFilterV106, setOfferCardFilterV106] = useState("");
+  const [gostaAllAreaOfferResultsV169, setGostaAllAreaOfferResultsV169] = useState<any[]>([]);
+  const [gostaAllAreaOfferCacheKeyV169, setGostaAllAreaOfferCacheKeyV169] = useState("");
   const [gostaTestedEmptyCategoriesV166, setGostaTestedEmptyCategoriesV166] = useState<Record<string, true>>({});
   const [offerShowingAllAreaOffersV106, setOfferShowingAllAreaOffersV106] = useState(false);
   const [chainFilter, setChainFilter] = useState<"all" | "S" | "K">("all");
@@ -3880,6 +3875,26 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const hasActiveStores =
     activeStores.sStoreId > 0 && activeStores.kStoreId > 0;
 
+  const gostaOfferAreaCacheKeyV169 = useMemo(() => {
+    return [
+      storeMode,
+      storeCompareScope,
+      withinChain || "none",
+      activeStores.sStoreId || 0,
+      activeStores.kStoreId || 0,
+      normalize(activeStores.sStoreName || ""),
+      normalize(activeStores.kStoreName || ""),
+    ].join("|");
+  }, [
+    activeStores.kStoreId,
+    activeStores.kStoreName,
+    activeStores.sStoreId,
+    activeStores.sStoreName,
+    storeCompareScope,
+    storeMode,
+    withinChain,
+  ]);
+
   const selectedMapStoresV433 = useMemo(() => {
     const selected = [
       {
@@ -5129,6 +5144,126 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return unique;
   }
 
+  function getGostaOfferTextV169(item: any) {
+    const source = item?.__sourceOfferSearchResult || item;
+    return String(
+      item?.title ||
+        item?.name ||
+        item?.productName ||
+        source?.title ||
+        source?.name ||
+        source?.productName ||
+        source?.item?.title ||
+        source?.item?.name ||
+        "",
+    );
+  }
+
+  function getGostaOfferSearchBlobV169(item: any) {
+    const source = item?.__sourceOfferSearchResult || item;
+    return normalize(
+      [
+        getGostaOfferTextV169(item),
+        item?.brandName,
+        item?.category,
+        item?.storeName,
+        item?.discountText,
+        source?.brand,
+        source?.brandName,
+        source?.category,
+        source?.description,
+        source?.priceText,
+        source?.benefitText,
+      ]
+        .filter(Boolean)
+        .join(" "),
+    );
+  }
+
+  function getGostaPageCategoryLabelsV169(item: any) {
+    const title = normalize(getGostaOfferTextV169(item));
+    const blob = getGostaOfferSearchBlobV169(item);
+    const text = `${title} ${blob}`;
+    const labels = new Set<string>();
+
+    const hasAny = (words: string[]) => words.some((word) => text.includes(normalize(word)));
+    const titleHasAny = (words: string[]) => words.some((word) => title.includes(normalize(word)));
+
+    const lemmikit = ["koira", "koiran", "kissa", "kissan", "lemmikki", "pedigree", "whiskas", "purina", "shelma", "latz", "dreamies"];
+    const koti = ["vaippa", "libero", "pampers", "pesuaine", "pyykinpesu", "astianpesu", "fairy", "omo", "wc-paperi", "talouspaperi", "hammastahna", "shampoo", "saippua", "deodorantti", "roskapussi", "folio", "leivinpaperi"];
+
+    if (hasAny(lemmikit)) labels.add("Lemmikit");
+    if (hasAny(koti)) labels.add("Koti");
+
+    const isNonFood = labels.has("Lemmikit") || labels.has("Koti");
+
+    if (titleHasAny(["kahvi", "juhla moka", "presidentti", "kulta katriina", "paulig", "löfbergs", "nescafe", "espresso", "cappuccino", "latte"])) {
+      labels.add("Kahvi");
+    }
+
+    if (!isNonFood && titleHasAny(["maito", "kevytmaito", "täysmaito", "rasvaton", "laktoositon", "piimä", "kerma", "ruokakerma", "vispikerma", "kermaviili", "rahka", "jogurtti", "jugurtti", "viili", "juusto", "raejuusto", "tuorejuusto", "sulatejuusto", "oltermanni", "edam", "emmental", "mozzarella", "feta", "halloumi", "voi", "levite", "margariini", "arla", "valio"])) {
+      labels.add("Maitotuotteet");
+    }
+
+    if (!isNonFood && titleHasAny(["lohi", "kirjolohi", "kalafilee", "kalapuikko", "kala", "silakka", "muikku", "siika", "kuha", "ahven", "tonnikala", "katkarapu", "rapu", "äyriäinen", "seiti", "silli", "mäti"])) {
+      labels.add("Kala");
+    }
+
+    if (!isNonFood && !labels.has("Kala") && titleHasAny(["jauheliha", "nauta", "naudan", "porsas", "possu", "sika", "broileri", "kana", "kanan", "fileesuikale", "filee", "pihvi", "kyljys", "kassler", "karjalanpaisti", "makkara", "nakki", "leikkele", "kinkku", "pekoni", "kebab", "lihapulla", "meetvursti", "grilliliha"])) {
+      labels.add("Liha");
+    }
+
+    if (!isNonFood && titleHasAny(["leipä", "paahtoleipä", "ruisleipä", "sämpylä", "patonki", "pull", "pulla", "munkki", "croissant", "kakku", "piirakka", "torttu", "karjalanpiirakka", "rieska", "näkkileipä"])) {
+      labels.add("Leipomo");
+    }
+
+    if (!isNonFood && titleHasAny(["omena", "banaani", "appelsiini", "mandariini", "sitruuna", "lime", "päärynä", "rypäle", "mansikka", "mustikka", "vadelma", "tomaatti", "kurkku", "salaatti", "peruna", "porkkana", "sipuli", "kaali", "paprika", "avokado", "hevi"])) {
+      labels.add("Hevi");
+    }
+
+    if (!isNonFood && titleHasAny(["limu", "limonadi", "cola", "pepsi", "energiajuoma", "mehu", "täysmehu", "kivennäisvesi", "vesi", "vichy", "smoothie", "olut", "siideri", "lonkero", "juoma"])) {
+      labels.add("Juomat");
+    }
+
+    if (!isNonFood && titleHasAny(["pakaste", "pakastettu", "jäätelö", "pizza", "ranskalaiset", "wok", "pakastemarja", "pakastevihannes", "pyttipannu"])) {
+      labels.add("Pakasteet");
+    }
+
+    if (labels.size === 0) {
+      const mapped = mapZiiplyGostaOfferToCardOfferV147(item);
+      const category = String(mapped?.category || "").trim();
+      if (category && category.toLowerCase() !== "kaikki") labels.add(category);
+    }
+
+    return Array.from(labels);
+  }
+
+  function filterGostaOffersFromMasterDatasetV169(items: any[], filter: string) {
+    const cleanFilter = String(filter || "").trim();
+    if (!cleanFilter) return items;
+
+    if (isZiiplyGostaCategorySelectionV147(cleanFilter)) {
+      const normalizedFilter = normalize(cleanFilter);
+      return items.filter((item) =>
+        getGostaPageCategoryLabelsV169(item).some(
+          (label) => normalize(label) === normalizedFilter,
+        ),
+      );
+    }
+
+    const words = normalize(cleanFilter)
+      .split(/\s+/)
+      .map((word) => word.trim())
+      .filter(Boolean);
+
+    if (words.length === 0) return items;
+
+    return items.filter((item) => {
+      const blob = getGostaOfferSearchBlobV169(item);
+      return words.every((word) => blob.includes(word));
+    });
+  }
+
   const filteredOffers = useMemo<ZiiplyOffer[]>(() => {
     // V28: vanha tarjoushakumoottori ei enää tuota osumia page-rungossa.
     // Tarjouslehtisiin perustuva lista rakennetaan myöhemmin erillisessä kortti-/helper-toteutuksessa.
@@ -5147,7 +5282,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }, [offerSearchResults]);
 
   const visibleOfferSearchResultsV106 = useMemo(() => {
-    return filterZiiplyGostaOfferResultsV146(cleanOfferSearchResultsV106, offerCardFilterV106);
+    return filterGostaOffersFromMasterDatasetV169(cleanOfferSearchResultsV106, offerCardFilterV106);
   }, [cleanOfferSearchResultsV106, offerCardFilterV106]);
 
   const gostaOfferCardItemsV163 = useMemo(() => {
@@ -5160,12 +5295,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const counts: Record<string, number> = {};
 
     for (const rawOffer of cleanOfferSearchResultsV106) {
-      const cardOffer = mapZiiplyGostaOfferToCardOfferV147(rawOffer);
-      const category = String(cardOffer.category || "").trim();
+      const categories = getGostaPageCategoryLabelsV169(rawOffer);
 
-      if (!category || category.toLowerCase() === "kaikki") continue;
-      counts[category] = (counts[category] ?? 0) + 1;
-      counts[category.toLowerCase()] = (counts[category.toLowerCase()] ?? 0) + 1;
+      for (const category of categories) {
+        const cleanCategory = String(category || "").trim();
+        if (!cleanCategory || cleanCategory.toLowerCase() === "kaikki") continue;
+        counts[cleanCategory] = (counts[cleanCategory] ?? 0) + 1;
+        counts[cleanCategory.toLowerCase()] = (counts[cleanCategory.toLowerCase()] ?? 0) + 1;
+      }
     }
 
     return counts;
@@ -7085,16 +7222,21 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   async function searchOffers(termOverride?: string) {
     const hasExplicitOverride = typeof termOverride === "string";
     const cleanedOverride = String(termOverride ?? "").trim();
-    const useTerms = hasExplicitOverride ? parseTerms(cleanedOverride) : terms;
+    const requestedFilter = hasExplicitOverride ? cleanedOverride : input.trim();
+    const requestedCategory = isZiiplyGostaCategorySelectionV147(requestedFilter)
+      ? requestedFilter
+      : "";
+    const cacheIsUsable =
+      gostaAllAreaOfferCacheKeyV169 === gostaOfferAreaCacheKeyV169 &&
+      gostaAllAreaOfferResultsV169.length > 0;
 
-    // V160: Göstan oma override (esim. kategoriat "Kahvi", "Liha") ei saa
-    // kirjoittaa normaaliin Hae-kortin inputtiin. Muuten taustapäivitys voi
-    // myöhemmin avata normaalin haun samalla sanalla.
+    // V169: Gösta ei ole enää hakusanapohjainen kategoriarobotti.
+    // Se hakee alueen/kauppaparin tarjousmassan kerran ja tämän jälkeen
+    // kategoriat sekä Göstan oma tekstihaku suodattavat samaa datasettiä paikallisesti.
     gostaPanelStickyOpenRefV158.current = true;
     setHasSearchedOffers(true);
     setLoadingOffers(true);
     setOffers([]);
-    setOfferSearchResults([]);
     setSearchPanelOpen(false);
     setNotebookOpen(false);
     setCartModalOpen(false);
@@ -7103,10 +7245,40 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setEanModalOpen(false);
     setActiveResult("offers");
 
+    if (cacheIsUsable) {
+      const nextFilter = requestedFilter || "";
+      setOfferSearchQuerySnapshot(nextFilter || "Kaikki tarjoukset");
+      setOfferCardFilterV106(nextFilter);
+      setOfferShowingAllAreaOffersV106(!nextFilter);
+      setOfferSearchResults(gostaAllAreaOfferResultsV169);
+      setOfferSearchDoneForQuery(`gosta-master-cache:${gostaOfferAreaCacheKeyV169}:${nextFilter || "all"}`);
+
+      if (requestedCategory) {
+        const categoryResults = filterGostaOffersFromMasterDatasetV169(
+          cleanZiiplyGostaOfferResultsV146(gostaAllAreaOfferResultsV169),
+          requestedCategory,
+        );
+        setGostaTestedEmptyCategoriesV166((previous) => {
+          const normalizedKey = requestedCategory.toLowerCase();
+          if (categoryResults.length > 0) {
+            if (!previous[requestedCategory] && !previous[normalizedKey]) return previous;
+            const next = { ...previous };
+            delete next[requestedCategory];
+            delete next[normalizedKey];
+            return next;
+          }
+          return { ...previous, [requestedCategory]: true, [normalizedKey]: true };
+        });
+      }
+
+      setLoadingOffers(false);
+      return;
+    }
+
     try {
-      const gostaOfferSearchOptionsV171 = {
-        query: hasExplicitOverride ? cleanedOverride : input.trim(),
-        terms: useTerms,
+      const offerSearchCoreResult = await searchZiiplyGostaOffersV146({
+        query: "",
+        terms: [],
         context: {
           areaLabel: activeArea.label,
           storeMode,
@@ -7116,47 +7288,51 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           kStoreId: activeStores.kStoreId,
           kStoreName: activeStores.kStoreName,
         },
-      } as any;
+      });
 
-      const offerSearchCoreResult = await searchZiiplyGostaOffersV146(gostaOfferSearchOptionsV171);
+      const masterResults = offerSearchCoreResult.results || [];
+      const nextFilter = requestedFilter || "";
 
-      trackZiiplyEvent("gosta_offer_api_search_used", {
+      trackZiiplyEvent("gosta_offer_master_dataset_used", {
         query: offerSearchCoreResult.trackingKey,
         cartItemsCount: cart.length,
         storeMode,
+        storeCompareScope,
+        withinChain,
+        sStoreId: activeStores.sStoreId,
         sStoreName: activeStores.sStoreName,
+        kStoreId: activeStores.kStoreId,
         kStoreName: activeStores.kStoreName,
+        masterResultCount: masterResults.length,
       });
 
-      const categoryKeyV166 = String(offerSearchCoreResult.categoryLabel || "").trim();
+      setGostaAllAreaOfferResultsV169(masterResults);
+      setGostaAllAreaOfferCacheKeyV169(gostaOfferAreaCacheKeyV169);
+      setOfferSearchQuerySnapshot(nextFilter || "Kaikki tarjoukset");
+      setOfferCardFilterV106(nextFilter);
+      setOfferShowingAllAreaOffersV106(!nextFilter);
+      setOfferSearchResults(masterResults);
+      setOfferSearchDoneForQuery(`gosta-master-fetch:${gostaOfferAreaCacheKeyV169}:${nextFilter || "all"}`);
 
-      if (offerSearchCoreResult.searchByCategory && categoryKeyV166) {
+      if (requestedCategory) {
+        const categoryResults = filterGostaOffersFromMasterDatasetV169(
+          cleanZiiplyGostaOfferResultsV146(masterResults),
+          requestedCategory,
+        );
         setGostaTestedEmptyCategoriesV166((previous) => {
-          const normalizedKey = categoryKeyV166.toLowerCase();
-
-          if (offerSearchCoreResult.results.length > 0) {
-            if (!previous[categoryKeyV166] && !previous[normalizedKey]) return previous;
+          const normalizedKey = requestedCategory.toLowerCase();
+          if (categoryResults.length > 0) {
+            if (!previous[requestedCategory] && !previous[normalizedKey]) return previous;
             const next = { ...previous };
-            delete next[categoryKeyV166];
+            delete next[requestedCategory];
             delete next[normalizedKey];
             return next;
           }
-
-          return {
-            ...previous,
-            [categoryKeyV166]: true,
-            [normalizedKey]: true,
-          };
+          return { ...previous, [requestedCategory]: true, [normalizedKey]: true };
         });
       }
-
-      setOfferSearchQuerySnapshot(offerSearchCoreResult.querySnapshot);
-      setOfferCardFilterV106(offerSearchCoreResult.cardFilter);
-      setOfferShowingAllAreaOffersV106(offerSearchCoreResult.showingAllAreaOffers);
-      setOfferSearchResults(offerSearchCoreResult.results);
-      setOfferSearchDoneForQuery(offerSearchCoreResult.trackingKey);
     } catch (error) {
-      console.error("[Ziiply offers] API search failed", error);
+      console.error("[Ziiply offers] master dataset search failed", error);
       setOfferSearchResults([]);
       showCartToast("Tarjoushaku ei onnistunut");
     } finally {
@@ -7167,20 +7343,39 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   function handleGostaFilterChangeV136(value: string) {
     const nextValue = String(value || "").trim();
 
-    if (!nextValue) {
-      setOfferCardFilterV106("");
-      setOfferSearchQuerySnapshot("");
-      setOfferSearchDoneForQuery("");
-      setOfferShowingAllAreaOffersV106(false);
-      setOfferSearchResults([]);
+    setOfferCardFilterV106(nextValue);
+    setOfferSearchQuerySnapshot(nextValue || "Kaikki tarjoukset");
+    setOfferShowingAllAreaOffersV106(!nextValue);
+
+    const cacheIsUsable =
+      gostaAllAreaOfferCacheKeyV169 === gostaOfferAreaCacheKeyV169 &&
+      gostaAllAreaOfferResultsV169.length > 0;
+
+    if (cacheIsUsable) {
+      setOfferSearchResults(gostaAllAreaOfferResultsV169);
+
+      if (isZiiplyGostaCategorySelectionV147(nextValue)) {
+        const categoryResults = filterGostaOffersFromMasterDatasetV169(
+          cleanZiiplyGostaOfferResultsV146(gostaAllAreaOfferResultsV169),
+          nextValue,
+        );
+        setGostaTestedEmptyCategoriesV166((previous) => {
+          const normalizedKey = nextValue.toLowerCase();
+          if (categoryResults.length > 0) {
+            if (!previous[nextValue] && !previous[normalizedKey]) return previous;
+            const next = { ...previous };
+            delete next[nextValue];
+            delete next[normalizedKey];
+            return next;
+          }
+          return { ...previous, [nextValue]: true, [normalizedKey]: true };
+        });
+      }
       return;
     }
 
-    setOfferCardFilterV106(nextValue);
-
-    if (isZiiplyGostaCategorySelectionV147(nextValue)) {
-      void searchOffers(nextValue);
-    }
+    // Ensimmäinen kategoria-/tekstivalinta hakee master-datasetin kerran.
+    void searchOffers(nextValue);
   }
 
   async function searchNormalPrices(termOverride?: string, forceEan = false) {
