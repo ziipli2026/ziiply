@@ -1,5 +1,9 @@
 "use client";
 
+// V665_MODE_SELECTOR_PERSISTENT_PAIR_MISSING_NOTICE
+// Korjaus: virheilmoitus ei saa hävitä animaation lopputilaan, jos pari puuttuu edelleen.
+// Lisäksi Tavarataloparia-teksti näytetään vain Tavaratalot-tilassa; muulloin yleinen Vertailuparia ei löytynyt.
+
 // V664_MODE_SELECTOR_PERSISTENT_NOTICE
 // Korjaa hakutapa-notifikaation: se ei enää katoa 2,2 sekunnin jälkeen,
 // jos virhetila on edelleen päällä.
@@ -95,14 +99,7 @@ export default function ZiiplyMobileStoreModeSelector({
     (storeCompareScope === "within_chain" && !withinChain);
 
   useEffect(() => {
-    if (!shouldShowHakutapaNotice) return;
-
-    setHakutapaNoticeVisible(true);
-    const timer = window.setTimeout(() => {
-      setHakutapaNoticeVisible(false);
-    }, 2200);
-
-    return () => window.clearTimeout(timer);
+    setHakutapaNoticeVisible(shouldShowHakutapaNotice);
   }, [shouldShowHakutapaNotice]);
 
   return (
@@ -156,12 +153,12 @@ export default function ZiiplyMobileStoreModeSelector({
           className={[
             "relative z-10 whitespace-nowrap rounded-full border-[2px] px-3.5 py-[0.35rem] text-center text-[12px] font-black uppercase leading-none tracking-[0.14em] transition-none shadow-[0_2px_0_rgba(91,72,44,0.16),inset_0_1px_0_rgba(255,255,255,0.72)]",
             shouldShowHakutapaNotice
-              ? "border-[#cda34a] bg-[#ffeaa0] text-[#634100] shadow-[0_3px_10px_rgba(180,119,0,0.14)] animate-[ziiplyNoticePop_2200ms_ease-out_forwards]"
+              ? "border-[#cda34a] bg-[#ffeaa0] text-[#634100] shadow-[0_3px_10px_rgba(180,119,0,0.14)]"
               : "border-[#d7b977] bg-[#fff8da] text-[#66543a]",
           ].join(" ")}
         >
           {shouldShowHakutapaNotice
-            ? hyperStorePairMissing
+            ? hyperStorePairMissing && storeMode === "hyper"
               ? "Tavarataloparia ei löytynyt"
               : "Vertailuparia ei löytynyt"
             : !storeModeChosen || storeCompareScope === "none"
