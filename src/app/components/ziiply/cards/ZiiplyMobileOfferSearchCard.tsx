@@ -1,14 +1,14 @@
 "use client";
 
 // ============================================================================
-// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V3_PRICE_NO_CENTS_DIVISION
-// Revision: V3
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V4_NO_KAIKKI_AND_TEXT_DEDUPE
+// Revision: V4
 // Date: 2026-06-05
 //
 // Fix:
 // - S-kaupat RemoteFilteredProducts returns prices already in euros.
 // - Removed old >20 => /100 conversion from normalizePrice() and getNumericPrice().
-// - Fixes false prices like 59,90 € becoming 0,60 €.
+// - Fixes false prices like 59,90 € becoming 0,60 €. Removes Kaikki chip and dedupes repeated campaign text.
 // - Keeps V2 Gösta filter/category UI unchanged.
 // ============================================================================
 
@@ -120,6 +120,37 @@ function getStoreName(offer: ZiiplyMobileOfferSearchItem) {
   return String(offer.storeName || offer.shopName || offer.chain || "Kauppa");
 }
 
+function cleanRepeatedOfferTextV4(value: unknown) {
+  const text = String(value ?? "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!text) return "";
+
+  const parts = text
+    .split(/\s*[·|]\s*/g)
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  if (parts.length > 1) {
+    return Array.from(new Set(parts)).join(" · ");
+  }
+
+  const half = Math.floor(text.length / 2);
+  if (text.length % 2 === 0) {
+    const left = text.slice(0, half).trim();
+    const right = text.slice(half).trim();
+    if (left && left === right) return left;
+  }
+
+  const repeatedOfferPattern =
+    /^(.+?\b(?:kpl|pkt|ps|plo|prk|kg|g|l|ml)\s*=\s*[\d,.]+\s*€)\s+\1$/i;
+  const repeatedMatch = text.match(repeatedOfferPattern);
+  if (repeatedMatch?.[1]) return repeatedMatch[1].trim();
+
+  return text;
+}
+
 function getOfferPrice(offer: ZiiplyMobileOfferSearchItem) {
   return normalizePrice(offer.offerPrice ?? offer.price);
 }
@@ -129,7 +160,7 @@ function getNormalPrice(offer: ZiiplyMobileOfferSearchItem) {
 }
 
 function getSavingsText(offer: ZiiplyMobileOfferSearchItem) {
-  if (offer.discountText) return String(offer.discountText);
+  if (offer.discountText) return cleanRepeatedOfferTextV4(offer.discountText);
 
   const explicit = normalizePrice(offer.savings);
   if (explicit) return `Säästö ${explicit}`;
@@ -138,7 +169,7 @@ function getSavingsText(offer: ZiiplyMobileOfferSearchItem) {
   const current = getNumericPrice(offer.offerPrice ?? offer.price);
   const diff = normal - current;
 
-  if (normal > 0 && current > 0 && diff > 0.01) return `Säästö ${normalizePrice(diff)}`;
+  if (normal > 0 && current > 0 && diff > 0.01) return cleanRepeatedOfferTextV4(`Säästö ${normalizePrice(diff)}`);
   return "";
 }
 
@@ -189,7 +220,7 @@ export default function ZiiplyMobileOfferSearchCard({
   results,
   loading = false,
   emptyText = "Gösta ei löytänyt tarjouksia vielä.",
-  categorySuggestions = ["Kaikki", "Kahvi", "Maitotuotteet", "Liha", "Kala", "Leipomo", "Hevi", "Juomat", "Lemmikit", "Koti"],
+  categorySuggestions = ["Kahvi", "Maitotuotteet", "Liha", "Kala", "Leipomo", "Hevi", "Juomat", "Makeiset", "Lemmikit", "Koti", "Pakasteet"],
   onFilterChange,
   onSearch,
   onBack,
@@ -209,7 +240,7 @@ export default function ZiiplyMobileOfferSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="V3_PRICE_NO_CENTS_DIVISION"
+      data-ziiply-mobile-offer-search-card-version="V4_NO_KAIKKI_AND_TEXT_DEDUPE"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
@@ -271,7 +302,9 @@ export default function ZiiplyMobileOfferSearchCard({
               </button>
             </div>
             <div className="mt-1.5 flex gap-1.5 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {categorySuggestions.map((category) => {
+              {categorySuggestions
+                .filter((category) => category.toLowerCase() !== "kaikki")
+                .map((category) => {
                 const active = category.toLowerCase() === "kaikki" ? !shownFilter : shownFilter.toLowerCase() === category.toLowerCase();
                 return (
                   <button
