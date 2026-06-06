@@ -1,6 +1,6 @@
 // ============================================================================
-// ZIIPLY_OFFER_SEARCH_CORE_V153_NO_STALE_STORE_CONTEXT_AND_KAMPANJAT_READY
-// Revision: V153
+// ZIIPLY_OFFER_SEARCH_CORE_V154_CONTEXT_TYPE_BUILD_FIX
+// Revision: V154
 // Date: 2026-06-06
 //
 // Purpose:
@@ -8,6 +8,7 @@
 // - V152: store/area context is included in request URLs so old Varkaus/Mikkeli results cannot be reused silently.
 // - V153: category seed searches use the food-basket scoped S-kanava map from ziiplyOfferCategoryCore.
 // - V153: keeps cache-busting/store context params ready for S-kanava Kampanjat/offer route support.
+- V154: explicitly types optional context in searchZiiplyGostaOffersV146 options so page.tsx can pass active area/store context without TypeScript build failure.
 // - Keeps V147 compatibility exports required by page.tsx:
 //   - GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147
 //   - isZiiplyGostaCategorySelectionV147
