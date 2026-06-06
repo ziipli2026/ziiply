@@ -1,14 +1,14 @@
 "use client";
 
 // ============================================================================
-// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V10_HIDE_TESTED_EMPTY_CATEGORIES
-// Revision: V10
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V11_TESTED_EMPTY_CATEGORIES_ONLY
+// Revision: V11
 // Date: 2026-06-05
 //
 // Fix:
 // - S-kaupat RemoteFilteredProducts returns prices already in euros.
 // - Removed old >20 => /100 conversion from normalizePrice() and getNumericPrice().
-// - Fixes false prices like 59,90 € becoming 0,60 €. Removes Kaikki chip, dedupes repeated campaign text, and keeps core categories visible unless that exact category was tested and returned zero offers.
+// - Fixes false prices like 59,90 € becoming 0,60 €. Removes Kaikki chip, dedupes repeated campaign text, and keeps the improved layout and always shows core Gösta categories on the landing page, including Koti and Lemmikit.
 // - Keeps V2 Gösta filter/category UI unchanged.
 // ============================================================================
 
@@ -56,6 +56,7 @@ export type ZiiplyMobileOfferSearchCardProps = {
   emptyText?: string;
   categorySuggestions?: string[];
   categoryOfferCounts?: Record<string, number | null | undefined>;
+  testedEmptyCategories?: Record<string, boolean | undefined>;
   onFilterChange?: (value: string) => void;
   onSearch?: (value: string) => void;
   onBack?: () => void;
@@ -223,6 +224,7 @@ export default function ZiiplyMobileOfferSearchCard({
   emptyText = "Gösta ei löytänyt tarjouksia vielä.",
   categorySuggestions = ["Kahvi", "Maitotuotteet", "Liha", "Kala", "Leipomo", "Hevi", "Juomat", "Makeiset", "Lemmikit", "Koti", "Pakasteet"],
   categoryOfferCounts,
+  testedEmptyCategories,
   onFilterChange,
   onSearch,
   onBack,
@@ -240,10 +242,6 @@ export default function ZiiplyMobileOfferSearchCard({
   const showLandingView = !shownQuery && !shownFilter;
   const visibleItems = showLandingView ? [] : items;
   const hasVisibleOffers = visibleItems.length > 0;
-
-  const hasCategoryCountData =
-    Boolean(categoryOfferCounts) &&
-    Object.keys(categoryOfferCounts || {}).length > 0;
 
   const preferredLandingCategories = [
     "Kahvi",
@@ -265,16 +263,10 @@ export default function ZiiplyMobileOfferSearchCard({
     const normalized = category.toLowerCase();
     if (normalized === "kaikki") return false;
 
-    const count =
-      categoryOfferCounts?.[category] ??
-      categoryOfferCounts?.[normalized];
-
-    // Hide only categories that have actually been tested and marked as empty.
-    // Undefined count means "unknown", not "empty".
-    if (count === 0) return false;
-
-    if (hasCategoryCountData && count != null) {
-      return Number(count) > 0;
+    // Only hide a category after the user has actually searched that category
+    // and the page has marked it as empty. Do not hide based on current result list.
+    if (testedEmptyCategories?.[category] || testedEmptyCategories?.[normalized]) {
+      return false;
     }
 
     return isPreferredLandingCategory(category);
@@ -288,7 +280,7 @@ export default function ZiiplyMobileOfferSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="V10_HIDE_TESTED_EMPTY_CATEGORIES"
+      data-ziiply-mobile-offer-search-card-version="V11_TESTED_EMPTY_CATEGORIES_ONLY"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
