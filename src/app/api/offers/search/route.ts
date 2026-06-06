@@ -1,158 +1,70 @@
-// src/app/api/ziiply/offers/search/route.ts
-// ZIIPLY_OFFER_SEARCH_API_ROUTE_V2_DEBUG
-// Lisää debug-parametrin:
-// /api/ziiply/offers/search?q=kahvi&debug=1
+// src/app/api/offers/search/route.ts
+// ZIIPLY_OFFERS_SEARCH_ROUTE_V8_STORE_CONTEXT
 //
-// Debug palauttaa raakatekstin esikatselua provider-lähteistä, jotta nähdään
-// tuleeko K-Ruoka/S-kaupat data HTML:ssä vai JS/JSON:n kautta.
+// Fix:
+// - Forwards Gösta/page query parameters to searchZiiplyOffers(query, context).
+// - This lets S-kaupat provider use the selected S-store id instead of the old hardcoded default.
+// - Keeps cache disabled for store-specific offer data.
 
 import { NextResponse } from "next/server";
-import { searchZiiplyOffers } from "@/app/components/ziiply/offerSearch/ziiplyOfferSearchSources";
+import {
+  searchZiiplyOffers,
+  type ZiiplyOfferSearchSourceContextV8,
+} from "../../../components/ziiply/offerSearch/ziiplyOfferSearchSources";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-const DEBUG_SOURCES = [
-  {
-    id: "kmarket",
-    label: "K-Market",
-    url: "https://www.k-ruoka.fi/k-market/tarjouslehti",
-  },
-  {
-    id: "ksupermarket",
-    label: "K-Supermarket",
-    url: "https://www.k-ruoka.fi/k-supermarket/tarjouslehti",
-  },
-  {
-    id: "skaupat",
-    label: "S-kaupat",
-    url: "https://www.s-kaupat.fi/tuotteet/kampanjat",
-  },
-];
-
-function normalizeDebugText(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/[äå]/g, "a")
-    .replace(/ö/g, "o")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function stripHtmlForDebug(html: string) {
-  return html
-    .replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, "\n[SCRIPT REMOVED]\n")
-    .replace(/<style\b[^>]*>[\s\S]*?<\/style>/gi, "\n[STYLE REMOVED]\n")
-    .replace(/<\/(li|p|div|section|article|h1|h2|h3|h4|a|span|button)>/gi, "\n")
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&euro;/g, "€")
-    .replace(/\u00a0/g, " ");
-}
-
-function getDebugLines(html: string) {
-  return stripHtmlForDebug(html)
-    .split(/\n+/)
-    .map((line) => line.replace(/\s+/g, " ").trim())
-    .filter(Boolean)
-    .slice(0, 120);
-}
-
-async function getDebugPayload(query: string) {
-  const normalizedQuery = normalizeDebugText(query);
-
-  const sources = await Promise.all(
-    DEBUG_SOURCES.map(async (source) => {
-      try {
-        const response = await fetch(source.url, {
-          cache: "no-store",
-          headers: {
-            accept: "text/html,application/xhtml+xml,application/json",
-            "user-agent": "ZiiplyOfferSearchDebug/1.0",
-          },
-        });
-
-        const html = await response.text();
-        const normalizedHtml = normalizeDebugText(html);
-        const lines = getDebugLines(html);
-        const matchingLines = lines.filter((line) =>
-          normalizeDebugText(line).includes(normalizedQuery),
-        ).slice(0, 30);
-
-        return {
-          ...source,
-          ok: response.ok,
-          status: response.status,
-          contentType: response.headers.get("content-type"),
-          htmlLength: html.length,
-          queryFoundInRawHtml: normalizedHtml.includes(normalizedQuery),
-          firstLines: lines.slice(0, 80),
-          matchingLines,
-          rawStart: html.slice(0, 2000),
-        };
-      } catch (error) {
-        return {
-          ...source,
-          ok: false,
-          status: 0,
-          error: error instanceof Error ? error.message : String(error),
-          htmlLength: 0,
-          queryFoundInRawHtml: false,
-          firstLines: [],
-          matchingLines: [],
-          rawStart: "",
-        };
-      }
-    }),
-  );
-
-  return {
-    ok: true,
-    debug: true,
-    query,
-    normalizedQuery,
-    sources,
-  };
+function getParam(searchParams: URLSearchParams, key: string) {
+  const value = searchParams.get(key);
+  return value && value.trim() ? value.trim() : undefined;
 }
 
 export async function GET(request: Request) {
-  const url = new URL(request.url);
-  const query = String(url.searchParams.get("q") || "").trim();
-  const debug = url.searchParams.get("debug") === "1";
-
-  if (!query) {
-    return NextResponse.json({
-      ok: true,
-      query,
-      results: [],
-    });
-  }
-
-  if (debug) {
-    const payload = await getDebugPayload(query);
-    return NextResponse.json(payload);
-  }
-
   try {
-    const results = await searchZiiplyOffers(query);
+    const url = new URL(request.url);
+    const searchParams = url.searchParams;
+    const q = getParam(searchParams, "q") || "";
 
-    return NextResponse.json({
-      ok: true,
-      query,
-      results,
-    });
-  } catch (error) {
-    console.error("[Ziiply offers] search failed", error);
+    const context: ZiiplyOfferSearchSourceContextV8 = {
+      areaLabel: getParam(searchParams, "area"),
+      storeMode: getParam(searchParams, "storeMode"),
+      storeCompareScope: getParam(searchParams, "scope"),
+      sStoreId: getParam(searchParams, "sStoreId"),
+      sStoreName: getParam(searchParams, "sStoreName"),
+      kStoreId: getParam(searchParams, "kStoreId"),
+      kStoreName: getParam(searchParams, "kStoreName"),
+    };
+
+    const results = await searchZiiplyOffers(q, context);
 
     return NextResponse.json(
       {
-        ok: false,
-        query,
-        results: [],
-        error: "Tarjoushaku epäonnistui",
+        ok: true,
+        query: q,
+        context,
+        results,
       },
-      { status: 500 },
+      {
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      },
+    );
+  } catch (error) {
+    console.error("[Ziiply offers] route failed", error);
+    return NextResponse.json(
+      {
+        ok: false,
+        error: error instanceof Error ? error.message : "Tarjoushaku epäonnistui",
+        results: [],
+      },
+      {
+        status: 500,
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      },
     );
   }
 }
