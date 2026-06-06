@@ -1,6 +1,6 @@
 // ============================================================================
 // SKAUPAT_PROVIDER_V153_EXPLICIT_PATH_VISIBLE_DIAGNOSTICS
-// Revision: V162
+// Revision: V164
 // Date: 2026-06-05
 //
 // Fix:
@@ -295,31 +295,48 @@ function cleanRepeatedCampaignTextV161(value: string): string {
 }
 
 function getSOfferDedupeKeyV161(item: ZiiplyOfferSearchResult): string {
-  return normalizeText(
-    [
-      (item as any).ean,
-      item.title,
-      item.priceText,
-      item.unitPriceText,
-      item.storeLabel,
-      (item as any).category,
-    ]
-      .filter(Boolean)
-      .join("|"),
-  );
+  const anyItem = item as any;
+  const ean = firstString(anyItem.ean, anyItem.id);
+
+  if (ean) return `ean:${normalizeText(ean)}`;
+
+  const title = normalizeText(item.title);
+  const store = normalizeText(item.storeLabel);
+
+  if (title) return `title:${title}|store:${store}`;
+
+  return normalizeText([item.title, item.priceText].filter(Boolean).join("|"));
 }
 
 function dedupeSOfferResultsV161(
   results: ZiiplyOfferSearchResult[],
 ): ZiiplyOfferSearchResult[] {
-  const seen = new Set<string>();
+  const byKey = new Map<string, ZiiplyOfferSearchResult>();
 
-  return results.filter((item) => {
+  for (const item of results) {
     const key = getSOfferDedupeKeyV161(item);
-    if (!key || seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
+    if (!key) continue;
+
+    const previous = byKey.get(key);
+    if (!previous) {
+      byKey.set(key, item);
+      continue;
+    }
+
+    const previousScore =
+      String(previous.benefitText || "").length +
+      String(previous.imageUrl || "").length +
+      String((previous as any).categoryPath || "").length;
+
+    const nextScore =
+      String(item.benefitText || "").length +
+      String(item.imageUrl || "").length +
+      String((item as any).categoryPath || "").length;
+
+    if (nextScore > previousScore) byKey.set(key, item);
+  }
+
+  return Array.from(byKey.values());
 }
 
 function formatComparisonPrice(price: unknown, unit: unknown): string {
@@ -482,6 +499,16 @@ function hasSOfferSignal(
 }
 
 
+function belongsToSelectedSHypermarketV163(product: UnknownRecord): boolean {
+  const productStoreId = firstString(product.storeId);
+
+  // RemoteFilteredProducts is already scoped with storeId.
+  // If product has a storeId, it must match that same store.
+  // If S-kaupat omits it for some rows, allow the row instead of killing all results.
+  return !productStoreId || productStoreId === DEFAULT_SKAUPAT_STORE_ID_V156;
+}
+
+
 function getImageUrl(product: UnknownRecord): string {
   const mainImageTemplate = firstString(
     getPathValue(product, ["productDetails", "productImages", "mobileReadyHeroImage", "urlTemplate"]),
@@ -548,6 +575,7 @@ function mapSProductListItemToOfferResult(
   if (!title) return null;
 
   if (isSponsoredSProductListItem(listItem, product)) return null;
+  if (!belongsToSelectedSHypermarketV163(product)) return null;
 
   const pricing = getPricing(product);
 
