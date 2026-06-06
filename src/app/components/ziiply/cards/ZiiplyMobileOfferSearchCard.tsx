@@ -1,15 +1,21 @@
 "use client";
 
 // ============================================================================
-// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V16_CLEAN_OVERLAY_AND_FIXED_CORE_CATEGORIES
-// Revision: V16
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V17_OPAQUE_CARDS_AND_REAL_CATEGORY_COUNTS
+// Revision: V17
 // Date: 2026-06-05
 //
 // Fix:
 // - S-kaupat RemoteFilteredProducts returns prices already in euros.
 // - Removed old >20 => /100 conversion from normalizePrice() and getNumericPrice().
-// - Fixes false prices like 59,90 € becoming 0,60 €. Removes Kaikki chip, dedupes repeated campaign text, and keeps the improved layout and always shows core Gösta categories on the landing page, including Koti and Lemmikit.
+// - Fixes false prices like 59,90 € becoming 0,60 €. Removes Kaikki chip, dedupes repeated campaign text, and keeps the improved layout.
 // - Keeps V2 Gösta filter/category UI unchanged.
+//
+// V17 fix:
+// - Offer cards are fully opaque so lower product texts cannot show through.
+// - Category buttons are no longer forced. A category is shown only when its
+//   categoryOfferCounts value is > 0, or when current offer data contains that
+//   category. Empty/tested-empty categories are hidden completely.
 // ============================================================================
 
 // ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V2_GOSTA_FILTER_AND_CATEGORIES
@@ -336,33 +342,70 @@ export default function ZiiplyMobileOfferSearchCard({
 
   const rawItems = Array.isArray(offers) ? offers : Array.isArray(results) ? results : [];
   const items = dedupeOfferCardsV13(rawItems);
-  const hasOffers = items.length > 0;
   const shownQuery = query.trim();
   const shownFilter = filter.trim();
   const showLandingView = !shownQuery && !shownFilter;
   const visibleItems = showLandingView ? [] : items;
   const hasVisibleOffers = visibleItems.length > 0;
 
-  const preferredLandingCategories = [
-    "Kahvi",
-    "Liha",
-    "Hevi",
-    "Koti",
-    "Lemmikit",
-  ];
+  const normalizeCategoryKey = (value: string) =>
+    value
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9åäö]/gi, "")
+      .trim();
 
-  const isPreferredLandingCategory = (category: string) =>
-    preferredLandingCategories.some(
-      (preferred) => preferred.toLowerCase() === category.toLowerCase(),
+  const getCategoryCount = (category: string) => {
+    if (!categoryOfferCounts) return undefined;
+
+    const direct = categoryOfferCounts[category];
+    if (typeof direct === "number") return direct;
+
+    const wanted = normalizeCategoryKey(category);
+    const matched = Object.entries(categoryOfferCounts).find(
+      ([key]) => normalizeCategoryKey(key) === wanted,
     );
 
-  const visibleCategorySuggestions = categorySuggestions.filter((category) => {
-    const normalized = category.toLowerCase();
-    if (normalized === "kaikki") return false;
+    return typeof matched?.[1] === "number" ? matched[1] : undefined;
+  };
 
-    // V16: fixed core categories only.
-    // This is intentional; no misleading dynamic hiding based on partial current results.
-    return isPreferredLandingCategory(category);
+  const hasCurrentOfferForCategory = (category: string) => {
+    const wanted = normalizeCategoryKey(category);
+    if (!wanted) return false;
+
+    return items.some((offer) => {
+      const offerCategory = normalizeCategoryKey(String(offer.category || ""));
+      return offerCategory === wanted;
+    });
+  };
+
+  const isTestedEmptyCategory = (category: string) => {
+    if (!testedEmptyCategories) return false;
+
+    const direct = testedEmptyCategories[category];
+    if (typeof direct === "boolean") return direct;
+
+    const wanted = normalizeCategoryKey(category);
+    const matched = Object.entries(testedEmptyCategories).find(
+      ([key]) => normalizeCategoryKey(key) === wanted,
+    );
+
+    return matched?.[1] === true;
+  };
+
+  const visibleCategorySuggestions = categorySuggestions.filter((category) => {
+    const normalized = category.toLowerCase().trim();
+    if (!normalized || normalized === "kaikki") return false;
+
+    const count = getCategoryCount(category);
+    if (typeof count === "number") return count > 0;
+
+    if (isTestedEmptyCategory(category)) return false;
+
+    // Fallback when the parent has not supplied counts: show only categories
+    // that are visible in the current offer payload. Do not force fixed buttons.
+    return hasCurrentOfferForCategory(category);
   });
 
   const goToLandingView = () => {
@@ -373,12 +416,12 @@ export default function ZiiplyMobileOfferSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="V16_CLEAN_OVERLAY_AND_FIXED_CORE_CATEGORIES"
+      data-ziiply-mobile-offer-search-card-version="V17_OPAQUE_CARDS_AND_REAL_CATEGORY_COUNTS"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
         <div className="pointer-events-none absolute left-[1.0rem] top-[0.72rem] z-[80] rounded-full border border-[#174c2c] bg-[#fff8d9] px-2 py-0.5 text-[0.62rem] font-black text-[#174c2c] shadow-[0_2px_0_rgba(91,72,44,0.16)]">
-          GÖSTA V16
+          GÖSTA V17
         </div>
 
         <div
@@ -468,7 +511,7 @@ export default function ZiiplyMobileOfferSearchCard({
           </div>
         </header>
 
-        <main className="relative z-10 min-h-0 flex-1 overflow-y-auto px-5 pb-[7.85rem] pt-[0.75rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <main className="relative z-10 min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-5 pb-[7.85rem] pt-[0.75rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {loading ? (
             <div className="mt-2 rounded-[1.05rem] border-[2px] border-dashed border-[#9a7a3d] bg-[#fff4d4]/52 px-4 py-8 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
               <div className="text-[1.02rem] font-extrabold italic text-[#59401e]" style={{ fontFamily: serifFont }}>Gösta penkoo tarjouksia...</div>
@@ -477,18 +520,16 @@ export default function ZiiplyMobileOfferSearchCard({
               </div>
             </div>
           ) : showLandingView ? (
-            <div className="mt-1 rounded-[1.05rem] border-[2px] border-[#9a7a3d] bg-[#fff4d4]/64 px-3.5 py-4 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
+            <div className="mt-1 rounded-[1.05rem] border-[2px] border-[#9a7a3d] bg-[#fff4d4] px-3.5 py-4 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
               <div className="text-[1.02rem] font-black italic text-[#28402a]" style={{ fontFamily: cooperFont }}>
                 Mitä etsitään tänään?
               </div>
               <div className="mx-auto mt-1.5 max-w-[16rem] text-[0.72rem] font-extrabold leading-snug text-[#6d5d3f]">
                 Valitse tuoteryhmä alta tai kirjoita hakusana. Gösta näyttää vain löydetyt tarjoukset.
               </div>
-              <div className="mt-3 grid grid-cols-2 gap-1.5">
-                {visibleCategorySuggestions
-                  .filter((category) => isPreferredLandingCategory(category))
-                  .slice(0, 8)
-                  .map((category) => (
+              {visibleCategorySuggestions.length > 0 ? (
+                <div className="mt-3 grid grid-cols-2 gap-1.5">
+                  {visibleCategorySuggestions.slice(0, 8).map((category) => (
                     <button
                       key={`landing-${category}`}
                       type="button"
@@ -501,7 +542,12 @@ export default function ZiiplyMobileOfferSearchCard({
                       {getCategoryIcon(category)} {category}
                     </button>
                   ))}
-              </div>
+                </div>
+              ) : (
+                <div className="mt-3 rounded-[0.8rem] border border-dashed border-[#9a7a3d] bg-[#fff8d9] px-3 py-3 text-[0.72rem] font-extrabold leading-snug text-[#6d5d3f]">
+                  Ei näytettäviä tuoteryhmiä vielä. Kirjoita hakusana ja hae tarjoukset.
+                </div>
+              )}
             </div>
           ) : !hasVisibleOffers ? (
             <div className="mt-2 rounded-[1.05rem] border-[2px] border-dashed border-[#9a7a3d] bg-[#fff4d4]/52 px-4 py-8 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
@@ -509,7 +555,7 @@ export default function ZiiplyMobileOfferSearchCard({
               <div className="mt-2 text-[0.78rem] font-extrabold leading-snug text-[#8a7650]">{emptyText}</div>
             </div>
           ) : (
-            <div className="space-y-2.5 pt-4">
+            <div className="space-y-3 pt-4">
               {visibleItems.map((offer, index) => {
                 const name = getOfferName(offer);
                 const storeName = getStoreName(offer);
@@ -520,7 +566,7 @@ export default function ZiiplyMobileOfferSearchCard({
                 const category = String(offer.category || "");
 
                 return (
-                  <article key={String(offer.id || offer.ean || `${name}-${index}`)} className="relative overflow-hidden rounded-[1.05rem] border-[2px] border-[#7c663d]/78 bg-[#fff4d8]/78 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]">
+                  <article key={String(offer.id || offer.ean || `${name}-${index}`)} className="relative overflow-hidden rounded-[1.05rem] border-[2px] border-[#7c663d]/78 bg-[#fff4d8] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]">
                     <div className="px-3 py-2.5">
                       <div className="flex items-start gap-2.5">
                         <div className="mt-[0.1rem] grid h-[2.45rem] w-[2.45rem] shrink-0 place-items-center overflow-hidden rounded-[0.52rem] border-[1.5px] border-[#7b5c2a] bg-[linear-gradient(180deg,#f5dfac_0%,#d6ad66_100%)] text-[1.05rem] font-black text-[#604017] shadow-[0_2px_3px_rgba(50,31,13,0.18),inset_0_0_0_1px_rgba(255,250,224,0.42)]">
