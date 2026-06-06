@@ -1,11 +1,12 @@
 // ============================================================================
-// ZIIPLY_OFFER_SEARCH_CORE_V147_EXPORT_FIX
-// Revision: V147
+// ZIIPLY_OFFER_SEARCH_CORE_V148_STRICT_DEDUPE
+// Revision: V148
 // Date: 2026-06-05
 //
 // Purpose:
 // - Keeps V146 Gösta offer search orchestration.
-// - Adds V147 compatibility exports required by page.tsx:
+// - V148: strict dedupe by EAN/title so category seed searches cannot duplicate the same product.
+// - Keeps V147 compatibility exports required by page.tsx:
 //   - GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147
 //   - isZiiplyGostaCategorySelectionV147
 //   - mapZiiplyGostaOfferToCardOfferV147
@@ -73,25 +74,29 @@ async function fetchOfferSearchResults(query: string) {
   return parseOfferSearchResponse(response);
 }
 
+
+function getGostaOfferDedupeKeyV148(item: ZiiplyGostaOfferLike) {
+  const anyItem = item as any;
+  const ean = normalizeGostaCoreText(anyItem?.ean || anyItem?.gtin || anyItem?.barcode || "");
+
+  if (ean) return `ean:${ean}`;
+
+  const title = normalizeGostaCoreText(
+    item?.title || item?.name || item?.productName || "",
+  );
+  const store = normalizeGostaCoreText(item?.storeLabel || "");
+  const price = normalizeGostaCoreText(item?.priceText || "");
+
+  if (title) return `title:${title}|store:${store}`;
+
+  return normalizeGostaCoreText([item?.id, title, price].filter(Boolean).join("|"));
+}
+
 export function dedupeZiiplyGostaOfferResultsV146(results: ZiiplyGostaOfferLike[]) {
   const seen = new Set<string>();
 
   return results.filter((item) => {
-    const key = normalizeGostaCoreText(
-      [
-        item?.id,
-        item?.title,
-        item?.name,
-        item?.productName,
-        item?.storeLabel,
-        item?.priceText,
-        item?.benefitText,
-        item?.validityText,
-      ]
-        .filter(Boolean)
-        .join("|"),
-    );
-
+    const key = getGostaOfferDedupeKeyV148(item);
     if (!key || seen.has(key)) return false;
     seen.add(key);
     return true;
@@ -104,13 +109,8 @@ export function cleanZiiplyGostaOfferResultsV146(results: ZiiplyGostaOfferLike[]
   return results.filter((item) => {
     if (isBadOfferSearchResultV106(item)) return false;
 
-    const key = normalizeGostaCoreText(
-      [item?.id, item?.title, item?.storeLabel, item?.priceText, item?.benefitText]
-        .filter(Boolean)
-        .join("|"),
-    );
-
-    if (seen.has(key)) return false;
+    const key = getGostaOfferDedupeKeyV148(item);
+    if (!key || seen.has(key)) return false;
     seen.add(key);
     return true;
   });
