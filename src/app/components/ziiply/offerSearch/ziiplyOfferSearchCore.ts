@@ -1,6 +1,6 @@
 // ============================================================================
-// ZIIPLY_OFFER_SEARCH_CORE_V149_FUZZY_DEDUPE
-// Revision: V149
+// ZIIPLY_OFFER_SEARCH_CORE_V150_ULTRA_FUZZY_DEDUPE
+// Revision: V150
 // Date: 2026-06-05
 //
 // Purpose:
@@ -90,6 +90,37 @@ function getCompactGostaTitleKeyV149(value: unknown) {
   return words.slice(0, 4).join(" ");
 }
 
+
+function getUltraCompactGostaTitleKeyV150(value: unknown) {
+  const stopWords = new Set([
+    "snellmanin",
+    "snellman",
+    "hk",
+    "atria",
+    "saarioinen",
+    "kotimaista",
+    "rainbow",
+    "xtra",
+    "pirkka",
+    "coop",
+    "s",
+    "k",
+  ]);
+
+  const normalized = normalizeGostaCoreText(value)
+    .replace(/\b\d+[,.]?\d*\s*(g|kg|ml|l|kpl|pkt|ps|plo|prk)\b/g, " ")
+    .replace(/\b\d+\s*x\s*\d+\b/g, " ")
+    .replace(/\b(grilli|grillattu|marinoitu|maustettu|nopea|ohut|filee|suikale|pala|viipale|pakkaus|rasia)\b/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const words = normalized
+    .split(/\s+/)
+    .filter((word) => word.length > 2 && !stopWords.has(word));
+
+  return words.slice(0, 3).join(" ");
+}
+
 function getGostaOfferDedupeKeyV148(item: ZiiplyGostaOfferLike) {
   const anyItem = item as any;
   const ean = normalizeGostaCoreText(anyItem?.ean || anyItem?.gtin || anyItem?.barcode || "");
@@ -98,11 +129,11 @@ function getGostaOfferDedupeKeyV148(item: ZiiplyGostaOfferLike) {
 
   const title =
     item?.title || item?.name || item?.productName || "";
-  const compactTitle = getCompactGostaTitleKeyV149(title);
+  const title3 = getUltraCompactGostaTitleKeyV150(title);
   const store = normalizeGostaCoreText(item?.storeLabel || "");
   const price = normalizeGostaCoreText(item?.priceText || "");
 
-  if (compactTitle) return `title4:${compactTitle}|price:${price}|store:${store}`;
+  if (title3) return `title3:${title3}|price:${price}|store:${store}`;
 
   return normalizeGostaCoreText([item?.id, title, price].filter(Boolean).join("|"));
 }
