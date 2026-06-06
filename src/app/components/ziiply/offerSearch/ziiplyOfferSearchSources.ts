@@ -1,5 +1,5 @@
 // src/app/components/ziiply/offerSearch/ziiplyOfferSearchSources.ts
-// ZIIPLY_OFFER_SEARCH_SOURCES_V3_INTENT_MEMORY_RANKING
+// ZIIPLY_OFFER_SEARCH_SOURCES_V4_STRICT_UNIQUE_OFFERS
 //
 // Debugin perusteella K-Ruoka palauttaa Vercel-serverille Cloudflare 403 -sivun,
 // joten K-Market ja K-Supermarket pidetään mukana funktioina mutta ei ajeta
@@ -52,13 +52,39 @@ const ZIIPLY_OFFER_SOURCES = {
   },
 } satisfies Record<string, ZiiplyOfferSearchSourceConfig>;
 
+function normalizeOfferUniqueText(value: unknown) {
+  return String(value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9åäö\s-]/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function getUniqueOfferKeyV4(result: ZiiplyOfferSearchResult) {
+  const anyResult = result as any;
+  const ean = normalizeOfferUniqueText(anyResult.ean || anyResult.gtin || anyResult.barcode || "");
+
+  if (ean) return `ean:${ean}`;
+
+  const title = normalizeOfferUniqueText(result.title);
+  const store = normalizeOfferUniqueText(result.storeLabel);
+
+  if (title) return `title:${title}|store:${store}`;
+
+  return normalizeOfferUniqueText(
+    [result.source, result.title, result.priceText].filter(Boolean).join("|"),
+  );
+}
+
 function uniqueOfferResults(results: ZiiplyOfferSearchResult[]) {
   const seen = new Set<string>();
   const unique: ZiiplyOfferSearchResult[] = [];
 
   for (const result of results) {
-    const key = `${result.source}:${result.title}:${result.priceText ?? ""}`;
-    if (seen.has(key)) continue;
+    const key = getUniqueOfferKeyV4(result);
+    if (!key || seen.has(key)) continue;
     seen.add(key);
     unique.push(result);
   }
