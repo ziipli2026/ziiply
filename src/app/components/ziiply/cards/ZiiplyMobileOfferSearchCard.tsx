@@ -1,8 +1,8 @@
 "use client";
 
 // ============================================================================
-// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V19_KOTI_CATEGORY_FUZZY_COUNTS
-// Revision: V19
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V20_STRICT_REAL_CATEGORY_COUNTS
+// Revision: V20
 // Date: 2026-06-06
 //
 // Fix:
@@ -396,8 +396,6 @@ export default function ZiiplyMobileOfferSearchCard({
     return matched?.[1] === true;
   };
 
-  const baseLandingCategories = ["Kahvi", "Liha", "Hevi", "Koti", "Lemmikit"];
-
   const categoryAliases: Record<string, string[]> = {
     kahvi: ["kahvi", "kahvit"],
     liha: ["liha", "lihapakkaukset", "makkara", "grilli", "grillimakkara"],
@@ -486,38 +484,39 @@ export default function ZiiplyMobileOfferSearchCard({
 
     return items.some((offer) => {
       const offerCategory = normalizeCategoryKey(String(offer.category || ""));
-      const offerName = normalizeCategoryKey(getOfferName(offer));
-      const offerStore = normalizeCategoryKey(getStoreName(offer));
-      const offerText = normalizeCategoryKey(
-        [offer.category, offer.name, offer.title, offer.productName, offer.brandName, offerStore]
-          .filter(Boolean)
-          .join(" "),
-      );
 
       return keys.some(
         (key) =>
           offerCategory === key ||
           offerCategory.includes(key) ||
-          key.includes(offerCategory) ||
-          offerName.includes(key) ||
-          offerText.includes(key),
+          key.includes(offerCategory),
       );
     });
   };
 
-  const categoryPool = Array.from(new Set([...baseLandingCategories, ...categorySuggestions]));
+  const hasPositiveCategoryCounts =
+    !!categoryOfferCounts &&
+    Object.values(categoryOfferCounts).some((count) => typeof count === "number" && count > 0);
+
+  const categoryPool = Array.from(new Set(categorySuggestions));
 
   const visibleCategorySuggestions = categoryPool.filter((category) => {
     const normalized = category.toLowerCase().trim();
     if (!normalized || normalized === "kaikki") return false;
 
-    const count = getCategoryCountWithAliases(category);
-    if (typeof count === "number") return count > 0;
-
     if (isTestedEmptyCategory(category)) return false;
 
-    // Fallback when the parent has not supplied counts: show only categories
-    // that are visible in the current offer payload. Do not force empty buttons.
+    const count = getCategoryCountWithAliases(category);
+
+    // When parent supplies category counts, trust only those counts.
+    // Do not show a category based on a fuzzy hit in product title/raw text,
+    // because that caused buttons that opened into empty result lists.
+    if (hasPositiveCategoryCounts) {
+      return typeof count === "number" && count > 0;
+    }
+
+    // Fallback only before counts exist: use actual offer.category metadata,
+    // never product title/name aliases.
     return hasCurrentOfferForCategoryWithAliases(category);
   });
 
@@ -539,12 +538,12 @@ export default function ZiiplyMobileOfferSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="V19_KOTI_CATEGORY_FUZZY_COUNTS"
+      data-ziiply-mobile-offer-search-card-version="V20_STRICT_REAL_CATEGORY_COUNTS"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
         <div className="pointer-events-none absolute left-[1.0rem] top-[0.72rem] z-[80] rounded-full border border-[#174c2c] bg-[#fff8d9] px-2 py-0.5 text-[0.62rem] font-black text-[#174c2c] shadow-[0_2px_0_rgba(91,72,44,0.16)]">
-          GÖSTA V19
+          GÖSTA V20
         </div>
 
         <div
