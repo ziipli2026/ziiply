@@ -15,6 +15,7 @@
 // V163: Göstalle kategoriakohtaiset offer-countit, tyhjien kategorioiden piilotus ja paluu etusivulle.
 // V164: countteja ei esitäytetä nollilla, jotta etusivu ei piilota kaikkia ennen ensimmäistä datasettiä.
 // V166: viimeinen page-tason tuplapoisto ennen korttia ja muistetaan erikseen kategoriat, jotka on testattu tyhjiksi.
+// V167: build-fix, lisää puuttuvan gostaTestedEmptyCategories-state-rivin varmasti oikeaan scopeen.
 // Kun Gösta-haku on käyttäjän avaama, pidetään tarjouskortti aktiivisena, ellei käyttäjä itse sulje sitä
 // tai siirry alapalkista Kaupat/Hae/Kori/Vertailu-näkymään.
 
@@ -2564,6 +2565,7 @@ export default function Page() {
   const [offerSearchQuerySnapshot, setOfferSearchQuerySnapshot] = useState("");
   const [offerSearchDoneForQuery, setOfferSearchDoneForQuery] = useState("");
   const [offerCardFilterV106, setOfferCardFilterV106] = useState("");
+  const [gostaTestedEmptyCategoriesV166, setGostaTestedEmptyCategoriesV166] = useState<Record<string, true>>({});
   const [offerShowingAllAreaOffersV106, setOfferShowingAllAreaOffersV106] = useState(false);
   const [chainFilter, setChainFilter] = useState<"all" | "S" | "K">("all");
   const [justAdded, setJustAdded] = useState<string | null>(null);
