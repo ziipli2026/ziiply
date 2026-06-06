@@ -102,6 +102,12 @@
 
 "use client";
 
+// V168_EMPTY_STORE_AREA_CLEARS_STALE_SELECTION_AND_PAIR_NOTICE
+// Korjaus:
+// - jos uusi GPS/manuaalihaku palauttaa 0 kauppaa, vanha activeArea/kauppavalinta tyhjennetään eikä Joroinen/vanhat kaupat jää näkyviin.
+// - Ketjujen väliltä -tilassa vertailupari puuttuu myös silloin, kun vain toinen S/K-kauppa löytyy.
+// - sama puuttuvan parin tieto välitetään StoreModeSelectorille, jotta ilmoitus näkyy myös yhden kaupan alueella.
+
 // V127_OPENFOODFACTS_RECOGNIZED_EAN_NEVER_UNKNOWN
 // Korjaus: jos EAN on kerran tunnistettu kauppa- tai Open Food Facts -tuotteeksi,
 // mikään myöhempi skanneripolku ei saa enää lisätä sitä tuntemattomana.
@@ -3987,15 +3993,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const storePairMissingNoticeVisibleV427 =
     storeModeChosenV299 &&
     storeCompareScope === "between_chains" &&
-    (
-      (storeMode === "hyper" && (!activeArea.sStoreId || !activeArea.kStoreId)) ||
-      (storeMode === "local" && (!activeArea.sLocalStoreId || !activeArea.kLocalStoreId))
-    );
-  const hyperStorePairMissingV391 =
-    storeMode === "hyper" &&
+    (!activeStores.sStoreId || !activeStores.kStoreId);
+
+  // V168: aiempi ehto katsoi vain activeArea.sStoreId/kStoreId ja vain tavarataloja.
+  // Se ei huomannut yhden lähikaupan aluetta, koska selectedChains saattoi olla S+K=true
+  // vaikka toisella ketjulla ei ollut oikeaa kauppaa. Käytetään näkyvän aktiivisen
+  // S/K-parin todellisia id-arvoja, jolloin sekä 0 että 1 kaupan alue antaa notifin.
+  const currentStorePairMissingV168 =
     storeModeChosenV299 &&
     storeCompareScope === "between_chains" &&
-    (!activeArea.sStoreId || !activeArea.kStoreId);
+    (!activeStores.sStoreId || !activeStores.kStoreId);
+
+  const hyperStorePairMissingV391 =
+    currentStorePairMissingV168 && storeMode === "hyper";
 
   useEffect(() => {
     if (!hyperStorePairMissingV391) return;
@@ -4018,6 +4028,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       Number(Boolean(selectedChains.s)) + Number(Boolean(selectedChains.k));
 
     const shouldShow =
+      currentStorePairMissingV168 ||
       hyperStorePairMissingV391 ||
       (storeCompareScope === "between_chains" && selectedChainCount < 2) ||
       (storeCompareScope === "within_chain" && !withinChain);
@@ -4035,6 +4046,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return () => window.clearTimeout(timer);
   }, [
     hyperStorePairMissingV391,
+    currentStorePairMissingV168,
     storeCompareScope,
     selectedChains.s,
     selectedChains.k,
@@ -6423,6 +6435,31 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setFoundStores(storesWithDistanceV97);
 
       if (storesWithDistanceV97.length === 0) {
+        // V168: älä jätä edellisen alueen/Joroisten kauppoja activeAreaan,
+        // jos uusi GPS- tai manuaalihaku ei palauta yhtään oikeaa kauppaa.
+        // Tämä oli syy siihen, että nollakaupan alueella näkyi vanha "sköödi"
+        // eikä selaimen välimuistin tyhjennys auttanut.
+        setActiveArea({
+          label: source === "gps" ? "Oma sijainti" : query,
+          aliases: [query].filter(Boolean),
+          sStoreId: undefined,
+          sStoreName: undefined,
+          kStoreId: undefined,
+          kStoreName: undefined,
+          sLocalStoreId: undefined,
+          sLocalStoreName: undefined,
+          kLocalStoreId: undefined,
+          kLocalStoreName: undefined,
+        } as Area);
+        setSelectedChains((current) => ({
+          ...current,
+          s: false,
+          k: false,
+          lidl: false,
+          tokmanni: false,
+        }));
+        setOpenStorePicker(null);
+        clearStoreBackedSearchState();
         setLocationStatusV137(
           `Alueelle "${query}" ei löytynyt kauppoja. Valitse alue käsin.`,
         );
@@ -13439,6 +13476,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       missingStoresMessageVisible={false}
                       foundStoresCount={foundStores.length}
                       hyperStorePairMissing={
+                        currentStorePairMissingV168 ||
                         hyperStorePairMissingV391 ||
                         (storeCompareScope === "between_chains" && !storeModeChosenV299)
                       }
@@ -14290,7 +14328,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 selectedRealChainCount={selectedRealChainCount}
                 missingStoresMessageVisible={false}
                 foundStoresCount={foundStores.length}
-                hyperStorePairMissing={hyperStorePairMissingV391}
+                hyperStorePairMissing={currentStorePairMissingV168 || hyperStorePairMissingV391}
                 onStoreModeChange={handleStoreModeChange}
                 onStoreCompareScopeChange={handleStoreCompareScopeChange}
                 onWithinChainChange={setWithinChain}
