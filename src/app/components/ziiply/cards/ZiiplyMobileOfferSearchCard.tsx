@@ -1,8 +1,8 @@
 "use client";
 
 // ============================================================================
-// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V12_RENDER_PATH_TRACE
-// Revision: V12
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V13_LOCAL_RENDER_DEDUPE_AND_CORE_CATS
+// Revision: V13
 // Date: 2026-06-05
 //
 // Fix:
@@ -122,6 +122,81 @@ function getStoreName(offer: ZiiplyMobileOfferSearchItem) {
   return String(offer.storeName || offer.shopName || offer.chain || "Kauppa");
 }
 
+function normalizeOfferCardKeyV13(value: unknown) {
+  return String(value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9åäö\s-]/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function getOfferCardTitleRootV13(offer: ZiiplyMobileOfferSearchItem) {
+  const stopWords = new Set([
+    "snellman",
+    "snellmanin",
+    "atria",
+    "hk",
+    "kotimaista",
+    "pirkka",
+    "rainbow",
+    "xtra",
+    "coop",
+    "nopea",
+    "ohut",
+    "murea",
+    "suikale",
+    "pala",
+    "viipale",
+    "marinoitu",
+    "maustettu",
+    "grilli",
+    "grillattu",
+    "pakkaus",
+    "rasia",
+  ]);
+
+  const normalized = normalizeOfferCardKeyV13(getOfferName(offer))
+    .replace(/\b\d+[,.]?\d*\s*(g|kg|ml|l|kpl|pkt|ps|plo|prk)\b/g, " ")
+    .replace(/\b\d+\s*x\s*\d+\b/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const words = normalized
+    .split(/\s+/)
+    .filter((word) => word.length > 2 && !stopWords.has(word));
+
+  return words.slice(0, 3).join(" ");
+}
+
+function getOfferCardDedupeKeyV13(offer: ZiiplyMobileOfferSearchItem) {
+  const ean = normalizeOfferCardKeyV13(offer.ean);
+
+  if (ean) return `ean:${ean}`;
+
+  const root = getOfferCardTitleRootV13(offer);
+  const price = normalizeOfferCardKeyV13(offer.offerPrice ?? offer.price);
+  const store = normalizeOfferCardKeyV13(getStoreName(offer));
+
+  return root ? `root:${root}|price:${price}|store:${store}` : "";
+}
+
+function dedupeOfferCardsV13(items: ZiiplyMobileOfferSearchItem[]) {
+  const seen = new Set<string>();
+  const unique: ZiiplyMobileOfferSearchItem[] = [];
+
+  for (const item of items) {
+    const key = getOfferCardDedupeKeyV13(item);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    unique.push(item);
+  }
+
+  return unique;
+}
+
+
 function cleanRepeatedOfferTextV4(value: unknown) {
   const text = String(value ?? "")
     .replace(/\s+/g, " ")
@@ -235,7 +310,8 @@ export default function ZiiplyMobileOfferSearchCard({
 }: ZiiplyMobileOfferSearchCardProps) {
   if (!open) return null;
 
-  const items = Array.isArray(offers) ? offers : Array.isArray(results) ? results : [];
+  const rawItems = Array.isArray(offers) ? offers : Array.isArray(results) ? results : [];
+  const items = dedupeOfferCardsV13(rawItems);
   const hasOffers = items.length > 0;
   const shownQuery = query.trim();
   const shownFilter = filter.trim();
@@ -263,12 +339,8 @@ export default function ZiiplyMobileOfferSearchCard({
     const normalized = category.toLowerCase();
     if (normalized === "kaikki") return false;
 
-    // Only hide a category after the user has actually searched that category
-    // and the page has marked it as empty. Do not hide based on current result list.
-    if (testedEmptyCategories?.[category] || testedEmptyCategories?.[normalized]) {
-      return false;
-    }
-
+    // V13: do not use current result counts to hide category buttons.
+    // The counts can be from another category search and therefore misleading.
     return isPreferredLandingCategory(category);
   });
 
@@ -280,12 +352,12 @@ export default function ZiiplyMobileOfferSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="V12_RENDER_PATH_TRACE"
+      data-ziiply-mobile-offer-search-card-version="V13_LOCAL_RENDER_DEDUPE_AND_CORE_CATS"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
         <div className="pointer-events-none absolute left-[1.0rem] top-[0.72rem] z-[80] rounded-full border border-[#174c2c] bg-[#fff8d9] px-2 py-0.5 text-[0.62rem] font-black text-[#174c2c] shadow-[0_2px_0_rgba(91,72,44,0.16)]">
-          GÖSTA V12
+          GÖSTA V13
         </div>
         <div
           className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[#f7edcf] bg-center bg-no-repeat opacity-100"
