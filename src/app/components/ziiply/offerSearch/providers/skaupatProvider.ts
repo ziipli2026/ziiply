@@ -1,6 +1,6 @@
 // ============================================================================
-// SKAUPAT_PROVIDER_V153_EXPLICIT_PATH_VISIBLE_DIAGNOSTICS
-// Revision: V166
+// SKAUPAT_PROVIDER_V167_DYNAMIC_STORE_ID_AND_WIDER_LIMIT
+// Revision: V167
 // Date: 2026-06-05
 //
 // Fix:
@@ -41,6 +41,7 @@ const SKAUPAT_REMOTE_FILTERED_PRODUCTS_HASH_V156 =
   "44ca017dddccfe49e787b483f471f26217adca807f8c71101d11e881dab9e480";
 
 const DEFAULT_SKAUPAT_STORE_ID_V156 = "513971200";
+const SKAUPAT_REMOTE_FILTERED_PRODUCTS_LIMIT_V167 = 250;
 
 function asRecord(value: unknown): UnknownRecord | null {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -548,13 +549,16 @@ function hasSOfferSignal(
 }
 
 
-function belongsToSelectedSHypermarketV163(product: UnknownRecord): boolean {
+function belongsToSelectedSHypermarketV167(
+  product: UnknownRecord,
+  selectedStoreId: string,
+): boolean {
   const productStoreId = firstString(product.storeId);
 
   // RemoteFilteredProducts is already scoped with storeId.
-  // If product has a storeId, it must match that same store.
+  // If product has a storeId, it must match that same selected store.
   // If S-kaupat omits it for some rows, allow the row instead of killing all results.
-  return !productStoreId || productStoreId === DEFAULT_SKAUPAT_STORE_ID_V156;
+  return !productStoreId || productStoreId === selectedStoreId;
 }
 
 
@@ -614,6 +618,7 @@ function mapSProductListItemToOfferResult(
     query: string;
     config: ZiiplyOfferSearchSourceConfig;
     fallbackFacetNames: string[];
+    storeId: string;
     index: number;
   },
 ): ZiiplyOfferSearchResult | null {
@@ -624,7 +629,7 @@ function mapSProductListItemToOfferResult(
   if (!title) return null;
 
   if (isSponsoredSProductListItem(listItem, product)) return null;
-  if (!belongsToSelectedSHypermarketV163(product)) return null;
+  if (!belongsToSelectedSHypermarketV167(product, options.storeId)) return null;
 
   const pricing = getPricing(product);
 
@@ -722,7 +727,7 @@ function mapSProductListItemToOfferResult(
   } as unknown as ZiiplyOfferSearchResult;
 }
 
-function buildRemoteFilteredProductsUrl(query: string): string {
+function buildRemoteFilteredProductsUrl(query: string, storeId: string): string {
   const variables = {
     facets: [
       { key: "brandName", order: "asc" },
@@ -731,9 +736,9 @@ function buildRemoteFilteredProductsUrl(query: string): string {
     ],
     generatedSessionId: "1d6b5de9-df99-4608-af07-7d754955df82",
     fetchSponsoredContent: false,
-    limit: 48,
+    limit: SKAUPAT_REMOTE_FILTERED_PRODUCTS_LIMIT_V167,
     queryString: query,
-    storeId: DEFAULT_SKAUPAT_STORE_ID_V156,
+    storeId,
     useRandomId: false,
     marketingId: "d0bcc6e5-6130-494e-b6fb-12b5cb9c60cf",
   };
@@ -752,11 +757,12 @@ function buildRemoteFilteredProductsUrl(query: string): string {
   return url.toString();
 }
 
-async function fetchSKaupatRemoteFilteredProductsV152(
+async function fetchSKaupatRemoteFilteredProductsV167(
   query: string,
   config: ZiiplyOfferSearchSourceConfig,
+  storeId: string,
 ): Promise<ZiiplyOfferSearchResult[]> {
-  const response = await fetch(buildRemoteFilteredProductsUrl(query), {
+  const response = await fetch(buildRemoteFilteredProductsUrl(query, storeId), {
     method: "GET",
     headers: {
       accept: "application/json",
@@ -788,6 +794,7 @@ async function fetchSKaupatRemoteFilteredProductsV152(
         query,
         config,
         fallbackFacetNames,
+        storeId,
         index,
       }),
     )
@@ -799,12 +806,15 @@ async function fetchSKaupatRemoteFilteredProductsV152(
 export async function fetchSKaupatOffers(
   query: string,
   config: ZiiplyOfferSearchSourceConfig,
+  options?: { storeId?: string | number | null },
 ): Promise<ZiiplyOfferSearchResult[]> {
   const cleanQuery = String(query || "").trim();
   if (!cleanQuery) return [];
 
+  const storeId = String(options?.storeId || DEFAULT_SKAUPAT_STORE_ID_V156).trim();
+
   try {
-    return await fetchSKaupatRemoteFilteredProductsV152(cleanQuery, config);
+    return await fetchSKaupatRemoteFilteredProductsV167(cleanQuery, config, storeId);
   } catch (error) {
     console.warn("[Ziiply offers] S-kaupat RemoteFilteredProducts failed", error);
     return [];
