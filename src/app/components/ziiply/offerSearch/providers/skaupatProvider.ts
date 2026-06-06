@@ -1,6 +1,6 @@
 // ============================================================================
-// SKAUPAT_PROVIDER_V153_EXPLICIT_PATH_VISIBLE_DIAGNOSTICS
-// Revision: V170
+// SKAUPAT_PROVIDER_V171_GOSTA_MASTER_ALL_OFFERS
+// Revision: V171
 // Date: 2026-06-06
 //
 // Fix:
@@ -29,6 +29,11 @@
 // - S-kaupat prices remain in euros; no cents conversion here.
 //
 
+// V171 Gösta master dataset:
+// - Special query __ziiply_all_offers__ uses empty S-kaupat queryString to collect the offer list once.
+// - Paginates more 48-item pages for master mode, while keeping normal searches smaller.
+// - Category chips can then filter this master dataset locally without new seed searches.
+//
 // V170 safe pagination:
 // - Keeps the original working S-kaupat RemoteFilteredProducts limit at 48.
 // - Fetches several 48-item pages with offset/page variables instead of raising limit.
@@ -48,6 +53,11 @@ const SKAUPAT_REMOTE_FILTERED_PRODUCTS_HASH_V156 =
   "44ca017dddccfe49e787b483f471f26217adca807f8c71101d11e881dab9e480";
 
 const DEFAULT_SKAUPAT_STORE_ID_V156 = "513971200";
+const SKAUPAT_GOSTA_MASTER_QUERY_V171 = "__ziiply_all_offers__";
+
+function isGostaMasterQueryV171(query: string): boolean {
+  return normalizeText(query) === normalizeText(SKAUPAT_GOSTA_MASTER_QUERY_V171);
+}
 
 function asRecord(value: unknown): UnknownRecord | null {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -731,6 +741,7 @@ function mapSProductListItemToOfferResult(
 
 function buildRemoteFilteredProductsUrl(query: string, offset = 0): string {
   const page = Math.floor(offset / 48) + 1;
+  const queryString = isGostaMasterQueryV171(query) ? "" : query;
 
   const variables = {
     facets: [
@@ -744,7 +755,7 @@ function buildRemoteFilteredProductsUrl(query: string, offset = 0): string {
     offset,
     skip: offset,
     page,
-    queryString: query,
+    queryString,
     storeId: DEFAULT_SKAUPAT_STORE_ID_V156,
     useRandomId: false,
     marketingId: "d0bcc6e5-6130-494e-b6fb-12b5cb9c60cf",
@@ -813,7 +824,9 @@ async function fetchSKaupatRemoteFilteredProductsV170(
   query: string,
   config: ZiiplyOfferSearchSourceConfig,
 ): Promise<ZiiplyOfferSearchResult[]> {
-  const pageOffsets = [0, 48, 96, 144, 192];
+  const pageOffsets = isGostaMasterQueryV171(query)
+    ? [0, 48, 96, 144, 192, 240, 288, 336, 384, 432, 480, 528, 576, 624, 672, 720, 768, 816, 864, 912]
+    : [0, 48, 96, 144, 192];
   const pages: ZiiplyOfferSearchResult[][] = [];
 
   for (const offset of pageOffsets) {
