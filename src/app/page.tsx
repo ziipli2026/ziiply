@@ -14,7 +14,7 @@
 // V162: Kaikki-chip poistettu Göstasta ja tarjouslistan duplikaattien korjaus tuettu.
 // V163: Göstalle kategoriakohtaiset offer-countit, tyhjien kategorioiden piilotus ja paluu etusivulle.
 // V164: countteja ei esitäytetä nollilla, jotta etusivu ei piilota kaikkia ennen ensimmäistä datasettiä.
-// V165: lopullinen page-tason dedupe + vain oikeasti tyhjiksi testatut kategoriat piilotetaan.
+// V166: viimeinen page-tason tuplapoisto ennen korttia ja muistetaan erikseen kategoriat, jotka on testattu tyhjiksi.
 // Kun Gösta-haku on käyttäjän avaama, pidetään tarjouskortti aktiivisena, ellei käyttäjä itse sulje sitä
 // tai siirry alapalkista Kaupat/Hae/Kori/Vertailu-näkymään.
 
@@ -2565,54 +2565,12 @@ export default function Page() {
   const [offerSearchDoneForQuery, setOfferSearchDoneForQuery] = useState("");
   const [offerCardFilterV106, setOfferCardFilterV106] = useState("");
   const [offerShowingAllAreaOffersV106, setOfferShowingAllAreaOffersV106] = useState(false);
-  const [gostaTestedEmptyCategoriesV165, setGostaTestedEmptyCategoriesV165] = useState<Record<string, true>>({});
   const [chainFilter, setChainFilter] = useState<"all" | "S" | "K">("all");
   const [justAdded, setJustAdded] = useState<string | null>(null);
 
   const [activeResult, setActiveResult] = useState<
     "none" | "offers" | "compare" | "singleCompare"
   >("none");
-
-  function getGostaFinalDedupeKeyV165(item: any) {
-    const ean = normalize(
-      String(item?.ean || item?.gtin || item?.barcode || item?.id || ""),
-    ).replace(/\s+/g, "");
-
-    if (ean && /^\d{6,}$/.test(ean)) return `ean:${ean}`;
-
-    const title = normalize(
-      String(item?.title || item?.name || item?.productName || ""),
-    )
-      .replace(/\b\d+[,.]?\d*\s*(g|kg|ml|l|kpl|pkt|ps|plo|prk)\b/g, " ")
-      .replace(/\b\d+\s*x\s*\d+\b/g, " ")
-      .replace(/\s+/g, " ")
-      .trim()
-      .split(/\s+/)
-      .filter((word) => word.length > 1)
-      .slice(0, 4)
-      .join(" ");
-
-    const price = normalize(String(item?.priceText || item?.offerPrice || item?.price || ""));
-    const store = normalize(String(item?.storeLabel || item?.storeName || item?.chain || ""));
-
-    if (title) return `title4:${title}|price:${price}|store:${store}`;
-    return normalize([item?.id, item?.title, item?.priceText].filter(Boolean).join("|"));
-  }
-
-  function dedupeGostaResultsForPageV165<T extends any>(items: T[]): T[] {
-    const seen = new Set<string>();
-    const deduped: T[] = [];
-
-    for (const item of items || []) {
-      const key = getGostaFinalDedupeKeyV165(item);
-      if (!key || seen.has(key)) continue;
-      seen.add(key);
-      deduped.push(item);
-    }
-
-    return deduped;
-  }
-
   const gostaPanelStickyOpenRefV158 = useRef(false);
   const [activeAssistant, setActiveAssistant] =
     useState<ZiiplyAssistantKey | null>(null);
@@ -5099,6 +5057,49 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
   }
 
+
+  function getGostaPageDedupeKeyV166(item: any) {
+    const source = item?.__sourceOfferSearchResult || item;
+    const ean = normalize(
+      String(source?.ean || source?.gtin || source?.barcode || item?.ean || item?.id || ""),
+    );
+
+    if (ean) return `ean:${ean}`;
+
+    const title = normalize(
+      String(item?.title || item?.name || item?.productName || source?.title || source?.name || ""),
+    )
+      .replace(/\b\d+[,.]?\d*\s*(g|kg|ml|l|kpl|pkt|ps|plo|prk)\b/g, " ")
+      .replace(/\b\d+\s*x\s*\d+\b/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    const compactTitle = title
+      .split(/\s+/)
+      .filter((word) => word.length > 1)
+      .slice(0, 4)
+      .join(" ");
+
+    const price = normalize(String(item?.offerPrice || item?.price || source?.priceText || ""));
+    const store = normalize(String(item?.storeName || item?.storeLabel || source?.storeLabel || ""));
+
+    return compactTitle ? `title4:${compactTitle}|price:${price}|store:${store}` : "";
+  }
+
+  function dedupeGostaCardItemsV166<T extends any>(items: T[]) {
+    const seen = new Set<string>();
+    const unique: T[] = [];
+
+    for (const item of items) {
+      const key = getGostaPageDedupeKeyV166(item);
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      unique.push(item);
+    }
+
+    return unique;
+  }
+
   const filteredOffers = useMemo<ZiiplyOffer[]>(() => {
     // V28: vanha tarjoushakumoottori ei enää tuota osumia page-rungossa.
     // Tarjouslehtisiin perustuva lista rakennetaan myöhemmin erillisessä kortti-/helper-toteutuksessa.
@@ -5113,9 +5114,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   // on siirretty offerSearch/ziiplyOfferSearchCore.ts -moduuliin.
 
   const cleanOfferSearchResultsV106 = useMemo(() => {
-    return dedupeGostaResultsForPageV165(
-      cleanZiiplyGostaOfferResultsV146(offerSearchResults),
-    );
+    return cleanZiiplyGostaOfferResultsV146(offerSearchResults);
   }, [offerSearchResults]);
 
   const visibleOfferSearchResultsV106 = useMemo(() => {
@@ -5123,7 +5122,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }, [cleanOfferSearchResultsV106, offerCardFilterV106]);
 
   const gostaOfferCardItemsV163 = useMemo(() => {
-    return dedupeGostaResultsForPageV165(
+    return dedupeGostaCardItemsV166(
       visibleOfferSearchResultsV106.map(mapZiiplyGostaOfferToCardOfferV147),
     );
   }, [visibleOfferSearchResultsV106]);
@@ -5140,13 +5139,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       counts[category.toLowerCase()] = (counts[category.toLowerCase()] ?? 0) + 1;
     }
 
-    for (const category of Object.keys(gostaTestedEmptyCategoriesV165)) {
-      counts[category] = 0;
-      counts[category.toLowerCase()] = 0;
-    }
-
     return counts;
-  }, [cleanOfferSearchResultsV106, gostaTestedEmptyCategoriesV165]);
+  }, [cleanOfferSearchResultsV106]);
 
   useEffect(() => {
     // V158: GPS-watchdog / kauppapäivitys voi muuttaa ympäröiviä paneelitiloja.
@@ -7069,33 +7063,32 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         kStoreName: activeStores.kStoreName,
       });
 
-      const finalOfferResultsV165 = dedupeGostaResultsForPageV165(
-        offerSearchCoreResult.results || [],
-      );
+      const categoryKeyV166 = String(offerSearchCoreResult.categoryLabel || "").trim();
 
-      if (hasExplicitOverride && isZiiplyGostaCategorySelectionV147(cleanedOverride)) {
-        const categoryKey = cleanedOverride.toLowerCase();
+      if (offerSearchCoreResult.searchByCategory && categoryKeyV166) {
+        setGostaTestedEmptyCategoriesV166((previous) => {
+          const normalizedKey = categoryKeyV166.toLowerCase();
 
-        if (finalOfferResultsV165.length === 0) {
-          setGostaTestedEmptyCategoriesV165((previous) => ({
-            ...previous,
-            [cleanedOverride]: true,
-            [categoryKey]: true,
-          }));
-        } else {
-          setGostaTestedEmptyCategoriesV165((previous) => {
+          if (offerSearchCoreResult.results.length > 0) {
+            if (!previous[categoryKeyV166] && !previous[normalizedKey]) return previous;
             const next = { ...previous };
-            delete next[cleanedOverride];
-            delete next[categoryKey];
+            delete next[categoryKeyV166];
+            delete next[normalizedKey];
             return next;
-          });
-        }
+          }
+
+          return {
+            ...previous,
+            [categoryKeyV166]: true,
+            [normalizedKey]: true,
+          };
+        });
       }
 
       setOfferSearchQuerySnapshot(offerSearchCoreResult.querySnapshot);
       setOfferCardFilterV106(offerSearchCoreResult.cardFilter);
       setOfferShowingAllAreaOffersV106(offerSearchCoreResult.showingAllAreaOffers);
-      setOfferSearchResults(finalOfferResultsV165);
+      setOfferSearchResults(offerSearchCoreResult.results);
       setOfferSearchDoneForQuery(offerSearchCoreResult.trackingKey);
     } catch (error) {
       console.error("[Ziiply offers] API search failed", error);
@@ -15226,6 +15219,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             onSearch={(value: string) => void searchOffers(value)}
             categorySuggestions={GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147}
             categoryOfferCounts={gostaCategoryOfferCountsV163}
+            testedEmptyCategories={gostaTestedEmptyCategoriesV166}
             loading={loadingOffers}
             emptyText={offerShowingAllAreaOffersV106 ? "Alueen tarjouksia ei löytynyt vielä." : "Gösta ei löytänyt tarjouksia tälle rajaukselle."}
             onBack={() => {
