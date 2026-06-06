@@ -5,7 +5,11 @@
 // - Normaali hakukenttä ei saa avautua Göstan hakusanalla (esim. "kahvi").
 // - Göstan renderöinnin query-prop ei enää fallbackaa normaaliin inputiin.
 //
-//// V158_GOSTA_STICKY_PANEL_AGAINST_GPS_REFRESH
+//// V161_GOSTA_BLOCKS_GPS_STORE_MODE_BACKGROUND_SIDE_EFFECTS
+// Korjaus: kun Gösta on auki, GPS/watchdog-taustapäivitys ei saa vaihtaa kauppatilaa
+// eikä pakottaa Lähikaupat-tilaa päälle. In-flight GPS-apply katkaistaan ennen UI-commitia.
+
+// V158_GOSTA_STICKY_PANEL_AGAINST_GPS_REFRESH
 // Korjaus: Gösta-kortti ei saa sammua taustalla tapahtuvan GPS-/kauppapäivityksen takia.
 // Kun Gösta-haku on käyttäjän avaama, pidetään tarjouskortti aktiivisena, ellei käyttäjä itse sulje sitä
 // tai siirry alapalkista Kaupat/Hae/Kori/Vertailu-näkymään.
@@ -6278,6 +6282,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return;
     }
 
+    // V161: Göstan ollessa auki GPS/watchdog ei saa taustalla vaihtaa kauppatilaa
+    // eikä pakottaa Lähikaupat-valintaa päälle. Tämä koskee erityisesti hiljaisia
+    // taustapäivityksiä, mutta estää myös jo käynnissä olevan GPS-polun UI-sivuvaikutukset.
+    if (source === "gps" && gostaPanelStickyOpenRefV158.current) {
+      pushGpsDebugLogV492("applyLocation() skipped: Gosta sticky panel is open");
+      return;
+    }
+
     if (source === "manual") {
       setUsingOwnLocation(false);
       setGpsCoordsV320(null);
@@ -6331,6 +6343,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         enrichStoreWithGpsDistanceV97(store, distanceOriginV97),
       );
 
+      // V161: jos Gösta avattiin GPS-haun ollessa jo käynnissä, älä committaa
+      // kauppalistapäivitystä, activeAreaa, storeModea tai Lähikaupat-pakotusta taustalla.
+      if (source === "gps" && gostaPanelStickyOpenRefV158.current) {
+        pushGpsDebugLogV492("applyLocation() commit skipped: Gosta sticky panel opened during GPS search");
+        return;
+      }
+
       setFoundStores(storesWithDistanceV97);
 
       if (storesWithDistanceV97.length === 0) {
@@ -6382,7 +6401,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // oma sijainti avataan Lähikaupat-tilaan, jolloin lähimmät S/K-kaupat voivat tulla
       // Jokelan/Tuusulan puolelta. Jos käyttäjä on jo valinnut Tavaratalot/Lähikaupat,
       // säilytetään hänen valintansa.
-      if (source === "gps") {
+      if (source === "gps" && !gostaPanelStickyOpenRefV158.current) {
+        // V161: Göstan ollessa auki tätä haaraa ei saa ajaa, koska se pakottaa Lähikaupat päälle.
         // V39: GPS ei koskaan peri reloadin/historian hyper-valintaa.
         // Käyttäjä voi vaihtaa Tavaratalot-tilaan käsin GPS:n jälkeen, mutta automaatti avaa lähimmät.
         const nextGpsStoreMode: StoreMode = "local";
