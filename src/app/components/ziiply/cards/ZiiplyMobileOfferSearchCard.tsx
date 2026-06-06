@@ -1,14 +1,14 @@
 "use client";
 
 // ============================================================================
-// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V9_ALWAYS_SHOW_CORE_CATEGORIES
-// Revision: V9
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V10_HIDE_TESTED_EMPTY_CATEGORIES
+// Revision: V10
 // Date: 2026-06-05
 //
 // Fix:
 // - S-kaupat RemoteFilteredProducts returns prices already in euros.
 // - Removed old >20 => /100 conversion from normalizePrice() and getNumericPrice().
-// - Fixes false prices like 59,90 € becoming 0,60 €. Removes Kaikki chip, dedupes repeated campaign text, and keeps the improved layout and always shows core Gösta categories on the landing page, including Koti and Lemmikit.
+// - Fixes false prices like 59,90 € becoming 0,60 €. Removes Kaikki chip, dedupes repeated campaign text, and keeps core categories visible unless that exact category was tested and returned zero offers.
 // - Keeps V2 Gösta filter/category UI unchanged.
 // ============================================================================
 
@@ -265,14 +265,13 @@ export default function ZiiplyMobileOfferSearchCard({
     const normalized = category.toLowerCase();
     if (normalized === "kaikki") return false;
 
-    // Landing page must always show the main Gösta groups.
-    // Counts are based on current fetched data, not a full S-kaupat category index,
-    // so hiding core categories by zero/undefined count can wrongly remove Koti/Lemmikit.
-    if (showLandingView && isPreferredLandingCategory(category)) return true;
-
     const count =
       categoryOfferCounts?.[category] ??
       categoryOfferCounts?.[normalized];
+
+    // Hide only categories that have actually been tested and marked as empty.
+    // Undefined count means "unknown", not "empty".
+    if (count === 0) return false;
 
     if (hasCategoryCountData && count != null) {
       return Number(count) > 0;
@@ -289,7 +288,7 @@ export default function ZiiplyMobileOfferSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="V9_ALWAYS_SHOW_CORE_CATEGORIES"
+      data-ziiply-mobile-offer-search-card-version="V10_HIDE_TESTED_EMPTY_CATEGORIES"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
