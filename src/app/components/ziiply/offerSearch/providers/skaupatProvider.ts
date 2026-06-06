@@ -1,6 +1,6 @@
 // ============================================================================
 // SKAUPAT_PROVIDER_V174_STORE_DIRECTORY_RESOLVER
-// Revision: V174
+// Revision: V175
 // Date: 2026-06-06
 //
 // Fix:
@@ -111,12 +111,8 @@ async function getEffectiveSKaupatStoreIdV174(
 }
 const SKAUPAT_GOSTA_MASTER_QUERY_V171 = "__ziiply_all_offers__";
 
-const SKAUPAT_GOSTA_MASTER_SEED_QUERIES_V172 = Array.from(new Set([
-  "kampanja", "tarjous", "maito", "juusto", "jogurtti", "rahka", "kananmuna", "voi", "kerma",
-  "kahvi", "tee", "mehu", "jauheliha", "broileri", "kana", "nauta", "porsas", "makkara",
-  "kala", "lohi", "kirjolohi", "tonnikala", "leipä", "sämpylä", "hedelmät", "vihannekset",
-  "juomat", "pakaste", "valmisruoka", "makeiset", "lemmikki", "kodinhoito", "pesuaine", "talouspaperi", "vaipat",
-]));
+// V175: use discounted master feed instead of seed words
+const SKAUPAT_GOSTA_MASTER_SEED_QUERIES_V172 = ["DISCOUNTED"];
 
 function isGostaMasterQueryV171(query: string): boolean {
   return normalizeText(query) === normalizeText(SKAUPAT_GOSTA_MASTER_QUERY_V171);
@@ -931,16 +927,10 @@ export async function fetchSKaupatOffers(
 
   try {
     if (isGostaMasterQueryV171(cleanQuery)) {
-      const pages = await Promise.allSettled(
-        SKAUPAT_GOSTA_MASTER_SEED_QUERIES_V172.map((seedQuery) =>
-          fetchSKaupatRemoteFilteredProductsV170(seedQuery, config, options),
-        ),
-      );
-
-      return dedupeSOfferResultsV161(
-        pages.flatMap((result) =>
-          result.status === "fulfilled" ? result.value : [],
-        ),
+      return await fetchSKaupatRemoteFilteredProductsV170(
+        "DISCOUNTED",
+        config,
+        options,
       );
     }
 
