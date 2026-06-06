@@ -1,6 +1,6 @@
 // ============================================================================
-// SKAUPAT_PROVIDER_V171_GOSTA_MASTER_ALL_OFFERS
-// Revision: V171
+// SKAUPAT_PROVIDER_V172_MASTER_MAGIC_SEEDED_FALLBACK
+// Revision: V172
 // Date: 2026-06-06
 //
 // Fix:
@@ -30,7 +30,7 @@
 //
 
 // V171 Gösta master dataset:
-// - Special query __ziiply_all_offers__ uses empty S-kaupat queryString to collect the offer list once.
+// - Special query __ziiply_all_offers__ no longer uses empty S-kaupat queryString; direct calls fall back to broad safe seeds.
 // - Paginates more 48-item pages for master mode, while keeping normal searches smaller.
 // - Category chips can then filter this master dataset locally without new seed searches.
 //
@@ -54,6 +54,13 @@ const SKAUPAT_REMOTE_FILTERED_PRODUCTS_HASH_V156 =
 
 const DEFAULT_SKAUPAT_STORE_ID_V156 = "513971200";
 const SKAUPAT_GOSTA_MASTER_QUERY_V171 = "__ziiply_all_offers__";
+
+const SKAUPAT_GOSTA_MASTER_SEED_QUERIES_V172 = Array.from(new Set([
+  "kampanja", "tarjous", "maito", "juusto", "jogurtti", "rahka", "kananmuna", "voi", "kerma",
+  "kahvi", "tee", "mehu", "jauheliha", "broileri", "kana", "nauta", "porsas", "makkara",
+  "kala", "lohi", "kirjolohi", "tonnikala", "leipä", "sämpylä", "hedelmät", "vihannekset",
+  "juomat", "pakaste", "valmisruoka", "makeiset", "lemmikki", "kodinhoito", "pesuaine", "talouspaperi", "vaipat",
+]));
 
 function isGostaMasterQueryV171(query: string): boolean {
   return normalizeText(query) === normalizeText(SKAUPAT_GOSTA_MASTER_QUERY_V171);
@@ -741,7 +748,7 @@ function mapSProductListItemToOfferResult(
 
 function buildRemoteFilteredProductsUrl(query: string, offset = 0): string {
   const page = Math.floor(offset / 48) + 1;
-  const queryString = isGostaMasterQueryV171(query) ? "" : query;
+  const queryString = query;
 
   const variables = {
     facets: [
@@ -856,6 +863,20 @@ export async function fetchSKaupatOffers(
   if (!cleanQuery) return [];
 
   try {
+    if (isGostaMasterQueryV171(cleanQuery)) {
+      const pages = await Promise.allSettled(
+        SKAUPAT_GOSTA_MASTER_SEED_QUERIES_V172.map((seedQuery) =>
+          fetchSKaupatRemoteFilteredProductsV170(seedQuery, config),
+        ),
+      );
+
+      return dedupeSOfferResultsV161(
+        pages.flatMap((result) =>
+          result.status === "fulfilled" ? result.value : [],
+        ),
+      );
+    }
+
     return await fetchSKaupatRemoteFilteredProductsV170(cleanQuery, config);
   } catch (error) {
     console.warn("[Ziiply offers] S-kaupat RemoteFilteredProducts failed", error);
