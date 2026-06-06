@@ -1,8 +1,8 @@
 "use client";
 
 // ============================================================================
-// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V13_LOCAL_RENDER_DEDUPE_AND_CORE_CATS
-// Revision: V13
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V14_AGGRESSIVE_RENDER_DEDUPE
+// Revision: V14
 // Date: 2026-06-05
 //
 // Fix:
@@ -155,6 +155,12 @@ function getOfferCardTitleRootV13(offer: ZiiplyMobileOfferSearchItem) {
     "grillattu",
     "pakkaus",
     "rasia",
+    "tuore",
+    "tuotettu",
+    "suomi",
+    "suomalainen",
+    "kg",
+    "g",
   ]);
 
   const normalized = normalizeOfferCardKeyV13(getOfferName(offer))
@@ -167,7 +173,7 @@ function getOfferCardTitleRootV13(offer: ZiiplyMobileOfferSearchItem) {
     .split(/\s+/)
     .filter((word) => word.length > 2 && !stopWords.has(word));
 
-  return words.slice(0, 3).join(" ");
+  return words.slice(0, 2).join(" ");
 }
 
 function getOfferCardDedupeKeyV13(offer: ZiiplyMobileOfferSearchItem) {
@@ -176,10 +182,12 @@ function getOfferCardDedupeKeyV13(offer: ZiiplyMobileOfferSearchItem) {
   if (ean) return `ean:${ean}`;
 
   const root = getOfferCardTitleRootV13(offer);
-  const price = normalizeOfferCardKeyV13(offer.offerPrice ?? offer.price);
-  const store = normalizeOfferCardKeyV13(getStoreName(offer));
 
-  return root ? `root:${root}|price:${price}|store:${store}` : "";
+  // V14: aggressive render-level dedupe.
+  // If the visible title root is the same, treat it as the same offer.
+  // This intentionally removes Maatiaispossu-style duplicates that come from
+  // several seed/category searches with slightly different metadata.
+  return root ? `root:${root}` : "";
 }
 
 function dedupeOfferCardsV13(items: ZiiplyMobileOfferSearchItem[]) {
@@ -321,11 +329,8 @@ export default function ZiiplyMobileOfferSearchCard({
 
   const preferredLandingCategories = [
     "Kahvi",
-    "Maitotuotteet",
     "Liha",
-    "Kala",
     "Hevi",
-    "Leipomo",
     "Koti",
     "Lemmikit",
   ];
@@ -352,12 +357,12 @@ export default function ZiiplyMobileOfferSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="V13_LOCAL_RENDER_DEDUPE_AND_CORE_CATS"
+      data-ziiply-mobile-offer-search-card-version="V14_AGGRESSIVE_RENDER_DEDUPE"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
         <div className="pointer-events-none absolute left-[1.0rem] top-[0.72rem] z-[80] rounded-full border border-[#174c2c] bg-[#fff8d9] px-2 py-0.5 text-[0.62rem] font-black text-[#174c2c] shadow-[0_2px_0_rgba(91,72,44,0.16)]">
-          GÖSTA V13
+          GÖSTA V14
         </div>
         <div
           className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[#f7edcf] bg-center bg-no-repeat opacity-100"
