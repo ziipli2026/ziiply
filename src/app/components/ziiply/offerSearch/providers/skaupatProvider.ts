@@ -1,6 +1,6 @@
 // ============================================================================
 // SKAUPAT_PROVIDER_V153_EXPLICIT_PATH_VISIBLE_DIAGNOSTICS
-// Revision: V165
+// Revision: V166
 // Date: 2026-06-05
 //
 // Fix:
@@ -311,17 +311,48 @@ function getCompactProductTitleKeyV165(value: unknown): string {
   return words.slice(0, 4).join(" ");
 }
 
+
+function getUltraCompactProductTitleKeyV166(value: unknown): string {
+  const stopWords = new Set([
+    "snellmanin",
+    "snellman",
+    "hk",
+    "atria",
+    "saarioinen",
+    "kotimaista",
+    "rainbow",
+    "xtra",
+    "pirkka",
+    "coop",
+    "s",
+    "k",
+  ]);
+
+  const normalized = normalizeText(value)
+    .replace(/\b\d+[,.]?\d*\s*(g|kg|ml|l|kpl|pkt|ps|plo|prk)\b/g, " ")
+    .replace(/\b\d+\s*x\s*\d+\b/g, " ")
+    .replace(/\b(grilli|grillattu|marinoitu|maustettu|nopea|ohut|filee|suikale|pala|viipale|pakkaus|rasia)\b/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const words = normalized
+    .split(/\s+/)
+    .filter((word) => word.length > 2 && !stopWords.has(word));
+
+  return words.slice(0, 3).join(" ");
+}
+
 function getSOfferDedupeKeyV161(item: ZiiplyOfferSearchResult): string {
   const anyItem = item as any;
   const ean = firstString(anyItem.ean, anyItem.gtin, anyItem.barcode);
 
   if (ean) return `ean:${normalizeText(ean)}`;
 
-  const compactTitle = getCompactProductTitleKeyV165(item.title);
+  const title3 = getUltraCompactProductTitleKeyV166(item.title);
   const price = normalizeText(item.priceText);
   const store = normalizeText(item.storeLabel);
 
-  if (compactTitle) return `title4:${compactTitle}|price:${price}|store:${store}`;
+  if (title3) return `title3:${title3}|price:${price}|store:${store}`;
 
   return normalizeText([item.title, item.priceText].filter(Boolean).join("|"));
 }
