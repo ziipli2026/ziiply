@@ -1,3 +1,14 @@
+// ============================================================================
+// ZIIPLY_OFFER_CATEGORY_CORE_V153_S_KAMPANJAT_FOOD_BASKET_SCOPE
+// Revision: V153
+// Date: 2026-06-06
+//
+// Fix:
+// - Maps S-kanava categories to Ziiply categories using provider category metadata first.
+// - Keeps Gösta scoped to food basket + everyday essentials, not the full S-kanava catalogue.
+// - Widens seeds for Pakasteet, Valmisruoka, Juomat, Koti and other real offer groups.
+// ============================================================================
+
 export type ZiiplyGostaOfferLike = Record<string, unknown>;
 
 function normalizeGostaText(value: unknown) {
@@ -103,31 +114,29 @@ function getOfferCategoryMetaText(item: ZiiplyGostaOfferLike) {
 function classifyGostaCategoryFromText(rawText: string) {
   const text = normalizeGostaText(rawText);
 
-  const nonFoodText = /vaippa|vaipat|pampers|libero|baby|vauva|lastenhoito|pesu|pyykin|fairy|astianpesu|wc|siivous|talouspaperi|vessa|shampoo|saippua|koira|kissa|lemmik|pedigree|whiskas|sheba|purina/;
-  const petText = /koira|kissa|lemmik|pedigree|whiskas|sheba|purina/;
-  const homeText = /vaippa|vaipat|pampers|libero|baby|vauva|lastenhoito|pesu|pyykin|fairy|astianpesu|wc|siivous|talouspaperi|vessa|shampoo|saippua/;
+  // V153: S-kanavan oikeat pääkategoriat ensin, mutta Gösta pidetään ruokakorivertailussa.
+  // Mukana ruoka + arjen välttämättömät: kodinhoito, paperit, pesuaineet, vaipat ja lemmikit.
+  if (/lemmikkien ruuat ja tarvikkeet|lemmikkien ruoat ja tarvikkeet|lemmikki|lemmik|koira|kissa|pedigree|whiskas|sheba|purina|friskies|perfect fit|best friend/.test(text)) return "Lemmikit";
 
-  if (petText.test(text)) return "Lemmikit";
-  if (homeText.test(text)) return "Koti";
+  if (/kodinhoito ja taloustarvikkeet|kodinhoito|taloustarvikkeet|lastenruoat vaipat ja hoitotarvikkeet|lastenruoat|lastenruoka|vaippa|vaipat|hoitotarvikkeet|pampers|libero|baby|vauva|lastenhoito|pesu|pyykin|pyykinpesu|fairy|astianpesu|wc|siivous|talouspaperi|vessa|roskapussi|leivinpaperi|folio|kelmu|hygienia|shampoo|saippua|hammastahna|hammasharja/.test(text)) return "Koti";
 
-  if (!nonFoodText.test(text)) {
-    if (/kahvi|espresso|suodatinjauh|kahvipapu|papukahvi|cappuccino|latte/.test(text)) return "Kahvi";
-    if (/maito|jugur|jogur|jogurt|rahka|raejuusto|juusto|voi|kerma|piima|viili|kefiiri|proteiinivanukas|vanukas/.test(text)) return "Maitotuotteet";
-    if (/jauheliha|kana|broiler|possu|porsas|nauta|sika|makkara|leikkele|kinkku|pekoni|filee|paisti|lihapulla|liha/.test(text)) return "Liha";
-    if (/kirjolohi|lohi|tonnikala|silakka|katkarapu|kuha|ahven|seiti|kalapuikko|silli|kala/.test(text)) return "Kala";
-    if (/leipa|sampyl|pulla|croissant|karjalanpiir|pita|patonki|ruis|paahtoleipa|donitsi/.test(text)) return "Leipomo";
-    if (/hedel|omena|banaani|appelsiini|mandariini|viiniryp|vihannes|tomaatti|kurkku|salaatti|peruna|sipuli|porkkana|kaali|avokado/.test(text)) return "Hevi";
-    if (/limu|cola|mehu|energiajuoma|vesi|kivennaisvesi|kivenn|virvoitus|smoothie/.test(text)) return "Juomat";
-    if (/pakaste|jaatel|pizza|ranskalaiset|wokvihannes/.test(text)) return "Pakasteet";
-    if (/valmisateria|valmisruoka|keitto|keitot|salaattiateria|mikroateria|ateria/.test(text)) return "Valmisruoka";
-    if (/suklaa|karkki|makeinen|makeiset|lakritsi|salmiakki|pastilli/.test(text)) return "Makeiset";
-  }
+  if (/liha ja kasviproteiinit|liha|jauheliha|kana|broiler|possu|porsas|nauta|sika|makkara|leikkele|kinkku|pekoni|filee|paisti|lihapulla|kasviproteiini|tofu|nyhtokaura|harkis|vege/.test(text)) return "Liha";
+  if (/kala ja merenelavat|kala ja merenelävät|merenelav|mereneläv|kirjolohi|lohi|tonnikala|silakka|katkarapu|kuha|ahven|seiti|kalapuikko|silli|kala/.test(text)) return "Kala";
+  if (/hedelmat ja vihannekset|hedelmät ja vihannekset|hedel|omena|banaani|appelsiini|mandariini|viiniryp|vihannes|tomaatti|kurkku|salaatti|peruna|sipuli|porkkana|kaali|avokado|marja/.test(text)) return "Hevi";
+  if (/leivat keksit ja leivonnaiset|leivät keksit ja leivonnaiset|leipa|leipä|sampyl|sämpyl|pulla|croissant|karjalanpiir|pita|patonki|ruis|paahtoleipa|paahtoleipä|donitsi|keksi|leivonnainen/.test(text)) return "Leipomo";
+  if (/maito munat ja rasvat|maito|kananmuna|munat|jugur|jogur|jogurt|rahka|raejuusto|juusto|voi|margariini|rasva|kerma|piima|viili|kefiiri|proteiinivanukas|vanukas/.test(text)) return "Maitotuotteet";
+  if (/juustot tofut ja kasvipohjaiset|juusto|tofu|kasvipohjainen|kaurajuoma|soijajuoma|vegejuusto/.test(text)) return "Maitotuotteet";
+  if (/kahvit teet ja mehut|kahvi|tee|espresso|suodatinjauh|kahvipapu|papukahvi|cappuccino|latte/.test(text)) return "Kahvi";
+  if (/alkoholi ja virvoitusjuomat|alkoholi- ja virvoitusjuomat|virvoitus|limu|cola|mehu|energiajuoma|vesi|kivennaisvesi|kivenn|smoothie|olut|siideri|lonkero/.test(text)) return "Juomat";
+  if (/pakasteet|pakaste|jaatel|jäätel|pizza|ranskalaiset|wokvihannes|pakastevihannes|pakastemarja/.test(text)) return "Pakasteet";
+  if (/valmisruoka|valmisateria|keitto|keitot|salaattiateria|mikroateria|ateria|laatikko|pasta ateria/.test(text)) return "Valmisruoka";
+  if (/karkit ja suklaat|snacksit|snacks|suklaa|karkki|makeinen|makeiset|lakritsi|salmiakki|pastilli|sipsi|nacho|popcorn/.test(text)) return "Makeiset";
 
   return "Muut";
 }
 
 export function getOfferCategoryV106(item: ZiiplyGostaOfferLike) {
-  // V145: käytä ensin providerin oikeita kategoria-/breadcrumb-kenttiä, jos niitä löytyy.
+  // V152: käytä ensin providerin oikeita S-kanava-kategorioita/breadcrumb-kenttiä, jos niitä löytyy.
   // Otsikkopohjainen päätelmä jää fallbackiksi vanhoille parserituloksille.
   const metaText = getOfferCategoryMetaText(item);
   const metaCategory = metaText ? classifyGostaCategoryFromText(metaText) : "Muut";
@@ -174,60 +183,38 @@ export const GOSTA_CATEGORY_LABELS_V136 = [
 export function getGostaCategorySeedQueriesV136(categoryOrFilter: string) {
   const key = normalizeGostaText(categoryOrFilter);
 
-  if (!key || key === "kaikki" || key === "all") {
-    return [
-      "kahvi",
-      "maito",
-      "juusto",
-      "jogurtti",
-      "rahka",
-      "voi",
-      "kerma",
-      "kananmuna",
-      "jauheliha",
-      "kana",
-      "broileri",
-      "makkara",
-      "leikkele",
-      "lohi",
-      "kala",
-      "leipä",
-      "pulla",
-      "hedelmä",
-      "vihannes",
-      "peruna",
-      "mehu",
-      "limu",
-      "valmisateria",
-      "keitto",
-      "suklaa",
-      "karkki",
-      "pakaste",
-      "jäätelö",
-      "pizza",
-      "pesuaine",
-      "talouspaperi",
-      "wc-paperi",
-      "koiranruoka",
-      "kissanruoka",
-    ];
-  }
-
   const seedsByCategory: Record<string, string[]> = {
-    kahvi: ["kahvi", "espresso", "suodatinjauhettu kahvi", "kahvipapu"],
-    maitotuotteet: ["maito", "juusto", "jogurtti", "rahka", "raejuusto", "voi", "kerma", "viili", "kefiiri", "vanukas"],
-    liha: ["jauheliha", "kana", "broileri", "nauta", "possu", "porsas", "makkara", "leikkele", "kinkku", "pekoni", "lihapulla"],
-    kala: ["lohi", "kirjolohi", "kala", "tonnikala", "silakka", "katkarapu", "seiti", "kalapuikko", "silli"],
-    leipomo: ["leipä", "sämpylä", "pulla", "croissant", "karjalanpiirakka", "patonki", "ruisleipä", "paahtoleipä"],
-    hevi: ["hedelmä", "omena", "banaani", "appelsiini", "vihannes", "tomaatti", "kurkku", "salaatti", "peruna", "sipuli", "porkkana"],
-    juomat: ["mehu", "limu", "cola", "energiajuoma", "vesi", "kivennäisvesi", "virvoitusjuoma", "smoothie"],
-    valmisruoka: ["valmisateria", "valmisruoka", "keitto", "salaattiateria", "mikroateria", "ateria"],
-    makeiset: ["suklaa", "karkki", "makeinen", "makeiset", "lakritsi", "salmiakki"],
-    lemmikit: ["koiranruoka", "kissanruoka", "lemmikkiruoka", "pedigree", "whiskas", "sheba", "purina"],
-    koti: ["pesuaine", "pyykinpesuaine", "astianpesuaine", "fairy", "wc-paperi", "talouspaperi", "siivous"],
-    pakasteet: ["pakaste", "jäätelö", "pizza", "ranskalaiset", "pakastevihannes"],
-    muut: ["tarjous"],
+    kahvi: ["kahvi", "tee", "espresso", "suodatinjauhettu kahvi", "kahvipapu", "juhla mokka", "presidentti", "mehu"],
+    maitotuotteet: ["maito", "munat", "kananmuna", "juusto", "jogurtti", "rahka", "raejuusto", "voi", "margariini", "kerma", "viili", "kefiiri", "vanukas", "kaurajuoma"],
+    liha: ["liha", "liha ja kasviproteiinit", "jauheliha", "kana", "broileri", "nauta", "possu", "porsas", "sika", "makkara", "grillimakkara", "leikkele", "kinkku", "pekoni", "filee", "lihapulla", "kasviproteiini", "tofu"],
+    kala: ["kala", "kala ja merenelävät", "lohi", "kirjolohi", "tonnikala", "silakka", "katkarapu", "seiti", "kalapuikko", "silli"],
+    leipomo: ["leipä", "leivät", "sämpylä", "pulla", "croissant", "karjalanpiirakka", "patonki", "ruisleipä", "paahtoleipä", "keksit", "leivonnaiset"],
+    hevi: ["hedelmät", "vihannekset", "hedelmä", "omena", "banaani", "appelsiini", "vihannes", "tomaatti", "kurkku", "salaatti", "peruna", "sipuli", "porkkana", "marjat"],
+    juomat: ["virvoitusjuomat", "mehu", "limu", "cola", "energiajuoma", "vesi", "kivennäisvesi", "smoothie", "kahvit teet ja mehut"],
+    valmisruoka: ["valmisruoka", "valmisateria", "keitto", "salaattiateria", "mikroateria", "ateria", "laatikko", "pasta", "risotto"],
+    makeiset: ["karkit", "suklaat", "suklaa", "karkki", "makeinen", "makeiset", "lakritsi", "salmiakki", "snacksit", "sipsi", "popcorn", "nachot"],
+    lemmikit: ["lemmikkien ruoat", "lemmikkien ruuat", "lemmikkiruoka", "koiranruoka", "kissanruoka", "pedigree", "whiskas", "sheba", "purina", "friskies"],
+    koti: ["kodinhoito", "taloustarvikkeet", "kodinhoito ja taloustarvikkeet", "lastenruoka", "lastenruoat", "vaipat", "hoitotarvikkeet", "hygienia", "koti", "pesuaine", "pyykinpesuaine", "astianpesuaine", "fairy", "wc-paperi", "talouspaperi", "siivous", "roskapussi", "leivinpaperi", "folio", "kelmu", "shampoo", "saippua", "hammastahna"],
+    pakasteet: ["pakasteet", "pakaste", "jäätelö", "pizza", "ranskalaiset", "pakastevihannes", "pakastemarjat", "wokvihannes"],
+    muut: ["tarjous", "tarjoukset", "kampanja", "kampanjat"],
   };
+
+  if (!key || key === "kaikki" || key === "all") {
+    return Array.from(new Set([
+      ...seedsByCategory.kahvi,
+      ...seedsByCategory.maitotuotteet,
+      ...seedsByCategory.liha,
+      ...seedsByCategory.kala,
+      ...seedsByCategory.leipomo,
+      ...seedsByCategory.hevi,
+      ...seedsByCategory.juomat,
+      ...seedsByCategory.valmisruoka,
+      ...seedsByCategory.makeiset,
+      ...seedsByCategory.lemmikit,
+      ...seedsByCategory.koti,
+      ...seedsByCategory.pakasteet,
+    ]));
+  }
 
   return seedsByCategory[key] ?? [];
 }
