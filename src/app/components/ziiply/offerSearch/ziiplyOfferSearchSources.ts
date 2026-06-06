@@ -1,5 +1,9 @@
 // src/app/components/ziiply/offerSearch/ziiplyOfferSearchSources.ts
-// ZIIPLY_OFFER_SEARCH_SOURCES_V7_GOSTA_MASTER_SEEDED_NO_RANK
+// ZIIPLY_OFFER_SEARCH_SOURCES_V8_SELECTED_S_STOREID_CONTEXT
+//
+// V8 korjaus:
+// - searchZiiplyOffers accepts optional active store context and passes selected S-store id to skaupatProvider.
+// - This removes the hardcoded S-kaupat storeId lock from Gösta results.
 //
 // V6 korjaus:
 // - Special query __ziiply_all_offers__ runs a broad S-kaupat seed sweep once and bypasses intent ranking/matchScore filtering.
@@ -63,7 +67,7 @@ const ZIIPLY_OFFER_SOURCES = {
   },
 } satisfies Record<string, ZiiplyOfferSearchSourceConfig>;
 
-const OFFER_SEARCH_SOURCE_REVISION = "v7";
+const OFFER_SEARCH_SOURCE_REVISION = "v8";
 const ENABLE_OFFER_SEARCH_CACHE = false;
 const MAX_OFFER_SEARCH_RESULTS = 1000;
 const ZIIPLY_GOSTA_MASTER_QUERY_V6 = "__ziiply_all_offers__";
@@ -121,8 +125,32 @@ const ZIIPLY_GOSTA_MASTER_SEED_QUERIES_V7 = Array.from(new Set([
   "vaipat",
 ]));
 
-function getOfferSearchCacheKey(query: string) {
-  return `${OFFER_SEARCH_SOURCE_REVISION}:${query}`;
+
+export type ZiiplyOfferSearchSourceContextV8 = {
+  sStoreId?: string | number | null;
+  sStoreName?: string | null;
+  kStoreId?: string | number | null;
+  kStoreName?: string | null;
+  areaLabel?: string | null;
+  storeMode?: string | null;
+  storeCompareScope?: string | null;
+};
+
+function getOfferSearchCacheKey(query: string, context?: ZiiplyOfferSearchSourceContextV8) {
+  const contextKey = [
+    context?.areaLabel,
+    context?.storeMode,
+    context?.storeCompareScope,
+    context?.sStoreId,
+    context?.sStoreName,
+    context?.kStoreId,
+    context?.kStoreName,
+  ]
+    .map((value) => normalizeOfferUniqueText(value))
+    .filter(Boolean)
+    .join("|");
+
+  return `${OFFER_SEARCH_SOURCE_REVISION}:${query}:${contextKey}`;
 }
 
 function normalizeOfferUniqueText(value: unknown) {
@@ -185,18 +213,21 @@ export async function searchKSupermarketOffers(query: string) {
   return fetchKruokaOffers(query, ZIIPLY_OFFER_SOURCES.ksupermarket);
 }
 
-export async function searchSKaupatOffers(query: string) {
-  return fetchSKaupatOffers(query, ZIIPLY_OFFER_SOURCES.skaupat);
+export async function searchSKaupatOffers(query: string, context?: ZiiplyOfferSearchSourceContextV8) {
+  return fetchSKaupatOffers(query, ZIIPLY_OFFER_SOURCES.skaupat, {
+    storeId: context?.sStoreId,
+    storeName: context?.sStoreName,
+  });
 }
 
-export async function searchZiiplyOffers(query: string) {
+export async function searchZiiplyOffers(query: string, context?: ZiiplyOfferSearchSourceContextV8) {
   const cleanQuery = query.trim();
 
   if (!cleanQuery) return [];
 
   const isGostaMasterQuery = normalizeOfferUniqueText(cleanQuery) === normalizeOfferUniqueText(ZIIPLY_GOSTA_MASTER_QUERY_V6);
 
-  const cacheKey = getOfferSearchCacheKey(cleanQuery);
+  const cacheKey = getOfferSearchCacheKey(cleanQuery, context);
   const cached = ENABLE_OFFER_SEARCH_CACHE ? getCachedOfferResults(cacheKey) : null;
   if (cached) return cached;
 
@@ -207,12 +238,12 @@ export async function searchZiiplyOffers(query: string) {
   const sKaupatResults = isGostaMasterQuery
     ? (await Promise.allSettled(
         ZIIPLY_GOSTA_MASTER_SEED_QUERIES_V7.map((seedQuery) =>
-          safelySearchSource(`S-kaupat master: ${seedQuery}`, () => searchSKaupatOffers(seedQuery)),
+          safelySearchSource(`S-kaupat master: ${seedQuery}`, () => searchSKaupatOffers(seedQuery, context)),
         ),
       )).flatMap((result) =>
         result.status === "fulfilled" ? result.value : [],
       )
-    : await safelySearchSource("S-kaupat", () => searchSKaupatOffers(cleanQuery));
+    : await safelySearchSource("S-kaupat", () => searchSKaupatOffers(cleanQuery, context));
 
   const uniqueSResults = uniqueOfferResults(sKaupatResults);
 
