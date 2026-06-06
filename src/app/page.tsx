@@ -12,6 +12,7 @@
 // V158_GOSTA_STICKY_PANEL_AGAINST_GPS_REFRESH
 // Korjaus: Gösta-kortti ei saa sammua taustalla tapahtuvan GPS-/kauppapäivityksen takia.
 // V162: Kaikki-chip poistettu Göstasta ja tarjouslistan duplikaattien korjaus tuettu.
+// V163: Göstalle kategoriakohtaiset offer-countit, tyhjien kategorioiden piilotus ja paluu etusivulle.
 // Kun Gösta-haku on käyttäjän avaama, pidetään tarjouskortti aktiivisena, ellei käyttäjä itse sulje sitä
 // tai siirry alapalkista Kaupat/Hae/Kori/Vertailu-näkymään.
 
@@ -5075,6 +5076,29 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return filterZiiplyGostaOfferResultsV146(cleanOfferSearchResultsV106, offerCardFilterV106);
   }, [cleanOfferSearchResultsV106, offerCardFilterV106]);
 
+  const gostaOfferCardItemsV163 = useMemo(() => {
+    return visibleOfferSearchResultsV106.map(mapZiiplyGostaOfferToCardOfferV147);
+  }, [visibleOfferSearchResultsV106]);
+
+  const gostaCategoryOfferCountsV163 = useMemo(() => {
+    const counts: Record<string, number> = {};
+
+    for (const category of GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147) {
+      if (String(category).toLowerCase() !== "kaikki") counts[category] = 0;
+    }
+
+    for (const rawOffer of cleanOfferSearchResultsV106) {
+      const cardOffer = mapZiiplyGostaOfferToCardOfferV147(rawOffer);
+      const category = String(cardOffer.category || "").trim();
+
+      if (!category || category.toLowerCase() === "kaikki") continue;
+      counts[category] = (counts[category] ?? 0) + 1;
+      counts[category.toLowerCase()] = (counts[category.toLowerCase()] ?? 0) + 1;
+    }
+
+    return counts;
+  }, [cleanOfferSearchResultsV106]);
+
   useEffect(() => {
     // V158: GPS-watchdog / kauppapäivitys voi muuttaa ympäröiviä paneelitiloja.
     // Jos käyttäjä on avannut Göstan, taustapäivitys ei saa sulkea tarjouskorttia.
@@ -7012,6 +7036,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   function handleGostaFilterChangeV136(value: string) {
     const nextValue = String(value || "").trim();
+
+    if (!nextValue) {
+      setOfferCardFilterV106("");
+      setOfferSearchQuerySnapshot("");
+      setOfferSearchDoneForQuery("");
+      setOfferShowingAllAreaOffersV106(false);
+      setOfferSearchResults([]);
+      return;
+    }
+
     setOfferCardFilterV106(nextValue);
 
     if (isZiiplyGostaCategorySelectionV147(nextValue)) {
@@ -15114,11 +15148,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             open={true}
             title="Tarjoushaku"
             query={offerSearchQuerySnapshot || offerCardFilterV106 || ""}
-            offers={visibleOfferSearchResultsV106.map(mapZiiplyGostaOfferToCardOfferV147)}
+            offers={gostaOfferCardItemsV163}
             filter={offerCardFilterV106}
             onFilterChange={handleGostaFilterChangeV136}
             onSearch={(value: string) => void searchOffers(value)}
             categorySuggestions={GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147}
+            categoryOfferCounts={gostaCategoryOfferCountsV163}
             loading={loadingOffers}
             emptyText={offerShowingAllAreaOffersV106 ? "Alueen tarjouksia ei löytynyt vielä." : "Gösta ei löytänyt tarjouksia tälle rajaukselle."}
             onBack={() => {
