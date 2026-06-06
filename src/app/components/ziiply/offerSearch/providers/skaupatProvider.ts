@@ -67,9 +67,20 @@ export type SKaupatOfferProviderOptionsV173 = {
 
 function getEffectiveSKaupatStoreIdV173(options?: SKaupatOfferProviderOptionsV173): string {
   const raw = firstString(options?.storeId);
-  // S-kaupat RemoteFilteredProducts expects the numeric S-store id.
-  // If the UI/store resolver gives no usable id, keep the old MVP default as a fallback.
-  return /^\d{5,}$/.test(raw) ? raw : DEFAULT_SKAUPAT_STORE_ID_V156;
+
+  if (!/^\d{5,}$/.test(raw)) {
+    console.warn(
+      "[GOSTA] FALLBACK STORE USED",
+      {
+        storeId: options?.storeId,
+        storeName: options?.storeName,
+      }
+    );
+
+    return DEFAULT_SKAUPAT_STORE_ID_V156;
+  }
+
+  return raw;
 }
 const SKAUPAT_GOSTA_MASTER_QUERY_V171 = "__ziiply_all_offers__";
 
