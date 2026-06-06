@@ -1,5 +1,12 @@
 // src/app/components/ziiply/offerSearch/ziiplyOfferSearchSources.ts
-// ZIIPLY_OFFER_SEARCH_SOURCES_V4_STRICT_UNIQUE_OFFERS
+// ZIIPLY_OFFER_SEARCH_SOURCES_V5_NO_STALE_CACHE_AND_WIDER_RESULT_WINDOW
+//
+// V5 korjaus:
+// - Vanhaa pelkän hakusanan välimuistia ei käytetä oletuksena, jotta Varkaus/Mikkeli-tyyppinen
+//   stale tarjousdata ei voi jäädä kummittelemaan Göstan tuloksiin.
+// - Tulosikkuna nostettu 40 -> 500, jotta kategoriat muodostuvat koko tarjouskirjosta eivätkä vain
+//   ensimmäisestä pienestä ranked-otoksesta.
+// - Säilyttää S-kaupat MVP -polun ja K-Ruoka-funktiot ennallaan.
 //
 // Debugin perusteella K-Ruoka palauttaa Vercel-serverille Cloudflare 403 -sivun,
 // joten K-Market ja K-Supermarket pidetään mukana funktioina mutta ei ajeta
@@ -51,6 +58,14 @@ const ZIIPLY_OFFER_SOURCES = {
     url: "https://www.s-kaupat.fi/tuotteet/kampanjat",
   },
 } satisfies Record<string, ZiiplyOfferSearchSourceConfig>;
+
+const OFFER_SEARCH_SOURCE_REVISION = "v5";
+const ENABLE_OFFER_SEARCH_CACHE = false;
+const MAX_OFFER_SEARCH_RESULTS = 500;
+
+function getOfferSearchCacheKey(query: string) {
+  return `${OFFER_SEARCH_SOURCE_REVISION}:${query}`;
+}
 
 function normalizeOfferUniqueText(value: unknown) {
   return String(value ?? "")
@@ -121,7 +136,8 @@ export async function searchZiiplyOffers(query: string) {
 
   if (!cleanQuery) return [];
 
-  const cached = getCachedOfferResults(cleanQuery);
+  const cacheKey = getOfferSearchCacheKey(cleanQuery);
+  const cached = ENABLE_OFFER_SEARCH_CACHE ? getCachedOfferResults(cacheKey) : null;
   if (cached) return cached;
 
   // V2 MVP: vain S-kaupat aktiivisena, koska K-Ruoka blokkaa serverifetchin 403:lla.
@@ -159,9 +175,11 @@ export async function searchZiiplyOffers(query: string) {
 
       return Number(b.matchScore || 0) - Number(a.matchScore || 0);
     })
-    .slice(0, 40);
+    .slice(0, MAX_OFFER_SEARCH_RESULTS);
 
-  setCachedOfferResults(cleanQuery, results);
+  if (ENABLE_OFFER_SEARCH_CACHE) {
+    setCachedOfferResults(cacheKey, results);
+  }
 
   return results;
 }
