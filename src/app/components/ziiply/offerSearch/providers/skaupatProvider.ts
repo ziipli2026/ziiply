@@ -1,6 +1,6 @@
 // ============================================================================
 // SKAUPAT_PROVIDER_V153_EXPLICIT_PATH_VISIBLE_DIAGNOSTICS
-// Revision: V161
+// Revision: V162
 // Date: 2026-06-05
 //
 // Fix:
@@ -302,7 +302,7 @@ function getSOfferDedupeKeyV161(item: ZiiplyOfferSearchResult): string {
       item.priceText,
       item.unitPriceText,
       item.storeLabel,
-      item.category,
+      (item as any).category,
     ]
       .filter(Boolean)
       .join("|"),
