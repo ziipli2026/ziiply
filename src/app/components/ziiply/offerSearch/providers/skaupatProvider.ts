@@ -1,6 +1,6 @@
 // ============================================================================
 // SKAUPAT_PROVIDER_V174_STORE_DIRECTORY_RESOLVER
-// Revision: V177
+// Revision: V178
 // Date: 2026-06-06
 //
 // Fix:
@@ -695,6 +695,7 @@ function mapSProductListItemToOfferResult(
     fallbackFacetNames: string[];
     index: number;
     selectedStoreId: string;
+    discountedOnly?: boolean;
   },
 ): ZiiplyOfferSearchResult | null {
   const product = getProductFromListItem(listItem);
