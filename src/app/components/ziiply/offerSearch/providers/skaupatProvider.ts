@@ -1,6 +1,6 @@
 // ============================================================================
 // SKAUPAT_PROVIDER_V153_EXPLICIT_PATH_VISIBLE_DIAGNOSTICS
-// Revision: V160
+// Revision: V161
 // Date: 2026-06-05
 //
 // Fix:
@@ -261,6 +261,67 @@ function formatPrice(value: unknown): string {
   return `${number.toFixed(2).replace(".", ",")} €`;
 }
 
+function cleanRepeatedCampaignTextV161(value: string): string {
+  const text = String(value || "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!text) return "";
+
+  const parts = text
+    .split(/\s*[·|]\s*/g)
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  if (parts.length > 1) {
+    return Array.from(new Set(parts)).join(" · ");
+  }
+
+  // Handles exact doubled strings like:
+  // "2 kpl = 3,99 € 2 kpl = 3,99 €"
+  const half = Math.floor(text.length / 2);
+  if (text.length % 2 === 0) {
+    const left = text.slice(0, half).trim();
+    const right = text.slice(half).trim();
+    if (left && left === right) return left;
+  }
+
+  const repeatedOfferPattern =
+    /^(.+?\b(?:kpl|pkt|ps|plo|prk|kg|g|l|ml)\s*=\s*[\d,.]+\s*€)\s+\1$/i;
+  const repeatedMatch = text.match(repeatedOfferPattern);
+  if (repeatedMatch?.[1]) return repeatedMatch[1].trim();
+
+  return text;
+}
+
+function getSOfferDedupeKeyV161(item: ZiiplyOfferSearchResult): string {
+  return normalizeText(
+    [
+      (item as any).ean,
+      item.title,
+      item.priceText,
+      item.unitPriceText,
+      item.storeLabel,
+      item.category,
+    ]
+      .filter(Boolean)
+      .join("|"),
+  );
+}
+
+function dedupeSOfferResultsV161(
+  results: ZiiplyOfferSearchResult[],
+): ZiiplyOfferSearchResult[] {
+  const seen = new Set<string>();
+
+  return results.filter((item) => {
+    const key = getSOfferDedupeKeyV161(item);
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 function formatComparisonPrice(price: unknown, unit: unknown): string {
   const number = numberFromUnknown(price);
   const unitText = firstString(unit);
@@ -514,7 +575,7 @@ function mapSProductListItemToOfferResult(
   const categoryMeta = getCategoryMeta(product, options.fallbackFacetNames);
   const imageUrl = getImageUrl(product);
   const productUrl = getProductUrl(product);
-  const labelsText = getLabels(listItem, product);
+  const labelsText = cleanRepeatedCampaignTextV161(getLabels(listItem, product));
 
   const campaignValidUntil = firstString(pricing.campaignPriceValidUntil);
   const isCampaign =
@@ -522,9 +583,11 @@ function mapSProductListItemToOfferResult(
     regularPrice != null &&
     Number(currentPrice) < Number(regularPrice);
 
-  const benefitText = isCampaign
-    ? `Kampanja${regularPrice ? `, normaalisti ${formatPrice(regularPrice)}` : ""}`
-    : labelsText;
+  const benefitText = cleanRepeatedCampaignTextV161(
+    isCampaign
+      ? `Kampanja${regularPrice ? `, normaalisti ${formatPrice(regularPrice)}` : ""}`
+      : labelsText,
+  );
 
   const rawText = [
     title,
@@ -642,7 +705,7 @@ async function fetchSKaupatRemoteFilteredProductsV152(
   const categoryFacetPaths = getCategoryFacetPaths(data);
   const listItems = getSProductListItems(data);
 
-  return listItems
+  const mappedResults = listItems
     .map((item, index) =>
       mapSProductListItemToOfferResult(item, {
         query,
@@ -652,6 +715,8 @@ async function fetchSKaupatRemoteFilteredProductsV152(
       }),
     )
     .filter(Boolean) as ZiiplyOfferSearchResult[];
+
+  return dedupeSOfferResultsV161(mappedResults);
 }
 
 export async function fetchSKaupatOffers(
