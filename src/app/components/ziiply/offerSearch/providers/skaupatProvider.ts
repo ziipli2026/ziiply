@@ -1,6 +1,6 @@
 // ============================================================================
 // SKAUPAT_PROVIDER_V174_STORE_DIRECTORY_RESOLVER
-// Revision: V174
+// Revision: V180
 // Date: 2026-06-06
 //
 // Fix:
@@ -111,6 +111,9 @@ async function getEffectiveSKaupatStoreIdV174(
 }
 const SKAUPAT_GOSTA_MASTER_QUERY_V171 = "__ziiply_all_offers__";
 
+// V180: Gösta master uses the real S-kaupat discounted label filter:
+// filters=[{ key: "labels", value: ["DISCOUNTED"] }] and queryString="".
+// The old seed list is kept only for emergency fallback, but master search no longer uses it.
 const SKAUPAT_GOSTA_MASTER_SEED_QUERIES_V172 = Array.from(new Set([
   "kampanja", "tarjous", "maito", "juusto", "jogurtti", "rahka", "kananmuna", "voi", "kerma",
   "kahvi", "tee", "mehu", "jauheliha", "broileri", "kana", "nauta", "porsas", "makkara",
@@ -699,6 +702,7 @@ function mapSProductListItemToOfferResult(
     fallbackFacetNames: string[];
     index: number;
     selectedStoreId: string;
+    discountedOnly?: boolean;
   },
 ): ZiiplyOfferSearchResult | null {
   const product = getProductFromListItem(listItem);
@@ -708,11 +712,18 @@ function mapSProductListItemToOfferResult(
   if (!title) return null;
 
   if (isSponsoredSProductListItem(listItem, product)) return null;
-  if (!belongsToSelectedSHypermarketV163(product, options.selectedStoreId)) return null;
+  if (
+    !options.discountedOnly &&
+    !belongsToSelectedSHypermarketV163(product, options.selectedStoreId)
+  ) {
+    return null;
+  }
 
   const pricing = getPricing(product);
 
-  if (!hasSOfferSignal(listItem, product, pricing)) return null;
+  if (!options.discountedOnly && !hasSOfferSignal(listItem, product, pricing)) {
+    return null;
+  }
 
   const currentPrice =
     pricing.campaignPrice ??
@@ -806,27 +817,51 @@ function mapSProductListItemToOfferResult(
   } as unknown as ZiiplyOfferSearchResult;
 }
 
-function buildRemoteFilteredProductsUrl(query: string, offset = 0, selectedStoreId: string): string {
-  const page = Math.floor(offset / 48) + 1;
-  const queryString = query;
+function buildRemoteFilteredProductsUrl(
+  query: string,
+  offset = 0,
+  selectedStoreId: string,
+  discountedOnly = false,
+): string {
+  const normalLimit = 48;
+  const discountedLimit = 24;
+  const page = Math.floor(offset / normalLimit) + 1;
+  const queryString = discountedOnly ? "" : query;
 
-  const variables = {
+  const variables: UnknownRecord = {
+    availabilityDate: discountedOnly ? "2026-06-07" : undefined,
     facets: [
       { key: "brandName", order: "asc" },
       { key: "category" },
       { key: "labels" },
     ],
+    filters: discountedOnly
+      ? [
+          {
+            key: "labels",
+            value: ["DISCOUNTED"],
+          },
+        ]
+      : [],
     generatedSessionId: "1d6b5de9-df99-4608-af07-7d754955df82",
-    fetchSponsoredContent: false,
-    limit: 48,
-    offset,
-    skip: offset,
-    page,
+    fetchSponsoredContent: discountedOnly,
+    limit: discountedOnly ? discountedLimit : normalLimit,
     queryString,
+    sortForAvailabilityLabelDate: discountedOnly ? "2026-06-07" : undefined,
     storeId: selectedStoreId,
     useRandomId: false,
     marketingId: "d0bcc6e5-6130-494e-b6fb-12b5cb9c60cf",
   };
+
+  if (offset > 0) {
+    variables.offset = offset;
+    variables.skip = offset;
+    variables.page = discountedOnly ? Math.floor(offset / discountedLimit) + 1 : page;
+  } else if (!discountedOnly) {
+    variables.offset = offset;
+    variables.skip = offset;
+    variables.page = page;
+  }
 
   const extensions = {
     persistedQuery: {
@@ -847,8 +882,11 @@ async function fetchSKaupatRemoteFilteredProductsPageV170(
   config: ZiiplyOfferSearchSourceConfig,
   offset: number,
   selectedStoreId: string,
+  discountedOnly = false,
 ): Promise<ZiiplyOfferSearchResult[]> {
-  const response = await fetch(buildRemoteFilteredProductsUrl(query, offset, selectedStoreId), {
+  const response = await fetch(
+    buildRemoteFilteredProductsUrl(query, offset, selectedStoreId, discountedOnly),
+    {
     method: "GET",
     headers: {
       accept: "application/json",
@@ -882,6 +920,7 @@ async function fetchSKaupatRemoteFilteredProductsPageV170(
         fallbackFacetNames,
         index,
         selectedStoreId,
+        discountedOnly,
       }),
     )
     .filter(Boolean) as ZiiplyOfferSearchResult[];
@@ -893,24 +932,27 @@ async function fetchSKaupatRemoteFilteredProductsV170(
   query: string,
   config: ZiiplyOfferSearchSourceConfig,
   options?: SKaupatOfferProviderOptionsV173,
+  discountedOnly = false,
 ): Promise<ZiiplyOfferSearchResult[]> {
   const selectedStoreId = await getEffectiveSKaupatStoreIdV174(options);
   if (!selectedStoreId) return [];
 
-  const pageOffsets = isGostaMasterQueryV171(query)
-    ? [0, 48, 96, 144, 192, 240, 288, 336, 384, 432, 480, 528, 576, 624, 672, 720, 768, 816, 864, 912]
-    : [0, 48, 96, 144, 192];
+  const pageOffsets = discountedOnly
+    ? [0, 24, 48, 72, 96, 120, 144, 168, 192, 216, 240, 264, 288, 312, 336]
+    : isGostaMasterQueryV171(query)
+      ? [0, 48, 96, 144, 192, 240, 288, 336, 384, 432, 480, 528, 576, 624, 672, 720, 768, 816, 864, 912]
+      : [0, 48, 96, 144, 192];
   const pages: ZiiplyOfferSearchResult[][] = [];
 
   for (const offset of pageOffsets) {
     try {
-      const pageResults = await fetchSKaupatRemoteFilteredProductsPageV170(query, config, offset, selectedStoreId);
+      const pageResults = await fetchSKaupatRemoteFilteredProductsPageV170(query, config, offset, selectedStoreId, discountedOnly);
       pages.push(pageResults);
 
       // Stop early if S-kaupat returns a short page. If offset is ignored, the
       // next page will dedupe away later, but this keeps the request count small
       // when there clearly are no more rows.
-      if (pageResults.length < 40) break;
+      if (discountedOnly ? pageResults.length < 20 : pageResults.length < 40) break;
     } catch (error) {
       if (offset === 0) throw error;
       console.warn(`[Ziiply offers] S-kaupat pagination page failed at offset ${offset}`, error);
@@ -931,16 +973,11 @@ export async function fetchSKaupatOffers(
 
   try {
     if (isGostaMasterQueryV171(cleanQuery)) {
-      const pages = await Promise.allSettled(
-        SKAUPAT_GOSTA_MASTER_SEED_QUERIES_V172.map((seedQuery) =>
-          fetchSKaupatRemoteFilteredProductsV170(seedQuery, config, options),
-        ),
-      );
-
-      return dedupeSOfferResultsV161(
-        pages.flatMap((result) =>
-          result.status === "fulfilled" ? result.value : [],
-        ),
+      return await fetchSKaupatRemoteFilteredProductsV170(
+        "",
+        config,
+        options,
+        true,
       );
     }
 
