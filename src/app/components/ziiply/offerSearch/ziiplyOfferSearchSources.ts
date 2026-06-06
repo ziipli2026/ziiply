@@ -1,8 +1,8 @@
 // src/app/components/ziiply/offerSearch/ziiplyOfferSearchSources.ts
-// ZIIPLY_OFFER_SEARCH_SOURCES_V6_GOSTA_MASTER_NO_RANK
+// ZIIPLY_OFFER_SEARCH_SOURCES_V7_GOSTA_MASTER_SEEDED_NO_RANK
 //
 // V6 korjaus:
-// - Special query __ziiply_all_offers__ bypasses intent ranking and matchScore filtering.
+// - Special query __ziiply_all_offers__ runs a broad S-kaupat seed sweep once and bypasses intent ranking/matchScore filtering.
 // - Gösta master dataset gets the provider offer list as-is, so local category counts are not based on a tiny ranked sample.
 //
 // V5 korjaus:
@@ -63,10 +63,63 @@ const ZIIPLY_OFFER_SOURCES = {
   },
 } satisfies Record<string, ZiiplyOfferSearchSourceConfig>;
 
-const OFFER_SEARCH_SOURCE_REVISION = "v6";
+const OFFER_SEARCH_SOURCE_REVISION = "v7";
 const ENABLE_OFFER_SEARCH_CACHE = false;
 const MAX_OFFER_SEARCH_RESULTS = 1000;
 const ZIIPLY_GOSTA_MASTER_QUERY_V6 = "__ziiply_all_offers__";
+
+const ZIIPLY_GOSTA_MASTER_SEED_QUERIES_V7 = Array.from(new Set([
+  "kampanja",
+  "tarjous",
+  "maito",
+  "juusto",
+  "jogurtti",
+  "rahka",
+  "kananmuna",
+  "voi",
+  "kerma",
+  "kahvi",
+  "tee",
+  "mehu",
+  "liha",
+  "jauheliha",
+  "broileri",
+  "kana",
+  "nauta",
+  "porsas",
+  "makkara",
+  "kala",
+  "lohi",
+  "kirjolohi",
+  "tonnikala",
+  "leipä",
+  "sämpylä",
+  "pulla",
+  "hedelmät",
+  "vihannekset",
+  "peruna",
+  "tomaatti",
+  "kurkku",
+  "juomat",
+  "virvoitusjuomat",
+  "limu",
+  "pakaste",
+  "pakasteet",
+  "jäätelö",
+  "valmisruoka",
+  "ateria",
+  "makeiset",
+  "suklaa",
+  "snacks",
+  "lemmikki",
+  "koiranruoka",
+  "kissanruoka",
+  "kodinhoito",
+  "pesuaine",
+  "talouspaperi",
+  "wc-paperi",
+  "vaipat",
+]));
 
 function getOfferSearchCacheKey(query: string) {
   return `${OFFER_SEARCH_SOURCE_REVISION}:${query}`;
@@ -148,9 +201,18 @@ export async function searchZiiplyOffers(query: string) {
   if (cached) return cached;
 
   // V2 MVP: vain S-kaupat aktiivisena, koska K-Ruoka blokkaa serverifetchin 403:lla.
-  const sKaupatResults = await safelySearchSource("S-kaupat", () =>
-    searchSKaupatOffers(cleanQuery),
-  );
+  // V7: Göstan master-haku EI saa välittää taikahakusanaa S-kaupat API:n queryStringiksi.
+  // Sen sijaan haetaan kerran laajalla ruokakori-/arjen seed-joukolla ja annetaan corelle
+  // master-datasetti, jota kategoriat voivat suodattaa paikallisesti.
+  const sKaupatResults = isGostaMasterQuery
+    ? (await Promise.allSettled(
+        ZIIPLY_GOSTA_MASTER_SEED_QUERIES_V7.map((seedQuery) =>
+          safelySearchSource(`S-kaupat master: ${seedQuery}`, () => searchSKaupatOffers(seedQuery)),
+        ),
+      )).flatMap((result) =>
+        result.status === "fulfilled" ? result.value : [],
+      )
+    : await safelySearchSource("S-kaupat", () => searchSKaupatOffers(cleanQuery));
 
   const uniqueSResults = uniqueOfferResults(sKaupatResults);
 
