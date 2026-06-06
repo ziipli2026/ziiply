@@ -394,34 +394,89 @@ export default function ZiiplyMobileOfferSearchCard({
     return matched?.[1] === true;
   };
 
-  const visibleCategorySuggestions = categorySuggestions.filter((category) => {
+  const baseLandingCategories = ["Kahvi", "Liha", "Hevi", "Koti", "Lemmikit"];
+
+  const categoryAliases: Record<string, string[]> = {
+    kahvi: ["kahvi", "kahvit"],
+    liha: ["liha", "lihapakkaukset", "makkara", "grilli", "grillimakkara"],
+    hevi: ["hevi", "hedelmät", "hedelmat", "vihannekset", "kasvikset", "vihannes", "hedelmä", "hedelma"],
+    koti: ["koti", "kodin", "siivous", "pesu", "pyykki", "talous", "taloustavara", "kodinhoito", "wc", "paperi"],
+    lemmikit: ["lemmikit", "lemmikki", "koira", "kissa", "eläin", "elain", "lemmikkieläimet", "lemmikkielaimet"],
+  };
+
+  const getCategorySearchKeys = (category: string) => {
+    const own = normalizeCategoryKey(category);
+    return Array.from(new Set([own, ...(categoryAliases[own] || [])].map(normalizeCategoryKey).filter(Boolean)));
+  };
+
+  const getCategoryCountWithAliases = (category: string) => {
+    const keys = getCategorySearchKeys(category);
+    let foundKnownCount = false;
+    let total = 0;
+
+    for (const key of keys) {
+      const count = getCategoryCount(key);
+      if (typeof count === "number") {
+        foundKnownCount = true;
+        total += count;
+      }
+    }
+
+    if (foundKnownCount) return total;
+    return undefined;
+  };
+
+  const hasCurrentOfferForCategoryWithAliases = (category: string) => {
+    const keys = getCategorySearchKeys(category);
+    if (keys.length === 0) return false;
+
+    return items.some((offer) => {
+      const offerCategory = normalizeCategoryKey(String(offer.category || ""));
+      const offerName = normalizeCategoryKey(getOfferName(offer));
+      return keys.some((key) => offerCategory.includes(key) || offerName.includes(key));
+    });
+  };
+
+  const categoryPool = Array.from(new Set([...baseLandingCategories, ...categorySuggestions]));
+
+  const visibleCategorySuggestions = categoryPool.filter((category) => {
     const normalized = category.toLowerCase().trim();
     if (!normalized || normalized === "kaikki") return false;
 
-    const count = getCategoryCount(category);
+    const count = getCategoryCountWithAliases(category);
     if (typeof count === "number") return count > 0;
 
     if (isTestedEmptyCategory(category)) return false;
 
     // Fallback when the parent has not supplied counts: show only categories
-    // that are visible in the current offer payload. Do not force fixed buttons.
-    return hasCurrentOfferForCategory(category);
+    // that are visible in the current offer payload. Do not force empty buttons.
+    return hasCurrentOfferForCategoryWithAliases(category);
   });
 
   const goToLandingView = () => {
     onFilterChange?.("");
+    onSearch?.("");
+  };
+
+  const handleBack = () => {
+    if (!showLandingView) {
+      goToLandingView();
+      return;
+    }
+
+    onBack?.();
   };
 
   const submitSearch = () => onSearch?.(shownFilter);
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="V17_OPAQUE_CARDS_AND_REAL_CATEGORY_COUNTS"
+      data-ziiply-mobile-offer-search-card-version="V18_KOTI_CATEGORY_AND_BACK_FIX"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
         <div className="pointer-events-none absolute left-[1.0rem] top-[0.72rem] z-[80] rounded-full border border-[#174c2c] bg-[#fff8d9] px-2 py-0.5 text-[0.62rem] font-black text-[#174c2c] shadow-[0_2px_0_rgba(91,72,44,0.16)]">
-          GÖSTA V17
+          GÖSTA V18
         </div>
 
         <div
@@ -431,7 +486,7 @@ export default function ZiiplyMobileOfferSearchCard({
         <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[linear-gradient(180deg,rgba(255,250,226,0.42),rgba(246,226,172,0.18)_34%,rgba(238,214,156,0.08))]" />
         <div className="pointer-events-none absolute inset-[0.42rem] rounded-[1.55rem] border border-dashed border-[#d6a861]/55 shadow-[inset_0_0_0_2px_rgba(27,17,9,0.20)]" />
 
-        <LeatherBackButton onClick={onBack} />
+        <LeatherBackButton onClick={handleBack} />
 
         {onClose ? (
           <button
@@ -496,7 +551,10 @@ export default function ZiiplyMobileOfferSearchCard({
                     <button
                       key={category}
                       type="button"
-                      onClick={() => onFilterChange?.(category)}
+                      onClick={() => {
+                        onFilterChange?.(category);
+                        onSearch?.(category);
+                      }}
                       className={cx(
                         "shrink-0 rounded-full border px-2.5 py-1 text-[0.64rem] font-black leading-none shadow-[0_1px_0_rgba(91,72,44,0.12)] active:translate-y-[1px]",
                         active ? "border-[#174c2c] bg-[#174c2c] text-[#fff4d3]" : "border-[#b8944f] bg-[#fff8d9] text-[#174c2c]",
