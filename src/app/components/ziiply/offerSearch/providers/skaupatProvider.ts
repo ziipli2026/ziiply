@@ -1,6 +1,6 @@
 // ============================================================================
 // SKAUPAT_PROVIDER_V153_EXPLICIT_PATH_VISIBLE_DIAGNOSTICS
-// Revision: V164
+// Revision: V165
 // Date: 2026-06-05
 //
 // Fix:
@@ -294,16 +294,34 @@ function cleanRepeatedCampaignTextV161(value: string): string {
   return text;
 }
 
+
+function getCompactProductTitleKeyV165(value: unknown): string {
+  const normalized = normalizeText(value)
+    .replace(/\b\d+[,.]?\d*\s*(g|kg|ml|l|kpl|pkt|ps|plo|prk)\b/g, " ")
+    .replace(/\b\d+\s*x\s*\d+\b/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const words = normalized
+    .split(/\s+/)
+    .filter((word) => word.length > 1);
+
+  // 4 first meaningful words catch cases where the same product title
+  // differs only by package suffix or campaign metadata.
+  return words.slice(0, 4).join(" ");
+}
+
 function getSOfferDedupeKeyV161(item: ZiiplyOfferSearchResult): string {
   const anyItem = item as any;
-  const ean = firstString(anyItem.ean, anyItem.id);
+  const ean = firstString(anyItem.ean, anyItem.gtin, anyItem.barcode);
 
   if (ean) return `ean:${normalizeText(ean)}`;
 
-  const title = normalizeText(item.title);
+  const compactTitle = getCompactProductTitleKeyV165(item.title);
+  const price = normalizeText(item.priceText);
   const store = normalizeText(item.storeLabel);
 
-  if (title) return `title:${title}|store:${store}`;
+  if (compactTitle) return `title4:${compactTitle}|price:${price}|store:${store}`;
 
   return normalizeText([item.title, item.priceText].filter(Boolean).join("|"));
 }
