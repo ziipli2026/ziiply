@@ -1,9 +1,9 @@
 "use client";
 
 // ============================================================================
-// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V17_OPAQUE_CARDS_AND_REAL_CATEGORY_COUNTS
-// Revision: V17
-// Date: 2026-06-05
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V19_KOTI_CATEGORY_FUZZY_COUNTS
+// Revision: V19
+// Date: 2026-06-06
 //
 // Fix:
 // - S-kaupat RemoteFilteredProducts returns prices already in euros.
@@ -16,6 +16,8 @@
 // - Category buttons are no longer forced. A category is shown only when its
 //   categoryOfferCounts value is > 0, or when current offer data contains that
 //   category. Empty/tested-empty categories are hidden completely.
+// - V19: Koti category also recognizes longer backend names such as
+//   "Koti ja talous", "Kodin tuotteet", "Kodintarvikkeet" and "Household".
 // ============================================================================
 
 // ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V2_GOSTA_FILTER_AND_CATEGORIES
@@ -400,7 +402,33 @@ export default function ZiiplyMobileOfferSearchCard({
     kahvi: ["kahvi", "kahvit"],
     liha: ["liha", "lihapakkaukset", "makkara", "grilli", "grillimakkara"],
     hevi: ["hevi", "hedelmät", "hedelmat", "vihannekset", "kasvikset", "vihannes", "hedelmä", "hedelma"],
-    koti: ["koti", "kodin", "siivous", "pesu", "pyykki", "talous", "taloustavara", "kodinhoito", "wc", "paperi"],
+    koti: [
+      "koti",
+      "kodin",
+      "kotitalous",
+      "kotijatalous",
+      "kodintarvikkeet",
+      "kodintuotteet",
+      "kodinhoito",
+      "talous",
+      "taloustavara",
+      "taloustavarat",
+      "siivous",
+      "puhdistus",
+      "pesu",
+      "pesuaine",
+      "pesuaineet",
+      "pyykki",
+      "pyykinpesu",
+      "astianpesu",
+      "wc",
+      "wcpaperi",
+      "talouspaperi",
+      "paperi",
+      "servetti",
+      "home",
+      "household",
+    ],
     lemmikit: ["lemmikit", "lemmikki", "koira", "kissa", "eläin", "elain", "lemmikkieläimet", "lemmikkielaimet"],
   };
 
@@ -410,15 +438,41 @@ export default function ZiiplyMobileOfferSearchCard({
   };
 
   const getCategoryCountWithAliases = (category: string) => {
+    if (!categoryOfferCounts) return undefined;
+
     const keys = getCategorySearchKeys(category);
     let foundKnownCount = false;
     let total = 0;
+    const matchedCountKeys = new Set<string>();
 
+    // First: exact/direct alias matches, e.g. Koti, koti, Kodinhoito.
     for (const key of keys) {
       const count = getCategoryCount(key);
       if (typeof count === "number") {
         foundKnownCount = true;
         total += count;
+        matchedCountKeys.add(key);
+      }
+    }
+
+    // Second: fuzzy count-key match, e.g. "Koti ja talous",
+    // "Kodin tuotteet", "Kodintarvikkeet" or "Household".
+    // This fixes Koti disappearing when the parent count map uses a longer
+    // backend category name instead of the short UI label "Koti".
+    for (const [rawKey, rawCount] of Object.entries(categoryOfferCounts)) {
+      if (typeof rawCount !== "number" || rawCount <= 0) continue;
+
+      const normalizedKey = normalizeCategoryKey(rawKey);
+      if (!normalizedKey || matchedCountKeys.has(normalizedKey)) continue;
+
+      const matchesAlias = keys.some(
+        (key) => normalizedKey === key || normalizedKey.includes(key) || key.includes(normalizedKey),
+      );
+
+      if (matchesAlias) {
+        foundKnownCount = true;
+        total += rawCount;
+        matchedCountKeys.add(normalizedKey);
       }
     }
 
@@ -433,7 +487,21 @@ export default function ZiiplyMobileOfferSearchCard({
     return items.some((offer) => {
       const offerCategory = normalizeCategoryKey(String(offer.category || ""));
       const offerName = normalizeCategoryKey(getOfferName(offer));
-      return keys.some((key) => offerCategory.includes(key) || offerName.includes(key));
+      const offerStore = normalizeCategoryKey(getStoreName(offer));
+      const offerText = normalizeCategoryKey(
+        [offer.category, offer.name, offer.title, offer.productName, offer.brandName, offerStore]
+          .filter(Boolean)
+          .join(" "),
+      );
+
+      return keys.some(
+        (key) =>
+          offerCategory === key ||
+          offerCategory.includes(key) ||
+          key.includes(offerCategory) ||
+          offerName.includes(key) ||
+          offerText.includes(key),
+      );
     });
   };
 
@@ -471,12 +539,12 @@ export default function ZiiplyMobileOfferSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="V18_KOTI_CATEGORY_AND_BACK_FIX"
+      data-ziiply-mobile-offer-search-card-version="V19_KOTI_CATEGORY_FUZZY_COUNTS"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
         <div className="pointer-events-none absolute left-[1.0rem] top-[0.72rem] z-[80] rounded-full border border-[#174c2c] bg-[#fff8d9] px-2 py-0.5 text-[0.62rem] font-black text-[#174c2c] shadow-[0_2px_0_rgba(91,72,44,0.16)]">
-          GÖSTA V18
+          GÖSTA V19
         </div>
 
         <div
