@@ -1,8 +1,8 @@
 "use client";
 
 // ============================================================================
-// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V11_TESTED_EMPTY_CATEGORIES_ONLY
-// Revision: V11
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V12_RENDER_PATH_TRACE
+// Revision: V12
 // Date: 2026-06-05
 //
 // Fix:
@@ -280,10 +280,13 @@ export default function ZiiplyMobileOfferSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="V11_TESTED_EMPTY_CATEGORIES_ONLY"
+      data-ziiply-mobile-offer-search-card-version="V12_RENDER_PATH_TRACE"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
+        <div className="pointer-events-none absolute left-[1.0rem] top-[0.72rem] z-[80] rounded-full border border-[#174c2c] bg-[#fff8d9] px-2 py-0.5 text-[0.62rem] font-black text-[#174c2c] shadow-[0_2px_0_rgba(91,72,44,0.16)]">
+          GÖSTA V12
+        </div>
         <div
           className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[#f7edcf] bg-center bg-no-repeat opacity-100"
           style={{ backgroundImage: "url('/ui/cart/vihkonen.webp')", backgroundSize: "142% 104%", backgroundPosition: "center top" }}
