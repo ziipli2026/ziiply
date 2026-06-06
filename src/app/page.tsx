@@ -1,4 +1,11 @@
-// V158_GOSTA_STICKY_PANEL_AGAINST_GPS_REFRESH
+// V160_GOSTA_ISOLATED_FROM_MAIN_SEARCH_INPUT_AND_AUTORUN
+// Korjaus:
+// - Göstan tuoteryhmä-/hakukenttä ei enää kirjoita normaaliin Hae-kortin input-stateen.
+// - Kun Gösta-kortti on auki/sticky, normaali tuotteen haku ei saa käynnistyä taustapäivityksestä.
+// - Normaali hakukenttä ei saa avautua Göstan hakusanalla (esim. "kahvi").
+// - Göstan renderöinnin query-prop ei enää fallbackaa normaaliin inputiin.
+//
+//// V158_GOSTA_STICKY_PANEL_AGAINST_GPS_REFRESH
 // Korjaus: Gösta-kortti ei saa sammua taustalla tapahtuvan GPS-/kauppapäivityksen takia.
 // Kun Gösta-haku on käyttäjän avaama, pidetään tarjouskortti aktiivisena, ellei käyttäjä itse sulje sitä
 // tai siirry alapalkista Kaupat/Hae/Kori/Vertailu-näkymään.
@@ -2945,6 +2952,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   useEffect(() => {
     if (searchPanelOpen) return;
 
+    // V160: kun Gösta on auki, Hae-paneelin sulkeutuminen ei saa nollata
+    // Göstan omaa hakua eikä aiheuttaa välähdystä/taustahaun sivuvaikutuksia.
+    if (activeResult === "offers" || gostaPanelStickyOpenRefV158.current) return;
+
     setInput("");
     setActiveNormalSearchTerm("");
     setMobileResultsReadyQueryV537("");
@@ -2952,7 +2963,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setOfferSearchQuerySnapshot("");
     setOfferSearchDoneForQuery("");
     setNormalSearchAttempted(false);
-  }, [searchPanelOpen]);
+  }, [searchPanelOpen, activeResult]);
 
 
   function suppressHaeReadyBadgeV541(durationMs = 1800) {
@@ -6934,8 +6945,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const cleanedOverride = String(termOverride ?? "").trim();
     const useTerms = hasExplicitOverride ? parseTerms(cleanedOverride) : terms;
 
-    if (hasExplicitOverride) setInput(cleanedOverride);
-
+    // V160: Göstan oma override (esim. kategoriat "Kahvi", "Liha") ei saa
+    // kirjoittaa normaaliin Hae-kortin inputtiin. Muuten taustapäivitys voi
+    // myöhemmin avata normaalin haun samalla sanalla.
     gostaPanelStickyOpenRefV158.current = true;
     setHasSearchedOffers(true);
     setLoadingOffers(true);
@@ -6987,6 +6999,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   async function searchNormalPrices(termOverride?: string, forceEan = false) {
+    // V160: jos Gösta on näkyvissä/sticky-tilassa, mikään taustapäivitys,
+    // kauppapäivitys tai vanha ajastettu haku ei saa käynnistää normaalia
+    // Hae-tuotehakua eikä avata valintaikkunaa.
+    if (activeResult === "offers" || gostaPanelStickyOpenRefV158.current) {
+      setLoadingNormal(false);
+      setNormalSearchAttempted(false);
+      return;
+    }
+
     const useTerms = termOverride
       ? searchCompareMode === "single"
         ? [getSingleSearchTerm(termOverride)].filter(Boolean)
@@ -10416,6 +10437,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function handleMainNormalSearch() {
+    // V160: Göstan ollessa auki normaalin Hae-haun triggerit estetään.
+    if (activeResult === "offers" || gostaPanelStickyOpenRefV158.current) return;
     if (!hasSearchInput || loadingNormal || singleProductCompareLoading) return;
 
     const singleModeTerm = getSingleSearchTerm(input);
@@ -10449,6 +10472,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function handleJustiinaProductSearch() {
+    if (activeResult === "offers" || gostaPanelStickyOpenRefV158.current) return;
+
     setOfferSearchDoneForQuery("");
     setOfferSearchQuerySnapshot("");
     if (!hasSearchInput || loadingNormal || singleProductCompareLoading) return;
@@ -15067,7 +15092,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           <ZiiplyMobileOfferSearchCardLoose
             open={true}
             title="Tarjoushaku"
-            query={offerSearchQuerySnapshot || input}
+            query={offerSearchQuerySnapshot || offerCardFilterV106 || ""}
             offers={visibleOfferSearchResultsV106.map(mapZiiplyGostaOfferToCardOfferV147)}
             filter={offerCardFilterV106}
             onFilterChange={handleGostaFilterChangeV136}
