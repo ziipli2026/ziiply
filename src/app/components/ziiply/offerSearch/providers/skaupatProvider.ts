@@ -1,6 +1,6 @@
 // ============================================================================
 // SKAUPAT_PROVIDER_V153_EXPLICIT_PATH_VISIBLE_DIAGNOSTICS
-// Revision: V168
+// Revision: V170
 // Date: 2026-06-06
 //
 // Fix:
@@ -19,13 +19,6 @@
 // Install path:
 // src/app/components/ziiply/offerSearch/providers/skaupatProvider.ts
 // ============================================================================
-
-// V168 safe fix:
-// - Keeps original working storeId logic unchanged.
-// - Only widens S-kaupat RemoteFilteredProducts limit 48 -> 250.
-// - This avoids the V167 regression where dynamic storeId wiring broke all results.
-//
-// ============================================================================
 //
 // V160 fix:
 // - Gösta is an offer search: normal-priced shelf products are filtered out.
@@ -34,6 +27,13 @@
 //   or currentPrice < regularPrice.
 // - Sponsored/ad-labelled rows remain filtered out.
 // - S-kaupat prices remain in euros; no cents conversion here.
+//
+
+// V170 safe pagination:
+// - Keeps the original working S-kaupat RemoteFilteredProducts limit at 48.
+// - Fetches several 48-item pages with offset/page variables instead of raising limit.
+// - If S-kaupat ignores offset/page variables, dedupe keeps the result stable.
+// - Does not change storeId behavior yet.
 //
 // ============================================================================
 
@@ -729,7 +729,9 @@ function mapSProductListItemToOfferResult(
   } as unknown as ZiiplyOfferSearchResult;
 }
 
-function buildRemoteFilteredProductsUrl(query: string): string {
+function buildRemoteFilteredProductsUrl(query: string, offset = 0): string {
+  const page = Math.floor(offset / 48) + 1;
+
   const variables = {
     facets: [
       { key: "brandName", order: "asc" },
@@ -738,7 +740,10 @@ function buildRemoteFilteredProductsUrl(query: string): string {
     ],
     generatedSessionId: "1d6b5de9-df99-4608-af07-7d754955df82",
     fetchSponsoredContent: false,
-    limit: 250,
+    limit: 48,
+    offset,
+    skip: offset,
+    page,
     queryString: query,
     storeId: DEFAULT_SKAUPAT_STORE_ID_V156,
     useRandomId: false,
@@ -759,11 +764,12 @@ function buildRemoteFilteredProductsUrl(query: string): string {
   return url.toString();
 }
 
-async function fetchSKaupatRemoteFilteredProductsV152(
+async function fetchSKaupatRemoteFilteredProductsPageV170(
   query: string,
   config: ZiiplyOfferSearchSourceConfig,
+  offset: number,
 ): Promise<ZiiplyOfferSearchResult[]> {
-  const response = await fetch(buildRemoteFilteredProductsUrl(query), {
+  const response = await fetch(buildRemoteFilteredProductsUrl(query, offset), {
     method: "GET",
     headers: {
       accept: "application/json",
@@ -803,6 +809,32 @@ async function fetchSKaupatRemoteFilteredProductsV152(
   return dedupeSOfferResultsV161(mappedResults);
 }
 
+async function fetchSKaupatRemoteFilteredProductsV170(
+  query: string,
+  config: ZiiplyOfferSearchSourceConfig,
+): Promise<ZiiplyOfferSearchResult[]> {
+  const pageOffsets = [0, 48, 96, 144, 192];
+  const pages: ZiiplyOfferSearchResult[][] = [];
+
+  for (const offset of pageOffsets) {
+    try {
+      const pageResults = await fetchSKaupatRemoteFilteredProductsPageV170(query, config, offset);
+      pages.push(pageResults);
+
+      // Stop early if S-kaupat returns a short page. If offset is ignored, the
+      // next page will dedupe away later, but this keeps the request count small
+      // when there clearly are no more rows.
+      if (pageResults.length < 40) break;
+    } catch (error) {
+      if (offset === 0) throw error;
+      console.warn(`[Ziiply offers] S-kaupat pagination page failed at offset ${offset}`, error);
+      break;
+    }
+  }
+
+  return dedupeSOfferResultsV161(pages.flat());
+}
+
 export async function fetchSKaupatOffers(
   query: string,
   config: ZiiplyOfferSearchSourceConfig,
@@ -811,7 +843,7 @@ export async function fetchSKaupatOffers(
   if (!cleanQuery) return [];
 
   try {
-    return await fetchSKaupatRemoteFilteredProductsV152(cleanQuery, config);
+    return await fetchSKaupatRemoteFilteredProductsV170(cleanQuery, config);
   } catch (error) {
     console.warn("[Ziiply offers] S-kaupat RemoteFilteredProducts failed", error);
     return [];
