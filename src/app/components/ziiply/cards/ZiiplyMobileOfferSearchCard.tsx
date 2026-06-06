@@ -1,14 +1,14 @@
 "use client";
 
 // ============================================================================
-// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V4_NO_KAIKKI_AND_TEXT_DEDUPE
-// Revision: V4
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V5_LANDING_NO_INITIAL_PRODUCTS
+// Revision: V5
 // Date: 2026-06-05
 //
 // Fix:
 // - S-kaupat RemoteFilteredProducts returns prices already in euros.
 // - Removed old >20 => /100 conversion from normalizePrice() and getNumericPrice().
-// - Fixes false prices like 59,90 € becoming 0,60 €. Removes Kaikki chip and dedupes repeated campaign text.
+// - Fixes false prices like 59,90 € becoming 0,60 €. Removes Kaikki chip, dedupes repeated campaign text, and shows a landing view before first category/search.
 // - Keeps V2 Gösta filter/category UI unchanged.
 // ============================================================================
 
@@ -235,12 +235,15 @@ export default function ZiiplyMobileOfferSearchCard({
   const hasOffers = items.length > 0;
   const shownQuery = query.trim();
   const shownFilter = filter.trim();
+  const showLandingView = !shownQuery && !shownFilter;
+  const visibleItems = showLandingView ? [] : items;
+  const hasVisibleOffers = visibleItems.length > 0;
 
   const submitSearch = () => onSearch?.(shownFilter);
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="V4_NO_KAIKKI_AND_TEXT_DEDUPE"
+      data-ziiply-mobile-offer-search-card-version="V5_LANDING_NO_INITIAL_PRODUCTS"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
@@ -332,14 +335,41 @@ export default function ZiiplyMobileOfferSearchCard({
                 <span className="block h-full w-[42%] animate-[ziiplyOfferSearchBar_1.1s_ease-in-out_infinite] rounded-full bg-[#1b7c3d]" />
               </div>
             </div>
-          ) : !hasOffers ? (
+          ) : showLandingView ? (
+            <div className="mt-2 rounded-[1.15rem] border-[2px] border-[#9a7a3d] bg-[#fff4d4]/64 px-4 py-7 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
+              <div className="text-[1.14rem] font-black italic text-[#28402a]" style={{ fontFamily: cooperFont }}>
+                Mitä etsitään tänään?
+              </div>
+              <div className="mx-auto mt-2 max-w-[16rem] text-[0.82rem] font-extrabold leading-snug text-[#6d5d3f]">
+                Valitse tuoteryhmä ylhäältä tai kirjoita hakusana. Gösta näyttää tuotteet vasta valinnan jälkeen.
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                {categorySuggestions
+                  .filter((category) => category.toLowerCase() !== "kaikki")
+                  .slice(0, 8)
+                  .map((category) => (
+                    <button
+                      key={`landing-${category}`}
+                      type="button"
+                      onClick={() => {
+                        onFilterChange?.(category);
+                        onSearch?.(category);
+                      }}
+                      className="rounded-[0.85rem] border-[2px] border-[#174c2c] bg-[#fff8d9] px-2.5 py-2 text-[0.76rem] font-black text-[#174c2c] shadow-[0_2px_0_rgba(91,72,44,0.16)] active:translate-y-[1px]"
+                    >
+                      {getCategoryIcon(category)} {category}
+                    </button>
+                  ))}
+              </div>
+            </div>
+          ) : !hasVisibleOffers ? (
             <div className="mt-2 rounded-[1.05rem] border-[2px] border-dashed border-[#9a7a3d] bg-[#fff4d4]/52 px-4 py-8 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
               <div className="text-[1.02rem] font-extrabold italic text-[#59401e]" style={{ fontFamily: serifFont }}>Ei tarjouslöytöjä</div>
               <div className="mt-2 text-[0.78rem] font-extrabold leading-snug text-[#8a7650]">{emptyText}</div>
             </div>
           ) : (
             <div className="space-y-2.5">
-              {items.map((offer, index) => {
+              {visibleItems.map((offer, index) => {
                 const name = getOfferName(offer);
                 const storeName = getStoreName(offer);
                 const offerPrice = getOfferPrice(offer);
@@ -390,7 +420,7 @@ export default function ZiiplyMobileOfferSearchCard({
             <button type="button" onClick={onBack} className="min-h-[2.34rem] rounded-[0.62rem] border-[2px] border-[#7c663d] bg-[#efe1bd] px-3 py-[0.38rem] text-[0.70rem] font-black text-[#533819] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.42)] active:translate-y-[1px]" style={{ fontFamily: cooperFont }}>
               Palaa hakuun
             </button>
-            <button type="button" onClick={() => onAddAllOffers?.(items)} disabled={!hasOffers || !onAddAllOffers} className={cx("min-h-[2.34rem] rounded-[0.62rem] border-[2.5px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-3 py-[0.38rem] text-[0.70rem] font-black italic tracking-[0.03em] text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58),0_2px_4px_rgba(62,43,20,0.18)] active:translate-y-[1px]", (!hasOffers || !onAddAllOffers) && "cursor-not-allowed opacity-45")} style={{ fontFamily: cooperFont }}>
+            <button type="button" onClick={() => onAddAllOffers?.(visibleItems)} disabled={!hasVisibleOffers || !onAddAllOffers} className={cx("min-h-[2.34rem] rounded-[0.62rem] border-[2.5px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-3 py-[0.38rem] text-[0.70rem] font-black italic tracking-[0.03em] text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58),0_2px_4px_rgba(62,43,20,0.18)] active:translate-y-[1px]", (!hasVisibleOffers || !onAddAllOffers) && "cursor-not-allowed opacity-45")} style={{ fontFamily: cooperFont }}>
               Lisää kaikki
             </button>
           </div>
