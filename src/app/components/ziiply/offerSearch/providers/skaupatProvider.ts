@@ -1,6 +1,6 @@
 // ============================================================================
-// SKAUPAT_PROVIDER_V172_MASTER_MAGIC_SEEDED_FALLBACK
-// Revision: V172
+// SKAUPAT_PROVIDER_V174_STORE_DIRECTORY_RESOLVER
+// Revision: V174
 // Date: 2026-06-06
 //
 // Fix:
@@ -52,6 +52,7 @@ import type {
   ZiiplyOfferSearchResult,
   ZiiplyOfferSearchSourceConfig,
 } from "../types";
+import { resolveSKaupatStoreIdFromDirectoryV1 } from "./sKaupatStoreDirectory";
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -65,22 +66,48 @@ export type SKaupatOfferProviderOptionsV173 = {
   storeName?: string | null;
 };
 
-function getEffectiveSKaupatStoreIdV173(options?: SKaupatOfferProviderOptionsV173): string {
+async function getEffectiveSKaupatStoreIdV174(
+  options?: SKaupatOfferProviderOptionsV173,
+): Promise<string | null> {
   const raw = firstString(options?.storeId);
+  const storeName = firstString(options?.storeName);
 
-  if (!/^\d{5,}$/.test(raw)) {
-    console.warn(
-      "[GOSTA] FALLBACK STORE USED",
-      {
-        storeId: options?.storeId,
-        storeName: options?.storeName,
-      }
-    );
-
-    return DEFAULT_SKAUPAT_STORE_ID_V156;
+  // First trust a real numeric S-kaupat storeId if the caller already has one.
+  // Do not treat the old MVP fallback id as proof of a selected store.
+  if (/^\d{5,}$/.test(raw) && raw !== DEFAULT_SKAUPAT_STORE_ID_V156) {
+    return raw;
   }
 
-  return raw;
+  // Resolve real S-kaupat id from S-kaupat store URLs:
+  // /myymala/<slug>/<storeId>
+  const resolvedFromDirectory = await resolveSKaupatStoreIdFromDirectoryV1(storeName);
+
+  if (resolvedFromDirectory) {
+    console.warn("[GOSTA] S-kaupat storeId resolved from directory", {
+      storeId: raw || null,
+      storeName,
+      resolvedStoreId: resolvedFromDirectory,
+    });
+    return resolvedFromDirectory;
+  }
+
+  // If caller gave some numeric id, allow it only as a last resort, but log it.
+  if (/^\d{5,}$/.test(raw)) {
+    console.warn("[GOSTA] using provided numeric storeId after directory miss", {
+      storeId: raw,
+      storeName,
+    });
+    return raw;
+  }
+
+  // Important: do not silently fall back to DEFAULT_SKAUPAT_STORE_ID_V156.
+  // Returning [] is safer than showing another store's offers.
+  console.warn("[GOSTA] missing real S-kaupat storeId, skipping S-kaupat offer fetch", {
+    storeId: options?.storeId,
+    storeName: options?.storeName,
+  });
+
+  return null;
 }
 const SKAUPAT_GOSTA_MASTER_QUERY_V171 = "__ziiply_all_offers__";
 
@@ -603,7 +630,7 @@ function hasSOfferSignal(
 
 function belongsToSelectedSHypermarketV163(
   product: UnknownRecord,
-  selectedStoreId = DEFAULT_SKAUPAT_STORE_ID_V156,
+  selectedStoreId: string,
 ): boolean {
   const productStoreId = firstString(product.storeId);
 
@@ -779,7 +806,7 @@ function mapSProductListItemToOfferResult(
   } as unknown as ZiiplyOfferSearchResult;
 }
 
-function buildRemoteFilteredProductsUrl(query: string, offset = 0, selectedStoreId = DEFAULT_SKAUPAT_STORE_ID_V156): string {
+function buildRemoteFilteredProductsUrl(query: string, offset = 0, selectedStoreId: string): string {
   const page = Math.floor(offset / 48) + 1;
   const queryString = query;
 
@@ -867,7 +894,9 @@ async function fetchSKaupatRemoteFilteredProductsV170(
   config: ZiiplyOfferSearchSourceConfig,
   options?: SKaupatOfferProviderOptionsV173,
 ): Promise<ZiiplyOfferSearchResult[]> {
-  const selectedStoreId = getEffectiveSKaupatStoreIdV173(options);
+  const selectedStoreId = await getEffectiveSKaupatStoreIdV174(options);
+  if (!selectedStoreId) return [];
+
   const pageOffsets = isGostaMasterQueryV171(query)
     ? [0, 48, 96, 144, 192, 240, 288, 336, 384, 432, 480, 528, 576, 624, 672, 720, 768, 816, 864, 912]
     : [0, 48, 96, 144, 192];
