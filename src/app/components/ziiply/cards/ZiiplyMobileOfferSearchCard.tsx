@@ -1,14 +1,14 @@
 "use client";
 
 // ============================================================================
-// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V5_LANDING_NO_INITIAL_PRODUCTS
-// Revision: V5
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V6_COUNTS_AND_HOME_RETURN
+// Revision: V6
 // Date: 2026-06-05
 //
 // Fix:
 // - S-kaupat RemoteFilteredProducts returns prices already in euros.
 // - Removed old >20 => /100 conversion from normalizePrice() and getNumericPrice().
-// - Fixes false prices like 59,90 € becoming 0,60 €. Removes Kaikki chip, dedupes repeated campaign text, and shows a landing view before first category/search.
+// - Fixes false prices like 59,90 € becoming 0,60 €. Removes Kaikki chip, dedupes repeated campaign text, and shows a landing view before first category/search, hides empty categories and adds category-home return.
 // - Keeps V2 Gösta filter/category UI unchanged.
 // ============================================================================
 
@@ -55,6 +55,7 @@ export type ZiiplyMobileOfferSearchCardProps = {
   loading?: boolean;
   emptyText?: string;
   categorySuggestions?: string[];
+  categoryOfferCounts?: Record<string, number | null | undefined>;
   onFilterChange?: (value: string) => void;
   onSearch?: (value: string) => void;
   onBack?: () => void;
@@ -221,6 +222,7 @@ export default function ZiiplyMobileOfferSearchCard({
   loading = false,
   emptyText = "Gösta ei löytänyt tarjouksia vielä.",
   categorySuggestions = ["Kahvi", "Maitotuotteet", "Liha", "Kala", "Leipomo", "Hevi", "Juomat", "Makeiset", "Lemmikit", "Koti", "Pakasteet"],
+  categoryOfferCounts,
   onFilterChange,
   onSearch,
   onBack,
@@ -239,11 +241,27 @@ export default function ZiiplyMobileOfferSearchCard({
   const visibleItems = showLandingView ? [] : items;
   const hasVisibleOffers = visibleItems.length > 0;
 
+  const visibleCategorySuggestions = categorySuggestions.filter((category) => {
+    const normalized = category.toLowerCase();
+    if (normalized === "kaikki") return false;
+
+    const count =
+      categoryOfferCounts?.[category] ??
+      categoryOfferCounts?.[normalized] ??
+      null;
+
+    return count == null || Number(count) > 0;
+  });
+
+  const goToLandingView = () => {
+    onFilterChange?.("");
+  };
+
   const submitSearch = () => onSearch?.(shownFilter);
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="V5_LANDING_NO_INITIAL_PRODUCTS"
+      data-ziiply-mobile-offer-search-card-version="V6_COUNTS_AND_HOME_RETURN"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
@@ -304,26 +322,33 @@ export default function ZiiplyMobileOfferSearchCard({
                 Hae
               </button>
             </div>
-            <div className="mt-1.5 flex gap-1.5 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {categorySuggestions
-                .filter((category) => category.toLowerCase() !== "kaikki")
-                .map((category) => {
-                const active = category.toLowerCase() === "kaikki" ? !shownFilter : shownFilter.toLowerCase() === category.toLowerCase();
-                return (
-                  <button
-                    key={category}
-                    type="button"
-                    onClick={() => onFilterChange?.(category.toLowerCase() === "kaikki" ? "" : category)}
-                    className={cx(
-                      "shrink-0 rounded-full border px-2.5 py-1 text-[0.64rem] font-black leading-none shadow-[0_1px_0_rgba(91,72,44,0.12)] active:translate-y-[1px]",
-                      active ? "border-[#174c2c] bg-[#174c2c] text-[#fff4d3]" : "border-[#b8944f] bg-[#fff8d9] text-[#174c2c]",
-                    )}
-                  >
-                    {category}
-                  </button>
-                );
-              })}
-            </div>
+            {!showLandingView ? (
+              <div className="mt-1.5 flex gap-1.5 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <button
+                  type="button"
+                  onClick={goToLandingView}
+                  className="shrink-0 rounded-full border border-[#b8944f] bg-[#fff8d9] px-2.5 py-1 text-[0.64rem] font-black leading-none text-[#174c2c] shadow-[0_1px_0_rgba(91,72,44,0.12)] active:translate-y-[1px]"
+                >
+                  ← Tuoteryhmät
+                </button>
+                {visibleCategorySuggestions.map((category) => {
+                  const active = shownFilter.toLowerCase() === category.toLowerCase();
+                  return (
+                    <button
+                      key={category}
+                      type="button"
+                      onClick={() => onFilterChange?.(category)}
+                      className={cx(
+                        "shrink-0 rounded-full border px-2.5 py-1 text-[0.64rem] font-black leading-none shadow-[0_1px_0_rgba(91,72,44,0.12)] active:translate-y-[1px]",
+                        active ? "border-[#174c2c] bg-[#174c2c] text-[#fff4d3]" : "border-[#b8944f] bg-[#fff8d9] text-[#174c2c]",
+                      )}
+                    >
+                      {category}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : null}
           </div>
         </header>
 
@@ -344,8 +369,7 @@ export default function ZiiplyMobileOfferSearchCard({
                 Valitse tuoteryhmä ylhäältä tai kirjoita hakusana. Gösta näyttää tuotteet vasta valinnan jälkeen.
               </div>
               <div className="mt-4 grid grid-cols-2 gap-2">
-                {categorySuggestions
-                  .filter((category) => category.toLowerCase() !== "kaikki")
+                {visibleCategorySuggestions
                   .slice(0, 8)
                   .map((category) => (
                     <button
@@ -415,6 +439,7 @@ export default function ZiiplyMobileOfferSearchCard({
           )}
         </main>
 
+        {!showLandingView ? (
         <footer className="absolute bottom-[0.86rem] left-0 right-0 z-[40] px-5 pb-2 pt-2">
           <div className="mx-auto grid max-w-[21rem] grid-cols-[1fr_1.35fr] gap-2">
             <button type="button" onClick={onBack} className="min-h-[2.34rem] rounded-[0.62rem] border-[2px] border-[#7c663d] bg-[#efe1bd] px-3 py-[0.38rem] text-[0.70rem] font-black text-[#533819] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.42)] active:translate-y-[1px]" style={{ fontFamily: cooperFont }}>
@@ -425,6 +450,7 @@ export default function ZiiplyMobileOfferSearchCard({
             </button>
           </div>
         </footer>
+        ) : null}
 
         <div className="pointer-events-none absolute -bottom-[0.72rem] left-[1.1rem] right-[1.1rem] h-[1.3rem] rounded-[50%] bg-[#cfaa61] opacity-55 blur-[1px]" />
 
