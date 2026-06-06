@@ -1,5 +1,9 @@
 // src/app/components/ziiply/offerSearch/ziiplyOfferSearchSources.ts
-// ZIIPLY_OFFER_SEARCH_SOURCES_V5_NO_STALE_CACHE_AND_WIDER_RESULT_WINDOW
+// ZIIPLY_OFFER_SEARCH_SOURCES_V6_GOSTA_MASTER_NO_RANK
+//
+// V6 korjaus:
+// - Special query __ziiply_all_offers__ bypasses intent ranking and matchScore filtering.
+// - Gösta master dataset gets the provider offer list as-is, so local category counts are not based on a tiny ranked sample.
 //
 // V5 korjaus:
 // - Vanhaa pelkän hakusanan välimuistia ei käytetä oletuksena, jotta Varkaus/Mikkeli-tyyppinen
@@ -59,9 +63,10 @@ const ZIIPLY_OFFER_SOURCES = {
   },
 } satisfies Record<string, ZiiplyOfferSearchSourceConfig>;
 
-const OFFER_SEARCH_SOURCE_REVISION = "v5";
+const OFFER_SEARCH_SOURCE_REVISION = "v6";
 const ENABLE_OFFER_SEARCH_CACHE = false;
-const MAX_OFFER_SEARCH_RESULTS = 500;
+const MAX_OFFER_SEARCH_RESULTS = 1000;
+const ZIIPLY_GOSTA_MASTER_QUERY_V6 = "__ziiply_all_offers__";
 
 function getOfferSearchCacheKey(query: string) {
   return `${OFFER_SEARCH_SOURCE_REVISION}:${query}`;
@@ -136,6 +141,8 @@ export async function searchZiiplyOffers(query: string) {
 
   if (!cleanQuery) return [];
 
+  const isGostaMasterQuery = normalizeOfferUniqueText(cleanQuery) === normalizeOfferUniqueText(ZIIPLY_GOSTA_MASTER_QUERY_V6);
+
   const cacheKey = getOfferSearchCacheKey(cleanQuery);
   const cached = ENABLE_OFFER_SEARCH_CACHE ? getCachedOfferResults(cacheKey) : null;
   if (cached) return cached;
@@ -145,37 +152,43 @@ export async function searchZiiplyOffers(query: string) {
     searchSKaupatOffers(cleanQuery),
   );
 
-  const intent = resolveSearchIntentAI(cleanQuery);
+  const uniqueSResults = uniqueOfferResults(sKaupatResults);
 
-  const rankedResults = rankProductsWithIntentMemory(
-    uniqueOfferResults(sKaupatResults)
-      .filter((result) => result.matchScore > 0)
-      .map((result) => ({
-        ...result,
-        category:
-          result.rawText ||
-          result.title ||
-          "",
-        brandName: result.storeLabel,
-      })),
-    cleanQuery,
-    (product) => Number(product.matchScore || 0),
-  );
+  const results = isGostaMasterQuery
+    ? uniqueSResults.slice(0, MAX_OFFER_SEARCH_RESULTS)
+    : (() => {
+        const intent = resolveSearchIntentAI(cleanQuery);
 
-  const results = rankedResults
-    .sort((a, b) => {
-      const aExact =
-        a.title?.toLowerCase().includes(intent.canonicalQuery.toLowerCase()) ? 1 : 0;
-      const bExact =
-        b.title?.toLowerCase().includes(intent.canonicalQuery.toLowerCase()) ? 1 : 0;
+        const rankedResults = rankProductsWithIntentMemory(
+          uniqueSResults
+            .filter((result) => Number(result.matchScore || 0) > 0)
+            .map((result) => ({
+              ...result,
+              category:
+                result.rawText ||
+                result.title ||
+                "",
+              brandName: result.storeLabel,
+            })),
+          cleanQuery,
+          (product) => Number(product.matchScore || 0),
+        );
 
-      if (aExact !== bExact) {
-        return bExact - aExact;
-      }
+        return rankedResults
+          .sort((a, b) => {
+            const aExact =
+              a.title?.toLowerCase().includes(intent.canonicalQuery.toLowerCase()) ? 1 : 0;
+            const bExact =
+              b.title?.toLowerCase().includes(intent.canonicalQuery.toLowerCase()) ? 1 : 0;
 
-      return Number(b.matchScore || 0) - Number(a.matchScore || 0);
-    })
-    .slice(0, MAX_OFFER_SEARCH_RESULTS);
+            if (aExact !== bExact) {
+              return bExact - aExact;
+            }
+
+            return Number(b.matchScore || 0) - Number(a.matchScore || 0);
+          })
+          .slice(0, MAX_OFFER_SEARCH_RESULTS);
+      })();
 
   if (ENABLE_OFFER_SEARCH_CACHE) {
     setCachedOfferResults(cacheKey, results);
