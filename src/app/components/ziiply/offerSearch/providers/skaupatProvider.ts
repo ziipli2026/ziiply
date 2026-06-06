@@ -1,6 +1,6 @@
 // ============================================================================
 // SKAUPAT_PROVIDER_V174_STORE_DIRECTORY_RESOLVER
-// Revision: V176
+// Revision: V177
 // Date: 2026-06-06
 //
 // Fix:
@@ -708,7 +708,9 @@ function mapSProductListItemToOfferResult(
 
   const pricing = getPricing(product);
 
-  if (!hasSOfferSignal(listItem, product, pricing)) return null;
+  if (!options.discountedOnly && !hasSOfferSignal(listItem, product, pricing)) {
+    return null;
+  }
 
   const currentPrice =
     pricing.campaignPrice ??
@@ -894,6 +896,7 @@ async function fetchSKaupatRemoteFilteredProductsPageV170(
         fallbackFacetNames,
         index,
         selectedStoreId,
+        discountedOnly,
       }),
     )
     .filter(Boolean) as ZiiplyOfferSearchResult[];
