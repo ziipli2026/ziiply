@@ -117,6 +117,12 @@
 // V171_GOSTA_CONTEXT_TYPE_COMPAT_BUILD_FIX
 // Korjaus: Göstan search-core-kutsun context välitetään tyypitysturvallisesti/yhteensopivasti, jotta page ei kaadu jos core-tyyppi on hetkeksi vanha.
 
+// V172_GOSTA_KEEP_WORKING_CATEGORY_SEARCH_AND_PASS_CONTEXT_ONLY
+// Täsmäkorjaus käyttäjän toimivaan kategoriaversioon:
+// - EI palauteta V169-master-cachea, koska se rikkoi kategoriapalkit.
+// - Säilytetään kategoriakohtainen Gösta-haku täsmälleen nykyisessä flowssa.
+// - Siistitään ja lokitetaan vain kauppa-/aluekonteksti, jotta Prisma Varkaus -tyyppinen väärän S-storeId:n ongelma voidaan todentaa.
+
 // V168_EMPTY_STORE_AREA_CLEARS_STALE_SELECTION_AND_PAIR_NOTICE
 // Korjaus:
 // - jos uusi GPS/manuaalihaku palauttaa 0 kauppaa, vanha activeArea/kauppavalinta tyhjennetään eikä Joroinen/vanhat kaupat jää näkyviin.
@@ -7104,18 +7110,27 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setActiveResult("offers");
 
     try {
+      const gostaOfferSearchContextV172 = {
+        areaLabel: activeArea.label || "",
+        storeMode,
+        storeCompareScope,
+        sStoreId: activeStores.sStoreId || undefined,
+        sStoreName: activeStores.sStoreName || undefined,
+        kStoreId: activeStores.kStoreId || undefined,
+        kStoreName: activeStores.kStoreName || undefined,
+      };
+
+      // V172: pidetään kategoriat toimivana, mutta tehdään selväksi mikä kauppakonteksti
+      // lähtee Göstan tarjoushakuun. Jos Prisma Varkaus näyttää yhä vanhaa pientä datasettiä,
+      // Vercel/browser-konsolista näkee heti kulkeeko oikea sStoreId vai fallbackaako provider.
+      if (typeof window !== "undefined") {
+        console.info("[Ziiply Gosta context v172]", gostaOfferSearchContextV172);
+      }
+
       const gostaOfferSearchOptionsV171 = {
         query: hasExplicitOverride ? cleanedOverride : input.trim(),
         terms: useTerms,
-        context: {
-          areaLabel: activeArea.label,
-          storeMode,
-          storeCompareScope,
-          sStoreId: activeStores.sStoreId,
-          sStoreName: activeStores.sStoreName,
-          kStoreId: activeStores.kStoreId,
-          kStoreName: activeStores.kStoreName,
-        },
+        context: gostaOfferSearchContextV172,
       } as any;
 
       const offerSearchCoreResult = await searchZiiplyGostaOffersV146(gostaOfferSearchOptionsV171);
@@ -7124,7 +7139,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         query: offerSearchCoreResult.trackingKey,
         cartItemsCount: cart.length,
         storeMode,
+        storeCompareScope,
+        sStoreId: activeStores.sStoreId || "",
         sStoreName: activeStores.sStoreName,
+        kStoreId: activeStores.kStoreId || "",
         kStoreName: activeStores.kStoreName,
       });
 
