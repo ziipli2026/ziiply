@@ -13,6 +13,7 @@
 // Korjaus: Gösta-kortti ei saa sammua taustalla tapahtuvan GPS-/kauppapäivityksen takia.
 // V162: Kaikki-chip poistettu Göstasta ja tarjouslistan duplikaattien korjaus tuettu.
 // V163: Göstalle kategoriakohtaiset offer-countit, tyhjien kategorioiden piilotus ja paluu etusivulle.
+// V164: countteja ei esitäytetä nollilla, jotta etusivu ei piilota kaikkia ennen ensimmäistä datasettiä.
 // Kun Gösta-haku on käyttäjän avaama, pidetään tarjouskortti aktiivisena, ellei käyttäjä itse sulje sitä
 // tai siirry alapalkista Kaupat/Hae/Kori/Vertailu-näkymään.
 
@@ -5082,10 +5083,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   const gostaCategoryOfferCountsV163 = useMemo(() => {
     const counts: Record<string, number> = {};
-
-    for (const category of GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147) {
-      if (String(category).toLowerCase() !== "kaikki") counts[category] = 0;
-    }
 
     for (const rawOffer of cleanOfferSearchResultsV106) {
       const cardOffer = mapZiiplyGostaOfferToCardOfferV147(rawOffer);
