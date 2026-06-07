@@ -1,6 +1,6 @@
 // ============================================================================
-// SKAUPAT_PROVIDER_V186_VISIBLE_STORE_DEBUG
-// Revision: V186
+// SKAUPAT_PROVIDER_V188_DYNAMIC_SESSION_MARKETING_TEST
+// Revision: V188
 // Date: 2026-06-07
 //
 // Fix:
@@ -24,6 +24,11 @@
 // - Adds visible per-result debug fields so stale/wrong route data is obvious in Network/UI.
 // - Logs the exact GraphQL variables storeId/date/offset for every S-kaupat request.
 // - Keeps Prisma Varkaus selected via variables.storeId but does not reject rows by product.storeId.
+//
+// V188 test:
+// - generatedSessionId and marketingId are no longer hardcoded.
+// - useRandomId is true.
+// - Goal: prevent S-kaupat from reusing a stale campaign/session bucket.
 //
 // V160 fix:
 // - Gösta is an offer search: normal-priced shelf products are filtered out.
@@ -992,7 +997,7 @@ function mapSProductListItemToOfferResult(
 
     // V186 diagnostic fields. These intentionally travel to /api/offers/search
     // so the browser Network tab proves which provider/store/date produced data.
-    _debugProviderRevision: "skaupatProvider-v186-visible-store-debug",
+    _debugProviderRevision: "skaupatProvider-v188-dynamic-session-marketing-test",
     _debugSelectedStoreId: options.selectedStoreId,
     _debugExpectedPrismaVarkausStoreId: PRISMA_VARKAUS_SKAUPAT_STORE_ID_V182,
     _debugRequestDate: getFinnishDateYYYYMMDDV184(),
@@ -1029,14 +1034,14 @@ function buildRemoteFilteredProductsUrl(
           },
         ]
       : [],
-    generatedSessionId: "1d6b5de9-df99-4608-af07-7d754955df82",
+    generatedSessionId: createRequestIdV184("session"),
     fetchSponsoredContent: discountedOnly,
     limit: discountedOnly ? discountedLimit : normalLimit,
     queryString,
     sortForAvailabilityLabelDate: discountedOnly ? requestDate : undefined,
     storeId: selectedStoreId,
-    useRandomId: false,
-    marketingId: "d0bcc6e5-6130-494e-b6fb-12b5cb9c60cf",
+    useRandomId: true,
+    marketingId: createRequestIdV184("marketing"),
   };
 
   if (offset > 0) {
@@ -1059,7 +1064,7 @@ function buildRemoteFilteredProductsUrl(
   };
 
   console.warn("[GOSTA REQUEST VARIABLES V186]", {
-    providerRevision: "skaupatProvider-v186-visible-store-debug",
+    providerRevision: "skaupatProvider-v188-dynamic-session-marketing-test",
     selectedStoreId,
     requestDate,
     discountedOnly,
@@ -1070,6 +1075,9 @@ function buildRemoteFilteredProductsUrl(
     availabilityDate: variables.availabilityDate,
     sortForAvailabilityLabelDate: variables.sortForAvailabilityLabelDate,
     variablesStoreId: variables.storeId,
+    generatedSessionId: variables.generatedSessionId,
+    marketingId: variables.marketingId,
+    useRandomId: variables.useRandomId,
   });
 
   const url = new URL("https://api.s-kaupat.fi/");
