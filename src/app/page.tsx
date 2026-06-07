@@ -1,3 +1,8 @@
+// V174_GPS_NO_STALE_ACTIVEAREA_FALLBACK_DISTANCE_GUARD
+// Korjaus: GPS-tilassa activeArea ei saa palauttaa synteettistä/stalea kauppaa fallbackina.
+// Jos valittu kauppa ei löydy nykyisestä foundStores-listasta tai on liian kaukana, palautetaan null.
+// Lisäksi GPS-ranking hylkää yli kauppatason maksimietäisyyden olevat osumat.
+
 // V170_GOSTA_CONTEXT_OPTION_TYPE_COMPAT_BUILD_FIX
 // Build-fix: Göstan search-options pidetään yhteensopivana sekä vanhan että uuden search coren kanssa.
 
@@ -3797,6 +3802,33 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         ),
     );
 
+    // V174: GPS-tilassa EI saa rakentaa synteettistä activeArea-fallback-kauppaa
+    // pelkän vanhan id/nimen perusteella. Juuri tämä päästi stale K-Citymarket Kokkolan
+    // näkyviin Hyvinkään/05510 GPS-näkymässä, vaikka foundStores-listassa ei ollut
+    // oikeaa läheistä K-tavarataloa.
+    if (usingOwnLocation && gpsCoordsV320) {
+      if (!matched) return null;
+      if (!storeMatchesStrictChainAndModeV139(matched, chain, mode)) return null;
+
+      const matchedLat = getStoreCoordinateV320(matched, ["latitude", "lat", "y"]);
+      const matchedLon = getStoreCoordinateV320(matched, ["longitude", "lng", "lon", "x"]);
+      if (matchedLat == null || matchedLon == null) return null;
+
+      const distanceKm = calculateDistanceKmV320(gpsCoordsV320, {
+        latitude: matchedLat,
+        longitude: matchedLon,
+      });
+      const maxDistanceKm = mode === "hyper" ? 80 : 35;
+      if (!Number.isFinite(distanceKm) || distanceKm > maxDistanceKm) return null;
+
+      return {
+        ...matched,
+        distanceKm,
+        distance: `${Math.round(distanceKm)} km`,
+        distanceLabel: `${Math.round(distanceKm)} km`,
+      } as StoreSearchItem;
+    }
+
     const candidate =
       matched ||
       ({ id: id || 0, name: name || "", type: chain } as StoreSearchItem);
@@ -5996,6 +6028,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return oldPickerPreferred || strictModeCandidates[0];
     }
 
+    const maxGpsDistanceKmV174 = mode === "hyper" ? 80 : 35;
+
     const scoredStores = strictModeCandidates
       .map((store) => {
         const geoStoreForScore = toZiiplyResolverGeoStoreV32(store);
@@ -6020,6 +6054,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         });
 
         if (!scored) return null;
+
+        // V174: GPS-rankingissa ei saa hyväksyä kaukaista varatulosta.
+        // Lähikaupoille 35 km ja tavarataloille 80 km riittää käytännössä;
+        // esim. Kokkola 319 km hylätään eikä valu korttiin.
+        if (!Number.isFinite(scored.distanceKm) || scored.distanceKm > maxGpsDistanceKmV174) {
+          return null;
+        }
 
         return {
           store: {
