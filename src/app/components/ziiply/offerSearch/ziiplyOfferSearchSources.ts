@@ -42,6 +42,8 @@ export type {
   ZiiplyOfferSource,
 } from "./types";
 
+export type ZiiplyOfferSearchSourceContextV8 = SKaupatOfferProviderOptionsV173;
+
 const ZIIPLY_OFFER_SOURCES = {
   kmarket: {
     id: "kmarket",
