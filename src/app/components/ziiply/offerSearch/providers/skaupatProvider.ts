@@ -1,7 +1,7 @@
 // ============================================================================
-// SKAUPAT_PROVIDER_V182_PRISMA_VARKAUS_STORE_GUARD
-// Revision: V182
-// Date: 2026-06-06
+// SKAUPAT_PROVIDER_V183_TYPE_SAFE_PRISMA_VARKAUS_STORE_GUARD
+// Revision: V183
+// Date: 2026-06-07
 //
 // Fix:
 // - Fixes real S-kaupat product list field:
@@ -93,6 +93,13 @@ export type SKaupatOfferProviderOptionsV173 = {
   // forgets to map sStoreId -> storeId before calling fetchSKaupatOffers().
   sStoreId?: string | number | null;
   sStoreName?: string | null;
+
+  // V183: optional UI context keys used only for store guard diagnostics/resolution.
+  // These keep TypeScript build-safe when route/sources pass broader context.
+  areaLabel?: string | null;
+  selectedStoreLabel?: string | null;
+  storeMode?: string | null;
+  storeCompareScope?: string | null;
 };
 
 async function getEffectiveSKaupatStoreIdV174(
