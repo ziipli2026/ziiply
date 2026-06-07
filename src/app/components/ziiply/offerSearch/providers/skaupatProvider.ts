@@ -1,6 +1,6 @@
 // ============================================================================
-// SKAUPAT_PROVIDER_V189_RESTORE_WORKING_SESSION_STOREID_TRACE
-// Revision: V189
+// SKAUPAT_PROVIDER_V190_NUMERIC_STOREID_TEST
+// Revision: V190
 // Date: 2026-06-07
 //
 // Fix:
@@ -29,6 +29,10 @@
 // - Reverts V188 dynamic generatedSessionId/marketingId because S-kaupat returned 0 rows.
 // - Keeps the known-working S-kaupat request shape.
 // - Adds stronger storeId/date/page debug fields without changing request semantics.
+//
+// V190 test:
+// - Sends numeric S-kaupat storeId in GraphQL variables when the id is numeric.
+// - Hypothesis: RemoteFilteredProducts may ignore/fallback when storeId is passed as a string.
 //
 // V160 fix:
 // - Gösta is an offer search: normal-priced shelf products are filtered out.
@@ -83,6 +87,12 @@ function getFinnishDateYYYYMMDDV184() {
 
 function createRequestIdV184(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
+
+function coerceStoreIdForSGraphQLV190(value: string): string | number {
+  const text = String(value || "").trim();
+  if (/^\d+$/.test(text)) return Number(text);
+  return text;
 }
 
 function isPrismaVarkausContextV182(
@@ -997,7 +1007,7 @@ function mapSProductListItemToOfferResult(
 
     // V186 diagnostic fields. These intentionally travel to /api/offers/search
     // so the browser Network tab proves which provider/store/date produced data.
-    _debugProviderRevision: "skaupatProvider-v189-restore-working-session-storeid-trace",
+    _debugProviderRevision: "skaupatProvider-v190-numeric-storeid-test",
     _debugSelectedStoreId: options.selectedStoreId,
     _debugExpectedPrismaVarkausStoreId: PRISMA_VARKAUS_SKAUPAT_STORE_ID_V182,
     _debugRequestDate: getFinnishDateYYYYMMDDV184(),
@@ -1039,7 +1049,7 @@ function buildRemoteFilteredProductsUrl(
     limit: discountedOnly ? discountedLimit : normalLimit,
     queryString,
     sortForAvailabilityLabelDate: discountedOnly ? requestDate : undefined,
-    storeId: selectedStoreId,
+    storeId: coerceStoreIdForSGraphQLV190(selectedStoreId),
     useRandomId: false,
     marketingId: "d0bcc6e5-6130-494e-b6fb-12b5cb9c60cf",
   };
@@ -1064,7 +1074,7 @@ function buildRemoteFilteredProductsUrl(
   };
 
   console.warn("[GOSTA REQUEST VARIABLES V186]", {
-    providerRevision: "skaupatProvider-v189-restore-working-session-storeid-trace",
+    providerRevision: "skaupatProvider-v190-numeric-storeid-test",
     selectedStoreId,
     requestDate,
     discountedOnly,
@@ -1075,6 +1085,8 @@ function buildRemoteFilteredProductsUrl(
     availabilityDate: variables.availabilityDate,
     sortForAvailabilityLabelDate: variables.sortForAvailabilityLabelDate,
     variablesStoreId: variables.storeId,
+    variablesStoreIdType: typeof variables.storeId,
+    selectedStoreIdType: typeof selectedStoreId,
     generatedSessionId: variables.generatedSessionId,
     marketingId: variables.marketingId,
     useRandomId: variables.useRandomId,
