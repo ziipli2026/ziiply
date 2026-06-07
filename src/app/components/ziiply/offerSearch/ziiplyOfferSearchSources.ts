@@ -1,5 +1,5 @@
 // src/app/components/ziiply/offerSearch/ziiplyOfferSearchSources.ts
-// ZIIPLY_OFFER_SEARCH_SOURCES_V7_GOSTA_MASTER_SEEDED_NO_RANK
+// ZIIPLY_OFFER_SEARCH_SOURCES_V8_GOSTA_MASTER_PROVIDER_DIRECT
 //
 // V6 korjaus:
 // - Special query __ziiply_all_offers__ runs a broad S-kaupat seed sweep once and bypasses intent ranking/matchScore filtering.
@@ -21,7 +21,7 @@ import type {
   ZiiplyOfferSearchSourceConfig,
 } from "./types";
 import { fetchKruokaOffers } from "./providers/kruokaProvider";
-import { fetchSKaupatOffers } from "./providers/skaupatProvider";
+import { fetchSKaupatOffers, type SKaupatOfferProviderOptionsV173 } from "./providers/skaupatProvider";
 import {
   getCachedOfferResults,
   setCachedOfferResults,
@@ -41,6 +41,31 @@ export type {
   ZiiplyOfferSearchSourceConfig,
   ZiiplyOfferSource,
 } from "./types";
+
+export type ZiiplyOfferSearchSourceContextV8 = SKaupatOfferProviderOptionsV173 & {
+  areaLabel?: string | null;
+  storeMode?: string | null;
+  storeCompareScope?: string | null;
+  sStoreId?: string | number | null;
+  sStoreName?: string | null;
+  kStoreId?: string | number | null;
+  kStoreName?: string | null;
+};
+
+function normalizeSKaupatProviderOptionsV8(
+  options?: ZiiplyOfferSearchSourceContextV8,
+): SKaupatOfferProviderOptionsV173 | undefined {
+  if (!options) return undefined;
+
+  // Route/page context uses sStoreId/sStoreName, while skaupatProvider expects
+  // storeId/storeName. Without this bridge the provider cannot resolve the
+  // selected S-store and may return [] or leave the UI showing stale results.
+  return {
+    ...options,
+    storeId: options.storeId ?? options.sStoreId ?? null,
+    storeName: options.storeName ?? options.sStoreName ?? null,
+  };
+}
 
 const ZIIPLY_OFFER_SOURCES = {
   kmarket: {
@@ -63,63 +88,12 @@ const ZIIPLY_OFFER_SOURCES = {
   },
 } satisfies Record<string, ZiiplyOfferSearchSourceConfig>;
 
-const OFFER_SEARCH_SOURCE_REVISION = "v7";
+const OFFER_SEARCH_SOURCE_REVISION = "v8";
 const ENABLE_OFFER_SEARCH_CACHE = false;
 const MAX_OFFER_SEARCH_RESULTS = 1000;
 const ZIIPLY_GOSTA_MASTER_QUERY_V6 = "__ziiply_all_offers__";
 
-const ZIIPLY_GOSTA_MASTER_SEED_QUERIES_V7 = Array.from(new Set([
-  "kampanja",
-  "tarjous",
-  "maito",
-  "juusto",
-  "jogurtti",
-  "rahka",
-  "kananmuna",
-  "voi",
-  "kerma",
-  "kahvi",
-  "tee",
-  "mehu",
-  "liha",
-  "jauheliha",
-  "broileri",
-  "kana",
-  "nauta",
-  "porsas",
-  "makkara",
-  "kala",
-  "lohi",
-  "kirjolohi",
-  "tonnikala",
-  "leipä",
-  "sämpylä",
-  "pulla",
-  "hedelmät",
-  "vihannekset",
-  "peruna",
-  "tomaatti",
-  "kurkku",
-  "juomat",
-  "virvoitusjuomat",
-  "limu",
-  "pakaste",
-  "pakasteet",
-  "jäätelö",
-  "valmisruoka",
-  "ateria",
-  "makeiset",
-  "suklaa",
-  "snacks",
-  "lemmikki",
-  "koiranruoka",
-  "kissanruoka",
-  "kodinhoito",
-  "pesuaine",
-  "talouspaperi",
-  "wc-paperi",
-  "vaipat",
-]));
+// V8: master query is passed directly to provider; provider handles DISCOUNTED filter.
 
 function getOfferSearchCacheKey(query: string) {
   return `${OFFER_SEARCH_SOURCE_REVISION}:${query}`;
@@ -185,16 +159,24 @@ export async function searchKSupermarketOffers(query: string) {
   return fetchKruokaOffers(query, ZIIPLY_OFFER_SOURCES.ksupermarket);
 }
 
-export async function searchSKaupatOffers(query: string) {
-  return fetchSKaupatOffers(query, ZIIPLY_OFFER_SOURCES.skaupat);
+export async function searchSKaupatOffers(
+  query: string,
+  options?: SKaupatOfferProviderOptionsV173,
+) {
+  return fetchSKaupatOffers(query, ZIIPLY_OFFER_SOURCES.skaupat, options);
 }
 
-export async function searchZiiplyOffers(query: string) {
+export async function searchZiiplyOffers(
+  query: string,
+  options?: ZiiplyOfferSearchSourceContextV8,
+) {
   const cleanQuery = query.trim();
 
   if (!cleanQuery) return [];
 
   const isGostaMasterQuery = normalizeOfferUniqueText(cleanQuery) === normalizeOfferUniqueText(ZIIPLY_GOSTA_MASTER_QUERY_V6);
+
+  const providerOptions = normalizeSKaupatProviderOptionsV8(options);
 
   const cacheKey = getOfferSearchCacheKey(cleanQuery);
   const cached = ENABLE_OFFER_SEARCH_CACHE ? getCachedOfferResults(cacheKey) : null;
@@ -205,14 +187,12 @@ export async function searchZiiplyOffers(query: string) {
   // Sen sijaan haetaan kerran laajalla ruokakori-/arjen seed-joukolla ja annetaan corelle
   // master-datasetti, jota kategoriat voivat suodattaa paikallisesti.
   const sKaupatResults = isGostaMasterQuery
-    ? (await Promise.allSettled(
-        ZIIPLY_GOSTA_MASTER_SEED_QUERIES_V7.map((seedQuery) =>
-          safelySearchSource(`S-kaupat master: ${seedQuery}`, () => searchSKaupatOffers(seedQuery)),
-        ),
-      )).flatMap((result) =>
-        result.status === "fulfilled" ? result.value : [],
+    ? await safelySearchSource("S-kaupat master", () =>
+        searchSKaupatOffers(cleanQuery, providerOptions),
       )
-    : await safelySearchSource("S-kaupat", () => searchSKaupatOffers(cleanQuery));
+    : await safelySearchSource("S-kaupat", () =>
+        searchSKaupatOffers(cleanQuery, providerOptions),
+      );
 
   const uniqueSResults = uniqueOfferResults(sKaupatResults);
 
