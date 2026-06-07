@@ -1,6 +1,6 @@
 // ============================================================================
-// SKAUPAT_PROVIDER_V185_PRISMA_VARKAUS_SOFT_STORE_SCOPE
-// Revision: V183
+// SKAUPAT_PROVIDER_V186_VISIBLE_STORE_DEBUG
+// Revision: V186
 // Date: 2026-06-07
 //
 // Fix:
@@ -20,10 +20,10 @@
 // src/app/components/ziiply/offerSearch/providers/skaupatProvider.ts
 // ============================================================================
 //
-// V185 fix:
-// - Keeps Prisma Varkaus selected via variables.storeId but removes strict product.storeId rejection.
-// - Reverts random session/marketing IDs because S-kaupat persisted query can return empty with random IDs.
-// - Keeps long discounted pagination and visible diagnostics.
+// V186 fix:
+// - Adds visible per-result debug fields so stale/wrong route data is obvious in Network/UI.
+// - Logs the exact GraphQL variables storeId/date/offset for every S-kaupat request.
+// - Keeps Prisma Varkaus selected via variables.storeId but does not reject rows by product.storeId.
 //
 // V160 fix:
 // - Gösta is an offer search: normal-priced shelf products are filtered out.
@@ -989,6 +989,15 @@ function mapSProductListItemToOfferResult(
     subCategory: categoryMeta.subCategory,
     brandName: firstString(product.brandName),
     ean: firstString(product.ean),
+
+    // V186 diagnostic fields. These intentionally travel to /api/offers/search
+    // so the browser Network tab proves which provider/store/date produced data.
+    _debugProviderRevision: "skaupatProvider-v186-visible-store-debug",
+    _debugSelectedStoreId: options.selectedStoreId,
+    _debugExpectedPrismaVarkausStoreId: PRISMA_VARKAUS_SKAUPAT_STORE_ID_V182,
+    _debugRequestDate: getFinnishDateYYYYMMDDV184(),
+    _debugDiscountedOnly: options.discountedOnly === true,
+    _debugProductStoreId: getProductStoreIdV182(product) || "",
   } as unknown as ZiiplyOfferSearchResult;
 }
 
@@ -1048,6 +1057,20 @@ function buildRemoteFilteredProductsUrl(
       sha256Hash: SKAUPAT_REMOTE_FILTERED_PRODUCTS_HASH_V156,
     },
   };
+
+  console.warn("[GOSTA REQUEST VARIABLES V186]", {
+    providerRevision: "skaupatProvider-v186-visible-store-debug",
+    selectedStoreId,
+    requestDate,
+    discountedOnly,
+    offset,
+    limit: variables.limit,
+    queryString,
+    filters: variables.filters,
+    availabilityDate: variables.availabilityDate,
+    sortForAvailabilityLabelDate: variables.sortForAvailabilityLabelDate,
+    variablesStoreId: variables.storeId,
+  });
 
   const url = new URL("https://api.s-kaupat.fi/");
   url.searchParams.set("operationName", "RemoteFilteredProducts");
