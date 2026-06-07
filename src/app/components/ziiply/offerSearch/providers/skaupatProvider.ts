@@ -1,6 +1,6 @@
 // ============================================================================
-// SKAUPAT_PROVIDER_V174_STORE_DIRECTORY_RESOLVER
-// Revision: V180
+// SKAUPAT_PROVIDER_V181_MASTER_PAGINATION_STORE_DEBUG
+// Revision: V181
 // Date: 2026-06-06
 //
 // Fix:
@@ -64,13 +64,19 @@ const DEFAULT_SKAUPAT_STORE_ID_V156 = "513971200";
 export type SKaupatOfferProviderOptionsV173 = {
   storeId?: string | number | null;
   storeName?: string | null;
+
+  // V181 bridge safety: route/sources may pass S-store context with s-prefixed keys.
+  // Keeping these optional here makes the provider resilient even if the caller
+  // forgets to map sStoreId -> storeId before calling fetchSKaupatOffers().
+  sStoreId?: string | number | null;
+  sStoreName?: string | null;
 };
 
 async function getEffectiveSKaupatStoreIdV174(
   options?: SKaupatOfferProviderOptionsV173,
 ): Promise<string | null> {
-  const raw = firstString(options?.storeId);
-  const storeName = firstString(options?.storeName);
+  const raw = firstString(options?.storeId, options?.sStoreId);
+  const storeName = firstString(options?.storeName, options?.sStoreName);
 
   // First trust a real numeric S-kaupat storeId if the caller already has one.
   // Do not treat the old MVP fallback id as proof of a selected store.
@@ -104,13 +110,19 @@ async function getEffectiveSKaupatStoreIdV174(
   // Returning [] is safer than showing another store's offers.
   console.warn("[GOSTA] missing real S-kaupat storeId, skipping S-kaupat offer fetch", {
     storeId: options?.storeId,
+    sStoreId: options?.sStoreId,
     storeName: options?.storeName,
+    sStoreName: options?.sStoreName,
   });
 
   return null;
 }
 const SKAUPAT_GOSTA_MASTER_QUERY_V171 = "__ziiply_all_offers__";
 
+// V181: master pagination no longer stops based on mapped/filtered result count.
+// - discounted limit is 48 and offsets move in 48-item pages.
+// - logs selected S-store id so wrong-store fetches are visible in Vercel logs.
+//
 // V180: Gösta master uses the real S-kaupat discounted label filter:
 // filters=[{ key: "labels", value: ["DISCOUNTED"] }] and queryString="".
 // The old seed list is kept only for emergency fallback, but master search no longer uses it.
@@ -824,12 +836,12 @@ function buildRemoteFilteredProductsUrl(
   discountedOnly = false,
 ): string {
   const normalLimit = 48;
-  const discountedLimit = 24;
+  const discountedLimit = 48;
   const page = Math.floor(offset / normalLimit) + 1;
   const queryString = discountedOnly ? "" : query;
 
   const variables: UnknownRecord = {
-    availabilityDate: discountedOnly ? "2026-06-07" : undefined,
+    availabilityDate: discountedOnly ? new Date().toISOString().slice(0, 10) : undefined,
     facets: [
       { key: "brandName", order: "asc" },
       { key: "category" },
@@ -847,7 +859,7 @@ function buildRemoteFilteredProductsUrl(
     fetchSponsoredContent: discountedOnly,
     limit: discountedOnly ? discountedLimit : normalLimit,
     queryString,
-    sortForAvailabilityLabelDate: discountedOnly ? "2026-06-07" : undefined,
+    sortForAvailabilityLabelDate: discountedOnly ? new Date().toISOString().slice(0, 10) : undefined,
     storeId: selectedStoreId,
     useRandomId: false,
     marketingId: "d0bcc6e5-6130-494e-b6fb-12b5cb9c60cf",
@@ -937,8 +949,18 @@ async function fetchSKaupatRemoteFilteredProductsV170(
   const selectedStoreId = await getEffectiveSKaupatStoreIdV174(options);
   if (!selectedStoreId) return [];
 
+  console.warn("[GOSTA STORE CHECK]", {
+    inputStoreId: options?.storeId,
+    inputSStoreId: options?.sStoreId,
+    inputStoreName: options?.storeName,
+    inputSStoreName: options?.sStoreName,
+    selectedStoreId,
+    discountedOnly,
+    query,
+  });
+
   const pageOffsets = discountedOnly
-    ? [0, 24, 48, 72, 96, 120, 144, 168, 192, 216, 240, 264, 288, 312, 336]
+    ? [0, 48, 96, 144, 192, 240, 288, 336, 384, 432, 480, 528, 576, 624, 672, 720, 768, 816, 864, 912, 960, 1008, 1056, 1104, 1152]
     : isGostaMasterQueryV171(query)
       ? [0, 48, 96, 144, 192, 240, 288, 336, 384, 432, 480, 528, 576, 624, 672, 720, 768, 816, 864, 912]
       : [0, 48, 96, 144, 192];
@@ -949,10 +971,19 @@ async function fetchSKaupatRemoteFilteredProductsV170(
       const pageResults = await fetchSKaupatRemoteFilteredProductsPageV170(query, config, offset, selectedStoreId, discountedOnly);
       pages.push(pageResults);
 
-      // Stop early if S-kaupat returns a short page. If offset is ignored, the
-      // next page will dedupe away later, but this keeps the request count small
-      // when there clearly are no more rows.
-      if (discountedOnly ? pageResults.length < 20 : pageResults.length < 40) break;
+      console.warn("[GOSTA PAGE CHECK]", {
+        offset,
+        selectedStoreId,
+        discountedOnly,
+        mappedPageResults: pageResults.length,
+        accumulatedMappedResults: pages.flat().length,
+      });
+
+      // V181: Do not stop master/discounted pagination based on mapped result count.
+      // The mapper may reject sponsored/non-offer/duplicate rows, so a real S-kaupat
+      // page can contain more raw products even when mappedPageResults is small.
+      // Keep the old early stop only for normal text searches.
+      if (!discountedOnly && pageResults.length < 40) break;
     } catch (error) {
       if (offset === 0) throw error;
       console.warn(`[Ziiply offers] S-kaupat pagination page failed at offset ${offset}`, error);
