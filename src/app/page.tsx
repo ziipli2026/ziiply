@@ -3805,11 +3805,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         ),
     );
 
-    // V181: poistetaan vanha page-tason fallback kokonaan.
+    // V181/V182: poistetaan vanha page-tason fallback kokonaan.
     // Enää ei rakenneta synteettistä kauppaa activeArea-nimestä/id:stä, koska
     // se toi GPS-tilassa takaisin Hyvinkää/Espoo/Kokkola-tyyppisiä stale-valintoja.
-    return storeMatchesStrictChainAndModeV139(matched, chain, mode)
-      ? matched
+    // Build-fix: Array.find voi palauttaa undefined, mutta tämän funktion paluutyyppi on StoreSearchItem | null.
+    const strictMatched = matched ?? null;
+    return strictMatched && storeMatchesStrictChainAndModeV139(strictMatched, chain, mode)
+      ? strictMatched
       : null;
   }
 
