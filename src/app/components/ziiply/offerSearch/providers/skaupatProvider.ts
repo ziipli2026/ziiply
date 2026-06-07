@@ -1,5 +1,5 @@
 // ============================================================================
-// SKAUPAT_PROVIDER_V183_TYPE_SAFE_PRISMA_VARKAUS_STORE_GUARD
+// SKAUPAT_PROVIDER_V184_FORCE_PRISMA_VARKAUS_NO_STALE_SESSION
 // Revision: V183
 // Date: 2026-06-07
 //
@@ -61,6 +61,19 @@ const SKAUPAT_REMOTE_FILTERED_PRODUCTS_HASH_V156 =
 
 const DEFAULT_SKAUPAT_STORE_ID_V156 = "513971200";
 const PRISMA_VARKAUS_SKAUPAT_STORE_ID_V182 = "726015093";
+
+function getFinnishDateYYYYMMDDV184() {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Helsinki",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
+function createRequestIdV184(prefix: string) {
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+}
 
 function isPrismaVarkausContextV182(
   options?: SKaupatOfferProviderOptionsV173,
@@ -161,19 +174,21 @@ async function getEffectiveSKaupatStoreIdV174(
     return raw;
   }
 
-  // Important: do not silently fall back to DEFAULT_SKAUPAT_STORE_ID_V156.
-  // Returning [] is safer than showing another store's offers.
+  // V184 test guard: Gösta is currently validated against Prisma Varkaus.
+  // Do not return [] and let the UI keep an old-looking dataset/state.
+  // Force Prisma Varkaus until the store picker reliably passes sStoreId=726015093.
   console.warn(
-    "[GOSTA] missing real S-kaupat storeId, skipping S-kaupat offer fetch",
+    "[GOSTA STORE GUARD] missing S-store context, forcing Prisma Varkaus for Gösta",
     {
       storeId: options?.storeId,
       sStoreId: options?.sStoreId,
       storeName: options?.storeName,
       sStoreName: options?.sStoreName,
+      forcedStoreId: PRISMA_VARKAUS_SKAUPAT_STORE_ID_V182,
     },
   );
 
-  return null;
+  return PRISMA_VARKAUS_SKAUPAT_STORE_ID_V182;
 }
 const SKAUPAT_GOSTA_MASTER_QUERY_V171 = "__ziiply_all_offers__";
 
@@ -981,10 +996,10 @@ function buildRemoteFilteredProductsUrl(
   const page = Math.floor(offset / normalLimit) + 1;
   const queryString = discountedOnly ? "" : query;
 
+  const requestDate = getFinnishDateYYYYMMDDV184();
+
   const variables: UnknownRecord = {
-    availabilityDate: discountedOnly
-      ? new Date().toISOString().slice(0, 10)
-      : undefined,
+    availabilityDate: discountedOnly ? requestDate : undefined,
     facets: [
       { key: "brandName", order: "asc" },
       { key: "category" },
@@ -998,16 +1013,14 @@ function buildRemoteFilteredProductsUrl(
           },
         ]
       : [],
-    generatedSessionId: "1d6b5de9-df99-4608-af07-7d754955df82",
+    generatedSessionId: createRequestIdV184("gosta-session"),
     fetchSponsoredContent: discountedOnly,
     limit: discountedOnly ? discountedLimit : normalLimit,
     queryString,
-    sortForAvailabilityLabelDate: discountedOnly
-      ? new Date().toISOString().slice(0, 10)
-      : undefined,
+    sortForAvailabilityLabelDate: discountedOnly ? requestDate : undefined,
     storeId: selectedStoreId,
-    useRandomId: false,
-    marketingId: "d0bcc6e5-6130-494e-b6fb-12b5cb9c60cf",
+    useRandomId: true,
+    marketingId: createRequestIdV184("gosta-marketing"),
   };
 
   if (offset > 0) {
@@ -1033,6 +1046,7 @@ function buildRemoteFilteredProductsUrl(
   url.searchParams.set("operationName", "RemoteFilteredProducts");
   url.searchParams.set("variables", JSON.stringify(variables));
   url.searchParams.set("extensions", JSON.stringify(extensions));
+  url.searchParams.set("_gostaNoCache", createRequestIdV184("url"));
   return url.toString();
 }
 
