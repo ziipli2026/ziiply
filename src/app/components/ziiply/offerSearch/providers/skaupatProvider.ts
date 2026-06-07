@@ -1,6 +1,6 @@
 // ============================================================================
-// SKAUPAT_PROVIDER_V182_SEEDED_MASTER_NORMAL_QUERY
-// Revision: V182
+// SKAUPAT_PROVIDER_V183_MASTER_DISCOUNTED_PLUS_SEEDS
+// Revision: V183
 // Date: 2026-06-06
 //
 // Fix:
@@ -134,12 +134,12 @@ const SKAUPAT_GOSTA_MASTER_QUERY_V171 = "__ziiply_all_offers__";
 // filters=[{ key: "labels", value: ["DISCOUNTED"] }] and queryString="".
 // The old seed list is kept only for emergency fallback, but master search no longer uses it.
 //
-// V182:
+// V183:
 // - Keeps V181 Prisma Varkaus product-search id mapping.
-// - Changes only Gösta master query behavior:
-//   __ziiply_all_offers__ no longer uses queryString="" + labels=DISCOUNTED.
-// - Master now runs controlled normal S-kaupat queryString searches using
-//   SKAUPAT_GOSTA_MASTER_SEED_QUERIES_V172 with the selected store context.
+// - Master query combines two sources:
+//   1) original DISCOUNTED master
+//   2) normal S-kaupat queryString seed searches
+// - Core can then build categories from a wider master offer dataset.
 const SKAUPAT_GOSTA_MASTER_SEED_QUERIES_V172 = Array.from(new Set([
   "kampanja", "tarjous", "maito", "juusto", "jogurtti", "rahka", "kananmuna", "voi", "kerma",
   "kahvi", "tee", "mehu", "jauheliha", "broileri", "kana", "nauta", "porsas", "makkara",
@@ -999,16 +999,26 @@ export async function fetchSKaupatOffers(
 
   try {
     if (isGostaMasterQueryV171(cleanQuery)) {
-      const batches = await Promise.allSettled(
-        SKAUPAT_GOSTA_MASTER_SEED_QUERIES_V172.map((seedQuery) =>
-          fetchSKaupatRemoteFilteredProductsV170(
-            seedQuery,
-            config,
-            options,
-            false,
-          ),
+      const discountedMasterPromise = fetchSKaupatRemoteFilteredProductsV170(
+        "",
+        config,
+        options,
+        true,
+      );
+
+      const seedMasterPromises = SKAUPAT_GOSTA_MASTER_SEED_QUERIES_V172.map((seedQuery) =>
+        fetchSKaupatRemoteFilteredProductsV170(
+          seedQuery,
+          config,
+          options,
+          false,
         ),
       );
+
+      const batches = await Promise.allSettled([
+        discountedMasterPromise,
+        ...seedMasterPromises,
+      ]);
 
       const mergedResults = batches.flatMap((result) =>
         result.status === "fulfilled" ? result.value : [],
