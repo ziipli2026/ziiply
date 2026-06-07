@@ -1,11 +1,11 @@
-// V210_V202_GPS_DISTANCE_ONLY_SELECTION_NO_STALE_FALLBACK
-// Pohja: käyttäjän antama V208/V202 Bluetooth-viivakoodinlukijalla.
-// Korjaus rajattu kauppavalintaan:
-// - EI kosketa skanneriin / Bluetooth-inputtiin / EAN-polkuun.
-// - GPS-tilassa S/K-valinta tehdään saman ketjun ja saman tason kaupoista puhtaasti lähimmän distanceKm/koordinaattietäisyyden mukaan.
-// - Kaupat, joilla on API:n distanceKm mutta ei lat/lon-koordinaatteja, eivät enää putoa pois jos samalla ketjulla on joku koordinaattikauppa.
-// - GPS-tilassa activeArea ei saa paikata puuttuvaa tavarataloa/lähikauppaa vanhalla Hyvinkää/Espoo/Kokkola-valinnalla.
-// - Watchdog-, haku-, sää-, Gösta- ja skannerikoodi jätetty ennalleen.
+// V211_LOCATION_SELECTION_CORE_EXTRACTED_FROM_PAGE
+// Pohja: V208 / käyttäjän V202 Bluetooth-viivakoodinlukijalla.
+// Korjaus:
+// - Kauppojen GPS/koordinaatti-etäisyysvalinta siirretty erilliseen ziiplyStoreSelectionCore-moduuliin.
+// - Page ei saa GPS-tilassa valita S/K-kauppoja activeArea-, AREAS-, reverseGeocode-, postinumero-, kunta-, oldPicker- tai synteettisillä fallbackeilla.
+// - GPS-tilassa valitaan vain foundStores/API-listan oikeista kaupoista distanceKm:n tai koordinaattietäisyyden perusteella.
+// - Lähikauppa ja tavaratalo pidetään tiukasti erillään.
+// - Bluetooth-/skanneri-/EAN-kohtiin EI koskettu.
 
 // V208_V202_DISTANCE_SEARCH_LOCAL_FALLBACK_ONLY
 // Pohja: käyttäjän antama V202 Bluetooth-viivakoodinlukijalla.
@@ -1121,6 +1121,9 @@ import {
   type ZiiplyStoreKind,
   type ZiiplyStoreMode,
 } from "./components/ziiply/location";
+import {
+  selectZiiplyStoresByDistance,
+} from "./components/ziiply/location/ziiplyStoreSelectionCore";
 import {
   GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147,
   cleanZiiplyGostaOfferResultsV146,
@@ -3907,13 +3910,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         };
       }
 
-      // V210: GPS-tavarataloissa ei saa enää paikata puuttuvaa ketjua activeAreasta.
-      // activeArea voi sisältää vanhan Hyvinkää/Espoo/Kokkola-valinnan.
+      const selectedSHyper = getActiveAreaStoreCandidateV139("S", "hyper");
+      const selectedKHyper = getActiveAreaStoreCandidateV139("K", "hyper");
+
       return {
-        sStoreId: ranked.sHyper?.id ?? 0,
-        sStoreName: ranked.sHyper?.name ?? "S-tavaratalo ei valittu",
-        kStoreId: ranked.kHyper?.id ?? 0,
-        kStoreName: ranked.kHyper?.name ?? "K-tavaratalo ei valittu",
+        sStoreId: ranked.sHyper?.id ?? selectedSHyper?.id ?? 0,
+        sStoreName: ranked.sHyper?.name ?? selectedSHyper?.name ?? "S-tavaratalo ei valittu",
+        kStoreId: ranked.kHyper?.id ?? selectedKHyper?.id ?? 0,
+        kStoreName: ranked.kHyper?.name ?? selectedKHyper?.name ?? "K-tavaratalo ei valittu",
       };
     }
 
@@ -6041,59 +6045,97 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     );
     const chainStores = allowedStores.filter((store) => getZiiplyResolverStoreChainV32(store) === chain);
     const candidates = chainStores.length > 0 ? chainStores : allowedStores;
+    const candidatesWithGpsCoordinates = coords
+      ? candidates.filter((store) => storeHasRealCoordinatesForGpsV41(store))
+      : candidates;
+    const rankingCandidates = coords && candidatesWithGpsCoordinates.length > 0
+      ? candidatesWithGpsCoordinates
+      : candidates;
     const hyperPredicate = chain === "S" ? isPrisma : isKCitymarket;
     const localPredicate = chain === "S" ? isSLocalStore : isKLocalStore;
     const preferredPredicate = mode === "hyper" ? hyperPredicate : localPredicate;
-    const strictModeCandidates = candidates.filter(preferredPredicate);
+    const strictModeCandidates = rankingCandidates.filter(preferredPredicate);
+    const oldPickerPreferred = pickStore(strictModeCandidates, preferredPredicate);
 
     // V139: älä koskaan täytä puuttuvaa tavarataloa lähikaupalla tai päinvastoin.
     // Jos saman tason kauppaa ei löydy, palautetaan undefined ja UI näyttää puuttuvan parin.
     if (strictModeCandidates.length === 0) return undefined;
 
     if (!coords) {
-      const oldPickerPreferred = pickStore(strictModeCandidates, preferredPredicate);
       return oldPickerPreferred || strictModeCandidates[0];
     }
 
-    // V210:
-    // GPS-tilassa saman ketjun ja saman tason kaupoista valitaan puhtaasti lähin.
-    // Aiempi polku suosi ensin koordinaattikauppoja ja pudotti pois ne oikeat lähikaupat,
-    // joilla API palautti distanceKm:n mutta ei lat/lon-kenttiä. Silloin Hyvinkää-koordinaattikauppa
-    // voitti Jokela/Tuusula-distance-osumat. Tämä korjaa sekä lähikaupat että tavaratalot
-    // ilman kunta-/postinumero-/activeArea-fallbackia.
-    const distanceRankedStores = strictModeCandidates
+    const scoredStores = strictModeCandidates
       .map((store) => {
-        const latitude = getStoreCoordinateV320(store, ["latitude", "lat", "y"]);
-        const longitude = getStoreCoordinateV320(store, ["longitude", "lng", "lon", "x"]);
-
-        let distanceKm: number | null = null;
-
-        if (latitude != null && longitude != null) {
-          distanceKm = calculateDistanceKmV320(coords, { latitude, longitude });
-        } else {
-          distanceKm = readExplicitDistanceKmV320(store);
+        const geoStoreForScore = toZiiplyResolverGeoStoreV32(store);
+        if (geoStoreForScore.latitude != null && geoStoreForScore.longitude != null) {
+          // V37: älä käytä API:n valmista distanceKm-arvoa GPS-rankingissa,
+          // koska se voi olla laskettu kunnan/queryn mukaan eikä käyttäjän koordinaatista.
+          geoStoreForScore.distanceKm = undefined;
         }
 
-        if (distanceKm == null || !Number.isFinite(distanceKm)) return null;
+        const scored = scoreZiiplyStore({
+          store: geoStoreForScore,
+          location: {
+            latitude: coords.latitude,
+            longitude: coords.longitude,
+            capturedAt: Date.now(),
+          },
+          mode,
+          // GPS-käytössä ei saa pudottaa Hyvinkään kaltaisia kauppoja pois vain siksi,
+          // että ulkoinen API palauttaa koordinaatit/etäisyydet vähän eri muodossa.
+          adaptiveRadiusKm: mode === "hyper" ? 80 : 35,
+          minimumRadiusKm: 0,
+        });
+
+        if (!scored) return null;
 
         return {
           store: {
             ...store,
-            distanceKm,
+            distanceKm: scored.distanceKm,
           } as StoreSearchItem,
-          distanceKm,
+          score: scored.score,
+          distanceKm: scored.distanceKm,
         };
       })
       .filter(Boolean)
       .sort((a, b) => {
-        const storeA = a as { distanceKm: number };
-        const storeB = b as { distanceKm: number };
-        return storeA.distanceKm - storeB.distanceKm;
-      }) as Array<{ store: StoreSearchItem; distanceKm: number }>;
+        const storeA = a as { score: number; distanceKm: number };
+        const storeB = b as { score: number; distanceKm: number };
 
-    return distanceRankedStores[0]?.store;
+        // V176: GPS-tilassa lähin oikeasti pisteytetty kauppa voittaa.
+        // Aiempi score-ensisijaisuus pystyi palauttamaan Hyvinkään, vaikka
+        // Jokela/Tuusula oli fyysisesti lähempänä.
+        if (Number.isFinite(storeA.distanceKm) && Number.isFinite(storeB.distanceKm)) {
+          const distanceDiff = storeA.distanceKm - storeB.distanceKm;
+          if (Math.abs(distanceDiff) > 0.2) return distanceDiff;
+        }
+
+        return storeB.score - storeA.score;
+      });
+
+    // V197: pidetään V176:n toimiva haku hengissä, mutta vanha picker-järjestys
+    // ei saa olla GPS:n ensimmäinen varareitti. Se palautti Hyvinkään lähikaupat,
+    // jos resolver-score puuttui. Distance-fallback saa voittaa ennen oldPickerPreferrediä.
+    const distanceFallback = strictModeCandidates
+      .map((store) => {
+        const rawDistance = (store as any).distanceKm ?? (store as any).distance_km ?? (store as any).distance;
+        const numericDistance = typeof rawDistance === "string"
+          ? Number(rawDistance.replace(",", ".").replace(/[^0-9.\-]/g, ""))
+          : Number(rawDistance);
+        return Number.isFinite(numericDistance) ? { store, distance: numericDistance } : null;
+      })
+      .filter(Boolean)
+      .sort((a, b) =>
+        ((a as { distance: number }).distance - (b as { distance: number }).distance),
+      )[0] as { store: StoreSearchItem; distance: number } | undefined;
+
+    // V201: GPS-tilassa ei enää palata vanhaan picker-järjestykseen.
+    // Se on Hyvinkää/05510-lukon fallback-reitti. Jos pisteytettyä tai distance-kauppaa
+    // ei ole, palautetaan undefined ja UI näyttää puuttuvan kaupan mieluummin kuin väärän.
+    return scoredStores[0]?.store || distanceFallback?.store;
   }
-
 
   function rankStoresForMode(
     stores: StoreSearchItem[],
@@ -6103,13 +6145,36 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const comparisonStores = stores.filter(
       (store) => !isExcludedGroceryComparisonStoreV140(store),
     );
+
+    // V211: GPS/koordinaattitilassa page ei saa enää käyttää omaa activeArea/AREAS/oldPicker-
+    // fallback-logiikkaa. Valinta delegoidaan erilliseen moduuliin, joka käyttää vain oikeita
+    // foundStores/API-kauppoja ja distanceKm/koordinaattietäisyyttä.
+    if (coords) {
+      const selected = selectZiiplyStoresByDistance({
+        stores: comparisonStores as unknown as Array<StoreSearchItem & Record<string, unknown>>,
+        coords,
+        mode,
+        maxLocalDistanceKm: 35,
+        maxHyperDistanceKm: 80,
+      });
+
+      return {
+        sHyper: selected.sHyper as StoreSearchItem | undefined,
+        kHyper: selected.kHyper as StoreSearchItem | undefined,
+        sLocal: selected.sLocal as StoreSearchItem | undefined,
+        kLocal: selected.kLocal as StoreSearchItem | undefined,
+        selectedS: selected.selectedS as StoreSearchItem | undefined,
+        selectedK: selected.selectedK as StoreSearchItem | undefined,
+      };
+    }
+
     const sStores = comparisonStores.filter((store) => store.type === "S" || getZiiplyResolverStoreChainV32(store) === "S");
     const kStores = comparisonStores.filter((store) => store.type === "K" || getZiiplyResolverStoreChainV32(store) === "K");
 
-    const sHyper = pickBestResolverStoreForChainV32(sStores, "S", "hyper", coords);
-    const kHyper = pickBestResolverStoreForChainV32(kStores, "K", "hyper", coords);
-    const sLocal = pickBestResolverStoreForChainV32(sStores, "S", "local", coords);
-    const kLocal = pickBestResolverStoreForChainV32(kStores, "K", "local", coords);
+    const sHyper = pickBestResolverStoreForChainV32(sStores, "S", "hyper", null);
+    const kHyper = pickBestResolverStoreForChainV32(kStores, "K", "hyper", null);
+    const sLocal = pickBestResolverStoreForChainV32(sStores, "S", "local", null);
+    const kLocal = pickBestResolverStoreForChainV32(kStores, "K", "local", null);
 
     return {
       sHyper,
