@@ -1,3 +1,10 @@
+// V202_BLUETOOTH_BARCODE_KEYBOARD_WEDGE_INPUT
+// Pohja: V201
+// Korjaus:
+// - Skannerinäkymään lisätty piilotettu input Bluetooth-viivakoodinlukijalle (keyboard wedge).
+// - Eyoyo EY-016Z voi syöttää EAN-koodin aktiiviseen kenttään ja Enter käynnistää saman finishScannedEan()-polun kuin kamera.
+// - Kenttä pidetään fokuksessa skannerin ollessa auki, mutta sitä ei näytetä käyttäjälle.
+
 // V201_V197_GPS_DO_NOT_CUT_SEARCH_KEEP_CITY_AS_LAST_FALLBACK
 // Pohja: V197
 // Korjaus:
@@ -3099,6 +3106,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const eanAutoSearchTimeoutRef = useRef<number | null>(null);
   const eanAutoSearchActiveRef = useRef(false);
   const eanInputRef = useRef<HTMLInputElement | null>(null);
+  const bluetoothBarcodeInputRefV202 = useRef<HTMLInputElement | null>(null);
+  const bluetoothBarcodeRefocusTimerRefV202 = useRef<number | null>(null);
   const eanResultsRef = useRef<HTMLDivElement | null>(null);
   const lastEanCartAddRef = useRef<{ key: string; at: number } | null>(null);
   const lastEanToastRef = useRef<{ message: string; at: number } | null>(null);
@@ -3383,6 +3392,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         window.clearTimeout(scanMissFlashTimeoutRef.current);
         scanMissFlashTimeoutRef.current = null;
       }
+
+      if (bluetoothBarcodeRefocusTimerRefV202.current) {
+        window.clearTimeout(bluetoothBarcodeRefocusTimerRefV202.current);
+        bluetoothBarcodeRefocusTimerRefV202.current = null;
+      }
     };
   }, []);
 
@@ -3466,6 +3480,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       stopEanCameraScanner();
     };
   }, [eanModalOpen]);
+
+  useEffect(() => {
+    if (!eanModalOpen || desktopKeyboardScannerOpen) return;
+
+    focusBluetoothBarcodeInputV202();
+  }, [eanModalOpen, eanScannerOpen, desktopKeyboardScannerOpen]);
 
   useEffect(() => {
     if (!eanModalOpen || eanResults.length <= 1) return;
@@ -7881,6 +7901,48 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setEanScannerMessage("");
     setEanMessage(`Skannattu EAN: ${normalizedCode}. Haetaan...`);
     void searchByEan(normalizedCode, { fromScanner: true });
+  }
+
+  function focusBluetoothBarcodeInputV202() {
+    if (typeof window === "undefined") return;
+    if (!eanModalOpen || desktopKeyboardScannerOpen) return;
+
+    if (bluetoothBarcodeRefocusTimerRefV202.current) {
+      window.clearTimeout(bluetoothBarcodeRefocusTimerRefV202.current);
+      bluetoothBarcodeRefocusTimerRefV202.current = null;
+    }
+
+    bluetoothBarcodeRefocusTimerRefV202.current = window.setTimeout(() => {
+      bluetoothBarcodeInputRefV202.current?.focus({ preventScroll: true });
+      bluetoothBarcodeRefocusTimerRefV202.current = null;
+    }, 0);
+  }
+
+  function handleBluetoothBarcodeInputKeyDownV202(
+    event: React.KeyboardEvent<HTMLInputElement>,
+  ) {
+    if (event.key !== "Enter") return;
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    const code = normalizeEan(event.currentTarget.value);
+    event.currentTarget.value = "";
+
+    if (!isUsableEan(code)) {
+      setEanScannerMessage("Bluetooth-lukijan koodi ei ollut kelvollinen EAN.");
+      window.setTimeout(() => {
+        setEanScannerMessage((current) =>
+          current === "Bluetooth-lukijan koodi ei ollut kelvollinen EAN." ? "" : current,
+        );
+      }, 2200);
+      focusBluetoothBarcodeInputV202();
+      return;
+    }
+
+    setEanScannerMessage("");
+    finishScannedEan(code);
+    focusBluetoothBarcodeInputV202();
   }
 
   async function toggleScannerTorch() {
@@ -15080,7 +15142,26 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               )}
 
               {(eanScannerOpen || (!desktopKeyboardScannerOpen && eanModalOpen)) && (
-                <ZiiplyMobileScannerCard
+                <>
+                  <input
+                    ref={bluetoothBarcodeInputRefV202}
+                    type="text"
+                    inputMode="none"
+                    autoComplete="off"
+                    autoCorrect="off"
+                    autoCapitalize="off"
+                    spellCheck={false}
+                    aria-label="Bluetooth-viivakoodinlukijan piilotettu EAN-kenttä"
+                    className="fixed left-[-1000px] top-[-1000px] h-px w-px opacity-0"
+                    onKeyDown={handleBluetoothBarcodeInputKeyDownV202}
+                    onBlur={() => {
+                      if (eanModalOpen && !desktopKeyboardScannerOpen) {
+                        focusBluetoothBarcodeInputV202();
+                      }
+                    }}
+                  />
+
+                  <ZiiplyMobileScannerCard
                   regionId={MOBILE_EAN_SCANNER_REGION_ID}
                   fullscreen
                   flashState={scanSuccessFlash ? "success" : scanMissFlash ? "error" : "idle"}
@@ -15093,9 +15174,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   getProductPrice={(result) =>
                     getProductPrice(((result as any).product ?? result) as Product)
                   }
-                  onCameraTap={(event) =>
-                    void (focusScannerCameraAtPoint as any)(MOBILE_EAN_SCANNER_REGION_ID, event)
-                  }
+                  onCameraTap={(event) => {
+                    focusBluetoothBarcodeInputV202();
+                    void (focusScannerCameraAtPoint as any)(MOBILE_EAN_SCANNER_REGION_ID, event);
+                  }}
                   onToggleManualInput={async () => {
                     try {
                       const clipboardApi =
@@ -15128,6 +15210,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   onToggleTorch={() => void toggleScannerTorch()}
                   onClose={closeEanModal}
                 />
+                </>
               )}
 
               {eanResults.length > 1 &&
