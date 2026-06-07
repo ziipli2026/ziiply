@@ -1,3 +1,11 @@
+// V212_V211_GPS_QUERY_NO_REVERSE_LOCK_NO_ACTIVEAREA_HYPER_FALLBACK
+// Pohja: V211. Korjaus rajattu GPS-kauppahakuun ja kauppavalintaan.
+// - Skanneri/Bluetooth/EAN-kohtiin EI koskettu.
+// - GPS-haku ei enää vaadi reverse-geocode-kuntaa; tyhjä koordinaattihaku saa jatkua.
+// - reverse-geocode/postinumero/kunta ei ole GPS-queryfallback.
+// - GPS-tavaratalot eivät enää paikkaudu activeArea/Hyvinkää-fallbackilla.
+// - Watchdog jatkaa paikkapäivitystä koordinaateilla, vaikka reverse-geocode palauttaa tyhjää.
+
 // V211_LOCATION_SELECTION_CORE_EXTRACTED_FROM_PAGE
 // Pohja: V208 / käyttäjän V202 Bluetooth-viivakoodinlukijalla.
 // Korjaus:
@@ -2771,9 +2779,9 @@ export default function Page() {
       }
     }
 
-    // V201: reverse-geocode-kaupunki on vain viimeinen vanhan API:n fallback,
-    // ei GPS-valinnan ensisijainen kunta/postinumero-lukko.
-    addQuery(primaryQuery);
+    // V212: GPS-tilassa reverse-geocode/kunta/postinumero EI saa olla fallback-query.
+    // Haku perustuu koordinaattihakuun + lähimpiin AREAS-hakuihin.
+    // primaryQuery jätetään tahallaan käyttämättä, jotta Hyvinkää/05510-lukko ei palaa.
 
     return queries.slice(0, 16);
   }
@@ -3910,14 +3918,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         };
       }
 
-      const selectedSHyper = getActiveAreaStoreCandidateV139("S", "hyper");
-      const selectedKHyper = getActiveAreaStoreCandidateV139("K", "hyper");
-
+      // V212: GPS-tavaratalot eivät saa paikata activeArea/Hyvinkää-fallbackilla.
       return {
-        sStoreId: ranked.sHyper?.id ?? selectedSHyper?.id ?? 0,
-        sStoreName: ranked.sHyper?.name ?? selectedSHyper?.name ?? "S-tavaratalo ei valittu",
-        kStoreId: ranked.kHyper?.id ?? selectedKHyper?.id ?? 0,
-        kStoreName: ranked.kHyper?.name ?? selectedKHyper?.name ?? "K-tavaratalo ei valittu",
+        sStoreId: ranked.sHyper?.id ?? 0,
+        sStoreName: ranked.sHyper?.name ?? "S-tavaratalo ei valittu",
+        kStoreId: ranked.kHyper?.id ?? 0,
+        kStoreName: ranked.kHyper?.name ?? "K-tavaratalo ei valittu",
       };
     }
 
@@ -6489,14 +6495,20 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     silentStatusV137 = false,
   ) {
     pushGpsDebugLogV492(`applyLocation() ENTRY source=${source} query=${String(queryOverride || locationInput)}`);
-    const rawQuery = (queryOverride || locationInput).trim();
+    let rawQuery = (queryOverride || locationInput).trim();
     const setLocationStatusV137 = (message: string) => {
       if (!silentStatusV137) setLocationMessage(message);
     };
 
     if (!rawQuery) {
-      setLocationStatusV137("Kirjoita ensin kaupunki, alue tai postinumero");
-      return;
+      if (source === "gps" && (coordsOverride || gpsCoordsV320)) {
+        // V212: GPS saa hakea kaupat pelkillä koordinaateilla.
+        // Älä katkaise hakua vain siksi, että reverse-geocode ei tuottanut kuntaa.
+        rawQuery = "";
+      } else {
+        setLocationStatusV137("Kirjoita ensin kaupunki, alue tai postinumero");
+        return;
+      }
     }
 
     // V161: Göstan ollessa auki GPS/watchdog ei saa taustalla vaihtaa kauppatilaa
@@ -6515,7 +6527,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setStoreSearchLoading(true);
     setLocationStatusV137(
       source === "gps"
-        ? `Haetaan kauppoja alueelle ${rawQuery}`
+        ? "Haetaan kauppoja oman sijainnin perusteella"
         : `Haetaan kauppoja alueelle ${rawQuery}`,
     );
 
@@ -6545,7 +6557,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       });
 
       setLocationStatusV137(
-        `Haetaan kauppoja alueelle ${query}`,
+        source === "gps" ? "Haetaan kauppoja oman sijainnin perusteella" : `Haetaan kauppoja alueelle ${query}`,
       );
       const stores = await fetchStoresForLocationQuery(
         query,
@@ -6911,19 +6923,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         nextGpsCoordsV485.longitude,
       );
 
+      const gpsQueryV212 = city || "";
       if (!city) {
-        pushGpsDebugLogV492(`useOwnLocation reverse geocode EMPTY`);
-        setGpsErrorMessage("GPS ei löydy");
-        setLocationMessage("GPS ei löydy");
-        setLocationMessageVisible(true);
-        gpsUserDisabledRefV306.current = true;
-        setUsingOwnLocation(false);
-        setGpsCoordsV320(null);
-        return;
+        pushGpsDebugLogV492(`useOwnLocation reverse geocode EMPTY, continue with coordinate search`);
       }
 
-      pushGpsDebugLogV492(`useOwnLocation city=${city}`);
-      gpsResolvedCityV495 = city;
+      pushGpsDebugLogV492(`useOwnLocation city=${gpsQueryV212 || "Oma sijainti"}`);
+      gpsResolvedCityV495 = gpsQueryV212;
       gpsResolvedCoordsV495 = nextGpsCoordsV485;
       setGpsErrorMessage("");
       gpsInitialVisiblePhaseRefV391.current = false;
@@ -6932,7 +6938,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         gpsFailTimerRefV391.current = null;
       }
       setGpsErrorMessage("");
-      setLocationMessage(`${city} käytössä`);
+      setLocationMessage(`${gpsQueryV212 || "Oma sijainti"} käytössä`);
       setLocationMessageVisible(true);
       setLocationInput("");
       // V470: älä pudota storeSearchLoadingia pois päältä tässä välissä.
@@ -6943,7 +6949,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setStoreMode("local");
       setStoreModeChosenV299(true);
       pushGpsDebugLogV492(`useOwnLocation applyLocation start`);
-      await applyLocation(city, "gps", nextGpsCoordsV485);
+      await applyLocation(gpsQueryV212, "gps", nextGpsCoordsV485);
       gpsPollLastAppliedCoordsRefV137.current = nextGpsCoordsV485;
       gpsPollLastAppliedAtRefV90.current = Date.now();
       gpsApplyLocationDoneV495 = true;
@@ -7081,7 +7087,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               nextCoords.longitude,
             );
 
-            if (!city || cancelled) return;
+            if (cancelled) return;
+            const gpsPollQueryV212 = city || "";
 
             gpsPollLastAppliedCoordsRefV137.current = nextCoords;
             gpsPollLastAppliedAtRefV90.current = Date.now();
@@ -7090,7 +7097,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             setGpsErrorMessage("");
             setLocationInput("");
 
-            await applyLocation(city, "gps", nextCoords, true);
+            await applyLocation(gpsPollQueryV212, "gps", nextCoords, true);
 
             if (cancelled) return;
 
