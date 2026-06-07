@@ -7110,21 +7110,29 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setActiveResult("offers");
 
     try {
+      // V173 DEBUG / POISSULKU:
+      // Lukitaan Göstan tarjoushaku suoraan Prisma Varkauteen, jotta page.tsx:n
+      // activeStores/GPS/watchdog/vanha activeArea ei voi antaa taustalta väärää S-kauppaa.
+      // Jos tällä tuotteet ja määrät muuttuvat oikeiksi, vika on page-tason kauppakontekstissa.
+      // Jos tälläkin näkyy eilinen/väärä valikoima, vika on alempana route/core/provider/S-kaupat-kyselyssä.
       const gostaOfferSearchContextV172 = {
-        areaLabel: activeArea.label || "",
-        storeMode,
+        areaLabel: "Varkaus",
+        storeMode: "hyper",
         storeCompareScope,
-        sStoreId: activeStores.sStoreId || undefined,
-        sStoreName: activeStores.sStoreName || undefined,
+        sStoreId: "726015093",
+        sStoreName: "Prisma Varkaus",
         kStoreId: activeStores.kStoreId || undefined,
         kStoreName: activeStores.kStoreName || undefined,
+        _debugForcedByPageV173: true,
+        _debugPreviousActiveSStoreId: activeStores.sStoreId || undefined,
+        _debugPreviousActiveSStoreName: activeStores.sStoreName || undefined,
+        _debugPreviousAreaLabel: activeArea.label || "",
+        _debugPreviousStoreMode: storeMode,
       };
 
-      // V172: pidetään kategoriat toimivana, mutta tehdään selväksi mikä kauppakonteksti
-      // lähtee Göstan tarjoushakuun. Jos Prisma Varkaus näyttää yhä vanhaa pientä datasettiä,
-      // Vercel/browser-konsolista näkee heti kulkeeko oikea sStoreId vai fallbackaako provider.
+      // V173: tämä loki kertoo selaimen/Vercelin puolella, että haku lähtee pakotetulla Prismalla.
       if (typeof window !== "undefined") {
-        console.info("[Ziiply Gosta context v172]", gostaOfferSearchContextV172);
+        console.info("[Ziiply Gosta context v173 FORCED PRISMA]", gostaOfferSearchContextV172);
       }
 
       const gostaOfferSearchOptionsV171 = {
@@ -7138,10 +7146,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       trackZiiplyEvent("gosta_offer_api_search_used", {
         query: offerSearchCoreResult.trackingKey,
         cartItemsCount: cart.length,
-        storeMode,
+        storeMode: "hyper",
         storeCompareScope,
-        sStoreId: activeStores.sStoreId || "",
-        sStoreName: activeStores.sStoreName,
+        sStoreId: "726015093",
+        sStoreName: "Prisma Varkaus",
+        previousActiveSStoreId: activeStores.sStoreId || "",
+        previousActiveSStoreName: activeStores.sStoreName,
         kStoreId: activeStores.kStoreId || "",
         kStoreName: activeStores.kStoreName,
       });
