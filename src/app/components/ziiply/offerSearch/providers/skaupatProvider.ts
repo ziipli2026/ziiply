@@ -1,6 +1,6 @@
 // ============================================================================
-// SKAUPAT_PROVIDER_V181_ONLY_PRISMA_VARKAUS_ID_MAP
-// Revision: V181
+// SKAUPAT_PROVIDER_V184_FROM_PAGINATION_FOR_OFFERS
+// Revision: V184
 // Date: 2026-06-06
 //
 // Fix:
@@ -65,6 +65,12 @@ const DEFAULT_SKAUPAT_STORE_ID_V156 = "513971200";
 // RemoteFilteredProducts uses for product/pricing search.
 // Verified from S-kaupat Network request:
 // Prisma Varkaus public id 726015093 -> product search storeId 708276035.
+//
+// V184:
+// - Fixes pagination for S-kaupat RemoteFilteredProducts.
+// - S-kaupat response uses products.from/limit/total, so request must send variables.from.
+// - Do not stop pagination based on mapped offer count because early pages can contain
+//   only normal-priced rows while later pages may contain campaign rows.
 const S_PRODUCT_SEARCH_STORE_ID_MAP_V181: Record<string, string> = {
   "726015093": "708276035",
 };
@@ -278,6 +284,15 @@ function getSProductListItems(data: unknown): UnknownRecord[] {
       return asRecord(record.node) || asRecord(record.item) || asRecord(record.data) || record;
     })
     .filter(Boolean) as UnknownRecord[];
+}
+
+function getSProductsPagingMetaV184(data: unknown) {
+  const root = getSProductsRoot(data);
+  return {
+    total: numberFromUnknown(root?.total) ?? 0,
+    from: numberFromUnknown(root?.from) ?? 0,
+    limit: numberFromUnknown(root?.limit) ?? 0,
+  };
 }
 function getStructuredFacets(data: unknown): UnknownRecord[] {
   const root = getSProductsRoot(data);
@@ -872,15 +887,12 @@ function buildRemoteFilteredProductsUrl(
     marketingId: "d0bcc6e5-6130-494e-b6fb-12b5cb9c60cf",
   };
 
-  if (offset > 0) {
-    variables.offset = offset;
-    variables.skip = offset;
-    variables.page = discountedOnly ? Math.floor(offset / discountedLimit) + 1 : page;
-  } else if (!discountedOnly) {
-    variables.offset = offset;
-    variables.skip = offset;
-    variables.page = page;
-  }
+  // V184: S-kaupat RemoteFilteredProducts uses "from" in the response metadata.
+  // Send it explicitly. Keep offset/skip/page as harmless compatibility fields.
+  variables.from = offset;
+  variables.offset = offset;
+  variables.skip = offset;
+  variables.page = discountedOnly ? Math.floor(offset / discountedLimit) + 1 : page;
 
   const extensions = {
     persistedQuery: {
@@ -902,7 +914,7 @@ async function fetchSKaupatRemoteFilteredProductsPageV170(
   offset: number,
   selectedStoreId: string,
   discountedOnly = false,
-): Promise<ZiiplyOfferSearchResult[]> {
+): Promise<{ results: ZiiplyOfferSearchResult[]; rawCount: number; total: number; from: number; limit: number }> {
   const response = await fetch(
     buildRemoteFilteredProductsUrl(query, offset, selectedStoreId, discountedOnly),
     {
@@ -927,6 +939,7 @@ async function fetchSKaupatRemoteFilteredProductsPageV170(
 
   const data = await response.json();
   const root = getSProductsRoot(data);
+  const pagingMeta = getSProductsPagingMetaV184(data);
   const fallbackFacetNames = getCategoryFacetNames(data);
   const categoryFacetPaths = getCategoryFacetPaths(data);
   const listItems = getSProductListItems(data);
@@ -944,7 +957,13 @@ async function fetchSKaupatRemoteFilteredProductsPageV170(
     )
     .filter(Boolean) as ZiiplyOfferSearchResult[];
 
-  return dedupeSOfferResultsV161(mappedResults);
+  return {
+    results: dedupeSOfferResultsV161(mappedResults),
+    rawCount: listItems.length,
+    total: pagingMeta.total,
+    from: pagingMeta.from,
+    limit: pagingMeta.limit,
+  };
 }
 
 async function fetchSKaupatRemoteFilteredProductsV170(
@@ -956,22 +975,40 @@ async function fetchSKaupatRemoteFilteredProductsV170(
   const selectedStoreId = await getEffectiveSKaupatStoreIdV174(options);
   if (!selectedStoreId) return [];
 
-  const pageOffsets = discountedOnly
-    ? [0, 24, 48, 72, 96, 120, 144, 168, 192, 216, 240, 264, 288, 312, 336]
-    : isGostaMasterQueryV171(query)
-      ? [0, 48, 96, 144, 192, 240, 288, 336, 384, 432, 480, 528, 576, 624, 672, 720, 768, 816, 864, 912]
-      : [0, 48, 96, 144, 192];
+  const pageStep = discountedOnly ? 24 : 48;
+  const maxPages = discountedOnly ? 25 : 25;
+  const pageOffsets = Array.from({ length: maxPages }, (_, index) => index * pageStep);
   const pages: ZiiplyOfferSearchResult[][] = [];
 
   for (const offset of pageOffsets) {
     try {
-      const pageResults = await fetchSKaupatRemoteFilteredProductsPageV170(query, config, offset, selectedStoreId, discountedOnly);
-      pages.push(pageResults);
+      const page = await fetchSKaupatRemoteFilteredProductsPageV170(
+        query,
+        config,
+        offset,
+        selectedStoreId,
+        discountedOnly,
+      );
 
-      // Stop early if S-kaupat returns a short page. If offset is ignored, the
-      // next page will dedupe away later, but this keeps the request count small
-      // when there clearly are no more rows.
-      if (discountedOnly ? pageResults.length < 20 : pageResults.length < 40) break;
+      pages.push(page.results);
+
+      console.warn("[GOSTA PAGINATION V184]", {
+        query,
+        offset,
+        requestedFrom: offset,
+        responseFrom: page.from,
+        rawCount: page.rawCount,
+        mappedOfferCount: page.results.length,
+        total: page.total,
+        limit: page.limit,
+        discountedOnly,
+      });
+
+      // Stop only when S-kaupat itself says the raw page is exhausted or when
+      // total has been reached. Do NOT stop based on mapped offer count.
+      if (page.rawCount === 0) break;
+      if (page.total > 0 && offset + pageStep >= page.total) break;
+      if (page.rawCount < pageStep && page.total === 0) break;
     } catch (error) {
       if (offset === 0) throw error;
       console.warn(`[Ziiply offers] S-kaupat pagination page failed at offset ${offset}`, error);
