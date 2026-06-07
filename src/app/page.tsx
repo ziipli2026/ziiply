@@ -1,3 +1,12 @@
+// V216_V215_LOCAL_DISTANCE_ONLY_CANDIDATES_RESTORED
+// Pohja: V215.
+// Korjaus:
+// - EI koske skanneriin / Bluetooth-inputtiin / EAN-polkuun.
+// - EI muuta tavaratalojen toimivaa V173/V213-polkua.
+// - Lähikaupoissa ei enää pudoteta distanceKm-only API-osumia pois, vaikka samalla ketjulla olisi koordinaattikauppa.
+// - Lähikauppa valitaan ensisijaisesti todellisen distanceKm/koordinaattietäisyyden mukaan.
+// - Ei oldPickerPreferred/strictModeCandidates[0]-fallbackia local-haaraan.
+
 // V215_V214_LOCAL_FILTER_BEFORE_COORDINATE_FILTER
 // Pohja: V214.
 // Korjaus:
@@ -6067,9 +6076,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const candidatesWithGpsCoordinates = coords
       ? allStrictModeCandidates.filter((store) => storeHasRealCoordinatesForGpsV41(store))
       : allStrictModeCandidates;
-    const strictModeCandidates = coords && candidatesWithGpsCoordinates.length > 0
-      ? candidatesWithGpsCoordinates
-      : allStrictModeCandidates;
+
+    // V216:
+    // LÄHIKAUPAT: älä enää pudota distanceKm-only API-osumia pois vain siksi,
+    // että samalla ketjulla on jokin koordinaatillinen kauppa. Juuri tämä hävitti
+    // Jokela/Tuusula-lähikaupat ja jätti jäljelle Hyvinkää/koordinaattikauppoja.
+    // TAVARATALOT: säilytä V173/V213:n toimiva koordinaattipainotteinen polku.
+    const strictModeCandidates =
+      mode === "local"
+        ? allStrictModeCandidates
+        : coords && candidatesWithGpsCoordinates.length > 0
+          ? candidatesWithGpsCoordinates
+          : allStrictModeCandidates;
     const oldPickerPreferred = pickStore(strictModeCandidates, preferredPredicate);
 
     if (!coords) {
@@ -6153,8 +6171,42 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       )[0] as { store: StoreSearchItem; distance: number } | undefined;
 
     if (mode === "local") {
-      // Lähikaupassa EI vanhaa picker-/activeArea-/Hyvinkää-fallbackia.
-      return scoredStores[0]?.store || distanceFallback?.store;
+      // V216:
+      // Lähikaupassa valitse ensisijaisesti todellinen lähin kauppa.
+      // Mukaan kelpaa sekä koordinaateista laskettu distance että API:n explicit distanceKm.
+      // Ei oldPickerPreferred/strictModeCandidates[0]-fallbackia, koska se palautti Hyvinkää-lukon.
+      const nearestLocalByDistance = strictModeCandidates
+        .map((store) => {
+          const coordinateDistance =
+            coords && storeHasRealCoordinatesForGpsV41(store)
+              ? (() => {
+                  const latitude = getStoreCoordinateV320(store, ["latitude", "lat", "y"]);
+                  const longitude = getStoreCoordinateV320(store, ["longitude", "lng", "lon", "x"]);
+                  return latitude != null && longitude != null
+                    ? getDistanceKm(
+                        { latitude: coords.latitude, longitude: coords.longitude, capturedAt: Date.now() },
+                        { latitude, longitude, capturedAt: Date.now() },
+                      )
+                    : null;
+                })()
+              : null;
+
+          const rawDistance =
+            coordinateDistance ??
+            readExplicitDistanceKmV320(store) ??
+            null;
+
+          return rawDistance != null && Number.isFinite(rawDistance)
+            ? { store, distanceKm: rawDistance }
+            : null;
+        })
+        .filter(Boolean)
+        .sort((a, b) =>
+          ((a as { distanceKm: number }).distanceKm -
+            (b as { distanceKm: number }).distanceKm),
+        )[0] as { store: StoreSearchItem; distanceKm: number } | undefined;
+
+      return nearestLocalByDistance?.store || scoredStores[0]?.store || distanceFallback?.store;
     }
 
     // Tavaratalossa palautetaan V173:n toimiva varapolku, jotta hyper-valinta ei tyhjene.
