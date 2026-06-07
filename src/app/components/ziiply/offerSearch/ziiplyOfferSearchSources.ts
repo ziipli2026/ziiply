@@ -42,7 +42,15 @@ export type {
   ZiiplyOfferSource,
 } from "./types";
 
-export type ZiiplyOfferSearchSourceContextV8 = SKaupatOfferProviderOptionsV173;
+export type ZiiplyOfferSearchSourceContextV8 = SKaupatOfferProviderOptionsV173 & {
+  areaLabel?: string | null;
+  storeMode?: string | null;
+  storeCompareScope?: string | null;
+  sStoreId?: string | number | null;
+  sStoreName?: string | null;
+  kStoreId?: string | number | null;
+  kStoreName?: string | null;
+};
 
 const ZIIPLY_OFFER_SOURCES = {
   kmarket: {
