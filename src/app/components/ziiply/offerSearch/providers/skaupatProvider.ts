@@ -1,6 +1,6 @@
 // ============================================================================
-// SKAUPAT_PROVIDER_V191_SEEDED_MASTER_NO_DISCOUNTED
-// Revision: V191
+// SKAUPAT_PROVIDER_V192_PRISMA_VARKAUS_INTERNAL_STORE_ID
+// Revision: V192
 // Date: 2026-06-07
 //
 // Fix:
@@ -34,6 +34,11 @@
 // - Master query no longer uses queryString="" + labels=DISCOUNTED.
 // - Master query now runs controlled seed searches with the selected store context.
 // - This tests whether S-kaupat DISCOUNTED master ignores/falls back from the selected store.
+//
+// V192 fix:
+// - Prisma Varkaus RemoteFilteredProducts storeId corrected.
+// - S-kaupat public URL id 726015093 is NOT the product search storeId.
+// - Browser Network proved RemoteFilteredProducts uses storeId 708276035 for Prisma Varkaus.
 //
 // V160 fix:
 // - Gösta is an offer search: normal-priced shelf products are filtered out.
@@ -75,7 +80,7 @@ const SKAUPAT_REMOTE_FILTERED_PRODUCTS_HASH_V156 =
   "44ca017dddccfe49e787b483f471f26217adca807f8c71101d11e881dab9e480";
 
 const DEFAULT_SKAUPAT_STORE_ID_V156 = "513971200";
-const PRISMA_VARKAUS_SKAUPAT_STORE_ID_V182 = "726015093";
+const PRISMA_VARKAUS_SKAUPAT_STORE_ID_V182 = "708276035";
 
 function getFinnishDateYYYYMMDDV184() {
   return new Intl.DateTimeFormat("en-CA", {
@@ -137,7 +142,7 @@ async function getEffectiveSKaupatStoreIdV174(
   const storeName = firstString(options?.storeName, options?.sStoreName);
   const expectsPrismaVarkaus = isPrismaVarkausContextV182(options);
 
-  // V182 hard guard: Prisma Varkaus has S-kaupat store id 726015093.
+  // V182 hard guard: Prisma Varkaus has S-kaupat RemoteFilteredProducts store id 708276035.
   // If UI context clearly says Prisma Varkaus, never allow the old MVP fallback
   // or a directory miss to silently fetch another store.
   if (expectsPrismaVarkaus) {
@@ -191,7 +196,7 @@ async function getEffectiveSKaupatStoreIdV174(
 
   // V184 test guard: Gösta is currently validated against Prisma Varkaus.
   // Do not return [] and let the UI keep an old-looking dataset/state.
-  // Force Prisma Varkaus until the store picker reliably passes sStoreId=726015093.
+  // Force Prisma Varkaus until the store picker reliably passes the internal RemoteFilteredProducts storeId=708276035.
   console.warn(
     "[GOSTA STORE GUARD] missing S-store context, forcing Prisma Varkaus for Gösta",
     {
@@ -1002,7 +1007,7 @@ function mapSProductListItemToOfferResult(
 
     // V186 diagnostic fields. These intentionally travel to /api/offers/search
     // so the browser Network tab proves which provider/store/date produced data.
-    _debugProviderRevision: "skaupatProvider-v191-seeded-master-no-discounted",
+    _debugProviderRevision: "skaupatProvider-v192-prisma-varkaus-internal-store-id",
     _debugSelectedStoreId: options.selectedStoreId,
     _debugExpectedPrismaVarkausStoreId: PRISMA_VARKAUS_SKAUPAT_STORE_ID_V182,
     _debugRequestDate: getFinnishDateYYYYMMDDV184(),
@@ -1069,7 +1074,7 @@ function buildRemoteFilteredProductsUrl(
   };
 
   console.warn("[GOSTA REQUEST VARIABLES V186]", {
-    providerRevision: "skaupatProvider-v191-seeded-master-no-discounted",
+    providerRevision: "skaupatProvider-v192-prisma-varkaus-internal-store-id",
     selectedStoreId,
     requestDate,
     discountedOnly,
