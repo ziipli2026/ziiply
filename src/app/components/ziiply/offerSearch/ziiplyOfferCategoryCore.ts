@@ -1,6 +1,6 @@
 // ============================================================================
-// ZIIPLY_OFFER_CATEGORY_CORE_V153_S_KAMPANJAT_FOOD_BASKET_SCOPE
-// Revision: V153
+// ZIIPLY_OFFER_CATEGORY_CORE_V154_BABY_FOOD_NOT_KOTI
+// Revision: V154
 // Date: 2026-06-06
 //
 // Fix:
@@ -118,7 +118,10 @@ function classifyGostaCategoryFromText(rawText: string) {
   // Mukana ruoka + arjen välttämättömät: kodinhoito, paperit, pesuaineet, vaipat ja lemmikit.
   if (/lemmikkien ruuat ja tarvikkeet|lemmikkien ruoat ja tarvikkeet|lemmikki|lemmik|koira|kissa|pedigree|whiskas|sheba|purina|friskies|perfect fit|best friend/.test(text)) return "Lemmikit";
 
-  if (/kodinhoito ja taloustarvikkeet|kodinhoito|taloustarvikkeet|lastenruoat vaipat ja hoitotarvikkeet|lastenruoat|lastenruoka|vaippa|vaipat|hoitotarvikkeet|pampers|libero|baby|vauva|lastenhoito|pesu|pyykin|pyykinpesu|fairy|astianpesu|wc|siivous|talouspaperi|vessa|roskapussi|leivinpaperi|folio|kelmu|hygienia|shampoo|saippua|hammastahna|hammasharja/.test(text)) return "Koti";
+  // V154: baby food is food, not Koti. Diapers/care products still stay in Koti.
+  if (/lastenruoka|lastenruoat|vauvanruoka|vauvanruoat|baby food|piltti|bonan|semper/.test(text)) return "Valmisruoka";
+
+  if (/kodinhoito ja taloustarvikkeet|kodinhoito|taloustarvikkeet|vaippa|vaipat|hoitotarvikkeet|pampers|libero|lastenhoito|pesu|pyykin|pyykinpesu|fairy|astianpesu|wc|siivous|talouspaperi|vessa|roskapussi|leivinpaperi|folio|kelmu|hygienia|shampoo|saippua|hammastahna|hammasharja/.test(text)) return "Koti";
 
   if (/liha ja kasviproteiinit|liha|jauheliha|kana|broiler|possu|porsas|nauta|sika|makkara|leikkele|kinkku|pekoni|filee|paisti|lihapulla|kasviproteiini|tofu|nyhtokaura|harkis|vege/.test(text)) return "Liha";
   if (/kala ja merenelavat|kala ja merenelävät|merenelav|mereneläv|kirjolohi|lohi|tonnikala|silakka|katkarapu|kuha|ahven|seiti|kalapuikko|silli|kala/.test(text)) return "Kala";
@@ -191,10 +194,10 @@ export function getGostaCategorySeedQueriesV136(categoryOrFilter: string) {
     leipomo: ["leipä", "leivät", "sämpylä", "pulla", "croissant", "karjalanpiirakka", "patonki", "ruisleipä", "paahtoleipä", "keksit", "leivonnaiset"],
     hevi: ["hedelmät", "vihannekset", "hedelmä", "omena", "banaani", "appelsiini", "vihannes", "tomaatti", "kurkku", "salaatti", "peruna", "sipuli", "porkkana", "marjat"],
     juomat: ["virvoitusjuomat", "mehu", "limu", "cola", "energiajuoma", "vesi", "kivennäisvesi", "smoothie", "kahvit teet ja mehut"],
-    valmisruoka: ["valmisruoka", "valmisateria", "keitto", "salaattiateria", "mikroateria", "ateria", "laatikko", "pasta", "risotto"],
+    valmisruoka: ["valmisruoka", "valmisateria", "keitto", "salaattiateria", "mikroateria", "ateria", "laatikko", "pasta", "risotto", "lastenruoka", "lastenruoat", "vauvanruoka", "piltti", "semper"],
     makeiset: ["karkit", "suklaat", "suklaa", "karkki", "makeinen", "makeiset", "lakritsi", "salmiakki", "snacksit", "sipsi", "popcorn", "nachot"],
     lemmikit: ["lemmikkien ruoat", "lemmikkien ruuat", "lemmikkiruoka", "koiranruoka", "kissanruoka", "pedigree", "whiskas", "sheba", "purina", "friskies"],
-    koti: ["kodinhoito", "taloustarvikkeet", "kodinhoito ja taloustarvikkeet", "lastenruoka", "lastenruoat", "vaipat", "hoitotarvikkeet", "hygienia", "koti", "pesuaine", "pyykinpesuaine", "astianpesuaine", "fairy", "wc-paperi", "talouspaperi", "siivous", "roskapussi", "leivinpaperi", "folio", "kelmu", "shampoo", "saippua", "hammastahna"],
+    koti: ["kodinhoito", "taloustarvikkeet", "kodinhoito ja taloustarvikkeet", "vaipat", "hoitotarvikkeet", "hygienia", "koti", "pesuaine", "pyykinpesuaine", "astianpesuaine", "fairy", "wc-paperi", "talouspaperi", "siivous", "roskapussi", "leivinpaperi", "folio", "kelmu", "shampoo", "saippua", "hammastahna"],
     pakasteet: ["pakasteet", "pakaste", "jäätelö", "pizza", "ranskalaiset", "pakastevihannes", "pakastemarjat", "wokvihannes"],
     muut: ["tarjous", "tarjoukset", "kampanja", "kampanjat"],
   };
