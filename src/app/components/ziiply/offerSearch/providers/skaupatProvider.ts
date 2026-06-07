@@ -1,6 +1,6 @@
 // ============================================================================
-// SKAUPAT_PROVIDER_V189_RESTORE_WORKING_SESSION_STOREID_TRACE
-// Revision: V189
+// SKAUPAT_PROVIDER_V191_SEEDED_MASTER_NO_DISCOUNTED
+// Revision: V191
 // Date: 2026-06-07
 //
 // Fix:
@@ -29,6 +29,11 @@
 // - Reverts V188 dynamic generatedSessionId/marketingId because S-kaupat returned 0 rows.
 // - Keeps the known-working S-kaupat request shape.
 // - Adds stronger storeId/date/page debug fields without changing request semantics.
+//
+// V191 fix/test:
+// - Master query no longer uses queryString="" + labels=DISCOUNTED.
+// - Master query now runs controlled seed searches with the selected store context.
+// - This tests whether S-kaupat DISCOUNTED master ignores/falls back from the selected store.
 //
 // V160 fix:
 // - Gösta is an offer search: normal-priced shelf products are filtered out.
@@ -997,7 +1002,7 @@ function mapSProductListItemToOfferResult(
 
     // V186 diagnostic fields. These intentionally travel to /api/offers/search
     // so the browser Network tab proves which provider/store/date produced data.
-    _debugProviderRevision: "skaupatProvider-v189-restore-working-session-storeid-trace",
+    _debugProviderRevision: "skaupatProvider-v191-seeded-master-no-discounted",
     _debugSelectedStoreId: options.selectedStoreId,
     _debugExpectedPrismaVarkausStoreId: PRISMA_VARKAUS_SKAUPAT_STORE_ID_V182,
     _debugRequestDate: getFinnishDateYYYYMMDDV184(),
@@ -1064,7 +1069,7 @@ function buildRemoteFilteredProductsUrl(
   };
 
   console.warn("[GOSTA REQUEST VARIABLES V186]", {
-    providerRevision: "skaupatProvider-v189-restore-working-session-storeid-trace",
+    providerRevision: "skaupatProvider-v191-seeded-master-no-discounted",
     selectedStoreId,
     requestDate,
     discountedOnly,
@@ -1243,12 +1248,30 @@ export async function fetchSKaupatOffers(
 
   try {
     if (isGostaMasterQueryV171(cleanQuery)) {
-      return await fetchSKaupatRemoteFilteredProductsV170(
-        "",
-        config,
-        options,
-        true,
+      console.warn("[GOSTA MASTER V191] using seeded master instead of DISCOUNTED master", {
+        seedCount: SKAUPAT_GOSTA_MASTER_SEED_QUERIES_V172.length,
+        inputStoreId: options?.storeId,
+        inputSStoreId: options?.sStoreId,
+        inputStoreName: options?.storeName,
+        inputSStoreName: options?.sStoreName,
+      });
+
+      const batches = await Promise.allSettled(
+        SKAUPAT_GOSTA_MASTER_SEED_QUERIES_V172.map((seedQuery) =>
+          fetchSKaupatRemoteFilteredProductsV170(
+            seedQuery,
+            config,
+            options,
+            false,
+          ),
+        ),
       );
+
+      const mergedResults = batches.flatMap((result) =>
+        result.status === "fulfilled" ? result.value : [],
+      );
+
+      return dedupeSOfferResultsV161(mergedResults);
     }
 
     return await fetchSKaupatRemoteFilteredProductsV170(
