@@ -1,11 +1,10 @@
-// V189_V173_GPS_REVERSE_LAST_DISTANCE_FALLBACK
+// V190_V173_REMOVE_START_HYVINKAA_DEFAULT
 // Pohja: alkuperäinen V173.
 // Korjaus:
-// - reverseGeocodeCity ei enää ole GPS-kauppahaun ensisijainen hakusana
-// - GPS-haku ei kaadu tyhjään reverse-geocodeen, vaan jatkaa "Oma sijainti" + lähialuehauilla
-// - GPS-valinnassa ranking voittaa activeArea-fallbackin
-// - jos resolver-score ei synny, GPS-fallback järjestetään distanceKm:n mukaan eikä query-/Hyvinkää-järjestyksen mukaan
-// - ei muutoksia storeDirectory-tiedostoon
+// - page.tsx ei enää käynnisty AREAS[0]-alueella, joka oli Hyvinkää.
+// - activeArea alkaa tyhjänä, jotta GPS/API-haku ei saa vanhaa Hyvinkää-paria fallbackiksi ennen paikannusta.
+// - vanhaa tallennettua Hyvinkää-activeAreaa ei palauteta localStoragesta reloadissa.
+// - topbar/map fallback -tekstit eivät enää käytä Hyvinkäätä oletuksena.
 
 // V170_GOSTA_CONTEXT_OPTION_TYPE_COMPAT_BUILD_FIX
 // Build-fix: Göstan search-options pidetään yhteensopivana sekä vanhan että uuden search coren kanssa.
@@ -1510,7 +1509,7 @@ function topbarPanelClassV717(kind: "weather" | "electricity" | "fuel" | "calend
 
 function KauppiasMobileTopBar({
   hidden = false,
-  areaLabel = "Hyvinkää",
+  areaLabel = "Oma sijainti",
   gpsCoords = null,
   weatherEnabled = false,
   onWeatherBootGpsResolved,
@@ -2215,6 +2214,19 @@ function KauppiasMobileTopBar({
 }
 
 
+const EMPTY_ACTIVE_AREA_V190 = {
+  label: "",
+  aliases: [],
+  sStoreId: undefined,
+  sStoreName: undefined,
+  kStoreId: undefined,
+  kStoreName: undefined,
+  sLocalStoreId: undefined,
+  sLocalStoreName: undefined,
+  kLocalStoreId: undefined,
+  kLocalStoreName: undefined,
+} as Area;
+
 export default function Page() {
   const TopbarResponsiveCard = ((TopbarResponsiveCardModule as any).default ||
     (TopbarResponsiveCardModule as any).TopbarResponsiveCard ||
@@ -2231,7 +2243,7 @@ export default function Page() {
     "cart",
   );
   const [locationInput, setLocationInput] = useState("");
-  const [activeArea, setActiveArea] = useState<Area>(AREAS[0]);
+  const [activeArea, setActiveArea] = useState<Area>(EMPTY_ACTIVE_AREA_V190);
   const [storeMode, setStoreMode] = useState<StoreMode>("local");
   const [storeModeChosenV299, setStoreModeChosenV299] = useState(false);
   const selectedStoreModeRefV302 = useRef<StoreMode>("local");
@@ -2717,10 +2729,10 @@ export default function Page() {
     // Tyhjä haku ensin, jos API tukee lat/lon-pohjaista lähihakua.
     addQuery("");
 
-    // V189: reverse-geocodattu kaupunki EI saa olla GPS-haun ensisijainen hakusana.
-    // Kunnanrajalla se palautti Hyvinkään lähikaupat ennen lähempää Jokela/Tuusula-listaa.
-    // Haetaan ensin koordinaatti-/tyhjä haku ja lähimmät AREAS-alueet; reverse/primary jää viimeiseksi
-    // vain API-yhteensopivuuden varahauksi.
+    // V91: matka-ajossa ei saa käyttää staattista Etelä-Suomen listaa.
+    // Käytä ensin nykyistä reverse-geocodattua kaupunkia ja sitten GPS:n lähimpiä AREAS-alueita.
+    addQuery(primaryQuery);
+
     for (const entry of nearbyAreas) {
       const label = String(entry.area.label || "");
       addQuery(label);
@@ -2729,8 +2741,6 @@ export default function Page() {
         addQuery(alias);
       }
     }
-
-    addQuery(primaryQuery);
 
     return queries.filter((query, index) => query !== "" || index === 0).slice(0, 16);
   }
@@ -3844,25 +3854,22 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         const selectedSLocal = getActiveAreaStoreCandidateV139("S", "local");
         const selectedKLocal = getActiveAreaStoreCandidateV139("K", "local");
 
-        // V189: GPS-tilassa foundStores/ranking on totuus. activeArea on vain viimeinen UI-vara,
-        // ettei vanha reverse-geocodattu Hyvinkää/Espoo/Kokkola voi ohittaa GPS-rankingia.
         return {
-          sStoreId: ranked.sLocal?.id ?? selectedSLocal?.id ?? 0,
-          sStoreName: ranked.sLocal?.name ?? selectedSLocal?.name ?? "S-lähikauppa ei valittu",
-          kStoreId: ranked.kLocal?.id ?? selectedKLocal?.id ?? 0,
-          kStoreName: ranked.kLocal?.name ?? selectedKLocal?.name ?? "K-lähikauppa ei valittu",
+          sStoreId: selectedSLocal?.id ?? ranked.sLocal?.id ?? 0,
+          sStoreName: selectedSLocal?.name ?? ranked.sLocal?.name ?? "S-lähikauppa ei valittu",
+          kStoreId: selectedKLocal?.id ?? ranked.kLocal?.id ?? 0,
+          kStoreName: selectedKLocal?.name ?? ranked.kLocal?.name ?? "K-lähikauppa ei valittu",
         };
       }
 
       const selectedSHyper = getActiveAreaStoreCandidateV139("S", "hyper");
       const selectedKHyper = getActiveAreaStoreCandidateV139("K", "hyper");
 
-      // V189: sama tavarataloille. GPS-ranking ennen activeAreaa.
       return {
-        sStoreId: ranked.sHyper?.id ?? selectedSHyper?.id ?? 0,
-        sStoreName: ranked.sHyper?.name ?? selectedSHyper?.name ?? "S-tavaratalo ei valittu",
-        kStoreId: ranked.kHyper?.id ?? selectedKHyper?.id ?? 0,
-        kStoreName: ranked.kHyper?.name ?? selectedKHyper?.name ?? "K-tavaratalo ei valittu",
+        sStoreId: selectedSHyper?.id ?? ranked.sHyper?.id ?? 0,
+        sStoreName: selectedSHyper?.name ?? ranked.sHyper?.name ?? "S-tavaratalo ei valittu",
+        kStoreId: selectedKHyper?.id ?? ranked.kHyper?.id ?? 0,
+        kStoreName: selectedKHyper?.name ?? ranked.kHyper?.name ?? "K-tavaratalo ei valittu",
       };
     }
 
@@ -4020,7 +4027,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           .map((store) => [store.name, store.city].filter(Boolean).join(", "))
           .join(" | ")
       : getMapStoreQueryV433(selectedMapStoresV433[0]) ||
-        `${activeArea.label || "Hyvinkää"}, Suomi`;
+        `${activeArea.label || "Oma sijainti"}, Suomi`;
 
   const mapStoresIframeSrcV433 = `https://maps.google.com/maps?q=${encodeURIComponent(mapStoresQueryV433)}&z=13&output=embed`;
 
@@ -4424,7 +4431,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               typeof parsedStoreSelection === "object"
             ) {
               if (parsedStoreSelection.activeArea) {
-                setActiveArea(parsedStoreSelection.activeArea as Area);
+                const savedActiveAreaV190 = parsedStoreSelection.activeArea as Area;
+                const savedAreaLabelV190 = String(savedActiveAreaV190?.label || "").trim();
+
+                // V190: älä palauta vanhaa page-startin Hyvinkää-activeAreaa reloadissa.
+                // Se oli alkuperäinen AREAS[0]-fallback ja pystyi voittamaan GPS:n ennen oikeaa hakua.
+                if (savedAreaLabelV190 && savedAreaLabelV190.toLowerCase() !== "hyvinkää") {
+                  setActiveArea(savedActiveAreaV190);
+                }
               }
 
               if (
@@ -6053,19 +6067,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         return storeA.distanceKm - storeB.distanceKm;
       });
 
-    // V189: jos resolver-score ei synny, älä palaa query-järjestyksen ensimmäiseen
-    // Hyvinkää/Espoo/Kokkola-osumaan. GPS-fallback valitaan distanceKm:n mukaan.
-    const distanceSortedFallback = [...strictModeCandidates].sort((a, b) => {
-      const distanceA = readExplicitDistanceKmV320(a);
-      const distanceB = readExplicitDistanceKmV320(b);
-      const safeA = distanceA == null ? Number.POSITIVE_INFINITY : distanceA;
-      const safeB = distanceB == null ? Number.POSITIVE_INFINITY : distanceB;
-      return safeA - safeB;
-    });
-
     return (
       scoredStores[0]?.store ||
-      distanceSortedFallback[0] ||
       oldPickerPreferred ||
       strictModeCandidates[0]
     );
@@ -6821,14 +6824,20 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         nextGpsCoordsV485.latitude,
         nextGpsCoordsV485.longitude,
       );
-      const gpsStoreSearchQueryV189 = city || "Oma sijainti";
 
       if (!city) {
-        pushGpsDebugLogV492(`useOwnLocation reverse geocode EMPTY -> continue with Oma sijainti`);
+        pushGpsDebugLogV492(`useOwnLocation reverse geocode EMPTY`);
+        setGpsErrorMessage("GPS ei löydy");
+        setLocationMessage("GPS ei löydy");
+        setLocationMessageVisible(true);
+        gpsUserDisabledRefV306.current = true;
+        setUsingOwnLocation(false);
+        setGpsCoordsV320(null);
+        return;
       }
 
-      pushGpsDebugLogV492(`useOwnLocation city=${gpsStoreSearchQueryV189}`);
-      gpsResolvedCityV495 = gpsStoreSearchQueryV189;
+      pushGpsDebugLogV492(`useOwnLocation city=${city}`);
+      gpsResolvedCityV495 = city;
       gpsResolvedCoordsV495 = nextGpsCoordsV485;
       setGpsErrorMessage("");
       gpsInitialVisiblePhaseRefV391.current = false;
@@ -6837,7 +6846,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         gpsFailTimerRefV391.current = null;
       }
       setGpsErrorMessage("");
-      setLocationMessage("Oma sijainti käytössä");
+      setLocationMessage(`${city} käytössä`);
       setLocationMessageVisible(true);
       setLocationInput("");
       // V470: älä pudota storeSearchLoadingia pois päältä tässä välissä.
@@ -6848,7 +6857,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setStoreMode("local");
       setStoreModeChosenV299(true);
       pushGpsDebugLogV492(`useOwnLocation applyLocation start`);
-      await applyLocation(gpsStoreSearchQueryV189, "gps", nextGpsCoordsV485);
+      await applyLocation(city, "gps", nextGpsCoordsV485);
       gpsPollLastAppliedCoordsRefV137.current = nextGpsCoordsV485;
       gpsPollLastAppliedAtRefV90.current = Date.now();
       gpsApplyLocationDoneV495 = true;
