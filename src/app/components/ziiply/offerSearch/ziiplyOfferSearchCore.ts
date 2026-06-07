@@ -1,6 +1,6 @@
 // ============================================================================
-// ZIIPLY_OFFER_SEARCH_CORE_V160_CATEGORY_FROM_MASTER_RESTORED
-// Revision: V160
+// ZIIPLY_OFFER_SEARCH_CORE_V161_CATEGORY_SEEDED_STRICT
+// Revision: V161
 // Date: 2026-06-07
 //
 // Purpose:
@@ -33,6 +33,7 @@
 
 import {
   getGostaCategoryLabelFromFilterV136,
+  getGostaCategorySeedQueriesV136,
   getOfferCategoryV106,
   getOfferProductTitleV113,
   isBadOfferSearchResultV106,
@@ -291,19 +292,29 @@ export async function searchZiiplyGostaOffersV146(options: {
 
   let nextResults: ZiiplyGostaOfferLike[] = [];
 
-  if (searchAllAreaOffers || searchByCategory) {
-    // V160:
-    // Category chips must not run a direct text search like q="Liha" or q="Hevi".
-    // They use the full Gösta master offer dataset and then filter locally by
-    // the category classifier. This restores the earlier working category behavior.
+  if (searchAllAreaOffers) {
     const masterResults = await fetchGostaMasterOfferResultsV156(options.context);
+    nextResults = masterResults;
+  } else if (searchByCategory) {
+    // V161:
+    // Category chips must not search only q="Liha" / q="Hevi", and they must
+    // not rely on an over-wide all-category seed master either.
+    // Instead, run the category's own controlled seed queries and then keep
+    // only rows that the category classifier maps back to the selected category.
+    const categorySeeds = getGostaCategorySeedQueriesV136(categorySearchLabel);
 
-    nextResults = searchByCategory
-      ? masterResults.filter(
-          (item) =>
-            normalizeGostaCoreText(getOfferCategoryV106(item)) === normalizedCategorySearch,
-        )
-      : masterResults;
+    const seedBatches = await Promise.allSettled(
+      categorySeeds.map((seedQuery) => fetchOfferSearchResults(seedQuery, options.context)),
+    );
+
+    const seededResults = seedBatches.flatMap((result) =>
+      result.status === "fulfilled" ? result.value : [],
+    );
+
+    nextResults = seededResults.filter(
+      (item) =>
+        normalizeGostaCoreText(getOfferCategoryV106(item)) === normalizedCategorySearch,
+    );
   } else {
     nextResults = await fetchOfferSearchResults(offerQuerySnapshot, options.context);
   }
