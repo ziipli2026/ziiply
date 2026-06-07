@@ -1,7 +1,7 @@
 // ============================================================================
-// ZIIPLY_OFFER_SEARCH_CORE_V156_GOSTA_MASTER_CACHE_LOCAL_CATEGORY
-// Revision: V157
-// Date: 2026-06-06
+// ZIIPLY_OFFER_SEARCH_CORE_V159_CATEGORY_DIRECT_PROVIDER_TEST
+// Revision: V159
+// Date: 2026-06-07
 //
 // Purpose:
 // - Keeps V146 Gösta offer search orchestration.
@@ -291,19 +291,24 @@ export async function searchZiiplyGostaOffersV146(options: {
 
   let nextResults: ZiiplyGostaOfferLike[] = [];
 
-  if (searchAllAreaOffers || searchByCategory) {
+  if (searchAllAreaOffers) {
     const masterResults = await fetchGostaMasterOfferResultsV156(options.context);
+    nextResults = masterResults;
+  } else if (searchByCategory) {
+    // V159 DEBUG/FIX:
+    // Category chips no longer use the broad __ziiply_all_offers__ master dataset.
+    // They now make a direct provider/API request with the selected category label.
+    // This isolates S-kaupat master/DISCOUNTED issues from category searches.
+    const directCategoryResults = await fetchOfferSearchResults(categorySearchLabel, options.context);
 
-    nextResults = searchByCategory
-      ? masterResults.filter(
-          (item) => normalizeGostaCoreText(getOfferCategoryV106(item)) === normalizedCategorySearch,
-        )
-      : masterResults;
+    nextResults = directCategoryResults.filter(
+      (item) => normalizeGostaCoreText(getOfferCategoryV106(item)) === normalizedCategorySearch,
+    );
   } else {
     nextResults = await fetchOfferSearchResults(offerQuerySnapshot, options.context);
   }
 
-  const results = searchAllAreaOffers || searchByCategory
+  const results = searchAllAreaOffers
     ? dedupeZiiplyGostaOfferResultsV146(nextResults)
     : cleanZiiplyGostaOfferResultsV146(nextResults);
 
