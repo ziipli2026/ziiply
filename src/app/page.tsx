@@ -1,3 +1,10 @@
+// V215_V214_LOCAL_FILTER_BEFORE_COORDINATE_FILTER
+// Pohja: V214.
+// Korjaus:
+// - Lähikaupat eivät enää katoa, kun ketjun tavaratalolla on koordinaatit mutta lähikaupalla vain distanceKm.
+// - pickBestResolverStoreForChainV32 suodattaa ensin oikean tason (local/hyper), vasta sen jälkeen suosii koordinaatillisia ehdokkaita.
+// - Tavaratalot, GPS-haku, watchdog, skanneri ja Bluetooth-input jätetty muuten ennalleen.
+
 // V214_V213_LOCAL_STORE_DETECTOR_RESTORE
 // Pohja: V213.
 // Korjaus rajattu lähikauppojen tunnistukseen:
@@ -6040,23 +6047,30 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     );
     const chainStores = allowedStores.filter((store) => getZiiplyResolverStoreChainV32(store) === chain);
     const candidates = chainStores.length > 0 ? chainStores : allowedStores;
-    const candidatesWithGpsCoordinates = coords
-      ? candidates.filter((store) => storeHasRealCoordinatesForGpsV41(store))
-      : candidates;
-    const rankingCandidates = coords && candidatesWithGpsCoordinates.length > 0
-      ? candidatesWithGpsCoordinates
-      : candidates;
     const hyperPredicate = chain === "S" ? isPrisma : isKCitymarket;
     const localPredicate = (store: StoreSearchItem) =>
       chain === "S"
         ? isSLocalStore(store) || isLocalStoreForModeV295(store)
         : isKLocalStore(store) || isLocalStoreForModeV295(store);
     const preferredPredicate = mode === "hyper" ? hyperPredicate : localPredicate;
-    const strictModeCandidates = rankingCandidates.filter(preferredPredicate);
-    const oldPickerPreferred = pickStore(strictModeCandidates, preferredPredicate);
+
+    // V215:
+    // Älä suodata ensin koko ketjusta vain koordinaatillisia kauppoja.
+    // Muuten esim. S-ketjun Prisma koordinaateilla voi pudottaa S-market/Sale-lähikaupat pois,
+    // jos lähikaupoilla on vain API:n distanceKm eikä lat/lon. Suodata ensin oikea taso,
+    // ja suosi koordinaatteja vasta sen tason sisällä.
+    const allStrictModeCandidates = candidates.filter(preferredPredicate);
 
     // V139: älä koskaan täytä puuttuvaa tavarataloa lähikaupalla tai päinvastoin.
-    if (strictModeCandidates.length === 0) return undefined;
+    if (allStrictModeCandidates.length === 0) return undefined;
+
+    const candidatesWithGpsCoordinates = coords
+      ? allStrictModeCandidates.filter((store) => storeHasRealCoordinatesForGpsV41(store))
+      : allStrictModeCandidates;
+    const strictModeCandidates = coords && candidatesWithGpsCoordinates.length > 0
+      ? candidatesWithGpsCoordinates
+      : allStrictModeCandidates;
+    const oldPickerPreferred = pickStore(strictModeCandidates, preferredPredicate);
 
     if (!coords) {
       return oldPickerPreferred || strictModeCandidates[0];
