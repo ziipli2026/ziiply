@@ -105,6 +105,10 @@
 
 "use client";
 
+// V184_GPS_NO_REVERSE_GEOCODE_STORE_SEARCH
+// Korjaus: GPS-kauppahaku ei käytä reverse-geocodattua kaupunkia enää hakusanana eikä label-lukon lähteenä.
+// Koordinaatit + lähimmät AREAS-haut päättävät kaupat; näkyvä label on "Oma sijainti".
+//
 // V183_GPS_REMOVE_HYVINKAA_PRIMARY_FALLBACK
 // Korjaus: poistetaan page-tason vanhat GPS-fallbackit, jotka palauttivat Hyvinkään/Espoon/Kokkolan.
 // - GPS-queryissä reverse-geocodattu primaryQuery ei enää mene lähimpien AREA-hakujen edelle.
@@ -2735,9 +2739,10 @@ export default function Page() {
       }
     }
 
-    // PrimaryQuery pidetään viimeisenä varahakuna vain haun laajentamista varten,
-    // ei ensimmäisenä page-fallbackina.
-    addQuery(primaryQuery);
+    // V184: GPS-polussa reverse-geocodattua primaryQueryä EI lisätä enää edes viimeiseksi.
+    // Jos primaryQuery on "Hyvinkää", se voi palauttaa Hyvinkään lähikaupat fallbackina
+    // ja ohittaa todellisen koordinaatti-/AREA-haun kunnanrajalla.
+    // Manuaalihaussa tätä funktiota ei käytetä ilman coordsia.
 
     return queries.filter((query, index) => query !== "" || index === 0).slice(0, 16);
   }
@@ -6817,25 +6822,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
       };
-      pushGpsDebugLogV492(`useOwnLocation got coords, reverse geocode start`);
+      pushGpsDebugLogV492(`useOwnLocation got coords, skip reverse geocode for store search`);
       setGpsCoordsV320(nextGpsCoordsV485);
-      const city = await reverseGeocodeCity(
-        nextGpsCoordsV485.latitude,
-        nextGpsCoordsV485.longitude,
-      );
+      // V184: älä reverse-geokoodaa kaupunkia GPS-kauppahakua varten.
+      // Kunnanrajalla reverse geocode voi antaa esim. Hyvinkään, vaikka lähimmät
+      // lähikaupat ovat Jokelassa/Tuusulassa. Kauppahaku käyttää koordinaattia
+      // ja lähimpiä AREAS-alueita, label pysyy neutraalina.
+      const city = "Oma sijainti";
 
-      if (!city) {
-        pushGpsDebugLogV492(`useOwnLocation reverse geocode EMPTY`);
-        setGpsErrorMessage("GPS ei löydy");
-        setLocationMessage("GPS ei löydy");
-        setLocationMessageVisible(true);
-        gpsUserDisabledRefV306.current = true;
-        setUsingOwnLocation(false);
-        setGpsCoordsV320(null);
-        return;
-      }
-
-      pushGpsDebugLogV492(`useOwnLocation city=${city}`);
+      pushGpsDebugLogV492(`useOwnLocation gps label=${city}`);
       gpsResolvedCityV495 = city;
       gpsResolvedCoordsV495 = nextGpsCoordsV485;
       setGpsErrorMessage("");
@@ -6989,12 +6984,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               return;
             }
 
-            const city = await reverseGeocodeCity(
-              nextCoords.latitude,
-              nextCoords.longitude,
-            );
+            // V184: silent GPS-refresh ei saa reverse-geokoodata kaupunkia hakusanaksi.
+            // Käytetään neutraalia labeliä ja annetaan koordinaatin + lähialueiden päättää kaupat.
+            const city = "Oma sijainti";
 
-            if (!city || cancelled) return;
+            if (cancelled) return;
 
             gpsPollLastAppliedCoordsRefV137.current = nextCoords;
             gpsPollLastAppliedAtRefV90.current = Date.now();
