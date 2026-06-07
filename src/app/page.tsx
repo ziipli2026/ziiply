@@ -1,3 +1,12 @@
+// V218_V217_LOCAL_QUERY_ENRICHMENT_BEFORE_RENDER
+// Pohja: V217.
+// Korjaus rajattu paikannuksen kauppahakuun:
+// - EI koske skanneriin / Bluetooth-inputtiin / EAN-polkuun.
+// - Tavaratalojen V213/V217 etäisyysvalinta säilyy ennallaan.
+// - Lähikauppojen katoaminen korjataan ennen renderiä: GPS-haku hakee koordinaattihaun jälkeen myös lähialueiden lähikauppakyselyt ennen reverse-geocode/Hyvinkää-kuntaa.
+// - Hyvinkää/reverse-geocode jää viimeiseksi, eikä saa toimia ensimmäisenä kunta-/postinumerolukkona.
+// - Watchdog/GPS-taustapäivityksen olemassa olevaa flowta ei muuteta.
+
 // V217_V216_BUILDFIX_DISTANCE_FUNCTION
 // Pohja: V216.
 // Build-fix:
@@ -2778,25 +2787,36 @@ export default function Page() {
       queries.push(cleaned);
     };
 
-    // V201: pidä tyhjä lat/lon-haku oikeasti ensimmäisenä.
-    // Aiemmin addQuery("") pudotti sen pois, jolloin reverse-geocode/Hyvinkää pääsi ensimmäiseksi.
+    // V218: tyhjä search + lat/lon pitää jäädä ensimmäiseksi.
+    // Tämä antaa API:lle mahdollisuuden palauttaa todelliset lähimmät kaupat ilman kunta-/postinumerohaaraa.
     addQuery("", { allowEmpty: true });
 
-    // V201: lähimmät AREA-haut ennen reverse-geocodea.
+    // V218: V64:n toimiva lähikauppahaku takaisin, mutta vain hakujonona.
+    // Valinta tehdään myöhemmin etäisyydellä, joten nämä eivät saa lukita tavarataloja.
+    addQuery("Jokela");
+    addQuery("Tuusula");
+    addQuery("Kerava");
+    addQuery("Nurmijärvi");
+
     for (const entry of nearbyAreas) {
       const label = String(entry.area.label || "");
+      if (normalize(label) === normalize(primaryQuery)) continue;
+      if (normalize(label).includes("hyvink")) continue;
+
       addQuery(label);
 
       for (const alias of entry.area.aliases || []) {
-        addQuery(alias);
+        const aliasText = String(alias || "");
+        if (normalize(aliasText).includes("hyvink")) continue;
+        addQuery(aliasText);
       }
     }
 
-    // V201: reverse-geocode-kaupunki on vain viimeinen vanhan API:n fallback,
-    // ei GPS-valinnan ensisijainen kunta/postinumero-lukko.
+    // V218: reverse-geocode / Hyvinkää vasta viimeisenä vanhan API:n yhteensopivuushaarana.
     addQuery(primaryQuery);
+    addQuery("Hyvinkää");
 
-    return queries.slice(0, 16);
+    return queries.filter((query, index) => query !== "" || index === 0).slice(0, 16);
   }
 
   function setGpsVisibleMessageV391(areaLabel: string) {
