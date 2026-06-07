@@ -1,68 +1,3 @@
-
-// V142_WITHIN_CHAIN_HYPER_LOCAL_RESTORE
-// Korjaus V141:n väärään tulkintaan: Ketjun sisältä vertailee saman ketjun tavarataloa ja lähikauppaa.
-// S-ryhmä: Prisma vs S-market/Sale/Alepa. K-ryhmä: K-Citymarket vs K-Supermarket/K-Market.
-// V139/V140 säilyvät: Ketjujen väliltä käyttää samaa tasoa eikä ABC/huoltoasemamyymälöitä oteta mukaan.
-
-// V141_WITHIN_CHAIN_RESPECTS_SELECTED_STORE_LEVEL
-// Korjaus: Ketjun sisältä ei enää pakota Kauppa 1 = tavaratalo ja Kauppa 2 = lähikauppa.
-// Molemmat valintaruudut käyttävät valittua tasoa (Tavaratalot tai Lähikaupat).
-// Toisen ruudun valinta tallennetaan edelleen toiseen slottiin, mutta valintaikkunan vaihtoehdot suodatetaan samaan tasoon.
-
-// V140_STORE_PICKER_SAME_SOURCE_AND_EXCLUDE_ABC
-// Pohja V139 + V138 build-ok. Korjaus kauppavalintoihin:
-// - ABC/huoltoasema-myymälät suodatetaan pois ruokakorivertailusta.
-// - Ketjun sisältä -valinta käyttää samaa tasokohtaista kauppalistaa kuin Ketjujen väliltä.
-// - Tavaratalo-slotissa näkyy vain Prisma/K-Citymarket, lähikauppa-slotissa vain S-market/Sale/Alepa/K-Super/K-Market.
-// - Puuttuvaa kauppatasoa ei paikata eri tasolla eikä ABC:llä.
-
-// V139_STORE_PICKER_STRICT_SAME_LEVEL_ONLY
-// Korjaus: Tavaratalot-valinta näyttää ja käyttää vain Prisma/K-Citymarket-kauppoja.
-// Lähikaupat-valinta näyttää ja käyttää vain S-market/Sale/Alepa/K-Supermarket/K-Market-kauppoja.
-// Jos saman tason S/K-paria ei löydy, puuttuvaa paikkaa ei täytetä väärän tason kaupalla.
-
-// V137_GPS_BACKGROUND_WATCHDOG_SILENT_REFRESH
-// Pohja V136. GPS-watchdog päivittää kauppalistan taustalla, kun liike ylittää rajan
-// tai edellisestä taustapäivityksestä on kulunut tarpeeksi aikaa.
-// Taustapäivitys EI näytä "Päivitetään sijaintia" / "Oma sijainti päivitetty" -notif-tekstejä.
-// Manuaalinen GPS-nappi näyttää edelleen normaalit GPS-tilatekstit.
-
-// V136_GOSTA_CATEGORY_SEARCH_ONLY_NO_POSTFILTER_MASS
-// Pohja: käyttäjän viimeisin V135 page.
-// Korjaus Göstaan:
-// - tuoteryhmächipin klikkaus käynnistää oman tuoteryhmäkohtaisen tarjoushaun valmiilla siemenhakusanoilla
-// - kategoria ei enää ole pelkkä jälkisuodatin "Kaikki"-massalle
-// - Kaikki käyttää edelleen laajaa aluehakua, mutta Maitotuotteet/Liha/Kala jne. hakevat vain oman ryhmän siemenillä
-// - ryhmähaun tulokset rajataan vielä kategorian mukaan, jotta esim. vaipat eivät päädy maitotuotteisiin/lihaan
-
-// V138_GPS_WATCHDOG_BUILD_FIX_NO_STATUS_DEAD_CODE
-// Korjaus V137 build-virheeseen: applyWeatherBootGpsV481-funktion kuolleessa koodissa oli
-// setLocationStatusV137-kutsuja funktion oman scopen ulkopuolella. Koska funktio palauttaa heti eikä sää/topbar
-// saa käynnistää GPS:ää, lisätään paikallinen no-op jotta TypeScript-build ei kaadu eikä käyttäjälle tule
-// taustapäivityksen status-notifikaatioita.
-
-// V118_OPENFOODFACTS_STRICT_EAN_DEDUP
-// Open Food Facts -fallback: sama EAN siivotaan koriin vain kerran.
-// Jos tuntematon EAN ehti ensin koriin, se päivitetään tunnistetuksi eikä lisätä toista riviä.
-
-// V119_OPENFOODFACTS_NOTIFY_AFTER_DEDUP
-// Korjaus: OFF-fallbackin ilmoitus näytetään myös silloin, kun strict EAN-dedup päivittää/siivoaa korin.
-// Reactin setCart-updater ei ole synkroninen, joten ilmoitusta ei saa sitoa updaterin sisällä asetettuun mutable-flagiiin.
-
-// V121_OPENFOODFACTS_WAIT_CHAIN
-// Korjaus: EAN-haku on nyt oikea odottava single-flight ketju: S/K -> Open Food Facts -> tuntematon.
-// Sama EAN odottaa käynnissä olevan haun valmistumista eikä voi käynnistää rinnakkaista tuntematon/OFF-polkuparia.
-
-// V123_OPENFOODFACTS_REPEAT_SCAN_INCREASES_QUANTITY
-// Sama EAN uudelleen skannattuna kasvattaa olemassa olevan koririvin määrää +1.
-// Ei enää uutta tuntematonta riviä eikä hiljaista ohitusta, jos OFF-tuote on jo korissa.
-
-// V132_SCANNER_NO_AUTO_UNKNOWN_AFTER_OFF_RACE
-// Korjaus: kameraskannerin automaattinen EAN-polku ei enää saa lisätä tuntematonta riviä,
-// jos S/K ja Open Food Facts eivät ehdi/onnistu palauttaa osumaa samalla lukukierroksella.
-// Tämä estää OFF-tunnistetun tuotteen rinnalle syntyvät tuntematon-rivit.
-// Käsin tehty EAN-haku voi edelleen käyttää vanhaa tuntematon-fallbackia.
-
 // V106_GOSTA_ALL_OFFERS_AND_CATEGORY_FILTER
 // Pohjana V105_STABLE: GPS, V41-etäisyys ja sää pidetään ennallaan.
 // Göstan tarjoushaku avautuu myös tyhjällä haulla ja hakee oletuksena alueen kaikki tarjoukset.
@@ -82,15 +17,6 @@
 
 "use client";
 
-// V127_OPENFOODFACTS_RECOGNIZED_EAN_NEVER_UNKNOWN
-// Korjaus: jos EAN on kerran tunnistettu kauppa- tai Open Food Facts -tuotteeksi,
-// mikään myöhempi skanneripolku ei saa enää lisätä sitä tuntemattomana.
-// Uusintaskannaus kasvattaa olemassa olevan rivin määrää +1.
-
-// V124_REPEAT_SCAN_CART_REF_LOCK
-// Korjaus: skannerin callbackit voivat nähdä vanhan cart-state-closuren.
-// Pidetään cartRef ajan tasalla ja käytetään sitä EAN-dedupeen ennen fallbackeja.
-
 // V110_GOSTA_EMPTY_OPENS_AND_RELAXED_OFFER_FILTER
 // Pohja: V109 build-ok + V105 GPS/sää/etäisyys.
 // Korjaus: Gösta saa aueta tyhjällä Hae-kortin tekstillä.
@@ -109,17 +35,6 @@
 // V107_GOSTA_CARD_PROP_COMPAT_BUILD_FIX
 // Pohjana V106 + V105 vakaa GPS/sää/etäisyys.
 // Korjaus: page käyttää tarjouskortista loose-aliasia, jotta uudet Gösta-propit
-// V113_GOSTA_CATEGORY_CLASSIFIER_PRODUCT_TITLE_ONLY
-// Pohja V112. Korjaus tuoteryhmärajauksiin:
-// - tuoteryhmä päätellään ensisijaisesti varsinaisesta tuotteen otsikosta/nimestä, ei koko tarjousrivin sivutekstistä
-// - kategoriavalinnat kuten Maitotuotteet/Liha/Kala suodattavat kategorian mukaan, eivät vapaatekstinä
-// - lasten vaipat, kodin/pesun/lemmikin yms. non-food osumat suljetaan pois ruoka-kategorioista
-// - Kaikki näyttää edelleen kaikki hyväksytyt tarjoukset.
-
-// V112_GOSTA_KAIKKI_FILTER_RELAX_AND_WIDER_SEEDS
-// Korjaus: "Kaikki" ei saa jäädä tekstifiltteriksi eikä UI-roskasanoja saa testata koko offer-tekstistä.
-// Levennetty tyhjän Gösta-haun siemenhakua, jotta alueen tarjoukset eivät jää yhden osuman varaan.
-
 // (filter/onFilterChange/categorySuggestions) eivät kaada buildiä, vaikka projektiin ei ole
 // vielä vaihdettu uutta ZiiplyMobileOfferSearchCard v2 -komponenttia.
 // Kun v2-komponentti on paikallaan, samat propit aktivoivat Göstan oman hakukentän ja tuoteryhmärajauksen.
@@ -267,18 +182,8 @@
 // - zoom ei enää lukitu arvoon 1, vaan yritetään maltillista lähizoomia scannerCore-tuennan päälle
 // - ei-löytynyt EAN lisätään koriin tuntemattomana tuotteena ja kirjataan localStorage-logiin myöhempää selvitystä varten.
 
-// V126_OPENFOODFACTS_VARIANT_CACHE_BEFORE_UNKNOWN
-// Sama EAN ei saa pudota myöhemmillä lukukerroilla tuntemattomaksi, jos OFF on jo tunnistanut sen.
 // V728_UNKNOWN_EAN_NO_REPEAT
 // Ei-löytynyt / tuntematon EAN lisätään koriin vain kerran; sama koodi ei enää kasvata määrää uudelleen.
-
-// V117_OPENFOODFACTS_CART_NAME_CLEAN_INFO
-// Korjaus: Open Food Facts -fallback pidetään saman EAN-haun sisällä loppuun asti.
-// V117: Open Food Facts -tuotteen nimeen ei enää lisätä status-tekstiä koriin.
-// Status näytetään ilmoituksena: tunnistettu, mutta ei mukana hintavertailussa.
-// Tuntematon EAN ei enää ehdi lisätä rinnakkaista riviä ennen OFF-vastausta.
-// V130_RECOGNIZED_SCAN_BLOCKS_PARALLEL_UNKNOWN: tunnistetun EAN-skannauksen jälkeen saman lukutapahtuman tuntematon fallback blokataan.
-// Jos tuntematon rivi on jo ehtinyt koriin, OFF-osuma päivittää saman rivin tunnistetuksi eikä lisää toista ilmoitusta/riviä.
 
 // V723_SEARCH_FAIL_OPEN_FIX
 // Pohjana V722.
@@ -1024,15 +929,7 @@ import {
   type ZiiplyStoreChain,
   type ZiiplyStoreKind,
   type ZiiplyStoreMode,
-} from "./components/ziiply/location";
-import {
-  GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147,
-  cleanZiiplyGostaOfferResultsV146,
-  filterZiiplyGostaOfferResultsV146,
-  isZiiplyGostaCategorySelectionV147,
-  mapZiiplyGostaOfferToCardOfferV147,
-  searchZiiplyGostaOffersV146,
-} from "./components/ziiply/offerSearch/ziiplyOfferSearchCore";
+} from "./components/ziiply/offerSearch/ziiplyLocationResolverCore";
 
 const MOBILE_EAN_SCANNER_REGION_ID = `${EAN_SCANNER_REGION_ID}-mobile`;
 
@@ -2212,9 +2109,6 @@ export default function Page() {
   const gpsLastSilentAreaRefV391 = useRef("");
   const gpsPollRefreshInFlightRefV90 = useRef(false);
   const gpsPollLastAppliedAtRefV90 = useRef(0);
-  const gpsPollLastAppliedCoordsRefV137 = useRef<{ latitude: number; longitude: number } | null>(null);
-  const gpsCoordsLatestRefV137 = useRef<{ latitude: number; longitude: number } | null>(null);
-  const storeSearchLoadingLatestRefV137 = useRef(false);
   const gpsFailTimerRefV391 = useRef<number | null>(null);
   const gpsSearchInFlightRefV465 = useRef(false);
   const gpsInitialSearchStartedRefV465 = useRef(false);
@@ -2222,15 +2116,6 @@ export default function Page() {
   const weatherBootApplyInFlightRefV481 = useRef(false);
   const gpsBootTimerRefV483 = useRef<number | null>(null);
   const gpsBootWatchdogRefV483 = useRef<number | null>(null);
-
-  useEffect(() => {
-    gpsCoordsLatestRefV137.current = gpsCoordsV320;
-  }, [gpsCoordsV320]);
-
-  useEffect(() => {
-    storeSearchLoadingLatestRefV137.current = storeSearchLoading;
-  }, [storeSearchLoading]);
-
   // V485_MANUAL_GPS_SUCCESS_GUARD:
   // Kun manuaalinen GPS-haku onnistuu, vihreä nuppineula / LocationBar / StoreLocaCard
   // ei saa laukaista samaa GPS-hakua uudestaan. Tämä lukko koskee vain uutta
@@ -2747,12 +2632,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
   // Mobile comparison view uses the same activeResult state as desktop, but renders as its own overlay.
   const [cart, setCart] = useState<CartItem[]>([]);
-  const cartRefV124 = useRef<CartItem[]>([]);
-
-  useEffect(() => {
-    cartRefV124.current = cart;
-  }, [cart]);
-
   const [restoredCartPromptV320, setRestoredCartPromptV320] = useState<{
     open: boolean;
     count: number;
@@ -3191,33 +3070,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     null,
   );
   const scannedEanSessionSetRef = useRef<Set<string>>(new Set());
-  // V120: EAN-haulle oma single-flight-lukko. React-state (eanLoading / lastAutoEanSearch)
-  // ei riitä, koska mobiiliskannerissa live-luku, still-fallback ja useEffect voivat ehtiä
-  // eri mikrotaskeissa. Sama EAN saa olla käsittelyssä vain yhdessä putkessa.
-  const eanLookupPendingRefV120 = useRef<Set<string>>(new Set());
-  // V121: varsinainen wait-until/single-flight. Jos sama EAN tulee live- ja still-polusta
-  // tai input-effectistä samaan aikaan, myöhemmät kutsut odottavat tätä samaa promisea.
-  const eanLookupPromiseRefV121 = useRef<Map<string, Promise<void>>>(new Map());
-  const eanLookupOutcomeRefV120 = useRef<Map<string, { status: "off" | "unknown" | "store"; at: number }>>(new Map());
-  // V126: pysyvä OFF-cache EAN-varianteille. Jos sama tuote luetaan myöhemmin
-  // hieman eri EAN-muodossa, se ei saa pudota tuntemattomaksi fallbackiksi.
-  const openFoodFactsProductCacheRefV126 = useRef<Map<string, OpenFoodFactsFallbackProductV729>>(new Map());
-  // V127: kova muistilukko. Kun EAN on kerran tunnistettu kauppa- tai OFF-tuotteeksi,
-  // sitä ei saa enää missään myöhemmässä skannauksessa lisätä tuntemattomana.
-  const recognizedEanLockRefV127 = useRef<Set<string>>(new Set());
-  // V130: viimeinen suojakaide rinnakkaislukuihin. Jos sama fyysinen skannaus
-  // tuottaa ensin OFF-/kauppaosuman ja heti perään eri muodossa epäonnistuneen
-  // EANin, tuntematon-fallback ei saa luoda rinnakkaista riviä.
-  const recentRecognizedEanGuardRefV130 = useRef<{
-    at: number;
-    keys: Set<string>;
-    digits: string;
-  } | null>(null);
-  // V131: fyysisen skannauksen lukujarru. Kun kamera hyväksyy yhden EANin,
-  // live-lukijan ja still-fallbackin seuraavat peräkkäiset frame-osumat ohitetaan hetken.
-  // Tämä estää saman tuotteen ympäriltä tulevat myöhäiset/virheelliset EAN-tulkinnat,
-  // jotka ovat tähän asti päässeet tuntematon-fallbackiin rinnakkaisina riveinä.
-  const scannerDecodeIgnoreUntilRefV131 = useRef(0);
   const scanSuccessFlashTimeoutRef = useRef<number | null>(null);
   const scanMissFlashTimeoutRef = useRef<number | null>(null);
 
@@ -3650,8 +3502,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const result: StoreSearchItem[] = [];
 
     const addStore = (store: StoreSearchItem) => {
-      if (isExcludedGroceryComparisonStoreV140(store)) return;
-
       const key = String(
         (store as any).id ??
           `${normalize(String(store.name || ""))}:${normalize(String(store.city || ""))}`,
@@ -3674,83 +3524,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // GPS-tilassa valitaan ja listataan vain API:n palauttamia oikeita kauppoja.
 
     return result;
-  }
-
-  function isExcludedGroceryComparisonStoreV140(
-    store: StoreSearchItem | null | undefined,
-  ) {
-    if (!store) return true;
-
-    const text = normalize(
-      `${store.name || ""} ${(store as any).brand || ""} ${(store as any).banner || ""} ${(store as any).kind || ""} ${(store as any).typeLabel || ""}`,
-    );
-
-    // ABC on liikenneasema-/ravintola-/myymälähybridi, ei sama ruokakorivertailun
-    // formaatti kuin Prisma/S-market/Sale tai K-ryhmän marketit.
-    return (
-      text.includes("abc") ||
-      text.includes("liikenneasema") ||
-      text.includes("huoltoasema")
-    );
-  }
-
-  function storeMatchesStrictChainAndModeV139(
-    store: StoreSearchItem | null | undefined,
-    chain: "S" | "K",
-    mode: StoreMode,
-  ) {
-    if (!store) return false;
-    if (isExcludedGroceryComparisonStoreV140(store)) return false;
-    if (getStoreChainV320(store) !== chain) return false;
-
-    if (mode === "hyper") {
-      return chain === "S" ? isPrisma(store) : isKCitymarket(store);
-    }
-
-    return chain === "S" ? isSLocalStore(store) : isKLocalStore(store);
-  }
-
-  function getActiveAreaStoreCandidateV139(
-    chain: "S" | "K",
-    mode: StoreMode,
-  ): StoreSearchItem | null {
-    const id =
-      chain === "S"
-        ? mode === "local"
-          ? activeArea.sLocalStoreId
-          : activeArea.sStoreId
-        : mode === "local"
-          ? activeArea.kLocalStoreId
-          : activeArea.kStoreId;
-
-    const name =
-      chain === "S"
-        ? mode === "local"
-          ? activeArea.sLocalStoreName
-          : activeArea.sStoreName
-        : mode === "local"
-          ? activeArea.kLocalStoreName
-          : activeArea.kStoreName;
-
-    if (!id && !name) return null;
-
-    const normalizedStores = foundStores.map(normalizeStoreForPickerV320);
-    const matched = normalizedStores.find(
-      (store) =>
-        getStoreChainV320(store) === chain &&
-        Boolean(
-          (id && sameStoreIdV93(store.id, id)) ||
-            (name && normalize(store.name || "") === normalize(name)),
-        ),
-    );
-
-    const candidate =
-      matched ||
-      ({ id: id || 0, name: name || "", type: chain } as StoreSearchItem);
-
-    return storeMatchesStrictChainAndModeV139(candidate, chain, mode)
-      ? candidate
-      : null;
   }
 
   const activeStores = useMemo(() => {
@@ -3777,48 +3550,36 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // Käyttäjän valinta kirjoitetaan activeAreaan selectStoreForCurrentMode()-funktiossa,
       // joten käytetään activeAreaa ensisijaisena ja GPS-rankingia vain puuttuvan S/K-paikan täyttöön.
       if (gpsMode === "local") {
-        const selectedSLocal = getActiveAreaStoreCandidateV139("S", "local");
-        const selectedKLocal = getActiveAreaStoreCandidateV139("K", "local");
-
         return {
-          sStoreId: selectedSLocal?.id ?? ranked.sLocal?.id ?? 0,
-          sStoreName: selectedSLocal?.name ?? ranked.sLocal?.name ?? "S-lähikauppa ei valittu",
-          kStoreId: selectedKLocal?.id ?? ranked.kLocal?.id ?? 0,
-          kStoreName: selectedKLocal?.name ?? ranked.kLocal?.name ?? "K-lähikauppa ei valittu",
+          sStoreId: activeArea.sLocalStoreId ?? ranked.sLocal?.id ?? 0,
+          sStoreName: activeArea.sLocalStoreName ?? ranked.sLocal?.name ?? "S-lähikauppa ei valittu",
+          kStoreId: activeArea.kLocalStoreId ?? ranked.kLocal?.id ?? 0,
+          kStoreName: activeArea.kLocalStoreName ?? ranked.kLocal?.name ?? "K-lähikauppa ei valittu",
         };
       }
 
-      const selectedSHyper = getActiveAreaStoreCandidateV139("S", "hyper");
-      const selectedKHyper = getActiveAreaStoreCandidateV139("K", "hyper");
-
       return {
-        sStoreId: selectedSHyper?.id ?? ranked.sHyper?.id ?? 0,
-        sStoreName: selectedSHyper?.name ?? ranked.sHyper?.name ?? "S-tavaratalo ei valittu",
-        kStoreId: selectedKHyper?.id ?? ranked.kHyper?.id ?? 0,
-        kStoreName: selectedKHyper?.name ?? ranked.kHyper?.name ?? "K-tavaratalo ei valittu",
+        sStoreId: activeArea.sStoreId ?? ranked.sHyper?.id ?? 0,
+        sStoreName: activeArea.sStoreName ?? ranked.sHyper?.name ?? "S-tavaratalo ei valittu",
+        kStoreId: activeArea.kStoreId ?? ranked.kHyper?.id ?? 0,
+        kStoreName: activeArea.kStoreName ?? ranked.kHyper?.name ?? "K-tavaratalo ei valittu",
       };
     }
 
     if (storeMode === "local") {
-      const selectedSLocal = getActiveAreaStoreCandidateV139("S", "local");
-      const selectedKLocal = getActiveAreaStoreCandidateV139("K", "local");
-
       return {
-        sStoreId: selectedSLocal?.id ?? 0,
-        sStoreName: selectedSLocal?.name ?? "S-lähikauppa ei valittu",
-        kStoreId: selectedKLocal?.id ?? 0,
-        kStoreName: selectedKLocal?.name ?? "K-lähikauppa ei valittu",
+        sStoreId: activeArea.sLocalStoreId ?? 0,
+        sStoreName: activeArea.sLocalStoreName ?? "S-lähikauppa ei valittu",
+        kStoreId: activeArea.kLocalStoreId ?? 0,
+        kStoreName: activeArea.kLocalStoreName ?? "K-lähikauppa ei valittu",
       };
     }
 
-    const selectedSHyper = getActiveAreaStoreCandidateV139("S", "hyper");
-    const selectedKHyper = getActiveAreaStoreCandidateV139("K", "hyper");
-
     return {
-      sStoreId: selectedSHyper?.id ?? 0,
-      sStoreName: selectedSHyper?.name ?? "S-tavaratalo ei valittu",
-      kStoreId: selectedKHyper?.id ?? 0,
-      kStoreName: selectedKHyper?.name ?? "K-tavaratalo ei valittu",
+      sStoreId: activeArea.sStoreId ?? 0,
+      sStoreName: activeArea.sStoreName ?? "S-tavaratalo ei valittu",
+      kStoreId: activeArea.kStoreId ?? 0,
+      kStoreName: activeArea.kStoreName ?? "K-tavaratalo ei valittu",
     };
   }, [
     activeArea,
@@ -4121,58 +3882,22 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return (data.items || []) as KProduct[];
   }
 
-  type OpenFoodFactsFallbackProductV729 = {
-    ean: string;
-    name: string;
-    brandName?: string;
-    imageUrl?: string;
-    quantity?: string;
-  };
-
-  async function fetchOpenFoodFactsFallbackProductV729(
-    ean: string,
-  ): Promise<OpenFoodFactsFallbackProductV729 | null> {
+  async function fetchOpenFoodFactsNames(ean: string) {
     const normalizedEan = normalizeEan(ean);
-    if (!isUsableEan(normalizedEan)) return null;
+    if (!isUsableEan(normalizedEan)) return [];
 
     const response = await fetch(
-      `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(normalizedEan)}.json?fields=product_name,product_name_fi,generic_name,generic_name_fi,brands,code,image_front_url,image_url,quantity`,
+      `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(normalizedEan)}.json?fields=product_name,product_name_fi,generic_name,generic_name_fi,brands,code`,
       { cache: "no-store" },
     );
 
-    if (!response.ok) return null;
+    if (!response.ok) return [];
 
     const data = await response.json();
-    const product = data?.product;
 
-    if (data?.status !== 1 || !product) return null;
+    if (data?.status !== 1 || !data?.product) return [];
 
-    const names = getOpenFoodFactsNames(product);
-    const cleanName = names
-      .map((name) => cleanExternalProductName(String(name || "")))
-      .find((name) => name.length > 1);
-
-    if (!cleanName) return null;
-
-    const brandName = cleanExternalProductName(String(product.brands || ""));
-    const quantity = cleanExternalProductName(String(product.quantity || ""));
-
-    return {
-      ean: normalizedEan,
-      name: [brandName, cleanName, quantity]
-        .filter(Boolean)
-        .join(" ")
-        .replace(/\s+/g, " ")
-        .trim(),
-      brandName: brandName || undefined,
-      imageUrl: String(product.image_front_url || product.image_url || ""),
-      quantity: quantity || undefined,
-    };
-  }
-
-  async function fetchOpenFoodFactsNames(ean: string) {
-    const fallbackProduct = await fetchOpenFoodFactsFallbackProductV729(ean);
-    return fallbackProduct?.name ? [fallbackProduct.name] : [];
+    return getOpenFoodFactsNames(data.product);
   }
 
   function showCartToast(message: string) {
@@ -5042,15 +4767,112 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return [];
   }, [offers, offerSearchQuerySnapshot, currentSearchQueryKey, chainFilter]);
 
-  // V146: Göstan tarjoushaun orkestrointi, dedupe ja näkyvien tulosten suodatus
-  // on siirretty offerSearch/ziiplyOfferSearchCore.ts -moduuliin.
+  function getOfferSearchTextV106(item: any) {
+    return [
+      item?.title,
+      item?.name,
+      item?.productName,
+      item?.brandName,
+      item?.storeLabel,
+      item?.storeName,
+      item?.chain,
+      item?.benefitText,
+      item?.validityText,
+      item?.category,
+      item?.department,
+      item?.productGroup,
+    ]
+      .filter(Boolean)
+      .map(String)
+      .join(" ");
+  }
+
+  function getOfferCategoryV106(item: any) {
+    const text = normalize(getOfferSearchTextV106(item));
+
+    if (/kahvi|espresso|suodatinjauh|papu/.test(text)) return "Kahvi";
+    if (/maito|jugur|jogur|rahka|juusto|voi|kerma|piima|viili/.test(text)) return "Maitotuotteet";
+    if (/liha|jauheliha|kana|broiler|possu|nauta|makkara|leikkele/.test(text)) return "Liha";
+    if (/kala|lohi|kirjolohi|tonnikala|silakka|katkarapu/.test(text)) return "Kala";
+    if (/leipa|sämpyl|pull|croissant|karjalanpiir|pita/.test(text)) return "Leipomo";
+    if (/hedel|omena|banaani|appelsiini|vihannes|tomaatti|kurkku|salaatti|peruna|sipuli/.test(text)) return "Hevi";
+    if (/koira|kissa|lemmik|pedigree|whiskas|sheba|purina/.test(text)) return "Lemmikit";
+    if (/pesu|pyykin|fairy|astianpesu|wc|siivous|talouspaperi|vessa/.test(text)) return "Koti";
+    if (/limu|cola|mehu|olut|energiajuoma|vesi|virvoitus/.test(text)) return "Juomat";
+    if (/pakaste|jäätelö|pizza/.test(text)) return "Pakasteet";
+
+    return "Muut";
+  }
+
+  function isBadOfferSearchResultV106(item: any) {
+    const title = String(item?.title || item?.name || item?.productName || "").trim();
+    const text = normalize(getOfferSearchTextV106(item));
+    const priceText = String(item?.priceText || item?.offerPrice || item?.price || "").trim();
+
+    if (!title || normalize(title).length < 3) return true;
+    // V110: älä hylkää oikeaa tarjoustuotetta vain siksi, että parseri ei vielä anna
+    // hintaa juuri kentässä priceText/benefitText/discountText. Eri tarjoajat nimeävät kentät eri tavalla.
+    // Varsinainen roskasuodatus tehdään alla selkeillä UI-/navigaatio-osumilla.
+    void priceText;
+
+    const junkPatterns = [
+      /ostoskori/,
+      /ostoskorissa/,
+      /0\s*kappaletta/,
+      /tuote lisätty/,
+      /kirjaudu/,
+      /rekisteroidy/,
+      /eväste/,
+      /cookie/,
+      /toimitusmaksu/,
+      /nouto/,
+      /verkkokauppa/,
+      /asiakasomistaja/,
+      /plussa-?kort/,
+      /^kampanja$/,
+      /^tarjous$/,
+      /^osta$/,
+      /^avaa$/,
+      /^lue lisää$/,
+    ];
+
+    if (junkPatterns.some((pattern) => pattern.test(text))) return true;
+
+    const letters = title.replace(/[^A-Za-zÅÄÖåäö]/g, "");
+    if (letters.length < 3) return true;
+
+    return false;
+  }
 
   const cleanOfferSearchResultsV106 = useMemo(() => {
-    return cleanZiiplyGostaOfferResultsV146(offerSearchResults);
+    const seen = new Set<string>();
+
+    return offerSearchResults.filter((item) => {
+      if (isBadOfferSearchResultV106(item)) return false;
+
+      const key = normalize([
+        item?.id,
+        item?.title,
+        item?.storeLabel,
+        item?.priceText,
+        item?.benefitText,
+      ].filter(Boolean).join("|"));
+
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
   }, [offerSearchResults]);
 
   const visibleOfferSearchResultsV106 = useMemo(() => {
-    return filterZiiplyGostaOfferResultsV146(cleanOfferSearchResultsV106, offerCardFilterV106);
+    const filter = normalize(offerCardFilterV106).trim();
+    if (!filter) return cleanOfferSearchResultsV106;
+
+    return cleanOfferSearchResultsV106.filter((item) => {
+      const category = normalize(getOfferCategoryV106(item));
+      const text = normalize(getOfferSearchTextV106(item));
+      return category.includes(filter) || text.includes(filter);
+    });
   }, [cleanOfferSearchResultsV106, offerCardFilterV106]);
 
   const offerSearchLabel = useMemo(() => {
@@ -5814,11 +5636,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     mode: ZiiplyStoreMode,
     coords?: { latitude: number; longitude: number } | null,
   ) {
-    const allowedStores = stores.filter(
-      (store) => !isExcludedGroceryComparisonStoreV140(store),
-    );
-    const chainStores = allowedStores.filter((store) => getZiiplyResolverStoreChainV32(store) === chain);
-    const candidates = chainStores.length > 0 ? chainStores : allowedStores;
+    const chainStores = stores.filter((store) => getZiiplyResolverStoreChainV32(store) === chain);
+    const candidates = chainStores.length > 0 ? chainStores : stores;
     const candidatesWithGpsCoordinates = coords
       ? candidates.filter((store) => storeHasRealCoordinatesForGpsV41(store))
       : candidates;
@@ -5828,18 +5647,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const hyperPredicate = chain === "S" ? isPrisma : isKCitymarket;
     const localPredicate = chain === "S" ? isSLocalStore : isKLocalStore;
     const preferredPredicate = mode === "hyper" ? hyperPredicate : localPredicate;
-    const strictModeCandidates = rankingCandidates.filter(preferredPredicate);
-    const oldPickerPreferred = pickStore(strictModeCandidates, preferredPredicate);
+    const fallbackPredicate = mode === "hyper" ? localPredicate : hyperPredicate;
 
-    // V139: älä koskaan täytä puuttuvaa tavarataloa lähikaupalla tai päinvastoin.
-    // Jos saman tason kauppaa ei löydy, palautetaan undefined ja UI näyttää puuttuvan parin.
-    if (strictModeCandidates.length === 0) return undefined;
+    const oldPickerPreferred = pickStore(rankingCandidates, preferredPredicate);
+    const oldPickerFallback = pickStore(rankingCandidates, fallbackPredicate);
 
     if (!coords) {
-      return oldPickerPreferred || strictModeCandidates[0];
+      return oldPickerPreferred || oldPickerFallback || rankingCandidates[0];
     }
 
-    const scoredStores = strictModeCandidates
+    const scoredStores = rankingCandidates
       .map((store) => {
         const geoStoreForScore = toZiiplyResolverGeoStoreV32(store);
         if (geoStoreForScore.latitude != null && geoStoreForScore.longitude != null) {
@@ -5885,7 +5702,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return (
       scoredStores[0]?.store ||
       oldPickerPreferred ||
-      strictModeCandidates[0]
+      oldPickerFallback ||
+      rankingCandidates[0] ||
+      candidates[0]
     );
   }
 
@@ -5894,11 +5713,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     mode: StoreMode,
     coords?: { latitude: number; longitude: number } | null,
   ) {
-    const comparisonStores = stores.filter(
-      (store) => !isExcludedGroceryComparisonStoreV140(store),
-    );
-    const sStores = comparisonStores.filter((store) => store.type === "S" || getZiiplyResolverStoreChainV32(store) === "S");
-    const kStores = comparisonStores.filter((store) => store.type === "K" || getZiiplyResolverStoreChainV32(store) === "K");
+    const sStores = stores.filter((store) => store.type === "S" || getZiiplyResolverStoreChainV32(store) === "S");
+    const kStores = stores.filter((store) => store.type === "K" || getZiiplyResolverStoreChainV32(store) === "K");
 
     const sHyper = pickBestResolverStoreForChainV32(sStores, "S", "hyper", coords);
     const kHyper = pickBestResolverStoreForChainV32(kStores, "K", "hyper", coords);
@@ -6215,16 +6031,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     queryOverride?: string,
     source: "manual" | "gps" = "manual",
     coordsOverride?: { latitude: number; longitude: number } | null,
-    silentStatusV137 = false,
   ) {
     pushGpsDebugLogV492(`applyLocation() ENTRY source=${source} query=${String(queryOverride || locationInput)}`);
     const rawQuery = (queryOverride || locationInput).trim();
-    const setLocationStatusV137 = (message: string) => {
-      if (!silentStatusV137) setLocationMessage(message);
-    };
 
     if (!rawQuery) {
-      setLocationStatusV137("Kirjoita ensin kaupunki, alue tai postinumero");
+      setLocationMessage("Kirjoita ensin kaupunki, alue tai postinumero");
       return;
     }
 
@@ -6234,7 +6046,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     setStoreSearchLoading(true);
-    setLocationStatusV137(
+    setLocationMessage(
       source === "gps"
         ? `Haetaan kauppoja alueelle ${rawQuery}`
         : `Haetaan kauppoja alueelle ${rawQuery}`,
@@ -6244,12 +6056,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       let query = rawQuery;
 
       if (isFinnishPostalCode(rawQuery)) {
-        setLocationStatusV137(`Haetaan aluetta postinumerolle ${rawQuery}`);
+        setLocationMessage(`Haetaan aluetta postinumerolle ${rawQuery}`);
         const cityFromPostalCode = await resolvePostalCodeToCity(rawQuery);
 
         if (!cityFromPostalCode) {
           setFoundStores([]);
-          setLocationStatusV137(
+          setLocationMessage(
             `Postinumeroa "${rawQuery}" ei tunnistettu. Valitse alue käsin.`,
           );
           return;
@@ -6265,7 +6077,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         source,
       });
 
-      setLocationStatusV137(
+      setLocationMessage(
         `Haetaan kauppoja alueelle ${query}`,
       );
       const stores = await fetchStoresForLocationQuery(
@@ -6284,7 +6096,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setFoundStores(storesWithDistanceV97);
 
       if (storesWithDistanceV97.length === 0) {
-        setLocationStatusV137(
+        setLocationMessage(
           `Alueelle "${query}" ei löytynyt kauppoja. Valitse alue käsin.`,
         );
         return;
@@ -6363,11 +6175,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           : !ranked.sHyper || !ranked.kHyper;
 
       if (modeMissing) {
-        setLocationStatusV137(
+        setLocationMessage(
           `${nextArea.label || query} löytyi, mutta kaikkia ${effectiveStoreModeForLocationMessage === "local" ? "lähikauppoja" : "tavarataloja"} ei löytynyt. Voit valita kaupat listasta.`,
         );
       } else {
-        setLocationStatusV137(source === "gps" ? "Oma sijainti käytössä" : `${nextArea.label || query || "GPS"} käytössä`);
+        setLocationMessage(source === "gps" ? "Oma sijainti käytössä" : `${nextArea.label || query || "GPS"} käytössä`);
       }
     } catch (error) {
       pushGpsDebugLogV492(`useOwnLocation CATCH code=${String((error as any)?.code ?? "?")}`);
@@ -6385,7 +6197,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       } else {
         setGpsErrorMessage("GPS ei löydy");
       }
-      setLocationStatusV137(
+      setLocationMessage(
         source === "gps"
           ? "Sijainti löytyi, mutta kauppahaku epäonnistui. Valitse alue käsin."
           : "Kauppahaku epäonnistui. Valitse alue käsin.",
@@ -6394,7 +6206,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setStoreSearchLoading(false);
       if (source === "gps") {
         setGpsErrorMessage("");
-        if (!silentStatusV137) setLocationMessageVisible(true);
+        setLocationMessageVisible(true);
       }
     }
   }
@@ -6419,10 +6231,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }, [locationInput, usingOwnLocation, storeSearchLoading]);
 
   async function applyWeatherBootGpsV481(coords: { latitude: number; longitude: number }) {
-    // V138: tämä funktio palauttaa heti. Alla oleva vanha dead code jää vain historian vuoksi,
-    // joten status-kutsut no-opataan paikallisesti buildin ja hiljaisen GPS-watchdogin vuoksi.
-    const setLocationStatusV137 = (_message: string) => {};
-
     // V490: sää/topbar ei saa enää koskaan käynnistää tai soveltaa GPS-paikannusta.
     // Yksi automaattinen GPS-startti tulee vain page-tason boot-effectistä.
     return;
@@ -6436,7 +6244,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setUsingOwnLocation(true);
     setGpsCoordsV320(coords);
     setStoreSearchLoading(true);
-    setLocationStatusV137("Paikannetaan GPS");
+    setLocationMessage("Paikannetaan GPS");
     setLocationMessageVisible(true);
 
     try {
@@ -6445,7 +6253,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       if (!city) {
         pushGpsDebugLogV492(`useOwnLocation reverse geocode EMPTY`);
         setGpsErrorMessage("GPS ei löydy");
-        setLocationStatusV137("GPS ei löydy");
+        setLocationMessage("GPS ei löydy");
         setLocationMessageVisible(true);
         setUsingOwnLocation(false);
         setGpsCoordsV320(null);
@@ -6454,7 +6262,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
 
       setGpsErrorMessage("");
-      setLocationStatusV137(`${city} käytössä`);
+      setLocationMessage(`${city} käytössä`);
       setLocationMessageVisible(true);
       setLocationInput("");
       await applyLocation(city, "gps", coords);
@@ -6462,7 +6270,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       pushGpsDebugLogV492(`useOwnLocation CATCH code=${String((error as any)?.code ?? "?")}`);
       console.error(error);
       setGpsErrorMessage("GPS ei löydy");
-      setLocationStatusV137("GPS ei löydy");
+      setLocationMessage("GPS ei löydy");
       setLocationMessageVisible(true);
       setUsingOwnLocation(false);
       setGpsCoordsV320(null);
@@ -6632,8 +6440,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setStoreModeChosenV299(true);
       pushGpsDebugLogV492(`useOwnLocation applyLocation start`);
       await applyLocation(city, "gps", nextGpsCoordsV485);
-      gpsPollLastAppliedCoordsRefV137.current = nextGpsCoordsV485;
-      gpsPollLastAppliedAtRefV90.current = Date.now();
       gpsApplyLocationDoneV495 = true;
       pushGpsDebugLogV492(`useOwnLocation applyLocation done`);
 
@@ -6713,27 +6519,20 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
   }
 
-  // V137_GPS_BACKGROUND_WATCHDOG_SILENT_REFRESH:
-  // Kun GPS on päällä, paikkatieto tarkistetaan taustalla. Kaupat haetaan uudelleen vain,
-  // jos liike edellisestä kauppahakuun käytetystä sijainnista ylittää rajan tai
-  // edellisestä päivityksestä on kulunut riittävästi aikaa. Taustapäivitys ei näytä
-  // sijainnin notif-tekstejä.
+  // V480_NO_OWN_GPS_BOOT_MANUAL_ONLY:
+  // Oma sovellus EI käynnistä GPS-paikannusta reloadissa/startissa.
+  // Tämä poistaa vanhan fallback/autostart-polun, joka pakotti GPS:n päälle avauksessa.
   useEffect(() => {
     if (!usingOwnLocation || gpsUserDisabledRefV306.current) return;
     if (typeof navigator === "undefined" || !navigator.geolocation) return;
 
     let cancelled = false;
 
-    if (!gpsPollLastAppliedCoordsRefV137.current && gpsCoordsLatestRefV137.current) {
-      gpsPollLastAppliedCoordsRefV137.current = gpsCoordsLatestRefV137.current;
-      gpsPollLastAppliedAtRefV90.current = Date.now();
-    }
-
-    const runGpsBackgroundWatchdogV137 = () => {
+    const runGpsPollRefreshV90 = () => {
       if (cancelled) return;
       if (gpsPollRefreshInFlightRefV90.current) return;
       if (gpsSearchInFlightRefV465.current || ziiplyGpsHardInFlightV469) return;
-      if (storeSearchLoadingLatestRefV137.current) return;
+      if (storeSearchLoading) return;
 
       gpsPollRefreshInFlightRefV90.current = true;
 
@@ -6747,22 +6546,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               longitude: position.coords.longitude,
             };
 
-            gpsCoordsLatestRefV137.current = nextCoords;
-            setGpsCoordsV320(nextCoords);
-
-            const previousAppliedCoords = gpsPollLastAppliedCoordsRefV137.current;
-            const movedMeters = previousAppliedCoords
-              ? getDistanceMetersV391(previousAppliedCoords, nextCoords)
+            const previousCoords = gpsCoordsV320;
+            const movedMeters = previousCoords
+              ? getDistanceMetersV391(previousCoords, nextCoords)
               : Number.POSITIVE_INFINITY;
             const elapsedMs = Date.now() - gpsPollLastAppliedAtRefV90.current;
 
-            if (
-              previousAppliedCoords &&
-              movedMeters < ZIIPLY_GPS_REFRESH_MIN_MOVED_METERS_V92 &&
-              elapsedMs < ZIIPLY_GPS_REFRESH_FORCE_AFTER_MS_V92
-            ) {
-              return;
-            }
+            setGpsCoordsV320(nextCoords);
+
+            // Älä aja kauppahakua joka pienestä GPS-heilahtelusta.
+            if (movedMeters < ZIIPLY_GPS_REFRESH_MIN_MOVED_METERS_V92 && elapsedMs < ZIIPLY_GPS_REFRESH_FORCE_AFTER_MS_V92) return;
+
+            gpsPollLastAppliedAtRefV90.current = Date.now();
 
             const city = await reverseGeocodeCity(
               nextCoords.latitude,
@@ -6771,14 +6566,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
             if (!city || cancelled) return;
 
-            gpsPollLastAppliedCoordsRefV137.current = nextCoords;
-            gpsPollLastAppliedAtRefV90.current = Date.now();
-
             setUsingOwnLocation(true);
             setGpsErrorMessage("");
             setLocationInput("");
+            setLocationMessage("Päivitetään sijaintia");
+            setLocationMessageVisible(true);
 
-            await applyLocation(city, "gps", nextCoords, true);
+            await applyLocation(city, "gps", nextCoords);
 
             if (cancelled) return;
 
@@ -6786,7 +6580,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             setGpsErrorMessage("");
             setLocationInput("");
             setStoreSearchLoading(false);
-            setLocationMessageVisible(false);
+            setLocationMessage("Oma sijainti päivitetty");
+            setLocationMessageVisible(true);
           } catch (error) {
             console.error(error);
           } finally {
@@ -6805,21 +6600,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       );
     };
 
-    const firstTimer = window.setTimeout(
-      runGpsBackgroundWatchdogV137,
-      ZIIPLY_GPS_REFRESH_FIRST_DELAY_MS_V92,
-    );
-    const interval = window.setInterval(
-      runGpsBackgroundWatchdogV137,
-      ZIIPLY_GPS_REFRESH_INTERVAL_MS_V92,
-    );
+    // Ensimmäinen päivitys vähän viiveellä, ettei se törmää boot/manual GPS-starttiin.
+    const firstTimer = window.setTimeout(runGpsPollRefreshV90, ZIIPLY_GPS_REFRESH_FIRST_DELAY_MS_V92);
+    const interval = window.setInterval(runGpsPollRefreshV90, ZIIPLY_GPS_REFRESH_INTERVAL_MS_V92);
 
     return () => {
       cancelled = true;
       window.clearTimeout(firstTimer);
       window.clearInterval(interval);
     };
-  }, [usingOwnLocation]);
+  }, [usingOwnLocation, gpsCoordsV320, storeSearchLoading]);
 
 
   // Manuaalinen GPS-nappi käyttää edelleen useOwnLocation("manual") ja toimii normaalisti.
@@ -6894,9 +6684,25 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const hasExplicitOverride = typeof termOverride === "string";
     const cleanedOverride = String(termOverride ?? "").trim();
     const useTerms = hasExplicitOverride ? parseTerms(cleanedOverride) : terms;
+    const offerQuerySnapshot =
+      useTerms.join(", ").trim() || (hasExplicitOverride ? cleanedOverride : input.trim());
+    const searchAllAreaOffers = !offerQuerySnapshot;
+
+    trackZiiplyEvent("gosta_offer_api_search_used", {
+      query: searchAllAreaOffers ? "__all_area_offers__" : offerQuerySnapshot,
+      cartItemsCount: cart.length,
+      storeMode,
+      sStoreName: activeStores.sStoreName,
+      kStoreName: activeStores.kStoreName,
+    });
 
     if (hasExplicitOverride) setInput(cleanedOverride);
 
+    setOfferSearchQuerySnapshot(offerQuerySnapshot);
+    // V110: kun Gösta avataan tyhjällä haulla, älä aseta piilofiltteriä.
+    // Muuten "kaikki alueen tarjoukset" voi näyttää tyhjältä vaikka API palauttaisi dataa.
+    setOfferCardFilterV106(searchAllAreaOffers ? "" : offerQuerySnapshot);
+    setOfferShowingAllAreaOffersV106(searchAllAreaOffers);
     setHasSearchedOffers(true);
     setLoadingOffers(true);
     setOffers([]);
@@ -6910,39 +6716,26 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setActiveResult("offers");
 
     try {
-      const offerSearchCoreResult = await searchZiiplyGostaOffersV146({
-        query: hasExplicitOverride ? cleanedOverride : input.trim(),
-        terms: useTerms,
-      });
+      const offerSearchUrl = searchAllAreaOffers
+        ? "/api/offers/search"
+        : `/api/offers/search?q=${encodeURIComponent(offerQuerySnapshot)}`;
+      const response = await fetch(offerSearchUrl, { cache: "no-store" });
 
-      trackZiiplyEvent("gosta_offer_api_search_used", {
-        query: offerSearchCoreResult.trackingKey,
-        cartItemsCount: cart.length,
-        storeMode,
-        sStoreName: activeStores.sStoreName,
-        kStoreName: activeStores.kStoreName,
-      });
+      const data = await response.json();
 
-      setOfferSearchQuerySnapshot(offerSearchCoreResult.querySnapshot);
-      setOfferCardFilterV106(offerSearchCoreResult.cardFilter);
-      setOfferShowingAllAreaOffersV106(offerSearchCoreResult.showingAllAreaOffers);
-      setOfferSearchResults(offerSearchCoreResult.results);
-      setOfferSearchDoneForQuery(offerSearchCoreResult.trackingKey);
+      if (!response.ok || data?.ok === false) {
+        throw new Error(String(data?.error || `Tarjoushaku epäonnistui: ${response.status}`));
+      }
+
+      const nextResults = Array.isArray(data?.results) ? data.results : [];
+      setOfferSearchResults(nextResults);
+      setOfferSearchDoneForQuery(searchAllAreaOffers ? "__all_area_offers__" : offerQuerySnapshot);
     } catch (error) {
       console.error("[Ziiply offers] API search failed", error);
       setOfferSearchResults([]);
       showCartToast("Tarjoushaku ei onnistunut");
     } finally {
       setLoadingOffers(false);
-    }
-  }
-
-  function handleGostaFilterChangeV136(value: string) {
-    const nextValue = String(value || "").trim();
-    setOfferCardFilterV106(nextValue);
-
-    if (isZiiplyGostaCategorySelectionV147(nextValue)) {
-      void searchOffers(nextValue);
     }
   }
 
@@ -7511,19 +7304,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (!isUsableEan(normalizedCode)) return;
 
     const now = Date.now();
-
-    // V131: älä hyväksy heti perään tulevia live/still-fallback -osumia.
-    // Jos ensimmäinen hyväksytty koodi tunnistuu OFF-/kauppatuotteeksi, nämä
-    // myöhäiset osumat eivät saa ehtiä omaksi tuntematon-hauksi.
-    if (now < scannerDecodeIgnoreUntilRefV131.current) {
-      return;
-    }
-
     const previous = lastContinuousScanRef.current;
 
-    // V135: Älä lukitse samaa EANia koko scanner-session ajaksi.
-    // Sama tuote pitää voida lukea uudelleen ja kasvattaa määrää +1.
-    // Peräkkäiset frame-osumat blokataan alempana lyhyellä aikarajalla.
+    // V727: sama EAN hyväksytään vain kerran yhden kameraskanneri-session aikana.
+    // Live-lukija ja fallback voivat molemmat nähdä saman koodin useista frameista,
+    // mutta haun/lisäyksen pitää käynnistyä vain ensimmäisestä hyväksytystä lukemasta.
+    if (scannedEanSessionSetRef.current.has(normalizedCode)) {
+      return;
+    }
 
     // V598: sama kameraruudussa pysyvä EAN saa aiheuttaa vain yhden tunnistuksen,
     // yhden piipin ja yhden haun lukitusajan sisällä.
@@ -7531,14 +7319,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // useasta peräkkäisestä framesta.
     if (
       previous?.code === normalizedCode &&
-      now - previous.at < 1200
+      now - previous.at < SAME_EAN_RESCAN_LOCK_MS
     ) {
       return;
     }
 
+    scannedEanSessionSetRef.current.add(normalizedCode);
     lastContinuousScanRef.current = { code: normalizedCode, at: now };
-    // V135: vain lyhyt decode-jarru live/still-tuplille. Ei koko session lukitusta.
-    scannerDecodeIgnoreUntilRefV131.current = now + 900;
     resetPendingEanPickCardV606();
 
     // Piip soitetaan vasta hyväksytylle uudelle lukutapahtumalle.
@@ -7558,7 +7345,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setEanScannerOpen(true);
     setEanScannerMessage("");
     setEanMessage(`Skannattu EAN: ${normalizedCode}. Haetaan...`);
-    void searchByEan(normalizedCode, { fromScanner: true });
+    void searchByEan(normalizedCode);
   }
 
   async function toggleScannerTorch() {
@@ -7691,7 +7478,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
     lastContinuousScanRef.current = null;
     scannedEanSessionSetRef.current.clear();
-    scannerDecodeIgnoreUntilRefV131.current = 0;
     resetPendingEanPickCardV606();
     setScannerTorchOn(false);
 
@@ -7733,7 +7519,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     try {
       await stopEanCameraScanner();
       scannedEanSessionSetRef.current.clear();
-      scannerDecodeIgnoreUntilRefV131.current = 0;
       setEanScannerOpen(true);
       setEanScannerMessage("");
 
@@ -7810,9 +7595,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         {
           // V724: nopeampi decode-sykli. 20fps on yleensä hyvä kompromissi
           // mobiilin akun, lämmön ja lukunopeuden välillä.
-          // V135: 20fps + erillinen still-fallback aiheutti mobiilissa renderöinti-/hakumyrskyä.
-          // 10fps riittää EAN-lukuun ja vähentää tutka-animaation tökkimistä.
-          fps: 10,
+          fps: 20,
           aspectRatio: 16 / 9,
           disableFlip: true,
           qrbox: (viewfinderWidth: number, viewfinderHeight: number) => {
@@ -7827,7 +7610,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             facingMode: { ideal: "environment" },
             width: { ideal: 2560, min: 1280 },
             height: { ideal: 1440, min: 720 },
-            frameRate: { ideal: 30, min: 24 },
+            frameRate: { ideal: 60, min: 30 },
             focusMode: "continuous",
             exposureMode: "continuous",
             whiteBalanceMode: "continuous",
@@ -7852,13 +7635,20 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         void (applyBestEffortScannerCameraTuning as any)(activeScannerRegionId);
       });
 
-      // V135: still-frame fallback poistetaan kameraskannauksen rinnalta toistaiseksi.
-      // Live-lukija ja still-fallback tuottivat vuorottelevia hakuja samasta tuotteesta
-      // (tunnistettu/tuntematon/tunnistettu/tuntematon) ja kuormittivat mobiilia niin,
-      // että tutka-animaatio alkoi tökkiä. Pystykoodit voidaan palauttaa myöhemmin
-      // erillisellä napilla tai vain silloin, kun live-lukija ei ole löytänyt mitään.
+      // V726: html5-qrcode lukee vaakakoodit nyt hyvin. Pysty-EAN jää kuitenkin
+      // joillain selaimilla live-polussa tunnistumatta, joten pidetään rinnalla
+      // oma still-frame fallback, joka kokeilee myös 90/270 asteen rotaatiot.
+      // Tämä ei muuta html5-qrcode:n nopeaa vaakapolkua, vaan täydentää sitä.
       eanScannerFallbackStopRef.current?.();
-      eanScannerFallbackStopRef.current = null;
+      eanScannerFallbackStopRef.current = createZiiplyPageScannerFallbackLoop({
+        regionId: activeScannerRegionId,
+        timeoutMs: 520,
+        onDecoded: (result) => {
+          const code = normalizeEan(result.text);
+          if (isUsableEan(code)) finishScannedEan(code);
+        },
+        onNeedsManualFocus: () => undefined,
+      });
     } catch (error) {
       pushGpsDebugLogV492(`useOwnLocation CATCH code=${String((error as any)?.code ?? "?")}`);
       console.error(error);
@@ -8047,10 +7837,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }, 0);
   }
 
-  async function searchByEan(
-    eanOverride?: string,
-    options: { fromScanner?: boolean } = {},
-  ) {
+  async function searchByEan(eanOverride?: string) {
     const ean = normalizeEan(eanOverride ?? eanInput);
 
     if (!isUsableEan(ean)) {
@@ -8059,141 +7846,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return;
     }
 
-    const existingLookupPromiseV121 = eanLookupPromiseRefV121.current.get(ean);
-    if (existingLookupPromiseV121) {
-      await existingLookupPromiseV121;
-      return;
-    }
-
-    // V122: jos sama EAN on jo korissa, älä käynnistä uutta haku-/fallback-ketjua.
-    // Aiemmin seuraava skannaus saattoi mennä uudelleen S/K -> OFF -> unknown -polulle
-    // ja pudottaa jo tunnistetyn OFF-tuotteen tuntemattomaksi riviksi.
-    const existingCartItemForEanV122 =
-      getExistingCartItemByEanV128(ean) ||
-      cartRefV124.current.find((item) => cartItemMatchesEanV118(item, ean));
-
-    if (existingCartItemForEanV122) {
-      const existingProductAnyV122 = existingCartItemForEanV122.product as any;
-      const existingNameV122 = fixText(
-        String(
-          existingCartItemForEanV122.name ||
-            existingProductAnyV122?.name ||
-            `EAN ${ean}`,
-        ),
-      );
-
-      triggerHaptic();
-
-      setCart((currentCart) => {
-        // V124: skannerin callback voi saada vanhan React-state-snapshotin.
-        // Jos updaterin currentCart ei vielä sisällä aiemmin lisättyä EAN-riviä,
-        // käytetään synkronisesti päivitettyä cartRefiä määrän kasvatuksen pohjana.
-        const currentHasEan = currentCart.some((item) =>
-          cartItemMatchesEanV118(item, ean),
-        );
-        const baseCart = currentHasEan ? currentCart : cartRefV124.current;
-
-        const existingIndex = baseCart.findIndex((item) =>
-          cartItemMatchesEanV118(item, ean),
-        );
-
-        if (existingIndex < 0) return currentCart;
-
-        const nextCart = baseCart.map((item, index) =>
-          index === existingIndex
-            ? { ...item, quantity: Number(item.quantity || 1) + 1 }
-            : item,
-        );
-
-        cartRefV124.current = nextCart;
-        persistCartImmediately(nextCart);
-        void updateChainComparison(nextCart, { openCompare: false });
-        return nextCart;
-      });
-
-      setEanInput("");
-      setEanResults([]);
-      setEanLoading(false);
-      setEanSearchStartedAutomatically(false);
-      eanAutoSearchActiveRef.current = false;
-      setLastAutoEanSearch("");
-
-      if (existingProductAnyV122?.ziiplyOpenFoodFactsFallback) {
-        setEanLookupOutcomeForAllVariantsV126(ean, "off");
-        showCartToast(`Määrä +1: ${existingNameV122}`);
-        setEanMessage(
-          "Tuote tunnistettu. Määrä lisättiin koriin. Vertailuhintaa ei löytynyt käytettävissä olevista kauppatiedoista.",
-        );
-        if (eanScannerOpen || eanHtml5ScannerRef.current) {
-          setEanScannerMessage("Määrä +1 — ei mukana hintavertailussa");
-          window.setTimeout(() => {
-            setEanScannerMessage((current) =>
-              current === "Määrä +1 — ei mukana hintavertailussa" ? "" : current,
-            );
-          }, 2600);
-        }
-        return;
-      }
-
-      if (existingProductAnyV122?.ziiplyUnknownEan) {
-        setEanLookupOutcomeForAllVariantsV126(ean, "unknown");
-        showCartToast(`Määrä +1: ${existingNameV122}`);
-        setEanMessage("Sama viivakoodi on jo korissa. Määrä lisättiin +1.");
-        if (eanScannerOpen || eanHtml5ScannerRef.current) {
-          setEanScannerMessage("Määrä +1 — odottaa tunnistusta");
-          window.setTimeout(() => {
-            setEanScannerMessage((current) =>
-              current === "Määrä +1 — odottaa tunnistusta" ? "" : current,
-            );
-          }, 2600);
-        }
-        return;
-      }
-
-      showCartToast(`Määrä +1: ${existingNameV122}`);
-      setEanMessage("Tuote on jo korissa. Määrä lisättiin +1.");
-      if (eanScannerOpen || eanHtml5ScannerRef.current) {
-        setEanScannerMessage("Määrä +1");
-        window.setTimeout(() => {
-          setEanScannerMessage((current) => (current === "Määrä +1" ? "" : current));
-        }, 2200);
-      }
-      return;
-    }
-
-    const cachedRecognizedOffBeforeSearchV128 = getCachedOpenFoodFactsProductForAnyVariantV126(ean);
-    if (cachedRecognizedOffBeforeSearchV128) {
-      addOpenFoodFactsScannedEanToCartV729(cachedRecognizedOffBeforeSearchV128);
-      return;
-    }
-
-    // V135_SCANNER_SINGLE_SOURCE_NO_INPUT_EFFECT
-// Korjaus: kameraskannerin EAN-haku saa käynnistyä vain finishScannedEan()-polusta.
-// eanInput-useEffect ei käynnistä hakuja skannerin ollessa auki.
-// Sama EAN sallitaan uudelleen lyhyen frame-lukon jälkeen, jolloin määrä voi kasvaa +1.
-
-// V134_NO_EFFECT_DUPLICATE_EAN_SEARCH
-// Korjaus: finishScannedEan() käynnistää skannerihaun suoraan.
-// Samalla setEanInput() voi laukaista useEffectin kautta toisen EAN-haun ilman fromScanner-lippua.
-// Tämä toinen haku päätyi vuorotellen tuntematon-fallbackiin.
-// Estetään useEffectin automaattihaku, jos sama EAN on juuri lähtenyt kameraskannerista.
-
-// V133: pelkkä pysyvä "tunnistettu joskus" -lukko ei saa pysäyttää uutta skannausta.
-    // Jos tuote on korissa, se käsitellään yllä määrän kasvatuksena. Jos ei ole korissa
-    // eikä OFF-cachea löydy, jatketaan normaaliin S/K -> OFF -hakuun eikä palauteta
-    // käyttäjälle virheellistä "tunnistettu aiemmin" -tilaa.
-
-    const runLookupPromiseV121 = (async () => {
-
-    // V120: hard single-flight. Estää tilanteen, jossa sama EAN käynnistyy
-    // samanaikaisesti skannerin live-polusta, still-fallbackista tai input-useEffectistä.
-    if (eanLookupPendingRefV120.current.has(ean)) return;
-    eanLookupPendingRefV120.current.add(ean);
-
-    if (eanSearchInFlightRef.current === ean) {
-      eanLookupPendingRefV120.current.delete(ean);
-      return;
-    }
+    if (eanSearchInFlightRef.current === ean) return;
 
     // V594: skanneri soittaa piipin jo tunnistustapahtumassa finishScannedEan()-kohdassa.
     // Tämä varmistus jää käsin käynnistettyyn EAN-hakuun, mutta ei tuplapiippaa skannerilta tullutta hakua.
@@ -8219,26 +7872,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         variants.map((variant) => eanCache[variant]).find(Boolean) ||
         eanCache[ean];
 
-      // V120: Open Food Facts haetaan vain kerran per EAN-haku ja samaa tulosta
-      // käytetään sekä nimihakujen apuna että varsinaisena OFF-fallbackina.
-      // Aiemmin nimi saattoi löytyä ensimmäisessä OFF-kutsussa, mutta toinen OFF-kutsu
-      // saattoi epäonnistua, jolloin sama tuote lipsahti tuntemattomana koriin.
-      // V122: OFF-fallback pitää hakea myös silloin, kun EAN-cache antaa nimen.
-      // Cache-nimi auttaa S/K-nimihakuun, mutta se ei riitä OFF-korituotteeksi.
-      // Jos OFF jätettiin väliin cachedName-tilassa, sama EAN saattoi toisella skannauksella
-      // pudota tuntemattomaksi tuotteeksi.
-      const cachedOpenFoodFactsProductV126 = getCachedOpenFoodFactsProductForAnyVariantV126(ean);
-      const openFoodFactsFallbackForSearchV120 =
-        cachedOpenFoodFactsProductV126 ||
-        (await fetchOpenFoodFactsFallbackProductV729(ean).catch(() => null));
-
-      if (openFoodFactsFallbackForSearchV120) {
-        cacheOpenFoodFactsProductForAllVariantsV126(openFoodFactsFallbackForSearchV120);
-      }
-
-      const externalNames = openFoodFactsFallbackForSearchV120?.name
-        ? [openFoodFactsFallbackForSearchV120.name]
-        : [];
+      const externalNames = cachedName
+        ? []
+        : await fetchOpenFoodFactsNames(ean);
       const nameCandidates = Array.from(
         new Set([cachedName, ...externalNames].filter(Boolean) as string[]),
       );
@@ -8385,12 +8021,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           );
         }
 
-        scannerDecodeIgnoreUntilRefV131.current = Math.max(
-          scannerDecodeIgnoreUntilRefV131.current,
-          Date.now() + 2200,
-        );
-        setEanLookupOutcomeForAllVariantsV126(ean, "store");
-        markRecentRecognizedEanGuardV130(ean);
         eanSearchInFlightRef.current = null;
         setEanSearchStartedAutomatically(false);
         eanAutoSearchActiveRef.current = false;
@@ -8399,81 +8029,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       setEanResults([]);
 
-      // V116: älä vapauta samaa EAN-hakua ennen Open Food Facts -fallbackia.
-      // Muuten mobiiliskannerin live/still-lukupolut voivat käynnistää toisen haun
-      // ja vanha tuntematon-fallback voi ehtiä koriin rinnalle.
+      eanSearchInFlightRef.current = null;
       setEanSearchStartedAutomatically(false);
       eanAutoSearchActiveRef.current = false;
 
-      // V729: 1. fallback on Open Food Facts. Jos S/K-tarkkaa EAN-osumaa ei löydy,
-      // mutta OFF tunnistaa tuotteen, lisätään se koriin nimellä + EANilla.
-      // Hintaa ei lisätä kokonaissummaan: tuote on tunnistettu, mutta vertailuhintaa ei ole saatavilla.
-      const openFoodFactsFallback =
-        openFoodFactsFallbackForSearchV120 ||
-        (cachedName
-          ? await fetchOpenFoodFactsFallbackProductV729(ean).catch(() => null)
-          : null);
-
-      if (openFoodFactsFallback) {
-        setEanLookupOutcomeForAllVariantsV126(ean, "off");
-        addOpenFoodFactsScannedEanToCartV729(openFoodFactsFallback);
-        return;
+      if (eanScannerOpen || eanHtml5ScannerRef.current) {
+        showScanMissFlash();
       }
 
-      // V122: jos sama EAN on tässä sessiossa aiemmin tunnistettu OFF- tai kauppatuotteeksi,
-      // uusi epäonnistunut verkkokierros ei saa pudottaa sitä tuntemattomaksi.
-      const previousOutcomeBeforeUnknownV122 = getEanLookupOutcomeForAnyVariantV126(ean)?.status;
-      if (previousOutcomeBeforeUnknownV122 === "off" || previousOutcomeBeforeUnknownV122 === "store") {
-        const cachedOffBeforeUnknownV126 = getCachedOpenFoodFactsProductForAnyVariantV126(ean);
-        if (cachedOffBeforeUnknownV126) {
-          addOpenFoodFactsScannedEanToCartV729(cachedOffBeforeUnknownV126);
-        }
-        return;
-      }
-
-      const cachedOffBeforeUnknownV126 = getCachedOpenFoodFactsProductForAnyVariantV126(ean);
-      if (cachedOffBeforeUnknownV126) {
-        addOpenFoodFactsScannedEanToCartV729(cachedOffBeforeUnknownV126);
-        return;
-      }
-
-      if (isBlockedByRecentRecognizedGuardV130(ean)) {
-        return;
-      }
-
-      // V131: jos kamera on juuri hyväksynyt/tunnistanut jonkin EANin, älä päästä
-      // samaan fyysiseen skannaustapahtumaan kuuluvaa myöhäistä epäonnistunutta
-      // lukua tuntematon-fallbackiin. Käsin syötetty EAN ei jää tähän kiinni, koska
-      // lukujarru asetetaan vain kameran finishScannedEan-polussa.
-      if ((eanScannerOpen || eanHtml5ScannerRef.current) && Date.now() < scannerDecodeIgnoreUntilRefV131.current) {
-        return;
-      }
-
-      // V132: kameraskannerissa EI lisätä tuntematonta riviä automaattisesti.
-      // Syy: live-lukija ja still-fallback voivat tuottaa saman fyysisen skannauksen aikana
-      // rinnakkaisia hakuketjuja. Jos Open Food Facts tunnistaa tuotteen yhdessä ketjussa,
-      // toinen ketju saattoi silti päätyä myöhemmin unknown-fallbackiin ja luoda rinnakkaisen
-      // "Tuntematon tuote" -rivin. Käsin käynnistetty EAN-haku saa edelleen tehdä unknown-fallbackin.
-      if (options.fromScanner || eanAutoSearchActiveRef.current || eanScannerOpen || eanHtml5ScannerRef.current) {
-        // V133: kameran väliluku ei saa merkitä EANia unknowniksi eikä näyttää
-        // "ei lisätty tuntemattomana" -ilmoitusta. Kamera voi lukea saman fyysisen
-        // tuotteen usealla decode-polulla; jos OFF/S/K-osuma tulee seuraavalla
-        // lukukerralla, se saa kasvattaa määrää normaalisti.
-        setEanInput("");
-        setEanResults([]);
-        setEanLoading(false);
-        setEanSearchStartedAutomatically(false);
-        eanAutoSearchActiveRef.current = false;
-        setLastAutoEanSearch("");
-        setEanMessage("");
-        setEanScannerMessage("");
-        return;
-      }
-
-      setEanLookupOutcomeForAllVariantsV126(ean, "unknown");
-
-      // V729: käsin haetussa EANissa 2. fallback säilyy: täysin tuntematon EAN
-      // lisätään koriin ja localStorage-logiin myöhempää/online-tunnistusta varten.
       addUnknownScannedEanToCartV724(ean, { lookupSource: "not_found" });
 
       if (externalNames.length > 0) {
@@ -8485,7 +8048,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           "EAN-koodilla ei löytynyt tarkkaa tuotetta valituista kaupoista. Lisättiin koriin tunnisteella ja otettiin talteen.",
         );
       }
-
     } catch (error) {
       pushGpsDebugLogV492(`useOwnLocation CATCH code=${String((error as any)?.code ?? "?")}`);
       console.error(error);
@@ -8505,48 +8067,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setEanResults([]);
       setEanSearchStartedAutomatically(false);
       eanAutoSearchActiveRef.current = false;
-      // V120: verkkovirheen tuntematon-fallbackia ei tehdä, jos sama EAN on jo
-      // tässä sessiossa tunnistettu OFF- tai kauppatuotteeksi.
-      const previousOutcomeV120 = getEanLookupOutcomeForAnyVariantV126(ean)?.status;
-      if (previousOutcomeV120 !== "off" && previousOutcomeV120 !== "store") {
-        const cachedOffOnErrorV126 = getCachedOpenFoodFactsProductForAnyVariantV126(ean);
-        if (cachedOffOnErrorV126) {
-          addOpenFoodFactsScannedEanToCartV729(cachedOffOnErrorV126);
-          return;
-        }
-
-        if (isBlockedByRecentRecognizedGuardV130(ean)) {
-          return;
-        }
-
-        if (options.fromScanner || eanAutoSearchActiveRef.current || eanScannerOpen || eanHtml5ScannerRef.current) {
-          // V133: hetkellinen verkkovirhe kameraskannauksessa ei saa tehdä unknown-tilaa
-          // eikä lukita seuraavaa onnistuvaa OFF/S/K-tunnistusta pois.
-          setEanMessage("");
-          setEanScannerMessage("");
-          return;
-        }
-        setEanLookupOutcomeForAllVariantsV126(ean, "unknown");
-        addUnknownScannedEanToCartV724(ean, { lookupSource: "lookup_error" });
-        setEanMessage(
-          "EAN-haku epäonnistui verkossa. Lisättiin koriin viivakoodilla ja otettiin talteen.",
-        );
-      }
+      addUnknownScannedEanToCartV724(ean, { lookupSource: "lookup_error" });
+      setEanMessage(
+        "EAN-haku epäonnistui verkossa. Lisättiin koriin viivakoodilla ja otettiin talteen.",
+      );
     } finally {
-      eanLookupPendingRefV120.current.delete(ean);
       if (eanSearchInFlightRef.current === ean) {
         eanSearchInFlightRef.current = null;
       }
       setEanLoading(false);
-    }
-    })();
-
-    eanLookupPromiseRefV121.current.set(ean, runLookupPromiseV121);
-
-    try {
-      await runLookupPromiseV121;
-    } finally {
-      eanLookupPromiseRefV121.current.delete(ean);
     }
   }
 
@@ -8574,30 +8103,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return;
     }
 
-    // V135: jos kameraskanneri on auki, EAN-inputin useEffect EI saa koskaan
-    // käynnistää toista hakuketjua. Skannerissa haku lähtee aina suoraan
-    // finishScannedEan(code) -> searchByEan(code, { fromScanner: true }) -polusta.
-    if (eanScannerOpen || eanHtml5ScannerRef.current || eanAutoSearchActiveRef.current) {
-      return;
-    }
-
     if (ean === lastAutoEanSearch || eanLoading) return;
-
-    // V134: kameraskanneri käynnistää searchByEan(ean, { fromScanner: true })
-    // suoraan finishScannedEan()-funktiosta. setEanInput(normalizedCode) saa silti
-    // tämän useEffectin heräämään, ja koska React-state päivittyy viiveellä,
-    // lastAutoEanSearch/eanLoading eivät aina ehdi estää toista hakua.
-    // Juuri se toinen, ilman fromScanner-lippua lähtenyt haku päätyi välillä
-    // tuntematon-fallbackiin. Jos sama EAN on juuri luettu kamerasta, älä siis
-    // käynnistä useEffectistä rinnakkaista automaattihakua.
-    const recentScannerRead = lastContinuousScanRef.current;
-    if (
-      (eanScannerOpen || eanHtml5ScannerRef.current || eanAutoSearchActiveRef.current) &&
-      recentScannerRead?.code === ean &&
-      Date.now() - recentScannerRead.at < 6500
-    ) {
-      return;
-    }
 
     const delay = ean.length >= 13 ? 300 : 650;
 
@@ -8606,7 +8112,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setLastAutoEanSearch(ean);
       setEanSearchStartedAutomatically(true);
       eanAutoSearchActiveRef.current = true;
-      void searchByEan(ean, { fromScanner: Boolean(eanScannerOpen || eanHtml5ScannerRef.current) });
+      void searchByEan(ean);
     }, delay);
 
     return () => {
@@ -8772,288 +8278,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
   }
 
-  function getEanVariantKeysV126(ean: string) {
-    const normalized = normalizeEan(ean);
-    if (!isUsableEan(normalized)) return [] as string[];
-
-    const variants = new Set<string>([normalized]);
-
-    try {
-      for (const variant of getEanSearchVariants(normalized)) {
-        const cleaned = normalizeEan(variant);
-        if (isUsableEan(cleaned)) variants.add(cleaned);
-      }
-    } catch {
-      // Variantit ovat vain lisäsuoja.
-    }
-
-    if (normalized.length === 13 && normalized.startsWith("0")) variants.add(normalized.slice(1));
-    if (normalized.length === 12) variants.add(`0${normalized}`);
-
-    return Array.from(variants);
-  }
-
-  function setEanLookupOutcomeForAllVariantsV126(
-    ean: string,
-    status: "off" | "unknown" | "store",
-  ) {
-    const now = Date.now();
-    for (const key of getEanVariantKeysV126(ean)) {
-      // V127: tunnistettua EANia ei saa myöhemmin heikentää tuntemattomaksi,
-      // vaikka jokin rinnakkainen skanneripolku päätyisi fallbackiin.
-      if (status === "unknown" && recognizedEanLockRefV127.current.has(key)) {
-        continue;
-      }
-
-      eanLookupOutcomeRefV120.current.set(key, { status, at: now });
-
-      if (status === "off" || status === "store") {
-        recognizedEanLockRefV127.current.add(key);
-      }
-    }
-
-    if (status === "off" || status === "store") {
-      persistRecognizedEanKeysV128(ean);
-    }
-  }
-
-  function isRecognizedEanLockedV127(ean: string) {
-    return getEanVariantKeysV126(ean).some((key) => recognizedEanLockRefV127.current.has(key));
-  }
-
-  function persistRecognizedEanKeysV128(ean: string) {
-    if (typeof window === "undefined") return;
-
-    try {
-      const storageKey = "ziiply-recognized-eans-v1";
-      const previous = JSON.parse(window.localStorage.getItem(storageKey) || "[]");
-      const set = new Set<string>(Array.isArray(previous) ? previous.map(String) : []);
-
-      for (const key of getEanVariantKeysV126(ean)) {
-        set.add(key);
-        recognizedEanLockRefV127.current.add(key);
-      }
-
-      window.localStorage.setItem(storageKey, JSON.stringify(Array.from(set).slice(-1500)));
-    } catch {
-      // localStorage is best effort only.
-    }
-  }
-
-  function wasRecognizedEanPersistedV128(ean: string) {
-    if (isRecognizedEanLockedV127(ean)) return true;
-    if (typeof window === "undefined") return false;
-
-    try {
-      const storageKey = "ziiply-recognized-eans-v1";
-      const previous = JSON.parse(window.localStorage.getItem(storageKey) || "[]");
-      if (!Array.isArray(previous)) return false;
-      const set = new Set(previous.map(String));
-      return getEanVariantKeysV126(ean).some((key) => set.has(key));
-    } catch {
-      return false;
-    }
-  }
-
-  function markRecentRecognizedEanGuardV130(ean: string) {
-    const keys = new Set(getEanVariantKeysV126(ean));
-    const digits = normalizeEan(ean);
-
-    if (keys.size === 0 || !digits) return;
-
-    recentRecognizedEanGuardRefV130.current = {
-      at: Date.now(),
-      keys,
-      digits,
-    };
-  }
-
-  function isBlockedByRecentRecognizedGuardV130(ean: string) {
-    const guard = recentRecognizedEanGuardRefV130.current;
-    if (!guard) return false;
-
-    // Riittävän pitkä kattamaan html5-qrcode live-lukijan + still-fallbackin
-    // rinnakkaiset myöhäiset osumat, mutta ei estä normaalisti seuraavaa tuotetta.
-    if (Date.now() - guard.at > 4500) return false;
-
-    const normalized = normalizeEan(ean);
-    if (!normalized) return false;
-
-    const keys = getEanVariantKeysV126(normalized);
-    if (keys.some((key) => guard.keys.has(key))) return true;
-
-    // Jos selain/detektori palauttaa saman koodin eri numeromuodossa, estetään
-    // tuntematon fallback myös raakavertailulla. Tämä koskee vain lyhyttä
-    // skannausikkunaa tunnistetun osuman jälkeen.
-    if (normalized.length >= 8 && guard.digits.length >= 8) {
-      return normalized.includes(guard.digits) || guard.digits.includes(normalized);
-    }
-
-    return false;
-  }
-
-  function getExistingCartItemByEanV128(ean: string) {
-    const normalizedEan = normalizeEan(ean);
-    if (!isUsableEan(normalizedEan)) return null;
-
-    const pools = [cartRefV124.current, cart];
-
-    for (const pool of pools) {
-      const found = pool.find((item) => cartItemMatchesEanV118(item, normalizedEan));
-      if (found) return found;
-    }
-
-    return null;
-  }
-
-  function increaseExistingCartItemQuantityByEanV127(normalizedEan: string, scannerMessage: string) {
-    let handled = false;
-
-    setCart((currentCart) => {
-      const currentHasEan = currentCart.some((item) =>
-        cartItemMatchesEanV118(item, normalizedEan),
-      );
-      const refHasEan = cartRefV124.current.some((item) =>
-        cartItemMatchesEanV118(item, normalizedEan),
-      );
-      const baseCart = currentHasEan || !refHasEan ? currentCart : cartRefV124.current;
-      const existingIndex = baseCart.findIndex((item) =>
-        cartItemMatchesEanV118(item, normalizedEan),
-      );
-
-      if (existingIndex < 0) return currentCart;
-
-      const nextCart = baseCart.map((item, index) =>
-        index === existingIndex
-          ? ({ ...item, quantity: Number(item.quantity || 1) + 1 } as CartItem)
-          : item,
-      );
-
-      cartRefV124.current = nextCart;
-      persistCartImmediately(nextCart);
-      void updateChainComparison(nextCart, { openCompare: false });
-      handled = true;
-      return nextCart;
-    });
-
-    if (handled) {
-      triggerHaptic();
-      setEanInput("");
-      setEanResults([]);
-      setEanLoading(false);
-      setEanSearchStartedAutomatically(false);
-      eanAutoSearchActiveRef.current = false;
-      setLastAutoEanSearch("");
-      setEanMessage(scannerMessage);
-
-      if (eanScannerOpen || eanHtml5ScannerRef.current) {
-        setEanScannerMessage(scannerMessage);
-        window.setTimeout(() => {
-          setEanScannerMessage((current) =>
-            current === scannerMessage ? "" : current,
-          );
-        }, 2600);
-      }
-    }
-
-    return handled;
-  }
-
-  function getEanLookupOutcomeForAnyVariantV126(ean: string) {
-    for (const key of getEanVariantKeysV126(ean)) {
-      const outcome = eanLookupOutcomeRefV120.current.get(key);
-      if (outcome) return outcome;
-    }
-    return undefined;
-  }
-
-  function cacheOpenFoodFactsProductForAllVariantsV126(product: OpenFoodFactsFallbackProductV729) {
-    for (const key of getEanVariantKeysV126(product.ean)) {
-      openFoodFactsProductCacheRefV126.current.set(key, product);
-    }
-  }
-
-  function getCachedOpenFoodFactsProductForAnyVariantV126(ean: string) {
-    for (const key of getEanVariantKeysV126(ean)) {
-      const cached = openFoodFactsProductCacheRefV126.current.get(key);
-      if (cached) return cached;
-    }
-    return null;
-  }
-
-  function cartItemMatchesEanV118(item: CartItem, normalizedEan: string) {
-    const productAny = item.product as any;
-    const wantedVariants = getEanVariantKeysV126(normalizedEan);
-    if (wantedVariants.length === 0) return false;
-
-    const rawCandidates = [
-      item.ean,
-      productAny?.ean,
-      item.id,
-      productAny?.id,
-      item.name,
-      productAny?.name,
-    ];
-
-    return rawCandidates.some((candidate) => {
-      if (candidate == null) return false;
-      const text = String(candidate);
-      const candidateEan = normalizeEan(text);
-      if (candidateEan && wantedVariants.includes(candidateEan)) return true;
-      return wantedVariants.some((variant) => text.includes(variant));
-    });
-  }
-
-  function cartItemMatchesEanLooseV129(item: CartItem, ean: string) {
-    const normalizedEan = normalizeEan(ean);
-    const wantedVariants = getEanVariantKeysV126(normalizedEan);
-    if (wantedVariants.length === 0) return false;
-
-    const productAny = item.product as any;
-    const rawCandidates = [
-      item.ean,
-      productAny?.ean,
-      item.id,
-      productAny?.id,
-      item.name,
-      productAny?.name,
-    ];
-
-    return rawCandidates.some((candidate) => {
-      if (candidate == null) return false;
-      const text = String(candidate);
-      const candidateEan = normalizeEan(text);
-      if (candidateEan && wantedVariants.includes(candidateEan)) return true;
-
-      // V129: viimeinen, brutaali EAN-portti. Joissain skanneripoluissa sama koodi
-      // kulkee id/name-kentässä muun tekstin tai aikaleiman kanssa. Siksi verrataan
-      // myös raakaa numerosisältöä molempiin suuntiin. Näin tunnistettu tuote ei voi
-      // saada rinnalleen tuntematonta riviä samalla EANilla.
-      const digits = text.replace(/\D/g, "");
-      if (digits.length >= 8) {
-        return wantedVariants.some((variant) =>
-          digits.includes(variant) || variant.includes(digits),
-        );
-      }
-
-      return wantedVariants.some((variant) => text.includes(variant));
-    });
-  }
-
-  function mergeCartPoolsByIdV129(currentCart: CartItem[]) {
-    const seen = new Set<string>();
-    const merged: CartItem[] = [];
-
-    for (const item of [...currentCart, ...cartRefV124.current]) {
-      const key = String(item.id || `${item.name}-${item.ean || item.product?.ean || ""}`);
-      if (seen.has(key)) continue;
-      seen.add(key);
-      merged.push(item);
-    }
-
-    return merged;
-  }
-
   function addUnknownScannedEanToCartV724(
     ean: string,
     options: { lookupSource?: "not_found" | "lookup_error" } = {},
@@ -9061,115 +8285,30 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const normalizedEan = normalizeEan(ean);
     if (!isUsableEan(normalizedEan)) return;
 
-    // V130: jos samasta skanneritapahtumasta on juuri saatu tunnistettu tuote,
-    // rinnakkainen/myöhäinen tuntematon fallback blokataan kokonaan.
-    if (isBlockedByRecentRecognizedGuardV130(normalizedEan)) {
-      setEanInput("");
-      setEanResults([]);
-      setEanLoading(false);
-      setEanSearchStartedAutomatically(false);
-      eanAutoSearchActiveRef.current = false;
-      setLastAutoEanSearch("");
-      setEanMessage("Tuote tunnistettiin. Tuntematonta rinnakkaisriviä ei lisätty.");
-      if (eanScannerOpen || eanHtml5ScannerRef.current) {
-        setEanScannerMessage("Tunnistettu — ei tuntematonta riviä");
-        window.setTimeout(() => {
-          setEanScannerMessage((current) =>
-            current === "Tunnistettu — ei tuntematonta riviä" ? "" : current,
-          );
-        }, 2200);
-      }
-      return;
-    }
+    logUnknownScannedEanV724(normalizedEan, options.lookupSource || "not_found");
 
-    // V129: tuntematon fallback EI saa koskaan tehdä omaa riviä, jos sama EAN
-    // löytyy jo korista tunnistettuna tai tuntemattomana. Sama koodi vain kasvattaa määrää.
-    const cachedOffForUnknownV129 = getCachedOpenFoodFactsProductForAnyVariantV126(normalizedEan);
-    if (cachedOffForUnknownV129) {
-      addOpenFoodFactsScannedEanToCartV729(cachedOffForUnknownV129);
-      return;
-    }
-
-    const previousOutcomeForUnknownV129 = getEanLookupOutcomeForAnyVariantV126(normalizedEan)?.status;
-    const recognizedOrKnownV129 =
-      wasRecognizedEanPersistedV128(normalizedEan) ||
-      previousOutcomeForUnknownV129 === "off" ||
-      previousOutcomeForUnknownV129 === "store";
-
+    const unknownName = `Tuntematon tuote · EAN ${normalizedEan}`;
     let cartLimitReached = false;
-    let handledExistingEanV129 = false;
-    let blockedRecognizedWithoutCartRowV129 = false;
-    let handledNameV129 = "";
-    let handledWasOffV129 = false;
-    let handledWasUnknownV129 = false;
 
     setCart((currentCart) => {
-      const baseCart = mergeCartPoolsByIdV129(currentCart);
-      const matchingIndexes = baseCart
-        .map((item, index) => ({ item, index }))
-        .filter(({ item }) => cartItemMatchesEanLooseV129(item, normalizedEan))
-        .map(({ index }) => index);
+      const existingItem = currentCart.find((item) => {
+        const itemEan = normalizeEan(item.ean || item.product?.ean);
+        return itemEan === normalizedEan;
+      });
 
-      if (matchingIndexes.length > 0) {
-        const keepIndex = matchingIndexes[0];
-        const matchingSet = new Set(matchingIndexes);
-        const matchingItems = matchingIndexes.map((index) => baseCart[index]);
-        const keepItem = baseCart[keepIndex];
-        const keepProductAny = keepItem.product as any;
-        const totalQuantity = matchingItems.reduce(
-          (sum, item) => sum + Math.max(1, Number(item.quantity || 1)),
-          0,
-        );
-
-        handledWasOffV129 = matchingItems.some((item) => (item.product as any)?.ziiplyOpenFoodFactsFallback);
-        handledWasUnknownV129 = matchingItems.some((item) => {
-          const productAny = item.product as any;
-          return (
-            productAny?.ziiplyUnknownEan ||
-            String(item.id || "").startsWith("unknown-ean-") ||
-            String(item.name || "").toLowerCase().includes("tuntematon tuote")
-          );
-        });
-        handledNameV129 = String(keepItem.name || keepProductAny?.name || `EAN ${normalizedEan}`);
-
-        const nextCart = baseCart
-          .map((item, index) =>
-            index === keepIndex
-              ? ({
-                  ...item,
-                  quantity: totalQuantity + 1,
-                  ean: normalizedEan,
-                  product: {
-                    ...(item.product as any),
-                    ean: normalizedEan,
-                  } as Product,
-                } as CartItem)
-              : item,
-          )
-          .filter((_, index) => index === keepIndex || !matchingSet.has(index));
-
-        cartRefV124.current = nextCart;
-        persistCartImmediately(nextCart);
-        void updateChainComparison(nextCart, { openCompare: false });
-        handledExistingEanV129 = true;
-        return nextCart;
-      }
-
-      // Jos EAN on jo tunnistettu aiemmin, mutta riviä ei löydy juuri nyt Reactin/refsien
-      // välissä, älä silti koskaan luo tuntematonta riviä.
-      if (recognizedOrKnownV129) {
-        blockedRecognizedWithoutCartRowV129 = true;
+      if (existingItem) {
+        // V728: tuntematon / ei-löytynyt EAN ei saa kasvattaa määrää,
+        // vaikka kamera lukisi saman koodin monta kertaa peräkkäin.
+        // Yksi talteenotto per EAN riittää; käyttäjä voi nostaa määrää korissa itse.
+        showCartToast("EAN on jo otettu talteen");
         return currentCart;
       }
 
-      if (baseCart.length >= MAX_ITEMS) {
+      if (currentCart.length >= MAX_ITEMS) {
         cartLimitReached = true;
         return currentCart;
       }
 
-      logUnknownScannedEanV724(normalizedEan, options.lookupSource || "not_found");
-
-      const unknownName = `Tuntematon tuote · EAN ${normalizedEan}`;
       const placeholderProduct = {
         id: `unknown-ean-${normalizedEan}`,
         name: unknownName,
@@ -9193,8 +8332,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         ean: normalizedEan,
       } as CartItem;
 
-      const nextCart = [...baseCart, newItem];
-      cartRefV124.current = nextCart;
+      const nextCart = [...currentCart, newItem];
       persistCartImmediately(nextCart);
       void updateChainComparison(nextCart, { openCompare: false });
       showCartToast("Ei löytynyt vielä — lisättiin koriin tunnisteella");
@@ -9213,41 +8351,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setEanSearchStartedAutomatically(false);
     eanAutoSearchActiveRef.current = false;
     setLastAutoEanSearch("");
-
-    if (handledExistingEanV129) {
-      const message = handledWasOffV129
-        ? "Määrä +1 — ei mukana hintavertailussa"
-        : handledWasUnknownV129
-          ? "Määrä +1 — odottaa tunnistusta"
-          : "Määrä +1";
-      showCartToast(`Määrä +1: ${handledNameV129}`);
-      setEanMessage(
-        handledWasOffV129
-          ? "Tuote on jo korissa. Määrä lisättiin +1. Vertailuhintaa ei löytynyt käytettävissä olevista kauppatiedoista."
-          : "Sama viivakoodi on jo korissa. Määrä lisättiin +1.",
-      );
-      if (eanScannerOpen || eanHtml5ScannerRef.current) {
-        setEanScannerMessage(message);
-        window.setTimeout(() => {
-          setEanScannerMessage((current) => (current === message ? "" : current));
-        }, 2600);
-      }
-      return;
-    }
-
-    if (blockedRecognizedWithoutCartRowV129) {
-      setEanMessage("Tuote on tunnistettu aiemmin. Tuntematonta riviä ei lisätty.");
-      if (eanScannerOpen || eanHtml5ScannerRef.current) {
-        setEanScannerMessage("Tunnistettu aiemmin");
-        window.setTimeout(() => {
-          setEanScannerMessage((current) =>
-            current === "Tunnistettu aiemmin" ? "" : current,
-          );
-        }, 2200);
-      }
-      return;
-    }
-
     setEanMessage("Tuotetta ei löytynyt vielä. Lisättiin koriin viivakoodilla ja otettiin talteen.");
 
     if (eanScannerOpen || eanHtml5ScannerRef.current) {
@@ -9256,156 +8359,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       window.setTimeout(() => {
         setEanScannerMessage((current) =>
           current === "Ei löytynyt vielä — otettiin talteen" ? "" : current,
-        );
-      }, 2600);
-    }
-  }
-
-
-  function addOpenFoodFactsScannedEanToCartV729(
-    fallbackProduct: OpenFoodFactsFallbackProductV729,
-  ) {
-    const normalizedEan = normalizeEan(fallbackProduct.ean);
-    if (!isUsableEan(normalizedEan)) return;
-
-    cacheOpenFoodFactsProductForAllVariantsV126(fallbackProduct);
-    // V131: kun EAN tunnistui OFF:stä, estä saman fyysisen skannauksen
-    // myöhäiset tuntematon-fallbackit vielä hetken.
-    scannerDecodeIgnoreUntilRefV131.current = Math.max(
-      scannerDecodeIgnoreUntilRefV131.current,
-      Date.now() + 2200,
-    );
-    setEanLookupOutcomeForAllVariantsV126(normalizedEan, "off");
-    persistRecognizedEanKeysV128(normalizedEan);
-    markRecentRecognizedEanGuardV130(normalizedEan);
-
-    const productName =
-      cleanExternalProductName(fallbackProduct.name) ||
-      `Tunnistettu tuote · EAN ${normalizedEan}`;
-
-    const fallbackCartName = productName;
-
-    const fallbackProductForCart = {
-      id: `off-ean-${normalizedEan}`,
-      name: fallbackCartName,
-      price: 0,
-      ean: normalizedEan,
-      pictureUrl: fallbackProduct.imageUrl || "",
-      ziiplyOpenFoodFactsFallback: true,
-      ziiplyPayAtCheckout: false,
-      lookupStatus: "identified_open_food_facts",
-      brandName: fallbackProduct.brandName,
-      quantity: fallbackProduct.quantity,
-    } as unknown as Product;
-
-    let cartLimitReached = false;
-    let mergedExistingV129 = false;
-
-    setCart((currentCart) => {
-      const baseCart = mergeCartPoolsByIdV129(currentCart);
-      const matchingIndexes = baseCart
-        .map((item, index) => ({ item, index }))
-        .filter(({ item }) => cartItemMatchesEanLooseV129(item, normalizedEan))
-        .map(({ index }) => index);
-
-      if (matchingIndexes.length > 0) {
-        const keepIndex = matchingIndexes[0];
-        const matchingSet = new Set(matchingIndexes);
-        const matchingItems = matchingIndexes.map((index) => baseCart[index]);
-        const totalQuantity = matchingItems.reduce(
-          (sum, item) => sum + Math.max(1, Number(item.quantity || 1)),
-          0,
-        );
-        const alreadyHadRecognized = matchingItems.some((item) =>
-          Boolean((item.product as any)?.ziiplyOpenFoodFactsFallback),
-        );
-
-        // V129: jos tunnistettu tuote luetaan uudelleen, vain määrä kasvaa.
-        // Jos taas tuntematon rivi ehti syntyä ennen OFF-osumaa, se päivitetään
-        // tunnistetuksi ilman toisen tuoterivin luomista.
-        const nextQuantity = totalQuantity + (alreadyHadRecognized ? 1 : 0);
-
-        const keptItem = {
-          ...baseCart[keepIndex],
-          name: fallbackCartName,
-          price: 0,
-          image: fallbackProduct.imageUrl || baseCart[keepIndex].image || "",
-          chain: undefined,
-          product: fallbackProductForCart,
-          ean: normalizedEan,
-          quantity: Math.max(1, nextQuantity),
-        } as CartItem;
-
-        const nextCart = baseCart
-          .map((item, index) => (index === keepIndex ? keptItem : item))
-          .filter((_, index) => index === keepIndex || !matchingSet.has(index));
-
-        cartRefV124.current = nextCart;
-        persistCartImmediately(nextCart);
-        void updateChainComparison(nextCart, { openCompare: false });
-        mergedExistingV129 = true;
-        return nextCart;
-      }
-
-      if (baseCart.length >= MAX_ITEMS) {
-        cartLimitReached = true;
-        return currentCart;
-      }
-
-      const newItem: CartItem = {
-        id: `off-ean-${normalizedEan}-${Date.now()}`,
-        name: fallbackCartName,
-        price: 0,
-        image: fallbackProduct.imageUrl || "",
-        chain: undefined,
-        storeName: activeStores.sStoreName || activeStores.kStoreName || activeArea?.label || "",
-        quantity: 1,
-        source: "manual",
-        product: fallbackProductForCart,
-        ean: normalizedEan,
-      } as CartItem;
-
-      const nextCart = [...baseCart, newItem];
-      cartRefV124.current = nextCart;
-      persistCartImmediately(nextCart);
-      void updateChainComparison(nextCart, { openCompare: false });
-      return nextCart;
-    });
-
-    if (cartLimitReached) {
-      alert(`Demossa ostoskori on rajattu ${MAX_ITEMS} tuotteeseen.`);
-      return;
-    }
-
-    triggerHaptic();
-    setScanMissFlash(false);
-    setScanSuccessFlash(false);
-    showCartToast(
-      mergedExistingV129
-        ? `Määrä +1: ${productName}`
-        : `Tunnistettu — ei mukana hintavertailussa: ${productName}`,
-    );
-    setEanInput("");
-    setEanResults([]);
-    setEanLoading(false);
-    setEanSearchStartedAutomatically(false);
-    eanAutoSearchActiveRef.current = false;
-    setLastAutoEanSearch("");
-    setEanMessage(
-      mergedExistingV129
-        ? "Tuote on jo korissa. Määrä lisättiin +1. Vertailuhintaa ei löytynyt käytettävissä olevista kauppatiedoista."
-        : "Tuote tunnistettiin. Vertailuhintaa ei löytynyt käytettävissä olevista kauppatiedoista.",
-    );
-
-    if (eanScannerOpen || eanHtml5ScannerRef.current) {
-      const scannerMessage = mergedExistingV129
-        ? "Määrä +1 — ei mukana hintavertailussa"
-        : "Tunnistettu — ei mukana hintavertailussa";
-      setEanScannerOpen(true);
-      setEanScannerMessage(scannerMessage);
-      window.setTimeout(() => {
-        setEanScannerMessage((current) =>
-          current === scannerMessage ? "" : current,
         );
       }, 2600);
     }
@@ -9452,31 +8405,26 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     let cartLimitReached = false;
 
     setCart((currentCart) => {
-      const baseCart = mergeCartPoolsByIdV129(currentCart);
-      const existingItem = baseCart.find((item) => {
-        if (isUsableEan(ean) && cartItemMatchesEanLooseV129(item, ean)) return true;
+      const existingItem = currentCart.find((item) => {
+        const itemEan = normalizeEan(item.ean || item.product?.ean);
+        if (isUsableEan(ean) && itemEan === ean) return true;
         return normalize(item.name) === normalize(productName);
       });
 
       if (existingItem) {
-        const nextCart = baseCart.map((item) =>
+        const nextCart = currentCart.map((item) =>
           item.id === existingItem.id
-            ? {
-                ...item,
-                quantity: Number(item.quantity || 1) + 1,
-                ean: ean || item.ean || result.product.ean,
-              }
+            ? { ...item, quantity: item.quantity + 1 }
             : item,
         );
 
-        cartRefV124.current = nextCart;
         persistCartImmediately(nextCart);
         void updateChainComparison(nextCart, { openCompare: false });
         showCartToast(`Määrä +1: ${existingItem.name}`);
         return nextCart;
       }
 
-      if (baseCart.length >= MAX_ITEMS) {
+      if (currentCart.length >= MAX_ITEMS) {
         cartLimitReached = true;
         return currentCart;
       }
@@ -9494,8 +8442,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         ean: ean || result.product.ean,
       };
 
-      const nextCart = [...baseCart, newItem];
-      cartRefV124.current = nextCart;
+      const nextCart = [...currentCart, newItem];
       persistCartImmediately(nextCart);
       void updateChainComparison(nextCart, { openCompare: false });
       showCartToast(`Lisätty: ${newItem.name}`);
@@ -11801,21 +10748,27 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   function getStoresForPickerOptionsV295(chain: "S" | "K", mode: StoreMode) {
     const chainStores = foundStores
       .map(normalizeStoreForPickerV320)
-      .filter(
-        (store) =>
-          getStoreChainV320(store) === chain &&
-          !isExcludedGroceryComparisonStoreV140(store),
-      );
+      .filter((store) => getStoreChainV320(store) === chain);
 
     const selectedId = getSelectedStoreIdFor(chain, mode);
     const selectedName = getSelectedStoreNameFor(chain, mode);
 
-    // V139: Tavaratalot = vain Prisma / K-Citymarket.
-    // Lähikaupat = vain S-market/Sale/Alepa/K-Supermarket/K-Market.
-    // Ei enää chainStores-fallbackia, koska se sotki puuttuvan tavaratalon tilalle lähikaupan.
-    const scoped = chainStores.filter((store) =>
-      storeMatchesStrictChainAndModeV139(store, chain, mode),
+    // Tavaratalot = vain Prisma / K-Citymarket jos niitä löytyy.
+    // Lähikaupat = vain ketjun ei-tavaratalot jos niitä löytyy.
+    // Jos API palauttaa suppean datan, fallback näyttää silti koko ketjun eikä tyhjää/virheellistä ikkunaa.
+    const hyperStores = chainStores.filter(isHyperStoreForModeV295);
+    const localStores = chainStores.filter(
+      (store) => !isHyperStoreForModeV295(store),
     );
+
+    const scoped =
+      mode === "hyper"
+        ? hyperStores.length > 0
+          ? hyperStores
+          : chainStores
+        : localStores.length > 0
+          ? localStores
+          : chainStores;
 
     return sortStoresForPickerV320(scoped, mode, selectedId, selectedName);
   }
@@ -11848,18 +10801,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           : activeArea.kStoreName;
 
     if (fallbackId && fallbackName) {
-      const fallbackStore = {
-        id: fallbackId,
-        name: fallbackName,
-        type: chain,
-        city: activeArea.label,
-      } as StoreSearchItem;
-
-      if (!storeMatchesStrictChainAndModeV139(fallbackStore, chain, mode)) {
-        return [];
-      }
-
-      return [fallbackStore];
+      return [
+        {
+          id: fallbackId,
+          name: fallbackName,
+          type: chain,
+          city: activeArea.label,
+        } as StoreSearchItem,
+      ];
     }
 
     return [];
@@ -12134,73 +11083,42 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   function getStoresForWithinChainPicker(
     chain: "S" | "K",
     slotMode: StoreMode,
-    levelMode: StoreMode = slotMode,
   ) {
-    // V142: Ketjun sisällä -näkymässä slotMode kertoo mihin activeArea-slottiin valinta tallennetaan
-    // ja levelMode kertoo valintaikkunan kauppatason. Kauppa 1 = tavaratalo, Kauppa 2 = lähikauppa.
-    // Tämä palauttaa V136/V140-käytöksen, mutta säilyttää ABC-poiston ja tiukan S/K-formaattijaon.
+    // Ketjun sisällä: molemmat valintaikkunat näyttävät saman ketjun kaikki löydetyt kaupat.
+    // Ainoa suodatus: toisessa slotissa jo valittu kauppa poistetaan, jotta vertailuun tulee kaksi eri kauppaa.
+    const allChainStores = foundStores
+      .map(normalizeStoreForPickerV320)
+      .filter((store) => getStoreChainV320(store) === chain);
+
     const selectedId = getSelectedStoreIdFor(chain, slotMode);
     const selectedName = getSelectedStoreNameFor(chain, slotMode);
     const otherMode: StoreMode = slotMode === "hyper" ? "local" : "hyper";
     const otherSelectedId = getSelectedStoreIdFor(chain, otherMode);
     const otherSelectedName = getSelectedStoreNameFor(chain, otherMode);
 
-    return getStoresForPicker(chain, levelMode).filter((store) => {
-      if (otherSelectedId && sameStoreIdV93(store.id, otherSelectedId)) return false;
-      if (
-        otherSelectedName &&
-        normalize(store.name || "") === normalize(otherSelectedName)
-      )
-        return false;
-      if (selectedId && sameStoreIdV93(store.id, selectedId)) return true;
-      if (
-        selectedName &&
-        normalize(store.name || "") === normalize(selectedName)
-      )
-        return true;
+    const fallbackStores = usingOwnLocation
+      ? []
+      : [
+          ...getStoresForPicker(chain, "hyper"),
+          ...getStoresForPicker(chain, "local"),
+        ];
+
+    return sortStoresForPickerV320(
+      [...allChainStores, ...fallbackStores],
+      slotMode,
+      selectedId,
+      selectedName,
+    ).filter((store) => {
+      if (otherSelectedId && store.id === otherSelectedId) return false;
+      if (otherSelectedName && store.name === otherSelectedName) return false;
       return true;
     });
   }
 
-  function getStoresForPickerContext(
-    chain: "S" | "K",
-    mode: StoreMode,
-    optionMode: StoreMode = mode,
-  ) {
+  function getStoresForPickerContext(chain: "S" | "K", mode: StoreMode) {
     if (storeCompareScope === "within_chain")
-      return getStoresForWithinChainPicker(chain, mode, optionMode);
+      return getStoresForWithinChainPicker(chain, mode);
     return getStoresForPicker(chain, mode);
-  }
-
-  function findStoreForWithinChainSlotV141(
-    chain: "S" | "K",
-    slotMode: StoreMode,
-    levelMode: StoreMode,
-  ) {
-    const selectedId = getSelectedStoreIdFor(chain, slotMode);
-    const selectedName = getSelectedStoreNameFor(chain, slotMode);
-    if (!selectedId && !selectedName) return undefined;
-
-    return getStoresForPicker(chain, levelMode).find(
-      (store) =>
-        storeMatchesStrictChainAndModeV139(store, chain, levelMode) &&
-        Boolean(
-          (selectedId && sameStoreIdV93(store.id, selectedId)) ||
-            (selectedName &&
-              normalize(store.name || "") === normalize(selectedName)),
-        ),
-    );
-  }
-
-  function getWithinChainSlotPlaceholderV141(
-    levelMode: StoreMode,
-    slotNumber: 1 | 2,
-  ) {
-    if (levelMode === "hyper") {
-      return slotNumber === 1 ? "Valitse tavaratalo" : "Ei toista tavarataloa";
-    }
-
-    return slotNumber === 1 ? "Valitse lähikauppa" : "Ei toista lähikauppaa";
   }
 
   /*
@@ -12216,7 +11134,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
    *     if (openStorePicker !== pickerKey) return null;
    *     if (!storePickerCanOpenV366) return null;
    * 
-   *     const options = getStoresForPickerContext(chain, mode, optionMode);
+   *     const options = getStoresForPickerContext(chain, mode);
    *     const selectedName = getSelectedStoreNameFor(chain, mode);
    *     const selectedId = getSelectedStoreIdFor(chain, mode);
    * 
@@ -12360,21 +11278,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     mode: StoreMode,
     pickerKey: string,
     compact: boolean,
-    optionMode: StoreMode = mode,
   ) {
     if (openStorePicker !== pickerKey) return null;
     if (!storePickerCanOpenV366) return null;
     if (typeof document === "undefined") return null;
 
-    const options = getStoresForPickerContext(chain, mode, optionMode);
+    const options = getStoresForPickerContext(chain, mode);
     const selectedName = getSelectedStoreNameFor(chain, mode);
     const selectedId = getSelectedStoreIdFor(chain, mode);
 
     const menuTitle =
       storeCompareScope === "within_chain"
-        ? optionMode === "local"
-          ? `Valitse ${chain === "S" ? "S-ryhmän" : "K-ryhmän"} lähikauppa`
-          : `Valitse ${chain === "S" ? "S-ryhmän" : "K-ryhmän"} tavaratalo`
+        ? `Valitse ${chain === "S" ? "S-ryhmän" : "K-ryhmän"} kauppa`
         : mode === "local"
           ? `Valitse ${chain === "S" ? "S-ryhmän" : "K-ryhmän"} lähikauppa`
           : `Valitse ${chain === "S" ? "S-ryhmän" : "K-ryhmän"} tavaratalo`;
@@ -12504,25 +11419,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     mode: StoreMode,
     pickerKey: string,
     compact: boolean,
-    optionMode: StoreMode = mode,
   ) {
     const options =
       storeCompareScope !== "within_chain" && !storeModeChosenV299
         ? []
-        : getStoresForPickerContext(chain, mode, optionMode);
-    const selectedStoreForButton =
-      storeCompareScope === "within_chain"
-        ? findStoreForWithinChainSlotV141(chain, mode, optionMode)
-        : findStoreForSelectionV320(chain, mode);
-    const canOpenPicker =
-      options.length > 1 || (!selectedStoreForButton && options.length > 0);
-    const buttonLabel = selectedStoreForButton
-      ? canOpenPicker
-        ? "Vaihda"
-        : "Valittu"
-      : options.length > 0
-        ? "Valitse"
-        : "Ei paria";
+        : getStoresForPickerContext(chain, mode);
+    const hasMany = options.length > 1;
     return (
       <button
         type="button"
@@ -12542,7 +11444,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             }
             return;
           }
-          if (!canOpenPicker) {
+          if (!hasMany) {
             setOpenStorePicker(null);
             return;
           }
@@ -12551,12 +11453,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           );
         }}
         className={`mt-1 rounded-full px-2 py-1 font-black ring-1 ${compact ? "text-[9px]" : "text-[10px]"} ${
-          canOpenPicker
+          hasMany
             ? "bg-[#fff8df]/90 text-slate-700 ring-slate-200"
             : "bg-slate-100 text-[#b7aa8d] ring-slate-200"
         }`}
       >
-        <span>{buttonLabel}</span>
+        <span>{hasMany ? "Vaihda" : "Valittu"}</span>
       </button>
     );
   }
@@ -12585,17 +11487,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             {chainCards.map((store) => {
               const selected = selectedChainKey === store.key;
               const chain = store.key === "s" ? "S" : "K";
-              // V142: Ketjun sisällä verrataan nimenomaan saman ketjun formaatteja:
-              // Kauppa 1 = tavaratalo, Kauppa 2 = lähikauppa.
-              // Ylävalinta Tavaratalot/Lähikaupat ei saa lukita ketjun sisäistä näkymää kahteen saman tason kauppaan.
               const modeA: StoreMode = "hyper";
               const modeB: StoreMode = "local";
-              const selectedStoreA = findStoreForWithinChainSlotV141(chain, modeA, modeA);
-              const selectedStoreB = findStoreForWithinChainSlotV141(chain, modeB, modeB);
               const storeNameA =
-                selectedStoreA?.name || getWithinChainSlotPlaceholderV141(modeA, 1);
+                getSelectedStoreNameFor(chain, modeA) ||
+                (chain === "S" ? "S-kauppa 1" : "K-kauppa 1");
               const storeNameB =
-                selectedStoreB?.name || getWithinChainSlotPlaceholderV141(modeB, 2);
+                getSelectedStoreNameFor(chain, modeB) ||
+                (chain === "S" ? "S-kauppa 2" : "K-kauppa 2");
+              const selectedStoreA = findStoreForSelectionV320(chain, modeA);
+              const selectedStoreB = findStoreForSelectionV320(chain, modeB);
               const distanceA = getStoreDistanceLabelV320(selectedStoreA);
               const distanceB = getStoreDistanceLabelV320(selectedStoreB);
 
@@ -12708,14 +11609,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                           modeA,
                           `${store.key}-within-hyper`,
                           compact,
-                          modeA,
                         )}
                         {renderStorePickerMenu(
                           chain,
                           modeA,
                           `${store.key}-within-hyper`,
                           compact,
-                          modeA,
                         )}
                       </div>
                       <div
@@ -12747,14 +11646,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                           modeB,
                           `${store.key}-within-local`,
                           compact,
-                          modeB,
                         )}
                         {renderStorePickerMenu(
                           chain,
                           modeB,
                           `${store.key}-within-local`,
                           compact,
-                          modeB,
                         )}
                       </div>
                     </div>
@@ -15027,11 +13924,29 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             open={true}
             title="Tarjoushaku"
             query={offerSearchQuerySnapshot || input}
-            offers={visibleOfferSearchResultsV106.map(mapZiiplyGostaOfferToCardOfferV147)}
+            offers={visibleOfferSearchResultsV106.map((item) => ({
+              id: item.id,
+              name: item.title,
+              title: item.title,
+              productName: item.title,
+              storeName: item.storeLabel,
+              chain: item.chain,
+              price: item.priceText,
+              offerPrice: item.priceText,
+              normalPrice: item.unitPriceText,
+              originalPrice: item.unitPriceText,
+              discountText: item.benefitText || item.validityText,
+              image: item.imageUrl,
+              imageUrl: item.imageUrl,
+              pictureUrl: item.imageUrl,
+              productUrl: item.productUrl,
+              category: getOfferCategoryV106(item),
+              __sourceOfferSearchResult: item,
+            }))}
             filter={offerCardFilterV106}
-            onFilterChange={handleGostaFilterChangeV136}
+            onFilterChange={setOfferCardFilterV106}
             onSearch={(value: string) => void searchOffers(value)}
-            categorySuggestions={GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147}
+            categorySuggestions={["Kaikki", "Kahvi", "Maitotuotteet", "Liha", "Kala", "Leipomo", "Hevi", "Juomat", "Lemmikit", "Koti", "Pakasteet"]}
             loading={loadingOffers}
             emptyText={offerShowingAllAreaOffersV106 ? "Alueen tarjouksia ei löytynyt vielä." : "Gösta ei löytänyt tarjouksia tälle rajaukselle."}
             onBack={() => {
