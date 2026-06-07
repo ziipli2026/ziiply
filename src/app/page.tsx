@@ -103,6 +103,10 @@
 // koordinaatteja topbarille ajoissa, sääkortti tekee oman kevyen getCurrentPosition-varahaun ja käyttää
 // viimeisintä toimivaa lämpötilaa muistista. Tämä ei muuta kauppavalintaa eikä foundStores-listaa.
 
+// V175_GPS_LOCAL_DISTANCE_PRIORITY_RESTORE
+// Korjaus: GPS-tilassa lähikauppa/tavaratalo valitaan ensisijaisesti todellisella koordinaattietäisyydellä,
+// ei resolverin scorella eikä vanhalla pickStore-fallbackilla. Tämä palauttaa Jokela/Tuusula-lähikaupat Hyvinkää-lukon edelle.
+
 "use client";
 
 // V169_GOSTA_PASSES_ACTIVE_STORE_CONTEXT_TO_OFFER_CORE
@@ -5996,54 +6000,47 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return oldPickerPreferred || strictModeCandidates[0];
     }
 
-    const scoredStores = strictModeCandidates
+    // V175: GPS-tilassa ratkaiseva asia on todellinen etäisyys käyttäjän koordinaatista.
+    // Vanha resolver-score voi suosia reverse-geocodattua/vanhaa preferred-aluetta ja palauttaa
+    // Hyvinkään lähikaupat, vaikka Jokela/Tuusula olisi fyysisesti lähempänä.
+    const storesWithRealGpsDistance = strictModeCandidates
       .map((store) => {
-        const geoStoreForScore = toZiiplyResolverGeoStoreV32(store);
-        if (geoStoreForScore.latitude != null && geoStoreForScore.longitude != null) {
-          // V37: älä käytä API:n valmista distanceKm-arvoa GPS-rankingissa,
-          // koska se voi olla laskettu kunnan/queryn mukaan eikä käyttäjän koordinaatista.
-          geoStoreForScore.distanceKm = undefined;
-        }
+        const latitude = getStoreCoordinateV320(store, ["latitude", "lat", "y"]);
+        const longitude = getStoreCoordinateV320(store, ["longitude", "lng", "lon", "x"]);
 
-        const scored = scoreZiiplyStore({
-          store: geoStoreForScore,
-          location: {
-            latitude: coords.latitude,
-            longitude: coords.longitude,
-            capturedAt: Date.now(),
-          },
-          mode,
-          // GPS-käytössä ei saa pudottaa Hyvinkään kaltaisia kauppoja pois vain siksi,
-          // että ulkoinen API palauttaa koordinaatit/etäisyydet vähän eri muodossa.
-          adaptiveRadiusKm: mode === "hyper" ? 80 : 35,
-          minimumRadiusKm: 0,
-        });
+        if (latitude == null || longitude == null) return null;
 
-        if (!scored) return null;
+        const distanceKm = calculateDistanceKmV320(
+          { latitude: coords.latitude, longitude: coords.longitude },
+          { latitude, longitude },
+        );
+
+        if (!Number.isFinite(distanceKm)) return null;
 
         return {
           store: {
             ...store,
-            distanceKm: scored.distanceKm,
+            distanceKm,
+            distance: distanceKm,
+            distanceLabel: `${Math.round(distanceKm)} km`,
           } as StoreSearchItem,
-          score: scored.score,
-          distanceKm: scored.distanceKm,
+          distanceKm,
         };
       })
       .filter(Boolean)
       .sort((a, b) => {
-        const storeA = a as { score: number; distanceKm: number };
-        const storeB = b as { score: number; distanceKm: number };
-
-        if (storeB.score !== storeA.score) return storeB.score - storeA.score;
+        const storeA = a as { distanceKm: number };
+        const storeB = b as { distanceKm: number };
         return storeA.distanceKm - storeB.distanceKm;
       });
 
-    return (
-      scoredStores[0]?.store ||
-      oldPickerPreferred ||
-      strictModeCandidates[0]
-    );
+    if (storesWithRealGpsDistance.length > 0) {
+      return (storesWithRealGpsDistance[0] as { store: StoreSearchItem }).store;
+    }
+
+    // V175: jos koordinaatteja ei ole yhdelläkään saman tason ehdokkaalla, älä GPS-tilassa palaa
+    // pickStore/preferred fallbackiin. Muuten vanha Hyvinkää-/AREAS-tyyppinen lukko voi palata.
+    return undefined;
   }
 
   function rankStoresForMode(
