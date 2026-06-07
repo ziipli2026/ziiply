@@ -105,11 +105,12 @@
 
 "use client";
 
-// V180_GPS_HARD_FALLBACK_PURGE_ACTIVEAREA
-// Korjaus: GPS-tilassa activeArea/vanha valinta ei saa mennä ranked-lähikaupan edelle.
-// Tämä oli HC-fallbackin oikea paluureitti: Hyvinkään/Espoon/Kokkolan vanha activeArea jäi eloon,
-// vaikka foundStores sisälsi lähempänä olevan Jokelan/Tuusulan S/K-lähikaupan.
-// Lisäksi GPS-ranking ei enää palaa oldPickerPreferred/strictModeCandidates[0] -haaraan, jos etäisyys löytyy.
+// V181_PAGE_OLD_FALLBACKS_REMOVED
+// Korjaus: page-koodin vanhat kauppafallbackit poistettu, ei kiristetty GPS-hakua.
+// - GPS-tilassa activeStores käyttää vain rankStoresForMode()-tulosta, ei activeArea-/vanha valinta -fallbackia.
+// - getActiveAreaStoreCandidateV139 ei enää luo synteettistä kauppaa activeArea-nimestä/id:stä.
+// - pickBestResolverStoreForChainV32 ei enää GPS-tilassa palaa oldPickerPreferred/strictModeCandidates[0] -haaraan.
+// - fetch/applyLocation-polkuun ei kosketa, jotta kauppahaku ei katkea ennen API-hakua.
 
 
 // V169_GOSTA_PASSES_ACTIVE_STORE_CONTEXT_TO_OFFER_CORE
@@ -3804,12 +3805,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         ),
     );
 
-    const candidate =
-      matched ||
-      ({ id: id || 0, name: name || "", type: chain } as StoreSearchItem);
-
-    return storeMatchesStrictChainAndModeV139(candidate, chain, mode)
-      ? candidate
+    // V181: poistetaan vanha page-tason fallback kokonaan.
+    // Enää ei rakenneta synteettistä kauppaa activeArea-nimestä/id:stä, koska
+    // se toi GPS-tilassa takaisin Hyvinkää/Espoo/Kokkola-tyyppisiä stale-valintoja.
+    return storeMatchesStrictChainAndModeV139(matched, chain, mode)
+      ? matched
       : null;
   }
 
@@ -3833,10 +3833,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const gpsStorePoolV40 = buildGpsStoreCandidatePoolFromAllAreasV40(foundStores);
       const ranked = rankStoresForMode(gpsStorePoolV40, gpsMode, gpsCoordsV320);
 
-      // V180: GPS-tilassa activeArea on vain vanha muistijälki, ei valinnan lähde.
-      // Aiempi logiikka käytti activeAreaa ensisijaisena ja ranked-listaa vasta puuttuvan paikan
-      // täyttöön. Se oli HC-fallbackin varsinainen paluureitti: Hyvinkään/Espoon/Kokkolan
-      // stale-valinta voitti oikean GPS-etäisyysrankingin.
+      // V181: GPS-tilassa ei käytetä enää activeArea-/vanha valinta -fallbackia lainkaan.
+      // Tämä on se page-tason HC-fallback, joka palautti stale Hyvinkää/Espoo/Kokkola-kauppoja.
+      // Kauppahakua ei katkaista: jos foundStores on vielä tyhjä, UI näyttää vain "ei valittu"
+      // siihen asti kun applyLocation/fetchStoresForLocationQuery saa API-tulokset.
       if (gpsMode === "local") {
         return {
           sStoreId: ranked.sLocal?.id ?? 0,
@@ -5988,51 +5988,71 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const localPredicate = chain === "S" ? isSLocalStore : isKLocalStore;
     const preferredPredicate = mode === "hyper" ? hyperPredicate : localPredicate;
     const strictModeCandidates = rankingCandidates.filter(preferredPredicate);
-    const oldPickerPreferred = pickStore(strictModeCandidates, preferredPredicate);
+    // V181: vanha pickStore-fallback poistettu. Valinta tehdään strictModeCandidates-listasta
+    // ja GPS-tilassa vain pisteytetyistä kaupoista, ei vanhasta picker-järjestyksestä.
 
     // V139: älä koskaan täytä puuttuvaa tavarataloa lähikaupalla tai päinvastoin.
     // Jos saman tason kauppaa ei löydy, palautetaan undefined ja UI näyttää puuttuvan parin.
     if (strictModeCandidates.length === 0) return undefined;
 
     if (!coords) {
-      return oldPickerPreferred || strictModeCandidates[0];
+      return strictModeCandidates[0];
     }
 
-    const distanceRankedStores = strictModeCandidates
+    const scoredStores = strictModeCandidates
       .map((store) => {
-        const latitude = getStoreCoordinateV320(store, ["latitude", "lat", "y"]);
-        const longitude = getStoreCoordinateV320(store, ["longitude", "lng", "lon", "x"]);
-        const coordinateDistanceKm =
-          latitude != null && longitude != null
-            ? calculateDistanceKmV320(coords, { latitude, longitude })
-            : null;
-        const explicitDistanceKm = coordinateDistanceKm == null ? readExplicitDistanceKmV320(store) : null;
-        const distanceKm = coordinateDistanceKm ?? explicitDistanceKm;
+        const geoStoreForScore = toZiiplyResolverGeoStoreV32(store);
+        if (geoStoreForScore.latitude != null && geoStoreForScore.longitude != null) {
+          // V37: älä käytä API:n valmista distanceKm-arvoa GPS-rankingissa,
+          // koska se voi olla laskettu kunnan/queryn mukaan eikä käyttäjän koordinaatista.
+          geoStoreForScore.distanceKm = undefined;
+        }
 
-        if (distanceKm == null || !Number.isFinite(distanceKm)) return null;
+        const scored = scoreZiiplyStore({
+          store: geoStoreForScore,
+          location: {
+            latitude: coords.latitude,
+            longitude: coords.longitude,
+            capturedAt: Date.now(),
+          },
+          mode,
+          // GPS-käytössä ei saa pudottaa Hyvinkään kaltaisia kauppoja pois vain siksi,
+          // että ulkoinen API palauttaa koordinaatit/etäisyydet vähän eri muodossa.
+          adaptiveRadiusKm: mode === "hyper" ? 80 : 35,
+          minimumRadiusKm: 0,
+        });
+
+        if (!scored) return null;
 
         return {
           store: {
             ...store,
-            distanceKm,
-            distance: formatDistanceKmV320(distanceKm),
-            distanceLabel: formatDistanceKmV320(distanceKm),
+            distanceKm: scored.distanceKm,
           } as StoreSearchItem,
-          distanceKm,
+          score: scored.score,
+          distanceKm: scored.distanceKm,
         };
       })
       .filter(Boolean)
       .sort((a, b) => {
-        const storeA = a as { distanceKm: number };
-        const storeB = b as { distanceKm: number };
-        return storeA.distanceKm - storeB.distanceKm;
+        const storeA = a as { score: number; distanceKm: number };
+        const storeB = b as { score: number; distanceKm: number };
+
+        // V176: GPS-tilassa lähin oikeasti pisteytetty kauppa voittaa.
+        // Aiempi score-ensisijaisuus pystyi palauttamaan Hyvinkään, vaikka
+        // Jokela/Tuusula oli fyysisesti lähempänä.
+        if (Number.isFinite(storeA.distanceKm) && Number.isFinite(storeB.distanceKm)) {
+          const distanceDiff = storeA.distanceKm - storeB.distanceKm;
+          if (Math.abs(distanceDiff) > 0.2) return distanceDiff;
+        }
+
+        return storeB.score - storeA.score;
       });
 
-    // V180: GPS-tilassa EI enää koskaan pudota vanhaan picker-/strict-listafallbackiin.
-    // Juuri tämä palautti Hyvinkään/Espoon/Kokkolan, kun oikea lähikauppa jäi eri batchiin
-    // tai resolver ei pisteyttänyt sitä. Jos etäisyyttä ei löydy, näytetään puuttuva pari
-    // mieluummin kuin väärä fallback-kauppa.
-    return distanceRankedStores[0]?.store;
+    // V181: GPS-tilassa EI enää fallbackata vanhaan picker-järjestykseen tai
+    // strictModeCandidates[0]-alkioon. Jos pisteytystä ei synny, palautetaan undefined
+    // ja UI odottaa oikeaa API-/koordinaattitulosta eikä näytä stale-kauppaa.
+    return scoredStores[0]?.store;
   }
 
   function rankStoresForMode(
