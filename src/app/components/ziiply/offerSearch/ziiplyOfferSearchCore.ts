@@ -1,6 +1,6 @@
 // ============================================================================
-// ZIIPLY_OFFER_SEARCH_CORE_V159_CATEGORY_DIRECT_PROVIDER_TEST
-// Revision: V159
+// ZIIPLY_OFFER_SEARCH_CORE_V160_CATEGORY_FROM_MASTER_RESTORED
+// Revision: V160
 // Date: 2026-06-07
 //
 // Purpose:
@@ -291,24 +291,24 @@ export async function searchZiiplyGostaOffersV146(options: {
 
   let nextResults: ZiiplyGostaOfferLike[] = [];
 
-  if (searchAllAreaOffers) {
+  if (searchAllAreaOffers || searchByCategory) {
+    // V160:
+    // Category chips must not run a direct text search like q="Liha" or q="Hevi".
+    // They use the full Gösta master offer dataset and then filter locally by
+    // the category classifier. This restores the earlier working category behavior.
     const masterResults = await fetchGostaMasterOfferResultsV156(options.context);
-    nextResults = masterResults;
-  } else if (searchByCategory) {
-    // V159 DEBUG/FIX:
-    // Category chips no longer use the broad __ziiply_all_offers__ master dataset.
-    // They now make a direct provider/API request with the selected category label.
-    // This isolates S-kaupat master/DISCOUNTED issues from category searches.
-    const directCategoryResults = await fetchOfferSearchResults(categorySearchLabel, options.context);
 
-    nextResults = directCategoryResults.filter(
-      (item) => normalizeGostaCoreText(getOfferCategoryV106(item)) === normalizedCategorySearch,
-    );
+    nextResults = searchByCategory
+      ? masterResults.filter(
+          (item) =>
+            normalizeGostaCoreText(getOfferCategoryV106(item)) === normalizedCategorySearch,
+        )
+      : masterResults;
   } else {
     nextResults = await fetchOfferSearchResults(offerQuerySnapshot, options.context);
   }
 
-  const results = searchAllAreaOffers
+  const results = searchAllAreaOffers || searchByCategory
     ? dedupeZiiplyGostaOfferResultsV146(nextResults)
     : cleanZiiplyGostaOfferResultsV146(nextResults);
 
