@@ -1149,6 +1149,17 @@ async function fetchSKaupatRemoteFilteredProductsV170(
   const selectedStoreId = await getEffectiveSKaupatStoreIdV174(options);
   if (!selectedStoreId) return [];
 
+  console.warn("[STORE TEST]", {
+    providerRevision: "v186-store-test",
+    selectedStoreId,
+    inputStoreId: options?.storeId,
+    inputSStoreId: options?.sStoreId,
+    inputStoreName: options?.storeName,
+    inputSStoreName: options?.sStoreName,
+    discountedOnly,
+    query,
+  });
+
   console.warn("[GOSTA STORE CHECK]", {
     inputStoreId: options?.storeId,
     inputSStoreId: options?.sStoreId,
