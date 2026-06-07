@@ -1,3 +1,10 @@
+// V217_V216_BUILDFIX_DISTANCE_FUNCTION
+// Pohja: V216.
+// Build-fix:
+// - korvaa virheellisen getDistanceKm()-viittauksen page-tiedoston omalla calculateDistanceKmV320()-funktiolla.
+// - ei logiikkamuutosta GPS/lähikauppa/tavaratalo-valintaan.
+// - ei koske skanneriin / Bluetooth-inputtiin / EAN-polkuun.
+
 // V216_V215_LOCAL_DISTANCE_ONLY_CANDIDATES_RESTORED
 // Pohja: V215.
 // Korjaus:
@@ -6183,9 +6190,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   const latitude = getStoreCoordinateV320(store, ["latitude", "lat", "y"]);
                   const longitude = getStoreCoordinateV320(store, ["longitude", "lng", "lon", "x"]);
                   return latitude != null && longitude != null
-                    ? getDistanceKm(
-                        { latitude: coords.latitude, longitude: coords.longitude, capturedAt: Date.now() },
-                        { latitude, longitude, capturedAt: Date.now() },
+                    ? calculateDistanceKmV320(
+                        { latitude: coords.latitude, longitude: coords.longitude },
+                        { latitude, longitude },
                       )
                     : null;
                 })()
