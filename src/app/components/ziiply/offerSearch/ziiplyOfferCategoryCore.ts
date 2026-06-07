@@ -1,12 +1,13 @@
 // ============================================================================
-// ZIIPLY_OFFER_CATEGORY_CORE_V154_BABY_FOOD_NOT_KOTI
-// Revision: V154
+// ZIIPLY_OFFER_CATEGORY_CORE_V155_TAXONOMY_FIRST
+// Revision: V155
 // Date: 2026-06-06
 //
 // Fix:
 // - Maps S-kanava categories to Ziiply categories using provider category metadata first.
 // - Keeps Gösta scoped to food basket + everyday essentials, not the full S-kanava catalogue.
 // - Widens seeds for Pakasteet, Valmisruoka, Juomat, Koti and other real offer groups.
+// - V155: uses S-kaupat taxonomy/categoryPath/hierarchy before regex title guessing.
 // ============================================================================
 
 export type ZiiplyGostaOfferLike = Record<string, unknown>;
@@ -111,6 +112,34 @@ function getOfferCategoryMetaText(item: ZiiplyGostaOfferLike) {
   ]);
 }
 
+
+function classifyGostaCategoryFromSPathV155(rawText: string) {
+  const text = normalizeGostaText(rawText);
+  if (!text) return "Muut";
+
+  // Use S-kaupat's own top-level category path first. This avoids false
+  // positives from product names, brands or benefit text.
+  if (/^liha-ja-kasviproteiinit\b|\/ liha ja kasviproteiinit\b|\bliha ja kasviproteiinit\b/.test(text)) return "Liha";
+  if (/^kala-ja-merenelavat\b|^kala-ja-merenelävät\b|\/ kala ja merenelavat\b|\/ kala ja merenelävät\b|\bkala ja merenelavat\b|\bkala ja merenelävät\b/.test(text)) return "Kala";
+  if (/^hedelmat-ja-vihannekset\b|^hedelmät-ja-vihannekset\b|\/ hedelmat ja vihannekset\b|\/ hedelmät ja vihannekset\b|\bhedelmat ja vihannekset\b|\bhedelmät ja vihannekset\b/.test(text)) return "Hevi";
+  if (/^leivat-keksit-ja-leivonnaiset\b|^leivät-keksit-ja-leivonnaiset\b|\/ leivat keksit ja leivonnaiset\b|\/ leivät keksit ja leivonnaiset\b|\bleivat keksit ja leivonnaiset\b|\bleivät keksit ja leivonnaiset\b/.test(text)) return "Leipomo";
+  if (/^maito-munat-ja-rasvat\b|\/ maito munat ja rasvat\b|\bmaito munat ja rasvat\b/.test(text)) return "Maitotuotteet";
+  if (/^juustot-tofut-ja-kasvipohjaiset\b|\/ juustot tofut ja kasvipohjaiset\b|\bjuustot tofut ja kasvipohjaiset\b/.test(text)) return "Maitotuotteet";
+  if (/^kahvit-teet-ja-mehut\b|\/ kahvit teet ja mehut\b|\bkahvit teet ja mehut\b/.test(text)) return "Kahvi";
+  if (/^alkoholi-ja-virvoitusjuomat\b|\/ alkoholi ja virvoitusjuomat\b|\balkoholi ja virvoitusjuomat\b|^virvoitusjuomat\b/.test(text)) return "Juomat";
+  if (/^pakasteet\b|\/ pakasteet\b|\bpakasteet\b/.test(text)) return "Pakasteet";
+  if (/^valmisruoka\b|\/ valmisruoka\b|\bvalmisruoka\b/.test(text)) return "Valmisruoka";
+  if (/^karkit-ja-suklaat\b|^snacksit\b|\/ karkit ja suklaat\b|\/ snacksit\b|\bkarkit ja suklaat\b|\bsnacksit\b/.test(text)) return "Makeiset";
+  if (/^lemmikit\b|^lemmikkien-ruoat-ja-tarvikkeet\b|^lemmikkien-ruuat-ja-tarvikkeet\b|\/ lemmikit\b|\blemmikit\b|\blemmikkien ruoat ja tarvikkeet\b|\blemmikkien ruuat ja tarvikkeet\b/.test(text)) return "Lemmikit";
+
+  // Baby food is food; diapers/care products are Koti.
+  if (/^lapset\/lastenruoat\b|\/ lastenruoat\b|\blastenruoat\b|\blastenruoka\b|\bvauvanruoka\b|\bvauvanruoat\b/.test(text)) return "Valmisruoka";
+
+  if (/^kodinhoito-ja-taloustarvikkeet\b|\/ kodinhoito ja taloustarvikkeet\b|\bkodinhoito ja taloustarvikkeet\b|^taloustarvikkeet\b|^hygienia\b/.test(text)) return "Koti";
+
+  return "Muut";
+}
+
 function classifyGostaCategoryFromText(rawText: string) {
   const text = normalizeGostaText(rawText);
 
@@ -139,8 +168,24 @@ function classifyGostaCategoryFromText(rawText: string) {
 }
 
 export function getOfferCategoryV106(item: ZiiplyGostaOfferLike) {
-  // V152: käytä ensin providerin oikeita S-kanava-kategorioita/breadcrumb-kenttiä, jos niitä löytyy.
-  // Otsikkopohjainen päätelmä jää fallbackiksi vanhoille parserituloksille.
+  // V155:
+  // First use S-kaupat's own category path fields from the provider. Only if
+  // those do not map to a Ziiply bucket, fall back to the broader regex rules.
+  const pathText = getFirstString(item, [
+    "taxonomy",
+    "categoryPath",
+    "breadcrumbs",
+    "hierarchy",
+    "mainCategory",
+    "department",
+    "productGroup",
+    "subCategory",
+    "category",
+  ]);
+
+  const pathCategory = classifyGostaCategoryFromSPathV155(pathText);
+  if (pathCategory !== "Muut") return pathCategory;
+
   const metaText = getOfferCategoryMetaText(item);
   const metaCategory = metaText ? classifyGostaCategoryFromText(metaText) : "Muut";
   if (metaCategory !== "Muut") return metaCategory;
