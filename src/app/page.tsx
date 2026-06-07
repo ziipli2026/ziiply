@@ -1,11 +1,13 @@
-// V198_V197_GPS_QUERY_EMPTY_FIRST_PRIMARY_LAST_LOCAL_NO_HC_FALLBACK
-// Pohja: V197.
+// V199_V197_GPS_LOCAL_QUERY_AND_FALLBACK_PURGE
+// Pohja: käyttäjän lähettämä V197.
 // Korjaus:
-// - GPS-kauppahaun tyhjä koordinaattihaku säilytetään oikeasti ensimmäisenä.
-// - reverse-geocoded primaryQuery ei enää mene lähialueiden edelle, vaan vasta viimeiseksi fallbackiksi.
-// - GPS-lähikaupoissa ei palata vanhaan picker-järjestykseen, joka toi Hyvinkään takaisin.
-// - Skanneri- ja hakukorttilogiikkaan ei kosketa.
+// - GPS-kauppahaussa tyhjä lat/lon-haku säilytetään oikeasti ensimmäisenä.
+// - GPS-lähialueet haetaan ennen reverse-geocode/primaryQuery-arvoa.
+// - reverse/primaryQuery on vain viimeinen API-fallback, ei valinnan lähde.
+// - GPS-tilassa activeArea ei saa palauttaa Hyvinkään lähikauppaa varakaupaksi.
+// - GPS-ranking ei enää palaa oldPickerPreferred/strictModeCandidates[0] -järjestykseen.
 
+// V197_V176_GPS_KEEP_SEARCH_RANK_BEFORE_ACTIVEAREA
 // Pohja: V176, koska se vielä löytää kaupat.
 // Korjaus:
 // - EI kosketa GPS-kauppahaun queryketjuun, jotta kaupat eivät katoa.
@@ -2720,20 +2722,21 @@ export default function Page() {
       .slice(0, 8) as Array<{ area: Area; distance: number }>;
 
     const queries: string[] = [];
-    const addQuery = (value?: string | number | null, options?: { allowEmpty?: boolean }) => {
+    const addQuery = (value?: string | number | null, allowEmpty = false) => {
       const cleaned = String(value ?? "").trim();
-      if (!cleaned && !options?.allowEmpty) return;
-      if (queries.some((item) => normalize(item) === normalize(cleaned))) return;
+      if (!cleaned && !allowEmpty) return;
+
+      const duplicateKey = cleaned ? normalize(cleaned) : "__empty_gps_query__";
+      if (queries.some((item) => (item ? normalize(item) : "__empty_gps_query__") === duplicateKey)) return;
       queries.push(cleaned);
     };
 
-    // V198: tyhjä koordinaattihaku piti olla ensimmäinen, mutta vanha addQuery("")
-    // pudotti sen pois. Tämä on tärkeä, koska /api/store-search saa lat/lon-parametrit
-    // ja voi hakea kauppoja ilman kunta-/postinumerolukkoa.
-    addQuery("", { allowEmpty: true });
+    // V199: tyhjä search + lat/lon on oikea koordinaattihaku.
+    // Aiemmin addQuery("") pudotti tämän pois, jolloin reverse/Hyvinkää nousi ensimmäiseksi.
+    addQuery("", true);
 
-    // V198: GPS:n lähimmät AREAS-haut ennen reverse-geocoded primaryQueryä.
-    // 05510 voi geokoodautua Hyvinkääksi, vaikka lähikaupat löytyvät Jokela/Tuusula-suunnasta.
+    // V199: lähimmät AREA-hakusanat ennen reverse-geocodea.
+    // Tämä antaa Jokela/Tuusula-osumille mahdollisuuden ennen Hyvinkää/05510-kuntalukkoa.
     for (const entry of nearbyAreas) {
       const label = String(entry.area.label || "");
       addQuery(label);
@@ -2743,13 +2746,11 @@ export default function Page() {
       }
     }
 
-    // V198: reverse-geocoded / käsin tullut primaryQuery vasta viimeiseksi fallbackiksi,
-    // ei koskaan ensimmäiseksi GPS-lähikauppahaun lähteeksi.
+    // V199: reverse-geocoded primaryQuery on vain viimeinen API-yhteensopivuusfallback.
     addQuery(primaryQuery);
 
-    return queries.filter((query, index) => query !== "" || index === 0).slice(0, 16);
+    return queries.slice(0, 16);
   }
-
   function setGpsVisibleMessageV391(areaLabel: string) {
     gpsInitialVisiblePhaseRefV391.current = false;
 
@@ -3793,6 +3794,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     chain: "S" | "K",
     mode: StoreMode,
   ): StoreSearchItem | null {
+    // V199: GPS/oma sijainti -tilassa activeArea on vain vanha muistialue.
+    // Sitä ei saa käyttää lähikaupan fallbackina, koska se palautti Hyvinkää/05510-lukon.
+    if (usingOwnLocation && gpsCoordsV320) return null;
+
     const id =
       chain === "S"
         ? mode === "local"
@@ -6089,16 +6094,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         ((a as { distance: number }).distance - (b as { distance: number }).distance),
       )[0] as { store: StoreSearchItem; distance: number } | undefined;
 
-    if (coords) {
-      // V198: GPS-tilassa ei enää palata vanhaan picker-järjestykseen.
-      // Se oli Hyvinkää-lähikauppalukon reitti, jos resolver-score tai distance puuttui.
-      return scoredStores[0]?.store || distanceFallback?.store;
-    }
-
-    return (
-      oldPickerPreferred ||
-      strictModeCandidates[0]
-    );
+    // V199: GPS-tilassa ei enää palata vanhaan picker-/AREA-järjestykseen.
+    // Jos koordinaatti-/distance-ranking ei anna kauppaa, palautetaan undefined,
+    // jotta UI näyttää puuttuvan kaupan eikä Hyvinkää-fallbackia.
+    return scoredStores[0]?.store || distanceFallback?.store;
   }
 
   function rankStoresForMode(
