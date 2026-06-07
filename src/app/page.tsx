@@ -1,19 +1,11 @@
-// V191_V173_REMOVE_REMAINING_HYVINKAA_LOCKS
-// Pohja: V190 / alkuperäinen V173-polku
+// V192_V173_REMOVE_RENDER_STALE_AREA_FALLBACK_ONLY
+// Pohja: käyttäjän alkuperäinen V173 page.
 // Korjaus:
-// - poistettu GPS-querylistasta primaryQuery/reverse-geocode ennen lähialueita
-// - tyhjä koordinaattihaku sallitaan oikeasti ensimmäiseksi API-haussa
-// - GPS-ranking ei fallbackaa oldPickerPreferred/strictModeCandidates[0]-järjestykseen
-// - GPS-tilassa activeArea ei täytä S/K-paikkoja ennen foundStores-rankingia
-// - Hyvinkää/AREAS[0]/localStorage ei saa enää toimia aloitus- tai valintalukona
-
-// V190_V173_REMOVE_START_HYVINKAA_DEFAULT
-// Pohja: alkuperäinen V173.
-// Korjaus:
-// - page.tsx ei enää käynnisty AREAS[0]-alueella, joka oli Hyvinkää.
-// - activeArea alkaa tyhjänä, jotta GPS/API-haku ei saa vanhaa Hyvinkää-paria fallbackiksi ennen paikannusta.
-// - vanhaa tallennettua Hyvinkää-activeAreaa ei palauteta localStoragesta reloadissa.
-// - topbar/map fallback -tekstit eivät enää käytä Hyvinkäätä oletuksena.
+// - EI muuteta GPS/API-kauppahaun queryketjua, jotta kauppoja yhä löytyy.
+// - Poistetaan renderöinnin vanha Hyvinkää/activeArea-fallback.
+// - GPS-tilassa activeStores käyttää ensisijaisesti foundStores + distance-rankingia.
+// - getActiveAreaStoreCandidate ei enää rakenna synteettistä kauppaa activeArean id/name-arvoista.
+// - Page ei käynnisty enää AREAS[0]-alueella, vaan tyhjällä alueella.
 
 // V170_GOSTA_CONTEXT_OPTION_TYPE_COMPAT_BUILD_FIX
 // Build-fix: Göstan search-options pidetään yhteensopivana sekä vanhan että uuden search coren kanssa.
@@ -2223,19 +2215,6 @@ function KauppiasMobileTopBar({
 }
 
 
-const EMPTY_ACTIVE_AREA_V190 = {
-  label: "",
-  aliases: [],
-  sStoreId: undefined,
-  sStoreName: undefined,
-  kStoreId: undefined,
-  kStoreName: undefined,
-  sLocalStoreId: undefined,
-  sLocalStoreName: undefined,
-  kLocalStoreId: undefined,
-  kLocalStoreName: undefined,
-} as Area;
-
 export default function Page() {
   const TopbarResponsiveCard = ((TopbarResponsiveCardModule as any).default ||
     (TopbarResponsiveCardModule as any).TopbarResponsiveCard ||
@@ -2252,7 +2231,18 @@ export default function Page() {
     "cart",
   );
   const [locationInput, setLocationInput] = useState("");
-  const [activeArea, setActiveArea] = useState<Area>(EMPTY_ACTIVE_AREA_V190);
+  const [activeArea, setActiveArea] = useState<Area>({
+    label: "",
+    aliases: [],
+    sStoreId: undefined,
+    sStoreName: undefined,
+    kStoreId: undefined,
+    kStoreName: undefined,
+    sLocalStoreId: undefined,
+    sLocalStoreName: undefined,
+    kLocalStoreId: undefined,
+    kLocalStoreName: undefined,
+  } as Area);
   const [storeMode, setStoreMode] = useState<StoreMode>("local");
   const [storeModeChosenV299, setStoreModeChosenV299] = useState(false);
   const selectedStoreModeRefV302 = useRef<StoreMode>("local");
@@ -2698,9 +2688,9 @@ export default function Page() {
       })
       .filter(Boolean) as Array<{ area: Area; distance: number }>;
 
-    if (areasWithCoords.length === 0) return EMPTY_ACTIVE_AREA_V190;
+    if (areasWithCoords.length === 0) return activeArea;
 
-    return areasWithCoords.sort((a, b) => a.distance - b.distance)[0]?.area || EMPTY_ACTIVE_AREA_V190;
+    return areasWithCoords.sort((a, b) => a.distance - b.distance)[0]?.area || activeArea;
   }
 
   function getNearbyAreaSearchQueriesFromGpsV36(
@@ -2728,20 +2718,19 @@ export default function Page() {
       .slice(0, 8) as Array<{ area: Area; distance: number }>;
 
     const queries: string[] = [];
-    const addQuery = (value?: string | number | null, options?: { allowEmpty?: boolean }) => {
-      const cleaned = String(value ?? "").trim();
-      if (!cleaned && !options?.allowEmpty) return;
+    const addQuery = (value?: string | number | null) => {
+      const cleaned = String(value || "").trim();
+      if (!cleaned) return;
       if (queries.some((item) => normalize(item) === normalize(cleaned))) return;
       queries.push(cleaned);
     };
 
-    // V191: tyhjä koordinaattihaku oikeasti ensimmäiseksi.
-    // Vanha addQuery("") ei lisännyt mitään, koska tyhjä arvo palautettiin heti pois.
-    // Tämä johti siihen, että reverse-geocodattu primaryQuery/Hyvinkää pääsi taas ohjaamaan hakua.
-    addQuery("", { allowEmpty: true });
+    // Tyhjä haku ensin, jos API tukee lat/lon-pohjaista lähihakua.
+    addQuery("");
 
-    // V191: ÄLÄ lisää primaryQueryä tässä. Se on GPS-polussa reverse-geocodattu kaupunki
-    // ja palautti kunnanrajalla Hyvinkää-lukon. Lähimmät AREAS-hakusanat tulevat alla etäisyysjärjestyksessä.
+    // V91: matka-ajossa ei saa käyttää staattista Etelä-Suomen listaa.
+    // Käytä ensin nykyistä reverse-geocodattua kaupunkia ja sitten GPS:n lähimpiä AREAS-alueita.
+    addQuery(primaryQuery);
 
     for (const entry of nearbyAreas) {
       const label = String(entry.area.label || "");
@@ -3828,12 +3817,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         ),
     );
 
-    const candidate =
-      matched ||
-      ({ id: id || 0, name: name || "", type: chain } as StoreSearchItem);
-
-    return storeMatchesStrictChainAndModeV139(candidate, chain, mode)
-      ? candidate
+    // V192: vanha page-fallback rakensi tästä synteettisen kaupan activeArean
+    // id/name-arvoista, vaikka kauppaa ei ollut nykyisessä foundStores-listassa.
+    // Se toi GPS-tilassa takaisin Hyvinkää/Espoo/Kokkola-tyyppisiä stale-valintoja.
+    // Palautetaan vain oikeasti nykyisestä löydetystä kauppalistasta löytynyt kauppa.
+    return storeMatchesStrictChainAndModeV139(matched, chain, mode)
+      ? (matched ?? null)
       : null;
   }
 
@@ -3861,8 +3850,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // Käyttäjän valinta kirjoitetaan activeAreaan selectStoreForCurrentMode()-funktiossa,
       // joten käytetään activeAreaa ensisijaisena ja GPS-rankingia vain puuttuvan S/K-paikan täyttöön.
       if (gpsMode === "local") {
-        // V191: GPS-tilassa activeArea ei saa täyttää lähikauppoja ennen foundStores-rankingia.
-        // Se oli jäljellä oleva Hyvinkää-lukko: vanha activeArea pääsi takaisin kortteihin.
+        // V192: GPS-tilassa activeArea ei saa ohittaa distance-rankingia.
+        // Vanha järjestys selectedActiveArea ?? ranked palautti Hyvinkää-fallbackin.
         return {
           sStoreId: ranked.sLocal?.id ?? 0,
           sStoreName: ranked.sLocal?.name ?? "S-lähikauppa ei valittu",
@@ -3871,8 +3860,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         };
       }
 
-      // V191: Sama tavarataloille. GPS näyttää vain foundStores-listasta rankatut kaupat,
-      // ei activeAreaan tallennettua vanhaa kunta-/fallback-paria.
       return {
         sStoreId: ranked.sHyper?.id ?? 0,
         sStoreName: ranked.sHyper?.name ?? "S-tavaratalo ei valittu",
@@ -4439,14 +4426,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               typeof parsedStoreSelection === "object"
             ) {
               if (parsedStoreSelection.activeArea) {
-                const savedActiveAreaV190 = parsedStoreSelection.activeArea as Area;
-                const savedAreaLabelV190 = String(savedActiveAreaV190?.label || "").trim();
-
-                // V190: älä palauta vanhaa page-startin Hyvinkää-activeAreaa reloadissa.
-                // Se oli alkuperäinen AREAS[0]-fallback ja pystyi voittamaan GPS:n ennen oikeaa hakua.
-                if (savedAreaLabelV190 && savedAreaLabelV190.toLowerCase() !== "hyvinkää") {
-                  setActiveArea(savedActiveAreaV190);
-                }
+                setActiveArea(parsedStoreSelection.activeArea as Area);
               }
 
               if (
@@ -6075,10 +6055,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         return storeA.distanceKm - storeB.distanceKm;
       });
 
-    // V191: GPS-tilassa ei enää fallbackata vanhaan picker-järjestykseen.
-    // oldPickerPreferred/strictModeCandidates[0] oli käytännössä query-/AREAS-järjestys,
-    // ja toi Hyvinkään/Espoon/Kokkolan takaisin, vaikka GPS oli käytössä.
-    return scoredStores[0]?.store;
+    return (
+      scoredStores[0]?.store ||
+      oldPickerPreferred ||
+      strictModeCandidates[0]
+    );
   }
 
   function rankStoresForMode(
