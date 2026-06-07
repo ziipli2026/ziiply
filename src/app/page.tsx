@@ -1,3 +1,12 @@
+// V214_V213_LOCAL_STORE_DETECTOR_RESTORE
+// Pohja: V213.
+// Korjaus rajattu lähikauppojen tunnistukseen:
+// - tavaratalojen V173-etäisyyshaku jätetty ennalleen.
+// - skanneriin/Bluetoothiin/EAN-polkuun ei kosketa.
+// - lähikauppa ei enää riipu vain importoiduista isSLocalStore/isKLocalStore-predikaateista,
+//   vaan hyväksyy myös V295:n nimitunnistuksen: S-market/Sale/Alepa/K-Supermarket/K-Market.
+// - tämä korjaa tilanteen, jossa tavaratalot löytyvät mutta lähikaupat jäävät tyhjiksi.
+
 // V213_V202_V173_HYPER_KEEP_LOCAL_NO_FALLBACK
 // Pohja: käyttäjän V202 Bluetooth-viivakoodinlukijalla.
 // Korjaus rajattu kauppavalintaan:
@@ -3816,7 +3825,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return chain === "S" ? isPrisma(store) : isKCitymarket(store);
     }
 
-    return chain === "S" ? isSLocalStore(store) : isKLocalStore(store);
+    // V214: lähikauppojen tunnistus ei saa olla kiinni vain importoiduissa
+    // isSLocalStore/isKLocalStore-funktioissa, koska API:n store-shape vaihtelee.
+    // Käytä niiden lisäksi samaa nimitunnistusta kuin picker käyttää.
+    return chain === "S"
+      ? isSLocalStore(store) || isLocalStoreForModeV295(store)
+      : isKLocalStore(store) || isLocalStoreForModeV295(store);
   }
 
   function getActiveAreaStoreCandidateV139(
@@ -6033,7 +6047,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       ? candidatesWithGpsCoordinates
       : candidates;
     const hyperPredicate = chain === "S" ? isPrisma : isKCitymarket;
-    const localPredicate = chain === "S" ? isSLocalStore : isKLocalStore;
+    const localPredicate = (store: StoreSearchItem) =>
+      chain === "S"
+        ? isSLocalStore(store) || isLocalStoreForModeV295(store)
+        : isKLocalStore(store) || isLocalStoreForModeV295(store);
     const preferredPredicate = mode === "hyper" ? hyperPredicate : localPredicate;
     const strictModeCandidates = rankingCandidates.filter(preferredPredicate);
     const oldPickerPreferred = pickStore(strictModeCandidates, preferredPredicate);
