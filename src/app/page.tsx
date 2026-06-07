@@ -105,6 +105,12 @@
 
 "use client";
 
+// V177_GPS_LOCAL_FALLBACK_PURGE
+// Korjaus V176:n liian pehmeään lähikauppa-/tavaratalofallbackiin:
+// - GPS ei enää palaa oldPickerPreferred/strictModeCandidates[0]-haaraan, joka toi Hyvinkää/Espoo/Kokkola-ufot
+// - GPS hyväksyy vain saman tason S/K-kaupan, jolla on oikea laskettava etäisyys järkevän säteen sisällä
+// - manuaalihaun fallbackit säilyvät ennallaan
+
 // V176_GPS_DISTANCE_SORT_SOFT_FALLBACK
 // Korjaus V175:n ylitiukkaan GPS-valintaan:
 // - ei vaadita page-tason suoria lat/lon-kenttiä, koska osa store-olioista saa koordinaatit resolverin kautta
@@ -6003,6 +6009,57 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return oldPickerPreferred || strictModeCandidates[0];
     }
 
+    const maxGpsDistanceKmV177 = mode === "hyper" ? 120 : 50;
+
+    // V177: GPS-tilassa lähikauppaa/tavarataloa EI saa enää paikata vanhalla
+    // activeArea/picker-fallbackilla. Tämä oli syy Hyvinkää-, Espoo- ja Kokkola-ufokauppoihin:
+    // jos resolver ei saanut pisteytystä, palattiin listan ensimmäiseen tai vanhaan valintaan.
+    // Nyt GPS saa valita vain sellaisen saman tason S/K-kaupan, jolla on laskettava
+    // koordinaatti- tai eksplisiittinen etäisyys ja joka on järkevän säteen sisällä.
+    const directGpsDistanceStoresV177 = strictModeCandidates
+      .map((store) => {
+        const latitude = getStoreCoordinateV320(store, ["latitude", "lat", "y"]);
+        const longitude = getStoreCoordinateV320(store, ["longitude", "lng", "lon", "x"]);
+        const coordinateDistanceKm =
+          latitude != null && longitude != null
+            ? calculateDistanceKmV320(
+                { latitude: coords.latitude, longitude: coords.longitude },
+                { latitude, longitude },
+              )
+            : null;
+        const explicitDistanceKm = readExplicitDistanceKmV320(store);
+        const distanceKm = coordinateDistanceKm ?? explicitDistanceKm;
+
+        if (
+          distanceKm == null ||
+          !Number.isFinite(distanceKm) ||
+          distanceKm < 0 ||
+          distanceKm > maxGpsDistanceKmV177
+        ) {
+          return null;
+        }
+
+        return {
+          store: {
+            ...store,
+            distanceKm,
+            distance: distanceKm,
+            distanceLabel: formatDistanceKmV320(distanceKm),
+          } as StoreSearchItem,
+          distanceKm,
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => {
+        const storeA = a as { distanceKm: number };
+        const storeB = b as { distanceKm: number };
+        return storeA.distanceKm - storeB.distanceKm;
+      });
+
+    if (directGpsDistanceStoresV177.length > 0) {
+      return directGpsDistanceStoresV177[0]?.store;
+    }
+
     const scoredStores = strictModeCandidates
       .map((store) => {
         const geoStoreForScore = toZiiplyResolverGeoStoreV32(store);
@@ -6020,18 +6077,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             capturedAt: Date.now(),
           },
           mode,
-          // GPS-käytössä ei saa pudottaa Hyvinkään kaltaisia kauppoja pois vain siksi,
-          // että ulkoinen API palauttaa koordinaatit/etäisyydet vähän eri muodossa.
-          adaptiveRadiusKm: mode === "hyper" ? 80 : 35,
+          adaptiveRadiusKm: maxGpsDistanceKmV177,
           minimumRadiusKm: 0,
         });
 
-        if (!scored) return null;
+        if (!scored || scored.distanceKm > maxGpsDistanceKmV177) return null;
 
         return {
           store: {
             ...store,
             distanceKm: scored.distanceKm,
+            distance: scored.distanceKm,
+            distanceLabel: formatDistanceKmV320(scored.distanceKm),
           } as StoreSearchItem,
           score: scored.score,
           distanceKm: scored.distanceKm,
@@ -6042,9 +6099,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         const storeA = a as { score: number; distanceKm: number };
         const storeB = b as { score: number; distanceKm: number };
 
-        // V176: GPS-tilassa lähin oikeasti pisteytetty kauppa voittaa.
-        // Aiempi score-ensisijaisuus pystyi palauttamaan Hyvinkään, vaikka
-        // Jokela/Tuusula oli fyysisesti lähempänä.
         if (Number.isFinite(storeA.distanceKm) && Number.isFinite(storeB.distanceKm)) {
           const distanceDiff = storeA.distanceKm - storeB.distanceKm;
           if (Math.abs(distanceDiff) > 0.2) return distanceDiff;
@@ -6053,14 +6107,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         return storeB.score - storeA.score;
       });
 
-    // V176: älä tee V175:n kovaa undefined-palautusta.
-    // Jos resolver sai pisteytettyä kauppoja, käytetään lähintä.
-    // Vasta jos pisteytys ei anna mitään, sallitaan vanha pehmeä fallback, jotta UI ei tyhjene.
-    return (
-      scoredStores[0]?.store ||
-      oldPickerPreferred ||
-      strictModeCandidates[0]
-    );
+    if (scoredStores.length > 0) {
+      return scoredStores[0]?.store;
+    }
+
+    // V177: GPS-tilassa ei palata oldPickerPreferred/strictModeCandidates[0]-fallbackiin.
+    // Tyhjä on parempi kuin väärä kaupunki tai satojen kilometrien päässä oleva kauppa.
+    return undefined;
   }
 
   function rankStoresForMode(
