@@ -130,9 +130,10 @@ async function fetchGostaMasterOfferResultsV156(context?: ZiiplyGostaOfferSearch
   const now = Date.now();
   const cached = ziiplyGostaMasterCacheV156.get(contextKey);
 
-  if (cached && cached.expiresAt > now) {
-    return cached.promise;
-  }
+  // V158 DEBUG: master cache disabled temporarily
+  // if (cached && cached.expiresAt > now) {
+  //   return cached.promise;
+  // }
 
   const promise = fetchOfferSearchResults(ZIIPLY_GOSTA_MASTER_QUERY_V156, context)
     .then((results) => cleanZiiplyGostaOfferResultsV146(results))
@@ -141,10 +142,11 @@ async function fetchGostaMasterOfferResultsV156(context?: ZiiplyGostaOfferSearch
       throw error;
     });
 
-  ziiplyGostaMasterCacheV156.set(contextKey, {
-    expiresAt: now + ZIIPLY_GOSTA_MASTER_CACHE_TTL_MS_V156,
-    promise,
-  });
+  // V158 DEBUG: master cache disabled temporarily
+  // ziiplyGostaMasterCacheV156.set(contextKey, {
+  //   expiresAt: now + ZIIPLY_GOSTA_MASTER_CACHE_TTL_MS_V156,
+  //   promise,
+  // });
 
   return promise;
 }
