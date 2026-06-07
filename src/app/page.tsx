@@ -105,20 +105,6 @@
 
 "use client";
 
-// V178_GPS_NEAREST_SOFT_NO_HC_FALLBACK
-// Korjaus V177:n ylikireyteen ja V176:n HC-fallbackiin:
-// - GPS-haussa ei palauteta enää listan ensimmäistä/vanhaa oldPickerPreferred-kauppaa sokkona
-// - jos resolver saa etäisyyden, lähin saman tason S/K-kauppa voittaa
-// - jos resolver ei saa scorea, käytetään vain store-olion omaa distanceKm/koordinaattietäisyyttä ja hylätään liian kaukaiset ufot
-// - näin Kokkolan/Espoon/Hyvinkään fallback ei voi voittaa lähempää Jokela/Tuusula-paria
-
-// V176_GPS_DISTANCE_SORT_SOFT_FALLBACK
-// Korjaus V175:n ylitiukkaan GPS-valintaan:
-// - ei vaadita page-tason suoria lat/lon-kenttiä, koska osa store-olioista saa koordinaatit resolverin kautta
-// - GPS-tilassa scoredStores järjestetään ensisijaisesti todellisen distanceKm:n mukaan, ei resolver-scoren mukaan
-// - fallback säilytetään vasta jos resolver ei palauta yhtään pisteytettyä kauppaa, jotta kortit eivät jää tyhjiksi
-
-
 // V169_GOSTA_PASSES_ACTIVE_STORE_CONTEXT_TO_OFFER_CORE
 // Korjaus:
 // - Göstan tarjoushaku välittää aktiivisen alueen, kauppatilan ja valitut S/K-kaupat offerSearchCorelle.
@@ -6049,74 +6035,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         const storeA = a as { score: number; distanceKm: number };
         const storeB = b as { score: number; distanceKm: number };
 
-        // V176: GPS-tilassa lähin oikeasti pisteytetty kauppa voittaa.
-        // Aiempi score-ensisijaisuus pystyi palauttamaan Hyvinkään, vaikka
-        // Jokela/Tuusula oli fyysisesti lähempänä.
-        if (Number.isFinite(storeA.distanceKm) && Number.isFinite(storeB.distanceKm)) {
-          const distanceDiff = storeA.distanceKm - storeB.distanceKm;
-          if (Math.abs(distanceDiff) > 0.2) return distanceDiff;
-        }
-
-        return storeB.score - storeA.score;
-      });
-
-    if (scoredStores.length > 0) {
-      return scoredStores[0]?.store;
-    }
-
-    // V178: resolver-score voi jäädä tyhjäksi, vaikka API olisi palauttanut
-    // kauppoihin valmiin distanceKm:n. Tällöin EI saa pudota HC-fallbackiin
-    // (oldPickerPreferred / strictModeCandidates[0]), koska se toi Hyvinkään,
-    // Espoon ja Kokkolan vanhat/ensimmäiset osumat kortteihin.
-    // Käytetään vain oikeaa mitattua etäisyyttä ja hylätään liian kaukaiset.
-    const maxSoftGpsDistanceKmV178 = mode === "hyper" ? 120 : 50;
-    const distanceRankedFallbacksV178 = strictModeCandidates
-      .map((store) => {
-        const latitude = getStoreCoordinateV320(store, ["latitude", "lat", "y"]);
-        const longitude = getStoreCoordinateV320(store, ["longitude", "lng", "lon", "x"]);
-        const coordinateDistanceKm =
-          latitude != null && longitude != null
-            ? calculateDistanceKmV320(
-                { latitude: coords.latitude, longitude: coords.longitude },
-                { latitude, longitude },
-              )
-            : null;
-        const explicitDistanceKm = readExplicitDistanceKmV320(store);
-        const distanceKm = coordinateDistanceKm ?? explicitDistanceKm;
-
-        if (
-          distanceKm == null ||
-          !Number.isFinite(distanceKm) ||
-          distanceKm < 0 ||
-          distanceKm > maxSoftGpsDistanceKmV178
-        ) {
-          return null;
-        }
-
-        return {
-          store: {
-            ...store,
-            distanceKm,
-            distance: formatDistanceKmV320(distanceKm),
-            distanceLabel: formatDistanceKmV320(distanceKm),
-          } as StoreSearchItem,
-          distanceKm,
-        };
-      })
-      .filter(Boolean)
-      .sort((a, b) => {
-        const storeA = a as { distanceKm: number };
-        const storeB = b as { distanceKm: number };
+        if (storeB.score !== storeA.score) return storeB.score - storeA.score;
         return storeA.distanceKm - storeB.distanceKm;
       });
 
-    if (distanceRankedFallbacksV178.length > 0) {
-      return distanceRankedFallbacksV178[0]?.store;
-    }
-
-    // GPS-tilassa tyhjä on parempi kuin väärä kaupunki.
-    // Manuaalihaun fallback säilyy ylempänä !coords-haarassa.
-    return undefined;
+    return (
+      scoredStores[0]?.store ||
+      oldPickerPreferred ||
+      strictModeCandidates[0]
+    );
   }
 
   function rankStoresForMode(
@@ -7183,29 +7110,21 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setActiveResult("offers");
 
     try {
-      // V173 DEBUG / POISSULKU:
-      // Lukitaan Göstan tarjoushaku suoraan Prisma Varkauteen, jotta page.tsx:n
-      // activeStores/GPS/watchdog/vanha activeArea ei voi antaa taustalta väärää S-kauppaa.
-      // Jos tällä tuotteet ja määrät muuttuvat oikeiksi, vika on page-tason kauppakontekstissa.
-      // Jos tälläkin näkyy eilinen/väärä valikoima, vika on alempana route/core/provider/S-kaupat-kyselyssä.
       const gostaOfferSearchContextV172 = {
-        areaLabel: "Varkaus",
-        storeMode: "hyper",
+        areaLabel: activeArea.label || "",
+        storeMode,
         storeCompareScope,
-        sStoreId: "726015093",
-        sStoreName: "Prisma Varkaus",
+        sStoreId: activeStores.sStoreId || undefined,
+        sStoreName: activeStores.sStoreName || undefined,
         kStoreId: activeStores.kStoreId || undefined,
         kStoreName: activeStores.kStoreName || undefined,
-        _debugForcedByPageV173: true,
-        _debugPreviousActiveSStoreId: activeStores.sStoreId || undefined,
-        _debugPreviousActiveSStoreName: activeStores.sStoreName || undefined,
-        _debugPreviousAreaLabel: activeArea.label || "",
-        _debugPreviousStoreMode: storeMode,
       };
 
-      // V173: tämä loki kertoo selaimen/Vercelin puolella, että haku lähtee pakotetulla Prismalla.
+      // V172: pidetään kategoriat toimivana, mutta tehdään selväksi mikä kauppakonteksti
+      // lähtee Göstan tarjoushakuun. Jos Prisma Varkaus näyttää yhä vanhaa pientä datasettiä,
+      // Vercel/browser-konsolista näkee heti kulkeeko oikea sStoreId vai fallbackaako provider.
       if (typeof window !== "undefined") {
-        console.info("[Ziiply Gosta context v173 FORCED PRISMA]", gostaOfferSearchContextV172);
+        console.info("[Ziiply Gosta context v172]", gostaOfferSearchContextV172);
       }
 
       const gostaOfferSearchOptionsV171 = {
@@ -7219,12 +7138,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       trackZiiplyEvent("gosta_offer_api_search_used", {
         query: offerSearchCoreResult.trackingKey,
         cartItemsCount: cart.length,
-        storeMode: "hyper",
+        storeMode,
         storeCompareScope,
-        sStoreId: "726015093",
-        sStoreName: "Prisma Varkaus",
-        previousActiveSStoreId: activeStores.sStoreId || "",
-        previousActiveSStoreName: activeStores.sStoreName,
+        sStoreId: activeStores.sStoreId || "",
+        sStoreName: activeStores.sStoreName,
         kStoreId: activeStores.kStoreId || "",
         kStoreName: activeStores.kStoreName,
       });
