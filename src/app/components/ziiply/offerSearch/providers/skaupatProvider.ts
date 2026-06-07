@@ -1,5 +1,5 @@
 // ============================================================================
-// SKAUPAT_PROVIDER_V184_FORCE_PRISMA_VARKAUS_NO_STALE_SESSION
+// SKAUPAT_PROVIDER_V185_PRISMA_VARKAUS_SOFT_STORE_SCOPE
 // Revision: V183
 // Date: 2026-06-07
 //
@@ -19,6 +19,11 @@
 // Install path:
 // src/app/components/ziiply/offerSearch/providers/skaupatProvider.ts
 // ============================================================================
+//
+// V185 fix:
+// - Keeps Prisma Varkaus selected via variables.storeId but removes strict product.storeId rejection.
+// - Reverts random session/marketing IDs because S-kaupat persisted query can return empty with random IDs.
+// - Keeps long discounted pagination and visible diagnostics.
 //
 // V160 fix:
 // - Gösta is an offer search: normal-priced shelf products are filtered out.
@@ -880,17 +885,19 @@ function mapSProductListItemToOfferResult(
 
   if (isSponsoredSProductListItem(listItem, product)) return null;
 
-  // V182: validate product/store match also in DISCOUNTED master mode.
-  // Earlier code skipped this when discountedOnly=true, which could let global
-  // discounted rows from some other S-store pass into Prisma Varkaus results.
-  if (!belongsToSelectedSHypermarketV163(product, options.selectedStoreId)) {
-    console.warn("[GOSTA STORE PRODUCT MISMATCH]", {
+  // V185: do NOT reject rows based on product.storeId metadata.
+  // RemoteFilteredProducts is already scoped by variables.storeId. In S-kaupat
+  // responses product.store / availability fields can be missing, generic, or
+  // not equal to the selected store id even when the product came from the
+  // selected store query. Strict rejection caused Prisma Varkaus to return 0 rows.
+  const productStoreIdForDebug = getProductStoreIdV182(product);
+  if (productStoreIdForDebug && productStoreIdForDebug !== options.selectedStoreId) {
+    console.warn("[GOSTA STORE PRODUCT SOFT MISMATCH]", {
       selectedStoreId: options.selectedStoreId,
-      productStoreId: getProductStoreIdV182(product),
+      productStoreId: productStoreIdForDebug,
       title,
       discountedOnly: options.discountedOnly,
     });
-    return null;
   }
 
   const pricing = getPricing(product);
@@ -1013,14 +1020,14 @@ function buildRemoteFilteredProductsUrl(
           },
         ]
       : [],
-    generatedSessionId: createRequestIdV184("gosta-session"),
+    generatedSessionId: "1d6b5de9-df99-4608-af07-7d754955df82",
     fetchSponsoredContent: discountedOnly,
     limit: discountedOnly ? discountedLimit : normalLimit,
     queryString,
     sortForAvailabilityLabelDate: discountedOnly ? requestDate : undefined,
     storeId: selectedStoreId,
-    useRandomId: true,
-    marketingId: createRequestIdV184("gosta-marketing"),
+    useRandomId: false,
+    marketingId: "d0bcc6e5-6130-494e-b6fb-12b5cb9c60cf",
   };
 
   if (offset > 0) {
