@@ -1,12 +1,11 @@
-// V220_V217_LOCAL_AREA_CANDIDATES_ONLY_WHEN_API_LOCAL_MISSING
+// V221_V217_LOCAL_AREA_DISTANCE_FALLBACK_ONLY
 // Pohja: V217 build-ok.
-// Korjaus simuloitu V64/V217-polulla:
-// - Tavaratalot pidetään V217/V213:n toimivassa API+koordinaattietäisyys-polussa.
-// - Lähikaupoissa foundStores/API on ensisijainen.
-// - Jos API ei palauta S/K-lähikauppaa, lisätään vain lähimpien AREAS-alueiden local-kaupat ehdokkaiksi.
-// - AREAS-ehdokkaat saavat distanceKm-arvon käyttäjän koordinaatista alueen koordinaattiin, mutta eivät lat/lon-kenttiä,
-//   jotta ne eivät voi voittaa oikeita API-koordinaattikauppoja eivätkä tuoda Kokkola/Espoo/Hyvinkää-stale-fallbackia.
-// - Ei muutoksia skanneriin/Bluetoothiin/EAN-polkuun.
+// Korjaus rajattu lähikauppojen puuttumiseen:
+// - Tavaratalopolku jätetään V217/V213-malliin.
+// - GPS-pooliin lisätään AREAS-datasta vain lähikaupat, ei tavarataloja.
+// - AREAS-lähikaupat saavat distanceKm:n GPS-koordinaatista alueen pisteeseen ja kelpaavat vain lähellä.
+// - Tämä palauttaa V64:n toimivan lähikauppavarapolun ilman Kerava/Myyrmanni/Tripla-hyperfallbackia.
+// - Skanneriin/Bluetoothiin ei koskettu.
 
 // V217_V216_BUILDFIX_DISTANCE_FUNCTION
 // Pohja: V216.
@@ -3796,7 +3795,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   function buildGpsStoreCandidatePoolFromAllAreasV40(
     apiStores: StoreSearchItem[],
-    mode?: StoreMode,
     coords?: { latitude: number; longitude: number } | null,
   ) {
     const seen = new Set<string>();
@@ -3815,69 +3813,57 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       result.push(normalizeStoreForPickerV320(store));
     };
 
-    // Ensisijainen lähde on aina oikea API/foundStores-lista.
+    // V41/V217: API-kaupat ensin. Tavaratalot saadaan näistä eikä AREAS saa tuoda
+    // Tripla/Myyrmanni/Kokkola/Espoo-tyyppisiä hyperfallbackeja takaisin.
     for (const store of apiStores) addStore(store);
 
-    // V220: Älä tuo AREAS-kauppoja tavarataloihin. Tavaratalot toimivat V213/V217-polulla
-    // API:n koordinaatti-/distance-rankingilla. Localissa API voi kuitenkin palauttaa vain
-    // tavaratalot, jolloin lähikaupat katoavat ennen renderiä. Siksi lisätään vain local-
-    // ehdokkaat ja vain jos ketjun local puuttuu API-listasta. Tämä korvaa V64:n liian laajan
-    // "kaikki AREAS-kaupat" -poolin turvallisella, etäisyysrajatulla versiolla.
-    if (mode === "local" && coords) {
-      const hasSLocalFromApi = result.some(
-        (store) => getZiiplyResolverStoreChainV32(store) === "S" && isLocalStoreForModeV295(store),
-      );
-      const hasKLocalFromApi = result.some(
-        (store) => getZiiplyResolverStoreChainV32(store) === "K" && isLocalStoreForModeV295(store),
-      );
+    // V221: Palauta vain V64:n toimiva LÄHIKAUPPA-varapolku.
+    // API:n koordinaattihaku palauttaa tavaratalot usein oikein, mutta lähikaupat voivat
+    // jäädä kokonaan puuttumaan. Siksi lisätään AREAS-datasta vain sLocal/kLocal,
+    // järjestettynä GPS-etäisyydellä, ja annetaan niille distanceKm.
+    // Hyper-kauppoja EI lisätä AREASista.
+    if (coords) {
+      const nearbyAreaEntries = AREAS
+        .map((area, areaIndex) => {
+          const areaCoords = getAreaCoordinateForGpsStorePoolV40(area);
+          if (!areaCoords) return null;
+          const distanceKm = calculateDistanceKmV320(coords, areaCoords);
+          return { area, areaIndex, distanceKm };
+        })
+        .filter(Boolean)
+        .sort((a, b) =>
+          ((a as { distanceKm: number }).distanceKm -
+            (b as { distanceKm: number }).distanceKm),
+        )
+        .slice(0, 10) as Array<{ area: Area; areaIndex: number; distanceKm: number }>;
 
-      if (!hasSLocalFromApi || !hasKLocalFromApi) {
-        const nearestAreas = AREAS
-          .map((area, areaIndex) => {
-            const areaCoords = getAreaCoordinateForGpsStorePoolV40(area);
-            if (!areaCoords) return null;
+      for (const entry of nearbyAreaEntries) {
+        // Älä päästä kaukaisia vanhoja aluefallbackeja ruutuun.
+        if (entry.distanceKm > 35) continue;
 
-            return {
-              area,
-              areaIndex,
-              distanceKm: calculateDistanceKmV320(coords, areaCoords),
-            };
-          })
-          .filter(Boolean)
-          .sort((a, b) =>
-            ((a as { distanceKm: number }).distanceKm -
-              (b as { distanceKm: number }).distanceKm),
-          )
-          .slice(0, 6) as Array<{ area: Area; areaIndex: number; distanceKm: number }>;
+        const base = {
+          city: entry.area.label,
+          distanceKm: entry.distanceKm,
+        } as any;
 
-        for (const entry of nearestAreas) {
-          const base = {
-            city: entry.area.label,
-            distanceKm: entry.distanceKm,
-            __areaLocalCandidateV220: true,
-          } as any;
+        if (entry.area.sLocalStoreName) {
+          addStore({
+            ...base,
+            id: entry.area.sLocalStoreId ||
+              getGeneratedAreaStoreIdV40(entry.areaIndex, "S", "local"),
+            name: entry.area.sLocalStoreName,
+            type: "S",
+          } as StoreSearchItem);
+        }
 
-          if (!hasSLocalFromApi && entry.area.sLocalStoreName) {
-            addStore({
-              ...base,
-              id:
-                entry.area.sLocalStoreId ||
-                getGeneratedAreaStoreIdV40(entry.areaIndex, "S", "local"),
-              name: entry.area.sLocalStoreName,
-              type: "S",
-            } as StoreSearchItem);
-          }
-
-          if (!hasKLocalFromApi && entry.area.kLocalStoreName) {
-            addStore({
-              ...base,
-              id:
-                entry.area.kLocalStoreId ||
-                getGeneratedAreaStoreIdV40(entry.areaIndex, "K", "local"),
-              name: entry.area.kLocalStoreName,
-              type: "K",
-            } as StoreSearchItem);
-          }
+        if (entry.area.kLocalStoreName) {
+          addStore({
+            ...base,
+            id: entry.area.kLocalStoreId ||
+              getGeneratedAreaStoreIdV40(entry.areaIndex, "K", "local"),
+            name: entry.area.kLocalStoreName,
+            type: "K",
+          } as StoreSearchItem);
         }
       }
     }
@@ -3979,11 +3965,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     if (usingOwnLocation && gpsCoordsV320 && storeModeChosenV299) {
       const gpsMode = selectedStoreModeRefV302.current || storeMode;
-      const gpsStorePoolV40 = buildGpsStoreCandidatePoolFromAllAreasV40(
-        foundStores,
-        gpsMode,
-        gpsCoordsV320,
-      );
+      const gpsStorePoolV40 = buildGpsStoreCandidatePoolFromAllAreasV40(foundStores, gpsCoordsV320);
       const ranked = rankStoresForMode(gpsStorePoolV40, gpsMode, gpsCoordsV320);
 
       if (gpsMode === "local") {
@@ -13048,7 +13030,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     if (usingOwnLocation && gpsCoordsV320) {
-      const gpsStorePool = buildGpsStoreCandidatePoolFromAllAreasV40(foundStores, mode, gpsCoordsV320);
+      const gpsStorePool = buildGpsStoreCandidatePoolFromAllAreasV40(foundStores, gpsCoordsV320);
       const ranked = rankStoresForMode(gpsStorePool, mode, gpsCoordsV320);
       const rankedStore =
         chain === "S"
