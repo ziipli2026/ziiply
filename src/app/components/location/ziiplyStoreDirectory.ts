@@ -18,6 +18,8 @@ export type ZiiplyStoreDirectoryEntry = {
   city?: string;
   postalCode?: string;
   address?: string;
+  sProductSearchStoreId?: string;
+  publicStoreId?: string;
 };
 
 export type ZiiplyStoreDirectorySelection = {
@@ -31,6 +33,9 @@ export type ZiiplyStoreDirectorySelection = {
 /**
  * Tänne voi myöhemmin lisätä käsin varmistettuja kauppoja.
  * Älä lisää kunta- tai postinumero-fallbackeja.
+ *
+ * publicStoreId = S-kaupat URL/myymäläsivun id
+ * sProductSearchStoreId = RemoteFilteredProducts-tuotehaun sisäinen id
  */
 export const ZIIPLY_STORE_DIRECTORY: ZiiplyStoreDirectoryEntry[] = [];
 
