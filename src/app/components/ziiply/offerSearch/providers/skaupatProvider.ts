@@ -1,5 +1,5 @@
 // ============================================================================
-// SKAUPAT_PROVIDER_V181_WORKING_CATEGORIES_INTERNAL_STOREID
+// SKAUPAT_PROVIDER_V181_ONLY_PRISMA_VARKAUS_ID_MAP
 // Revision: V181
 // Date: 2026-06-06
 //
@@ -61,91 +61,45 @@ const SKAUPAT_REMOTE_FILTERED_PRODUCTS_HASH_V156 =
 
 const DEFAULT_SKAUPAT_STORE_ID_V156 = "513971200";
 
-const VERIFIED_SKAUPAT_PRODUCT_SEARCH_STORE_IDS_BY_PUBLIC_ID_V181: Record<string, string> = {
-  // Prisma Varkaus:
-  // public /myymala/prisma-varkaus/726015093
-  // RemoteFilteredProducts variables.storeId from S-kaupat Network request:
+// V181: S-kaupat public /myymala URL id is not always the same id that
+// RemoteFilteredProducts uses for product/pricing search.
+// Verified from S-kaupat Network request:
+// Prisma Varkaus public id 726015093 -> product search storeId 708276035.
+const S_PRODUCT_SEARCH_STORE_ID_MAP_V181: Record<string, string> = {
   "726015093": "708276035",
 };
 
-const VERIFIED_SKAUPAT_PRODUCT_SEARCH_STORE_IDS_BY_NAME_V181: Record<string, string> = {
-  "prisma varkaus": "708276035",
-};
-
-function resolveVerifiedSProductSearchStoreIdV181(value: unknown) {
-  const raw = String(value ?? "").trim();
-  const normalized = normalizeText(raw);
-
-  return (
-    VERIFIED_SKAUPAT_PRODUCT_SEARCH_STORE_IDS_BY_PUBLIC_ID_V181[raw] ||
-    VERIFIED_SKAUPAT_PRODUCT_SEARCH_STORE_IDS_BY_NAME_V181[normalized] ||
-    ""
-  );
-}
 
 export type SKaupatOfferProviderOptionsV173 = {
   storeId?: string | number | null;
   storeName?: string | null;
-
-  // Optional context variants used by route/sources/page.
-  sStoreId?: string | number | null;
-  sStoreName?: string | null;
-
-  // Internal RemoteFilteredProducts product-search id.
-  // This can differ from public S-kaupat /myymala URL id.
-  sProductSearchStoreId?: string | number | null;
-  productSearchStoreId?: string | number | null;
-  remoteFilteredProductsStoreId?: string | number | null;
-
-  areaLabel?: string | null;
-  selectedStoreLabel?: string | null;
 };
 
 async function getEffectiveSKaupatStoreIdV174(
   options?: SKaupatOfferProviderOptionsV173,
 ): Promise<string | null> {
-  const explicitProductSearchId = firstString(
-    options?.sProductSearchStoreId,
-    options?.productSearchStoreId,
-    options?.remoteFilteredProductsStoreId,
-  );
+  const raw = firstString(options?.storeId);
+  const storeName = firstString(options?.storeName);
 
-  if (/^\d{5,}$/.test(explicitProductSearchId)) {
-    return explicitProductSearchId;
-  }
-
-  const raw = firstString(options?.storeId, options?.sStoreId);
-  const storeName = firstString(options?.storeName, options?.sStoreName);
-
-  const verifiedByPublicId = resolveVerifiedSProductSearchStoreIdV181(raw);
-  if (verifiedByPublicId) {
+  const mappedProductSearchStoreId = S_PRODUCT_SEARCH_STORE_ID_MAP_V181[raw];
+  if (mappedProductSearchStoreId) {
     console.warn("[GOSTA STORE MAP V181] public S-store id mapped to product-search storeId", {
       publicStoreId: raw,
-      productSearchStoreId: verifiedByPublicId,
+      productSearchStoreId: mappedProductSearchStoreId,
       storeName,
     });
-    return verifiedByPublicId;
-  }
-
-  const verifiedByName = resolveVerifiedSProductSearchStoreIdV181(storeName);
-  if (verifiedByName) {
-    console.warn("[GOSTA STORE MAP V181] S-store name mapped to product-search storeId", {
-      inputStoreId: raw || null,
-      storeName,
-      productSearchStoreId: verifiedByName,
-    });
-    return verifiedByName;
+    return mappedProductSearchStoreId;
   }
 
   // First trust a real numeric S-kaupat storeId if the caller already has one.
-  // NOTE: for newly verified S stores this should be the internal product-search id,
-  // not necessarily the public /myymala URL id.
+  // Do not treat the old MVP fallback id as proof of a selected store.
   if (/^\d{5,}$/.test(raw) && raw !== DEFAULT_SKAUPAT_STORE_ID_V156) {
     return raw;
   }
 
-  // Resolve real S-kaupat id from directory.
-  const resolvedFromDirectory = await resolveSKaupatStoreIdFromDirectoryV1(storeName || raw);
+  // Resolve real S-kaupat id from S-kaupat store URLs:
+  // /myymala/<slug>/<storeId>
+  const resolvedFromDirectory = await resolveSKaupatStoreIdFromDirectoryV1(storeName);
 
   if (resolvedFromDirectory) {
     console.warn("[GOSTA] S-kaupat storeId resolved from directory", {
@@ -169,9 +123,7 @@ async function getEffectiveSKaupatStoreIdV174(
   // Returning [] is safer than showing another store's offers.
   console.warn("[GOSTA] missing real S-kaupat storeId, skipping S-kaupat offer fetch", {
     storeId: options?.storeId,
-    sStoreId: options?.sStoreId,
     storeName: options?.storeName,
-    sStoreName: options?.sStoreName,
   });
 
   return null;
@@ -181,11 +133,6 @@ const SKAUPAT_GOSTA_MASTER_QUERY_V171 = "__ziiply_all_offers__";
 // V180: Gösta master uses the real S-kaupat discounted label filter:
 // filters=[{ key: "labels", value: ["DISCOUNTED"] }] and queryString="".
 // The old seed list is kept only for emergency fallback, but master search no longer uses it.
-//
-// V181:
-// - Keeps the previously working category/master behavior from V180.
-// - Adds verified mapping from S-kaupat public store URL id to RemoteFilteredProducts internal storeId.
-// - Prisma Varkaus public URL id 726015093 maps to product search storeId 708276035.
 const SKAUPAT_GOSTA_MASTER_SEED_QUERIES_V172 = Array.from(new Set([
   "kampanja", "tarjous", "maito", "juusto", "jogurtti", "rahka", "kananmuna", "voi", "kerma",
   "kahvi", "tee", "mehu", "jauheliha", "broileri", "kana", "nauta", "porsas", "makkara",
