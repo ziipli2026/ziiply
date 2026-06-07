@@ -1,6 +1,6 @@
 // ============================================================================
-// ZIIPLY_OFFER_SEARCH_CORE_V161_CATEGORY_SEEDED_STRICT
-// Revision: V161
+// ZIIPLY_OFFER_SEARCH_CORE_V162_CATEGORY_SEEDED_MASTER_ALIGNED
+// Revision: V162
 // Date: 2026-06-07
 //
 // Purpose:
@@ -32,6 +32,7 @@
 // - näkyvien tulosten suodatus
 
 import {
+  GOSTA_CATEGORY_LABELS_V136,
   getGostaCategoryLabelFromFilterV136,
   getGostaCategorySeedQueriesV136,
   getOfferCategoryV106,
@@ -264,6 +265,49 @@ export function filterZiiplyGostaOfferResultsV146(
   });
 }
 
+
+async function fetchStrictGostaCategoryResultsV162(
+  categoryLabel: string,
+  context?: ZiiplyGostaOfferSearchContextV152,
+) {
+  const normalizedCategory = normalizeGostaCoreText(
+    getGostaCategoryLabelFromFilterV136(categoryLabel),
+  );
+
+  if (!normalizedCategory || normalizedCategory === "kaikki") return [];
+
+  const categorySeeds = getGostaCategorySeedQueriesV136(categoryLabel);
+  if (categorySeeds.length === 0) return [];
+
+  const seedBatches = await Promise.allSettled(
+    categorySeeds.map((seedQuery) => fetchOfferSearchResults(seedQuery, context)),
+  );
+
+  const seededResults = seedBatches.flatMap((result) =>
+    result.status === "fulfilled" ? result.value : [],
+  );
+
+  return seededResults.filter(
+    (item) => normalizeGostaCoreText(getOfferCategoryV106(item)) === normalizedCategory,
+  );
+}
+
+async function fetchAlignedGostaCategoryMasterResultsV162(
+  context?: ZiiplyGostaOfferSearchContextV152,
+) {
+  const categoryLabels = GOSTA_CATEGORY_LABELS_V136.filter(
+    (label) => normalizeGostaCoreText(label) !== "kaikki",
+  );
+
+  const categoryBatches = await Promise.allSettled(
+    categoryLabels.map((label) => fetchStrictGostaCategoryResultsV162(label, context)),
+  );
+
+  return categoryBatches.flatMap((result) =>
+    result.status === "fulfilled" ? result.value : [],
+  );
+}
+
 export async function searchZiiplyGostaOffersV146(options: {
   query: string;
   terms?: string[];
@@ -293,27 +337,18 @@ export async function searchZiiplyGostaOffersV146(options: {
   let nextResults: ZiiplyGostaOfferLike[] = [];
 
   if (searchAllAreaOffers) {
-    const masterResults = await fetchGostaMasterOfferResultsV156(options.context);
-    nextResults = masterResults;
+    // V162:
+    // "Kaikki" must be built from the same strict category-seeded logic that
+    // category clicks use. This prevents category chips from appearing because
+    // of a tiny/foreign master dataset and then returning empty results.
+    nextResults = await fetchAlignedGostaCategoryMasterResultsV162(options.context);
   } else if (searchByCategory) {
-    // V161:
-    // Category chips must not search only q="Liha" / q="Hevi", and they must
-    // not rely on an over-wide all-category seed master either.
-    // Instead, run the category's own controlled seed queries and then keep
-    // only rows that the category classifier maps back to the selected category.
-    const categorySeeds = getGostaCategorySeedQueriesV136(categorySearchLabel);
-
-    const seedBatches = await Promise.allSettled(
-      categorySeeds.map((seedQuery) => fetchOfferSearchResults(seedQuery, options.context)),
-    );
-
-    const seededResults = seedBatches.flatMap((result) =>
-      result.status === "fulfilled" ? result.value : [],
-    );
-
-    nextResults = seededResults.filter(
-      (item) =>
-        normalizeGostaCoreText(getOfferCategoryV106(item)) === normalizedCategorySearch,
+    // V162:
+    // Category click uses controlled category seed queries and then strict
+    // category classification. It does not search only q="Liha" / q="Hevi".
+    nextResults = await fetchStrictGostaCategoryResultsV162(
+      categorySearchLabel,
+      options.context,
     );
   } else {
     nextResults = await fetchOfferSearchResults(offerQuerySnapshot, options.context);
