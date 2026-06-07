@@ -1,33 +1,3 @@
-// V185_RESTORE_V173_REMOVE_REVERSE_GEOCODE_FROM_GPS_STORE_SEARCH
-// Pohja: käyttäjän alkuperäinen V173. Täsmäkorjaus:
-// - GPS-kauppahaku ei tee reverseGeocodeCity-kutsua ennen applyLocationia.
-// - Reverse-geocodattu kaupunki ei mene enää hakujonoon eikä voi lukita Hyvinkää/Espoo/Kokkola-fallbackia.
-// - GPS käyttää koordinaatteja + lähimpiä AREAS-hakuja; UI-label on aina Oma sijainti.
-// - Manuaalinen aluehaku ja postinumero pysyvät ennallaan.
-
-// V170_GOSTA_CONTEXT_OPTION_TYPE_COMPAT_BUILD_FIX
-// Build-fix: Göstan search-options pidetään yhteensopivana sekä vanhan että uuden search coren kanssa.
-
-// V160_GOSTA_ISOLATED_FROM_MAIN_SEARCH_INPUT_AND_AUTORUN
-// Korjaus:
-// - Göstan tuoteryhmä-/hakukenttä ei enää kirjoita normaaliin Hae-kortin input-stateen.
-// - Kun Gösta-kortti on auki/sticky, normaali tuotteen haku ei saa käynnistyä taustapäivityksestä.
-// - Normaali hakukenttä ei saa avautua Göstan hakusanalla (esim. "kahvi").
-// - Göstan renderöinnin query-prop ei enää fallbackaa normaaliin inputiin.
-//
-//// V161_GOSTA_BLOCKS_GPS_STORE_MODE_BACKGROUND_SIDE_EFFECTS
-// Korjaus: kun Gösta on auki, GPS/watchdog-taustapäivitys ei saa vaihtaa kauppatilaa
-// eikä pakottaa Lähikaupat-tilaa päälle. In-flight GPS-apply katkaistaan ennen UI-commitia.
-
-// V158_GOSTA_STICKY_PANEL_AGAINST_GPS_REFRESH
-// Korjaus: Gösta-kortti ei saa sammua taustalla tapahtuvan GPS-/kauppapäivityksen takia.
-// V162: Kaikki-chip poistettu Göstasta ja tarjouslistan duplikaattien korjaus tuettu.
-// V163: Göstalle kategoriakohtaiset offer-countit, tyhjien kategorioiden piilotus ja paluu etusivulle.
-// V164: countteja ei esitäytetä nollilla, jotta etusivu ei piilota kaikkia ennen ensimmäistä datasettiä.
-// V166: viimeinen page-tason tuplapoisto ennen korttia ja muistetaan erikseen kategoriat, jotka on testattu tyhjiksi.
-// V167: build-fix, lisää puuttuvan gostaTestedEmptyCategories-state-rivin varmasti oikeaan scopeen.
-// Kun Gösta-haku on käyttäjän avaama, pidetään tarjouskortti aktiivisena, ellei käyttäjä itse sulje sitä
-// tai siirry alapalkista Kaupat/Hae/Kori/Vertailu-näkymään.
 
 // V142_WITHIN_CHAIN_HYPER_LOCAL_RESTORE
 // Korjaus V141:n väärään tulkintaan: Ketjun sisältä vertailee saman ketjun tavarataloa ja lähikauppaa.
@@ -111,30 +81,6 @@
 // viimeisintä toimivaa lämpötilaa muistista. Tämä ei muuta kauppavalintaa eikä foundStores-listaa.
 
 "use client";
-
-// V169_GOSTA_PASSES_ACTIVE_STORE_CONTEXT_TO_OFFER_CORE
-// Korjaus:
-// - Göstan tarjoushaku välittää aktiivisen alueen, kauppatilan ja valitut S/K-kaupat offerSearchCorelle.
-// - Tämä estää Varkaus/Mikkeli-tyyppistä vanhan tarjoushaun välimuistilukkoa selaimessa/Vercelissä.
-
-// V170_GOSTA_CONTEXT_OPTION_TYPE_COMPAT_BUILD_FIX
-// Korjaus: page antaa tarjoushaulle kauppa-/aluekontekstin any-välivakion kautta,
-// jotta build ei kaadu, vaikka ziiplyOfferSearchCore.ts olisi vielä vanhalla query/terms-tyypillä.
-
-// V171_GOSTA_CONTEXT_TYPE_COMPAT_BUILD_FIX
-// Korjaus: Göstan search-core-kutsun context välitetään tyypitysturvallisesti/yhteensopivasti, jotta page ei kaadu jos core-tyyppi on hetkeksi vanha.
-
-// V172_GOSTA_KEEP_WORKING_CATEGORY_SEARCH_AND_PASS_CONTEXT_ONLY
-// Täsmäkorjaus käyttäjän toimivaan kategoriaversioon:
-// - EI palauteta V169-master-cachea, koska se rikkoi kategoriapalkit.
-// - Säilytetään kategoriakohtainen Gösta-haku täsmälleen nykyisessä flowssa.
-// - Siistitään ja lokitetaan vain kauppa-/aluekonteksti, jotta Prisma Varkaus -tyyppinen väärän S-storeId:n ongelma voidaan todentaa.
-
-// V168_EMPTY_STORE_AREA_CLEARS_STALE_SELECTION_AND_PAIR_NOTICE
-// Korjaus:
-// - jos uusi GPS/manuaalihaku palauttaa 0 kauppaa, vanha activeArea/kauppavalinta tyhjennetään eikä Joroinen/vanhat kaupat jää näkyviin.
-// - Ketjujen väliltä -tilassa vertailupari puuttuu myös silloin, kun vain toinen S/K-kauppa löytyy.
-// - sama puuttuvan parin tieto välitetään StoreModeSelectorille, jotta ilmoitus näkyy myös yhden kaupan alueella.
 
 // V127_OPENFOODFACTS_RECOGNIZED_EAN_NEVER_UNKNOWN
 // Korjaus: jos EAN on kerran tunnistettu kauppa- tai Open Food Facts -tuotteeksi,
@@ -2599,7 +2545,6 @@ export default function Page() {
   const [offerSearchQuerySnapshot, setOfferSearchQuerySnapshot] = useState("");
   const [offerSearchDoneForQuery, setOfferSearchDoneForQuery] = useState("");
   const [offerCardFilterV106, setOfferCardFilterV106] = useState("");
-  const [gostaTestedEmptyCategoriesV166, setGostaTestedEmptyCategoriesV166] = useState<Record<string, true>>({});
   const [offerShowingAllAreaOffersV106, setOfferShowingAllAreaOffersV106] = useState(false);
   const [chainFilter, setChainFilter] = useState<"all" | "S" | "K">("all");
   const [justAdded, setJustAdded] = useState<string | null>(null);
@@ -2607,7 +2552,6 @@ export default function Page() {
   const [activeResult, setActiveResult] = useState<
     "none" | "offers" | "compare" | "singleCompare"
   >("none");
-  const gostaPanelStickyOpenRefV158 = useRef(false);
   const [activeAssistant, setActiveAssistant] =
     useState<ZiiplyAssistantKey | null>(null);
   const [searchPanelOpen, setSearchPanelOpen] = useState(false);
@@ -2715,10 +2659,9 @@ export default function Page() {
     // Tyhjä haku ensin, jos API tukee lat/lon-pohjaista lähihakua.
     addQuery("");
 
-    // V185: ÄLÄ lisää reverse-geocodattua primaryQueryä GPS-hakujonoon.
-    // Se on palauttanut kunnanrajalla Hyvinkää/Espoo/Kokkola-tyyppisen HC-fallbackin.
-    // GPS-haku saa perustua vain koordinaatteihin ja lähimpiin AREAS-alueisiin.
-    void primaryQuery;
+    // V91: matka-ajossa ei saa käyttää staattista Etelä-Suomen listaa.
+    // Käytä ensin nykyistä reverse-geocodattua kaupunkia ja sitten GPS:n lähimpiä AREAS-alueita.
+    addQuery(primaryQuery);
 
     for (const entry of nearbyAreas) {
       const label = String(entry.area.label || "");
@@ -2997,10 +2940,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   useEffect(() => {
     if (searchPanelOpen) return;
 
-    // V160: kun Gösta on auki, Hae-paneelin sulkeutuminen ei saa nollata
-    // Göstan omaa hakua eikä aiheuttaa välähdystä/taustahaun sivuvaikutuksia.
-    if (activeResult === "offers" || gostaPanelStickyOpenRefV158.current) return;
-
     setInput("");
     setActiveNormalSearchTerm("");
     setMobileResultsReadyQueryV537("");
@@ -3008,7 +2947,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setOfferSearchQuerySnapshot("");
     setOfferSearchDoneForQuery("");
     setNormalSearchAttempted(false);
-  }, [searchPanelOpen, activeResult]);
+  }, [searchPanelOpen]);
 
 
   function suppressHaeReadyBadgeV541(durationMs = 1800) {
@@ -4022,19 +3961,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const storePairMissingNoticeVisibleV427 =
     storeModeChosenV299 &&
     storeCompareScope === "between_chains" &&
-    (!activeStores.sStoreId || !activeStores.kStoreId);
-
-  // V168: aiempi ehto katsoi vain activeArea.sStoreId/kStoreId ja vain tavarataloja.
-  // Se ei huomannut yhden lähikaupan aluetta, koska selectedChains saattoi olla S+K=true
-  // vaikka toisella ketjulla ei ollut oikeaa kauppaa. Käytetään näkyvän aktiivisen
-  // S/K-parin todellisia id-arvoja, jolloin sekä 0 että 1 kaupan alue antaa notifin.
-  const currentStorePairMissingV168 =
+    (
+      (storeMode === "hyper" && (!activeArea.sStoreId || !activeArea.kStoreId)) ||
+      (storeMode === "local" && (!activeArea.sLocalStoreId || !activeArea.kLocalStoreId))
+    );
+  const hyperStorePairMissingV391 =
+    storeMode === "hyper" &&
     storeModeChosenV299 &&
     storeCompareScope === "between_chains" &&
-    (!activeStores.sStoreId || !activeStores.kStoreId);
-
-  const hyperStorePairMissingV391 =
-    currentStorePairMissingV168 && storeMode === "hyper";
+    (!activeArea.sStoreId || !activeArea.kStoreId);
 
   useEffect(() => {
     if (!hyperStorePairMissingV391) return;
@@ -4057,7 +3992,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       Number(Boolean(selectedChains.s)) + Number(Boolean(selectedChains.k));
 
     const shouldShow =
-      currentStorePairMissingV168 ||
       hyperStorePairMissingV391 ||
       (storeCompareScope === "between_chains" && selectedChainCount < 2) ||
       (storeCompareScope === "within_chain" && !withinChain);
@@ -4075,7 +4009,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return () => window.clearTimeout(timer);
   }, [
     hyperStorePairMissingV391,
-    currentStorePairMissingV168,
     storeCompareScope,
     selectedChains.s,
     selectedChains.k,
@@ -4972,7 +4905,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function openSearchPanel() {
-    gostaPanelStickyOpenRefV158.current = false;
     if (searchNavigationLocked) return;
 
     // v342_RESTORE_CART_SEARCH_NAV_FIX:
@@ -5100,49 +5032,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
   }
 
-
-  function getGostaPageDedupeKeyV166(item: any) {
-    const source = item?.__sourceOfferSearchResult || item;
-    const ean = normalize(
-      String(source?.ean || source?.gtin || source?.barcode || item?.ean || item?.id || ""),
-    );
-
-    if (ean) return `ean:${ean}`;
-
-    const title = normalize(
-      String(item?.title || item?.name || item?.productName || source?.title || source?.name || ""),
-    )
-      .replace(/\b\d+[,.]?\d*\s*(g|kg|ml|l|kpl|pkt|ps|plo|prk)\b/g, " ")
-      .replace(/\b\d+\s*x\s*\d+\b/g, " ")
-      .replace(/\s+/g, " ")
-      .trim();
-
-    const compactTitle = title
-      .split(/\s+/)
-      .filter((word) => word.length > 1)
-      .slice(0, 4)
-      .join(" ");
-
-    const price = normalize(String(item?.offerPrice || item?.price || source?.priceText || ""));
-    const store = normalize(String(item?.storeName || item?.storeLabel || source?.storeLabel || ""));
-
-    return compactTitle ? `title4:${compactTitle}|price:${price}|store:${store}` : "";
-  }
-
-  function dedupeGostaCardItemsV166<T extends any>(items: T[]) {
-    const seen = new Set<string>();
-    const unique: T[] = [];
-
-    for (const item of items) {
-      const key = getGostaPageDedupeKeyV166(item);
-      if (!key || seen.has(key)) continue;
-      seen.add(key);
-      unique.push(item);
-    }
-
-    return unique;
-  }
-
   const filteredOffers = useMemo<ZiiplyOffer[]>(() => {
     // V28: vanha tarjoushakumoottori ei enää tuota osumia page-rungossa.
     // Tarjouslehtisiin perustuva lista rakennetaan myöhemmin erillisessä kortti-/helper-toteutuksessa.
@@ -5163,60 +5052,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const visibleOfferSearchResultsV106 = useMemo(() => {
     return filterZiiplyGostaOfferResultsV146(cleanOfferSearchResultsV106, offerCardFilterV106);
   }, [cleanOfferSearchResultsV106, offerCardFilterV106]);
-
-  const gostaOfferCardItemsV163 = useMemo(() => {
-    return dedupeGostaCardItemsV166(
-      visibleOfferSearchResultsV106.map(mapZiiplyGostaOfferToCardOfferV147),
-    );
-  }, [visibleOfferSearchResultsV106]);
-
-  const gostaCategoryOfferCountsV163 = useMemo(() => {
-    const counts: Record<string, number> = {};
-
-    for (const rawOffer of cleanOfferSearchResultsV106) {
-      const cardOffer = mapZiiplyGostaOfferToCardOfferV147(rawOffer);
-      const category = String(cardOffer.category || "").trim();
-
-      if (!category || category.toLowerCase() === "kaikki") continue;
-      counts[category] = (counts[category] ?? 0) + 1;
-      counts[category.toLowerCase()] = (counts[category.toLowerCase()] ?? 0) + 1;
-    }
-
-    return counts;
-  }, [cleanOfferSearchResultsV106]);
-
-  useEffect(() => {
-    // V158: GPS-watchdog / kauppapäivitys voi muuttaa ympäröiviä paneelitiloja.
-    // Jos käyttäjä on avannut Göstan, taustapäivitys ei saa sulkea tarjouskorttia.
-    if (!gostaPanelStickyOpenRefV158.current) return;
-    if (showLaunchScreen || eanModalOpen || notebookOpen) return;
-    if (!loadingOffers && visibleOfferSearchResultsV106.length === 0) return;
-
-    if (
-      activeResult !== "offers" ||
-      searchPanelOpen ||
-      shopsPanelOpen ||
-      cartModalOpen ||
-      cartSavePanelOpen
-    ) {
-      setSearchPanelOpen(false);
-      setShopsPanelOpen(false);
-      setCartModalOpen(false);
-      setCartSavePanelOpen(false);
-      setActiveResult("offers");
-    }
-  }, [
-    activeResult,
-    cartModalOpen,
-    cartSavePanelOpen,
-    eanModalOpen,
-    loadingOffers,
-    notebookOpen,
-    searchPanelOpen,
-    shopsPanelOpen,
-    showLaunchScreen,
-    visibleOfferSearchResultsV106.length,
-  ]);
 
   const offerSearchLabel = useMemo(() => {
     const label = offerSearchQuerySnapshot || currentSearchQueryKey;
@@ -6393,14 +6228,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return;
     }
 
-    // V161: Göstan ollessa auki GPS/watchdog ei saa taustalla vaihtaa kauppatilaa
-    // eikä pakottaa Lähikaupat-valintaa päälle. Tämä koskee erityisesti hiljaisia
-    // taustapäivityksiä, mutta estää myös jo käynnissä olevan GPS-polun UI-sivuvaikutukset.
-    if (source === "gps" && gostaPanelStickyOpenRefV158.current) {
-      pushGpsDebugLogV492("applyLocation() skipped: Gosta sticky panel is open");
-      return;
-    }
-
     if (source === "manual") {
       setUsingOwnLocation(false);
       setGpsCoordsV320(null);
@@ -6454,41 +6281,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         enrichStoreWithGpsDistanceV97(store, distanceOriginV97),
       );
 
-      // V161: jos Gösta avattiin GPS-haun ollessa jo käynnissä, älä committaa
-      // kauppalistapäivitystä, activeAreaa, storeModea tai Lähikaupat-pakotusta taustalla.
-      if (source === "gps" && gostaPanelStickyOpenRefV158.current) {
-        pushGpsDebugLogV492("applyLocation() commit skipped: Gosta sticky panel opened during GPS search");
-        return;
-      }
-
       setFoundStores(storesWithDistanceV97);
 
       if (storesWithDistanceV97.length === 0) {
-        // V168: älä jätä edellisen alueen/Joroisten kauppoja activeAreaan,
-        // jos uusi GPS- tai manuaalihaku ei palauta yhtään oikeaa kauppaa.
-        // Tämä oli syy siihen, että nollakaupan alueella näkyi vanha "sköödi"
-        // eikä selaimen välimuistin tyhjennys auttanut.
-        setActiveArea({
-          label: source === "gps" ? "Oma sijainti" : query,
-          aliases: [query].filter(Boolean),
-          sStoreId: undefined,
-          sStoreName: undefined,
-          kStoreId: undefined,
-          kStoreName: undefined,
-          sLocalStoreId: undefined,
-          sLocalStoreName: undefined,
-          kLocalStoreId: undefined,
-          kLocalStoreName: undefined,
-        } as Area);
-        setSelectedChains((current) => ({
-          ...current,
-          s: false,
-          k: false,
-          lidl: false,
-          tokmanni: false,
-        }));
-        setOpenStorePicker(null);
-        clearStoreBackedSearchState();
         setLocationStatusV137(
           `Alueelle "${query}" ei löytynyt kauppoja. Valitse alue käsin.`,
         );
@@ -6537,8 +6332,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // oma sijainti avataan Lähikaupat-tilaan, jolloin lähimmät S/K-kaupat voivat tulla
       // Jokelan/Tuusulan puolelta. Jos käyttäjä on jo valinnut Tavaratalot/Lähikaupat,
       // säilytetään hänen valintansa.
-      if (source === "gps" && !gostaPanelStickyOpenRefV158.current) {
-        // V161: Göstan ollessa auki tätä haaraa ei saa ajaa, koska se pakottaa Lähikaupat päälle.
+      if (source === "gps") {
         // V39: GPS ei koskaan peri reloadin/historian hyper-valintaa.
         // Käyttäjä voi vaihtaa Tavaratalot-tilaan käsin GPS:n jälkeen, mutta automaatti avaa lähimmät.
         const nextGpsStoreMode: StoreMode = "local";
@@ -6798,11 +6592,25 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
       };
-      pushGpsDebugLogV492(`useOwnLocation got coords, skip reverse geocode for store search`);
+      pushGpsDebugLogV492(`useOwnLocation got coords, reverse geocode start`);
       setGpsCoordsV320(nextGpsCoordsV485);
-      const city = "Oma sijainti";
+      const city = await reverseGeocodeCity(
+        nextGpsCoordsV485.latitude,
+        nextGpsCoordsV485.longitude,
+      );
 
-      pushGpsDebugLogV492(`useOwnLocation label=${city}`);
+      if (!city) {
+        pushGpsDebugLogV492(`useOwnLocation reverse geocode EMPTY`);
+        setGpsErrorMessage("GPS ei löydy");
+        setLocationMessage("GPS ei löydy");
+        setLocationMessageVisible(true);
+        gpsUserDisabledRefV306.current = true;
+        setUsingOwnLocation(false);
+        setGpsCoordsV320(null);
+        return;
+      }
+
+      pushGpsDebugLogV492(`useOwnLocation city=${city}`);
       gpsResolvedCityV495 = city;
       gpsResolvedCoordsV495 = nextGpsCoordsV485;
       setGpsErrorMessage("");
@@ -6956,11 +6764,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               return;
             }
 
-            // V185: hiljainen GPS-watchdog ei saa reverse-geocodata kaupunkia
-            // kauppahaun queryksi. Koordinaatit + lähimmät AREAS-haut riittävät.
-            const city = "Oma sijainti";
+            const city = await reverseGeocodeCity(
+              nextCoords.latitude,
+              nextCoords.longitude,
+            );
 
-            if (cancelled) return;
+            if (!city || cancelled) return;
 
             gpsPollLastAppliedCoordsRefV137.current = nextCoords;
             gpsPollLastAppliedAtRefV90.current = Date.now();
@@ -7086,10 +6895,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const cleanedOverride = String(termOverride ?? "").trim();
     const useTerms = hasExplicitOverride ? parseTerms(cleanedOverride) : terms;
 
-    // V160: Göstan oma override (esim. kategoriat "Kahvi", "Liha") ei saa
-    // kirjoittaa normaaliin Hae-kortin inputtiin. Muuten taustapäivitys voi
-    // myöhemmin avata normaalin haun samalla sanalla.
-    gostaPanelStickyOpenRefV158.current = true;
+    if (hasExplicitOverride) setInput(cleanedOverride);
+
     setHasSearchedOffers(true);
     setLoadingOffers(true);
     setOffers([]);
@@ -7103,73 +6910,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setActiveResult("offers");
 
     try {
-      // V173 DEBUG / POISSULKU:
-      // Lukitaan Göstan tarjoushaku suoraan Prisma Varkauteen, jotta page.tsx:n
-      // activeStores/GPS/watchdog/vanha activeArea ei voi antaa taustalta väärää S-kauppaa.
-      // Jos tällä tuotteet ja määrät muuttuvat oikeiksi, vika on page-tason kauppakontekstissa.
-      // Jos tälläkin näkyy eilinen/väärä valikoima, vika on alempana route/core/provider/S-kaupat-kyselyssä.
-      const gostaOfferSearchContextV172 = {
-        areaLabel: "Varkaus",
-        storeMode: "hyper",
-        storeCompareScope,
-        sStoreId: "726015093",
-        sStoreName: "Prisma Varkaus",
-        kStoreId: activeStores.kStoreId || undefined,
-        kStoreName: activeStores.kStoreName || undefined,
-        _debugForcedByPageV173: true,
-        _debugPreviousActiveSStoreId: activeStores.sStoreId || undefined,
-        _debugPreviousActiveSStoreName: activeStores.sStoreName || undefined,
-        _debugPreviousAreaLabel: activeArea.label || "",
-        _debugPreviousStoreMode: storeMode,
-      };
-
-      // V173: tämä loki kertoo selaimen/Vercelin puolella, että haku lähtee pakotetulla Prismalla.
-      if (typeof window !== "undefined") {
-        console.info("[Ziiply Gosta context v173 FORCED PRISMA]", gostaOfferSearchContextV172);
-      }
-
-      const gostaOfferSearchOptionsV171 = {
+      const offerSearchCoreResult = await searchZiiplyGostaOffersV146({
         query: hasExplicitOverride ? cleanedOverride : input.trim(),
         terms: useTerms,
-        context: gostaOfferSearchContextV172,
-      } as any;
-
-      const offerSearchCoreResult = await searchZiiplyGostaOffersV146(gostaOfferSearchOptionsV171);
+      });
 
       trackZiiplyEvent("gosta_offer_api_search_used", {
         query: offerSearchCoreResult.trackingKey,
         cartItemsCount: cart.length,
-        storeMode: "hyper",
-        storeCompareScope,
-        sStoreId: "726015093",
-        sStoreName: "Prisma Varkaus",
-        previousActiveSStoreId: activeStores.sStoreId || "",
-        previousActiveSStoreName: activeStores.sStoreName,
-        kStoreId: activeStores.kStoreId || "",
+        storeMode,
+        sStoreName: activeStores.sStoreName,
         kStoreName: activeStores.kStoreName,
       });
-
-      const categoryKeyV166 = String(offerSearchCoreResult.categoryLabel || "").trim();
-
-      if (offerSearchCoreResult.searchByCategory && categoryKeyV166) {
-        setGostaTestedEmptyCategoriesV166((previous) => {
-          const normalizedKey = categoryKeyV166.toLowerCase();
-
-          if (offerSearchCoreResult.results.length > 0) {
-            if (!previous[categoryKeyV166] && !previous[normalizedKey]) return previous;
-            const next = { ...previous };
-            delete next[categoryKeyV166];
-            delete next[normalizedKey];
-            return next;
-          }
-
-          return {
-            ...previous,
-            [categoryKeyV166]: true,
-            [normalizedKey]: true,
-          };
-        });
-      }
 
       setOfferSearchQuerySnapshot(offerSearchCoreResult.querySnapshot);
       setOfferCardFilterV106(offerSearchCoreResult.cardFilter);
@@ -7187,16 +6939,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   function handleGostaFilterChangeV136(value: string) {
     const nextValue = String(value || "").trim();
-
-    if (!nextValue) {
-      setOfferCardFilterV106("");
-      setOfferSearchQuerySnapshot("");
-      setOfferSearchDoneForQuery("");
-      setOfferShowingAllAreaOffersV106(false);
-      setOfferSearchResults([]);
-      return;
-    }
-
     setOfferCardFilterV106(nextValue);
 
     if (isZiiplyGostaCategorySelectionV147(nextValue)) {
@@ -7205,15 +6947,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   async function searchNormalPrices(termOverride?: string, forceEan = false) {
-    // V160: jos Gösta on näkyvissä/sticky-tilassa, mikään taustapäivitys,
-    // kauppapäivitys tai vanha ajastettu haku ei saa käynnistää normaalia
-    // Hae-tuotehakua eikä avata valintaikkunaa.
-    if (activeResult === "offers" || gostaPanelStickyOpenRefV158.current) {
-      setLoadingNormal(false);
-      setNormalSearchAttempted(false);
-      return;
-    }
-
     const useTerms = termOverride
       ? searchCompareMode === "single"
         ? [getSingleSearchTerm(termOverride)].filter(Boolean)
@@ -10327,7 +10060,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function openShopsPanel() {
-    gostaPanelStickyOpenRefV158.current = false;
     // v367_MOBILE_GPS_PENDING_NO_OLD_SHOPS_RENDER:
     // Jos Kaupat-nappia painetaan heti käynnistyksen jälkeen ennen kuin GPS on
     // ehtinyt antaa koordinaatit/kaupat, älä avaa vanhaa Kaupat-paneelin renderiä.
@@ -10643,8 +10375,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function handleMainNormalSearch() {
-    // V160: Göstan ollessa auki normaalin Hae-haun triggerit estetään.
-    if (activeResult === "offers" || gostaPanelStickyOpenRefV158.current) return;
     if (!hasSearchInput || loadingNormal || singleProductCompareLoading) return;
 
     const singleModeTerm = getSingleSearchTerm(input);
@@ -10678,8 +10408,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function handleJustiinaProductSearch() {
-    if (activeResult === "offers" || gostaPanelStickyOpenRefV158.current) return;
-
     setOfferSearchDoneForQuery("");
     setOfferSearchQuerySnapshot("");
     if (!hasSearchInput || loadingNormal || singleProductCompareLoading) return;
@@ -13523,7 +13251,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       missingStoresMessageVisible={false}
                       foundStoresCount={foundStores.length}
                       hyperStorePairMissing={
-                        currentStorePairMissingV168 ||
                         hyperStorePairMissingV391 ||
                         (storeCompareScope === "between_chains" && !storeModeChosenV299)
                       }
@@ -14375,7 +14102,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 selectedRealChainCount={selectedRealChainCount}
                 missingStoresMessageVisible={false}
                 foundStoresCount={foundStores.length}
-                hyperStorePairMissing={currentStorePairMissingV168 || hyperStorePairMissingV391}
+                hyperStorePairMissing={hyperStorePairMissingV391}
                 onStoreModeChange={handleStoreModeChange}
                 onStoreCompareScopeChange={handleStoreCompareScopeChange}
                 onWithinChainChange={setWithinChain}
@@ -15299,23 +15026,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           <ZiiplyMobileOfferSearchCardLoose
             open={true}
             title="Tarjoushaku"
-            query={offerSearchQuerySnapshot || offerCardFilterV106 || ""}
-            offers={gostaOfferCardItemsV163}
+            query={offerSearchQuerySnapshot || input}
+            offers={visibleOfferSearchResultsV106.map(mapZiiplyGostaOfferToCardOfferV147)}
             filter={offerCardFilterV106}
             onFilterChange={handleGostaFilterChangeV136}
             onSearch={(value: string) => void searchOffers(value)}
             categorySuggestions={GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147}
-            categoryOfferCounts={gostaCategoryOfferCountsV163}
-            testedEmptyCategories={gostaTestedEmptyCategoriesV166}
             loading={loadingOffers}
             emptyText={offerShowingAllAreaOffersV106 ? "Alueen tarjouksia ei löytynyt vielä." : "Gösta ei löytänyt tarjouksia tälle rajaukselle."}
             onBack={() => {
-              gostaPanelStickyOpenRefV158.current = false;
               setActiveResult("none");
               setSearchPanelOpen(true);
             }}
             onClose={() => {
-              gostaPanelStickyOpenRefV158.current = false;
               setActiveResult("none");
             }}
             onAddOffer={(offer: any) => {
@@ -15594,7 +15317,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           cartModalOpen={cartModalOpen}
           activeResult={activeResult}
           onShopsClick={() => {
-            gostaPanelStickyOpenRefV158.current = false;
             suppressHaeReadyBadgeV541();
             setNormalResults([]);
             setMobileResultsReadyQueryV537("");
@@ -15616,7 +15338,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             toggleShopsPanel();
           }}
           onSearchClick={() => {
-            gostaPanelStickyOpenRefV158.current = false;
             suppressHaeReadyBadgeV541();
             setNormalResults([]);
             setMobileResultsReadyQueryV537("");
@@ -15640,7 +15361,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             toggleSearchPanel();
           }}
           onCartClick={() => {
-            gostaPanelStickyOpenRefV158.current = false;
             suppressHaeReadyBadgeV541();
             setNormalResults([]);
             setMobileResultsReadyQueryV537("");
@@ -15661,7 +15381,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             toggleCartModal();
           }}
           onCompareClick={() => {
-            gostaPanelStickyOpenRefV158.current = false;
             suppressHaeReadyBadgeV541();
             setNormalResults([]);
             setMobileResultsReadyQueryV537("");
