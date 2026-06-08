@@ -1,6 +1,6 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V667_LEDGER_SUMMARY_AND_TUNING_KNOB
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V670_TEMPO_KNOB_NO_ANIMALS
 // Pohja: v664 toimiva älyhakukortti. Muutos: löytöluetteloon siirtymiselle lisätty oma callback, 1900-luvun henkinen teksti ja painettava keskimmäinen laatikko.
 // Pohja: v658 toimiva original-ulkoasu säilytetty sellaisenaan.
 // Muutos: Gösta saa käynnistyä myös tyhjällä hakukentällä, jotta tarjouskortti voi näyttää kaikki alueen tarjoukset.
@@ -82,9 +82,9 @@ const serifFont = '"Baskerville", Georgia, serif';
 const copperplateFont = '"Copperplate", "Baskerville", Georgia, serif';
 
 const SEARCH_TEMPO_OPTIONS = [
-  { key: "slow", label: "Rauhallinen", icon: "🐌", delayMs: 2500, angle: -35 },
-  { key: "normal", label: "Normaali", icon: "🐭", delayMs: 1200, angle: 0 },
-  { key: "fast", label: "Vikkelä", icon: "🐇", delayMs: 550, angle: 35 },
+  { key: "slow", label: "Rauhallinen", delayMs: 3500, angle: -38 },
+  { key: "normal", label: "Normaali", delayMs: 2000, angle: 0 },
+  { key: "fast", label: "Nopea", delayMs: 1000, angle: 38 },
 ] as const;
 
 type SearchTempoKey = (typeof SEARCH_TEMPO_OPTIONS)[number]["key"];
@@ -99,7 +99,7 @@ function getTempoByDelay(delayMs: number | null | undefined) {
   }, SEARCH_TEMPO_OPTIONS[1]);
 }
 
-function formatEuroValue(value: unknown): string | null {
+function normalizePriceToEuros(value: unknown): number {
   const numberValue =
     typeof value === "number"
       ? value
@@ -107,9 +107,21 @@ function formatEuroValue(value: unknown): string | null {
         ? Number(value.replace(",", ".").replace(/[^0-9.\-]/g, ""))
         : NaN;
 
-  if (!Number.isFinite(numberValue) || numberValue <= 0) return null;
+  if (!Number.isFinite(numberValue) || numberValue <= 0) return NaN;
 
-  return `${numberValue.toFixed(2).replace(".", ",")} €`;
+  // S/K-tuotehauissa hinta voi tulla sentteinä: 198 = 1,98 €.
+  // Jos arvo on epärealistisen suuri ruokatuotteelle, tulkitaan se senteiksi.
+  if (numberValue >= 100) return numberValue / 100;
+
+  return numberValue;
+}
+
+function formatEuroValue(value: unknown): string | null {
+  const euros = normalizePriceToEuros(value);
+
+  if (!Number.isFinite(euros) || euros <= 0) return null;
+
+  return `${euros.toFixed(2).replace(".", ",")} €`;
 }
 
 function getProductStoreKey(product: ZiiplyMobileSearchCardProduct): string {
@@ -197,12 +209,12 @@ function CartIconButton({
       aria-label="Lisää koriin"
       title="Lisää koriin"
       className={cx(
-        "absolute right-[0.78rem] top-1/2 z-20 grid h-[2.35rem] w-[2.35rem] -translate-y-1/2 place-items-center rounded-full border-[2px] text-[1.22rem] shadow-[0_3px_0_rgba(91,72,44,0.20),inset_0_0_0_1px_rgba(255,255,255,0.55)] active:translate-y-[calc(-50%+1px)]",
+        "absolute right-[0.78rem] top-1/2 z-20 grid h-[2.35rem] w-[2.35rem] -translate-y-1/2 place-items-center rounded-full border-[2px] text-[1.30rem] shadow-[0_3px_0_rgba(91,72,44,0.20),inset_0_0_0_1px_rgba(255,255,255,0.72)] transition active:translate-y-[calc(-50%+1px)]",
         disabled
-          ? "cursor-not-allowed border-[#9eb49a] bg-[#c7dcc2] text-[#eef5df] opacity-60"
+          ? "cursor-not-allowed border-[#b7b0a2] bg-[#ece6d8] text-[#aaa08e] opacity-70"
           : success
-            ? "border-[#0b6330] bg-gradient-to-b from-[#20a958] to-[#0a7438] text-[#fff0d5]"
-            : "border-[#0b6330] bg-gradient-to-b from-[#159948] to-[#087237] text-[#fff0d5]",
+            ? "border-[#0b6330] bg-gradient-to-b from-[#fff7d8] to-[#dff1c9] text-[#0b6330] ring-2 ring-[#159948]/35"
+            : "border-[#0b6330] bg-gradient-to-b from-[#fff7d8] to-[#dff1c9] text-[#0b6330] hover:brightness-105",
       )}
     >
       {success ? "✓" : "🛒"}
@@ -359,42 +371,23 @@ function SearchTempoKnob({
 
   return (
     <div className="flex h-full items-center justify-center">
-      <div className="relative flex h-[4.85rem] w-full max-w-[5.55rem] flex-col items-center justify-center rounded-[1.05rem] border-[2px] border-[#d8bd75] bg-[#fff1bf]/72 px-1 shadow-[0_2px_0_rgba(91,72,44,0.14),inset_0_0_0_2px_rgba(255,255,255,0.48)]">
-        <div
-          className="absolute left-1/2 top-[0.20rem] -translate-x-1/2 text-[0.72rem] leading-none drop-shadow-[0_1px_0_rgba(255,255,255,0.85)]"
-          aria-hidden="true"
-        >
-          🐌
-        </div>
-        <div
-          className="absolute left-[0.26rem] top-1/2 -translate-y-1/2 text-[0.72rem] leading-none drop-shadow-[0_1px_0_rgba(255,255,255,0.85)]"
-          aria-hidden="true"
-        >
-          🐭
-        </div>
-        <div
-          className="absolute right-[0.24rem] top-1/2 -translate-y-1/2 text-[0.72rem] leading-none drop-shadow-[0_1px_0_rgba(255,255,255,0.85)]"
-          aria-hidden="true"
-        >
-          🐇
-        </div>
-
-        <button
-          type="button"
-          onClick={rotateTempo}
-          aria-label={`Hakutahti ${current.label}`}
-          title={`Hakutahti: ${current.label}`}
-          className="relative mt-[0.18rem] grid h-[2.68rem] w-[2.68rem] place-items-center rounded-full border-[3px] border-[#5d4322] bg-[radial-gradient(circle_at_35%_28%,#fff8dc_0_8%,#d6c08e_15%,#806239_55%,#24180d_100%)] shadow-[0_5px_0_rgba(91,72,44,0.28),0_9px_15px_rgba(0,0,0,0.18),inset_0_0_0_2px_rgba(255,246,207,0.35)] transition active:translate-y-[1px]"
-        >
+      <button
+        type="button"
+        onClick={rotateTempo}
+        aria-label={`Hakutahti ${current.label}`}
+        title={`Hakutahti: ${current.label}`}
+        className="relative flex h-[4.85rem] w-full max-w-[5.55rem] flex-col items-center justify-center rounded-[1.05rem] border-[2px] border-[#d8bd75] bg-[#fff1bf]/72 px-1 shadow-[0_2px_0_rgba(91,72,44,0.14),inset_0_0_0_2px_rgba(255,255,255,0.48)] transition active:translate-y-[1px]"
+      >
+        <div className="relative grid h-[2.74rem] w-[2.74rem] place-items-center rounded-full border-[3px] border-[#5d4322] bg-[radial-gradient(circle_at_35%_28%,#fff8dc_0_8%,#d6c08e_15%,#806239_55%,#24180d_100%)] shadow-[0_5px_0_rgba(91,72,44,0.28),0_9px_15px_rgba(0,0,0,0.18),inset_0_0_0_2px_rgba(255,246,207,0.35)]">
           <span
-            className="absolute left-1/2 top-[0.33rem] h-[1.04rem] w-[0.18rem] origin-bottom -translate-x-1/2 rounded-full bg-[#8f2018] shadow-[0_0_0_1px_rgba(255,239,189,0.45)] transition-transform duration-200"
+            className="absolute left-1/2 top-[0.30rem] h-[1.12rem] w-[0.20rem] origin-bottom -translate-x-1/2 rounded-full bg-[#8f2018] shadow-[0_0_0_1px_rgba(255,239,189,0.45)] transition-transform duration-200"
             style={{ transform: `translateX(-50%) rotate(${current.angle}deg)` }}
           />
-          <span className="h-[0.58rem] w-[0.58rem] rounded-full bg-[#f7e1a2] shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)]" />
-        </button>
+          <span className="h-[0.60rem] w-[0.60rem] rounded-full bg-[#f7e1a2] shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)]" />
+        </div>
 
         <div
-          className="mt-[0.28rem] text-center text-[0.50rem] font-black uppercase leading-none tracking-[0.08em] text-[#174c2c]"
+          className="mt-[0.32rem] text-center text-[0.50rem] font-black uppercase leading-none tracking-[0.08em] text-[#174c2c]"
           style={{ fontFamily: copperplateFont }}
         >
           Hakutahti
@@ -402,7 +395,10 @@ function SearchTempoKnob({
         <div className="mt-[0.08rem] text-center text-[0.52rem] font-black leading-none text-[#6f5630]">
           {current.label}
         </div>
-      </div>
+        <div className="mt-[0.10rem] text-center text-[0.43rem] font-black leading-none text-[#8b6b35]">
+          {(current.delayMs / 1000).toLocaleString("fi-FI")} s
+        </div>
+      </button>
     </div>
   );
 }
@@ -517,6 +513,7 @@ export default function ZiiplyMobileSearchCard({
   const searchClearTimerRef = useRef<number | null>(null);
   const latestSearchLoadingRef = useRef(false);
   const [cartToast, setCartToast] = useState<string | null>(null);
+  const cartToastTimerRef = useRef<number | null>(null);
   const [tempoKey, setTempoKey] = useState<SearchTempoKey>(() => {
     if (typeof window === "undefined") return "normal";
     const stored = window.localStorage.getItem("ziiply-search-tempo");
@@ -596,11 +593,7 @@ export default function ZiiplyMobileSearchCard({
     const prices = items
       .map((item) => {
         const raw = item.price ?? item.currentPrice ?? item.unitPrice ?? item.comparisonPrice;
-        return typeof raw === "number"
-          ? raw
-          : typeof raw === "string"
-            ? Number(raw.replace(",", ".").replace(/[^0-9.\-]/g, ""))
-            : NaN;
+        return normalizePriceToEuros(raw);
       })
       .filter((value) => Number.isFinite(value) && value > 0);
 
@@ -759,8 +752,16 @@ export default function ZiiplyMobileSearchCard({
         ? `${rows.length} tuotetta lisätty ostoslistaan`
         : `${rows[0] || clean} lisätty ostoslistaan`;
 
+    if (cartToastTimerRef.current !== null) {
+      window.clearTimeout(cartToastTimerRef.current);
+      cartToastTimerRef.current = null;
+    }
+
     setCartToast(toastLabel);
-    window.setTimeout(() => setCartToast(null), 2600);
+    cartToastTimerRef.current = window.setTimeout(() => {
+      setCartToast(null);
+      cartToastTimerRef.current = null;
+    }, 2800);
   };
 
   const handleClearInput = () => {
@@ -790,7 +791,7 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V667_LEDGER_SUMMARY_AND_TUNING_KNOB"
+      data-ziiply-mobile-search-card-version="UUSI_V669_CART_BUTTON_AND_TOP_TOAST"
       className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.25rem)] z-[72] flex h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] max-h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] items-stretch justify-center overflow-hidden bg-transparent px-2 sm:hidden [transform:translateZ(0)] [backface-visibility:hidden] ${className}`}
     >
       <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.85rem] border-[3px] border-[#173f2f] bg-[#d9bd77] p-2 text-[#20301f] shadow-[0_7px_0_rgba(91,72,44,0.24),inset_0_0_0_2px_rgba(255,246,207,0.52)]">
@@ -813,12 +814,12 @@ export default function ZiiplyMobileSearchCard({
 
           {cartToast && (
             <div
-              className="absolute left-3 right-3 bottom-[5.95rem] z-[130] rounded-[1.15rem] border-[3px] border-[#0b6330] bg-gradient-to-b from-[#124530] to-[#082c1d] px-4 py-3 text-[#fff5d9] shadow-[0_7px_0_rgba(91,72,44,0.24),0_12px_24px_rgba(0,0,0,0.22)] animate-[ziiplyCartToast_2.6s_ease-out_both]"
+              className="absolute left-3 right-3 top-[5.85rem] z-[145] rounded-[1.15rem] border-[3px] border-[#0b6330] bg-gradient-to-b from-[#fff7d8] to-[#dff1c9] px-4 py-3 text-[#123d32] shadow-[0_7px_0_rgba(91,72,44,0.18),0_12px_24px_rgba(0,0,0,0.18)] animate-[ziiplyCartToast_2.8s_ease-out_both]"
               role="status"
               aria-live="polite"
             >
               <div className="flex items-center gap-3">
-                <div className="grid h-[2.35rem] w-[2.35rem] shrink-0 place-items-center rounded-full border-[2px] border-[#fff0bd] bg-[#159948] text-[1.35rem] font-black text-[#fff7dc] shadow-[0_2px_0_rgba(0,0,0,0.22)]">
+                <div className="grid h-[2.35rem] w-[2.35rem] shrink-0 place-items-center rounded-full border-[2px] border-[#0b6330] bg-[#159948] text-[1.35rem] font-black text-[#fff7dc] shadow-[0_2px_0_rgba(0,0,0,0.22)]">
                   ✓
                 </div>
                 <div className="min-w-0">
@@ -828,7 +829,7 @@ export default function ZiiplyMobileSearchCard({
                   >
                     Lisätty ostoslistaan
                   </div>
-                  <div className="mt-0.5 truncate text-[0.82rem] font-bold leading-tight text-[#fff1bf]">
+                  <div className="mt-0.5 truncate text-[0.82rem] font-bold leading-tight text-[#23502c]">
                     {cartToast}
                   </div>
                 </div>
@@ -960,42 +961,34 @@ export default function ZiiplyMobileSearchCard({
             </div>
 
             {hasFoundProducts && (
-              <div className="relative z-10 mt-1.5 overflow-hidden rounded-[1.05rem] border-[2px] border-[#d8bd75] bg-[#fffaf0]/88 shadow-[0_2px_0_rgba(91,72,44,0.11),inset_0_0_0_2px_rgba(255,255,255,0.42)]">
-                <button
-                  type="button"
-                  onClick={handleOpenFindingsLedger}
-                  className="flex w-full items-center gap-2 border-b-[2px] border-[#d8bd75] bg-gradient-to-b from-[#fff1bf] to-[#f4df9f] px-3 py-[0.58rem] text-left text-[0.82rem] font-black text-[#174c2c] shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] active:bg-[#f1d987]"
-                >
-                  <span className="grid h-[1.36rem] w-[1.36rem] shrink-0 place-items-center rounded-full border border-[#0b6330] bg-[#159948] text-[0.72rem] text-[#fff7dc]">
+              <button
+                type="button"
+                onClick={handleOpenFindingsLedger}
+                className="relative z-10 mt-1.5 w-full overflow-hidden rounded-[1.05rem] border-[2px] border-[#d8bd75] bg-gradient-to-b from-[#fff1bf] to-[#f4df9f] px-3 py-[0.62rem] text-left text-[#174c2c] shadow-[0_2px_0_rgba(91,72,44,0.11),inset_0_0_0_2px_rgba(255,255,255,0.48)] active:translate-y-[1px]"
+                aria-label={`Avaa löytöluettelo, ${foundCount} tuotetta`}
+              >
+                <div className="flex items-center gap-2.5">
+                  <span className="grid h-[1.65rem] w-[1.65rem] shrink-0 place-items-center rounded-full border border-[#0b6330] bg-[#159948] text-[0.82rem] text-[#fff7dc] shadow-[0_2px_0_rgba(91,72,44,0.14)]">
                     🔎
                   </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate">Avaa löytöluettelo ({foundCount})</span>
-                    <span className="block truncate text-[0.64rem] font-black italic text-[#7a6335]">{foundCount} löydöstä luettelossa</span>
-                  </span>
-                  <span className="text-[1.02rem] text-[#0b6330]">›</span>
-                </button>
 
-                {suggestionItems.map((name, index) => (
-                  <button
-                    key={`${name}-${index}`}
-                    type="button"
-                    onClick={() => {
-                      onInputChange?.(name);
-                      autoSearchInputRef.current = name;
-                      setTriggeredSearchInput(name);
-                      window.setTimeout(() => onNormalSearch?.(), 0);
-                    }}
-                    className="flex w-full items-center gap-2 border-b border-[#e2c987]/65 px-3 py-[0.46rem] text-left text-[0.78rem] font-black text-[#183f2e] last:border-b-0 active:bg-[#fff1bf]"
-                  >
-                    <span className="grid h-[1.25rem] w-[1.25rem] shrink-0 place-items-center rounded-full border border-[#d8bd75] bg-[#fff4cf] text-[0.72rem] text-[#6f5630]">
-                      🔎
+                  <span className="min-w-0 flex-1">
+                    <span
+                      className="block truncate text-[0.66rem] font-black uppercase tracking-[0.16em] text-[#174c2c]"
+                      style={{ fontFamily: copperplateFont }}
+                    >
+                      Löytöluettelossa
                     </span>
-                    <span className="min-w-0 flex-1 truncate">{name}</span>
-                    <span className="text-[0.92rem] text-[#0b6330]">›</span>
-                  </button>
-                ))}
-              </div>
+                    <span className="mt-0.5 block truncate text-[0.76rem] font-black leading-tight text-[#6f5630]">
+                      {foundCount} tuotetta
+                      {storeCount > 0 ? ` · ${storeCount} kauppaa` : ""}
+                      {cheapestPriceText ? ` · halvin ${cheapestPriceText}` : ""}
+                    </span>
+                  </span>
+
+                  <span className="shrink-0 text-[1.18rem] font-black text-[#0b6330]">›</span>
+                </div>
+              </button>
             )}
 
             <div className="relative z-10 mx-auto mt-2 h-[2px] w-[92%] rounded-full bg-[#b58b3d]/55 shadow-[0_1px_0_rgba(255,255,255,0.55)]" />
@@ -1059,10 +1052,10 @@ export default function ZiiplyMobileSearchCard({
           }
 
           @keyframes ziiplyCartToast {
-            0% { opacity: 0; transform: translateY(12px) scale(0.98); }
+            0% { opacity: 0; transform: translateY(-12px) scale(0.98); }
             12% { opacity: 1; transform: translateY(0) scale(1); }
             84% { opacity: 1; transform: translateY(0) scale(1); }
-            100% { opacity: 0; transform: translateY(-8px) scale(0.99); }
+            100% { opacity: 0; transform: translateY(-10px) scale(0.99); }
           }
 
           @keyframes ziiplyTempoToast {
