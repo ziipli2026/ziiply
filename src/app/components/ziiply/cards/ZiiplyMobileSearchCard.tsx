@@ -1,6 +1,6 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V663_SMART_SEARCH_UI_AND_CART_TOAST
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V664_SMART_SEARCH_SUGGESTION_GATE
 // Pohja: v662 toimiva layout. Muutos: hakukortti päivitetty älyhaulle, tarjoushanikka poistettu, ikonit suurennettu ja ostoslistaan lisäys saa näkyvän kuittauksen.
 // Pohja: v658 toimiva original-ulkoasu säilytetty sellaisenaan.
 // Muutos: Gösta saa käynnistyä myös tyhjällä hakukentällä, jotta tarjouskortti voi näyttää kaikki alueen tarjoukset.
@@ -457,6 +457,9 @@ export default function ZiiplyMobileSearchCard({
       .slice(0, 5);
   }, [items]);
 
+  const foundCount = items.length;
+  const hasFoundProducts = hasText && foundCount > 0;
+
   const predictiveText = useMemo(() => {
     const clean = input.trim();
 
@@ -593,7 +596,7 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V663_SMART_SEARCH_UI_AND_CART_TOAST"
+      data-ziiply-mobile-search-card-version="UUSI_V664_SMART_SEARCH_SUGGESTION_GATE"
       className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.25rem)] z-[72] flex h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] max-h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] items-stretch justify-center overflow-hidden bg-transparent px-2 sm:hidden [transform:translateZ(0)] [backface-visibility:hidden] ${className}`}
     >
       <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.85rem] border-[3px] border-[#173f2f] bg-[#d9bd77] p-2 text-[#20301f] shadow-[0_7px_0_rgba(91,72,44,0.24),inset_0_0_0_2px_rgba(255,246,207,0.52)]">
@@ -673,18 +676,52 @@ export default function ZiiplyMobileSearchCard({
               />
 
               <div className="flex h-full items-center justify-center">
-                <div className="flex h-[4.8rem] w-full max-w-[5.35rem] flex-col items-center justify-center rounded-[0.95rem] border-[2px] border-[#d8bd75] bg-[#fff1bf]/78 px-1.5 text-center shadow-[0_2px_0_rgba(91,72,44,0.14),inset_0_0_0_2px_rgba(255,255,255,0.45)]">
-                  <div className="text-[0.66rem] font-black uppercase leading-[0.92] text-[#174c2c]">
-                    Älykäs
-                    <br />
-                    haku
-                  </div>
-                  <div className="mt-1 text-[0.62rem] font-black leading-[0.92] text-[#6f5630]">
-                    tuotteet
-                    <br />
-                    oikein
-                  </div>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (hasFoundProducts) {
+                      autoSearchInputRef.current = cleanInput;
+                      setTriggeredSearchInput(cleanInput);
+                      onNormalSearch?.();
+                    }
+                  }}
+                  disabled={!hasFoundProducts}
+                  aria-label={hasFoundProducts ? `Näytä ${foundCount} löydöstä` : "Älykäs haku"}
+                  className={cx(
+                    "flex h-[4.8rem] w-full max-w-[5.35rem] flex-col items-center justify-center rounded-[0.95rem] border-[2px] px-1.5 text-center shadow-[0_2px_0_rgba(91,72,44,0.14),inset_0_0_0_2px_rgba(255,255,255,0.45)] transition active:translate-y-[1px]",
+                    hasFoundProducts
+                      ? "border-[#0b6330] bg-gradient-to-b from-[#fff6c8] to-[#dff1c9] text-[#174c2c]"
+                      : "border-[#d8bd75] bg-[#fff1bf]/78 text-[#174c2c] cursor-default",
+                  )}
+                >
+                  {hasFoundProducts ? (
+                    <>
+                      <div className="text-[0.66rem] font-black uppercase leading-[0.92] text-[#174c2c]">
+                        {foundCount}
+                        <br />
+                        löydöstä
+                      </div>
+                      <div className="mt-1 text-[0.62rem] font-black leading-[0.92] text-[#6f5630]">
+                        Näytä
+                        <br />
+                        →
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <div className="text-[0.66rem] font-black uppercase leading-[0.92] text-[#174c2c]">
+                        Älykäs
+                        <br />
+                        haku
+                      </div>
+                      <div className="mt-1 text-[0.62rem] font-black leading-[0.92] text-[#6f5630]">
+                        tuotteet
+                        <br />
+                        oikein
+                      </div>
+                    </>
+                  )}
+                </button>
               </div>
 
               <AssistantButton
@@ -737,8 +774,26 @@ export default function ZiiplyMobileSearchCard({
               </div>
             </div>
 
-            {hasText && suggestionItems.length > 0 && (
+            {hasFoundProducts && (
               <div className="relative z-10 mt-1.5 overflow-hidden rounded-[1.05rem] border-[2px] border-[#d8bd75] bg-[#fffaf0]/88 shadow-[0_2px_0_rgba(91,72,44,0.11),inset_0_0_0_2px_rgba(255,255,255,0.42)]">
+                <button
+                  type="button"
+                  onClick={() => {
+                    autoSearchInputRef.current = cleanInput;
+                    setTriggeredSearchInput(cleanInput);
+                    onNormalSearch?.();
+                  }}
+                  className="flex w-full items-center gap-2 border-b-[2px] border-[#d8bd75] bg-gradient-to-b from-[#fff1bf] to-[#f4df9f] px-3 py-[0.58rem] text-left text-[0.82rem] font-black text-[#174c2c] shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] active:bg-[#f1d987]"
+                >
+                  <span className="grid h-[1.36rem] w-[1.36rem] shrink-0 place-items-center rounded-full border border-[#0b6330] bg-[#159948] text-[0.72rem] text-[#fff7dc]">
+                    🔎
+                  </span>
+                  <span className="min-w-0 flex-1 truncate">
+                    Näytä kaikki löydökset ({foundCount})
+                  </span>
+                  <span className="text-[1.02rem] text-[#0b6330]">›</span>
+                </button>
+
                 {suggestionItems.map((name, index) => (
                   <button
                     key={`${name}-${index}`}
