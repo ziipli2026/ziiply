@@ -1,3 +1,11 @@
+// V230_V229_LOCAL_RANKING_NO_CUTOFF_DEBUG
+// Pohja: V229 debug.
+// Korjaus vain lähikauppahaaraan:
+// - jos GPS-score/distance ei onnistu, local-valintaa ei enää katkaista tyhjäksi.
+// - local saa tällöin käyttää oikeasta foundStores/pool-listasta löytyvää strict local -ehdokasta.
+// - activeArea/AREAS/kunta/postinumero/Hyvinkää fallbackia ei lisätä takaisin.
+// - Debug-paneeli jätetään näkyviin ja siihen lisätään local-ehdokkaiden nimet.
+
 // V229_DEBUG_LOCAL_SELECTION_BREAKPOINTS
 // Pohja: V228. EI muuta valintalogiikkaa.
 // Lisää näkyvän debug-paneelin, joka näyttää missä lähikauppahaara katkeaa:
@@ -4048,6 +4056,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         activeK: activeStores.kStoreName || "-",
         firstSLocal: shortName(sLocalPool[0]),
         firstKLocal: shortName(kLocalPool[0]),
+        topSLocalNames: sLocalPool.slice(0, 6).map(shortName).join(" | "),
+        topKLocalNames: kLocalPool.slice(0, 6).map(shortName).join(" | "),
       };
     } catch (error) {
       return {
@@ -4065,7 +4075,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   ]);
 
   const hasActiveStores =
-    activeStores.sStoreId > 0 && activeStores.kStoreId > 0;
+    Number(activeStores.sStoreId) > 0 && Number(activeStores.kStoreId) > 0;
 
   const selectedMapStoresV433 = useMemo(() => {
     const selected = [
@@ -6253,8 +6263,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       )[0] as { store: StoreSearchItem; distance: number } | undefined;
 
     if (mode === "local") {
-      // Lähikaupassa EI vanhaa picker-/activeArea-/Hyvinkää-fallbackia.
-      return scoredStores[0]?.store || distanceFallback?.store;
+      // V230: tämä oli katkaisukohta.
+      // Debugissä local-poolissa oli S/K-ehdokkaita, mutta scoredStores ja distanceFallback
+      // jäivät tyhjiksi, koska API:n local-kaupoilta puuttui koordinaatti/distance.
+      // Älä palaa activeArea/AREAS/Hyvinkää-fallbackiin, mutta älä myöskään katkaise
+      // oikeasta foundStores/pool-listasta löytyviä strict local -ehdokkaita tyhjäksi.
+      return (
+        scoredStores[0]?.store ||
+        distanceFallback?.store ||
+        oldPickerPreferred ||
+        strictModeCandidates[0]
+      );
     }
 
     // Tavaratalossa palautetaan V173:n toimiva varapolku, jotta hyper-valinta ei tyhjene.
@@ -13697,6 +13716,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               <span>pool hyper S/K</span><b>{localStoreDebugV229.sHyperPool} / {localStoreDebugV229.kHyperPool}</b>
               <span>local coords/distOnly</span><b>{localStoreDebugV229.localWithCoords} / {localStoreDebugV229.localWithDistanceOnly}</b>
               <span>first local S/K</span><b>{localStoreDebugV229.firstSLocal} / {localStoreDebugV229.firstKLocal}</b>
+              <span>top S-local</span><b className="col-span-1 text-[10px] leading-tight">{localStoreDebugV229.topSLocalNames}</b>
+              <span>top K-local</span><b className="col-span-1 text-[10px] leading-tight">{localStoreDebugV229.topKLocalNames}</b>
               <span>ranked local S/K</span><b>{localStoreDebugV229.rankedSLocal} / {localStoreDebugV229.rankedKLocal}</b>
               <span>ranked hyper S/K</span><b>{localStoreDebugV229.rankedSHyper} / {localStoreDebugV229.rankedKHyper}</b>
               <span>active S/K</span><b>{localStoreDebugV229.activeS} / {localStoreDebugV229.activeK}</b>
