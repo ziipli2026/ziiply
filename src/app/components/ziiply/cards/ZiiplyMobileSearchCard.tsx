@@ -515,6 +515,7 @@ export default function ZiiplyMobileSearchCard({
   const latestSearchLoadingRef = useRef(false);
   const [cartToast, setCartToast] = useState<string | null>(null);
   const cartToastTimerRef = useRef<number | null>(null);
+  const autoSearchTimerRef = useRef<number | null>(null);
   const [tempoKey, setTempoKey] = useState<SearchTempoKey>(() => {
     if (typeof window === "undefined") return "normal";
     const stored = window.localStorage.getItem("ziiply-search-tempo");
@@ -624,20 +625,33 @@ export default function ZiiplyMobileSearchCard({
     window.setTimeout(() => setTempoToast(null), 1600);
   };
 
+  const dismissKeyboard = () => {
+    // iOS Safari pitää näppäimistön auki niin kauan kuin textarea on fokuksessa.
+    // Kun löytöluettelo avataan, fokuksen pitää poistua ennen SearchResultsCardin näyttämistä.
+    inputRef?.current?.blur();
+
+    if (typeof document !== "undefined") {
+      const active = document.activeElement;
+      if (active instanceof HTMLElement) active.blur();
+    }
+  };
+
   const handleOpenFindingsLedger = () => {
     if (!hasFoundProducts) return;
+
+    dismissKeyboard();
 
     autoSearchInputRef.current = cleanInput;
     userEditedSearchRef.current = false;
     setTriggeredSearchInput(cleanInput);
 
     if (onOpenResults) {
-      onOpenResults();
+      window.setTimeout(() => onOpenResults(), 0);
       return;
     }
 
     // Fallback: vanha parent-polku voi avata löydökset normaalin haun valmistuttua.
-    onNormalSearch?.();
+    window.setTimeout(() => onNormalSearch?.(), 0);
   };
 
   const predictiveText = useMemo(() => {
@@ -676,7 +690,19 @@ export default function ZiiplyMobileSearchCard({
     if (loadingOffers || loadingNormal || singleProductCompareLoading) return;
     if (autoSearchInputRef.current === clean) return;
 
-    const timer = window.setTimeout(() => {
+    if (autoSearchTimerRef.current !== null) {
+      window.clearTimeout(autoSearchTimerRef.current);
+      autoSearchTimerRef.current = null;
+    }
+
+    autoSearchTimerRef.current = window.setTimeout(() => {
+      autoSearchTimerRef.current = null;
+
+      // V672: jos käyttäjä ehti lisätä sanan ostoslistaan, kyseistä tekstiä ei saa
+      // enää käyttää automaattihaun käynnistämiseen. Ostoslistaan lisääminen on
+      // tietoinen toiminto ilman hakua.
+      if (!userEditedSearchRef.current) return;
+
       const latest = input.trim();
       if (!latest || latest.length < 2) return;
       if (autoSearchInputRef.current === latest) return;
@@ -696,7 +722,12 @@ export default function ZiiplyMobileSearchCard({
       onNormalSearch?.();
     }, effectiveAutoSearchDelayMs);
 
-    return () => window.clearTimeout(timer);
+    return () => {
+      if (autoSearchTimerRef.current !== null) {
+        window.clearTimeout(autoSearchTimerRef.current);
+        autoSearchTimerRef.current = null;
+      }
+    };
   }, [
     input,
     open,
@@ -735,6 +766,23 @@ export default function ZiiplyMobileSearchCard({
   const handleAddInputToCart = () => {
     const clean = input.trim();
     if (!clean) return;
+
+    // V672: tämä on "lisää abstrakti tuote ostoslistaan" -toiminto, ei haku.
+    // Estetään kaikki tähän samaan kirjoitettuun sanaan liittyvät automaattihaut.
+    if (autoSearchTimerRef.current !== null) {
+      window.clearTimeout(autoSearchTimerRef.current);
+      autoSearchTimerRef.current = null;
+    }
+
+    if (searchClearTimerRef.current !== null) {
+      window.clearTimeout(searchClearTimerRef.current);
+      searchClearTimerRef.current = null;
+    }
+
+    autoSearchInputRef.current = clean;
+    userEditedSearchRef.current = false;
+    setTriggeredSearchInput("");
+    setSearchingAssistant(null);
 
     onAddInputToCart?.();
 
@@ -775,9 +823,15 @@ export default function ZiiplyMobileSearchCard({
   };
 
   const handleClearInput = () => {
+    if (autoSearchTimerRef.current !== null) {
+      window.clearTimeout(autoSearchTimerRef.current);
+      autoSearchTimerRef.current = null;
+    }
+
     autoSearchInputRef.current = "";
     userEditedSearchRef.current = false;
     setTriggeredSearchInput("");
+    setSearchingAssistant(null);
     onInputChange?.("");
   };
 
@@ -937,6 +991,11 @@ export default function ZiiplyMobileSearchCard({
                   onFocus={keepPageAnchoredOnInputFocus}
                   onClick={keepPageAnchoredOnInputFocus}
                   onChange={(event) => {
+                    if (autoSearchTimerRef.current !== null) {
+                      window.clearTimeout(autoSearchTimerRef.current);
+                      autoSearchTimerRef.current = null;
+                    }
+
                     autoSearchInputRef.current = "";
                     userEditedSearchRef.current = true;
                     setTriggeredSearchInput("");
