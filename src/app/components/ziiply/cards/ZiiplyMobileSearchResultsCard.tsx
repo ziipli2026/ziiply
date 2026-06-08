@@ -1,6 +1,6 @@
 "use client";
 
-// ZiiplyMobileSearchResultsCard v13-fullscreen
+// ZiiplyMobileSearchResultsCard v14-loytoluettelo
 // - Pitkälle / loputtomalle listalle optimoitu matala tuoterivi.
 // - Tuotekuva vasemmalla, jotta rivi pysyy matalana.
 // - Ulkoasu linjassa PickCardin paperi/emali-tyylin kanssa.
@@ -259,7 +259,7 @@ function formatComparisonPrice(product: ZiiplyMobileSearchResultProduct, rawPric
 export default function ZiiplyMobileSearchResultsCard({
   open = false,
   loading = false,
-  title = "Tuotteet",
+  title = "Löydökset",
   products = [],
   onClose,
   onAddProduct,
@@ -286,7 +286,7 @@ export default function ZiiplyMobileSearchResultsCard({
                 className="text-[0.78rem] font-black uppercase tracking-[0.42em] text-[#7d6b45]"
                 style={{ fontFamily: copper }}
               >
-                LÖYDÖKSET
+                LÖYTÖLUETTELO
               </div>
 
               <div
@@ -313,13 +313,13 @@ export default function ZiiplyMobileSearchResultsCard({
           <div className="space-y-2">
             {loading && (
               <div className="rounded-[1.45rem] border-[3px] border-[#d4ba73] bg-[#fff4d6] px-5 py-8 text-center text-[1rem] font-black text-[#78633a] shadow-[0_4px_0_rgba(91,72,44,0.12)]">
-                Haetaan löydöksiä…
+                Haetaan löytöluetteloa…
               </div>
             )}
 
             {!loading && products.length === 0 && (
               <div className="rounded-[1.45rem] border-[3px] border-[#d4ba73] bg-[#fff4d6] px-5 py-8 text-center text-[1rem] font-black text-[#78633a] shadow-[0_4px_0_rgba(91,72,44,0.12)]">
-                Ei löydöksiä vielä.
+                Ei löydöksiä luettelossa vielä.
               </div>
             )}
 
