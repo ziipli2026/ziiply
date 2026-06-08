@@ -197,6 +197,10 @@
 
 "use client";
 
+// PAGE_V439_MOBILE_LANDSCAPE_NO_LEGACY_UI
+// Korjaus: iPhone/mobile landscape ei saa avata vanhaa sm/desktop-page-näkymää.
+// Hero-teksti ja sm:static/sm:contents-kauppapaneelipolku poistettu mobiilikäytöstä.
+
 // V176_GPS_DISTANCE_SORT_SOFT_FALLBACK
 // Korjaus V175:n ylitiukkaan GPS-valintaan:
 // - ei vaadita page-tason suoria lat/lon-kenttiä, koska osa store-olioista saa koordinaatit resolverin kautta
@@ -5962,10 +5966,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   function closeProductSelectionOverlay() {
     setLoadingNormal(false);
-    if (!silentMobileAdd) {
-      setNormalResults([]);
-      setVisibleNormalCount(8);
-    }
+    setNormalResults([]);
+    setVisibleNormalCount(8);
     setNormalSearchAttempted(false);
     setActiveNormalSearchTerm("");
     if (activeResult !== "compare" && activeResult !== "singleCompare") {
@@ -13852,7 +13854,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   return (
     <>
       <section
-        className={`hidden xl:block h-[100dvh] overflow-hidden bg-[#efe5cf] px-2 py-2 text-[#1f2619] ${suppressUiForEanClose ? "pointer-events-none" : ""}`}
+        className="hidden"
       >
         <style>{`
           html, body, #__next { background: #efe5cf !important; }
@@ -14508,7 +14510,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       </section>
 
       <main
-        className={`xl:hidden min-h-screen overflow-x-hidden bg-[#EAF4F1] px-2 pb-44 pt-0 text-slate-950 sm:bg-[radial-gradient(circle_at_top,#ecfdf3_0%,#f8fafc_42%,#f1f5f9_100%)] sm:px-4 sm:pb-32 sm:py-3 sm:py-4 md:pb-4 ${suppressUiForEanClose ? "pointer-events-none" : ""}`}
+        className={`min-h-screen overflow-x-hidden bg-[#EAF4F1] px-2 pb-44 pt-0 text-slate-950 sm:bg-[radial-gradient(circle_at_top,#ecfdf3_0%,#f8fafc_42%,#f1f5f9_100%)] sm:px-4 sm:pb-32 sm:py-3 sm:py-4 md:pb-4 ${suppressUiForEanClose ? "pointer-events-none" : ""}`}
       >
         <style>{`
         html,
@@ -14519,6 +14521,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         #__next {
           background: #EAF4F1 !important;
           min-height: 100dvh;
+        }
+
+        @media (orientation: landscape) and (hover: none) and (pointer: coarse) {
+          .ziiply-legacy-desktop-hero,
+          .ziiply-desktop-only-legacy {
+            display: none !important;
+          }
         }
 
         @media (min-width: 640px) {
@@ -14663,9 +14672,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         />
 <div className="mx-auto max-w-6xl space-y-2 sm:space-y-3">
           <section
-            className={`-mx-2 bg-transparent px-2 pb-1 pt-1 sm:-mx-4 sm:px-4 sm:pb-2 sm:pt-2 ${
-              showLaunchScreen ? "hidden" : "hidden sm:block"
-            }`}
+            className="hidden"
           >
             <div className="mx-auto max-w-6xl">
               <div className="overflow-hidden rounded-[1.25rem] bg-[#fff8df]/95 px-4 py-2 shadow-sm ring-1 ring-slate-100 sm:rounded-[1.5rem] sm:px-5 sm:py-2">
@@ -14709,7 +14716,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
           {!showLaunchScreen && (
             <div
-              className={`${shopsPanelOpen ? "fixed inset-0 z-50 overflow-hidden bg-[radial-gradient(circle_at_50%_4%,#fff7df_0%,#f1dfad_48%,#ddbd78_100%)] px-3 pb-[calc(env(safe-area-inset-bottom)+6.75rem)] pt-[calc(env(safe-area-inset-top)+5.2rem)] sm:static sm:contents sm:overflow-visible sm:bg-transparent sm:p-0" : "hidden sm:contents"} ${closingPanels.shops ? "ziiply-soft-close" : shopsPanelOpen ? "ziiply-soft-open" : ""}`}
+              className={`${shopsPanelOpen ? "fixed inset-0 z-50 overflow-hidden bg-[radial-gradient(circle_at_50%_4%,#fff7df_0%,#f1dfad_48%,#ddbd78_100%)] px-3 pb-[calc(env(safe-area-inset-bottom)+6.75rem)] pt-[calc(env(safe-area-inset-top)+5.2rem)]" : "hidden"} ${closingPanels.shops ? "ziiply-soft-close" : shopsPanelOpen ? "ziiply-soft-open" : ""}`}
             >
           <div className="mb-2">
             <ZiiplyMobileLocationBar
