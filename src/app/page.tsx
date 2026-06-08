@@ -1179,6 +1179,7 @@ import {
   mapZiiplyGostaOfferToCardOfferV147,
   searchZiiplyGostaOffersV146,
 } from "./components/ziiply/offerSearch/ziiplyOfferSearchCore";
+import { explainNormalSearch as explainZiiplyNormalSearch } from "./components/ziiply/search/searchEngine";
 
 const MOBILE_EAN_SCANNER_REGION_ID = `${EAN_SCANNER_REGION_ID}-mobile`;
 
@@ -7528,6 +7529,27 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
   }
 
+  function autocorrectNormalSearchTerm(term: string) {
+    const original = String(term || "").trim();
+    if (!original) return original;
+
+    // Autocorrect is only for text searches. Do not touch EAN/barcode searches.
+    if (/^\d{6,14}$/.test(original.replace(/\D/g, ""))) {
+      return original;
+    }
+
+    try {
+      const intent = explainZiiplyNormalSearch(original) as any;
+      const corrected = String(intent?.correctedQuery || intent?.canonicalQuery || original)
+        .replace(/\s+/g, " ")
+        .trim();
+
+      return corrected || original;
+    } catch {
+      return original;
+    }
+  }
+
   async function searchNormalPrices(termOverride?: string, forceEan = false) {
     // V160: jos Gösta on näkyvissä/sticky-tilassa, mikään taustapäivitys,
     // kauppapäivitys tai vanha ajastettu haku ei saa käynnistää normaalia
@@ -7538,13 +7560,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return;
     }
 
-    const useTerms = termOverride
+    const rawUseTerms = termOverride
       ? searchCompareMode === "single"
         ? [getSingleSearchTerm(termOverride)].filter(Boolean)
         : parseTerms(termOverride)
       : searchCompareMode === "single"
         ? [getSingleSearchTerm(input)].filter(Boolean)
         : terms;
+
+    const useTerms = forceEan
+      ? rawUseTerms
+      : rawUseTerms.map(autocorrectNormalSearchTerm);
     if (useTerms.length === 0) {
       setActiveNormalSearchTerm("");
       setNormalSearchAttempted(false);
@@ -7570,7 +7596,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     );
 
     if (allFocusedTermsLowSignal && allFocusedTermsTooShort) {
-      if (termOverride) setInput(termOverride);
+      if (termOverride) {
+        setInput(
+          searchCompareMode === "single"
+            ? useTerms[0] || termOverride
+            : useTerms.join(", ") || termOverride,
+        );
+      }
       setLoadingNormal(false);
       setNormalSearchAttempted(true);
       setSearchDebug([]);
@@ -7596,7 +7628,22 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       kStoreName: activeStores.kStoreName,
     });
 
-    if (termOverride) setInput(termOverride);
+    if (termOverride) {
+      setInput(
+        searchCompareMode === "single"
+          ? useTerms[0] || termOverride
+          : useTerms.join(", ") || termOverride,
+      );
+    } else {
+      const correctedInput =
+        searchCompareMode === "single"
+          ? useTerms[0] || input
+          : useTerms.join(", ") || input;
+
+      if (correctedInput && correctedInput !== input) {
+        setInput(correctedInput);
+      }
+    }
 
     if (isMainSearch) {
       // Uusi Hae-haku ei enää tyhjennä ostoskoria. Vain vanhat vertailuosumat nollataan,
