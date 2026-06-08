@@ -3,10 +3,10 @@
 // Vakautus: normaali tuotehaku käyttää freeze screen -periaatetta; vanhoja tuloksia ei tyhjennetä haun alussa.
 // Lisäys: normaali tuotehaku käyttää muistissa + sessionStoragessa hakutuloscachea ja päivittää vain jos data muuttuu.
 
-// V440_MOBILE_LANDSCAPE_FORCE_MOBILE_UI_AND_STABILITY_LAYER
-// Korjaus: touch/mobiililaite pysyy mobiilinäkymässä myös vaakatasossa.
-// iPhone/Android landscape ei saa aktivoida sm/desktop-debug/legacy-page-polkuja.
-// Desktop-näkymä jää vain oikeille desktop-laitteille (hover + fine pointer).
+// V442_MOBILE_LANDSCAPE_BLOCK_IGNORE_KEYBOARD_VISUAL_VIEWPORT
+// Korjaus: mobiilin vaakalukitus ei saa aktivoitua iPhonen pystynäkymässä vain siksi, että näppäimistö pienentää visualViewport-korkeutta.
+// Käytetään orientation angle/type -tietoa ja vasta viimeisenä fallbackina window innerWidth/innerHeight ilman avointa näppäimistöä.
+// Sisältää v441 freeze screen + hakutulosten cache -kerroksen.
 
 // V435_MAP_OVERLAY_SCROLL_FIX: karttaoverlayn karttakorkeus rajattu ja kauppalista muutettu scrollaavaksi, jotta toinen kauppa ei jää piiloon.
 
@@ -207,7 +207,7 @@
 
 "use client";
 
-// PAGE_V439_MOBILE_LANDSCAPE_NO_LEGACY_UI
+// PAGE_V442_MOBILE_LANDSCAPE_BLOCK_IGNORE_KEYBOARD_VISUAL_VIEWPORT
 // Korjaus: iPhone/mobile landscape ei saa avata vanhaa sm/desktop-page-näkymää.
 // Hero-teksti ja sm:static/sm:contents-kauppapaneelipolku poistettu mobiilikäytöstä.
 
@@ -2537,30 +2537,55 @@ export default function Page() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const updateMobileLandscapeBlockV441 = () => {
+    const updateMobileLandscapeBlockV442 = () => {
       const coarsePointer = window.matchMedia?.("(pointer: coarse)")?.matches ?? false;
       const noHover = window.matchMedia?.("(hover: none)")?.matches ?? false;
-      const isLikelyMobile = coarsePointer || noHover || /Android|iPhone|iPad|iPod/i.test(window.navigator.userAgent || "");
-      const viewport = window.visualViewport;
-      const width = viewport?.width ?? window.innerWidth;
-      const height = viewport?.height ?? window.innerHeight;
-      const isLandscape = width > height;
+      const isLikelyMobile =
+        coarsePointer ||
+        noHover ||
+        /Android|iPhone|iPad|iPod/i.test(window.navigator.userAgent || "");
 
-      setMobileLandscapeBlockedV441(Boolean(isLikelyMobile && isLandscape));
+      const orientationAny = (window.screen as any)?.orientation;
+      const orientationType = String(orientationAny?.type || "").toLowerCase();
+      const orientationAngleRaw =
+        typeof orientationAny?.angle === "number"
+          ? orientationAny.angle
+          : typeof (window as any).orientation === "number"
+            ? (window as any).orientation
+            : null;
+
+      const landscapeByDeviceOrientation =
+        orientationType.includes("landscape") ||
+        orientationAngleRaw === 90 ||
+        orientationAngleRaw === -90 ||
+        orientationAngleRaw === 270 ||
+        orientationAngleRaw === -270;
+
+      // iOS Safari pienentää visualViewport-korkeuden näppäimistön takia.
+      // Sitä EI saa käyttää vaaka-asennon tunnistamiseen, muuten pystynäkymä + näppis
+      // lukittuu virheellisesti "Käännä puhelin pystyasentoon" -overlayhin.
+      const keyboardLikelyOpen = Boolean(
+        window.visualViewport &&
+          window.visualViewport.height < window.innerHeight * 0.82,
+      );
+      const fallbackLandscape =
+        !keyboardLikelyOpen && window.innerWidth > window.innerHeight;
+
+      setMobileLandscapeBlockedV441(
+        Boolean(isLikelyMobile && (landscapeByDeviceOrientation || fallbackLandscape)),
+      );
     };
 
-    updateMobileLandscapeBlockV441();
+    updateMobileLandscapeBlockV442();
 
-    window.visualViewport?.addEventListener("resize", updateMobileLandscapeBlockV441);
-    window.visualViewport?.addEventListener("scroll", updateMobileLandscapeBlockV441);
-    window.addEventListener("resize", updateMobileLandscapeBlockV441);
-    window.addEventListener("orientationchange", updateMobileLandscapeBlockV441);
+    window.addEventListener("resize", updateMobileLandscapeBlockV442);
+    window.addEventListener("orientationchange", updateMobileLandscapeBlockV442);
+    window.screen?.orientation?.addEventListener?.("change", updateMobileLandscapeBlockV442);
 
     return () => {
-      window.visualViewport?.removeEventListener("resize", updateMobileLandscapeBlockV441);
-      window.visualViewport?.removeEventListener("scroll", updateMobileLandscapeBlockV441);
-      window.removeEventListener("resize", updateMobileLandscapeBlockV441);
-      window.removeEventListener("orientationchange", updateMobileLandscapeBlockV441);
+      window.removeEventListener("resize", updateMobileLandscapeBlockV442);
+      window.removeEventListener("orientationchange", updateMobileLandscapeBlockV442);
+      window.screen?.orientation?.removeEventListener?.("change", updateMobileLandscapeBlockV442);
     };
   }, []);
 
