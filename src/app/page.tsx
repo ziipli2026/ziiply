@@ -5962,8 +5962,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   function closeProductSelectionOverlay() {
     setLoadingNormal(false);
-    setNormalResults([]);
-    setVisibleNormalCount(8);
+    if (!silentMobileAdd) {
+      setNormalResults([]);
+      setVisibleNormalCount(8);
+    }
     setNormalSearchAttempted(false);
     setActiveNormalSearchTerm("");
     if (activeResult !== "compare" && activeResult !== "singleCompare") {
@@ -10453,8 +10455,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setActiveResult("none");
   }
 
-  function addInputToCart() {
+  function addInputToCart(options?: {
+    source?: string;
+    silent?: boolean;
+    keepInput?: boolean;
+    keepSearchPanelOpen?: boolean;
+    preventAutoSearch?: boolean;
+  }) {
     triggerHaptic();
+    const silentMobileAdd = options?.silent || options?.source === "mobileSearchCard";
     const rows = parseTerms(input);
     const uniqueRows = Array.from(
       new Map(rows.map((row) => [normalize(row), row])).values(),
@@ -10471,9 +10480,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     );
 
     if (rowsToAdd.length === 0) {
-      showCartToast("Nämä muistilistarivit ovat jo ostoskorissa");
-      setSearchPanelOpen(false);
-      setCartModalOpen(true);
+      if (!silentMobileAdd) {
+        showCartToast("Nämä muistilistarivit ovat jo ostoskorissa");
+        setSearchPanelOpen(false);
+        setCartModalOpen(true);
+      }
       return;
     }
 
@@ -10508,15 +10519,28 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     const addedNames = new Set(addedRows.map((row) => normalize(row)));
     const remainingRows = rows.filter((row) => !addedNames.has(normalize(row)));
-    setInput(remainingRows.join(","));
 
-    showCartToast(
-      `Lisätty muistilistaan: ${newItems.length} ${newItems.length === 1 ? "rivi" : "riviä"}`,
-    );
-    setActiveResult("compare");
-    void updateChainComparison(nextCart);
-    setSearchPanelOpen(false);
-    setCartModalOpen(true);
+    if (!options?.keepInput) {
+      setInput(remainingRows.join(","));
+    }
+
+    if (!silentMobileAdd) {
+      showCartToast(
+        `Lisätty muistilistaan: ${newItems.length} ${newItems.length === 1 ? "rivi" : "riviä"}`,
+      );
+      setActiveResult("compare");
+      void updateChainComparison(nextCart);
+      setSearchPanelOpen(false);
+      setCartModalOpen(true);
+    } else {
+      // V437: mobiilihaku-kortin abstrakti lisäys ei saa avata ostoskoria,
+      // vertailua tai tyhjentää hakukenttää. Muuten iPhonella näkyy pomppu/välähdys
+      // ja Justiinan automaattihaku voi käynnistyä samasta sanasta.
+      setSearchPanelOpen(options?.keepSearchPanelOpen ?? true);
+      setCartModalOpen(false);
+      setCartSavePanelOpen(false);
+      setEanModalOpen(false);
+    }
   }
 
   function addRecentItemToCart(item: CartItem) {
@@ -15312,16 +15336,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               }}
               onOfferSearch={handleMainOfferSearch}
               onNormalSearch={handleMainNormalSearch}
-              onOpenResults={() => {
-                const readyQuery = activeNormalSearchTerm || input.trim();
-                if (normalResults.length > 0 && readyQuery) {
-                  setMobileResultsReadyQueryV537(readyQuery);
-                  setNormalSearchAttempted(true);
-                  setActiveResult("none");
-                } else {
-                  void handleMainNormalSearch();
-                }
-              }}
               onVoiceClick={() => toggleVoiceInput()}
               onScannerClick={openEanModal}
               voiceState={isListening ? "recording" : "idle"}
