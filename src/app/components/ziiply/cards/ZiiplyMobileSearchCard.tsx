@@ -515,6 +515,14 @@ export default function ZiiplyMobileSearchCard({
       autoSearchInputRef.current = latest;
       setTriggeredSearchInput(latest);
 
+      if (searchClearTimerRef.current !== null) {
+        window.clearTimeout(searchClearTimerRef.current);
+        searchClearTimerRef.current = null;
+      }
+
+      searchStartedAtRef.current = Date.now();
+      setSearchingAssistant("justiina");
+
       onNormalSearch?.();
     }, 7000);
 
@@ -613,7 +621,7 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V665_FINDINGS_LEDGER_GATE"
+      data-ziiply-mobile-search-card-version="UUSI_V666_AUTO_SEARCH_ANIMATION_LEDGER"
       className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.25rem)] z-[72] flex h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] max-h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] items-stretch justify-center overflow-hidden bg-transparent px-2 sm:hidden [transform:translateZ(0)] [backface-visibility:hidden] ${className}`}
     >
       <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.85rem] border-[3px] border-[#173f2f] bg-[#d9bd77] p-2 text-[#20301f] shadow-[0_7px_0_rgba(91,72,44,0.24),inset_0_0_0_2px_rgba(255,246,207,0.52)]">
