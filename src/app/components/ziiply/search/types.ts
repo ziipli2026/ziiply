@@ -41,9 +41,18 @@ export type ZiiplyNormalSearchOptions<
 export type ZiiplyNormalSearchResult<
   TProduct extends ZiiplySearchProductLike = ZiiplySearchProductLike
 > = {
+  product: TProduct;
+  score: number;
+  reasons: string[];
+};
+
+export type ZiiplyNormalSearchResponse<
+  TProduct extends ZiiplySearchProductLike = ZiiplySearchProductLike
+> = {
   query: string;
   normalizedQuery: string;
   correctedQuery?: string;
+  results: ZiiplyNormalSearchResult<TProduct>[];
   products: TProduct[];
   suggestions: ZiiplySearchSuggestion[];
   categories: ZiiplySearchSuggestion[];
