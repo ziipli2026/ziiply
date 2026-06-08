@@ -17,6 +17,8 @@ export function splitSearchWords(value: string | null | undefined): string[] {
     .filter(Boolean);
 }
 
+export const tokenizeFi = splitSearchWords;
+
 export function normalizeEan(value: string | null | undefined): string {
   return String(value || "").replace(/\D/g, "").trim();
 }
@@ -43,4 +45,48 @@ export function hasWord(text: string | null | undefined, word: string): boolean 
 
 export function uniqueStable<T>(items: T[]): T[] {
   return Array.from(new Set(items));
+}
+
+export function getProductSearchText(product: {
+  name?: string | null;
+  title?: string | null;
+  brand?: string | null;
+  brandName?: string | null;
+  category?: string | null;
+  hierarchyPath?: string[] | string | null;
+  packageSize?: string | null;
+  comparisonPriceUnit?: string | null;
+}): string {
+  const hierarchy = Array.isArray(product.hierarchyPath)
+    ? product.hierarchyPath.join(" ")
+    : String(product.hierarchyPath || "");
+
+  return normalizeSearchText(
+    [
+      product.name,
+      product.title,
+      product.brand,
+      product.brandName,
+      product.category,
+      hierarchy,
+      product.packageSize,
+      product.comparisonPriceUnit,
+    ]
+      .filter(Boolean)
+      .join(" ")
+  );
+}
+
+export function getProductPackageSize(product: {
+  name?: string | null;
+  title?: string | null;
+  packageSize?: string | null;
+}): string {
+  const direct = normalizeSearchText(product.packageSize);
+  if (direct) return direct;
+
+  const text = normalizeSearchText([product.name, product.title].filter(Boolean).join(" "));
+
+  const match = text.match(/\b\d+(?:[,.]\d+)?\s?(kg|g|l|ml|cl|kpl|pkt|ps|tlk)\b/i);
+  return match ? normalizeSearchText(match[0]) : "";
 }
