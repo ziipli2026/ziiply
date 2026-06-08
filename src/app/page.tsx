@@ -1,3 +1,8 @@
+// V440_MOBILE_LANDSCAPE_FORCE_MOBILE_UI_AND_STABILITY_LAYER
+// Korjaus: touch/mobiililaite pysyy mobiilinäkymässä myös vaakatasossa.
+// iPhone/Android landscape ei saa aktivoida sm/desktop-debug/legacy-page-polkuja.
+// Desktop-näkymä jää vain oikeille desktop-laitteille (hover + fine pointer).
+
 // V435_MAP_OVERLAY_SCROLL_FIX: karttaoverlayn karttakorkeus rajattu ja kauppalista muutettu scrollaavaksi, jotta toinen kauppa ei jää piiloon.
 
 // V235_V234_REMOVE_LOCAL_DEBUG_OVERLAY
@@ -14510,7 +14515,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       </section>
 
       <main
-        className={`min-h-screen overflow-x-hidden bg-[#EAF4F1] px-2 pb-44 pt-0 text-slate-950 sm:bg-[radial-gradient(circle_at_top,#ecfdf3_0%,#f8fafc_42%,#f1f5f9_100%)] sm:px-4 sm:pb-32 sm:py-3 sm:py-4 md:pb-4 ${suppressUiForEanClose ? "pointer-events-none" : ""}`}
+        className={`ziiply-mobile-landscape-force min-h-screen overflow-x-hidden bg-[#EAF4F1] px-2 pb-44 pt-0 text-slate-950 sm:bg-[radial-gradient(circle_at_top,#ecfdf3_0%,#f8fafc_42%,#f1f5f9_100%)] sm:px-4 sm:pb-32 sm:py-3 sm:py-4 md:pb-4 ${suppressUiForEanClose ? "pointer-events-none" : ""}`}
       >
         <style>{`
         html,
@@ -14527,6 +14532,42 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           .ziiply-legacy-desktop-hero,
           .ziiply-desktop-only-legacy {
             display: none !important;
+          }
+        }
+
+        /* V440: iPhone/Android landscape must remain mobile UI.
+           Tailwind sm/md breakpoints are width-based, so mobile landscape can
+           accidentally open desktop debug/legacy views. Coarse pointer wins. */
+        @media (hover: none) and (pointer: coarse) {
+          .ziiply-mobile-landscape-force .ziiply-desktop-only-legacy,
+          .ziiply-mobile-landscape-force .ziiply-desktop-debug-board,
+          .ziiply-mobile-landscape-force .ziiply-legacy-desktop-hero {
+            display: none !important;
+          }
+
+          .ziiply-mobile-landscape-force .sm\:grid,
+          .ziiply-mobile-landscape-force .sm\:block,
+          .ziiply-mobile-landscape-force .md\:block,
+          .ziiply-mobile-landscape-force .lg\:block {
+            display: none !important;
+          }
+
+          .ziiply-mobile-landscape-force .sm\:hidden {
+            display: block !important;
+          }
+
+          .ziiply-mobile-landscape-force .sm\:mx-auto {
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+          }
+
+          .ziiply-mobile-landscape-force .sm\:max-w-\[1180px\] {
+            max-width: none !important;
+          }
+
+          .ziiply-mobile-landscape-force .sm\:px-4 {
+            padding-left: 0 !important;
+            padding-right: 0 !important;
           }
         }
 
@@ -14672,7 +14713,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         />
 <div className="mx-auto max-w-6xl space-y-2 sm:space-y-3">
           <section
-            className="hidden"
+            className="hidden ziiply-legacy-desktop-hero ziiply-desktop-only-legacy"
           >
             <div className="mx-auto max-w-6xl">
               <div className="overflow-hidden rounded-[1.25rem] bg-[#fff8df]/95 px-4 py-2 shadow-sm ring-1 ring-slate-100 sm:rounded-[1.5rem] sm:px-5 sm:py-2">
@@ -14984,7 +15025,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             Purpose: keep the existing mobile app flow intact, but expose the main states and actions
             side-by-side on desktop so debugging does not require opening one mobile bottom-sheet at a time. */}
           {!showLaunchScreen && (
-            <section className="hidden sm:grid sm:grid-cols-2 xl:grid-cols-4 gap-4 rounded-[2rem] bg-[#fff8df]/95 p-4 shadow-sm ring-1 ring-slate-100">
+            <section className="hidden ziiply-desktop-debug-board ziiply-desktop-only-legacy sm:grid sm:grid-cols-2 xl:grid-cols-4 gap-4 rounded-[2rem] bg-[#fff8df]/95 p-4 shadow-sm ring-1 ring-slate-100">
               <div className="rounded-[1.5rem] bg-slate-50 p-4 ring-1 ring-slate-200">
                 <div className="mb-3 flex items-center justify-between gap-3">
                   <div>
