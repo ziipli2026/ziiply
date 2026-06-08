@@ -1,3 +1,10 @@
+// V235_V234_REMOVE_LOCAL_DEBUG_OVERLAY
+// Pohja: V234.
+// Korjaus:
+// - Poistettu näkyvä V229 LOCAL DEBUG -overlay ruudulta.
+// - Varsinainen V234-lähikauppahaku säilyy: Jokela/Tuusula-lähikaupat ja Hyvinkään tavaratalot voivat toimia.
+// - Skanneriin/Bluetoothiin ei kosketa.
+
 // V234_V233_REMOVE_HYVINKAA_LOCAL_QUERY_LOCK_DEBUG
 // Pohja: V233.
 // Korjaus rajattu GPS-kauppahaun query-listaan:
@@ -13771,30 +13778,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   return (
     <>
-      {localStoreDebugV229.enabled && (
-        <div className="fixed left-2 top-2 z-[99999] max-w-[94vw] rounded-lg border-2 border-red-700 bg-white/95 p-2 text-[10px] font-mono leading-tight text-black shadow-xl">
-          <div className="mb-1 font-black text-red-800">V229 LOCAL DEBUG</div>
-          {"error" in localStoreDebugV229 ? (
-            <div>ERROR: {String(localStoreDebugV229.error)}</div>
-          ) : (
-            <div className="grid grid-cols-2 gap-x-3 gap-y-0.5">
-              <span>storeMode/gpsMode</span><b>{String(localStoreDebugV229.storeMode)} / {String(localStoreDebugV229.gpsMode)}</b>
-              <span>foundStores</span><b>{localStoreDebugV229.foundStores}</b>
-              <span>api local S/K</span><b>{localStoreDebugV229.apiSLocal} / {localStoreDebugV229.apiKLocal}</b>
-              <span>pool total</span><b>{localStoreDebugV229.pool}</b>
-              <span>pool local S/K</span><b>{localStoreDebugV229.sLocalPool} / {localStoreDebugV229.kLocalPool}</b>
-              <span>pool hyper S/K</span><b>{localStoreDebugV229.sHyperPool} / {localStoreDebugV229.kHyperPool}</b>
-              <span>local coords/distOnly</span><b>{localStoreDebugV229.localWithCoords} / {localStoreDebugV229.localWithDistanceOnly}</b>
-              <span>first local S/K</span><b>{localStoreDebugV229.firstSLocal} / {localStoreDebugV229.firstKLocal}</b>
-              <span>top S-local</span><b className="col-span-1 text-[10px] leading-tight">{localStoreDebugV229.topSLocalNames}</b>
-              <span>top K-local</span><b className="col-span-1 text-[10px] leading-tight">{localStoreDebugV229.topKLocalNames}</b>
-              <span>ranked local S/K</span><b>{localStoreDebugV229.rankedSLocal} / {localStoreDebugV229.rankedKLocal}</b>
-              <span>ranked hyper S/K</span><b>{localStoreDebugV229.rankedSHyper} / {localStoreDebugV229.rankedKHyper}</b>
-              <span>active S/K</span><b>{localStoreDebugV229.activeS} / {localStoreDebugV229.activeK}</b>
-            </div>
-          )}
-        </div>
-      )}
       <section
         className={`hidden xl:block h-[100dvh] overflow-hidden bg-[#efe5cf] px-2 py-2 text-[#1f2619] ${suppressUiForEanClose ? "pointer-events-none" : ""}`}
       >
