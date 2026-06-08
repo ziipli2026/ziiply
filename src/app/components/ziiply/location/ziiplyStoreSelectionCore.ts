@@ -1,35 +1,49 @@
-// V1_STORE_SELECTION_CORE_SINGLE_SOURCE_OF_TRUTH
-// Tarkoitus:
-// - Kauppavalinta pois page.tsx:stä.
-// - Ei kunta-/postinumero-/reverse-geocode-/activeArea-/AREAS-fallbackia.
-// - Valinta tehdään vain annetuista oikeista kaupoista distanceKm:n tai koordinaattietäisyyden perusteella.
-// - Puuttuvaa lähikauppaa ei paikata tavaratalolla eikä päinvastoin.
-// - Puuttuvaa S/K-ketjua ei paikata toisella ketjulla.
+// V1_ZIIPLY_STORE_SELECTION_CORE_PAGE_INDEPENDENT
+// Single source of truth for GPS store selection.
+// - Page must not decide S/K local or hyper stores with activeArea/AREAS/reverse fallbacks.
+// - Hypermarkets are selected only from real API/foundStores candidates.
+// - Local stores are selected from real API/foundStores candidates first; if a chain is missing,
+//   nearest AREAS local candidate may fill only that missing local chain.
+// - No municipality/postal-code/reverse-geocode lock, no stale activeArea, no Kokkola/Espoo far fallback.
 
-export type ZiiplyStoreSelectionMode = "hyper" | "local";
-export type ZiiplyStoreSelectionChain = "S" | "K";
+export type ZiiplySelectionMode = "local" | "hyper" | string;
 
-export type ZiiplyStoreSelectionCoords = {
+export type ZiiplySelectionCoords = {
   latitude: number;
   longitude: number;
 };
 
-export type ZiiplyStoreSelectionResult<TStore> = {
-  sHyper?: TStore;
-  kHyper?: TStore;
-  sLocal?: TStore;
-  kLocal?: TStore;
-  selectedS?: TStore;
-  selectedK?: TStore;
+export type ZiiplySelectedStore = {
+  id: string | number;
+  name: string;
+  chain: "S" | "K";
+  level: "local" | "hyper";
+  distanceKm?: number;
+  source: "api" | "area";
 };
+
+export type ZiiplyStoreSelectionResult = {
+  sLocal?: ZiiplySelectedStore;
+  kLocal?: ZiiplySelectedStore;
+  sHyper?: ZiiplySelectedStore;
+  kHyper?: ZiiplySelectedStore;
+  selectedS?: ZiiplySelectedStore;
+  selectedK?: ZiiplySelectedStore;
+  debug: {
+    apiLocalCount: number;
+    apiHyperCount: number;
+    areaLocalCount: number;
+  };
+};
+
+type AnyRecord = Record<string, any>;
 
 function normalizeText(value: unknown) {
   return String(value ?? "")
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9åäö]+/gi, " ")
-    .replace(/\s+/g, " ")
+    .replace(/[^a-z0-9]+/g, " ")
     .trim();
 }
 
@@ -44,18 +58,36 @@ function toFiniteNumber(value: unknown): number | null {
   return null;
 }
 
-function getByKeys(store: Record<string, unknown>, keys: string[]) {
+function pickNumber(record: AnyRecord, keys: string[]) {
   for (const key of keys) {
-    const value = store[key];
-    if (value != null && String(value).trim() !== "") return value;
+    const value = toFiniteNumber(record?.[key]);
+    if (value != null) return value;
   }
-  return undefined;
+  return null;
 }
 
-export function ziiplySelectionDistanceKm(
-  from: ZiiplyStoreSelectionCoords,
-  to: ZiiplyStoreSelectionCoords,
-) {
+function readLatitude(record: AnyRecord) {
+  return (
+    pickNumber(record, ["latitude", "lat", "y", "storeLatitude", "store_latitude"]) ??
+    pickNumber(record?.coordinates || {}, ["latitude", "lat", "y"])
+  );
+}
+
+function readLongitude(record: AnyRecord) {
+  return (
+    pickNumber(record, ["longitude", "lng", "lon", "x", "storeLongitude", "store_longitude"]) ??
+    pickNumber(record?.coordinates || {}, ["longitude", "lng", "lon", "x"])
+  );
+}
+
+function readDistanceKm(record: AnyRecord) {
+  const km = pickNumber(record, ["distanceKm", "distance_km", "distance"]);
+  if (km != null) return km;
+  const meters = pickNumber(record, ["distanceMeters", "distance_meters"]);
+  return meters == null ? null : meters / 1000;
+}
+
+function distanceKm(from: ZiiplySelectionCoords, to: ZiiplySelectionCoords) {
   const earthRadiusKm = 6371;
   const toRad = (value: number) => (value * Math.PI) / 180;
   const dLat = toRad(to.latitude - from.latitude);
@@ -63,45 +95,35 @@ export function ziiplySelectionDistanceKm(
   const lat1 = toRad(from.latitude);
   const lat2 = toRad(to.latitude);
   const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2;
   return earthRadiusKm * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-export function getZiiplySelectionStoreName(store: Record<string, unknown>) {
-  return String(getByKeys(store, ["name", "storeName", "store_name", "title"]) ?? "").trim();
-}
-
-export function getZiiplySelectionChain(store: Record<string, unknown>): ZiiplyStoreSelectionChain | "OTHER" {
-  const name = normalizeText(getZiiplySelectionStoreName(store));
-  const raw = normalizeText(
-    `${store.type ?? ""} ${store.chain ?? ""} ${store.chainId ?? ""} ${store.chain_id ?? ""} ${store.brand ?? ""} ${store.banner ?? ""}`,
+function detectChain(store: AnyRecord): "S" | "K" | "OTHER" {
+  const text = normalizeText(
+    `${store?.type || ""} ${store?.chain || ""} ${store?.chainId || ""} ${store?.brand || ""} ${store?.banner || ""} ${store?.name || ""}`,
   );
 
   if (
-    raw === "s" ||
-    raw.includes("sok") ||
-    raw.includes("s ryh") ||
-    name.includes("prisma") ||
-    name.includes("s market") ||
-    name.includes("s-market") ||
-    name.includes("sale") ||
-    name.includes("alepa")
+    /(^| )s($| )/.test(text) ||
+    text.includes("s ryhma") ||
+    text.includes("sok") ||
+    text.includes("prisma") ||
+    text.includes("s market") ||
+    text.includes("sale") ||
+    text.includes("alepa")
   ) {
     return "S";
   }
 
   if (
-    raw === "k" ||
-    raw.includes("kesko") ||
-    raw.includes("k ryh") ||
-    name.includes("k citymarket") ||
-    name.includes("k-citymarket") ||
-    name.includes("citymarket") ||
-    name.includes("k supermarket") ||
-    name.includes("k-supermarket") ||
-    name.includes("k market") ||
-    name.includes("k-market")
+    /(^| )k($| )/.test(text) ||
+    text.includes("kesko") ||
+    text.includes("k ryhma") ||
+    text.includes("citymarket") ||
+    text.includes("k supermarket") ||
+    text.includes("k market")
   ) {
     return "K";
   }
@@ -109,120 +131,179 @@ export function getZiiplySelectionChain(store: Record<string, unknown>): ZiiplyS
   return "OTHER";
 }
 
-export function isZiiplySelectionExcludedStore(store: Record<string, unknown>) {
-  const text = normalizeText(
-    `${getZiiplySelectionStoreName(store)} ${store.brand ?? ""} ${store.banner ?? ""} ${store.kind ?? ""} ${store.typeLabel ?? ""}`,
-  );
-  return (
-    text.includes("abc") ||
-    text.includes("liikenneasema") ||
-    text.includes("huoltoasema") ||
-    text.includes("neste") ||
-    text.includes("shell") ||
-    text.includes("seo") ||
-    text.includes("teboil")
-  );
+function isExcluded(store: AnyRecord) {
+  const text = normalizeText(`${store?.name || ""} ${store?.kind || ""} ${store?.typeLabel || ""}`);
+  return text.includes("abc") || text.includes("liikenneasema") || text.includes("huoltoasema");
 }
 
-export function isZiiplySelectionHyper(store: Record<string, unknown>) {
-  const name = normalizeText(getZiiplySelectionStoreName(store));
-  const text = normalizeText(`${name} ${store.kind ?? ""} ${store.typeLabel ?? ""}`);
-  return text.includes("prisma") || text.includes("citymarket");
-}
-
-export function isZiiplySelectionLocal(store: Record<string, unknown>) {
-  const name = normalizeText(getZiiplySelectionStoreName(store));
-  const text = normalizeText(`${name} ${store.kind ?? ""} ${store.typeLabel ?? ""}`);
-  return (
+function detectLevel(store: AnyRecord): "local" | "hyper" | "other" {
+  const text = normalizeText(`${store?.name || ""} ${store?.kind || ""} ${store?.typeLabel || ""}`);
+  if (text.includes("prisma") || text.includes("citymarket")) return "hyper";
+  if (
     text.includes("s market") ||
-    text.includes("s-market") ||
     text.includes("sale") ||
     text.includes("alepa") ||
     text.includes("k supermarket") ||
-    text.includes("k-supermarket") ||
-    text.includes("k market") ||
-    text.includes("k-market")
-  );
+    text.includes("k super") ||
+    text.includes("k market")
+  ) {
+    return "local";
+  }
+  return "other";
 }
 
-export function getZiiplySelectionStoreCoords(store: Record<string, unknown>): ZiiplyStoreSelectionCoords | null {
-  const latitude = toFiniteNumber(
-    getByKeys(store, ["latitude", "lat", "y", "storeLatitude", "store_latitude"]),
-  );
-  const longitude = toFiniteNumber(
-    getByKeys(store, ["longitude", "lng", "lon", "x", "storeLongitude", "store_longitude"]),
-  );
-  if (latitude == null || longitude == null) return null;
-  return { latitude, longitude };
+function storeIdentity(store: AnyRecord) {
+  return String(store?.id ?? `${normalizeText(store?.name)}:${normalizeText(store?.city)}`);
 }
 
-export function getZiiplySelectionExplicitDistanceKm(store: Record<string, unknown>) {
-  const direct = toFiniteNumber(getByKeys(store, ["distanceKm", "distance_km"]));
-  if (direct != null) return direct;
+function normalizeApiCandidate(store: AnyRecord, coords: ZiiplySelectionCoords): ZiiplySelectedStore | null {
+  if (!store || isExcluded(store)) return null;
+  const chain = detectChain(store);
+  if (chain !== "S" && chain !== "K") return null;
+  const level = detectLevel(store);
+  if (level !== "local" && level !== "hyper") return null;
 
-  const meters = toFiniteNumber(getByKeys(store, ["distanceMeters", "distance_meters"]));
-  if (meters != null) return meters / 1000;
+  const lat = readLatitude(store);
+  const lon = readLongitude(store);
+  const explicit = readDistanceKm(store);
+  const calculated = lat != null && lon != null ? distanceKm(coords, { latitude: lat, longitude: lon }) : null;
+  const finalDistance = calculated ?? explicit ?? null;
+  if (finalDistance == null || !Number.isFinite(finalDistance)) return null;
 
-  return toFiniteNumber(getByKeys(store, ["distance"]));
-}
-
-export function getZiiplySelectionStoreDistanceKm(
-  store: Record<string, unknown>,
-  coords?: ZiiplyStoreSelectionCoords | null,
-) {
-  const ownCoords = getZiiplySelectionStoreCoords(store);
-  if (coords && ownCoords) return ziiplySelectionDistanceKm(coords, ownCoords);
-
-  const explicit = getZiiplySelectionExplicitDistanceKm(store);
-  return explicit != null && Number.isFinite(explicit) ? explicit : null;
-}
-
-export function selectZiiplyStoresByDistance<TStore extends Record<string, unknown>>(options: {
-  stores: TStore[];
-  coords?: ZiiplyStoreSelectionCoords | null;
-  mode: ZiiplyStoreSelectionMode;
-  maxLocalDistanceKm?: number;
-  maxHyperDistanceKm?: number;
-}): ZiiplyStoreSelectionResult<TStore> {
-  const maxLocalDistanceKm = options.maxLocalDistanceKm ?? 35;
-  const maxHyperDistanceKm = options.maxHyperDistanceKm ?? 80;
-
-  const candidates = options.stores
-    .filter((store) => getZiiplySelectionChain(store) === "S" || getZiiplySelectionChain(store) === "K")
-    .filter((store) => !isZiiplySelectionExcludedStore(store))
-    .map((store) => {
-      const chain = getZiiplySelectionChain(store);
-      const distanceKm = getZiiplySelectionStoreDistanceKm(store, options.coords);
-      return { store, chain, distanceKm };
-    })
-    .filter((entry) => entry.distanceKm != null && Number.isFinite(entry.distanceKm as number)) as Array<{
-      store: TStore;
-      chain: ZiiplyStoreSelectionChain;
-      distanceKm: number;
-    }>;
-
-  const pickNearest = (chain: ZiiplyStoreSelectionChain, mode: ZiiplyStoreSelectionMode) => {
-    const maxDistanceKm = mode === "local" ? maxLocalDistanceKm : maxHyperDistanceKm;
-    const predicate = mode === "local" ? isZiiplySelectionLocal : isZiiplySelectionHyper;
-
-    return candidates
-      .filter((entry) => entry.chain === chain)
-      .filter((entry) => predicate(entry.store))
-      .filter((entry) => entry.distanceKm <= maxDistanceKm)
-      .sort((a, b) => a.distanceKm - b.distanceKm)[0]?.store;
-  };
-
-  const sHyper = pickNearest("S", "hyper");
-  const kHyper = pickNearest("K", "hyper");
-  const sLocal = pickNearest("S", "local");
-  const kLocal = pickNearest("K", "local");
+  const name = String(store?.name || "").trim();
+  if (!name) return null;
 
   return {
-    sHyper,
-    kHyper,
+    id: store?.id ?? storeIdentity(store),
+    name,
+    chain,
+    level,
+    distanceKm: finalDistance,
+    source: "api",
+  };
+}
+
+function buildAreaLocalCandidates(areas: AnyRecord[], coords: ZiiplySelectionCoords): ZiiplySelectedStore[] {
+  const result: ZiiplySelectedStore[] = [];
+
+  areas.forEach((area, index) => {
+    const lat = readLatitude(area);
+    const lon = readLongitude(area);
+    if (lat == null || lon == null) return;
+
+    const baseDistance = distanceKm(coords, { latitude: lat, longitude: lon });
+    const areaLabel = String(area?.label || area?.city || "").trim();
+
+    if (area?.sLocalStoreName) {
+      result.push({
+        id: area?.sLocalStoreId ?? -(20000 + index * 10 + 1),
+        name: String(area.sLocalStoreName),
+        chain: "S",
+        level: "local",
+        distanceKm: baseDistance,
+        source: "area",
+      });
+    }
+
+    if (area?.kLocalStoreName) {
+      result.push({
+        id: area?.kLocalStoreId ?? -(20000 + index * 10 + 2),
+        name: String(area.kLocalStoreName),
+        chain: "K",
+        level: "local",
+        distanceKm: baseDistance,
+        source: "area",
+      });
+    }
+  });
+
+  return result;
+}
+
+function uniqueByChainLevelName(candidates: ZiiplySelectedStore[]) {
+  const seen = new Set<string>();
+  const result: ZiiplySelectedStore[] = [];
+  for (const candidate of candidates) {
+    const key = `${candidate.chain}:${candidate.level}:${normalizeText(candidate.name)}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push(candidate);
+  }
+  return result;
+}
+
+function nearest(
+  candidates: ZiiplySelectedStore[],
+  chain: "S" | "K",
+  level: "local" | "hyper",
+  maxDistanceKm: number,
+) {
+  return candidates
+    .filter(
+      (candidate) =>
+        candidate.chain === chain &&
+        candidate.level === level &&
+        candidate.distanceKm != null &&
+        candidate.distanceKm <= maxDistanceKm,
+    )
+    .sort((a, b) => (a.distanceKm ?? 9999) - (b.distanceKm ?? 9999))[0];
+}
+
+export function resolveZiiplyPageStoreSelection(options: {
+  stores: AnyRecord[];
+  areas?: AnyRecord[];
+  coords: ZiiplySelectionCoords | null | undefined;
+  mode: ZiiplySelectionMode;
+  maxLocalDistanceKm?: number;
+  maxHyperDistanceKm?: number;
+  maxAreaLocalDistanceKm?: number;
+}): ZiiplyStoreSelectionResult {
+  const coords = options.coords;
+  const mode = options.mode === "local" ? "local" : "hyper";
+
+  if (!coords) {
+    return { debug: { apiLocalCount: 0, apiHyperCount: 0, areaLocalCount: 0 } };
+  }
+
+  const maxLocalDistanceKm = options.maxLocalDistanceKm ?? 35;
+  const maxHyperDistanceKm = options.maxHyperDistanceKm ?? 90;
+  const maxAreaLocalDistanceKm = options.maxAreaLocalDistanceKm ?? 35;
+
+  const apiCandidates = uniqueByChainLevelName(
+    (options.stores || [])
+      .map((store) => normalizeApiCandidate(store, coords))
+      .filter(Boolean) as ZiiplySelectedStore[],
+  );
+
+  const apiLocalCandidates = apiCandidates.filter((candidate) => candidate.level === "local");
+  const apiHyperCandidates = apiCandidates.filter((candidate) => candidate.level === "hyper");
+
+  const areaLocalCandidates = uniqueByChainLevelName(
+    buildAreaLocalCandidates(options.areas || [], coords).filter(
+      (candidate) => (candidate.distanceKm ?? 9999) <= maxAreaLocalDistanceKm,
+    ),
+  );
+
+  const sHyper = nearest(apiHyperCandidates, "S", "hyper", maxHyperDistanceKm);
+  const kHyper = nearest(apiHyperCandidates, "K", "hyper", maxHyperDistanceKm);
+
+  const sApiLocal = nearest(apiLocalCandidates, "S", "local", maxLocalDistanceKm);
+  const kApiLocal = nearest(apiLocalCandidates, "K", "local", maxLocalDistanceKm);
+
+  const sLocal = sApiLocal ?? nearest(areaLocalCandidates, "S", "local", maxAreaLocalDistanceKm);
+  const kLocal = kApiLocal ?? nearest(areaLocalCandidates, "K", "local", maxAreaLocalDistanceKm);
+
+  return {
     sLocal,
     kLocal,
-    selectedS: options.mode === "local" ? sLocal : sHyper,
-    selectedK: options.mode === "local" ? kLocal : kHyper,
+    sHyper,
+    kHyper,
+    selectedS: mode === "local" ? sLocal : sHyper,
+    selectedK: mode === "local" ? kLocal : kHyper,
+    debug: {
+      apiLocalCount: apiLocalCandidates.length,
+      apiHyperCount: apiHyperCandidates.length,
+      areaLocalCount: areaLocalCandidates.length,
+    },
   };
 }
