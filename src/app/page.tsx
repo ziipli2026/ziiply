@@ -1,3 +1,9 @@
+// V229_DEBUG_LOCAL_SELECTION_BREAKPOINTS
+// Pohja: V228. EI muuta valintalogiikkaa.
+// Lisää näkyvän debug-paneelin, joka näyttää missä lähikauppahaara katkeaa:
+// foundStores -> pool -> S/K local candidates -> ranked -> activeStores.
+// Skanneriin/Bluetoothiin ei kosketa.
+
 // V228_V213_LOCAL_AREA_POOL_ONLY_KEEP_HYPER
 // Pohja: V213, koska siinä tavaratalot toimivat.
 // Korjaus:
@@ -3985,6 +3991,76 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     storeMode,
     storeModeChosenV299,
     storeCompareScope,
+    usingOwnLocation,
+  ]);
+
+  const localStoreDebugV229 = useMemo(() => {
+    try {
+      const gpsMode = selectedStoreModeRefV302.current || storeMode;
+      const pool = usingOwnLocation && gpsCoordsV320
+        ? buildGpsStoreCandidatePoolFromAllAreasV40(foundStores)
+        : foundStores.map(normalizeStoreForPickerV320);
+
+      const comparisonPool = pool.filter((store) => !isExcludedGroceryComparisonStoreV140(store));
+      const apiComparison = foundStores
+        .map(normalizeStoreForPickerV320)
+        .filter((store) => !isExcludedGroceryComparisonStoreV140(store));
+
+      const sLocalPool = comparisonPool.filter((store) => getStoreChainV320(store) === "S" && isSLocalStore(store));
+      const kLocalPool = comparisonPool.filter((store) => getStoreChainV320(store) === "K" && isKLocalStore(store));
+      const sHyperPool = comparisonPool.filter((store) => getStoreChainV320(store) === "S" && isPrisma(store));
+      const kHyperPool = comparisonPool.filter((store) => getStoreChainV320(store) === "K" && isKCitymarket(store));
+
+      const apiSLocal = apiComparison.filter((store) => getStoreChainV320(store) === "S" && isSLocalStore(store));
+      const apiKLocal = apiComparison.filter((store) => getStoreChainV320(store) === "K" && isKLocalStore(store));
+
+      const localWithCoords = [...sLocalPool, ...kLocalPool].filter((store) => storeHasRealCoordinatesForGpsV41(store));
+      const localWithDistanceOnly = [...sLocalPool, ...kLocalPool].filter((store) => {
+        const hasCoords = storeHasRealCoordinatesForGpsV41(store);
+        const rawDistance = (store as any).distanceKm ?? (store as any).distance_km ?? (store as any).distance;
+        return !hasCoords && rawDistance != null;
+      });
+
+      const rankedLocal = gpsCoordsV320 ? rankStoresForMode(pool, "local", gpsCoordsV320) : null;
+      const rankedHyper = gpsCoordsV320 ? rankStoresForMode(pool, "hyper", gpsCoordsV320) : null;
+
+      const shortName = (store: StoreSearchItem | null | undefined) => store?.name ? String(store.name) : "-";
+
+      return {
+        enabled: usingOwnLocation && Boolean(gpsCoordsV320),
+        storeMode,
+        gpsMode,
+        foundStores: foundStores.length,
+        apiSLocal: apiSLocal.length,
+        apiKLocal: apiKLocal.length,
+        pool: pool.length,
+        sLocalPool: sLocalPool.length,
+        kLocalPool: kLocalPool.length,
+        sHyperPool: sHyperPool.length,
+        kHyperPool: kHyperPool.length,
+        localWithCoords: localWithCoords.length,
+        localWithDistanceOnly: localWithDistanceOnly.length,
+        rankedSLocal: shortName(rankedLocal?.sLocal),
+        rankedKLocal: shortName(rankedLocal?.kLocal),
+        rankedSHyper: shortName(rankedHyper?.sHyper),
+        rankedKHyper: shortName(rankedHyper?.kHyper),
+        activeS: activeStores.sStoreName || "-",
+        activeK: activeStores.kStoreName || "-",
+        firstSLocal: shortName(sLocalPool[0]),
+        firstKLocal: shortName(kLocalPool[0]),
+      };
+    } catch (error) {
+      return {
+        enabled: true,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  }, [
+    activeStores.kStoreName,
+    activeStores.sStoreName,
+    foundStores,
+    gpsCoordsV320,
+    storeMode,
     usingOwnLocation,
   ]);
 
@@ -13606,6 +13682,28 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   return (
     <>
+      {localStoreDebugV229.enabled && (
+        <div className="fixed left-2 top-2 z-[99999] max-w-[94vw] rounded-lg border-2 border-red-700 bg-white/95 p-2 text-[10px] font-mono leading-tight text-black shadow-xl">
+          <div className="mb-1 font-black text-red-800">V229 LOCAL DEBUG</div>
+          {"error" in localStoreDebugV229 ? (
+            <div>ERROR: {String(localStoreDebugV229.error)}</div>
+          ) : (
+            <div className="grid grid-cols-2 gap-x-3 gap-y-0.5">
+              <span>storeMode/gpsMode</span><b>{String(localStoreDebugV229.storeMode)} / {String(localStoreDebugV229.gpsMode)}</b>
+              <span>foundStores</span><b>{localStoreDebugV229.foundStores}</b>
+              <span>api local S/K</span><b>{localStoreDebugV229.apiSLocal} / {localStoreDebugV229.apiKLocal}</b>
+              <span>pool total</span><b>{localStoreDebugV229.pool}</b>
+              <span>pool local S/K</span><b>{localStoreDebugV229.sLocalPool} / {localStoreDebugV229.kLocalPool}</b>
+              <span>pool hyper S/K</span><b>{localStoreDebugV229.sHyperPool} / {localStoreDebugV229.kHyperPool}</b>
+              <span>local coords/distOnly</span><b>{localStoreDebugV229.localWithCoords} / {localStoreDebugV229.localWithDistanceOnly}</b>
+              <span>first local S/K</span><b>{localStoreDebugV229.firstSLocal} / {localStoreDebugV229.firstKLocal}</b>
+              <span>ranked local S/K</span><b>{localStoreDebugV229.rankedSLocal} / {localStoreDebugV229.rankedKLocal}</b>
+              <span>ranked hyper S/K</span><b>{localStoreDebugV229.rankedSHyper} / {localStoreDebugV229.rankedKHyper}</b>
+              <span>active S/K</span><b>{localStoreDebugV229.activeS} / {localStoreDebugV229.activeK}</b>
+            </div>
+          )}
+        </div>
+      )}
       <section
         className={`hidden xl:block h-[100dvh] overflow-hidden bg-[#efe5cf] px-2 py-2 text-[#1f2619] ${suppressUiForEanClose ? "pointer-events-none" : ""}`}
       >
