@@ -236,7 +236,11 @@ export function buildZiiplyAutocomplete(
     const ean = normalizeEan(product.ean);
 
     const productText = [name, brand, category, ...hierarchy].filter(Boolean).join(" ");
-    const matches = textMatchesQuery(productText, query, [...synonymTerms, ...intent.includeTerms, ...intent.preferredTerms]);
+    const matches = textMatchesQuery(productText, query, [
+      ...synonymTerms,
+      ...intent.includeTerms,
+      ...intent.preferredTerms,
+    ]);
 
     const productScore = scoreProductSuggestion(product, query, intent, synonymTerms);
 
@@ -256,6 +260,7 @@ export function buildZiiplyAutocomplete(
 
     for (const label of [category, ...hierarchy].filter(Boolean)) {
       if (!label) continue;
+
       const score = scoreCategoryLabel(label, query, intent, synonymTerms) + Math.max(0, productScore / 10);
 
       if (textMatchesQuery(label, query, [...synonymTerms, ...intent.categoryHints]) || score >= 55) {
@@ -331,4 +336,14 @@ export function getAutocompleteLabels(result: ZiiplyAutocompleteResult) {
   };
 }
 
-export const buildSearchAutocompleteSuggestions = buildZiiplyAutocomplete;
+export function buildSearchAutocompleteSuggestions(
+  query: string,
+  products: ZiiplyAutocompleteProduct[] = [],
+  limit = 10
+): ZiiplySearchSuggestion[] {
+  return buildZiiplyAutocomplete(query, products, {
+    maxCategories: Math.ceil(limit / 2),
+    maxProducts: limit,
+    maxBrands: 3,
+  }).suggestions.slice(0, limit);
+}
