@@ -1,7 +1,7 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V664_SMART_SEARCH_SUGGESTION_GATE
-// Pohja: v662 toimiva layout. Muutos: hakukortti päivitetty älyhaulle, tarjoushanikka poistettu, ikonit suurennettu ja ostoslistaan lisäys saa näkyvän kuittauksen.
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V665_FINDINGS_LEDGER_GATE
+// Pohja: v664 toimiva älyhakukortti. Muutos: löytöluetteloon siirtymiselle lisätty oma callback, 1900-luvun henkinen teksti ja painettava keskimmäinen laatikko.
 // Pohja: v658 toimiva original-ulkoasu säilytetty sellaisenaan.
 // Muutos: Gösta saa käynnistyä myös tyhjällä hakukentällä, jotta tarjouskortti voi näyttää kaikki alueen tarjoukset.
 // Justiina ja koriinlisäys vaativat edelleen hakutekstin.
@@ -47,6 +47,7 @@ export type ZiiplyMobileSearchCardProps = {
   onOpenNotebook?: () => void;
   onOfferSearch?: () => void;
   onNormalSearch?: () => void;
+  onOpenResults?: () => void;
   hasSearchInput?: boolean;
   loadingOffers?: boolean;
   loadingNormal?: boolean;
@@ -371,6 +372,7 @@ export default function ZiiplyMobileSearchCard({
   onOpenNotebook,
   onOfferSearch,
   onNormalSearch,
+  onOpenResults,
   loadingOffers = false,
   loadingNormal = false,
   singleProductCompareLoading = false,
@@ -459,6 +461,21 @@ export default function ZiiplyMobileSearchCard({
 
   const foundCount = items.length;
   const hasFoundProducts = hasText && foundCount > 0;
+
+  const handleOpenFindingsLedger = () => {
+    if (!hasFoundProducts) return;
+
+    autoSearchInputRef.current = cleanInput;
+    setTriggeredSearchInput(cleanInput);
+
+    if (onOpenResults) {
+      onOpenResults();
+      return;
+    }
+
+    // Fallback: vanha parent-polku voi avata löydökset normaalin haun valmistuttua.
+    onNormalSearch?.();
+  };
 
   const predictiveText = useMemo(() => {
     const clean = input.trim();
@@ -596,7 +613,7 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V664_SMART_SEARCH_SUGGESTION_GATE"
+      data-ziiply-mobile-search-card-version="UUSI_V665_FINDINGS_LEDGER_GATE"
       className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.25rem)] z-[72] flex h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] max-h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] items-stretch justify-center overflow-hidden bg-transparent px-2 sm:hidden [transform:translateZ(0)] [backface-visibility:hidden] ${className}`}
     >
       <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.85rem] border-[3px] border-[#173f2f] bg-[#d9bd77] p-2 text-[#20301f] shadow-[0_7px_0_rgba(91,72,44,0.24),inset_0_0_0_2px_rgba(255,246,207,0.52)]">
@@ -678,15 +695,9 @@ export default function ZiiplyMobileSearchCard({
               <div className="flex h-full items-center justify-center">
                 <button
                   type="button"
-                  onClick={() => {
-                    if (hasFoundProducts) {
-                      autoSearchInputRef.current = cleanInput;
-                      setTriggeredSearchInput(cleanInput);
-                      onNormalSearch?.();
-                    }
-                  }}
+                  onClick={handleOpenFindingsLedger}
                   disabled={!hasFoundProducts}
-                  aria-label={hasFoundProducts ? `Näytä ${foundCount} löydöstä` : "Älykäs haku"}
+                  aria-label={hasFoundProducts ? `Avaa löytöluettelo, ${foundCount} löydöstä` : "Älykäs haku"}
                   className={cx(
                     "flex h-[4.8rem] w-full max-w-[5.35rem] flex-col items-center justify-center rounded-[0.95rem] border-[2px] px-1.5 text-center shadow-[0_2px_0_rgba(91,72,44,0.14),inset_0_0_0_2px_rgba(255,255,255,0.45)] transition active:translate-y-[1px]",
                     hasFoundProducts
@@ -702,9 +713,9 @@ export default function ZiiplyMobileSearchCard({
                         löydöstä
                       </div>
                       <div className="mt-1 text-[0.62rem] font-black leading-[0.92] text-[#6f5630]">
-                        Näytä
+                        Avaa
                         <br />
-                        →
+                        luettelo
                       </div>
                     </>
                   ) : (
@@ -778,18 +789,15 @@ export default function ZiiplyMobileSearchCard({
               <div className="relative z-10 mt-1.5 overflow-hidden rounded-[1.05rem] border-[2px] border-[#d8bd75] bg-[#fffaf0]/88 shadow-[0_2px_0_rgba(91,72,44,0.11),inset_0_0_0_2px_rgba(255,255,255,0.42)]">
                 <button
                   type="button"
-                  onClick={() => {
-                    autoSearchInputRef.current = cleanInput;
-                    setTriggeredSearchInput(cleanInput);
-                    onNormalSearch?.();
-                  }}
+                  onClick={handleOpenFindingsLedger}
                   className="flex w-full items-center gap-2 border-b-[2px] border-[#d8bd75] bg-gradient-to-b from-[#fff1bf] to-[#f4df9f] px-3 py-[0.58rem] text-left text-[0.82rem] font-black text-[#174c2c] shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] active:bg-[#f1d987]"
                 >
                   <span className="grid h-[1.36rem] w-[1.36rem] shrink-0 place-items-center rounded-full border border-[#0b6330] bg-[#159948] text-[0.72rem] text-[#fff7dc]">
                     🔎
                   </span>
-                  <span className="min-w-0 flex-1 truncate">
-                    Näytä kaikki löydökset ({foundCount})
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate">Avaa löytöluettelo ({foundCount})</span>
+                    <span className="block truncate text-[0.64rem] font-black italic text-[#7a6335]">{foundCount} löydöstä luettelossa</span>
                   </span>
                   <span className="text-[1.02rem] text-[#0b6330]">›</span>
                 </button>
@@ -817,7 +825,7 @@ export default function ZiiplyMobileSearchCard({
             )}
 
             <div className="relative z-10 mt-1.5 flex justify-center rounded-[1rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/72 px-3 py-2 text-center text-[0.72rem] font-black leading-tight text-[#23502c] shadow-[inset_0_0_0_2px_rgba(255,255,255,0.38)]" style={{ fontFamily: cooperFont }}>
-              Ostoslista-haku käytössä · Gösta hakee tarjoukset erikseen
+              Löytöluettelo avautuu vihreästä rivistä tai keskikortista
             </div>
 
             <div className="relative z-10 mx-auto mt-2 h-[2px] w-[92%] rounded-full bg-[#b58b3d]/55 shadow-[0_1px_0_rgba(255,255,255,0.55)]" />
