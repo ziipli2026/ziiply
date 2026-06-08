@@ -15312,6 +15312,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               }}
               onOfferSearch={handleMainOfferSearch}
               onNormalSearch={handleMainNormalSearch}
+              onOpenResults={() => {
+                const readyQuery = activeNormalSearchTerm || input.trim();
+                if (normalResults.length > 0 && readyQuery) {
+                  setMobileResultsReadyQueryV537(readyQuery);
+                  setNormalSearchAttempted(true);
+                  setActiveResult("none");
+                } else {
+                  void handleMainNormalSearch();
+                }
+              }}
               onVoiceClick={() => toggleVoiceInput()}
               onScannerClick={openEanModal}
               voiceState={isListening ? "recording" : "idle"}
