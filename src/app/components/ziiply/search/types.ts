@@ -28,13 +28,19 @@ export type ZiiplySearchProductLike = {
   imageUrl?: string | null;
 };
 
-export type ZiiplyNormalSearchOptions = {
+export type ZiiplyNormalSearchOptions<
+  TProduct extends ZiiplySearchProductLike = ZiiplySearchProductLike
+> = {
+  limit?: number;
   maxResults?: number;
   maxSuggestions?: number;
   includeDebug?: boolean;
+  getBaseScore?: (product: TProduct) => number;
 };
 
-export type ZiiplyNormalSearchResult<TProduct extends ZiiplySearchProductLike = ZiiplySearchProductLike> = {
+export type ZiiplyNormalSearchResult<
+  TProduct extends ZiiplySearchProductLike = ZiiplySearchProductLike
+> = {
   query: string;
   normalizedQuery: string;
   correctedQuery?: string;
