@@ -1,3 +1,8 @@
+// V441_FREEZE_SCREEN_SEARCH_CACHE_AND_MOBILE_LANDSCAPE_BLOCKER
+// Korjaus: mobiililaitteen vaakasuunta peitetään pystyasentokehotteella eikä desktop/legacy-näkymä pääse näkyviin.
+// Vakautus: normaali tuotehaku käyttää freeze screen -periaatetta; vanhoja tuloksia ei tyhjennetä haun alussa.
+// Lisäys: normaali tuotehaku käyttää muistissa + sessionStoragessa hakutuloscachea ja päivittää vain jos data muuttuu.
+
 // V440_MOBILE_LANDSCAPE_FORCE_MOBILE_UI_AND_STABILITY_LAYER
 // Korjaus: touch/mobiililaite pysyy mobiilinäkymässä myös vaakatasossa.
 // iPhone/Android landscape ei saa aktivoida sm/desktop-debug/legacy-page-polkuja.
@@ -2361,6 +2366,7 @@ export default function Page() {
     Record<string, number>
   >({});
   const [keyboardOpenV320, setKeyboardOpenV320] = useState(false);
+  const [mobileLandscapeBlockedV441, setMobileLandscapeBlockedV441] = useState(false);
   const [gpsStorePickerBlockedV382, setGpsStorePickerBlockedV382] = useState(false);
   const gpsInitialVisiblePhaseRefV391 = useRef(true);
   const gpsWatchIdRefV391 = useRef<number | null>(null);
@@ -2525,6 +2531,36 @@ export default function Page() {
       window.removeEventListener("resize", updateKeyboardState);
       window.removeEventListener("focusin", updateKeyboardState);
       window.removeEventListener("focusout", updateKeyboardState);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const updateMobileLandscapeBlockV441 = () => {
+      const coarsePointer = window.matchMedia?.("(pointer: coarse)")?.matches ?? false;
+      const noHover = window.matchMedia?.("(hover: none)")?.matches ?? false;
+      const isLikelyMobile = coarsePointer || noHover || /Android|iPhone|iPad|iPod/i.test(window.navigator.userAgent || "");
+      const viewport = window.visualViewport;
+      const width = viewport?.width ?? window.innerWidth;
+      const height = viewport?.height ?? window.innerHeight;
+      const isLandscape = width > height;
+
+      setMobileLandscapeBlockedV441(Boolean(isLikelyMobile && isLandscape));
+    };
+
+    updateMobileLandscapeBlockV441();
+
+    window.visualViewport?.addEventListener("resize", updateMobileLandscapeBlockV441);
+    window.visualViewport?.addEventListener("scroll", updateMobileLandscapeBlockV441);
+    window.addEventListener("resize", updateMobileLandscapeBlockV441);
+    window.addEventListener("orientationchange", updateMobileLandscapeBlockV441);
+
+    return () => {
+      window.visualViewport?.removeEventListener("resize", updateMobileLandscapeBlockV441);
+      window.visualViewport?.removeEventListener("scroll", updateMobileLandscapeBlockV441);
+      window.removeEventListener("resize", updateMobileLandscapeBlockV441);
+      window.removeEventListener("orientationchange", updateMobileLandscapeBlockV441);
     };
   }, []);
 
@@ -3075,6 +3111,23 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
 
   const [normalResults, setNormalResults] = useState<Product[]>([]);
+  const normalResultsLatestRefV441 = useRef<Product[]>([]);
+  const normalSearchCacheRefV441 = useRef<
+    Map<
+      string,
+      {
+        results: Product[];
+        debug: SearchDebugEntry[];
+        readyQuery: string;
+        savedAt: number;
+      }
+    >
+  >(new Map());
+  const activeNormalSearchRequestRefV441 = useRef(0);
+  const normalSearchCacheHydratedRefV441 = useRef(false);
+  const NORMAL_SEARCH_CACHE_STORAGE_KEY_V441 = "ziiply-normal-search-cache-v441";
+  const NORMAL_SEARCH_CACHE_MAX_AGE_MS_V441 = 1000 * 60 * 20;
+  const NORMAL_SEARCH_CACHE_MAX_ITEMS_V441 = 24;
   const [normalSearchAttempted, setNormalSearchAttempted] = useState(false);
   const [searchDebug, setSearchDebug] = useState<SearchDebugEntry[]>([]);
   const [loadingNormal, setLoadingNormal] = useState(false);
@@ -3104,6 +3157,109 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   // kun haku/lataus lukitsee uuden navigoinnin. Lukitus koskee vain avausta.
   const searchBottomNavDisabled =
     !searchPanelOpen && (searchNavigationLocked || initialStoreSelectionLocked);
+
+  useEffect(() => {
+    normalResultsLatestRefV441.current = normalResults;
+  }, [normalResults]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (normalSearchCacheHydratedRefV441.current) return;
+
+    normalSearchCacheHydratedRefV441.current = true;
+
+    try {
+      const raw = window.sessionStorage.getItem(NORMAL_SEARCH_CACHE_STORAGE_KEY_V441);
+      if (!raw) return;
+
+      const parsed = JSON.parse(raw) as Array<[
+        string,
+        {
+          results: Product[];
+          debug: SearchDebugEntry[];
+          readyQuery: string;
+          savedAt: number;
+        },
+      ]>;
+
+      const now = Date.now();
+      const next = new Map<string, {
+        results: Product[];
+        debug: SearchDebugEntry[];
+        readyQuery: string;
+        savedAt: number;
+      }>();
+
+      for (const [key, value] of Array.isArray(parsed) ? parsed : []) {
+        if (!value || !Array.isArray(value.results)) continue;
+        if (now - Number(value.savedAt || 0) > NORMAL_SEARCH_CACHE_MAX_AGE_MS_V441) continue;
+        next.set(key, value);
+      }
+
+      normalSearchCacheRefV441.current = next;
+    } catch {}
+  }, []);
+
+  function getNormalResultsSignatureV441(items: Product[]) {
+    return items
+      .map((item: any) => {
+        const id = item?.id ?? item?.ean ?? item?.name ?? "";
+        const price = item?.price ?? item?.comparisonPrice ?? item?.comparisonPriceValue ?? "";
+        return `${id}:${price}`;
+      })
+      .join("|");
+  }
+
+  function setNormalResultsStableV441(next: Product[]) {
+    const currentSignature = getNormalResultsSignatureV441(normalResultsLatestRefV441.current);
+    const nextSignature = getNormalResultsSignatureV441(next);
+
+    if (currentSignature !== nextSignature) {
+      normalResultsLatestRefV441.current = next;
+      setNormalResults(next);
+    }
+  }
+
+  function buildNormalSearchCacheKeyV441(searchTerms: string[], forceEan: boolean) {
+    return [
+      searchCompareMode,
+      forceEan ? "ean" : "text",
+      storeCompareScope,
+      storeMode,
+      withinChain || "",
+      activeStores.sStoreId || "",
+      activeStores.kStoreId || "",
+      activeStores.sStoreName || "",
+      activeStores.kStoreName || "",
+      searchTerms.map((term) => normalize(String(term || ""))).join(","),
+    ].join("|");
+  }
+
+  function rememberNormalSearchCacheV441(
+    cacheKey: string,
+    value: {
+      results: Product[];
+      debug: SearchDebugEntry[];
+      readyQuery: string;
+      savedAt: number;
+    },
+  ) {
+    normalSearchCacheRefV441.current.set(cacheKey, value);
+
+    const entries = Array.from(normalSearchCacheRefV441.current.entries())
+      .sort((a, b) => Number(b[1]?.savedAt || 0) - Number(a[1]?.savedAt || 0))
+      .slice(0, NORMAL_SEARCH_CACHE_MAX_ITEMS_V441);
+
+    normalSearchCacheRefV441.current = new Map(entries);
+
+    try {
+      window.sessionStorage.setItem(
+        NORMAL_SEARCH_CACHE_STORAGE_KEY_V441,
+        JSON.stringify(entries),
+      );
+    } catch {}
+  }
+
   const [searchReadyBounceKeyV320, setSearchReadyBounceKeyV320] = useState(0);
   const [haeReadyBadgeTimerVisibleV520, setHaeReadyBadgeTimerVisibleV520] =
     useState(false);
@@ -7662,12 +7818,24 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setLastOptimizationSnapshot(null);
     }
 
-    // V537: uusi haku ei saa näyttää vanhoja hakutuloksia eikä avata tuloskorttia ennen uusia osumia.
-    setNormalResults([]);
-    setMobileResultsReadyQueryV537("");
+    // V441 Freeze Screen:
+    // Älä tyhjennä tuloksia haun alussa. Pidetään viimeisin vakaa näkymä ruudulla,
+    // näytetään mahdollinen cache heti ja päivitetään vasta kun uusi data on valmis.
+    const normalSearchCacheKeyV441 = buildNormalSearchCacheKeyV441(focusedSearchTerms, forceEan);
+    const cachedNormalSearchV441 = normalSearchCacheRefV441.current.get(normalSearchCacheKeyV441);
+
+    if (cachedNormalSearchV441) {
+      setNormalResultsStableV441(cachedNormalSearchV441.results);
+      setSearchDebug(cachedNormalSearchV441.debug || []);
+      setMobileResultsReadyQueryV537(cachedNormalSearchV441.readyQuery || focusedSearchTerms[0] || useTerms[0] || "");
+      setVisibleNormalCount(8);
+    }
+
+    const normalSearchRequestIdV441 = ++activeNormalSearchRequestRefV441.current;
+
     setLoadingNormal(true);
     setNormalSearchAttempted(true);
-    setSearchDebug([]);
+    if (!cachedNormalSearchV441) setSearchDebug([]);
     setVisibleNormalCount(8);
     if (isMainSearch) setNotFoundSearchTerms([]);
     setActiveNormalSearchTerm(focusedSearchTerms[0] || "");
@@ -7848,9 +8016,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         return next;
       });
 
+      if (normalSearchRequestIdV441 !== activeNormalSearchRequestRefV441.current) return;
+
+      const readyQueryV441 = unique.length > 0 ? focusedSearchTerms[0] || useTerms[0] || "" : "";
       setSearchDebug(debugEntries);
-      setNormalResults(unique);
-      setMobileResultsReadyQueryV537(unique.length > 0 ? focusedSearchTerms[0] || useTerms[0] || "" : "");
+      setNormalResultsStableV441(unique);
+      setMobileResultsReadyQueryV537(readyQueryV441);
+
+      rememberNormalSearchCacheV441(normalSearchCacheKeyV441, {
+        results: unique,
+        debug: debugEntries,
+        readyQuery: readyQueryV441,
+        savedAt: Date.now(),
+      });
 
       if (unique.length === 0) {
         const missingTerm = focusedSearchTerms[0] || useTerms[0] || "";
@@ -7890,14 +8068,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       } else {
         setGpsErrorMessage("GPS ei löydy");
       }
+      if (normalSearchRequestIdV441 !== activeNormalSearchRequestRefV441.current) return;
       setSearchDebug(debugEntries);
-      setNormalResults([]);
-      setMobileResultsReadyQueryV537("");
+      // V441: virheessä ei tyhjennetä viimeistä vakaata tulosnäkymää.
       if (isMainSearch) {
         setSearchPanelOpen(true);
       }
     } finally {
-      setLoadingNormal(false);
+      if (normalSearchRequestIdV441 === activeNormalSearchRequestRefV441.current) {
+        setLoadingNormal(false);
+      }
     }
   }
 
@@ -13858,6 +14038,20 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   return (
     <>
+      {mobileLandscapeBlockedV441 && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#123d32] px-6 text-center text-[#fff4cf] sm:hidden">
+          <div className="max-w-[24rem] rounded-[1.6rem] border-[3px] border-[#d8bd75] bg-[#173f2f] px-6 py-7 shadow-[0_8px_0_rgba(0,0,0,0.22),inset_0_0_0_2px_rgba(255,255,255,0.12)]">
+            <div className="mb-3 text-[2.4rem]">↻</div>
+            <div className="text-[1.25rem] font-black leading-tight" style={{ fontFamily: '"Cooper Black", Georgia, serif' }}>
+              Käännä puhelin pystyasentoon
+            </div>
+            <div className="mt-3 text-[0.92rem] font-bold leading-snug text-[#f6e7b8]">
+              Ziiply toimii mobiilissa vakaimmin pystynäkymässä.
+            </div>
+          </div>
+        </div>
+      )}
+
       <section
         className="hidden"
       >
