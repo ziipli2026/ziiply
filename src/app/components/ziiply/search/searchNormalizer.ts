@@ -77,16 +77,27 @@ export function getProductSearchText(product: {
   );
 }
 
+export type ZiiplyPackageSize = {
+  raw: string;
+  amount: number;
+  unit: string;
+};
+
 export function getProductPackageSize(product: {
   name?: string | null;
   title?: string | null;
   packageSize?: string | null;
-}): string {
-  const direct = normalizeSearchText(product.packageSize);
-  if (direct) return direct;
+}): ZiiplyPackageSize | null {
+  const source = String(product.packageSize || [product.name, product.title].filter(Boolean).join(" "));
 
-  const text = normalizeSearchText([product.name, product.title].filter(Boolean).join(" "));
+  const match = source.match(/\b(\d+(?:[,.]\d+)?)\s?(kg|g|l|ml|cl|kpl|pkt|ps|tlk)\b/i);
+  if (!match) return null;
 
-  const match = text.match(/\b\d+(?:[,.]\d+)?\s?(kg|g|l|ml|cl|kpl|pkt|ps|tlk)\b/i);
-  return match ? normalizeSearchText(match[0]) : "";
+  const raw = normalizeSearchText(match[0]);
+  const amount = Number(String(match[1]).replace(",", "."));
+  const unit = normalizeSearchText(match[2]);
+
+  if (!raw || !Number.isFinite(amount) || !unit) return null;
+
+  return { raw, amount, unit };
 }
