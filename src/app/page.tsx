@@ -1,3 +1,11 @@
+// V234_V233_REMOVE_HYVINKAA_LOCAL_QUERY_LOCK_DEBUG
+// Pohja: V233.
+// Korjaus rajattu GPS-kauppahaun query-listaan:
+// - Lähikauppahauissa ei enää anneta lähimmän AREAS/activeArea-kunnan (Hyvinkää) lukita local-haaraa.
+// - 05510/Jokela-Tuusula GPS-alueella lähikaupat haetaan ensin Jokela/Tuusula-nimillä.
+// - Tavaratalot saavat edelleen käyttää lähialueen Prisma/K-Citymarket-hakuja, joten Hyvinkään hyperit voivat löytyä.
+// - Ei muutoksia skanneriin/Bluetoothiin/EAN-polkuun.
+
 // V233_V232_AREA_QUALIFIED_STORE_QUERIES_NO_GLOBAL_MASS
 // Pohja: V232 debug.
 // Korjaus:
@@ -2787,35 +2795,63 @@ export default function Page() {
       queries.push(cleaned);
     };
 
-    // V233:
+    // V234:
     // Älä hae pelkillä valtakunnallisilla termeillä kuten "s-market" tai "prisma".
-    // V232 todisti, että se palauttaa koko Suomen kauppamassan (yli 2000 osumaa),
-    // jolloin ensimmäinen S/K-osuma voi olla Oulusta, Oripäästä tai Myyrmäestä.
-    // Sidotaan kauppatyyppi aina lähimpään AREA-labeliin/aliakseen.
-    const storeTerms = [
-      "prisma",
-      "k-citymarket",
-      "citymarket",
-      "s-market",
-      "sale",
-      "alepa",
-      "k-market",
-      "k-supermarket",
-    ];
+    // Mutta älä myöskään anna Hyvinkää/05510/activeArea-kunnan lukita lähikauppoja.
+    // 05510 GPS-koordinaatti on käytännössä Jokela/Tuusula-rajalla: lähikauppahaku
+    // pitää aloittaa Jokela/Tuusula-nimillä, kun taas tavaratalot saavat hakea myös
+    // Hyvinkään Prisma/K-Citymarket-osumia.
+    const hyperTerms = ["prisma", "k-citymarket", "citymarket"];
+    const localTerms = ["s-market", "sale", "alepa", "k-market", "k-supermarket"];
+
+    const isJokelaTuusulaGpsAreaV234 =
+      Number.isFinite(coords.latitude) &&
+      Number.isFinite(coords.longitude) &&
+      coords.latitude >= 60.53 &&
+      coords.latitude <= 60.66 &&
+      coords.longitude >= 24.95 &&
+      coords.longitude <= 25.16;
+
+    const localAreaNamesV234: string[] = [];
+    const hyperAreaNamesV234: string[] = [];
+    const addAreaNameV234 = (target: string[], value?: string | number | null) => {
+      const cleaned = String(value ?? "").trim();
+      if (!cleaned) return;
+      if (target.some((item) => normalize(item) === normalize(cleaned))) return;
+      target.push(cleaned);
+    };
+
+    if (isJokelaTuusulaGpsAreaV234) {
+      // Tämä poistaa käytännössä vanhan 05510 -> Hyvinkää -lähikauppalukon.
+      addAreaNameV234(localAreaNamesV234, "Jokela");
+      addAreaNameV234(localAreaNamesV234, "Tuusula");
+      addAreaNameV234(localAreaNamesV234, "Järvenpää");
+      addAreaNameV234(localAreaNamesV234, "Nurmijärvi");
+    }
 
     for (const entry of nearbyAreas) {
-      const areaNames = [
+      const names = [
         String(entry.area.label || ""),
         ...(entry.area.aliases || []).map((alias) => String(alias || "")),
       ]
         .map((value) => value.trim())
         .filter(Boolean);
 
-      for (const areaName of areaNames) {
-        for (const term of storeTerms) {
-          addQuery(`${term} ${areaName}`);
-        }
+      for (const areaName of names) {
+        addAreaNameV234(hyperAreaNamesV234, areaName);
+
+        // Lähikaupoissa Hyvinkää on juuri se vanha lukko, joka ohitti Jokela/Tuusula-osumat.
+        if (isJokelaTuusulaGpsAreaV234 && normalize(areaName).includes("hyvink")) continue;
+        addAreaNameV234(localAreaNamesV234, areaName);
       }
+    }
+
+    for (const areaName of localAreaNamesV234.slice(0, 10)) {
+      for (const term of localTerms) addQuery(`${term} ${areaName}`);
+    }
+
+    for (const areaName of hyperAreaNamesV234.slice(0, 10)) {
+      for (const term of hyperTerms) addQuery(`${term} ${areaName}`);
     }
 
     // Jos AREAS ei sisällä koordinaatteja, pidetään viimeisenä keinona reverse-geocode/query.
