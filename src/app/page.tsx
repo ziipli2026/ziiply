@@ -1,3 +1,12 @@
+// V233_V232_AREA_QUALIFIED_STORE_QUERIES_NO_GLOBAL_MASS
+// Pohja: V232 debug.
+// Korjaus:
+// - V232:n pelkät "prisma", "s-market", "k-market" -haut hakivat koko Suomen (2153 kauppaa).
+// - GPS-haussa ei enää ajeta valtakunnallisia geneerisiä kauppatyyppihakuja.
+// - Hakusanat sidotaan lähimpien AREAS-alueiden label/alias-arvoihin: esim. "s-market jokela", "k-market tuusula".
+// - Reverse/kunta jää edelleen viimeiseksi fallbackiksi.
+// - Debug-paneeli säilyy, skanneriin/Bluetoothiin ei kosketa.
+
 // V232_V230_GPS_COORDINATE_GENERIC_STORE_QUERIES_DEBUG
 // Pohja: V230, koska siinä lähikauppa-ranking/render toimii.
 // Korjaus vain kauppahaun query-järjestykseen:
@@ -2778,35 +2787,42 @@ export default function Page() {
       queries.push(cleaned);
     };
 
-    // V232: koordinaattihaku tarvitsee nykyisellä /api/store-search -reitillä myös
-    // jonkin ei-tyhjän hakusanan. Pelkkä tyhjä query palautti V231:ssä foundStores=0.
-    // Siksi haetaan ensin KAUPPATYYPPEJÄ koordinaateilla, ei kuntaa/postinumeroa.
-    // Näin Jokela/Tuusula-lähikaupat voivat tulla mukaan ilman Hyvinkää-lukkoa.
-    addQuery("", { allowEmpty: true });
-    addQuery("prisma");
-    addQuery("k-citymarket");
-    addQuery("s-market");
-    addQuery("sale");
-    addQuery("alepa");
-    addQuery("k-market");
-    addQuery("k-supermarket");
+    // V233:
+    // Älä hae pelkillä valtakunnallisilla termeillä kuten "s-market" tai "prisma".
+    // V232 todisti, että se palauttaa koko Suomen kauppamassan (yli 2000 osumaa),
+    // jolloin ensimmäinen S/K-osuma voi olla Oulusta, Oripäästä tai Myyrmäestä.
+    // Sidotaan kauppatyyppi aina lähimpään AREA-labeliin/aliakseen.
+    const storeTerms = [
+      "prisma",
+      "k-citymarket",
+      "citymarket",
+      "s-market",
+      "sale",
+      "alepa",
+      "k-market",
+      "k-supermarket",
+    ];
 
-    // Lähimmät AREA-haut saavat olla lisäapu, jos AREAS sisältää koordinaatteja.
-    // Ne tulevat vasta kauppatyyppien jälkeen, etteivät kunta-/label-hakusanat lukitse valintaa.
     for (const entry of nearbyAreas) {
-      const label = String(entry.area.label || "");
-      addQuery(label);
+      const areaNames = [
+        String(entry.area.label || ""),
+        ...(entry.area.aliases || []).map((alias) => String(alias || "")),
+      ]
+        .map((value) => value.trim())
+        .filter(Boolean);
 
-      for (const alias of entry.area.aliases || []) {
-        addQuery(alias);
+      for (const areaName of areaNames) {
+        for (const term of storeTerms) {
+          addQuery(`${term} ${areaName}`);
+        }
       }
     }
 
-    // Reverse-geocode-kaupunki on vain viimeinen vanhan API:n fallback,
-    // ei GPS-valinnan ensisijainen kunta/postinumero-lukko.
+    // Jos AREAS ei sisällä koordinaatteja, pidetään viimeisenä keinona reverse-geocode/query.
+    // Tätä ei käytetä ensisijaisena valintalukkoon, vaan ainoastaan siihen että API palauttaa jotain.
     addQuery(primaryQuery);
 
-    return queries.slice(0, 24);
+    return queries.slice(0, 48);
   }
 
   function setGpsVisibleMessageV391(areaLabel: string) {
