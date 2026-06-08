@@ -26,6 +26,14 @@ export type ZiiplyMobileSearchCardProduct = {
   [key: string]: any;
 };
 
+export type ZiiplyAddInputToCartOptions = {
+  source?: "mobileSearchCard" | string;
+  silent?: boolean;
+  keepInput?: boolean;
+  keepSearchPanelOpen?: boolean;
+  preventAutoSearch?: boolean;
+};
+
 export type ZiiplyMobileSearchCardProps = {
   open?: boolean;
   title?: string;
@@ -43,7 +51,7 @@ export type ZiiplyMobileSearchCardProps = {
   onInputChange?: (value: string) => void;
   searchMode?: "cart" | "single";
   onSearchModeChange?: (mode: "cart" | "single") => void;
-  onAddInputToCart?: () => void;
+  onAddInputToCart?: (options?: ZiiplyAddInputToCartOptions) => void;
   onOpenNotebook?: () => void;
   onOfferSearch?: () => void;
   onNormalSearch?: () => void;
@@ -810,26 +818,22 @@ export default function ZiiplyMobileSearchCard({
     setTriggeredSearchInput("");
     setSearchingAssistant(null);
 
-    onAddInputToCart?.();
-
     const rows = clean
       .split(/[,.\n]+/)
       .map((row) => row.trim())
       .filter(Boolean);
 
-    if (rows.length > 0 && (onAddProduct || onAdd)) {
-      rows.forEach((name, index) => {
-        const product: ZiiplyMobileSearchCardProduct = {
-          id: `manual-${Date.now()}-${index}`,
-          name,
-          title: name,
-          productName: name,
-        };
-
-        onAddProduct?.(product);
-        onAdd?.(product);
-      });
-    }
+    // V675: abstraktin tekstituotteen lisääminen hoidetaan parentin omalla
+    // ostoslistafunktiolla hiljaisena lisäyksenä. Ei kutsuta onAddProduct/onAdd
+    // täällä, koska ne käynnistävät tuotekortin normaalin lisäyspolun ja voivat
+    // avata/tyhjentää näkymiä -> iPhonella näkyvä pomppu/välähdys.
+    onAddInputToCart?.({
+      source: "mobileSearchCard",
+      silent: true,
+      keepInput: true,
+      keepSearchPanelOpen: true,
+      preventAutoSearch: true,
+    });
 
     const toastLabel =
       rows.length > 1
