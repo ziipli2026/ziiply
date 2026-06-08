@@ -1,6 +1,7 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V662_ORIGINAL_LAYOUT_GOSTA_EMPTY_SEARCH
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V663_SMART_SEARCH_UI_AND_CART_TOAST
+// Pohja: v662 toimiva layout. Muutos: hakukortti päivitetty älyhaulle, tarjoushanikka poistettu, ikonit suurennettu ja ostoslistaan lisäys saa näkyvän kuittauksen.
 // Pohja: v658 toimiva original-ulkoasu säilytetty sellaisenaan.
 // Muutos: Gösta saa käynnistyä myös tyhjällä hakukentällä, jotta tarjouskortti voi näyttää kaikki alueen tarjoukset.
 // Justiina ja koriinlisäys vaativat edelleen hakutekstin.
@@ -62,6 +63,12 @@ function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(" ");
 }
 
+function getProductDisplayName(product: ZiiplyMobileSearchCardProduct): string {
+  return String(
+    product.name || product.productName || product.title || product.brandName || ""
+  ).trim();
+}
+
 const cooperFont = '"Cooper Black", "Cooper Std Black", Georgia, serif';
 const serifFont = '"Baskerville", Georgia, serif';
 const copperplateFont = '"Copperplate", "Baskerville", Georgia, serif';
@@ -111,7 +118,7 @@ function EraserButton({
       onClick={onClick}
       aria-label="Tyhjennä hakukenttä"
       title="Tyhjennä hakukenttä"
-      className="absolute right-[2.9rem] top-1/2 z-20 grid h-[1.8rem] w-[1.8rem] -translate-y-1/2 place-items-center rounded-full border-[2px] border-[#d0aa4f] bg-[#fff1c9] text-[1.05rem] shadow-[0_2px_0_rgba(91,72,44,0.18),inset_0_0_0_1px_rgba(255,255,255,0.65)] active:translate-y-[calc(-50%+1px)]"
+      className="absolute right-[3.6rem] top-1/2 z-20 grid h-[2.35rem] w-[2.35rem] -translate-y-1/2 place-items-center rounded-full border-[2px] border-[#d0aa4f] bg-[#fff1c9] text-[1.22rem] shadow-[0_3px_0_rgba(91,72,44,0.18),inset_0_0_0_1px_rgba(255,255,255,0.65)] active:translate-y-[calc(-50%+1px)]"
     >
       🧽
     </button>
@@ -121,10 +128,12 @@ function EraserButton({
 function CartIconButton({
   visible,
   disabled,
+  success,
   onClick,
 }: {
   visible: boolean;
   disabled?: boolean;
+  success?: boolean;
   onClick?: () => void;
 }) {
   if (!visible) return null;
@@ -137,13 +146,15 @@ function CartIconButton({
       aria-label="Lisää koriin"
       title="Lisää koriin"
       className={cx(
-        "absolute right-[0.82rem] top-1/2 z-20 grid h-[1.8rem] w-[1.8rem] -translate-y-1/2 place-items-center rounded-full border-[2px] text-[1.0rem] shadow-[0_2px_0_rgba(91,72,44,0.18),inset_0_0_0_1px_rgba(255,255,255,0.55)] active:translate-y-[calc(-50%+1px)]",
+        "absolute right-[0.78rem] top-1/2 z-20 grid h-[2.35rem] w-[2.35rem] -translate-y-1/2 place-items-center rounded-full border-[2px] text-[1.22rem] shadow-[0_3px_0_rgba(91,72,44,0.20),inset_0_0_0_1px_rgba(255,255,255,0.55)] active:translate-y-[calc(-50%+1px)]",
         disabled
           ? "cursor-not-allowed border-[#9eb49a] bg-[#c7dcc2] text-[#eef5df] opacity-60"
-          : "border-[#0b6330] bg-gradient-to-b from-[#159948] to-[#087237] text-[#fff0d5]",
+          : success
+            ? "border-[#0b6330] bg-gradient-to-b from-[#20a958] to-[#0a7438] text-[#fff0d5]"
+            : "border-[#0b6330] bg-gradient-to-b from-[#159948] to-[#087237] text-[#fff0d5]",
       )}
     >
-      🛒
+      {success ? "✓" : "🛒"}
     </button>
   );
 }
@@ -384,7 +395,7 @@ export default function ZiiplyMobileSearchCard({
   const searchStartedAtRef = useRef(0);
   const searchClearTimerRef = useRef<number | null>(null);
   const latestSearchLoadingRef = useRef(false);
-  const [cartFlash, setCartFlash] = useState(false);
+  const [cartToast, setCartToast] = useState<string | null>(null);
 
   const cleanInput = input.trim();
   const notFoundCanShow =
@@ -431,31 +442,38 @@ export default function ZiiplyMobileSearchCard({
     loading,
   ]);
 
+  const suggestionItems = useMemo(() => {
+    const seen = new Set<string>();
+
+    return items
+      .map(getProductDisplayName)
+      .filter(Boolean)
+      .filter((name) => {
+        const key = name.toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      })
+      .slice(0, 5);
+  }, [items]);
+
   const predictiveText = useMemo(() => {
     const clean = input.trim();
 
     if (!clean) {
-      return "Justiina ehdottaa sopivia hakusanoja kirjoittaessasi.";
+      return "Kirjoita tuote – Ziiply ymmärtää myös kokis, juhlamokka ja nauta jauheliha.";
     }
 
     if (notFoundCanShow) {
       return `Hakemaasi “${clean}” ei löytynyt.`;
     }
 
-    const lastWord =
-      clean
-        .split(/[,\s]+/)
-        .filter(Boolean)
-        .at(-1) || clean;
+    if (suggestionItems.length > 0) {
+      return `Ehdotukset: ${suggestionItems.slice(0, 3).join(" · ")}`;
+    }
 
-    const suggestions = [
-      `${lastWord} tarjous`,
-      `${lastWord} halvin`,
-      `${lastWord} kotimainen`,
-    ];
-
-    return suggestions.join(" · ");
-  }, [input, notFoundCanShow]);
+    return `Tulkitaan hakuna: ${clean}`;
+  }, [input, notFoundCanShow, suggestionItems]);
 
   useEffect(() => {
     const clean = input.trim();
@@ -539,8 +557,13 @@ export default function ZiiplyMobileSearchCard({
       });
     }
 
-    setCartFlash(true);
-    window.setTimeout(() => setCartFlash(false), 950);
+    const toastLabel =
+      rows.length > 1
+        ? `${rows.length} tuotetta lisätty ostoslistaan`
+        : `${rows[0] || clean} lisätty ostoslistaan`;
+
+    setCartToast(toastLabel);
+    window.setTimeout(() => setCartToast(null), 2600);
   };
 
   const handleClearInput = () => {
@@ -570,7 +593,7 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V662_ORIGINAL_LAYOUT_GOSTA_EMPTY_SEARCH"
+      data-ziiply-mobile-search-card-version="UUSI_V663_SMART_SEARCH_UI_AND_CART_TOAST"
       className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.25rem)] z-[72] flex h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] max-h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] items-stretch justify-center overflow-hidden bg-transparent px-2 sm:hidden [transform:translateZ(0)] [backface-visibility:hidden] ${className}`}
     >
       <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.85rem] border-[3px] border-[#173f2f] bg-[#d9bd77] p-2 text-[#20301f] shadow-[0_7px_0_rgba(91,72,44,0.24),inset_0_0_0_2px_rgba(255,246,207,0.52)]">
@@ -580,12 +603,28 @@ export default function ZiiplyMobileSearchCard({
         </div>
 
         <div className="relative z-10 flex h-full min-h-0 flex-col px-1.5 pb-1.5 pt-1.5">
-          {cartFlash && (
+          {cartToast && (
             <div
-              className="pointer-events-none absolute left-1/2 top-[46%] z-[130] -translate-x-1/2 rounded-full border-[3px] border-[#0b6330] bg-[#fff1c8] px-5 py-2 text-[1rem] font-black italic text-[#174c2c] shadow-[0_4px_0_rgba(91,72,44,0.22)] animate-[ziiplyCartStamp_0.95s_ease-out_both]"
-              style={{ fontFamily: cooperFont }}
+              className="absolute left-3 right-3 bottom-[5.95rem] z-[130] rounded-[1.15rem] border-[3px] border-[#0b6330] bg-gradient-to-b from-[#124530] to-[#082c1d] px-4 py-3 text-[#fff5d9] shadow-[0_7px_0_rgba(91,72,44,0.24),0_12px_24px_rgba(0,0,0,0.22)] animate-[ziiplyCartToast_2.6s_ease-out_both]"
+              role="status"
+              aria-live="polite"
             >
-              Lisätty koriin
+              <div className="flex items-center gap-3">
+                <div className="grid h-[2.35rem] w-[2.35rem] shrink-0 place-items-center rounded-full border-[2px] border-[#fff0bd] bg-[#159948] text-[1.35rem] font-black text-[#fff7dc] shadow-[0_2px_0_rgba(0,0,0,0.22)]">
+                  ✓
+                </div>
+                <div className="min-w-0">
+                  <div
+                    className="text-[0.94rem] font-black leading-tight"
+                    style={{ fontFamily: cooperFont }}
+                  >
+                    Lisätty ostoslistaan
+                  </div>
+                  <div className="mt-0.5 truncate text-[0.82rem] font-bold leading-tight text-[#fff1bf]">
+                    {cartToast}
+                  </div>
+                </div>
+              </div>
             </div>
           )}
           <div className="grid grid-cols-[minmax(0,1fr)_6.8rem] items-start gap-2">
@@ -636,14 +675,14 @@ export default function ZiiplyMobileSearchCard({
               <div className="flex h-full items-center justify-center">
                 <div className="flex h-[4.8rem] w-full max-w-[5.35rem] flex-col items-center justify-center rounded-[0.95rem] border-[2px] border-[#d8bd75] bg-[#fff1bf]/78 px-1.5 text-center shadow-[0_2px_0_rgba(91,72,44,0.14),inset_0_0_0_2px_rgba(255,255,255,0.45)]">
                   <div className="text-[0.66rem] font-black uppercase leading-[0.92] text-[#174c2c]">
-                    Tänään
+                    Älykäs
                     <br />
-                    halvin
+                    haku
                   </div>
                   <div className="mt-1 text-[0.62rem] font-black leading-[0.92] text-[#6f5630]">
-                    kori
+                    tuotteet
                     <br />
-                    lähelläsi
+                    oikein
                   </div>
                 </div>
               </div>
@@ -657,7 +696,7 @@ export default function ZiiplyMobileSearchCard({
             </div>
 
             <div className="mt-1.5">
-              <div className="relative isolate h-[2.85rem] overflow-hidden rounded-[1.15rem] border-[2px] border-[#9d8350] bg-[#fff4d3] px-[0.34rem] py-[0.32rem] shadow-[0_3px_0_rgba(91,72,44,0.16),inset_0_3px_8px_rgba(91,65,28,0.10)]">
+              <div className="relative isolate h-[3.35rem] overflow-hidden rounded-[1.28rem] border-[2px] border-[#9d8350] bg-[#fff4d3] px-[0.34rem] py-[0.32rem] shadow-[0_3px_0_rgba(91,72,44,0.16),inset_0_3px_8px_rgba(91,65,28,0.10)]">
                 <textarea
                   ref={inputRef}
                   value={input}
@@ -675,12 +714,16 @@ export default function ZiiplyMobileSearchCard({
                     }
                   }}
                   rows={1}
+                  autoCorrect="on"
+                  spellCheck={true}
+                  autoCapitalize="sentences"
+                  enterKeyHint="search"
                   placeholder={
                     searchMode === "single"
                       ? "Kirjoita yksi tuote"
                       : "maito, kahvi"
                   }
-                  className="block h-full w-full resize-none overflow-hidden rounded-[0.92rem] border-0 bg-[#fffaf0] px-4 py-[0.32rem] pr-[5.65rem] text-center text-[1.08rem] font-black leading-[1.0] text-[#102216] outline-none placeholder:text-[#7d7461]"
+                  className="block h-full w-full resize-none overflow-hidden rounded-[1.02rem] border-0 bg-[#fffaf0] px-4 py-[0.45rem] pr-[6.55rem] text-center text-[1.26rem] font-black leading-[1.05] text-[#102216] outline-none placeholder:text-[#7d7461]"
                   style={{ fontFamily: hasText ? serifFont : cooperFont }}
                 />
 
@@ -688,13 +731,38 @@ export default function ZiiplyMobileSearchCard({
                 <CartIconButton
                   visible={hasText}
                   disabled={!hasText}
+                  success={cartToast !== null}
                   onClick={handleAddInputToCart}
                 />
               </div>
             </div>
 
-            <div className="relative z-10 mt-1.5 flex justify-center">
-              <ModeToggle mode={searchMode} onModeChange={onSearchModeChange} />
+            {hasText && suggestionItems.length > 0 && (
+              <div className="relative z-10 mt-1.5 overflow-hidden rounded-[1.05rem] border-[2px] border-[#d8bd75] bg-[#fffaf0]/88 shadow-[0_2px_0_rgba(91,72,44,0.11),inset_0_0_0_2px_rgba(255,255,255,0.42)]">
+                {suggestionItems.map((name, index) => (
+                  <button
+                    key={`${name}-${index}`}
+                    type="button"
+                    onClick={() => {
+                      onInputChange?.(name);
+                      autoSearchInputRef.current = name;
+                      setTriggeredSearchInput(name);
+                      window.setTimeout(() => onNormalSearch?.(), 0);
+                    }}
+                    className="flex w-full items-center gap-2 border-b border-[#e2c987]/65 px-3 py-[0.46rem] text-left text-[0.78rem] font-black text-[#183f2e] last:border-b-0 active:bg-[#fff1bf]"
+                  >
+                    <span className="grid h-[1.25rem] w-[1.25rem] shrink-0 place-items-center rounded-full border border-[#d8bd75] bg-[#fff4cf] text-[0.72rem] text-[#6f5630]">
+                      🔎
+                    </span>
+                    <span className="min-w-0 flex-1 truncate">{name}</span>
+                    <span className="text-[0.92rem] text-[#0b6330]">›</span>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <div className="relative z-10 mt-1.5 flex justify-center rounded-[1rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/72 px-3 py-2 text-center text-[0.72rem] font-black leading-tight text-[#23502c] shadow-[inset_0_0_0_2px_rgba(255,255,255,0.38)]" style={{ fontFamily: cooperFont }}>
+              Ostoslista-haku käytössä · Gösta hakee tarjoukset erikseen
             </div>
 
             <div className="relative z-10 mx-auto mt-2 h-[2px] w-[92%] rounded-full bg-[#b58b3d]/55 shadow-[0_1px_0_rgba(255,255,255,0.55)]" />
@@ -757,11 +825,11 @@ export default function ZiiplyMobileSearchCard({
             50% { transform: translateY(-3px) rotate(2deg); }
           }
 
-          @keyframes ziiplyCartStamp {
-            0% { opacity: 0; transform: translate(-50%, 8px) scale(0.92); }
-            18% { opacity: 1; transform: translate(-50%, 0) scale(1.04); }
-            72% { opacity: 1; transform: translate(-50%, 0) scale(1); }
-            100% { opacity: 0; transform: translate(-50%, -8px) scale(0.98); }
+          @keyframes ziiplyCartToast {
+            0% { opacity: 0; transform: translateY(12px) scale(0.98); }
+            12% { opacity: 1; transform: translateY(0) scale(1); }
+            84% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-8px) scale(0.99); }
           }
         `}</style>
       </section>
