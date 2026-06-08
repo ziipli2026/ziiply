@@ -1,3 +1,10 @@
+// V225_BUILDFIX_ACTIVE_STORE_ID_STRING_NUMBER_COMPARE
+// Pohja: V224
+// Korjaus:
+// - activeStores.sStoreId/kStoreId voivat olla string | number uuden resolverin jälkeen.
+// - hasActiveStores muuntaa id:t Number(...)-muotoon ennen > 0 -vertailua.
+// - Ei logiikka-, GPS-, skanneri- tai Bluetooth-muutoksia.
+
 // V224_BUILD_FIX_IMPORT_STORE_SELECTION_CORE
 // Pohja: V223.
 // Build-fix:
@@ -3950,7 +3957,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   ]);
 
   const hasActiveStores =
-    activeStores.sStoreId > 0 && activeStores.kStoreId > 0;
+    Number(activeStores.sStoreId) > 0 && Number(activeStores.kStoreId) > 0;
 
   const selectedMapStoresV433 = useMemo(() => {
     const selected = [
