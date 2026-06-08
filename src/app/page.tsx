@@ -1,3 +1,5 @@
+// V435_MAP_OVERLAY_SCROLL_FIX: karttaoverlayn karttakorkeus rajattu ja kauppalista muutettu scrollaavaksi, jotta toinen kauppa ei jää piiloon.
+
 // V235_V234_REMOVE_LOCAL_DEBUG_OVERLAY
 // Pohja: V234.
 // Korjaus:
@@ -16138,7 +16140,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 </button>
               </div>
 
-              <div className="relative min-h-0 flex-1 bg-[#fff8df]">
+              <div className="relative min-h-[220px] flex-[0_0_45%] bg-[#fff8df]">
                 <iframe
                   title="Ziiply kauppakartta"
                   src={mapStoresIframeSrcV433}
@@ -16148,7 +16150,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 />
               </div>
 
-              <div className="space-y-2 border-t border-[#d6bd76] bg-[#fff8dc] p-3">
+              <div className="min-h-0 flex-1 overflow-y-auto border-t border-[#d6bd76] bg-[#fff8dc] p-3 pb-[8rem]">
                 {gpsCoordsV320 ? (
                   <div className="rounded-2xl bg-[#e7f6ee] px-3 py-2 text-sm font-black text-[#087a3a]">
                     Oma sijainti mukana reittilinkeissä.
