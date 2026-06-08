@@ -1,3 +1,10 @@
+// V226_BUILDFIX_FETCH_STORE_ID_STRING_OR_NUMBER
+// Pohja: V225.
+// Build-fix:
+// - fetchSProducts ja fetchKProducts sallivat storeId-arvoksi string | number.
+// - Uusi store-selection-core voi palauttaa id:t merkkijonona, mutta API-kutsu stringifioi ne joka tapauksessa.
+// - Ei logiikka-, GPS-, render- eikä skannerimuutoksia.
+
 // V225_BUILDFIX_ACTIVE_STORE_ID_STRING_NUMBER_COMPARE
 // Pohja: V224
 // Korjaus:
@@ -4212,7 +4219,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   async function fetchSProducts(
     search: string,
-    storeId: number,
+    storeId: string | number,
   ): Promise<Product[]> {
     const response = await fetch(
       `/api/s-products?search=${encodeURIComponent(search)}&store=${encodeURIComponent(String(storeId))}`,
@@ -4243,7 +4250,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   async function fetchKProducts(
     search: string,
-    storeId: number,
+    storeId: string | number,
   ): Promise<KProduct[]> {
     const response = await fetch(
       `/api/k-products?search=${encodeURIComponent(search)}&store=${encodeURIComponent(String(storeId))}`,
