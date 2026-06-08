@@ -1,67 +1,106 @@
-/**
- * Ziiply normal search synonym seed list.
- * Location: src/app/components/ziiply/search/searchSynonyms.ts
- *
- * This is the hand-written seed. Later this can be enriched from S-kaupat
- * autocomplete/category responses and Ziiply learning logs.
- */
-
-import { normalizeFi, uniqueStable } from "./searchNormalizer";
+import { normalizeSearchText } from "./searchNormalizer";
 
 export type ZiiplySynonymGroup = {
   canonical: string;
   terms: string[];
-  categoryHints: string[];
+  categories?: string[];
+  notes?: string[];
 };
 
 export const ZIIPLY_SYNONYM_GROUPS: ZiiplySynonymGroup[] = [
   {
     canonical: "maito",
-    terms: ["maito", "kevytmaito", "rasvaton maito", "täysmaito", "laktoositon maito", "maitojuoma"],
-    categoryHints: ["maidot", "maitotuotteet"],
+    terms: [
+      "maito",
+      "kevytmaito",
+      "rasvaton maito",
+      "täysmaito",
+      "laktoositon maito",
+      "maitojuoma",
+      "luomumaito",
+      "hyla maito",
+    ],
+    categories: ["maidot", "maidot ja piimät", "maito, munat ja rasvat"],
   },
   {
     canonical: "kahvi",
-    terms: ["kahvi", "suodatinkahvi", "jauhettu kahvi", "kahvipapu", "juhla mokka", "presidentti", "kulta katriina"],
-    categoryHints: ["kahvit", "kuivatuotteet"],
+    terms: [
+      "kahvi",
+      "suodatinkahvi",
+      "jauhettu kahvi",
+      "juhla mokka",
+      "presidentti",
+      "kulta katriina",
+      "kahvipapu",
+    ],
+    categories: ["kahvit", "kuivatuotteet"],
   },
   {
     canonical: "cola",
-    terms: ["cola", "kokis", "cokis", "kookis", "coca cola", "coca-cola", "pepsi", "pepsi max", "virvoitusjuoma", "limsa"],
-    categoryHints: ["cola", "virvoitusjuomat", "juomat"],
+    terms: [
+      "cola",
+      "coca cola",
+      "coca-cola",
+      "pepsi",
+      "pepsi max",
+      "cola zero",
+      "virvoitusjuoma",
+      "limsa",
+      "limonadi",
+    ],
+    categories: ["virvoitusjuomat", "juomat"],
   },
   {
     canonical: "jauheliha",
-    terms: ["jauheliha", "naudan jauheliha", "sika nauta", "sika-nauta", "paistijauheliha", "nauta 10", "nauta 17"],
-    categoryHints: ["lihat", "tuoretuotteet"],
-  },
-  {
-    canonical: "kananmuna",
-    terms: ["kananmuna", "kananmunat", "munat", "muna"],
-    categoryHints: ["kananmunat", "maitotuotteet"],
-  },
-  {
-    canonical: "leipä",
-    terms: ["leipä", "ruisleipä", "paahtoleipä", "sämpylä", "rieska"],
-    categoryHints: ["leivät", "leipomo"],
+    terms: [
+      "jauheliha",
+      "naudan jauheliha",
+      "sika nauta",
+      "sika-nauta",
+      "broilerin jauheliha",
+      "kanan jauheliha",
+    ],
+    categories: ["lihat", "tuoretuotteet"],
   },
 ];
 
 export function getSynonymGroupForQuery(query: string): ZiiplySynonymGroup | null {
-  const q = normalizeFi(query);
+  const q = normalizeSearchText(query);
   if (!q) return null;
 
   return (
     ZIIPLY_SYNONYM_GROUPS.find((group) => {
-      const terms = [group.canonical, ...group.terms].map(normalizeFi);
-      return terms.some((term) => term === q || q.includes(term) || term.includes(q));
+      const canonical = normalizeSearchText(group.canonical);
+      const terms = group.terms.map(normalizeSearchText);
+
+      return canonical === q || terms.includes(q) || terms.some((term) => term.includes(q) || q.includes(term));
     }) || null
   );
 }
 
-export function expandSearchSynonyms(query: string, limit = 10): string[] {
-  const q = normalizeFi(query);
+export function getSynonymTermsForQuery(query: string): string[] {
   const group = getSynonymGroupForQuery(query);
-  const terms = group ? [group.canonical, ...group.terms] : [query];
-  return uniqueStable([q, ...terms.map(normalizeFi)].filter(Boolean)).slice(0, limit);
+  if (!group) return [];
+
+  return Array.from(new Set([group.canonical, ...group.terms, ...(group.categories || [])]))
+    .map((value) => String(value || "").trim())
+    .filter(Boolean);
+}
+
+export function expandQueryWithSynonyms(query: string, maxTerms = 12): string[] {
+  const clean = normalizeSearchText(query);
+  const terms = [query, clean, ...getSynonymTermsForQuery(query)]
+    .map((value) => String(value || "").trim())
+    .filter(Boolean);
+
+  return Array.from(new Set(terms)).slice(0, maxTerms);
+}
+
+export function isSynonymMatch(query: string, value: string): boolean {
+  const qTerms = getSynonymTermsForQuery(query).map(normalizeSearchText);
+  const v = normalizeSearchText(value);
+
+  if (!v || qTerms.length === 0) return false;
+
+  return qTerms.some((term) => v === term || v.includes(term) || term.includes(v));
 }
