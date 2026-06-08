@@ -1,6 +1,6 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V665_FINDINGS_LEDGER_GATE
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V667_LEDGER_SUMMARY_AND_TUNING_KNOB
 // Pohja: v664 toimiva älyhakukortti. Muutos: löytöluetteloon siirtymiselle lisätty oma callback, 1900-luvun henkinen teksti ja painettava keskimmäinen laatikko.
 // Pohja: v658 toimiva original-ulkoasu säilytetty sellaisenaan.
 // Muutos: Gösta saa käynnistyä myös tyhjällä hakukentällä, jotta tarjouskortti voi näyttää kaikki alueen tarjoukset.
@@ -58,6 +58,13 @@ export type ZiiplyMobileSearchCardProps = {
   onScannerClick?: () => void;
   voiceState?: "idle" | "recording" | "processing";
   scannerState?: "idle" | "active" | "processing";
+
+  /**
+   * Göstan ja Justiinan automaattihaun käynnistysviive millisekunteina.
+   * Jos ei anneta, kortti käyttää omaa localStorage-muistia.
+   */
+  autoSearchDelayMs?: number;
+  onAutoSearchDelayChange?: (delayMs: number) => void;
 };
 
 function cx(...classes: Array<string | false | null | undefined>) {
@@ -73,6 +80,49 @@ function getProductDisplayName(product: ZiiplyMobileSearchCardProduct): string {
 const cooperFont = '"Cooper Black", "Cooper Std Black", Georgia, serif';
 const serifFont = '"Baskerville", Georgia, serif';
 const copperplateFont = '"Copperplate", "Baskerville", Georgia, serif';
+
+const SEARCH_TEMPO_OPTIONS = [
+  { key: "slow", label: "Rauhallinen", icon: "🐌", delayMs: 2500, angle: -35 },
+  { key: "normal", label: "Normaali", icon: "🐭", delayMs: 1200, angle: 0 },
+  { key: "fast", label: "Vikkelä", icon: "🐇", delayMs: 550, angle: 35 },
+] as const;
+
+type SearchTempoKey = (typeof SEARCH_TEMPO_OPTIONS)[number]["key"];
+
+function getTempoByDelay(delayMs: number | null | undefined) {
+  if (!delayMs) return SEARCH_TEMPO_OPTIONS[1];
+
+  return SEARCH_TEMPO_OPTIONS.reduce((best, option) => {
+    const bestDiff = Math.abs(best.delayMs - delayMs);
+    const optionDiff = Math.abs(option.delayMs - delayMs);
+    return optionDiff < bestDiff ? option : best;
+  }, SEARCH_TEMPO_OPTIONS[1]);
+}
+
+function formatEuroValue(value: unknown): string | null {
+  const numberValue =
+    typeof value === "number"
+      ? value
+      : typeof value === "string"
+        ? Number(value.replace(",", ".").replace(/[^0-9.\-]/g, ""))
+        : NaN;
+
+  if (!Number.isFinite(numberValue) || numberValue <= 0) return null;
+
+  return `${numberValue.toFixed(2).replace(".", ",")} €`;
+}
+
+function getProductStoreKey(product: ZiiplyMobileSearchCardProduct): string {
+  return String(
+    product.storeName ||
+      product.store ||
+      product.shopName ||
+      product.shop ||
+      product.chain ||
+      product.chainName ||
+      ""
+  ).trim();
+}
 
 function GreenPillButton({
   label,
@@ -290,6 +340,73 @@ function RetroAssetButton({
   );
 }
 
+function SearchTempoKnob({
+  value,
+  onChange,
+}: {
+  value: SearchTempoKey;
+  onChange: (value: SearchTempoKey) => void;
+}) {
+  const current =
+    SEARCH_TEMPO_OPTIONS.find((option) => option.key === value) ||
+    SEARCH_TEMPO_OPTIONS[1];
+
+  const rotateTempo = () => {
+    const index = SEARCH_TEMPO_OPTIONS.findIndex((option) => option.key === current.key);
+    const next = SEARCH_TEMPO_OPTIONS[(index + 1) % SEARCH_TEMPO_OPTIONS.length];
+    onChange(next.key);
+  };
+
+  return (
+    <div className="flex h-full items-center justify-center">
+      <div className="relative flex h-[4.85rem] w-full max-w-[5.55rem] flex-col items-center justify-center rounded-[1.05rem] border-[2px] border-[#d8bd75] bg-[#fff1bf]/72 px-1 shadow-[0_2px_0_rgba(91,72,44,0.14),inset_0_0_0_2px_rgba(255,255,255,0.48)]">
+        <div
+          className="absolute left-1/2 top-[0.20rem] -translate-x-1/2 text-[0.72rem] leading-none drop-shadow-[0_1px_0_rgba(255,255,255,0.85)]"
+          aria-hidden="true"
+        >
+          🐌
+        </div>
+        <div
+          className="absolute left-[0.26rem] top-1/2 -translate-y-1/2 text-[0.72rem] leading-none drop-shadow-[0_1px_0_rgba(255,255,255,0.85)]"
+          aria-hidden="true"
+        >
+          🐭
+        </div>
+        <div
+          className="absolute right-[0.24rem] top-1/2 -translate-y-1/2 text-[0.72rem] leading-none drop-shadow-[0_1px_0_rgba(255,255,255,0.85)]"
+          aria-hidden="true"
+        >
+          🐇
+        </div>
+
+        <button
+          type="button"
+          onClick={rotateTempo}
+          aria-label={`Hakutahti ${current.label}`}
+          title={`Hakutahti: ${current.label}`}
+          className="relative mt-[0.18rem] grid h-[2.68rem] w-[2.68rem] place-items-center rounded-full border-[3px] border-[#5d4322] bg-[radial-gradient(circle_at_35%_28%,#fff8dc_0_8%,#d6c08e_15%,#806239_55%,#24180d_100%)] shadow-[0_5px_0_rgba(91,72,44,0.28),0_9px_15px_rgba(0,0,0,0.18),inset_0_0_0_2px_rgba(255,246,207,0.35)] transition active:translate-y-[1px]"
+        >
+          <span
+            className="absolute left-1/2 top-[0.33rem] h-[1.04rem] w-[0.18rem] origin-bottom -translate-x-1/2 rounded-full bg-[#8f2018] shadow-[0_0_0_1px_rgba(255,239,189,0.45)] transition-transform duration-200"
+            style={{ transform: `translateX(-50%) rotate(${current.angle}deg)` }}
+          />
+          <span className="h-[0.58rem] w-[0.58rem] rounded-full bg-[#f7e1a2] shadow-[inset_0_1px_2px_rgba(0,0,0,0.25)]" />
+        </button>
+
+        <div
+          className="mt-[0.28rem] text-center text-[0.50rem] font-black uppercase leading-none tracking-[0.08em] text-[#174c2c]"
+          style={{ fontFamily: copperplateFont }}
+        >
+          Hakutahti
+        </div>
+        <div className="mt-[0.08rem] text-center text-[0.52rem] font-black leading-none text-[#6f5630]">
+          {current.label}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function InlineSearchRunner({
   assistant,
 }: {
@@ -381,6 +498,8 @@ export default function ZiiplyMobileSearchCard({
   onScannerClick,
   voiceState = "idle",
   scannerState = "idle",
+  autoSearchDelayMs,
+  onAutoSearchDelayChange,
 }: ZiiplyMobileSearchCardProps) {
   const items = Array.isArray(products)
     ? products
@@ -398,6 +517,14 @@ export default function ZiiplyMobileSearchCard({
   const searchClearTimerRef = useRef<number | null>(null);
   const latestSearchLoadingRef = useRef(false);
   const [cartToast, setCartToast] = useState<string | null>(null);
+  const [tempoKey, setTempoKey] = useState<SearchTempoKey>(() => {
+    if (typeof window === "undefined") return "normal";
+    const stored = window.localStorage.getItem("ziiply-search-tempo");
+    return stored === "slow" || stored === "normal" || stored === "fast"
+      ? stored
+      : "normal";
+  });
+  const [tempoToast, setTempoToast] = useState<string | null>(null);
 
   const cleanInput = input.trim();
   const notFoundCanShow =
@@ -461,6 +588,47 @@ export default function ZiiplyMobileSearchCard({
 
   const foundCount = items.length;
   const hasFoundProducts = hasText && foundCount > 0;
+  const effectiveTempo = autoSearchDelayMs
+    ? getTempoByDelay(autoSearchDelayMs)
+    : SEARCH_TEMPO_OPTIONS.find((option) => option.key === tempoKey) || SEARCH_TEMPO_OPTIONS[1];
+  const effectiveAutoSearchDelayMs = effectiveTempo.delayMs;
+  const cheapestPrice = useMemo(() => {
+    const prices = items
+      .map((item) => {
+        const raw = item.price ?? item.currentPrice ?? item.unitPrice ?? item.comparisonPrice;
+        return typeof raw === "number"
+          ? raw
+          : typeof raw === "string"
+            ? Number(raw.replace(",", ".").replace(/[^0-9.\-]/g, ""))
+            : NaN;
+      })
+      .filter((value) => Number.isFinite(value) && value > 0);
+
+    if (prices.length === 0) return null;
+    return Math.min(...prices);
+  }, [items]);
+  const cheapestPriceText = formatEuroValue(cheapestPrice);
+  const storeCount = useMemo(() => {
+    const stores = new Set(
+      items.map(getProductStoreKey).filter((value) => value.length > 0),
+    );
+    return stores.size;
+  }, [items]);
+
+  const handleTempoChange = (next: SearchTempoKey) => {
+    const option =
+      SEARCH_TEMPO_OPTIONS.find((item) => item.key === next) ||
+      SEARCH_TEMPO_OPTIONS[1];
+
+    setTempoKey(option.key);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("ziiply-search-tempo", option.key);
+    }
+
+    onAutoSearchDelayChange?.(option.delayMs);
+    setTempoToast(`Hakutahti: ${option.label}`);
+    window.setTimeout(() => setTempoToast(null), 1600);
+  };
 
   const handleOpenFindingsLedger = () => {
     if (!hasFoundProducts) return;
@@ -524,7 +692,7 @@ export default function ZiiplyMobileSearchCard({
       setSearchingAssistant("justiina");
 
       onNormalSearch?.();
-    }, 7000);
+    }, effectiveAutoSearchDelayMs);
 
     return () => window.clearTimeout(timer);
   }, [
@@ -534,6 +702,7 @@ export default function ZiiplyMobileSearchCard({
     loadingOffers,
     loadingNormal,
     singleProductCompareLoading,
+    effectiveAutoSearchDelayMs,
     onNormalSearch,
   ]);
 
@@ -621,7 +790,7 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V666_AUTO_SEARCH_ANIMATION_LEDGER"
+      data-ziiply-mobile-search-card-version="UUSI_V667_LEDGER_SUMMARY_AND_TUNING_KNOB"
       className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.25rem)] z-[72] flex h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] max-h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] items-stretch justify-center overflow-hidden bg-transparent px-2 sm:hidden [transform:translateZ(0)] [backface-visibility:hidden] ${className}`}
     >
       <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.85rem] border-[3px] border-[#173f2f] bg-[#d9bd77] p-2 text-[#20301f] shadow-[0_7px_0_rgba(91,72,44,0.24),inset_0_0_0_2px_rgba(255,246,207,0.52)]">
@@ -631,6 +800,17 @@ export default function ZiiplyMobileSearchCard({
         </div>
 
         <div className="relative z-10 flex h-full min-h-0 flex-col px-1.5 pb-1.5 pt-1.5">
+          {tempoToast && (
+            <div
+              className="absolute left-1/2 top-[7.0rem] z-[135] -translate-x-1/2 rounded-full border-[2px] border-[#d8bd75] bg-[#fff1bf] px-4 py-2 text-center text-[0.78rem] font-black text-[#174c2c] shadow-[0_5px_0_rgba(91,72,44,0.16),0_10px_18px_rgba(0,0,0,0.12)] animate-[ziiplyTempoToast_1.6s_ease-out_both]"
+              role="status"
+              aria-live="polite"
+              style={{ fontFamily: cooperFont }}
+            >
+              {tempoToast}
+            </div>
+          )}
+
           {cartToast && (
             <div
               className="absolute left-3 right-3 bottom-[5.95rem] z-[130] rounded-[1.15rem] border-[3px] border-[#0b6330] bg-gradient-to-b from-[#124530] to-[#082c1d] px-4 py-3 text-[#fff5d9] shadow-[0_7px_0_rgba(91,72,44,0.24),0_12px_24px_rgba(0,0,0,0.22)] animate-[ziiplyCartToast_2.6s_ease-out_both]"
@@ -681,11 +861,35 @@ export default function ZiiplyMobileSearchCard({
             />
           </div>
 
-          <div className="relative z-10 mt-2 flex min-h-[3.05rem] items-center justify-center overflow-hidden rounded-[1.2rem] border-[2px] border-[#d2b170] bg-[#fff1bf] px-3 py-[0.42rem] text-center text-[clamp(0.78rem,2.55vw,0.94rem)] font-black leading-[1.08] text-[#6f5630] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_3px_0_rgba(91,72,44,0.12)]">
-            <span className="block w-full whitespace-normal">
-              {subtitle || predictiveText}
-            </span>
-          </div>
+          <button
+            type="button"
+            onClick={handleOpenFindingsLedger}
+            disabled={!hasFoundProducts}
+            className={cx(
+              "relative z-10 mt-2 flex min-h-[3.05rem] items-center justify-center overflow-hidden rounded-[1.2rem] border-[2px] border-[#d2b170] bg-[#fff1bf] px-3 py-[0.42rem] text-center text-[clamp(0.72rem,2.35vw,0.90rem)] font-black leading-[1.08] text-[#6f5630] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_3px_0_rgba(91,72,44,0.12)] transition active:translate-y-[1px]",
+              hasFoundProducts ? "cursor-pointer hover:brightness-[1.02]" : "cursor-default",
+            )}
+          >
+            {hasFoundProducts ? (
+              <span className="block w-full whitespace-normal">
+                <span className="block text-[0.70rem] uppercase tracking-[0.18em] text-[#174c2c]" style={{ fontFamily: copperplateFont }}>
+                  Löytöluettelossa
+                </span>
+                <span className="mt-0.5 block">
+                  {foundCount} tuotetta
+                  {storeCount > 0 ? ` · ${storeCount} kauppaa` : ""}
+                  {cheapestPriceText ? ` · halvin ${cheapestPriceText}` : ""}
+                </span>
+                <span className="mt-0.5 block text-[0.70rem] text-[#174c2c]">
+                  Näytä löydökset →
+                </span>
+              </span>
+            ) : (
+              <span className="block w-full whitespace-normal">
+                {subtitle || predictiveText}
+              </span>
+            )}
+          </button>
 
           <InlineSearchRunner assistant={searchingAssistant} />
 
@@ -700,48 +904,10 @@ export default function ZiiplyMobileSearchCard({
                 loading={loadingOffers}
               />
 
-              <div className="flex h-full items-center justify-center">
-                <button
-                  type="button"
-                  onClick={handleOpenFindingsLedger}
-                  disabled={!hasFoundProducts}
-                  aria-label={hasFoundProducts ? `Avaa löytöluettelo, ${foundCount} löydöstä` : "Älykäs haku"}
-                  className={cx(
-                    "flex h-[4.8rem] w-full max-w-[5.35rem] flex-col items-center justify-center rounded-[0.95rem] border-[2px] px-1.5 text-center shadow-[0_2px_0_rgba(91,72,44,0.14),inset_0_0_0_2px_rgba(255,255,255,0.45)] transition active:translate-y-[1px]",
-                    hasFoundProducts
-                      ? "border-[#0b6330] bg-gradient-to-b from-[#fff6c8] to-[#dff1c9] text-[#174c2c]"
-                      : "border-[#d8bd75] bg-[#fff1bf]/78 text-[#174c2c] cursor-default",
-                  )}
-                >
-                  {hasFoundProducts ? (
-                    <>
-                      <div className="text-[0.66rem] font-black uppercase leading-[0.92] text-[#174c2c]">
-                        {foundCount}
-                        <br />
-                        löydöstä
-                      </div>
-                      <div className="mt-1 text-[0.62rem] font-black leading-[0.92] text-[#6f5630]">
-                        Avaa
-                        <br />
-                        luettelo
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="text-[0.66rem] font-black uppercase leading-[0.92] text-[#174c2c]">
-                        Älykäs
-                        <br />
-                        haku
-                      </div>
-                      <div className="mt-1 text-[0.62rem] font-black leading-[0.92] text-[#6f5630]">
-                        tuotteet
-                        <br />
-                        oikein
-                      </div>
-                    </>
-                  )}
-                </button>
-              </div>
+              <SearchTempoKnob
+                value={effectiveTempo.key}
+                onChange={handleTempoChange}
+              />
 
               <AssistantButton
                 kind="justiina"
@@ -832,10 +998,6 @@ export default function ZiiplyMobileSearchCard({
               </div>
             )}
 
-            <div className="relative z-10 mt-1.5 flex justify-center rounded-[1rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/72 px-3 py-2 text-center text-[0.72rem] font-black leading-tight text-[#23502c] shadow-[inset_0_0_0_2px_rgba(255,255,255,0.38)]" style={{ fontFamily: cooperFont }}>
-              Löytöluettelo avautuu vihreästä rivistä tai keskikortista
-            </div>
-
             <div className="relative z-10 mx-auto mt-2 h-[2px] w-[92%] rounded-full bg-[#b58b3d]/55 shadow-[0_1px_0_rgba(255,255,255,0.55)]" />
 
             <div className="relative z-10 mx-auto mt-1.5 h-[5.05rem] w-full max-w-[23.6rem] overflow-visible rounded-[1.52rem] border-[2px] border-[#5f4019] bg-gradient-to-b from-[#c09243] via-[#7b5522] to-[#2a1a0d] p-[0.30rem] shadow-[0_4px_0_rgba(91,72,44,0.22),0_10px_18px_rgba(0,0,0,0.16),inset_0_1px_0_rgba(255,246,207,0.55)]">
@@ -901,6 +1063,13 @@ export default function ZiiplyMobileSearchCard({
             12% { opacity: 1; transform: translateY(0) scale(1); }
             84% { opacity: 1; transform: translateY(0) scale(1); }
             100% { opacity: 0; transform: translateY(-8px) scale(0.99); }
+          }
+
+          @keyframes ziiplyTempoToast {
+            0% { opacity: 0; transform: translate(-50%, -8px) scale(0.98); }
+            18% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+            78% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -6px) scale(0.99); }
           }
         `}</style>
       </section>
