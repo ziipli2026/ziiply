@@ -125,7 +125,12 @@ function sortedSuggestions(bucket: Map<string, ScoredSuggestion>, limit: number)
     .map(({ _key, _score, ...suggestion }) => suggestion);
 }
 
-function scoreCategoryLabel(label: string, query: string, intent: ReturnType<typeof resolveSearchIntentAI>, synonymTerms: string[]) {
+function scoreCategoryLabel(
+  label: string,
+  query: string,
+  intent: ReturnType<typeof resolveSearchIntentAI>,
+  synonymTerms: string[]
+) {
   const normalizedLabel = normalizeSearchText(label);
   const normalizedQuery = normalizeSearchText(query);
   let score = 20;
@@ -252,6 +257,7 @@ export function buildZiiplyAutocomplete(
     for (const label of [category, ...hierarchy].filter(Boolean)) {
       if (!label) continue;
       const score = scoreCategoryLabel(label, query, intent, synonymTerms) + Math.max(0, productScore / 10);
+
       if (textMatchesQuery(label, query, [...synonymTerms, ...intent.categoryHints]) || score >= 55) {
         addSuggestion(
           categoryBucket,
@@ -269,6 +275,7 @@ export function buildZiiplyAutocomplete(
 
     if (brand) {
       const score = scoreBrandLabel(brand, query, name) + Math.max(0, productScore / 12);
+
       if (textMatchesQuery(brand, query, synonymTerms) || score >= 45) {
         addSuggestion(
           brandBucket,
@@ -285,7 +292,6 @@ export function buildZiiplyAutocomplete(
     }
   }
 
-  // Intent category hints are useful even before a perfect product match exists.
   for (const hint of intent.categoryHints) {
     addSuggestion(
       categoryBucket,
@@ -324,3 +330,5 @@ export function getAutocompleteLabels(result: ZiiplyAutocompleteResult) {
     brands: result.brands.map((item) => item.label),
   };
 }
+
+export const buildSearchAutocompleteSuggestions = buildZiiplyAutocomplete;
