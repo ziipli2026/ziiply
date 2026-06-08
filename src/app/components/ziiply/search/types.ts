@@ -14,6 +14,37 @@ export type ZiiplySearchSuggestion = {
   reason?: string;
 };
 
+export type ZiiplySearchProductLike = {
+  id?: string | number | null;
+  ean?: string | null;
+  name?: string | null;
+  title?: string | null;
+  brand?: string | null;
+  brandName?: string | null;
+  category?: string | null;
+  hierarchyPath?: string[] | string | null;
+  packageSize?: string | null;
+  comparisonPriceUnit?: string | null;
+  imageUrl?: string | null;
+};
+
+export type ZiiplyNormalSearchOptions = {
+  maxResults?: number;
+  maxSuggestions?: number;
+  includeDebug?: boolean;
+};
+
+export type ZiiplyNormalSearchResult<TProduct extends ZiiplySearchProductLike = ZiiplySearchProductLike> = {
+  query: string;
+  normalizedQuery: string;
+  correctedQuery?: string;
+  products: TProduct[];
+  suggestions: ZiiplySearchSuggestion[];
+  categories: ZiiplySearchSuggestion[];
+  brands: ZiiplySearchSuggestion[];
+  debug?: unknown;
+};
+
 export type ZiiplyAutocompleteResult = {
   query: string;
   correctedQuery?: string;
