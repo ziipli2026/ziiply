@@ -1,3 +1,9 @@
+// V227_BUILDFIX_K_MATCH_STORE_ID_STRING_OR_NUMBER
+// Pohja: V226.
+// Korjaus:
+// - findBestKMatchForStore hyväksyy storeId:n string | number, koska resolver voi palauttaa id:n merkkijonona.
+// - Ei logiikka-, GPS-, render- eikä skannerimuutoksia.
+
 // V226_BUILDFIX_FETCH_STORE_ID_STRING_OR_NUMBER
 // Pohja: V225.
 // Build-fix:
@@ -7641,7 +7647,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   async function findBestKMatchForStore(
     query: string,
-    storeId: number,
+    storeId: string | number,
     ean?: string,
   ) {
     let fallbackCandidate: KProduct | undefined;
