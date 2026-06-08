@@ -1,7 +1,7 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V670_TEMPO_KNOB_NO_ANIMALS
-// Pohja: v664 toimiva älyhakukortti. Muutos: löytöluetteloon siirtymiselle lisätty oma callback, 1900-luvun henkinen teksti ja painettava keskimmäinen laatikko.
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V674_RESULTS_BLUR_TOP_BOX_REMOVED_CART_AUTOGUARD
+// Pohja: v673. Muutos: yläinfo poistettu, SearchResultsCard avattaessa näppäimistö suljetaan vahvemmin, abstrakti koriinlisäys estää automaattihaun.
 // Pohja: v658 toimiva original-ulkoasu säilytetty sellaisenaan.
 // Muutos: Gösta saa käynnistyä myös tyhjällä hakukentällä, jotta tarjouskortti voi näyttää kaikki alueen tarjoukset.
 // Justiina ja koriinlisäys vaativat edelleen hakutekstin.
@@ -516,6 +516,8 @@ export default function ZiiplyMobileSearchCard({
   const [cartToast, setCartToast] = useState<string | null>(null);
   const cartToastTimerRef = useRef<number | null>(null);
   const autoSearchTimerRef = useRef<number | null>(null);
+  const localInputRef = useRef<HTMLTextAreaElement | null>(null);
+  const suppressedAutoSearchTermsRef = useRef<Set<string>>(new Set());
   const [tempoKey, setTempoKey] = useState<SearchTempoKey>(() => {
     if (typeof window === "undefined") return "normal";
     const stored = window.localStorage.getItem("ziiply-search-tempo");
@@ -627,12 +629,23 @@ export default function ZiiplyMobileSearchCard({
 
   const dismissKeyboard = () => {
     // iOS Safari pitää näppäimistön auki niin kauan kuin textarea on fokuksessa.
-    // Kun löytöluettelo avataan, fokuksen pitää poistua ennen SearchResultsCardin näyttämistä.
+    // Kun löytöluettelo avataan, fokuksen pitää poistua ENNEN SearchResultsCardin näyttämistä.
+    localInputRef.current?.blur();
     inputRef?.current?.blur();
 
     if (typeof document !== "undefined") {
       const active = document.activeElement;
       if (active instanceof HTMLElement) active.blur();
+    }
+
+    // iOS tarvitsee joskus vielä seuraavan frame-blurin, jos toolbar/animaatio on käynnissä.
+    if (typeof window !== "undefined") {
+      window.requestAnimationFrame(() => {
+        localInputRef.current?.blur();
+        inputRef?.current?.blur();
+        const active = document.activeElement;
+        if (active instanceof HTMLElement) active.blur();
+      });
     }
   };
 
@@ -641,17 +654,23 @@ export default function ZiiplyMobileSearchCard({
 
     dismissKeyboard();
 
+    if (autoSearchTimerRef.current !== null) {
+      window.clearTimeout(autoSearchTimerRef.current);
+      autoSearchTimerRef.current = null;
+    }
+
+    setSearchingAssistant(null);
     autoSearchInputRef.current = cleanInput;
     userEditedSearchRef.current = false;
     setTriggeredSearchInput(cleanInput);
 
     if (onOpenResults) {
-      window.setTimeout(() => onOpenResults(), 0);
+      window.setTimeout(() => onOpenResults(), 220);
       return;
     }
 
     // Fallback: vanha parent-polku voi avata löydökset normaalin haun valmistuttua.
-    window.setTimeout(() => onNormalSearch?.(), 0);
+    window.setTimeout(() => onNormalSearch?.(), 220);
   };
 
   const predictiveText = useMemo(() => {
@@ -682,6 +701,10 @@ export default function ZiiplyMobileSearchCard({
 
     if (!open || !clean || clean.length < 2) return;
 
+    // V674: jos sana on lisätty ostoslistaan abstraktina tuotteena, se on tietoisesti
+    // käsitelty ilman hakua. Sama teksti ei saa myöhemmin laukaista Justiinan automaattihakua.
+    if (suppressedAutoSearchTermsRef.current.has(clean.toLowerCase())) return;
+
     // V671: automaattihaku saa käynnistyä vain käyttäjän uuden kirjoitusmuutoksen jälkeen.
     // Tämä estää tilanteen, jossa SearchResultsCard avautuu hetkeksi, hakukortti remounttaa
     // samalla tekstillä ja Justiina käynnistää saman haun uudelleen ilman käyttäjän uutta syötettä.
@@ -705,6 +728,7 @@ export default function ZiiplyMobileSearchCard({
 
       const latest = input.trim();
       if (!latest || latest.length < 2) return;
+      if (suppressedAutoSearchTermsRef.current.has(latest.toLowerCase())) return;
       if (autoSearchInputRef.current === latest) return;
 
       autoSearchInputRef.current = latest;
@@ -767,8 +791,10 @@ export default function ZiiplyMobileSearchCard({
     const clean = input.trim();
     if (!clean) return;
 
-    // V672: tämä on "lisää abstrakti tuote ostoslistaan" -toiminto, ei haku.
+    // V674: tämä on "lisää abstrakti tuote ostoslistaan" -toiminto, ei haku.
     // Estetään kaikki tähän samaan kirjoitettuun sanaan liittyvät automaattihaut.
+    suppressedAutoSearchTermsRef.current.add(clean.toLowerCase());
+
     if (autoSearchTimerRef.current !== null) {
       window.clearTimeout(autoSearchTimerRef.current);
       autoSearchTimerRef.current = null;
@@ -856,7 +882,7 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V669_CART_BUTTON_AND_TOP_TOAST"
+      data-ziiply-mobile-search-card-version="UUSI_V674_RESULTS_BLUR_TOP_BOX_REMOVED_CART_AUTOGUARD"
       className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.25rem)] z-[72] flex h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] max-h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] items-stretch justify-center overflow-hidden bg-transparent px-2 sm:hidden [transform:translateZ(0)] [backface-visibility:hidden] ${className}`}
     >
       <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.85rem] border-[3px] border-[#173f2f] bg-[#d9bd77] p-2 text-[#20301f] shadow-[0_7px_0_rgba(91,72,44,0.24),inset_0_0_0_2px_rgba(255,246,207,0.52)]">
@@ -927,36 +953,6 @@ export default function ZiiplyMobileSearchCard({
             />
           </div>
 
-          <button
-            type="button"
-            onClick={handleOpenFindingsLedger}
-            disabled={!hasFoundProducts}
-            className={cx(
-              "relative z-10 mt-2 flex min-h-[3.05rem] items-center justify-center overflow-hidden rounded-[1.2rem] border-[2px] border-[#d2b170] bg-[#fff1bf] px-3 py-[0.42rem] text-center text-[clamp(0.72rem,2.35vw,0.90rem)] font-black leading-[1.08] text-[#6f5630] shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_3px_0_rgba(91,72,44,0.12)] transition active:translate-y-[1px]",
-              hasFoundProducts ? "cursor-pointer hover:brightness-[1.02]" : "cursor-default",
-            )}
-          >
-            {hasFoundProducts ? (
-              <span className="block w-full whitespace-normal">
-                <span className="block text-[0.70rem] uppercase tracking-[0.18em] text-[#174c2c]" style={{ fontFamily: copperplateFont }}>
-                  Löytöluettelossa
-                </span>
-                <span className="mt-0.5 block">
-                  {foundCount} tuotetta
-                  {storeCount > 0 ? ` · ${storeCount} kauppaa` : ""}
-                  {cheapestPriceText ? ` · halvin ${cheapestPriceText}` : ""}
-                </span>
-                <span className="mt-0.5 block text-[0.70rem] text-[#174c2c]">
-                  Näytä löydökset →
-                </span>
-              </span>
-            ) : (
-              <span className="block w-full whitespace-normal">
-                {subtitle || predictiveText}
-              </span>
-            )}
-          </button>
-
           <InlineSearchRunner assistant={searchingAssistant} />
 
           {/* V641: kevyt hakuanimaatio on nyt omalla varatulla radallaan, ei koko ruudun overlayna.
@@ -986,7 +982,12 @@ export default function ZiiplyMobileSearchCard({
             <div className="mt-1.5">
               <div className="relative isolate h-[3.35rem] overflow-hidden rounded-[1.28rem] border-[2px] border-[#9d8350] bg-[#fff4d3] px-[0.34rem] py-[0.32rem] shadow-[0_3px_0_rgba(91,72,44,0.16),inset_0_3px_8px_rgba(91,65,28,0.10)]">
                 <textarea
-                  ref={inputRef}
+                  ref={(node) => {
+                    localInputRef.current = node;
+                    if (inputRef) {
+                      (inputRef as React.MutableRefObject<HTMLTextAreaElement | null>).current = node;
+                    }
+                  }}
                   value={input}
                   onFocus={keepPageAnchoredOnInputFocus}
                   onClick={keepPageAnchoredOnInputFocus}
