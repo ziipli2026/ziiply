@@ -1,3 +1,10 @@
+// V224_BUILD_FIX_IMPORT_STORE_SELECTION_CORE
+// Pohja: V223.
+// Build-fix:
+// - lisätty puuttuva resolveZiiplyPageStoreSelection-importti.
+// - ei logiikkamuutoksia kauppavalintaan.
+// - ei muutoksia skanneriin / Bluetooth-inputtiin / EAN-polkuun.
+
 // V223_STORE_SELECTION_CORE_EXTRACTED_FROM_PAGE
 // Pohja: käyttäjän V202 Bluetooth-viivakoodinlukijalla.
 // Korjaus:
@@ -1113,6 +1120,7 @@ import {
   type ZiiplyStoreKind,
   type ZiiplyStoreMode,
 } from "./components/ziiply/location";
+import { resolveZiiplyPageStoreSelection } from "./components/ziiply/location/ziiplyStoreSelectionCore";
 import {
   GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147,
   cleanZiiplyGostaOfferResultsV146,
