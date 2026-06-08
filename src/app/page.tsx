@@ -1,3 +1,12 @@
+// V231_V230_REMOVE_GPS_REVERSE_POSTAL_MUNICIPALITY_LOCK_DEBUG_COORDS
+// Pohja: V230. Korjaus rajattu paikannuksen kunta/postinumero-lukkoon:
+// - GPS-polku ei enää syötä reverse-geocodattua kuntaa applyLocation-queryksi.
+// - GPS-polku saa ajaa tyhjällä queryllä koordinaattihakuna.
+// - postinumero -> kunta -muunnos ajetaan vain manuaalihaussa, ei GPS:ssä.
+// - activeArea ei käynnisty enää AREAS[0]/Hyvinkää-oletuksella.
+// - debug-paneeli näyttää GPS-koordinaatit ja activeArea-labelin.
+// - Skanneriin/Bluetoothiin ei kosketa.
+
 // V230_V229_LOCAL_RANKING_NO_CUTOFF_DEBUG
 // Pohja: V229 debug.
 // Korjaus vain lähikauppahaaraan:
@@ -1566,7 +1575,7 @@ function topbarPanelClassV717(kind: "weather" | "electricity" | "fuel" | "calend
 
 function KauppiasMobileTopBar({
   hidden = false,
-  areaLabel = "Hyvinkää",
+  areaLabel = "Oma sijainti",
   gpsCoords = null,
   weatherEnabled = false,
   onWeatherBootGpsResolved,
@@ -2287,7 +2296,7 @@ export default function Page() {
     "cart",
   );
   const [locationInput, setLocationInput] = useState("");
-  const [activeArea, setActiveArea] = useState<Area>(AREAS[0]);
+  const [activeArea, setActiveArea] = useState<Area>({ label: "Oma sijainti", aliases: [] } as Area);
   const [storeMode, setStoreMode] = useState<StoreMode>("local");
   const [storeModeChosenV299, setStoreModeChosenV299] = useState(false);
   const selectedStoreModeRefV302 = useRef<StoreMode>("local");
@@ -4038,6 +4047,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         enabled: usingOwnLocation && Boolean(gpsCoordsV320),
         storeMode,
         gpsMode,
+        gpsLat: gpsCoordsV320 ? gpsCoordsV320.latitude.toFixed(6) : "-",
+        gpsLon: gpsCoordsV320 ? gpsCoordsV320.longitude.toFixed(6) : "-",
+        activeAreaLabel: activeArea.label || "-",
         foundStores: foundStores.length,
         apiSLocal: apiSLocal.length,
         apiKLocal: apiKLocal.length,
@@ -4068,6 +4080,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }, [
     activeStores.kStoreName,
     activeStores.sStoreName,
+    activeArea.label,
     foundStores,
     gpsCoordsV320,
     storeMode,
@@ -6612,13 +6625,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     coordsOverride?: { latitude: number; longitude: number } | null,
     silentStatusV137 = false,
   ) {
-    pushGpsDebugLogV492(`applyLocation() ENTRY source=${source} query=${String(queryOverride || locationInput)}`);
-    const rawQuery = (queryOverride || locationInput).trim();
+    pushGpsDebugLogV492(`applyLocation() ENTRY source=${source} query=${String(queryOverride || locationInput)} coords=${coordsOverride ? `${coordsOverride.latitude},${coordsOverride.longitude}` : "-"}`);
+    const rawQuery = source === "gps"
+      ? String(queryOverride ?? "").trim()
+      : (queryOverride || locationInput).trim();
     const setLocationStatusV137 = (message: string) => {
       if (!silentStatusV137) setLocationMessage(message);
     };
 
-    if (!rawQuery) {
+    if (!rawQuery && source !== "gps") {
       setLocationStatusV137("Kirjoita ensin kaupunki, alue tai postinumero");
       return;
     }
@@ -6639,14 +6654,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setStoreSearchLoading(true);
     setLocationStatusV137(
       source === "gps"
-        ? `Haetaan kauppoja alueelle ${rawQuery}`
+        ? "Haetaan kauppoja omasta sijainnista"
         : `Haetaan kauppoja alueelle ${rawQuery}`,
     );
 
     try {
       let query = rawQuery;
 
-      if (isFinnishPostalCode(rawQuery)) {
+      if (source !== "gps" && isFinnishPostalCode(rawQuery)) {
         setLocationStatusV137(`Haetaan aluetta postinumerolle ${rawQuery}`);
         const cityFromPostalCode = await resolvePostalCodeToCity(rawQuery);
 
@@ -6669,7 +6684,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       });
 
       setLocationStatusV137(
-        `Haetaan kauppoja alueelle ${query}`,
+        source === "gps"
+          ? "Haetaan kauppoja omasta sijainnista"
+          : `Haetaan kauppoja alueelle ${query}`,
       );
       const stores = await fetchStoresForLocationQuery(
         query,
@@ -6876,24 +6893,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setLocationMessageVisible(true);
 
     try {
-      const city = await reverseGeocodeCity(coords.latitude, coords.longitude);
-
-      if (!city) {
-        pushGpsDebugLogV492(`useOwnLocation reverse geocode EMPTY`);
-        setGpsErrorMessage("GPS ei löydy");
-        setLocationStatusV137("GPS ei löydy");
-        setLocationMessageVisible(true);
-        setUsingOwnLocation(false);
-        setGpsCoordsV320(null);
-        setStoreSearchLoading(false);
-        return;
-      }
-
+      // V231: GPS ei saa käyttää reverse-geocodattua kuntaa/postinumeroa kauppahaun querynä.
+      // Koordinaatti on totuus; reverse-geocode saa korkeintaan olla tekstinä muualla.
       setGpsErrorMessage("");
-      setLocationStatusV137(`${city} käytössä`);
+      setLocationStatusV137("Oma sijainti käytössä");
       setLocationMessageVisible(true);
       setLocationInput("");
-      await applyLocation(city, "gps", coords);
+      await applyLocation("", "gps", coords);
     } catch (error) {
       pushGpsDebugLogV492(`useOwnLocation CATCH code=${String((error as any)?.code ?? "?")}`);
       console.error(error);
@@ -7028,25 +7034,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
       };
-      pushGpsDebugLogV492(`useOwnLocation got coords, reverse geocode start`);
+      pushGpsDebugLogV492(`useOwnLocation got coords, coordinate apply start`);
       setGpsCoordsV320(nextGpsCoordsV485);
-      const city = await reverseGeocodeCity(
-        nextGpsCoordsV485.latitude,
-        nextGpsCoordsV485.longitude,
-      );
 
-      if (!city) {
-        pushGpsDebugLogV492(`useOwnLocation reverse geocode EMPTY`);
-        setGpsErrorMessage("GPS ei löydy");
-        setLocationMessage("GPS ei löydy");
-        setLocationMessageVisible(true);
-        gpsUserDisabledRefV306.current = true;
-        setUsingOwnLocation(false);
-        setGpsCoordsV320(null);
-        return;
-      }
-
-      pushGpsDebugLogV492(`useOwnLocation city=${city}`);
+      // V231: Älä reverse-geokoodaa kuntaa/postinumeroa GPS-kauppahaun queryksi.
+      // Tämä oli alkuperäinen Hyvinkää/05510-lukon reitti.
+      const city = "Oma sijainti";
+      pushGpsDebugLogV492(`useOwnLocation coordinate query only`);
       gpsResolvedCityV495 = city;
       gpsResolvedCoordsV495 = nextGpsCoordsV485;
       setGpsErrorMessage("");
@@ -7067,7 +7061,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setStoreMode("local");
       setStoreModeChosenV299(true);
       pushGpsDebugLogV492(`useOwnLocation applyLocation start`);
-      await applyLocation(city, "gps", nextGpsCoordsV485);
+      await applyLocation("", "gps", nextGpsCoordsV485);
       gpsPollLastAppliedCoordsRefV137.current = nextGpsCoordsV485;
       gpsPollLastAppliedAtRefV90.current = Date.now();
       gpsApplyLocationDoneV495 = true;
@@ -7200,12 +7194,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               return;
             }
 
-            const city = await reverseGeocodeCity(
-              nextCoords.latitude,
-              nextCoords.longitude,
-            );
-
-            if (!city || cancelled) return;
+            // V231: watchdog ei saa katkaista eikä lukita hakua reverse-geocodattuun kuntaan.
+            if (cancelled) return;
 
             gpsPollLastAppliedCoordsRefV137.current = nextCoords;
             gpsPollLastAppliedAtRefV90.current = Date.now();
@@ -7214,7 +7204,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             setGpsErrorMessage("");
             setLocationInput("");
 
-            await applyLocation(city, "gps", nextCoords, true);
+            await applyLocation("", "gps", nextCoords, true);
 
             if (cancelled) return;
 
@@ -13709,6 +13699,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           ) : (
             <div className="grid grid-cols-2 gap-x-3 gap-y-0.5">
               <span>storeMode/gpsMode</span><b>{String(localStoreDebugV229.storeMode)} / {String(localStoreDebugV229.gpsMode)}</b>
+              <span>gps lat/lon</span><b>{localStoreDebugV229.gpsLat} / {localStoreDebugV229.gpsLon}</b>
+              <span>activeArea</span><b>{localStoreDebugV229.activeAreaLabel}</b>
               <span>foundStores</span><b>{localStoreDebugV229.foundStores}</b>
               <span>api local S/K</span><b>{localStoreDebugV229.apiSLocal} / {localStoreDebugV229.apiKLocal}</b>
               <span>pool total</span><b>{localStoreDebugV229.pool}</b>
