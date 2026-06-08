@@ -96,6 +96,8 @@ export function expandQueryWithSynonyms(query: string, maxTerms = 12): string[] 
   return Array.from(new Set(terms)).slice(0, maxTerms);
 }
 
+export const expandSearchSynonyms = expandQueryWithSynonyms;
+
 export function isSynonymMatch(query: string, value: string): boolean {
   const qTerms = getSynonymTermsForQuery(query).map(normalizeSearchText);
   const v = normalizeSearchText(value);
