@@ -505,6 +505,7 @@ export default function ZiiplyMobileSearchCard({
   const hasText = input.trim().length > 0;
   const justiinaLoading = loadingNormal || singleProductCompareLoading;
   const autoSearchInputRef = useRef("");
+  const userEditedSearchRef = useRef(false);
   const [triggeredSearchInput, setTriggeredSearchInput] = useState("");
   const [searchingAssistant, setSearchingAssistant] = useState<
     "gosta" | "justiina" | null
@@ -627,6 +628,7 @@ export default function ZiiplyMobileSearchCard({
     if (!hasFoundProducts) return;
 
     autoSearchInputRef.current = cleanInput;
+    userEditedSearchRef.current = false;
     setTriggeredSearchInput(cleanInput);
 
     if (onOpenResults) {
@@ -665,6 +667,12 @@ export default function ZiiplyMobileSearchCard({
     }
 
     if (!open || !clean || clean.length < 2) return;
+
+    // V671: automaattihaku saa käynnistyä vain käyttäjän uuden kirjoitusmuutoksen jälkeen.
+    // Tämä estää tilanteen, jossa SearchResultsCard avautuu hetkeksi, hakukortti remounttaa
+    // samalla tekstillä ja Justiina käynnistää saman haun uudelleen ilman käyttäjän uutta syötettä.
+    if (!userEditedSearchRef.current) return;
+
     if (loadingOffers || loadingNormal || singleProductCompareLoading) return;
     if (autoSearchInputRef.current === clean) return;
 
@@ -674,6 +682,7 @@ export default function ZiiplyMobileSearchCard({
       if (autoSearchInputRef.current === latest) return;
 
       autoSearchInputRef.current = latest;
+      userEditedSearchRef.current = false;
       setTriggeredSearchInput(latest);
 
       if (searchClearTimerRef.current !== null) {
@@ -706,6 +715,7 @@ export default function ZiiplyMobileSearchCard({
     const clean = input.trim();
     if (clean.length >= 2) {
       autoSearchInputRef.current = clean;
+      userEditedSearchRef.current = false;
       setTriggeredSearchInput(clean);
     }
 
@@ -766,6 +776,7 @@ export default function ZiiplyMobileSearchCard({
 
   const handleClearInput = () => {
     autoSearchInputRef.current = "";
+    userEditedSearchRef.current = false;
     setTriggeredSearchInput("");
     onInputChange?.("");
   };
@@ -927,6 +938,7 @@ export default function ZiiplyMobileSearchCard({
                   onClick={keepPageAnchoredOnInputFocus}
                   onChange={(event) => {
                     autoSearchInputRef.current = "";
+                    userEditedSearchRef.current = true;
                     setTriggeredSearchInput("");
                     onInputChange?.(event.target.value);
                   }}
