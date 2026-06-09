@@ -1,3 +1,11 @@
+// V464_VOICE_BT_RETRY_STABLE_AND_EAN_S_PRICE
+// Korjaus BT-kuulokemikkiin ja yhden ajon jälkeiseen jumiin:
+// - Mikrofonin getUserMedia-lupakyselyä ei enää avata ja pysäytetä joka nauhoituskerralla, jos lupa on jo kerran saatu.
+// - BT-mikkiä ei enää varoiteta/pysäytellä ennen sanelua; BT saa rauhassa syöttää tekstin, vaikka viive on hitaampi.
+// - BT/mobile-tilassa no-speech timeout pidennetty 16 sekuntiin, ettei selain ehdi abortata ennen hidasta transkriptiota.
+// - recognition.onerror ei enää jätä vanhaa recognition-oliota tai prompttia lukitsemaan seuraavaa yritystä.
+// - Säilyttää V463 EAN S-kaupat-hintahydraation.
+
 // V463_EAN_S_BRANCH_PRICE_HYDRATION
 // Korjaus EAN/skannerihakuun:
 // - EAN-polku ei saa pudota S-ryhmän hintaa vain siksi, että suora EAN-haku palauttaa tuotteen ilman hintaa.
@@ -3509,6 +3517,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const voiceRecognitionStoppingRefV458 = useRef(false);
   const voiceNoSpeechTimeoutRefV461 = useRef<number | null>(null);
   const voiceForceJustiinaCartSearchRefV461 = useRef(false);
+  const voiceMicPermissionGrantedRefV464 = useRef(false);
+  const voiceBluetoothMicLikelyRefV464 = useRef(false);
   const cartSectionRef = useRef<HTMLElement | null>(null);
   const comparisonSectionRef = useRef<HTMLElement | null>(null);
   const compareOverlayScrollRef = useRef<HTMLDivElement | null>(null);
@@ -5898,9 +5908,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return false;
     }
 
+    // V464: älä avaa ja pysäytä mikrofoniraitaa joka kerralla.
+    // BT-kuulokkeilla tämä voi vaihtaa iOS/Androidin audioreitin tilaan, jossa
+    // seuraava SpeechRecognition.start() ei enää saa tekstiä. Kun lupa on jo
+    // kerran saatu, luotetaan siihen ja annetaan Web Speech API:n avata mikki itse.
+    if (voiceMicPermissionGrantedRefV464.current) {
+      return true;
+    }
+
     try {
-      // Tämä kutsu tehdään suoraan käyttäjän Äänitä-klikkauksen jatkeena,
-      // jotta iOS/Safari saa näyttää oman mikrofonilupakyselynsä.
+      // Tämä kutsu tehdään vain ensimmäisellä käyttäjän Äänitä-klikkauksella,
+      // jotta selain saa näyttää oman mikrofonilupakyselynsä.
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
@@ -5911,21 +5929,21 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       const audioTrack = stream.getAudioTracks?.()[0];
       const label = String(audioTrack?.label || "").toLowerCase();
-      const looksLikeBluetooth = /airpods|bluetooth|bt|buds|headset|hands-free|handsfree/.test(label);
+      voiceBluetoothMicLikelyRefV464.current = /airpods|bluetooth|bt|buds|headset|hands-free|handsfree/.test(label);
 
+      // Lupa on nyt varmistettu. Raita suljetaan heti, mutta vain tällä ensimmäisellä kerralla.
       stream.getTracks().forEach((track) => track.stop());
+      voiceMicPermissionGrantedRefV464.current = true;
 
-      if (looksLikeBluetooth) {
-        setVoicePromptText("Bluetooth-mikki havaittu. Jos tekstiä ei tule, irrota BT ja käytä puhelimen omaa mikrofonia.");
-        await waitVoiceMsV461(900);
-      }
-
+      // V464: BT:stä ei enää näytetä erillistä varoitusnotifikaatiota ennen sanelua,
+      // koska se katkaisi käytännössä käyttäjän flow'n ja BT-transkriptio voi tulla hitaasti.
       return true;
     } catch (error: any) {
       const name = String(error?.name || error?.message || "").toLowerCase();
       setIsListening(false);
       setVoiceProcessing(false);
       voiceIntroActiveRefV448.current = false;
+      voiceMicPermissionGrantedRefV464.current = false;
 
       if (name.includes("notallowed") || name.includes("permission") || name.includes("denied")) {
         setVoicePromptText("Mikrofonilupa on estetty. Salli mikrofoni selaimen osoiterivin/Safarin sivustoasetuksista ja kokeile uudelleen.");
@@ -5987,6 +6005,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setVoicePromptText("Kuuntelen...");
 
       clearVoiceNoSpeechTimeoutV461();
+      const noSpeechTimeoutMs = voiceBluetoothMicLikelyRefV464.current ? 16000 : 10000;
       voiceNoSpeechTimeoutRefV461.current = window.setTimeout(() => {
         if (voiceRecognitionSessionIdRefV458.current !== sessionId) return;
         if (voiceHeardSpeechRef.current || voiceLatestCleanedInputRef.current) return;
@@ -6000,8 +6019,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         recognitionRef.current = null;
         setIsListening(false);
         setVoiceProcessing(false);
-        setVoicePromptText("Puhetta ei tullut tekstiksi. Jos Bluetooth-kuulokkeet ovat kiinni, irrota ne tai valitse puhelimen oma mikrofoni ja kokeile uudelleen.");
-      }, 7000);
+        setVoicePromptText(
+          voiceBluetoothMicLikelyRefV464.current
+            ? "BT-mikiltä ei tullut tekstiä. Odota hetki tai kokeile puhelimen omaa mikrofonia."
+            : "Puhetta ei tullut tekstiksi. Tarkista mikrofoni ja kokeile uudelleen."
+        );
+      }, noSpeechTimeoutMs);
     };
 
     recognition.onend = () => {
@@ -6042,18 +6065,29 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
       clearVoiceNoSpeechTimeoutV461();
 
-      if (voiceHeardSpeechRef.current || voiceAutoSearchAfterStopRef.current) {
+      if (voiceHeardSpeechRef.current || voiceAutoSearchAfterStopRef.current || voiceLatestCleanedInputRef.current) {
         forceStartVoiceSearchV456();
         return;
       }
 
       voiceRecognitionStoppingRefV458.current = false;
+      voiceAutoSearchAfterStopRef.current = false;
+      voiceFallingEdgeSearchArmedRefV455.current = false;
       setVoiceProcessing(false);
-      setVoicePromptText(
-        event?.error === "not-allowed"
-          ? "Mikrofonilupa estetty. Salli mikrofoni selaimen asetuksista ja kokeile uudelleen."
-          : ""
-      );
+
+      const err = String(event?.error || "");
+      if (err === "not-allowed" || err === "service-not-allowed") {
+        voiceMicPermissionGrantedRefV464.current = false;
+        setVoicePromptText("Mikrofonilupa estetty. Salli mikrofoni selaimen asetuksista ja kokeile uudelleen.");
+      } else if (err === "no-speech" || err === "audio-capture") {
+        setVoicePromptText(
+          voiceBluetoothMicLikelyRefV464.current
+            ? "BT-mikki ei antanut tekstiä. Kokeile uudelleen tai vaihda puhelimen mikkiin."
+            : "Puhetta ei tullut tekstiksi. Kokeile uudelleen."
+        );
+      } else {
+        setVoicePromptText("Puhesanelu katkesi. Kokeile uudelleen.");
+      }
     };
 
     recognition.onresult = (event: any) => {
@@ -6376,6 +6410,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     voiceSessionActiveUntilRefV456.current = Date.now() + 30000;
     voiceRecognitionStoppingRefV458.current = false;
     setVoiceProcessing(false);
+    setVoicePromptText("");
 
     if (voiceSilenceTimeoutRef.current) {
       window.clearTimeout(voiceSilenceTimeoutRef.current);
