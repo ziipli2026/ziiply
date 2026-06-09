@@ -1,7 +1,8 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V674_RESULTS_BLUR_TOP_BOX_REMOVED_CART_AUTOGUARD
-// Pohja: v673. Muutos: yläinfo poistettu, SearchResultsCard avattaessa näppäimistö suljetaan vahvemmin, abstrakti koriinlisäys estää automaattihaun.
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V676_TOP_GUIDE_BOX_STABLE
+// Pohja: v675. Muutos: yläinfo palautettu rauhallisena ohjelaatikkona.
+// Ylälaatikossa näytetään vain pysyvä ohje tai ei-löytynyt-viesti; löytöluettelo-yhteenveto pysyy vain alaosassa.
 // Pohja: v658 toimiva original-ulkoasu säilytetty sellaisenaan.
 // Muutos: Gösta saa käynnistyä myös tyhjällä hakukentällä, jotta tarjouskortti voi näyttää kaikki alueen tarjoukset.
 // Justiina ja koriinlisäys vaativat edelleen hakutekstin.
@@ -474,6 +475,42 @@ function InlineSearchRunner({
   );
 }
 
+
+function TopGuidanceBox({
+  notFound,
+  query,
+}: {
+  notFound: boolean;
+  query: string;
+}) {
+  const clean = query.trim();
+
+  return (
+    <div className="relative z-10 mt-1.5 rounded-[1.15rem] border-[2px] border-[#d8bd75] bg-gradient-to-b from-[#fff1bf] to-[#f7e5ae] px-3 py-[0.58rem] text-center text-[#174c2c] shadow-[0_2px_0_rgba(91,72,44,0.12),inset_0_0_0_2px_rgba(255,255,255,0.48)]">
+      {notFound ? (
+        <div
+          className="text-[0.82rem] font-black leading-tight text-[#6f5630]"
+          style={{ fontFamily: cooperFont }}
+        >
+          Hakemaasi “{clean}” ei löytynyt.
+        </div>
+      ) : (
+        <>
+          <div
+            className="text-[0.80rem] font-black leading-tight text-[#174c2c]"
+            style={{ fontFamily: cooperFont }}
+          >
+            Justiina auttaa löytämään tuotteet ja tarjoukset.
+          </div>
+          <div className="mt-0.5 text-[0.66rem] font-bold leading-tight text-[#6f5630]">
+            Kirjoita tuote, tuoteryhmä tai useita tuotteita pilkulla erotettuna.
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function ZiiplyMobileSearchCard({
   open = true,
   title = "HAKU",
@@ -886,7 +923,7 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V674_RESULTS_BLUR_TOP_BOX_REMOVED_CART_AUTOGUARD"
+      data-ziiply-mobile-search-card-version="UUSI_V676_TOP_GUIDE_BOX_STABLE"
       className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.25rem)] z-[72] flex h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] max-h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] items-stretch justify-center overflow-hidden bg-transparent px-2 sm:hidden [transform:translateZ(0)] [backface-visibility:hidden] ${className}`}
     >
       <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.85rem] border-[3px] border-[#173f2f] bg-[#d9bd77] p-2 text-[#20301f] shadow-[0_7px_0_rgba(91,72,44,0.24),inset_0_0_0_2px_rgba(255,246,207,0.52)]">
@@ -957,7 +994,7 @@ export default function ZiiplyMobileSearchCard({
             />
           </div>
 
-          <InlineSearchRunner assistant={searchingAssistant} />
+          <TopGuidanceBox notFound={notFoundCanShow} query={cleanInput} />
 
           {/* V641: kevyt hakuanimaatio on nyt omalla varatulla radallaan, ei koko ruudun overlayna.
               mutta v637:n keyboard-stabiili ankkurointi palautetaan, jotta näppäimistö ei työnnä näkymää ylös. */}
