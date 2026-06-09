@@ -1,3 +1,10 @@
+// V471_SEARCH_NOT_FOUND_NOTICE_AFTER_RESULTS
+// Korjaus haun ei-löydy ilmoitukseen:
+// - Hakemaasi "xx" ei löydy -notif tulee vasta hakutuloksen valmistuttua, kun osumia on oikeasti 0.
+// - Ilmoitus ei riipu pelkästä voicePromptText-tilasta, joten se näkyy haun aikana/jälkeen vaikka sanelu on jo sammunut.
+// - Monen sanan jonossa puuttuva termi näytetään jokaiselle puuttuvalle sanalle erikseen ennen seuraavaa termiä.
+// - BT-sanelulogiikka pidetään V470-pohjassa, ei lisätä uusia mikki-warmup-kikkoja.
+
 // V470_VOICE_BT_RESTORE_V462_AND_NOT_FOUND_PER_TERM
 // Korjaus:
 // - Palauttaa BT-sanelun V462-tyyppiseen malliin: getUserMedia avataan vain luvan/BT-tunnistuksen takia, stream suljetaan heti,
@@ -3471,6 +3478,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setActiveNormalSearchTerm("");
     setMobileResultsReadyQueryV537("");
     setNotFoundSearchTerms([]);
+    setSearchNotFoundNoticeV471("");
+    if (searchNotFoundNoticeTimerRefV471.current) {
+      window.clearTimeout(searchNotFoundNoticeTimerRefV471.current);
+      searchNotFoundNoticeTimerRefV471.current = null;
+    }
     setOfferSearchQuerySnapshot("");
     setOfferSearchDoneForQuery("");
     setNormalSearchAttempted(false);
@@ -3533,6 +3545,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const [isListening, setIsListening] = useState(false);
   const [voiceProcessing, setVoiceProcessing] = useState(false);
   const [voicePromptText, setVoicePromptText] = useState("");
+  const [searchNotFoundNoticeV471, setSearchNotFoundNoticeV471] = useState("");
+  const searchNotFoundNoticeTimerRefV471 = useRef<number | null>(null);
   const recognitionRef = useRef<any>(null);
   const voiceOpenSearchPanelAfterResultRef = useRef(false);
   const voiceSilenceTimeoutRef = useRef<number | null>(null);
@@ -8876,6 +8890,33 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return filtered.length > 0 ? filtered : products;
   }
 
+  function showSearchNotFoundNoticeV471(term: string) {
+    if (typeof window === "undefined") return;
+
+    const cleanTerm = fixText(String(term || "")).trim();
+    if (!cleanTerm) return;
+
+    const notice = `Hakemaasi "${cleanTerm}" ei löydy.`;
+
+    if (searchNotFoundNoticeTimerRefV471.current) {
+      window.clearTimeout(searchNotFoundNoticeTimerRefV471.current);
+      searchNotFoundNoticeTimerRefV471.current = null;
+    }
+
+    setSearchNotFoundNoticeV471(notice);
+    setVoicePromptText(notice);
+    setNotFoundSearchTerms((current) =>
+      current.includes(cleanTerm) ? current : [...current, cleanTerm],
+    );
+
+    searchNotFoundNoticeTimerRefV471.current = window.setTimeout(() => {
+      setSearchNotFoundNoticeV471((current) =>
+        current === notice ? "" : current,
+      );
+      searchNotFoundNoticeTimerRefV471.current = null;
+    }, 3600);
+  }
+
   async function searchNormalPrices(termOverride?: string, forceEan = false) {
     const forceVoiceJustiinaCartSearch = voiceForceJustiinaCartSearchRefV461.current;
     const effectiveSearchCompareMode = forceVoiceJustiinaCartSearch ? "cart" : searchCompareMode;
@@ -9006,7 +9047,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setNormalSearchAttempted(true);
     if (!cachedNormalSearchV441) setSearchDebug([]);
     setVisibleNormalCount(8);
-    if (isMainSearch) setNotFoundSearchTerms([]);
+    if (isMainSearch) {
+      setNotFoundSearchTerms([]);
+      setSearchNotFoundNoticeV471("");
+      if (searchNotFoundNoticeTimerRefV471.current) {
+        window.clearTimeout(searchNotFoundNoticeTimerRefV471.current);
+        searchNotFoundNoticeTimerRefV471.current = null;
+      }
+    }
     setActiveNormalSearchTerm(focusedSearchTerms[0] || "");
     // Normaali haku avaa hakutulosten valintanäkymän, ei korivertailua.
     // Korivertailu avataan vain Vertailu-tabista tai ostoslistatoiminnoista.
@@ -9211,21 +9259,21 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       if (unique.length === 0) {
         const missingTerm = focusedSearchTerms[0] || useTerms[0] || "";
         if (missingTerm) {
-          // V470: käyttäjälle näkyvä tuotekohtainen ilmoitus. Monen tuotteen
-          // jonossa tämä päivittyy jokaisen puuttuvan hakusanan kohdalla erikseen.
-          setVoicePromptText(`Hakemaasi "${missingTerm}" ei löydy.`);
-          setNotFoundSearchTerms((current) =>
-            current.includes(missingTerm) ? current : [...current, missingTerm],
-          );
+          // V471: ilmoitus tehdään vasta valmiin tuloksen jälkeen.
+          // Tämä on erillinen notifikaatiotila, jotta äänihaun päättyminen
+          // tai voicePromptTextin nollaus ei piilota "ei löydy" -viestiä.
+          showSearchNotFoundNoticeV471(missingTerm);
         }
 
         const remainingTerms = useTerms.slice(focusedSearchTerms.length);
         if (remainingTerms.length > 0) {
           const remainingInput = remainingTerms.join(", ");
           setInput(remainingInput);
+          voiceForceJustiinaCartSearchRefV461.current = forceVoiceJustiinaCartSearch;
           window.setTimeout(() => {
+            voiceForceJustiinaCartSearchRefV461.current = forceVoiceJustiinaCartSearch;
             void searchNormalPrices(remainingInput);
-          }, 650);
+          }, 1100);
           return;
         }
       }
@@ -16790,14 +16838,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               }}
             />
 
-            {voicePromptText && (
+            {(searchNotFoundNoticeV471 || voicePromptText) && (
               <div
-                className="pointer-events-none fixed left-[13.5%] top-[calc(env(safe-area-inset-top)+19.92rem)] z-[9998] min-h-[1.35rem] max-w-[13.7rem] rounded-[0.82rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/96 px-3 py-[0.15rem] text-center text-[0.72rem] leading-[1.0] font-black italic text-[#174c2c] shadow-[0_3px_0_rgba(91,72,44,0.16),0_7px_14px_rgba(0,0,0,0.12)] sm:hidden"
+                className="pointer-events-none fixed left-1/2 top-[calc(env(safe-area-inset-top)+19.2rem)] z-[9998] min-h-[1.35rem] max-w-[15.5rem] -translate-x-1/2 rounded-[0.82rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/96 px-3 py-[0.15rem] text-center text-[0.72rem] leading-[1.0] font-black italic text-[#174c2c] shadow-[0_3px_0_rgba(91,72,44,0.16),0_7px_14px_rgba(0,0,0,0.12)] sm:hidden"
                 style={{ fontFamily: '"Cooper Black", Georgia, serif' }}
                 role="status"
-                aria-live="polite"
+                aria-live="assertive"
               >
-                {voicePromptText}
+                {searchNotFoundNoticeV471 || voicePromptText}
               </div>
             )}
 
