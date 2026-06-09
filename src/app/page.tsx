@@ -1,3 +1,10 @@
+// V457_VOICE_HARD_JUSTIINA_START_NO_ONEND_GATE
+// Korjaus automaattihakuun: Justiinan startti ei saa enää jäädä minkään onend-/state-/running-lukon taakse.
+// Yksi forceStartVoiceSearchV456()-polku sytyttää oranssin heti, pakottaa Hae-paneelin auki, asettaa inputin,
+// vaihtaa Koko kori -tilaan ja ajaa searchNormalPrices(cleaned)-haun suoraan.
+// Jos vanha voiceSearchRunningRef on jäänyt päälle, se nollataan ennen pakkoajoa.
+// Lisäksi stopVoiceInput ei enää tyhjennä kuultua tekstiä ennen kuin pakkohaun ehdokas on yritetty lukea.
+
 // V456_VOICE_RECORDER_OFF_FORCE_JUSTIINA_SEARCH
 // Korjaus äänihakuun: oranssi processing-lamppu ja Justiinan haku käynnistetään yhdestä pakotetusta triggeristä.
 // Triggeri kutsutaan hiljaisuustimeristä, recognition.onend/onerrorista, input-muutoksesta JA nauhurin stop-kohdasta.
@@ -5539,9 +5546,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const cleaned = getVoiceSearchCandidateV456(rawValue);
     if (!cleaned) return false;
 
+    // V457: tämä on KOVA Justiina-startti. Ei odoteta recognition.onend:iä,
+    // ei Enter-eventtiä eikä Reactin seuraavaa state-kierrosta. Jos jokin aiempi
+    // äänihaku jäi puolittain lukkoon, puretaan se ennen pakkoajoa.
+    voiceSearchRunningRefV453.current = false;
     voiceHeardSpeechRef.current = true;
-    voiceAutoSearchAfterStopRef.current = true;
-    voiceFallingEdgeSearchArmedRefV455.current = true;
+    voiceAutoSearchAfterStopRef.current = false;
+    voiceFallingEdgeSearchArmedRefV455.current = false;
     voiceInputFallbackArmedRefV454.current = false;
     voiceLatestCleanedInputRef.current = cleaned;
 
@@ -5555,22 +5566,24 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       voiceForceSearchTimeoutRefV456.current = null;
     }
 
-    // V456: tämän pitää näkyä heti UI:ssa. Jos oranssi lamppu ei syty,
-    // tämä funktio ei ole tullut kutsutuksi oikeasta kohdasta.
+    // Oranssi merkkivalo syttyy tästä heti. Jos tämä ei näy, tätä funktiota ei
+    // kutsuta näkyvästä nauhuripolusta tai käytössä on eri page-tiedosto.
     setIsListening(false);
     setVoiceProcessing(true);
     setSearchPanelOpen(true);
     setActiveResult("none");
+    setSearchCompareMode("cart");
+    setInput(cleaned);
 
     voiceForceSearchTimeoutRefV456.current = window.setTimeout(() => {
       voiceForceSearchTimeoutRefV456.current = null;
-      void runVoiceSearchFromSpeechV453(cleaned);
-    }, 0);
+      void runVoiceSearchFromSpeechV453(cleaned, true);
+    }, 25);
 
     return true;
   }
 
-  async function runVoiceSearchFromSpeechV453(rawValue?: string) {
+  async function runVoiceSearchFromSpeechV453(rawValue?: string, force = false) {
     const cleaned = getVoiceSearchCandidateV456(rawValue);
     if (!cleaned) {
       setIsListening(false);
@@ -5583,7 +5596,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return;
     }
 
-    if (voiceSearchRunningRefV453.current) return;
+    if (voiceSearchRunningRefV453.current && !force) return;
+
+    // V457: force=true on nauhurin sammumisen jälkeinen varma Justiina-käynnistys.
+    // Se saa ohittaa mahdollisen vanhan jumiin jääneen running-lukon.
     voiceSearchRunningRefV453.current = true;
     voiceAutoSearchAfterStopRef.current = false;
     voiceInputFallbackArmedRefV454.current = false;
@@ -5595,25 +5611,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     const voiceTerms = parseTerms(cleaned);
-    const currentSearchMode =
-      voiceTerms.length > 1 ? "cart" : voiceSearchCompareModeRef.current;
-    const searchTerm =
-      currentSearchMode === "single" ? getSingleSearchTerm(cleaned) : cleaned;
+    const searchTerm = voiceTerms.length > 1 ? cleaned : getSingleSearchTerm(cleaned) || cleaned;
 
     setIsListening(false);
     setVoiceProcessing(true);
     setSearchPanelOpen(true);
     setActiveResult("none");
+    setSearchCompareMode("cart");
+    setInput(searchTerm);
 
     try {
-      if (currentSearchMode === "single") {
-        setInput(searchTerm);
-        await searchNormalPrices(searchTerm);
-      } else {
-        setInput(cleaned);
-        await searchNormalPrices(cleaned);
-      }
-
+      // V457: aina Justiinan normaali tuotehaku samalla termillä. Ei mode-porttia.
+      await searchNormalPrices(searchTerm);
       scrollToNormalResults();
     } finally {
       setVoiceProcessing(false);
@@ -5881,7 +5890,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   function stopVoiceInput(searchAfterStop = false) {
     voiceAutoSearchAfterStopRef.current = Boolean(searchAfterStop);
 
-    if (!searchAfterStop) {
+    // V457: älä tyhjennä viimeistä puhetekstiä ennen pakkohaun yritystä.
+    // Muuten stop voi itse tuhota sen arvon, jolla Justiinan pitäisi lähteä.
+    const shouldTryForcedSearch = searchAfterStop || Boolean(getVoiceSearchCandidateV456());
+
+    if (!searchAfterStop && !shouldTryForcedSearch) {
       voiceHeardSpeechRef.current = false;
       voiceLatestCleanedInputRef.current = "";
       voiceInputFallbackArmedRefV454.current = false;
@@ -5913,15 +5926,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     setVoicePromptText("");
 
-    // V456: kun nauhuri sammuu / pysäytetään ja kentässä on tekstiä, Justiina käynnistyy tästä.
-    // Tämä on se varsinainen laskevan reunan varmistus, eikä se riipu onend-eventistä.
-    forceStartVoiceSearchV456();
+    // V457: kun nauhuri sammuu / pysäytetään ja kentässä on tekstiä,
+    // Justiina käynnistyy tästä ennen kuin recognition.stop ehtii sotkea eventtejä.
+    const forced = shouldTryForcedSearch ? forceStartVoiceSearchV456() : false;
 
     try {
       recognitionRef.current?.stop?.();
     } catch {
       setIsListening(false);
-      setVoiceProcessing(false);
+      if (!forced) setVoiceProcessing(false);
     }
   }
 
