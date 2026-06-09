@@ -1,3 +1,10 @@
+// V465_VOICE_BT_INPUT_KEEPALIVE_AND_PROMPT_POSITION_FIX
+// Korjaus mikkiin:
+// - BT-kuulokemikkiä varten mikrofonin getUserMedia-raita pidetään auki koko sanelun ajan, eikä sitä avata/suljeta nopeasti ennen SpeechRecognitionia.
+// - Tämä pitää mobiilin äänireitin lämpimänä ja antaa Web Speechille paremmat mahdollisuudet käyttää BT-sisääntuloa.
+// - Puhesanelun ilmoituspalkki siirretty mockupin osoittamaan paikkaan: hakukentän alla olevan viivan päälle/yläpuolelle, Äänitä-napin yläreunaan.
+// - BT:lle annetaan pidempi hiljainen aloitusaika ennen virheilmoitusta.
+
 // V464_VOICE_BT_RETRY_STABLE_AND_EAN_S_PRICE
 // Korjaus BT-kuulokemikkiin ja yhden ajon jälkeiseen jumiin:
 // - Mikrofonin getUserMedia-lupakyselyä ei enää avata ja pysäytetä joka nauhoituskerralla, jos lupa on jo kerran saatu.
@@ -3519,6 +3526,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const voiceForceJustiinaCartSearchRefV461 = useRef(false);
   const voiceMicPermissionGrantedRefV464 = useRef(false);
   const voiceBluetoothMicLikelyRefV464 = useRef(false);
+  const voiceMicWarmupStreamRefV465 = useRef<MediaStream | null>(null);
+  const voiceMicWarmupStopTimerRefV465 = useRef<number | null>(null);
   const cartSectionRef = useRef<HTMLElement | null>(null);
   const comparisonSectionRef = useRef<HTMLElement | null>(null);
   const compareOverlayScrollRef = useRef<HTMLDivElement | null>(null);
@@ -5766,6 +5775,35 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
   }
 
+  function releaseVoiceMicWarmupStreamV465(delayMs = 900) {
+    if (typeof window === "undefined") return;
+
+    if (voiceMicWarmupStopTimerRefV465.current) {
+      window.clearTimeout(voiceMicWarmupStopTimerRefV465.current);
+      voiceMicWarmupStopTimerRefV465.current = null;
+    }
+
+    voiceMicWarmupStopTimerRefV465.current = window.setTimeout(() => {
+      voiceMicWarmupStopTimerRefV465.current = null;
+      const stream = voiceMicWarmupStreamRefV465.current;
+      voiceMicWarmupStreamRefV465.current = null;
+
+      try {
+        stream?.getTracks?.().forEach((track) => track.stop());
+      } catch {
+        // Mikrofoniraidan vapautus ei saa kaataa saneluflow'ta.
+      }
+    }, delayMs);
+  }
+
+  function cancelVoiceMicWarmupReleaseV465() {
+    if (typeof window === "undefined") return;
+    if (voiceMicWarmupStopTimerRefV465.current) {
+      window.clearTimeout(voiceMicWarmupStopTimerRefV465.current);
+      voiceMicWarmupStopTimerRefV465.current = null;
+    }
+  }
+
   function getVoiceSearchCandidateV456(rawValue?: string) {
     const fromRaw = typeof rawValue === "string" ? rawValue : "";
     const fromLatest = voiceLatestCleanedInputRef.current || "";
@@ -5908,17 +5946,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return false;
     }
 
-    // V464: älä avaa ja pysäytä mikrofoniraitaa joka kerralla.
-    // BT-kuulokkeilla tämä voi vaihtaa iOS/Androidin audioreitin tilaan, jossa
-    // seuraava SpeechRecognition.start() ei enää saa tekstiä. Kun lupa on jo
-    // kerran saatu, luotetaan siihen ja annetaan Web Speech API:n avata mikki itse.
-    if (voiceMicPermissionGrantedRefV464.current) {
+    // V465: BT-kuulokkeilla nopea getUserMedia -> stop -> SpeechRecognition
+    // voi jättää mobiiliselaimen äänireitin väärään tilaan. Pidetään lupa-/warmup-stream
+    // auki koko sanelun ajan ja vapautetaan se vasta lopussa. Jos stream on jo auki,
+    // sitä ei avata uudelleen.
+    cancelVoiceMicWarmupReleaseV465();
+    const existingStream = voiceMicWarmupStreamRefV465.current;
+    const existingActive = Boolean(existingStream?.getAudioTracks?.().some((track) => track.readyState === "live"));
+    if (existingActive) {
+      voiceMicPermissionGrantedRefV464.current = true;
       return true;
     }
 
     try {
-      // Tämä kutsu tehdään vain ensimmäisellä käyttäjän Äänitä-klikkauksella,
-      // jotta selain saa näyttää oman mikrofonilupakyselynsä.
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
@@ -5927,16 +5967,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         },
       });
 
-      const audioTrack = stream.getAudioTracks?.()[0];
-      const label = String(audioTrack?.label || "").toLowerCase();
-      voiceBluetoothMicLikelyRefV464.current = /airpods|bluetooth|bt|buds|headset|hands-free|handsfree/.test(label);
-
-      // Lupa on nyt varmistettu. Raita suljetaan heti, mutta vain tällä ensimmäisellä kerralla.
-      stream.getTracks().forEach((track) => track.stop());
+      voiceMicWarmupStreamRefV465.current = stream;
       voiceMicPermissionGrantedRefV464.current = true;
 
-      // V464: BT:stä ei enää näytetä erillistä varoitusnotifikaatiota ennen sanelua,
-      // koska se katkaisi käytännössä käyttäjän flow'n ja BT-transkriptio voi tulla hitaasti.
+      const audioTrack = stream.getAudioTracks?.()[0];
+      const label = String(audioTrack?.label || "").toLowerCase();
+      voiceBluetoothMicLikelyRefV464.current = /airpods|bluetooth|bt|buds|headset|hands-free|handsfree|kuuloke|headphone/.test(label);
+
       return true;
     } catch (error: any) {
       const name = String(error?.name || error?.message || "").toLowerCase();
@@ -5944,16 +5981,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setVoiceProcessing(false);
       voiceIntroActiveRefV448.current = false;
       voiceMicPermissionGrantedRefV464.current = false;
+      releaseVoiceMicWarmupStreamV465(0);
 
       if (name.includes("notallowed") || name.includes("permission") || name.includes("denied")) {
-        setVoicePromptText("Mikrofonilupa on estetty. Salli mikrofoni selaimen osoiterivin/Safarin sivustoasetuksista ja kokeile uudelleen.");
+        setVoicePromptText("Mikrofonilupa on estetty. Salli mikrofoni selaimen osoiterivin/Safarin sivustoasetuksista.");
       } else {
-        setVoicePromptText("Mikrofonia ei saatu avattua. Tarkista selaimen mikrofonilupa.");
+        setVoicePromptText("Mikrofonia ei saatu avattua. Tarkista selaimen mikrofonilupa tai irrota BT ja kokeile uudelleen.");
       }
 
       return false;
     }
   }
+
 
   useEffect(() => {
     setSpeechSupported(Boolean(getSpeechRecognitionClassV458()));
@@ -5970,6 +6009,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         // Ei vaikutusta purkuun.
       }
       recognitionRef.current = null;
+      releaseVoiceMicWarmupStreamV465(0);
     };
   }, []);
 
@@ -6005,7 +6045,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setVoicePromptText("Kuuntelen...");
 
       clearVoiceNoSpeechTimeoutV461();
-      const noSpeechTimeoutMs = voiceBluetoothMicLikelyRefV464.current ? 16000 : 10000;
+      const noSpeechTimeoutMs = voiceBluetoothMicLikelyRefV464.current ? 24000 : 12000;
       voiceNoSpeechTimeoutRefV461.current = window.setTimeout(() => {
         if (voiceRecognitionSessionIdRefV458.current !== sessionId) return;
         if (voiceHeardSpeechRef.current || voiceLatestCleanedInputRef.current) return;
@@ -6019,9 +6059,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         recognitionRef.current = null;
         setIsListening(false);
         setVoiceProcessing(false);
+        releaseVoiceMicWarmupStreamV465(0);
         setVoicePromptText(
           voiceBluetoothMicLikelyRefV464.current
-            ? "BT-mikiltä ei tullut tekstiä. Odota hetki tai kokeile puhelimen omaa mikrofonia."
+            ? "BT-mikiltä ei tullut tekstiä. Kokeile uudelleen tai valitse puhelimen mikki."
             : "Puhetta ei tullut tekstiksi. Tarkista mikrofoni ja kokeile uudelleen."
         );
       }, noSpeechTimeoutMs);
@@ -6037,6 +6078,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         voiceSilenceTimeoutRef.current = null;
       }
       clearVoiceNoSpeechTimeoutV461();
+      releaseVoiceMicWarmupStreamV465(1200);
 
       const shouldRunVoiceSearch =
         voiceRecognitionStoppingRefV458.current ||
@@ -6064,6 +6106,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         voiceSilenceTimeoutRef.current = null;
       }
       clearVoiceNoSpeechTimeoutV461();
+      releaseVoiceMicWarmupStreamV465(1200);
 
       if (voiceHeardSpeechRef.current || voiceAutoSearchAfterStopRef.current || voiceLatestCleanedInputRef.current) {
         forceStartVoiceSearchV456();
@@ -6144,6 +6187,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           }
         }
 
+        releaseVoiceMicWarmupStreamV465(1200);
         forceStartVoiceSearchV456(cleaned);
       }, silenceMs);
     };
@@ -6337,6 +6381,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setIsListening(false);
       if (!forced) setVoiceProcessing(false);
     }
+
+    releaseVoiceMicWarmupStreamV465(forced ? 1200 : 0);
   }
 
   function toggleVoiceInput() {
@@ -16666,7 +16712,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
             {voicePromptText && (
               <div
-                className="pointer-events-none fixed left-[13.5%] top-[calc(env(safe-area-inset-top)+30.1rem)] z-[9998] min-h-[1.95rem] max-w-[17.5rem] rounded-[0.9rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/95 px-3 py-1 text-center text-[0.82rem] leading-[1.05] font-black italic text-[#174c2c] shadow-[0_4px_0_rgba(91,72,44,0.16),0_8px_16px_rgba(0,0,0,0.12)] sm:hidden"
+                className="pointer-events-none fixed left-[13.5%] top-[calc(env(safe-area-inset-top)+25.65rem)] z-[9998] min-h-[1.65rem] max-w-[14.5rem] rounded-[0.82rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/96 px-3 py-[0.22rem] text-center text-[0.76rem] leading-[1.02] font-black italic text-[#174c2c] shadow-[0_3px_0_rgba(91,72,44,0.16),0_7px_14px_rgba(0,0,0,0.12)] sm:hidden"
                 style={{ fontFamily: '"Cooper Black", Georgia, serif' }}
                 role="status"
                 aria-live="polite"
