@@ -1,3 +1,9 @@
+// V462_VOICE_PROMPT_UNDER_INPUT_BT_OK
+// Korjaus äänihaun ilmoituspalkin sijaintiin:
+// - Kuuntelen/Haetaan/mikrofoni-ilmoitus siirretty Hae-kortilla hakukentän alle ja Äänitä/Filmaa-nappien yläpuolelle mockupin mukaan.
+// - Palkki on matala, max-leveydeltään hallittu ja teksti skaalautuu yhdelle/kahdelle riville ilman että se peittää hakukenttää.
+// - V461:n toimiva Justiina-pakkohaun ja BT-mikin guard-logiikka säilytetty.
+
 // V461_VOICE_JUSTIINA_FORCE_CART_AND_BT_MIC_GUARD
 // Korjaus äänihakuun V459-pohjasta:
 // - Äänihaun automaattihaku ei enää jää Gösta/offers-lukkoon eikä vanhaan Yksi tuote -tilaan.
@@ -16431,7 +16437,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
             {voicePromptText && (
               <div
-                className="pointer-events-none fixed left-1/2 top-[calc(env(safe-area-inset-top)+6.1rem)] z-[9998] -translate-x-1/2 rounded-[1.25rem] border-[3px] border-[#d8bd75] bg-[#fff4d3] px-4 py-2 text-center text-[0.92rem] font-black italic text-[#174c2c] shadow-[0_6px_0_rgba(91,72,44,0.18),0_12px_24px_rgba(0,0,0,0.16)] sm:hidden"
+                className="pointer-events-none fixed left-[13.5%] top-[calc(env(safe-area-inset-top)+30.1rem)] z-[9998] min-h-[1.95rem] max-w-[17.5rem] rounded-[0.9rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/95 px-3 py-1 text-center text-[0.82rem] leading-[1.05] font-black italic text-[#174c2c] shadow-[0_4px_0_rgba(91,72,44,0.16),0_8px_16px_rgba(0,0,0,0.12)] sm:hidden"
                 style={{ fontFamily: '"Cooper Black", Georgia, serif' }}
                 role="status"
                 aria-live="polite"
