@@ -353,7 +353,7 @@ function RetroAssetButton({
           "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 object-contain object-center select-none drop-shadow-[0_4px_9px_rgba(0,0,0,0.42)]",
           // V679: Äänitä-assetissa on enemmän tyhjää canvasia kuin Filmaa-assetissa.
           // Skaalataan VAIN Äänitä-kuvaa ylöspäin, jotta näkyvä kuvake vastaa Filmaa-napin kokoa.
-          kind === "voice" ? "h-[116%] w-[116%]" : "h-[92%] w-[92%]",
+          kind === "voice" ? "h-[106%] w-[106%]" : "h-[92%] w-[92%]",
         )}
         draggable={false}
       />
