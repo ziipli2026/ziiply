@@ -1,3 +1,10 @@
+// V449_VOICE_MP3_MIC_PERMISSION_AND_MULTI_LIST_SEARCH
+// Korjaus äänihakuun:
+// - Mikrofonilupa pyydetään eksplisiittisesti käyttäjäklikkauksen jälkeen ennen mp3-introa.
+// - Intro käyttää edelleen /ui/voice/search-voice1.mp3-tiedostoa, ei selaimen TTS-ääntä.
+// - Usean tuotteen puhe pakotetaan ostoslistamaiseksi hakujonoksi myös Yksi tuote -tilasta.
+// - Hiljaisuuden jälkeen haku käynnistyy varmasti myös fallbackilla ja oranssi processing-tila syttyy.
+
 // V445_VOICE_INTRO_BEEP_SILENCE_SEARCH_FLOW
 // Korjaus Hae-kortin Äänitä-nappiin:
 // - Ensin näytetään/puhutaan lause "Mitteepä saes olla?"
@@ -5,13 +12,14 @@
 // - Nauhoitus päättyy 2,5–3,5 s hiljaisuuteen.
 // - Haun ajaksi ääni-nappi menee processing/oranssi-tilaan ja tuloskortti avautuu haun valmistuttua.
 
-// V448_VOICE_MULTI_LIST_FORCES_CART_SEARCH_AND_DIRECT_RUN
-// Korjaus äänihakuun: jos puheesta tunnistuu useampi tuote, searchNormalPrices ei saa käyttää Yksi tuote -tilaa.
-// Monituotepuhe pakotetaan ostoslistamaiseksi hakujonoksi ja haku käynnistyy varmasti hiljaisuuden jälkeen.
-
 // V447_VOICE_MULTI_PRODUCT_INDEXING
 // Korjaus äänihakuun: puheesta tuleva ostoslista indeksoidaan/pilkotaan tuotteiksi ennen hakua.
 // Esim. "lohi makkara maito cola" -> "lohi, makkara, maito, cola", jolloin normaali hakujono hakee tuotteet erikseen.
+
+// V448_VOICE_MP3_INTRO_BEFORE_RECORDING
+// Korjaus äänihakuun: ennen nauhurin käynnistystä soitetaan /ui/voice/search-voice1.mp3.
+// Puheentunnistus, punainen merkkivalo ja aloituspiip käynnistyvät vasta mp3-introäänen päätyttyä.
+
 
 // V446_VOICE_SEARCH_FALLBACK_RUN_AFTER_SILENCE
 // Korjaus äänihakuun: ei enää 2,5 s pakkosammutusta heti käynnistyksestä.
@@ -3425,6 +3433,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const voiceOpenSearchPanelAfterResultRef = useRef(false);
   const voiceSilenceTimeoutRef = useRef<number | null>(null);
   const voiceIntroTimeoutRef = useRef<number | null>(null);
+  const voiceIntroAudioRefV448 = useRef<HTMLAudioElement | null>(null);
+  const voiceIntroActiveRefV448 = useRef(false);
+  const voiceIntroResolveRefV448 = useRef<null | (() => void)>(null);
   const voiceAutoSearchAfterStopRef = useRef(false);
   const voiceHeardSpeechRef = useRef(false);
   const voiceLatestCleanedInputRef = useRef("");
@@ -3642,23 +3653,76 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
   }
 
-  function speakVoiceIntroV445(text: string) {
-    if (typeof window === "undefined") return;
+  function finishVoiceIntroV448() {
+    voiceIntroAudioRefV448.current = null;
+
+    const resolve = voiceIntroResolveRefV448.current;
+    voiceIntroResolveRefV448.current = null;
+    resolve?.();
+  }
+
+  function playVoiceIntroMp3AndWaitV448() {
+    if (typeof window === "undefined") return Promise.resolve();
+
+    return new Promise<void>((resolve) => {
+      voiceIntroResolveRefV448.current = resolve;
+
+      try {
+        const audio = new Audio("/ui/voice/search-voice1.mp3");
+        voiceIntroAudioRefV448.current = audio;
+
+        audio.preload = "auto";
+        audio.onended = () => finishVoiceIntroV448();
+        audio.onerror = () => finishVoiceIntroV448();
+
+        const fallbackTimer = window.setTimeout(() => {
+          if (voiceIntroActiveRefV448.current) {
+            try {
+              audio.pause();
+            } catch {
+              // Ei vaikutusta flow'hun.
+            }
+            finishVoiceIntroV448();
+          }
+        }, 4500);
+
+        audio.onended = () => {
+          window.clearTimeout(fallbackTimer);
+          finishVoiceIntroV448();
+        };
+        audio.onerror = () => {
+          window.clearTimeout(fallbackTimer);
+          finishVoiceIntroV448();
+        };
+
+        void audio.play().catch(() => {
+          window.clearTimeout(fallbackTimer);
+          finishVoiceIntroV448();
+        });
+      } catch {
+        finishVoiceIntroV448();
+      }
+    });
+  }
+
+  async function ensureVoiceMicrophonePermissionV449() {
+    if (typeof navigator === "undefined" || !navigator.mediaDevices?.getUserMedia) {
+      return true;
+    }
 
     try {
-      const synth = window.speechSynthesis;
-      if (!synth) return;
-
-      synth.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = "fi-FI";
-      utterance.rate = 0.92;
-      utterance.pitch = 0.82;
-      synth.speak(utterance);
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach((track) => track.stop());
+      return true;
     } catch {
-      // Puheen puuttuminen ei saa estää nauhoitusta.
+      setVoicePromptText("Mikrofonilupa puuttuu.");
+      setVoiceProcessing(false);
+      setIsListening(false);
+      voiceIntroActiveRefV448.current = false;
+      return false;
     }
   }
+
 
   const lastContinuousScanRef = useRef<{ code: string; at: number } | null>(
     null,
@@ -5451,10 +5515,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setIsListening(true);
     };
 
-    const runVoiceSearchV448 = (source: "onend" | "fallback") => {
+    const runVoiceSearchV449 = (source: "onend" | "fallback") => {
       const cleaned = voiceLatestCleanedInputRef.current.trim();
 
       if (voiceSearchStartedRef.current) return;
+
       if (!cleaned) {
         setVoiceProcessing(false);
         setSearchPanelOpen(true);
@@ -5516,7 +5581,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         return;
       }
 
-      runVoiceSearchV448("onend");
+      runVoiceSearchV449("onend");
     };
 
     recognition.onerror = (event: any) => {
@@ -5580,7 +5645,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         // Varahaara käynnistää saman haun suoraan, jos onend ei ehdi tehdä sitä.
         window.setTimeout(() => {
           if (!voiceAutoSearchAfterStopRef.current) return;
-          runVoiceSearchV448("fallback");
+          runVoiceSearchV449("fallback");
         }, 450);
       }, silenceMs);
     };
@@ -5728,6 +5793,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       voiceIntroTimeoutRef.current = null;
     }
 
+    if (voiceIntroAudioRefV448.current) {
+      try {
+        voiceIntroAudioRefV448.current.pause();
+        voiceIntroAudioRefV448.current.currentTime = 0;
+      } catch {
+        // Introäänen pysäytys ei saa kaataa flow'ta.
+      }
+    }
+    if (voiceIntroActiveRefV448.current) {
+      voiceIntroActiveRefV448.current = false;
+      finishVoiceIntroV448();
+    }
+
     if (voiceSilenceTimeoutRef.current) {
       window.clearTimeout(voiceSilenceTimeoutRef.current);
       voiceSilenceTimeoutRef.current = null;
@@ -5744,7 +5822,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function toggleVoiceInput() {
-    if (isListening || voiceProcessing || voiceIntroTimeoutRef.current !== null) {
+    if (isListening || voiceProcessing || voiceIntroTimeoutRef.current !== null || voiceIntroActiveRefV448.current) {
       stopVoiceInput(false);
       return;
     }
@@ -5764,25 +5842,33 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return;
     }
 
-    if (isListening || voiceProcessing || voiceIntroTimeoutRef.current !== null) return;
+    if (isListening || voiceProcessing || voiceIntroTimeoutRef.current !== null || voiceIntroActiveRefV448.current) return;
 
     const introText = "Mitteepä saes olla?";
     voiceHeardSpeechRef.current = false;
     voiceAutoSearchAfterStopRef.current = false;
     voiceSearchStartedRef.current = false;
     voiceLatestCleanedInputRef.current = "";
+    voiceIntroActiveRefV448.current = true;
 
     setActiveResult("none");
     setSearchPanelOpen(true);
     setVoiceProcessing(false);
     setVoicePromptText(introText);
-    speakVoiceIntroV445(introText);
 
-    voiceIntroTimeoutRef.current = window.setTimeout(() => {
-      voiceIntroTimeoutRef.current = null;
+    void (async () => {
+      const micOk = await ensureVoiceMicrophonePermissionV449();
+      if (!micOk) return;
+
+      await playVoiceIntroMp3AndWaitV448();
+
+      if (!recognitionRef.current) return;
+      if (isListening || voiceProcessing || !voiceIntroActiveRefV448.current) return;
+
+      voiceIntroActiveRefV448.current = false;
       setVoicePromptText("");
       startVoiceInputV445();
-    }, 1850);
+    })();
   }
 
   function startVoiceInputV445() {
@@ -5791,6 +5877,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     voiceAutoSearchAfterStopRef.current = false;
     voiceHeardSpeechRef.current = false;
+    voiceSearchStartedRef.current = false;
     voiceLatestCleanedInputRef.current = "";
     setVoiceProcessing(false);
 
@@ -8169,9 +8256,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (allFocusedTermsLowSignal && allFocusedTermsTooShort) {
       if (termOverride) {
         setInput(
-          searchCompareMode === "single"
-            ? useTerms[0] || termOverride
-            : useTerms.join(", ") || termOverride,
+          isVoiceOrListTermOverride
+            ? useTerms.join(", ") || termOverride
+            : searchCompareMode === "single"
+              ? useTerms[0] || termOverride
+              : useTerms.join(", ") || termOverride,
         );
       }
       setLoadingNormal(false);
