@@ -1,3 +1,10 @@
+// V454_VOICE_INPUT_CHANGE_FALLBACK_SEARCH
+// Korjaus äänihakuun: haku käynnistyy myös silloin, kun iOS/Safari syöttää sanelun tekstikenttään input-muutoksena
+// eikä SpeechRecognition.onresult/onend laukea luotettavasti.
+// - Äänitä-painike virittää input-fallbackin.
+// - Jokainen sanelun tuottama tekstikentän muutos nollaa viiveen.
+// - Viiveen jälkeen sama runVoiceSearchFromSpeechV453()-polku sytyttää oranssin processing-tilan ja ajaa haun.
+
 // V453_VOICE_DIRECT_SEARCH_AFTER_SILENCE
 // Korjaus äänihakuun:
 // - Haku käynnistetään suoraan hiljaisuustimeristä, ei enää odoteta mobiili-Safarin epävarmaa recognition.onend-tapahtumaa.
@@ -3440,6 +3447,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const voiceLatestCleanedInputRef = useRef("");
   const voiceSearchCompareModeRef = useRef(searchCompareMode);
   const voiceSearchRunningRefV453 = useRef(false);
+  const voiceInputFallbackArmedRefV454 = useRef(false);
   const cartSectionRef = useRef<HTMLElement | null>(null);
   const comparisonSectionRef = useRef<HTMLElement | null>(null);
   const compareOverlayScrollRef = useRef<HTMLDivElement | null>(null);
@@ -4075,13 +4083,37 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return uniqueTerms.join(", ");
   }
 
-  function setSearchInputForMode(value: string) {
-    if (searchCompareMode === "single") {
-      setInput(getSingleSearchTerm(value, { preserveTypingSpace: true }));
-      return;
+  function armVoiceInputFallbackSearchV454(value: string) {
+    if (!voiceInputFallbackArmedRefV454.current) return;
+
+    const cleaned = getVoiceSearchInputV447(value);
+    if (!cleaned) return;
+
+    voiceHeardSpeechRef.current = true;
+    voiceAutoSearchAfterStopRef.current = true;
+    voiceLatestCleanedInputRef.current = cleaned;
+
+    if (voiceSilenceTimeoutRef.current) {
+      window.clearTimeout(voiceSilenceTimeoutRef.current);
     }
 
-    setInput(value);
+    // V454: iOS/Safari voi syöttää sanelun suoraan kenttään ilman SpeechRecognition-resulttia.
+    // Tällöin tämä input-change fallback on se varsinainen automaattinen haun laukaisin.
+    voiceSilenceTimeoutRef.current = window.setTimeout(() => {
+      setVoiceProcessing(true);
+      setSearchPanelOpen(true);
+      void runVoiceSearchFromSpeechV453(cleaned);
+    }, 2800);
+  }
+
+  function setSearchInputForMode(value: string) {
+    const nextValue =
+      searchCompareMode === "single"
+        ? getSingleSearchTerm(value, { preserveTypingSpace: true })
+        : value;
+
+    setInput(nextValue);
+    armVoiceInputFallbackSearchV454(nextValue);
   }
 
   function clearSingleSearchState() {
@@ -5479,12 +5511,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }, [searchCompareMode]);
 
   async function runVoiceSearchFromSpeechV453(rawValue?: string) {
-    const cleaned = (rawValue || voiceLatestCleanedInputRef.current || "").trim();
+    const cleaned = (rawValue || voiceLatestCleanedInputRef.current || input || "").trim();
     if (!cleaned) {
       setIsListening(false);
       setVoiceProcessing(false);
       setSearchPanelOpen(true);
       voiceAutoSearchAfterStopRef.current = false;
+      voiceInputFallbackArmedRefV454.current = false;
       voiceHeardSpeechRef.current = false;
       return;
     }
@@ -5492,6 +5525,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (voiceSearchRunningRefV453.current) return;
     voiceSearchRunningRefV453.current = true;
     voiceAutoSearchAfterStopRef.current = false;
+    voiceInputFallbackArmedRefV454.current = false;
 
     if (voiceSilenceTimeoutRef.current) {
       window.clearTimeout(voiceSilenceTimeoutRef.current);
@@ -5766,6 +5800,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (!searchAfterStop) {
       voiceHeardSpeechRef.current = false;
       voiceLatestCleanedInputRef.current = "";
+      voiceInputFallbackArmedRefV454.current = false;
     }
 
     if (voiceIntroTimeoutRef.current) {
@@ -5828,6 +5863,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     voiceHeardSpeechRef.current = false;
     voiceAutoSearchAfterStopRef.current = false;
     voiceLatestCleanedInputRef.current = "";
+    voiceInputFallbackArmedRefV454.current = true;
     voiceIntroActiveRefV448.current = true;
 
     setActiveResult("none");
@@ -5854,6 +5890,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     voiceAutoSearchAfterStopRef.current = false;
     voiceHeardSpeechRef.current = false;
     voiceLatestCleanedInputRef.current = "";
+    voiceInputFallbackArmedRefV454.current = true;
     setVoiceProcessing(false);
 
     if (voiceSilenceTimeoutRef.current) {
