@@ -1,8 +1,8 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V676_TOP_GUIDE_BOX_STABLE
-// Pohja: v675. Muutos: yläinfo palautettu rauhallisena ohjelaatikkona.
-// Ylälaatikossa näytetään vain pysyvä ohje tai ei-löytynyt-viesti; löytöluettelo-yhteenveto pysyy vain alaosassa.
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V677_TOP_GUIDE_AND_RUNNER_ALWAYS_VISIBLE
+// Pohja: v676. Korjaus: Justiinan/Göstan hakuanimaatio näkyy aina myös parentin loading-tilasta, ei vain hetkellisestä searchingAssistant-statesta.
+// Yläohje palautettu vain tyhjään odotustilaan ja ei-löytynyt-tilaan; ei näytetä löytöluetteloa ylälaatikossa.
 // Pohja: v658 toimiva original-ulkoasu säilytetty sellaisenaan.
 // Muutos: Gösta saa käynnistyä myös tyhjällä hakukentällä, jotta tarjouskortti voi näyttää kaikki alueen tarjoukset.
 // Justiina ja koriinlisäys vaativat edelleen hakutekstin.
@@ -476,37 +476,54 @@ function InlineSearchRunner({
 }
 
 
-function TopGuidanceBox({
-  notFound,
-  query,
+function TopGuideStatusBox({
+  assistant,
+  notFoundText,
+  showGuide,
 }: {
-  notFound: boolean;
-  query: string;
+  assistant: "gosta" | "justiina" | null;
+  notFoundText?: string | null;
+  showGuide?: boolean;
 }) {
-  const clean = query.trim();
+  if (assistant) {
+    return <InlineSearchRunner assistant={assistant} />;
+  }
+
+  const visible = Boolean(notFoundText) || Boolean(showGuide);
 
   return (
-    <div className="relative z-10 mt-1.5 rounded-[1.15rem] border-[2px] border-[#d8bd75] bg-gradient-to-b from-[#fff1bf] to-[#f7e5ae] px-3 py-[0.58rem] text-center text-[#174c2c] shadow-[0_2px_0_rgba(91,72,44,0.12),inset_0_0_0_2px_rgba(255,255,255,0.48)]">
-      {notFound ? (
-        <div
-          className="text-[0.82rem] font-black leading-tight text-[#6f5630]"
-          style={{ fontFamily: cooperFont }}
-        >
-          Hakemaasi “{clean}” ei löytynyt.
-        </div>
-      ) : (
-        <>
+    <div
+      aria-hidden={!visible}
+      className={cx(
+        "relative z-10 mt-1.5 h-[2.85rem] overflow-hidden rounded-[1.15rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/72 px-3 py-2 shadow-[inset_0_0_0_2px_rgba(255,255,255,0.42)] transition-opacity duration-200",
+        visible ? "opacity-100" : "opacity-0",
+        notFoundText ? "border-[#b85f45] bg-[#fff1d3]/86" : "",
+      )}
+      role={visible ? "status" : undefined}
+      aria-live={visible ? "polite" : undefined}
+    >
+      {notFoundText ? (
+        <div className="flex h-full items-center justify-center text-center">
           <div
-            className="text-[0.80rem] font-black leading-tight text-[#174c2c]"
+            className="text-[0.82rem] font-black leading-tight text-[#8f2f22]"
+            style={{ fontFamily: cooperFont }}
+          >
+            {notFoundText}
+          </div>
+        </div>
+      ) : showGuide ? (
+        <div className="flex h-full flex-col justify-center text-center">
+          <div
+            className="text-[0.82rem] font-black leading-tight text-[#174c2c]"
             style={{ fontFamily: cooperFont }}
           >
             Justiina auttaa löytämään tuotteet ja tarjoukset.
           </div>
           <div className="mt-0.5 text-[0.66rem] font-bold leading-tight text-[#6f5630]">
-            Kirjoita tuote, tuoteryhmä tai useita tuotteita pilkulla erotettuna.
+            Kirjoita tuote, tuoteryhmä tai ostoslista.
           </div>
-        </>
-      )}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -579,6 +596,16 @@ export default function ZiiplyMobileSearchCard({
     !loading &&
     items.length === 0 &&
     cleanInput.length >= 2;
+  const topGuideCanShow =
+    !hasText &&
+    !loading &&
+    !loadingOffers &&
+    !loadingNormal &&
+    !singleProductCompareLoading &&
+    searchingAssistant === null;
+  const topNotFoundText = notFoundCanShow
+    ? `Hakemaasi “${cleanInput}” ei löytynyt.`
+    : null;
 
 
   useEffect(() => {
@@ -994,7 +1021,18 @@ export default function ZiiplyMobileSearchCard({
             />
           </div>
 
-          <TopGuidanceBox notFound={notFoundCanShow} query={cleanInput} />
+          <TopGuideStatusBox
+            assistant={
+              searchingAssistant ||
+              (loadingOffers
+                ? "gosta"
+                : loadingNormal || singleProductCompareLoading || loading
+                  ? "justiina"
+                  : null)
+            }
+            notFoundText={topNotFoundText}
+            showGuide={topGuideCanShow}
+          />
 
           {/* V641: kevyt hakuanimaatio on nyt omalla varatulla radallaan, ei koko ruudun overlayna.
               mutta v637:n keyboard-stabiili ankkurointi palautetaan, jotta näppäimistö ei työnnä näkymää ylös. */}
