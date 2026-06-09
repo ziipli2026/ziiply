@@ -1,3 +1,10 @@
+// V463_EAN_S_BRANCH_PRICE_HYDRATION
+// Korjaus EAN/skannerihakuun:
+// - EAN-polku ei saa pudota S-ryhmän hintaa vain siksi, että suora EAN-haku palauttaa tuotteen ilman hintaa.
+// - S-haarassa haetaan ensin myös hintaa sisältämättömät EAN-osumat talteen, sitten hinta hydratoidaan samasta /api/s-products (s-kaupat.fi) -nimihakupolusta.
+// - Open Food Facts / cache saa auttaa nimen löytämisessä, mutta hinta hyväksytään vain S/K-kauppahaun hinnoitellusta tuotteesta.
+// - Skannerin EAN-haku palauttaa S-tuotteen koriin vain, jos hinta on oikeasti löytynyt S-haarasta.
+
 // V462_VOICE_PROMPT_UNDER_INPUT_BT_OK
 // Korjaus äänihaun ilmoituspalkin sijaintiin:
 // - Kuuntelen/Haetaan/mikrofoni-ilmoitus siirretty Hae-kortilla hakukentän alle ja Äänitä/Filmaa-nappien yläpuolelle mockupin mukaan.
@@ -4916,6 +4923,176 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       .filter((item: Product | null): item is Product =>
         Boolean(item && item.name && getProductPrice(item) > 0),
       );
+  }
+
+  async function fetchSProductsAllowUnpricedV463(
+    search: string,
+    storeId: number,
+  ): Promise<Product[]> {
+    const response = await fetch(
+      `/api/s-products?search=${encodeURIComponent(search)}&store=${encodeURIComponent(String(storeId))}`,
+      { cache: "no-store" },
+    );
+
+    if (!response.ok) {
+      console.error("S-products route failed", response.status);
+      return [];
+    }
+
+    const data = await response.json();
+
+    const rawItems = Array.isArray(data?.products)
+      ? data.products
+      : Array.isArray(data?.items)
+        ? data.items
+        : Array.isArray(data)
+          ? data
+          : [];
+
+    return rawItems
+      .map((item: any) => normalizeSProduct(item))
+      .filter((item: Product | null): item is Product =>
+        Boolean(item && item.name),
+      );
+  }
+
+  function mergeSProductPriceV463(base: Product, priced: Product): Product {
+    const pricedAny = priced as any;
+    const baseAny = base as any;
+
+    return {
+      ...base,
+      price: getProductPrice(priced),
+      priceWithTax: pricedAny.priceWithTax ?? baseAny.priceWithTax,
+      priceNoTax: pricedAny.priceNoTax ?? baseAny.priceNoTax,
+      comparisonPrice:
+        priced.comparisonPrice ?? base.comparisonPrice ?? pricedAny.comparisonPrice,
+      comparisonPriceUnit:
+        priced.comparisonPriceUnit ??
+        base.comparisonPriceUnit ??
+        pricedAny.comparisonPriceUnit,
+      storeItems:
+        Array.isArray(pricedAny.storeItems) && pricedAny.storeItems.length > 0
+          ? pricedAny.storeItems
+          : [{ price: getProductPrice(priced) }],
+      pictureUrl: priced.pictureUrl || base.pictureUrl,
+      brandName: priced.brandName || base.brandName,
+      category: priced.category || base.category,
+      ean: base.ean || priced.ean,
+    } as Product;
+  }
+
+  function isLooseSameSProductNameV463(a: string, b: string) {
+    const left = normalizeLooseProductMatch(fixText(a || ""));
+    const right = normalizeLooseProductMatch(fixText(b || ""));
+    if (!left || !right) return false;
+    return left === right || left.includes(right) || right.includes(left);
+  }
+
+  async function hydrateSProductPriceFromSearchBranchV463(
+    candidate: Product,
+    variants: string[],
+    nameCandidates: string[],
+    storeId: number,
+  ): Promise<Product | null> {
+    if (getProductPrice(candidate) > 0) return candidate;
+
+    const candidateName = fixText(candidate.name || "");
+    const searchTerms = Array.from(
+      new Map(
+        [
+          candidateName,
+          ...nameCandidates,
+          ...getNormalSearchQueries(candidateName).slice(0, 8),
+        ]
+          .map((term) => fixText(String(term || "")).trim())
+          .filter(Boolean)
+          .map((term) => [normalize(term), term]),
+      ).values(),
+    ).slice(0, 12);
+
+    for (const term of searchTerms) {
+      const pricedProducts = await fetchSProducts(term, storeId).catch(
+        () => [] as Product[],
+      );
+
+      const exactEanMatch = pricedProducts.find(
+        (product) =>
+          getProductPrice(product) > 0 && isSameEan(product.ean, variants),
+      );
+      if (exactEanMatch) return mergeSProductPriceV463(candidate, exactEanMatch);
+
+      const looseNameMatch = pricedProducts.find(
+        (product) =>
+          getProductPrice(product) > 0 &&
+          isLooseSameSProductNameV463(product.name, candidateName),
+      );
+      if (looseNameMatch) return mergeSProductPriceV463(candidate, looseNameMatch);
+    }
+
+    return null;
+  }
+
+  async function fetchSExactEanResultsFromPriceBranchV463(
+    ean: string,
+    variants: string[],
+    nameCandidates: string[],
+  ): Promise<EanSearchResult[]> {
+    const exactCandidatesByKey = new Map<string, Product>();
+    const storeId = activeStores.sStoreId;
+
+    const searchTerms = Array.from(
+      new Map(
+        [
+          ...variants,
+          ...nameCandidates,
+          ...nameCandidates.flatMap((name) => getNormalSearchQueries(name).slice(0, 6)),
+        ]
+          .map((term) => fixText(String(term || "")).trim())
+          .filter(Boolean)
+          .map((term) => [normalize(term), term]),
+      ).values(),
+    ).slice(0, 16);
+
+    for (const term of searchTerms) {
+      const products = await fetchSProductsAllowUnpricedV463(term, storeId).catch(
+        () => [] as Product[],
+      );
+
+      for (const product of products) {
+        if (!isSameEan(product.ean, variants)) continue;
+        exactCandidatesByKey.set(
+          `S-v463-${normalizeEan(product.ean || ean)}-${product.id}`,
+          product,
+        );
+      }
+    }
+
+    const results: EanSearchResult[] = [];
+
+    for (const product of exactCandidatesByKey.values()) {
+      const pricedProduct = await hydrateSProductPriceFromSearchBranchV463(
+        product,
+        variants,
+        nameCandidates,
+        storeId,
+      );
+
+      if (!pricedProduct || getProductPrice(pricedProduct) <= 0) continue;
+
+      results.push({
+        key: `S-ean-sbranch-priced-${pricedProduct.id}`,
+        chain: "S" as const,
+        storeName: activeStores.sStoreName,
+        product: {
+          ...pricedProduct,
+          ean: product.ean || ean,
+        },
+        eanMatch: true,
+      });
+    }
+
+    return results;
   }
 
   async function fetchKProducts(
@@ -10055,6 +10232,23 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           },
           eanMatch: true,
         });
+      }
+
+      // V463: S-ryhmän EAN-polku hydratoi hinnan nimen kautta samasta S-tuotehaun haarasta.
+      // Suora EAN-osuma voi palautua ilman hintaa, mutta vanha toimiva page-polku löysi hinnan,
+      // kun sama tuote haettiin S-kaupat-nimihakuna. Käytetään siis EANia tunnisteena ja
+      // haetaan hinnoiteltu S-tuote s-products-polusta ennen OFF/unknown-fallbackia.
+      const sBranchPricedEanResultsV463 = await fetchSExactEanResultsFromPriceBranchV463(
+        ean,
+        variants,
+        nameCandidates,
+      ).catch(() => [] as EanSearchResult[]);
+
+      for (const result of sBranchPricedEanResultsV463) {
+        exactResultsByKey.set(
+          `S-v463-priced-${normalizeEan(result.product.ean)}-${result.product.id}`,
+          result,
+        );
       }
 
       const exactResults = Array.from(exactResultsByKey.values()).sort(
