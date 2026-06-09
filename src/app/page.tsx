@@ -1,7 +1,9 @@
-// V473_EMERGENCY_ROLLBACK_VOICE_INPUT_WORKING
-// Korjaus: palataan V471:n puheentunnistuslogiikkaan, koska V472:n hakukentän tyhjennys/notif-muutos rikkoi puhelimen oman sanelun tekstiksi tulon.
-// Tässä versiossa EI tyhjennetä inputtia voice-runnerin finally-lohkossa eikä voiceLatestCleanedInputRefiä nollata ennen seuraavaa käyttäjätoimintoa.
-// Not-found ilmoitus jää V471:n toimivaan omaan searchNotFoundNotice-tilaan.
+// V474_ROLLBACK_V471_VOICE_WORKING_NOTICE_ABOVE_MIC
+// Pohja: V471, koska V473 oli käytännössä sama kuin V471 vain kommentilla ja V472:n tyhjennys rikkoi sanelun.
+// Muutos rajattu: puheentunnistuslogiikkaa EI muuteta.
+// - Notif-palkki siirretään mikrofonin/Äänitä-napin yläpuolelle mockupin mukaisesti.
+// - Inputtia EI tyhjennetä voice-runnerin finally-lohkossa, jotta sanelun tekstiksi kirjoitus ei katkea.
+// - Ei muutoksia BT/Web Speech -sekvenssiin eikä Justiinan hakupolkuun.
 
 // V471_SEARCH_NOT_FOUND_NOTICE_AFTER_RESULTS
 // Korjaus haun ei-löydy ilmoitukseen:
@@ -16845,7 +16847,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
             {(searchNotFoundNoticeV471 || voicePromptText) && (
               <div
-                className="pointer-events-none fixed left-1/2 top-[calc(env(safe-area-inset-top)+19.2rem)] z-[9998] min-h-[1.35rem] max-w-[15.5rem] -translate-x-1/2 rounded-[0.82rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/96 px-3 py-[0.15rem] text-center text-[0.72rem] leading-[1.0] font-black italic text-[#174c2c] shadow-[0_3px_0_rgba(91,72,44,0.16),0_7px_14px_rgba(0,0,0,0.12)] sm:hidden"
+                className="pointer-events-none fixed left-[29%] top-[calc(env(safe-area-inset-top)+17.35rem)] z-[9998] min-h-[1.25rem] max-w-[13.7rem] -translate-x-1/2 rounded-[0.78rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/96 px-3 py-[0.12rem] text-center text-[0.70rem] leading-[1.0] font-black italic text-[#174c2c] shadow-[0_3px_0_rgba(91,72,44,0.16),0_7px_14px_rgba(0,0,0,0.12)] sm:hidden"
                 style={{ fontFamily: '"Cooper Black", Georgia, serif' }}
                 role="status"
                 aria-live="assertive"
