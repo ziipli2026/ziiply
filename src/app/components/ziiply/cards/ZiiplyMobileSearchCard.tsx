@@ -1,6 +1,6 @@
 "use client";
 
-// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V679_VOICE_ASSET_SCALE_MATCH
+// UUSI_ZIIPLY_MOBILE_SEARCH_CARD_V682_VOICE_SCALE_116
 // Pohja: v676. Korjaus: Justiinan/Göstan hakuanimaatio näkyy aina myös parentin loading-tilasta, ei vain hetkellisestä searchingAssistant-statesta.
 // Yläohje palautettu vain tyhjään odotustilaan ja ei-löytynyt-tilaan; ei näytetä löytöluetteloa ylälaatikossa.
 // Pohja: v658 toimiva original-ulkoasu säilytetty sellaisenaan.
@@ -353,7 +353,7 @@ function RetroAssetButton({
           "absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 object-contain object-center select-none drop-shadow-[0_4px_9px_rgba(0,0,0,0.42)]",
           // V679: Äänitä-assetissa on enemmän tyhjää canvasia kuin Filmaa-assetissa.
           // Skaalataan VAIN Äänitä-kuvaa ylöspäin, jotta näkyvä kuvake vastaa Filmaa-napin kokoa.
-          kind === "voice" ? "h-[124%] w-[124%]" : "h-[92%] w-[92%]",
+          kind === "voice" ? "h-[116%] w-[116%]" : "h-[92%] w-[92%]",
         )}
         draggable={false}
       />
@@ -950,7 +950,7 @@ export default function ZiiplyMobileSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-search-card-version="UUSI_V679_VOICE_ASSET_SCALE_MATCH"
+      data-ziiply-mobile-search-card-version="UUSI_V682_VOICE_SCALE_116"
       className={`fixed inset-x-0 top-[calc(env(safe-area-inset-top)+0.25rem)] z-[72] flex h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] max-h-[calc(100lvh-env(safe-area-inset-top)-5.45rem)] items-stretch justify-center overflow-hidden bg-transparent px-2 sm:hidden [transform:translateZ(0)] [backface-visibility:hidden] ${className}`}
     >
       <section className="relative isolate flex h-full w-full max-w-[28rem] flex-col overflow-hidden rounded-[1.85rem] border-[3px] border-[#173f2f] bg-[#d9bd77] p-2 text-[#20301f] shadow-[0_7px_0_rgba(91,72,44,0.24),inset_0_0_0_2px_rgba(255,246,207,0.52)]">
