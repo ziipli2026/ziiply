@@ -62,6 +62,28 @@ export const ZIIPLY_SYNONYM_GROUPS: ZiiplySynonymGroup[] = [
     ],
     categories: ["lihat", "tuoretuotteet"],
   },
+  {
+    canonical: "makkara",
+    terms: [
+      "makkara",
+      "grillimakkara",
+      "lenkkimakkara",
+      "ruokamakkara",
+      "saunamakkara",
+      "juustomakkara",
+      "kabanossi",
+      "nakki",
+      "nakit",
+      "kuoreton nakki",
+      "grillinakki",
+    ],
+    categories: [
+      "makkarat",
+      "lihat",
+      "liha ja kala",
+      "tuoretuotteet",
+    ],
+  },
 ];
 
 export function getSynonymGroupForQuery(query: string): ZiiplySynonymGroup | null {
