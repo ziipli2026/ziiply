@@ -1,3 +1,10 @@
+// V461_VOICE_JUSTIINA_FORCE_CART_AND_BT_MIC_GUARD
+// Korjaus äänihakuun V459-pohjasta:
+// - Äänihaun automaattihaku ei enää jää Gösta/offers-lukkoon eikä vanhaan Yksi tuote -tilaan.
+// - forceVoice-haku pakottaa searchNormalPrices()-funktion sisällä Koko kori / Justiina -polun samalla kutsulla.
+// - Sekvenssi lukittu: mikrolupa -> intro loppuun -> tauko -> piip -> tauko -> vasta sitten SpeechRecognition.start().
+// - Jos mobiilissa Bluetooth-kuuloke/mikki estää Web Speech -tekstin tulon, näytetään selvä ohje irrottaa BT/valita puhelimen mikki.
+
 // V459_VOICE_MIC_PERMISSION_AND_START_FIX
 // Korjaus äänihakuun:
 // - Mikrofonilupa pyydetään oikeasti käyttäjän klikkauksesta getUserMedia({ audio: true }) -kutsulla ennen MP3-introa.
@@ -3487,6 +3494,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const voiceForceSearchTimeoutRefV456 = useRef<number | null>(null);
   const voiceRecognitionSessionIdRefV458 = useRef(0);
   const voiceRecognitionStoppingRefV458 = useRef(false);
+  const voiceNoSpeechTimeoutRefV461 = useRef<number | null>(null);
+  const voiceForceJustiinaCartSearchRefV461 = useRef(false);
   const cartSectionRef = useRef<HTMLElement | null>(null);
   const comparisonSectionRef = useRef<HTMLElement | null>(null);
   const compareOverlayScrollRef = useRef<HTMLDivElement | null>(null);
@@ -5551,6 +5560,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     voiceSearchCompareModeRef.current = searchCompareMode;
   }, [searchCompareMode]);
 
+  function waitVoiceMsV461(ms: number) {
+    return new Promise<void>((resolve) => {
+      window.setTimeout(resolve, ms);
+    });
+  }
+
+  function clearVoiceNoSpeechTimeoutV461() {
+    if (voiceNoSpeechTimeoutRefV461.current) {
+      window.clearTimeout(voiceNoSpeechTimeoutRefV461.current);
+      voiceNoSpeechTimeoutRefV461.current = null;
+    }
+  }
+
   function getVoiceSearchCandidateV456(rawValue?: string) {
     const fromRaw = typeof rawValue === "string" ? rawValue : "";
     const fromLatest = voiceLatestCleanedInputRef.current || "";
@@ -5568,6 +5590,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // ei Enter-eventtiä eikä Reactin seuraavaa state-kierrosta. Jos jokin aiempi
     // äänihaku jäi puolittain lukkoon, puretaan se ennen pakkoajoa.
     voiceSearchRunningRefV453.current = false;
+    voiceForceJustiinaCartSearchRefV461.current = true;
+    gostaPanelStickyOpenRefV158.current = false;
     voiceHeardSpeechRef.current = true;
     voiceAutoSearchAfterStopRef.current = false;
     voiceFallingEdgeSearchArmedRefV455.current = false;
@@ -5578,6 +5602,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       window.clearTimeout(voiceSilenceTimeoutRef.current);
       voiceSilenceTimeoutRef.current = null;
     }
+    clearVoiceNoSpeechTimeoutV461();
 
     if (voiceForceSearchTimeoutRefV456.current) {
       window.clearTimeout(voiceForceSearchTimeoutRefV456.current);
@@ -5619,6 +5644,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // V457: force=true on nauhurin sammumisen jälkeinen varma Justiina-käynnistys.
     // Se saa ohittaa mahdollisen vanhan jumiin jääneen running-lukon.
     voiceSearchRunningRefV453.current = true;
+    voiceForceJustiinaCartSearchRefV461.current = true;
+    gostaPanelStickyOpenRefV158.current = false;
     voiceAutoSearchAfterStopRef.current = false;
     voiceInputFallbackArmedRefV454.current = false;
     voiceFallingEdgeSearchArmedRefV455.current = false;
@@ -5646,6 +5673,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setVoiceProcessing(false);
       voiceHeardSpeechRef.current = false;
       voiceSearchRunningRefV453.current = false;
+      voiceForceJustiinaCartSearchRefV461.current = false;
     }
   }
 
@@ -5690,8 +5718,25 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     try {
       // Tämä kutsu tehdään suoraan käyttäjän Äänitä-klikkauksen jatkeena,
       // jotta iOS/Safari saa näyttää oman mikrofonilupakyselynsä.
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
+      });
+
+      const audioTrack = stream.getAudioTracks?.()[0];
+      const label = String(audioTrack?.label || "").toLowerCase();
+      const looksLikeBluetooth = /airpods|bluetooth|bt|buds|headset|hands-free|handsfree/.test(label);
+
       stream.getTracks().forEach((track) => track.stop());
+
+      if (looksLikeBluetooth) {
+        setVoicePromptText("Bluetooth-mikki havaittu. Jos tekstiä ei tule, irrota BT ja käytä puhelimen omaa mikrofonia.");
+        await waitVoiceMsV461(900);
+      }
+
       return true;
     } catch (error: any) {
       const name = String(error?.name || error?.message || "").toLowerCase();
@@ -5717,6 +5762,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         window.clearTimeout(voiceSilenceTimeoutRef.current);
         voiceSilenceTimeoutRef.current = null;
       }
+      clearVoiceNoSpeechTimeoutV461();
       try {
         recognitionRef.current?.abort?.();
       } catch {
@@ -5755,6 +5801,24 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       if (voiceRecognitionSessionIdRefV458.current !== sessionId) return;
       setVoiceProcessing(false);
       setIsListening(true);
+      setVoicePromptText("Kuuntelen...");
+
+      clearVoiceNoSpeechTimeoutV461();
+      voiceNoSpeechTimeoutRefV461.current = window.setTimeout(() => {
+        if (voiceRecognitionSessionIdRefV458.current !== sessionId) return;
+        if (voiceHeardSpeechRef.current || voiceLatestCleanedInputRef.current) return;
+
+        try {
+          recognition.abort?.();
+        } catch {
+          // Ei vaikutusta ohjetekstiin.
+        }
+
+        recognitionRef.current = null;
+        setIsListening(false);
+        setVoiceProcessing(false);
+        setVoicePromptText("Puhetta ei tullut tekstiksi. Jos Bluetooth-kuulokkeet ovat kiinni, irrota ne tai valitse puhelimen oma mikrofoni ja kokeile uudelleen.");
+      }, 7000);
     };
 
     recognition.onend = () => {
@@ -5766,6 +5830,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         window.clearTimeout(voiceSilenceTimeoutRef.current);
         voiceSilenceTimeoutRef.current = null;
       }
+      clearVoiceNoSpeechTimeoutV461();
 
       const shouldRunVoiceSearch =
         voiceRecognitionStoppingRefV458.current ||
@@ -5792,6 +5857,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         window.clearTimeout(voiceSilenceTimeoutRef.current);
         voiceSilenceTimeoutRef.current = null;
       }
+      clearVoiceNoSpeechTimeoutV461();
 
       if (voiceHeardSpeechRef.current || voiceAutoSearchAfterStopRef.current) {
         forceStartVoiceSearchV456();
@@ -5820,6 +5886,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const cleaned = getVoiceSearchInputV447(transcript);
       if (!cleaned) return;
 
+      clearVoiceNoSpeechTimeoutV461();
+      setVoicePromptText("");
       voiceHeardSpeechRef.current = true;
       voiceFallingEdgeSearchArmedRefV455.current = true;
       voiceLatestCleanedInputRef.current = cleaned;
@@ -5841,6 +5909,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         voiceAutoSearchAfterStopRef.current = true;
         voiceFallingEdgeSearchArmedRefV455.current = true;
         voiceRecognitionStoppingRefV458.current = true;
+        clearVoiceNoSpeechTimeoutV461();
 
         // V458: sulje nykyinen recognition ennen hakua ja irrota ref,
         // jotta seuraava painallus saa varmasti uuden puhtaan olion.
@@ -6029,6 +6098,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       window.clearTimeout(voiceSilenceTimeoutRef.current);
       voiceSilenceTimeoutRef.current = null;
     }
+    clearVoiceNoSpeechTimeoutV461();
 
     setVoicePromptText("");
 
@@ -6105,6 +6175,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       voiceIntroActiveRefV448.current = false;
       setVoicePromptText("");
+
+      // V461: intro saa loppua rauhassa ennen piippiä ja nauhurin starttia.
+      await waitVoiceMsV461(350);
       startVoiceInputV445();
     })();
   }
@@ -6135,15 +6208,24 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     try {
-      // Punainen merkkivalo syttyy recognition.onstartissa.
-      // Piip annetaan juuri ennen starttia.
+      // V461: piip ensin, sitten pieni väli, vasta sitten SpeechRecognition.start().
+      // Näin intro/puhe/piip eivät mene päällekkäin ja mikki ei kuule omaa piippiä aloitukseksi.
       playVoiceStartBeepV445();
-      recognition.start();
+      window.setTimeout(() => {
+        try {
+          recognition.start();
+        } catch {
+          recognitionRef.current = null;
+          setIsListening(false);
+          setVoiceProcessing(false);
+          setVoicePromptText("Puhesanelua ei saatu käyntiin. Tarkista selaimen mikrofonilupa.");
+        }
+      }, 220);
     } catch {
       recognitionRef.current = null;
       setIsListening(false);
       setVoiceProcessing(false);
-      alert("Puhesanelua ei saatu käyntiin. Tarkista selaimen mikrofonilupa.");
+      setVoicePromptText("Puhesanelua ei saatu käyntiin. Tarkista selaimen mikrofonilupa.");
     }
   }
 
@@ -8454,20 +8536,28 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   async function searchNormalPrices(termOverride?: string, forceEan = false) {
+    const forceVoiceJustiinaCartSearch = voiceForceJustiinaCartSearchRefV461.current;
+    const effectiveSearchCompareMode = forceVoiceJustiinaCartSearch ? "cart" : searchCompareMode;
+
     // V160: jos Gösta on näkyvissä/sticky-tilassa, mikään taustapäivitys,
     // kauppapäivitys tai vanha ajastettu haku ei saa käynnistää normaalia
     // Hae-tuotehakua eikä avata valintaikkunaa.
-    if (activeResult === "offers" || gostaPanelStickyOpenRefV158.current) {
+    // V461: äänihaun Justiina-pakkoajo saa ohittaa tämän lukon, koska muuten
+    // puheen jälkeinen automaattihaku voi kuolla vanhaan offers/Gösta-tilaan.
+    if (!forceVoiceJustiinaCartSearch && (activeResult === "offers" || gostaPanelStickyOpenRefV158.current)) {
       setLoadingNormal(false);
       setNormalSearchAttempted(false);
       return;
     }
+    if (forceVoiceJustiinaCartSearch) {
+      gostaPanelStickyOpenRefV158.current = false;
+    }
 
     const rawUseTerms = termOverride
-      ? searchCompareMode === "single"
+      ? effectiveSearchCompareMode === "single"
         ? [getSingleSearchTerm(termOverride)].filter(Boolean)
         : parseTerms(termOverride)
-      : searchCompareMode === "single"
+      : effectiveSearchCompareMode === "single"
         ? [getSingleSearchTerm(input)].filter(Boolean)
         : terms;
 
@@ -8533,13 +8623,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     if (termOverride) {
       setInput(
-        searchCompareMode === "single"
+        effectiveSearchCompareMode === "single"
           ? useTerms[0] || termOverride
           : useTerms.join(", ") || termOverride,
       );
     } else {
       const correctedInput =
-        searchCompareMode === "single"
+        effectiveSearchCompareMode === "single"
           ? useTerms[0] || input
           : useTerms.join(", ") || input;
 
