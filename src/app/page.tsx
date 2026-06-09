@@ -1,3 +1,11 @@
+// V459_VOICE_MIC_PERMISSION_AND_START_FIX
+// Korjaus äänihakuun:
+// - Mikrofonilupa pyydetään oikeasti käyttäjän klikkauksesta getUserMedia({ audio: true }) -kutsulla ennen MP3-introa.
+// - Ei näytetä "Mikrofonilupa puuttuu" -ilmoitusta ennen kuin selain on saanut mahdollisuuden näyttää lupakyselyn.
+// - V458:n starttibugi korjattu: introäänen jälkeen EI enää palata pois siksi, että recognitionRef.current on tyhjä.
+//   Uusi SpeechRecognition luodaan vasta startVoiceInputV445()-funktiossa jokaiselle ajolle.
+// - Jos lupa on selaimessa estetty, käyttäjälle kerrotaan että lupa pitää sallia Safarin/Chrome-selaimen asetuksista.
+
 // V458_VOICE_FRESH_RECOGNITION_EACH_RUN
 // Korjaus V457:n yhden ajon jälkeiseen jumiin:
 // - SpeechRecognition-oliota ei enää kierrätetä ajosta toiseen.
@@ -5665,6 +5673,42 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition || null;
   }
 
+
+  async function ensureVoiceMicrophonePermissionV459() {
+    if (typeof window === "undefined" || typeof navigator === "undefined") return false;
+
+    if (!window.isSecureContext) {
+      setVoicePromptText("Mikrofoni toimii vain HTTPS-osoitteessa.");
+      return false;
+    }
+
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setVoicePromptText("Mikrofoni ei ole käytettävissä tässä selaimessa.");
+      return false;
+    }
+
+    try {
+      // Tämä kutsu tehdään suoraan käyttäjän Äänitä-klikkauksen jatkeena,
+      // jotta iOS/Safari saa näyttää oman mikrofonilupakyselynsä.
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      stream.getTracks().forEach((track) => track.stop());
+      return true;
+    } catch (error: any) {
+      const name = String(error?.name || error?.message || "").toLowerCase();
+      setIsListening(false);
+      setVoiceProcessing(false);
+      voiceIntroActiveRefV448.current = false;
+
+      if (name.includes("notallowed") || name.includes("permission") || name.includes("denied")) {
+        setVoicePromptText("Mikrofonilupa on estetty. Salli mikrofoni selaimen osoiterivin/Safarin sivustoasetuksista ja kokeile uudelleen.");
+      } else {
+        setVoicePromptText("Mikrofonia ei saatu avattua. Tarkista selaimen mikrofonilupa.");
+      }
+
+      return false;
+    }
+  }
+
   useEffect(() => {
     setSpeechSupported(Boolean(getSpeechRecognitionClassV458()));
 
@@ -5758,7 +5802,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setVoiceProcessing(false);
       setVoicePromptText(
         event?.error === "not-allowed"
-          ? "Mikrofonilupa puuttuu."
+          ? "Mikrofonilupa estetty. Salli mikrofoni selaimen asetuksista ja kokeile uudelleen."
           : ""
       );
     };
@@ -6043,12 +6087,20 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setActiveResult("none");
     setSearchPanelOpen(true);
     setVoiceProcessing(false);
-    setVoicePromptText(introText);
+    setVoicePromptText("Avataan mikrofonia...");
 
     void (async () => {
+      const microphoneOk = await ensureVoiceMicrophonePermissionV459();
+      if (!microphoneOk) return;
+
+      if (!voiceIntroActiveRefV448.current) return;
+      setVoicePromptText(introText);
+
       await playVoiceIntroMp3AndWaitV448();
 
-      if (!recognitionRef.current) return;
+      // V459: tässä EI saa tarkistaa recognitionRef.current-arvoa.
+      // V458 tekee tarkoituksella uuden puhtaan SpeechRecognition-instanssin
+      // vasta startVoiceInputV445()-funktiossa. Vanha ehto esti koko startin.
       if (isListening || voiceProcessing || !voiceIntroActiveRefV448.current) return;
 
       voiceIntroActiveRefV448.current = false;
