@@ -2,9 +2,9 @@
  * Ziiply normal search ranker.
  * Location: src/app/components/ziiply/search/searchRanker.ts
  *
- * v443:
+ * v443-debug:
  * - Ruokahauissa lemmikkituotteet painetaan alas.
- * - Esim. "makkara" ei saa nostaa koiranmakkaraa grillimakkaroiden edelle.
+ * - Debuggaa selaimen consoleen, osuuko ranker oikeasti makkara-hakuun.
  */
 
 import { resolveSearchIntentAI, isProductAllowedByIntent, scoreProductIntentFit } from "./searchIntentAI";
@@ -34,11 +34,28 @@ const PET_HINTS = [
   "koira",
   "kissa",
   "lemmikki",
+  "lemmikit",
+  "koiran",
+  "kissan",
   "koiranruoka",
   "kissanruoka",
+  "lemmikkiruoka",
+  "lemmikkien",
   "dog",
   "cat",
+  "pedigree",
+  "cesar",
+  "shelma",
+  "schesir",
+  "purina",
+  "whiskas",
+  "felix",
 ];
+
+function shouldDebugRanker(query: string) {
+  const q = normalizeFi(query);
+  return q.includes("makkara") || q.includes("nakki") || q.includes("liha");
+}
 
 export function scoreNormalSearchProduct<T extends ZiiplySearchProductLike>(
   product: T,
@@ -54,7 +71,7 @@ export function scoreNormalSearchProduct<T extends ZiiplySearchProductLike>(
 
   const q = normalizeFi(intent.correctedQuery || query);
   const name = normalizeFi(product.name);
-  const brand = normalizeFi(product.brandName);
+  const brand = normalizeFi(product.brandName || product.brand);
   const category = normalizeFi(product.category);
   const text = getProductSearchText(product);
   const queryTokens = tokenizeFi(q);
@@ -94,16 +111,13 @@ export function scoreNormalSearchProduct<T extends ZiiplySearchProductLike>(
     reasons.push("category_hint");
   }
 
-  // v443: ruokahauissa lemmikkituotteet alas.
-  // Esim. "makkara" tarkoittaa käyttäjälle yleensä grillimakkaraa/ruokamakkaraa,
-  // ei koiranmakkaraa.
   const hasFoodIntent = FOOD_INTENT_WORDS.some((word) => q.includes(word));
-  const petText = `${category} ${text}`.toLowerCase();
-  const isPetProduct = PET_HINTS.some((hint) => petText.includes(hint));
+  const petText = normalizeFi(`${name} ${brand} ${category} ${text}`);
+  const isPetProduct = PET_HINTS.some((hint) => petText.includes(normalizeFi(hint)));
 
   if (hasFoodIntent && isPetProduct) {
-    score -= 300;
-    reasons.push("pet_penalty");
+    score -= 10000;
+    reasons.push("pet_penalty_debug_minus_10000");
   }
 
   const packageSize = getProductPackageSize(product);
@@ -125,6 +139,23 @@ export function scoreNormalSearchProduct<T extends ZiiplySearchProductLike>(
     reasons.push(learned.reason);
   }
 
+  if (shouldDebugRanker(query)) {
+    console.log("[Ziiply ranker debug]", {
+      query,
+      q,
+      name,
+      brand,
+      category,
+      baseScore,
+      finalScore: score,
+      hasFoodIntent,
+      isPetProduct,
+      petText,
+      reasons,
+      product,
+    });
+  }
+
   return { product, score, reasons };
 }
 
@@ -133,10 +164,25 @@ export function rankNormalSearchProducts<T extends ZiiplySearchProductLike>(
   query: string,
   getBaseScore?: (product: T) => number
 ): ZiiplyNormalSearchResult<T>[] {
-  return products
+  const ranked = products
     .map((product) =>
       scoreNormalSearchProduct(product, query, getBaseScore ? getBaseScore(product) : 0)
     )
     .filter((item) => item.score > -9000)
     .sort((a, b) => b.score - a.score);
+
+  if (shouldDebugRanker(query)) {
+    console.log(
+      "[Ziiply ranker debug top 20]",
+      ranked.slice(0, 20).map((item) => ({
+        name: item.product.name || item.product.title || item.product.productName,
+        brand: item.product.brandName || item.product.brand,
+        category: item.product.category,
+        score: item.score,
+        reasons: item.reasons,
+      }))
+    );
+  }
+
+  return ranked;
 }
