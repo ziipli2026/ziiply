@@ -5,7 +5,11 @@
 // - Nauhoitus päättyy 2,5–3,5 s hiljaisuuteen.
 // - Haun ajaksi ääni-nappi menee processing/oranssi-tilaan ja tuloskortti avautuu haun valmistuttua.
 
-// V445_VOICE_INTRO_NO_START_TIMER_PROCESS_AFTER_SILENCE
+// V447_VOICE_MULTI_PRODUCT_INDEXING
+// Korjaus äänihakuun: puheesta tuleva ostoslista indeksoidaan/pilkotaan tuotteiksi ennen hakua.
+// Esim. "lohi makkara maito cola" -> "lohi, makkara, maito, cola", jolloin normaali hakujono hakee tuotteet erikseen.
+
+// V446_VOICE_SEARCH_FALLBACK_RUN_AFTER_SILENCE
 // Korjaus äänihakuun: ei enää 2,5 s pakkosammutusta heti käynnistyksestä.
 // Hiljaisuustauko käynnistyy vasta kun puhetta on oikeasti saatu.
 // Intro "Mitteepä saes olla?" pidetään ruudulla pidempään ja haku prosessoidaan varmasti onendissä.
@@ -3420,6 +3424,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const voiceAutoSearchAfterStopRef = useRef(false);
   const voiceHeardSpeechRef = useRef(false);
   const voiceLatestCleanedInputRef = useRef("");
+  const voiceSearchCompareModeRef = useRef(searchCompareMode);
   const cartSectionRef = useRef<HTMLElement | null>(null);
   const comparisonSectionRef = useRef<HTMLElement | null>(null);
   const compareOverlayScrollRef = useRef<HTMLDivElement | null>(null);
@@ -3943,6 +3948,82 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     return restored.trim();
+  }
+
+  function getVoiceSearchInputV447(value: string) {
+    const raw = fixText(String(value || ""))
+      .toLowerCase()
+      .replace(/[.;:!?]+/g, " ")
+      .replace(/\s+(ja|sekä|plus|sekä myös)\s+/gi, ", ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    if (!raw) return "";
+
+    const explicitTerms = parseTerms(raw);
+    if (explicitTerms.length > 1) {
+      return explicitTerms
+        .map((term) => fixText(term).replace(/\s+/g, " ").trim())
+        .filter(Boolean)
+        .join(", ");
+    }
+
+    const fillerWords = new Set([
+      "öö",
+      "ööh",
+      "tuota",
+      "tota",
+      "niinku",
+      "sitten",
+      "vielä",
+      "kiitos",
+      "hei",
+      "hae",
+      "etsi",
+      "lisää",
+    ]);
+
+    const words = raw
+      .replace(/[,]+/g, " ")
+      .split(/\s+/)
+      .map((word) => word.trim())
+      .filter((word) => word.length >= 2 && !fillerWords.has(word));
+
+    const terms: string[] = [];
+
+    for (let index = 0; index < words.length; index += 1) {
+      const word = words[index];
+      const next = words[index + 1] || "";
+
+      // Säilytetään yleisimmät kaksiosaiset tuotetermit yhtenä hakuna.
+      if (
+        (word === "coca" && next === "cola") ||
+        (word === "pepsi" && next === "max") ||
+        (word === "juhla" && next === "mokka") ||
+        (word === "juhlamokka" && next === "kahvi") ||
+        (word === "nauta" && next === "jauheliha") ||
+        (word === "broilerin" && next === "filee") ||
+        (word === "rasvaton" && next === "maito") ||
+        (word === "kevyt" && next === "maito")
+      ) {
+        terms.push(`${word} ${next}`);
+        index += 1;
+        continue;
+      }
+
+      terms.push(word);
+    }
+
+    const uniqueTerms = Array.from(
+      new Map(
+        terms
+          .map((term) => fixText(term).replace(/\s+/g, " ").trim())
+          .filter(Boolean)
+          .map((term) => [normalize(term), term]),
+      ).values(),
+    ).slice(0, 12);
+
+    return uniqueTerms.join(", ");
   }
 
   function setSearchInputForMode(value: string) {
@@ -5390,8 +5471,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         return;
       }
 
+      const voiceTerms = parseTerms(cleaned);
+      const currentSearchMode =
+        voiceTerms.length > 1 ? "cart" : voiceSearchCompareModeRef.current;
       const searchTerm =
-        searchCompareMode === "single" ? getSingleSearchTerm(cleaned) : cleaned;
+        currentSearchMode === "single" ? getSingleSearchTerm(cleaned) : cleaned;
 
       setVoiceProcessing(true);
       setSearchPanelOpen(true);
@@ -5400,7 +5484,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       window.setTimeout(() => {
         void (async () => {
           try {
-            if (searchCompareMode === "single") {
+            if (currentSearchMode === "single") {
               setInput(searchTerm);
               await searchNormalPrices(searchTerm);
             } else {
@@ -5447,14 +5531,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       if (!transcript) return;
 
-      const cleaned = transcript
-        .toLowerCase()
-        .replace(/\s+(ja|sekä|plus)\s+/gi, ", ")
-        .replace(/[.;]+/g, ", ")
-        .replace(/,+/g, ",")
-        .replace(/\s*,\s*/g, ", ")
-        .replace(/^,|,$/g, "")
-        .trim();
+      const cleaned = getVoiceSearchInputV447(transcript);
 
       if (!cleaned) return;
 
@@ -5474,12 +5551,49 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const silenceMs = 2500 + Math.round(Math.random() * 1000);
       voiceSilenceTimeoutRef.current = window.setTimeout(() => {
         voiceAutoSearchAfterStopRef.current = true;
+        setVoiceProcessing(true);
         try {
           recognitionRef.current?.stop?.();
         } catch {
           setIsListening(false);
-          setVoiceProcessing(true);
         }
+
+        // Safari/WebKit voi joskus jättää onend-prosessoinnin epävarmaksi stopin jälkeen.
+        // Varahaara käynnistää saman haun, jos onend ei ehdi tehdä sitä.
+        window.setTimeout(() => {
+          const fallbackCleaned = voiceLatestCleanedInputRef.current.trim();
+          if (!voiceAutoSearchAfterStopRef.current || !fallbackCleaned) return;
+
+          voiceAutoSearchAfterStopRef.current = false;
+          const fallbackVoiceTerms = parseTerms(fallbackCleaned);
+          const currentSearchMode =
+            fallbackVoiceTerms.length > 1 ? "cart" : voiceSearchCompareModeRef.current;
+          const fallbackTerm =
+            currentSearchMode === "single"
+              ? getSingleSearchTerm(fallbackCleaned)
+              : fallbackCleaned;
+
+          setVoiceProcessing(true);
+          setSearchPanelOpen(true);
+          setActiveResult("none");
+
+          void (async () => {
+            try {
+              if (currentSearchMode === "single") {
+                setInput(fallbackTerm);
+                await searchNormalPrices(fallbackTerm);
+              } else {
+                setInput(fallbackCleaned);
+                await searchNormalPrices(fallbackCleaned);
+              }
+
+              scrollToNormalResults();
+            } finally {
+              setVoiceProcessing(false);
+              voiceHeardSpeechRef.current = false;
+            }
+          })();
+        }, 450);
       }, silenceMs);
     };
 
