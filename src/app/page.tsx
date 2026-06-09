@@ -5969,13 +5969,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   async function ensureVoiceMicrophonePermissionV459() {
     if (typeof window === "undefined" || typeof navigator === "undefined") return false;
 
-    // V467: älä avaa/sulje BT-mikkiä joka painalluksella, jos lupa on jo saatu.
-    // Toistuva getUserMedia voi mobiilissa varata Bluetooth-kuulokemikin niin,
-    // ettei Web Speech saa enää ääntä toisella sanelukerralla.
-    if (voiceMicPermissionGrantedRefV464.current) {
-      releaseVoiceMicWarmupStreamV465(0);
-      return true;
-    }
+    // V469: BT-kuulokkeilla Web Speechin audioreitti voi jäädä vanhaan tilaan,
+    // jos luotetaan vain aiemmin saatuun lupaan. Siksi mikrofoni herätetään
+    // jokaisella Äänitä-painalluksella uudella käyttäjäklikkauksen jatkeessa
+    // tehtävällä getUserMedia-kutsulla. Stream vapautetaan heti, jotta
+    // SpeechRecognition saa varsinaisen mikrofonin käyttöönsä.
+    releaseVoiceMicWarmupStreamV465(0);
+    voiceMicPermissionGrantedRefV464.current = false;
 
     if (!window.isSecureContext) {
       setVoicePromptText("Mikrofoni toimii vain HTTPS-osoitteessa.");
@@ -5988,10 +5988,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     try {
-      // V466: palautetaan BT:llä toiminut V461-tyyppinen lupapolku.
-      // getUserMedia tehdään käyttäjän Äänitä-klikkauksen jatkeena, jotta selain saa
-      // näyttää lupakyselyn ja valita audioreitin. Streamia EI pidetä auki sanelun aikana,
-      // koska erillinen MediaStream voi mobiilissa varata BT-mikin pois Web Speech API:lta.
+      // V469: herätetään myös BT-kuulokemikki jokaisella sanelukerralla.
+      // Streamia EI pidetä auki sanelun aikana, koska erillinen MediaStream voi
+      // varata BT-mikin pois Web Speech API:lta. Pelkkä lyhyt avaus riittää
+      // palauttamaan selaimen audioreitin ennen varsinaista SpeechRecognitionia.
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
@@ -6015,7 +6015,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       if (looksLikeBluetooth) {
         setVoicePromptText("Bluetooth-mikki havaittu. Aloitetaan sanelu...");
-        await waitVoiceMsV461(700);
+        // BT tarvitsee iOS/Safarissa usein hetken vaihtaakseen ulostuloäänestä mikki-tilaan.
+        await waitVoiceMsV461(1100);
       }
 
       return true;
@@ -6547,10 +6548,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // V461: piip ensin, sitten pieni väli, vasta sitten SpeechRecognition.start().
       // Näin intro/puhe/piip eivät mene päällekkäin ja mikki ei kuule omaa piippiä aloitukseksi.
       playVoiceStartBeepV445();
+      const startDelayMs = voiceBluetoothMicLikelyRefV464.current ? 950 : 220;
       window.setTimeout(() => {
         try {
-          // V466: varmistetaan vielä juuri ennen Web Speechin starttia, ettei erillinen
-          // getUserMedia-stream pidä BT-mikkiä varattuna.
+          // V469: juuri ennen Web Speechin starttia mikään oma MediaStream ei saa olla auki.
+          // BT:llä odotetaan pidempään, jotta kuulokkeet ehtivät siirtyä mikrofoni-/handsfree-reitille.
           releaseVoiceMicWarmupStreamV465(0);
           recognition.start();
         } catch {
@@ -6559,7 +6561,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           setVoiceProcessing(false);
           setVoicePromptText("Puhesanelua ei saatu käyntiin. Tarkista selaimen mikrofonilupa.");
         }
-      }, 220);
+      }, startDelayMs);
     } catch {
       recognitionRef.current = null;
       setIsListening(false);
