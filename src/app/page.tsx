@@ -5,14 +5,13 @@
 // - Nauhoitus päättyy 2,5–3,5 s hiljaisuuteen.
 // - Haun ajaksi ääni-nappi menee processing/oranssi-tilaan ja tuloskortti avautuu haun valmistuttua.
 
+// V448_VOICE_MULTI_LIST_FORCES_CART_SEARCH_AND_DIRECT_RUN
+// Korjaus äänihakuun: jos puheesta tunnistuu useampi tuote, searchNormalPrices ei saa käyttää Yksi tuote -tilaa.
+// Monituotepuhe pakotetaan ostoslistamaiseksi hakujonoksi ja haku käynnistyy varmasti hiljaisuuden jälkeen.
+
 // V447_VOICE_MULTI_PRODUCT_INDEXING
 // Korjaus äänihakuun: puheesta tuleva ostoslista indeksoidaan/pilkotaan tuotteiksi ennen hakua.
 // Esim. "lohi makkara maito cola" -> "lohi, makkara, maito, cola", jolloin normaali hakujono hakee tuotteet erikseen.
-
-// V448_VOICE_MP3_INTRO_BEFORE_RECORDING
-// Korjaus äänihakuun: ennen nauhurin käynnistystä soitetaan /ui/voice/search-voice1.mp3.
-// Puheentunnistus, punainen merkkivalo ja aloituspiip käynnistyvät vasta mp3-introäänen päätyttyä.
-
 
 // V446_VOICE_SEARCH_FALLBACK_RUN_AFTER_SILENCE
 // Korjaus äänihakuun: ei enää 2,5 s pakkosammutusta heti käynnistyksestä.
@@ -3426,12 +3425,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const voiceOpenSearchPanelAfterResultRef = useRef(false);
   const voiceSilenceTimeoutRef = useRef<number | null>(null);
   const voiceIntroTimeoutRef = useRef<number | null>(null);
-  const voiceIntroAudioRefV448 = useRef<HTMLAudioElement | null>(null);
-  const voiceIntroActiveRefV448 = useRef(false);
-  const voiceIntroResolveRefV448 = useRef<null | (() => void)>(null);
   const voiceAutoSearchAfterStopRef = useRef(false);
   const voiceHeardSpeechRef = useRef(false);
   const voiceLatestCleanedInputRef = useRef("");
+  const voiceSearchStartedRef = useRef(false);
   const voiceSearchCompareModeRef = useRef(searchCompareMode);
   const cartSectionRef = useRef<HTMLElement | null>(null);
   const comparisonSectionRef = useRef<HTMLElement | null>(null);
@@ -3645,56 +3642,22 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
   }
 
-  function finishVoiceIntroV448() {
-    voiceIntroAudioRefV448.current = null;
+  function speakVoiceIntroV445(text: string) {
+    if (typeof window === "undefined") return;
 
-    const resolve = voiceIntroResolveRefV448.current;
-    voiceIntroResolveRefV448.current = null;
-    resolve?.();
-  }
+    try {
+      const synth = window.speechSynthesis;
+      if (!synth) return;
 
-  function playVoiceIntroMp3AndWaitV448() {
-    if (typeof window === "undefined") return Promise.resolve();
-
-    return new Promise<void>((resolve) => {
-      voiceIntroResolveRefV448.current = resolve;
-
-      try {
-        const audio = new Audio("/ui/voice/search-voice1.mp3");
-        voiceIntroAudioRefV448.current = audio;
-
-        audio.preload = "auto";
-        audio.onended = () => finishVoiceIntroV448();
-        audio.onerror = () => finishVoiceIntroV448();
-
-        const fallbackTimer = window.setTimeout(() => {
-          if (voiceIntroActiveRefV448.current) {
-            try {
-              audio.pause();
-            } catch {
-              // Ei vaikutusta flow'hun.
-            }
-            finishVoiceIntroV448();
-          }
-        }, 4500);
-
-        audio.onended = () => {
-          window.clearTimeout(fallbackTimer);
-          finishVoiceIntroV448();
-        };
-        audio.onerror = () => {
-          window.clearTimeout(fallbackTimer);
-          finishVoiceIntroV448();
-        };
-
-        void audio.play().catch(() => {
-          window.clearTimeout(fallbackTimer);
-          finishVoiceIntroV448();
-        });
-      } catch {
-        finishVoiceIntroV448();
-      }
-    });
+      synth.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = "fi-FI";
+      utterance.rate = 0.92;
+      utterance.pitch = 0.82;
+      synth.speak(utterance);
+    } catch {
+      // Puheen puuttuminen ei saa estää nauhoitusta.
+    }
   }
 
   const lastContinuousScanRef = useRef<{ code: string; at: number } | null>(
@@ -5488,6 +5451,53 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setIsListening(true);
     };
 
+    const runVoiceSearchV448 = (source: "onend" | "fallback") => {
+      const cleaned = voiceLatestCleanedInputRef.current.trim();
+
+      if (voiceSearchStartedRef.current) return;
+      if (!cleaned) {
+        setVoiceProcessing(false);
+        setSearchPanelOpen(true);
+        return;
+      }
+
+      voiceSearchStartedRef.current = true;
+      voiceAutoSearchAfterStopRef.current = false;
+
+      const voiceTerms = parseTerms(cleaned);
+      const isMultiVoiceSearch = voiceTerms.length > 1;
+      const currentSearchMode = isMultiVoiceSearch
+        ? "cart"
+        : voiceSearchCompareModeRef.current;
+      const searchTerm =
+        currentSearchMode === "single" ? getSingleSearchTerm(cleaned) : cleaned;
+
+      if (isMultiVoiceSearch && searchCompareMode !== "cart") {
+        setSearchCompareMode("cart");
+      }
+
+      setVoiceProcessing(true);
+      setSearchPanelOpen(true);
+      setActiveResult("none");
+      setInput(currentSearchMode === "single" ? searchTerm : cleaned);
+
+      window.setTimeout(() => {
+        void (async () => {
+          try {
+            await searchNormalPrices(
+              currentSearchMode === "single" ? searchTerm : cleaned,
+            );
+
+            scrollToNormalResults();
+          } finally {
+            setVoiceProcessing(false);
+            voiceHeardSpeechRef.current = false;
+            voiceSearchStartedRef.current = false;
+          }
+        })();
+      }, 80);
+    };
+
     recognition.onend = () => {
       setIsListening(false);
 
@@ -5502,45 +5512,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       if (!shouldRunVoiceSearch) {
         setVoiceProcessing(false);
+        voiceSearchStartedRef.current = false;
         return;
       }
 
-      const cleaned = voiceLatestCleanedInputRef.current.trim();
-
-      if (!cleaned) {
-        setVoiceProcessing(false);
-        setSearchPanelOpen(true);
-        return;
-      }
-
-      const voiceTerms = parseTerms(cleaned);
-      const currentSearchMode =
-        voiceTerms.length > 1 ? "cart" : voiceSearchCompareModeRef.current;
-      const searchTerm =
-        currentSearchMode === "single" ? getSingleSearchTerm(cleaned) : cleaned;
-
-      setVoiceProcessing(true);
-      setSearchPanelOpen(true);
-      setActiveResult("none");
-
-      window.setTimeout(() => {
-        void (async () => {
-          try {
-            if (currentSearchMode === "single") {
-              setInput(searchTerm);
-              await searchNormalPrices(searchTerm);
-            } else {
-              setInput(cleaned);
-              await searchNormalPrices(cleaned);
-            }
-
-            scrollToNormalResults();
-          } finally {
-            setVoiceProcessing(false);
-            voiceHeardSpeechRef.current = false;
-          }
-        })();
-      }, 80);
+      runVoiceSearchV448("onend");
     };
 
     recognition.onerror = (event: any) => {
@@ -5601,40 +5577,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         }
 
         // Safari/WebKit voi joskus jättää onend-prosessoinnin epävarmaksi stopin jälkeen.
-        // Varahaara käynnistää saman haun, jos onend ei ehdi tehdä sitä.
+        // Varahaara käynnistää saman haun suoraan, jos onend ei ehdi tehdä sitä.
         window.setTimeout(() => {
-          const fallbackCleaned = voiceLatestCleanedInputRef.current.trim();
-          if (!voiceAutoSearchAfterStopRef.current || !fallbackCleaned) return;
-
-          voiceAutoSearchAfterStopRef.current = false;
-          const fallbackVoiceTerms = parseTerms(fallbackCleaned);
-          const currentSearchMode =
-            fallbackVoiceTerms.length > 1 ? "cart" : voiceSearchCompareModeRef.current;
-          const fallbackTerm =
-            currentSearchMode === "single"
-              ? getSingleSearchTerm(fallbackCleaned)
-              : fallbackCleaned;
-
-          setVoiceProcessing(true);
-          setSearchPanelOpen(true);
-          setActiveResult("none");
-
-          void (async () => {
-            try {
-              if (currentSearchMode === "single") {
-                setInput(fallbackTerm);
-                await searchNormalPrices(fallbackTerm);
-              } else {
-                setInput(fallbackCleaned);
-                await searchNormalPrices(fallbackCleaned);
-              }
-
-              scrollToNormalResults();
-            } finally {
-              setVoiceProcessing(false);
-              voiceHeardSpeechRef.current = false;
-            }
-          })();
+          if (!voiceAutoSearchAfterStopRef.current) return;
+          runVoiceSearchV448("fallback");
         }, 450);
       }, silenceMs);
     };
@@ -5782,19 +5728,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       voiceIntroTimeoutRef.current = null;
     }
 
-    if (voiceIntroAudioRefV448.current) {
-      try {
-        voiceIntroAudioRefV448.current.pause();
-        voiceIntroAudioRefV448.current.currentTime = 0;
-      } catch {
-        // Introäänen pysäytys ei saa kaataa flow'ta.
-      }
-    }
-    if (voiceIntroActiveRefV448.current) {
-      voiceIntroActiveRefV448.current = false;
-      finishVoiceIntroV448();
-    }
-
     if (voiceSilenceTimeoutRef.current) {
       window.clearTimeout(voiceSilenceTimeoutRef.current);
       voiceSilenceTimeoutRef.current = null;
@@ -5811,7 +5744,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function toggleVoiceInput() {
-    if (isListening || voiceProcessing || voiceIntroTimeoutRef.current !== null || voiceIntroActiveRefV448.current) {
+    if (isListening || voiceProcessing || voiceIntroTimeoutRef.current !== null) {
       stopVoiceInput(false);
       return;
     }
@@ -5831,29 +5764,25 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return;
     }
 
-    if (isListening || voiceProcessing || voiceIntroTimeoutRef.current !== null || voiceIntroActiveRefV448.current) return;
+    if (isListening || voiceProcessing || voiceIntroTimeoutRef.current !== null) return;
 
     const introText = "Mitteepä saes olla?";
     voiceHeardSpeechRef.current = false;
     voiceAutoSearchAfterStopRef.current = false;
+    voiceSearchStartedRef.current = false;
     voiceLatestCleanedInputRef.current = "";
-    voiceIntroActiveRefV448.current = true;
 
     setActiveResult("none");
     setSearchPanelOpen(true);
     setVoiceProcessing(false);
     setVoicePromptText(introText);
+    speakVoiceIntroV445(introText);
 
-    void (async () => {
-      await playVoiceIntroMp3AndWaitV448();
-
-      if (!recognitionRef.current) return;
-      if (isListening || voiceProcessing || !voiceIntroActiveRefV448.current) return;
-
-      voiceIntroActiveRefV448.current = false;
+    voiceIntroTimeoutRef.current = window.setTimeout(() => {
+      voiceIntroTimeoutRef.current = null;
       setVoicePromptText("");
       startVoiceInputV445();
-    })();
+    }, 1850);
   }
 
   function startVoiceInputV445() {
@@ -8197,10 +8126,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return;
     }
 
+    const termOverrideTerms = termOverride ? parseTerms(termOverride) : [];
+    const isVoiceOrListTermOverride = Boolean(termOverride && termOverrideTerms.length > 1);
+
     const rawUseTerms = termOverride
-      ? searchCompareMode === "single"
-        ? [getSingleSearchTerm(termOverride)].filter(Boolean)
-        : parseTerms(termOverride)
+      ? isVoiceOrListTermOverride
+        ? termOverrideTerms
+        : searchCompareMode === "single"
+          ? [getSingleSearchTerm(termOverride)].filter(Boolean)
+          : termOverrideTerms
       : searchCompareMode === "single"
         ? [getSingleSearchTerm(input)].filter(Boolean)
         : terms;
@@ -8267,9 +8201,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     if (termOverride) {
       setInput(
-        searchCompareMode === "single"
-          ? useTerms[0] || termOverride
-          : useTerms.join(", ") || termOverride,
+        isVoiceOrListTermOverride
+          ? useTerms.join(", ") || termOverride
+          : searchCompareMode === "single"
+            ? useTerms[0] || termOverride
+            : useTerms.join(", ") || termOverride,
       );
     } else {
       const correctedInput =
