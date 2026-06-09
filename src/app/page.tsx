@@ -1,3 +1,11 @@
+// V458_VOICE_FRESH_RECOGNITION_EACH_RUN
+// Korjaus V457:n yhden ajon jälkeiseen jumiin:
+// - SpeechRecognition-oliota ei enää kierrätetä ajosta toiseen.
+// - Jokainen Äänitä-painallus luo puhtaan uuden recognition-instanssin ja vanha abortataan.
+// - Kun hiljaisuus katkaisee nauhurin, recognition suljetaan ensin ja Justiinan haku käynnistetään suoralla pakkohaulla.
+// - Nauhoitus ei saa katketa kesken puheen ensimmäisestä interim-tuloksesta: hiljaisuustimeri nollautuu jokaisesta tuloksesta.
+// - Uusi nauhoitus ei ole estetty vanhan recognitionRef/onend-tilan takia.
+
 // V457_VOICE_HARD_JUSTIINA_START_NO_ONEND_GATE
 // Korjaus automaattihakuun: Justiinan startti ei saa enää jäädä minkään onend-/state-/running-lukon taakse.
 // Yksi forceStartVoiceSearchV456()-polku sytyttää oranssin heti, pakottaa Hae-paneelin auki, asettaa inputin,
@@ -3469,6 +3477,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const voiceFallingEdgeSearchArmedRefV455 = useRef(false);
   const voiceSessionActiveUntilRefV456 = useRef(0);
   const voiceForceSearchTimeoutRefV456 = useRef<number | null>(null);
+  const voiceRecognitionSessionIdRefV458 = useRef(0);
+  const voiceRecognitionStoppingRefV458 = useRef(false);
   const cartSectionRef = useRef<HTMLElement | null>(null);
   const comparisonSectionRef = useRef<HTMLElement | null>(null);
   const compareOverlayScrollRef = useRef<HTMLDivElement | null>(null);
@@ -5650,29 +5660,62 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     forceStartVoiceSearchV456(value);
   }, [isListening, voiceProcessing, input]);
 
+  function getSpeechRecognitionClassV458() {
+    if (typeof window === "undefined") return null;
+    return (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition || null;
+  }
+
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    setSpeechSupported(Boolean(getSpeechRecognitionClassV458()));
 
-    const SpeechRecognition =
-      (window as any).SpeechRecognition ||
-      (window as any).webkitSpeechRecognition;
+    return () => {
+      if (voiceSilenceTimeoutRef.current) {
+        window.clearTimeout(voiceSilenceTimeoutRef.current);
+        voiceSilenceTimeoutRef.current = null;
+      }
+      try {
+        recognitionRef.current?.abort?.();
+      } catch {
+        // Ei vaikutusta purkuun.
+      }
+      recognitionRef.current = null;
+    };
+  }, []);
 
-    if (!SpeechRecognition) return;
+  function createFreshVoiceRecognitionV458() {
+    const SpeechRecognition = getSpeechRecognitionClassV458();
+    if (!SpeechRecognition) return null;
 
-    setSpeechSupported(true);
+    // V458: vanha WebKit recognition voi jäädä yhden ajon jälkeen tilaan,
+    // jossa uusi start ei enää anna resultteja. Siksi se tapetaan ennen uutta.
+    try {
+      recognitionRef.current?.abort?.();
+    } catch {
+      try {
+        recognitionRef.current?.stop?.();
+      } catch {
+        // Ei vaikutusta uuden instanssin luontiin.
+      }
+    }
+
+    const sessionId = voiceRecognitionSessionIdRefV458.current + 1;
+    voiceRecognitionSessionIdRefV458.current = sessionId;
+    voiceRecognitionStoppingRefV458.current = false;
 
     const recognition = new SpeechRecognition();
-
     recognition.lang = "fi-FI";
     recognition.continuous = true;
     recognition.interimResults = true;
 
     recognition.onstart = () => {
+      if (voiceRecognitionSessionIdRefV458.current !== sessionId) return;
       setVoiceProcessing(false);
       setIsListening(true);
     };
 
     recognition.onend = () => {
+      if (voiceRecognitionSessionIdRefV458.current !== sessionId) return;
+      recognitionRef.current = null;
       setIsListening(false);
 
       if (voiceSilenceTimeoutRef.current) {
@@ -5681,7 +5724,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
 
       const shouldRunVoiceSearch =
-        voiceAutoSearchAfterStopRef.current || voiceHeardSpeechRef.current;
+        voiceRecognitionStoppingRefV458.current ||
+        voiceAutoSearchAfterStopRef.current ||
+        voiceHeardSpeechRef.current;
+
+      voiceRecognitionStoppingRefV458.current = false;
       voiceAutoSearchAfterStopRef.current = false;
 
       if (!shouldRunVoiceSearch) {
@@ -5693,6 +5740,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     };
 
     recognition.onerror = (event: any) => {
+      if (voiceRecognitionSessionIdRefV458.current !== sessionId) return;
+      recognitionRef.current = null;
       setIsListening(false);
 
       if (voiceSilenceTimeoutRef.current) {
@@ -5700,13 +5749,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         voiceSilenceTimeoutRef.current = null;
       }
 
-      // WebKit voi antaa "no-speech"- tai "aborted"-virheen, kun kuuntelu lopetetaan.
-      // Jos puhetta on jo saatu, annetaan onendin prosessoida haku.
       if (voiceHeardSpeechRef.current || voiceAutoSearchAfterStopRef.current) {
         forceStartVoiceSearchV456();
         return;
       }
 
+      voiceRecognitionStoppingRefV458.current = false;
       setVoiceProcessing(false);
       setVoicePromptText(
         event?.error === "not-allowed"
@@ -5716,6 +5764,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     };
 
     recognition.onresult = (event: any) => {
+      if (voiceRecognitionSessionIdRefV458.current !== sessionId) return;
+
       const transcript = Array.from(event.results)
         .map((result: any) => result[0]?.transcript || "")
         .join(" ")
@@ -5724,7 +5774,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       if (!transcript) return;
 
       const cleaned = getVoiceSearchInputV447(transcript);
-
       if (!cleaned) return;
 
       voiceHeardSpeechRef.current = true;
@@ -5741,24 +5790,37 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         window.clearTimeout(voiceSilenceTimeoutRef.current);
       }
 
-      const silenceMs = 2500 + Math.round(Math.random() * 1000);
+      const silenceMs = 3200;
       voiceSilenceTimeoutRef.current = window.setTimeout(() => {
+        if (voiceRecognitionSessionIdRefV458.current !== sessionId) return;
+
         voiceAutoSearchAfterStopRef.current = true;
         voiceFallingEdgeSearchArmedRefV455.current = true;
+        voiceRecognitionStoppingRefV458.current = true;
 
-        // V456: käynnistä haku ensin suoraan. stop() on vain mikrofonin sulkemista varten.
-        forceStartVoiceSearchV456(cleaned);
+        // V458: sulje nykyinen recognition ennen hakua ja irrota ref,
+        // jotta seuraava painallus saa varmasti uuden puhtaan olion.
+        const activeRecognition = recognitionRef.current;
+        recognitionRef.current = null;
+        setIsListening(false);
 
         try {
-          recognitionRef.current?.stop?.();
+          activeRecognition?.abort?.();
         } catch {
-          setIsListening(false);
+          try {
+            activeRecognition?.stop?.();
+          } catch {
+            // Ei vaikutusta Justiinan pakkohaun aloitukseen.
+          }
         }
+
+        forceStartVoiceSearchV456(cleaned);
       }, silenceMs);
     };
 
     recognitionRef.current = recognition;
-  }, [cart]);
+    return recognition;
+  }
 
   const closeFloatingPanels = useCallback(() => {
     setSearchPanelOpen(false);
@@ -5930,8 +5992,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // Justiina käynnistyy tästä ennen kuin recognition.stop ehtii sotkea eventtejä.
     const forced = shouldTryForcedSearch ? forceStartVoiceSearchV456() : false;
 
+    const activeRecognition = recognitionRef.current;
+    recognitionRef.current = null;
+    voiceRecognitionStoppingRefV458.current = Boolean(forced || searchAfterStop);
+
     try {
-      recognitionRef.current?.stop?.();
+      if (forced) {
+        activeRecognition?.abort?.();
+      } else {
+        activeRecognition?.stop?.();
+      }
     } catch {
       setIsListening(false);
       if (!forced) setVoiceProcessing(false);
@@ -5952,7 +6022,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       voiceOpenSearchPanelAfterResultRef.current = true;
     }
 
-    if (!recognitionRef.current) {
+    if (!getSpeechRecognitionClassV458()) {
       alert(
         "Puhesanelu ei ole käytettävissä tässä selaimessa tai tässä osoitteessa. Kokeile puhelimella HTTPS-osoitteessa, esimerkiksi Vercel-testilinkissä.",
       );
@@ -5988,14 +6058,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function startVoiceInputV445() {
-    if (!recognitionRef.current) return;
     if (isListening) return;
 
     voiceAutoSearchAfterStopRef.current = false;
     voiceHeardSpeechRef.current = false;
     voiceLatestCleanedInputRef.current = "";
     voiceInputFallbackArmedRefV454.current = true;
+    voiceFallingEdgeSearchArmedRefV455.current = false;
     voiceSessionActiveUntilRefV456.current = Date.now() + 30000;
+    voiceRecognitionStoppingRefV458.current = false;
     setVoiceProcessing(false);
 
     if (voiceSilenceTimeoutRef.current) {
@@ -6003,12 +6074,22 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       voiceSilenceTimeoutRef.current = null;
     }
 
+    const recognition = createFreshVoiceRecognitionV458();
+    if (!recognition) {
+      alert(
+        "Puhesanelu ei ole käytettävissä tässä selaimessa tai tässä osoitteessa. Kokeile puhelimella HTTPS-osoitteessa, esimerkiksi Vercel-testilinkissä.",
+      );
+      return;
+    }
+
     try {
       // Punainen merkkivalo syttyy recognition.onstartissa.
       // Piip annetaan juuri ennen starttia.
       playVoiceStartBeepV445();
-      recognitionRef.current.start();
+      recognition.start();
     } catch {
+      recognitionRef.current = null;
+      setIsListening(false);
       setVoiceProcessing(false);
       alert("Puhesanelua ei saatu käyntiin. Tarkista selaimen mikrofonilupa.");
     }
