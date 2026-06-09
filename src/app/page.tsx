@@ -1,3 +1,13 @@
+// V467_VOICE_BT_REPEAT_INTRO_AND_PROMPT_POSITION
+// Korjaus V466:n kahteen vikaan:
+// - BT-kuulokkeilla toinen sanelukerta ei enää avaa/sulje getUserMedia-streamia uudelleen, jos mikrolupa on jo saatu.
+//   Tämä palauttaa BT-äänireitin Web Speechille eikä varaa kuulokemikkiä pois toisella ajolla.
+// - Intro-MP3 alustetaan jokaisella ajolla uutena, kelataan alkuun ja ladataan ennen play()-kutsua,
+//   jotta "Mitteepä saes olla?" kuuluu myös toisella ja seuraavilla painalluksilla.
+// - Mahdollinen vanha voiceIntroActive/timeout/audio-jumi nollataan ennen uutta aloitusta.
+// - Notif-palkki nostettu mockupin mukaiseen kohtaan hakukentän alapuolelle, Äänitä-napin yläpuolelle,
+//   ei napin kuvan päälle.
+
 // V466_VOICE_BT_RESTORE_AND_PROMPT_POSITION_FIX
 // Korjaus V465:n regressioon:
 // - BT-kuulokemikki palautettu V461-tyyppiseen toimivaan lupapolkuun: getUserMedia avaa luvan, tunnistaa BT:n ja vapauttaa raidan ennen SpeechRecognition.start()-kutsua.
@@ -3765,7 +3775,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         const audio = new Audio("/ui/voice/search-voice1.mp3");
         voiceIntroAudioRefV448.current = audio;
 
+        // V467: iOS/Safari + BT voi jättää saman äänen toisella ajolla hiljaiseksi,
+        // jos elementti jää vanhaan tilaan. Uusi elementti kelataan ja ladataan aina.
         audio.preload = "auto";
+        audio.playsInline = true;
+        audio.volume = 1;
+        try {
+          audio.currentTime = 0;
+          audio.load?.();
+        } catch {
+          // Ei saa pysäyttää sanelusekvenssiä.
+        }
         audio.onended = () => finishVoiceIntroV448();
         audio.onerror = () => finishVoiceIntroV448();
 
@@ -5943,6 +5963,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   async function ensureVoiceMicrophonePermissionV459() {
     if (typeof window === "undefined" || typeof navigator === "undefined") return false;
 
+    // V467: älä avaa/sulje BT-mikkiä joka painalluksella, jos lupa on jo saatu.
+    // Toistuva getUserMedia voi mobiilissa varata Bluetooth-kuulokemikin niin,
+    // ettei Web Speech saa enää ääntä toisella sanelukerralla.
+    if (voiceMicPermissionGrantedRefV464.current) {
+      releaseVoiceMicWarmupStreamV465(0);
+      return true;
+    }
+
     if (!window.isSecureContext) {
       setVoicePromptText("Mikrofoni toimii vain HTTPS-osoitteessa.");
       return false;
@@ -6069,6 +6097,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         recognitionRef.current = null;
         setIsListening(false);
         setVoiceProcessing(false);
+        voiceIntroActiveRefV448.current = false;
+        voiceAutoSearchAfterStopRef.current = false;
+        voiceRecognitionStoppingRefV458.current = false;
         releaseVoiceMicWarmupStreamV465(0);
         setVoicePromptText(
           voiceBluetoothMicLikelyRefV464.current
@@ -6100,6 +6131,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       if (!shouldRunVoiceSearch) {
         setVoiceProcessing(false);
+        voiceIntroActiveRefV448.current = false;
+        voiceAutoSearchAfterStopRef.current = false;
+        voiceFallingEdgeSearchArmedRefV455.current = false;
         return;
       }
 
@@ -6414,6 +6448,28 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         "Puhesanelu ei ole käytettävissä tässä selaimessa tai tässä osoitteessa. Kokeile puhelimella HTTPS-osoitteessa, esimerkiksi Vercel-testilinkissä.",
       );
       return;
+    }
+
+    // V467: jos edellisestä BT/WebKit-ajosta jäi introflag/ajastin roikkumaan,
+    // nollataan se ennen uutta aloitusta. Varsinainen kuuntelu/prosessointi on yhä stop-tilanne.
+    if (!isListening && !voiceProcessing) {
+      if (voiceIntroTimeoutRef.current) {
+        window.clearTimeout(voiceIntroTimeoutRef.current);
+        voiceIntroTimeoutRef.current = null;
+      }
+      if (voiceIntroActiveRefV448.current) {
+        voiceIntroActiveRefV448.current = false;
+        finishVoiceIntroV448();
+      }
+      if (voiceIntroAudioRefV448.current) {
+        try {
+          voiceIntroAudioRefV448.current.pause();
+          voiceIntroAudioRefV448.current.currentTime = 0;
+        } catch {
+          // Ei vaikutusta uuteen aloitukseen.
+        }
+        voiceIntroAudioRefV448.current = null;
+      }
     }
 
     if (isListening || voiceProcessing || voiceIntroTimeoutRef.current !== null || voiceIntroActiveRefV448.current) return;
@@ -16725,7 +16781,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
             {voicePromptText && (
               <div
-                className="pointer-events-none fixed left-[13.5%] top-[calc(env(safe-area-inset-top)+21.35rem)] z-[9998] min-h-[1.45rem] max-w-[13.7rem] rounded-[0.82rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/96 px-3 py-[0.18rem] text-center text-[0.74rem] leading-[1.02] font-black italic text-[#174c2c] shadow-[0_3px_0_rgba(91,72,44,0.16),0_7px_14px_rgba(0,0,0,0.12)] sm:hidden"
+                className="pointer-events-none fixed left-[13.5%] top-[calc(env(safe-area-inset-top)+19.92rem)] z-[9998] min-h-[1.35rem] max-w-[13.7rem] rounded-[0.82rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/96 px-3 py-[0.15rem] text-center text-[0.72rem] leading-[1.0] font-black italic text-[#174c2c] shadow-[0_3px_0_rgba(91,72,44,0.16),0_7px_14px_rgba(0,0,0,0.12)] sm:hidden"
                 style={{ fontFamily: '"Cooper Black", Georgia, serif' }}
                 role="status"
                 aria-live="polite"
