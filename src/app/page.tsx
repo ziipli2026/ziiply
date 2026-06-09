@@ -1,3 +1,11 @@
+// V470_VOICE_BT_RESTORE_V462_AND_NOT_FOUND_PER_TERM
+// Korjaus:
+// - Palauttaa BT-sanelun V462-tyyppiseen malliin: getUserMedia avataan vain luvan/BT-tunnistuksen takia, stream suljetaan heti,
+//   eikä BT-mikkiä warmupata tai uudelleenvarata tavalla, joka voi estää Web Speech API:n oman sisääntulon.
+// - Jos BT-mikki ei anna tekstiä, näytetään selvä ohje käyttää puhelimen mikrofonia / irrottaa BT.
+// - Normaali/Justiina-haku näyttää tuotekohtaisen ilmoituksen: Hakemaasi "xx" ei löydy.
+// - Monen sanan jonossa ilmoitus päivittyy jokaisen sellaisen sanan kohdalla, jolle ei löydy osumia.
+
 // V468_BUILD_FIX_AUDIO_PLAYSINLINE_CAST
 // Build-fix: HTMLAudioElementillä ei ole TypeScriptin mukaan playsInline-propertyä.
 // Poistettu audio.playsInline-suora asetus, jotta Vercel-build menee läpi.
@@ -5969,13 +5977,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   async function ensureVoiceMicrophonePermissionV459() {
     if (typeof window === "undefined" || typeof navigator === "undefined") return false;
 
-    // V469: BT-kuulokkeilla Web Speechin audioreitti voi jäädä vanhaan tilaan,
-    // jos luotetaan vain aiemmin saatuun lupaan. Siksi mikrofoni herätetään
-    // jokaisella Äänitä-painalluksella uudella käyttäjäklikkauksen jatkeessa
-    // tehtävällä getUserMedia-kutsulla. Stream vapautetaan heti, jotta
-    // SpeechRecognition saa varsinaisen mikrofonin käyttöönsä.
+    // V470: Palautettu V462-tyyppinen BT-malli.
+    // V469:n jokakertainen BT-reitin "reacquire/warmup" voi varata kuulokemikin niin,
+    // ettei Web Speech API saa enää ääntä tekstiksi. Tässä avataan getUserMedia vain
+    // käyttäjäklikkauksen jatkeena luvan/labelin tarkistamiseksi ja suljetaan stream heti.
     releaseVoiceMicWarmupStreamV465(0);
-    voiceMicPermissionGrantedRefV464.current = false;
 
     if (!window.isSecureContext) {
       setVoicePromptText("Mikrofoni toimii vain HTTPS-osoitteessa.");
@@ -5988,10 +5994,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     try {
-      // V469: herätetään myös BT-kuulokemikki jokaisella sanelukerralla.
-      // Streamia EI pidetä auki sanelun aikana, koska erillinen MediaStream voi
-      // varata BT-mikin pois Web Speech API:lta. Pelkkä lyhyt avaus riittää
-      // palauttamaan selaimen audioreitin ennen varsinaista SpeechRecognitionia.
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
@@ -6014,9 +6016,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       voiceMicWarmupStreamRefV465.current = null;
 
       if (looksLikeBluetooth) {
-        setVoicePromptText("Bluetooth-mikki havaittu. Aloitetaan sanelu...");
-        // BT tarvitsee iOS/Safarissa usein hetken vaihtaakseen ulostuloäänestä mikki-tilaan.
-        await waitVoiceMsV461(1100);
+        setVoicePromptText("Bluetooth-mikki havaittu. Jos tekstiä ei tule, irrota BT ja käytä puhelimen mikrofonia.");
+        await waitVoiceMsV461(900);
       }
 
       return true;
@@ -6029,15 +6030,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       releaseVoiceMicWarmupStreamV465(0);
 
       if (name.includes("notallowed") || name.includes("permission") || name.includes("denied")) {
-        setVoicePromptText("Mikrofonilupa on estetty. Salli mikrofoni selaimen osoiterivin/Safarin sivustoasetuksista.");
+        setVoicePromptText("Mikrofonilupa on estetty. Salli mikrofoni selaimen asetuksista ja kokeile uudelleen.");
       } else {
-        setVoicePromptText("Mikrofonia ei saatu avattua. Tarkista selaimen mikrofonilupa tai irrota BT ja kokeile uudelleen.");
+        setVoicePromptText("Mikrofonia ei saatu avattua. Jos käytät BT-kuulokkeita, irrota ne ja kokeile puhelimen mikrofonilla.");
       }
 
       return false;
     }
   }
-
 
   useEffect(() => {
     setSpeechSupported(Boolean(getSpeechRecognitionClassV458()));
@@ -9211,6 +9211,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       if (unique.length === 0) {
         const missingTerm = focusedSearchTerms[0] || useTerms[0] || "";
         if (missingTerm) {
+          // V470: käyttäjälle näkyvä tuotekohtainen ilmoitus. Monen tuotteen
+          // jonossa tämä päivittyy jokaisen puuttuvan hakusanan kohdalla erikseen.
+          setVoicePromptText(`Hakemaasi "${missingTerm}" ei löydy.`);
           setNotFoundSearchTerms((current) =>
             current.includes(missingTerm) ? current : [...current, missingTerm],
           );
@@ -9222,7 +9225,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           setInput(remainingInput);
           window.setTimeout(() => {
             void searchNormalPrices(remainingInput);
-          }, 80);
+          }, 650);
           return;
         }
       }
