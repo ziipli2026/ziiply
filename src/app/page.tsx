@@ -1,3 +1,10 @@
+// V466_VOICE_BT_RESTORE_AND_PROMPT_POSITION_FIX
+// Korjaus V465:n regressioon:
+// - BT-kuulokemikki palautettu V461-tyyppiseen toimivaan lupapolkuun: getUserMedia avaa luvan, tunnistaa BT:n ja vapauttaa raidan ennen SpeechRecognition.start()-kutsua.
+// - Ei pidetä erillistä getUserMedia-raitaa auki sanelun aikana, koska se voi varata BT-mikin ja estää Web Speech API:n tekstiksi muuton mobiilissa.
+// - Mikki-/sanelunotif siirretty mockupin osoittamaan paikkaan hakukentän alapuolelle, nappien yläreunan yläpuolelle.
+// - Muu V464/V465 äänihaku- ja EAN-hintakorjaus säilytetty.
+
 // V465_VOICE_BT_INPUT_KEEPALIVE_AND_PROMPT_POSITION_FIX
 // Korjaus mikkiin:
 // - BT-kuulokemikkiä varten mikrofonin getUserMedia-raita pidetään auki koko sanelun ajan, eikä sitä avata/suljeta nopeasti ennen SpeechRecognitionia.
@@ -5946,19 +5953,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return false;
     }
 
-    // V465: BT-kuulokkeilla nopea getUserMedia -> stop -> SpeechRecognition
-    // voi jättää mobiiliselaimen äänireitin väärään tilaan. Pidetään lupa-/warmup-stream
-    // auki koko sanelun ajan ja vapautetaan se vasta lopussa. Jos stream on jo auki,
-    // sitä ei avata uudelleen.
-    cancelVoiceMicWarmupReleaseV465();
-    const existingStream = voiceMicWarmupStreamRefV465.current;
-    const existingActive = Boolean(existingStream?.getAudioTracks?.().some((track) => track.readyState === "live"));
-    if (existingActive) {
-      voiceMicPermissionGrantedRefV464.current = true;
-      return true;
-    }
-
     try {
+      // V466: palautetaan BT:llä toiminut V461-tyyppinen lupapolku.
+      // getUserMedia tehdään käyttäjän Äänitä-klikkauksen jatkeena, jotta selain saa
+      // näyttää lupakyselyn ja valita audioreitin. Streamia EI pidetä auki sanelun aikana,
+      // koska erillinen MediaStream voi mobiilissa varata BT-mikin pois Web Speech API:lta.
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: {
           echoCancellation: true,
@@ -5967,12 +5966,23 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         },
       });
 
-      voiceMicWarmupStreamRefV465.current = stream;
-      voiceMicPermissionGrantedRefV464.current = true;
-
       const audioTrack = stream.getAudioTracks?.()[0];
       const label = String(audioTrack?.label || "").toLowerCase();
-      voiceBluetoothMicLikelyRefV464.current = /airpods|bluetooth|bt|buds|headset|hands-free|handsfree|kuuloke|headphone/.test(label);
+      const looksLikeBluetooth = /airpods|bluetooth|bt|buds|headset|hands-free|handsfree|kuuloke|headphone/.test(label);
+      voiceBluetoothMicLikelyRefV464.current = looksLikeBluetooth;
+      voiceMicPermissionGrantedRefV464.current = true;
+
+      try {
+        stream.getTracks().forEach((track) => track.stop());
+      } catch {
+        // Ei vaikutusta SpeechRecognition-starttiin.
+      }
+      voiceMicWarmupStreamRefV465.current = null;
+
+      if (looksLikeBluetooth) {
+        setVoicePromptText("Bluetooth-mikki havaittu. Aloitetaan sanelu...");
+        await waitVoiceMsV461(700);
+      }
 
       return true;
     } catch (error: any) {
@@ -6477,6 +6487,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       playVoiceStartBeepV445();
       window.setTimeout(() => {
         try {
+          // V466: varmistetaan vielä juuri ennen Web Speechin starttia, ettei erillinen
+          // getUserMedia-stream pidä BT-mikkiä varattuna.
+          releaseVoiceMicWarmupStreamV465(0);
           recognition.start();
         } catch {
           recognitionRef.current = null;
@@ -16712,7 +16725,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
             {voicePromptText && (
               <div
-                className="pointer-events-none fixed left-[13.5%] top-[calc(env(safe-area-inset-top)+25.65rem)] z-[9998] min-h-[1.65rem] max-w-[14.5rem] rounded-[0.82rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/96 px-3 py-[0.22rem] text-center text-[0.76rem] leading-[1.02] font-black italic text-[#174c2c] shadow-[0_3px_0_rgba(91,72,44,0.16),0_7px_14px_rgba(0,0,0,0.12)] sm:hidden"
+                className="pointer-events-none fixed left-[13.5%] top-[calc(env(safe-area-inset-top)+21.35rem)] z-[9998] min-h-[1.45rem] max-w-[13.7rem] rounded-[0.82rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/96 px-3 py-[0.18rem] text-center text-[0.74rem] leading-[1.02] font-black italic text-[#174c2c] shadow-[0_3px_0_rgba(91,72,44,0.16),0_7px_14px_rgba(0,0,0,0.12)] sm:hidden"
                 style={{ fontFamily: '"Cooper Black", Georgia, serif' }}
                 role="status"
                 aria-live="polite"
