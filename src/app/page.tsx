@@ -1,3 +1,7 @@
+// V450_VOICE_TIMER_DIRECT_SEARCH_START
+// Korjaus äänihakuun: hiljaisuustimeri käynnistää haun suoraan eikä jää odottamaan pelkkää recognition.onend-tapahtumaa.
+// Tämä korjaa mobiili-Safarin tilanteen, jossa nauhuri sammuu mutta onend/fallback ei avaa hakua.
+
 // V449_VOICE_MP3_MIC_PERMISSION_AND_MULTI_LIST_SEARCH
 // Korjaus äänihakuun:
 // - Mikrofonilupa pyydetään eksplisiittisesti käyttäjäklikkauksen jälkeen ennen mp3-introa.
@@ -5515,7 +5519,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setIsListening(true);
     };
 
-    const runVoiceSearchV449 = (source: "onend" | "fallback") => {
+    const runVoiceSearchV450 = (source: "timer" | "onend" | "fallback") => {
       const cleaned = voiceLatestCleanedInputRef.current.trim();
 
       if (voiceSearchStartedRef.current) return;
@@ -5526,41 +5530,52 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         return;
       }
 
-      voiceSearchStartedRef.current = true;
-      voiceAutoSearchAfterStopRef.current = false;
+      try {
+        voiceSearchStartedRef.current = true;
+        voiceAutoSearchAfterStopRef.current = false;
 
-      const voiceTerms = parseTerms(cleaned);
-      const isMultiVoiceSearch = voiceTerms.length > 1;
-      const currentSearchMode = isMultiVoiceSearch
-        ? "cart"
-        : voiceSearchCompareModeRef.current;
-      const searchTerm =
-        currentSearchMode === "single" ? getSingleSearchTerm(cleaned) : cleaned;
+        const voiceTerms = parseTerms(cleaned);
+        const isMultiVoiceSearch = voiceTerms.length > 1;
+        const currentSearchMode = isMultiVoiceSearch
+          ? "cart"
+          : voiceSearchCompareModeRef.current;
+        const searchTerm =
+          currentSearchMode === "single" ? getSingleSearchTerm(cleaned) : cleaned;
 
-      if (isMultiVoiceSearch && searchCompareMode !== "cart") {
-        setSearchCompareMode("cart");
+        if (isMultiVoiceSearch && searchCompareMode !== "cart") {
+          setSearchCompareMode("cart");
+        }
+
+        // Oranssi valo näkyviin heti, ennen varsinaista hakua.
+        setIsListening(false);
+        setVoiceProcessing(true);
+        setSearchPanelOpen(true);
+        setActiveResult("none");
+        setInput(currentSearchMode === "single" ? searchTerm : cleaned);
+
+        window.setTimeout(() => {
+          void (async () => {
+            try {
+              await searchNormalPrices(
+                currentSearchMode === "single" ? searchTerm : cleaned,
+              );
+
+              scrollToNormalResults();
+            } catch {
+              setVoicePromptText("Äänihaku ei käynnistynyt.");
+            } finally {
+              setVoiceProcessing(false);
+              voiceHeardSpeechRef.current = false;
+              voiceSearchStartedRef.current = false;
+            }
+          })();
+        }, 80);
+      } catch {
+        setVoiceProcessing(false);
+        voiceHeardSpeechRef.current = false;
+        voiceSearchStartedRef.current = false;
+        setVoicePromptText("Äänihaku ei käynnistynyt.");
       }
-
-      setVoiceProcessing(true);
-      setSearchPanelOpen(true);
-      setActiveResult("none");
-      setInput(currentSearchMode === "single" ? searchTerm : cleaned);
-
-      window.setTimeout(() => {
-        void (async () => {
-          try {
-            await searchNormalPrices(
-              currentSearchMode === "single" ? searchTerm : cleaned,
-            );
-
-            scrollToNormalResults();
-          } finally {
-            setVoiceProcessing(false);
-            voiceHeardSpeechRef.current = false;
-            voiceSearchStartedRef.current = false;
-          }
-        })();
-      }, 80);
     };
 
     recognition.onend = () => {
@@ -5581,7 +5596,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         return;
       }
 
-      runVoiceSearchV449("onend");
+      runVoiceSearchV450("onend");
     };
 
     recognition.onerror = (event: any) => {
@@ -5593,8 +5608,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
 
       // WebKit voi antaa "no-speech"- tai "aborted"-virheen, kun kuuntelu lopetetaan.
-      // Jos puhetta on jo saatu, annetaan onendin prosessoida haku.
+      // Jos puhetta on jo saatu, käynnistetään haku itse eikä jäädä odottamaan onend-haaraa.
       if (voiceHeardSpeechRef.current || voiceAutoSearchAfterStopRef.current) {
+        setVoiceProcessing(true);
+        window.setTimeout(() => runVoiceSearchV450("fallback"), 80);
         return;
       }
 
@@ -5634,19 +5651,29 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const silenceMs = 2500 + Math.round(Math.random() * 1000);
       voiceSilenceTimeoutRef.current = window.setTimeout(() => {
         voiceAutoSearchAfterStopRef.current = true;
+
+        // Oranssi valo heti hiljaisuuden jälkeen.
+        setIsListening(false);
         setVoiceProcessing(true);
+        setSearchPanelOpen(true);
+        setActiveResult("none");
+
         try {
           recognitionRef.current?.stop?.();
         } catch {
           setIsListening(false);
         }
 
-        // Safari/WebKit voi joskus jättää onend-prosessoinnin epävarmaksi stopin jälkeen.
-        // Varahaara käynnistää saman haun suoraan, jos onend ei ehdi tehdä sitä.
+        // V450: mobiili-Safari ei aina aja recognition.onend-haaraa luotettavasti.
+        // Siksi haku käynnistetään suoraan timeristä. onend/fallback eivät tuplaa hakua,
+        // koska voiceSearchStartedRef lukitsee saman puhehaun yhteen ajokertaan.
         window.setTimeout(() => {
-          if (!voiceAutoSearchAfterStopRef.current) return;
-          runVoiceSearchV449("fallback");
-        }, 450);
+          runVoiceSearchV450("timer");
+        }, 120);
+
+        window.setTimeout(() => {
+          runVoiceSearchV450("fallback");
+        }, 650);
       }, silenceMs);
     };
 
