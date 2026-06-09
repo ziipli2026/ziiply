@@ -4,7 +4,8 @@
  *
  * v443-debug:
  * - Ruokahauissa lemmikkituotteet painetaan alas.
- * - Debuggaa selaimen consoleen, osuuko ranker oikeasti makkara-hakuun.
+ * - Esim. "makkara" ei saa nostaa koiranmakkaraa grillimakkaroiden edelle.
+ * - Debuggaa consoleen, osuuko ranker oikeasti makkara-/nakki-/liha-hakuun.
  */
 
 import { resolveSearchIntentAI, isProductAllowedByIntent, scoreProductIntentFit } from "./searchIntentAI";
@@ -71,7 +72,7 @@ export function scoreNormalSearchProduct<T extends ZiiplySearchProductLike>(
 
   const q = normalizeFi(intent.correctedQuery || query);
   const name = normalizeFi(product.name);
-  const brand = normalizeFi(product.brandName || product.brand);
+  const brand = normalizeFi(product.brandName);
   const category = normalizeFi(product.category);
   const text = getProductSearchText(product);
   const queryTokens = tokenizeFi(q);
@@ -175,8 +176,8 @@ export function rankNormalSearchProducts<T extends ZiiplySearchProductLike>(
     console.log(
       "[Ziiply ranker debug top 20]",
       ranked.slice(0, 20).map((item) => ({
-        name: item.product.name || item.product.title || item.product.productName,
-        brand: item.product.brandName || item.product.brand,
+        name: item.product.name,
+        brand: item.product.brandName,
         category: item.product.category,
         score: item.score,
         reasons: item.reasons,
