@@ -1,3 +1,8 @@
+// V443_NORMAL_SEARCH_FOOD_INTENT_PET_FILTER
+// Korjaus: normaali S-tuotehaku käyttää page-tasolla ruokahakujen lemmikkituotesuodatusta ennen vanhaa rankkausta.
+// Esim. "makkara" ei saa nostaa koiranmakkaraa/lemmikkiruokia löytöluetteloon kärkeen.
+// Sisältää v442 freeze screen + cache + mobiilin landscape/keyboard-korjauksen.
+
 // V441_FREEZE_SCREEN_SEARCH_CACHE_AND_MOBILE_LANDSCAPE_BLOCKER
 // Korjaus: mobiililaitteen vaakasuunta peitetään pystyasentokehotteella eikä desktop/legacy-näkymä pääse näkyviin.
 // Vakautus: normaali tuotehaku käyttää freeze screen -periaatetta; vanhoja tuloksia ei tyhjennetä haun alussa.
@@ -7740,6 +7745,125 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
   }
 
+
+  function isExplicitPetSearchV443(query: string) {
+    const q = normalize(query);
+    return [
+      "koira",
+      "koiran",
+      "koiranruoka",
+      "kissa",
+      "kissan",
+      "kissanruoka",
+      "lemmikki",
+      "lemmikit",
+      "lemmikkiruoka",
+      "dog",
+      "cat",
+    ].some((word) => q.includes(word));
+  }
+
+  function hasFoodIntentForPetFilterV443(query: string) {
+    const q = normalize(query);
+    if (!q || isExplicitPetSearchV443(q)) return false;
+
+    return [
+      "makkara",
+      "nakki",
+      "grillimakkara",
+      "lenkki",
+      "jauheliha",
+      "liha",
+      "kana",
+      "broileri",
+      "nauta",
+      "sika",
+      "maito",
+      "kahvi",
+      "juusto",
+      "voi",
+      "leipa",
+      "leipä",
+    ].some((word) => q.includes(word));
+  }
+
+  function isPetProductForFoodSearchV443(product: Product) {
+    const anyProduct = product as Product & {
+      brand?: string;
+      brandName?: string;
+      title?: string;
+      productName?: string;
+      hierarchyPath?: string[] | string;
+      productGroup?: string;
+      categoryName?: string;
+      department?: string;
+    };
+
+    const hierarchy = Array.isArray(anyProduct.hierarchyPath)
+      ? anyProduct.hierarchyPath.join(" ")
+      : String(anyProduct.hierarchyPath || "");
+
+    const text = normalize(
+      [
+        anyProduct.name,
+        anyProduct.title,
+        anyProduct.productName,
+        anyProduct.brandName,
+        anyProduct.brand,
+        anyProduct.category,
+        anyProduct.categoryName,
+        anyProduct.productGroup,
+        anyProduct.department,
+        hierarchy,
+      ]
+        .filter(Boolean)
+        .join(" "),
+    );
+
+    return [
+      "koira",
+      "koiran",
+      "koiranruoka",
+      "koiranmakkara",
+      "kissa",
+      "kissan",
+      "kissanruoka",
+      "lemmikki",
+      "lemmikit",
+      "lemmikkiruoka",
+      "lemmikkien",
+      "dog",
+      "cat",
+      "pedigree",
+      "cesar",
+      "shelma",
+      "schesir",
+      "purina",
+      "whiskas",
+    ].some((word) => text.includes(normalize(word)));
+  }
+
+  function filterPetProductsFromFoodSearchV443(
+    products: Product[],
+    originalQuery: string,
+    searchQuery?: string,
+  ) {
+    if (
+      !hasFoodIntentForPetFilterV443(originalQuery) &&
+      !hasFoodIntentForPetFilterV443(searchQuery || "")
+    ) {
+      return products;
+    }
+
+    const filtered = products.filter(
+      (product) => !isPetProductForFoodSearchV443(product),
+    );
+
+    // Fail-open: jos kaikki putosivat pois, palautetaan alkuperäinen lista,
+    // jotta haku ei jää tyhjäksi oudolla datasetillä.
+    return filtered.length > 0 ? filtered : products;
+  }
+
   async function searchNormalPrices(termOverride?: string, forceEan = false) {
     // V160: jos Gösta on näkyvissä/sticky-tilassa, mikään taustapäivitys,
     // kauppapäivitys tai vanha ajastettu haku ei saa käynnistää normaalia
@@ -7943,11 +8067,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
           // Fail-open pidetään vain yleisissä hauissa. Kananmunahaussa se aiheutti sen,
           // että "kananmunaton pasta" palasi tuloksiin, jos kaikki aidot osumat putosivat.
-          const safeItems = eggLockedSearch
+          const safeItemsBeforePetFilter = eggLockedSearch
             ? normalFiltered
             : normalFiltered.length > 0
               ? normalFiltered
               : pricedItems;
+
+          const safeItems = filterPetProductsFromFoodSearchV443(
+            safeItemsBeforePetFilter,
+            term,
+            searchQuery,
+          );
 
           const finalItems = rankNormalSearchResults(searchQuery, safeItems)
             .slice(0, 40)
@@ -7984,8 +8114,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         }
       }
 
-      const unique = Array.from(
-        new Map(all.map((item) => [item.id, item])).values(),
+      const unique = filterPetProductsFromFoodSearchV443(
+        Array.from(
+          new Map(all.map((item) => [item.id, item])).values(),
+        ),
+        focusedSearchTerms[0] || useTerms[0] || "",
       )
         .filter((item) => {
           const originalQuery =
