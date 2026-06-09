@@ -1,3 +1,8 @@
+// V456_VOICE_RECORDER_OFF_FORCE_JUSTIINA_SEARCH
+// Korjaus äänihakuun: oranssi processing-lamppu ja Justiinan haku käynnistetään yhdestä pakotetusta triggeristä.
+// Triggeri kutsutaan hiljaisuustimeristä, recognition.onend/onerrorista, input-muutoksesta JA nauhurin stop-kohdasta.
+// Ei odoteta pelkkää Safari/WebKit onend-eventtiä; kentän viimeinen arvo luetaan myös suoraan textarea-refistä.
+
 // V455_VOICE_FALLING_EDGE_STARTS_JUSTIINA_SEARCH
 // Korjaus äänihakuun: kuuntelun laskeva reuna true -> false käynnistää Justiinan normaalin tekstihakupolun suoraan.
 // Tämä ei simuloi Enter-näppäintä, vaan käyttää samaa searchNormalPrices-hakua yhdellä lukolla.
@@ -3455,6 +3460,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const voiceInputFallbackArmedRefV454 = useRef(false);
   const wasListeningRefV455 = useRef(false);
   const voiceFallingEdgeSearchArmedRefV455 = useRef(false);
+  const voiceSessionActiveUntilRefV456 = useRef(0);
+  const voiceForceSearchTimeoutRefV456 = useRef<number | null>(null);
   const cartSectionRef = useRef<HTMLElement | null>(null);
   const comparisonSectionRef = useRef<HTMLElement | null>(null);
   const compareOverlayScrollRef = useRef<HTMLDivElement | null>(null);
@@ -4108,9 +4115,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // V454: iOS/Safari voi syöttää sanelun suoraan kenttään ilman SpeechRecognition-resulttia.
     // Tällöin tämä input-change fallback on se varsinainen automaattinen haun laukaisin.
     voiceSilenceTimeoutRef.current = window.setTimeout(() => {
-      setVoiceProcessing(true);
-      setSearchPanelOpen(true);
-      void runVoiceSearchFromSpeechV453(cleaned);
+      forceStartVoiceSearchV456(cleaned);
     }, 2800);
   }
 
@@ -4121,7 +4126,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         : value;
 
     setInput(nextValue);
-    armVoiceInputFallbackSearchV454(nextValue);
+    if (voiceInputFallbackArmedRefV454.current || Date.now() < voiceSessionActiveUntilRefV456.current) {
+      voiceInputFallbackArmedRefV454.current = true;
+      armVoiceInputFallbackSearchV454(nextValue);
+    }
   }
 
   function clearSingleSearchState() {
@@ -5518,8 +5526,52 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     voiceSearchCompareModeRef.current = searchCompareMode;
   }, [searchCompareMode]);
 
+  function getVoiceSearchCandidateV456(rawValue?: string) {
+    const fromRaw = typeof rawValue === "string" ? rawValue : "";
+    const fromLatest = voiceLatestCleanedInputRef.current || "";
+    const fromInput = input || "";
+    const fromDom = searchInputRef.current?.value || "";
+
+    return getVoiceSearchInputV447(fromRaw || fromLatest || fromInput || fromDom).trim();
+  }
+
+  function forceStartVoiceSearchV456(rawValue?: string) {
+    const cleaned = getVoiceSearchCandidateV456(rawValue);
+    if (!cleaned) return false;
+
+    voiceHeardSpeechRef.current = true;
+    voiceAutoSearchAfterStopRef.current = true;
+    voiceFallingEdgeSearchArmedRefV455.current = true;
+    voiceInputFallbackArmedRefV454.current = false;
+    voiceLatestCleanedInputRef.current = cleaned;
+
+    if (voiceSilenceTimeoutRef.current) {
+      window.clearTimeout(voiceSilenceTimeoutRef.current);
+      voiceSilenceTimeoutRef.current = null;
+    }
+
+    if (voiceForceSearchTimeoutRefV456.current) {
+      window.clearTimeout(voiceForceSearchTimeoutRefV456.current);
+      voiceForceSearchTimeoutRefV456.current = null;
+    }
+
+    // V456: tämän pitää näkyä heti UI:ssa. Jos oranssi lamppu ei syty,
+    // tämä funktio ei ole tullut kutsutuksi oikeasta kohdasta.
+    setIsListening(false);
+    setVoiceProcessing(true);
+    setSearchPanelOpen(true);
+    setActiveResult("none");
+
+    voiceForceSearchTimeoutRefV456.current = window.setTimeout(() => {
+      voiceForceSearchTimeoutRefV456.current = null;
+      void runVoiceSearchFromSpeechV453(cleaned);
+    }, 0);
+
+    return true;
+  }
+
   async function runVoiceSearchFromSpeechV453(rawValue?: string) {
-    const cleaned = (rawValue || voiceLatestCleanedInputRef.current || input || "").trim();
+    const cleaned = getVoiceSearchCandidateV456(rawValue);
     if (!cleaned) {
       setIsListening(false);
       setVoiceProcessing(false);
@@ -5586,13 +5638,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (!value) return;
 
     voiceFallingEdgeSearchArmedRefV455.current = false;
-    voiceAutoSearchAfterStopRef.current = true;
-    setVoiceProcessing(true);
-    setSearchPanelOpen(true);
-
-    window.setTimeout(() => {
-      void runVoiceSearchFromSpeechV453(value);
-    }, 0);
+    forceStartVoiceSearchV456(value);
   }, [isListening, voiceProcessing, input]);
 
   useEffect(() => {
@@ -5634,7 +5680,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         return;
       }
 
-      void runVoiceSearchFromSpeechV453();
+      forceStartVoiceSearchV456();
     };
 
     recognition.onerror = (event: any) => {
@@ -5648,6 +5694,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // WebKit voi antaa "no-speech"- tai "aborted"-virheen, kun kuuntelu lopetetaan.
       // Jos puhetta on jo saatu, annetaan onendin prosessoida haku.
       if (voiceHeardSpeechRef.current || voiceAutoSearchAfterStopRef.current) {
+        forceStartVoiceSearchV456();
         return;
       }
 
@@ -5689,15 +5736,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       voiceSilenceTimeoutRef.current = window.setTimeout(() => {
         voiceAutoSearchAfterStopRef.current = true;
         voiceFallingEdgeSearchArmedRefV455.current = true;
-        setVoiceProcessing(true);
+
+        // V456: käynnistä haku ensin suoraan. stop() on vain mikrofonin sulkemista varten.
+        forceStartVoiceSearchV456(cleaned);
+
         try {
           recognitionRef.current?.stop?.();
         } catch {
           setIsListening(false);
         }
-
-        // V453: käynnistä haku heti hiljaisuuden jälkeen. Ei jäädä odottamaan Safarin onend-tapahtumaa.
-        void runVoiceSearchFromSpeechV453();
       }, silenceMs);
     };
 
@@ -5866,6 +5913,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     setVoicePromptText("");
 
+    // V456: kun nauhuri sammuu / pysäytetään ja kentässä on tekstiä, Justiina käynnistyy tästä.
+    // Tämä on se varsinainen laskevan reunan varmistus, eikä se riipu onend-eventistä.
+    forceStartVoiceSearchV456();
+
     try {
       recognitionRef.current?.stop?.();
     } catch {
@@ -5903,6 +5954,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     voiceFallingEdgeSearchArmedRefV455.current = false;
     voiceLatestCleanedInputRef.current = "";
     voiceInputFallbackArmedRefV454.current = true;
+    voiceSessionActiveUntilRefV456.current = Date.now() + 30000;
     voiceIntroActiveRefV448.current = true;
 
     setActiveResult("none");
@@ -5930,6 +5982,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     voiceHeardSpeechRef.current = false;
     voiceLatestCleanedInputRef.current = "";
     voiceInputFallbackArmedRefV454.current = true;
+    voiceSessionActiveUntilRefV456.current = Date.now() + 30000;
     setVoiceProcessing(false);
 
     if (voiceSilenceTimeoutRef.current) {
