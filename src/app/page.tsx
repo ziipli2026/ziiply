@@ -1,3 +1,9 @@
+// V472_VOICE_NOTICE_POSITION_AND_CLEAR_INPUT
+// Korjaus Hae-kortin ilmoituksiin:
+// - Kuuntelen/Haetaan/Hakemaasi ei löydy -palkki siirretty takaisin mikrofonin yläpuolelle mockupin mukaisesti.
+// - Ei löydy -ilmoitus ei enää jää voicePromptText-tilaan roikkumaan.
+// - Äänihaun päätteeksi hakukenttä tyhjennetään automaattisesti, ettei viimeinen sana jää kenttään.
+
 // V471_SEARCH_NOT_FOUND_NOTICE_AFTER_RESULTS
 // Korjaus haun ei-löydy ilmoitukseen:
 // - Hakemaasi "xx" ei löydy -notif tulee vasta hakutuloksen valmistuttua, kun osumia on oikeasti 0.
@@ -5957,6 +5963,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       scrollToNormalResults();
     } finally {
       setVoiceProcessing(false);
+      setVoicePromptText("");
+      setInput("");
+      voiceLatestCleanedInputRef.current = "";
       voiceHeardSpeechRef.current = false;
       voiceSearchRunningRefV453.current = false;
       voiceForceJustiinaCartSearchRefV461.current = false;
@@ -8904,7 +8913,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     setSearchNotFoundNoticeV471(notice);
-    setVoicePromptText(notice);
+    // V472: not-found ilmoitus pidetään omassa tilassaan.
+    // Älä kopioi sitä voicePromptTextiin, koska voicePrompt voi jäädä
+    // ruudulle vielä sen jälkeen kun varsinainen not-found ilmoitus on tyhjennetty.
+    setVoicePromptText("");
     setNotFoundSearchTerms((current) =>
       current.includes(cleanTerm) ? current : [...current, cleanTerm],
     );
@@ -8913,8 +8925,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setSearchNotFoundNoticeV471((current) =>
         current === notice ? "" : current,
       );
+      setVoicePromptText((current) => (current === notice ? "" : current));
       searchNotFoundNoticeTimerRefV471.current = null;
-    }, 3600);
+    }, 2800);
   }
 
   async function searchNormalPrices(termOverride?: string, forceEan = false) {
@@ -9275,6 +9288,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             void searchNormalPrices(remainingInput);
           }, 1100);
           return;
+        }
+
+        // V472: jos jono loppui eikä osumia tullut, tyhjennä hakukenttä
+        // notifikaation näyttämisen jälkeen. Notifikaatio tyhjenee omalla timerillään.
+        if (forceVoiceJustiinaCartSearch) {
+          window.setTimeout(() => {
+            setInput("");
+            voiceLatestCleanedInputRef.current = "";
+          }, 160);
         }
       }
 
@@ -16840,7 +16862,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
             {(searchNotFoundNoticeV471 || voicePromptText) && (
               <div
-                className="pointer-events-none fixed left-1/2 top-[calc(env(safe-area-inset-top)+19.2rem)] z-[9998] min-h-[1.35rem] max-w-[15.5rem] -translate-x-1/2 rounded-[0.82rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/96 px-3 py-[0.15rem] text-center text-[0.72rem] leading-[1.0] font-black italic text-[#174c2c] shadow-[0_3px_0_rgba(91,72,44,0.16),0_7px_14px_rgba(0,0,0,0.12)] sm:hidden"
+                className="pointer-events-none fixed left-[29%] top-[calc(env(safe-area-inset-top)+18.15rem)] z-[9998] min-h-[1.25rem] max-w-[15.2rem] -translate-x-1/2 rounded-[0.78rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/96 px-3 py-[0.12rem] text-center text-[0.70rem] leading-[1.0] font-black italic text-[#174c2c] shadow-[0_3px_0_rgba(91,72,44,0.16),0_7px_14px_rgba(0,0,0,0.12)] sm:hidden"
                 style={{ fontFamily: '"Cooper Black", Georgia, serif' }}
                 role="status"
                 aria-live="assertive"
