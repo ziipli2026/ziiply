@@ -1,3 +1,8 @@
+// V468_BUILD_FIX_AUDIO_PLAYSINLINE_CAST
+// Build-fix: HTMLAudioElementillä ei ole TypeScriptin mukaan playsInline-propertyä.
+// Poistettu audio.playsInline-suora asetus, jotta Vercel-build menee läpi.
+// V467:n BT-toistokorjaus ja notif-sijainti säilyvät.
+
 // V467_VOICE_BT_REPEAT_INTRO_AND_PROMPT_POSITION
 // Korjaus V466:n kahteen vikaan:
 // - BT-kuulokkeilla toinen sanelukerta ei enää avaa/sulje getUserMedia-streamia uudelleen, jos mikrolupa on jo saatu.
@@ -3778,7 +3783,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         // V467: iOS/Safari + BT voi jättää saman äänen toisella ajolla hiljaiseksi,
         // jos elementti jää vanhaan tilaan. Uusi elementti kelataan ja ladataan aina.
         audio.preload = "auto";
-        audio.playsInline = true;
+        // HTMLAudioElement ei tunne playsInline-propertyä TypeScriptissä.
+        // Audio-elementti ei tarvitse sitä introääneen, joten ei aseteta sitä suoraan.
         audio.volume = 1;
         try {
           audio.currentTime = 0;
