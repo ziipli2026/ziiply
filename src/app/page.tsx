@@ -1,8 +1,8 @@
-// V483_SCANNER_MANUAL_CACHE_STRICT_EAN_NO_OLD_PROVIDER
-// Skannerihaku: ei käytetä vanhaa S/K-provider-hakua EAN-hintaan.
-// Ensin tarkka EAN-osuma käsinhaun nykyisestä normalResults/session-cache-muistista.
-// Jos cache ei sisällä samaa EANia hinnalla, fallback on vain Open Food Facts ilman hintaa.
-// V479 MediaRecorder-sanelu säilyy ennallaan.
+// V484_ROLLBACK_V483_SCANNER_STABLE
+// Palautus: V483:n cache-only skannerihaku aiheutti ensimmäisen haun katkeamisen ja OFF/fallback-lukon.
+// Tämä palauttaa skannerin V479:n vakaaseen EAN-sekvenssiin, jotta sama tuote ei jää fallback-luuppiin.
+// Sanelun MediaRecorder + V479 aloitusääni säilyy.
+// Seuraava oikea korjaus tehdään vasta kun uusi components/ziiply/search -hakukerros on mukana.
 
 // V479_MEDIARECORDER_LOUDER_START_TONE
 // Korjaus V478:n liian hiljaiseen nauhoituksen aloitusmerkkiin:
@@ -5357,48 +5357,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return fallbackProduct?.name ? [fallbackProduct.name] : [];
   }
 
-  function findExactPricedEanFromManualSearchCacheV483(
-    ean: string,
-    variants: string[],
-  ): EanSearchResult[] {
-    const exactByKey = new Map<string, EanSearchResult>();
-
-    const addProduct = (product?: Product | null) => {
-      if (!product) return;
-      const productEan = normalizeEan(product.ean);
-      if (!productEan || !isSameEan(productEan, variants)) return;
-      if (getProductPrice(product) <= 0) return;
-
-      const key = `S-manual-cache-ean-${productEan}-${product.id}`;
-      if (exactByKey.has(key)) return;
-
-      exactByKey.set(key, {
-        key,
-        chain: "S" as const,
-        storeName: activeStores.sStoreName,
-        product: {
-          ...product,
-          ean: product.ean || ean,
-        },
-        eanMatch: true,
-      });
-    };
-
-    for (const product of normalResultsLatestRefV441.current || []) {
-      addProduct(product);
-    }
-
-    for (const entry of normalSearchCacheRefV441.current.values()) {
-      for (const product of entry?.results || []) {
-        addProduct(product);
-      }
-    }
-
-    return Array.from(exactByKey.values()).sort(
-      (a, b) => getProductPrice(a.product) - getProductPrice(b.product),
-    );
-  }
-
   function showCartToast(message: string) {
     const now = Date.now();
 
@@ -10734,9 +10692,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return;
     }
 
-    // V483: OFF-cache ei saa pysäyttää skannerihakua ennen kuin käsinhaun S-kaupat-cache
-    // on tarkistettu täsmällisellä EANilla. Muuten kerran OFF:iin pudonnut tuote
-    // ei koskaan nouse hinnalliseksi, vaikka käsinhaku/cache jo sisältäisi saman EANin.
+    const cachedRecognizedOffBeforeSearchV128 = getCachedOpenFoodFactsProductForAnyVariantV126(ean);
+    if (cachedRecognizedOffBeforeSearchV128) {
+      addOpenFoodFactsScannedEanToCartV729(cachedRecognizedOffBeforeSearchV128);
+      return;
+    }
 
     // V135_SCANNER_SINGLE_SOURCE_NO_INPUT_EFFECT
 // Korjaus: kameraskannerin EAN-haku saa käynnistyä vain finishScannedEan()-polusta.
@@ -10816,21 +10776,122 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       const exactResultsByKey = new Map<string, EanSearchResult>();
 
-      // V483: skannerin hinnallinen EAN-osuma hyväksytään vain käsinhaun jo rakentamasta
-      // S-kaupat-hakumuistista / näkyvistä normalResults-tuloksista, eikä enää vanhasta
-      // S-provider/K-provider-polusta. Tässä ei tehdä löysää nimihakua eikä vaihdeta tuotetta.
-      for (const result of findExactPricedEanFromManualSearchCacheV483(ean, variants)) {
-        exactResultsByKey.set(result.key, result);
+      // EAN-modalissa näytetään vain tarkat EAN-osumat.
+      // Open Food Factsia ja cachea käytetään vain nimen löytämiseen,
+      // jotta ruoanhinta.fi:n nimihaku palauttaa tuotteita, joiden EAN tarkistetaan vielä erikseen.
+      for (const nameCandidate of nameCandidates) {
+        const [sProducts, kProducts] = await Promise.all([
+          fetchSProducts(nameCandidate, activeStores.sStoreId).catch(
+            () => [] as Product[],
+          ),
+          fetchKProducts(nameCandidate, activeStores.kStoreId).catch(
+            () => [] as KProduct[],
+          ),
+        ]);
+
+        for (const product of sProducts) {
+          if (getProductPrice(product) <= 0) continue;
+          if (!isSameEan(product.ean, variants)) continue;
+
+          exactResultsByKey.set(
+            `S-${normalizeEan(product.ean)}-${product.id}`,
+            {
+              key: `S-ean-exact-${product.id}`,
+              chain: "S" as const,
+              storeName: activeStores.sStoreName,
+              product,
+              eanMatch: true,
+            },
+          );
+        }
+
+        for (const product of kProducts) {
+          if (product.price <= 0) continue;
+          if (!isSameEan(product.ean, variants)) continue;
+
+          const converted = convertKProductToProduct(product);
+
+          exactResultsByKey.set(
+            `K-${normalizeEan(product.ean)}-${product.id}`,
+            {
+              key: `K-ean-exact-${product.id}`,
+              chain: "K" as const,
+              storeName: activeStores.kStoreName,
+              product: {
+                ...converted,
+                ean: product.ean,
+              },
+              eanMatch: true,
+            },
+          );
+        }
       }
 
-      /*
-      V483: VANHA SKANNERIN HINTAPOLKU POIS KÄYTÖSTÄ.
-      Tämä käytti /api/s-products ja /api/k-products -provider-hakuja sekä nimifallbackia,
-      jolloin EAN-skanneri haki eri paikasta kuin nykyinen käsinhaku ja saattoi palauttaa
-      väärän tuotteen tai hinnattoman 0,00 € rivin.
-      Jos käsinhaun S-kaupat-cache ei sisällä täsmällistä EAN+hinta-osumaa,
-      fallback saa olla vain Open Food Facts ilman hintaa.
-      */
+      // Debug-varmistus: kokeillaan myös suoraa EAN-hakua, mutta hyväksytään vain tarkat EAN-osumat.
+      const [sDirectGroups, kDirectGroups] = await Promise.all([
+        Promise.all(
+          variants.map((variant) =>
+            fetchSProducts(variant, activeStores.sStoreId).catch(
+              () => [] as Product[],
+            ),
+          ),
+        ),
+        Promise.all(
+          variants.map((variant) =>
+            fetchKProducts(variant, activeStores.kStoreId).catch(
+              () => [] as KProduct[],
+            ),
+          ),
+        ),
+      ]);
+
+      for (const product of sDirectGroups.flat()) {
+        if (getProductPrice(product) <= 0) continue;
+        if (!isSameEan(product.ean, variants)) continue;
+
+        exactResultsByKey.set(`S-${normalizeEan(product.ean)}-${product.id}`, {
+          key: `S-ean-direct-${product.id}`,
+          chain: "S" as const,
+          storeName: activeStores.sStoreName,
+          product,
+          eanMatch: true,
+        });
+      }
+
+      for (const product of kDirectGroups.flat()) {
+        if (product.price <= 0) continue;
+        if (!isSameEan(product.ean, variants)) continue;
+
+        const converted = convertKProductToProduct(product);
+
+        exactResultsByKey.set(`K-${normalizeEan(product.ean)}-${product.id}`, {
+          key: `K-ean-direct-${product.id}`,
+          chain: "K" as const,
+          storeName: activeStores.kStoreName,
+          product: {
+            ...converted,
+            ean: product.ean,
+          },
+          eanMatch: true,
+        });
+      }
+
+      // V463: S-ryhmän EAN-polku hydratoi hinnan nimen kautta samasta S-tuotehaun haarasta.
+      // Suora EAN-osuma voi palautua ilman hintaa, mutta vanha toimiva page-polku löysi hinnan,
+      // kun sama tuote haettiin S-kaupat-nimihakuna. Käytetään siis EANia tunnisteena ja
+      // haetaan hinnoiteltu S-tuote s-products-polusta ennen OFF/unknown-fallbackia.
+      const sBranchPricedEanResultsV463 = await fetchSExactEanResultsFromPriceBranchV463(
+        ean,
+        variants,
+        nameCandidates,
+      ).catch(() => [] as EanSearchResult[]);
+
+      for (const result of sBranchPricedEanResultsV463) {
+        exactResultsByKey.set(
+          `S-v463-priced-${normalizeEan(result.product.ean)}-${result.product.id}`,
+          result,
+        );
+      }
 
       const exactResults = Array.from(exactResultsByKey.values()).sort(
         (a, b) => getProductPrice(a.product) - getProductPrice(b.product),
