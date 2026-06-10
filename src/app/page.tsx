@@ -1,3 +1,10 @@
+// V478_MEDIARECORDER_TONES_FAST_START
+// MediaRecorder-sanelun käyttökokemuskorjaus V477-pohjaan:
+// - Ei palata Safarin SpeechRecognitioniin. Sanelu pysyy MediaRecorder + /api/transcribe -polussa.
+// - Introäänen jälkeinen odotus lyhennetty 700 ms -> 180 ms, jotta punainen kuunteluvalo syttyy nopeammin.
+// - Lisätty matalampi, selkeämpi äänimerkki nauhoituksen käynnistymiseen ja toinen merkki haun/transkription alkamiseen.
+// - Äänimerkit ovat AudioContext-pohjaisia lyhyitä matalia sävyjä; eivät käytä vanhaa korkeaa 1040 Hz piippiä.
+
 // V476_MEDIARECORDER_TRANSCRIBE_NO_WEB_SPEECH
 // Testikorjaus iOS/Safarin toisen sanelukerran jumiin:
 // - Ei käytetä SpeechRecognition/webkitSpeechRecognitionia sanelun tunnistukseen.
@@ -3823,6 +3830,56 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
   }
 
+
+  function playVoiceStatusToneV478(kind: "recording" | "search") {
+    if (typeof window === "undefined") return;
+
+    try {
+      const AudioContextClass =
+        (window as any).AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContextClass) return;
+
+      const audioContext = new AudioContextClass();
+      const nowAudio = audioContext.currentTime;
+      const gain = audioContext.createGain();
+      const oscillator = audioContext.createOscillator();
+
+      oscillator.type = "triangle";
+
+      if (kind === "recording") {
+        // Matala, lyhyt nouseva merkki: nauhoitus alkaa nyt.
+        oscillator.frequency.setValueAtTime(420, nowAudio);
+        oscillator.frequency.linearRampToValueAtTime(560, nowAudio + 0.11);
+        gain.gain.setValueAtTime(0.0001, nowAudio);
+        gain.gain.exponentialRampToValueAtTime(0.22, nowAudio + 0.018);
+        gain.gain.exponentialRampToValueAtTime(0.0001, nowAudio + 0.18);
+        oscillator.start(nowAudio);
+        oscillator.stop(nowAudio + 0.19);
+      } else {
+        // Matalampi kaksiosainen merkki: nauhoitus loppui, haku/tulkinta alkaa.
+        oscillator.frequency.setValueAtTime(520, nowAudio);
+        oscillator.frequency.setValueAtTime(360, nowAudio + 0.11);
+        gain.gain.setValueAtTime(0.0001, nowAudio);
+        gain.gain.exponentialRampToValueAtTime(0.20, nowAudio + 0.016);
+        gain.gain.exponentialRampToValueAtTime(0.0001, nowAudio + 0.095);
+        gain.gain.setValueAtTime(0.0001, nowAudio + 0.105);
+        gain.gain.exponentialRampToValueAtTime(0.18, nowAudio + 0.125);
+        gain.gain.exponentialRampToValueAtTime(0.0001, nowAudio + 0.23);
+        oscillator.start(nowAudio);
+        oscillator.stop(nowAudio + 0.24);
+      }
+
+      oscillator.connect(gain);
+      gain.connect(audioContext.destination);
+
+      window.setTimeout(() => {
+        void audioContext.close?.();
+      }, kind === "recording" ? 320 : 380);
+    } catch {
+      // Äänimerkki ei saa koskaan kaataa saneluflow'ta.
+    }
+  }
+
   function finishVoiceIntroV448() {
     voiceIntroAudioRefV448.current = null;
 
@@ -6776,8 +6833,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       voiceIntroActiveRefV448.current = false;
       setVoicePromptText("");
 
-      // V476: intro saa loppua rauhassa; tämän jälkeen MediaRecorder käynnistyy ilman piippiä/Web Speechiä.
-      await waitVoiceMsV461(700);
+      // V478: introäänen jälkeen ei odoteta pitkään. MediaRecorder käynnistyy lähes heti,
+      // jotta ensimmäinen sana ei huku eikä punainen kuunteluvalo tunnu viivästyvän.
+      await waitVoiceMsV461(180);
       startVoiceInputV445();
     })();
   }
@@ -6874,6 +6932,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         }
 
         const blob = new Blob(chunks, { type });
+        playVoiceStatusToneV478("search");
         setVoiceProcessing(true);
         setVoicePromptText("Tulkitaan puhetta...");
 
@@ -6910,6 +6969,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setIsListening(true);
       setVoiceProcessing(false);
       setVoicePromptText("Kuuntelen...");
+      playVoiceStatusToneV478("recording");
       voiceLastSoundAtRefV476.current = Date.now();
       startVoiceSilenceWatcherV476(stream);
 
