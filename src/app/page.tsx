@@ -1,3 +1,11 @@
+// V473_VOICE_NOTIF_CLEANUP_AND_START_STABILITY
+// Korjaus V472:n jälkeiseen yhden ajon jumiin:
+// - Ei-löydy-notifikaatio ei enää kirjoita voicePromptText-tilaan, koska se sekoitti sanelun omaa tilaa ja jäi näkyviin uuden sanelun alussa.
+// - Uusi sanelu tyhjentää aina vanhan ei-löydy-notifikaation ja sen timerin ennen mikrolupaa/introa.
+// - Puhetuloksen tullessa vanha ei-löydy-notifikaatio tyhjennetään heti.
+// - Piip ei enää käynnisty ennen SpeechRecognition.start()-kutsua, vaan mikki startataan ensin ja piip annetaan heti perään pienellä viiveellä.
+// - BT-erikoislogiikka pysyy edelleen pois äänihaun käynnistyspolusta.
+
 // V472_VOICE_SIMPLE_NO_BT
 // Korjaus sanelun yhden käyttökerran jälkeiseen jumiin:
 // - Poistaa äänihaun BT-/Bluetooth-mikkitunnistuksen ja BT-erikoisehdot kokonaan sanelupolusta.
@@ -5880,6 +5888,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const cleaned = getVoiceSearchCandidateV456(rawValue);
     if (!cleaned) return false;
 
+    setVoicePromptText("");
+    setSearchNotFoundNoticeV471("");
+    if (searchNotFoundNoticeTimerRefV471.current) {
+      window.clearTimeout(searchNotFoundNoticeTimerRefV471.current);
+      searchNotFoundNoticeTimerRefV471.current = null;
+    }
+
     // V457: tämä on KOVA Justiina-startti. Ei odoteta recognition.onend:iä,
     // ei Enter-eventtiä eikä Reactin seuraavaa state-kierrosta. Jos jokin aiempi
     // äänihaku jäi puolittain lukkoon, puretaan se ennen pakkoajoa.
@@ -6211,6 +6226,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       clearVoiceNoSpeechTimeoutV461();
       setVoicePromptText("");
+      setSearchNotFoundNoticeV471("");
+      if (searchNotFoundNoticeTimerRefV471.current) {
+        window.clearTimeout(searchNotFoundNoticeTimerRefV471.current);
+        searchNotFoundNoticeTimerRefV471.current = null;
+      }
       voiceHeardSpeechRef.current = true;
       voiceFallingEdgeSearchArmedRefV455.current = true;
       voiceLatestCleanedInputRef.current = cleaned;
@@ -6493,6 +6513,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     if (isListening || voiceProcessing || voiceIntroTimeoutRef.current !== null || voiceIntroActiveRefV448.current) return;
 
+    setVoicePromptText("");
+    setSearchNotFoundNoticeV471("");
+    if (searchNotFoundNoticeTimerRefV471.current) {
+      window.clearTimeout(searchNotFoundNoticeTimerRefV471.current);
+      searchNotFoundNoticeTimerRefV471.current = null;
+    }
+
     const introText = "Mitteepä saes olla, hä";
     voiceHeardSpeechRef.current = false;
     voiceAutoSearchAfterStopRef.current = false;
@@ -6543,6 +6570,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     voiceRecognitionStoppingRefV458.current = false;
     setVoiceProcessing(false);
     setVoicePromptText("");
+    setSearchNotFoundNoticeV471("");
+    if (searchNotFoundNoticeTimerRefV471.current) {
+      window.clearTimeout(searchNotFoundNoticeTimerRefV471.current);
+      searchNotFoundNoticeTimerRefV471.current = null;
+    }
 
     if (voiceSilenceTimeoutRef.current) {
       window.clearTimeout(voiceSilenceTimeoutRef.current);
@@ -6558,11 +6590,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     try {
-      // V472: ei BT-viiveitä. Piip ja SpeechRecognition.start() tapahtuvat heti samassa
-      // käyttäjän kuulemassa aloitushetkessä, jotta ensimmäinen sana ei huku.
+      // V473: käynnistä Web Speech ensin ja anna piip heti perään.
+      // iOS/Safari voi muuten sotkea toisen ajon, jos AudioContext-piip avaa äänisession
+      // juuri ennen recognition.start()-kutsua. Käyttäjälle tämä tuntuu yhä samalta
+      // aloitusmerkiltä, mutta mikki on jo ehtinyt startata ennen ensimmäistä sanaa.
       releaseVoiceMicWarmupStreamV465(0);
-      playVoiceStartBeepV445();
       recognition.start();
+      window.setTimeout(() => playVoiceStartBeepV445(), 60);
     } catch {
       recognitionRef.current = null;
       setIsListening(false);
@@ -8891,7 +8925,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     setSearchNotFoundNoticeV471(notice);
-    setVoicePromptText(notice);
     setNotFoundSearchTerms((current) =>
       current.includes(cleanTerm) ? current : [...current, cleanTerm],
     );
