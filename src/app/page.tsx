@@ -1,9 +1,10 @@
-// V480_EAN_S_KAUPAT_NAME_PRICE_FALLBACK
+// V481_SCANNER_S_KAUPAT_STRICT_EAN_OR_OFF
 // Korjaus skannerin EAN-hintahakuun:
-// - Käsinhaku toimii, joten skannerin fallback-nimen pitää käyttää samaa S-kaupat.fi/S-tuotehaun hinnallista nimihakua.
-// - Jos tarkkaa hinnallista EAN-osumaa ei löydy, OFF/cache-nimellä haetaan hinnallinen S-tuote pickBestSProduct-logiikalla.
-// - Ei lisätä hinnatonta OFF/fallback-tuotetta ennen kuin S-kaupat.fi-nimihintahaku on yritetty loppuun.
-// - Ei kosketa MediaRecorder-saneluun, äänimerkkeihin tai skannerikameraan.
+// - Skannerin hinnallinen tulos hyväksytään VAIN S-kaupat/S-products-polusta ja VAIN 100 % EAN-osumalla.
+// - K-provideria ei käytetä skannerin hinnalliseen EAN-hakuun tässä versiossa.
+// - Nimipohjainen / löysä hintafallback poistettu: EAN-tuotetta ei saa korvata toisella jogurtilla/kahvilla/makkaralla hinnan takia.
+// - Jos S-kaupat-polusta ei löydy täsmällistä EAN+hinta-osumaa, fallback on Open Food Facts -tuotetieto ilman hintaa.
+// - Sanelun MediaRecorder/V479-äänikorjaukset säilyvät ennallaan.
 
 // V479_MEDIARECORDER_LOUDER_START_TONE
 // Korjaus V478:n liian hiljaiseen nauhoituksen aloitusmerkkiin:
@@ -5219,12 +5220,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       );
       if (exactEanMatch) return mergeSProductPriceV463(candidate, exactEanMatch);
 
-      const looseNameMatch = pricedProducts.find(
-        (product) =>
-          getProductPrice(product) > 0 &&
-          isLooseSameSProductNameV463(product.name, candidateName),
-      );
-      if (looseNameMatch) return mergeSProductPriceV463(candidate, looseNameMatch);
     }
 
     return null;
@@ -5290,57 +5285,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     return results;
-  }
-
-
-  async function fetchSNamePricedFallbackResultsV480(
-    ean: string,
-    nameCandidates: string[],
-  ): Promise<EanSearchResult[]> {
-    const storeId = activeStores.sStoreId;
-    const resultsByKey = new Map<string, EanSearchResult>();
-
-    const searchTerms = Array.from(
-      new Map(
-        nameCandidates
-          .flatMap((name) => [
-            fixText(String(name || "")).trim(),
-            ...getNormalSearchQueries(name).slice(0, 8),
-          ])
-          .map((term) => fixText(String(term || "")).trim())
-          .filter(Boolean)
-          .map((term) => [normalize(term), term]),
-      ).values(),
-    ).slice(0, 14);
-
-    for (const term of searchTerms) {
-      const pricedProducts = await fetchSProducts(term, storeId).catch(
-        () => [] as Product[],
-      );
-      if (pricedProducts.length === 0) continue;
-
-      const best = pickBestSProduct(pricedProducts, term);
-      if (!best || getProductPrice(best) <= 0) continue;
-
-      resultsByKey.set(`S-v480-namepriced-${best.id}`, {
-        key: `S-ean-name-priced-${best.id}`,
-        chain: "S" as const,
-        storeName: activeStores.sStoreName,
-        product: {
-          ...best,
-          ean: normalizeEan(best.ean) || ean,
-        },
-        eanMatch: normalizeEan(best.ean)
-          ? isSameEan(best.ean, getEanSearchVariants(ean))
-          : false,
-      });
-
-      // Ensimmäinen hinnallinen käsinhaun logiikalla valittu S-osuma riittää.
-      // Muuten skanneri voi näyttää liikaa lähes samoja nimiosumia.
-      break;
-    }
-
-    return Array.from(resultsByKey.values());
   }
 
   async function fetchKProducts(
@@ -10832,14 +10776,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // Open Food Factsia ja cachea käytetään vain nimen löytämiseen,
       // jotta ruoanhinta.fi:n nimihaku palauttaa tuotteita, joiden EAN tarkistetaan vielä erikseen.
       for (const nameCandidate of nameCandidates) {
-        const [sProducts, kProducts] = await Promise.all([
-          fetchSProducts(nameCandidate, activeStores.sStoreId).catch(
-            () => [] as Product[],
-          ),
-          fetchKProducts(nameCandidate, activeStores.kStoreId).catch(
-            () => [] as KProduct[],
-          ),
-        ]);
+        // V481: skannerin hinnallinen EAN-haku käyttää vain S-kaupat/S-products-polun
+        // täsmällistä EAN-osumaa. K-provideria tai löysää nimikorvausta ei hyväksytä.
+        const sProducts = await fetchSProducts(nameCandidate, activeStores.sStoreId).catch(
+          () => [] as Product[],
+        );
 
         for (const product of sProducts) {
           if (getProductPrice(product) <= 0) continue;
@@ -10856,46 +10797,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             },
           );
         }
-
-        for (const product of kProducts) {
-          if (product.price <= 0) continue;
-          if (!isSameEan(product.ean, variants)) continue;
-
-          const converted = convertKProductToProduct(product);
-
-          exactResultsByKey.set(
-            `K-${normalizeEan(product.ean)}-${product.id}`,
-            {
-              key: `K-ean-exact-${product.id}`,
-              chain: "K" as const,
-              storeName: activeStores.kStoreName,
-              product: {
-                ...converted,
-                ean: product.ean,
-              },
-              eanMatch: true,
-            },
-          );
-        }
       }
 
       // Debug-varmistus: kokeillaan myös suoraa EAN-hakua, mutta hyväksytään vain tarkat EAN-osumat.
-      const [sDirectGroups, kDirectGroups] = await Promise.all([
-        Promise.all(
-          variants.map((variant) =>
-            fetchSProducts(variant, activeStores.sStoreId).catch(
-              () => [] as Product[],
-            ),
+      // V481: suora EAN-haku tehdään vain S-kaupat/S-products-polusta.
+      // Hinnallinen osuma hyväksytään vain, jos tuotteen EAN täsmää 100 %.
+      const sDirectGroups = await Promise.all(
+        variants.map((variant) =>
+          fetchSProducts(variant, activeStores.sStoreId).catch(
+            () => [] as Product[],
           ),
         ),
-        Promise.all(
-          variants.map((variant) =>
-            fetchKProducts(variant, activeStores.kStoreId).catch(
-              () => [] as KProduct[],
-            ),
-          ),
-        ),
-      ]);
+      );
 
       for (const product of sDirectGroups.flat()) {
         if (getProductPrice(product) <= 0) continue;
@@ -10910,28 +10823,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         });
       }
 
-      for (const product of kDirectGroups.flat()) {
-        if (product.price <= 0) continue;
-        if (!isSameEan(product.ean, variants)) continue;
-
-        const converted = convertKProductToProduct(product);
-
-        exactResultsByKey.set(`K-${normalizeEan(product.ean)}-${product.id}`, {
-          key: `K-ean-direct-${product.id}`,
-          chain: "K" as const,
-          storeName: activeStores.kStoreName,
-          product: {
-            ...converted,
-            ean: product.ean,
-          },
-          eanMatch: true,
-        });
-      }
-
-      // V463: S-ryhmän EAN-polku hydratoi hinnan nimen kautta samasta S-tuotehaun haarasta.
-      // Suora EAN-osuma voi palautua ilman hintaa, mutta vanha toimiva page-polku löysi hinnan,
-      // kun sama tuote haettiin S-kaupat-nimihakuna. Käytetään siis EANia tunnisteena ja
-      // haetaan hinnoiteltu S-tuote s-products-polusta ennen OFF/unknown-fallbackia.
+      // V481: S-ryhmän EAN-polku saa täydentää hintaa vain, jos hinnallisesta
+      // S-kaupat/S-products-haarasta löytyy edelleen sama täsmällinen EAN.
+      // Nimiosumalla ei saa vaihtaa tuotetta hinnan takia.
       const sBranchPricedEanResultsV463 = await fetchSExactEanResultsFromPriceBranchV463(
         ean,
         variants,
@@ -10943,23 +10837,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           `S-v463-priced-${normalizeEan(result.product.ean)}-${result.product.id}`,
           result,
         );
-      }
-
-      // V480: käsinhaku toimii, joten EAN-skannerin fallback-nimen pitää vielä käydä
-      // sama hinnallinen S-kaupat.fi/S-tuotehaun nimipolku läpi ennen OFF-/tuntematon-fallbackia.
-      // Monissa S-kaupat-osumissa EAN puuttuu tai ei täsmää, vaikka sama tuote löytyy hinnalla nimellä.
-      if (exactResultsByKey.size === 0 && nameCandidates.length > 0) {
-        const sNamePricedFallbackResultsV480 = await fetchSNamePricedFallbackResultsV480(
-          ean,
-          nameCandidates,
-        ).catch(() => [] as EanSearchResult[]);
-
-        for (const result of sNamePricedFallbackResultsV480) {
-          exactResultsByKey.set(
-            `S-v480-namepriced-${normalize(result.product.name)}-${result.product.id}`,
-            result,
-          );
-        }
       }
 
       const exactResults = Array.from(exactResultsByKey.values()).sort(
@@ -10991,14 +10868,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           if (eanScannerOpen || eanHtml5ScannerRef.current)
             showScanSuccessFlash();
           setEanResults(exactResults.slice(0, 8));
-          setEanMessage("Löytyi 1 tarkka EAN-osuma.");
+          setEanMessage("Löytyi 1 tarkka S-kaupat EAN-osuma.");
         } else {
           // V577: usean EAN-osuman kohdalla EI näytetä vihreää onnistumisvälähdystä.
           // Skannaus ei ole vielä valmis ennen kuin käyttäjä valitsee oikean tuotteen.
           // Valinta renderöidään mobiilissa suoraan kameraruudun päälle ScannerCardissa.
           setEanResults(exactResults.slice(0, 8));
           setEanMessage(
-            `Löytyi ${exactResults.length} tarkkaa EAN-osumaa. Valitse lisättävä tuote.`,
+            `Löytyi ${exactResults.length} tarkkaa S-kaupat EAN-osumaa. Valitse lisättävä tuote.`,
           );
         }
 
