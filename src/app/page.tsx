@@ -6587,7 +6587,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   async function transcribeVoiceBlobV476(blob: Blob) {
     const formData = new FormData();
-    formData.append("audio", blob, `ziiply-voice-${Date.now()}.webm`);
+    const mime = String(blob.type || "audio/webm").toLowerCase();
+    const extension = mime.includes("mp4")
+      ? "m4a"
+      : mime.includes("mpeg")
+        ? "mp3"
+        : mime.includes("wav")
+          ? "wav"
+          : "webm";
+
+    formData.append("audio", blob, `ziiply-voice-${Date.now()}.${extension}`);
     formData.append("language", "fi");
 
     const response = await fetch("/api/transcribe", {
@@ -6595,11 +6604,25 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       body: formData,
     });
 
-    if (!response.ok) {
-      throw new Error(`Transcribe failed: ${response.status}`);
+    const rawText = await response.text();
+    let data: any = {};
+    try {
+      data = rawText ? JSON.parse(rawText) : {};
+    } catch {
+      data = { raw: rawText };
     }
 
-    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const serverMessage = String(data?.error || data?.message || data?.details?.error?.message || "").trim();
+      const debugParts = [
+        `HTTP ${response.status}`,
+        data?.status ? `status ${data.status}` : "",
+        data?.mime ? `mime ${data.mime}` : `mime ${mime}`,
+        data?.filename ? `file ${data.filename}` : `file .${extension}`,
+      ].filter(Boolean);
+      throw new Error(serverMessage ? `${serverMessage} (${debugParts.join(", ")})` : `Transkriptio epäonnistui (${debugParts.join(", ")})`);
+    }
+
     return String(data?.text || data?.transcript || data?.result || "").trim();
   }
 
@@ -6871,9 +6894,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             setInput(cleaned);
             setVoicePromptText("");
             await runVoiceSearchFromSpeechV453(cleaned, true);
-          } catch {
+          } catch (error: any) {
             setVoiceProcessing(false);
-            setVoicePromptText("Puheen tulkinta epäonnistui. Tarkista /api/transcribe ja kokeile uudelleen.");
+            const message = String(error?.message || "").trim();
+            setVoicePromptText(
+              message
+                ? `Puheen tulkinta epäonnistui: ${message}`
+                : "Puheen tulkinta epäonnistui. Tarkista /api/transcribe ja kokeile uudelleen.",
+            );
           }
         })();
       };
