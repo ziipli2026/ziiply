@@ -1,3 +1,9 @@
+// V479_MEDIARECORDER_LOUDER_START_TONE
+// Korjaus V478:n liian hiljaiseen nauhoituksen aloitusmerkkiin:
+// - MediaRecorder-polku säilyy ennallaan, ei paluuta Safari SpeechRecognitioniin.
+// - Nauhoituksen aloitusääni vahvistettu selvästi: kaksi matalaa/selkeää oskillaattoria ja pidempi envelope.
+// - Haun/transkription aloitusääni pidetty erillisenä, mutta hieman maltillisempana.
+
 // V478_MEDIARECORDER_TONES_FAST_START
 // MediaRecorder-sanelun käyttökokemuskorjaus V477-pohjaan:
 // - Ei palata Safarin SpeechRecognitioniin. Sanelu pysyy MediaRecorder + /api/transcribe -polussa.
@@ -3841,40 +3847,54 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       const audioContext = new AudioContextClass();
       const nowAudio = audioContext.currentTime;
-      const gain = audioContext.createGain();
-      const oscillator = audioContext.createOscillator();
+      const masterGain = audioContext.createGain();
+      const oscA = audioContext.createOscillator();
+      const oscB = audioContext.createOscillator();
 
-      oscillator.type = "triangle";
+      masterGain.gain.setValueAtTime(0.0001, nowAudio);
 
       if (kind === "recording") {
-        // Matala, lyhyt nouseva merkki: nauhoitus alkaa nyt.
-        oscillator.frequency.setValueAtTime(420, nowAudio);
-        oscillator.frequency.linearRampToValueAtTime(560, nowAudio + 0.11);
-        gain.gain.setValueAtTime(0.0001, nowAudio);
-        gain.gain.exponentialRampToValueAtTime(0.22, nowAudio + 0.018);
-        gain.gain.exponentialRampToValueAtTime(0.0001, nowAudio + 0.18);
-        oscillator.start(nowAudio);
-        oscillator.stop(nowAudio + 0.19);
+        // V479: selvästi kovempi ja alemmas osuva "TÖÖT".
+        // iPhonen kaiuttimella V478:n triangle 420->560 / gain 0.22 jäi liian vaisuksi.
+        oscA.type = "square";
+        oscB.type = "triangle";
+        oscA.frequency.setValueAtTime(520, nowAudio);
+        oscA.frequency.linearRampToValueAtTime(390, nowAudio + 0.18);
+        oscB.frequency.setValueAtTime(260, nowAudio);
+        oscB.frequency.linearRampToValueAtTime(195, nowAudio + 0.18);
+
+        masterGain.gain.exponentialRampToValueAtTime(0.72, nowAudio + 0.018);
+        masterGain.gain.setValueAtTime(0.72, nowAudio + 0.11);
+        masterGain.gain.exponentialRampToValueAtTime(0.0001, nowAudio + 0.26);
+
+        oscA.start(nowAudio);
+        oscB.start(nowAudio);
+        oscA.stop(nowAudio + 0.27);
+        oscB.stop(nowAudio + 0.27);
       } else {
-        // Matalampi kaksiosainen merkki: nauhoitus loppui, haku/tulkinta alkaa.
-        oscillator.frequency.setValueAtTime(520, nowAudio);
-        oscillator.frequency.setValueAtTime(360, nowAudio + 0.11);
-        gain.gain.setValueAtTime(0.0001, nowAudio);
-        gain.gain.exponentialRampToValueAtTime(0.20, nowAudio + 0.016);
-        gain.gain.exponentialRampToValueAtTime(0.0001, nowAudio + 0.095);
-        gain.gain.setValueAtTime(0.0001, nowAudio + 0.105);
-        gain.gain.exponentialRampToValueAtTime(0.18, nowAudio + 0.125);
-        gain.gain.exponentialRampToValueAtTime(0.0001, nowAudio + 0.23);
-        oscillator.start(nowAudio);
-        oscillator.stop(nowAudio + 0.24);
+        // Haku/tulkinta alkaa: lyhyempi kaksisävyinen kuittaus, ettei se sekoitu aloitusääneen.
+        oscA.type = "triangle";
+        oscB.type = "sine";
+        oscA.frequency.setValueAtTime(330, nowAudio);
+        oscA.frequency.linearRampToValueAtTime(440, nowAudio + 0.13);
+        oscB.frequency.setValueAtTime(660, nowAudio + 0.035);
+
+        masterGain.gain.exponentialRampToValueAtTime(0.42, nowAudio + 0.016);
+        masterGain.gain.exponentialRampToValueAtTime(0.0001, nowAudio + 0.19);
+
+        oscA.start(nowAudio);
+        oscB.start(nowAudio + 0.035);
+        oscA.stop(nowAudio + 0.20);
+        oscB.stop(nowAudio + 0.17);
       }
 
-      oscillator.connect(gain);
-      gain.connect(audioContext.destination);
+      oscA.connect(masterGain);
+      oscB.connect(masterGain);
+      masterGain.connect(audioContext.destination);
 
       window.setTimeout(() => {
         void audioContext.close?.();
-      }, kind === "recording" ? 320 : 380);
+      }, kind === "recording" ? 430 : 330);
     } catch {
       // Äänimerkki ei saa koskaan kaataa saneluflow'ta.
     }
