@@ -1,3 +1,10 @@
+// V474_VOICE_SECOND_RUN_IOS_STOP_AND_NOTICE_POSITION_FIX
+// Korjaus toisen sanelukerran mykistymiseen iOS/Safarissa:
+// - Mikrofonin getUserMedia-lupakysely tehdään vain jos lupaa ei ole vielä saatu; toisella ajolla ei avata/suljeta MediaStreamiä uudelleen.
+// - Puheen jälkeinen automaattikatkaisu käyttää recognition.stop()-kutsua, ei abort()-kutsua, jotta WebKitin puhepalvelu ei jää seuraavalla ajolla mykäksi.
+// - Notif siirretty Äänitä-napin keskikohdan päälle eikä koko ruudun vaakakeskelle.
+// - Ei-löydy-notif piilotetaan haun/prosessoinnin aikana, jotta Justiinan hakuanimaatio ei välkytä näkymää.
+
 // V473_VOICE_NOTIF_CLEANUP_AND_START_STABILITY
 // Korjaus V472:n jälkeiseen yhden ajon jumiin:
 // - Ei-löydy-notifikaatio ei enää kirjoita voicePromptText-tilaan, koska se sekoitti sanelun omaa tilaa ja jäi näkyviin uuden sanelun alussa.
@@ -6016,13 +6023,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   async function ensureVoiceMicrophonePermissionV459() {
     if (typeof window === "undefined" || typeof navigator === "undefined") return false;
 
-    // V472: yksinkertainen mobiilisanelu ilman BT-/Bluetooth-tunnistusta.
-    // Pyydetään/varmistetaan mikrofonilupa jokaisella Äänitä-painalluksella ja
-    // suljetaan oma MediaStream heti. Web Speech API saa tämän jälkeen käyttää
-    // selaimen oletusmikrofonireittiä ilman, että page pitää mitään mikkiä varattuna.
+    // V474: iOS/Safari voi mennä toisella sanelukerralla mykäksi, jos page avaa
+    // ja sulkee getUserMedia-streamin jokaisella painalluksella juuri ennen
+    // Web Speech API:n käynnistystä. Siksi lupa pyydetään oikeasti vain silloin,
+    // kun sitä ei ole vielä tällä sivulatauksella saatu. BT-logiikka pidetään pois.
     releaseVoiceMicWarmupStreamV465(0);
     voiceBluetoothMicLikelyRefV464.current = false;
     voiceMicWarmupStreamRefV465.current = null;
+
+    if (voiceMicPermissionGrantedRefV464.current) {
+      setVoicePromptText("");
+      return true;
+    }
 
     if (!window.isSecureContext) {
       setVoicePromptText("Mikrofoni toimii vain HTTPS-osoitteessa.");
@@ -6254,24 +6266,33 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         voiceRecognitionStoppingRefV458.current = true;
         clearVoiceNoSpeechTimeoutV461();
 
-        // V458: sulje nykyinen recognition ennen hakua ja irrota ref,
-        // jotta seuraava painallus saa varmasti uuden puhtaan olion.
+        // V474: älä käytä abort()-kutsua normaalissa puheen jälkeisessä lopetuksessa.
+        // iOS/WebKit voi sen jälkeen käynnistyä toisella kerralla näennäisesti, mutta
+        // ei enää palauttaa yhtään transcriptiä. stop() on pehmeämpi lopetus.
         const activeRecognition = recognitionRef.current;
-        recognitionRef.current = null;
         setIsListening(false);
 
         try {
-          activeRecognition?.abort?.();
+          activeRecognition?.stop?.();
         } catch {
-          try {
-            activeRecognition?.stop?.();
-          } catch {
-            // Ei vaikutusta Justiinan pakkohaun aloitukseen.
-          }
+          recognitionRef.current = null;
+          forceStartVoiceSearchV456(cleaned);
+          return;
         }
 
-        releaseVoiceMicWarmupStreamV465(1200);
-        forceStartVoiceSearchV456(cleaned);
+        // Safari ei aina anna onend-eventtiä ajoissa. Tämä on vain varmistus;
+        // jos onend ehtii ensin, forceStartVoiceSearchV456 tyhjentää tämän timerin.
+        if (voiceForceSearchTimeoutRefV456.current) {
+          window.clearTimeout(voiceForceSearchTimeoutRefV456.current);
+        }
+        voiceForceSearchTimeoutRefV456.current = window.setTimeout(() => {
+          voiceForceSearchTimeoutRefV456.current = null;
+          if (!voiceAutoSearchAfterStopRef.current) return;
+          recognitionRef.current = null;
+          forceStartVoiceSearchV456(cleaned);
+        }, 900);
+
+        releaseVoiceMicWarmupStreamV465(250);
       }, silenceMs);
     };
 
@@ -6455,11 +6476,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     voiceRecognitionStoppingRefV458.current = Boolean(forced || searchAfterStop);
 
     try {
-      if (forced) {
-        activeRecognition?.abort?.();
-      } else {
-        activeRecognition?.stop?.();
-      }
+      // V474: myös käsipysäytyksessä vältetään abort()-kutsua, koska se voi jättää
+      // iOS/WebKitin seuraavan SpeechRecognition-ajon mykäksi.
+      activeRecognition?.stop?.();
     } catch {
       setIsListening(false);
       if (!forced) setVoiceProcessing(false);
@@ -16858,14 +16877,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               }}
             />
 
-            {(searchNotFoundNoticeV471 || voicePromptText) && (
+            {(voicePromptText || (!loadingNormal && !voiceProcessing && !isListening && searchNotFoundNoticeV471)) && (
               <div
-                className="pointer-events-none fixed left-1/2 top-[calc(env(safe-area-inset-top)+19.2rem)] z-[9998] min-h-[1.35rem] max-w-[15.5rem] -translate-x-1/2 rounded-[0.82rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/96 px-3 py-[0.15rem] text-center text-[0.72rem] leading-[1.0] font-black italic text-[#174c2c] shadow-[0_3px_0_rgba(91,72,44,0.16),0_7px_14px_rgba(0,0,0,0.12)] sm:hidden"
+                className="pointer-events-none fixed left-[31%] top-[calc(env(safe-area-inset-top)+19.2rem)] z-[9998] min-h-[1.35rem] w-[13.4rem] max-w-[48vw] -translate-x-1/2 rounded-[0.82rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/96 px-3 py-[0.15rem] text-center text-[0.72rem] leading-[1.0] font-black italic text-[#174c2c] shadow-[0_3px_0_rgba(91,72,44,0.16),0_7px_14px_rgba(0,0,0,0.12)] sm:hidden"
                 style={{ fontFamily: '"Cooper Black", Georgia, serif' }}
                 role="status"
                 aria-live="assertive"
               >
-                {searchNotFoundNoticeV471 || voicePromptText}
+                {voicePromptText || searchNotFoundNoticeV471}
               </div>
             )}
 
