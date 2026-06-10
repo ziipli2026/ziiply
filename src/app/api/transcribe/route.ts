@@ -1,6 +1,4 @@
 // src/app/api/transcribe/route.ts
-// V476 MediaRecorder -puheentunnistuksen palvelinroutteri.
-// Vaatii ympäristömuuttujan OPENAI_API_KEY.
 
 import { NextRequest, NextResponse } from "next/server";
 
@@ -9,9 +7,10 @@ export const runtime = "nodejs";
 export async function POST(request: NextRequest) {
   try {
     const apiKey = process.env.OPENAI_API_KEY;
+
     if (!apiKey) {
       return NextResponse.json(
-        { error: "OPENAI_API_KEY puuttuu palvelimen ympäristömuuttujista." },
+        { error: "OPENAI_API_KEY puuttuu Vercelistä." },
         { status: 500 },
       );
     }
@@ -27,8 +26,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const arrayBuffer = await audio.arrayBuffer();
+    const mime = audio.type || "audio/mp4";
+
+    let filename = "voice.m4a";
+    if (mime.includes("webm")) filename = "voice.webm";
+    else if (mime.includes("mp4")) filename = "voice.m4a";
+    else if (mime.includes("mpeg")) filename = "voice.mp3";
+    else if (mime.includes("wav")) filename = "voice.wav";
+
+    const safeAudioFile = new File([arrayBuffer], filename, { type: mime });
+
     const formData = new FormData();
-    formData.append("file", audio, audio.name || "voice.webm");
+    formData.append("file", safeAudioFile);
     formData.append("model", "gpt-4o-mini-transcribe");
     formData.append("language", language);
     formData.append("response_format", "json");
@@ -41,16 +51,33 @@ export async function POST(request: NextRequest) {
       body: formData,
     });
 
-    const payload = await response.json().catch(() => ({}));
+    const rawText = await response.text();
+
+    let payload: any = {};
+    try {
+      payload = rawText ? JSON.parse(rawText) : {};
+    } catch {
+      payload = { raw: rawText };
+    }
 
     if (!response.ok) {
       return NextResponse.json(
-        { error: payload?.error?.message || "Transkriptio epäonnistui.", details: payload },
+        {
+          error: payload?.error?.message || "Transkriptio epäonnistui.",
+          status: response.status,
+          mime,
+          filename,
+          details: payload,
+        },
         { status: response.status },
       );
     }
 
-    return NextResponse.json({ text: String(payload?.text || "").trim() });
+    return NextResponse.json({
+      text: String(payload?.text || "").trim(),
+      mime,
+      filename,
+    });
   } catch (error: any) {
     return NextResponse.json(
       { error: error?.message || "Transkriptio epäonnistui." },
