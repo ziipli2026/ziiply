@@ -1,3 +1,11 @@
+// V476_MEDIARECORDER_TRANSCRIBE_NO_WEB_SPEECH
+// Testikorjaus iOS/Safarin toisen sanelukerran jumiin:
+// - Ei käytetä SpeechRecognition/webkitSpeechRecognitionia sanelun tunnistukseen.
+// - Äänitys tehdään MediaRecorderilla ja ääniblobi lähetetään /api/transcribe-routelle.
+// - Introääni säilyy, mutta piip/summeri/Web Speech -start poistetaan tästä polusta.
+// - Hiljaisuuskatkaisu tehdään Web Audio -tasomittauksella noin 2,0 s hiljaisuuden jälkeen.
+// - Valmis teksti ajetaan vanhaan runVoiceSearchFromSpeechV453/Justiina-hakupolkuun.
+
 // V474_VOICE_SECOND_RUN_IOS_STOP_AND_NOTICE_POSITION_FIX
 // Korjaus toisen sanelukerran mykistymiseen iOS/Safarissa:
 // - Mikrofonin getUserMedia-lupakysely tehdään vain jos lupaa ei ole vielä saatu; toisella ajolla ei avata/suljeta MediaStreamiä uudelleen.
@@ -3595,6 +3603,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const voiceBluetoothMicLikelyRefV464 = useRef(false);
   const voiceMicWarmupStreamRefV465 = useRef<MediaStream | null>(null);
   const voiceMicWarmupStopTimerRefV465 = useRef<number | null>(null);
+  const voiceMediaRecorderRefV476 = useRef<MediaRecorder | null>(null);
+  const voiceMediaStreamRefV476 = useRef<MediaStream | null>(null);
+  const voiceMediaChunksRefV476 = useRef<BlobPart[]>([]);
+  const voiceAudioContextRefV476 = useRef<any | null>(null);
+  const voiceAnalyserRefV476 = useRef<AnalyserNode | null>(null);
+  const voiceSilenceRafRefV476 = useRef<number | null>(null);
+  const voiceLastSoundAtRefV476 = useRef(0);
+  const voiceMediaStopRequestedRefV476 = useRef(false);
   const cartSectionRef = useRef<HTMLElement | null>(null);
   const comparisonSectionRef = useRef<HTMLElement | null>(null);
   const compareOverlayScrollRef = useRef<HTMLDivElement | null>(null);
@@ -6087,7 +6103,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   useEffect(() => {
-    setSpeechSupported(Boolean(getSpeechRecognitionClassV458()));
+    setSpeechSupported(typeof window !== "undefined" && Boolean((window as any).MediaRecorder && navigator.mediaDevices?.getUserMedia));
 
     return () => {
       if (voiceSilenceTimeoutRef.current) {
@@ -6095,6 +6111,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         voiceSilenceTimeoutRef.current = null;
       }
       clearVoiceNoSpeechTimeoutV461();
+      stopVoiceMediaRecorderV476(false);
+      cleanupVoiceMediaRecorderV476();
       try {
         recognitionRef.current?.abort?.();
       } catch {
@@ -6427,7 +6445,172 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     beginVoiceIntroAndStartV445();
   }
 
+  function getSupportedVoiceMimeTypeV476() {
+    if (typeof window === "undefined" || !(window as any).MediaRecorder) return "";
+    const candidates = [
+      "audio/webm;codecs=opus",
+      "audio/webm",
+      "audio/mp4",
+      "audio/mpeg",
+      "audio/wav",
+    ];
+
+    for (const candidate of candidates) {
+      try {
+        if ((window as any).MediaRecorder.isTypeSupported?.(candidate)) return candidate;
+      } catch {
+        // Ei vaikutusta fallbackiin.
+      }
+    }
+
+    return "";
+  }
+
+  function cleanupVoiceMediaRecorderV476() {
+    if (voiceSilenceRafRefV476.current !== null && typeof window !== "undefined") {
+      window.cancelAnimationFrame(voiceSilenceRafRefV476.current);
+      voiceSilenceRafRefV476.current = null;
+    }
+
+    try {
+      voiceAnalyserRefV476.current?.disconnect?.();
+    } catch {
+      // Ei vaikutusta cleanupiin.
+    }
+    voiceAnalyserRefV476.current = null;
+
+    const audioContext = voiceAudioContextRefV476.current;
+    voiceAudioContextRefV476.current = null;
+    try {
+      void audioContext?.close?.();
+    } catch {
+      // Ei vaikutusta cleanupiin.
+    }
+
+    const stream = voiceMediaStreamRefV476.current;
+    voiceMediaStreamRefV476.current = null;
+    try {
+      stream?.getTracks?.().forEach((track: MediaStreamTrack) => track.stop());
+    } catch {
+      // Ei vaikutusta cleanupiin.
+    }
+  }
+
+  function stopVoiceMediaRecorderV476(runSearch = true) {
+    voiceMediaStopRequestedRefV476.current = true;
+
+    if (voiceSilenceRafRefV476.current !== null && typeof window !== "undefined") {
+      window.cancelAnimationFrame(voiceSilenceRafRefV476.current);
+      voiceSilenceRafRefV476.current = null;
+    }
+
+    const recorder = voiceMediaRecorderRefV476.current;
+    if (!recorder) {
+      cleanupVoiceMediaRecorderV476();
+      setIsListening(false);
+      if (!runSearch) setVoiceProcessing(false);
+      return;
+    }
+
+    try {
+      (recorder as any).__runSearch = runSearch;
+      if (recorder.state !== "inactive") recorder.stop();
+    } catch {
+      voiceMediaRecorderRefV476.current = null;
+      cleanupVoiceMediaRecorderV476();
+      setIsListening(false);
+      if (!runSearch) setVoiceProcessing(false);
+    }
+  }
+
+  function startVoiceSilenceWatcherV476(stream: MediaStream) {
+    if (typeof window === "undefined") return;
+
+    try {
+      const AudioContextClass = (window as any).AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContextClass) return;
+
+      const audioContext = new AudioContextClass();
+      const analyser = audioContext.createAnalyser();
+      analyser.fftSize = 1024;
+      analyser.smoothingTimeConstant = 0.25;
+
+      const source = audioContext.createMediaStreamSource(stream);
+      source.connect(analyser);
+
+      voiceAudioContextRefV476.current = audioContext;
+      voiceAnalyserRefV476.current = analyser;
+      voiceLastSoundAtRefV476.current = Date.now();
+
+      const data = new Uint8Array(analyser.fftSize);
+      const silenceMs = 2000;
+      const minListenBeforeStopMs = 900;
+      const startedAt = Date.now();
+      const levelThreshold = 9;
+
+      const tick = () => {
+        const activeRecorder = voiceMediaRecorderRefV476.current;
+        if (!activeRecorder || activeRecorder.state === "inactive") return;
+
+        analyser.getByteTimeDomainData(data);
+        let sum = 0;
+        for (let i = 0; i < data.length; i += 1) {
+          const value = data[i] - 128;
+          sum += value * value;
+        }
+        const rms = Math.sqrt(sum / data.length);
+        const now = Date.now();
+
+        if (rms >= levelThreshold) {
+          voiceHeardSpeechRef.current = true;
+          voiceLastSoundAtRefV476.current = now;
+        }
+
+        if (
+          voiceHeardSpeechRef.current &&
+          now - startedAt > minListenBeforeStopMs &&
+          now - voiceLastSoundAtRefV476.current >= silenceMs
+        ) {
+          setVoicePromptText("Tulkitaan puhetta...");
+          stopVoiceMediaRecorderV476(true);
+          return;
+        }
+
+        voiceSilenceRafRefV476.current = window.requestAnimationFrame(tick);
+      };
+
+      voiceSilenceRafRefV476.current = window.requestAnimationFrame(tick);
+    } catch {
+      // Jos tasomittaus ei onnistu, käyttäjä voi pysäyttää Äänitä-napista.
+    }
+  }
+
+  async function transcribeVoiceBlobV476(blob: Blob) {
+    const formData = new FormData();
+    formData.append("audio", blob, `ziiply-voice-${Date.now()}.webm`);
+    formData.append("language", "fi");
+
+    const response = await fetch("/api/transcribe", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Transcribe failed: ${response.status}`);
+    }
+
+    const data = await response.json().catch(() => ({}));
+    return String(data?.text || data?.transcript || data?.result || "").trim();
+  }
+
   function stopVoiceInput(searchAfterStop = false) {
+    if (voiceMediaRecorderRefV476.current) {
+      voiceAutoSearchAfterStopRef.current = Boolean(searchAfterStop);
+      stopVoiceMediaRecorderV476(Boolean(searchAfterStop || getVoiceSearchCandidateV456()));
+      setVoicePromptText(searchAfterStop ? "Tulkitaan puhetta..." : "");
+      return;
+    }
+
     voiceAutoSearchAfterStopRef.current = Boolean(searchAfterStop);
 
     // V457: älä tyhjennä viimeistä puhetekstiä ennen pakkohaun yritystä.
@@ -6501,7 +6684,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       voiceOpenSearchPanelAfterResultRef.current = true;
     }
 
-    if (!getSpeechRecognitionClassV458()) {
+    if (typeof window === "undefined" || !(window as any).MediaRecorder || !navigator.mediaDevices?.getUserMedia) {
       alert(
         "Puhesanelu ei ole käytettävissä tässä selaimessa tai tässä osoitteessa. Kokeile puhelimella HTTPS-osoitteessa, esimerkiksi Vercel-testilinkissä.",
       );
@@ -6570,26 +6753,28 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       voiceIntroActiveRefV448.current = false;
       setVoicePromptText("");
 
-      // V472: intro saa loppua rauhassa; tämän jälkeen piip ja SpeechRecognition.start()
-      // tapahtuvat samassa käynnistyspolussa ilman BT-viiveitä.
+      // V476: intro saa loppua rauhassa; tämän jälkeen MediaRecorder käynnistyy ilman piippiä/Web Speechiä.
       await waitVoiceMsV461(700);
       startVoiceInputV445();
     })();
   }
 
-  function startVoiceInputV445() {
+  async function startVoiceInputV445() {
     if (isListening) return;
 
     voiceAutoSearchAfterStopRef.current = false;
     voiceHeardSpeechRef.current = false;
     voiceLatestCleanedInputRef.current = "";
-    voiceInputFallbackArmedRefV454.current = true;
+    voiceInputFallbackArmedRefV454.current = false;
     voiceFallingEdgeSearchArmedRefV455.current = false;
-    voiceSessionActiveUntilRefV456.current = Date.now() + 30000;
+    voiceSessionActiveUntilRefV456.current = Date.now() + 45000;
     voiceRecognitionStoppingRefV458.current = false;
+    voiceMediaStopRequestedRefV476.current = false;
+    voiceMediaChunksRefV476.current = [];
     setVoiceProcessing(false);
     setVoicePromptText("");
     setSearchNotFoundNoticeV471("");
+
     if (searchNotFoundNoticeTimerRefV471.current) {
       window.clearTimeout(searchNotFoundNoticeTimerRefV471.current);
       searchNotFoundNoticeTimerRefV471.current = null;
@@ -6600,8 +6785,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       voiceSilenceTimeoutRef.current = null;
     }
 
-    const recognition = createFreshVoiceRecognitionV458();
-    if (!recognition) {
+    clearVoiceNoSpeechTimeoutV461();
+    releaseVoiceMicWarmupStreamV465(0);
+    cleanupVoiceMediaRecorderV476();
+
+    if (typeof window === "undefined" || !(window as any).MediaRecorder || !navigator.mediaDevices?.getUserMedia) {
       alert(
         "Puhesanelu ei ole käytettävissä tässä selaimessa tai tässä osoitteessa. Kokeile puhelimella HTTPS-osoitteessa, esimerkiksi Vercel-testilinkissä.",
       );
@@ -6609,23 +6797,113 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     try {
-      // V473: käynnistä Web Speech ensin ja anna piip heti perään.
-      // iOS/Safari voi muuten sotkea toisen ajon, jos AudioContext-piip avaa äänisession
-      // juuri ennen recognition.start()-kutsua. Käyttäjälle tämä tuntuu yhä samalta
-      // aloitusmerkiltä, mutta mikki on jo ehtinyt startata ennen ensimmäistä sanaa.
-      releaseVoiceMicWarmupStreamV465(0);
-      recognition.start();
-      // V475 no beep test
-      // beep removed
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
+      });
 
-    } catch {
-      recognitionRef.current = null;
+      voiceMicPermissionGrantedRefV464.current = true;
+      voiceMediaStreamRefV476.current = stream;
+
+      const mimeType = getSupportedVoiceMimeTypeV476();
+      const recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+      voiceMediaRecorderRefV476.current = recorder;
+
+      recorder.ondataavailable = (event: BlobEvent) => {
+        if (event.data && event.data.size > 0) {
+          voiceMediaChunksRefV476.current.push(event.data);
+        }
+      };
+
+      recorder.onerror = () => {
+        voiceMediaRecorderRefV476.current = null;
+        cleanupVoiceMediaRecorderV476();
+        setIsListening(false);
+        setVoiceProcessing(false);
+        setVoicePromptText("Sanelun tallennus epäonnistui. Kokeile uudelleen.");
+      };
+
+      recorder.onstop = () => {
+        const shouldRunSearch = Boolean((recorder as any).__runSearch ?? true);
+        const chunks = voiceMediaChunksRefV476.current.slice();
+        const type = recorder.mimeType || mimeType || "audio/webm";
+
+        voiceMediaRecorderRefV476.current = null;
+        voiceMediaChunksRefV476.current = [];
+        cleanupVoiceMediaRecorderV476();
+        setIsListening(false);
+
+        if (!shouldRunSearch) {
+          setVoiceProcessing(false);
+          setVoicePromptText("");
+          voiceHeardSpeechRef.current = false;
+          return;
+        }
+
+        if (!chunks.length) {
+          setVoiceProcessing(false);
+          setVoicePromptText("Puhetta ei tallentunut. Kokeile uudelleen.");
+          voiceHeardSpeechRef.current = false;
+          return;
+        }
+
+        const blob = new Blob(chunks, { type });
+        setVoiceProcessing(true);
+        setVoicePromptText("Tulkitaan puhetta...");
+
+        void (async () => {
+          try {
+            const transcript = await transcribeVoiceBlobV476(blob);
+            const cleaned = getVoiceSearchCandidateV456(transcript);
+
+            if (!cleaned) {
+              setVoiceProcessing(false);
+              setVoicePromptText("Puhetta ei saatu tekstiksi. Kokeile uudelleen.");
+              voiceHeardSpeechRef.current = false;
+              return;
+            }
+
+            voiceLatestCleanedInputRef.current = cleaned;
+            voiceHeardSpeechRef.current = true;
+            setInput(cleaned);
+            setVoicePromptText("");
+            await runVoiceSearchFromSpeechV453(cleaned, true);
+          } catch {
+            setVoiceProcessing(false);
+            setVoicePromptText("Puheen tulkinta epäonnistui. Tarkista /api/transcribe ja kokeile uudelleen.");
+          }
+        })();
+      };
+
+      recorder.start(250);
+      setIsListening(true);
+      setVoiceProcessing(false);
+      setVoicePromptText("Kuuntelen...");
+      voiceLastSoundAtRefV476.current = Date.now();
+      startVoiceSilenceWatcherV476(stream);
+
+      voiceNoSpeechTimeoutRefV461.current = window.setTimeout(() => {
+        if (voiceMediaRecorderRefV476.current && !voiceHeardSpeechRef.current) {
+          stopVoiceMediaRecorderV476(false);
+          setVoicePromptText("Puhetta ei tullut. Kokeile uudelleen.");
+        }
+      }, 12000);
+    } catch (error: any) {
+      cleanupVoiceMediaRecorderV476();
       setIsListening(false);
       setVoiceProcessing(false);
-      setVoicePromptText("Puhesanelua ei saatu käyntiin. Tarkista selaimen mikrofonilupa.");
+      voiceMicPermissionGrantedRefV464.current = false;
+      const name = String(error?.name || error?.message || "").toLowerCase();
+      if (name.includes("notallowed") || name.includes("permission") || name.includes("denied")) {
+        setVoicePromptText("Mikrofonilupa on estetty. Salli mikrofoni selaimen asetuksista ja kokeile uudelleen.");
+      } else {
+        setVoicePromptText("Mikrofonia ei saatu avattua. Tarkista selaimen mikrofonilupa ja kokeile uudelleen.");
+      }
     }
   }
-
 
   function getGostaPageDedupeKeyV166(item: any) {
     const source = item?.__sourceOfferSearchResult || item;
