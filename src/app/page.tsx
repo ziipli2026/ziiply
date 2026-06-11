@@ -1,3 +1,11 @@
+// V505_STABLE_BOOT_SNAPSHOT_WARMUP_SCANNER_VIEWPORT_LOADING
+// Korjaus käynnistysarkkitehtuuriin:
+// - palauttaa viimeisen vakaan snapshotin/localStorage-tilan heti eikä käynnistä GPS:ää bootissa
+// - Hae/suurennuslasi ei pomppaa reloadissa; ensimmäinen ilmoitus sallitaan vasta käyttäjän/valmiuden jälkeen
+// - lämmittää S/K-tuote-endpointit taustalla, jotta ensimmäinen manuaali-/EAN-haku ei tunnu kylmäkäynnistykseltä
+// - skannerin haun aikana harmaa overlay rajataan vain kameraikkunan alueelle, ei koko ruudulle
+// - GPS ei saa pakottaa kauppatyyppiä tai kauppaparia taustalla
+
 // V504_BOOT_STABLE_NO_AUTO_GPS_SEARCH_LOCK
 // Korjaus käynnistykseen/reloadiin:
 // - ei automaattista GPS-paikannusta bootissa
@@ -2633,6 +2641,10 @@ export default function Page() {
   const weatherBootApplyInFlightRefV481 = useRef(false);
   const gpsBootTimerRefV483 = useRef<number | null>(null);
   const gpsBootWatchdogRefV483 = useRef<number | null>(null);
+  const stableBootSnapshotHydratedRefV505 = useRef(false);
+  const stableBootWarmupDoneRefV505 = useRef(false);
+  const searchReadyBadgeBootArmedRefV505 = useRef(false);
+  const STABLE_BOOT_SNAPSHOT_STORAGE_KEY_V505 = "ziiply-stable-boot-snapshot-v505";
 
   useEffect(() => {
     gpsCoordsLatestRefV137.current = gpsCoordsV320;
@@ -2918,10 +2930,64 @@ export default function Page() {
             : `${parsedStoreSelection.activeArea?.label || "Viimeisin sijainti"} käytössä. Valitse Tavaratalot tai Lähikaupat.`,
         );
       } else {
-        setStoreModeChosenV299(false);
-        setLocationMessage("Valitse sijainti tai käytä omaa sijaintia. Valitse sitten Tavaratalot tai Lähikaupat.");
+        // V505: jos vanha store-selection puuttuu, kokeile viimeistä vakaata boot-snapshotia.
+        const savedStableSnapshot = window.localStorage.getItem(
+          STABLE_BOOT_SNAPSHOT_STORAGE_KEY_V505,
+        );
+        const parsedStableSnapshot = savedStableSnapshot
+          ? JSON.parse(savedStableSnapshot)
+          : null;
+
+        if (parsedStableSnapshot && typeof parsedStableSnapshot === "object") {
+          if (parsedStableSnapshot.activeArea) {
+            setActiveArea(parsedStableSnapshot.activeArea as Area);
+          }
+          if (
+            parsedStableSnapshot.storeMode === "hyper" ||
+            parsedStableSnapshot.storeMode === "local"
+          ) {
+            selectedStoreModeRefV302.current = parsedStableSnapshot.storeMode as StoreMode;
+            setStoreMode(parsedStableSnapshot.storeMode as StoreMode);
+          }
+          setStoreModeChosenV299(Boolean(parsedStableSnapshot.storeModeChosenV299));
+          if (
+            parsedStableSnapshot.storeCompareScope === "none" ||
+            parsedStableSnapshot.storeCompareScope === "between_chains" ||
+            parsedStableSnapshot.storeCompareScope === "within_chain"
+          ) {
+            setStoreCompareScope(parsedStableSnapshot.storeCompareScope as StoreCompareScope);
+          }
+          if (parsedStableSnapshot.withinChain === "S" || parsedStableSnapshot.withinChain === "K") {
+            setWithinChain(parsedStableSnapshot.withinChain);
+          } else {
+            setWithinChain(null);
+          }
+          if (Array.isArray(parsedStableSnapshot.foundStores)) {
+            setFoundStores(parsedStableSnapshot.foundStores.slice(0, 80));
+          }
+          if (
+            parsedStableSnapshot.gpsCoordsV320 &&
+            typeof parsedStableSnapshot.gpsCoordsV320.latitude === "number" &&
+            typeof parsedStableSnapshot.gpsCoordsV320.longitude === "number"
+          ) {
+            setGpsCoordsV320(parsedStableSnapshot.gpsCoordsV320);
+            gpsCoordsLatestRefV137.current = parsedStableSnapshot.gpsCoordsV320;
+          }
+          setUsingOwnLocation(Boolean(parsedStableSnapshot.usingOwnLocation));
+          setLocationMessage(
+            parsedStableSnapshot.storeModeChosenV299
+              ? `${parsedStableSnapshot.activeArea?.label || "Viimeisin sijainti"} käytössä.`
+              : `${parsedStableSnapshot.activeArea?.label || "Viimeisin sijainti"} käytössä. Valitse Tavaratalot tai Lähikaupat.`,
+          );
+        } else {
+          setStoreModeChosenV299(false);
+          setLocationMessage("Valitse sijainti tai käytä omaa sijaintia. Valitse sitten Tavaratalot tai Lähikaupat.");
+        }
       }
+
+      stableBootSnapshotHydratedRefV505.current = true;
     } catch {
+      stableBootSnapshotHydratedRefV505.current = true;
       setStoreModeChosenV299(false);
       setLocationMessage("Valitse sijainti ja kauppatyyppi.");
     }
@@ -3492,6 +3558,74 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     ((storeCompareScope === "between_chains" && storeModeChosenV299) ||
       withinChainStoresReadyV320),
   );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!stableBootSnapshotHydratedRefV505.current) return;
+    if (!storesReadyForSearch) return;
+
+    const timer = window.setTimeout(() => {
+      try {
+        window.localStorage.setItem(
+          STABLE_BOOT_SNAPSHOT_STORAGE_KEY_V505,
+          JSON.stringify({
+            version: 505,
+            savedAt: Date.now(),
+            activeArea,
+            storeMode,
+            storeModeChosenV299,
+            storeCompareScope,
+            withinChain,
+            gpsCoordsV320,
+            usingOwnLocation,
+            foundStores: foundStores.slice(0, 80),
+          }),
+        );
+      } catch {}
+    }, 350);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    storesReadyForSearch,
+    activeArea,
+    storeMode,
+    storeModeChosenV299,
+    storeCompareScope,
+    withinChain,
+    gpsCoordsV320,
+    usingOwnLocation,
+    foundStores,
+  ]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!storesReadyForSearch) return;
+    if (stableBootWarmupDoneRefV505.current) return;
+
+    stableBootWarmupDoneRefV505.current = true;
+
+    const sStore = String(activeStores?.sStoreId || "").trim();
+    const kStore = String(activeStores?.kStoreId || "").trim();
+
+    const warmup = () => {
+      try {
+        if (sStore && sStore !== "0") {
+          void fetch(`/api/s-products?search=${encodeURIComponent("maito")}&store=${encodeURIComponent(sStore)}`, {
+            cache: "no-store",
+          }).catch(() => undefined);
+        }
+        if (kStore && kStore !== "0") {
+          void fetch(`/api/k-products?search=${encodeURIComponent("maito")}&store=${encodeURIComponent(kStore)}`, {
+            cache: "no-store",
+          }).catch(() => undefined);
+        }
+      } catch {}
+    };
+
+    const timer = window.setTimeout(warmup, 450);
+    return () => window.clearTimeout(timer);
+  }, [storesReadyForSearch, activeStores?.sStoreId, activeStores?.kStoreId]);
+
   const initialStoreSelectionLocked =
     !storesReadyForSearch && cart.length === 0;
   // V476: Hae-napin pitää pystyä sulkemaan Hae-kortti myös silloin,
@@ -3693,6 +3827,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // V541: Badge näytetään vain, kun kauppavalmiuden allekirjoitus oikeasti muuttuu.
     // Pelkkä kortilta toiselle siirtyminen ei saa laukaista "Voit hakea" -ilmoitusta.
     if (previousSearchReadySignatureV320.current === searchReadySignatureV320) {
+      return;
+    }
+
+    if (!searchReadyBadgeBootArmedRefV505.current) {
+      previousSearchReadySignatureV320.current = searchReadySignatureV320;
+      searchReadyBadgeBootArmedRefV505.current = true;
+      setHaeReadyBadgeTimerVisibleV520(false);
       return;
     }
 
@@ -17772,6 +17913,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   onToggleTorch={() => void toggleScannerTorch()}
                   onClose={closeEanModal}
                 />
+
+                {eanLoading && (
+                  <div
+                    aria-hidden="true"
+                    className="pointer-events-none fixed left-4 right-4 z-[181] rounded-[2rem] bg-slate-700/45 backdrop-blur-[1px] sm:hidden"
+                    style={{
+                      top: "calc(env(safe-area-inset-top) + 5.35rem)",
+                      height: "min(54dvh, 430px)",
+                    }}
+                  />
+                )}
 
                 {scannerDebugLinesV493.length > 0 && (
                   <pre className="pointer-events-none fixed left-3 right-3 bottom-[calc(env(safe-area-inset-bottom)+7.2rem)] z-[185] max-h-[36dvh] overflow-auto whitespace-pre-wrap rounded-2xl border-2 border-lime-500/70 bg-black/75 px-3 py-2 text-left text-[10px] font-black leading-tight text-lime-200 shadow-2xl sm:hidden">
