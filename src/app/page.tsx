@@ -1,3 +1,11 @@
+// V504_BOOT_STABLE_NO_AUTO_GPS_SEARCH_LOCK
+// Korjaus käynnistykseen/reloadiin:
+// - ei automaattista GPS-paikannusta bootissa
+// - ei nollata aiempaa kauppa-/sijaintivalintaa reloadissa
+// - Hae aktivoituu vasta kun sijainti/kauppalista ja kauppatyyppi ovat valittuna
+// - tausta-GPS ei pakota Lähikaupat-tilaa eikä vaihda kauppavalintoja
+// - viimeisin vakaa kauppavalinta palautetaan localStoragesta ennen varsinaista käyttöä
+
 // V503_SCANNER_DEBUG_GPS_HARD_LOCK_FASTQUERY_EGGS_CHEESE
 // Korjaus V502/V500 jatkoon:
 // - Skannerin debug-paneeli tuodaan takaisin näkyviin mobiilissa, jotta nähdään miksi EAN ei löydy.
@@ -2845,23 +2853,84 @@ export default function Page() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    // v305_EMPTY_REFRESH_GPS_TOGGLE:
-    // Uusi selainikkuna / refresh ei saa palauttaa Tavaratalot/Lähikaupat-valintaa.
-    // Kauppatyyppi valitaan joka sessiossa käsin, jotta vanha localStorage ei lukitse UI:ta.
+    // V504_BOOT_STABLE_NO_AUTO_GPS_SEARCH_LOCK:
+    // Reload ei enää nollaa sovelluksen tilaa. Palautetaan viimeisin vakaa
+    // sijainti/kauppavalinta, mutta EI käynnistetä GPS:ää eikä pakoteta
+    // Tavaratalot/Lähikaupat-valintaa.
     try {
-      localStorage.removeItem("ziiply-store-mode-v302");
-      localStorage.removeItem("ziiply-store-mode");
-      localStorage.removeItem("storeMode");
-      localStorage.removeItem("ziiply-use-own-location");
-    } catch {}
+      const savedStoreSelection = window.localStorage.getItem(
+        STORE_SELECTION_STORAGE_KEY_V343,
+      );
+      const parsedStoreSelection = savedStoreSelection
+        ? JSON.parse(savedStoreSelection)
+        : null;
 
-    selectedStoreModeRefV302.current = "local";
-    setStoreMode("local");
-    setStoreModeChosenV299(false);
-    setStoreCompareScope("between_chains");
-    setWithinChain(null);
-    // v315_INITIAL_NAV_PROMPT: refresh/ensimmäinen avaus ei avaa mitään korttia.
-    // Vain Kaupat-nappi on käytettävissä, mutta se ei ole vielä aktiivinen ennen käyttäjän painallusta.
+      if (parsedStoreSelection && typeof parsedStoreSelection === "object") {
+        if (parsedStoreSelection.activeArea) {
+          setActiveArea(parsedStoreSelection.activeArea as Area);
+        }
+
+        if (
+          parsedStoreSelection.storeMode === "hyper" ||
+          parsedStoreSelection.storeMode === "local"
+        ) {
+          selectedStoreModeRefV302.current =
+            parsedStoreSelection.storeMode as StoreMode;
+          setStoreMode(parsedStoreSelection.storeMode as StoreMode);
+        }
+
+        setStoreModeChosenV299(Boolean(parsedStoreSelection.storeModeChosenV299));
+
+        if (
+          parsedStoreSelection.storeCompareScope === "none" ||
+          parsedStoreSelection.storeCompareScope === "between_chains" ||
+          parsedStoreSelection.storeCompareScope === "within_chain"
+        ) {
+          setStoreCompareScope(
+            parsedStoreSelection.storeCompareScope as StoreCompareScope,
+          );
+        }
+
+        if (
+          parsedStoreSelection.withinChain === "S" ||
+          parsedStoreSelection.withinChain === "K"
+        ) {
+          setWithinChain(parsedStoreSelection.withinChain);
+        } else {
+          setWithinChain(null);
+        }
+
+        if (
+          parsedStoreSelection.gpsCoordsV320 &&
+          typeof parsedStoreSelection.gpsCoordsV320.latitude === "number" &&
+          typeof parsedStoreSelection.gpsCoordsV320.longitude === "number"
+        ) {
+          setGpsCoordsV320(parsedStoreSelection.gpsCoordsV320);
+          gpsCoordsLatestRefV137.current = parsedStoreSelection.gpsCoordsV320;
+          gpsPollLastAppliedCoordsRefV137.current = parsedStoreSelection.gpsCoordsV320;
+          gpsPollLastAppliedAtRefV90.current = Date.now();
+        }
+
+        setUsingOwnLocation(Boolean(parsedStoreSelection.usingOwnLocation));
+        setLocationMessage(
+          parsedStoreSelection.storeModeChosenV299
+            ? `${parsedStoreSelection.activeArea?.label || "Viimeisin sijainti"} käytössä.`
+            : `${parsedStoreSelection.activeArea?.label || "Viimeisin sijainti"} käytössä. Valitse Tavaratalot tai Lähikaupat.`,
+        );
+      } else {
+        setStoreModeChosenV299(false);
+        setLocationMessage("Valitse sijainti tai käytä omaa sijaintia. Valitse sitten Tavaratalot tai Lähikaupat.");
+      }
+    } catch {
+      setStoreModeChosenV299(false);
+      setLocationMessage("Valitse sijainti ja kauppatyyppi.");
+    }
+
+    gpsUserDisabledRefV306.current = true;
+    gpsInitialVisiblePhaseRefV391.current = false;
+    setGpsBootReadyV473(true);
+    setStoreSearchLoading(false);
+    setGpsStorePickerBlockedV382(false);
     setSearchPanelOpen(false);
     setCartModalOpen(false);
     setCartSavePanelOpen(false);
@@ -2869,15 +2938,11 @@ export default function Page() {
     setActiveResult("none");
     setShopsPanelOpen(false);
     setInitialStoreNavPrompt(false);
-    // V466_GPS_BOOT_SINGLE_FLIGHT:
-    // Älä käynnistä GPS:ää tässä reset-efektissä. Varsinainen alkuhaku tehdään
-    // alempana yhdessä kontrolloidussa efektissä, jotta avaus/reload ei tee kahta GPS-hakua.
-    gpsUserDisabledRefV306.current = false;
-    // V471: älä laita GPS:ää pending-tilaan reset-efektistä.
-    // Ainoa avausstartti on alempana boot-efektissä, joka kutsuu useOwnLocation().
-    gpsInitialVisiblePhaseRefV391.current = false;
-    setGpsCoordsV320(null);
-    setLocationMessageVisible(true);
+
+    window.setTimeout(() => {
+      setShowLaunchScreen(false);
+      storeSelectionHydratedRefV343.current = true;
+    }, 240);
   }, []);
 
   useEffect(() => {
@@ -3413,9 +3478,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       : (activeArea.kStoreId || activeArea.kStoreName) &&
         (activeArea.kLocalStoreId || activeArea.kLocalStoreName)),
   );
+  const locationReadyForSearchV504 = Boolean(
+    activeArea?.label ||
+    activeArea?.sStoreId ||
+    activeArea?.kStoreId ||
+    activeArea?.sLocalStoreId ||
+    activeArea?.kLocalStoreId ||
+    foundStores.length > 0 ||
+    gpsCoordsV320,
+  );
   const storesReadyForSearch = Boolean(
-    (storeCompareScope === "between_chains" && storeModeChosenV299) ||
-    withinChainStoresReadyV320,
+    locationReadyForSearchV504 &&
+    ((storeCompareScope === "between_chains" && storeModeChosenV299) ||
+      withinChainStoresReadyV320),
   );
   const initialStoreSelectionLocked =
     !storesReadyForSearch && cart.length === 0;
@@ -3748,7 +3823,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   });
 
   const [isOnline, setIsOnline] = useState(true);
-  const [showLaunchScreen, setShowLaunchScreen] = useState(false);
+  const [showLaunchScreen, setShowLaunchScreen] = useState(true);
   const [suppressUiForEanClose, setSuppressUiForEanClose] = useState(false);
   const [eanModalClosing, setEanModalClosing] = useState(false);
   const PANEL_FADE_MS = 260;
@@ -5088,6 +5163,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     selectedChains.s,
     selectedChains.k,
     withinChain,
+    gpsCoordsV320,
+    usingOwnLocation,
   ]);
 
   function shouldUseLocalFallback(chain: "S" | "K") {
@@ -5673,6 +5750,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           storeModeChosenV299,
           storeCompareScope,
           withinChain,
+          gpsCoordsV320,
+          usingOwnLocation,
         }),
       );
     } catch {
@@ -5684,6 +5763,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     storeModeChosenV299,
     storeCompareScope,
     withinChain,
+    gpsCoordsV320,
+    usingOwnLocation,
   ]);
 
   function persistCartImmediately(nextCart: CartItem[]) {
@@ -9033,7 +9114,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             setGpsErrorMessage("");
             setLocationInput("");
 
-            await applyLocation(city, "gps", nextCoords, true);
+            if (storeModeChosenV299) {
+              await applyLocation(city, "gps", nextCoords, true);
+            } else {
+              setGpsCoordsV320(nextCoords);
+            }
 
             if (cancelled) return;
 
@@ -9085,29 +9170,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // false ennen varsinaista GPS-ajoa. Käyttäjän GPS-pois-nappi asettaa tämän trueksi.
     gpsUserDisabledRefV306.current = false;
     gpsInitialVisiblePhaseRefV391.current = false;
-    setUsingOwnLocation(false);
+    // V504: säilytä palautettu usingOwnLocation/gpsCoords, älä nollaa niitä reloadissa.
     setGpsErrorMessage("");
     setGpsBootReadyV473(true);
   }, []);
 
-  // V490_BOOT_GPS_SINGLE_SESSION_START:
-  // Avauksessa/reloadissa saa syntyä vain yksi automaattinen GPS-startti koko selainikkunassa.
-  // React StrictMode / remount / korttien tilamuutokset eivät saa käynnistää toista starttia.
-  // Manuaalinen GPS-nappi ei käytä tätä boot-lukkoa, joten se toimii edelleen päälle/pois.
+  // V504_NO_BOOT_AUTO_GPS:
+  // Älä käynnistä GPS:ää automaattisesti reloadissa. Käyttäjä voi painaa GPS-nappia,
+  // tai aiempi sijainti/kauppavalinta palautetaan localStoragesta vakaaksi alkunäkymäksi.
   useEffect(() => {
-    pushGpsDebugLogV492("boot gps effect ENTRY");
-    const windowWithZiiplyGps = window as typeof window & {
-      __ziiplyBootGpsStartedV490?: boolean;
-    };
-
-    if (windowWithZiiplyGps.__ziiplyBootGpsStartedV490) {
-      pushGpsDebugLogV492("boot gps effect BLOCKED window boot already started");
-      setGpsBootReadyV473(true);
-      return;
-    }
-
-    windowWithZiiplyGps.__ziiplyBootGpsStartedV490 = true;
-
+    pushGpsDebugLogV492("boot gps effect disabled by V504");
     if (gpsBootTimerRefV483.current) {
       window.clearTimeout(gpsBootTimerRefV483.current);
       gpsBootTimerRefV483.current = null;
@@ -9116,33 +9188,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       window.clearTimeout(gpsBootWatchdogRefV483.current);
       gpsBootWatchdogRefV483.current = null;
     }
-
+    gpsUserDisabledRefV306.current = true;
+    setGpsBootReadyV473(true);
     setStoreSearchLoading(false);
     setGpsStorePickerBlockedV382(false);
-    setGpsBootReadyV473(false);
-    gpsUserDisabledRefV306.current = false;
-
-    gpsBootTimerRefV483.current = window.setTimeout(() => {
-      pushGpsDebugLogV492("boot gps timer FIRED");
-      gpsBootTimerRefV483.current = null;
-      if (gpsUserDisabledRefV306.current || gpsCoordsV320 || gpsSearchInFlightRefV465.current) {
-        pushGpsDebugLogV492(`boot gps timer BLOCKED disabled=${String(gpsUserDisabledRefV306.current)} coords=${gpsCoordsV320 ? "yes" : "no"} inFlight=${String(gpsSearchInFlightRefV465.current)}`);
-        setGpsBootReadyV473(true);
-        return;
-      }
-      void useOwnLocation("boot");
-    }, 450);
-
-    return () => {
-      if (gpsBootTimerRefV483.current) {
-        window.clearTimeout(gpsBootTimerRefV483.current);
-        gpsBootTimerRefV483.current = null;
-      }
-      if (gpsBootWatchdogRefV483.current) {
-        window.clearTimeout(gpsBootWatchdogRefV483.current);
-        gpsBootWatchdogRefV483.current = null;
-      }
-    };
   }, []);
 
   async function searchOffers(termOverride?: string) {
@@ -14385,10 +14434,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setStoreCompareScope("between_chains");
       setWithinChain(null);
       setStoreModeChosenV299(hadStoreModeChoice);
-      if (!hadStoreModeChoice) {
-        selectedStoreModeRefV302.current = "hyper";
-        setStoreMode("hyper");
-      }
+      // V504: älä pakota Tavaratalot-valintaa, jos käyttäjä ei ole vielä itse
+      // valinnut Tavaratalot/Lähikaupat-tilaa.
       setSelectedChains((current) => ({
         ...current,
         s: hadStoreModeChoice,
@@ -16965,6 +17012,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 gpsUserDisabledRefV306.current = false;
                 gpsManualSuccessGuardUntilRefV485.current = 0;
                 gpsManualSuccessCoordsRefV485.current = null;
+                gpsUserDisabledRefV306.current = false;
                 void useOwnLocation("manual");
               }}
               
@@ -18248,7 +18296,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           initialStoreSelectionLocked={initialStoreSelectionLocked}
           searchPanelOpen={searchPanelOpen}
           searchReadyBounceKeyV320={0}
-          storesReadyForSearch={false}
+          storesReadyForSearch={storesReadyForSearch}
           cartLength={cart.length}
           cartModalOpen={cartModalOpen}
           activeResult={activeResult}
