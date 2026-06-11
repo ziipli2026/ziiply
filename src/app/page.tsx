@@ -6,6 +6,10 @@
 // - Skanneri ei enää aja raskasta EAN-only /api/s-ean-product-kierrosta ensin, jos nimivinkkiä ei ole.
 // - OFF/cached name toimii vain nimivinkkinä; hinta hyväksytään edelleen vain exact EAN + price -osumasta.
 
+// V501_GPS_DOES_NOT_FORCE_LOCAL_STOREMODE
+// Korjaus: GPS/taustapaikannus ei saa enää pakottaa storeModea Lähikaupat-tilaan,
+// jos käyttäjä on jo valinnut Tavaratalot. Skannerin nopea V500-haku säilyy.
+
 // V500_SCANNER_CAMERA_WINDOW_GRAY_LOADING_NO_MODAL
 // Korjaus V499:n liian isoon loading-overlayhin:
 // - Ei enää koko ruudun tummaa modaalia eikä pyörivää spinneriä.
@@ -8513,7 +8517,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // Oma sijainti avataan aina lähikauppatilaan ja kaupat järjestetään koordinaateilla.
       const effectiveLocationStoreModeV39: StoreMode =
         source === "gps"
-          ? "local"
+          ? storeModeChosenV299
+            ? storeMode
+            : "local"
           : storeModeChosenV299
             ? selectedStoreModeRefV302.current
             : storeMode;
@@ -8549,10 +8555,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // oma sijainti avataan Lähikaupat-tilaan, jolloin lähimmät S/K-kaupat voivat tulla
       // Jokelan/Tuusulan puolelta. Jos käyttäjä on jo valinnut Tavaratalot/Lähikaupat,
       // säilytetään hänen valintansa.
-      if (source === "gps" && !gostaPanelStickyOpenRefV158.current) {
-        // V161: Göstan ollessa auki tätä haaraa ei saa ajaa, koska se pakottaa Lähikaupat päälle.
-        // V39: GPS ei koskaan peri reloadin/historian hyper-valintaa.
-        // Käyttäjä voi vaihtaa Tavaratalot-tilaan käsin GPS:n jälkeen, mutta automaatti avaa lähimmät.
+      if (source === "gps" && !gostaPanelStickyOpenRefV158.current && !storeModeChosenV299) {
+        // V501: GPS saa avata Lähikaupat vain ensimmäisellä kerralla, jos käyttäjä ei ole vielä
+        // valinnut Tavaratalot/Lähikaupat-tilaa. Kun käyttäjä on valinnut Tavaratalot,
+        // taustapaikannus ei saa enää vaihtaa sitä Lähikaupat-tilaan skannerin/korin taustalla.
         const nextGpsStoreMode: StoreMode = "local";
 
         selectedStoreModeRefV302.current = nextGpsStoreMode;
@@ -8574,7 +8580,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         activeElement?.blur?.();
       }
 
-      const effectiveStoreModeForLocationMessage = source === "gps" ? "local" : storeMode;
+      const effectiveStoreModeForLocationMessage =
+        source === "gps" ? effectiveLocationStoreModeV39 : storeMode;
       const modeMissing =
         effectiveStoreModeForLocationMessage === "local"
           ? !ranked.sLocal || !ranked.kLocal
@@ -8844,10 +8851,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // V470: älä pudota storeSearchLoadingia pois päältä tässä välissä.
       // GPS-paikannus ja sitä seuraava kauppahaku ovat yksi atominen ajo, jotta
       // Kaupat-paneelin fallback tai toinen effect ei voi startata uutta GPS-hakua väliin.
-      // V39: ennen kauppahaun starttia katkaistaan sivun avaus/reload-hyperlukko.
-      selectedStoreModeRefV302.current = "local";
-      setStoreMode("local");
-      setStoreModeChosenV299(true);
+      // V501: ennen kauppahaun starttia GPS saa asettaa Lähikaupat vain, jos käyttäjä
+      // ei ole jo valinnut kauppatilaa. Taustapäivitys ei saa yliajaa Tavaratalot-valintaa.
+      if (!storeModeChosenV299) {
+        selectedStoreModeRefV302.current = "local";
+        setStoreMode("local");
+        setStoreModeChosenV299(true);
+      } else {
+        selectedStoreModeRefV302.current = storeMode;
+      }
       pushGpsDebugLogV492(`useOwnLocation applyLocation start`);
       await applyLocation(city, "gps", nextGpsCoordsV485);
       gpsPollLastAppliedCoordsRefV137.current = nextGpsCoordsV485;
