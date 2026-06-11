@@ -1,3 +1,9 @@
+// V510_VOICE_NOTIF_POSITION_AND_GPS_TEXT_FIX
+// Korjaus V509-pohjaan:
+// - GPS/notif-teksti lyhennetty muotoon "Paikannetaan..."
+// - Nauhurin prompt/notif keskitetty ja siirretty alemmas nauhurin yläpuolelle
+// - V509:n voice queue odottaa käyttäjän valintaa ennen seuraavaa tuotetta
+
 // V509_VOICE_SEQUENTIAL_WAIT_USER_SELECTION
 // Korjaus V508: monituotenauhuri ei saa ylikirjoittaa SearchResultCardia seuraavalla tuotteella.
 // Jokaisen tuotteen haun jälkeen odotetaan, että käyttäjä valitsee tuotteen tai sulkee tuloskortin.
@@ -2629,7 +2635,7 @@ export default function Page() {
     "main" | "selection"
   >("main");
   const [locationMessage, setLocationMessage] = useState(
-    "Paikannetaan GPS",
+    "Paikannetaan...",
   );
   const [locationMessageVisible, setLocationMessageVisible] = useState(true);
   const [usingOwnLocation, setUsingOwnLocation] = useState(false);
@@ -3366,7 +3372,7 @@ export default function Page() {
   function startSilentGpsWatchV391() {
     // V469: älä käynnistä watchPositionia automaattisesti avauksessa.
     // Aiemmin tämä aiheutti toisen GPS-paikannuksen heti alkuhaun jälkeen ja UI jäi
-    // joillakin puhelimilla pysyvään "Paikannetaan GPS" -tilaan.
+    // joillakin puhelimilla pysyvään "Paikannetaan..." -tilaan.
     return;
   }
 
@@ -8817,8 +8823,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setStoreSearchLoading(true);
     setLocationStatusV137(
       source === "gps"
-        ? `Haetaan kauppoja alueelle ${rawQuery}`
-        : `Haetaan kauppoja alueelle ${rawQuery}`,
+        ? "Paikannetaan..."
+        : "Paikannetaan...",
     );
 
     try {
@@ -8847,7 +8853,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       });
 
       setLocationStatusV137(
-        `Haetaan kauppoja alueelle ${query}`,
+        source === "gps" ? "Paikannetaan..." : `Haetaan kauppoja alueelle ${query}`,
       );
       const stores = await fetchStoresForLocationQuery(
         query,
@@ -9060,7 +9066,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setUsingOwnLocation(true);
     setGpsCoordsV320(coords);
     setStoreSearchLoading(true);
-    setLocationStatusV137("Paikannetaan GPS");
+    setLocationStatusV137("Paikannetaan...");
     setLocationMessageVisible(true);
 
     try {
@@ -9203,7 +9209,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setUsingOwnLocation(true);
     setLocationInput("");
     setStoreSearchLoading(true);
-    setLocationMessage("Paikannetaan GPS");
+    setLocationMessage("Paikannetaan...");
 
     try {
       pushGpsDebugLogV492(`useOwnLocation before getCurrentPosition`);
@@ -13252,8 +13258,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       if (!(usingOwnLocation && gpsCoordsV320 && foundStores.length > 0)) {
         setLocationMessage(
           storeSearchLoading
-            ? "Haetaan kauppoja sijainnin perusteella"
-            : "Haetaan nykyistä sijaintia",
+            ? "Paikannetaan..."
+            : "Paikannetaan...",
         );
       }
       // V471: älä starttaa GPS:ää Kaupat-paneelin fallbackista.
@@ -15713,8 +15719,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             } else {
               setLocationMessage(
                 storeSearchLoading || gpsStoreLocationPendingV366 || gpsStorePickerBlockedV382
-                  ? "Haetaan kauppoja sijainnin perusteella"
-                  : "GPS ei vielä valmis",
+                  ? "Paikannetaan..."
+                  : "Paikannetaan...",
               );
             }
             return;
@@ -17883,7 +17889,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
             {(voicePromptText || (!loadingNormal && !voiceProcessing && !isListening && searchNotFoundNoticeV471)) && (
               <div
-                className="pointer-events-none fixed left-1/2 top-[calc(env(safe-area-inset-top)+28.2rem)] z-[9998] min-h-[1.35rem] w-[15.8rem] max-w-[62vw] -translate-x-1/2 rounded-[0.82rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/96 px-3 py-[0.15rem] text-center text-[0.72rem] leading-[1.0] font-black italic text-[#174c2c] shadow-[0_3px_0_rgba(91,72,44,0.16),0_7px_14px_rgba(0,0,0,0.12)] sm:hidden"
+                className="pointer-events-none fixed left-1/2 top-[calc(env(safe-area-inset-top)+30.6rem)] z-[9998] min-h-[1.35rem] w-[15.8rem] max-w-[62vw] -translate-x-1/2 rounded-[0.82rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/96 px-3 py-[0.15rem] text-center text-[0.72rem] leading-[1.0] font-black italic text-[#174c2c] shadow-[0_3px_0_rgba(91,72,44,0.16),0_7px_14px_rgba(0,0,0,0.12)] sm:hidden"
                 style={{ fontFamily: '"Cooper Black", Georgia, serif' }}
                 role="status"
                 aria-live="assertive"
