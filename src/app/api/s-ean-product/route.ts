@@ -1,3 +1,11 @@
+// V4_EAN_ROUTE_EGGS_CHEESE_REVISION_VISIBLE
+// Korjaus V3: revisioteksti lisätty tiedoston alkuun, jotta GitHubissa näkyy varmasti uusi versio.
+// Muutokset:
+// - Lisätty kananmunien slug-polut: maito-munat-ja-rasvat/kananmunat, maito-munat-ja-rasvat/munat
+// - Lisätty juustojen slug-polut: maito-munat-ja-rasvat/juustot, maito-munat-ja-rasvat/juustot/viipalejuustot
+// - Lisätty buildQueries-hakusanoihin kananmunat/munat/egg ja juusto/cheddar/edam/gouda/slices.
+// - Haku hyväksyy edelleen vain exact EAN + price > 0.
+
 import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -13,12 +21,12 @@ const BROAD_SLUGS = [
   "maito-munat-ja-rasvat",
   "maito-munat-ja-rasvat/kananmunat",
   "maito-munat-ja-rasvat/munat",
-  "maito-munat-ja-rasvat/juustot",
-  "maito-munat-ja-rasvat/juustot/juustoviipaleet",
   "maito-munat-ja-rasvat/jogurtit",
   "maito-munat-ja-rasvat/jogurtit/juotavat-jogurtit",
   "maito-munat-ja-rasvat/rasvat",
   "maito-munat-ja-rasvat/maidot-ja-piimat",
+  "maito-munat-ja-rasvat/juustot",
+  "maito-munat-ja-rasvat/juustot/viipalejuustot",
   "liha-ja-kala",
   "liha-ja-kala/makkarat",
   "leivat-ja-leivonnaiset",
@@ -190,7 +198,7 @@ function buildQueries(nameHint: string, ean: string) {
     terms.add(cleaned);
 
     const noSize = cleaned
-      .replace(/\b\d+\s*(g|kg|ml|l|dl)\b/gi, "")
+      .replace(/\b\d+\s*(g|kg|ml|l|dl|kpl|pkt)\b/gi, "")
       .replace(/\s+/g, " ")
       .trim();
 
@@ -234,24 +242,24 @@ function buildQueries(nameHint: string, ean: string) {
     terms.add("maito");
   }
 
-  if (/kananmuna|kananmunat|munia|muna|egg/i.test(cleaned)) {
-    terms.add("kananmuna");
-    terms.add("kananmunat");
-    terms.add("munat");
-  }
-
   if (/leipä|leipa|voileipä|voileipa/i.test(cleaned)) {
     terms.add("Coop voileipä");
     terms.add("voileipä");
     terms.add("leipä");
   }
 
-  if (/juusto|cheddar|burger slices|slices|edam|gouda|emmental/i.test(cleaned)) {
+  if (/kananmuna|kananmun|munia|\bmuna\b|\bmunat\b|egg/i.test(cleaned)) {
+    terms.add("kananmuna");
+    terms.add("kananmunat");
+    terms.add("munat");
+  }
+
+  if (/juusto|cheddar|edam|gouda|burger slices|slices/i.test(cleaned)) {
     terms.add("juusto");
     terms.add("cheddar");
-    terms.add("juustoviipale");
-    terms.add("burger slices");
+    terms.add("viipalejuusto");
     terms.add("Coop cheddar");
+    terms.add("burger slices");
   }
 
   terms.add("");
@@ -332,38 +340,8 @@ export async function GET(request: NextRequest) {
     const debug: any[] = [];
     const queries = buildQueries(nameHint, ean);
 
-    // 1. S-kaupat GraphQL kategoriat, laajennettu.
-    for (const slug of BROAD_SLUGS) {
-      for (const queryString of queries) {
-        const filtered = await tryFilteredExact({ ean, storeId, slug, queryString });
-
-        debug.push({
-          step: "RemoteFilteredProducts",
-          slug,
-          queryString,
-          status: filtered.status,
-          ok: filtered.ok,
-          count: filtered.products.length,
-          exact: Boolean(filtered.exact),
-          first: summarize(filtered.products[0]),
-          errors: filtered.payload?.errors || null,
-        });
-
-        if (filtered.exact && getPrice(filtered.exact) > 0) {
-          return NextResponse.json({
-            ok: true,
-            source: "s-kaupat-filtered-broad-exact",
-            found: true,
-            ean,
-            storeId,
-            product: toProduct(filtered.exact, ean, storeId),
-            debug,
-          });
-        }
-      }
-    }
-
-    // 2. Sama sisäinen /api/s-products-polku kuin käsinhaussa.
+    // 1. Nopea sama sisäinen /api/s-products-polku kuin käsinhaussa.
+    // Hyväksytään vain exact EAN + hinta.
     for (const queryString of queries.filter((q) => q.length >= 1)) {
       const internal = await tryInternalSProductsExact({
         origin,
@@ -397,6 +375,37 @@ export async function GET(request: NextRequest) {
           ),
           debug,
         });
+      }
+    }
+
+    // 2. S-kaupat GraphQL kategoriat varmistuksena, exact EAN + hinta.
+    for (const slug of BROAD_SLUGS) {
+      for (const queryString of queries) {
+        const filtered = await tryFilteredExact({ ean, storeId, slug, queryString });
+
+        debug.push({
+          step: "RemoteFilteredProducts",
+          slug,
+          queryString,
+          status: filtered.status,
+          ok: filtered.ok,
+          count: filtered.products.length,
+          exact: Boolean(filtered.exact),
+          first: summarize(filtered.products[0]),
+          errors: filtered.payload?.errors || null,
+        });
+
+        if (filtered.exact && getPrice(filtered.exact) > 0) {
+          return NextResponse.json({
+            ok: true,
+            source: "s-kaupat-filtered-broad-exact",
+            found: true,
+            ean,
+            storeId,
+            product: toProduct(filtered.exact, ean, storeId),
+            debug,
+          });
+        }
       }
     }
 
