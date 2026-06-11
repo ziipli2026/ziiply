@@ -1,3 +1,4 @@
+// V499_SCANNER_FAST_K_PAIR_NO_DEBUG_GRAY_LOADING
 // V497_SCANNER_EAN_RESULT_CACHE_AND_NO_BLIND_ROUTE_FIRST
 // Korjaus skannerin hitauteen:
 // - Sama S-kaupat exact EAN + hinta tallennetaan localStorage-välimuistiin storeId+EAN-avaimella.
@@ -3736,26 +3737,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const [eanScannerMessage, setEanScannerMessage] = useState("");
   const [scannerDebugLinesV493, setScannerDebugLinesV493] = useState<string[]>([]);
 
-  function pushScannerDebugV493(message: string) {
-    const stamp = new Date().toLocaleTimeString("fi-FI", {
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    });
-    const line = `${stamp} ${message}`;
-    console.log(`[SCANNER V493] ${message}`);
-    setScannerDebugLinesV493((current) => [...current.slice(-14), line]);
+  function pushScannerDebugV493(_message: string) {
+    // V499: käyttäjälle näkyvä skanneri-debug poistettu.
+    return;
   }
 
-  function resetScannerDebugV493(message: string) {
-    const stamp = new Date().toLocaleTimeString("fi-FI", {
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    });
-    const line = `${stamp} ${message}`;
-    console.log(`[SCANNER V493] ${message}`);
-    setScannerDebugLinesV493([line]);
+  function resetScannerDebugV493(_message: string) {
+    // V499: käyttäjälle näkyvä skanneri-debug poistettu.
+    setScannerDebugLinesV493([]);
   }
 
   const [scannerTorchOn, setScannerTorchOn] = useState(false);
@@ -10831,6 +10820,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       const sEanStoreIdV497 = String(activeStores.sStoreId || "").trim();
       const sEanCacheKeyV497 = `ziiply:v497:s-ean-product:${sEanStoreIdV497 || "default"}:${ean}`;
+      let cachedHitNameV499 = "";
 
       const addStrictSEanProductResultV497 = (product: any, sourceLabel: string) => {
         if (
@@ -10857,6 +10847,30 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         return true;
       };
 
+
+      const addStrictKProductResultV499 = (product: any, sourceLabel: string) => {
+        if (!product || Number(product?.price || 0) <= 0 || !isSameEan(product?.ean, variants)) {
+          return false;
+        }
+
+        const converted = convertKProductToProduct(product as KProduct);
+
+        exactResultsByKey.set(
+          `${sourceLabel}-${normalizeEan(product.ean)}-${product.id || ean}`,
+          {
+            key: `${sourceLabel}-${product.id || ean}`,
+            chain: "K" as const,
+            storeName: activeStores.kStoreName,
+            product: {
+              ...converted,
+              ean: product.ean || ean,
+            },
+            eanMatch: true,
+          },
+        );
+        return true;
+      };
+
       // V497: nopea paikallinen exact EAN -välimuisti. Jos sama tuote on jo kerran
       // löydetty hinnalla samasta S-kaupasta, älä aja raskasta route-ketjua uudestaan.
       try {
@@ -10871,6 +10885,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               `S_CACHE hit store=${sEanStoreIdV497 || "-"} ageMin=${Math.round(cacheAgeMsV497 / 60000)} price=${getProductPrice(cachedProductV497 as Product)}`,
             );
             if (addStrictSEanProductResultV497(cachedProductV497, "S-v497-cache")) {
+              cachedHitNameV499 = fixText(String(cachedProductV497?.name || cachedRouteV497?.nameHint || ""));
               pushScannerDebugV493("S_CACHE ACCEPT exact EAN + price");
             } else {
               pushScannerDebugV493("S_CACHE reject stale/wrong/no price");
@@ -10929,6 +10944,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const tryStrictSEanRouteV491 = async (nameHint?: string | null) => {
         const cleanNameHintV491 = fixText(String(nameHint || "")).trim();
         const storeIdNumberV498 = Number(activeStores.sStoreId || 0);
+        const kStoreIdNumberV499 = Number(activeStores.kStoreId || 0);
 
         if (!cleanNameHintV491 || !Number.isFinite(storeIdNumberV498) || storeIdNumberV498 <= 0) {
           pushScannerDebugV493(`S_FAST skip missing name/store name=${Boolean(cleanNameHintV491)} store=${String(activeStores.sStoreId || "-")}`);
@@ -10938,31 +10954,55 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         const fastQueriesV498 = buildFastSProductQueriesV498(cleanNameHintV491);
         pushScannerDebugV493(`S_FAST queries=${fastQueriesV498.join(" | ").slice(0, 140)}`);
 
+        let acceptedAnyV499 = false;
+
         for (const query of fastQueriesV498) {
-          const products = await fetchSProducts(query, storeIdNumberV498).catch((error) => {
-            pushScannerDebugV493(`S_FAST ERROR query=${query.slice(0, 30)} ${String(error?.message || error).slice(0, 80)}`);
-            return [] as Product[];
-          });
+          const [sProducts, kProducts] = await Promise.all([
+            fetchSProducts(query, storeIdNumberV498).catch((error) => {
+              pushScannerDebugV493(`S_FAST ERROR query=${query.slice(0, 30)} ${String(error?.message || error).slice(0, 80)}`);
+              return [] as Product[];
+            }),
+            Number.isFinite(kStoreIdNumberV499) && kStoreIdNumberV499 > 0
+              ? fetchKProducts(query, kStoreIdNumberV499).catch((error) => {
+                  pushScannerDebugV493(`K_FAST ERROR query=${query.slice(0, 30)} ${String(error?.message || error).slice(0, 80)}`);
+                  return [] as KProduct[];
+                })
+              : Promise.resolve([] as KProduct[]),
+          ]);
 
-          const exact = products.find((product) => isSameEan(product?.ean, variants));
-          pushScannerDebugV493(`S_FAST query="${query.slice(0, 38)}" count=${products.length} exact=${Boolean(exact)}`);
+          const sExact = sProducts.find((product) => isSameEan(product?.ean, variants));
+          const kExact = kProducts.find((product) => isSameEan(product?.ean, variants));
+          pushScannerDebugV493(
+            `FAST query="${query.slice(0, 38)}" S=${sProducts.length}/${Boolean(sExact)} K=${kProducts.length}/${Boolean(kExact)}`,
+          );
 
-          if (exact && addStrictSEanProductResultV497(exact, "S-v498-fast-s-products")) {
-            writeStrictSEanCacheV498(exact, cleanNameHintV491, "fast-/api/s-products");
-            pushScannerDebugV493(`S_FAST ACCEPT price=${getProductPrice(exact)} name=${fixText(String(exact.name || "")).slice(0, 44)}`);
-            return true;
+          if (sExact && addStrictSEanProductResultV497(sExact, "S-v498-fast-s-products")) {
+            writeStrictSEanCacheV498(sExact, cleanNameHintV491, "fast-/api/s-products");
+            pushScannerDebugV493(`S_FAST ACCEPT price=${getProductPrice(sExact)} name=${fixText(String(sExact.name || "")).slice(0, 44)}`);
+            acceptedAnyV499 = true;
           }
 
-          // Jos käsinhaun sama route palautti tuotteita, mutta niissä ei ole exact EANia,
-          // älä lähde hitaaseen broad-routeen arvailemaan. Fallback saa olla hinnaton.
-          if (products.length > 0) {
-            pushScannerDebugV493("S_FAST products but no exact EAN -> no slow broad route");
+          if (kExact && addStrictKProductResultV499(kExact, "K-v499-fast-k-products")) {
+            pushScannerDebugV493(`K_FAST ACCEPT price=${Number(kExact.price || 0)} name=${fixText(String(kExact.name || "")).slice(0, 44)}`);
+            acceptedAnyV499 = true;
           }
+
+          // Jos samalla nimellä löytyi molempien ketjujen exact EANit, pari on valmis heti.
+          if (sExact && kExact && acceptedAnyV499) return true;
         }
 
-        pushScannerDebugV493("S_FAST no exact EAN result");
-        return false;
+        pushScannerDebugV493(`FAST finished accepted=${acceptedAnyV499}`);
+        return acceptedAnyV499;
       };
+
+      // V499: jos S-tuote tuli suoraan page/localStorage-cachella, hae silti K exact EAN
+      // samalla nimellä, jotta S/K-hintavertailupari palautuu näkyviin.
+      if (cachedHitNameV499) {
+        await tryStrictSEanRouteV491(cachedHitNameV499).catch((error) => {
+          pushScannerDebugV493(`FAST ERROR cachedHitName ${String(error?.message || error).slice(0, 120)}`);
+          return false;
+        });
+      }
 
       // V497: älä aloita sokkona raskasta EAN-only routea, koska route joutuu silloin
       // kokeilemaan laajan slug/termiketjun. Käytä ensin muistissa olevaa nimeä tai OFF-nimeä.
@@ -16307,7 +16347,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       </div>
                     )}
 
-                    {scannerDebugLinesV493.length > 0 && (
+                    {false && scannerDebugLinesV493.length > 0 && (
                       <pre className="mb-3 max-h-64 overflow-auto whitespace-pre-wrap rounded-2xl bg-black px-4 py-3 text-left text-[11px] font-bold leading-snug text-lime-300 ring-2 ring-lime-500/60">
                         {`SKANNERI DEBUG V493\n${scannerDebugLinesV493.slice(-18).join("\n")}`}
                       </pre>
@@ -17559,13 +17599,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   fullscreen
                   flashState={scanSuccessFlash ? "success" : scanMissFlash ? "error" : "idle"}
                   loading={eanLoading}
-                  scannerMessage={
-                    scannerDebugLinesV493.length > 0
-                      ? `SKANNERI DEBUG V493\n${scannerDebugLinesV493.slice(-14).join("\n")}`
-                      : eanLoading
-                        ? "Haetaan tuotetta"
-                        : eanScannerMessage
-                  }
+                  scannerMessage={eanLoading ? "Haetaan tuotetta" : eanScannerMessage}
                   torchOn={scannerTorchOn}
                   manualInputOpen={eanManualInputOpen}
                   selectionResults={[]}
@@ -17609,6 +17643,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   onToggleTorch={() => void toggleScannerTorch()}
                   onClose={closeEanModal}
                 />
+
+                {eanLoading && (
+                  <div className="pointer-events-none fixed inset-0 z-[190] flex flex-col items-center justify-center bg-slate-950/55 text-white backdrop-blur-[1.5px] sm:hidden">
+                    <div className="rounded-[1.6rem] bg-slate-950/70 px-6 py-5 text-center shadow-2xl ring-1 ring-white/20">
+                      <div className="mx-auto mb-3 h-9 w-9 animate-spin rounded-full border-4 border-white/35 border-t-white" />
+                      <p className="text-base font-black tracking-wide">Haetaan tuotetta...</p>
+                    </div>
+                  </div>
+                )}
                 </>
               )}
 
