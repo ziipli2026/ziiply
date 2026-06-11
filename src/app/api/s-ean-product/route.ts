@@ -13,6 +13,8 @@ const BROAD_SLUGS = [
   "maito-munat-ja-rasvat",
   "maito-munat-ja-rasvat/kananmunat",
   "maito-munat-ja-rasvat/munat",
+  "maito-munat-ja-rasvat/juustot",
+  "maito-munat-ja-rasvat/juustot/juustoviipaleet",
   "maito-munat-ja-rasvat/jogurtit",
   "maito-munat-ja-rasvat/jogurtit/juotavat-jogurtit",
   "maito-munat-ja-rasvat/rasvat",
@@ -242,6 +244,14 @@ function buildQueries(nameHint: string, ean: string) {
     terms.add("Coop voileipä");
     terms.add("voileipä");
     terms.add("leipä");
+  }
+
+  if (/juusto|cheddar|burger slices|slices|edam|gouda|emmental/i.test(cleaned)) {
+    terms.add("juusto");
+    terms.add("cheddar");
+    terms.add("juustoviipale");
+    terms.add("burger slices");
+    terms.add("Coop cheddar");
   }
 
   terms.add("");
