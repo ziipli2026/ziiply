@@ -1,3 +1,11 @@
+// V512_VOICE_NOTIF_POSITION_TEXT_NO_DEBUG
+// Pohja: V511/V509.
+// Korjaus:
+// - sanelun prompt-teksti muotoon "Mitteepä sais olla?"
+// - sanelun prompt siirretty hakukentän ja Äänitä/Filmaa-nappien väliin, ei nappien päälle
+// - näkyvä VOICE DEBUG -paneeli poistettu testikäytöstä
+// - V509:n käyttäjän valintaa odottava monituotejono säilyy
+
 // V511_V509_LOCATION_TEXT_AND_VOICE_PROMPT_VISIBLE_FIX
 // Pohja: V509, koska monituote-sanelun käyttäjän valinnan odotus toimi.
 // Korjaus:
@@ -20,7 +28,7 @@
 // - monituotesanelu ajetaan aina termi kerrallaan: maito -> kahvi -> jne.
 // - ei syötetä koko pilkulla erotettua listaa yhtenä hakusanana searchNormalPricesille.
 // - voice debug näyttää jokaisen VOICE ITEM i/n -haun.
-// - prompt-teksti vaihdettu muotoon "Mittee saes olla?" ja keskitetty nauhurin yläpuolelle.
+// - prompt-teksti vaihdettu muotoon "Mitteepä sais olla?" ja keskitetty nauhurin yläpuolelle.
 
 // V505_STABLE_BOOT_SNAPSHOT_WARMUP_SCANNER_VIEWPORT_LOADING
 // Korjaus käynnistysarkkitehtuuriin:
@@ -7272,7 +7280,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       searchNotFoundNoticeTimerRefV471.current = null;
     }
 
-    const introText = "Mittee saes olla?";
+    const introText = "Mitteepä sais olla?";
     voiceHeardSpeechRef.current = false;
     voiceAutoSearchAfterStopRef.current = false;
     voiceFallingEdgeSearchArmedRefV455.current = false;
@@ -17889,7 +17897,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
             {(voicePromptText || (!loadingNormal && !voiceProcessing && !isListening && searchNotFoundNoticeV471)) && (
               <div
-                className="pointer-events-none fixed left-1/2 top-[calc(env(safe-area-inset-top)+24.8rem)] z-[9998] min-h-[1.35rem] w-[15.8rem] max-w-[62vw] -translate-x-1/2 rounded-[0.82rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/96 px-3 py-[0.15rem] text-center text-[0.72rem] leading-[1.0] font-black italic text-[#174c2c] shadow-[0_3px_0_rgba(91,72,44,0.16),0_7px_14px_rgba(0,0,0,0.12)] sm:hidden"
+                className="pointer-events-none fixed left-1/2 top-[calc(env(safe-area-inset-top)+21.0rem)] z-[9998] min-h-[1.35rem] w-[19.5rem] max-w-[74vw] -translate-x-1/2 rounded-[0.82rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/96 px-3 py-[0.15rem] text-center text-[0.72rem] leading-[1.0] font-black italic text-[#174c2c] shadow-[0_3px_0_rgba(91,72,44,0.16),0_7px_14px_rgba(0,0,0,0.12)] sm:hidden"
                 style={{ fontFamily: '"Cooper Black", Georgia, serif' }}
                 role="status"
                 aria-live="assertive"
@@ -17898,25 +17906,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               </div>
             )}
 
-            {voiceDebugRowsV507.length > 0 && (
-              <div className="fixed bottom-[5.2rem] left-2 right-2 z-[9999] max-h-[12rem] overflow-auto rounded-xl border-2 border-[#d8bd75] bg-black/82 p-2 text-[10px] leading-tight text-lime-100 shadow-xl sm:hidden">
-                <div className="mb-1 flex items-center justify-between gap-2 text-[11px] font-black text-yellow-200">
-                  <span>VOICE DEBUG V511</span>
-                  <button
-                    type="button"
-                    className="rounded bg-white/15 px-2 py-0.5 text-[10px] text-white"
-                    onClick={() => setVoiceDebugRowsV507([])}
-                  >
-                    tyhjennä
-                  </button>
-                </div>
-                {voiceDebugRowsV507.map((row, index) => (
-                  <div key={`${row}-${index}`} className="whitespace-pre-wrap border-t border-white/10 py-0.5">
-                    {row}
-                  </div>
-                ))}
-              </div>
-            )}
+            {/* V512: voice debug panel removed from visible UI. */}
 
             <ZiiplyMobileSearchResultsCard
               open={
