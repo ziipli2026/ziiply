@@ -11,6 +11,10 @@
 // - Skannerin verkkovirhe ei enää lisää vanhaa OFF-cache-tuotetta heti koriin.
 // - Sanelun MediaRecorder + V479 aloitusääni säilyy.
 
+// V488_SCANNER_DEBUG_ROUTE_BUILDFIX
+// Korjaus V487 build-virheeseen: poistettu väärään GPS/useOwnLocation catch-haaraan lipsahtanut pushScannerDebugV487-kutsu.
+// Skannerin debug-rivit jätetty searchByEan/EAN-polkuun.
+
 // V484_ROLLBACK_V483_SCANNER_STABLE
 // Palautus: V483:n cache-only skannerihaku aiheutti ensimmäisen haun katkeamisen ja OFF/fallback-lukon.
 // Tämä palauttaa skannerin V479:n vakaaseen EAN-sekvenssiin, jotta sama tuote ei jää fallback-luuppiin.
@@ -8554,7 +8558,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         setLocationStatusV137(source === "gps" ? "Oma sijainti käytössä" : `${nextArea.label || query || "GPS"} käytössä`);
       }
     } catch (error) {
-      pushScannerDebugV487(`CATCH ${String((error as any)?.message || error).slice(0, 120)}`);
       pushGpsDebugLogV492(`useOwnLocation CATCH code=${String((error as any)?.code ?? "?")}`);
       console.error(error);
       const gpsErrorCode =
