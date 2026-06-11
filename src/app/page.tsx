@@ -1,3 +1,10 @@
+// V497_SCANNER_EAN_RESULT_CACHE_AND_NO_BLIND_ROUTE_FIRST
+// Korjaus skannerin hitauteen:
+// - Sama S-kaupat exact EAN + hinta tallennetaan localStorage-välimuistiin storeId+EAN-avaimella.
+// - Seuraava sama EAN samassa kaupassa lisätään heti ilman route-hakua.
+// - Skanneri ei enää aja raskasta EAN-only /api/s-ean-product-kierrosta ensin, jos nimivinkkiä ei ole.
+// - OFF/cached name toimii vain nimivinkkinä; hinta hyväksytään edelleen vain exact EAN + price -osumasta.
+
 // V496_STOREMODE_LOCK_NO_GPS_REF_FLIP
 // Korjaus: GPS/activeStores ei saa käyttää selectedStoreModeRefV302.current-arvoa kauppatilan lähteenä,
 // koska ref voi jäädä vanhaan local-arvoon ja vaihtaa taustalla Tavaratalot -> Lähikaupat skannerin aikana.
@@ -10822,6 +10829,61 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const exactResultsByKey = new Map<string, EanSearchResult>();
       let openFoodFactsFallbackForSearchV120: any = null;
 
+      const sEanStoreIdV497 = String(activeStores.sStoreId || "").trim();
+      const sEanCacheKeyV497 = `ziiply:v497:s-ean-product:${sEanStoreIdV497 || "default"}:${ean}`;
+
+      const addStrictSEanProductResultV497 = (product: any, sourceLabel: string) => {
+        if (
+          !product ||
+          getProductPrice(product as Product) <= 0 ||
+          !isSameEan(product?.ean, variants)
+        ) {
+          return false;
+        }
+
+        exactResultsByKey.set(
+          `${sourceLabel}-${normalizeEan(product.ean)}-${product.id || ean}`,
+          {
+            key: `${sourceLabel}-${product.id || ean}`,
+            chain: "S" as const,
+            storeName: activeStores.sStoreName,
+            product: {
+              ...(product as Product),
+              ean: product.ean || ean,
+            },
+            eanMatch: true,
+          },
+        );
+        return true;
+      };
+
+      // V497: nopea paikallinen exact EAN -välimuisti. Jos sama tuote on jo kerran
+      // löydetty hinnalla samasta S-kaupasta, älä aja raskasta route-ketjua uudestaan.
+      try {
+        const cachedRouteRawV497 = window.localStorage.getItem(sEanCacheKeyV497);
+        if (cachedRouteRawV497) {
+          const cachedRouteV497 = JSON.parse(cachedRouteRawV497);
+          const cachedProductV497 = cachedRouteV497?.product;
+          const cachedAtV497 = Number(cachedRouteV497?.savedAt || 0);
+          const cacheAgeMsV497 = Date.now() - cachedAtV497;
+          if (cacheAgeMsV497 >= 0 && cacheAgeMsV497 < 1000 * 60 * 60 * 12) {
+            pushScannerDebugV493(
+              `S_CACHE hit store=${sEanStoreIdV497 || "-"} ageMin=${Math.round(cacheAgeMsV497 / 60000)} price=${getProductPrice(cachedProductV497 as Product)}`,
+            );
+            if (addStrictSEanProductResultV497(cachedProductV497, "S-v497-cache")) {
+              pushScannerDebugV493("S_CACHE ACCEPT exact EAN + price");
+            } else {
+              pushScannerDebugV493("S_CACHE reject stale/wrong/no price");
+              window.localStorage.removeItem(sEanCacheKeyV497);
+            }
+          } else {
+            window.localStorage.removeItem(sEanCacheKeyV497);
+          }
+        }
+      } catch (error) {
+        pushScannerDebugV493(`S_CACHE read error ${String((error as any)?.message || error).slice(0, 80)}`);
+      }
+
       const tryStrictSEanRouteV491 = async (nameHint?: string | null) => {
         const sEanParamsV491 = new URLSearchParams();
         sEanParamsV491.set("ean", ean);
@@ -10836,7 +10898,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         });
         const payload = await response.json().catch(() => null as any);
         pushScannerDebugV493(
-          `S_ROUTE status=${response.status} ok=${response.ok} found=${Boolean(payload?.found)} source=${payload?.source || "-"} debugSteps=${Array.isArray(payload?.debug) ? payload.debug.length : 0}`
+          `S_ROUTE status=${response.status} ok=${response.ok} found=${Boolean(payload?.found)} source=${payload?.source || "-"} debugSteps=${Array.isArray(payload?.debug) ? payload.debug.length : 0}`,
         );
         const product = payload?.found ? payload?.product : null;
 
@@ -10844,24 +10906,23 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           pushScannerDebugV493(`S_ROUTE product ean=${normalizeEan(product?.ean)} price=${getProductPrice(product as Product)} name=${fixText(String(product?.name || "")).slice(0, 44)}`);
         }
 
-        if (
-          product &&
-          getProductPrice(product as Product) > 0 &&
-          isSameEan(product?.ean, variants)
-        ) {
-          exactResultsByKey.set(
-            `S-v491-s-kaupat-ean-${normalizeEan(product.ean)}-${product.id || ean}`,
-            {
-              key: `S-v491-s-kaupat-ean-${product.id || ean}`,
-              chain: "S" as const,
-              storeName: activeStores.sStoreName,
-              product: {
-                ...(product as Product),
-                ean: product.ean || ean,
-              },
-              eanMatch: true,
-            },
-          );
+        if (addStrictSEanProductResultV497(product, "S-v497-s-kaupat-ean")) {
+          try {
+            window.localStorage.setItem(
+              sEanCacheKeyV497,
+              JSON.stringify({
+                savedAt: Date.now(),
+                storeId: sEanStoreIdV497,
+                ean,
+                nameHint: cleanNameHintV491,
+                source: payload?.source || "s-ean-product",
+                product,
+              }),
+            );
+            pushScannerDebugV493("S_ROUTE cached exact result");
+          } catch (error) {
+            pushScannerDebugV493(`S_CACHE write error ${String((error as any)?.message || error).slice(0, 80)}`);
+          }
           pushScannerDebugV493("S_ROUTE ACCEPT exact EAN + price");
           return true;
         }
@@ -10870,18 +10931,22 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         return false;
       };
 
-      // V491: Skannerin ensisijainen haku on vain uusi S-kaupat.fi EAN-route.
-      // Vanhoja /api/s-products ja /api/k-products provider-hakuja ei käytetä tässä enää
-      // ensisijaisina eikä toissijaisina hintalähteinä, koska ne ajoivat skannerin väärään polkuun.
-      pushScannerDebugV493("STEP 1: try S-route with EAN only");
-      await tryStrictSEanRouteV491(null).catch((error) => {
-        pushScannerDebugV493(`S_ROUTE ERROR initial ${String(error?.message || error).slice(0, 120)}`);
-        return false;
-      });
-      pushScannerDebugV493(`AFTER S-route exactResults=${exactResultsByKey.size}`);
+      // V497: älä aloita sokkona raskasta EAN-only routea, koska route joutuu silloin
+      // kokeilemaan laajan slug/termiketjun. Käytä ensin muistissa olevaa nimeä tai OFF-nimeä.
+      const cachedNameHintV497 = fixText(String(cachedName || ""));
+      if (exactResultsByKey.size === 0 && cachedNameHintV497) {
+        pushScannerDebugV493(`STEP 1: try S-route with cached name=${cachedNameHintV497.slice(0, 54)}`);
+        await tryStrictSEanRouteV491(cachedNameHintV497).catch((error) => {
+          pushScannerDebugV493(`S_ROUTE ERROR cachedName ${String(error?.message || error).slice(0, 120)}`);
+          return false;
+        });
+        pushScannerDebugV493(`AFTER cachedName S-route exactResults=${exactResultsByKey.size}`);
+      } else if (exactResultsByKey.size === 0) {
+        pushScannerDebugV493("STEP 1: skip blind EAN-only S-route; need name hint first");
+      }
 
-      // V491: OFF haetaan vasta S-kaupat EAN -yrityksen jälkeen. OFF toimii vain
-      // tuotetiedon/nimivinkinä ja lopullisena hinnattomana fallbackina, ei hintalähteenä.
+      // OFF toimii vain tuotetiedon/nimivinkkinä ja lopullisena hinnattomana fallbackina,
+      // ei hintalähteenä. Hinta hyväksytään vain route-osumasta exact EAN + price.
       if (exactResultsByKey.size === 0) {
         pushScannerDebugV493("STEP 2: no S exact result -> try OFF/name hint");
         const cachedOpenFoodFactsProductV126 = getCachedOpenFoodFactsProductForAnyVariantV126(ean);
@@ -10908,6 +10973,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         } else {
           pushScannerDebugV493("OFF not found");
         }
+      }
+
+      // Viimeinen varmistus vain jos nimivinkkiä ei ollut lainkaan. Tämä voi olla hidas,
+      // mutta ajetaan vain OFF-epäonnistumisen jälkeen eikä jokaiselle tuotteelle heti alussa.
+      if (exactResultsByKey.size === 0 && !cachedNameHintV497 && !openFoodFactsFallbackForSearchV120) {
+        pushScannerDebugV493("STEP 4: last resort EAN-only S-route");
+        await tryStrictSEanRouteV491(null).catch((error) => {
+          pushScannerDebugV493(`S_ROUTE ERROR final EAN-only ${String(error?.message || error).slice(0, 120)}`);
+          return false;
+        });
+        pushScannerDebugV493(`AFTER final EAN-only exactResults=${exactResultsByKey.size}`);
       }
 
       const exactResults = Array.from(exactResultsByKey.values()).sort(
