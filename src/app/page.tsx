@@ -1,23 +1,9 @@
-// V489_SCANNER_DEBUG_VISIBLE_PANEL
-// Korjaus V488: skannerin EAN-debug näytetään nyt suoraan ruudulla skannerinäkymän alareunassa.
-// Debug päivittyy searchByEan()-polusta: EAN, variantit, endpointit, osumat, exact-match ja fallback.
-
-// V487_SCANNER_DEBUG_ROUTE
-// Debug-versio skannerin EAN-hakuun:
-// - Näyttää ruudulla mihin asti EAN-haku menee: EAN, variantit, OFF-cache, nimikandidaatit, /api/s-products-/api/k-products-osumat, suorat EAN-haut, V463-hydraatio, tarkat osumat ja fallback.
-// - Ei muuta tarkoituksella varsinaista hakulogiikkaa V486:sta.
-// - Debug näkyy eanMessage/eanScannerMessage-teksteissä ja console.logissa.
-
-// V486_SCANNER_NO_EARLY_OFF_CACHE
-// Korjaus V485:n/V483:n fallback-luuppiin:
-// - Open Food Facts -cache ei saa enää oikaista skannerihakua ennen uutta S/K-tarkkaa EAN-tarkistusta.
-// - OFF-cachea saa käyttää nimen apuna ja fallbackina vasta sen jälkeen, kun kauppahaku ei löydä tarkkaa EAN-osumaa.
-// - Skannerin verkkovirhe ei enää lisää vanhaa OFF-cache-tuotetta heti koriin.
-// - Sanelun MediaRecorder + V479 aloitusääni säilyy.
-
-// V488_SCANNER_DEBUG_ROUTE_BUILDFIX
-// Korjaus V487 build-virheeseen: poistettu väärään GPS/useOwnLocation catch-haaraan lipsahtanut pushScannerDebugV487-kutsu.
-// Skannerin debug-rivit jätetty searchByEan/EAN-polkuun.
+// V490_SCANNER_S_KAUPAT_EAN_ROUTE_FIRST
+// Korjaus skannerin EAN-hakuun:
+// - Skannerin kauppahaku yrittää ensin uutta /api/s-ean-product-routea.
+// - Route käyttää S-kaupat.fi GraphQL EAN/name-hakua ja hyväksyy vain exact EAN + hinnan.
+// - Open Food Facts -cache ei saa enää oikaista ennen uutta S-kaupat EAN-tarkistusta.
+// - Vanha S/K-provider-polku jää varalle tämän jälkeen, mutta ei pääse ennen uutta S-EAN-routea.
 
 // V484_ROLLBACK_V483_SCANNER_STABLE
 // Palautus: V483:n cache-only skannerihaku aiheutti ensimmäisen haun katkeamisen ja OFF/fallback-lukon.
@@ -3732,7 +3718,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const [eanScannerOpen, setEanScannerOpen] = useState(false);
   const [desktopKeyboardScannerOpen, setDesktopKeyboardScannerOpen] = useState(false);
   const [eanScannerMessage, setEanScannerMessage] = useState("");
-  const [scannerDebugLinesV489, setScannerDebugLinesV489] = useState<string[]>([]);
   const [scannerTorchOn, setScannerTorchOn] = useState(false);
   const [eanManualInputOpen, setEanManualInputOpen] = useState(false);
   const [scanSuccessFlash, setScanSuccessFlash] = useState(false);
@@ -10068,7 +10053,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     eanAutoSearchActiveRef.current = true;
     setEanScannerOpen(true);
     setEanScannerMessage("");
-    setScannerDebugLinesV489([`EAN ${normalizedCode} luettu → käynnistetään skannerihaku`]);
     setEanMessage(`Skannattu EAN: ${normalizedCode}. Haetaan...`);
     void searchByEan(normalizedCode, { fromScanner: true });
   }
@@ -10715,10 +10699,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return;
     }
 
-    // V486: ÄLÄ oikaise Open Food Facts -cacheen ennen kauppojen EAN-tarkistusta.
-    // Aiempi early-return aiheutti fallback-luupin: jos EAN oli kerran päätynyt OFF-cacheen,
-    // seuraava skannaus lisäsi saman fallback-tuotteen heti eikä yrittänyt enää S/K-tarkkaa EAN-hakua.
-    // OFF-cachea käytetään alempana vasta kauppahaun epäonnistuttua.
+    // V490: älä oikaise Open Food Facts -cacheen ennen uutta S-kaupat EAN-tarkistusta.
+    // Aiemmin sama EAN saattoi jäädä "heti fallback" -luuppiin: OFF-cache palautti tuotteen
+    // ennen kuin S-kaupat.fi:n omaa EAN-routea edes yritettiin. Fallback tehdään vasta
+    // kauppahaun jälkeen alempana.
 
     // V135_SCANNER_SINGLE_SOURCE_NO_INPUT_EFFECT
 // Korjaus: kameraskannerin EAN-haku saa käynnistyä vain finishScannedEan()-polusta.
@@ -10765,35 +10749,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setEanScannerMessage("");
     setEanResults([]);
 
-    const scannerDebugStepsV487: string[] = [];
-    const pushScannerDebugV487 = (step: string) => {
-      const line = `${scannerDebugStepsV487.length + 1}. ${step}`;
-      scannerDebugStepsV487.push(line);
-      try {
-        setScannerDebugLinesV489(scannerDebugStepsV487.slice(-12));
-      } catch {
-        // Debug UI must never break scanning.
-      }
-      const message = `EAN DEBUG ${ean}: ${scannerDebugStepsV487.slice(-6).join(" | ")}`;
-      console.log("[ZIIPLY EAN DEBUG V487]", message);
-      setEanMessage(message);
-      if (options.fromScanner || eanScannerOpen || eanHtml5ScannerRef.current) {
-        setEanScannerMessage(message);
-      }
-    };
-
-    pushScannerDebugV487(
-      `START fromScanner=${Boolean(options.fromScanner || eanScannerOpen || eanHtml5ScannerRef.current)} sStore=${activeStores.sStoreName || activeStores.sStoreId || "?"} kStore=${activeStores.kStoreName || activeStores.kStoreId || "?"}`,
-    );
-
     try {
       const variants = getEanSearchVariants(ean);
-      pushScannerDebugV487(`variants=${variants.join(",")}`);
 
       const cachedName =
         variants.map((variant) => eanCache[variant]).find(Boolean) ||
         eanCache[ean];
-      pushScannerDebugV487(`eanCacheName=${cachedName ? JSON.stringify(cachedName).slice(0, 80) : "none"}`);
 
       // V120: Open Food Facts haetaan vain kerran per EAN-haku ja samaa tulosta
       // käytetään sekä nimihakujen apuna että varsinaisena OFF-fallbackina.
@@ -10811,7 +10772,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       if (openFoodFactsFallbackForSearchV120) {
         cacheOpenFoodFactsProductForAllVariantsV126(openFoodFactsFallbackForSearchV120);
       }
-      pushScannerDebugV487(`OFF preload=${openFoodFactsFallbackForSearchV120?.name ? JSON.stringify(openFoodFactsFallbackForSearchV120.name).slice(0, 80) : "none"}`);
 
       const externalNames = openFoodFactsFallbackForSearchV120?.name
         ? [openFoodFactsFallbackForSearchV120.name]
@@ -10819,15 +10779,52 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const nameCandidates = Array.from(
         new Set([cachedName, ...externalNames].filter(Boolean) as string[]),
       );
-      pushScannerDebugV487(`nameCandidates=${nameCandidates.length}${nameCandidates.length ? ": " + nameCandidates.map((x) => JSON.stringify(x).slice(0, 45)).join(" / ") : ""}`);
 
       const exactResultsByKey = new Map<string, EanSearchResult>();
+
+      // V490: Skannerin uusi ensisijainen S-kaupat.fi EAN-route.
+      // Tämä EI käytä vanhaa /api/s-products?search=EAN -provider-hakua.
+      // Hyväksytään vain route-palautuksen found:true + exact EAN + hinta.
+      try {
+        const sEanParamsV490 = new URLSearchParams();
+        sEanParamsV490.set("ean", ean);
+        if (activeStores.sStoreId) sEanParamsV490.set("storeId", String(activeStores.sStoreId));
+        const firstNameHintV490 = nameCandidates[0] || cachedName || "";
+        if (firstNameHintV490) sEanParamsV490.set("name", firstNameHintV490);
+
+        const sEanResponseV490 = await fetch(`/api/s-ean-product?${sEanParamsV490.toString()}`, {
+          cache: "no-store",
+        });
+        const sEanPayloadV490 = await sEanResponseV490.json().catch(() => null as any);
+        const sEanProductV490 = sEanPayloadV490?.found ? sEanPayloadV490?.product : null;
+
+        if (
+          sEanProductV490 &&
+          getProductPrice(sEanProductV490 as Product) > 0 &&
+          isSameEan(sEanProductV490?.ean, variants)
+        ) {
+          exactResultsByKey.set(
+            `S-v490-s-kaupat-ean-${normalizeEan(sEanProductV490.ean)}-${sEanProductV490.id || ean}`,
+            {
+              key: `S-v490-s-kaupat-ean-${sEanProductV490.id || ean}`,
+              chain: "S" as const,
+              storeName: activeStores.sStoreName,
+              product: {
+                ...(sEanProductV490 as Product),
+                ean: sEanProductV490.ean || ean,
+              },
+              eanMatch: true,
+            },
+          );
+        }
+      } catch {
+        // Best effort: jos uusi route kaatuu, vanha tarkka EAN-polku saa vielä yrittää.
+      }
 
       // EAN-modalissa näytetään vain tarkat EAN-osumat.
       // Open Food Factsia ja cachea käytetään vain nimen löytämiseen,
       // jotta ruoanhinta.fi:n nimihaku palauttaa tuotteita, joiden EAN tarkistetaan vielä erikseen.
       for (const nameCandidate of nameCandidates) {
-        pushScannerDebugV487(`name fetch -> /api/s-products + /api/k-products search=${JSON.stringify(nameCandidate).slice(0, 70)}`);
         const [sProducts, kProducts] = await Promise.all([
           fetchSProducts(nameCandidate, activeStores.sStoreId).catch(
             () => [] as Product[],
@@ -10836,7 +10833,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             () => [] as KProduct[],
           ),
         ]);
-        pushScannerDebugV487(`name result search=${JSON.stringify(nameCandidate).slice(0, 45)} S_priced=${sProducts.length} K_priced=${kProducts.length}`);
 
         for (const product of sProducts) {
           if (getProductPrice(product) <= 0) continue;
@@ -10877,7 +10873,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
 
       // Debug-varmistus: kokeillaan myös suoraa EAN-hakua, mutta hyväksytään vain tarkat EAN-osumat.
-      pushScannerDebugV487(`direct EAN fetch -> /api/s-products + /api/k-products variants=${variants.length}`);
       const [sDirectGroups, kDirectGroups] = await Promise.all([
         Promise.all(
           variants.map((variant) =>
@@ -10894,8 +10889,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           ),
         ),
       ]);
-
-      pushScannerDebugV487(`direct result S_groups=${sDirectGroups.map((g) => g.length).join("/") || "0"} K_groups=${kDirectGroups.map((g) => g.length).join("/") || "0"}`);
 
       for (const product of sDirectGroups.flat()) {
         if (getProductPrice(product) <= 0) continue;
@@ -10932,16 +10925,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // Suora EAN-osuma voi palautua ilman hintaa, mutta vanha toimiva page-polku löysi hinnan,
       // kun sama tuote haettiin S-kaupat-nimihakuna. Käytetään siis EANia tunnisteena ja
       // haetaan hinnoiteltu S-tuote s-products-polusta ennen OFF/unknown-fallbackia.
-      pushScannerDebugV487(`V463 S price-branch hydration start candidates=${nameCandidates.length}`);
       const sBranchPricedEanResultsV463 = await fetchSExactEanResultsFromPriceBranchV463(
         ean,
         variants,
         nameCandidates,
-      ).catch((error) => {
-        pushScannerDebugV487(`V463 ERROR ${String((error as any)?.message || error).slice(0, 80)}`);
-        return [] as EanSearchResult[];
-      });
-      pushScannerDebugV487(`V463 S price-branch results=${sBranchPricedEanResultsV463.length}`);
+      ).catch(() => [] as EanSearchResult[]);
 
       for (const result of sBranchPricedEanResultsV463) {
         exactResultsByKey.set(
@@ -10953,7 +10941,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const exactResults = Array.from(exactResultsByKey.values()).sort(
         (a, b) => getProductPrice(a.product) - getProductPrice(b.product),
       );
-      pushScannerDebugV487(`EXACT total=${exactResults.length}${exactResults[0] ? " first=" + exactResults[0].chain + ":" + JSON.stringify(exactResults[0].product?.name || "").slice(0, 60) + " price=" + getProductPrice(exactResults[0].product) : ""}`);
 
       if (exactResults.length > 0) {
         const cacheName = exactResults[0]?.product?.name;
@@ -11014,13 +11001,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // V729: 1. fallback on Open Food Facts. Jos S/K-tarkkaa EAN-osumaa ei löydy,
       // mutta OFF tunnistaa tuotteen, lisätään se koriin nimellä + EANilla.
       // Hintaa ei lisätä kokonaissummaan: tuote on tunnistettu, mutta vertailuhintaa ei ole saatavilla.
-      pushScannerDebugV487("NO EXACT -> checking Open Food Facts fallback");
       const openFoodFactsFallback =
         openFoodFactsFallbackForSearchV120 ||
         (cachedName
           ? await fetchOpenFoodFactsFallbackProductV729(ean).catch(() => null)
           : null);
-      pushScannerDebugV487(`OFF final=${openFoodFactsFallback?.name ? JSON.stringify(openFoodFactsFallback.name).slice(0, 90) : "none"}`);
 
       if (openFoodFactsFallback) {
         setEanLookupOutcomeForAllVariantsV126(ean, "off");
@@ -11030,7 +11015,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       // V122: jos sama EAN on tässä sessiossa aiemmin tunnistettu OFF- tai kauppatuotteeksi,
       // uusi epäonnistunut verkkokierros ei saa pudottaa sitä tuntemattomaksi.
-      pushScannerDebugV487("NO OFF -> previous outcome / cache fallback checks");
       const previousOutcomeBeforeUnknownV122 = getEanLookupOutcomeForAnyVariantV126(ean)?.status;
       if (previousOutcomeBeforeUnknownV122 === "off" || previousOutcomeBeforeUnknownV122 === "store") {
         const cachedOffBeforeUnknownV126 = getCachedOpenFoodFactsProductForAnyVariantV126(ean);
@@ -11118,11 +11102,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // tässä sessiossa tunnistettu OFF- tai kauppatuotteeksi.
       const previousOutcomeV120 = getEanLookupOutcomeForAnyVariantV126(ean)?.status;
       if (previousOutcomeV120 !== "off" && previousOutcomeV120 !== "store") {
-        // V486: skannerin verkkovirheessä ei saa käyttää vanhaa OFF-cachea heti,
-        // koska se lukitsee käyttäjän fallback-tuotteeseen vaikka seuraava S/K-haku voisi onnistua.
-        // Käsin käynnistetty EAN-haku saa edelleen käyttää cachea virhetilanteessa.
         const cachedOffOnErrorV126 = getCachedOpenFoodFactsProductForAnyVariantV126(ean);
-        if (cachedOffOnErrorV126 && !(options.fromScanner || eanAutoSearchActiveRef.current || eanScannerOpen || eanHtml5ScannerRef.current)) {
+        if (cachedOffOnErrorV126) {
           addOpenFoodFactsScannedEanToCartV729(cachedOffOnErrorV126);
           return;
         }
@@ -11145,7 +11126,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         );
       }
     } finally {
-      console.log("[ZIIPLY EAN DEBUG V487 FINAL]", ean, scannerDebugStepsV487);
       eanLookupPendingRefV120.current.delete(ean);
       if (eanSearchInFlightRef.current === ean) {
         eanSearchInFlightRef.current = null;
@@ -17527,17 +17507,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   onToggleTorch={() => void toggleScannerTorch()}
                   onClose={closeEanModal}
                 />
-
-                  {scannerDebugLinesV489.length > 0 && (
-                    <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+6.25rem)] left-2 right-2 z-[180] mx-auto max-h-[38vh] max-w-[430px] overflow-auto rounded-2xl border-2 border-[#d8bd75] bg-[#fff8df]/95 p-3 text-[11px] font-black leading-tight text-[#174c2c] shadow-[0_8px_24px_rgba(0,0,0,0.22)] sm:hidden">
-                      <div className="mb-1 text-[12px] text-[#5d4422]">SKANNERI DEBUG V489</div>
-                      {scannerDebugLinesV489.map((line, index) => (
-                        <div key={`${index}-${line}`} className="border-t border-[#ead59a] py-1 first:border-t-0">
-                          {line}
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </>
               )}
 
