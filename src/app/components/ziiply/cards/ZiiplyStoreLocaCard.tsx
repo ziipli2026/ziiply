@@ -37,10 +37,10 @@ export default function ZiiplyStoreLocaCard({
   locationMessage = "Kirjoita alue tai käytä omaa sijaintia.",
   locationMessageVisible = false,
   storeSearchLoading = false,
-  placeholder = "05510 tai Hyvinkää",
+  placeholder = "78200 tai Hyvinkää",
   className,
 }: ZiiplyStoreLocaCardProps) {
-  const statusText = storeSearchLoading ? "HAETAAN KAUPPOJA..." : locationMessage;
+  const statusText = storeSearchLoading ? "PAIKANNETAAN..." : locationMessage;
   const showStatus = Boolean(locationMessageVisible && statusText.trim());
 
   const handleGpsClick = () => {
