@@ -6,6 +6,9 @@
 // - skannerin haun aikana harmaa overlay rajataan vain kameraikkunan alueelle, ei koko ruudulle
 // - GPS ei saa pakottaa kauppatyyppiä tai kauppaparia taustalla
 
+// V506_BUILD_FIX_WARMUP_AFTER_ACTIVESTORES
+// Korjaus V505 build-virheeseen: S/K endpoint warmup siirretty activeStores-useMemo:n jälkeen.
+
 // V504_BOOT_STABLE_NO_AUTO_GPS_SEARCH_LOCK
 // Korjaus käynnistykseen/reloadiin:
 // - ei automaattista GPS-paikannusta bootissa
@@ -3597,35 +3600,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     foundStores,
   ]);
 
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (!storesReadyForSearch) return;
-    if (stableBootWarmupDoneRefV505.current) return;
-
-    stableBootWarmupDoneRefV505.current = true;
-
-    const sStore = String(activeStores?.sStoreId || "").trim();
-    const kStore = String(activeStores?.kStoreId || "").trim();
-
-    const warmup = () => {
-      try {
-        if (sStore && sStore !== "0") {
-          void fetch(`/api/s-products?search=${encodeURIComponent("maito")}&store=${encodeURIComponent(sStore)}`, {
-            cache: "no-store",
-          }).catch(() => undefined);
-        }
-        if (kStore && kStore !== "0") {
-          void fetch(`/api/k-products?search=${encodeURIComponent("maito")}&store=${encodeURIComponent(kStore)}`, {
-            cache: "no-store",
-          }).catch(() => undefined);
-        }
-      } catch {}
-    };
-
-    const timer = window.setTimeout(warmup, 450);
-    return () => window.clearTimeout(timer);
-  }, [storesReadyForSearch, activeStores?.sStoreId, activeStores?.kStoreId]);
-
   const initialStoreSelectionLocked =
     !storesReadyForSearch && cart.length === 0;
   // V476: Hae-napin pitää pystyä sulkemaan Hae-kortti myös silloin,
@@ -5042,6 +5016,38 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     storeCompareScope,
     usingOwnLocation,
   ]);
+
+
+  // V506_BUILD_FIX_WARMUP_AFTER_ACTIVESTORES:
+  // Warmup-effect on activeStores-riippuvainen, joten se pitää sijoittaa activeStores-useMemo:n jälkeen.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!storesReadyForSearch) return;
+    if (stableBootWarmupDoneRefV505.current) return;
+
+    stableBootWarmupDoneRefV505.current = true;
+
+    const sStore = String(activeStores?.sStoreId || "").trim();
+    const kStore = String(activeStores?.kStoreId || "").trim();
+
+    const warmup = () => {
+      try {
+        if (sStore && sStore !== "0") {
+          void fetch(`/api/s-products?search=${encodeURIComponent("maito")}&store=${encodeURIComponent(sStore)}`, {
+            cache: "no-store",
+          }).catch(() => undefined);
+        }
+        if (kStore && kStore !== "0") {
+          void fetch(`/api/k-products?search=${encodeURIComponent("maito")}&store=${encodeURIComponent(kStore)}`, {
+            cache: "no-store",
+          }).catch(() => undefined);
+        }
+      } catch {}
+    };
+
+    const timer = window.setTimeout(warmup, 450);
+    return () => window.clearTimeout(timer);
+  }, [storesReadyForSearch, activeStores?.sStoreId, activeStores?.kStoreId]);
 
   const localStoreDebugV229 = useMemo(() => {
     try {
