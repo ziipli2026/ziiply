@@ -1,3 +1,8 @@
+// V496_STOREMODE_LOCK_NO_GPS_REF_FLIP
+// Korjaus: GPS/activeStores ei saa käyttää selectedStoreModeRefV302.current-arvoa kauppatilan lähteenä,
+// koska ref voi jäädä vanhaan local-arvoon ja vaihtaa taustalla Tavaratalot -> Lähikaupat skannerin aikana.
+// activeStores käyttää nyt varsinaista storeMode-statea. Skanneri säilyy V493-debugger-pohjalla.
+
 // V493_SCANNER_VISIBLE_DEBUGGER_SCANNER_BUILD_FIX_EXTERNALNAMES
 // Build-fix: V491/V490 rebuild poisti externalNames-muuttujan, mutta vanha käsin-EAN fallback-haara viittasi siihen.
 // Korvattu tarkistus cachedName/openFoodFactsFallback-tilaan, jotta build menee läpi.
@@ -4739,7 +4744,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     if (usingOwnLocation && gpsCoordsV320 && storeModeChosenV299) {
-      const gpsMode = selectedStoreModeRefV302.current || storeMode;
+      // V496_STOREMODE_LOCK_NO_GPS_REF_FLIP:
+      // Älä käytä selectedStoreModeRefV302.current-arvoa activeStores-laskennassa.
+      // Ref voi jäädä vanhaan local-arvoon ja vaihtaa skannerin/kauppahaun taustalla
+      // Tavaratalot -> Lähikaupat, vaikka näkyvä storeMode olisi hyper.
+      const gpsMode = storeMode;
       const gpsStorePoolV40 = buildGpsStoreCandidatePoolFromAllAreasV40(foundStores);
       const ranked = rankStoresForMode(gpsStorePoolV40, gpsMode, gpsCoordsV320);
 
@@ -4801,7 +4810,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   const localStoreDebugV229 = useMemo(() => {
     try {
-      const gpsMode = selectedStoreModeRefV302.current || storeMode;
+      const gpsMode = storeMode;
       const pool = usingOwnLocation && gpsCoordsV320
         ? buildGpsStoreCandidatePoolFromAllAreasV40(foundStores)
         : foundStores.map(normalizeStoreForPickerV320);
@@ -10810,86 +10819,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       pushScannerDebugV493(`VARIANTS ${variants.join(",")} cachedName=${cachedName || "-"}`);
 
-      const resolveSRouteStoreIdV494 = () => {
-        const activeRawId = String(activeStores.sStoreId || "").trim();
-        const activeName = String(activeStores.sStoreName || "").trim();
-        const normalizedActiveName = normalize(activeName);
-
-        const candidateStores = (foundStores || [])
-          .map((store) => normalizeStoreForPickerV320(store))
-          .filter((store) => {
-            if (getStoreChainV320(store) !== "S") return false;
-            const storeName = normalize(String(store.name || ""));
-            const storeId = String((store as any).id || "").trim();
-
-            return Boolean(
-              (activeRawId && sameStoreIdV93(storeId, activeRawId)) ||
-                (normalizedActiveName && storeName === normalizedActiveName) ||
-                (normalizedActiveName && storeName.includes(normalizedActiveName)) ||
-                (storeName && normalizedActiveName.includes(storeName)),
-            );
-          });
-
-        const readGraphqlStoreId = (store: any) => {
-          const possibleValues = [
-            store?.sKaupatStoreId,
-            store?.sKaupatId,
-            store?.sCloudStoreId,
-            store?.onlineStoreId,
-            store?.remoteStoreId,
-            store?.graphqlStoreId,
-            store?.apiStoreId,
-            store?.storeId,
-            store?.id,
-          ];
-
-          for (const value of possibleValues) {
-            const cleaned = String(value || "").replace(/\D/g, "");
-            // S-kaupat GraphQL storeId on tässä polussa pitkä tunniste, esim. 708276035.
-            // Lyhyet paikalliset UI-id:t kuten 2928 eivät kelpaa.
-            if (/^\d{7,}$/.test(cleaned)) return cleaned;
-          }
-
-          return "";
-        };
-
-        for (const store of candidateStores) {
-          const mapped = readGraphqlStoreId(store);
-          if (mapped) {
-            pushScannerDebugV493(
-              `S_STORE MAP active=${activeRawId || "-"} name=${activeName || "-"} -> ${mapped}`,
-            );
-            return mapped;
-          }
-        }
-
-        // V494 täsmäpaikkaus: UI:n kauppavalinta antaa Prisma Hyvinkäälle lyhyen id:n 2928,
-        // mutta api.s-kaupat.fi tarvitsee GraphQL-storeId:n 708276035.
-        if (
-          activeRawId === "2928" ||
-          normalizedActiveName.includes("prisma hyvink") ||
-          (normalizedActiveName.includes("prisma") && normalizedActiveName.includes("hyvink"))
-        ) {
-          pushScannerDebugV493(
-            `S_STORE MAP hardcoded Prisma Hyvinkää active=${activeRawId || "-"} -> 708276035`,
-          );
-          return "708276035";
-        }
-
-        pushScannerDebugV493(
-          `S_STORE MAP fallback active=${activeRawId || "-"} name=${activeName || "-"}`,
-        );
-        return activeRawId;
-      };
-
       const exactResultsByKey = new Map<string, EanSearchResult>();
       let openFoodFactsFallbackForSearchV120: any = null;
 
       const tryStrictSEanRouteV491 = async (nameHint?: string | null) => {
         const sEanParamsV491 = new URLSearchParams();
         sEanParamsV491.set("ean", ean);
-        const sRouteStoreIdV494 = resolveSRouteStoreIdV494();
-        if (sRouteStoreIdV494) sEanParamsV491.set("storeId", sRouteStoreIdV494);
+        if (activeStores.sStoreId) sEanParamsV491.set("storeId", String(activeStores.sStoreId));
         const cleanNameHintV491 = fixText(String(nameHint || "")).trim();
         if (cleanNameHintV491) sEanParamsV491.set("name", cleanNameHintV491);
 
