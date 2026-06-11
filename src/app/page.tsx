@@ -1,3 +1,7 @@
+// V492_SCANNER_BUILD_FIX_EXTERNALNAMES
+// Build-fix: V491/V490 rebuild poisti externalNames-muuttujan, mutta vanha käsin-EAN fallback-haara viittasi siihen.
+// Korvattu tarkistus cachedName/openFoodFactsFallback-tilaan, jotta build menee läpi.
+
 // V490_SCANNER_S_KAUPAT_EAN_ROUTE_FIRST
 // Korjaus skannerin EAN-hakuun:
 // - Skannerin kauppahaku yrittää ensin uutta /api/s-ean-product-routea.
@@ -10957,7 +10961,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // lisätään koriin ja localStorage-logiin myöhempää/online-tunnistusta varten.
       addUnknownScannedEanToCartV724(ean, { lookupSource: "not_found" });
 
-      if (externalNames.length > 0) {
+      if (cachedName || openFoodFactsFallback) {
         setEanMessage(
           "Tuote tunnistettiin osittain, mutta valituista kaupoista ei löytynyt tarkkaa EAN-osumaa. Lisättiin koriin tunnisteella ja otettiin talteen.",
         );
