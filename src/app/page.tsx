@@ -1,3 +1,7 @@
+// V489_SCANNER_DEBUG_VISIBLE_PANEL
+// Korjaus V488: skannerin EAN-debug näytetään nyt suoraan ruudulla skannerinäkymän alareunassa.
+// Debug päivittyy searchByEan()-polusta: EAN, variantit, endpointit, osumat, exact-match ja fallback.
+
 // V487_SCANNER_DEBUG_ROUTE
 // Debug-versio skannerin EAN-hakuun:
 // - Näyttää ruudulla mihin asti EAN-haku menee: EAN, variantit, OFF-cache, nimikandidaatit, /api/s-products-/api/k-products-osumat, suorat EAN-haut, V463-hydraatio, tarkat osumat ja fallback.
@@ -3728,6 +3732,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const [eanScannerOpen, setEanScannerOpen] = useState(false);
   const [desktopKeyboardScannerOpen, setDesktopKeyboardScannerOpen] = useState(false);
   const [eanScannerMessage, setEanScannerMessage] = useState("");
+  const [scannerDebugLinesV489, setScannerDebugLinesV489] = useState<string[]>([]);
   const [scannerTorchOn, setScannerTorchOn] = useState(false);
   const [eanManualInputOpen, setEanManualInputOpen] = useState(false);
   const [scanSuccessFlash, setScanSuccessFlash] = useState(false);
@@ -10063,6 +10068,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     eanAutoSearchActiveRef.current = true;
     setEanScannerOpen(true);
     setEanScannerMessage("");
+    setScannerDebugLinesV489([`EAN ${normalizedCode} luettu → käynnistetään skannerihaku`]);
     setEanMessage(`Skannattu EAN: ${normalizedCode}. Haetaan...`);
     void searchByEan(normalizedCode, { fromScanner: true });
   }
@@ -10763,6 +10769,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const pushScannerDebugV487 = (step: string) => {
       const line = `${scannerDebugStepsV487.length + 1}. ${step}`;
       scannerDebugStepsV487.push(line);
+      try {
+        setScannerDebugLinesV489(scannerDebugStepsV487.slice(-12));
+      } catch {
+        // Debug UI must never break scanning.
+      }
       const message = `EAN DEBUG ${ean}: ${scannerDebugStepsV487.slice(-6).join(" | ")}`;
       console.log("[ZIIPLY EAN DEBUG V487]", message);
       setEanMessage(message);
@@ -17516,6 +17527,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   onToggleTorch={() => void toggleScannerTorch()}
                   onClose={closeEanModal}
                 />
+
+                  {scannerDebugLinesV489.length > 0 && (
+                    <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+6.25rem)] left-2 right-2 z-[180] mx-auto max-h-[38vh] max-w-[430px] overflow-auto rounded-2xl border-2 border-[#d8bd75] bg-[#fff8df]/95 p-3 text-[11px] font-black leading-tight text-[#174c2c] shadow-[0_8px_24px_rgba(0,0,0,0.22)] sm:hidden">
+                      <div className="mb-1 text-[12px] text-[#5d4422]">SKANNERI DEBUG V489</div>
+                      {scannerDebugLinesV489.map((line, index) => (
+                        <div key={`${index}-${line}`} className="border-t border-[#ead59a] py-1 first:border-t-0">
+                          {line}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </>
               )}
 
