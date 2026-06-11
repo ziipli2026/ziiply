@@ -11,6 +11,8 @@ const COMPLEMENTARY_HASH =
 const BROAD_SLUGS = [
   "",
   "maito-munat-ja-rasvat",
+  "maito-munat-ja-rasvat/kananmunat",
+  "maito-munat-ja-rasvat/munat",
   "maito-munat-ja-rasvat/jogurtit",
   "maito-munat-ja-rasvat/jogurtit/juotavat-jogurtit",
   "maito-munat-ja-rasvat/rasvat",
@@ -228,6 +230,12 @@ function buildQueries(nameHint: string, ean: string) {
   if (/piimä|piima|maito/i.test(cleaned)) {
     terms.add("piimä");
     terms.add("maito");
+  }
+
+  if (/kananmuna|kananmunat|munia|muna|egg/i.test(cleaned)) {
+    terms.add("kananmuna");
+    terms.add("kananmunat");
+    terms.add("munat");
   }
 
   if (/leipä|leipa|voileipä|voileipa/i.test(cleaned)) {
