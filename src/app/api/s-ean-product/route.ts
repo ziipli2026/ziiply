@@ -8,10 +8,19 @@ const FILTERED_HASH =
 const COMPLEMENTARY_HASH =
   "9a0f8fccb697df461e462d3f4192076dd02de0646755e392a8e547ec60815dcb";
 
-const DEFAULT_SLUGS = [
-  "maito-munat-ja-rasvat/jogurtit/juotavat-jogurtit",
-  "maito-munat-ja-rasvat/jogurtit",
+const BROAD_SLUGS = [
+  "",
   "maito-munat-ja-rasvat",
+  "maito-munat-ja-rasvat/jogurtit",
+  "maito-munat-ja-rasvat/jogurtit/juotavat-jogurtit",
+  "maito-munat-ja-rasvat/rasvat",
+  "maito-munat-ja-rasvat/maidot-ja-piimat",
+  "liha-ja-kala",
+  "liha-ja-kala/makkarat",
+  "leivat-ja-leivonnaiset",
+  "leivat-ja-leivonnaiset/ruokaleivat",
+  "juomat",
+  "juomat/kahvit",
 ];
 
 function normalizeEan(value?: string | null) {
@@ -94,10 +103,7 @@ async function fetchSGraphql(operationName: string, variables: any, hash: string
   url.searchParams.set(
     "extensions",
     JSON.stringify({
-      persistedQuery: {
-        version: 1,
-        sha256Hash: hash,
-      },
+      persistedQuery: { version: 1, sha256Hash: hash },
     }),
   );
 
@@ -123,12 +129,7 @@ async function fetchSGraphql(operationName: string, variables: any, hash: string
     payload = { rawText: text.slice(0, 2500) };
   }
 
-  return {
-    ok: response.ok,
-    status: response.status,
-    payload,
-    url: url.toString(),
-  };
+  return { ok: response.ok, status: response.status, payload, url: url.toString() };
 }
 
 function getFilteredProducts(payload: any): any[] {
@@ -167,7 +168,6 @@ function findExact(products: any[], ean: string) {
 
 function summarize(product: any) {
   if (!product) return null;
-
   return {
     id: product?.id ?? null,
     ean: product?.ean ?? null,
@@ -178,61 +178,65 @@ function summarize(product: any) {
   };
 }
 
-function buildSlugs(nameHint: string, slugParam: string | null) {
-  const slugs = new Set<string>();
-
-  if (slugParam) slugs.add(slugParam);
-
-  const n = fixText(nameHint).toLowerCase();
-
-  if (n.includes("jogur")) {
-    slugs.add("maito-munat-ja-rasvat/jogurtit/juotavat-jogurtit");
-    slugs.add("maito-munat-ja-rasvat/jogurtit");
-    slugs.add("maito-munat-ja-rasvat");
-  }
-
-  if (n.includes("makkara") || n.includes("wilhelm") || n.includes("atria")) {
-    slugs.add("liha-ja-kala/makkarat");
-    slugs.add("liha-ja-kala");
-  }
-
-  if (n.includes("kahvi") || n.includes("löfberg") || n.includes("lofberg")) {
-    slugs.add("juomat/kahvit");
-    slugs.add("juomat");
-  }
-
-  for (const slug of DEFAULT_SLUGS) slugs.add(slug);
-
-  return Array.from(slugs);
-}
-
-function buildQueries(nameHint: string) {
+function buildQueries(nameHint: string, ean: string) {
   const terms = new Set<string>();
-
   const cleaned = fixText(nameHint);
-  if (cleaned.length >= 3) terms.add(cleaned);
 
-  const normalized = cleaned
-    .replace(/pääryna/gi, "päärynä")
-    .replace(/paaryna/gi, "päärynä")
-    .replace(/\bcoop\b/gi, "Coop")
-    .trim();
+  if (cleaned.length >= 3) {
+    terms.add(cleaned);
 
-  if (normalized.length >= 3) terms.add(normalized);
+    const noSize = cleaned
+      .replace(/\b\d+\s*(g|kg|ml|l|dl)\b/gi, "")
+      .replace(/\s+/g, " ")
+      .trim();
 
-  if (normalized.toLowerCase().includes("jogur")) {
+    if (noSize.length >= 3) terms.add(noSize);
+
+    const words = noSize.split(/\s+/).filter((x) => x.length >= 3);
+    if (words.length >= 2) terms.add(words.slice(0, 3).join(" "));
+    if (words.length >= 1) terms.add(words[0]);
+
+    const normalized = cleaned
+      .replace(/pääryna/gi, "päärynä")
+      .replace(/paaryna/gi, "päärynä")
+      .replace(/\bcoop\b/gi, "Coop")
+      .trim();
+
+    if (normalized.length >= 3) terms.add(normalized);
+  }
+
+  terms.add(ean);
+
+  if (/jogur/i.test(cleaned)) {
     terms.add("Coop juotava jogurtti");
     terms.add("Coop päärynä");
-    terms.add("");
+    terms.add("juotava jogurtti");
   }
 
-  if (normalized.toLowerCase().includes("wilhelm")) {
+  if (/wilhelm|makkara|atria/i.test(cleaned)) {
     terms.add("Wilhelm");
     terms.add("Atria Wilhelm");
-    terms.add("");
+    terms.add("makkara");
   }
 
-  if (terms.size === 0) terms.add("");
+  if (/oivariini|voi|rasva/i.test(cleaned)) {
+    terms.add("Oivariini");
+    terms.add("Valio Oivariini");
+    terms.add("rasva");
+  }
+
+  if (/piimä|piima|maito/i.test(cleaned)) {
+    terms.add("piimä");
+    terms.add("maito");
+  }
+
+  if (/leipä|leipa|voileipä|voileipa/i.test(cleaned)) {
+    terms.add("Coop voileipä");
+    terms.add("voileipä");
+    terms.add("leipä");
+  }
+
+  terms.add("");
 
   return Array.from(terms);
 }
@@ -262,11 +266,7 @@ async function tryFilteredExact(args: {
   const products = getFilteredProducts(result.payload);
   const exact = findExact(products, args.ean);
 
-  return {
-    ...result,
-    products,
-    exact,
-  };
+  return { ...result, products, exact };
 }
 
 async function tryInternalSProductsExact(args: {
@@ -281,9 +281,7 @@ async function tryInternalSProductsExact(args: {
 
   const response = await fetch(url.toString(), {
     method: "GET",
-    headers: {
-      accept: "application/json",
-    },
+    headers: { accept: "application/json" },
     cache: "no-store",
   });
 
@@ -294,7 +292,6 @@ async function tryInternalSProductsExact(args: {
   return {
     ok: response.ok,
     status: response.status,
-    url: url.toString(),
     payload,
     products,
     exact,
@@ -308,28 +305,19 @@ export async function GET(request: NextRequest) {
     const ean = normalizeEan(searchParams.get("ean"));
     const storeId = String(searchParams.get("storeId") || "708276035").trim();
     const nameHint = fixText(searchParams.get("name") || "");
-    const slugParam = searchParams.get("slug");
     const origin = new URL(request.url).origin;
 
     if (!ean) {
-      return NextResponse.json(
-        { ok: false, error: "EAN missing" },
-        { status: 400 },
-      );
+      return NextResponse.json({ ok: false, error: "EAN missing" }, { status: 400 });
     }
 
     const debug: any[] = [];
-    const slugs = buildSlugs(nameHint, slugParam);
-    const queries = buildQueries(nameHint);
+    const queries = buildQueries(nameHint, ean);
 
-    for (const slug of slugs) {
+    // 1. S-kaupat GraphQL kategoriat, laajennettu.
+    for (const slug of BROAD_SLUGS) {
       for (const queryString of queries) {
-        const filtered = await tryFilteredExact({
-          ean,
-          storeId,
-          slug,
-          queryString,
-        });
+        const filtered = await tryFilteredExact({ ean, storeId, slug, queryString });
 
         debug.push({
           step: "RemoteFilteredProducts",
@@ -346,7 +334,7 @@ export async function GET(request: NextRequest) {
         if (filtered.exact && getPrice(filtered.exact) > 0) {
           return NextResponse.json({
             ok: true,
-            source: "s-kaupat-filtered-slug-exact",
+            source: "s-kaupat-filtered-broad-exact",
             found: true,
             ean,
             storeId,
@@ -357,6 +345,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // 2. Sama sisäinen /api/s-products-polku kuin käsinhaussa.
     for (const queryString of queries.filter((q) => q.length >= 1)) {
       const internal = await tryInternalSProductsExact({
         origin,
@@ -393,6 +382,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // 3. Complementary vain viimeiseksi tarkistukseksi, ei hyväksytä väärää tuotetta.
     const complementary = await fetchSGraphql(
       "RemoteComplementaryProducts",
       {
@@ -406,7 +396,6 @@ export async function GET(request: NextRequest) {
 
     const complementaryProducts =
       complementary.payload?.data?.complementaryProducts || [];
-
     const exactComplementary = findExact(complementaryProducts, ean);
 
     debug.push({
@@ -433,12 +422,12 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       ok: true,
-      source: "s-kaupat-filtered-or-internal-exact",
+      source: "s-kaupat-broad-or-internal-exact",
       found: false,
       ean,
       storeId,
       nameHint,
-      checkedSlugs: slugs,
+      checkedSlugs: BROAD_SLUGS,
       checkedQueries: queries,
       debug,
     });
