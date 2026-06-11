@@ -4,6 +4,13 @@
 // - näyttää milloin runVoiceSearchFromSpeech käynnistyy/päättyy ja pysähtyykö ketju ennen searchNormalPrices-kutsua
 // - ei muuta varsinaista hakulogiikkaa, jotta nähdään mikä nykyisessä V506:ssa katkaisee monituotehaun
 
+// V508_VOICE_SEQUENTIAL_TERMS_AND_PROMPT_POSITION
+// Korjaus nauhuriin:
+// - monituotesanelu ajetaan aina termi kerrallaan: maito -> kahvi -> jne.
+// - ei syötetä koko pilkulla erotettua listaa yhtenä hakusanana searchNormalPricesille.
+// - voice debug näyttää jokaisen VOICE ITEM i/n -haun.
+// - prompt-teksti vaihdettu muotoon "Mittee saes olla?" ja keskitetty nauhurin yläpuolelle.
+
 // V505_STABLE_BOOT_SNAPSHOT_WARMUP_SCANNER_VIEWPORT_LOADING
 // Korjaus käynnistysarkkitehtuuriin:
 // - palauttaa viimeisen vakaan snapshotin/localStorage-tilan heti eikä käynnistä GPS:ää bootissa
@@ -6398,22 +6405,46 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       voiceSilenceTimeoutRef.current = null;
     }
 
-    const voiceTerms = parseTerms(cleaned);
-    const searchTerm = voiceTerms.length > 1 ? cleaned : getSingleSearchTerm(cleaned) || cleaned;
-    pushVoiceDebugV507(`runVoice terms=${voiceTerms.length} [${voiceTerms.join(" | ")}] searchTerm=${searchTerm}`);
+    const parsedVoiceTerms = parseTerms(cleaned)
+      .map((term) => fixText(String(term || "")).trim())
+      .filter(Boolean);
+
+    const voiceTerms = parsedVoiceTerms.length > 0
+      ? parsedVoiceTerms
+      : [getSingleSearchTerm(cleaned) || cleaned].filter(Boolean);
+
+    pushVoiceDebugV507(
+      `runVoice terms=${voiceTerms.length} [${voiceTerms.join(" | ")}] mode=sequential`,
+    );
 
     setIsListening(false);
     setVoiceProcessing(true);
     setSearchPanelOpen(true);
     setActiveResult("none");
     setSearchCompareMode("cart");
-    setInput(searchTerm);
+    setInput(voiceTerms.join(", "));
 
     try {
-      // V457: aina Justiinan normaali tuotehaku samalla termillä. Ei mode-porttia.
-      pushVoiceDebugV507(`searchNormalPrices CALL ${searchTerm}`);
-      await searchNormalPrices(searchTerm);
-      pushVoiceDebugV507(`searchNormalPrices DONE results=${normalResults.length}`);
+      // V508: monituotesanelua EI saa antaa searchNormalPricesille yhtenä listana,
+      // koska normaali haku fokusoi vain ensimmäisen terminsä ja voi pysähtyä siihen.
+      // Ajetaan tuotteet aina yksitellen samassa järjestyksessä kuin ne tunnistettiin.
+      for (let index = 0; index < voiceTerms.length; index += 1) {
+        const term = voiceTerms[index];
+        if (!term) continue;
+
+        voiceForceJustiinaCartSearchRefV461.current = true;
+        setInput(term);
+        pushVoiceDebugV507(`VOICE ITEM ${index + 1}/${voiceTerms.length} CALL ${term}`);
+        await searchNormalPrices(term);
+        pushVoiceDebugV507(`VOICE ITEM ${index + 1}/${voiceTerms.length} DONE ${term}`);
+
+        // Pieni hengähdys antaa Reactille ja mobiili-Safarille aikaa päivittää tilat,
+        // eikä seuraava termi peruuta edellisen requestia samassa render-tikissä.
+        if (index < voiceTerms.length - 1) {
+          await new Promise<void>((resolve) => window.setTimeout(resolve, 180));
+        }
+      }
+
       scrollToNormalResults();
     } catch (error: any) {
       pushVoiceDebugV507(`runVoice CATCH ${String(error?.message || error).slice(0, 160)}`);
@@ -7162,7 +7193,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       searchNotFoundNoticeTimerRefV471.current = null;
     }
 
-    const introText = "Mitteepä saes olla, hä";
+    const introText = "Mittee saes olla?";
     voiceHeardSpeechRef.current = false;
     voiceAutoSearchAfterStopRef.current = false;
     voiceFallingEdgeSearchArmedRefV455.current = false;
@@ -17778,7 +17809,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
             {(voicePromptText || (!loadingNormal && !voiceProcessing && !isListening && searchNotFoundNoticeV471)) && (
               <div
-                className="pointer-events-none fixed left-[31%] top-[calc(env(safe-area-inset-top)+19.2rem)] z-[9998] min-h-[1.35rem] w-[13.4rem] max-w-[48vw] -translate-x-1/2 rounded-[0.82rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/96 px-3 py-[0.15rem] text-center text-[0.72rem] leading-[1.0] font-black italic text-[#174c2c] shadow-[0_3px_0_rgba(91,72,44,0.16),0_7px_14px_rgba(0,0,0,0.12)] sm:hidden"
+                className="pointer-events-none fixed left-1/2 top-[calc(env(safe-area-inset-top)+28.2rem)] z-[9998] min-h-[1.35rem] w-[15.8rem] max-w-[62vw] -translate-x-1/2 rounded-[0.82rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/96 px-3 py-[0.15rem] text-center text-[0.72rem] leading-[1.0] font-black italic text-[#174c2c] shadow-[0_3px_0_rgba(91,72,44,0.16),0_7px_14px_rgba(0,0,0,0.12)] sm:hidden"
                 style={{ fontFamily: '"Cooper Black", Georgia, serif' }}
                 role="status"
                 aria-live="assertive"
