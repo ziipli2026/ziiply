@@ -1,3 +1,9 @@
+// V517_VOICE_NOTICE_CENTERED_ABOVE_MIC_AND_STABLE_TIMEOUT
+// Korjaus V516:n kahteen vikaan:
+// - sanelu-/virhebanneri keskitetään Äänitä-napin vaakakeskilinjaan, ei koko ruudun/hakualueen keskelle.
+// - Ei kuulunut puhetta -notice käyttää omaa timeriä, jota voicePromptTextin muutokset eivät enää cleanupissa katkaise.
+// - notice priorisoidaan renderissä promptin yli ja poistuu varmasti 2,5 sekunnissa.
+
 // V516_VOICE_PROMPT_LEFT_EXACT_AND_DEDICATED_NO_SPEECH_NOTICE
 // Korjaus V515:n kahteen ongelmaan:
 // - sanelun puhebanneri siirretty vasemmalle mockupin mukaiseen kohtaan hakukentän alapuolelle / nappien yläpuolelle
@@ -4017,6 +4023,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       voiceNoticeTimerRefV516.current = null;
     }
 
+    // V517: notice on oma state. Prompt tyhjennetään vain kerran,
+    // eikä mikään voicePromptText-effect saa enää tappaa notice-timeriä.
     setVoicePromptText("");
     setVoiceNoticeTextV516("Ei kuulunut puhetta, yritä uudelleen.");
 
@@ -4031,20 +4039,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   useEffect(() => {
-    if (voicePromptAutoHideTimerRefV515.current) {
-      window.clearTimeout(voicePromptAutoHideTimerRefV515.current);
-      voicePromptAutoHideTimerRefV515.current = null;
-    }
-
-    if (voicePromptText === "Ei kuulunut puhetta, yritä uudelleen.") {
-      voicePromptAutoHideTimerRefV515.current = window.setTimeout(() => {
-        setVoicePromptText((current) =>
-          current === "Ei kuulunut puhetta, yritä uudelleen." ? "" : current,
-        );
-        voicePromptAutoHideTimerRefV515.current = null;
-      }, 2500);
-    }
-
     return () => {
       if (voiceNoticeTimerRefV516.current) {
         window.clearTimeout(voiceNoticeTimerRefV516.current);
@@ -4055,7 +4049,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         voicePromptAutoHideTimerRefV515.current = null;
       }
     };
-  }, [voicePromptText]);
+  }, []);
 
   const [checkedCartItems, setCheckedCartItems] = useState<
     Record<string, boolean>
@@ -17957,17 +17951,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               }}
             />
 
-            {(voicePromptText || voiceNoticeTextV516 || (!loadingNormal && !voiceProcessing && !isListening && searchNotFoundNoticeV471)) && (
+            {(voiceNoticeTextV516 || voicePromptText || (!loadingNormal && !voiceProcessing && !isListening && searchNotFoundNoticeV471)) && (
               <div
-                className="pointer-events-none fixed top-[calc(env(safe-area-inset-top)+20.05rem)] z-[9998] inline-block min-h-[1.28rem] w-auto max-w-[74vw] rounded-[0.72rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/96 px-2.5 py-[0.10rem] text-left text-[0.72rem] leading-[1.0] font-black italic text-[#174c2c] shadow-[0_3px_0_rgba(91,72,44,0.16),0_7px_14px_rgba(0,0,0,0.12)] sm:hidden"
+                className="pointer-events-none fixed top-[calc(env(safe-area-inset-top)+20.02rem)] z-[9998] inline-block min-h-[1.28rem] w-auto max-w-[72vw] -translate-x-1/2 whitespace-nowrap rounded-[0.72rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/96 px-2.5 py-[0.10rem] text-center text-[0.72rem] leading-[1.0] font-black italic text-[#174c2c] shadow-[0_3px_0_rgba(91,72,44,0.16),0_7px_14px_rgba(0,0,0,0.12)] sm:hidden"
                 style={{
                   fontFamily: '"Cooper Black", Georgia, serif',
-                  left: 'calc(50% - 8.35rem)',
+                  // V517: keskitetään Äänitä-napin vaakakeskilinjaan.
+                  // 50% on ruudun keskikohta; nauhurin keskilinja on noin 4.75rem siitä vasemmalle.
+                  left: 'calc(50% - 4.75rem)',
                 }}
                 role="status"
                 aria-live="assertive"
               >
-                {voicePromptText || voiceNoticeTextV516 || searchNotFoundNoticeV471}
+                {voiceNoticeTextV516 || voicePromptText || searchNotFoundNoticeV471}
               </div>
             )}
 
