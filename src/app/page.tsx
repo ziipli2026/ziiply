@@ -1,3 +1,10 @@
+// V503_SCANNER_DEBUG_GPS_HARD_LOCK_FASTQUERY_EGGS_CHEESE
+// Korjaus V502/V500 jatkoon:
+// - Skannerin debug-paneeli tuodaan takaisin näkyviin mobiilissa, jotta nähdään miksi EAN ei löydy.
+// - GPS-taustapäivitys ei enää saa vaihtaa kauppatilaa localiksi missään applyLocation/useOwnLocation-haarassa.
+// - Nopea skannerihaku lisää geneeriset kananmuna/munat/juusto/cheddar-hakusanat OFF-nimen perusteella.
+// - Väärässä kohdassa ollut fixed harmaa loading-overlay poistettu; scannerMessage näyttää edelleen Haetaan tuotetta.
+
 // V499_SCANNER_FAST_K_PAIR_NO_DEBUG_GRAY_LOADING
 // V497_SCANNER_EAN_RESULT_CACHE_AND_NO_BLIND_ROUTE_FIRST
 // Korjaus skannerin hitauteen:
@@ -8561,7 +8568,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // Jokelan/Tuusulan puolelta. Jos käyttäjä on jo valinnut Tavaratalot/Lähikaupat,
       // säilytetään hänen valintansa.
       const gpsMayAutoSelectLocalV502 =
-        source === "gps" &&
+        false && source === "gps" &&
         !gostaPanelStickyOpenRefV158.current &&
         !storeModeChosenV299 &&
         selectedStoreModeRefV302.current !== "hyper" &&
@@ -8866,7 +8873,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // V501: ennen kauppahaun starttia GPS saa asettaa Lähikaupat vain, jos käyttäjä
       // ei ole jo valinnut kauppatilaa. Taustapäivitys ei saa yliajaa Tavaratalot-valintaa.
       const gpsMayAutoSelectLocalBeforeApplyV502 =
-        !storeModeChosenV299 &&
+        false && !storeModeChosenV299 &&
         selectedStoreModeRefV302.current !== "hyper" &&
         storeMode !== "hyper";
 
@@ -10973,7 +10980,25 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         const words = normalized.split(/\s+/).filter((word) => word.length >= 3);
         if (words.length >= 3) terms.add(words.slice(0, 3).join(" "));
         if (words.length >= 2) terms.add(words.slice(0, 2).join(" "));
-        return Array.from(terms).filter((term) => term.length >= 3).slice(0, 5);
+
+        const lower = `${cleaned} ${normalized}`.toLowerCase();
+        if (/kananmuna|kananmun|muna|munat|egg|eggs|omega/.test(lower)) {
+          terms.add("kananmuna");
+          terms.add("kananmunat");
+          terms.add("munat");
+          terms.add("Koti-maista");
+        }
+        if (/juusto|cheddar|edam|gouda|burger slices|slices/.test(lower)) {
+          terms.add("juusto");
+          terms.add("cheddar");
+          terms.add("viipalejuusto");
+          terms.add("Coop cheddar");
+        }
+        if (/kurkku|voileipäkurkku|voileipakurkk/.test(lower)) {
+          terms.add("voileipäkurkku");
+          terms.add("Coop kurkku");
+        }
+        return Array.from(terms).filter((term) => term.length >= 3).slice(0, 10);
       };
 
       // V498: nopea skannerihaku käyttää samaa /api/s-products-nimihakua kuin käsinhaku.
@@ -17700,12 +17725,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   onClose={closeEanModal}
                 />
 
-                {eanLoading && (
-                  <div
-                    aria-hidden="true"
-                    className="pointer-events-none fixed left-[5.5vw] right-[5.5vw] top-[calc(env(safe-area-inset-top)+15.35rem)] z-[171] h-[34dvh] max-h-[22rem] rounded-[1.35rem] bg-slate-900/36 backdrop-blur-[1.2px] sm:hidden"
-                  />
+                {scannerDebugLinesV493.length > 0 && (
+                  <pre className="pointer-events-none fixed left-3 right-3 bottom-[calc(env(safe-area-inset-bottom)+7.2rem)] z-[185] max-h-[36dvh] overflow-auto whitespace-pre-wrap rounded-2xl border-2 border-lime-500/70 bg-black/75 px-3 py-2 text-left text-[10px] font-black leading-tight text-lime-200 shadow-2xl sm:hidden">
+                    {`SKANNERI DEBUG V503\n${scannerDebugLinesV493.slice(-28).join("\n")}`}
+                  </pre>
                 )}
+
                 </>
               )}
 
