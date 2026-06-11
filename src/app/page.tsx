@@ -6,6 +6,13 @@
 // - Skanneri ei enää aja raskasta EAN-only /api/s-ean-product-kierrosta ensin, jos nimivinkkiä ei ole.
 // - OFF/cached name toimii vain nimivinkkinä; hinta hyväksytään edelleen vain exact EAN + price -osumasta.
 
+// V500_SCANNER_CAMERA_WINDOW_GRAY_LOADING_NO_MODAL
+// Korjaus V499:n liian isoon loading-overlayhin:
+// - Ei enää koko ruudun tummaa modaalia eikä pyörivää spinneriä.
+// - Haun aikana harmaannutetaan vain skannerin kameraikkunan alue.
+// - ZiiplyMobileScannerCardin oma scannerMessage näyttää edelleen tekstin "Haetaan tuotetta" nykyisessä paikassa.
+// - V499:n nopea S/K exact EAN -haku ja debug-poisto säilyvät.
+
 // V496_STOREMODE_LOCK_NO_GPS_REF_FLIP
 // Korjaus: GPS/activeStores ei saa käyttää selectedStoreModeRefV302.current-arvoa kauppatilan lähteenä,
 // koska ref voi jäädä vanhaan local-arvoon ja vaihtaa taustalla Tavaratalot -> Lähikaupat skannerin aikana.
@@ -17645,12 +17652,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 />
 
                 {eanLoading && (
-                  <div className="pointer-events-none fixed inset-0 z-[190] flex flex-col items-center justify-center bg-slate-950/55 text-white backdrop-blur-[1.5px] sm:hidden">
-                    <div className="rounded-[1.6rem] bg-slate-950/70 px-6 py-5 text-center shadow-2xl ring-1 ring-white/20">
-                      <div className="mx-auto mb-3 h-9 w-9 animate-spin rounded-full border-4 border-white/35 border-t-white" />
-                      <p className="text-base font-black tracking-wide">Haetaan tuotetta...</p>
-                    </div>
-                  </div>
+                  <div
+                    aria-hidden="true"
+                    className="pointer-events-none fixed left-[5.4vw] right-[5.4vw] top-[calc(env(safe-area-inset-top)+12.7rem)] z-[171] h-[46dvh] max-h-[30rem] rounded-[1.35rem] bg-slate-900/45 backdrop-blur-[1.5px] sm:hidden"
+                  />
                 )}
                 </>
               )}
