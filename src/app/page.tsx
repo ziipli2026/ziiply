@@ -10884,50 +10884,83 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         pushScannerDebugV493(`S_CACHE read error ${String((error as any)?.message || error).slice(0, 80)}`);
       }
 
+      const writeStrictSEanCacheV498 = (product: any, nameHint: string, source: string) => {
+        try {
+          window.localStorage.setItem(
+            sEanCacheKeyV497,
+            JSON.stringify({
+              savedAt: Date.now(),
+              storeId: sEanStoreIdV497,
+              ean,
+              nameHint,
+              source,
+              product,
+            }),
+          );
+          pushScannerDebugV493(`S_CACHE write source=${source}`);
+        } catch (error) {
+          pushScannerDebugV493(`S_CACHE write error ${String((error as any)?.message || error).slice(0, 80)}`);
+        }
+      };
+
+      const buildFastSProductQueriesV498 = (nameHint?: string | null) => {
+        const cleaned = fixText(String(nameHint || "")).trim();
+        const terms = new Set<string>();
+        if (cleaned) terms.add(cleaned);
+        const noSize = cleaned
+          .replace(/\d+[,.]?\d*\s*(g|kg|ml|cl|dl|l)/gi, " ")
+          .replace(/\s+/g, " ")
+          .trim();
+        if (noSize && noSize !== cleaned) terms.add(noSize);
+        const normalized = noSize
+          .replace(/pääryna/gi, "päärynä")
+          .replace(/paaryna/gi, "päärynä")
+          .replace(/coop/gi, "Coop")
+          .trim();
+        if (normalized) terms.add(normalized);
+        const words = normalized.split(/\s+/).filter((word) => word.length >= 3);
+        if (words.length >= 3) terms.add(words.slice(0, 3).join(" "));
+        if (words.length >= 2) terms.add(words.slice(0, 2).join(" "));
+        return Array.from(terms).filter((term) => term.length >= 3).slice(0, 5);
+      };
+
+      // V498: nopea skannerihaku käyttää samaa /api/s-products-nimihakua kuin käsinhaku.
+      // EANia käytetään vain kovana exact-suodattimena, joten sivuosumia ei hyväksytä.
       const tryStrictSEanRouteV491 = async (nameHint?: string | null) => {
-        const sEanParamsV491 = new URLSearchParams();
-        sEanParamsV491.set("ean", ean);
-        if (activeStores.sStoreId) sEanParamsV491.set("storeId", String(activeStores.sStoreId));
         const cleanNameHintV491 = fixText(String(nameHint || "")).trim();
-        if (cleanNameHintV491) sEanParamsV491.set("name", cleanNameHintV491);
+        const storeIdNumberV498 = Number(activeStores.sStoreId || 0);
 
-        const routeUrlV493 = `/api/s-ean-product?${sEanParamsV491.toString()}`;
-        pushScannerDebugV493(`S_ROUTE fetch ${routeUrlV493}`);
-        const response = await fetch(routeUrlV493, {
-          cache: "no-store",
-        });
-        const payload = await response.json().catch(() => null as any);
-        pushScannerDebugV493(
-          `S_ROUTE status=${response.status} ok=${response.ok} found=${Boolean(payload?.found)} source=${payload?.source || "-"} debugSteps=${Array.isArray(payload?.debug) ? payload.debug.length : 0}`,
-        );
-        const product = payload?.found ? payload?.product : null;
-
-        if (product) {
-          pushScannerDebugV493(`S_ROUTE product ean=${normalizeEan(product?.ean)} price=${getProductPrice(product as Product)} name=${fixText(String(product?.name || "")).slice(0, 44)}`);
+        if (!cleanNameHintV491 || !Number.isFinite(storeIdNumberV498) || storeIdNumberV498 <= 0) {
+          pushScannerDebugV493(`S_FAST skip missing name/store name=${Boolean(cleanNameHintV491)} store=${String(activeStores.sStoreId || "-")}`);
+          return false;
         }
 
-        if (addStrictSEanProductResultV497(product, "S-v497-s-kaupat-ean")) {
-          try {
-            window.localStorage.setItem(
-              sEanCacheKeyV497,
-              JSON.stringify({
-                savedAt: Date.now(),
-                storeId: sEanStoreIdV497,
-                ean,
-                nameHint: cleanNameHintV491,
-                source: payload?.source || "s-ean-product",
-                product,
-              }),
-            );
-            pushScannerDebugV493("S_ROUTE cached exact result");
-          } catch (error) {
-            pushScannerDebugV493(`S_CACHE write error ${String((error as any)?.message || error).slice(0, 80)}`);
+        const fastQueriesV498 = buildFastSProductQueriesV498(cleanNameHintV491);
+        pushScannerDebugV493(`S_FAST queries=${fastQueriesV498.join(" | ").slice(0, 140)}`);
+
+        for (const query of fastQueriesV498) {
+          const products = await fetchSProducts(query, storeIdNumberV498).catch((error) => {
+            pushScannerDebugV493(`S_FAST ERROR query=${query.slice(0, 30)} ${String(error?.message || error).slice(0, 80)}`);
+            return [] as Product[];
+          });
+
+          const exact = products.find((product) => isSameEan(product?.ean, variants));
+          pushScannerDebugV493(`S_FAST query="${query.slice(0, 38)}" count=${products.length} exact=${Boolean(exact)}`);
+
+          if (exact && addStrictSEanProductResultV497(exact, "S-v498-fast-s-products")) {
+            writeStrictSEanCacheV498(exact, cleanNameHintV491, "fast-/api/s-products");
+            pushScannerDebugV493(`S_FAST ACCEPT price=${getProductPrice(exact)} name=${fixText(String(exact.name || "")).slice(0, 44)}`);
+            return true;
           }
-          pushScannerDebugV493("S_ROUTE ACCEPT exact EAN + price");
-          return true;
+
+          // Jos käsinhaun sama route palautti tuotteita, mutta niissä ei ole exact EANia,
+          // älä lähde hitaaseen broad-routeen arvailemaan. Fallback saa olla hinnaton.
+          if (products.length > 0) {
+            pushScannerDebugV493("S_FAST products but no exact EAN -> no slow broad route");
+          }
         }
 
-        if (product) pushScannerDebugV493("S_ROUTE REJECT not exact EAN or no price");
+        pushScannerDebugV493("S_FAST no exact EAN result");
         return false;
       };
 
