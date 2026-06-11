@@ -1,3 +1,8 @@
+// V509_VOICE_SEQUENTIAL_WAIT_USER_SELECTION
+// Korjaus V508: monituotenauhuri ei saa ylikirjoittaa SearchResultCardia seuraavalla tuotteella.
+// Jokaisen tuotteen haun jälkeen odotetaan, että käyttäjä valitsee tuotteen tai sulkee tuloskortin.
+// Debugiin lisätty VOICE WAIT USER INPUT / VOICE USER CLOSED RESULT.
+
 // V507_V506_WITH_VOICE_SEARCH_DEBUG_WINDOW
 // Debug-lisäys nauhurille:
 // - näyttää raakatranskriptin, cleaned-tekstin, parseTerms-listan, valitun searchTerm-arvon
@@ -3757,8 +3762,76 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const [visibleNormalCount, setVisibleNormalCount] = useState(8);
   const [activeNormalSearchTerm, setActiveNormalSearchTerm] = useState("");
   const [mobileResultsReadyQueryV537, setMobileResultsReadyQueryV537] = useState("");
+  const mobileResultsReadyQueryRefV509 = useRef("");
+  const voiceResultWaitResolverRefV509 = useRef<null | (() => void)>(null);
   const [notFoundSearchTerms, setNotFoundSearchTerms] = useState<string[]>([]);
   const [eanModalOpen, setEanModalOpen] = useState(false);
+
+  useEffect(() => {
+    mobileResultsReadyQueryRefV509.current = mobileResultsReadyQueryV537;
+
+    if (!mobileResultsReadyQueryV537 && voiceResultWaitResolverRefV509.current) {
+      const resolve = voiceResultWaitResolverRefV509.current;
+      voiceResultWaitResolverRefV509.current = null;
+      resolve();
+    }
+  }, [mobileResultsReadyQueryV537]);
+
+  function resolveVoiceResultWaitV509(reason = "closed") {
+    if (!voiceResultWaitResolverRefV509.current) return;
+    pushVoiceDebugV507(`VOICE USER CLOSED RESULT ${reason}`);
+    const resolve = voiceResultWaitResolverRefV509.current;
+    voiceResultWaitResolverRefV509.current = null;
+    resolve();
+  }
+
+  async function waitForVoiceSearchResultChoiceV509(term: string) {
+    // Anna searchNormalPricesin setState-kutsuille hetki renderöityä.
+    const opened = await new Promise<boolean>((resolve) => {
+      const start = Date.now();
+      const timer = window.setInterval(() => {
+        const hasOpenResult =
+          Boolean(mobileResultsReadyQueryRefV509.current) &&
+          normalResultsLatestRefV441.current.length > 0;
+
+        if (hasOpenResult) {
+          window.clearInterval(timer);
+          resolve(true);
+          return;
+        }
+
+        if (Date.now() - start > 1200) {
+          window.clearInterval(timer);
+          resolve(false);
+        }
+      }, 80);
+    });
+
+    if (!opened) {
+      pushVoiceDebugV507(`VOICE NO RESULT CARD ${term}`);
+      return;
+    }
+
+    pushVoiceDebugV507(`VOICE WAIT USER INPUT ${term}`);
+
+    await new Promise<void>((resolve) => {
+      if (!mobileResultsReadyQueryRefV509.current) {
+        resolve();
+        return;
+      }
+
+      voiceResultWaitResolverRefV509.current = resolve;
+
+      // Turvakatkaisu: jos kortti jää auki eikä käyttäjä tee mitään, ei jätetä nauhuria pysyvästi lukkoon.
+      window.setTimeout(() => {
+        if (voiceResultWaitResolverRefV509.current === resolve) {
+          pushVoiceDebugV507(`VOICE WAIT TIMEOUT ${term}`);
+          voiceResultWaitResolverRefV509.current = null;
+          resolve();
+        }
+      }, 120000);
+    });
+  }
 
   useEffect(() => {
     if (searchPanelOpen) return;
@@ -6438,10 +6511,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         await searchNormalPrices(term);
         pushVoiceDebugV507(`VOICE ITEM ${index + 1}/${voiceTerms.length} DONE ${term}`);
 
-        // Pieni hengähdys antaa Reactille ja mobiili-Safarille aikaa päivittää tilat,
-        // eikä seuraava termi peruuta edellisen requestia samassa render-tikissä.
+        // V509: jos hakutuloskortti aukesi, odota käyttäjän valinta/sulku ennen seuraavaa tuotetta.
+        // Muuten seuraava termi ylikirjoittaa kortin eikä käyttäjä ehdi valita tuotetta.
         if (index < voiceTerms.length - 1) {
-          await new Promise<void>((resolve) => window.setTimeout(resolve, 180));
+          await waitForVoiceSearchResultChoiceV509(term);
         }
       }
 
@@ -17798,6 +17871,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               voiceState={voiceProcessing ? "processing" : isListening ? "recording" : "idle"}
               scannerState={eanScannerOpen || eanModalOpen ? "active" : "idle"}
               onAddProduct={(product: any) => {
+                resolveVoiceResultWaitV509("search-card-add");
                 addProductToCart(product as Product);
                 setNormalResults([]);
                 setMobileResultsReadyQueryV537("");
@@ -17821,7 +17895,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             {voiceDebugRowsV507.length > 0 && (
               <div className="fixed bottom-[5.2rem] left-2 right-2 z-[9999] max-h-[12rem] overflow-auto rounded-xl border-2 border-[#d8bd75] bg-black/82 p-2 text-[10px] leading-tight text-lime-100 shadow-xl sm:hidden">
                 <div className="mb-1 flex items-center justify-between gap-2 text-[11px] font-black text-yellow-200">
-                  <span>VOICE DEBUG V507</span>
+                  <span>VOICE DEBUG V509</span>
                   <button
                     type="button"
                     className="rounded bg-white/15 px-2 py-0.5 text-[10px] text-white"
@@ -17849,12 +17923,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               title={activeNormalSearchTerm || "Tuotteet"}
               products={normalResults}
               onClose={() => {
+                resolveVoiceResultWaitV509("results-close");
                 setMobileResultsReadyQueryV537("");
                 setNormalSearchAttempted(false);
                 setVisibleNormalCount(8);
                 setActiveNormalSearchTerm("");
               }}
               onAddProduct={(product: any) => {
+                resolveVoiceResultWaitV509("results-add");
                 addProductToCart(product as Product);
                 setNormalResults([]);
                 setMobileResultsReadyQueryV537("");
