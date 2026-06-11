@@ -83,7 +83,7 @@ function toProduct(product: any, ean: string, storeId: string) {
       null,
     storeId,
     storeName: "S-kaupat",
-    rawSource: "api.s-kaupat.fi",
+    rawSource: product?.rawSource || "api.s-kaupat.fi",
   };
 }
 
@@ -140,6 +140,25 @@ function getFilteredProducts(payload: any): any[] {
     [];
 
   return items.map((item: any) => item?.product || item).filter(Boolean);
+}
+
+function flattenProducts(payload: any): any[] {
+  if (Array.isArray(payload)) return payload;
+
+  const candidates =
+    payload?.products ||
+    payload?.items ||
+    payload?.results ||
+    payload?.data ||
+    payload?.data?.products ||
+    payload?.data?.items ||
+    [];
+
+  if (Array.isArray(candidates)) {
+    return candidates.map((x: any) => x?.product || x).filter(Boolean);
+  }
+
+  return [];
 }
 
 function findExact(products: any[], ean: string) {
@@ -250,6 +269,38 @@ async function tryFilteredExact(args: {
   };
 }
 
+async function tryInternalSProductsExact(args: {
+  origin: string;
+  ean: string;
+  storeId: string;
+  queryString: string;
+}) {
+  const url = new URL("/api/s-products", args.origin);
+  url.searchParams.set("search", args.queryString);
+  url.searchParams.set("store", args.storeId);
+
+  const response = await fetch(url.toString(), {
+    method: "GET",
+    headers: {
+      accept: "application/json",
+    },
+    cache: "no-store",
+  });
+
+  const payload = await response.json().catch(() => null);
+  const products = flattenProducts(payload);
+  const exact = findExact(products, args.ean);
+
+  return {
+    ok: response.ok,
+    status: response.status,
+    url: url.toString(),
+    payload,
+    products,
+    exact,
+  };
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -258,6 +309,7 @@ export async function GET(request: NextRequest) {
     const storeId = String(searchParams.get("storeId") || "708276035").trim();
     const nameHint = fixText(searchParams.get("name") || "");
     const slugParam = searchParams.get("slug");
+    const origin = new URL(request.url).origin;
 
     if (!ean) {
       return NextResponse.json(
@@ -305,6 +357,42 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    for (const queryString of queries.filter((q) => q.length >= 1)) {
+      const internal = await tryInternalSProductsExact({
+        origin,
+        ean,
+        storeId,
+        queryString,
+      });
+
+      debug.push({
+        step: "InternalApiSProducts",
+        queryString,
+        storeId,
+        status: internal.status,
+        ok: internal.ok,
+        count: internal.products.length,
+        exact: Boolean(internal.exact),
+        first: summarize(internal.products[0]),
+      });
+
+      if (internal.exact && getPrice(internal.exact) > 0) {
+        return NextResponse.json({
+          ok: true,
+          source: "internal-s-products-exact-ean",
+          found: true,
+          ean,
+          storeId,
+          product: toProduct(
+            { ...internal.exact, rawSource: "internal-/api/s-products" },
+            ean,
+            storeId,
+          ),
+          debug,
+        });
+      }
+    }
+
     const complementary = await fetchSGraphql(
       "RemoteComplementaryProducts",
       {
@@ -345,7 +433,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       ok: true,
-      source: "s-kaupat-filtered-slug-exact",
+      source: "s-kaupat-filtered-or-internal-exact",
       found: false,
       ean,
       storeId,
