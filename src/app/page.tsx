@@ -10810,13 +10810,86 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       pushScannerDebugV493(`VARIANTS ${variants.join(",")} cachedName=${cachedName || "-"}`);
 
+      const resolveSRouteStoreIdV494 = () => {
+        const activeRawId = String(activeStores.sStoreId || "").trim();
+        const activeName = String(activeStores.sStoreName || "").trim();
+        const normalizedActiveName = normalize(activeName);
+
+        const candidateStores = (foundStores || [])
+          .map((store) => normalizeStoreForPickerV320(store))
+          .filter((store) => {
+            if (getStoreChainV320(store) !== "S") return false;
+            const storeName = normalize(String(store.name || ""));
+            const storeId = String((store as any).id || "").trim();
+
+            return Boolean(
+              (activeRawId && sameStoreIdV93(storeId, activeRawId)) ||
+                (normalizedActiveName && storeName === normalizedActiveName) ||
+                (normalizedActiveName && storeName.includes(normalizedActiveName)) ||
+                (storeName && normalizedActiveName.includes(storeName)),
+            );
+          });
+
+        const readGraphqlStoreId = (store: any) => {
+          const possibleValues = [
+            store?.sKaupatStoreId,
+            store?.sKaupatId,
+            store?.sCloudStoreId,
+            store?.onlineStoreId,
+            store?.remoteStoreId,
+            store?.graphqlStoreId,
+            store?.apiStoreId,
+            store?.storeId,
+            store?.id,
+          ];
+
+          for (const value of possibleValues) {
+            const cleaned = String(value || "").replace(/\D/g, "");
+            // S-kaupat GraphQL storeId on tässä polussa pitkä tunniste, esim. 708276035.
+            // Lyhyet paikalliset UI-id:t kuten 2928 eivät kelpaa.
+            if (/^\d{7,}$/.test(cleaned)) return cleaned;
+          }
+
+          return "";
+        };
+
+        for (const store of candidateStores) {
+          const mapped = readGraphqlStoreId(store);
+          if (mapped) {
+            pushScannerDebugV493(
+              `S_STORE MAP active=${activeRawId || "-"} name=${activeName || "-"} -> ${mapped}`,
+            );
+            return mapped;
+          }
+        }
+
+        // V494 täsmäpaikkaus: UI:n kauppavalinta antaa Prisma Hyvinkäälle lyhyen id:n 2928,
+        // mutta api.s-kaupat.fi tarvitsee GraphQL-storeId:n 708276035.
+        if (
+          activeRawId === "2928" ||
+          normalizedActiveName.includes("prisma hyvink") ||
+          (normalizedActiveName.includes("prisma") && normalizedActiveName.includes("hyvink"))
+        ) {
+          pushScannerDebugV493(
+            `S_STORE MAP hardcoded Prisma Hyvinkää active=${activeRawId || "-"} -> 708276035`,
+          );
+          return "708276035";
+        }
+
+        pushScannerDebugV493(
+          `S_STORE MAP fallback active=${activeRawId || "-"} name=${activeName || "-"}`,
+        );
+        return activeRawId;
+      };
+
       const exactResultsByKey = new Map<string, EanSearchResult>();
       let openFoodFactsFallbackForSearchV120: any = null;
 
       const tryStrictSEanRouteV491 = async (nameHint?: string | null) => {
         const sEanParamsV491 = new URLSearchParams();
         sEanParamsV491.set("ean", ean);
-        if (activeStores.sStoreId) sEanParamsV491.set("storeId", String(activeStores.sStoreId));
+        const sRouteStoreIdV494 = resolveSRouteStoreIdV494();
+        if (sRouteStoreIdV494) sEanParamsV491.set("storeId", sRouteStoreIdV494);
         const cleanNameHintV491 = fixText(String(nameHint || "")).trim();
         if (cleanNameHintV491) sEanParamsV491.set("name", cleanNameHintV491);
 
