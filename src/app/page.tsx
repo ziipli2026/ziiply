@@ -4,6 +4,13 @@
 // - sijainti nostettu hakukentän alle / nappien yläpuolelle mockupin mukaisesti
 // - ei palauteta voice debug -paneelia eikä kosketa V509-monituoteodotukseen
 
+// V514_VOICE_NOTIF_COMPACT_TIMEOUT_FIX
+// Korjaus:
+// - tyhjän/epäonnistuneen sanelun ilmoitus on lyhyt: "Ei kuulunut puhetta, yritä uudelleen."
+// - ilmoitus poistuu automaattisesti 2,5 sekunnin jälkeen
+// - prompt-banneri pysyy kompaktina hakukentän alapuolella, ei jää pitkäksi koko rivin palkiksi
+// - V509/V512/V513 monituoteodotus säilyy
+
 // V512_VOICE_NOTIF_POSITION_TEXT_NO_DEBUG
 // Pohja: V511/V509.
 // Korjaus:
@@ -3938,6 +3945,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const [isListening, setIsListening] = useState(false);
   const [voiceProcessing, setVoiceProcessing] = useState(false);
   const [voicePromptText, setVoicePromptText] = useState("");
+  const voicePromptAutoHideTimerRefV514 = useRef<number | null>(null);
   const [voiceDebugRowsV507, setVoiceDebugRowsV507] = useState<string[]>([]);
   const voiceDebugSeqRefV507 = useRef(0);
   const [searchNotFoundNoticeV471, setSearchNotFoundNoticeV471] = useState("");
@@ -3958,6 +3966,27 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const wasListeningRefV455 = useRef(false);
   const voiceFallingEdgeSearchArmedRefV455 = useRef(false);
   const voiceSessionActiveUntilRefV456 = useRef(0);
+  function clearVoicePromptAutoHideV514() {
+    if (voicePromptAutoHideTimerRefV514.current !== null) {
+      window.clearTimeout(voicePromptAutoHideTimerRefV514.current);
+      voicePromptAutoHideTimerRefV514.current = null;
+    }
+  }
+
+  function setVoicePromptPersistentV514(text: string) {
+    clearVoicePromptAutoHideV514();
+    setVoicePromptText(text);
+  }
+
+  function setVoicePromptTemporaryV514(text: string, delayMs = 2500) {
+    clearVoicePromptAutoHideV514();
+    setVoicePromptText(text);
+    voicePromptAutoHideTimerRefV514.current = window.setTimeout(() => {
+      setVoicePromptText("");
+      voicePromptAutoHideTimerRefV514.current = null;
+    }, delayMs);
+  }
+
   const voiceForceSearchTimeoutRefV456 = useRef<number | null>(null);
   const voiceRecognitionSessionIdRefV458 = useRef(0);
   const voiceRecognitionStoppingRefV458 = useRef(false);
@@ -6417,6 +6446,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return false;
     }
 
+    clearVoicePromptAutoHideV514();
     setVoicePromptText("");
     setSearchNotFoundNoticeV471("");
     if (searchNotFoundNoticeTimerRefV471.current) {
@@ -6714,7 +6744,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         voiceAutoSearchAfterStopRef.current = false;
         voiceRecognitionStoppingRefV458.current = false;
         releaseVoiceMicWarmupStreamV465(0);
-        setVoicePromptText("Puhetta ei tullut tekstiksi. Tarkista mikrofoni ja kokeile uudelleen.");
+        setVoicePromptTemporaryV514("Ei kuulunut puhetta, yritä uudelleen.");
       }, noSpeechTimeoutMs);
     };
 
@@ -6776,9 +6806,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         voiceMicPermissionGrantedRefV464.current = false;
         setVoicePromptText("Mikrofonilupa estetty. Salli mikrofoni selaimen asetuksista ja kokeile uudelleen.");
       } else if (err === "no-speech" || err === "audio-capture") {
-        setVoicePromptText("Puhetta ei tullut tekstiksi. Kokeile uudelleen.");
+        setVoicePromptTemporaryV514("Ei kuulunut puhetta, yritä uudelleen.");
       } else {
-        setVoicePromptText("Puhesanelu katkesi. Kokeile uudelleen.");
+        setVoicePromptTemporaryV514("Ei kuulunut puhetta, yritä uudelleen.");
       }
     };
 
@@ -7279,6 +7309,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     if (isListening || voiceProcessing || voiceIntroTimeoutRef.current !== null || voiceIntroActiveRefV448.current) return;
 
+    clearVoicePromptAutoHideV514();
     setVoicePromptText("");
     setSearchNotFoundNoticeV471("");
     if (searchNotFoundNoticeTimerRefV471.current) {
@@ -7411,7 +7442,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         if (!chunks.length) {
           setVoiceProcessing(false);
-          setVoicePromptText("Puhetta ei tallentunut. Kokeile uudelleen.");
+          setVoicePromptTemporaryV514("Ei kuulunut puhetta, yritä uudelleen.");
           voiceHeardSpeechRef.current = false;
           return;
         }
@@ -7431,7 +7462,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             if (!cleaned) {
               pushVoiceDebugV507("onstop STOP cleaned empty after transcribe");
               setVoiceProcessing(false);
-              setVoicePromptText("Puhetta ei saatu tekstiksi. Kokeile uudelleen.");
+              setVoicePromptTemporaryV514("Ei kuulunut puhetta, yritä uudelleen.");
               voiceHeardSpeechRef.current = false;
               return;
             }
@@ -7465,7 +7496,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       voiceNoSpeechTimeoutRefV461.current = window.setTimeout(() => {
         if (voiceMediaRecorderRefV476.current && !voiceHeardSpeechRef.current) {
           stopVoiceMediaRecorderV476(false);
-          setVoicePromptText("Puhetta ei tullut. Kokeile uudelleen.");
+          setVoicePromptTemporaryV514("Ei kuulunut puhetta, yritä uudelleen.");
         }
       }, 12000);
     } catch (error: any) {
@@ -17903,7 +17934,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
             {(voicePromptText || (!loadingNormal && !voiceProcessing && !isListening && searchNotFoundNoticeV471)) && (
               <div
-                className="pointer-events-none fixed left-1/2 top-[calc(env(safe-area-inset-top)+19.55rem)] z-[9998] inline-flex min-h-[1.25rem] w-auto max-w-[72vw] -translate-x-1/2 items-center justify-center whitespace-nowrap rounded-[0.78rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/96 px-4 py-[0.12rem] text-center text-[0.72rem] leading-[1.0] font-black italic text-[#174c2c] shadow-[0_3px_0_rgba(91,72,44,0.16),0_7px_14px_rgba(0,0,0,0.12)] sm:hidden"
+                className="pointer-events-none fixed left-1/2 top-[calc(env(safe-area-inset-top)+19.15rem)] z-[9998] inline-flex min-h-[1.25rem] w-auto max-w-[84vw] -translate-x-1/2 items-center justify-center whitespace-nowrap rounded-[0.78rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/96 px-4 py-[0.12rem] text-center text-[0.72rem] leading-[1.0] font-black italic text-[#174c2c] shadow-[0_3px_0_rgba(91,72,44,0.16),0_7px_14px_rgba(0,0,0,0.12)] sm:hidden"
                 style={{ fontFamily: '"Cooper Black", Georgia, serif' }}
                 role="status"
                 aria-live="assertive"
