@@ -35,7 +35,7 @@ function getPrice(product: any) {
       product?.pricing?.regularPrice ??
       product?.storeItem?.price ??
       product?.storeItems?.[0]?.price ??
-      0
+      0,
   );
 }
 
@@ -44,13 +44,12 @@ function getComparisonPrice(product: any) {
     product?.comparisonPrice ??
       product?.pricing?.comparisonPrice ??
       product?.storeItem?.comparisonPrice ??
-      0
+      0,
   );
 }
 
 function getImage(product: any) {
-  const main = product?.productDetails?.productImages?.mainImage;
-  const template = main?.urlTemplate;
+  const template = product?.productDetails?.productImages?.mainImage?.urlTemplate;
 
   if (template) {
     return String(template)
@@ -89,17 +88,18 @@ function toProduct(product: any, ean: string, storeId: string) {
 }
 
 async function fetchSGraphql(operationName: string, variables: any, hash: string) {
-  const extensions = {
-    persistedQuery: {
-      version: 1,
-      sha256Hash: hash,
-    },
-  };
-
   const url = new URL("https://api.s-kaupat.fi/");
   url.searchParams.set("operationName", operationName);
   url.searchParams.set("variables", JSON.stringify(variables));
-  url.searchParams.set("extensions", JSON.stringify(extensions));
+  url.searchParams.set(
+    "extensions",
+    JSON.stringify({
+      persistedQuery: {
+        version: 1,
+        sha256Hash: hash,
+      },
+    }),
+  );
 
   const response = await fetch(url.toString(), {
     method: "GET",
@@ -227,7 +227,7 @@ async function tryFilteredExact(args: {
   const result = await fetchSGraphql(
     "RemoteFilteredProducts",
     {
-      generatedSessionId: "ziiply-ean",
+      generatedSessionId: crypto.randomUUID(),
       limit: 96,
       order: "desc",
       orderBy: "score",
@@ -235,9 +235,9 @@ async function tryFilteredExact(args: {
       slug: args.slug,
       storeId: args.storeId,
       useRandomId: false,
-      marketingId: "ziiply-ean",
+      marketingId: crypto.randomUUID(),
     },
-    FILTERED_HASH
+    FILTERED_HASH,
   );
 
   const products = getFilteredProducts(result.payload);
@@ -262,15 +262,11 @@ export async function GET(request: NextRequest) {
     if (!ean) {
       return NextResponse.json(
         { ok: false, error: "EAN missing" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const debug: any[] = [];
-
-    // 1) Varsinainen korjaus:
-    // RemoteFilteredProducts oikealla kategoriatason slugilla.
-    // Hyväksytään AINA vain exact EAN + hinta.
     const slugs = buildSlugs(nameHint, slugParam);
     const queries = buildQueries(nameHint);
 
@@ -309,8 +305,6 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 2) Complementary vain debugiksi / viimeiseksi tarkistukseksi.
-    // Ei saa hyväksyä väärää suositustuotetta.
     const complementary = await fetchSGraphql(
       "RemoteComplementaryProducts",
       {
@@ -319,7 +313,7 @@ export async function GET(request: NextRequest) {
         limit: 12,
         focusOnEan: ean,
       },
-      COMPLEMENTARY_HASH
+      COMPLEMENTARY_HASH,
     );
 
     const complementaryProducts =
@@ -370,7 +364,7 @@ export async function GET(request: NextRequest) {
             ? error.stack.split("\n").slice(0, 5)
             : undefined,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
