@@ -2,11 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
+const FILTERED_HASH =
+  "44ca017dddccfe49e787b483f471f26217adca807f8c71101d11e881dab9e480";
+
 const COMPLEMENTARY_HASH =
   "9a0f8fccb697df461e462d3f4192076dd02de0646755e392a8e547ec60815dcb";
 
-const FILTERED_HASH =
-  "44ca017dddccfe49e787b483f471f26217adca807f8c71101d11e881dab9e480";
+const DEFAULT_SLUGS = [
+  "maito-munat-ja-rasvat/jogurtit/juotavat-jogurtit",
+  "maito-munat-ja-rasvat/jogurtit",
+  "maito-munat-ja-rasvat",
+];
 
 function normalizeEan(value?: string | null) {
   return String(value || "").replace(/\D/g, "");
@@ -63,15 +69,13 @@ function getImage(product: any) {
 }
 
 function toProduct(product: any, ean: string, storeId: string) {
-  const price = getPrice(product);
-
   return {
     id: product?.id || product?.ean || ean,
     ean: product?.ean || ean,
     name: fixText(product?.name),
     brandName: fixText(product?.brandName || ""),
     pictureUrl: getImage(product),
-    price,
+    price: getPrice(product),
     comparisonPrice: getComparisonPrice(product),
     comparisonPriceUnit:
       product?.comparisonUnit ||
@@ -116,7 +120,7 @@ async function fetchSGraphql(operationName: string, variables: any, hash: string
   try {
     payload = JSON.parse(text);
   } catch {
-    payload = { rawText: text.slice(0, 3000) };
+    payload = { rawText: text.slice(0, 2500) };
   }
 
   return {
@@ -124,12 +128,7 @@ async function fetchSGraphql(operationName: string, variables: any, hash: string
     status: response.status,
     payload,
     url: url.toString(),
-    rawTextStart: text.slice(0, 1200),
   };
-}
-
-function findExactFromProducts(products: any[], ean: string) {
-  return products.find((p) => normalizeEan(p?.ean || p?.id) === ean) || null;
 }
 
 function getFilteredProducts(payload: any): any[] {
@@ -140,12 +139,14 @@ function getFilteredProducts(payload: any): any[] {
     payload?.data?.products?.items ||
     [];
 
-  return items
-    .map((item: any) => item?.product || item)
-    .filter(Boolean);
+  return items.map((item: any) => item?.product || item).filter(Boolean);
 }
 
-function summarizeProduct(product: any) {
+function findExact(products: any[], ean: string) {
+  return products.find((p) => normalizeEan(p?.ean || p?.id) === ean) || null;
+}
+
+function summarize(product: any) {
   if (!product) return null;
 
   return {
@@ -155,66 +156,98 @@ function summarizeProduct(product: any) {
     brandName: fixText(product?.brandName || ""),
     price: getPrice(product),
     comparisonPrice: getComparisonPrice(product),
-    keys:
-      product && typeof product === "object"
-        ? Object.keys(product).slice(0, 30)
-        : [],
   };
 }
 
-function summarizeProducts(products: any[], limit = 8) {
-  return products.slice(0, limit).map(summarizeProduct);
+function buildSlugs(nameHint: string, slugParam: string | null) {
+  const slugs = new Set<string>();
+
+  if (slugParam) slugs.add(slugParam);
+
+  const n = fixText(nameHint).toLowerCase();
+
+  if (n.includes("jogur")) {
+    slugs.add("maito-munat-ja-rasvat/jogurtit/juotavat-jogurtit");
+    slugs.add("maito-munat-ja-rasvat/jogurtit");
+    slugs.add("maito-munat-ja-rasvat");
+  }
+
+  if (n.includes("makkara") || n.includes("wilhelm") || n.includes("atria")) {
+    slugs.add("liha-ja-kala/makkarat");
+    slugs.add("liha-ja-kala");
+  }
+
+  if (n.includes("kahvi") || n.includes("löfberg") || n.includes("lofberg")) {
+    slugs.add("juomat/kahvit");
+    slugs.add("juomat");
+  }
+
+  for (const slug of DEFAULT_SLUGS) slugs.add(slug);
+
+  return Array.from(slugs);
 }
 
-function collectDeepProducts(value: any): any[] {
-  const found: any[] = [];
-  const seen = new Set<any>();
+function buildQueries(nameHint: string) {
+  const terms = new Set<string>();
 
-  const walk = (node: any) => {
-    if (!node || seen.has(node)) return;
+  const cleaned = fixText(nameHint);
+  if (cleaned.length >= 3) terms.add(cleaned);
 
-    if (typeof node === "object") seen.add(node);
+  const normalized = cleaned
+    .replace(/pääryna/gi, "päärynä")
+    .replace(/paaryna/gi, "päärynä")
+    .replace(/\bcoop\b/gi, "Coop")
+    .trim();
 
-    if (Array.isArray(node)) {
-      for (const item of node) walk(item);
-      return;
-    }
+  if (normalized.length >= 3) terms.add(normalized);
 
-    if (typeof node === "object") {
-      const maybeName =
-        node.name ||
-        node.productName ||
-        node.title ||
-        node.localizedName ||
-        node.displayName;
+  if (normalized.toLowerCase().includes("jogur")) {
+    terms.add("Coop juotava jogurtti");
+    terms.add("Coop päärynä");
+    terms.add("");
+  }
 
-      const maybeEan = node.ean || node.gtin || node.barcode || node.id;
-      const maybePrice =
-        node.price ||
-        node.pricing ||
-        node.currentPrice ||
-        node.storeItem ||
-        node.storeItems;
+  if (normalized.toLowerCase().includes("wilhelm")) {
+    terms.add("Wilhelm");
+    terms.add("Atria Wilhelm");
+    terms.add("");
+  }
 
-      if (maybeName || maybeEan || maybePrice) {
-        const keys = Object.keys(node);
-        const looksLikeProduct =
-          keys.includes("name") ||
-          keys.includes("ean") ||
-          keys.includes("brandName") ||
-          keys.includes("pricing") ||
-          keys.includes("price");
+  if (terms.size === 0) terms.add("");
 
-        if (looksLikeProduct) found.push(node);
-      }
+  return Array.from(terms);
+}
 
-      for (const child of Object.values(node)) walk(child);
-    }
+async function tryFilteredExact(args: {
+  ean: string;
+  storeId: string;
+  slug: string;
+  queryString: string;
+}) {
+  const result = await fetchSGraphql(
+    "RemoteFilteredProducts",
+    {
+      generatedSessionId: "ziiply-ean",
+      limit: 96,
+      order: "desc",
+      orderBy: "score",
+      queryString: args.queryString,
+      slug: args.slug,
+      storeId: args.storeId,
+      useRandomId: false,
+      marketingId: "ziiply-ean",
+    },
+    FILTERED_HASH
+  );
+
+  const products = getFilteredProducts(result.payload);
+  const exact = findExact(products, args.ean);
+
+  return {
+    ...result,
+    products,
+    exact,
   };
-
-  walk(value);
-
-  return found;
 }
 
 export async function GET(request: NextRequest) {
@@ -224,7 +257,7 @@ export async function GET(request: NextRequest) {
     const ean = normalizeEan(searchParams.get("ean"));
     const storeId = String(searchParams.get("storeId") || "708276035").trim();
     const nameHint = fixText(searchParams.get("name") || "");
-    const rawDebug = searchParams.get("raw") === "1";
+    const slugParam = searchParams.get("slug");
 
     if (!ean) {
       return NextResponse.json(
@@ -235,6 +268,49 @@ export async function GET(request: NextRequest) {
 
     const debug: any[] = [];
 
+    // 1) Varsinainen korjaus:
+    // RemoteFilteredProducts oikealla kategoriatason slugilla.
+    // Hyväksytään AINA vain exact EAN + hinta.
+    const slugs = buildSlugs(nameHint, slugParam);
+    const queries = buildQueries(nameHint);
+
+    for (const slug of slugs) {
+      for (const queryString of queries) {
+        const filtered = await tryFilteredExact({
+          ean,
+          storeId,
+          slug,
+          queryString,
+        });
+
+        debug.push({
+          step: "RemoteFilteredProducts",
+          slug,
+          queryString,
+          status: filtered.status,
+          ok: filtered.ok,
+          count: filtered.products.length,
+          exact: Boolean(filtered.exact),
+          first: summarize(filtered.products[0]),
+          errors: filtered.payload?.errors || null,
+        });
+
+        if (filtered.exact && getPrice(filtered.exact) > 0) {
+          return NextResponse.json({
+            ok: true,
+            source: "s-kaupat-filtered-slug-exact",
+            found: true,
+            ean,
+            storeId,
+            product: toProduct(filtered.exact, ean, storeId),
+            debug,
+          });
+        }
+      }
+    }
+
+    // 2) Complementary vain debugiksi / viimeiseksi tarkistukseksi.
+    // Ei saa hyväksyä väärää suositustuotetta.
     const complementary = await fetchSGraphql(
       "RemoteComplementaryProducts",
       {
@@ -249,33 +325,22 @@ export async function GET(request: NextRequest) {
     const complementaryProducts =
       complementary.payload?.data?.complementaryProducts || [];
 
-    const complementaryDeepProducts = collectDeepProducts(complementary.payload);
-    const exactComplementary =
-      findExactFromProducts(complementaryProducts, ean) ||
-      findExactFromProducts(complementaryDeepProducts, ean);
+    const exactComplementary = findExact(complementaryProducts, ean);
 
     debug.push({
       step: "RemoteComplementaryProducts",
       status: complementary.status,
       ok: complementary.ok,
       count: complementaryProducts.length,
-      deepCount: complementaryDeepProducts.length,
       exact: Boolean(exactComplementary),
+      first: summarize(complementaryProducts[0]),
       errors: complementary.payload?.errors || null,
-      dataKeys:
-        complementary.payload?.data && typeof complementary.payload.data === "object"
-          ? Object.keys(complementary.payload.data)
-          : [],
-      firstProducts: summarizeProducts(complementaryProducts, 6),
-      firstDeepProducts: summarizeProducts(complementaryDeepProducts, 6),
-      url: rawDebug ? complementary.url : undefined,
-      rawTextStart: rawDebug ? complementary.rawTextStart : undefined,
     });
 
     if (exactComplementary && getPrice(exactComplementary) > 0) {
       return NextResponse.json({
         ok: true,
-        source: "s-kaupat-ean-complementary-exact",
+        source: "s-kaupat-complementary-exact",
         found: true,
         ean,
         storeId,
@@ -284,86 +349,15 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    const searchTerms = Array.from(
-      new Set(
-        [
-          nameHint,
-          nameHint.replace(/\bcoop\b/i, "Coop"),
-          nameHint.replace(/pääryna/gi, "päärynä"),
-          nameHint.replace(/paaryna/gi, "päärynä"),
-          nameHint.replace(/juotava jogurtti/gi, "juotava jogurtti"),
-          nameHint.replace(/500\s*g/gi, ""),
-          "Coop juotava jogurtti",
-          "Coop päärynä jogurtti",
-          "Coop päärynä",
-        ]
-          .map((x) => fixText(x))
-          .filter((x) => x.length >= 3)
-      )
-    );
-
-    for (const term of searchTerms) {
-      const filtered = await fetchSGraphql(
-        "RemoteFilteredProducts",
-        {
-          generatedSessionId: "ziiply-ean-debug",
-          limit: 48,
-          order: "desc",
-          orderBy: "score",
-          queryString: term,
-          slug: "",
-          storeId,
-          useRandomId: false,
-          marketingId: "ziiply-ean-debug",
-        },
-        FILTERED_HASH
-      );
-
-      const products = getFilteredProducts(filtered.payload);
-      const deepProducts = collectDeepProducts(filtered.payload);
-      const exact =
-        findExactFromProducts(products, ean) ||
-        findExactFromProducts(deepProducts, ean);
-
-      debug.push({
-        step: "RemoteFilteredProducts",
-        term,
-        status: filtered.status,
-        ok: filtered.ok,
-        count: products.length,
-        deepCount: deepProducts.length,
-        exact: Boolean(exact),
-        errors: filtered.payload?.errors || null,
-        dataKeys:
-          filtered.payload?.data && typeof filtered.payload.data === "object"
-            ? Object.keys(filtered.payload.data)
-            : [],
-        firstProducts: summarizeProducts(products, 8),
-        firstDeepProducts: summarizeProducts(deepProducts, 8),
-        url: rawDebug ? filtered.url : undefined,
-        rawTextStart: rawDebug ? filtered.rawTextStart : undefined,
-      });
-
-      if (exact && getPrice(exact) > 0) {
-        return NextResponse.json({
-          ok: true,
-          source: "s-kaupat-filtered-exact",
-          found: true,
-          ean,
-          storeId,
-          product: toProduct(exact, ean, storeId),
-          debug,
-        });
-      }
-    }
-
     return NextResponse.json({
       ok: true,
-      source: "s-kaupat-ean-debug",
+      source: "s-kaupat-filtered-slug-exact",
       found: false,
       ean,
       storeId,
       nameHint,
+      checkedSlugs: slugs,
+      checkedQueries: queries,
       debug,
     });
   } catch (error: any) {
