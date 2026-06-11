@@ -1,9 +1,9 @@
-// V510_VOICE_NOTIF_POSITION_AND_GPS_TEXT_FIX
-// Korjaus V509-pohjaan:
-// - GPS/notif-teksti lyhennetty muotoon "Paikannetaan..."
-// - Nauhurin prompt/notif keskitetty ja siirretty alemmas nauhurin yläpuolelle
-// - V509:n voice queue odottaa käyttäjän valintaa ennen seuraavaa tuotetta
-
+// V511_V509_LOCATION_TEXT_AND_VOICE_PROMPT_VISIBLE_FIX
+// Pohja: V509, koska monituote-sanelun käyttäjän valinnan odotus toimi.
+// Korjaus:
+// - Kaikki näkyvät "Paikannetaan" -tilatekstit muutettu muotoon "Paikannetaan...".
+// - ZiiplyMobileLocationBar ei saa enää näyttää omaa sisäistä "Paikannetaan..." -tekstiä loading-propin kautta.
+// - Nauhurin prompt siirretty ylemmäs, keskelle Äänitä/Filmaa-nappien yläpuolelle.
 // V509_VOICE_SEQUENTIAL_WAIT_USER_SELECTION
 // Korjaus V508: monituotenauhuri ei saa ylikirjoittaa SearchResultCardia seuraavalla tuotteella.
 // Jokaisen tuotteen haun jälkeen odotetaan, että käyttäjä valitsee tuotteen tai sulkee tuloskortin.
@@ -2635,7 +2635,7 @@ export default function Page() {
     "main" | "selection"
   >("main");
   const [locationMessage, setLocationMessage] = useState(
-    "Paikannetaan...",
+    "Paikannetaan GPS",
   );
   const [locationMessageVisible, setLocationMessageVisible] = useState(true);
   const [usingOwnLocation, setUsingOwnLocation] = useState(false);
@@ -3372,7 +3372,7 @@ export default function Page() {
   function startSilentGpsWatchV391() {
     // V469: älä käynnistä watchPositionia automaattisesti avauksessa.
     // Aiemmin tämä aiheutti toisen GPS-paikannuksen heti alkuhaun jälkeen ja UI jäi
-    // joillakin puhelimilla pysyvään "Paikannetaan..." -tilaan.
+    // joillakin puhelimilla pysyvään "Paikannetaan GPS" -tilaan.
     return;
   }
 
@@ -8853,7 +8853,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       });
 
       setLocationStatusV137(
-        source === "gps" ? "Paikannetaan..." : `Haetaan kauppoja alueelle ${query}`,
+        "Paikannetaan...",
       );
       const stores = await fetchStoresForLocationQuery(
         query,
@@ -9066,7 +9066,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setUsingOwnLocation(true);
     setGpsCoordsV320(coords);
     setStoreSearchLoading(true);
-    setLocationStatusV137("Paikannetaan...");
+    setLocationStatusV137("Paikannetaan GPS");
     setLocationMessageVisible(true);
 
     try {
@@ -9209,7 +9209,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setUsingOwnLocation(true);
     setLocationInput("");
     setStoreSearchLoading(true);
-    setLocationMessage("Paikannetaan...");
+    setLocationMessage("Paikannetaan GPS");
 
     try {
       pushGpsDebugLogV492(`useOwnLocation before getCurrentPosition`);
@@ -13259,7 +13259,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         setLocationMessage(
           storeSearchLoading
             ? "Paikannetaan..."
-            : "Paikannetaan...",
+            : "Haetaan nykyistä sijaintia",
         );
       }
       // V471: älä starttaa GPS:ää Kaupat-paneelin fallbackista.
@@ -15720,7 +15720,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               setLocationMessage(
                 storeSearchLoading || gpsStoreLocationPendingV366 || gpsStorePickerBlockedV382
                   ? "Paikannetaan..."
-                  : "Paikannetaan...",
+                  : "GPS ei vielä valmis",
               );
             }
             return;
@@ -16499,7 +16499,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                         : formatLocationNoticeV465(locationMessage)
                     }
                     locationMessageVisible={true}
-                    storeSearchLoading={storeSearchLoading}
+                    storeSearchLoading={false}
                     placeholder="05510 tai Hyvinkää"
                   />
                 </div>
@@ -17250,7 +17250,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             <ZiiplyMobileLocationBar
               locationInput={locationInput}
               usingOwnLocation={usingOwnLocation}
-              storeSearchLoading={storeSearchLoading}
+              storeSearchLoading={false}
               gpsErrorMessage={gpsErrorMessage}
               gpsStatusText={
                 usingOwnLocation && !storeSearchLoading && !gpsErrorMessage
@@ -17889,7 +17889,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
             {(voicePromptText || (!loadingNormal && !voiceProcessing && !isListening && searchNotFoundNoticeV471)) && (
               <div
-                className="pointer-events-none fixed left-1/2 top-[calc(env(safe-area-inset-top)+30.6rem)] z-[9998] min-h-[1.35rem] w-[15.8rem] max-w-[62vw] -translate-x-1/2 rounded-[0.82rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/96 px-3 py-[0.15rem] text-center text-[0.72rem] leading-[1.0] font-black italic text-[#174c2c] shadow-[0_3px_0_rgba(91,72,44,0.16),0_7px_14px_rgba(0,0,0,0.12)] sm:hidden"
+                className="pointer-events-none fixed left-1/2 top-[calc(env(safe-area-inset-top)+24.8rem)] z-[9998] min-h-[1.35rem] w-[15.8rem] max-w-[62vw] -translate-x-1/2 rounded-[0.82rem] border-[2px] border-[#d8bd75] bg-[#fff4d3]/96 px-3 py-[0.15rem] text-center text-[0.72rem] leading-[1.0] font-black italic text-[#174c2c] shadow-[0_3px_0_rgba(91,72,44,0.16),0_7px_14px_rgba(0,0,0,0.12)] sm:hidden"
                 style={{ fontFamily: '"Cooper Black", Georgia, serif' }}
                 role="status"
                 aria-live="assertive"
@@ -17901,7 +17901,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             {voiceDebugRowsV507.length > 0 && (
               <div className="fixed bottom-[5.2rem] left-2 right-2 z-[9999] max-h-[12rem] overflow-auto rounded-xl border-2 border-[#d8bd75] bg-black/82 p-2 text-[10px] leading-tight text-lime-100 shadow-xl sm:hidden">
                 <div className="mb-1 flex items-center justify-between gap-2 text-[11px] font-black text-yellow-200">
-                  <span>VOICE DEBUG V509</span>
+                  <span>VOICE DEBUG V511</span>
                   <button
                     type="button"
                     className="rounded bg-white/15 px-2 py-0.5 text-[10px] text-white"
