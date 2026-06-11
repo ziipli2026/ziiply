@@ -6,7 +6,12 @@
 // - Skanneri ei enää aja raskasta EAN-only /api/s-ean-product-kierrosta ensin, jos nimivinkkiä ei ole.
 // - OFF/cached name toimii vain nimivinkkinä; hinta hyväksytään edelleen vain exact EAN + price -osumasta.
 
-// V501_GPS_DOES_NOT_FORCE_LOCAL_STOREMODE
+// V502_GPS_HYPER_LOCK_DEDUPE_SCANNER_OVERLAY_FIX
+// Korjaus V501/V500-pohjaan:
+// - GPS-taustapäivitys ei saa vaihtaa Tavaratalot -> Lähikaupat, vaikka storeModeChosen-state olisi async-ajossa vanha.
+// - Skannerin exact EAN -tulokset deduplikoidaan: enintään yksi S ja yksi K per sama EAN/kauppa, ettei S-tuote näy vertailuparina kahteen kertaan.
+// - Kameran lataushimmennys rajattu alemmas/lyhyemmäksi skanneri-ikkunan alueelle eikä painikkeiden päälle.
+
 // Korjaus: GPS/taustapaikannus ei saa enää pakottaa storeModea Lähikaupat-tilaan,
 // jos käyttäjä on jo valinnut Tavaratalot. Skannerin nopea V500-haku säilyy.
 
@@ -8555,10 +8560,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // oma sijainti avataan Lähikaupat-tilaan, jolloin lähimmät S/K-kaupat voivat tulla
       // Jokelan/Tuusulan puolelta. Jos käyttäjä on jo valinnut Tavaratalot/Lähikaupat,
       // säilytetään hänen valintansa.
-      if (source === "gps" && !gostaPanelStickyOpenRefV158.current && !storeModeChosenV299) {
-        // V501: GPS saa avata Lähikaupat vain ensimmäisellä kerralla, jos käyttäjä ei ole vielä
-        // valinnut Tavaratalot/Lähikaupat-tilaa. Kun käyttäjä on valinnut Tavaratalot,
-        // taustapaikannus ei saa enää vaihtaa sitä Lähikaupat-tilaan skannerin/korin taustalla.
+      const gpsMayAutoSelectLocalV502 =
+        source === "gps" &&
+        !gostaPanelStickyOpenRefV158.current &&
+        !storeModeChosenV299 &&
+        selectedStoreModeRefV302.current !== "hyper" &&
+        storeMode !== "hyper";
+
+      if (gpsMayAutoSelectLocalV502) {
+        // V502: GPS saa avata Lähikaupat vain aidosti ensimmäisellä kerralla.
+        // Lisäsuoja: jos ref tai näkyvä state on jo Tavaratalot/hyper, async GPS-ajo ei saa
+        // vaihtaa sitä local-tilaan, vaikka storeModeChosenV299 olisi vanha false-arvo.
         const nextGpsStoreMode: StoreMode = "local";
 
         selectedStoreModeRefV302.current = nextGpsStoreMode;
@@ -8853,11 +8865,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // Kaupat-paneelin fallback tai toinen effect ei voi startata uutta GPS-hakua väliin.
       // V501: ennen kauppahaun starttia GPS saa asettaa Lähikaupat vain, jos käyttäjä
       // ei ole jo valinnut kauppatilaa. Taustapäivitys ei saa yliajaa Tavaratalot-valintaa.
-      if (!storeModeChosenV299) {
+      const gpsMayAutoSelectLocalBeforeApplyV502 =
+        !storeModeChosenV299 &&
+        selectedStoreModeRefV302.current !== "hyper" &&
+        storeMode !== "hyper";
+
+      if (gpsMayAutoSelectLocalBeforeApplyV502) {
         selectedStoreModeRefV302.current = "local";
         setStoreMode("local");
         setStoreModeChosenV299(true);
       } else {
+        // V502: säilytä käyttäjän Tavaratalot/Lähikaupat-valinta myös GPS-taustapäivityksessä.
         selectedStoreModeRefV302.current = storeMode;
       }
       pushGpsDebugLogV492(`useOwnLocation applyLocation start`);
@@ -11078,8 +11096,27 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         pushScannerDebugV493(`AFTER final EAN-only exactResults=${exactResultsByKey.size}`);
       }
 
-      const exactResults = Array.from(exactResultsByKey.values()).sort(
-        (a, b) => getProductPrice(a.product) - getProductPrice(b.product),
+      // V502: sama ketju/kauppa/EAN voi tulla sekä cache- että fast-haun kautta.
+      // Älä näytä kahta S-tuotetta vertailuparina; pidä enintään yksi S ja yksi K per sama EAN/kauppa,
+      // ja valitse niistä halvin/paras hintatieto.
+      const dedupedExactResultsMapV502 = new Map<string, EanSearchResult>();
+      for (const result of exactResultsByKey.values()) {
+        const dedupeKeyV502 = [
+          result.chain,
+          normalizeEan(result.product?.ean || ean),
+          normalize(result.storeName || ""),
+        ].join("|");
+        const previous = dedupedExactResultsMapV502.get(dedupeKeyV502);
+        if (!previous || getProductPrice(result.product) < getProductPrice(previous.product)) {
+          dedupedExactResultsMapV502.set(dedupeKeyV502, result);
+        }
+      }
+
+      const exactResults = Array.from(dedupedExactResultsMapV502.values()).sort(
+        (a, b) => {
+          if (a.chain !== b.chain) return a.chain === "S" ? -1 : 1;
+          return getProductPrice(a.product) - getProductPrice(b.product);
+        },
       );
 
       pushScannerDebugV493(`RESULT exactResults length=${exactResults.length}`);
@@ -17666,7 +17703,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 {eanLoading && (
                   <div
                     aria-hidden="true"
-                    className="pointer-events-none fixed left-[5.4vw] right-[5.4vw] top-[calc(env(safe-area-inset-top)+12.7rem)] z-[171] h-[46dvh] max-h-[30rem] rounded-[1.35rem] bg-slate-900/45 backdrop-blur-[1.5px] sm:hidden"
+                    className="pointer-events-none fixed left-[5.5vw] right-[5.5vw] top-[calc(env(safe-area-inset-top)+15.35rem)] z-[171] h-[34dvh] max-h-[22rem] rounded-[1.35rem] bg-slate-900/36 backdrop-blur-[1.2px] sm:hidden"
                   />
                 )}
                 </>
