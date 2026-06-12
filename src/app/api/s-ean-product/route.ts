@@ -675,10 +675,14 @@ export async function GET(request: NextRequest) {
     let externalQueries: string[] = [];
 
     if (!deadlineExceeded(startedAt)) {
-      const off = await fetchOpenFoodFactsByEan(ean).catch((error: any) => ({
+      const off: any = await fetchOpenFoodFactsByEan(ean).catch((error: any) => ({
         ok: false,
         status: 0,
         found: false,
+        payload: null,
+        product: null,
+        name: "",
+        brandName: "",
         error: error?.message || "OpenFoodFacts failed",
       }));
 
