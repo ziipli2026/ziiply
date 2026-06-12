@@ -1,3 +1,8 @@
+// V524_SCANNER_NO_SILENT_STOP_AND_KEEP_OFF_FALLBACK
+// Korjaus: skanneri ei saa hiljentyä, jos S/K exact-haku ei löydä tuotetta.
+// Jos exactResults jää tyhjäksi, pidetään käyttäjälle näkyvä scannerMessage eikä katkaista ketjua tyhjään.
+// OFF-fallback saa edelleen ajaa ennen viimeistä scanner no-result -viestiä.
+
 // V523_SCANNER_S_EAN_NO_PRICE_ACCEPT_PAGE_FIX
 // Korjaus: page ei saa hylätä /api/s-ean-productin palauttamaa exact EAN S-tuotetta vain siksi,
 // että price on 0/puuttuu. Tämä esti v8-routen alkoholituotteet ja katkaisi fallback-ketjun.
@@ -11663,7 +11668,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           normalize(result.storeName || ""),
         ].join("|");
         const previous = dedupedExactResultsMapV502.get(dedupeKeyV502);
-        if (!previous || getProductPrice(result.product) < getProductPrice(previous.product)) {
+        const resultPriceV524 = getProductPrice(result.product);
+        const previousPriceV524 = previous ? getProductPrice(previous.product) : 0;
+        const resultHasPriceV524 = resultPriceV524 > 0;
+        const previousHasPriceV524 = previousPriceV524 > 0;
+
+        if (
+          !previous ||
+          (resultHasPriceV524 && !previousHasPriceV524) ||
+          (resultHasPriceV524 === previousHasPriceV524 && resultPriceV524 < previousPriceV524)
+        ) {
           dedupedExactResultsMapV502.set(dedupeKeyV502, result);
         }
       }
@@ -11787,19 +11801,27 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // toinen ketju saattoi silti päätyä myöhemmin unknown-fallbackiin ja luoda rinnakkaisen
       // "Tuntematon tuote" -rivin. Käsin käynnistetty EAN-haku saa edelleen tehdä unknown-fallbackin.
       if (options.fromScanner || eanAutoSearchActiveRef.current || eanScannerOpen || eanHtml5ScannerRef.current) {
-        // V133: kameran väliluku ei saa merkitä EANia unknowniksi eikä näyttää
-        // "ei lisätty tuntemattomana" -ilmoitusta. Kamera voi lukea saman fyysisen
-        // tuotteen usealla decode-polulla; jos OFF/S/K-osuma tulee seuraavalla
-        // lukukerralla, se saa kasvattaa määrää normaalisti.
+        // V524: kameraskannerissa ei lisätä tuntematonta riviä automaattisesti,
+        // mutta haku ei saa enää katketa täysin hiljaa. Tässä vaiheessa S/K + OFF
+        // fallbackit on jo yritetty, joten näytetään käyttäjälle näkyvä lopputila.
+        const scannerNoResultMessageV524 =
+          openFoodFactsFallbackForSearchV120 || cachedName
+            ? "EAN luettiin ja tuote tunnistettiin osittain, mutta hintatietoa ei saatu valituista kaupoista."
+            : "EAN luettiin, mutta tuotetietoa ei löytynyt automaattisesti.";
         setEanInput("");
         setEanResults([]);
         setEanLoading(false);
         setEanSearchStartedAutomatically(false);
         eanAutoSearchActiveRef.current = false;
         setLastAutoEanSearch("");
-        setEanMessage("");
-        pushScannerDebugV493("STOP scanner mode: no unknown fallback added");
-        setEanScannerMessage("");
+        setEanMessage(scannerNoResultMessageV524);
+        pushScannerDebugV493(`STOP scanner mode: no exact result after S/K/OFF fallback ean=${ean}`);
+        setEanScannerMessage(scannerNoResultMessageV524);
+        window.setTimeout(() => {
+          setEanScannerMessage((current) =>
+            current === scannerNoResultMessageV524 ? "" : current,
+          );
+        }, 3200);
         return;
       }
 
