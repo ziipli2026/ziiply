@@ -11,7 +11,7 @@
  * src/app/components/ziiply/search/searchAutocomplete.ts
  */
 
-import { resolveSearchIntentAI, scoreProductIntentFit, type IntentProductLike } from "./searchIntentAI";
+import { resolveSearchIntentAI, scoreProductIntentFit, isProductAllowedByIntent, type IntentProductLike } from "./searchIntentAI";
 import { getLearnedSearchBoost } from "./searchIntentMemory";
 import { normalizeSearchText, splitSearchWords, normalizeEan } from "./searchNormalizer";
 import { getSynonymTermsForQuery } from "./searchSynonyms";
@@ -227,6 +227,8 @@ export function buildZiiplyAutocomplete(
   }
 
   for (const product of products) {
+    if (!isProductAllowedByIntent(product, intent)) continue;
+
     const name = getProductName(product);
     if (!name) continue;
 
