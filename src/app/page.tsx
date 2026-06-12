@@ -1,3 +1,10 @@
+// V520_BT_EAN_ACTIVE_S_STOREID_DIRECT_ROUTE
+// Korjaus BT-/kamera-EAN-hakuun:
+// - /api/s-ean-product saa nyt aina aktiivisen S-kaupan storeId-parametrin.
+// - Ennen OFF/name-fallbackia yritetään suoraa S-EAN-routea: ean + activeStores.sStoreId.
+// - Tämä korjaa tilanteet, joissa S-tuote tunnistuu mutta hinta jää puuttumaan,
+//   koska route sai aiemmin vain EANin ilman kauppakohtaista storeId:tä.
+
 // V519_GPS_DEFAULT_ON_REAL_BOOT_START
 // Korjaus V518:ssä jääneeseen V504-no-op/disable-efektiin:
 // - GPS ei vain näytä oletuksena päällä, vaan käynnistää oikeasti saman paikannuspolun kuin GPS-nappi.
@@ -11398,6 +11405,59 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         }
       };
 
+      const tryDirectSEanProductRouteV520 = async (nameHint?: string | null) => {
+        const storeId = String(activeStores.sStoreId || "").trim();
+        if (!storeId || storeId === "0") {
+          pushScannerDebugV493("S_DIRECT skip missing active S storeId");
+          return false;
+        }
+
+        const params = new URLSearchParams();
+        params.set("ean", ean);
+        params.set("storeId", storeId);
+
+        const cleanNameHint = fixText(String(nameHint || "")).trim();
+        if (cleanNameHint) params.set("name", cleanNameHint);
+
+        const controller = new AbortController();
+        const timeout = window.setTimeout(() => controller.abort(), 8500);
+
+        try {
+          pushScannerDebugV493(
+            `S_DIRECT /api/s-ean-product ean=${ean} storeId=${storeId} name=${cleanNameHint ? cleanNameHint.slice(0, 42) : "-"}`,
+          );
+
+          const response = await fetch(`/api/s-ean-product?${params.toString()}`, {
+            cache: "no-store",
+            signal: controller.signal,
+          });
+
+          const data = await response.json().catch(() => null);
+          const product = data?.product;
+
+          pushScannerDebugV493(
+            `S_DIRECT status=${response.status} found=${Boolean(data?.found)} price=${getProductPrice(product as Product)} source=${String(data?.source || "-")}`,
+          );
+
+          if (response.ok && product && addStrictSEanProductResultV497(product, "S-v520-direct-s-ean-product")) {
+            writeStrictSEanCacheV498(product, cleanNameHint || String(product?.name || ""), "direct-/api/s-ean-product");
+            pushScannerDebugV493(
+              `S_DIRECT ACCEPT price=${getProductPrice(product as Product)} name=${fixText(String(product?.name || "")).slice(0, 44)}`,
+            );
+            return true;
+          }
+
+          return false;
+        } catch (error) {
+          pushScannerDebugV493(
+            `S_DIRECT ERROR ${String((error as any)?.name || "")}:${String((error as any)?.message || error).slice(0, 90)}`,
+          );
+          return false;
+        } finally {
+          window.clearTimeout(timeout);
+        }
+      };
+
       const buildFastSProductQueriesV498 = (nameHint?: string | null) => {
         const cleaned = fixText(String(nameHint || "")).trim();
         const terms = new Set<string>();
@@ -11505,6 +11565,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // V497: älä aloita sokkona raskasta EAN-only routea, koska route joutuu silloin
       // kokeilemaan laajan slug/termiketjun. Käytä ensin muistissa olevaa nimeä tai OFF-nimeä.
       const cachedNameHintV497 = fixText(String(cachedName || ""));
+
+      // V520: BT-/kamera-EAN-haussa aktiivisen S-kaupan storeId pitää kulkea aina
+      // /api/s-ean-product-routeen. Muuten tuote voi löytyä ilman kauppakohtaista hintaa.
+      if (exactResultsByKey.size === 0) {
+        await tryDirectSEanProductRouteV520(cachedNameHintV497 || null).catch((error) => {
+          pushScannerDebugV493(`S_DIRECT ERROR initial ${String(error?.message || error).slice(0, 120)}`);
+          return false;
+        });
+        pushScannerDebugV493(`AFTER direct S-EAN route exactResults=${exactResultsByKey.size}`);
+      }
+
       if (exactResultsByKey.size === 0 && cachedNameHintV497) {
         pushScannerDebugV493(`STEP 1: try S-route with cached name=${cachedNameHintV497.slice(0, 54)}`);
         await tryStrictSEanRouteV491(cachedNameHintV497).catch((error) => {
@@ -11534,7 +11605,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           cacheOpenFoodFactsProductForAllVariantsV126(openFoodFactsFallbackForSearchV120);
           const offNameHintV491 = fixText(String(openFoodFactsFallbackForSearchV120?.name || cachedName || ""));
           if (offNameHintV491) {
-            pushScannerDebugV493(`STEP 3: retry S-route with OFF name=${offNameHintV491.slice(0, 54)}`);
+            pushScannerDebugV493(`STEP 3A: direct S-EAN route with OFF name=${offNameHintV491.slice(0, 54)}`);
+            await tryDirectSEanProductRouteV520(offNameHintV491).catch((error) => {
+              pushScannerDebugV493(`S_DIRECT ERROR offName ${String(error?.message || error).slice(0, 120)}`);
+              return false;
+            });
+            pushScannerDebugV493(`AFTER OFF direct S-EAN exactResults=${exactResultsByKey.size}`);
+
+            pushScannerDebugV493(`STEP 3B: retry S-route with OFF name=${offNameHintV491.slice(0, 54)}`);
             await tryStrictSEanRouteV491(offNameHintV491).catch((error) => {
               pushScannerDebugV493(`S_ROUTE ERROR nameHint ${String(error?.message || error).slice(0, 120)}`);
               return false;
