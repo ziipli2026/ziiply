@@ -1,10 +1,10 @@
-// V6_EAN_ROUTE_FAST_INTERNAL_EGGS_AND_CHEESE_ALWAYS_REVISION_VISIBLE
-// Korjaus V5:n päälle:
-// - Juustot eivät löytyneet luotettavasti, jos OFF/nameHint puuttui tai oli englanniksi/eri muodossa.
-// - Lisätty juusto/cheddar/viipalejuusto AINA nopeisiin /api/s-products-hakutermeihin, myös tyhjällä nameHintillä.
-// - Lisätty useampi S-kaupat GraphQL -juustoslug fallbackiin.
-// - Kananmunien V5-korjaus säilyy.
-// - /api/s-products sisäinen nimihaku ajetaan edelleen ENSIN.
+// V7_EAN_ROUTE_FAST_TIMEOUT_AND_NOHINT_NO_MASS_FALLBACK
+// Korjaus V6:n 49 s jumiin:
+// - Jos nameHint puuttuu, ei enää ajeta slug * query -massahakua.
+// - No-hint skannerihaku kokeilee vain nopean internal-/api/s-products-polun ja complementaryn.
+// - Route palauttaa nopeasti found:false, jolloin page/skannerin fallback saa näkyä.
+// - Jos nameHint on käytössä, GraphQL-fallback rajataan max. 6 slugiin ja max. 6 queryyn.
+// - Kaikille fetch-kutsuille lisätty timeout, ettei selain jää odottamaan.
 // - Hyväksytään edelleen vain exact EAN + price > 0.
 
 import { NextRequest, NextResponse } from "next/server";
@@ -16,6 +16,9 @@ const FILTERED_HASH =
 
 const COMPLEMENTARY_HASH =
   "9a0f8fccb697df461e462d3f4192076dd02de0646755e392a8e547ec60815dcb";
+
+const ROUTE_DEADLINE_MS = 8500;
+const FETCH_TIMEOUT_MS = 3500;
 
 const BROAD_SLUGS = [
   "",
@@ -247,6 +250,33 @@ function buildQueries(nameHint: string, ean: string) {
   return Array.from(terms).filter(Boolean);
 }
 
+
+async function fetchWithTimeout(url: string, init: RequestInit = {}, timeoutMs = FETCH_TIMEOUT_MS) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    return await fetch(url, {
+      ...init,
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function deadlineExceeded(startedAt: number) {
+  return Date.now() - startedAt > ROUTE_DEADLINE_MS;
+}
+
+function trimForNoHint(queries: string[], hasNameHint: boolean) {
+  if (hasNameHint) return queries.slice(0, 8);
+
+  // Ilman nimeä EAN-route ei saa arpoa 50 sekuntia eri kategorioita.
+  // Pidetään silti V6:n kananmunat/juusto-nopeat haut, mutta vain internal-polussa.
+  return queries.slice(0, 10);
+}
+
 async function tryInternalSProductsExact(args: {
   origin: string;
   ean: string;
@@ -257,11 +287,11 @@ async function tryInternalSProductsExact(args: {
   url.searchParams.set("search", args.queryString);
   url.searchParams.set("store", args.storeId);
 
-  const response = await fetch(url.toString(), {
+  const response = await fetchWithTimeout(url.toString(), {
     method: "GET",
     headers: { accept: "application/json" },
     cache: "no-store",
-  });
+  }, 2500);
 
   const payload = await response.json().catch(() => null);
   const products = flattenProducts(payload);
@@ -287,7 +317,7 @@ async function fetchSGraphql(operationName: string, variables: any, hash: string
     }),
   );
 
-  const response = await fetch(url.toString(), {
+  const response = await fetchWithTimeout(url.toString(), {
     method: "GET",
     headers: {
       accept: "application/json",
@@ -298,7 +328,7 @@ async function fetchSGraphql(operationName: string, variables: any, hash: string
       referer: "https://www.s-kaupat.fi/",
     },
     cache: "no-store",
-  });
+  }, 3500);
 
   const text = await response.text();
 
@@ -366,12 +396,19 @@ export async function GET(request: NextRequest) {
     }
 
     const debug: any[] = [];
-    const queries = buildQueries(nameHint, ean);
+    const startedAt = Date.now();
+    const hasNameHint = nameHint.length >= 3;
+    const queries = trimForNoHint(buildQueries(nameHint, ean), hasNameHint);
 
     // 1) NOPEA ENSISIJAINEN POLKU:
     // Sama /api/s-products-nimihaku kuin käsinhaussa.
     // Hyväksy vain exact EAN + hinta.
     for (const queryString of queries) {
+      if (deadlineExceeded(startedAt)) {
+        debug.push({ step: "DeadlineBeforeInternalFinished", elapsedMs: Date.now() - startedAt });
+        break;
+      }
+
       const internal = await tryInternalSProductsExact({
         origin,
         ean,
@@ -410,8 +447,18 @@ export async function GET(request: NextRequest) {
     }
 
     // 2) GraphQL-kategoriat vasta varalla.
-    for (const slug of BROAD_SLUGS) {
-      for (const queryString of queries) {
+    // V7: jos nameHint puuttuu, tätä ei ajeta lainkaan. Muuten EAN-skanneri voi
+    // jäädä 30-50 sekunniksi arpomaan kategorioita, vaikka tuotetta ei löydy.
+    const fallbackSlugs = hasNameHint ? BROAD_SLUGS.slice(0, 6) : [];
+    const fallbackQueries = hasNameHint ? queries.slice(0, 6) : [];
+
+    for (const slug of fallbackSlugs) {
+      for (const queryString of fallbackQueries) {
+        if (deadlineExceeded(startedAt)) {
+          debug.push({ step: "DeadlineBeforeGraphqlFallbackFinished", elapsedMs: Date.now() - startedAt });
+          break;
+        }
+
         const filtered = await tryFilteredExact({ ean, storeId, slug, queryString });
 
         if (debugEnabled) {
@@ -443,6 +490,21 @@ export async function GET(request: NextRequest) {
     }
 
     // 3) Complementary vain viimeiseksi. Ei saa hyväksyä väärää tuotetta.
+    if (deadlineExceeded(startedAt)) {
+      return NextResponse.json({
+        ok: true,
+        source: "s-kaupat-ean-route-deadline-v7",
+        found: false,
+        ean,
+        storeId,
+        nameHint,
+        checkedQueries: queries,
+        checkedSlugs: fallbackSlugs,
+        elapsedMs: Date.now() - startedAt,
+        debug,
+      });
+    }
+
     const complementary = await fetchSGraphql(
       "RemoteComplementaryProducts",
       {
@@ -490,7 +552,8 @@ export async function GET(request: NextRequest) {
       storeId,
       nameHint,
       checkedQueries: queries,
-      checkedSlugs: BROAD_SLUGS,
+      checkedSlugs: fallbackSlugs,
+      elapsedMs: Date.now() - startedAt,
       debug,
     });
   } catch (error: any) {
