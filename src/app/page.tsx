@@ -1,3 +1,10 @@
+// V519_GPS_DEFAULT_ON_REAL_BOOT_START
+// Korjaus V518:ssä jääneeseen V504-no-op/disable-efektiin:
+// - GPS ei vain näytä oletuksena päällä, vaan käynnistää oikeasti saman paikannuspolun kuin GPS-nappi.
+// - Vanha V504_NO_BOOT_AUTO_GPS-efekti ei enää saa asettaa gpsUserDisabledRef=true bootissa.
+// - Jos käyttäjä painaa GPS:n pois tai kirjoittaa kunnan/kaupungin, GPS pysyy pois päältä kuten ennen.
+// - GPS ei edelleenkään pakota Tavaratalot/Lähikaupat-valintaa.
+
 // V518_GPS_DEFAULT_ON_UNLESS_USER_TURNS_OFF_OR_MANUAL_CITY
 // Pohja: V517.
 // Muutos:
@@ -3059,6 +3066,10 @@ export default function Page() {
     // asettaa gpsUserDisabledRefV306.current = true ja estää tämän boot-haun.
     gpsUserDisabledRefV306.current = false;
     gpsInitialVisiblePhaseRefV391.current = false;
+    setUsingOwnLocation(true);
+    setLocationMessage("Paikannetaan...");
+    setLocationMessageVisible(true);
+    setGpsErrorMessage("");
     setGpsBootReadyV473(false);
     setStoreSearchLoading(false);
     setGpsStorePickerBlockedV382(false);
@@ -3077,7 +3088,9 @@ export default function Page() {
 
     window.setTimeout(() => {
       if (gpsUserDisabledRefV306.current) return;
-      void useOwnLocation("boot");
+      // V519: käytä samaa polkua kuin GPS-nappi, jotta paikannus käynnistyy oikeasti
+      // myös silloin kun snapshotissa on jo vanhat coords+kaupat.
+      void useOwnLocation("manual");
     }, 650);
   }, []);
 
@@ -9560,23 +9573,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setGpsBootReadyV473(true);
   }, []);
 
-  // V504_NO_BOOT_AUTO_GPS:
-  // Älä käynnistä GPS:ää automaattisesti reloadissa. Käyttäjä voi painaa GPS-nappia,
-  // tai aiempi sijainti/kauppavalinta palautetaan localStoragesta vakaaksi alkunäkymäksi.
+  // V519_GPS_DEFAULT_ON:
+  // Vanha V504_NO_BOOT_AUTO_GPS-efekti ei saa enää sammuttaa GPS:ää bootissa.
+  // Automaattinen käynnistys tehdään stable boot -efektissä ylempänä.
   useEffect(() => {
-    pushGpsDebugLogV492("boot gps effect disabled by V504");
-    if (gpsBootTimerRefV483.current) {
-      window.clearTimeout(gpsBootTimerRefV483.current);
-      gpsBootTimerRefV483.current = null;
-    }
-    if (gpsBootWatchdogRefV483.current) {
-      window.clearTimeout(gpsBootWatchdogRefV483.current);
-      gpsBootWatchdogRefV483.current = null;
-    }
-    gpsUserDisabledRefV306.current = true;
+    pushGpsDebugLogV492("boot gps default-on guard active by V519");
     setGpsBootReadyV473(true);
-    setStoreSearchLoading(false);
-    setGpsStorePickerBlockedV382(false);
   }, []);
 
   async function searchOffers(termOverride?: string) {
