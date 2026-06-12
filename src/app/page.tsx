@@ -1,3 +1,10 @@
+// V521_EAN_PAGE_ACCEPT_S_EXACT_WITHOUT_PRICE_AND_VISIBLE_NOT_FOUND
+// Korjaus V520:n EAN-polkuun:
+// - S-kaupan direct /api/s-ean-product -osuma hyväksytään exact EANilla myös ilman hintaa.
+// - Tämä estää alkoholituotteiden / hinnattomien S-osumien katoamisen page-tasolla.
+// - Kameraskanneri näyttää nyt myös ei-löytynyt-viestin, eikä hiljene täysin found:false-polussa.
+// - Dedup/sort suosii hinnallista osumaa, mutta ei hylkää hinnatonta exact S-osumaa.
+
 // V520_BT_EAN_ACTIVE_S_STOREID_DIRECT_ROUTE
 // Korjaus BT-/kamera-EAN-hakuun:
 // - /api/s-ean-product saa nyt aina aktiivisen S-kaupan storeId-parametrin.
@@ -11310,11 +11317,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       let cachedHitNameV499 = "";
 
       const addStrictSEanProductResultV497 = (product: any, sourceLabel: string) => {
-        if (
-          !product ||
-          getProductPrice(product as Product) <= 0 ||
-          !isSameEan(product?.ean, variants)
-        ) {
+        // V521: S-kaupan exact EAN pitää hyväksyä myös ilman hintaa.
+        // Alkoholituotteissa / osa S-osumista voi palautua S-kaupoista niin, että
+        // tuotteen nimi + EAN ovat oikein mutta price puuttuu tai on 0.
+        // Hintavertailussa hinta on tällöin 0, mutta tuote ei saa kadota kokonaan.
+        if (!product || !isSameEan(product?.ean, variants)) {
           return false;
         }
 
@@ -11373,9 +11380,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             );
             if (addStrictSEanProductResultV497(cachedProductV497, "S-v497-cache")) {
               cachedHitNameV499 = fixText(String(cachedProductV497?.name || cachedRouteV497?.nameHint || ""));
-              pushScannerDebugV493("S_CACHE ACCEPT exact EAN + price");
+              pushScannerDebugV493(`S_CACHE ACCEPT exact EAN price=${getProductPrice(cachedProductV497 as Product)}`);
             } else {
-              pushScannerDebugV493("S_CACHE reject stale/wrong/no price");
+              pushScannerDebugV493("S_CACHE reject stale/wrong EAN");
               window.localStorage.removeItem(sEanCacheKeyV497);
             }
           } else {
@@ -11646,7 +11653,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           normalize(result.storeName || ""),
         ].join("|");
         const previous = dedupedExactResultsMapV502.get(dedupeKeyV502);
-        if (!previous || getProductPrice(result.product) < getProductPrice(previous.product)) {
+        const resultPriceV521 = getProductPrice(result.product);
+        const previousPriceV521 = previous ? getProductPrice(previous.product) : 0;
+        if (
+          !previous ||
+          (resultPriceV521 > 0 && previousPriceV521 <= 0) ||
+          (resultPriceV521 > 0 && previousPriceV521 > 0 && resultPriceV521 < previousPriceV521)
+        ) {
           dedupedExactResultsMapV502.set(dedupeKeyV502, result);
         }
       }
@@ -11654,7 +11667,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const exactResults = Array.from(dedupedExactResultsMapV502.values()).sort(
         (a, b) => {
           if (a.chain !== b.chain) return a.chain === "S" ? -1 : 1;
-          return getProductPrice(a.product) - getProductPrice(b.product);
+          const aPriceV521 = getProductPrice(a.product);
+          const bPriceV521 = getProductPrice(b.product);
+          if (aPriceV521 > 0 && bPriceV521 <= 0) return -1;
+          if (aPriceV521 <= 0 && bPriceV521 > 0) return 1;
+          return aPriceV521 - bPriceV521;
         },
       );
 
@@ -11780,9 +11797,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         setEanSearchStartedAutomatically(false);
         eanAutoSearchActiveRef.current = false;
         setLastAutoEanSearch("");
-        setEanMessage("");
-        pushScannerDebugV493("STOP scanner mode: no unknown fallback added");
-        setEanScannerMessage("");
+        const notFoundScannerMessageV521 = "Tuotetta ei löytynyt valitusta kaupasta.";
+        setEanMessage(notFoundScannerMessageV521);
+        pushScannerDebugV493("STOP scanner mode: no unknown fallback added; show not-found notice");
+        setEanScannerMessage(notFoundScannerMessageV521);
+        window.setTimeout(() => {
+          setEanScannerMessage((current) =>
+            current === notFoundScannerMessageV521 ? "" : current,
+          );
+        }, 2600);
         return;
       }
 
