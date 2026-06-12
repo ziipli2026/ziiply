@@ -1,11 +1,37 @@
-export function normalizeSearchText(value: string | null | undefined): string {
+/**
+ * Ziiply search normalizer.
+ *
+ * V522_KEEP_FINNISH_DIACRITICS
+ * - Ääkkösiä EI enää poisteta pää-normalisoinnissa.
+ *   ruisleipä pysyy ruisleipä, sämpylä pysyy sämpylä, jäätelö pysyy jäätelö.
+ * - ASCII/ääkkösetön vertailu on silti mukana fallbackina hasAny/hasWord-funktioissa,
+ *   jotta käyttäjän "ruisleipa" osuu edelleen tuotteen "ruisleipä" nimeen.
+ * - Tärkeä ero: hakusanaa ei enää korvata ääkkösettömällä muodolla koko hakuketjussa.
+ */
+
+function cleanSearchText(value: string | null | undefined): string {
   return String(value || "")
     .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
+    .normalize("NFC")
     .replace(/[.,;:!?()[\]{}]/g, " ")
+    .replace(/[“”"']/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+export function normalizeSearchText(value: string | null | undefined): string {
+  return cleanSearchText(value);
+}
+
+/**
+ * ASCII fallback vain vertailuun.
+ * Älä käytä tätä pääquerynä / canonicalQuerynä, koska suomalaisessa ruokahaussa
+ * "ruisleipä" -> "ruisleipa" aiheuttaa helposti väärää rankkausta.
+ */
+export function normalizeSearchTextAscii(value: string | null | undefined): string {
+  return cleanSearchText(value)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
 }
 
 export const normalizeFi = normalizeSearchText;
@@ -23,24 +49,44 @@ export function normalizeEan(value: string | null | undefined): string {
   return String(value || "").replace(/\D/g, "").trim();
 }
 
+function includesWithAsciiFallback(text: string, term: string): boolean {
+  if (!text || !term) return false;
+
+  if (text.includes(term)) return true;
+
+  const asciiText = normalizeSearchTextAscii(text);
+  const asciiTerm = normalizeSearchTextAscii(term);
+
+  return asciiTerm.length > 0 && asciiText.includes(asciiTerm);
+}
+
 export function hasAny(text: string | null | undefined, terms: string[]): boolean {
   const normalizedText = normalizeSearchText(text);
 
   return terms.some((term) => {
     const normalizedTerm = normalizeSearchText(term);
-    return normalizedTerm.length > 0 && normalizedText.includes(normalizedTerm);
+    return normalizedTerm.length > 0 && includesWithAsciiFallback(normalizedText, normalizedTerm);
   });
+}
+
+function hasWordInNormalizedText(normalizedText: string, normalizedWord: string): boolean {
+  if (!normalizedText || !normalizedWord) return false;
+
+  return new RegExp(`(^|\\s)${normalizedWord.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(\\s|$)`).test(
+    normalizedText
+  );
 }
 
 export function hasWord(text: string | null | undefined, word: string): boolean {
   const normalizedText = normalizeSearchText(text);
   const normalizedWord = normalizeSearchText(word);
 
-  if (!normalizedText || !normalizedWord) return false;
+  if (hasWordInNormalizedText(normalizedText, normalizedWord)) return true;
 
-  return new RegExp(`(^|\\s)${normalizedWord.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(\\s|$)`).test(
-    normalizedText
-  );
+  const asciiText = normalizeSearchTextAscii(text);
+  const asciiWord = normalizeSearchTextAscii(word);
+
+  return hasWordInNormalizedText(asciiText, asciiWord);
 }
 
 export function uniqueStable<T>(items: T[]): T[] {
