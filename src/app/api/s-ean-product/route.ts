@@ -848,7 +848,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (exactComplementary) {
-      if (getPrice(exactComplementary) <= 0) {
+      if ((getPrice(exactComplementary) ?? 0) <= 0) {
         console.log(
           "EAN FOUND WITHOUT PRICE",
           { source: "s-kaupat-complementary", ean, storeId, name: fixText(exactComplementary?.name), price: getPrice(exactComplementary) },
