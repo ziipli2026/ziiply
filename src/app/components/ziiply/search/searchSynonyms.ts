@@ -96,6 +96,32 @@ export const ZIIPLY_SYNONYM_GROUPS: ZiiplySynonymGroup[] = [
     ],
   },
   {
+    canonical: "ruisleipä",
+    terms: [
+      "ruisleipä",
+      "ruisleivät",
+      "ruisleipäpalat",
+      "ruispalat",
+      "ruispala",
+      "ruislimppu",
+    ],
+    categories: ["leivät", "leipomo"],
+    notes: ["Tarkka ruisleipä-intentti: ei laajenneta sämpylöihin tai paahtoleipiin."],
+  },
+  {
+    canonical: "kaurahiutale",
+    terms: [
+      "kaurahiutale",
+      "kaurahiutaleet",
+      "kaura hiutale",
+      "kaura hiutaleet",
+      "höyryttämätön kaura",
+      "puurohiutale",
+    ],
+    categories: ["hiutaleet", "puurohiutaleet", "kuivatuotteet"],
+    notes: ["Tarkka kaurahiutale-intentti: ei laajenneta kauraleipiin tai leivontavälineisiin."],
+  },
+  {
     canonical: "koiranmakkara",
     terms: [
       "koiranmakkara",
