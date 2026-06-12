@@ -55,7 +55,7 @@ const PET_HINTS = [
 
 function shouldDebugRanker(query: string) {
   const q = normalizeFi(query);
-  return q.includes("makkara") || q.includes("nakki") || q.includes("liha");
+  return q.includes("makkara") || q.includes("nakki") || q.includes("liha") || q.includes("ruisleipa") || q.includes("kaurahiutale");
 }
 
 export function scoreNormalSearchProduct<T extends ZiiplySearchProductLike>(
@@ -77,6 +77,21 @@ export function scoreNormalSearchProduct<T extends ZiiplySearchProductLike>(
   const text = getProductSearchText(product);
   const queryTokens = tokenizeFi(q);
 
+  if (intent.intent === "rye_bread" && !hasAny(text, ["ruis", "ruisleipa", "ruisleipapala", "ruispala", "ruislimppu"])) {
+    return { product, score: -9999, reasons: ["blocked_specific_rye_bread_intent"] };
+  }
+
+  if (intent.intent === "oat_flakes") {
+    const hasOatFlakeSignal =
+      hasAny(text, ["kaurahiutale", "kaura hiutale"]) ||
+      (hasAny(text, ["kaura"]) && hasAny(text, ["hiutale", "hoyryttamaton", "höyryttämätön"])) ||
+      (hasAny(category, ["hiutale", "puurohiutale"]) && hasAny(text, ["kaura"]));
+
+    if (!hasOatFlakeSignal) {
+      return { product, score: -9999, reasons: ["blocked_specific_oat_flakes_intent"] };
+    }
+  }
+
   let score = baseScore;
 
   if (name === q) {
@@ -94,6 +109,24 @@ export function scoreNormalSearchProduct<T extends ZiiplySearchProductLike>(
   } else if (matchedTokens.length > 0) {
     score += matchedTokens.length * 12;
     reasons.push("some_query_tokens");
+  }
+
+  if (intent.intent === "rye_bread") {
+    score += 120;
+    reasons.push("specific_rye_bread_match");
+    if (hasAny(name, ["ruisleipa", "ruisleipapala", "ruispala"])) {
+      score += 45;
+      reasons.push("rye_name_boost");
+    }
+  }
+
+  if (intent.intent === "oat_flakes") {
+    score += 120;
+    reasons.push("specific_oat_flakes_match");
+    if (hasAny(name, ["kaurahiutale", "kaura hiutale"])) {
+      score += 55;
+      reasons.push("oat_flake_name_boost");
+    }
   }
 
   if (brand && q.includes(brand)) {
