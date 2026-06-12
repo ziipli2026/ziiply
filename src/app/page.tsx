@@ -1,3 +1,11 @@
+// V518_GPS_DEFAULT_ON_UNLESS_USER_TURNS_OFF_OR_MANUAL_CITY
+// Pohja: V517.
+// Muutos:
+// - GPS on oletuksena päällä sivun käynnistyessä ja yrittää paikannusta automaattisesti.
+// - Jos käyttäjä painaa GPS:n itse pois tai kirjoittaa sijaintikenttään kunnan/kaupungin/postinumeron,
+//   GPS kytkeytyy pois eikä taustapaikannus pakota sitä takaisin päälle saman käyttökerran aikana.
+// - Kauppatyyppiä ei edelleenkään pakoteta GPS:n perusteella: käyttäjä valitsee Tavaratalot/Lähikaupat itse.
+
 // V517_VOICE_NOTICE_CENTERED_ABOVE_MIC_AND_STABLE_TIMEOUT
 // Korjaus V516:n kahteen vikaan:
 // - sanelu-/virhebanneri keskitetään Äänitä-napin vaakakeskilinjaan, ei koko ruudun/hakualueen keskelle.
@@ -2662,7 +2670,7 @@ export default function Page() {
     "main" | "selection"
   >("main");
   const [locationMessage, setLocationMessage] = useState(
-    "Paikannetaan GPS",
+    "Paikannetaan...",
   );
   const [locationMessageVisible, setLocationMessageVisible] = useState(true);
   const [usingOwnLocation, setUsingOwnLocation] = useState(false);
@@ -3046,9 +3054,12 @@ export default function Page() {
       setLocationMessage("Valitse sijainti ja kauppatyyppi.");
     }
 
-    gpsUserDisabledRefV306.current = true;
+    // V518: GPS on oletusarvona päällä jokaisella käynnistyksellä.
+    // Käyttäjän oma pois-painallus tai käsin kirjoitettu kunta/kaupunki/postinumero
+    // asettaa gpsUserDisabledRefV306.current = true ja estää tämän boot-haun.
+    gpsUserDisabledRefV306.current = false;
     gpsInitialVisiblePhaseRefV391.current = false;
-    setGpsBootReadyV473(true);
+    setGpsBootReadyV473(false);
     setStoreSearchLoading(false);
     setGpsStorePickerBlockedV382(false);
     setSearchPanelOpen(false);
@@ -3063,6 +3074,11 @@ export default function Page() {
       setShowLaunchScreen(false);
       storeSelectionHydratedRefV343.current = true;
     }, 240);
+
+    window.setTimeout(() => {
+      if (gpsUserDisabledRefV306.current) return;
+      void useOwnLocation("boot");
+    }, 650);
   }, []);
 
   useEffect(() => {
@@ -9130,7 +9146,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setUsingOwnLocation(true);
     setGpsCoordsV320(coords);
     setStoreSearchLoading(true);
-    setLocationStatusV137("Paikannetaan GPS");
+    setLocationStatusV137("Paikannetaan...");
     setLocationMessageVisible(true);
 
     try {
@@ -9273,7 +9289,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setUsingOwnLocation(true);
     setLocationInput("");
     setStoreSearchLoading(true);
-    setLocationMessage("Paikannetaan GPS");
+    setLocationMessage("Paikannetaan...");
 
     try {
       pushGpsDebugLogV492(`useOwnLocation before getCurrentPosition`);
@@ -16535,16 +16551,23 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     onLocationInputChange={(nextValue) => {
                       setLocationInput(nextValue);
                       if (nextValue.trim()) {
-                        pushGpsDebugLogV492("GPS BUTTON -> OFF");
-                  gpsUserDisabledRefV306.current = true;
+                        pushGpsDebugLogV492("MANUAL LOCATION INPUT -> GPS OFF");
+                        gpsUserDisabledRefV306.current = true;
+                        gpsInitialVisiblePhaseRefV391.current = false;
+                        stopSilentGpsWatchV391();
                         setUsingOwnLocation(false);
+                        setGpsCoordsV320(null);
                       }
                       setLocationMessage("Kirjoita alue tai postinumero");
                     }}
-                    
-                    // V486: GPS-nappi pois testistä; automaattinen boot-startti hoitaa paikannuksen.
-                    onUseOwnLocation={() => undefined}
-                    onDisableOwnLocation={() => undefined}
+
+                    // V518: GPS-nappi toimii taas: oletuksena GPS on päällä bootissa,
+                    // mutta käyttäjä voi sammuttaa sen itse ja käynnistää myöhemmin uudelleen.
+                    onUseOwnLocation={() => {
+                      gpsUserDisabledRefV306.current = false;
+                      void useOwnLocation("manual");
+                    }}
+                    onDisableOwnLocation={() => stopOwnLocationV306("GPS pois päältä")}
                     onOpenShops={() => {
                       setCartModalOpen(false);
                       setCartSavePanelOpen(false);
