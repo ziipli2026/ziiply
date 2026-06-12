@@ -1,37 +1,33 @@
-/**
- * Ziiply search normalizer.
- *
- * V522_KEEP_FINNISH_DIACRITICS
- * - Ääkkösiä EI enää poisteta pää-normalisoinnissa.
- *   ruisleipä pysyy ruisleipä, sämpylä pysyy sämpylä, jäätelö pysyy jäätelö.
- * - ASCII/ääkkösetön vertailu on silti mukana fallbackina hasAny/hasWord-funktioissa,
- *   jotta käyttäjän "ruisleipa" osuu edelleen tuotteen "ruisleipä" nimeen.
- * - Tärkeä ero: hakusanaa ei enää korvata ääkkösettömällä muodolla koko hakuketjussa.
- */
+export function normalizeSearchText(value: string | null | undefined): string {
+  return restoreFinnishFoodTerms(
+    String(value || "")
+      .toLowerCase()
+      .replace(/[.,;:!?()[\]{}]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim()
+  );
+}
 
-function cleanSearchText(value: string | null | undefined): string {
+/**
+ * V524:
+ * - Ei poisteta ääkkösiä yleisesti.
+ * - Korjataan vain se havaittu autocorrect/ASCII-häiriö:
+ *   ruisleipa -> ruisleipä
+ * - Ei kosketa toimivaa "ruisleivät"-hakua.
+ */
+export function restoreFinnishFoodTerms(value: string): string {
+  return String(value || "")
+    .replace(/\bruisleipa\b/g, "ruisleipä");
+}
+
+export function normalizeSearchTextAscii(value: string | null | undefined): string {
   return String(value || "")
     .toLowerCase()
-    .normalize("NFC")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
     .replace(/[.,;:!?()[\]{}]/g, " ")
-    .replace(/[“”"']/g, " ")
     .replace(/\s+/g, " ")
     .trim();
-}
-
-export function normalizeSearchText(value: string | null | undefined): string {
-  return cleanSearchText(value);
-}
-
-/**
- * ASCII fallback vain vertailuun.
- * Älä käytä tätä pääquerynä / canonicalQuerynä, koska suomalaisessa ruokahaussa
- * "ruisleipä" -> "ruisleipa" aiheuttaa helposti väärää rankkausta.
- */
-export function normalizeSearchTextAscii(value: string | null | undefined): string {
-  return cleanSearchText(value)
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
 }
 
 export const normalizeFi = normalizeSearchText;
@@ -49,44 +45,35 @@ export function normalizeEan(value: string | null | undefined): string {
   return String(value || "").replace(/\D/g, "").trim();
 }
 
-function includesWithAsciiFallback(text: string, term: string): boolean {
-  if (!text || !term) return false;
-
-  if (text.includes(term)) return true;
-
-  const asciiText = normalizeSearchTextAscii(text);
-  const asciiTerm = normalizeSearchTextAscii(term);
-
-  return asciiTerm.length > 0 && asciiText.includes(asciiTerm);
-}
-
 export function hasAny(text: string | null | undefined, terms: string[]): boolean {
   const normalizedText = normalizeSearchText(text);
+  const normalizedTextAscii = normalizeSearchTextAscii(text);
 
   return terms.some((term) => {
     const normalizedTerm = normalizeSearchText(term);
-    return normalizedTerm.length > 0 && includesWithAsciiFallback(normalizedText, normalizedTerm);
+    const normalizedTermAscii = normalizeSearchTextAscii(term);
+
+    return (
+      (normalizedTerm.length > 0 && normalizedText.includes(normalizedTerm)) ||
+      (normalizedTermAscii.length > 0 && normalizedTextAscii.includes(normalizedTermAscii))
+    );
   });
-}
-
-function hasWordInNormalizedText(normalizedText: string, normalizedWord: string): boolean {
-  if (!normalizedText || !normalizedWord) return false;
-
-  return new RegExp(`(^|\\s)${normalizedWord.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(\\s|$)`).test(
-    normalizedText
-  );
 }
 
 export function hasWord(text: string | null | undefined, word: string): boolean {
   const normalizedText = normalizeSearchText(text);
   const normalizedWord = normalizeSearchText(word);
+  const normalizedTextAscii = normalizeSearchTextAscii(text);
+  const normalizedWordAscii = normalizeSearchTextAscii(word);
 
-  if (hasWordInNormalizedText(normalizedText, normalizedWord)) return true;
+  if (!normalizedText || !normalizedWord) return false;
 
-  const asciiText = normalizeSearchTextAscii(text);
-  const asciiWord = normalizeSearchTextAscii(word);
+  const escape = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-  return hasWordInNormalizedText(asciiText, asciiWord);
+  return (
+    new RegExp(`(^|\\s)${escape(normalizedWord)}(\\s|$)`).test(normalizedText) ||
+    new RegExp(`(^|\\s)${escape(normalizedWordAscii)}(\\s|$)`).test(normalizedTextAscii)
+  );
 }
 
 export function uniqueStable<T>(items: T[]): T[] {
