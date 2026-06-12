@@ -1,11 +1,11 @@
-// V7_EAN_ROUTE_FAST_TIMEOUT_AND_NOHINT_NO_MASS_FALLBACK
+// V8_EAN_ROUTE_FAST_TIMEOUT_NOHINT_EXACT_EAN_NO_PRICE_OK
 // Korjaus V6:n 49 s jumiin:
 // - Jos nameHint puuttuu, ei enää ajeta slug * query -massahakua.
 // - No-hint skannerihaku kokeilee vain nopean internal-/api/s-products-polun ja complementaryn.
 // - Route palauttaa nopeasti found:false, jolloin page/skannerin fallback saa näkyä.
 // - Jos nameHint on käytössä, GraphQL-fallback rajataan max. 6 slugiin ja max. 6 queryyn.
 // - Kaikille fetch-kutsuille lisätty timeout, ettei selain jää odottamaan.
-// - Hyväksytään edelleen vain exact EAN + price > 0.
+// - Hyväksytään exact EAN myös silloin, kun price puuttuu tai on 0 (esim. S-kaupat alkoholituotteet).
 
 import { NextRequest, NextResponse } from "next/server";
 
@@ -402,7 +402,7 @@ export async function GET(request: NextRequest) {
 
     // 1) NOPEA ENSISIJAINEN POLKU:
     // Sama /api/s-products-nimihaku kuin käsinhaussa.
-    // Hyväksy vain exact EAN + hinta.
+    // Hyväksy exact EAN myös ilman hintaa. Hinta voi puuttua esim. alkoholituotteilta.
     for (const queryString of queries) {
       if (deadlineExceeded(startedAt)) {
         debug.push({ step: "DeadlineBeforeInternalFinished", elapsedMs: Date.now() - startedAt });
@@ -429,10 +429,16 @@ export async function GET(request: NextRequest) {
         });
       }
 
-      if (internal.exact && getPrice(internal.exact) > 0) {
+      if (internal.exact) {
+        if (getPrice(internal.exact) <= 0) {
+          console.log(
+            "EAN FOUND WITHOUT PRICE",
+            { source: "internal-/api/s-products", ean, storeId, name: fixText(internal.exact?.name), price: getPrice(internal.exact) },
+          );
+        }
         return NextResponse.json({
           ok: true,
-          source: "internal-s-products-fast-exact-ean-v6",
+          source: "internal-s-products-fast-exact-ean-v8-no-price-ok",
           found: true,
           ean,
           storeId,
@@ -475,10 +481,16 @@ export async function GET(request: NextRequest) {
           });
         }
 
-        if (filtered.exact && getPrice(filtered.exact) > 0) {
+        if (filtered.exact) {
+          if (getPrice(filtered.exact) <= 0) {
+            console.log(
+              "EAN FOUND WITHOUT PRICE",
+              { source: "s-kaupat-filtered-fallback", ean, storeId, slug, queryString, name: fixText(filtered.exact?.name), price: getPrice(filtered.exact) },
+            );
+          }
           return NextResponse.json({
             ok: true,
-            source: "s-kaupat-filtered-fallback-exact-v6",
+            source: "s-kaupat-filtered-fallback-exact-v8-no-price-ok",
             found: true,
             ean,
             storeId,
@@ -493,7 +505,7 @@ export async function GET(request: NextRequest) {
     if (deadlineExceeded(startedAt)) {
       return NextResponse.json({
         ok: true,
-        source: "s-kaupat-ean-route-deadline-v7",
+        source: "s-kaupat-ean-route-deadline-v8",
         found: false,
         ean,
         storeId,
@@ -532,10 +544,16 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    if (exactComplementary && getPrice(exactComplementary) > 0) {
+    if (exactComplementary) {
+      if (getPrice(exactComplementary) <= 0) {
+        console.log(
+          "EAN FOUND WITHOUT PRICE",
+          { source: "s-kaupat-complementary", ean, storeId, name: fixText(exactComplementary?.name), price: getPrice(exactComplementary) },
+        );
+      }
       return NextResponse.json({
         ok: true,
-        source: "s-kaupat-complementary-exact-v6",
+        source: "s-kaupat-complementary-exact-v8-no-price-ok",
         found: true,
         ean,
         storeId,
@@ -546,7 +564,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       ok: true,
-      source: "s-kaupat-fast-internal-plus-eggs-cheese-v6",
+      source: "s-kaupat-fast-internal-plus-eggs-cheese-v8-no-price-ok",
       found: false,
       ean,
       storeId,
