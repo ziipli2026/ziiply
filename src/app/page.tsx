@@ -5,6 +5,14 @@
 // - Kameraskanneri näyttää nyt myös ei-löytynyt-viestin, eikä hiljene täysin found:false-polussa.
 // - Dedup/sort suosii hinnallista osumaa, mutta ei hylkää hinnatonta exact S-osumaa.
 
+// V522_EAN_NO_FALSE_STORE_NOTFOUND_NOTICE
+// Korjaus V521:n virheelliseen ilmoitukseen:
+// - Skanneri ei saa väittää "Tuotetta ei löytynyt valitusta kaupasta", koska route/response voi epäonnistua
+//   vaikka tuote on oikeasti S-kaupat.fi:ssä.
+// - Kun kamera-EAN ei saa exact-osumaa ulos S/K/OFF-polusta, näytetään teknisesti oikea viesti:
+//   "EAN tunnistettiin, mutta tuotetietoa ei saatu tuotua skanneriin."
+// - S exact EAN hyväksytään edelleen ilman hintaa kuten V521:ssä.
+
 // V520_BT_EAN_ACTIVE_S_STOREID_DIRECT_ROUTE
 // Korjaus BT-/kamera-EAN-hakuun:
 // - /api/s-ean-product saa nyt aina aktiivisen S-kaupan storeId-parametrin.
@@ -11443,7 +11451,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           const product = data?.product;
 
           pushScannerDebugV493(
-            `S_DIRECT status=${response.status} found=${Boolean(data?.found)} price=${getProductPrice(product as Product)} source=${String(data?.source || "-")}`,
+            `S_DIRECT status=${response.status} found=${Boolean(data?.found)} hasProduct=${Boolean(product)} price=${getProductPrice(product as Product)} source=${String(data?.source || "-")} checked=${Array.isArray(data?.checkedQueries) ? data.checkedQueries.slice(0, 4).join("|") : "-"}`,
           );
 
           if (response.ok && product && addStrictSEanProductResultV497(product, "S-v520-direct-s-ean-product")) {
@@ -11797,13 +11805,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         setEanSearchStartedAutomatically(false);
         eanAutoSearchActiveRef.current = false;
         setLastAutoEanSearch("");
-        const notFoundScannerMessageV521 = "Tuotetta ei löytynyt valitusta kaupasta.";
-        setEanMessage(notFoundScannerMessageV521);
-        pushScannerDebugV493("STOP scanner mode: no unknown fallback added; show not-found notice");
-        setEanScannerMessage(notFoundScannerMessageV521);
+        const scannerLookupFailedMessageV522 =
+          "EAN luettiin, mutta tuotetietoa ei saatu tuotua skanneriin.";
+        setEanMessage(scannerLookupFailedMessageV522);
+        pushScannerDebugV493(
+          "STOP scanner mode: no unknown fallback added; lookup failed but do NOT claim store-not-found",
+        );
+        setEanScannerMessage(scannerLookupFailedMessageV522);
         window.setTimeout(() => {
           setEanScannerMessage((current) =>
-            current === notFoundScannerMessageV521 ? "" : current,
+            current === scannerLookupFailedMessageV522 ? "" : current,
           );
         }, 2600);
         return;
