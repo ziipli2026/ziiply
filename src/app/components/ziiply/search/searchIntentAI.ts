@@ -18,6 +18,8 @@ export type ZiiplySearchIntentName =
   | "eggs"
   | "meat"
   | "bread"
+  | "rye_bread"
+  | "oat_flakes"
   | "cheese"
   | "yogurt"
   | "butter"
@@ -59,6 +61,13 @@ const QUERY_CORRECTIONS: Record<string, string> = {
   kookis: "coca cola",
   jugurtti: "jogurtti",
   jugurti: "jogurtti",
+  kaurahiutaleet: "kaurahiutale",
+  "kaura hiutaleet": "kaurahiutale",
+  "kaura hiutale": "kaurahiutale",
+  ruisleivat: "ruisleipa",
+  ruisleivät: "ruisleipa",
+  ruisleipapalat: "ruisleipapala",
+  ruispalat: "ruispala",
 };
 
 export function correctSearchQuery(query: string) {
@@ -105,10 +114,26 @@ const INTENTS: Record<Exclude<ZiiplySearchIntentName, "unknown">, Omit<ZiiplySea
   },
   bread: {
     confidence: 0.82,
-    includeTerms: ["leipä", "ruisleipä", "paahtoleipä", "sämpylä", "rieska"],
-    preferredTerms: ["leipä", "ruisleipä", "paahtoleipä"],
-    excludeTerms: ["korppujauho", "krutonki", "näkkileipälevite"],
+    includeTerms: ["leipä", "paahtoleipä", "sämpylä", "rieska"],
+    preferredTerms: ["leipä", "paahtoleipä"],
+    excludeTerms: ["korppujauho", "krutonki", "näkkileipälevite", "leipävuoka", "leipäveitsi", "leipäkori"],
     categoryHints: ["leivät", "leipomo"],
+  },
+  rye_bread: {
+    confidence: 0.95,
+    includeTerms: ["ruisleipä", "ruisleipäpalat", "ruispalat", "ruislimppu", "ruis", "ruispaahtoleipä"],
+    preferredTerms: ["ruisleipä", "ruisleipäpalat", "ruispalat"],
+    excludeTerms: ["sämpylä", "sämpyläjauho", "hot dog", "paahtoleipä", "vehnäleipä", "leipävuoka", "leipäveitsi", "leipäkori", "jauho"],
+    categoryHints: ["leivät", "leipomo"],
+    notes: ["Ruisleipä-haku ei saa laajentua koko leipäosastoon."],
+  },
+  oat_flakes: {
+    confidence: 0.95,
+    includeTerms: ["kaurahiutale", "kaurahiutaleet", "kaura hiutale", "kaura hiutaleet", "höyryttämätön kaura", "kaura"],
+    preferredTerms: ["kaurahiutale", "kaurahiutaleet"],
+    excludeTerms: ["leipä", "sämpylä", "hot dog", "paahtoleipä", "leipävuoka", "leipäveitsi", "leipäkori", "veitsi", "vuoka", "kori"],
+    categoryHints: ["hiutaleet", "puurohiutaleet", "kuivatuotteet", "aamiaistuotteet"],
+    notes: ["Kaurahiutale-haku pidetään kaurahiutaleissa, ei kauraleivissä tai leivontavälineissä."],
   },
   cheese: {
     confidence: 0.84,
@@ -185,7 +210,9 @@ export function resolveSearchIntentAI(query: string): ZiiplySearchIntent {
     ["coffee", (v) => hasWord(v, "kahvi") || hasAny(v, ["juhla mokka", "presidentti", "suodatinkahvi"]), q],
     ["eggs", (v) => hasAny(v, ["kananmuna", "kananmunat"]) || hasWord(v, "munat"), "kananmuna"],
     ["meat", (v) => hasAny(v, ["jauheliha", "broileri", "kana", "naudan", "sika-nauta", "sika nauta"]), q],
-    ["bread", (v) => hasAny(v, ["leipä", "ruisleipä", "paahtoleipä", "sämpylä", "rieska"]), q],
+    ["oat_flakes", (v) => hasAny(v, ["kaurahiutale", "kaurahiutaleet", "kaura hiutale", "kaura hiutaleet"]), "kaurahiutale"],
+    ["rye_bread", (v) => hasAny(v, ["ruisleipä", "ruisleivät", "ruisleivat", "ruisleipapalat", "ruispalat", "ruispala", "ruis limppu", "ruislimppu"]), "ruisleipa"],
+    ["bread", (v) => hasAny(v, ["leipä", "paahtoleipä", "sämpylä", "rieska"]), q],
     ["cheese", (v) => hasWord(v, "juusto") || hasAny(v, ["emmental", "edam", "oltermanni"]), q],
     ["yogurt", (v) => hasAny(v, ["jogurtti", "jugurtti", "rahka", "viili"]), q],
     ["butter", (v) => hasWord(v, "voi") || hasAny(v, ["margariini", "levite"]), q],
@@ -204,7 +231,11 @@ export function resolveSearchIntentAI(query: string): ZiiplySearchIntent {
         canonicalQuery,
         intent,
         ...base,
-        includeTerms: uniqueStable([...base.includeTerms, ...expandSearchSynonyms(canonicalQuery)]),
+        includeTerms: uniqueStable(
+          intent === "rye_bread" || intent === "oat_flakes"
+            ? [...base.includeTerms, canonicalQuery]
+            : [...base.includeTerms, ...expandSearchSynonyms(canonicalQuery)]
+        ),
         preferredTerms: uniqueStable([...base.preferredTerms, canonicalQuery]),
       };
     }
@@ -225,18 +256,26 @@ export function resolveSearchIntentAI(query: string): ZiiplySearchIntent {
 
 export function getIntentSearchQueries(query: string, maxQueries = 8): string[] {
   const intent = resolveSearchIntentAI(query);
-  const candidates = [
-    intent.correctedQuery,
-    intent.canonicalQuery,
-    ...intent.preferredTerms,
-    ...intent.includeTerms,
-    ...expandSearchSynonyms(intent.canonicalQuery || query),
-    query,
-  ]
-    .map(normalizeFi)
-    .filter(Boolean);
+  const candidates =
+    intent.intent === "rye_bread" || intent.intent === "oat_flakes"
+      ? [
+          intent.correctedQuery,
+          intent.canonicalQuery,
+          query,
+          ...intent.preferredTerms,
+          ...intent.includeTerms,
+        ]
+      : [
+          intent.correctedQuery,
+          intent.canonicalQuery,
+          ...intent.preferredTerms,
+          ...intent.includeTerms,
+          ...expandSearchSynonyms(intent.canonicalQuery || query),
+          query,
+        ];
+  const normalizedCandidates = candidates.map(normalizeFi).filter(Boolean);
 
-  return uniqueStable(candidates).slice(0, maxQueries);
+  return uniqueStable(normalizedCandidates).slice(0, maxQueries);
 }
 
 export function isProductAllowedByIntent(product: IntentProductLike, intent: ZiiplySearchIntent): boolean {
@@ -250,6 +289,18 @@ export function isProductAllowedByIntent(product: IntentProductLike, intent: Zii
 
   if (!text) return false;
   if (hasAny(text, intent.excludeTerms)) return false;
+
+  if (intent.intent === "rye_bread") {
+    return hasAny(text, ["ruis", "ruisleipa", "ruisleipapala", "ruispala", "ruislimppu"]);
+  }
+
+  if (intent.intent === "oat_flakes") {
+    return (
+      hasAny(text, ["kaurahiutale", "kaura hiutale"]) ||
+      (hasAny(text, ["kaura"]) && hasAny(text, ["hiutale", "hoyryttamaton", "höyryttämätön"])) ||
+      (hasAny(category, ["hiutale", "puurohiutale"]) && hasAny(text, ["kaura"]))
+    );
+  }
 
   if (intent.categoryHints.length > 0 && hasAny(category, intent.categoryHints)) {
     if (intent.intent === "milk_drink" && hasAny(text, ["suklaa", "voi", "jogurtti", "kerma", "maitojauhe"])) return false;
@@ -280,6 +331,18 @@ export function scoreProductIntentFit(product: IntentProductLike, intent: Ziiply
     if (hasWord(name, "maito")) score += 30;
     if (hasAny(name, ["kevytmaito", "täysmaito", "rasvaton maito"])) score += 45;
     if (hasAny(text, ["suklaa", "voi", "jogurtti", "kerma", "maitojauhe"])) score -= 80;
+  }
+
+  if (intent.intent === "rye_bread") {
+    if (hasAny(name, ["ruisleipa", "ruisleipapala", "ruispala", "ruislimppu", "ruispaahtoleipa"])) score += 90;
+    else if (hasAny(name, ["ruis"])) score += 55;
+    else score -= 180;
+  }
+
+  if (intent.intent === "oat_flakes") {
+    if (hasAny(name, ["kaurahiutale", "kaura hiutale", "hoyryttamaton kaura", "höyryttämätön kaura"])) score += 110;
+    else if (hasAny(name, ["kaura"]) && hasAny(name, ["hiutale"])) score += 80;
+    else score -= 220;
   }
 
   return score;
