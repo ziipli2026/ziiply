@@ -1,5 +1,13 @@
 "use client";
 
+// ZIIPLY_MOBILE_CART_CARD_V59_COMPACT_THERMOMETER_COMPLETE_CARD
+// Korjaus V58:n valmisnäkymään:
+// - iso analoginen viisari poistettu ja korvattu matalalla vanhan ajan elohopeamittarilla
+// - tekstit suurennettu ja hierarkia selkeytetty: tärkein viesti on "✓ Lista kasassa!"
+// - turhat selittävät tekstit poistettu
+// - toimintanapit sijoitettu ylemmäs omaan kompaktimpaan korttiin, jotta ne eivät osu Jaa ostoskori / takaisin / sulje -nappeihin
+// - visuaalinen linja pidetty nykyisessä vihko-/paperi-/messinkityylissä
+
 // ZIIPLY_MOBILE_CART_CARD_V58_COMPLETION_GAUGE_CHECKOUT_CARD
 // Lisää ostoslistan valmistumisnäkymän ilman, että nykyisen Tavarainkeruu-paperin päälle tungetaan lisätasoja.
 // Kun kaikki tuotteet on merkitty kerätyiksi, listan sisältö vaihtuu omaan vanhan ajan "pääteasema/kassa" -korttiin.
@@ -280,7 +288,7 @@ function QuantityCell({
 }
 
 
-function CartCompletionGauge({
+function CartCompletionThermometerV59({
   collected,
   total,
 }: {
@@ -289,166 +297,42 @@ function CartCompletionGauge({
 }) {
   const safeTotal = Math.max(1, total);
   const ratio = Math.max(0, Math.min(1, collected / safeTotal));
-  const angle = -112 + ratio * 224;
   const percent = Math.round(ratio * 100);
 
   return (
-    <div className="relative mx-auto mt-2 h-[9.1rem] w-[16.4rem] max-w-full">
-      <svg
-        viewBox="0 0 260 150"
-        role="img"
-        aria-label={`Kerätty ${collected} / ${total}`}
-        className="h-full w-full overflow-visible drop-shadow-[0_2px_2px_rgba(71,50,23,0.22)]"
-      >
-        <defs>
-          <linearGradient id="ziiplyGaugeBrassV58" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#fff1bf" />
-            <stop offset="44%" stopColor="#c7953b" />
-            <stop offset="100%" stopColor="#6c431e" />
-          </linearGradient>
-          <linearGradient id="ziiplyGaugePaperV58" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#fff4d2" />
-            <stop offset="100%" stopColor="#e4c482" />
-          </linearGradient>
-        </defs>
-
-        <path
-          d="M38 124 A92 92 0 0 1 222 124"
-          fill="none"
-          stroke="#5b351d"
-          strokeWidth="18"
-          strokeLinecap="round"
-          opacity="0.92"
-        />
-        <path
-          d="M48 124 A82 82 0 0 1 212 124"
-          fill="none"
-          stroke="url(#ziiplyGaugeBrassV58)"
-          strokeWidth="10"
-          strokeLinecap="round"
-        />
-        <path
-          d="M68 124 A62 62 0 0 1 192 124"
-          fill="none"
-          stroke="#f8e7b5"
-          strokeWidth="34"
-          strokeLinecap="round"
-          opacity="0.78"
-        />
-
-        {Array.from({ length: 9 }).map((_, index) => {
-          const tickAngle = (-112 + index * 28) * (Math.PI / 180);
-          const outerR = 96;
-          const innerR = index % 2 === 0 ? 79 : 84;
-          const cx = 130;
-          const cy = 124;
-          const x1 = cx + Math.cos(tickAngle) * outerR;
-          const y1 = cy + Math.sin(tickAngle) * outerR;
-          const x2 = cx + Math.cos(tickAngle) * innerR;
-          const y2 = cy + Math.sin(tickAngle) * innerR;
-          return (
-            <line
-              key={index}
-              x1={x1}
-              y1={y1}
-              x2={x2}
-              y2={y2}
-              stroke="#5a3a1e"
-              strokeWidth={index % 2 === 0 ? 3.4 : 2.1}
-              strokeLinecap="round"
-              opacity="0.82"
-            />
-          );
-        })}
-
-        <text
-          x="48"
-          y="137"
-          textAnchor="middle"
-          fontSize="13"
-          fontWeight="900"
-          fill="#533819"
-          style={{ fontFamily: copperplateFont }}
-        >
-          0
-        </text>
-        <text
-          x="130"
-          y="45"
-          textAnchor="middle"
-          fontSize="14"
-          fontWeight="900"
-          fill="#314226"
-          style={{ fontFamily: copperplateFont }}
-        >
-          KERÄTTY
-        </text>
-        <text
-          x="212"
-          y="137"
-          textAnchor="middle"
-          fontSize="13"
-          fontWeight="900"
-          fill="#533819"
-          style={{ fontFamily: copperplateFont }}
-        >
-          {total}
-        </text>
-
-        <g transform={`rotate(${angle} 130 124)`}>
-          <path
-            d="M130 124 L124 52 Q130 43 136 52 Z"
-            fill="#8d2718"
-            stroke="#5a1e12"
-            strokeWidth="1.8"
-          />
-          <path
-            d="M130 124 L128 55"
-            stroke="#fff0c7"
-            strokeWidth="1"
-            opacity="0.55"
-          />
-        </g>
-
-        <circle
-          cx="130"
-          cy="124"
-          r="16"
-          fill="url(#ziiplyGaugeBrassV58)"
-          stroke="#4b2d16"
-          strokeWidth="3"
-        />
-        <circle cx="130" cy="124" r="6" fill="#4b2d16" opacity="0.92" />
-
-        <rect
-          x="96"
-          y="74"
-          width="68"
-          height="28"
-          rx="7"
-          fill="url(#ziiplyGaugePaperV58)"
-          stroke="#8a6b32"
-          strokeWidth="2"
-          opacity="0.96"
-        />
-        <text
-          x="130"
-          y="94"
-          textAnchor="middle"
-          fontSize="18"
-          fontWeight="900"
-          fill="#2f2a1c"
-          style={{ fontFamily: serifFont }}
-        >
-          {collected}/{total}
-        </text>
-      </svg>
-
+    <div className="mx-auto mt-3 w-[17.8rem] max-w-full">
       <div
-        className="absolute left-1/2 top-[6.25rem] -translate-x-1/2 rounded-full border border-[#8a6b32]/70 bg-[#fff0c7]/78 px-3 py-[0.16rem] text-[0.62rem] font-black tracking-[0.12em] text-[#604017] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.42)]"
+        className="mb-1 flex items-center justify-between px-1 text-[0.58rem] font-black uppercase tracking-[0.12em] text-[#6a512b]"
         style={{ fontFamily: copperplateFont }}
       >
-        {percent} %
+        <span>0 %</span>
+        <span>Keräilyaste</span>
+        <span>100 %</span>
+      </div>
+
+      <div className="relative h-[1.72rem] rounded-full border-[2.2px] border-[#5a371c] bg-[#f8e8b8]/82 shadow-[inset_0_2px_4px_rgba(65,42,18,0.20),0_2px_2px_rgba(67,43,18,0.14)]">
+        <div className="absolute left-[0.18rem] right-[0.18rem] top-1/2 h-[0.82rem] -translate-y-1/2 rounded-full border border-[#9a7a3d]/58 bg-[#fff7db]/88 shadow-[inset_0_1px_2px_rgba(92,61,24,0.14)]" />
+
+        <div
+          className="absolute left-[0.30rem] top-1/2 h-[0.64rem] -translate-y-1/2 rounded-full border border-[#6f2b19]/40 bg-[linear-gradient(180deg,#e3a64a_0%,#9b331f_100%)] shadow-[inset_0_1px_0_rgba(255,240,190,0.38),0_0_5px_rgba(143,61,28,0.20)] transition-[width] duration-500"
+          style={{ width: `calc((100% - 0.60rem) * ${ratio})` }}
+        />
+
+        {Array.from({ length: 6 }).map((_, index) => (
+          <span
+            key={index}
+            aria-hidden="true"
+            className="absolute top-[0.16rem] h-[0.42rem] w-[1px] bg-[#5a371c]/50"
+            style={{ left: `${8 + index * 16.8}%` }}
+          />
+        ))}
+
+        <div
+          className="absolute right-[0.28rem] top-1/2 grid h-[1.16rem] min-w-[3.2rem] -translate-y-1/2 place-items-center rounded-full border border-[#8a6b32]/62 bg-[#fff0c7]/88 px-2 text-[0.72rem] font-black text-[#533819] shadow-[0_1px_2px_rgba(60,39,18,0.12)]"
+          style={{ fontFamily: serifFont }}
+        >
+          {percent} %
+        </div>
       </div>
     </div>
   );
@@ -582,38 +466,31 @@ export default function ZiiplyMobileCartCard({
               </div>
             </div>
           ) : showCompletionCardV58 ? (
-            <div className="ziiply-cart-complete-card-v58 mx-auto mt-[0.35rem] w-[20.2rem] max-w-[calc(100%-0.5rem)] rounded-[1.15rem] border-[2.4px] border-[#70481f] bg-[#fff0c7]/72 px-4 pb-4 pt-3 text-center shadow-[0_3px_0_rgba(84,55,22,0.18),inset_0_0_0_1px_rgba(255,250,224,0.58)]">
-              <div
-                className="mx-auto mb-1 w-fit rounded-[0.52rem] border border-[#8a6b32]/72 bg-[#f5dfac]/72 px-3 py-[0.18rem] text-[0.58rem] font-black uppercase tracking-[0.18em] text-[#604017]"
-                style={{ fontFamily: copperplateFont }}
-              >
-                Pääteasema
-              </div>
-
-              <CartCompletionGauge collected={collectedItemsV58} total={totalItemsV58} />
-
+            <div className="ziiply-cart-complete-card-v59 mx-auto mt-[0.55rem] w-[20.3rem] max-w-[calc(100%-0.5rem)] rounded-[1.05rem] border-[2.4px] border-[#70481f] bg-[#fff0c7]/72 px-4 pb-4 pt-4 text-center shadow-[0_3px_0_rgba(84,55,22,0.18),inset_0_0_0_1px_rgba(255,250,224,0.58)]">
               <h3
-                className="mt-[-0.20rem] text-[1.34rem] font-extrabold italic leading-none text-[#314226] drop-shadow-[0_1px_0_rgba(255,247,211,0.65)]"
+                className="text-[1.88rem] font-extrabold italic leading-[0.98] text-[#314226] drop-shadow-[0_1px_0_rgba(255,247,211,0.75)]"
                 style={{ fontFamily: cooperFont }}
               >
-                Lista kasassa!
+                ✓ Lista kasassa!
               </h3>
 
-              <p
-                className="mx-auto mt-2 max-w-[16.8rem] text-[0.76rem] font-extrabold leading-tight text-[#59401e]"
-                style={{ fontFamily: serifFont }}
-              >
-                Kaikki tavarainkeruun tuotteet on merkitty kerätyiksi.
-              </p>
-
               <div
-                className="mx-auto mt-3 rounded-[0.72rem] border border-[#9a7a3d]/60 bg-[#fff8dc]/62 px-3 py-2 text-[0.72rem] font-extrabold italic leading-tight text-[#7b3215]/90"
+                className="mx-auto mt-2 w-fit rounded-[0.58rem] border-[1.8px] border-[#8a6b32]/72 bg-[#f8e6b9]/80 px-4 py-[0.28rem] text-[1.02rem] font-black text-[#3d301a] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.48)]"
                 style={{ fontFamily: serifFont }}
               >
-                Vieläkö listan ulkopuolelta unohtui jotain — vai suunnataanko kassalle?
+                {collectedItemsV58} / {totalItemsV58} kerätty
               </div>
 
-              <div className="mt-3 grid grid-cols-2 gap-2">
+              <CartCompletionThermometerV59 collected={collectedItemsV58} total={totalItemsV58} />
+
+              <div
+                className="mx-auto mt-4 rounded-[0.72rem] border border-[#9a7a3d]/60 bg-[#fff8dc]/62 px-3 py-2.5 text-[1.02rem] font-extrabold italic leading-tight text-[#7b3215]/92"
+                style={{ fontFamily: serifFont }}
+              >
+                Unohtuiko vielä jotain listan ulkopuolelta?
+              </div>
+
+              <div className="mx-auto mt-4 grid w-[17.8rem] max-w-full grid-cols-1 gap-2.5">
                 <button
                   type="button"
                   onClick={() => {
@@ -622,7 +499,7 @@ export default function ZiiplyMobileCartCard({
                       onBack?.();
                     }, 0);
                   }}
-                  className="rounded-[0.58rem] border-[2px] border-[#8a6b32] bg-[linear-gradient(180deg,#f8e6b9_0%,#d6ad66_100%)] px-2 py-[0.52rem] text-[0.72rem] font-black italic text-[#533819] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.48),0_2px_3px_rgba(50,31,13,0.14)] active:translate-y-[1px]"
+                  className="rounded-[0.62rem] border-[2px] border-[#8a6b32] bg-[linear-gradient(180deg,#f8e6b9_0%,#d6ad66_100%)] px-3 py-[0.66rem] text-[0.94rem] font-black italic text-[#533819] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.48),0_2px_3px_rgba(50,31,13,0.14)] active:translate-y-[1px]"
                   style={{ fontFamily: cooperFont }}
                 >
                   Lisää vielä
@@ -631,7 +508,7 @@ export default function ZiiplyMobileCartCard({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="rounded-[0.58rem] border-[2px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-2 py-[0.52rem] text-[0.72rem] font-black italic text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58),0_2px_3px_rgba(62,43,20,0.18)] active:translate-y-[1px]"
+                  className="rounded-[0.62rem] border-[2px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-3 py-[0.72rem] text-[1.02rem] font-black italic text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58),0_2px_3px_rgba(62,43,20,0.18)] active:translate-y-[1px]"
                   style={{ fontFamily: cooperFont }}
                 >
                   Valmis kassalle
@@ -641,13 +518,12 @@ export default function ZiiplyMobileCartCard({
               <button
                 type="button"
                 onClick={() => setShowCompletionCardV58(false)}
-                className="mt-2 text-[0.64rem] font-extrabold italic text-[#6f5730] underline decoration-[#9a7a3d]/50 underline-offset-2"
+                className="mt-3 text-[0.78rem] font-extrabold italic text-[#6f5730] underline decoration-[#9a7a3d]/50 underline-offset-2"
                 style={{ fontFamily: serifFont }}
               >
                 Tarkista lista vielä
               </button>
-            </div>
-          ) : (
+            </div>          ) : (
             <div className="space-y-0 pb-2">
               {items.map((item, index) => {
                 const originalName = getName(item);
@@ -778,7 +654,7 @@ export default function ZiiplyMobileCartCard({
           </button>
         ) : null}
 
-        {onShareCart && hasItems ? (
+        {onShareCart && hasItems && !showCompletionCardV58 ? (
           <button
             type="button"
             onClick={onShareCart}
@@ -844,7 +720,7 @@ export default function ZiiplyMobileCartCard({
             animation: ziiplyCartPaperPop 420ms cubic-bezier(0.2, 0.9, 0.25, 1.2);
           }
 
-          @keyframes ziiplyCartCompleteCardV58 {
+          @keyframes ziiplyCartCompleteCardV59 {
             0% {
               opacity: 0;
               transform: translateY(12px) scale(0.975) rotate(-0.25deg);
@@ -859,8 +735,8 @@ export default function ZiiplyMobileCartCard({
             }
           }
 
-          .ziiply-cart-complete-card-v58 {
-            animation: ziiplyCartCompleteCardV58 480ms cubic-bezier(0.2, 0.9, 0.25, 1.18);
+          .ziiply-cart-complete-card-v59 {
+            animation: ziiplyCartCompleteCardV59 480ms cubic-bezier(0.2, 0.9, 0.25, 1.18);
           }
         `}</style>
       </section>
