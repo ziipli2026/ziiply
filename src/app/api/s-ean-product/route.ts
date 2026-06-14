@@ -1,4 +1,4 @@
-// V10_EAN_ROUTE_WORLD_NAME_FALLBACK_EXACT_EAN_NO_PRICE_OK
+// V8A_EAN_ROUTE_ALCOHOL_SLUGS_EXACT_EAN_NO_PRICE_OK
 // Korjaus V6:n 49 s jumiin:
 // - Jos nameHint puuttuu, ei enää ajeta slug * query -massahakua.
 // - No-hint skannerihaku kokeilee vain nopean internal-/api/s-products-polun ja complementaryn.
@@ -22,11 +22,28 @@ const FETCH_TIMEOUT_MS = 3500;
 
 const BROAD_SLUGS = [
   "",
+  // S-kaupatin oikea alkoholi-/virvoitusjuomapuu.
+  // HAR-testissä Xtra Omenasiideri löytyi slugilla:
+  // alkoholi-ja-virvoitusjuomat/siiderit/omenasiiderit
+  "alkoholi-ja-virvoitusjuomat",
+  "alkoholi-ja-virvoitusjuomat/siiderit",
+  "alkoholi-ja-virvoitusjuomat/siiderit/omenasiiderit",
+  "alkoholi-ja-virvoitusjuomat/siiderit/paarynasiiderit",
+  "alkoholi-ja-virvoitusjuomat/siiderit/muut-siiderit",
+  "alkoholi-ja-virvoitusjuomat/oluet",
+  "alkoholi-ja-virvoitusjuomat/oluet/lagerit",
+  "alkoholi-ja-virvoitusjuomat/oluet/ale-oluet",
+  "alkoholi-ja-virvoitusjuomat/lonkerot",
+  "alkoholi-ja-virvoitusjuomat/viinit",
+  "alkoholi-ja-virvoitusjuomat/virvoitusjuomat",
+  "alkoholi-ja-virvoitusjuomat/vedet",
+  "alkoholi-ja-virvoitusjuomat/mehut",
+  // Vanha juomat-polku jätetään varalle, koska osa API-polusta voi vielä käyttää sitä.
   "juomat",
-  "juomat/alkoholijuomat",
-  "juomat/oluet",
-  "juomat/siiderit-ja-lonkerot",
+  "juomat/kahvit",
   "juomat/virvoitusjuomat",
+  "juomat/mehut",
+  "juomat/vedet",
   "maito-munat-ja-rasvat",
   "maito-munat-ja-rasvat/kananmunat",
   "maito-munat-ja-rasvat/munat",
@@ -48,11 +65,17 @@ const BROAD_SLUGS = [
 ];
 
 const ALWAYS_FAST_TERMS = [
-  // Nämä ovat vain viimeinen kevyt varmistus. Oikea fallback hakee EANilla nimen maailmalta.
+  // Nämä ajetaan myös silloin, kun OFF ei anna nimeä.
+  // EAN ei yleensä toimi hakusanana /api/s-productsissa,
+  // mutta käsinhaun tapaiset sanat toimivat nopeasti.
   "xtra",
-  "olut",
-  "lonkero",
   "siideri",
+  "omenasiideri",
+  "omenasiideri light",
+  "lonkero",
+  "olut",
+  "lager",
+  "alkoholi",
   "juoma",
   "kananmuna",
   "kananmunat",
@@ -80,18 +103,14 @@ function fixText(value?: string | null) {
 }
 
 function getPrice(product: any) {
-  const value =
+  return Number(
     product?.price ??
-    product?.pricing?.currentPrice ??
-    product?.pricing?.regularPrice ??
-    product?.storeItem?.price ??
-    product?.storeItems?.[0]?.price ??
-    null;
-
-  if (value === null || value === undefined || value === "") return null;
-
-  const n = Number(value);
-  return Number.isFinite(n) ? n : null;
+      product?.pricing?.currentPrice ??
+      product?.pricing?.regularPrice ??
+      product?.storeItem?.price ??
+      product?.storeItems?.[0]?.price ??
+      0,
+  );
 }
 
 function getComparisonPrice(product: any) {
@@ -161,37 +180,8 @@ function flattenProducts(payload: any): any[] {
   return [];
 }
 
-function getPossibleEans(product: any): string[] {
-  const rawValues = [
-    product?.ean,
-    product?.gtin,
-    product?.code,
-    product?.barcode,
-    product?.barCode,
-    product?.id,
-    product?.productId,
-    product?.productDetails?.ean,
-    product?.productDetails?.gtin,
-    product?.productDetails?.code,
-    product?.productDetails?.barcode,
-    product?.storeItem?.ean,
-    product?.storeItem?.gtin,
-    product?.storeItem?.code,
-  ];
-
-  if (Array.isArray(product?.eans)) rawValues.push(...product.eans);
-  if (Array.isArray(product?.gtins)) rawValues.push(...product.gtins);
-  if (Array.isArray(product?.barcodes)) rawValues.push(...product.barcodes);
-  if (Array.isArray(product?.productDetails?.eans)) rawValues.push(...product.productDetails.eans);
-  if (Array.isArray(product?.productDetails?.gtins)) rawValues.push(...product.productDetails.gtins);
-
-  return rawValues
-    .map((x) => normalizeEan(typeof x === "object" ? x?.value || x?.ean || x?.gtin || x?.code : x))
-    .filter(Boolean);
-}
-
 function findExact(products: any[], ean: string) {
-  return products.find((p) => getPossibleEans(p).includes(ean)) || null;
+  return products.find((p) => normalizeEan(p?.ean || p?.id) === ean) || null;
 }
 
 function summarize(product: any) {
@@ -199,112 +189,10 @@ function summarize(product: any) {
   return {
     id: product?.id ?? null,
     ean: product?.ean ?? null,
-    possibleEans: getPossibleEans(product).slice(0, 5),
     name: fixText(product?.name),
     brandName: fixText(product?.brandName || ""),
     price: getPrice(product),
     comparisonPrice: getComparisonPrice(product),
-  };
-}
-
-function cleanExternalProductName(value?: string | null) {
-  return fixText(value)
-    .replace(/\b\d+[,.]?\d*\s*(%|vol\.?|alc\.?|g|kg|ml|l|cl|dl)\b/gi, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function externalNameQueries(name: string, brand?: string | null) {
-  const terms = new Set<string>();
-  const cleaned = cleanExternalProductName(name);
-  const cleanedBrand = cleanExternalProductName(brand || "");
-
-  if (cleaned) terms.add(cleaned);
-  if (cleanedBrand && cleaned) terms.add(`${cleanedBrand} ${cleaned}`);
-  if (cleanedBrand) terms.add(cleanedBrand);
-
-  const words = cleaned.split(/\s+/).filter((x) => x.length >= 2);
-  if (words.length >= 4) terms.add(words.slice(0, 4).join(" "));
-  if (words.length >= 3) terms.add(words.slice(0, 3).join(" "));
-  if (words.length >= 2) terms.add(words.slice(0, 2).join(" "));
-
-  // Xtra-alkoholeissa käsinhaku löytää usein paremmin ilman kokomerkintöjä.
-  if (/xtra/i.test(cleaned) || /xtra/i.test(cleanedBrand)) {
-    terms.add("Xtra");
-    if (/olut|beer|lager/i.test(cleaned)) terms.add("Xtra olut");
-    if (/siider|cider/i.test(cleaned)) terms.add("Xtra siideri");
-    if (/lonkero|long drink/i.test(cleaned)) terms.add("Xtra lonkero");
-  }
-
-  return Array.from(terms).filter((x) => x.length >= 2).slice(0, 8);
-}
-
-async function fetchOpenFoodFactsByEan(ean: string) {
-  const url = `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(ean)}.json?fields=code,product_name,product_name_fi,product_name_en,brands,image_url,image_front_url,quantity,categories_tags`;
-
-  const response = await fetchWithTimeout(url, {
-    method: "GET",
-    headers: {
-      accept: "application/json",
-      "user-agent": "Ziiply EAN fallback - contact@ziiply.fi",
-    },
-    cache: "no-store",
-  }, 3000);
-
-  const payload = await response.json().catch(() => null);
-  const product = payload?.product || null;
-
-  const name =
-    fixText(product?.product_name_fi) ||
-    fixText(product?.product_name) ||
-    fixText(product?.product_name_en) ||
-    "";
-
-  if (!response.ok || !product || !name) {
-    return {
-      ok: response.ok,
-      status: response.status,
-      found: false,
-      payload,
-      product: null,
-      name: "",
-      brandName: "",
-    };
-  }
-
-  return {
-    ok: response.ok,
-    status: response.status,
-    found: true,
-    payload,
-    product,
-    name,
-    brandName: fixText(product?.brands || ""),
-  };
-}
-
-function toExternalFallbackProduct(args: {
-  ean: string;
-  storeId: string;
-  name: string;
-  brandName?: string;
-  image?: string;
-  source: string;
-}) {
-  return {
-    id: args.ean,
-    ean: args.ean,
-    name: fixText(args.name) || `EAN ${args.ean}`,
-    brandName: fixText(args.brandName || ""),
-    pictureUrl: args.image || "",
-    price: null,
-    comparisonPrice: null,
-    comparisonPriceUnit: null,
-    storeId: args.storeId,
-    storeName: "Tuotetieto",
-    rawSource: args.source,
-    noStorePrice: true,
-    infoText: "Tuote tunnistettu EANilla, mutta kauppakohtaista hintaa ei saatu.",
   };
 }
 
@@ -375,10 +263,15 @@ function buildQueries(nameHint: string, ean: string) {
     terms.add("burger slices cheddar");
   }
 
-  if (/kananmuna|kananmunat|munia|muna|egg/i.test(cleaned)) {
-    terms.add("kananmuna");
-    terms.add("kananmunat");
-    terms.add("munat");
+  if (/xtra|siider|cider|omena|lonkero|olut|beer|lager|alkoholi|juoma/i.test(cleaned)) {
+    terms.add("Xtra");
+    terms.add("siideri");
+    terms.add("omenasiideri");
+    terms.add("Xtra omenasiideri");
+    terms.add("lonkero");
+    terms.add("olut");
+    terms.add("lager");
+    terms.add("juoma");
   }
 
   // Tämä on olennainen V5-korjaus:
@@ -522,98 +415,6 @@ async function tryFilteredExact(args: {
   return { ...result, products, exact };
 }
 
-async function trySProductsQueries(args: {
-  origin: string;
-  ean: string;
-  storeId: string;
-  queries: string[];
-  debug: any[];
-  debugEnabled: boolean;
-  startedAt: number;
-  stepPrefix: string;
-}) {
-  for (const queryString of args.queries) {
-    if (deadlineExceeded(args.startedAt)) {
-      args.debug.push({ step: `${args.stepPrefix}Deadline`, elapsedMs: Date.now() - args.startedAt });
-      return null;
-    }
-
-    const internal = await tryInternalSProductsExact({
-      origin: args.origin,
-      ean: args.ean,
-      storeId: args.storeId,
-      queryString,
-    });
-
-    if (args.debugEnabled) {
-      args.debug.push({
-        step: args.stepPrefix,
-        queryString,
-        storeId: args.storeId,
-        status: internal.status,
-        ok: internal.ok,
-        count: internal.products.length,
-        exact: Boolean(internal.exact),
-        first: summarize(internal.products[0]),
-      });
-    }
-
-    if (internal.exact) {
-      return { exact: internal.exact, queryString };
-    }
-  }
-
-  return null;
-}
-
-async function tryFilteredQueries(args: {
-  ean: string;
-  storeId: string;
-  queries: string[];
-  slugs: string[];
-  debug: any[];
-  debugEnabled: boolean;
-  startedAt: number;
-  stepPrefix: string;
-}) {
-  for (const slug of args.slugs) {
-    for (const queryString of args.queries) {
-      if (deadlineExceeded(args.startedAt)) {
-        args.debug.push({ step: `${args.stepPrefix}Deadline`, elapsedMs: Date.now() - args.startedAt });
-        return null;
-      }
-
-      const filtered = await tryFilteredExact({
-        ean: args.ean,
-        storeId: args.storeId,
-        slug,
-        queryString,
-      });
-
-      if (args.debugEnabled) {
-        args.debug.push({
-          step: args.stepPrefix,
-          slug,
-          queryString,
-          status: filtered.status,
-          ok: filtered.ok,
-          count: filtered.products.length,
-          exact: Boolean(filtered.exact),
-          first: summarize(filtered.products[0]),
-          errors: filtered.payload?.errors || null,
-        });
-      }
-
-      if (filtered.exact) {
-        return { exact: filtered.exact, slug, queryString };
-      }
-    }
-  }
-
-  return null;
-}
-
-
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -631,177 +432,107 @@ export async function GET(request: NextRequest) {
     const debug: any[] = [];
     const startedAt = Date.now();
     const hasNameHint = nameHint.length >= 3;
-    const initialQueries = trimForNoHint(buildQueries(nameHint, ean), hasNameHint);
+    const queries = trimForNoHint(buildQueries(nameHint, ean), hasNameHint);
 
-    // 1) Nopea S-products-polku nykyisellä nameHintillä / kevyillä termeillä.
-    // Hyväksytään exact EAN myös ilman hintaa.
-    const initialInternal = await trySProductsQueries({
-      origin,
-      ean,
-      storeId,
-      queries: initialQueries,
-      debug,
-      debugEnabled,
-      startedAt,
-      stepPrefix: "InternalApiSProductsInitial",
-    });
-
-    if (initialInternal?.exact) {
-      if ((getPrice(initialInternal.exact) ?? 0) <= 0) {
-        console.log(
-          "EAN FOUND WITHOUT PRICE",
-          { source: "internal-/api/s-products-initial", ean, storeId, queryString: initialInternal.queryString, name: fixText(initialInternal.exact?.name), price: getPrice(initialInternal.exact) },
-        );
+    // 1) NOPEA ENSISIJAINEN POLKU:
+    // Sama /api/s-products-nimihaku kuin käsinhaussa.
+    // Hyväksy exact EAN myös ilman hintaa. Hinta voi puuttua esim. alkoholituotteilta.
+    for (const queryString of queries) {
+      if (deadlineExceeded(startedAt)) {
+        debug.push({ step: "DeadlineBeforeInternalFinished", elapsedMs: Date.now() - startedAt });
+        break;
       }
 
-      return NextResponse.json({
-        ok: true,
-        source: "internal-s-products-initial-exact-ean-v10-no-price-ok",
-        found: true,
+      const internal = await tryInternalSProductsExact({
+        origin,
         ean,
         storeId,
-        product: toProduct(
-          { ...initialInternal.exact, rawSource: "internal-/api/s-products" },
-          ean,
-          storeId,
-        ),
-        debug,
+        queryString,
       });
-    }
-
-    // 2) OIKEA FALLBACK: jos nimeä ei ole tai S-haku ei osunut,
-    // hae EANilla tuotteen nimi maailmalta ja yritä S-kaupat uudestaan sillä nimellä.
-    let externalFallback: any = null;
-    let externalQueries: string[] = [];
-
-    if (!deadlineExceeded(startedAt)) {
-      const off: any = await fetchOpenFoodFactsByEan(ean).catch((error: any) => ({
-        ok: false,
-        status: 0,
-        found: false,
-        payload: null,
-        product: null,
-        name: "",
-        brandName: "",
-        error: error?.message || "OpenFoodFacts failed",
-      }));
 
       if (debugEnabled) {
         debug.push({
-          step: "OpenFoodFactsByEan",
-          status: off.status,
-          ok: off.ok,
-          found: off.found,
-          name: off.name || "",
-          brandName: off.brandName || "",
-          error: off.error || null,
+          step: "InternalApiSProductsFastFirst",
+          queryString,
+          storeId,
+          status: internal.status,
+          ok: internal.ok,
+          count: internal.products.length,
+          exact: Boolean(internal.exact),
+          first: summarize(internal.products[0]),
         });
       }
 
-      if (off.found && off.name) {
-        externalFallback = off;
-        externalQueries = externalNameQueries(off.name, off.brandName);
-
-        const externalInternal = await trySProductsQueries({
-          origin,
+      if (internal.exact) {
+        if (getPrice(internal.exact) <= 0) {
+          console.log(
+            "EAN FOUND WITHOUT PRICE",
+            { source: "internal-/api/s-products", ean, storeId, name: fixText(internal.exact?.name), price: getPrice(internal.exact) },
+          );
+        }
+        return NextResponse.json({
+          ok: true,
+          source: "internal-s-products-fast-exact-ean-v8-no-price-ok",
+          found: true,
           ean,
           storeId,
-          queries: externalQueries,
+          product: toProduct(
+            { ...internal.exact, rawSource: "internal-/api/s-products" },
+            ean,
+            storeId,
+          ),
           debug,
-          debugEnabled,
-          startedAt,
-          stepPrefix: "InternalApiSProductsExternalName",
         });
+      }
+    }
 
-        if (externalInternal?.exact) {
-          if ((getPrice(externalInternal.exact) ?? 0) <= 0) {
+    // 2) GraphQL-kategoriat vasta varalla.
+    // V7: jos nameHint puuttuu, tätä ei ajeta lainkaan. Muuten EAN-skanneri voi
+    // jäädä 30-50 sekunniksi arpomaan kategorioita, vaikka tuotetta ei löydy.
+    const fallbackSlugs = hasNameHint ? BROAD_SLUGS.slice(0, 12) : [];
+    const fallbackQueries = hasNameHint ? queries.slice(0, 6) : [];
+
+    for (const slug of fallbackSlugs) {
+      for (const queryString of fallbackQueries) {
+        if (deadlineExceeded(startedAt)) {
+          debug.push({ step: "DeadlineBeforeGraphqlFallbackFinished", elapsedMs: Date.now() - startedAt });
+          break;
+        }
+
+        const filtered = await tryFilteredExact({ ean, storeId, slug, queryString });
+
+        if (debugEnabled) {
+          debug.push({
+            step: "RemoteFilteredProductsFallback",
+            slug,
+            queryString,
+            status: filtered.status,
+            ok: filtered.ok,
+            count: filtered.products.length,
+            exact: Boolean(filtered.exact),
+            first: summarize(filtered.products[0]),
+            errors: filtered.payload?.errors || null,
+          });
+        }
+
+        if (filtered.exact) {
+          if (getPrice(filtered.exact) <= 0) {
             console.log(
               "EAN FOUND WITHOUT PRICE",
-              { source: "internal-/api/s-products-external-name", ean, storeId, queryString: externalInternal.queryString, name: fixText(externalInternal.exact?.name), price: getPrice(externalInternal.exact) },
+              { source: "s-kaupat-filtered-fallback", ean, storeId, slug, queryString, name: fixText(filtered.exact?.name), price: getPrice(filtered.exact) },
             );
           }
-
           return NextResponse.json({
             ok: true,
-            source: "internal-s-products-external-name-exact-ean-v10-no-price-ok",
+            source: "s-kaupat-filtered-fallback-exact-v8-no-price-ok",
             found: true,
             ean,
             storeId,
-            product: toProduct(
-              { ...externalInternal.exact, rawSource: "internal-/api/s-products-external-name" },
-              ean,
-              storeId,
-            ),
-            externalName: off.name,
+            product: toProduct(filtered.exact, ean, storeId),
             debug,
           });
         }
       }
-    }
-
-    // 3) GraphQL-kategoriat. V10: jos ulkoinen nimi löytyi, ajetaan GraphQL myös ilman alkuperäistä nameHintiä.
-    const graphqlQueries = externalQueries.length
-      ? externalQueries.slice(0, 6)
-      : hasNameHint
-        ? initialQueries.slice(0, 6)
-        : [];
-    const fallbackSlugs = graphqlQueries.length ? BROAD_SLUGS.slice(0, 10) : [];
-
-    const filteredHit = await tryFilteredQueries({
-      ean,
-      storeId,
-      queries: graphqlQueries,
-      slugs: fallbackSlugs,
-      debug,
-      debugEnabled,
-      startedAt,
-      stepPrefix: "RemoteFilteredProductsFallback",
-    });
-
-    if (filteredHit?.exact) {
-      if ((getPrice(filteredHit.exact) ?? 0) <= 0) {
-        console.log(
-          "EAN FOUND WITHOUT PRICE",
-          { source: "s-kaupat-filtered-fallback", ean, storeId, slug: filteredHit.slug, queryString: filteredHit.queryString, name: fixText(filteredHit.exact?.name), price: getPrice(filteredHit.exact) },
-        );
-      }
-
-      return NextResponse.json({
-        ok: true,
-        source: "s-kaupat-filtered-fallback-exact-v10-no-price-ok",
-        found: true,
-        ean,
-        storeId,
-        product: toProduct(filteredHit.exact, ean, storeId),
-        externalName: externalFallback?.name || null,
-        debug,
-      });
-    }
-
-    // 4) Jos S-kauppa ei palauta tuotetta mutta maailmahaku tunnisti EANin,
-    // palautetaan silti tuotetieto skanneriin eikä näytetä virheellistä hiljaisuutta.
-    if (externalFallback?.found && externalFallback?.name) {
-      return NextResponse.json({
-        ok: true,
-        source: "openfoodfacts-world-fallback-v10-no-s-price",
-        found: true,
-        ean,
-        storeId,
-        product: toExternalFallbackProduct({
-          ean,
-          storeId,
-          name: externalFallback.name,
-          brandName: externalFallback.brandName,
-          image: externalFallback.product?.image_front_url || externalFallback.product?.image_url || "",
-          source: "openfoodfacts",
-        }),
-        sStoreMatch: false,
-        checkedQueries: initialQueries,
-        externalQueries,
-        checkedSlugs: fallbackSlugs,
-        elapsedMs: Date.now() - startedAt,
-        debug,
-      });
     }
 
     // 3) Complementary vain viimeiseksi. Ei saa hyväksyä väärää tuotetta.
@@ -813,7 +544,7 @@ export async function GET(request: NextRequest) {
         ean,
         storeId,
         nameHint,
-        checkedQueries: initialQueries,
+        checkedQueries: queries,
         checkedSlugs: fallbackSlugs,
         elapsedMs: Date.now() - startedAt,
         debug,
@@ -848,7 +579,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (exactComplementary) {
-      if ((getPrice(exactComplementary) ?? 0) <= 0) {
+      if (getPrice(exactComplementary) <= 0) {
         console.log(
           "EAN FOUND WITHOUT PRICE",
           { source: "s-kaupat-complementary", ean, storeId, name: fixText(exactComplementary?.name), price: getPrice(exactComplementary) },
@@ -872,7 +603,7 @@ export async function GET(request: NextRequest) {
       ean,
       storeId,
       nameHint,
-      checkedQueries: initialQueries,
+      checkedQueries: queries,
       checkedSlugs: fallbackSlugs,
       elapsedMs: Date.now() - startedAt,
       debug,
