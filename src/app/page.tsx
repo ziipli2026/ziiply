@@ -1,12 +1,16 @@
-// V524_SCANNER_NO_SILENT_STOP_AND_KEEP_OFF_FALLBACK
-// Korjaus: skanneri ei saa hiljentyä, jos S/K exact-haku ei löydä tuotetta.
-// Jos exactResults jää tyhjäksi, pidetään käyttäjälle näkyvä scannerMessage eikä katkaista ketjua tyhjään.
-// OFF-fallback saa edelleen ajaa ennen viimeistä scanner no-result -viestiä.
+// V526_CART_COMPLETE_ADD_MORE_OPENS_SEARCH
+// Korjaus CartCard V60/V61 -integraatioon:
+// - V60/V61 CartCardin uusi onAddMore-prop kytketään pageen.
+// - "Lisää vielä" sulkee korin ja avaa Hae-kortin, ei hyppää pääsivulle.
+// - Hakukentälle annetaan focus pienen viiveen jälkeen.
+// - Muu EAN-fallback V525 säilytetään ennallaan.
 
-// V523_SCANNER_S_EAN_NO_PRICE_ACCEPT_PAGE_FIX
-// Korjaus: page ei saa hylätä /api/s-ean-productin palauttamaa exact EAN S-tuotetta vain siksi,
-// että price on 0/puuttuu. Tämä esti v8-routen alkoholituotteet ja katkaisi fallback-ketjun.
-// S exact EAN hyväksytään nyt myös ilman hintaa; K-tuotteilta vaaditaan edelleen hinta.
+// V525_EAN_FALLBACK_CHAIN_FIX_NO_SILENT_STOP
+// Korjaus EAN-skanneriin:
+// - S-kaupat exact EAN hyväksytään myös ilman hintaa (alkoholituotteet voivat tulla ilman priceä).
+// - /api/s-ean-product found:false EI saa katkaista ketjua, vaan OFF-fallback jatkuu.
+// - Jos OFF tunnistaa tuotteen, se lisätään koriin ja näytetään scannerMessage.
+// - Jos mikään ei löydy, skanneri näyttää oikean ilmoituksen eikä hiljene.
 
 // V520_BT_EAN_ACTIVE_S_STOREID_DIRECT_ROUTE
 // Korjaus BT-/kamera-EAN-hakuun:
@@ -11320,34 +11324,23 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       let cachedHitNameV499 = "";
 
       const addStrictSEanProductResultV497 = (product: any, sourceLabel: string) => {
-        // S-kaupat voi palauttaa alkoholituotteille exact EAN -tuotteen ilman hintaa.
-        // Page ei saa hylätä sitä price <= 0 -ehdolla, muuten route löytyy mutta UI väittää ettei tuotetietoa saatu.
-        // K-haarassa hintavaatimus jätetään ennalleen, koska K-tuotteiden hintatieto tulee eri polusta.
-        const productEan = product?.ean || product?.gtin || product?.id || ean;
+        // S-kaupat voi palauttaa exact EAN -tuotteen ilman hintaa.
+        // Älä hylkää S-tuotetta price <= 0 -ehdolla, muuten fallback-ketju näyttää tyhjältä.
+        const productEanV525 = product?.ean || product?.gtin || product?.code || product?.id || ean;
 
-        if (!product || !isSameEan(productEan, variants)) {
-          pushScannerDebugV493(
-            `S_ACCEPT reject wrong/missing EAN source=${sourceLabel} productEan=${String(productEan || "-").slice(0, 32)}`,
-          );
+        if (!product || !isSameEan(productEanV525, variants)) {
           return false;
         }
 
-        const priceForDebug = getProductPrice(product as Product);
-        if (priceForDebug <= 0) {
-          pushScannerDebugV493(
-            `S_ACCEPT exact EAN without price source=${sourceLabel} name=${fixText(String(product?.name || "")).slice(0, 54)}`,
-          );
-        }
-
         exactResultsByKey.set(
-          `${sourceLabel}-${normalizeEan(productEan)}-${product.id || ean}`,
+          `${sourceLabel}-${normalizeEan(productEanV525)}-${product.id || ean}`,
           {
             key: `${sourceLabel}-${product.id || ean}`,
             chain: "S" as const,
             storeName: activeStores.sStoreName,
             product: {
               ...(product as Product),
-              ean: productEan || ean,
+              ean: productEanV525 || ean,
               price: Number.isFinite(Number(product?.price)) ? Number(product.price) : 0,
             },
             eanMatch: true,
@@ -11395,9 +11388,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             );
             if (addStrictSEanProductResultV497(cachedProductV497, "S-v497-cache")) {
               cachedHitNameV499 = fixText(String(cachedProductV497?.name || cachedRouteV497?.nameHint || ""));
-              pushScannerDebugV493("S_CACHE ACCEPT exact EAN");
+              pushScannerDebugV493("S_CACHE ACCEPT exact EAN + price");
             } else {
-              pushScannerDebugV493("S_CACHE reject stale/wrong EAN");
+              pushScannerDebugV493("S_CACHE reject stale/wrong/no price");
               window.localStorage.removeItem(sEanCacheKeyV497);
             }
           } else {
@@ -11610,7 +11603,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
 
       // OFF toimii vain tuotetiedon/nimivinkkinä ja lopullisena hinnattomana fallbackina,
-      // ei hintalähteenä. S-tuote hyväksytään route-osumasta exact EANilla myös ilman hintaa.
+      // ei hintalähteenä. Hinta hyväksytään vain route-osumasta exact EAN + price.
       if (exactResultsByKey.size === 0) {
         pushScannerDebugV493("STEP 2: no S exact result -> try OFF/name hint");
         const cachedOpenFoodFactsProductV126 = getCachedOpenFoodFactsProductForAnyVariantV126(ean);
@@ -11668,15 +11661,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           normalize(result.storeName || ""),
         ].join("|");
         const previous = dedupedExactResultsMapV502.get(dedupeKeyV502);
-        const resultPriceV524 = getProductPrice(result.product);
-        const previousPriceV524 = previous ? getProductPrice(previous.product) : 0;
-        const resultHasPriceV524 = resultPriceV524 > 0;
-        const previousHasPriceV524 = previousPriceV524 > 0;
+        const resultPriceV525 = getProductPrice(result.product);
+        const previousPriceV525 = previous ? getProductPrice(previous.product) : 0;
+        const resultHasPriceV525 = resultPriceV525 > 0;
+        const previousHasPriceV525 = previousPriceV525 > 0;
 
         if (
           !previous ||
-          (resultHasPriceV524 && !previousHasPriceV524) ||
-          (resultHasPriceV524 === previousHasPriceV524 && resultPriceV524 < previousPriceV524)
+          (resultHasPriceV525 && !previousHasPriceV525) ||
+          (resultHasPriceV525 === previousHasPriceV525 && resultPriceV525 < previousPriceV525)
         ) {
           dedupedExactResultsMapV502.set(dedupeKeyV502, result);
         }
@@ -11760,6 +11753,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       if (openFoodFactsFallback) {
         pushScannerDebugV493(`FALLBACK ADD OFF name=${fixText(String(openFoodFactsFallback?.name || "")).slice(0, 54)}`);
         setEanLookupOutcomeForAllVariantsV126(ean, "off");
+        if (eanScannerOpen || eanHtml5ScannerRef.current || options.fromScanner) {
+          setEanScannerMessage("Tuote tunnistettu Food Factsista — ei mukana hintavertailussa");
+        }
         addOpenFoodFactsScannedEanToCartV729(openFoodFactsFallback);
         return;
       }
@@ -11801,27 +11797,23 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // toinen ketju saattoi silti päätyä myöhemmin unknown-fallbackiin ja luoda rinnakkaisen
       // "Tuntematon tuote" -rivin. Käsin käynnistetty EAN-haku saa edelleen tehdä unknown-fallbackin.
       if (options.fromScanner || eanAutoSearchActiveRef.current || eanScannerOpen || eanHtml5ScannerRef.current) {
-        // V524: kameraskannerissa ei lisätä tuntematonta riviä automaattisesti,
-        // mutta haku ei saa enää katketa täysin hiljaa. Tässä vaiheessa S/K + OFF
-        // fallbackit on jo yritetty, joten näytetään käyttäjälle näkyvä lopputila.
-        const scannerNoResultMessageV524 =
-          openFoodFactsFallbackForSearchV120 || cachedName
-            ? "EAN luettiin ja tuote tunnistettiin osittain, mutta hintatietoa ei saatu valituista kaupoista."
-            : "EAN luettiin, mutta tuotetietoa ei löytynyt automaattisesti.";
+        // V525: kameraskannerissa ei lisätä tuntematonta riviä automaattisesti,
+        // mutta ketjua ei saa enää katkaista hiljaa.
+        const scannerNoResultMessageV525 = "EAN luettiin, mutta Food Factsista eikä valituista kaupoista löytynyt tuotetietoa.";
         setEanInput("");
         setEanResults([]);
         setEanLoading(false);
         setEanSearchStartedAutomatically(false);
         eanAutoSearchActiveRef.current = false;
         setLastAutoEanSearch("");
-        setEanMessage(scannerNoResultMessageV524);
-        pushScannerDebugV493(`STOP scanner mode: no exact result after S/K/OFF fallback ean=${ean}`);
-        setEanScannerMessage(scannerNoResultMessageV524);
+        setEanMessage(scannerNoResultMessageV525);
+        pushScannerDebugV493(`STOP scanner mode: S/K/OFF no result ean=${ean}`);
+        setEanScannerMessage(scannerNoResultMessageV525);
         window.setTimeout(() => {
           setEanScannerMessage((current) =>
-            current === scannerNoResultMessageV524 ? "" : current,
+            current === scannerNoResultMessageV525 ? "" : current,
           );
-        }, 3200);
+        }, 3600);
         return;
       }
 
@@ -18472,6 +18464,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             onClearCart={clearCart}
             onCompare={openComparisonView}
             onShareCart={shareMobileCartV729}
+            onAddMore={() => {
+              setCartModalOpen(false);
+              setCartSavePanelOpen(false);
+              setShopsPanelOpen(false);
+              setEanModalOpen(false);
+              setNotebookOpen(false);
+              closeProductSelectionOverlay();
+              setActiveResult("none");
+              setSearchPanelOpen(true);
+              window.setTimeout(() => {
+                searchInputRef.current?.focus();
+              }, 60);
+            }}
             onBack={() => {
               setCartModalOpen(false);
               setActiveResult("none");
