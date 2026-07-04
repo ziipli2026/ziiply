@@ -102,7 +102,7 @@ const ZIIPLY_OFFER_SOURCES = {
     url: "https://www.k-ruoka.fi/k-supermarket/tarjouslehti",
   },
   kcitymarket: {
-    id: "kcitymarket",
+    id: "ksupermarket",
     chain: "K",
     storeLabel: "K-Citymarket",
     url: "https://www.k-ruoka.fi/k-citymarket/tarjouslehti",
