@@ -1,5 +1,5 @@
 // src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts
-// ZIIPLY_KRUOKA_OFFER_PROVIDER_V18_K_STOREID_MAPPING_UNIQUE_DEBUG
+// ZIIPLY_KRUOKA_OFFER_PROVIDER_V19_HTTP_STEP_DEBUG
 // Revision: V17
 // Date: 2026-07-04
 //
@@ -33,6 +33,36 @@ import {
 
 type UnknownRecord = Record<string, unknown>;
 
+type KruokaHttpDebugStatsV19 = {
+  statuses: string[];
+  chunks: number;
+  responseItems: number;
+  jsonOk: number;
+  jsonFail: number;
+  firstKeys: string;
+  firstSample: string;
+};
+
+function createKruokaHttpDebugStatsV19(): KruokaHttpDebugStatsV19 {
+  return {
+    statuses: [],
+    chunks: 0,
+    responseItems: 0,
+    jsonOk: 0,
+    jsonFail: 0,
+    firstKeys: "",
+    firstSample: "",
+  };
+}
+
+function summarizeKruokaValueV19(value: unknown, maxLength = 260) {
+  try {
+    return JSON.stringify(value).slice(0, maxLength);
+  } catch {
+    return String(value ?? "").slice(0, maxLength);
+  }
+}
+
 export type KruokaOfferProviderOptionsV10 = {
   storeId?: string | number | null;
   storeName?: string | null;
@@ -40,7 +70,7 @@ export type KruokaOfferProviderOptionsV10 = {
   kStoreName?: string | null;
 };
 
-const KRUOKA_PROVIDER_REVISION_V12 = "KRUOKA_PROVIDER_V18_K_STOREID_MAPPING_UNIQUE_DEBUG";
+const KRUOKA_PROVIDER_REVISION_V12 = "KRUOKA_PROVIDER_V19_HTTP_STEP_DEBUG";
 const KRUOKA_FETCH_OFFERS_URL_V12 = "https://www.k-ruoka.fi/kr-api/fetch-offers";
 const KRUOKA_PRODUCT_MAP_URL_V12 = "https://www.k-ruoka.fi/kr-api/raw-offer/product-map";
 const DEFAULT_KRUOKA_STORE_ID_V12 = "L654";
@@ -392,8 +422,10 @@ async function fetchKruokaOffersByOfferIdsV12(
   );
 
   const offers: UnknownRecord[] = [];
+  const debug = createKruokaHttpDebugStatsV19();
 
   for (const idChunk of chunk(uniqueIds, 40)) {
+    debug.chunks += 1;
     const response = await fetch(KRUOKA_FETCH_OFFERS_URL_V12, {
       method: "POST",
       cache: "no-store",
@@ -408,24 +440,41 @@ async function fetchKruokaOffersByOfferIdsV12(
       body: JSON.stringify({ storeId, offerIds: idChunk, pricing: {} }),
     });
 
+    debug.statuses.push(String(response.status));
+
     if (!response.ok) {
+      const text = await response.text().catch(() => "");
+      if (!debug.firstSample && text) debug.firstSample = text.slice(0, 260);
       console.warn(`[Ziiply K offers] fetch-offers failed ${response.status}`);
       continue;
     }
 
-    const json = await response.json().catch(() => null);
-    const list = asArray(asRecord(json)?.offers).map(asRecord).filter(Boolean) as UnknownRecord[];
+    const json = await response.json().catch(() => {
+      debug.jsonFail += 1;
+      return null;
+    });
+    if (!json) continue;
+    debug.jsonOk += 1;
+
+    const record = asRecord(json);
+    if (record && !debug.firstKeys) debug.firstKeys = Object.keys(record).slice(0, 10).join(",");
+    if (!debug.firstSample) debug.firstSample = summarizeKruokaValueV19(json);
+
+    const list = asArray(record?.offers).map(asRecord).filter(Boolean) as UnknownRecord[];
+    debug.responseItems += list.length;
     offers.push(...list);
   }
 
-  return offers;
+  return { offers, debug };
 }
 
 async function fetchKruokaProductMapV12(storeId: string, eans: string[]) {
   const uniqueEans = Array.from(new Set(eans.map(String).filter((ean) => /^\d{13}$/.test(ean))));
   const products: UnknownRecord[] = [];
+  const debug = createKruokaHttpDebugStatsV19();
 
   for (const eanChunk of chunk(uniqueEans, 120)) {
+    debug.chunks += 1;
     const response = await fetch(KRUOKA_PRODUCT_MAP_URL_V12, {
       method: "POST",
       cache: "no-store",
@@ -440,22 +489,35 @@ async function fetchKruokaProductMapV12(storeId: string, eans: string[]) {
       body: JSON.stringify({ storeId, eans: eanChunk }),
     });
 
+    debug.statuses.push(String(response.status));
+
     if (!response.ok) {
+      const text = await response.text().catch(() => "");
+      if (!debug.firstSample && text) debug.firstSample = text.slice(0, 260);
       console.warn(`[Ziiply K offers] product-map failed ${response.status}`);
       continue;
     }
 
-    const json = await response.json().catch(() => null);
+    const json = await response.json().catch(() => {
+      debug.jsonFail += 1;
+      return null;
+    });
+    if (!json) continue;
+    debug.jsonOk += 1;
+
     const map = asRecord(json);
     if (!map) continue;
+    if (!debug.firstKeys) debug.firstKeys = Object.keys(map).slice(0, 10).join(",");
+    if (!debug.firstSample) debug.firstSample = summarizeKruokaValueV19(map);
 
     for (const value of Object.values(map)) {
       const record = asRecord(value);
       if (record) products.push(record);
     }
+    debug.responseItems += Object.keys(map).length;
   }
 
-  return products;
+  return { products, debug };
 }
 
 function hasKruokaOfferSignalV12(product: UnknownRecord) {
@@ -823,7 +885,15 @@ function makeKruokaVisibleDebugOfferV13(details: {
   offerIdsCount?: number;
   eansCount?: number;
   productMapCount?: number;
+  productMapMappedCount?: number;
+  productMapFilteredCount?: number;
+  productMapDebug?: KruokaHttpDebugStatsV19;
   fetchOffersTried?: boolean;
+  fetchOffersRawCount?: number;
+  fetchOffersMappedCount?: number;
+  fetchOffersFilteredCount?: number;
+  fetchOffersDebug?: KruokaHttpDebugStatsV19;
+  htmlFallbackCount?: number;
   note?: string;
 }): ZiiplyOfferSearchResult {
   const lines = [
@@ -838,7 +908,20 @@ function makeKruokaVisibleDebugOfferV13(details: {
     `offerIds=${details.offerIdsCount ?? 0}`,
     `eans=${details.eansCount ?? 0}`,
     `productMap=${details.productMapCount ?? 0}`,
+    `pmMapped=${details.productMapMappedCount ?? 0}`,
+    `pmFiltered=${details.productMapFilteredCount ?? 0}`,
+    `pmStatus=${details.productMapDebug?.statuses.join("/") || "-"}`,
+    `pmChunks=${details.productMapDebug?.chunks ?? 0}`,
+    `pmJsonOk=${details.productMapDebug?.jsonOk ?? 0}`,
+    `pmJsonFail=${details.productMapDebug?.jsonFail ?? 0}`,
+    `pmKeys=${details.productMapDebug?.firstKeys || "-"}`,
     `fetchOffersTried=${details.fetchOffersTried ? "yes" : "no"}`,
+    `foStatus=${details.fetchOffersDebug?.statuses.join("/") || "-"}`,
+    `foRaw=${details.fetchOffersRawCount ?? 0}`,
+    `foMapped=${details.fetchOffersMappedCount ?? 0}`,
+    `foFiltered=${details.fetchOffersFilteredCount ?? 0}`,
+    `htmlFallback=${details.htmlFallbackCount ?? 0}`,
+    `sample=${details.productMapDebug?.firstSample || details.fetchOffersDebug?.firstSample || "-"}`,
     `note=${details.note || "-"}`,
   ];
 
@@ -909,7 +992,8 @@ export async function fetchKruokaOffers(
   // EAN-listan kanssa. Tämä toimii kauppakohtaisesti: sama EAN-lista ajetaan
   // aina valitun storeId:n läpi, jolloin K-Ruoka palauttaa kyseisen kaupan
   // normaalihinnan/tarjoushinnan/saatavuuden.
-  const productMapItems = await fetchKruokaProductMapV12(storeId, eans);
+  const productMapResult = await fetchKruokaProductMapV12(storeId, eans);
+  const productMapItems = productMapResult.products;
   const productMapMapped = productMapItems
     .map((product, index) => mapKruokaProductMapItemToOfferV12(product, query, source, storeId, index))
     .filter(Boolean) as ZiiplyOfferSearchResult[];
@@ -926,15 +1010,25 @@ export async function fetchKruokaOffers(
     return productMapFiltered;
   }
 
+  let fetchOffersDebug: KruokaHttpDebugStatsV19 | undefined;
+  let fetchOffersRawCount = 0;
+  let fetchOffersMappedCount = 0;
+  let fetchOffersFilteredCount = 0;
+
   // Tuki yksittäisen tarjouskortin polulle: tarjous=tarjouslehti-310488P.
   // fetch-offers vaatii pelkän 310488P-muodon, ei tarjouslehti-alkua.
   if (offerIds.length > 0) {
-    const offers = await fetchKruokaOffersByOfferIdsV12(storeId, offerIds, source);
+    const fetchOffersResult = await fetchKruokaOffersByOfferIdsV12(storeId, offerIds, source);
+    const offers = fetchOffersResult.offers;
+    fetchOffersDebug = fetchOffersResult.debug;
+    fetchOffersRawCount = offers.length;
     const mapped = offers
       .map((offer, index) => mapKruokaFetchOfferToResultV12(offer, query, source, storeId, index))
       .filter(Boolean) as ZiiplyOfferSearchResult[];
+    fetchOffersMappedCount = mapped.length;
 
     const filtered = filterKruokaResultsForQueryV12(mapped, query);
+    fetchOffersFilteredCount = filtered.length;
 
     if (filtered.length > 0) {
       console.warn("[Ziiply K offers V15] fetch-offers fallback ok", {
@@ -948,8 +1042,10 @@ export async function fetchKruokaOffers(
     }
   }
 
+  let htmlFallbackCount = 0;
   if (html) {
     const htmlResults = parseKruokaOffersFromHtml(html, query, source);
+    htmlFallbackCount = htmlResults.length;
     console.warn("[Ziiply K offers V15] html fallback", {
       source: source.id,
       storeId,
@@ -968,8 +1064,16 @@ export async function fetchKruokaOffers(
       offerIdsCount: offerIds.length,
       eansCount: eans.length,
       productMapCount: productMapItems.length,
+      productMapMappedCount: productMapMapped.length,
+      productMapFilteredCount: productMapFiltered.length,
+      productMapDebug: productMapResult.debug,
       fetchOffersTried: offerIds.length > 0,
-      note: "K-provider V15 returned zero real offers after product-map primary",
+      fetchOffersRawCount,
+      fetchOffersMappedCount,
+      fetchOffersFilteredCount,
+      fetchOffersDebug,
+      htmlFallbackCount,
+      note: "K-provider V19 returned zero real offers; HTTP/JSON counters visible",
     }),
   ];
 }
