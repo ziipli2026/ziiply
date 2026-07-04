@@ -1,5 +1,5 @@
 // src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts
-// ZIIPLY_KRUOKA_OFFER_PROVIDER_V17_REAL_K_STOREID_MAPPING
+// ZIIPLY_KRUOKA_OFFER_PROVIDER_V18_K_STOREID_MAPPING_UNIQUE_DEBUG
 // Revision: V17
 // Date: 2026-07-04
 //
@@ -40,7 +40,7 @@ export type KruokaOfferProviderOptionsV10 = {
   kStoreName?: string | null;
 };
 
-const KRUOKA_PROVIDER_REVISION_V12 = "KRUOKA_PROVIDER_V17_REAL_K_STOREID_MAPPING";
+const KRUOKA_PROVIDER_REVISION_V12 = "KRUOKA_PROVIDER_V18_K_STOREID_MAPPING_UNIQUE_DEBUG";
 const KRUOKA_FETCH_OFFERS_URL_V12 = "https://www.k-ruoka.fi/kr-api/fetch-offers";
 const KRUOKA_PRODUCT_MAP_URL_V12 = "https://www.k-ruoka.fi/kr-api/raw-offer/product-map";
 const DEFAULT_KRUOKA_STORE_ID_V12 = "L654";
@@ -827,6 +827,7 @@ function makeKruokaVisibleDebugOfferV13(details: {
   note?: string;
 }): ZiiplyOfferSearchResult {
   const lines = [
+    `KDEBUG ${details.storeId || "-"} ${details.storeName || details.source.storeLabel || "-"}`,
     "GÖSTA K DEBUG",
     `source=${details.source.id}`,
     `storeLabel=${details.source.storeLabel}`,
@@ -846,7 +847,7 @@ function makeKruokaVisibleDebugOfferV13(details: {
     source: details.source.id,
     chain: details.source.chain,
     title: lines.join(" · "),
-    priceText: "0,00 €",
+    priceText: details.storeId === "N183" ? "0,01 €" : details.storeId === "L654" ? "0,02 €" : "0,03 €",
     unitPriceText: "",
     validityText: "",
     benefitText: "Debug-kortti: tämä näkyy vain koska K-provider palautti 0 oikeaa tarjousta.",
