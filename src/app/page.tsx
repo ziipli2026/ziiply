@@ -1,3 +1,10 @@
+// V531_GOSTA_VISIBLE_K_STORE_DEBUG
+// Debug-lisäys Göstan K-haun selvittämiseen:
+// - Näyttää iPhonessa tarjouskortin alaotsikossa K-ryhmän sisäisen haun kolme lähdettä:
+//   activeArea.kStoreId/kStoreName, activeArea.kLocalStoreId/kLocalStoreName ja activeStores.kStoreId/kStoreName.
+// - Ei muuta hakulogiikkaa, routea, provideria, GPS:ää, skanneria eikä koria.
+// - Tarkoitus: selvittää mistä L3221/3221 tulee ja lähteekö Munckinkadun K-Market oikeasti mukaan.
+
 // V529_GOSTA_WITHIN_CHAIN_K_SCOPE_FIX
 // Korjaus Göstan K-hakuun:
 // - Ketjun sisältä -> K-ryhmä ei enää lähetä S-kauppaa tarjoushakuun.
@@ -18634,6 +18641,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           <ZiiplyMobileOfferSearchCardLoose
             open={true}
             title="Tarjoushaku"
+            subtitle={
+              storeCompareScope === "within_chain" && String(withinChain || "").toUpperCase() === "K"
+                ? `K DEBUG hyper=${String(activeArea.kStoreName || "-")}#${String(activeArea.kStoreId || "-")} local=${String(activeArea.kLocalStoreName || "-")}#${String(activeArea.kLocalStoreId || "-")} active=${String(activeStores.kStoreName || "-")}#${String(activeStores.kStoreId || "-")}`
+                : undefined
+            }
             query={offerSearchQuerySnapshot || offerCardFilterV106 || ""}
             offers={gostaOfferCardItemsV163}
             filter={offerCardFilterV106}
