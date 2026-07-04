@@ -566,8 +566,7 @@ export default function ZiiplyMobileOfferSearchCard({
 
   const getCategoryButtonLabelV27 = (category: string) => {
     const count = getVisibleCategoryCountV27(category);
-    const hot = count >= 10 ? " 🔥" : "";
-    return `${getCategoryIcon(category)} ${category}${count > 0 ? ` (${count})` : ""}${hot}`;
+    return `${getCategoryIcon(category)} ${category}${count > 0 ? ` (${count})` : ""}`;
   };
 
   const isLastOpenedCategoryV27 = (category: string) =>
