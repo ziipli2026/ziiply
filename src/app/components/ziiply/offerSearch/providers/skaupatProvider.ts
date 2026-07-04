@@ -1,4 +1,19 @@
 // ============================================================================
+// SKAUPAT_PROVIDER_V190_GOSTA_VISIBLE_IMAGE_URL_DEBUG
+// Revision: V190
+// Date: 2026-07-04
+//
+// DEBUG ONLY - näkyy iPhonessa tarjouskortissa ilman selainkonsolia.
+//
+// Muutokset V189 -> V190:
+// - Debug tuodaan myös tuotteen nimen alkuun, koska benefitText-rivi katkeaa iPhonessa.
+// - Näyttää lyhyesti: hostin, URL:n alun, raakakentän alun, lähdekentän ja placeholder-tilan.
+// - Ei muuta hakulogiikkaa, kauppavalintaa, GPS:ää, skanneria, äänihakua eikä K-ruoka-provideria.
+// - Tarkoitus: nähdään iPhonessa, onko S-kaupat urlTemplate muuttunut selaimelle kelvottomaksi URL:ksi.
+//
+// ============================================================================
+
+// ============================================================================
 // SKAUPAT_PROVIDER_V189_GOSTA_VISIBLE_IMAGE_DEBUG_V2
 // Revision: V189
 // Date: 2026-07-04
@@ -882,6 +897,14 @@ function getImageDebugV189(product: UnknownRecord, listItem?: UnknownRecord): SK
   return buildImageDebugV189("", "", "none");
 }
 
+function compactDebugTextV190(value: string, maxLength: number): string {
+  return String(value || "")
+    .replace(/^https?:\/\//i, "")
+    .replace(/^\/\//, "")
+    .replace(/\s+/g, " ")
+    .slice(0, maxLength);
+}
+
 function formatVisibleImageDebugV189(debug: SKaupatImageDebugV189): string {
   const imageState = debug.url ? "OK" : "NO";
   const shortSource = debug.source
@@ -891,7 +914,18 @@ function formatVisibleImageDebugV189(debug: SKaupatImageDebugV189): string {
     .replace("pictureUrl", "pic")
     .replace("imageUrl", "imgUrl");
 
-  return `DBG V189 IMG:${imageState} SRC:${shortSource} HOST:${debug.host} LEN:${debug.len} EXT:${debug.ext} PH:${debug.hasPlaceholder ? "Y" : "N"}`;
+  const urlHead = compactDebugTextV190(debug.url, 46);
+  const rawHead = compactDebugTextV190(debug.raw, 34);
+
+  return `DBG190 IMG:${imageState} SRC:${shortSource} HOST:${debug.host} LEN:${debug.len} EXT:${debug.ext} PH:${debug.hasPlaceholder ? "Y" : "N"} URL:${urlHead || "-"} RAW:${rawHead || "-"}`;
+}
+
+function formatVisibleTitleDebugV190(debug: SKaupatImageDebugV189): string {
+  const imageState = debug.url ? "OK" : "NO";
+  const urlHead = compactDebugTextV190(debug.url, 32);
+  const rawHead = compactDebugTextV190(debug.raw, 18);
+
+  return `DBG190 ${imageState} H:${debug.host} U:${urlHead || "-"} R:${rawHead || "-"}`;
 }
 
 function getImageUrl(product: UnknownRecord, listItem?: UnknownRecord): string {
@@ -999,8 +1033,8 @@ function mapSProductListItemToOfferResult(
       : labelsText,
   );
 
-  // V189 DEBUG: näkyy iPhonessa samassa rivissä kuin kampanjateksti.
-  // Tämä on tarkoituksella lyhyt, koska tarjouskortti katkaisee pitkät tekstit.
+  // V190 DEBUG: näkyy iPhonessa sekä tuotteen nimessä että kampanjatekstissä.
+  // Tämä auttaa, vaikka kortti katkaisee pitkiä tekstejä.
   const benefitText = cleanRepeatedCampaignTextV161(
     `${visibleImageDebugV189} · ${normalBenefitText}`.trim(),
   );
@@ -1032,7 +1066,7 @@ function mapSProductListItemToOfferResult(
     sourceUrl: options.config.url,
     chain: options.config.chain,
     storeLabel: options.config.storeLabel,
-    title,
+    title: `${formatVisibleTitleDebugV190(imageDebugV189)} ${title}`,
     priceText,
     unitPriceText,
     benefitText,
@@ -1063,6 +1097,7 @@ function mapSProductListItemToOfferResult(
 
     // V189 visible image debug fields. These are harmless extra fields.
     debugImageV189: visibleImageDebugV189,
+    debugImageTitleV190: formatVisibleTitleDebugV190(imageDebugV189),
     debugImageUrlV189: imageDebugV189.url,
     debugImageSourceV189: imageDebugV189.source,
     debugImageHostV189: imageDebugV189.host,
