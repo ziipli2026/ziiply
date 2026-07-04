@@ -1,5 +1,11 @@
 // src/app/components/ziiply/offerSearch/ziiplyOfferSearchSources.ts
-// ZIIPLY_OFFER_SEARCH_SOURCES_V11_BUILD_FIX_K_CITYMARKET_SOURCE_ID
+// ZIIPLY_OFFER_SEARCH_SOURCES_V12_MULTI_K_STORES
+//
+// V12 korjaus:
+// - Tukee useaa K-kauppaa samassa Gösta-haussa.
+// - page.tsx V530 voi lähettää kStoreId="cityId,localId" ja kStoreName="City || Local".
+// - K-provider ajetaan jokaiselle K-kaupalle erikseen ja tulokset yhdistetään.
+// - Jos Citymarket palauttaa 0, K-Market/K-Supermarketin tarjoukset näkyvät silti.
 //
 // V10 korjaus:
 // - Gösta ei enää aja S-kaupat-provideria, kun kauppavalinta on Ketjun sisältä -> K-ryhmä.
@@ -115,7 +121,7 @@ const ZIIPLY_OFFER_SOURCES = {
   },
 } satisfies Record<string, ZiiplyOfferSearchSourceConfig>;
 
-const OFFER_SEARCH_SOURCE_REVISION = "v10";
+const OFFER_SEARCH_SOURCE_REVISION = "v12";
 const ENABLE_OFFER_SEARCH_CACHE = false;
 const MAX_OFFER_SEARCH_RESULTS = 1000;
 const ZIIPLY_GOSTA_MASTER_QUERY_V6 = "__ziiply_all_offers__";
@@ -236,6 +242,48 @@ function getProviderScopeV10(options?: ZiiplyOfferSearchSourceContextV8) {
   };
 }
 
+
+function splitMultiValueV12(value: unknown): string[] {
+  return String(value ?? "")
+    .split(/\s*(?:,|\|\||;|\n)\s*/g)
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
+function getKruokaStoreOptionsListV12(
+  options?: ZiiplyOfferSearchSourceContextV8,
+): KruokaOfferProviderOptionsV10[] {
+  if (!options) return [];
+
+  const ids = splitMultiValueV12(options.kStoreId ?? options.storeId);
+  const names = splitMultiValueV12(options.kStoreName ?? options.storeName);
+
+  const maxLength = Math.max(ids.length, names.length);
+  const result: KruokaOfferProviderOptionsV10[] = [];
+  const seen = new Set<string>();
+
+  for (let index = 0; index < maxLength; index += 1) {
+    const storeId = ids[index] || ids[0] || "";
+    const storeName = names[index] || names[0] || "";
+
+    if (!isRealStoreIdV10(storeId)) continue;
+
+    const key = `${storeId}|${storeName}`.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    result.push({
+      ...options,
+      storeId,
+      storeName,
+      kStoreId: storeId,
+      kStoreName: storeName,
+    });
+  }
+
+  return result;
+}
+
 function getKruokaSourceByStoreNameV10(options?: ZiiplyOfferSearchSourceContextV8): ZiiplyOfferSearchSourceConfig {
   const name = normalizeOfferUniqueText(options?.kStoreName ?? options?.storeName ?? "");
 
@@ -268,6 +316,27 @@ export async function searchSelectedKruokaOffersV10(
   return fetchKruokaOffers(query, source, kOptions);
 }
 
+export async function searchSelectedKruokaOffersV12(
+  query: string,
+  options?: ZiiplyOfferSearchSourceContextV8,
+) {
+  const storeOptions = getKruokaStoreOptionsListV12(options);
+
+  if (storeOptions.length === 0) return [];
+
+  const allResults = await Promise.all(
+    storeOptions.map(async (storeOption) => {
+      const source = getKruokaSourceByStoreNameV10(storeOption as ZiiplyOfferSearchSourceContextV8);
+      return safelySearchSource(
+        `K-Ruoka V12 ${String(storeOption.kStoreName || storeOption.storeName || storeOption.kStoreId || storeOption.storeId)}`,
+        () => fetchKruokaOffers(query, source, storeOption),
+      );
+    }),
+  );
+
+  return allResults.flat();
+}
+
 export async function searchSKaupatOffers(
   query: string,
   options?: SKaupatOfferProviderOptionsV173,
@@ -286,8 +355,8 @@ export async function searchZiiplyOffers(
   const isGostaMasterQuery = normalizeOfferUniqueText(cleanQuery) === normalizeOfferUniqueText(ZIIPLY_GOSTA_MASTER_QUERY_V6);
 
   const providerOptions = normalizeSKaupatProviderOptionsV8(options);
-  const kProviderOptions = normalizeKruokaProviderOptionsV9(options);
-  const hasSelectedKStoreV9 = Boolean(kProviderOptions?.storeId || kProviderOptions?.kStoreId);
+  const kProviderOptionsListV12 = getKruokaStoreOptionsListV12(options);
+  const hasSelectedKStoreV9 = kProviderOptionsListV12.length > 0;
 
   const cacheKey = getOfferSearchCacheKey(cleanQuery);
   const cached = ENABLE_OFFER_SEARCH_CACHE ? getCachedOfferResults(cacheKey) : null;
@@ -304,6 +373,7 @@ export async function searchZiiplyOffers(
       sStoreName: options?.sStoreName,
       kStoreId: options?.kStoreId,
       kStoreName: options?.kStoreName,
+      kProviderOptionsListV12,
       providerScopeV10,
     });
   }
@@ -317,8 +387,8 @@ export async function searchZiiplyOffers(
 
   const kResults = providerScopeV10.useK && hasSelectedKStoreV9
     ? await safelySearchSource(
-        isGostaMasterQuery ? "K-Ruoka master V10" : "K-Ruoka V10",
-        () => searchSelectedKruokaOffersV10(cleanQuery, options),
+        isGostaMasterQuery ? "K-Ruoka master V12 multi-store" : "K-Ruoka V12 multi-store",
+        () => searchSelectedKruokaOffersV12(cleanQuery, options),
       )
     : [];
 
