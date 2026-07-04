@@ -1,4 +1,17 @@
 // ============================================================================
+// SKAUPAT_PROVIDER_V193_GOSTA_S_CLOUD_IMAGE_TEMPLATE_FIX
+// Revision: V193
+// Date: 2026-07-04
+//
+// Muutokset:
+// - Korjaa Göstan S-kaupat-tuotekuvat käyttämään samaa S-cloud URL-muotoa
+//   kuin s-kaupat.fi itse käyttää.
+// - urlTemplate-muunnos käyttää nyt modifieria w360h360@_q75 ja webp-päätettä.
+// - Poistettu V192:n virheellinen Cloudinary-tyylinen /image/upload/-muunnos.
+// - Ei muuta kauppavalintaa, tarjoushakua, GPS:ää, skanneria, äänihakua eikä K-ruokaa.
+// ============================================================================
+
+// ============================================================================
 // SKAUPAT_PROVIDER_V192_GOSTA_S_CLOUD_IMAGE_UPLOAD_URL_FIX
 // Revision: V192
 // Date: 2026-07-04
@@ -582,7 +595,7 @@ function formatComparisonPrice(price: unknown, unit: unknown): string {
   return `${number.toFixed(2).replace(".", ",")} €/${normalizedUnit.toLowerCase()}`;
 }
 
-function normalizeSCloudCdnImageUrlV192(value: string): string {
+function normalizeSCloudCdnImageUrlV193(value: string): string {
   const text = String(value || "").trim();
   if (!text) return "";
 
@@ -591,16 +604,12 @@ function normalizeSCloudCdnImageUrlV192(value: string): string {
 
     if (url.hostname !== "cdn.s-cloud.fi") return text;
 
-    // V192: S-cloud image templates can arrive as:
-    // https://cdn.s-cloud.fi/v1/{MODIFIERS}/assets/...
-    // After modifier replacement this became:
-    // https://cdn.s-cloud.fi/v1/w_400,h_400,c_fit/assets/...
-    // Browser did not load that form. The Cloudinary-style public URL needs:
-    // https://cdn.s-cloud.fi/v1/image/upload/w_400,h_400,c_fit/assets/...
-    if (url.pathname.startsWith("/v1/") && !url.pathname.startsWith("/v1/image/upload/")) {
-      url.pathname = url.pathname.replace(/^\/v1\//, "/v1/image/upload/");
-      return url.toString();
-    }
+    // V193: S-kaupat/S-cloud kuvat eivät ole Cloudinary-muotoa.
+    // Oikea muoto on esimerkiksi:
+    // https://cdn.s-cloud.fi/v1/w720h720@_q75/assets/dam-id/<id>.webp
+    // Siksi EI lisätä /image/upload/ väliin. Jos vanha V192 ehti lisätä sen,
+    // poistetaan se takaisin pois.
+    url.pathname = url.pathname.replace(/^\/v1\/image\/upload\//, "/v1/");
 
     return url.toString();
   } catch {
@@ -613,20 +622,20 @@ function normalizeSImageUrlV185(value: unknown): string {
   if (!text) return "";
 
   const withPlaceholdersFilled = text
-    .replace(/\{MODIFIERS\}/g, "w_400,h_400,c_fit")
-    .replace(/\{MODIFIER\}/g, "w_400,h_400,c_fit")
-    .replace(/\{SIZE\}/g, "w_400,h_400,c_fit")
-    .replace(/\{WIDTH\}/g, "400")
-    .replace(/\{HEIGHT\}/g, "400")
-    .replace(/\{EXTENSION\}/g, "jpg")
-    .replace(/\{FORMAT\}/g, "jpg");
+    .replace(/\{MODIFIERS\}/g, "w360h360@_q75")
+    .replace(/\{MODIFIER\}/g, "w360h360@_q75")
+    .replace(/\{SIZE\}/g, "w360h360@_q75")
+    .replace(/\{WIDTH\}/g, "360")
+    .replace(/\{HEIGHT\}/g, "360")
+    .replace(/\{EXTENSION\}/g, "webp")
+    .replace(/\{FORMAT\}/g, "webp");
 
   let normalized = withPlaceholdersFilled;
   if (withPlaceholdersFilled.startsWith("//")) normalized = `https:${withPlaceholdersFilled}`;
   else if (withPlaceholdersFilled.startsWith("http")) normalized = withPlaceholdersFilled;
   else if (withPlaceholdersFilled.startsWith("/")) normalized = `https://www.s-kaupat.fi${withPlaceholdersFilled}`;
 
-  return normalizeSCloudCdnImageUrlV192(normalized);
+  return normalizeSCloudCdnImageUrlV193(normalized);
 }
 
 function buildSCloudImageUrl(urlTemplate: string): string {
@@ -960,7 +969,7 @@ function formatVisibleImageDebugV189(debug: SKaupatImageDebugV189): string {
   const urlHead = compactDebugTextV190(debug.url, 46);
   const rawHead = compactDebugTextV190(debug.raw, 34);
 
-  return `DBG192 IMG:${imageState} SRC:${shortSource} HOST:${debug.host} LEN:${debug.len} EXT:${debug.ext} PH:${debug.hasPlaceholder ? "Y" : "N"} URL:${urlHead || "-"} RAW:${rawHead || "-"}`;
+  return `DBG193 IMG:${imageState} SRC:${shortSource} HOST:${debug.host} LEN:${debug.len} EXT:${debug.ext} PH:${debug.hasPlaceholder ? "Y" : "N"} URL:${urlHead || "-"} RAW:${rawHead || "-"}`;
 }
 
 function formatVisibleTitleDebugV190(debug: SKaupatImageDebugV189): string {
@@ -968,7 +977,7 @@ function formatVisibleTitleDebugV190(debug: SKaupatImageDebugV189): string {
   const urlHead = compactDebugTextV190(debug.url, 32);
   const rawHead = compactDebugTextV190(debug.raw, 18);
 
-  return `DBG192 ${imageState} H:${debug.host} U:${urlHead || "-"} R:${rawHead || "-"}`;
+  return `DBG193 ${imageState} H:${debug.host} U:${urlHead || "-"} R:${rawHead || "-"}`;
 }
 
 function getImageUrl(product: UnknownRecord, listItem?: UnknownRecord): string {
