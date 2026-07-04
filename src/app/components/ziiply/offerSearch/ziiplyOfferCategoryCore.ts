@@ -1,4 +1,17 @@
 // ============================================================================
+// ZIIPLY_OFFER_CATEGORY_CORE_V160_DRY_PRODUCTS_AND_MAKEISET_KEKSIT
+// Revision: V160
+// Date: 2026-07-04
+//
+// Muutokset:
+// - Lisää Kuivatuotteet-kategorian: pasta, riisi, jauhot, sokeri, hiutaleet, murot, mysli, säilykkeet.
+// - Ei erillistä Koiranruoka-kategoriaa: koiran/kissan ruoat kuuluvat Lemmikit-ryhmään.
+// - Muuttaa näkyvän Makeiset-kategorian nimeksi Makeiset & keksit.
+// - Lisää keksit Makeiset & keksit -ryhmään, mutta jäätelöt pysyvät Pakasteissa.
+// - Säilyttää aiemmat Haribo/Hevi, Lumene/Maitotuotteet ja jäätelö/Makeiset-korjaukset.
+// ============================================================================
+
+// ============================================================================
 // ZIIPLY_OFFER_CATEGORY_CORE_V159_MAKEISET_STRICT_NO_ICECREAM_SNACKS
 // Revision: V159
 // Date: 2026-07-04
@@ -164,7 +177,8 @@ function classifyGostaCategoryFromSPathV155(rawText: string) {
   if (/^alkoholi-ja-virvoitusjuomat\b|\/ alkoholi ja virvoitusjuomat\b|\balkoholi ja virvoitusjuomat\b|^virvoitusjuomat\b/.test(text)) return "Juomat";
   if (/^pakasteet\b|\/ pakasteet\b|\bpakasteet\b/.test(text)) return "Pakasteet";
   if (/^valmisruoka\b|\/ valmisruoka\b|\bvalmisruoka\b/.test(text)) return "Valmisruoka";
-  if (/^karkit-ja-suklaat\b|\/ karkit ja suklaat\b|\bkarkit ja suklaat\b/.test(text)) return "Makeiset";
+  if (/^kuivatuotteet\b|\/ kuivatuotteet\b|\bkuivatuotteet\b|^pasta-riisi-ja-aterian-lisukkeet\b|\b pasta riisi ja aterian lisukkeet\b|^sailykkeet\b|^säilykkeet\b|^jauhot-ja-leivonta\b|\bjauhot ja leivonta\b|^murot-myslit-ja-hiutaleet\b|\bmurot myslit ja hiutaleet\b/.test(text)) return "Kuivatuotteet";
+  if (/^karkit-ja-suklaat\b|\/ karkit ja suklaat\b|\bkarkit ja suklaat\b/.test(text)) return "Makeiset & keksit";
   if (/^lemmikit\b|^lemmikkien-ruoat-ja-tarvikkeet\b|^lemmikkien-ruuat-ja-tarvikkeet\b|\/ lemmikit\b|\blemmikit\b|\blemmikkien ruoat ja tarvikkeet\b|\blemmikkien ruuat ja tarvikkeet\b/.test(text)) return "Lemmikit";
 
   // Baby food is food; diapers/care products are Koti.
@@ -189,11 +203,13 @@ function classifyGostaCategoryFromText(rawText: string) {
   // words such as suklaa/lakritsi in the product name, but the real bucket is Pakasteet.
   if (/pakasteet|pakaste|jaatel|jäätel|ice cream|pingviini|kingis|magnum|ben jerry|ben and jerry|pizza|ranskalaiset|wokvihannes|pakastevihannes|pakastemarja/.test(text)) return "Pakasteet";
 
-  if (/karkit ja suklaat|suklaa|karkki|karkit|hedelmakarkki|hedelmäkarkki|makeinen|makeiset|lakritsi|salmiakki|pastilli|purukumi|ksylitoli|haribo|click mix|marianne|fazer|pandy/.test(text)) return "Makeiset";
+  if (/karkit ja suklaat|suklaa|karkki|karkit|hedelmakarkki|hedelmäkarkki|makeinen|makeiset|lakritsi|salmiakki|pastilli|purukumi|ksylitoli|haribo|click mix|marianne|fazer|pandy/.test(text)) return "Makeiset & keksit";
 
   // V154: baby food is food, not Koti. Diapers/care products still stay in Koti.
   if (/lastenruoka|lastenruoat|vauvanruoka|vauvanruoat|baby food|piltti|bonan|semper/.test(text)) return "Valmisruoka";
   if (/valmisruoka|valmisateria|keitto|keitot|salaattiateria|mikroateria|ateria|laatikko|pasta ateria/.test(text)) return "Valmisruoka";
+
+  if (/kuivatuotteet|pasta|riisi|nuudeli|makaroni|spagetti|jauho|jauhot|sokeri|hiutale|hiutaleet|kaurahiutale|muro|murot|mysli|granola|sailyke|säilyke|tonnikalasailyke|tonnikalasäilyke|papu|pavut|linssi|linssit|kastikejauhe|mauste|mausteet|leivonta/.test(text)) return "Kuivatuotteet";
 
   if (/liha ja kasviproteiinit|liha|jauheliha|kana|broiler|possu|porsas|nauta|sika|makkara|leikkele|kinkku|pekoni|filee|paisti|lihapulla|kasviproteiini|tofu|nyhtokaura|harkis|vege/.test(text)) return "Liha";
   if (/kala ja merenelavat|kala ja merenelävät|merenelav|mereneläv|kirjolohi|lohi|tonnikala|silakka|katkarapu|kuha|ahven|seiti|kalapuikko|silli|kala/.test(text)) return "Kala";
@@ -241,8 +257,8 @@ function getStrictGostaCategoryOverrideV157(item: ZiiplyGostaOfferLike): string 
     return "Pakasteet";
   }
 
-  if (/\b(haribo|click mix|karkki|karkit|hedelmakarkki|hedelmäkarkki|makeinen|makeiset|suklaa|lakritsi|salmiakki|pastilli|purukumi|ksylitoli|marianne|fazer|pandy)\b/.test(strictText)) {
-    return "Makeiset";
+  if (/\b(haribo|click mix|karkki|karkit|hedelmakarkki|hedelmäkarkki|makeinen|makeiset|suklaa|lakritsi|salmiakki|pastilli|purukumi|ksylitoli|marianne|fazer|pandy|keksi|keksit|cookie|cookies)\b/.test(strictText)) {
+    return "Makeiset & keksit";
   }
 
   if (/\b(lumene|nivea|dove|garnier|loreal|l oreal|kasvovoide|kosteusvoide|paivavoide|päivävoide|yovoide|yövoide|ihonhoito|kosmetiikka|meikki|seerumi|deodorantti|shampoo|hoitoaine|suihkusaippua)\b/.test(strictText)) {
@@ -295,11 +311,14 @@ export function isKnownOfferCategoryFilterV113(filter: string) {
     "leipomo",
     "hevi",
     "juomat",
-    "lemmikit",
-    "koti",
     "pakasteet",
     "valmisruoka",
+    "kuivatuotteet",
     "makeiset",
+    "makeisetkeksit",
+    "makeiset ja keksit",
+    "lemmikit",
+    "koti",
     "muut",
   ].includes(normalizeGostaText(filter));
 }
@@ -313,9 +332,10 @@ export const GOSTA_CATEGORY_LABELS_V136 = [
   "Leipomo",
   "Hevi",
   "Juomat",
-  "Valmisruoka",
   "Pakasteet",
-  "Makeiset",
+  "Valmisruoka",
+  "Kuivatuotteet",
+  "Makeiset & keksit",
   "Lemmikit",
   "Koti",
   "Muut",
@@ -333,7 +353,10 @@ export function getGostaCategorySeedQueriesV136(categoryOrFilter: string) {
     hevi: ["hedelmät", "vihannekset", "hedelmä", "omena", "banaani", "appelsiini", "vihannes", "tomaatti", "kurkku", "salaatti", "peruna", "sipuli", "porkkana", "marjat"],
     juomat: ["virvoitusjuomat", "mehu", "limu", "cola", "energiajuoma", "vesi", "kivennäisvesi", "smoothie", "kahvit teet ja mehut"],
     valmisruoka: ["valmisruoka", "valmisateria", "keitto", "salaattiateria", "mikroateria", "ateria", "laatikko", "pasta", "risotto", "lastenruoka", "lastenruoat", "vauvanruoka", "piltti", "semper"],
-    makeiset: ["karkit", "karkki", "makeinen", "makeiset", "suklaa", "suklaat", "lakritsi", "salmiakki", "pastillit", "pastilli", "purukumi", "ksylitoli", "haribo", "marianne", "fazer", "pandy"],
+    kuivatuotteet: ["kuivatuotteet", "pasta", "riisi", "makaroni", "spagetti", "nuudeli", "jauhot", "sokeri", "hiutaleet", "kaurahiutale", "murot", "mysli", "granola", "säilykkeet", "pavut", "linssit", "mausteet"],
+    makeiset: ["karkit", "karkki", "makeinen", "makeiset", "suklaa", "suklaat", "lakritsi", "salmiakki", "pastillit", "pastilli", "purukumi", "ksylitoli", "keksi", "keksit", "keksipaketti", "haribo", "marianne", "fazer", "pandy"],
+    makeisetkeksit: ["karkit", "karkki", "makeinen", "makeiset", "suklaa", "suklaat", "lakritsi", "salmiakki", "pastillit", "pastilli", "purukumi", "ksylitoli", "keksi", "keksit", "keksipaketti", "haribo", "marianne", "fazer", "pandy"],
+    "makeiset ja keksit": ["karkit", "karkki", "makeinen", "makeiset", "suklaa", "suklaat", "lakritsi", "salmiakki", "pastillit", "pastilli", "purukumi", "ksylitoli", "keksi", "keksit", "keksipaketti", "haribo", "marianne", "fazer", "pandy"],
     lemmikit: ["lemmikkien ruoat", "lemmikkien ruuat", "lemmikkiruoka", "koiranruoka", "kissanruoka", "pedigree", "whiskas", "sheba", "purina", "friskies"],
     koti: ["kodinhoito", "taloustarvikkeet", "kodinhoito ja taloustarvikkeet", "vaipat", "hoitotarvikkeet", "hygienia", "koti", "pesuaine", "pyykinpesuaine", "astianpesuaine", "fairy", "wc-paperi", "talouspaperi", "siivous", "roskapussi", "leivinpaperi", "folio", "kelmu", "shampoo", "saippua", "hammastahna"],
     pakasteet: ["pakasteet", "pakaste", "jäätelö", "pizza", "ranskalaiset", "pakastevihannes", "pakastemarjat", "wokvihannes"],
@@ -351,6 +374,7 @@ export function getGostaCategorySeedQueriesV136(categoryOrFilter: string) {
       ...seedsByCategory.juomat,
       ...seedsByCategory.valmisruoka,
       ...seedsByCategory.pakasteet,
+      ...seedsByCategory.kuivatuotteet,
       ...seedsByCategory.makeiset,
       ...seedsByCategory.lemmikit,
       ...seedsByCategory.koti,
@@ -363,6 +387,7 @@ export function getGostaCategorySeedQueriesV136(categoryOrFilter: string) {
 
 export function getGostaCategoryLabelFromFilterV136(filter: string) {
   const normalized = normalizeGostaText(filter);
+  if (normalized === "makeiset") return "Makeiset & keksit";
   return GOSTA_CATEGORY_LABELS_V136.find((label) => normalizeGostaText(label) === normalized) || filter;
 }
 
