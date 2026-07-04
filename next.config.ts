@@ -6,6 +6,23 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "cdn.s-cloud.fi",
+      },
+      {
+        protocol: "https",
+        hostname: "www.s-kaupat.fi",
+      },
+      {
+        protocol: "https",
+        hostname: "api.s-kaupat.fi",
+      },
+    ],
+  },
 };
 
 export default nextConfig;
