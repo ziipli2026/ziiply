@@ -1,3 +1,10 @@
+// V528_GOSTA_CATEGORY_COUNTS_SORT_AND_NO_RELOAD_BACK
+// Muutos Göstan tarjoushakuun:
+// - Paluu tuoteryhmälistaan ei enää tyhjennä offerSearchResults-listaa eikä käynnistä uutta master-hakua.
+// - Jo ladatut kategoriakohtaiset tarjousmäärät pysyvät muistissa, kun käyttäjä palaa kategoriavalikkoon.
+// - Varsinainen nappien määränäyttö, järjestys ja viimeksi avatun kategorian korostus tehdään ZiiplyMobileOfferSearchCard V27 -kortissa.
+// - Ei muutoksia normaaliin hintahakuun, GPS:ään, skanneriin, äänihakuun, koriin tai kauppavalintaan.
+
 // V526_CART_COMPLETE_ADD_MORE_OPENS_SEARCH
 // Korjaus CartCard V60/V61 -integraatioon:
 // - V60/V61 CartCardin uusi onAddMore-prop kytketään pageen.
@@ -3246,6 +3253,7 @@ export default function Page() {
   const [offerSearchDoneForQuery, setOfferSearchDoneForQuery] = useState("");
   const [offerCardFilterV106, setOfferCardFilterV106] = useState("");
   const [gostaTestedEmptyCategoriesV166, setGostaTestedEmptyCategoriesV166] = useState<Record<string, true>>({});
+  const [gostaMasterOfferResultsV528, setGostaMasterOfferResultsV528] = useState<any[]>([]);
   const [offerShowingAllAreaOffersV106, setOfferShowingAllAreaOffersV106] = useState(false);
   const [chainFilter, setChainFilter] = useState<"all" | "S" | "K">("all");
   const [justAdded, setJustAdded] = useState<string | null>(null);
@@ -7661,7 +7669,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const gostaCategoryOfferCountsV163 = useMemo(() => {
     const counts: Record<string, number> = {};
 
-    for (const rawOffer of cleanOfferSearchResultsV106) {
+    // V528: kategoriamäärät lasketaan ensisijaisesti ensimmäisestä ladatusta
+    // master-/kaikki tarjoukset -datasetistä. Näin tuoteryhmälistaan palaaminen
+    // ei kutistu vain viimeksi avatun kategorian perusteella eikä vaadi uutta hakua.
+    const countSourceResults = gostaMasterOfferResultsV528.length > 0
+      ? cleanZiiplyGostaOfferResultsV146(gostaMasterOfferResultsV528)
+      : cleanOfferSearchResultsV106;
+
+    for (const rawOffer of countSourceResults) {
       const cardOffer = mapZiiplyGostaOfferToCardOfferV147(rawOffer);
       const category = String(cardOffer.category || "").trim();
 
@@ -7671,7 +7686,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     return counts;
-  }, [cleanOfferSearchResultsV106]);
+  }, [cleanOfferSearchResultsV106, gostaMasterOfferResultsV528]);
 
   useEffect(() => {
     // V158: GPS-watchdog / kauppapäivitys voi muuttaa ympäröiviä paneelitiloja.
@@ -9692,6 +9707,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         });
       }
 
+      if (offerSearchCoreResult.searchAllAreaOffers) {
+        setGostaMasterOfferResultsV528(offerSearchCoreResult.results);
+      }
+
       setOfferSearchQuerySnapshot(offerSearchCoreResult.querySnapshot);
       setOfferCardFilterV106(offerSearchCoreResult.cardFilter);
       setOfferShowingAllAreaOffersV106(offerSearchCoreResult.showingAllAreaOffers);
@@ -9710,11 +9729,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const nextValue = String(value || "").trim();
 
     if (!nextValue) {
+      // V528: tämä on paluu Göstan tuoteryhmälistaan, ei uusi haku.
+      // Älä tyhjennä offerSearchResults-listaa, koska siitä lasketaan jo haettujen
+      // kategorioiden määrät ja se toimii käyttäjälle välimuistina.
       setOfferCardFilterV106("");
       setOfferSearchQuerySnapshot("");
-      setOfferSearchDoneForQuery("");
-      setOfferShowingAllAreaOffersV106(false);
-      setOfferSearchResults([]);
+      setOfferShowingAllAreaOffersV106(true);
       return;
     }
 
