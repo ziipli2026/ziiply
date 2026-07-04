@@ -1,13 +1,10 @@
 // src/app/api/offers/search/route.ts
-// ZIIPLY_OFFERS_SEARCH_ROUTE_V12_BUILD_FIX_NO_WITHINCHAIN
+// ZIIPLY_OFFERS_SEARCH_ROUTE_V10_REAL_INCOMING_CONTEXT_K_DEBUG
 //
 // Fix:
-// - Build-korjaus V11-debugiin: poistettu context-oliosta withinChain-kenttä,
-//   koska ZiiplyOfferSearchSourceContextV8-tyyppi ei tunne sitä.
-// - Route välittää edelleen Göstan/page query-parametrit searchZiiplyOffers(query, context)-kutsulle.
-// - S/K-kauppakonteksti pysyy mukana: area, storeMode, scope, sStoreId/sStoreName,
-//   kStoreId/kStoreName.
-// - Cache pysyy pois päältä kauppakohtaisessa tarjousdatassa.
+// - Forwards Gösta/page query parameters to searchZiiplyOffers(query, context).
+// - This lets S-kaupat provider use the selected S-store id instead of the old hardcoded default.
+// - Keeps cache disabled for store-specific offer data.
 
 import { NextResponse } from "next/server";
 import {
@@ -29,8 +26,8 @@ export async function GET(request: Request) {
     const searchParams = url.searchParams;
     const q = getParam(searchParams, "q") || "";
 
-    // V12: ei withinChain-kenttää tässä context-oliossa, koska tyyppi ei tue sitä.
-    // Page/sources voi päätellä K/S-ajon olemassa olevista scope + S/K store -kentistä.
+    // V10: ei enää pakoteta Prisma Varkauteen. Käytetään oikeasti page.tsx:n
+    // lähettämää S/K-kauppakontekstia, jotta Göstan K-provider voi saada kStoreId:n.
     const context: ZiiplyOfferSearchSourceContextV8 = {
       areaLabel: getParam(searchParams, "area"),
       storeMode: getParam(searchParams, "storeMode"),
@@ -41,26 +38,22 @@ export async function GET(request: Request) {
       kStoreName: getParam(searchParams, "kStoreName"),
     };
 
-    console.warn("[GOSTA ROUTE REAL CONTEXT V12]", {
+    console.warn("[GOSTA ROUTE REAL CONTEXT V10]", {
       q,
       context,
     });
 
     const results = await searchZiiplyOffers(q, context);
 
-    console.warn("[GOSTA ROUTE RESULT DEBUG V12]", {
+    console.warn("[GOSTA ROUTE RESULT DEBUG V10]", {
       q,
       count: results.length,
       first: results[0]
         ? {
             title: (results[0] as any).title,
             storeLabel: (results[0] as any).storeLabel,
-            debugProvider:
-              (results[0] as any)._debugProviderRevision ||
-              (results[0] as any)._debugKProviderRevision,
-            selectedStoreId:
-              (results[0] as any)._debugSelectedStoreId ||
-              (results[0] as any)._debugKStoreId,
+            debugProvider: (results[0] as any)._debugProviderRevision || (results[0] as any)._debugKProviderRevision,
+            selectedStoreId: (results[0] as any)._debugSelectedStoreId || (results[0] as any)._debugKStoreId,
             productStoreId: (results[0] as any)._debugProductStoreId,
           }
         : null,
