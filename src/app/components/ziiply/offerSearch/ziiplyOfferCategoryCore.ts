@@ -1,6 +1,6 @@
 // ============================================================================
-// ZIIPLY_OFFER_CATEGORY_CORE_V157_STRICT_CATEGORY_OVERRIDES_AND_ORDER
-// Revision: V157
+// ZIIPLY_OFFER_CATEGORY_CORE_V158_BUILD_FIX_STRICT_OVERRIDE
+// Revision: V158
 // Date: 2026-07-04
 //
 // Muutokset:
@@ -18,13 +18,15 @@
 // ============================================================================
 // ZIIPLY_OFFER_CATEGORY_CORE_V155_TAXONOMY_FIRST
 // Revision: V155
-// Date: 2026-06-06
+// Date: 2026-07-04
 //
 // Fix:
 // - Maps S-kanava categories to Ziiply categories using provider category metadata first.
 // - Keeps Gösta scoped to food basket + everyday essentials, not the full S-kanava catalogue.
 // - Widens seeds for Pakasteet, Valmisruoka, Juomat, Koti and other real offer groups.
 // - V155: uses S-kaupat taxonomy/categoryPath/hierarchy before regex title guessing.
+// - V157: strict overrides keep candy out of Hevi and cosmetics out of Maitotuotteet.
+// - V158: build fix, adds the missing getStrictGostaCategoryOverrideV157() helper.
 // ============================================================================
 
 export type ZiiplyGostaOfferLike = Record<string, unknown>;
@@ -187,6 +189,48 @@ function classifyGostaCategoryFromText(rawText: string) {
   if (/hedelmat ja vihannekset|hedelmät ja vihannekset|hedel|omena|banaani|appelsiini|mandariini|viiniryp|vihannes|tomaatti|kurkku|salaatti|peruna|sipuli|porkkana|kaali|avokado|marja/.test(text)) return "Hevi";
 
   return "Muut";
+}
+
+
+function getStrictGostaCategoryOverrideV157(item: ZiiplyGostaOfferLike): string {
+  const strictText = normalizeGostaText(
+    [
+      item?.title,
+      item?.name,
+      item?.productName,
+      item?.brandName,
+      item?.category,
+      item?.categoryPath,
+      item?.breadcrumbs,
+      item?.department,
+      item?.productGroup,
+      item?.mainCategory,
+      item?.subCategory,
+      item?.taxonomy,
+      item?.hierarchy,
+    ]
+      .filter(Boolean)
+      .map(String)
+      .join(" "),
+  );
+
+  if (!strictText) return "";
+
+  // These hard overrides must win before broad words such as hedelmä, marja,
+  // maito or cream can place the offer in Hevi/Maitotuotteet.
+  if (/\b(haribo|click mix|karkki|karkit|hedelmakarkki|hedelmäkarkki|makeinen|makeiset|suklaa|lakritsi|salmiakki|pastilli|snacks|snacksit|sipsi|nacho|nachot|popcorn)\b/.test(strictText)) {
+    return "Makeiset";
+  }
+
+  if (/\b(lumene|nivea|dove|garnier|loreal|l oreal|kasvovoide|kosteusvoide|paivavoide|päivävoide|yovoide|yövoide|ihonhoito|kosmetiikka|meikki|seerumi|deodorantti|shampoo|hoitoaine|suihkusaippua)\b/.test(strictText)) {
+    return "Koti";
+  }
+
+  if (/\b(pedigree|whiskas|sheba|purina|friskies|perfect fit|best friend|koiranruoka|kissanruoka|lemmikkiruoka|lemmikit|lemmikki)\b/.test(strictText)) {
+    return "Lemmikit";
+  }
+
+  return "";
 }
 
 export function getOfferCategoryV106(item: ZiiplyGostaOfferLike) {
