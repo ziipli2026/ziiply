@@ -1,6 +1,6 @@
 // src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts
-// ZIIPLY_KRUOKA_OFFER_PROVIDER_V14_PREFIX_NUMERIC_K_STOREID
-// Revision: V13
+// ZIIPLY_KRUOKA_OFFER_PROVIDER_V15_PRODUCT_MAP_FULL_EAN_SEED
+// Revision: V15
 // Date: 2026-07-04
 //
 // Fix:
@@ -12,6 +12,11 @@
 // - Product-map jää vain fallbackiksi.
 // - Ei koske S-kaupat-provideriin.
 // - V13: jos K-provider palauttaa 0 tulosta, palautetaan näkyvä GÖSTA K DEBUG -kortti iPhoneen.
+// V15: HAR vahvisti, että tarjouslehtisivu lähettää raw-offer/product-map-kutsun
+// täyden EAN-listan kanssa. Siksi product-map ajetaan nyt ensisijaisena
+// laajalla EAN-seedillä jokaiselle valitulle K-kaupalle erikseen.
+// fetch-offers jää tueksi yksittäisiin tarjous=tarjouslehti-310488P-polkuhin.
+
 
 import type {
   ZiiplyOfferSearchResult,
@@ -35,7 +40,7 @@ export type KruokaOfferProviderOptionsV10 = {
   kStoreName?: string | null;
 };
 
-const KRUOKA_PROVIDER_REVISION_V12 = "KRUOKA_PROVIDER_V14_PREFIX_NUMERIC_K_STOREID";
+const KRUOKA_PROVIDER_REVISION_V12 = "KRUOKA_PROVIDER_V15_PRODUCT_MAP_FULL_EAN_SEED";
 const KRUOKA_FETCH_OFFERS_URL_V12 = "https://www.k-ruoka.fi/kr-api/fetch-offers";
 const KRUOKA_PRODUCT_MAP_URL_V12 = "https://www.k-ruoka.fi/kr-api/raw-offer/product-map";
 const DEFAULT_KRUOKA_STORE_ID_V12 = "L654";
@@ -71,6 +76,129 @@ const KRUOKA_DEBUG_EANS_V12 = [
   "6437002001454",
   "6430064400890",
   "6430064401439",
+  "6430064405048",
+  "6430064405055",
+  "6430064407554",
+  "6430064407707",
+  "6430064408001",
+  "6430064408049",
+  "6430064408445",
+  "6430064408506",
+  "6430064403624",
+  "6430064403631",
+  "6430064403648",
+  "6430064403662",
+  "6430064403679",
+  "6430064403686",
+  "6410405123657",
+  "8420982902253",
+  "2000326600005",
+  "6410405051844",
+  "6416046731305",
+  "6410405330802",
+  "6409100062071",
+  "6409100070311",
+  "6409100070328",
+  "6409100070434",
+  "6409100071257",
+  "6409100071288",
+  "6409100071356",
+  "6409100071899",
+  "6409100072070",
+  "6409100078034",
+  "6437005053368",
+  "6408430061587",
+  "6408430061686",
+  "6408430670307",
+  "6408430690190",
+  "6408430690367",
+  "6408430690510",
+  "6408430671120",
+  "6408430671168",
+  "6408430046652",
+  "6408430048441",
+  "6408430102822",
+  "6408430103256",
+  "6408430103447",
+  "6408430043200",
+  "6408430141487",
+  "6408430142798",
+  "6408430020072",
+  "6408430020539",
+  "6408430021024",
+  "6408430021031",
+  "6408430021048",
+  "6408430023431",
+  "6408430024933",
+  "6408430026432",
+  "6408430401215",
+  "6408430401277",
+  "6408430401444",
+  "6408430401611",
+  "6408430408665",
+  "6408430408832",
+  "6408430033805",
+  "6408430039371",
+  "0000057095431",
+  "6415600501781",
+  "6415600502054",
+  "6415600506434",
+  "6415600545754",
+  "6415600546072",
+  "6415600546126",
+  "6415600546157",
+  "6415600546188",
+  "6415600546607",
+  "6415600549493",
+  "6415600555722",
+  "6415600563697",
+  "6415600564878",
+  "6415600570992",
+  "6415600571081",
+  "6415600574488",
+  "6415600577632",
+  "6415600577861",
+  "6415600581301",
+  "6415600581776",
+  "6415600584661",
+  "6415600587457",
+  "6415600591843",
+  "6415600592239",
+  "6415600594684",
+  "6415600594868",
+  "6410400032848",
+  "6410400032855",
+  "6410400049013",
+  "6410402007059",
+  "6410405050458",
+  "6410405199874",
+  "6410405199898",
+  "6410405199911",
+  "6410405199935",
+  "6410405328854",
+  "6410405328885",
+  "6410405323521",
+  "6410405358202",
+  "6410405048561",
+  "6410405053749",
+  "6410405053763",
+  "6410405355461",
+  "6410405355492",
+  "6410405251411",
+  "6410405251435",
+  "6410405251459",
+  "6410405251473",
+  "6410405251497",
+  "6410405261038",
+  "6410405303172",
+  "6410405222893",
+  "6410405222916",
+  "6410405222930",
+  "6410405222954",
+  "6410405364920",
+  "6410405364951",
+  "6410405364982",
+  "6410405365019",
 ];
 
 const KRUOKA_HEADERS = new Set([
@@ -752,15 +880,45 @@ export async function fetchKruokaOffers(
   const storeId = getKruokaStoreIdV12(options);
   const html = await fetchKruokaBrochureHtmlV12(source);
   const offerIds = html ? extractKruokaOfferIdsFromHtmlV12(html) : [];
+  const extractedEans = html ? extractKruokaEansFromHtmlV12(html) : [];
+  const eans = Array.from(new Set([
+    ...extractedEans,
+    ...KRUOKA_DEBUG_EANS_V12,
+  ])).filter((ean) => /^\d{13}$/.test(String(ean)));
 
-  console.warn("[Ziiply K offers V12] start", {
+  console.warn("[Ziiply K offers V15] start", {
     source: source.id,
     storeLabel: source.storeLabel,
     storeId,
     query,
+    htmlLength: html.length,
     offerIds: offerIds.length,
+    eans: eans.length,
   });
 
+  // V15: product-map ensin. HAR:n mukaan tarjouslehti käyttää tätä täyden
+  // EAN-listan kanssa. Tämä toimii kauppakohtaisesti: sama EAN-lista ajetaan
+  // aina valitun storeId:n läpi, jolloin K-Ruoka palauttaa kyseisen kaupan
+  // normaalihinnan/tarjoushinnan/saatavuuden.
+  const productMapItems = await fetchKruokaProductMapV12(storeId, eans);
+  const productMapMapped = productMapItems
+    .map((product, index) => mapKruokaProductMapItemToOfferV12(product, query, source, storeId, index))
+    .filter(Boolean) as ZiiplyOfferSearchResult[];
+
+  const productMapFiltered = filterKruokaResultsForQueryV12(productMapMapped, query);
+  if (productMapFiltered.length > 0) {
+    console.warn("[Ziiply K offers V15] product-map primary ok", {
+      source: source.id,
+      storeId,
+      productMapItems: productMapItems.length,
+      count: productMapFiltered.length,
+      first: productMapFiltered[0]?.title,
+    });
+    return productMapFiltered;
+  }
+
+  // Tuki yksittäisen tarjouskortin polulle: tarjous=tarjouslehti-310488P.
+  // fetch-offers vaatii pelkän 310488P-muodon, ei tarjouslehti-alkua.
   if (offerIds.length > 0) {
     const offers = await fetchKruokaOffersByOfferIdsV12(storeId, offerIds, source);
     const mapped = offers
@@ -770,7 +928,7 @@ export async function fetchKruokaOffers(
     const filtered = filterKruokaResultsForQueryV12(mapped, query);
 
     if (filtered.length > 0) {
-      console.warn("[Ziiply K offers V12] fetch-offers ok", {
+      console.warn("[Ziiply K offers V15] fetch-offers fallback ok", {
         source: source.id,
         storeId,
         offerIds: offerIds.length,
@@ -781,27 +939,9 @@ export async function fetchKruokaOffers(
     }
   }
 
-  const extractedEans = html ? extractKruokaEansFromHtmlV12(html) : [];
-  const eans = extractedEans.length > 0 ? extractedEans : KRUOKA_DEBUG_EANS_V12;
-  const productMapItems = await fetchKruokaProductMapV12(storeId, eans);
-  const productMapMapped = productMapItems
-    .map((product, index) => mapKruokaProductMapItemToOfferV12(product, query, source, storeId, index))
-    .filter(Boolean) as ZiiplyOfferSearchResult[];
-
-  const productMapFiltered = filterKruokaResultsForQueryV12(productMapMapped, query);
-  if (productMapFiltered.length > 0) {
-    console.warn("[Ziiply K offers V12] product-map fallback ok", {
-      source: source.id,
-      storeId,
-      count: productMapFiltered.length,
-      first: productMapFiltered[0]?.title,
-    });
-    return productMapFiltered;
-  }
-
   if (html) {
     const htmlResults = parseKruokaOffersFromHtml(html, query, source);
-    console.warn("[Ziiply K offers V13] html fallback", {
+    console.warn("[Ziiply K offers V15] html fallback", {
       source: source.id,
       storeId,
       count: htmlResults.length,
@@ -820,7 +960,7 @@ export async function fetchKruokaOffers(
       eansCount: eans.length,
       productMapCount: productMapItems.length,
       fetchOffersTried: offerIds.length > 0,
-      note: "K-provider returned zero real offers",
+      note: "K-provider V15 returned zero real offers after product-map primary",
     }),
   ];
 }
