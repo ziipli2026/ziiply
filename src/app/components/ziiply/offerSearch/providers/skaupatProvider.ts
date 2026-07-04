@@ -1,4 +1,20 @@
 // ============================================================================
+// SKAUPAT_PROVIDER_V192_GOSTA_S_CLOUD_IMAGE_UPLOAD_URL_FIX
+// Revision: V192
+// Date: 2026-07-04
+//
+// Muutokset V190 -> V192:
+// - Korjaa S-kaupat-kuvien cdn.s-cloud.fi URL-muodon.
+// - Jos urlTemplate muodostaa muodon /v1/<modifiers>/assets/..., lisätään puuttuva /image/upload/.
+// - Esim. https://cdn.s-cloud.fi/v1/w_400,h_400,c_fit/assets/...
+//   -> https://cdn.s-cloud.fi/v1/image/upload/w_400,h_400,c_fit/assets/...
+// - Palauttaa tuotteen nimen normaaliksi: DBG-tekstiä ei enää lisätä title-kenttään.
+// - Palauttaa benefitTextin normaaliksi: DBG-tekstiä ei enää lisätä kampanjatekstiin.
+// - Jättää debugImage*-kentät tarjousobjektiin, jotta iPhonen debug-paneeli voi näyttää src:n.
+// - Ei muuta kauppavalintaa, GPS:ää, skanneria, äänihakua eikä K-ruoka-provideria.
+// ============================================================================
+
+// ============================================================================
 // SKAUPAT_PROVIDER_V190_GOSTA_VISIBLE_IMAGE_URL_DEBUG
 // Revision: V190
 // Date: 2026-07-04
@@ -566,6 +582,32 @@ function formatComparisonPrice(price: unknown, unit: unknown): string {
   return `${number.toFixed(2).replace(".", ",")} €/${normalizedUnit.toLowerCase()}`;
 }
 
+function normalizeSCloudCdnImageUrlV192(value: string): string {
+  const text = String(value || "").trim();
+  if (!text) return "";
+
+  try {
+    const url = new URL(text);
+
+    if (url.hostname !== "cdn.s-cloud.fi") return text;
+
+    // V192: S-cloud image templates can arrive as:
+    // https://cdn.s-cloud.fi/v1/{MODIFIERS}/assets/...
+    // After modifier replacement this became:
+    // https://cdn.s-cloud.fi/v1/w_400,h_400,c_fit/assets/...
+    // Browser did not load that form. The Cloudinary-style public URL needs:
+    // https://cdn.s-cloud.fi/v1/image/upload/w_400,h_400,c_fit/assets/...
+    if (url.pathname.startsWith("/v1/") && !url.pathname.startsWith("/v1/image/upload/")) {
+      url.pathname = url.pathname.replace(/^\/v1\//, "/v1/image/upload/");
+      return url.toString();
+    }
+
+    return url.toString();
+  } catch {
+    return text;
+  }
+}
+
 function normalizeSImageUrlV185(value: unknown): string {
   const text = firstString(value);
   if (!text) return "";
@@ -579,11 +621,12 @@ function normalizeSImageUrlV185(value: unknown): string {
     .replace(/\{EXTENSION\}/g, "jpg")
     .replace(/\{FORMAT\}/g, "jpg");
 
-  if (withPlaceholdersFilled.startsWith("//")) return `https:${withPlaceholdersFilled}`;
-  if (withPlaceholdersFilled.startsWith("http")) return withPlaceholdersFilled;
-  if (withPlaceholdersFilled.startsWith("/")) return `https://www.s-kaupat.fi${withPlaceholdersFilled}`;
+  let normalized = withPlaceholdersFilled;
+  if (withPlaceholdersFilled.startsWith("//")) normalized = `https:${withPlaceholdersFilled}`;
+  else if (withPlaceholdersFilled.startsWith("http")) normalized = withPlaceholdersFilled;
+  else if (withPlaceholdersFilled.startsWith("/")) normalized = `https://www.s-kaupat.fi${withPlaceholdersFilled}`;
 
-  return withPlaceholdersFilled;
+  return normalizeSCloudCdnImageUrlV192(normalized);
 }
 
 function buildSCloudImageUrl(urlTemplate: string): string {
@@ -917,7 +960,7 @@ function formatVisibleImageDebugV189(debug: SKaupatImageDebugV189): string {
   const urlHead = compactDebugTextV190(debug.url, 46);
   const rawHead = compactDebugTextV190(debug.raw, 34);
 
-  return `DBG190 IMG:${imageState} SRC:${shortSource} HOST:${debug.host} LEN:${debug.len} EXT:${debug.ext} PH:${debug.hasPlaceholder ? "Y" : "N"} URL:${urlHead || "-"} RAW:${rawHead || "-"}`;
+  return `DBG192 IMG:${imageState} SRC:${shortSource} HOST:${debug.host} LEN:${debug.len} EXT:${debug.ext} PH:${debug.hasPlaceholder ? "Y" : "N"} URL:${urlHead || "-"} RAW:${rawHead || "-"}`;
 }
 
 function formatVisibleTitleDebugV190(debug: SKaupatImageDebugV189): string {
@@ -925,7 +968,7 @@ function formatVisibleTitleDebugV190(debug: SKaupatImageDebugV189): string {
   const urlHead = compactDebugTextV190(debug.url, 32);
   const rawHead = compactDebugTextV190(debug.raw, 18);
 
-  return `DBG190 ${imageState} H:${debug.host} U:${urlHead || "-"} R:${rawHead || "-"}`;
+  return `DBG192 ${imageState} H:${debug.host} U:${urlHead || "-"} R:${rawHead || "-"}`;
 }
 
 function getImageUrl(product: UnknownRecord, listItem?: UnknownRecord): string {
@@ -1033,11 +1076,9 @@ function mapSProductListItemToOfferResult(
       : labelsText,
   );
 
-  // V190 DEBUG: näkyy iPhonessa sekä tuotteen nimessä että kampanjatekstissä.
-  // Tämä auttaa, vaikka kortti katkaisee pitkiä tekstejä.
-  const benefitText = cleanRepeatedCampaignTextV161(
-    `${visibleImageDebugV189} · ${normalBenefitText}`.trim(),
-  );
+  // V192: Debug pidetään erillisissä debugImage*-kentissä.
+  // Tuotteen kampanjateksti pidetään käyttäjälle normaalina.
+  const benefitText = normalBenefitText;
 
   const rawText = [
     title,
@@ -1066,7 +1107,7 @@ function mapSProductListItemToOfferResult(
     sourceUrl: options.config.url,
     chain: options.config.chain,
     storeLabel: options.config.storeLabel,
-    title: `${formatVisibleTitleDebugV190(imageDebugV189)} ${title}`,
+    title,
     priceText,
     unitPriceText,
     benefitText,
