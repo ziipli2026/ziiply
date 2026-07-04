@@ -1,4 +1,22 @@
 // ============================================================================
+// SKAUPAT_PROVIDER_V188_GOSTA_VISIBLE_TITLE_IMAGE_DEBUG
+// Revision: V188
+// Date: 2026-07-04
+//
+// DEBUG ONLY - iPhone/mobile visible debug.
+//
+// Muutokset V187 -> V188:
+// - Debug ei jää enää benefitText-riville, joka voi katketa/piiloutua kortissa.
+// - Lisää debug-statuksen suoraan tarjouskortin title-kentän alkuun.
+// - iPhonen näkymässä tuotteen nimen alussa näkyy esim.
+//   DBG NOIMG no-details no-pimg no-imgs | Kulta Katriina...
+// - Säilyttää imageUrl-, image- ja pictureUrl-kentät ennallaan.
+// - Ei muuta kauppavalintaa, GPS:ää, skanneria, äänihakua eikä K-ruoka-provideria.
+// - VÄLIAIKAINEN DEBUG-VERSIO: älä jätä tuotantoon lopullisesti.
+//
+// ============================================================================
+
+// ============================================================================
 // SKAUPAT_PROVIDER_V187_GOSTA_VISIBLE_IMAGE_DEBUG
 // Revision: V187
 // Date: 2026-07-04
@@ -794,6 +812,26 @@ function buildGostaVisibleImageDebugV187(params: {
 }
 
 
+function buildGostaVisibleTitleDebugV188(params: {
+  product: UnknownRecord;
+  listItem: UnknownRecord;
+  imageUrl: string;
+  originalTitle: string;
+}): string {
+  const { product, listItem, imageUrl, originalTitle } = params;
+
+  const flags = [
+    getPathValue(product, ["productDetails", "productImages"]) ? "details" : "no-details",
+    product.productImages ? "pimg" : "no-pimg",
+    product.images ? "imgs" : "no-imgs",
+    listItem.image ? "li-img" : "no-li-img",
+    product.image ? "prod-img" : "no-prod-img",
+  ];
+
+  const imageState = imageUrl ? `IMGOK${imageUrl.length}` : "NOIMG";
+  return `DBG ${imageState} ${flags.join(" ")} | ${originalTitle}`;
+}
+
 function belongsToSelectedSHypermarketV163(
   product: UnknownRecord,
   selectedStoreId: string,
@@ -956,6 +994,13 @@ function mapSProductListItemToOfferResult(
     selectedStoreId: options.selectedStoreId,
   });
 
+  const visibleDebugTitleV188 = buildGostaVisibleTitleDebugV188({
+    product,
+    listItem,
+    imageUrl,
+    originalTitle: title,
+  });
+
   const benefitText = [baseBenefitText, visibleImageDebugTextV187]
     .filter(Boolean)
     .join(" · ");
@@ -987,7 +1032,8 @@ function mapSProductListItemToOfferResult(
     sourceUrl: options.config.url,
     chain: options.config.chain,
     storeLabel: options.config.storeLabel,
-    title,
+    title: visibleDebugTitleV188,
+    originalTitle: title,
     priceText,
     unitPriceText,
     benefitText,
