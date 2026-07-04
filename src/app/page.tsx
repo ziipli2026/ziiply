@@ -1,25 +1,3 @@
-// V531_GOSTA_VISIBLE_K_STORE_DEBUG
-// Debug-lisäys Göstan K-haun selvittämiseen:
-// - Näyttää iPhonessa tarjouskortin alaotsikossa K-ryhmän sisäisen haun kolme lähdettä:
-//   activeArea.kStoreId/kStoreName, activeArea.kLocalStoreId/kLocalStoreName ja activeStores.kStoreId/kStoreName.
-// - Ei muuta hakulogiikkaa, routea, provideria, GPS:ää, skanneria eikä koria.
-// - Tarkoitus: selvittää mistä L3221/3221 tulee ja lähteekö Munckinkadun K-Market oikeasti mukaan.
-
-// V529_GOSTA_WITHIN_CHAIN_K_SCOPE_FIX
-// Korjaus Göstan K-hakuun:
-// - Ketjun sisältä -> K-ryhmä ei enää lähetä S-kauppaa tarjoushakuun.
-// - Göstan contextiin lisätään withinChain, jotta offerSearchSources osaa ajaa vain K-providerin.
-// - Ketjun sisältä -> S-ryhmä sulkee vastaavasti K-providerin pois.
-// - Ketjujen väliltä säilyttää S+K-kontekstin.
-// - Ei muutoksia normaaliin hintahakuun, kauppavalintaan, GPS:ään, skanneriin tai koriin.
-
-// V530_GOSTA_K_WITHIN_CHAIN_SEND_BOTH_K_STORES
-// Korjaus Göstan K-ryhmän sisäiseen tarjoushakuun:
-// - Ketjun sisältä / K-ryhmä lähettää Göstalle molemmat K-vertailukaupat.
-// - kStoreId/kStoreName välitetään pilkku/erotin-muodossa sources-layerille, joka ajaa K-providerin molemmille.
-// - Jos K-Citymarket palauttaa 0, K-Market/K-Supermarketin tarjoukset voivat silti näkyä.
-// - S-kauppaa ei edelleenkään lähetetä K-ryhmän sisäisessä haussa.
-
 // V528_GOSTA_CATEGORY_COUNTS_SORT_AND_NO_RELOAD_BACK
 // Muutos Göstan tarjoushakuun:
 // - Paluu tuoteryhmälistaan ei enää tyhjennä offerSearchResults-listaa eikä käynnistä uutta master-hakua.
@@ -9670,69 +9648,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     try {
       // V527: Gösta käyttää nyt samaa valittua kauppakontekstia kuin normaali hintahaku.
       // Ei kovakoodattua Prisma Varkaus -debugpakotusta.
-      const gostaWithinChainV529 = String(withinChain || "").toUpperCase();
-      const gostaIsWithinKChainV529 =
-        storeCompareScope === "within_chain" && gostaWithinChainV529 === "K";
-      const gostaIsWithinSChainV529 =
-        storeCompareScope === "within_chain" && gostaWithinChainV529 === "S";
-
-      const gostaKStoresV530 = (() => {
-        const items: Array<{ id: unknown; name: unknown }> = [];
-
-        // V530:
-        // Ketjun sisältä / K-ryhmässä käyttäjällä on kaksi K-kauppaa:
-        // - tavaratalo / K-Citymarket-slot
-        // - lähikauppa / K-Market tai K-Supermarket-slot
-        // Göstan pitää lähettää molemmat, jotta toimiva lähikauppa ei katoa vain
-        // siksi, että Citymarketin tarjousrajapinta palauttaa tyhjää/eri rakennetta.
-        if (gostaIsWithinKChainV529) {
-          items.push(
-            { id: activeArea.kStoreId, name: activeArea.kStoreName },
-            { id: activeArea.kLocalStoreId, name: activeArea.kLocalStoreName },
-            { id: activeStores.kStoreId, name: activeStores.kStoreName },
-          );
-        } else if (!gostaIsWithinSChainV529) {
-          items.push({ id: activeStores.kStoreId, name: activeStores.kStoreName });
-        }
-
-        const seen = new Set<string>();
-        return items
-          .map((item) => ({
-            id: String(item.id ?? "").trim(),
-            name: String(item.name ?? "").trim(),
-          }))
-          .filter((item) => item.id && item.id !== "0" && !/^valitse/i.test(item.id))
-          .filter((item) => {
-            const key = `${item.id}|${item.name}`.toLowerCase();
-            if (seen.has(key)) return false;
-            seen.add(key);
-            return true;
-          });
-      })();
-
       const gostaOfferSearchContextV172 = {
         areaLabel: activeArea.label || "",
         storeMode,
         storeCompareScope,
-        withinChain: gostaWithinChainV529 || undefined,
-
-        // V529:
-        // Ketjun sisältä / K-ryhmässä activeStores voi silti sisältää aiemman S-kaupan.
-        // Sitä EI saa välittää Göstalle, muuten source-layer ajaa S-kaupat-providerin
-        // ja ruudulle tulee S-KAUPAT-tarjouksia K-valinnasta huolimatta.
-        sStoreId: gostaIsWithinKChainV529 ? undefined : activeStores.sStoreId || undefined,
-        sStoreName: gostaIsWithinKChainV529 ? undefined : activeStores.sStoreName || undefined,
-
-        // V530:
-        // Välitetään tarvittaessa useampi K-kauppa samassa parametrissa.
-        // offerSearchSources V12 pilkkoo nämä ja ajaa K-providerin jokaiselle kaupalle erikseen.
-        kStoreId: gostaIsWithinSChainV529
-          ? undefined
-          : gostaKStoresV530.map((store) => store.id).join(",") || undefined,
-        kStoreName: gostaIsWithinSChainV529
-          ? undefined
-          : gostaKStoresV530.map((store) => store.name).join(" || ") || undefined,
-
+        sStoreId: activeStores.sStoreId || undefined,
+        sStoreName: activeStores.sStoreName || undefined,
+        kStoreId: activeStores.kStoreId || undefined,
+        kStoreName: activeStores.kStoreName || undefined,
         usingOwnLocation,
         gpsLat: gpsCoordsV320?.latitude,
         gpsLon: gpsCoordsV320?.longitude,
@@ -9755,12 +9678,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         cartItemsCount: cart.length,
         storeMode,
         storeCompareScope,
-        withinChain: gostaWithinChainV529 || "",
         areaLabel: activeArea.label || "",
-        sStoreId: gostaOfferSearchContextV172.sStoreId || "",
-        sStoreName: gostaOfferSearchContextV172.sStoreName || "",
-        kStoreId: gostaOfferSearchContextV172.kStoreId || "",
-        kStoreName: gostaOfferSearchContextV172.kStoreName || "",
+        sStoreId: activeStores.sStoreId || "",
+        sStoreName: activeStores.sStoreName || "",
+        kStoreId: activeStores.kStoreId || "",
+        kStoreName: activeStores.kStoreName || "",
       });
 
       const categoryKeyV166 = String(offerSearchCoreResult.categoryLabel || "").trim();
@@ -18641,11 +18563,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           <ZiiplyMobileOfferSearchCardLoose
             open={true}
             title="Tarjoushaku"
-            subtitle={
-              storeCompareScope === "within_chain" && String(withinChain || "").toUpperCase() === "K"
-                ? `K DEBUG hyper=${String(activeArea.kStoreName || "-")}#${String(activeArea.kStoreId || "-")} local=${String(activeArea.kLocalStoreName || "-")}#${String(activeArea.kLocalStoreId || "-")} active=${String(activeStores.kStoreName || "-")}#${String(activeStores.kStoreId || "-")}`
-                : undefined
-            }
             query={offerSearchQuerySnapshot || offerCardFilterV106 || ""}
             offers={gostaOfferCardItemsV163}
             filter={offerCardFilterV106}
