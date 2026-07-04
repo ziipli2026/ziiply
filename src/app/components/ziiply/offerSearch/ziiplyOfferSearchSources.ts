@@ -1,5 +1,11 @@
 // src/app/components/ziiply/offerSearch/ziiplyOfferSearchSources.ts
-// ZIIPLY_OFFER_SEARCH_SOURCES_V9_K_PROVIDER_PRODUCT_MAP_DEBUG
+// ZIIPLY_OFFER_SEARCH_SOURCES_V10_SCOPE_AWARE_K_PROVIDER
+//
+// V10 korjaus:
+// - Gösta ei enää aja S-kaupat-provideria, kun kauppavalinta on Ketjun sisältä -> K-ryhmä.
+// - K-provider valitaan mukaan scope/withinChain/kStoreId-kontekstin perusteella.
+// - K-lähde valitaan kStoreName-nimen mukaan: K-Market / K-Supermarket / K-Citymarket.
+// - Ketjujen väliltä voi ajaa sekä S- että K-providerit rinnakkain.
 //
 // V6 korjaus:
 // - Special query __ziiply_all_offers__ runs a broad S-kaupat seed sweep once and bypasses intent ranking/matchScore filtering.
@@ -95,6 +101,12 @@ const ZIIPLY_OFFER_SOURCES = {
     storeLabel: "K-Supermarket",
     url: "https://www.k-ruoka.fi/k-supermarket/tarjouslehti",
   },
+  kcitymarket: {
+    id: "kcitymarket",
+    chain: "K",
+    storeLabel: "K-Citymarket",
+    url: "https://www.k-ruoka.fi/k-citymarket/tarjouslehti",
+  },
   skaupat: {
     id: "skaupat",
     chain: "S",
@@ -103,7 +115,7 @@ const ZIIPLY_OFFER_SOURCES = {
   },
 } satisfies Record<string, ZiiplyOfferSearchSourceConfig>;
 
-const OFFER_SEARCH_SOURCE_REVISION = "v8";
+const OFFER_SEARCH_SOURCE_REVISION = "v10";
 const ENABLE_OFFER_SEARCH_CACHE = false;
 const MAX_OFFER_SEARCH_RESULTS = 1000;
 const ZIIPLY_GOSTA_MASTER_QUERY_V6 = "__ziiply_all_offers__";
@@ -180,6 +192,82 @@ export async function searchKSupermarketOffers(
   return fetchKruokaOffers(query, ZIIPLY_OFFER_SOURCES.ksupermarket, options);
 }
 
+
+export async function searchKCitymarketOffers(
+  query: string,
+  options?: KruokaOfferProviderOptionsV10,
+) {
+  return fetchKruokaOffers(query, ZIIPLY_OFFER_SOURCES.kcitymarket, options);
+}
+
+function isRealStoreIdV10(value: unknown) {
+  const text = String(value ?? "").trim();
+  return Boolean(text && text !== "0" && !/^valitse/i.test(text));
+}
+
+function normalizeChainValueV10(value: unknown) {
+  return String(value ?? "")
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z]/g, "");
+}
+
+function getProviderScopeV10(options?: ZiiplyOfferSearchSourceContextV8) {
+  const scope = String(options?.storeCompareScope ?? "").trim();
+  const withinChain = normalizeChainValueV10((options as any)?.withinChain ?? (options as any)?.selectedChain);
+  const hasS = isRealStoreIdV10(options?.sStoreId ?? options?.storeId);
+  const hasK = isRealStoreIdV10(options?.kStoreId);
+
+  if (scope === "within_chain") {
+    // Tärkein korjaus:
+    // Ketjun sisältä / K-ryhmässä vanha activeStores voi edelleen sisältää S-kaupan.
+    // Silloin S-provider EI saa ajaa, koska Gösta näyttää muuten Prisma/S-kaupat-osumia.
+    if (withinChain === "K") return { useS: false, useK: hasK };
+    if (withinChain === "S") return { useS: hasS, useK: false };
+
+    // Fallback vanhoille page-versioille, joissa withinChain ei vielä tule contextiin.
+    if (hasK) return { useS: false, useK: true };
+    if (hasS) return { useS: true, useK: false };
+  }
+
+  return {
+    useS: hasS || scope !== "within_chain",
+    useK: hasK,
+  };
+}
+
+function getKruokaSourceByStoreNameV10(options?: ZiiplyOfferSearchSourceContextV8): ZiiplyOfferSearchSourceConfig {
+  const name = normalizeOfferUniqueText(options?.kStoreName ?? options?.storeName ?? "");
+
+  if (name.includes("citymarket") || name.includes("k citymarket")) {
+    return {
+      ...ZIIPLY_OFFER_SOURCES.kcitymarket,
+      storeLabel: String(options?.kStoreName || ZIIPLY_OFFER_SOURCES.kcitymarket.storeLabel),
+    };
+  }
+
+  if (name.includes("supermarket") || name.includes("k supermarket")) {
+    return {
+      ...ZIIPLY_OFFER_SOURCES.ksupermarket,
+      storeLabel: String(options?.kStoreName || ZIIPLY_OFFER_SOURCES.ksupermarket.storeLabel),
+    };
+  }
+
+  return {
+    ...ZIIPLY_OFFER_SOURCES.kmarket,
+    storeLabel: String(options?.kStoreName || ZIIPLY_OFFER_SOURCES.kmarket.storeLabel),
+  };
+}
+
+export async function searchSelectedKruokaOffersV10(
+  query: string,
+  options?: ZiiplyOfferSearchSourceContextV8,
+) {
+  const source = getKruokaSourceByStoreNameV10(options);
+  const kOptions = normalizeKruokaProviderOptionsV9(options);
+  return fetchKruokaOffers(query, source, kOptions);
+}
+
 export async function searchSKaupatOffers(
   query: string,
   options?: SKaupatOfferProviderOptionsV173,
@@ -205,17 +293,32 @@ export async function searchZiiplyOffers(
   const cached = ENABLE_OFFER_SEARCH_CACHE ? getCachedOfferResults(cacheKey) : null;
   if (cached) return cached;
 
-  // V9: S-kaupat säilyy ennallaan. K-Ruoka lisätään rinnalle vain jos page/route
-  // välittää valitun K-kaupan storeId:n. Näin nykyinen S-polku ei hajoa.
-  const sKaupatResults = await safelySearchSource(
-    isGostaMasterQuery ? "S-kaupat master" : "S-kaupat",
-    () => searchSKaupatOffers(cleanQuery, providerOptions),
-  );
+  const providerScopeV10 = getProviderScopeV10(options);
 
-  const kResults = hasSelectedKStoreV9
+  if (typeof console !== "undefined") {
+    console.warn("[Ziiply offers V10 provider scope]", {
+      query: cleanQuery,
+      storeCompareScope: options?.storeCompareScope,
+      withinChain: (options as any)?.withinChain,
+      sStoreId: options?.sStoreId,
+      sStoreName: options?.sStoreName,
+      kStoreId: options?.kStoreId,
+      kStoreName: options?.kStoreName,
+      providerScopeV10,
+    });
+  }
+
+  const sKaupatResults = providerScopeV10.useS
     ? await safelySearchSource(
-        isGostaMasterQuery ? "K-Ruoka master V9" : "K-Ruoka V9",
-        () => searchKMarketOffers(cleanQuery, kProviderOptions),
+        isGostaMasterQuery ? "S-kaupat master V10" : "S-kaupat V10",
+        () => searchSKaupatOffers(cleanQuery, providerOptions),
+      )
+    : [];
+
+  const kResults = providerScopeV10.useK && hasSelectedKStoreV9
+    ? await safelySearchSource(
+        isGostaMasterQuery ? "K-Ruoka master V10" : "K-Ruoka V10",
+        () => searchSelectedKruokaOffersV10(cleanQuery, options),
       )
     : [];
 
