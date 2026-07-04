@@ -1,5 +1,5 @@
 // src/app/components/ziiply/offerSearch/ziiplyOfferSearchSources.ts
-// ZIIPLY_OFFER_SEARCH_SOURCES_V8_GOSTA_MASTER_PROVIDER_DIRECT
+// ZIIPLY_OFFER_SEARCH_SOURCES_V9_K_PROVIDER_PRODUCT_MAP_DEBUG
 //
 // V6 korjaus:
 // - Special query __ziiply_all_offers__ runs a broad S-kaupat seed sweep once and bypasses intent ranking/matchScore filtering.
@@ -20,7 +20,7 @@ import type {
   ZiiplyOfferSearchResult,
   ZiiplyOfferSearchSourceConfig,
 } from "./types";
-import { fetchKruokaOffers } from "./providers/kruokaProvider";
+import { fetchKruokaOffers, type KruokaOfferProviderOptionsV10 } from "./providers/kruokaProvider";
 import { fetchSKaupatOffers, type SKaupatOfferProviderOptionsV173 } from "./providers/skaupatProvider";
 import {
   getCachedOfferResults,
@@ -42,7 +42,7 @@ export type {
   ZiiplyOfferSource,
 } from "./types";
 
-export type ZiiplyOfferSearchSourceContextV8 = SKaupatOfferProviderOptionsV173 & {
+export type ZiiplyOfferSearchSourceContextV8 = SKaupatOfferProviderOptionsV173 & KruokaOfferProviderOptionsV10 & {
   areaLabel?: string | null;
   storeMode?: string | null;
   storeCompareScope?: string | null;
@@ -64,6 +64,21 @@ function normalizeSKaupatProviderOptionsV8(
     ...options,
     storeId: options.storeId ?? options.sStoreId ?? null,
     storeName: options.storeName ?? options.sStoreName ?? null,
+  };
+}
+
+
+function normalizeKruokaProviderOptionsV9(
+  options?: ZiiplyOfferSearchSourceContextV8,
+): KruokaOfferProviderOptionsV10 | undefined {
+  if (!options) return undefined;
+
+  return {
+    ...options,
+    storeId: options.kStoreId ?? options.storeId ?? null,
+    storeName: options.kStoreName ?? options.storeName ?? null,
+    kStoreId: options.kStoreId ?? null,
+    kStoreName: options.kStoreName ?? null,
   };
 }
 
@@ -151,12 +166,18 @@ async function safelySearchSource(
   }
 }
 
-export async function searchKMarketOffers(query: string) {
-  return fetchKruokaOffers(query, ZIIPLY_OFFER_SOURCES.kmarket);
+export async function searchKMarketOffers(
+  query: string,
+  options?: KruokaOfferProviderOptionsV10,
+) {
+  return fetchKruokaOffers(query, ZIIPLY_OFFER_SOURCES.kmarket, options);
 }
 
-export async function searchKSupermarketOffers(query: string) {
-  return fetchKruokaOffers(query, ZIIPLY_OFFER_SOURCES.ksupermarket);
+export async function searchKSupermarketOffers(
+  query: string,
+  options?: KruokaOfferProviderOptionsV10,
+) {
+  return fetchKruokaOffers(query, ZIIPLY_OFFER_SOURCES.ksupermarket, options);
 }
 
 export async function searchSKaupatOffers(
@@ -177,32 +198,39 @@ export async function searchZiiplyOffers(
   const isGostaMasterQuery = normalizeOfferUniqueText(cleanQuery) === normalizeOfferUniqueText(ZIIPLY_GOSTA_MASTER_QUERY_V6);
 
   const providerOptions = normalizeSKaupatProviderOptionsV8(options);
+  const kProviderOptions = normalizeKruokaProviderOptionsV9(options);
+  const hasSelectedKStoreV9 = Boolean(kProviderOptions?.storeId || kProviderOptions?.kStoreId);
 
   const cacheKey = getOfferSearchCacheKey(cleanQuery);
   const cached = ENABLE_OFFER_SEARCH_CACHE ? getCachedOfferResults(cacheKey) : null;
   if (cached) return cached;
 
-  // V2 MVP: vain S-kaupat aktiivisena, koska K-Ruoka blokkaa serverifetchin 403:lla.
-  // V7: Göstan master-haku EI saa välittää taikahakusanaa S-kaupat API:n queryStringiksi.
-  // Sen sijaan haetaan kerran laajalla ruokakori-/arjen seed-joukolla ja annetaan corelle
-  // master-datasetti, jota kategoriat voivat suodattaa paikallisesti.
-  const sKaupatResults = isGostaMasterQuery
-    ? await safelySearchSource("S-kaupat master", () =>
-        searchSKaupatOffers(cleanQuery, providerOptions),
-      )
-    : await safelySearchSource("S-kaupat", () =>
-        searchSKaupatOffers(cleanQuery, providerOptions),
-      );
+  // V9: S-kaupat säilyy ennallaan. K-Ruoka lisätään rinnalle vain jos page/route
+  // välittää valitun K-kaupan storeId:n. Näin nykyinen S-polku ei hajoa.
+  const sKaupatResults = await safelySearchSource(
+    isGostaMasterQuery ? "S-kaupat master" : "S-kaupat",
+    () => searchSKaupatOffers(cleanQuery, providerOptions),
+  );
 
-  const uniqueSResults = uniqueOfferResults(sKaupatResults);
+  const kResults = hasSelectedKStoreV9
+    ? await safelySearchSource(
+        isGostaMasterQuery ? "K-Ruoka master V9" : "K-Ruoka V9",
+        () => searchKMarketOffers(cleanQuery, kProviderOptions),
+      )
+    : [];
+
+  const uniqueAllResults = uniqueOfferResults([
+    ...sKaupatResults,
+    ...kResults,
+  ]);
 
   const results = isGostaMasterQuery
-    ? uniqueSResults.slice(0, MAX_OFFER_SEARCH_RESULTS)
+    ? uniqueAllResults.slice(0, MAX_OFFER_SEARCH_RESULTS)
     : (() => {
         const intent = resolveSearchIntentAI(cleanQuery);
 
         const rankedResults = rankProductsWithIntentMemory(
-          uniqueSResults
+          uniqueAllResults
             .filter((result) => Number(result.matchScore || 0) > 0)
             .map((result) => ({
               ...result,
