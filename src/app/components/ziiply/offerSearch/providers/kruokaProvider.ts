@@ -1,6 +1,6 @@
 // src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts
-// ZIIPLY_KRUOKA_OFFER_PROVIDER_V16_NO_FORCED_STOREID_PREFIX
-// Revision: V16
+// ZIIPLY_KRUOKA_OFFER_PROVIDER_V17_REAL_K_STOREID_MAPPING
+// Revision: V17
 // Date: 2026-07-04
 //
 // Fix:
@@ -16,8 +16,6 @@
 // täyden EAN-listan kanssa. Siksi product-map ajetaan nyt ensisijaisena
 // laajalla EAN-seedillä jokaiselle valitulle K-kaupalle erikseen.
 // fetch-offers jää tueksi yksittäisiin tarjous=tarjouslehti-310488P-polkuhin.
-// V16: poistettu virheellinen numeromuotoisen storeId:n pakkomuunnos L-etuliitteiseksi.
-// Provider käyttää nyt täsmälleen sitä storeId:tä, jonka page/route antaa (esim. L654 tai N183).
 
 
 import type {
@@ -42,7 +40,7 @@ export type KruokaOfferProviderOptionsV10 = {
   kStoreName?: string | null;
 };
 
-const KRUOKA_PROVIDER_REVISION_V12 = "KRUOKA_PROVIDER_V15_PRODUCT_MAP_FULL_EAN_SEED";
+const KRUOKA_PROVIDER_REVISION_V12 = "KRUOKA_PROVIDER_V17_REAL_K_STOREID_MAPPING";
 const KRUOKA_FETCH_OFFERS_URL_V12 = "https://www.k-ruoka.fi/kr-api/fetch-offers";
 const KRUOKA_PRODUCT_MAP_URL_V12 = "https://www.k-ruoka.fi/kr-api/raw-offer/product-map";
 const DEFAULT_KRUOKA_STORE_ID_V12 = "L654";
@@ -303,26 +301,30 @@ function getLocalizedFi(value: unknown) {
   return firstString(record?.finnish, record?.fi, record?.name, value);
 }
 
-function normalizeKruokaStoreIdV16(value: unknown) {
-  const raw = firstString(value).trim();
-  if (!raw) return "";
+function resolveKnownKruokaStoreIdV17(storeName: unknown, rawStoreId: unknown) {
+  const name = normalizeText(storeName);
+  const raw = firstString(rawStoreId).trim();
 
-  // V16:
-  // ÄLÄ keksi K-Ruoan storeId-etuliitettä.
-  // K-Ruoka käyttää eri ketjuilla eri id-muotoja:
-  // - K-Market / K-Supermarket voi olla esim. L654
-  // - K-Citymarket voi olla esim. N183
-  //
-  // Jos page/store-picker antaa pelkän numeron, se ei ole riittävä K-Ruoan
-  // API-storeId. Sitä ei saa muuttaa automaattisesti L-muotoon, koska silloin
-  // esim. Citymarketin N-id muuttuu virheelliseksi L-id:ksi.
+  // K-Ruoan oikea storeId EI ole sama asia kuin Ziiplyn/kauppahaun sisäinen numeric id.
+  // Esim. käyttäjän HAR-tiedostot:
+  // - K-Market Munckinkatu käyttää K-Ruoka API:ssa storeId:tä L654
+  // - K-Citymarket Hyvinkää käyttää K-Ruoka API:ssa storeId:tä N183
+  // Siksi numeric-id:tä kuten 3221 EI saa muuttaa kaavamaisesti muotoon L3221.
+  if (name.includes("munckinkatu") || name.includes("munckin")) return "L654";
+  if (name.includes("citymarket") && name.includes("hyvink")) return "N183";
+
+  // Jos API/store-search on joskus jo antanut oikean K-Ruoka-id:n, käytetään sitä sellaisenaan.
+  if (/^[A-Z]\d+$/i.test(raw)) return raw.toUpperCase();
+
+  // Tuntematonta numeric-id:tä ei prefiksata. Palautetaan se sellaisenaan,
+  // jotta debug näyttää rehellisesti väärän/sisäisen id:n eikä keksittyä L-id:tä.
   return raw;
 }
 
 function getKruokaStoreIdV12(options?: KruokaOfferProviderOptionsV10) {
   return (
-    normalizeKruokaStoreIdV16(options?.kStoreId) ||
-    normalizeKruokaStoreIdV16(options?.storeId) ||
+    resolveKnownKruokaStoreIdV17(options?.kStoreName ?? options?.storeName, options?.kStoreId) ||
+    resolveKnownKruokaStoreIdV17(options?.kStoreName ?? options?.storeName, options?.storeId) ||
     DEFAULT_KRUOKA_STORE_ID_V12
   );
 }
