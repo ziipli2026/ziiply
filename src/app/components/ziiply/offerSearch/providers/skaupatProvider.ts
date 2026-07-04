@@ -1,16 +1,16 @@
 // ============================================================================
-// SKAUPAT_PROVIDER_V186_GOSTA_IMAGE_DEBUG
-// Revision: V186
+// SKAUPAT_PROVIDER_V187_GOSTA_VISIBLE_IMAGE_DEBUG
+// Revision: V187
 // Date: 2026-07-04
 //
-// DEBUG ONLY
+// DEBUG ONLY - iPhone/mobile visible debug.
 //
 // Muutokset:
-// - Lisää Göstan S-kaupat-tarjouskuvien debug-lokit.
-// - Tulostaa valitun S-kaupan storeId:n, queryn, raakatuotteiden määrän ja mapatut tarjoukset.
-// - Tulostaa GraphQL/listItem/product-kuvakentät sekä lopullisen imageUrl-valinnan.
-// - Tulostaa ensimmäisten tarjousten title/imageUrl/productUrl-arvot.
-// - Ei muuta hakulogiikkaa, kauppavalintaa, GPS:ää, skanneria, äänihakua eikä K-ruoka-provideria.
+// - Lisää Göstan S-kaupat-tarjouskortteihin näkyvän DEBUG-rivin benefitText-kenttään.
+// - Näyttää kortissa mm. imageUrl-pituuden, kuvan löytymisen, tuotteen EANin ja productUrl-tilan.
+// - Ei vaadi selaimen Consolea eikä Macin Web Inspectoria.
+// - Ei muuta kauppavalintaa, GPS:ää, skanneria, äänihakua eikä K-ruoka-provideria.
+// - TÄMÄ ON VÄLIAIKAINEN DEBUG-VERSIO: älä jätä tuotantoon lopullisesti.
 //
 // ============================================================================
 
@@ -753,6 +753,47 @@ function hasSOfferSignal(
 }
 
 
+function buildGostaVisibleImageDebugV187(params: {
+  product: UnknownRecord;
+  listItem: UnknownRecord;
+  imageUrl: string;
+  productUrl: string;
+  selectedStoreId: string;
+}): string {
+  const { product, listItem, imageUrl, productUrl, selectedStoreId } = params;
+
+  const hasProductDetailsImages = Boolean(
+    getPathValue(product, ["productDetails", "productImages"]),
+  );
+  const hasProductImages = Boolean(product.productImages);
+  const hasImages = Boolean(product.images);
+  const hasListItemImage = Boolean(listItem.image);
+  const hasImageField = Boolean(product.image);
+
+  const sourceFlags = [
+    hasProductDetailsImages ? "details" : "no-details",
+    hasProductImages ? "productImages" : "no-productImages",
+    hasImages ? "images" : "no-images",
+    hasListItemImage ? "listItem.image" : "no-listItem.image",
+    hasImageField ? "product.image" : "no-product.image",
+  ].join(" | ");
+
+  const imageStatus = imageUrl ? `IMG OK len=${imageUrl.length}` : "IMG MISSING";
+  const urlStatus = productUrl ? `URL OK len=${productUrl.length}` : "URL MISSING";
+  const ean = firstString(product.ean) || "no-ean";
+
+  return [
+    `DEBUG V187`,
+    `storeId=${selectedStoreId}`,
+    imageStatus,
+    urlStatus,
+    `ean=${ean}`,
+    sourceFlags,
+    imageUrl ? `img=${imageUrl.slice(0, 110)}` : "img=-",
+  ].join(" · ");
+}
+
+
 function belongsToSelectedSHypermarketV163(
   product: UnknownRecord,
   selectedStoreId: string,
@@ -799,49 +840,13 @@ function getImageUrl(product: UnknownRecord, listItem?: UnknownRecord): string {
   const normalizedDirect = normalizeSImageUrlV185(direct);
   if (normalizedDirect) return normalizedDirect;
 
-  const fallbackImage =
+  return (
     findFirstImageUrlFromObjectV185(getPathValue(product, ["productDetails", "productImages"])) ||
     findFirstImageUrlFromObjectV185(product.productImages) ||
     findFirstImageUrlFromObjectV185(product.images) ||
     findFirstImageUrlFromObjectV185(listItem) ||
-    findFirstImageUrlFromObjectV185(product);
-
-  console.log("[GOSTA IMAGE DEBUG V186]", {
-    title: firstString(product.name),
-    ean: firstString(product.ean),
-    mainImageTemplate,
-    directImage: direct,
-    fallbackImage,
-
-    productDetailsProductImages: getPathValue(product, ["productDetails", "productImages"]),
-    productImages: product.productImages,
-    images: product.images,
-
-    image: product.image,
-    imageUrl: product.imageUrl,
-    pictureUrl: product.pictureUrl,
-    mainImageUrl: product.mainImageUrl,
-    thumbnailUrl: product.thumbnailUrl,
-
-    listItemImage: listItem?.image,
-    listItemImageUrl: listItem?.imageUrl,
-    listItemPictureUrl: listItem?.pictureUrl,
-
-    mobileReadyHeroImage: getPathValue(
-      product,
-      ["productDetails", "productImages", "mobileReadyHeroImage"],
-    ),
-    mainImage: getPathValue(
-      product,
-      ["productDetails", "productImages", "mainImage"],
-    ),
-    primaryImage: getPathValue(
-      product,
-      ["productDetails", "productImages", "primaryImage"],
-    ),
-  });
-
-  return fallbackImage;
+    findFirstImageUrlFromObjectV185(product)
+  );
 }
 
 function getProductUrl(product: UnknownRecord): string {
@@ -929,18 +934,6 @@ function mapSProductListItemToOfferResult(
   const categoryMeta = getCategoryMeta(product, options.fallbackFacetNames);
   const imageUrl = getImageUrl(product, listItem);
   const productUrl = getProductUrl(product);
-
-  console.log("[GOSTA OFFER IMAGE V186]", {
-    title,
-    ean: firstString(product.ean),
-    imageUrl,
-    productUrl,
-    storeLabel: options.config.storeLabel,
-    selectedStoreId: options.selectedStoreId,
-    query: options.query,
-    discountedOnly: options.discountedOnly,
-  });
-
   const labelsText = cleanRepeatedCampaignTextV161(getLabels(listItem, product));
 
   const campaignValidUntil = firstString(pricing.campaignPriceValidUntil);
@@ -949,11 +942,23 @@ function mapSProductListItemToOfferResult(
     regularPrice != null &&
     Number(currentPrice) < Number(regularPrice);
 
-  const benefitText = cleanRepeatedCampaignTextV161(
+  const baseBenefitText = cleanRepeatedCampaignTextV161(
     isCampaign
       ? `Kampanja${regularPrice ? `, normaalisti ${formatPrice(regularPrice)}` : ""}`
       : labelsText,
   );
+
+  const visibleImageDebugTextV187 = buildGostaVisibleImageDebugV187({
+    product,
+    listItem,
+    imageUrl,
+    productUrl,
+    selectedStoreId: options.selectedStoreId,
+  });
+
+  const benefitText = [baseBenefitText, visibleImageDebugTextV187]
+    .filter(Boolean)
+    .join(" · ");
 
   const rawText = [
     title,
@@ -1119,30 +1124,6 @@ async function fetchSKaupatRemoteFilteredProductsPageV170(
     )
     .filter(Boolean) as ZiiplyOfferSearchResult[];
 
-  console.log("[GOSTA PAGE IMAGE DEBUG V186]", {
-    selectedStoreId,
-    query,
-    offset,
-    discountedOnly,
-    rawProducts: listItems.length,
-    mappedOffers: mappedResults.length,
-    total: pagingMeta.total,
-    from: pagingMeta.from,
-    limit: pagingMeta.limit,
-  });
-
-  console.log(
-    "[GOSTA SAMPLE IMAGE DEBUG V186]",
-    mappedResults.slice(0, 5).map((offer) => ({
-      title: offer.title,
-      imageUrl: offer.imageUrl,
-      image: (offer as any).image,
-      pictureUrl: (offer as any).pictureUrl,
-      productUrl: offer.productUrl,
-      priceText: offer.priceText,
-    })),
-  );
-
   return {
     results: dedupeSOfferResultsV161(mappedResults),
     rawCount: listItems.length,
@@ -1159,15 +1140,6 @@ async function fetchSKaupatRemoteFilteredProductsV170(
   discountedOnly = false,
 ): Promise<ZiiplyOfferSearchResult[]> {
   const selectedStoreId = await getEffectiveSKaupatStoreIdV174(options);
-
-  console.log("[GOSTA STORE DEBUG V186]", {
-    query,
-    selectedStoreId,
-    requestedStoreId: options?.storeId,
-    requestedStoreName: options?.storeName,
-    discountedOnly,
-  });
-
   if (!selectedStoreId) return [];
 
   const pageStep = discountedOnly ? 24 : 48;
