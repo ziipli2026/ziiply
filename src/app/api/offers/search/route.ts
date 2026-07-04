@@ -1,10 +1,11 @@
 // src/app/api/offers/search/route.ts
-// ZIIPLY_OFFERS_SEARCH_ROUTE_V10_REAL_INCOMING_CONTEXT_K_DEBUG
+// ZIIPLY_OFFERS_SEARCH_ROUTE_V11_K_VISIBLE_DEBUG_CONTEXT
 //
 // Fix:
-// - Forwards Gösta/page query parameters to searchZiiplyOffers(query, context).
+ // - Forwards Gösta/page query parameters to searchZiiplyOffers(query, context).
 // - This lets S-kaupat provider use the selected S-store id instead of the old hardcoded default.
 // - Keeps cache disabled for store-specific offer data.
+// - V11: forwards withinChain/selectedChain too if page/core sends them.
 
 import { NextResponse } from "next/server";
 import {
@@ -32,20 +33,21 @@ export async function GET(request: Request) {
       areaLabel: getParam(searchParams, "area"),
       storeMode: getParam(searchParams, "storeMode"),
       storeCompareScope: getParam(searchParams, "scope"),
+      withinChain: getParam(searchParams, "withinChain") || getParam(searchParams, "selectedChain"),
       sStoreId: getParam(searchParams, "sStoreId"),
       sStoreName: getParam(searchParams, "sStoreName"),
       kStoreId: getParam(searchParams, "kStoreId"),
       kStoreName: getParam(searchParams, "kStoreName"),
     };
 
-    console.warn("[GOSTA ROUTE REAL CONTEXT V10]", {
+    console.warn("[GOSTA ROUTE REAL CONTEXT V11]", {
       q,
       context,
     });
 
     const results = await searchZiiplyOffers(q, context);
 
-    console.warn("[GOSTA ROUTE RESULT DEBUG V10]", {
+    console.warn("[GOSTA ROUTE RESULT DEBUG V11]", {
       q,
       count: results.length,
       first: results[0]
