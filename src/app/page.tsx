@@ -6,6 +6,13 @@
 // - Ketjujen väliltä säilyttää S+K-kontekstin.
 // - Ei muutoksia normaaliin hintahakuun, kauppavalintaan, GPS:ään, skanneriin tai koriin.
 
+// V530_GOSTA_K_WITHIN_CHAIN_SEND_BOTH_K_STORES
+// Korjaus Göstan K-ryhmän sisäiseen tarjoushakuun:
+// - Ketjun sisältä / K-ryhmä lähettää Göstalle molemmat K-vertailukaupat.
+// - kStoreId/kStoreName välitetään pilkku/erotin-muodossa sources-layerille, joka ajaa K-providerin molemmille.
+// - Jos K-Citymarket palauttaa 0, K-Market/K-Supermarketin tarjoukset voivat silti näkyä.
+// - S-kauppaa ei edelleenkään lähetetä K-ryhmän sisäisessä haussa.
+
 // V528_GOSTA_CATEGORY_COUNTS_SORT_AND_NO_RELOAD_BACK
 // Muutos Göstan tarjoushakuun:
 // - Paluu tuoteryhmälistaan ei enää tyhjennä offerSearchResults-listaa eikä käynnistä uutta master-hakua.
@@ -9662,6 +9669,40 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const gostaIsWithinSChainV529 =
         storeCompareScope === "within_chain" && gostaWithinChainV529 === "S";
 
+      const gostaKStoresV530 = (() => {
+        const items: Array<{ id: unknown; name: unknown }> = [];
+
+        // V530:
+        // Ketjun sisältä / K-ryhmässä käyttäjällä on kaksi K-kauppaa:
+        // - tavaratalo / K-Citymarket-slot
+        // - lähikauppa / K-Market tai K-Supermarket-slot
+        // Göstan pitää lähettää molemmat, jotta toimiva lähikauppa ei katoa vain
+        // siksi, että Citymarketin tarjousrajapinta palauttaa tyhjää/eri rakennetta.
+        if (gostaIsWithinKChainV529) {
+          items.push(
+            { id: activeArea.kStoreId, name: activeArea.kStoreName },
+            { id: activeArea.kLocalStoreId, name: activeArea.kLocalStoreName },
+            { id: activeStores.kStoreId, name: activeStores.kStoreName },
+          );
+        } else if (!gostaIsWithinSChainV529) {
+          items.push({ id: activeStores.kStoreId, name: activeStores.kStoreName });
+        }
+
+        const seen = new Set<string>();
+        return items
+          .map((item) => ({
+            id: String(item.id ?? "").trim(),
+            name: String(item.name ?? "").trim(),
+          }))
+          .filter((item) => item.id && item.id !== "0" && !/^valitse/i.test(item.id))
+          .filter((item) => {
+            const key = `${item.id}|${item.name}`.toLowerCase();
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          });
+      })();
+
       const gostaOfferSearchContextV172 = {
         areaLabel: activeArea.label || "",
         storeMode,
@@ -9674,8 +9715,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         // ja ruudulle tulee S-KAUPAT-tarjouksia K-valinnasta huolimatta.
         sStoreId: gostaIsWithinKChainV529 ? undefined : activeStores.sStoreId || undefined,
         sStoreName: gostaIsWithinKChainV529 ? undefined : activeStores.sStoreName || undefined,
-        kStoreId: gostaIsWithinSChainV529 ? undefined : activeStores.kStoreId || undefined,
-        kStoreName: gostaIsWithinSChainV529 ? undefined : activeStores.kStoreName || undefined,
+
+        // V530:
+        // Välitetään tarvittaessa useampi K-kauppa samassa parametrissa.
+        // offerSearchSources V12 pilkkoo nämä ja ajaa K-providerin jokaiselle kaupalle erikseen.
+        kStoreId: gostaIsWithinSChainV529
+          ? undefined
+          : gostaKStoresV530.map((store) => store.id).join(",") || undefined,
+        kStoreName: gostaIsWithinSChainV529
+          ? undefined
+          : gostaKStoresV530.map((store) => store.name).join(" || ") || undefined,
 
         usingOwnLocation,
         gpsLat: gpsCoordsV320?.latitude,
