@@ -1,5 +1,5 @@
 // src/app/api/offers/search/route.ts
-// ZIIPLY_OFFERS_SEARCH_ROUTE_V8_STORE_CONTEXT
+// ZIIPLY_OFFERS_SEARCH_ROUTE_V10_REAL_INCOMING_CONTEXT_K_DEBUG
 //
 // Fix:
 // - Forwards Gösta/page query parameters to searchZiiplyOffers(query, context).
@@ -26,11 +26,9 @@ export async function GET(request: Request) {
     const searchParams = url.searchParams;
     const q = getParam(searchParams, "q") || "";
 
-    // V9 DEBUG / POISSULKU:
-    // Pakotetaan Göstan/S-kaupatin haku API-reitissä Prisma Varkauteen,
-    // jotta page.tsx, activeStores, GPS/watchdog ja core-parametrien varjo eivät voi vaikuttaa.
-    // Jos tälläkin tulee eilinen/väärä massa, vika on routea alempana: sources/provider/S-kaupat query.
-    const incomingContext: ZiiplyOfferSearchSourceContextV8 = {
+    // V10: ei enää pakoteta Prisma Varkauteen. Käytetään oikeasti page.tsx:n
+    // lähettämää S/K-kauppakontekstia, jotta Göstan K-provider voi saada kStoreId:n.
+    const context: ZiiplyOfferSearchSourceContextV8 = {
       areaLabel: getParam(searchParams, "area"),
       storeMode: getParam(searchParams, "storeMode"),
       storeCompareScope: getParam(searchParams, "scope"),
@@ -40,32 +38,22 @@ export async function GET(request: Request) {
       kStoreName: getParam(searchParams, "kStoreName"),
     };
 
-    const context: ZiiplyOfferSearchSourceContextV8 = {
-      ...incomingContext,
-      areaLabel: "Varkaus",
-      storeMode: "hyper",
-      storeCompareScope: incomingContext.storeCompareScope || "between_chains",
-      sStoreId: "726015093",
-      sStoreName: "Prisma Varkaus",
-    };
-
-    console.warn("[GOSTA ROUTE FORCE PRISMA VARKAUS V9]", {
+    console.warn("[GOSTA ROUTE REAL CONTEXT V10]", {
       q,
-      incomingContext,
-      forcedContext: context,
+      context,
     });
 
     const results = await searchZiiplyOffers(q, context);
 
-    console.warn("[GOSTA ROUTE RESULT DEBUG V9]", {
+    console.warn("[GOSTA ROUTE RESULT DEBUG V10]", {
       q,
       count: results.length,
       first: results[0]
         ? {
             title: (results[0] as any).title,
             storeLabel: (results[0] as any).storeLabel,
-            debugProvider: (results[0] as any)._debugProviderRevision,
-            selectedStoreId: (results[0] as any)._debugSelectedStoreId,
+            debugProvider: (results[0] as any)._debugProviderRevision || (results[0] as any)._debugKProviderRevision,
+            selectedStoreId: (results[0] as any)._debugSelectedStoreId || (results[0] as any)._debugKStoreId,
             productStoreId: (results[0] as any)._debugProductStoreId,
           }
         : null,
