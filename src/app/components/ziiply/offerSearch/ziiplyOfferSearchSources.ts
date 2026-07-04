@@ -1,5 +1,9 @@
 // src/app/components/ziiply/offerSearch/ziiplyOfferSearchSources.ts
-// ZIIPLY_OFFER_SEARCH_SOURCES_V12_MULTI_K_STORES
+// ZIIPLY_OFFER_SEARCH_SOURCES_V13_VISIBLE_K_DEBUG
+//
+// V13 korjaus:
+// - Jos K-scope on aktiivinen mutta K-provideria ei ajeta tai se palauttaa 0,
+//   palautetaan näkyvä GÖSTA K DEBUG -kortti iPhoneen.
 //
 // V12 korjaus:
 // - Tukee useaa K-kauppaa samassa Gösta-haussa.
@@ -121,7 +125,7 @@ const ZIIPLY_OFFER_SOURCES = {
   },
 } satisfies Record<string, ZiiplyOfferSearchSourceConfig>;
 
-const OFFER_SEARCH_SOURCE_REVISION = "v12";
+const OFFER_SEARCH_SOURCE_REVISION = "v13";
 const ENABLE_OFFER_SEARCH_CACHE = false;
 const MAX_OFFER_SEARCH_RESULTS = 1000;
 const ZIIPLY_GOSTA_MASTER_QUERY_V6 = "__ziiply_all_offers__";
@@ -344,6 +348,60 @@ export async function searchSKaupatOffers(
   return fetchSKaupatOffers(query, ZIIPLY_OFFER_SOURCES.skaupat, options);
 }
 
+
+function makeVisibleKSourceDebugResultV13(details: {
+  query: string;
+  options?: ZiiplyOfferSearchSourceContextV8;
+  providerScope: { useS: boolean; useK: boolean };
+  kProviderOptionsList: KruokaOfferProviderOptionsV10[];
+  reason: string;
+}): ZiiplyOfferSearchResult {
+  const kStores = details.kProviderOptionsList
+    .map((store, index) => `${index + 1}:${String(store.kStoreId || store.storeId || "-")} ${String(store.kStoreName || store.storeName || "-")}`)
+    .join(" | ");
+
+  const lines = [
+    "GÖSTA K DEBUG",
+    `reason=${details.reason}`,
+    `query=${details.query || "-"}`,
+    `scope=${String(details.options?.storeCompareScope || "-")}`,
+    `withinChain=${String((details.options as any)?.withinChain || (details.options as any)?.selectedChain || "-")}`,
+    `useS=${details.providerScope.useS ? "yes" : "no"}`,
+    `useK=${details.providerScope.useK ? "yes" : "no"}`,
+    `sStoreId=${String(details.options?.sStoreId || "-")}`,
+    `sStoreName=${String(details.options?.sStoreName || "-")}`,
+    `kStoreId=${String(details.options?.kStoreId || "-")}`,
+    `kStoreName=${String(details.options?.kStoreName || "-")}`,
+    `kStores=${kStores || "-"}`,
+  ];
+
+  return {
+    id: `k-source-debug-${Date.now()}`,
+    source: "kmarket" as any,
+    chain: "K" as any,
+    title: lines.join(" · "),
+    priceText: "0,00 €",
+    unitPriceText: "",
+    validityText: "",
+    benefitText: "Debug-kortti: source-layer ei saanut yhtään oikeaa K-tarjousta.",
+    storeLabel: "K DEBUG SOURCES",
+    productUrl: "",
+    imageUrl: "",
+    rawText: lines.join(" "),
+    matchScore: 9999,
+    category: "Muut",
+    categoryPath: "Debug / Muut",
+    breadcrumbs: "Debug / Muut",
+    hierarchy: "Debug / Muut",
+    department: "Debug",
+    productGroup: "Muut",
+    mainCategory: "Debug",
+    subCategory: "Muut",
+    _debugKProviderRevision: "ZIIPLY_OFFER_SEARCH_SOURCES_V13_VISIBLE_K_DEBUG",
+  } as unknown as ZiiplyOfferSearchResult;
+}
+
+
 export async function searchZiiplyOffers(
   query: string,
   options?: ZiiplyOfferSearchSourceContextV8,
@@ -385,12 +443,36 @@ export async function searchZiiplyOffers(
       )
     : [];
 
-  const kResults = providerScopeV10.useK && hasSelectedKStoreV9
+  let kResults = providerScopeV10.useK && hasSelectedKStoreV9
     ? await safelySearchSource(
-        isGostaMasterQuery ? "K-Ruoka master V12 multi-store" : "K-Ruoka V12 multi-store",
+        isGostaMasterQuery ? "K-Ruoka master V13 multi-store" : "K-Ruoka V13 multi-store",
         () => searchSelectedKruokaOffersV12(cleanQuery, options),
       )
     : [];
+
+  if (providerScopeV10.useK && !hasSelectedKStoreV9) {
+    kResults = [
+      makeVisibleKSourceDebugResultV13({
+        query: cleanQuery,
+        options,
+        providerScope: providerScopeV10,
+        kProviderOptionsList: kProviderOptionsListV12,
+        reason: "K scope active but no usable kStoreId/kStoreName reached sources",
+      }),
+    ];
+  }
+
+  if (providerScopeV10.useK && hasSelectedKStoreV9 && kResults.length === 0) {
+    kResults = [
+      makeVisibleKSourceDebugResultV13({
+        query: cleanQuery,
+        options,
+        providerScope: providerScopeV10,
+        kProviderOptionsList: kProviderOptionsListV12,
+        reason: "K provider returned zero results",
+      }),
+    ];
+  }
 
   const uniqueAllResults = uniqueOfferResults([
     ...sKaupatResults,
