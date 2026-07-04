@@ -1,4 +1,18 @@
 // ============================================================================
+// ZIIPLY_OFFER_SEARCH_CORE_V161_MASTER_CACHE_REENABLED
+// Revision: V161
+// Date: 2026-07-04
+//
+// Muutokset:
+// - Palauttaa Göstan master-tarjousdatan välimuistin käyttöön.
+// - Kun tuoteryhmät on kerran haettu samalla kauppakontekstilla, takaisin
+//   tuoteryhmiin palaaminen käyttää samaa master-datasettiä eikä lataa sitä
+//   uudelleen joka kerta.
+// - Välimuisti on kontekstikohtainen: eri kauppa/alue saa oman cache-avaimen.
+// - Ei muutoksia kuviin, skanneriin, äänihakuun eikä kauppavalintaan.
+// ============================================================================
+
+// ============================================================================
 // ZIIPLY_OFFER_SEARCH_CORE_V160_CATEGORY_FROM_MASTER_RESTORED
 // Revision: V160
 // Date: 2026-06-07
@@ -130,10 +144,9 @@ async function fetchGostaMasterOfferResultsV156(context?: ZiiplyGostaOfferSearch
   const now = Date.now();
   const cached = ziiplyGostaMasterCacheV156.get(contextKey);
 
-  // V158 DEBUG: master cache disabled temporarily
-  // if (cached && cached.expiresAt > now) {
-  //   return cached.promise;
-  // }
+  if (cached && cached.expiresAt > now) {
+    return cached.promise;
+  }
 
   const promise = fetchOfferSearchResults(ZIIPLY_GOSTA_MASTER_QUERY_V156, context)
     .then((results) => cleanZiiplyGostaOfferResultsV146(results))
@@ -142,11 +155,10 @@ async function fetchGostaMasterOfferResultsV156(context?: ZiiplyGostaOfferSearch
       throw error;
     });
 
-  // V158 DEBUG: master cache disabled temporarily
-  // ziiplyGostaMasterCacheV156.set(contextKey, {
-  //   expiresAt: now + ZIIPLY_GOSTA_MASTER_CACHE_TTL_MS_V156,
-  //   promise,
-  // });
+  ziiplyGostaMasterCacheV156.set(contextKey, {
+    expiresAt: now + ZIIPLY_GOSTA_MASTER_CACHE_TTL_MS_V156,
+    promise,
+  });
 
   return promise;
 }
