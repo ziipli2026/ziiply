@@ -577,6 +577,13 @@
 // V171_GOSTA_CONTEXT_TYPE_COMPAT_BUILD_FIX
 // Korjaus: Göstan search-core-kutsun context välitetään tyypitysturvallisesti/yhteensopivasti, jotta page ei kaadu jos core-tyyppi on hetkeksi vanha.
 
+// V527_GOSTA_USES_ACTIVE_STORE_CONTEXT_NO_FORCED_PRISMA
+// Korjaus Göstan tarjoushakuun:
+// - Poistettu V173-debugpakotus Prisma Varkauteen.
+// - Gösta käyttää samaa activeStores-kauppakontekstia kuin normaali hintahaku.
+// - Tarjoushaku välittää offerSearchCorelle aktiivisen alueen, kauppatilan sekä valitut S/K-kaupat.
+// - Tracking/lokit näyttävät nyt oikean valitun kaupan, eivät kovakoodattua testikauppaa.
+
 // V172_GOSTA_KEEP_WORKING_CATEGORY_SEARCH_AND_PASS_CONTEXT_ONLY
 // Täsmäkorjaus käyttäjän toimivaan kategoriaversioon:
 // - EI palauteta V169-master-cachea, koska se rikkoi kategoriapalkit.
@@ -9624,29 +9631,23 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setActiveResult("offers");
 
     try {
-      // V173 DEBUG / POISSULKU:
-      // Lukitaan Göstan tarjoushaku suoraan Prisma Varkauteen, jotta page.tsx:n
-      // activeStores/GPS/watchdog/vanha activeArea ei voi antaa taustalta väärää S-kauppaa.
-      // Jos tällä tuotteet ja määrät muuttuvat oikeiksi, vika on page-tason kauppakontekstissa.
-      // Jos tälläkin näkyy eilinen/väärä valikoima, vika on alempana route/core/provider/S-kaupat-kyselyssä.
+      // V527: Gösta käyttää nyt samaa valittua kauppakontekstia kuin normaali hintahaku.
+      // Ei kovakoodattua Prisma Varkaus -debugpakotusta.
       const gostaOfferSearchContextV172 = {
-        areaLabel: "Varkaus",
-        storeMode: "hyper",
+        areaLabel: activeArea.label || "",
+        storeMode,
         storeCompareScope,
-        sStoreId: "726015093",
-        sStoreName: "Prisma Varkaus",
+        sStoreId: activeStores.sStoreId || undefined,
+        sStoreName: activeStores.sStoreName || undefined,
         kStoreId: activeStores.kStoreId || undefined,
         kStoreName: activeStores.kStoreName || undefined,
-        _debugForcedByPageV173: true,
-        _debugPreviousActiveSStoreId: activeStores.sStoreId || undefined,
-        _debugPreviousActiveSStoreName: activeStores.sStoreName || undefined,
-        _debugPreviousAreaLabel: activeArea.label || "",
-        _debugPreviousStoreMode: storeMode,
+        usingOwnLocation,
+        gpsLat: gpsCoordsV320?.latitude,
+        gpsLon: gpsCoordsV320?.longitude,
       };
 
-      // V173: tämä loki kertoo selaimen/Vercelin puolella, että haku lähtee pakotetulla Prismalla.
       if (typeof window !== "undefined") {
-        console.info("[Ziiply Gosta context v173 FORCED PRISMA]", gostaOfferSearchContextV172);
+        console.info("[Ziiply Gosta context v527 activeStores]", gostaOfferSearchContextV172);
       }
 
       const gostaOfferSearchOptionsV171 = {
@@ -9660,14 +9661,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       trackZiiplyEvent("gosta_offer_api_search_used", {
         query: offerSearchCoreResult.trackingKey,
         cartItemsCount: cart.length,
-        storeMode: "hyper",
+        storeMode,
         storeCompareScope,
-        sStoreId: "726015093",
-        sStoreName: "Prisma Varkaus",
-        previousActiveSStoreId: activeStores.sStoreId || "",
-        previousActiveSStoreName: activeStores.sStoreName,
+        areaLabel: activeArea.label || "",
+        sStoreId: activeStores.sStoreId || "",
+        sStoreName: activeStores.sStoreName || "",
         kStoreId: activeStores.kStoreId || "",
-        kStoreName: activeStores.kStoreName,
+        kStoreName: activeStores.kStoreName || "",
       });
 
       const categoryKeyV166 = String(offerSearchCoreResult.categoryLabel || "").trim();
