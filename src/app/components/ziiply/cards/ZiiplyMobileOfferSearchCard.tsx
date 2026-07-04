@@ -1,14 +1,19 @@
 "use client";
 
 // ============================================================================
-// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V21_GOSTA_IMAGE_DEBUG_PANEL
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V21_GOSTA_IMAGE_SRC_DEBUG_PANEL
 // Revision: V21
 // Date: 2026-07-04
 //
-// DEBUG ONLY:
-// - Lisää tarjouskorttiin näkyvän monirivisen Gösta-kuvadebug-paneelin iPhonea varten.
-// - Paneeli näkyy vain, jos offer.debugImageUrlV189 / offer.debugImageV189 löytyy.
-// - Ei muuta hakulogiikkaa, kauppavalintaa, GPS:ää, skanneria eikä provider-hakua.
+// DEBUG ONLY / iPhone visible
+//
+// Muutokset:
+// - Poistettu ruudulla näkynyt "GÖSTA V20" -versiolätkä.
+// - Lisätty jokaisen tarjouskortin sisään näkyvä debug-paneeli.
+// - Debug-paneeli näyttää täsmälleen saman image-src-arvon, joka annetaan <img src={image}> -elementille.
+// - URL pilkotaan lyhyisiin riveihin, jotta se näkyy iPhonessa eikä katkea ellipsiin.
+// - Ei muuta hakulogiikkaa, kategorioita, hintoja, lisäystä koriin tai provider-dataa.
+//
 // ============================================================================
 
 // ============================================================================
@@ -297,6 +302,40 @@ function getOfferImage(offer: ZiiplyMobileOfferSearchItem) {
   return String(offer.imageUrl || offer.pictureUrl || offer.image || "").trim();
 }
 
+function chunkDebugTextV21(value: unknown, chunkSize = 34): string[] {
+  const text = String(value ?? "").trim();
+  if (!text) return ["-"];
+
+  const chunks: string[] = [];
+  for (let index = 0; index < text.length; index += chunkSize) {
+    chunks.push(text.slice(index, index + chunkSize));
+  }
+
+  return chunks.length > 0 ? chunks : ["-"];
+}
+
+function getImageDebugHostV21(image: string) {
+  try {
+    if (!image) return "-";
+    const parsed = new URL(image);
+    return parsed.hostname || "-";
+  } catch {
+    if (image.startsWith("//")) return image.split("/")[2] || "protocol-relative";
+    if (image.startsWith("/")) return "relative-path";
+    return "invalid-url";
+  }
+}
+
+function getImageDebugKindV21(image: string) {
+  if (!image) return "EMPTY";
+  if (image.includes("{")) return "HAS_PLACEHOLDER";
+  if (image.startsWith("http://")) return "HTTP";
+  if (image.startsWith("https://")) return "HTTPS";
+  if (image.startsWith("//")) return "PROTOCOL_RELATIVE";
+  if (image.startsWith("/")) return "RELATIVE";
+  return "UNKNOWN";
+}
+
 function getCategoryIcon(category?: string) {
   const text = String(category || "").toLowerCase();
   if (text.includes("kahvi")) return "☕";
@@ -549,14 +588,10 @@ export default function ZiiplyMobileOfferSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="V21_GOSTA_IMAGE_DEBUG_PANEL"
+      data-ziiply-mobile-offer-search-card-version="V21_GOSTA_IMAGE_SRC_DEBUG_PANEL"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
-        <div className="pointer-events-none absolute left-[1.0rem] top-[0.72rem] z-[80] rounded-full border border-[#174c2c] bg-[#fff8d9] px-2 py-0.5 text-[0.62rem] font-black text-[#174c2c] shadow-[0_2px_0_rgba(91,72,44,0.16)]">
-          GÖSTA V20
-        </div>
-
         <div
           className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[#f7edcf] bg-center bg-no-repeat opacity-100"
           style={{ backgroundImage: "url('/ui/cart/vihkonen.webp')", backgroundSize: "142% 104%", backgroundPosition: "center top" }}
@@ -700,14 +735,6 @@ export default function ZiiplyMobileOfferSearchCard({
                 const savingsText = getSavingsText(offer);
                 const image = getOfferImage(offer);
                 const category = String(offer.category || "");
-                const debugImageUrl = String(offer.debugImageUrlV189 || "");
-                const debugImageText = String(offer.debugImageV189 || "");
-                const debugImageSource = String(offer.debugImageSourceV189 || "");
-                const debugImageHost = String(offer.debugImageHostV189 || "");
-                const debugImageLen = String(offer.debugImageLengthV189 || "");
-                const debugChunks = debugImageUrl
-                  ? debugImageUrl.match(/.{1,34}/g) || []
-                  : [];
 
                 return (
                   <article key={String(offer.id || offer.ean || `${name}-${index}`)} className="relative overflow-hidden rounded-[1.05rem] border-[2px] border-[#7c663d]/78 bg-[#fff4d8] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]">
@@ -726,22 +753,19 @@ export default function ZiiplyMobileOfferSearchCard({
                           <div className="mt-1 truncate text-[0.68rem] font-extrabold italic text-[#6b6048]" style={{ fontFamily: serifFont }}>
                             {savingsText || (normalPrice ? `Norm. ${normalPrice}` : "Tarjous voimassa")}
                           </div>
-                          {(debugImageUrl || debugImageText) ? (
-                            <div className="mt-1.5 max-w-full rounded-[0.45rem] border border-[#b8944f] bg-[#fffaf0] px-1.5 py-1 text-left text-[0.48rem] font-black leading-tight text-[#4a3217]">
-                              <div>DBG V21 IMG {image ? "HAS_IMG" : "NO_IMG"}</div>
-                              <div>HOST: {debugImageHost || "-"} LEN: {debugImageLen || "-"}</div>
-                              <div>SRC: {debugImageSource || "-"}</div>
-                              {debugChunks.length > 0 ? (
-                                <div>URL:</div>
-                              ) : null}
-                              {debugChunks.slice(0, 6).map((chunk, chunkIndex) => (
-                                <div key={`debug-url-${chunkIndex}`} className="break-all">{chunk}</div>
-                              ))}
-                              {!debugImageUrl && debugImageText ? (
-                                <div className="break-all">{debugImageText}</div>
-                              ) : null}
-                            </div>
-                          ) : null}
+
+                          <div className="mt-1.5 rounded-[0.48rem] border border-[#8a6a31] bg-[#fffaf0] px-2 py-1 text-left font-mono text-[0.45rem] font-black leading-[1.12] text-[#4a3216] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.55)]">
+                            <div>DBG V21 IMG SRC</div>
+                            <div>kind: {getImageDebugKindV21(image)}</div>
+                            <div>host: {getImageDebugHostV21(image)}</div>
+                            <div>len: {image.length}</div>
+                            <div>src:</div>
+                            {chunkDebugTextV21(image).map((part, partIndex) => (
+                              <div key={`img-debug-${index}-${partIndex}`} className="break-all">
+                                {part}
+                              </div>
+                            ))}
+                          </div>
                         </div>
 
                         <div className="absolute right-[0.72rem] top-[0.72rem] text-right text-[1.05rem] font-black italic leading-none text-[#087237]" style={{ fontFamily: cooperFont }}>
