@@ -1,14 +1,18 @@
 "use client";
 
 // ============================================================================
-// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V24_CLEAN_IMAGE_RENDER
-// Revision: V24
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V26_NO_TEXT_SEARCH_MORE_CATEGORIES
+// Revision: V26
 // Date: 2026-07-04
 //
 // Muutokset:
 // - Pidetään Göstan tarjouskortin kuva samalla yksinkertaisella <img>-mallilla
 //   kuin toimivassa ZiiplyMobileSearchCardissa.
 // - Poistettu näkyvä GÖSTA V20 -version lätkä käyttöliittymästä.
+// - Tarjoushaun tekstihakukenttä poistettu kokonaan mobiilin Gösta-kortista.
+// - Lisää kategoriat: Pakasteet, Valmisruoka, Kuivatuotteet, Makeiset & keksit, Lemmikit, Koti, Muut.
+// - Makeiset-ikoniksi vaihdettu 🍬 ja Kuivatuotteille/Valmisruoalle omat ikonit.
+// - Kaikki kategoriat näytetään etusivulla, ei vain ensimmäisiä kahdeksaa.
 // - Ei debug-tekstejä ruudulla.
 // - Jos kuva ei lataudu, rikkinäistä kuvaikonia ei näytetä, vaan tilalle tulee
 //   tuoteryhmän fallback-ikoni.
@@ -293,10 +297,14 @@ function getCategoryIcon(category?: string) {
   if (text.includes("leip")) return "🥐";
   if (text.includes("hevi")) return "🍎";
   if (text.includes("juoma")) return "🥤";
+  if (text.includes("pakaste")) return "❄️";
+  if (text.includes("valmis")) return "🍽️";
+  if (text.includes("kuiva")) return "🥣";
+  if (text.includes("make") || text.includes("keksi") || text.includes("kark")) return "🍬";
   if (text.includes("lemmik")) return "🐾";
   if (text.includes("koti")) return "🧽";
-  if (text.includes("pakaste")) return "❄️";
-  return "%";
+  if (text.includes("muu")) return "📦";
+  return "🏷️";
 }
 
 function OfferImageBox({
@@ -354,7 +362,7 @@ export default function ZiiplyMobileOfferSearchCard({
   results,
   loading = false,
   emptyText = "Gösta ei löytänyt tarjouksia vielä.",
-  categorySuggestions = ["Kahvi", "Maitotuotteet", "Liha", "Kala", "Leipomo", "Hevi", "Juomat", "Makeiset", "Lemmikit", "Koti", "Pakasteet"],
+  categorySuggestions = ["Kahvi", "Maitotuotteet", "Liha", "Kala", "Leipomo", "Hevi", "Juomat", "Pakasteet", "Valmisruoka", "Kuivatuotteet", "Makeiset & keksit", "Lemmikit", "Koti", "Muut"],
   categoryOfferCounts,
   testedEmptyCategories,
   onFilterChange,
@@ -425,6 +433,11 @@ export default function ZiiplyMobileOfferSearchCard({
     kahvi: ["kahvi", "kahvit"],
     liha: ["liha", "lihapakkaukset", "makkara", "grilli", "grillimakkara"],
     hevi: ["hevi", "hedelmät", "hedelmat", "vihannekset", "kasvikset", "vihannes", "hedelmä", "hedelma"],
+    pakasteet: ["pakasteet", "pakaste", "jäätelö", "jaatelo"],
+    valmisruoka: ["valmisruoka", "valmisateria", "mikroateria", "ateria"],
+    kuivatuotteet: ["kuivatuotteet", "pasta", "riisi", "jauhot", "hiutaleet", "murot", "mysli", "säilykkeet", "sailykkeet"],
+    makeisetkeksit: ["makeisetkeksit", "makeiset ja keksit", "makeiset", "karkit", "karkki", "suklaa", "keksit", "keksi", "lakritsi", "salmiakki"],
+    makeiset: ["makeiset", "makeisetkeksit", "makeiset ja keksit", "karkit", "karkki", "suklaa", "keksit", "keksi", "lakritsi", "salmiakki"],
     koti: [
       "koti",
       "kodin",
@@ -563,7 +576,7 @@ export default function ZiiplyMobileOfferSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="V24_CLEAN_IMAGE_RENDER"
+      data-ziiply-mobile-offer-search-card-version="V26_NO_TEXT_SEARCH_MORE_CATEGORIES"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
@@ -600,32 +613,9 @@ export default function ZiiplyMobileOfferSearchCard({
             </div>
           </div>
 
-          <div className="mt-3 rounded-[1.05rem] border-[2px] border-[#9d8350] bg-[#fff4d3]/86 p-1.5 shadow-[0_3px_0_rgba(91,72,44,0.14),inset_0_0_0_1px_rgba(255,255,255,0.45)]">
-            <div className="flex gap-1.5">
-              <input
-                value={filter}
-                onChange={(event) => onFilterChange?.(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") {
-                    event.preventDefault();
-                    submitSearch();
-                  }
-                }}
-                placeholder="Hae tarjousta: kahvi, lohi, leipä..."
-                className="min-w-0 flex-1 rounded-[0.82rem] border-0 bg-[#fffaf0] px-3 py-2 text-center text-[0.88rem] font-black text-[#102216] outline-none placeholder:text-[#7d7461]"
-                style={{ fontFamily: serifFont }}
-              />
-              <button
-                type="button"
-                onClick={submitSearch}
-                className="rounded-[0.82rem] border-[2px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-3 text-[0.70rem] font-black italic text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58)] active:translate-y-[1px]"
-                style={{ fontFamily: cooperFont }}
-              >
-                Hae
-              </button>
-            </div>
-            {!showLandingView ? (
-              <div className="mt-1.5 flex gap-1.5 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {!showLandingView ? (
+            <div className="mt-3 rounded-[1.05rem] border-[2px] border-[#9d8350] bg-[#fff4d3]/86 p-1.5 shadow-[0_3px_0_rgba(91,72,44,0.14),inset_0_0_0_1px_rgba(255,255,255,0.45)]">
+              <div className="flex gap-1.5 overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 <button
                   type="button"
                   onClick={goToLandingView}
@@ -648,13 +638,13 @@ export default function ZiiplyMobileOfferSearchCard({
                         active ? "border-[#174c2c] bg-[#174c2c] text-[#fff4d3]" : "border-[#b8944f] bg-[#fff8d9] text-[#174c2c]",
                       )}
                     >
-                      {category}
+                      {getCategoryIcon(category)} {category}
                     </button>
                   );
                 })}
               </div>
-            ) : null}
-          </div>
+            </div>
+          ) : null}
         </header>
 
         <main className="relative z-10 min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-5 pb-[7.85rem] pt-[0.75rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -671,11 +661,11 @@ export default function ZiiplyMobileOfferSearchCard({
                 Mitä etsitään tänään?
               </div>
               <div className="mx-auto mt-1.5 max-w-[16rem] text-[0.72rem] font-extrabold leading-snug text-[#6d5d3f]">
-                Valitse tuoteryhmä alta tai kirjoita hakusana. Gösta näyttää vain löydetyt tarjoukset.
+                Valitse tuoteryhmä alta. Gösta näyttää vain valitun kaupan tarjoukset.
               </div>
               {visibleCategorySuggestions.length > 0 ? (
                 <div className="mt-3 grid grid-cols-2 gap-1.5">
-                  {visibleCategorySuggestions.slice(0, 8).map((category) => (
+                  {visibleCategorySuggestions.map((category) => (
                     <button
                       key={`landing-${category}`}
                       type="button"
@@ -691,7 +681,7 @@ export default function ZiiplyMobileOfferSearchCard({
                 </div>
               ) : (
                 <div className="mt-3 rounded-[0.8rem] border border-dashed border-[#9a7a3d] bg-[#fff8d9] px-3 py-3 text-[0.72rem] font-extrabold leading-snug text-[#6d5d3f]">
-                  Ei näytettäviä tuoteryhmiä vielä. Kirjoita hakusana ja hae tarjoukset.
+                  Ei näytettäviä tuoteryhmiä vielä. Palaa takaisin ja avaa Gösta uudelleen.
                 </div>
               )}
             </div>
