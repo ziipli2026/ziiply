@@ -1,4 +1,16 @@
 // ============================================================================
+// ZIIPLY_OFFER_CATEGORY_CORE_V156_CATEGORY_LIST_ORDER
+// Revision: V156
+// Date: 2026-07-04
+//
+// Muutokset:
+// - Göstan tuoteryhmälistaan lisätty näkyviin Valmisruoka ja Pakasteet.
+// - Tuoteryhmäjärjestys muutettu: ruoka- ja tarjousryhmät ensin.
+// - Lemmikit, Koti ja Muut pidetään listan lopussa.
+// - Ei muutoksia provider-hakuun, S-kuviin, GPS:ään, skanneriin eikä äänihakuun.
+// ============================================================================
+
+// ============================================================================
 // ZIIPLY_OFFER_CATEGORY_CORE_V155_TAXONOMY_FIRST
 // Revision: V155
 // Date: 2026-06-06
@@ -222,10 +234,11 @@ export const GOSTA_CATEGORY_LABELS_V136 = [
   "Hevi",
   "Juomat",
   "Valmisruoka",
+  "Pakasteet",
   "Makeiset",
   "Lemmikit",
   "Koti",
-  "Pakasteet",
+  "Muut",
 ];
 
 export function getGostaCategorySeedQueriesV136(categoryOrFilter: string) {
