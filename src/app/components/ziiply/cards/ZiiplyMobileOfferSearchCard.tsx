@@ -1,36 +1,22 @@
 "use client";
 
 // ============================================================================
-// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V22_GOSTA_IMAGE_FIX_CLEAN_UI
-// Revision: V22
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V24_CLEAN_IMAGE_RENDER
+// Revision: V24
 // Date: 2026-07-04
 //
 // Muutokset:
-// - Poistettu GÖSTA V20 -kehitysmerkki ruudulta.
-// - Ei näytetä enää näkyviä image-debug-laatikoita tarjouskortissa.
-// - Kuvan renderöinti käyttää edelleen samaa kenttäjärjestystä: imageUrl -> pictureUrl -> image.
-// - Ei muutoksia hakulogiikkaan, kategorioihin, koriin, GPS:ään, skanneriin eikä äänihakuun.
+// - Pidetään Göstan tarjouskortin kuva samalla yksinkertaisella <img>-mallilla
+//   kuin toimivassa ZiiplyMobileSearchCardissa.
+// - Poistettu näkyvä GÖSTA V20 -version lätkä käyttöliittymästä.
+// - Ei debug-tekstejä ruudulla.
+// - Jos kuva ei lataudu, rikkinäistä kuvaikonia ei näytetä, vaan tilalle tulee
+//   tuoteryhmän fallback-ikoni.
+// - Kuvakenttien järjestys säilyy: imageUrl -> pictureUrl -> image.
+// - Ei muutoksia hakulogiikkaan, kategorioihin, hintoihin, GPS:ään,
+//   skanneriin, äänihakuun eikä providereihin.
 // ============================================================================
 
-// ============================================================================
-// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V20_STRICT_REAL_CATEGORY_COUNTS
-// Revision: V20
-// Date: 2026-06-06
-//
-// Fix:
-// - S-kaupat RemoteFilteredProducts returns prices already in euros.
-// - Removed old >20 => /100 conversion from normalizePrice() and getNumericPrice().
-// - Fixes false prices like 59,90 € becoming 0,60 €. Removes Kaikki chip, dedupes repeated campaign text, and keeps the improved layout.
-// - Keeps V2 Gösta filter/category UI unchanged.
-//
-// V17 fix:
-// - Offer cards are fully opaque so lower product texts cannot show through.
-// - Category buttons are no longer forced. A category is shown only when its
-//   categoryOfferCounts value is > 0, or when current offer data contains that
-//   category. Empty/tested-empty categories are hidden completely.
-// - V19: Koti category also recognizes longer backend names such as
-//   "Koti ja talous", "Kodin tuotteet", "Kodintarvikkeet" and "Household".
-// ============================================================================
 
 // ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V2_GOSTA_FILTER_AND_CATEGORIES
 // Pohjana V1.
@@ -313,6 +299,33 @@ function getCategoryIcon(category?: string) {
   return "%";
 }
 
+function OfferImageBox({
+  src,
+  category,
+}: {
+  src: string;
+  category?: string;
+}) {
+  const [imageFailed, setImageFailed] = React.useState(false);
+  const cleanSrc = String(src || "").trim();
+  const showImage = cleanSrc.length > 0 && !imageFailed;
+
+  if (!showImage) return <>{getCategoryIcon(category)}</>;
+
+  return (
+    <img
+      src={cleanSrc}
+      alt=""
+      className="h-full w-full object-contain bg-[#fffaf0]"
+      loading="lazy"
+      decoding="async"
+      referrerPolicy="no-referrer"
+      draggable={false}
+      onError={() => setImageFailed(true)}
+    />
+  );
+}
+
 function LeatherBackButton({ onClick }: { onClick?: () => void }) {
   if (!onClick) return null;
 
@@ -550,7 +563,7 @@ export default function ZiiplyMobileOfferSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="V22_GOSTA_IMAGE_FIX_CLEAN_UI"
+      data-ziiply-mobile-offer-search-card-version="V24_CLEAN_IMAGE_RENDER"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
@@ -703,7 +716,7 @@ export default function ZiiplyMobileOfferSearchCard({
                     <div className="px-3 py-2.5">
                       <div className="flex items-start gap-2.5">
                         <div className="mt-[0.1rem] grid h-[2.45rem] w-[2.45rem] shrink-0 place-items-center overflow-hidden rounded-[0.52rem] border-[1.5px] border-[#7b5c2a] bg-[linear-gradient(180deg,#f5dfac_0%,#d6ad66_100%)] text-[1.05rem] font-black text-[#604017] shadow-[0_2px_3px_rgba(50,31,13,0.18),inset_0_0_0_1px_rgba(255,250,224,0.42)]">
-                          {image ? <img src={image} alt="" className="h-full w-full object-contain bg-[#fffaf0]" loading="lazy" /> : getCategoryIcon(category)}
+                          <OfferImageBox src={image} category={category} />
                         </div>
 
                         <div className="min-w-0 flex-1 pr-[4.6rem]">
