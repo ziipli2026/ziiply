@@ -1,5 +1,5 @@
 // src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts
-// ZIIPLY_KRUOKA_OFFER_PROVIDER_V13_VISIBLE_DEBUG
+// ZIIPLY_KRUOKA_OFFER_PROVIDER_V14_PREFIX_NUMERIC_K_STOREID
 // Revision: V13
 // Date: 2026-07-04
 //
@@ -35,7 +35,7 @@ export type KruokaOfferProviderOptionsV10 = {
   kStoreName?: string | null;
 };
 
-const KRUOKA_PROVIDER_REVISION_V12 = "KRUOKA_PROVIDER_V13_VISIBLE_DEBUG";
+const KRUOKA_PROVIDER_REVISION_V12 = "KRUOKA_PROVIDER_V14_PREFIX_NUMERIC_K_STOREID";
 const KRUOKA_FETCH_OFFERS_URL_V12 = "https://www.k-ruoka.fi/kr-api/fetch-offers";
 const KRUOKA_PRODUCT_MAP_URL_V12 = "https://www.k-ruoka.fi/kr-api/raw-offer/product-map";
 const DEFAULT_KRUOKA_STORE_ID_V12 = "L654";
@@ -173,11 +173,23 @@ function getLocalizedFi(value: unknown) {
   return firstString(record?.finnish, record?.fi, record?.name, value);
 }
 
+function normalizeKruokaStoreIdV14(value: unknown) {
+  const raw = firstString(value).trim();
+  if (!raw) return "";
+
+  // K-Ruoka API uses L-prefixed store ids, e.g. L654.
+  // Ziiply store selection can pass the numeric Kesko/store id, e.g. 3221.
+  // Without this conversion fetch-offers/product-map returns zero real offers.
+  if (/^\d{2,8}$/.test(raw)) return `L${raw}`;
+
+  return raw;
+}
+
 function getKruokaStoreIdV12(options?: KruokaOfferProviderOptionsV10) {
-  return firstString(
-    options?.kStoreId,
-    options?.storeId,
-    DEFAULT_KRUOKA_STORE_ID_V12,
+  return (
+    normalizeKruokaStoreIdV14(options?.kStoreId) ||
+    normalizeKruokaStoreIdV14(options?.storeId) ||
+    DEFAULT_KRUOKA_STORE_ID_V12
   );
 }
 
