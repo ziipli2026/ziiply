@@ -1,3 +1,11 @@
+// V529_GOSTA_WITHIN_CHAIN_K_SCOPE_FIX
+// Korjaus Göstan K-hakuun:
+// - Ketjun sisältä -> K-ryhmä ei enää lähetä S-kauppaa tarjoushakuun.
+// - Göstan contextiin lisätään withinChain, jotta offerSearchSources osaa ajaa vain K-providerin.
+// - Ketjun sisältä -> S-ryhmä sulkee vastaavasti K-providerin pois.
+// - Ketjujen väliltä säilyttää S+K-kontekstin.
+// - Ei muutoksia normaaliin hintahakuun, kauppavalintaan, GPS:ään, skanneriin tai koriin.
+
 // V528_GOSTA_CATEGORY_COUNTS_SORT_AND_NO_RELOAD_BACK
 // Muutos Göstan tarjoushakuun:
 // - Paluu tuoteryhmälistaan ei enää tyhjennä offerSearchResults-listaa eikä käynnistä uutta master-hakua.
@@ -9648,14 +9656,27 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     try {
       // V527: Gösta käyttää nyt samaa valittua kauppakontekstia kuin normaali hintahaku.
       // Ei kovakoodattua Prisma Varkaus -debugpakotusta.
+      const gostaWithinChainV529 = String(withinChain || "").toUpperCase();
+      const gostaIsWithinKChainV529 =
+        storeCompareScope === "within_chain" && gostaWithinChainV529 === "K";
+      const gostaIsWithinSChainV529 =
+        storeCompareScope === "within_chain" && gostaWithinChainV529 === "S";
+
       const gostaOfferSearchContextV172 = {
         areaLabel: activeArea.label || "",
         storeMode,
         storeCompareScope,
-        sStoreId: activeStores.sStoreId || undefined,
-        sStoreName: activeStores.sStoreName || undefined,
-        kStoreId: activeStores.kStoreId || undefined,
-        kStoreName: activeStores.kStoreName || undefined,
+        withinChain: gostaWithinChainV529 || undefined,
+
+        // V529:
+        // Ketjun sisältä / K-ryhmässä activeStores voi silti sisältää aiemman S-kaupan.
+        // Sitä EI saa välittää Göstalle, muuten source-layer ajaa S-kaupat-providerin
+        // ja ruudulle tulee S-KAUPAT-tarjouksia K-valinnasta huolimatta.
+        sStoreId: gostaIsWithinKChainV529 ? undefined : activeStores.sStoreId || undefined,
+        sStoreName: gostaIsWithinKChainV529 ? undefined : activeStores.sStoreName || undefined,
+        kStoreId: gostaIsWithinSChainV529 ? undefined : activeStores.kStoreId || undefined,
+        kStoreName: gostaIsWithinSChainV529 ? undefined : activeStores.kStoreName || undefined,
+
         usingOwnLocation,
         gpsLat: gpsCoordsV320?.latitude,
         gpsLon: gpsCoordsV320?.longitude,
@@ -9678,11 +9699,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         cartItemsCount: cart.length,
         storeMode,
         storeCompareScope,
+        withinChain: gostaWithinChainV529 || "",
         areaLabel: activeArea.label || "",
-        sStoreId: activeStores.sStoreId || "",
-        sStoreName: activeStores.sStoreName || "",
-        kStoreId: activeStores.kStoreId || "",
-        kStoreName: activeStores.kStoreName || "",
+        sStoreId: gostaOfferSearchContextV172.sStoreId || "",
+        sStoreName: gostaOfferSearchContextV172.sStoreName || "",
+        kStoreId: gostaOfferSearchContextV172.kStoreId || "",
+        kStoreName: gostaOfferSearchContextV172.kStoreName || "",
       });
 
       const categoryKeyV166 = String(offerSearchCoreResult.categoryLabel || "").trim();
