@@ -1,13 +1,18 @@
 // ============================================================================
-// ZIIPLY_OFFER_CATEGORY_CORE_V156_CATEGORY_LIST_ORDER
-// Revision: V156
+// ZIIPLY_OFFER_CATEGORY_CORE_V157_STRICT_CATEGORY_OVERRIDES_AND_ORDER
+// Revision: V157
 // Date: 2026-07-04
 //
 // Muutokset:
-// - Göstan tuoteryhmälistaan lisätty näkyviin Valmisruoka ja Pakasteet.
-// - Tuoteryhmäjärjestys muutettu: ruoka- ja tarjousryhmät ensin.
-// - Lemmikit, Koti ja Muut pidetään listan lopussa.
-// - Ei muutoksia provider-hakuun, S-kuviin, GPS:ään, skanneriin eikä äänihakuun.
+// - Lisää tiukat etusijaluokat ennen laajaa tekstiluokittelua:
+//   Haribo/karkit/hedelmäkarkit -> Makeiset, ei Hevi.
+//   Lumene/kasvovoide/kosteusvoide/ihonhoito -> Koti, ei Maitotuotteet.
+// - Muuttaa tekstiluokittelun järjestystä: Koti ja Makeiset tarkistetaan ennen
+//   Heviä ja Maitotuotteita, jotta hakusanojen "maito"/"hedelmä" sivuosumat
+//   eivät nosta vääriä tuotteita ruokaryhmiin.
+// - Täydentää tuoteryhmäluettelon järjestyksen: Valmisruoka ja Pakasteet mukaan
+//   näkyvään listaan, Lemmikit/Koti/Muut viimeisiksi.
+// - Ei muutoksia S/K-provideriin, kuviin, GPS:ään, skanneriin eikä äänihakuun.
 // ============================================================================
 
 // ============================================================================
@@ -155,31 +160,39 @@ function classifyGostaCategoryFromSPathV155(rawText: string) {
 function classifyGostaCategoryFromText(rawText: string) {
   const text = normalizeGostaText(rawText);
 
-  // V153: S-kanavan oikeat pääkategoriat ensin, mutta Gösta pidetään ruokakorivertailussa.
-  // Mukana ruoka + arjen välttämättömät: kodinhoito, paperit, pesuaineet, vaipat ja lemmikit.
+  // V157: strict non-produce/non-dairy buckets first. These must win before
+  // Hevi/Maitotuotteet because S-kaupat/search metadata can contain words like
+  // hedelmä, marja, milk or cream inside candy/cosmetic products.
   if (/lemmikkien ruuat ja tarvikkeet|lemmikkien ruoat ja tarvikkeet|lemmikki|lemmik|koira|kissa|pedigree|whiskas|sheba|purina|friskies|perfect fit|best friend/.test(text)) return "Lemmikit";
+
+  if (/kodinhoito ja taloustarvikkeet|kodinhoito|taloustarvikkeet|vaippa|vaipat|hoitotarvikkeet|pampers|libero|lastenhoito|pesu|pyykin|pyykinpesu|fairy|astianpesu|wc|siivous|talouspaperi|vessa|roskapussi|leivinpaperi|folio|kelmu|hygienia|shampoo|saippua|hammastahna|hammasharja|lumene|nivea|dove|kasvovoide|kosteusvoide|paivavoide|päivävoide|yovoide|yövoide|ihonhoito|kosmetiikka|meikki|seerumi|deodorantti/.test(text)) return "Koti";
+
+  if (/karkit ja suklaat|snacksit|snacks|suklaa|karkki|karkit|hedelmakarkki|hedelmäkarkki|makeinen|makeiset|lakritsi|salmiakki|pastilli|sipsi|nacho|nachot|popcorn|haribo|click mix/.test(text)) return "Makeiset";
 
   // V154: baby food is food, not Koti. Diapers/care products still stay in Koti.
   if (/lastenruoka|lastenruoat|vauvanruoka|vauvanruoat|baby food|piltti|bonan|semper/.test(text)) return "Valmisruoka";
 
-  if (/kodinhoito ja taloustarvikkeet|kodinhoito|taloustarvikkeet|vaippa|vaipat|hoitotarvikkeet|pampers|libero|lastenhoito|pesu|pyykin|pyykinpesu|fairy|astianpesu|wc|siivous|talouspaperi|vessa|roskapussi|leivinpaperi|folio|kelmu|hygienia|shampoo|saippua|hammastahna|hammasharja/.test(text)) return "Koti";
+  if (/pakasteet|pakaste|jaatel|jäätel|pizza|ranskalaiset|wokvihannes|pakastevihannes|pakastemarja/.test(text)) return "Pakasteet";
+  if (/valmisruoka|valmisateria|keitto|keitot|salaattiateria|mikroateria|ateria|laatikko|pasta ateria/.test(text)) return "Valmisruoka";
 
   if (/liha ja kasviproteiinit|liha|jauheliha|kana|broiler|possu|porsas|nauta|sika|makkara|leikkele|kinkku|pekoni|filee|paisti|lihapulla|kasviproteiini|tofu|nyhtokaura|harkis|vege/.test(text)) return "Liha";
   if (/kala ja merenelavat|kala ja merenelävät|merenelav|mereneläv|kirjolohi|lohi|tonnikala|silakka|katkarapu|kuha|ahven|seiti|kalapuikko|silli|kala/.test(text)) return "Kala";
-  if (/hedelmat ja vihannekset|hedelmät ja vihannekset|hedel|omena|banaani|appelsiini|mandariini|viiniryp|vihannes|tomaatti|kurkku|salaatti|peruna|sipuli|porkkana|kaali|avokado|marja/.test(text)) return "Hevi";
   if (/leivat keksit ja leivonnaiset|leivät keksit ja leivonnaiset|leipa|leipä|sampyl|sämpyl|pulla|croissant|karjalanpiir|pita|patonki|ruis|paahtoleipa|paahtoleipä|donitsi|keksi|leivonnainen/.test(text)) return "Leipomo";
   if (/maito munat ja rasvat|maito|kananmuna|munat|jugur|jogur|jogurt|rahka|raejuusto|juusto|voi|margariini|rasva|kerma|piima|viili|kefiiri|proteiinivanukas|vanukas/.test(text)) return "Maitotuotteet";
   if (/juustot tofut ja kasvipohjaiset|juusto|tofu|kasvipohjainen|kaurajuoma|soijajuoma|vegejuusto/.test(text)) return "Maitotuotteet";
   if (/kahvit teet ja mehut|kahvi|tee|espresso|suodatinjauh|kahvipapu|papukahvi|cappuccino|latte/.test(text)) return "Kahvi";
   if (/alkoholi ja virvoitusjuomat|alkoholi- ja virvoitusjuomat|virvoitus|limu|cola|mehu|energiajuoma|vesi|kivennaisvesi|kivenn|smoothie|olut|siideri|lonkero/.test(text)) return "Juomat";
-  if (/pakasteet|pakaste|jaatel|jäätel|pizza|ranskalaiset|wokvihannes|pakastevihannes|pakastemarja/.test(text)) return "Pakasteet";
-  if (/valmisruoka|valmisateria|keitto|keitot|salaattiateria|mikroateria|ateria|laatikko|pasta ateria/.test(text)) return "Valmisruoka";
-  if (/karkit ja suklaat|snacksit|snacks|suklaa|karkki|makeinen|makeiset|lakritsi|salmiakki|pastilli|sipsi|nacho|popcorn/.test(text)) return "Makeiset";
+
+  // Hevi last among common food buckets so hedelmäkarkki/marjakarkki cannot win.
+  if (/hedelmat ja vihannekset|hedelmät ja vihannekset|hedel|omena|banaani|appelsiini|mandariini|viiniryp|vihannes|tomaatti|kurkku|salaatti|peruna|sipuli|porkkana|kaali|avokado|marja/.test(text)) return "Hevi";
 
   return "Muut";
 }
 
 export function getOfferCategoryV106(item: ZiiplyGostaOfferLike) {
+  const strictOverrideV157 = getStrictGostaCategoryOverrideV157(item);
+  if (strictOverrideV157) return strictOverrideV157;
+
   // V155:
   // First use S-kaupat's own category path fields from the provider. Only if
   // those do not map to a Ziiply bucket, fall back to the broader regex rules.
@@ -270,10 +283,11 @@ export function getGostaCategorySeedQueriesV136(categoryOrFilter: string) {
       ...seedsByCategory.hevi,
       ...seedsByCategory.juomat,
       ...seedsByCategory.valmisruoka,
+      ...seedsByCategory.pakasteet,
       ...seedsByCategory.makeiset,
       ...seedsByCategory.lemmikit,
       ...seedsByCategory.koti,
-      ...seedsByCategory.pakasteet,
+      ...seedsByCategory.muut,
     ]));
   }
 
