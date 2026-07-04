@@ -1,4 +1,20 @@
 // ============================================================================
+// ZIIPLY_OFFER_CATEGORY_CORE_V159_MAKEISET_STRICT_NO_ICECREAM_SNACKS
+// Revision: V159
+// Date: 2026-07-04
+//
+// Muutokset:
+// - Korjaa Makeiset-kategorian liian lavean rajauksen.
+// - Jäätelöt, jäätelötuutit, Pingviini, Kingis, Magnum ja Ben & Jerry's
+//   pakotetaan Pakasteet-kategoriaan ennen Makeiset-tarkistusta.
+// - Poistaa snacksit/sipsit/popcornit/nachot Makeiset-siemenhauista.
+// - S-kaupat-polun "snacksit" ei enää yksinään luokittele tuotetta Makeisiin.
+// - TUC/suolakeksit/snacksit jäävät pois Makeisista, ellei niitä myöhemmin
+//   lisätä omaksi Snacksit-ryhmäksi.
+// - Ei muutoksia S/K-provideriin, kuviin, GPS:ään, skanneriin eikä äänihakuun.
+// ============================================================================
+
+// ============================================================================
 // ZIIPLY_OFFER_CATEGORY_CORE_V158_BUILD_FIX_STRICT_OVERRIDE
 // Revision: V158
 // Date: 2026-07-04
@@ -148,7 +164,7 @@ function classifyGostaCategoryFromSPathV155(rawText: string) {
   if (/^alkoholi-ja-virvoitusjuomat\b|\/ alkoholi ja virvoitusjuomat\b|\balkoholi ja virvoitusjuomat\b|^virvoitusjuomat\b/.test(text)) return "Juomat";
   if (/^pakasteet\b|\/ pakasteet\b|\bpakasteet\b/.test(text)) return "Pakasteet";
   if (/^valmisruoka\b|\/ valmisruoka\b|\bvalmisruoka\b/.test(text)) return "Valmisruoka";
-  if (/^karkit-ja-suklaat\b|^snacksit\b|\/ karkit ja suklaat\b|\/ snacksit\b|\bkarkit ja suklaat\b|\bsnacksit\b/.test(text)) return "Makeiset";
+  if (/^karkit-ja-suklaat\b|\/ karkit ja suklaat\b|\bkarkit ja suklaat\b/.test(text)) return "Makeiset";
   if (/^lemmikit\b|^lemmikkien-ruoat-ja-tarvikkeet\b|^lemmikkien-ruuat-ja-tarvikkeet\b|\/ lemmikit\b|\blemmikit\b|\blemmikkien ruoat ja tarvikkeet\b|\blemmikkien ruuat ja tarvikkeet\b/.test(text)) return "Lemmikit";
 
   // Baby food is food; diapers/care products are Koti.
@@ -169,12 +185,14 @@ function classifyGostaCategoryFromText(rawText: string) {
 
   if (/kodinhoito ja taloustarvikkeet|kodinhoito|taloustarvikkeet|vaippa|vaipat|hoitotarvikkeet|pampers|libero|lastenhoito|pesu|pyykin|pyykinpesu|fairy|astianpesu|wc|siivous|talouspaperi|vessa|roskapussi|leivinpaperi|folio|kelmu|hygienia|shampoo|saippua|hammastahna|hammasharja|lumene|nivea|dove|kasvovoide|kosteusvoide|paivavoide|päivävoide|yovoide|yövoide|ihonhoito|kosmetiikka|meikki|seerumi|deodorantti/.test(text)) return "Koti";
 
-  if (/karkit ja suklaat|snacksit|snacks|suklaa|karkki|karkit|hedelmakarkki|hedelmäkarkki|makeinen|makeiset|lakritsi|salmiakki|pastilli|sipsi|nacho|nachot|popcorn|haribo|click mix/.test(text)) return "Makeiset";
+  // V159: Pakasteet must win before Makeiset. Ice creams often contain
+  // words such as suklaa/lakritsi in the product name, but the real bucket is Pakasteet.
+  if (/pakasteet|pakaste|jaatel|jäätel|ice cream|pingviini|kingis|magnum|ben jerry|ben and jerry|pizza|ranskalaiset|wokvihannes|pakastevihannes|pakastemarja/.test(text)) return "Pakasteet";
+
+  if (/karkit ja suklaat|suklaa|karkki|karkit|hedelmakarkki|hedelmäkarkki|makeinen|makeiset|lakritsi|salmiakki|pastilli|purukumi|ksylitoli|haribo|click mix|marianne|fazer|pandy/.test(text)) return "Makeiset";
 
   // V154: baby food is food, not Koti. Diapers/care products still stay in Koti.
   if (/lastenruoka|lastenruoat|vauvanruoka|vauvanruoat|baby food|piltti|bonan|semper/.test(text)) return "Valmisruoka";
-
-  if (/pakasteet|pakaste|jaatel|jäätel|pizza|ranskalaiset|wokvihannes|pakastevihannes|pakastemarja/.test(text)) return "Pakasteet";
   if (/valmisruoka|valmisateria|keitto|keitot|salaattiateria|mikroateria|ateria|laatikko|pasta ateria/.test(text)) return "Valmisruoka";
 
   if (/liha ja kasviproteiinit|liha|jauheliha|kana|broiler|possu|porsas|nauta|sika|makkara|leikkele|kinkku|pekoni|filee|paisti|lihapulla|kasviproteiini|tofu|nyhtokaura|harkis|vege/.test(text)) return "Liha";
@@ -218,7 +236,12 @@ function getStrictGostaCategoryOverrideV157(item: ZiiplyGostaOfferLike): string 
 
   // These hard overrides must win before broad words such as hedelmä, marja,
   // maito or cream can place the offer in Hevi/Maitotuotteet.
-  if (/\b(haribo|click mix|karkki|karkit|hedelmakarkki|hedelmäkarkki|makeinen|makeiset|suklaa|lakritsi|salmiakki|pastilli|snacks|snacksit|sipsi|nacho|nachot|popcorn)\b/.test(strictText)) {
+  // V159: ice cream is Pakasteet even when the title contains suklaa/lakritsi.
+  if (/\b(jaatelo|jäätelö|jaatelotu|jäätelötu|ice cream|pingviini|kingis|magnum|ben jerry|ben and jerry)\b/.test(strictText)) {
+    return "Pakasteet";
+  }
+
+  if (/\b(haribo|click mix|karkki|karkit|hedelmakarkki|hedelmäkarkki|makeinen|makeiset|suklaa|lakritsi|salmiakki|pastilli|purukumi|ksylitoli|marianne|fazer|pandy)\b/.test(strictText)) {
     return "Makeiset";
   }
 
@@ -310,7 +333,7 @@ export function getGostaCategorySeedQueriesV136(categoryOrFilter: string) {
     hevi: ["hedelmät", "vihannekset", "hedelmä", "omena", "banaani", "appelsiini", "vihannes", "tomaatti", "kurkku", "salaatti", "peruna", "sipuli", "porkkana", "marjat"],
     juomat: ["virvoitusjuomat", "mehu", "limu", "cola", "energiajuoma", "vesi", "kivennäisvesi", "smoothie", "kahvit teet ja mehut"],
     valmisruoka: ["valmisruoka", "valmisateria", "keitto", "salaattiateria", "mikroateria", "ateria", "laatikko", "pasta", "risotto", "lastenruoka", "lastenruoat", "vauvanruoka", "piltti", "semper"],
-    makeiset: ["karkit", "suklaat", "suklaa", "karkki", "makeinen", "makeiset", "lakritsi", "salmiakki", "snacksit", "sipsi", "popcorn", "nachot"],
+    makeiset: ["karkit", "karkki", "makeinen", "makeiset", "suklaa", "suklaat", "lakritsi", "salmiakki", "pastillit", "pastilli", "purukumi", "ksylitoli", "haribo", "marianne", "fazer", "pandy"],
     lemmikit: ["lemmikkien ruoat", "lemmikkien ruuat", "lemmikkiruoka", "koiranruoka", "kissanruoka", "pedigree", "whiskas", "sheba", "purina", "friskies"],
     koti: ["kodinhoito", "taloustarvikkeet", "kodinhoito ja taloustarvikkeet", "vaipat", "hoitotarvikkeet", "hygienia", "koti", "pesuaine", "pyykinpesuaine", "astianpesuaine", "fairy", "wc-paperi", "talouspaperi", "siivous", "roskapussi", "leivinpaperi", "folio", "kelmu", "shampoo", "saippua", "hammastahna"],
     pakasteet: ["pakasteet", "pakaste", "jäätelö", "pizza", "ranskalaiset", "pakastevihannes", "pakastemarjat", "wokvihannes"],
