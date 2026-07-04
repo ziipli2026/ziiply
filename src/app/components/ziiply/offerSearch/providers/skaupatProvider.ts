@@ -1,34 +1,16 @@
 // ============================================================================
-// SKAUPAT_PROVIDER_V188_GOSTA_VISIBLE_TITLE_IMAGE_DEBUG
-// Revision: V188
+// SKAUPAT_PROVIDER_V189_GOSTA_VISIBLE_IMAGE_DEBUG_V2
+// Revision: V189
 // Date: 2026-07-04
 //
-// DEBUG ONLY - iPhone/mobile visible debug.
-//
-// Muutokset V187 -> V188:
-// - Debug ei jää enää benefitText-riville, joka voi katketa/piiloutua kortissa.
-// - Lisää debug-statuksen suoraan tarjouskortin title-kentän alkuun.
-// - iPhonen näkymässä tuotteen nimen alussa näkyy esim.
-//   DBG NOIMG no-details no-pimg no-imgs | Kulta Katriina...
-// - Säilyttää imageUrl-, image- ja pictureUrl-kentät ennallaan.
-// - Ei muuta kauppavalintaa, GPS:ää, skanneria, äänihakua eikä K-ruoka-provideria.
-// - VÄLIAIKAINEN DEBUG-VERSIO: älä jätä tuotantoon lopullisesti.
-//
-// ============================================================================
-
-// ============================================================================
-// SKAUPAT_PROVIDER_V187_GOSTA_VISIBLE_IMAGE_DEBUG
-// Revision: V187
-// Date: 2026-07-04
-//
-// DEBUG ONLY - iPhone/mobile visible debug.
+// DEBUG ONLY - näkyy iPhonessa tarjouskortin tekstissä.
 //
 // Muutokset:
-// - Lisää Göstan S-kaupat-tarjouskortteihin näkyvän DEBUG-rivin benefitText-kenttään.
-// - Näyttää kortissa mm. imageUrl-pituuden, kuvan löytymisen, tuotteen EANin ja productUrl-tilan.
-// - Ei vaadi selaimen Consolea eikä Macin Web Inspectoria.
-// - Ei muuta kauppavalintaa, GPS:ää, skanneria, äänihakua eikä K-ruoka-provideria.
-// - TÄMÄ ON VÄLIAIKAINEN DEBUG-VERSIO: älä jätä tuotantoon lopullisesti.
+// - Ei muuteta Göstan hakulogiikkaa, kauppavalintaa, GPS:ää, skanneria tai äänihakua.
+// - Lisää S-kaupat-tarjouksiin lyhyen näkyvän kuvadebug-tekstin benefitText-kentän alkuun.
+// - Debug kertoo kuvan tilan: IMG OK/NO, mistä kentästä kuva löytyi, host, pituus, placeholderit ja tiedostopääte.
+// - Lisää myös debugImageV189/debugImageUrlV189/debugImageSourceV189-kentät tarjousobjektiin myöhempää UI-debug-paneelia varten.
+// - Tarkoitus: iPhonella näkee ilman Consolea, onko providerilla oikea kuva-URL vai hajoaako kuva vasta kortissa/selaimessa.
 //
 // ============================================================================
 
@@ -771,67 +753,6 @@ function hasSOfferSignal(
 }
 
 
-function buildGostaVisibleImageDebugV187(params: {
-  product: UnknownRecord;
-  listItem: UnknownRecord;
-  imageUrl: string;
-  productUrl: string;
-  selectedStoreId: string;
-}): string {
-  const { product, listItem, imageUrl, productUrl, selectedStoreId } = params;
-
-  const hasProductDetailsImages = Boolean(
-    getPathValue(product, ["productDetails", "productImages"]),
-  );
-  const hasProductImages = Boolean(product.productImages);
-  const hasImages = Boolean(product.images);
-  const hasListItemImage = Boolean(listItem.image);
-  const hasImageField = Boolean(product.image);
-
-  const sourceFlags = [
-    hasProductDetailsImages ? "details" : "no-details",
-    hasProductImages ? "productImages" : "no-productImages",
-    hasImages ? "images" : "no-images",
-    hasListItemImage ? "listItem.image" : "no-listItem.image",
-    hasImageField ? "product.image" : "no-product.image",
-  ].join(" | ");
-
-  const imageStatus = imageUrl ? `IMG OK len=${imageUrl.length}` : "IMG MISSING";
-  const urlStatus = productUrl ? `URL OK len=${productUrl.length}` : "URL MISSING";
-  const ean = firstString(product.ean) || "no-ean";
-
-  return [
-    `DEBUG V187`,
-    `storeId=${selectedStoreId}`,
-    imageStatus,
-    urlStatus,
-    `ean=${ean}`,
-    sourceFlags,
-    imageUrl ? `img=${imageUrl.slice(0, 110)}` : "img=-",
-  ].join(" · ");
-}
-
-
-function buildGostaVisibleTitleDebugV188(params: {
-  product: UnknownRecord;
-  listItem: UnknownRecord;
-  imageUrl: string;
-  originalTitle: string;
-}): string {
-  const { product, listItem, imageUrl, originalTitle } = params;
-
-  const flags = [
-    getPathValue(product, ["productDetails", "productImages"]) ? "details" : "no-details",
-    product.productImages ? "pimg" : "no-pimg",
-    product.images ? "imgs" : "no-imgs",
-    listItem.image ? "li-img" : "no-li-img",
-    product.image ? "prod-img" : "no-prod-img",
-  ];
-
-  const imageState = imageUrl ? `IMGOK${imageUrl.length}` : "NOIMG";
-  return `DBG ${imageState} ${flags.join(" ")} | ${originalTitle}`;
-}
-
 function belongsToSelectedSHypermarketV163(
   product: UnknownRecord,
   selectedStoreId: string,
@@ -845,46 +766,136 @@ function belongsToSelectedSHypermarketV163(
 }
 
 
+type SKaupatImageDebugV189 = {
+  url: string;
+  raw: string;
+  source: string;
+  host: string;
+  len: number;
+  hasPlaceholder: boolean;
+  ext: string;
+  startsWith: string;
+};
+
+function getImageHostV189(url: string): string {
+  if (!url) return "none";
+
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    if (url.startsWith("/")) return "relative";
+    if (url.startsWith("//")) return "protocol-relative";
+    return "no-url";
+  }
+}
+
+function getImageExtensionV189(url: string): string {
+  const cleanUrl = url.split("?")[0] || "";
+  const match = cleanUrl.match(/\.([a-z0-9]{2,5})$/i);
+  return match?.[1]?.toLowerCase() || "noext";
+}
+
+function buildImageDebugV189(url: string, raw: string, source: string): SKaupatImageDebugV189 {
+  const normalizedUrl = normalizeSImageUrlV185(url);
+
+  return {
+    url: normalizedUrl,
+    raw: String(raw || ""),
+    source: source || "none",
+    host: getImageHostV189(normalizedUrl),
+    len: normalizedUrl.length,
+    hasPlaceholder: /\{[A-Z_]+\}/i.test(String(raw || "")) || /\{[A-Z_]+\}/i.test(normalizedUrl),
+    ext: getImageExtensionV189(normalizedUrl),
+    startsWith: normalizedUrl.slice(0, 18),
+  };
+}
+
+function firstImageCandidateDebugV189(
+  candidates: Array<{ source: string; value: unknown; template?: boolean }>,
+): SKaupatImageDebugV189 | null {
+  for (const candidate of candidates) {
+    const raw = firstString(candidate.value);
+    if (!raw) continue;
+
+    const url = candidate.template ? buildSCloudImageUrl(raw) : normalizeSImageUrlV185(raw);
+    if (!url) continue;
+
+    return buildImageDebugV189(url, raw, candidate.source);
+  }
+
+  return null;
+}
+
+function findFallbackImageDebugV189(product: UnknownRecord, listItem?: UnknownRecord): SKaupatImageDebugV189 | null {
+  const fallbacks: Array<{ source: string; value: unknown }> = [
+    { source: "fb:productDetails.productImages", value: getPathValue(product, ["productDetails", "productImages"]) },
+    { source: "fb:product.productImages", value: product.productImages },
+    { source: "fb:product.images", value: product.images },
+    { source: "fb:listItem", value: listItem },
+    { source: "fb:product", value: product },
+  ];
+
+  for (const fallback of fallbacks) {
+    const url = findFirstImageUrlFromObjectV185(fallback.value);
+    if (!url) continue;
+    return buildImageDebugV189(url, url, fallback.source);
+  }
+
+  return null;
+}
+
+function getImageDebugV189(product: UnknownRecord, listItem?: UnknownRecord): SKaupatImageDebugV189 {
+  const templateDebug = firstImageCandidateDebugV189([
+    { source: "tpl:pDet.hero", value: getPathValue(product, ["productDetails", "productImages", "mobileReadyHeroImage", "urlTemplate"]), template: true },
+    { source: "tpl:pDet.main", value: getPathValue(product, ["productDetails", "productImages", "mainImage", "urlTemplate"]), template: true },
+    { source: "tpl:pDet.primary", value: getPathValue(product, ["productDetails", "productImages", "primaryImage", "urlTemplate"]), template: true },
+    { source: "tpl:pImages.hero", value: getPathValue(product, ["productImages", "mobileReadyHeroImage", "urlTemplate"]), template: true },
+    { source: "tpl:pImages.main", value: getPathValue(product, ["productImages", "mainImage", "urlTemplate"]), template: true },
+    { source: "tpl:pImages.primary", value: getPathValue(product, ["productImages", "primaryImage", "urlTemplate"]), template: true },
+    { source: "tpl:product.image", value: getPathValue(product, ["image", "urlTemplate"]), template: true },
+    { source: "tpl:list.product.hero", value: getPathValue(listItem, ["product", "productDetails", "productImages", "mobileReadyHeroImage", "urlTemplate"]), template: true },
+    { source: "tpl:list.product.main", value: getPathValue(listItem, ["product", "productDetails", "productImages", "mainImage", "urlTemplate"]), template: true },
+    { source: "tpl:list.image", value: getPathValue(listItem, ["image", "urlTemplate"]), template: true },
+  ]);
+
+  if (templateDebug) return templateDebug;
+
+  const directDebug = firstImageCandidateDebugV189([
+    { source: "dir:product.imageUrl", value: product.imageUrl },
+    { source: "dir:product.pictureUrl", value: product.pictureUrl },
+    { source: "dir:product.image", value: product.image },
+    { source: "dir:product.mainImageUrl", value: product.mainImageUrl },
+    { source: "dir:product.thumbnailUrl", value: product.thumbnailUrl },
+    { source: "dir:product.image.url", value: getPathValue(product, ["image", "url"]) },
+    { source: "dir:product.mainImage.url", value: getPathValue(product, ["mainImage", "url"]) },
+    { source: "dir:product.thumbnail.url", value: getPathValue(product, ["thumbnail", "url"]) },
+    { source: "dir:list.imageUrl", value: getPathValue(listItem, ["imageUrl"]) },
+    { source: "dir:list.pictureUrl", value: getPathValue(listItem, ["pictureUrl"]) },
+    { source: "dir:list.image.url", value: getPathValue(listItem, ["image", "url"]) },
+  ]);
+
+  if (directDebug) return directDebug;
+
+  const fallbackDebug = findFallbackImageDebugV189(product, listItem);
+  if (fallbackDebug) return fallbackDebug;
+
+  return buildImageDebugV189("", "", "none");
+}
+
+function formatVisibleImageDebugV189(debug: SKaupatImageDebugV189): string {
+  const imageState = debug.url ? "OK" : "NO";
+  const shortSource = debug.source
+    .replace("productDetails", "pDet")
+    .replace("productImages", "pImg")
+    .replace("mobileReadyHeroImage", "hero")
+    .replace("pictureUrl", "pic")
+    .replace("imageUrl", "imgUrl");
+
+  return `DBG V189 IMG:${imageState} SRC:${shortSource} HOST:${debug.host} LEN:${debug.len} EXT:${debug.ext} PH:${debug.hasPlaceholder ? "Y" : "N"}`;
+}
+
 function getImageUrl(product: UnknownRecord, listItem?: UnknownRecord): string {
-  const mainImageTemplate = firstString(
-    getPathValue(product, ["productDetails", "productImages", "mobileReadyHeroImage", "urlTemplate"]),
-    getPathValue(product, ["productDetails", "productImages", "mainImage", "urlTemplate"]),
-    getPathValue(product, ["productDetails", "productImages", "primaryImage", "urlTemplate"]),
-    getPathValue(product, ["productImages", "mobileReadyHeroImage", "urlTemplate"]),
-    getPathValue(product, ["productImages", "mainImage", "urlTemplate"]),
-    getPathValue(product, ["productImages", "primaryImage", "urlTemplate"]),
-    getPathValue(product, ["image", "urlTemplate"]),
-    getPathValue(listItem, ["product", "productDetails", "productImages", "mobileReadyHeroImage", "urlTemplate"]),
-    getPathValue(listItem, ["product", "productDetails", "productImages", "mainImage", "urlTemplate"]),
-    getPathValue(listItem, ["image", "urlTemplate"]),
-  );
-
-  if (mainImageTemplate) return buildSCloudImageUrl(mainImageTemplate);
-
-  const direct = firstString(
-    product.imageUrl,
-    product.pictureUrl,
-    product.image,
-    product.mainImageUrl,
-    product.thumbnailUrl,
-    getPathValue(product, ["image", "url"]),
-    getPathValue(product, ["mainImage", "url"]),
-    getPathValue(product, ["thumbnail", "url"]),
-    getPathValue(listItem, ["imageUrl"]),
-    getPathValue(listItem, ["pictureUrl"]),
-    getPathValue(listItem, ["image", "url"]),
-  );
-
-  const normalizedDirect = normalizeSImageUrlV185(direct);
-  if (normalizedDirect) return normalizedDirect;
-
-  return (
-    findFirstImageUrlFromObjectV185(getPathValue(product, ["productDetails", "productImages"])) ||
-    findFirstImageUrlFromObjectV185(product.productImages) ||
-    findFirstImageUrlFromObjectV185(product.images) ||
-    findFirstImageUrlFromObjectV185(listItem) ||
-    findFirstImageUrlFromObjectV185(product)
-  );
+  return getImageDebugV189(product, listItem).url;
 }
 
 function getProductUrl(product: UnknownRecord): string {
@@ -970,7 +981,9 @@ function mapSProductListItemToOfferResult(
   const priceText = formatPrice(currentPrice);
   const unitPriceText = formatComparisonPrice(comparisonPrice, comparisonUnit);
   const categoryMeta = getCategoryMeta(product, options.fallbackFacetNames);
-  const imageUrl = getImageUrl(product, listItem);
+  const imageDebugV189 = getImageDebugV189(product, listItem);
+  const imageUrl = imageDebugV189.url;
+  const visibleImageDebugV189 = formatVisibleImageDebugV189(imageDebugV189);
   const productUrl = getProductUrl(product);
   const labelsText = cleanRepeatedCampaignTextV161(getLabels(listItem, product));
 
@@ -980,30 +993,17 @@ function mapSProductListItemToOfferResult(
     regularPrice != null &&
     Number(currentPrice) < Number(regularPrice);
 
-  const baseBenefitText = cleanRepeatedCampaignTextV161(
+  const normalBenefitText = cleanRepeatedCampaignTextV161(
     isCampaign
       ? `Kampanja${regularPrice ? `, normaalisti ${formatPrice(regularPrice)}` : ""}`
       : labelsText,
   );
 
-  const visibleImageDebugTextV187 = buildGostaVisibleImageDebugV187({
-    product,
-    listItem,
-    imageUrl,
-    productUrl,
-    selectedStoreId: options.selectedStoreId,
-  });
-
-  const visibleDebugTitleV188 = buildGostaVisibleTitleDebugV188({
-    product,
-    listItem,
-    imageUrl,
-    originalTitle: title,
-  });
-
-  const benefitText = [baseBenefitText, visibleImageDebugTextV187]
-    .filter(Boolean)
-    .join(" · ");
+  // V189 DEBUG: näkyy iPhonessa samassa rivissä kuin kampanjateksti.
+  // Tämä on tarkoituksella lyhyt, koska tarjouskortti katkaisee pitkät tekstit.
+  const benefitText = cleanRepeatedCampaignTextV161(
+    `${visibleImageDebugV189} · ${normalBenefitText}`.trim(),
+  );
 
   const rawText = [
     title,
@@ -1032,8 +1032,7 @@ function mapSProductListItemToOfferResult(
     sourceUrl: options.config.url,
     chain: options.config.chain,
     storeLabel: options.config.storeLabel,
-    title: visibleDebugTitleV188,
-    originalTitle: title,
+    title,
     priceText,
     unitPriceText,
     benefitText,
@@ -1061,6 +1060,14 @@ function mapSProductListItemToOfferResult(
     subCategory: categoryMeta.subCategory,
     brandName: firstString(product.brandName),
     ean: firstString(product.ean),
+
+    // V189 visible image debug fields. These are harmless extra fields.
+    debugImageV189: visibleImageDebugV189,
+    debugImageUrlV189: imageDebugV189.url,
+    debugImageSourceV189: imageDebugV189.source,
+    debugImageHostV189: imageDebugV189.host,
+    debugImageLengthV189: imageDebugV189.len,
+    debugImageStartsWithV189: imageDebugV189.startsWith,
   } as unknown as ZiiplyOfferSearchResult;
 }
 
