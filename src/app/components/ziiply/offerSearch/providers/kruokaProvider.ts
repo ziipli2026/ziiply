@@ -1,6 +1,6 @@
 // src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts
-// ZIIPLY_KRUOKA_OFFER_PROVIDER_V15_PRODUCT_MAP_FULL_EAN_SEED
-// Revision: V15
+// ZIIPLY_KRUOKA_OFFER_PROVIDER_V16_NO_FORCED_STOREID_PREFIX
+// Revision: V16
 // Date: 2026-07-04
 //
 // Fix:
@@ -16,6 +16,8 @@
 // täyden EAN-listan kanssa. Siksi product-map ajetaan nyt ensisijaisena
 // laajalla EAN-seedillä jokaiselle valitulle K-kaupalle erikseen.
 // fetch-offers jää tueksi yksittäisiin tarjous=tarjouslehti-310488P-polkuhin.
+// V16: poistettu virheellinen numeromuotoisen storeId:n pakkomuunnos L-etuliitteiseksi.
+// Provider käyttää nyt täsmälleen sitä storeId:tä, jonka page/route antaa (esim. L654 tai N183).
 
 
 import type {
@@ -301,22 +303,26 @@ function getLocalizedFi(value: unknown) {
   return firstString(record?.finnish, record?.fi, record?.name, value);
 }
 
-function normalizeKruokaStoreIdV14(value: unknown) {
+function normalizeKruokaStoreIdV16(value: unknown) {
   const raw = firstString(value).trim();
   if (!raw) return "";
 
-  // K-Ruoka API uses L-prefixed store ids, e.g. L654.
-  // Ziiply store selection can pass the numeric Kesko/store id, e.g. 3221.
-  // Without this conversion fetch-offers/product-map returns zero real offers.
-  if (/^\d{2,8}$/.test(raw)) return `L${raw}`;
-
+  // V16:
+  // ÄLÄ keksi K-Ruoan storeId-etuliitettä.
+  // K-Ruoka käyttää eri ketjuilla eri id-muotoja:
+  // - K-Market / K-Supermarket voi olla esim. L654
+  // - K-Citymarket voi olla esim. N183
+  //
+  // Jos page/store-picker antaa pelkän numeron, se ei ole riittävä K-Ruoan
+  // API-storeId. Sitä ei saa muuttaa automaattisesti L-muotoon, koska silloin
+  // esim. Citymarketin N-id muuttuu virheelliseksi L-id:ksi.
   return raw;
 }
 
 function getKruokaStoreIdV12(options?: KruokaOfferProviderOptionsV10) {
   return (
-    normalizeKruokaStoreIdV14(options?.kStoreId) ||
-    normalizeKruokaStoreIdV14(options?.storeId) ||
+    normalizeKruokaStoreIdV16(options?.kStoreId) ||
+    normalizeKruokaStoreIdV16(options?.storeId) ||
     DEFAULT_KRUOKA_STORE_ID_V12
   );
 }
