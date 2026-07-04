@@ -1,19 +1,15 @@
 "use client";
 
 // ============================================================================
-// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V21_GOSTA_IMAGE_SRC_DEBUG_PANEL
-// Revision: V21
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V22_GOSTA_IMAGE_FIX_CLEAN_UI
+// Revision: V22
 // Date: 2026-07-04
 //
-// DEBUG ONLY / iPhone visible
-//
 // Muutokset:
-// - Poistettu ruudulla näkynyt "GÖSTA V20" -versiolätkä.
-// - Lisätty jokaisen tarjouskortin sisään näkyvä debug-paneeli.
-// - Debug-paneeli näyttää täsmälleen saman image-src-arvon, joka annetaan <img src={image}> -elementille.
-// - URL pilkotaan lyhyisiin riveihin, jotta se näkyy iPhonessa eikä katkea ellipsiin.
-// - Ei muuta hakulogiikkaa, kategorioita, hintoja, lisäystä koriin tai provider-dataa.
-//
+// - Poistettu GÖSTA V20 -kehitysmerkki ruudulta.
+// - Ei näytetä enää näkyviä image-debug-laatikoita tarjouskortissa.
+// - Kuvan renderöinti käyttää edelleen samaa kenttäjärjestystä: imageUrl -> pictureUrl -> image.
+// - Ei muutoksia hakulogiikkaan, kategorioihin, koriin, GPS:ään, skanneriin eikä äänihakuun.
 // ============================================================================
 
 // ============================================================================
@@ -302,40 +298,6 @@ function getOfferImage(offer: ZiiplyMobileOfferSearchItem) {
   return String(offer.imageUrl || offer.pictureUrl || offer.image || "").trim();
 }
 
-function chunkDebugTextV21(value: unknown, chunkSize = 34): string[] {
-  const text = String(value ?? "").trim();
-  if (!text) return ["-"];
-
-  const chunks: string[] = [];
-  for (let index = 0; index < text.length; index += chunkSize) {
-    chunks.push(text.slice(index, index + chunkSize));
-  }
-
-  return chunks.length > 0 ? chunks : ["-"];
-}
-
-function getImageDebugHostV21(image: string) {
-  try {
-    if (!image) return "-";
-    const parsed = new URL(image);
-    return parsed.hostname || "-";
-  } catch {
-    if (image.startsWith("//")) return image.split("/")[2] || "protocol-relative";
-    if (image.startsWith("/")) return "relative-path";
-    return "invalid-url";
-  }
-}
-
-function getImageDebugKindV21(image: string) {
-  if (!image) return "EMPTY";
-  if (image.includes("{")) return "HAS_PLACEHOLDER";
-  if (image.startsWith("http://")) return "HTTP";
-  if (image.startsWith("https://")) return "HTTPS";
-  if (image.startsWith("//")) return "PROTOCOL_RELATIVE";
-  if (image.startsWith("/")) return "RELATIVE";
-  return "UNKNOWN";
-}
-
 function getCategoryIcon(category?: string) {
   const text = String(category || "").toLowerCase();
   if (text.includes("kahvi")) return "☕";
@@ -588,7 +550,7 @@ export default function ZiiplyMobileOfferSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="V21_GOSTA_IMAGE_SRC_DEBUG_PANEL"
+      data-ziiply-mobile-offer-search-card-version="V22_GOSTA_IMAGE_FIX_CLEAN_UI"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
@@ -752,19 +714,6 @@ export default function ZiiplyMobileOfferSearchCard({
                           </div>
                           <div className="mt-1 truncate text-[0.68rem] font-extrabold italic text-[#6b6048]" style={{ fontFamily: serifFont }}>
                             {savingsText || (normalPrice ? `Norm. ${normalPrice}` : "Tarjous voimassa")}
-                          </div>
-
-                          <div className="mt-1.5 rounded-[0.48rem] border border-[#8a6a31] bg-[#fffaf0] px-2 py-1 text-left font-mono text-[0.45rem] font-black leading-[1.12] text-[#4a3216] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.55)]">
-                            <div>DBG V21 IMG SRC</div>
-                            <div>kind: {getImageDebugKindV21(image)}</div>
-                            <div>host: {getImageDebugHostV21(image)}</div>
-                            <div>len: {image.length}</div>
-                            <div>src:</div>
-                            {chunkDebugTextV21(image).map((part, partIndex) => (
-                              <div key={`img-debug-${index}-${partIndex}`} className="break-all">
-                                {part}
-                              </div>
-                            ))}
                           </div>
                         </div>
 
