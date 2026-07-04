@@ -1,5 +1,5 @@
 // src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts
-// ZIIPLY_KRUOKA_OFFER_PROVIDER_V20_VISIBLE_SHORT_DEBUG
+// ZIIPLY_KRUOKA_OFFER_PROVIDER_V21_BROWSER_LIKE_PRODUCT_MAP_HEADERS
 // Revision: V17
 // Date: 2026-07-04
 //
@@ -70,11 +70,20 @@ export type KruokaOfferProviderOptionsV10 = {
   kStoreName?: string | null;
 };
 
-const KRUOKA_PROVIDER_REVISION_V12 = "KRUOKA_PROVIDER_V20_VISIBLE_SHORT_DEBUG";
+const KRUOKA_PROVIDER_REVISION_V12 = "KRUOKA_PROVIDER_V21_BROWSER_LIKE_PRODUCT_MAP_HEADERS";
 const KRUOKA_FETCH_OFFERS_URL_V12 = "https://www.k-ruoka.fi/kr-api/fetch-offers";
 const KRUOKA_PRODUCT_MAP_URL_V12 = "https://www.k-ruoka.fi/kr-api/raw-offer/product-map";
 const DEFAULT_KRUOKA_STORE_ID_V12 = "L654";
 const GOSTA_MASTER_QUERY_V12 = "__ziiply_all_offers__";
+
+// HAR product-map -pyynnöstä poimitut selainheaderit.
+// Ei kovakoodata evästeitä: cookie yritetään kerätä ensin saman originin HTML-pyynnöstä.
+const KRUOKA_BROWSER_BUILD_NUMBER_V21 = "31640";
+const KRUOKA_BROWSER_EXPERIMENTS_V21 =
+  "ab4d.10001.1!d2ae.10003.1!a.00157.1!a.00171.0!a.00174.1!a.00175.0!a.00177.1!a.00180.1";
+const KRUOKA_BROWSER_USER_AGENT_V21 =
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3.1 Safari/605.1.15";
+
 
 const KRUOKA_DEBUG_EANS_V12 = [
   "6409100032401",
@@ -389,29 +398,78 @@ function extractKruokaEansFromHtmlV12(html: string) {
   return Array.from(eans);
 }
 
+
+function getSetCookieHeaderValuesV21(headers: Headers): string[] {
+  const anyHeaders = headers as Headers & {
+    getSetCookie?: () => string[];
+    raw?: () => Record<string, string[]>;
+  };
+
+  if (typeof anyHeaders.getSetCookie === "function") {
+    return anyHeaders.getSetCookie();
+  }
+
+  if (typeof anyHeaders.raw === "function") {
+    return anyHeaders.raw()["set-cookie"] || [];
+  }
+
+  const single = headers.get("set-cookie");
+  return single ? [single] : [];
+}
+
+function setCookieLinesToCookieHeaderV21(setCookieLines: string[]) {
+  const pairs = setCookieLines
+    .map((line) => line.split(";")[0]?.trim())
+    .filter(Boolean);
+
+  return Array.from(new Set(pairs)).join("; ");
+}
+
+function makeKruokaJsonHeadersV21(referer: string, cookieHeader?: string) {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+    "Accept-Language": "fi-FI,fi;q=0.9",
+    Origin: "https://www.k-ruoka.fi",
+    Referer: referer,
+    "User-Agent": KRUOKA_BROWSER_USER_AGENT_V21,
+    "Sec-Fetch-Site": "same-origin",
+    "Sec-Fetch-Mode": "cors",
+    "Sec-Fetch-Dest": "empty",
+    "X-K-Build-Number": KRUOKA_BROWSER_BUILD_NUMBER_V21,
+    "X-K-Experiments": KRUOKA_BROWSER_EXPERIMENTS_V21,
+  };
+
+  if (cookieHeader) headers.Cookie = cookieHeader;
+
+  return headers;
+}
+
 async function fetchKruokaBrochureHtmlV12(source: ZiiplyOfferSearchSourceConfig) {
   const response = await fetch(source.url, {
     cache: "no-store",
     headers: {
       accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
       "accept-language": "fi-FI,fi;q=0.9,en;q=0.8",
-      "user-agent":
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Safari/605.1.15",
+      "user-agent": KRUOKA_BROWSER_USER_AGENT_V21,
     },
   });
 
+  const cookieHeader = setCookieLinesToCookieHeaderV21(getSetCookieHeaderValuesV21(response.headers));
+
   if (!response.ok) {
     console.warn(`[Ziiply K offers] brochure HTML failed ${source.id}: ${response.status}`);
-    return "";
+    return { html: "", cookieHeader };
   }
 
-  return response.text();
+  return { html: await response.text(), cookieHeader };
 }
 
 async function fetchKruokaOffersByOfferIdsV12(
   storeId: string,
   offerIds: string[],
   source: ZiiplyOfferSearchSourceConfig,
+  cookieHeader?: string,
 ) {
   const uniqueIds = Array.from(
     new Set(
@@ -429,14 +487,7 @@ async function fetchKruokaOffersByOfferIdsV12(
     const response = await fetch(KRUOKA_FETCH_OFFERS_URL_V12, {
       method: "POST",
       cache: "no-store",
-      headers: {
-        accept: "application/json, text/plain, */*",
-        "content-type": "application/json",
-        origin: "https://www.k-ruoka.fi",
-        referer: source.url,
-        "user-agent":
-          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Safari/605.1.15",
-      },
+      headers: makeKruokaJsonHeadersV21(source.url, cookieHeader),
       body: JSON.stringify({ storeId, offerIds: idChunk, pricing: {} }),
     });
 
@@ -468,7 +519,7 @@ async function fetchKruokaOffersByOfferIdsV12(
   return { offers, debug };
 }
 
-async function fetchKruokaProductMapV12(storeId: string, eans: string[]) {
+async function fetchKruokaProductMapV12(storeId: string, eans: string[], referer: string, cookieHeader?: string) {
   const uniqueEans = Array.from(new Set(eans.map(String).filter((ean) => /^\d{13}$/.test(ean))));
   const products: UnknownRecord[] = [];
   const debug = createKruokaHttpDebugStatsV19();
@@ -478,14 +529,7 @@ async function fetchKruokaProductMapV12(storeId: string, eans: string[]) {
     const response = await fetch(KRUOKA_PRODUCT_MAP_URL_V12, {
       method: "POST",
       cache: "no-store",
-      headers: {
-        accept: "application/json, text/plain, */*",
-        "content-type": "application/json",
-        origin: "https://www.k-ruoka.fi",
-        referer: "https://www.k-ruoka.fi/k-market/tarjouslehti",
-        "user-agent":
-          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.0 Safari/605.1.15",
-      },
+      headers: makeKruokaJsonHeadersV21(referer, cookieHeader),
       body: JSON.stringify({ storeId, eans: eanChunk }),
     });
 
@@ -974,7 +1018,9 @@ export async function fetchKruokaOffers(
   options?: KruokaOfferProviderOptionsV10,
 ): Promise<ZiiplyOfferSearchResult[]> {
   const storeId = getKruokaStoreIdV12(options);
-  const html = await fetchKruokaBrochureHtmlV12(source);
+  const brochureResult = await fetchKruokaBrochureHtmlV12(source);
+  const html = brochureResult.html;
+  const cookieHeader = brochureResult.cookieHeader;
   const offerIds = html ? extractKruokaOfferIdsFromHtmlV12(html) : [];
   const extractedEans = html ? extractKruokaEansFromHtmlV12(html) : [];
   const eans = Array.from(new Set([
@@ -996,7 +1042,7 @@ export async function fetchKruokaOffers(
   // EAN-listan kanssa. Tämä toimii kauppakohtaisesti: sama EAN-lista ajetaan
   // aina valitun storeId:n läpi, jolloin K-Ruoka palauttaa kyseisen kaupan
   // normaalihinnan/tarjoushinnan/saatavuuden.
-  const productMapResult = await fetchKruokaProductMapV12(storeId, eans);
+  const productMapResult = await fetchKruokaProductMapV12(storeId, eans, source.url, cookieHeader);
   const productMapItems = productMapResult.products;
   const productMapMapped = productMapItems
     .map((product, index) => mapKruokaProductMapItemToOfferV12(product, query, source, storeId, index))
@@ -1022,7 +1068,7 @@ export async function fetchKruokaOffers(
   // Tuki yksittäisen tarjouskortin polulle: tarjous=tarjouslehti-310488P.
   // fetch-offers vaatii pelkän 310488P-muodon, ei tarjouslehti-alkua.
   if (offerIds.length > 0) {
-    const fetchOffersResult = await fetchKruokaOffersByOfferIdsV12(storeId, offerIds, source);
+    const fetchOffersResult = await fetchKruokaOffersByOfferIdsV12(storeId, offerIds, source, cookieHeader);
     const offers = fetchOffersResult.offers;
     fetchOffersDebug = fetchOffersResult.debug;
     fetchOffersRawCount = offers.length;
