@@ -1,5 +1,5 @@
 // src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts
-// ZIIPLY_KRUOKA_OFFER_PROVIDER_V19_HTTP_STEP_DEBUG
+// ZIIPLY_KRUOKA_OFFER_PROVIDER_V20_VISIBLE_SHORT_DEBUG
 // Revision: V17
 // Date: 2026-07-04
 //
@@ -70,7 +70,7 @@ export type KruokaOfferProviderOptionsV10 = {
   kStoreName?: string | null;
 };
 
-const KRUOKA_PROVIDER_REVISION_V12 = "KRUOKA_PROVIDER_V19_HTTP_STEP_DEBUG";
+const KRUOKA_PROVIDER_REVISION_V12 = "KRUOKA_PROVIDER_V20_VISIBLE_SHORT_DEBUG";
 const KRUOKA_FETCH_OFFERS_URL_V12 = "https://www.k-ruoka.fi/kr-api/fetch-offers";
 const KRUOKA_PRODUCT_MAP_URL_V12 = "https://www.k-ruoka.fi/kr-api/raw-offer/product-map";
 const DEFAULT_KRUOKA_STORE_ID_V12 = "L654";
@@ -896,31 +896,35 @@ function makeKruokaVisibleDebugOfferV13(details: {
   htmlFallbackCount?: number;
   note?: string;
 }): ZiiplyOfferSearchResult {
+  const pmStatus = details.productMapDebug?.statuses.join("/") || "-";
+  const foStatus = details.fetchOffersDebug?.statuses.join("/") || "-";
+  const shortTitle = [
+    `KDBG ${details.storeId || "-"}`,
+    `pm:${details.productMapCount ?? 0}/${details.productMapMappedCount ?? 0}/${details.productMapFilteredCount ?? 0}`,
+    `pmSt:${pmStatus}`,
+    `fo:${details.fetchOffersRawCount ?? 0}/${details.fetchOffersMappedCount ?? 0}/${details.fetchOffersFilteredCount ?? 0}`,
+    `foSt:${foStatus}`,
+    `html:${details.htmlFallbackCount ?? 0}`,
+  ].join(" ");
+
+  const visibleBenefit = [
+    `store=${details.storeName || details.source.storeLabel || "-"}`,
+    `htmlLen=${details.htmlLength ?? 0}`,
+    `offerIds=${details.offerIdsCount ?? 0}`,
+    `eans=${details.eansCount ?? 0}`,
+    `pmChunks=${details.productMapDebug?.chunks ?? 0}`,
+    `jsonOk=${details.productMapDebug?.jsonOk ?? 0}`,
+    `keys=${details.productMapDebug?.firstKeys || "-"}`,
+  ].join(" · ");
+
   const lines = [
-    `KDEBUG ${details.storeId || "-"} ${details.storeName || details.source.storeLabel || "-"}`,
-    "GÖSTA K DEBUG",
+    shortTitle,
     `source=${details.source.id}`,
     `storeLabel=${details.source.storeLabel}`,
     `storeId=${details.storeId || "-"}`,
     `storeName=${details.storeName || "-"}`,
     `query=${details.query || "-"}`,
-    `htmlLength=${details.htmlLength ?? 0}`,
-    `offerIds=${details.offerIdsCount ?? 0}`,
-    `eans=${details.eansCount ?? 0}`,
-    `productMap=${details.productMapCount ?? 0}`,
-    `pmMapped=${details.productMapMappedCount ?? 0}`,
-    `pmFiltered=${details.productMapFilteredCount ?? 0}`,
-    `pmStatus=${details.productMapDebug?.statuses.join("/") || "-"}`,
-    `pmChunks=${details.productMapDebug?.chunks ?? 0}`,
-    `pmJsonOk=${details.productMapDebug?.jsonOk ?? 0}`,
-    `pmJsonFail=${details.productMapDebug?.jsonFail ?? 0}`,
-    `pmKeys=${details.productMapDebug?.firstKeys || "-"}`,
-    `fetchOffersTried=${details.fetchOffersTried ? "yes" : "no"}`,
-    `foStatus=${details.fetchOffersDebug?.statuses.join("/") || "-"}`,
-    `foRaw=${details.fetchOffersRawCount ?? 0}`,
-    `foMapped=${details.fetchOffersMappedCount ?? 0}`,
-    `foFiltered=${details.fetchOffersFilteredCount ?? 0}`,
-    `htmlFallback=${details.htmlFallbackCount ?? 0}`,
+    visibleBenefit,
     `sample=${details.productMapDebug?.firstSample || details.fetchOffersDebug?.firstSample || "-"}`,
     `note=${details.note || "-"}`,
   ];
@@ -929,11 +933,11 @@ function makeKruokaVisibleDebugOfferV13(details: {
     id: createStableOfferId(["k-debug", details.source.id, details.storeId, details.query, details.note]),
     source: details.source.id,
     chain: details.source.chain,
-    title: lines.join(" · "),
+    title: shortTitle,
     priceText: details.storeId === "N183" ? "0,01 €" : details.storeId === "L654" ? "0,02 €" : "0,03 €",
     unitPriceText: "",
     validityText: "",
-    benefitText: "Debug-kortti: tämä näkyy vain koska K-provider palautti 0 oikeaa tarjousta.",
+    benefitText: visibleBenefit,
     storeLabel: `K DEBUG ${details.storeId || ""}`.trim(),
     productUrl: details.source.url,
     imageUrl: "",
