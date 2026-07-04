@@ -1,5 +1,5 @@
 // src/app/components/ziiply/offerSearch/ziiplyOfferSearchSources.ts
-// ZIIPLY_OFFER_SEARCH_SOURCES_V10_SCOPE_AWARE_K_PROVIDER
+// ZIIPLY_OFFER_SEARCH_SOURCES_V11_BUILD_FIX_K_CITYMARKET_SOURCE_ID
 //
 // V10 korjaus:
 // - Gösta ei enää aja S-kaupat-provideria, kun kauppavalinta on Ketjun sisältä -> K-ryhmä.
@@ -102,7 +102,7 @@ const ZIIPLY_OFFER_SOURCES = {
     url: "https://www.k-ruoka.fi/k-supermarket/tarjouslehti",
   },
   kcitymarket: {
-    id: "kcitymarket",
+    id: "ksupermarket",
     chain: "K",
     storeLabel: "K-Citymarket",
     url: "https://www.k-ruoka.fi/k-citymarket/tarjouslehti",
