@@ -3249,6 +3249,8 @@ export default function Page() {
   const [offerSearchResults, setOfferSearchResults] = useState<any[]>([]);
   const [hasSearchedOffers, setHasSearchedOffers] = useState(false);
   const [loadingOffers, setLoadingOffers] = useState(false);
+  const [kBrowserTestStatusV529, setKBrowserTestStatusV529] = useState("");
+  const [kBrowserTestRunningV529, setKBrowserTestRunningV529] = useState(false);
   const [offerSearchQuerySnapshot, setOfferSearchQuerySnapshot] = useState("");
   const [offerSearchDoneForQuery, setOfferSearchDoneForQuery] = useState("");
   const [offerCardFilterV106, setOfferCardFilterV106] = useState("");
@@ -9623,6 +9625,45 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     pushGpsDebugLogV492("boot gps default-on guard active by V519");
     setGpsBootReadyV473(true);
   }, []);
+
+  async function runKruokaBrowserProductMapTestV529() {
+    // V529: K-Ruoka browser-side CORS/HTTP test.
+    // This does NOT use route.ts or kruokaProvider.ts, so S-kaupat/Gösta stays untouched.
+    // Expected result:
+    // - 200/OK => browser-side K-Ruoka fetch is possible from Ziiply UI.
+    // - TypeError / Failed to fetch => likely CORS/preflight/browser block.
+    setKBrowserTestRunningV529(true);
+    setKBrowserTestStatusV529("K browser test: käynnissä...");
+
+    try {
+      const startedAt = Date.now();
+      const response = await fetch("https://www.k-ruoka.fi/kr-api/raw-offer/product-map", {
+        method: "POST",
+        mode: "cors",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json, text/plain, */*",
+        },
+        body: JSON.stringify({
+          storeId: "L654",
+          eans: ["6409100032401"],
+        }),
+      });
+
+      const elapsed = Date.now() - startedAt;
+      const text = await response.text().catch(() => "");
+      const sample = text.replace(/\s+/g, " ").slice(0, 120);
+      setKBrowserTestStatusV529(
+        `K browser test: HTTP ${response.status} ${response.ok ? "OK" : "FAIL"} · ${elapsed} ms · ${sample || "ei bodya"}`,
+      );
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      setKBrowserTestStatusV529(`K browser test: selain esti / CORS? ${message}`);
+    } finally {
+      setKBrowserTestRunningV529(false);
+    }
+  }
 
   async function searchOffers(termOverride?: string) {
     const hasExplicitOverride = typeof termOverride === "string";
@@ -18560,6 +18601,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         )}
 
         {!showLaunchScreen && activeResult === "offers" && !searchPanelOpen && !cartModalOpen && !shopsPanelOpen && !eanModalOpen && !notebookOpen && (
+          <>
           <ZiiplyMobileOfferSearchCardLoose
             open={true}
             title="Tarjoushaku"
@@ -18666,6 +18708,27 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               void updateChainComparison(nextCart, { openCompare: false });
             }}
           />
+
+          <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+5.35rem)] left-3 right-3 z-[995] mx-auto max-w-[28rem] rounded-[0.95rem] border-[2px] border-[#174c2c] bg-[#fff8d9]/96 px-3 py-2 text-center shadow-[0_5px_18px_rgba(0,0,0,0.18)] sm:hidden">
+            <button
+              type="button"
+              onClick={runKruokaBrowserProductMapTestV529}
+              disabled={kBrowserTestRunningV529}
+              className="rounded-full border-[2px] border-[#174c2c] bg-[#174c2c] px-3 py-1 text-[0.72rem] font-black text-[#fff8d9] disabled:opacity-60"
+            >
+              {kBrowserTestRunningV529 ? "K browser test käynnissä..." : "K browser test"}
+            </button>
+            {kBrowserTestStatusV529 ? (
+              <div className="mt-1 break-words text-[0.62rem] font-black leading-snug text-[#174c2c]">
+                {kBrowserTestStatusV529}
+              </div>
+            ) : (
+              <div className="mt-1 text-[0.58rem] font-extrabold leading-snug text-[#6d5d3f]">
+                Testaa voiko K-Ruoan product-map toimia käyttäjän selaimesta.
+              </div>
+            )}
+          </div>
+          </>
         )}
 
         {/* V725_MOBILE_COMPARECARD_ROUTE_FIX: vanha mobiilin inline-compare / desktop-ZiiplyCompareCard-renderi on poistettu näkyvästä mobiili-UI:sta.
