@@ -1,4 +1,19 @@
 // ============================================================================
+// SKAUPAT_PROVIDER_V185_GOSTA_REAL_OFFER_IMAGES
+// Revision: V185
+// Date: 2026-07-04
+//
+// Muutokset:
+// - Korjaa Göstan S-kaupat-tarjousten tuotekuvat.
+// - getImageUrl lukee nyt kuvia sekä product- että listItem-tasolta.
+// - Tukee S-kaupat-kuvien urlTemplate-, url-, imageUrl- ja pictureUrl-rakenteita.
+// - Rakentaa S-cloud urlTemplate-kuvan turvallisemmin useilla placeholder-muodoilla.
+// - Palauttaa tarjoustulokseen varmuuden vuoksi imageUrl-, image- ja pictureUrl-kentät.
+// - Ei muutoksia kauppavalintaan, GPS:ään, skanneriin, äänihakuun eikä K-ruoka-provideriin.
+//
+// ============================================================================
+
+// ============================================================================
 // SKAUPAT_PROVIDER_V184_FROM_PAGINATION_FOR_OFFERS
 // Revision: V184
 // Date: 2026-06-06
@@ -520,12 +535,69 @@ function formatComparisonPrice(price: unknown, unit: unknown): string {
   return `${number.toFixed(2).replace(".", ",")} €/${normalizedUnit.toLowerCase()}`;
 }
 
-function buildSCloudImageUrl(urlTemplate: string): string {
-  if (!urlTemplate) return "";
+function normalizeSImageUrlV185(value: unknown): string {
+  const text = firstString(value);
+  if (!text) return "";
 
-  return urlTemplate
-    .replace("{MODIFIERS}", "w_400,h_400,c_fit")
-    .replace("{EXTENSION}", "jpg");
+  const withPlaceholdersFilled = text
+    .replace(/\{MODIFIERS\}/g, "w_400,h_400,c_fit")
+    .replace(/\{MODIFIER\}/g, "w_400,h_400,c_fit")
+    .replace(/\{SIZE\}/g, "w_400,h_400,c_fit")
+    .replace(/\{WIDTH\}/g, "400")
+    .replace(/\{HEIGHT\}/g, "400")
+    .replace(/\{EXTENSION\}/g, "jpg")
+    .replace(/\{FORMAT\}/g, "jpg");
+
+  if (withPlaceholdersFilled.startsWith("//")) return `https:${withPlaceholdersFilled}`;
+  if (withPlaceholdersFilled.startsWith("http")) return withPlaceholdersFilled;
+  if (withPlaceholdersFilled.startsWith("/")) return `https://www.s-kaupat.fi${withPlaceholdersFilled}`;
+
+  return withPlaceholdersFilled;
+}
+
+function buildSCloudImageUrl(urlTemplate: string): string {
+  return normalizeSImageUrlV185(urlTemplate);
+}
+
+function findFirstImageUrlFromObjectV185(value: unknown, depth = 0): string {
+  if (depth > 5) return "";
+
+  if (typeof value === "string") {
+    return /https?:\/\/|^\/\/|^\//i.test(value) ? normalizeSImageUrlV185(value) : "";
+  }
+
+  if (Array.isArray(value)) {
+    for (const entry of value) {
+      const found = findFirstImageUrlFromObjectV185(entry, depth + 1);
+      if (found) return found;
+    }
+    return "";
+  }
+
+  const record = asRecord(value);
+  if (!record) return "";
+
+  const direct = firstString(
+    record.urlTemplate,
+    record.url,
+    record.imageUrl,
+    record.pictureUrl,
+    record.src,
+    record.href,
+  );
+
+  if (direct) {
+    const normalized = normalizeSImageUrlV185(direct);
+    if (normalized) return normalized;
+  }
+
+  for (const [key, child] of Object.entries(record)) {
+    if (!/image|picture|photo|media|thumbnail|hero|main/i.test(key)) continue;
+    const found = findFirstImageUrlFromObjectV185(child, depth + 1);
+    if (found) return found;
+  }
+
+  return "";
 }
 
 function getHierarchyItems(product: UnknownRecord): UnknownRecord[] {
@@ -678,10 +750,18 @@ function belongsToSelectedSHypermarketV163(
 }
 
 
-function getImageUrl(product: UnknownRecord): string {
+function getImageUrl(product: UnknownRecord, listItem?: UnknownRecord): string {
   const mainImageTemplate = firstString(
     getPathValue(product, ["productDetails", "productImages", "mobileReadyHeroImage", "urlTemplate"]),
     getPathValue(product, ["productDetails", "productImages", "mainImage", "urlTemplate"]),
+    getPathValue(product, ["productDetails", "productImages", "primaryImage", "urlTemplate"]),
+    getPathValue(product, ["productImages", "mobileReadyHeroImage", "urlTemplate"]),
+    getPathValue(product, ["productImages", "mainImage", "urlTemplate"]),
+    getPathValue(product, ["productImages", "primaryImage", "urlTemplate"]),
+    getPathValue(product, ["image", "urlTemplate"]),
+    getPathValue(listItem, ["product", "productDetails", "productImages", "mobileReadyHeroImage", "urlTemplate"]),
+    getPathValue(listItem, ["product", "productDetails", "productImages", "mainImage", "urlTemplate"]),
+    getPathValue(listItem, ["image", "urlTemplate"]),
   );
 
   if (mainImageTemplate) return buildSCloudImageUrl(mainImageTemplate);
@@ -689,11 +769,27 @@ function getImageUrl(product: UnknownRecord): string {
   const direct = firstString(
     product.imageUrl,
     product.pictureUrl,
+    product.image,
+    product.mainImageUrl,
+    product.thumbnailUrl,
     getPathValue(product, ["image", "url"]),
+    getPathValue(product, ["mainImage", "url"]),
+    getPathValue(product, ["thumbnail", "url"]),
+    getPathValue(listItem, ["imageUrl"]),
+    getPathValue(listItem, ["pictureUrl"]),
+    getPathValue(listItem, ["image", "url"]),
   );
 
-  if (direct.startsWith("//")) return `https:${direct}`;
-  return direct;
+  const normalizedDirect = normalizeSImageUrlV185(direct);
+  if (normalizedDirect) return normalizedDirect;
+
+  return (
+    findFirstImageUrlFromObjectV185(getPathValue(product, ["productDetails", "productImages"])) ||
+    findFirstImageUrlFromObjectV185(product.productImages) ||
+    findFirstImageUrlFromObjectV185(product.images) ||
+    findFirstImageUrlFromObjectV185(listItem) ||
+    findFirstImageUrlFromObjectV185(product)
+  );
 }
 
 function getProductUrl(product: UnknownRecord): string {
@@ -779,7 +875,7 @@ function mapSProductListItemToOfferResult(
   const priceText = formatPrice(currentPrice);
   const unitPriceText = formatComparisonPrice(comparisonPrice, comparisonUnit);
   const categoryMeta = getCategoryMeta(product, options.fallbackFacetNames);
-  const imageUrl = getImageUrl(product);
+  const imageUrl = getImageUrl(product, listItem);
   const productUrl = getProductUrl(product);
   const labelsText = cleanRepeatedCampaignTextV161(getLabels(listItem, product));
 
@@ -828,6 +924,8 @@ function mapSProductListItemToOfferResult(
     benefitText,
     validityText: campaignValidUntil ? `Voimassa ${campaignValidUntil}` : "",
     imageUrl,
+    image: imageUrl,
+    pictureUrl: imageUrl,
     productUrl,
     rawText,
     matchScore: getMatchScore(
