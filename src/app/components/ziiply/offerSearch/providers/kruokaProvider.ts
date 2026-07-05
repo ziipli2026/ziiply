@@ -1,7 +1,7 @@
 // src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts
-// ZIIPLY_KRUOKA_PROVIDER_V24_DEBUG_APPLICATION_STATE
+// ZIIPLY_KRUOKA_PROVIDER_V25_DEBUG_APPLICATION_STATE_ES2017_SAFE
 //
-// Debug-versio K-Ruoka tarjouslehdelle.
+// Debug-versio K-Ruoka tarjouslehdelle. ES2017-safe: ei regex dotAll /s -lippua.
 // Tarkoitus:
 // 1) Hakee tarjouslehden HTML:n
 // 2) Purkaa <div id="applicationState" data-state="...">
@@ -80,7 +80,7 @@ function maybeDecodeURIComponent(value: string): string {
 
 function extractApplicationState(html: string): unknown {
   // Safari-lähdekoodissa data-state on id="applicationState" divissä.
-  const match = html.match(/<div[^>]*id=["']applicationState["'][^>]*data-state=(["'])(.*?)\1[^>]*>/s);
+  const match = html.match(/<div[^>]*id=["\']applicationState["\'][^>]*data-state=(["\'])([\s\S]*?)\1[^>]*>/);
 
   if (!match?.[2]) {
     throw new Error("applicationState data-state not found from K-Ruoka HTML");
