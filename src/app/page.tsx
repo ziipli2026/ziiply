@@ -9748,20 +9748,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const useWithinChainSOffersV532 = storeCompareScope === "within_chain" && withinChain === "S";
       const useWithinChainKOffersV532 = storeCompareScope === "within_chain" && withinChain === "K";
 
-      // V537: Ketjun sisältä -tarjoushaku ei saa lukea S/K-kauppoja suoraan activeArea-objektista,
-      // koska activeArea voi palautua localStoragesta vanhana kuntana (esim. Prisma Varkaus), vaikka
-      // käyttäjä on Kaupat-sivulla valinnut uuden alueen/kaupat. Tarjouksille valitaan kaupat
-      // ensisijaisesti nykyisestä foundStores-listasta ja näkyvästä sijainnista.
-      // V538: Älä käytä activeArea.label-arvoa aluefiltterinä tässä kohdassa.
-      // Se voi olla localStoragesta palautunut vanha kunta/kauppa, esim. Prisma Varkaus.
-      // Tarjoushaun ketjun sisällä valitaan kaupat vain nykyisestä foundStores-listasta.
-      const currentOfferAreaNeedleV538 = normalize(locationInput || "");
-      const normalizedFoundOfferStoresV538 = foundStores
+      // V539: Göstan tarjoushaku käyttää samaa käyttäjän valitsemaa kauppakontekstia kuin normaali haku.
+      // Ei arvota lähintä kauppaa foundStores-listasta, koska se vaihtoi Hyvinkään S-marketin Alepaksi
+      // ja sai ketjun sisäisen S-haun näyttämään vain Prisman/Alepan tarjouksia. Ensisijainen lähde on
+      // Kaupat-sivun valinta activeArea: hyper + local. foundStores on enää viimeinen fallback, jos
+      // activeArea-slotista puuttuu id/nimi.
+      const currentOfferAreaNeedleV539 = normalize(locationInput || activeArea.label || "");
+      const normalizedFoundOfferStoresV539 = foundStores
         .map(normalizeStoreForPickerV320)
         .filter((store) => store && !isExcludedGroceryComparisonStoreV140(store));
 
-      const storeMatchesCurrentOfferAreaV538 = (store: StoreSearchItem) => {
-        const needle = currentOfferAreaNeedleV538;
+      const storeMatchesCurrentOfferAreaV539 = (store: StoreSearchItem) => {
+        const needle = currentOfferAreaNeedleV539;
         if (!needle) return true;
 
         const haystack = normalize(
@@ -9779,7 +9777,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         return haystack.includes(needle);
       };
 
-      const sortOfferStoresByDistanceV538 = (stores: StoreSearchItem[]) => {
+      const sortOfferStoresByDistanceV539 = (stores: StoreSearchItem[]) => {
         return [...stores].sort((left, right) => {
           const leftDistance = readExplicitDistanceKmV320(left) ?? 999999;
           const rightDistance = readExplicitDistanceKmV320(right) ?? 999999;
@@ -9788,48 +9786,87 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         });
       };
 
-      const pickOfferStoreFromFoundStoresV538 = (
+      const findMatchingFoundOfferStoreV539 = (
+        chain: "S" | "K",
+        mode: "hyper" | "local",
+        id?: unknown,
+        name?: unknown,
+      ) => {
+        const normalizedName = normalize(String(name || ""));
+
+        return normalizedFoundOfferStoresV539.find((store) => {
+          if (getStoreChainV320(store) !== chain) return false;
+          if (mode === "hyper") {
+            if (!(chain === "S" ? isPrisma(store) : isKCitymarket(store))) return false;
+          } else if (!(chain === "S" ? isSLocalStore(store) : isKLocalStore(store))) {
+            return false;
+          }
+
+          return Boolean(
+            (id && sameStoreIdV93(store.id, id)) ||
+              (normalizedName && normalize(store.name || "") === normalizedName),
+          );
+        }) ?? null;
+      };
+
+      const pickOfferStoreFromSelectionV539 = (
         chain: "S" | "K",
         mode: "hyper" | "local",
       ) => {
-        const chainAndModeMatches = normalizedFoundOfferStoresV538.filter((store) => {
+        const selectedId =
+          chain === "S"
+            ? mode === "local"
+              ? activeArea.sLocalStoreId
+              : activeArea.sStoreId
+            : mode === "local"
+              ? activeArea.kLocalStoreId
+              : activeArea.kStoreId;
+
+        const selectedName =
+          chain === "S"
+            ? mode === "local"
+              ? activeArea.sLocalStoreName
+              : activeArea.sStoreName
+            : mode === "local"
+              ? activeArea.kLocalStoreName
+              : activeArea.kStoreName;
+
+        const matched = findMatchingFoundOfferStoreV539(chain, mode, selectedId, selectedName);
+        if (matched) return { id: matched.id, name: matched.name };
+
+        if (selectedId || selectedName) {
+          return {
+            id: selectedId || "",
+            name: String(selectedName || ""),
+          };
+        }
+
+        // Viimeinen fallback: jos valittu slotti puuttuu kokonaan, käytetään nykyisen alueen/moodin
+        // ensimmäistä samaa ketjua olevaa kauppaa. Tämä ei saa ohittaa varsinaista käyttäjän valintaa.
+        const candidates = normalizedFoundOfferStoresV539.filter((store) => {
           if (getStoreChainV320(store) !== chain) return false;
           if (mode === "hyper") return chain === "S" ? isPrisma(store) : isKCitymarket(store);
           return chain === "S" ? isSLocalStore(store) : isKLocalStore(store);
         });
 
-        const areaMatches = chainAndModeMatches.filter(storeMatchesCurrentOfferAreaV538);
-        const pool = areaMatches.length > 0 ? areaMatches : chainAndModeMatches;
-        return sortOfferStoresByDistanceV538(pool)[0] ?? null;
+        const areaMatches = candidates.filter(storeMatchesCurrentOfferAreaV539);
+        const fallback = sortOfferStoresByDistanceV539(areaMatches.length > 0 ? areaMatches : candidates)[0];
+        return fallback ? { id: fallback.id, name: fallback.name } : null;
       };
 
-      const sWithinHyperStoreV537 = pickOfferStoreFromFoundStoresV538("S", "hyper");
-      const sWithinLocalStoreV537 = pickOfferStoreFromFoundStoresV538("S", "local");
-      const kWithinHyperStoreV537 = pickOfferStoreFromFoundStoresV538("K", "hyper");
-      const kWithinLocalStoreV537 = pickOfferStoreFromFoundStoresV538("K", "local");
+      const sWithinHyperStoreV539 = pickOfferStoreFromSelectionV539("S", "hyper");
+      const sWithinLocalStoreV539 = pickOfferStoreFromSelectionV539("S", "local");
+      const kWithinHyperStoreV539 = pickOfferStoreFromSelectionV539("K", "hyper");
+      const kWithinLocalStoreV539 = pickOfferStoreFromSelectionV539("K", "local");
 
       const sOfferStoresV532 = useWithinChainSOffersV532
-        ? uniqueSelectedOfferStoresV532([
-            sWithinHyperStoreV537
-              ? { id: sWithinHyperStoreV537.id, name: sWithinHyperStoreV537.name }
-              : {},
-            sWithinLocalStoreV537
-              ? { id: sWithinLocalStoreV537.id, name: sWithinLocalStoreV537.name }
-              : {},
-          ])
+        ? uniqueSelectedOfferStoresV532([sWithinHyperStoreV539, sWithinLocalStoreV539])
         : storeCompareScope === "between_chains"
           ? uniqueSelectedOfferStoresV532([{ id: activeStores.sStoreId, name: activeStores.sStoreName }])
           : [];
 
       const kOfferStoresV532 = useWithinChainKOffersV532
-        ? uniqueSelectedOfferStoresV532([
-            kWithinHyperStoreV537
-              ? { id: kWithinHyperStoreV537.id, name: kWithinHyperStoreV537.name }
-              : {},
-            kWithinLocalStoreV537
-              ? { id: kWithinLocalStoreV537.id, name: kWithinLocalStoreV537.name }
-              : {},
-          ])
+        ? uniqueSelectedOfferStoresV532([kWithinHyperStoreV539, kWithinLocalStoreV539])
         : storeCompareScope === "between_chains"
           ? uniqueSelectedOfferStoresV532([{ id: activeStores.kStoreId, name: activeStores.kStoreName }])
           : [];
