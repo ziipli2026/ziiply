@@ -1,7 +1,7 @@
 "use client";
 
 // ============================================================================
-// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V29_EXACT_CATEGORY_COUNTS
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V30_FIXED_FOOD_CATEGORY_ORDER
 // Revision: V28
 // Date: 2026-07-04
 //
@@ -539,8 +539,24 @@ export default function ZiiplyMobileOfferSearchCard({
     Object.values(categoryOfferCounts).some((count) => typeof count === "number" && count > 0);
 
   const categoryPool = Array.from(new Set(categorySuggestions));
-  const categoryOriginalIndexV27 = new Map(
-    categoryPool.map((category, index) => [normalizeCategoryKey(category), index]),
+  const categoryDisplayOrderV30 = [
+    "Kahvi",
+    "Maitotuotteet",
+    "Liha",
+    "Kala",
+    "Leipomo",
+    "Hevi",
+    "Juomat",
+    "Pakasteet",
+    "Valmisruoka",
+    "Kuivatuotteet",
+    "Makeiset & keksit",
+    "Lemmikit",
+    "Koti",
+    "Muut",
+  ];
+  const categoryDisplayOrderMapV30 = new Map(
+    categoryDisplayOrderV30.map((category, index) => [normalizeCategoryKey(category), index]),
   );
 
   const getVisibleCategoryCountV27 = (category: string) => {
@@ -577,18 +593,12 @@ export default function ZiiplyMobileOfferSearchCard({
       return hasCurrentOfferForCategoryWithAliases(category);
     })
     .sort((left, right) => {
-      const leftCount = getVisibleCategoryCountV27(left);
-      const rightCount = getVisibleCategoryCountV27(right);
-
-      // V27: single-offer buckets stay after categories with more useful browsing depth.
-      const leftSmall = leftCount <= 1 ? 1 : 0;
-      const rightSmall = rightCount <= 1 ? 1 : 0;
-      if (leftSmall !== rightSmall) return leftSmall - rightSmall;
-
-      if (rightCount !== leftCount) return rightCount - leftCount;
-
-      return (categoryOriginalIndexV27.get(normalizeCategoryKey(left)) ?? 999) -
-        (categoryOriginalIndexV27.get(normalizeCategoryKey(right)) ?? 999);
+      // V30: kategoriat eivät enää järjesty määrän mukaan.
+      // Ruokakategoriat pidetään aina ensin ja Makeiset/Lemmikit/Koti/Muut aina lopussa.
+      return (
+        (categoryDisplayOrderMapV30.get(normalizeCategoryKey(left)) ?? 999) -
+        (categoryDisplayOrderMapV30.get(normalizeCategoryKey(right)) ?? 999)
+      );
     });
 
   const goToLandingView = () => {
@@ -610,7 +620,7 @@ export default function ZiiplyMobileOfferSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="V29_EXACT_CATEGORY_COUNTS"
+      data-ziiply-mobile-offer-search-card-version="V30_FIXED_FOOD_CATEGORY_ORDER"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
