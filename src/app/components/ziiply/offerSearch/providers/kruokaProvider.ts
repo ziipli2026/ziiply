@@ -1,7 +1,7 @@
 // src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts
-// ZIIPLY_KRUOKA_PROVIDER_V28_403_BODY_DEBUG
+// ZIIPLY_KRUOKA_PROVIDER_V29_SERVER_BLOCKED_CLIENT_REQUIRED
 //
-// Debug-versio ilman Vercel-logien tarvetta. V28 näyttää myös 403/HTML-vastauksen otsikon ja body-previewin.
+// Debug-versio ilman Vercel-logien tarvetta. V29 tunnistaa K-Ruoan 403-eston ja palauttaa näkyvän CLIENT REQUIRED -kortin.
 // Palauttaa debug-kortit suoraan Göstan UI:hin jokaisesta vaiheesta:
 // 1) provider käynnistyi
 // 2) mitä storeId/storeName/options tuli sisään
@@ -219,6 +219,20 @@ function buildBrochureUrls(
   ]);
 }
 
+
+function looksLikeBlockedKruokaHtml(result: { status: number; text: string; title: string | null; preview: string }): boolean {
+  const haystack = `${result.title ?? ""} ${result.preview ?? ""} ${result.text.slice(0, 1200)}`.toLowerCase();
+  return (
+    result.status === 403 ||
+    haystack.includes("cloudflare") ||
+    haystack.includes("attention required") ||
+    haystack.includes("access denied") ||
+    haystack.includes("forbidden") ||
+    haystack.includes("cf-error") ||
+    haystack.includes("verify you are human")
+  );
+}
+
 async function fetchHtml(url: string): Promise<{
   status: number;
   ok: boolean;
@@ -327,7 +341,7 @@ function toOfferResult(args: {
   const price = args.offer.Price ?? args.offer.price ?? null;
 
   return {
-    id: `kruoka-v28-${args.storeId}-${offerId}-${args.index}`,
+    id: `kruoka-v29-${args.storeId}-${offerId}-${args.index}`,
     title: `[K TARJOUS] ${offerName}`,
     name: offerName,
     price,
@@ -395,16 +409,32 @@ export async function fetchKruokaOffers(
       );
 
       if (!htmlResult.ok || !htmlResult.text) {
+        const blocked = looksLikeBlockedKruokaHtml(htmlResult);
         addDebug(
           `04-html-preview-${i}`,
-          `[K DEBUG 4.${i + 1}] HTML preview`,
-          `${htmlResult.title ?? "no-title"} | ${htmlResult.preview || "empty-body"}`.slice(0, 180),
+          blocked ? `[K DEBUG 4.${i + 1}] SERVER FETCH BLOCKED` : `[K DEBUG 4.${i + 1}] HTML preview`,
+          `${htmlResult.status} | ${htmlResult.title ?? "no-title"} | ${htmlResult.preview || "empty-body"}`.slice(0, 220),
           {
+            blocked,
             status: htmlResult.status,
             title: htmlResult.title,
             preview: htmlResult.preview,
+            note: blocked
+              ? "K-Ruoka ei anna tarjouslehden HTML:ää Vercel/server-fetchille. Parseri toimii vain, jos HTML saadaan selaimelta tai muusta sallitusta lähteestä."
+              : null,
           },
         );
+
+        if (blocked) {
+          addDebug(
+            `04-client-required-${i}`,
+            "[K DEBUG CLIENT REQUIRED]",
+            "K-Ruoka 403 Vercelistä. Seuraava toteutus: selain-/proxy-bridge, ei providerin server-fetch.",
+            { url, status: htmlResult.status, preview: htmlResult.preview },
+          );
+          return debugCards;
+        }
+
         continue;
       }
 
