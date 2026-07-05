@@ -2,6 +2,10 @@
 // Korjaus: Göstan kategoriavaihdossa ei tyhjennetä vanhoja tuloksia ennen uuden haun valmistumista.
 // Tämä estää aktiivisen tuoteryhmänapin ja tarjouslistan välisen välähdyksen/epäsynkan.
 //
+// V531_GOSTA_SELECTED_K_STORES_ONLY_NO_HARDCODE
+// Korjaus: Göstan K-tarjoushaku ei käytä mitään kovakoodattua kauppaa.
+// Ketjun sisältä -tilassa K-providerille välitetään vain appissa valitut K-slotit: kStoreId/kStoreName ja kLocalStoreId/kLocalStoreName.
+
 // V528_GOSTA_CATEGORY_COUNTS_SORT_AND_NO_RELOAD_BACK
 // Muutos Göstan tarjoushakuun:
 // - Paluu tuoteryhmälistaan ei enää tyhjennä offerSearchResults-listaa eikä käynnistä uutta master-hakua.
@@ -9651,16 +9655,43 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setActiveResult("offers");
 
     try {
-      // V527: Gösta käyttää nyt samaa valittua kauppakontekstia kuin normaali hintahaku.
-      // Ei kovakoodattua Prisma Varkaus -debugpakotusta.
+      // V531: Gösta käyttää AINA appissa valittuja kauppoja.
+      // Ei kovakoodattuja kauppanimiä eikä paikkakuntia.
+      // Ketjun sisältä -tilassa K-tarjouksiin välitetään kaksi K-slottia:
+      // 1) valittu K-tavaratalo ja 2) valittu K-lähikauppa.
+      // Muissa tiloissa käytetään näkyvän aktiivisen valinnan K-kauppaa.
+      const kOfferStoreCandidatesV531 = storeCompareScope === "within_chain"
+        ? [
+            { id: activeArea.kStoreId, name: activeArea.kStoreName },
+            { id: activeArea.kLocalStoreId, name: activeArea.kLocalStoreName },
+          ]
+        : [{ id: activeStores.kStoreId, name: activeStores.kStoreName }];
+
+      const kOfferStoreSeenV531 = new Set<string>();
+      const kOfferStoresV531 = kOfferStoreCandidatesV531.filter((store) => {
+        const id = String(store.id || "").trim();
+        const name = String(store.name || "").trim();
+        if ((!id || id === "0") && !name) return false;
+        if (/ei valittu|valitse ensin/i.test(name)) return false;
+        const key = `${id}|${name}`.toLowerCase();
+        if (kOfferStoreSeenV531.has(key)) return false;
+        kOfferStoreSeenV531.add(key);
+        return true;
+      });
+
+      const kOfferIdsV531 = kOfferStoresV531.map((store) => String(store.id || "").trim()).filter(Boolean);
+      const kOfferNamesV531 = kOfferStoresV531.map((store) => String(store.name || "").trim()).filter(Boolean);
+
       const gostaOfferSearchContextV172 = {
         areaLabel: activeArea.label || "",
         storeMode,
         storeCompareScope,
         sStoreId: activeStores.sStoreId || undefined,
         sStoreName: activeStores.sStoreName || undefined,
-        kStoreId: activeStores.kStoreId || undefined,
-        kStoreName: activeStores.kStoreName || undefined,
+        kStoreId: kOfferIdsV531.join("||") || activeStores.kStoreId || undefined,
+        kStoreName: kOfferNamesV531.join("||") || activeStores.kStoreName || undefined,
+        kStoreIds: kOfferIdsV531,
+        kStoreNames: kOfferNamesV531,
         usingOwnLocation,
         gpsLat: gpsCoordsV320?.latitude,
         gpsLon: gpsCoordsV320?.longitude,
