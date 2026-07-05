@@ -1,4 +1,16 @@
 // ============================================================================
+// SKAUPAT_PROVIDER_V194_MULTI_SELECTED_S_STORES
+// Revision: V194
+// Date: 2026-07-05
+//
+// Korjaus Göstan S-ryhmän ketjun sisäiseen tarjoushakuun:
+// - Provider tukee useampaa valittua S-kauppaa samalla kutsulla.
+// - Jokaisen tarjouksen storeLabel/storeName asetetaan oikeaksi valitun kaupan nimeksi
+//   (Prisma, S-market, Alepa jne.), ei geneeriseksi "S-kaupat".
+// - Ei kovakoodattua Prisma-fallbackia: jos valittua S-kauppaa ei saada ratkaistua, palautetaan tyhjä.
+// ============================================================================
+
+// ============================================================================
 // SKAUPAT_PROVIDER_V193_GOSTA_S_CLOUD_IMAGE_TEMPLATE_FIX
 // Revision: V193
 // Date: 2026-07-04
@@ -154,13 +166,50 @@ const S_PRODUCT_SEARCH_STORE_ID_MAP_V181: Record<string, string> = {
 export type SKaupatOfferProviderOptionsV173 = {
   storeId?: string | number | null;
   storeName?: string | null;
+  sStoreId?: string | number | null;
+  sStoreName?: string | null;
+  storeIds?: Array<string | number | null | undefined> | null;
+  storeNames?: Array<string | null | undefined> | null;
+  sStoreIds?: Array<string | number | null | undefined> | null;
+  sStoreNames?: Array<string | null | undefined> | null;
+  stores?: Array<{
+    storeId?: string | number | null;
+    storeName?: string | null;
+    sStoreId?: string | number | null;
+    sStoreName?: string | null;
+  }> | null;
 };
+
+type ResolvedSKaupatStoreV194 = {
+  storeId: string;
+  storeName: string;
+};
+
+function splitSKaupatMultiValueV194(value: unknown): string[] {
+  const normalized = String(value ?? "")
+    .replaceAll("\r", "")
+    .replaceAll("\n", "||")
+    .replaceAll(";", "||");
+
+  return normalized
+    .split("||")
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
+function normalizeSKaupatValueListV194(arrayValue: unknown, fallbackValue: unknown): string[] {
+  const fromArray = Array.isArray(arrayValue)
+    ? arrayValue.map((value) => String(value ?? "").trim()).filter(Boolean)
+    : [];
+
+  return Array.from(new Set([...fromArray, ...splitSKaupatMultiValueV194(fallbackValue)]));
+}
 
 async function getEffectiveSKaupatStoreIdV174(
   options?: SKaupatOfferProviderOptionsV173,
 ): Promise<string | null> {
-  const raw = firstString(options?.storeId);
-  const storeName = firstString(options?.storeName);
+  const raw = firstString(options?.storeId, options?.sStoreId);
+  const storeName = firstString(options?.storeName, options?.sStoreName);
 
   const mappedProductSearchStoreId = S_PRODUCT_SEARCH_STORE_ID_MAP_V181[raw];
   if (mappedProductSearchStoreId) {
@@ -208,6 +257,60 @@ async function getEffectiveSKaupatStoreIdV174(
   });
 
   return null;
+}
+
+async function resolveSelectedSKaupatStoresV194(
+  options?: SKaupatOfferProviderOptionsV173,
+): Promise<ResolvedSKaupatStoreV194[]> {
+  if (!options) return [];
+
+  const explicitStores = Array.isArray(options.stores) ? options.stores : [];
+  const candidates: Array<{ storeId: string; storeName: string }> = [];
+
+  for (const store of explicitStores) {
+    const storeId = firstString(store?.storeId, store?.sStoreId);
+    const storeName = firstString(store?.storeName, store?.sStoreName);
+    if (storeId || storeName) candidates.push({ storeId, storeName });
+  }
+
+  const ids = normalizeSKaupatValueListV194(options.sStoreIds ?? options.storeIds, options.sStoreId ?? options.storeId);
+  const names = normalizeSKaupatValueListV194(options.sStoreNames ?? options.storeNames, options.sStoreName ?? options.storeName);
+  const maxLength = Math.max(ids.length, names.length);
+
+  for (let index = 0; index < maxLength; index += 1) {
+    const storeId = ids[index] || "";
+    const storeName = names[index] || "";
+    if (storeId || storeName) candidates.push({ storeId, storeName });
+  }
+
+  if (candidates.length === 0) {
+    const storeId = firstString(options.storeId, options.sStoreId);
+    const storeName = firstString(options.storeName, options.sStoreName);
+    if (storeId || storeName) candidates.push({ storeId, storeName });
+  }
+
+  const resolved: ResolvedSKaupatStoreV194[] = [];
+  const seen = new Set<string>();
+
+  for (const candidate of candidates) {
+    const effectiveStoreId = await getEffectiveSKaupatStoreIdV174({
+      storeId: candidate.storeId || null,
+      storeName: candidate.storeName || null,
+    });
+
+    if (!effectiveStoreId) continue;
+
+    const key = `${effectiveStoreId}|${normalizeText(candidate.storeName)}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    resolved.push({
+      storeId: effectiveStoreId,
+      storeName: candidate.storeName || "S-kaupat",
+    });
+  }
+
+  return resolved;
 }
 const SKAUPAT_GOSTA_MASTER_QUERY_V171 = "__ziiply_all_offers__";
 
@@ -1024,6 +1127,7 @@ function mapSProductListItemToOfferResult(
     fallbackFacetNames: string[];
     index: number;
     selectedStoreId: string;
+    selectedStoreName?: string;
     discountedOnly?: boolean;
   },
 ): ZiiplyOfferSearchResult | null {
@@ -1115,7 +1219,9 @@ function mapSProductListItemToOfferResult(
     source: options.config.id,
     sourceUrl: options.config.url,
     chain: options.config.chain,
-    storeLabel: options.config.storeLabel,
+    storeLabel: options.selectedStoreName || options.config.storeLabel,
+    storeName: options.selectedStoreName || options.config.storeLabel,
+    shopName: options.selectedStoreName || options.config.storeLabel,
     title,
     priceText,
     unitPriceText,
@@ -1219,6 +1325,7 @@ async function fetchSKaupatRemoteFilteredProductsPageV170(
   offset: number,
   selectedStoreId: string,
   discountedOnly = false,
+  selectedStoreName = "",
 ): Promise<{ results: ZiiplyOfferSearchResult[]; rawCount: number; total: number; from: number; limit: number }> {
   const response = await fetch(
     buildRemoteFilteredProductsUrl(query, offset, selectedStoreId, discountedOnly),
@@ -1257,6 +1364,7 @@ async function fetchSKaupatRemoteFilteredProductsPageV170(
         fallbackFacetNames,
         index,
         selectedStoreId,
+        selectedStoreName,
         discountedOnly,
       }),
     )
@@ -1277,51 +1385,66 @@ async function fetchSKaupatRemoteFilteredProductsV170(
   options?: SKaupatOfferProviderOptionsV173,
   discountedOnly = false,
 ): Promise<ZiiplyOfferSearchResult[]> {
-  const selectedStoreId = await getEffectiveSKaupatStoreIdV174(options);
-  if (!selectedStoreId) return [];
+  const selectedStores = await resolveSelectedSKaupatStoresV194(options);
+  if (selectedStores.length === 0) return [];
 
-  const pageStep = discountedOnly ? 24 : 48;
-  const maxPages = discountedOnly ? 25 : 25;
-  const pageOffsets = Array.from({ length: maxPages }, (_, index) => index * pageStep);
-  const pages: ZiiplyOfferSearchResult[][] = [];
+  const allStoreResults: ZiiplyOfferSearchResult[] = [];
 
-  for (const offset of pageOffsets) {
-    try {
-      const page = await fetchSKaupatRemoteFilteredProductsPageV170(
-        query,
-        config,
-        offset,
-        selectedStoreId,
-        discountedOnly,
-      );
+  for (const selectedStore of selectedStores) {
+    const pageStep = discountedOnly ? 24 : 48;
+    const maxPages = discountedOnly ? 25 : 25;
+    const pageOffsets = Array.from({ length: maxPages }, (_, index) => index * pageStep);
+    const pages: ZiiplyOfferSearchResult[][] = [];
 
-      pages.push(page.results);
+    for (const offset of pageOffsets) {
+      try {
+        const page = await fetchSKaupatRemoteFilteredProductsPageV170(
+          query,
+          config,
+          offset,
+          selectedStore.storeId,
+          discountedOnly,
+          selectedStore.storeName,
+        );
 
-      console.warn("[GOSTA PAGINATION V184]", {
-        query,
-        offset,
-        requestedFrom: offset,
-        responseFrom: page.from,
-        rawCount: page.rawCount,
-        mappedOfferCount: page.results.length,
-        total: page.total,
-        limit: page.limit,
-        discountedOnly,
-      });
+        pages.push(page.results);
 
-      // Stop only when S-kaupat itself says the raw page is exhausted or when
-      // total has been reached. Do NOT stop based on mapped offer count.
-      if (page.rawCount === 0) break;
-      if (page.total > 0 && offset + pageStep >= page.total) break;
-      if (page.rawCount < pageStep && page.total === 0) break;
-    } catch (error) {
-      if (offset === 0) throw error;
-      console.warn(`[Ziiply offers] S-kaupat pagination page failed at offset ${offset}`, error);
-      break;
+        console.warn("[GOSTA PAGINATION V194]", {
+          query,
+          offset,
+          requestedFrom: offset,
+          responseFrom: page.from,
+          rawCount: page.rawCount,
+          mappedOfferCount: page.results.length,
+          total: page.total,
+          limit: page.limit,
+          discountedOnly,
+          selectedStoreId: selectedStore.storeId,
+          selectedStoreName: selectedStore.storeName,
+        });
+
+        if (page.rawCount === 0) break;
+        if (page.total > 0 && offset + pageStep >= page.total) break;
+        if (page.rawCount < pageStep && page.total === 0) break;
+      } catch (error) {
+        if (offset === 0) {
+          console.warn("[Ziiply offers] selected S-store offer fetch failed", {
+            selectedStoreId: selectedStore.storeId,
+            selectedStoreName: selectedStore.storeName,
+            error,
+          });
+          break;
+        }
+
+        console.warn(`[Ziiply offers] S-kaupat pagination page failed at offset ${offset}`, error);
+        break;
+      }
     }
+
+    allStoreResults.push(...pages.flat());
   }
 
-  return dedupeSOfferResultsV161(pages.flat());
+  return dedupeSOfferResultsV161(allStoreResults);
 }
 
 export async function fetchSKaupatOffers(
