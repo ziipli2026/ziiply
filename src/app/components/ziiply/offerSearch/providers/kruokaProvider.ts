@@ -1,14 +1,17 @@
 // src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts
-// ZIIPLY_KRUOKA_PROVIDER_V35_RUOANHINTA_SELECTED_STORE_DATEFIX
+// ZIIPLY_KRUOKA_PROVIDER_V37_RUOANHINTA_MULTI_SELECTED_K_STORES_NO_HARDCODE
 //
 // EI hae enää K-Ruoan product-mapia eikä HTML:ää.
 // Hakee K-tarjoukset ruoanhinta.fi:n backendistä valitun K-kaupan perusteella.
-// V35:
+// V37:
+// - EI kovakoodattua kauppaa: hakee vain options/contextin mukana tulleet valitut K-kaupat
+// - parannettu K-Citymarket / K-Supermarket / K-Market -nimiosuman pisteytystä, ettei K-Market-valinta osu vahingossa Citymarketiin
 // - poistettu pakotettu storeId=3344 varsinaisesta hausta
 // - jos Ziiplyn valittu K-storeId ei ole ruoanhinta.fi:n numeerinen storeId,
 //   provider etsii oikean storeId:n /api/stores/minimal-listasta kaupan nimen perusteella
 // - voimassaoloaika muotoillaan muodossa "Voimassa 5.7." eikä ISO-aikaleimana
 // - debug-kortteja ei palauteta normaalissa onnistuneessa haussa
+// - tukee useaa valittua K-kauppaa muodossa kStoreId/kStoreName = "id1||id2" / "nimi1||nimi2"
 
 import type {
   ZiiplyOfferSearchResult,
@@ -20,6 +23,8 @@ export type KruokaOfferProviderOptionsV10 = {
   storeName?: string | null;
   kStoreId?: string | number | null;
   kStoreName?: string | null;
+  kStoreIds?: Array<string | number | null | undefined> | null;
+  kStoreNames?: Array<string | null | undefined> | null;
 };
 
 type RuoanHintaOffer = {
@@ -99,6 +104,53 @@ function normalizeStoreName(options?: KruokaOfferProviderOptionsV10): string {
   return String(options?.kStoreName ?? options?.storeName ?? "K-Ruoka / Ruoanhinta");
 }
 
+function splitMultiValueV36(value: unknown): string[] {
+  return String(value ?? "")
+    .split(/\s*(?:\|\||;|\n)\s*/g)
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
+function getSelectedKStoreOptionsV37(options?: KruokaOfferProviderOptionsV10): KruokaOfferProviderOptionsV10[] {
+  const idArray = Array.isArray(options?.kStoreIds) ? options?.kStoreIds ?? [] : [];
+  const nameArray = Array.isArray(options?.kStoreNames) ? options?.kStoreNames ?? [] : [];
+
+  const ids = [
+    ...idArray.map((value) => String(value ?? "").trim()).filter(Boolean),
+    ...splitMultiValueV36(options?.kStoreId ?? options?.storeId),
+  ];
+
+  const names = [
+    ...nameArray.map((value) => String(value ?? "").trim()).filter(Boolean),
+    ...splitMultiValueV36(options?.kStoreName ?? options?.storeName),
+  ];
+
+  const maxLength = Math.max(ids.length, names.length);
+  if (maxLength <= 0) return [];
+  if (maxLength === 1) return [{ ...(options ?? {}), kStoreId: ids[0] || null, kStoreName: names[0] || null }];
+
+  const seen = new Set<string>();
+  const result: KruokaOfferProviderOptionsV10[] = [];
+
+  for (let index = 0; index < maxLength; index += 1) {
+    const storeId = ids[index] || "";
+    const storeName = names[index] || "";
+    const key = `${storeId}|${storeName}`.toLowerCase();
+    if (!storeId && !storeName) continue;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    result.push({
+      ...(options ?? {}),
+      storeId,
+      storeName,
+      kStoreId: storeId,
+      kStoreName: storeName,
+    });
+  }
+
+  return result;
+}
+
 function normalizeStoreSearchText(value: unknown): string {
   return String(value ?? "")
     .normalize("NFD")
@@ -164,6 +216,16 @@ async function fetchRuoanHintaStores(): Promise<RuoanHintaStore[]> {
   return all;
 }
 
+
+function getKStoreClass(value: unknown): "citymarket" | "supermarket" | "kmarket" | null {
+  const text = normalizeStoreSearchText(value);
+  if (!text) return null;
+  if (text.includes("citymarket") || text.includes("k citymarket")) return "citymarket";
+  if (text.includes("supermarket") || text.includes("k supermarket")) return "supermarket";
+  if (text.includes("k market") || text.includes("kmarket")) return "kmarket";
+  return null;
+}
+
 function scoreRuoanHintaStoreMatch(store: RuoanHintaStore, wantedName: string): number {
   const storeName = normalizeStoreSearchText(store.name);
   const storeSlug = normalizeStoreSearchText(store.urlSlug);
@@ -173,24 +235,36 @@ function scoreRuoanHintaStoreMatch(store: RuoanHintaStore, wantedName: string): 
 
   if (!wanted) return 0;
 
+  const wantedClass = getKStoreClass(wantedName);
+  const storeClass = getKStoreClass(`${store.name ?? ""} ${store.chain ?? ""} ${store.urlSlug ?? ""}`);
+
   let score = 0;
+
+  // Kauppatyypin pitää osua ensin. Tämä estää K-Market-valintaa osumasta Citymarketiin
+  // vain siksi, että molemmissa lukee "market" tai sama paikkakunta.
+  if (wantedClass && storeClass === wantedClass) score += 300;
+  if (wantedClass && storeClass && storeClass !== wantedClass) score -= 420;
+
   if (storeName === wanted) score += 1000;
   if (storeStripped && wantedStripped && storeStripped === wantedStripped) score += 850;
   if (storeName.includes(wanted) || wanted.includes(storeName)) score += 650;
   if (storeStripped && wantedStripped && (storeStripped.includes(wantedStripped) || wantedStripped.includes(storeStripped))) score += 520;
   if (storeSlug.includes(wanted.replace(/\s+/g, " "))) score += 240;
 
-  const wantedTokens = wantedStripped.split(" ").filter((token) => token.length >= 3);
+  const wantedTokens = wantedStripped
+    .split(" ")
+    .filter((token) => token.length >= 3 && !["kauppa", "market", "citymarket", "supermarket", "hyvinkaa", "hyvinkää"].includes(token));
+
   for (const token of wantedTokens) {
-    if (storeName.includes(token) || storeSlug.includes(token)) score += 45;
+    if (storeName.includes(token) || storeSlug.includes(token)) score += 95;
   }
 
-  const chain = normalizeStoreSearchText(store.chain);
-  if (wanted.includes("citymarket") && chain.includes("citymarket")) score += 160;
-  if (wanted.includes("supermarket") && chain.includes("supermarket")) score += 160;
-  if (wanted.includes("market") && chain.includes("market")) score += 80;
+  // Paikkakunta auttaa vasta toissijaisesti, ei saa voittaa kauppatyypin tai kadun nimeä.
+  if (wanted.includes("hyvinkaa") || wanted.includes("hyvinkää")) {
+    if (storeName.includes("hyvinkaa") || storeName.includes("hyvinkää") || storeSlug.includes("hyvinkaa")) score += 35;
+  }
 
-  return score;
+  return Math.max(0, score);
 }
 
 async function resolveRuoanHintaStoreId(options?: KruokaOfferProviderOptionsV10): Promise<{ storeId: string | null; matchedStoreName?: string | null; reason?: string }> {
@@ -294,7 +368,7 @@ function asDebugResult(args: {
   const title = args.detail ? `${args.title} — ${args.detail}` : args.title;
 
   return {
-    id: `k-debug-v34-${args.id}`,
+    id: `k-debug-v36-${args.id}`,
     title,
     name: title,
     price: null,
@@ -334,7 +408,7 @@ function toOfferResult(args: {
     : centsToPriceText(offer.offerPrice ?? offer.storeItem?.price ?? null);
 
   return {
-    id: `kruoka-v34-ruoanhinta-${offerId}-${args.index}`,
+    id: `kruoka-v36-ruoanhinta-${offerId}-${args.index}`,
     title: name,
     name,
     price,
@@ -370,7 +444,7 @@ function toOfferResult(args: {
       ? `https://www.k-ruoka.fi/kauppa/tuote/${encodeURIComponent(item.urlSlug)}`
       : "https://ruoanhinta.fi/",
     debug: {
-      providerVersion: "V35_RUOANHINTA_SELECTED_STORE_DATEFIX",
+      providerVersion: "V36_RUOANHINTA_MULTI_SELECTED_K_STORES",
       rawOffer: offer,
       sourceApi: "https://api.ruoanhinta.fi/api/offers",
       ruoanhintaStoreId: args.storeId,
@@ -418,50 +492,73 @@ export async function fetchKruokaOffers(
   _source: ZiiplyOfferSearchSourceConfig,
   options?: KruokaOfferProviderOptionsV10,
 ): Promise<ZiiplyOfferSearchResult[]> {
-  const selectedStoreId = normalizeStoreId(options);
-  const selectedStoreName = normalizeStoreName(options);
+  const selectedStoreOptions = getSelectedKStoreOptionsV37(options);
 
-  try {
-    const resolved = await resolveRuoanHintaStoreId(options);
+  const allResults = await Promise.all(
+    selectedStoreOptions.map(async (storeOptions) => {
+      const selectedStoreId = normalizeStoreId(storeOptions);
+      const selectedStoreName = normalizeStoreName(storeOptions);
 
-    if (!resolved.storeId) {
-      return [
-        asDebugResult({
-          id: "99-store-not-found",
-          title: "[K DEBUG V35] Valittua K-kauppaa ei löytynyt Ruoanhinta-listasta",
-          detail: resolved.reason ?? `selected=${selectedStoreId ?? "NULL"}, name=${selectedStoreName}`,
-          storeId: selectedStoreId ?? null,
-          storeName: selectedStoreName,
-          debug: { options, resolved },
-        }),
-      ];
-    }
+      try {
+        const resolved = await resolveRuoanHintaStoreId(storeOptions);
 
-    const apiStoreId = String(resolved.storeId);
-    const storeName = resolved.matchedStoreName || selectedStoreName;
-    const rawOffers = await fetchRuoanHintaOffers(apiStoreId);
-    const filtered = rawOffers.filter((offer) => matchesQuery(offer, query));
+        if (!resolved.storeId) {
+          return [
+            asDebugResult({
+              id: `99-store-not-found-${selectedStoreId ?? selectedStoreName}`,
+              title: "[K DEBUG V36] Valittua K-kauppaa ei löytynyt Ruoanhinta-listasta",
+              detail: resolved.reason ?? `selected=${selectedStoreId ?? "NULL"}, name=${selectedStoreName}`,
+              storeId: selectedStoreId ?? null,
+              storeName: selectedStoreName,
+              debug: { options: storeOptions, resolved },
+            }),
+          ];
+        }
 
-    const offers = filtered.slice(0, 80).map((offer, index) =>
-      toOfferResult({
-        offer,
-        index,
-        storeId: apiStoreId,
-        storeName,
-      }),
-    );
+        const apiStoreId = String(resolved.storeId);
+        const storeName = resolved.matchedStoreName || selectedStoreName;
+        const rawOffers = await fetchRuoanHintaOffers(apiStoreId);
+        const filtered = rawOffers.filter((offer) => matchesQuery(offer, query));
 
-    return offers;
-  } catch (error) {
-    return [
-      asDebugResult({
-        id: "99-error",
-        title: "[K DEBUG V35] Ruoanhinta API virhe",
-        detail: error instanceof Error ? error.message : String(error),
-        storeId: selectedStoreId ?? null,
-        storeName: selectedStoreName,
-        debug: { error, options },
-      }),
-    ];
+        return filtered.slice(0, 80).map((offer, index) =>
+          toOfferResult({
+            offer,
+            index,
+            storeId: apiStoreId,
+            storeName,
+          }),
+        );
+      } catch (error) {
+        return [
+          asDebugResult({
+            id: `99-error-${selectedStoreId ?? selectedStoreName}`,
+            title: "[K DEBUG V36] Ruoanhinta API virhe",
+            detail: error instanceof Error ? error.message : String(error),
+            storeId: selectedStoreId ?? null,
+            storeName: selectedStoreName,
+            debug: { error, options: storeOptions },
+          }),
+        ];
+      }
+    }),
+  );
+
+  const seen = new Set<string>();
+  const merged: ZiiplyOfferSearchResult[] = [];
+
+  for (const result of allResults.flat()) {
+    const anyResult = result as any;
+    const key = [
+      anyResult.storeId ?? "",
+      anyResult.ean ?? anyResult.offerId ?? anyResult.id ?? "",
+      anyResult.priceText ?? anyResult.price ?? "",
+      anyResult.title ?? anyResult.name ?? "",
+    ].join("|").toLowerCase();
+
+    if (seen.has(key)) continue;
+    seen.add(key);
+    merged.push(result);
   }
+
+  return merged;
 }
