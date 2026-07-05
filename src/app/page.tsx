@@ -9748,10 +9748,81 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const useWithinChainSOffersV532 = storeCompareScope === "within_chain" && withinChain === "S";
       const useWithinChainKOffersV532 = storeCompareScope === "within_chain" && withinChain === "K";
 
+      // V537: Ketjun sisältä -tarjoushaku ei saa lukea S/K-kauppoja suoraan activeArea-objektista,
+      // koska activeArea voi palautua localStoragesta vanhana kuntana (esim. Prisma Varkaus), vaikka
+      // käyttäjä on Kaupat-sivulla valinnut uuden alueen/kaupat. Tarjouksille valitaan kaupat
+      // ensisijaisesti nykyisestä foundStores-listasta ja näkyvästä sijainnista.
+      const currentOfferAreaNeedleV537 = normalize(locationInput || activeArea.label || "");
+      const normalizedFoundOfferStoresV537 = foundStores
+        .map(normalizeStoreForPickerV320)
+        .filter((store) => store && !isExcludedGroceryComparisonStoreV140(store));
+
+      const storeMatchesCurrentOfferAreaV537 = (store: StoreSearchItem) => {
+        const needle = currentOfferAreaNeedleV537;
+        if (!needle) return true;
+
+        const haystack = normalize(
+          [
+            store.name,
+            store.city,
+            (store as any).municipality,
+            (store as any).address,
+            (store as any).postalCode,
+          ]
+            .filter(Boolean)
+            .join(" "),
+        );
+
+        return haystack.includes(needle);
+      };
+
+      const sortOfferStoresByDistanceV537 = (stores: StoreSearchItem[]) => {
+        return [...stores].sort((left, right) => {
+          const leftDistance = readExplicitDistanceKmV320(left) ?? 999999;
+          const rightDistance = readExplicitDistanceKmV320(right) ?? 999999;
+          if (leftDistance !== rightDistance) return leftDistance - rightDistance;
+          return String(left.name || "").localeCompare(String(right.name || ""), "fi");
+        });
+      };
+
+      const pickOfferStoreFromFoundStoresV537 = (
+        chain: "S" | "K",
+        mode: "hyper" | "local",
+      ) => {
+        const chainAndModeMatches = normalizedFoundOfferStoresV537.filter((store) => {
+          if (getStoreChainV320(store) !== chain) return false;
+          if (mode === "hyper") return chain === "S" ? isPrisma(store) : isKCitymarket(store);
+          return chain === "S" ? isSLocalStore(store) : isKLocalStore(store);
+        });
+
+        const areaMatches = chainAndModeMatches.filter(storeMatchesCurrentOfferAreaV537);
+        const pool = areaMatches.length > 0 ? areaMatches : chainAndModeMatches;
+        return sortOfferStoresByDistanceV537(pool)[0] ?? null;
+      };
+
+      const activeAreaLooksCurrentForOffersV537 = (() => {
+        const areaNeedle = normalize(locationInput || "");
+        if (!areaNeedle) return true;
+        return normalize(activeArea.label || "").includes(areaNeedle);
+      })();
+
+      const sWithinHyperStoreV537 = pickOfferStoreFromFoundStoresV537("S", "hyper");
+      const sWithinLocalStoreV537 = pickOfferStoreFromFoundStoresV537("S", "local");
+      const kWithinHyperStoreV537 = pickOfferStoreFromFoundStoresV537("K", "hyper");
+      const kWithinLocalStoreV537 = pickOfferStoreFromFoundStoresV537("K", "local");
+
       const sOfferStoresV532 = useWithinChainSOffersV532
         ? uniqueSelectedOfferStoresV532([
-            { id: activeArea.sStoreId, name: activeArea.sStoreName },
-            { id: activeArea.sLocalStoreId, name: activeArea.sLocalStoreName },
+            sWithinHyperStoreV537
+              ? { id: sWithinHyperStoreV537.id, name: sWithinHyperStoreV537.name }
+              : activeAreaLooksCurrentForOffersV537
+                ? { id: activeArea.sStoreId, name: activeArea.sStoreName }
+                : {},
+            sWithinLocalStoreV537
+              ? { id: sWithinLocalStoreV537.id, name: sWithinLocalStoreV537.name }
+              : activeAreaLooksCurrentForOffersV537
+                ? { id: activeArea.sLocalStoreId, name: activeArea.sLocalStoreName }
+                : {},
           ])
         : storeCompareScope === "between_chains"
           ? uniqueSelectedOfferStoresV532([{ id: activeStores.sStoreId, name: activeStores.sStoreName }])
@@ -9759,8 +9830,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       const kOfferStoresV532 = useWithinChainKOffersV532
         ? uniqueSelectedOfferStoresV532([
-            { id: activeArea.kStoreId, name: activeArea.kStoreName },
-            { id: activeArea.kLocalStoreId, name: activeArea.kLocalStoreName },
+            kWithinHyperStoreV537
+              ? { id: kWithinHyperStoreV537.id, name: kWithinHyperStoreV537.name }
+              : activeAreaLooksCurrentForOffersV537
+                ? { id: activeArea.kStoreId, name: activeArea.kStoreName }
+                : {},
+            kWithinLocalStoreV537
+              ? { id: kWithinLocalStoreV537.id, name: kWithinLocalStoreV537.name }
+              : activeAreaLooksCurrentForOffersV537
+                ? { id: activeArea.kLocalStoreId, name: activeArea.kLocalStoreName }
+                : {},
           ])
         : storeCompareScope === "between_chains"
           ? uniqueSelectedOfferStoresV532([{ id: activeStores.kStoreId, name: activeStores.kStoreName }])
