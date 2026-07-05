@@ -3280,46 +3280,6 @@ export default function Page() {
   >("none");
   const gostaPanelStickyOpenRefV158 = useRef(false);
 
-  const gostaSelectedStoresSignatureV534 = [
-    storeCompareScope,
-    withinChain || "",
-    storeMode || "",
-    activeArea.label || "",
-    activeArea.sStoreId || "",
-    activeArea.sStoreName || "",
-    activeArea.sLocalStoreId || "",
-    activeArea.sLocalStoreName || "",
-    activeArea.kStoreId || "",
-    activeArea.kStoreName || "",
-    activeArea.kLocalStoreId || "",
-    activeArea.kLocalStoreName || "",
-    activeStores.sStoreId || "",
-    activeStores.sStoreName || "",
-    activeStores.kStoreId || "",
-    activeStores.kStoreName || "",
-  ].join("|");
-
-  useEffect(() => {
-    const signature = gostaSelectedStoresSignatureV534;
-    if (!signature) return;
-
-    if (!gostaSelectedStoresSignatureRefV534.current) {
-      gostaSelectedStoresSignatureRefV534.current = signature;
-      return;
-    }
-
-    if (gostaSelectedStoresSignatureRefV534.current === signature) return;
-
-    gostaSelectedStoresSignatureRefV534.current = signature;
-    gostaLastSearchContextKeyRefV532.current = "";
-    setOfferSearchResults([]);
-    setGostaMasterOfferResultsV528([]);
-    setGostaTestedEmptyCategoriesV166({});
-    setOfferSearchDoneForQuery("");
-    setOfferSearchQuerySnapshot("");
-    setOfferCardFilterV106("");
-    setOfferShowingAllAreaOffersV106(false);
-  }, [gostaSelectedStoresSignatureV534]);
   const [activeAssistant, setActiveAssistant] =
     useState<ZiiplyAssistantKey | null>(null);
   const [searchPanelOpen, setSearchPanelOpen] = useState(false);
@@ -5297,6 +5257,48 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     storeCompareScope,
     usingOwnLocation,
   ]);
+
+
+  const gostaSelectedStoresSignatureV534 = [
+    storeCompareScope,
+    withinChain || "",
+    storeMode || "",
+    activeArea.label || "",
+    activeArea.sStoreId || "",
+    activeArea.sStoreName || "",
+    activeArea.sLocalStoreId || "",
+    activeArea.sLocalStoreName || "",
+    activeArea.kStoreId || "",
+    activeArea.kStoreName || "",
+    activeArea.kLocalStoreId || "",
+    activeArea.kLocalStoreName || "",
+    activeStores.sStoreId || "",
+    activeStores.sStoreName || "",
+    activeStores.kStoreId || "",
+    activeStores.kStoreName || "",
+  ].join("|");
+
+  useEffect(() => {
+    const signature = gostaSelectedStoresSignatureV534;
+    if (!signature) return;
+
+    if (!gostaSelectedStoresSignatureRefV534.current) {
+      gostaSelectedStoresSignatureRefV534.current = signature;
+      return;
+    }
+
+    if (gostaSelectedStoresSignatureRefV534.current === signature) return;
+
+    gostaSelectedStoresSignatureRefV534.current = signature;
+    gostaLastSearchContextKeyRefV532.current = "";
+    setOfferSearchResults([]);
+    setGostaMasterOfferResultsV528([]);
+    setGostaTestedEmptyCategoriesV166({});
+    setOfferSearchDoneForQuery("");
+    setOfferSearchQuerySnapshot("");
+    setOfferCardFilterV106("");
+    setOfferShowingAllAreaOffersV106(false);
+  }, [gostaSelectedStoresSignatureV534]);
 
 
   // V506_BUILD_FIX_WARMUP_AFTER_ACTIVESTORES:
