@@ -1,7 +1,7 @@
 // src/app/components/ziiply/offerSearch/ziiplyOfferSearchSources.ts
-// ZIIPLY_OFFER_SEARCH_SOURCES_V10_SCOPE_AWARE_K_PROVIDER
+// ZIIPLY_OFFER_SEARCH_SOURCES_V11_WITHIN_CHAIN_S_MULTI_STORE_FIX
 //
-// V10 korjaus:
+// V11 korjaus:
 // - Gösta ei enää aja S-kaupat-provideria, kun kauppavalinta on Ketjun sisältä -> K-ryhmä.
 // - K-provider valitaan mukaan scope/withinChain/kStoreId-kontekstin perusteella.
 // - K-lähde valitaan kStoreName-nimen mukaan: K-Market / K-Supermarket / K-Citymarket.
@@ -52,11 +52,37 @@ export type ZiiplyOfferSearchSourceContextV8 = SKaupatOfferProviderOptionsV173 &
   areaLabel?: string | null;
   storeMode?: string | null;
   storeCompareScope?: string | null;
+  withinChain?: string | null;
+  selectedChain?: string | null;
   sStoreId?: string | number | null;
   sStoreName?: string | null;
+  sStoreIds?: Array<string | number | null | undefined> | null;
+  sStoreNames?: Array<string | null | undefined> | null;
   kStoreId?: string | number | null;
   kStoreName?: string | null;
+  kStoreIds?: Array<string | number | null | undefined> | null;
+  kStoreNames?: Array<string | null | undefined> | null;
 };
+
+function splitOfferMultiValueV11(value: unknown): string[] {
+  return String(value ?? "")
+    .split(/\s*(?:\|\||;|
+)\s*/g)
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
+function normalizeOfferStoreListV11(arrayValue: unknown, fallbackValue: unknown): string[] {
+  const fromArray = Array.isArray(arrayValue)
+    ? arrayValue.map((value) => String(value ?? "").trim()).filter(Boolean)
+    : [];
+
+  return Array.from(new Set([...fromArray, ...splitOfferMultiValueV11(fallbackValue)]));
+}
+
+function hasAnyOfferStoreV11(arrayValue: unknown, fallbackValue: unknown): boolean {
+  return normalizeOfferStoreListV11(arrayValue, fallbackValue).some(isRealStoreIdV10);
+}
 
 function normalizeSKaupatProviderOptionsV8(
   options?: ZiiplyOfferSearchSourceContextV8,
@@ -102,7 +128,7 @@ const ZIIPLY_OFFER_SOURCES = {
     url: "https://www.k-ruoka.fi/k-supermarket/tarjouslehti",
   },
   kcitymarket: {
-    id: "ksupermarket",
+    id: "kcitymarket",
     chain: "K",
     storeLabel: "K-Citymarket",
     url: "https://www.k-ruoka.fi/k-citymarket/tarjouslehti",
@@ -115,7 +141,7 @@ const ZIIPLY_OFFER_SOURCES = {
   },
 } satisfies Record<string, ZiiplyOfferSearchSourceConfig>;
 
-const OFFER_SEARCH_SOURCE_REVISION = "v10";
+const OFFER_SEARCH_SOURCE_REVISION = "v11";
 const ENABLE_OFFER_SEARCH_CACHE = false;
 const MAX_OFFER_SEARCH_RESULTS = 1000;
 const ZIIPLY_GOSTA_MASTER_QUERY_V6 = "__ziiply_all_offers__";
@@ -215,8 +241,8 @@ function normalizeChainValueV10(value: unknown) {
 function getProviderScopeV10(options?: ZiiplyOfferSearchSourceContextV8) {
   const scope = String(options?.storeCompareScope ?? "").trim();
   const withinChain = normalizeChainValueV10((options as any)?.withinChain ?? (options as any)?.selectedChain);
-  const hasS = isRealStoreIdV10(options?.sStoreId ?? options?.storeId);
-  const hasK = isRealStoreIdV10(options?.kStoreId);
+  const hasS = hasAnyOfferStoreV11(options?.sStoreIds, options?.sStoreId ?? options?.storeId);
+  const hasK = hasAnyOfferStoreV11(options?.kStoreIds, options?.kStoreId);
 
   if (scope === "within_chain") {
     // Tärkein korjaus:
@@ -275,6 +301,43 @@ export async function searchSKaupatOffers(
   return fetchSKaupatOffers(query, ZIIPLY_OFFER_SOURCES.skaupat, options);
 }
 
+export async function searchSelectedSKaupatOffersV11(
+  query: string,
+  options?: ZiiplyOfferSearchSourceContextV8,
+) {
+  const ids = normalizeOfferStoreListV11(options?.sStoreIds, options?.sStoreId ?? options?.storeId);
+  const names = normalizeOfferStoreListV11(options?.sStoreNames, options?.sStoreName ?? options?.storeName);
+  const maxLength = Math.max(ids.length, names.length);
+
+  if (maxLength <= 1) {
+    return searchSKaupatOffers(query, normalizeSKaupatProviderOptionsV8(options));
+  }
+
+  const allResults: ZiiplyOfferSearchResult[] = [];
+  const seenStores = new Set<string>();
+
+  for (let index = 0; index < maxLength; index += 1) {
+    const storeId = ids[index] || "";
+    const storeName = names[index] || "";
+    const key = `${storeId}|${storeName}`.toLowerCase();
+    if (!storeId && !storeName) continue;
+    if (seenStores.has(key)) continue;
+    seenStores.add(key);
+
+    const storeResults = await searchSKaupatOffers(query, {
+      ...(normalizeSKaupatProviderOptionsV8(options) as any),
+      storeId: storeId || null,
+      storeName: storeName || null,
+      sStoreId: storeId || null,
+      sStoreName: storeName || null,
+    } as SKaupatOfferProviderOptionsV173);
+
+    allResults.push(...storeResults);
+  }
+
+  return allResults;
+}
+
 export async function searchZiiplyOffers(
   query: string,
   options?: ZiiplyOfferSearchSourceContextV8,
@@ -311,7 +374,7 @@ export async function searchZiiplyOffers(
   const sKaupatResults = providerScopeV10.useS
     ? await safelySearchSource(
         isGostaMasterQuery ? "S-kaupat master V10" : "S-kaupat V10",
-        () => searchSKaupatOffers(cleanQuery, providerOptions),
+        () => searchSelectedSKaupatOffersV11(cleanQuery, options),
       )
     : [];
 
