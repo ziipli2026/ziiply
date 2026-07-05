@@ -9724,7 +9724,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // Ketjun sisältä S => välitä vain S-tavaratalo + S-lähikauppa.
       // Ketjun sisältä K => välitä vain K-tavaratalo + K-lähikauppa.
       // Ketjujen väliltä => välitä nykyiset aktiiviset S/K-kaupat.
-      const cleanSelectedOfferStoreV532 = (store: { id?: unknown; name?: unknown }) => {
+      const cleanSelectedOfferStoreV532 = (store: { id?: unknown; name?: unknown } | null) => {
+        if (!store) return null;
         const id = String(store.id || "").trim();
         const name = String(store.name || "").trim();
         if ((!id || id === "0") && !name) return null;
