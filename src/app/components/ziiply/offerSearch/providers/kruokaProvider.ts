@@ -1,5 +1,5 @@
 // src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts
-// ZIIPLY_KRUOKA_PROVIDER_V37_RUOANHINTA_MULTI_SELECTED_K_STORES_NO_HARDCODE
+// ZIIPLY_KRUOKA_PROVIDER_V38_RUOANHINTA_DATE_YEAR_SELECTED_STORES
 //
 // EI hae enää K-Ruoan product-mapia eikä HTML:ää.
 // Hakee K-tarjoukset ruoanhinta.fi:n backendistä valitun K-kaupan perusteella.
@@ -178,7 +178,8 @@ function formatValidityText(expiresAt?: string | null): string | undefined {
   return `Voimassa ${date.toLocaleDateString("fi-FI", {
     day: "numeric",
     month: "numeric",
-  })}.`;
+    year: "numeric",
+  })} asti`;
 }
 
 async function fetchRuoanHintaStores(): Promise<RuoanHintaStore[]> {
