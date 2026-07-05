@@ -1,9 +1,9 @@
 // src/app/api/offers/search/route.ts
-// ZIIPLY_OFFERS_SEARCH_ROUTE_V8_STORE_CONTEXT
+// ZIIPLY_OFFERS_SEARCH_ROUTE_V10_NO_FORCED_STORE
 //
 // Fix:
-// - Forwards Gösta/page query parameters to searchZiiplyOffers(query, context).
-// - This lets S-kaupat provider use the selected S-store id instead of the old hardcoded default.
+// - Removes old V9 debug forcing: areaLabel="Varkaus", sStoreId="726015093", sStoreName="Prisma Varkaus".
+// - Forwards only the Gösta/page query parameters that came from the app.
 // - Keeps cache disabled for store-specific offer data.
 
 import { NextResponse } from "next/server";
@@ -26,50 +26,28 @@ export async function GET(request: Request) {
     const searchParams = url.searchParams;
     const q = getParam(searchParams, "q") || "";
 
-    // V9 DEBUG / POISSULKU:
-    // Pakotetaan Göstan/S-kaupatin haku API-reitissä Prisma Varkauteen,
-    // jotta page.tsx, activeStores, GPS/watchdog ja core-parametrien varjo eivät voi vaikuttaa.
-    // Jos tälläkin tulee eilinen/väärä massa, vika on routea alempana: sources/provider/S-kaupat query.
-    const incomingContext: ZiiplyOfferSearchSourceContextV8 = {
+    const context: ZiiplyOfferSearchSourceContextV8 = {
       areaLabel: getParam(searchParams, "area"),
       storeMode: getParam(searchParams, "storeMode"),
       storeCompareScope: getParam(searchParams, "scope"),
+
       sStoreId: getParam(searchParams, "sStoreId"),
       sStoreName: getParam(searchParams, "sStoreName"),
+      sStoreIds: getParam(searchParams, "sStoreIds"),
+      sStoreNames: getParam(searchParams, "sStoreNames"),
+
       kStoreId: getParam(searchParams, "kStoreId"),
       kStoreName: getParam(searchParams, "kStoreName"),
-    };
+      kStoreIds: getParam(searchParams, "kStoreIds"),
+      kStoreNames: getParam(searchParams, "kStoreNames"),
+    } as ZiiplyOfferSearchSourceContextV8;
 
-    const context: ZiiplyOfferSearchSourceContextV8 = {
-      ...incomingContext,
-      areaLabel: "Varkaus",
-      storeMode: "hyper",
-      storeCompareScope: incomingContext.storeCompareScope || "between_chains",
-      sStoreId: "726015093",
-      sStoreName: "Prisma Varkaus",
-    };
-
-    console.warn("[GOSTA ROUTE FORCE PRISMA VARKAUS V9]", {
+    console.warn("[GOSTA ROUTE V10 CONTEXT]", {
       q,
-      incomingContext,
-      forcedContext: context,
+      context,
     });
 
     const results = await searchZiiplyOffers(q, context);
-
-    console.warn("[GOSTA ROUTE RESULT DEBUG V9]", {
-      q,
-      count: results.length,
-      first: results[0]
-        ? {
-            title: (results[0] as any).title,
-            storeLabel: (results[0] as any).storeLabel,
-            debugProvider: (results[0] as any)._debugProviderRevision,
-            selectedStoreId: (results[0] as any)._debugSelectedStoreId,
-            productStoreId: (results[0] as any)._debugProductStoreId,
-          }
-        : null,
-    });
 
     return NextResponse.json(
       {
