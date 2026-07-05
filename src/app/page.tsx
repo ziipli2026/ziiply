@@ -1,3 +1,7 @@
+// V529_GOSTA_CATEGORY_SYNC_NO_PRECLEAR
+// Korjaus: Göstan kategoriavaihdossa ei tyhjennetä vanhoja tuloksia ennen uuden haun valmistumista.
+// Tämä estää aktiivisen tuoteryhmänapin ja tarjouslistan välisen välähdyksen/epäsynkan.
+//
 // V528_GOSTA_CATEGORY_COUNTS_SORT_AND_NO_RELOAD_BACK
 // Muutos Göstan tarjoushakuun:
 // - Paluu tuoteryhmälistaan ei enää tyhjennä offerSearchResults-listaa eikä käynnistä uutta master-hakua.
@@ -9635,8 +9639,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     gostaPanelStickyOpenRefV158.current = true;
     setHasSearchedOffers(true);
     setLoadingOffers(true);
-    setOffers([]);
-    setOfferSearchResults([]);
+    // V529: Älä tyhjennä vanhoja tarjousrivejä ennen uuden kategorian haun valmistumista.
+    // Muuten React ehtii renderöidä välitilan, jossa aktiivinen kategoria ja näkyvä lista
+    // voivat olla eri hausta. Uudet tulokset korvaavat vanhat atomisesti alla.
     setSearchPanelOpen(false);
     setNotebookOpen(false);
     setCartModalOpen(false);
@@ -9718,7 +9723,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setOfferSearchDoneForQuery(offerSearchCoreResult.trackingKey);
     } catch (error) {
       console.error("[Ziiply offers] API search failed", error);
-      setOfferSearchResults([]);
+      // V529: älä tyhjennä onnistuneita vanhoja tuloksia virheessäkään, jotta Gösta ei välähdä tyhjäksi.
       showCartToast("Tarjoushaku ei onnistunut");
     } finally {
       setLoadingOffers(false);
