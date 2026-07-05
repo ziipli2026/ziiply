@@ -9732,7 +9732,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         return { id, name };
       };
 
-      const uniqueSelectedOfferStoresV532 = (stores: Array<{ id?: unknown; name?: unknown }>) => {
+      const uniqueSelectedOfferStoresV532 = (stores: Array<{ id?: unknown; name?: unknown } | null>) => {
         const seen = new Set<string>();
         return stores
           .map(cleanSelectedOfferStoreV532)
