@@ -92,10 +92,15 @@ function normalizeGostaCoreText(value: unknown) {
     .trim();
 }
 
-function normalizeGostaContextListV162(values: unknown, fallback?: unknown): string[] {
+function normalizeGostaContextListV164(values: unknown, fallback?: unknown): string[] {
   const rawValues = Array.isArray(values) ? values : [];
-  const splitFallback = String(fallback ?? "")
-    .split(/\s*(?:\|\||;|\n)\s*/g)
+  const normalizedFallback = String(fallback ?? "")
+    .replaceAll("\r", "")
+    .replaceAll("\n", "||")
+    .replaceAll(";", "||");
+
+  const splitFallback = normalizedFallback
+    .split("||")
     .map((value) => String(value ?? "").trim())
     .filter(Boolean);
 
@@ -123,10 +128,10 @@ function buildOfferSearchContextKeyV152(context?: ZiiplyGostaOfferSearchContextV
     context.storeMode,
     context.storeCompareScope,
     context.withinChain,
-    ...normalizeGostaContextListV162(context.sStoreIds, context.sStoreId),
-    ...normalizeGostaContextListV162(context.sStoreNames, context.sStoreName),
-    ...normalizeGostaContextListV162(context.kStoreIds, context.kStoreId),
-    ...normalizeGostaContextListV162(context.kStoreNames, context.kStoreName),
+    ...normalizeGostaContextListV164(context.sStoreIds, context.sStoreId),
+    ...normalizeGostaContextListV164(context.sStoreNames, context.sStoreName),
+    ...normalizeGostaContextListV164(context.kStoreIds, context.kStoreId),
+    ...normalizeGostaContextListV164(context.kStoreNames, context.kStoreName),
   ]
     .map((value) => normalizeGostaCoreText(value))
     .filter(Boolean)
@@ -150,10 +155,10 @@ async function fetchOfferSearchResults(query: string, context?: ZiiplyGostaOffer
   if (context?.storeCompareScope) params.set("scope", String(context.storeCompareScope));
   if (context?.withinChain) params.set("withinChain", String(context.withinChain));
 
-  const sStoreIdsV162 = normalizeGostaContextListV162(context?.sStoreIds, context?.sStoreId);
-  const sStoreNamesV162 = normalizeGostaContextListV162(context?.sStoreNames, context?.sStoreName);
-  const kStoreIdsV162 = normalizeGostaContextListV162(context?.kStoreIds, context?.kStoreId);
-  const kStoreNamesV162 = normalizeGostaContextListV162(context?.kStoreNames, context?.kStoreName);
+  const sStoreIdsV162 = normalizeGostaContextListV164(context?.sStoreIds, context?.sStoreId);
+  const sStoreNamesV162 = normalizeGostaContextListV164(context?.sStoreNames, context?.sStoreName);
+  const kStoreIdsV162 = normalizeGostaContextListV164(context?.kStoreIds, context?.kStoreId);
+  const kStoreNamesV162 = normalizeGostaContextListV164(context?.kStoreNames, context?.kStoreName);
 
   if (sStoreIdsV162.length > 0) params.set("sStoreId", sStoreIdsV162.join("||"));
   if (sStoreNamesV162.length > 0) params.set("sStoreName", sStoreNamesV162.join("||"));
