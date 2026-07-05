@@ -1,8 +1,8 @@
 "use client";
 
 // ============================================================================
-// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V27_COUNT_SORT_LAST_CATEGORY_CACHE
-// Revision: V27
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V28_SINGLE_CATEGORY_TRIGGER
+// Revision: V28
 // Date: 2026-07-04
 //
 // Muutokset:
@@ -14,6 +14,8 @@
 // - Makeiset-ikoniksi vaihdettu 🍬 ja Kuivatuotteille/Valmisruoalle omat ikonit.
 // - Kaikki kategoriat näytetään etusivulla, ei vain ensimmäisiä kahdeksaa.
 // - Ei debug-tekstejä ruudulla.
+// - V28: kategoriapainikkeet kutsuvat vain onFilterChangea. Page käynnistää haun yhdestä paikasta,
+//   jolloin sama klikkaus ei aiheuta tuplahakua ja aktiivinen nappi pysyy synkassa.
 // - Jos kuva ei lataudu, rikkinäistä kuvaikonia ei näytetä, vaan tilalle tulee
 //   tuoteryhmän fallback-ikoni.
 // - Kuvakenttien järjestys säilyy: imageUrl -> pictureUrl -> image.
@@ -626,7 +628,7 @@ export default function ZiiplyMobileOfferSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="V27_COUNT_SORT_LAST_CATEGORY_CACHE"
+      data-ziiply-mobile-offer-search-card-version="V28_SINGLE_CATEGORY_TRIGGER"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
@@ -674,7 +676,7 @@ export default function ZiiplyMobileOfferSearchCard({
                   ← Tuoteryhmät
                 </button>
                 {visibleCategorySuggestions.map((category) => {
-                  const active = shownFilter.toLowerCase() === category.toLowerCase();
+                  const active = normalizeCategoryKey(shownFilter) === normalizeCategoryKey(category);
                   return (
                     <button
                       key={category}
@@ -682,7 +684,6 @@ export default function ZiiplyMobileOfferSearchCard({
                       onClick={() => {
                         rememberGostaCategoryV27(category);
                         onFilterChange?.(category);
-                        onSearch?.(category);
                       }}
                       className={cx(
                         "shrink-0 rounded-full border px-2.5 py-1 text-[0.64rem] font-black leading-none shadow-[0_1px_0_rgba(91,72,44,0.12)] active:translate-y-[1px]",
@@ -723,7 +724,6 @@ export default function ZiiplyMobileOfferSearchCard({
                       onClick={() => {
                         rememberGostaCategoryV27(category);
                         onFilterChange?.(category);
-                        onSearch?.(category);
                       }}
                       className={cx(
                         "rounded-[0.8rem] border-[2px] border-[#174c2c] bg-[#fff8d9] px-2.5 py-[0.42rem] text-[0.72rem] font-black text-[#174c2c] shadow-[0_2px_0_rgba(91,72,44,0.16)] active:translate-y-[1px]",
