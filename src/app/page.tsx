@@ -6,6 +6,13 @@
 // Korjaus: Göstan K-tarjoushaku ei käytä mitään kovakoodattua kauppaa.
 // Ketjun sisältä -tilassa K-providerille välitetään vain appissa valitut K-slotit: kStoreId/kStoreName ja kLocalStoreId/kLocalStoreName.
 
+// V532_GOSTA_CONTEXT_SCOPE_RESET_AND_SELECTED_CHAIN_ONLY
+// Korjaus Göstan tarjoushakuun:
+// - Ketjun sisältä käyttää vain valittua ketjua: S-valinta ei välitä K-kauppoja eikä K-valinta S-kauppoja.
+// - Göstan master/category-välimuisti tyhjennetään, kun kauppa-/ketju-/scope-konteksti vaihtuu.
+// - Tämä estää vanhan K-ryhmän listan näkymisen S-ryhmän ketjun sisällä -haussa.
+// - Kauppoja ei kovakoodata: kaikki tulee appin nykyisistä valinnoista.
+
 // V528_GOSTA_CATEGORY_COUNTS_SORT_AND_NO_RELOAD_BACK
 // Muutos Göstan tarjoushakuun:
 // - Paluu tuoteryhmälistaan ei enää tyhjennä offerSearchResults-listaa eikä käynnistä uutta master-hakua.
@@ -3262,6 +3269,7 @@ export default function Page() {
   const [offerCardFilterV106, setOfferCardFilterV106] = useState("");
   const [gostaTestedEmptyCategoriesV166, setGostaTestedEmptyCategoriesV166] = useState<Record<string, true>>({});
   const [gostaMasterOfferResultsV528, setGostaMasterOfferResultsV528] = useState<any[]>([]);
+  const gostaLastSearchContextKeyRefV532 = useRef("");
   const [offerShowingAllAreaOffersV106, setOfferShowingAllAreaOffersV106] = useState(false);
   const [chainFilter, setChainFilter] = useState<"all" | "S" | "K">("all");
   const [justAdded, setJustAdded] = useState<string | null>(null);
@@ -7661,8 +7669,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   // on siirretty offerSearch/ziiplyOfferSearchCore.ts -moduuliin.
 
   const cleanOfferSearchResultsV106 = useMemo(() => {
-    return cleanZiiplyGostaOfferResultsV146(offerSearchResults);
-  }, [offerSearchResults]);
+    // V533: Kun käyttäjä avaa tuoteryhmän, näkyvä lista suodatetaan samasta
+    // master-datasetistä kuin tuoteryhmälistan määrät. Näin kategoriapainikkeen
+    // lukema ja avattu lista eivät pääse eri lähteisiin / vanhaan K-listaan.
+    const visibleSourceResults =
+      offerCardFilterV106 && gostaMasterOfferResultsV528.length > 0
+        ? gostaMasterOfferResultsV528
+        : offerSearchResults;
+
+    return cleanZiiplyGostaOfferResultsV146(visibleSourceResults);
+  }, [offerSearchResults, offerCardFilterV106, gostaMasterOfferResultsV528]);
 
   const visibleOfferSearchResultsV106 = useMemo(() => {
     return filterZiiplyGostaOfferResultsV146(cleanOfferSearchResultsV106, offerCardFilterV106);
@@ -7677,15 +7693,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const gostaCategoryOfferCountsV163 = useMemo(() => {
     const counts: Record<string, number> = {};
 
-    // V528: kategoriamäärät lasketaan ensisijaisesti ensimmäisestä ladatusta
-    // master-/kaikki tarjoukset -datasetistä. Näin tuoteryhmälistaan palaaminen
-    // ei kutistu vain viimeksi avatun kategorian perusteella eikä vaadi uutta hakua.
+    // V533: määrät lasketaan täsmälleen samasta master-listasta ja samalla
+    // dedupe-logiikalla kuin avattavat kortit. Aiemmin laskenta käytti raakadataa,
+    // jolloin kahdesta kaupasta / lähteestä tulleet samat tarjoukset nostivat
+    // tuoteryhmän lukemaa suuremmaksi kuin varsinainen avattu lista.
     const countSourceResults = gostaMasterOfferResultsV528.length > 0
       ? cleanZiiplyGostaOfferResultsV146(gostaMasterOfferResultsV528)
       : cleanOfferSearchResultsV106;
 
-    for (const rawOffer of countSourceResults) {
-      const cardOffer = mapZiiplyGostaOfferToCardOfferV147(rawOffer);
+    const countCardItems = dedupeGostaCardItemsV166(
+      countSourceResults.map(mapZiiplyGostaOfferToCardOfferV147),
+    );
+
+    for (const cardOffer of countCardItems) {
       const category = String(cardOffer.category || "").trim();
 
       if (!category || category.toLowerCase() === "kaikki") continue;
@@ -9655,50 +9675,99 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setActiveResult("offers");
 
     try {
-      // V531: Gösta käyttää AINA appissa valittuja kauppoja.
+      // V532: Gösta käyttää AINA appissa valittuja kauppoja ja vain valittua ketjua.
       // Ei kovakoodattuja kauppanimiä eikä paikkakuntia.
-      // Ketjun sisältä -tilassa K-tarjouksiin välitetään kaksi K-slottia:
-      // 1) valittu K-tavaratalo ja 2) valittu K-lähikauppa.
-      // Muissa tiloissa käytetään näkyvän aktiivisen valinnan K-kauppaa.
-      const kOfferStoreCandidatesV531 = storeCompareScope === "within_chain"
-        ? [
-            { id: activeArea.kStoreId, name: activeArea.kStoreName },
-            { id: activeArea.kLocalStoreId, name: activeArea.kLocalStoreName },
-          ]
-        : [{ id: activeStores.kStoreId, name: activeStores.kStoreName }];
-
-      const kOfferStoreSeenV531 = new Set<string>();
-      const kOfferStoresV531 = kOfferStoreCandidatesV531.filter((store) => {
+      // Ketjun sisältä S => välitä vain S-tavaratalo + S-lähikauppa.
+      // Ketjun sisältä K => välitä vain K-tavaratalo + K-lähikauppa.
+      // Ketjujen väliltä => välitä nykyiset aktiiviset S/K-kaupat.
+      const cleanSelectedOfferStoreV532 = (store: { id?: unknown; name?: unknown }) => {
         const id = String(store.id || "").trim();
         const name = String(store.name || "").trim();
-        if ((!id || id === "0") && !name) return false;
-        if (/ei valittu|valitse ensin/i.test(name)) return false;
-        const key = `${id}|${name}`.toLowerCase();
-        if (kOfferStoreSeenV531.has(key)) return false;
-        kOfferStoreSeenV531.add(key);
-        return true;
+        if ((!id || id === "0") && !name) return null;
+        if (/ei valittu|valitse ensin/i.test(name)) return null;
+        return { id, name };
+      };
+
+      const uniqueSelectedOfferStoresV532 = (stores: Array<{ id?: unknown; name?: unknown }>) => {
+        const seen = new Set<string>();
+        return stores
+          .map(cleanSelectedOfferStoreV532)
+          .filter((store): store is { id: string; name: string } => Boolean(store))
+          .filter((store) => {
+            const key = `${store.id}|${store.name}`.toLowerCase();
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+          });
+      };
+
+      const useWithinChainSOffersV532 = storeCompareScope === "within_chain" && withinChain === "S";
+      const useWithinChainKOffersV532 = storeCompareScope === "within_chain" && withinChain === "K";
+
+      const sOfferStoresV532 = useWithinChainSOffersV532
+        ? uniqueSelectedOfferStoresV532([
+            { id: activeArea.sStoreId, name: activeArea.sStoreName },
+            { id: activeArea.sLocalStoreId, name: activeArea.sLocalStoreName },
+          ])
+        : storeCompareScope === "between_chains"
+          ? uniqueSelectedOfferStoresV532([{ id: activeStores.sStoreId, name: activeStores.sStoreName }])
+          : [];
+
+      const kOfferStoresV532 = useWithinChainKOffersV532
+        ? uniqueSelectedOfferStoresV532([
+            { id: activeArea.kStoreId, name: activeArea.kStoreName },
+            { id: activeArea.kLocalStoreId, name: activeArea.kLocalStoreName },
+          ])
+        : storeCompareScope === "between_chains"
+          ? uniqueSelectedOfferStoresV532([{ id: activeStores.kStoreId, name: activeStores.kStoreName }])
+          : [];
+
+      const sOfferIdsV532 = sOfferStoresV532.map((store) => store.id).filter(Boolean);
+      const sOfferNamesV532 = sOfferStoresV532.map((store) => store.name).filter(Boolean);
+      const kOfferIdsV532 = kOfferStoresV532.map((store) => store.id).filter(Boolean);
+      const kOfferNamesV532 = kOfferStoresV532.map((store) => store.name).filter(Boolean);
+
+      const gostaOfferSearchContextKeyV532 = JSON.stringify({
+        areaLabel: activeArea.label || "",
+        storeMode,
+        storeCompareScope,
+        withinChain,
+        sOfferIds: sOfferIdsV532,
+        sOfferNames: sOfferNamesV532,
+        kOfferIds: kOfferIdsV532,
+        kOfferNames: kOfferNamesV532,
       });
 
-      const kOfferIdsV531 = kOfferStoresV531.map((store) => String(store.id || "").trim()).filter(Boolean);
-      const kOfferNamesV531 = kOfferStoresV531.map((store) => String(store.name || "").trim()).filter(Boolean);
+      if (gostaLastSearchContextKeyRefV532.current !== gostaOfferSearchContextKeyV532) {
+        gostaLastSearchContextKeyRefV532.current = gostaOfferSearchContextKeyV532;
+        setOfferSearchResults([]);
+        setGostaMasterOfferResultsV528([]);
+        setGostaTestedEmptyCategoriesV166({});
+        setOfferSearchDoneForQuery("");
+        setOfferSearchQuerySnapshot("");
+        setOfferCardFilterV106(hasExplicitOverride ? cleanedOverride : "");
+      }
 
       const gostaOfferSearchContextV172 = {
         areaLabel: activeArea.label || "",
         storeMode,
         storeCompareScope,
-        sStoreId: activeStores.sStoreId || undefined,
-        sStoreName: activeStores.sStoreName || undefined,
-        kStoreId: kOfferIdsV531.join("||") || activeStores.kStoreId || undefined,
-        kStoreName: kOfferNamesV531.join("||") || activeStores.kStoreName || undefined,
-        kStoreIds: kOfferIdsV531,
-        kStoreNames: kOfferNamesV531,
+        withinChain,
+        sStoreId: sOfferIdsV532[0] || undefined,
+        sStoreName: sOfferNamesV532[0] || undefined,
+        sStoreIds: sOfferIdsV532,
+        sStoreNames: sOfferNamesV532,
+        kStoreId: kOfferIdsV532.join("||") || undefined,
+        kStoreName: kOfferNamesV532.join("||") || undefined,
+        kStoreIds: kOfferIdsV532,
+        kStoreNames: kOfferNamesV532,
         usingOwnLocation,
         gpsLat: gpsCoordsV320?.latitude,
         gpsLon: gpsCoordsV320?.longitude,
       };
 
       if (typeof window !== "undefined") {
-        console.info("[Ziiply Gosta context v527 activeStores]", gostaOfferSearchContextV172);
+        console.info("[Ziiply Gosta context v532 selected stores]", gostaOfferSearchContextV172);
       }
 
       const gostaOfferSearchOptionsV171 = {
@@ -9775,8 +9844,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     setOfferCardFilterV106(nextValue);
+    setOfferSearchQuerySnapshot(nextValue);
+    setOfferShowingAllAreaOffersV106(false);
 
     if (isZiiplyGostaCategorySelectionV147(nextValue)) {
+      // V533: jos master-lista on jo ladattu, älä hae kategoriaa uudestaan.
+      // Avattu kategoria suodatetaan paikallisesti masterista, jolloin lukema
+      // ja näkyvät kortit vastaavat toisiaan ja K/S-välimuisti ei jää ristiin.
+      if (gostaMasterOfferResultsV528.length > 0) return;
+
       void searchOffers(nextValue);
     }
   }
