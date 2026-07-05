@@ -132,7 +132,8 @@ const ZIIPLY_OFFER_SOURCES = {
     url: "https://www.k-ruoka.fi/k-supermarket/tarjouslehti",
   },
   kcitymarket: {
-    id: "kcitymarket",
+    // ZiiplyOfferSource-type ei tunne erillistä kcitymarket-id:tä; käytetään ksupermarket-id:tä kuten aiemmassa build-ok versiossa.
+    id: "ksupermarket",
     chain: "K",
     storeLabel: "K-Citymarket",
     url: "https://www.k-ruoka.fi/k-citymarket/tarjouslehti",
