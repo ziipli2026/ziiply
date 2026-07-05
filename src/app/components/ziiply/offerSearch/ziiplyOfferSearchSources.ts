@@ -66,8 +66,7 @@ export type ZiiplyOfferSearchSourceContextV8 = SKaupatOfferProviderOptionsV173 &
 
 function splitOfferMultiValueV11(value: unknown): string[] {
   return String(value ?? "")
-    .split(/\s*(?:\|\||;|
-)\s*/g)
+    .split(/\s*(?:\|\||;|\n)\s*/g)
     .map((part) => part.trim())
     .filter(Boolean);
 }
