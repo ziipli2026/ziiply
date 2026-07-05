@@ -1,9 +1,9 @@
 // src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts
-// ZIIPLY_KRUOKA_PROVIDER_V34_RUOANHINTA_SELECTED_STORE_DATEFIX
+// ZIIPLY_KRUOKA_PROVIDER_V35_RUOANHINTA_SELECTED_STORE_DATEFIX
 //
 // EI hae enää K-Ruoan product-mapia eikä HTML:ää.
 // Hakee K-tarjoukset ruoanhinta.fi:n backendistä valitun K-kaupan perusteella.
-// V34:
+// V35:
 // - poistettu pakotettu storeId=3344 varsinaisesta hausta
 // - jos Ziiplyn valittu K-storeId ei ole ruoanhinta.fi:n numeerinen storeId,
 //   provider etsii oikean storeId:n /api/stores/minimal-listasta kaupan nimen perusteella
@@ -370,7 +370,7 @@ function toOfferResult(args: {
       ? `https://www.k-ruoka.fi/kauppa/tuote/${encodeURIComponent(item.urlSlug)}`
       : "https://ruoanhinta.fi/",
     debug: {
-      providerVersion: "V34_RUOANHINTA_SELECTED_STORE_DATEFIX",
+      providerVersion: "V35_RUOANHINTA_SELECTED_STORE_DATEFIX",
       rawOffer: offer,
       sourceApi: "https://api.ruoanhinta.fi/api/offers",
       ruoanhintaStoreId: args.storeId,
@@ -428,7 +428,7 @@ export async function fetchKruokaOffers(
       return [
         asDebugResult({
           id: "99-store-not-found",
-          title: "[K DEBUG V34] Valittua K-kauppaa ei löytynyt Ruoanhinta-listasta",
+          title: "[K DEBUG V35] Valittua K-kauppaa ei löytynyt Ruoanhinta-listasta",
           detail: resolved.reason ?? `selected=${selectedStoreId ?? "NULL"}, name=${selectedStoreName}`,
           storeId: selectedStoreId ?? null,
           storeName: selectedStoreName,
@@ -437,15 +437,16 @@ export async function fetchKruokaOffers(
       ];
     }
 
+    const apiStoreId = String(resolved.storeId);
     const storeName = resolved.matchedStoreName || selectedStoreName;
-    const rawOffers = await fetchRuoanHintaOffers(resolved.storeId);
+    const rawOffers = await fetchRuoanHintaOffers(apiStoreId);
     const filtered = rawOffers.filter((offer) => matchesQuery(offer, query));
 
     const offers = filtered.slice(0, 80).map((offer, index) =>
       toOfferResult({
         offer,
         index,
-        storeId: resolved.storeId,
+        storeId: apiStoreId,
         storeName,
       }),
     );
@@ -455,7 +456,7 @@ export async function fetchKruokaOffers(
     return [
       asDebugResult({
         id: "99-error",
-        title: "[K DEBUG V34] Ruoanhinta API virhe",
+        title: "[K DEBUG V35] Ruoanhinta API virhe",
         detail: error instanceof Error ? error.message : String(error),
         storeId: selectedStoreId ?? null,
         storeName: selectedStoreName,
