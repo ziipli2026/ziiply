@@ -1,7 +1,7 @@
 "use client";
 
 // ============================================================================
-// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V28_SINGLE_CATEGORY_TRIGGER
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V29_EXACT_CATEGORY_COUNTS
 // Revision: V28
 // Date: 2026-07-04
 //
@@ -511,27 +511,9 @@ export default function ZiiplyMobileOfferSearchCard({
       }
     }
 
-    // Second: fuzzy count-key match, e.g. "Koti ja talous",
-    // "Kodin tuotteet", "Kodintarvikkeet" or "Household".
-    // This fixes Koti disappearing when the parent count map uses a longer
-    // backend category name instead of the short UI label "Koti".
-    for (const [rawKey, rawCount] of Object.entries(categoryOfferCounts)) {
-      if (typeof rawCount !== "number" || rawCount <= 0) continue;
-
-      const normalizedKey = normalizeCategoryKey(rawKey);
-      if (!normalizedKey || matchedCountKeys.has(normalizedKey)) continue;
-
-      const matchesAlias = keys.some(
-        (key) => normalizedKey === key || normalizedKey.includes(key) || key.includes(normalizedKey),
-      );
-
-      if (matchesAlias) {
-        foundKnownCount = true;
-        total += rawCount;
-        matchedCountKeys.add(normalizedKey);
-      }
-    }
-
+    // V29: Ei fuzzy/includes-laskentaa määrille.
+    // Page antaa jo dedupatun kategoriakohtaisen count-mapin. Fuzzy-summaus paisutti määriä,
+    // kun samaan tuoteryhmään tuli kaksi kauppaa/lähdettä.
     if (foundKnownCount) return total;
     return undefined;
   };
@@ -628,7 +610,7 @@ export default function ZiiplyMobileOfferSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="V28_SINGLE_CATEGORY_TRIGGER"
+      data-ziiply-mobile-offer-search-card-version="V29_EXACT_CATEGORY_COUNTS"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
