@@ -1,5 +1,5 @@
 // src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts
-// ZIIPLY_KRUOKA_PROVIDER_V31_HTML_FIXTURE_DEBUG_NULL_SAFE
+// ZIIPLY_KRUOKA_PROVIDER_V32_HTML_FIXTURE_MASTER_QUERY_BYPASS
 //
 // DEV/fixture-debug: EI tee yhtään verkkokutsua K-Ruokaan.
 // Syy: Vercel/server fetch saa K-Ruoalta Cloudflare 403:n, ja browser-fetch Ziiply-originista voi kaatua CORSiin.
@@ -943,7 +943,7 @@ function asDebugResult(args: {
   const title = args.detail ? `${args.title} — ${args.detail}` : args.title;
 
   return {
-    id: `k-debug-v30-${args.id}`,
+    id: `k-debug-v32-${args.id}`,
     title,
     name: title,
     price: null,
@@ -978,16 +978,21 @@ function toOfferResult(args: {
   const price = toPrice(args.offer.Price ?? args.offer.DiscountPrice ?? null);
 
   return {
-    id: `kruoka-v31-fixture-${offerId}-${args.index}`,
+    id: `kruoka-v32-fixture-${offerId}-${args.index}`,
     title: name,
     name,
     price,
+    priceText: args.offer.DiscountPrice ?? (price !== null ? String(price).replace(".", ",") : null),
     unitPrice: args.offer.DiscountUnitPrice ?? null,
+    unitPriceText: args.offer.DiscountUnitPrice && args.offer.UnitPriceUnit
+      ? `${args.offer.DiscountUnitPrice}/${args.offer.UnitPriceUnit}`
+      : args.offer.AdditionalInfo ?? null,
     unitPriceUnit: args.offer.UnitPriceUnit ?? null,
     imageUrl: args.offer.Image ?? null,
     storeId: args.storeId ?? FIXTURE_STORE_ID,
     storeName: args.storeName,
-    chain: "K-Ruoka",
+    storeLabel: args.storeName,
+    chain: "K",
     source: "kruoka",
     provider: "kruoka",
     offerId,
@@ -996,6 +1001,13 @@ function toOfferResult(args: {
     brand: args.offer.Brand ?? null,
     unit: args.offer.Unit ?? null,
     additionalInfo: args.offer.AdditionalInfo ?? null,
+    benefitText: args.offer.IsPlussaOffer ? "Plussa-tarjous" : undefined,
+    validityText: args.offer.ValidUntil ? `Voimassa ${args.offer.ValidUntil}` : undefined,
+    category: "K-Ruoka tarjoukset",
+    categoryPath: "K-Ruoka tarjoukset",
+    productGroup: "K-Ruoka tarjoukset",
+    mainCategory: "K-Ruoka tarjoukset",
+    subCategory: "Tarjoukset",
     validFrom: args.offer.ValidFrom ?? null,
     validUntil: args.offer.ValidUntil ?? null,
     isPlussaOffer: Boolean(args.offer.IsPlussaOffer),
@@ -1011,7 +1023,10 @@ function toOfferResult(args: {
 
 function matchesQuery(offer: FixtureOffer, query: string): boolean {
   const q = query.trim().toLowerCase();
-  if (!q) return true;
+
+  // Göstan master-tarjoushaku käyttää sisäistä erikoishakua, ei käyttäjän tekstihakua.
+  // V31 suodatti kaikki oikeat fixture-tarjoukset pois, koska q oli esim. __ziiply_all_offers__.
+  if (!q || q.startsWith("__ziiply")) return true;
 
   const haystack = [
     offer.Id,
@@ -1040,21 +1055,21 @@ export async function fetchKruokaOffers(
   const debugCards: ZiiplyOfferSearchResult[] = [
     asDebugResult({
       id: "01-fixture-mode",
-      title: "[K DEBUG V30] fixture käytössä",
+      title: "[K DEBUG V32] fixture käytössä / master query bypass",
       detail: "ei K-Ruoka verkkokutsuja",
       storeId: wantedStoreId,
       storeName,
     }),
     asDebugResult({
       id: "02-counts",
-      title: "[K DEBUG V30] applicationState fixture OK",
+      title: "[K DEBUG V32] applicationState fixture OK",
       detail: `offers=${FIXTURE_OFFERS.length}, uniqueEans=${totalEans}, fixtureStore=${FIXTURE_STORE_ID}`,
       storeId: wantedStoreId,
       storeName,
     }),
     asDebugResult({
       id: "03-selected-store",
-      title: "[K DEBUG V30] valittu kauppa",
+      title: "[K DEBUG V32] valittu kauppa",
       detail: `wanted=${wantedStoreId ?? "NULL"}, name=${storeName}`,
       storeId: wantedStoreId,
       storeName,
