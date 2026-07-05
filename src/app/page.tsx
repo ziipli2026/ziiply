@@ -13,7 +13,7 @@
 // - Tämä estää vanhan K-ryhmän listan näkymisen S-ryhmän ketjun sisällä -haussa.
 // - Kauppoja ei kovakoodata: kaikki tulee appin nykyisistä valinnoista.
 
-// V528_GOSTA_CATEGORY_COUNTS_SORT_AND_NO_RELOAD_BACK
+// V534_GOSTA_WITHIN_CHAIN_S_CONTEXT_RESET_NO_STALE_K
 // Muutos Göstan tarjoushakuun:
 // - Paluu tuoteryhmälistaan ei enää tyhjennä offerSearchResults-listaa eikä käynnistä uutta master-hakua.
 // - Jo ladatut kategoriakohtaiset tarjousmäärät pysyvät muistissa, kun käyttäjä palaa kategoriavalikkoon.
@@ -3270,6 +3270,7 @@ export default function Page() {
   const [gostaTestedEmptyCategoriesV166, setGostaTestedEmptyCategoriesV166] = useState<Record<string, true>>({});
   const [gostaMasterOfferResultsV528, setGostaMasterOfferResultsV528] = useState<any[]>([]);
   const gostaLastSearchContextKeyRefV532 = useRef("");
+  const gostaSelectedStoresSignatureRefV534 = useRef("");
   const [offerShowingAllAreaOffersV106, setOfferShowingAllAreaOffersV106] = useState(false);
   const [chainFilter, setChainFilter] = useState<"all" | "S" | "K">("all");
   const [justAdded, setJustAdded] = useState<string | null>(null);
@@ -3278,6 +3279,47 @@ export default function Page() {
     "none" | "offers" | "compare" | "singleCompare"
   >("none");
   const gostaPanelStickyOpenRefV158 = useRef(false);
+
+  const gostaSelectedStoresSignatureV534 = [
+    storeCompareScope,
+    withinChain || "",
+    storeMode || "",
+    activeArea.label || "",
+    activeArea.sStoreId || "",
+    activeArea.sStoreName || "",
+    activeArea.sLocalStoreId || "",
+    activeArea.sLocalStoreName || "",
+    activeArea.kStoreId || "",
+    activeArea.kStoreName || "",
+    activeArea.kLocalStoreId || "",
+    activeArea.kLocalStoreName || "",
+    activeStores.sStoreId || "",
+    activeStores.sStoreName || "",
+    activeStores.kStoreId || "",
+    activeStores.kStoreName || "",
+  ].join("|");
+
+  useEffect(() => {
+    const signature = gostaSelectedStoresSignatureV534;
+    if (!signature) return;
+
+    if (!gostaSelectedStoresSignatureRefV534.current) {
+      gostaSelectedStoresSignatureRefV534.current = signature;
+      return;
+    }
+
+    if (gostaSelectedStoresSignatureRefV534.current === signature) return;
+
+    gostaSelectedStoresSignatureRefV534.current = signature;
+    gostaLastSearchContextKeyRefV532.current = "";
+    setOfferSearchResults([]);
+    setGostaMasterOfferResultsV528([]);
+    setGostaTestedEmptyCategoriesV166({});
+    setOfferSearchDoneForQuery("");
+    setOfferSearchQuerySnapshot("");
+    setOfferCardFilterV106("");
+    setOfferShowingAllAreaOffersV106(false);
+  }, [gostaSelectedStoresSignatureV534]);
   const [activeAssistant, setActiveAssistant] =
     useState<ZiiplyAssistantKey | null>(null);
   const [searchPanelOpen, setSearchPanelOpen] = useState(false);
