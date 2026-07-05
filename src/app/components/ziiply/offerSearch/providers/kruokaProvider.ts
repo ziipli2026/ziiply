@@ -1,7 +1,7 @@
 // src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts
-// ZIIPLY_KRUOKA_PROVIDER_V27_VISIBLE_STAGE_DEBUG
+// ZIIPLY_KRUOKA_PROVIDER_V28_403_BODY_DEBUG
 //
-// Debug-versio ilman Vercel-logien tarvetta.
+// Debug-versio ilman Vercel-logien tarvetta. V28 näyttää myös 403/HTML-vastauksen otsikon ja body-previewin.
 // Palauttaa debug-kortit suoraan Göstan UI:hin jokaisesta vaiheesta:
 // 1) provider käynnistyi
 // 2) mitä storeId/storeName/options tuli sisään
@@ -219,19 +219,54 @@ function buildBrochureUrls(
   ]);
 }
 
-async function fetchHtml(url: string): Promise<{ status: number; ok: boolean; text: string }> {
+async function fetchHtml(url: string): Promise<{
+  status: number;
+  ok: boolean;
+  text: string;
+  contentType: string | null;
+  server: string | null;
+  cfRay: string | null;
+  title: string | null;
+  preview: string;
+}> {
   const response = await fetch(url, {
     headers: {
       Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-      "Accept-Language": "fi-FI,fi;q=0.9",
+      "Accept-Language": "fi-FI,fi;q=0.9,en-US;q=0.8,en;q=0.7",
+      "Cache-Control": "no-cache",
+      Pragma: "no-cache",
+      "Upgrade-Insecure-Requests": "1",
+      "Sec-Fetch-Dest": "document",
+      "Sec-Fetch-Mode": "navigate",
+      "Sec-Fetch-Site": "none",
+      "Sec-Fetch-User": "?1",
       "User-Agent":
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3.1 Safari/605.1.15",
     },
     cache: "no-store",
+    redirect: "follow",
   });
 
   const text = await response.text().catch(() => "");
-  return { status: response.status, ok: response.ok, text };
+  const title = text.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]?.trim() ?? null;
+  const preview = text
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 700);
+
+  return {
+    status: response.status,
+    ok: response.ok,
+    text,
+    contentType: response.headers.get("content-type"),
+    server: response.headers.get("server"),
+    cfRay: response.headers.get("cf-ray"),
+    title,
+    preview,
+  };
 }
 
 async function fetchProductMap(args: {
@@ -292,7 +327,7 @@ function toOfferResult(args: {
   const price = args.offer.Price ?? args.offer.price ?? null;
 
   return {
-    id: `kruoka-v27-${args.storeId}-${offerId}-${args.index}`,
+    id: `kruoka-v28-${args.storeId}-${offerId}-${args.index}`,
     title: `[K TARJOUS] ${offerName}`,
     name: offerName,
     price,
@@ -350,9 +385,26 @@ export async function fetchKruokaOffers(
         `04-html-${i}`,
         `[K DEBUG 4.${i + 1}] HTML fetch`,
         `${htmlResult.status}, len=${htmlLength}, ${url.replace(KRUOKA_ORIGIN, "")}`,
+        {
+          contentType: htmlResult.contentType,
+          server: htmlResult.server,
+          cfRay: htmlResult.cfRay,
+          title: htmlResult.title,
+          preview: htmlResult.preview,
+        },
       );
 
       if (!htmlResult.ok || !htmlResult.text) {
+        addDebug(
+          `04-html-preview-${i}`,
+          `[K DEBUG 4.${i + 1}] HTML preview`,
+          `${htmlResult.title ?? "no-title"} | ${htmlResult.preview || "empty-body"}`.slice(0, 180),
+          {
+            status: htmlResult.status,
+            title: htmlResult.title,
+            preview: htmlResult.preview,
+          },
+        );
         continue;
       }
 
