@@ -151,16 +151,14 @@ const DEFAULT_SKAUPAT_STORE_ID_V156 = "513971200";
 // V181: S-kaupat public /myymala URL id is not always the same id that
 // RemoteFilteredProducts uses for product/pricing search.
 // Verified from S-kaupat Network request:
-// Prisma Varkaus public id 726015093 -> product search storeId 708276035.
+// V195: Ei yhtään kovaa kauppakohtaista id-mäppäystä. StoreId tulee vain käyttäjän valinnasta tai storeName-resolveristä.
 //
 // V184:
 // - Fixes pagination for S-kaupat RemoteFilteredProducts.
 // - S-kaupat response uses products.from/limit/total, so request must send variables.from.
 // - Do not stop pagination based on mapped offer count because early pages can contain
 //   only normal-priced rows while later pages may contain campaign rows.
-const S_PRODUCT_SEARCH_STORE_ID_MAP_V181: Record<string, string> = {
-  "726015093": "708276035",
-};
+const S_PRODUCT_SEARCH_STORE_ID_MAP_V181: Record<string, string> = {};
 
 
 export type SKaupatOfferProviderOptionsV173 = {
