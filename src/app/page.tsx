@@ -2718,7 +2718,7 @@ export default function Page() {
   const selectedStoreModeRefV302 = useRef<StoreMode>("local");
   const storeSelectionHydratedRefV343 = useRef(false);
   const storeSelectionPersistenceReadyRefV343 = useRef(false);
-  const STORE_SELECTION_STORAGE_KEY_V343 = "ziiply-store-selection-v343";
+  const STORE_SELECTION_STORAGE_KEY_V343 = "ziiply-store-selection-v536";
   const [storeCompareScope, setStoreCompareScope] =
     useState<StoreCompareScope>("between_chains");
   const [withinChain, setWithinChain] = useState<"S" | "K" | null>(null);
@@ -2763,7 +2763,7 @@ export default function Page() {
   const stableBootSnapshotHydratedRefV505 = useRef(false);
   const stableBootWarmupDoneRefV505 = useRef(false);
   const searchReadyBadgeBootArmedRefV505 = useRef(false);
-  const STABLE_BOOT_SNAPSHOT_STORAGE_KEY_V505 = "ziiply-stable-boot-snapshot-v505";
+  const STABLE_BOOT_SNAPSHOT_STORAGE_KEY_V505 = "ziiply-stable-boot-snapshot-v536";
 
   useEffect(() => {
     gpsCoordsLatestRefV137.current = gpsCoordsV320;
@@ -9773,6 +9773,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       const gostaOfferSearchContextKeyV532 = JSON.stringify({
         areaLabel: activeArea.label || "",
+        locationInput: locationInput || "",
         storeMode,
         storeCompareScope,
         withinChain,
@@ -9793,7 +9794,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
 
       const gostaOfferSearchContextV172 = {
-        areaLabel: activeArea.label || "",
+        areaLabel: activeArea.label || locationInput || "",
+        locationInput: locationInput || "",
         storeMode,
         storeCompareScope,
         withinChain,
