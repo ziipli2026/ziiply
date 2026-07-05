@@ -1,6 +1,6 @@
 // ============================================================================
-// ZIIPLY_OFFER_SEARCH_CORE_V161_MASTER_CACHE_REENABLED
-// Revision: V161
+// ZIIPLY_OFFER_SEARCH_CORE_V162_WITHIN_CHAIN_MULTI_STORE_CONTEXT
+// Revision: V162
 // Date: 2026-07-04
 //
 // Muutokset:
@@ -59,10 +59,15 @@ export type ZiiplyGostaOfferSearchContextV152 = {
   areaLabel?: string;
   storeMode?: string;
   storeCompareScope?: string;
+  withinChain?: string | null;
   sStoreId?: string | number;
   sStoreName?: string;
+  sStoreIds?: Array<string | number | null | undefined>;
+  sStoreNames?: Array<string | null | undefined>;
   kStoreId?: string | number;
   kStoreName?: string;
+  kStoreIds?: Array<string | number | null | undefined>;
+  kStoreNames?: Array<string | null | undefined>;
 };
 
 export type ZiiplyGostaOfferSearchCoreResult = {
@@ -87,6 +92,22 @@ function normalizeGostaCoreText(value: unknown) {
     .trim();
 }
 
+function normalizeGostaContextListV162(values: unknown, fallback?: unknown): string[] {
+  const rawValues = Array.isArray(values) ? values : [];
+  const splitFallback = String(fallback ?? "")
+    .split(/\s*(?:\|\||;|
+)\s*/g)
+    .map((value) => String(value ?? "").trim())
+    .filter(Boolean);
+
+  const combined = [
+    ...rawValues.map((value) => String(value ?? "").trim()).filter(Boolean),
+    ...splitFallback,
+  ];
+
+  return Array.from(new Set(combined));
+}
+
 async function parseOfferSearchResponse(response: Response) {
   const data = await response.json();
   if (!response.ok || data?.ok === false) {
@@ -102,10 +123,11 @@ function buildOfferSearchContextKeyV152(context?: ZiiplyGostaOfferSearchContextV
     context.areaLabel,
     context.storeMode,
     context.storeCompareScope,
-    context.sStoreId,
-    context.sStoreName,
-    context.kStoreId,
-    context.kStoreName,
+    context.withinChain,
+    ...normalizeGostaContextListV162(context.sStoreIds, context.sStoreId),
+    ...normalizeGostaContextListV162(context.sStoreNames, context.sStoreName),
+    ...normalizeGostaContextListV162(context.kStoreIds, context.kStoreId),
+    ...normalizeGostaContextListV162(context.kStoreNames, context.kStoreName),
   ]
     .map((value) => normalizeGostaCoreText(value))
     .filter(Boolean)
@@ -127,10 +149,17 @@ async function fetchOfferSearchResults(query: string, context?: ZiiplyGostaOffer
   if (context?.areaLabel) params.set("area", String(context.areaLabel));
   if (context?.storeMode) params.set("storeMode", String(context.storeMode));
   if (context?.storeCompareScope) params.set("scope", String(context.storeCompareScope));
-  if (context?.sStoreId) params.set("sStoreId", String(context.sStoreId));
-  if (context?.sStoreName) params.set("sStoreName", String(context.sStoreName));
-  if (context?.kStoreId) params.set("kStoreId", String(context.kStoreId));
-  if (context?.kStoreName) params.set("kStoreName", String(context.kStoreName));
+  if (context?.withinChain) params.set("withinChain", String(context.withinChain));
+
+  const sStoreIdsV162 = normalizeGostaContextListV162(context?.sStoreIds, context?.sStoreId);
+  const sStoreNamesV162 = normalizeGostaContextListV162(context?.sStoreNames, context?.sStoreName);
+  const kStoreIdsV162 = normalizeGostaContextListV162(context?.kStoreIds, context?.kStoreId);
+  const kStoreNamesV162 = normalizeGostaContextListV162(context?.kStoreNames, context?.kStoreName);
+
+  if (sStoreIdsV162.length > 0) params.set("sStoreId", sStoreIdsV162.join("||"));
+  if (sStoreNamesV162.length > 0) params.set("sStoreName", sStoreNamesV162.join("||"));
+  if (kStoreIdsV162.length > 0) params.set("kStoreId", kStoreIdsV162.join("||"));
+  if (kStoreNamesV162.length > 0) params.set("kStoreName", kStoreNamesV162.join("||"));
   params.set("_", `${Date.now()}-${Math.random().toString(36).slice(2)}`);
 
   const response = await fetch(`/api/offers/search?${params.toString()}`, {
