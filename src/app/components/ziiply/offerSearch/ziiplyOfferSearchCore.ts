@@ -95,8 +95,7 @@ function normalizeGostaCoreText(value: unknown) {
 function normalizeGostaContextListV162(values: unknown, fallback?: unknown): string[] {
   const rawValues = Array.isArray(values) ? values : [];
   const splitFallback = String(fallback ?? "")
-    .split(/\s*(?:\|\||;|
-)\s*/g)
+    .split(/\s*(?:\|\||;|\n)\s*/g)
     .map((value) => String(value ?? "").trim())
     .filter(Boolean);
 
