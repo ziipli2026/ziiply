@@ -64,9 +64,14 @@ export type ZiiplyOfferSearchSourceContextV8 = SKaupatOfferProviderOptionsV173 &
   kStoreNames?: Array<string | null | undefined> | null;
 };
 
-function splitOfferMultiValueV11(value: unknown): string[] {
-  return String(value ?? "")
-    .split(/\s*(?:\|\||;|\n)\s*/g)
+function splitOfferMultiValueV13(value: unknown): string[] {
+  const normalized = String(value ?? "")
+    .replaceAll("\r", "")
+    .replaceAll("\n", "||")
+    .replaceAll(";", "||");
+
+  return normalized
+    .split("||")
     .map((part) => part.trim())
     .filter(Boolean);
 }
@@ -76,7 +81,7 @@ function normalizeOfferStoreListV11(arrayValue: unknown, fallbackValue: unknown)
     ? arrayValue.map((value) => String(value ?? "").trim()).filter(Boolean)
     : [];
 
-  return Array.from(new Set([...fromArray, ...splitOfferMultiValueV11(fallbackValue)]));
+  return Array.from(new Set([...fromArray, ...splitOfferMultiValueV13(fallbackValue)]));
 }
 
 function hasAnyOfferStoreV11(arrayValue: unknown, fallbackValue: unknown): boolean {
