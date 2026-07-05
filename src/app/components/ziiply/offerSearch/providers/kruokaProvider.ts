@@ -1,5 +1,5 @@
 // src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts
-// ZIIPLY_KRUOKA_PROVIDER_V30_HTML_FIXTURE_DEBUG
+// ZIIPLY_KRUOKA_PROVIDER_V31_HTML_FIXTURE_DEBUG_NULL_SAFE
 //
 // DEV/fixture-debug: EI tee yhtään verkkokutsua K-Ruokaan.
 // Syy: Vercel/server fetch saa K-Ruoalta Cloudflare 403:n, ja browser-fetch Ziiply-originista voi kaatua CORSiin.
@@ -23,7 +23,7 @@ type FixtureOffer = {
   Id?: string;
   Name?: string;
   ProductName?: string;
-  Brand?: string;
+  Brand?: string | null;
   Price?: number | string | null;
   DiscountPrice?: string | null;
   AdditionalInfo?: string | null;
@@ -978,7 +978,7 @@ function toOfferResult(args: {
   const price = toPrice(args.offer.Price ?? args.offer.DiscountPrice ?? null);
 
   return {
-    id: `kruoka-v30-fixture-${offerId}-${args.index}`,
+    id: `kruoka-v31-fixture-${offerId}-${args.index}`,
     title: name,
     name,
     price,
