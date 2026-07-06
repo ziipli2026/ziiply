@@ -1,5 +1,5 @@
 // src/app/components/ziiply/offerSearch/ziiplyOfferSearchSources.ts
-// ZIIPLY_OFFER_SEARCH_SOURCES_V19_FORCE_ETARJOUS_MASTER_DEBUG
+// ZIIPLY_OFFER_SEARCH_SOURCES_V20_VISIBLE_ETARJOUS_DEBUG
 //
 // V15 korjaus:
 // - Göstan tuoteryhmähaussa tunnettu kategoria (Liha, Valmisruoka jne.) suodatetaan providerin omasta category-kentästä.
@@ -280,7 +280,7 @@ const ZIIPLY_OFFER_SOURCES = {
   },
 } satisfies Record<string, ZiiplyOfferSearchSourceConfig>;
 
-const OFFER_SEARCH_SOURCE_REVISION = "v19-force-etarjous-master-debug";
+const OFFER_SEARCH_SOURCE_REVISION = "v20-visible-etarjous-debug";
 const ENABLE_OFFER_SEARCH_CACHE = false;
 const MAX_OFFER_SEARCH_RESULTS = 1000;
 const ZIIPLY_GOSTA_MASTER_QUERY_V6 = "__ziiply_all_offers__";
@@ -386,6 +386,72 @@ function uniqueOfferResults(results: ZiiplyOfferSearchResult[]) {
   }
 
   return unique;
+}
+
+
+function buildVisibleETarjousDebugResultV20(args: {
+  query: string;
+  options?: ZiiplyOfferSearchSourceContextV8;
+  providerScope: unknown;
+  sKaupatCount: number;
+  eTarjouslehdetCount: number;
+  kCount: number;
+}): ZiiplyOfferSearchResult {
+  const anyOptions = (args.options ?? {}) as any;
+  const sStoreIds = normalizeOfferStoreListV11(anyOptions.sStoreIds, anyOptions.sStoreId ?? anyOptions.storeId);
+  const sStoreNames = normalizeOfferStoreListV11(anyOptions.sStoreNames, anyOptions.sStoreName ?? anyOptions.storeName);
+  const etIds = normalizeOfferStoreListV11(
+    anyOptions.etarjouslehdetStoreIds ?? anyOptions.eTarjouslehdetStoreIds ?? anyOptions.tjekStoreIds,
+    anyOptions.etarjouslehdetStoreId ?? anyOptions.eTarjouslehdetStoreId ?? anyOptions.tjekStoreId,
+  );
+  const etNames = normalizeOfferStoreListV11(anyOptions.etarjouslehdetStoreNames, anyOptions.sStoreName ?? anyOptions.storeName);
+  const etOptions = normalizeETarjouslehdetProviderOptionsV16(args.options);
+  const normalizedStores = ((etOptions?.stores ?? []) as any[])
+    .map((store) => `${store.storeName || "?"}:${store.etarjouslehdetStoreId || store.tjekStoreId || store.storeId || "NO_ID"}`)
+    .join(" | ") || "EMPTY";
+
+  const debugText = [
+    `MASTER:${normalizeOfferUniqueText(args.query) === normalizeOfferUniqueText(ZIIPLY_GOSTA_MASTER_QUERY_V6) ? "YES" : "NO"}`,
+    `S_IDS:${sStoreIds.join(",") || "-"}`,
+    `S_NAMES:${sStoreNames.join(" | ") || "-"}`,
+    `ET_IDS:${etIds.join(",") || "-"}`,
+    `ET_NAMES:${etNames.join(" | ") || "-"}`,
+    `ET_STORES:${normalizedStores}`,
+    `COUNTS S:${args.sKaupatCount} ET:${args.eTarjouslehdetCount} K:${args.kCount}`,
+    `SCOPE:${JSON.stringify(args.providerScope)}`,
+  ].join(" / ");
+
+  return {
+    id: `debug-etarjous-v20-${Date.now()}`,
+    source: "skaupat",
+    sourceUrl: "https://etarjouslehdet.fi/S-market",
+    chain: "S",
+    storeLabel: "DEBUG S-market",
+    storeName: "DEBUG S-market",
+    shopName: "DEBUG S-market",
+    title: "DBG V20 S-market / eTarjouslehdet näkyvä debug",
+    priceText: "0,00 €",
+    unitPriceText: "",
+    benefitText: debugText,
+    validityText: "Näkyvä debug-kortti, poista kun S-market toimii",
+    imageUrl: "",
+    image: "",
+    pictureUrl: "",
+    productUrl: "https://etarjouslehdet.fi/S-market",
+    rawText: debugText,
+    matchScore: 999999,
+    category: "debug",
+    categoryPath: "debug",
+    breadcrumbs: "debug",
+    hierarchy: "debug",
+    taxonomy: "debug",
+    department: "debug",
+    productGroup: "debug",
+    mainCategory: "debug",
+    subCategory: "debug",
+    brandName: "debug",
+    ean: `debug-etarjous-v20-${Date.now()}`,
+  } as unknown as ZiiplyOfferSearchResult;
 }
 
 async function safelySearchSource(
@@ -629,7 +695,21 @@ export async function searchZiiplyOffers(
     kCount: kResults.length,
   });
 
+  const visibleETarjousDebugResults = isGostaMasterQuery
+    ? [
+        buildVisibleETarjousDebugResultV20({
+          query: cleanQuery,
+          options,
+          providerScope: providerScopeV10,
+          sKaupatCount: sKaupatResults.length,
+          eTarjouslehdetCount: eTarjouslehdetResults.length,
+          kCount: kResults.length,
+        }),
+      ]
+    : [];
+
   const uniqueAllResults = uniqueOfferResults([
+    ...visibleETarjousDebugResults,
     ...sKaupatResults,
     ...eTarjouslehdetResults,
     ...kResults,
