@@ -1,3 +1,21 @@
+// ============================================================================
+// PAGE_V543_EXACT_V541_BASELINE_WITH_TRUST_HEADER
+// Revision: V543
+// Date: 2026-07-06
+//
+// Tämä tiedosto on tehty käyttäjän lähettämästä V541-tiedostosta:
+// page-V541-gosta-selected-stores-build-fix-null-map(3).tsx
+//
+// Muutos tässä versiossa:
+// - Lisätty selkeä revisio-/luottamusotsikko aivan tiedoston alkuun.
+// - Varsinaiseen koodiin EI ole tehty muutoksia.
+// - Vanha historiallinen revisiokommenttilista jätetään alle koskemattomana,
+//   koska se oli jo V541-pohjassa sekaisin.
+//
+// Tarkoitus:
+// - Luodaan luotettava lähtökohta ennen seuraavaa S-market/eTarjouslehdet-korjausta.
+// ============================================================================
+
 // V529_GOSTA_CATEGORY_SYNC_NO_PRECLEAR
 // Korjaus: Göstan kategoriavaihdossa ei tyhjennetä vanhoja tuloksia ennen uuden haun valmistumista.
 // Tämä estää aktiivisen tuoteryhmänapin ja tarjouslistan välisen välähdyksen/epäsynkan.
