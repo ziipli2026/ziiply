@@ -1,11 +1,11 @@
-// ZIIPLY_OFFER_SEARCH_SOURCES_V22_NO_FAKE_ETARJOUS_ROUTE
-// Pohja: käyttäjän V15 strict category query.
-// Korjaus:
+// ZIIPLY_OFFER_SEARCH_SOURCES_V23_DIRECT_ETARJOUS_PROVIDERLESS
+// Pohja: käyttäjän V15 strict category query + V21.
+// Korjaus V23:
+// - EI käytetä olematonta /api/ziiply/etarjouslehdet/offers-reittiä.
+// - S-marketin eTarjouslehdet/Tjek-haku tehdään tässä samassa serverissä suoraan.
 // - Prisma pidetään S-kaupat.fi-providerissa.
-// - S-marketit poistetaan S-kaupat.fi-providerilta, koska kaikki S-marketit eivät löydy s-kaupat.fi:stä.
-// - EI kutsuta olematonta /api/ziiply/etarjouslehdet/offers-polukua. S-market-lisäys tehdään nykyisessä /api/offers/search/route.ts-routessa.
-// - Ei kovakoodata Vehkojaa: route ratkaisee julkaisun eTarjouslehdetin S-market-fronts-datasta nimen perusteella.
-// - K-provider säilyy ennallaan.
+// - S-marketit poistetaan S-kaupat.fi-providerilta ja haetaan valittujen S-market-nimien perusteella eTarjouslehdet-fronts-datasta.
+// - Ei kovakoodata Vehkojaa. K-provider säilyy ennallaan.
 
 // src/app/components/ziiply/offerSearch/ziiplyOfferSearchSources.ts
 // ZIIPLY_OFFER_SEARCH_SOURCES_V15_STRICT_CATEGORY_QUERY_NO_RERANK_CATEGORY
@@ -160,10 +160,14 @@ const ZIIPLY_OFFER_SOURCES = {
   },
 } satisfies Record<string, ZiiplyOfferSearchSourceConfig>;
 
-const OFFER_SEARCH_SOURCE_REVISION = "v22-no-fake-etarjous-route";
+const OFFER_SEARCH_SOURCE_REVISION = "v23-direct-etarjous";
 const ENABLE_OFFER_SEARCH_CACHE = false;
 const MAX_OFFER_SEARCH_RESULTS = 1000;
 const ZIIPLY_GOSTA_MASTER_QUERY_V6 = "__ziiply_all_offers__";
+
+const ETARJOUSLEHDET_BATCH_URL_V23 = "https://etarjouslehdet.fi/";
+const TJEK_RPC_URL_V23 = "https://squid-api.tjek.com/v4/rpc";
+type ETUnknownRecordV23 = Record<string, unknown>;
 
 // V8: master query is passed directly to provider; provider handles DISCOUNTED filter.
 
@@ -396,7 +400,7 @@ function normalizeSKaupatProviderOptionsPrismaOnlyV21(
     const name = names[index] || "";
 
     // S-kaupat.fi-provider saa jatkossa S-puolelta vain Prismat.
-    // S-marketit menevät eTarjouslehdet-routeen.
+    // S-marketit menevät V23:n suoraan eTarjouslehdet/Tjek-hakuun.
     if (isSMarketOfferStoreNameV21(name)) continue;
     if (isPrismaOfferStoreNameV21(name) || id) {
       nextIds.push(id);
@@ -420,8 +424,423 @@ function getSelectedSMarketNamesV21(options?: ZiiplyOfferSearchSourceContextV8):
   return Array.from(new Set(names.filter(isSMarketOfferStoreNameV21)));
 }
 
-// V22: Ei omaa eTarjouslehdet-fetchiä tässä tiedostossa.
-// S-market-tarjoukset lisätään olemassa olevassa /api/offers/search/route.ts-routessa.
+function etAsRecordV23(value: unknown): ETUnknownRecordV23 | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as ETUnknownRecordV23)
+    : null;
+}
+
+function etFirstStringV23(...values: unknown[]): string {
+  for (const value of values) {
+    if (value == null) continue;
+    if (typeof value === "string" || typeof value === "number") {
+      const text = String(value).trim();
+      if (text) return text;
+      continue;
+    }
+
+    const record = etAsRecordV23(value);
+    if (record) {
+      const text = etFirstStringV23(record.name, record.title, record.label, record.displayName, record.id, record.value);
+      if (text) return text;
+    }
+  }
+  return "";
+}
+
+function etEncodeQueryKeyV23(value: unknown): string {
+  return Buffer.from(JSON.stringify(value), "utf8").toString("base64");
+}
+
+function etDecodeQueryKeyV23(value: unknown): string {
+  try {
+    return Buffer.from(String(value || ""), "base64").toString("utf8");
+  } catch {
+    return "";
+  }
+}
+
+async function etPostQueriesV23(queries: unknown[]): Promise<ETUnknownRecordV23[]> {
+  const response = await fetch(ETARJOUSLEHDET_BATCH_URL_V23, {
+    method: "POST",
+    headers: {
+      accept: "application/json, text/plain, */*",
+      "content-type": "application/json",
+      "user-agent":
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3.1 Safari/605.1.15",
+      referer: "https://etarjouslehdet.fi/S-market",
+      origin: "https://etarjouslehdet.fi",
+    },
+    body: JSON.stringify({ data: queries.map(etEncodeQueryKeyV23) }),
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error(`eTarjouslehdet batch failed: ${response.status}`);
+  }
+
+  const text = await response.text();
+  return text
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => JSON.parse(line) as ETUnknownRecordV23);
+}
+
+function etGetBatchValueV23(results: ETUnknownRecordV23[], queryName: string): unknown {
+  const result = results.find((entry) => etDecodeQueryKeyV23(entry.key).includes(`"${queryName}"`));
+  return result?.value;
+}
+
+function etPublicationMatchesStoreNameV23(publication: ETUnknownRecordV23, storeName: string): boolean {
+  const label = normalizeOfferUniqueText(
+    etFirstStringV23(publication.label, publication.name, publication.title, publication.publicationName),
+  );
+  const wanted = normalizeOfferUniqueText(storeName);
+  if (!label || !wanted) return false;
+
+  if (label === wanted) return true;
+  if (label.includes(wanted) || wanted.includes(label)) return true;
+
+  const wantedWithoutChain = wanted.replace(/^s\s*market\s+/, "").replace(/^s-market\s+/, "").trim();
+  const labelWithoutChain = label.replace(/^s\s*market\s+/, "").replace(/^s-market\s+/, "").trim();
+
+  return Boolean(
+    wantedWithoutChain &&
+      labelWithoutChain &&
+      (labelWithoutChain.includes(wantedWithoutChain) || wantedWithoutChain.includes(labelWithoutChain)),
+  );
+}
+
+async function etResolveSMarketPublicationsV23(storeNames: string[]) {
+  const results = await etPostQueriesV23([
+    ["fronts", { businessSlugs: ["S-market"] }],
+  ]);
+
+  const fronts = etGetBatchValueV23(results, "fronts");
+  const publications = Array.isArray(fronts)
+    ? fronts.flatMap((front) => {
+        const record = etAsRecordV23(front);
+        return Array.isArray(record?.publications) ? record.publications : [];
+      })
+    : [];
+
+  return storeNames
+    .map((storeName) => {
+      const publication = publications
+        .map(etAsRecordV23)
+        .filter(Boolean)
+        .find((entry) => etPublicationMatchesStoreNameV23(entry as ETUnknownRecordV23, storeName)) as ETUnknownRecordV23 | undefined;
+
+      if (!publication) return null;
+
+      return {
+        storeName,
+        publicationId: etFirstStringV23(publication.id, publication.publicId),
+        publicationName: etFirstStringV23(publication.label, publication.name, storeName),
+        validFrom: etFirstStringV23(publication.validFrom),
+        validUntil: etFirstStringV23(publication.validUntil),
+      };
+    })
+    .filter(Boolean) as Array<{
+      storeName: string;
+      publicationId: string;
+      publicationName: string;
+      validFrom: string;
+      validUntil: string;
+    }>;
+}
+
+async function etGeneratePublicationV23(publicationId: string): Promise<ETUnknownRecordV23 | null> {
+  const response = await fetch(`${TJEK_RPC_URL_V23}/generate_incito_from_publication`, {
+    method: "POST",
+    headers: {
+      accept: "application/json",
+      "content-type": "application/json",
+      origin: "https://etarjouslehdet.fi",
+      referer: "https://etarjouslehdet.fi/",
+    },
+    body: JSON.stringify({
+      id: publicationId,
+      device_category: "desktop",
+      pointer: "fine",
+      orientation: "horizontal",
+      pixel_ratio: 2,
+      max_width: 1400,
+      viewport_width: 1400,
+      viewport_height: 900,
+      versions_supported: ["1.0.0"],
+      locale_code: "fi-FI",
+      time: new Date().toISOString(),
+      feature_labels: [],
+    }),
+    cache: "no-store",
+  });
+
+  if (!response.ok) throw new Error(`Tjek publication failed: ${response.status}`);
+  return etAsRecordV23(await response.json());
+}
+
+function etCollectOfferIdsV23(value: unknown): string[] {
+  const ids: string[] = [];
+
+  function walk(node: unknown) {
+    const record = etAsRecordV23(node);
+    if (!record) return;
+
+    const id = etFirstStringV23(record.id);
+    if (/^\d{6,}/.test(id)) ids.push(id);
+
+    const children = Array.isArray(record.child_views) ? record.child_views : [];
+    for (const child of children) walk(child);
+  }
+
+  walk(value);
+  return Array.from(new Set(ids));
+}
+
+function etCollectSectionsV23(publication: ETUnknownRecordV23) {
+  const toc = Array.isArray(publication.table_of_contents) ? publication.table_of_contents : [];
+  const titleById = new Map<string, string>();
+
+  for (const entry of toc) {
+    const record = etAsRecordV23(entry);
+    const id = etFirstStringV23(record?.view_id, record?.id);
+    const title = etFirstStringV23(record?.title, record?.label);
+    if (id) titleById.set(id, title);
+  }
+
+  const root = etAsRecordV23(publication.root_view);
+  const pages = Array.isArray(root?.child_views) ? root.child_views : [];
+
+  return pages
+    .map((page, pageIndex) => {
+      let sectionId = "";
+
+      function findSectionId(node: unknown) {
+        if (sectionId) return;
+        const record = etAsRecordV23(node);
+        if (!record) return;
+
+        const id = etFirstStringV23(record.id);
+        if (id && titleById.has(id)) {
+          sectionId = id;
+          return;
+        }
+
+        const children = Array.isArray(record.child_views) ? record.child_views : [];
+        for (const child of children) findSectionId(child);
+      }
+
+      findSectionId(page);
+
+      return {
+        sectionId,
+        title: titleById.get(sectionId) || "Muut",
+        pageNumber: pageIndex + 1,
+        pageCount: pages.length,
+        offerIds: etCollectOfferIdsV23(page),
+      };
+    })
+    .filter((section) => section.sectionId && section.offerIds.length > 0);
+}
+
+async function etGenerateSectionV23(
+  publicationId: string,
+  section: { sectionId: string; pageNumber: number; pageCount: number; offerIds: string[] },
+) {
+  const response = await fetch(`${TJEK_RPC_URL_V23}/generate_incito_from_publication_section`, {
+    method: "POST",
+    headers: {
+      accept: "application/json",
+      "content-type": "application/json",
+      origin: "https://etarjouslehdet.fi",
+      referer: "https://etarjouslehdet.fi/",
+    },
+    body: JSON.stringify({
+      id: publicationId,
+      section_id: section.sectionId,
+      page_number: section.pageNumber,
+      page_count: section.pageCount,
+      offer_ids: section.offerIds,
+      a_offer_ids: [],
+      pixel_ratio: 2,
+      scale: 0.6,
+      modest_branding: false,
+    }),
+    cache: "no-store",
+  });
+
+  if (!response.ok) return null;
+  return etAsRecordV23(await response.json());
+}
+
+function etFindOfferNodesV23(value: unknown): ETUnknownRecordV23[] {
+  const found: ETUnknownRecordV23[] = [];
+
+  function walk(node: unknown) {
+    const record = etAsRecordV23(node);
+    if (!record) return;
+
+    if (etFirstStringV23(record.role) === "offer" && etFirstStringV23(record.accessibility_label)) {
+      found.push(record);
+    }
+
+    const children = Array.isArray(record.child_views) ? record.child_views : [];
+    for (const child of children) walk(child);
+  }
+
+  walk(value);
+  return found;
+}
+
+function etParseOfferLabelV23(label: string) {
+  const match = String(label || "").match(/^(.*?),\s*EUR\s*([\d,.]+)\s*$/i);
+  if (!match) return { title: String(label || "").trim(), priceText: "" };
+
+  return {
+    title: match[1].trim(),
+    priceText: `${Number(match[2].replace(",", ".")).toFixed(2).replace(".", ",")} €`,
+  };
+}
+
+function etClassifyCategoryV23(title: string, sectionTitle: string) {
+  const text = normalizeOfferUniqueText(`${title} ${sectionTitle}`);
+  if (/kahvi|espresso|juhla mokka|presidentti|kulta katriina/.test(text)) return "Kahvi";
+  if (/maito|juusto|jogurtti|jogurt|rahka|kerma|voi|raejuusto|viili|piima/.test(text)) return "Maitotuotteet";
+  if (/lohi|kirjolohi|kala|tonnikala|silakka|seiti|ahven|siika|katkarapu|rapu/.test(text)) return "Kala";
+  if (/jauheliha|nauta|porsas|possu|broileri|kana|kalkkuna|makkara|nakki|pekoni|kinkku|liha/.test(text)) return "Liha";
+  if (/leipa|leipä|sampyla|sämpylä|pull|pitko|croissant|karjalanpiirakka|ruis|patonki/.test(text)) return "Leipomo";
+  if (/tomaatti|kurkku|salaatti|omena|banaani|appelsiini|peruna|sipuli|porkkana|marja|hedel|vihanne|kasvis|kaali|paprika/.test(text)) return "Hevi";
+  if (/limu|juoma|mehu|vesi|vichy|energiajuoma|olut|siideri|cola|maitojuoma/.test(text)) return "Juomat";
+  if (/pakaste|jaatelo|jäätelö|pakastettu/.test(text)) return "Pakasteet";
+  if (/valmis|ateria|pizza|keitto|salaattiateria|mikro/.test(text)) return "Valmisruoka";
+  if (/pasta|riisi|jauho|hiutale|muro|mysli|sailyke|säilyke|kastike|öljy|oljy|mauste/.test(text)) return "Kuivatuotteet";
+  if (/kark|makeis|suklaa|keksi|lakritsi|salmiakki|purukumi/.test(text)) return "Makeiset & keksit";
+  if (/koira|kissa|lemmik/.test(text)) return "Lemmikit";
+  if (/pesu|pyykin|tisk|talouspaperi|wc-paperi|koti|siivous|vaippa/.test(text)) return "Koti";
+  return "Muut";
+}
+
+function etOfferMatchesQueryV23(query: string, offer: ETUnknownRecordV23) {
+  const q = normalizeOfferUniqueText(query);
+  if (!q || q === normalizeOfferUniqueText(ZIIPLY_GOSTA_MASTER_QUERY_V6)) return true;
+
+  const haystack = normalizeOfferUniqueText([offer.title, offer.category, offer.rawText].join(" "));
+  return q.split(/\s+/).filter(Boolean).every((word) => haystack.includes(word));
+}
+
+function etMapOfferNodeV23(args: {
+  node: ETUnknownRecordV23;
+  storeName: string;
+  publicationId: string;
+  publicationName: string;
+  validUntil: string;
+  sectionTitle: string;
+  query: string;
+  index: number;
+}): ZiiplyOfferSearchResult | null {
+  const label = etFirstStringV23(args.node.accessibility_label);
+  const parsed = etParseOfferLabelV23(label);
+  if (!parsed.title) return null;
+
+  const rawId = etFirstStringV23(args.node.id, `etarjous-${args.index}`);
+  const ean = rawId.replace(/__.*$/, "");
+  const category = etClassifyCategoryV23(parsed.title, args.sectionTitle);
+  const rawText = [parsed.title, parsed.priceText, args.sectionTitle, category, args.storeName].join(" ");
+
+  const result = {
+    id: `etarjous-${args.publicationId}-${rawId}`,
+    source: "etarjouslehdet",
+    sourceUrl: "https://etarjouslehdet.fi/S-market",
+    chain: "S-market",
+    storeLabel: args.storeName,
+    storeName: args.storeName,
+    shopName: args.storeName,
+    title: parsed.title,
+    name: parsed.title,
+    productName: parsed.title,
+    priceText: parsed.priceText,
+    price: parsed.priceText,
+    offerPrice: parsed.priceText,
+    unitPriceText: "",
+    benefitText: "Tarjouslehti",
+    discountText: "Tarjouslehti",
+    validityText: args.validUntil ? `Voimassa ${args.validUntil.slice(0, 10)}` : "",
+    imageUrl: "",
+    image: "",
+    pictureUrl: "",
+    productUrl: "https://etarjouslehdet.fi/S-market",
+    rawText,
+    matchScore: 100,
+    category,
+    categoryPath: category,
+    breadcrumbs: category,
+    hierarchy: category,
+    taxonomy: category,
+    department: category,
+    productGroup: category,
+    mainCategory: category,
+    subCategory: category,
+    brandName: "",
+    ean,
+    publicationName: args.publicationName,
+  } as unknown as ZiiplyOfferSearchResult;
+
+  if (!etOfferMatchesQueryV23(args.query, result as unknown as ETUnknownRecordV23)) return null;
+  return result;
+}
+
+async function searchSelectedSMarketETarjouslehdetOffersV23(
+  query: string,
+  options?: ZiiplyOfferSearchSourceContextV8,
+): Promise<ZiiplyOfferSearchResult[]> {
+  const storeNames = getSelectedSMarketNamesV21(options);
+  if (storeNames.length === 0) return [];
+
+  const publications = await etResolveSMarketPublicationsV23(storeNames);
+  const allResults: ZiiplyOfferSearchResult[] = [];
+
+  if (typeof console !== "undefined") {
+    console.warn("[Ziiply offers V23 eTarjouslehdet] resolved publications", {
+      query,
+      storeNames,
+      publications,
+    });
+  }
+
+  for (const publicationMeta of publications) {
+    if (!publicationMeta.publicationId) continue;
+
+    const publication = await etGeneratePublicationV23(publicationMeta.publicationId);
+    if (!publication) continue;
+
+    const sections = etCollectSectionsV23(publication);
+
+    for (const section of sections) {
+      const sectionData = await etGenerateSectionV23(publicationMeta.publicationId, section);
+      if (!sectionData) continue;
+
+      const nodes = etFindOfferNodesV23(sectionData);
+      for (let index = 0; index < nodes.length; index += 1) {
+        const mapped = etMapOfferNodeV23({
+          node: nodes[index],
+          storeName: publicationMeta.storeName || publicationMeta.publicationName,
+          publicationId: publicationMeta.publicationId,
+          publicationName: publicationMeta.publicationName,
+          validUntil: publicationMeta.validUntil,
+          sectionTitle: section.title,
+          query,
+          index,
+        });
+
+        if (mapped) allResults.push(mapped);
+      }
+    }
+  }
+
+  return allResults;
+}
 
 export async function searchSKaupatOffers(
   query: string,
@@ -488,7 +907,7 @@ export async function searchZiiplyOffers(
   const providerScopeV10 = getProviderScopeV10(options);
 
   if (typeof console !== "undefined") {
-    console.warn("[Ziiply offers V10 provider scope]", {
+    console.warn("[Ziiply offers V23 provider scope]", {
       query: cleanQuery,
       storeCompareScope: options?.storeCompareScope,
       withinChain: (options as any)?.withinChain,
@@ -503,14 +922,16 @@ export async function searchZiiplyOffers(
   const sKaupatResults = providerScopeV10.useS
     ? await safelySearchSource(
         isGostaMasterQuery ? "S-kaupat master V10" : "S-kaupat V10",
-        () => searchSelectedSKaupatOffersV11(cleanQuery, options),
+        () => searchSelectedSKaupatOffersV11(cleanQuery, providerOptions),
       )
     : [];
 
-  // V22: S-market/eTarjouslehdet EI kulje enää olemattoman oman API-reitin kautta.
-  // Nykyinen route src/app/api/offers/search/route.ts lisää S-market-tulokset
-  // tämän searchZiiplyOffers()-palautuksen rinnalle.
-  const eTarjouslehdetResults: ZiiplyOfferSearchResult[] = [];
+  const eTarjouslehdetResults = providerScopeV10.useS
+    ? await safelySearchSource(
+        isGostaMasterQuery ? "S-market eTarjouslehdet master V23" : "S-market eTarjouslehdet V23",
+        () => searchSelectedSMarketETarjouslehdetOffersV23(cleanQuery, options),
+      )
+    : [];
 
   const kResults = providerScopeV10.useK && hasSelectedKStoreV9
     ? await safelySearchSource(
