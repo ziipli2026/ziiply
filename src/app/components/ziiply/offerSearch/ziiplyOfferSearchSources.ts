@@ -1,5 +1,5 @@
 // src/app/components/ziiply/offerSearch/ziiplyOfferSearchSources.ts
-// ZIIPLY_OFFER_SEARCH_SOURCES_V17_ETARJOUS_DEBUG
+// ZIIPLY_OFFER_SEARCH_SOURCES_V18_MASTER_ONLY_ETARJOUS_DEBUG
 //
 // V15 korjaus:
 // - Göstan tuoteryhmähaussa tunnettu kategoria (Liha, Valmisruoka jne.) suodatetaan providerin omasta category-kentästä.
@@ -280,7 +280,7 @@ const ZIIPLY_OFFER_SOURCES = {
   },
 } satisfies Record<string, ZiiplyOfferSearchSourceConfig>;
 
-const OFFER_SEARCH_SOURCE_REVISION = "v17-etarjous-debug";
+const OFFER_SEARCH_SOURCE_REVISION = "v18-etarjous-master-only-debug";
 const ENABLE_OFFER_SEARCH_CACHE = false;
 const MAX_OFFER_SEARCH_RESULTS = 1000;
 const ZIIPLY_GOSTA_MASTER_QUERY_V6 = "__ziiply_all_offers__";
@@ -541,7 +541,7 @@ export async function searchSelectedETarjouslehdetOffersV16(
 ) {
   const etarjousOptions = normalizeETarjouslehdetProviderOptionsV16(options);
 
-  console.warn("[ETARJOUS DEBUG V17 sources] normalized options", {
+  console.warn("[ETARJOUS DEBUG V18 sources] normalized options", {
     query,
     incomingSStoreId: options?.sStoreId,
     incomingSStoreName: options?.sStoreName,
@@ -582,7 +582,7 @@ export async function searchZiiplyOffers(
   const providerScopeV10 = getProviderScopeV10(options);
 
   if (typeof console !== "undefined") {
-    console.warn("[Ziiply offers V17 provider scope DEBUG]", {
+    console.warn("[Ziiply offers V18 provider scope DEBUG]", {
       query: cleanQuery,
       storeCompareScope: options?.storeCompareScope,
       withinChain: (options as any)?.withinChain,
@@ -605,9 +605,11 @@ export async function searchZiiplyOffers(
       )
     : [];
 
-  const eTarjouslehdetResults = providerScopeV10.useS
+  // V18: eTarjouslehdet/Tjek ajetaan VAIN Göstan aktiiviset tarjoukset -masterhaussa.
+  // Ei tekstikenttähaussa, koska Gösta ei hae S-market-tarjouslehteä vapaalla tekstillä.
+  const eTarjouslehdetResults = isGostaMasterQuery && providerScopeV10.useS
     ? await safelySearchSource(
-        isGostaMasterQuery ? "eTarjouslehdet master V16" : "eTarjouslehdet V16",
+        "eTarjouslehdet master V18 DEBUG",
         () => searchSelectedETarjouslehdetOffersV16(cleanQuery, options),
       )
     : [];
@@ -619,7 +621,7 @@ export async function searchZiiplyOffers(
       )
     : [];
 
-  console.warn("[ETARJOUS DEBUG V17 counts]", {
+  console.warn("[ETARJOUS DEBUG V18 counts]", {
     query: cleanQuery,
     sKaupatCount: sKaupatResults.length,
     eTarjouslehdetCount: eTarjouslehdetResults.length,
