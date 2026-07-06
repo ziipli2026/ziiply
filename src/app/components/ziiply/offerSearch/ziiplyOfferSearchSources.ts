@@ -34,6 +34,10 @@ import type {
 import { fetchKruokaOffers, type KruokaOfferProviderOptionsV10 } from "./providers/kruokaProvider";
 import { fetchSKaupatOffers, type SKaupatOfferProviderOptionsV173 } from "./providers/skaupatProvider";
 import {
+  fetchETarjouslehdetOffers,
+  type ETarjouslehdetProviderOptions,
+} from "./providers/etarjouslehdetProvider";
+import {
   getCachedOfferResults,
   setCachedOfferResults,
 } from "./ziiplyOfferSearchCache";
@@ -53,7 +57,7 @@ export type {
   ZiiplyOfferSource,
 } from "./types";
 
-export type ZiiplyOfferSearchSourceContextV8 = SKaupatOfferProviderOptionsV173 & KruokaOfferProviderOptionsV10 & {
+export type ZiiplyOfferSearchSourceContextV8 = SKaupatOfferProviderOptionsV173 & KruokaOfferProviderOptionsV10 & ETarjouslehdetProviderOptions & {
   areaLabel?: string | null;
   storeMode?: string | null;
   storeCompareScope?: string | null;
@@ -63,6 +67,13 @@ export type ZiiplyOfferSearchSourceContextV8 = SKaupatOfferProviderOptionsV173 &
   sStoreName?: string | null;
   sStoreIds?: Array<string | number | null | undefined> | null;
   sStoreNames?: Array<string | null | undefined> | null;
+  etarjouslehdetStoreId?: string | null;
+  eTarjouslehdetStoreId?: string | null;
+  tjekStoreId?: string | null;
+  etarjouslehdetStoreIds?: Array<string | null | undefined> | null;
+  eTarjouslehdetStoreIds?: Array<string | null | undefined> | null;
+  tjekStoreIds?: Array<string | null | undefined> | null;
+  etarjouslehdetStoreNames?: Array<string | null | undefined> | null;
   kStoreId?: string | number | null;
   kStoreName?: string | null;
   kStoreIds?: Array<string | number | null | undefined> | null;
@@ -109,6 +120,118 @@ function normalizeSKaupatProviderOptionsV8(
 }
 
 
+function isSMarketStoreNameV16(value: unknown) {
+  const name = normalizeOfferUniqueText(value);
+  return name.includes("s market") || name.includes("smarket");
+}
+
+function normalizeSKaupatProviderOptionsWithoutSMarketsV16(
+  options?: ZiiplyOfferSearchSourceContextV8,
+): SKaupatOfferProviderOptionsV173 | undefined {
+  const base = normalizeSKaupatProviderOptionsV8(options);
+  if (!base || !options) return base;
+
+  const ids = normalizeOfferStoreListV11(options?.sStoreIds, options?.sStoreId ?? options?.storeId);
+  const names = normalizeOfferStoreListV11(options?.sStoreNames, options?.sStoreName ?? options?.storeName);
+  const maxLength = Math.max(ids.length, names.length);
+
+  if (maxLength === 0) return base;
+
+  const keptIds: string[] = [];
+  const keptNames: string[] = [];
+
+  for (let index = 0; index < maxLength; index += 1) {
+    const storeId = ids[index] || "";
+    const storeName = names[index] || "";
+
+    // Prisma jää AINA S-kaupat.fi-hakuun. S-marketit poistetaan tästä providerista,
+    // koska ne haetaan erillisellä eTarjouslehdet/Tjek-providerilla.
+    if (isSMarketStoreNameV16(storeName)) continue;
+
+    keptIds.push(storeId);
+    keptNames.push(storeName);
+  }
+
+  if (keptIds.length === 0 && keptNames.length === 0) {
+    return {
+      ...base,
+      storeId: null,
+      storeName: null,
+      sStoreId: null,
+      sStoreName: null,
+      storeIds: [],
+      storeNames: [],
+      sStoreIds: [],
+      sStoreNames: [],
+      stores: [],
+    };
+  }
+
+  return {
+    ...base,
+    storeId: keptIds[0] || null,
+    storeName: keptNames[0] || null,
+    sStoreId: keptIds[0] || null,
+    sStoreName: keptNames[0] || null,
+    storeIds: keptIds,
+    storeNames: keptNames,
+    sStoreIds: keptIds,
+    sStoreNames: keptNames,
+    stores: keptIds.map((storeId, index) => ({
+      storeId,
+      storeName: keptNames[index] || null,
+      sStoreId: storeId,
+      sStoreName: keptNames[index] || null,
+    })),
+  };
+}
+
+function normalizeETarjouslehdetProviderOptionsV16(
+  options?: ZiiplyOfferSearchSourceContextV8,
+): ETarjouslehdetProviderOptions | undefined {
+  if (!options) return undefined;
+
+  const ids = normalizeOfferStoreListV11(
+    options?.etarjouslehdetStoreIds ?? options?.eTarjouslehdetStoreIds ?? options?.tjekStoreIds,
+    options?.etarjouslehdetStoreId ?? options?.eTarjouslehdetStoreId ?? options?.tjekStoreId,
+  );
+  const names = normalizeOfferStoreListV11(
+    options?.etarjouslehdetStoreNames,
+    options?.sStoreName ?? options?.storeName,
+  );
+  const sNames = normalizeOfferStoreListV11(options?.sStoreNames, options?.sStoreName ?? options?.storeName);
+  const maxLength = Math.max(ids.length, names.length, sNames.length);
+
+  const stores = [];
+
+  for (let index = 0; index < maxLength; index += 1) {
+    const etarjouslehdetStoreId = ids[index] || "";
+    const storeName = names[index] || sNames[index] || "";
+
+    if (!etarjouslehdetStoreId) continue;
+    if (storeName && !isSMarketStoreNameV16(storeName)) continue;
+
+    stores.push({
+      storeId: etarjouslehdetStoreId,
+      storeName: storeName || "S-market",
+      etarjouslehdetStoreId,
+      eTarjouslehdetStoreId: etarjouslehdetStoreId,
+      tjekStoreId: etarjouslehdetStoreId,
+      chain: "S-market",
+    });
+  }
+
+  return {
+    ...options,
+    stores,
+    etarjouslehdetStoreId: ids[0] || null,
+    eTarjouslehdetStoreId: ids[0] || null,
+    tjekStoreId: ids[0] || null,
+    storeName: names[0] || sNames[0] || options.storeName || null,
+  };
+}
+
+
 function normalizeKruokaProviderOptionsV9(
   options?: ZiiplyOfferSearchSourceContextV8,
 ): KruokaOfferProviderOptionsV10 | undefined {
@@ -148,6 +271,12 @@ const ZIIPLY_OFFER_SOURCES = {
     chain: "S",
     storeLabel: "S-kaupat",
     url: "https://www.s-kaupat.fi/tuotteet/kampanjat",
+  },
+  etarjouslehdet: {
+    id: "skaupat",
+    chain: "S",
+    storeLabel: "S-market",
+    url: "https://etarjouslehdet.fi/S-market",
   },
 } satisfies Record<string, ZiiplyOfferSearchSourceConfig>;
 
@@ -372,12 +501,13 @@ export async function searchSelectedSKaupatOffersV11(
   query: string,
   options?: ZiiplyOfferSearchSourceContextV8,
 ) {
-  const ids = normalizeOfferStoreListV11(options?.sStoreIds, options?.sStoreId ?? options?.storeId);
-  const names = normalizeOfferStoreListV11(options?.sStoreNames, options?.sStoreName ?? options?.storeName);
+  const skaupatOptions = normalizeSKaupatProviderOptionsWithoutSMarketsV16(options);
+  const ids = normalizeOfferStoreListV11(skaupatOptions?.sStoreIds, skaupatOptions?.sStoreId ?? skaupatOptions?.storeId);
+  const names = normalizeOfferStoreListV11(skaupatOptions?.sStoreNames, skaupatOptions?.sStoreName ?? skaupatOptions?.storeName);
   const maxLength = Math.max(ids.length, names.length);
 
   if (maxLength <= 1) {
-    return searchSKaupatOffers(query, normalizeSKaupatProviderOptionsV8(options));
+    return searchSKaupatOffers(query, skaupatOptions);
   }
 
   const allResults: ZiiplyOfferSearchResult[] = [];
@@ -392,7 +522,7 @@ export async function searchSelectedSKaupatOffersV11(
     seenStores.add(key);
 
     const storeResults = await searchSKaupatOffers(query, {
-      ...(normalizeSKaupatProviderOptionsV8(options) as any),
+      ...(skaupatOptions as any),
       storeId: storeId || null,
       storeName: storeName || null,
       sStoreId: storeId || null,
@@ -405,6 +535,20 @@ export async function searchSelectedSKaupatOffersV11(
   return allResults;
 }
 
+export async function searchSelectedETarjouslehdetOffersV16(
+  query: string,
+  options?: ZiiplyOfferSearchSourceContextV8,
+) {
+  const etarjousOptions = normalizeETarjouslehdetProviderOptionsV16(options);
+  if (!etarjousOptions?.stores || etarjousOptions.stores.length === 0) return [];
+
+  return fetchETarjouslehdetOffers(
+    query,
+    ZIIPLY_OFFER_SOURCES.etarjouslehdet,
+    etarjousOptions,
+  );
+}
+
 export async function searchZiiplyOffers(
   query: string,
   options?: ZiiplyOfferSearchSourceContextV8,
@@ -415,7 +559,7 @@ export async function searchZiiplyOffers(
 
   const isGostaMasterQuery = normalizeOfferUniqueText(cleanQuery) === normalizeOfferUniqueText(ZIIPLY_GOSTA_MASTER_QUERY_V6);
 
-  const providerOptions = normalizeSKaupatProviderOptionsV8(options);
+  const providerOptions = normalizeSKaupatProviderOptionsWithoutSMarketsV16(options);
   const kProviderOptions = normalizeKruokaProviderOptionsV9(options);
   const hasSelectedKStoreV9 = Boolean(kProviderOptions?.storeId || kProviderOptions?.kStoreId);
 
@@ -445,6 +589,13 @@ export async function searchZiiplyOffers(
       )
     : [];
 
+  const eTarjouslehdetResults = providerScopeV10.useS
+    ? await safelySearchSource(
+        isGostaMasterQuery ? "eTarjouslehdet master V16" : "eTarjouslehdet V16",
+        () => searchSelectedETarjouslehdetOffersV16(cleanQuery, options),
+      )
+    : [];
+
   const kResults = providerScopeV10.useK && hasSelectedKStoreV9
     ? await safelySearchSource(
         isGostaMasterQuery ? "K-Ruoka master V10" : "K-Ruoka V10",
@@ -454,6 +605,7 @@ export async function searchZiiplyOffers(
 
   const uniqueAllResults = uniqueOfferResults([
     ...sKaupatResults,
+    ...eTarjouslehdetResults,
     ...kResults,
   ]);
 
