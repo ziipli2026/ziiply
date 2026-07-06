@@ -1,5 +1,5 @@
 // src/app/components/ziiply/offerSearch/ziiplyOfferSearchSources.ts
-// ZIIPLY_OFFER_SEARCH_SOURCES_V15_STRICT_CATEGORY_QUERY_NO_RERANK_CATEGORY
+// ZIIPLY_OFFER_SEARCH_SOURCES_V17_ETARJOUS_DEBUG
 //
 // V15 korjaus:
 // - Göstan tuoteryhmähaussa tunnettu kategoria (Liha, Valmisruoka jne.) suodatetaan providerin omasta category-kentästä.
@@ -280,7 +280,7 @@ const ZIIPLY_OFFER_SOURCES = {
   },
 } satisfies Record<string, ZiiplyOfferSearchSourceConfig>;
 
-const OFFER_SEARCH_SOURCE_REVISION = "v15";
+const OFFER_SEARCH_SOURCE_REVISION = "v17-etarjous-debug";
 const ENABLE_OFFER_SEARCH_CACHE = false;
 const MAX_OFFER_SEARCH_RESULTS = 1000;
 const ZIIPLY_GOSTA_MASTER_QUERY_V6 = "__ziiply_all_offers__";
@@ -540,8 +540,20 @@ export async function searchSelectedETarjouslehdetOffersV16(
   options?: ZiiplyOfferSearchSourceContextV8,
 ) {
   const etarjousOptions = normalizeETarjouslehdetProviderOptionsV16(options);
-  if (!etarjousOptions?.stores || etarjousOptions.stores.length === 0) return [];
 
+  console.warn("[ETARJOUS DEBUG V17 sources] normalized options", {
+    query,
+    incomingSStoreId: options?.sStoreId,
+    incomingSStoreName: options?.sStoreName,
+    incomingSStoreIds: options?.sStoreIds,
+    incomingSStoreNames: options?.sStoreNames,
+    incomingETStoreId: options?.etarjouslehdetStoreId ?? options?.eTarjouslehdetStoreId ?? options?.tjekStoreId,
+    incomingETStoreIds: options?.etarjouslehdetStoreIds ?? options?.eTarjouslehdetStoreIds ?? options?.tjekStoreIds,
+    normalizedStores: etarjousOptions?.stores ?? [],
+  });
+
+  // V17 DEBUG: älä palauta tyhjää tässä. Anna providerin palauttaa näkyvä DBG-kortti,
+  // jos eTarjouslehdet-storeId puuttuu kokonaan. Näin nähdään UI:ssa asti, miksi S-market puuttuu.
   return fetchETarjouslehdetOffers(
     query,
     ZIIPLY_OFFER_SOURCES.etarjouslehdet,
@@ -570,12 +582,16 @@ export async function searchZiiplyOffers(
   const providerScopeV10 = getProviderScopeV10(options);
 
   if (typeof console !== "undefined") {
-    console.warn("[Ziiply offers V10 provider scope]", {
+    console.warn("[Ziiply offers V17 provider scope DEBUG]", {
       query: cleanQuery,
       storeCompareScope: options?.storeCompareScope,
       withinChain: (options as any)?.withinChain,
       sStoreId: options?.sStoreId,
       sStoreName: options?.sStoreName,
+      sStoreIds: options?.sStoreIds,
+      sStoreNames: options?.sStoreNames,
+      etarjouslehdetStoreId: options?.etarjouslehdetStoreId ?? options?.eTarjouslehdetStoreId ?? options?.tjekStoreId,
+      etarjouslehdetStoreIds: options?.etarjouslehdetStoreIds ?? options?.eTarjouslehdetStoreIds ?? options?.tjekStoreIds,
       kStoreId: options?.kStoreId,
       kStoreName: options?.kStoreName,
       providerScopeV10,
@@ -602,6 +618,13 @@ export async function searchZiiplyOffers(
         () => searchSelectedKruokaOffersV10(cleanQuery, options),
       )
     : [];
+
+  console.warn("[ETARJOUS DEBUG V17 counts]", {
+    query: cleanQuery,
+    sKaupatCount: sKaupatResults.length,
+    eTarjouslehdetCount: eTarjouslehdetResults.length,
+    kCount: kResults.length,
+  });
 
   const uniqueAllResults = uniqueOfferResults([
     ...sKaupatResults,
