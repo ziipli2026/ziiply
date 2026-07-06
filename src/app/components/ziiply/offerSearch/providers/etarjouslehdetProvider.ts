@@ -1,3 +1,12 @@
+// src/app/components/ziiply/offerSearch/providers/etarjouslehdetProvider.ts
+// ETARJOUSLEHDET_PROVIDER_V17_DEBUG
+// Debug-versio S-market tarjouslehtihakuun.
+// - Ei koske Prismaan eikä skaupatProvideriin.
+// - Palauttaa näkyvän DBG-kortin, jos eTarjouslehdet-storeId puuttuu.
+// - Lisää console.warn-lokit joka vaiheesta.
+// - Käyttää Tjek X-Api-Key -headeria HAR:n mukaisesti.
+// - Rajaa section-haun debugissa max 6 sivuun, ettei haku jää roikkumaan.
+
 import type {
   ZiiplyOfferSearchResult,
   ZiiplyOfferSearchSourceConfig,
@@ -5,10 +14,13 @@ import type {
 
 type UnknownRecord = Record<string, unknown>;
 
-const ETARJOUSLEHDET_BASE_URL = "https://etarjouslehdet.fi/";
-const TJEK_API_BASE_URL = "https://squid-api.tjek.com/v4/rpc";
-const S_MARKET_BUSINESS_ID = "d8ccs8";
+const ET_BASE = "https://etarjouslehdet.fi";
+const TJEK_INCITO = "https://squid-api.tjek.com/v4/rpc/generate_incito_from_publication";
+const TJEK_SECTION = "https://squid-api.tjek.com/v4/rpc/generate_incito_from_publication_section";
+const TJEK_API_KEY = "152000596c6e45d9983eab0c14afebea";
 const GOSTA_MASTER_QUERY = "__ziiply_all_offers__";
+const MAX_DEBUG_SECTIONS = 6;
+const FETCH_TIMEOUT_MS = 9000;
 
 export type ETarjouslehdetProviderOptions = {
   storeId?: string | number | null;
@@ -26,6 +38,18 @@ export type ETarjouslehdetProviderOptions = {
   tjekStoreId?: string | null;
 };
 
+type SelectedETStore = {
+  storeId: string;
+  storeName: string;
+};
+
+type PublicationMeta = {
+  id: string;
+  name: string;
+  validFrom: string;
+  validUntil: string;
+};
+
 function asRecord(value: unknown): UnknownRecord | null {
   return value && typeof value === "object" && !Array.isArray(value)
     ? (value as UnknownRecord)
@@ -35,8 +59,17 @@ function asRecord(value: unknown): UnknownRecord | null {
 function firstString(...values: unknown[]): string {
   for (const value of values) {
     if (value == null) continue;
-    const text = String(value).trim();
-    if (text) return text;
+    if (typeof value === "string" || typeof value === "number") {
+      const text = String(value).trim();
+      if (text) return text;
+      continue;
+    }
+
+    const record = asRecord(value);
+    if (record) {
+      const text = firstString(record.name, record.title, record.label, record.id, record.value);
+      if (text) return text;
+    }
   }
   return "";
 }
@@ -51,308 +84,310 @@ function normalizeText(value: unknown): string {
     .trim();
 }
 
-function encodeQueryKey(value: unknown): string {
-  const json = JSON.stringify(value);
-  if (typeof Buffer !== "undefined") {
-    return Buffer.from(json, "utf8").toString("base64");
-  }
-  return btoa(unescape(encodeURIComponent(json)));
+function isSMarketName(value: unknown) {
+  const text = normalizeText(value).replace(/\s+/g, "");
+  return text.includes("smarket");
 }
 
-async function postETarjouslehdetQueries(queries: unknown[]): Promise<UnknownRecord[]> {
-  const response = await fetch(ETARJOUSLEHDET_BASE_URL, {
-    method: "POST",
-    headers: {
-      accept: "application/json",
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({
-      data: queries.map(encodeQueryKey),
-    }),
-    cache: "no-store",
-  });
-
-  if (!response.ok) {
-    throw new Error(`eTarjouslehdet query failed: ${response.status}`);
-  }
-
-  const text = await response.text();
-
-  return text
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => JSON.parse(line) as UnknownRecord);
-}
-
-function getResultValue(results: UnknownRecord[], queryName: string): unknown {
-  const result = results.find((entry) => {
-    const key = firstString(entry.key);
-    if (!key) return false;
-
-    try {
-      const decoded =
-        typeof Buffer !== "undefined"
-          ? Buffer.from(key, "base64").toString("utf8")
-          : decodeURIComponent(escape(atob(key)));
-
-      return decoded.includes(`"${queryName}"`);
-    } catch {
-      return false;
-    }
-  });
-
-  return result?.value;
-}
-
-function getSelectedETarjouslehdetStores(
-  options?: ETarjouslehdetProviderOptions,
-): Array<{ storeId: string; storeName: string }> {
-  const stores: Array<{ storeId: string; storeName: string }> = [];
+function getSelectedStores(options?: ETarjouslehdetProviderOptions): SelectedETStore[] {
+  const stores: SelectedETStore[] = [];
 
   for (const store of options?.stores ?? []) {
+    const name = firstString(store.storeName, options?.storeName, "S-market");
     const chain = normalizeText(store.chain);
-    if (chain && !chain.includes("s market")) continue;
+    if (chain && !chain.includes("s market") && !chain.includes("s-market")) continue;
+    if (name && !isSMarketName(name)) continue;
 
-    const storeId = firstString(
+    const id = firstString(
       store.etarjouslehdetStoreId,
       store.eTarjouslehdetStoreId,
       store.tjekStoreId,
+      // sources-V17 antaa storeIdiksi eTarjouslehdet id:n tässä providerissa
+      store.storeId,
     );
 
-    if (!storeId) continue;
-
-    stores.push({
-      storeId,
-      storeName: firstString(store.storeName, "S-market"),
-    });
+    if (!id) continue;
+    stores.push({ storeId: id, storeName: name });
   }
 
-  const directStoreId = firstString(
+  const directId = firstString(
     options?.etarjouslehdetStoreId,
     options?.eTarjouslehdetStoreId,
     options?.tjekStoreId,
   );
 
-  if (directStoreId) {
-    stores.push({
-      storeId: directStoreId,
-      storeName: firstString(options?.storeName, "S-market"),
-    });
+  if (directId) {
+    stores.push({ storeId: directId, storeName: firstString(options?.storeName, "S-market") });
   }
 
   const seen = new Set<string>();
   return stores.filter((store) => {
-    if (seen.has(store.storeId)) return false;
-    seen.add(store.storeId);
+    const key = `${store.storeId}|${normalizeText(store.storeName)}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
     return true;
   });
 }
 
-async function getActivePublication(storeId: string): Promise<{
-  publicationId: string;
-  publicationName: string;
-  validFrom: string;
-  validUntil: string;
-} | null> {
-  const results = await postETarjouslehdetQueries([
-    ["relatedPublications", { businessId: S_MARKET_BUSINESS_ID, locationId: storeId }],
-  ]);
-
-  const publications = getResultValue(results, "relatedPublications");
-
-  if (!Array.isArray(publications) || publications.length === 0) return null;
-
-  const publication = asRecord(publications[0]);
-  if (!publication) return null;
-
+function makeDebugResult(args: {
+  query: string;
+  config: ZiiplyOfferSearchSourceConfig;
+  storeName?: string;
+  storeId?: string;
+  title: string;
+  detail: string;
+  index?: number;
+}): ZiiplyOfferSearchResult {
+  const title = `DBG ETARJOUS: ${args.title}`;
+  const storeLabel = args.storeName || "S-market DEBUG";
   return {
-    publicationId: firstString(publication.id, publication.publicId),
-    publicationName: firstString(publication.label, "S-market"),
-    validFrom: firstString(publication.validFrom),
-    validUntil: firstString(publication.validUntil),
-  };
+    id: `dbg-etarjous-${Date.now()}-${args.index ?? 0}`,
+    source: args.config.id,
+    sourceUrl: args.config.url,
+    chain: "S-market",
+    storeLabel,
+    storeName: storeLabel,
+    shopName: storeLabel,
+    title,
+    priceText: "0,00 €",
+    unitPriceText: "",
+    benefitText: args.detail,
+    validityText: "DEBUG",
+    imageUrl: "",
+    image: "",
+    pictureUrl: "",
+    productUrl: args.storeId ? `${ET_BASE}/S-market/kaupat/${args.storeId}` : `${ET_BASE}/S-market/kaupat`,
+    rawText: `${title} ${args.detail}`,
+    matchScore: 999999,
+    category: "DEBUG",
+    categoryPath: "DEBUG",
+    breadcrumbs: "DEBUG",
+    hierarchy: "DEBUG",
+    taxonomy: "DEBUG",
+    department: "DEBUG",
+    productGroup: "DEBUG",
+    mainCategory: "DEBUG",
+    subCategory: "DEBUG",
+    brandName: "DEBUG",
+    ean: "",
+  } as unknown as ZiiplyOfferSearchResult;
 }
 
-async function generatePublication(publicationId: string): Promise<UnknownRecord | null> {
-  const response = await fetch(`${TJEK_API_BASE_URL}/generate_incito_from_publication`, {
-    method: "POST",
+async function fetchWithTimeout(url: string, init: RequestInit, timeoutMs = FETCH_TIMEOUT_MS): Promise<Response> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    return await fetch(url, {
+      ...init,
+      signal: controller.signal,
+      cache: "no-store",
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function fetchText(url: string): Promise<string> {
+  const response = await fetchWithTimeout(url, {
+    method: "GET",
     headers: {
-      accept: "application/json",
-      "content-type": "application/json",
+      accept: "text/x-component,text/html,application/json;q=0.9,*/*;q=0.8",
+      referer: `${ET_BASE}/`,
+      "user-agent": "Mozilla/5.0 ZiiplyOfferDebug/17",
     },
-    body: JSON.stringify({
-      id: publicationId,
-      device_category: "desktop",
-      pointer: "fine",
-      orientation: "horizontal",
-      pixel_ratio: 2,
-      max_width: 1400,
-      viewport_width: 1400,
-      viewport_height: 900,
-      versions_supported: ["1.0.0"],
-      locale_code: "fi-FI",
-      time: new Date().toISOString(),
-      feature_labels: [],
-    }),
-    cache: "no-store",
   });
 
-  if (!response.ok) {
-    throw new Error(`Tjek publication failed: ${response.status}`);
-  }
-
-  return asRecord(await response.json());
+  if (!response.ok) throw new Error(`GET ${response.status} ${url}`);
+  return response.text();
 }
 
-function collectOfferIds(value: unknown): string[] {
-  const ids: string[] = [];
+async function postJson(url: string, body: unknown): Promise<unknown> {
+  const response = await fetchWithTimeout(url, {
+    method: "POST",
+    headers: {
+      accept: "*/*",
+      "content-type": "application/json",
+      origin: ET_BASE,
+      referer: `${ET_BASE}/`,
+      "x-api-key": TJEK_API_KEY,
+    },
+    body: JSON.stringify(body),
+  });
 
-  function walk(node: unknown) {
-    const record = asRecord(node);
-    if (!record) return;
-
-    const id = firstString(record.id);
-    if (id && /^\d/.test(id)) ids.push(id);
-
-    const children = Array.isArray(record.child_views) ? record.child_views : [];
-    for (const child of children) walk(child);
-  }
-
-  walk(value);
-
-  return Array.from(new Set(ids));
+  if (!response.ok) throw new Error(`POST ${response.status} ${url}`);
+  return response.json();
 }
 
-function collectSections(publication: UnknownRecord): Array<{
-  sectionId: string;
-  title: string;
-  pageNumber: number;
-  pageCount: number;
-  offerIds: string[];
-}> {
-  const toc = Array.isArray(publication.table_of_contents)
-    ? publication.table_of_contents
-    : [];
+function parseJsonCandidatesFromText(text: string): unknown[] {
+  const values: unknown[] = [];
 
-  const titleById = new Map<string, string>();
-  for (const entry of toc) {
-    const record = asRecord(entry);
-    const viewId = firstString(record?.view_id);
-    const title = firstString(record?.title);
-    if (viewId) titleById.set(viewId, title);
-  }
+  for (const line of text.split(/\n+/)) {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith("{")) continue;
 
-  const root = asRecord(publication.root_view);
-  const pages = Array.isArray(root?.child_views) ? root.child_views : [];
-
-  const sections: Array<{
-    sectionId: string;
-    title: string;
-    pageNumber: number;
-    pageCount: number;
-    offerIds: string[];
-  }> = [];
-
-  pages.forEach((page, pageIndex) => {
-    const offerIds = collectOfferIds(page);
-    if (offerIds.length === 0) return;
-
-    let sectionId = "";
-
-    function findSectionId(node: unknown) {
-      if (sectionId) return;
-      const record = asRecord(node);
-      if (!record) return;
-
-      const id = firstString(record.id);
-      if (id && titleById.has(id)) {
-        sectionId = id;
-        return;
-      }
-
-      const children = Array.isArray(record.child_views) ? record.child_views : [];
-      for (const child of children) findSectionId(child);
+    try {
+      const object = JSON.parse(trimmed) as UnknownRecord;
+      if (object && "value" in object) values.push(object.value);
+      else values.push(object);
+    } catch {
+      // ignore
     }
+  }
 
-    findSectionId(page);
+  // Fallback: poimi page-scriptistä publication-id:t, jos JSONL ei ollut rivitetty.
+  const publicationMatches = text.matchAll(/"(?:publicId|id)"\s*:\s*"([A-Za-z0-9_-]{6,})"/g);
+  for (const match of publicationMatches) values.push({ id: match[1] });
 
-    if (!sectionId) return;
+  return values;
+}
 
-    sections.push({
-      sectionId,
-      title: titleById.get(sectionId) || "",
-      pageNumber: pageIndex + 1,
-      pageCount: pages.length,
-      offerIds,
+function walk(value: unknown, visitor: (node: UnknownRecord) => void) {
+  if (Array.isArray(value)) {
+    for (const child of value) walk(child, visitor);
+    return;
+  }
+
+  const record = asRecord(value);
+  if (!record) return;
+
+  visitor(record);
+  for (const child of Object.values(record)) walk(child, visitor);
+}
+
+function findPublicationsFromStorePage(text: string): PublicationMeta[] {
+  const candidates = parseJsonCandidatesFromText(text);
+  const publications: PublicationMeta[] = [];
+
+  for (const candidate of candidates) {
+    walk(candidate, (record) => {
+      const id = firstString(record.publicId, record.publicationId, record.id);
+      const name = firstString(record.publicationName, record.label, record.name, record.title);
+      const validFrom = firstString(record.validFrom, record.valid_from);
+      const validUntil = firstString(record.validUntil, record.valid_until);
+
+      // Tjek publication id HAR:ssa: coRfb3CQ. Hyväksytään vain järkevän näköiset.
+      if (!id || id.length < 6) return;
+      if (!name && !validFrom && !validUntil) return;
+
+      publications.push({ id, name, validFrom, validUntil });
     });
+  }
+
+  const seen = new Set<string>();
+  return publications.filter((publication) => {
+    if (seen.has(publication.id)) return false;
+    seen.add(publication.id);
+    return true;
+  });
+}
+
+async function getActivePublication(storeId: string): Promise<PublicationMeta | null> {
+  const pageUrl = `${ET_BASE}/S-market/kaupat/${encodeURIComponent(storeId)}`;
+  const text = await fetchText(pageUrl);
+  const publications = findPublicationsFromStorePage(text);
+
+  console.warn("[ETARJOUS DEBUG V17 provider] store page publications", {
+    storeId,
+    pageUrl,
+    count: publications.length,
+    sample: publications.slice(0, 3),
+  });
+
+  const now = Date.now();
+  return publications
+    .sort((a, b) => scorePublication(b, now) - scorePublication(a, now))[0] || null;
+}
+
+function scorePublication(publication: PublicationMeta, now: number): number {
+  const from = publication.validFrom ? Date.parse(publication.validFrom) : 0;
+  const until = publication.validUntil ? Date.parse(publication.validUntil) : 0;
+  let score = 0;
+  if (from && from <= now) score += 10;
+  if (until && until >= now) score += 100;
+  if (from) score += from / 1_000_000_000_000;
+  return score;
+}
+
+async function generatePublication(publicationId: string): Promise<unknown> {
+  return postJson(TJEK_INCITO, {
+    id: publicationId,
+    device_category: "desktop",
+    pointer: "fine",
+    orientation: "horizontal",
+    pixel_ratio: 2,
+    max_width: 1418,
+    viewport_width: 1432,
+    viewport_height: 900,
+    versions_supported: ["1.0.0"],
+    locale_code: "fi-FI",
+    time: new Date().toISOString(),
+    feature_labels: [],
+  });
+}
+
+type IncitoSection = {
+  body: UnknownRecord;
+  title: string;
+};
+
+function extractIncitoSections(incito: unknown): IncitoSection[] {
+  const sections: IncitoSection[] = [];
+  const titleByViewId = new Map<string, string>();
+
+  walk(incito, (record) => {
+    const viewId = firstString(record.view_id);
+    const title = firstString(record.title);
+    if (viewId && title) titleByViewId.set(viewId, title);
+  });
+
+  walk(incito, (record) => {
+    if (record.view_name !== "IncitoEmbedView" || typeof record.body !== "string") return;
+
+    try {
+      const body = JSON.parse(record.body) as UnknownRecord;
+      const sectionId = firstString(body.section_id);
+      if (!firstString(body.id) || !sectionId) return;
+
+      sections.push({
+        body,
+        title: titleByViewId.get(sectionId) || "Tarjouslehti",
+      });
+    } catch {
+      // ignore
+    }
   });
 
   return sections;
 }
 
-async function generateSection(
-  publicationId: string,
-  section: {
-    sectionId: string;
-    pageNumber: number;
-    pageCount: number;
-    offerIds: string[];
-  },
-): Promise<UnknownRecord | null> {
-  const response = await fetch(`${TJEK_API_BASE_URL}/generate_incito_from_publication_section`, {
-    method: "POST",
-    headers: {
-      accept: "application/json",
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({
-      id: publicationId,
-      section_id: section.sectionId,
-      page_number: section.pageNumber,
-      page_count: section.pageCount,
-      offer_ids: section.offerIds,
-      a_offer_ids: [],
-      pixel_ratio: 2,
-      scale: 0.6,
-      modest_branding: false,
-    }),
-    cache: "no-store",
+function findOfferLabels(sectionView: unknown): Array<{ id: string; label: string }> {
+  const labels: Array<{ id: string; label: string }> = [];
+
+  walk(sectionView, (record) => {
+    const role = firstString(record.role);
+    const label = firstString(record.accessibility_label);
+    const id = firstString(record.id);
+    if (role === "offer" && label) labels.push({ id, label });
   });
 
-  if (!response.ok) return null;
-  return asRecord(await response.json());
+  return labels;
 }
 
-function findOfferNodes(value: unknown): UnknownRecord[] {
-  const found: UnknownRecord[] = [];
+function parseOfferLabel(label: string): { title: string; priceText: string; priceNumber: number | null } | null {
+  const match = label.match(/^(.*?),\s*EUR\s*([0-9]+(?:[,.][0-9]{1,2})?)\s*$/i);
+  if (!match) return null;
 
-  function walk(node: unknown) {
-    const record = asRecord(node);
-    if (!record) return;
-
-    if (record.role === "offer" && firstString(record.accessibility_label)) {
-      found.push(record);
-    }
-
-    const children = Array.isArray(record.child_views) ? record.child_views : [];
-    for (const child of children) walk(child);
-  }
-
-  walk(value);
-  return found;
-}
-
-function parseOfferLabel(label: string): { title: string; priceText: string } {
-  const match = label.match(/^(.*?),\s*EUR\s*([\d,.]+)\s*$/i);
-  if (!match) {
-    return { title: label.trim(), priceText: "" };
-  }
-
+  const priceNumber = Number(match[2].replace(",", "."));
   return {
     title: match[1].trim(),
-    priceText: `${Number(match[2].replace(",", ".")).toFixed(2).replace(".", ",")} €`,
+    priceText: `${priceNumber.toFixed(2).replace(".", ",")} €`,
+    priceNumber: Number.isFinite(priceNumber) ? priceNumber : null,
   };
+}
+
+function stripTop4Suffix(id: string): string {
+  return id.replace(/__top4$/, "");
 }
 
 function getMatchScore(query: string, title: string, category: string): number {
@@ -367,7 +402,7 @@ function getMatchScore(query: string, title: string, category: string): number {
   if (t.includes(q)) score += 80;
   if (c.includes(q)) score += 25;
 
-  for (const word of q.split(/\s+/).filter((w) => w.length > 2)) {
+  for (const word of q.split(/\s+/).filter((part) => part.length > 2)) {
     if (t.includes(word)) score += 20;
     if (c.includes(word)) score += 8;
   }
@@ -376,9 +411,9 @@ function getMatchScore(query: string, title: string, category: string): number {
 }
 
 function resultMatchesQuery(query: string, result: ZiiplyOfferSearchResult): boolean {
-  if (!query || normalizeText(query) === normalizeText(GOSTA_MASTER_QUERY)) return true;
-
   const q = normalizeText(query);
+  if (!q || q === normalizeText(GOSTA_MASTER_QUERY)) return true;
+
   const haystack = normalizeText([
     result.title,
     result.rawText,
@@ -389,29 +424,22 @@ function resultMatchesQuery(query: string, result: ZiiplyOfferSearchResult): boo
   return q.split(/\s+/).every((word) => haystack.includes(word));
 }
 
-function mapOfferNodeToResult(args: {
-  node: UnknownRecord;
+function mapOfferToResult(args: {
   query: string;
   config: ZiiplyOfferSearchSourceConfig;
-  storeName: string;
-  publication: {
-    publicationId: string;
-    publicationName: string;
-    validFrom: string;
-    validUntil: string;
-  };
-  category: string;
+  store: SelectedETStore;
+  publication: PublicationMeta;
+  section: IncitoSection;
+  id: string;
+  label: string;
   index: number;
 }): ZiiplyOfferSearchResult | null {
-  const label = firstString(args.node.accessibility_label);
-  if (!label) return null;
+  const parsed = parseOfferLabel(args.label);
+  if (!parsed) return null;
 
-  const parsed = parseOfferLabel(label);
-  if (!parsed.title) return null;
-
-  const rawId = firstString(args.node.id, `etarjous-${args.index}`);
-  const ean = rawId.replace(/__.*$/, "");
-
+  const cleanId = stripTop4Suffix(args.id);
+  const ean = /^\d{8,14}$/.test(cleanId) ? cleanId : "";
+  const category = args.section.title || "Tarjouslehti";
   const validityText = args.publication.validUntil
     ? `Voimassa ${args.publication.validUntil.slice(0, 10)}`
     : "";
@@ -419,53 +447,57 @@ function mapOfferNodeToResult(args: {
   const rawText = [
     parsed.title,
     parsed.priceText,
-    args.category,
-    args.storeName,
-    args.publication.publicationName,
-  ].join(" ");
+    category,
+    args.store.storeName,
+    args.publication.name,
+    ean,
+  ].filter(Boolean).join(" ");
 
   return {
-    id: `etarjous-${args.publication.publicationId}-${rawId}`,
+    id: `etarjous-${args.publication.id}-${cleanId || args.index}`,
     source: args.config.id,
     sourceUrl: args.config.url,
     chain: "S-market",
-    storeLabel: args.storeName,
-    storeName: args.storeName,
-    shopName: args.storeName,
+    storeLabel: args.store.storeName,
+    storeName: args.store.storeName,
+    shopName: args.store.storeName,
     title: parsed.title,
     priceText: parsed.priceText,
     unitPriceText: "",
-    benefitText: "Tarjouslehti",
+    benefitText: "Tarjouslehti / eTarjouslehdet",
     validityText,
     imageUrl: "",
     image: "",
     pictureUrl: "",
-    productUrl: `https://etarjouslehdet.fi/S-market`,
+    productUrl: `${ET_BASE}/S-market/kaupat/${args.store.storeId}`,
     rawText,
-    matchScore: getMatchScore(args.query, parsed.title, args.category),
-    category: args.category,
-    categoryPath: args.category,
-    breadcrumbs: args.category,
-    hierarchy: args.category,
-    taxonomy: args.category,
-    department: args.category,
-    productGroup: args.category,
-    mainCategory: args.category,
-    subCategory: args.category,
+    matchScore: getMatchScore(args.query, parsed.title, category),
+    category,
+    categoryPath: category,
+    breadcrumbs: category,
+    hierarchy: category,
+    taxonomy: category,
+    department: category,
+    productGroup: category,
+    mainCategory: category,
+    subCategory: category,
     brandName: "",
     ean,
   } as unknown as ZiiplyOfferSearchResult;
 }
 
-function dedupe(results: ZiiplyOfferSearchResult[]): ZiiplyOfferSearchResult[] {
-  const map = new Map<string, ZiiplyOfferSearchResult>();
+function uniqueResults(results: ZiiplyOfferSearchResult[]): ZiiplyOfferSearchResult[] {
+  const seen = new Set<string>();
+  const output: ZiiplyOfferSearchResult[] = [];
 
-  for (const item of results) {
-    const key = `${(item as any).ean || item.id}|${normalizeText(item.title)}|${item.priceText}|${normalizeText(item.storeLabel)}`;
-    if (!map.has(key)) map.set(key, item);
+  for (const result of results) {
+    const key = `${(result as any).ean || result.id}|${normalizeText(result.title)}|${result.priceText}|${normalizeText(result.storeLabel)}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    output.push(result);
   }
 
-  return Array.from(map.values());
+  return output;
 }
 
 export async function fetchETarjouslehdetOffers(
@@ -476,50 +508,114 @@ export async function fetchETarjouslehdetOffers(
   const cleanQuery = String(query || "").trim();
   if (!cleanQuery) return [];
 
-  const selectedStores = getSelectedETarjouslehdetStores(options);
-  if (selectedStores.length === 0) return [];
+  const selectedStores = getSelectedStores(options);
+
+  console.warn("[ETARJOUS DEBUG V17 provider] start", {
+    query: cleanQuery,
+    selectedStores,
+    optionsStoreName: options?.storeName,
+    directStoreId: options?.etarjouslehdetStoreId ?? options?.eTarjouslehdetStoreId ?? options?.tjekStoreId,
+    storesRaw: options?.stores,
+  });
+
+  if (selectedStores.length === 0) {
+    return [makeDebugResult({
+      query: cleanQuery,
+      config,
+      title: "NO_ETARJOUS_STORE_ID",
+      detail: "Provider kutsuttiin, mutta options/stores ei sisällä etarjouslehdetStoreId/tjekStoreId-arvoa. Lisää S-market Vehkojan kauppatietoon etarjouslehdetStoreId: f327lvi.",
+    })];
+  }
 
   const allResults: ZiiplyOfferSearchResult[] = [];
 
   for (const store of selectedStores) {
+    const started = Date.now();
+
     try {
-      const publicationMeta = await getActivePublication(store.storeId);
-      if (!publicationMeta?.publicationId) continue;
-
-      const publication = await generatePublication(publicationMeta.publicationId);
-      if (!publication) continue;
-
-      const sections = collectSections(publication);
-
-      for (const section of sections) {
-        const sectionData = await generateSection(publicationMeta.publicationId, section);
-        if (!sectionData) continue;
-
-        const offerNodes = findOfferNodes(sectionData);
-
-        offerNodes.forEach((node, index) => {
-          const result = mapOfferNodeToResult({
-            node,
-            query: cleanQuery,
-            config,
-            storeName: store.storeName || publicationMeta.publicationName || "S-market",
-            publication: publicationMeta,
-            category: section.title,
-            index,
-          });
-
-          if (result && resultMatchesQuery(cleanQuery, result)) {
-            allResults.push(result);
-          }
-        });
+      const publication = await getActivePublication(store.storeId);
+      if (!publication?.id) {
+        allResults.push(makeDebugResult({
+          query: cleanQuery,
+          config,
+          storeName: store.storeName,
+          storeId: store.storeId,
+          title: "NO_PUBLICATION",
+          detail: `Kauppasivu löytyi mutta aktiivista publicationId:tä ei löytynyt. storeId=${store.storeId}`,
+        }));
+        continue;
       }
-    } catch (error) {
-      console.warn("[Ziiply offers] eTarjouslehdet provider failed", {
+
+      const incito = await generatePublication(publication.id);
+      const sections = extractIncitoSections(incito);
+      const sectionsToFetch = sections.slice(0, MAX_DEBUG_SECTIONS);
+
+      console.warn("[ETARJOUS DEBUG V17 provider] publication", {
         store,
-        error,
+        publication,
+        sections: sections.length,
+        fetching: sectionsToFetch.length,
       });
+
+      let parsedOfferCount = 0;
+      let rawLabelCount = 0;
+
+      for (const section of sectionsToFetch) {
+        try {
+          const sectionView = await postJson(TJEK_SECTION, section.body);
+          const labels = findOfferLabels(sectionView);
+          rawLabelCount += labels.length;
+
+          for (const label of labels) {
+            const result = mapOfferToResult({
+              query: cleanQuery,
+              config,
+              store,
+              publication,
+              section,
+              id: label.id,
+              label: label.label,
+              index: parsedOfferCount,
+            });
+
+            if (!result) continue;
+            parsedOfferCount += 1;
+
+            if (resultMatchesQuery(cleanQuery, result)) {
+              allResults.push(result);
+            }
+          }
+        } catch (sectionError) {
+          console.warn("[ETARJOUS DEBUG V17 provider] section failed", {
+            store,
+            sectionTitle: section.title,
+            sectionBody: section.body,
+            sectionError,
+          });
+        }
+      }
+
+      allResults.push(makeDebugResult({
+        query: cleanQuery,
+        config,
+        storeName: store.storeName,
+        storeId: store.storeId,
+        title: "OK_PROVIDER_RAN",
+        detail: `storeId=${store.storeId} publication=${publication.id} sections=${sections.length} fetched=${sectionsToFetch.length} labels=${rawLabelCount} parsed=${parsedOfferCount} matched=${allResults.length} ms=${Date.now() - started}`,
+        index: allResults.length,
+      }));
+    } catch (error) {
+      console.warn("[ETARJOUS DEBUG V17 provider] failed", { store, error });
+      allResults.push(makeDebugResult({
+        query: cleanQuery,
+        config,
+        storeName: store.storeName,
+        storeId: store.storeId,
+        title: "ERROR",
+        detail: String(error instanceof Error ? error.message : error),
+      }));
     }
   }
 
-  return dedupe(allResults).sort((a, b) => (b.matchScore ?? 0) - (a.matchScore ?? 0));
+  return uniqueResults(allResults).sort((a, b) => Number(b.matchScore || 0) - Number(a.matchScore || 0));
 }
