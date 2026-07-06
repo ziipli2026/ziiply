@@ -9932,6 +9932,35 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       const offerSearchCoreResult = await searchZiiplyGostaOffersV146(gostaOfferSearchOptionsV171);
 
+      // V542 DEBUG: näytä Göstan ruudulla varmasti, mitä kauppoja page oikeasti välittää corelle.
+      // Tämä ei muuta providereita. Debug-rivi lisätään vain tarjoushaun tuloslistaan.
+      const gostaVisibleContextDebugV542 = {
+        id: `gosta-context-debug-v542-${Date.now()}`,
+        title: `DBG V542 S:${sOfferNamesV532.join(" / ") || "-"} K:${kOfferNamesV532.join(" / ") || "-"}`,
+        name: `DBG V542 S:${sOfferNamesV532.join(" / ") || "-"} K:${kOfferNamesV532.join(" / ") || "-"}`,
+        productName: `DBG V542 S:${sOfferNamesV532.join(" / ") || "-"} K:${kOfferNamesV532.join(" / ") || "-"}`,
+        priceText: "0,00 €",
+        price: "0,00 €",
+        offerPrice: "0,00 €",
+        storeLabel: "GÖSTA DEBUG",
+        storeName: "GÖSTA DEBUG",
+        shopName: "GÖSTA DEBUG",
+        chain: "DEBUG",
+        category: String(offerSearchCoreResult.categoryLabel || offerCardFilterV106 || cleanedOverride || "Muut"),
+        categoryPath: String(offerSearchCoreResult.categoryLabel || offerCardFilterV106 || cleanedOverride || "Muut"),
+        benefitText: `scope=${storeCompareScope || "-"}; within=${withinChain || "-"}; sIds=${sOfferIdsV532.join("||") || "-"}; sNames=${sOfferNamesV532.join("||") || "-"}; kIds=${kOfferIdsV532.join("||") || "-"}; kNames=${kOfferNamesV532.join("||") || "-"}; results=${Array.isArray(offerSearchCoreResult.results) ? offerSearchCoreResult.results.length : -1}`,
+        discountText: `scope=${storeCompareScope || "-"}; within=${withinChain || "-"}; sIds=${sOfferIdsV532.join("||") || "-"}; sNames=${sOfferNamesV532.join("||") || "-"}; kIds=${kOfferIdsV532.join("||") || "-"}; kNames=${kOfferNamesV532.join("||") || "-"}; results=${Array.isArray(offerSearchCoreResult.results) ? offerSearchCoreResult.results.length : -1}`,
+        rawText: JSON.stringify(gostaOfferSearchContextV172),
+        matchScore: 999999,
+        imageUrl: "",
+        image: "",
+        pictureUrl: "",
+      };
+
+      if (Array.isArray(offerSearchCoreResult.results)) {
+        offerSearchCoreResult.results = [gostaVisibleContextDebugV542, ...offerSearchCoreResult.results] as any;
+      }
+
       trackZiiplyEvent("gosta_offer_api_search_used", {
         query: offerSearchCoreResult.trackingKey,
         cartItemsCount: cart.length,
