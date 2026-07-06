@@ -1,5 +1,10 @@
 // src/app/components/ziiply/offerSearch/ziiplyOfferSearchSources.ts
-// ZIIPLY_OFFER_SEARCH_SOURCES_V11_WITHIN_CHAIN_S_MULTI_STORE_FIX
+// ZIIPLY_OFFER_SEARCH_SOURCES_V15_STRICT_CATEGORY_QUERY_NO_RERANK_CATEGORY
+//
+// V15 korjaus:
+// - Göstan tuoteryhmähaussa tunnettu kategoria (Liha, Valmisruoka jne.) suodatetaan providerin omasta category-kentästä.
+// - Non-food kuten paistinpannu/muovilaatikko ei enää pääse Liha/Valmisruoka-hakuun vain siksi, että hakusana/ranker osuu.
+// - Ranking ei enää ylikirjoita result.category-kenttää rawTextillä, koska se sotki kortin tuoteryhmämerkintöjä.
 //
 // V11 korjaus:
 // - Gösta ei enää aja S-kaupat-provideria, kun kauppavalinta on Ketjun sisältä -> K-ryhmä.
@@ -146,12 +151,69 @@ const ZIIPLY_OFFER_SOURCES = {
   },
 } satisfies Record<string, ZiiplyOfferSearchSourceConfig>;
 
-const OFFER_SEARCH_SOURCE_REVISION = "v11";
+const OFFER_SEARCH_SOURCE_REVISION = "v15";
 const ENABLE_OFFER_SEARCH_CACHE = false;
 const MAX_OFFER_SEARCH_RESULTS = 1000;
 const ZIIPLY_GOSTA_MASTER_QUERY_V6 = "__ziiply_all_offers__";
 
 // V8: master query is passed directly to provider; provider handles DISCOUNTED filter.
+
+
+const STRICT_GOSTA_CATEGORY_QUERIES_V15 = new Set([
+  "kahvi",
+  "maitotuotteet",
+  "liha",
+  "kala",
+  "leipomo",
+  "hevi",
+  "juomat",
+  "pakasteet",
+  "valmisruoka",
+  "kuivatuotteet",
+  "makeiset keksit",
+  "lemmikit",
+  "koti",
+  "muut",
+]);
+
+function normalizeGostaCategoryKeyV15(value: unknown) {
+  return normalizeOfferUniqueText(value)
+    .replace(/&/g, " ")
+    .replace(/\bja\b/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function getResultCategoryTextV15(result: ZiiplyOfferSearchResult) {
+  const anyResult = result as any;
+  return String(
+    anyResult.category ||
+      anyResult.categoryLabel ||
+      anyResult.group ||
+      anyResult.department ||
+      anyResult.productGroup ||
+      "",
+  ).trim();
+}
+
+function isStrictGostaCategoryQueryV15(query: string) {
+  return STRICT_GOSTA_CATEGORY_QUERIES_V15.has(normalizeGostaCategoryKeyV15(query));
+}
+
+function offerMatchesStrictGostaCategoryV15(result: ZiiplyOfferSearchResult, query: string) {
+  const queryKey = normalizeGostaCategoryKeyV15(query);
+  const categoryKey = normalizeGostaCategoryKeyV15(getResultCategoryTextV15(result));
+
+  if (!queryKey || !categoryKey) return false;
+  if (categoryKey === queryKey) return true;
+
+  // Makeiset & keksit voi tulla eri lähteistä muodossa "Makeiset", "Keksit" tai "Makeiset ja keksit".
+  if (queryKey === "makeiset keksit") {
+    return categoryKey === "makeiset" || categoryKey === "keksit" || categoryKey === "makeiset keksit";
+  }
+
+  return false;
+}
 
 function getOfferSearchCacheKey(query: string) {
   return `${OFFER_SEARCH_SOURCE_REVISION}:${query}`;
@@ -395,41 +457,46 @@ export async function searchZiiplyOffers(
     ...kResults,
   ]);
 
+  const strictCategoryQueryV15 = isStrictGostaCategoryQueryV15(cleanQuery);
+
   const results = isGostaMasterQuery
     ? uniqueAllResults.slice(0, MAX_OFFER_SEARCH_RESULTS)
-    : (() => {
-        const intent = resolveSearchIntentAI(cleanQuery);
+    : strictCategoryQueryV15
+      ? uniqueAllResults
+          .filter((result) => offerMatchesStrictGostaCategoryV15(result, cleanQuery))
+          .sort((a, b) => Number(b.matchScore || 0) - Number(a.matchScore || 0))
+          .slice(0, MAX_OFFER_SEARCH_RESULTS)
+      : (() => {
+          const intent = resolveSearchIntentAI(cleanQuery);
 
-        const rankedResults = rankProductsWithIntentMemory(
-          uniqueAllResults
-            .filter((result) => Number(result.matchScore || 0) > 0)
-            .map((result) => ({
-              ...result,
-              category:
-                result.rawText ||
-                result.title ||
-                "",
-              brandName: result.storeLabel,
-            })),
-          cleanQuery,
-          (product) => Number(product.matchScore || 0),
-        );
+          const rankedResults = rankProductsWithIntentMemory(
+            uniqueAllResults
+              .filter((result) => Number(result.matchScore || 0) > 0)
+              .map((result) => ({
+                ...result,
+                // Älä ylikirjoita result.category-kenttää rawTextillä.
+                // Kortti ja tuoteryhmäcountit käyttävät alkuperäistä providerin category-arvoa.
+                brandName: (result as any).brandName || result.storeLabel,
+              })),
+            cleanQuery,
+            (product) => Number(product.matchScore || 0),
+          );
 
-        return rankedResults
-          .sort((a, b) => {
-            const aExact =
-              a.title?.toLowerCase().includes(intent.canonicalQuery.toLowerCase()) ? 1 : 0;
-            const bExact =
-              b.title?.toLowerCase().includes(intent.canonicalQuery.toLowerCase()) ? 1 : 0;
+          return rankedResults
+            .sort((a, b) => {
+              const aExact =
+                a.title?.toLowerCase().includes(intent.canonicalQuery.toLowerCase()) ? 1 : 0;
+              const bExact =
+                b.title?.toLowerCase().includes(intent.canonicalQuery.toLowerCase()) ? 1 : 0;
 
-            if (aExact !== bExact) {
-              return bExact - aExact;
-            }
+              if (aExact !== bExact) {
+                return bExact - aExact;
+              }
 
-            return Number(b.matchScore || 0) - Number(a.matchScore || 0);
-          })
-          .slice(0, MAX_OFFER_SEARCH_RESULTS);
-      })();
+              return Number(b.matchScore || 0) - Number(a.matchScore || 0);
+            })
+            .slice(0, MAX_OFFER_SEARCH_RESULTS);
+        })();
 
   if (ENABLE_OFFER_SEARCH_CACHE) {
     setCachedOfferResults(cacheKey, results);
