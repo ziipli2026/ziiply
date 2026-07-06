@@ -1,5 +1,5 @@
 // src/app/components/ziiply/offerSearch/ziiplyOfferSearchSources.ts
-// ZIIPLY_OFFER_SEARCH_SOURCES_V18_MASTER_ONLY_ETARJOUS_DEBUG
+// ZIIPLY_OFFER_SEARCH_SOURCES_V19_FORCE_ETARJOUS_MASTER_DEBUG
 //
 // V15 korjaus:
 // - Göstan tuoteryhmähaussa tunnettu kategoria (Liha, Valmisruoka jne.) suodatetaan providerin omasta category-kentästä.
@@ -280,7 +280,7 @@ const ZIIPLY_OFFER_SOURCES = {
   },
 } satisfies Record<string, ZiiplyOfferSearchSourceConfig>;
 
-const OFFER_SEARCH_SOURCE_REVISION = "v18-etarjous-master-only-debug";
+const OFFER_SEARCH_SOURCE_REVISION = "v19-force-etarjous-master-debug";
 const ENABLE_OFFER_SEARCH_CACHE = false;
 const MAX_OFFER_SEARCH_RESULTS = 1000;
 const ZIIPLY_GOSTA_MASTER_QUERY_V6 = "__ziiply_all_offers__";
@@ -541,7 +541,7 @@ export async function searchSelectedETarjouslehdetOffersV16(
 ) {
   const etarjousOptions = normalizeETarjouslehdetProviderOptionsV16(options);
 
-  console.warn("[ETARJOUS DEBUG V18 sources] normalized options", {
+  console.warn("[ETARJOUS DEBUG V19 sources] normalized options", {
     query,
     incomingSStoreId: options?.sStoreId,
     incomingSStoreName: options?.sStoreName,
@@ -582,7 +582,7 @@ export async function searchZiiplyOffers(
   const providerScopeV10 = getProviderScopeV10(options);
 
   if (typeof console !== "undefined") {
-    console.warn("[Ziiply offers V18 provider scope DEBUG]", {
+    console.warn("[Ziiply offers V19 provider scope DEBUG]", {
       query: cleanQuery,
       storeCompareScope: options?.storeCompareScope,
       withinChain: (options as any)?.withinChain,
@@ -600,16 +600,17 @@ export async function searchZiiplyOffers(
 
   const sKaupatResults = providerScopeV10.useS
     ? await safelySearchSource(
-        isGostaMasterQuery ? "S-kaupat master V10" : "S-kaupat V10",
-        () => searchSelectedSKaupatOffersV11(cleanQuery, options),
+        isGostaMasterQuery ? "S-kaupat master V19 ilman S-marketteja" : "S-kaupat V19 ilman S-marketteja",
+        () => searchSelectedSKaupatOffersV11(cleanQuery, providerOptions as ZiiplyOfferSearchSourceContextV8),
       )
     : [];
 
-  // V18: eTarjouslehdet/Tjek ajetaan VAIN Göstan aktiiviset tarjoukset -masterhaussa.
-  // Ei tekstikenttähaussa, koska Gösta ei hae S-market-tarjouslehteä vapaalla tekstillä.
-  const eTarjouslehdetResults = isGostaMasterQuery && providerScopeV10.useS
+  // V19 DEBUG: eTarjouslehdet/Tjek ajetaan VAIN Göstan aktiiviset tarjoukset -masterhaussa,
+  // mutta ajetaan masterissa aina debugia varten myös silloin, kun providerScopeV10.useS=false.
+  // Näin UI näyttää, puuttuuko S-market valintakontekstista vai puuttuuko etarjouslehdetStoreId.
+  const eTarjouslehdetResults = isGostaMasterQuery
     ? await safelySearchSource(
-        "eTarjouslehdet master V18 DEBUG",
+        "eTarjouslehdet master V19 FORCE DEBUG",
         () => searchSelectedETarjouslehdetOffersV16(cleanQuery, options),
       )
     : [];
@@ -621,7 +622,7 @@ export async function searchZiiplyOffers(
       )
     : [];
 
-  console.warn("[ETARJOUS DEBUG V18 counts]", {
+  console.warn("[ETARJOUS DEBUG V19 counts]", {
     query: cleanQuery,
     sKaupatCount: sKaupatResults.length,
     eTarjouslehdetCount: eTarjouslehdetResults.length,
