@@ -1,4 +1,4 @@
-// ZIIPLY_OFFER_SEARCH_SOURCES_V23_DIRECT_ETARJOUS_PROVIDERLESS
+// ZIIPLY_OFFER_SEARCH_SOURCES_V24_VISIBLE_ET_DEBUG_PROVIDERLESS
 // Pohja: käyttäjän V15 strict category query + V21.
 // Korjaus V23:
 // - EI käytetä olematonta /api/ziiply/etarjouslehdet/offers-reittiä.
@@ -160,7 +160,7 @@ const ZIIPLY_OFFER_SOURCES = {
   },
 } satisfies Record<string, ZiiplyOfferSearchSourceConfig>;
 
-const OFFER_SEARCH_SOURCE_REVISION = "v23-direct-etarjous";
+const OFFER_SEARCH_SOURCE_REVISION = "v24-visible-et-debug";
 const ENABLE_OFFER_SEARCH_CACHE = false;
 const MAX_OFFER_SEARCH_RESULTS = 1000;
 const ZIIPLY_GOSTA_MASTER_QUERY_V6 = "__ziiply_all_offers__";
@@ -791,55 +791,117 @@ function etMapOfferNodeV23(args: {
   return result;
 }
 
+
+function makeVisibleETDebugResultV24(title: string, detail: string): ZiiplyOfferSearchResult {
+  return {
+    id: `etdbg-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    source: "etarjouslehdet",
+    sourceUrl: "https://etarjouslehdet.fi/S-market",
+    chain: "S-market",
+    storeLabel: "ET DEBUG",
+    storeName: "ET DEBUG",
+    shopName: "ET DEBUG",
+    title,
+    name: title,
+    productName: title,
+    priceText: "0,00 €",
+    price: "0,00 €",
+    offerPrice: "0,00 €",
+    unitPriceText: "",
+    benefitText: detail,
+    discountText: detail,
+    validityText: "DEBUG",
+    imageUrl: "",
+    image: "",
+    pictureUrl: "",
+    productUrl: "https://etarjouslehdet.fi/S-market",
+    rawText: `${title} ${detail}`,
+    matchScore: 999999,
+    category: "Muut",
+    categoryPath: "Muut",
+    breadcrumbs: "Muut",
+    hierarchy: "Muut",
+    taxonomy: "Muut",
+    department: "Muut",
+    productGroup: "Muut",
+    mainCategory: "Muut",
+    subCategory: "Muut",
+    brandName: "DEBUG",
+    ean: "",
+  } as unknown as ZiiplyOfferSearchResult;
+}
+
 async function searchSelectedSMarketETarjouslehdetOffersV23(
   query: string,
   options?: ZiiplyOfferSearchSourceContextV8,
 ): Promise<ZiiplyOfferSearchResult[]> {
   const storeNames = getSelectedSMarketNamesV21(options);
-  if (storeNames.length === 0) return [];
+  const firstName = String(storeNames[0] || "-").slice(0, 18);
 
-  const publications = await etResolveSMarketPublicationsV23(storeNames);
-  const allResults: ZiiplyOfferSearchResult[] = [];
-
-  if (typeof console !== "undefined") {
-    console.warn("[Ziiply offers V23 eTarjouslehdet] resolved publications", {
-      query,
-      storeNames,
-      publications,
-    });
+  if (storeNames.length === 0) {
+    return [makeVisibleETDebugResultV24("ETDBG N0", "S-market-nimeä ei tullut sourcesiin")];
   }
 
-  for (const publicationMeta of publications) {
-    if (!publicationMeta.publicationId) continue;
+  try {
+    const publications = await etResolveSMarketPublicationsV23(storeNames);
+    const allResults: ZiiplyOfferSearchResult[] = [
+      makeVisibleETDebugResultV24(
+        `ETDBG N${storeNames.length} P${publications.length}`,
+        `name=${firstName} q=${String(query || "").slice(0, 18)}`,
+      ),
+    ];
 
-    const publication = await etGeneratePublicationV23(publicationMeta.publicationId);
-    if (!publication) continue;
+    if (typeof console !== "undefined") {
+      console.warn("[Ziiply offers V24 eTarjouslehdet] resolved publications", {
+        query,
+        storeNames,
+        publications,
+      });
+    }
 
-    const sections = etCollectSectionsV23(publication);
+    for (const publicationMeta of publications) {
+      if (!publicationMeta.publicationId) continue;
 
-    for (const section of sections) {
-      const sectionData = await etGenerateSectionV23(publicationMeta.publicationId, section);
-      if (!sectionData) continue;
+      const publication = await etGeneratePublicationV23(publicationMeta.publicationId);
+      if (!publication) {
+        allResults.push(makeVisibleETDebugResultV24("ETDBG PUBNULL", `pub=${publicationMeta.publicationId}`));
+        continue;
+      }
 
-      const nodes = etFindOfferNodesV23(sectionData);
-      for (let index = 0; index < nodes.length; index += 1) {
-        const mapped = etMapOfferNodeV23({
-          node: nodes[index],
-          storeName: publicationMeta.storeName || publicationMeta.publicationName,
-          publicationId: publicationMeta.publicationId,
-          publicationName: publicationMeta.publicationName,
-          validUntil: publicationMeta.validUntil,
-          sectionTitle: section.title,
-          query,
-          index,
-        });
+      const sections = etCollectSectionsV23(publication);
+      allResults.push(makeVisibleETDebugResultV24("ETDBG SEC" + sections.length, `pub=${publicationMeta.publicationId}`));
 
-        if (mapped) allResults.push(mapped);
+      for (const section of sections) {
+        const sectionData = await etGenerateSectionV23(publicationMeta.publicationId, section);
+        if (!sectionData) continue;
+
+        const nodes = etFindOfferNodesV23(sectionData);
+        for (let index = 0; index < nodes.length; index += 1) {
+          const mapped = etMapOfferNodeV23({
+            node: nodes[index],
+            storeName: publicationMeta.storeName || publicationMeta.publicationName,
+            publicationId: publicationMeta.publicationId,
+            publicationName: publicationMeta.publicationName,
+            validUntil: publicationMeta.validUntil,
+            sectionTitle: section.title,
+            query,
+            index,
+          });
+
+          if (mapped) allResults.push(mapped);
+        }
       }
     }
-  }
 
-  return allResults;
+    return allResults;
+  } catch (error) {
+    return [
+      makeVisibleETDebugResultV24(
+        "ETDBG ERR",
+        String(error instanceof Error ? error.message : error).slice(0, 80),
+      ),
+    ];
+  }
 }
 
 export async function searchSKaupatOffers(
