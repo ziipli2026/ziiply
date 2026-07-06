@@ -1,9 +1,9 @@
-// ZIIPLY_OFFER_SEARCH_SOURCES_V21_SMARKET_ETARJOUS_ROUTE
+// ZIIPLY_OFFER_SEARCH_SOURCES_V22_NO_FAKE_ETARJOUS_ROUTE
 // Pohja: käyttäjän V15 strict category query.
 // Korjaus:
 // - Prisma pidetään S-kaupat.fi-providerissa.
 // - S-marketit poistetaan S-kaupat.fi-providerilta, koska kaikki S-marketit eivät löydy s-kaupat.fi:stä.
-// - Valitut S-market-nimet haetaan uudesta omasta serverireitistä /api/ziiply/etarjouslehdet/offers.
+// - EI kutsuta olematonta /api/ziiply/etarjouslehdet/offers-polukua. S-market-lisäys tehdään nykyisessä /api/offers/search/route.ts-routessa.
 // - Ei kovakoodata Vehkojaa: route ratkaisee julkaisun eTarjouslehdetin S-market-fronts-datasta nimen perusteella.
 // - K-provider säilyy ennallaan.
 
@@ -160,7 +160,7 @@ const ZIIPLY_OFFER_SOURCES = {
   },
 } satisfies Record<string, ZiiplyOfferSearchSourceConfig>;
 
-const OFFER_SEARCH_SOURCE_REVISION = "v21-smarket-etarjous-route";
+const OFFER_SEARCH_SOURCE_REVISION = "v22-no-fake-etarjous-route";
 const ENABLE_OFFER_SEARCH_CACHE = false;
 const MAX_OFFER_SEARCH_RESULTS = 1000;
 const ZIIPLY_GOSTA_MASTER_QUERY_V6 = "__ziiply_all_offers__";
@@ -420,37 +420,8 @@ function getSelectedSMarketNamesV21(options?: ZiiplyOfferSearchSourceContextV8):
   return Array.from(new Set(names.filter(isSMarketOfferStoreNameV21)));
 }
 
-async function searchSelectedSMarketETarjouslehdetOffersV21(
-  query: string,
-  options?: ZiiplyOfferSearchSourceContextV8,
-): Promise<ZiiplyOfferSearchResult[]> {
-  const sMarketNames = getSelectedSMarketNamesV21(options);
-  if (sMarketNames.length === 0) return [];
-
-  const response = await fetch("/api/ziiply/etarjouslehdet/offers", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({
-      query,
-      sStoreNames: sMarketNames,
-      storeCompareScope: options?.storeCompareScope,
-      withinChain: (options as any)?.withinChain,
-    }),
-    cache: "no-store",
-  });
-
-  if (!response.ok) {
-    throw new Error(`eTarjouslehdet route failed: ${response.status}`);
-  }
-
-  const data = await response.json();
-  if (!data?.ok || !Array.isArray(data.results)) {
-    console.warn("[Ziiply offers V21] eTarjouslehdet route returned no results", data);
-    return [];
-  }
-
-  return data.results as ZiiplyOfferSearchResult[];
-}
+// V22: Ei omaa eTarjouslehdet-fetchiä tässä tiedostossa.
+// S-market-tarjoukset lisätään olemassa olevassa /api/offers/search/route.ts-routessa.
 
 export async function searchSKaupatOffers(
   query: string,
@@ -536,12 +507,10 @@ export async function searchZiiplyOffers(
       )
     : [];
 
-  const eTarjouslehdetResults = providerScopeV10.useS
-    ? await safelySearchSource(
-        isGostaMasterQuery ? "S-market eTarjouslehdet master V21" : "S-market eTarjouslehdet V21",
-        () => searchSelectedSMarketETarjouslehdetOffersV21(cleanQuery, options),
-      )
-    : [];
+  // V22: S-market/eTarjouslehdet EI kulje enää olemattoman oman API-reitin kautta.
+  // Nykyinen route src/app/api/offers/search/route.ts lisää S-market-tulokset
+  // tämän searchZiiplyOffers()-palautuksen rinnalle.
+  const eTarjouslehdetResults: ZiiplyOfferSearchResult[] = [];
 
   const kResults = providerScopeV10.useK && hasSelectedKStoreV9
     ? await safelySearchSource(
