@@ -1,6 +1,7 @@
 // src/app/components/ziiply/offerSearch/providers/etarjouslehdetProvider.ts
-// ETARJOUSLEHDET_PROVIDER_V17_DEBUG
+// ETARJOUSLEHDET_PROVIDER_V18_NAME_RESOLVE_DEBUG
 // Debug-versio S-market tarjouslehtihakuun.
+// - V18: Ratkaisee eTarjouslehdet-storeId:n myös pelkän S-market-nimen perusteella.
 // - Ei koske Prismaan eikä skaupatProvideriin.
 // - Palauttaa näkyvän DBG-kortin, jos eTarjouslehdet-storeId puuttuu.
 // - Lisää console.warn-lokit joka vaiheesta.
@@ -19,7 +20,7 @@ const TJEK_INCITO = "https://squid-api.tjek.com/v4/rpc/generate_incito_from_publ
 const TJEK_SECTION = "https://squid-api.tjek.com/v4/rpc/generate_incito_from_publication_section";
 const TJEK_API_KEY = "152000596c6e45d9983eab0c14afebea";
 const GOSTA_MASTER_QUERY = "__ziiply_all_offers__";
-const MAX_DEBUG_SECTIONS = 6;
+const MAX_DEBUG_SECTIONS = 8;
 const FETCH_TIMEOUT_MS = 9000;
 
 export type ETarjouslehdetProviderOptions = {
@@ -42,6 +43,9 @@ type SelectedETStore = {
   storeId: string;
   storeName: string;
 };
+
+const ETARJOUS_STORE_INDEX_CACHE = new Map<string, SelectedETStore[]>();
+const ETARJOUS_NAME_ID_CACHE = new Map<string, string>();
 
 type PublicationMeta = {
   id: string;
@@ -89,21 +93,38 @@ function isSMarketName(value: unknown) {
   return text.includes("smarket");
 }
 
-function getSelectedStores(options?: ETarjouslehdetProviderOptions): SelectedETStore[] {
+function collectRequestedSMarketNames(options?: ETarjouslehdetProviderOptions): string[] {
+  const names: string[] = [];
+
+  for (const store of options?.stores ?? []) {
+    const name = firstString(store.storeName, options?.storeName);
+    const chain = normalizeText(store.chain);
+    if (chain && !chain.includes("s market") && !chain.includes("s-market") && !chain.includes("smarket")) continue;
+    if (name && isSMarketName(name)) names.push(name);
+  }
+
+  const directName = firstString(options?.storeName);
+  if (directName && isSMarketName(directName)) names.push(directName);
+
+  return Array.from(new Set(names.map((name) => name.trim()).filter(Boolean)));
+}
+
+function getExplicitSelectedStores(options?: ETarjouslehdetProviderOptions): SelectedETStore[] {
   const stores: SelectedETStore[] = [];
 
   for (const store of options?.stores ?? []) {
     const name = firstString(store.storeName, options?.storeName, "S-market");
     const chain = normalizeText(store.chain);
-    if (chain && !chain.includes("s market") && !chain.includes("s-market")) continue;
+    if (chain && !chain.includes("s market") && !chain.includes("s-market") && !chain.includes("smarket")) continue;
     if (name && !isSMarketName(name)) continue;
 
     const id = firstString(
       store.etarjouslehdetStoreId,
       store.eTarjouslehdetStoreId,
       store.tjekStoreId,
-      // sources-V17 antaa storeIdiksi eTarjouslehdet id:n tässä providerissa
-      store.storeId,
+      // Jos storeId näyttää jo eTarjouslehdetin id:ltä, sitä saa käyttää.
+      // S-kaupat numeric id:tä ei käytetä eTarjouslehdet-id:nä.
+      /^\d+$/.test(firstString(store.storeId)) ? "" : store.storeId,
     );
 
     if (!id) continue;
@@ -118,6 +139,173 @@ function getSelectedStores(options?: ETarjouslehdetProviderOptions): SelectedETS
 
   if (directId) {
     stores.push({ storeId: directId, storeName: firstString(options?.storeName, "S-market") });
+  }
+
+  const seen = new Set<string>();
+  return stores.filter((store) => {
+    const key = `${store.storeId}|${normalizeText(store.storeName)}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function getStoreSlugFromHref(value: unknown): string {
+  const text = firstString(value);
+  if (!text) return "";
+
+  const match = text.match(/\/S-market\/kaupat\/([a-z0-9_-]+)/i);
+  if (match?.[1]) return match[1];
+
+  // eTarjouslehdet store id:t ovat yleensä lyhyitä alfanumeerisia tunnisteita kuten f327lvi.
+  if (/^[a-z0-9_-]{5,12}$/i.test(text) && !/^\d+$/.test(text)) return text;
+
+  return "";
+}
+
+function looksLikeETarjousStoreRecord(record: UnknownRecord): boolean {
+  const name = firstString(record.name, record.title, record.label, record.storeName, record.displayName);
+  const href = firstString(record.href, record.url, record.path, record.link, record.slug, record.id, record.storeId);
+  return isSMarketName(name) && Boolean(getStoreSlugFromHref(href));
+}
+
+function extractStoresFromText(text: string): SelectedETStore[] {
+  const stores: SelectedETStore[] = [];
+
+  // 1) HTML-linkit: /S-market/kaupat/<id> ... S-market Foo
+  const linkPattern = /<a[^>]+href=["']([^"']*\/S-market\/kaupat\/([a-z0-9_-]+)[^"']*)["'][^>]*>([\s\S]*?)<\/a>/gi;
+  for (const match of text.matchAll(linkPattern)) {
+    const slug = match[2];
+    const rawLabel = match[3]
+      .replace(/<[^>]+>/g, " ")
+      .replace(/&nbsp;/g, " ")
+      .replace(/&amp;/g, "&")
+      .replace(/\s+/g, " ")
+      .trim();
+    if (slug && isSMarketName(rawLabel)) stores.push({ storeId: slug, storeName: rawLabel });
+  }
+
+  // 2) JSON/Next data -kävely.
+  for (const candidate of parseJsonCandidatesFromText(text)) {
+    walk(candidate, (record) => {
+      if (!looksLikeETarjousStoreRecord(record)) return;
+      const storeName = firstString(record.name, record.title, record.label, record.storeName, record.displayName);
+      const storeId = getStoreSlugFromHref(
+        firstString(record.href, record.url, record.path, record.link, record.slug, record.id, record.storeId),
+      );
+      if (storeName && storeId) stores.push({ storeId, storeName });
+    });
+  }
+
+  // 3) Raakatekstin fallback: jos vieressä esiintyy slug ja S-market nimi.
+  const rawPattern = /\/S-market\/kaupat\/([a-z0-9_-]+)[\s\S]{0,500}?(S-market\s+[^"'<>\\]{2,80})/gi;
+  for (const match of text.matchAll(rawPattern)) {
+    const slug = match[1];
+    const name = match[2].replace(/\\u00e4/g, "ä").replace(/\\u00f6/g, "ö").replace(/\\u00c4/g, "Ä").replace(/\\u00d6/g, "Ö").trim();
+    if (slug && isSMarketName(name)) stores.push({ storeId: slug, storeName: name });
+  }
+
+  const seen = new Set<string>();
+  return stores.filter((store) => {
+    const key = `${store.storeId}|${normalizeText(store.storeName)}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+async function fetchStoreIndex(): Promise<SelectedETStore[]> {
+  const cacheKey = "s-market-store-index";
+  const cached = ETARJOUS_STORE_INDEX_CACHE.get(cacheKey);
+  if (cached) return cached;
+
+  const candidateUrls = [
+    `${ET_BASE}/S-market/kaupat`,
+    `${ET_BASE}/S-market`,
+  ];
+
+  const allStores: SelectedETStore[] = [];
+
+  for (const url of candidateUrls) {
+    try {
+      const text = await fetchText(url);
+      const stores = extractStoresFromText(text);
+      console.warn("[ETARJOUS DEBUG V18 provider] store index", {
+        url,
+        count: stores.length,
+        sample: stores.slice(0, 8),
+      });
+      allStores.push(...stores);
+    } catch (error) {
+      console.warn("[ETARJOUS DEBUG V18 provider] store index fetch failed", { url, error });
+    }
+  }
+
+  const seen = new Set<string>();
+  const unique = allStores.filter((store) => {
+    const key = `${store.storeId}|${normalizeText(store.storeName)}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+
+  ETARJOUS_STORE_INDEX_CACHE.set(cacheKey, unique);
+  return unique;
+}
+
+function scoreStoreNameMatch(requestedName: string, candidateName: string): number {
+  const requested = normalizeText(requestedName);
+  const candidate = normalizeText(candidateName);
+  const requestedTail = requested.replace(/^s\s*-?\s*market\s+/, "").trim();
+  const candidateTail = candidate.replace(/^s\s*-?\s*market\s+/, "").trim();
+
+  if (!requested || !candidate) return 0;
+  if (candidate === requested) return 1000;
+  if (candidateTail && requestedTail && candidateTail === requestedTail) return 950;
+  if (candidate.includes(requested) || requested.includes(candidate)) return 850;
+  if (candidateTail && requestedTail && (candidateTail.includes(requestedTail) || requestedTail.includes(candidateTail))) return 800;
+
+  const requestedWords = requestedTail.split(/\s+/).filter((word) => word.length > 2);
+  const candidateWords = candidateTail.split(/\s+/).filter((word) => word.length > 2);
+  const hits = requestedWords.filter((word) => candidateWords.includes(word)).length;
+  return hits > 0 ? hits * 100 : 0;
+}
+
+async function resolveStoreIdByName(requestedName: string): Promise<string> {
+  const cacheKey = normalizeText(requestedName);
+  const cached = ETARJOUS_NAME_ID_CACHE.get(cacheKey);
+  if (cached) return cached;
+
+  const storeIndex = await fetchStoreIndex();
+  const best = storeIndex
+    .map((store) => ({ ...store, score: scoreStoreNameMatch(requestedName, store.storeName) }))
+    .filter((store) => store.score > 0)
+    .sort((a, b) => b.score - a.score)[0];
+
+  console.warn("[ETARJOUS DEBUG V18 provider] resolve store by name", {
+    requestedName,
+    best,
+    candidates: storeIndex.slice(0, 10),
+  });
+
+  if (!best?.storeId || best.score < 100) return "";
+  ETARJOUS_NAME_ID_CACHE.set(cacheKey, best.storeId);
+  return best.storeId;
+}
+
+async function getSelectedStores(options?: ETarjouslehdetProviderOptions): Promise<SelectedETStore[]> {
+  const explicitStores = getExplicitSelectedStores(options);
+  const requestedNames = collectRequestedSMarketNames(options);
+  const stores = [...explicitStores];
+
+  for (const requestedName of requestedNames) {
+    const alreadyExists = stores.some((store) => normalizeText(store.storeName) === normalizeText(requestedName));
+    if (alreadyExists) continue;
+
+    const resolvedId = await resolveStoreIdByName(requestedName);
+    if (resolvedId) {
+      stores.push({ storeId: resolvedId, storeName: requestedName });
+    }
   }
 
   const seen = new Set<string>();
@@ -194,7 +382,7 @@ async function fetchText(url: string): Promise<string> {
     headers: {
       accept: "text/x-component,text/html,application/json;q=0.9,*/*;q=0.8",
       referer: `${ET_BASE}/`,
-      "user-agent": "Mozilla/5.0 ZiiplyOfferDebug/17",
+      "user-agent": "Mozilla/5.0 ZiiplyOfferDebug/18",
     },
   });
 
@@ -287,7 +475,7 @@ async function getActivePublication(storeId: string): Promise<PublicationMeta | 
   const text = await fetchText(pageUrl);
   const publications = findPublicationsFromStorePage(text);
 
-  console.warn("[ETARJOUS DEBUG V17 provider] store page publications", {
+  console.warn("[ETARJOUS DEBUG V18 provider] store page publications", {
     storeId,
     pageUrl,
     count: publications.length,
@@ -508,9 +696,9 @@ export async function fetchETarjouslehdetOffers(
   const cleanQuery = String(query || "").trim();
   if (!cleanQuery) return [];
 
-  const selectedStores = getSelectedStores(options);
+  const selectedStores = await getSelectedStores(options);
 
-  console.warn("[ETARJOUS DEBUG V17 provider] start", {
+  console.warn("[ETARJOUS DEBUG V18 provider] start", {
     query: cleanQuery,
     selectedStores,
     optionsStoreName: options?.storeName,
@@ -523,7 +711,7 @@ export async function fetchETarjouslehdetOffers(
       query: cleanQuery,
       config,
       title: "NO_ETARJOUS_STORE_ID",
-      detail: "Provider kutsuttiin, mutta options/stores ei sisällä etarjouslehdetStoreId/tjekStoreId-arvoa. Lisää S-market Vehkojan kauppatietoon etarjouslehdetStoreId: f327lvi.",
+      detail: "Provider kutsuttiin, mutta S-marketin eTarjouslehdet storeId:tä ei pystytty ratkaisemaan nimen perusteella eikä options/stores sisältänyt etarjouslehdetStoreId/tjekStoreId-arvoa.",
     })];
   }
 
@@ -550,7 +738,7 @@ export async function fetchETarjouslehdetOffers(
       const sections = extractIncitoSections(incito);
       const sectionsToFetch = sections.slice(0, MAX_DEBUG_SECTIONS);
 
-      console.warn("[ETARJOUS DEBUG V17 provider] publication", {
+      console.warn("[ETARJOUS DEBUG V18 provider] publication", {
         store,
         publication,
         sections: sections.length,
@@ -586,7 +774,7 @@ export async function fetchETarjouslehdetOffers(
             }
           }
         } catch (sectionError) {
-          console.warn("[ETARJOUS DEBUG V17 provider] section failed", {
+          console.warn("[ETARJOUS DEBUG V18 provider] section failed", {
             store,
             sectionTitle: section.title,
             sectionBody: section.body,
@@ -605,7 +793,7 @@ export async function fetchETarjouslehdetOffers(
         index: allResults.length,
       }));
     } catch (error) {
-      console.warn("[ETARJOUS DEBUG V17 provider] failed", { store, error });
+      console.warn("[ETARJOUS DEBUG V18 provider] failed", { store, error });
       allResults.push(makeDebugResult({
         query: cleanQuery,
         config,
