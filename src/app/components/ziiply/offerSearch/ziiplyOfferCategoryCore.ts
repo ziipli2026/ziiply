@@ -1,6 +1,6 @@
 // ============================================================================
-// ZIIPLY_OFFER_CATEGORY_CORE_V160_DRY_PRODUCTS_AND_MAKEISET_KEKSIT
-// Revision: V160
+// ZIIPLY_OFFER_CATEGORY_CORE_V161_STRICT_S_FOOD_CATEGORY_FIX
+// Revision: V161
 // Date: 2026-07-04
 //
 // Muutokset:
@@ -9,6 +9,12 @@
 // - Muuttaa näkyvän Makeiset-kategorian nimeksi Makeiset & keksit.
 // - Lisää keksit Makeiset & keksit -ryhmään, mutta jäätelöt pysyvät Pakasteissa.
 // - Säilyttää aiemmat Haribo/Hevi, Lumene/Maitotuotteet ja jäätelö/Makeiset-korjaukset.
+
+// V161 korjaus:
+// - Estää S-kaupat non-food -tuotteiden päätymisen ruokakategorioihin pelkkien yleissanojen takia.
+// - SmartStore/säilytyslaatikko/muovilaatikko/paistinpannu/kattila/astia -> Koti.
+// - Poistaa liian lavean "laatikko"-sanan Valmisruoasta.
+// - Tiukentaa ruoka-avainsanoja sananrajoilla, jotta esim. fileeveitsi/grillitarvike ei mene Lihaan.
 // ============================================================================
 
 // ============================================================================
@@ -197,7 +203,7 @@ function classifyGostaCategoryFromText(rawText: string) {
   // hedelmä, marja, milk or cream inside candy/cosmetic products.
   if (/lemmikkien ruuat ja tarvikkeet|lemmikkien ruoat ja tarvikkeet|lemmikki|lemmik|koira|kissa|pedigree|whiskas|sheba|purina|friskies|perfect fit|best friend/.test(text)) return "Lemmikit";
 
-  if (/kodinhoito ja taloustarvikkeet|kodinhoito|taloustarvikkeet|vaippa|vaipat|hoitotarvikkeet|pampers|libero|lastenhoito|pesu|pyykin|pyykinpesu|fairy|astianpesu|wc|siivous|talouspaperi|vessa|roskapussi|leivinpaperi|folio|kelmu|hygienia|shampoo|saippua|hammastahna|hammasharja|lumene|nivea|dove|kasvovoide|kosteusvoide|paivavoide|päivävoide|yovoide|yövoide|ihonhoito|kosmetiikka|meikki|seerumi|deodorantti/.test(text)) return "Koti";
+  if (/kodinhoito ja taloustarvikkeet|kodinhoito|taloustarvikkeet|vaippa|vaipat|hoitotarvikkeet|pampers|libero|lastenhoito|pesu|pyykin|pyykinpesu|fairy|astianpesu|wc|siivous|talouspaperi|vessa|roskapussi|leivinpaperi|folio|kelmu|hygienia|shampoo|saippua|hammastahna|hammasharja|lumene|nivea|dove|kasvovoide|kosteusvoide|paivavoide|päivävoide|yovoide|yövoide|ihonhoito|kosmetiikka|meikki|seerumi|deodorantti|smartstore|sailytyslaatikko|säilytyslaatikko|sailytysrasia|säilytysrasia|muovilaatikko|muovirasia|rasia|astia|paistinpannu|pannu|kattila|kasari|keittio|keittiö|grillipannu/.test(text)) return "Koti";
 
   // V159: Pakasteet must win before Makeiset. Ice creams often contain
   // words such as suklaa/lakritsi in the product name, but the real bucket is Pakasteet.
@@ -207,11 +213,11 @@ function classifyGostaCategoryFromText(rawText: string) {
 
   // V154: baby food is food, not Koti. Diapers/care products still stay in Koti.
   if (/lastenruoka|lastenruoat|vauvanruoka|vauvanruoat|baby food|piltti|bonan|semper/.test(text)) return "Valmisruoka";
-  if (/valmisruoka|valmisateria|keitto|keitot|salaattiateria|mikroateria|ateria|laatikko|pasta ateria/.test(text)) return "Valmisruoka";
+  if (/valmisruoka|valmisateria|mikroateria|salaattiateria|pasta ateria|keitto|keitot|ruokaisa salaatti|ateria|ateriat|kiusaus|makaronilaatikko|kaalilaatikko|perunalaatikko|porkkanalaatikko|lanttulaatikko/.test(text)) return "Valmisruoka";
 
   if (/kuivatuotteet|pasta|riisi|nuudeli|makaroni|spagetti|jauho|jauhot|sokeri|hiutale|hiutaleet|kaurahiutale|muro|murot|mysli|granola|sailyke|säilyke|tonnikalasailyke|tonnikalasäilyke|papu|pavut|linssi|linssit|kastikejauhe|mauste|mausteet|leivonta/.test(text)) return "Kuivatuotteet";
 
-  if (/liha ja kasviproteiinit|liha|jauheliha|kana|broiler|possu|porsas|nauta|sika|makkara|leikkele|kinkku|pekoni|filee|paisti|lihapulla|kasviproteiini|tofu|nyhtokaura|harkis|vege/.test(text)) return "Liha";
+  if (/liha ja kasviproteiinit|liha|jauheliha|kana|broiler\w*|possu|porsas|nauta|sika|makkara\w*|leikkele\w*|kinkku|pekoni|filee|paisti|lihapulla\w*|kasviproteiini|tofu|nyhtokaura|harkis|vege/.test(text)) return "Liha";
   if (/kala ja merenelavat|kala ja merenelävät|merenelav|mereneläv|kirjolohi|lohi|tonnikala|silakka|katkarapu|kuha|ahven|seiti|kalapuikko|silli|kala/.test(text)) return "Kala";
   if (/leivat keksit ja leivonnaiset|leivät keksit ja leivonnaiset|leipa|leipä|sampyl|sämpyl|pulla|croissant|karjalanpiir|pita|patonki|ruis|paahtoleipa|paahtoleipä|donitsi|keksi|leivonnainen/.test(text)) return "Leipomo";
   if (/maito munat ja rasvat|maito|kananmuna|munat|jugur|jogur|jogurt|rahka|raejuusto|juusto|voi|margariini|rasva|kerma|piima|viili|kefiiri|proteiinivanukas|vanukas/.test(text)) return "Maitotuotteet";
@@ -352,7 +358,7 @@ export function getGostaCategorySeedQueriesV136(categoryOrFilter: string) {
     leipomo: ["leipä", "leivät", "sämpylä", "pulla", "croissant", "karjalanpiirakka", "patonki", "ruisleipä", "paahtoleipä", "keksit", "leivonnaiset"],
     hevi: ["hedelmät", "vihannekset", "hedelmä", "omena", "banaani", "appelsiini", "vihannes", "tomaatti", "kurkku", "salaatti", "peruna", "sipuli", "porkkana", "marjat"],
     juomat: ["virvoitusjuomat", "mehu", "limu", "cola", "energiajuoma", "vesi", "kivennäisvesi", "smoothie", "kahvit teet ja mehut"],
-    valmisruoka: ["valmisruoka", "valmisateria", "keitto", "salaattiateria", "mikroateria", "ateria", "laatikko", "pasta", "risotto", "lastenruoka", "lastenruoat", "vauvanruoka", "piltti", "semper"],
+    valmisruoka: ["valmisruoka", "valmisateria", "keitto", "salaattiateria", "mikroateria", "ateria", "makaronilaatikko", "kaalilaatikko", "porkkanalaatikko", "pasta", "risotto", "lastenruoka", "lastenruoat", "vauvanruoka", "piltti", "semper"],
     kuivatuotteet: ["kuivatuotteet", "pasta", "riisi", "makaroni", "spagetti", "nuudeli", "jauhot", "sokeri", "hiutaleet", "kaurahiutale", "murot", "mysli", "granola", "säilykkeet", "pavut", "linssit", "mausteet"],
     makeiset: ["karkit", "karkki", "makeinen", "makeiset", "suklaa", "suklaat", "lakritsi", "salmiakki", "pastillit", "pastilli", "purukumi", "ksylitoli", "keksi", "keksit", "keksipaketti", "haribo", "marianne", "fazer", "pandy"],
     makeisetkeksit: ["karkit", "karkki", "makeinen", "makeiset", "suklaa", "suklaat", "lakritsi", "salmiakki", "pastillit", "pastilli", "purukumi", "ksylitoli", "keksi", "keksit", "keksipaketti", "haribo", "marianne", "fazer", "pandy"],
