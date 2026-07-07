@@ -1,5 +1,5 @@
 // src/app/components/ziiply/offerSearch/providers/etarjouslehdetProvider.ts
-// ETARJOUSLEHDET_PROVIDER_V24_RESOLVE_STORE_VISIBLE_DEBUG
+// ETARJOUSLEHDET_PROVIDER_V25_SHORT_TITLE_DEBUG
 // Korjaus V18: ei enää luoteta /S-market/kaupat HTML-listan parsimiseen.
 // - Ratkaisee S-marketin eTarjouslehdet-storeId:n batch-queryllä: ["stores", { businessId, pagination, query/search }]
 // - Hakee aktiivisen julkaisun samalla tavalla kuin HAR:ssa: ["fronts", { businessIds, coordinates, localBusinessIds }]
@@ -8,7 +8,7 @@
 // - V21: lukee S-market-nimet myös sStoreName/sStoreNames/name/title/label-aliasteista ja näyttää options-avaimet debugissa.
 // - V22: hyväksyy providerille sources.ts:stä tulevan storeName/stores[{storeName}] arvon suoraan.
 // - V23: batch-vastauksissa luetaan entry.value.
-// - V24: näyttää resolveStoreByName()-diagnostiikan näkyvässä kortissa.
+// - V25: näyttää resolveStoreByName()-diagnostiikan suoraan kortin otsikossa, koska teksti katkeaa mobiilissa.
 // - V23: korjaa batch-vastausten parsimisen: luetaan entry.value eikä koko { key, value } -riviä.
 // - Debug näkyy korteissa kategoriassa "Muut".
 
@@ -85,6 +85,19 @@ const LAST_RESOLVE_STORE_DEBUG = new Map<string, {
   sample: string;
   error?: string;
 }>();
+
+
+function getLastResolveDebugTitle(requestedNames: string[]) {
+  const name = requestedNames[0] || "";
+  const debug = name ? LAST_RESOLVE_STORE_DEBUG.get(normalizeText(name)) : undefined;
+  if (!debug) return `ETRS NODBG N${requestedNames.length}`;
+
+  const bestShort = debug.bestId ? ` ID${debug.bestId}` : "";
+  const scoreShort = debug.bestScore ? ` SC${debug.bestScore}` : "";
+  const errorShort = debug.error ? " ERR" : "";
+
+  return `ETRS R${debug.batchRows} V${debug.valueCount} S${debug.foundStores}${bestShort}${scoreShort}${errorShort}`.slice(0, 54);
+}
 
 function getLastResolveDebugText(requestedNames: string[]) {
   const parts: string[] = [];
@@ -826,8 +839,8 @@ export async function fetchETarjouslehdetOffers(
     const resolveDebug = getLastResolveDebugText(requestedNames);
     return [makeDebugResult({
       config,
-      title: `ETPROV NO_STORE N${requestedNames.length}`,
-      detail: `names=${requestedNames.join(" | ").slice(0, 80)} ${resolveDebug || "no-resolve-debug"} keys=${Object.keys((options as any) || {}).join(",").slice(0, 50)}`,
+      title: getLastResolveDebugTitle(requestedNames),
+      detail: `N${requestedNames.length} names=${requestedNames.join(" | ").slice(0, 80)} ${resolveDebug || "no-resolve-debug"} keys=${Object.keys((options as any) || {}).join(",").slice(0, 50)}`,
     })];
   }
 
