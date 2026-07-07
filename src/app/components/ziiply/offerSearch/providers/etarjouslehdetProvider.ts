@@ -1,11 +1,12 @@
 // src/app/components/ziiply/offerSearch/providers/etarjouslehdetProvider.ts
-// ETARJOUSLEHDET_PROVIDER_V21_OPTIONS_SHAPE_FIX
+// ETARJOUSLEHDET_PROVIDER_V22_DIRECT_STORENAME_FIX
 // Korjaus V18: ei enää luoteta /S-market/kaupat HTML-listan parsimiseen.
 // - Ratkaisee S-marketin eTarjouslehdet-storeId:n batch-queryllä: ["stores", { businessId, pagination, query/search }]
 // - Hakee aktiivisen julkaisun samalla tavalla kuin HAR:ssa: ["fronts", { businessIds, coordinates, localBusinessIds }]
 // - Jatkaa Tjek/Incito-section-parserilla.
 // - Ei koske Prismaan eikä skaupatProvideriin.
 // - V21: lukee S-market-nimet myös sStoreName/sStoreNames/name/title/label-aliasteista ja näyttää options-avaimet debugissa.
+// - V22: hyväksyy providerille sources.ts:stä tulevan storeName/stores[{storeName}] arvon suoraan.
 // - Debug näkyy korteissa kategoriassa "Muut".
 
 import type {
@@ -311,14 +312,18 @@ function scorePublication(publication: PublicationMeta) {
   return score;
 }
 
-function pushNameCandidate(output: string[], value: unknown) {
+function pushNameCandidate(output: string[], value: unknown, allowAnyStoreName = false) {
   if (Array.isArray(value)) {
-    for (const item of value) pushNameCandidate(output, item);
+    for (const item of value) pushNameCandidate(output, item, allowAnyStoreName);
     return;
   }
 
   const text = firstString(value);
-  if (text && isSMarketName(text)) output.push(text);
+  if (!text) return;
+
+  // Provideria kutsutaan vain sourcesin S-market-polusta, joten tässä saa
+  // hyväksyä myös pelkän "Jokela"/"Vehkoja"-tyyppisen nimen fallbackina.
+  if (isSMarketName(text) || allowAnyStoreName) output.push(text);
 }
 
 function splitProviderMultiValue(value: unknown): string[] {
@@ -332,15 +337,46 @@ function splitProviderMultiValue(value: unknown): string[] {
     .filter(Boolean);
 }
 
+function collectStoreNameStringsDeep(value: unknown, output: string[], keyHint = "") {
+  if (value == null) return;
+
+  if (typeof value === "string" || typeof value === "number") {
+    const text = String(value).trim();
+    if (!text) return;
+
+    const keyLooksLikeName =
+      /store.?name|sstore.?name|shop.?name|label|title|name/i.test(keyHint);
+
+    if (isSMarketName(text) || (keyLooksLikeName && !/^\d+$/.test(text))) {
+      pushNameCandidate(output, text, true);
+    }
+    return;
+  }
+
+  if (Array.isArray(value)) {
+    for (const item of value) collectStoreNameStringsDeep(item, output, keyHint);
+    return;
+  }
+
+  const record = asRecord(value);
+  if (!record) return;
+
+  for (const [key, child] of Object.entries(record)) {
+    collectStoreNameStringsDeep(child, output, key);
+  }
+}
+
 function getRequestedNames(options?: ETarjouslehdetProviderOptions): string[] {
   const names: string[] = [];
   const anyOptions = options as any;
 
-  pushNameCandidate(names, options?.storeName);
-  pushNameCandidate(names, options?.sStoreName);
-  for (const name of splitProviderMultiValue(options?.sStoreNames)) pushNameCandidate(names, name);
-  for (const name of splitProviderMultiValue(options?.names)) pushNameCandidate(names, name);
-  for (const name of splitProviderMultiValue(options?.selectedSMarketNames)) pushNameCandidate(names, name);
+  // Ensisijaisesti luetaan juuri ne kentät, joita sources.ts lähettää:
+  // { storeName, stores: [{ storeName, chain: "S-market" }] }.
+  pushNameCandidate(names, options?.storeName, true);
+  pushNameCandidate(names, options?.sStoreName, true);
+  for (const name of splitProviderMultiValue(options?.sStoreNames)) pushNameCandidate(names, name, true);
+  for (const name of splitProviderMultiValue(options?.names)) pushNameCandidate(names, name, true);
+  for (const name of splitProviderMultiValue(options?.selectedSMarketNames)) pushNameCandidate(names, name, true);
 
   for (const store of options?.stores ?? []) {
     const anyStore = store as any;
@@ -357,18 +393,29 @@ function getRequestedNames(options?: ETarjouslehdetProviderOptions): string[] {
       options?.sStoreName,
     );
 
-    if (chain && !chain.includes("s market") && !chain.includes("s-market") && !chain.includes("smarket")) continue;
-    pushNameCandidate(names, name);
+    // Jos chain kertoo S-marketin, hyväksytään nimi vaikka se olisi pelkkä "Jokela".
+    const chainLooksSMarket =
+      !chain ||
+      chain.includes("s market") ||
+      chain.includes("s-market") ||
+      chain.includes("smarket") ||
+      chain === "s";
+
+    if (!chainLooksSMarket) continue;
+    pushNameCandidate(names, name, true);
   }
 
-  // Viimeinen fallback: jos options-objektin muoto muuttuu, poimi S-market-nimet raakatekstistä.
+  // Viimeinen fallback: käy koko options-objekti läpi. Tämä estää N0-tilanteen,
+  // jos sources muuttaa kentän nimeä mutta arvo on edelleen mukana.
   if (names.length === 0 && anyOptions) {
-    const raw = JSON.stringify(anyOptions);
-    const matches = raw.match(/S-market[^"\\|;]{1,80}/gi) || [];
-    for (const match of matches) pushNameCandidate(names, match);
+    collectStoreNameStringsDeep(anyOptions, names);
   }
 
-  return Array.from(new Set(names.map((name) => name.trim()).filter(Boolean)));
+  return Array.from(new Set(
+    names
+      .map((name) => name.trim())
+      .filter((name) => name && !/^(null|undefined)$/i.test(name)),
+  ));
 }
 
 function getExplicitStores(options?: ETarjouslehdetProviderOptions): SelectedETStore[] {
