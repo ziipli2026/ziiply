@@ -1,5 +1,5 @@
 // src/app/components/ziiply/offerSearch/providers/etarjouslehdetProvider.ts
-// ETARJOUSLEHDET_PROVIDER_V35_CATEGORY_DATE_FI
+// ETARJOUSLEHDET_PROVIDER_V36_HARD_CATEGORY_PIPE
 //
 // V35:
 // - korjaa S-market/eTarjouslehdet-kategorioiden yliajot tuotteen nimen perusteella
@@ -991,53 +991,104 @@ function classifyCategory(title: string, sectionTitle: string) {
   const productText = normalizeText(title);
   const sectionText = normalizeText(sectionTitle);
 
-  const hasProduct = (pattern: RegExp) => pattern.test(productText);
-  const hasSection = (pattern: RegExp) => pattern.test(sectionText);
+  const hasAny = (text: string, words: string[]) => words.some((word) => text.includes(word));
+  const hasRe = (text: string, pattern: RegExp) => pattern.test(text);
 
-  // V35: tuotteen nimi voittaa aina Tjekin sectionin.
-  // Tämä estää mm. Fanta/tonic/limsat päätymästä Maitotuotteisiin tai Kuivatuotteisiin.
+  // V36: täysin tuotteen nimi ensin. Sectioniä käytetään vasta viimeisenä fallbackina.
+  // Näin Tjekin väärä tai liian karkea osasto ei voi enää pakottaa Fanta/Snellman-tuotteita väärään ryhmään.
 
-  if (hasProduct(/fanta|sprite|jaffa|pepsi|coca\s*-?cola|coca cola|kokis|\bcola\b|tonic|fentimans|novelle|hartwall|olvi|ed\b|battery|red\s*bull|monster|virvoitusjuoma|limu|limonadi|sokeriton|\bzero\b|\blight\b|vichy|kivenn[aä]isvesi|l[aä]hdevesi|energiajuoma|urheilujuoma|mehu|tuoremehu|nektari|appelsiinijuoma|ananasjuoma|greippijuoma/)) return "Juomat";
+  // Juomat / virvoitusjuomat: pidä ehdottomasti ennen maitotuotteita ja kuivatuotteita.
+  if (
+    hasAny(productText, [
+      "fanta", "sprite", "jaffa", "pepsi", "coca cola", "coca-cola", "kokis", "cola",
+      "tonic", "fentimans", "novelle", "hartwall", "olvi", "battery", "red bull", "monster",
+      "virvoitusjuoma", "virvoitusjuo", "limu", "limonadi", "sokeriton", "zero", "light",
+      "vichy", "kivennaisvesi", "lahdevesi", "energiajuoma", "urheilujuoma",
+      "mehu", "tuoremehu", "nektari", "appelsiinijuoma", "ananasjuoma", "greippijuoma"
+    ]) ||
+    hasRe(productText, /\b(ed)\b/)
+  ) return "Juomat";
 
-  // Kasvipohjaiset/proteiinijuomat pidetään maitohyllyn logiikalla Maitotuotteissa.
-  if (hasProduct(/kaurajuoma|soijajuoma|mantelijuoma|riisijuoma|kasvijuoma|plant\s*based|proteiinijuoma|protein\s*drink|maxim\s+proteiinijuoma/)) return "Maitotuotteet";
+  // Kasvipohjaiset/proteiinijuomat: pidetään maitohyllyn logiikalla Maitotuotteissa.
+  if (hasAny(productText, [
+    "kaurajuoma", "soijajuoma", "mantelijuoma", "riisijuoma", "kasvijuoma", "plant based",
+    "proteiinijuoma", "protein drink", "maxim proteiinijuoma"
+  ])) return "Maitotuotteet";
 
-  if (hasProduct(/pekoni|bacon|kinkku|salami|meetvursti|leikkele|jauheliha|nauta|porsas|possu|broileri|kana|kalkkuna|makkara|nakki|liha|karjalanpaisti|filee|pihvi|snellman|atria|\bhk\b/)) return "Liha";
-  if (hasProduct(/lohi|kirjolohi|kala|tonnikala|silakka|seiti|ahven|siika|katkarapu|rapu|silli|muikku|kuha|hauki|kalapuikko/)) return "Kala";
-  if (hasProduct(/kahvi|espresso|juhla\s*mokka|presidentti|kulta\s*katriina|suodatinkahvi|pikakahvi|kahvijuoma/)) return "Kahvi";
+  if (hasAny(productText, [
+    "pekoni", "bacon", "kinkku", "salami", "meetvursti", "leikkele", "jauheliha",
+    "nauta", "porsas", "possu", "broileri", "kana", "kalkkuna", "makkara", "nakki",
+    "liha", "karjalanpaisti", "filee", "pihvi", "snellman", "atria"
+  ]) || hasRe(productText, /\bhk\b/)) return "Liha";
 
-  if (hasProduct(/maito|juusto|jogurtti|jogurt|rahka|kerma|voi|raejuusto|viili|piima|kefiiri|kefir|skyr|vanukas|proteiinirahka|maitorahka/)) return "Maitotuotteet";
+  if (hasAny(productText, [
+    "lohi", "kirjolohi", "kala", "tonnikala", "silakka", "seiti", "ahven", "siika",
+    "katkarapu", "rapu", "silli", "muikku", "kuha", "hauki", "kalapuikko"
+  ])) return "Kala";
 
-  if (hasProduct(/leipa|leip[aä]|sampyla|s[aä]mpyl[aä]|pull|pitko|croissant|karjalanpiirakka|ruis|patonki|paahtoleip[aä]|n[aä]kk[aä]ri|nakkileipa|tortilla|rieska|panini/)) return "Leipomo";
-  if (hasProduct(/tomaatti|kurkku|salaatti|omena|banaani|appelsiini|mandariini|sitruuna|peruna|varhaisperuna|sipuli|porkkana|marja|mansikka|mustikka|vadelma|hedel|vihanne|kasvis|kaali|paprika|avokado|kiivi|p[aä][aä]ryn[aä]|basilika|yrtti/)) return "Hevi";
-  if (hasProduct(/pakaste|jaatelo|j[aä][aä]tel[oö]|pakastettu|pakastepizza|pakastevihannes|pakastemarj|snickers\s+j[aä][aä]tel[oö]/)) return "Pakasteet";
+  if (hasAny(productText, [
+    "kahvi", "espresso", "juhla mokka", "presidentti", "kulta katriina", "suodatinkahvi", "pikakahvi", "kahvijuoma"
+  ])) return "Kahvi";
+
+  if (hasAny(productText, [
+    "maito", "juusto", "jogurtti", "jogurt", "rahka", "kerma", "voi", "raejuusto",
+    "viili", "piima", "kefiiri", "kefir", "skyr", "vanukas", "proteiinirahka", "maitorahka"
+  ])) return "Maitotuotteet";
+
+  if (hasAny(productText, [
+    "leipa", "sampyla", "pull", "pitko", "croissant", "karjalanpiirakka", "ruis",
+    "patonki", "paahtoleipa", "nakkari", "nakkileipa", "tortilla", "rieska", "panini"
+  ])) return "Leipomo";
+
+  if (hasAny(productText, [
+    "tomaatti", "kurkku", "salaatti", "omena", "banaani", "appelsiini", "mandariini", "sitruuna",
+    "peruna", "varhaisperuna", "sipuli", "porkkana", "marja", "mansikka", "mustikka", "vadelma",
+    "hedel", "vihanne", "kasvis", "kaali", "paprika", "avokado", "kiivi", "paaryna", "basilika", "yrtti"
+  ])) return "Hevi";
+
+  if (hasAny(productText, [
+    "pakaste", "jaatelo", "jaatel", "pakastettu", "pakastepizza", "pakastevihannes", "pakastemarj", "snickers jaatelo"
+  ])) return "Pakasteet";
 
   // Kuivatuotteet ennen valmisruokaa.
-  if (hasProduct(/pasta|riisi|jauho|hiutale|muro|mysli|sailyke|s[aä]ilyke|kastike|[oö]ljy|mauste|sokeri|suola|puuro|nuudeli|noodles|maggi|instant|tortellini|makaroni|spagetti|penne|rigatoni|farfalle|tagliatelle|couscous|bulgur|santa\s*maria|pippuri|pepper/)) return "Kuivatuotteet";
+  if (hasAny(productText, [
+    "pasta", "riisi", "jauho", "hiutale", "muro", "mysli", "sailyke", "kastike", "oljy",
+    "mauste", "sokeri", "suola", "puuro", "nuudeli", "noodles", "maggi", "instant",
+    "tortellini", "makaroni", "spagetti", "penne", "rigatoni", "farfalle", "tagliatelle",
+    "couscous", "bulgur", "santa maria", "pippuri", "pepper"
+  ])) return "Kuivatuotteet";
 
-  // Naposteltavat nykyiseen UI-ryhmään.
-  if (hasProduct(/kark|makeis|suklaa|keksi|lakritsi|salmiakki|purukumi|vaahto|irtokarkki|patukka|sipsi|chips|corners|estrella|doritos|pringles|cashew|pahkina|p[aä]hkin[aä]|manteli|snack|popcorn|nuts|honey\s*salt/)) return "Makeiset & keksit";
+  if (hasAny(productText, [
+    "kark", "makeis", "suklaa", "keksi", "lakritsi", "salmiakki", "purukumi", "vaahto",
+    "irtokarkki", "patukka", "sipsi", "chips", "corners", "estrella", "doritos", "pringles",
+    "cashew", "pahkina", "manteli", "snack", "popcorn", "nuts", "honey salt"
+  ])) return "Makeiset & keksit";
 
-  if (hasProduct(/semper|piltti|fruktmums|lastenruoka|vauvanruoka|sose|smoothie/)) return "Valmisruoka";
-  if (hasProduct(/valmis|ateria|pizza|keitto|salaattiateria|mikroateria|laatikko|lasagne|pasteija|annos|wokki|risotto/)) return "Valmisruoka";
-  if (hasProduct(/koira|kissa|lemmik|kissanhiekka|koiranruoka|kissanruoka/)) return "Lemmikit";
+  if (hasAny(productText, ["semper", "piltti", "fruktmums", "lastenruoka", "vauvanruoka", "sose", "smoothie"])) return "Valmisruoka";
+  if (hasAny(productText, ["valmis", "ateria", "pizza", "keitto", "salaattiateria", "mikroateria", "laatikko", "lasagne", "pasteija", "annos", "wokki", "risotto"])) return "Valmisruoka";
+  if (hasAny(productText, ["koira", "kissa", "lemmik", "kissanhiekka", "koiranruoka", "kissanruoka"])) return "Lemmikit";
 
-  if (hasProduct(/pesu|pyykin|pyykinpesu|tisk|talouspaperi|wc\s*paperi|wc-paperi|koti|siivous|vaippa|shampoo|saippua|hammastahna|deodorantti|folio|leivinpaperi|laastari|rakkolaastari|compeed|hygienia|terveys|suuvesi|side|tamponi|sert[oö]|pyykinpesujauhe|pesujauhe|astianpesu/)) return "Koti";
+  if (hasAny(productText, [
+    "pesu", "pyykin", "pyykinpesu", "tisk", "talouspaperi", "wc paperi", "wc-paperi", "koti",
+    "siivous", "vaippa", "shampoo", "saippua", "hammastahna", "deodorantti", "folio", "leivinpaperi",
+    "laastari", "rakkolaastari", "compeed", "hygienia", "terveys", "suuvesi", "side", "tamponi",
+    "serto", "pyykinpesujauhe", "pesujauhe", "astianpesu"
+  ])) return "Koti";
 
-  // Section-fallback vain jos tuotteen nimi ei ratkaissut.
-  if (hasSection(/juoma|virvoitus|mehu|vesi|limu|limonadi/)) return "Juomat";
-  if (hasSection(/kahvi/)) return "Kahvi";
-  if (hasSection(/maito|meijeri|juusto|jogurtti|rahka|kerma/)) return "Maitotuotteet";
-  if (hasSection(/kala/)) return "Kala";
-  if (hasSection(/liha|makkara|broileri|kana/)) return "Liha";
-  if (hasSection(/leip|paisto|pulla/)) return "Leipomo";
-  if (hasSection(/hevi|hedel|vihanne|kasvis/)) return "Hevi";
-  if (hasSection(/pakaste|j[aä][aä]tel/)) return "Pakasteet";
-  if (hasSection(/kuiva|pasta|riisi|s[aä]ilyke/)) return "Kuivatuotteet";
-  if (hasSection(/makeis|keksi|kark|suklaa|snack|sipsi|p[aä]hkin/)) return "Makeiset & keksit";
-  if (hasSection(/valmis|ateria/)) return "Valmisruoka";
-  if (hasSection(/lemmik|koira|kissa/)) return "Lemmikit";
-  if (hasSection(/koti|siivous|pesu|talous|hygienia|terveys/)) return "Koti";
+  // Section-fallback vain jos tuotteen nimi ei ratkaissut mitään.
+  if (hasAny(sectionText, ["juoma", "virvoitus", "mehu", "vesi", "limu", "limonadi"])) return "Juomat";
+  if (sectionText.includes("kahvi")) return "Kahvi";
+  if (hasAny(sectionText, ["maito", "meijeri", "juusto", "jogurtti", "rahka", "kerma"])) return "Maitotuotteet";
+  if (sectionText.includes("kala")) return "Kala";
+  if (hasAny(sectionText, ["liha", "makkara", "broileri", "kana"])) return "Liha";
+  if (hasAny(sectionText, ["leip", "paisto", "pulla"])) return "Leipomo";
+  if (hasAny(sectionText, ["hevi", "hedel", "vihanne", "kasvis"])) return "Hevi";
+  if (hasAny(sectionText, ["pakaste", "jaatel"])) return "Pakasteet";
+  if (hasAny(sectionText, ["kuiva", "pasta", "riisi", "sailyke"])) return "Kuivatuotteet";
+  if (hasAny(sectionText, ["makeis", "keksi", "kark", "suklaa", "snack", "sipsi", "pahkin"])) return "Makeiset & keksit";
+  if (hasAny(sectionText, ["valmis", "ateria"])) return "Valmisruoka";
+  if (hasAny(sectionText, ["lemmik", "koira", "kissa"])) return "Lemmikit";
+  if (hasAny(sectionText, ["koti", "siivous", "pesu", "talous", "hygienia", "terveys"])) return "Koti";
 
   return "Muut";
 }
