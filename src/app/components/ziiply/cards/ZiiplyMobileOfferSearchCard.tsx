@@ -355,6 +355,31 @@ function LeatherBackButton({ onClick }: { onClick?: () => void }) {
   );
 }
 
+
+function isZiiplyOfferDebugItemV32(offer: ZiiplyMobileOfferSearchItem) {
+  const text = normalizeOfferCardKeyV13([
+    offer.title,
+    offer.name,
+    offer.productName,
+    offer.brandName,
+    offer.discountText,
+    offer.storeName,
+    offer.shopName,
+    offer.chain,
+    offer.source,
+    offer.id,
+  ].filter(Boolean).join(" "));
+
+  if ((offer as any).debug === true || (offer as any).isDebug === true) return true;
+  if (text.includes("route v14 debug")) return true;
+  if (text.includes("etsrc")) return true;
+  if (text.includes("etprov")) return true;
+  if (text.includes("etrs")) return true;
+  if (text.includes("debug")) return true;
+
+  return false;
+}
+
 export default function ZiiplyMobileOfferSearchCard({
   open = true,
   title = "Tarjoushaku",
@@ -397,7 +422,9 @@ export default function ZiiplyMobileOfferSearchCard({
   if (!open) return null;
 
   const rawItems = Array.isArray(offers) ? offers : Array.isArray(results) ? results : [];
-  const items = dedupeOfferCardsV13(rawItems);
+  // V32: route/source/provider debug-rivit eivät saa näkyä, eivätkä ne saa kasvattaa tuoteryhmämääriä.
+  const nonDebugRawItems = rawItems.filter((item) => !isZiiplyOfferDebugItemV32(item));
+  const items = dedupeOfferCardsV13(nonDebugRawItems);
   const shownQuery = query.trim();
   const shownFilter = filter.trim();
   const showLandingView = !shownQuery && !shownFilter;
