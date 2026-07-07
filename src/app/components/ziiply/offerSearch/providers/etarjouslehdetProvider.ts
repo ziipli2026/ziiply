@@ -1,5 +1,5 @@
 // src/app/components/ziiply/offerSearch/providers/etarjouslehdetProvider.ts
-// ETARJOUSLEHDET_PROVIDER_V26_RELAXED_STORE_RECORDS
+// ETARJOUSLEHDET_PROVIDER_V27_PUBLICATION_FALLBACK
 // Korjaus V18: ei enää luoteta /S-market/kaupat HTML-listan parsimiseen.
 // - Ratkaisee S-marketin eTarjouslehdet-storeId:n batch-queryllä: ["stores", { businessId, pagination, query/search }]
 // - Hakee aktiivisen julkaisun samalla tavalla kuin HAR:ssa: ["fronts", { businessIds, coordinates, localBusinessIds }]
@@ -10,6 +10,7 @@
 // - V23: batch-vastauksissa luetaan entry.value.
 // - V25: näyttää resolveStoreByName()-diagnostiikan suoraan kortin otsikossa, koska teksti katkeaa mobiilissa.
 // - V26: ei vaadi batch-store-recordin nimessä sanaa S-market; hyväksyy myös "Jokela"/"Vehkoja"-tyyppiset nimet ja antaa score-funktion ratkaista.
+// - V27: publication-id fallback: ei käytä storeId:tä Tjek-publicationina, hakee myös kauppasivun ja kokeilee publication-kandidaatit läpi.
 // - V23: korjaa batch-vastausten parsimisen: luetaan entry.value eikä koko { key, value } -riviä.
 // - Debug näkyy korteissa kategoriassa "Muut".
 
@@ -284,6 +285,51 @@ async function postETBatch(queries: unknown[]): Promise<UnknownRecord[]> {
     .map((line) => JSON.parse(line) as UnknownRecord);
 }
 
+async function fetchText(url: string): Promise<string> {
+  const response = await fetchWithTimeout(url, {
+    method: "GET",
+    headers: {
+      accept: "text/x-component,text/html,application/json;q=0.9,*/*;q=0.8",
+      referer: `${ET_BASE}/`,
+      "user-agent": "Mozilla/5.0 ZiiplyOfferProvider/27",
+    },
+  });
+
+  if (!response.ok) throw new Error(`GET ${response.status} ${url}`);
+  return response.text();
+}
+
+function parseJsonCandidatesFromText(text: string): unknown[] {
+  const values: unknown[] = [];
+
+  for (const line of text.split(/\n+/)) {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) continue;
+    try {
+      const object = JSON.parse(trimmed) as UnknownRecord;
+      values.push(object && "value" in object ? object.value : object);
+    } catch {
+      // ignore
+    }
+  }
+
+  const publicationMatches = text.matchAll(/"(?:publicId|publicationId|id)"\s*:\s*"([A-Za-z0-9_-]{6,})"/g);
+  for (const match of publicationMatches) values.push({ publicId: match[1], validFrom: "html-fallback" });
+
+  return values;
+}
+
+async function getPublicationsFromStorePage(store: SelectedETStore): Promise<PublicationMeta[]> {
+  try {
+    const text = await fetchText(`${ET_BASE}/S-market/kaupat/${encodeURIComponent(store.storeId)}`);
+    const values = parseJsonCandidatesFromText(text);
+    return values.flatMap((value) => collectPublicationRecords(value, store));
+  } catch (error) {
+    if (typeof console !== "undefined") console.warn("[ETARJOUS V27] store page publication fallback failed", { store, error });
+    return [];
+  }
+}
+
 function getBatchValue(results: UnknownRecord[], queryName: string): unknown {
   const hit = results.find((entry) => decodeBatchKey(entry.key).includes(`"${queryName}"`));
   return hit?.value;
@@ -355,22 +401,55 @@ function collectStoreRecords(value: unknown): SelectedETStore[] {
   });
 }
 
+function looksLikePublicationRecord(record: UnknownRecord): boolean {
+  const validFrom = firstString(record.validFrom, record.valid_from, record.startDate, record.start_date);
+  const validUntil = firstString(record.validUntil, record.valid_until, record.endDate, record.end_date);
+  const type = normalizeText(firstString(record.type, record.kind, record.__typename, record.view_name));
+  const textKeys = normalizeText(Object.keys(record).join(" "));
+
+  return Boolean(
+    validFrom ||
+      validUntil ||
+      type.includes("publication") ||
+      type.includes("front") ||
+      textKeys.includes("publication") ||
+      textKeys.includes("validfrom") ||
+      textKeys.includes("validuntil")
+  );
+}
+
 function collectPublicationRecords(value: unknown, store: SelectedETStore): PublicationMeta[] {
   const publications: PublicationMeta[] = [];
   walk(value, (record) => {
-    const id = firstString(record.id, record.publicId, record.publicationId);
-    const name = firstString(record.label, record.name, record.publicationName, record.title);
-    if (!id || id.length < 6) return;
-    if (name && !scoreStoreNameMatch(store.storeName, name)) return;
+    const ids = [
+      firstString(record.publicationId),
+      firstString(record.publicId),
+      firstString((record as any).publication_id),
+      firstString((record as any).publication?.id),
+      firstString(record.id),
+    ].filter(Boolean);
 
-    publications.push({
-      id,
-      name: name || store.storeName,
-      validFrom: firstString(record.validFrom, record.valid_from),
-      validUntil: firstString(record.validUntil, record.valid_until),
-      storeName: store.storeName,
-      storeId: store.storeId,
-    });
+    const name = firstString(record.label, record.name, record.publicationName, record.title, (record as any).publication?.name);
+    const validFrom = firstString(record.validFrom, record.valid_from, (record as any).publication?.validFrom, (record as any).publication?.valid_from);
+    const validUntil = firstString(record.validUntil, record.valid_until, (record as any).publication?.validUntil, (record as any).publication?.valid_until);
+    const publicationLike = looksLikePublicationRecord(record);
+
+    for (const id of ids) {
+      if (!id || id.length < 6) continue;
+      // Store id ja business id eivät ole Tjek-publication-id:itä.
+      if (id === store.storeId || id === S_MARKET_BUSINESS_ID) continue;
+      // Vältetään tavallisten store/business-olioiden id:tä publicationina.
+      if (!publicationLike && !validFrom && !validUntil) continue;
+
+      publications.push({
+        id,
+        name: name || store.storeName,
+        validFrom,
+        validUntil,
+        storeName: store.storeName,
+        storeId: store.storeId,
+      });
+    }
   });
 
   const seen = new Set<string>();
@@ -615,10 +694,7 @@ async function getSelectedStores(options?: ETarjouslehdetProviderOptions): Promi
   });
 }
 
-async function resolvePublicationForStore(store: SelectedETStore): Promise<PublicationMeta | null> {
-  const cacheKey = `${store.storeId}|${normalizeText(store.storeName)}`;
-  if (PUBLICATION_CACHE.has(cacheKey)) return PUBLICATION_CACHE.get(cacheKey) || null;
-
+async function resolvePublicationsForStore(store: SelectedETStore): Promise<PublicationMeta[]> {
   const frontParams: UnknownRecord = {
     businessIds: [S_MARKET_BUSINESS_ID],
     localBusinessIds: [store.storeId],
@@ -631,17 +707,43 @@ async function resolvePublicationForStore(store: SelectedETStore): Promise<Publi
   const queries = [
     ["fronts", frontParams],
     ["fronts", { businessIds: [S_MARKET_BUSINESS_ID], localBusinessIds: [store.storeId] }],
+    ["relatedPublications", { businessId: S_MARKET_BUSINESS_ID, locationId: store.storeId }],
+    ["relatedPublications", { businessId: S_MARKET_BUSINESS_ID, localBusinessId: store.storeId }],
   ];
 
-  const results = await postETBatch(queries);
-  const publications = collectBatchValues(results)
-    .flatMap((value) => collectPublicationRecords(value, store))
+  let publications: PublicationMeta[] = [];
+  try {
+    const results = await postETBatch(queries);
+    publications = collectBatchValues(results).flatMap((value) => collectPublicationRecords(value, store));
+  } catch (error) {
+    if (typeof console !== "undefined") console.warn("[ETARJOUS V27] publication batch failed", { store, error });
+  }
+
+  const pagePublications = await getPublicationsFromStorePage(store);
+  publications.push(...pagePublications);
+
+  const seen = new Set<string>();
+  const unique = publications
+    .filter((publication) => publication.id && publication.id !== store.storeId && publication.id !== S_MARKET_BUSINESS_ID)
+    .filter((publication) => {
+      if (seen.has(publication.id)) return false;
+      seen.add(publication.id);
+      return true;
+    })
     .sort((a, b) => scorePublication(b) - scorePublication(a));
 
   if (typeof console !== "undefined") {
-    console.warn("[ETARJOUS V20] resolve publication", { store, count: publications.length, sample: publications.slice(0, 3) });
+    console.warn("[ETARJOUS V27] resolve publications", { store, count: unique.length, sample: unique.slice(0, 5) });
   }
 
+  return unique;
+}
+
+async function resolvePublicationForStore(store: SelectedETStore): Promise<PublicationMeta | null> {
+  const cacheKey = `${store.storeId}|${normalizeText(store.storeName)}`;
+  if (PUBLICATION_CACHE.has(cacheKey)) return PUBLICATION_CACHE.get(cacheKey) || null;
+
+  const publications = await resolvePublicationsForStore(store);
   const publication = publications[0] || null;
   PUBLICATION_CACHE.set(cacheKey, publication);
   return publication;
@@ -879,8 +981,8 @@ export async function fetchETarjouslehdetOffers(
 
   for (const store of stores) {
     try {
-      const publication = await resolvePublicationForStore(store);
-      if (!publication?.id) {
+      const publications = await resolvePublicationsForStore(store);
+      if (publications.length === 0) {
         allResults.push(makeDebugResult({
           config,
           title: `ETPROV NO_PUB ${store.storeId}`,
@@ -891,9 +993,31 @@ export async function fetchETarjouslehdetOffers(
         continue;
       }
 
-      const incito = await generatePublication(publication.id);
-      if (!incito) {
-        allResults.push(makeDebugResult({ config, title: `ETPROV PUBNULL ${publication.id}`, detail: store.storeName, storeName: store.storeName, storeId: store.storeId }));
+      let publication: PublicationMeta | null = null;
+      let incito: UnknownRecord | null = null;
+      let lastPublicationError = "";
+
+      for (const candidate of publications.slice(0, 8)) {
+        try {
+          const candidateIncito = await generatePublication(candidate.id);
+          if (candidateIncito) {
+            publication = candidate;
+            incito = candidateIncito;
+            break;
+          }
+        } catch (error) {
+          lastPublicationError = String(error instanceof Error ? error.message : error);
+        }
+      }
+
+      if (!publication?.id || !incito) {
+        allResults.push(makeDebugResult({
+          config,
+          title: `ETPROV PUBERR C${publications.length}`,
+          detail: `store=${store.storeName} ids=${publications.slice(0, 4).map((item) => item.id).join("|")} err=${lastPublicationError.slice(0, 80)}`,
+          storeName: store.storeName,
+          storeId: store.storeId,
+        }));
         continue;
       }
 
