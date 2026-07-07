@@ -9,7 +9,7 @@
 // - V22: hyväksyy providerille sources.ts:stä tulevan storeName/stores[{storeName}] arvon suoraan.
 // - V23: batch-vastauksissa luetaan entry.value.
 // - V25: näyttää resolveStoreByName()-diagnostiikan suoraan kortin otsikossa, koska teksti katkeaa mobiilissa.
-- V26: ei vaadi batch-store-recordin nimessä sanaa S-market; hyväksyy myös "Jokela"/"Vehkoja"-tyyppiset nimet ja antaa score-funktion ratkaista.
+// - V26: ei vaadi batch-store-recordin nimessä sanaa S-market; hyväksyy myös "Jokela"/"Vehkoja"-tyyppiset nimet ja antaa score-funktion ratkaista.
 // - V23: korjaa batch-vastausten parsimisen: luetaan entry.value eikä koko { key, value } -riviä.
 // - Debug näkyy korteissa kategoriassa "Muut".
 
