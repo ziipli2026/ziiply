@@ -1,6 +1,7 @@
 // src/app/components/ziiply/offerSearch/providers/etarjouslehdetProvider.ts
-// ETARJOUSLEHDET_PROVIDER_V18_NAME_RESOLVE_DEBUG
+// ETARJOUSLEHDET_PROVIDER_V19_STORE_INDEX_VISIBLE_DEBUG
 // Debug-versio S-market tarjouslehtihakuun.
+// - V19: Näyttää näkyvässä debug-kortissa storeIndex-countin ja ensimmäiset ehdokkaat, jotta nähdään löytyykö /S-market/kaupat-sivulta kauppalista.
 // - V18: Ratkaisee eTarjouslehdet-storeId:n myös pelkän S-market-nimen perusteella.
 // - Ei koske Prismaan eikä skaupatProvideriin.
 // - Palauttaa näkyvän DBG-kortin, jos eTarjouslehdet-storeId puuttuu.
@@ -46,6 +47,8 @@ type SelectedETStore = {
 
 const ETARJOUS_STORE_INDEX_CACHE = new Map<string, SelectedETStore[]>();
 const ETARJOUS_NAME_ID_CACHE = new Map<string, string>();
+let ETARJOUS_LAST_STORE_INDEX_DEBUG = "storeIndex=not-run";
+let ETARJOUS_LAST_RESOLVE_DEBUG = "resolve=not-run";
 
 type PublicationMeta = {
   id: string;
@@ -230,14 +233,14 @@ async function fetchStoreIndex(): Promise<SelectedETStore[]> {
     try {
       const text = await fetchText(url);
       const stores = extractStoresFromText(text);
-      console.warn("[ETARJOUS DEBUG V18 provider] store index", {
+      console.warn("[ETARJOUS DEBUG V19 provider] store index", {
         url,
         count: stores.length,
         sample: stores.slice(0, 8),
       });
       allStores.push(...stores);
     } catch (error) {
-      console.warn("[ETARJOUS DEBUG V18 provider] store index fetch failed", { url, error });
+      console.warn("[ETARJOUS DEBUG V19 provider] store index fetch failed", { url, error });
     }
   }
 
@@ -248,6 +251,11 @@ async function fetchStoreIndex(): Promise<SelectedETStore[]> {
     seen.add(key);
     return true;
   });
+
+  ETARJOUS_LAST_STORE_INDEX_DEBUG = `storeIndex=${unique.length} sample=${unique
+    .slice(0, 5)
+    .map((store) => `${store.storeName}:${store.storeId}`)
+    .join(" | ") || "none"}`;
 
   ETARJOUS_STORE_INDEX_CACHE.set(cacheKey, unique);
   return unique;
@@ -282,10 +290,13 @@ async function resolveStoreIdByName(requestedName: string): Promise<string> {
     .filter((store) => store.score > 0)
     .sort((a, b) => b.score - a.score)[0];
 
-  console.warn("[ETARJOUS DEBUG V18 provider] resolve store by name", {
+  ETARJOUS_LAST_RESOLVE_DEBUG = `resolve name=${requestedName} best=${best?.storeName || "none"} id=${best?.storeId || ""} score=${best?.score || 0}`;
+
+  console.warn("[ETARJOUS DEBUG V19 provider] resolve store by name", {
     requestedName,
     best,
     candidates: storeIndex.slice(0, 10),
+    storeIndexDebug: ETARJOUS_LAST_STORE_INDEX_DEBUG,
   });
 
   if (!best?.storeId || best.score < 100) return "";
@@ -475,7 +486,7 @@ async function getActivePublication(storeId: string): Promise<PublicationMeta | 
   const text = await fetchText(pageUrl);
   const publications = findPublicationsFromStorePage(text);
 
-  console.warn("[ETARJOUS DEBUG V18 provider] store page publications", {
+  console.warn("[ETARJOUS DEBUG V19 provider] store page publications", {
     storeId,
     pageUrl,
     count: publications.length,
@@ -698,7 +709,7 @@ export async function fetchETarjouslehdetOffers(
 
   const selectedStores = await getSelectedStores(options);
 
-  console.warn("[ETARJOUS DEBUG V18 provider] start", {
+  console.warn("[ETARJOUS DEBUG V19 provider] start", {
     query: cleanQuery,
     selectedStores,
     optionsStoreName: options?.storeName,
@@ -710,8 +721,8 @@ export async function fetchETarjouslehdetOffers(
     return [makeDebugResult({
       query: cleanQuery,
       config,
-      title: "NO_ETARJOUS_STORE_ID",
-      detail: "Provider kutsuttiin, mutta S-marketin eTarjouslehdet storeId:tä ei pystytty ratkaisemaan nimen perusteella eikä options/stores sisältänyt etarjouslehdetStoreId/tjekStoreId-arvoa.",
+      title: `NO_ID IDX ${ETARJOUS_LAST_STORE_INDEX_DEBUG.match(/storeIndex=([^ ]+)/)?.[1] || "?"}`,
+      detail: `${ETARJOUS_LAST_STORE_INDEX_DEBUG} | ${ETARJOUS_LAST_RESOLVE_DEBUG} | names=${collectRequestedSMarketNames(options).join(" || ") || "none"}`,
     })];
   }
 
@@ -738,7 +749,7 @@ export async function fetchETarjouslehdetOffers(
       const sections = extractIncitoSections(incito);
       const sectionsToFetch = sections.slice(0, MAX_DEBUG_SECTIONS);
 
-      console.warn("[ETARJOUS DEBUG V18 provider] publication", {
+      console.warn("[ETARJOUS DEBUG V19 provider] publication", {
         store,
         publication,
         sections: sections.length,
@@ -774,7 +785,7 @@ export async function fetchETarjouslehdetOffers(
             }
           }
         } catch (sectionError) {
-          console.warn("[ETARJOUS DEBUG V18 provider] section failed", {
+          console.warn("[ETARJOUS DEBUG V19 provider] section failed", {
             store,
             sectionTitle: section.title,
             sectionBody: section.body,
@@ -793,7 +804,7 @@ export async function fetchETarjouslehdetOffers(
         index: allResults.length,
       }));
     } catch (error) {
-      console.warn("[ETARJOUS DEBUG V18 provider] failed", { store, error });
+      console.warn("[ETARJOUS DEBUG V19 provider] failed", { store, error });
       allResults.push(makeDebugResult({
         query: cleanQuery,
         config,
