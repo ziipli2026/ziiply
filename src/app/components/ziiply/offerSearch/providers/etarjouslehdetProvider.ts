@@ -1,5 +1,5 @@
 // src/app/components/ziiply/offerSearch/providers/etarjouslehdetProvider.ts
-// ETARJOUSLEHDET_PROVIDER_V28_SECTION_ERROR_VISIBLE
+// ETARJOUSLEHDET_PROVIDER_V29_INCITO_BODY_SECTION
 // Korjaus V18: ei enää luoteta /S-market/kaupat HTML-listan parsimiseen.
 // - Ratkaisee S-marketin eTarjouslehdet-storeId:n batch-queryllä: ["stores", { businessId, pagination, query/search }]
 // - Hakee aktiivisen julkaisun samalla tavalla kuin HAR:ssa: ["fronts", { businessIds, coordinates, localBusinessIds }]
@@ -12,6 +12,8 @@
 // - V26: ei vaadi batch-store-recordin nimessä sanaa S-market; hyväksyy myös "Jokela"/"Vehkoja"-tyyppiset nimet ja antaa score-funktion ratkaista.
 // - V27: publication-id fallback: ei käytä storeId:tä Tjek-publicationina, hakee myös kauppasivun ja kokeilee publication-kandidaatit läpi.
 // - V28: section-kutsun virhe ei enää kaada koko provideria; näyttää SECERR-otsikossa montako sectionia kaatui.
+// - V29: käyttää Tjekin generate_incito_from_publication-vastauksen IncitoEmbedView.body-arvoa suoraan section-kutsussa.
+//        Tämä vastaa aiempaa HAR/V17-logiikkaa paremmin kuin käsin rakennettu offer_ids/page_number-payload.
 // - V23: korjaa batch-vastausten parsimisen: luetaan entry.value eikä koko { key, value } -riviä.
 // - Debug näkyy korteissa kategoriassa "Muut".
 
@@ -763,8 +765,17 @@ async function postTjekRpc(path: string, body: unknown): Promise<UnknownRecord |
     body: JSON.stringify(body),
   });
 
-  if (!response.ok) throw new Error(`Tjek ${path} failed ${response.status}`);
-  return asRecord(await response.json());
+  const text = await response.text();
+
+  if (!response.ok) {
+    throw new Error(`Tjek ${path} HTTP ${response.status}: ${text.slice(0, 220)}`);
+  }
+
+  try {
+    return asRecord(JSON.parse(text));
+  } catch {
+    throw new Error(`Tjek ${path} JSON parse failed: ${text.slice(0, 220)}`);
+  }
 }
 
 async function generatePublication(publicationId: string): Promise<UnknownRecord | null> {
@@ -794,16 +805,54 @@ function collectOfferIds(value: unknown): string[] {
 }
 
 function collectSections(publication: UnknownRecord) {
-  const toc = Array.isArray(publication.table_of_contents) ? publication.table_of_contents : [];
   const titleById = new Map<string, string>();
 
+  const toc = Array.isArray(publication.table_of_contents) ? publication.table_of_contents : [];
   for (const entry of toc) {
     const record = asRecord(entry);
     const id = firstString(record?.view_id, record?.id);
     const title = firstString(record?.title, record?.label);
-    if (id) titleById.set(id, title);
+    if (id && title) titleById.set(id, title);
   }
 
+  // V29: Tjekin publication-vastauksessa oikea section-payload löytyy usein
+  // IncitoEmbedView.body-kentästä JSON-stringinä. Tämä oli myös aiemman V17-logiikan
+  // toimiva ajatus. Käsin rakennettu offer_ids/page_number-payload johti kaikkiin
+  // section-kutsuihin virheellä SECERR S16 E16.
+  const bodySections: Array<{
+    sectionId: string;
+    title: string;
+    pageNumber: number;
+    pageCount: number;
+    offerIds: string[];
+    body: UnknownRecord;
+  }> = [];
+
+  walk(publication, (record) => {
+    if (record.view_name !== "IncitoEmbedView" || typeof record.body !== "string") return;
+
+    try {
+      const body = JSON.parse(record.body) as UnknownRecord;
+      const sectionId = firstString(body.section_id, body.sectionId);
+      const id = firstString(body.id);
+      if (!id || !sectionId) return;
+
+      bodySections.push({
+        sectionId,
+        title: titleById.get(sectionId) || firstString(record.title, record.label) || "Muut",
+        pageNumber: Number(firstString(body.page_number, body.pageNumber)) || bodySections.length + 1,
+        pageCount: Number(firstString(body.page_count, body.pageCount)) || 0,
+        offerIds: Array.isArray(body.offer_ids) ? body.offer_ids.map((value) => String(value)).filter(Boolean) : [],
+        body,
+      });
+    } catch {
+      // ignore malformed embed body
+    }
+  });
+
+  if (bodySections.length > 0) return bodySections.slice(0, MAX_SECTIONS);
+
+  // Fallback vanhaan käsin rakennettuun tapaan, jos IncitoEmbedView.body ei löydy.
   const root = asRecord(publication.root_view);
   const pages = Array.isArray(root?.child_views) ? root.child_views : [];
 
@@ -823,13 +872,21 @@ function collectSections(publication: UnknownRecord) {
         pageNumber: pageIndex + 1,
         pageCount: pages.length,
         offerIds: collectOfferIds(page),
+        body: null as unknown as UnknownRecord,
       };
     })
     .filter((section) => section.sectionId && section.offerIds.length > 0)
     .slice(0, MAX_SECTIONS);
 }
 
-async function generateSection(publicationId: string, section: { sectionId: string; pageNumber: number; pageCount: number; offerIds: string[] }) {
+async function generateSection(
+  publicationId: string,
+  section: { sectionId: string; pageNumber: number; pageCount: number; offerIds: string[]; body?: UnknownRecord | null },
+) {
+  if (section.body && Object.keys(section.body).length > 0) {
+    return postTjekRpc("generate_incito_from_publication_section", section.body);
+  }
+
   return postTjekRpc("generate_incito_from_publication_section", {
     id: publicationId,
     section_id: section.sectionId,
@@ -1070,7 +1127,7 @@ export async function fetchETarjouslehdetOffers(
         parsedCount > 0
           ? `ETPROV OK S${sections.length} P${parsedCount}`
           : sectionErrorCount > 0
-            ? `ETPROV SECERR S${sections.length} E${sectionErrorCount}`
+            ? `ETPROV SECERR S${sections.length} E${sectionErrorCount} ${lastSectionError.replace(/[^A-Za-z0-9]/g, " ").trim().slice(0, 18)}`.slice(0, 54)
             : `ETPROV OK S${sections.length} P0`;
 
       allResults.unshift(makeDebugResult({
