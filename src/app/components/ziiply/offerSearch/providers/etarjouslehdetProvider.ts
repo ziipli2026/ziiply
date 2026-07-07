@@ -1,5 +1,5 @@
 // src/app/components/ziiply/offerSearch/providers/etarjouslehdetProvider.ts
-// ETARJOUSLEHDET_PROVIDER_V27_PUBLICATION_FALLBACK
+// ETARJOUSLEHDET_PROVIDER_V28_SECTION_ERROR_VISIBLE
 // Korjaus V18: ei enää luoteta /S-market/kaupat HTML-listan parsimiseen.
 // - Ratkaisee S-marketin eTarjouslehdet-storeId:n batch-queryllä: ["stores", { businessId, pagination, query/search }]
 // - Hakee aktiivisen julkaisun samalla tavalla kuin HAR:ssa: ["fronts", { businessIds, coordinates, localBusinessIds }]
@@ -11,6 +11,7 @@
 // - V25: näyttää resolveStoreByName()-diagnostiikan suoraan kortin otsikossa, koska teksti katkeaa mobiilissa.
 // - V26: ei vaadi batch-store-recordin nimessä sanaa S-market; hyväksyy myös "Jokela"/"Vehkoja"-tyyppiset nimet ja antaa score-funktion ratkaista.
 // - V27: publication-id fallback: ei käytä storeId:tä Tjek-publicationina, hakee myös kauppasivun ja kokeilee publication-kandidaatit läpi.
+// - V28: section-kutsun virhe ei enää kaada koko provideria; näyttää SECERR-otsikossa montako sectionia kaatui.
 // - V23: korjaa batch-vastausten parsimisen: luetaan entry.value eikä koko { key, value } -riviä.
 // - Debug näkyy korteissa kategoriassa "Muut".
 
@@ -1025,33 +1026,57 @@ export async function fetchETarjouslehdetOffers(
       let parsedCount = 0;
       let labelCount = 0;
 
-      for (const section of sections) {
-        const sectionData = await generateSection(publication.id, section);
-        if (!sectionData) continue;
-        const nodes = findOfferNodes(sectionData);
-        labelCount += nodes.length;
+      let sectionErrorCount = 0;
+      let lastSectionError = "";
 
-        nodes.forEach((node, index) => {
-          const mapped = mapOffer({
-            node,
-            query: cleanQuery,
-            config,
-            store,
-            publication,
-            sectionTitle: section.title,
-            index: parsedCount + index,
+      for (const section of sections) {
+        try {
+          const sectionData = await generateSection(publication.id, section);
+          if (!sectionData) continue;
+
+          const nodes = findOfferNodes(sectionData);
+          labelCount += nodes.length;
+
+          nodes.forEach((node, index) => {
+            const mapped = mapOffer({
+              node,
+              query: cleanQuery,
+              config,
+              store,
+              publication,
+              sectionTitle: section.title,
+              index: parsedCount + index,
+            });
+            if (mapped) {
+              parsedCount += 1;
+              allResults.push(mapped);
+            }
           });
-          if (mapped) {
-            parsedCount += 1;
-            allResults.push(mapped);
+        } catch (sectionError) {
+          sectionErrorCount += 1;
+          lastSectionError = String(sectionError instanceof Error ? sectionError.message : sectionError);
+          if (typeof console !== "undefined") {
+            console.warn("[ETARJOUS V28] section failed", {
+              store,
+              publication,
+              section,
+              sectionError,
+            });
           }
-        });
+        }
       }
+
+      const debugTitle =
+        parsedCount > 0
+          ? `ETPROV OK S${sections.length} P${parsedCount}`
+          : sectionErrorCount > 0
+            ? `ETPROV SECERR S${sections.length} E${sectionErrorCount}`
+            : `ETPROV OK S${sections.length} P0`;
 
       allResults.unshift(makeDebugResult({
         config,
-        title: `ETPROV OK S${sections.length} P${parsedCount}`,
-        detail: `store=${store.storeName} id=${store.storeId} pub=${publication.id} labels=${labelCount}`,
+        title: debugTitle,
+        detail: `store=${store.storeName} id=${store.storeId} pub=${publication.id} labels=${labelCount} secErr=${sectionErrorCount} err=${lastSectionError.slice(0, 70)}`,
         storeName: store.storeName,
         storeId: store.storeId,
       }));
