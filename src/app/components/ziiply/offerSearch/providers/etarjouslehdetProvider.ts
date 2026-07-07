@@ -1,5 +1,5 @@
 // src/app/components/ziiply/offerSearch/providers/etarjouslehdetProvider.ts
-// ETARJOUSLEHDET_PROVIDER_V22_DIRECT_STORENAME_FIX
+// ETARJOUSLEHDET_PROVIDER_V23_BATCH_VALUE_FIX
 // Korjaus V18: ei enää luoteta /S-market/kaupat HTML-listan parsimiseen.
 // - Ratkaisee S-marketin eTarjouslehdet-storeId:n batch-queryllä: ["stores", { businessId, pagination, query/search }]
 // - Hakee aktiivisen julkaisun samalla tavalla kuin HAR:ssa: ["fronts", { businessIds, coordinates, localBusinessIds }]
@@ -7,6 +7,7 @@
 // - Ei koske Prismaan eikä skaupatProvideriin.
 // - V21: lukee S-market-nimet myös sStoreName/sStoreNames/name/title/label-aliasteista ja näyttää options-avaimet debugissa.
 // - V22: hyväksyy providerille sources.ts:stä tulevan storeName/stores[{storeName}] arvon suoraan.
+// - V23: korjaa batch-vastausten parsimisen: luetaan entry.value eikä koko { key, value } -riviä.
 // - Debug näkyy korteissa kategoriassa "Muut".
 
 import type {
@@ -255,6 +256,11 @@ function walk(value: unknown, visitor: (record: UnknownRecord) => void) {
   for (const child of Object.values(record)) walk(child, visitor);
 }
 
+
+function collectBatchValues(results: UnknownRecord[]): unknown[] {
+  return results.map((entry) => (Object.prototype.hasOwnProperty.call(entry, "value") ? entry.value : entry));
+}
+
 function collectStoreRecords(value: unknown): SelectedETStore[] {
   const stores: SelectedETStore[] = [];
   walk(value, (record) => {
@@ -463,7 +469,7 @@ async function resolveStoreByName(requestedName: string): Promise<SelectedETStor
   queries.push(["stores", { businessId: S_MARKET_BUSINESS_ID, pagination: { limit: 100, offset: 0 } }]);
 
   const results = await postETBatch(queries);
-  const stores = collectStoreRecords(results);
+  const stores = collectBatchValues(results).flatMap((value) => collectStoreRecords(value));
   const best = stores
     .map((store) => ({ ...store, score: scoreStoreNameMatch(requestedName, store.storeName) }))
     .filter((store) => store.score > 0)
@@ -521,7 +527,8 @@ async function resolvePublicationForStore(store: SelectedETStore): Promise<Publi
   ];
 
   const results = await postETBatch(queries);
-  const publications = collectPublicationRecords(results, store)
+  const publications = collectBatchValues(results)
+    .flatMap((value) => collectPublicationRecords(value, store))
     .sort((a, b) => scorePublication(b) - scorePublication(a));
 
   if (typeof console !== "undefined") {
