@@ -1,5 +1,5 @@
 // src/app/components/ziiply/offerSearch/providers/etarjouslehdetProvider.ts
-// ETARJOUSLEHDET_PROVIDER_V29_INCITO_BODY_SECTION
+// ETARJOUSLEHDET_PROVIDER_V30_TITLE_FIRST_CATEGORIES
 // Korjaus V18: ei enää luoteta /S-market/kaupat HTML-listan parsimiseen.
 // - Ratkaisee S-marketin eTarjouslehdet-storeId:n batch-queryllä: ["stores", { businessId, pagination, query/search }]
 // - Hakee aktiivisen julkaisun samalla tavalla kuin HAR:ssa: ["fronts", { businessIds, coordinates, localBusinessIds }]
@@ -919,20 +919,55 @@ function parseOfferLabel(label: string) {
 }
 
 function classifyCategory(title: string, sectionTitle: string) {
-  const text = normalizeText(`${title} ${sectionTitle}`);
-  if (/kahvi|espresso|juhla mokka|presidentti|kulta katriina/.test(text)) return "Kahvi";
-  if (/maito|juusto|jogurtti|jogurt|rahka|kerma|voi|raejuusto|viili|piima/.test(text)) return "Maitotuotteet";
-  if (/lohi|kirjolohi|kala|tonnikala|silakka|seiti|ahven|siika|katkarapu|rapu/.test(text)) return "Kala";
-  if (/jauheliha|nauta|porsas|possu|broileri|kana|kalkkuna|makkara|nakki|pekoni|kinkku|liha/.test(text)) return "Liha";
-  if (/leipa|leipä|sampyla|sämpylä|pull|pitko|croissant|karjalanpiirakka|ruis|patonki/.test(text)) return "Leipomo";
-  if (/tomaatti|kurkku|salaatti|omena|banaani|appelsiini|peruna|sipuli|porkkana|marja|hedel|vihanne|kasvis|kaali|paprika/.test(text)) return "Hevi";
-  if (/limu|juoma|mehu|vesi|vichy|energiajuoma|olut|siideri|cola|maitojuoma/.test(text)) return "Juomat";
-  if (/pakaste|jaatelo|jäätelö|pakastettu/.test(text)) return "Pakasteet";
-  if (/valmis|ateria|pizza|keitto|salaattiateria|mikro/.test(text)) return "Valmisruoka";
-  if (/pasta|riisi|jauho|hiutale|muro|mysli|sailyke|säilyke|kastike|öljy|oljy|mauste/.test(text)) return "Kuivatuotteet";
-  if (/kark|makeis|suklaa|keksi|lakritsi|salmiakki|purukumi/.test(text)) return "Makeiset & keksit";
-  if (/koira|kissa|lemmik/.test(text)) return "Lemmikit";
-  if (/pesu|pyykin|tisk|talouspaperi|wc-paperi|koti|siivous|vaippa/.test(text)) return "Koti";
+  const productText = normalizeText(title);
+  const sectionText = normalizeText(sectionTitle);
+
+  const classifyProductOnly = (text: string): string => {
+    if (!text) return "";
+
+    // Tärkeää: tuotteen nimi ratkaisee ensin. Section voi olla Tjekissä liian karkea
+    // tai väärä, jolloin esim. Fanta virvoitusjuoma päätyi Maitotuotteisiin.
+    if (/kahvi|espresso|juhla\s*mokka|presidentti|kulta\s*katriina|suodatinkahvi|pikakahvi|kahvijuoma/.test(text)) return "Kahvi";
+
+    if (/virvoitusjuoma|limu|limonadi|mehu|tuoremehu|nektari|vichy|kivenn[aä]isvesi|l[aä]hdevesi|energiajuoma|urheilujuoma|tonic|cola|fanta|sprite|jaffa|pepsi|coca/.test(text)) return "Juomat";
+
+    if (/lohi|kirjolohi|kala|tonnikala|silakka|seiti|ahven|siika|katkarapu|rapu|silli|muikku|kuha|hauki|kalapuikko/.test(text)) return "Kala";
+    if (/jauheliha|nauta|porsas|possu|broileri|kana|kalkkuna|makkara|nakki|pekoni|kinkku|liha|karjalanpaisti|filee|pihvi/.test(text)) return "Liha";
+
+    if (/maito|juusto|jogurtti|jogurt|rahka|kerma|voi|raejuusto|viili|piima|kefiiri|kefir|skyr|vanukas|proteiinirahka|maitorahka/.test(text)) return "Maitotuotteet";
+
+    if (/leipa|leip[aä]|sampyla|s[aä]mpyl[aä]|pull|pitko|croissant|karjalanpiirakka|ruis|patonki|paahtoleip[aä]|n[aä]kk[aä]ri|nakkileipa|tortilla|rieska/.test(text)) return "Leipomo";
+    if (/tomaatti|kurkku|salaatti|omena|banaani|appelsiini|mandariini|sitruuna|peruna|sipuli|porkkana|marja|mansikka|mustikka|vadelma|hedel|vihanne|kasvis|kaali|paprika|avokado|kiivi|p[aä][aä]ryn[aä]/.test(text)) return "Hevi";
+
+    if (/pakaste|jaatelo|j[aä][aä]tel[oö]|pakastettu|pakastepizza|pakastevihannes|pakastemarj/.test(text)) return "Pakasteet";
+    if (/valmis|ateria|pizza|keitto|salaattiateria|mikroateria|laatikko|lasagne|pasteija/.test(text)) return "Valmisruoka";
+    if (/pasta|riisi|jauho|hiutale|muro|mysli|sailyke|s[aä]ilyke|kastike|[oö]ljy|mauste|sokeri|suola|puuro|nuudeli|tortellini/.test(text)) return "Kuivatuotteet";
+    if (/kark|makeis|suklaa|keksi|lakritsi|salmiakki|purukumi|vaahto|irtokarkki|patukka/.test(text)) return "Makeiset & keksit";
+    if (/koira|kissa|lemmik|kissanhiekka|koiranruoka|kissanruoka/.test(text)) return "Lemmikit";
+    if (/pesu|pyykin|tisk|talouspaperi|wc\s*paperi|wc-paperi|koti|siivous|vaippa|shampoo|saippua|hammastahna|deodorantti|folio|leivinpaperi/.test(text)) return "Koti";
+
+    return "";
+  };
+
+  const fromProduct = classifyProductOnly(productText);
+  if (fromProduct) return fromProduct;
+
+  // Fallback: käytetään sectionia vain, jos tuotteen nimestä ei saanut selvää.
+  const section = sectionText;
+  if (/kahvi/.test(section)) return "Kahvi";
+  if (/maito|meijeri|juusto|jogurtti|rahka|kerma/.test(section)) return "Maitotuotteet";
+  if (/kala/.test(section)) return "Kala";
+  if (/liha|makkara|broileri|kana/.test(section)) return "Liha";
+  if (/leip|paisto|pulla/.test(section)) return "Leipomo";
+  if (/hevi|hedel|vihanne|kasvis/.test(section)) return "Hevi";
+  if (/juoma|virvoitus|mehu|vesi/.test(section)) return "Juomat";
+  if (/pakaste|j[aä][aä]tel/.test(section)) return "Pakasteet";
+  if (/valmis|ateria/.test(section)) return "Valmisruoka";
+  if (/kuiva|pasta|riisi|s[aä]ilyke/.test(section)) return "Kuivatuotteet";
+  if (/makeis|keksi|kark|suklaa/.test(section)) return "Makeiset & keksit";
+  if (/lemmik|koira|kissa/.test(section)) return "Lemmikit";
+  if (/koti|siivous|pesu|talous/.test(section)) return "Koti";
+
   return "Muut";
 }
 
@@ -1130,13 +1165,18 @@ export async function fetchETarjouslehdetOffers(
             ? `ETPROV SECERR S${sections.length} E${sectionErrorCount} ${lastSectionError.replace(/[^A-Za-z0-9]/g, " ").trim().slice(0, 18)}`.slice(0, 54)
             : `ETPROV OK S${sections.length} P0`;
 
-      allResults.unshift(makeDebugResult({
-        config,
-        title: debugTitle,
-        detail: `store=${store.storeName} id=${store.storeId} pub=${publication.id} labels=${labelCount} secErr=${sectionErrorCount} err=${lastSectionError.slice(0, 70)}`,
-        storeName: store.storeName,
-        storeId: store.storeId,
-      }));
+      // V30: Normaaliajossa ei lisätä OK-debugkorttia tuotelistaan, koska se vääristää
+      // kategoriat ja "Muut"-ryhmän. Näytetään debug vain jos sectionit löytyivät,
+      // mutta yhtään tarjousta ei saatu parsittua.
+      if (parsedCount === 0) {
+        allResults.unshift(makeDebugResult({
+          config,
+          title: debugTitle,
+          detail: `store=${store.storeName} id=${store.storeId} pub=${publication.id} labels=${labelCount} secErr=${sectionErrorCount} err=${lastSectionError.slice(0, 70)}`,
+          storeName: store.storeName,
+          storeId: store.storeId,
+        }));
+      }
     } catch (error) {
       allResults.push(makeDebugResult({
         config,
