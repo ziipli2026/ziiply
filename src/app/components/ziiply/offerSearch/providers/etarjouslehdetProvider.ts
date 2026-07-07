@@ -1,5 +1,5 @@
 // src/app/components/ziiply/offerSearch/providers/etarjouslehdetProvider.ts
-// ETARJOUSLEHDET_PROVIDER_V23_BATCH_VALUE_FIX
+// ETARJOUSLEHDET_PROVIDER_V24_RESOLVE_STORE_VISIBLE_DEBUG
 // Korjaus V18: ei enää luoteta /S-market/kaupat HTML-listan parsimiseen.
 // - Ratkaisee S-marketin eTarjouslehdet-storeId:n batch-queryllä: ["stores", { businessId, pagination, query/search }]
 // - Hakee aktiivisen julkaisun samalla tavalla kuin HAR:ssa: ["fronts", { businessIds, coordinates, localBusinessIds }]
@@ -7,6 +7,8 @@
 // - Ei koske Prismaan eikä skaupatProvideriin.
 // - V21: lukee S-market-nimet myös sStoreName/sStoreNames/name/title/label-aliasteista ja näyttää options-avaimet debugissa.
 // - V22: hyväksyy providerille sources.ts:stä tulevan storeName/stores[{storeName}] arvon suoraan.
+// - V23: batch-vastauksissa luetaan entry.value.
+// - V24: näyttää resolveStoreByName()-diagnostiikan näkyvässä kortissa.
 // - V23: korjaa batch-vastausten parsimisen: luetaan entry.value eikä koko { key, value } -riviä.
 // - Debug näkyy korteissa kategoriassa "Muut".
 
@@ -70,6 +72,34 @@ const MAX_SECTIONS = 18;
 
 const STORE_CACHE = new Map<string, SelectedETStore | null>();
 const PUBLICATION_CACHE = new Map<string, PublicationMeta | null>();
+
+const LAST_RESOLVE_STORE_DEBUG = new Map<string, {
+  requestedName: string;
+  queryWords: string[];
+  batchRows: number;
+  valueCount: number;
+  foundStores: number;
+  bestName: string;
+  bestId: string;
+  bestScore: number;
+  sample: string;
+  error?: string;
+}>();
+
+function getLastResolveDebugText(requestedNames: string[]) {
+  const parts: string[] = [];
+  for (const name of requestedNames) {
+    const debug = LAST_RESOLVE_STORE_DEBUG.get(normalizeText(name));
+    if (!debug) {
+      parts.push(`DBG ${name}: no-debug`);
+      continue;
+    }
+    parts.push(
+      `DBG ${debug.requestedName}: rows=${debug.batchRows} values=${debug.valueCount} stores=${debug.foundStores} best=${debug.bestName || "-"} id=${debug.bestId || "-"} score=${debug.bestScore} sample=${debug.sample || "-"}${debug.error ? ` err=${debug.error}` : ""}`,
+    );
+  }
+  return parts.join(" || ");
+}
 
 function asRecord(value: unknown): UnknownRecord | null {
   return value && typeof value === "object" && !Array.isArray(value)
@@ -468,25 +498,58 @@ async function resolveStoreByName(requestedName: string): Promise<SelectedETStor
   // Fallback: etusivun lähellä olevat / ensimmäiset S-marketit. Tämä auttaa, jos query-parametrin nimi muuttuu.
   queries.push(["stores", { businessId: S_MARKET_BUSINESS_ID, pagination: { limit: 100, offset: 0 } }]);
 
-  const results = await postETBatch(queries);
-  const stores = collectBatchValues(results).flatMap((value) => collectStoreRecords(value));
-  const best = stores
-    .map((store) => ({ ...store, score: scoreStoreNameMatch(requestedName, store.storeName) }))
-    .filter((store) => store.score > 0)
-    .sort((a, b) => b.score - a.score)[0];
+  try {
+    const results = await postETBatch(queries);
+    const values = collectBatchValues(results);
+    const stores = values.flatMap((value) => collectStoreRecords(value));
+    const scoredStores = stores
+      .map((store) => ({ ...store, score: scoreStoreNameMatch(requestedName, store.storeName) }))
+      .sort((a, b) => b.score - a.score);
+    const best = scoredStores.filter((store) => store.score > 0)[0];
 
-  if (typeof console !== "undefined") {
-    console.warn("[ETARJOUS V20] resolve store", {
+    LAST_RESOLVE_STORE_DEBUG.set(cacheKey, {
       requestedName,
-      found: stores.length,
-      best,
-      sample: stores.slice(0, 8),
+      queryWords,
+      batchRows: results.length,
+      valueCount: values.length,
+      foundStores: stores.length,
+      bestName: best?.storeName || scoredStores[0]?.storeName || "",
+      bestId: best?.storeId || scoredStores[0]?.storeId || "",
+      bestScore: Number(best?.score || scoredStores[0]?.score || 0),
+      sample: stores.slice(0, 5).map((store) => `${store.storeName}:${store.storeId}`).join(" | "),
     });
-  }
 
-  const resolved = best && best.score >= 100 ? best : null;
-  STORE_CACHE.set(cacheKey, resolved);
-  return resolved;
+    if (typeof console !== "undefined") {
+      console.warn("[ETARJOUS V24] resolve store", {
+        requestedName,
+        queryWords,
+        batchRows: results.length,
+        valueCount: values.length,
+        found: stores.length,
+        best,
+        scoredSample: scoredStores.slice(0, 8),
+        rawSample: results.slice(0, 2),
+      });
+    }
+
+    const resolved = best && best.score >= 100 ? best : null;
+    STORE_CACHE.set(cacheKey, resolved);
+    return resolved;
+  } catch (error) {
+    LAST_RESOLVE_STORE_DEBUG.set(cacheKey, {
+      requestedName,
+      queryWords,
+      batchRows: 0,
+      valueCount: 0,
+      foundStores: 0,
+      bestName: "",
+      bestId: "",
+      bestScore: 0,
+      sample: "",
+      error: String(error instanceof Error ? error.message : error).slice(0, 120),
+    });
+    throw error;
+  }
 }
 
 async function getSelectedStores(options?: ETarjouslehdetProviderOptions): Promise<SelectedETStore[]> {
@@ -760,10 +823,11 @@ export async function fetchETarjouslehdetOffers(
   const stores = await getSelectedStores(options);
 
   if (stores.length === 0) {
+    const resolveDebug = getLastResolveDebugText(requestedNames);
     return [makeDebugResult({
       config,
       title: `ETPROV NO_STORE N${requestedNames.length}`,
-      detail: `names=${requestedNames.join(" | ").slice(0, 80)} keys=${Object.keys((options as any) || {}).join(",").slice(0, 80)}`,
+      detail: `names=${requestedNames.join(" | ").slice(0, 80)} ${resolveDebug || "no-resolve-debug"} keys=${Object.keys((options as any) || {}).join(",").slice(0, 50)}`,
     })];
   }
 
