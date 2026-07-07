@@ -908,12 +908,19 @@ function getFirstImageUrlFromValue(value: unknown): string {
   const text = firstString(value);
   if (!text) return "";
 
-  // Hyväksy suorat http/https-kuvat ja myös protocol-relative URL:t.
-  const direct = text.match(/https?:\/\/[^\s"'<>]+\.(?:png|jpe?g|webp|gif)(?:\?[^\s"'<>]*)?/i);
-  if (direct?.[0]) return direct[0];
+  const clean = text.replace(/\u002F/g, "/").replace(/\\//g, "/").trim();
 
-  if (text.startsWith("//")) return `https:${text}`;
-  if (text.startsWith("/")) return `${ET_BASE}${text}`;
+  // Hyväksy myös CDN/Tjek/Cloudinary-URL:t, joissa ei ole .jpg/.webp-päätettä.
+  const direct = clean.match(/https?:\/\/[^\s"'<>]+/i)?.[0] || "";
+  if (direct) {
+    const looksImage =
+      /\.(?:png|jpe?g|webp|gif)(?:\?|$)/i.test(direct) ||
+      /image|img|media|asset|cdn|cloudinary|tjek|squid/i.test(direct);
+    if (looksImage) return direct.replace(/[),.;]+$/g, "");
+  }
+
+  if (clean.startsWith("//")) return `https:${clean}`;
+  if (clean.startsWith("/")) return `${ET_BASE}${clean}`;
 
   return "";
 }
@@ -923,8 +930,10 @@ function findImageUrlFromNode(value: unknown): string {
 
   const preferredKeys = [
     "image",
+    "images",
     "imageUrl",
     "image_url",
+    "picture",
     "pictureUrl",
     "picture_url",
     "productImage",
@@ -932,9 +941,12 @@ function findImageUrlFromNode(value: unknown): string {
     "thumbnail",
     "thumbnailUrl",
     "thumbnail_url",
+    "media",
     "src",
+    "source",
     "url",
     "uri",
+    "href",
   ];
 
   walk(value, (record) => {
@@ -948,19 +960,24 @@ function findImageUrlFromNode(value: unknown): string {
       }
     }
 
-    const imageRecord = asRecord((record as any).image) || asRecord((record as any).picture) || asRecord((record as any).media);
-    if (imageRecord) {
-      for (const key of preferredKeys) {
-        const nested = getFirstImageUrlFromValue((imageRecord as any)[key]);
-        if (nested) {
-          found = nested;
-          return;
-        }
+    // Fallback: käy kaikki string-kentät läpi, koska Tjekin kuva voi olla esim.
+    // background/asset/variants-rakenteessa eikä imageUrl-kentässä.
+    for (const child of Object.values(record)) {
+      const direct = getFirstImageUrlFromValue(child);
+      if (direct) {
+        found = direct;
+        return;
       }
     }
   });
 
   return found;
+}
+
+function findImageUrlForOffer(sectionData: unknown, node: UnknownRecord): string {
+  // Ensin yritetään juuri offer-nodesta. Jos Tjek pitää kuvan erillisessä media-nodessa,
+  // fallbackina otetaan sectionin ensimmäinen kuva. Parempi kuin tyhjä S-market-kortti.
+  return findImageUrlFromNode(node) || findImageUrlFromNode(sectionData);
 }
 
 function findOfferNodes(value: unknown): UnknownRecord[] {
@@ -984,15 +1001,23 @@ function parseOfferLabel(label: string) {
 function classifyCategory(title: string, sectionTitle: string) {
   const productText = normalizeText(title);
   const sectionText = normalizeText(sectionTitle);
+  const combinedText = `${productText} ${sectionText}`.trim();
+
+  const isSoftDrinkOrNonDairyDrink = (text: string) =>
+    /virvoitusjuoma|limu|limonadi|mehu|tuoremehu|nektari|vichy|kivenn[aä]isvesi|l[aä]hdevesi|energiajuoma|urheilujuoma|tonic|cola|fanta|sprite|jaffa|pepsi|coca\s*-?cola|kokis|novelle|hartwall|olvi|ed|battery|red\s*bull|monster/.test(text);
 
   const classifyProductOnly = (text: string): string => {
     if (!text) return "";
+
+    // Ehdoton yliajo: limsa/virvoitusjuoma ei saa koskaan mennä Maitotuotteisiin,
+    // vaikka section tai muu teksti sisältäisi maitotuote-viitteitä.
+    if (isSoftDrinkOrNonDairyDrink(text) || isSoftDrinkOrNonDairyDrink(combinedText)) return "Juomat";
 
     // Tärkeää: tuotteen nimi ratkaisee ensin. Section voi olla Tjekissä liian karkea
     // tai väärä, jolloin esim. Fanta virvoitusjuoma päätyi Maitotuotteisiin.
     if (/kahvi|espresso|juhla\s*mokka|presidentti|kulta\s*katriina|suodatinkahvi|pikakahvi|kahvijuoma/.test(text)) return "Kahvi";
 
-    if (/virvoitusjuoma|limu|limonadi|mehu|tuoremehu|nektari|vichy|kivenn[aä]isvesi|l[aä]hdevesi|energiajuoma|urheilujuoma|tonic|cola|fanta|sprite|jaffa|pepsi|coca/.test(text)) return "Juomat";
+    if (/olut|siideri|lonkero|juoma|mehu|vesi|vichy|kivenn[aä]isvesi/.test(text)) return "Juomat";
 
     if (/lohi|kirjolohi|kala|tonnikala|silakka|seiti|ahven|siika|katkarapu|rapu|silli|muikku|kuha|hauki|kalapuikko/.test(text)) return "Kala";
     if (/jauheliha|nauta|porsas|possu|broileri|kana|kalkkuna|makkara|nakki|pekoni|kinkku|liha|karjalanpaisti|filee|pihvi/.test(text)) return "Liha";
@@ -1049,6 +1074,7 @@ function mapOffer(args: {
   store: SelectedETStore;
   publication: PublicationMeta;
   sectionTitle: string;
+  sectionData?: unknown;
   index: number;
 }): ZiiplyOfferSearchResult | null {
   const label = firstString(args.node.accessibility_label);
@@ -1058,7 +1084,7 @@ function mapOffer(args: {
   const rawId = firstString(args.node.id, `offer-${args.index}`);
   const ean = /^\d{8,14}/.test(rawId) ? rawId.replace(/__.*$/, "") : "";
   const category = classifyCategory(parsed.title, args.sectionTitle);
-  const imageUrl = findImageUrlFromNode(args.node);
+  const imageUrl = findImageUrlForOffer(args.sectionData, args.node);
   const rawText = [parsed.title, parsed.priceText, category, args.sectionTitle, args.store.storeName, ean].filter(Boolean).join(" ");
 
   const result = {
@@ -1202,6 +1228,7 @@ export async function fetchETarjouslehdetOffers(
               store,
               publication,
               sectionTitle: section.title,
+              sectionData,
               index: parsedCount + index,
             });
             if (mapped) {
