@@ -1,5 +1,5 @@
 // src/app/components/ziiply/offerSearch/providers/etarjouslehdetProvider.ts
-// ETARJOUSLEHDET_PROVIDER_V25_SHORT_TITLE_DEBUG
+// ETARJOUSLEHDET_PROVIDER_V26_RELAXED_STORE_RECORDS
 // Korjaus V18: ei enää luoteta /S-market/kaupat HTML-listan parsimiseen.
 // - Ratkaisee S-marketin eTarjouslehdet-storeId:n batch-queryllä: ["stores", { businessId, pagination, query/search }]
 // - Hakee aktiivisen julkaisun samalla tavalla kuin HAR:ssa: ["fronts", { businessIds, coordinates, localBusinessIds }]
@@ -9,6 +9,7 @@
 // - V22: hyväksyy providerille sources.ts:stä tulevan storeName/stores[{storeName}] arvon suoraan.
 // - V23: batch-vastauksissa luetaan entry.value.
 // - V25: näyttää resolveStoreByName()-diagnostiikan suoraan kortin otsikossa, koska teksti katkeaa mobiilissa.
+- V26: ei vaadi batch-store-recordin nimessä sanaa S-market; hyväksyy myös "Jokela"/"Vehkoja"-tyyppiset nimet ja antaa score-funktion ratkaista.
 // - V23: korjaa batch-vastausten parsimisen: luetaan entry.value eikä koko { key, value } -riviä.
 // - Debug näkyy korteissa kategoriassa "Muut".
 
@@ -306,11 +307,41 @@ function collectBatchValues(results: UnknownRecord[]): unknown[] {
 
 function collectStoreRecords(value: unknown): SelectedETStore[] {
   const stores: SelectedETStore[] = [];
+
   walk(value, (record) => {
-    const id = firstString(record.id, record.publicId, record.storeId);
-    const name = firstString(record.name, record.storeName, record.label, record.title);
-    if (!id || !name || !isSMarketName(name)) return;
+    const id = firstString(
+      record.id,
+      record.publicId,
+      record.storeId,
+      record.localBusinessId,
+      record.local_business_id,
+    );
+
+    const name = firstString(
+      record.name,
+      record.storeName,
+      record.store_name,
+      record.label,
+      record.title,
+      record.displayName,
+      record.display_name,
+    );
+
+    if (!id || !name) return;
+
+    // S-kaupat/eTarjouslehdetin kauppa-id on yleensä lyhyt alfanumeerinen kuten f327lvi.
+    // S-kauppojen omat numeeriset id:t eivät kelpaa tähän.
     if (/^\d+$/.test(id)) return;
+
+    // V26: älä vaadi nimeen "S-market". Batch voi palauttaa paikallisen nimen
+    // muodossa "Jokela", "Vehkoja" jne. Varsinainen sopivuus ratkaistaan
+    // scoreStoreNameMatch()-funktiolla requestedNamea vasten.
+    const normalizedName = normalizeText(name);
+    if (!normalizedName || normalizedName.length < 2) return;
+
+    // Pudota selvät business-/UI-oliot pois, mutta älä hukkaa paikallisia kauppoja.
+    if (id === S_MARKET_BUSINESS_ID && normalizedName === "s market") return;
+
     const coords = getCoordinates(record);
     stores.push({ storeId: id, storeName: name, ...coords });
   });
