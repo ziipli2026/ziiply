@@ -1,5 +1,5 @@
 // src/app/components/ziiply/offerSearch/providers/etarjouslehdetProvider.ts
-// ETARJOUSLEHDET_PROVIDER_V30_TITLE_FIRST_CATEGORIES
+// ETARJOUSLEHDET_PROVIDER_V31_IMAGES_AND_CATEGORY_CLEANUP
 // Korjaus V18: ei enää luoteta /S-market/kaupat HTML-listan parsimiseen.
 // - Ratkaisee S-marketin eTarjouslehdet-storeId:n batch-queryllä: ["stores", { businessId, pagination, query/search }]
 // - Hakee aktiivisen julkaisun samalla tavalla kuin HAR:ssa: ["fronts", { businessIds, coordinates, localBusinessIds }]
@@ -15,7 +15,8 @@
 // - V29: käyttää Tjekin generate_incito_from_publication-vastauksen IncitoEmbedView.body-arvoa suoraan section-kutsussa.
 //        Tämä vastaa aiempaa HAR/V17-logiikkaa paremmin kuin käsin rakennettu offer_ids/page_number-payload.
 // - V23: korjaa batch-vastausten parsimisen: luetaan entry.value eikä koko { key, value } -riviä.
-// - Debug näkyy korteissa kategoriassa "Muut".
+// - V31: poistaa OK-debugkortit normaalituloksista, hakee kuvia Tjek-section-nodesta ja tarkentaa luokittelua.
+// - Debug näkyy vain virhetilanteessa kategoriassa "Muut".
 
 import type {
   ZiiplyOfferSearchResult,
@@ -236,6 +237,8 @@ function makeDebugResult(args: {
     subCategory: "Muut",
     brandName: "DEBUG",
     ean: "",
+    debug: true,
+    isDebug: true,
   } as unknown as ZiiplyOfferSearchResult;
 }
 
@@ -900,6 +903,66 @@ async function generateSection(
   });
 }
 
+
+function getFirstImageUrlFromValue(value: unknown): string {
+  const text = firstString(value);
+  if (!text) return "";
+
+  // Hyväksy suorat http/https-kuvat ja myös protocol-relative URL:t.
+  const direct = text.match(/https?:\/\/[^\s"'<>]+\.(?:png|jpe?g|webp|gif)(?:\?[^\s"'<>]*)?/i);
+  if (direct?.[0]) return direct[0];
+
+  if (text.startsWith("//")) return `https:${text}`;
+  if (text.startsWith("/")) return `${ET_BASE}${text}`;
+
+  return "";
+}
+
+function findImageUrlFromNode(value: unknown): string {
+  let found = "";
+
+  const preferredKeys = [
+    "image",
+    "imageUrl",
+    "image_url",
+    "pictureUrl",
+    "picture_url",
+    "productImage",
+    "product_image",
+    "thumbnail",
+    "thumbnailUrl",
+    "thumbnail_url",
+    "src",
+    "url",
+    "uri",
+  ];
+
+  walk(value, (record) => {
+    if (found) return;
+
+    for (const key of preferredKeys) {
+      const direct = getFirstImageUrlFromValue((record as any)[key]);
+      if (direct) {
+        found = direct;
+        return;
+      }
+    }
+
+    const imageRecord = asRecord((record as any).image) || asRecord((record as any).picture) || asRecord((record as any).media);
+    if (imageRecord) {
+      for (const key of preferredKeys) {
+        const nested = getFirstImageUrlFromValue((imageRecord as any)[key]);
+        if (nested) {
+          found = nested;
+          return;
+        }
+      }
+    }
+  });
+
+  return found;
+}
+
 function findOfferNodes(value: unknown): UnknownRecord[] {
   const nodes: UnknownRecord[] = [];
   walk(value, (record) => {
@@ -940,8 +1003,9 @@ function classifyCategory(title: string, sectionTitle: string) {
     if (/tomaatti|kurkku|salaatti|omena|banaani|appelsiini|mandariini|sitruuna|peruna|sipuli|porkkana|marja|mansikka|mustikka|vadelma|hedel|vihanne|kasvis|kaali|paprika|avokado|kiivi|p[aä][aä]ryn[aä]/.test(text)) return "Hevi";
 
     if (/pakaste|jaatelo|j[aä][aä]tel[oö]|pakastettu|pakastepizza|pakastevihannes|pakastemarj/.test(text)) return "Pakasteet";
-    if (/valmis|ateria|pizza|keitto|salaattiateria|mikroateria|laatikko|lasagne|pasteija/.test(text)) return "Valmisruoka";
-    if (/pasta|riisi|jauho|hiutale|muro|mysli|sailyke|s[aä]ilyke|kastike|[oö]ljy|mauste|sokeri|suola|puuro|nuudeli|tortellini/.test(text)) return "Kuivatuotteet";
+    // Kuivatuotteet ennen valmisruokaa: pasta/riisi/nuudeli eivät saa lipsua valmisruoaksi.
+    if (/pasta|riisi|jauho|hiutale|muro|mysli|sailyke|s[aä]ilyke|kastike|[oö]ljy|mauste|sokeri|suola|puuro|nuudeli|tortellini|makaroni|spagetti|penne|tagliatelle|couscous|bulgur/.test(text)) return "Kuivatuotteet";
+    if (/valmis|ateria|pizza|keitto|salaattiateria|mikroateria|laatikko|lasagne|pasteija|annos|wokki|risotto/.test(text)) return "Valmisruoka";
     if (/kark|makeis|suklaa|keksi|lakritsi|salmiakki|purukumi|vaahto|irtokarkki|patukka/.test(text)) return "Makeiset & keksit";
     if (/koira|kissa|lemmik|kissanhiekka|koiranruoka|kissanruoka/.test(text)) return "Lemmikit";
     if (/pesu|pyykin|tisk|talouspaperi|wc\s*paperi|wc-paperi|koti|siivous|vaippa|shampoo|saippua|hammastahna|deodorantti|folio|leivinpaperi/.test(text)) return "Koti";
@@ -994,6 +1058,7 @@ function mapOffer(args: {
   const rawId = firstString(args.node.id, `offer-${args.index}`);
   const ean = /^\d{8,14}/.test(rawId) ? rawId.replace(/__.*$/, "") : "";
   const category = classifyCategory(parsed.title, args.sectionTitle);
+  const imageUrl = findImageUrlFromNode(args.node);
   const rawText = [parsed.title, parsed.priceText, category, args.sectionTitle, args.store.storeName, ean].filter(Boolean).join(" ");
 
   const result = {
@@ -1014,9 +1079,9 @@ function mapOffer(args: {
     benefitText: "Tarjouslehti / eTarjouslehdet",
     discountText: "Tarjouslehti / eTarjouslehdet",
     validityText: args.publication.validUntil ? `Voimassa ${args.publication.validUntil.slice(0, 10)}` : "",
-    imageUrl: "",
-    image: "",
-    pictureUrl: "",
+    imageUrl,
+    image: imageUrl,
+    pictureUrl: imageUrl,
     productUrl: `${ET_BASE}/S-market/kaupat/${args.store.storeId}`,
     rawText,
     matchScore: 100,
