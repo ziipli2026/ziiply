@@ -908,7 +908,7 @@ function getFirstImageUrlFromValue(value: unknown): string {
   const text = firstString(value);
   if (!text) return "";
 
-  const clean = text.replace(/\u002F/g, "/").replace(/\\//g, "/").trim();
+  const clean = text.split("\\/").join("/").trim();
 
   // Hyväksy myös CDN/Tjek/Cloudinary-URL:t, joissa ei ole .jpg/.webp-päätettä.
   const direct = clean.match(/https?:\/\/[^\s"'<>]+/i)?.[0] || "";
