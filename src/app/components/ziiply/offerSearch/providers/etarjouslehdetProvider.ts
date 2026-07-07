@@ -1,23 +1,12 @@
 // src/app/components/ziiply/offerSearch/providers/etarjouslehdetProvider.ts
-// ETARJOUSLEHDET_PROVIDER_V34_CATEGORY_SOURCE_CLEANUP
-// Korjaus V18: ei enää luoteta /S-market/kaupat HTML-listan parsimiseen.
-// - Ratkaisee S-marketin eTarjouslehdet-storeId:n batch-queryllä: ["stores", { businessId, pagination, query/search }]
-// - Hakee aktiivisen julkaisun samalla tavalla kuin HAR:ssa: ["fronts", { businessIds, coordinates, localBusinessIds }]
-// - Jatkaa Tjek/Incito-section-parserilla.
-// - Ei koske Prismaan eikä skaupatProvideriin.
-// - V21: lukee S-market-nimet myös sStoreName/sStoreNames/name/title/label-aliasteista ja näyttää options-avaimet debugissa.
-// - V22: hyväksyy providerille sources.ts:stä tulevan storeName/stores[{storeName}] arvon suoraan.
-// - V23: batch-vastauksissa luetaan entry.value.
-// - V25: näyttää resolveStoreByName()-diagnostiikan suoraan kortin otsikossa, koska teksti katkeaa mobiilissa.
-// - V26: ei vaadi batch-store-recordin nimessä sanaa S-market; hyväksyy myös "Jokela"/"Vehkoja"-tyyppiset nimet ja antaa score-funktion ratkaista.
-// - V27: publication-id fallback: ei käytä storeId:tä Tjek-publicationina, hakee myös kauppasivun ja kokeilee publication-kandidaatit läpi.
-// - V28: section-kutsun virhe ei enää kaada koko provideria; näyttää SECERR-otsikossa montako sectionia kaatui.
-// - V29: käyttää Tjekin generate_incito_from_publication-vastauksen IncitoEmbedView.body-arvoa suoraan section-kutsussa.
-//        Tämä vastaa aiempaa HAR/V17-logiikkaa paremmin kuin käsin rakennettu offer_ids/page_number-payload.
-// - V23: korjaa batch-vastausten parsimisen: luetaan entry.value eikä koko { key, value } -riviä.
-// - V31: poistaa OK-debugkortit normaalituloksista, hakee kuvia Tjek-section-nodesta ja tarkentaa luokittelua.
-// - Debug näkyy vain virhetilanteessa kategoriassa "Muut".
-
+// ETARJOUSLEHDET_PROVIDER_V35_CATEGORY_DATE_FI
+//
+// V35:
+// - korjaa S-market/eTarjouslehdet-kategorioiden yliajot tuotteen nimen perusteella
+// - korjaa päivämäärän suomalaiseen muotoon d.m.yyyy
+// - poistaa käyttäjälle näkyvän eTarjouslehdet-tekstin korteista
+// - pitää V29/V32 toimivat Tjek/Incito-kuvat ja S-market publication-haun ennallaan
+//
 import type {
   ZiiplyOfferSearchResult,
   ZiiplyOfferSearchSourceConfig,
@@ -1002,63 +991,84 @@ function classifyCategory(title: string, sectionTitle: string) {
   const productText = normalizeText(title);
   const sectionText = normalizeText(sectionTitle);
 
-  const has = (pattern: RegExp, text = productText) => pattern.test(text);
+  const hasProduct = (pattern: RegExp) => pattern.test(productText);
+  const hasSection = (pattern: RegExp) => pattern.test(sectionText);
 
-  // V34: kovat tuotteen nimeen perustuvat yliajot ensin.
-  // Nämä eivät saa jäädä Tjekin sectionin tai muiden sanojen alle.
-  if (has(/fanta|sprite|jaffa|pepsi|coca\s*-?cola|coca cola|kokis|cola|tonic|fentimans|novelle|hartwall|olvi|ed\b|battery|red\s*bull|monster|virvoitusjuoma|limu|limonadi|sokeriton|zero|light|vichy|kivenn[aä]isvesi|l[aä]hdevesi|energiajuoma|urheilujuoma|mehu|tuoremehu|nektari/)) return "Juomat";
+  // V35: tuotteen nimi voittaa aina Tjekin sectionin.
+  // Tämä estää mm. Fanta/tonic/limsat päätymästä Maitotuotteisiin tai Kuivatuotteisiin.
 
-  // Kasvipohjaiset juomat: jos appissa ei ole omaa "Kasvipohjaiset"-ryhmää,
-  // pidetään ne Maitotuotteissa kuten kaupat usein tekevät.
-  if (has(/kaurajuoma|soijajuoma|mantelijuoma|riisijuoma|kasvijuoma|plant\s*based/)) return "Maitotuotteet";
+  if (hasProduct(/fanta|sprite|jaffa|pepsi|coca\s*-?cola|coca cola|kokis|\bcola\b|tonic|fentimans|novelle|hartwall|olvi|ed\b|battery|red\s*bull|monster|virvoitusjuoma|limu|limonadi|sokeriton|\bzero\b|\blight\b|vichy|kivenn[aä]isvesi|l[aä]hdevesi|energiajuoma|urheilujuoma|mehu|tuoremehu|nektari|appelsiinijuoma|ananasjuoma|greippijuoma/)) return "Juomat";
 
-  if (has(/pekoni|bacon|kinkku|salami|meetvursti|leikkele|jauheliha|nauta|porsas|possu|broileri|kana|kalkkuna|makkara|nakki|liha|karjalanpaisti|filee|pihvi|snellman|atria|hk\b/)) return "Liha";
+  // Kasvipohjaiset/proteiinijuomat pidetään maitohyllyn logiikalla Maitotuotteissa.
+  if (hasProduct(/kaurajuoma|soijajuoma|mantelijuoma|riisijuoma|kasvijuoma|plant\s*based|proteiinijuoma|protein\s*drink|maxim\s+proteiinijuoma/)) return "Maitotuotteet";
 
-  if (has(/lohi|kirjolohi|kala|tonnikala|silakka|seiti|ahven|siika|katkarapu|rapu|silli|muikku|kuha|hauki|kalapuikko/)) return "Kala";
+  if (hasProduct(/pekoni|bacon|kinkku|salami|meetvursti|leikkele|jauheliha|nauta|porsas|possu|broileri|kana|kalkkuna|makkara|nakki|liha|karjalanpaisti|filee|pihvi|snellman|atria|\bhk\b/)) return "Liha";
+  if (hasProduct(/lohi|kirjolohi|kala|tonnikala|silakka|seiti|ahven|siika|katkarapu|rapu|silli|muikku|kuha|hauki|kalapuikko/)) return "Kala";
+  if (hasProduct(/kahvi|espresso|juhla\s*mokka|presidentti|kulta\s*katriina|suodatinkahvi|pikakahvi|kahvijuoma/)) return "Kahvi";
 
-  if (has(/kahvi|espresso|juhla\s*mokka|presidentti|kulta\s*katriina|suodatinkahvi|pikakahvi|kahvijuoma/)) return "Kahvi";
+  if (hasProduct(/maito|juusto|jogurtti|jogurt|rahka|kerma|voi|raejuusto|viili|piima|kefiiri|kefir|skyr|vanukas|proteiinirahka|maitorahka/)) return "Maitotuotteet";
 
-  if (has(/maito|juusto|jogurtti|jogurt|rahka|kerma|voi|raejuusto|viili|piima|kefiiri|kefir|skyr|vanukas|proteiinirahka|maitorahka|proteiinijuoma|maxim\s+proteiinijuoma/)) return "Maitotuotteet";
+  if (hasProduct(/leipa|leip[aä]|sampyla|s[aä]mpyl[aä]|pull|pitko|croissant|karjalanpiirakka|ruis|patonki|paahtoleip[aä]|n[aä]kk[aä]ri|nakkileipa|tortilla|rieska|panini/)) return "Leipomo";
+  if (hasProduct(/tomaatti|kurkku|salaatti|omena|banaani|appelsiini|mandariini|sitruuna|peruna|varhaisperuna|sipuli|porkkana|marja|mansikka|mustikka|vadelma|hedel|vihanne|kasvis|kaali|paprika|avokado|kiivi|p[aä][aä]ryn[aä]|basilika|yrtti/)) return "Hevi";
+  if (hasProduct(/pakaste|jaatelo|j[aä][aä]tel[oö]|pakastettu|pakastepizza|pakastevihannes|pakastemarj|snickers\s+j[aä][aä]tel[oö]/)) return "Pakasteet";
 
-  if (has(/leipa|leip[aä]|sampyla|s[aä]mpyl[aä]|pull|pitko|croissant|karjalanpiirakka|ruis|patonki|paahtoleip[aä]|n[aä]kk[aä]ri|nakkileipa|tortilla|rieska/)) return "Leipomo";
+  // Kuivatuotteet ennen valmisruokaa.
+  if (hasProduct(/pasta|riisi|jauho|hiutale|muro|mysli|sailyke|s[aä]ilyke|kastike|[oö]ljy|mauste|sokeri|suola|puuro|nuudeli|noodles|maggi|instant|tortellini|makaroni|spagetti|penne|rigatoni|farfalle|tagliatelle|couscous|bulgur|santa\s*maria|pippuri|pepper/)) return "Kuivatuotteet";
 
-  if (has(/tomaatti|kurkku|salaatti|omena|banaani|appelsiini|mandariini|sitruuna|peruna|varhaisperuna|sipuli|porkkana|marja|mansikka|mustikka|vadelma|hedel|vihanne|kasvis|kaali|paprika|avokado|kiivi|p[aä][aä]ryn[aä]|basilika|yrtti/)) return "Hevi";
+  // Naposteltavat nykyiseen UI-ryhmään.
+  if (hasProduct(/kark|makeis|suklaa|keksi|lakritsi|salmiakki|purukumi|vaahto|irtokarkki|patukka|sipsi|chips|corners|estrella|doritos|pringles|cashew|pahkina|p[aä]hkin[aä]|manteli|snack|popcorn|nuts|honey\s*salt/)) return "Makeiset & keksit";
 
-  if (has(/pakaste|jaatelo|j[aä][aä]tel[oö]|pakastettu|pakastepizza|pakastevihannes|pakastemarj|snickers\s+j[aä][aä]tel[oö]/)) return "Pakasteet";
+  if (hasProduct(/semper|piltti|fruktmums|lastenruoka|vauvanruoka|sose|smoothie/)) return "Valmisruoka";
+  if (hasProduct(/valmis|ateria|pizza|keitto|salaattiateria|mikroateria|laatikko|lasagne|pasteija|annos|wokki|risotto/)) return "Valmisruoka";
+  if (hasProduct(/koira|kissa|lemmik|kissanhiekka|koiranruoka|kissanruoka/)) return "Lemmikit";
 
-  // Kuivatuotteet ennen valmisruokaa: pasta/riisi/nuudeli eivät saa lipsua valmisruoaksi.
-  if (has(/pasta|riisi|jauho|hiutale|muro|mysli|sailyke|s[aä]ilyke|kastike|[oö]ljy|mauste|sokeri|suola|puuro|nuudeli|noodles|maggi|instant|tortellini|makaroni|spagetti|penne|rigatoni|farfalle|tagliatelle|couscous|bulgur|santa\s*maria|pippuri|pepper/)) return "Kuivatuotteet";
-
-  // Naposteltavat menevät nykyisessä UI:ssa Makeiset & keksit -ryhmään.
-  if (has(/kark|makeis|suklaa|keksi|lakritsi|salmiakki|purukumi|vaahto|irtokarkki|patukka|sipsi|chips|corners|estrella|doritos|pringles|cashew|pahkina|p[aä]hkin[aä]|manteli|snack|popcorn|nuts|honey\s*salt/)) return "Makeiset & keksit";
-
-  // Lastenruoka pidetään toistaiseksi Valmisruoassa, koska UI:ssa ei ole omaa Lastenruoka-ryhmää.
-  if (has(/semper|piltti|fruktmums|lastenruoka|vauvanruoka|sose|smoothie/)) return "Valmisruoka";
-
-  if (has(/valmis|ateria|pizza|keitto|salaattiateria|mikroateria|laatikko|lasagne|pasteija|annos|wokki|risotto|panini/)) return "Valmisruoka";
-
-  if (has(/koira|kissa|lemmik|kissanhiekka|koiranruoka|kissanruoka/)) return "Lemmikit";
-
-  // Koti/apteekki/hygienia/talous: ei ruokaa Muut-ryhmään, mutta Compeed/Serto yms. kotiin.
-  if (has(/pesu|pyykin|pyykinpesu|tisk|talouspaperi|wc\s*paperi|wc-paperi|koti|siivous|vaippa|shampoo|saippua|hammastahna|deodorantti|folio|leivinpaperi|laastari|rakkolaastari|compeed|hygienia|terveys|suuvesi|side|tamponi|sert[oö]|pyykinpesujauhe|pesujauhe|astianpesu/)) return "Koti";
+  if (hasProduct(/pesu|pyykin|pyykinpesu|tisk|talouspaperi|wc\s*paperi|wc-paperi|koti|siivous|vaippa|shampoo|saippua|hammastahna|deodorantti|folio|leivinpaperi|laastari|rakkolaastari|compeed|hygienia|terveys|suuvesi|side|tamponi|sert[oö]|pyykinpesujauhe|pesujauhe|astianpesu/)) return "Koti";
 
   // Section-fallback vain jos tuotteen nimi ei ratkaissut.
-  const section = sectionText;
-  if (/juoma|virvoitus|mehu|vesi|limu|limonadi/.test(section)) return "Juomat";
-  if (/kahvi/.test(section)) return "Kahvi";
-  if (/maito|meijeri|juusto|jogurtti|rahka|kerma/.test(section)) return "Maitotuotteet";
-  if (/kala/.test(section)) return "Kala";
-  if (/liha|makkara|broileri|kana/.test(section)) return "Liha";
-  if (/leip|paisto|pulla/.test(section)) return "Leipomo";
-  if (/hevi|hedel|vihanne|kasvis/.test(section)) return "Hevi";
-  if (/pakaste|j[aä][aä]tel/.test(section)) return "Pakasteet";
-  if (/kuiva|pasta|riisi|s[aä]ilyke/.test(section)) return "Kuivatuotteet";
-  if (/makeis|keksi|kark|suklaa|snack|sipsi|p[aä]hkin/.test(section)) return "Makeiset & keksit";
-  if (/valmis|ateria/.test(section)) return "Valmisruoka";
-  if (/lemmik|koira|kissa/.test(section)) return "Lemmikit";
-  if (/koti|siivous|pesu|talous|hygienia|terveys/.test(section)) return "Koti";
+  if (hasSection(/juoma|virvoitus|mehu|vesi|limu|limonadi/)) return "Juomat";
+  if (hasSection(/kahvi/)) return "Kahvi";
+  if (hasSection(/maito|meijeri|juusto|jogurtti|rahka|kerma/)) return "Maitotuotteet";
+  if (hasSection(/kala/)) return "Kala";
+  if (hasSection(/liha|makkara|broileri|kana/)) return "Liha";
+  if (hasSection(/leip|paisto|pulla/)) return "Leipomo";
+  if (hasSection(/hevi|hedel|vihanne|kasvis/)) return "Hevi";
+  if (hasSection(/pakaste|j[aä][aä]tel/)) return "Pakasteet";
+  if (hasSection(/kuiva|pasta|riisi|s[aä]ilyke/)) return "Kuivatuotteet";
+  if (hasSection(/makeis|keksi|kark|suklaa|snack|sipsi|p[aä]hkin/)) return "Makeiset & keksit";
+  if (hasSection(/valmis|ateria/)) return "Valmisruoka";
+  if (hasSection(/lemmik|koira|kissa/)) return "Lemmikit";
+  if (hasSection(/koti|siivous|pesu|talous|hygienia|terveys/)) return "Koti";
 
   return "Muut";
+}
+
+function formatFinnishDate(value: string) {
+  const text = String(value || "").trim();
+  if (!text) return "";
+
+  const iso = text.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) {
+    const day = String(Number(iso[3]));
+    const month = String(Number(iso[2]));
+    return `${day}.${month}.${iso[1]}`;
+  }
+
+  const parsed = Date.parse(text);
+  if (!Number.isNaN(parsed)) {
+    return new Intl.DateTimeFormat("fi-FI", {
+      day: "numeric",
+      month: "numeric",
+      year: "numeric",
+      timeZone: "Europe/Helsinki",
+    }).format(new Date(parsed));
+  }
+
+  return text;
+}
+
+function makeOfferSourceText(publication: PublicationMeta) {
+  const validUntil = formatFinnishDate(publication.validUntil);
+  return validUntil ? `Tarjouslehti · voimassa ${validUntil}` : "Tarjouslehti";
 }
 
 function offerMatchesQuery(query: string, result: ZiiplyOfferSearchResult) {
@@ -1103,9 +1113,9 @@ function mapOffer(args: {
     price: parsed.priceText,
     offerPrice: parsed.priceText,
     unitPriceText: "",
-    benefitText: args.publication.validUntil ? `Tarjouslehti · voimassa ${args.publication.validUntil.slice(0, 10)}` : "Tarjouslehti",
-    discountText: args.publication.validUntil ? `Tarjouslehti · voimassa ${args.publication.validUntil.slice(0, 10)}` : "Tarjouslehti",
-    validityText: args.publication.validUntil ? `Voimassa ${args.publication.validUntil.slice(0, 10)}` : "",
+    benefitText: makeOfferSourceText(args.publication),
+    discountText: makeOfferSourceText(args.publication),
+    validityText: formatFinnishDate(args.publication.validUntil) ? `Voimassa ${formatFinnishDate(args.publication.validUntil)}` : "",
     imageUrl,
     image: imageUrl,
     pictureUrl: imageUrl,
