@@ -1,10 +1,11 @@
 // src/app/components/ziiply/offerSearch/providers/etarjouslehdetProvider.ts
-// ETARJOUSLEHDET_PROVIDER_V20_STORE_QUERY_RESOLVE
+// ETARJOUSLEHDET_PROVIDER_V21_OPTIONS_SHAPE_FIX
 // Korjaus V18: ei enää luoteta /S-market/kaupat HTML-listan parsimiseen.
 // - Ratkaisee S-marketin eTarjouslehdet-storeId:n batch-queryllä: ["stores", { businessId, pagination, query/search }]
 // - Hakee aktiivisen julkaisun samalla tavalla kuin HAR:ssa: ["fronts", { businessIds, coordinates, localBusinessIds }]
 // - Jatkaa Tjek/Incito-section-parserilla.
 // - Ei koske Prismaan eikä skaupatProvideriin.
+// - V21: lukee S-market-nimet myös sStoreName/sStoreNames/name/title/label-aliasteista ja näyttää options-avaimet debugissa.
 // - Debug näkyy korteissa kategoriassa "Muut".
 
 import type {
@@ -33,9 +34,19 @@ type PublicationMeta = {
 export type ETarjouslehdetProviderOptions = {
   storeId?: string | number | null;
   storeName?: string | null;
+  sStoreId?: string | number | null;
+  sStoreName?: string | null;
+  sStoreIds?: Array<string | number | null | undefined> | string | null;
+  sStoreNames?: Array<string | null | undefined> | string | null;
+  names?: Array<string | null | undefined> | string | null;
+  selectedSMarketNames?: Array<string | null | undefined> | string | null;
   stores?: Array<{
     storeId?: string | number | null;
     storeName?: string | null;
+    sStoreName?: string | null;
+    name?: string | null;
+    title?: string | null;
+    label?: string | null;
     etarjouslehdetStoreId?: string | null;
     eTarjouslehdetStoreId?: string | null;
     tjekStoreId?: string | null;
@@ -300,18 +311,62 @@ function scorePublication(publication: PublicationMeta) {
   return score;
 }
 
-function getRequestedNames(options?: ETarjouslehdetProviderOptions): string[] {
-  const names: string[] = [];
-
-  for (const store of options?.stores ?? []) {
-    const chain = normalizeText(store.chain);
-    const name = firstString(store.storeName, options?.storeName);
-    if (chain && !chain.includes("s market") && !chain.includes("s-market") && !chain.includes("smarket")) continue;
-    if (name && isSMarketName(name)) names.push(name);
+function pushNameCandidate(output: string[], value: unknown) {
+  if (Array.isArray(value)) {
+    for (const item of value) pushNameCandidate(output, item);
+    return;
   }
 
-  const directName = firstString(options?.storeName);
-  if (directName && isSMarketName(directName)) names.push(directName);
+  const text = firstString(value);
+  if (text && isSMarketName(text)) output.push(text);
+}
+
+function splitProviderMultiValue(value: unknown): string[] {
+  if (Array.isArray(value)) return value.map((item) => String(item ?? "").trim()).filter(Boolean);
+  return String(value ?? "")
+    .replaceAll("\r", "")
+    .replaceAll("\n", "||")
+    .replaceAll(";", "||")
+    .split("||")
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
+function getRequestedNames(options?: ETarjouslehdetProviderOptions): string[] {
+  const names: string[] = [];
+  const anyOptions = options as any;
+
+  pushNameCandidate(names, options?.storeName);
+  pushNameCandidate(names, options?.sStoreName);
+  for (const name of splitProviderMultiValue(options?.sStoreNames)) pushNameCandidate(names, name);
+  for (const name of splitProviderMultiValue(options?.names)) pushNameCandidate(names, name);
+  for (const name of splitProviderMultiValue(options?.selectedSMarketNames)) pushNameCandidate(names, name);
+
+  for (const store of options?.stores ?? []) {
+    const anyStore = store as any;
+    const chain = normalizeText(store.chain);
+    const name = firstString(
+      store.storeName,
+      store.sStoreName,
+      store.name,
+      store.title,
+      store.label,
+      anyStore?.shopName,
+      anyStore?.storeLabel,
+      options?.storeName,
+      options?.sStoreName,
+    );
+
+    if (chain && !chain.includes("s market") && !chain.includes("s-market") && !chain.includes("smarket")) continue;
+    pushNameCandidate(names, name);
+  }
+
+  // Viimeinen fallback: jos options-objektin muoto muuttuu, poimi S-market-nimet raakatekstistä.
+  if (names.length === 0 && anyOptions) {
+    const raw = JSON.stringify(anyOptions);
+    const matches = raw.match(/S-market[^"\\|;]{1,80}/gi) || [];
+    for (const match of matches) pushNameCandidate(names, match);
+  }
 
   return Array.from(new Set(names.map((name) => name.trim()).filter(Boolean)));
 }
@@ -320,13 +375,25 @@ function getExplicitStores(options?: ETarjouslehdetProviderOptions): SelectedETS
   const stores: SelectedETStore[] = [];
 
   for (const store of options?.stores ?? []) {
-    const name = firstString(store.storeName, options?.storeName, "S-market");
+    const anyStore = store as any;
+    const name = firstString(
+      store.storeName,
+      store.sStoreName,
+      store.name,
+      store.title,
+      store.label,
+      anyStore?.shopName,
+      anyStore?.storeLabel,
+      options?.storeName,
+      options?.sStoreName,
+      "S-market",
+    );
     const explicitId = firstString(store.etarjouslehdetStoreId, store.eTarjouslehdetStoreId, store.tjekStoreId);
     if (explicitId) stores.push({ storeId: explicitId, storeName: name });
   }
 
   const directId = firstString(options?.etarjouslehdetStoreId, options?.eTarjouslehdetStoreId, options?.tjekStoreId);
-  if (directId) stores.push({ storeId: directId, storeName: firstString(options?.storeName, "S-market") });
+  if (directId) stores.push({ storeId: directId, storeName: firstString(options?.storeName, options?.sStoreName, "S-market") });
 
   return stores;
 }
@@ -642,7 +709,7 @@ export async function fetchETarjouslehdetOffers(
     return [makeDebugResult({
       config,
       title: `ETPROV NO_STORE N${requestedNames.length}`,
-      detail: `names=${requestedNames.join(" | ").slice(0, 120)}`,
+      detail: `names=${requestedNames.join(" | ").slice(0, 80)} keys=${Object.keys((options as any) || {}).join(",").slice(0, 80)}`,
     })];
   }
 
