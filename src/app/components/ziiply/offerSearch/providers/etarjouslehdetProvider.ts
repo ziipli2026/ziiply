@@ -1,5 +1,5 @@
 // src/app/components/ziiply/offerSearch/providers/etarjouslehdetProvider.ts
-// ETARJOUSLEHDET_PROVIDER_V31_IMAGES_AND_CATEGORY_CLEANUP
+// ETARJOUSLEHDET_PROVIDER_V33_CATEGORY_HARDENING
 // Korjaus V18: ei enää luoteta /S-market/kaupat HTML-listan parsimiseen.
 // - Ratkaisee S-marketin eTarjouslehdet-storeId:n batch-queryllä: ["stores", { businessId, pagination, query/search }]
 // - Hakee aktiivisen julkaisun samalla tavalla kuin HAR:ssa: ["fronts", { businessIds, coordinates, localBusinessIds }]
@@ -16,6 +16,7 @@
 //        Tämä vastaa aiempaa HAR/V17-logiikkaa paremmin kuin käsin rakennettu offer_ids/page_number-payload.
 // - V23: korjaa batch-vastausten parsimisen: luetaan entry.value eikä koko { key, value } -riviä.
 // - V31: poistaa OK-debugkortit normaalituloksista, hakee kuvia Tjek-section-nodesta ja tarkentaa luokittelua.
+// - V33: koventaa S-market/eTarjouslehdet-kategorisointia: limsat -> Juomat, pekoni -> Liha, naposteltavat -> Makeiset & keksit, Semper/Piltti -> Valmisruoka.
 // - Debug näkyy vain virhetilanteessa kategoriassa "Muut".
 
 import type {
@@ -1001,59 +1002,66 @@ function parseOfferLabel(label: string) {
 function classifyCategory(title: string, sectionTitle: string) {
   const productText = normalizeText(title);
   const sectionText = normalizeText(sectionTitle);
-  const combinedText = `${productText} ${sectionText}`.trim();
 
-  const isSoftDrinkOrNonDairyDrink = (text: string) =>
-    /virvoitusjuoma|limu|limonadi|mehu|tuoremehu|nektari|vichy|kivenn[aä]isvesi|l[aä]hdevesi|energiajuoma|urheilujuoma|tonic|cola|fanta|sprite|jaffa|pepsi|coca\s*-?cola|kokis|novelle|hartwall|olvi|ed|battery|red\s*bull|monster/.test(text);
+  const has = (text: string, pattern: RegExp) => pattern.test(text);
 
-  const classifyProductOnly = (text: string): string => {
-    if (!text) return "";
+  // V33: tuotteen nimi ratkaisee AINA ennen Tjekin sectionia.
+  // Section voi olla liian karkea tai väärä. Erityisesti juomat ovat olleet
+  // S-market/eTarjouslehdetissä välillä Maitotuotteet/Kuivatuotteet-osioissa.
+  if (has(productText, /fanta|sprite|jaffa|pepsi|coca\s*-?cola|kokis|cola|7up|tonic|fentimans|schweppes|limu|limonadi|virvoitus|virvoitusjuo|virvoitusjuoma|zero|sokeriton|appelsiini\s*zero|ananas|greippi|sitrus|battery|red\s*bull|monster|energiajuoma|energia\s*juoma|vichy|kivenn[aä]isvesi|l[aä]hdevesi|novelle|hartwall|olvi/)) {
+    return "Juomat";
+  }
 
-    // Ehdoton yliajo: limsa/virvoitusjuoma ei saa koskaan mennä Maitotuotteisiin,
-    // vaikka section tai muu teksti sisältäisi maitotuote-viitteitä.
-    if (isSoftDrinkOrNonDairyDrink(text) || isSoftDrinkOrNonDairyDrink(combinedText)) return "Juomat";
+  if (has(productText, /mehu|tuoremehu|nektari|smoothie|juotava|kaurajuoma|soijajuoma|mantelijuoma|riisijuoma|kasvijuoma|juoma\s*\d/)) {
+    // Kaurajuoma voi kaupan hyllyssä olla maitotuotteissa, mutta tuotetyyppinä se on juoma.
+    // Varsinainen maitotuote tunnistetaan alempana vain selvistä maito/juusto/jogurtti jne. sanoista.
+    return "Juomat";
+  }
 
-    // Tärkeää: tuotteen nimi ratkaisee ensin. Section voi olla Tjekissä liian karkea
-    // tai väärä, jolloin esim. Fanta virvoitusjuoma päätyi Maitotuotteisiin.
-    if (/kahvi|espresso|juhla\s*mokka|presidentti|kulta\s*katriina|suodatinkahvi|pikakahvi|kahvijuoma/.test(text)) return "Kahvi";
+  if (has(productText, /kahvi|espresso|juhla\s*mokka|presidentti|kulta\s*katriina|suodatinkahvi|pikakahvi|kahvijuoma|cappuccino|latte/)) return "Kahvi";
 
-    if (/olut|siideri|lonkero|juoma|mehu|vesi|vichy|kivenn[aä]isvesi/.test(text)) return "Juomat";
+  if (has(productText, /lohi|kirjolohi|kala|tonnikala|silakka|seiti|ahven|siika|katkarapu|rapu|silli|muikku|kuha|hauki|kalapuikko|surimi/)) return "Kala";
 
-    if (/lohi|kirjolohi|kala|tonnikala|silakka|seiti|ahven|siika|katkarapu|rapu|silli|muikku|kuha|hauki|kalapuikko/.test(text)) return "Kala";
-    if (/jauheliha|nauta|porsas|possu|broileri|kana|kalkkuna|makkara|nakki|pekoni|kinkku|liha|karjalanpaisti|filee|pihvi/.test(text)) return "Liha";
+  if (has(productText, /jauheliha|nauta|porsas|possu|broileri|kana|kalkkuna|makkara|nakki|pekoni|bacon|kinkku|salami|meetwursti|leikkele|liha|karjalanpaisti|filee|pihvi|snellman|atria|hk\s/)) return "Liha";
 
-    if (/maito|juusto|jogurtti|jogurt|rahka|kerma|voi|raejuusto|viili|piima|kefiiri|kefir|skyr|vanukas|proteiinirahka|maitorahka/.test(text)) return "Maitotuotteet";
+  if (has(productText, /maito|juusto|jogurtti|jogurt|rahka|kerma|voi|raejuusto|viili|piima|kefiiri|kefir|skyr|vanukas|proteiinirahka|maitorahka|arl[a]?|valio|oltermanni|emmental|edam|mozzarella|cheddar/)) return "Maitotuotteet";
 
-    if (/leipa|leip[aä]|sampyla|s[aä]mpyl[aä]|pull|pitko|croissant|karjalanpiirakka|ruis|patonki|paahtoleip[aä]|n[aä]kk[aä]ri|nakkileipa|tortilla|rieska/.test(text)) return "Leipomo";
-    if (/tomaatti|kurkku|salaatti|omena|banaani|appelsiini|mandariini|sitruuna|peruna|sipuli|porkkana|marja|mansikka|mustikka|vadelma|hedel|vihanne|kasvis|kaali|paprika|avokado|kiivi|p[aä][aä]ryn[aä]/.test(text)) return "Hevi";
+  if (has(productText, /leipa|leip[aä]|sampyla|s[aä]mpyl[aä]|pull|pitko|croissant|karjalanpiirakka|ruis|patonki|paahtoleip[aä]|n[aä]kk[aä]ri|nakkileipa|tortilla|rieska|viipurilainen|oululainen|fazer|vaasan/)) return "Leipomo";
 
-    if (/pakaste|jaatelo|j[aä][aä]tel[oö]|pakastettu|pakastepizza|pakastevihannes|pakastemarj/.test(text)) return "Pakasteet";
-    // Kuivatuotteet ennen valmisruokaa: pasta/riisi/nuudeli eivät saa lipsua valmisruoaksi.
-    if (/pasta|riisi|jauho|hiutale|muro|mysli|sailyke|s[aä]ilyke|kastike|[oö]ljy|mauste|sokeri|suola|puuro|nuudeli|tortellini|makaroni|spagetti|penne|tagliatelle|couscous|bulgur/.test(text)) return "Kuivatuotteet";
-    if (/valmis|ateria|pizza|keitto|salaattiateria|mikroateria|laatikko|lasagne|pasteija|annos|wokki|risotto/.test(text)) return "Valmisruoka";
-    if (/kark|makeis|suklaa|keksi|lakritsi|salmiakki|purukumi|vaahto|irtokarkki|patukka/.test(text)) return "Makeiset & keksit";
-    if (/koira|kissa|lemmik|kissanhiekka|koiranruoka|kissanruoka/.test(text)) return "Lemmikit";
-    if (/pesu|pyykin|tisk|talouspaperi|wc\s*paperi|wc-paperi|koti|siivous|vaippa|shampoo|saippua|hammastahna|deodorantti|folio|leivinpaperi/.test(text)) return "Koti";
+  if (has(productText, /tomaatti|kurkku|salaatti|basilika|yrtti|omena|banaani|appelsiini|mandariini|sitruuna|peruna|varhaisperuna|sipuli|porkkana|marja|mansikka|mustikka|vadelma|hedel|vihanne|kasvis|kaali|paprika|avokado|kiivi|p[aä][aä]ryn[aä]|nektariini|persikka|luumu|ryp[aä]le/)) return "Hevi";
 
-    return "";
-  };
+  if (has(productText, /pakaste|pakastettu|jaatelo|j[aä][aä]tel[oö]|pakastepizza|pakastevihannes|pakastemarj|perunalaatikko|ranskalaise|wokki\s*pakaste/)) return "Pakasteet";
 
-  const fromProduct = classifyProductOnly(productText);
-  if (fromProduct) return fromProduct;
+  // V33: kuivat elintarvikkeet ennen valmisruokaa.
+  if (has(productText, /pasta|riisi|jauho|hiutale|muro|mysli|sailyke|s[aä]ilyke|kastike|[oö]ljy|mauste|pippuri|suola|sokeri|puuro|nuudeli|noodles|maggi|instant|tortellini|makaroni|spagetti|penne|rigatoni|farfalle|tagliatelle|couscous|bulgur|molisana|santa\s*maria/)) return "Kuivatuotteet";
 
-  // Fallback: käytetään sectionia vain, jos tuotteen nimestä ei saanut selvää.
+  // Naposteltavat nykyiseen UI-rakenteeseen: ei ole omaa "Naposteltavat"-nappia,
+  // joten nämä kuuluvat Makeiset & keksit -ryhmään eikä "Muut"-ryhmään.
+  if (has(productText, /kark|makeis|suklaa|keksi|lakritsi|salmiakki|purukumi|vaahto|irtokarkki|patukka|sipsi|chips|corners|estrella|doritos|pringles|taffel|cashew|pahkina|p[aä]hkin[aä]|manteli|snack|popcorn|dippi/)) return "Makeiset & keksit";
+
+  // UI:ssa ei ole vielä Lastenruoka-kategoriaa. Pidetään nämä Valmisruoassa
+  // eikä päästetä "Muut"-kategoriaan.
+  if (has(productText, /semper|piltti|fruktmums|lastenruoka|vauvanruoka|sose|smoothie\s*pussi|muksu/)) return "Valmisruoka";
+
+  if (has(productText, /valmis|ateria|pizza|keitto|salaattiateria|mikroateria|laatikko|lasagne|pasteija|annos|panini|wokki|risotto|wrap|burger|pyttipannu/)) return "Valmisruoka";
+
+  if (has(productText, /koira|kissa|lemmik|kissanhiekka|koiranruoka|kissanruoka|puruluu/)) return "Lemmikit";
+
+  if (has(productText, /pesu|pyykin|tisk|talouspaperi|wc\s*paperi|wc-paperi|koti|siivous|vaippa|shampoo|saippua|nestesaippua|hammastahna|deodorantti|folio|leivinpaperi|pumppupullo|bambuliina|puhdistus|astianpesu/)) return "Koti";
+
+  // Fallback: section vain jos tuotenimi ei paljastanut mitään.
   const section = sectionText;
+  if (/juoma|virvoitus|mehu|vesi|vichy|limu|tonic/.test(section)) return "Juomat";
   if (/kahvi/.test(section)) return "Kahvi";
   if (/maito|meijeri|juusto|jogurtti|rahka|kerma/.test(section)) return "Maitotuotteet";
   if (/kala/.test(section)) return "Kala";
-  if (/liha|makkara|broileri|kana/.test(section)) return "Liha";
+  if (/liha|makkara|broileri|kana|pekoni/.test(section)) return "Liha";
   if (/leip|paisto|pulla/.test(section)) return "Leipomo";
   if (/hevi|hedel|vihanne|kasvis/.test(section)) return "Hevi";
-  if (/juoma|virvoitus|mehu|vesi/.test(section)) return "Juomat";
   if (/pakaste|j[aä][aä]tel/.test(section)) return "Pakasteet";
-  if (/valmis|ateria/.test(section)) return "Valmisruoka";
-  if (/kuiva|pasta|riisi|s[aä]ilyke/.test(section)) return "Kuivatuotteet";
-  if (/makeis|keksi|kark|suklaa/.test(section)) return "Makeiset & keksit";
+  if (/kuiva|pasta|riisi|s[aä]ilyke|mauste/.test(section)) return "Kuivatuotteet";
+  if (/makeis|keksi|kark|suklaa|napost|sipsi|p[aä]hkin/.test(section)) return "Makeiset & keksit";
+  if (/valmis|ateria|lastenruoka/.test(section)) return "Valmisruoka";
   if (/lemmik|koira|kissa/.test(section)) return "Lemmikit";
   if (/koti|siivous|pesu|talous/.test(section)) return "Koti";
 
