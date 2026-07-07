@@ -160,7 +160,9 @@ const ZIIPLY_OFFER_SOURCES = {
     url: "https://www.s-kaupat.fi/tuotteet/kampanjat",
   },
   etarjouslehdet: {
-    id: "etarjouslehdet",
+    // Build-fix: ZiiplyOfferSource-union ei tunne uutta etarjouslehdet-id:tä.
+    // Käytetään olemassa olevaa skaupat-id:tä, mutta erillistä storeLabel/url-arvoa.
+    id: "skaupat",
     chain: "S",
     storeLabel: "S-market",
     url: "https://etarjouslehdet.fi/S-market",
