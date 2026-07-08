@@ -1,6 +1,6 @@
 // ============================================================================
-// ZIIPLY_OFFER_SEARCH_CORE_V162_WITHIN_CHAIN_MULTI_STORE_CONTEXT
-// Revision: V162
+// ZIIPLY_OFFER_SEARCH_CORE_V164_CATEGORY_TRACE_ONLY
+// Revision: V164
 // Date: 2026-07-04
 //
 // Muutokset:
@@ -376,7 +376,41 @@ export function isZiiplyGostaCategorySelectionV147(value: string) {
   return isGostaCategorySelectionV136(value);
 }
 
+function getSMarketCategoryTraceV164(item: ZiiplyGostaOfferLike, coreCategory: string) {
+  const anyItem = item as any;
+  const store = normalizeGostaCoreText(anyItem.storeLabel || anyItem.storeName || anyItem.shopName || "");
+  const sourceUrl = normalizeGostaCoreText(anyItem.sourceUrl || anyItem.productUrl || "");
+  const isSMarketET =
+    store.includes("s market") ||
+    store.includes("s-market") ||
+    sourceUrl.includes("etarjouslehdet");
+
+  if (!isSMarketET) return String(item.benefitText || item.validityText || "");
+
+  const providerCategory = String(anyItem.category || "").trim();
+  const providerDebugCategory = String(anyItem.categoryDebugCategory || "").trim();
+  const section = String(anyItem.categoryDebugSection || anyItem.section || anyItem.department || "").trim();
+  const title = String(anyItem.title || anyItem.name || anyItem.productName || "").trim();
+  const providerLine = String(item.benefitText || item.validityText || "").trim();
+
+  // V164 DEBUG ONLY:
+  // Näyttää samalla korttirivillä sekä providerin kategorian että SearchCore/CategoryCore-luokan.
+  // Ei muuta suodatusta, ei muuta dedupea, ei muuta kategorian laskentaa.
+  return [
+    `CORE=${coreCategory || "-"}`,
+    `PROV=${providerCategory || providerDebugCategory || "-"}`,
+    section ? `SEC=${section}` : "",
+    title ? `TITLE=${title}` : "",
+    providerLine ? `SRC=${providerLine}` : "",
+  ].filter(Boolean).join(" | ");
+}
+
 export function mapZiiplyGostaOfferToCardOfferV147(item: ZiiplyGostaOfferLike) {
+  const coreCategory = getOfferCategoryV106(item);
+  const anyItem = item as any;
+  const providerCategory = String(anyItem.category || "").trim();
+  const categoryTrace = getSMarketCategoryTraceV164(item, coreCategory);
+
   return {
     id: item.id,
     name: item.title,
@@ -388,12 +422,15 @@ export function mapZiiplyGostaOfferToCardOfferV147(item: ZiiplyGostaOfferLike) {
     offerPrice: item.priceText,
     normalPrice: item.unitPriceText,
     originalPrice: item.unitPriceText,
-    discountText: item.benefitText || item.validityText,
+    discountText: categoryTrace || item.benefitText || item.validityText,
     image: item.imageUrl,
     imageUrl: item.imageUrl,
     pictureUrl: item.imageUrl,
     productUrl: item.productUrl,
-    category: getOfferCategoryV106(item),
+    category: coreCategory,
+    providerCategory,
+    coreCategory,
+    categoryTrace,
     __sourceOfferSearchResult: item,
   };
 }
