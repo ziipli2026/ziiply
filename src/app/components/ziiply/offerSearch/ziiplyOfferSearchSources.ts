@@ -169,7 +169,7 @@ const ZIIPLY_OFFER_SOURCES = {
   },
 } satisfies Record<string, ZiiplyOfferSearchSourceConfig>;
 
-const OFFER_SEARCH_SOURCE_REVISION = "v26-direct-etarjous-no-visible-debug";
+const OFFER_SEARCH_SOURCE_REVISION = "v25-direct-etarjous-provider-debug";
 const ENABLE_OFFER_SEARCH_CACHE = false;
 const MAX_OFFER_SEARCH_RESULTS = 1000;
 const ZIIPLY_GOSTA_MASTER_QUERY_V6 = "__ziiply_all_offers__";
@@ -485,9 +485,12 @@ async function searchSelectedSMarketETarjouslehdetOffersV25(
     },
   );
 
-  // V26: normaalissa ajossa ei lisätä ETSRC-debug-tuotetta listaan.
-  // Debug-kortti sotki Muut-kategorian määrät ja näkyvät tuotteet.
-  return providerResults;
+  const debugResult = makeETSourceDebugResultV25(
+    `ETSRC N${sMarketNames.length} R${providerResults.length}`,
+    `names=${sMarketNames.join(" | ").slice(0, 90)}`,
+  );
+
+  return [debugResult, ...providerResults];
 }
 
 export async function searchSKaupatOffers(
