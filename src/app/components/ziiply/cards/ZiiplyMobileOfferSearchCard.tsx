@@ -422,22 +422,49 @@ export default function ZiiplyMobileOfferSearchCard({
   if (!open) return null;
 
   const rawItems = Array.isArray(offers) ? offers : Array.isArray(results) ? results : [];
-  // V32: route/source/provider debug-rivit eivät saa näkyä, eivätkä ne saa kasvattaa tuoteryhmämääriä.
+  // V33: route/source/provider debug-rivit + final UI category override eivät saa näkyä, eivätkä ne saa kasvattaa tuoteryhmämääriä.
   const nonDebugRawItems = rawItems.filter((item) => !isZiiplyOfferDebugItemV32(item));
-  const items = dedupeOfferCardsV13(nonDebugRawItems);
+
+
+  const forceFinalCategoryFromOfferNameV33 = (offer: any) => {
+    const raw = String(offer?.title || offer?.name || offer?.productName || "");
+    const text = raw
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase();
+    const current = String(offer?.category || "").trim() || "Muut";
+
+    if (/fanta|sprite|jaffa|pepsi|coca\s*-?cola|kokis|cola|tonic|fentimans|virvoitusjuo|virvoitusjuoma|limu|limonadi|sokeriton|zero|light|vichy|kivenn[aä]isvesi|lahdevesi|l[aä]hdevesi|energiajuoma|urheilujuoma|tuoremehu|nektari/.test(text)) return "Juomat";
+    if (/mehu/.test(text) && !/mehukeitto/.test(text)) return "Juomat";
+    if (/pekoni|bacon|kinkku|salami|meetvursti|leikkele|jauheliha|nauta|porsas|possu|broileri|kana|kalkkuna|makkara|nakki|\bliha\b|filee|pihvi|snellman|atria|\bhk\b/.test(text)) return "Liha";
+    if (/compeed|laastari|rakkolaastari|huuliherpes|serto|pyykinpesu|pesujauhe|pyykinpesujauhe|astianpesu|tiskiaine|pesuaine|shampoo|saippua|hammastahna|deodorantti|talouspaperi|wc\s*paperi|wc-paperi|folio|leivinpaperi|side|tamponi/.test(text)) return "Koti";
+    if (/estrella|sipsi|chips|corners|doritos|pringles|cashew|pahkina|p[aä]hkin[aä]|manteli|snack|popcorn|nuts|honey\s*salt|kark|makeis|suklaa|keksi|lakritsi|salmiakki|patukka/.test(text)) return "Makeiset & keksit";
+    if (/pasta|riisi|jauho|hiutale|muro|mysli|sailyke|s[aä]ilyke|kastike|[oö]ljy|mauste|sokeri|suola|puuro|nuudeli|noodles|maggi|instant|tortellini|makaroni|spagetti|penne|rigatoni|farfalle|tagliatelle|couscous|bulgur|santa\s*maria|pippuri|pepper/.test(text)) return "Kuivatuotteet";
+    if (/semper|piltti|fruktmums|lastenruoka|vauvanruoka|sose|smoothie|panini|valmis|ateria|pizza|keitto|mikroateria|lasagne|pasteija|wokki|risotto/.test(text)) return "Valmisruoka";
+    return current;
+  };
+
+  const items = dedupeOfferCardsV13(nonDebugRawItems).map((item: any) => {
+    const forced = forceFinalCategoryFromOfferNameV33(item);
+    return {
+      ...item,
+      category: forced,
+      categoryPath: forced,
+      breadcrumbs: forced,
+      hierarchy: forced,
+      taxonomy: forced,
+      department: forced,
+      productGroup: forced,
+      mainCategory: forced,
+      subCategory: forced,
+    };
+  });
   const shownQuery = query.trim();
   const shownFilter = filter.trim();
   const showLandingView = !shownQuery && !shownFilter;
   const visibleItems = showLandingView ? [] : items;
   const hasVisibleOffers = visibleItems.length > 0;
 
-  const normalizeCategoryKey = (value: string) =>
-    value
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase()
-      .replace(/[^a-z0-9åäö]/gi, "")
-      .trim();
 
   const getCategoryCount = (category: string) => {
     if (!categoryOfferCounts) return undefined;
@@ -658,7 +685,7 @@ export default function ZiiplyMobileOfferSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="V31_VISIBLE_CATEGORY_COUNTS"
+      data-ziiply-mobile-offer-search-card-version="V33_FINAL_UI_CATEGORY_OVERRIDE"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
