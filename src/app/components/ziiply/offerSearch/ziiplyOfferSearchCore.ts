@@ -1,6 +1,6 @@
 // ============================================================================
-// ZIIPLY_OFFER_SEARCH_CORE_V165_SMARKET_DISPLAY_CATEGORY_FIX
-// Revision: V165
+// ZIIPLY_OFFER_SEARCH_CORE_V166_TRUST_ETARJOUS_CATEGORY
+// Revision: V162
 // Date: 2026-07-04
 //
 // Muutokset:
@@ -90,6 +90,47 @@ function normalizeGostaCoreText(value: unknown) {
     .replace(/[^a-z0-9åäö\s-]/gi, " ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+const TRUSTED_GOSTA_CATEGORY_LABELS_V166 = new Map<string, string>([
+  ["kahvi", "Kahvi"],
+  ["maitotuotteet", "Maitotuotteet"],
+  ["liha", "Liha"],
+  ["kala", "Kala"],
+  ["leipomo", "Leipomo"],
+  ["hevi", "Hevi"],
+  ["juomat", "Juomat"],
+  ["pakasteet", "Pakasteet"],
+  ["valmisruoka", "Valmisruoka"],
+  ["kuivatuotteet", "Kuivatuotteet"],
+  ["makeiset keksit", "Makeiset & keksit"],
+  ["makeiset ja keksit", "Makeiset & keksit"],
+  ["makeisetkeksit", "Makeiset & keksit"],
+  ["lemmikit", "Lemmikit"],
+  ["koti", "Koti"],
+  ["muut", "Muut"],
+]);
+
+function getTrustedETarjousCategoryV166(item: ZiiplyGostaOfferLike) {
+  const anyItem = item as any;
+  const sourceUrl = normalizeGostaCoreText(anyItem?.sourceUrl || "");
+  const store = normalizeGostaCoreText([anyItem?.storeLabel, anyItem?.storeName, anyItem?.shopName].filter(Boolean).join(" "));
+
+  // eTarjouslehdet-provider käyttää source-id:tä "skaupat" build-yhteensopivuuden takia,
+  // joten luotettava tunniste on URL tai S-market-kauppanimi, ei pelkkä source.
+  const isETarjousSMarket = sourceUrl.includes("etarjouslehdet") || store.includes("s market") || store.includes("s-market");
+  if (!isETarjousSMarket) return "";
+
+  const rawCategory = String(anyItem?.category || "").trim();
+  const normalized = normalizeGostaCoreText(rawCategory).replace(/ja/g, " ").replace(/\s+/g, " ").trim();
+  return TRUSTED_GOSTA_CATEGORY_LABELS_V166.get(normalized) || "";
+}
+
+function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
+  // S-market/eTarjouslehdet-provider on jo normalisoinut category/categoryPath/etc.
+  // Älä aja sitä enää vanhan CategoryCore-regexin läpi, koska se tulkitsi esim.
+  // "virvoitusjuoma" -> Maitotuotteet sanan "voi" takia ja "Liha" -> Muut.
+  return getTrustedETarjousCategoryV166(item) || getOfferCategoryV106(item);
 }
 
 function normalizeGostaContextListV164(values: unknown, fallback?: unknown): string[] {
@@ -291,7 +332,7 @@ export function filterZiiplyGostaOfferResultsV146(
   if (!filter || filter === "kaikki" || filter === "all") return results;
 
   return results.filter((item) => {
-    const category = normalizeGostaCoreText(getOfferCategoryV106(item));
+    const category = normalizeGostaCoreText(getResolvedGostaCategoryV166(item));
 
     // Tunnettu tuoteryhmächip ei ole vapaatekstihaku koko tarjousriviin.
     // Tämä estää esim. vaippojen päätymistä Maitotuotteisiin/Lihaan raakatekstin takia.
@@ -346,7 +387,7 @@ export async function searchZiiplyGostaOffersV146(options: {
     nextResults = searchByCategory
       ? masterResults.filter(
           (item) =>
-            normalizeGostaCoreText(getZiiplyGostaDisplayCategoryV165(item)) === normalizedCategorySearch,
+            normalizeGostaCoreText(getResolvedGostaCategoryV166(item)) === normalizedCategorySearch,
         )
       : masterResults;
   } else {
@@ -376,89 +417,7 @@ export function isZiiplyGostaCategorySelectionV147(value: string) {
   return isGostaCategorySelectionV136(value);
 }
 
-
-function isSMarketETarjousOfferV165(item: ZiiplyGostaOfferLike) {
-  const anyItem = item as any;
-  const store = normalizeGostaCoreText(anyItem.storeLabel || anyItem.storeName || anyItem.shopName || "");
-  const sourceUrl = normalizeGostaCoreText(anyItem.sourceUrl || anyItem.productUrl || "");
-
-  return (
-    store.includes("s market") ||
-    store.includes("s-market") ||
-    sourceUrl.includes("etarjouslehdet")
-  );
-}
-
-function normalizeKnownGostaCategoryV165(value: unknown) {
-  const text = normalizeGostaCoreText(value);
-  if (!text) return "";
-
-  if (text === "kahvi") return "Kahvi";
-  if (text === "maitotuotteet" || text === "maito" || text.includes("maito munat") || text.includes("juustot tofut")) return "Maitotuotteet";
-  if (text === "liha" || text.includes("liha ja kasviproteiinit")) return "Liha";
-  if (text === "kala" || text.includes("kala ja merenel")) return "Kala";
-  if (text === "leipomo" || text.includes("leivat") || text.includes("leivät")) return "Leipomo";
-  if (text === "hevi" || text.includes("hedelmat ja vihannekset") || text.includes("hedelmät ja vihannekset")) return "Hevi";
-  if (text === "juomat" || text.includes("alkoholi ja virvoitusjuomat") || text.includes("virvoitusjuomat")) return "Juomat";
-  if (text === "pakasteet" || text === "pakaste" || text.includes("pakasteet")) return "Pakasteet";
-  if (text === "valmisruoka" || text.includes("valmisruoka")) return "Valmisruoka";
-  if (text === "kuivatuotteet" || text.includes("kuivatuotteet") || text.includes("texmex") || text.includes("maailman makuja")) return "Kuivatuotteet";
-  if (text === "makeiset" || text === "makeiset keksit" || text === "makeiset ja keksit") return "Makeiset & keksit";
-  if (text === "lemmikit") return "Lemmikit";
-  if (text === "koti") return "Koti";
-  if (text === "muut") return "Muut";
-
-  return "";
-}
-
-function getStrictSMarketTitleCategoryV165(item: ZiiplyGostaOfferLike) {
-  const anyItem = item as any;
-  const title = normalizeGostaCoreText(
-    anyItem.title || anyItem.name || anyItem.productName || anyItem.productTitle || "",
-  );
-
-  if (!title) return "";
-
-  // Nämä voittavat aina, koska debug todisti että core voi ylikirjoittaa
-  // providerin oikean kategorian aktiivisella filterillä.
-  if (/\b(fanta|coca cola|coca-cola|pepsi|sprite|tonic|fentimans|limu|limonadi|virvoitusjuoma|energiajuoma|kivenn\w*vesi|mehu)\b/.test(title)) return "Juomat";
-  if (/\b(pekoni|possu|porsas|kassler|atria|snellman|jauheliha|broileri|kana|nauta|makkara|kinkku|liha)\b/.test(title)) return "Liha";
-  if (/\b(munakoiso|tomaatti|kurkku|peruna|sipuli|porkkana|basilika|salaatti|omena|paaryna|päärynä|banaani|appelsiini|hedelma|hedelmä|vihannes)\b/.test(title)) return "Hevi";
-  if (/\b(estrella|cashew|pahkina|pähkinä|sipsi|chips|corners|popcorn|nacho|snack)\b/.test(title)) return "Makeiset & keksit";
-  if (/\b(semper|piltti|fruktmums|vauvanruoka|lastenruoka)\b/.test(title)) return "Valmisruoka";
-  if (/\b(maggi|nuudeli|pasta|riisi|makaroni|spagetti|mauste|santa maria|texmex|tortilla|salsa)\b/.test(title)) return "Kuivatuotteet";
-  if (/\b(compeed|rakkolaastari|laastari|serto|pyykinpesu|pyykinpesujauhe|pesuaine|saippua|shampoo|hammastahna)\b/.test(title)) return "Koti";
-
-  return "";
-}
-
-export function getZiiplyGostaDisplayCategoryV165(item: ZiiplyGostaOfferLike) {
-  const anyItem = item as any;
-  const coreCategory = getOfferCategoryV106(item);
-
-  if (!isSMarketETarjousOfferV165(item)) {
-    return coreCategory;
-  }
-
-  const titleCategory = getStrictSMarketTitleCategoryV165(item);
-  if (titleCategory) return titleCategory;
-
-  const providerCategory = normalizeKnownGostaCategoryV165(anyItem.category);
-  const sectionCategory = normalizeKnownGostaCategoryV165(
-    anyItem.categoryDebugSection || anyItem.section || anyItem.department || anyItem.productGroup,
-  );
-
-  // Jos providerCategory on "Muut" mutta section kertoo oikean ruokaryhmän,
-  // käytetään sectioniä. Muuten providerin oma valmis kategoria voittaa coren.
-  if (providerCategory && providerCategory !== "Muut") return providerCategory;
-  if (sectionCategory && sectionCategory !== "Muut") return sectionCategory;
-  if (providerCategory) return providerCategory;
-
-  return coreCategory;
-}
-
 export function mapZiiplyGostaOfferToCardOfferV147(item: ZiiplyGostaOfferLike) {
-  const category = getZiiplyGostaDisplayCategoryV165(item);
   return {
     id: item.id,
     name: item.title,
@@ -475,9 +434,7 @@ export function mapZiiplyGostaOfferToCardOfferV147(item: ZiiplyGostaOfferLike) {
     imageUrl: item.imageUrl,
     pictureUrl: item.imageUrl,
     productUrl: item.productUrl,
-    category,
-    coreCategory: getOfferCategoryV106(item),
-    providerCategory: String((item as any).category || "").trim(),
+    category: getResolvedGostaCategoryV166(item),
     __sourceOfferSearchResult: item,
   };
 }
