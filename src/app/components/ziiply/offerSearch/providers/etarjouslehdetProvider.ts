@@ -1,5 +1,5 @@
 // src/app/components/ziiply/offerSearch/providers/etarjouslehdetProvider.ts
-// ETARJOUSLEHDET_PROVIDER_V39_VISIBLE_CATEGORY_DEBUG
+// ETARJOUSLEHDET_PROVIDER_V41_FINAL_PROVIDER_CATEGORY_DEBUG
 // Korjaus V18: ei enää luoteta /S-market/kaupat HTML-listan parsimiseen.
 // - Ratkaisee S-marketin eTarjouslehdet-storeId:n batch-queryllä: ["stores", { businessId, pagination, query/search }]
 // - Hakee aktiivisen julkaisun samalla tavalla kuin HAR:ssa: ["fronts", { businessIds, coordinates, localBusinessIds }]
@@ -17,6 +17,7 @@
 // - V23: korjaa batch-vastausten parsimisen: luetaan entry.value eikä koko { key, value } -riviä.
 // - V31: poistaa OK-debugkortit normaalituloksista, hakee kuvia Tjek-section-nodesta ja tarkentaa luokittelua.
 // - V39 DEBUG: näyttää kategorisoinnin suoraan kortin tekstirivillä (discountText/benefitText), ei muuta UI:ta.
+// - V41: lisää lopullisen provider-kategorian title/section-korjaimen mapOffer-vaiheeseen. Ei koske coreen eikä UI:hin.
 // - Debug näkyy vain virhetilanteessa kategoriassa "Muut".
 
 import type {
@@ -1061,6 +1062,86 @@ function classifyCategory(title: string, sectionTitle: string) {
   return "Muut";
 }
 
+
+function normalizeFinalProviderCategoryV41(title: string, sectionTitle: string, baseCategory: string) {
+  const titleText = normalizeText(title);
+  const sectionText = normalizeText(sectionTitle);
+
+  // V41: Tämä on viimeinen providerin oma korjauskerros.
+  // Tarkoitus ei ole käyttää aktiivista filtteriä eikä core-luokitusta, vaan korjata
+  // Tjek/section-parserin mahdolliset vuodot tuotteen nimen ja selkeän sectionin perusteella.
+
+  // 1) Lemmikit ennen lihaa: "Possu koiranruoka" ei saa mennä Lihaan.
+  if (/koiranruoka|kissanruoka|lemmik|koira|kissa|pedigree|whiskas|sheba|purina|friskies|rehti\s+possu/.test(titleText)) {
+    return "Lemmikit";
+  }
+
+  // 2) Selkeät juomat. Huom: pelkkä "zero/light" ei riitä ilman juomabrändiä/juomasanaa.
+  if (/virvoitusjuoma|limu|limonadi|tonic|fanta|sprite|jaffa|pepsi|coca\s*-?\s*cola|coca cola|cola|kokis|vichy|kivenn[aä]isvesi|l[aä]hdevesi|energiajuoma|battery|red\s*bull|monster|mehu|tuoremehu|nektari|fentimans|novelle/.test(titleText)) {
+    return "Juomat";
+  }
+
+  // 3) Hevi ennen section-vuotoa: nämä eivät saa jäädä Juomiin.
+  if (/salaatti|munakoiso|peruna|varhaisperuna|porkkana|tomaatti|kurkku|paprika|sipuli|kaali|omena|banaani|appelsiini|mandariini|sitruuna|avokado|kiivi|p[aä][aä]ryn[aä]|marja|mansikka|mustikka|vadelma|hedelm[aä]|vihannes|kasvis|j[aä]rvikyl[aä]|yrtti|basilika/.test(titleText)) {
+    return "Hevi";
+  }
+
+  // 4) Lastenruoka/sose. UI:ssa ei ole omaa Lastenruoka-ryhmää.
+  if (/semper|piltti|fruktmums|lastenruoka|vauvanruoka|hedelm[aä]sose|sose|smoothie/.test(titleText)) {
+    return "Valmisruoka";
+  }
+
+  // 5) Liha.
+  if (/pekoni|bacon|kassler|kinkku|salami|meetvursti|leikkele|jauheliha|nauta|porsas|possu|broileri|kana|kalkkuna|makkara|nakki|liha|karjalanpaisti|filee|pihvi|snellman|atria|hk\b/.test(titleText)) {
+    return "Liha";
+  }
+
+  // 6) Kala.
+  if (/lohi|kirjolohi|kala|tonnikala|silakka|seiti|ahven|siika|katkarapu|rapu|silli|muikku|kuha|hauki|kalapuikko/.test(titleText)) {
+    return "Kala";
+  }
+
+  // 7) Maitotuotteet / kasvipohjaiset vasta juomien jälkeen.
+  if (/maito|juusto|jogurtti|jogurt|rahka|kerma|voi|raejuusto|viili|piima|kefiiri|kefir|skyr|vanukas|proteiinirahka|maitorahka|kaurajuoma|soijajuoma|mantelijuoma|riisijuoma/.test(titleText)) {
+    return "Maitotuotteet";
+  }
+
+  // 8) Leipomo.
+  if (/leip[aä]|s[aä]mpyl[aä]|pulla|pitko|croissant|karjalanpiirakka|ruis|patonki|paahtoleip[aä]|n[aä]kk[aä]ri|nakkileipa|tortilla|rieska/.test(titleText)) {
+    return "Leipomo";
+  }
+
+  // 9) Pakasteet ennen makeisia.
+  if (/pakaste|j[aä][aä]tel[oö]|pakastettu|pakastepizza|pakastevihannes|pakastemarj|snickers\s+j[aä][aä]tel[oö]/.test(titleText)) {
+    return "Pakasteet";
+  }
+
+  // 10) Kuivatuotteet.
+  if (/pasta|riisi|jauho|hiutale|muro|mysli|s[aä]ilyke|kastike|[oö]ljy|mauste|sokeri|suola|puuro|nuudeli|noodles|maggi|instant|tortellini|makaroni|spagetti|penne|rigatoni|farfalle|tagliatelle|couscous|bulgur|santa\s*maria|pippuri|pepper/.test(titleText)) {
+    return "Kuivatuotteet";
+  }
+
+  // 11) Naposteltavat nykyiseen UI-ryhmään.
+  if (/kark|makeis|suklaa|keksi|lakritsi|salmiakki|purukumi|vaahto|irtokarkki|patukka|sipsi|chips|corners|estrella|doritos|pringles|cashew|pahkina|p[aä]hkin[aä]|manteli|snack|popcorn|nuts|honey\s*salt|texmex/.test(titleText)) {
+    return "Makeiset & keksit";
+  }
+
+  // 12) Koti/hygienia.
+  if (/pesu|pyykin|tisk|talouspaperi|wc\s*paperi|wc-paperi|koti|siivous|vaippa|shampoo|saippua|hammastahna|deodorantti|folio|leivinpaperi|laastari|rakkolaastari|compeed|hygienia|terveys|suuvesi|sert[oö]|pyykinpesujauhe|pesujauhe|astianpesu/.test(titleText)) {
+    return "Koti";
+  }
+
+  // 13) Jos title ei ratkaissut mutta section on selkeä, käytetään sectioniä.
+  if (/hedelm[aä]t ja vihannekset|hevi|vihanne|kasvis/.test(sectionText)) return "Hevi";
+  if (/alkoholi|virvoitus|juoma|mehu|vesi/.test(sectionText)) return "Juomat";
+  if (/liha|kasviproteiini|makkara|broileri|kana/.test(sectionText)) return "Liha";
+  if (/maito|meijeri|juusto|jogurtti|rahka|kerma/.test(sectionText)) return "Maitotuotteet";
+  if (/texmex|maailman makuja|snack|sipsi|p[aä]hkin/.test(sectionText)) return "Makeiset & keksit";
+  if (/koti|siivous|pesu|talous|hygienia|terveys/.test(sectionText)) return "Koti";
+
+  return baseCategory || "Muut";
+}
+
 function offerMatchesQuery(query: string, result: ZiiplyOfferSearchResult) {
   const q = normalizeText(query);
   if (!q || q === normalizeText(GOSTA_MASTER_QUERY)) return true;
@@ -1084,10 +1165,11 @@ function mapOffer(args: {
 
   const rawId = firstString(args.node.id, `offer-${args.index}`);
   const ean = /^\d{8,14}/.test(rawId) ? rawId.replace(/__.*$/, "") : "";
-  const category = classifyCategory(parsed.title, args.sectionTitle);
+  const baseCategory = classifyCategory(parsed.title, args.sectionTitle);
+  const category = normalizeFinalProviderCategoryV41(parsed.title, args.sectionTitle, baseCategory);
   const imageUrl = findImageUrlForOffer(args.sectionData, args.node);
   const rawText = [parsed.title, parsed.priceText, category, args.sectionTitle, args.store.storeName, ean].filter(Boolean).join(" ");
-  const categoryDebugText = `CAT=${category || "-"} | SEC=${args.sectionTitle || "-"} | TITLE=${parsed.title || "-"}`;
+  const categoryDebugText = `CAT=${category || "-"} | BASE=${baseCategory || "-"} | SEC=${args.sectionTitle || "-"} | TITLE=${parsed.title || "-"}`;
 
   const result = {
     id: `etarjous-${args.publication.id}-${rawId}`,
