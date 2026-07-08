@@ -1,6 +1,6 @@
 // ============================================================================
-// ZIIPLY_OFFER_SEARCH_CORE_V164_CATEGORY_TRACE_ONLY
-// Revision: V164
+// ZIIPLY_OFFER_SEARCH_CORE_V165_SMARKET_DISPLAY_CATEGORY_FIX
+// Revision: V165
 // Date: 2026-07-04
 //
 // Muutokset:
@@ -346,7 +346,7 @@ export async function searchZiiplyGostaOffersV146(options: {
     nextResults = searchByCategory
       ? masterResults.filter(
           (item) =>
-            normalizeGostaCoreText(getOfferCategoryV106(item)) === normalizedCategorySearch,
+            normalizeGostaCoreText(getZiiplyGostaDisplayCategoryV165(item)) === normalizedCategorySearch,
         )
       : masterResults;
   } else {
@@ -376,41 +376,89 @@ export function isZiiplyGostaCategorySelectionV147(value: string) {
   return isGostaCategorySelectionV136(value);
 }
 
-function getSMarketCategoryTraceV164(item: ZiiplyGostaOfferLike, coreCategory: string) {
+
+function isSMarketETarjousOfferV165(item: ZiiplyGostaOfferLike) {
   const anyItem = item as any;
   const store = normalizeGostaCoreText(anyItem.storeLabel || anyItem.storeName || anyItem.shopName || "");
   const sourceUrl = normalizeGostaCoreText(anyItem.sourceUrl || anyItem.productUrl || "");
-  const isSMarketET =
+
+  return (
     store.includes("s market") ||
     store.includes("s-market") ||
-    sourceUrl.includes("etarjouslehdet");
+    sourceUrl.includes("etarjouslehdet")
+  );
+}
 
-  if (!isSMarketET) return String(item.benefitText || item.validityText || "");
+function normalizeKnownGostaCategoryV165(value: unknown) {
+  const text = normalizeGostaCoreText(value);
+  if (!text) return "";
 
-  const providerCategory = String(anyItem.category || "").trim();
-  const providerDebugCategory = String(anyItem.categoryDebugCategory || "").trim();
-  const section = String(anyItem.categoryDebugSection || anyItem.section || anyItem.department || "").trim();
-  const title = String(anyItem.title || anyItem.name || anyItem.productName || "").trim();
-  const providerLine = String(item.benefitText || item.validityText || "").trim();
+  if (text === "kahvi") return "Kahvi";
+  if (text === "maitotuotteet" || text === "maito" || text.includes("maito munat") || text.includes("juustot tofut")) return "Maitotuotteet";
+  if (text === "liha" || text.includes("liha ja kasviproteiinit")) return "Liha";
+  if (text === "kala" || text.includes("kala ja merenel")) return "Kala";
+  if (text === "leipomo" || text.includes("leivat") || text.includes("leivät")) return "Leipomo";
+  if (text === "hevi" || text.includes("hedelmat ja vihannekset") || text.includes("hedelmät ja vihannekset")) return "Hevi";
+  if (text === "juomat" || text.includes("alkoholi ja virvoitusjuomat") || text.includes("virvoitusjuomat")) return "Juomat";
+  if (text === "pakasteet" || text === "pakaste" || text.includes("pakasteet")) return "Pakasteet";
+  if (text === "valmisruoka" || text.includes("valmisruoka")) return "Valmisruoka";
+  if (text === "kuivatuotteet" || text.includes("kuivatuotteet") || text.includes("texmex") || text.includes("maailman makuja")) return "Kuivatuotteet";
+  if (text === "makeiset" || text === "makeiset keksit" || text === "makeiset ja keksit") return "Makeiset & keksit";
+  if (text === "lemmikit") return "Lemmikit";
+  if (text === "koti") return "Koti";
+  if (text === "muut") return "Muut";
 
-  // V164 DEBUG ONLY:
-  // Näyttää samalla korttirivillä sekä providerin kategorian että SearchCore/CategoryCore-luokan.
-  // Ei muuta suodatusta, ei muuta dedupea, ei muuta kategorian laskentaa.
-  return [
-    `CORE=${coreCategory || "-"}`,
-    `PROV=${providerCategory || providerDebugCategory || "-"}`,
-    section ? `SEC=${section}` : "",
-    title ? `TITLE=${title}` : "",
-    providerLine ? `SRC=${providerLine}` : "",
-  ].filter(Boolean).join(" | ");
+  return "";
+}
+
+function getStrictSMarketTitleCategoryV165(item: ZiiplyGostaOfferLike) {
+  const anyItem = item as any;
+  const title = normalizeGostaCoreText(
+    anyItem.title || anyItem.name || anyItem.productName || anyItem.productTitle || "",
+  );
+
+  if (!title) return "";
+
+  // Nämä voittavat aina, koska debug todisti että core voi ylikirjoittaa
+  // providerin oikean kategorian aktiivisella filterillä.
+  if (/\b(fanta|coca cola|coca-cola|pepsi|sprite|tonic|fentimans|limu|limonadi|virvoitusjuoma|energiajuoma|kivenn\w*vesi|mehu)\b/.test(title)) return "Juomat";
+  if (/\b(pekoni|possu|porsas|kassler|atria|snellman|jauheliha|broileri|kana|nauta|makkara|kinkku|liha)\b/.test(title)) return "Liha";
+  if (/\b(munakoiso|tomaatti|kurkku|peruna|sipuli|porkkana|basilika|salaatti|omena|paaryna|päärynä|banaani|appelsiini|hedelma|hedelmä|vihannes)\b/.test(title)) return "Hevi";
+  if (/\b(estrella|cashew|pahkina|pähkinä|sipsi|chips|corners|popcorn|nacho|snack)\b/.test(title)) return "Makeiset & keksit";
+  if (/\b(semper|piltti|fruktmums|vauvanruoka|lastenruoka)\b/.test(title)) return "Valmisruoka";
+  if (/\b(maggi|nuudeli|pasta|riisi|makaroni|spagetti|mauste|santa maria|texmex|tortilla|salsa)\b/.test(title)) return "Kuivatuotteet";
+  if (/\b(compeed|rakkolaastari|laastari|serto|pyykinpesu|pyykinpesujauhe|pesuaine|saippua|shampoo|hammastahna)\b/.test(title)) return "Koti";
+
+  return "";
+}
+
+export function getZiiplyGostaDisplayCategoryV165(item: ZiiplyGostaOfferLike) {
+  const anyItem = item as any;
+  const coreCategory = getOfferCategoryV106(item);
+
+  if (!isSMarketETarjousOfferV165(item)) {
+    return coreCategory;
+  }
+
+  const titleCategory = getStrictSMarketTitleCategoryV165(item);
+  if (titleCategory) return titleCategory;
+
+  const providerCategory = normalizeKnownGostaCategoryV165(anyItem.category);
+  const sectionCategory = normalizeKnownGostaCategoryV165(
+    anyItem.categoryDebugSection || anyItem.section || anyItem.department || anyItem.productGroup,
+  );
+
+  // Jos providerCategory on "Muut" mutta section kertoo oikean ruokaryhmän,
+  // käytetään sectioniä. Muuten providerin oma valmis kategoria voittaa coren.
+  if (providerCategory && providerCategory !== "Muut") return providerCategory;
+  if (sectionCategory && sectionCategory !== "Muut") return sectionCategory;
+  if (providerCategory) return providerCategory;
+
+  return coreCategory;
 }
 
 export function mapZiiplyGostaOfferToCardOfferV147(item: ZiiplyGostaOfferLike) {
-  const coreCategory = getOfferCategoryV106(item);
-  const anyItem = item as any;
-  const providerCategory = String(anyItem.category || "").trim();
-  const categoryTrace = getSMarketCategoryTraceV164(item, coreCategory);
-
+  const category = getZiiplyGostaDisplayCategoryV165(item);
   return {
     id: item.id,
     name: item.title,
@@ -422,15 +470,14 @@ export function mapZiiplyGostaOfferToCardOfferV147(item: ZiiplyGostaOfferLike) {
     offerPrice: item.priceText,
     normalPrice: item.unitPriceText,
     originalPrice: item.unitPriceText,
-    discountText: categoryTrace || item.benefitText || item.validityText,
+    discountText: item.benefitText || item.validityText,
     image: item.imageUrl,
     imageUrl: item.imageUrl,
     pictureUrl: item.imageUrl,
     productUrl: item.productUrl,
-    category: coreCategory,
-    providerCategory,
-    coreCategory,
-    categoryTrace,
+    category,
+    coreCategory: getOfferCategoryV106(item),
+    providerCategory: String((item as any).category || "").trim(),
     __sourceOfferSearchResult: item,
   };
 }
