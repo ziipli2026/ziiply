@@ -232,6 +232,93 @@ function classifyGostaCategoryFromText(rawText: string) {
 }
 
 
+
+
+// V162/V40: S-market/eTarjouslehdet final title override.
+// This must run BEFORE provider section/category metadata, because Tjek sections
+// can be broad or wrong for individual products. It also prevents the UI from
+// regrouping correct provider CAT values back under the selected section.
+function getFinalTitleCategoryOverrideV162(item: ZiiplyGostaOfferLike): string {
+  const title = normalizeGostaText(
+    [
+      item?.title,
+      item?.name,
+      item?.productName,
+      item?.productTitle,
+      item?.displayName,
+      item?.brandName,
+    ]
+      .filter(Boolean)
+      .map(String)
+      .join(" "),
+  );
+
+  if (!title) return "";
+
+  const has = (...words: string[]) => words.some((word) => title.includes(word));
+
+  // Non-food first.
+  if (has(
+    "compeed", "rakkolaastari", "huuliherpes", "laastari",
+    "serto", "pyykinpesu", "pesujauhe", "pyykinpesujauhe", "pesuaine",
+    "bliw", "pumppupullo", "nestesaippua", "saippua", "shampoo", "hammastahna",
+  )) return "Koti";
+
+  // Frozen must win before candy/snack checks.
+  if (has("jaatelo", "jäätelö", "jaatelopatukka", "jäätelöpatukka", "pakaste", "snickers jaatelo", "snickers jäätelö")) return "Pakasteet";
+
+  // Drinks must win before Maitotuotteet/Kuivatuotteet/Hevi section fallbacks.
+  if (has(
+    "fanta", "coca-cola", "coca cola", "pepsi", "sprite", "jaffa", "7up",
+    "tonic", "fentimans", "virvoitus", "limonadi", "limu", "energiajuoma",
+    "kivenn", "vesi", "proteiinijuoma",
+  )) return "Juomat";
+
+  // Hevi title words before broad section metadata.
+  if (has(
+    "munakoiso", "peruna", "varhaisperuna", "basilika", "tomaatti", "kurkku",
+    "salaatti", "päärynä", "paaryna", "omena", "sipuli", "punasipuli", "porkkana",
+    "avokado", "paprika", "kaali", "banaani", "appelsiini",
+  )) return "Hevi";
+
+  // Meat and protein.
+  if (has(
+    "pekoni", "snellman", "atria", "possun", "possu", "porsaan", "porsas",
+    "kassler", "naudan", "nauta", "jauheliha", "broileri", "kana", "kinkku",
+    "leikkele", "makkara", "filee", "lihapulla",
+  )) return "Liha";
+
+  if (has("lohi", "kirjolohi", "tonnikala", "silakka", "katkarapu", "kalapuikko", "silli")) return "Kala";
+
+  // Bakery.
+  if (has("leipa", "leipä", "ruis", "paahtoleipa", "paahtoleipä", "sampyl", "sämpyl", "pulla", "croissant", "pitko", "karjalanpiir")) return "Leipomo";
+
+  // Snacks and sweets. There is no separate Snacks bucket in the current labels,
+  // so keep these under Makeiset & keksit instead of Muut.
+  if (has(
+    "estrella", "chips", "sipsi", "corners", "doritos", "pringles", "cashew",
+    "pahkina", "pähkinä", "manteli", "popcorn", "snack", "snacks",
+    "suklaa", "karkki", "makeinen", "haribo", "lakritsi", "salmiakki",
+  )) return "Makeiset & keksit";
+
+  // Dry goods.
+  if (has(
+    "maggi", "nuudeli", "noodles", "pasta", "spagetti", "makaroni", "riisi",
+    "jauho", "sokeri", "hiutale", "muro", "mysli", "granola", "mauste",
+    "santa maria", "black pepper", "pippuri",
+  )) return "Kuivatuotteet";
+
+  // Baby/ready meals.
+  if (has("semper", "piltti", "fruktmums", "lastenruoka", "vauvanruoka", "panini", "valmisateria")) return "Valmisruoka";
+
+  // Dairy after drinks.
+  if (has("juusto", "maito", "jogurtti", "jugurtti", "rahka", "raejuusto", "kerma", "voi", "margariini", "vanukas", "kaurajuoma", "soijajuoma")) return "Maitotuotteet";
+
+  if (has("kahvi", "tee", "espresso", "juhla mokka", "presidentti")) return "Kahvi";
+
+  return "";
+}
+
 function getStrictGostaCategoryOverrideV157(item: ZiiplyGostaOfferLike): string {
   const strictText = normalizeGostaText(
     [
@@ -279,6 +366,9 @@ function getStrictGostaCategoryOverrideV157(item: ZiiplyGostaOfferLike): string 
 }
 
 export function getOfferCategoryV106(item: ZiiplyGostaOfferLike) {
+  const finalTitleOverrideV162 = getFinalTitleCategoryOverrideV162(item);
+  if (finalTitleOverrideV162) return finalTitleOverrideV162;
+
   const strictOverrideV157 = getStrictGostaCategoryOverrideV157(item);
   if (strictOverrideV157) return strictOverrideV157;
 
