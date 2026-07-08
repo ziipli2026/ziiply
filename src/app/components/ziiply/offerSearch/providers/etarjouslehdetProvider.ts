@@ -1,5 +1,5 @@
 // src/app/components/ziiply/offerSearch/providers/etarjouslehdetProvider.ts
-// ETARJOUSLEHDET_PROVIDER_V36_HARD_CATEGORY_PIPE
+// ETARJOUSLEHDET_PROVIDER_V37_FINAL_CATEGORY_OVERRIDE
 //
 // V35:
 // - korjaa S-market/eTarjouslehdet-kategorioiden yliajot tuotteen nimen perusteella
@@ -1122,6 +1122,35 @@ function makeOfferSourceText(publication: PublicationMeta) {
   return validUntil ? `Tarjouslehti · voimassa ${validUntil}` : "Tarjouslehti";
 }
 
+function forceFinalCategoryFromOfferName(title: unknown, currentCategory: unknown): string {
+  const text = normalizeText(title);
+  const current = String(currentCategory || "").trim() || "Muut";
+
+  // Viimeinen pakko-ohjaus aivan ennen returnia. Tämä ohittaa kaikki aiemmat
+  // section-/fallback-/cache-kategorit, jos tuotteen nimi on yksiselitteinen.
+  if (/fanta|sprite|jaffa|pepsi|coca\s*-?cola|coca cola|kokis|cola|tonic|fentimans|virvoitusjuo|virvoitusjuoma|limu|limonadi|sokeriton|zero|light|vichy|kivenn[aä]isvesi|lahdevesi|l[aä]hdevesi|energiajuoma|urheilujuoma|tuoremehu|nektari/.test(text)) return "Juomat";
+  if (/mehu/.test(text) && !/mehukeitto/.test(text)) return "Juomat";
+
+  if (/pekoni|bacon|kinkku|salami|meetvursti|leikkele|jauheliha|nauta|porsas|possu|broileri|kana|kalkkuna|makkara|nakki|liha|filee|pihvi|snellman|atria|\bhk\b/.test(text)) return "Liha";
+  if (/lohi|kirjolohi|kala|tonnikala|silakka|seiti|ahven|siika|katkarapu|rapu|silli|muikku|kuha|hauki|kalapuikko/.test(text)) return "Kala";
+
+  if (/compeed|laastari|rakkolaastari|huuliherpes|serto|pyykinpesu|pesujauhe|pyykinpesujauhe|astianpesu|tiskiaine|pesuaine|shampoo|saippua|hammastahna|deodorantti|talouspaperi|wc\s*paperi|wc-paperi|folio|leivinpaperi|side|tamponi/.test(text)) return "Koti";
+
+  if (/estrella|sipsi|chips|corners|doritos|pringles|cashew|pahkina|p[aä]hkin[aä]|manteli|snack|popcorn|nuts|honey\s*salt|kark|makeis|suklaa|keksi|lakritsi|salmiakki|patukka/.test(text)) return "Makeiset & keksit";
+
+  if (/pasta|riisi|jauho|hiutale|muro|mysli|sailyke|s[aä]ilyke|kastike|[oö]ljy|mauste|sokeri|suola|puuro|nuudeli|noodles|maggi|instant|tortellini|makaroni|spagetti|penne|rigatoni|farfalle|tagliatelle|couscous|bulgur|santa\s*maria|pippuri|pepper/.test(text)) return "Kuivatuotteet";
+
+  if (/semper|piltti|fruktmums|lastenruoka|vauvanruoka|sose|smoothie|panini|valmis|ateria|pizza|keitto|mikroateria|lasagne|pasteija|wokki|risotto/.test(text)) return "Valmisruoka";
+
+  if (/pakaste|jaatelo|j[aä][aä]tel[oö]|pakastettu|pakastepizza|pakastevihannes|pakastemarj/.test(text)) return "Pakasteet";
+  if (/tomaatti|kurkku|salaatti|omena|banaani|appelsiini|mandariini|sitruuna|peruna|varhaisperuna|sipuli|porkkana|marja|mansikka|mustikka|vadelma|hedel|vihanne|kasvis|kaali|paprika|avokado|kiivi|p[aä][aä]ryn[aä]|basilika|yrtti/.test(text)) return "Hevi";
+  if (/leipa|leip[aä]|sampyla|s[aä]mpyl[aä]|pull|pitko|croissant|karjalanpiirakka|ruis|patonki|paahtoleip[aä]|nakk[aä]ri|nakkileipa|tortilla|rieska/.test(text)) return "Leipomo";
+  if (/kahvi|espresso|juhla\s*mokka|presidentti|kulta\s*katriina|suodatinkahvi|pikakahvi/.test(text)) return "Kahvi";
+  if (/kaurajuoma|soijajuoma|mantelijuoma|riisijuoma|kasvijuoma|proteiinijuoma|maito|juusto|jogurtti|jogurt|rahka|kerma|voi|raejuusto|viili|skyr|vanukas/.test(text)) return "Maitotuotteet";
+
+  return current;
+}
+
 function offerMatchesQuery(query: string, result: ZiiplyOfferSearchResult) {
   const q = normalizeText(query);
   if (!q || q === normalizeText(GOSTA_MASTER_QUERY)) return true;
@@ -1145,7 +1174,7 @@ function mapOffer(args: {
 
   const rawId = firstString(args.node.id, `offer-${args.index}`);
   const ean = /^\d{8,14}/.test(rawId) ? rawId.replace(/__.*$/, "") : "";
-  const category = classifyCategory(parsed.title, args.sectionTitle);
+  const category = forceFinalCategoryFromOfferName(parsed.title, classifyCategory(parsed.title, args.sectionTitle));
   const imageUrl = findImageUrlForOffer(args.sectionData, args.node);
   const rawText = [parsed.title, parsed.priceText, category, args.sectionTitle, args.store.storeName, ean].filter(Boolean).join(" ");
 
@@ -1342,5 +1371,22 @@ export async function fetchETarjouslehdetOffers(
     }
   }
 
-  return dedupe(allResults).sort((a, b) => Number(b.matchScore || 0) - Number(a.matchScore || 0));
+  return dedupe(allResults)
+    .map((item) => {
+      if ((item as any).debug || (item as any).isDebug) return item;
+      const forced = forceFinalCategoryFromOfferName((item as any).title || (item as any).name || (item as any).productName, (item as any).category);
+      return {
+        ...item,
+        category: forced,
+        categoryPath: forced,
+        breadcrumbs: forced,
+        hierarchy: forced,
+        taxonomy: forced,
+        department: forced,
+        productGroup: forced,
+        mainCategory: forced,
+        subCategory: forced,
+      } as ZiiplyOfferSearchResult;
+    })
+    .sort((a, b) => Number(b.matchScore || 0) - Number(a.matchScore || 0));
 }
