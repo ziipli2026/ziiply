@@ -1,4 +1,4 @@
-// ZIIPLY_OFFER_SEARCH_SOURCES_V25_DIRECT_ETARJOUS_PROVIDER_DEBUG
+// ZIIPLY_OFFER_SEARCH_SOURCES_V27_NO_VISIBLE_ET_DEBUG
 // Pohja: käyttäjän V15 strict category query.
 // Korjaus:
 // - Prisma pidetään S-kaupat.fi-providerissa.
@@ -169,7 +169,7 @@ const ZIIPLY_OFFER_SOURCES = {
   },
 } satisfies Record<string, ZiiplyOfferSearchSourceConfig>;
 
-const OFFER_SEARCH_SOURCE_REVISION = "v25-direct-etarjous-provider-debug";
+const OFFER_SEARCH_SOURCE_REVISION = "v27-no-visible-et-debug";
 const ENABLE_OFFER_SEARCH_CACHE = false;
 const MAX_OFFER_SEARCH_RESULTS = 1000;
 const ZIIPLY_GOSTA_MASTER_QUERY_V6 = "__ziiply_all_offers__";
@@ -485,12 +485,15 @@ async function searchSelectedSMarketETarjouslehdetOffersV25(
     },
   );
 
-  const debugResult = makeETSourceDebugResultV25(
-    `ETSRC N${sMarketNames.length} R${providerResults.length}`,
-    `names=${sMarketNames.join(" | ").slice(0, 90)}`,
-  );
+  if (typeof console !== "undefined") {
+    console.warn("[Ziiply S-market ETarjous V27]", {
+      selectedSMarketNames: sMarketNames,
+      resultCount: providerResults.length,
+    });
+  }
 
-  return [debugResult, ...providerResults];
+  // V27: debug ei saa näkyä käyttäjälle eikä sotkea Muut-kategoriaa / tuotemääriä.
+  return providerResults;
 }
 
 export async function searchSKaupatOffers(
