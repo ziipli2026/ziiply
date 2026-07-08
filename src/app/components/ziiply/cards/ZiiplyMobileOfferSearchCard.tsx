@@ -1,8 +1,8 @@
 "use client";
 
 // ============================================================================
-// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V31_VISIBLE_CATEGORY_COUNTS
-// Revision: V31
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V33B_BUILD_FIX
+// Revision: V33b
 // Date: 2026-07-04
 //
 // Muutokset:
@@ -17,6 +17,7 @@
 // - V28: kategoriapainikkeet kutsuvat vain onFilterChangea. Page käynnistää haun yhdestä paikasta,
 //   jolloin sama klikkaus ei aiheuta tuplahakua ja aktiivinen nappi pysyy synkassa.
 // - V31: kategoriapainikkeiden määrät lasketaan näkyvästä dedupatusta items-listasta, ei categoryOfferCounts-mapista.
+// - V33b: palautettu puuttuva normalizeCategoryKey(), joka rikkoi buildin.
 // - Jos kuva ei lataudu, rikkinäistä kuvaikonia ei näytetä, vaan tilalle tulee
 //   tuoteryhmän fallback-ikoni.
 // - Kuvakenttien järjestys säilyy: imageUrl -> pictureUrl -> image.
@@ -140,6 +141,18 @@ function normalizeOfferCardKeyV13(value: unknown) {
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
+    .replace(/[^a-z0-9åäö\s-]/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+
+function normalizeCategoryKey(value: unknown) {
+  return String(value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/&/g, " ja ")
     .replace(/[^a-z0-9åäö\s-]/gi, " ")
     .replace(/\s+/g, " ")
     .trim();
