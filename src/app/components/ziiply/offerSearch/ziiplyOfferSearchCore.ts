@@ -1,5 +1,5 @@
 // ============================================================================
-// ZIIPLY_OFFER_SEARCH_CORE_V163_CATEGORY_CORE_FINAL_OVERRIDE
+// ZIIPLY_OFFER_SEARCH_CORE_V162_WITHIN_CHAIN_MULTI_STORE_CONTEXT
 // Revision: V162
 // Date: 2026-07-04
 //
@@ -9,7 +9,6 @@
 //   tuoteryhmiin palaaminen käyttää samaa master-datasettiä eikä lataa sitä
 //   uudelleen joka kerta.
 // - Välimuisti on kontekstikohtainen: eri kauppa/alue saa oman cache-avaimen.
-// - Kategoriat tulevat nyt korjatusta CategoryCore V162 -luokittelusta.
 // - Ei muutoksia kuviin, skanneriin, äänihakuun eikä kauppavalintaan.
 // ============================================================================
 
