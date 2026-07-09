@@ -1,19 +1,19 @@
 // ============================================================================
-// PAGE_V544_GOSTA_CATEGORY_COUNT_DEBUG_VISIBLE
-// Revision: V544
-// Date: 2026-07-09
+// PAGE_V543_EXACT_V541_BASELINE_WITH_TRUST_HEADER
+// Revision: V543
+// Date: 2026-07-06
 //
-// Pohja:
-// - Käyttäjän lähettämä page-3.tsx / PAGE_V543_EXACT_V541_BASELINE_WITH_TRUST_HEADER.
+// Tämä tiedosto on tehty käyttäjän lähettämästä V541-tiedostosta:
+// page-V541-gosta-selected-stores-build-fix-null-map(3).tsx
 //
 // Muutos tässä versiossa:
-// - Lisätty näkyvä Gösta-kategoriacount-debug-paneeli ennen ZiiplyMobileOfferSearchCardia.
-// - Debug EI muuta tarjoushakua, provideria, category corea, hakutuloksia eikä laskentaa.
-// - Debug näyttää rinnakkain:
-//   MAP = page.tsx:n categoryOfferCounts / gostaCategoryOfferCountsV163
-//   VISIBLE = kortille lähtevästä gostaOfferCardItemsV163-listasta laskettu määrä
-//   ITEMS = kortille lähtevien tuotteiden määrä ja aktiivinen filter
-// - Tarkoitus on selvittää, tuleeko väärä tuotemäärä page:n count-mapista vai kortille lähtevästä listasta.
+// - Lisätty selkeä revisio-/luottamusotsikko aivan tiedoston alkuun.
+// - Varsinaiseen koodiin EI ole tehty muutoksia.
+// - Vanha historiallinen revisiokommenttilista jätetään alle koskemattomana,
+//   koska se oli jo V541-pohjassa sekaisin.
+//
+// Tarkoitus:
+// - Luodaan luotettava lähtökohta ennen seuraavaa S-market/eTarjouslehdet-korjausta.
 // ============================================================================
 
 // V529_GOSTA_CATEGORY_SYNC_NO_PRECLEAR
@@ -18841,62 +18841,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             }}
             onDeleteList={(list) => deleteSavedShoppingList(String(list.id))}
           />
-        )}
-
-        {!showLaunchScreen && activeResult === "offers" && !searchPanelOpen && !cartModalOpen && !shopsPanelOpen && !eanModalOpen && !notebookOpen && (
-          <div className="fixed left-2 right-2 top-[calc(env(safe-area-inset-top)+0.35rem)] z-[9999] max-h-[34vh] overflow-auto rounded-xl border-4 border-red-600 bg-white/95 p-2 text-[10px] font-mono leading-tight text-black shadow-2xl sm:hidden">
-            <div className="mb-1 font-black text-red-700">GÖSTA COUNT DEBUG V544</div>
-            {(() => {
-              const norm = (value: unknown) => String(value ?? "")
-                .normalize("NFD")
-                .replace(/[\u0300-\u036f]/g, "")
-                .toLowerCase()
-                .replace(/[^a-z0-9åäö]/gi, "")
-                .trim();
-
-              const items = Array.isArray(gostaOfferCardItemsV163) ? gostaOfferCardItemsV163 : [];
-              const counts = (gostaCategoryOfferCountsV163 || {}) as Record<string, number | null | undefined>;
-              const suggestions = Array.isArray(GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147) ? GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147 : [];
-
-              const getMapCount = (category: string) => {
-                const direct = counts[category];
-                if (typeof direct === "number") return direct;
-                const wanted = norm(category);
-                const found = Object.entries(counts).find(([key]) => norm(key) === wanted);
-                return typeof found?.[1] === "number" ? found[1] : undefined;
-              };
-
-              const getVisibleCount = (category: string) => {
-                const wanted = norm(category);
-                return items.filter((item: any) => norm(item?.category) === wanted).length;
-              };
-
-              const visibleRows = suggestions
-                .filter((category: string) => category && norm(category) !== "kaikki")
-                .map((category: string) => ({
-                  category,
-                  map: getMapCount(category),
-                  visible: getVisibleCount(category),
-                }))
-                .filter((row: any) => (Number(row.map || 0) > 0) || row.visible > 0);
-
-              const sample = items.slice(0, 12).map((item: any) => `${String(item?.title || item?.name || item?.productName || "?").slice(0, 34)} [${String(item?.category || "-")}]`).join(" | ");
-
-              return (
-                <>
-                  <div>filter={String(offerCardFilterV106 || "-")} items={items.length} mapKeys={Object.keys(counts).length}</div>
-                  <div className="mt-1 grid grid-cols-3 gap-x-2 gap-y-0.5">
-                    {visibleRows.map((row: any) => (
-                      <div key={row.category} className={row.map !== row.visible ? "text-red-700 font-black" : "text-black"}>
-                        {row.category}: MAP={row.map ?? "-"} VIS={row.visible}
-                      </div>
-                    ))}
-                  </div>
-                  <div className="mt-1 border-t border-red-300 pt-1">sample: {sample || "-"}</div>
-                </>
-              );
-            })()}
-          </div>
         )}
 
         {!showLaunchScreen && activeResult === "offers" && !searchPanelOpen && !cartModalOpen && !shopsPanelOpen && !eanModalOpen && !notebookOpen && (
