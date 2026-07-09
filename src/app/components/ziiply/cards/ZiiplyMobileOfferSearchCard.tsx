@@ -1,8 +1,8 @@
 "use client";
 
 // ============================================================================
-// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V31_DEBUG_BUTTON_ONLY
-// Revision: V28
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V31_VISIBLE_CATEGORY_COUNTS
+// Revision: V31
 // Date: 2026-07-04
 //
 // Muutokset:
@@ -16,6 +16,7 @@
 // - Ei debug-tekstejä ruudulla.
 // - V28: kategoriapainikkeet kutsuvat vain onFilterChangea. Page käynnistää haun yhdestä paikasta,
 //   jolloin sama klikkaus ei aiheuta tuplahakua ja aktiivinen nappi pysyy synkassa.
+// - V31: kategoriapainikkeiden määrät lasketaan näkyvästä dedupatusta items-listasta, ei categoryOfferCounts-mapista.
 // - Jos kuva ei lataudu, rikkinäistä kuvaikonia ei näytetä, vaan tilalle tulee
 //   tuoteryhmän fallback-ikoni.
 // - Kuvakenttien järjestys säilyy: imageUrl -> pictureUrl -> image.
@@ -290,64 +291,6 @@ function getOfferImage(offer: ZiiplyMobileOfferSearchItem) {
   return String(offer.imageUrl || offer.pictureUrl || offer.image || "").trim();
 }
 
-function safeDebugValue(value: unknown) {
-  if (value === null || value === undefined || value === "") return "-";
-  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") return String(value);
-  try {
-    return JSON.stringify(value, null, 2);
-  } catch {
-    return String(value);
-  }
-}
-
-function buildOfferCategoryDebugTextV31(offer: ZiiplyMobileOfferSearchItem, filter: string) {
-  const raw = (offer.__sourceOfferSearchResult || offer.raw || offer.sourceResult || {}) as Record<string, unknown>;
-  const lines: string[] = [];
-
-  const pick = (label: string, value: unknown) => {
-    lines.push(`${label}: ${safeDebugValue(value)}`);
-  };
-
-  pick("TITLE", offer.title || offer.name || offer.productName);
-  pick("ACTIVE FILTER", filter);
-  lines.push("");
-  pick("DISPLAY category (kortti offer.category)", offer.category);
-  pick("CORE category", offer.coreCategory || offer.ziiplyCoreCategory);
-  pick("PROVIDER category", offer.providerCategory || offer.ziiplyProviderCategory || raw.category);
-  pick("PROVIDER section", offer.providerSection || offer.categoryDebugSection || raw.section || raw.department);
-  pick("categoryTrace", offer.categoryTrace);
-  lines.push("");
-  pick("raw.category", raw.category);
-  pick("raw.categoryPath", raw.categoryPath);
-  pick("raw.breadcrumbs", raw.breadcrumbs);
-  pick("raw.department", raw.department);
-  pick("raw.productGroup", raw.productGroup);
-  pick("raw.mainCategory", raw.mainCategory);
-  pick("raw.subCategory", raw.subCategory);
-  pick("raw.taxonomy", raw.taxonomy);
-  pick("raw.hierarchy", raw.hierarchy);
-  lines.push("");
-  pick("store", offer.storeName || offer.shopName || raw.storeLabel || raw.storeName);
-  pick("source", offer.source || raw.source);
-  pick("sourceUrl", offer.sourceUrl || raw.sourceUrl);
-  pick("price", offer.offerPrice || offer.price || raw.priceText);
-  pick("benefit/discount", offer.discountText || raw.benefitText || raw.validityText);
-  lines.push("");
-  pick("rawText", raw.rawText);
-
-  return lines.join("\n");
-}
-
-function showOfferCategoryDebugV31(offer: ZiiplyMobileOfferSearchItem, filter: string) {
-  const text = buildOfferCategoryDebugTextV31(offer, filter);
-  if (typeof console !== "undefined") {
-    console.log("[Ziiply category debug V31]", offer, (offer as any).__sourceOfferSearchResult || null);
-  }
-  if (typeof window !== "undefined") {
-    window.alert(text);
-  }
-}
-
 function getCategoryIcon(category?: string) {
   const text = String(category || "").toLowerCase();
   if (text.includes("kahvi")) return "☕";
@@ -617,13 +560,22 @@ export default function ZiiplyMobileOfferSearchCard({
     categoryDisplayOrderV30.map((category, index) => [normalizeCategoryKey(category), index]),
   );
 
-  const getVisibleCategoryCountV27 = (category: string) => {
-    const count = getCategoryCountWithAliases(category);
-    return typeof count === "number" && count > 0 ? count : 0;
+  const getVisibleCategoryCountV31 = (category: string) => {
+    const keys = getCategorySearchKeys(category);
+    if (keys.length === 0) return 0;
+
+    return items.filter((item) => {
+      const offerCategory = normalizeCategoryKey(String(item.category || ""));
+      if (!offerCategory) return false;
+
+      // Lasketaan napin määrä samasta dedupatusta items-listasta, joka näytetään korteissa.
+      // Tämä estää categoryOfferCounts-mapin ja näkyvien korttien välisen heiton.
+      return keys.some((key) => offerCategory === key);
+    }).length;
   };
 
-  const getCategoryButtonLabelV27 = (category: string) => {
-    const count = getVisibleCategoryCountV27(category);
+  const getCategoryButtonLabelV31 = (category: string) => {
+    const count = getVisibleCategoryCountV31(category);
     return `${getCategoryIcon(category)} ${category}${count > 0 ? ` (${count})` : ""}`;
   };
 
@@ -637,18 +589,19 @@ export default function ZiiplyMobileOfferSearchCard({
 
       if (isTestedEmptyCategory(category)) return false;
 
+      const visibleCount = getVisibleCategoryCountV31(category);
+      if (visibleCount > 0) return true;
+
       const count = getCategoryCountWithAliases(category);
 
-      // When parent supplies category counts, trust only those counts.
-      // Do not show a category based on a fuzzy hit in product title/raw text,
-      // because that caused buttons that opened into empty result lists.
-      if (hasPositiveCategoryCounts) {
+      // Landing-näkymässä items voi olla tyhjä ennen kuin master-data on renderöity.
+      // Silloin saa käyttää parentin count-mappia apuna, mutta normaalissa listanäkymässä
+      // määrä ja näkyvyys määräytyvät dedupatun items-listan mukaan.
+      if (hasPositiveCategoryCounts && items.length === 0) {
         return typeof count === "number" && count > 0;
       }
 
-      // Fallback only before counts exist: use actual offer.category metadata,
-      // never product title/name aliases.
-      return hasCurrentOfferForCategoryWithAliases(category);
+      return false;
     })
     .sort((left, right) => {
       // V30: kategoriat eivät enää järjesty määrän mukaan.
@@ -678,7 +631,7 @@ export default function ZiiplyMobileOfferSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="V31_DEBUG_BUTTON_ONLY"
+      data-ziiply-mobile-offer-search-card-version="V31_VISIBLE_CATEGORY_COUNTS"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
@@ -740,7 +693,7 @@ export default function ZiiplyMobileOfferSearchCard({
                         active ? "border-[#174c2c] bg-[#174c2c] text-[#fff4d3]" : "border-[#b8944f] bg-[#fff8d9] text-[#174c2c]",
                       )}
                     >
-                      {getCategoryButtonLabelV27(category)}
+                      {getCategoryButtonLabelV31(category)}
                     </button>
                   );
                 })}
@@ -780,7 +733,7 @@ export default function ZiiplyMobileOfferSearchCard({
                         isLastOpenedCategoryV27(category) && "ring-2 ring-[#087237]/45 bg-[#f5ffd9]",
                       )}
                     >
-                      {getCategoryButtonLabelV27(category)}
+                      {getCategoryButtonLabelV31(category)}
                     </button>
                   ))}
                 </div>
@@ -830,14 +783,7 @@ export default function ZiiplyMobileOfferSearchCard({
                         </div>
                       </div>
 
-                      <div className="mt-2 flex justify-end gap-2">
-                        <button
-                          type="button"
-                          onClick={() => showOfferCategoryDebugV31(offer, shownFilter)}
-                          className="rounded-[0.56rem] border-[2px] border-[#7c663d] bg-[#fff8d9] px-2.5 py-[0.34rem] text-[0.60rem] font-black text-[#5a3218] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58)] active:translate-y-[1px]"
-                        >
-                          🐞 DEBUG
-                        </button>
+                      <div className="mt-2 flex justify-end">
                         <button type="button" onClick={() => onAddOffer?.(offer)} disabled={!onAddOffer} className={cx("rounded-[0.56rem] border-[2px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-3 py-[0.34rem] text-[0.64rem] font-black italic text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58)] active:translate-y-[1px]", !onAddOffer && "cursor-not-allowed opacity-45")} style={{ fontFamily: cooperFont }}>
                           Lisää koriin
                         </button>
