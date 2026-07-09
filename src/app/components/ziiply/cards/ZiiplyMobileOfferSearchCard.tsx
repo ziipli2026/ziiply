@@ -1,8 +1,8 @@
 "use client";
 
 // ============================================================================
-// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V32_TRUST_DEDUPED_PAGE_COUNTS
-// Revision: V32
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V33_COUNT_DEBUG_VISIBLE
+// Revision: V33
 // Date: 2026-07-04
 //
 // Muutokset:
@@ -19,6 +19,9 @@
 // - V32: kategoriapainikkeiden määrät käyttävät ensisijaisesti page.tsx:n dedupattua categoryOfferCounts-mapppia.
 // - V32: näkyvästä items-listasta lasketaan vain fallback, jos count-map puuttuu.
 // - V32: alias-laskennan tuplalasku estetty: sama categoryOfferCounts-avain lasketaan vain kerran.
+// - V33 DEBUG: näyttää jokaisessa kategoriapainikkeessa MAP- ja VISIBLE-luvun.
+//   MAP = categoryOfferCounts/page.tsx-luku. VISIBLE = kortille tulleista dedupatuista items-tuotteista laskettu luku.
+//   Ei muuta provideria, corea, hakua eikä tuotteiden kategorioita.
 // - Jos kuva ei lataudu, rikkinäistä kuvaikonia ei näytetä, vaan tilalle tulee
 //   tuoteryhmän fallback-ikoni.
 // - Kuvakenttien järjestys säilyy: imageUrl -> pictureUrl -> image.
@@ -580,9 +583,27 @@ export default function ZiiplyMobileOfferSearchCard({
     }).length;
   };
 
-  const getCategoryButtonLabelV32 = (category: string) => {
-    const count = getVisibleCategoryCountV32(category);
-    return `${getCategoryIcon(category)} ${category}${count > 0 ? ` (${count})` : ""}`;
+  const getActualVisibleCategoryCountV33 = (category: string) => {
+    const keys = getCategorySearchKeys(category);
+    if (keys.length === 0) return 0;
+
+    return items.filter((item) => {
+      const offerCategory = normalizeCategoryKey(String(item.category || ""));
+      if (!offerCategory) return false;
+      return keys.some((key) => offerCategory === key);
+    }).length;
+  };
+
+  const getCategoryButtonLabelV33 = (category: string) => {
+    const mapCount = getCategoryCountWithAliases(category);
+    const visibleCount = getActualVisibleCategoryCountV33(category);
+    const displayCount = typeof mapCount === "number" ? mapCount : visibleCount;
+
+    // V33 DEBUG:
+    // M = page.tsx:n categoryOfferCounts-mapista tullut määrä.
+    // V = tähän korttiin tulleesta dedupatusta items-listasta laskettu määrä.
+    // Jos M ja V eroavat, virhe on ennen korttia / count-mapissa tai listan lähde ei ole sama.
+    return `${getCategoryIcon(category)} ${category}${displayCount > 0 ? ` (${displayCount})` : ""} · M:${typeof mapCount === "number" ? mapCount : "-"} V:${visibleCount}`;
   };
 
   const isLastOpenedCategoryV27 = (category: string) =>
@@ -637,7 +658,7 @@ export default function ZiiplyMobileOfferSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="V32_TRUST_DEDUPED_PAGE_COUNTS"
+      data-ziiply-mobile-offer-search-card-version="V33_COUNT_DEBUG_VISIBLE"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
@@ -699,7 +720,7 @@ export default function ZiiplyMobileOfferSearchCard({
                         active ? "border-[#174c2c] bg-[#174c2c] text-[#fff4d3]" : "border-[#b8944f] bg-[#fff8d9] text-[#174c2c]",
                       )}
                     >
-                      {getCategoryButtonLabelV32(category)}
+                      {getCategoryButtonLabelV33(category)}
                     </button>
                   );
                 })}
@@ -739,7 +760,7 @@ export default function ZiiplyMobileOfferSearchCard({
                         isLastOpenedCategoryV27(category) && "ring-2 ring-[#087237]/45 bg-[#f5ffd9]",
                       )}
                     >
-                      {getCategoryButtonLabelV32(category)}
+                      {getCategoryButtonLabelV33(category)}
                     </button>
                   ))}
                 </div>
