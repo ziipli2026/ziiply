@@ -1,14 +1,14 @@
 "use client";
 
 // ============================================================================
-// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_DEBUG_20260709_B
-// Revision: DEBUG-20260709-B
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_DEBUG_20260709_C
+// Revision: DEBUG-20260709-C
 // Date: 2026-07-09
 //
 // TARKOITUS:
 // - Tämä on selkeästi uusi debug-versio, ei V32/V33 jatkoversio.
 // - Näyttää tarjoushakukortin sisällä varmasti tekstin:
-//   "DEBUG-20260709-B RUNNING"
+//   "DEBUG-20260709-C RUNNING"
 // - Näyttää kategoriapainikkeissa sekä MAP- että VISIBLE-määrän:
 //   M = categoryOfferCounts-mapista tuleva määrä
 //   V = kortille tulleesta dedupatusta items-listasta laskettu määrä
@@ -24,8 +24,6 @@
 // - Page hoitaa varsinaisen haun ja roskaosumien suodatuksen; kortti vain renderöi annetut tarjoukset.
 
 import React from "react";
-
-console.log("[ZIIPLY DEBUG-20260709-B] module loaded");
 
 export type ZiiplyMobileOfferSearchItem = {
   id?: string | number;
@@ -369,10 +367,6 @@ export default function ZiiplyMobileOfferSearchCard({
   onAddAllOffers,
   className = "",
 }: ZiiplyMobileOfferSearchCardProps) {
-  React.useEffect(() => {
-    console.log("[ZIIPLY DEBUG-20260709-B] component mounted", { open, query, filter, offers: offers?.length, results: results?.length });
-  }, [open, query, filter, offers, results]);
-
   const [lastOpenedCategoryV27, setLastOpenedCategoryV27] = React.useState("");
 
   React.useEffect(() => {
@@ -598,6 +592,50 @@ export default function ZiiplyMobileOfferSearchCard({
     return `${getCategoryIcon(category)} ${category}${count > 0 ? ` (${count})` : ""} · M:${mapCount} V:${visibleCount}`;
   };
 
+  const debugCategoryRows20260709C = categoryPool.slice(0, 20).map((cat) => {
+    const mapCount = getMapCategoryCountDebug20260709A(cat);
+    const exactVisible = getExactVisibleCategoryCountDebug20260709A(cat);
+    const aliasVisible = getVisibleCategoryCountV32(cat);
+    return `${cat}: M${mapCount}/V${exactVisible}/A${aliasVisible}`;
+  });
+
+  const debugMapKeys20260709C = Object.keys(categoryOfferCounts || {}).slice(0, 18);
+  const debugTestedKeys20260709C = Object.entries(testedEmptyCategories || {})
+    .filter(([, value]) => value === true)
+    .map(([key]) => key)
+    .slice(0, 12);
+
+  const DebugUnderCategories20260709C = ({ compact = false }: { compact?: boolean }) => (
+    <>
+      <div className={cx(
+        "col-span-2 rounded-[0.72rem] border-[2px] border-[#b00000] bg-[#fff200] px-2 py-2 text-left font-black leading-tight text-[#850000] shadow-[0_2px_0_rgba(91,72,44,0.18)]",
+        compact ? "min-w-[18rem] text-[0.55rem]" : "text-[0.58rem]",
+      )}>
+        DEBUG-20260709-C · KORTTI AJOSSA · raw:{rawItems.length} dedup:{items.length} visible:{visibleItems.length}
+        <br />
+        query:{shownQuery || "-"} · filter:{shownFilter || "-"} · landing:{String(showLandingView)} · loading:{String(loading)}
+        <br />
+        cats:{categoryPool.length} · visibleCats:{visibleCategorySuggestions.length} · mapKeys:{debugMapKeys20260709C.length}
+      </div>
+      <div className={cx(
+        "col-span-2 rounded-[0.72rem] border-[2px] border-[#b00000] bg-[#fff7a8] px-2 py-2 text-left font-black leading-tight text-[#850000] shadow-[0_2px_0_rgba(91,72,44,0.18)]",
+        compact ? "min-w-[18rem] text-[0.55rem]" : "text-[0.58rem]",
+      )}>
+        M=categoryOfferCounts · V=tarkka items.category · A=alias/laskettu näkyvä
+        <br />
+        {debugCategoryRows20260709C.join(" | ")}
+      </div>
+      <div className={cx(
+        "col-span-2 rounded-[0.72rem] border-[2px] border-[#b00000] bg-[#fffbd1] px-2 py-2 text-left font-black leading-tight text-[#850000] shadow-[0_2px_0_rgba(91,72,44,0.18)]",
+        compact ? "min-w-[18rem] text-[0.55rem]" : "text-[0.58rem]",
+      )}>
+        map keys: {debugMapKeys20260709C.join(" | ") || "-"}
+        <br />
+        tested empty: {debugTestedKeys20260709C.join(" | ") || "-"}
+      </div>
+    </>
+  );
+
   const isLastOpenedCategoryV27 = (category: string) =>
     normalizeCategoryKey(category) === normalizeCategoryKey(lastOpenedCategoryV27);
 
@@ -649,15 +687,8 @@ export default function ZiiplyMobileOfferSearchCard({
   const submitSearch = () => onSearch?.(shownFilter);
 
   return (
-    <>
-      <div
-        data-ziiply-debug-top-banner="DEBUG-20260709-B"
-        className="fixed left-0 right-0 top-0 z-[9999] bg-[#fff200] px-3 py-2 text-center font-mono text-[14px] font-black leading-tight text-[#9b0000] shadow-[0_3px_12px_rgba(0,0,0,0.35)] sm:hidden"
-      >
-        DEBUG-20260709-B RUNNING · COMPONENT MOUNTED · raw:{rawItems.length} dedup:{items.length} filter:{shownFilter || "-"}
-      </div>
-      <div
-      data-ziiply-mobile-offer-search-card-version="DEBUG-20260709-B"
+    <div
+      data-ziiply-mobile-offer-search-card-version="DEBUG-20260709-C"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
@@ -693,7 +724,7 @@ export default function ZiiplyMobileOfferSearchCard({
               {subtitle || (shownQuery ? `Gösta penkoi: ${shownQuery}` : "Tarjoukset tuoteryhmittäin")}
             </div>
             <div className="mt-1 rounded-[0.48rem] border-2 border-[#b00000] bg-[#fff200] px-2 py-1 text-[0.58rem] font-black leading-tight text-[#850000]">
-              DEBUG-20260709-B RUNNING · raw:{rawItems.length} dedup:{items.length} filter:{shownFilter || "-"}
+              DEBUG-20260709-C RUNNING · raw:{rawItems.length} dedup:{items.length} filter:{shownFilter || "-"}
               <br />
               {categoryPool.slice(0, 14).map((cat) => `${cat}=M${getMapCategoryCountDebug20260709A(cat)}/V${getExactVisibleCategoryCountDebug20260709A(cat)}`).join(" | ")}
             </div>
@@ -728,6 +759,9 @@ export default function ZiiplyMobileOfferSearchCard({
                     </button>
                   );
                 })}
+                <div className="flex shrink-0 flex-col gap-1.5">
+                  <DebugUnderCategories20260709C compact />
+                </div>
               </div>
             </div>
           ) : null}
@@ -767,6 +801,7 @@ export default function ZiiplyMobileOfferSearchCard({
                       {getCategoryButtonLabelV32(category)}
                     </button>
                   ))}
+                  <DebugUnderCategories20260709C />
                 </div>
               ) : (
                 <div className="mt-3 rounded-[0.8rem] border border-dashed border-[#9a7a3d] bg-[#fff8d9] px-3 py-3 text-[0.72rem] font-extrabold leading-snug text-[#6d5d3f]">
@@ -844,7 +879,6 @@ export default function ZiiplyMobileOfferSearchCard({
         `}</style>
       </section>
     </div>
-    </>
   );
 }
 
