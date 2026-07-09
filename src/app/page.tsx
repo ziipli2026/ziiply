@@ -1745,25 +1745,6 @@ function createZiiplyPageScannerFallbackLoop(args: {
   run();
 
   return () => {
-
-
-    <div
-      style={{
-        position: "fixed",
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 999999,
-        background: "red",
-        color: "white",
-        padding: "12px",
-        fontSize: "18px",
-        fontWeight: 900,
-        textAlign: "center",
-      }}
-    >
-      PAGE AJOSSA — DEBUG NÄKYY
-    </div>
     stopped = true;
     if (timer != null) window.clearTimeout(timer);
   };
@@ -16839,6 +16820,25 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   return (
     <>
+      <div
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 2147483647,
+          background: "red",
+          color: "white",
+          padding: "12px",
+          fontSize: "18px",
+          fontWeight: 900,
+          textAlign: "center",
+          pointerEvents: "none",
+        }}
+      >
+        PAGE AJOSSA — DEBUG NÄKYY — V545
+      </div>
+
       {mobileLandscapeBlockedV441 && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#123d32] px-6 text-center text-[#fff4cf] sm:hidden">
           <div className="max-w-[24rem] rounded-[1.6rem] border-[3px] border-[#d8bd75] bg-[#173f2f] px-6 py-7 shadow-[0_8px_0_rgba(0,0,0,0.22),inset_0_0_0_2px_rgba(255,255,255,0.12)]">
