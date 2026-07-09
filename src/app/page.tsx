@@ -1,7 +1,7 @@
 // ============================================================================
-// PAGE_V543_EXACT_V541_BASELINE_WITH_TRUST_HEADER
-// Revision: V543
-// Date: 2026-07-06
+// PAGE_V544_GOSTA_PAGE_LEVEL_DEBUG
+// Revision: V544
+// Date: 2026-07-09
 //
 // Tämä tiedosto on tehty käyttäjän lähettämästä V541-tiedostosta:
 // page-V541-gosta-selected-stores-build-fix-null-map(3).tsx
@@ -18841,6 +18841,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             }}
             onDeleteList={(list) => deleteSavedShoppingList(String(list.id))}
           />
+        )}
+
+        {!showLaunchScreen && (activeResult === "offers" || loadingOffers || hasSearchedOffers || gostaPanelStickyOpenRefV158.current) && (
+          <div className="fixed left-2 right-2 top-[calc(env(safe-area-inset-top)+0.25rem)] z-[9999] rounded-[0.55rem] border-2 border-[#b00000] bg-[#fff200] px-2 py-1 text-[0.62rem] font-black leading-tight text-[#850000] shadow-[0_2px_8px_rgba(0,0,0,0.25)] sm:hidden">
+            PAGE-DEBUG-20260709-C RUNNING · active:{activeResult} · loading:{String(loadingOffers)} · searched:{String(hasSearchedOffers)} · sticky:{String(gostaPanelStickyOpenRefV158.current)} · panel:{String(searchPanelOpen)} · offersRaw:{offerSearchResults.length} · master:{gostaMasterOfferResultsV528.length} · clean:{cleanOfferSearchResultsV106.length} · visible:{visibleOfferSearchResultsV106.length} · card:{gostaOfferCardItemsV163.length} · filter:{offerCardFilterV106 || "-"} · counts:{Object.keys(gostaCategoryOfferCountsV163).length}
+          </div>
         )}
 
         {!showLaunchScreen && activeResult === "offers" && !searchPanelOpen && !cartModalOpen && !shopsPanelOpen && !eanModalOpen && !notebookOpen && (
