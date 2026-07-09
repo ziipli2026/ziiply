@@ -1,31 +1,20 @@
 "use client";
 
 // ============================================================================
-// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V32_TRUST_DEDUPED_PAGE_COUNTS
-// Revision: V32
-// Date: 2026-07-04
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_DEBUG_20260709_A
+// Revision: DEBUG-20260709-A
+// Date: 2026-07-09
 //
-// Muutokset:
-// - Pidetään Göstan tarjouskortin kuva samalla yksinkertaisella <img>-mallilla
-//   kuin toimivassa ZiiplyMobileSearchCardissa.
-// - Poistettu näkyvä GÖSTA V20 -version lätkä käyttöliittymästä.
-// - Tarjoushaun tekstihakukenttä poistettu kokonaan mobiilin Gösta-kortista.
-// - Lisää kategoriat: Pakasteet, Valmisruoka, Kuivatuotteet, Makeiset & keksit, Lemmikit, Koti, Muut.
-// - Makeiset-ikoniksi vaihdettu 🍬 ja Kuivatuotteille/Valmisruoalle omat ikonit.
-// - Kaikki kategoriat näytetään etusivulla, ei vain ensimmäisiä kahdeksaa.
-// - Ei debug-tekstejä ruudulla.
-// - V28: kategoriapainikkeet kutsuvat vain onFilterChangea. Page käynnistää haun yhdestä paikasta,
-//   jolloin sama klikkaus ei aiheuta tuplahakua ja aktiivinen nappi pysyy synkassa.
-// - V32: kategoriapainikkeiden määrät käyttävät ensisijaisesti page.tsx:n dedupattua categoryOfferCounts-mapppia.
-// - V32: näkyvästä items-listasta lasketaan vain fallback, jos count-map puuttuu.
-// - V32: alias-laskennan tuplalasku estetty: sama categoryOfferCounts-avain lasketaan vain kerran.
-// - Jos kuva ei lataudu, rikkinäistä kuvaikonia ei näytetä, vaan tilalle tulee
-//   tuoteryhmän fallback-ikoni.
-// - Kuvakenttien järjestys säilyy: imageUrl -> pictureUrl -> image.
-// - Ei muutoksia hakulogiikkaan, kategorioihin, hintoihin, GPS:ään,
-//   skanneriin, äänihakuun eikä providereihin.
+// TARKOITUS:
+// - Tämä on selkeästi uusi debug-versio, ei V32/V33 jatkoversio.
+// - Näyttää tarjoushakukortin sisällä varmasti tekstin:
+//   "DEBUG-20260709-A RUNNING"
+// - Näyttää kategoriapainikkeissa sekä MAP- että VISIBLE-määrän:
+//   M = categoryOfferCounts-mapista tuleva määrä
+//   V = kortille tulleesta dedupatusta items-listasta laskettu määrä
+// - Ei muuta providereita, page.tsx:ää, hakulogiikkaa, kategorioita,
+//   tuotteiden järjestystä, kuvia, hintoja, GPS:ää, skanneria eikä äänihakua.
 // ============================================================================
-
 
 // ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V2_GOSTA_FILTER_AND_CATEGORIES
 // Pohjana V1.
@@ -580,9 +569,27 @@ export default function ZiiplyMobileOfferSearchCard({
     }).length;
   };
 
+  const getExactVisibleCategoryCountDebug20260709A = (category: string) => {
+    const wanted = normalizeCategoryKey(category);
+    if (!wanted) return 0;
+
+    return items.filter((item) => {
+      const offerCategory = normalizeCategoryKey(String(item.category || ""));
+      return offerCategory === wanted;
+    }).length;
+  };
+
+  const getMapCategoryCountDebug20260709A = (category: string) => {
+    const mapCount = getCategoryCountWithAliases(category);
+    return typeof mapCount === "number" ? mapCount : 0;
+  };
+
   const getCategoryButtonLabelV32 = (category: string) => {
     const count = getVisibleCategoryCountV32(category);
-    return `${getCategoryIcon(category)} ${category}${count > 0 ? ` (${count})` : ""}`;
+    const mapCount = getMapCategoryCountDebug20260709A(category);
+    const visibleCount = getExactVisibleCategoryCountDebug20260709A(category);
+
+    return `${getCategoryIcon(category)} ${category}${count > 0 ? ` (${count})` : ""} · M:${mapCount} V:${visibleCount}`;
   };
 
   const isLastOpenedCategoryV27 = (category: string) =>
@@ -637,7 +644,7 @@ export default function ZiiplyMobileOfferSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="V32_TRUST_DEDUPED_PAGE_COUNTS"
+      data-ziiply-mobile-offer-search-card-version="DEBUG-20260709-A"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
@@ -671,6 +678,11 @@ export default function ZiiplyMobileOfferSearchCard({
             </div>
             <div className="mt-[0.16rem] text-[0.74rem] font-extrabold text-[#5f5034]">
               {subtitle || (shownQuery ? `Gösta penkoi: ${shownQuery}` : "Tarjoukset tuoteryhmittäin")}
+            </div>
+            <div className="mt-1 rounded-[0.48rem] border-2 border-[#b00000] bg-[#fff200] px-2 py-1 text-[0.58rem] font-black leading-tight text-[#850000]">
+              DEBUG-20260709-A RUNNING · raw:{rawItems.length} dedup:{items.length} filter:{shownFilter || "-"}
+              <br />
+              {categoryPool.slice(0, 14).map((cat) => `${cat}=M${getMapCategoryCountDebug20260709A(cat)}/V${getExactVisibleCategoryCountDebug20260709A(cat)}`).join(" | ")}
             </div>
           </div>
 
