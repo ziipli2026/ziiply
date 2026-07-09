@@ -1,9 +1,9 @@
 "use client";
 
 // ============================================================================
-// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V33_FORCE_DEBUG
-// Revision: V33
-// Date: 2026-07-09
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V32_TRUST_DEDUPED_PAGE_COUNTS
+// Revision: V32
+// Date: 2026-07-04
 //
 // Muutokset:
 // - Pidetään Göstan tarjouskortin kuva samalla yksinkertaisella <img>-mallilla
@@ -640,12 +640,6 @@ export default function ZiiplyMobileOfferSearchCard({
       data-ziiply-mobile-offer-search-card-version="V32_TRUST_DEDUPED_PAGE_COUNTS"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
-      <div style={{position:"fixed",top:0,left:0,right:0,zIndex:999999,
-        background:"#c00",color:"#fff",padding:"6px",
-        fontWeight:900,fontSize:"14px",textAlign:"center"}}>
-        OFFER CARD DEBUG RUNNING 2026-07-09
-      </div>
-
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
         <div
           className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[#f7edcf] bg-center bg-no-repeat opacity-100"
