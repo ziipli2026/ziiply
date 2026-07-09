@@ -1,8 +1,8 @@
 "use client";
 
 // ============================================================================
-// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V31_VISIBLE_CATEGORY_COUNTS
-// Revision: V31
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V32_TRUST_DEDUPED_PAGE_COUNTS
+// Revision: V32
 // Date: 2026-07-04
 //
 // Muutokset:
@@ -16,7 +16,9 @@
 // - Ei debug-tekstejä ruudulla.
 // - V28: kategoriapainikkeet kutsuvat vain onFilterChangea. Page käynnistää haun yhdestä paikasta,
 //   jolloin sama klikkaus ei aiheuta tuplahakua ja aktiivinen nappi pysyy synkassa.
-// - V31: kategoriapainikkeiden määrät lasketaan näkyvästä dedupatusta items-listasta, ei categoryOfferCounts-mapista.
+// - V32: kategoriapainikkeiden määrät käyttävät ensisijaisesti page.tsx:n dedupattua categoryOfferCounts-mapppia.
+// - V32: näkyvästä items-listasta lasketaan vain fallback, jos count-map puuttuu.
+// - V32: alias-laskennan tuplalasku estetty: sama categoryOfferCounts-avain lasketaan vain kerran.
 // - Jos kuva ei lataudu, rikkinäistä kuvaikonia ei näytetä, vaan tilalle tulee
 //   tuoteryhmän fallback-ikoni.
 // - Kuvakenttien järjestys säilyy: imageUrl -> pictureUrl -> image.
@@ -497,26 +499,30 @@ export default function ZiiplyMobileOfferSearchCard({
   const getCategoryCountWithAliases = (category: string) => {
     if (!categoryOfferCounts) return undefined;
 
+    // V32: page.tsx laskee categoryOfferCounts-mapin jo dedupatusta master-listasta.
+    // Älä laske visible items -listasta, koska kategoriassa ollessa items sisältää vain
+    // aktiivisen kategorian. Älä myöskään summaa aliasosumia useaan kertaan.
+    const direct = getCategoryCount(category);
+    if (typeof direct === "number") return direct;
+
     const keys = getCategorySearchKeys(category);
+    const usedMapKeys = new Set<string>();
     let foundKnownCount = false;
     let total = 0;
-    const matchedCountKeys = new Set<string>();
 
-    // First: exact/direct alias matches, e.g. Koti, koti, Kodinhoito.
-    for (const key of keys) {
-      const count = getCategoryCount(key);
-      if (typeof count === "number") {
+    for (const [rawKey, rawCount] of Object.entries(categoryOfferCounts)) {
+      if (typeof rawCount !== "number" || rawCount <= 0) continue;
+      const normalizedMapKey = normalizeCategoryKey(rawKey);
+      if (!normalizedMapKey || usedMapKeys.has(normalizedMapKey)) continue;
+
+      if (keys.some((key) => normalizedMapKey === key)) {
+        usedMapKeys.add(normalizedMapKey);
         foundKnownCount = true;
-        total += count;
-        matchedCountKeys.add(key);
+        total += rawCount;
       }
     }
 
-    // V29: Ei fuzzy/includes-laskentaa määrille.
-    // Page antaa jo dedupatun kategoriakohtaisen count-mapin. Fuzzy-summaus paisutti määriä,
-    // kun samaan tuoteryhmään tuli kaksi kauppaa/lähdettä.
-    if (foundKnownCount) return total;
-    return undefined;
+    return foundKnownCount ? total : undefined;
   };
 
   const hasCurrentOfferForCategoryWithAliases = (category: string) => {
@@ -560,22 +566,22 @@ export default function ZiiplyMobileOfferSearchCard({
     categoryDisplayOrderV30.map((category, index) => [normalizeCategoryKey(category), index]),
   );
 
-  const getVisibleCategoryCountV31 = (category: string) => {
+  const getVisibleCategoryCountV32 = (category: string) => {
+    const mappedCount = getCategoryCountWithAliases(category);
+    if (typeof mappedCount === "number") return mappedCount;
+
     const keys = getCategorySearchKeys(category);
     if (keys.length === 0) return 0;
 
     return items.filter((item) => {
       const offerCategory = normalizeCategoryKey(String(item.category || ""));
       if (!offerCategory) return false;
-
-      // Lasketaan napin määrä samasta dedupatusta items-listasta, joka näytetään korteissa.
-      // Tämä estää categoryOfferCounts-mapin ja näkyvien korttien välisen heiton.
       return keys.some((key) => offerCategory === key);
     }).length;
   };
 
-  const getCategoryButtonLabelV31 = (category: string) => {
-    const count = getVisibleCategoryCountV31(category);
+  const getCategoryButtonLabelV32 = (category: string) => {
+    const count = getVisibleCategoryCountV32(category);
     return `${getCategoryIcon(category)} ${category}${count > 0 ? ` (${count})` : ""}`;
   };
 
@@ -589,7 +595,7 @@ export default function ZiiplyMobileOfferSearchCard({
 
       if (isTestedEmptyCategory(category)) return false;
 
-      const visibleCount = getVisibleCategoryCountV31(category);
+      const visibleCount = getVisibleCategoryCountV32(category);
       if (visibleCount > 0) return true;
 
       const count = getCategoryCountWithAliases(category);
@@ -631,7 +637,7 @@ export default function ZiiplyMobileOfferSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="V31_VISIBLE_CATEGORY_COUNTS"
+      data-ziiply-mobile-offer-search-card-version="V32_TRUST_DEDUPED_PAGE_COUNTS"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
@@ -693,7 +699,7 @@ export default function ZiiplyMobileOfferSearchCard({
                         active ? "border-[#174c2c] bg-[#174c2c] text-[#fff4d3]" : "border-[#b8944f] bg-[#fff8d9] text-[#174c2c]",
                       )}
                     >
-                      {getCategoryButtonLabelV31(category)}
+                      {getCategoryButtonLabelV32(category)}
                     </button>
                   );
                 })}
@@ -733,7 +739,7 @@ export default function ZiiplyMobileOfferSearchCard({
                         isLastOpenedCategoryV27(category) && "ring-2 ring-[#087237]/45 bg-[#f5ffd9]",
                       )}
                     >
-                      {getCategoryButtonLabelV31(category)}
+                      {getCategoryButtonLabelV32(category)}
                     </button>
                   ))}
                 </div>
