@@ -1,11 +1,18 @@
 "use client";
 
 // ============================================================================
-// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V33_COUNT_DEBUG_VISIBLE
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V33_FORCE_VISIBLE_COUNT_DEBUG
 // Revision: V33
-// Date: 2026-07-04
+// Date: 2026-07-09
 //
 // Muutokset:
+// - Pohja: käyttäjän 18:31 GitHubista ottama V32-tiedosto.
+// - Lisää pakotetun näkyvän count-debug-paneelin suoraan OfferSearchCardin sisään.
+// - Lisää kategoriapainikkeisiin M/V-luvut: M=count-map, V=kortin items-listasta laskettu.
+// - Ei muuta provideria, page.tsx:ää, search corea eikä varsinaista hakulogiikkaa.
+// - Jos tätä paneelia ei näy, sovellus ei käytä tätä komponenttitiedostoa.
+//
+// V32-pohjan aiemmat muutokset:
 // - Pidetään Göstan tarjouskortin kuva samalla yksinkertaisella <img>-mallilla
 //   kuin toimivassa ZiiplyMobileSearchCardissa.
 // - Poistettu näkyvä GÖSTA V20 -version lätkä käyttöliittymästä.
@@ -19,9 +26,6 @@
 // - V32: kategoriapainikkeiden määrät käyttävät ensisijaisesti page.tsx:n dedupattua categoryOfferCounts-mapppia.
 // - V32: näkyvästä items-listasta lasketaan vain fallback, jos count-map puuttuu.
 // - V32: alias-laskennan tuplalasku estetty: sama categoryOfferCounts-avain lasketaan vain kerran.
-// - V33 DEBUG: näyttää jokaisessa kategoriapainikkeessa MAP- ja VISIBLE-luvun.
-//   MAP = categoryOfferCounts/page.tsx-luku. VISIBLE = kortille tulleista dedupatuista items-tuotteista laskettu luku.
-//   Ei muuta provideria, corea, hakua eikä tuotteiden kategorioita.
 // - Jos kuva ei lataudu, rikkinäistä kuvaikonia ei näytetä, vaan tilalle tulee
 //   tuoteryhmän fallback-ikoni.
 // - Kuvakenttien järjestys säilyy: imageUrl -> pictureUrl -> image.
@@ -583,7 +587,7 @@ export default function ZiiplyMobileOfferSearchCard({
     }).length;
   };
 
-  const getActualVisibleCategoryCountV33 = (category: string) => {
+  const getVisibleCategoryCountV33Debug = (category: string) => {
     const keys = getCategorySearchKeys(category);
     if (keys.length === 0) return 0;
 
@@ -594,16 +598,16 @@ export default function ZiiplyMobileOfferSearchCard({
     }).length;
   };
 
-  const getCategoryButtonLabelV33 = (category: string) => {
-    const mapCount = getCategoryCountWithAliases(category);
-    const visibleCount = getActualVisibleCategoryCountV33(category);
-    const displayCount = typeof mapCount === "number" ? mapCount : visibleCount;
+  const getMapCategoryCountV33Debug = (category: string) => {
+    const count = getCategoryCountWithAliases(category);
+    return typeof count === "number" ? count : 0;
+  };
 
-    // V33 DEBUG:
-    // M = page.tsx:n categoryOfferCounts-mapista tullut määrä.
-    // V = tähän korttiin tulleesta dedupatusta items-listasta laskettu määrä.
-    // Jos M ja V eroavat, virhe on ennen korttia / count-mapissa tai listan lähde ei ole sama.
-    return `${getCategoryIcon(category)} ${category}${displayCount > 0 ? ` (${displayCount})` : ""} · M:${typeof mapCount === "number" ? mapCount : "-"} V:${visibleCount}`;
+  const getCategoryButtonLabelV32 = (category: string) => {
+    const count = getVisibleCategoryCountV32(category);
+    const mapCount = getMapCategoryCountV33Debug(category);
+    const visibleCount = getVisibleCategoryCountV33Debug(category);
+    return `${getCategoryIcon(category)} ${category}${count > 0 ? ` (${count})` : ""} M:${mapCount} V:${visibleCount}`;
   };
 
   const isLastOpenedCategoryV27 = (category: string) =>
@@ -639,6 +643,20 @@ export default function ZiiplyMobileOfferSearchCard({
       );
     });
 
+  const countDebugRowsV33 = categoryDisplayOrderV30.map((category) => ({
+    category,
+    mapCount: getMapCategoryCountV33Debug(category),
+    visibleCount: getVisibleCategoryCountV33Debug(category),
+  }));
+
+  const countDebugTextV33 = countDebugRowsV33
+    .map((row) => `${row.category}:M${row.mapCount}/V${row.visibleCount}`)
+    .join(" | ");
+
+  const mapKeysDebugV33 = Object.keys(categoryOfferCounts || {})
+    .slice(0, 18)
+    .join(", ");
+
   const goToLandingView = () => {
     // V27: paluu tuoteryhmälistaan ei saa käynnistää uutta master-hakua eikä tyhjentää
     // jo ladattuja tarjousmääriä. Page säilyttää offerSearchResults-välimuistin.
@@ -658,7 +676,7 @@ export default function ZiiplyMobileOfferSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="V33_COUNT_DEBUG_VISIBLE"
+      data-ziiply-mobile-offer-search-card-version="V33_FORCE_VISIBLE_COUNT_DEBUG"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
@@ -668,6 +686,12 @@ export default function ZiiplyMobileOfferSearchCard({
         />
         <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[linear-gradient(180deg,rgba(255,250,226,0.42),rgba(246,226,172,0.18)_34%,rgba(238,214,156,0.08))]" />
         <div className="pointer-events-none absolute inset-[0.42rem] rounded-[1.55rem] border border-dashed border-[#d6a861]/55 shadow-[inset_0_0_0_2px_rgba(27,17,9,0.20)]" />
+
+        <div className="absolute left-3 right-3 top-[3.75rem] z-[90] max-h-[3.95rem] overflow-y-auto rounded-[0.72rem] border-[2px] border-[#b00020] bg-[#fff200] px-2 py-1 text-[0.56rem] font-black leading-tight text-[#290000] shadow-[0_3px_10px_rgba(0,0,0,0.35)]">
+          <div>V33 COUNT DEBUG · items={items.length} raw={rawItems.length} filter={shownFilter || "-"}</div>
+          <div>MAPKEYS: {mapKeysDebugV33 || "-"}</div>
+          <div>{countDebugTextV33}</div>
+        </div>
 
         <LeatherBackButton onClick={handleBack} />
 
@@ -720,7 +744,7 @@ export default function ZiiplyMobileOfferSearchCard({
                         active ? "border-[#174c2c] bg-[#174c2c] text-[#fff4d3]" : "border-[#b8944f] bg-[#fff8d9] text-[#174c2c]",
                       )}
                     >
-                      {getCategoryButtonLabelV33(category)}
+                      {getCategoryButtonLabelV32(category)}
                     </button>
                   );
                 })}
@@ -760,7 +784,7 @@ export default function ZiiplyMobileOfferSearchCard({
                         isLastOpenedCategoryV27(category) && "ring-2 ring-[#087237]/45 bg-[#f5ffd9]",
                       )}
                     >
-                      {getCategoryButtonLabelV33(category)}
+                      {getCategoryButtonLabelV32(category)}
                     </button>
                   ))}
                 </div>
