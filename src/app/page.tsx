@@ -1,6 +1,6 @@
 // ============================================================================
-// PAGE_V543_EXACT_V541_BASELINE_WITH_TRUST_HEADER
-// Revision: V543
+// PAGE_V544_GOSTA_CATEGORY_COUNT_DEBUG
+// Revision: V544
 // Date: 2026-07-06
 //
 // Tämä tiedosto on tehty käyttäjän lähettämästä V541-tiedostosta:
@@ -8,7 +8,8 @@
 //
 // Muutos tässä versiossa:
 // - Lisätty selkeä revisio-/luottamusotsikko aivan tiedoston alkuun.
-// - Varsinaiseen koodiin EI ole tehty muutoksia.
+// - Lisätty näkyvä Gösta-kategoriamäärien debug-paneeli page-tasolle.
+// - Varsinaista hakulogiikkaa, provideria, category corea tai kortin laskentaa EI muuteta.
 // - Vanha historiallinen revisiokommenttilista jätetään alle koskemattomana,
 //   koska se oli jo V541-pohjassa sekaisin.
 //
@@ -7777,6 +7778,65 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     return counts;
   }, [cleanOfferSearchResultsV106, gostaMasterOfferResultsV528]);
+
+
+  const gostaCategoryCountDebugV544 = useMemo(() => {
+    const normalizeDebugCategory = (value: unknown) => String(value ?? "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9åäö]/gi, "")
+      .trim();
+
+    const suggestions = Array.isArray(GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147)
+      ? GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147.filter((category) => normalizeDebugCategory(category) !== "kaikki")
+      : [];
+
+    const visibleExactCounts: Record<string, number> = {};
+    for (const item of gostaOfferCardItemsV163 as any[]) {
+      const category = String(item?.category || "").trim() || "-";
+      visibleExactCounts[category] = (visibleExactCounts[category] ?? 0) + 1;
+    }
+
+    const lines = suggestions.map((category) => {
+      const key = normalizeDebugCategory(category);
+      const mapHit = Object.entries(gostaCategoryOfferCountsV163 || {}).find(
+        ([countKey]) => normalizeDebugCategory(countKey) === key,
+      );
+      const mapCount = typeof mapHit?.[1] === "number" ? mapHit[1] : "-";
+      const visibleCount = (gostaOfferCardItemsV163 as any[]).filter(
+        (item) => normalizeDebugCategory(item?.category) === key,
+      ).length;
+      return `${category}: MAP=${mapCount} VISIBLE=${visibleCount}`;
+    });
+
+    const sampleItems = (gostaOfferCardItemsV163 as any[])
+      .slice(0, 30)
+      .map((item, index) => {
+        const title = String(item?.title || item?.name || item?.productName || "-").slice(0, 44);
+        const category = String(item?.category || "-");
+        return `${index + 1}. [${category}] ${title}`;
+      });
+
+    return [
+      `PAGE V544 COUNT DEBUG`,
+      `filter=${offerCardFilterV106 || "-"}`,
+      `cardItems=${gostaOfferCardItemsV163.length} visibleRaw=${visibleOfferSearchResultsV106.length} clean=${cleanOfferSearchResultsV106.length} master=${gostaMasterOfferResultsV528.length}`,
+      "--- COUNTS ---",
+      ...lines,
+      "--- exact visible categories ---",
+      JSON.stringify(visibleExactCounts),
+      "--- first card items ---",
+      ...sampleItems,
+    ].join("\n");
+  }, [
+    cleanOfferSearchResultsV106.length,
+    gostaCategoryOfferCountsV163,
+    gostaMasterOfferResultsV528.length,
+    gostaOfferCardItemsV163,
+    offerCardFilterV106,
+    visibleOfferSearchResultsV106.length,
+  ]);
 
   useEffect(() => {
     // V158: GPS-watchdog / kauppapäivitys voi muuttaa ympäröiviä paneelitiloja.
@@ -18844,29 +18904,48 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         )}
 
         {!showLaunchScreen && activeResult === "offers" && !searchPanelOpen && !cartModalOpen && !shopsPanelOpen && !eanModalOpen && !notebookOpen && (
-          <ZiiplyMobileOfferSearchCardLoose
-            open={true}
-            title="Tarjoushaku"
-            query={offerSearchQuerySnapshot || offerCardFilterV106 || ""}
-            offers={gostaOfferCardItemsV163}
-            filter={offerCardFilterV106}
-            onFilterChange={handleGostaFilterChangeV136}
-            onSearch={(value: string) => void searchOffers(value)}
-            categorySuggestions={GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147}
-            categoryOfferCounts={gostaCategoryOfferCountsV163}
-            testedEmptyCategories={gostaTestedEmptyCategoriesV166}
-            loading={loadingOffers}
-            emptyText={offerShowingAllAreaOffersV106 ? "Alueen tarjouksia ei löytynyt vielä." : "Gösta ei löytänyt tarjouksia tälle rajaukselle."}
-            onBack={() => {
-              gostaPanelStickyOpenRefV158.current = false;
-              setActiveResult("none");
-              setSearchPanelOpen(true);
-            }}
-            onClose={() => {
-              gostaPanelStickyOpenRefV158.current = false;
-              setActiveResult("none");
-            }}
-            onAddOffer={(offer: any) => {
+          <>
+            <div className="fixed left-2 right-2 top-[calc(env(safe-area-inset-top)+0.25rem)] z-[140] max-h-[34dvh] overflow-auto rounded-xl border-2 border-[#7a2a1a] bg-[#fff8d6]/95 p-2 text-left font-mono text-[10px] leading-tight text-[#2a1a0e] shadow-[0_6px_20px_rgba(0,0,0,0.35)]">
+              <div className="mb-1 flex items-center justify-between gap-2 font-black text-[#7a2a1a]">
+                <span>🐞 PAGE V544 COUNT DEBUG</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (typeof navigator !== "undefined" && navigator.clipboard) {
+                      void navigator.clipboard.writeText(gostaCategoryCountDebugV544);
+                    }
+                    alert(gostaCategoryCountDebugV544);
+                  }}
+                  className="rounded-md border border-[#7a2a1a] bg-[#fff0b8] px-2 py-0.5 text-[10px] font-black"
+                >
+                  kopioi/näytä
+                </button>
+              </div>
+              <pre className="whitespace-pre-wrap break-words">{gostaCategoryCountDebugV544}</pre>
+            </div>
+            <ZiiplyMobileOfferSearchCardLoose
+              open={true}
+              title="Tarjoushaku"
+              query={offerSearchQuerySnapshot || offerCardFilterV106 || ""}
+              offers={gostaOfferCardItemsV163}
+              filter={offerCardFilterV106}
+              onFilterChange={handleGostaFilterChangeV136}
+              onSearch={(value: string) => void searchOffers(value)}
+              categorySuggestions={GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147}
+              categoryOfferCounts={gostaCategoryOfferCountsV163}
+              testedEmptyCategories={gostaTestedEmptyCategoriesV166}
+              loading={loadingOffers}
+              emptyText={offerShowingAllAreaOffersV106 ? "Alueen tarjouksia ei löytynyt vielä." : "Gösta ei löytänyt tarjouksia tälle rajaukselle."}
+              onBack={() => {
+                gostaPanelStickyOpenRefV158.current = false;
+                setActiveResult("none");
+                setSearchPanelOpen(true);
+              }}
+              onClose={() => {
+                gostaPanelStickyOpenRefV158.current = false;
+                setActiveResult("none");
+              }}
+              onAddOffer={(offer: any) => {
               const name = fixText(String(offer.name || offer.title || offer.productName || "Tarjoustuote"));
               if (cart.length >= MAX_ITEMS) {
                 alert(`Demossa ostoskori on rajattu ${MAX_ITEMS} tuotteeseen.`);
@@ -18949,7 +19028,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               showCartToast(added > 0 ? `Lisätty ${added} tarjousta koriin` : "Ei uusia tarjouksia lisättäväksi");
               void updateChainComparison(nextCart, { openCompare: false });
             }}
-          />
+            />
+          </>
         )}
 
         {/* V725_MOBILE_COMPARECARD_ROUTE_FIX: vanha mobiilin inline-compare / desktop-ZiiplyCompareCard-renderi on poistettu näkyvästä mobiili-UI:sta.
