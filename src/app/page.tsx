@@ -1,15 +1,14 @@
 // ============================================================================
-// PAGE_V544_GOSTA_CATEGORY_COUNTS_MATCH_OPENED_LIST
-// Revision: V544
+// PAGE_V543_EXACT_V541_BASELINE_WITH_TRUST_HEADER
+// Revision: V543
 // Date: 2026-07-06
 //
 // Tämä tiedosto on tehty käyttäjän lähettämästä V541-tiedostosta:
 // page-V541-gosta-selected-stores-build-fix-null-map(3).tsx
 //
 // Muutos tässä versiossa:
-// - Korjattu Göstan tuoteryhmäpainikkeiden kappalemäärät laskemaan jokainen
-//   kategoria samalla filter + map + dedupe -polulla kuin kategoriakortin avaus.
-// - Ei muutoksia providereihin, K/S-hakuun, kuviin, skanneriin tai äänihakuun.
+// - Lisätty selkeä revisio-/luottamusotsikko aivan tiedoston alkuun.
+// - Varsinaiseen koodiin EI ole tehty muutoksia.
 // - Vanha historiallinen revisiokommenttilista jätetään alle koskemattomana,
 //   koska se oli jo V541-pohjassa sekaisin.
 //
@@ -7753,39 +7752,27 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     );
   }, [visibleOfferSearchResultsV106]);
 
-  const gostaCategoryOfferCountsV544 = useMemo(() => {
+  const gostaCategoryOfferCountsV163 = useMemo(() => {
     const counts: Record<string, number> = {};
 
-    // V544: Lasketaan jokaisen tuoteryhmän määrä TÄYSIN samalla polulla kuin
-    // tuoteryhmän avaaminen tekee:
-    // 1) sama master-/fallback-lähde
-    // 2) sama filterZiiplyGostaOfferResultsV146(category)
-    // 3) sama mapZiiplyGostaOfferToCardOfferV147()
-    // 4) sama dedupeGostaCardItemsV166()
-    //
-    // Älä laske countteja ryhmittelemällä yhtä master-listaa suoraan category-kentällä,
-    // koska silloin määrä voi erota avatusta listasta, jos filter/dedupe käsittelee
-    // duplikaatteja tai provider-kategorioita eri järjestyksessä.
+    // V533: määrät lasketaan täsmälleen samasta master-listasta ja samalla
+    // dedupe-logiikalla kuin avattavat kortit. Aiemmin laskenta käytti raakadataa,
+    // jolloin kahdesta kaupasta / lähteestä tulleet samat tarjoukset nostivat
+    // tuoteryhmän lukemaa suuremmaksi kuin varsinainen avattu lista.
     const countSourceResults = gostaMasterOfferResultsV528.length > 0
       ? cleanZiiplyGostaOfferResultsV146(gostaMasterOfferResultsV528)
       : cleanOfferSearchResultsV106;
 
-    for (const category of GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147) {
-      const categoryLabel = String(category || "").trim();
-      if (!categoryLabel || categoryLabel.toLowerCase() === "kaikki") continue;
+    const countCardItems = dedupeGostaCardItemsV166(
+      countSourceResults.map(mapZiiplyGostaOfferToCardOfferV147),
+    );
 
-      const categoryResults = filterZiiplyGostaOfferResultsV146(
-        countSourceResults,
-        categoryLabel,
-      );
+    for (const cardOffer of countCardItems) {
+      const category = String(cardOffer.category || "").trim();
 
-      const categoryCardItems = dedupeGostaCardItemsV166(
-        categoryResults.map(mapZiiplyGostaOfferToCardOfferV147),
-      );
-
-      if (categoryCardItems.length > 0) {
-        counts[categoryLabel] = categoryCardItems.length;
-      }
+      if (!category || category.toLowerCase() === "kaikki") continue;
+      counts[category] = (counts[category] ?? 0) + 1;
+      counts[category.toLowerCase()] = (counts[category.toLowerCase()] ?? 0) + 1;
     }
 
     return counts;
@@ -18866,7 +18853,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             onFilterChange={handleGostaFilterChangeV136}
             onSearch={(value: string) => void searchOffers(value)}
             categorySuggestions={GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147}
-            categoryOfferCounts={gostaCategoryOfferCountsV544}
+            categoryOfferCounts={gostaCategoryOfferCountsV163}
             testedEmptyCategories={gostaTestedEmptyCategoriesV166}
             loading={loadingOffers}
             emptyText={offerShowingAllAreaOffersV106 ? "Alueen tarjouksia ei löytynyt vielä." : "Gösta ei löytänyt tarjouksia tälle rajaukselle."}
