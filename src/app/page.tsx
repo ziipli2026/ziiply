@@ -1,15 +1,19 @@
 // ============================================================================
-// PAGE_V544_GOSTA_CATEGORY_COUNT_DEBUG
+// PAGE_V544_GOSTA_CATEGORY_COUNT_DEBUG_VISIBLE
 // Revision: V544
-// Date: 2026-07-06
+// Date: 2026-07-09
 //
-// Tämä tiedosto on tehty käyttäjän lähettämästä V541-tiedostosta:
-// page-V541-gosta-selected-stores-build-fix-null-map(3).tsx
+// Pohja:
+// - Käyttäjän lähettämä page-3.tsx / PAGE_V543_EXACT_V541_BASELINE_WITH_TRUST_HEADER.
 //
 // Muutos tässä versiossa:
-// - Lisätty näkyvä Gösta category count debug -paneeli.
-// - Debug näyttää MAP=page categoryOfferCounts ja VISIBLE=kortille lähtevistä itemeistä laskettu määrä.
-// - Ei muuta provideria, SearchCorea, CategoryCorea tai varsinaista laskentalogiikkaa.
+// - Lisätty näkyvä Gösta-kategoriacount-debug-paneeli ennen ZiiplyMobileOfferSearchCardia.
+// - Debug EI muuta tarjoushakua, provideria, category corea, hakutuloksia eikä laskentaa.
+// - Debug näyttää rinnakkain:
+//   MAP = page.tsx:n categoryOfferCounts / gostaCategoryOfferCountsV163
+//   VISIBLE = kortille lähtevästä gostaOfferCardItemsV163-listasta laskettu määrä
+//   ITEMS = kortille lähtevien tuotteiden määrä ja aktiivinen filter
+// - Tarkoitus on selvittää, tuleeko väärä tuotemäärä page:n count-mapista vai kortille lähtevästä listasta.
 // ============================================================================
 
 // V529_GOSTA_CATEGORY_SYNC_NO_PRECLEAR
@@ -7773,63 +7777,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     return counts;
   }, [cleanOfferSearchResultsV106, gostaMasterOfferResultsV528]);
-
-  const gostaCategoryCountDebugV544 = useMemo(() => {
-    const normalizeDebugKey = (value: unknown) => String(value ?? "")
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase()
-      .replace(/[^a-z0-9åäö]/gi, "")
-      .trim();
-
-    const categories = Array.isArray(GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147)
-      ? GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147.filter((category) => normalizeDebugKey(category) && normalizeDebugKey(category) !== "kaikki")
-      : [];
-
-    const visibleItems = Array.isArray(gostaOfferCardItemsV163) ? gostaOfferCardItemsV163 : [];
-
-    const countMapValue = (category: string) => {
-      const direct = (gostaCategoryOfferCountsV163 as Record<string, number | undefined>)[category];
-      if (typeof direct === "number") return direct;
-      const wanted = normalizeDebugKey(category);
-      const hit = Object.entries(gostaCategoryOfferCountsV163 || {}).find(([key]) => normalizeDebugKey(key) === wanted);
-      return typeof hit?.[1] === "number" ? hit[1] : 0;
-    };
-
-    const lines: string[] = [];
-    lines.push(`GÖSTA COUNT DEBUG V544 filter=${offerCardFilterV106 || "-"}`);
-    lines.push(`items=${visibleItems.length} master=${gostaMasterOfferResultsV528.length} search=${offerSearchResults.length} clean=${cleanOfferSearchResultsV106.length}`);
-    lines.push("");
-
-    for (const category of categories) {
-      const wanted = normalizeDebugKey(category);
-      const visibleMatches = visibleItems.filter((item: any) => normalizeDebugKey(item?.category) === wanted);
-      const mapCount = countMapValue(category);
-      if (mapCount > 0 || visibleMatches.length > 0 || normalizeDebugKey(offerCardFilterV106) === wanted) {
-        lines.push(`${category}: MAP=${mapCount} VISIBLE=${visibleMatches.length}`);
-        for (const item of visibleMatches.slice(0, 8)) {
-          lines.push(`  - ${String((item as any)?.title || (item as any)?.name || (item as any)?.productName || "?").slice(0, 64)} [${String((item as any)?.category || "-")}]`);
-        }
-      }
-    }
-
-    lines.push("");
-    lines.push("RAW categoryOfferCounts:");
-    for (const [key, value] of Object.entries(gostaCategoryOfferCountsV163 || {}).slice(0, 80)) {
-      lines.push(`  ${key}=${value}`);
-    }
-
-    return lines.join("\n");
-  }, [
-    cleanOfferSearchResultsV106.length,
-    gostaCategoryOfferCountsV163,
-    gostaMasterOfferResultsV528.length,
-    gostaOfferCardItemsV163,
-    offerCardFilterV106,
-    offerSearchResults.length,
-  ]);
-
-
 
   useEffect(() => {
     // V158: GPS-watchdog / kauppapäivitys voi muuttaa ympäröiviä paneelitiloja.
@@ -18897,30 +18844,63 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         )}
 
         {!showLaunchScreen && activeResult === "offers" && !searchPanelOpen && !cartModalOpen && !shopsPanelOpen && !eanModalOpen && !notebookOpen && (
-          <>
-            <pre
-              style={{
-                position: "fixed",
-                left: 8,
-                right: 8,
-                top: 8,
-                zIndex: 99999,
-                maxHeight: "38vh",
-                overflow: "auto",
-                whiteSpace: "pre-wrap",
-                background: "rgba(20,20,20,0.92)",
-                color: "#f7f7d0",
-                border: "2px solid #ffcc66",
-                borderRadius: 10,
-                padding: 10,
-                fontSize: 11,
-                lineHeight: 1.25,
-                pointerEvents: "auto",
-              }}
-            >
-              {gostaCategoryCountDebugV544}
-            </pre>
-            <ZiiplyMobileOfferSearchCardLoose
+          <div className="fixed left-2 right-2 top-[calc(env(safe-area-inset-top)+0.35rem)] z-[9999] max-h-[34vh] overflow-auto rounded-xl border-4 border-red-600 bg-white/95 p-2 text-[10px] font-mono leading-tight text-black shadow-2xl sm:hidden">
+            <div className="mb-1 font-black text-red-700">GÖSTA COUNT DEBUG V544</div>
+            {(() => {
+              const norm = (value: unknown) => String(value ?? "")
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .toLowerCase()
+                .replace(/[^a-z0-9åäö]/gi, "")
+                .trim();
+
+              const items = Array.isArray(gostaOfferCardItemsV163) ? gostaOfferCardItemsV163 : [];
+              const counts = (gostaCategoryOfferCountsV163 || {}) as Record<string, number | null | undefined>;
+              const suggestions = Array.isArray(GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147) ? GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147 : [];
+
+              const getMapCount = (category: string) => {
+                const direct = counts[category];
+                if (typeof direct === "number") return direct;
+                const wanted = norm(category);
+                const found = Object.entries(counts).find(([key]) => norm(key) === wanted);
+                return typeof found?.[1] === "number" ? found[1] : undefined;
+              };
+
+              const getVisibleCount = (category: string) => {
+                const wanted = norm(category);
+                return items.filter((item: any) => norm(item?.category) === wanted).length;
+              };
+
+              const visibleRows = suggestions
+                .filter((category: string) => category && norm(category) !== "kaikki")
+                .map((category: string) => ({
+                  category,
+                  map: getMapCount(category),
+                  visible: getVisibleCount(category),
+                }))
+                .filter((row: any) => (Number(row.map || 0) > 0) || row.visible > 0);
+
+              const sample = items.slice(0, 12).map((item: any) => `${String(item?.title || item?.name || item?.productName || "?").slice(0, 34)} [${String(item?.category || "-")}]`).join(" | ");
+
+              return (
+                <>
+                  <div>filter={String(offerCardFilterV106 || "-")} items={items.length} mapKeys={Object.keys(counts).length}</div>
+                  <div className="mt-1 grid grid-cols-3 gap-x-2 gap-y-0.5">
+                    {visibleRows.map((row: any) => (
+                      <div key={row.category} className={row.map !== row.visible ? "text-red-700 font-black" : "text-black"}>
+                        {row.category}: MAP={row.map ?? "-"} VIS={row.visible}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-1 border-t border-red-300 pt-1">sample: {sample || "-"}</div>
+                </>
+              );
+            })()}
+          </div>
+        )}
+
+        {!showLaunchScreen && activeResult === "offers" && !searchPanelOpen && !cartModalOpen && !shopsPanelOpen && !eanModalOpen && !notebookOpen && (
+          <ZiiplyMobileOfferSearchCardLoose
             open={true}
             title="Tarjoushaku"
             query={offerSearchQuerySnapshot || offerCardFilterV106 || ""}
@@ -19026,7 +19006,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               void updateChainComparison(nextCart, { openCompare: false });
             }}
           />
-          </>
         )}
 
         {/* V725_MOBILE_COMPARECARD_ROUTE_FIX: vanha mobiilin inline-compare / desktop-ZiiplyCompareCard-renderi on poistettu näkyvästä mobiili-UI:sta.
