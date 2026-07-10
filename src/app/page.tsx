@@ -1,12 +1,14 @@
 // ============================================================================
-// PAGE_V543_EXACT_V541_BASELINE_WITH_TRUST_HEADER
-// Revision: V543
-// Date: 2026-07-06
+// PAGE_V547_GOSTA_OPEN_ACTUALLY_RUNS_SEARCH
+// Revision: V547
+// Date: 2026-07-09
 //
 // Tämä tiedosto on tehty käyttäjän lähettämästä V541-tiedostosta:
 // page-V541-gosta-selected-stores-build-fix-null-map(3).tsx
 //
 // Muutos tässä versiossa:
+// - Korjattu Gösta/Tarjoukset-napin avaus: se ei enää pelkästään togglaa activeResult="offers",
+//   vaan käynnistää searchOffers("")-polun, joka sulkee Hae-paneelin ja renderöi oikean tarjouskortin.
 // - Lisätty selkeä revisio-/luottamusotsikko aivan tiedoston alkuun.
 // - Varsinaiseen koodiin EI ole tehty muutoksia.
 // - Vanha historiallinen revisiokommenttilista jätetään alle koskemattomana,
@@ -16820,25 +16822,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   return (
     <>
-      <div
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 2147483647,
-          background: "red",
-          color: "white",
-          padding: "12px",
-          fontSize: "18px",
-          fontWeight: 900,
-          textAlign: "center",
-          pointerEvents: "none",
-        }}
-      >
-        PAGE AJOSSA — DEBUG NÄKYY — V545
-      </div>
-
       {mobileLandscapeBlockedV441 && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[#123d32] px-6 text-center text-[#fff4cf] sm:hidden">
           <div className="max-w-[24rem] rounded-[1.6rem] border-[3px] border-[#d8bd75] bg-[#173f2f] px-6 py-7 shadow-[0_8px_0_rgba(0,0,0,0.22),inset_0_0_0_2px_rgba(255,255,255,0.12)]">
@@ -17053,7 +17036,21 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                         ? "results"
                         : "none"
                   }
-                  onOpenResults={() => setActiveResult((current) => current === "offers" ? "none" : "offers")}
+                  onOpenResults={() => {
+                    // V547_GOSTA_OPEN_ACTUALLY_RUNS_SEARCH:
+                    // Aiempi koodi vain togglasi activeResult="offers".
+                    // Mobiilikortin render-ehto kuitenkin vaatii myös !searchPanelOpen,
+                    // ja varsinainen Gösta-data syntyy searchOffers()-polussa.
+                    // Siksi pelkkä toggle jätti käyttäjän Hae-paneeliin eikä
+                    // ZiiplyMobileOfferSearchCard renderöitynyt lainkaan.
+                    if (activeResult === "offers" && !searchPanelOpen) {
+                      gostaPanelStickyOpenRefV158.current = false;
+                      setActiveResult("none");
+                      return;
+                    }
+
+                    void searchOffers("");
+                  }}
                   onOpenCompare={() => {
                     if (activeResult === "compare") {
                       setActiveResult("none");
