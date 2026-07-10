@@ -1,14 +1,12 @@
 // ============================================================================
-// PAGE_V547_GOSTA_OPEN_ACTUALLY_RUNS_SEARCH
-// Revision: V547
-// Date: 2026-07-09
+// PAGE_V543_EXACT_V541_BASELINE_WITH_TRUST_HEADER
+// Revision: V543
+// Date: 2026-07-06
 //
 // Tämä tiedosto on tehty käyttäjän lähettämästä V541-tiedostosta:
 // page-V541-gosta-selected-stores-build-fix-null-map(3).tsx
 //
 // Muutos tässä versiossa:
-// - Korjattu Gösta/Tarjoukset-napin avaus: se ei enää pelkästään togglaa activeResult="offers",
-//   vaan käynnistää searchOffers("")-polun, joka sulkee Hae-paneelin ja renderöi oikean tarjouskortin.
 // - Lisätty selkeä revisio-/luottamusotsikko aivan tiedoston alkuun.
 // - Varsinaiseen koodiin EI ole tehty muutoksia.
 // - Vanha historiallinen revisiokommenttilista jätetään alle koskemattomana,
@@ -17036,21 +17034,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                         ? "results"
                         : "none"
                   }
-                  onOpenResults={() => {
-                    // V547_GOSTA_OPEN_ACTUALLY_RUNS_SEARCH:
-                    // Aiempi koodi vain togglasi activeResult="offers".
-                    // Mobiilikortin render-ehto kuitenkin vaatii myös !searchPanelOpen,
-                    // ja varsinainen Gösta-data syntyy searchOffers()-polussa.
-                    // Siksi pelkkä toggle jätti käyttäjän Hae-paneeliin eikä
-                    // ZiiplyMobileOfferSearchCard renderöitynyt lainkaan.
-                    if (activeResult === "offers" && !searchPanelOpen) {
-                      gostaPanelStickyOpenRefV158.current = false;
-                      setActiveResult("none");
-                      return;
-                    }
-
-                    void searchOffers("");
-                  }}
+                  onOpenResults={() => setActiveResult((current) => current === "offers" ? "none" : "offers")}
                   onOpenCompare={() => {
                     if (activeResult === "compare") {
                       setActiveResult("none");
