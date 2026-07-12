@@ -1,8 +1,8 @@
 "use client";
 
 // ============================================================================
-// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_DEBUG_COPY_20260712_E
-// Revision: DEBUG-COPY-20260712-E
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_DEBUG_COUNT_FIX_20260712_F
+// Revision: DEBUG-COUNT-FIX-20260712-F
 // Date: 2026-07-12
 // Debug avataan suoraan aina näkyvästä Tarjoushaku-otsikosta.
 // Lisätty mobiilissa toimiva KOPIOI DEBUG -painike koko JSON-datalle.
@@ -550,17 +550,27 @@ export default function ZiiplyMobileOfferSearchCard({
   );
 
   const getVisibleCategoryCountV32 = (category: string) => {
+    const wanted = normalizeCategoryKey(category);
+
+    // F: Landing-näkymässä määrä lasketaan aina samasta dedupatusta items-listasta,
+    // josta käyttäjälle näytettävät tuotteet muodostuvat. Parentilta tuleva
+    // categoryOfferCounts perustuu raakempaan listaan ja voi sisältää vielä
+    // myöhemmin poistuvia duplikaatteja (erityisesti ensimmäinen Kahvi-kategoria).
+    if (showLandingView && items.length > 0 && wanted) {
+      return items.filter((item) =>
+        normalizeCategoryKey(String(item.category || "")) === wanted
+      ).length;
+    }
+
+    // Kategorian sisällä items voi sisältää vain aktiivisen kategorian.
+    // Silloin muiden nappien määrät pidetään parentin master-count-mapista.
     const mappedCount = getCategoryCountWithAliases(category);
     if (typeof mappedCount === "number") return mappedCount;
 
-    const keys = getCategorySearchKeys(category);
-    if (keys.length === 0) return 0;
-
-    return items.filter((item) => {
-      const offerCategory = normalizeCategoryKey(String(item.category || ""));
-      if (!offerCategory) return false;
-      return keys.some((key) => offerCategory === key);
-    }).length;
+    if (!wanted) return 0;
+    return items.filter((item) =>
+      normalizeCategoryKey(String(item.category || "")) === wanted
+    ).length;
   };
 
   const getCategoryButtonLabelV32 = (category: string) => {
@@ -602,7 +612,7 @@ export default function ZiiplyMobileOfferSearchCard({
     });
 
   const debugPayload20260712D = {
-    revision: "DEBUG-COPY-20260712-E",
+    revision: "DEBUG-COUNT-FIX-20260712-F",
     rawCount: rawItems.length,
     dedupedCount: items.length,
     visibleCount: visibleItems.length,
@@ -638,7 +648,7 @@ export default function ZiiplyMobileOfferSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="DEBUG-COPY-20260712-E"
+      data-ziiply-mobile-offer-search-card-version="DEBUG-COUNT-FIX-20260712-F"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
