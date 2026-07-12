@@ -1,10 +1,11 @@
 "use client";
 
 // ============================================================================
-// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_DEBUG_TITLE_20260712_D
-// Revision: DEBUG-TITLE-20260712-D
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_DEBUG_COPY_20260712_E
+// Revision: DEBUG-COPY-20260712-E
 // Date: 2026-07-12
 // Debug avataan suoraan aina näkyvästä Tarjoushaku-otsikosta.
+// Lisätty mobiilissa toimiva KOPIOI DEBUG -painike koko JSON-datalle.
 // ============================================================================
 
 // ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V2_GOSTA_FILTER_AND_CATEGORIES
@@ -360,6 +361,7 @@ export default function ZiiplyMobileOfferSearchCard({
 }: ZiiplyMobileOfferSearchCardProps) {
   const [lastOpenedCategoryV27, setLastOpenedCategoryV27] = React.useState("");
   const [debugTitleOpen20260712D, setDebugTitleOpen20260712D] = React.useState(false);
+  const [debugCopyStatus20260712E, setDebugCopyStatus20260712E] = React.useState("");
 
   React.useEffect(() => {
     if (typeof window === "undefined") return;
@@ -600,7 +602,7 @@ export default function ZiiplyMobileOfferSearchCard({
     });
 
   const debugPayload20260712D = {
-    revision: "DEBUG-TITLE-20260712-D",
+    revision: "DEBUG-COPY-20260712-E",
     rawCount: rawItems.length,
     dedupedCount: items.length,
     visibleCount: visibleItems.length,
@@ -636,7 +638,7 @@ export default function ZiiplyMobileOfferSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="DEBUG-TITLE-20260712-D"
+      data-ziiply-mobile-offer-search-card-version="DEBUG-COPY-20260712-E"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
@@ -685,7 +687,7 @@ export default function ZiiplyMobileOfferSearchCard({
                 boxShadow: "0 4px 0 #000",
               }}
             >
-              DEBUG-20260712-D · AVAA TÄSTÄ
+              DEBUG-20260712-E · AVAA TÄSTÄ
             </button>
             <div className="mt-[0.16rem] text-[0.74rem] font-extrabold text-[#5f5034]">
               {subtitle || (shownQuery ? `Gösta penkoi: ${shownQuery}` : "Tarjoukset tuoteryhmittäin")}
@@ -833,16 +835,51 @@ export default function ZiiplyMobileOfferSearchCard({
               color: "white",
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px" }}>
-              <strong style={{ fontSize: "16px" }}>TARJOUSHAKU DEBUG-20260712-D</strong>
-              <button
-                type="button"
-                onClick={() => setDebugTitleOpen20260712D(false)}
-                style={{ border: "3px solid white", background: "#fff200", color: "#000", padding: "8px 12px", fontWeight: 900 }}
-              >
-                SULJE
-              </button>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+              <strong style={{ fontSize: "16px" }}>TARJOUSHAKU DEBUG-20260712-E</strong>
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const debugText = JSON.stringify(debugPayload20260712D, null, 2);
+                    try {
+                      if (navigator.clipboard?.writeText) {
+                        await navigator.clipboard.writeText(debugText);
+                      } else {
+                        const textarea = document.createElement("textarea");
+                        textarea.value = debugText;
+                        textarea.style.position = "fixed";
+                        textarea.style.opacity = "0";
+                        document.body.appendChild(textarea);
+                        textarea.focus();
+                        textarea.select();
+                        document.execCommand("copy");
+                        document.body.removeChild(textarea);
+                      }
+                      setDebugCopyStatus20260712E("KOPIOITU");
+                    } catch {
+                      setDebugCopyStatus20260712E("KOPIOINTI EPÄONNISTUI");
+                    }
+                    window.setTimeout(() => setDebugCopyStatus20260712E(""), 2200);
+                  }}
+                  style={{ border: "3px solid white", background: "#25d366", color: "#000", padding: "8px 12px", fontWeight: 900 }}
+                >
+                  KOPIOI DEBUG
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDebugTitleOpen20260712D(false)}
+                  style={{ border: "3px solid white", background: "#fff200", color: "#000", padding: "8px 12px", fontWeight: 900 }}
+                >
+                  SULJE
+                </button>
+              </div>
             </div>
+            {debugCopyStatus20260712E ? (
+              <div style={{ marginTop: "8px", padding: "7px 9px", background: debugCopyStatus20260712E === "KOPIOITU" ? "#25d366" : "#ff4d4d", color: "#000", fontSize: "13px", fontWeight: 900, textAlign: "center" }}>
+                {debugCopyStatus20260712E}
+              </div>
+            ) : null}
             <div style={{ marginTop: "8px", fontSize: "12px", fontWeight: 800 }}>
               RAW {rawItems.length} · DEDUP {items.length} · VISIBLE {visibleItems.length}<br />
               query: {shownQuery || "-"} · filter: {shownFilter || "-"} · loading: {String(loading)}
