@@ -1,5 +1,7 @@
-// ZIIPLY_OFFER_SEARCH_SOURCES_V27_NO_VISIBLE_ET_DEBUG
-// Pohja: käyttäjän V15 strict category query.
+// ZIIPLY_OFFER_SEARCH_SOURCES_V28_ETARJOUSLEHDET_DISABLED
+// Revision: V28-ETARJOUSLEHDET-DISABLED
+// Date: 2026-07-12
+//
 // Korjaus:
 // - Prisma pidetään S-kaupat.fi-providerissa.
 // - S-marketit poistetaan S-kaupat.fi-providerilta, koska kaikki S-marketit eivät löydy s-kaupat.fi:stä.
@@ -42,7 +44,6 @@ import type {
 } from "./types";
 import { fetchKruokaOffers, type KruokaOfferProviderOptionsV10 } from "./providers/kruokaProvider";
 import { fetchSKaupatOffers, type SKaupatOfferProviderOptionsV173 } from "./providers/skaupatProvider";
-import { fetchETarjouslehdetOffers } from "./providers/etarjouslehdetProvider";
 import {
   getCachedOfferResults,
   setCachedOfferResults,
@@ -169,8 +170,9 @@ const ZIIPLY_OFFER_SOURCES = {
   },
 } satisfies Record<string, ZiiplyOfferSearchSourceConfig>;
 
-const OFFER_SEARCH_SOURCE_REVISION = "v27-no-visible-et-debug";
+const OFFER_SEARCH_SOURCE_REVISION = "v28-etarjouslehdet-disabled";
 const ENABLE_OFFER_SEARCH_CACHE = false;
+const ENABLE_ETARJOUSLEHDET_PROVIDER_V28 = false;
 const MAX_OFFER_SEARCH_RESULTS = 1000;
 const ZIIPLY_GOSTA_MASTER_QUERY_V6 = "__ziiply_all_offers__";
 
@@ -463,37 +465,13 @@ function makeETSourceDebugResultV25(title: string, detail: string): ZiiplyOfferS
   } as unknown as ZiiplyOfferSearchResult;
 }
 
-async function searchSelectedSMarketETarjouslehdetOffersV25(
-  query: string,
-  options?: ZiiplyOfferSearchSourceContextV8,
+async function searchSelectedSMarketETarjouslehdetOffersV28Disabled(
+  _query: string,
+  _options?: ZiiplyOfferSearchSourceContextV8,
 ): Promise<ZiiplyOfferSearchResult[]> {
-  const sMarketNames = getSelectedSMarketNamesV21(options);
-
-  if (sMarketNames.length === 0) {
-    return [makeETSourceDebugResultV25("ETSRC N0", "Ei S-market-nimeä sources-kontekstissa")];
-  }
-
-  const providerResults = await fetchETarjouslehdetOffers(
-    query,
-    ZIIPLY_OFFER_SOURCES.etarjouslehdet,
-    {
-      storeName: sMarketNames[0] || null,
-      stores: sMarketNames.map((storeName) => ({
-        storeName,
-        chain: "S-market",
-      })),
-    },
-  );
-
-  if (typeof console !== "undefined") {
-    console.warn("[Ziiply S-market ETarjous V27]", {
-      selectedSMarketNames: sMarketNames,
-      resultCount: providerResults.length,
-    });
-  }
-
-  // V27: debug ei saa näkyä käyttäjälle eikä sotkea Muut-kategoriaa / tuotemääriä.
-  return providerResults;
+  // V28: eTarjouslehdet on tarkoituksella kokonaan pois päältä.
+  // Tämä palauttaa aina tyhjän listan eikä kutsu provideria lainkaan.
+  return [];
 }
 
 export async function searchSKaupatOffers(
@@ -580,12 +558,15 @@ export async function searchZiiplyOffers(
       )
     : [];
 
-  const eTarjouslehdetResults = providerScopeV10.useS
-    ? await safelySearchSource(
-        isGostaMasterQuery ? "S-market eTarjouslehdet master V25" : "S-market eTarjouslehdet V25",
-        () => searchSelectedSMarketETarjouslehdetOffersV25(cleanQuery, options),
-      )
-    : [];
+  const eTarjouslehdetResults =
+    ENABLE_ETARJOUSLEHDET_PROVIDER_V28 && providerScopeV10.useS
+      ? await safelySearchSource(
+          isGostaMasterQuery
+            ? "S-market eTarjouslehdet master V28"
+            : "S-market eTarjouslehdet V28",
+          () => searchSelectedSMarketETarjouslehdetOffersV28Disabled(cleanQuery, options),
+        )
+      : [];
 
   const kResults = providerScopeV10.useK && hasSelectedKStoreV9
     ? await safelySearchSource(
