@@ -1,5 +1,13 @@
 // src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts
-// ZIIPLY_KRUOKA_PROVIDER_V40_KMARKET_FULL_RESULTS_NO_VISIBLE_DEBUG
+// ZIIPLY_KRUOKA_PROVIDER_V41_ACTIVE_OFFERS_ONLY_KSTORE_CLASS_GUARD
+//
+// V41:
+// - Palauttaa vain juuri nyt voimassa olevat tarjoukset.
+// - Vaatii oikean tarjoussignaalin: alennusprosentti, erähinta tai tarjoushinta alle aiemman hinnan.
+// - Ei palauta vanhoja/tulevia/normaalihintaisia rivejä master-haussa.
+// - Numeerinen storeId tarkistetaan kauppalistasta ja kauppatyypin pitää vastata valittua K-Market/K-Supermarket/K-Citymarket-tyyppiä.
+// - Näkyvät provider-debugkortit poistettu.
+// - Ei kovakoodattua Citymarketia eikä muutosta valitun K-kaupan logiikkaan.
 //
 // EI hae enää K-Ruoan product-mapia eikä HTML:ää.
 // Hakee K-tarjoukset ruoanhinta.fi:n backendistä valitun K-kaupan perusteella.
@@ -277,11 +285,37 @@ async function resolveRuoanHintaStoreId(options?: KruokaOfferProviderOptionsV10)
   const raw = normalizeStoreId(options);
   const selectedName = normalizeStoreName(options);
 
-  if (raw && /^\d+$/.test(raw)) {
-    return { storeId: raw, matchedStoreName: selectedName, reason: "selected id was already numeric" };
-  }
-
   const stores = await fetchRuoanHintaStores();
+
+  if (raw && /^\d+$/.test(raw)) {
+    const exactStore = stores.find((store) => String(store.id ?? "") === raw);
+    if (!exactStore) {
+      return {
+        storeId: null,
+        matchedStoreName: null,
+        reason: `Numeric Ruoanhinta storeId not found: ${raw}`,
+      };
+    }
+
+    const wantedClass = getKStoreClass(selectedName);
+    const actualClass = getKStoreClass(
+      `${exactStore.name ?? ""} ${exactStore.chain ?? ""} ${exactStore.urlSlug ?? ""}`,
+    );
+
+    if (wantedClass && actualClass && wantedClass !== actualClass) {
+      return {
+        storeId: null,
+        matchedStoreName: exactStore.name ?? null,
+        reason: `Selected ${wantedClass} but numeric storeId ${raw} resolves to ${actualClass}: ${exactStore.name ?? "unknown"}`,
+      };
+    }
+
+    return {
+      storeId: raw,
+      matchedStoreName: exactStore.name ?? selectedName,
+      reason: "numeric storeId verified against store list",
+    };
+  }
   const kStores = stores.filter((store) => normalizeStoreSearchText(store.type) === "k" || normalizeStoreSearchText(store.chain).startsWith("k"));
 
   const scored = kStores
@@ -336,6 +370,51 @@ function categoryName(offer: RuoanHintaOffer): string {
 function subCategoryName(offer: RuoanHintaOffer): string {
   const first = offer.item?.itemCategories?.[0]?.category;
   return first?.name ?? offer.item?.category ?? "Tarjoukset";
+}
+
+
+function isOfferActiveNowV41(offer: RuoanHintaOffer, nowMs = Date.now()): boolean {
+  const startsAtMs = offer.startsAt ? new Date(offer.startsAt).getTime() : Number.NEGATIVE_INFINITY;
+  const expiresAtMs = offer.expiresAt ? new Date(offer.expiresAt).getTime() : Number.NaN;
+
+  // Tarjouslistalla pitää olla päättymisaika. Muuten vanhat/normaalihintaiset rivit
+  // voivat jäädä master-hakuun pysyvästi.
+  if (!Number.isFinite(expiresAtMs)) return false;
+  if (Number.isFinite(startsAtMs) && startsAtMs > nowMs) return false;
+  if (expiresAtMs < nowMs) return false;
+
+  return true;
+}
+
+function hasRealOfferSignalV41(offer: RuoanHintaOffer): boolean {
+  const offerPrice = offer.offerPrice ?? offer.storeItem?.price ?? null;
+  const previousPrice = offer.previousPrice ?? null;
+
+  const hasDiscountPercent =
+    typeof offer.discountPercent === "number" &&
+    Number.isFinite(offer.discountPercent) &&
+    offer.discountPercent > 0;
+
+  const hasBatchOffer =
+    typeof offer.batchQuantity === "number" &&
+    offer.batchQuantity > 0 &&
+    typeof offer.batchTotalPrice === "number" &&
+    Number.isFinite(offer.batchTotalPrice) &&
+    offer.batchTotalPrice > 0;
+
+  const hasLowerOfferPrice =
+    typeof offerPrice === "number" &&
+    Number.isFinite(offerPrice) &&
+    offerPrice > 0 &&
+    typeof previousPrice === "number" &&
+    Number.isFinite(previousPrice) &&
+    previousPrice > offerPrice;
+
+  return hasDiscountPercent || hasBatchOffer || hasLowerOfferPrice;
+}
+
+function isCurrentRealOfferV41(offer: RuoanHintaOffer): boolean {
+  return isOfferActiveNowV41(offer) && hasRealOfferSignalV41(offer);
 }
 
 function matchesQuery(offer: RuoanHintaOffer, query: string): boolean {
@@ -405,6 +484,87 @@ function asDebugResult(args: {
 }
 
 
+function getRawCategoryCountsV39(offers: RuoanHintaOffer[]): Array<[string, number]> {
+  const counts = new Map<string, number>();
+  for (const offer of offers) {
+    const label = String(categoryName(offer) || "(tyhjä)").trim() || "(tyhjä)";
+    counts.set(label, (counts.get(label) || 0) + 1);
+  }
+  return Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
+}
+
+function makeVisibleProviderDebugResultV39(args: {
+  slot: number;
+  storeId: string;
+  storeName: string;
+  selectedStoreId?: string | null;
+  selectedStoreName?: string | null;
+  resolveReason?: string | null;
+  query: string;
+  rawOffers: RuoanHintaOffer[];
+  filteredOffers: RuoanHintaOffer[];
+  returnedCount: number;
+}): ZiiplyOfferSearchResult {
+  const categoryCounts = getRawCategoryCountsV39(args.filteredOffers);
+  const categorySummary = categoryCounts
+    .slice(0, 18)
+    .map(([name, count]) => `${name}=${count}`)
+    .join(" | ");
+
+  const queryLabel = String(args.query || "").trim() || "(tyhjä/master)";
+  const title = `[K DEBUG V39 ${args.slot}] ${args.storeName}`;
+  const detail =
+    `selectedId=${args.selectedStoreId || "-"} selectedName=${args.selectedStoreName || "-"} ` +
+    `resolvedId=${args.storeId} reason=${args.resolveReason || "-"} || ` +
+    `query=${queryLabel} raw=${args.rawOffers.length} filtered=${args.filteredOffers.length} returned=${args.returnedCount} || ` +
+    `rawCategories: ${categorySummary || "-"}`;
+
+  return {
+    id: `k-debug-v39-${args.storeId}-${args.slot}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    title,
+    name: title,
+    productName: title,
+    price: 0,
+    priceText: "0,00 €",
+    offerPrice: "0,00 €",
+    unitPrice: null,
+    unitPriceText: "",
+    imageUrl: null,
+    image: null,
+    pictureUrl: null,
+    storeId: args.storeId,
+    storeName: args.storeName,
+    storeLabel: args.storeName,
+    shopName: args.storeName,
+    chain: "K",
+    source: "kruoka",
+    provider: "kruoka",
+    url: "https://ruoanhinta.fi/",
+    benefitText: detail,
+    discountText: detail,
+    validityText: "DEBUG",
+    additionalInfo: detail,
+    category: "Muut",
+    categoryPath: "Muut",
+    productGroup: "Muut",
+    mainCategory: "Muut",
+    subCategory: "Muut",
+    department: "Muut",
+    breadcrumbs: "Muut",
+    hierarchy: "Muut",
+    taxonomy: "Muut",
+    matchScore: 999999,
+    debug: {
+      providerVersion: "V39_VISIBLE_PROVIDER_DEBUG_TO_MUUT",
+      rawCount: args.rawOffers.length,
+      filteredCount: args.filteredOffers.length,
+      returnedCount: args.returnedCount,
+      rawCategoryCounts: Object.fromEntries(categoryCounts),
+    },
+    isDebug: true,
+  } as unknown as ZiiplyOfferSearchResult;
+}
+
 function toOfferResult(args: {
   offer: RuoanHintaOffer;
   index: number;
@@ -453,10 +613,10 @@ function toOfferResult(args: {
     additionalInfo: offer.discountPercent != null ? `-${offer.discountPercent}%` : null,
     benefitText: isPlussa ? "Plussa-tarjous" : undefined,
     validityText: formatValidityText(offer.expiresAt),
-    category: normalizeProviderCategoryV40(offer),
+    category: categoryName(offer),
     categoryPath: item.category ?? categoryName(offer),
-    productGroup: normalizeProviderCategoryV40(offer),
-    mainCategory: normalizeProviderCategoryV40(offer),
+    productGroup: categoryName(offer),
+    mainCategory: categoryName(offer),
     subCategory: subCategoryName(offer),
     validFrom: offer.startsAt ?? null,
     validUntil: offer.expiresAt ?? null,
@@ -465,7 +625,7 @@ function toOfferResult(args: {
       ? `https://www.k-ruoka.fi/kauppa/tuote/${encodeURIComponent(item.urlSlug)}`
       : "https://ruoanhinta.fi/",
     debug: {
-      providerVersion: "V36_RUOANHINTA_MULTI_SELECTED_K_STORES",
+      providerVersion: "V41_ACTIVE_OFFERS_ONLY_KSTORE_CLASS_GUARD",
       rawOffer: offer,
       sourceApi: "https://api.ruoanhinta.fi/api/offers",
       ruoanhintaStoreId: args.storeId,
@@ -516,7 +676,7 @@ export async function fetchKruokaOffers(
   const selectedStoreOptions = getSelectedKStoreOptionsV37(options);
 
   const allResults = await Promise.all(
-    selectedStoreOptions.map(async (storeOptions) => {
+    selectedStoreOptions.map(async (storeOptions, storeIndex) => {
       const selectedStoreId = normalizeStoreId(storeOptions);
       const selectedStoreName = normalizeStoreName(storeOptions);
 
@@ -524,26 +684,24 @@ export async function fetchKruokaOffers(
         const resolved = await resolveRuoanHintaStoreId(storeOptions);
 
         if (!resolved.storeId) {
-          return [
-            asDebugResult({
-              id: `99-store-not-found-${selectedStoreId ?? selectedStoreName}`,
-              title: "[K DEBUG V36] Valittua K-kauppaa ei löytynyt Ruoanhinta-listasta",
-              detail: resolved.reason ?? `selected=${selectedStoreId ?? "NULL"}, name=${selectedStoreName}`,
-              storeId: selectedStoreId ?? null,
-              storeName: selectedStoreName,
-              debug: { options: storeOptions, resolved },
-            }),
-          ];
+          console.warn("[Ziiply K provider V41] Kauppaa ei hyväksytty", {
+            selectedStoreId,
+            selectedStoreName,
+            reason: resolved.reason,
+          });
+          return [];
         }
 
         const apiStoreId = String(resolved.storeId);
         const storeName = resolved.matchedStoreName || selectedStoreName;
         const rawOffers = await fetchRuoanHintaOffers(apiStoreId);
-        const filtered = rawOffers.filter((offer) => matchesQuery(offer, query));
-        // V40: K-Market/K-Supermarket-haussa ei leikata listaa ensimmäiseen 80
-        // tuotteeseen. Ensimmäinen 80 painottui API-järjestyksen vuoksi pakasteisiin
-        // ja makeisiin, jolloin Liha/Kala/Leipomo/Hevi katosivat kokonaan.
-        const returnedOffers = filtered.map((offer, index) =>
+
+        // V41: ensin vain juuri nyt voimassa olevat aidot tarjoukset.
+        // Master-query ei saa enää hyväksyä koko API-historiaa.
+        const currentOffers = rawOffers.filter(isCurrentRealOfferV41);
+        const filtered = currentOffers.filter((offer) => matchesQuery(offer, query));
+
+        return filtered.map((offer, index) =>
           toOfferResult({
             offer,
             index,
@@ -551,20 +709,13 @@ export async function fetchKruokaOffers(
             storeName,
           }),
         );
-
-        // Onnistuneessa haussa ei palauteta käyttäjälle näkyvää debug-tuotetta.
-        return returnedOffers;
       } catch (error) {
-        return [
-          asDebugResult({
-            id: `99-error-${selectedStoreId ?? selectedStoreName}`,
-            title: "[K DEBUG V36] Ruoanhinta API virhe",
-            detail: error instanceof Error ? error.message : String(error),
-            storeId: selectedStoreId ?? null,
-            storeName: selectedStoreName,
-            debug: { error, options: storeOptions },
-          }),
-        ];
+        console.warn("[Ziiply K provider V41] Ruoanhinta API virhe", {
+          selectedStoreId,
+          selectedStoreName,
+          error: error instanceof Error ? error.message : String(error),
+        });
+        return [];
       }
     }),
   );
