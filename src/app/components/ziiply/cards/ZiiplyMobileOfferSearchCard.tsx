@@ -1,9 +1,9 @@
 "use client";
 
 // ============================================================================
-// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_DEBUG_20260709_C
-// Revision: DEBUG-20260709-C
-// Date: 2026-07-09
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_DEBUG_PANEL_20260712_D
+// Revision: DEBUG-PANEL-20260712-D
+// Date: 2026-07-12
 //
 // TARKOITUS:
 // - Tämä on selkeästi uusi debug-versio, ei V32/V33 jatkoversio.
@@ -368,6 +368,7 @@ export default function ZiiplyMobileOfferSearchCard({
   className = "",
 }: ZiiplyMobileOfferSearchCardProps) {
   const [lastOpenedCategoryV27, setLastOpenedCategoryV27] = React.useState("");
+  const [showFullDebugV20260712D, setShowFullDebugV20260712D] = React.useState(false);
 
   React.useEffect(() => {
     if (typeof window === "undefined") return;
@@ -394,6 +395,20 @@ export default function ZiiplyMobileOfferSearchCard({
   const showLandingView = !shownQuery && !shownFilter;
   const visibleItems = showLandingView ? [] : items;
   const hasVisibleOffers = visibleItems.length > 0;
+
+  const fullDebugPayloadV20260712D = {
+    version: "DEBUG-PANEL-20260712-D",
+    open, title, subtitle, query, filter, shownQuery, shownFilter, loading, showLandingView,
+    rawItemCount: rawItems.length,
+    dedupItemCount: items.length,
+    visibleItemCount: visibleItems.length,
+    categorySuggestions,
+    categoryOfferCounts: categoryOfferCounts || {},
+    testedEmptyCategories: testedEmptyCategories || {},
+    rawItems: rawItems.slice(0, 120),
+    dedupItems: items.slice(0, 120),
+    visibleItems: visibleItems.slice(0, 120),
+  };
 
   const normalizeCategoryKey = (value: string) =>
     value
@@ -688,7 +703,7 @@ export default function ZiiplyMobileOfferSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="DEBUG-20260709-C"
+      data-ziiply-mobile-offer-search-card-version="DEBUG-PANEL-20260712-D"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
@@ -713,6 +728,34 @@ export default function ZiiplyMobileOfferSearchCard({
               ×
             </span>
           </button>
+        ) : null}
+
+        <button
+          type="button"
+          onClick={() => setShowFullDebugV20260712D((current) => !current)}
+          className="absolute left-1/2 top-[0.92rem] z-[60] -translate-x-1/2 rounded-full border-[3px] border-black bg-[#ffea00] px-4 py-2 text-[0.72rem] font-black uppercase tracking-[0.08em] text-black shadow-[0_3px_0_rgba(0,0,0,0.35)] active:translate-y-[1px]"
+          aria-label="Avaa kaikki debug-tiedot"
+          title="Avaa kaikki debug-tiedot"
+        >
+          {showFullDebugV20260712D ? "SULJE DEBUG" : "NÄYTÄ DEBUG"}
+        </button>
+
+        {showFullDebugV20260712D ? (
+          <div className="absolute inset-[0.55rem] z-[55] flex flex-col overflow-hidden rounded-[1.35rem] border-[4px] border-black bg-white shadow-[0_12px_35px_rgba(0,0,0,0.45)]">
+            <div className="flex shrink-0 items-center justify-between border-b-[3px] border-black bg-[#ffea00] px-3 py-2 pt-[3.25rem]">
+              <div className="text-[0.82rem] font-black text-black">KAIKKI DEBUG · DEBUG-PANEL-20260712-D</div>
+              <button type="button" onClick={() => setShowFullDebugV20260712D(false)} className="rounded-md border-2 border-black bg-white px-2 py-1 text-[0.68rem] font-black text-black">SULJE</button>
+            </div>
+            <div className="min-h-0 flex-1 overflow-auto bg-[#fffdf1] p-2 text-left [scrollbar-width:thin]">
+              <div className="mb-2 rounded-md border-2 border-black bg-white p-2 text-[0.66rem] font-black leading-snug text-black">
+                raw={rawItems.length} · dedup={items.length} · visible={visibleItems.length}<br />
+                query={shownQuery || "-"} · filter={shownFilter || "-"} · loading={String(loading)} · landing={String(showLandingView)}
+              </div>
+              <pre className="whitespace-pre-wrap break-words rounded-md border-2 border-black bg-white p-2 text-[0.55rem] font-bold leading-[1.25] text-black">
+                {JSON.stringify(fullDebugPayloadV20260712D, null, 2)}
+              </pre>
+            </div>
+          </div>
         ) : null}
 
         <header className="relative z-10 shrink-0 px-5 pb-1 pt-[7.7rem]">
