@@ -1,12 +1,12 @@
 "use client";
 
 // ============================================================================
-// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_DEBUG_PANEL_20260712_A
-// Revision: DEBUG-PANEL-20260712-A
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_DEBUG_VISIBLE_20260712_C
+// Revision: DEBUG-VISIBLE-20260712-C
 // Date: 2026-07-12
 //
 // - Vanha DEBUG-20260709-C poistettu kokonaan.
-// - Yksi kiinteä DEBUG-painike avaa itsenäisen debug-paneelin.
+// - Täysleveä DEBUG-painike näkyy normaalissa dokumenttivirrassa heti otsikon alla.
 // - Paneeli käyttää vain tämän komponentin jo saamia propseja ja paikallisia listoja.
 // - Ei muuta tarjoushakua, kategorioita, deduplikointia tai parent-komponenttia.
 // ============================================================================
@@ -363,7 +363,7 @@ export default function ZiiplyMobileOfferSearchCard({
   className = "",
 }: ZiiplyMobileOfferSearchCardProps) {
   const [lastOpenedCategoryV27, setLastOpenedCategoryV27] = React.useState("");
-  const [debugPanelOpen20260712A, setDebugPanelOpen20260712A] = React.useState(false);
+  const [debugPanelOpen20260712C, setDebugPanelOpen20260712C] = React.useState(false);
 
   React.useEffect(() => {
     if (typeof window === "undefined") return;
@@ -604,7 +604,7 @@ export default function ZiiplyMobileOfferSearchCard({
     });
 
   const debugPayload20260712A = {
-    revision: "DEBUG-PANEL-20260712-A",
+    revision: "DEBUG-VISIBLE-20260712-C",
     rawCount: rawItems.length,
     dedupedCount: items.length,
     visibleCount: visibleItems.length,
@@ -640,7 +640,7 @@ export default function ZiiplyMobileOfferSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="DEBUG-PANEL-20260712-A"
+      data-ziiply-mobile-offer-search-card-version="DEBUG-VISIBLE-20260712-C"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
@@ -675,6 +675,31 @@ export default function ZiiplyMobileOfferSearchCard({
             <div className="mt-[0.16rem] text-[0.74rem] font-extrabold text-[#5f5034]">
               {subtitle || (shownQuery ? `Gösta penkoi: ${shownQuery}` : "Tarjoukset tuoteryhmittäin")}
             </div>
+            <button
+              type="button"
+              onClick={() => setDebugPanelOpen20260712C(true)}
+              aria-label="Avaa tarjoushaun debug"
+              style={{
+                display: "block",
+                width: "100%",
+                marginTop: "8px",
+                padding: "10px 12px",
+                border: "4px solid #000000",
+                borderRadius: "8px",
+                background: "#fff200",
+                color: "#b00000",
+                fontSize: "15px",
+                fontWeight: 900,
+                lineHeight: 1,
+                letterSpacing: "1px",
+                textAlign: "center",
+                boxShadow: "0 4px 0 #000000",
+                position: "relative",
+                zIndex: 50,
+              }}
+            >
+              AVAA DEBUG · 20260712-C
+            </button>
           </div>
 
           {!showLandingView ? (
@@ -804,25 +829,16 @@ export default function ZiiplyMobileOfferSearchCard({
             </div>
           )}
         </main>
-        <button
-          type="button"
-          onClick={() => setDebugPanelOpen20260712A(true)}
-          className="absolute bottom-[1.05rem] right-[1.05rem] z-[80] rounded-[0.65rem] border-[3px] border-black bg-[#ff2b2b] px-3 py-2 text-[0.76rem] font-black tracking-[0.08em] text-white shadow-[0_4px_0_rgba(0,0,0,0.45)] active:translate-y-[1px]"
-          aria-label="Avaa tarjoushaun debug"
-        >
-          DEBUG
-        </button>
-
-        {debugPanelOpen20260712A ? (
+        {debugPanelOpen20260712C ? (
           <div className="absolute inset-0 z-[120] flex flex-col bg-black/95 p-3 text-white">
             <div className="flex shrink-0 items-center justify-between gap-3 border-b border-white/30 pb-2">
               <div>
                 <div className="text-[0.9rem] font-black">TARJOUSHAKU DEBUG</div>
-                <div className="text-[0.58rem] font-bold text-white/70">DEBUG-PANEL-20260712-A</div>
+                <div className="text-[0.58rem] font-bold text-white/70">DEBUG-VISIBLE-20260712-C</div>
               </div>
               <button
                 type="button"
-                onClick={() => setDebugPanelOpen20260712A(false)}
+                onClick={() => setDebugPanelOpen20260712C(false)}
                 className="rounded border-2 border-white bg-white px-3 py-1 text-[0.72rem] font-black text-black"
               >
                 SULJE
