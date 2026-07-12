@@ -398,7 +398,15 @@ export default function ZiiplyMobileOfferSearchCard({
 
   const fullDebugPayloadV20260712D = {
     version: "DEBUG-PANEL-20260712-D",
-    open, title, subtitle, query, filter, shownQuery, shownFilter, loading, showLandingView,
+    open,
+    title,
+    subtitle,
+    query,
+    filter,
+    shownQuery,
+    shownFilter,
+    loading,
+    showLandingView,
     rawItemCount: rawItems.length,
     dedupItemCount: items.length,
     visibleItemCount: visibleItems.length,
@@ -734,8 +742,6 @@ export default function ZiiplyMobileOfferSearchCard({
           type="button"
           onClick={() => setShowFullDebugV20260712D((current) => !current)}
           className="absolute left-1/2 top-[0.92rem] z-[60] -translate-x-1/2 rounded-full border-[3px] border-black bg-[#ffea00] px-4 py-2 text-[0.72rem] font-black uppercase tracking-[0.08em] text-black shadow-[0_3px_0_rgba(0,0,0,0.35)] active:translate-y-[1px]"
-          aria-label="Avaa kaikki debug-tiedot"
-          title="Avaa kaikki debug-tiedot"
         >
           {showFullDebugV20260712D ? "SULJE DEBUG" : "NÄYTÄ DEBUG"}
         </button>
@@ -743,12 +749,21 @@ export default function ZiiplyMobileOfferSearchCard({
         {showFullDebugV20260712D ? (
           <div className="absolute inset-[0.55rem] z-[55] flex flex-col overflow-hidden rounded-[1.35rem] border-[4px] border-black bg-white shadow-[0_12px_35px_rgba(0,0,0,0.45)]">
             <div className="flex shrink-0 items-center justify-between border-b-[3px] border-black bg-[#ffea00] px-3 py-2 pt-[3.25rem]">
-              <div className="text-[0.82rem] font-black text-black">KAIKKI DEBUG · DEBUG-PANEL-20260712-D</div>
-              <button type="button" onClick={() => setShowFullDebugV20260712D(false)} className="rounded-md border-2 border-black bg-white px-2 py-1 text-[0.68rem] font-black text-black">SULJE</button>
+              <div className="text-[0.82rem] font-black text-black">
+                KAIKKI DEBUG · DEBUG-PANEL-20260712-D
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowFullDebugV20260712D(false)}
+                className="rounded-md border-2 border-black bg-white px-2 py-1 text-[0.68rem] font-black text-black"
+              >
+                SULJE
+              </button>
             </div>
             <div className="min-h-0 flex-1 overflow-auto bg-[#fffdf1] p-2 text-left [scrollbar-width:thin]">
               <div className="mb-2 rounded-md border-2 border-black bg-white p-2 text-[0.66rem] font-black leading-snug text-black">
-                raw={rawItems.length} · dedup={items.length} · visible={visibleItems.length}<br />
+                raw={rawItems.length} · dedup={items.length} · visible={visibleItems.length}
+                <br />
                 query={shownQuery || "-"} · filter={shownFilter || "-"} · loading={String(loading)} · landing={String(showLandingView)}
               </div>
               <pre className="whitespace-pre-wrap break-words rounded-md border-2 border-black bg-white p-2 text-[0.55rem] font-bold leading-[1.25] text-black">
