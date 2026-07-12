@@ -1,4 +1,16 @@
 // ============================================================================
+// PAGE_V544_GOSTA_CATEGORY_COUNTS_EXACT_CARD_DEDUPE
+// Revision: V544
+// Date: 2026-07-12
+//
+// Korjaus:
+// - Poistaa virheellisen item.id -> EAN fallbackin page-tason dedupesta.
+// - Kategoriamaärät lasketaan samalla visible name + price + title root -dedupella
+//   kuin ZiiplyMobileOfferSearchCardissa.
+// - Ei muuta hakuja, providereita, kauppavalintoja, skanneria tai äänihakua.
+// ============================================================================
+
+// ============================================================================
 // PAGE_V543_EXACT_V541_BASELINE_WITH_TRUST_HEADER
 // Revision: V543
 // Date: 2026-07-06
@@ -7675,47 +7687,103 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
   }
 
-  function getGostaPageDedupeKeyV166(item: any) {
+  // V544_GOSTA_CATEGORY_COUNTS_USE_CARD_DEDUPE_EXACTLY
+  // Kategoriamaärät ja näkyvät tarjouskortit käyttävät nyt samaa dedupe-avainta.
+  // Tärkeä korjaus: item.id EI ole EAN-fallback, koska silloin jokainen rivi on aina uniikki
+  // ja page-tason categoryOfferCounts laskettiin raakatuotteista (esim. 82) vaikka kortti näytti 67.
+  function normalizeGostaCardDedupeTextV544(value: unknown) {
+    return String(value ?? "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9åäö\s-]/gi, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+  }
+
+  function getGostaCardVisibleNameV544(item: any) {
     const source = item?.__sourceOfferSearchResult || item;
-    const ean = normalize(
-      String(source?.ean || source?.gtin || source?.barcode || item?.ean || item?.id || ""),
-    );
+    return String(
+      item?.name ||
+        item?.title ||
+        item?.productName ||
+        source?.name ||
+        source?.title ||
+        source?.productName ||
+        "",
+    ).trim();
+  }
 
-    if (ean) return `ean:${ean}`;
+  function getGostaCardTitleRootV544(item: any) {
+    const stopWords = new Set([
+      "snellman", "snellmanin", "atria", "hk", "kotimaista", "pirkka",
+      "rainbow", "xtra", "coop", "nopea", "ohut", "murea", "suikale",
+      "pala", "viipale", "marinoitu", "maustettu", "grilli", "grillattu",
+      "pakkaus", "rasia", "tuore", "tuotettu", "suomi", "suomalainen",
+      "kg", "g",
+    ]);
 
-    const title = normalize(
-      String(item?.title || item?.name || item?.productName || source?.title || source?.name || ""),
-    )
+    const normalized = normalizeGostaCardDedupeTextV544(getGostaCardVisibleNameV544(item))
       .replace(/\b\d+[,.]?\d*\s*(g|kg|ml|l|kpl|pkt|ps|plo|prk)\b/g, " ")
       .replace(/\b\d+\s*x\s*\d+\b/g, " ")
       .replace(/\s+/g, " ")
       .trim();
 
-    const compactTitle = title
+    return normalized
       .split(/\s+/)
-      .filter((word) => word.length > 1)
-      .slice(0, 4)
+      .filter((word) => word.length > 2 && !stopWords.has(word))
+      .slice(0, 2)
       .join(" ");
+  }
 
-    const price = normalize(String(item?.offerPrice || item?.price || source?.priceText || ""));
-    const store = normalize(String(item?.storeName || item?.storeLabel || source?.storeLabel || ""));
+  function getGostaPageDedupeKeyV544(item: any) {
+    const source = item?.__sourceOfferSearchResult || item;
+    const ean = normalizeGostaCardDedupeTextV544(
+      source?.ean || source?.gtin || source?.barcode || item?.ean || "",
+    );
 
-    return compactTitle ? `title4:${compactTitle}|price:${price}|store:${store}` : "";
+    if (ean) return `ean:${ean}`;
+
+    const visibleName = normalizeGostaCardDedupeTextV544(getGostaCardVisibleNameV544(item))
+      .replace(/\b\d+[,.]?\d*\s*(g|kg|ml|l|kpl|pkt|ps|plo|prk)\b/g, " ")
+      .replace(/\b\d+\s*x\s*\d+\b/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    const visiblePrice = normalizeGostaCardDedupeTextV544(
+      item?.offerPrice ?? item?.price ?? source?.priceText ?? "",
+    );
+
+    if (visibleName && visiblePrice) return `visible:${visibleName}|${visiblePrice}`;
+
+    const root = getGostaCardTitleRootV544(item);
+    return root ? `root:${root}` : "";
   }
 
   function dedupeGostaCardItemsV166<T extends any>(items: T[]) {
     const seen = new Set<string>();
+    const seenRoots = new Set<string>();
     const unique: T[] = [];
 
     for (const item of items) {
-      const key = getGostaPageDedupeKeyV166(item);
-      if (!key || seen.has(key)) continue;
-      seen.add(key);
+      const key = getGostaPageDedupeKeyV544(item);
+      const root = getGostaCardTitleRootV544(item);
+      const source = (item as any)?.__sourceOfferSearchResult || item;
+      const price = normalizeGostaCardDedupeTextV544(
+        (item as any)?.offerPrice ?? (item as any)?.price ?? source?.priceText ?? "",
+      );
+      const rootKey = root && price ? `${root}|${price}` : "";
+
+      if ((key && seen.has(key)) || (rootKey && seenRoots.has(rootKey))) continue;
+
+      if (key) seen.add(key);
+      if (rootKey) seenRoots.add(rootKey);
       unique.push(item);
     }
 
     return unique;
   }
+
 
   const filteredOffers = useMemo<ZiiplyOffer[]>(() => {
     // V28: vanha tarjoushakumoottori ei enää tuota osumia page-rungossa.
