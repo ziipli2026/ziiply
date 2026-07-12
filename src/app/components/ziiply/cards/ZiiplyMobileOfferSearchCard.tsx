@@ -1,4 +1,4 @@
-asda"use client";
+"use client";
 
 // ============================================================================
 // ZIIPLY_MOBILE_OFFER_SEARCH_CARD_DEBUG_PANEL_20260712_A
