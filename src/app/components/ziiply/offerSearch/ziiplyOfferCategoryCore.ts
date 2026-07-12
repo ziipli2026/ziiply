@@ -1,6 +1,6 @@
 // ============================================================================
-// ZIIPLY_OFFER_CATEGORY_CORE_V161_STRICT_S_FOOD_CATEGORY_FIX
-// Revision: V161
+// ZIIPLY_OFFER_CATEGORY_CORE_V162_PROVIDER_CATEGORY_FIRST
+// Revision: V162
 // Date: 2026-07-04
 //
 // Muutokset:
@@ -278,7 +278,54 @@ function getStrictGostaCategoryOverrideV157(item: ZiiplyGostaOfferLike): string 
   return "";
 }
 
+
+const TRUSTED_PROVIDER_CATEGORY_LABELS_V162 = new Map<string, string>([
+  ["kahvi", "Kahvi"],
+  ["maitotuotteet", "Maitotuotteet"],
+  ["liha", "Liha"],
+  ["kala", "Kala"],
+  ["leipomo", "Leipomo"],
+  ["hevi", "Hevi"],
+  ["juomat", "Juomat"],
+  ["pakasteet", "Pakasteet"],
+  ["valmisruoka", "Valmisruoka"],
+  ["kuivatuotteet", "Kuivatuotteet"],
+  ["makeiset", "Makeiset & keksit"],
+  ["makeiset ja keksit", "Makeiset & keksit"],
+  ["makeiset keksit", "Makeiset & keksit"],
+  ["lemmikit", "Lemmikit"],
+  ["koti", "Koti"],
+  ["muut", "Muut"],
+]);
+
+function getTrustedProviderCategoryV162(item: ZiiplyGostaOfferLike): string {
+  const providerCategoryValues = [
+    item?.category,
+    item?.mainCategory,
+    item?.productGroup,
+    item?.department,
+  ];
+
+  for (const value of providerCategoryValues) {
+    const normalized = normalizeGostaText(value)
+      .replace(/\bja\b/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    const trusted = TRUSTED_PROVIDER_CATEGORY_LABELS_V162.get(normalized);
+    if (trusted) return trusted;
+  }
+
+  return "";
+}
+
 export function getOfferCategoryV106(item: ZiiplyGostaOfferLike) {
+  // V162: trust an explicit normalized provider category before any title regex.
+  // This prevents products such as "Nordqvist Jäätee" from changing
+  // from provider category Juomat to Kahvi merely because the title contains "tee".
+  const trustedProviderCategoryV162 = getTrustedProviderCategoryV162(item);
+  if (trustedProviderCategoryV162) return trustedProviderCategoryV162;
+
   const strictOverrideV157 = getStrictGostaCategoryOverrideV157(item);
   if (strictOverrideV157) return strictOverrideV157;
 
