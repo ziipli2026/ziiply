@@ -1,14 +1,10 @@
 "use client";
 
 // ============================================================================
-// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_DEBUG_VISIBLE_20260712_C
-// Revision: DEBUG-VISIBLE-20260712-C
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_DEBUG_TITLE_20260712_D
+// Revision: DEBUG-TITLE-20260712-D
 // Date: 2026-07-12
-//
-// - Vanha DEBUG-20260709-C poistettu kokonaan.
-// - Täysleveä DEBUG-painike näkyy normaalissa dokumenttivirrassa heti otsikon alla.
-// - Paneeli käyttää vain tämän komponentin jo saamia propseja ja paikallisia listoja.
-// - Ei muuta tarjoushakua, kategorioita, deduplikointia tai parent-komponenttia.
+// Debug avataan suoraan aina näkyvästä Tarjoushaku-otsikosta.
 // ============================================================================
 
 // ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V2_GOSTA_FILTER_AND_CATEGORIES
@@ -363,7 +359,7 @@ export default function ZiiplyMobileOfferSearchCard({
   className = "",
 }: ZiiplyMobileOfferSearchCardProps) {
   const [lastOpenedCategoryV27, setLastOpenedCategoryV27] = React.useState("");
-  const [debugPanelOpen20260712C, setDebugPanelOpen20260712C] = React.useState(false);
+  const [debugTitleOpen20260712D, setDebugTitleOpen20260712D] = React.useState(false);
 
   React.useEffect(() => {
     if (typeof window === "undefined") return;
@@ -603,8 +599,8 @@ export default function ZiiplyMobileOfferSearchCard({
       );
     });
 
-  const debugPayload20260712A = {
-    revision: "DEBUG-VISIBLE-20260712-C",
+  const debugPayload20260712D = {
+    revision: "DEBUG-TITLE-20260712-D",
     rawCount: rawItems.length,
     dedupedCount: items.length,
     visibleCount: visibleItems.length,
@@ -640,7 +636,7 @@ export default function ZiiplyMobileOfferSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="DEBUG-VISIBLE-20260712-C"
+      data-ziiply-mobile-offer-search-card-version="DEBUG-TITLE-20260712-D"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
@@ -669,37 +665,32 @@ export default function ZiiplyMobileOfferSearchCard({
 
         <header className="relative z-10 shrink-0 px-5 pb-1 pt-[7.7rem]">
           <div className="pl-[3.15rem] pr-[2.20rem]">
-            <div className="text-[1.42rem] font-black italic leading-none text-[#28402a] drop-shadow-[0_1px_0_rgba(255,247,211,0.62)]" style={{ fontFamily: cooperFont }}>
-              {title}
-            </div>
-            <div className="mt-[0.16rem] text-[0.74rem] font-extrabold text-[#5f5034]">
-              {subtitle || (shownQuery ? `Gösta penkoi: ${shownQuery}` : "Tarjoukset tuoteryhmittäin")}
-            </div>
             <button
               type="button"
-              onClick={() => setDebugPanelOpen20260712C(true)}
+              onClick={() => setDebugTitleOpen20260712D(true)}
               aria-label="Avaa tarjoushaun debug"
               style={{
                 display: "block",
                 width: "100%",
-                marginTop: "8px",
-                padding: "10px 12px",
-                border: "4px solid #000000",
+                padding: "8px 10px",
+                border: "4px solid #000",
                 borderRadius: "8px",
                 background: "#fff200",
                 color: "#b00000",
-                fontSize: "15px",
+                fontFamily: cooperFont,
+                fontSize: "18px",
                 fontWeight: 900,
-                lineHeight: 1,
-                letterSpacing: "1px",
+                lineHeight: 1.05,
                 textAlign: "center",
-                boxShadow: "0 4px 0 #000000",
-                position: "relative",
-                zIndex: 50,
+                boxShadow: "0 4px 0 #000",
               }}
             >
-              AVAA DEBUG · 20260712-C
+              DEBUG-20260712-D · AVAA TÄSTÄ
             </button>
+            <div className="mt-[0.16rem] text-[0.74rem] font-extrabold text-[#5f5034]">
+              {subtitle || (shownQuery ? `Gösta penkoi: ${shownQuery}` : "Tarjoukset tuoteryhmittäin")}
+            </div>
+
           </div>
 
           {!showLandingView ? (
@@ -829,37 +820,35 @@ export default function ZiiplyMobileOfferSearchCard({
             </div>
           )}
         </main>
-        {debugPanelOpen20260712C ? (
-          <div className="absolute inset-0 z-[120] flex flex-col bg-black/95 p-3 text-white">
-            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-white/30 pb-2">
-              <div>
-                <div className="text-[0.9rem] font-black">TARJOUSHAKU DEBUG</div>
-                <div className="text-[0.58rem] font-bold text-white/70">DEBUG-VISIBLE-20260712-C</div>
-              </div>
+        {debugTitleOpen20260712D ? (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              zIndex: 9999,
+              display: "flex",
+              flexDirection: "column",
+              padding: "12px",
+              background: "rgba(0,0,0,0.97)",
+              color: "white",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px" }}>
+              <strong style={{ fontSize: "16px" }}>TARJOUSHAKU DEBUG-20260712-D</strong>
               <button
                 type="button"
-                onClick={() => setDebugPanelOpen20260712C(false)}
-                className="rounded border-2 border-white bg-white px-3 py-1 text-[0.72rem] font-black text-black"
+                onClick={() => setDebugTitleOpen20260712D(false)}
+                style={{ border: "3px solid white", background: "#fff200", color: "#000", padding: "8px 12px", fontWeight: 900 }}
               >
                 SULJE
               </button>
             </div>
-
-            <div className="mt-2 grid shrink-0 grid-cols-3 gap-1 text-center text-[0.62rem] font-black">
-              <div className="rounded border border-white/40 p-1">RAW<br />{rawItems.length}</div>
-              <div className="rounded border border-white/40 p-1">DEDUP<br />{items.length}</div>
-              <div className="rounded border border-white/40 p-1">VISIBLE<br />{visibleItems.length}</div>
+            <div style={{ marginTop: "8px", fontSize: "12px", fontWeight: 800 }}>
+              RAW {rawItems.length} · DEDUP {items.length} · VISIBLE {visibleItems.length}<br />
+              query: {shownQuery || "-"} · filter: {shownFilter || "-"} · loading: {String(loading)}
             </div>
-
-            <div className="mt-2 shrink-0 rounded border border-white/30 p-2 text-[0.62rem] font-bold leading-snug">
-              query: {shownQuery || "-"}<br />
-              filter: {shownFilter || "-"}<br />
-              landing: {String(showLandingView)} · loading: {String(loading)}<br />
-              category map keys: {Object.keys(categoryOfferCounts || {}).length} · tested empty keys: {Object.keys(testedEmptyCategories || {}).length}
-            </div>
-
-            <pre className="mt-2 min-h-0 flex-1 overflow-auto whitespace-pre-wrap break-all rounded border border-white/30 bg-[#101010] p-2 text-[0.56rem] leading-snug text-[#7dff7d]">
-              {JSON.stringify(debugPayload20260712A, null, 2)}
+            <pre style={{ flex: 1, minHeight: 0, overflow: "auto", marginTop: "8px", padding: "8px", border: "1px solid #fff", background: "#111", color: "#7dff7d", fontSize: "9px", whiteSpace: "pre-wrap", wordBreak: "break-all" }}>
+              {JSON.stringify(debugPayload20260712D, null, 2)}
             </pre>
           </div>
         ) : null}
