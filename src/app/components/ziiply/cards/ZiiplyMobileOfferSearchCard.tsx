@@ -1,19 +1,14 @@
 "use client";
 
 // ============================================================================
-// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_DEBUG_PANEL_20260712_D
-// Revision: DEBUG-PANEL-20260712-D
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_DEBUG_PANEL_20260712_A
+// Revision: DEBUG-PANEL-20260712-A
 // Date: 2026-07-12
 //
-// TARKOITUS:
-// - Tämä on selkeästi uusi debug-versio, ei V32/V33 jatkoversio.
-// - Näyttää tarjoushakukortin sisällä varmasti tekstin:
-//   "DEBUG-20260709-C RUNNING"
-// - Näyttää kategoriapainikkeissa sekä MAP- että VISIBLE-määrän:
-//   M = categoryOfferCounts-mapista tuleva määrä
-//   V = kortille tulleesta dedupatusta items-listasta laskettu määrä
-// - Ei muuta providereita, page.tsx:ää, hakulogiikkaa, kategorioita,
-//   tuotteiden järjestystä, kuvia, hintoja, GPS:ää, skanneria eikä äänihakua.
+// - Vanha DEBUG-20260709-C poistettu kokonaan.
+// - Yksi kiinteä DEBUG-painike avaa itsenäisen debug-paneelin.
+// - Paneeli käyttää vain tämän komponentin jo saamia propseja ja paikallisia listoja.
+// - Ei muuta tarjoushakua, kategorioita, deduplikointia tai parent-komponenttia.
 // ============================================================================
 
 // ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V2_GOSTA_FILTER_AND_CATEGORIES
@@ -368,7 +363,7 @@ export default function ZiiplyMobileOfferSearchCard({
   className = "",
 }: ZiiplyMobileOfferSearchCardProps) {
   const [lastOpenedCategoryV27, setLastOpenedCategoryV27] = React.useState("");
-  const [showFullDebugV20260712D, setShowFullDebugV20260712D] = React.useState(false);
+  const [debugPanelOpen20260712A, setDebugPanelOpen20260712A] = React.useState(false);
 
   React.useEffect(() => {
     if (typeof window === "undefined") return;
@@ -395,28 +390,6 @@ export default function ZiiplyMobileOfferSearchCard({
   const showLandingView = !shownQuery && !shownFilter;
   const visibleItems = showLandingView ? [] : items;
   const hasVisibleOffers = visibleItems.length > 0;
-
-  const fullDebugPayloadV20260712D = {
-    version: "DEBUG-PANEL-20260712-D",
-    open,
-    title,
-    subtitle,
-    query,
-    filter,
-    shownQuery,
-    shownFilter,
-    loading,
-    showLandingView,
-    rawItemCount: rawItems.length,
-    dedupItemCount: items.length,
-    visibleItemCount: visibleItems.length,
-    categorySuggestions,
-    categoryOfferCounts: categoryOfferCounts || {},
-    testedEmptyCategories: testedEmptyCategories || {},
-    rawItems: rawItems.slice(0, 120),
-    dedupItems: items.slice(0, 120),
-    visibleItems: visibleItems.slice(0, 120),
-  };
 
   const normalizeCategoryKey = (value: string) =>
     value
@@ -592,72 +565,10 @@ export default function ZiiplyMobileOfferSearchCard({
     }).length;
   };
 
-  const getExactVisibleCategoryCountDebug20260709A = (category: string) => {
-    const wanted = normalizeCategoryKey(category);
-    if (!wanted) return 0;
-
-    return items.filter((item) => {
-      const offerCategory = normalizeCategoryKey(String(item.category || ""));
-      return offerCategory === wanted;
-    }).length;
-  };
-
-  const getMapCategoryCountDebug20260709A = (category: string) => {
-    const mapCount = getCategoryCountWithAliases(category);
-    return typeof mapCount === "number" ? mapCount : 0;
-  };
-
   const getCategoryButtonLabelV32 = (category: string) => {
     const count = getVisibleCategoryCountV32(category);
-    const mapCount = getMapCategoryCountDebug20260709A(category);
-    const visibleCount = getExactVisibleCategoryCountDebug20260709A(category);
-
-    return `${getCategoryIcon(category)} ${category}${count > 0 ? ` (${count})` : ""} · M:${mapCount} V:${visibleCount}`;
+    return `${getCategoryIcon(category)} ${category}${count > 0 ? ` (${count})` : ""}`;
   };
-
-  const debugCategoryRows20260709C = categoryPool.slice(0, 20).map((cat) => {
-    const mapCount = getMapCategoryCountDebug20260709A(cat);
-    const exactVisible = getExactVisibleCategoryCountDebug20260709A(cat);
-    const aliasVisible = getVisibleCategoryCountV32(cat);
-    return `${cat}: M${mapCount}/V${exactVisible}/A${aliasVisible}`;
-  });
-
-  const debugMapKeys20260709C = Object.keys(categoryOfferCounts || {}).slice(0, 18);
-  const debugTestedKeys20260709C = Object.entries(testedEmptyCategories || {})
-    .filter(([, value]) => value === true)
-    .map(([key]) => key)
-    .slice(0, 12);
-
-  const DebugUnderCategories20260709C = ({ compact = false }: { compact?: boolean }) => (
-    <>
-      <div className={cx(
-        "col-span-2 rounded-[0.72rem] border-[2px] border-[#b00000] bg-[#fff200] px-2 py-2 text-left font-black leading-tight text-[#850000] shadow-[0_2px_0_rgba(91,72,44,0.18)]",
-        compact ? "min-w-[18rem] text-[0.55rem]" : "text-[0.58rem]",
-      )}>
-        DEBUG-20260709-C · KORTTI AJOSSA · raw:{rawItems.length} dedup:{items.length} visible:{visibleItems.length}
-        <br />
-        query:{shownQuery || "-"} · filter:{shownFilter || "-"} · landing:{String(showLandingView)} · loading:{String(loading)}
-        <br />
-        cats:{categoryPool.length} · visibleCats:{visibleCategorySuggestions.length} · mapKeys:{debugMapKeys20260709C.length}
-      </div>
-      <div className={cx(
-        "col-span-2 rounded-[0.72rem] border-[2px] border-[#b00000] bg-[#fff7a8] px-2 py-2 text-left font-black leading-tight text-[#850000] shadow-[0_2px_0_rgba(91,72,44,0.18)]",
-        compact ? "min-w-[18rem] text-[0.55rem]" : "text-[0.58rem]",
-      )}>
-        M=categoryOfferCounts · V=tarkka items.category · A=alias/laskettu näkyvä
-        <br />
-        {debugCategoryRows20260709C.join(" | ")}
-      </div>
-      <div className={cx(
-        "col-span-2 rounded-[0.72rem] border-[2px] border-[#b00000] bg-[#fffbd1] px-2 py-2 text-left font-black leading-tight text-[#850000] shadow-[0_2px_0_rgba(91,72,44,0.18)]",
-        compact ? "min-w-[18rem] text-[0.55rem]" : "text-[0.58rem]",
-      )}>
-        map keys: {debugMapKeys20260709C.join(" | ") || "-"}
-        <br />
-        tested empty: {debugTestedKeys20260709C.join(" | ") || "-"}
-      </div>
-    </>
-  );
 
   const isLastOpenedCategoryV27 = (category: string) =>
     normalizeCategoryKey(category) === normalizeCategoryKey(lastOpenedCategoryV27);
@@ -692,6 +603,24 @@ export default function ZiiplyMobileOfferSearchCard({
       );
     });
 
+  const debugPayload20260712A = {
+    revision: "DEBUG-PANEL-20260712-A",
+    rawCount: rawItems.length,
+    dedupedCount: items.length,
+    visibleCount: visibleItems.length,
+    query: shownQuery,
+    filter: shownFilter,
+    landingView: showLandingView,
+    loading,
+    categorySuggestions: categoryPool,
+    visibleCategories: visibleCategorySuggestions,
+    categoryOfferCounts: categoryOfferCounts || {},
+    testedEmptyCategories: testedEmptyCategories || {},
+    rawItems,
+    dedupedItems: items,
+    visibleItems,
+  };
+
   const goToLandingView = () => {
     // V27: paluu tuoteryhmälistaan ei saa käynnistää uutta master-hakua eikä tyhjentää
     // jo ladattuja tarjousmääriä. Page säilyttää offerSearchResults-välimuistin.
@@ -711,7 +640,7 @@ export default function ZiiplyMobileOfferSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="DEBUG-PANEL-20260712-D"
+      data-ziiply-mobile-offer-search-card-version="DEBUG-PANEL-20260712-A"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
@@ -738,41 +667,6 @@ export default function ZiiplyMobileOfferSearchCard({
           </button>
         ) : null}
 
-        <button
-          type="button"
-          onClick={() => setShowFullDebugV20260712D((current) => !current)}
-          className="absolute left-1/2 top-[0.92rem] z-[60] -translate-x-1/2 rounded-full border-[3px] border-black bg-[#ffea00] px-4 py-2 text-[0.72rem] font-black uppercase tracking-[0.08em] text-black shadow-[0_3px_0_rgba(0,0,0,0.35)] active:translate-y-[1px]"
-        >
-          {showFullDebugV20260712D ? "SULJE DEBUG" : "NÄYTÄ DEBUG"}
-        </button>
-
-        {showFullDebugV20260712D ? (
-          <div className="absolute inset-[0.55rem] z-[55] flex flex-col overflow-hidden rounded-[1.35rem] border-[4px] border-black bg-white shadow-[0_12px_35px_rgba(0,0,0,0.45)]">
-            <div className="flex shrink-0 items-center justify-between border-b-[3px] border-black bg-[#ffea00] px-3 py-2 pt-[3.25rem]">
-              <div className="text-[0.82rem] font-black text-black">
-                KAIKKI DEBUG · DEBUG-PANEL-20260712-D
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowFullDebugV20260712D(false)}
-                className="rounded-md border-2 border-black bg-white px-2 py-1 text-[0.68rem] font-black text-black"
-              >
-                SULJE
-              </button>
-            </div>
-            <div className="min-h-0 flex-1 overflow-auto bg-[#fffdf1] p-2 text-left [scrollbar-width:thin]">
-              <div className="mb-2 rounded-md border-2 border-black bg-white p-2 text-[0.66rem] font-black leading-snug text-black">
-                raw={rawItems.length} · dedup={items.length} · visible={visibleItems.length}
-                <br />
-                query={shownQuery || "-"} · filter={shownFilter || "-"} · loading={String(loading)} · landing={String(showLandingView)}
-              </div>
-              <pre className="whitespace-pre-wrap break-words rounded-md border-2 border-black bg-white p-2 text-[0.55rem] font-bold leading-[1.25] text-black">
-                {JSON.stringify(fullDebugPayloadV20260712D, null, 2)}
-              </pre>
-            </div>
-          </div>
-        ) : null}
-
         <header className="relative z-10 shrink-0 px-5 pb-1 pt-[7.7rem]">
           <div className="pl-[3.15rem] pr-[2.20rem]">
             <div className="text-[1.42rem] font-black italic leading-none text-[#28402a] drop-shadow-[0_1px_0_rgba(255,247,211,0.62)]" style={{ fontFamily: cooperFont }}>
@@ -780,11 +674,6 @@ export default function ZiiplyMobileOfferSearchCard({
             </div>
             <div className="mt-[0.16rem] text-[0.74rem] font-extrabold text-[#5f5034]">
               {subtitle || (shownQuery ? `Gösta penkoi: ${shownQuery}` : "Tarjoukset tuoteryhmittäin")}
-            </div>
-            <div className="mt-1 rounded-[0.48rem] border-2 border-[#b00000] bg-[#fff200] px-2 py-1 text-[0.58rem] font-black leading-tight text-[#850000]">
-              DEBUG-20260709-C RUNNING · raw:{rawItems.length} dedup:{items.length} filter:{shownFilter || "-"}
-              <br />
-              {categoryPool.slice(0, 14).map((cat) => `${cat}=M${getMapCategoryCountDebug20260709A(cat)}/V${getExactVisibleCategoryCountDebug20260709A(cat)}`).join(" | ")}
             </div>
           </div>
 
@@ -817,9 +706,6 @@ export default function ZiiplyMobileOfferSearchCard({
                     </button>
                   );
                 })}
-                <div className="flex shrink-0 flex-col gap-1.5">
-                  <DebugUnderCategories20260709C compact />
-                </div>
               </div>
             </div>
           ) : null}
@@ -859,7 +745,6 @@ export default function ZiiplyMobileOfferSearchCard({
                       {getCategoryButtonLabelV32(category)}
                     </button>
                   ))}
-                  <DebugUnderCategories20260709C />
                 </div>
               ) : (
                 <div className="mt-3 rounded-[0.8rem] border border-dashed border-[#9a7a3d] bg-[#fff8d9] px-3 py-3 text-[0.72rem] font-extrabold leading-snug text-[#6d5d3f]">
@@ -919,6 +804,50 @@ export default function ZiiplyMobileOfferSearchCard({
             </div>
           )}
         </main>
+        <button
+          type="button"
+          onClick={() => setDebugPanelOpen20260712A(true)}
+          className="absolute bottom-[1.05rem] right-[1.05rem] z-[80] rounded-[0.65rem] border-[3px] border-black bg-[#ff2b2b] px-3 py-2 text-[0.76rem] font-black tracking-[0.08em] text-white shadow-[0_4px_0_rgba(0,0,0,0.45)] active:translate-y-[1px]"
+          aria-label="Avaa tarjoushaun debug"
+        >
+          DEBUG
+        </button>
+
+        {debugPanelOpen20260712A ? (
+          <div className="absolute inset-0 z-[120] flex flex-col bg-black/95 p-3 text-white">
+            <div className="flex shrink-0 items-center justify-between gap-3 border-b border-white/30 pb-2">
+              <div>
+                <div className="text-[0.9rem] font-black">TARJOUSHAKU DEBUG</div>
+                <div className="text-[0.58rem] font-bold text-white/70">DEBUG-PANEL-20260712-A</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDebugPanelOpen20260712A(false)}
+                className="rounded border-2 border-white bg-white px-3 py-1 text-[0.72rem] font-black text-black"
+              >
+                SULJE
+              </button>
+            </div>
+
+            <div className="mt-2 grid shrink-0 grid-cols-3 gap-1 text-center text-[0.62rem] font-black">
+              <div className="rounded border border-white/40 p-1">RAW<br />{rawItems.length}</div>
+              <div className="rounded border border-white/40 p-1">DEDUP<br />{items.length}</div>
+              <div className="rounded border border-white/40 p-1">VISIBLE<br />{visibleItems.length}</div>
+            </div>
+
+            <div className="mt-2 shrink-0 rounded border border-white/30 p-2 text-[0.62rem] font-bold leading-snug">
+              query: {shownQuery || "-"}<br />
+              filter: {shownFilter || "-"}<br />
+              landing: {String(showLandingView)} · loading: {String(loading)}<br />
+              category map keys: {Object.keys(categoryOfferCounts || {}).length} · tested empty keys: {Object.keys(testedEmptyCategories || {}).length}
+            </div>
+
+            <pre className="mt-2 min-h-0 flex-1 overflow-auto whitespace-pre-wrap break-all rounded border border-white/30 bg-[#101010] p-2 text-[0.56rem] leading-snug text-[#7dff7d]">
+              {JSON.stringify(debugPayload20260712A, null, 2)}
+            </pre>
+          </div>
+        ) : null}
+
         {/* V7: internal footer buttons removed. Browser/back controls and category buttons handle navigation. */}
 
         <div className="pointer-events-none absolute -bottom-[0.72rem] left-[1.1rem] right-[1.1rem] h-[1.3rem] rounded-[50%] bg-[#cfaa61] opacity-55 blur-[1px]" />
