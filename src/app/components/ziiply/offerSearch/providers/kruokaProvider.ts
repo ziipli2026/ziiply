@@ -1,5 +1,5 @@
 // src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts
-// ZIIPLY_KRUOKA_PROVIDER_V38_RUOANHINTA_DATE_YEAR_SELECTED_STORES
+// ZIIPLY_KRUOKA_PROVIDER_V39_VISIBLE_PROVIDER_DEBUG_TO_MUUT
 //
 // EI hae enää K-Ruoan product-mapia eikä HTML:ää.
 // Hakee K-tarjoukset ruoanhinta.fi:n backendistä valitun K-kaupan perusteella.
@@ -12,6 +12,11 @@
 // - voimassaoloaika muotoillaan muodossa "Voimassa 5.7." eikä ISO-aikaleimana
 // - debug-kortteja ei palauteta normaalissa onnistuneessa haussa
 // - tukee useaa valittua K-kauppaa muodossa kStoreId/kStoreName = "id1||id2" / "nimi1||nimi2"
+// V39 DEBUG:
+// - Lisää näkyvän provider-debugkortin kategoriaksi "Muut" jokaiselle valitulle K-kaupalle.
+// - Debug kirjoitetaan benefitText/discountText-kenttiin samalla toimivalla periaatteella kuin aiemmassa provider-debugissa.
+// - Näyttää valitun ja ratkaistun kaupan, queryn, raw/filtered/returned-määrät sekä raakakategoriat.
+// - Ei muuta varsinaista K-tarjoushakua, tuotteita, hintoja, kuvia tai kauppavalintaa.
 
 import type {
   ZiiplyOfferSearchResult,
@@ -381,7 +386,103 @@ function asDebugResult(args: {
     source: "kruoka",
     provider: "kruoka",
     url: "https://ruoanhinta.fi/",
+    benefitText: args.detail ?? args.title,
+    discountText: args.detail ?? args.title,
+    validityText: "DEBUG",
+    category: "Muut",
+    categoryPath: "Muut",
+    productGroup: "Muut",
+    mainCategory: "Muut",
+    subCategory: "Muut",
+    department: "Muut",
+    breadcrumbs: "Muut",
+    hierarchy: "Muut",
+    taxonomy: "Muut",
+    matchScore: 999999,
     debug: args.debug ?? null,
+    isDebug: true,
+  } as unknown as ZiiplyOfferSearchResult;
+}
+
+
+function getRawCategoryCountsV39(offers: RuoanHintaOffer[]): Array<[string, number]> {
+  const counts = new Map<string, number>();
+  for (const offer of offers) {
+    const label = String(categoryName(offer) || "(tyhjä)").trim() || "(tyhjä)";
+    counts.set(label, (counts.get(label) || 0) + 1);
+  }
+  return Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
+}
+
+function makeVisibleProviderDebugResultV39(args: {
+  slot: number;
+  storeId: string;
+  storeName: string;
+  selectedStoreId?: string | null;
+  selectedStoreName?: string | null;
+  resolveReason?: string | null;
+  query: string;
+  rawOffers: RuoanHintaOffer[];
+  filteredOffers: RuoanHintaOffer[];
+  returnedCount: number;
+}): ZiiplyOfferSearchResult {
+  const categoryCounts = getRawCategoryCountsV39(args.filteredOffers);
+  const categorySummary = categoryCounts
+    .slice(0, 18)
+    .map(([name, count]) => `${name}=${count}`)
+    .join(" | ");
+
+  const queryLabel = String(args.query || "").trim() || "(tyhjä/master)";
+  const title = `[K DEBUG V39 ${args.slot}] ${args.storeName}`;
+  const detail =
+    `selectedId=${args.selectedStoreId || "-"} selectedName=${args.selectedStoreName || "-"} ` +
+    `resolvedId=${args.storeId} reason=${args.resolveReason || "-"} || ` +
+    `query=${queryLabel} raw=${args.rawOffers.length} filtered=${args.filteredOffers.length} returned=${args.returnedCount} || ` +
+    `rawCategories: ${categorySummary || "-"}`;
+
+  return {
+    id: `k-debug-v39-${args.storeId}-${args.slot}-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    title,
+    name: title,
+    productName: title,
+    price: 0,
+    priceText: "0,00 €",
+    offerPrice: "0,00 €",
+    unitPrice: null,
+    unitPriceText: "",
+    imageUrl: null,
+    image: null,
+    pictureUrl: null,
+    storeId: args.storeId,
+    storeName: args.storeName,
+    storeLabel: args.storeName,
+    shopName: args.storeName,
+    chain: "K",
+    source: "kruoka",
+    provider: "kruoka",
+    url: "https://ruoanhinta.fi/",
+    benefitText: detail,
+    discountText: detail,
+    validityText: "DEBUG",
+    additionalInfo: detail,
+    category: "Muut",
+    categoryPath: "Muut",
+    productGroup: "Muut",
+    mainCategory: "Muut",
+    subCategory: "Muut",
+    department: "Muut",
+    breadcrumbs: "Muut",
+    hierarchy: "Muut",
+    taxonomy: "Muut",
+    matchScore: 999999,
+    debug: {
+      providerVersion: "V39_VISIBLE_PROVIDER_DEBUG_TO_MUUT",
+      rawCount: args.rawOffers.length,
+      filteredCount: args.filteredOffers.length,
+      returnedCount: args.returnedCount,
+      rawCategoryCounts: Object.fromEntries(categoryCounts),
+    },
+    isDebug: true,
   } as unknown as ZiiplyOfferSearchResult;
 }
 
@@ -496,7 +597,7 @@ export async function fetchKruokaOffers(
   const selectedStoreOptions = getSelectedKStoreOptionsV37(options);
 
   const allResults = await Promise.all(
-    selectedStoreOptions.map(async (storeOptions) => {
+    selectedStoreOptions.map(async (storeOptions, storeIndex) => {
       const selectedStoreId = normalizeStoreId(storeOptions);
       const selectedStoreName = normalizeStoreName(storeOptions);
 
@@ -520,8 +621,7 @@ export async function fetchKruokaOffers(
         const storeName = resolved.matchedStoreName || selectedStoreName;
         const rawOffers = await fetchRuoanHintaOffers(apiStoreId);
         const filtered = rawOffers.filter((offer) => matchesQuery(offer, query));
-
-        return filtered.slice(0, 80).map((offer, index) =>
+        const returnedOffers = filtered.slice(0, 80).map((offer, index) =>
           toOfferResult({
             offer,
             index,
@@ -529,6 +629,21 @@ export async function fetchKruokaOffers(
             storeName,
           }),
         );
+
+        const visibleDebugCardV39 = makeVisibleProviderDebugResultV39({
+          slot: storeIndex + 1,
+          storeId: apiStoreId,
+          storeName,
+          selectedStoreId,
+          selectedStoreName,
+          resolveReason: resolved.reason,
+          query,
+          rawOffers,
+          filteredOffers: filtered,
+          returnedCount: returnedOffers.length,
+        });
+
+        return [visibleDebugCardV39, ...returnedOffers];
       } catch (error) {
         return [
           asDebugResult({
