@@ -1,17 +1,16 @@
 // src/app/api/offers/search/route.ts
 // ============================================================================
-// ZIIPLY_OFFERS_SEARCH_ROUTE_V14_EXISTING_ROUTE_SMARKET_ETARJOUS_DEBUG
-// Revision: V14
-// Date: 2026-07-06
+// ZIIPLY_OFFERS_SEARCH_ROUTE_V15_20260714_B_NO_VISIBLE_ROUTE_CARD
+// Revision: V15-20260714-B
+// Date: 2026-07-14
 //
 // Korjaus:
-// - EI luoda uutta API-routea eikä uutta polkua.
-// - Tämä korvaa olemassa olevan routen: src/app/api/offers/search/route.ts
-// - Prisma/S-kaupat.fi-polku säilyy nykyisessä searchZiiplyOffers-ketjussa.
-// - Valitut S-marketit haetaan lisäksi eTarjouslehdet/Tjek-polusta tässä samassa routessa.
-// - Lisää näkyvän MUUT-kategorian debug-rivin, jotta nähdään mitä route vastaanottaa ja ratkaisee.
-// - K-ryhmä säilyy nykyisessä searchZiiplyOffers-ketjussa.
-// - Ei kovakoodata Vehkojaa: S-market julkaisu ratkaistaan käyttäjän valitseman S-market-nimen perusteella.
+// - Näkyvä API-reitin debug-tarjouskortti on poistettu kokonaan.
+// - Debug-kortti ei enää kasvata Muut-kategorian määrää.
+// - Nykyinen searchZiiplyOffers-ketju säilyy.
+// - K-ryhmän tarjoushaku säilyy.
+// - S-marketin eTarjouslehdet/Tjek-polku säilyy ennallaan.
+// - API-polku säilyy: src/app/api/offers/search/route.ts
 // ============================================================================
 
 import { NextResponse } from "next/server";
@@ -517,41 +516,7 @@ export async function GET(request: Request) {
       sMarketResults = [];
     }
 
-    const sMarketNames = Array.from(new Set(splitMultiValue(rawSStoreName).filter(isSMarketName)));
-    const routeDebugResult: UnknownRecord = {
-      id: `route-v14-debug-${Date.now()}`,
-      source: "route-debug",
-      sourceUrl: "/api/offers/search",
-      chain: "DEBUG",
-      storeLabel: "ROUTE DEBUG",
-      storeName: "ROUTE DEBUG",
-      shopName: "ROUTE DEBUG",
-      title: `ROUTE V14 DEBUG | sNames=${sMarketNames.join(", ") || "-"}`,
-      priceText: "0,00 €",
-      unitPriceText: "",
-      benefitText: `base=${(baseResults as unknown[]).length} smarket=${sMarketResults.length} q=${q}`,
-      validityText: `rawSStoreName=${rawSStoreName || "-"}`,
-      imageUrl: "",
-      image: "",
-      pictureUrl: "",
-      productUrl: "/api/offers/search",
-      rawText: `ROUTE V14 DEBUG q=${q} rawSStoreId=${rawSStoreId || "-"} rawSStoreName=${rawSStoreName || "-"} rawKStoreName=${rawKStoreName || "-"}`,
-      matchScore: 9999,
-      category: "Muut",
-      categoryPath: "Muut",
-      breadcrumbs: "Muut",
-      hierarchy: "Muut",
-      taxonomy: "Muut",
-      department: "Muut",
-      productGroup: "Muut",
-      mainCategory: "Muut",
-      subCategory: "Muut",
-      brandName: "ROUTE DEBUG",
-      ean: "route-v14-debug",
-    };
-
     const results = dedupe([
-      routeDebugResult,
       ...(baseResults as unknown as UnknownRecord[]),
       ...sMarketResults,
     ]);
