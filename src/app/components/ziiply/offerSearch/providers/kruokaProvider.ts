@@ -1,19 +1,16 @@
 // src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts
 // ============================================================================
-// ZIIPLY_KRUOKA_PROVIDER_V46_DYNAMIC_SELECTED_K_STORE
-// Revision: V46
+// ZIIPLY_KRUOKA_PROVIDER_V46_DYNAMIC_SELECTED_K_STORE_BUILD_FIX
+// Revision: V46-B
 // Date: 2026-07-14
 //
 // Korjaus:
-// - Poistaa Jokela/S441-kovakoodauksen ja HAR-snapshotin käytön.
-// - Käyttää aina käyttäjän valitsemaa K-Market-, K-Supermarket- tai
-//   K-Citymarket-kauppaa.
-// - Ratkaisee Ruoanhinta.fi:n numeerisen storeId:n valitun kaupan nimen/ID:n
-//   perusteella ja tarkistaa, että kauppatyyppi täsmää.
-// - Hakee kauppakohtaiset tarjoukset dynaamisesti cache: "no-store" -asetuksella.
-// - Palauttaa vain juuri nyt voimassa olevat aidot tarjoukset.
-// - Ei lisää näkyviä provider-debugkortteja.
-// - Kategorisointi jää nykyisen ziiplyOfferCategoryCore.ts:n vastuulle.
+// - Rakennettu suoraan toimivasta V41-tiedostosta ilman funktioiden poistamista.
+// - Ei Jokela/S441-kovakoodausta eikä HAR-snapshotia.
+// - Käyttää käyttäjän valitsemaa K-Market-, K-Supermarket- tai K-Citymarket-kauppaa.
+// - Ratkaisee Ruoanhinta.fi:n storeId:n valitun kaupan nimen/ID:n perusteella.
+// - Hakee vain voimassa olevat aidot tarjoukset cache: "no-store" -asetuksella.
+// - Näkyviä provider-debugkortteja ei lisätä fetchKruokaOffers-palautukseen.
 // ============================================================================
 
 import type {
@@ -432,7 +429,14 @@ function matchesQuery(offer: RuoanHintaOffer, query: string): boolean {
   return haystack.includes(q);
 }
 
-): ZiiplyOfferSearchResult {
+function asDebugResult(args: {
+  id: string;
+  title: string;
+  detail?: string;
+  storeId?: string | null;
+  storeName?: string | null;
+  debug?: unknown;
+}): ZiiplyOfferSearchResult {
   const title = args.detail ? `${args.title} — ${args.detail}` : args.title;
 
   return {
@@ -467,7 +471,27 @@ function matchesQuery(offer: RuoanHintaOffer, query: string): boolean {
 }
 
 
-): ZiiplyOfferSearchResult {
+function getRawCategoryCountsV39(offers: RuoanHintaOffer[]): Array<[string, number]> {
+  const counts = new Map<string, number>();
+  for (const offer of offers) {
+    const label = String(categoryName(offer) || "(tyhjä)").trim() || "(tyhjä)";
+    counts.set(label, (counts.get(label) || 0) + 1);
+  }
+  return Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
+}
+
+function makeVisibleProviderDebugResultV39(args: {
+  slot: number;
+  storeId: string;
+  storeName: string;
+  selectedStoreId?: string | null;
+  selectedStoreName?: string | null;
+  resolveReason?: string | null;
+  query: string;
+  rawOffers: RuoanHintaOffer[];
+  filteredOffers: RuoanHintaOffer[];
+  returnedCount: number;
+}): ZiiplyOfferSearchResult {
   const categoryCounts = getRawCategoryCountsV39(args.filteredOffers);
   const categorySummary = categoryCounts
     .slice(0, 18)
@@ -552,7 +576,7 @@ function toOfferResult(args: {
     : centsToPriceText(offer.offerPrice ?? offer.storeItem?.price ?? null);
 
   return {
-    id: `kruoka-v46-ruoanhinta-${offerId}-${args.index}`,
+    id: `kruoka-v46b-ruoanhinta-${offerId}-${args.index}`,
     title: name,
     name,
     price,
@@ -588,7 +612,7 @@ function toOfferResult(args: {
       ? `https://www.k-ruoka.fi/kauppa/tuote/${encodeURIComponent(item.urlSlug)}`
       : "https://ruoanhinta.fi/",
     debug: {
-      providerVersion: "V46_DYNAMIC_SELECTED_K_STORE",
+      providerVersion: "V46_DYNAMIC_SELECTED_K_STORE_BUILD_FIX",
       rawOffer: offer,
       sourceApi: "https://api.ruoanhinta.fi/api/offers",
       ruoanhintaStoreId: args.storeId,
@@ -647,7 +671,7 @@ export async function fetchKruokaOffers(
         const resolved = await resolveRuoanHintaStoreId(storeOptions);
 
         if (!resolved.storeId) {
-          console.warn("[Ziiply K provider V46] Kauppaa ei hyväksytty", {
+          console.warn("[Ziiply K provider V46-B] Kauppaa ei hyväksytty", {
             selectedStoreId,
             selectedStoreName,
             reason: resolved.reason,
@@ -673,7 +697,7 @@ export async function fetchKruokaOffers(
           }),
         );
       } catch (error) {
-        console.warn("[Ziiply K provider V46] Ruoanhinta API virhe", {
+        console.warn("[Ziiply K provider V46-B] Ruoanhinta API virhe", {
           selectedStoreId,
           selectedStoreName,
           error: error instanceof Error ? error.message : String(error),
