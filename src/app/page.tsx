@@ -1,4 +1,16 @@
 // ============================================================================
+// PAGE_V545_BETWEEN_CHAINS_MANUAL_LOCAL_STORE_OVERRIDE
+// Revision: V545
+// Date: 2026-07-14
+//
+// Korjaus:
+// - Paikkatieto valitsee ensin lähimmät S- ja K-lähikaupat.
+// - Käyttäjä voi tämän jälkeen vaihtaa kumman tahansa lähikaupan käsin.
+// - Ketjujen väliltä -kortti käyttää käsin valittua kauppaa GPS-rankingin sijasta.
+// - Ketjun sisältä -toimintoon, Göstaan, tarjouksiin ja kategorioihin ei kosketa.
+// ============================================================================
+
+// ============================================================================
 // PAGE_V544_GOSTA_CATEGORY_COUNTS_EXACT_CARD_DEDUPE
 // Revision: V544
 // Date: 2026-07-12
@@ -5233,14 +5245,24 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const ranked = rankStoresForMode(gpsStorePoolV40, gpsMode, gpsCoordsV320);
 
       if (gpsMode === "local") {
-        // V213: juuri tämä on Hyvinkää-lähikauppalukon purku.
-        // GPS-lähikaupoissa EI activeArea-varaa, koska se toi vanhan kunta/postinumerohaun
-        // lähikaupat takaisin ruudulle. Jos ranked ei löydä kauppaa, näytetään puuttuva.
+        // V545_MANUAL_LOCAL_STORE_OVERRIDES_GPS:
+        // GPS valitsee lähikaupat ensimmäisellä haulla, mutta käyttäjän myöhemmin
+        // valitsema S-/K-lähikauppa activeAreasta voittaa GPS-rankingin.
+        // Näin Ketjujen väliltä -kortit päivittyvät heti valintaikkunan valintaan.
+        const selectedSLocal = getActiveAreaStoreCandidateV139("S", "local");
+        const selectedKLocal = getActiveAreaStoreCandidateV139("K", "local");
+
         return {
-          sStoreId: ranked.sLocal?.id ?? 0,
-          sStoreName: ranked.sLocal?.name ?? "S-lähikauppa ei valittu",
-          kStoreId: ranked.kLocal?.id ?? 0,
-          kStoreName: ranked.kLocal?.name ?? "K-lähikauppa ei valittu",
+          sStoreId: selectedSLocal?.id ?? ranked.sLocal?.id ?? 0,
+          sStoreName:
+            selectedSLocal?.name ??
+            ranked.sLocal?.name ??
+            "S-lähikauppa ei valittu",
+          kStoreId: selectedKLocal?.id ?? ranked.kLocal?.id ?? 0,
+          kStoreName:
+            selectedKLocal?.name ??
+            ranked.kLocal?.name ??
+            "K-lähikauppa ei valittu",
         };
       }
 
