@@ -1,13 +1,12 @@
 // ============================================================================
-// ZIIPLY_OFFER_CATEGORY_CORE_V163_BREAD_AND_COOKIE_CATEGORY_FIX
-// Revision: V163
+// ZIIPLY_OFFER_CATEGORY_CORE_V164_BREAD_PRODUCT_OVERRIDES
+// Revision: V164
 // Date: 2026-07-14
 //
-// V163:
-// - Korjaa leipien ja keksien ristiriitaisen luokittelun.
-// - Keksit kuuluvat vain Makeiset & keksit -ryhmään, eivät Leipomoon.
-// - Saaristolaisleivät, saaristolaisnapit, limput, ruispalat, vuokaleivät
-//   ja muut selvästi leipätuotteet pakotetaan Leipomoon ennen makeissääntöjä.
+// V164:
+// - Pakottaa Vaasan Pehmeät kaurapalat ja muut kaurapala-tuotteet Leipomoon.
+// - Pakottaa Pullava-, pitko-, täytepitko- ja voisilmäpitko-tuotteet Leipomoon.
+// - Leipätuotteet voittavat ennen Makeiset & keksit -sääntöä.
 //
 // Muutokset:
 // - Lisää Kuivatuotteet-kategorian: pasta, riisi, jauhot, sokeri, hiutaleet, murot, mysli, säilykkeet.
@@ -225,7 +224,7 @@ function classifyGostaCategoryFromText(rawText: string) {
 
   if (/liha ja kasviproteiinit|liha|jauheliha|kana|broiler\w*|possu|porsas|nauta|sika|makkara\w*|leikkele\w*|kinkku|pekoni|filee|paisti|lihapulla\w*|kasviproteiini|tofu|nyhtokaura|harkis|vege/.test(text)) return "Liha";
   if (/kala ja merenelavat|kala ja merenelävät|merenelav|mereneläv|kirjolohi|lohi|tonnikala|silakka|katkarapu|kuha|ahven|seiti|kalapuikko|silli|kala/.test(text)) return "Kala";
-  if (/leivat keksit ja leivonnaiset|leivät keksit ja leivonnaiset|saaristolaisnappi|saaristolaisleipa|saaristolaisleipä|saaristolais|leipa|leipä|sampyl|sämpyl|pulla|croissant|karjalanpiir|pita|patonki|ruisleipa|ruisleipä|ruispalat|ruispala|ruis|paahtoleipa|paahtoleipä|limppu|limpun|vuokaleipa|vuokaleipä|reissumies|jalkiuuni|jälkiuuni|donitsi|leivonnainen/.test(text)) return "Leipomo";
+  if (/leivat keksit ja leivonnaiset|leivät keksit ja leivonnaiset|kaurapala|kaurapalat|pullava|voisilmapitko|voisilmäpitko|taytepitko|täytepitko|pitko|pitkot|leipa|leipä|sampyl|sämpyl|pulla|croissant|karjalanpiir|pita|patonki|ruis|paahtoleipa|paahtoleipä|donitsi|leivonnainen/.test(text)) return "Leipomo";
   if (/maito munat ja rasvat|maito|kananmuna|munat|jugur|jogur|jogurt|rahka|raejuusto|juusto|voi|margariini|rasva|kerma|piima|viili|kefiiri|proteiinivanukas|vanukas/.test(text)) return "Maitotuotteet";
   if (/juustot tofut ja kasvipohjaiset|juusto|tofu|kasvipohjainen|kaurajuoma|soijajuoma|vegejuusto/.test(text)) return "Maitotuotteet";
   if (/kahvit teet ja mehut|kahvi|tee|espresso|suodatinjauh|kahvipapu|papukahvi|cappuccino|latte/.test(text)) return "Kahvi";
@@ -262,9 +261,9 @@ function getStrictGostaCategoryOverrideV157(item: ZiiplyGostaOfferLike): string 
 
   if (!strictText) return "";
 
-  // V163: clear bread products must stay in Leipomo even when provider taxonomy
-  // contains the broad words "keksit ja leivonnaiset".
-  if (/\b(saaristolaisnappi|saaristolaisleipa|saaristolaisleipä|saaristolais|ruisleipa|ruisleipä|ruispalat|ruispala|limppu|limpun|vuokaleipa|vuokaleipä|paahtoleipa|paahtoleipä|patonki|sampyla|sämpylä|karjalanpiirakka|reissumies|jalkiuuni|jälkiuuni)\b/.test(strictText)) {
+  // V164: clear bread and sweet bakery products must win before generic
+  // cookie/candy words from provider taxonomy.
+  if (/\b(kaurapala|kaurapalat|pullava|voisilmapitko|voisilmäpitko|taytepitko|täytepitko|pitko|pitkot|saaristolaisnappi|saaristolaisleipa|saaristolaisleipä|ruisleipa|ruisleipä|ruispalat|ruispala|limppu|vuokaleipa|vuokaleipä|paahtoleipa|paahtoleipä|patonki|sampyla|sämpylä|karjalanpiirakka|reissumies|jalkiuuni|jälkiuuni)\b/.test(strictText)) {
     return "Leipomo";
   }
 
@@ -414,7 +413,7 @@ export function getGostaCategorySeedQueriesV136(categoryOrFilter: string) {
     maitotuotteet: ["maito", "munat", "kananmuna", "juusto", "jogurtti", "rahka", "raejuusto", "voi", "margariini", "kerma", "viili", "kefiiri", "vanukas", "kaurajuoma"],
     liha: ["liha", "liha ja kasviproteiinit", "jauheliha", "kana", "broileri", "nauta", "possu", "porsas", "sika", "makkara", "grillimakkara", "leikkele", "kinkku", "pekoni", "filee", "lihapulla", "kasviproteiini", "tofu"],
     kala: ["kala", "kala ja merenelävät", "lohi", "kirjolohi", "tonnikala", "silakka", "katkarapu", "seiti", "kalapuikko", "silli"],
-    leipomo: ["leipä", "leivät", "sämpylä", "pulla", "croissant", "karjalanpiirakka", "patonki", "ruisleipä", "ruispalat", "paahtoleipä", "saaristolaisleipä", "saaristolaisnappi", "limppu", "vuokaleipä", "reissumies", "jälkiuuni", "leivonnaiset"],
+    leipomo: ["leipä", "leivät", "sämpylä", "pulla", "pullava", "pitko", "täytepitko", "voisilmäpitko", "kaurapala", "kaurapalat", "croissant", "karjalanpiirakka", "patonki", "ruisleipä", "paahtoleipä", "leivonnaiset"],
     hevi: ["hedelmät", "vihannekset", "hedelmä", "omena", "banaani", "appelsiini", "vihannes", "tomaatti", "kurkku", "salaatti", "peruna", "sipuli", "porkkana", "marjat"],
     juomat: ["virvoitusjuomat", "mehu", "limu", "cola", "energiajuoma", "vesi", "kivennäisvesi", "smoothie", "kahvit teet ja mehut"],
     valmisruoka: ["valmisruoka", "valmisateria", "keitto", "salaattiateria", "mikroateria", "ateria", "makaronilaatikko", "kaalilaatikko", "porkkanalaatikko", "pasta", "risotto", "lastenruoka", "lastenruoat", "vauvanruoka", "piltti", "semper"],
