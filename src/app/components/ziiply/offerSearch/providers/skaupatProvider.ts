@@ -1,3 +1,10 @@
+// SKAUPAT_PROVIDER_V210_RESPONSE_DIAGNOSTIC_TO_MOBILE
+// Revision: V210-RESPONSE-DIAGNOSTIC-TO-MOBILE
+// Date: 2026-09-19
+//
+// Diagnostic only. Search/resolution behavior unchanged from V209.
+// Adds actual S-kaupat first-response metadata/sample to mobile KOPIOI DEBUG.
+//
 // SKAUPAT_PROVIDER_V209_DIRECTORY_DIAGNOSTIC_TO_MOBILE
 // Revision: V209-DIRECTORY-DIAGNOSTIC-TO-MOBILE
 // Date: 2026-09-19
@@ -1653,11 +1660,19 @@ function makeGostaZeroResultDiagnosticV208(
         `directoryCursors=${directoryDiagnosticV209.cursorUrlsFound}`,
         `directoryVarkaus=${directoryDiagnosticV209.prismaVarkausFound ? "yes" : "no"}`,
         `directoryVarkausId=${directoryDiagnosticV209.prismaVarkausStoreId || "-"}`,
+        `directoryHttp=${directoryDiagnosticV209.firstHttpStatus ?? "-"}`,
+        `directoryFinalUrl=${directoryDiagnosticV209.firstFinalUrl || "-"}`,
+        `directoryContentType=${directoryDiagnosticV209.firstContentType || "-"}`,
+        `directoryHtmlLength=${directoryDiagnosticV209.firstHtmlLength ?? "-"}`,
+        `directoryHasPrisma=${directoryDiagnosticV209.firstHasPrisma ? "yes" : "no"}`,
+        `directoryHasMyymala=${directoryDiagnosticV209.firstHasMyymala ? "yes" : "no"}`,
+        `directoryHasNextData=${directoryDiagnosticV209.firstHasNextData ? "yes" : "no"}`,
+        `directoryBodySample=${directoryDiagnosticV209.firstBodySample || "-"}`,
       ].join(" | ")
-    : "directoryPages=- | directoryEntries=- | directoryParsed=- | directoryCursors=- | directoryVarkaus=- | directoryVarkausId=-";
+    : "directoryPages=- | directoryEntries=- | directoryParsed=- | directoryCursors=- | directoryVarkaus=- | directoryVarkausId=- | directoryHttp=- | directoryFinalUrl=- | directoryContentType=- | directoryHtmlLength=- | directoryHasPrisma=- | directoryHasMyymala=- | directoryHasNextData=- | directoryBodySample=-";
 
   const debugText = [
-    "GOSTA_V209_ZERO_RESULT_DIAGNOSTIC",
+    "GOSTA_V210_ZERO_RESULT_DIAGNOSTIC",
     `receivedStoreId=${receivedStoreId || "-"}`,
     `receivedStoreName=${receivedStoreName || "-"}`,
     detail,
@@ -1665,7 +1680,7 @@ function makeGostaZeroResultDiagnosticV208(
   ].join(" | ");
 
   return {
-    id: `gosta-v209-debug-${receivedStoreId || "no-id"}`,
+    id: `gosta-v210-debug-${receivedStoreId || "no-id"}`,
     source: config.id,
     sourceUrl: config.url,
     chain: config.chain,
@@ -1694,7 +1709,7 @@ function makeGostaZeroResultDiagnosticV208(
     subCategory: "Muut",
     brandName: "",
     ean: "",
-    debugStoreResolutionV209: debugText,
+    debugStoreResolutionV210: debugText,
   } as unknown as ZiiplyOfferSearchResult;
 }
 
