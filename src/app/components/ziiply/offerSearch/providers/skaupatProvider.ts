@@ -1,6 +1,6 @@
 // ============================================================================
-// SKAUPAT_PROVIDER_V204_DYNAMIC_STORE_NAME_FIRST
-// Revision: V204-DYNAMIC-STORE-NAME-FIRST
+// SKAUPAT_PROVIDER_V205_DYNAMIC_STORE_RESOLVER_BUILD_FIX
+// Revision: V205-DYNAMIC-STORE-RESOLVER-BUILD-FIX
 // Date: 2026-09-19
 //
 // Korjaus:
@@ -451,6 +451,67 @@ async function getEffectiveSKaupatStoreIdV174(
   });
 
   return null;
+}
+
+
+async function resolveSelectedSKaupatStoresV194(
+  options?: SKaupatOfferProviderOptionsV173,
+): Promise<ResolvedSKaupatStoreV194[]> {
+  if (!options) return [];
+
+  const explicitStores = Array.isArray(options.stores) ? options.stores : [];
+  const candidates: Array<{ storeId: string; storeName: string }> = [];
+
+  for (const store of explicitStores) {
+    const storeId = firstString(store?.storeId, store?.sStoreId);
+    const storeName = firstString(store?.storeName, store?.sStoreName);
+    if (storeId || storeName) candidates.push({ storeId, storeName });
+  }
+
+  const ids = normalizeSKaupatValueListV194(
+    options.sStoreIds ?? options.storeIds,
+    options.sStoreId ?? options.storeId,
+  );
+  const names = normalizeSKaupatValueListV194(
+    options.sStoreNames ?? options.storeNames,
+    options.sStoreName ?? options.storeName,
+  );
+  const maxLength = Math.max(ids.length, names.length);
+
+  for (let index = 0; index < maxLength; index += 1) {
+    const storeId = ids[index] || "";
+    const storeName = names[index] || "";
+    if (storeId || storeName) candidates.push({ storeId, storeName });
+  }
+
+  if (candidates.length === 0) {
+    const storeId = firstString(options.storeId, options.sStoreId);
+    const storeName = firstString(options.storeName, options.sStoreName);
+    if (storeId || storeName) candidates.push({ storeId, storeName });
+  }
+
+  const resolved: ResolvedSKaupatStoreV194[] = [];
+  const seen = new Set<string>();
+
+  for (const candidate of candidates) {
+    const effectiveStoreId = await getEffectiveSKaupatStoreIdV174({
+      storeId: candidate.storeId || null,
+      storeName: candidate.storeName || null,
+    });
+
+    if (!effectiveStoreId) continue;
+
+    const key = `${effectiveStoreId}|${normalizeText(candidate.storeName)}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    resolved.push({
+      storeId: effectiveStoreId,
+      storeName: candidate.storeName || "S-kaupat",
+    });
+  }
+
+  return resolved;
 }
 
 const SKAUPAT_GOSTA_MASTER_QUERY_V171 = "__ziiply_all_offers__";
