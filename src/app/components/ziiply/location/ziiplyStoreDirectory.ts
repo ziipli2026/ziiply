@@ -1,3 +1,10 @@
+// S_KAUPAT_STORE_DIRECTORY_V3_EXPOSE_DIAGNOSTIC
+// Revision: V3-EXPOSE-DIAGNOSTIC
+// Date: 2026-09-19
+//
+// Diagnostic only. Search/resolver behavior is unchanged.
+// Exposes Prisma crawl state to skaupatProvider for mobile KOPIOI DEBUG.
+//
 // S_KAUPAT_STORE_DIRECTORY_V2_PRISMA_PAGINATION_DIAGNOSTIC
 // Revision: V2-PRISMA-PAGINATION-DIAGNOSTIC
 // Date: 2026-09-19
@@ -48,6 +55,24 @@ const S_KAUPAT_STORE_CHAIN_PAGES_V1: Array<{ chain: string; path: string }> = [
 
 const sKaupatStoreDirectoryPromiseCacheV1 = new Map<string, Promise<SKaupatStoreDirectoryEntryV1[]>>();
 let sKaupatFullDirectoryPromiseV1: Promise<SKaupatStoreDirectoryEntryV1[]> | null = null;
+
+export type SKaupatDirectoryDiagnosticV3 = {
+  chain: string;
+  pagesFetched: number;
+  entriesParsed: number;
+  uniqueEntriesFound: number;
+  cursorUrlsFound: number;
+  prismaVarkausFound: boolean;
+  prismaVarkausStoreId: string | null;
+};
+
+let lastPrismaDirectoryDiagnosticV3: SKaupatDirectoryDiagnosticV3 | null = null;
+
+export function getLastPrismaDirectoryDiagnosticV3(): SKaupatDirectoryDiagnosticV3 | null {
+  return lastPrismaDirectoryDiagnosticV3
+    ? { ...lastPrismaDirectoryDiagnosticV3 }
+    : null;
+}
 
 function normalizeSKaupatStoreTextV1(value: unknown): string {
   return String(value ?? "")
@@ -248,7 +273,7 @@ async function fetchSKaupatChainDirectoryV1(
       return name === "prisma varkaus" || slug === "prisma varkaus";
     });
 
-    console.warn("[S-kaupat directory V2 diagnostic]", {
+    lastPrismaDirectoryDiagnosticV3 = {
       chain,
       pagesFetched: visited.size,
       entriesParsed: diagnosticEntriesParsedV2,
@@ -256,7 +281,9 @@ async function fetchSKaupatChainDirectoryV1(
       cursorUrlsFound: diagnosticCursorUrlsFoundV2,
       prismaVarkausFound: Boolean(prismaVarkausV2),
       prismaVarkausStoreId: prismaVarkausV2?.sKaupatStoreId || null,
-    });
+    };
+
+    console.warn("[S-kaupat directory V3 diagnostic]", lastPrismaDirectoryDiagnosticV3);
   }
 
   return resultV2;
