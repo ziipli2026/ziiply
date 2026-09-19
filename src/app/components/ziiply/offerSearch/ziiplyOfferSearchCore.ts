@@ -1,4 +1,21 @@
 // ============================================================================
+// ZIIPLY_OFFER_SEARCH_CORE_V167_CURRENT_CATEGORY_SELECTION_FIX
+// Revision: V167
+// Date: 2026-09-19
+//
+// Fix:
+// - Category click recognition now accepts the CURRENT category labels exported
+//   by ziiplyOfferCategoryCore, not only the old isKnownOfferCategoryFilter list.
+// - Fixes empty category views for:
+//   Liha & makkarat
+//   Vitamiinit & ravinteet
+//   Hygienia & kosmetiikka
+//   Koti & vapaa-aika
+// - Keeps legacy category aliases working.
+// - Does not change provider fetching, store context, master dataset or caching.
+// ============================================================================
+
+// ============================================================================
 // ZIIPLY_OFFER_SEARCH_CORE_V166_TRUST_ETARJOUS_CATEGORY
 // Revision: V162
 // Date: 2026-07-04
@@ -46,6 +63,7 @@
 // - näkyvien tulosten suodatus
 
 import {
+  GOSTA_CATEGORY_LABELS_V136,
   getGostaCategoryLabelFromFilterV136,
   getOfferCategoryV106,
   getOfferProductTitleV113,
@@ -90,6 +108,23 @@ function normalizeGostaCoreText(value: unknown) {
     .replace(/[^a-z0-9åäö\s-]/gi, " ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function isCurrentGostaCategorySelectionV167(value: string) {
+  const normalized = normalizeGostaCoreText(value).trim();
+  if (!normalized) return false;
+
+  // Current visible labels are the primary source of truth.
+  if (
+    GOSTA_CATEGORY_LABELS_V136.some(
+      (label) => normalizeGostaCoreText(label) === normalized,
+    )
+  ) {
+    return true;
+  }
+
+  // Preserve old aliases/legacy category names.
+  return isGostaCategorySelectionV136(value) || isKnownOfferCategoryFilterV113(normalized);
 }
 
 const TRUSTED_GOSTA_CATEGORY_LABELS_V166 = new Map<string, string>([
@@ -358,7 +393,7 @@ export async function searchZiiplyGostaOffersV146(options: {
   const termSnapshot = (options.terms || []).join(", ").trim();
   const offerQuerySnapshot = termSnapshot || cleanedQuery;
 
-  const categorySearchLabel = isGostaCategorySelectionV136(offerQuerySnapshot)
+  const categorySearchLabel = isCurrentGostaCategorySelectionV167(offerQuerySnapshot)
     ? getGostaCategoryLabelFromFilterV136(offerQuerySnapshot)
     : "";
 
@@ -367,7 +402,7 @@ export async function searchZiiplyGostaOffersV146(options: {
   const searchByCategory =
     !!categorySearchLabel &&
     normalizedCategorySearch !== "kaikki" &&
-    isKnownOfferCategoryFilterV113(normalizedCategorySearch);
+    isCurrentGostaCategorySelectionV167(categorySearchLabel);
 
   const trackingKey = searchAllAreaOffers
     ? "__all_area_offers_category_seeded__"
