@@ -1,10 +1,15 @@
 // ============================================================================
-// SKAUPAT_PROVIDER_V202_REMOVE_VISIBLE_DIAGNOSTICS
+// SKAUPAT_PROVIDER_V202_CURRENT_DATE_48_PAGINATION
 // Revision: V202
 // Date: 2026-09-19
-// - Säilyttää V201:n toimivan Prisma-nimi -> S-kaupat store ID -ratkaisun.
-// - Poistaa V200:n käyttäjälle näkyvät PRISMA HTTP/debug-tuotteet.
-// - Console-diagnostiikka säilyy kehitystä varten.
+//
+// V202:
+// - Pohja: V201 (toimiva Prisma Hyvinkää store-name -> S-kaupat storeId -korjaus säilyy).
+// - Palauttaa DISCOUNTED/master-haun limitin ja pageStepin 48:aan.
+// - Poistaa kovakoodatun 2026-06-07 päivän.
+// - availabilityDate ja sortForAvailabilityLabelDate käyttävät aina pyynnön
+//   tekohetken paikallista YYYY-MM-DD-päivää.
+// - Ei muutoksia mapperiin, dedupeen, kategorisointiin tai store-ID-logiikkaan.
 // ============================================================================
 
 // ============================================================================
@@ -1480,6 +1485,14 @@ function mapSProductListItemToOfferResult(
   } as unknown as ZiiplyOfferSearchResult;
 }
 
+function getCurrentLocalDateYYYYMMDDV202(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 function buildRemoteFilteredProductsUrl(
   query: string,
   offset = 0,
@@ -1487,12 +1500,13 @@ function buildRemoteFilteredProductsUrl(
   discountedOnly = false,
 ): string {
   const normalLimit = 48;
-  const discountedLimit = 24;
+  const discountedLimit = 48;
   const page = Math.floor(offset / normalLimit) + 1;
   const queryString = discountedOnly ? "" : query;
+  const currentDateV202 = getCurrentLocalDateYYYYMMDDV202();
 
   const variables: UnknownRecord = {
-    availabilityDate: discountedOnly ? "2026-06-07" : undefined,
+    availabilityDate: discountedOnly ? currentDateV202 : undefined,
     facets: [
       { key: "brandName", order: "asc" },
       { key: "category" },
@@ -1510,7 +1524,7 @@ function buildRemoteFilteredProductsUrl(
     fetchSponsoredContent: discountedOnly,
     limit: discountedOnly ? discountedLimit : normalLimit,
     queryString,
-    sortForAvailabilityLabelDate: discountedOnly ? "2026-06-07" : undefined,
+    sortForAvailabilityLabelDate: discountedOnly ? currentDateV202 : undefined,
     storeId: selectedStoreId,
     useRandomId: false,
     marketingId: "d0bcc6e5-6130-494e-b6fb-12b5cb9c60cf",
@@ -1647,17 +1661,20 @@ async function fetchSKaupatRemoteFilteredProductsV170(
 
   const selectedStores = await resolveSelectedSKaupatStoresV194(options);
   if (selectedStores.length === 0) {
-    console.warn("[Ziiply offers] Prisma resolver failed", {
-      receivedStoreId: receivedStoreIdV200,
-      receivedStoreName: receivedStoreNameV200,
-    });
-    return [];
+    return [
+      makeVisiblePrismaDiagnosticV200(
+        config,
+        "PRISMA V200: RESOLVER FAILED / HTTP NO",
+        `received=${receivedStoreIdV200 || "(empty)"} / ${receivedStoreNameV200 || "(empty)"} | resolved=NONE`,
+        receivedStoreNameV200 || "Prisma diagnostic",
+      ),
+    ];
   }
 
   const allStoreResults: ZiiplyOfferSearchResult[] = [];
 
   for (const selectedStore of selectedStores) {
-    const pageStep = discountedOnly ? 24 : 48;
+    const pageStep = 48;
     const maxPages = discountedOnly ? 25 : 25;
     const pageOffsets = Array.from({ length: maxPages }, (_, index) => index * pageStep);
     const pages: ZiiplyOfferSearchResult[][] = [];
@@ -1675,6 +1692,16 @@ async function fetchSKaupatRemoteFilteredProductsV170(
 
         pages.push(page.results);
 
+        if (offset === 0) {
+          pages.unshift([
+            makeVisiblePrismaDiagnosticV200(
+              config,
+              "PRISMA V200: HTTP OK",
+              `received=${receivedStoreIdV200 || "(empty)"} / ${receivedStoreNameV200 || "(empty)"} | resolved=${selectedStore.storeId} | raw=${page.rawCount} | mapped=${page.results.length} | total=${page.total} | from=${page.from} | limit=${page.limit}`,
+              selectedStore.storeName || receivedStoreNameV200 || "Prisma diagnostic",
+            ),
+          ]);
+        }
 
         console.warn("[GOSTA PAGINATION V194]", {
           query,
@@ -1700,6 +1727,14 @@ async function fetchSKaupatRemoteFilteredProductsV170(
             selectedStoreName: selectedStore.storeName,
             error,
           });
+          pages.push([
+            makeVisiblePrismaDiagnosticV200(
+              config,
+              "PRISMA V200: HTTP FAILED",
+              `received=${receivedStoreIdV200 || "(empty)"} / ${receivedStoreNameV200 || "(empty)"} | resolved=${selectedStore.storeId} | error=${error instanceof Error ? error.message : String(error)}`,
+              selectedStore.storeName || receivedStoreNameV200 || "Prisma diagnostic",
+            ),
+          ]);
           break;
         }
 
