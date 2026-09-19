@@ -1,4 +1,19 @@
 // ============================================================================
+// SKAUPAT_PROVIDER_V196_PRISMA_NORMAL_SEARCH_TEST
+// Revision: V196-PRISMA-NORMAL-SEARCH-TEST
+// Date: 2026-09-19
+//
+// DIAGNOSTINEN TESTI – vain Göstan master-haaraan:
+// - Kun Gösta pyytää __ziiply_all_offers__, provider EI käytä masterin
+//   DISCOUNTED-filtteriä tässä testiversiossa.
+// - Sen sijaan tehdään tavallinen aiemmin toimineen polun
+//   RemoteFilteredProducts-haku hakusanalla "kahvi" samalle valitulle Prismalle.
+// - Tarkoitus: erottaa S-kaupat/Prisma-yhteyden vika master-hakutavan viasta.
+// - Ei muutoksia store-ID-, location-, page-, core-, category- tai K-logiikkaan.
+// - TESTIVERSIO, ei lopullinen korjaus.
+// ============================================================================
+
+// ============================================================================
 // SKAUPAT_PROVIDER_V195_CURRENT_FINLAND_DATE
 // Revision: V195
 // Date: 2026-09-19
@@ -1477,11 +1492,16 @@ export async function fetchSKaupatOffers(
 
   try {
     if (isGostaMasterQueryV171(cleanQuery)) {
+      // V196 diagnostic: bypass the newer master DISCOUNTED mode completely.
+      // Use the normal RemoteFilteredProducts query path against the SAME
+      // selected Prisma/store context. If this returns coffee products, the
+      // S-kaupat connection/store selection still works and the fault is in
+      // the master DISCOUNTED request path rather than the base Prisma search.
       return await fetchSKaupatRemoteFilteredProductsV170(
-        "",
+        "kahvi",
         config,
         options,
-        true,
+        false,
       );
     }
 
