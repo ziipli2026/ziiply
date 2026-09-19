@@ -1,4 +1,19 @@
 // ============================================================================
+// ZIIPLY_OFFER_CATEGORY_CORE_V167_COFFEE_MEAT_NUTRIENTS
+// Revision: V167
+// Date: 2026-09-19
+//
+// V167:
+// - Kahvi + tee -> "Kahvi & tee"; S-kaupat child taxonomy wins over the broad
+//   "Kahvit, teet ja mehut" parent, so juice/smoothie/iced tea stay in Juomat.
+// - Liha -> "Liha & makkarat"; meat, minced meat, sausages, cold cuts, ham,
+//   mettwurst and bacon are grouped here from S-kaupat taxonomy.
+// - Melatonin, omega-3 and collagen are included in "Vitamiinit & ravinteet".
+// - Legacy "Koti" results are normalized to "Koti & vapaa-aika".
+// - Keeps V166 Lastenruoat, Hygienia & kosmetiikka, Kodinhoito and Muut logic.
+// ============================================================================
+
+// ============================================================================
 // ZIIPLY_OFFER_CATEGORY_CORE_V166_EXPANDED_USER_CATEGORIES
 // Revision: V166
 // Date: 2026-09-19
@@ -226,12 +241,17 @@ function getOfficialSKaupatCategoryV165(item: ZiiplyGostaOfferLike): string {
   const mainCategory = normalizeGostaText(item?.mainCategory || item?.department || "");
   if (!categoryText && !mainCategory) return "";
 
-  // "Kahvit, teet ja mehut" is only the S-kaupat parent. Resolve its child first.
-  if (/\b(mehu|mehut|mehutiiviste|smoothie|mehushot|valipalajuoma|välipalajuoma|jaatee|jäätee|jaateet|jääteet|marjakeitto)\b/.test(categoryText)) return "Juomat";
-  if (/\b(tee|teet|pussitee|yrttitee|hauduke|haudukkeet)\b/.test(categoryText)) return "Kahvi";
-  if (/\b(kahvi|kahvit|kahvipapu|kahvipavut|suodatinjauh|espresso|kahvikapseli|kahvikapselit|kaakaojauhe)\b/.test(categoryText)) return "Kahvi";
+  // "Kahvit, teet ja mehut" is only the S-kaupat parent. Resolve the child taxonomy first.
+  // Coffee must win before the broad parent; iced tea remains a cold drink.
+  if (/\b(kahvit ja suodatinpaperit|kahvi|kahvit|kahvipapu|kahvipavut|suodatinjauh|suodatinjauhatuskahvi|espresso|kahvikapseli|kahvikapselit|pikakahvi|kaakao|kaakaojauhe)\b/.test(categoryText)) return "Kahvi & tee";
+  if (/\b(jaatee|jäätee|jaateet|jääteet|mehu|mehut|mehutiiviste|smoothie|mehushot|valipalajuoma|välipalajuoma|marjakeitto)\b/.test(categoryText)) return "Juomat";
+  if (/\b(tee|teet|pussitee|yrttitee|hauduke|haudukkeet)\b/.test(categoryText)) return "Kahvi & tee";
 
-  if (/\bliha ja kasviproteiinit\b/.test(mainCategory)) return "Liha";
+  if (/\bliha ja kasviproteiinit\b/.test(mainCategory)) {
+    if (/\b(tofu|harkis|härkis|nyhtokaura|nyhtökaura|kasviproteiini|kasviproteiinit|vege|vegaan)/.test(categoryText)) return "Valmisruoka";
+    if (/\b(jauheliha|naudanliha|sianliha|porsas|broileri|kana|kalkkuna|makkara|makkarat|grillimakkara|nakki|nakit|leikkele|leikkeleet|kinkku|meetvursti|metvursti|pekoni|lihavalmiste|lihavalmisteet|liha)\b/.test(categoryText)) return "Liha & makkarat";
+    return "Liha & makkarat";
+  }
   if (/\bkala ja merenelavat\b|\bkala ja merenelävät\b/.test(mainCategory)) return "Kala";
   if (/\bhedelmat ja vihannekset\b|\bhedelmät ja vihannekset\b/.test(mainCategory)) return "Hevi";
   if (/\bleivat ja leivonnaiset\b|\bleivät ja leivonnaiset\b|\bleivat keksit ja leivonnaiset\b|\bleivät keksit ja leivonnaiset\b/.test(mainCategory)) return "Leipomo";
@@ -255,7 +275,7 @@ function getOfficialSKaupatCategoryV165(item: ZiiplyGostaOfferLike): string {
   }
 
   if (/\burheiluravinteet terveys ja itsehoito\b/.test(mainCategory)) {
-    if (/\bvitami|\bmineraali|\bkivennais|\bmagnesium|\bsinkki|\brauta|\bravintolisa|\bravintolisä|\bproteiini|\benergia.?patukka|\bproteiinipatukka|\burheiluravinne|\baminohapp|\bkreatiini|\belektrolyytti/.test(categoryText)) return "Vitamiinit & ravinteet";
+    if (/\bvitami|\bmineraali|\bkivennais|\bmagnesium|\bsinkki|\brauta|\bravintolisa|\bravintolisä|\bproteiini|\benergia.?patukka|\bproteiinipatukka|\burheiluravinne|\baminohapp|\bkreatiini|\belektrolyytti|\bmelatoniini|\bomega.?3|\bkollageeni/.test(categoryText)) return "Vitamiinit & ravinteet";
     return "Muut";
   }
 
@@ -268,13 +288,13 @@ function classifyGostaCategoryFromSPathV155(rawText: string) {
 
   // Use S-kaupat's own top-level category path first. This avoids false
   // positives from product names, brands or benefit text.
-  if (/^liha-ja-kasviproteiinit\b|\/ liha ja kasviproteiinit\b|\bliha ja kasviproteiinit\b/.test(text)) return "Liha";
+  if (/^liha-ja-kasviproteiinit\b|\/ liha ja kasviproteiinit\b|\bliha ja kasviproteiinit\b/.test(text)) return "Liha & makkarat";
   if (/^kala-ja-merenelavat\b|^kala-ja-merenelävät\b|\/ kala ja merenelavat\b|\/ kala ja merenelävät\b|\bkala ja merenelavat\b|\bkala ja merenelävät\b/.test(text)) return "Kala";
   if (/^hedelmat-ja-vihannekset\b|^hedelmät-ja-vihannekset\b|\/ hedelmat ja vihannekset\b|\/ hedelmät ja vihannekset\b|\bhedelmat ja vihannekset\b|\bhedelmät ja vihannekset\b/.test(text)) return "Hevi";
   if (/^leivat-keksit-ja-leivonnaiset\b|^leivät-keksit-ja-leivonnaiset\b|\/ leivat keksit ja leivonnaiset\b|\/ leivät keksit ja leivonnaiset\b|\bleivat keksit ja leivonnaiset\b|\bleivät keksit ja leivonnaiset\b/.test(text)) return "Leipomo";
   if (/^maito-munat-ja-rasvat\b|\/ maito munat ja rasvat\b|\bmaito munat ja rasvat\b/.test(text)) return "Maitotuotteet";
   if (/^juustot-tofut-ja-kasvipohjaiset\b|\/ juustot tofut ja kasvipohjaiset\b|\bjuustot tofut ja kasvipohjaiset\b/.test(text)) return "Maitotuotteet";
-  if (/^kahvit-teet-ja-mehut\b|\/ kahvit teet ja mehut\b|\bkahvit teet ja mehut\b/.test(text)) return "Kahvi";
+  if (/^kahvit-teet-ja-mehut\b|\/ kahvit teet ja mehut\b|\bkahvit teet ja mehut\b/.test(text)) return "Kahvi & tee";
   if (/^alkoholi-ja-virvoitusjuomat\b|\/ alkoholi ja virvoitusjuomat\b|\balkoholi ja virvoitusjuomat\b|^virvoitusjuomat\b/.test(text)) return "Juomat";
   if (/^pakasteet\b|\/ pakasteet\b|\bpakasteet\b/.test(text)) return "Pakasteet";
   if (/^valmisruoka\b|\/ valmisruoka\b|\bvalmisruoka\b/.test(text)) return "Valmisruoka";
@@ -285,7 +305,7 @@ function classifyGostaCategoryFromSPathV155(rawText: string) {
   // Baby food is food; diapers/care products are Koti.
   if (/^lapset\/lastenruoat\b|\/ lastenruoat\b|\blastenruoat\b|\blastenruoka\b|\bvauvanruoka\b|\bvauvanruoat\b/.test(text)) return "Valmisruoka";
 
-  if (/^kodinhoito-ja-taloustarvikkeet\b|\/ kodinhoito ja taloustarvikkeet\b|\bkodinhoito ja taloustarvikkeet\b|^taloustarvikkeet\b|^hygienia\b/.test(text)) return "Koti";
+  if (/^kodinhoito-ja-taloustarvikkeet\b|\/ kodinhoito ja taloustarvikkeet\b|\bkodinhoito ja taloustarvikkeet\b|^taloustarvikkeet\b|^hygienia\b/.test(text)) return "Koti & vapaa-aika";
 
   return "Muut";
 }
@@ -298,7 +318,7 @@ function classifyGostaCategoryFromText(rawText: string) {
   // hedelmä, marja, milk or cream inside candy/cosmetic products.
   if (/lemmikkien ruuat ja tarvikkeet|lemmikkien ruoat ja tarvikkeet|lemmikki|lemmik|koira|kissa|pedigree|whiskas|sheba|purina|friskies|perfect fit|best friend/.test(text)) return "Lemmikit";
 
-  if (/kodinhoito ja taloustarvikkeet|kodinhoito|taloustarvikkeet|vaippa|vaipat|hoitotarvikkeet|pampers|libero|lastenhoito|pesu|pyykin|pyykinpesu|fairy|astianpesu|wc|siivous|talouspaperi|vessa|roskapussi|leivinpaperi|folio|kelmu|hygienia|shampoo|saippua|hammastahna|hammasharja|lumene|nivea|dove|kasvovoide|kosteusvoide|paivavoide|päivävoide|yovoide|yövoide|ihonhoito|kosmetiikka|meikki|seerumi|deodorantti|smartstore|sailytyslaatikko|säilytyslaatikko|sailytysrasia|säilytysrasia|muovilaatikko|muovirasia|rasia|astia|paistinpannu|pannu|kattila|kasari|keittio|keittiö|grillipannu/.test(text)) return "Koti";
+  if (/kodinhoito ja taloustarvikkeet|kodinhoito|taloustarvikkeet|vaippa|vaipat|hoitotarvikkeet|pampers|libero|lastenhoito|pesu|pyykin|pyykinpesu|fairy|astianpesu|wc|siivous|talouspaperi|vessa|roskapussi|leivinpaperi|folio|kelmu|hygienia|shampoo|saippua|hammastahna|hammasharja|lumene|nivea|dove|kasvovoide|kosteusvoide|paivavoide|päivävoide|yovoide|yövoide|ihonhoito|kosmetiikka|meikki|seerumi|deodorantti|smartstore|sailytyslaatikko|säilytyslaatikko|sailytysrasia|säilytysrasia|muovilaatikko|muovirasia|rasia|astia|paistinpannu|pannu|kattila|kasari|keittio|keittiö|grillipannu/.test(text)) return "Koti & vapaa-aika";
 
   // V159: Pakasteet must win before Makeiset. Ice creams often contain
   // words such as suklaa/lakritsi in the product name, but the real bucket is Pakasteet.
@@ -312,12 +332,12 @@ function classifyGostaCategoryFromText(rawText: string) {
 
   if (/kuivatuotteet|pasta|riisi|nuudeli|makaroni|spagetti|jauho|jauhot|sokeri|hiutale|hiutaleet|kaurahiutale|muro|murot|mysli|granola|sailyke|säilyke|tonnikalasailyke|tonnikalasäilyke|papu|pavut|linssi|linssit|kastikejauhe|mauste|mausteet|leivonta/.test(text)) return "Kuivatuotteet";
 
-  if (/liha ja kasviproteiinit|liha|jauheliha|kana|broiler\w*|possu|porsas|nauta|sika|makkara\w*|leikkele\w*|kinkku|pekoni|filee|paisti|lihapulla\w*|kasviproteiini|tofu|nyhtokaura|harkis|vege/.test(text)) return "Liha";
+  if (/liha ja kasviproteiinit|liha|jauheliha|kana|broiler\w*|possu|porsas|nauta|sika|makkara\w*|leikkele\w*|kinkku|pekoni|filee|paisti|lihapulla\w*|kasviproteiini|tofu|nyhtokaura|harkis|vege/.test(text)) return "Liha & makkarat";
   if (/kala ja merenelavat|kala ja merenelävät|merenelav|mereneläv|kirjolohi|lohi|tonnikala|silakka|katkarapu|kuha|ahven|seiti|kalapuikko|silli|kala/.test(text)) return "Kala";
   if (/leivat keksit ja leivonnaiset|leivät keksit ja leivonnaiset|kaurapala|kaurapalat|pullava|voisilmapitko|voisilmäpitko|taytepitko|täytepitko|pitko|pitkot|leipa|leipä|sampyl|sämpyl|pulla|croissant|karjalanpiir|pita|patonki|ruis|paahtoleipa|paahtoleipä|donitsi|leivonnainen/.test(text)) return "Leipomo";
   if (/maito munat ja rasvat|maito|kananmuna|munat|jugur|jogur|jogurt|rahka|raejuusto|juusto|voi|margariini|rasva|kerma|piima|viili|kefiiri|proteiinivanukas|vanukas/.test(text)) return "Maitotuotteet";
   if (/juustot tofut ja kasvipohjaiset|juusto|tofu|kasvipohjainen|kaurajuoma|soijajuoma|vegejuusto/.test(text)) return "Maitotuotteet";
-  if (/\bkahvi\b|\bkahvit\b|\btee\b|\bteet\b|espresso|suodatinjauh|kahvipapu|papukahvi|cappuccino|latte/.test(text)) return "Kahvi";
+  if (/\bkahvi\b|\bkahvit\b|\btee\b|\bteet\b|espresso|suodatinjauh|kahvipapu|papukahvi|cappuccino|latte/.test(text)) return "Kahvi & tee";
   if (/alkoholi ja virvoitusjuomat|alkoholi- ja virvoitusjuomat|virvoitus|limu|cola|mehu|energiajuoma|vesi|kivennaisvesi|kivenn|smoothie|olut|siideri|lonkero/.test(text)) return "Juomat";
 
   // Hevi last among common food buckets so hedelmäkarkki/marjakarkki cannot win.
@@ -369,7 +389,7 @@ function getStrictGostaCategoryOverrideV157(item: ZiiplyGostaOfferLike): string 
   }
 
   if (/\b(lumene|nivea|dove|garnier|loreal|l oreal|kasvovoide|kosteusvoide|paivavoide|päivävoide|yovoide|yövoide|ihonhoito|kosmetiikka|meikki|seerumi|deodorantti|shampoo|hoitoaine|suihkusaippua)\b/.test(strictText)) {
-    return "Koti";
+    return "Koti & vapaa-aika";
   }
 
   if (/\b(pedigree|whiskas|sheba|purina|friskies|perfect fit|best friend|koiranruoka|kissanruoka|lemmikkiruoka|lemmikit|lemmikki)\b/.test(strictText)) {
@@ -381,15 +401,15 @@ function getStrictGostaCategoryOverrideV157(item: ZiiplyGostaOfferLike): string 
 
 
 const TRUSTED_PROVIDER_CATEGORY_LABELS_V162 = new Map<string, string>([
-  ["kahvi", "Kahvi"],
-  ["kahvi ja tee", "Kahvi"],
+  ["kahvi", "Kahvi & tee"],
+  ["kahvi ja tee", "Kahvi & tee"],
   ["lastenruoat", "Lastenruoat"],
   ["vitamiinit ravinteet", "Vitamiinit & ravinteet"],
   ["hygienia kosmetiikka", "Hygienia & kosmetiikka"],
   ["kodinhoito", "Kodinhoito"],
   ["koti vapaa aika", "Koti & vapaa-aika"],
   ["maitotuotteet", "Maitotuotteet"],
-  ["liha", "Liha"],
+  ["liha", "Liha & makkarat"],
   ["kala", "Kala"],
   ["leipomo", "Leipomo"],
   ["hevi", "Hevi"],
@@ -495,9 +515,9 @@ export function isKnownOfferCategoryFilterV113(filter: string) {
 
 export const GOSTA_CATEGORY_LABELS_V136 = [
   "Kaikki",
-  "Kahvi",
+  "Kahvi & tee",
   "Maitotuotteet",
-  "Liha",
+  "Liha & makkarat",
   "Kala",
   "Leipomo",
   "Hevi",
@@ -572,9 +592,9 @@ export function getGostaCategorySeedQueriesV136(categoryOrFilter: string) {
 export function getGostaCategoryLabelFromFilterV136(filter: string) {
   const normalized = normalizeGostaText(filter);
   const aliases: Record<string, string> = {
-    "kahvi ja tee": "Kahvi",
+    "kahvi ja tee": "Kahvi & tee",
     "maitotuotteet ja munat": "Maitotuotteet",
-    "liha ja kasviproteiinit": "Liha",
+    "liha ja kasviproteiinit": "Liha & makkarat",
     "leipa ja leivonnaiset": "Leipomo",
     "hedelmat ja vihannekset": "Hevi",
     "valmisruoat": "Valmisruoka",
