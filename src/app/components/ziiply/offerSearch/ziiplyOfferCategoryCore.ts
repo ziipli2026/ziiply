@@ -1,4 +1,23 @@
 // ============================================================================
+// ZIIPLY_OFFER_CATEGORY_CORE_V165_SKAUPAT_TAXONOMY_FIRST
+// Revision: V165
+// Date: 2026-09-19
+//
+// V165:
+// - Palauttaa V155:n alkuperäisen periaatteen viralliselle S-kaupat/Prisma-datalle:
+//   providerin categoryPath/taxonomy ratkaisee ennen title/brand-regexejä.
+// - Korjaa Kahvit, teet ja mehut -hierarkian: mehut/smoothiet/jääteet -> Juomat,
+//   varsinainen kahvi ja tee -> Kahvi.
+// - Korjaa Pastat, riisit ja nuudelit sekä Öljyt, maustaminen ja kastikkeet
+//   -> Kuivatuotteet.
+// - Korjaa Kukat ja koti / Keittiö ja kattaus / Vapaa-aika -> Koti.
+// - Estää Urheiluravinteet, terveys ja itsehoito -tuotteiden joutumisen
+//   sattumalta Kahvi/Maito/Hevi/Kala-kategorioihin.
+// - Säilyttää V157-V164:n aiemmat erityiskorjaukset fallbackeina.
+// - Ei muutoksia provider-, search core-, page-, store-, GPS- tai K-koodiin.
+// ============================================================================
+
+// ============================================================================
 // ZIIPLY_OFFER_CATEGORY_CORE_V164_BREAD_PRODUCT_OVERRIDES
 // Revision: V164
 // Date: 2026-07-14
@@ -172,6 +191,65 @@ function getOfferCategoryMetaText(item: ZiiplyGostaOfferLike) {
 }
 
 
+function isOfficialSKaupatOfferV165(item: ZiiplyGostaOfferLike): boolean {
+  const sourceUrl = String(item?.sourceUrl ?? "").toLowerCase();
+  return sourceUrl.includes("s-kaupat.fi");
+}
+
+function getOfficialSKaupatCategoryV165(item: ZiiplyGostaOfferLike): string {
+  if (!isOfficialSKaupatOfferV165(item)) return "";
+
+  const categoryText = normalizeGostaText(
+    [
+      item?.categoryPath,
+      item?.breadcrumbs,
+      item?.hierarchy,
+      item?.taxonomy,
+      item?.mainCategory,
+      item?.department,
+      item?.productGroup,
+      item?.subCategory,
+      item?.category,
+    ]
+      .filter(Boolean)
+      .map(String)
+      .join(" "),
+  );
+
+  const mainCategory = normalizeGostaText(item?.mainCategory || item?.department || "");
+  if (!categoryText && !mainCategory) return "";
+
+  // "Kahvit, teet ja mehut" is only the S-kaupat parent. Resolve its child first.
+  if (/\b(mehu|mehut|mehutiiviste|smoothie|mehushot|valipalajuoma|välipalajuoma|jaatee|jäätee|jaateet|jääteet|marjakeitto)\b/.test(categoryText)) return "Juomat";
+  if (/\b(kahvi|kahvit|kahvipapu|kahvipavut|suodatinjauh|espresso|kahvikapseli|kahvikapselit|tee|teet|pussitee|kaakaojauhe)\b/.test(categoryText)) return "Kahvi";
+
+  if (/\bliha ja kasviproteiinit\b/.test(mainCategory)) return "Liha";
+  if (/\bkala ja merenelavat\b|\bkala ja merenelävät\b/.test(mainCategory)) return "Kala";
+  if (/\bhedelmat ja vihannekset\b|\bhedelmät ja vihannekset\b/.test(mainCategory)) return "Hevi";
+  if (/\bleivat ja leivonnaiset\b|\bleivät ja leivonnaiset\b|\bleivat keksit ja leivonnaiset\b|\bleivät keksit ja leivonnaiset\b/.test(mainCategory)) return "Leipomo";
+  if (/\bmaito munat ja rasvat\b|\bjuustot tofut ja kasvipohjaiset\b/.test(mainCategory)) return "Maitotuotteet";
+  if (/\balkoholi ja virvoitusjuomat\b|\bvirvoitusjuomat\b/.test(mainCategory)) return "Juomat";
+  if (/\bpakasteet\b/.test(mainCategory)) return "Pakasteet";
+  if (/\bvalmisruoka\b|\bruokatori\b/.test(mainCategory)) return "Valmisruoka";
+
+  if (/\bpastat riisit ja nuudelit\b|\boljyt maustaminen ja kastikkeet\b|\böljyt maustaminen ja kastikkeet\b|\btexmex ja maailman makuja\b|\bsnacksit\b/.test(mainCategory)) return "Kuivatuotteet";
+  if (/\bkarkit suklaat ja keksit\b|\bkarkit ja suklaat\b/.test(mainCategory)) return "Makeiset & keksit";
+  if (/\blemmikit\b/.test(mainCategory)) return "Lemmikit";
+
+  if (/\bkodinhoito ja taloustarvikkeet\b|\bkosmetiikka ja hygienia\b|\bkukat ja koti\b|\bkeittio ja kattaus\b|\bkeittiö ja kattaus\b|\bvapaa aika\b/.test(mainCategory)) return "Koti";
+
+  if (/\blapset\b/.test(mainCategory)) {
+    if (/\blastenruo|\bvauvanruo|\blasten puuro|\bpuuro|\bvelli|\bvalipala|\bvälipala|\bnaksut|\bpatukat\b/.test(categoryText)) return "Valmisruoka";
+    if (/\bvaippa|\bhoitotarvik|\blastentarvik/.test(categoryText)) return "Koti";
+    return "Muut";
+  }
+
+  // Explicitly keep health/self-care out of unrelated food buckets.
+  if (/\burheiluravinteet terveys ja itsehoito\b/.test(mainCategory)) return "Muut";
+
+  return "";
+}
+
 function classifyGostaCategoryFromSPathV155(rawText: string) {
   const text = normalizeGostaText(rawText);
   if (!text) return "Muut";
@@ -227,7 +305,7 @@ function classifyGostaCategoryFromText(rawText: string) {
   if (/leivat keksit ja leivonnaiset|leivät keksit ja leivonnaiset|kaurapala|kaurapalat|pullava|voisilmapitko|voisilmäpitko|taytepitko|täytepitko|pitko|pitkot|leipa|leipä|sampyl|sämpyl|pulla|croissant|karjalanpiir|pita|patonki|ruis|paahtoleipa|paahtoleipä|donitsi|leivonnainen/.test(text)) return "Leipomo";
   if (/maito munat ja rasvat|maito|kananmuna|munat|jugur|jogur|jogurt|rahka|raejuusto|juusto|voi|margariini|rasva|kerma|piima|viili|kefiiri|proteiinivanukas|vanukas/.test(text)) return "Maitotuotteet";
   if (/juustot tofut ja kasvipohjaiset|juusto|tofu|kasvipohjainen|kaurajuoma|soijajuoma|vegejuusto/.test(text)) return "Maitotuotteet";
-  if (/kahvit teet ja mehut|kahvi|tee|espresso|suodatinjauh|kahvipapu|papukahvi|cappuccino|latte/.test(text)) return "Kahvi";
+  if (/\bkahvi\b|\bkahvit\b|\btee\b|\bteet\b|espresso|suodatinjauh|kahvipapu|papukahvi|cappuccino|latte/.test(text)) return "Kahvi";
   if (/alkoholi ja virvoitusjuomat|alkoholi- ja virvoitusjuomat|virvoitus|limu|cola|mehu|energiajuoma|vesi|kivennaisvesi|kivenn|smoothie|olut|siideri|lonkero/.test(text)) return "Juomat";
 
   // Hevi last among common food buckets so hedelmäkarkki/marjakarkki cannot win.
@@ -331,6 +409,10 @@ function getTrustedProviderCategoryV162(item: ZiiplyGostaOfferLike): string {
 }
 
 export function getOfferCategoryV106(item: ZiiplyGostaOfferLike) {
+  // V165: official S-kaupat/Prisma taxonomy wins before title/brand overrides.
+  const officialSKaupatCategoryV165 = getOfficialSKaupatCategoryV165(item);
+  if (officialSKaupatCategoryV165) return officialSKaupatCategoryV165;
+
   // V162: trust an explicit normalized provider category before any title regex.
   // This prevents products such as "Nordqvist Jäätee" from changing
   // from provider category Juomat to Kahvi merely because the title contains "tee".
@@ -409,7 +491,7 @@ export function getGostaCategorySeedQueriesV136(categoryOrFilter: string) {
   const key = normalizeGostaText(categoryOrFilter);
 
   const seedsByCategory: Record<string, string[]> = {
-    kahvi: ["kahvi", "tee", "espresso", "suodatinjauhettu kahvi", "kahvipapu", "juhla mokka", "presidentti", "mehu"],
+    kahvi: ["kahvi", "tee", "espresso", "suodatinjauhettu kahvi", "kahvipapu", "juhla mokka", "presidentti"],
     maitotuotteet: ["maito", "munat", "kananmuna", "juusto", "jogurtti", "rahka", "raejuusto", "voi", "margariini", "kerma", "viili", "kefiiri", "vanukas", "kaurajuoma"],
     liha: ["liha", "liha ja kasviproteiinit", "jauheliha", "kana", "broileri", "nauta", "possu", "porsas", "sika", "makkara", "grillimakkara", "leikkele", "kinkku", "pekoni", "filee", "lihapulla", "kasviproteiini", "tofu"],
     kala: ["kala", "kala ja merenelävät", "lohi", "kirjolohi", "tonnikala", "silakka", "katkarapu", "seiti", "kalapuikko", "silli"],
