@@ -1,4 +1,21 @@
 // ============================================================================
+// SKAUPAT_PROVIDER_V197_PRISMA_VISIBLE_DIAGNOSTIC
+// Revision: V197-PRISMA-VISIBLE-DIAGNOSTIC
+// Date: 2026-09-19
+//
+// DIAGNOSTIIKKA:
+// - Jatkaa V196:n testiä: Göstan master-haku tekee normaalin "kahvi"-haun.
+// - Näyttää Göstan tuloksissa näkyvän diagnostiikkarivin, jotta mobiilissa
+//   nähdään ilman consolea, mihin Prisma-haku pysähtyy.
+// - Ei muuta location-, page-, core-, route-, kategoria- tai K-logiikkaa.
+// - Mahdolliset näkyvät tilat:
+//   * SELECTED STORES 0 / HTTP NO
+//   * HTTP OK + raw/mapped/statusdata
+//   * HTTP FAILED + virhe/status
+// - Tämä on vain väliaikainen vikadiagnostiikka, ei tuotantokorjaus.
+// ============================================================================
+
+// ============================================================================
 // SKAUPAT_PROVIDER_V196_PRISMA_NORMAL_SEARCH_TEST
 // Revision: V196-PRISMA-NORMAL-SEARCH-TEST
 // Date: 2026-09-19
@@ -1414,6 +1431,45 @@ async function fetchSKaupatRemoteFilteredProductsPageV170(
   };
 }
 
+function makeVisiblePrismaDiagnosticV197(
+  config: ZiiplyOfferSearchSourceConfig,
+  title: string,
+  detail: string,
+  storeName = "Prisma diagnostic",
+): ZiiplyOfferSearchResult {
+  return {
+    id: `skaupat-v197-diagnostic-${title}-${detail}`,
+    source: config.id,
+    sourceUrl: config.url,
+    chain: config.chain,
+    storeLabel: storeName,
+    storeName,
+    shopName: storeName,
+    title,
+    priceText: "0,01 €",
+    unitPriceText: "",
+    benefitText: detail,
+    validityText: "V197 DIAGNOSTIC",
+    imageUrl: "",
+    image: "",
+    pictureUrl: "",
+    productUrl: "",
+    rawText: `${title} ${detail}`,
+    matchScore: 999999,
+    category: "Kahvi",
+    categoryPath: "Kahvi",
+    breadcrumbs: "Kahvi",
+    hierarchy: "Kahvi",
+    taxonomy: "kahvi",
+    department: "Kahvi",
+    productGroup: "Kahvi",
+    mainCategory: "Kahvi",
+    subCategory: "Kahvi",
+    brandName: "Prisma diagnostic",
+    ean: "",
+  } as unknown as ZiiplyOfferSearchResult;
+}
+
 async function fetchSKaupatRemoteFilteredProductsV170(
   query: string,
   config: ZiiplyOfferSearchSourceConfig,
@@ -1421,7 +1477,24 @@ async function fetchSKaupatRemoteFilteredProductsV170(
   discountedOnly = false,
 ): Promise<ZiiplyOfferSearchResult[]> {
   const selectedStores = await resolveSelectedSKaupatStoresV194(options);
-  if (selectedStores.length === 0) return [];
+  if (selectedStores.length === 0) {
+    const receivedIds = normalizeSKaupatValueListV194(
+      options?.sStoreIds ?? options?.storeIds,
+      options?.sStoreId ?? options?.storeId,
+    ).join("||") || "(empty)";
+    const receivedNames = normalizeSKaupatValueListV194(
+      options?.sStoreNames ?? options?.storeNames,
+      options?.sStoreName ?? options?.storeName,
+    ).join("||") || "(empty)";
+
+    return [
+      makeVisiblePrismaDiagnosticV197(
+        config,
+        "PRISMA V197: SELECTED STORES 0 / HTTP NO",
+        `received storeId=${receivedIds} | storeName=${receivedNames}`,
+      ),
+    ];
+  }
 
   const allStoreResults: ZiiplyOfferSearchResult[] = [];
 
@@ -1443,6 +1516,17 @@ async function fetchSKaupatRemoteFilteredProductsV170(
         );
 
         pages.push(page.results);
+
+        if (offset === 0) {
+          pages.unshift([
+            makeVisiblePrismaDiagnosticV197(
+              config,
+              "PRISMA V197: HTTP OK",
+              `storeId=${selectedStore.storeId} | storeName=${selectedStore.storeName} | raw=${page.rawCount} | mapped=${page.results.length} | total=${page.total} | from=${page.from} | limit=${page.limit}`,
+              selectedStore.storeName || "Prisma diagnostic",
+            ),
+          ]);
+        }
 
         console.warn("[GOSTA PAGINATION V194]", {
           query,
@@ -1468,6 +1552,15 @@ async function fetchSKaupatRemoteFilteredProductsV170(
             selectedStoreName: selectedStore.storeName,
             error,
           });
+
+          pages.push([
+            makeVisiblePrismaDiagnosticV197(
+              config,
+              "PRISMA V197: HTTP FAILED",
+              `storeId=${selectedStore.storeId} | storeName=${selectedStore.storeName} | error=${error instanceof Error ? error.message : String(error)}`,
+              selectedStore.storeName || "Prisma diagnostic",
+            ),
+          ]);
           break;
         }
 
