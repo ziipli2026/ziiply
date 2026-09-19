@@ -1,6 +1,16 @@
 // ============================================================================
-// SKAUPAT_PROVIDER_V206_ZERO_RESULT_STORE_DIAGNOSTIC
-// Revision: V206-ZERO-RESULT-STORE-DIAGNOSTIC
+// SKAUPAT_PROVIDER_V207_PUBLIC_STORE_ID_RESOLVER_TEST
+// Revision: V207-PUBLIC-STORE-ID-RESOLVER-TEST
+// Date: 2026-09-19
+//
+// Diagnostic/fix:
+// - Replaces the brittle <a>...</a> parser used by V198.
+// - Resolves the official S-kaupat public store id from any /myymala/<slug>/<id>
+//   occurrence in the Prisma listing HTML, including Next/JSON payloads.
+// - Matches primarily by the normalized slug derived from the selected store name.
+// - Does NOT add any per-store hardcoded id mapping.
+// - Keeps V206 zero-result diagnostics so the resulting RemoteFilteredProducts
+//   request/response can be verified before making any further assumption.
 // Date: 2026-09-19
 //
 // Korjaus:
@@ -316,21 +326,25 @@ async function resolveSKaupatStoreIdFromOfficialStoreSearchV198(
   }
 
   try {
-    const url =
-      `https://www.s-kaupat.fi/myymalat/prisma?query=${encodeURIComponent(cleanStoreName)}`;
+    // V207: use the official Prisma directory page, but do not depend on the
+    // query parameter being rendered server-side. The selected store is matched
+    // from every official /myymala/<slug>/<id> occurrence in the returned HTML
+    // or embedded Next/JSON payload.
+    const url = "https://www.s-kaupat.fi/myymalat/prisma";
 
     const response = await fetch(url, {
       method: "GET",
       cache: "no-store",
       headers: {
         accept: "text/html,application/xhtml+xml",
+        "accept-language": "fi",
         "user-agent":
           "Mozilla/5.0 (compatible; Ziiply/1.0; +https://ziiply.fi)",
       },
     });
 
     if (!response.ok) {
-      console.warn("[GOSTA V198] S-kaupat store search failed", {
+      console.warn("[GOSTA V207] S-kaupat Prisma directory fetch failed", {
         storeName: cleanStoreName,
         status: response.status,
       });
@@ -340,32 +354,39 @@ async function resolveSKaupatStoreIdFromOfficialStoreSearchV198(
 
     const html = await response.text();
 
-    // S-kaupat official store links:
-    // /myymala/prisma-hyvinkaa/634976534
-    const linkRegex =
-      /href=["']([^"']*\/myymala\/([^/"'?]+)\/(\d{5,})(?:[?"'#][^"']*)?)["'][^>]*>([\s\S]{0,1600}?)<\/a>/gi;
+    const wantedSlug = normalizedWanted
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+
+    // Works with normal hrefs as well as escaped URLs inside Next/JSON data.
+    const storeUrlRegex =
+      /\/myymala\/([a-z0-9%._~-]+)\/(\d{5,})/gi;
 
     let bestId: string | null = null;
     let bestScore = -1;
     let match: RegExpExecArray | null;
+    let candidateCount = 0;
 
-    while ((match = linkRegex.exec(html)) !== null) {
-      const slug = decodeBasicHtmlEntitiesV198(match[2] || "");
-      const candidateId = String(match[3] || "").trim();
-      const anchorHtml = decodeBasicHtmlEntitiesV198(match[4] || "");
-      const anchorText = anchorHtml.replace(/<[^>]+>/g, " ");
+    while ((match = storeUrlRegex.exec(html)) !== null) {
+      candidateCount += 1;
+
+      const rawSlug = decodeBasicHtmlEntitiesV198(
+        decodeURIComponent(String(match[1] || "")),
+      );
+      const candidateId = String(match[2] || "").trim();
 
       const normalizedSlug = normalizeSKaupatStoreNameForMatchV198(
-        slug.replace(/-/g, " "),
+        rawSlug.replace(/-/g, " "),
       );
-      const normalizedAnchor = normalizeSKaupatStoreNameForMatchV198(anchorText);
+      const candidateSlug = normalizedSlug
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
 
       let score = 0;
-      if (normalizedAnchor === normalizedWanted) score = 100;
-      else if (normalizedAnchor.includes(normalizedWanted)) score = 90;
-      else if (normalizedWanted.includes(normalizedAnchor) && normalizedAnchor) score = 80;
-      else if (normalizedSlug === normalizedWanted) score = 75;
-      else if (normalizedSlug.includes(normalizedWanted)) score = 65;
+      if (candidateSlug === wantedSlug) score = 100;
+      else if (normalizedSlug === normalizedWanted) score = 100;
+      else if (normalizedSlug.includes(normalizedWanted)) score = 90;
+      else if (normalizedWanted.includes(normalizedSlug) && normalizedSlug) score = 80;
 
       if (score > bestScore) {
         bestScore = score;
@@ -373,23 +394,28 @@ async function resolveSKaupatStoreIdFromOfficialStoreSearchV198(
       }
     }
 
-    if (bestId && bestScore >= 65) {
-      console.warn("[GOSTA V198] resolved official S-kaupat storeId", {
+    if (bestId && bestScore >= 80) {
+      console.warn("[GOSTA V207] resolved official S-kaupat public storeId", {
         storeName: cleanStoreName,
         storeId: bestId,
         score: bestScore,
+        candidateCount,
       });
       sKaupatDynamicStoreIdCacheV198.set(normalizedWanted, bestId);
       return bestId;
     }
 
-    console.warn("[GOSTA V198] no matching official S-kaupat storeId", {
+    console.warn("[GOSTA V207] no matching store in official Prisma directory", {
       storeName: cleanStoreName,
+      normalizedWanted,
+      wantedSlug,
+      candidateCount,
+      bestScore,
     });
     sKaupatDynamicStoreIdCacheV198.set(normalizedWanted, null);
     return null;
   } catch (error) {
-    console.warn("[GOSTA V198] official S-kaupat store resolver failed", {
+    console.warn("[GOSTA V207] official S-kaupat store resolver failed", {
       storeName: cleanStoreName,
       error,
     });
@@ -1591,7 +1617,7 @@ async function fetchSKaupatRemoteFilteredProductsPageV170(
   };
 }
 
-function makeGostaZeroResultDiagnosticV206(
+function makeGostaZeroResultDiagnosticV207(
   config: ZiiplyOfferSearchSourceConfig,
   options: SKaupatOfferProviderOptionsV173 | undefined,
   detail: string,
@@ -1599,14 +1625,14 @@ function makeGostaZeroResultDiagnosticV206(
   const receivedStoreId = firstString(options?.storeId, options?.sStoreId);
   const receivedStoreName = firstString(options?.storeName, options?.sStoreName);
   const debugText = [
-    "GOSTA_V206_ZERO_RESULT_DIAGNOSTIC",
+    "GOSTA_V207_ZERO_RESULT_DIAGNOSTIC",
     `receivedStoreId=${receivedStoreId || "-"}`,
     `receivedStoreName=${receivedStoreName || "-"}`,
     detail,
   ].join(" | ");
 
   return {
-    id: `gosta-v206-debug-${receivedStoreId || "no-id"}`,
+    id: `gosta-v207-debug-${receivedStoreId || "no-id"}`,
     source: config.id,
     sourceUrl: config.url,
     chain: config.chain,
@@ -1635,7 +1661,7 @@ function makeGostaZeroResultDiagnosticV206(
     subCategory: "Muut",
     brandName: "",
     ean: "",
-    debugStoreResolutionV206: debugText,
+    debugStoreResolutionV207: debugText,
   } as unknown as ZiiplyOfferSearchResult;
 }
 
@@ -1648,7 +1674,7 @@ async function fetchSKaupatRemoteFilteredProductsV170(
   const selectedStores = await resolveSelectedSKaupatStoresV194(options);
   if (selectedStores.length === 0) {
     return [
-      makeGostaZeroResultDiagnosticV206(
+      makeGostaZeroResultDiagnosticV207(
         config,
         options,
         "selectedStores=0 | resolvedStoreId=- | httpStatus=- | raw=0 | total=0",
@@ -1658,7 +1684,7 @@ async function fetchSKaupatRemoteFilteredProductsV170(
 
   const allStoreResults: ZiiplyOfferSearchResult[] = [];
   const paginationTraceV203: string[] = [];
-  const zeroResultDiagnosticsV206: string[] = [];
+  const zeroResultDiagnosticsV207: string[] = [];
 
   for (const selectedStore of selectedStores) {
     const pageStep = 48;
@@ -1680,7 +1706,7 @@ async function fetchSKaupatRemoteFilteredProductsV170(
         pages.push(page.results);
 
         if (offset === 0) {
-          zeroResultDiagnosticsV206.push(
+          zeroResultDiagnosticsV207.push(
             [
               `resolvedStoreId=${selectedStore.storeId}`,
               `resolvedStoreName=${selectedStore.storeName || "-"}`,
@@ -1733,7 +1759,7 @@ async function fetchSKaupatRemoteFilteredProductsV170(
         if (page.rawCount < pageStep && page.total === 0) break;
       } catch (error) {
         if (offset === 0) {
-          zeroResultDiagnosticsV206.push(
+          zeroResultDiagnosticsV207.push(
             [
               `resolvedStoreId=${selectedStore.storeId}`,
               `resolvedStoreName=${selectedStore.storeName || "-"}`,
@@ -1772,10 +1798,10 @@ async function fetchSKaupatRemoteFilteredProductsV170(
 
   if (finalResultsV203.length === 0) {
     return [
-      makeGostaZeroResultDiagnosticV206(
+      makeGostaZeroResultDiagnosticV207(
         config,
         options,
-        zeroResultDiagnosticsV206.join(" || ") || "resolvedStoreId=- | httpStatus=- | raw=0 | total=0",
+        zeroResultDiagnosticsV207.join(" || ") || "resolvedStoreId=- | httpStatus=- | raw=0 | total=0",
       ),
     ];
   }
