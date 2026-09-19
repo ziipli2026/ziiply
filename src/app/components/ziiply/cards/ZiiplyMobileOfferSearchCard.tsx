@@ -1,3 +1,16 @@
+// ============================================================================
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V36_EAN_DEDUPE_FIX_DEBUG
+// Revision: V36-EAN-DEDUPE-FIX-DEBUG
+// Date: 2026-09-19
+//
+// Korjaus:
+// - Cardin oma dedupe ei enää yhdistä eri EAN-tuotteita root+hinta-avaimella.
+// - Jos EAN on olemassa, dedupe tehdään vain EANilla.
+// - root+hinta-fallback säilyy vain tuotteille, joilta EAN puuttuu.
+// - DEBUG / KOPIOI DEBUG säilyy ennallaan.
+// - Ei muita toiminnallisia muutoksia.
+// ============================================================================
+
 "use client";
 
 // ============================================================================
@@ -214,7 +227,19 @@ function dedupeOfferCardsV13(items: ZiiplyMobileOfferSearchItem[]) {
   const unique: ZiiplyMobileOfferSearchItem[] = [];
 
   for (const item of items) {
+    const ean = normalizeOfferCardKeyV13(item.ean);
     const key = getOfferCardDedupeKeyV13(item);
+
+    // V36: EAN-tuote on yksilöllinen tuote. Älä käytä sille root+hinta-dedupea,
+    // koska sama kampanja/hinta voi sisältää useita eri EAN-variantteja.
+    if (ean) {
+      if (key && seen.has(key)) continue;
+      if (key) seen.add(key);
+      unique.push(item);
+      continue;
+    }
+
+    // Fallback vain tuotteille, joilta EAN puuttuu.
     const root = getOfferCardTitleRootV13(item);
     const price = normalizeOfferCardKeyV13(item.offerPrice ?? item.price ?? "");
     const rootKey = root && price ? `${root}|${price}` : "";
