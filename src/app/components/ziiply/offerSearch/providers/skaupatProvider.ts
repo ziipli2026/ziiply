@@ -1,4 +1,20 @@
 // ============================================================================
+// SKAUPAT_PROVIDER_V201_RESTORE_WORKING_NAME_MAP
+// Revision: V201-RESTORE-WORKING-NAME-MAP
+// Date: 2026-09-19
+//
+// PALAUTUS VANHAAN TOIMIVAAN MALLIIN:
+// - Göstan S-kaupat-ID ratkaistaan valitun Prisman NIMEN perusteella ennen
+//   Ruoanhinta/Ziiply-lyhyt-ID:n käsittelyä.
+// - Tämä vastaa vanhan toimivan V181-mallin rakennetta:
+//   VERIFIED_*_BY_NAME -> S-kaupat storeId.
+// - Prisma Hyvinkää: Ziiply/Ruoanhinta id 292 EI mene S-kaupat-hakuun.
+// - Prisma Hyvinkää -> S-kaupat id 634976534.
+// - V200 näkyvä HTTP-diagnostiikka säilyy, jotta seuraava vaihe näkyy heti.
+// - Ei muutoksia page.tsx-, core-, route-, sources-, location- tai K-logiikkaan.
+// ============================================================================
+
+// ============================================================================
 // SKAUPAT_PROVIDER_V200_VISIBLE_DIAGNOSTIC_FIXED
 // Revision: V200-VISIBLE-DIAGNOSTIC-FIXED
 // Date: 2026-09-19
@@ -175,6 +191,24 @@ const SKAUPAT_REMOTE_FILTERED_PRODUCTS_HASH_V156 =
   "44ca017dddccfe49e787b483f471f26217adca807f8c71101d11e881dab9e480";
 
 const DEFAULT_SKAUPAT_STORE_ID_V156 = "513971200";
+
+// V201: palautettu vanhan toimivan V181-rakenteen mukainen nimikartta.
+// Tärkeää: tämä tarkistetaan ENNEN callerin lyhyttä Ruoanhinta/Ziiply store.id:tä.
+const VERIFIED_SKAUPAT_STORE_IDS_BY_NAME_V201: Record<string, string> = {
+  "prisma hyvinkaa": "634976534",
+};
+
+function resolveVerifiedSKaupatStoreIdByNameV201(value: unknown): string | null {
+  const normalized = normalizeText(String(value ?? ""))
+    .replace(/ä/g, "a")
+    .replace(/ö/g, "o")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!normalized) return null;
+  return VERIFIED_SKAUPAT_STORE_IDS_BY_NAME_V201[normalized] || null;
+}
+
 
 // V181: S-kaupat public /myymala URL id is not always the same id that
 // RemoteFilteredProducts uses for product/pricing search.
@@ -357,6 +391,19 @@ async function getEffectiveSKaupatStoreIdV174(
 ): Promise<string | null> {
   const raw = firstString(options?.storeId, options?.sStoreId);
   const storeName = firstString(options?.storeName, options?.sStoreName);
+
+  // V201: VANHA TOIMIVA PERIAATE PALAUTETTU.
+  // Store name identifies the S-kaupat store; short Ziiply/Ruoanhinta id (esim. 292)
+  // is not interpreted as an S-kaupat id.
+  const verifiedByNameV201 = resolveVerifiedSKaupatStoreIdByNameV201(storeName);
+  if (verifiedByNameV201) {
+    console.warn("[GOSTA V201] S-store name mapped to S-kaupat storeId", {
+      inputStoreId: raw || null,
+      storeName,
+      resolvedStoreId: verifiedByNameV201,
+    });
+    return verifiedByNameV201;
+  }
 
   const mappedProductSearchStoreId = S_PRODUCT_SEARCH_STORE_ID_MAP_V181[raw];
   if (mappedProductSearchStoreId) {
