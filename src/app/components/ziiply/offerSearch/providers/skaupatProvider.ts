@@ -1,45 +1,17 @@
 // ============================================================================
-// SKAUPAT_PROVIDER_V197_PRISMA_VISIBLE_DIAGNOSTIC
-// Revision: V197-PRISMA-VISIBLE-DIAGNOSTIC
+// SKAUPAT_PROVIDER_V198_DYNAMIC_SKAUPAT_STORE_RESOLVER
+// Revision: V198-DYNAMIC-SKAUPAT-STORE-RESOLVER
 // Date: 2026-09-19
 //
-// DIAGNOSTIIKKA:
-// - Jatkaa V196:n testiä: Göstan master-haku tekee normaalin "kahvi"-haun.
-// - Näyttää Göstan tuloksissa näkyvän diagnostiikkarivin, jotta mobiilissa
-//   nähdään ilman consolea, mihin Prisma-haku pysähtyy.
-// - Ei muuta location-, page-, core-, route-, kategoria- tai K-logiikkaa.
-// - Mahdolliset näkyvät tilat:
-//   * SELECTED STORES 0 / HTTP NO
-//   * HTTP OK + raw/mapped/statusdata
-//   * HTTP FAILED + virhe/status
-// - Tämä on vain väliaikainen vikadiagnostiikka, ei tuotantokorjaus.
-// ============================================================================
-
-// ============================================================================
-// SKAUPAT_PROVIDER_V196_PRISMA_NORMAL_SEARCH_TEST
-// Revision: V196-PRISMA-NORMAL-SEARCH-TEST
-// Date: 2026-09-19
-//
-// DIAGNOSTINEN TESTI – vain Göstan master-haaraan:
-// - Kun Gösta pyytää __ziiply_all_offers__, provider EI käytä masterin
-//   DISCOUNTED-filtteriä tässä testiversiossa.
-// - Sen sijaan tehdään tavallinen aiemmin toimineen polun
-//   RemoteFilteredProducts-haku hakusanalla "kahvi" samalle valitulle Prismalle.
-// - Tarkoitus: erottaa S-kaupat/Prisma-yhteyden vika master-hakutavan viasta.
-// - Ei muutoksia store-ID-, location-, page-, core-, category- tai K-logiikkaan.
-// - TESTIVERSIO, ei lopullinen korjaus.
-// ============================================================================
-
-// ============================================================================
-// SKAUPAT_PROVIDER_V195_CURRENT_FINLAND_DATE
-// Revision: V195
-// Date: 2026-09-19
-//
-// Korjaus Göstan Prisma/S-kaupat master-tarjoushakuun:
-// - Poistaa kovakoodatun 2026-06-07-päivämäärän tarjoushausta.
-// - availabilityDate ja sortForAvailabilityLabelDate käyttävät aina haun
-//   suoritushetken Suomen päivämäärää (Europe/Helsinki, YYYY-MM-DD).
-// - Ei muuta muuta tarjoushaku-, kauppavalinta-, kategoria- tai provider-logiikkaa.
+// KORJAUS:
+// - Ziiplyn lyhyt sisäinen kauppa-ID (esim. 292) ei ole S-kaupat
+//   RemoteFilteredProducts -storeId.
+// - Kun valitun Prisman ID ei ole kelvollinen S-kaupat-ID, provider ratkaisee
+//   oikean ID:n dynaamisesti S-kaupat.fi:n Prisma-myymälähausta kaupan nimellä.
+// - Ei Prisma-/kauppakohtaisia kovakoodattuja ID-mäppäyksiä.
+// - Vanha directory-resolver säilyy fallbackina.
+// - Ei muutoksia page.tsx-, core-, route-, sources-, location-, K- tai
+//   kategorialogiikkaan.
 // ============================================================================
 
 // ============================================================================
@@ -247,6 +219,127 @@ function normalizeSKaupatValueListV194(arrayValue: unknown, fallbackValue: unkno
   return Array.from(new Set([...fromArray, ...splitSKaupatMultiValueV194(fallbackValue)]));
 }
 
+
+function normalizeSKaupatStoreNameForMatchV198(value: unknown): string {
+  return String(value ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/&amp;/g, "&")
+    .replace(/&#x27;|&#39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/[^a-z0-9åäö]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function decodeBasicHtmlEntitiesV198(value: string): string {
+  return value
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#x27;|&#39;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">");
+}
+
+const sKaupatDynamicStoreIdCacheV198 = new Map<string, string | null>();
+
+async function resolveSKaupatStoreIdFromOfficialStoreSearchV198(
+  storeName: string,
+): Promise<string | null> {
+  const cleanStoreName = String(storeName || "").trim();
+  if (!cleanStoreName) return null;
+
+  const normalizedWanted = normalizeSKaupatStoreNameForMatchV198(cleanStoreName);
+  if (!normalizedWanted) return null;
+
+  if (sKaupatDynamicStoreIdCacheV198.has(normalizedWanted)) {
+    return sKaupatDynamicStoreIdCacheV198.get(normalizedWanted) ?? null;
+  }
+
+  try {
+    const url =
+      `https://www.s-kaupat.fi/myymalat/prisma?query=${encodeURIComponent(cleanStoreName)}`;
+
+    const response = await fetch(url, {
+      method: "GET",
+      cache: "no-store",
+      headers: {
+        accept: "text/html,application/xhtml+xml",
+        "user-agent":
+          "Mozilla/5.0 (compatible; Ziiply/1.0; +https://ziiply.fi)",
+      },
+    });
+
+    if (!response.ok) {
+      console.warn("[GOSTA V198] S-kaupat store search failed", {
+        storeName: cleanStoreName,
+        status: response.status,
+      });
+      sKaupatDynamicStoreIdCacheV198.set(normalizedWanted, null);
+      return null;
+    }
+
+    const html = await response.text();
+
+    // S-kaupat official store links:
+    // /myymala/prisma-hyvinkaa/634976534
+    const linkRegex =
+      /href=["']([^"']*\/myymala\/([^/"'?]+)\/(\d{5,})(?:[?"'#][^"']*)?)["'][^>]*>([\s\S]{0,1600}?)<\/a>/gi;
+
+    let bestId: string | null = null;
+    let bestScore = -1;
+    let match: RegExpExecArray | null;
+
+    while ((match = linkRegex.exec(html)) !== null) {
+      const slug = decodeBasicHtmlEntitiesV198(match[2] || "");
+      const candidateId = String(match[3] || "").trim();
+      const anchorHtml = decodeBasicHtmlEntitiesV198(match[4] || "");
+      const anchorText = anchorHtml.replace(/<[^>]+>/g, " ");
+
+      const normalizedSlug = normalizeSKaupatStoreNameForMatchV198(
+        slug.replace(/-/g, " "),
+      );
+      const normalizedAnchor = normalizeSKaupatStoreNameForMatchV198(anchorText);
+
+      let score = 0;
+      if (normalizedAnchor === normalizedWanted) score = 100;
+      else if (normalizedAnchor.includes(normalizedWanted)) score = 90;
+      else if (normalizedWanted.includes(normalizedAnchor) && normalizedAnchor) score = 80;
+      else if (normalizedSlug === normalizedWanted) score = 75;
+      else if (normalizedSlug.includes(normalizedWanted)) score = 65;
+
+      if (score > bestScore) {
+        bestScore = score;
+        bestId = candidateId;
+      }
+    }
+
+    if (bestId && bestScore >= 65) {
+      console.warn("[GOSTA V198] resolved official S-kaupat storeId", {
+        storeName: cleanStoreName,
+        storeId: bestId,
+        score: bestScore,
+      });
+      sKaupatDynamicStoreIdCacheV198.set(normalizedWanted, bestId);
+      return bestId;
+    }
+
+    console.warn("[GOSTA V198] no matching official S-kaupat storeId", {
+      storeName: cleanStoreName,
+    });
+    sKaupatDynamicStoreIdCacheV198.set(normalizedWanted, null);
+    return null;
+  } catch (error) {
+    console.warn("[GOSTA V198] official S-kaupat store resolver failed", {
+      storeName: cleanStoreName,
+      error,
+    });
+    sKaupatDynamicStoreIdCacheV198.set(normalizedWanted, null);
+    return null;
+  }
+}
+
 async function getEffectiveSKaupatStoreIdV174(
   options?: SKaupatOfferProviderOptionsV173,
 ): Promise<string | null> {
@@ -269,7 +362,22 @@ async function getEffectiveSKaupatStoreIdV174(
     return raw;
   }
 
-  // Resolve real S-kaupat id from S-kaupat store URLs:
+  // V198: Ziiplyn lyhyt sisäinen ID (esim. 292) ei ole
+  // RemoteFilteredProducts-storeId. Ratkaise oikea S-kaupat-ID ensin
+  // virallisesta S-kaupat Prisma-myymälähausta nimen perusteella.
+  const resolvedFromOfficialStoreSearchV198 =
+    await resolveSKaupatStoreIdFromOfficialStoreSearchV198(storeName);
+
+  if (resolvedFromOfficialStoreSearchV198) {
+    console.warn("[GOSTA V198] S-kaupat storeId resolved from official store search", {
+      storeId: raw || null,
+      storeName,
+      resolvedStoreId: resolvedFromOfficialStoreSearchV198,
+    });
+    return resolvedFromOfficialStoreSearchV198;
+  }
+
+  // Vanha directory-resolver säilyy fallbackina.
   // /myymala/<slug>/<storeId>
   const resolvedFromDirectory = await resolveSKaupatStoreIdFromDirectoryV1(storeName);
 
@@ -1304,15 +1412,6 @@ function mapSProductListItemToOfferResult(
   } as unknown as ZiiplyOfferSearchResult;
 }
 
-function getCurrentFinlandDateV195(): string {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Europe/Helsinki",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date());
-}
-
 function buildRemoteFilteredProductsUrl(
   query: string,
   offset = 0,
@@ -1323,10 +1422,9 @@ function buildRemoteFilteredProductsUrl(
   const discountedLimit = 24;
   const page = Math.floor(offset / normalLimit) + 1;
   const queryString = discountedOnly ? "" : query;
-  const currentDate = getCurrentFinlandDateV195();
 
   const variables: UnknownRecord = {
-    availabilityDate: discountedOnly ? currentDate : undefined,
+    availabilityDate: discountedOnly ? "2026-06-07" : undefined,
     facets: [
       { key: "brandName", order: "asc" },
       { key: "category" },
@@ -1344,7 +1442,7 @@ function buildRemoteFilteredProductsUrl(
     fetchSponsoredContent: discountedOnly,
     limit: discountedOnly ? discountedLimit : normalLimit,
     queryString,
-    sortForAvailabilityLabelDate: discountedOnly ? currentDate : undefined,
+    sortForAvailabilityLabelDate: discountedOnly ? "2026-06-07" : undefined,
     storeId: selectedStoreId,
     useRandomId: false,
     marketingId: "d0bcc6e5-6130-494e-b6fb-12b5cb9c60cf",
@@ -1431,45 +1529,6 @@ async function fetchSKaupatRemoteFilteredProductsPageV170(
   };
 }
 
-function makeVisiblePrismaDiagnosticV197(
-  config: ZiiplyOfferSearchSourceConfig,
-  title: string,
-  detail: string,
-  storeName = "Prisma diagnostic",
-): ZiiplyOfferSearchResult {
-  return {
-    id: `skaupat-v197-diagnostic-${title}-${detail}`,
-    source: config.id,
-    sourceUrl: config.url,
-    chain: config.chain,
-    storeLabel: storeName,
-    storeName,
-    shopName: storeName,
-    title,
-    priceText: "0,01 €",
-    unitPriceText: "",
-    benefitText: detail,
-    validityText: "V197 DIAGNOSTIC",
-    imageUrl: "",
-    image: "",
-    pictureUrl: "",
-    productUrl: "",
-    rawText: `${title} ${detail}`,
-    matchScore: 999999,
-    category: "Kahvi",
-    categoryPath: "Kahvi",
-    breadcrumbs: "Kahvi",
-    hierarchy: "Kahvi",
-    taxonomy: "kahvi",
-    department: "Kahvi",
-    productGroup: "Kahvi",
-    mainCategory: "Kahvi",
-    subCategory: "Kahvi",
-    brandName: "Prisma diagnostic",
-    ean: "",
-  } as unknown as ZiiplyOfferSearchResult;
-}
-
 async function fetchSKaupatRemoteFilteredProductsV170(
   query: string,
   config: ZiiplyOfferSearchSourceConfig,
@@ -1477,24 +1536,7 @@ async function fetchSKaupatRemoteFilteredProductsV170(
   discountedOnly = false,
 ): Promise<ZiiplyOfferSearchResult[]> {
   const selectedStores = await resolveSelectedSKaupatStoresV194(options);
-  if (selectedStores.length === 0) {
-    const receivedIds = normalizeSKaupatValueListV194(
-      options?.sStoreIds ?? options?.storeIds,
-      options?.sStoreId ?? options?.storeId,
-    ).join("||") || "(empty)";
-    const receivedNames = normalizeSKaupatValueListV194(
-      options?.sStoreNames ?? options?.storeNames,
-      options?.sStoreName ?? options?.storeName,
-    ).join("||") || "(empty)";
-
-    return [
-      makeVisiblePrismaDiagnosticV197(
-        config,
-        "PRISMA V197: SELECTED STORES 0 / HTTP NO",
-        `received storeId=${receivedIds} | storeName=${receivedNames}`,
-      ),
-    ];
-  }
+  if (selectedStores.length === 0) return [];
 
   const allStoreResults: ZiiplyOfferSearchResult[] = [];
 
@@ -1516,17 +1558,6 @@ async function fetchSKaupatRemoteFilteredProductsV170(
         );
 
         pages.push(page.results);
-
-        if (offset === 0) {
-          pages.unshift([
-            makeVisiblePrismaDiagnosticV197(
-              config,
-              "PRISMA V197: HTTP OK",
-              `storeId=${selectedStore.storeId} | storeName=${selectedStore.storeName} | raw=${page.rawCount} | mapped=${page.results.length} | total=${page.total} | from=${page.from} | limit=${page.limit}`,
-              selectedStore.storeName || "Prisma diagnostic",
-            ),
-          ]);
-        }
 
         console.warn("[GOSTA PAGINATION V194]", {
           query,
@@ -1552,15 +1583,6 @@ async function fetchSKaupatRemoteFilteredProductsV170(
             selectedStoreName: selectedStore.storeName,
             error,
           });
-
-          pages.push([
-            makeVisiblePrismaDiagnosticV197(
-              config,
-              "PRISMA V197: HTTP FAILED",
-              `storeId=${selectedStore.storeId} | storeName=${selectedStore.storeName} | error=${error instanceof Error ? error.message : String(error)}`,
-              selectedStore.storeName || "Prisma diagnostic",
-            ),
-          ]);
           break;
         }
 
@@ -1585,16 +1607,11 @@ export async function fetchSKaupatOffers(
 
   try {
     if (isGostaMasterQueryV171(cleanQuery)) {
-      // V196 diagnostic: bypass the newer master DISCOUNTED mode completely.
-      // Use the normal RemoteFilteredProducts query path against the SAME
-      // selected Prisma/store context. If this returns coffee products, the
-      // S-kaupat connection/store selection still works and the fault is in
-      // the master DISCOUNTED request path rather than the base Prisma search.
       return await fetchSKaupatRemoteFilteredProductsV170(
-        "kahvi",
+        "",
         config,
         options,
-        false,
+        true,
       );
     }
 
