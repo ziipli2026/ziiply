@@ -1,15 +1,17 @@
 // ============================================================================
-// SKAUPAT_PROVIDER_V202_CURRENT_DATE_48_PAGINATION
-// Revision: V202
+// SKAUPAT_PROVIDER_V203_PAGINATION_TRACE
+// Revision: V203
 // Date: 2026-09-19
 //
-// V202:
-// - Pohja: V201 (toimiva Prisma Hyvinkää store-name -> S-kaupat storeId -korjaus säilyy).
-// - Palauttaa DISCOUNTED/master-haun limitin ja pageStepin 48:aan.
-// - Poistaa kovakoodatun 2026-06-07 päivän.
-// - availabilityDate ja sortForAvailabilityLabelDate käyttävät aina pyynnön
-//   tekohetken paikallista YYYY-MM-DD-päivää.
-// - Ei muutoksia mapperiin, dedupeen, kategorisointiin tai store-ID-logiikkaan.
+// V203 DIAGNOSTIC:
+// - Pohja: V202; V201 store-name -> S-kaupat storeId -korjaus säilyy.
+// - DISCOUNTED limit/pageStep = 48 ja current local date säilyvät.
+// - POISTAA V200:n keinotekoiset PRISMA HTTP OK/FAILED -tuoterivit kokonaan.
+// - Lisää oikeaan ensimmäiseen tulokseen debugPaginationV203-kentän.
+// - Kenttä kertoo jokaiselta sivulta:
+//   requestedFrom, responseFrom, raw, mapped, uniqueEAN, total, limit,
+//   sekä lopuksi flattened/uniqueBeforeFinal/returned.
+// - Ei muuta mapperia, dedupe-avainta, kategorioita eikä UI-debug-paneelia.
 // ============================================================================
 
 // ============================================================================
@@ -1611,71 +1613,21 @@ async function fetchSKaupatRemoteFilteredProductsPageV170(
   };
 }
 
-function makeVisiblePrismaDiagnosticV200(
-  config: ZiiplyOfferSearchSourceConfig,
-  title: string,
-  detail: string,
-  storeName = "Prisma diagnostic",
-): ZiiplyOfferSearchResult {
-  return {
-    id: `skaupat-v200-${title}-${detail}`,
-    source: config.id,
-    sourceUrl: config.url,
-    chain: config.chain,
-    storeLabel: storeName,
-    storeName,
-    shopName: storeName,
-    title,
-    priceText: "0,01 €",
-    unitPriceText: "",
-    benefitText: detail,
-    validityText: "V200 DIAGNOSTIC",
-    imageUrl: "",
-    image: "",
-    pictureUrl: "",
-    productUrl: "",
-    rawText: `${title} ${detail}`,
-    matchScore: 999999,
-    category: "Kahvi",
-    categoryPath: "Kahvi",
-    breadcrumbs: "Kahvi",
-    hierarchy: "Kahvi",
-    taxonomy: "kahvi",
-    department: "Kahvi",
-    productGroup: "Kahvi",
-    mainCategory: "Kahvi",
-    subCategory: "Kahvi",
-    brandName: "Prisma diagnostic",
-    ean: "",
-  } as unknown as ZiiplyOfferSearchResult;
-}
-
 async function fetchSKaupatRemoteFilteredProductsV170(
   query: string,
   config: ZiiplyOfferSearchSourceConfig,
   options?: SKaupatOfferProviderOptionsV173,
   discountedOnly = false,
 ): Promise<ZiiplyOfferSearchResult[]> {
-  const receivedStoreIdV200 = firstString(options?.storeId, options?.sStoreId);
-  const receivedStoreNameV200 = firstString(options?.storeName, options?.sStoreName);
-
   const selectedStores = await resolveSelectedSKaupatStoresV194(options);
-  if (selectedStores.length === 0) {
-    return [
-      makeVisiblePrismaDiagnosticV200(
-        config,
-        "PRISMA V200: RESOLVER FAILED / HTTP NO",
-        `received=${receivedStoreIdV200 || "(empty)"} / ${receivedStoreNameV200 || "(empty)"} | resolved=NONE`,
-        receivedStoreNameV200 || "Prisma diagnostic",
-      ),
-    ];
-  }
+  if (selectedStores.length === 0) return [];
 
   const allStoreResults: ZiiplyOfferSearchResult[] = [];
+  const paginationTraceV203: string[] = [];
 
   for (const selectedStore of selectedStores) {
     const pageStep = 48;
-    const maxPages = discountedOnly ? 25 : 25;
+    const maxPages = 25;
     const pageOffsets = Array.from({ length: maxPages }, (_, index) => index * pageStep);
     const pages: ZiiplyOfferSearchResult[][] = [];
 
@@ -1692,24 +1644,33 @@ async function fetchSKaupatRemoteFilteredProductsV170(
 
         pages.push(page.results);
 
-        if (offset === 0) {
-          pages.unshift([
-            makeVisiblePrismaDiagnosticV200(
-              config,
-              "PRISMA V200: HTTP OK",
-              `received=${receivedStoreIdV200 || "(empty)"} / ${receivedStoreNameV200 || "(empty)"} | resolved=${selectedStore.storeId} | raw=${page.rawCount} | mapped=${page.results.length} | total=${page.total} | from=${page.from} | limit=${page.limit}`,
-              selectedStore.storeName || receivedStoreNameV200 || "Prisma diagnostic",
-            ),
-          ]);
-        }
+        const pageEansV203 = new Set(
+          page.results
+            .map((item) => firstString((item as any).ean, (item as any).gtin, (item as any).barcode))
+            .filter(Boolean)
+            .map((value) => normalizeText(value)),
+        );
 
-        console.warn("[GOSTA PAGINATION V194]", {
+        paginationTraceV203.push(
+          [
+            `store=${selectedStore.storeId}`,
+            `req=${offset}`,
+            `resp=${page.from}`,
+            `raw=${page.rawCount}`,
+            `mapped=${page.results.length}`,
+            `uniqueEAN=${pageEansV203.size}`,
+            `total=${page.total}`,
+            `limit=${page.limit}`,
+          ].join(","),
+        );
+
+        console.warn("[GOSTA PAGINATION V203]", {
           query,
-          offset,
           requestedFrom: offset,
           responseFrom: page.from,
           rawCount: page.rawCount,
           mappedOfferCount: page.results.length,
+          uniqueEanCount: pageEansV203.size,
           total: page.total,
           limit: page.limit,
           discountedOnly,
@@ -1721,23 +1682,9 @@ async function fetchSKaupatRemoteFilteredProductsV170(
         if (page.total > 0 && offset + pageStep >= page.total) break;
         if (page.rawCount < pageStep && page.total === 0) break;
       } catch (error) {
-        if (offset === 0) {
-          console.warn("[Ziiply offers] selected S-store offer fetch failed", {
-            selectedStoreId: selectedStore.storeId,
-            selectedStoreName: selectedStore.storeName,
-            error,
-          });
-          pages.push([
-            makeVisiblePrismaDiagnosticV200(
-              config,
-              "PRISMA V200: HTTP FAILED",
-              `received=${receivedStoreIdV200 || "(empty)"} / ${receivedStoreNameV200 || "(empty)"} | resolved=${selectedStore.storeId} | error=${error instanceof Error ? error.message : String(error)}`,
-              selectedStore.storeName || receivedStoreNameV200 || "Prisma diagnostic",
-            ),
-          ]);
-          break;
-        }
-
+        paginationTraceV203.push(
+          `store=${selectedStore.storeId},req=${offset},ERROR=${error instanceof Error ? error.message : String(error)}`,
+        );
         console.warn(`[Ziiply offers] S-kaupat pagination page failed at offset ${offset}`, error);
         break;
       }
@@ -1746,7 +1693,24 @@ async function fetchSKaupatRemoteFilteredProductsV170(
     allStoreResults.push(...pages.flat());
   }
 
-  return dedupeSOfferResultsV161(allStoreResults);
+  const uniqueBeforeFinalV203 = new Set(
+    allStoreResults.map((item) => getSOfferDedupeKeyV161(item)).filter(Boolean),
+  ).size;
+
+  const finalResultsV203 = dedupeSOfferResultsV161(allStoreResults);
+
+  const summaryV203 = [
+    ...paginationTraceV203,
+    `SUMMARY flattened=${allStoreResults.length},uniqueBeforeFinal=${uniqueBeforeFinalV203},returned=${finalResultsV203.length}`,
+  ].join(" | ");
+
+  if (finalResultsV203.length > 0) {
+    (finalResultsV203[0] as any).debugPaginationV203 = summaryV203;
+  }
+
+  console.warn("[GOSTA PAGINATION V203 SUMMARY]", summaryV203);
+
+  return finalResultsV203;
 }
 
 export async function fetchSKaupatOffers(
