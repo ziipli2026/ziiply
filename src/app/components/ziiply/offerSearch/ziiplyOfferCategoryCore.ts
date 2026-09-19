@@ -1,4 +1,22 @@
 // ============================================================================
+// ZIIPLY_OFFER_CATEGORY_CORE_V168_CHILD_TAXONOMY_FIX
+// Revision: V168
+// Date: 2026-09-19
+//
+// V168:
+// - Korjaa "Kahvit, teet ja mehut" -yläkategorian vuodon: luokitus tehdään
+//   productGroup/subCategory/category-tasolta. Kahvi + tee -> Kahvi & tee,
+//   mehut/smoothiet/jääteet -> Juomat.
+// - Korjaa Liha ja kasviproteiinit -luokituksen: pääkategorian sana
+//   "kasviproteiinit" ei enää siirrä jauhelihaa Valmisruokaan.
+// - Jauheliha, makkarat, nakit, leikkeleet, kinkut, meetvurstit, pekoni ym.
+//   -> Liha & makkarat.
+// - Rasvahappovalmisteet/Omega-3 sekä kauneuden hyvinvointivalmisteiden
+//   kollageenituotteet -> Vitamiinit & ravinteet.
+// - Ei muutoksia OfferSearchCardiin, provideriin, store-ID:hen tai debugiin.
+// ============================================================================
+
+// ============================================================================
 // ZIIPLY_OFFER_CATEGORY_CORE_V167_COFFEE_MEAT_NUTRIENTS
 // Revision: V167
 // Date: 2026-09-19
@@ -239,17 +257,29 @@ function getOfficialSKaupatCategoryV165(item: ZiiplyGostaOfferLike): string {
   );
 
   const mainCategory = normalizeGostaText(item?.mainCategory || item?.department || "");
+  const childCategoryText = normalizeGostaText(
+    [
+      item?.productGroup,
+      item?.subCategory,
+      item?.category,
+    ]
+      .filter(Boolean)
+      .map(String)
+      .join(" "),
+  );
   if (!categoryText && !mainCategory) return "";
 
-  // "Kahvit, teet ja mehut" is only the S-kaupat parent. Resolve the child taxonomy first.
-  // Coffee must win before the broad parent; iced tea remains a cold drink.
-  if (/\b(kahvit ja suodatinpaperit|kahvi|kahvit|kahvipapu|kahvipavut|suodatinjauh|suodatinjauhatuskahvi|espresso|kahvikapseli|kahvikapselit|pikakahvi|kaakao|kaakaojauhe)\b/.test(categoryText)) return "Kahvi & tee";
-  if (/\b(jaatee|jäätee|jaateet|jääteet|mehu|mehut|mehutiiviste|smoothie|mehushot|valipalajuoma|välipalajuoma|marjakeitto)\b/.test(categoryText)) return "Juomat";
-  if (/\b(tee|teet|pussitee|yrttitee|hauduke|haudukkeet)\b/.test(categoryText)) return "Kahvi & tee";
+  // "Kahvit, teet ja mehut" is only the S-kaupat parent.
+  // IMPORTANT: classify from child fields only, otherwise the parent word
+  // "kahvit" makes every juice/smoothie/iced tea look like coffee.
+  if (/\b(jaatee|jäätee|jaateet|jääteet|mehu|mehut|mehutiiviste|smoothie|smoothiet|mehushot|mehushotit|valipalajuoma|välipalajuoma|valipalajuomat|välipalajuomat|marjakeitto)\b/.test(childCategoryText)) return "Juomat";
+  if (/\b(kahvit ja suodatinpaperit|kahvi|kahvit|kahvipapu|kahvipavut|suodatinjauh|suodatinjauhatuskahvi|espresso|kahvikapseli|kahvikapselit|pikakahvi|pikakahvit|kaakao|kaakaojauhe)\b/.test(childCategoryText)) return "Kahvi & tee";
+  if (/\b(tee|teet|pussitee|yrttitee|hauduke|haudukkeet|teejuomajauhe|teejuomajauheet)\b/.test(childCategoryText)) return "Kahvi & tee";
 
   if (/\bliha ja kasviproteiinit\b/.test(mainCategory)) {
-    if (/\b(tofu|harkis|härkis|nyhtokaura|nyhtökaura|kasviproteiini|kasviproteiinit|vege|vegaan)/.test(categoryText)) return "Valmisruoka";
-    if (/\b(jauheliha|naudanliha|sianliha|porsas|broileri|kana|kalkkuna|makkara|makkarat|grillimakkara|nakki|nakit|leikkele|leikkeleet|kinkku|meetvursti|metvursti|pekoni|lihavalmiste|lihavalmisteet|liha)\b/.test(categoryText)) return "Liha & makkarat";
+    // Only child taxonomy may identify a plant-protein product. The parent itself
+    // always contains "kasviproteiinit", so using categoryText here misclassified meat.
+    if (/\b(tofu|harkis|härkis|nyhtokaura|nyhtökaura|kasviproteiini|kasviproteiinit|vege|vegaan)\b/.test(childCategoryText)) return "Valmisruoka";
     return "Liha & makkarat";
   }
   if (/\bkala ja merenelavat\b|\bkala ja merenelävät\b/.test(mainCategory)) return "Kala";
@@ -275,7 +305,20 @@ function getOfficialSKaupatCategoryV165(item: ZiiplyGostaOfferLike): string {
   }
 
   if (/\burheiluravinteet terveys ja itsehoito\b/.test(mainCategory)) {
-    if (/\bvitami|\bmineraali|\bkivennais|\bmagnesium|\bsinkki|\brauta|\bravintolisa|\bravintolisä|\bproteiini|\benergia.?patukka|\bproteiinipatukka|\burheiluravinne|\baminohapp|\bkreatiini|\belektrolyytti|\bmelatoniini|\bomega.?3|\bkollageeni/.test(categoryText)) return "Vitamiinit & ravinteet";
+    const healthText = normalizeGostaText(
+      [
+        childCategoryText,
+        item?.title,
+        item?.name,
+        item?.productName,
+        item?.brandName,
+      ]
+        .filter(Boolean)
+        .map(String)
+        .join(" "),
+    );
+
+    if (/\bvitami|\bmineraali|\bkivennais|\bmagnesium|\bsinkki|\brauta|\bravintolisa|\bravintolisä|\bproteiini|\benergia.?patukka|\bproteiinipatukka|\burheiluravinne|\baminohapp|\bkreatiini|\belektrolyytti|\bmelatoniini|\bomega.?3|\bkollageeni|\bcollagen|\brasvahappovalmiste|\bkalaoljyvalmiste|\bkalaöljyvalmiste|\bkauneuden hyvinvointivalmiste/.test(healthText)) return "Vitamiinit & ravinteet";
     return "Muut";
   }
 
