@@ -1,3 +1,14 @@
+// ZIIPLY_OFFER_SEARCH_SOURCES_V29_KRUOKA_DISABLED
+// Revision: V29-KRUOKA-DISABLED
+// Date: 2026-09-19
+//
+// Muutos:
+// - K-Ruoka / K-Market / K-Supermarket / K-Citymarket tarjoushaku on kokonaan pois käytöstä Göstan tarjoushausta.
+// - K-providerin koodi jätetään tiedostoon myöhempää korjausta varten, mutta sitä ei kutsuta.
+// - Prisma / S-kaupat tarjoushaku säilyy ennallaan.
+// - S-market eTarjouslehdet pysyy pois käytöstä kuten V28:ssa.
+// - Ei muutoksia page.tsx:ään, korttiin, routeen tai S-kaupat provideriin.
+
 // ZIIPLY_OFFER_SEARCH_SOURCES_V28_ETARJOUSLEHDET_DISABLED
 // Revision: V28-ETARJOUSLEHDET-DISABLED
 // Date: 2026-07-12
@@ -173,6 +184,7 @@ const ZIIPLY_OFFER_SOURCES = {
 const OFFER_SEARCH_SOURCE_REVISION = "v28-etarjouslehdet-disabled";
 const ENABLE_OFFER_SEARCH_CACHE = false;
 const ENABLE_ETARJOUSLEHDET_PROVIDER_V28 = false;
+const ENABLE_KRUOKA_PROVIDER_V29 = false;
 const MAX_OFFER_SEARCH_RESULTS = 1000;
 const ZIIPLY_GOSTA_MASTER_QUERY_V6 = "__ziiply_all_offers__";
 
@@ -568,7 +580,9 @@ export async function searchZiiplyOffers(
         )
       : [];
 
-  const kResults = providerScopeV10.useK && hasSelectedKStoreV9
+  // V29: K-Ruoka tarjoushaku on tarkoituksella kokonaan pois Göstan suorituspolusta.
+  // Provider-koodi säilytetään myöhempää korjausta varten, mutta fetchiä ei ajeta.
+  const kResults = ENABLE_KRUOKA_PROVIDER_V29 && providerScopeV10.useK && hasSelectedKStoreV9
     ? await safelySearchSource(
         isGostaMasterQuery ? "K-Ruoka master V10" : "K-Ruoka V10",
         () => searchSelectedKruokaOffersV10(cleanQuery, options),
