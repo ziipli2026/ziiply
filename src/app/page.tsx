@@ -1,4 +1,16 @@
 // ============================================================================
+// ZIIPLY_PAGE_V534_EAN_DEDUPE_FIX
+// Revision: V534-EAN-DEDUPE-FIX
+// Date: 2026-09-19
+//
+// Korjaus:
+// - Göstan korttidupe käyttää EAN-tuotteille vain EAN-avainta.
+// - root+price-fallbackia käytetään vain, jos EAN puuttuu.
+// - Estää eri EAN-varianttien katoamisen saman kampanjan/root+hinta-osuman vuoksi.
+// - Ei muuta Search Corea, provideria, kategorioita tai normaalia tuotehakua.
+// ============================================================================
+
+// ============================================================================
 // PAGE_V545_BETWEEN_CHAINS_MANUAL_LOCAL_STORE_OVERRIDE
 // Revision: V545
 // Date: 2026-07-14
@@ -7788,9 +7800,24 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const unique: T[] = [];
 
     for (const item of items) {
-      const key = getGostaPageDedupeKeyV544(item);
-      const root = getGostaCardTitleRootV544(item);
       const source = (item as any)?.__sourceOfferSearchResult || item;
+      const ean = normalizeGostaCardDedupeTextV544(
+        source?.ean || source?.gtin || source?.barcode || (item as any)?.ean || "",
+      );
+      const key = getGostaPageDedupeKeyV544(item);
+
+      // V534: jos EAN on olemassa, se on tuotteen yksilöllinen dedupe-avain.
+      // Älä käytä root+hinta-avainta EAN-tuotteisiin, koska se yhdistää eri
+      // tuotevariantteja saman kampanjan sisällä.
+      if (ean) {
+        if (key && seen.has(key)) continue;
+        if (key) seen.add(key);
+        unique.push(item);
+        continue;
+      }
+
+      // Fallback vain tuotteille, joilta EAN puuttuu.
+      const root = getGostaCardTitleRootV544(item);
       const price = normalizeGostaCardDedupeTextV544(
         (item as any)?.offerPrice ?? (item as any)?.price ?? source?.priceText ?? "",
       );
