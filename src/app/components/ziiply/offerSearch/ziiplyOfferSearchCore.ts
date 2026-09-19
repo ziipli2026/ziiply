@@ -1,17 +1,17 @@
 // ============================================================================
-// ZIIPLY_OFFER_SEARCH_CORE_V171_CATEGORY_NAMES_END_TO_END_FIX
-// Revision: V171
+// ZIIPLY_OFFER_SEARCH_CORE_V172_LOCAL_MASTER_CATEGORY_FILTER_FIX
+// Revision: V172
 // Date: 2026-09-19
 //
-// V171:
+// V172:
 // - Pohja: V167.
-// - Korjaa kategoriapolun molemmat portit YHDESSÄ:
-//   1) page.tsx:n compatibility gate tunnistaa nykyiset GOSTA_CATEGORY_LABELS_V136 -nimet.
-//   2) Kun options.query on nykyinen Gösta-kategoria, core käyttää sitä suoraan eikä
-//      page.tsx:n parseTerms() -> options.terms saa muuttaa kategorian nimeä.
-// - Normaali vapaa tekstihaku säilyttää vanhan terms -> query -prioriteetin.
+// - Korjaa V533/page.tsx:n master-listasta paikallisesti avattavien kategorioiden
+//   suodatuksen filterZiiplyGostaOfferResultsV146()-funktiossa.
+// - Nykyiset GOSTA_CATEGORY_LABELS_V136 -kategoriat tunnistetaan samalla
+//   current-label-aware gatella kuin V167:n search core.
+// - Ei V169/V170/V171 kokeilumuutoksia.
 // - Ei muutoksia page.tsx:ään, Cardiin, CategoryCoreen, provideriin,
-//   store-ID:ihin, master-dataan tai kategorioiden luokitteluun.
+//   store-ID:ihin tai kategorioiden luokitteluun.
 // ============================================================================
 
 // ============================================================================
@@ -385,9 +385,15 @@ export function filterZiiplyGostaOfferResultsV146(
   return results.filter((item) => {
     const category = normalizeGostaCoreText(getResolvedGostaCategoryV166(item));
 
+    // V172:
+    // V533/page.tsx avaa tuoteryhmät paikallisesti jo ladatusta master-listasta.
+    // Käytä tässä nykyistä kategoriatunnistusta, ei legacy
+    // isKnownOfferCategoryFilterV113()-listaa. Muuten esim.
+    // "Hygienia & kosmetiikka" -> "hygienia ja kosmetiikka" putoaa
+    // virheellisesti vapaatekstihakuun ja masterin oikeat kategoriakortit katoavat.
+    //
     // Tunnettu tuoteryhmächip ei ole vapaatekstihaku koko tarjousriviin.
-    // Tämä estää esim. vaippojen päätymistä Maitotuotteisiin/Lihaan raakatekstin takia.
-    if (isKnownOfferCategoryFilterV113(filter)) {
+    if (isCurrentGostaCategorySelectionV167(filterValue)) {
       return category === filter;
     }
 
@@ -407,22 +413,11 @@ export async function searchZiiplyGostaOffersV146(options: {
 }) {
   const cleanedQuery = String(options.query || "").trim();
   const termSnapshot = (options.terms || []).join(", ").trim();
+  const offerQuerySnapshot = termSnapshot || cleanedQuery;
 
-  // V171: kategoriapainikkeen arvo on jo valmis kategoriatunniste.
-  // Älä anna normaalin tuotehaun parseTerms()/options.terms-polun muuttaa sitä.
-  const directCategorySearchLabelV171 = isCurrentGostaCategorySelectionV167(cleanedQuery)
-    ? getGostaCategoryLabelFromFilterV136(cleanedQuery)
+  const categorySearchLabel = isCurrentGostaCategorySelectionV167(offerQuerySnapshot)
+    ? getGostaCategoryLabelFromFilterV136(offerQuerySnapshot)
     : "";
-
-  const offerQuerySnapshot = directCategorySearchLabelV171
-    ? cleanedQuery
-    : termSnapshot || cleanedQuery;
-
-  const categorySearchLabel = directCategorySearchLabelV171
-    ? directCategorySearchLabelV171
-    : isCurrentGostaCategorySelectionV167(offerQuerySnapshot)
-      ? getGostaCategoryLabelFromFilterV136(offerQuerySnapshot)
-      : "";
 
   const normalizedCategorySearch = normalizeGostaCoreText(categorySearchLabel).trim();
   const searchAllAreaOffers = !offerQuerySnapshot || normalizedCategorySearch === "kaikki";
@@ -476,9 +471,7 @@ export async function searchZiiplyGostaOffersV146(options: {
 export { GOSTA_CATEGORY_LABELS_V136 as GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147 } from "./ziiplyOfferCategoryCore";
 
 export function isZiiplyGostaCategorySelectionV147(value: string) {
-  // V171: page.tsx kutsuu searchOffers(nextValue) vain tämän gaten läpi.
-  // Käytä samaa nykyiset näkyvät kategoriat tunnistavaa gatea kuin core.
-  return isCurrentGostaCategorySelectionV167(value);
+  return isGostaCategorySelectionV136(value);
 }
 
 export function mapZiiplyGostaOfferToCardOfferV147(item: ZiiplyGostaOfferLike) {
