@@ -1,6 +1,6 @@
 // ============================================================================
-// SKAUPAT_PROVIDER_V205_DYNAMIC_STORE_RESOLVER_BUILD_FIX
-// Revision: V205-DYNAMIC-STORE-RESOLVER-BUILD-FIX
+// SKAUPAT_PROVIDER_V206_ZERO_RESULT_STORE_DIAGNOSTIC
+// Revision: V206-ZERO-RESULT-STORE-DIAGNOSTIC
 // Date: 2026-09-19
 //
 // Korjaus:
@@ -1537,7 +1537,7 @@ async function fetchSKaupatRemoteFilteredProductsPageV170(
   selectedStoreId: string,
   discountedOnly = false,
   selectedStoreName = "",
-): Promise<{ results: ZiiplyOfferSearchResult[]; rawCount: number; total: number; from: number; limit: number }> {
+): Promise<{ results: ZiiplyOfferSearchResult[]; rawCount: number; total: number; from: number; limit: number; httpStatus: number }> {
   const response = await fetch(
     buildRemoteFilteredProductsUrl(query, offset, selectedStoreId, discountedOnly),
     {
@@ -1587,7 +1587,56 @@ async function fetchSKaupatRemoteFilteredProductsPageV170(
     total: pagingMeta.total,
     from: pagingMeta.from,
     limit: pagingMeta.limit,
+    httpStatus: response.status,
   };
+}
+
+function makeGostaZeroResultDiagnosticV206(
+  config: ZiiplyOfferSearchSourceConfig,
+  options: SKaupatOfferProviderOptionsV173 | undefined,
+  detail: string,
+): ZiiplyOfferSearchResult {
+  const receivedStoreId = firstString(options?.storeId, options?.sStoreId);
+  const receivedStoreName = firstString(options?.storeName, options?.sStoreName);
+  const debugText = [
+    "GOSTA_V206_ZERO_RESULT_DIAGNOSTIC",
+    `receivedStoreId=${receivedStoreId || "-"}`,
+    `receivedStoreName=${receivedStoreName || "-"}`,
+    detail,
+  ].join(" | ");
+
+  return {
+    id: `gosta-v206-debug-${receivedStoreId || "no-id"}`,
+    source: config.id,
+    sourceUrl: config.url,
+    chain: config.chain,
+    storeLabel: receivedStoreName || config.storeLabel,
+    storeName: receivedStoreName || config.storeLabel,
+    shopName: receivedStoreName || config.storeLabel,
+    title: debugText,
+    priceText: "",
+    unitPriceText: "",
+    benefitText: debugText,
+    validityText: "",
+    imageUrl: "",
+    image: "",
+    pictureUrl: "",
+    productUrl: "",
+    rawText: debugText,
+    matchScore: 1,
+    category: "Muut",
+    categoryPath: "Muut",
+    breadcrumbs: ["Muut"],
+    hierarchy: ["Muut"],
+    taxonomy: ["Muut"],
+    department: "Muut",
+    productGroup: "Muut",
+    mainCategory: "Muut",
+    subCategory: "Muut",
+    brandName: "",
+    ean: "",
+    debugStoreResolutionV206: debugText,
+  } as unknown as ZiiplyOfferSearchResult;
 }
 
 async function fetchSKaupatRemoteFilteredProductsV170(
@@ -1597,10 +1646,19 @@ async function fetchSKaupatRemoteFilteredProductsV170(
   discountedOnly = false,
 ): Promise<ZiiplyOfferSearchResult[]> {
   const selectedStores = await resolveSelectedSKaupatStoresV194(options);
-  if (selectedStores.length === 0) return [];
+  if (selectedStores.length === 0) {
+    return [
+      makeGostaZeroResultDiagnosticV206(
+        config,
+        options,
+        "selectedStores=0 | resolvedStoreId=- | httpStatus=- | raw=0 | total=0",
+      ),
+    ];
+  }
 
   const allStoreResults: ZiiplyOfferSearchResult[] = [];
   const paginationTraceV203: string[] = [];
+  const zeroResultDiagnosticsV206: string[] = [];
 
   for (const selectedStore of selectedStores) {
     const pageStep = 48;
@@ -1620,6 +1678,21 @@ async function fetchSKaupatRemoteFilteredProductsV170(
         );
 
         pages.push(page.results);
+
+        if (offset === 0) {
+          zeroResultDiagnosticsV206.push(
+            [
+              `resolvedStoreId=${selectedStore.storeId}`,
+              `resolvedStoreName=${selectedStore.storeName || "-"}`,
+              `httpStatus=${page.httpStatus}`,
+              `raw=${page.rawCount}`,
+              `mapped=${page.results.length}`,
+              `total=${page.total}`,
+              `from=${page.from}`,
+              `limit=${page.limit}`,
+            ].join(" | "),
+          );
+        }
 
         const pageEansV203 = new Set(
           page.results
@@ -1659,6 +1732,16 @@ async function fetchSKaupatRemoteFilteredProductsV170(
         if (page.total > 0 && offset + pageStep >= page.total) break;
         if (page.rawCount < pageStep && page.total === 0) break;
       } catch (error) {
+        if (offset === 0) {
+          zeroResultDiagnosticsV206.push(
+            [
+              `resolvedStoreId=${selectedStore.storeId}`,
+              `resolvedStoreName=${selectedStore.storeName || "-"}`,
+              "httpStatus=ERROR",
+              `error=${error instanceof Error ? error.message : String(error)}`,
+            ].join(" | "),
+          );
+        }
         paginationTraceV203.push(
           `store=${selectedStore.storeId},req=${offset},ERROR=${error instanceof Error ? error.message : String(error)}`,
         );
@@ -1686,6 +1769,16 @@ async function fetchSKaupatRemoteFilteredProductsV170(
   }
 
   console.warn("[GOSTA PAGINATION V203 SUMMARY]", summaryV203);
+
+  if (finalResultsV203.length === 0) {
+    return [
+      makeGostaZeroResultDiagnosticV206(
+        config,
+        options,
+        zeroResultDiagnosticsV206.join(" || ") || "resolvedStoreId=- | httpStatus=- | raw=0 | total=0",
+      ),
+    ];
+  }
 
   return finalResultsV203;
 }
