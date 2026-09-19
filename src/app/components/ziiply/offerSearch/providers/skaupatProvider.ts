@@ -1,4 +1,18 @@
 // ============================================================================
+// SKAUPAT_PROVIDER_V204_DYNAMIC_STORE_NAME_FIRST
+// Revision: V204-DYNAMIC-STORE-NAME-FIRST
+// Date: 2026-09-19
+//
+// Korjaus:
+// - Poistaa Prisma Hyvinkää -kovakoodauksen kokonaan.
+// - Valittu S-kauppa ratkaistaan aina ensin kaupan nimestä S-kaupat.fi:n
+//   virallisesta myymälähausta / directory-resolveristä.
+// - Ziiplyn/Ruoanhinta.fi:n storeId:tä ei tulkita ensisijaisesti S-kaupat-ID:ksi.
+// - Callerilta tullut pitkä numeerinen ID on vasta viimeinen fallback.
+// - Säilyttää V203:n pagination-tracen ja muun tarjoushakulogikan ennallaan.
+// ============================================================================
+
+// ============================================================================
 // SKAUPAT_PROVIDER_V203_PAGINATION_TRACE
 // Revision: V203
 // Date: 2026-09-19
@@ -208,24 +222,6 @@ const SKAUPAT_REMOTE_FILTERED_PRODUCTS_HASH_V156 =
 
 const DEFAULT_SKAUPAT_STORE_ID_V156 = "513971200";
 
-// V201: palautettu vanhan toimivan V181-rakenteen mukainen nimikartta.
-// Tärkeää: tämä tarkistetaan ENNEN callerin lyhyttä Ruoanhinta/Ziiply store.id:tä.
-const VERIFIED_SKAUPAT_STORE_IDS_BY_NAME_V201: Record<string, string> = {
-  "prisma hyvinkaa": "634976534",
-};
-
-function resolveVerifiedSKaupatStoreIdByNameV201(value: unknown): string | null {
-  const normalized = normalizeText(String(value ?? ""))
-    .replace(/ä/g, "a")
-    .replace(/ö/g, "o")
-    .replace(/\s+/g, " ")
-    .trim();
-
-  if (!normalized) return null;
-  return VERIFIED_SKAUPAT_STORE_IDS_BY_NAME_V201[normalized] || null;
-}
-
-
 // V181: S-kaupat public /myymala URL id is not always the same id that
 // RemoteFilteredProducts uses for product/pricing search.
 // Verified from S-kaupat Network request:
@@ -408,135 +404,55 @@ async function getEffectiveSKaupatStoreIdV174(
   const raw = firstString(options?.storeId, options?.sStoreId);
   const storeName = firstString(options?.storeName, options?.sStoreName);
 
-  // V201: VANHA TOIMIVA PERIAATE PALAUTETTU.
-  // Store name identifies the S-kaupat store; short Ziiply/Ruoanhinta id (esim. 292)
-  // is not interpreted as an S-kaupat id.
-  const verifiedByNameV201 = resolveVerifiedSKaupatStoreIdByNameV201(storeName);
-  if (verifiedByNameV201) {
-    console.warn("[GOSTA V201] S-store name mapped to S-kaupat storeId", {
-      inputStoreId: raw || null,
-      storeName,
-      resolvedStoreId: verifiedByNameV201,
-    });
-    return verifiedByNameV201;
+  // V204: storeName is authoritative for Gösta. The caller's storeId may belong
+  // to Ziiply/Ruoanhinta.fi, so resolve the S-kaupat ID dynamically first.
+  if (storeName) {
+    const resolvedFromOfficialStoreSearchV198 =
+      await resolveSKaupatStoreIdFromOfficialStoreSearchV198(storeName);
+
+    if (resolvedFromOfficialStoreSearchV198) {
+      console.warn("[GOSTA V204] S-kaupat storeId resolved dynamically from official store search", {
+        inputStoreId: raw || null,
+        storeName,
+        resolvedStoreId: resolvedFromOfficialStoreSearchV198,
+      });
+      return resolvedFromOfficialStoreSearchV198;
+    }
+
+    const resolvedFromDirectory = await resolveSKaupatStoreIdFromDirectoryV1(storeName);
+
+    if (resolvedFromDirectory) {
+      console.warn("[GOSTA V204] S-kaupat storeId resolved dynamically from directory", {
+        inputStoreId: raw || null,
+        storeName,
+        resolvedStoreId: resolvedFromDirectory,
+      });
+      return resolvedFromDirectory;
+    }
   }
 
   const mappedProductSearchStoreId = S_PRODUCT_SEARCH_STORE_ID_MAP_V181[raw];
   if (mappedProductSearchStoreId) {
-    console.warn("[GOSTA STORE MAP V181] public S-store id mapped to product-search storeId", {
-      publicStoreId: raw,
-      productSearchStoreId: mappedProductSearchStoreId,
-      storeName,
-    });
     return mappedProductSearchStoreId;
   }
 
-  // First trust a real numeric S-kaupat storeId if the caller already has one.
-  // Do not treat the old MVP fallback id as proof of a selected store.
+  // Last resort only. Short Ziiply/Ruoanhinta IDs do not pass this check.
   if (/^\d{5,}$/.test(raw) && raw !== DEFAULT_SKAUPAT_STORE_ID_V156) {
-    return raw;
-  }
-
-  // V198: Ziiplyn lyhyt sisäinen ID (esim. 292) ei ole
-  // RemoteFilteredProducts-storeId. Ratkaise oikea S-kaupat-ID ensin
-  // virallisesta S-kaupat Prisma-myymälähausta nimen perusteella.
-  const resolvedFromOfficialStoreSearchV198 =
-    await resolveSKaupatStoreIdFromOfficialStoreSearchV198(storeName);
-
-  if (resolvedFromOfficialStoreSearchV198) {
-    console.warn("[GOSTA V198] S-kaupat storeId resolved from official store search", {
-      storeId: raw || null,
-      storeName,
-      resolvedStoreId: resolvedFromOfficialStoreSearchV198,
-    });
-    return resolvedFromOfficialStoreSearchV198;
-  }
-
-  // Vanha directory-resolver säilyy fallbackina.
-  // /myymala/<slug>/<storeId>
-  const resolvedFromDirectory = await resolveSKaupatStoreIdFromDirectoryV1(storeName);
-
-  if (resolvedFromDirectory) {
-    console.warn("[GOSTA] S-kaupat storeId resolved from directory", {
-      storeId: raw || null,
-      storeName,
-      resolvedStoreId: resolvedFromDirectory,
-    });
-    return resolvedFromDirectory;
-  }
-
-  // If caller gave some numeric id, allow it only as a last resort, but log it.
-  if (/^\d{5,}$/.test(raw)) {
-    console.warn("[GOSTA] using provided numeric storeId after directory miss", {
+    console.warn("[GOSTA V204] using caller numeric storeId only after name resolver miss", {
       storeId: raw,
-      storeName,
+      storeName: storeName || null,
     });
     return raw;
   }
 
-  // Important: do not silently fall back to DEFAULT_SKAUPAT_STORE_ID_V156.
-  // Returning [] is safer than showing another store's offers.
-  console.warn("[GOSTA] missing real S-kaupat storeId, skipping S-kaupat offer fetch", {
-    storeId: options?.storeId,
-    storeName: options?.storeName,
+  console.warn("[GOSTA V204] could not resolve selected store to an S-kaupat storeId", {
+    storeId: raw || null,
+    storeName: storeName || null,
   });
 
   return null;
 }
 
-async function resolveSelectedSKaupatStoresV194(
-  options?: SKaupatOfferProviderOptionsV173,
-): Promise<ResolvedSKaupatStoreV194[]> {
-  if (!options) return [];
-
-  const explicitStores = Array.isArray(options.stores) ? options.stores : [];
-  const candidates: Array<{ storeId: string; storeName: string }> = [];
-
-  for (const store of explicitStores) {
-    const storeId = firstString(store?.storeId, store?.sStoreId);
-    const storeName = firstString(store?.storeName, store?.sStoreName);
-    if (storeId || storeName) candidates.push({ storeId, storeName });
-  }
-
-  const ids = normalizeSKaupatValueListV194(options.sStoreIds ?? options.storeIds, options.sStoreId ?? options.storeId);
-  const names = normalizeSKaupatValueListV194(options.sStoreNames ?? options.storeNames, options.sStoreName ?? options.storeName);
-  const maxLength = Math.max(ids.length, names.length);
-
-  for (let index = 0; index < maxLength; index += 1) {
-    const storeId = ids[index] || "";
-    const storeName = names[index] || "";
-    if (storeId || storeName) candidates.push({ storeId, storeName });
-  }
-
-  if (candidates.length === 0) {
-    const storeId = firstString(options.storeId, options.sStoreId);
-    const storeName = firstString(options.storeName, options.sStoreName);
-    if (storeId || storeName) candidates.push({ storeId, storeName });
-  }
-
-  const resolved: ResolvedSKaupatStoreV194[] = [];
-  const seen = new Set<string>();
-
-  for (const candidate of candidates) {
-    const effectiveStoreId = await getEffectiveSKaupatStoreIdV174({
-      storeId: candidate.storeId || null,
-      storeName: candidate.storeName || null,
-    });
-
-    if (!effectiveStoreId) continue;
-
-    const key = `${effectiveStoreId}|${normalizeText(candidate.storeName)}`;
-    if (seen.has(key)) continue;
-    seen.add(key);
-
-    resolved.push({
-      storeId: effectiveStoreId,
-      storeName: candidate.storeName || "S-kaupat",
-    });
-  }
-
-  return resolved;
-}
 const SKAUPAT_GOSTA_MASTER_QUERY_V171 = "__ziiply_all_offers__";
 
 // V180: Gösta master uses the real S-kaupat discounted label filter:
