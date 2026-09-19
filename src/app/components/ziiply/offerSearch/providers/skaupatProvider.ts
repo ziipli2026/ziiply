@@ -1,3 +1,10 @@
+// SKAUPAT_PROVIDER_V209_DIRECTORY_DIAGNOSTIC_TO_MOBILE
+// Revision: V209-DIRECTORY-DIAGNOSTIC-TO-MOBILE
+// Date: 2026-09-19
+//
+// Diagnostic only. Resolution/search behavior is unchanged from V208.
+// Adds directory crawl state to the existing zero-result mobile debug item.
+//
 // ============================================================================
 // SKAUPAT_PROVIDER_V208_QUERY_PLUS_LOOSE_URL_RESOLVER
 // Revision: V208-QUERY-PLUS-LOOSE-URL-RESOLVER
@@ -232,7 +239,10 @@ import type {
   ZiiplyOfferSearchResult,
   ZiiplyOfferSearchSourceConfig,
 } from "../types";
-import { resolveSKaupatStoreIdFromDirectoryV1 } from "../../location/ziiplyStoreDirectory";
+import {
+  resolveSKaupatStoreIdFromDirectoryV1,
+  getLastPrismaDirectoryDiagnosticV3,
+} from "../../location/ziiplyStoreDirectory";
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -1634,15 +1644,28 @@ function makeGostaZeroResultDiagnosticV208(
 ): ZiiplyOfferSearchResult {
   const receivedStoreId = firstString(options?.storeId, options?.sStoreId);
   const receivedStoreName = firstString(options?.storeName, options?.sStoreName);
+  const directoryDiagnosticV209 = getLastPrismaDirectoryDiagnosticV3();
+  const directoryDetailV209 = directoryDiagnosticV209
+    ? [
+        `directoryPages=${directoryDiagnosticV209.pagesFetched}`,
+        `directoryEntries=${directoryDiagnosticV209.uniqueEntriesFound}`,
+        `directoryParsed=${directoryDiagnosticV209.entriesParsed}`,
+        `directoryCursors=${directoryDiagnosticV209.cursorUrlsFound}`,
+        `directoryVarkaus=${directoryDiagnosticV209.prismaVarkausFound ? "yes" : "no"}`,
+        `directoryVarkausId=${directoryDiagnosticV209.prismaVarkausStoreId || "-"}`,
+      ].join(" | ")
+    : "directoryPages=- | directoryEntries=- | directoryParsed=- | directoryCursors=- | directoryVarkaus=- | directoryVarkausId=-";
+
   const debugText = [
-    "GOSTA_V208_ZERO_RESULT_DIAGNOSTIC",
+    "GOSTA_V209_ZERO_RESULT_DIAGNOSTIC",
     `receivedStoreId=${receivedStoreId || "-"}`,
     `receivedStoreName=${receivedStoreName || "-"}`,
     detail,
+    directoryDetailV209,
   ].join(" | ");
 
   return {
-    id: `gosta-v208-debug-${receivedStoreId || "no-id"}`,
+    id: `gosta-v209-debug-${receivedStoreId || "no-id"}`,
     source: config.id,
     sourceUrl: config.url,
     chain: config.chain,
@@ -1671,7 +1694,7 @@ function makeGostaZeroResultDiagnosticV208(
     subCategory: "Muut",
     brandName: "",
     ean: "",
-    debugStoreResolutionV208: debugText,
+    debugStoreResolutionV209: debugText,
   } as unknown as ZiiplyOfferSearchResult;
 }
 
