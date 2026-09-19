@@ -1,3 +1,18 @@
+// ZIIPLY_OFFER_SEARCH_SOURCES_V30_GOSTA_MASTER_NO_LIMIT
+// Revision: V30-GOSTA-MASTER-NO-LIMIT
+// Date: 2026-09-19
+//
+// Muutos:
+// - Pohja on V29-KRUOKA-DISABLED.
+// - Göstan master-haussa ei enää leikata uniqueAllResults-listaa MAX_OFFER_SEARCH_RESULTS-rajalla.
+// - Providerilta tuleva koko master-aineisto pääsee page/master-datasettiin.
+// - Tavallisten hakujen ja strict category -hakujen nykyiset MAX_OFFER_SEARCH_RESULTS-rajat säilyvät.
+// - K-Ruoka pysyy kokonaan pois käytöstä kuten V29:ssa.
+// - S-market eTarjouslehdet pysyy pois käytöstä kuten V28:ssa.
+// - Ei muita toiminnallisia muutoksia.
+//
+// ============================================================================
+
 // ZIIPLY_OFFER_SEARCH_SOURCES_V29_KRUOKA_DISABLED
 // Revision: V29-KRUOKA-DISABLED
 // Date: 2026-09-19
@@ -598,7 +613,7 @@ export async function searchZiiplyOffers(
   const strictCategoryQueryV15 = isStrictGostaCategoryQueryV15(cleanQuery);
 
   const results = isGostaMasterQuery
-    ? uniqueAllResults.slice(0, MAX_OFFER_SEARCH_RESULTS)
+    ? uniqueAllResults
     : strictCategoryQueryV15
       ? uniqueAllResults
           .filter((result) => offerMatchesStrictGostaCategoryV15(result, cleanQuery))
