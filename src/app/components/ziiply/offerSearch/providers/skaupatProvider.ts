@@ -1,7 +1,16 @@
 // ============================================================================
-// SKAUPAT_PROVIDER_V207_PUBLIC_STORE_ID_RESOLVER_TEST
-// Revision: V207-PUBLIC-STORE-ID-RESOLVER-TEST
+// SKAUPAT_PROVIDER_V208_QUERY_PLUS_LOOSE_URL_RESOLVER
+// Revision: V208-QUERY-PLUS-LOOSE-URL-RESOLVER
 // Date: 2026-09-19
+//
+// V208 proven correction:
+// - V207 fetched only /myymalat/prisma first page. S-kaupat paginates Prisma stores
+//   (24 results on the first page), so Prisma Varkaus is not present there.
+// - Restore the official ?query=<storeName> server-side filtering from V198.
+// - Keep V207's loose /myymala/<slug>/<id> parser, which does not require a
+//   specific <a>...</a> HTML shape.
+// - No store-specific hardcoded IDs.
+// - V206/V207 zero-result diagnostics remain enabled.
 //
 // Diagnostic/fix:
 // - Replaces the brittle <a>...</a> parser used by V198.
@@ -326,11 +335,12 @@ async function resolveSKaupatStoreIdFromOfficialStoreSearchV198(
   }
 
   try {
-    // V207: use the official Prisma directory page, but do not depend on the
-    // query parameter being rendered server-side. The selected store is matched
+    // V208: use S-kaupat's official server-side store-name query so the selected
+    // store is present even when it is outside the first 24 Prisma results. Match
     // from every official /myymala/<slug>/<id> occurrence in the returned HTML
     // or embedded Next/JSON payload.
-    const url = "https://www.s-kaupat.fi/myymalat/prisma";
+    const url =
+      `https://www.s-kaupat.fi/myymalat/prisma?query=${encodeURIComponent(cleanStoreName)}`;
 
     const response = await fetch(url, {
       method: "GET",
@@ -344,7 +354,7 @@ async function resolveSKaupatStoreIdFromOfficialStoreSearchV198(
     });
 
     if (!response.ok) {
-      console.warn("[GOSTA V207] S-kaupat Prisma directory fetch failed", {
+      console.warn("[GOSTA V208] S-kaupat Prisma directory fetch failed", {
         storeName: cleanStoreName,
         status: response.status,
       });
@@ -395,7 +405,7 @@ async function resolveSKaupatStoreIdFromOfficialStoreSearchV198(
     }
 
     if (bestId && bestScore >= 80) {
-      console.warn("[GOSTA V207] resolved official S-kaupat public storeId", {
+      console.warn("[GOSTA V208] resolved official S-kaupat public storeId", {
         storeName: cleanStoreName,
         storeId: bestId,
         score: bestScore,
@@ -405,7 +415,7 @@ async function resolveSKaupatStoreIdFromOfficialStoreSearchV198(
       return bestId;
     }
 
-    console.warn("[GOSTA V207] no matching store in official Prisma directory", {
+    console.warn("[GOSTA V208] no matching store in official Prisma directory", {
       storeName: cleanStoreName,
       normalizedWanted,
       wantedSlug,
@@ -415,7 +425,7 @@ async function resolveSKaupatStoreIdFromOfficialStoreSearchV198(
     sKaupatDynamicStoreIdCacheV198.set(normalizedWanted, null);
     return null;
   } catch (error) {
-    console.warn("[GOSTA V207] official S-kaupat store resolver failed", {
+    console.warn("[GOSTA V208] official S-kaupat store resolver failed", {
       storeName: cleanStoreName,
       error,
     });
@@ -1617,7 +1627,7 @@ async function fetchSKaupatRemoteFilteredProductsPageV170(
   };
 }
 
-function makeGostaZeroResultDiagnosticV207(
+function makeGostaZeroResultDiagnosticV208(
   config: ZiiplyOfferSearchSourceConfig,
   options: SKaupatOfferProviderOptionsV173 | undefined,
   detail: string,
@@ -1625,14 +1635,14 @@ function makeGostaZeroResultDiagnosticV207(
   const receivedStoreId = firstString(options?.storeId, options?.sStoreId);
   const receivedStoreName = firstString(options?.storeName, options?.sStoreName);
   const debugText = [
-    "GOSTA_V207_ZERO_RESULT_DIAGNOSTIC",
+    "GOSTA_V208_ZERO_RESULT_DIAGNOSTIC",
     `receivedStoreId=${receivedStoreId || "-"}`,
     `receivedStoreName=${receivedStoreName || "-"}`,
     detail,
   ].join(" | ");
 
   return {
-    id: `gosta-v207-debug-${receivedStoreId || "no-id"}`,
+    id: `gosta-v208-debug-${receivedStoreId || "no-id"}`,
     source: config.id,
     sourceUrl: config.url,
     chain: config.chain,
@@ -1661,7 +1671,7 @@ function makeGostaZeroResultDiagnosticV207(
     subCategory: "Muut",
     brandName: "",
     ean: "",
-    debugStoreResolutionV207: debugText,
+    debugStoreResolutionV208: debugText,
   } as unknown as ZiiplyOfferSearchResult;
 }
 
@@ -1674,7 +1684,7 @@ async function fetchSKaupatRemoteFilteredProductsV170(
   const selectedStores = await resolveSelectedSKaupatStoresV194(options);
   if (selectedStores.length === 0) {
     return [
-      makeGostaZeroResultDiagnosticV207(
+      makeGostaZeroResultDiagnosticV208(
         config,
         options,
         "selectedStores=0 | resolvedStoreId=- | httpStatus=- | raw=0 | total=0",
@@ -1684,7 +1694,7 @@ async function fetchSKaupatRemoteFilteredProductsV170(
 
   const allStoreResults: ZiiplyOfferSearchResult[] = [];
   const paginationTraceV203: string[] = [];
-  const zeroResultDiagnosticsV207: string[] = [];
+  const zeroResultDiagnosticsV208: string[] = [];
 
   for (const selectedStore of selectedStores) {
     const pageStep = 48;
@@ -1706,7 +1716,7 @@ async function fetchSKaupatRemoteFilteredProductsV170(
         pages.push(page.results);
 
         if (offset === 0) {
-          zeroResultDiagnosticsV207.push(
+          zeroResultDiagnosticsV208.push(
             [
               `resolvedStoreId=${selectedStore.storeId}`,
               `resolvedStoreName=${selectedStore.storeName || "-"}`,
@@ -1759,7 +1769,7 @@ async function fetchSKaupatRemoteFilteredProductsV170(
         if (page.rawCount < pageStep && page.total === 0) break;
       } catch (error) {
         if (offset === 0) {
-          zeroResultDiagnosticsV207.push(
+          zeroResultDiagnosticsV208.push(
             [
               `resolvedStoreId=${selectedStore.storeId}`,
               `resolvedStoreName=${selectedStore.storeName || "-"}`,
@@ -1798,10 +1808,10 @@ async function fetchSKaupatRemoteFilteredProductsV170(
 
   if (finalResultsV203.length === 0) {
     return [
-      makeGostaZeroResultDiagnosticV207(
+      makeGostaZeroResultDiagnosticV208(
         config,
         options,
-        zeroResultDiagnosticsV207.join(" || ") || "resolvedStoreId=- | httpStatus=- | raw=0 | total=0",
+        zeroResultDiagnosticsV208.join(" || ") || "resolvedStoreId=- | httpStatus=- | raw=0 | total=0",
       ),
     ];
   }
