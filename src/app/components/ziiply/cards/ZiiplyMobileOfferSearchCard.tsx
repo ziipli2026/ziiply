@@ -1,4 +1,18 @@
 // ============================================================================
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V37_SOURCE_EAN_DEDUPE_FIX_DEBUG
+// Revision: V37-SOURCE-EAN-DEDUPE-FIX-DEBUG
+// Date: 2026-09-19
+//
+// Korjaus:
+// - Cardille mapatun itemin EAN ei ole top-level item.ean-kentässä, vaan
+//   __sourceOfferSearchResult.ean-kentässä.
+// - Dedupe lukee EANin nyt sekä top-levelistä että source-objektista.
+// - EAN-tuotteet deduplikoidaan vain EANilla.
+// - root+hinta-fallback vain aidosti EANittomille tuotteille.
+// - DEBUG / KOPIOI DEBUG säilyy.
+// ============================================================================
+
+// ============================================================================
 // ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V36_EAN_DEDUPE_FIX_DEBUG
 // Revision: V36-EAN-DEDUPE-FIX-DEBUG
 // Date: 2026-09-19
@@ -200,7 +214,10 @@ function getOfferCardTitleRootV13(offer: ZiiplyMobileOfferSearchItem) {
 }
 
 function getOfferCardDedupeKeyV13(offer: ZiiplyMobileOfferSearchItem) {
-  const ean = normalizeOfferCardKeyV13(offer.ean);
+  const source = (offer as any)?.__sourceOfferSearchResult || offer;
+  const ean = normalizeOfferCardKeyV13(
+    (offer as any)?.ean || source?.ean || source?.gtin || source?.barcode || "",
+  );
 
   if (ean) return `ean:${ean}`;
 
@@ -227,7 +244,10 @@ function dedupeOfferCardsV13(items: ZiiplyMobileOfferSearchItem[]) {
   const unique: ZiiplyMobileOfferSearchItem[] = [];
 
   for (const item of items) {
-    const ean = normalizeOfferCardKeyV13(item.ean);
+    const source = (item as any)?.__sourceOfferSearchResult || item;
+    const ean = normalizeOfferCardKeyV13(
+      (item as any)?.ean || source?.ean || source?.gtin || source?.barcode || "",
+    );
     const key = getOfferCardDedupeKeyV13(item);
 
     // V36: EAN-tuote on yksilöllinen tuote. Älä käytä sille root+hinta-dedupea,
