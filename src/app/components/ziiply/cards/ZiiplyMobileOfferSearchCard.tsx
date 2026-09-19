@@ -1,6 +1,16 @@
 "use client";
 
 // ============================================================================
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V35_CATEGORY_LABELS_DEBUG
+// Revision: V35
+// Date: 2026-09-19
+// - Muuttaa näkyvän Kahvi-kategorian nimeksi "Kahvi & tee".
+// - Muuttaa näkyvän Liha-kategorian nimeksi "Liha & makkarat".
+// - Säilyttää aliasyhteensopivuuden vanhoihin Kahvi/Liha categoryOfferCounts-arvoihin.
+// - Säilyttää koko DEBUG-overlayn ja KOPIOI DEBUG -toiminnon ennallaan.
+// ============================================================================
+
+// ============================================================================
 // ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V34_EXPANDED_CATEGORIES_DEBUG_RESTORED
 // Revision: V34
 // Date: 2026-09-19
@@ -352,7 +362,7 @@ export default function ZiiplyMobileOfferSearchCard({
   results,
   loading = false,
   emptyText = "Gösta ei löytänyt tarjouksia vielä.",
-  categorySuggestions = ["Kahvi", "Maitotuotteet", "Liha", "Kala", "Leipomo", "Hevi", "Juomat", "Pakasteet", "Valmisruoka", "Kuivatuotteet", "Makeiset & keksit", "Lastenruoat", "Vitamiinit & ravinteet", "Lemmikit", "Hygienia & kosmetiikka", "Kodinhoito", "Koti & vapaa-aika", "Muut"],
+  categorySuggestions = ["Kahvi & tee", "Maitotuotteet", "Liha & makkarat", "Kala", "Leipomo", "Hevi", "Juomat", "Pakasteet", "Valmisruoka", "Kuivatuotteet", "Makeiset & keksit", "Lastenruoat", "Vitamiinit & ravinteet", "Lemmikit", "Hygienia & kosmetiikka", "Kodinhoito", "Koti & vapaa-aika", "Muut"],
   categoryOfferCounts,
   testedEmptyCategories,
   onFilterChange,
@@ -440,8 +450,9 @@ export default function ZiiplyMobileOfferSearchCard({
   };
 
   const categoryAliases: Record<string, string[]> = {
-    kahvi: ["kahvi", "kahvit"],
-    liha: ["liha", "lihapakkaukset", "makkara", "grilli", "grillimakkara"],
+    kahvitee: ["kahvitee", "kahvi", "kahvit", "tee", "teet"],
+    liha: ["liha", "lihapakkaukset", "makkara", "makkarat", "nakki", "nakit", "grilli", "grillimakkara", "leikkele", "leikkeleet", "kinkku", "meetvursti", "metvursti", "pekoni", "lihavalmiste", "lihavalmisteet"],
+    lihamakkarat: ["lihamakkarat", "liha", "lihapakkaukset", "makkara", "makkarat", "nakki", "nakit", "grilli", "grillimakkara", "leikkele", "leikkeleet", "kinkku", "meetvursti", "metvursti", "pekoni", "lihavalmiste", "lihavalmisteet"],
     hevi: ["hevi", "hedelmät", "hedelmat", "vihannekset", "kasvikset", "vihannes", "hedelmä", "hedelma"],
     pakasteet: ["pakasteet", "pakaste", "jäätelö", "jaatelo"],
     valmisruoka: ["valmisruoka", "valmisateria", "mikroateria", "ateria"],
@@ -534,9 +545,9 @@ export default function ZiiplyMobileOfferSearchCard({
 
   const categoryPool = Array.from(new Set(categorySuggestions));
   const categoryDisplayOrderV30 = [
-    "Kahvi",
+    "Kahvi & tee",
     "Maitotuotteet",
-    "Liha",
+    "Liha & makkarat",
     "Kala",
     "Leipomo",
     "Hevi",
