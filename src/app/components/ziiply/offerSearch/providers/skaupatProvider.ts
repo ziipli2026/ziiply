@@ -1,4 +1,20 @@
 // ============================================================================
+// SKAUPAT_PROVIDER_V199_VISIBLE_RESOLVER_HTTP_DIAGNOSTIC
+// Revision: V199-VISIBLE-RESOLVER-HTTP-DIAGNOSTIC
+// Date: 2026-09-19
+//
+// DIAGNOSTIIKKA V198:n PÄÄLLE:
+// - Ei muuta V198:n varsinaista resolveri-/hakutoimintaa.
+// - Kerää näkyviin:
+//   received storeId/storeName
+//   official resolver attempted + HTTP status
+//   resolved S-kaupat storeId / NONE
+//   RemoteFilteredProducts attempted + HTTP status/error
+//   raw/mapped/total
+// - Palauttaa diagnostiikkarivin Göstan nykyiseen debug-dataan.
+// ============================================================================
+
+// ============================================================================
 // SKAUPAT_PROVIDER_V198_DYNAMIC_SKAUPAT_STORE_RESOLVER
 // Revision: V198-DYNAMIC-SKAUPAT-STORE-RESOLVER
 // Date: 2026-09-19
@@ -220,6 +236,95 @@ function normalizeSKaupatValueListV194(arrayValue: unknown, fallbackValue: unkno
 }
 
 
+type SKaupatVisibleDiagnosticV199 = {
+  receivedStoreId: string;
+  receivedStoreName: string;
+  officialResolverAttempted: boolean;
+  officialResolverHttpStatus: string;
+  resolvedStoreId: string;
+  remoteAttempted: boolean;
+  remoteHttpStatus: string;
+  rawCount: number;
+  mappedCount: number;
+  total: number;
+  error: string;
+};
+
+let sKaupatVisibleDiagnosticV199: SKaupatVisibleDiagnosticV199 = {
+  receivedStoreId: "",
+  receivedStoreName: "",
+  officialResolverAttempted: false,
+  officialResolverHttpStatus: "NOT ATTEMPTED",
+  resolvedStoreId: "",
+  remoteAttempted: false,
+  remoteHttpStatus: "NOT ATTEMPTED",
+  rawCount: 0,
+  mappedCount: 0,
+  total: 0,
+  error: "",
+};
+
+function resetSKaupatVisibleDiagnosticV199(options?: SKaupatOfferProviderOptionsV173) {
+  sKaupatVisibleDiagnosticV199 = {
+    receivedStoreId: firstString(options?.storeId, options?.sStoreId),
+    receivedStoreName: firstString(options?.storeName, options?.sStoreName),
+    officialResolverAttempted: false,
+    officialResolverHttpStatus: "NOT ATTEMPTED",
+    resolvedStoreId: "",
+    remoteAttempted: false,
+    remoteHttpStatus: "NOT ATTEMPTED",
+    rawCount: 0,
+    mappedCount: 0,
+    total: 0,
+    error: "",
+  };
+}
+
+function makeVisiblePrismaDiagnosticV199(
+  config: ZiiplyOfferSearchSourceConfig,
+): ZiiplyOfferSearchResult {
+  const d = sKaupatVisibleDiagnosticV199;
+  const detail =
+    `received=${d.receivedStoreId || "(empty)"} / ${d.receivedStoreName || "(empty)"} | ` +
+    `resolver=${d.officialResolverAttempted ? "YES" : "NO"} HTTP=${d.officialResolverHttpStatus} | ` +
+    `resolved=${d.resolvedStoreId || "NONE"} | ` +
+    `RemoteFilteredProducts=${d.remoteAttempted ? "YES" : "NO"} HTTP=${d.remoteHttpStatus} | ` +
+    `raw=${d.rawCount} mapped=${d.mappedCount} total=${d.total}` +
+    (d.error ? ` | error=${d.error}` : "");
+
+  return {
+    id: `skaupat-v199-diagnostic-${detail}`,
+    source: config.id,
+    sourceUrl: config.url,
+    chain: config.chain,
+    storeLabel: d.receivedStoreName || "Prisma diagnostic",
+    storeName: d.receivedStoreName || "Prisma diagnostic",
+    shopName: d.receivedStoreName || "Prisma diagnostic",
+    title: "PRISMA V199 DIAGNOSTIC",
+    priceText: "0,01 €",
+    unitPriceText: "",
+    benefitText: detail,
+    validityText: "V199 DIAGNOSTIC",
+    imageUrl: "",
+    image: "",
+    pictureUrl: "",
+    productUrl: "",
+    rawText: `PRISMA V199 DIAGNOSTIC ${detail}`,
+    matchScore: 999999,
+    category: "Kahvi",
+    categoryPath: "Kahvi",
+    breadcrumbs: "Kahvi",
+    hierarchy: "Kahvi",
+    taxonomy: "kahvi",
+    department: "Kahvi",
+    productGroup: "Kahvi",
+    mainCategory: "Kahvi",
+    subCategory: "Kahvi",
+    brandName: "Prisma diagnostic",
+    ean: "",
+  } as unknown as ZiiplyOfferSearchResult;
+}
+
 function normalizeSKaupatStoreNameForMatchV198(value: unknown): string {
   return String(value ?? "")
     .toLowerCase()
@@ -254,12 +359,19 @@ async function resolveSKaupatStoreIdFromOfficialStoreSearchV198(
   if (!normalizedWanted) return null;
 
   if (sKaupatDynamicStoreIdCacheV198.has(normalizedWanted)) {
-    return sKaupatDynamicStoreIdCacheV198.get(normalizedWanted) ?? null;
+    const cached = sKaupatDynamicStoreIdCacheV198.get(normalizedWanted) ?? null;
+    sKaupatVisibleDiagnosticV199.officialResolverAttempted = true;
+    sKaupatVisibleDiagnosticV199.officialResolverHttpStatus = "CACHE";
+    sKaupatVisibleDiagnosticV199.resolvedStoreId = cached || "";
+    return cached;
   }
 
   try {
     const url =
       `https://www.s-kaupat.fi/myymalat/prisma?query=${encodeURIComponent(cleanStoreName)}`;
+
+    sKaupatVisibleDiagnosticV199.officialResolverAttempted = true;
+    sKaupatVisibleDiagnosticV199.officialResolverHttpStatus = "REQUESTING";
 
     const response = await fetch(url, {
       method: "GET",
@@ -270,6 +382,8 @@ async function resolveSKaupatStoreIdFromOfficialStoreSearchV198(
           "Mozilla/5.0 (compatible; Ziiply/1.0; +https://ziiply.fi)",
       },
     });
+
+    sKaupatVisibleDiagnosticV199.officialResolverHttpStatus = String(response.status);
 
     if (!response.ok) {
       console.warn("[GOSTA V198] S-kaupat store search failed", {
@@ -321,6 +435,7 @@ async function resolveSKaupatStoreIdFromOfficialStoreSearchV198(
         storeId: bestId,
         score: bestScore,
       });
+      sKaupatVisibleDiagnosticV199.resolvedStoreId = bestId;
       sKaupatDynamicStoreIdCacheV198.set(normalizedWanted, bestId);
       return bestId;
     }
@@ -1477,6 +1592,9 @@ async function fetchSKaupatRemoteFilteredProductsPageV170(
   discountedOnly = false,
   selectedStoreName = "",
 ): Promise<{ results: ZiiplyOfferSearchResult[]; rawCount: number; total: number; from: number; limit: number }> {
+  sKaupatVisibleDiagnosticV199.remoteAttempted = true;
+  sKaupatVisibleDiagnosticV199.remoteHttpStatus = "REQUESTING";
+
   const response = await fetch(
     buildRemoteFilteredProductsUrl(query, offset, selectedStoreId, discountedOnly),
     {
@@ -1494,6 +1612,8 @@ async function fetchSKaupatRemoteFilteredProductsPageV170(
     },
     cache: "no-store",
   });
+
+  sKaupatVisibleDiagnosticV199.remoteHttpStatus = String(response.status);
 
   if (!response.ok) {
     throw new Error(`S-kaupat RemoteFilteredProducts failed: ${response.status}`);
@@ -1520,8 +1640,13 @@ async function fetchSKaupatRemoteFilteredProductsPageV170(
     )
     .filter(Boolean) as ZiiplyOfferSearchResult[];
 
+  const dedupedMappedResultsV199 = dedupeSOfferResultsV161(mappedResults);
+  sKaupatVisibleDiagnosticV199.rawCount = listItems.length;
+  sKaupatVisibleDiagnosticV199.mappedCount = dedupedMappedResultsV199.length;
+  sKaupatVisibleDiagnosticV199.total = pagingMeta.total;
+
   return {
-    results: dedupeSOfferResultsV161(mappedResults),
+    results: dedupedMappedResultsV199,
     rawCount: listItems.length,
     total: pagingMeta.total,
     from: pagingMeta.from,
@@ -1535,8 +1660,16 @@ async function fetchSKaupatRemoteFilteredProductsV170(
   options?: SKaupatOfferProviderOptionsV173,
   discountedOnly = false,
 ): Promise<ZiiplyOfferSearchResult[]> {
+  resetSKaupatVisibleDiagnosticV199(options);
+
   const selectedStores = await resolveSelectedSKaupatStoresV194(options);
-  if (selectedStores.length === 0) return [];
+  if (selectedStores.length === 0) {
+    return [makeVisiblePrismaDiagnosticV199(config)];
+  }
+
+  if (!sKaupatVisibleDiagnosticV199.resolvedStoreId) {
+    sKaupatVisibleDiagnosticV199.resolvedStoreId = selectedStores[0]?.storeId || "";
+  }
 
   const allStoreResults: ZiiplyOfferSearchResult[] = [];
 
@@ -1578,6 +1711,13 @@ async function fetchSKaupatRemoteFilteredProductsV170(
         if (page.rawCount < pageStep && page.total === 0) break;
       } catch (error) {
         if (offset === 0) {
+          sKaupatVisibleDiagnosticV199.remoteHttpStatus =
+            sKaupatVisibleDiagnosticV199.remoteHttpStatus === "REQUESTING"
+              ? "FAILED"
+              : sKaupatVisibleDiagnosticV199.remoteHttpStatus;
+          sKaupatVisibleDiagnosticV199.error =
+            error instanceof Error ? error.message : String(error);
+
           console.warn("[Ziiply offers] selected S-store offer fetch failed", {
             selectedStoreId: selectedStore.storeId,
             selectedStoreName: selectedStore.storeName,
@@ -1594,7 +1734,10 @@ async function fetchSKaupatRemoteFilteredProductsV170(
     allStoreResults.push(...pages.flat());
   }
 
-  return dedupeSOfferResultsV161(allStoreResults);
+  return dedupeSOfferResultsV161([
+    makeVisiblePrismaDiagnosticV199(config),
+    ...allStoreResults,
+  ]);
 }
 
 export async function fetchSKaupatOffers(
