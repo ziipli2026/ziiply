@@ -1,4 +1,19 @@
 // ============================================================================
+// ZIIPLY_OFFER_SEARCH_CORE_V168_PAGE_CATEGORY_GATE_FIX
+// Revision: V168
+// Date: 2026-09-19
+//
+// Fix:
+// - isZiiplyGostaCategorySelectionV147 now uses the current category-label-aware
+//   recognizer instead of the legacy isGostaCategorySelectionV136 gate.
+// - This lets page.tsx actually call searchOffers() for current categories such as
+//   Hygienia & kosmetiikka, Vitamiinit & ravinteet, Liha & makkarat and
+//   Koti & vapaa-aika.
+// - No changes to page.tsx, Card, provider, store IDs, master data or category
+//   classification.
+// ============================================================================
+
+// ============================================================================
 // ZIIPLY_OFFER_SEARCH_CORE_V167_CURRENT_CATEGORY_SELECTION_FIX
 // Revision: V167
 // Date: 2026-09-19
@@ -449,7 +464,9 @@ export async function searchZiiplyGostaOffersV146(options: {
 export { GOSTA_CATEGORY_LABELS_V136 as GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147 } from "./ziiplyOfferCategoryCore";
 
 export function isZiiplyGostaCategorySelectionV147(value: string) {
-  return isGostaCategorySelectionV136(value);
+  // V168: page.tsx calls searchOffers() only when this compatibility export
+  // returns true. Use the same current-label-aware gate as the search core.
+  return isCurrentGostaCategorySelectionV167(value);
 }
 
 export function mapZiiplyGostaOfferToCardOfferV147(item: ZiiplyGostaOfferLike) {
