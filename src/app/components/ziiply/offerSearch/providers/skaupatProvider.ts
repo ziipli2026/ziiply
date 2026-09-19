@@ -1,4 +1,16 @@
 // ============================================================================
+// SKAUPAT_PROVIDER_V195_CURRENT_FINLAND_DATE
+// Revision: V195
+// Date: 2026-09-19
+//
+// Korjaus Göstan Prisma/S-kaupat master-tarjoushakuun:
+// - Poistaa kovakoodatun 2026-06-07-päivämäärän tarjoushausta.
+// - availabilityDate ja sortForAvailabilityLabelDate käyttävät aina haun
+//   suoritushetken Suomen päivämäärää (Europe/Helsinki, YYYY-MM-DD).
+// - Ei muuta muuta tarjoushaku-, kauppavalinta-, kategoria- tai provider-logiikkaa.
+// ============================================================================
+
+// ============================================================================
 // SKAUPAT_PROVIDER_V194_MULTI_SELECTED_S_STORES
 // Revision: V194
 // Date: 2026-07-05
@@ -1260,6 +1272,15 @@ function mapSProductListItemToOfferResult(
   } as unknown as ZiiplyOfferSearchResult;
 }
 
+function getCurrentFinlandDateV195(): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Helsinki",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
 function buildRemoteFilteredProductsUrl(
   query: string,
   offset = 0,
@@ -1270,9 +1291,10 @@ function buildRemoteFilteredProductsUrl(
   const discountedLimit = 24;
   const page = Math.floor(offset / normalLimit) + 1;
   const queryString = discountedOnly ? "" : query;
+  const currentDate = getCurrentFinlandDateV195();
 
   const variables: UnknownRecord = {
-    availabilityDate: discountedOnly ? "2026-06-07" : undefined,
+    availabilityDate: discountedOnly ? currentDate : undefined,
     facets: [
       { key: "brandName", order: "asc" },
       { key: "category" },
@@ -1290,7 +1312,7 @@ function buildRemoteFilteredProductsUrl(
     fetchSponsoredContent: discountedOnly,
     limit: discountedOnly ? discountedLimit : normalLimit,
     queryString,
-    sortForAvailabilityLabelDate: discountedOnly ? "2026-06-07" : undefined,
+    sortForAvailabilityLabelDate: discountedOnly ? currentDate : undefined,
     storeId: selectedStoreId,
     useRandomId: false,
     marketingId: "d0bcc6e5-6130-494e-b6fb-12b5cb9c60cf",
