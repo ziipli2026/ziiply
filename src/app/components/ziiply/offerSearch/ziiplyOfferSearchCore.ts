@@ -1,16 +1,16 @@
 // ============================================================================
-// ZIIPLY_OFFER_SEARCH_CORE_V168_PAGE_CATEGORY_GATE_FIX
-// Revision: V168
+// ZIIPLY_OFFER_SEARCH_CORE_V169_CATEGORY_QUERY_BYPASS_PARSETERMS
+// Revision: V169
 // Date: 2026-09-19
 //
-// Fix:
-// - isZiiplyGostaCategorySelectionV147 now uses the current category-label-aware
-//   recognizer instead of the legacy isGostaCategorySelectionV136 gate.
-// - This lets page.tsx actually call searchOffers() for current categories such as
-//   Hygienia & kosmetiikka, Vitamiinit & ravinteet, Liha & makkarat and
-//   Koti & vapaa-aika.
-// - No changes to page.tsx, Card, provider, store IDs, master data or category
-//   classification.
+// V169:
+// - Pohja: V167.
+// - Göstan nykyinen kategoriavalinta tunnistetaan suoraan options.query-arvosta.
+// - Jos query on nykyinen Gösta-kategoria, options.terms / page.tsx parseTerms()
+//   EI saa korvata sitä offerQuerySnapshotissa.
+// - Normaali vapaa tekstihaku säilyttää aiemman terms -> query -prioriteetin.
+// - Ei muutoksia page.tsx:ään, Cardiin, provideriin, store-ID:ihin,
+//   master-dataan tai kategorioiden luokitteluun.
 // ============================================================================
 
 // ============================================================================
@@ -406,11 +406,26 @@ export async function searchZiiplyGostaOffersV146(options: {
 }) {
   const cleanedQuery = String(options.query || "").trim();
   const termSnapshot = (options.terms || []).join(", ").trim();
-  const offerQuerySnapshot = termSnapshot || cleanedQuery;
 
-  const categorySearchLabel = isCurrentGostaCategorySelectionV167(offerQuerySnapshot)
-    ? getGostaCategoryLabelFromFilterV136(offerQuerySnapshot)
+  // V169:
+  // page.tsx ajaa myös Göstan kategoriapainikkeen arvon parseTerms()-funktion
+  // läpi ennen core-kutsua. Kategoriavalinta on kuitenkin jo valmis yksittäinen
+  // query, joten sen tunnistus ja snapshot pitää tehdä suoraan options.query:sta.
+  // Muuten normaalin tuotehaun terms-rakenne voi muuttaa kategorian ennen
+  // category-gatea.
+  const directCategorySearchLabelV169 = isCurrentGostaCategorySelectionV167(cleanedQuery)
+    ? getGostaCategoryLabelFromFilterV136(cleanedQuery)
     : "";
+
+  const offerQuerySnapshot = directCategorySearchLabelV169
+    ? cleanedQuery
+    : termSnapshot || cleanedQuery;
+
+  const categorySearchLabel = directCategorySearchLabelV169
+    ? directCategorySearchLabelV169
+    : isCurrentGostaCategorySelectionV167(offerQuerySnapshot)
+      ? getGostaCategoryLabelFromFilterV136(offerQuerySnapshot)
+      : "";
 
   const normalizedCategorySearch = normalizeGostaCoreText(categorySearchLabel).trim();
   const searchAllAreaOffers = !offerQuerySnapshot || normalizedCategorySearch === "kaikki";
@@ -464,9 +479,7 @@ export async function searchZiiplyGostaOffersV146(options: {
 export { GOSTA_CATEGORY_LABELS_V136 as GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147 } from "./ziiplyOfferCategoryCore";
 
 export function isZiiplyGostaCategorySelectionV147(value: string) {
-  // V168: page.tsx calls searchOffers() only when this compatibility export
-  // returns true. Use the same current-label-aware gate as the search core.
-  return isCurrentGostaCategorySelectionV167(value);
+  return isGostaCategorySelectionV136(value);
 }
 
 export function mapZiiplyGostaOfferToCardOfferV147(item: ZiiplyGostaOfferLike) {
