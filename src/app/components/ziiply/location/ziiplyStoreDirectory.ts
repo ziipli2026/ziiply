@@ -1,3 +1,11 @@
+// S_KAUPAT_STORE_DIRECTORY_V2_PRISMA_PAGINATION_DIAGNOSTIC
+// Revision: V2-PRISMA-PAGINATION-DIAGNOSTIC
+// Date: 2026-09-19
+//
+// Diagnostic only: no resolver/matching behavior is changed.
+// Logs pages fetched, parsed entries, cursor URLs and whether Prisma Varkaus
+// exists in the built Prisma directory.
+//
 // ============================================================================
 // S_KAUPAT_STORE_DIRECTORY_V1_URL_ID_RESOLVER
 // Date: 2026-06-06
@@ -199,6 +207,10 @@ async function fetchSKaupatChainDirectoryV1(
   const visited = new Set<string>();
   const byId = new Map<string, SKaupatStoreDirectoryEntryV1>();
 
+  // V2 diagnostic counters only.
+  let diagnosticEntriesParsedV2 = 0;
+  let diagnosticCursorUrlsFoundV2 = 0;
+
   while (queue.length > 0 && visited.size < 30) {
     const url = queue.shift();
     if (!url || visited.has(url)) continue;
@@ -207,11 +219,17 @@ async function fetchSKaupatChainDirectoryV1(
 
     try {
       const html = await fetchSKaupatHtmlV1(url);
-      for (const entry of extractStoreEntriesFromHtmlV1(chain, html)) {
+      const pageEntriesV2 = extractStoreEntriesFromHtmlV1(chain, html);
+      const nextUrlsV2 = extractNextPageUrlsV1(url, html);
+
+      diagnosticEntriesParsedV2 += pageEntriesV2.length;
+      diagnosticCursorUrlsFoundV2 += nextUrlsV2.length;
+
+      for (const entry of pageEntriesV2) {
         byId.set(entry.sKaupatStoreId, entry);
       }
 
-      for (const nextUrl of extractNextPageUrlsV1(url, html)) {
+      for (const nextUrl of nextUrlsV2) {
         if (!visited.has(nextUrl)) queue.push(nextUrl);
       }
     } catch (error) {
@@ -219,7 +237,29 @@ async function fetchSKaupatChainDirectoryV1(
     }
   }
 
-  return Array.from(byId.values()).sort((a, b) => a.name.localeCompare(b.name, "fi"));
+  const resultV2 = Array.from(byId.values()).sort((a, b) =>
+    a.name.localeCompare(b.name, "fi"),
+  );
+
+  if (normalizeSKaupatStoreTextV1(chain) === "prisma") {
+    const prismaVarkausV2 = resultV2.find((entry) => {
+      const name = normalizeSKaupatStoreTextV1(entry.name);
+      const slug = normalizeSKaupatStoreTextV1(entry.slug.replace(/-/g, " "));
+      return name === "prisma varkaus" || slug === "prisma varkaus";
+    });
+
+    console.warn("[S-kaupat directory V2 diagnostic]", {
+      chain,
+      pagesFetched: visited.size,
+      entriesParsed: diagnosticEntriesParsedV2,
+      uniqueEntriesFound: resultV2.length,
+      cursorUrlsFound: diagnosticCursorUrlsFoundV2,
+      prismaVarkausFound: Boolean(prismaVarkausV2),
+      prismaVarkausStoreId: prismaVarkausV2?.sKaupatStoreId || null,
+    });
+  }
+
+  return resultV2;
 }
 
 export async function getSKaupatChainDirectoryV1(
@@ -290,6 +330,22 @@ export async function resolveSKaupatStoreIdFromDirectoryV1(
   if (!cleanStoreName) return null;
 
   const directory = await getSKaupatFullDirectoryV1();
+
+  if (normalizeSKaupatStoreTextV1(cleanStoreName) === "prisma varkaus") {
+    const exactVarkausV2 = directory.find((entry) => {
+      const name = normalizeSKaupatStoreTextV1(entry.name);
+      const slug = normalizeSKaupatStoreTextV1(entry.slug.replace(/-/g, " "));
+      return name === "prisma varkaus" || slug === "prisma varkaus";
+    });
+
+    console.warn("[S-kaupat directory V2 resolve diagnostic]", {
+      requestedStoreName: cleanStoreName,
+      fullDirectoryEntries: directory.length,
+      prismaVarkausFound: Boolean(exactVarkausV2),
+      prismaVarkausStoreId: exactVarkausV2?.sKaupatStoreId || null,
+    });
+  }
+
   let best: { entry: SKaupatStoreDirectoryEntryV1; score: number } | null = null;
 
   for (const entry of directory) {
