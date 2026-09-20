@@ -1,4 +1,17 @@
 // ============================================================================
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V45_SKAUPAT_EMPTY_INFO
+// Revision: V45-SKAUPAT-EMPTY-INFO
+// Date: 2026-09-20
+//
+// Muutos V44:een:
+// - Kun S-ryhmän master-haku ei tuota yhtään näkyvää tarjouskategoriaa, näytetään
+//   käyttäjälle täsmällinen S-kaupat.fi-lähdettä koskeva ilmoitus.
+// - Viesti ei väitä, ettei fyysisessä myymälässä olisi tarjouksia: myymälä voi puuttua
+//   S-kaupat.fi-palvelusta tai sillä ei juuri nyt ole siellä aktiivisia tarjouksia.
+// - Ei muuta haku-, provider-, kategoria-, S/K-portti- tai kauppaotsikkologiikkaa.
+// ============================================================================
+
+// ============================================================================
 // ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V44_COMPACT_FIXED_STORE_HEADING
 // Revision: V44-COMPACT-FIXED-STORE-HEADING
 // Date: 2026-09-20
@@ -810,7 +823,7 @@ export default function ZiiplyMobileOfferSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="V41-SELECTED-STORE-HEADING"
+      data-ziiply-mobile-offer-search-card-version="V45-SKAUPAT-EMPTY-INFO"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
@@ -966,8 +979,13 @@ export default function ZiiplyMobileOfferSearchCard({
                   ))}
                 </div>
               ) : (
-                <div className="mt-3 rounded-[0.8rem] border border-dashed border-[#9a7a3d] bg-[#fff8d9] px-3 py-3 text-[0.72rem] font-extrabold leading-snug text-[#6d5d3f]">
-                  Ei näytettäviä tuoteryhmiä vielä. Palaa takaisin ja avaa Gösta uudelleen.
+                <div className="mt-3 rounded-[0.8rem] border border-dashed border-[#9a7a3d] bg-[#fff8d9] px-3 py-3 text-center text-[#6d5d3f]">
+                  <div className="text-[0.82rem] font-black italic text-[#59401e]" style={{ fontFamily: serifFont }}>
+                    Gösta ei löytänyt tarjouksia 🔎
+                  </div>
+                  <div className="mt-1.5 text-[0.70rem] font-extrabold leading-snug">
+                    Valitulle myymälälle ei löytynyt tarjoustietoja S-kaupat.fi-palvelusta. Myymälä ei välttämättä ole palvelussa tai sillä ei ole tällä hetkellä aktiivisia tarjouksia.
+                  </div>
                 </div>
               )}
             </div>
