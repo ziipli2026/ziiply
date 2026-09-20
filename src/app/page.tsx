@@ -1,15 +1,4 @@
 // ============================================================================
-// PAGE_V550_GOSTA_VISIBLE_KRUOKA_PIPELINE_DEBUG
-// Revision: V550-GOSTA-VISIBLE-KRUOKA-PIPELINE-DEBUG
-// Date: 2026-09-20
-//
-// Muutos V549:ään:
-// - Lukee SearchCore V174:n K-Ruoka-debugtilan jokaisen Gösta-haun jälkeen.
-// - Välittää debugtilan OfferSearchCardille erillisenä propina.
-// - Ei muuta S/K-kauppavalintaa eikä tarjoushakua.
-// ============================================================================
-
-// ============================================================================
 // PAGE_V549_GOSTA_K_CHAIN_LOCAL_KRUOKA_ENABLED
 // Revision: V549-GOSTA-K-CHAIN-LOCAL-KRUOKA-ENABLED
 // Date: 2026-09-20
@@ -1687,8 +1676,6 @@ import {
   isZiiplyGostaCategorySelectionV147,
   mapZiiplyGostaOfferToCardOfferV147,
   searchZiiplyGostaOffersV146,
-  getLastZiiplyKruokaDebugV174,
-  type ZiiplyKruokaDebugV174,
 } from "./components/ziiply/offerSearch/ziiplyOfferSearchCore";
 import { explainNormalSearch as explainZiiplyNormalSearch } from "./components/ziiply/search/searchEngine";
 
@@ -3383,7 +3370,6 @@ export default function Page() {
 
   const [offers, setOffers] = useState<ZiiplyOffer[]>([]);
   const [offerSearchResults, setOfferSearchResults] = useState<any[]>([]);
-  const [gostaKruokaDebugV550, setGostaKruokaDebugV550] = useState<ZiiplyKruokaDebugV174 | null>(null);
   const [hasSearchedOffers, setHasSearchedOffers] = useState(false);
   const [loadingOffers, setLoadingOffers] = useState(false);
   const [offerSearchQuerySnapshot, setOfferSearchQuerySnapshot] = useState("");
@@ -10158,11 +10144,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       } as any;
 
       const offerSearchCoreResult = await searchZiiplyGostaOffersV146(gostaOfferSearchOptionsV171);
-      setGostaKruokaDebugV550(
-        gostaSelectedOfferChainRefV547.current === "K"
-          ? getLastZiiplyKruokaDebugV174()
-          : null,
-      );
 
       trackZiiplyEvent("gosta_offer_api_search_used", {
         query: offerSearchCoreResult.trackingKey,
@@ -19084,7 +19065,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             testedEmptyCategories={gostaTestedEmptyCategoriesV166}
             loading={loadingOffers}
             emptyText={offerShowingAllAreaOffersV106 ? "Alueen tarjouksia ei löytynyt vielä." : "Gösta ei löytänyt tarjouksia tälle rajaukselle."}
-            kruokaDebug={gostaKruokaDebugV550}
             selectedStoreName={
               gostaSelectedOfferChainRefV547.current === "K"
                 ? (storeMode === "local" ? activeArea.kLocalStoreName : activeArea.kStoreName) || activeStores.kStoreName || ""
