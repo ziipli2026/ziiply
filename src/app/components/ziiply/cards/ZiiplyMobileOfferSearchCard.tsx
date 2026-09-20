@@ -1,4 +1,14 @@
 // ============================================================================
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V49_K_CHAIN_ENABLED
+// Revision: V49-K-CHAIN-ENABLED
+// Date: 2026-09-20
+//
+// Muutos V48:aan:
+// - K-ryhmän porttinappi on valittavissa ja kutsuu onSelectOfferChain("K").
+// - Ei muuta tarjoushakua, kategorioita, tyhjän tuloksen käsittelyä tai S-puolta.
+// ============================================================================
+
+// ============================================================================
 // ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V48_RESTORE_EMPTY_STATE
 // Revision: V48-RESTORE-EMPTY-STATE
 // Date: 2026-09-20
@@ -969,14 +979,15 @@ export default function ZiiplyMobileOfferSearchCard({
                 </button>
                 <button
                   type="button"
-                  disabled
-                  aria-disabled="true"
-                  className="flex min-h-[7.4rem] cursor-not-allowed flex-col items-center justify-center rounded-[1rem] border-[3px] border-[#8b8b82] bg-[#e5e2d8] px-3 py-3 opacity-65 shadow-[0_4px_0_rgba(91,72,44,0.12)] grayscale"
-                  aria-label="K-ryhmän tarjoushaku ei ole vielä käytössä"
+                  onClick={() => {
+                    setSelectedOfferChainV39("K");
+                    onSelectOfferChain?.("K");
+                  }}
+                  className="flex min-h-[7.4rem] flex-col items-center justify-center rounded-[1rem] border-[3px] border-[#174c2c] bg-[#fff8d9] px-3 py-3 shadow-[0_4px_0_rgba(91,72,44,0.18)] active:translate-y-[1px]"
+                  aria-label="Hae K-ryhmän tarjoukset"
                 >
-                  <img src="/storelogos/k-group.png" alt="K-ryhmä" className="h-[4.4rem] w-full object-contain grayscale" draggable={false} />
-                  <span className="mt-2 text-[0.78rem] font-black text-[#66665f]">K-ryhmä</span>
-                  <span className="mt-0.5 text-[0.58rem] font-black uppercase tracking-[0.08em] text-[#77776f]">Ei vielä käytössä</span>
+                  <img src="/storelogos/k-group.png" alt="K-ryhmä" className="h-[4.4rem] w-full object-contain" draggable={false} />
+                  <span className="mt-2 text-[0.78rem] font-black text-[#174c2c]">K-ryhmä</span>
                 </button>
               </div>
             </div>
