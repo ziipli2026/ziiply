@@ -1,4 +1,18 @@
 // ============================================================================
+// PAGE_V549_GOSTA_K_CHAIN_LOCAL_KRUOKA_ENABLED
+// Revision: V549-GOSTA-K-CHAIN-LOCAL-KRUOKA-ENABLED
+// Date: 2026-09-20
+//
+// Muutos V548:aan:
+// - Aktivoi Göstan K-ryhmävalinnan samalla porttilogiikalla kuin S-ryhmän.
+// - K + Lähikaupat välittää vain valitun K-Marketin / K-Supermarketin K-providerille.
+// - K + Tavaratalot (K-Citymarket) ei vielä aja K-Ruoka-provideria.
+// - S- ja K-kontekstit ovat Gösta-portissa toisensa poissulkevia.
+// - selectedStoreName seuraa Göstan valittua ketjua ja nykyistä storeModea.
+// - Ei muuta normaalia tuotehakua, Justiinaa, GPS:ää tai store selectionia.
+// ============================================================================
+
+// ============================================================================
 // PAGE_V548_GOSTA_PASSES_SELECTED_STORE_NAME_TO_CARD
 // Revision: V548-GOSTA-PASSES-SELECTED-STORE-NAME-TO-CARD
 // Date: 2026-09-20
@@ -10046,20 +10060,30 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // Tämä ohittaa vain Göstan S-haun vanhan compare-scope-koosteen.
       const gostaSelectedSStoreV547 =
         storeMode === "local" ? sWithinLocalStoreV539 : sWithinHyperStoreV539;
+      const gostaSelectedKStoreV549 =
+        storeMode === "local" ? kWithinLocalStoreV539 : kWithinHyperStoreV539;
 
+      // V549: Göstan S/K-portti on aidosti eksklusiivinen. Valittu ketju saa vain
+      // nykyisen storeMode-arvon mukaisen kaupan; toinen ketju ei vuoda hakuun.
       const sOfferStoresV532 = gostaSelectedOfferChainRefV547.current === "S"
         ? uniqueSelectedOfferStoresV532([gostaSelectedSStoreV547])
-        : useWithinChainSOffersV532
-          ? uniqueSelectedOfferStoresV532([sWithinHyperStoreV539, sWithinLocalStoreV539])
-          : storeCompareScope === "between_chains"
-            ? uniqueSelectedOfferStoresV532([{ id: activeStores.sStoreId, name: activeStores.sStoreName }])
-            : [];
+        : gostaSelectedOfferChainRefV547.current === "K"
+          ? []
+          : useWithinChainSOffersV532
+            ? uniqueSelectedOfferStoresV532([sWithinHyperStoreV539, sWithinLocalStoreV539])
+            : storeCompareScope === "between_chains"
+              ? uniqueSelectedOfferStoresV532([{ id: activeStores.sStoreId, name: activeStores.sStoreName }])
+              : [];
 
-      const kOfferStoresV532 = useWithinChainKOffersV532
-        ? uniqueSelectedOfferStoresV532([kWithinHyperStoreV539, kWithinLocalStoreV539])
-        : storeCompareScope === "between_chains"
-          ? uniqueSelectedOfferStoresV532([{ id: activeStores.kStoreId, name: activeStores.kStoreName }])
-          : [];
+      const kOfferStoresV532 = gostaSelectedOfferChainRefV547.current === "K"
+        ? uniqueSelectedOfferStoresV532([gostaSelectedKStoreV549])
+        : gostaSelectedOfferChainRefV547.current === "S"
+          ? []
+          : useWithinChainKOffersV532
+            ? uniqueSelectedOfferStoresV532([kWithinHyperStoreV539, kWithinLocalStoreV539])
+            : storeCompareScope === "between_chains"
+              ? uniqueSelectedOfferStoresV532([{ id: activeStores.kStoreId, name: activeStores.kStoreName }])
+              : [];
 
       const sOfferIdsV532 = sOfferStoresV532.map((store) => store.id).filter(Boolean);
       const sOfferNamesV532 = sOfferStoresV532.map((store) => store.name).filter(Boolean);
@@ -19031,10 +19055,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             onFilterChange={handleGostaFilterChangeV136}
             onSearch={(value: string) => void searchOffers(value)}
             onSelectOfferChain={(chain: "S" | "K") => {
-              if (chain !== "S") return;
-              // V547: tallenna valinta ennen hakua, jotta searchOffers rakentaa
-              // kontekstin nykyisen storeMode-arvon mukaisesta S-kaupasta.
-              gostaSelectedOfferChainRefV547.current = "S";
+              // V549: tallenna S/K-valinta ennen hakua. searchOffers rakentaa
+              // eksklusiivisen kontekstin nykyisen storeMode-arvon kaupasta.
+              gostaSelectedOfferChainRefV547.current = chain;
               void searchOffers();
             }}
             categorySuggestions={GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147}
@@ -19042,7 +19065,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             testedEmptyCategories={gostaTestedEmptyCategoriesV166}
             loading={loadingOffers}
             emptyText={offerShowingAllAreaOffersV106 ? "Alueen tarjouksia ei löytynyt vielä." : "Gösta ei löytänyt tarjouksia tälle rajaukselle."}
-            selectedStoreName={activeStores.sStoreName || ""}
+            selectedStoreName={
+              gostaSelectedOfferChainRefV547.current === "K"
+                ? (storeMode === "local" ? activeArea.kLocalStoreName : activeArea.kStoreName) || activeStores.kStoreName || ""
+                : (storeMode === "local" ? activeArea.sLocalStoreName : activeArea.sStoreName) || activeStores.sStoreName || ""
+            }
             onBack={() => {
               gostaPanelStickyOpenRefV158.current = false;
               setActiveResult("none");
