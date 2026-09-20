@@ -1,4 +1,15 @@
 // ============================================================================
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V50_KRUOKA_DEBUG_PANEL
+// Revision: V50-KRUOKA-DEBUG-PANEL
+// Date: 2026-09-20
+//
+// Muutos V49:ään:
+// - Näyttää K-Ruoka pipeline-debugtilan erillisenä paneelina K-haun 0-tuloksessa.
+// - Debug ei ole tarjousrivi eikä vaikuta kategorioihin.
+// - S-puolen toimintaan ei kosketa.
+// ============================================================================
+
+// ============================================================================
 // ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V49_K_CHAIN_ENABLED
 // Revision: V49-K-CHAIN-ENABLED
 // Date: 2026-09-20
@@ -225,6 +236,20 @@ export type ZiiplyMobileOfferSearchCardProps = {
   loading?: boolean;
   emptyText?: string;
   selectedStoreName?: string;
+  kruokaDebug?: {
+    selectedStoreName?: string;
+    selectedStoreId?: string;
+    brochureUrl?: string;
+    brochureHttp?: number | null;
+    applicationState?: string;
+    kStoreId?: string | null;
+    brochureOffers?: number | null;
+    eans?: number | null;
+    productMapHttp?: number | null;
+    productMapProducts?: number | null;
+    activeOffers?: number | null;
+    error?: string | null;
+  } | null;
   categorySuggestions?: string[];
   categoryOfferCounts?: Record<string, number | null | undefined>;
   testedEmptyCategories?: Record<string, boolean | undefined>;
@@ -543,6 +568,7 @@ export default function ZiiplyMobileOfferSearchCard({
   loading = false,
   emptyText = "Gösta ei löytänyt tarjouksia vielä.",
   selectedStoreName = "",
+  kruokaDebug = null,
   categorySuggestions = ["Kahvi & tee", "Maitotuotteet", "Liha & makkarat", "Kala", "Leipomo", "Hevi", "Juomat", "Pakasteet", "Valmisruoka", "Kuivatuotteet", "Makeiset & keksit", "Lastenruoat", "Vitamiinit & ravinteet", "Lemmikit", "Hygienia & kosmetiikka", "Kodinhoito", "Koti & vapaa-aika", "Muut"],
   categoryOfferCounts,
   testedEmptyCategories,
@@ -1037,9 +1063,26 @@ export default function ZiiplyMobileOfferSearchCard({
                       {selectedStoreNameV41}
                     </div>
                   ) : null}
-                  <div className="mt-1.5 text-[0.70rem] font-extrabold leading-snug">
-                    Valitulle myymälälle ei löytynyt tarjoustietoja S-kaupat.fi-palvelusta. Myymälä ei välttämättä ole palvelussa tai sillä ei ole tällä hetkellä aktiivisia tarjouksia.
-                  </div>
+                  {selectedOfferChainV39 === "K" && kruokaDebug ? (
+                    <div className="mt-2 rounded-[0.7rem] border border-dashed border-[#9a7a3d] bg-[#fffdf0] px-2.5 py-2 text-left font-mono text-[0.60rem] font-bold leading-[1.35] text-[#4f432f] break-words">
+                      <div className="mb-1 font-black text-[#174c2c]">K-RUOKA DEBUG</div>
+                      <div>store: {String(kruokaDebug.selectedStoreName ?? "-")}</div>
+                      <div>selectedStoreId: {String(kruokaDebug.selectedStoreId ?? "-")}</div>
+                      <div>brochureHttp: {String(kruokaDebug.brochureHttp ?? "-")}</div>
+                      <div>applicationState: {String(kruokaDebug.applicationState ?? "-")}</div>
+                      <div>kStoreId: {String(kruokaDebug.kStoreId ?? "-")}</div>
+                      <div>brochureOffers: {String(kruokaDebug.brochureOffers ?? "-")}</div>
+                      <div>eans: {String(kruokaDebug.eans ?? "-")}</div>
+                      <div>productMapHttp: {String(kruokaDebug.productMapHttp ?? "-")}</div>
+                      <div>productMapProducts: {String(kruokaDebug.productMapProducts ?? "-")}</div>
+                      <div>activeOffers: {String(kruokaDebug.activeOffers ?? "-")}</div>
+                      {kruokaDebug.error ? <div>error: {String(kruokaDebug.error)}</div> : null}
+                    </div>
+                  ) : (
+                    <div className="mt-1.5 text-[0.70rem] font-extrabold leading-snug">
+                      Valitulle myymälälle ei löytynyt tarjoustietoja S-kaupat.fi-palvelusta. Myymälä ei välttämättä ole palvelussa tai sillä ei ole tällä hetkellä aktiivisia tarjouksia.
+                    </div>
+                  )}
                 </div>
               )}
             </div>
