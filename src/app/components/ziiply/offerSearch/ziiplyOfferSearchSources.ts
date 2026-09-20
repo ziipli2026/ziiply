@@ -1,4 +1,18 @@
 // ============================================================================
+// ZIIPLY_OFFER_SEARCH_SOURCES_V32_EXCLUSIVE_S_STORE_PROVIDER_ROUTING
+// Revision: V32-EXCLUSIVE-S-STORE-PROVIDER-ROUTING
+// Date: 2026-09-20
+//
+// Muutos V31:een:
+// - Valittu Prisma ajaa VAIN nykyisen skaupatProvider / V216-polun.
+// - Valittu S-market / Alepa / Sale ajaa VAIN skaupatLocalCampaignProvider-polun.
+// - Tyhjällä Prisma-kontekstilla ei enää kutsuta V216-provideria.
+// - K-Ruoka ja eTarjouslehdet pysyvät pois käytöstä.
+// - Ei muutoksia page.tsx:ään, SearchCoreen, normaaliin tuotehakuun,
+//   Justiinaan, GPS:ään, store selectioniin tai /api/store-searchiin.
+// ============================================================================
+
+// ============================================================================
 // ZIIPLY_OFFER_SEARCH_SOURCES_V31_SLOCAL_SKAUPAT_CAMPAIGNS
 // Revision: V31-SLOCAL-SKAUPAT-CAMPAIGNS
 // Date: 2026-09-20
@@ -632,6 +646,19 @@ export async function searchZiiplyOffers(
   const isGostaMasterQuery = normalizeOfferUniqueText(cleanQuery) === normalizeOfferUniqueText(ZIIPLY_GOSTA_MASTER_QUERY_V6);
 
   const providerOptions = normalizeSKaupatProviderOptionsPrismaOnlyV21(options);
+  const selectedSLocalStoresV32 = getSelectedSLocalStoresV31(options);
+  const hasSelectedPrismaV32 = Boolean(
+    normalizeOfferStoreListV11(
+      providerOptions?.sStoreIds,
+      providerOptions?.sStoreId ?? providerOptions?.storeId,
+    ).length ||
+    normalizeOfferStoreListV11(
+      providerOptions?.sStoreNames,
+      providerOptions?.sStoreName ?? providerOptions?.storeName,
+    ).length
+  );
+  const hasSelectedSLocalV32 = selectedSLocalStoresV32.length > 0;
+
   const kProviderOptions = normalizeKruokaProviderOptionsV9(options);
   const hasSelectedKStoreV9 = Boolean(kProviderOptions?.storeId || kProviderOptions?.kStoreId);
 
@@ -650,20 +677,26 @@ export async function searchZiiplyOffers(
       sStoreName: options?.sStoreName,
       kStoreId: options?.kStoreId,
       kStoreName: options?.kStoreName,
+      hasSelectedPrismaV32,
+      hasSelectedSLocalV32,
+      selectedSLocalStoresV32,
       providerScopeV10,
     });
   }
 
-  const sKaupatResults = providerScopeV10.useS
+  // V32: S-providerit ovat toisensa poissulkevia valitun kaupan perusteella.
+  // Prisma -> vanha V216-polku. S-market/Alepa/Sale -> local campaign -polku.
+  // Tärkeää: V216:ta ei kutsuta tyhjällä Prisma-kontekstilla.
+  const sKaupatResults = providerScopeV10.useS && hasSelectedPrismaV32
     ? await safelySearchSource(
-        isGostaMasterQuery ? "Prisma S-kaupat master V31" : "Prisma S-kaupat V31",
+        isGostaMasterQuery ? "Prisma S-kaupat master V32" : "Prisma S-kaupat V32",
         () => searchSelectedSKaupatOffersV11(cleanQuery, providerOptions),
       )
     : [];
 
-  const sLocalCampaignResults = providerScopeV10.useS
+  const sLocalCampaignResults = providerScopeV10.useS && hasSelectedSLocalV32
     ? await safelySearchSource(
-        isGostaMasterQuery ? "S-local S-kaupat campaigns master V31" : "S-local S-kaupat campaigns V31",
+        isGostaMasterQuery ? "S-local S-kaupat campaigns master V32" : "S-local S-kaupat campaigns V32",
         () => searchSelectedSLocalCampaignOffersV31(cleanQuery, options),
       )
     : [];
