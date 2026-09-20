@@ -1,4 +1,15 @@
 // ============================================================================
+// ZIIPLY_OFFER_SEARCH_CORE_V174_KRUOKA_DEBUG_CAPTURE
+// Revision: V174-KRUOKA-DEBUG-CAPTURE
+// Date: 2026-09-20
+//
+// Muutos V173:een:
+// - Lukee /api/offers/search-vastauksen erillisen kruokaDebug-kentän.
+// - Tarjoaa debugtilan page.tsx:lle getterillä.
+// - Ei muuta tarjouslistaa, kategorioita, provider-valintaa tai master-hakua.
+// ============================================================================
+
+// ============================================================================
 // ZIIPLY_OFFER_SEARCH_CORE_V173_CATEGORY_GATE_REGRESSION_FIX
 // Revision: V173
 // Date: 2026-09-20
@@ -250,6 +261,27 @@ const ZIIPLY_GOSTA_MASTER_QUERY_V156 = "__ziiply_all_offers__";
 const ZIIPLY_GOSTA_MASTER_CACHE_TTL_MS_V156 = 5 * 60 * 1000;
 const ziiplyGostaMasterCacheV156 = new Map<string, { expiresAt: number; promise: Promise<ZiiplyGostaOfferLike[]> }>();
 
+export type ZiiplyKruokaDebugV174 = {
+  selectedStoreName?: string;
+  selectedStoreId?: string;
+  brochureUrl?: string;
+  brochureHttp?: number | null;
+  applicationState?: string;
+  kStoreId?: string | null;
+  brochureOffers?: number | null;
+  eans?: number | null;
+  productMapHttp?: number | null;
+  productMapProducts?: number | null;
+  activeOffers?: number | null;
+  error?: string | null;
+};
+
+let lastZiiplyKruokaDebugV174: ZiiplyKruokaDebugV174 | null = null;
+
+export function getLastZiiplyKruokaDebugV174(): ZiiplyKruokaDebugV174 | null {
+  return lastZiiplyKruokaDebugV174 ? { ...lastZiiplyKruokaDebugV174 } : null;
+}
+
 async function fetchOfferSearchResults(query: string, context?: ZiiplyGostaOfferSearchContextV152) {
   const params = new URLSearchParams();
   params.set("q", query);
@@ -277,6 +309,18 @@ async function fetchOfferSearchResults(query: string, context?: ZiiplyGostaOffer
   const response = await fetch(`/api/offers/search?${params.toString()}`, {
     cache: "no-store",
   });
+
+  const clonedForDebugV174 = response.clone();
+  try {
+    const payloadV174 = await clonedForDebugV174.json();
+    lastZiiplyKruokaDebugV174 =
+      payloadV174 && typeof payloadV174 === "object" && payloadV174.kruokaDebug
+        ? { ...payloadV174.kruokaDebug }
+        : null;
+  } catch {
+    lastZiiplyKruokaDebugV174 = null;
+  }
+
   return parseOfferSearchResponse(response);
 }
 
