@@ -1,4 +1,16 @@
 // ============================================================================
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V40_CHAIN_GATE_DEBUG_RESTORED
+// Revision: V40-CHAIN-GATE-DEBUG-RESTORED
+// Date: 2026-09-20
+//
+// Muutos V39:ään:
+// - Palauttaa näkyvän DEBUG / KOPIOI DEBUG -näkymän S-ryhmän diagnostiikkaa varten.
+// - Debug-painike näkyy vasta S-ryhmän valinnan jälkeen.
+// - S/K-portti säilyy: S toimii, K pysyy harmaana ja disabled.
+// - Ei muuta provideria, hakulogiikkaa, kategorioita tai normaalia tuotehakua.
+// ============================================================================
+
+// ============================================================================
 // ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V39_CHAIN_GATE_K_DISABLED
 // Revision: V39-CHAIN-GATE-K-DISABLED
 // Date: 2026-09-20
@@ -452,6 +464,8 @@ export default function ZiiplyMobileOfferSearchCard({
 }: ZiiplyMobileOfferSearchCardProps) {
   const [lastOpenedCategoryV27, setLastOpenedCategoryV27] = React.useState("");
   const [selectedOfferChainV39, setSelectedOfferChainV39] = React.useState<"S" | "K" | null>(null);
+  const [debugTitleOpen20260712D, setDebugTitleOpen20260712D] = React.useState(false);
+  const [debugCopyStatus20260712E, setDebugCopyStatus20260712E] = React.useState("");
 
   React.useEffect(() => {
     if (typeof window === "undefined") return;
@@ -713,6 +727,25 @@ export default function ZiiplyMobileOfferSearchCard({
       );
     });
 
+  const debugPayload20260712D = {
+    revision: "V40-CHAIN-GATE-DEBUG-RESTORED",
+    selectedOfferChain: selectedOfferChainV39,
+    rawCount: rawItems.length,
+    dedupedCount: items.length,
+    visibleCount: visibleItems.length,
+    query: shownQuery,
+    filter: shownFilter,
+    landingView: showLandingView,
+    loading,
+    categorySuggestions: categoryPool,
+    visibleCategories: visibleCategorySuggestions,
+    categoryOfferCounts: categoryOfferCounts || {},
+    testedEmptyCategories: testedEmptyCategories || {},
+    rawItems,
+    dedupedItems: items,
+    visibleItems,
+  };
+
   const goToLandingView = () => {
     // V27: paluu tuoteryhmälistaan ei saa käynnistää uutta master-hakua eikä tyhjentää
     // jo ladattuja tarjousmääriä. Page säilyttää offerSearchResults-välimuistin.
@@ -732,7 +765,7 @@ export default function ZiiplyMobileOfferSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="V39-CHAIN-GATE-K-DISABLED"
+      data-ziiply-mobile-offer-search-card-version="V40-CHAIN-GATE-DEBUG-RESTORED"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
@@ -761,12 +794,37 @@ export default function ZiiplyMobileOfferSearchCard({
 
         <header className="relative z-10 shrink-0 px-5 pb-1 pt-[7.7rem]">
           <div className="pl-[3.15rem] pr-[2.20rem]">
-            <div
-              className="text-center text-[1.18rem] font-black italic leading-none text-[#28402a]"
-              style={{ fontFamily: cooperFont }}
-            >
-              {title}
-            </div>
+            {selectedOfferChainV39 ? (
+              <button
+                type="button"
+                onClick={() => setDebugTitleOpen20260712D(true)}
+                aria-label="Avaa tarjoushaun debug"
+                style={{
+                  display: "block",
+                  width: "100%",
+                  padding: "8px 10px",
+                  border: "4px solid #000",
+                  borderRadius: "8px",
+                  background: "#fff200",
+                  color: "#b00000",
+                  fontFamily: cooperFont,
+                  fontSize: "18px",
+                  fontWeight: 900,
+                  lineHeight: 1.05,
+                  textAlign: "center",
+                  boxShadow: "0 4px 0 #000",
+                }}
+              >
+                DEBUG · AVAA TÄSTÄ
+              </button>
+            ) : (
+              <div
+                className="text-center text-[1.18rem] font-black italic leading-none text-[#28402a]"
+                style={{ fontFamily: cooperFont }}
+              >
+                {title}
+              </div>
+            )}
             <div className="mt-[0.16rem] text-[0.74rem] font-extrabold text-[#5f5034]">
               {subtitle || (shownQuery ? `Gösta penkoi: ${shownQuery}` : "Tarjoukset tuoteryhmittäin")}
             </div>
@@ -934,6 +992,75 @@ export default function ZiiplyMobileOfferSearchCard({
             </div>
           )}
         </main>
+
+        {debugTitleOpen20260712D ? (
+          <div
+            style={{
+              position: "absolute",
+              inset: 0,
+              zIndex: 9999,
+              display: "flex",
+              flexDirection: "column",
+              padding: "12px",
+              background: "rgba(0,0,0,0.97)",
+              color: "white",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+              <strong style={{ fontSize: "16px" }}>TARJOUSHAKU DEBUG V40</strong>
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const debugText = JSON.stringify(debugPayload20260712D, null, 2);
+                    try {
+                      if (navigator.clipboard?.writeText) {
+                        await navigator.clipboard.writeText(debugText);
+                      } else {
+                        const textarea = document.createElement("textarea");
+                        textarea.value = debugText;
+                        textarea.style.position = "fixed";
+                        textarea.style.opacity = "0";
+                        document.body.appendChild(textarea);
+                        textarea.focus();
+                        textarea.select();
+                        document.execCommand("copy");
+                        document.body.removeChild(textarea);
+                      }
+                      setDebugCopyStatus20260712E("KOPIOITU");
+                    } catch {
+                      setDebugCopyStatus20260712E("KOPIOINTI EPÄONNISTUI");
+                    }
+                    window.setTimeout(() => setDebugCopyStatus20260712E(""), 2200);
+                  }}
+                  style={{ border: "3px solid white", background: "#25d366", color: "#000", padding: "8px 12px", fontWeight: 900 }}
+                >
+                  KOPIOI DEBUG
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDebugTitleOpen20260712D(false)}
+                  style={{ border: "3px solid white", background: "#fff200", color: "#000", padding: "8px 12px", fontWeight: 900 }}
+                >
+                  SULJE
+                </button>
+              </div>
+            </div>
+            {debugCopyStatus20260712E ? (
+              <div style={{ marginTop: "8px", padding: "7px 9px", background: debugCopyStatus20260712E === "KOPIOITU" ? "#25d366" : "#ff4d4d", color: "#000", fontSize: "13px", fontWeight: 900, textAlign: "center" }}>
+                {debugCopyStatus20260712E}
+              </div>
+            ) : null}
+            <div style={{ marginTop: "8px", fontSize: "12px", fontWeight: 800 }}>
+              CHAIN {selectedOfferChainV39 || "-"} · RAW {rawItems.length} · DEDUP {items.length} · VISIBLE {visibleItems.length}<br />
+              query: {shownQuery || "-"} · filter: {shownFilter || "-"} · loading: {String(loading)}
+            </div>
+            <pre style={{ flex: 1, minHeight: 0, overflow: "auto", marginTop: "8px", padding: "8px", border: "1px solid #fff", background: "#111", color: "#7dff7d", fontSize: "9px", whiteSpace: "pre-wrap", wordBreak: "break-all" }}>
+              {JSON.stringify(debugPayload20260712D, null, 2)}
+            </pre>
+          </div>
+        ) : null}
+
         {/* V7: internal footer buttons removed. Browser/back controls and category buttons handle navigation. */}
 
         <div className="pointer-events-none absolute -bottom-[0.72rem] left-[1.1rem] right-[1.1rem] h-[1.3rem] rounded-[50%] bg-[#cfaa61] opacity-55 blur-[1px]" />
