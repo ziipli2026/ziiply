@@ -1,4 +1,16 @@
 // ============================================================================
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V46_SELECTED_STORE_EMPTY_STATE
+// Revision: V46-SELECTED-STORE-EMPTY-STATE
+// Date: 2026-09-20
+//
+// Muutos V45:een:
+// - Card saa valitun kaupan nimen erillisenä selectedStoreName-propina.
+// - Kaupan nimi näkyy myös silloin, kun tarjouslista on aidosti tyhjä.
+// - Empty state näyttää valitun myymälän nimen ennen S-kaupat.fi-selitystä.
+// - Tarjousdatan, kategorioiden, S/K-portin ja hakulogiikan toimintaan ei kosketa.
+// ============================================================================
+
+// ============================================================================
 // ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V45_SKAUPAT_EMPTY_INFO
 // Revision: V45-SKAUPAT-EMPTY-INFO
 // Date: 2026-09-20
@@ -195,6 +207,7 @@ export type ZiiplyMobileOfferSearchCardProps = {
   results?: ZiiplyMobileOfferSearchItem[];
   loading?: boolean;
   emptyText?: string;
+  selectedStoreName?: string;
   categorySuggestions?: string[];
   categoryOfferCounts?: Record<string, number | null | undefined>;
   testedEmptyCategories?: Record<string, boolean | undefined>;
@@ -512,6 +525,7 @@ export default function ZiiplyMobileOfferSearchCard({
   results,
   loading = false,
   emptyText = "Gösta ei löytänyt tarjouksia vielä.",
+  selectedStoreName = "",
   categorySuggestions = ["Kahvi & tee", "Maitotuotteet", "Liha & makkarat", "Kala", "Leipomo", "Hevi", "Juomat", "Pakasteet", "Valmisruoka", "Kuivatuotteet", "Makeiset & keksit", "Lastenruoat", "Vitamiinit & ravinteet", "Lemmikit", "Hygienia & kosmetiikka", "Kodinhoito", "Koti & vapaa-aika", "Muut"],
   categoryOfferCounts,
   testedEmptyCategories,
@@ -787,8 +801,12 @@ export default function ZiiplyMobileOfferSearchCard({
       );
     });
 
-  // V41: Card-only UI. Poimitaan kaupan nimi oikeasta tarjousrivistä, ei debug-rivistä.
+  // V46: page-tason valittu kauppa on ensisijainen, jotta nimi säilyy myös 0-tuloksella.
+  // Tarjousrivin storeName jää yhteensopivuusfallbackiksi.
   const selectedStoreNameV41 = React.useMemo(() => {
+    const explicitStoreName = String(selectedStoreName || "").trim();
+    if (explicitStoreName) return explicitStoreName;
+
     for (const item of items) {
       const storeName = String(item?.storeName || "").trim();
       const itemName = String(item?.name || item?.title || "").trim();
@@ -797,7 +815,7 @@ export default function ZiiplyMobileOfferSearchCard({
       return storeName;
     }
     return "";
-  }, [items]);
+  }, [items, selectedStoreName]);
 
   const selectedStoreIsPrismaV41 = /\bprisma\b/i.test(selectedStoreNameV41);
   const selectedStoreOfferLineV41 = selectedStoreIsPrismaV41
@@ -983,6 +1001,11 @@ export default function ZiiplyMobileOfferSearchCard({
                   <div className="text-[0.82rem] font-black italic text-[#59401e]" style={{ fontFamily: serifFont }}>
                     Gösta ei löytänyt tarjouksia 🔎
                   </div>
+                  {selectedStoreNameV41 ? (
+                    <div className="mt-1 text-[0.76rem] font-black text-[#174c2c]">
+                      {selectedStoreNameV41}
+                    </div>
+                  ) : null}
                   <div className="mt-1.5 text-[0.70rem] font-extrabold leading-snug">
                     Valitulle myymälälle ei löytynyt tarjoustietoja S-kaupat.fi-palvelusta. Myymälä ei välttämättä ole palvelussa tai sillä ei ole tällä hetkellä aktiivisia tarjouksia.
                   </div>
