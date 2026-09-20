@@ -1,4 +1,14 @@
 // ============================================================================
+// ZIIPLY_OFFER_SEARCH_SOURCES_V34_KRUOKA_DEBUG_BRIDGE
+// Revision: V34-KRUOKA-DEBUG-BRIDGE
+// Date: 2026-09-20
+//
+// Muutos V33:een:
+// - Välittää kruokaProvider V49:n viimeisimmän pipeline-debugtilan page.tsx:lle.
+// - Ei muuta S/K-provider-reititystä eikä tarjoushakua.
+// ============================================================================
+
+// ============================================================================
 // ZIIPLY_OFFER_SEARCH_SOURCES_V33_K_LOCAL_KRUOKA_ENABLED
 // Revision: V33-K-LOCAL-KRUOKA-ENABLED
 // Date: 2026-09-20
@@ -111,7 +121,12 @@ import type {
   ZiiplyOfferSearchResult,
   ZiiplyOfferSearchSourceConfig,
 } from "./types";
-import { fetchKruokaOffers, type KruokaOfferProviderOptionsV10 } from "./providers/kruokaProvider";
+import {
+  fetchKruokaOffers,
+  getLastKruokaPipelineDebugV49,
+  type KruokaOfferProviderOptionsV10,
+  type KruokaPipelineDebugV49,
+} from "./providers/kruokaProvider";
 import { fetchSKaupatOffers, type SKaupatOfferProviderOptionsV173 } from "./providers/skaupatProvider";
 import { fetchSKaupatLocalCampaignOffersV1 } from "./providers/skaupatLocalCampaignProvider";
 import {
@@ -133,6 +148,10 @@ export type {
   ZiiplyOfferSearchSourceConfig,
   ZiiplyOfferSource,
 } from "./types";
+
+export function getKruokaOfferPipelineDebugV34(): KruokaPipelineDebugV49 | null {
+  return getLastKruokaPipelineDebugV49();
+}
 
 export type ZiiplyOfferSearchSourceContextV8 = SKaupatOfferProviderOptionsV173 & KruokaOfferProviderOptionsV10 & {
   areaLabel?: string | null;
