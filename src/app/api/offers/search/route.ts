@@ -1,5 +1,20 @@
 // src/app/api/offers/search/route.ts
 // ============================================================================
+// ZIIPLY_OFFERS_SEARCH_ROUTE_V16_20260920_GOSTA_STORE_CONTEXT_DEBUG
+// Revision: V16-20260920-GOSTA-STORE-CONTEXT-DEBUG
+// Date: 2026-09-20
+//
+// Pohja: nykyinen V15-20260714-B (käyttäjän 20.9.2026 toimittama tiedosto).
+// - Säilyttää nykyisen searchZiiplyOffers-ketjun.
+// - Säilyttää nykyisen K-ryhmän sekä eTarjouslehdet/Tjek-koodin ennallaan.
+// - Lisää vain näkyvän ROUTE DEBUG -tuloksen, josta nähdään mitä request
+//   oikeasti toi routeen: storeMode/scope/withinChain + S/K id/name.
+// - Näyttää myös baseResults- ja sMarketResults-määrät.
+// - Cache pysyy no-store.
+// ============================================================================
+
+// src/app/api/offers/search/route.ts
+// ============================================================================
 // ZIIPLY_OFFERS_SEARCH_ROUTE_V15_20260714_B_NO_VISIBLE_ROUTE_CARD
 // Revision: V15-20260714-B
 // Date: 2026-07-14
@@ -516,7 +531,61 @@ export async function GET(request: Request) {
       sMarketResults = [];
     }
 
+    const debugText = [
+      "ROUTE V16 DEBUG",
+      `q=${q || "-"}`,
+      `area=${context.areaLabel || "-"}`,
+      `mode=${context.storeMode || "-"}`,
+      `scope=${context.storeCompareScope || "-"}`,
+      `withinChain=${(context as any).withinChain || "-"}`,
+      `rawSStoreId=${rawSStoreId || "-"}`,
+      `rawSStoreName=${rawSStoreName || "-"}`,
+      `sStoreIds=${Array.isArray((context as any).sStoreIds) ? (context as any).sStoreIds.join(" || ") : String((context as any).sStoreIds || "-")}`,
+      `sStoreNames=${Array.isArray((context as any).sStoreNames) ? (context as any).sStoreNames.join(" || ") : String((context as any).sStoreNames || "-")}`,
+      `rawKStoreId=${rawKStoreId || "-"}`,
+      `rawKStoreName=${rawKStoreName || "-"}`,
+      `baseResults=${baseResults.length}`,
+      `sMarketResults=${sMarketResults.length}`,
+    ].join(" | ");
+
+    console.warn("[GOSTA ROUTE V16 CONTEXT]", debugText);
+
+    const routeDebugResult: UnknownRecord = {
+      id: `route-v16-debug-${Date.now()}`,
+      source: "debug",
+      sourceUrl: "/api/offers/search",
+      chain: "S",
+      storeLabel: "ROUTE DEBUG",
+      storeName: "ROUTE DEBUG",
+      shopName: "ROUTE DEBUG",
+      title: debugText,
+      name: debugText,
+      productName: debugText,
+      priceText: "0,00 €",
+      unitPriceText: "",
+      benefitText: "Gösta route store-context diagnostics",
+      validityText: "DEBUG",
+      imageUrl: "",
+      image: "",
+      pictureUrl: "",
+      productUrl: "",
+      rawText: debugText,
+      matchScore: 999999,
+      category: "Muut",
+      categoryPath: "Muut",
+      breadcrumbs: "Muut",
+      hierarchy: "Muut",
+      taxonomy: "Muut",
+      department: "Muut",
+      productGroup: "Muut",
+      mainCategory: "Muut",
+      subCategory: "Muut",
+      brandName: "DEBUG",
+      ean: `route-v16-debug-${Date.now()}`,
+    };
+
     const results = dedupe([
+      routeDebugResult,
       ...(baseResults as unknown as UnknownRecord[]),
       ...sMarketResults,
     ]);
