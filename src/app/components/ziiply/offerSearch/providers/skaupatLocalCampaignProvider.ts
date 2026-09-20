@@ -1,4 +1,19 @@
 // ============================================================================
+// SKAUPAT_LOCAL_CAMPAIGN_PROVIDER_V2_VISIBLE_DIAGNOSTICS
+// Revision: V2-VISIBLE-DIAGNOSTICS
+// Date: 2026-09-20
+//
+// Diagnostiikka V1:n päälle:
+// - Varsinainen S-market/Alepa/Sale resolver + RemoteGetPageContent säilyy.
+// - Jos resolver, HTTP tai response-rakenne pysäyttää haun, palautetaan yksi
+//   näkyvä S-LOCAL V2 DEBUG -tulos eikä tyhjää listaa.
+// - Näyttää resolvedStoreId:n, HTTP-statuksen, GraphQL data-avaimet,
+//   pageContent-avaimet, section-määrän ja product-määrän.
+// - Export-nimi fetchSKaupatLocalCampaignOffersV1 säilyy, joten Sources V32:ta
+//   EI tarvitse muuttaa tämän testin vuoksi.
+// ============================================================================
+
+// ============================================================================
 // SKAUPAT_LOCAL_CAMPAIGN_PROVIDER_V1_REMOTEGETPAGECONTENT
 // Revision: V1-REMOTEGETPAGECONTENT
 // Date: 2026-09-20
@@ -486,68 +501,178 @@ function mapProductV1(
   } as unknown as ZiiplyOfferSearchResult;
 }
 
+function makeLocalDebugV2(
+  config: ZiiplyOfferSearchSourceConfig,
+  storeName: string,
+  detail: string,
+): ZiiplyOfferSearchResult {
+  const text = `S-LOCAL V2 DEBUG | store=${storeName || "-"} | ${detail}`;
+  return {
+    id: `s-local-v2-debug-${Date.now()}`,
+    source: "debug",
+    sourceUrl: config.url,
+    chain: "S",
+    storeLabel: storeName || "S-LOCAL DEBUG",
+    storeName: storeName || "S-LOCAL DEBUG",
+    shopName: storeName || "S-LOCAL DEBUG",
+    title: text,
+    priceText: "0,00 €",
+    unitPriceText: "",
+    benefitText: "S-local provider diagnostics",
+    validityText: "DEBUG",
+    imageUrl: "",
+    image: "",
+    pictureUrl: "",
+    productUrl: "",
+    rawText: text,
+    matchScore: 999999,
+    category: "Muut",
+    categoryPath: "Muut",
+    breadcrumbs: "Muut",
+    hierarchy: "Muut",
+    taxonomy: "Muut",
+    department: "Muut",
+    productGroup: "Muut",
+    mainCategory: "Muut",
+    subCategory: "Muut",
+    brandName: "DEBUG",
+    ean: `s-local-v2-debug-${Date.now()}`,
+  } as unknown as ZiiplyOfferSearchResult;
+}
+
 export async function fetchSKaupatLocalCampaignOffersV1(
   query: string,
   config: ZiiplyOfferSearchSourceConfig,
   options?: SKaupatLocalCampaignProviderOptionsV1,
 ): Promise<ZiiplyOfferSearchResult[]> {
   const storeName = firstStringV1(options?.storeName, options?.sStoreName);
-  if (!storeName || !isSupportedLocalSStoreV1(storeName)) return [];
 
-  // Ziiply/Ruoanhinta storeId:tä ei käytetä S-kaupat-ID:nä.
-  // Ratkaisu tehdään valitun S-lähikaupan nimestä.
-  const resolvedStoreId = await resolveLocalSStoreIdV1(storeName);
-  if (!resolvedStoreId) return [];
-
-  const response = await fetch(buildRemoteGetPageContentUrlV1(resolvedStoreId), {
-    method: "GET",
-    cache: "no-store",
-    headers: {
-      accept: "application/graphql-response+json,application/json;q=0.9",
-      "accept-language": "fi",
-      origin: "https://www.s-kaupat.fi",
-      referer: "https://www.s-kaupat.fi/",
-      "x-client-name": "skaupat-web",
-      "x-client-version": SKAUPAT_CLIENT_VERSION_V1,
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`S-local RemoteGetPageContent failed: ${response.status}`);
+  if (!storeName) {
+    return [makeLocalDebugV2(config, "", "stage=input | storeName=-")];
   }
 
-  const data = await response.json();
-  const sections = data?.data?.pageContent?.sections;
-  if (!Array.isArray(sections)) return [];
-
-  const mapped: ZiiplyOfferSearchResult[] = [];
-  let index = 0;
-
-  for (const section of sections) {
-    const products = Array.isArray(section?.products) ? section.products : [];
-    for (const product of products) {
-      const item = mapProductV1(
-        product,
-        section,
+  if (!isSupportedLocalSStoreV1(storeName)) {
+    return [
+      makeLocalDebugV2(
         config,
-        resolvedStoreId,
         storeName,
-        query,
-        index++,
-      );
-      if (item) mapped.push(item);
-    }
+        `stage=input | supported=false | brand=${getBrandFromStoreNameV1(storeName) || "-"}`,
+      ),
+    ];
   }
 
-  // Sama tuote voi olla sekä kampanjaryhmässä että "Kaikki kampanja- ja
-  // alennustuotteet" -osiossa. EAN voittaa dedupessa.
-  const seen = new Set<string>();
-  return mapped.filter((item: any) => {
-    const key = item?.ean
-      ? `ean:${String(item.ean).trim()}`
-      : `id:${String(item?.id || "").trim()}`;
-    if (!key || seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
+  try {
+    // Ziiply/Ruoanhinta storeId:tä ei käytetä S-kaupat-ID:nä.
+    const resolvedStoreId = await resolveLocalSStoreIdV1(storeName);
+
+    if (!resolvedStoreId) {
+      return [
+        makeLocalDebugV2(
+          config,
+          storeName,
+          "stage=resolver | resolvedStoreId=-",
+        ),
+      ];
+    }
+
+    const response = await fetch(buildRemoteGetPageContentUrlV1(resolvedStoreId), {
+      method: "GET",
+      cache: "no-store",
+      headers: {
+        accept: "application/graphql-response+json,application/json;q=0.9",
+        "accept-language": "fi",
+        origin: "https://www.s-kaupat.fi",
+        referer: "https://www.s-kaupat.fi/",
+        "x-client-name": "skaupat-web",
+        "x-client-version": SKAUPAT_CLIENT_VERSION_V1,
+      },
+    });
+
+    const httpStatus = response.status;
+
+    if (!response.ok) {
+      return [
+        makeLocalDebugV2(
+          config,
+          storeName,
+          `stage=page-http | resolvedStoreId=${resolvedStoreId} | http=${httpStatus}`,
+        ),
+      ];
+    }
+
+    const data = await response.json();
+    const dataKeys =
+      data?.data && typeof data.data === "object"
+        ? Object.keys(data.data).join(",")
+        : "-";
+    const pageContent = data?.data?.pageContent;
+    const pageKeys =
+      pageContent && typeof pageContent === "object"
+        ? Object.keys(pageContent).join(",")
+        : "-";
+    const sections = pageContent?.sections;
+
+    if (!Array.isArray(sections)) {
+      return [
+        makeLocalDebugV2(
+          config,
+          storeName,
+          `stage=response-shape | resolvedStoreId=${resolvedStoreId} | http=${httpStatus} | dataKeys=${dataKeys} | pageKeys=${pageKeys} | sections=array:false`,
+        ),
+      ];
+    }
+
+    const mapped: ZiiplyOfferSearchResult[] = [];
+    let index = 0;
+    let rawProductCount = 0;
+
+    for (const section of sections) {
+      const products = Array.isArray(section?.products) ? section.products : [];
+      rawProductCount += products.length;
+
+      for (const product of products) {
+        const item = mapProductV1(
+          product,
+          section,
+          config,
+          resolvedStoreId,
+          storeName,
+          query,
+          index++,
+        );
+        if (item) mapped.push(item);
+      }
+    }
+
+    const seen = new Set<string>();
+    const deduped = mapped.filter((item: any) => {
+      const key = item?.ean
+        ? `ean:${String(item.ean).trim()}`
+        : `id:${String(item?.id || "").trim()}`;
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    if (!deduped.length) {
+      return [
+        makeLocalDebugV2(
+          config,
+          storeName,
+          `stage=products | resolvedStoreId=${resolvedStoreId} | http=${httpStatus} | dataKeys=${dataKeys} | pageKeys=${pageKeys} | sections=${sections.length} | rawProducts=${rawProductCount} | mapped=${mapped.length}`,
+        ),
+      ];
+    }
+
+    return deduped;
+  } catch (error) {
+    return [
+      makeLocalDebugV2(
+        config,
+        storeName,
+        `stage=exception | error=${error instanceof Error ? error.message : String(error)}`,
+      ),
+    ];
+  }
 }
+
