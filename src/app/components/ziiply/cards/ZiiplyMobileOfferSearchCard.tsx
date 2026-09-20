@@ -1,4 +1,16 @@
 // ============================================================================
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V48_RESTORE_EMPTY_STATE
+// Revision: V48-RESTORE-EMPTY-STATE
+// Date: 2026-09-20
+//
+// Korjaus V47:ään:
+// - Palauttaa V46:ssa jo olleen 0-tuloksen S-kaupat.fi-ilmoituksen landing-näkymään.
+// - Palauttaa selectedStoreName-propin, jotta valitun kaupan nimi säilyy myös 0-tuloksella.
+// - V47:n kompakti kategoriapalkki, tekstit ja asettelu säilyvät ennallaan.
+// - Ei muuta provider-, resolver-, haku-, category/count-, dedupe-, store- tai S/K-logiikkaa.
+// ============================================================================
+
+// ============================================================================
 // ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V47_COMPACT_CATEGORY_LAYOUT
 // Revision: V47-COMPACT-CATEGORY-LAYOUT
 // Date: 2026-09-20
@@ -202,6 +214,7 @@ export type ZiiplyMobileOfferSearchCardProps = {
   results?: ZiiplyMobileOfferSearchItem[];
   loading?: boolean;
   emptyText?: string;
+  selectedStoreName?: string;
   categorySuggestions?: string[];
   categoryOfferCounts?: Record<string, number | null | undefined>;
   testedEmptyCategories?: Record<string, boolean | undefined>;
@@ -519,6 +532,7 @@ export default function ZiiplyMobileOfferSearchCard({
   results,
   loading = false,
   emptyText = "Gösta ei löytänyt tarjouksia vielä.",
+  selectedStoreName = "",
   categorySuggestions = ["Kahvi & tee", "Maitotuotteet", "Liha & makkarat", "Kala", "Leipomo", "Hevi", "Juomat", "Pakasteet", "Valmisruoka", "Kuivatuotteet", "Makeiset & keksit", "Lastenruoat", "Vitamiinit & ravinteet", "Lemmikit", "Hygienia & kosmetiikka", "Kodinhoito", "Koti & vapaa-aika", "Muut"],
   categoryOfferCounts,
   testedEmptyCategories,
@@ -803,8 +817,12 @@ export default function ZiiplyMobileOfferSearchCard({
       );
     });
 
-  // V41: Card-only UI. Poimitaan kaupan nimi oikeasta tarjousrivistä, ei debug-rivistä.
+  // V48: page-tason valittu kauppa on ensisijainen, jotta nimi säilyy myös 0-tuloksella.
+  // Tarjousrivin storeName jää yhteensopivuusfallbackiksi.
   const selectedStoreNameV41 = React.useMemo(() => {
+    const explicitStoreName = String(selectedStoreName || "").trim();
+    if (explicitStoreName) return explicitStoreName;
+
     for (const item of items) {
       const storeName = String(item?.storeName || "").trim();
       const itemName = String(item?.name || item?.title || "").trim();
@@ -813,7 +831,7 @@ export default function ZiiplyMobileOfferSearchCard({
       return storeName;
     }
     return "";
-  }, [items]);
+  }, [items, selectedStoreName]);
 
   const selectedStoreIsPrismaV41 = /\bprisma\b/i.test(selectedStoreNameV41);
   const selectedStoreOfferLineV41 = selectedStoreIsPrismaV41
@@ -839,7 +857,7 @@ export default function ZiiplyMobileOfferSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="V47-COMPACT-CATEGORY-LAYOUT"
+      data-ziiply-mobile-offer-search-card-version="V48-RESTORE-EMPTY-STATE"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
@@ -999,8 +1017,18 @@ export default function ZiiplyMobileOfferSearchCard({
                   ))}
                 </div>
               ) : (
-                <div className="mt-3 rounded-[0.8rem] border border-dashed border-[#9a7a3d] bg-[#fff8d9] px-3 py-3 text-[0.72rem] font-extrabold leading-snug text-[#6d5d3f]">
-                  Ei näytettäviä tuoteryhmiä vielä. Palaa takaisin ja avaa Gösta uudelleen.
+                <div className="mt-3 rounded-[0.8rem] border border-dashed border-[#9a7a3d] bg-[#fff8d9] px-3 py-3 text-center text-[#6d5d3f]">
+                  <div className="text-[0.82rem] font-black italic text-[#59401e]" style={{ fontFamily: serifFont }}>
+                    Gösta ei löytänyt tarjouksia 🔎
+                  </div>
+                  {selectedStoreNameV41 ? (
+                    <div className="mt-1 text-[0.76rem] font-black text-[#174c2c]">
+                      {selectedStoreNameV41}
+                    </div>
+                  ) : null}
+                  <div className="mt-1.5 text-[0.70rem] font-extrabold leading-snug">
+                    Valitulle myymälälle ei löytynyt tarjoustietoja S-kaupat.fi-palvelusta. Myymälä ei välttämättä ole palvelussa tai sillä ei ole tällä hetkellä aktiivisia tarjouksia.
+                  </div>
                 </div>
               )}
             </div>
