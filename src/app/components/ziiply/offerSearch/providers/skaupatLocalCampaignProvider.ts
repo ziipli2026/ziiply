@@ -1,4 +1,16 @@
 // ============================================================================
+// SKAUPAT_LOCAL_CAMPAIGN_PROVIDER_V4_VISIBLE_DEBUG_REMOVED
+// Revision: V4-VISIBLE-DEBUG-REMOVED
+// Date: 2026-09-20
+//
+// Muutos V3:een:
+// - Poistaa käyttäjälle tarjousrivinä näkyvän S-LOCAL V2 DEBUG -diagnostiikan.
+// - Resolver/input/HTTP/response/products/exception -epäonnistumisissa palautetaan [].
+// - V3:n resolver-, RemoteGetPageContent-, tuote-, dedupe- ja muu hakulogiikka säilyy.
+// - Export-nimi fetchSKaupatLocalCampaignOffersV1 säilyy.
+// ============================================================================
+
+// ============================================================================
 // SKAUPAT_LOCAL_CAMPAIGN_PROVIDER_V3_LOCAL_NAME_CITY_RESOLVER
 // Revision: V3-LOCAL-NAME-CITY-RESOLVER
 // Date: 2026-09-20
@@ -601,17 +613,7 @@ export async function fetchSKaupatLocalCampaignOffersV1(
   const storeName = firstStringV1(options?.storeName, options?.sStoreName);
 
   if (!storeName) {
-    return [makeLocalDebugV2(config, "", "stage=input | storeName=-")];
-  }
-
-  if (!isSupportedLocalSStoreV1(storeName)) {
-    return [
-      makeLocalDebugV2(
-        config,
-        storeName,
-        `stage=input | supported=false | brand=${getBrandFromStoreNameV1(storeName) || "-"}`,
-      ),
-    ];
+    return [];
   }
 
   try {
@@ -619,13 +621,7 @@ export async function fetchSKaupatLocalCampaignOffersV1(
     const resolvedStoreId = await resolveLocalSStoreIdV1(storeName);
 
     if (!resolvedStoreId) {
-      return [
-        makeLocalDebugV2(
-          config,
-          storeName,
-          "stage=resolver | resolvedStoreId=-",
-        ),
-      ];
+      return [];
     }
 
     const response = await fetch(buildRemoteGetPageContentUrlV1(resolvedStoreId), {
@@ -644,13 +640,7 @@ export async function fetchSKaupatLocalCampaignOffersV1(
     const httpStatus = response.status;
 
     if (!response.ok) {
-      return [
-        makeLocalDebugV2(
-          config,
-          storeName,
-          `stage=page-http | resolvedStoreId=${resolvedStoreId} | http=${httpStatus}`,
-        ),
-      ];
+      return [];
     }
 
     const data = await response.json();
@@ -666,13 +656,7 @@ export async function fetchSKaupatLocalCampaignOffersV1(
     const sections = pageContent?.sections;
 
     if (!Array.isArray(sections)) {
-      return [
-        makeLocalDebugV2(
-          config,
-          storeName,
-          `stage=response-shape | resolvedStoreId=${resolvedStoreId} | http=${httpStatus} | dataKeys=${dataKeys} | pageKeys=${pageKeys} | sections=array:false`,
-        ),
-      ];
+      return [];
     }
 
     const mapped: ZiiplyOfferSearchResult[] = [];
@@ -708,24 +692,12 @@ export async function fetchSKaupatLocalCampaignOffersV1(
     });
 
     if (!deduped.length) {
-      return [
-        makeLocalDebugV2(
-          config,
-          storeName,
-          `stage=products | resolvedStoreId=${resolvedStoreId} | http=${httpStatus} | dataKeys=${dataKeys} | pageKeys=${pageKeys} | sections=${sections.length} | rawProducts=${rawProductCount} | mapped=${mapped.length}`,
-        ),
-      ];
+      return [];
     }
 
     return deduped;
   } catch (error) {
-    return [
-      makeLocalDebugV2(
-        config,
-        storeName,
-        `stage=exception | error=${error instanceof Error ? error.message : String(error)}`,
-      ),
-    ];
+    return [];
   }
 }
 
