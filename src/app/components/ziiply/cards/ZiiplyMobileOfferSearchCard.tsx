@@ -1,4 +1,17 @@
 // ============================================================================
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V41_SELECTED_STORE_HEADING
+// Revision: V41-SELECTED-STORE-HEADING
+// Date: 2026-09-20
+//
+// Muutos V40:een:
+// - Näyttää valitun kaupan nimen tuoteryhmien yläpuolella.
+// - S-market / Alepa / Sale: "Valitsemasi lähipuodin huojennetut hinnat ja tarjoukset".
+// - Prisma: "Valitsemasi kauppahuoneen huojennetut hinnat ja tarjoukset".
+// - Kaupan nimi luetaan jo haetuista oikeista tarjousriveistä; debug-rivejä ei käytetä otsikkona.
+// - Ei muuta hakua, provideria, kategorialogiikkaa, S/K-porttia eikä debug-toimintoja.
+// ============================================================================
+
+// ============================================================================
 // ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V40_CHAIN_GATE_DEBUG_RESTORED
 // Revision: V40-CHAIN-GATE-DEBUG-RESTORED
 // Date: 2026-09-20
@@ -493,6 +506,37 @@ export default function ZiiplyMobileOfferSearchCard({
   const visibleItems = showLandingView ? [] : items;
   const hasVisibleOffers = visibleItems.length > 0;
 
+  // V41: Näyttöotsikko poimitaan jo haetun oikean tarjousdatan kauppanimestä.
+  // Debug-rivit (ROUTE DEBUG / S-LOCAL DEBUG jne.) eivät saa määrätä otsikkoa.
+  const selectedStoreNameV41 = (() => {
+    for (const item of items) {
+      const candidates = [
+        item?.storeName,
+        item?.shopName,
+        item?.storeLabel,
+        item?.__sourceOfferSearchResult?.storeName,
+        item?.__sourceOfferSearchResult?.shopName,
+        item?.__sourceOfferSearchResult?.storeLabel,
+      ];
+
+      for (const candidate of candidates) {
+        const clean = String(candidate || "").trim();
+        if (!clean) continue;
+        if (/debug/i.test(clean)) continue;
+        return clean;
+      }
+    }
+    return "";
+  })();
+
+  const selectedStoreIsLocalV41 = /^(s[- ]?market|alepa|sale)\b/i.test(
+    selectedStoreNameV41,
+  );
+
+  const selectedStoreOfferCaptionV41 = selectedStoreIsLocalV41
+    ? "Valitsemasi lähipuodin huojennetut hinnat ja tarjoukset"
+    : "Valitsemasi kauppahuoneen huojennetut hinnat ja tarjoukset";
+
   const normalizeCategoryKey = (value: string) =>
     value
       .normalize("NFD")
@@ -765,7 +809,7 @@ export default function ZiiplyMobileOfferSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="V40-CHAIN-GATE-DEBUG-RESTORED"
+      data-ziiply-mobile-offer-search-card-version="V41-SELECTED-STORE-HEADING"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
@@ -909,6 +953,23 @@ export default function ZiiplyMobileOfferSearchCard({
             </div>
           ) : showLandingView ? (
             <div className="mt-1 rounded-[1.05rem] border-[2px] border-[#9a7a3d] bg-[#fff4d4] px-3.5 py-4 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
+              {selectedStoreNameV41 ? (
+                <div className="mb-3 border-b border-[#b99a5b]/55 pb-3">
+                  <div
+                    className="text-[1.02rem] font-black leading-tight text-[#28402a]"
+                    style={{ fontFamily: cooperFont }}
+                  >
+                    {selectedStoreNameV41}
+                  </div>
+                  <div
+                    className="mx-auto mt-1 max-w-[18rem] text-[0.72rem] font-bold italic leading-snug text-[#6d5d3f]"
+                    style={{ fontFamily: serifFont }}
+                  >
+                    {selectedStoreOfferCaptionV41}
+                  </div>
+                </div>
+              ) : null}
+
               <div className="text-[1.02rem] font-black italic text-[#28402a]" style={{ fontFamily: cooperFont }}>
                 Mitä etsitään tänään?
               </div>
