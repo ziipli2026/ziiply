@@ -1,3 +1,10 @@
+// Revision: V216 — multi-query geocode + pickup resolver diagnostics; Myyrmanni-safe
+// Date: 2026-09-20
+// - Tries both full selected store name and chain-stripped place name in Nominatim.
+// - Keeps user GPS and stable /api/store-search untouched.
+// - Exposes V216 resolver state in existing KOPIOI DEBUG zero-result item.
+// - No per-store hardcoded S-kaupat IDs.
+//
 // Revision: V215 — dynamic S-kaupat store ID via remotePickupSlots; no user-GPS dependency
 // SKAUPAT_PROVIDER_V214_OFFICIAL_RESOLVER_DIAGNOSTIC
 // Revision: V214-OFFICIAL-RESOLVER-DIAGNOSTIC
@@ -581,33 +588,80 @@ function getStorePlaceTokenV215(storeName: string): string {
     .trim();
 }
 
-async function geocodeSelectedStoreNameV215(storeName: string): Promise<{ latitude: number; longitude: number } | null> {
-  const q = `${storeName}, Finland`;
-  const url = new URL("https://nominatim.openstreetmap.org/search");
-  url.searchParams.set("format", "jsonv2");
-  url.searchParams.set("countrycodes", "fi");
-  url.searchParams.set("q", q);
-  url.searchParams.set("limit", "1");
+type SKaupatPickupResolverDiagnosticV216 = {
+  storeName: string;
+  geocodeQueries: string[];
+  geocodeQueryUsed: string;
+  latitude: number | null;
+  longitude: number | null;
+  pickupHttpStatus: number | null;
+  candidateCount: number;
+  bestStoreId: string;
+  bestBrand: string;
+  bestPickupName: string;
+  bestCity: string;
+  bestPostalCode: string;
+  bestDistance: number | null;
+  bestScore: number;
+  fetchError: string;
+};
 
-  const response = await fetch(url.toString(), {
-    cache: "no-store",
-    headers: {
-      accept: "application/json",
-      "accept-language": "fi",
-      "user-agent": "Ziiply/1.0 (+https://ziiply.fi)",
-    },
-  });
-  if (!response.ok) return null;
+let lastPickupResolverDiagnosticV216: SKaupatPickupResolverDiagnosticV216 | null = null;
 
-  const data = await response.json();
-  const first = Array.isArray(data) ? data[0] : null;
-  const latitude = Number(first?.lat);
-  const longitude = Number(first?.lon);
-  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
-  return { latitude, longitude };
+function buildGeocodeQueriesV216(storeName: string): string[] {
+  const clean = String(storeName || "").trim();
+  const place = getStorePlaceTokenV215(clean);
+  const queries = [`${clean}, Finland`];
+  if (place && normalizeSKaupatStoreNameForMatchV198(place) !== normalizeSKaupatStoreNameForMatchV198(clean)) {
+    queries.push(`${place}, Finland`);
+  }
+  return Array.from(new Set(queries));
 }
 
-async function fetchPickupCandidatesV215(latitude: number, longitude: number): Promise<SKaupatPickupCandidateV215[]> {
+async function geocodeSelectedStoreNameV216(
+  storeName: string,
+): Promise<{ latitude: number; longitude: number; queryUsed: string } | null> {
+  const queries = buildGeocodeQueriesV216(storeName);
+  if (lastPickupResolverDiagnosticV216) lastPickupResolverDiagnosticV216.geocodeQueries = queries;
+
+  for (const q of queries) {
+    const url = new URL("https://nominatim.openstreetmap.org/search");
+    url.searchParams.set("format", "jsonv2");
+    url.searchParams.set("countrycodes", "fi");
+    url.searchParams.set("q", q);
+    url.searchParams.set("limit", "1");
+
+    try {
+      const response = await fetch(url.toString(), {
+        cache: "no-store",
+        headers: {
+          accept: "application/json",
+          "accept-language": "fi",
+          "user-agent": "Ziiply/1.0 (+https://ziiply.fi)",
+        },
+      });
+      if (!response.ok) continue;
+
+      const data = await response.json();
+      const first = Array.isArray(data) ? data[0] : null;
+      const latitude = Number(first?.lat);
+      const longitude = Number(first?.lon);
+      if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) continue;
+
+      if (lastPickupResolverDiagnosticV216) {
+        lastPickupResolverDiagnosticV216.geocodeQueryUsed = q;
+        lastPickupResolverDiagnosticV216.latitude = latitude;
+        lastPickupResolverDiagnosticV216.longitude = longitude;
+      }
+      return { latitude, longitude, queryUsed: q };
+    } catch {
+      // Try the next deterministic query. Final failure is exposed by V216 debug.
+    }
+  }
+  return null;
+}
+
+async function fetchPickupCandidatesV216(latitude: number, longitude: number): Promise<SKaupatPickupCandidateV215[]> {
   const date = getCurrentLocalDateYYYYMMDDV202();
   const variables = {
     startDate: date,
@@ -636,6 +690,7 @@ async function fetchPickupCandidatesV215(latitude: number, longitude: number): P
       "x-client-version": SKAUPAT_CLIENT_VERSION_V215,
     },
   });
+  if (lastPickupResolverDiagnosticV216) lastPickupResolverDiagnosticV216.pickupHttpStatus = response.status;
   if (!response.ok) throw new Error(`S-kaupat remotePickupSlots failed: ${response.status}`);
 
   const data = await response.json();
@@ -652,7 +707,7 @@ async function fetchPickupCandidatesV215(latitude: number, longitude: number): P
   })).filter((row: SKaupatPickupCandidateV215) => /^\d{5,}$/.test(row.storeId));
 }
 
-function scorePickupCandidateV215(storeName: string, candidate: SKaupatPickupCandidateV215): number {
+function scorePickupCandidateV216(storeName: string, candidate: SKaupatPickupCandidateV215): number {
   const wantedBrand = getStoreBrandFromNameV215(storeName);
   const wantedPlace = getStorePlaceTokenV215(storeName);
   const pickup = normalizeSKaupatStoreNameForMatchV198(candidate.pickupName);
@@ -663,16 +718,14 @@ function scorePickupCandidateV215(storeName: string, candidate: SKaupatPickupCan
   else if (wantedBrand) score -= 100;
 
   if (wantedPlace) {
-    if (pickup.includes(wantedPlace)) score += 80;
+    if (pickup.includes(wantedPlace)) score += 100;
     if (city === wantedPlace) score += 50;
     else if (city && (wantedPlace.includes(city) || city.includes(wantedPlace))) score += 25;
   }
 
-  // Geocoding targets the selected store itself. Distance therefore breaks ties,
-  // but never overrides a brand mismatch.
   if (candidate.distance != null) {
-    if (candidate.distance <= 0.25) score += 40;
-    else if (candidate.distance <= 1) score += 25;
+    if (candidate.distance <= 0.25) score += 50;
+    else if (candidate.distance <= 1) score += 30;
     else if (candidate.distance <= 5) score += 10;
   }
   return score;
@@ -684,22 +737,61 @@ async function resolveSKaupatStoreIdViaPickupSlotsV215(storeName: string): Promi
   const key = normalizeSKaupatStoreNameForMatchV198(cleanStoreName);
   if (sKaupatPickupResolverCacheV215.has(key)) return sKaupatPickupResolverCacheV215.get(key) ?? null;
 
+  lastPickupResolverDiagnosticV216 = {
+    storeName: cleanStoreName,
+    geocodeQueries: [],
+    geocodeQueryUsed: "",
+    latitude: null,
+    longitude: null,
+    pickupHttpStatus: null,
+    candidateCount: 0,
+    bestStoreId: "",
+    bestBrand: "",
+    bestPickupName: "",
+    bestCity: "",
+    bestPostalCode: "",
+    bestDistance: null,
+    bestScore: -1,
+    fetchError: "",
+  };
+
   try {
-    const coords = await geocodeSelectedStoreNameV215(cleanStoreName);
+    const coords = await geocodeSelectedStoreNameV216(cleanStoreName);
     if (!coords) {
-      console.warn("[GOSTA V215] selected store geocoding failed", { storeName: cleanStoreName });
+      console.warn("[GOSTA V216] selected store geocoding failed", { storeName: cleanStoreName });
       sKaupatPickupResolverCacheV215.set(key, null);
       return null;
     }
 
-    const candidates = await fetchPickupCandidatesV215(coords.latitude, coords.longitude);
+    const candidates = await fetchPickupCandidatesV216(coords.latitude, coords.longitude);
     const ranked = candidates
-      .map((candidate) => ({ candidate, score: scorePickupCandidateV215(cleanStoreName, candidate) }))
+      .map((candidate) => ({ candidate, score: scorePickupCandidateV216(cleanStoreName, candidate) }))
       .sort((a, b) => b.score - a.score || (a.candidate.distance ?? 999999) - (b.candidate.distance ?? 999999));
     const best = ranked[0];
 
-    if (!best || best.score < 100) {
-      console.warn("[GOSTA V215] no safe S-kaupat pickup candidate", {
+    if (lastPickupResolverDiagnosticV216) {
+      lastPickupResolverDiagnosticV216.candidateCount = candidates.length;
+      if (best) {
+        lastPickupResolverDiagnosticV216.bestStoreId = best.candidate.storeId;
+        lastPickupResolverDiagnosticV216.bestBrand = best.candidate.brand;
+        lastPickupResolverDiagnosticV216.bestPickupName = best.candidate.pickupName;
+        lastPickupResolverDiagnosticV216.bestCity = best.candidate.city;
+        lastPickupResolverDiagnosticV216.bestPostalCode = best.candidate.postalCode;
+        lastPickupResolverDiagnosticV216.bestDistance = best.candidate.distance;
+        lastPickupResolverDiagnosticV216.bestScore = best.score;
+      }
+    }
+
+    // Require the right chain and either a name hit or a very near pickup point.
+    const wantedBrand = getStoreBrandFromNameV215(cleanStoreName);
+    const wantedPlace = getStorePlaceTokenV215(cleanStoreName);
+    const bestPickup = best ? normalizeSKaupatStoreNameForMatchV198(best.candidate.pickupName) : "";
+    const nameHit = !!(wantedPlace && bestPickup.includes(wantedPlace));
+    const veryNear = best?.candidate.distance != null && best.candidate.distance <= 0.5;
+    const brandOk = !!best && (!wantedBrand || best.candidate.brand === wantedBrand);
+
+    if (!best || !brandOk || (!nameHit && !veryNear) || best.score < 100) {
+      console.warn("[GOSTA V216] no safe S-kaupat pickup candidate", {
         storeName: cleanStoreName, coords,
         candidates: ranked.slice(0, 5).map((x) => ({ ...x.candidate, score: x.score })),
       });
@@ -707,7 +799,7 @@ async function resolveSKaupatStoreIdViaPickupSlotsV215(storeName: string): Promi
       return null;
     }
 
-    console.warn("[GOSTA V215] resolved S-kaupat store id via remotePickupSlots", {
+    console.warn("[GOSTA V216] resolved S-kaupat store id via remotePickupSlots", {
       storeName: cleanStoreName, inputCoordinates: coords, resolvedStoreId: best.candidate.storeId,
       brand: best.candidate.brand, pickupName: best.candidate.pickupName, city: best.candidate.city,
       postalCode: best.candidate.postalCode, distance: best.candidate.distance, score: best.score,
@@ -715,7 +807,9 @@ async function resolveSKaupatStoreIdViaPickupSlotsV215(storeName: string): Promi
     sKaupatPickupResolverCacheV215.set(key, best.candidate.storeId);
     return best.candidate.storeId;
   } catch (error) {
-    console.warn("[GOSTA V215] pickup-slot store resolver failed", { storeName: cleanStoreName, error });
+    const message = error instanceof Error ? error.message : String(error ?? "unknown resolver error");
+    if (lastPickupResolverDiagnosticV216) lastPickupResolverDiagnosticV216.fetchError = message;
+    console.warn("[GOSTA V216] pickup-slot store resolver failed", { storeName: cleanStoreName, error });
     sKaupatPickupResolverCacheV215.set(key, null);
     return null;
   }
@@ -1932,6 +2026,25 @@ function makeGostaZeroResultDiagnosticV208(
 ): ZiiplyOfferSearchResult {
   const receivedStoreId = firstString(options?.storeId, options?.sStoreId);
   const receivedStoreName = firstString(options?.storeName, options?.sStoreName);
+  const pickupV216 = lastPickupResolverDiagnosticV216;
+  const pickupDetailV216 = pickupV216
+    ? [
+        `v216GeoQueries=${pickupV216.geocodeQueries.join(";") || "-"}`,
+        `v216GeoUsed=${pickupV216.geocodeQueryUsed || "-"}`,
+        `v216Lat=${pickupV216.latitude ?? "-"}`,
+        `v216Lon=${pickupV216.longitude ?? "-"}`,
+        `v216PickupHttp=${pickupV216.pickupHttpStatus ?? "-"}`,
+        `v216Candidates=${pickupV216.candidateCount}`,
+        `v216BestId=${pickupV216.bestStoreId || "-"}`,
+        `v216BestBrand=${pickupV216.bestBrand || "-"}`,
+        `v216BestPickup=${pickupV216.bestPickupName || "-"}`,
+        `v216BestCity=${pickupV216.bestCity || "-"}`,
+        `v216BestPostal=${pickupV216.bestPostalCode || "-"}`,
+        `v216BestDistance=${pickupV216.bestDistance ?? "-"}`,
+        `v216BestScore=${pickupV216.bestScore}`,
+        `v216FetchError=${pickupV216.fetchError || "-"}`,
+      ].join(" | ")
+    : "v216GeoQueries=- | v216GeoUsed=- | v216Lat=- | v216Lon=- | v216PickupHttp=- | v216Candidates=- | v216BestId=- | v216BestBrand=- | v216BestPickup=- | v216BestCity=- | v216BestPostal=- | v216BestDistance=- | v216BestScore=- | v216FetchError=-";
   const officialV214 = lastOfficialResolverDiagnosticV214;
   const officialDetailV214 = officialV214
     ? [
@@ -1985,6 +2098,7 @@ function makeGostaZeroResultDiagnosticV208(
     `receivedStoreId=${receivedStoreId || "-"}`,
     `receivedStoreName=${receivedStoreName || "-"}`,
     detail,
+    pickupDetailV216,
     officialDetailV214,
     directoryDetailV209,
   ].join(" | ");
