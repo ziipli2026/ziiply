@@ -1,4 +1,20 @@
 // ============================================================================
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V38_CATEGORY_DISPLAY_LABEL_FIX_DEBUG
+// Revision: V38-CATEGORY-DISPLAY-LABEL-FIX-DEBUG
+// Date: 2026-09-20
+//
+// V38:
+// - Päivittää OfferSearchCardin näkyvän pääkategorianimen:
+//   "Leipomo" -> "Leivät & leivonnaiset".
+// - Muutos on vain näyttönimessä: sisäinen category/filter-arvo säilyy "Leipomo".
+// - Näin SearchCore V173:n juuri korjattu category gate, categoryOfferCounts,
+//   aliaslogiikka ja CategoryCore V168 eivät muutu.
+// - V37 EAN-dedupekorjaus sekä DEBUG / KOPIOI DEBUG säilyvät ennallaan.
+// - Muut nykyiset pääkategorianimet säilyvät, koska niille ei löytynyt vastaavaa
+//   ristiriitaa nykyisen Card/CategoryCore-rakenteen välillä.
+// ============================================================================
+
+// ============================================================================
 // ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V37_SOURCE_EAN_DEDUPE_FIX_DEBUG
 // Revision: V37-SOURCE-EAN-DEDUPE-FIX-DEBUG
 // Date: 2026-09-19
@@ -637,9 +653,16 @@ export default function ZiiplyMobileOfferSearchCard({
     ).length;
   };
 
+  const getCategoryDisplayLabelV38 = (category: string) => {
+    const key = normalizeCategoryKey(category);
+    if (key === "leipomo") return "Leivät & leivonnaiset";
+    return category;
+  };
+
   const getCategoryButtonLabelV32 = (category: string) => {
     const count = getVisibleCategoryCountV32(category);
-    return `${getCategoryIcon(category)} ${category}${count > 0 ? ` (${count})` : ""}`;
+    const displayLabel = getCategoryDisplayLabelV38(category);
+    return `${getCategoryIcon(category)} ${displayLabel}${count > 0 ? ` (${count})` : ""}`;
   };
 
   const isLastOpenedCategoryV27 = (category: string) =>
