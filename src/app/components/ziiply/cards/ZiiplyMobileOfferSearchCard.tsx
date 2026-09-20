@@ -1,12 +1,12 @@
 // ============================================================================
-// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V50_K_DEBUG_BOX_ONLY
-// Revision: V50-K-DEBUG-BOX-ONLY
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V50_K_DEBUG_OVERLAY
+// Revision: V50-K-DEBUG-OVERLAY
 // Date: 2026-09-20
 //
 // Muutos V49:ään:
-// - Lisää K-ryhmän valinnan jälkeen aina näkyvän K-RYHMÄ DEBUG -ruudun.
-// - Debug-ruutu on tässä vaiheessa vain näkyvä paikka tulevalle K-haun diagnostiikalle.
-// - Ei uusia proppeja. Ei provider-, haku-, category/count-, dedupe-, store- tai S-logiikan muutoksia.
+// - Lisää K-valinnan jälkeen aina näkyvän K-RYHMÄ DEBUG -overlayn kortin päälle.
+// - Overlay ei riipu loading-, landing-, category- tai offer-renderöinnistä.
+// - Ei provider-, haku-, category/count-, dedupe-, store- tai S-logiikan muutoksia.
 // ============================================================================
 
 // ============================================================================
@@ -878,10 +878,20 @@ export default function ZiiplyMobileOfferSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="V50-K-DEBUG-BOX-ONLY"
+      data-ziiply-mobile-offer-search-card-version="V50-K-DEBUG-OVERLAY"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
+        {selectedOfferChainV39 === "K" ? (
+          <div className="absolute left-3 right-3 top-3 z-[100] rounded-[0.85rem] border-[3px] border-[#8b1e1e] bg-[#fff3b0] px-3 py-2 shadow-[0_4px_12px_rgba(0,0,0,0.35)]">
+            <div className="text-[0.78rem] font-black text-[#8b1e1e]">
+              K-RYHMÄ DEBUG
+            </div>
+            <div className="mt-0.5 font-mono text-[0.68rem] font-bold leading-snug text-[#2b1a0e]">
+              Debug valmiina.
+            </div>
+          </div>
+        ) : null}
         <div
           className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[#f7edcf] bg-center bg-no-repeat opacity-100"
           style={{ backgroundImage: "url('/ui/cart/vihkonen.webp')", backgroundSize: "142% 104%", backgroundPosition: "center top" }}
@@ -967,16 +977,6 @@ export default function ZiiplyMobileOfferSearchCard({
         </header>
 
         <main className="relative z-10 min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-5 pb-[7.85rem] pt-[0.18rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {selectedOfferChainV39 === "K" ? (
-            <div className="mb-2 mt-1 rounded-[0.8rem] border-[2px] border-dashed border-[#9a7a3d] bg-[#fff8d9] px-3 py-2 text-left shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
-              <div className="text-[0.72rem] font-black text-[#174c2c]">
-                K-RYHMÄ DEBUG
-              </div>
-              <div className="mt-0.5 font-mono text-[0.64rem] font-bold leading-snug text-[#6d5d3f]">
-                Debug valmiina.
-              </div>
-            </div>
-          ) : null}
           {!selectedOfferChainV39 ? (
             <div className="mt-1 rounded-[1.05rem] border-[2px] border-[#9a7a3d] bg-[#fff4d4] px-3.5 py-5 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
               <div className="text-[1.02rem] font-black italic text-[#28402a]" style={{ fontFamily: cooperFont }}>
