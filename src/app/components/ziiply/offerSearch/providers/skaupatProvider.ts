@@ -1,3 +1,4 @@
+// Revision: V215 — dynamic S-kaupat store ID via remotePickupSlots; no user-GPS dependency
 // SKAUPAT_PROVIDER_V214_OFFICIAL_RESOLVER_DIAGNOSTIC
 // Revision: V214-OFFICIAL-RESOLVER-DIAGNOSTIC
 // Date: 2026-09-20
@@ -529,6 +530,197 @@ async function resolveSKaupatStoreIdFromOfficialStoreSearchV198(
   }
 }
 
+
+// ============================================================================
+// ZIIPLY_SKAUPAT_PROVIDER_V215_DYNAMIC_PICKUP_SLOT_STORE_ID
+// Date: 2026-09-20
+//
+// Fix:
+// - Resolves Ziiply/Ruoanhinta short store ids to the real S-kaupat store id
+//   without touching the stable /api/store-search route or page GPS selection.
+// - Geocodes the already selected store NAME (not the user's GPS position).
+// - Uses S-kaupat's own remotePickupSlots persisted GraphQL query around that
+//   store location and selects the matching Prisma candidate.
+// - Keeps the old HTML/directory resolver only as a fallback.
+// - No per-store hardcoded id table.
+// ============================================================================
+
+const SKAUPAT_REMOTE_PICKUP_SLOTS_HASH_V215 =
+  "6da249b0fd87c05275a239ed490976c851d7aff90ead0f3a3978e8283f21252d";
+const SKAUPAT_CLIENT_VERSION_V215 =
+  "production-14a82a5b48cd1dd42c0592db0037514ed3c84de8";
+
+type SKaupatPickupCandidateV215 = {
+  storeId: string;
+  brand: string;
+  pickupName: string;
+  city: string;
+  postalCode: string;
+  distance: number | null;
+};
+
+const sKaupatPickupResolverCacheV215 = new Map<string, string | null>();
+
+function getStoreBrandFromNameV215(storeName: string): string {
+  const normalized = normalizeSKaupatStoreNameForMatchV198(storeName);
+  if (normalized.startsWith("prisma ") || normalized === "prisma") return "prisma";
+  if (normalized.startsWith("s market ") || normalized.startsWith("smarket ")) return "s-market";
+  if (normalized.startsWith("sale ") || normalized === "sale") return "sale";
+  if (normalized.startsWith("alepa ") || normalized === "alepa") return "alepa";
+  return "";
+}
+
+function getStorePlaceTokenV215(storeName: string): string {
+  const normalized = normalizeSKaupatStoreNameForMatchV198(storeName);
+  return normalized
+    .replace(/^prisma\s+/, "")
+    .replace(/^s\s*market\s+/, "")
+    .replace(/^smarket\s+/, "")
+    .replace(/^sale\s+/, "")
+    .replace(/^alepa\s+/, "")
+    .trim();
+}
+
+async function geocodeSelectedStoreNameV215(storeName: string): Promise<{ latitude: number; longitude: number } | null> {
+  const q = `${storeName}, Finland`;
+  const url = new URL("https://nominatim.openstreetmap.org/search");
+  url.searchParams.set("format", "jsonv2");
+  url.searchParams.set("countrycodes", "fi");
+  url.searchParams.set("q", q);
+  url.searchParams.set("limit", "1");
+
+  const response = await fetch(url.toString(), {
+    cache: "no-store",
+    headers: {
+      accept: "application/json",
+      "accept-language": "fi",
+      "user-agent": "Ziiply/1.0 (+https://ziiply.fi)",
+    },
+  });
+  if (!response.ok) return null;
+
+  const data = await response.json();
+  const first = Array.isArray(data) ? data[0] : null;
+  const latitude = Number(first?.lat);
+  const longitude = Number(first?.lon);
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+  return { latitude, longitude };
+}
+
+async function fetchPickupCandidatesV215(latitude: number, longitude: number): Promise<SKaupatPickupCandidateV215[]> {
+  const date = getCurrentLocalDateYYYYMMDDV202();
+  const variables = {
+    startDate: date,
+    endDate: date,
+    location: { latitude, longitude },
+    limit: 20,
+  };
+  const extensions = {
+    persistedQuery: { version: 1, sha256Hash: SKAUPAT_REMOTE_PICKUP_SLOTS_HASH_V215 },
+  };
+  const url = new URL("https://api.s-kaupat.fi/");
+  url.searchParams.set("operationName", "remotePickupSlots");
+  url.searchParams.set("variables", JSON.stringify(variables));
+  url.searchParams.set("extensions", JSON.stringify(extensions));
+
+  const response = await fetch(url.toString(), {
+    method: "GET",
+    cache: "no-store",
+    headers: {
+      accept: "application/graphql-response+json,application/json;q=0.9",
+      "content-type": "application/json",
+      "accept-language": "fi",
+      origin: "https://www.s-kaupat.fi",
+      referer: "https://www.s-kaupat.fi/",
+      "x-client-name": "skaupat-web",
+      "x-client-version": SKAUPAT_CLIENT_VERSION_V215,
+    },
+  });
+  if (!response.ok) throw new Error(`S-kaupat remotePickupSlots failed: ${response.status}`);
+
+  const data = await response.json();
+  const rows = data?.data?.pickupSlotsForCoordinates?.slotsInPickupPoints;
+  if (!Array.isArray(rows)) return [];
+
+  return rows.map((row: any) => ({
+    storeId: String(row?.store?.id || "").trim(),
+    brand: String(row?.store?.brand || "").trim().toLowerCase(),
+    pickupName: String(row?.pickupPoint?.name || "").trim(),
+    city: String(row?.pickupPoint?.address?.city || "").trim(),
+    postalCode: String(row?.pickupPoint?.address?.postalCode || "").trim(),
+    distance: Number.isFinite(Number(row?.distance)) ? Number(row.distance) : null,
+  })).filter((row: SKaupatPickupCandidateV215) => /^\d{5,}$/.test(row.storeId));
+}
+
+function scorePickupCandidateV215(storeName: string, candidate: SKaupatPickupCandidateV215): number {
+  const wantedBrand = getStoreBrandFromNameV215(storeName);
+  const wantedPlace = getStorePlaceTokenV215(storeName);
+  const pickup = normalizeSKaupatStoreNameForMatchV198(candidate.pickupName);
+  const city = normalizeSKaupatStoreNameForMatchV198(candidate.city);
+  let score = 0;
+
+  if (wantedBrand && candidate.brand === wantedBrand) score += 100;
+  else if (wantedBrand) score -= 100;
+
+  if (wantedPlace) {
+    if (pickup.includes(wantedPlace)) score += 80;
+    if (city === wantedPlace) score += 50;
+    else if (city && (wantedPlace.includes(city) || city.includes(wantedPlace))) score += 25;
+  }
+
+  // Geocoding targets the selected store itself. Distance therefore breaks ties,
+  // but never overrides a brand mismatch.
+  if (candidate.distance != null) {
+    if (candidate.distance <= 0.25) score += 40;
+    else if (candidate.distance <= 1) score += 25;
+    else if (candidate.distance <= 5) score += 10;
+  }
+  return score;
+}
+
+async function resolveSKaupatStoreIdViaPickupSlotsV215(storeName: string): Promise<string | null> {
+  const cleanStoreName = String(storeName || "").trim();
+  if (!cleanStoreName) return null;
+  const key = normalizeSKaupatStoreNameForMatchV198(cleanStoreName);
+  if (sKaupatPickupResolverCacheV215.has(key)) return sKaupatPickupResolverCacheV215.get(key) ?? null;
+
+  try {
+    const coords = await geocodeSelectedStoreNameV215(cleanStoreName);
+    if (!coords) {
+      console.warn("[GOSTA V215] selected store geocoding failed", { storeName: cleanStoreName });
+      sKaupatPickupResolverCacheV215.set(key, null);
+      return null;
+    }
+
+    const candidates = await fetchPickupCandidatesV215(coords.latitude, coords.longitude);
+    const ranked = candidates
+      .map((candidate) => ({ candidate, score: scorePickupCandidateV215(cleanStoreName, candidate) }))
+      .sort((a, b) => b.score - a.score || (a.candidate.distance ?? 999999) - (b.candidate.distance ?? 999999));
+    const best = ranked[0];
+
+    if (!best || best.score < 100) {
+      console.warn("[GOSTA V215] no safe S-kaupat pickup candidate", {
+        storeName: cleanStoreName, coords,
+        candidates: ranked.slice(0, 5).map((x) => ({ ...x.candidate, score: x.score })),
+      });
+      sKaupatPickupResolverCacheV215.set(key, null);
+      return null;
+    }
+
+    console.warn("[GOSTA V215] resolved S-kaupat store id via remotePickupSlots", {
+      storeName: cleanStoreName, inputCoordinates: coords, resolvedStoreId: best.candidate.storeId,
+      brand: best.candidate.brand, pickupName: best.candidate.pickupName, city: best.candidate.city,
+      postalCode: best.candidate.postalCode, distance: best.candidate.distance, score: best.score,
+    });
+    sKaupatPickupResolverCacheV215.set(key, best.candidate.storeId);
+    return best.candidate.storeId;
+  } catch (error) {
+    console.warn("[GOSTA V215] pickup-slot store resolver failed", { storeName: cleanStoreName, error });
+    sKaupatPickupResolverCacheV215.set(key, null);
+    return null;
+  }
+}
+
 async function getEffectiveSKaupatStoreIdV174(
   options?: SKaupatOfferProviderOptionsV173,
 ): Promise<string | null> {
@@ -538,6 +730,17 @@ async function getEffectiveSKaupatStoreIdV174(
   // V204: storeName is authoritative for Gösta. The caller's storeId may belong
   // to Ziiply/Ruoanhinta.fi, so resolve the S-kaupat ID dynamically first.
   if (storeName) {
+    // V215: primary nationwide resolver. It uses the selected store name, not user GPS.
+    const resolvedFromPickupSlotsV215 = await resolveSKaupatStoreIdViaPickupSlotsV215(storeName);
+    if (resolvedFromPickupSlotsV215) {
+      console.warn("[GOSTA V215] S-kaupat storeId resolved dynamically from remotePickupSlots", {
+        inputStoreId: raw || null,
+        storeName,
+        resolvedStoreId: resolvedFromPickupSlotsV215,
+      });
+      return resolvedFromPickupSlotsV215;
+    }
+
     const resolvedFromOfficialStoreSearchV198 =
       await resolveSKaupatStoreIdFromOfficialStoreSearchV198(storeName);
 
