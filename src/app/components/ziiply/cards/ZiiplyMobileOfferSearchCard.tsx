@@ -1,12 +1,12 @@
 // ============================================================================
-// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V50_KRUOKA_DEBUG_PANEL
-// Revision: V50-KRUOKA-DEBUG-PANEL
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V50_K_DEBUG_BOX_ONLY
+// Revision: V50-K-DEBUG-BOX-ONLY
 // Date: 2026-09-20
 //
 // Muutos V49:ään:
-// - Näyttää K-Ruoka pipeline-debugtilan erillisenä paneelina K-haun 0-tuloksessa.
-// - Debug ei ole tarjousrivi eikä vaikuta kategorioihin.
-// - S-puolen toimintaan ei kosketa.
+// - Lisää K-ryhmän valinnan jälkeen aina näkyvän K-RYHMÄ DEBUG -ruudun.
+// - Debug-ruutu on tässä vaiheessa vain näkyvä paikka tulevalle K-haun diagnostiikalle.
+// - Ei uusia proppeja. Ei provider-, haku-, category/count-, dedupe-, store- tai S-logiikan muutoksia.
 // ============================================================================
 
 // ============================================================================
@@ -236,20 +236,6 @@ export type ZiiplyMobileOfferSearchCardProps = {
   loading?: boolean;
   emptyText?: string;
   selectedStoreName?: string;
-  kruokaDebug?: {
-    selectedStoreName?: string;
-    selectedStoreId?: string;
-    brochureUrl?: string;
-    brochureHttp?: number | null;
-    applicationState?: string;
-    kStoreId?: string | null;
-    brochureOffers?: number | null;
-    eans?: number | null;
-    productMapHttp?: number | null;
-    productMapProducts?: number | null;
-    activeOffers?: number | null;
-    error?: string | null;
-  } | null;
   categorySuggestions?: string[];
   categoryOfferCounts?: Record<string, number | null | undefined>;
   testedEmptyCategories?: Record<string, boolean | undefined>;
@@ -568,7 +554,6 @@ export default function ZiiplyMobileOfferSearchCard({
   loading = false,
   emptyText = "Gösta ei löytänyt tarjouksia vielä.",
   selectedStoreName = "",
-  kruokaDebug = null,
   categorySuggestions = ["Kahvi & tee", "Maitotuotteet", "Liha & makkarat", "Kala", "Leipomo", "Hevi", "Juomat", "Pakasteet", "Valmisruoka", "Kuivatuotteet", "Makeiset & keksit", "Lastenruoat", "Vitamiinit & ravinteet", "Lemmikit", "Hygienia & kosmetiikka", "Kodinhoito", "Koti & vapaa-aika", "Muut"],
   categoryOfferCounts,
   testedEmptyCategories,
@@ -893,7 +878,7 @@ export default function ZiiplyMobileOfferSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="V48-RESTORE-EMPTY-STATE"
+      data-ziiply-mobile-offer-search-card-version="V50-K-DEBUG-BOX-ONLY"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
@@ -982,6 +967,16 @@ export default function ZiiplyMobileOfferSearchCard({
         </header>
 
         <main className="relative z-10 min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-5 pb-[7.85rem] pt-[0.18rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {selectedOfferChainV39 === "K" ? (
+            <div className="mb-2 mt-1 rounded-[0.8rem] border-[2px] border-dashed border-[#9a7a3d] bg-[#fff8d9] px-3 py-2 text-left shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
+              <div className="text-[0.72rem] font-black text-[#174c2c]">
+                K-RYHMÄ DEBUG
+              </div>
+              <div className="mt-0.5 font-mono text-[0.64rem] font-bold leading-snug text-[#6d5d3f]">
+                Debug valmiina.
+              </div>
+            </div>
+          ) : null}
           {!selectedOfferChainV39 ? (
             <div className="mt-1 rounded-[1.05rem] border-[2px] border-[#9a7a3d] bg-[#fff4d4] px-3.5 py-5 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
               <div className="text-[1.02rem] font-black italic text-[#28402a]" style={{ fontFamily: cooperFont }}>
@@ -1063,26 +1058,9 @@ export default function ZiiplyMobileOfferSearchCard({
                       {selectedStoreNameV41}
                     </div>
                   ) : null}
-                  {selectedOfferChainV39 === "K" && kruokaDebug ? (
-                    <div className="mt-2 rounded-[0.7rem] border border-dashed border-[#9a7a3d] bg-[#fffdf0] px-2.5 py-2 text-left font-mono text-[0.60rem] font-bold leading-[1.35] text-[#4f432f] break-words">
-                      <div className="mb-1 font-black text-[#174c2c]">K-RUOKA DEBUG</div>
-                      <div>store: {String(kruokaDebug.selectedStoreName ?? "-")}</div>
-                      <div>selectedStoreId: {String(kruokaDebug.selectedStoreId ?? "-")}</div>
-                      <div>brochureHttp: {String(kruokaDebug.brochureHttp ?? "-")}</div>
-                      <div>applicationState: {String(kruokaDebug.applicationState ?? "-")}</div>
-                      <div>kStoreId: {String(kruokaDebug.kStoreId ?? "-")}</div>
-                      <div>brochureOffers: {String(kruokaDebug.brochureOffers ?? "-")}</div>
-                      <div>eans: {String(kruokaDebug.eans ?? "-")}</div>
-                      <div>productMapHttp: {String(kruokaDebug.productMapHttp ?? "-")}</div>
-                      <div>productMapProducts: {String(kruokaDebug.productMapProducts ?? "-")}</div>
-                      <div>activeOffers: {String(kruokaDebug.activeOffers ?? "-")}</div>
-                      {kruokaDebug.error ? <div>error: {String(kruokaDebug.error)}</div> : null}
-                    </div>
-                  ) : (
-                    <div className="mt-1.5 text-[0.70rem] font-extrabold leading-snug">
-                      Valitulle myymälälle ei löytynyt tarjoustietoja S-kaupat.fi-palvelusta. Myymälä ei välttämättä ole palvelussa tai sillä ei ole tällä hetkellä aktiivisia tarjouksia.
-                    </div>
-                  )}
+                  <div className="mt-1.5 text-[0.70rem] font-extrabold leading-snug">
+                    Valitulle myymälälle ei löytynyt tarjoustietoja S-kaupat.fi-palvelusta. Myymälä ei välttämättä ole palvelussa tai sillä ei ole tällä hetkellä aktiivisia tarjouksia.
+                  </div>
                 </div>
               )}
             </div>
