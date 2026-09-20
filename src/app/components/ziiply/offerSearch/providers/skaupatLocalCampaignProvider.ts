@@ -1,4 +1,22 @@
 // ============================================================================
+// SKAUPAT_LOCAL_CAMPAIGN_PROVIDER_V3_LOCAL_NAME_CITY_RESOLVER
+// Revision: V3-LOCAL-NAME-CITY-RESOLVER
+// Date: 2026-09-20
+//
+// Korjaus V2:een:
+// - remotePickupSlots / Nominatim -rakenne säilyy.
+// - Korjaa lähikaupan nimen turvallisen osuman, kun Ziiplyn nimi sisältää
+//   sekä kaupunginosan/myymälän että kaupungin, esim.
+//   "S-market Kommila Varkaus".
+// - V2/V216:n yksi yhtenäinen wantedPlace ("kommila varkaus") ei voi osua
+//   pickup-nimeen "S-market Kommilan lastaussilta", vaikka city on "Varkaus".
+// - V3 vertaa ketjun jälkeisiä paikkanimitokeneita erikseen pickup-nimeen ja
+//   cityyn. Hyväksyntä vaatii oikean brandin sekä turvallisen paikkaosuman.
+// - Ei kovakoodattuja store-ID:itä.
+// - Näkyvä debug säilyy, jos resolver/pageContent vielä pysähtyy.
+// ============================================================================
+
+// ============================================================================
 // SKAUPAT_LOCAL_CAMPAIGN_PROVIDER_V2_VISIBLE_DIAGNOSTICS
 // Revision: V2-VISIBLE-DIAGNOSTICS
 // Date: 2026-09-20
@@ -287,14 +305,49 @@ async function resolveLocalSStoreIdV1(storeName: string): Promise<string | null>
   const wantedBrand = getBrandFromStoreNameV1(cleanName);
   const wantedPlace = getPlaceFromStoreNameV1(cleanName);
   const pickupName = normalizeV1(best?.candidate.pickupName);
-  const nameHit = Boolean(wantedPlace && pickupName.includes(wantedPlace));
+  const candidateCity = normalizeV1(best?.candidate.city);
+
+  // V3: lähikaupan valintanimi voi olla muodossa "Kommila Varkaus".
+  // S-kaupat palauttaa pickup-nimeksi esim. "S-market Kommilan lastaussilta"
+  // ja cityksi "Varkaus". Yhtenäinen "kommila varkaus" ei siksi voi olla
+  // pickupName.includes(...) -osuma. Verrataan merkityksellisiä tokeneita
+  // erikseen pickup-nimeen ja cityyn.
+  const wantedTokensV3 = wantedPlace
+    .split(/\s+/)
+    .map((token) => token.trim())
+    .filter((token) => token.length >= 3);
+
+  const pickupTokenHitsV3 = wantedTokensV3.filter((token) =>
+    pickupName.includes(token),
+  );
+  const cityTokenHitsV3 = wantedTokensV3.filter(
+    (token) =>
+      candidateCity === token ||
+      candidateCity.includes(token) ||
+      token.includes(candidateCity),
+  );
+
+  const exactPlaceHitV3 = Boolean(
+    wantedPlace && pickupName.includes(wantedPlace),
+  );
+  const splitPlaceHitV3 = Boolean(
+    pickupTokenHitsV3.length > 0 && cityTokenHitsV3.length > 0,
+  );
+  const singleTokenCityHitV3 = Boolean(
+    wantedTokensV3.length === 1 &&
+      cityTokenHitsV3.length === 1 &&
+      best?.candidate.distance != null &&
+      best.candidate.distance <= 0.5,
+  );
   const veryNear =
-    best?.candidate.distance != null && best.candidate.distance <= 0.5;
+    best?.candidate.distance != null && best.candidate.distance <= 0.25;
   const brandOk = Boolean(
     best && (!wantedBrand || best.candidate.brand === wantedBrand),
   );
+  const safePlaceHitV3 =
+    exactPlaceHitV3 || splitPlaceHitV3 || singleTokenCityHitV3 || veryNear;
 
-  if (!best || !brandOk || (!nameHit && !veryNear) || best.score < 100) {
+  if (!best || !brandOk || !safePlaceHitV3 || best.score < 100) {
     resolverCacheV1.set(key, null);
     return null;
   }
