@@ -1,3 +1,11 @@
+// SKAUPAT_PROVIDER_V214_OFFICIAL_RESOLVER_DIAGNOSTIC
+// Revision: V214-OFFICIAL-RESOLVER-DIAGNOSTIC
+// Date: 2026-09-20
+//
+// Diagnostic only. No location files, store-search route, category logic or offer fetch behavior changed.
+// Instruments the provider-local official S-kaupat Prisma resolver directly.
+// This isolates the exact resolver that runs before the directory fallback.
+//
 // SKAUPAT_PROVIDER_V212_FETCH_ERROR_TO_MOBILE
 // Revision: V212-FETCH-ERROR-TO-MOBILE
 // Date: 2026-09-20
@@ -354,6 +362,21 @@ function decodeBasicHtmlEntitiesV198(value: string): string {
 
 const sKaupatDynamicStoreIdCacheV198 = new Map<string, string | null>();
 
+type SKaupatOfficialResolverDiagnosticV214 = {
+  requestedStoreName: string;
+  requestedUrl: string;
+  httpStatus: number | null;
+  finalUrl: string;
+  contentType: string;
+  htmlLength: number;
+  candidateCount: number;
+  bestId: string;
+  bestScore: number;
+  fetchError: string;
+};
+
+let lastOfficialResolverDiagnosticV214: SKaupatOfficialResolverDiagnosticV214 | null = null;
+
 async function resolveSKaupatStoreIdFromOfficialStoreSearchV198(
   storeName: string,
 ): Promise<string | null> {
@@ -363,9 +386,25 @@ async function resolveSKaupatStoreIdFromOfficialStoreSearchV198(
   const normalizedWanted = normalizeSKaupatStoreNameForMatchV198(cleanStoreName);
   if (!normalizedWanted) return null;
 
+  // V214: do not let an earlier cached resolver miss hide the actual request diagnostic.
+  // Successful IDs may still use the cache; cached null is retried.
   if (sKaupatDynamicStoreIdCacheV198.has(normalizedWanted)) {
-    return sKaupatDynamicStoreIdCacheV198.get(normalizedWanted) ?? null;
+    const cachedV214 = sKaupatDynamicStoreIdCacheV198.get(normalizedWanted) ?? null;
+    if (cachedV214) return cachedV214;
   }
+
+  lastOfficialResolverDiagnosticV214 = {
+    requestedStoreName: cleanStoreName,
+    requestedUrl: "",
+    httpStatus: null,
+    finalUrl: "",
+    contentType: "",
+    htmlLength: 0,
+    candidateCount: 0,
+    bestId: "",
+    bestScore: -1,
+    fetchError: "",
+  };
 
   try {
     // V208: use S-kaupat's official server-side store-name query so the selected
@@ -374,6 +413,10 @@ async function resolveSKaupatStoreIdFromOfficialStoreSearchV198(
     // or embedded Next/JSON payload.
     const url =
       `https://www.s-kaupat.fi/myymalat/prisma?query=${encodeURIComponent(cleanStoreName)}`;
+
+    if (lastOfficialResolverDiagnosticV214) {
+      lastOfficialResolverDiagnosticV214.requestedUrl = url;
+    }
 
     const response = await fetch(url, {
       method: "GET",
@@ -386,6 +429,12 @@ async function resolveSKaupatStoreIdFromOfficialStoreSearchV198(
       },
     });
 
+    if (lastOfficialResolverDiagnosticV214) {
+      lastOfficialResolverDiagnosticV214.httpStatus = response.status;
+      lastOfficialResolverDiagnosticV214.finalUrl = response.url || url;
+      lastOfficialResolverDiagnosticV214.contentType = response.headers.get("content-type") || "";
+    }
+
     if (!response.ok) {
       console.warn("[GOSTA V208] S-kaupat Prisma directory fetch failed", {
         storeName: cleanStoreName,
@@ -396,6 +445,9 @@ async function resolveSKaupatStoreIdFromOfficialStoreSearchV198(
     }
 
     const html = await response.text();
+    if (lastOfficialResolverDiagnosticV214) {
+      lastOfficialResolverDiagnosticV214.htmlLength = html.length;
+    }
 
     const wantedSlug = normalizedWanted
       .replace(/[^a-z0-9]+/g, "-")
@@ -437,6 +489,12 @@ async function resolveSKaupatStoreIdFromOfficialStoreSearchV198(
       }
     }
 
+    if (lastOfficialResolverDiagnosticV214) {
+      lastOfficialResolverDiagnosticV214.candidateCount = candidateCount;
+      lastOfficialResolverDiagnosticV214.bestId = bestId || "";
+      lastOfficialResolverDiagnosticV214.bestScore = bestScore;
+    }
+
     if (bestId && bestScore >= 80) {
       console.warn("[GOSTA V208] resolved official S-kaupat public storeId", {
         storeName: cleanStoreName,
@@ -458,6 +516,10 @@ async function resolveSKaupatStoreIdFromOfficialStoreSearchV198(
     sKaupatDynamicStoreIdCacheV198.set(normalizedWanted, null);
     return null;
   } catch (error) {
+    if (lastOfficialResolverDiagnosticV214) {
+      lastOfficialResolverDiagnosticV214.fetchError =
+        error instanceof Error ? error.message : String(error ?? "unknown resolver error");
+    }
     console.warn("[GOSTA V208] official S-kaupat store resolver failed", {
       storeName: cleanStoreName,
       error,
@@ -1667,6 +1729,20 @@ function makeGostaZeroResultDiagnosticV208(
 ): ZiiplyOfferSearchResult {
   const receivedStoreId = firstString(options?.storeId, options?.sStoreId);
   const receivedStoreName = firstString(options?.storeName, options?.sStoreName);
+  const officialV214 = lastOfficialResolverDiagnosticV214;
+  const officialDetailV214 = officialV214
+    ? [
+        `officialName=${officialV214.requestedStoreName || "-"}`,
+        `officialHttp=${officialV214.httpStatus ?? "-"}`,
+        `officialFinalUrl=${officialV214.finalUrl || "-"}`,
+        `officialContentType=${officialV214.contentType || "-"}`,
+        `officialHtmlLength=${officialV214.htmlLength}`,
+        `officialCandidates=${officialV214.candidateCount}`,
+        `officialBestId=${officialV214.bestId || "-"}`,
+        `officialBestScore=${officialV214.bestScore}`,
+        `officialFetchError=${officialV214.fetchError || "-"}`,
+      ].join(" | ")
+    : "officialName=- | officialHttp=- | officialFinalUrl=- | officialContentType=- | officialHtmlLength=- | officialCandidates=- | officialBestId=- | officialBestScore=- | officialFetchError=-";
   const directoryDiagnosticV209 = getLastPrismaDirectoryDiagnosticV3();
   const directoryResponseDiagnosticV211 = directoryDiagnosticV209 as
     | (typeof directoryDiagnosticV209 & {
@@ -1702,10 +1778,11 @@ function makeGostaZeroResultDiagnosticV208(
     : "directoryPages=- | directoryEntries=- | directoryParsed=- | directoryCursors=- | directoryVarkaus=- | directoryVarkausId=- | directoryHttp=- | directoryFinalUrl=- | directoryContentType=- | directoryHtmlLength=- | directoryHasPrisma=- | directoryHasMyymala=- | directoryHasNextData=- | directoryBodySample=- | directoryFetchError=-";
 
   const debugText = [
-    "GOSTA_V212_ZERO_RESULT_DIAGNOSTIC",
+    "GOSTA_V214_ZERO_RESULT_DIAGNOSTIC",
     `receivedStoreId=${receivedStoreId || "-"}`,
     `receivedStoreName=${receivedStoreName || "-"}`,
     detail,
+    officialDetailV214,
     directoryDetailV209,
   ].join(" | ");
 
