@@ -1,3 +1,8 @@
+// S_KAUPAT_STORE_DIRECTORY_V6_RUNTIME_IDENTITY_DIAGNOSTIC
+// Revision: V6-RUNTIME-IDENTITY-DIAGNOSTIC
+// Date: 2026-09-20
+// Diagnostic only. Adds an exported runtime revision marker; search/resolver behavior unchanged.
+//
 // S_KAUPAT_STORE_DIRECTORY_V5_FETCH_ERROR_DIAGNOSTIC
 // Revision: V5-FETCH-ERROR-DIAGNOSTIC
 // Date: 2026-09-20
@@ -56,6 +61,8 @@ export type SKaupatStoreDirectoryEntryV1 = {
   sKaupatStoreId: string;
   url: string;
 };
+
+export const S_KAUPAT_STORE_DIRECTORY_RUNTIME_REVISION_V6 = "V6-RUNTIME-IDENTITY-DIAGNOSTIC";
 
 const S_KAUPAT_BASE_URL_V1 = "https://www.s-kaupat.fi";
 
