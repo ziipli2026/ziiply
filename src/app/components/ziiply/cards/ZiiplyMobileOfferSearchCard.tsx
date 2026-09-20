@@ -1,26 +1,21 @@
 // ============================================================================
-// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V46_SELECTED_STORE_EMPTY_STATE
-// Revision: V46-SELECTED-STORE-EMPTY-STATE
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V47_COMPACT_CATEGORY_LAYOUT
+// Revision: V47-COMPACT-CATEGORY-LAYOUT
 // Date: 2026-09-20
 //
-// Muutos V45:een:
-// - Card saa valitun kaupan nimen erillisenä selectedStoreName-propina.
-// - Kaupan nimi näkyy myös silloin, kun tarjouslista on aidosti tyhjä.
-// - Empty state näyttää valitun myymälän nimen ennen S-kaupat.fi-selitystä.
-// - Tarjousdatan, kategorioiden, S/K-portin ja hakulogiikan toimintaan ei kosketa.
-// ============================================================================
-
-// ============================================================================
-// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V45_SKAUPAT_EMPTY_INFO
-// Revision: V45-SKAUPAT-EMPTY-INFO
-// Date: 2026-09-20
-//
-// Muutos V44:een:
-// - Kun S-ryhmän master-haku ei tuota yhtään näkyvää tarjouskategoriaa, näytetään
-//   käyttäjälle täsmällinen S-kaupat.fi-lähdettä koskeva ilmoitus.
-// - Viesti ei väitä, ettei fyysisessä myymälässä olisi tarjouksia: myymälä voi puuttua
-//   S-kaupat.fi-palvelusta tai sillä ei juuri nyt ole siellä aktiivisia tarjouksia.
-// - Ei muuta haku-, provider-, kategoria-, S/K-portti- tai kauppaotsikkologiikkaa.
+// Muutos nykyiseen V46-versioon:
+// - Poistaa landing-näkymästä Tarjoushaku-otsikon alta oletustekstin
+//   "Tarjoukset tuoteryhmittäin"; Tarjoushaku jää näkyviin.
+// - Säilyttää kaupan nimen sekä vanhahtavan kauppatekstin ennallaan.
+// - Poistaa landing-näkymästä ruskean Gösta-selitetekstin
+//   "Valitse tuoteryhmä alta. Gösta näyttää vain valitun kaupan tarjoukset.".
+// - Nostaa kauppapalkkia ja kategoriaruudukkoa vapautuneeseen pystysuuntaiseen tilaan.
+// - Kategoriapainikkeissa ikoni siirretty vasemmalle omaan kapeaan sarakkeeseensa,
+//   jotta nimelle + tarjousmäärälle jää mahdollisimman paljon vaakasuuntaista tilaa.
+// - Näkyvä "Liha & makkarat" -> "Liha&makkara"; sisäinen category-arvo ei muutu.
+// - Kategoriapainikkeet ovat normaalisti saman matalan korkeuden; pitkä nimi saa
+//   rivittyä vain silloin, kun se ei oikeasti mahdu yhdelle riville.
+// - Ei muuta haku-, provider-, category/count-, dedupe-, store- tai S/K-porttilogiikkaa.
 // ============================================================================
 
 // ============================================================================
@@ -207,7 +202,6 @@ export type ZiiplyMobileOfferSearchCardProps = {
   results?: ZiiplyMobileOfferSearchItem[];
   loading?: boolean;
   emptyText?: string;
-  selectedStoreName?: string;
   categorySuggestions?: string[];
   categoryOfferCounts?: Record<string, number | null | undefined>;
   testedEmptyCategories?: Record<string, boolean | undefined>;
@@ -525,7 +519,6 @@ export default function ZiiplyMobileOfferSearchCard({
   results,
   loading = false,
   emptyText = "Gösta ei löytänyt tarjouksia vielä.",
-  selectedStoreName = "",
   categorySuggestions = ["Kahvi & tee", "Maitotuotteet", "Liha & makkarat", "Kala", "Leipomo", "Hevi", "Juomat", "Pakasteet", "Valmisruoka", "Kuivatuotteet", "Makeiset & keksit", "Lastenruoat", "Vitamiinit & ravinteet", "Lemmikit", "Hygienia & kosmetiikka", "Kodinhoito", "Koti & vapaa-aika", "Muut"],
   categoryOfferCounts,
   testedEmptyCategories,
@@ -759,6 +752,7 @@ export default function ZiiplyMobileOfferSearchCard({
   const getCategoryDisplayLabelV38 = (category: string) => {
     const key = normalizeCategoryKey(category);
     if (key === "leipomo") return "Leivät & leivonnaiset";
+    if (key === "liha" || key === "liha & makkarat") return "Liha&makkara";
     return category;
   };
 
@@ -766,6 +760,14 @@ export default function ZiiplyMobileOfferSearchCard({
     const count = getVisibleCategoryCountV32(category);
     const displayLabel = getCategoryDisplayLabelV38(category);
     return `${getCategoryIcon(category)} ${displayLabel}${count > 0 ? ` (${count})` : ""}`;
+  };
+
+  // V45: landing-painikkeessa ikoni erotetaan tekstistä, jotta tekstille jää
+  // enemmän vaakasuuntaista tilaa. Count pysyy nimen yhteydessä.
+  const getCategoryTextLabelV45 = (category: string) => {
+    const count = getVisibleCategoryCountV32(category);
+    const displayLabel = getCategoryDisplayLabelV38(category);
+    return `${displayLabel}${count > 0 ? ` (${count})` : ""}`;
   };
 
   const isLastOpenedCategoryV27 = (category: string) =>
@@ -801,12 +803,8 @@ export default function ZiiplyMobileOfferSearchCard({
       );
     });
 
-  // V46: page-tason valittu kauppa on ensisijainen, jotta nimi säilyy myös 0-tuloksella.
-  // Tarjousrivin storeName jää yhteensopivuusfallbackiksi.
+  // V41: Card-only UI. Poimitaan kaupan nimi oikeasta tarjousrivistä, ei debug-rivistä.
   const selectedStoreNameV41 = React.useMemo(() => {
-    const explicitStoreName = String(selectedStoreName || "").trim();
-    if (explicitStoreName) return explicitStoreName;
-
     for (const item of items) {
       const storeName = String(item?.storeName || "").trim();
       const itemName = String(item?.name || item?.title || "").trim();
@@ -815,7 +813,7 @@ export default function ZiiplyMobileOfferSearchCard({
       return storeName;
     }
     return "";
-  }, [items, selectedStoreName]);
+  }, [items]);
 
   const selectedStoreIsPrismaV41 = /\bprisma\b/i.test(selectedStoreNameV41);
   const selectedStoreOfferLineV41 = selectedStoreIsPrismaV41
@@ -841,7 +839,7 @@ export default function ZiiplyMobileOfferSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="V45-SKAUPAT-EMPTY-INFO"
+      data-ziiply-mobile-offer-search-card-version="V47-COMPACT-CATEGORY-LAYOUT"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
@@ -876,14 +874,16 @@ export default function ZiiplyMobileOfferSearchCard({
             >
               {title}
             </div>
-            <div className="mt-[0.16rem] text-[0.74rem] font-extrabold text-[#5f5034]">
-              {subtitle || (shownQuery ? `Gösta penkoi: ${shownQuery}` : "Tarjoukset tuoteryhmittäin")}
-            </div>
+            {subtitle || shownQuery ? (
+              <div className="mt-[0.16rem] text-[0.74rem] font-extrabold text-[#5f5034]">
+                {subtitle || `Gösta penkoi: ${shownQuery}`}
+              </div>
+            ) : null}
 
           </div>
 
           {selectedOfferChainV39 && showLandingView && selectedStoreNameV41 ? (
-            <div className="mt-1 rounded-[1.05rem] border-[2px] border-[#9a7a3d] bg-[#fff4d4]/96 px-2.5 py-1.5 text-center shadow-[0_3px_0_rgba(91,72,44,0.14),inset_0_0_0_1px_rgba(255,255,255,0.45)]">
+            <div className="mt-[0.28rem] rounded-[1.05rem] border-[2px] border-[#9a7a3d] bg-[#fff4d4]/96 px-2.5 py-1.5 text-center shadow-[0_3px_0_rgba(91,72,44,0.14),inset_0_0_0_1px_rgba(255,255,255,0.45)]">
               <div className="whitespace-nowrap text-[clamp(0.84rem,4vw,1.02rem)] font-black leading-tight text-[#28402a]" style={{ fontFamily: cooperFont }}>
                 {selectedStoreNameV41}
               </div>
@@ -927,7 +927,7 @@ export default function ZiiplyMobileOfferSearchCard({
           ) : null}
         </header>
 
-        <main className="relative z-10 min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-5 pb-[7.85rem] pt-[0.45rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <main className="relative z-10 min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-5 pb-[7.85rem] pt-[0.18rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {!selectedOfferChainV39 ? (
             <div className="mt-1 rounded-[1.05rem] border-[2px] border-[#9a7a3d] bg-[#fff4d4] px-3.5 py-5 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
               <div className="text-[1.02rem] font-black italic text-[#28402a]" style={{ fontFamily: cooperFont }}>
@@ -970,15 +970,12 @@ export default function ZiiplyMobileOfferSearchCard({
               </div>
             </div>
           ) : showLandingView ? (
-            <div className="mt-1 rounded-[1.05rem] border-[2px] border-[#9a7a3d] bg-[#fff4d4] px-3.5 py-4 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
-              <div className="text-[1.02rem] font-black italic text-[#28402a]" style={{ fontFamily: cooperFont }}>
+            <div className="mt-[0.18rem] rounded-[1.05rem] border-[2px] border-[#9a7a3d] bg-[#fff4d4] px-3 py-2.5 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
+              <div className="text-[1.02rem] font-black italic leading-tight text-[#28402a]" style={{ fontFamily: cooperFont }}>
                 Mitä etsitään tänään?
               </div>
-              <div className="mx-auto mt-1.5 max-w-[16rem] text-[0.72rem] font-extrabold leading-snug text-[#6d5d3f]">
-                Valitse tuoteryhmä alta. Gösta näyttää vain valitun kaupan tarjoukset.
-              </div>
               {visibleCategorySuggestions.length > 0 ? (
-                <div className="mt-3 grid grid-cols-2 gap-1.5">
+                <div className="mt-2 grid grid-cols-2 gap-1.5">
                   {visibleCategorySuggestions.map((category) => (
                     <button
                       key={`landing-${category}`}
@@ -988,27 +985,22 @@ export default function ZiiplyMobileOfferSearchCard({
                         onFilterChange?.(category);
                       }}
                       className={cx(
-                        "rounded-[0.8rem] border-[2px] border-[#174c2c] bg-[#fff8d9] px-2.5 py-[0.42rem] text-[0.72rem] font-black text-[#174c2c] shadow-[0_2px_0_rgba(91,72,44,0.16)] active:translate-y-[1px]",
+                        "grid min-h-[2.55rem] grid-cols-[1.18rem_minmax(0,1fr)] items-center gap-1 rounded-[0.8rem] border-[2px] border-[#174c2c] bg-[#fff8d9] pl-1.5 pr-2 py-[0.34rem] text-[#174c2c] shadow-[0_2px_0_rgba(91,72,44,0.16)] active:translate-y-[1px]",
                         isLastOpenedCategoryV27(category) && "ring-2 ring-[#087237]/45 bg-[#f5ffd9]",
                       )}
                     >
-                      {getCategoryButtonLabelV32(category)}
+                      <span aria-hidden="true" className="w-[1.18rem] shrink-0 text-left text-[0.92rem] leading-none">
+                        {getCategoryIcon(category)}
+                      </span>
+                      <span className="min-w-0 text-center text-[clamp(0.62rem,2.85vw,0.72rem)] font-black leading-[1.08] [text-wrap:balance]">
+                        {getCategoryTextLabelV45(category)}
+                      </span>
                     </button>
                   ))}
                 </div>
               ) : (
-                <div className="mt-3 rounded-[0.8rem] border border-dashed border-[#9a7a3d] bg-[#fff8d9] px-3 py-3 text-center text-[#6d5d3f]">
-                  <div className="text-[0.82rem] font-black italic text-[#59401e]" style={{ fontFamily: serifFont }}>
-                    Gösta ei löytänyt tarjouksia 🔎
-                  </div>
-                  {selectedStoreNameV41 ? (
-                    <div className="mt-1 text-[0.76rem] font-black text-[#174c2c]">
-                      {selectedStoreNameV41}
-                    </div>
-                  ) : null}
-                  <div className="mt-1.5 text-[0.70rem] font-extrabold leading-snug">
-                    Valitulle myymälälle ei löytynyt tarjoustietoja S-kaupat.fi-palvelusta. Myymälä ei välttämättä ole palvelussa tai sillä ei ole tällä hetkellä aktiivisia tarjouksia.
-                  </div>
+                <div className="mt-3 rounded-[0.8rem] border border-dashed border-[#9a7a3d] bg-[#fff8d9] px-3 py-3 text-[0.72rem] font-extrabold leading-snug text-[#6d5d3f]">
+                  Ei näytettäviä tuoteryhmiä vielä. Palaa takaisin ja avaa Gösta uudelleen.
                 </div>
               )}
             </div>
