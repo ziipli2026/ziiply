@@ -4,11 +4,11 @@
 // Date: 2026-09-20
 //
 // Muutos V40:een:
-// - Näyttää valitun kaupan nimen tuoteryhmien yläpuolella.
-// - S-market / Alepa / Sale: "Valitsemasi lähipuodin huojennetut hinnat ja tarjoukset".
+// - Näyttää valitun kaupan nimen tuoteryhmälistan yläpuolella.
 // - Prisma: "Valitsemasi kauppahuoneen huojennetut hinnat ja tarjoukset".
-// - Kaupan nimi luetaan jo haetuista oikeista tarjousriveistä; debug-rivejä ei käytetä otsikkona.
-// - Ei muuta hakua, provideria, kategorialogiikkaa, S/K-porttia eikä debug-toimintoja.
+// - S-market / Alepa / Sale: "Valitsemasi lähipuodin huojennetut hinnat ja tarjoukset".
+// - Kaupan nimi poimitaan jo ladatun tarjousdatan oikeasta storeName-kentästä;
+//   debug-rivit ohitetaan. Ei muuta haku-, provider-, kategoria- tai S/K-logiikkaa.
 // ============================================================================
 
 // ============================================================================
@@ -506,37 +506,6 @@ export default function ZiiplyMobileOfferSearchCard({
   const visibleItems = showLandingView ? [] : items;
   const hasVisibleOffers = visibleItems.length > 0;
 
-  // V41: Näyttöotsikko poimitaan jo haetun oikean tarjousdatan kauppanimestä.
-  // Debug-rivit (ROUTE DEBUG / S-LOCAL DEBUG jne.) eivät saa määrätä otsikkoa.
-  const selectedStoreNameV41 = (() => {
-    for (const item of items) {
-      const candidates = [
-        item?.storeName,
-        item?.shopName,
-        item?.storeLabel,
-        item?.__sourceOfferSearchResult?.storeName,
-        item?.__sourceOfferSearchResult?.shopName,
-        item?.__sourceOfferSearchResult?.storeLabel,
-      ];
-
-      for (const candidate of candidates) {
-        const clean = String(candidate || "").trim();
-        if (!clean) continue;
-        if (/debug/i.test(clean)) continue;
-        return clean;
-      }
-    }
-    return "";
-  })();
-
-  const selectedStoreIsLocalV41 = /^(s[- ]?market|alepa|sale)\b/i.test(
-    selectedStoreNameV41,
-  );
-
-  const selectedStoreOfferCaptionV41 = selectedStoreIsLocalV41
-    ? "Valitsemasi lähipuodin huojennetut hinnat ja tarjoukset"
-    : "Valitsemasi kauppahuoneen huojennetut hinnat ja tarjoukset";
-
   const normalizeCategoryKey = (value: string) =>
     value
       .normalize("NFD")
@@ -771,8 +740,25 @@ export default function ZiiplyMobileOfferSearchCard({
       );
     });
 
+  // V41: Card-only UI. Poimitaan kaupan nimi oikeasta tarjousrivistä, ei debug-rivistä.
+  const selectedStoreNameV41 = React.useMemo(() => {
+    for (const item of items) {
+      const storeName = String(item?.storeName || "").trim();
+      const itemName = String(item?.name || item?.title || "").trim();
+      if (!storeName) continue;
+      if (/debug/i.test(storeName) || /debug/i.test(itemName)) continue;
+      return storeName;
+    }
+    return "";
+  }, [items]);
+
+  const selectedStoreIsPrismaV41 = /\bprisma\b/i.test(selectedStoreNameV41);
+  const selectedStoreOfferLineV41 = selectedStoreIsPrismaV41
+    ? "Valitsemasi kauppahuoneen huojennetut hinnat ja tarjoukset"
+    : "Valitsemasi lähipuodin huojennetut hinnat ja tarjoukset";
+
   const debugPayload20260712D = {
-    revision: "V40-CHAIN-GATE-DEBUG-RESTORED",
+    revision: "V41-SELECTED-STORE-HEADING",
     selectedOfferChain: selectedOfferChainV39,
     rawCount: rawItems.length,
     dedupedCount: items.length,
@@ -954,22 +940,15 @@ export default function ZiiplyMobileOfferSearchCard({
           ) : showLandingView ? (
             <div className="mt-1 rounded-[1.05rem] border-[2px] border-[#9a7a3d] bg-[#fff4d4] px-3.5 py-4 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
               {selectedStoreNameV41 ? (
-                <div className="mb-3 border-b border-[#b99a5b]/55 pb-3">
-                  <div
-                    className="text-[1.02rem] font-black leading-tight text-[#28402a]"
-                    style={{ fontFamily: cooperFont }}
-                  >
+                <div className="mb-3 border-b border-dashed border-[#b8944f]/70 pb-3">
+                  <div className="text-[1.02rem] font-black leading-tight text-[#28402a]" style={{ fontFamily: cooperFont }}>
                     {selectedStoreNameV41}
                   </div>
-                  <div
-                    className="mx-auto mt-1 max-w-[18rem] text-[0.72rem] font-bold italic leading-snug text-[#6d5d3f]"
-                    style={{ fontFamily: serifFont }}
-                  >
-                    {selectedStoreOfferCaptionV41}
+                  <div className="mx-auto mt-1 max-w-[19rem] text-[0.72rem] font-extrabold italic leading-snug text-[#6d5d3f]" style={{ fontFamily: serifFont }}>
+                    {selectedStoreOfferLineV41}
                   </div>
                 </div>
               ) : null}
-
               <div className="text-[1.02rem] font-black italic text-[#28402a]" style={{ fontFamily: cooperFont }}>
                 Mitä etsitään tänään?
               </div>
