@@ -1,3 +1,8 @@
+// SKAUPAT_PROVIDER_V213_DIRECTORY_RUNTIME_IDENTITY
+// Revision: V213-DIRECTORY-RUNTIME-IDENTITY
+// Date: 2026-09-20
+// Diagnostic only. Forces build-time linkage to Store Directory V6 and exposes its runtime revision.
+//
 // SKAUPAT_PROVIDER_V212_FETCH_ERROR_TO_MOBILE
 // Revision: V212-FETCH-ERROR-TO-MOBILE
 // Date: 2026-09-20
@@ -265,6 +270,7 @@ import type {
 import {
   resolveSKaupatStoreIdFromDirectoryV1,
   getLastPrismaDirectoryDiagnosticV3,
+  S_KAUPAT_STORE_DIRECTORY_RUNTIME_REVISION_V6,
 } from "../../location/ziiplyStoreDirectory";
 
 type UnknownRecord = Record<string, unknown>;
@@ -1702,7 +1708,8 @@ function makeGostaZeroResultDiagnosticV208(
     : "directoryPages=- | directoryEntries=- | directoryParsed=- | directoryCursors=- | directoryVarkaus=- | directoryVarkausId=- | directoryHttp=- | directoryFinalUrl=- | directoryContentType=- | directoryHtmlLength=- | directoryHasPrisma=- | directoryHasMyymala=- | directoryHasNextData=- | directoryBodySample=- | directoryFetchError=-";
 
   const debugText = [
-    "GOSTA_V212_ZERO_RESULT_DIAGNOSTIC",
+    "GOSTA_V213_ZERO_RESULT_DIAGNOSTIC",
+    `directoryRuntime=${S_KAUPAT_STORE_DIRECTORY_RUNTIME_REVISION_V6}`,
     `receivedStoreId=${receivedStoreId || "-"}`,
     `receivedStoreName=${receivedStoreName || "-"}`,
     detail,
@@ -1710,7 +1717,7 @@ function makeGostaZeroResultDiagnosticV208(
   ].join(" | ");
 
   return {
-    id: `gosta-v211-debug-${receivedStoreId || "no-id"}`,
+    id: `gosta-v213-debug-${receivedStoreId || "no-id"}`,
     source: config.id,
     sourceUrl: config.url,
     chain: config.chain,
