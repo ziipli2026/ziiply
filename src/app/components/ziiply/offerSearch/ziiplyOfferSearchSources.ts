@@ -1,4 +1,16 @@
 // ============================================================================
+// ZIIPLY_OFFER_SEARCH_SOURCES_V33_K_LOCAL_KRUOKA_ENABLED
+// Revision: V33-K-LOCAL-KRUOKA-ENABLED
+// Date: 2026-09-20
+//
+// Muutos V32:een:
+// - Aktivoi nykyisen kruokaProvider.ts-polun vain K-Marketille ja K-Supermarketille.
+// - K-Citymarket jätetään edelleen pois käytöstä.
+// - S-providerien V32-reititys säilyy muuttumattomana.
+// - Ei muuta normaalia tuotehakua, GPS:ää, store selectionia tai S-providerien logiikkaa.
+// ============================================================================
+
+// ============================================================================
 // ZIIPLY_OFFER_SEARCH_SOURCES_V32_EXCLUSIVE_S_STORE_PROVIDER_ROUTING
 // Revision: V32-EXCLUSIVE-S-STORE-PROVIDER-ROUTING
 // Date: 2026-09-20
@@ -228,10 +240,10 @@ const ZIIPLY_OFFER_SOURCES = {
   },
 } satisfies Record<string, ZiiplyOfferSearchSourceConfig>;
 
-const OFFER_SEARCH_SOURCE_REVISION = "v28-etarjouslehdet-disabled";
+const OFFER_SEARCH_SOURCE_REVISION = "v33-k-local-kruoka-enabled";
 const ENABLE_OFFER_SEARCH_CACHE = false;
 const ENABLE_ETARJOUSLEHDET_PROVIDER_V28 = false;
-const ENABLE_KRUOKA_PROVIDER_V29 = false;
+const ENABLE_KRUOKA_PROVIDER_V33 = true;
 const MAX_OFFER_SEARCH_RESULTS = 1000;
 const ZIIPLY_GOSTA_MASTER_QUERY_V6 = "__ziiply_all_offers__";
 
@@ -406,6 +418,12 @@ function getProviderScopeV10(options?: ZiiplyOfferSearchSourceContextV8) {
     useS: hasS || scope !== "within_chain",
     useK: hasK,
   };
+}
+
+function isKLocalOfferStoreNameV33(value: unknown) {
+  const name = normalizeOfferUniqueText(value);
+  if (!name || name.includes("citymarket")) return false;
+  return name.includes("k market") || name.includes("k supermarket");
 }
 
 function getKruokaSourceByStoreNameV10(options?: ZiiplyOfferSearchSourceContextV8): ZiiplyOfferSearchSourceConfig {
@@ -660,7 +678,11 @@ export async function searchZiiplyOffers(
   const hasSelectedSLocalV32 = selectedSLocalStoresV32.length > 0;
 
   const kProviderOptions = normalizeKruokaProviderOptionsV9(options);
-  const hasSelectedKStoreV9 = Boolean(kProviderOptions?.storeId || kProviderOptions?.kStoreId);
+  const selectedKStoreNameV33 = String(kProviderOptions?.kStoreName ?? kProviderOptions?.storeName ?? "").trim();
+  const hasSelectedKLocalStoreV33 = Boolean(
+    (kProviderOptions?.storeId || kProviderOptions?.kStoreId) &&
+    isKLocalOfferStoreNameV33(selectedKStoreNameV33),
+  );
 
   const cacheKey = getOfferSearchCacheKey(cleanQuery);
   const cached = ENABLE_OFFER_SEARCH_CACHE ? getCachedOfferResults(cacheKey) : null;
@@ -711,11 +733,11 @@ export async function searchZiiplyOffers(
         )
       : [];
 
-  // V29: K-Ruoka tarjoushaku on tarkoituksella kokonaan pois Göstan suorituspolusta.
-  // Provider-koodi säilytetään myöhempää korjausta varten, mutta fetchiä ei ajeta.
-  const kResults = ENABLE_KRUOKA_PROVIDER_V29 && providerScopeV10.useK && hasSelectedKStoreV9
+  // V33: K-Ruoka on käytössä vain valitulle K-Marketille / K-Supermarketille.
+  // K-Citymarket rajataan tässä tarkoituksella pois, kunnes sen oma polku on varmennettu.
+  const kResults = ENABLE_KRUOKA_PROVIDER_V33 && providerScopeV10.useK && hasSelectedKLocalStoreV33
     ? await safelySearchSource(
-        isGostaMasterQuery ? "K-Ruoka master V10" : "K-Ruoka V10",
+        isGostaMasterQuery ? "K-local K-Ruoka master V33" : "K-local K-Ruoka V33",
         () => searchSelectedKruokaOffersV10(cleanQuery, options),
       )
     : [];
