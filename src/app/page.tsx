@@ -1,4 +1,16 @@
 // ============================================================================
+// PAGE_V546_GOSTA_CHAIN_GATE_BEFORE_SEARCH
+// Revision: V546-GOSTA-CHAIN-GATE-BEFORE-SEARCH
+// Date: 2026-09-20
+//
+// Muutos:
+// - Göstan painaminen avaa tarjouskortin ilman automaattista tarjoushakua.
+// - Varsinainen nykyinen tarjoushaku käynnistyy vasta, kun kortilta valitaan S-ryhmä.
+// - K-ryhmä on V39-kortissa näkyvä mutta disabled, joten K-hakua ei käynnistetä.
+// - Nykyiseen searchOffers/provider/store-resolver-logiikkaan ei tehdä muutoksia.
+// ============================================================================
+
+// ============================================================================
 // ZIIPLY_PAGE_V534_EAN_DEDUPE_FIX
 // Revision: V534-EAN-DEDUPE-FIX
 // Date: 2026-09-19
@@ -14236,12 +14248,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       cartItemsCount: cart.length,
     });
 
+    // V546: avaa Gösta ensin kaupparyhmän valintaan.
+    // Älä käynnistä S/Prisma-hakua ennen käyttäjän S-valintaa V39-kortilla.
+    gostaPanelStickyOpenRefV158.current = true;
+    setOfferCardFilterV106("");
+    setOfferSearchQuerySnapshot("");
     setSearchPanelOpen(false);
     setNotebookOpen(false);
     setCartModalOpen(false);
     setShopsPanelOpen(false);
     setCartSavePanelOpen(false);
-    void searchOffers();
+    setActiveResult("offers");
   }
 
   function handleMainOfferSearch() {
@@ -18969,6 +18986,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             filter={offerCardFilterV106}
             onFilterChange={handleGostaFilterChangeV136}
             onSearch={(value: string) => void searchOffers(value)}
+            onSelectOfferChain={(chain: "S" | "K") => {
+              if (chain !== "S") return;
+              void searchOffers();
+            }}
             categorySuggestions={GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147}
             categoryOfferCounts={gostaCategoryOfferCountsV163}
             testedEmptyCategories={gostaTestedEmptyCategoriesV166}
