@@ -1,3 +1,11 @@
+// S_KAUPAT_STORE_DIRECTORY_V5_FETCH_ERROR_DIAGNOSTIC
+// Revision: V5-FETCH-ERROR-DIAGNOSTIC
+// Date: 2026-09-20
+//
+// Diagnostic only. Resolver/search behavior is unchanged.
+// Adds firstFetchError so mobile KOPIOI DEBUG can distinguish HTTP/network failure
+// from a successful response whose HTML parser finds zero store entries.
+//
 // S_KAUPAT_STORE_DIRECTORY_V4_RESPONSE_DIAGNOSTIC
 // Revision: V4-RESPONSE-DIAGNOSTIC
 // Date: 2026-09-19
@@ -80,6 +88,7 @@ export type SKaupatDirectoryDiagnosticV3 = {
   firstHasMyymala: boolean;
   firstHasNextData: boolean;
   firstBodySample: string;
+  firstFetchError: string;
 };
 
 let lastPrismaDirectoryDiagnosticV3: SKaupatDirectoryDiagnosticV3 | null = null;
@@ -273,6 +282,7 @@ async function fetchSKaupatChainDirectoryV1(
   let firstHasMyymalaV4 = false;
   let firstHasNextDataV4 = false;
   let firstBodySampleV4 = "";
+  let firstFetchErrorV5 = "";
 
   while (queue.length > 0 && visited.size < 30) {
     const url = queue.shift();
@@ -312,6 +322,9 @@ async function fetchSKaupatChainDirectoryV1(
         if (!visited.has(nextUrl)) queue.push(nextUrl);
       }
     } catch (error) {
+      if (visited.size === 1 && !firstFetchErrorV5) {
+        firstFetchErrorV5 = error instanceof Error ? error.message : String(error ?? "unknown fetch error");
+      }
       console.warn("[S-kaupat directory] chain page failed", { chain, url, error });
     }
   }
@@ -343,6 +356,7 @@ async function fetchSKaupatChainDirectoryV1(
       firstHasMyymala: firstHasMyymalaV4,
       firstHasNextData: firstHasNextDataV4,
       firstBodySample: firstBodySampleV4,
+      firstFetchError: firstFetchErrorV5,
     };
 
     console.warn("[S-kaupat directory V3 diagnostic]", lastPrismaDirectoryDiagnosticV3);
