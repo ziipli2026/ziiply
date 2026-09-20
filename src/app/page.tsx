@@ -1,4 +1,21 @@
 // ============================================================================
+// PAGE_V547_GOSTA_S_CHAIN_USES_CURRENT_STORE_MODE
+// Revision: V547-GOSTA-S-CHAIN-USES-CURRENT-STORE-MODE
+// Date: 2026-09-20
+//
+// Muutos V546:een:
+// - Göstan S-ryhmävalinta muistetaan page-tasolla koko Gösta-istunnon ajan.
+// - Kun S on valittu ja storeMode === "local", Gösta välittää vain käyttäjän
+//   valitun S-lähikaupan (S-market / Alepa / Sale).
+// - Kun S on valittu ja storeMode === "hyper", Gösta välittää vain käyttäjän
+//   valitun Prisman.
+// - Sama valittu kauppakonteksti säilyy myös kategoriaklikkauksissa.
+// - Göstan avaaminen nollaa ketjuvalinnan, joten S/K-portti avautuu kuten V546:ssa.
+// - EI muuta normaalia tuotehakua, Justiinaa, GPS:ää, store selectionia,
+//   /api/store-searchia eikä K-ryhmän hakua.
+// ============================================================================
+
+// ============================================================================
 // PAGE_V546_GOSTA_CHAIN_GATE_BEFORE_SEARCH
 // Revision: V546-GOSTA-CHAIN-GATE-BEFORE-SEARCH
 // Date: 2026-09-20
@@ -9843,6 +9860,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setGpsBootReadyV473(true);
   }, []);
 
+  // V547: Göstan kortin ketjuvalinta on kortin sisällä, mutta page.tsx tarvitsee
+  // saman tiedon muodostaakseen oikean kauppakontekstin myös myöhemmissä
+  // kategoriaklikkauksissa.
+  const gostaSelectedOfferChainRefV547 = useRef<"S" | "K" | null>(null);
+
   async function searchOffers(termOverride?: string) {
     const hasExplicitOverride = typeof termOverride === "string";
     const cleanedOverride = String(termOverride ?? "").trim();
@@ -10007,11 +10029,20 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const kWithinHyperStoreV539 = pickOfferStoreFromSelectionV539("K", "hyper");
       const kWithinLocalStoreV539 = pickOfferStoreFromSelectionV539("K", "local");
 
-      const sOfferStoresV532 = useWithinChainSOffersV532
-        ? uniqueSelectedOfferStoresV532([sWithinHyperStoreV539, sWithinLocalStoreV539])
-        : storeCompareScope === "between_chains"
-          ? uniqueSelectedOfferStoresV532([{ id: activeStores.sStoreId, name: activeStores.sStoreName }])
-          : [];
+      // V547: kun käyttäjä on Göstan S/K-portista valinnut S:n, tarjoushaku
+      // seuraa täsmälleen nykyistä kauppamoodia. Lähikaupat => valittu
+      // S-market/Alepa/Sale. Tavaratalot => valittu Prisma.
+      // Tämä ohittaa vain Göstan S-haun vanhan compare-scope-koosteen.
+      const gostaSelectedSStoreV547 =
+        storeMode === "local" ? sWithinLocalStoreV539 : sWithinHyperStoreV539;
+
+      const sOfferStoresV532 = gostaSelectedOfferChainRefV547.current === "S"
+        ? uniqueSelectedOfferStoresV532([gostaSelectedSStoreV547])
+        : useWithinChainSOffersV532
+          ? uniqueSelectedOfferStoresV532([sWithinHyperStoreV539, sWithinLocalStoreV539])
+          : storeCompareScope === "between_chains"
+            ? uniqueSelectedOfferStoresV532([{ id: activeStores.sStoreId, name: activeStores.sStoreName }])
+            : [];
 
       const kOfferStoresV532 = useWithinChainKOffersV532
         ? uniqueSelectedOfferStoresV532([kWithinHyperStoreV539, kWithinLocalStoreV539])
@@ -14250,6 +14281,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     // V546: avaa Gösta ensin kaupparyhmän valintaan.
     // Älä käynnistä S/Prisma-hakua ennen käyttäjän S-valintaa V39-kortilla.
+    // V547: uusi Gösta-avaus nollaa myös page-tason ketjuvalinnan.
+    gostaSelectedOfferChainRefV547.current = null;
     gostaPanelStickyOpenRefV158.current = true;
     setOfferCardFilterV106("");
     setOfferSearchQuerySnapshot("");
@@ -18988,6 +19021,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             onSearch={(value: string) => void searchOffers(value)}
             onSelectOfferChain={(chain: "S" | "K") => {
               if (chain !== "S") return;
+              // V547: tallenna valinta ennen hakua, jotta searchOffers rakentaa
+              // kontekstin nykyisen storeMode-arvon mukaisesta S-kaupasta.
+              gostaSelectedOfferChainRefV547.current = "S";
               void searchOffers();
             }}
             categorySuggestions={GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147}
