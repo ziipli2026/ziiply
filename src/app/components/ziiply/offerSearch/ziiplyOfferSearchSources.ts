@@ -1,3 +1,20 @@
+// ============================================================================
+// ZIIPLY_OFFER_SEARCH_SOURCES_V31_SLOCAL_SKAUPAT_CAMPAIGNS
+// Revision: V31-SLOCAL-SKAUPAT-CAMPAIGNS
+// Date: 2026-09-20
+//
+// Muutos V30:een:
+// - Prisma jatkaa nykyisellä skaupatProvider / RemoteFilteredProducts -polulla.
+// - S-lähikaupat (S-market, Alepa, Sale) ohjataan uuteen
+//   skaupatLocalCampaignProvider V1 / RemoteGetPageContent -polkuun.
+// - Ketjujen väliltä käyttää vain sillä hetkellä valittua S-kauppaa.
+// - Ketjun sisältä / S voi hakea sekä valitun Prisman että valitun S-lähikaupan.
+// - eTarjouslehdet pysyy pois käytöstä.
+// - K-Ruoka pysyy pois käytöstä.
+// - Ei muutoksia page.tsx:ään, normaaliin tuotehakuun, Justiinaan,
+//   store selectioniin, GPS:ään tai /api/store-searchiin.
+// ============================================================================
+
 // ZIIPLY_OFFER_SEARCH_SOURCES_V30_GOSTA_MASTER_NO_LIMIT
 // Revision: V30-GOSTA-MASTER-NO-LIMIT
 // Date: 2026-09-19
@@ -70,6 +87,7 @@ import type {
 } from "./types";
 import { fetchKruokaOffers, type KruokaOfferProviderOptionsV10 } from "./providers/kruokaProvider";
 import { fetchSKaupatOffers, type SKaupatOfferProviderOptionsV173 } from "./providers/skaupatProvider";
+import { fetchSKaupatLocalCampaignOffersV1 } from "./providers/skaupatLocalCampaignProvider";
 import {
   getCachedOfferResults,
   setCachedOfferResults,
@@ -409,9 +427,20 @@ export async function searchSelectedKruokaOffersV10(
 }
 
 
-function isSMarketOfferStoreNameV21(value: unknown) {
+function isSLocalOfferStoreNameV31(value: unknown) {
   const text = normalizeOfferUniqueText(value);
-  return text.includes("s market") || text.includes("s-market");
+  return (
+    text.includes("s market") ||
+    text.includes("s-market") ||
+    text === "alepa" ||
+    text.startsWith("alepa ") ||
+    text === "sale" ||
+    text.startsWith("sale ")
+  );
+}
+
+function isSMarketOfferStoreNameV21(value: unknown) {
+  return isSLocalOfferStoreNameV31(value);
 }
 
 function isPrismaOfferStoreNameV21(value: unknown) {
@@ -433,10 +462,10 @@ function normalizeSKaupatProviderOptionsPrismaOnlyV21(
     const id = ids[index] || "";
     const name = names[index] || "";
 
-    // S-kaupat.fi-provider saa jatkossa S-puolelta vain Prismat.
-    // S-marketit menevät eTarjouslehdet-routeen.
-    if (isSMarketOfferStoreNameV21(name)) continue;
-    if (isPrismaOfferStoreNameV21(name) || id) {
+    // V31: vanha Prisma-provider saa vain oikeat Prismat.
+    // S-market / Alepa / Sale menevät erilliseen RemoteGetPageContent-provideriin.
+    if (isSLocalOfferStoreNameV31(name)) continue;
+    if (isPrismaOfferStoreNameV21(name)) {
       nextIds.push(id);
       nextNames.push(name);
     }
@@ -453,9 +482,56 @@ function normalizeSKaupatProviderOptionsPrismaOnlyV21(
   } as ZiiplyOfferSearchSourceContextV8;
 }
 
-function getSelectedSMarketNamesV21(options?: ZiiplyOfferSearchSourceContextV8): string[] {
+function getSelectedSLocalStoresV31(options?: ZiiplyOfferSearchSourceContextV8) {
+  const ids = normalizeOfferStoreListV11(options?.sStoreIds, options?.sStoreId ?? options?.storeId);
   const names = normalizeOfferStoreListV11(options?.sStoreNames, options?.sStoreName ?? options?.storeName);
-  return Array.from(new Set(names.filter(isSMarketOfferStoreNameV21)));
+  const maxLength = Math.max(ids.length, names.length);
+  const stores: Array<{ id: string; name: string }> = [];
+
+  for (let index = 0; index < maxLength; index += 1) {
+    const id = ids[index] || "";
+    const name = names[index] || "";
+    if (!name || !isSLocalOfferStoreNameV31(name)) continue;
+    stores.push({ id, name });
+  }
+
+  const seen = new Set<string>();
+  return stores.filter((store) => {
+    const key = `${store.id}|${store.name}`.toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+async function searchSelectedSLocalCampaignOffersV31(
+  query: string,
+  options?: ZiiplyOfferSearchSourceContextV8,
+) {
+  const stores = getSelectedSLocalStoresV31(options);
+  const allResults: ZiiplyOfferSearchResult[] = [];
+
+  for (const store of stores) {
+    const storeResults = await fetchSKaupatLocalCampaignOffersV1(
+      query,
+      {
+        ...ZIIPLY_OFFER_SOURCES.skaupat,
+        storeLabel: store.name,
+      },
+      {
+        storeId: store.id || null,
+        storeName: store.name,
+        sStoreId: store.id || null,
+        sStoreName: store.name,
+        areaLabel: options?.areaLabel,
+        storeMode: options?.storeMode,
+        storeCompareScope: options?.storeCompareScope,
+      },
+    );
+    allResults.push(...storeResults);
+  }
+
+  return allResults;
 }
 
 function makeETSourceDebugResultV25(title: string, detail: string): ZiiplyOfferSearchResult {
@@ -580,8 +656,15 @@ export async function searchZiiplyOffers(
 
   const sKaupatResults = providerScopeV10.useS
     ? await safelySearchSource(
-        isGostaMasterQuery ? "S-kaupat master V10" : "S-kaupat V10",
-        () => searchSelectedSKaupatOffersV11(cleanQuery, options),
+        isGostaMasterQuery ? "Prisma S-kaupat master V31" : "Prisma S-kaupat V31",
+        () => searchSelectedSKaupatOffersV11(cleanQuery, providerOptions),
+      )
+    : [];
+
+  const sLocalCampaignResults = providerScopeV10.useS
+    ? await safelySearchSource(
+        isGostaMasterQuery ? "S-local S-kaupat campaigns master V31" : "S-local S-kaupat campaigns V31",
+        () => searchSelectedSLocalCampaignOffersV31(cleanQuery, options),
       )
     : [];
 
@@ -607,6 +690,7 @@ export async function searchZiiplyOffers(
   const uniqueAllResults = uniqueOfferResults([
     ...eTarjouslehdetResults,
     ...sKaupatResults,
+    ...sLocalCampaignResults,
     ...kResults,
   ]);
 
