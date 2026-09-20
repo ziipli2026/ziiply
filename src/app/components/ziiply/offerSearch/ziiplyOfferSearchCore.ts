@@ -1,14 +1,50 @@
 // ============================================================================
-// ZIIPLY_OFFER_SEARCH_CORE_V173_MASTER_DIAGNOSTIC
-// Revision: V173-MASTER-DIAGNOSTIC
+// ZIIPLY_OFFER_SEARCH_CORE_V173_CATEGORY_GATE_REGRESSION_FIX
+// Revision: V173
+// Date: 2026-09-20
+//
+// V173:
+// - Korjaa V172:ssa takaisin lipsahtaneen page.tsx compatibility-gaten.
+// - isZiiplyGostaCategorySelectionV147() käyttää nyt samaa nykyisten
+//   kategorioiden tunnistusta kuin master-listan paikallinen suodatus:
+//   isCurrentGostaCategorySelectionV167().
+// - Korjaa tilanteen, jossa kategoriassa näkyy count > 0 mutta klikkaus
+//   avaa tyhjän näkymän uusilla kategorianimillä.
+// - Ei muutoksia CategoryCoreen, Cardiin, page.tsx:ään, provideriin,
+//   store-resolveriin tai kategorioiden luokitteluun.
+// ============================================================================
+
+// ============================================================================
+// ZIIPLY_OFFER_SEARCH_CORE_V172_LOCAL_MASTER_CATEGORY_FILTER_FIX
+// Revision: V172
 // Date: 2026-09-19
 //
-// Diagnostic only:
-// - Does not change Gösta filtering/dedupe behavior.
-// - Measures master results before cleanZiiplyGostaOfferResultsV146().
-// - Reports API count, EAN count, bad-result removals, dedupe removals and final count.
-// - Attaches the diagnostic string to the first surviving master item so the existing
-//   OfferSearchCard DEBUG / KOPIOI DEBUG can show it.
+// V172:
+// - Pohja: V167.
+// - Korjaa V533/page.tsx:n master-listasta paikallisesti avattavien kategorioiden
+//   suodatuksen filterZiiplyGostaOfferResultsV146()-funktiossa.
+// - Nykyiset GOSTA_CATEGORY_LABELS_V136 -kategoriat tunnistetaan samalla
+//   current-label-aware gatella kuin V167:n search core.
+// - Ei V169/V170/V171 kokeilumuutoksia.
+// - Ei muutoksia page.tsx:ään, Cardiin, CategoryCoreen, provideriin,
+//   store-ID:ihin tai kategorioiden luokitteluun.
+// ============================================================================
+
+// ============================================================================
+// ZIIPLY_OFFER_SEARCH_CORE_V167_CURRENT_CATEGORY_SELECTION_FIX
+// Revision: V167
+// Date: 2026-09-19
+//
+// Fix:
+// - Category click recognition now accepts the CURRENT category labels exported
+//   by ziiplyOfferCategoryCore, not only the old isKnownOfferCategoryFilter list.
+// - Fixes empty category views for:
+//   Liha & makkarat
+//   Vitamiinit & ravinteet
+//   Hygienia & kosmetiikka
+//   Koti & vapaa-aika
+// - Keeps legacy category aliases working.
+// - Does not change provider fetching, store context, master dataset or caching.
 // ============================================================================
 
 // ============================================================================
@@ -59,6 +95,7 @@
 // - näkyvien tulosten suodatus
 
 import {
+  GOSTA_CATEGORY_LABELS_V136,
   getGostaCategoryLabelFromFilterV136,
   getOfferCategoryV106,
   getOfferProductTitleV113,
@@ -103,6 +140,23 @@ function normalizeGostaCoreText(value: unknown) {
     .replace(/[^a-z0-9åäö\s-]/gi, " ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function isCurrentGostaCategorySelectionV167(value: string) {
+  const normalized = normalizeGostaCoreText(value).trim();
+  if (!normalized) return false;
+
+  // Current visible labels are the primary source of truth.
+  if (
+    GOSTA_CATEGORY_LABELS_V136.some(
+      (label) => normalizeGostaCoreText(label) === normalized,
+    )
+  ) {
+    return true;
+  }
+
+  // Preserve old aliases/legacy category names.
+  return isGostaCategorySelectionV136(value) || isKnownOfferCategoryFilterV113(normalized);
 }
 
 const TRUSTED_GOSTA_CATEGORY_LABELS_V166 = new Map<string, string>([
@@ -236,55 +290,7 @@ async function fetchGostaMasterOfferResultsV156(context?: ZiiplyGostaOfferSearch
   }
 
   const promise = fetchOfferSearchResults(ZIIPLY_GOSTA_MASTER_QUERY_V156, context)
-    .then((results) => {
-      // V173 diagnostic only: measure exactly where master rows disappear.
-      const apiCountV173 = results.length;
-      const eanCountV173 = results.filter((item) => {
-        const anyItem = item as any;
-        return Boolean(
-          normalizeGostaCoreText(anyItem?.ean || anyItem?.gtin || anyItem?.barcode || "").trim(),
-        );
-      }).length;
-
-      const afterBadFilterV173 = results.filter((item) => !isBadOfferSearchResultV106(item));
-      const badRemovedV173 = apiCountV173 - afterBadFilterV173.length;
-
-      const seenV173 = new Set<string>();
-      let duplicateRemovedV173 = 0;
-      let emptyKeyRemovedV173 = 0;
-
-      for (const item of afterBadFilterV173) {
-        const key = getGostaOfferDedupeKeyV148(item);
-        if (!key) {
-          emptyKeyRemovedV173 += 1;
-          continue;
-        }
-        if (seenV173.has(key)) {
-          duplicateRemovedV173 += 1;
-          continue;
-        }
-        seenV173.add(key);
-      }
-
-      const cleanedV173 = cleanZiiplyGostaOfferResultsV146(results);
-
-      const diagnosticV173 = [
-        `CORE V173 api=${apiCountV173}`,
-        `ean=${eanCountV173}`,
-        `badRemoved=${badRemovedV173}`,
-        `afterBad=${afterBadFilterV173.length}`,
-        `dedupeRemoved=${duplicateRemovedV173}`,
-        `emptyKeyRemoved=${emptyKeyRemovedV173}`,
-        `final=${cleanedV173.length}`,
-      ].join(" | ");
-
-      if (cleanedV173.length > 0) {
-        (cleanedV173[0] as any).debugCoreV173 = diagnosticV173;
-      }
-
-      console.log("[ZIIPLY GOSTA CORE V173]", diagnosticV173);
-      return cleanedV173;
-    })
+    .then((results) => cleanZiiplyGostaOfferResultsV146(results))
     .catch((error) => {
       ziiplyGostaMasterCacheV156.delete(contextKey);
       throw error;
@@ -395,9 +401,15 @@ export function filterZiiplyGostaOfferResultsV146(
   return results.filter((item) => {
     const category = normalizeGostaCoreText(getResolvedGostaCategoryV166(item));
 
+    // V172:
+    // V533/page.tsx avaa tuoteryhmät paikallisesti jo ladatusta master-listasta.
+    // Käytä tässä nykyistä kategoriatunnistusta, ei legacy
+    // isKnownOfferCategoryFilterV113()-listaa. Muuten esim.
+    // "Hygienia & kosmetiikka" -> "hygienia ja kosmetiikka" putoaa
+    // virheellisesti vapaatekstihakuun ja masterin oikeat kategoriakortit katoavat.
+    //
     // Tunnettu tuoteryhmächip ei ole vapaatekstihaku koko tarjousriviin.
-    // Tämä estää esim. vaippojen päätymistä Maitotuotteisiin/Lihaan raakatekstin takia.
-    if (isKnownOfferCategoryFilterV113(filter)) {
+    if (isCurrentGostaCategorySelectionV167(filterValue)) {
       return category === filter;
     }
 
@@ -419,7 +431,7 @@ export async function searchZiiplyGostaOffersV146(options: {
   const termSnapshot = (options.terms || []).join(", ").trim();
   const offerQuerySnapshot = termSnapshot || cleanedQuery;
 
-  const categorySearchLabel = isGostaCategorySelectionV136(offerQuerySnapshot)
+  const categorySearchLabel = isCurrentGostaCategorySelectionV167(offerQuerySnapshot)
     ? getGostaCategoryLabelFromFilterV136(offerQuerySnapshot)
     : "";
 
@@ -428,7 +440,7 @@ export async function searchZiiplyGostaOffersV146(options: {
   const searchByCategory =
     !!categorySearchLabel &&
     normalizedCategorySearch !== "kaikki" &&
-    isKnownOfferCategoryFilterV113(normalizedCategorySearch);
+    isCurrentGostaCategorySelectionV167(categorySearchLabel);
 
   const trackingKey = searchAllAreaOffers
     ? "__all_area_offers_category_seeded__"
@@ -475,7 +487,8 @@ export async function searchZiiplyGostaOffersV146(options: {
 export { GOSTA_CATEGORY_LABELS_V136 as GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147 } from "./ziiplyOfferCategoryCore";
 
 export function isZiiplyGostaCategorySelectionV147(value: string) {
-  return isGostaCategorySelectionV136(value);
+  // V173: use the same current-label-aware category gate end-to-end.
+  return isCurrentGostaCategorySelectionV167(value);
 }
 
 export function mapZiiplyGostaOfferToCardOfferV147(item: ZiiplyGostaOfferLike) {
