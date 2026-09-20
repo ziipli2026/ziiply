@@ -1,4 +1,17 @@
 // ============================================================================
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V42_FIXED_STORE_HEADING
+// Revision: V42-FIXED-STORE-HEADING
+// Date: 2026-09-20
+//
+// Muutos V41:een:
+// - Valitun kaupan nimi ja vanhahtava tarjousteksti siirretty scrollaavan <main>-alueen
+//   ulkopuolelle kiinteään headeriin, joten ne pysyvät näkyvissä kategorioita selattaessa.
+// - Prisma: "Valitsemasi kauppahuoneen huojennetut hinnat ja tarjoukset".
+// - S-market / Alepa / Sale: "Valitsemasi lähipuodin huojennetut hinnat ja tarjoukset".
+// - Ei muuta haku-, provider-, kategoria-, S/K-portti- tai debug-logiikkaa.
+// ============================================================================
+
+// ============================================================================
 // ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V41_SELECTED_STORE_HEADING
 // Revision: V41-SELECTED-STORE-HEADING
 // Date: 2026-09-20
@@ -859,6 +872,17 @@ export default function ZiiplyMobileOfferSearchCard({
               {subtitle || (shownQuery ? `Gösta penkoi: ${shownQuery}` : "Tarjoukset tuoteryhmittäin")}
             </div>
 
+            {selectedOfferChainV39 && showLandingView && selectedStoreNameV41 ? (
+              <div className="mt-3 rounded-[1.05rem] border-[2px] border-[#9a7a3d] bg-[#fff4d4]/96 px-3.5 py-3 text-center shadow-[0_3px_0_rgba(91,72,44,0.14),inset_0_0_0_1px_rgba(255,255,255,0.45)]">
+                <div className="text-[1.02rem] font-black leading-tight text-[#28402a]" style={{ fontFamily: cooperFont }}>
+                  {selectedStoreNameV41}
+                </div>
+                <div className="mx-auto mt-1 max-w-[19rem] text-[0.72rem] font-extrabold italic leading-snug text-[#6d5d3f]" style={{ fontFamily: serifFont }}>
+                  {selectedStoreOfferLineV41}
+                </div>
+              </div>
+            ) : null}
+
           </div>
 
           {selectedOfferChainV39 && !showLandingView ? (
@@ -939,16 +963,6 @@ export default function ZiiplyMobileOfferSearchCard({
             </div>
           ) : showLandingView ? (
             <div className="mt-1 rounded-[1.05rem] border-[2px] border-[#9a7a3d] bg-[#fff4d4] px-3.5 py-4 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
-              {selectedStoreNameV41 ? (
-                <div className="mb-3 border-b border-dashed border-[#b8944f]/70 pb-3">
-                  <div className="text-[1.02rem] font-black leading-tight text-[#28402a]" style={{ fontFamily: cooperFont }}>
-                    {selectedStoreNameV41}
-                  </div>
-                  <div className="mx-auto mt-1 max-w-[19rem] text-[0.72rem] font-extrabold italic leading-snug text-[#6d5d3f]" style={{ fontFamily: serifFont }}>
-                    {selectedStoreOfferLineV41}
-                  </div>
-                </div>
-              ) : null}
               <div className="text-[1.02rem] font-black italic text-[#28402a]" style={{ fontFamily: cooperFont }}>
                 Mitä etsitään tänään?
               </div>
