@@ -1,4 +1,27 @@
 // ============================================================================
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V44_COMPACT_FIXED_STORE_HEADING
+// Revision: V44-COMPACT-FIXED-STORE-HEADING
+// Date: 2026-09-20
+//
+// Muutos V43:een:
+// - Kiinteä kaupparuutu levennetty headerin koko sisällön levyiseksi.
+// - Kaupan nimi ja vanhahtava tarjousteksti pidetään kumpikin yhdellä rivillä.
+// - Ruutua nostettu ja pystypaddingia pienennetty, jotta kategoriat alkavat ylempää.
+// - Ei muuta haku-, provider-, kategoria- tai S/K-porttilogiikkaa.
+// ============================================================================
+
+// ============================================================================
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V43_DEBUG_UI_REMOVED
+// Revision: V43-DEBUG-UI-REMOVED
+// Date: 2026-09-20
+//
+// Muutos V42:een:
+// - Poistaa kortin näkyvän DEBUG · AVAA TÄSTÄ -painikkeen sekä debug-overlayn.
+// - Palauttaa normaalin otsikon näkyviin myös S-ryhmän valinnan jälkeen.
+// - Ei muuta haku-, provider-, kategoria-, S/K-portti- tai kauppaotsikkologiikkaa.
+// ============================================================================
+
+// ============================================================================
 // ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V42_FIXED_STORE_HEADING
 // Revision: V42-FIXED-STORE-HEADING
 // Date: 2026-09-20
@@ -490,8 +513,6 @@ export default function ZiiplyMobileOfferSearchCard({
 }: ZiiplyMobileOfferSearchCardProps) {
   const [lastOpenedCategoryV27, setLastOpenedCategoryV27] = React.useState("");
   const [selectedOfferChainV39, setSelectedOfferChainV39] = React.useState<"S" | "K" | null>(null);
-  const [debugTitleOpen20260712D, setDebugTitleOpen20260712D] = React.useState(false);
-  const [debugCopyStatus20260712E, setDebugCopyStatus20260712E] = React.useState("");
 
   React.useEffect(() => {
     if (typeof window === "undefined") return;
@@ -770,25 +791,6 @@ export default function ZiiplyMobileOfferSearchCard({
     ? "Valitsemasi kauppahuoneen huojennetut hinnat ja tarjoukset"
     : "Valitsemasi lähipuodin huojennetut hinnat ja tarjoukset";
 
-  const debugPayload20260712D = {
-    revision: "V41-SELECTED-STORE-HEADING",
-    selectedOfferChain: selectedOfferChainV39,
-    rawCount: rawItems.length,
-    dedupedCount: items.length,
-    visibleCount: visibleItems.length,
-    query: shownQuery,
-    filter: shownFilter,
-    landingView: showLandingView,
-    loading,
-    categorySuggestions: categoryPool,
-    visibleCategories: visibleCategorySuggestions,
-    categoryOfferCounts: categoryOfferCounts || {},
-    testedEmptyCategories: testedEmptyCategories || {},
-    rawItems,
-    dedupedItems: items,
-    visibleItems,
-  };
-
   const goToLandingView = () => {
     // V27: paluu tuoteryhmälistaan ei saa käynnistää uutta master-hakua eikä tyhjentää
     // jo ladattuja tarjousmääriä. Page säilyttää offerSearchResults-välimuistin.
@@ -837,53 +839,28 @@ export default function ZiiplyMobileOfferSearchCard({
 
         <header className="relative z-10 shrink-0 px-5 pb-1 pt-[7.7rem]">
           <div className="pl-[3.15rem] pr-[2.20rem]">
-            {selectedOfferChainV39 ? (
-              <button
-                type="button"
-                onClick={() => setDebugTitleOpen20260712D(true)}
-                aria-label="Avaa tarjoushaun debug"
-                style={{
-                  display: "block",
-                  width: "100%",
-                  padding: "8px 10px",
-                  border: "4px solid #000",
-                  borderRadius: "8px",
-                  background: "#fff200",
-                  color: "#b00000",
-                  fontFamily: cooperFont,
-                  fontSize: "18px",
-                  fontWeight: 900,
-                  lineHeight: 1.05,
-                  textAlign: "center",
-                  boxShadow: "0 4px 0 #000",
-                }}
-              >
-                DEBUG · AVAA TÄSTÄ
-              </button>
-            ) : (
-              <div
-                className="text-center text-[1.18rem] font-black italic leading-none text-[#28402a]"
-                style={{ fontFamily: cooperFont }}
-              >
-                {title}
-              </div>
-            )}
+            <div
+              className="text-center text-[1.18rem] font-black italic leading-none text-[#28402a]"
+              style={{ fontFamily: cooperFont }}
+            >
+              {title}
+            </div>
             <div className="mt-[0.16rem] text-[0.74rem] font-extrabold text-[#5f5034]">
               {subtitle || (shownQuery ? `Gösta penkoi: ${shownQuery}` : "Tarjoukset tuoteryhmittäin")}
             </div>
 
-            {selectedOfferChainV39 && showLandingView && selectedStoreNameV41 ? (
-              <div className="mt-3 rounded-[1.05rem] border-[2px] border-[#9a7a3d] bg-[#fff4d4]/96 px-3.5 py-3 text-center shadow-[0_3px_0_rgba(91,72,44,0.14),inset_0_0_0_1px_rgba(255,255,255,0.45)]">
-                <div className="text-[1.02rem] font-black leading-tight text-[#28402a]" style={{ fontFamily: cooperFont }}>
-                  {selectedStoreNameV41}
-                </div>
-                <div className="mx-auto mt-1 max-w-[19rem] text-[0.72rem] font-extrabold italic leading-snug text-[#6d5d3f]" style={{ fontFamily: serifFont }}>
-                  {selectedStoreOfferLineV41}
-                </div>
-              </div>
-            ) : null}
-
           </div>
+
+          {selectedOfferChainV39 && showLandingView && selectedStoreNameV41 ? (
+            <div className="mt-1 rounded-[1.05rem] border-[2px] border-[#9a7a3d] bg-[#fff4d4]/96 px-2.5 py-1.5 text-center shadow-[0_3px_0_rgba(91,72,44,0.14),inset_0_0_0_1px_rgba(255,255,255,0.45)]">
+              <div className="whitespace-nowrap text-[clamp(0.84rem,4vw,1.02rem)] font-black leading-tight text-[#28402a]" style={{ fontFamily: cooperFont }}>
+                {selectedStoreNameV41}
+              </div>
+              <div className="mt-0.5 whitespace-nowrap text-[clamp(0.55rem,2.55vw,0.68rem)] font-extrabold italic leading-tight text-[#6d5d3f]" style={{ fontFamily: serifFont }}>
+                {selectedStoreOfferLineV41}
+              </div>
+            </div>
+          ) : null}
 
           {selectedOfferChainV39 && !showLandingView ? (
             <div className="mt-3 rounded-[1.05rem] border-[2px] border-[#9d8350] bg-[#fff4d3]/86 p-1.5 shadow-[0_3px_0_rgba(91,72,44,0.14),inset_0_0_0_1px_rgba(255,255,255,0.45)]">
@@ -919,7 +896,7 @@ export default function ZiiplyMobileOfferSearchCard({
           ) : null}
         </header>
 
-        <main className="relative z-10 min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-5 pb-[7.85rem] pt-[0.75rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <main className="relative z-10 min-h-0 flex-1 overflow-y-auto overflow-x-hidden px-5 pb-[7.85rem] pt-[0.45rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {!selectedOfferChainV39 ? (
             <div className="mt-1 rounded-[1.05rem] border-[2px] border-[#9a7a3d] bg-[#fff4d4] px-3.5 py-5 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
               <div className="text-[1.02rem] font-black italic text-[#28402a]" style={{ fontFamily: cooperFont }}>
@@ -1046,74 +1023,6 @@ export default function ZiiplyMobileOfferSearchCard({
             </div>
           )}
         </main>
-
-        {debugTitleOpen20260712D ? (
-          <div
-            style={{
-              position: "absolute",
-              inset: 0,
-              zIndex: 9999,
-              display: "flex",
-              flexDirection: "column",
-              padding: "12px",
-              background: "rgba(0,0,0,0.97)",
-              color: "white",
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-              <strong style={{ fontSize: "16px" }}>TARJOUSHAKU DEBUG V40</strong>
-              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                <button
-                  type="button"
-                  onClick={async () => {
-                    const debugText = JSON.stringify(debugPayload20260712D, null, 2);
-                    try {
-                      if (navigator.clipboard?.writeText) {
-                        await navigator.clipboard.writeText(debugText);
-                      } else {
-                        const textarea = document.createElement("textarea");
-                        textarea.value = debugText;
-                        textarea.style.position = "fixed";
-                        textarea.style.opacity = "0";
-                        document.body.appendChild(textarea);
-                        textarea.focus();
-                        textarea.select();
-                        document.execCommand("copy");
-                        document.body.removeChild(textarea);
-                      }
-                      setDebugCopyStatus20260712E("KOPIOITU");
-                    } catch {
-                      setDebugCopyStatus20260712E("KOPIOINTI EPÄONNISTUI");
-                    }
-                    window.setTimeout(() => setDebugCopyStatus20260712E(""), 2200);
-                  }}
-                  style={{ border: "3px solid white", background: "#25d366", color: "#000", padding: "8px 12px", fontWeight: 900 }}
-                >
-                  KOPIOI DEBUG
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDebugTitleOpen20260712D(false)}
-                  style={{ border: "3px solid white", background: "#fff200", color: "#000", padding: "8px 12px", fontWeight: 900 }}
-                >
-                  SULJE
-                </button>
-              </div>
-            </div>
-            {debugCopyStatus20260712E ? (
-              <div style={{ marginTop: "8px", padding: "7px 9px", background: debugCopyStatus20260712E === "KOPIOITU" ? "#25d366" : "#ff4d4d", color: "#000", fontSize: "13px", fontWeight: 900, textAlign: "center" }}>
-                {debugCopyStatus20260712E}
-              </div>
-            ) : null}
-            <div style={{ marginTop: "8px", fontSize: "12px", fontWeight: 800 }}>
-              CHAIN {selectedOfferChainV39 || "-"} · RAW {rawItems.length} · DEDUP {items.length} · VISIBLE {visibleItems.length}<br />
-              query: {shownQuery || "-"} · filter: {shownFilter || "-"} · loading: {String(loading)}
-            </div>
-            <pre style={{ flex: 1, minHeight: 0, overflow: "auto", marginTop: "8px", padding: "8px", border: "1px solid #fff", background: "#111", color: "#7dff7d", fontSize: "9px", whiteSpace: "pre-wrap", wordBreak: "break-all" }}>
-              {JSON.stringify(debugPayload20260712D, null, 2)}
-            </pre>
-          </div>
-        ) : null}
 
         {/* V7: internal footer buttons removed. Browser/back controls and category buttons handle navigation. */}
 
