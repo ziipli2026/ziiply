@@ -1,3 +1,12 @@
+// SKAUPAT_PROVIDER_V211_V4_TYPE_COMPATIBLE_DIAGNOSTIC
+// Revision: V211-V4-TYPE-COMPATIBLE-DIAGNOSTIC
+// Date: 2026-09-20
+//
+// Build fix for V210 only. Search/resolution behavior unchanged.
+// V4 response-diagnostic fields are read through a local optional structural type,
+// so this provider compiles even if TypeScript sees the older V3 return type.
+// Runtime values still come from getLastPrismaDirectoryDiagnosticV3().
+//
 // SKAUPAT_PROVIDER_V210_RESPONSE_DIAGNOSTIC_TO_MOBILE
 // Revision: V210-RESPONSE-DIAGNOSTIC-TO-MOBILE
 // Date: 2026-09-19
@@ -1652,6 +1661,18 @@ function makeGostaZeroResultDiagnosticV208(
   const receivedStoreId = firstString(options?.storeId, options?.sStoreId);
   const receivedStoreName = firstString(options?.storeName, options?.sStoreName);
   const directoryDiagnosticV209 = getLastPrismaDirectoryDiagnosticV3();
+  const directoryResponseDiagnosticV211 = directoryDiagnosticV209 as
+    | (typeof directoryDiagnosticV209 & {
+        firstHttpStatus?: number | null;
+        firstFinalUrl?: string;
+        firstContentType?: string;
+        firstHtmlLength?: number;
+        firstHasPrisma?: boolean;
+        firstHasMyymala?: boolean;
+        firstHasNextData?: boolean;
+        firstBodySample?: string;
+      })
+    | null;
   const directoryDetailV209 = directoryDiagnosticV209
     ? [
         `directoryPages=${directoryDiagnosticV209.pagesFetched}`,
@@ -1660,19 +1681,19 @@ function makeGostaZeroResultDiagnosticV208(
         `directoryCursors=${directoryDiagnosticV209.cursorUrlsFound}`,
         `directoryVarkaus=${directoryDiagnosticV209.prismaVarkausFound ? "yes" : "no"}`,
         `directoryVarkausId=${directoryDiagnosticV209.prismaVarkausStoreId || "-"}`,
-        `directoryHttp=${directoryDiagnosticV209.firstHttpStatus ?? "-"}`,
-        `directoryFinalUrl=${directoryDiagnosticV209.firstFinalUrl || "-"}`,
-        `directoryContentType=${directoryDiagnosticV209.firstContentType || "-"}`,
-        `directoryHtmlLength=${directoryDiagnosticV209.firstHtmlLength ?? "-"}`,
-        `directoryHasPrisma=${directoryDiagnosticV209.firstHasPrisma ? "yes" : "no"}`,
-        `directoryHasMyymala=${directoryDiagnosticV209.firstHasMyymala ? "yes" : "no"}`,
-        `directoryHasNextData=${directoryDiagnosticV209.firstHasNextData ? "yes" : "no"}`,
-        `directoryBodySample=${directoryDiagnosticV209.firstBodySample || "-"}`,
+        `directoryHttp=${directoryResponseDiagnosticV211?.firstHttpStatus ?? "-"}`,
+        `directoryFinalUrl=${directoryResponseDiagnosticV211?.firstFinalUrl || "-"}`,
+        `directoryContentType=${directoryResponseDiagnosticV211?.firstContentType || "-"}`,
+        `directoryHtmlLength=${directoryResponseDiagnosticV211?.firstHtmlLength ?? "-"}`,
+        `directoryHasPrisma=${directoryResponseDiagnosticV211?.firstHasPrisma ? "yes" : "no"}`,
+        `directoryHasMyymala=${directoryResponseDiagnosticV211?.firstHasMyymala ? "yes" : "no"}`,
+        `directoryHasNextData=${directoryResponseDiagnosticV211?.firstHasNextData ? "yes" : "no"}`,
+        `directoryBodySample=${directoryResponseDiagnosticV211?.firstBodySample || "-"}`,
       ].join(" | ")
     : "directoryPages=- | directoryEntries=- | directoryParsed=- | directoryCursors=- | directoryVarkaus=- | directoryVarkausId=- | directoryHttp=- | directoryFinalUrl=- | directoryContentType=- | directoryHtmlLength=- | directoryHasPrisma=- | directoryHasMyymala=- | directoryHasNextData=- | directoryBodySample=-";
 
   const debugText = [
-    "GOSTA_V210_ZERO_RESULT_DIAGNOSTIC",
+    "GOSTA_V211_ZERO_RESULT_DIAGNOSTIC",
     `receivedStoreId=${receivedStoreId || "-"}`,
     `receivedStoreName=${receivedStoreName || "-"}`,
     detail,
@@ -1680,7 +1701,7 @@ function makeGostaZeroResultDiagnosticV208(
   ].join(" | ");
 
   return {
-    id: `gosta-v210-debug-${receivedStoreId || "no-id"}`,
+    id: `gosta-v211-debug-${receivedStoreId || "no-id"}`,
     source: config.id,
     sourceUrl: config.url,
     chain: config.chain,
