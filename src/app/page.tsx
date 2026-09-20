@@ -1,4 +1,15 @@
 // ============================================================================
+// PAGE_V548_GOSTA_PASSES_SELECTED_STORE_NAME_TO_CARD
+// Revision: V548-GOSTA-PASSES-SELECTED-STORE-NAME-TO-CARD
+// Date: 2026-09-20
+//
+// Muutos V547:ään:
+// - Välittää Gösta-kortille aktiivisen S-kaupan nimen selectedStoreName-propina.
+// - Mahdollistaa kaupan nimen näyttämisen myös aidossa 0-tuloksessa.
+// - Ei muuta Göstan hakua, storeModea, GPS:ää, store selectionia tai providereita.
+// ============================================================================
+
+// ============================================================================
 // PAGE_V547_GOSTA_S_CHAIN_USES_CURRENT_STORE_MODE
 // Revision: V547-GOSTA-S-CHAIN-USES-CURRENT-STORE-MODE
 // Date: 2026-09-20
@@ -19031,6 +19042,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             testedEmptyCategories={gostaTestedEmptyCategoriesV166}
             loading={loadingOffers}
             emptyText={offerShowingAllAreaOffersV106 ? "Alueen tarjouksia ei löytynyt vielä." : "Gösta ei löytänyt tarjouksia tälle rajaukselle."}
+            selectedStoreName={activeStores.sStoreName || ""}
             onBack={() => {
               gostaPanelStickyOpenRefV158.current = false;
               setActiveResult("none");
