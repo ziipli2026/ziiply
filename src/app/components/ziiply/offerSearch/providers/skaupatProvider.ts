@@ -1,3 +1,10 @@
+// SKAUPAT_PROVIDER_V212_FETCH_ERROR_TO_MOBILE
+// Revision: V212-FETCH-ERROR-TO-MOBILE
+// Date: 2026-09-20
+//
+// Diagnostic only. Search/resolution behavior unchanged from V211.
+// Adds directoryFetchError from Store Directory V5 to mobile KOPIOI DEBUG.
+//
 // SKAUPAT_PROVIDER_V211_V4_TYPE_COMPATIBLE_DIAGNOSTIC
 // Revision: V211-V4-TYPE-COMPATIBLE-DIAGNOSTIC
 // Date: 2026-09-20
@@ -1671,6 +1678,7 @@ function makeGostaZeroResultDiagnosticV208(
         firstHasMyymala?: boolean;
         firstHasNextData?: boolean;
         firstBodySample?: string;
+        firstFetchError?: string;
       })
     | null;
   const directoryDetailV209 = directoryDiagnosticV209
@@ -1689,11 +1697,12 @@ function makeGostaZeroResultDiagnosticV208(
         `directoryHasMyymala=${directoryResponseDiagnosticV211?.firstHasMyymala ? "yes" : "no"}`,
         `directoryHasNextData=${directoryResponseDiagnosticV211?.firstHasNextData ? "yes" : "no"}`,
         `directoryBodySample=${directoryResponseDiagnosticV211?.firstBodySample || "-"}`,
+        `directoryFetchError=${directoryResponseDiagnosticV211?.firstFetchError || "-"}`,
       ].join(" | ")
-    : "directoryPages=- | directoryEntries=- | directoryParsed=- | directoryCursors=- | directoryVarkaus=- | directoryVarkausId=- | directoryHttp=- | directoryFinalUrl=- | directoryContentType=- | directoryHtmlLength=- | directoryHasPrisma=- | directoryHasMyymala=- | directoryHasNextData=- | directoryBodySample=-";
+    : "directoryPages=- | directoryEntries=- | directoryParsed=- | directoryCursors=- | directoryVarkaus=- | directoryVarkausId=- | directoryHttp=- | directoryFinalUrl=- | directoryContentType=- | directoryHtmlLength=- | directoryHasPrisma=- | directoryHasMyymala=- | directoryHasNextData=- | directoryBodySample=- | directoryFetchError=-";
 
   const debugText = [
-    "GOSTA_V211_ZERO_RESULT_DIAGNOSTIC",
+    "GOSTA_V212_ZERO_RESULT_DIAGNOSTIC",
     `receivedStoreId=${receivedStoreId || "-"}`,
     `receivedStoreName=${receivedStoreName || "-"}`,
     detail,
