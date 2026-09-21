@@ -1,3 +1,14 @@
+// ============================================================================
+// ZIIPLY K-CITYMARKET PROVIDER V2
+// Revision: V2-KCITYMARKET-TYPE-FIX
+// Date: 2026-09-21
+//
+// Muutos V1:een:
+// - Korjaa TypeScript-buildin basic URL -tyyppivirheen:
+//   abs() voi palauttaa null, joten null muunnetaan undefined-arvoksi.
+// - Ei muita muutoksia Citymarket-providerin haku- tai parserilogiikkaan.
+// ============================================================================
+
 // ZIIPLY K-CITYMARKET PROVIDER V1
 // Separate provider: public K-Citymarket leaflet -> basic-html -> Ziiply offer candidates.
 // No kr-api and no Playwright.
@@ -80,7 +91,7 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
   if(direct) leaflet=direct; else if(href) leaflet=abs(href,entry.url)??leaflet; else if(refresh) leaflet=abs(refresh,entry.url)??leaflet;
   const leaf=await html(leaflet);
   let basic=leaf.text.match(/href=["']([^"']*files\/basic-html\/index\.html[^"']*)["']/i)?.[1];
-  basic=basic?abs(basic,leaf.url):leaf.url.replace(/\/index\.html(?:\?.*)?$/i,"/files/basic-html/index.html");
+  basic=basic?(abs(basic,leaf.url) ?? undefined):leaf.url.replace(/\/index\.html(?:\?.*)?$/i,"/files/basic-html/index.html");
   if(!basic) throw new Error("K-Citymarket basic-html URL not found");
   const index=await html(basic);
   const urls=new Set<string>([index.url]);
