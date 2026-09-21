@@ -1,4 +1,18 @@
 // ============================================================================
+// ZIIPLY_OFFER_SEARCH_SOURCES_V36_K_LOCAL_NAME_HYPHEN_FIX
+// Revision: V36-K-LOCAL-NAME-HYPHEN-FIX
+// Date: 2026-09-21
+//
+// Muutos V35:een:
+// - Korjaa vain K-lähikaupan nimitunnistuksen: K-Supermarket / K-Market hyväksytään.
+// - normalizeOfferUniqueText säilyttää yhdysmerkin, joten V35:n "k supermarket"-testi
+//   ei tunnistanut nimeä "K-Supermarket Jokela".
+// - K-Citymarket pysyy edelleen poissuljettuna.
+// - V35 gate-debug säilyy ennallaan seuraavaa testiä varten.
+// - Ei muuta provideria, S-puolta, kategorioita, store-valintaa tai cache-logiikkaa.
+// ============================================================================
+
+// ============================================================================
 // ZIIPLY_OFFER_SEARCH_SOURCES_V35_K_GATE_DEBUG
 // Revision: V35-K-GATE-DEBUG
 // Date: 2026-09-21
@@ -455,7 +469,15 @@ function getProviderScopeV10(options?: ZiiplyOfferSearchSourceContextV8) {
 function isKLocalOfferStoreNameV33(value: unknown) {
   const name = normalizeOfferUniqueText(value);
   if (!name || name.includes("citymarket")) return false;
-  return name.includes("k market") || name.includes("k supermarket");
+
+  // V36: normalisointi säilyttää yhdysmerkin, joten hyväksytään sekä
+  // K-Supermarket / K-Market että välilyönnilliset kirjoitusasut.
+  return (
+    name.includes("k-supermarket") ||
+    name.includes("k supermarket") ||
+    name.includes("k-market") ||
+    name.includes("k market")
+  );
 }
 
 function getKruokaSourceByStoreNameV10(options?: ZiiplyOfferSearchSourceContextV8): ZiiplyOfferSearchSourceConfig {
