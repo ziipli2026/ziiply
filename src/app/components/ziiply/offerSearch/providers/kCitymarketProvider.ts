@@ -1,9 +1,14 @@
 // ============================================================================
-// ZIIPLY K-CITYMARKET PROVIDER V4
-// Revision: V4-KCITYMARKET-POSITIONED-HTML-PARSER
+// ZIIPLY K-CITYMARKET PROVIDER V5
+// Revision: V5-KCITYMARKET-DUPLICATE-DECLARATION-FIX
 // Date: 2026-09-21
 //
-// Muutos V3:een:
+// Muutos V4:ään:
+// - Korjaa build-virheen: decodeEntities oli V4-tiedostossa kahdesti.
+// - Säilyttää V4:n positioned HTML -parserin muuttamatta sen toimintalogiikkaa.
+// - Ei muuta route V19:ää eikä core V178:aa.
+//
+// V4:n parserimuutokset:
 // - Parseroi basic-html-sivujen positioidut teksti-elementit (left/top) rakenteena.
 // - Ryhmittelee elementit riveiksi pystysijainnin perusteella.
 // - Hinta hyväksytään vain hintamaisesta omasta elementistä, ei pakkauskoosta,
@@ -39,16 +44,6 @@ async function html(url:string){
   const r=await fetch(url,{redirect:"follow",headers:{"accept":"text/html,application/xhtml+xml","user-agent":"Ziiply/1.0"}});
   if(!r.ok) throw new Error(`K-Citymarket HTTP ${r.status}: ${url}`);
   return {url:r.url,text:await r.text()};
-}
-function decodeEntities(src:string){
-  const named:Record<string,string>={
-    nbsp:" ",amp:"&",euro:"€",quot:'"',apos:"'",lt:"<",gt:">",
-    auml:"ä",Auml:"Ä",ouml:"ö",Ouml:"Ö",aring:"å",Aring:"Å"
-  };
-  return src
-    .replace(/&([A-Za-z]+);/g,(all,n)=>named[n]??all)
-    .replace(/&#x([0-9a-f]+);/gi,(_,n)=>String.fromCodePoint(parseInt(n,16)))
-    .replace(/&#(\d+);/g,(_,n)=>String.fromCodePoint(Number(n)));
 }
 function decodeEntities(src:string){
   const named:Record<string,string>={
