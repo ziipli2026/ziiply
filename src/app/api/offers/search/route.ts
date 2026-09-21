@@ -1,6 +1,6 @@
 // ============================================================================
-// ZIIPLY_OFFERS_SEARCH_ROUTE_V19_KCITYMARKET_PROVIDER
-// Revision: V19-KCITYMARKET-PROVIDER
+// ZIIPLY_OFFERS_SEARCH_ROUTE_V20_KCITYMARKET_HTML_DIAGNOSTIC
+// Revision: V20-KCITYMARKET-HTML-DIAGNOSTIC
 // Date: 2026-09-21
 //
 // Muutos V18:aan:
@@ -62,7 +62,7 @@
 // ============================================================================
 
 import { NextResponse } from "next/server";
-import { fetchKCitymarketOffers } from "../../../components/ziiply/offerSearch/providers/kCitymarketProvider";
+import { fetchKCitymarketOffers, getKCitymarketHtmlDebugV8 } from "../../../components/ziiply/offerSearch/providers/kCitymarketProvider";
 import {
   searchZiiplyOffers,
   getKruokaOfferPipelineDebugV34,
@@ -606,7 +606,8 @@ export async function GET(request: Request) {
           ? {
               selectedStoreName: rawKStoreName || "",
               selectedStoreId: rawKStoreId || "",
-              applicationState: "KCITYMARKET_V19",
+              applicationState: "KCITYMARKET_V20",
+              htmlDebug: getKCitymarketHtmlDebugV8(),
               brochureOffers: citymarketResults.length,
               activeOffers: citymarketResults.length,
               error: null,
