@@ -1,6 +1,6 @@
 // ============================================================================
-// ZIIPLY_KRUOKA_PROVIDER_V50_DIRECT_FETCH_OFFERS_DIAGNOSTICS
-// Revision: V50-DIRECT-FETCH-OFFERS-DIAGNOSTICS
+// ZIIPLY_KRUOKA_PROVIDER_V51_DIRECT_FETCH_OFFERS_DEBUG_COMPAT
+// Revision: V51-DIRECT-FETCH-OFFERS-DEBUG-COMPAT
 // Date: 2026-09-21
 //
 // Muutos V49:ään:
@@ -39,8 +39,8 @@ export type KruokaPipelineDebugV49 = {
   brochureUrl: string;
   brochureHttp: number | null;
   applicationState: "NOT_RUN" | "OK" | "FAIL";
-  fetchOffersHttp: number | null;
-  fetchOffersShape: string | null;
+  fetchOffersHttp?: number | null;
+  fetchOffersShape?: string | null;
   kStoreId: string | null;
   brochureOffers: number | null;
   eans: number | null;
@@ -529,7 +529,7 @@ function mapProduct(
     url: productUrl,
     productUrl,
     debug: {
-      providerVersion: "V50_DIRECT_FETCH_OFFERS_DIAGNOSTICS",
+      providerVersion: "V51_DIRECT_FETCH_OFFERS_DEBUG_COMPAT",
       kRuokaStoreId: getByPath(product, ["store", "id"]) ?? null,
       selectedStoreId: displayStoreId,
       campaignId: discount.campaignId ?? null,
@@ -609,7 +609,7 @@ export async function fetchKruokaOffers(
   } catch (error) {
     debugV49.error = error instanceof Error ? error.message : String(error);
     lastKruokaPipelineDebugV49 = { ...debugV49 };
-    console.error("[Ziiply K provider V50] K-Ruoka-only haku epäonnistui", {
+    console.error("[Ziiply K provider V51] K-Ruoka-only haku epäonnistui", {
       selectedStoreId: displayStoreId,
       selectedStoreName: displayStoreName,
       brochureUrl,
