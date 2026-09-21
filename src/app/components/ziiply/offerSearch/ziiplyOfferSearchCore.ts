@@ -1,7 +1,13 @@
 // ============================================================================
-// ZIIPLY_OFFER_SEARCH_CORE_V177_KMARKET_KOTI_CATEGORY_FIX
-// Revision: V177-KMARKET-KOTI-CATEGORY-FIX
+// ZIIPLY_OFFER_SEARCH_CORE_V178_KCITYMARKET_BRANCH
+// Revision: V178-KCITYMARKET-BRANCH
 // Date: 2026-09-21
+//
+// Muutos V177:een:
+// - K-Citymarket valitaan omalle /api/offers/search -provider-haaralle store-nimen perusteella.
+// - Lisää provider=kcitymarket API-parametrin vain K-Citymarket-kontekstissa.
+// - K-Market ja K-Supermarket jatkavat nykyisellä kruokaProvider-haaralla.
+// - Korjaa samalla V177:n puuttuneen 'koti vapaa-aika' trusted-category aliasin.
 //
 // Muutos V176:een:
 // - Korjattu trusted category -alias: 'Koti & vapaa-aika' säilyy eikä putoa Muut-luokkaan.
@@ -266,6 +272,7 @@ function getTrustedETarjousCategoryV166(item: ZiiplyGostaOfferLike) {
     ["koti", "Koti & vapaa-aika"],
     ["koti & vapaa aika", "Koti & vapaa-aika"],
     ["koti vapaa aika", "Koti & vapaa-aika"],
+    ["koti vapaa-aika", "Koti & vapaa-aika"],
     ["muut", "Muut"],
   ]);
 
@@ -350,6 +357,18 @@ export function getLastZiiplyKruokaDebugV174(): ZiiplyKruokaDebugV174 | null {
   return lastZiiplyKruokaDebugV174 ? { ...lastZiiplyKruokaDebugV174 } : null;
 }
 
+function isKCitymarketContextV178(context?: ZiiplyGostaOfferSearchContextV152) {
+  const names = normalizeGostaContextListV164(context?.kStoreNames, context?.kStoreName)
+    .map((value) => normalizeGostaCoreText(value));
+
+  return names.some(
+    (name) =>
+      name.includes("k citymarket") ||
+      name.includes("k-citymarket") ||
+      name.includes("citymarket"),
+  );
+}
+
 async function fetchOfferSearchResults(query: string, context?: ZiiplyGostaOfferSearchContextV152) {
   const params = new URLSearchParams();
   params.set("q", query);
@@ -362,6 +381,12 @@ async function fetchOfferSearchResults(query: string, context?: ZiiplyGostaOffer
   if (context?.storeMode) params.set("storeMode", String(context.storeMode));
   if (context?.storeCompareScope) params.set("scope", String(context.storeCompareScope));
   if (context?.withinChain) params.set("withinChain", String(context.withinChain));
+
+  // V178: Citymarket has its own provider. The API route must dispatch
+  // provider=kcitymarket to providers/kCitymarketProvider.ts.
+  if (isKCitymarketContextV178(context)) {
+    params.set("provider", "kcitymarket");
+  }
 
   const sStoreIdsV162 = normalizeGostaContextListV164(context?.sStoreIds, context?.sStoreId);
   const sStoreNamesV162 = normalizeGostaContextListV164(context?.sStoreNames, context?.sStoreName);
