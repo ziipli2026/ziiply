@@ -1,13 +1,14 @@
 // ============================================================================
-// ZIIPLY K-CITYMARKET PROVIDER V7
-// Revision: V7-KCITYMARKET-PRICE-AND-NOISE-FIX
+// ZIIPLY K-CITYMARKET PROVIDER V6
+// Revision: V6-KCITYMARKET-V3-RECOVERY-STRICT-PRICE-FILTER
 // Date: 2026-09-21
 //
-// Muutos V6:een:
-// - Poistaa debugissa näkyvät Basic HTML/Table of Contents- ja Koot/Rajoitus-osumat.
-// - Ei hyväksy irrallisia kokonaislukuja hinnoiksi; kokonaisluku hyväksytään vain € / EUR-yhteydessä.
-// - Säilyttää desimaalihintojen parserin ja 18 sivun luvun.
-// - Korjaa ALUSLAKANA -> Liha & makkarat -vääräosuman (kana sanan osana).
+// Muutos V5:een:
+// - Poistaa V4/V5 positioned-parserin, joka palautti 0 tarjousta.
+// - Palauttaa toimivaksi todetun V3 basic-html tekstiparserin pohjaksi.
+// - Lisää tiukan hintasuodatuksen V3-debugissa todetuille väärille osumille
+//   (pakkauskoko, yksikköhinta, pantti, lahjoitus ja alle 1 € irtonumerot).
+// - Säilyttää kaikkien leaflet-sivujen pageN.html-luvun.
 // - Route V19 ja core V178 eivät muutu.
 // ============================================================================
 
@@ -65,7 +66,7 @@ function category(t:string){
   if(/kahvi|espresso|tee\b/.test(s)) return "Kahvi & tee";
   if(/maito|juusto|jogur|rahka|kerma|voi\b|raejuusto|viili|piim/.test(s)) return "Maitotuotteet";
   if(/mehu|limon|virvoitus|energiajuoma|vitamiinijuoma|urheilujuoma|kivennäisves|vichy|cola|juoma|vesi\b/.test(s)) return "Juomat";
-  if(/\bkana\b|broiler|nauta|sika|porsas|jauheliha|makkara|nakki|pekoni|kinkku|liha/.test(s)) return "Liha & makkarat";
+  if(/kana|broiler|nauta|sika|porsas|jauheliha|makkara|nakki|pekoni|kinkku|liha/.test(s)) return "Liha & makkarat";
   if(/kala|lohi|silakka|tonnikala|kirjolohi|seiti|katkarapu/.test(s)) return "Kala";
   if(/omena|banaani|tomaatti|kurkku|salaatti|paprika|peruna|sipuli|porkkana|mango|satsuma|marja|hedelm|vihann/.test(s)) return "Hevi";
   if(/jäätel|pakaste/.test(s)) return "Pakasteet";
@@ -82,7 +83,7 @@ function category(t:string){
 function isNoiseLine(line:string){
   const s=clean(line);
   return !s ||
-    /view full version|basic html version|table of contents|k-citymarket tarjouslehti|katso resepti|appanvändare/i.test(s) ||
+    /view full version|k-citymarket tarjouslehti|katso resepti|appanvändare/i.test(s) ||
     /^(plus(sa)?|etu|erä|voimassa|rajoitus|normaali|lahjoitus|\/tuote|p\.\s*\d+)$/i.test(s) ||
     /^(sis\.?\s*pantit|ilman plussa-korttia|normaalihinta)/i.test(s);
 }
@@ -103,13 +104,7 @@ function isFalsePriceContext(lines:string[],i:number,raw:string){
 }
 function extractOfferPrice(lines:string[],i:number):number|null{
   const line=lines[i];
-  // Desimaalihinta tai selvästi hinnaksi merkitty kokonaisluku.
-  // Pelkkää irrallista kokonaislukua ei hyväksytä: muuten sivunumerot,
-  // kappalemäärät ja kampanjanumerot muuttuvat tuotteiksi.
-  const matches=[
-    ...line.matchAll(/(?<!\d)(\d{1,3}[,.]\d{1,2})(?!\d)/g),
-    ...line.matchAll(/(?<!\d)(\d{1,3})\s*(?:€|eur)\b/gi),
-  ];
+  const matches=[...line.matchAll(/(?<!\d)(\d{1,3}[,.]\d{2})(?!\d)/g)];
   for(const m of matches){
     if(isFalsePriceContext(lines,i,m[1])) continue;
     const value=money(m[1]);
@@ -124,11 +119,7 @@ function titleCandidate(lines:string[],priceIndex:number){
     .filter(x=>!isNoiseLine(x))
     .filter(x=>!/^(\d+[,.]\d{2}|[-–]?\d+%)/.test(x))
     .filter(x=>!/^(sis\.?\s*pantit|ilman plussa-korttia|normaalihinta)/i.test(x));
-  const title=prior.slice(-2).join(" ").replace(/\s+/g," ").trim();
-  if(/^(?:\d+\s*)?(?:jopa\s+)?(?:pari|kpl|pkt)$/i.test(title)) return "";
-  if(/^koot?\b|^rajoitus\b/i.test(title)) return "";
-  if(/^-?\d+%|ilman plussa-korttia/i.test(title) && !/[A-Za-zÅÄÖåäö]{4,}/.test(title.replace(/ilman plussa-korttia/ig,""))) return "";
-  return title;
+  return prior.slice(-2).join(" ").replace(/\s+/g," ").trim();
 }
 function parsePage(html:string,url:string):CitymarketOffer[]{
   const lines=textOf(html).split(/\n+/).map(clean).filter(Boolean);
