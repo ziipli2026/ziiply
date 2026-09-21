@@ -1,4 +1,16 @@
 // ============================================================================
+// ZIIPLY_OFFERS_SEARCH_ROUTE_V19_KCITYMARKET_PROVIDER
+// Revision: V19-KCITYMARKET-PROVIDER
+// Date: 2026-09-21
+//
+// Muutos V18:aan:
+// - K-Citymarket ohjataan erilliselle kCitymarketProviderille.
+// - K-Market/K-Supermarket jatkavat nykyisellä searchZiiplyOffers/kruokaProvider-polulla.
+// - S-market-polku säilyy ennallaan.
+// - Citymarket-providerin virhe ei kaada koko tarjoushakua.
+// ============================================================================
+
+// ============================================================================
 // ZIIPLY_OFFERS_SEARCH_ROUTE_V18_KRUOKA_SEPARATE_DEBUG_PAYLOAD
 // Revision: V18-KRUOKA-SEPARATE-DEBUG-PAYLOAD
 // Date: 2026-09-20
@@ -50,6 +62,7 @@
 // ============================================================================
 
 import { NextResponse } from "next/server";
+import { fetchKCitymarketOffers } from "../../../components/ziiply/offerSearch/providers/kCitymarketProvider";
 import {
   searchZiiplyOffers,
   getKruokaOfferPipelineDebugV34,
@@ -512,6 +525,13 @@ async function fetchSelectedSMarketETarjousOffers(query: string, rawSStoreNames:
   return dedupe(allResults);
 }
 
+function isKCitymarketSelectionV19(rawKStoreName: unknown): boolean {
+  return splitMultiValue(rawKStoreName).some((name) => {
+    const normalized = normalizeText(name);
+    return normalized.includes("citymarket");
+  });
+}
+
 export async function GET(request: Request) {
   try {
     const url = new URL(request.url);
@@ -543,7 +563,24 @@ export async function GET(request: Request) {
       kStoreNames: splitMultiValue(rawKStoreName),
     } as ZiiplyOfferSearchSourceContextV8;
 
-    const baseResults = await searchZiiplyOffers(q, context);
+    const isKCitymarketV19 = isKCitymarketSelectionV19(rawKStoreName);
+
+    // V19: älä aja Citymarketia vanhan K-Ruoka-gaten läpi.
+    // Muut K-kaupat jatkavat täysin nykyisellä searchZiiplyOffers-polulla.
+    const baseResults = isKCitymarketV19 ? [] : await searchZiiplyOffers(q, context);
+
+    let citymarketResults: UnknownRecord[] = [];
+    if (isKCitymarketV19) {
+      try {
+        const fetched = await fetchKCitymarketOffers();
+        citymarketResults = (fetched as unknown as UnknownRecord[]).filter((offer) =>
+          offerMatchesQuery(q, offer),
+        );
+      } catch (error) {
+        console.warn("[Ziiply offers V19] K-Citymarket fetch failed", error);
+        citymarketResults = [];
+      }
+    }
 
     let sMarketResults: UnknownRecord[] = [];
     try {
@@ -555,6 +592,7 @@ export async function GET(request: Request) {
 
     const results = dedupe([
       ...(baseResults as unknown as UnknownRecord[]),
+      ...citymarketResults,
       ...sMarketResults,
     ]);
 
@@ -564,7 +602,16 @@ export async function GET(request: Request) {
         query: q,
         context,
         results,
-        kruokaDebug: getKruokaOfferPipelineDebugV34(),
+        kruokaDebug: isKCitymarketV19
+          ? {
+              selectedStoreName: rawKStoreName || "",
+              selectedStoreId: rawKStoreId || "",
+              applicationState: "KCITYMARKET_V19",
+              brochureOffers: citymarketResults.length,
+              activeOffers: citymarketResults.length,
+              error: null,
+            }
+          : getKruokaOfferPipelineDebugV34(),
       },
       {
         headers: {
