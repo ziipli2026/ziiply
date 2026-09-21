@@ -1,6 +1,6 @@
 // ============================================================================
-// ZIIPLY_KRUOKA_PROVIDER_V53_ETARJOUSLEHDET_NULL_PRICE_FIX
-// Revision: V53-ETARJOUSLEHDET-NULL-PRICE-FIX
+// ZIIPLY_KRUOKA_PROVIDER_V54_ETARJOUSLEHDET_CATEGORY_FIX
+// Revision: V54-ETARJOUSLEHDET-CATEGORY-FIX
 // Date: 2026-09-21
 //
 // Muutos V51:een:
@@ -10,10 +10,15 @@
 // - Hakee K-ketjun tarjoukset ja rajaa publicationit valittuun myymälään.
 // - Säilyttää fetchKruokaOffers(), KruokaOfferProviderOptionsV10 ja debug-exportin.
 // - V53 korjaa Tjekin null-hintojen käsittelyn: Number(null) ei enää muutu 0:ksi.
- // - Näin tavallinen price ja appPrice eivät jää aiemman null-kentän taakse.
- // ============================================================================
+// - Näin tavallinen price ja appPrice eivät jää aiemman null-kentän taakse.
+// - V54 mapittaa Tjekin departmentSlug-kategoriat Ziiplyn näkyviin kategorioihin.
+// - Tuotteen nimi/kuvaus voi ohittaa liian karkean Tjek-kategorian:
+//   esim. dairy-and-cold + mikroateria/keitto/pasta -> Valmisruoka.
+// - frozen -> Pakasteet, meat-and-fish -> Liha & makkarat/Kala,
+//   fruits-and-vegetables -> Hevi, beverages -> Juomat.
+// ============================================================================
 
- // src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts
+// src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts
 
 import type {
   ZiiplyOfferSearchResult,
@@ -69,9 +74,8 @@ function getSelectedStoreName(options?: KruokaOfferProviderOptionsV10): string {
 
 function businessForStore(storeName: string): { businessId: string; chain: string } | null {
   const n = normalize(storeName);
-  if (n.includes("citymarket")) return null; // pidetään erillisenä kuten ennen
+  if (n.includes("citymarket")) return null;
   if (n.includes("supermarket")) return { businessId: K_SUPERMARKET_BUSINESS_ID, chain: "K-Supermarket" };
-  // K-Market businessId selvitetään erikseen; V52 ei arvaa tunnistetta.
   if (n.includes("k market")) return null;
   return null;
 }
@@ -103,7 +107,7 @@ async function fetchTjekData(name: string, params: UnknownRecord): Promise<unkno
     try {
       const row = JSON.parse(line) as UnknownRecord;
       if (row.key === key) return row.value;
-    } catch { /* NDJSON: ohita virheellinen rivi */ }
+    } catch { }
   }
   throw new Error(`eTarjouslehdet data-avain ${name} puuttui vastauksesta`);
 }
@@ -126,8 +130,6 @@ async function resolveSelectedStore(businessId: string, selectedName: string): P
 }
 
 function num(v: unknown): number | null {
-  // Tjek käyttää puuttuvissa hintakentissä null-arvoa. Number(null) === 0,
-  // joten V52:ssa ensimmäinen null-kenttä peitti myöhemmän oikean price/appPrice-arvon.
   if (v == null || (typeof v === "string" && !v.trim())) return null;
   const n = Number(v);
   return Number.isFinite(n) ? n : null;
@@ -141,6 +143,57 @@ function matchesQuery(result: ZiiplyOfferSearchResult, query: string): boolean {
   const q = normalize(query); if (!q || String(query).trim().startsWith("__ziiply")) return true;
   const x = result as unknown as UnknownRecord;
   return normalize([x.title,x.name,x.productName,x.brand,x.category,x.categoryPath,x.productGroup,x.subCategory].filter(Boolean).join(" ")).includes(q);
+}
+
+function mapTjekCategoryV54(offer: UnknownRecord): string {
+  const department = normalize(offer.departmentSlug ?? offer.department ?? "");
+  const productText = normalize([
+    offer.name,
+    offer.title,
+    offer.description,
+  ].filter(Boolean).join(" "));
+
+  // Tuotetason poikkeukset ensin. Tjekin department voi olla liian karkea,
+  // esimerkiksi valmisruoka voi tulla dairy-and-cold-osastolta.
+  if (/mikroateria|valmisateria|valmisruoka|keitto|pasta|lasagne|laatikko|risotto|ateria/.test(productText)) {
+    return "Valmisruoka";
+  }
+
+  if (/jaatelo|pakaste|pakastettu|nugget|ranskalaiset|wokvihannes|pakastevihannes|pakastemarja/.test(productText)) {
+    return "Pakasteet";
+  }
+
+  if (/lohi|kirjolohi|silakka|muikku|tonnikala|katkarapu|seiti|turska|kala/.test(productText)) {
+    return "Kala";
+  }
+
+  if (/jauheliha|makkara|lenkkimakkara|nakki|broileri|kana|kanan |nauta|porsas|possu|pekoni|kinkku|leikkele|liha/.test(productText)) {
+    return "Liha & makkarat";
+  }
+
+  if (/jogurtti|jugurtti|maito|piima|rahka|juusto|kerma|voi\b|kananmuna/.test(productText)) {
+    return "Maitotuotteet";
+  }
+
+  if (/mehu|limu|virvoitusjuoma|cola|vichy|vesi|energiajuoma|smoothie/.test(productText)) {
+    return "Juomat";
+  }
+
+  if (/salaatti|peruna|tomaatti|kurkku|omena|banaani|appelsiini|sipuli|porkkana|paprika|kaali|hedelma|vihannes|marja/.test(productText)) {
+    return "Hevi";
+  }
+
+  // Sen jälkeen Tjekin oma departmentSlug.
+  if (department === "frozen" || department.includes("frozen")) return "Pakasteet";
+  if (department.includes("fruits and vegetables") || department.includes("fruit") || department.includes("vegetable")) return "Hevi";
+  if (department.includes("beverage") || department.includes("drink")) return "Juomat";
+  if (department.includes("meat and fish") || department.includes("meat")) return "Liha & makkarat";
+  if (department.includes("fish") || department.includes("seafood")) return "Kala";
+  if (department.includes("dairy and cold") || department.includes("dairy")) return "Maitotuotteet";
+  if (department.includes("bakery") || department.includes("bread")) return "Leipomo";
+  if (department.includes("candy") || department.includes("confection") || department.includes("sweet")) return "Makeiset & keksit";
+
+  return "Muut";
 }
 
 function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId: string, displayStoreName: string, chain: string): ZiiplyOfferSearchResult | null {
@@ -159,9 +212,9 @@ function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId: strin
   const unitPriceValue = num(offer.unitPrice);
   const unitPrice = unitPriceValue == null ? "" : `${priceText(unitPriceValue)}${unit ? `/${unit}` : ""}`;
   const isPlussa = membership != null;
-  const category = String(offer.departmentSlug ?? "Muut");
+  const category = mapTjekCategoryV54(offer);
   return {
-    id: `etarjouslehdet-v53-${displayStoreId}-${offerId}-${index}`,
+    id: `etarjouslehdet-v54-${displayStoreId}-${offerId}-${index}`,
     title, name: title, productName: title,
     price: effective, priceText: priceText(effective), offerPrice: priceText(effective),
     previousPrice: regular != null && regular !== effective ? regular : null,
@@ -175,7 +228,7 @@ function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId: strin
     category, categoryPath: category, productGroup: category, mainCategory: category, subCategory: category,
     validFrom: offer.validFrom ?? null, validUntil: offer.validUntil ?? null, isPlussaOffer: isPlussa,
     url: `${ETARJOUSLEHDET_ORIGIN}/K-Supermarket`, productUrl: `${ETARJOUSLEHDET_ORIGIN}/K-Supermarket`,
-    debug: { providerVersion: "V53_ETARJOUSLEHDET_NULL_PRICE_FIX", publicationId, tjekStoreId: displayStoreId, chain },
+    debug: { providerVersion: "V54_ETARJOUSLEHDET_CATEGORY_FIX", publicationId, tjekStoreId: displayStoreId, chain },
   } as unknown as ZiiplyOfferSearchResult;
 }
 
@@ -217,6 +270,6 @@ export async function fetchKruokaOffers(
     debug.activeOffers=results.length; lastKruokaPipelineDebugV49={...debug}; return results;
   } catch(error) {
     debug.error=error instanceof Error?error.message:String(error); lastKruokaPipelineDebugV49={...debug};
-    console.error("[Ziiply K provider V53] eTarjouslehdet/Tjek haku epäonnistui",{selectedStoreName:displayStoreName,error:debug.error}); return [];
+    console.error("[Ziiply K provider V54] eTarjouslehdet/Tjek haku epäonnistui",{selectedStoreName:displayStoreName,error:debug.error}); return [];
   }
 }
