@@ -1,4 +1,16 @@
 // ============================================================================
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V54_KRUOKA_PIPELINE_DEBUG_PROP
+// Revision: V54-KRUOKA-PIPELINE-DEBUG-PROP
+// Date: 2026-09-21
+//
+// Muutos V53:een:
+// - Lisää kruokaDebug-propin nykyiseen pieneen DBG-overlayhin.
+// - K-Ruoka pipeline-debug kulkee erillisenä datana, ei tarjousrivinä.
+// - DBG-painike pysyy V53:n minimikokoisena.
+// - Ei muuta haku-, store-, category-, dedupe- tai S/K-logiikkaa.
+// ============================================================================
+
+// ============================================================================
 // ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V53_MINI_DEBUG_BUTTON
 // Revision: V53-MINI-DEBUG-BUTTON
 // Date: 2026-09-21
@@ -249,6 +261,20 @@ export type ZiiplyMobileOfferSearchCardProps = {
   loading?: boolean;
   emptyText?: string;
   selectedStoreName?: string;
+  kruokaDebug?: {
+    selectedStoreName?: string;
+    selectedStoreId?: string;
+    brochureUrl?: string;
+    brochureHttp?: number | null;
+    applicationState?: string;
+    kStoreId?: string | null;
+    brochureOffers?: number | null;
+    eans?: number | null;
+    productMapHttp?: number | null;
+    productMapProducts?: number | null;
+    activeOffers?: number | null;
+    error?: string | null;
+  } | null;
   categorySuggestions?: string[];
   categoryOfferCounts?: Record<string, number | null | undefined>;
   testedEmptyCategories?: Record<string, boolean | undefined>;
@@ -567,6 +593,7 @@ export default function ZiiplyMobileOfferSearchCard({
   loading = false,
   emptyText = "Gösta ei löytänyt tarjouksia vielä.",
   selectedStoreName = "",
+  kruokaDebug = null,
   categorySuggestions = ["Kahvi & tee", "Maitotuotteet", "Liha & makkarat", "Kala", "Leipomo", "Hevi", "Juomat", "Pakasteet", "Valmisruoka", "Kuivatuotteet", "Makeiset & keksit", "Lastenruoat", "Vitamiinit & ravinteet", "Lemmikit", "Hygienia & kosmetiikka", "Kodinhoito", "Koti & vapaa-aika", "Muut"],
   categoryOfferCounts,
   testedEmptyCategories,
@@ -874,7 +901,7 @@ export default function ZiiplyMobileOfferSearchCard({
     : "Valitsemasi lähipuodin huojennetut hinnat ja tarjoukset";
 
   const debugPayloadV52 = {
-    revision: "V52-DEBUG-OVERLAY-RESTORED",
+    revision: "V54-KRUOKA-PIPELINE-DEBUG-PROP",
     selectedOfferChain: selectedOfferChainV39,
     loading,
     query: shownQuery,
@@ -886,6 +913,7 @@ export default function ZiiplyMobileOfferSearchCard({
     visibleItemsCount: visibleItems.length,
     categoryOfferCounts: categoryOfferCounts || {},
     testedEmptyCategories: testedEmptyCategories || {},
+    kruokaDebug: selectedOfferChainV39 === "K" ? kruokaDebug : null,
     rawItems,
   };
 
