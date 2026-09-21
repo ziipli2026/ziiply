@@ -1,6 +1,6 @@
 // ============================================================================
-// ZIIPLY_KRUOKA_PROVIDER_V56_KMARKET_TEST
-// Revision: V56-KMARKET-TEST
+// ZIIPLY_KRUOKA_PROVIDER_V57_KMARKET_PUBLICATION_STORES_DEBUG
+// Revision: V57-KMARKET-PUBLICATION-STORES-DEBUG
 // Date: 2026-09-21
 //
 // V55 pohjana. Muutos vain K-Marketin testaamiseksi eTarjouslehdet/Tjekillä:
@@ -43,6 +43,23 @@ export type KruokaPipelineDebugV49 = {
   activeOffers: number | null;
   error: string | null;
   rawOffers?: UnknownRecord[];
+  publicationStoreDebug?: Array<{
+    publicationPublicId: string;
+    offerCount: number;
+    selectedTjekStoreId: string;
+    selectedStoreName: string;
+    returnedStoreCount: number;
+    containsSelectedStoreById: boolean;
+    containsSelectedStoreByName: boolean;
+    returnedStores: Array<{
+      id: string;
+      name: string;
+      city: string;
+      streetAddress: string;
+      postalCode: string;
+    }>;
+    error: string | null;
+  }>;
   rawOfferAnalysis?: Array<{
     index: number;
     publicId: string;
@@ -192,7 +209,7 @@ function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId: strin
   const isPlussa = membership != null;
   const category = mapTjekCategoryV54(offer);
   return {
-    id: `etarjouslehdet-v56-${displayStoreId}-${offerId}-${index}`,
+    id: `etarjouslehdet-v57-${displayStoreId}-${offerId}-${index}`,
     title, name: title, productName: title,
     price: effective, priceText: priceText(effective), offerPrice: priceText(effective),
     previousPrice: regular != null && regular !== effective ? regular : null,
@@ -206,7 +223,7 @@ function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId: strin
     category, categoryPath: category, productGroup: category, mainCategory: category, subCategory: category,
     validFrom: offer.validFrom ?? null, validUntil: offer.validUntil ?? null, isPlussaOffer: isPlussa,
     url: `${ETARJOUSLEHDET_ORIGIN}/${slug}`, productUrl: `${ETARJOUSLEHDET_ORIGIN}/${slug}`,
-    debug: { providerVersion: "V56_KMARKET_TEST", publicationId, tjekStoreId: displayStoreId, chain },
+    debug: { providerVersion: "V57_KMARKET_PUBLICATION_STORES_DEBUG", publicationId, tjekStoreId: displayStoreId, chain },
   } as unknown as ZiiplyOfferSearchResult;
 }
 
@@ -225,7 +242,7 @@ export async function fetchKruokaOffers(
     applicationState: "NOT_RUN", fetchOffersHttp: null, fetchOffersShape: null,
     kStoreId: null, brochureOffers: null, eans: null, productMapHttp: null,
     productMapProducts: null, activeOffers: null, error: null,
-    rawOffers: [], rawOfferAnalysis: [],
+    rawOffers: [], rawOfferAnalysis: [], publicationStoreDebug: [],
   };
   lastKruokaPipelineDebugV49 = debug;
 
@@ -262,13 +279,52 @@ export async function fetchKruokaOffers(
     const allowed = new Set<string>();
 
     for (const publicationId of publicationIds) {
-      const storesValue = await fetchTjekData("stores", {
-        publicationId,
-        businessId: business.businessId,
-        pagination: { offset: 0, limit: 1000 },
-      }, business.slug);
-      if (dataArray(storesValue).some(s => String(s.id ?? "") === tjekStoreId)) {
-        allowed.add(publicationId);
+      const offerCount = offers.filter(o => String(o.publicationPublicId ?? "") === publicationId).length;
+      try {
+        const storesValue = await fetchTjekData("stores", {
+          publicationId,
+          businessId: business.businessId,
+          pagination: { offset: 0, limit: 1000 },
+        }, business.slug);
+        const publicationStores = dataArray(storesValue);
+        const containsSelectedStoreById = publicationStores.some(
+          s => String(s.id ?? "") === tjekStoreId
+        );
+        const containsSelectedStoreByName = publicationStores.some(
+          s => normalize(s.name) === normalize(selected.name ?? displayStoreName)
+        );
+
+        debug.publicationStoreDebug?.push({
+          publicationPublicId: publicationId,
+          offerCount,
+          selectedTjekStoreId: tjekStoreId,
+          selectedStoreName: String(selected.name ?? displayStoreName),
+          returnedStoreCount: publicationStores.length,
+          containsSelectedStoreById,
+          containsSelectedStoreByName,
+          returnedStores: publicationStores.map(s => ({
+            id: String(s.id ?? ""),
+            name: String(s.name ?? ""),
+            city: String(s.city ?? ""),
+            streetAddress: String(s.streetAddress ?? ""),
+            postalCode: String(s.postalCode ?? ""),
+          })),
+          error: null,
+        });
+
+        if (containsSelectedStoreById) allowed.add(publicationId);
+      } catch (error) {
+        debug.publicationStoreDebug?.push({
+          publicationPublicId: publicationId,
+          offerCount,
+          selectedTjekStoreId: tjekStoreId,
+          selectedStoreName: String(selected.name ?? displayStoreName),
+          returnedStoreCount: 0,
+          containsSelectedStoreById: false,
+          containsSelectedStoreByName: false,
+          returnedStores: [],
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
     }
 
@@ -325,7 +381,7 @@ export async function fetchKruokaOffers(
   } catch (error) {
     debug.error = error instanceof Error ? error.message : String(error);
     lastKruokaPipelineDebugV49 = { ...debug };
-    console.error("[Ziiply K provider V56 K-Market TEST] eTarjouslehdet/Tjek haku epäonnistui", {
+    console.error("[Ziiply K provider V57 K-Market publication stores DEBUG] eTarjouslehdet/Tjek haku epäonnistui", {
       selectedStoreName: displayStoreName,
       error: debug.error,
     });
