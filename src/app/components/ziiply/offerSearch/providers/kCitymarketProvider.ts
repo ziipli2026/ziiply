@@ -1,20 +1,15 @@
 // ============================================================================
-// ZIIPLY K-CITYMARKET PROVIDER V5
-// Revision: V5-KCITYMARKET-DUPLICATE-DECLARATION-FIX
+// ZIIPLY K-CITYMARKET PROVIDER V6
+// Revision: V6-KCITYMARKET-V3-RECOVERY-STRICT-PRICE-FILTER
 // Date: 2026-09-21
 //
-// Muutos V4:ään:
-// - Korjaa build-virheen: decodeEntities oli V4-tiedostossa kahdesti.
-// - Säilyttää V4:n positioned HTML -parserin muuttamatta sen toimintalogiikkaa.
-// - Ei muuta route V19:ää eikä core V178:aa.
-//
-// V4:n parserimuutokset:
-// - Parseroi basic-html-sivujen positioidut teksti-elementit (left/top) rakenteena.
-// - Ryhmittelee elementit riveiksi pystysijainnin perusteella.
-// - Hinta hyväksytään vain hintamaisesta omasta elementistä, ei pakkauskoosta,
-//   yksikköhinnasta, pantista, prosentista tai leipätekstin sisältä.
-// - Tuotenimi haetaan hinnan läheisistä rakenteellisista riveistä.
-// - Kaikkien leafletin pageN.html-sivujen luku säilyy.
+// Muutos V5:een:
+// - Poistaa V4/V5 positioned-parserin, joka palautti 0 tarjousta.
+// - Palauttaa toimivaksi todetun V3 basic-html tekstiparserin pohjaksi.
+// - Lisää tiukan hintasuodatuksen V3-debugissa todetuille väärille osumille
+//   (pakkauskoko, yksikköhinta, pantti, lahjoitus ja alle 1 € irtonumerot).
+// - Säilyttää kaikkien leaflet-sivujen pageN.html-luvun.
+// - Route V19 ja core V178 eivät muutu.
 // ============================================================================
 
 export type CitymarketOffer = {
@@ -55,32 +50,16 @@ function decodeEntities(src:string){
     .replace(/&#x([0-9a-f]+);/gi,(_,n)=>String.fromCodePoint(parseInt(n,16)))
     .replace(/&#(\d+);/g,(_,n)=>String.fromCodePoint(Number(n)));
 }
-function plainHtml(src:string){
-  return clean(decodeEntities(src.replace(/<[^>]+>/g," ")));
-}
-type PositionedText={text:string;left:number;top:number;width:number;height:number;fontSize:number};
-function cssNumber(style:string,key:string){
-  const m=style.match(new RegExp(`${key}\\s*:\\s*(-?\\d+(?:\\.\\d+)?)px`,"i"));
-  return m?Number(m[1]):NaN;
-}
-function positionedTexts(html:string):PositionedText[]{
-  const out:PositionedText[]=[];
-  const re=/<(?:span|div|p)\b([^>]*)>([\s\S]*?)<\/(?:span|div|p)>/gi;
-  for(const m of html.matchAll(re)){
-    const attrs=m[1]||"";
-    const style=(attrs.match(/\bstyle=["']([^"']*)["']/i)?.[1]||"");
-    const left=cssNumber(style,"left"), top=cssNumber(style,"top");
-    if(!Number.isFinite(left)||!Number.isFinite(top)) continue;
-    const text=plainHtml(m[2]);
-    if(!text) continue;
-    out.push({
-      text,left,top,
-      width:cssNumber(style,"width"),
-      height:cssNumber(style,"height"),
-      fontSize:cssNumber(style,"font-size")
-    });
-  }
-  return out.sort((a,b)=>a.top-b.top||a.left-b.left);
+function textOf(src:string){
+  return clean(
+    decodeEntities(
+      src.replace(/<script[\s\S]*?<\/script>/gi," ")
+        .replace(/<style[\s\S]*?<\/style>/gi," ")
+        .replace(/<br\s*\/?\s*>/gi,"\n")
+        .replace(/<\/(?:p|div|li|span|h[1-6])>/gi,"\n")
+        .replace(/<[^>]+>/g," ")
+    )
+  ).replace(/ ?\n ?/g,"\n");
 }
 function category(t:string){
   const s=t.toLowerCase();
@@ -93,71 +72,69 @@ function category(t:string){
   if(/jäätel|pakaste/.test(s)) return "Pakasteet";
   if(/leipä|sämpyl|pull|croissant|patonki|karjalanpiirakka|ruisleip/.test(s)) return "Leipomo";
   if(/pizza|ateria|keitto|valmisruoka|wrap|caesar|taco-salaat/.test(s)) return "Valmisruoka";
-  if(/pasta|riisi|jauho|hiutale|muro|mysli|säilyke|sailyke|kastike|öljy|oljy|mauste|tortilla/.test(s)) return "Kuivatuotteet";
+  if(/pasta|riisi|jauho|hiutale|muro|mysli|säilyke|kastike|öljy|mauste|tortilla/.test(s)) return "Kuivatuotteet";
   if(/suklaa|kark|makeis|keksi|chips|sips|perunalastu|lakrit|salmiak|purukum/.test(s)) return "Makeiset & keksit";
   if(/koira|kissa|lemmik/.test(s)) return "Lemmikit";
   if(/pesu|puhdist|astianpes|pyykin|wc-paper|talouspaper|nenäliina|näsdukar/.test(s)) return "Kodinhoito";
   if(/shampoo|saippua|deodor|hammastahna|hammasharja|vaihtoharja|oral-b|herbina|kosmeti/.test(s)) return "Hygienia & kosmetiikka";
-  if(/calluna|ljung|orkidea|krysanteemi|kukka|kasvi|kenkä|nilkkuri|maihari|takki|housut|vaate|paristo|kalenteri|muki|lakana|pyyhe/.test(s)) return "Koti & vapaa-aika";
+  if(/calluna|ljung|orkidea|krysanteemi|kukka|kasvi|kenkä|nilkkuri|maihari|takki|housut|vaate|kalenteri|muki|lakana|pyyhe/.test(s)) return "Koti & vapaa-aika";
   return "Muut";
 }
-function noiseText(s:string){
-  const t=clean(s);
-  return !t ||
-    /view full version|k-citymarket tarjouslehti|katso resepti|appanvändare/i.test(t) ||
-    /^(plus(sa)?|etu|erä|voimassa|rajoitus|normaali|lahjoitus|\/tuote|p\.\s*\d+)$/i.test(t) ||
-    /^(sis\.?\s*pantit|ilman plussa-korttia|normaalihinta)/i.test(t);
+function isNoiseLine(line:string){
+  const s=clean(line);
+  return !s ||
+    /view full version|k-citymarket tarjouslehti|katso resepti|appanvändare/i.test(s) ||
+    /^(plus(sa)?|etu|erä|voimassa|rajoitus|normaali|lahjoitus|\/tuote|p\.\s*\d+)$/i.test(s) ||
+    /^(sis\.?\s*pantit|ilman plussa-korttia|normaalihinta)/i.test(s);
 }
-function standalonePrice(text:string):number|null{
-  let t=clean(text).replace(/\s*€\s*$/,"").trim();
-  if(/%|\/\s*(kg|l|kpl)\b|pant|kg|ml|cl|dl|tlk|pkt|pss|kpl|rl\b/i.test(t)) return null;
-  // hyväksy vain elementti, joka on käytännössä pelkkä tarjoushinta
-  const m=t.match(/^(?:nyt\s*)?(\d{1,3}(?:[,.]\d{1,2})?)$/i);
-  if(!m) return null;
-  const v=money(m[1]);
-  return Number.isFinite(v)&&v>=0.05&&v<1000?v:null;
+function isFalsePriceContext(lines:string[],i:number,raw:string){
+  const line=lines[i].toLowerCase();
+  const around=lines.slice(Math.max(0,i-1),Math.min(lines.length,i+2)).join(" ").toLowerCase();
+  const value=money(raw);
+
+  // V3-debugissa nämä olivat systemaattisesti pakkaus/pantti/lahjoitus-osumia.
+  if(/%|pant|\/\s*(kg|l|kpl)\b/.test(line)) return true;
+  if(/\b\d+(?:[,.]\d+)?\s*(kg|g|l|ml|cl|dl|kpl|pkt|pss|tlk|pl|rl)\b/.test(line)) return true;
+  if(/\blahjoitus\b/.test(around) && value < 1) return true;
+
+  // 0,10–0,50 € oli nykyisessä lehdessä toistuvasti väärä osuma.
+  // Varsinainen tarjous hyväksytään alle eurolla vain jos rivillä on selvä €/kpl-hintamerkintä.
+  if(value < 1 && !/€|eur|\b(?:kpl|pkt|pss|tlk|pari)\b/i.test(line)) return true;
+  return false;
 }
-function xDistance(a:PositionedText,b:PositionedText){
-  const aw=Number.isFinite(a.width)?a.width:0, bw=Number.isFinite(b.width)?b.width:0;
-  const ac=a.left+aw/2, bc=b.left+bw/2;
-  return Math.abs(ac-bc);
+function extractOfferPrice(lines:string[],i:number):number|null{
+  const line=lines[i];
+  const matches=[...line.matchAll(/(?<!\d)(\d{1,3}[,.]\d{2})(?!\d)/g)];
+  for(const m of matches){
+    if(isFalsePriceContext(lines,i,m[1])) continue;
+    const value=money(m[1]);
+    if(Number.isFinite(value)&&value>=0.05&&value<1000) return value;
+  }
+  return null;
+}
+function titleCandidate(lines:string[],priceIndex:number){
+  const prior=lines.slice(Math.max(0,priceIndex-7),priceIndex)
+    .map(clean)
+    .filter(x=>/[A-Za-zÅÄÖåäö]/.test(x))
+    .filter(x=>!isNoiseLine(x))
+    .filter(x=>!/^(\d+[,.]\d{2}|[-–]?\d+%)/.test(x))
+    .filter(x=>!/^(sis\.?\s*pantit|ilman plussa-korttia|normaalihinta)/i.test(x));
+  return prior.slice(-2).join(" ").replace(/\s+/g," ").trim();
 }
 function parsePage(html:string,url:string):CitymarketOffer[]{
-  const els=positionedTexts(html);
-  // Jos julkaisu ei käytä positioituja span/div-elementtejä, älä palaa vanhaan
-  // epäluotettavaan "lähin numero" -parseriin.
-  if(!els.length) return [];
-
+  const lines=textOf(html).split(/\n+/).map(clean).filter(Boolean);
   const out:CitymarketOffer[]=[];
-  for(let i=0;i<els.length;i++){
-    const price=standalonePrice(els[i].text);
+  for(let i=0;i<lines.length;i++){
+    const price=extractOfferPrice(lines,i);
     if(price==null) continue;
-    const pe=els[i];
+    const title=titleCandidate(lines,i);
+    if(title.length<3||isNoiseLine(title)) continue;
 
-    const candidates=els.filter((e,j)=>{
-      if(j===i||noiseText(e.text)||standalonePrice(e.text)!=null) return false;
-      if(!/[A-Za-zÅÄÖåäö]/.test(e.text)) return false;
-      const dy=pe.top-e.top;
-      if(dy<0||dy>150) return false;
-      return xDistance(pe,e)<240;
-    }).sort((a,b)=>{
-      const ad=(pe.top-a.top)+xDistance(pe,a)*0.25;
-      const bd=(pe.top-b.top)+xDistance(pe,b)*0.25;
-      return ad-bd;
-    });
-
-    const titleParts=candidates.slice(0,3)
-      .sort((a,b)=>a.top-b.top||a.left-b.left)
-      .map(e=>clean(e.text))
-      .filter(t=>!/\b(?:normaalihinta|ilman plussa|sis\. pantit)\b/i.test(t));
-    const title=clean(titleParts.join(" "));
-    if(title.length<3||noiseText(title)) continue;
-
-    const nearby=els.filter(e=>Math.abs(e.top-pe.top)<180&&xDistance(pe,e)<280).map(e=>e.text).join(" ");
-    const up=nearby.match(/(\d+[,.]\d{1,2})\s*(?:€\s*)?\/\s*(kg|l|kpl)/i);
-    const size=nearby.match(/\b(?:\d+\s*x\s*)?\d+(?:[,.]\d+)?\s*(kg|g|l|ml|cl|kpl|pkt|pss|tlk|pl|rl)\b/i);
-    const norm=nearby.match(/(?:norm(?:aalihinta)?|ilman\s+plussa-korttia)\s*(\d+[,.]\d{1,2})/i);
-    const valid=nearby.match(/(\d{1,2}\.\d{1,2}\.)\s*[–-]\s*(\d{1,2}\.\d{1,2}\.)/);
+    const w=lines.slice(Math.max(0,i-6),Math.min(lines.length,i+7)).join(" ");
+    const valid=w.match(/(\d{1,2}\.\d{1,2}\.)\s*[–-]\s*(\d{1,2}\.\d{1,2}\.)/);
+    const up=w.match(/(\d+[,.]\d{1,2})\s*(?:€\s*)?\/\s*(kg|l|kpl)/i);
+    const size=w.match(/\b(?:\d+\s*x\s*)?\d+(?:[,.]\d+)?\s*(kg|g|l|ml|cl|kpl|pkt|pss|tlk|pl|rl)\b/i);
+    const norm=w.match(/(?:norm(?:aalihinta)?|ilman\s+plussa-korttia)\s*(\d+[,.]\d{1,2})/i);
 
     out.push({
       id:`kcm:${url}:${i}:${title.toLowerCase()}:${price}`,
@@ -166,7 +143,7 @@ function parsePage(html:string,url:string):CitymarketOffer[]{
       unitPrice:up?money(up[1]):null,
       unit:up?.[2]?.toLowerCase()??null,
       packageSize:size?.[0]??null,
-      plussa:/plussa/i.test(nearby),
+      plussa:/plussa/i.test(w),
       validFrom:valid?.[1]??null,
       validTo:valid?.[2]??null,
       category:category(title),
