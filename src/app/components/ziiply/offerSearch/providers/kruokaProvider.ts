@@ -1,13 +1,14 @@
 // ============================================================================
-// ZIIPLY_KRUOKA_PROVIDER_V55_RAW_44_DEBUG
-// Revision: V55-RAW-44-DEBUG
+// ZIIPLY_KRUOKA_PROVIDER_V56_KMARKET_TEST
+// Revision: V56-KMARKET-TEST
 // Date: 2026-09-21
 //
-// V54 pohjana. Ainoa tarkoitus on diagnostiikka:
-// - säilyttää normaali tarjoushaku ennallaan
-// - kruokaDebugiin lisätään rawOffers: kaikki Tjekin "offers"-haun raakatarjoukset
-// - lisäksi rawOfferAnalysis kertoo jokaisesta, pääsisikö se nykyisen V54 mapTjekOfferin läpi
-// - mitään raakatarjousta ei poisteta debug-dumpista
+// V55 pohjana. Muutos vain K-Marketin testaamiseksi eTarjouslehdet/Tjekillä:
+// - K-Market business ID 9c56Y8
+// - K-Market sallitaan businessForStore()-reitityksessä
+// - URL/Referer muodostetaan ketjun mukaan
+// - K-Supermarket-logiikka säilyy
+// - V55 rawOffers/rawOfferAnalysis säilyvät
 // ============================================================================
 
 import type {
@@ -41,8 +42,6 @@ export type KruokaPipelineDebugV49 = {
   productMapProducts: number | null;
   activeOffers: number | null;
   error: string | null;
-
-  // V55 diagnostic only
   rawOffers?: UnknownRecord[];
   rawOfferAnalysis?: Array<{
     index: number;
@@ -68,11 +67,12 @@ export function getLastKruokaPipelineDebugV49(): KruokaPipelineDebugV49 | null {
 
 const ETARJOUSLEHDET_ORIGIN = "https://etarjouslehdet.fi";
 const K_SUPERMARKET_BUSINESS_ID = "f305U8";
+const K_MARKET_BUSINESS_ID = "9c56Y8";
 
 function normalize(value: unknown): string {
   return String(value ?? "")
     .normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
-    .replace(/[‐‑‒–—−]/g, "-").replace(/&/g, " ja ")
+    .replace(/[‐-‒–—−]/g, "-").replace(/&/g, " ja ")
     .replace(/[^a-z0-9åäö]+/gi, " ").replace(/\s+/g, " ").trim();
 }
 
@@ -80,11 +80,11 @@ function getSelectedStoreName(options?: KruokaOfferProviderOptionsV10): string {
   return String(options?.kStoreName ?? options?.storeName ?? options?.kStoreNames?.[0] ?? "").trim();
 }
 
-function businessForStore(storeName: string): { businessId: string; chain: string } | null {
+function businessForStore(storeName: string): { businessId: string; chain: string; slug: string } | null {
   const n = normalize(storeName);
   if (n.includes("citymarket")) return null;
-  if (n.includes("supermarket")) return { businessId: K_SUPERMARKET_BUSINESS_ID, chain: "K-Supermarket" };
-  if (n.includes("k market")) return null;
+  if (n.includes("supermarket")) return { businessId: K_SUPERMARKET_BUSINESS_ID, chain: "K-Supermarket", slug: "K-Supermarket" };
+  if (n.includes("k market")) return { businessId: K_MARKET_BUSINESS_ID, chain: "K-Market", slug: "K-Market" };
   return null;
 }
 
@@ -97,14 +97,14 @@ function stableBase64(value: unknown): string {
   return Buffer.from(json, "utf8").toString("base64");
 }
 
-async function fetchTjekData(name: string, params: UnknownRecord): Promise<unknown> {
+async function fetchTjekData(name: string, params: UnknownRecord, slug = "K-Supermarket"): Promise<unknown> {
   const key = stableBase64([name, params]);
   const response = await fetch(`${ETARJOUSLEHDET_ORIGIN}/`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Accept: "application/json, text/plain, */*",
-      Referer: `${ETARJOUSLEHDET_ORIGIN}/K-Supermarket`,
+      Referer: `${ETARJOUSLEHDET_ORIGIN}/${slug}`,
     },
     body: JSON.stringify({ data: [key] }),
     cache: "no-store",
@@ -126,8 +126,8 @@ function dataArray(value: unknown): UnknownRecord[] {
   return Array.isArray(data) ? data.filter((x): x is UnknownRecord => !!x && typeof x === "object") : [];
 }
 
-async function resolveSelectedStore(businessId: string, selectedName: string): Promise<UnknownRecord | null> {
-  const value = await fetchTjekData("stores", { businessId, pagination: { offset: 0, limit: 1000 } });
+async function resolveSelectedStore(businessId: string, selectedName: string, slug: string): Promise<UnknownRecord | null> {
+  const value = await fetchTjekData("stores", { businessId, pagination: { offset: 0, limit: 1000 } }, slug);
   const stores = dataArray(value);
   const wanted = normalize(selectedName);
   const exact = stores.find(s => normalize(s.name) === wanted);
@@ -174,7 +174,7 @@ function mapTjekCategoryV54(offer: UnknownRecord): string {
   return "Muut";
 }
 
-function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId: string, displayStoreName: string, chain: string): ZiiplyOfferSearchResult | null {
+function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId: string, displayStoreName: string, chain: string, slug: string): ZiiplyOfferSearchResult | null {
   const title = String(offer.name ?? offer.title ?? "").trim();
   if (!title) return null;
   const membership = num(offer.membershipPrice);
@@ -192,7 +192,7 @@ function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId: strin
   const isPlussa = membership != null;
   const category = mapTjekCategoryV54(offer);
   return {
-    id: `etarjouslehdet-v54-${displayStoreId}-${offerId}-${index}`,
+    id: `etarjouslehdet-v56-${displayStoreId}-${offerId}-${index}`,
     title, name: title, productName: title,
     price: effective, priceText: priceText(effective), offerPrice: priceText(effective),
     previousPrice: regular != null && regular !== effective ? regular : null,
@@ -205,8 +205,8 @@ function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId: strin
     validityText: validityText(offer.validUntil),
     category, categoryPath: category, productGroup: category, mainCategory: category, subCategory: category,
     validFrom: offer.validFrom ?? null, validUntil: offer.validUntil ?? null, isPlussaOffer: isPlussa,
-    url: `${ETARJOUSLEHDET_ORIGIN}/K-Supermarket`, productUrl: `${ETARJOUSLEHDET_ORIGIN}/K-Supermarket`,
-    debug: { providerVersion: "V55_RAW_44_DEBUG", publicationId, tjekStoreId: displayStoreId, chain },
+    url: `${ETARJOUSLEHDET_ORIGIN}/${slug}`, productUrl: `${ETARJOUSLEHDET_ORIGIN}/${slug}`,
+    debug: { providerVersion: "V56_KMARKET_TEST", publicationId, tjekStoreId: displayStoreId, chain },
   } as unknown as ZiiplyOfferSearchResult;
 }
 
@@ -217,9 +217,11 @@ export async function fetchKruokaOffers(
 ): Promise<ZiiplyOfferSearchResult[]> {
   const displayStoreName = getSelectedStoreName(options);
   const ziiplyStoreId = String(options?.kStoreId ?? options?.storeId ?? "").trim();
+  const preliminaryBusiness = businessForStore(displayStoreName);
+  const preliminarySlug = preliminaryBusiness?.slug ?? "K-Supermarket";
   const debug: KruokaPipelineDebugV49 = {
     selectedStoreName: displayStoreName, selectedStoreId: ziiplyStoreId,
-    brochureUrl: `${ETARJOUSLEHDET_ORIGIN}/K-Supermarket`, brochureHttp: null,
+    brochureUrl: `${ETARJOUSLEHDET_ORIGIN}/${preliminarySlug}`, brochureHttp: null,
     applicationState: "NOT_RUN", fetchOffersHttp: null, fetchOffersShape: null,
     kStoreId: null, brochureOffers: null, eans: null, productMapHttp: null,
     productMapProducts: null, activeOffers: null, error: null,
@@ -231,12 +233,12 @@ export async function fetchKruokaOffers(
     if (!displayStoreName) return [];
     const business = businessForStore(displayStoreName);
     if (!business) {
-      debug.error = "V55: vain K-Supermarket on tässä revisiossa varmennettu eTarjouslehdet/Tjekillä";
+      debug.error = "V56: K-Citymarket ei ole tässä revisiossa mukana; K-Supermarket ja K-Market on sallittu";
       lastKruokaPipelineDebugV49 = { ...debug };
       return [];
     }
 
-    const selected = await resolveSelectedStore(business.businessId, displayStoreName);
+    const selected = await resolveSelectedStore(business.businessId, displayStoreName, business.slug);
     if (!selected) throw new Error(`eTarjouslehdet: valittua kauppaa ei löytynyt yksiselitteisesti: ${displayStoreName}`);
     const tjekStoreId = String(selected.id ?? "").trim();
     debug.kStoreId = tjekStoreId;
@@ -246,14 +248,12 @@ export async function fetchKruokaOffers(
       sources: ["publication", "business_product"],
       pagination: { limit: 1000, offset: 0 },
       sort: ["score_desc"],
-    });
+    }, business.slug);
 
     const offers = dataArray(offersValue);
     debug.brochureOffers = offers.length;
     debug.fetchOffersHttp = 200;
-    debug.fetchOffersShape = "etarjouslehdet:offers";
-
-    // V55: snapshot KAIKISTA raakatarjouksista heti offers-haun jälkeen.
+    debug.fetchOffersShape = `etarjouslehdet:offers:${business.chain}`;
     debug.rawOffers = offers.map(o => ({ ...o }));
 
     const publicationIds = Array.from(new Set(
@@ -266,13 +266,12 @@ export async function fetchKruokaOffers(
         publicationId,
         businessId: business.businessId,
         pagination: { offset: 0, limit: 1000 },
-      });
+      }, business.slug);
       if (dataArray(storesValue).some(s => String(s.id ?? "") === tjekStoreId)) {
         allowed.add(publicationId);
       }
     }
 
-    // V55: analysoi jokainen 44 raakatarjous, mutta ÄLÄ poista mitään tästä debug-listasta.
     debug.rawOfferAnalysis = offers.map((offer, index) => {
       const title = String(offer.name ?? offer.title ?? "").trim();
       const membership = num(offer.membershipPrice);
@@ -282,13 +281,11 @@ export async function fetchKruokaOffers(
       const effective = app ?? membership ?? regular ?? from;
       const publicationId = String(offer.publicationPublicId ?? "");
       const publicationAllowedForSelectedStore = allowed.has(publicationId);
-
       let rejectReason: string | null = null;
       if (!publicationAllowedForSelectedStore) rejectReason = "PUBLICATION_NOT_FOR_SELECTED_STORE";
       else if (!title) rejectReason = "NO_TITLE";
       else if (effective == null) rejectReason = "NO_NUMERIC_PRICE";
       else if (effective <= 0) rejectReason = "PRICE_ZERO_OR_NEGATIVE";
-
       return {
         index,
         publicId: String(offer.publicId ?? ""),
@@ -309,16 +306,13 @@ export async function fetchKruokaOffers(
     const results: ZiiplyOfferSearchResult[] = [];
     const seen = new Set<string>();
 
-    // Normaali V54-tuotantopolku säilyy.
     for (const [index, offer] of offers.entries()) {
       const publicationId = String(offer.publicationPublicId ?? "");
       if (!allowed.has(publicationId)) continue;
-
       const mapped = mapTjekOffer(
-        offer, index, ziiplyStoreId || tjekStoreId, displayStoreName, business.chain
+        offer, index, ziiplyStoreId || tjekStoreId, displayStoreName, business.chain, business.slug
       );
       if (!mapped || !matchesQuery(mapped, query)) continue;
-
       const key = String((mapped as unknown as UnknownRecord).offerId ?? mapped.id);
       if (seen.has(key)) continue;
       seen.add(key);
@@ -331,7 +325,7 @@ export async function fetchKruokaOffers(
   } catch (error) {
     debug.error = error instanceof Error ? error.message : String(error);
     lastKruokaPipelineDebugV49 = { ...debug };
-    console.error("[Ziiply K provider V55 RAW DEBUG] eTarjouslehdet/Tjek haku epäonnistui", {
+    console.error("[Ziiply K provider V56 K-Market TEST] eTarjouslehdet/Tjek haku epäonnistui", {
       selectedStoreName: displayStoreName,
       error: debug.error,
     });
