@@ -1,6 +1,6 @@
 // ============================================================================
-// ZIIPLY_KRUOKA_PROVIDER_V63_KMARKET_CATEGORY_REGEX_FIX
-// Revision: V63-KMARKET-CATEGORY-REGEX-FIX
+// ZIIPLY_KRUOKA_PROVIDER_V64_KMARKET_CATEGORY_VALIDATED
+// Revision: V64-KMARKET-CATEGORY-VALIDATED
 // Date: 2026-09-21
 //
 // V55 pohjana. Muutos vain K-Marketin testaamiseksi eTarjouslehdet/Tjekillä:
@@ -176,37 +176,52 @@ function mapTjekCategoryV54(offer: UnknownRecord): string {
   const department = normalize(offer.departmentSlug ?? offer.department ?? "");
   const productText = normalize([offer.name, offer.title, offer.description].filter(Boolean).join(" "));
 
-  // V62:
-  // 1) Explicit product-name rules first. Tjek departmentSlug is not reliable enough
-  //    to override an obvious product type (e.g. Teho palautusjuoma may be "pharmacy").
-  // 2) Department is fallback for products that cannot be identified reliably by name.
-  // 3) Word boundaries prevent "perunalastut" from matching "peruna" -> Hevi.
+  // V64: validated against the 34 active K-Market Hakalantori offers.
+  // Specific product rules must precede broad department fallbacks.
 
-  if (/\b(mikroateria|valmisateria|valmisruoka|keitto|keitot|lasagne|laatikko|risotto)\b/.test(productText)) return "Valmisruoka";
+  // Ready meals / ready-to-eat products.
+  if (/\b(mikroateria|valmisateria|valmisruoka|keitto|keitot|lasagne|laatikko|risotto|wrap|wrapit|cesarsalaatti|caesarsalaatti|taco-salaattisekoitus)\b/.test(productText)) return "Valmisruoka";
 
+  // Fish.
   if (/\b(lohi|kirjolohi|silakka|muikku|tonnikala|katkarapu|seiti|turska)\b/.test(productText)) return "Kala";
 
+  // Meat and cold cuts.
   if (/\b(jauheliha|makkara|makkarat|lenkkimakkara|nakki|nakit|broileri|kana|nauta|porsas|possu|pekoni|kinkku|leikkele|leikkeleet|palvileikkele|palvileikkeleet)\b/.test(productText)) return "Liha & makkarat";
 
+  // Dairy.
   if (/\b(jogurtti|jugurtti|maito|piima|rahka|juusto|juustoraaste|juustoraasteet|kerma|kananmuna|vanukas|vanukkaat|mousse)\b/.test(productText)) return "Maitotuotteet";
 
+  // Drinks.
   if (/\b(mehu|mehut|limu|limsat|virvoitusjuoma|virvoitusjuomat|cola|vichy|vesi|energiajuoma|energiajuomat|smoothie|palautusjuoma|palautusjuomat|seltzer)\b/.test(productText)) return "Juomat";
 
+  // Frozen.
   if (/\b(jaatelo|jaatelot|pakaste|pakastettu|nugget|nuggetit|ranskalaiset|wokvihannes|pakastevihannes|pakastemarja)\b/.test(productText)) return "Pakasteet";
 
-  if (/\b(salaatti|salaatit|tomaatti|tomaatit|kurkku|kurkut|omena|omenat|banaani|banaanit|appelsiini|appelsiinit|satsuma|satsumat|sipuli|sipulit|porkkana|porkkanat|paprika|paprikat|kaali|hedelma|hedelmat|vihannes|vihannekset|marja|marjat|mustikka|mustikat|mango|mangot|rucola|calluna)\b/.test(productText)) return "Hevi";
-
-  if (/\b(leipa|leivat|sampyla|sampylat|patonki|patongit|pulla|pullat|munkki|munkit|donitsi|donitsit|wrap|wrapit|tortilla|tortillat)\b/.test(productText)) return "Leipomo";
-
-  if (/\b(perunalastu|perunalastut|lastu|lastut|chips|suklaa|suklaat|karkki|karkit|makeinen|makeiset|keksi|keksit|granola|granolat|mysli|myslit|purukumi|purukumit)\b/.test(productText)) return "Makeiset & keksit";
-
+  // Pets.
   if (/\b(kissan|koiran|kissanhiekka|lemmikki|sheba)\b/.test(productText)) return "Lemmikit";
 
+  // Hygiene.
+  if (/\b(hammastahna|hammastahnat|shampoo|deodorantti|colgate|elmex|suuvesi|suuvedet|hammasharja|hammasharjat)\b/.test(productText)) return "Hygienia & kosmetiikka";
+
+  // Household.
   if (/\b(wc-paperi|talouspaperi|pesuaine|pesuaineet|astianpesu)\b/.test(productText)) return "Kodinhoito";
 
-  if (/\b(hammastahna|hammastahnat|shampoo|deodorantti|colgate|elmex)\b/.test(productText)) return "Hygienia & kosmetiikka";
+  // Home / leisure. Calluna is a plant, not grocery produce.
+  if (/\b(calluna|paristo|paristot)\b/.test(productText)) return "Koti & vapaa-aika";
 
-  // Department fallback.
+  // Dry groceries: plain tortillas, granola/muesli, salsa and canned fruit.
+  if (/\b(vehnatortilla|vehnatortillat|granola|granolat|mysli|myslit|salsa|salsat|ananakset|ananas)\b/.test(productText)) return "Kuivatuotteet";
+
+  // Snacks and sweets BEFORE generic tortilla/bakery handling.
+  if (/\b(perunalastu|perunalastut|lastu|lastut|chips|suklaa|suklaat|karkki|karkit|makeinen|makeiset|keksi|keksit|purukumi|purukumit)\b/.test(productText)) return "Makeiset & keksit";
+
+  // Fresh produce. Pickled cucumbers are kept in Hevi for Ziiply's grocery grouping.
+  if (/\b(salaatti|salaatit|tomaatti|tomaatit|kurkku|kurkut|suolakurkku|suolakurkut|maustekurkku|maustekurkut|omena|omenat|banaani|banaanit|appelsiini|appelsiinit|satsuma|satsumat|sipuli|sipulit|porkkana|porkkanat|paprika|paprikat|kaali|hedelma|hedelmat|vihannes|vihannekset|marja|marjat|mustikka|mustikat|mango|mangot|rucola)\b/.test(productText)) return "Hevi";
+
+  // Bakery.
+  if (/\b(leipa|leivat|sampyla|sampylat|patonki|patongit|pulla|pullat|munkki|munkit|donitsi|donitsit)\b/.test(productText)) return "Leipomo";
+
+  // Department fallback for products not identifiable by name.
   if (department.includes("snack") || department.includes("candy") || department.includes("confection") || department.includes("sweet")) return "Makeiset & keksit";
   if (department.includes("frozen")) return "Pakasteet";
   if (department.includes("fruit") || department.includes("vegetable")) return "Hevi";
@@ -218,6 +233,7 @@ function mapTjekCategoryV54(offer: UnknownRecord): string {
   if (department.includes("pet")) return "Lemmikit";
   if (department.includes("household") || department.includes("clean")) return "Kodinhoito";
   if (department.includes("personal care") || department.includes("beauty") || department.includes("hygiene")) return "Hygienia & kosmetiikka";
+  if (department.includes("colonial")) return "Kuivatuotteet";
 
   return "Muut";
 }
@@ -254,7 +270,7 @@ function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId: strin
     category, categoryPath: category, productGroup: category, mainCategory: category, subCategory: category,
     validFrom: offer.validFrom ?? null, validUntil: offer.validUntil ?? null, isPlussaOffer: isPlussa,
     url: `${ETARJOUSLEHDET_ORIGIN}/${slug}`, productUrl: `${ETARJOUSLEHDET_ORIGIN}/${slug}`,
-    debug: { providerVersion: "V63_KMARKET_CATEGORY_REGEX_FIX", publicationId, tjekStoreId: displayStoreId, chain },
+    debug: { providerVersion: "V64_KMARKET_CATEGORY_VALIDATED", publicationId, tjekStoreId: displayStoreId, chain },
   } as unknown as ZiiplyOfferSearchResult;
 }
 
