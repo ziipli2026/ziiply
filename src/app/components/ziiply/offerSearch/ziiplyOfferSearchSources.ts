@@ -1,4 +1,15 @@
 // ============================================================================
+// ZIIPLY_OFFER_SEARCH_SOURCES_V35_K_GATE_DEBUG
+// Revision: V35-K-GATE-DEBUG
+// Date: 2026-09-21
+//
+// Muutos V34:ään:
+// - Lisää vain Sources-tason K-portin diagnostiikan nykyiseen kruokaDebug-kanavaan.
+// - Jos K-provideria ei kutsuta, debug kertoo miksi: storeId, storeName, useK ja local-name gate.
+// - Ei muuta provider-valintaa, hakutuloksia, S-puolta, kategorioita tai cache-logiikkaa.
+// ============================================================================
+
+// ============================================================================
 // ZIIPLY_OFFER_SEARCH_SOURCES_V34_KRUOKA_DEBUG_BRIDGE
 // Revision: V34-KRUOKA-DEBUG-BRIDGE
 // Date: 2026-09-20
@@ -149,8 +160,10 @@ export type {
   ZiiplyOfferSource,
 } from "./types";
 
+let lastKruokaGateDebugV35: KruokaPipelineDebugV49 | null = null;
+
 export function getKruokaOfferPipelineDebugV34(): KruokaPipelineDebugV49 | null {
-  return getLastKruokaPipelineDebugV49();
+  return getLastKruokaPipelineDebugV49() ?? lastKruokaGateDebugV35;
 }
 
 export type ZiiplyOfferSearchSourceContextV8 = SKaupatOfferProviderOptionsV173 & KruokaOfferProviderOptionsV10 & {
@@ -708,6 +721,32 @@ export async function searchZiiplyOffers(
   if (cached) return cached;
 
   const providerScopeV10 = getProviderScopeV10(options);
+
+  // V35: tämä debug syntyy ENNEN K-providerin kutsua. Näin kruokaDebug ei jää
+  // nulliksi vain siksi, että jokin Sources-tason gate estää providerin ajon.
+  lastKruokaGateDebugV35 = {
+    selectedStoreName: selectedKStoreNameV33,
+    selectedStoreId: String(kProviderOptions?.kStoreId ?? kProviderOptions?.storeId ?? "").trim(),
+    brochureUrl: "",
+    brochureHttp: null,
+    applicationState: "NOT_RUN",
+    kStoreId: null,
+    brochureOffers: null,
+    eans: null,
+    productMapHttp: null,
+    productMapProducts: null,
+    activeOffers: null,
+    error: [
+      "SOURCES_V35_GATE",
+      `enabled=${ENABLE_KRUOKA_PROVIDER_V33}`,
+      `useK=${providerScopeV10.useK}`,
+      `hasId=${Boolean(kProviderOptions?.storeId || kProviderOptions?.kStoreId)}`,
+      `localName=${isKLocalOfferStoreNameV33(selectedKStoreNameV33)}`,
+      `hasSelectedKLocalStore=${hasSelectedKLocalStoreV33}`,
+      `withinChain=${String((options as any)?.withinChain ?? "")}`,
+      `scope=${String(options?.storeCompareScope ?? "")}`,
+    ].join(" | "),
+  };
 
   if (typeof console !== "undefined") {
     console.warn("[Ziiply offers V10 provider scope]", {
