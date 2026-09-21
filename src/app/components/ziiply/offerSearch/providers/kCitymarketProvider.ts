@@ -1,6 +1,6 @@
 // ============================================================================
-// ZIIPLY K-CITYMARKET PROVIDER V11
-// Revision: V11-KCITYMARKET-COMPACT-PRICE-COMPLETE
+// ZIIPLY K-CITYMARKET PROVIDER V12
+// Revision: V12-KCITYMARKET-PARSER-CLEANUP
 // Date: 2026-09-21
 //
 // - Complete provider file; restores fetchKCitymarketOffers + debug export.
@@ -98,20 +98,22 @@ function isFalsePriceContext(lines:string[],i:number,raw:string){
   if(value < 1 && !/€|eur|\b(?:kpl|pkt|pss|tlk|pari)\b/i.test(line)) return true;
   return false;
 }
-function compactPriceCandidatesV10(line:string):number[]{
-  const s=clean(line);
+function compactPriceCandidatesV12(line:string):number[]{
+  const x=clean(line);
   const out:number[]=[];
 
-  // Basic HTML prints many visual prices without comma:
-  // 099 => 0,99 ; 449 => 4,49 ; 495 => 4,95 ; 280 => 2,80.
-  // A line such as "49 99 79" contains several visually separate price fragments.
-  if(/^(?:\d{3})(?:\s+\d{2,3})*$/.test(s)){
-    for(const token of s.split(/\s+/)){
-      if(!/^\d{3}$/.test(token)) continue;
-      const n=Number(token);
-      const value=n/100;
-      if(value>=0.05 && value<100) out.push(value);
-    }
+  // Flipbook price glyphs are commonly rendered as 3 digits: 099 -> 0.99, 449 -> 4.49.
+  // Require either a leading zero OR a plausible euro/cents shape. Exclude common page/layout
+  // fragments and long grouped numeric strings unless the line is purely price-like.
+  if(!/^(?:\d{3})(?:\s+\d{2,3})*$/.test(x)) return out;
+
+  const tokens=x.split(/\s+/);
+  for(const token of tokens){
+    if(!/^\d{3}$/.test(token)) continue;
+    if(/^20\d$/.test(token)) continue; // e.g. stray 201 from page layout
+    const n=Number(token);
+    const value=n/100;
+    if(value>=0.09 && value<=99.99) out.push(value);
   }
   return out;
 }
@@ -134,21 +136,23 @@ function extractOfferPricesV10(lines:string[],i:number):number[]{
   }
 
   // Flipbook compact visual price.
-  out.push(...compactPriceCandidatesV10(line));
+  out.push(...compactPriceCandidatesV12(line));
 
   return [...new Set(out)];
 }
 
-function productTitleV10(lines:string[],priceIndex:number){
-  const candidates=lines.slice(Math.max(0,priceIndex-9),priceIndex)
+function productTitleV12(lines:string[],priceIndex:number){
+  const junk=/^(?:kpl|pkt|ps|rs|pari|tuotteet|kaikki|basic html version|view full version|table of contents)$/i;
+  const candidates=lines.slice(Math.max(0,priceIndex-8),priceIndex)
     .map(clean)
     .filter(x=>/[A-Za-zÅÄÖåäö]/.test(x))
     .filter(x=>!isNoiseLine(x))
+    .filter(x=>!junk.test(x))
     .filter(x=>!/^[-–]?\d+%/.test(x))
     .filter(x=>!/^ilman plussa-korttia/i.test(x))
-    .filter(x=>!/^katso (?:resepti|lisää)/i.test(x));
+    .filter(x=>!/^katso (?:resepti|lisää)/i.test(x))
+    .filter(x=>!/\b(?:lahjoitus|voimassa)\b/i.test(x));
 
-  // Prefer a product-description line: uppercase product text and/or package size.
   for(let j=candidates.length-1;j>=0;j--){
     const x=candidates[j];
     if(/\b\d+(?:[,.]\d+)?\s*(?:kg|g|l|ml|cl|dl|kpl|pkt|ps|rs|pss|tlk)\b/i.test(x) ||
@@ -167,10 +171,10 @@ function parsePage(html:string,url:string):CitymarketOffer[]{
     const prices=extractOfferPricesV10(lines,i);
     if(!prices.length) continue;
 
-    const title=productTitleV10(lines,i);
+    const title=productTitleV12(lines,i);
     if(title.length<3||isNoiseLine(title)) continue;
 
-    const w=lines.slice(Math.max(0,i-7),Math.min(lines.length,i+8)).join(" ");
+    const w=lines.slice(Math.max(0,i-3),Math.min(lines.length,i+4)).join(" ");
     const valid=w.match(/(\d{1,2}\.\d{1,2}\.)\s*[–-]\s*(\d{1,2}\.\d{1,2}\.)/);
     const up=w.match(/(\d+[,.]\d{1,2})\s*(?:€\s*)?\/\s*(kg|l|kpl)/i);
     const size=title.match(/\b(?:\d+\s*x\s*)?\d+(?:[,.]\d+)?\s*(kg|g|l|ml|cl|dl|kpl|pkt|ps|rs|pss|tlk)\b/i);
