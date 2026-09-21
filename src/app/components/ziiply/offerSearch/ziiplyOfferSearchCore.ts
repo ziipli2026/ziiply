@@ -228,16 +228,21 @@ function getTrustedETarjousCategoryV166(item: ZiiplyGostaOfferLike) {
     return TRUSTED_GOSTA_CATEGORY_LABELS_V166.get(normalized) || "";
   }
 
-  // V175: vain K-Supermarket/Tjek.
+  // V176: K-Supermarket + K-Market / Tjek.
   // kruokaProvider V54 on jo normalisoinut category-kentän Ziiplyn
   // kategorianimeksi. Älä aja sitä enää vanhan CategoryCore-regexin läpi.
   const source = normalizeGostaCoreText(anyItem?.source || "");
   const provider = normalizeGostaCoreText(anyItem?.provider || "");
-  const isKSupermarketTjek =
-    (store.includes("k supermarket") || store.includes("k-supermarket")) &&
+  const isKStoreTjek =
+    (
+      store.includes("k supermarket") ||
+      store.includes("k-supermarket") ||
+      store.includes("k market") ||
+      store.includes("k-market")
+    ) &&
     (source === "etarjouslehdet" || provider === "kruoka");
 
-  if (!isKSupermarketTjek) return "";
+  if (!isKStoreTjek) return "";
 
   const kTrustedCategories = new Map<string, string>([
     ["kahvi", "Kahvi"],
