@@ -1,4 +1,15 @@
 // ============================================================================
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V55_K_EMPTY_STATE_FIX
+// Revision: V55-K-EMPTY-STATE-FIX
+// Date: 2026-09-21
+//
+// Muutos V54:ään:
+// - K-ryhmän 0-tuloksen ilmoitus ei enää viittaa S-kaupat.fi-palveluun.
+// - S-ryhmän nykyinen S-kaupat.fi-ilmoitus säilyy ennallaan.
+// - Ei muuta provider-, haku-, store-, category-, dedupe- tai debug-logiikkaa.
+// ============================================================================
+
+// ============================================================================
 // ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V54_KRUOKA_PIPELINE_DEBUG_PROP
 // Revision: V54-KRUOKA-PIPELINE-DEBUG-PROP
 // Date: 2026-09-21
@@ -1148,7 +1159,9 @@ export default function ZiiplyMobileOfferSearchCard({
                     </div>
                   ) : null}
                   <div className="mt-1.5 text-[0.70rem] font-extrabold leading-snug">
-                    Valitulle myymälälle ei löytynyt tarjoustietoja S-kaupat.fi-palvelusta. Myymälä ei välttämättä ole palvelussa tai sillä ei ole tällä hetkellä aktiivisia tarjouksia.
+                    {selectedOfferChainV39 === "K"
+                      ? "Valitulle myymälälle ei löytynyt tällä hetkellä tarjoustietoja. Myymälällä ei välttämättä ole aktiivisia tarjouksia tai tarjoustietoja ei ole saatavilla."
+                      : "Valitulle myymälälle ei löytynyt tarjoustietoja S-kaupat.fi-palvelusta. Myymälä ei välttämättä ole palvelussa tai sillä ei ole tällä hetkellä aktiivisia tarjouksia."}
                   </div>
                 </div>
               )}
