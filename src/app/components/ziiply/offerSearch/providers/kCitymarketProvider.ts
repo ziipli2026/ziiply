@@ -1,17 +1,5 @@
 // ============================================================================
-// ZIIPLY K-CITYMARKET PROVIDER V6
-// Revision: V6-KCITYMARKET-V3-RECOVERY-STRICT-PRICE-FILTER
-// Date: 2026-09-21
-//
-// Muutos V5:een:
-// - Poistaa V4/V5 positioned-parserin, joka palautti 0 tarjousta.
-// - Palauttaa toimivaksi todetun V3 basic-html tekstiparserin pohjaksi.
-// - Lisää tiukan hintasuodatuksen V3-debugissa todetuille väärille osumille
-//   (pakkauskoko, yksikköhinta, pantti, lahjoitus ja alle 1 € irtonumerot).
-// - Säilyttää kaikkien leaflet-sivujen pageN.html-luvun.
-// - Route V19 ja core V178 eivät muutu.
-// ============================================================================
-
+// ZIIPLY K-CITYMARKET PROVIDER V8\n// Revision: V8-KCITYMARKET-PAGE2-PAGE3-HTML-DIAGNOSTIC\n// Date: 2026-09-21\n// V6 parser + page2/page3 raw structure diagnostic.\n// ============================================================================\n
 export type CitymarketOffer = {
   id: string;
   title: string;
@@ -186,10 +174,18 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
   for(let n=2;n<=maxPage;n++) urls.add(`${baseDir}page${n}.html`);
 
   const ordered=[...urls].sort((a,b)=>pageNumber(a)-pageNumber(b));
+  citymarketHtmlDebugV8={leafletUrl:leaf.url,basicIndexUrl:index.url,maxPage,samples:[]};
   const pages=await Promise.all(ordered.map(async u=>{
     const p=await html(u);
+    const pn=pageNumber(p.url);
+    if(pn===2||pn===3) citymarketHtmlDebugV8.samples.push({
+      page:pn,url:p.url,htmlLength:p.text.length,
+      textLines:textOf(p.text).split(/\n+/).map(clean).filter(Boolean).slice(0,220),
+      tagSamples:debugTagSamplesV8(p.text)
+    });
     return parsePage(p.text,p.url);
   }));
+  citymarketHtmlDebugV8.samples.sort((a,b)=>a.page-b.page);
 
   const seen=new Set<string>();
   return pages.flat().filter(o=>{
@@ -198,6 +194,27 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
     seen.add(k);
     return true;
   });
+}
+
+
+
+export type KCitymarketHtmlDebugV8 = {
+  leafletUrl?: string;
+  basicIndexUrl?: string;
+  maxPage?: number;
+  samples: Array<{page:number;url:string;htmlLength:number;textLines:string[];tagSamples:string[]}>;
+};
+let citymarketHtmlDebugV8: KCitymarketHtmlDebugV8 = { samples: [] };
+export function getKCitymarketHtmlDebugV8(){ return citymarketHtmlDebugV8; }
+function debugTagSamplesV8(src:string){
+  const out:string[]=[];
+  for(const m of src.matchAll(/<(div|span|p|td|li|a)\b([^>]*)>([\s\S]*?)<\/\1>/gi)){
+    const text=clean(decodeEntities(m[3].replace(/<[^>]+>/g," ")));
+    if(!text) continue;
+    out.push(`<${m[1]}${clean(m[2]).slice(0,180)}> ${text.slice(0,220)}`);
+    if(out.length>=80) break;
+  }
+  return out;
 }
 
 export default fetchKCitymarketOffers;
