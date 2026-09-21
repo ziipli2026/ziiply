@@ -1,14 +1,11 @@
 // ============================================================================
-// ZIIPLY K-CITYMARKET PROVIDER V10
-// Revision: V10-KCITYMARKET-COMPACT-PRICE-PARSER
+// ZIIPLY K-CITYMARKET PROVIDER V11
+// Revision: V11-KCITYMARKET-COMPACT-PRICE-COMPLETE
 // Date: 2026-09-21
 //
-// - Tunnistaa flipbook basic-html:n pilkuton hinnan esitystapa:
-//   099 -> 0,99; 449 -> 4,49; 495 -> 4,95; 280 -> 2,80.
-// - Tunnistaa myös samalla rivillä olevat compact-price tokenit.
-// - Tuotenimi ankkuroidaan lähimpään tuotemäiseen riviin ennen hintaa.
-// - Page2/page3 HTML-debug säilyy.
-// - Route V20 ja core V178 eivät muutu.
+// - Complete provider file; restores fetchKCitymarketOffers + debug export.
+// - Compact prices: 099 -> 0,99; 449 -> 4,49; 495 -> 4,95 etc.
+// - Page2/page3 diagnostics retained for route V20.
 // ============================================================================
 
 export type CitymarketOffer = {
@@ -142,15 +139,6 @@ function extractOfferPricesV10(lines:string[],i:number):number[]{
   return [...new Set(out)];
 }
 
-function titleCandidate(lines:string[],priceIndex:number){
-  const prior=lines.slice(Math.max(0,priceIndex-7),priceIndex)
-    .map(clean)
-    .filter(x=>/[A-Za-zÅÄÖåäö]/.test(x))
-    .filter(x=>!isNoiseLine(x))
-    .filter(x=>!/^(\d+[,.]\d{2}|[-–]?\d+%)/.test(x))
-    .filter(x=>!/^(sis\.?\s*pantit|ilman plussa-korttia|normaalihinta)/i.test(x));
-  return prior.slice(-2).join(" ").replace(/\s+/g," ").trim();
-}
 function productTitleV10(lines:string[],priceIndex:number){
   const candidates=lines.slice(Math.max(0,priceIndex-9),priceIndex)
     .map(clean)
@@ -211,15 +199,78 @@ function parsePage(html:string,url:string):CitymarketOffer[]{
   return out;
 }
 
+
+export type KCitymarketHtmlDebugV8 = {
+  leafletUrl?: string;
+  basicIndexUrl?: string;
+  maxPage?: number;
+  samples: Array<{page:number;url:string;htmlLength:number;textLines:string[];tagSamples:string[]}>;
+};
+let citymarketHtmlDebugV8:KCitymarketHtmlDebugV8={samples:[]};
+export function getKCitymarketHtmlDebugV8(){ return citymarketHtmlDebugV8; }
+
 function debugTagSamplesV8(src:string){
   const out:string[]=[];
   for(const m of src.matchAll(/<(div|span|p|td|li|a)\b([^>]*)>([\s\S]*?)<\/\1>/gi)){
-    const text=clean(decodeEntities(m[3].replace(/<[^>]+>/g," ")));
-    if(!text) continue;
-    out.push(`<${m[1]}${clean(m[2]).slice(0,180)}> ${text.slice(0,220)}`);
+    const t=clean(decodeEntities(m[3].replace(/<[^>]+>/g," ")));
+    if(t) out.push(`<${m[1]}${clean(m[2]).slice(0,180)}> ${t.slice(0,220)}`);
     if(out.length>=80) break;
   }
   return out;
+}
+
+function pageNumber(url:string){
+  const m=url.match(/page(\d+)\.html/i);
+  return m?Number(m[1]):1;
+}
+
+export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
+  const entry=await html(ENTRY);
+  let leaflet=entry.url;
+  const direct=entry.text.match(/https?:\/\/kcm-tarjouslehdet\.k-ruoka\.fi\/[^"'<>\s]+\/index\.html/i)?.[0];
+  const href=entry.text.match(/href=["']([^"']*kcm-tarjouslehdet\.k-ruoka\.fi[^"']*)["']/i)?.[1];
+  const refresh=entry.text.match(/url\s*=\s*([^"'<>\s]+)/i)?.[1];
+  if(direct) leaflet=direct; else if(href) leaflet=abs(href,entry.url)??leaflet; else if(refresh) leaflet=abs(refresh,entry.url)??leaflet;
+  const leaf=await html(leaflet);
+  let basic=leaf.text.match(/href=["']([^"']*files\/basic-html\/index\.html[^"']*)["']/i)?.[1];
+  basic=basic?(abs(basic,leaf.url) ?? undefined):leaf.url.replace(/\/index\.html(?:\?.*)?$/i,"/files/basic-html/index.html");
+  if(!basic) throw new Error("K-Citymarket basic-html URL not found");
+  const index=await html(basic);
+  const urls=new Set<string>([index.url]);
+  let maxPage=1;
+  for(const m of index.text.matchAll(/href=["']([^"']*page(\d+)\.html[^"']*)["']/gi)){
+    const u=abs(m[1],index.url);
+    if(u) urls.add(u);
+    maxPage=Math.max(maxPage,Number(m[2])||1);
+  }
+
+  // Basic HTML -lehti ilmoittaa sivut indexissä. Täydennä mahdolliset
+  // välistä puuttuvat linkit samaan hakemistoon, jotta esim. 18-sivuinen
+  // lehti luetaan varmasti sivuilta 1...18.
+  const baseDir=index.url.replace(/index\.html(?:\?.*)?$/i,"");
+  for(let n=2;n<=maxPage;n++) urls.add(`${baseDir}page${n}.html`);
+
+  const ordered=[...urls].sort((a,b)=>pageNumber(a)-pageNumber(b));
+  citymarketHtmlDebugV8={leafletUrl:leaf.url,basicIndexUrl:index.url,maxPage,samples:[]};
+  const pages=await Promise.all(ordered.map(async u=>{
+    const p=await html(u);
+    const pn=pageNumber(p.url);
+    if(pn===2||pn===3) citymarketHtmlDebugV8.samples.push({
+      page:pn,url:p.url,htmlLength:p.text.length,
+      textLines:textOf(p.text).split(/\n+/).map(clean).filter(Boolean).slice(0,220),
+      tagSamples:debugTagSamplesV8(p.text)
+    });
+    return parsePage(p.text,p.url);
+  }));
+  citymarketHtmlDebugV8.samples.sort((a,b)=>a.page-b.page);
+
+  const seen=new Set<string>();
+  return pages.flat().filter(o=>{
+    const k=`${o.title.toLowerCase()}|${o.price}|${o.packageSize??""}`;
+    if(seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
 }
 
 export default fetchKCitymarketOffers;
