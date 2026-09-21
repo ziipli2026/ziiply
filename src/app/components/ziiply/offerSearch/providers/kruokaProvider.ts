@@ -1,6 +1,6 @@
 // ============================================================================
-// ZIIPLY_KRUOKA_PROVIDER_V59_KMARKET_TJEK_STORE_PROBES_DEBUG
-// Revision: V59-KMARKET-TJEK-STORE-PROBES-DEBUG
+// ZIIPLY_KRUOKA_PROVIDER_V60_KMARKET_DOMINANT_PUBLICATION
+// Revision: V60-KMARKET-DOMINANT-PUBLICATION
 // Date: 2026-09-21
 //
 // V55 pohjana. Muutos vain K-Marketin testaamiseksi eTarjouslehdet/Tjekillä:
@@ -44,6 +44,7 @@ export type KruokaPipelineDebugV49 = {
   error: string | null;
   rawOffers?: UnknownRecord[];
   tjekStoreProbeDebug?: Array<{ name: string; params: UnknownRecord; ok: boolean; count: number | null; preview: unknown; error: string | null }>;
+  kMarketDominantPublicationDebug?: { publicationPublicId: string | null; offerCount: number; secondOfferCount: number; acceptedAsChainPublication: boolean; reason: string };
   publicationStoreDebug?: Array<{
     publicationPublicId: string;
     offerCount: number;
@@ -224,7 +225,7 @@ function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId: strin
     category, categoryPath: category, productGroup: category, mainCategory: category, subCategory: category,
     validFrom: offer.validFrom ?? null, validUntil: offer.validUntil ?? null, isPlussaOffer: isPlussa,
     url: `${ETARJOUSLEHDET_ORIGIN}/${slug}`, productUrl: `${ETARJOUSLEHDET_ORIGIN}/${slug}`,
-    debug: { providerVersion: "V59_KMARKET_TJEK_STORE_PROBES_DEBUG", publicationId, tjekStoreId: displayStoreId, chain },
+    debug: { providerVersion: "V60_KMARKET_DOMINANT_PUBLICATION", publicationId, tjekStoreId: displayStoreId, chain },
   } as unknown as ZiiplyOfferSearchResult;
 }
 
@@ -316,6 +317,44 @@ export async function fetchKruokaOffers(
       offers.map(o => String(o.publicationPublicId ?? "")).filter(Boolean)
     ));
     const allowed = new Set<string>();
+
+    // V60 K-Market:
+    // Tjekin publication->stores -kytkentä ei kata ketjun yhteisiä tarjouksia oikein.
+    // Hakalantorin K-Ruoka-näkymän ja raw offer -datan vertailussa suurin publication
+    // sisältää samat ketjutarjoukset (esim. Teho, Santa Maria, mango, pensasmustikka,
+    // suippopaprika, Kartanon salaatti, Caesar-salaatti), vaikka stores(publicationId)
+    // palauttaa vain yhden muun K-Marketin.
+    //
+    // Älä kovakoodaa publication-ID:tä: tunnista ketjupublication selvästi dominoivasta
+    // offer-määrästä. Turvaraja: vähintään 10 tarjousta ja vähintään 2x seuraavaksi suurin.
+    const publicationCounts = publicationIds
+      .map(publicationPublicId => ({
+        publicationPublicId,
+        offerCount: offers.filter(o => String(o.publicationPublicId ?? "") === publicationPublicId).length,
+      }))
+      .sort((a, b) => b.offerCount - a.offerCount);
+
+    const dominant = publicationCounts[0] ?? null;
+    const secondOfferCount = publicationCounts[1]?.offerCount ?? 0;
+    const acceptDominantAsChainPublication =
+      business.chain === "K-Market" &&
+      !!dominant &&
+      dominant.offerCount >= 10 &&
+      (secondOfferCount === 0 || dominant.offerCount >= secondOfferCount * 2);
+
+    debug.kMarketDominantPublicationDebug = {
+      publicationPublicId: dominant?.publicationPublicId ?? null,
+      offerCount: dominant?.offerCount ?? 0,
+      secondOfferCount,
+      acceptedAsChainPublication: acceptDominantAsChainPublication,
+      reason: acceptDominantAsChainPublication
+        ? "K-Market dominant publication accepted as chain/common offers; publication->stores mapping is incomplete"
+        : "Dominant-publication safety criteria not met",
+    };
+
+    if (acceptDominantAsChainPublication && dominant) {
+      allowed.add(dominant.publicationPublicId);
+    }
 
     for (const publicationId of publicationIds) {
       const offerCount = offers.filter(o => String(o.publicationPublicId ?? "") === publicationId).length;
