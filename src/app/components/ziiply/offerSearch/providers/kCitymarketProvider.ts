@@ -1,5 +1,12 @@
 // ============================================================================
-// ZIIPLY K-CITYMARKET PROVIDER V8\n// Revision: V8-KCITYMARKET-PAGE2-PAGE3-HTML-DIAGNOSTIC\n// Date: 2026-09-21\n// V6 parser + page2/page3 raw structure diagnostic.\n// ============================================================================\n
+// ZIIPLY K-CITYMARKET PROVIDER V9
+// Revision: V9-KCITYMARKET-DIAGNOSTIC-REGEX-FIX
+// Date: 2026-09-21
+//
+// - V6 parser unchanged.
+// - Captures page2/page3 basic-html structure for parser diagnosis.
+// ============================================================================
+
 export type CitymarketOffer = {
   id: string;
   title: string;
@@ -19,15 +26,6 @@ export type CitymarketOffer = {
 };
 
 const ENTRY = "https://kcm-lehdet.k-ruoka.fi/tarjouslehti";
-export type KCitymarketHtmlDebugV8 = {
-  leafletUrl?: string;
-  basicIndexUrl?: string;
-  maxPage?: number;
-  samples: Array<{page:number;url:string;htmlLength:number;textLines:string[];tagSamples:string[]}>;
-};
-let citymarketHtmlDebugV8:KCitymarketHtmlDebugV8={samples:[]};
-export function getKCitymarketHtmlDebugV8(){return citymarketHtmlDebugV8;}
-
 const clean=(s:string)=>String(s??"").replace(/\u00a0/g," ").replace(/[ \t]+/g," ").trim();
 const money=(s:string)=>Number(String(s).replace(",","."));
 const abs=(href:string,base:string)=>{try{return new URL(href,base).href}catch{return null}};
@@ -151,15 +149,6 @@ function parsePage(html:string,url:string):CitymarketOffer[]{
   return out;
 }
 
-function debugTagSamplesV8(src:string){
-  const out:string[]=[];
-  for(const m of src.matchAll(/<(div|span|p|td|li|a)\\b([^>]*)>([\\s\\S]*?)<\\/\\1>/gi)){
-    const t=clean(decodeEntities(m[3].replace(/<[^>]+>/g," ")));
-    if(t) out.push(`<${m[1]}${clean(m[2]).slice(0,180)}> ${t.slice(0,220)}`);
-    if(out.length>=80) break;
-  }
-  return out;
-}
 function pageNumber(url:string){
   const m=url.match(/page(\d+)\.html/i);
   return m?Number(m[1]):1;
@@ -192,15 +181,24 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
   for(let n=2;n<=maxPage;n++) urls.add(`${baseDir}page${n}.html`);
 
   const ordered=[...urls].sort((a,b)=>pageNumber(a)-pageNumber(b));
-  citymarketHtmlDebugV8={leafletUrl:leaf.url,basicIndexUrl:index.url,maxPage,samples:[]};
+  citymarketHtmlDebugV8 = {
+    leafletUrl: leaf.url,
+    basicIndexUrl: index.url,
+    maxPage,
+    samples: [],
+  };
   const pages=await Promise.all(ordered.map(async u=>{
     const p=await html(u);
     const pn=pageNumber(p.url);
-    if(pn===2||pn===3) citymarketHtmlDebugV8.samples.push({
-      page:pn,url:p.url,htmlLength:p.text.length,
-      textLines:textOf(p.text).split(/\n+/).map(clean).filter(Boolean).slice(0,220),
-      tagSamples:debugTagSamplesV8(p.text)
-    });
+    if(pn===2 || pn===3){
+      citymarketHtmlDebugV8.samples.push({
+        page:pn,
+        url:p.url,
+        htmlLength:p.text.length,
+        textLines:textOf(p.text).split(/\n+/).map(clean).filter(Boolean).slice(0,220),
+        tagSamples:debugTagSamplesV8(p.text),
+      });
+    }
     return parsePage(p.text,p.url);
   }));
   citymarketHtmlDebugV8.samples.sort((a,b)=>a.page-b.page);
@@ -220,10 +218,21 @@ export type KCitymarketHtmlDebugV8 = {
   leafletUrl?: string;
   basicIndexUrl?: string;
   maxPage?: number;
-  samples: Array<{page:number;url:string;htmlLength:number;textLines:string[];tagSamples:string[]}>;
+  samples: Array<{
+    page: number;
+    url: string;
+    htmlLength: number;
+    textLines: string[];
+    tagSamples: string[];
+  }>;
 };
+
 let citymarketHtmlDebugV8: KCitymarketHtmlDebugV8 = { samples: [] };
-export function getKCitymarketHtmlDebugV8(){ return citymarketHtmlDebugV8; }
+
+export function getKCitymarketHtmlDebugV8(): KCitymarketHtmlDebugV8 {
+  return citymarketHtmlDebugV8;
+}
+
 function debugTagSamplesV8(src:string){
   const out:string[]=[];
   for(const m of src.matchAll(/<(div|span|p|td|li|a)\b([^>]*)>([\s\S]*?)<\/\1>/gi)){
