@@ -1,12 +1,18 @@
 // ============================================================================
-// ZIIPLY_KRUOKA_PROVIDER_V49_EXPORTED_PIPELINE_DIAGNOSTICS
-// Revision: V49-EXPORTED-PIPELINE-DIAGNOSTICS
-// Date: 2026-09-20
+// ZIIPLY_KRUOKA_PROVIDER_V50_DIRECT_FETCH_OFFERS_DIAGNOSTICS
+// Revision: V50-DIRECT-FETCH-OFFERS-DIAGNOSTICS
+// Date: 2026-09-21
 //
-// Muutos V47:ään:
-// - Säilyttää varsinaisen K-Ruoka-haun ennallaan.
-// - Tallentaa viimeisimmän K-haun pipeline-diagnostiikan erilliseen exporttiin.
+// Muutos V49:ään:
+// - Poistaa pakollisen K-Ruoka tarjouslehti-HTML-fetchin, joka saa Vercelissä 403.
+// - Kokeilee K-Ruoan /kr-api/fetch-offers -endpointia suoraan valitun kaupan tiedoilla.
+// - EI käytä Ruoanhinta.fi:tä eikä eTarjouslehdetiä.
+// - Säilyttää product-map-vaiheen ja tarjouskorttien normalisoinnin.
+// - Tallentaa endpointin HTTP-statuksen, vastausmuodon, löydetyn K-storeId:n,
+//   offer/EAN-määrät ja product-map-statuksen pipeline-debugiin.
 // - Debug EI kulje tarjousrivinä eikä vaikuta tarjous-/kategoria-aineistoon.
+// - Tämä on tarkoituksella diagnostiikkaversio: seuraava testi kertoo nykyisen
+//   fetch-offers-requestin vaatiman storeId/body-muodon ilman Cloudflare-HTML-porttia.
 // ============================================================================
 
 // src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts
@@ -33,6 +39,8 @@ export type KruokaPipelineDebugV49 = {
   brochureUrl: string;
   brochureHttp: number | null;
   applicationState: "NOT_RUN" | "OK" | "FAIL";
+  fetchOffersHttp: number | null;
+  fetchOffersShape: string | null;
   kStoreId: string | null;
   brochureOffers: number | null;
   eans: number | null;
@@ -64,6 +72,7 @@ type KRawOffer = {
 
 const KRUOKA_ORIGIN = "https://www.k-ruoka.fi";
 const PRODUCT_MAP_URL = `${KRUOKA_ORIGIN}/kr-api/raw-offer/product-map`;
+const FETCH_OFFERS_URL = `${KRUOKA_ORIGIN}/kr-api/fetch-offers`;
 
 function normalize(value: unknown): string {
   return String(value ?? "")
@@ -114,43 +123,6 @@ function buildBrochureUrl(storeName: string): string {
   return `${KRUOKA_ORIGIN}${path}?${params.toString()}`;
 }
 
-function htmlEntityDecode(value: string): string {
-  return value
-    .replace(/&quot;/g, '"')
-    .replace(/&#x27;|&#39;/g, "'")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&amp;/g, "&");
-}
-
-function maybeDecodeURIComponent(value: string): string {
-  if (!value.includes("%")) return value;
-  try {
-    return decodeURIComponent(value);
-  } catch {
-    return value;
-  }
-}
-
-function extractApplicationState(html: string): UnknownRecord {
-  const match = html.match(
-    /<div[^>]*id=["']applicationState["'][^>]*data-state=(["'])([\s\S]*?)\1[^>]*>/,
-  );
-
-  if (!match?.[2]) {
-    throw new Error("K-Ruoka applicationState puuttuu tarjouslehden HTML:stä");
-  }
-
-  const decoded = maybeDecodeURIComponent(htmlEntityDecode(match[2]));
-  const parsed = JSON.parse(decoded) as unknown;
-
-  if (!parsed || typeof parsed !== "object") {
-    throw new Error("K-Ruoka applicationState ei ole objekti");
-  }
-
-  return parsed as UnknownRecord;
-}
-
 function getByPath(root: unknown, path: string[]): unknown {
   let current = root;
   for (const key of path) {
@@ -160,31 +132,125 @@ function getByPath(root: unknown, path: string[]): unknown {
   return current;
 }
 
-function findStoreOffers(state: UnknownRecord): {
-  kStoreId: string;
-  offers: KRawOffer[];
-} {
-  const stores = getByPath(state, [
-    "reduxState",
-    "offerBrochurePage",
-    "stores",
-  ]);
+function asOfferArray(value: unknown): KRawOffer[] | null {
+  return Array.isArray(value) ? (value as KRawOffer[]) : null;
+}
 
-  if (!stores || typeof stores !== "object") {
-    throw new Error("K-Ruoka offerBrochurePage.stores puuttuu");
+function findOffersInFetchResponse(data: unknown): {
+  kStoreId: string | null;
+  offers: KRawOffer[];
+  shape: string;
+} {
+  // Tunnetut/tyypilliset JSON-muodot ensin.
+  const direct = asOfferArray(data);
+  if (direct) return { kStoreId: null, offers: direct, shape: "array" };
+
+  if (!data || typeof data !== "object") {
+    return { kStoreId: null, offers: [], shape: typeof data };
   }
 
-  const storeMap = stores as UnknownRecord;
-  const candidates = Object.entries(storeMap);
+  const root = data as UnknownRecord;
+  const paths: Array<{ path: string[]; label: string }> = [
+    { path: ["offers"], label: "offers" },
+    { path: ["response", "offers"], label: "response.offers" },
+    { path: ["data", "offers"], label: "data.offers" },
+    { path: ["data", "response", "offers"], label: "data.response.offers" },
+  ];
 
-  for (const [kStoreId, storeValue] of candidates) {
-    const offers = getByPath(storeValue, ["response", "offers"]);
-    if (Array.isArray(offers) && offers.length > 0) {
-      return { kStoreId, offers: offers as KRawOffer[] };
+  for (const candidate of paths) {
+    const offers = asOfferArray(getByPath(root, candidate.path));
+    if (offers) {
+      const kStoreId = String(
+        root.storeId ??
+          getByPath(root, ["store", "id"]) ??
+          getByPath(root, ["response", "storeId"]) ??
+          getByPath(root, ["data", "storeId"]) ??
+          "",
+      ).trim() || null;
+      return { kStoreId, offers, shape: candidate.label };
     }
   }
 
-  throw new Error("K-Ruoka tarjouslehdestä ei löytynyt tarjouksia");
+  // Jos vastaus on store-map (esim. { S441: { response: { offers: [...] } } }),
+  // etsitään ensimmäinen oikea offer-array ja otetaan avain K-storeId:ksi.
+  for (const [key, value] of Object.entries(root)) {
+    const offers =
+      asOfferArray(getByPath(value, ["response", "offers"])) ??
+      asOfferArray(getByPath(value, ["offers"]));
+    if (offers) {
+      return { kStoreId: key, offers, shape: `store-map:${key}` };
+    }
+  }
+
+  return {
+    kStoreId: null,
+    offers: [],
+    shape: `object:${Object.keys(root).slice(0, 12).join(",")}`,
+  };
+}
+
+async function fetchOffersDirect(
+  displayStoreId: string,
+  displayStoreName: string,
+  brochureUrl: string,
+  debug?: KruokaPipelineDebugV49,
+): Promise<{ kStoreId: string; offers: KRawOffer[] }> {
+  // V50: ei tarjouslehden HTML:ää. Endpointille annetaan kaikki jo Ziiplyllä
+  // varmasti olevat kauppatiedot. Seuraava debug kertoo hyväksyykö nykyinen
+  // K-Ruoka tämän request-muodon vai vaatiiko se sisäisen S/L-storeId:n.
+  const response = await fetch(FETCH_OFFERS_URL, {
+    method: "POST",
+    headers: {
+      Accept: "application/json, text/plain, */*",
+      "Accept-Language": "fi-FI,fi;q=0.9,en;q=0.7",
+      "Content-Type": "application/json",
+      Origin: KRUOKA_ORIGIN,
+      Referer: brochureUrl,
+      "User-Agent":
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.5 Safari/605.1.15",
+    },
+    body: JSON.stringify({
+      storeId: displayStoreId || undefined,
+      storeName: displayStoreName || undefined,
+      requirePromotionValidAt: new Date().toISOString(),
+    }),
+    cache: "no-store",
+  });
+
+  if (debug) debug.fetchOffersHttp = response.status;
+
+  const raw = await response.text().catch(() => "");
+  if (!response.ok) {
+    if (debug) debug.fetchOffersShape = `HTTP ${response.status}: ${raw.slice(0, 240)}`;
+    throw new Error(
+      `K-Ruoka fetch-offers HTTP ${response.status}: ${raw.slice(0, 240)}`,
+    );
+  }
+
+  let data: unknown;
+  try {
+    data = raw ? JSON.parse(raw) : null;
+  } catch {
+    if (debug) debug.fetchOffersShape = `NON_JSON:${raw.slice(0, 240)}`;
+    throw new Error(`K-Ruoka fetch-offers ei palauttanut JSONia: ${raw.slice(0, 240)}`);
+  }
+
+  const found = findOffersInFetchResponse(data);
+  if (debug) debug.fetchOffersShape = found.shape;
+
+  if (!found.offers.length) {
+    throw new Error(`K-Ruoka fetch-offers: tarjouksia ei löytynyt; shape=${found.shape}`);
+  }
+
+  // product-map tarvitsee K-Ruoan sisäisen storeId:n. Jos endpoint ei anna sitä
+  // erikseen, hyväksytään displayStoreId vain diagnostiikkana; product-map-debug
+  // kertoo heti, onko tunniste oikeaa muotoa.
+  const kStoreId = found.kStoreId || displayStoreId;
+  if (!kStoreId) {
+    throw new Error("K-Ruoka fetch-offers palautti tarjoukset mutta K-storeId puuttuu");
+  }
+
+  return { kStoreId, offers: found.offers };
 }
 
 function collectEans(offers: KRawOffer[]): string[] {
@@ -463,7 +529,7 @@ function mapProduct(
     url: productUrl,
     productUrl,
     debug: {
-      providerVersion: "V47_KRUOKA_ONLY_DYNAMIC",
+      providerVersion: "V50_DIRECT_FETCH_OFFERS_DIAGNOSTICS",
       kRuokaStoreId: getByPath(product, ["store", "id"]) ?? null,
       selectedStoreId: displayStoreId,
       campaignId: discount.campaignId ?? null,
@@ -490,6 +556,8 @@ export async function fetchKruokaOffers(
     brochureUrl,
     brochureHttp: null,
     applicationState: "NOT_RUN",
+    fetchOffersHttp: null,
+    fetchOffersShape: null,
     kStoreId: null,
     brochureOffers: null,
     eans: null,
@@ -501,17 +569,14 @@ export async function fetchKruokaOffers(
   lastKruokaPipelineDebugV49 = debugV49;
 
   try {
-    const html = await fetchBrochureHtml(brochureUrl, debugV49);
-    let state: UnknownRecord;
-    try {
-      state = extractApplicationState(html);
-      debugV49.applicationState = "OK";
-    } catch (error) {
-      debugV49.applicationState = "FAIL";
-      throw error;
-    }
-
-    const { kStoreId, offers } = findStoreOffers(state);
+    // V50: HTML/applicationState-vaihe ohitetaan kokonaan.
+    // applicationState jää NOT_RUN-arvoon tarkoituksella.
+    const { kStoreId, offers } = await fetchOffersDirect(
+      displayStoreId,
+      displayStoreName,
+      brochureUrl,
+      debugV49,
+    );
     debugV49.kStoreId = kStoreId;
     debugV49.brochureOffers = offers.length;
 
@@ -544,7 +609,7 @@ export async function fetchKruokaOffers(
   } catch (error) {
     debugV49.error = error instanceof Error ? error.message : String(error);
     lastKruokaPipelineDebugV49 = { ...debugV49 };
-    console.error("[Ziiply K provider V49] K-Ruoka-only haku epäonnistui", {
+    console.error("[Ziiply K provider V50] K-Ruoka-only haku epäonnistui", {
       selectedStoreId: displayStoreId,
       selectedStoreName: displayStoreName,
       brochureUrl,
