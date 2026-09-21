@@ -1,17 +1,26 @@
 // ============================================================================
-// ZIIPLY_KRUOKA_PROVIDER_V48_VISIBLE_PIPELINE_DIAGNOSTICS
-// Revision: V48-VISIBLE-PIPELINE-DIAGNOSTICS
-// Date: 2026-09-20
-//
-// Muutos V47:ään:
-// - Lisää K-Ruoka-haun näkyvän diagnostiikkatuloksen vain epäonnistumis-/0-tulos-tilanteeseen.
-// - Diagnostiikka kertoo: valittu kauppa, brochure URL/HTTP, applicationState,
-//   K-Ruoka storeId, tarjousmäärä, EAN-määrä, product-map HTTP/tuotemäärä
-//   ja aktiivisten tarjousten määrän.
-// - Varsinaista K-Ruoka-hakulogiikkaa, S-provideria, pagea tai Sourcesia ei muuteta.
+// ZIIPLY_KRUOKA_PROVIDER_V47_RESTORE_BUILD_BASELINE
+// Revision: V47-RESTORE-BUILD-BASELINE
+// Date: 2026-09-21
+// - Palauttaa providerin viimeiseen tunnettuun V47-koodiin V48 build errorin jälkeen.
+// - Ei toiminnallisia muutoksia V47:ään.
 // ============================================================================
 
 // src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts
+// ============================================================================
+// ZIIPLY_KRUOKA_PROVIDER_V47_KRUOKA_ONLY_DYNAMIC
+// Revision: V47
+// Date: 2026-07-14
+//
+// - Ei Ruoanhinta.fi:tä.
+// - Ei Jokela/S441-kovakoodausta.
+// - Ei HAR-snapshotia.
+// - Käyttää vain K-Ruoan omaa tarjouslehteä, applicationState-dataa ja
+//   /kr-api/raw-offer/product-map -rajapintaa.
+// - Kauppa määräytyy käyttäjän valitseman K-kaupan nimestä.
+// - Jos K-Ruoka estää palvelinpyynnön, provider palauttaa tyhjän listan eikä
+//   koskaan korvaa sitä väärällä kaupalla tai kolmannen osapuolen datalla.
+// ============================================================================
 
 import type {
   ZiiplyOfferSearchResult,
@@ -180,10 +189,7 @@ function collectEans(offers: KRawOffer[]): string[] {
   return Array.from(result);
 }
 
-async function fetchBrochureHtml(
-  url: string,
-  debug?: UnknownRecord,
-): Promise<string> {
+async function fetchBrochureHtml(url: string): Promise<string> {
   const response = await fetch(url, {
     method: "GET",
     headers: {
@@ -195,8 +201,6 @@ async function fetchBrochureHtml(
     cache: "no-store",
     redirect: "follow",
   });
-
-  if (debug) debug.brochureHttp = response.status;
 
   if (!response.ok) {
     const preview = await response.text().catch(() => "");
@@ -212,7 +216,6 @@ async function fetchProductMap(
   kStoreId: string,
   eans: string[],
   brochureUrl: string,
-  debug?: UnknownRecord,
 ): Promise<Record<string, UnknownRecord>> {
   if (eans.length === 0) return {};
 
@@ -235,8 +238,6 @@ async function fetchProductMap(
     cache: "no-store",
   });
 
-  if (debug) debug.productMapHttp = response.status;
-
   if (!response.ok) {
     const preview = await response.text().catch(() => "");
     throw new Error(
@@ -245,12 +246,9 @@ async function fetchProductMap(
   }
 
   const data = (await response.json()) as unknown;
-  const mapped =
-    data && typeof data === "object"
-      ? (data as Record<string, UnknownRecord>)
-      : {};
-  if (debug) debug.productMapProducts = Object.keys(mapped).length;
-  return mapped;
+  return data && typeof data === "object"
+    ? (data as Record<string, UnknownRecord>)
+    : {};
 }
 
 function activeDiscount(product: UnknownRecord): UnknownRecord | null {
@@ -450,63 +448,6 @@ function mapProduct(
   } as unknown as ZiiplyOfferSearchResult;
 }
 
-function makeKruokaVisibleDebugV48(
-  displayStoreId: string,
-  displayStoreName: string,
-  brochureUrl: string,
-  debug: UnknownRecord,
-  error?: unknown,
-): ZiiplyOfferSearchResult {
-  const detail = [
-    `store=${displayStoreName || "-"}`,
-    `selectedStoreId=${displayStoreId || "-"}`,
-    `brochure=${brochureUrl || "-"}`,
-    `brochureHttp=${String(debug.brochureHttp ?? "-")}`,
-    `applicationState=${String(debug.applicationState ?? "-")}`,
-    `kStoreId=${String(debug.kStoreId ?? "-")}`,
-    `brochureOffers=${String(debug.brochureOffers ?? "-")}`,
-    `eans=${String(debug.eans ?? "-")}`,
-    `productMapHttp=${String(debug.productMapHttp ?? "-")}`,
-    `productMapProducts=${String(debug.productMapProducts ?? "-")}`,
-    `activeOffers=${String(debug.activeOffers ?? "-")}`,
-    error ? `error=${error instanceof Error ? error.message : String(error)}` : "",
-  ].filter(Boolean).join(" | ");
-
-  return {
-    id: `kruoka-v48-debug-${displayStoreId || "no-store"}-${Date.now()}`,
-    title: "K-RUOKA V48 DEBUG",
-    name: "K-RUOKA V48 DEBUG",
-    productName: "K-RUOKA V48 DEBUG",
-    price: 0,
-    priceText: "0,00",
-    offerPrice: "0,00",
-    storeId: displayStoreId,
-    storeName: displayStoreName,
-    storeLabel: displayStoreName || "K-Ruoka",
-    chain: "K",
-    source: "kruoka-debug",
-    provider: "kruoka-debug",
-    offerId: "kruoka-v48-debug",
-    ean: "",
-    eans: [],
-    additionalInfo: detail,
-    benefitText: detail,
-    validityText: "DEBUG",
-    category: "Muut",
-    categoryPath: "Muut",
-    productGroup: "Muut",
-    mainCategory: "Muut",
-    subCategory: "Muut",
-    url: brochureUrl,
-    productUrl: brochureUrl,
-    debug: {
-      providerVersion: "V48_VISIBLE_PIPELINE_DIAGNOSTICS",
-      ...debug,
-      error: error instanceof Error ? error.message : error ? String(error) : null,
-    },
-  } as unknown as ZiiplyOfferSearchResult;
-}
-
 export async function fetchKruokaOffers(
   query: string,
   _source: ZiiplyOfferSearchSourceConfig,
@@ -520,38 +461,13 @@ export async function fetchKruokaOffers(
   if (!displayStoreName) return [];
 
   const brochureUrl = buildBrochureUrl(displayStoreName);
-  const pipelineDebugV48: UnknownRecord = {
-    selectedStoreName: displayStoreName,
-    selectedStoreId: displayStoreId,
-    brochureUrl,
-    brochureHttp: "-",
-    applicationState: "NOT_RUN",
-    kStoreId: "-",
-    brochureOffers: "-",
-    eans: "-",
-    productMapHttp: "-",
-    productMapProducts: "-",
-    activeOffers: "-",
-  };
 
   try {
-    const html = await fetchBrochureHtml(brochureUrl, pipelineDebugV48);
+    const html = await fetchBrochureHtml(brochureUrl);
     const state = extractApplicationState(html);
-    pipelineDebugV48.applicationState = "OK";
-
     const { kStoreId, offers } = findStoreOffers(state);
-    pipelineDebugV48.kStoreId = kStoreId;
-    pipelineDebugV48.brochureOffers = offers.length;
-
     const eans = collectEans(offers);
-    pipelineDebugV48.eans = eans.length;
-
-    const productMap = await fetchProductMap(
-      kStoreId,
-      eans,
-      brochureUrl,
-      pipelineDebugV48,
-    );
+    const productMap = await fetchProductMap(kStoreId, eans, brochureUrl);
 
     const seen = new Set<string>();
     const results: ZiiplyOfferSearchResult[] = [];
@@ -572,35 +488,14 @@ export async function fetchKruokaOffers(
       results.push(mapped);
     }
 
-    pipelineDebugV48.activeOffers = results.length;
-
-    if (results.length === 0) {
-      return [
-        makeKruokaVisibleDebugV48(
-          displayStoreId,
-          displayStoreName,
-          brochureUrl,
-          pipelineDebugV48,
-        ),
-      ];
-    }
-
     return results;
   } catch (error) {
-    console.error("[Ziiply K provider V48] K-Ruoka-only haku epäonnistui", {
+    console.error("[Ziiply K provider V47] K-Ruoka-only haku epäonnistui", {
       selectedStoreId: displayStoreId,
       selectedStoreName: displayStoreName,
       brochureUrl,
       error: error instanceof Error ? error.message : String(error),
     });
-    return [
-      makeKruokaVisibleDebugV48(
-        displayStoreId,
-        displayStoreName,
-        brochureUrl,
-        pipelineDebugV48,
-        error,
-      ),
-    ];
+    return [];
   }
 }
