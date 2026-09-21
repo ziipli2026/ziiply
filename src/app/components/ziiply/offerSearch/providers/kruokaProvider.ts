@@ -1,19 +1,4 @@
 // ============================================================================
-// ZIIPLY_KRUOKA_PROVIDER_V50_VISIBLE_PIPELINE_DEBUG_RESULT
-// Revision: V50-VISIBLE-PIPELINE-DEBUG-RESULT
-// Date: 2026-09-21
-//
-// Muutos V49:ään:
-// - Lisää VAIN Göstan master-haussa (__ziiply_all_offers__) yhden synteettisen
-//   K DEBUG -tulosrivin, joka kuljettaa providerin pipeline-tilan nykyiseen
-//   Cardin DBG/rawItems-näkymään.
-// - Näyttää: valittu kauppa, tarjouslehti-URL/HTTP, applicationState, K-storeId,
-//   tarjousmäärä, EAN-määrä, product-map HTTP/tuotemäärä, aktiiviset tarjoukset ja error.
-// - Varsinainen K-Ruoka-haku ja S-puoli säilyvät ennallaan.
-// - Debug on väliaikainen ja poistetaan diagnoosin jälkeen.
-// ============================================================================
-
-// ============================================================================
 // ZIIPLY_KRUOKA_PROVIDER_V49_EXPORTED_PIPELINE_DIAGNOSTICS
 // Revision: V49-EXPORTED-PIPELINE-DIAGNOSTICS
 // Date: 2026-09-20
@@ -486,67 +471,6 @@ function mapProduct(
   } as unknown as ZiiplyOfferSearchResult;
 }
 
-const KRUOKA_MASTER_QUERY_V50 = "__ziiply_all_offers__";
-
-function buildVisiblePipelineDebugResultV50(
-  debug: KruokaPipelineDebugV49,
-): ZiiplyOfferSearchResult {
-  const debugText = [
-    "K DEBUG V50",
-    `store=${debug.selectedStoreName || "-"}`,
-    `selectedStoreId=${debug.selectedStoreId || "-"}`,
-    `brochureUrl=${debug.brochureUrl || "-"}`,
-    `brochureHttp=${debug.brochureHttp ?? "-"}`,
-    `applicationState=${debug.applicationState}`,
-    `kStoreId=${debug.kStoreId ?? "-"}`,
-    `brochureOffers=${debug.brochureOffers ?? "-"}`,
-    `eans=${debug.eans ?? "-"}`,
-    `productMapHttp=${debug.productMapHttp ?? "-"}`,
-    `productMapProducts=${debug.productMapProducts ?? "-"}`,
-    `activeOffers=${debug.activeOffers ?? "-"}`,
-    `error=${debug.error ?? "-"}`,
-  ].join(" | ");
-
-  return {
-    id: `kruoka-debug-v50-${debug.selectedStoreName || "store"}`,
-    source: "kruoka-debug",
-    provider: "kruoka-debug",
-    chain: "K",
-    storeId: debug.selectedStoreId || debug.kStoreId || "k-debug",
-    storeName: debug.selectedStoreName || "K DEBUG",
-    storeLabel: debug.selectedStoreName || "K DEBUG",
-    title: debugText,
-    name: debugText,
-    productName: debugText,
-    price: 0,
-    priceText: "0,00 €",
-    offerPrice: "0,00 €",
-    unitPrice: "",
-    unitPriceText: "",
-    imageUrl: "",
-    image: "",
-    pictureUrl: "",
-    category: "Muut",
-    categoryPath: "Muut",
-    productGroup: "Muut",
-    mainCategory: "Muut",
-    subCategory: "Muut",
-    ean: `kruoka-debug-v50-${debug.selectedStoreName || "store"}`,
-    eans: [`kruoka-debug-v50-${debug.selectedStoreName || "store"}`],
-    additionalInfo: "Väliaikainen K-Ruoka pipeline-debug",
-    benefitText: "K DEBUG",
-    validityText: "Debug",
-    url: debug.brochureUrl,
-    productUrl: debug.brochureUrl,
-    rawText: debugText,
-    matchScore: 999999,
-    debug: {
-      providerVersion: "V50_VISIBLE_PIPELINE_DEBUG_RESULT",
-      pipeline: { ...debug },
-    },
-  } as unknown as ZiiplyOfferSearchResult;
-}
-
 export async function fetchKruokaOffers(
   query: string,
   _source: ZiiplyOfferSearchSourceConfig,
@@ -616,9 +540,7 @@ export async function fetchKruokaOffers(
 
     debugV49.activeOffers = results.length;
     lastKruokaPipelineDebugV49 = { ...debugV49 };
-    return query.trim() === KRUOKA_MASTER_QUERY_V50
-      ? [buildVisiblePipelineDebugResultV50(debugV49), ...results]
-      : results;
+    return results;
   } catch (error) {
     debugV49.error = error instanceof Error ? error.message : String(error);
     lastKruokaPipelineDebugV49 = { ...debugV49 };
@@ -628,8 +550,6 @@ export async function fetchKruokaOffers(
       brochureUrl,
       error: error instanceof Error ? error.message : String(error),
     });
-    return query.trim() === KRUOKA_MASTER_QUERY_V50
-      ? [buildVisiblePipelineDebugResultV50(debugV49)]
-      : [];
+    return [];
   }
 }
