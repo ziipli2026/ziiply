@@ -1,8 +1,24 @@
 // ============================================================================
-// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V49_BUILD_CHECK_1
-// Revision: V49-BUILD-CHECK-1
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V53_MINI_DEBUG_BUTTON
+// Revision: V53-MINI-DEBUG-BUTTON
 // Date: 2026-09-21
-// - Lisää vain näkyvän BUILD CHECK 1 -deployment-markerin Tarjoushaku-otsikon alle.
+//
+// Muutos V52:een:
+// - Pienentää debugin avauspainikkeen mahdollisimman huomaamattomaksi DBG-napiksi.
+// - Varsinainen debug-overlay ja KOPIOI DEBUG säilyvät ennallaan.
+// - Ei muuta haku-, provider-, store-, category-, dedupe- tai S/K-logiikkaa.
+// ============================================================================
+
+// ============================================================================
+// ZIIPLY_MOBILE_OFFER_SEARCH_CARD_V52_DEBUG_OVERLAY_RESTORED
+// Revision: V52-DEBUG-OVERLAY-RESTORED
+// Date: 2026-09-21
+//
+// Muutos V49:ään:
+// - Poistaa väliaikaisen BUILD CHECK 1 -deployment-markerin.
+// - Palauttaa S-ryhmän korjauksessa käytetyn DEBUG · AVAA TÄSTÄ -ikkunan.
+// - Debug toimii sekä S- että K-ryhmän valinnan jälkeen.
+// - KOPIOI DEBUG kopioi Cardille saapuvan query/filter/loading/store/categoryCounts/rawItems-datan.
 // - Ei muuta haku-, provider-, store-, category-, dedupe- tai S/K-logiikkaa.
 // ============================================================================
 
@@ -565,6 +581,7 @@ export default function ZiiplyMobileOfferSearchCard({
 }: ZiiplyMobileOfferSearchCardProps) {
   const [lastOpenedCategoryV27, setLastOpenedCategoryV27] = React.useState("");
   const [selectedOfferChainV39, setSelectedOfferChainV39] = React.useState<"S" | "K" | null>(null);
+  const [debugOpenV52, setDebugOpenV52] = React.useState(false);
 
   React.useEffect(() => {
     if (typeof window === "undefined") return;
@@ -856,6 +873,40 @@ export default function ZiiplyMobileOfferSearchCard({
     ? "Valitsemasi kauppahuoneen huojennetut hinnat ja tarjoukset"
     : "Valitsemasi lähipuodin huojennetut hinnat ja tarjoukset";
 
+  const debugPayloadV52 = {
+    revision: "V52-DEBUG-OVERLAY-RESTORED",
+    selectedOfferChain: selectedOfferChainV39,
+    loading,
+    query: shownQuery,
+    filter: shownFilter,
+    showLandingView,
+    selectedStoreName: selectedStoreNameV41,
+    rawItemsCount: rawItems.length,
+    dedupedItemsCount: items.length,
+    visibleItemsCount: visibleItems.length,
+    categoryOfferCounts: categoryOfferCounts || {},
+    testedEmptyCategories: testedEmptyCategories || {},
+    rawItems,
+  };
+
+  const debugTextV52 = JSON.stringify(debugPayloadV52, null, 2);
+
+  const copyDebugV52 = async () => {
+    try {
+      await navigator.clipboard.writeText(debugTextV52);
+    } catch {
+      const textarea = document.createElement("textarea");
+      textarea.value = debugTextV52;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.focus();
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+    }
+  };
+
   const goToLandingView = () => {
     // V27: paluu tuoteryhmälistaan ei saa käynnistää uutta master-hakua eikä tyhjentää
     // jo ladattuja tarjousmääriä. Page säilyttää offerSearchResults-välimuistin.
@@ -875,10 +926,33 @@ export default function ZiiplyMobileOfferSearchCard({
 
   return (
     <div
-      data-ziiply-mobile-offer-search-card-version="V48-RESTORE-EMPTY-STATE"
+      data-ziiply-mobile-offer-search-card-version="V53-MINI-DEBUG-BUTTON"
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
+        {selectedOfferChainV39 ? (
+          <button
+            type="button"
+            onClick={() => setDebugOpenV52(true)}
+            className="absolute left-1/2 top-[4.05rem] z-[80] -translate-x-1/2 rounded border border-[#8b1e1e] bg-[#fff3b0] px-1 py-[1px] text-[0.46rem] font-black leading-none text-[#8b1e1e]"
+          >
+            DBG
+          </button>
+        ) : null}
+
+        {debugOpenV52 ? (
+          <div className="absolute inset-2 z-[9999] flex flex-col overflow-hidden rounded-[1.25rem] border-[3px] border-[#2b1a0e] bg-[#fff8dc] shadow-2xl">
+            <div className="flex shrink-0 items-center justify-between gap-2 border-b-2 border-[#9a7a3d] bg-[#f1d99a] px-3 py-2">
+              <div className="text-[0.78rem] font-black text-[#2b1a0e]">GÖSTA DEBUG · {selectedOfferChainV39 || "-"}</div>
+              <button type="button" onClick={() => setDebugOpenV52(false)} className="rounded border border-[#2b1a0e] bg-[#fff8dc] px-2 py-1 text-[0.68rem] font-black text-[#2b1a0e]">SULJE</button>
+            </div>
+            <div className="flex shrink-0 gap-2 border-b border-[#c6a96b] px-3 py-2">
+              <button type="button" onClick={() => void copyDebugV52()} className="rounded-lg border-2 border-[#174c2c] bg-[#eaf4d3] px-3 py-1.5 text-[0.72rem] font-black text-[#174c2c]">KOPIOI DEBUG</button>
+              <div className="self-center text-[0.62rem] font-bold text-[#6d5d3f]">raw {rawItems.length} · dedupe {items.length} · näkyvät {visibleItems.length}</div>
+            </div>
+            <pre className="min-h-0 flex-1 overflow-auto whitespace-pre-wrap break-words p-3 text-left font-mono text-[0.60rem] leading-[1.28] text-[#1f1a12]">{debugTextV52}</pre>
+          </div>
+        ) : null}
         <div
           className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[#f7edcf] bg-center bg-no-repeat opacity-100"
           style={{ backgroundImage: "url('/ui/cart/vihkonen.webp')", backgroundSize: "142% 104%", backgroundPosition: "center top" }}
@@ -909,9 +983,6 @@ export default function ZiiplyMobileOfferSearchCard({
               style={{ fontFamily: cooperFont }}
             >
               {title}
-            </div>
-            <div className="mt-1 text-center text-[0.66rem] font-black tracking-[0.08em] text-[#8b1e1e]">
-              BUILD CHECK 1
             </div>
             {subtitle || shownQuery ? (
               <div className="mt-[0.16rem] text-[0.74rem] font-extrabold text-[#5f5034]">
