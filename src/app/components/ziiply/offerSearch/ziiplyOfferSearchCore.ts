@@ -1,11 +1,11 @@
 // ============================================================================
-// ZIIPLY_OFFER_SEARCH_CORE_V175_K_ONLY_TRUSTED_CATEGORY_FIX
-// Revision: V175-K-ONLY-TRUSTED-CATEGORY-FIX
+// ZIIPLY_OFFER_SEARCH_CORE_V177_KMARKET_KOTI_CATEGORY_FIX
+// Revision: V177-KMARKET-KOTI-CATEGORY-FIX
 // Date: 2026-09-21
 //
-// Muutos V174:een:
-// - K-Supermarket/eTarjouslehdet-kategorioille oma eristetty trusted-haara.
-// - Luottaa kruokaProvider V54:n jo normalisoimaan category-arvoon.
+// Muutos V176:een:
+// - Korjattu trusted category -alias: 'Koti & vapaa-aika' säilyy eikä putoa Muut-luokkaan.
+// - Luottaa kruokaProviderin jo normalisoimaan category-arvoon.
 // - S-Market/eTarjouslehdet-haaran tunnistus ja mapitus jätetty ennalleen.
 // - Ei muutoksia provider-hakuun, store-resolveriin, master-hakuun tai cacheen.
 // ============================================================================
@@ -264,6 +264,7 @@ function getTrustedETarjousCategoryV166(item: ZiiplyGostaOfferLike) {
     ["hygienia kosmetiikka", "Hygienia & kosmetiikka"],
     ["kodinhoito", "Kodinhoito"],
     ["koti", "Koti & vapaa-aika"],
+    ["koti & vapaa aika", "Koti & vapaa-aika"],
     ["koti vapaa aika", "Koti & vapaa-aika"],
     ["muut", "Muut"],
   ]);
