@@ -1,21 +1,10 @@
-// ============================================================================
-// ZIIPLY_OFFERS_SEARCH_ROUTE_V18_KRUOKA_SEPARATE_DEBUG_PAYLOAD
-// Revision: V18-KRUOKA-SEPARATE-DEBUG-PAYLOAD
-// Date: 2026-09-20
-//
-// Muutos V17:ään:
-// - Lisää K-Ruoka pipeline-debugtilan JSON-vastauksen erilliseen kruokaDebug-kenttään.
-// - Debugia EI lisätä results-listaan eikä kategorioihin.
-// - Varsinainen tarjoushaku säilyy ennallaan.
-// ============================================================================
-
 // src/app/api/offers/search/route.ts
 // ============================================================================
 // ZIIPLY_OFFERS_SEARCH_ROUTE_V17_20260920_VISIBLE_DEBUG_RESULT_REMOVED
 // Revision: V17-20260920-VISIBLE-DEBUG-RESULT-REMOVED
 // Date: 2026-09-20
 //
-// Muutos V16:een:
+// Muutos V16:een:x
 // - Poistaa vain tulosjoukkoon lisätyn näkyvän ROUTE V16 DEBUG -feikkituotteen.
 // - searchZiiplyOffers, S-market-polku, K-ryhmän logiikka ja request-context säilyvät.
 // - Cache pysyy no-store.
@@ -52,7 +41,6 @@
 import { NextResponse } from "next/server";
 import {
   searchZiiplyOffers,
-  getKruokaOfferPipelineDebugV34,
   type ZiiplyOfferSearchSourceContextV8,
 } from "../../../components/ziiply/offerSearch/ziiplyOfferSearchSources";
 
@@ -564,7 +552,6 @@ export async function GET(request: Request) {
         query: q,
         context,
         results,
-        kruokaDebug: getKruokaOfferPipelineDebugV34(),
       },
       {
         headers: {
