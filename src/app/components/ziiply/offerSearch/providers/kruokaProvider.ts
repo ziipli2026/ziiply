@@ -1,6 +1,6 @@
 // ============================================================================
-// ZIIPLY_KRUOKA_PROVIDER_V52_ETARJOUSLEHDET_K_LOCAL
-// Revision: V52-ETARJOUSLEHDET-K-LOCAL
+// ZIIPLY_KRUOKA_PROVIDER_V53_ETARJOUSLEHDET_NULL_PRICE_FIX
+// Revision: V53-ETARJOUSLEHDET-NULL-PRICE-FIX
 // Date: 2026-09-21
 //
 // Muutos V51:een:
@@ -9,9 +9,11 @@
 // - Ratkaisee valitun K-Market/K-Supermarketin nimen perusteella Tjek-storeksi.
 // - Hakee K-ketjun tarjoukset ja rajaa publicationit valittuun myymälään.
 // - Säilyttää fetchKruokaOffers(), KruokaOfferProviderOptionsV10 ja debug-exportin.
-// ============================================================================
+// - V53 korjaa Tjekin null-hintojen käsittelyn: Number(null) ei enää muutu 0:ksi.
+ // - Näin tavallinen price ja appPrice eivät jää aiemman null-kentän taakse.
+ // ============================================================================
 
-// src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts
+ // src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts
 
 import type {
   ZiiplyOfferSearchResult,
@@ -123,7 +125,13 @@ async function resolveSelectedStore(businessId: string, selectedName: string): P
   return matches.length === 1 ? matches[0] : null;
 }
 
-function num(v: unknown): number | null { const n = Number(v); return Number.isFinite(n) ? n : null; }
+function num(v: unknown): number | null {
+  // Tjek käyttää puuttuvissa hintakentissä null-arvoa. Number(null) === 0,
+  // joten V52:ssa ensimmäinen null-kenttä peitti myöhemmän oikean price/appPrice-arvon.
+  if (v == null || (typeof v === "string" && !v.trim())) return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
 function priceText(v: unknown): string { const n = num(v); return n == null ? "" : n.toFixed(2).replace(".", ","); }
 function validityText(v: unknown): string | undefined {
   if (!v) return undefined; const d = new Date(String(v)); if (Number.isNaN(d.getTime())) return undefined;
@@ -142,7 +150,7 @@ function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId: strin
   const app = num(offer.appPrice);
   const regular = num(offer.price);
   const from = num(offer.fromPrice);
-  const effective = membership ?? app ?? regular ?? from;
+  const effective = app ?? membership ?? regular ?? from;
   if (effective == null || effective <= 0) return null;
   const offerId = String(offer.publicId ?? `${index}`);
   const publicationId = String(offer.publicationPublicId ?? "");
@@ -153,7 +161,7 @@ function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId: strin
   const isPlussa = membership != null;
   const category = String(offer.departmentSlug ?? "Muut");
   return {
-    id: `etarjouslehdet-v52-${displayStoreId}-${offerId}-${index}`,
+    id: `etarjouslehdet-v53-${displayStoreId}-${offerId}-${index}`,
     title, name: title, productName: title,
     price: effective, priceText: priceText(effective), offerPrice: priceText(effective),
     previousPrice: regular != null && regular !== effective ? regular : null,
@@ -167,7 +175,7 @@ function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId: strin
     category, categoryPath: category, productGroup: category, mainCategory: category, subCategory: category,
     validFrom: offer.validFrom ?? null, validUntil: offer.validUntil ?? null, isPlussaOffer: isPlussa,
     url: `${ETARJOUSLEHDET_ORIGIN}/K-Supermarket`, productUrl: `${ETARJOUSLEHDET_ORIGIN}/K-Supermarket`,
-    debug: { providerVersion: "V52_ETARJOUSLEHDET_K_LOCAL", publicationId, tjekStoreId: displayStoreId, chain },
+    debug: { providerVersion: "V53_ETARJOUSLEHDET_NULL_PRICE_FIX", publicationId, tjekStoreId: displayStoreId, chain },
   } as unknown as ZiiplyOfferSearchResult;
 }
 
@@ -209,6 +217,6 @@ export async function fetchKruokaOffers(
     debug.activeOffers=results.length; lastKruokaPipelineDebugV49={...debug}; return results;
   } catch(error) {
     debug.error=error instanceof Error?error.message:String(error); lastKruokaPipelineDebugV49={...debug};
-    console.error("[Ziiply K provider V52] eTarjouslehdet/Tjek haku epäonnistui",{selectedStoreName:displayStoreName,error:debug.error}); return [];
+    console.error("[Ziiply K provider V53] eTarjouslehdet/Tjek haku epäonnistui",{selectedStoreName:displayStoreName,error:debug.error}); return [];
   }
 }
