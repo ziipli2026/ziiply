@@ -1,6 +1,6 @@
 // ============================================================================
-// ZIIPLY_KRUOKA_PROVIDER_V61_KMARKET_CATEGORY_FIX
-// Revision: V61-KMARKET-CATEGORY-FIX
+// ZIIPLY_KRUOKA_PROVIDER_V62_KMARKET_CATEGORY_PRIORITY_FIX
+// Revision: V62-KMARKET-CATEGORY-PRIORITY-FIX
 // Date: 2026-09-21
 //
 // V55 pohjana. Muutos vain K-Marketin testaamiseksi eTarjouslehdet/Tjekillä:
@@ -176,8 +176,37 @@ function mapTjekCategoryV54(offer: UnknownRecord): string {
   const department = normalize(offer.departmentSlug ?? offer.department ?? "");
   const productText = normalize([offer.name, offer.title, offer.description].filter(Boolean).join(" "));
 
-  // V61: use Tjek department first when it is specific enough.
-  // This prevents substring errors such as "perunalastut" -> Hevi because of "peruna".
+  // V62:
+  // 1) Explicit product-name rules first. Tjek departmentSlug is not reliable enough
+  //    to override an obvious product type (e.g. Teho palautusjuoma may be "pharmacy").
+  // 2) Department is fallback for products that cannot be identified reliably by name.
+  // 3) Word boundaries prevent "perunalastut" from matching "peruna" -> Hevi.
+
+  if (/(mikroateria|valmisateria|valmisruoka|keitto|keitot|lasagne|laatikko|risotto)/.test(productText)) return "Valmisruoka";
+
+  if (/(lohi|kirjolohi|silakka|muikku|tonnikala|katkarapu|seiti|turska)/.test(productText)) return "Kala";
+
+  if (/(jauheliha|makkara|makkarat|lenkkimakkara|nakki|nakit|broileri|kana|nauta|porsas|possu|pekoni|kinkku|leikkele|leikkeleet|palvileikkele|palvileikkeleet)/.test(productText)) return "Liha & makkarat";
+
+  if (/(jogurtti|jugurtti|maito|piima|rahka|juusto|juustoraaste|juustoraasteet|kerma|kananmuna|vanukas|vanukkaat|mousse)/.test(productText)) return "Maitotuotteet";
+
+  if (/(mehu|mehut|limu|limsat|virvoitusjuoma|virvoitusjuomat|cola|vichy|vesi|energiajuoma|energiajuomat|smoothie|palautusjuoma|palautusjuomat|seltzer)/.test(productText)) return "Juomat";
+
+  if (/(jaatelo|jaatelot|pakaste|pakastettu|nugget|nuggetit|ranskalaiset|wokvihannes|pakastevihannes|pakastemarja)/.test(productText)) return "Pakasteet";
+
+  if (/(salaatti|salaatit|tomaatti|tomaatit|kurkku|kurkut|omena|omenat|banaani|banaanit|appelsiini|appelsiinit|satsuma|satsumat|sipuli|sipulit|porkkana|porkkanat|paprika|paprikat|kaali|hedelma|hedelmat|vihannes|vihannekset|marja|marjat|mustikka|mustikat|mango|mangot|rucola|calluna)/.test(productText)) return "Hevi";
+
+  if (/(leipa|leivat|sampyla|sampylat|patonki|patongit|pulla|pullat|munkki|munkit|donitsi|donitsit|wrap|wrapit|tortilla|tortillat)/.test(productText)) return "Leipomo";
+
+  if (/(perunalastu|perunalastut|lastu|lastut|chips|suklaa|suklaat|karkki|karkit|makeinen|makeiset|keksi|keksit|granola|granolat|mysli|myslit|purukumi|purukumit)/.test(productText)) return "Makeiset & keksit";
+
+  if (/(kissan|koiran|kissanhiekka|lemmikki|sheba)/.test(productText)) return "Lemmikit";
+
+  if (/(wc-paperi|talouspaperi|pesuaine|pesuaineet|astianpesu)/.test(productText)) return "Kodinhoito";
+
+  if (/(hammastahna|hammastahnat|shampoo|deodorantti|colgate|elmex)/.test(productText)) return "Hygienia & kosmetiikka";
+
+  // Department fallback.
   if (department.includes("snack") || department.includes("candy") || department.includes("confection") || department.includes("sweet")) return "Makeiset & keksit";
   if (department.includes("frozen")) return "Pakasteet";
   if (department.includes("fruit") || department.includes("vegetable")) return "Hevi";
@@ -189,20 +218,6 @@ function mapTjekCategoryV54(offer: UnknownRecord): string {
   if (department.includes("pet")) return "Lemmikit";
   if (department.includes("household") || department.includes("clean")) return "Kodinhoito";
   if (department.includes("personal care") || department.includes("beauty") || department.includes("hygiene")) return "Hygienia & kosmetiikka";
-
-  // Product-name fallbacks. Keep patterns bounded/specific to avoid accidental substrings.
-  if (/(mikroateria|valmisateria|valmisruoka|keitto|keitot|lasagne|laatikko|risotto)/.test(productText)) return "Valmisruoka";
-  if (/(jaatelo|pakaste|pakastettu|nugget|ranskalaiset|wokvihannes|pakastevihannes|pakastemarja)/.test(productText)) return "Pakasteet";
-  if (/(lohi|kirjolohi|silakka|muikku|tonnikala|katkarapu|seiti|turska|kala)/.test(productText)) return "Kala";
-  if (/(jauheliha|makkara|lenkkimakkara|nakki|broileri|kana|nauta|porsas|possu|pekoni|kinkku|leikkele|palvileikkele)/.test(productText)) return "Liha & makkarat";
-  if (/(jogurtti|jugurtti|maito|piima|rahka|juusto|kerma|kananmuna)/.test(productText)) return "Maitotuotteet";
-  if (/(mehu|limu|virvoitusjuoma|cola|vichy|vesi|energiajuoma|smoothie|palautusjuoma|seltzer)/.test(productText)) return "Juomat";
-  if (/(salaatti|tomaatti|kurkku|omena|banaani|appelsiini|sipuli|porkkana|paprika|kaali|hedelma|vihannes|marja|mango|calluna)/.test(productText)) return "Hevi";
-  if (/(leipa|sampyla|patonki|pullat?|donitsi|donitsit|wrap|wrapit|tortilla)/.test(productText)) return "Leipomo";
-  if (/(lastu|lastut|chips|suklaa|karkki|makeinen|keksi|granola)/.test(productText)) return "Makeiset & keksit";
-  if (/(kissan|koiran|kissanhiekka|lemmikki)/.test(productText)) return "Lemmikit";
-  if (/(wc-paperi|talouspaperi|pesuaine|astianpesu)/.test(productText)) return "Kodinhoito";
-  if (/(hammastahna|shampoo|deodorantti)/.test(productText)) return "Hygienia & kosmetiikka";
 
   return "Muut";
 }
@@ -239,7 +254,7 @@ function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId: strin
     category, categoryPath: category, productGroup: category, mainCategory: category, subCategory: category,
     validFrom: offer.validFrom ?? null, validUntil: offer.validUntil ?? null, isPlussaOffer: isPlussa,
     url: `${ETARJOUSLEHDET_ORIGIN}/${slug}`, productUrl: `${ETARJOUSLEHDET_ORIGIN}/${slug}`,
-    debug: { providerVersion: "V61_KMARKET_CATEGORY_FIX", publicationId, tjekStoreId: displayStoreId, chain },
+    debug: { providerVersion: "V62_KMARKET_CATEGORY_PRIORITY_FIX", publicationId, tjekStoreId: displayStoreId, chain },
   } as unknown as ZiiplyOfferSearchResult;
 }
 
