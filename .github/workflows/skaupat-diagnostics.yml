@@ -372,6 +372,16 @@ jobs:
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
 
+      - name: Extract eTarjous API call names
+        shell: bash
+        run: |
+          node <<'NODE'
+          const js="https://dqei8yomz48ve.cloudfront.net/assets/entry-client-CjqEhrFN.js";
+          (async()=>{const r=await fetch(js,{headers:{"user-agent":"Mozilla/5.0"}});const b=await r.text();
+            for(const term of ["callApi(","loadData(","useData(","apiUrl","squid-api.tjek.com"]){let p=0,n=0;while((p=b.indexOf(term,p))>=0&&n<30){console.log("ETARJOUS_API_CALL "+JSON.stringify({term,index:p,context:b.slice(Math.max(0,p-1200),p+2200)}));p+=term.length;n++;}}
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
+
       - name: Probe S-kaupat GraphQL
         shell: bash
         run: |
