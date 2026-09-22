@@ -108,6 +108,32 @@ jobs:
           main().catch(e=>{console.error(e);process.exitCode=1});
           NODE
 
+      - name: Probe pickup radius as public store-id resolver
+        shell: bash
+        run: |
+          node <<'NODE'
+          const endpoint="https://api.s-kaupat.fi/";
+          const hash="6da249b0fd87c05275a239ed490976c851d7aff90ead0f3a3978e8283f21252d";
+          const client="production-14a82a5b48cd1dd42c0592db0037514ed3c84de8";
+          const today=new Date().toISOString().slice(0,10);
+          const tests=[
+            ["Kuopio",62.8924,27.6770,"590778791"],
+            ["Kemi",65.7364,24.5637,"522770049"],
+            ["Oulu",65.0121,25.4651,"516528759"],
+            ["Lappeenranta",61.0587,28.1887,"613758325"],
+            ["Turku",60.4518,22.2666,"603212705"],
+            ["Pori",61.4851,21.7974,"649122793"]
+          ];
+          async function call(label,lat,lon,limit){
+            const variables={startDate:today,endDate:today,location:{latitude:lat,longitude:lon},limit};
+            const u=new URL(endpoint);u.searchParams.set("operationName","remotePickupSlots");u.searchParams.set("variables",JSON.stringify(variables));u.searchParams.set("extensions",JSON.stringify({persistedQuery:{version:1,sha256Hash:hash}}));
+            const r=await fetch(u,{headers:{accept:"application/json","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":client}});
+            const j=await r.json(); const rows=j?.data?.pickupSlotsForCoordinates?.slotsInPickupPoints??[];
+            return {status:r.status,errors:j?.errors??null,rows:rows.map(x=>({id:x?.store?.id,brand:x?.store?.brand,name:x?.pickupPoint?.name,city:x?.pickupPoint?.address?.city,distance:x?.distance}))};
+          }
+          (async()=>{for(const [city,lat,lon,wanted] of tests){for(const limit of [20,50,100]){const z=await call(city,lat,lon,limit);console.log("PICKUP_RADIUS_RESULT "+JSON.stringify({city,limit,wanted,status:z.status,count:z.rows.length,found:z.rows.some(x=>String(x.id)===wanted),match:z.rows.find(x=>String(x.id)===wanted)||null,last:z.rows.at(-1)||null}));}}})().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
+
       - name: Probe S-kaupat GraphQL
         shell: bash
         run: |
