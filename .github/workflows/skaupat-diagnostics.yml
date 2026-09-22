@@ -134,6 +134,32 @@ jobs:
           (async()=>{for(const [city,lat,lon,wanted] of tests){for(const limit of [20,50,100]){const z=await call(city,lat,lon,limit);console.log("PICKUP_RADIUS_RESULT "+JSON.stringify({city,limit,wanted,status:z.status,count:z.rows.length,found:z.rows.some(x=>String(x.id)===wanted),match:z.rows.find(x=>String(x.id)===wanted)||null,last:z.rows.at(-1)||null}));}}})().catch(e=>{console.error(e);process.exitCode=1});
           NODE
 
+      - name: Probe pageContent with pickup aliases versus public ids
+        shell: bash
+        run: |
+          node <<'NODE'
+          const endpoint="https://api.s-kaupat.fi/";
+          const hash="f6d87786fda8fb5c233c4eaed08f37b0c5b87dc0d8d4c44c33c5529e446369d1";
+          const client="production-14a82a5b48cd1dd42c0592db0037514ed3c84de8";
+          const today=new Date().toISOString().slice(0,10);
+          const ids=[
+            ["Prisma Varkaus public","726015093"],
+            ["S-market Kommila","708276035"],
+            ["Prisma Raksila public","516528759"],
+            ["S-market Pansio public","603212705"],
+            ["S-market Lukkarinsanta public","649122793"]
+          ];
+          async function probe(label,id){
+            const variables={preview:false,storeId:id,skipProducts:false,availabilityDate:today,where:{storeId:id,path:"tuotteet/kampanjat",platform:"WEB",availabilityDate:today,userConsent:{marketing:false,marketingId:"ziiply-diagnostic",useCustomerId:false,sessionId:"ziiply-diagnostic",loop54:true}}};
+            const u=new URL(endpoint);u.searchParams.set("operationName","RemoteGetPageContent");u.searchParams.set("variables",JSON.stringify(variables));u.searchParams.set("extensions",JSON.stringify({persistedQuery:{version:1,sha256Hash:hash}}));
+            const r=await fetch(u,{headers:{accept:"application/json","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":client}});
+            const j=await r.json(); const secs=j?.data?.pageContent?.sections??[]; const ps=secs.flatMap(x=>Array.isArray(x?.products)?x.products:[]);
+            const stores=[...new Map(ps.map(p=>[String(p?.store?.id||""),{id:p?.store?.id,name:p?.store?.name,brand:p?.store?.brand}])).values()].filter(x=>x.id);
+            console.log("PAGECONTENT_IDENTITY_RESULT "+JSON.stringify({label,id,status:r.status,errors:j?.errors??null,sections:secs.length,products:ps.length,stores}));
+          }
+          (async()=>{for(const x of ids) await probe(...x)})().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
+
       - name: Probe S-kaupat GraphQL
         shell: bash
         run: |
