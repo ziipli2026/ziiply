@@ -282,6 +282,28 @@ jobs:
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
 
+      - name: Probe S-kanava search POST and Wicket ajax metadata
+        shell: bash
+        run: |
+          node <<'NODE'
+          const base="https://asiakaspalaute.s-kanava.fi/palaute/ketjut/smarket/aitiopaikka";
+          (async()=>{
+            const r=await fetch(base,{headers:{"user-agent":"Mozilla/5.0","accept-language":"fi-FI,fi;q=0.9"}});
+            const b=await r.text(); const cookie=(r.headers.get("set-cookie")||"").split(";")[0];
+            const action=(b.match(/<form[^>]+action="([^"]+)"/i)||[])[1];
+            const ajax=[...b.matchAll(/Wicket\.Ajax[^\n]{0,1000}|id_search[^\n]{0,1000}/gi)].slice(0,20).map(x=>x[0]);
+            console.log("SKANAVA_SEARCH_METADATA "+JSON.stringify({status:r.status,cookie,action,ajax}));
+            if(action){
+              const u=new URL(action,base).href;
+              for(const search of ["S-market Pansio","Pansio"]){
+                const pr=await fetch(u,{method:"POST",headers:{"user-agent":"Mozilla/5.0","content-type":"application/x-www-form-urlencoded","cookie":cookie,"referer":base},body:new URLSearchParams({search,id1_hf_0:""}).toString(),redirect:"manual"});
+                const pb=await pr.text();
+                console.log("SKANAVA_SEARCH_POST "+JSON.stringify({search,status:pr.status,location:pr.headers.get("location"),length:pb.length,hasPansio:pb.includes("S-market Pansio"),preview:pb.slice(0,1000)}));
+              }
+            }
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
+
       - name: Probe S-kaupat GraphQL
         shell: bash
         run: |
