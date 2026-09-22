@@ -348,6 +348,19 @@ jobs:
           }})().catch(e=>{console.error(e);process.exitCode=1});
           NODE
 
+      - name: Inspect eTarjouslehdet API for store mappings
+        shell: bash
+        run: |
+          node <<'NODE'
+          const js="https://dqei8yomz48ve.cloudfront.net/assets/entry-client-CjqEhrFN.js";
+          (async()=>{const r=await fetch(js,{headers:{"user-agent":"Mozilla/5.0"}});const b=await r.text();
+            const terms=["api.tjek","stores","businesses","storeId","publicId","graphql","/api/","coordinates"];
+            const hits={}; for(const t of terms) hits[t]=b.toLowerCase().split(t.toLowerCase()).length-1;
+            const urls=[...new Set([...b.matchAll(/https?:[^"'\\s\\]+/g)].map(x=>x[0]).filter(x=>/api|tjek/i.test(x)).slice(0,100))];
+            console.log("ETARJOUS_JS "+JSON.stringify({status:r.status,length:b.length,hits,urls}));
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
+
       - name: Probe S-kaupat GraphQL
         shell: bash
         run: |
