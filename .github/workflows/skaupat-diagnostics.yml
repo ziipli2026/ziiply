@@ -382,6 +382,21 @@ jobs:
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
 
+      - name: Extract eTarjous store business API definitions
+        shell: bash
+        run: |
+          node <<'NODE'
+          const js="https://dqei8yomz48ve.cloudfront.net/assets/entry-client-CjqEhrFN.js";
+          (async()=>{const r=await fetch(js,{headers:{"user-agent":"Mozilla/5.0"}});const b=await r.text();
+            const terms=["businessPublicId","businessPublicIds","publicId","stores","businesses","coordinates","shopping-list"];
+            for(const term of terms){let p=0,n=0;while((p=b.indexOf(term,p))>=0&&n<40){
+              const ctx=b.slice(Math.max(0,p-1600),p+2600);
+              if(/business|store|coordinates|publicId/i.test(ctx)) console.log("ETARJOUS_STORE_API_CONTEXT "+JSON.stringify({term,index:p,context:ctx}));
+              p+=term.length;n++;
+            }}
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
+
       - name: Probe S-kaupat GraphQL
         shell: bash
         run: |
