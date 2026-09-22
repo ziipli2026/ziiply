@@ -478,6 +478,16 @@ jobs:
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
 
+      - name: Extract Tjek api key bootstrap
+        shell: bash
+        run: |
+          node <<'NODE'
+          const js="https://dqei8yomz48ve.cloudfront.net/assets/entry-client-CjqEhrFN.js";
+          (async()=>{const r=await fetch(js,{headers:{"user-agent":"Mozilla/5.0"}});const b=await r.text();
+            for(const term of ["function ya(","ya=()=>","apiKey:","apiKey","squid-api.tjek.com"]){let p=0,n=0;while((p=b.indexOf(term,p))>=0&&n<20){const ctx=b.slice(Math.max(0,p-1800),p+3000);if(/apiKey|squid-api/i.test(ctx))console.log("TJEK_APIKEY_CONTEXT "+JSON.stringify({term,index:p,context:ctx}));p+=term.length;n++;}}
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
+
       - name: Probe S-kaupat GraphQL
         shell: bash
         run: |
