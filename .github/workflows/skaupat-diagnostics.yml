@@ -183,6 +183,18 @@ jobs:
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
 
+      - name: Follow S-kanava Wicket store links and recover canonical IDs
+        shell: bash
+        run: |
+          node <<'NODE'
+          const base="https://asiakaspalaute.s-kanava.fi/palaute/ketjut/smarket/aitiopaikka";
+          (async()=>{const r=await fetch(base,{headers:{"user-agent":"Mozilla/5.0","accept-language":"fi-FI,fi;q=0.9"},redirect:"manual"});const b=await r.text();const cookie=(r.headers.get("set-cookie")||"").split(";")[0];
+          const targets=["S-market Pansio","S-market Lukkarinsanta","S-market Kemi","S-market Kauppakatu Joensuu","S-market Vaasanpuistikko"];
+          for(const name of targets){const esc=name.replace(/[.*+?^$()|[\]{}]/g,"\\      - name: Probe S-kaupat GraphQL");const re=new RegExp('<a href="([^"]+)"[^>]*>\\s*<span class="nimi">\\s*'+esc+'\\s*</span>','i');const m=b.match(re);if(!m){console.log("SKANAVA_FOLLOW_RESULT "+JSON.stringify({name,found:false}));continue}
+            const u=new URL(m[1].replace(/&amp;/g,"&"),base);const rr=await fetch(u,{headers:{"user-agent":"Mozilla/5.0","accept-language":"fi-FI,fi;q=0.9",cookie},redirect:"manual"});const body=await rr.text();console.log("SKANAVA_FOLLOW_RESULT "+JSON.stringify({name,found:true,href:m[1],status:rr.status,location:rr.headers.get("location"),length:body.length,idSamples:[...body.matchAll(/\\b\\d{9}\\b/g)].slice(0,20).map(x=>x[0]),hasName:body.includes(name)}));}
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
+
       - name: Probe S-kaupat GraphQL
         shell: bash
         run: |
