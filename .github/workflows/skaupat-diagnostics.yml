@@ -183,23 +183,32 @@ jobs:
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
 
-      - name: Follow S-kanava Wicket store links and recover canonical IDs
+      - name: Follow S-kanava store links to detail state
         shell: bash
         run: |
           node <<'NODE'
           const base="https://asiakaspalaute.s-kanava.fi/palaute/ketjut/smarket/aitiopaikka";
-          (async()=>{const r=await fetch(base,{headers:{"user-agent":"Mozilla/5.0","accept-language":"fi-FI,fi;q=0.9"},redirect:"manual"});const b=await r.text();const cookie=(r.headers.get("set-cookie")||"").split(";")[0];
-          const targets=["S-market Pansio","S-market Lukkarinsanta","S-market Kemi","S-market Kauppakatu Joensuu","S-market Vaasanpuistikko"];
-          for(const name of targets){const esc=name.replace(/[.*+?^$()|[\]{}]/g,"\\      - name: Follow S-kanava redirects to selected store detail
-        shell: bash
-        run: |
-          node <<'NODE'
-          const base="https://asiakaspalaute.s-kanava.fi/palaute/ketjut/smarket/aitiopaikka";
-          (async()=>{let r=await fetch(base,{headers:{"user-agent":"Mozilla/5.0","accept-language":"fi-FI,fi;q=0.9"},redirect:"manual"});let b=await r.text();let cookie=(r.headers.get("set-cookie")||"").split(";")[0];
-          for(const name of ["S-market Pansio","S-market Lukkarinsanta","S-market Kemi"]){const i=b.indexOf('<span class="nimi">'+name+'</span>');const pre=b.slice(Math.max(0,i-500),i);const m=[...pre.matchAll(/href="([^"]+)"/g)].at(-1);if(!m){console.log("SKANAVA_DETAIL_RESULT "+JSON.stringify({name,error:"no href"}));continue}
-            const u=new URL(m[1].replace(/&amp;/g,"&"),base);let rr=await fetch(u,{headers:{"user-agent":"Mozilla/5.0","accept-language":"fi-FI,fi;q=0.9",cookie},redirect:"manual"});let loc=rr.headers.get("location");let finalUrl=loc?new URL(loc,u):u;let fr=await fetch(finalUrl,{headers:{"user-agent":"Mozilla/5.0","accept-language":"fi-FI,fi;q=0.9",cookie},redirect:"manual"});let body=await fr.text();
-            console.log("SKANAVA_DETAIL_RESULT "+JSON.stringify({name,clickStatus:rr.status,location:loc,detailStatus:fr.status,detailLength:body.length,hasName:body.includes(name),ids:[...body.matchAll(/\\b\\d{6,12}\\b/g)].slice(0,50).map(x=>x[0]),context:(()=>{const k=body.indexOf(name);return k>=0?body.slice(Math.max(0,k-1000),k+1800):body.slice(0,1000)})()}));
-          }})().catch(e=>{console.error(e);process.exitCode=1});
+          (async()=>{
+            const r=await fetch(base,{headers:{"user-agent":"Mozilla/5.0","accept-language":"fi-FI,fi;q=0.9"},redirect:"manual"});
+            const b=await r.text();
+            const cookie=(r.headers.get("set-cookie")||"").split(";")[0];
+            for(const name of ["S-market Pansio","S-market Lukkarinsanta","S-market Kemi"]){
+              const marker='<span class="nimi">'+name+'</span>';
+              const i=b.indexOf(marker);
+              const pre=i>=0?b.slice(Math.max(0,i-600),i):"";
+              const hrefs=[...pre.matchAll(/href="([^"]+)"/g)];
+              const m=hrefs.at(-1);
+              if(!m){console.log("SKANAVA_DETAIL_RESULT "+JSON.stringify({name,error:"no href"}));continue;}
+              const u=new URL(m[1].replace(/&amp;/g,"&"),base);
+              const rr=await fetch(u,{headers:{"user-agent":"Mozilla/5.0","accept-language":"fi-FI,fi;q=0.9",cookie},redirect:"manual"});
+              const loc=rr.headers.get("location");
+              const finalUrl=loc?new URL(loc,u):u;
+              const fr=await fetch(finalUrl,{headers:{"user-agent":"Mozilla/5.0","accept-language":"fi-FI,fi;q=0.9",cookie},redirect:"manual"});
+              const body=await fr.text();
+              const k=body.indexOf(name);
+              console.log("SKANAVA_DETAIL_RESULT "+JSON.stringify({name,clickStatus:rr.status,location:loc,detailStatus:fr.status,detailLength:body.length,hasName:k>=0,ids:[...body.matchAll(/\\b\\d{6,12}\\b/g)].slice(0,50).map(x=>x[0]),context:k>=0?body.slice(Math.max(0,k-800),k+1400):body.slice(0,800)}));
+            }
+          })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
 
       - name: Probe S-kaupat GraphQL");const re=new RegExp('<a href="([^"]+)"[^>]*>\\s*<span class="nimi">\\s*'+esc+'\\s*</span>','i');const m=b.match(re);if(!m){console.log("SKANAVA_FOLLOW_RESULT "+JSON.stringify({name,found:false}));continue}
