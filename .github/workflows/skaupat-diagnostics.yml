@@ -42,21 +42,31 @@ jobs:
         shell: bash
         run: |
           node <<'NODE'
-          const tests=[
-            ["Prisma Kuopio","https://www.s-kaupat.fi/myymalat?query="+encodeURIComponent("Prisma Kuopio")],
-            ["S-market Kemi","https://www.s-kaupat.fi/myymalat?query="+encodeURIComponent("S-market Kemi")],
-            ["S-market Kemi chain","https://www.s-kaupat.fi/myymalat/s-market?query="+encodeURIComponent("S-market Kemi")]
+          const tests = [
+            ["Prisma Kuopio", "https://www.s-kaupat.fi/myymalat?query=" + encodeURIComponent("Prisma Kuopio")],
+            ["S-market Kemi", "https://www.s-kaupat.fi/myymalat?query=" + encodeURIComponent("S-market Kemi")],
+            ["S-market Kemi chain", "https://www.s-kaupat.fi/myymalat/s-market?query=" + encodeURIComponent("S-market Kemi")]
           ];
-          (async()=>{
-            for(const [name,url] of tests){
-              try{
-                const r=await fetch(url,{headers:{accept:"text/html,application/xhtml+xml","accept-language":"fi","user-agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15"}});
-                const body=await r.text();
-                const links=[...body.matchAll(/\\/myymala\\/([^\\/?#\"'<>]+)\\/(\\d{5,})/gi)].slice(0,10).map(m=>({slug:m[1],id:m[2]}));
-                console.log("STORE_SEARCH_QUERY_RESULT "+JSON.stringify({name,status:r.status,length:body.length,links:[...new Map(links.map(x=>[x.id,x])).values()]}));
-              }catch(e){console.log("STORE_SEARCH_QUERY_RESULT "+JSON.stringify({name,error:String(e)}));}
+          async function main() {
+            for (const [name, url] of tests) {
+              try {
+                const r = await fetch(url, {headers: {accept: "text/html,application/xhtml+xml", "accept-language": "fi", "user-agent": "Mozilla/5.0"}});
+                const body = await r.text();
+                const marker = "/myymala/";
+                const hits = [];
+                let pos = 0;
+                while ((pos = body.indexOf(marker, pos)) !== -1 && hits.length < 10) {
+                  const piece = body.slice(pos, pos + 180);
+                  hits.push(piece.replace(/\s+/g, " ").slice(0, 180));
+                  pos += marker.length;
+                }
+                console.log("STORE_SEARCH_QUERY_RESULT " + JSON.stringify({name, status: r.status, length: body.length, hitCount: hits.length, hits}));
+              } catch (e) {
+                console.log("STORE_SEARCH_QUERY_RESULT " + JSON.stringify({name, error: String(e)}));
+              }
             }
-          })().catch(e=>{console.error(e);process.exitCode=1;});
+          }
+          main().catch(e => { console.error(e); process.exitCode = 1; });
           NODE
 
       - name: Probe S-kaupat GraphQL
