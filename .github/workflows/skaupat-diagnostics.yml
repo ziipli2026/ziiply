@@ -277,7 +277,7 @@ jobs:
               const ctx=i>=0?b.slice(Math.max(0,i-1800),i+500):"";
               console.log("SKANAVA_STORE_CONTEXT "+JSON.stringify({name,index:i,context:ctx}));
             }
-            const forms=[...b.matchAll(/<form[\\s\\S]*?<\\/form>/gi)].map(x=>x[0]);
+            const forms=[]; let p=0; while((p=b.indexOf("<form",p))>=0){const e=b.indexOf("</form>",p); if(e<0) break; forms.push(b.slice(p,e+7)); p=e+7;}
             console.log("SKANAVA_FORM_SUMMARY "+JSON.stringify({forms:forms.length,formsWithSearch:forms.filter(x=>/etsi|haku|search|toimipaikka/i.test(x)).slice(0,5).map(x=>x.slice(0,5000))}));
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
