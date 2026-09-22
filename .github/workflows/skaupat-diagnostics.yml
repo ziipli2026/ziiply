@@ -160,6 +160,18 @@ jobs:
           (async()=>{for(const x of ids) await probe(...x)})().catch(e=>{console.error(e);process.exitCode=1});
           NODE
 
+      - name: Probe S-kanava feedback directory as store-id source
+        shell: bash
+        run: |
+          node <<'NODE'
+          const urls=[
+            "https://asiakaspalaute.s-kanava.fi/palaute/ketjut/smarket/aitiopaikka",
+            "https://asiakaspalaute.s-kanava.fi/palaute/toimipaikat/603212705",
+            "https://asiakaspalaute.s-kanava.fi/palaute/toimipaikat/649122793"
+          ];
+          (async()=>{for(const url of urls){const r=await fetch(url,{headers:{"user-agent":"Mozilla/5.0","accept-language":"fi-FI,fi;q=0.9"}});const body=await r.text();console.log("SKANAVA_DIRECTORY_RESULT "+JSON.stringify({url,status:r.status,length:body.length,hasPansio:body.toLowerCase().includes("pansio"),hasPansioId:body.includes("603212705"),hasLukkarinsanta:body.toLowerCase().includes("lukkarinsanta"),hasLukkarinsantaId:body.includes("649122793"),idSamples:[...body.matchAll(/\b\d{9}\b/g)].slice(0,20).map(x=>x[0])}));}})().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
+
       - name: Probe S-kaupat GraphQL
         shell: bash
         run: |
