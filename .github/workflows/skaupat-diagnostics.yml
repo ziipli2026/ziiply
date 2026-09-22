@@ -488,6 +488,20 @@ jobs:
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
 
+      - name: Direct Tjek businesses request with browser key
+        shell: bash
+        run: |
+          node <<'NODE'
+          const api="https://squid-api.tjek.com/";
+          const key="152000596c6e45d9983eab0c14afebea";
+          const bodies=[
+            {data:[["businesses",{businessIds:["b6f2uwi"]}]]},
+            {data:[{key:["businesses",{businessIds:["b6f2uwi"]}]}]},
+            {data:[JSON.stringify(["businesses",{businessIds:["b6f2uwi"]}])]}
+          ];
+          (async()=>{for(const body of bodies){const r=await fetch(api,{method:"POST",headers:{"content-type":"application/json","x-api-key":key,"user-agent":"Mozilla/5.0","origin":"https://etarjouslehdet.fi","referer":"https://etarjouslehdet.fi/"},body:JSON.stringify(body)});const t=await r.text();console.log("TJEK_DIRECT_V2 "+JSON.stringify({status:r.status,length:t.length,request:body,response:t.slice(0,16000)}));}})().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
+
       - name: Probe S-kaupat GraphQL
         shell: bash
         run: |
