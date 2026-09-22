@@ -264,6 +264,24 @@ jobs:
           }})().catch(e=>{console.error(e);process.exitCode=1});
           NODE
 
+      - name: Inspect S-kanava Wicket store list data attributes
+        shell: bash
+        run: |
+          node <<'NODE'
+          const url="https://asiakaspalaute.s-kanava.fi/palaute/ketjut/smarket/aitiopaikka";
+          (async()=>{
+            const r=await fetch(url,{headers:{"user-agent":"Mozilla/5.0","accept-language":"fi-FI,fi;q=0.9"}});
+            const b=await r.text();
+            for(const name of ["S-market Pansio","S-market Lukkarinsanta","S-market Kemi"]){
+              const i=b.indexOf(name);
+              const ctx=i>=0?b.slice(Math.max(0,i-1800),i+500):"";
+              console.log("SKANAVA_STORE_CONTEXT "+JSON.stringify({name,index:i,context:ctx}));
+            }
+            const forms=[...b.matchAll(/<form[\\s\\S]*?<\\/form>/gi)].map(x=>x[0]);
+            console.log("SKANAVA_FORM_SUMMARY "+JSON.stringify({forms:forms.length,formsWithSearch:forms.filter(x=>/etsi|haku|search|toimipaikka/i.test(x)).slice(0,5).map(x=>x.slice(0,5000))}));
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
+
       - name: Probe S-kaupat GraphQL
         shell: bash
         run: |
