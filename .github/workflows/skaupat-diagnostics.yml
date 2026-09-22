@@ -318,6 +318,22 @@ jobs:
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
 
+      - name: Inspect S-kanava selected store detail internals
+        shell: bash
+        run: |
+          node <<'NODE'
+          const base="https://asiakaspalaute.s-kanava.fi/palaute/ketjut/smarket/aitiopaikka";
+          (async()=>{const r=await fetch(base,{headers:{"user-agent":"Mozilla/5.0"}});const b=await r.text();const cookie=(r.headers.get("set-cookie")||"").split(";")[0];
+            for(const name of ["S-market Pansio","S-market Kemi"]){
+              const i=b.indexOf(name), pre=b.lastIndexOf("<a href=",i), q1=b.indexOf('"',pre), q2=b.indexOf('"',q1+1); const href=b.slice(q1+1,q2); const u=new URL(href,base).href;
+              const cr=await fetch(u,{headers:{"user-agent":"Mozilla/5.0","cookie":cookie,"referer":base},redirect:"manual"}); const loc=cr.headers.get("location"); const du=loc?new URL(loc,u).href:u;
+              const dr=await fetch(du,{headers:{"user-agent":"Mozilla/5.0","cookie":cookie,"referer":base}}); const d=await dr.text();
+              const tokens=[...d.matchAll(/(?:value|name|id|data-[\\w-]+|href|action)="([^"]+)"/gi)].map(x=>x[0]).filter(x=>/organ|toimi|store|603212705|522770049|pansio|kemi/i.test(x));
+              console.log("SKANAVA_SELECTED_INTERNALS "+JSON.stringify({name,clickStatus:cr.status,location:loc,detailStatus:dr.status,length:d.length,tokens,context:d.slice(Math.max(0,d.toLowerCase().indexOf(name.toLowerCase())-2500),d.toLowerCase().indexOf(name.toLowerCase())+4000)}));
+            }
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
+
       - name: Probe S-kaupat GraphQL
         shell: bash
         run: |
