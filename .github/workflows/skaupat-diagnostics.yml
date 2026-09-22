@@ -397,6 +397,16 @@ jobs:
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
 
+      - name: Extract eTarjous businesses data loader
+        shell: bash
+        run: |
+          node <<'NODE'
+          const js="https://dqei8yomz48ve.cloudfront.net/assets/entry-client-CjqEhrFN.js";
+          (async()=>{const r=await fetch(js,{headers:{"user-agent":"Mozilla/5.0"}});const b=await r.text();
+            for(const term of ["useData(`businesses`","useData(`store","loadData(`business","useData(`businessesBy","useData(`offers`"]){let p=0,n=0;while((p=b.indexOf(term,p))>=0&&n<20){console.log("ETARJOUS_BUSINESS_LOADER "+JSON.stringify({term,index:p,context:b.slice(Math.max(0,p-3000),p+5000)}));p+=term.length;n++;}}
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
+
       - name: Probe S-kaupat GraphQL
         shell: bash
         run: |
