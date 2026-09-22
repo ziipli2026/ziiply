@@ -334,6 +334,20 @@ jobs:
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
 
+      - name: Probe Ruoanhinta and eTarjouslehdet store identity
+        shell: bash
+        run: |
+          node <<'NODE'
+          const urls=[
+            ["etarjous-pansio","https://etarjouslehdet.fi/S-market/kaupat/b6f2uwi"],
+            ["ruoanhinta","https://ruoanhinta.fi"]
+          ];
+          (async()=>{for(const [label,url] of urls){const r=await fetch(url,{headers:{"user-agent":"Mozilla/5.0","accept-language":"fi-FI,fi;q=0.9"}});const b=await r.text();
+            const needles=["603212705","634976534","S-market Pansio","Prisma Hyvinkää","storeId","publicId","coordinates","api","graphql"];
+            console.log("ALT_STORE_SOURCE "+JSON.stringify({label,status:r.status,length:b.length,hits:Object.fromEntries(needles.map(n=>[n,b.toLowerCase().includes(n.toLowerCase())])),scripts:[...b.matchAll(/<script[^>]+src=["']([^"']+)/gi)].slice(0,30).map(x=>x[1]),contexts:needles.filter(n=>b.toLowerCase().includes(n.toLowerCase())).map(n=>{const i=b.toLowerCase().indexOf(n.toLowerCase());return [n,b.slice(Math.max(0,i-500),i+1000)]})}));
+          }})().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
+
       - name: Probe S-kaupat GraphQL
         shell: bash
         run: |
