@@ -1,0 +1,56 @@
+name: S-kaupat API diagnostics
+
+on:
+  workflow_dispatch:
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Probe S-kaupat GraphQL
+        shell: bash
+        run: |
+          node <<'NODE'
+          const endpoint = "https://api.s-kaupat.fi/";
+          const hashes = {
+            filtered: "44ca017dddccfe49e787b483f471f26217adca807f8c71101d11e881dab9e480",
+            page: "f6d87786fda8fb5c233c4eaed08f37b0c5b87dc0d8d4c44c33c5529e446369d1"
+          };
+          const clients = {
+            oldPickup: "production-14a82a5b48cd1dd42c0592db0037514ed3c84de8",
+            oldFiltered: "production-45c31f7a746096c6da12e16aba1887e031fbd9de"
+          };
+          const today = new Date().toISOString().slice(0,10);
+          async function probe(name, operationName, variables, hash, clientVersion) {
+            const u = new URL(endpoint);
+            u.searchParams.set("operationName", operationName);
+            u.searchParams.set("variables", JSON.stringify(variables));
+            u.searchParams.set("extensions", JSON.stringify({persistedQuery:{version:1,sha256Hash:hash}}));
+            const headers={accept:"application/json","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web"};
+            if(clientVersion) headers["x-client-version"]=clientVersion;
+            try {
+              const r=await fetch(u,{headers});
+              const text=await r.text();
+              let j; try{j=JSON.parse(text)}catch{j={raw:text.slice(0,500)}}
+              const root=j?.data?.store?.products;
+              const list=root?.productListItems ?? root?.products ?? root?.items;
+              const page=j?.data?.pageContent ?? j?.data?.remoteGetPageContent ?? j?.data?.store?.pageContent;
+              const sections=page?.sections;
+              let sectionProducts=0;
+              if(Array.isArray(sections)) for(const s of sections) if(Array.isArray(s?.products)) sectionProducts+=s.products.length;
+              console.log("\n===",name,"===");
+              console.log(JSON.stringify({status:r.status,errors:j?.errors?.map(e=>({message:e.message,extensions:e.extensions}))??null,topKeys:j&&typeof j==="object"?Object.keys(j):[],dataKeys:j?.data&&typeof j.data==="object"?Object.keys(j.data):[],storeKeys:j?.data?.store&&typeof j.data.store==="object"?Object.keys(j.data.store):[],productRootKeys:root&&typeof root==="object"?Object.keys(root):[],total:root?.total,from:root?.from,limit:root?.limit,productCount:Array.isArray(list)?list.length:null,pageKeys:page&&typeof page==="object"?Object.keys(page):[],sectionCount:Array.isArray(sections)?sections.length:null,sectionProducts},null,2));
+            } catch(e){console.log("\n===",name,"===\nERROR",String(e))}
+          }
+          const prisma="634976534", smarket="708276035";
+          const base={generatedSessionId:"ziiply-diagnostic",limit:48,queryString:"maito",storeId:prisma,useRandomId:false,marketingId:"ziiply-diagnostic"};
+          await probe("filtered-simple-no-client","RemoteFilteredProducts",base,hashes.filtered,null);
+          await probe("filtered-simple-old-client","RemoteFilteredProducts",base,hashes.filtered,clients.oldFiltered);
+          const discounted={availabilityDate:today,facets:[{key:"brandName",order:"asc"},{key:"category"},{key:"labels"}],filters:[{key:"labels",value:["DISCOUNTED"]}],generatedSessionId:"ziiply-diagnostic",fetchSponsoredContent:true,limit:48,queryString:"",sortForAvailabilityLabelDate:today,storeId:prisma,useRandomId:false,marketingId:"ziiply-diagnostic",from:0,offset:0,skip:0,page:1};
+          await probe("filtered-discounted-old-client","RemoteFilteredProducts",discounted,hashes.filtered,clients.oldFiltered);
+          await probe("filtered-discounted-no-client","RemoteFilteredProducts",discounted,hashes.filtered,null);
+          for(const path of ["tuotteet/kampanjat","sivu/kampanjat"]){
+            await probe("pagecontent-"+path.replace("/","-"),"RemoteGetPageContent",{preview:false,storeId:smarket,skipProducts:false,availabilityDate:today,where:{storeId:smarket,path,platform:"WEB",availabilityDate:today,userConsent:{marketing:false,marketingId:"ziiply-diagnostic",useCustomerId:false,sessionId:"ziiply-diagnostic",loop54:true}}},hashes.page,clients.oldPickup);
+          }
+          NODE
