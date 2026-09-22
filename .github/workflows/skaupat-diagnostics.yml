@@ -69,6 +69,45 @@ jobs:
           main().catch(e => { console.error(e); process.exitCode = 1; });
           NODE
 
+      - name: Discover S-kaupat store API from current web bundles
+        shell: bash
+        run: |
+          node <<'NODE'
+          async function main() {
+            const urls = [
+              "https://www.s-kaupat.fi/myymalat?query=" + encodeURIComponent("Prisma Kuopio"),
+              "https://www.s-kaupat.fi/myymalat/s-market?query=" + encodeURIComponent("S-market Kemi")
+            ];
+            for (const pageUrl of urls) {
+              const r = await fetch(pageUrl, {headers: {"user-agent":"Mozilla/5.0","accept":"text/html"}});
+              const html = await r.text();
+              const srcs = [];
+              let p = 0;
+              while ((p = html.indexOf('src="', p)) !== -1) {
+                const s = p + 5, e = html.indexOf('"', s); if (e < 0) break;
+                const v = html.slice(s,e); if (v.includes(".js")) srcs.push(new URL(v,pageUrl).href); p=e+1;
+              }
+              console.log("BUNDLE_DISCOVERY_PAGE "+JSON.stringify({pageUrl,status:r.status,htmlLength:html.length,jsCount:[...new Set(srcs)].length}));
+              let n=0;
+              for (const src of [...new Set(srcs)].slice(0,80)) {
+                try {
+                  const jr=await fetch(src,{headers:{"user-agent":"Mozilla/5.0"}});
+                  const js=await jr.text();
+                  const terms=["remotePickupSlots","myymalat","pickupSlotsForCoordinates","storeSearch","storesFor","searchStores"];
+                  const found=terms.filter(t=>js.includes(t));
+                  if(found.length){
+                    const snippets=[];
+                    for(const term of found){const i=js.indexOf(term);snippets.push(js.slice(Math.max(0,i-350),i+650));}
+                    console.log("BUNDLE_API_HIT "+JSON.stringify({src,status:jr.status,length:js.length,found,snippets}));
+                    if(++n>=12) break;
+                  }
+                } catch(e) {}
+              }
+            }
+          }
+          main().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
+
       - name: Probe S-kaupat GraphQL
         shell: bash
         run: |
