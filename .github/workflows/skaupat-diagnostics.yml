@@ -304,6 +304,20 @@ jobs:
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
 
+      - name: Probe S-kanava quicksearch implementation
+        shell: bash
+        run: |
+          node <<'NODE'
+          const url="https://asiakaspalaute.s-kanava.fi/palaute/ketjut/smarket/aitiopaikka";
+          (async()=>{const r=await fetch(url,{headers:{"user-agent":"Mozilla/5.0"}});const b=await r.text();
+            const i=b.indexOf('quicksearch("table#toimipaikat tr"');
+            console.log("SKANAVA_QUICKSEARCH_CONTEXT "+JSON.stringify({index:i,context:i>=0?b.slice(Math.max(0,i-1500),i+3500):null}));
+            const scripts=[...b.matchAll(/<script[^>]+src="([^"]+)"/gi)].map(x=>new URL(x[1],url).href);
+            console.log("SKANAVA_SCRIPT_URLS "+JSON.stringify(scripts));
+            for(const s of scripts){if(/quick|search|jquery/i.test(s)){const q=await fetch(s,{headers:{"user-agent":"Mozilla/5.0"}});const t=await q.text();console.log("SKANAVA_SEARCH_SCRIPT "+JSON.stringify({url:s,status:q.status,length:t.length,preview:t.slice(0,5000)}));}}
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
+
       - name: Probe S-kaupat GraphQL
         shell: bash
         run: |
