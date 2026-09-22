@@ -45,12 +45,31 @@ jobs:
             } catch(e){console.log("\n===",name,"===\nERROR",String(e))}
           }
           const prisma="634976534", smarket="708276035";
+          async function resolverProbe(storeName){
+            const norm=v=>String(v??"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9åäö]+/gi," ").replace(/\s+/g," ").trim();
+            const place=norm(storeName).replace(/^s\s*market\s+/,"").replace(/^smarket\s+/,"").trim();
+            let coords=null;
+            for(const query of [storeName+", Finland",place+", Finland"]){
+              const u=new URL("https://nominatim.openstreetmap.org/search"); u.searchParams.set("format","jsonv2");u.searchParams.set("countrycodes","fi");u.searchParams.set("q",query);u.searchParams.set("limit","1");
+              const rr=await fetch(u,{headers:{"user-agent":"Ziiply-diagnostic/1.0","accept-language":"fi"}}); const a=await rr.json(); if(a?.[0]){coords={latitude:Number(a[0].lat),longitude:Number(a[0].lon),query};break}
+            }
+            if(!coords){console.log("\n=== resolver",storeName,"===\nNO GEOCODE");return}
+            const variables={startDate:today,endDate:today,location:{latitude:coords.latitude,longitude:coords.longitude},limit:20};
+            const u=new URL(endpoint);u.searchParams.set("operationName","remotePickupSlots");u.searchParams.set("variables",JSON.stringify(variables));u.searchParams.set("extensions",JSON.stringify({persistedQuery:{version:1,sha256Hash:"6da249b0fd87c05275a239ed490976c851d7aff90ead0f3a3978e8283f21252d"}}));
+            const rr=await fetch(u,{headers:{accept:"application/json","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":clients.oldPickup}});
+            const j=await rr.json(); const rows=j?.data?.pickupSlotsForCoordinates?.slotsInPickupPoints??[];
+            const candidates=rows.map(row=>({id:row?.store?.id,brand:row?.store?.brand,name:row?.pickupPoint?.name,city:row?.pickupPoint?.address?.city,distance:row?.distance})).slice(0,20);
+            console.log("\n=== resolver",storeName,"===\n"+JSON.stringify({coords,http:rr.status,errors:j?.errors??null,count:candidates.length,candidates},null,2));
+          }
           const base={generatedSessionId:"ziiply-diagnostic",limit:48,queryString:"maito",storeId:prisma,useRandomId:false,marketingId:"ziiply-diagnostic"};
+          await resolverProbe("S-market Kommila Varkaus");
+          await resolverProbe("S-market Hyvinkää");
           await probe("filtered-simple-no-client","RemoteFilteredProducts",base,hashes.filtered,null);
           await probe("filtered-simple-old-client","RemoteFilteredProducts",base,hashes.filtered,clients.oldFiltered);
           const discounted={availabilityDate:today,facets:[{key:"brandName",order:"asc"},{key:"category"},{key:"labels"}],filters:[{key:"labels",value:["DISCOUNTED"]}],generatedSessionId:"ziiply-diagnostic",fetchSponsoredContent:true,limit:48,queryString:"",sortForAvailabilityLabelDate:today,storeId:prisma,useRandomId:false,marketingId:"ziiply-diagnostic",from:0,offset:0,skip:0,page:1};
           await probe("filtered-discounted-old-client","RemoteFilteredProducts",discounted,hashes.filtered,clients.oldFiltered);
           await probe("filtered-discounted-no-client","RemoteFilteredProducts",discounted,hashes.filtered,null);
+          await probe("prisma-pagecontent-tuotteet-kampanjat","RemoteGetPageContent",{preview:false,storeId:prisma,skipProducts:false,availabilityDate:today,where:{storeId:prisma,path:"tuotteet/kampanjat",platform:"WEB",availabilityDate:today,userConsent:{marketing:false,marketingId:"ziiply-diagnostic",useCustomerId:false,sessionId:"ziiply-diagnostic",loop54:true}}},hashes.page,clients.oldPickup);
           for(const path of ["tuotteet/kampanjat","sivu/kampanjat"]){
             await probe("pagecontent-"+path.replace("/","-"),"RemoteGetPageContent",{preview:false,storeId:smarket,skipProducts:false,availabilityDate:today,where:{storeId:smarket,path,platform:"WEB",availabilityDate:today,userConsent:{marketing:false,marketingId:"ziiply-diagnostic",useCustomerId:false,sessionId:"ziiply-diagnostic",loop54:true}}},hashes.page,clients.oldPickup);
           }
