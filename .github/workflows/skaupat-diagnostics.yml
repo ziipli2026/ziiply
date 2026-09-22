@@ -418,6 +418,21 @@ jobs:
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
 
+      - name: Locate eTarjous useData resolver map
+        shell: bash
+        run: |
+          node <<'NODE'
+          const js="https://dqei8yomz48ve.cloudfront.net/assets/entry-client-CjqEhrFN.js";
+          (async()=>{const r=await fetch(js,{headers:{"user-agent":"Mozilla/5.0"}});const b=await r.text();
+            const terms=["invalidateData","setData","useData","callApi"];
+            for(const term of terms){let p=0,n=0;while((p=b.indexOf(term,p))>=0&&n<15){
+              const ctx=b.slice(Math.max(0,p-2500),p+4500);
+              if(/businesses|departmentOffers|groupedFronts|stores|offers/.test(ctx)) console.log("ETARJOUS_RESOLVER_CONTEXT "+JSON.stringify({term,index:p,context:ctx}));
+              p+=term.length;n++;
+            }}
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
+
       - name: Probe S-kaupat GraphQL
         shell: bash
         run: |
