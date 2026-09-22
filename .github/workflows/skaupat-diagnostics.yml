@@ -212,6 +212,22 @@ jobs:
           NODE
 
 
+      - name: Probe S-kanava direct ID behavior and discover identifiers
+        shell: bash
+        run: |
+          node <<'NODE'
+          const base="https://asiakaspalaute.s-kanava.fi/palaute/toimipaikat/";
+          const tests=["603212705","649122793","522770049","603212704","111111111","abcdefghi","pobmvvmwhy95ui"];
+          (async()=>{
+            for(const id of tests){
+              const r=await fetch(base+id,{headers:{"user-agent":"Mozilla/5.0","accept-language":"fi-FI,fi;q=0.9"},redirect:"manual"});
+              const b=await r.text();
+              const m=b.match(/<h3><span>([^<]+)<\/span><\/h3>/i);
+              console.log("SKANAVA_DIRECT_ID_RESULT "+JSON.stringify({id,status:r.status,location:r.headers.get("location"),length:b.length,name:m?m[1]:null,hasError:/virhe|error|ei löytynyt/i.test(b)}));
+            }
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
+
       - name: Probe S-kaupat GraphQL
         shell: bash
         run: |
