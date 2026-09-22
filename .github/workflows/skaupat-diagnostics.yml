@@ -463,6 +463,21 @@ jobs:
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
 
+      - name: Direct Tjek business request for Pansio
+        shell: bash
+        run: |
+          node <<'NODE'
+          const page="https://etarjouslehdet.fi/S-market/kaupat/b6f2uwi";
+          const js="https://dqei8yomz48ve.cloudfront.net/assets/entry-client-CjqEhrFN.js";
+          (async()=>{const p=await fetch(page,{headers:{"user-agent":"Mozilla/5.0"}});const html=await p.text();
+            const m=html.match(/apiKey.{0,120}["']([A-Za-z0-9._-]{20,})["']/i);
+            const apiKey=m?.[1]; console.log("TJEK_API_KEY_FOUND "+JSON.stringify({found:!!apiKey}));
+            if(!apiKey)return;
+            const candidates=["https://squid-api.tjek.com/","https://squid-api.tjek.com/api/"];
+            for(const url of candidates){const r=await fetch(url,{method:"POST",headers:{"content-type":"application/json","x-api-key":apiKey,"user-agent":"Mozilla/5.0"},body:JSON.stringify({data:[["businesses",{"businessIds":["b6f2uwi"]}]]})});const b=await r.text();console.log("TJEK_BUSINESS_DIRECT "+JSON.stringify({url,status:r.status,length:b.length,body:b.slice(0,12000)}));}
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
+
       - name: Probe S-kaupat GraphQL
         shell: bash
         run: |
