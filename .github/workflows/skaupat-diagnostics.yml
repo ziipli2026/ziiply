@@ -172,6 +172,17 @@ jobs:
           (async()=>{for(const url of urls){const r=await fetch(url,{headers:{"user-agent":"Mozilla/5.0","accept-language":"fi-FI,fi;q=0.9"}});const body=await r.text();console.log("SKANAVA_DIRECTORY_RESULT "+JSON.stringify({url,status:r.status,length:body.length,hasPansio:body.toLowerCase().includes("pansio"),hasPansioId:body.includes("603212705"),hasLukkarinsanta:body.toLowerCase().includes("lukkarinsanta"),hasLukkarinsantaId:body.includes("649122793"),idSamples:[...body.matchAll(/\b\d{9}\b/g)].slice(0,20).map(x=>x[0])}));}})().catch(e=>{console.error(e);process.exitCode=1});
           NODE
 
+      - name: Parse S-kanava S-market directory links and hidden identifiers
+        shell: bash
+        run: |
+          node <<'NODE'
+          const url="https://asiakaspalaute.s-kanava.fi/palaute/ketjut/smarket/aitiopaikka";
+          (async()=>{const r=await fetch(url,{headers:{"user-agent":"Mozilla/5.0","accept-language":"fi-FI,fi;q=0.9"}});const b=await r.text();
+          for(const name of ["Pansio","Lukkarinsanta","Kemi","Kauppakatu","Vaasanpuistikko"]){const i=b.toLowerCase().indexOf(name.toLowerCase());console.log("SKANAVA_NAME_CONTEXT "+JSON.stringify({name,index:i,context:i>=0?b.slice(Math.max(0,i-700),i+900):null}));}
+          const hrefs=[...b.matchAll(/href=["']([^"']+)["']/gi)].map(x=>x[1]); console.log("SKANAVA_LINK_SUMMARY "+JSON.stringify({status:r.status,hrefCount:hrefs.length,storeLinks:hrefs.filter(x=>/toimipa|aitiopa|smarket/i.test(x)).slice(0,80)}));
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
+
       - name: Probe S-kaupat GraphQL
         shell: bash
         run: |
