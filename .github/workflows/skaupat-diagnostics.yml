@@ -502,6 +502,16 @@ jobs:
           (async()=>{for(const body of bodies){const r=await fetch(api,{method:"POST",headers:{"content-type":"application/json","x-api-key":key,"user-agent":"Mozilla/5.0","origin":"https://etarjouslehdet.fi","referer":"https://etarjouslehdet.fi/"},body:JSON.stringify(body)});const t=await r.text();console.log("TJEK_DIRECT_V2 "+JSON.stringify({status:r.status,length:t.length,request:body,response:t.slice(0,16000)}));}})().catch(e=>{console.error(e);process.exitCode=1});
           NODE
 
+      - name: Probe Tjek SSR app-data for Pansio
+        shell: bash
+        run: |
+          node <<'NODE'
+          (async()=>{const url="https://etarjouslehdet.fi/S-market/kaupat/b6f2uwi";const r=await fetch(url,{headers:{"user-agent":"Mozilla/5.0"}});const h=await r.text();
+            console.log("TJEK_SSR_SUMMARY "+JSON.stringify({status:r.status,length:h.length,appData:(h.match(/app-data/gi)||[]).length,businesses:(h.match(/businesses/gi)||[]).length,pansio:(h.match(/b6f2uwi/gi)||[]).length}));
+            for(const term of ["b6f2uwi","app-data","businesses"]){let p=0,n=0;while((p=h.indexOf(term,p))>=0&&n<12){console.log("TJEK_SSR_CONTEXT "+JSON.stringify({term,index:p,context:h.slice(Math.max(0,p-1800),p+5000)}));p+=term.length;n++;}}
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
+
       - name: Probe S-kaupat GraphQL
         shell: bash
         run: |
