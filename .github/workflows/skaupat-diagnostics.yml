@@ -228,6 +228,25 @@ jobs:
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
 
+      - name: Probe S-kanava candidate ID neighborhood
+        shell: bash
+        run: |
+          node <<'NODE'
+          const seeds=[603212705,649122793,522770049];
+          (async()=>{
+            for(const seed of seeds){
+              const out=[];
+              for(let d=-3;d<=3;d++){
+                const id=String(seed+d);
+                const r=await fetch("https://asiakaspalaute.s-kanava.fi/palaute/toimipaikat/"+id,{headers:{"user-agent":"Mozilla/5.0","accept-language":"fi-FI,fi;q=0.9"}});
+                const b=await r.text(); const m=b.match(/<h3><span>([^<]+)<\/span><\/h3>/i);
+                out.push({id,name:m?m[1]:null,length:b.length});
+              }
+              console.log("SKANAVA_ID_NEIGHBORHOOD "+JSON.stringify({seed,out}));
+            }
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
+
       - name: Probe S-kaupat GraphQL
         shell: bash
         run: |
