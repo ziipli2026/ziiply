@@ -128,7 +128,7 @@ jobs:
             const variables={startDate:today,endDate:today,location:{latitude:lat,longitude:lon},limit};
             const u=new URL(endpoint);u.searchParams.set("operationName","remotePickupSlots");u.searchParams.set("variables",JSON.stringify(variables));u.searchParams.set("extensions",JSON.stringify({persistedQuery:{version:1,sha256Hash:hash}}));
             const r=await fetch(u,{headers:{accept:"application/json","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":client}});
-            const j=await r.json(); const rows=j?.data?.pickupSlotsForCoordinates?.slotsInPickupPoints??[];
+            const ct=r.headers.get("content-type")||""; const raw=await r.text(); let j={}; try{j=JSON.parse(raw)}catch(e){console.log("GRAPHQL_NON_JSON "+JSON.stringify({status:r.status,contentType:ct,preview:raw.slice(0,300)})); return;} const rows=j?.data?.pickupSlotsForCoordinates?.slotsInPickupPoints??[];
             return {status:r.status,errors:j?.errors??null,rows:rows.map(x=>({id:x?.store?.id,brand:x?.store?.brand,name:x?.pickupPoint?.name,city:x?.pickupPoint?.address?.city,distance:x?.distance}))};
           }
           (async()=>{for(const [city,lat,lon,wanted] of tests){for(const limit of [20,50,100]){const z=await call(city,lat,lon,limit);console.log("PICKUP_RADIUS_RESULT "+JSON.stringify({city,limit,wanted,status:z.status,count:z.rows.length,found:z.rows.some(x=>String(x.id)===wanted),match:z.rows.find(x=>String(x.id)===wanted)||null,last:z.rows.at(-1)||null}));}}})().catch(e=>{console.error(e);process.exitCode=1});
