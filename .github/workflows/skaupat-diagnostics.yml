@@ -8,6 +8,36 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Test existing store-directory resolver
+        shell: bash
+        run: |
+          npx --yes tsx <<'TS'
+          import { resolveSKaupatStoreIdFromDirectoryV1 as resolve } from "./src/app/components/ziiply/offerSearch/ziiplyStoreDirectory.ts";
+          const stores = [
+            "Prisma Kuopio",
+            "S-market Kemi",
+            "S-market Joensuu Kauppakatu",
+            "S-market Vaasanpuistikko",
+            "Prisma Raksila Oulu",
+            "S-market Talvitie Rovaniemi",
+            "Prisma Lappeenranta",
+            "S-market Pansio",
+            "S-market Lukkarinsanta",
+            "S-market Kemiö"
+          ];
+          for (const store of stores) {
+            try {
+              const id = await resolve(store);
+              console.log("DIRECTORY_RESOLVER_RESULT " + JSON.stringify({ store, id }));
+            } catch (error) {
+              console.log("DIRECTORY_RESOLVER_RESULT " + JSON.stringify({ store, id: null, error: String(error) }));
+            }
+          }
+          TS
+
       - name: Probe S-kaupat GraphQL
         shell: bash
         run: |
