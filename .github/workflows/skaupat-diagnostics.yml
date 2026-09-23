@@ -1006,28 +1006,26 @@ jobs:
           })().catch(e => { console.error(e); process.exitCode=1; });
           NODE
 
-      - name: Query Nominatim metadata for four unresolved S-markets
+      - name: Nominatim reverse exact Tjek coordinates for unresolved stores
         timeout-minutes: 2
         run: |
           node <<'NODE'
           const targets=[
-            ["Varisto","S-market Varisto, Ulkoniitynkuja 4, Vantaa"],
-            ["Suutarila","S-market Suutarila, Henrik Forsiuksen tie 39, Helsinki"],
-            ["Rautalampi","S-market Rautalampi, Kuopiontie 34, Rautalampi"],
-            ["Zeniitti","S-market Zeniitti, Huilaajanpolku 2, Kempele"]
+            ["Varisto",60.2648201,24.8112035],["Suutarila",60.2777555,25.0215524],
+            ["Rautalampi",62.6225997,26.8308516],["Zeniitti",64.8920648,25.5834419]
           ];
           (async()=>{
             const out=[];
-            for(const [name,q] of targets){
-              const u="https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&extratags=1&namedetails=1&limit=10&q="+encodeURIComponent(q);
+            for(const [name,lat,lon] of targets){
+              const u=`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1&extratags=1&namedetails=1`;
               const ac=new AbortController(),t=setTimeout(()=>ac.abort(),12000);
               try{
                 const r=await fetch(u,{headers:{"user-agent":"Ziiply diagnostics/1.0"},signal:ac.signal});
-                const data=await r.json();
-                out.push({name,status:r.status,results:data.map(x=>({osm_type:x.osm_type,osm_id:x.osm_id,display_name:x.display_name,lat:x.lat,lon:x.lon,extratags:x.extratags,namedetails:x.namedetails,address:x.address}))});
+                const x=await r.json();
+                out.push({name,status:r.status,osm_type:x.osm_type,osm_id:x.osm_id,display_name:x.display_name,lat:x.lat,lon:x.lon,extratags:x.extratags,namedetails:x.namedetails,address:x.address});
               }catch(e){out.push({name,error:String(e)})}finally{clearTimeout(t)}
               await new Promise(r=>setTimeout(r,1100));
             }
-            console.log("NOMINATIM_UNRESOLVED "+JSON.stringify(out,null,2));
+            console.log("NOMINATIM_REVERSE_UNRESOLVED "+JSON.stringify(out,null,2));
           })();
           NODE
