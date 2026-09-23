@@ -1036,3 +1036,41 @@ jobs:
             console.log("FINAL_ID_CROSSCHECK "+JSON.stringify(out,null,2));
           })();
           NODE
+
+
+      - name: Diagnose final five unmapped S-market IDs
+        timeout-minutes: 2
+        run: |
+          node <<'NODE'
+          const targets=[
+            {name:"S-market Redi",address:"Hermannin Rantatie 5",postalCode:"00580"},
+            {name:"S-market Eskolanmäki",address:"Tasankotie 11",postalCode:"45150"},
+            {name:"S-market Isokyrö",address:"Marttilantie 1",postalCode:"61500"},
+            {name:"S-market Repokallio",address:"Käkisalmenkatu 35",postalCode:"80230"},
+            {name:"S-Market Rajakylä",address:"Tervakukkatie 2",postalCode:"90580"}
+          ];
+          const queries=t=>[
+            `"${t.name}" "s-kaupat.fi/myymala"`,
+            `"${t.name}" "${t.postalCode}"`,
+            `"${t.address}" "s-kaupat.fi"`
+          ];
+          (async()=>{
+            const out=[];
+            for(const t of targets){
+              const row={...t,searches:[]};
+              for(const q of queries(t)){
+                const u="https://www.google.com/search?q="+encodeURIComponent(q);
+                try{
+                  const r=await fetch(u,{headers:{"user-agent":"Mozilla/5.0"}});
+                  const b=await r.text();
+                  const ids=[...new Set(b.match(/\b\d{9}\b/g)||[])];
+                  const urls=[...new Set((b.match(/https?:[^"'<> ]*s-kaupat\.fi[^"'<> ]*/gi)||[]).map(x=>x.replace(/\\u003d/g,"=").replace(/\\u0026/g,"&")))].slice(0,20);
+                  const contexts=[]; for(const id of ids.slice(0,20)){const p=b.indexOf(id);contexts.push({id,text:b.slice(Math.max(0,p-300),p+500)})}
+                  row.searches.push({q,status:r.status,ids,urls,contexts});
+                }catch(e){row.searches.push({q,error:String(e)})}
+              }
+              out.push(row);
+            }
+            console.log("FINAL_FIVE_ID_SEARCH "+JSON.stringify(out,null,2));
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
