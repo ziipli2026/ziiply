@@ -373,6 +373,18 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
     const price=Number(resolved.value);
     if(!Number.isFinite(price) || price<=0) continue;
 
+    // Spatial parser can occasionally bind a nearby large integer (for example 9/12/20)
+    // to a grocery product. Keep only rows that the parser itself considers sane when
+    // package/unit-price evidence exists.
+    if(resolved?.sanity==="review") continue;
+    const expectedSingle=Number(row?.expectedSingle);
+    const quantity=Number(resolved?.quantity||1);
+    if(Number.isFinite(expectedSingle) && expectedSingle>0){
+      const expectedTotal=expectedSingle*Math.max(1,quantity);
+      const ratio=price/expectedTotal;
+      if(ratio<0.60 || ratio>1.55) continue;
+    }
+
     const title=clean(row?.title||"");
     if(!title || isNoiseLine(title)) continue;
 
