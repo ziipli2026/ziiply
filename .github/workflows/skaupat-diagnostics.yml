@@ -12,6 +12,8 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Final known-ID sanity check
+        env:
+          FINAL_AUDIT: "464"
         timeout-minutes: 2
         run: |
           node <<'NODE'
