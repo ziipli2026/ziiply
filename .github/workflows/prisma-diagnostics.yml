@@ -233,3 +233,30 @@ jobs:
           console.log("ZIIPLY_KALEVA_ROUTE_CONTEXT "+JSON.stringify(out,null,2));
           if(!out.pass) process.exit(1);
           NODE
+      - name: Ziiply page Kaleva selection chain diagnostic
+        run: |
+          node <<'NODE'
+          const foundStores = [
+            { id: "517609418", storeId: "517609418", name: "Prisma Kaleva Tampere", chain: "Prisma" },
+          ];
+          const scenarios = [
+            { label:"correct-public-id", activeArea:{sStoreId:"517609418",sStoreName:"Prisma Kaleva Tampere"} },
+            { label:"short-or-search-id", activeArea:{sStoreId:"kaleva",sStoreName:"Prisma Kaleva Tampere"} },
+            { label:"name-only", activeArea:{sStoreId:"",sStoreName:"Prisma Kaleva Tampere"} },
+          ];
+          const norm=v=>String(v??"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9åäö]+/gi," ").replace(/\s+/g," ").trim();
+          function pick(id,name){
+            const ni=String(id??"").trim(), nn=norm(name);
+            return foundStores.find(s=>ni && [s.id,s.storeId].map(String).includes(ni))
+              || foundStores.find(s=>nn && norm(s.name)===nn)
+              || null;
+          }
+          const results=scenarios.map(x=>{
+            const picked=pick(x.activeArea.sStoreId,x.activeArea.sStoreName);
+            const sOfferId=String(picked?.storeId||picked?.id||x.activeArea.sStoreId||"").trim();
+            const sOfferName=String(picked?.name||x.activeArea.sStoreName||"").trim();
+            return {...x,picked,sOfferId,sOfferName};
+          });
+          console.log("ZIIPLY_PAGE_KALEVA_SELECTION_CHAIN "+JSON.stringify(results,null,2));
+          if(!results.every(x=>x.sOfferName==="Prisma Kaleva Tampere")) process.exit(1);
+          NODE
