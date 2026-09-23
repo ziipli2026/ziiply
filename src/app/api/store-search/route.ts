@@ -30,6 +30,8 @@ export async function GET(request: NextRequest) {
         type: store.type,
         city: store.city,
         postalCode: store.postalCode,
+        // V219: Ruoanhinta externalId is the S-kaupat store id for Finnish Prisma stores.
+        externalId: store.externalId,
       })
     );
 
