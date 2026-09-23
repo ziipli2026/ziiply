@@ -39,3 +39,39 @@ jobs:
             process.exitCode = 1;
           });
           NODE
+      - name: Prisma Kaleva pickup candidates
+        run: |
+          node <<'NODE'
+          (async () => {
+            const latitude = 61.4918293;
+            const longitude = 23.8216071;
+            const date = new Intl.DateTimeFormat("en-CA", {timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+            const variables = {startDate:date,endDate:date,location:{latitude,longitude},limit:20};
+            const extensions = {persistedQuery:{version:1,sha256Hash:"6da249b0fd87c05275a239ed490976c851d7aff90ead0f3a3978e8283f21252d"}};
+            const url = new URL("https://api.s-kaupat.fi/");
+            url.searchParams.set("operationName","remotePickupSlots");
+            url.searchParams.set("variables",JSON.stringify(variables));
+            url.searchParams.set("extensions",JSON.stringify(extensions));
+            const response = await fetch(url,{headers:{
+              accept:"application/graphql-response+json,application/json;q=0.9",
+              "content-type":"application/json",
+              "accept-language":"fi",
+              origin:"https://www.s-kaupat.fi",
+              referer:"https://www.s-kaupat.fi/",
+              "x-client-name":"skaupat-web",
+              "x-client-version":"production-14a82a5b48cd1dd42c0592db0037514ed3c84de8"
+            }});
+            const data=await response.json();
+            const rows=data?.data?.pickupSlotsForCoordinates?.slotsInPickupPoints;
+            const candidates=Array.isArray(rows)?rows.map(row=>({
+              storeId:String(row?.store?.id||""),
+              brand:String(row?.store?.brand||""),
+              pickupName:String(row?.pickupPoint?.name||""),
+              city:String(row?.pickupPoint?.address?.city||""),
+              postalCode:String(row?.pickupPoint?.address?.postalCode||""),
+              distance:row?.distance
+            })):[];
+            console.log("PRISMA_KALEVA_PICKUP "+JSON.stringify({status:response.status,count:candidates.length,candidates},null,2));
+            if(!response.ok) process.exitCode=1;
+          })().catch(err=>{console.error(err);process.exitCode=1});
+          NODE
