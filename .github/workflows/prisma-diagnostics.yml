@@ -215,5 +215,5 @@ jobs:
           NODE
       - name: Prisma provider TypeScript regression
         run: |
-          npm ci
+          npm install --no-package-lock --ignore-scripts --no-audit --no-fund
           npx tsc --noEmit --pretty false
