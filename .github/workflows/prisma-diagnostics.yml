@@ -341,3 +341,14 @@ jobs:
             console.log("PRISMA_KALEVA_INTERNAL_ID_RESOLUTION "+JSON.stringify({input:{rawStoreId,storeName},geocode:{lat,lon},kaleva,effectiveStoreId:effective,pass:effective==="517609418"},null,2));
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
+      - name: Kaleva pickup response shape exact diagnostic
+        run: |
+          node <<'NODE'
+          const HASH="6da249b0fd87c05275a239ed490976c851d7aff90ead0f3a3978e8283f21252d",CV="production-14a82a5b48cd1dd42c0592db0037514ed3c84de8";
+          const d=new Date(),date=String(d.getFullYear())+String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0");
+          const vars={startDate:date,endDate:date,location:{latitude:61.4918293,longitude:23.8216071},limit:20},ext={persistedQuery:{version:1,sha256Hash:HASH}};
+          const url="https://api.s-kaupat.fi/?operationName=remotePickupSlots&variables="+encodeURIComponent(JSON.stringify(vars))+"&extensions="+encodeURIComponent(JSON.stringify(ext));
+          (async()=>{const r=await fetch(url,{headers:{"accept":"application/graphql-response+json, application/json","content-type":"application/json","accept-language":"fi","origin":"https://www.s-kaupat.fi","referer":"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":CV}});
+          const j=await r.json();const rows=j?.data?.pickupSlotsForCoordinates?.slotsInPickupPoints||[];
+          console.log("PRISMA_KALEVA_PICKUP_EXACT_SHAPE "+JSON.stringify({status:r.status,rowCount:rows.length,firstRows:rows.slice(0,8),rootKeys:Object.keys(j||{}),errors:j?.errors||[]},null,2));})().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
