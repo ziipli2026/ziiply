@@ -944,3 +944,14 @@ jobs:
             console.log("TJEK_SID_COVERAGE_V2 "+JSON.stringify({tjekStatus:tr.status,tjekTotal:stores.length,datasetParsed:old.length,matched:matches.length,unmatched:unmatched.length,ambiguous:ambiguous.length,idUrlMismatch:matches.filter(x=>!x.urlIdMatches).length,maxDistanceKm:Math.max(0,...matches.map(x=>x.distanceKm||0)),unmatchedStores:unmatched,ambiguousStores:ambiguous,sample:matches.slice(0,15)},null,2));
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
+
+
+      - name: Diagnose nine apparent unmatched stores with robust CSV parsing
+        run: |
+          node <<'NODE'
+          function csv(line){let a=[],s="",q=false;for(let i=0;i<line.length;i++){const ch=line[i];if(ch=='"'){if(q&&line[i+1]=='"'){s+='"';i++}else q=!q}else if(ch==','&&!q){a.push(s);s=""}else s+=ch}a.push(s);return a}
+          const targets=["Varisto","Suutarila","Leinola","Rautalampi","Megakeskus","Itikanristeys","Zeniitti","Hiukkavaara","Jääli"];
+          (async()=>{const r=await fetch("https://raw.githubusercontent.com/samuel-d-aya/geolytics_projects/1bf552f4924ce992ad15cb36bfc4e28ca75904bf/Finland/smarket_fi_scraper_/smarket_fi_scraper/output.csv");const body=await r.text();const rows=body.split(/\r?\n/).map(csv);
+            for(const t of targets){const hit=rows.filter(x=>x.some(v=>String(v).toLowerCase().includes(t.toLowerCase())));console.log("UNMATCHED_DATASET_LOOKUP "+JSON.stringify({target:t,count:hit.length,rows:hit.slice(0,10).map(x=>({address:x[0],chain:x[1],city:x[2],name:x[7],postalCode:x[10],id:x[11],url:x[13],fields:x.length}))}))}
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
