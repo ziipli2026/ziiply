@@ -1006,27 +1006,33 @@ jobs:
           })().catch(e => { console.error(e); process.exitCode=1; });
           NODE
 
-      - name: Validate four newly resolved S-kaupat IDs
+      - name: Validate unresolved IDs through S-kanava and indexed URL evidence
         timeout-minutes: 2
         run: |
           node <<'NODE'
           const targets=[
-            ["Varisto","726783952","Ulkoniitynkuja 4"],
-            ["Suutarila","726666563","Henrik Forsiuksen tie 39"],
-            ["Rautalampi","726661262","Kuopiontie 34"],
-            ["Zeniitti","726728751","Huilaajanpolku 2"]
+            ["Varisto","726783952"],["Suutarila","726666563"],
+            ["Rautalampi","726661262"],["Zeniitti","726728751"],
+            ["Leinola","726675436"]
           ];
           (async()=>{
             const out=[];
-            for(const [name,id,address] of targets){
-              const u=`https://www.s-kaupat.fi/myymala/s-market-${name.toLowerCase()}/${id}`;
-              const ac=new AbortController(),t=setTimeout(()=>ac.abort(),12000);
-              try{
-                const r=await fetch(u,{headers:{"user-agent":"Mozilla/5.0"},signal:ac.signal,redirect:"follow"});
-                const body=await r.text();
-                out.push({name,id,status:r.status,finalUrl:r.url,hasName:body.toLowerCase().includes(("s-market "+name).toLowerCase()),hasAddress:body.toLowerCase().includes(address.toLowerCase()),length:body.length});
-              }catch(e){out.push({name,id,error:String(e)})}finally{clearTimeout(t)}
+            for(const [name,id] of targets){
+              const urls=[
+                `https://asiakaspalaute.s-kanava.fi/palaute/toimipaikat/${id}`,
+                `https://www.s-kaupat.fi/myymala/s-market-${name.toLowerCase()}/${id}`
+              ];
+              const row={name,id,checks:[]};
+              for(const u of urls){
+                const ac=new AbortController(),t=setTimeout(()=>ac.abort(),12000);
+                try{
+                  const r=await fetch(u,{headers:{"user-agent":"Mozilla/5.0"},signal:ac.signal,redirect:"follow"});
+                  const body=await r.text();
+                  row.checks.push({url:u,status:r.status,finalUrl:r.url,length:body.length,hasName:body.toLowerCase().includes(name.toLowerCase()),title:(body.match(/<title[^>]*>([^<]*)/i)||[])[1]||null});
+                }catch(e){row.checks.push({url:u,error:String(e)})}finally{clearTimeout(t)}
+              }
+              out.push(row);
             }
-            console.log("FOUR_ID_VALIDATION "+JSON.stringify(out,null,2));
+            console.log("FINAL_ID_CROSSCHECK "+JSON.stringify(out,null,2));
           })();
           NODE
