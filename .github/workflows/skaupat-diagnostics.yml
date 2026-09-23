@@ -60,7 +60,7 @@ jobs:
             ];
             const prismaFromCurrent=(Array.isArray(tj?.value?.data)?tj.value.data:[]).filter(v=>/^prisma\\b/i.test(v.name||""));
             console.log("PRISMA_TJEK_CURRENT_BUSINESS "+JSON.stringify({count:prismaFromCurrent.length,sample:prismaFromCurrent.slice(0,10)},null,2));
-            const qs=["Prisma Kaleva Tampere","Prisma Hyvinkää","Prisma Myyrmanni","Prisma Varkaus"];
+            const kalevaGeoUrl="https://nominatim.openstreetmap.org/search?format=json&limit=5&countrycodes=fi&q="+encodeURIComponent("Prisma Kaleva Tampere");\n  const kalevaGeoResponse=await fetch(kalevaGeoUrl,{headers:{"user-agent":"Ziiply-diagnostics"}});\n  const kalevaGeoBody=await kalevaGeoResponse.text();\n  console.log("PRISMA_KALEVA_GEOCODE "+JSON.stringify({status:kalevaGeoResponse.status,length:kalevaGeoBody.length,body:kalevaGeoBody.slice(0,5000)}));\n  const qs=["Prisma Kaleva Tampere","Prisma Hyvinkää","Prisma Myyrmanni","Prisma Varkaus"];
             for(const q of qs){
               const u="https://www.s-kaupat.fi/myymalat/prisma?query="+encodeURIComponent(q);
               try{
