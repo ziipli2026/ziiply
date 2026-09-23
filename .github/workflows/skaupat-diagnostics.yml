@@ -512,6 +512,13 @@ jobs:
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
 
+      - name: Locate Tjek store search/list resolver
+        shell: bash
+        run: |
+          node <<'NODE'
+          (async()=>{const u="https://dqei8yomz48ve.cloudfront.net/assets/entry-client-CjqEhrFN.js";const r=await fetch(u);const s=await r.text();const terms=['useData(\`stores\`','getData(\`stores\`','requestData(\`stores\`','\`stores\`,{','storeIds','businessIds','searchTerm','storeId'];for(const term of terms){let p=0,n=0;while((p=s.indexOf(term,p))>=0&&n<15){console.log("TJEK_STORE_RESOLVER "+JSON.stringify({term,index:p,context:s.slice(Math.max(0,p-1800),p+5000)}));p+=term.length;n++;}}})().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
+
       - name: Probe S-kaupat GraphQL
         shell: bash
         run: |
