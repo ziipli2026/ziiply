@@ -1,0 +1,82 @@
+name: S-market 464 mapping audit
+
+on:
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Audit current Tjek directory against final S-kaupat mapping
+        shell: bash
+        run: |
+          node <<'NODE'
+          const stable=v=>Array.isArray(v)?v.map(stable):(v&&typeof v==="object"?Object.keys(v).sort().reduce((o,k)=>(o[k]=stable(v[k]),o),{}):v);
+          const enc=x=>Buffer.from(JSON.stringify(stable(x)),"utf8").toString("base64");
+          const norm=s=>String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+          const hav=(a,b)=>{const R=6371,r=x=>x*Math.PI/180,la=+(a.latitude??a.lat),loa=+(a.longitude??a.lng??a.lon),lb=+(b.latitude??b.lat),lob=+(b.longitude??b.lng??b.lon),d1=r(lb-la),d2=r(lob-loa),x=Math.sin(d1/2)**2+Math.cos(r(la))*Math.cos(r(lb))*Math.sin(d2/2)**2;return 2*R*Math.asin(Math.sqrt(x))};
+          function csv(line){let a=[],s="",q=false;for(let i=0;i<line.length;i++){const ch=line[i];if(ch=='"'){if(q&&line[i+1]=='"'){s+='"';i++}else q=!q}else if(ch==','&&!q){a.push(s);s=""}else s+=ch}a.push(s);return a}
+          function findStores(x){const seen=new Set(),out=[];function walk(v){if(!v||typeof v!=="object")return;if(Array.isArray(v)){for(const z of v)walk(z);return}if(typeof v.name==="string"&&(v.id||v.publicId)&&(v.address||v.streetAddress||v.city||v.coordinates||v.location)){const id=String(v.id||v.publicId);if(!seen.has(id)){seen.add(id);out.push(v)}}for(const z of Object.values(v))walk(z)}walk(x);return out.filter(v=>/^S-market\b/i.test(v.name||""))}
+
+          const overrides = new Map([
+            ["e_FuHxQz","726783952"], // Varisto
+            ["bvL3I2nH","726666563"], // Suutarila
+            ["T5ukTphK","726675436"], // Leinola Tampere
+            ["9_tWc4ba","726661262"], // Rautalampi UUSI
+            ["GB3kPt9w","726771429"], // Itikanristeys
+            ["m2lA854x","726728751"], // Zeniitti
+            ["EX3lLp-I","726722520"], // Hiukkavaara
+            ["-Z8p5bMX","726638148"]  // Jääli
+          ]);
+          const OLD_RAUTALAMPI="512023912";
+
+          (async()=>{
+            const key=enc(["stores",{businessId:"d8ccs8",pagination:{offset:0,limit:3000}}]);
+            const tr=await fetch("https://etarjouslehdet.fi/",{method:"POST",headers:{"content-type":"application/json","x-api-key":"152000596c6e45d9983eab0c14afebea","user-agent":"Mozilla/5.0"},body:JSON.stringify({data:[key]})});
+            const tj=await tr.json();
+            const stores=findStores(tj);
+
+            const gr=await fetch("https://raw.githubusercontent.com/samuel-d-aya/geolytics_projects/1bf552f4924ce992ad15cb36bfc4e28ca75904bf/Finland/smarket_fi_scraper_/smarket_fi_scraper/output.csv");
+            const body=await gr.text();
+            const old=body.split(/\r?\n/).map(csv).map(x=>{
+              const url=x.find(v=>/^https:\/\/www\.s-kaupat\.fi\/myymala\//i.test(v||""))||"";
+              const um=url.match(/\/(\d{9})\/?$/);
+              const id=(x.find(v=>/^\d{9}$/.test(v||""))||um?.[1]||"");
+              const nums=x.filter(v=>/^-?\d+\.\d+$/.test(v||"")).map(Number);
+              return {fields:x,address:x[0]||"",city:x[2]||"",name:x.find(v=>/^S-market\b/i.test(v||""))||"",postalCode:x.find(v=>/^\d{5}$/.test(v||""))||"",id,urlId:um?.[1]||"",latitude:nums[0],longitude:nums[1]};
+            }).filter(o=>o.id&&o.name);
+
+            const final=[], unresolved=[], ambiguous=[];
+            for(const s of stores){
+              const tid=String(s.id||s.publicId);
+              if(overrides.has(tid)){final.push({tjekId:tid,name:s.name,address:s.streetAddress||s.address,postalCode:s.postalCode,sId:overrides.get(tid),source:"override-2026"});continue}
+              const coords=s.coordinates||s.location||{latitude:s.latitude,longitude:s.longitude};
+              let cand=old.filter(o=>norm(o.name)===norm(s.name));
+              if(cand.length!==1&&s.postalCode)cand=old.filter(o=>o.postalCode===String(s.postalCode)&&norm(o.name).includes(norm(s.name).replace(/^s market /,"")));
+              if(cand.length!==1&&coords&&isFinite(+(coords.latitude??coords.lat)))cand=old.map(o=>({...o,d:hav(coords,o)})).filter(o=>o.d<0.25).sort((a,b)=>a.d-b.d);
+              if(cand.length===1||(cand.length>0&&cand[0].d!=null&&(cand[1]?.d??999)-cand[0].d>0.1)){const o=cand[0];final.push({tjekId:tid,name:s.name,address:s.streetAddress||s.address,postalCode:s.postalCode,sId:o.id,source:"dataset-2025",distanceKm:o.d??null,urlIdMatches:!o.urlId||o.urlId===o.id})}
+              else if(cand.length>1)ambiguous.push({tjekId:tid,name:s.name,candidates:cand.slice(0,5).map(o=>({name:o.name,id:o.id,d:o.d}))});
+              else unresolved.push({tjekId:tid,name:s.name,address:s.streetAddress||s.address,postalCode:s.postalCode});
+            }
+
+            const byId=new Map();
+            for(const x of final){if(!byId.has(x.sId))byId.set(x.sId,[]);byId.get(x.sId).push(x)}
+            const duplicateIds=[...byId].filter(([,v])=>v.length>1).map(([id,rows])=>({id,stores:rows.map(x=>({tjekId:x.tjekId,name:x.name,address:x.address}))}));
+            const invalidIds=final.filter(x=>!/^\d{9}$/.test(x.sId));
+            const oldRautalampiUses=final.filter(x=>x.sId===OLD_RAUTALAMPI);
+            const overridesSeen=final.filter(x=>x.source==="override-2026");
+            const missingOverrides=[...overrides].filter(([tid])=>!stores.some(s=>String(s.id||s.publicId)===tid)).map(([tjekId,sId])=>({tjekId,sId}));
+            const pass=stores.length===464&&final.length===464&&unresolved.length===0&&ambiguous.length===0&&duplicateIds.length===0&&invalidIds.length===0&&oldRautalampiUses.length===0&&overridesSeen.length===8&&missingOverrides.length===0;
+
+            console.log("FINAL_MAPPING_AUDIT "+JSON.stringify({
+              pass,tjekStatus:tr.status,datasetStatus:gr.status,tjekTotal:stores.length,datasetParsed:old.length,
+              finalMapped:final.length,datasetMapped:final.filter(x=>x.source==="dataset-2025").length,overrideMapped:overridesSeen.length,
+              unresolvedCount:unresolved.length,ambiguousCount:ambiguous.length,duplicateIdCount:duplicateIds.length,
+              invalidIdCount:invalidIds.length,oldRautalampiUseCount:oldRautalampiUses.length,missingOverrideCount:missingOverrides.length,
+              unresolved,ambiguous,duplicateIds,invalidIds,oldRautalampiUses,missingOverrides,
+              overrides:overridesSeen.map(x=>({tjekId:x.tjekId,name:x.name,address:x.address,postalCode:x.postalCode,sId:x.sId}))
+            },null,2));
+            if(!pass) process.exitCode=2;
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
