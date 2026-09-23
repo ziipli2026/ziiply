@@ -715,3 +715,21 @@ jobs:
             }
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
+
+
+      - name: Trace Tjek data key serializer
+        run: |
+          node <<'NODE'
+          const js="https://dqei8yomz48ve.cloudfront.net/assets/entry-client-CjqEhrFN.js";
+          (async()=>{
+            const s=await (await fetch(js)).text();
+            const needles=["function y(","=y([","function te(","function L(","requestedData.push","this.cache.get(r)"];
+            for(const needle of needles){
+              let p=0,n=0;
+              while((p=s.indexOf(needle,p))>=0 && n<20){
+                console.log("TJEK_KEY_SERIALIZER "+JSON.stringify({needle,index:p,context:s.slice(Math.max(0,p-3500),p+6500)}));
+                p+=needle.length;n++;
+              }
+            }
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
