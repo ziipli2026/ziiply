@@ -761,3 +761,22 @@ jobs:
             console.log("TJEK_EXACT_BASE64 "+JSON.stringify({status:r.status,contentType:r.headers.get("content-type"),length:body.length,body:body.slice(0,60000)}));
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
+
+
+      - name: Extract target S-market records from Tjek
+        run: |
+          node <<'NODE'
+          function stable(v){if(Array.isArray(v))return v.map(stable);if(v&&Object.prototype.toString.call(v)==="[object Object]"){const o={};for(const k of Object.keys(v).sort())o[k]=stable(v[k]);return o}return v}
+          const ref=["stores",{"businessId":"d8ccs8","pagination":{"offset":0,"limit":3000}}];
+          const key=Buffer.from(JSON.stringify(stable(ref)),"utf8").toString("base64");
+          (async()=>{
+            const r=await fetch("https://etarjouslehdet.fi/",{method:"POST",headers:{"content-type":"application/json","x-api-key":"152000596c6e45d9983eab0c14afebea"},body:JSON.stringify({data:[key]})});
+            const body=await r.text();
+            const lines=body.trim().split(/\n+/).map(x=>JSON.parse(x));
+            const row=lines.find(x=>x.key===key);
+            const stores=row?.value?.data||[];
+            const wanted=["pansio","kemi","lukkarinsanta","vehkoja","kommila","vaasanpuistikko","talvitie","kemio","kemiö","hyvinkää"];
+            const hits=stores.filter(s=>wanted.some(w=>(s.name+" "+s.city+" "+s.streetAddress).toLocaleLowerCase("fi").includes(w)));
+            console.log("TJEK_TARGET_STORES "+JSON.stringify({status:r.status,total:stores.length,hits:hits.map(s=>({id:s.id,name:s.name,city:s.city,postalCode:s.postalCode,streetAddress:s.streetAddress,coordinates:s.coordinates}))},null,2));
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
