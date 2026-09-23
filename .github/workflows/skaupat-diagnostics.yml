@@ -815,3 +815,27 @@ jobs:
             }
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
+
+
+      - name: Search public web for exact S-kaupat store ID mappings
+        run: |
+          node <<'NODE'
+          const targets=[
+            ["S-market Pansio","603212705"],["S-market Lukkarinsanta","649122793"],["S-market Vehkoja","519941769"],
+            ["S-market Kemi","522770049"],["S-market Kommila","708276035"],["S-market Vaasanpuistikko","726261697"],
+            ["S-market Talvitie","726407211"],["S-market Kemiö","500988563"]
+          ];
+          (async()=>{
+            for(const [name,id] of targets){
+              for(const q of [`"${name}" "${id}"`,`"${id}"`,`"${name}" "s-kaupat.fi/myymala"`]){
+                const url="https://www.google.com/search?q="+encodeURIComponent(q);
+                try{
+                  const r=await fetch(url,{headers:{"user-agent":"Mozilla/5.0"}});
+                  const b=await r.text();
+                  const ids=[...new Set(b.match(/\b\d{9}\b/g)||[])];
+                  console.log("PUBLIC_ID_SEARCH "+JSON.stringify({name,known:id,q,status:r.status,length:b.length,knownPresent:b.includes(id),ids:ids.slice(0,20),snippets:(b.match(/.{0,100}s-kaupat.{0,180}/gi)||[]).slice(0,3)}));
+                }catch(e){console.log("PUBLIC_ID_SEARCH "+JSON.stringify({name,q,error:String(e)}))}
+              }
+            }
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
