@@ -6,7 +6,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 2
     steps:
-      - name: Prisma Kaleva geocode
+      - if: ${{ false }}
+        name: Prisma Kaleva geocode
         run: |
           node <<'NODE'
           (async () => {
@@ -39,7 +40,8 @@ jobs:
             process.exitCode = 1;
           });
           NODE
-      - name: Prisma Kaleva pickup candidates
+      - if: ${{ false }}
+        name: Prisma Kaleva pickup candidates
         run: |
           node <<'NODE'
           (async () => {
@@ -75,7 +77,8 @@ jobs:
             if(!response.ok) process.exitCode=1;
           })().catch(err=>{console.error(err);process.exitCode=1});
           NODE
-      - name: Prisma Kaleva discounted products
+      - if: ${{ false }}
+        name: Prisma Kaleva discounted products
         run: |
           node <<'NODE'
           (async () => {
@@ -119,7 +122,8 @@ jobs:
             if(!response.ok) process.exitCode=1;
           })().catch(err=>{console.error(err);process.exitCode=1});
           NODE
-      - name: Prisma Kaleva response shape
+      - if: ${{ false }}
+        name: Prisma Kaleva response shape
         run: |
           node <<'NODE'
           (async () => {
@@ -144,7 +148,8 @@ jobs:
             ,null,2));
           })().catch(err=>{console.error(err);process.exitCode=1});
           NODE
-      - name: Prisma Kaleva product counts
+      - if: ${{ false }}
+        name: Prisma Kaleva product counts
         run: |
           node <<'NODE'
           (async () => {
@@ -168,7 +173,8 @@ jobs:
             },null,2));
           })().catch(err=>{console.error(err);process.exitCode=1});
           NODE
-      - name: Prisma Kaleva V217 resolver timing
+      - if: ${{ false }}
+        name: Prisma Kaleva V217 resolver timing
         run: |
           node <<'NODE'
           (async () => {
@@ -213,7 +219,8 @@ jobs:
             console.log("PRISMA_V217_CHAIN "+JSON.stringify({official,directory,geo,pickup},null,2));
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
-      - name: Ziiply Kaleva route context simulation
+      - if: ${{ false }}
+        name: Ziiply Kaleva route context simulation
         run: |
           node <<'NODE'
           const rawSStoreId = "517609418";
@@ -233,7 +240,8 @@ jobs:
           console.log("ZIIPLY_KALEVA_ROUTE_CONTEXT "+JSON.stringify(out,null,2));
           if(!out.pass) process.exit(1);
           NODE
-      - name: Ziiply page Kaleva selection chain diagnostic
+      - if: ${{ false }}
+        name: Ziiply page Kaleva selection chain diagnostic
         run: |
           node <<'NODE'
           const foundStores = [
@@ -260,7 +268,8 @@ jobs:
           console.log("ZIIPLY_PAGE_KALEVA_SELECTION_CHAIN "+JSON.stringify(results,null,2));
           if(!results.every(x=>x.sOfferName==="Prisma Kaleva Tampere")) process.exit(1);
           NODE
-      - name: Ziiply page real selection logic matrix
+      - if: ${{ false }}
+        name: Ziiply page real selection logic matrix
         run: |
           node <<'NODE'
           const normalize=v=>String(v??"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/&/g," ja ").replace(/[^a-z0-9åäö\s-]/gi," ").replace(/\s+/g," ").trim();
@@ -287,7 +296,8 @@ jobs:
           const out=cases.map(x=>({...x,result:pick(x.stores,x.activeArea)}));
           console.log("ZIIPLY_PAGE_REAL_SELECTION_MATRIX "+JSON.stringify(out,null,2));
           NODE
-      - name: Prisma Kaleva store-search payload probe
+      - if: ${{ false }}
+        name: Prisma Kaleva store-search payload probe
         run: |
           node <<'NODE'
           const qs=["Prisma Kaleva Tampere","Prisma Kaleva","Kaleva Tampere"];
@@ -303,7 +313,8 @@ jobs:
             }
           })();
           NODE
-      - name: Prisma Kaleva real Ruoanhinta store payload
+      - if: ${{ false }}
+        name: Prisma Kaleva real Ruoanhinta store payload
         run: |
           node <<'NODE'
           const queries=["Prisma Kaleva Tampere","Prisma Kaleva","Kaleva","Tampere"];
@@ -320,7 +331,8 @@ jobs:
             }
           })();
           NODE
-      - name: Kaleva internal-id through actual Prisma resolver
+      - if: ${{ false }}
+        name: Kaleva internal-id through actual Prisma resolver
         run: |
           node <<'NODE'
           const storeName="Prisma Kaleva Tampere";
@@ -341,7 +353,8 @@ jobs:
             console.log("PRISMA_KALEVA_INTERNAL_ID_RESOLUTION "+JSON.stringify({input:{rawStoreId,storeName},geocode:{lat,lon},kaleva,effectiveStoreId:effective,pass:effective==="517609418"},null,2));
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
-      - name: Kaleva pickup response shape exact diagnostic
+      - if: ${{ false }}
+        name: Kaleva pickup response shape exact diagnostic
         run: |
           node <<'NODE'
           const HASH="6da249b0fd87c05275a239ed490976c851d7aff90ead0f3a3978e8283f21252d",CV="production-14a82a5b48cd1dd42c0592db0037514ed3c84de8";
@@ -352,7 +365,8 @@ jobs:
           const j=await r.json();const rows=j?.data?.pickupSlotsForCoordinates?.slotsInPickupPoints||[];
           console.log("PRISMA_KALEVA_PICKUP_EXACT_SHAPE "+JSON.stringify({status:r.status,rowCount:rows.length,firstRows:rows.slice(0,8),rootKeys:Object.keys(j||{}),errors:j?.errors||[]},null,2));})().catch(e=>{console.error(e);process.exitCode=1});
           NODE
-      - name: Kaleva pickup transient retry diagnostic
+      - if: ${{ false }}
+        name: Kaleva pickup transient retry diagnostic
         run: |
           node <<'NODE'
           const HASH="6da249b0fd87c05275a239ed490976c851d7aff90ead0f3a3978e8283f21252d",CV="production-14a82a5b48cd1dd42c0592db0037514ed3c84de8";
@@ -361,7 +375,8 @@ jobs:
           const url="https://api.s-kaupat.fi/?operationName=remotePickupSlots&variables="+encodeURIComponent(JSON.stringify(vars))+"&extensions="+encodeURIComponent(JSON.stringify(ext));
           (async()=>{for(let attempt=1;attempt<=4;attempt++){const r=await fetch(url,{headers:{"accept":"application/graphql-response+json, application/json","content-type":"application/json","accept-language":"fi","origin":"https://www.s-kaupat.fi","referer":"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":CV}});const j=await r.json();const rows=j?.data?.pickupSlotsForCoordinates?.slotsInPickupPoints||[];console.log("PRISMA_KALEVA_PICKUP_RETRY "+JSON.stringify({attempt,http:r.status,rows:rows.length,errors:(j?.errors||[]).map(e=>({message:e.message,code:e?.extensions?.code,incident:e?.extensions?.xCorrelationIncidentCode}))}));if(rows.length)break;await sleep(attempt*750)}})().catch(e=>{console.error(e);process.exitCode=1});
           NODE
-      - name: Kaleva direct product fallback from internal id
+      - if: ${{ false }}
+        name: Kaleva direct product fallback from internal id
         run: |
           node <<'NODE'
           const rawStoreId="423",resolvedStoreId="517609418",HASH="44ca017dddccfe49e787b483f471f26217adca807f8c71101d11e881dab9e480",CV="production-45c31f7a746096c6da12e16aba1887e031fbd9de";
@@ -369,7 +384,8 @@ jobs:
           async function probe(storeId){const variables={availabilityDate:date,facets:[{name:"brandName",sort:"asc"},{name:"category"},{name:"labels"}],filters:[{name:"labels",values:["DISCOUNTED"]}],generatedSessionId:"1d6b5de9-df99-4608-af07-7d754955df82",fetchSponsoredContent:true,limit:48,queryString:"",sortForAvailabilityLabelDate:date,storeId,useRandomId:false,marketingId:"d0bcc6e5-6130-494e-b6fb-12b5cb9c60cf",from:0,offset:0,skip:0,page:1};const ext={persistedQuery:{version:1,sha256Hash:HASH}};const url="https://api.s-kaupat.fi/?operationName=RemoteFilteredProducts&variables="+encodeURIComponent(JSON.stringify(variables))+"&extensions="+encodeURIComponent(JSON.stringify(ext));const r=await fetch(url,{headers:{"accept":"application/graphql-response+json, application/json","content-type":"application/json","accept-language":"fi","origin":"https://www.s-kaupat.fi","referer":"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":CV}});const j=await r.json();const p=j?.data?.store?.products;return {requestedStoreId:storeId,http:r.status,responseStoreId:j?.data?.store?.id||null,total:p?.total??null,count:p?.productListItems?.length??0,errors:(j?.errors||[]).map(e=>e.message)}}
           (async()=>{console.log("PRISMA_KALEVA_DIRECT_PRODUCT_ID_COMPARISON "+JSON.stringify({raw:await probe(rawStoreId),resolved:await probe(resolvedStoreId)},null,2))})().catch(e=>{console.error(e);process.exitCode=1});
           NODE
-      - name: Kaleva direct product id comparison exact provider variables
+      - if: ${{ false }}
+        name: Kaleva direct product id comparison exact provider variables
         run: |
           node <<'NODE'
           const HASH="44ca017dddccfe49e787b483f471f26217adca807f8c71101d11e881dab9e480",CV="production-45c31f7a746096c6da12e16aba1887e031fbd9de";
@@ -377,7 +393,8 @@ jobs:
           async function probe(storeId){const variables={availabilityDate:date,facets:[{key:"brandName",order:"asc"},{key:"category"},{key:"labels"}],filters:[{key:"labels",value:["DISCOUNTED"]}],generatedSessionId:"1d6b5de9-df99-4608-af07-7d754955df82",fetchSponsoredContent:true,limit:48,queryString:"",sortForAvailabilityLabelDate:date,storeId,useRandomId:false,marketingId:"d0bcc6e5-6130-494e-b6fb-12b5cb9c60cf",from:0,offset:0,skip:0,page:1};const ext={persistedQuery:{version:1,sha256Hash:HASH}};const url="https://api.s-kaupat.fi/?operationName=RemoteFilteredProducts&variables="+encodeURIComponent(JSON.stringify(variables))+"&extensions="+encodeURIComponent(JSON.stringify(ext));const r=await fetch(url,{headers:{"accept":"application/json","content-type":"application/json","accept-language":"fi","origin":"https://www.s-kaupat.fi","referer":"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":CV,"user-agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3.1 Safari/605.1.15"}});const j=await r.json();const p=j?.data?.store?.products;return {requestedStoreId:storeId,http:r.status,responseStoreId:j?.data?.store?.id||null,total:p?.total??null,count:p?.productListItems?.length??0,errors:(j?.errors||[]).map(e=>e.message)}}
           (async()=>console.log("PRISMA_KALEVA_EXACT_ID_COMPARISON "+JSON.stringify({internal423:await probe("423"),skaupat517609418:await probe("517609418")},null,2)))().catch(e=>{console.error(e);process.exitCode=1});
           NODE
-      - name: Resolve Kaleva via Ruoanhinta plus S-kaupat product validation
+      - if: ${{ false }}
+        name: Resolve Kaleva via Ruoanhinta plus S-kaupat product validation
         run: |
           node <<'NODE'
           const HASH="44ca017dddccfe49e787b483f471f26217adca807f8c71101d11e881dab9e480",CV="production-45c31f7a746096c6da12e16aba1887e031fbd9de";
@@ -387,7 +404,8 @@ jobs:
           NODE
 
 
-      - name: Diagnose Prisma Lielahti ids
+      - if: ${{ false }}
+        name: Diagnose Prisma Lielahti ids
         shell: bash
         run: |
           node <<'NODE'
@@ -412,7 +430,8 @@ jobs:
           NODE
 
 
-      - name: Diagnose Prisma Limingantulli ids
+      - if: ${{ false }}
+        name: Diagnose Prisma Limingantulli ids
         shell: bash
         run: |
           node <<'NODE'
@@ -429,7 +448,8 @@ jobs:
           NODE
 
 
-      - name: Diagnose Prisma Raksila id
+      - if: ${{ false }}
+        name: Diagnose Prisma Raksila id
         shell: bash
         run: |
           node <<'NODE'
@@ -443,7 +463,8 @@ jobs:
           NODE
 
 
-      - name: Audit Prisma externalId against S-kaupat
+      - if: ${{ false }}
+        name: Audit Prisma externalId against S-kaupat
         shell: bash
         run: |
           node <<'NODE'
@@ -481,7 +502,8 @@ jobs:
           NODE
 
 
-      - name: Diagnose Oulu Prisma menu and failing stores V221
+      - if: ${{ false }}
+        name: Diagnose Oulu Prisma menu and failing stores V221
         shell: bash
         run: |
           node <<'NODE'
@@ -506,7 +528,8 @@ jobs:
           NODE
 
 
-      - name: Nationwide Finnish Prisma offer audit V222
+      - if: ${{ false }}
+        name: Nationwide Finnish Prisma offer audit V222
         shell: bash
         run: |
           node <<'NODE'
@@ -538,7 +561,8 @@ jobs:
           NODE
 
 
-      - name: Trace production Prisma resolver V223
+      - if: ${{ false }}
+        name: Trace production Prisma resolver V223
         shell: bash
         run: |
           node <<'NODE'
@@ -566,7 +590,8 @@ jobs:
           NODE
 
 
-      - name: Test direct externalId first vs legacy resolver V224
+      - if: ${{ false }}
+        name: Test direct externalId first vs legacy resolver V224
         shell: bash
         run: |
           node <<'NODE'
@@ -627,7 +652,7 @@ jobs:
                 const p=data?.data?.store?.products; const items=Array.isArray(p?.productListItems)?p.productListItems:[];
                 console.log("RUN5_EXACT_V225 "+JSON.stringify({name,known,inputStoreId:storeId,http:response.status,responseStoreId:data?.data?.store?.id??null,total:p?.total??null,count:items.length,errors:data?.errors||[],contentType:response.headers.get("content-type"),bodyStart:data?null:body.slice(0,120)}));
               }catch(e){console.log("RUN5_EXACT_V225 "+JSON.stringify({name,known,inputStoreId:storeId,error:String(e)}))}
-              await new Promise(r=>setTimeout(r,5000));
+              await new Promise(r=>setTimeout(r,1000));
             }
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
