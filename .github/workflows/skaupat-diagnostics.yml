@@ -668,3 +668,23 @@ jobs:
             }
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
+
+
+      - name: Probe eTarjouslehdet data proxy
+        run: |
+          node <<'NODE'
+          const apiKey="152000596c6e45d9983eab0c14afebea";
+          const tests=[
+            ["businessStores",["stores",{"businessId":"d8ccs8","pagination":{"offset":0,"limit":3000}}]],
+            ["pansioSearch",["stores",{"searchTerm":"S-market Pansio","maxRadius":100000,"pagination":{"limit":10,"offset":0}}]],
+            ["kemiSearch",["stores",{"searchTerm":"S-market Kemi","maxRadius":100000,"pagination":{"limit":10,"offset":0}}]],
+            ["lukkarinsantaSearch",["stores",{"searchTerm":"S-market Lukkarinsanta","maxRadius":100000,"pagination":{"limit":10,"offset":0}}]]
+          ];
+          (async()=>{
+            for(const [name,key] of tests){
+              const r=await fetch("https://etarjouslehdet.fi/",{method:"POST",headers:{"content-type":"application/json","x-api-key":apiKey,"origin":"https://etarjouslehdet.fi","referer":"https://etarjouslehdet.fi/"},body:JSON.stringify({data:[key]})});
+              const body=await r.text();
+              console.log("ETARJOUS_DATA_PROXY "+JSON.stringify({name,status:r.status,contentType:r.headers.get("content-type"),length:body.length,body:body.slice(0,20000)}));
+            }
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
