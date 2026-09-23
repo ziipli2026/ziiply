@@ -620,3 +620,31 @@ jobs:
             await probe("pagecontent-"+path.replace("/","-"),"RemoteGetPageContent",{preview:false,storeId:smarket,skipProducts:false,availabilityDate:today,where:{storeId:smarket,path,platform:"WEB",availabilityDate:today,userConsent:{marketing:false,marketingId:"ziiply-diagnostic",useCustomerId:false,sessionId:"ziiply-diagnostic",loop54:true}}},hashes.page,clients.oldPickup);
           }
           NODE
+
+
+      - name: Trace exact Tjek data transport
+        shell: bash
+        run: |
+          node <<'NODE'
+          const js="https://dqei8yomz48ve.cloudfront.net/assets/entry-client-CjqEhrFN.js";
+          (async()=>{
+            const r=await fetch(js,{headers:{"user-agent":"Mozilla/5.0"}});
+            const s=await r.text();
+            const needles=["squid-api.tjek.com","apiUrl","createClientContext","callApi","getData","useData","data-key","x-api-key","authorization","fetch("];
+            for(const needle of needles){
+              let p=0,n=0;
+              while((p=s.indexOf(needle,p))>=0 && n<25){
+                const ctx=s.slice(Math.max(0,p-1400),p+2600);
+                if(/squid-api|apiUrl|createClientContext|x-api-key|callApi|data-key/i.test(ctx)){
+                  console.log("TJEK_TRANSPORT_TRACE "+JSON.stringify({needle,index:p,context:ctx}));
+                  n++;
+                }
+                p+=needle.length;
+              }
+            }
+            const urls=[...new Set((s.match(/https?:\\/\\/[^\\`"'\\s)]+/g)||[]))].filter(x=>/tjek|squid|api/i.test(x));
+            console.log("TJEK_URL_LITERALS "+JSON.stringify(urls.slice(0,200)));
+            const sm=s.match(/sourceMappingURL=([^\\s*]+)/);
+            console.log("TJEK_SOURCEMAP "+JSON.stringify({value:sm?.[1]||null}));
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
