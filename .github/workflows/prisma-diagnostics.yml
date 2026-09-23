@@ -168,3 +168,48 @@ jobs:
             },null,2));
           })().catch(err=>{console.error(err);process.exitCode=1});
           NODE
+      - name: Prisma Kaleva V217 resolver timing
+        run: |
+          node <<'NODE'
+          (async () => {
+            const storeName="Prisma Kaleva Tampere";
+            async function timed(label,fn){
+              const t=Date.now();
+              try { const value=await fn(); console.log("PRISMA_V217_STEP "+JSON.stringify({label,ms:Date.now()-t,...value})); return value; }
+              catch(e){ const value={ok:false,error:String(e?.message||e)}; console.log("PRISMA_V217_STEP "+JSON.stringify({label,ms:Date.now()-t,...value})); return value; }
+            }
+            const official=await timed("official-store-search",async()=>{
+              const url="https://www.s-kaupat.fi/myymalat/prisma?query="+encodeURIComponent(storeName);
+              const r=await fetch(url,{headers:{accept:"text/html,application/xhtml+xml","accept-language":"fi","user-agent":"Mozilla/5.0 (compatible; Ziiply/1.0; +https://ziiply.fi)"}});
+              const body=await r.text();
+              const ids=[...body.matchAll(/\/myymala\/[^"'\\s<>]+\/(\d{5,})/g)].map(m=>m[1]);
+              return {ok:r.ok,status:r.status,ids:[...new Set(ids)].slice(0,10)};
+            });
+            const directory=await timed("directory-resolver-http",async()=>{
+              const url="https://www.s-kaupat.fi/myymalat/prisma";
+              const r=await fetch(url,{headers:{accept:"text/html,application/xhtml+xml","accept-language":"fi","user-agent":"Mozilla/5.0"}});
+              const body=await r.text();
+              const ids=[...body.matchAll(/\/myymala\/[^"'\\s<>]+\/(\d{5,})/g)].map(m=>m[1]);
+              return {ok:r.ok,status:r.status,ids:[...new Set(ids)].slice(0,10)};
+            });
+            const geo=await timed("pickup-geocode",async()=>{
+              const url="https://nominatim.openstreetmap.org/search?format=jsonv2&countrycodes=fi&limit=1&q="+encodeURIComponent(storeName+", Finland");
+              const r=await fetch(url,{headers:{accept:"application/json","accept-language":"fi","user-agent":"Ziiply/1.0 (+https://ziiply.fi)"}});
+              const a=await r.json(); return {ok:r.ok,status:r.status,lat:Number(a?.[0]?.lat),lon:Number(a?.[0]?.lon)};
+            });
+            let pickup={};
+            if(Number.isFinite(geo.lat)&&Number.isFinite(geo.lon)){
+              pickup=await timed("remotePickupSlots",async()=>{
+                const today=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+                const variables={startDate:today,endDate:today,location:{latitude:geo.lat,longitude:geo.lon},limit:20};
+                const extensions={persistedQuery:{version:1,sha256Hash:"6da249b0fd87c05275a239ed490976c851d7aff90ead0f3a3978e8283f21252d"}};
+                const u=new URL("https://api.s-kaupat.fi/"); u.searchParams.set("operationName","remotePickupSlots");u.searchParams.set("variables",JSON.stringify(variables));u.searchParams.set("extensions",JSON.stringify(extensions));
+                const r=await fetch(u,{headers:{accept:"application/graphql-response+json,application/json;q=0.9","content-type":"application/json","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":"production-14a82a5b48cd1dd42c0592db0037514ed3c84de8"}});
+                const d=await r.json(); const rows=d?.data?.pickupSlotsForCoordinates?.slotsInPickupPoints||[];
+                const kaleva=rows.filter(x=>String(x?.pickupPoint?.name||"").toLowerCase().includes("kaleva")).map(x=>({id:String(x?.store?.id||""),name:x?.pickupPoint?.name,distance:x?.distance}));
+                return {ok:r.ok,status:r.status,kaleva};
+              });
+            }
+            console.log("PRISMA_V217_CHAIN "+JSON.stringify({official,directory,geo,pickup},null,2));
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
