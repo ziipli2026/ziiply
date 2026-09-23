@@ -711,7 +711,7 @@ jobs:
               u.searchParams.set("variables",JSON.stringify(variables));
               u.searchParams.set("extensions",JSON.stringify(ext));
               try{
-                const r=await fetch(u,{headers:{accept:"application/json","content-type":"application/json","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":"production-45c31f7a746096c6da12e16aba1887e031fbd9de","user-agent":"Mozilla/5.0"});
+                const r=await fetch(u,{headers:{accept:"application/json","content-type":"application/json","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":"production-45c31f7a746096c6da12e16aba1887e031fbd9de","user-agent":"Mozilla/5.0"}});
                 const body=await r.text(); let j=null; try{j=JSON.parse(body)}catch{}
                 const p=j?.data?.store?.products;
                 console.log("TARGETED_V227 "+JSON.stringify({name,known,storeId,http:r.status,responseStoreId:j?.data?.store?.id??null,total:p?.total??null,count:Array.isArray(p?.productListItems)?p.productListItems.length:null,errors:j?.errors||[],contentType:r.headers.get("content-type"),bodyStart:j?null:body.slice(0,120)}));
