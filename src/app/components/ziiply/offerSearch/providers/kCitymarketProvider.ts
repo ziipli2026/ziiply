@@ -1,15 +1,16 @@
 import { parseKCitymarketSpatialLeaflet } from "./kCitymarketSpatialParser.js";
 
 // ============================================================================
-// ZIIPLY K-CITYMARKET PROVIDER V13
-// Revision: V13-KCITYMARKET-UNITPRICE-INFERENCE
-// Date: 2026-09-21
+// ZIIPLY K-CITYMARKET PROVIDER V14
+// Revision: V14-KCITYMARKET-SPATIAL-METADATA-PRESERVATION
+// Date: 2026-09-23
 //
-// - Keeps V12 compact-price parser and route V20 diagnostics intact.
-// - Adds conservative package-size + unit-price inference for K-Citymarket flipbook rows.
-// - Examples: 130–170 g + 10,53–13,77/kg => 1,79; 200–280 g + 16,04–22,45/kg => 4,49.
-// - Rejects ambiguous flattened rows containing multiple package-size or unit-price specifications.
-// - Inferred offers are merged with V12 offers and deduplicated; existing K-Market/K-Supermarket code is untouched.
+// - Uses the general-purpose spatial leaflet parser as the authority for resolved offer blocks.
+// - Preserves resolved multi-buy quantity/unit and parser resolution metadata for downstream use.
+// - Removes the provider-level sanity/expectedSingle ratio rejection added after spatial parsing:
+//   that gate could discard valid multi-buy totals already proven by leaflet geometry.
+// - Does not hard-code products, prices, page numbers or the current leaflet.
+// - Existing K-Market/K-Supermarket code is untouched.
 // ============================================================================
 
 export type CitymarketOffer = {
@@ -20,6 +21,10 @@ export type CitymarketOffer = {
   unitPrice?: number | null;
   unit?: string | null;
   packageSize?: string | null;
+  offerQuantity?: number | null;
+  offerUnit?: string | null;
+  resolutionSource?: string | null;
+  resolutionSanity?: string | null;
   plussa?: boolean;
   validFrom?: string | null;
   validTo?: string | null;
@@ -373,18 +378,6 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
     const price=Number(resolved.value);
     if(!Number.isFinite(price) || price<=0) continue;
 
-    // Spatial parser can occasionally bind a nearby large integer (for example 9/12/20)
-    // to a grocery product. Keep only rows that the parser itself considers sane when
-    // package/unit-price evidence exists.
-    if(resolved?.sanity==="review") continue;
-    const expectedSingle=Number(row?.expectedSingle);
-    const quantity=Number(resolved?.quantity||1);
-    if(Number.isFinite(expectedSingle) && expectedSingle>0){
-      const expectedTotal=expectedSingle*Math.max(1,quantity);
-      const ratio=price/expectedTotal;
-      if(ratio<0.60 || ratio>1.55) continue;
-    }
-
     const title=clean(row?.title||"");
     if(!title || isNoiseLine(title)) continue;
 
@@ -404,6 +397,10 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
       unitPrice,
       unit:row?.unitPrice?.raw?.match(/\/(kg|l)\b/i)?.[1]?.toLowerCase()??resolved?.unit??null,
       packageSize:row?.package?.raw??null,
+      offerQuantity:Number.isFinite(Number(resolved?.quantity))?Number(resolved.quantity):null,
+      offerUnit:resolved?.unit?String(resolved.unit).toUpperCase():null,
+      resolutionSource:resolved?.source?String(resolved.source):null,
+      resolutionSanity:resolved?.sanity?String(resolved.sanity):null,
       plussa:/plussa/i.test((row?.nearby||[]).map((x:any)=>x?.text||x?.raw||"").join(" ")),
       validFrom:null,
       validTo:null,
