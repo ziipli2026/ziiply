@@ -1074,3 +1074,52 @@ jobs:
             console.log("FINAL_FIVE_ID_SEARCH "+JSON.stringify(out,null,2));
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
+
+
+      - name: Triangulate final five via dataset rows and OSM history
+        timeout-minutes: 3
+        run: |
+          node <<'NODE'
+          const targets=[
+            {name:"Redi",full:"S-market Redi",address:"Hermannin Rantatie 5",pc:"00580"},
+            {name:"Eskolanmäki",full:"S-market Eskolanmäki",address:"Tasankotie 11",pc:"45150"},
+            {name:"Isokyrö",full:"S-market Isokyrö",address:"Marttilantie 1",pc:"61500"},
+            {name:"Repokallio",full:"S-market Repokallio",address:"Käkisalmenkatu 35",pc:"80230"},
+            {name:"Rajakylä",full:"S-Market Rajakylä",address:"Tervakukkatie 2",pc:"90580"}
+          ];
+          function csv(line){let a=[],s="",q=false;for(let i=0;i<line.length;i++){const ch=line[i];if(ch=='"'){if(q&&line[i+1]=='"'){s+='"';i++}else q=!q}else if(ch==','&&!q){a.push(s);s=""}else s+=ch}a.push(s);return a}
+          const esc=s=>s.replace(/[.*+?^$()|[\]{}\\]/g,"\\$&");
+          (async()=>{
+            const gr=await fetch("https://raw.githubusercontent.com/samuel-d-aya/geolytics_projects/1bf552f4924ce992ad15cb36bfc4e28ca75904bf/Finland/smarket_fi_scraper_/smarket_fi_scraper/output.csv");
+            const body=await gr.text(), rows=body.split(/\r?\n/).map(csv);
+            const dataset={};
+            for(const t of targets){
+              const hit=rows.filter(x=>x.some(v=>String(v).toLowerCase().includes(t.name.toLowerCase()))||x.some(v=>String(v).includes(t.pc))||x.some(v=>String(v).toLowerCase().includes(t.address.toLowerCase())));
+              dataset[t.name]=hit.slice(0,20).map(x=>({fields:x.length,address:x[0],city:x[2],name:x[7],postalCode:x[10],id:x[11],url:x[13],raw:x}));
+            }
+
+            const osm={};
+            for(const t of targets){
+              const q=`[out:json][timeout:30];area["ISO3166-1"="FI"][admin_level=2]->.a;(nwr(area.a)["name"~"${esc(t.name)}",i];nwr(area.a)["addr:postcode"="${t.pc}"]["shop"="supermarket"];);out tags center;`;
+              try{
+                const r=await fetch("https://overpass-api.de/api/interpreter",{method:"POST",headers:{"content-type":"application/x-www-form-urlencoded","user-agent":"Ziiply-diagnostic/1.0"},body:"data="+encodeURIComponent(q)});
+                const j=await r.json();
+                osm[t.name]={status:r.status,elements:(j.elements||[]).slice(0,30).map(e=>({type:e.type,id:e.id,tags:e.tags,lat:e.lat??e.center?.lat,lon:e.lon??e.center?.lon}))};
+              }catch(e){osm[t.name]={error:String(e)}}
+            }
+
+            const histories={};
+            for(const t of targets){
+              const elems=osm[t.name]?.elements||[];
+              histories[t.name]=[];
+              for(const e of elems.filter(x=>x.tags?.name?.toLowerCase().includes(t.name.toLowerCase())).slice(0,5)){
+                try{
+                  const r=await fetch(`https://api.openstreetmap.org/api/0.6/${e.type}/${e.id}/history.json`,{headers:{"user-agent":"Ziiply-diagnostic/1.0"}});
+                  const j=await r.json();
+                  histories[t.name].push({type:e.type,id:e.id,status:r.status,versions:(j.elements||[]).map(v=>({version:v.version,timestamp:v.timestamp,tags:v.tags})).filter(v=>JSON.stringify(v.tags||{}).match(/s-kaupat|website|contact:website|\b\d{9}\b/i))});
+                }catch(err){histories[t.name].push({type:e.type,id:e.id,error:String(err)})}
+              }
+            }
+            console.log("FINAL_FIVE_TRIANGULATION "+JSON.stringify({datasetStatus:gr.status,dataset,osm,histories},null,2));
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
