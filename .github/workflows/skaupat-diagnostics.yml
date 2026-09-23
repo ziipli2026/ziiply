@@ -58,9 +58,9 @@ jobs:
               ["prisma",{businessId:"d8ccs8",pagination:{offset:0,limit:3000}}],
               ["prisma",{pagination:{offset:0,limit:3000}}],
             ];
-            const prismaFromCurrent=allTjek.filter(v=>/^prisma\\b/i.test(v.name||""));
+            const prismaFromCurrent=(Array.isArray(tj?.value?.data)?tj.value.data:[]).filter(v=>/^prisma\\b/i.test(v.name||""));
             console.log("PRISMA_TJEK_CURRENT_BUSINESS "+JSON.stringify({count:prismaFromCurrent.length,sample:prismaFromCurrent.slice(0,10)},null,2));
-            const qs=["Prisma Hyvinkää","Prisma Myyrmanni","Prisma Varkaus"];
+            const qs=["Prisma Kaleva Tampere","Prisma Hyvinkää","Prisma Myyrmanni","Prisma Varkaus"];
             for(const q of qs){
               const u="https://www.s-kaupat.fi/myymalat/prisma?query="+encodeURIComponent(q);
               try{
