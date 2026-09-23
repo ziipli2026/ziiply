@@ -564,3 +564,37 @@ jobs:
             await new Promise(r=>setTimeout(r,1500));
           }
           NODE
+
+
+      - name: Test direct externalId first vs legacy resolver V224
+        shell: bash
+        run: |
+          node <<'NODE'
+          const targets=[
+            {name:"Prisma Linnanmaa Oulu",externalId:"603116906",known:"WORKS_IN_ZIIPLY"},
+            {name:"Prisma Limingantulli Oulu",externalId:"627829302",known:"FAILS_IN_ZIIPLY"},
+            {name:"Prisma Lielahti Tampere",externalId:"697940575",known:"FAILS_IN_ZIIPLY"},
+            {name:"Prisma Linnainmaa Tampere",externalId:"613756972",known:"WORKS_IN_ZIIPLY"},
+            {name:"Prisma Kaleva Tampere",externalId:"517609418",known:"WORKS_IN_ZIIPLY"},
+            {name:"Prisma Pietarsaari",externalId:"542859095",known:"WORKS_IN_ZIIPLY"}
+          ];
+          const hash="44ca017dddccfe49e787b483f471f26217adca807f8c71101d11e881dab9e480";
+          const clientVersion="production-45c31f7a746096c6da12e16aba1887e031fbd9de";
+          const date=new Date().toISOString().slice(0,10);
+          async function probe(t){
+            const variables={storeId:t.externalId,queryString:"",from:0,limit:48,availabilityDate:date,sortForAvailabilityLabelDate:date,filters:[{key:"labels",value:["DISCOUNTED"]}]};
+            const ext={persistedQuery:{version:1,sha256Hash:hash}};
+            const url="https://www.s-kaupat.fi/sivu/api/graphql?operationName=RemoteFilteredProducts&variables="+encodeURIComponent(JSON.stringify(variables))+"&extensions="+encodeURIComponent(JSON.stringify(ext));
+            try{
+              const r=await fetch(url,{headers:{"accept":"application/json","content-type":"application/json","x-client-version":clientVersion,"user-agent":"Mozilla/5.0"}});
+              const text=await r.text(); let j=null; try{j=JSON.parse(text)}catch{}
+              const root=j?.data?.store?.products;
+              return {http:r.status,contentType:r.headers.get("content-type"),responseStoreId:j?.data?.store?.id??null,total:root?.total??root?.totalCount??null,count:Array.isArray(root?.productListItems)?root.productListItems.length:null,errors:j?.errors??[],bodyStart:j?null:text.slice(0,160)};
+            }catch(e){return {error:String(e)}}
+          }
+          for(const t of targets){
+            const result=await probe(t);
+            console.log("DIRECT_EXTERNAL_ID_V224",JSON.stringify({...t,result}));
+            await new Promise(r=>setTimeout(r,2500));
+          }
+          NODE
