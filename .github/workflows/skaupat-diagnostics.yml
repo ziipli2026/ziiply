@@ -1,66 +1,48 @@
 name: S-kaupat API diagnostics
-
-on:
-  workflow_dispatch:
-
+on: { workflow_dispatch: {} }
 jobs:
   diagnose:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Final known-ID sanity check
-        env:
-          FINAL_AUDIT: "464"
-        timeout-minutes: 2
+      - name: Final 464-store mapping audit
         run: |
           node <<'NODE'
-          const targets=[
-            {name:"Redi",full:"S-market Redi",address:"Hermannin Rantatie 5",pc:"00580"},
-            {name:"Eskolanmäki",full:"S-market Eskolanmäki",address:"Tasankotie 11",pc:"45150"},
-            {name:"Isokyrö",full:"S-market Isokyrö",address:"Marttilantie 1",pc:"61500"},
-            {name:"Repokallio",full:"S-market Repokallio",address:"Käkisalmenkatu 35",pc:"80230"},
-            {name:"Rajakylä",full:"S-Market Rajakylä",address:"Tervakukkatie 2",pc:"90580"}
-          ];
-          function csv(line){let a=[],s="",q=false;for(let i=0;i<line.length;i++){const ch=line[i];if(ch=='"'){if(q&&line[i+1]=='"'){s+='"';i++}else q=!q}else if(ch==','&&!q){a.push(s);s=""}else s+=ch}a.push(s);return a}
-          async function fetchTimeout(url,opts={},ms=10000){
-            const ac=new AbortController(), timer=setTimeout(()=>ac.abort(),ms);
-            try{return await fetch(url,{...opts,signal:ac.signal})}finally{clearTimeout(timer)}
-          }
-          const esc=s=>s.replace(/[.*+?^$()|[\]{}\\]/g,"\\$&");
-          async function osmOne(t){
-            const q=`[out:json][timeout:8];area["ISO3166-1"="FI"][admin_level=2]->.a;(nwr(area.a)["name"~"${esc(t.name)}",i];nwr(area.a)["addr:postcode"="${t.pc}"]["shop"="supermarket"];);out tags center;`;
-            try{
-              const r=await fetchTimeout("https://overpass-api.de/api/interpreter",{method:"POST",headers:{"content-type":"application/x-www-form-urlencoded","user-agent":"Ziiply-diagnostic/1.0"},body:"data="+encodeURIComponent(q)},12000);
-              const j=await r.json();
-              return {status:r.status,elements:(j.elements||[]).slice(0,20).map(e=>({type:e.type,id:e.id,tags:e.tags,lat:e.lat??e.center?.lat,lon:e.lon??e.center?.lon}))};
-            }catch(e){return {error:String(e)}}
-          }
-          async function historiesOne(t,osm){
-            const elems=(osm?.elements||[]).filter(x=>x.tags?.name?.toLowerCase().includes(t.name.toLowerCase())).slice(0,3);
-            return Promise.all(elems.map(async e=>{
-              try{
-                const r=await fetchTimeout(`https://api.openstreetmap.org/api/0.6/${e.type}/${e.id}/history.json`,{headers:{"user-agent":"Ziiply-diagnostic/1.0"}},8000);
-                const j=await r.json();
-                return {type:e.type,id:e.id,status:r.status,versions:(j.elements||[]).map(v=>({version:v.version,timestamp:v.timestamp,tags:v.tags})).filter(v=>/s-kaupat|website|contact:website|\\b\\d{9}\\b/i.test(JSON.stringify(v.tags||{})))};
-              }catch(err){return {type:e.type,id:e.id,error:String(err)}}
-            }));
-          }
+          const overrides={"e_FuHxQz":"726783952","bvL3I2nH":"726666563","T5ukTphK":"726675436","9_tWc4ba":"726661262","GB3kPt9w":"726771429","m2lA854x":"726728751","EX3lLp-I":"726722520","-Z8p5bMX":"726638148"};
+          const five={"S-market Redi":"726342401","S-market Eskolanmäki":"725612617","S-market Isokyrö":"502960966","S-Market Repokallio":"726435480","S-Market Rajakylä":"726425628"};
+          const norm=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");
+          function csv(line){let a=[],s="",q=false;for(let i=0;i<line.length;i++){let ch=line[i];if(ch=='"'){if(q&&line[i+1]=='"'){s+='"';i++}else q=!q}else if(ch==','&&!q){a.push(s);s=""}else s+=ch}a.push(s);return a}
           (async()=>{
-            const gr=await fetchTimeout("https://raw.githubusercontent.com/samuel-d-aya/geolytics_projects/1bf552f4924ce992ad15cb36bfc4e28ca75904bf/Finland/smarket_fi_scraper_/smarket_fi_scraper/output.csv",{},10000);
-            const body=await gr.text(),rows=body.split(/\r?\n/).map(csv);
-            const dataset={};
-            for(const t of targets){
-              const hit=rows.filter(x=>x.some(v=>String(v).toLowerCase().includes(t.name.toLowerCase()))||x.some(v=>String(v).includes(t.pc))||x.some(v=>String(v).toLowerCase().includes(t.address.toLowerCase())));
-              dataset[t.name]=hit.slice(0,20).map(x=>({fields:x.length,address:x[0],city:x[2],name:x[7],postalCode:x[10],id:x[11],url:x[13]}));
+            const ref=["stores",{businessId:"d8ccs8",pagination:{offset:0,limit:3000}}];
+            const sort=o=>Array.isArray(o)?o.map(sort):(o&&typeof o==="object"?Object.fromEntries(Object.keys(o).sort().map(k=>[k,sort(o[k])])):o);
+            const token=Buffer.from(JSON.stringify(sort(ref))).toString("base64");
+            const tr=await fetch("https://squid-api.tjek.com/v2/stores?reference="+encodeURIComponent(token),{headers:{"X-Api-Key":"152000596c6e45d9983eab0c14afebea"}});
+            const tj=await tr.json(), stores=Array.isArray(tj)?tj:(tj.data||tj.stores||[]);
+            const dr=await fetch("https://raw.githubusercontent.com/samuel-d-aya/geolytics_projects/1bf552f4924ce992ad15cb36bfc4e28ca75904bf/Finland/smarket_fi_scraper_/smarket_fi_scraper/output.csv");
+            const rows=(await dr.text()).split(/\r?\n/).filter(Boolean).map(csv).map(x=>({address:x[0],name:x[7],pc:x[10],id:x[11]})).filter(x=>/^\d{9}$/.test(x.id||""));
+            const out=[];
+            for(const s of stores){
+              const tid=String(s.id||s.publicId||""), name=String(s.name||"");
+              const addr=String(s.address||s.street||s.streetAddress||s.location?.address||"");
+              const pc=String(s.postalCode||s.zipCode||s.location?.postalCode||"");
+              let id=overrides[tid]||five[name]||null, source=overrides[tid]?"override":(five[name]?"five":null);
+              if(!id){
+                const hits=rows.filter(r=>{
+                  const rn=norm(r.name),sn=norm(name),ra=norm(r.address),sa=norm(addr);
+                  return (rn===sn && (!pc||String(r.pc)===pc)) || (rn===sn && sa && ra.includes(sa));
+                });
+                const ids=[...new Set(hits.map(h=>h.id))];
+                if(ids.length===1){id=ids[0];source="dataset"}
+              }
+              out.push({tid,name,addr,pc,id,source});
             }
-            const osmRows=await Promise.all(targets.map(osmOne));
-            const osm=Object.fromEntries(targets.map((t,i)=>[t.name,osmRows[i]]));
-            console.log("FINAL_FIVE_FAST_OSM "+JSON.stringify({datasetStatus:gr.status,dataset,osm},null,2));
-            const histRows=await Promise.all(targets.map((t,i)=>historiesOne(t,osmRows[i])));
-            const histories=Object.fromEntries(targets.map((t,i)=>[t.name,histRows[i]]));
-            console.log("FINAL_FIVE_FAST_HISTORY "+JSON.stringify(histories,null,2));
+            const unresolved=out.filter(x=>!x.id), by={};
+            out.filter(x=>x.id).forEach(x=>(by[x.id]??=[]).push(x));
+            const duplicates=Object.entries(by).filter(([,v])=>v.length>1).map(([id,v])=>({id,names:v.map(x=>x.name)}));
+            const oldRautalampi=out.filter(x=>x.id==="512023912");
+            const summary={tjekStatus:tr.status,datasetStatus:dr.status,tjekTotal:stores.length,finalMapped:out.length-unresolved.length,datasetMapped:out.filter(x=>x.source==="dataset").length,overrideMapped:out.filter(x=>x.source==="override").length,fiveMapped:out.filter(x=>x.source==="five").length,unresolvedCount:unresolved.length,duplicateIdCount:duplicates.length,oldRautalampiUseCount:oldRautalampi.length,unresolved,duplicates,oldRautalampi};
+            summary.pass=summary.tjekTotal===464&&summary.finalMapped===464&&summary.unresolvedCount===0&&summary.duplicateIdCount===0&&summary.oldRautalampiUseCount===0;
+            console.log("FINAL_464_MAPPING_AUDIT "+JSON.stringify(summary,null,2));
+            if(!summary.pass) process.exitCode=1;
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
