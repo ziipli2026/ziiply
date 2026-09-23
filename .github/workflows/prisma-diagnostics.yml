@@ -287,3 +287,19 @@ jobs:
           const out=cases.map(x=>({...x,result:pick(x.stores,x.activeArea)}));
           console.log("ZIIPLY_PAGE_REAL_SELECTION_MATRIX "+JSON.stringify(out,null,2));
           NODE
+      - name: Prisma Kaleva store-search payload probe
+        run: |
+          node <<'NODE'
+          const qs=["Prisma Kaleva Tampere","Prisma Kaleva","Kaleva Tampere"];
+          (async()=>{
+            for(const q of qs){
+              const url="https://www.ziiply.fi/api/store-search?q="+encodeURIComponent(q);
+              try{
+                const r=await fetch(url,{headers:{accept:"application/json","user-agent":"ZiiplyDiagnostics/1.0"}});
+                const text=await r.text();
+                let body; try{body=JSON.parse(text)}catch{body=text.slice(0,1000)}
+                console.log("PRISMA_KALEVA_STORE_SEARCH "+JSON.stringify({q,status:r.status,body},null,2));
+              }catch(e){console.log("PRISMA_KALEVA_STORE_SEARCH_ERROR "+JSON.stringify({q,error:String(e)}))}
+            }
+          })();
+          NODE
