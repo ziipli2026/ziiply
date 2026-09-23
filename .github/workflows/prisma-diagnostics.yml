@@ -260,3 +260,30 @@ jobs:
           console.log("ZIIPLY_PAGE_KALEVA_SELECTION_CHAIN "+JSON.stringify(results,null,2));
           if(!results.every(x=>x.sOfferName==="Prisma Kaleva Tampere")) process.exit(1);
           NODE
+      - name: Ziiply page real selection logic matrix
+        run: |
+          node <<'NODE'
+          const normalize=v=>String(v??"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/&/g," ja ").replace(/[^a-z0-9åäö\s-]/gi," ").replace(/\s+/g," ").trim();
+          const same=(a,b)=>String(a??"").trim()===String(b??"").trim();
+          const getChain=s=>/prisma|s-market|s market|sale|alepa/i.test(s.name||"")?"S":"K";
+          const isPrisma=s=>normalize(s.name).includes("prisma");
+          function find(stores,id,name){
+            const nn=normalize(name);
+            return stores.find(s=>getChain(s)==="S"&&isPrisma(s)&&((id&&same(s.id,id))||(nn&&normalize(s.name)===nn)))||null;
+          }
+          function pick(stores,activeArea){
+            const matched=find(stores,activeArea.sStoreId,activeArea.sStoreName);
+            if(matched)return {id:matched.id,name:matched.name,source:"foundStores-match"};
+            if(activeArea.sStoreId||activeArea.sStoreName)return {id:activeArea.sStoreId||"",name:String(activeArea.sStoreName||""),source:"activeArea-fallback"};
+            const fallback=stores.find(s=>getChain(s)==="S"&&isPrisma(s));
+            return fallback?{id:fallback.id,name:fallback.name,source:"foundStores-first"}:null;
+          }
+          const cases=[
+            {label:"foundStores-correct-active-internal-id",stores:[{id:"517609418",name:"Prisma Kaleva Tampere"}],activeArea:{sStoreId:"internal-kaleva",sStoreName:"Prisma Kaleva Tampere"}},
+            {label:"foundStores-name-without-city",stores:[{id:"517609418",name:"Prisma Kaleva"}],activeArea:{sStoreId:"internal-kaleva",sStoreName:"Prisma Kaleva Tampere"}},
+            {label:"foundStores-internal-id-name-exact",stores:[{id:"internal-kaleva",name:"Prisma Kaleva Tampere"}],activeArea:{sStoreId:"internal-kaleva",sStoreName:"Prisma Kaleva Tampere"}},
+            {label:"no-foundStores-active-internal-id",stores:[],activeArea:{sStoreId:"internal-kaleva",sStoreName:"Prisma Kaleva Tampere"}},
+          ];
+          const out=cases.map(x=>({...x,result:pick(x.stores,x.activeArea)}));
+          console.log("ZIIPLY_PAGE_REAL_SELECTION_MATRIX "+JSON.stringify(out,null,2));
+          NODE
