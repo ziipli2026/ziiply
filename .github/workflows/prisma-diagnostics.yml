@@ -213,3 +213,23 @@ jobs:
             console.log("PRISMA_V217_CHAIN "+JSON.stringify({official,directory,geo,pickup},null,2));
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
+      - name: Ziiply Kaleva route context simulation
+        run: |
+          node <<'NODE'
+          const rawSStoreId = "517609418";
+          const rawSStoreName = "Prisma Kaleva Tampere";
+          const split = v => String(v ?? "").replaceAll("\r","").replaceAll("\n","||").replaceAll(";","||").split("||").map(x=>x.trim()).filter(Boolean);
+          const norm = v => String(v ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/&/g," ja ").replace(/[^a-z0-9åäö\s-]/gi," ").replace(/\s+/g," ").trim();
+          const prisma = v => {
+            const t=norm(v);
+            return t.includes("prisma");
+          };
+          const ids=split(rawSStoreId), names=split(rawSStoreName);
+          const max=Math.max(ids.length,names.length), nextIds=[], nextNames=[];
+          for(let i=0;i<max;i++){ const id=ids[i]||"", name=names[i]||""; if(prisma(name)){nextIds.push(id);nextNames.push(name);} }
+          const providerOptions={storeId:nextIds[0]||null,storeName:nextNames[0]||null,sStoreId:nextIds[0]||null,sStoreName:nextNames[0]||null,sStoreIds:nextIds,sStoreNames:nextNames};
+          const hasSelectedPrisma=Boolean(split(providerOptions.sStoreIds).length||split(providerOptions.sStoreNames).length);
+          const out={rawSStoreId,rawSStoreName,route:{sStoreIds:ids,sStoreNames:names},providerOptions,hasSelectedPrisma,pass:hasSelectedPrisma&&providerOptions.storeName==="Prisma Kaleva Tampere"&&providerOptions.storeId==="517609418"};
+          console.log("ZIIPLY_KALEVA_ROUTE_CONTEXT "+JSON.stringify(out,null,2));
+          if(!out.pass) process.exit(1);
+          NODE
