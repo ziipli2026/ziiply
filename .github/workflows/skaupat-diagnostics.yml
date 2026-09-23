@@ -1006,33 +1006,28 @@ jobs:
           })().catch(e => { console.error(e); process.exitCode=1; });
           NODE
 
-      - name: Resolve remaining stores with larger OSM map boxes
+      - name: Query Nominatim metadata for four unresolved S-markets
         timeout-minutes: 2
         run: |
           node <<'NODE'
           const targets=[
-            ["Varisto",60.2648201,24.8112035],["Suutarila",60.2777555,25.0215524],
-            ["Rautalampi",62.6225997,26.8308516],["Zeniitti",64.8920648,25.5834419]
+            ["Varisto","S-market Varisto, Ulkoniitynkuja 4, Vantaa"],
+            ["Suutarila","S-market Suutarila, Henrik Forsiuksen tie 39, Helsinki"],
+            ["Rautalampi","S-market Rautalampi, Kuopiontie 34, Rautalampi"],
+            ["Zeniitti","S-market Zeniitti, Huilaajanpolku 2, Kempele"]
           ];
           (async()=>{
             const out=[];
-            for(const [name,lat,lon] of targets){
-              const d=.015,u=`https://api.openstreetmap.org/api/0.6/map?bbox=${lon-d},${lat-d},${lon+d},${lat+d}`;
-              const ac=new AbortController(),t=setTimeout(()=>ac.abort(),15000);
+            for(const [name,q] of targets){
+              const u="https://nominatim.openstreetmap.org/search?format=jsonv2&addressdetails=1&extratags=1&namedetails=1&limit=10&q="+encodeURIComponent(q);
+              const ac=new AbortController(),t=setTimeout(()=>ac.abort(),12000);
               try{
-                const r=await fetch(u,{headers:{"user-agent":"Ziiply diagnostics"},signal:ac.signal});
-                const xml=await r.text(),matches=[];
-                for(const x of xml.matchAll(/<(node|way|relation)\b[^>]*id="([^"]+)"[^>]*>([\s\S]*?)<\/\1>/g)){
-                  const tags=Object.fromEntries([...x[3].matchAll(/<tag k="([^"]+)" v="([^"]*)"/g)].map(z=>[z[1],z[2].replace(/&amp;/g,"&")]));
-                  const blob=JSON.stringify(tags);
-                  if(/s-market/i.test(blob)||new RegExp(name,"i").test(blob)){
-                    const ids=[...new Set(blob.match(/\b\d{9}\b/g)||[])];
-                    matches.push({type:x[1],id:x[2],tags,ids});
-                  }
-                }
-                out.push({name,status:r.status,matches});
+                const r=await fetch(u,{headers:{"user-agent":"Ziiply diagnostics/1.0"},signal:ac.signal});
+                const data=await r.json();
+                out.push({name,status:r.status,results:data.map(x=>({osm_type:x.osm_type,osm_id:x.osm_id,display_name:x.display_name,lat:x.lat,lon:x.lon,extratags:x.extratags,namedetails:x.namedetails,address:x.address}))});
               }catch(e){out.push({name,error:String(e)})}finally{clearTimeout(t)}
+              await new Promise(r=>setTimeout(r,1100));
             }
-            console.log("OSM_LARGER_BOX "+JSON.stringify(out,null,2));
+            console.log("NOMINATIM_UNRESOLVED "+JSON.stringify(out,null,2));
           })();
           NODE
