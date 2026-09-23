@@ -10048,7 +10048,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           const matchedId =
             chain === "S" &&
             mode === "hyper" &&
-            /^\\d{5,}$/.test(String(matched.externalId || ""))
+            /^\d{5,}$/.test(String(matched.externalId || ""))
               ? matched.externalId
               : matched.id;
           return { id: matchedId, name: matched.name };
