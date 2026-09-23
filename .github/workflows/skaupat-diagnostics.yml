@@ -960,7 +960,7 @@ jobs:
       - name: Resolve eight new S-markets via S-kanava direct-page ID scan
         run: |
           node <<'NODE'
-          const targets=[
+          const targets = [
             ["Varisto","S-market Varisto","01660","Ulkoniitynkuja 4"],
             ["Suutarila","S-market Suutarila","00750","Henrik Forsiuksen tie 39"],
             ["Leinola","S-market Leinola Tampere","33580","Orimuskatu 71"],
@@ -970,20 +970,74 @@ jobs:
             ["Hiukkavaara","S-market Hiukkavaara","90670","Paraatikatu 7"],
             ["Jääli","S-market Jääli","90940","Jäälinraitti 1"]
           ];
-          const norm=s=>String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ");
-          (async()=>{
-            const base=await fetch("https://asiakaspalaute.s-kanava.fi/palaute/ketjut/smarket/aitiopaikka",{headers:{"user-agent":"Mozilla/5.0"}});
-            const html=await base.text();
-            const ids=[...new Set([...html.matchAll(/\/palaute\/toimipaikat\/(\d{9})/g)].map(m=>m[1]))];
-            console.log("SKANAVA_ID_SCAN_BASE "+JSON.stringify({status:base.status,length:html.length,ids:ids.length}));
-            const hits=Object.fromEntries(targets.map(t=>[t[0],[]]));
-            let checked=0;
-            for(let i=0;i<ids.length;i+=20){
-              const batch=ids.slice(i,i+20);
-              const rs=await Promise.all(batch.map(async id=>{try{const r=await fetch("https://asiakaspalaute.s-kanava.fi/palaute/toimipaikat/"+id,{headers:{"user-agent":"Mozilla/5.0"}});return {id,status:r.status,body:await r.text()}}catch(e){return {id,status:0,body:""}}}));
-              for(const x of rs){checked++;const n=norm(x.body);for(const [key,name,pc,address] of targets){const score=(n.includes(norm(name).trim())?4:0)+(n.includes(norm(pc).trim())?2:0)+(n.includes(norm(address).trim())?3:0)+(n.includes(norm(key).trim())?1:0);if(score>=4)hits[key].push({id:x.id,status:x.status,score,title:(x.body.match(/<title[^>]*>([^<]*)/i)||[])[1]||"",namePresent:n.includes(norm(name).trim()),postalPresent:n.includes(norm(pc).trim()),addressPresent:n.includes(norm(address).trim())})}}
+
+          const norm = s => String(s || "")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, " ");
+
+          (async () => {
+            const base = await fetch(
+              "https://asiakaspalaute.s-kanava.fi/palaute/ketjut/smarket/aitiopaikka",
+              { headers: { "user-agent": "Mozilla/5.0" } }
+            );
+            const html = await base.text();
+            const ids = [...new Set(
+              [...html.matchAll(/\/palaute\/toimipaikat\/(\d{9})/g)].map(m => m[1])
+            )];
+
+            console.log("SKANAVA_ID_SCAN_BASE " + JSON.stringify({
+              status: base.status,
+              length: html.length,
+              ids: ids.length
+            }));
+
+            const hits = Object.fromEntries(targets.map(t => [t[0], []]));
+            let checked = 0;
+
+            for (let i = 0; i < ids.length; i += 20) {
+              const batch = ids.slice(i, i + 20);
+              const rs = await Promise.all(batch.map(async id => {
+                try {
+                  const r = await fetch(
+                    "https://asiakaspalaute.s-kanava.fi/palaute/toimipaikat/" + id,
+                    { headers: { "user-agent": "Mozilla/5.0" } }
+                  );
+                  return { id, status: r.status, body: await r.text() };
+                } catch (e) {
+                  return { id, status: 0, body: "", error: String(e) };
+                }
+              }));
+
+              for (const x of rs) {
+                checked++;
+                const n = norm(x.body);
+                for (const [key, name, pc, address] of targets) {
+                  const score =
+                    (n.includes(norm(name).trim()) ? 4 : 0) +
+                    (n.includes(norm(pc).trim()) ? 2 : 0) +
+                    (n.includes(norm(address).trim()) ? 3 : 0) +
+                    (n.includes(norm(key).trim()) ? 1 : 0);
+
+                  if (score >= 4) {
+                    hits[key].push({
+                      id: x.id,
+                      status: x.status,
+                      score,
+                      title: (x.body.match(/<title[^>]*>([^<]*)/i) || [])[1] || "",
+                      namePresent: n.includes(norm(name).trim()),
+                      postalPresent: n.includes(norm(pc).trim()),
+                      addressPresent: n.includes(norm(address).trim())
+                    });
+                  }
+                }
               }
             }
-            console.log("SKANAVA_NEW_STORE_RESOLVE "+JSON.stringify({checked,hits},null,2));
-          })().catch(e=>{console.error(e);process.exitCode=1});
+
+            console.log("SKANAVA_NEW_STORE_RESOLVE " + JSON.stringify({ checked, hits }, null, 2));
+          })().catch(e => {
+            console.error(e);
+            process.exitCode = 1;
+          });
           NODE
