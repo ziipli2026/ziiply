@@ -980,7 +980,7 @@ jobs:
             let checked=0;
             for(let i=0;i<ids.length;i+=20){
               const batch=ids.slice(i,i+20);
-              const rs=await Promise.all(batch.map(async id=>{try{const r=await fetch("https://asiakaspalaute.s-kanava.fi/palaute/toimipaikat/"+id,{headers:{"user-agent":"Mozilla/5.0"}});return {id,status:r.status,body:await r.text()}}catch(e){return {id,status:0,body:""}}));
+              const rs=await Promise.all(batch.map(async id=>{try{const r=await fetch("https://asiakaspalaute.s-kanava.fi/palaute/toimipaikat/"+id,{headers:{"user-agent":"Mozilla/5.0"}});return {id,status:r.status,body:await r.text()}}catch(e){return {id,status:0,body:""}}}));
               for(const x of rs){checked++;const n=norm(x.body);for(const [key,name,pc,address] of targets){const score=(n.includes(norm(name).trim())?4:0)+(n.includes(norm(pc).trim())?2:0)+(n.includes(norm(address).trim())?3:0)+(n.includes(norm(key).trim())?1:0);if(score>=4)hits[key].push({id:x.id,status:x.status,score,title:(x.body.match(/<title[^>]*>([^<]*)/i)||[])[1]||"",namePresent:n.includes(norm(name).trim()),postalPresent:n.includes(norm(pc).trim()),addressPresent:n.includes(norm(address).trim())})}}
               }
             }
