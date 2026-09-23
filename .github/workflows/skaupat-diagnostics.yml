@@ -904,3 +904,43 @@ jobs:
             console.log("TJEK_SID_COVERAGE "+JSON.stringify({tjekStatus:tr.status,datasetStatus:gr.status,tjekTotal:stores.length,datasetParsed:old.length,matched:matches.length,unmatched:unmatched.length,ambiguous:ambiguous.length,idUrlMismatch:matches.filter(x=>!x.urlIdMatches).length,maxDistanceKm:Math.max(0,...matches.map(x=>x.distanceKm||0)),unmatchedStores:unmatched,ambiguousStores:ambiguous,sample:matches.slice(0,20)},null,2));
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
+
+
+      - name: Cross-match Tjek directory to S-kaupat IDs using proven response parser
+        run: |
+          node <<'NODE'
+          const stable=v=>Array.isArray(v)?v.map(stable):(v&&typeof v==="object"?Object.keys(v).sort().reduce((o,k)=>(o[k]=stable(v[k]),o),{}):v);
+          const enc=x=>Buffer.from(JSON.stringify(stable(x)),"utf8").toString("base64");
+          const norm=s=>String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+          const hav=(a,b)=>{const R=6371,r=x=>x*Math.PI/180,la=+(a.latitude??a.lat),loa=+(a.longitude??a.lng??a.lon),lb=+(b.latitude??b.lat),lob=+(b.longitude??b.lng??b.lon),d1=r(lb-la),d2=r(lob-loa),x=Math.sin(d1/2)**2+Math.cos(r(la))*Math.cos(r(lb))*Math.sin(d2/2)**2;return 2*R*Math.asin(Math.sqrt(x))};
+          function findStores(x){
+            const seen=new Set(), out=[];
+            function walk(v){
+              if(!v||typeof v!=="object")return;
+              if(Array.isArray(v)){for(const z of v)walk(z);return}
+              const vals=Object.values(v);
+              if(typeof v.name==="string" && (v.id||v.publicId) && (v.address||v.streetAddress||v.city||v.coordinates||v.location)){
+                const id=String(v.id||v.publicId); if(!seen.has(id)){seen.add(id);out.push(v)}
+              }
+              for(const z of vals)walk(z);
+            } walk(x); return out.filter(v=>/^S-market\b/i.test(v.name||""));
+          }
+          (async()=>{
+            const key=enc(["stores",{businessId:"d8ccs8",pagination:{offset:0,limit:3000}}]);
+            const tr=await fetch("https://etarjouslehdet.fi/",{method:"POST",headers:{"content-type":"application/json","x-api-key":"152000596c6e45d9983eab0c14afebea","user-agent":"Mozilla/5.0"},body:JSON.stringify({data:[key]})});
+            const tj=await tr.json(); const stores=findStores(tj);
+            const gr=await fetch("https://raw.githubusercontent.com/samuel-d-aya/geolytics_projects/1bf552f4924ce992ad15cb36bfc4e28ca75904bf/Finland/smarket_fi_scraper_/smarket_fi_scraper/output.csv"); const csv=await gr.text();
+            const old=csv.split(/\r?\n/).map(line=>{const m=line.match(/^"([^"]*)",s-market,([^,]*),Finland,.*?,(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?),(S-market [^,]*),.*?,[^,]*,([^,]*),(\d{9}),,https:\/\/www\.s-kaupat\.fi\/myymala\/([^/]+)\/(\d{9})\/?$/i);return m?{address:m[1],city:m[2],latitude:+m[3],longitude:+m[4],name:m[5],postalCode:m[6],id:m[7],slug:m[8],urlId:m[9]}:null}).filter(Boolean);
+            const matches=[],unmatched=[],ambiguous=[];
+            for(const s of stores){
+              const coords=s.coordinates||s.location||{latitude:s.latitude,longitude:s.longitude};
+              let cand=old.filter(o=>norm(o.name)===norm(s.name));
+              if(cand.length!==1 && s.postalCode)cand=old.filter(o=>o.postalCode===String(s.postalCode)&&norm(o.name).includes(norm(s.name).replace(/^s market /,"")));
+              if(cand.length!==1 && coords && isFinite(+(coords.latitude??coords.lat))){cand=old.map(o=>({...o,d:hav(coords,o)})).filter(o=>o.d<0.25).sort((a,b)=>a.d-b.d)}
+              if(cand.length===1 || (cand.length>0&&cand[0].d!=null&&(cand[1]?.d??999)-cand[0].d>0.1)){const o=cand[0];matches.push({tjekId:s.id||s.publicId,name:s.name,sId:o.id,postalCode:o.postalCode,distanceKm:coords&&isFinite(+(coords.latitude??coords.lat))?hav(coords,o):null,urlIdMatches:o.id===o.urlId})}
+              else if(cand.length>1)ambiguous.push({tjekId:s.id||s.publicId,name:s.name,candidates:cand.slice(0,5).map(o=>({name:o.name,id:o.id,d:o.d}))});
+              else unmatched.push({tjekId:s.id||s.publicId,name:s.name,postalCode:s.postalCode,address:s.address||s.streetAddress,coordinates:coords});
+            }
+            console.log("TJEK_SID_COVERAGE_V2 "+JSON.stringify({tjekStatus:tr.status,tjekTotal:stores.length,datasetParsed:old.length,matched:matches.length,unmatched:unmatched.length,ambiguous:ambiguous.length,idUrlMismatch:matches.filter(x=>!x.urlIdMatches).length,maxDistanceKm:Math.max(0,...matches.map(x=>x.distanceKm||0)),unmatchedStores:unmatched,ambiguousStores:ambiguous,sample:matches.slice(0,15)},null,2));
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
