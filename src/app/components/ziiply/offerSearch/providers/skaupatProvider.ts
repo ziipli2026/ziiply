@@ -834,6 +834,18 @@ async function getEffectiveSKaupatStoreIdV174(
   const raw = firstString(options?.storeId, options?.sStoreId);
   const storeName = firstString(options?.storeName, options?.sStoreName);
 
+  // V224: Finnish Prisma offer search now supplies Ruoanhinta externalId,
+  // verified in diagnostics as the exact 9-digit S-kaupat storeId.
+  // Use it before legacy name-based resolvers. All legacy resolver code below
+  // remains intact as fallback when a verified-looking externalId is unavailable.
+  if (/^\d{9}$/.test(raw) && raw !== DEFAULT_SKAUPAT_STORE_ID_V156) {
+    console.warn("[GOSTA V224] using caller Prisma externalId as primary S-kaupat storeId", {
+      storeId: raw,
+      storeName: storeName || null,
+    });
+    return raw;
+  }
+
   // V217: prefer the older store-name/directory resolver path first.
   // The newer remotePickupSlots resolver is fallback only. This preserves stores
   // already working with the old method while still covering old-method misses.
