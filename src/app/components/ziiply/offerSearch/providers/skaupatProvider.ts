@@ -1,3 +1,9 @@
+// Revision: V217 — old Prisma resolver path primary; remotePickupSlots fallback
+// Date: 2026-09-23
+// - Official store search + directory resolver run first.
+// - remotePickupSlots V215/V216 is fallback only.
+// - No offer-fetch, pagination, product mapping, S-local provider, or other app logic changed.
+
 // Revision: V216 — multi-query geocode + pickup resolver diagnostics; Myyrmanni-safe
 // Date: 2026-09-20
 // - Tries both full selected store name and chain-stripped place name in Nominatim.
@@ -821,25 +827,15 @@ async function getEffectiveSKaupatStoreIdV174(
   const raw = firstString(options?.storeId, options?.sStoreId);
   const storeName = firstString(options?.storeName, options?.sStoreName);
 
-  // V204: storeName is authoritative for Gösta. The caller's storeId may belong
-  // to Ziiply/Ruoanhinta.fi, so resolve the S-kaupat ID dynamically first.
+  // V217: prefer the older store-name/directory resolver path first.
+  // The newer remotePickupSlots resolver is fallback only. This preserves stores
+  // already working with the old method while still covering old-method misses.
   if (storeName) {
-    // V215: primary nationwide resolver. It uses the selected store name, not user GPS.
-    const resolvedFromPickupSlotsV215 = await resolveSKaupatStoreIdViaPickupSlotsV215(storeName);
-    if (resolvedFromPickupSlotsV215) {
-      console.warn("[GOSTA V215] S-kaupat storeId resolved dynamically from remotePickupSlots", {
-        inputStoreId: raw || null,
-        storeName,
-        resolvedStoreId: resolvedFromPickupSlotsV215,
-      });
-      return resolvedFromPickupSlotsV215;
-    }
-
     const resolvedFromOfficialStoreSearchV198 =
       await resolveSKaupatStoreIdFromOfficialStoreSearchV198(storeName);
 
     if (resolvedFromOfficialStoreSearchV198) {
-      console.warn("[GOSTA V204] S-kaupat storeId resolved dynamically from official store search", {
+      console.warn("[GOSTA V217] S-kaupat storeId resolved by primary official store search", {
         inputStoreId: raw || null,
         storeName,
         resolvedStoreId: resolvedFromOfficialStoreSearchV198,
@@ -850,12 +846,24 @@ async function getEffectiveSKaupatStoreIdV174(
     const resolvedFromDirectory = await resolveSKaupatStoreIdFromDirectoryV1(storeName);
 
     if (resolvedFromDirectory) {
-      console.warn("[GOSTA V204] S-kaupat storeId resolved dynamically from directory", {
+      console.warn("[GOSTA V217] S-kaupat storeId resolved by primary directory resolver", {
         inputStoreId: raw || null,
         storeName,
         resolvedStoreId: resolvedFromDirectory,
       });
       return resolvedFromDirectory;
+    }
+
+    // V215/V216 is intentionally fallback only. If this later proves complete,
+    // the two older resolver blocks above can be disabled without changing it.
+    const resolvedFromPickupSlotsV215 = await resolveSKaupatStoreIdViaPickupSlotsV215(storeName);
+    if (resolvedFromPickupSlotsV215) {
+      console.warn("[GOSTA V217] S-kaupat storeId resolved by remotePickupSlots fallback", {
+        inputStoreId: raw || null,
+        storeName,
+        resolvedStoreId: resolvedFromPickupSlotsV215,
+      });
+      return resolvedFromPickupSlotsV215;
     }
   }
 
