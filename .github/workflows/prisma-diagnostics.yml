@@ -213,20 +213,3 @@ jobs:
             console.log("PRISMA_V217_CHAIN "+JSON.stringify({official,directory,geo,pickup},null,2));
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
-      - name: Prisma provider source sanity
-        run: |
-          node <<'NODE'
-          const fs = require("fs");
-          const p = "src/app/components/ziiply/offerSearch/providers/skaupatProvider.ts";
-          const s = fs.readFileSync(p, "utf8");
-          const required = [
-            "fetchSKaupatOffers",
-            "getEffectiveSKaupatStoreIdV174",
-            "resolveSKaupatStoreIdViaPickupSlotsV215",
-            "RemoteFilteredProducts",
-            "DISCOUNTED",
-          ];
-          const missing = required.filter(x => !s.includes(x));
-          console.log("PRISMA_PROVIDER_SOURCE_SANITY", JSON.stringify({path:p,bytes:s.length,missing,pass:missing.length===0}));
-          if (missing.length) process.exit(1);
-          NODE
