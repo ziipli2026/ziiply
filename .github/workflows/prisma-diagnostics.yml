@@ -410,3 +410,20 @@ jobs:
             console.log("PRISMA_LIELAHTI_ID_PROOF",JSON.stringify({ruoanhinta:r||null,candidateMapping:{from:String(r?.id||""),to:sid},validation:{http:q.status,responseId:j?.data?.store?.id||null,total:pr?.total??null,count:Array.isArray(pr?.productListItems)?pr.productListItems.length:0,errors:(j?.errors||[]).map(e=>e.message)}},null,2));
           } main().catch(e=>{console.error(e);process.exit(1)});
           NODE
+
+
+      - name: Diagnose Prisma Limingantulli ids
+        shell: bash
+        run: |
+          node <<'NODE'
+          const H="44ca017dddccfe49e787b483f471f26217adca807f8c71101d11e881dab9e480";
+          const V="production-45c31f7a746096c6da12e16aba1887e031fbd9de";
+          async function main(){
+            const rr=await fetch("https://api.ruoanhinta.fi/api/stores?search=Oulu");
+            const rows=await rr.json();
+            const list=Array.isArray(rows)?rows:(rows.items||rows.stores||rows.results||rows.data||[]);
+            const matches=list.filter(x=>String(x.name||"").toLowerCase().includes("prisma"));
+            const target=matches.find(x=>String(x.name||"").toLowerCase().includes("limingantulli"))||null;
+            console.log("PRISMA_OULU_RUOANHINTA",JSON.stringify({target,prismas:matches},null,2));
+          } main().catch(e=>{console.error(e);process.exit(1)});
+          NODE
