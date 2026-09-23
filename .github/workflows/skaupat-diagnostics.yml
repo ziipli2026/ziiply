@@ -1006,24 +1006,37 @@ jobs:
           })().catch(e => { console.error(e); process.exitCode=1; });
           NODE
 
-      - name: Validate newly discovered Leinola public store ID
+      - name: Search indexed web metadata for seven unresolved S-markets
+        timeout-minutes: 2
         run: |
           node <<'NODE'
-          const id="726675436";
-          const expected="S-market Leinola Tampere";
+          const targets=[
+            ["Varisto","Ulkoniitynkuja 4"],["Suutarila","Henrik Forsiuksen tie 39"],
+            ["Rautalampi","Kuopiontie 34"],["Itikanristeys","Verkatehtaankatu 13"],
+            ["Zeniitti","Huilaajanpolku 2"],["Hiukkavaara","Paraatikatu 7"],["Jääli","Jäälinraitti 1"]
+          ];
+          const ac=new AbortController(); const timer=setTimeout(()=>ac.abort(),90000);
           (async()=>{
-            const out={id,expected};
-            try{
-              const s=await fetch("https://asiakaspalaute.s-kanava.fi/palaute/toimipaikat/"+id);
-              const body=await s.text();
-              out.skanavaStatus=s.status;
-              out.skanavaName=(body.match(/<h1[^>]*>([^<]+)<\/h1>/i)||body.match(/class="nimi"[^>]*>([^<]+)/i)||[])[1]||null;
-              out.skanavaHasLeinola=/Leinola/i.test(body);
-            }catch(e){out.skanavaError=String(e)}
-            try{
-              const r=await fetch("https://api.s-kaupat.fi/?operationName=RemoteGetPageContent",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({query:`query RemoteGetPageContent($storeId: ID!, $path: String!) { remoteGetPageContent(storeId: $storeId, path: $path) { __typename } }`,variables:{storeId:id,path:"tuotteet/kampanjat"}})});
-              out.pageContentStatus=r.status; out.pageContentBody=(await r.text()).slice(0,1000);
-            }catch(e){out.pageContentError=String(e)}
-            console.log("LEINOLA_ID_VALIDATION "+JSON.stringify(out,null,2));
-          })();
+            const out=[];
+            for(const [name,address] of targets){
+              const q=encodeURIComponent(`"S-market ${name}" "${address}" "s-kaupat.fi"`);
+              const urls=[
+                `https://www.google.com/search?q=${q}`,
+                `https://www.bing.com/search?q=${q}`
+              ];
+              const item={name,address,results:[]};
+              for(const url of urls){
+                try{
+                  const r=await fetch(url,{headers:{"user-agent":"Mozilla/5.0"},signal:ac.signal});
+                  const body=await r.text();
+                  const ids=[...new Set(body.match(/\b\d{9}\b/g)||[])];
+                  const sk=[...new Set((body.match(/https?:[^"'<> ]*s-kaupat\.fi[^"'<> ]*/gi)||[]).map(x=>x.replace(/&amp;/g,"&")).slice(0,10))];
+                  item.results.push({engine:url.includes("google")?"google":"bing",status:r.status,ids,skaupatUrls:sk,hasName:body.toLowerCase().includes(name.toLowerCase()),length:body.length});
+                }catch(e){item.results.push({engine:url.includes("google")?"google":"bing",error:String(e)})}
+              }
+              out.push(item);
+            }
+            clearTimeout(timer);
+            console.log("SEVEN_STORE_INDEX_SEARCH "+JSON.stringify(out,null,2));
+          })().catch(e=>{clearTimeout(timer);console.error(e);process.exitCode=1});
           NODE
