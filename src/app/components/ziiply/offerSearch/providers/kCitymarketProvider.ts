@@ -356,7 +356,7 @@ function pageNumber(url:string){
 export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
   const parsed=await parseKCitymarketSpatialLeaflet(ENTRY);
   const leafletUrl=String(parsed?.leaflet||ENTRY);
-  const rows=Array.isArray(parsed?.rows)?parsed.rows:[];
+  const rows:any[]=Array.isArray(parsed?.rows)?parsed.rows:[];
 
   citymarketHtmlDebugV8={
     leafletUrl,
