@@ -33,7 +33,8 @@ jobs:
               const tid=String(s.id||s.publicId||""), name=String(s.name||"");
               const addr=String(s.address||s.street||s.streetAddress||s.location?.address||"");
               const pc=String(s.postalCode||s.zipCode||s.location?.postalCode||"");
-              let id=overrides[tid]||five[name]||null, source=overrides[tid]?"override":(five[name]?"five":null);
+              const fiveKey=Object.keys(five).find(k=>norm(k)===norm(name));
+              let id=overrides[tid]||(fiveKey?five[fiveKey]:null), source=overrides[tid]?"override":(fiveKey?"five":null);
               if(!id){
                 let hits=rows.filter(r=>norm(r.name)===norm(name));
                 if(hits.length!==1&&pc) hits=rows.filter(r=>r.pc===pc&&norm(r.name).includes(norm(name).replace(/^smarket/,"")));
