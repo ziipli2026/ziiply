@@ -688,3 +688,30 @@ jobs:
             }
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
+
+
+      - name: Probe eTarjouslehdet serialized data keys
+        run: |
+          node <<'NODE'
+          const apiKey="152000596c6e45d9983eab0c14afebea";
+          const params=[
+            ["businessStores",["stores",{"businessId":"d8ccs8","pagination":{"offset":0,"limit":3000}}]],
+            ["pansioSearch",["stores",{"searchTerm":"S-market Pansio","maxRadius":100000,"pagination":{"limit":10,"offset":0}}]],
+            ["kemiSearch",["stores",{"searchTerm":"S-market Kemi","maxRadius":100000,"pagination":{"limit":10,"offset":0}}]],
+            ["lukkarinsantaSearch",["stores",{"searchTerm":"S-market Lukkarinsanta","maxRadius":100000,"pagination":{"limit":10,"offset":0}}]]
+          ];
+          const encoders=[
+            ["json",x=>JSON.stringify(x)],
+            ["jsonObject",x=>JSON.stringify({name:x[0],params:x[1]})],
+            ["colonJson",x=>x[0]+":"+JSON.stringify(x[1])],
+            ["pipeJson",x=>x[0]+"|"+JSON.stringify(x[1])]
+          ];
+          (async()=>{
+            for(const [ename,enc] of encoders){
+              const data=params.map(([,x])=>enc(x));
+              const r=await fetch("https://etarjouslehdet.fi/",{method:"POST",headers:{"content-type":"application/json","x-api-key":apiKey},body:JSON.stringify({data})});
+              const body=await r.text();
+              console.log("ETARJOUS_SERIALIZED_KEYS "+JSON.stringify({encoder:ename,status:r.status,contentType:r.headers.get("content-type"),length:body.length,body:body.slice(0,30000)}));
+            }
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
