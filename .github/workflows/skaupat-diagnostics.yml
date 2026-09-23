@@ -1005,3 +1005,41 @@ jobs:
             console.log("SKANAVA_WICKET_TARGET_RESULTS " + JSON.stringify(results, null, 2));
           })().catch(e => { console.error(e); process.exitCode=1; });
           NODE
+
+      - name: Resolve new S-markets via OpenStreetMap nearby metadata
+        run: |
+          node <<'NODE'
+          const targets = [
+            ["Varisto",60.2648201,24.8112035],
+            ["Suutarila",60.2777555,25.0215524],
+            ["Leinola",61.493862,23.91459],
+            ["Rautalampi",62.6225997,26.8308516],
+            ["Itikanristeys",62.794854,22.832184],
+            ["Zeniitti",64.8920648,25.5834419],
+            ["Hiukkavaara",65.0103704,25.5877432],
+            ["Jääli",65.0921002,25.6903283]
+          ];
+          const endpoints=["https://overpass-api.de/api/interpreter","https://overpass.kumi.systems/api/interpreter"];
+          (async()=>{
+            const out=[];
+            for(const [name,lat,lon] of targets){
+              const q=`[out:json][timeout:25];(nwr(around:250,${lat},${lon})["shop"="supermarket"];nwr(around:250,${lat},${lon})["name"~"S-market|Sale",i];);out center tags;`;
+              let data=null, status=0, endpoint=null, error=null;
+              for(const ep of endpoints){
+                try{
+                  const r=await fetch(ep,{method:"POST",headers:{"content-type":"application/x-www-form-urlencoded","user-agent":"Ziiply diagnostics"},body:"data="+encodeURIComponent(q)});
+                  status=r.status; endpoint=ep;
+                  if(r.ok){data=await r.json();break;}
+                  error=(await r.text()).slice(0,300);
+                }catch(e){error=String(e);}
+              }
+              const elements=(data?.elements||[]).map(e=>({
+                type:e.type,id:e.id,lat:e.lat??e.center?.lat,lon:e.lon??e.center?.lon,
+                tags:e.tags||{},
+                skaupatIds:[...new Set(JSON.stringify(e.tags||{}).match(/\b\d{9}\b/g)||[])]
+              }));
+              out.push({name,status,endpoint,error,elements});
+            }
+            console.log("OSM_NEW_STORE_METADATA "+JSON.stringify(out,null,2));
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
