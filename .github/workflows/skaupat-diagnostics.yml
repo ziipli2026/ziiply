@@ -839,3 +839,21 @@ jobs:
             }
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
+
+
+      - name: Inspect indexed ID search result contexts
+        run: |
+          node <<'NODE'
+          const targets=[["Pansio","603212705"],["Lukkarinsanta","649122793"],["Vehkoja","519941769"],["Kemi","522770049"],["Kommila","708276035"],["Vaasanpuistikko","726261697"],["Talvitie","726407211"],["Kemiö","500988563"]];
+          function decode(s){return s.replace(/\\u003d/g,"=").replace(/\\u0026/g,"&").replace(/&quot;/g,'"').replace(/&amp;/g,"&").replace(/&#39;/g,"'")}
+          (async()=>{
+            for(const [name,id] of targets){
+              const q=`"${id}"`;
+              const r=await fetch("https://www.google.com/search?q="+encodeURIComponent(q),{headers:{"user-agent":"Mozilla/5.0"}});
+              const b=await r.text();
+              const contexts=[]; let p=0;
+              while((p=b.indexOf(id,p))>=0&&contexts.length<12){contexts.push(decode(b.slice(Math.max(0,p-700),p+1200)));p+=id.length}
+              console.log("INDEXED_ID_CONTEXT "+JSON.stringify({name,id,status:r.status,count:contexts.length,contexts}));
+            }
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
