@@ -504,3 +504,35 @@ jobs:
             console.log("OULU_PRISMA_VALIDATE",JSON.stringify({id:x.id,name:x.name,city:x.city,postalCode:x.postalCode,externalId:ext,discounted,normal}));
           }
           NODE
+
+
+      - name: Nationwide Finnish Prisma offer audit V222
+        shell: bash
+        run: |
+          node <<'NODE'
+          async function stores(q){const r=await fetch("https://api.ruoanhinta.fi/api/stores?search="+encodeURIComponent(q));const j=await r.json();return Array.isArray(j)?j:(j.items||j.stores||j.results||j.data||[])}
+          const H="44ca017dddccfe49e787b483f471f26217adca807f8c71101d11e881dab9e480",V="production-45c31f7a746096c6da12e16aba1887e031fbd9de";
+          const pad=n=>String(n).padStart(2,"0"),d=new Date(),date=`${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}`;
+          async function rf(id,discounted){
+            const variables={availabilityDate:discounted?date:null,facets:[{key:"brandName",order:"asc"},{key:"category"},{key:"labels"}],fetchSponsoredContent:discounted,filters:discounted?[{key:"labels",value:["DISCOUNTED"]}]:[],from:0,generatedSessionId:"1d6b5de9-df99-4608-af07-7d754955df82",limit:48,marketingId:"d0bcc6e5-6130-494e-b6fb-12b5cb9c60cf",page:1,queryString:discounted?"":"maito",skip:0,sortForAvailabilityLabelDate:discounted?date:null,storeId:String(id),useRandomId:false};
+            const u=new URL("https://api.s-kaupat.fi/");u.searchParams.set("operationName","RemoteFilteredProducts");u.searchParams.set("variables",JSON.stringify(variables));u.searchParams.set("extensions",JSON.stringify({persistedQuery:{version:1,sha256Hash:H}}));
+            const r=await fetch(u,{headers:{accept:"application/graphql-response+json,application/json;q=0.9","content-type":"application/json","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":V}}); const j=await r.json(); const pr=j?.data?.store?.products;
+            return {http:r.status,responseId:j?.data?.store?.id||null,total:pr?.total??null,count:Array.isArray(pr?.productListItems)?pr.productListItems.length:0,errors:(j?.errors||[]).map(e=>e.message)};
+          }
+          const all=await stores("Prisma");
+          const fi=all.filter(x=>(String(x.chain||"").toLowerCase()==="prisma"||/^prisma\b/i.test(String(x.name||""))) && String(x.country||"").toLowerCase().includes("suom"));
+          const out=[];
+          for(const x of fi){
+            const ext=String(x.externalId||"");
+            let discounted=null,normal=null;
+            if(/^\d{5,}$/.test(ext)){
+              try{discounted=await rf(ext,true)}catch(e){discounted={error:String(e)}}
+              try{normal=await rf(ext,false)}catch(e){normal={error:String(e)}}
+            }
+            out.push({id:x.id,name:x.name,city:x.city,postalCode:x.postalCode,externalId:ext,discounted,normal});
+          }
+          const working=out.filter(x=>(x.discounted?.total||0)>0);
+          const noDiscount=out.filter(x=>(x.discounted?.total||0)===0 && (x.normal?.total||0)>0);
+          const dead=out.filter(x=>(x.discounted?.total||0)===0 && (x.normal?.total||0)===0);
+          console.log("PRISMA_FINLAND_AUDIT",JSON.stringify({count:out.length,workingCount:working.length,noDiscountCount:noDiscount.length,deadCount:dead.length,working,noDiscount,dead,all:out},null,2));
+          NODE
