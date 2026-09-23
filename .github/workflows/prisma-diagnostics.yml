@@ -213,3 +213,7 @@ jobs:
             console.log("PRISMA_V217_CHAIN "+JSON.stringify({official,directory,geo,pickup},null,2));
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
+      - name: Prisma provider TypeScript regression
+        run: |
+          npm ci
+          npx tsc --noEmit --pretty false
