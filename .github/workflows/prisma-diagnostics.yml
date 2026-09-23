@@ -479,3 +479,28 @@ jobs:
             console.log("PRISMA_EXTERNAL_ID_AUDIT",JSON.stringify({count:out.length,validCount:valid.length,missingExternalId:missing.length,invalidCount:invalid.length,stores:out},null,2));
           } main().catch(e=>{console.error(e);process.exit(1)});
           NODE
+
+
+      - name: Diagnose Oulu Prisma menu and failing stores V221
+        shell: bash
+        run: |
+          node <<'NODE'
+          async function stores(q){const r=await fetch("https://api.ruoanhinta.fi/api/stores?search="+encodeURIComponent(q));const j=await r.json();return Array.isArray(j)?j:(j.items||j.stores||j.results||j.data||[])}
+          const H="44ca017dddccfe49e787b483f471f26217adca807f8c71101d11e881dab9e480",V="production-45c31f7a746096c6da12e16aba1887e031fbd9de";
+          const pad=n=>String(n).padStart(2,"0"),d=new Date(),date=`${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}`;
+          async function rf(id,discounted){
+            const variables={availabilityDate:discounted?date:null,facets:[{key:"brandName",order:"asc"},{key:"category"},{key:"labels"}],fetchSponsoredContent:discounted,filters:discounted?[{key:"labels",value:["DISCOUNTED"]}]:[],from:0,generatedSessionId:"1d6b5de9-df99-4608-af07-7d754955df82",limit:48,marketingId:"d0bcc6e5-6130-494e-b6fb-12b5cb9c60cf",page:1,queryString:discounted?"":"maito",skip:0,sortForAvailabilityLabelDate:discounted?date:null,storeId:String(id),useRandomId:false};
+            const u=new URL("https://api.s-kaupat.fi/");u.searchParams.set("operationName","RemoteFilteredProducts");u.searchParams.set("variables",JSON.stringify(variables));u.searchParams.set("extensions",JSON.stringify({persistedQuery:{version:1,sha256Hash:H}}));
+            const r=await fetch(u,{headers:{accept:"application/graphql-response+json,application/json;q=0.9","content-type":"application/json","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":V}}); const j=await r.json(); const pr=j?.data?.store?.products;
+            return {http:r.status,responseId:j?.data?.store?.id||null,total:pr?.total??null,count:Array.isArray(pr?.productListItems)?pr.productListItems.length:0,errors:(j?.errors||[]).map(e=>e.message)};
+          }
+          const rows=await stores("Oulu");
+          console.log("OULU_RAW_STORES",JSON.stringify(rows,null,2));
+          const prismas=rows.filter(x=>String(x.chain||"").toLowerCase()==="prisma"||/^prisma\b/i.test(String(x.name||"")));
+          for(const x of prismas){
+            const ext=String(x.externalId||"");
+            const discounted=/^\d{5,}$/.test(ext)?await rf(ext,true):null;
+            const normal=/^\d{5,}$/.test(ext)?await rf(ext,false):null;
+            console.log("OULU_PRISMA_VALIDATE",JSON.stringify({id:x.id,name:x.name,city:x.city,postalCode:x.postalCode,externalId:ext,discounted,normal}));
+          }
+          NODE
