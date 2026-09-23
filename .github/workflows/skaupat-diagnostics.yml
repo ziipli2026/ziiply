@@ -780,3 +780,38 @@ jobs:
             console.log("TJEK_TARGET_STORES "+JSON.stringify({status:r.status,total:stores.length,hits:hits.map(s=>({id:s.id,name:s.name,city:s.city,postalCode:s.postalCode,streetAddress:s.streetAddress,coordinates:s.coordinates}))},null,2));
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
+
+
+      - name: Probe S-kaupat public store IDs from exact Tjek coordinates
+        run: |
+          node <<'NODE'
+          const targets=[
+            {name:"S-market Vehkoja",lat:60.608301,lon:24.836277,known:"519941769"},
+            {name:"S-market Kemiö",lat:60.163877,lon:22.736132,known:"500988563"},
+            {name:"S-market Pansio",lat:60.452909,lon:22.156218,known:"603212705"},
+            {name:"S-market Lukkarinsanta",lat:61.488295,lon:21.841996,known:"649122793"},
+            {name:"S-market Kommila Varkaus",lat:62.328175,lon:27.889053,known:"708276035"},
+            {name:"S-market Vaasanpuistikko",lat:63.0963736,lon:21.6207795,known:"726261697"},
+            {name:"S-market Kemi",lat:65.737722,lon:24.560532,known:"522770049"},
+            {name:"S-market Talvitie Rovaniemi",lat:66.5211579,lon:25.7001373,known:"726407211"}
+          ];
+          const paths=[
+            t=>`https://www.s-kaupat.fi/api/v1/stores?latitude=${t.lat}&longitude=${t.lon}`,
+            t=>`https://www.s-kaupat.fi/api/v1/stores?lat=${t.lat}&lng=${t.lon}`,
+            t=>`https://www.s-kaupat.fi/api/stores?latitude=${t.lat}&longitude=${t.lon}`,
+            t=>`https://www.s-kaupat.fi/api/stores?lat=${t.lat}&lng=${t.lon}`
+          ];
+          (async()=>{
+            for(const t of targets){
+              for(let i=0;i<paths.length;i++){
+                const url=paths[i](t);
+                try{
+                  const r=await fetch(url,{headers:{"accept":"application/json","user-agent":"Mozilla/5.0"}});
+                  const body=await r.text();
+                  const ids=[...new Set(body.match(/\b\d{9}\b/g)||[])];
+                  console.log("SKAUPAT_COORD_PROBE "+JSON.stringify({name:t.name,known:t.known,variant:i+1,status:r.status,contentType:r.headers.get("content-type"),length:body.length,knownPresent:body.includes(t.known),ids:ids.slice(0,30),body:body.slice(0,1200)}));
+                }catch(e){console.log("SKAUPAT_COORD_PROBE "+JSON.stringify({name:t.name,known:t.known,variant:i+1,error:String(e)}))}
+              }
+            }
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
