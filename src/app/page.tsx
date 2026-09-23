@@ -10041,7 +10041,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               : activeArea.kStoreName;
 
         const matched = findMatchingFoundOfferStoreV539(chain, mode, selectedId, selectedName);
-        if (matched) return { id: matched.id, name: matched.name };
+        if (matched) {
+          // V219: Finnish Prisma rows from Ruoanhinta already contain the exact
+          // S-kaupat store id in externalId. Prefer it for Gösta/offer search.
+          // Keep the original Ruoanhinta id only when externalId is unavailable.
+          const matchedId =
+            chain === "S" &&
+            mode === "hyper" &&
+            /^\\d{5,}$/.test(String(matched.externalId || ""))
+              ? matched.externalId
+              : matched.id;
+          return { id: matchedId, name: matched.name };
+        }
 
         if (selectedId || selectedName) {
           return {
