@@ -385,3 +385,28 @@ jobs:
           async function products(storeId){const v={availabilityDate:date,facets:[{key:"brandName",order:"asc"},{key:"category"},{key:"labels"}],filters:[{key:"labels",value:["DISCOUNTED"]}],generatedSessionId:"1d6b5de9-df99-4608-af07-7d754955df82",fetchSponsoredContent:true,limit:48,queryString:"",sortForAvailabilityLabelDate:date,storeId,useRandomId:false,marketingId:"d0bcc6e5-6130-494e-b6fb-12b5cb9c60cf",from:0,offset:0,skip:0,page:1},e={persistedQuery:{version:1,sha256Hash:HASH}};const r=await fetch("https://api.s-kaupat.fi/?operationName=RemoteFilteredProducts&variables="+encodeURIComponent(JSON.stringify(v))+"&extensions="+encodeURIComponent(JSON.stringify(e)),{headers:{accept:"application/json","content-type":"application/json","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":CV}});const j=await r.json();return {id:storeId,responseId:j?.data?.store?.id||null,total:j?.data?.store?.products?.total??null,errors:j?.errors||[]}}
           (async()=>{const rr=await fetch("https://api.ruoanhinta.fi/api/stores?search="+encodeURIComponent("Tampere"),{headers:{Accept:"application/json"}});const rows=await rr.json();const k=(Array.isArray(rows)?rows:rows.items||[]).find(x=>String(x.id)==="423");const known="517609418";console.log("PRISMA_KALEVA_STABLE_MAPPING_PROOF "+JSON.stringify({ruoanhinta:k&&{id:k.id,name:k.name,chain:k.chain,type:k.type,city:k.city,postalCode:k.postalCode},candidateMapping:{from:String(k?.id||""),to:known},validation:await products(known)},null,2))})().catch(e=>{console.error(e);process.exitCode=1});
           NODE
+
+
+      - name: Diagnose Prisma Lielahti ids
+        shell: bash
+        run: |
+          node <<'NODE'
+          const H="44ca017dddccfe49e787b483f471f26217adca807f8c71101d11e881dab9e480";
+          const V="production-45c31f7a746096c6da12e16aba1887e031fbd9de";
+          async function main(){
+            const rr=await fetch("https://api.ruoanhinta.fi/api/stores?search=Tampere");
+            const rows=await rr.json();
+            const list=Array.isArray(rows)?rows:(rows.items||rows.stores||rows.results||rows.data||[]);
+            const r=list.find(x=>String(x.name||"").toLowerCase().includes("prisma lielahti"));
+            const sid="697940575";
+            const d=new Date(), pad=n=>String(n).padStart(2,"0"), date=`${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}`;
+            const variables={availabilityDate:date,facets:[{key:"brandName",order:"asc"},{key:"category"},{key:"labels"}],fetchSponsoredContent:true,filters:[{key:"labels",value:["DISCOUNTED"]}],from:0,generatedSessionId:"1d6b5de9-df99-4608-af07-7d754955df82",limit:48,marketingId:"d0bcc6e5-6130-494e-b6fb-12b5cb9c60cf",page:1,queryString:"",skip:0,sortForAvailabilityLabelDate:date,storeId:sid,useRandomId:false};
+            const u=new URL("https://api.s-kaupat.fi/");
+            u.searchParams.set("operationName","RemoteFilteredProducts");
+            u.searchParams.set("variables",JSON.stringify(variables));
+            u.searchParams.set("extensions",JSON.stringify({persistedQuery:{version:1,sha256Hash:H}}));
+            const q=await fetch(u,{headers:{accept:"application/graphql-response+json,application/json;q=0.9","content-type":"application/json","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":V}});
+            const j=await q.json(); const pr=j?.data?.store?.products;
+            console.log("PRISMA_LIELAHTI_ID_PROOF",JSON.stringify({ruoanhinta:r||null,candidateMapping:{from:String(r?.id||""),to:sid},validation:{http:q.status,responseId:j?.data?.store?.id||null,total:pr?.total??null,count:Array.isArray(pr?.productListItems)?pr.productListItems.length:0,errors:(j?.errors||[]).map(e=>e.message)}},null,2));
+          } main().catch(e=>{console.error(e);process.exit(1)});
+          NODE
