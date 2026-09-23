@@ -957,87 +957,51 @@ jobs:
           NODE
 
 
-      - name: Resolve eight new S-markets via S-kanava direct-page ID scan
+      - name: Resolve eight new S-markets via S-kanava Wicket links
         run: |
           node <<'NODE'
-          const targets = [
-            ["Varisto","S-market Varisto","01660","Ulkoniitynkuja 4"],
-            ["Suutarila","S-market Suutarila","00750","Henrik Forsiuksen tie 39"],
-            ["Leinola","S-market Leinola Tampere","33580","Orimuskatu 71"],
-            ["Rautalampi","S-market Rautalampi","77700","Kuopiontie 34"],
-            ["Itikanristeys","S-market Itikanristeys","60100","Verkatehtaankatu 13"],
-            ["Zeniitti","S-market Zeniitti","90450","Huilaajanpolku 2"],
-            ["Hiukkavaara","S-market Hiukkavaara","90670","Paraatikatu 7"],
-            ["Jääli","S-market Jääli","90940","Jäälinraitti 1"]
-          ];
-
-          const norm = s => String(s || "")
-            .normalize("NFD")
-            .replace(/[\u0300-\u036f]/g, "")
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, " ");
+          const targets = ["Varisto","Suutarila","Leinola","Rautalampi","Itikanristeys","Zeniitti","Hiukkavaara","Jääli"];
+          const baseUrl = "https://asiakaspalaute.s-kanava.fi/palaute/ketjut/smarket/aitiopaikka";
 
           (async () => {
-            const base = await fetch(
-              "https://asiakaspalaute.s-kanava.fi/palaute/ketjut/smarket/aitiopaikka",
-              { headers: { "user-agent": "Mozilla/5.0" } }
-            );
-            const html = await base.text();
-            const ids = [...new Set(
-              [...html.matchAll(/\/palaute\/toimipaikat\/(\d{9})/g)].map(m => m[1])
-            )];
+            const r = await fetch(baseUrl, {headers: {"user-agent":"Mozilla/5.0","accept-language":"fi-FI,fi;q=0.9"}});
+            const html = await r.text();
+            const cookie = (r.headers.get("set-cookie") || "").split(";")[0];
 
-            console.log("SKANAVA_ID_SCAN_BASE " + JSON.stringify({
-              status: base.status,
-              length: html.length,
-              ids: ids.length
-            }));
+            const rows = [...html.matchAll(/<a href="([^"]+)"[^>]*>\s*<span class="nimi">([^<]+)<\/span>\s*<span class="kunta">([^<]*)<\/span>/gi)]
+              .map(m => ({href:m[1].replace(/&amp;/g,"&"), name:m[2].trim(), city:m[3].trim()}));
 
-            const hits = Object.fromEntries(targets.map(t => [t[0], []]));
-            let checked = 0;
+            const selected = rows.filter(x => targets.some(t => x.name.toLowerCase().includes(t.toLowerCase())));
+            console.log("SKANAVA_WICKET_TARGET_LINKS " + JSON.stringify({status:r.status,totalRows:rows.length,selected}, null, 2));
 
-            for (let i = 0; i < ids.length; i += 20) {
-              const batch = ids.slice(i, i + 20);
-              const rs = await Promise.all(batch.map(async id => {
-                try {
-                  const r = await fetch(
-                    "https://asiakaspalaute.s-kanava.fi/palaute/toimipaikat/" + id,
-                    { headers: { "user-agent": "Mozilla/5.0" } }
-                  );
-                  return { id, status: r.status, body: await r.text() };
-                } catch (e) {
-                  return { id, status: 0, body: "", error: String(e) };
-                }
-              }));
-
-              for (const x of rs) {
-                checked++;
-                const n = norm(x.body);
-                for (const [key, name, pc, address] of targets) {
-                  const score =
-                    (n.includes(norm(name).trim()) ? 4 : 0) +
-                    (n.includes(norm(pc).trim()) ? 2 : 0) +
-                    (n.includes(norm(address).trim()) ? 3 : 0) +
-                    (n.includes(norm(key).trim()) ? 1 : 0);
-
-                  if (score >= 4) {
-                    hits[key].push({
-                      id: x.id,
-                      status: x.status,
-                      score,
-                      title: (x.body.match(/<title[^>]*>([^<]*)/i) || [])[1] || "",
-                      namePresent: n.includes(norm(name).trim()),
-                      postalPresent: n.includes(norm(pc).trim()),
-                      addressPresent: n.includes(norm(address).trim())
-                    });
-                  }
-                }
-              }
+            const results = [];
+            for (const x of selected) {
+              const clickUrl = new URL(x.href, baseUrl);
+              const rr = await fetch(clickUrl, {
+                headers: {"user-agent":"Mozilla/5.0","accept-language":"fi-FI,fi;q=0.9",cookie},
+                redirect:"manual"
+              });
+              const location = rr.headers.get("location");
+              const finalUrl = location ? new URL(location, clickUrl) : clickUrl;
+              const fr = await fetch(finalUrl, {
+                headers: {"user-agent":"Mozilla/5.0","accept-language":"fi-FI,fi;q=0.9",cookie},
+                redirect:"manual"
+              });
+              const body = await fr.text();
+              const detailName = (body.match(/<h3><span>([^<]+)<\/span><\/h3>/i) || [])[1] || null;
+              const ids = [...new Set(body.match(/\b\d{9}\b/g) || [])];
+              const hrefs = [...body.matchAll(/href=["']([^"']+)["']/gi)].map(m=>m[1]);
+              const srcs = [...body.matchAll(/src=["']([^"']+)["']/gi)].map(m=>m[1]);
+              results.push({
+                listName:x.name, city:x.city, clickStatus:rr.status, location,
+                detailStatus:fr.status, detailName, ids,
+                numericContexts:ids.slice(0,20).map(id => {
+                  const p=body.indexOf(id); return body.slice(Math.max(0,p-250),p+350);
+                }),
+                interestingLinks:[...hrefs,...srcs].filter(v=>/\d{6,}|organ|toimipa|store|location|unit/i.test(v)).slice(0,40),
+                bodyLength:body.length
+              });
             }
-
-            console.log("SKANAVA_NEW_STORE_RESOLVE " + JSON.stringify({ checked, hits }, null, 2));
-          })().catch(e => {
-            console.error(e);
-            process.exitCode = 1;
-          });
+            console.log("SKANAVA_WICKET_TARGET_RESULTS " + JSON.stringify(results, null, 2));
+          })().catch(e => { console.error(e); process.exitCode=1; });
           NODE
