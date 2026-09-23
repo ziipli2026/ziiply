@@ -648,3 +648,23 @@ jobs:
             console.log("TJEK_SOURCEMAP "+JSON.stringify({value:sm?.[1]||null}));
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
+
+
+      - name: Probe Tjek exact data endpoint
+        run: |
+          node <<'NODE'
+          const apiKey="152000596c6e45d9983eab0c14afebea";
+          const tests=[
+            ["businessStores",["stores",{"businessId":"d8ccs8","pagination":{"offset":0,"limit":3000}}]],
+            ["pansioSearch",["stores",{"searchTerm":"S-market Pansio","maxRadius":100000,"pagination":{"limit":10,"offset":0}}]],
+            ["kemiSearch",["stores",{"searchTerm":"S-market Kemi","maxRadius":100000,"pagination":{"limit":10,"offset":0}}]],
+            ["lukkarinsantaSearch",["stores",{"searchTerm":"S-market Lukkarinsanta","maxRadius":100000,"pagination":{"limit":10,"offset":0}}]]
+          ];
+          (async()=>{
+            for(const [name,key] of tests){
+              const r=await fetch("https://squid-api.tjek.com/",{method:"POST",headers:{"content-type":"application/json","x-api-key":apiKey},body:JSON.stringify({data:[key]})});
+              const body=await r.text();
+              console.log("TJEK_EXACT_DATA "+JSON.stringify({name,status:r.status,contentType:r.headers.get("content-type"),length:body.length,body:body.slice(0,12000)}));
+            }
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
