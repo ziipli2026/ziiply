@@ -1006,7 +1006,7 @@ jobs:
           })().catch(e => { console.error(e); process.exitCode=1; });
           NODE
 
-      - name: Probe OpenStreetMap element API near unresolved stores
+      - name: Inspect OSM full elements and history for unresolved S-markets
         timeout-minutes: 2
         run: |
           node <<'NODE'
@@ -1015,25 +1015,31 @@ jobs:
             ["Rautalampi",62.6225997,26.8308516],["Itikanristeys",62.794854,22.832184],
             ["Zeniitti",64.8920648,25.5834419],["Hiukkavaara",65.0103704,25.5877432],["Jääli",65.0921002,25.6903283]
           ];
-          const dist=(a,b,c,d)=>Math.hypot((a-c)*111,(b-d)*55);
+          const fetchText=async(url,ms=10000)=>{const ac=new AbortController(),t=setTimeout(()=>ac.abort(),ms);try{const r=await fetch(url,{headers:{"user-agent":"Ziiply diagnostics"},signal:ac.signal});return {status:r.status,body:await r.text()}}finally{clearTimeout(t)}};
           (async()=>{
             const out=[];
             for(const [name,lat,lon] of targets){
-              const d=.004;
-              const url=`https://api.openstreetmap.org/api/0.6/map?bbox=${lon-d},${lat-d},${lon+d},${lat+d}`;
-              const ac=new AbortController(),t=setTimeout(()=>ac.abort(),10000);
+              const d=.006,url=`https://api.openstreetmap.org/api/0.6/map?bbox=${lon-d},${lat-d},${lon+d},${lat+d}`;
               try{
-                const r=await fetch(url,{headers:{"user-agent":"Ziiply diagnostics"},signal:ac.signal});
-                const xml=await r.text();
-                const nodes=new Map();
-                for(const m of xml.matchAll(/<node[^>]*id="([^"]+)"[^>]*lat="([^"]+)"[^>]*lon="([^"]+)"[^>]*>([\s\S]*?)<\/node>/g)){
-                  const tags=Object.fromEntries([...m[4].matchAll(/<tag k="([^"]+)" v="([^"]*)"/g)].map(x=>[x[1],x[2].replace(/&amp;/g,"&")]));
-                  if(/s-market|sale/i.test(tags.name||"")||tags.shop==="supermarket") nodes.set(m[1],{type:"node",id:m[1],lat:+m[2],lon:+m[3],tags});
+                const m=await fetchText(url);
+                const elements=[];
+                for(const x of m.body.matchAll(/<(node|way|relation)\b[^>]*id="([^"]+)"[^>]*>([\s\S]*?)<\/\1>/g)){
+                  const tags=Object.fromEntries([...x[3].matchAll(/<tag k="([^"]+)" v="([^"]*)"/g)].map(z=>[z[1],z[2].replace(/&amp;/g,"&")]));
+                  const blob=JSON.stringify(tags);
+                  if(/s-market/i.test(blob)||(/supermarket/i.test(blob)&&new RegExp(name,"i").test(blob))) elements.push({type:x[1],id:x[2],tags});
                 }
-                const candidates=[...nodes.values()].map(e=>({...e,distanceKm:dist(lat,lon,e.lat,e.lon)})).sort((a,b)=>a.distanceKm-b.distanceKm).slice(0,10);
-                out.push({name,status:r.status,candidates});
-              }catch(e){out.push({name,error:String(e)})} finally{clearTimeout(t)}
+                const histories=[];
+                for(const e of elements.slice(0,5)){
+                  try{
+                    const h=await fetchText(`https://api.openstreetmap.org/api/0.6/${e.type}/${e.id}/history`);
+                    const ids=[...new Set(h.body.match(/\b\d{9}\b/g)||[])];
+                    const urls=[...new Set((h.body.match(/https?:[^"&< ]+/g)||[]).filter(u=>/s-kaupat/i.test(u)).map(u=>u.replace(/&amp;/g,"&")))];
+                    histories.push({type:e.type,id:e.id,status:h.status,ids,urls});
+                  }catch(err){histories.push({type:e.type,id:e.id,error:String(err)})}
+                }
+                out.push({name,status:m.status,elements,histories});
+              }catch(e){out.push({name,error:String(e)})}
             }
-            console.log("OSM_ELEMENT_API "+JSON.stringify(out,null,2));
+            console.log("OSM_FULL_HISTORY "+JSON.stringify(out,null,2));
           })();
           NODE
