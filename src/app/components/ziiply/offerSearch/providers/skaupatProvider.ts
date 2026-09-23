@@ -306,7 +306,14 @@ const DEFAULT_SKAUPAT_STORE_ID_V156 = "513971200";
 // - S-kaupat response uses products.from/limit/total, so request must send variables.from.
 // - Do not stop pagination based on mapped offer count because early pages can contain
 //   only normal-priced rows while later pages may contain campaign rows.
-const S_PRODUCT_SEARCH_STORE_ID_MAP_V181: Record<string, string> = {};
+// V218: Proven fallback for Ruoanhinta's internal Prisma id when the dynamic
+// S-kaupat resolvers are unavailable. 423 is Prisma Kaleva Tampere in
+// /api/store-search; S-kaupat RemoteFilteredProducts requires 517609418.
+// Keep this fallback after the dynamic name resolvers so existing stores retain
+// their current resolution path.
+const S_PRODUCT_SEARCH_STORE_ID_MAP_V181: Record<string, string> = {
+  "423": "517609418",
+};
 
 
 export type SKaupatOfferProviderOptionsV173 = {
@@ -869,6 +876,11 @@ async function getEffectiveSKaupatStoreIdV174(
 
   const mappedProductSearchStoreId = S_PRODUCT_SEARCH_STORE_ID_MAP_V181[raw];
   if (mappedProductSearchStoreId) {
+    console.warn("[GOSTA V218] using verified Ruoanhinta -> S-kaupat Prisma fallback", {
+      inputStoreId: raw,
+      storeName: storeName || null,
+      resolvedStoreId: mappedProductSearchStoreId,
+    });
     return mappedProductSearchStoreId;
   }
 
