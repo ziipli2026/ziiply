@@ -19,6 +19,8 @@ jobs:
             const tr=await fetch("https://etarjouslehdet.fi/",{method:"POST",headers:{"content-type":"application/json","x-api-key":"152000596c6e45d9983eab0c14afebea","user-agent":"Mozilla/5.0"},body:JSON.stringify({data:[token]})});
             const tj=await tr.json();
             function findStores(x){const seen=new Set(),out=[];function walk(v){if(!v||typeof v!=="object")return;if(Array.isArray(v)){for(const z of v)walk(z);return}if(typeof v.name==="string"&&(v.id||v.publicId)&&(v.address||v.streetAddress||v.city||v.coordinates||v.location)){const id=String(v.id||v.publicId);if(!seen.has(id)){seen.add(id);out.push(v)}}for(const z of Object.values(v))walk(z)}walk(x);return out.filter(v=>/^S-market\\b/i.test(v.name||""))}
+            console.log("TJEK_TOP_KEYS", Object.keys(tj||{}));
+            console.log("TJEK_BODY", JSON.stringify(tj).slice(0,1200));
             const stores=findStores(tj);
             const dr=await fetch("https://raw.githubusercontent.com/samuel-d-aya/geolytics_projects/1bf552f4924ce992ad15cb36bfc4e28ca75904bf/Finland/smarket_fi_scraper_/smarket_fi_scraper/output.csv");
             const rows=(await dr.text()).split(/\r?\n/).filter(Boolean).map(csv).map(x=>({address:x[0],name:x[7],pc:x[10],id:x[11]})).filter(x=>/^\d{9}$/.test(x.id||""));
