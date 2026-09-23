@@ -303,3 +303,20 @@ jobs:
             }
           })();
           NODE
+      - name: Prisma Kaleva real Ruoanhinta store payload
+        run: |
+          node <<'NODE'
+          const queries=["Prisma Kaleva Tampere","Prisma Kaleva","Kaleva","Tampere"];
+          (async()=>{
+            for(const search of queries){
+              const url="https://api.ruoanhinta.fi/api/stores?search="+encodeURIComponent(search);
+              try{
+                const r=await fetch(url,{headers:{Accept:"application/json"}});
+                const raw=await r.text(); let data; try{data=JSON.parse(raw)}catch{data=[]}
+                const rows=Array.isArray(data)?data:(data?.items||[]);
+                const kaleva=rows.filter(x=>/kaleva/i.test(String(x?.name||""))).map(x=>({id:x.id,name:x.name,chain:x.chain,type:x.type,city:x.city,postalCode:x.postalCode}));
+                console.log("PRISMA_KALEVA_RUOANHINTA "+JSON.stringify({search,status:r.status,total:rows.length,kaleva},null,2));
+              }catch(e){console.log("PRISMA_KALEVA_RUOANHINTA_ERROR "+JSON.stringify({search,error:String(e)}))}
+            }
+          })();
+          NODE
