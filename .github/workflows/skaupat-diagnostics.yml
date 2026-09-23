@@ -519,6 +519,13 @@ jobs:
           (async()=>{const u="https://dqei8yomz48ve.cloudfront.net/assets/entry-client-CjqEhrFN.js";const r=await fetch(u);const s=await r.text();const terms=['useData(\`stores\`','getData(\`stores\`','requestData(\`stores\`','\`stores\`,{','storeIds','businessIds','searchTerm','storeId'];for(const term of terms){let p=0,n=0;while((p=s.indexOf(term,p))>=0&&n<15){console.log("TJEK_STORE_RESOLVER "+JSON.stringify({term,index:p,context:s.slice(Math.max(0,p-1800),p+5000)}));p+=term.length;n++;}}})().catch(e=>{console.error(e);process.exitCode=1});
           NODE
 
+      - name: Probe Tjek store search SSR
+        shell: bash
+        run: |
+          node <<'NODE'
+          (async()=>{for(const q of ["S-market Pansio","S-market Kemi","S-market Lukkarinsanta"]){const u="https://etarjouslehdet.fi/haku?search="+encodeURIComponent(q);const r=await fetch(u,{headers:{"user-agent":"Mozilla/5.0"}});const h=await r.text();console.log("TJEK_SEARCH_SSR "+JSON.stringify({q,url:r.url,status:r.status,length:h.length,pansio:(h.match(/b6f2uwi/gi)||[]).length,appData:(h.match(/app-data/gi)||[]).length,stores:(h.match(/WyJzdG9yZXMi/gi)||[]).length}));for(const m of h.matchAll(/<app-data[^>]*data-key="([^"]+)"[^>]*data-status="success"[^>]*>([\\s\\S]*?)<\\/app-data>/g)){let key="";try{key=Buffer.from(m[1],"base64").toString("utf8")}catch{}if(/store|search/i.test(key))console.log("TJEK_SEARCH_DATA "+JSON.stringify({q,key,value:m[2].replace(/&quot;/g,'"').replace(/&amp;/g,'&').slice(0,7000)}));}}})().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
+
       - name: Probe S-kaupat GraphQL
         shell: bash
         run: |
