@@ -642,7 +642,7 @@ jobs:
                 p+=needle.length;
               }
             }
-            const urls=[...new Set((s.match(/https?:\\/\\/[^\\`"'\\s)]+/g)||[]))].filter(x=>/tjek|squid|api/i.test(x));
+            const urls=[...new Set(s.split(/["'`\\s]+/).filter(x=>x.startsWith("http://")||x.startsWith("https://"))) ].filter(x=>/tjek|squid|api/i.test(x));
             console.log("TJEK_URL_LITERALS "+JSON.stringify(urls.slice(0,200)));
             const sm=s.match(/sourceMappingURL=([^\\s*]+)/);
             console.log("TJEK_SOURCEMAP "+JSON.stringify({value:sm?.[1]||null}));
