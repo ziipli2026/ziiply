@@ -1006,36 +1006,34 @@ jobs:
           })().catch(e => { console.error(e); process.exitCode=1; });
           NODE
 
-      - name: Inspect indexed result contexts for seven unresolved S-markets
+      - name: Probe OpenStreetMap element API near unresolved stores
         timeout-minutes: 2
         run: |
           node <<'NODE'
           const targets=[
-            ["Varisto","Ulkoniitynkuja 4"],["Suutarila","Henrik Forsiuksen tie 39"],
-            ["Rautalampi","Kuopiontie 34"],["Itikanristeys","Verkatehtaankatu 13"],
-            ["Zeniitti","Huilaajanpolku 2"],["Hiukkavaara","Paraatikatu 7"],["Jääli","Jäälinraitti 1"]
+            ["Varisto",60.2648201,24.8112035],["Suutarila",60.2777555,25.0215524],
+            ["Rautalampi",62.6225997,26.8308516],["Itikanristeys",62.794854,22.832184],
+            ["Zeniitti",64.8920648,25.5834419],["Hiukkavaara",65.0103704,25.5877432],["Jääli",65.0921002,25.6903283]
           ];
+          const dist=(a,b,c,d)=>Math.hypot((a-c)*111,(b-d)*55);
           (async()=>{
             const out=[];
-            for(const [name,address] of targets){
-              const queries=[`"S-market ${name}" "s-kaupat.fi/myymala"`,`"${address}" "s-kaupat.fi/myymala"`];
-              const item={name,address,hits:[]};
-              for(const query of queries){
-                const u="https://www.google.com/search?num=20&q="+encodeURIComponent(query);
-                const ac=new AbortController(); const t=setTimeout(()=>ac.abort(),10000);
-                try{
-                  const r=await fetch(u,{headers:{"user-agent":"Mozilla/5.0"},signal:ac.signal});
-                  const body=await r.text();
-                  const plain=body.replace(/\\u003d/g,"=").replace(/\\u0026/g,"&").replace(/&amp;/g,"&");
-                  const contexts=[];
-                  for(const m of plain.matchAll(/s-kaupat\.fi/gi)){
-                    contexts.push(plain.slice(Math.max(0,m.index-500),Math.min(plain.length,m.index+1200)).replace(/<[^>]+>/g," ").replace(/\s+/g," ").slice(0,1600));
-                  }
-                  item.hits.push({query,status:r.status,ids:[...new Set(plain.match(/\b\d{9}\b/g)||[])],contexts:contexts.slice(0,6)});
-                }catch(e){item.hits.push({query,error:String(e)})} finally{clearTimeout(t)}
-              }
-              out.push(item);
+            for(const [name,lat,lon] of targets){
+              const d=.004;
+              const url=`https://api.openstreetmap.org/api/0.6/map?bbox=${lon-d},${lat-d},${lon+d},${lat+d}`;
+              const ac=new AbortController(),t=setTimeout(()=>ac.abort(),10000);
+              try{
+                const r=await fetch(url,{headers:{"user-agent":"Ziiply diagnostics"},signal:ac.signal});
+                const xml=await r.text();
+                const nodes=new Map();
+                for(const m of xml.matchAll(/<node[^>]*id="([^"]+)"[^>]*lat="([^"]+)"[^>]*lon="([^"]+)"[^>]*>([\s\S]*?)<\/node>/g)){
+                  const tags=Object.fromEntries([...m[4].matchAll(/<tag k="([^"]+)" v="([^"]*)"/g)].map(x=>[x[1],x[2].replace(/&amp;/g,"&")]));
+                  if(/s-market|sale/i.test(tags.name||"")||tags.shop==="supermarket") nodes.set(m[1],{type:"node",id:m[1],lat:+m[2],lon:+m[3],tags});
+                }
+                const candidates=[...nodes.values()].map(e=>({...e,distanceKm:dist(lat,lon,e.lat,e.lon)})).sort((a,b)=>a.distanceKm-b.distanceKm).slice(0,10);
+                out.push({name,status:r.status,candidates});
+              }catch(e){out.push({name,error:String(e)})} finally{clearTimeout(t)}
             }
-            console.log("SEVEN_STORE_INDEX_CONTEXTS "+JSON.stringify(out,null,2));
+            console.log("OSM_ELEMENT_API "+JSON.stringify(out,null,2));
           })();
           NODE
