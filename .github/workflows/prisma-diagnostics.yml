@@ -656,3 +656,36 @@ jobs:
             }
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
+
+
+      - name: Nationwide real Prisma ID audit V226
+        shell: bash
+        run: |
+          node <<'NODE'
+          (async()=>{
+            const rh=await fetch("https://api.ruoanhinta.fi/api/stores?search=Prisma",{headers:{"user-agent":"Mozilla/5.0"}});
+            const raw=await rh.json();
+            const rows=Array.isArray(raw)?raw:(raw?.stores||raw?.data||raw?.results||[]);
+            const prismas=rows.filter(x=>/prisma/i.test(String(x?.name||"")) && String(x?.country||"FI").toUpperCase()!=="EE");
+            const out=[];
+            for(const x of prismas){
+              const name=String(x.name||"").trim();
+              const ext=String(x.externalId||"").trim();
+              const q=encodeURIComponent(name);
+              let officialIds=[],status=null;
+              try{
+                const r=await fetch("https://www.s-kaupat.fi/myymalat/prisma?query="+q,{headers:{"user-agent":"Mozilla/5.0"}});
+                status=r.status; const t=await r.text();
+                officialIds=[...new Set([...t.matchAll(/\/myymala\/[^"'<>?]+\/(\d{5,})/g)].map(m=>m[1]))];
+              }catch(e){}
+              out.push({name,city:x.city||null,internalId:String(x.id||""),externalId:ext,officialIds,status,
+                externalIdLooksValid:/^\d{9}$/.test(ext),
+                officialMatch:officialIds.includes(ext)});
+              await new Promise(r=>setTimeout(r,250));
+            }
+            const suspicious=out.filter(x=>!x.externalIdLooksValid || (x.officialIds.length>0&&!x.officialMatch));
+            console.log("PRISMA_V226_SUMMARY "+JSON.stringify({count:out.length,suspiciousCount:suspicious.length}));
+            console.log("PRISMA_V226_SUSPICIOUS "+JSON.stringify(suspicious));
+            console.log("PRISMA_V226_ALL "+JSON.stringify(out));
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
