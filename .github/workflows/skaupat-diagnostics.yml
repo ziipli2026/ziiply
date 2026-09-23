@@ -1007,39 +1007,29 @@ jobs:
           NODE
 
       - name: Resolve new S-markets via OpenStreetMap nearby metadata
+        timeout-minutes: 2
         run: |
           node <<'NODE'
           const targets = [
-            ["Varisto",60.2648201,24.8112035],
-            ["Suutarila",60.2777555,25.0215524],
-            ["Leinola",61.493862,23.91459],
-            ["Rautalampi",62.6225997,26.8308516],
-            ["Itikanristeys",62.794854,22.832184],
-            ["Zeniitti",64.8920648,25.5834419],
-            ["Hiukkavaara",65.0103704,25.5877432],
-            ["Jääli",65.0921002,25.6903283]
+            ["Varisto",60.2648201,24.8112035],["Suutarila",60.2777555,25.0215524],
+            ["Leinola",61.493862,23.91459],["Rautalampi",62.6225997,26.8308516],
+            ["Itikanristeys",62.794854,22.832184],["Zeniitti",64.8920648,25.5834419],
+            ["Hiukkavaara",65.0103704,25.5877432],["Jääli",65.0921002,25.6903283]
           ];
-          const endpoints=["https://overpass-api.de/api/interpreter","https://overpass.kumi.systems/api/interpreter"];
+          const ep="https://overpass.kumi.systems/api/interpreter";
+          const ac=new AbortController(); const timer=setTimeout(()=>ac.abort(),45000);
           (async()=>{
-            const out=[];
-            for(const [name,lat,lon] of targets){
-              const q=`[out:json][timeout:25];(nwr(around:250,${lat},${lon})["shop"="supermarket"];nwr(around:250,${lat},${lon})["name"~"S-market|Sale",i];);out center tags;`;
-              let data=null, status=0, endpoint=null, error=null;
-              for(const ep of endpoints){
-                try{
-                  const r=await fetch(ep,{method:"POST",headers:{"content-type":"application/x-www-form-urlencoded","user-agent":"Ziiply diagnostics"},body:"data="+encodeURIComponent(q)});
-                  status=r.status; endpoint=ep;
-                  if(r.ok){data=await r.json();break;}
-                  error=(await r.text()).slice(0,300);
-                }catch(e){error=String(e);}
-              }
-              const elements=(data?.elements||[]).map(e=>({
-                type:e.type,id:e.id,lat:e.lat??e.center?.lat,lon:e.lon??e.center?.lon,
-                tags:e.tags||{},
-                skaupatIds:[...new Set(JSON.stringify(e.tags||{}).match(/\b\d{9}\b/g)||[])]
-              }));
-              out.push({name,status,endpoint,error,elements});
-            }
-            console.log("OSM_NEW_STORE_METADATA "+JSON.stringify(out,null,2));
-          })().catch(e=>{console.error(e);process.exitCode=1});
+            const clauses=targets.map(([,lat,lon])=>`nwr(around:300,${lat},${lon})["shop"="supermarket"];`).join("");
+            const q=`[out:json][timeout:20];(${clauses});out center tags;`;
+            let status=0,data=null,error=null;
+            try{
+              const r=await fetch(ep,{method:"POST",headers:{"content-type":"application/x-www-form-urlencoded","user-agent":"Ziiply diagnostics"},body:"data="+encodeURIComponent(q),signal:ac.signal});
+              status=r.status;
+              if(r.ok)data=await r.json(); else error=(await r.text()).slice(0,500);
+            }catch(e){error=String(e);}
+            clearTimeout(timer);
+            const els=(data?.elements||[]).map(e=>({type:e.type,id:e.id,lat:e.lat??e.center?.lat,lon:e.lon??e.center?.lon,tags:e.tags||{},ids:[...new Set(JSON.stringify(e.tags||{}).match(/\b\d{9}\b/g)||[])]}));
+            const out=targets.map(([name,lat,lon])=>({name,matches:els.map(e=>({...e,d:Math.hypot((e.lat-lat)*111,(e.lon-lon)*55)})).filter(e=>e.d<0.5).sort((a,b)=>a.d-b.d).slice(0,5)}));
+            console.log("OSM_NEW_STORE_METADATA "+JSON.stringify({status,error,total:els.length,out},null,2));
+          })().catch(e=>{clearTimeout(timer);console.error(e);process.exitCode=1});
           NODE
