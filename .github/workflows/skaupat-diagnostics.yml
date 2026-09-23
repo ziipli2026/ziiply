@@ -1006,26 +1006,27 @@ jobs:
           })().catch(e => { console.error(e); process.exitCode=1; });
           NODE
 
-      - name: Nominatim reverse exact Tjek coordinates for unresolved stores
+      - name: Validate four newly resolved S-kaupat IDs
         timeout-minutes: 2
         run: |
           node <<'NODE'
           const targets=[
-            ["Varisto",60.2648201,24.8112035],["Suutarila",60.2777555,25.0215524],
-            ["Rautalampi",62.6225997,26.8308516],["Zeniitti",64.8920648,25.5834419]
+            ["Varisto","726783952","Ulkoniitynkuja 4"],
+            ["Suutarila","726666563","Henrik Forsiuksen tie 39"],
+            ["Rautalampi","726661262","Kuopiontie 34"],
+            ["Zeniitti","726728751","Huilaajanpolku 2"]
           ];
           (async()=>{
             const out=[];
-            for(const [name,lat,lon] of targets){
-              const u=`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1&extratags=1&namedetails=1`;
+            for(const [name,id,address] of targets){
+              const u=`https://www.s-kaupat.fi/myymala/s-market-${name.toLowerCase()}/${id}`;
               const ac=new AbortController(),t=setTimeout(()=>ac.abort(),12000);
               try{
-                const r=await fetch(u,{headers:{"user-agent":"Ziiply diagnostics/1.0"},signal:ac.signal});
-                const x=await r.json();
-                out.push({name,status:r.status,osm_type:x.osm_type,osm_id:x.osm_id,display_name:x.display_name,lat:x.lat,lon:x.lon,extratags:x.extratags,namedetails:x.namedetails,address:x.address});
-              }catch(e){out.push({name,error:String(e)})}finally{clearTimeout(t)}
-              await new Promise(r=>setTimeout(r,1100));
+                const r=await fetch(u,{headers:{"user-agent":"Mozilla/5.0"},signal:ac.signal,redirect:"follow"});
+                const body=await r.text();
+                out.push({name,id,status:r.status,finalUrl:r.url,hasName:body.toLowerCase().includes(("s-market "+name).toLowerCase()),hasAddress:body.toLowerCase().includes(address.toLowerCase()),length:body.length});
+              }catch(e){out.push({name,id,error:String(e)})}finally{clearTimeout(t)}
             }
-            console.log("NOMINATIM_REVERSE_UNRESOLVED "+JSON.stringify(out,null,2));
+            console.log("FOUR_ID_VALIDATION "+JSON.stringify(out,null,2));
           })();
           NODE
