@@ -427,3 +427,17 @@ jobs:
             console.log("PRISMA_OULU_RUOANHINTA",JSON.stringify({target,prismas:matches},null,2));
           } main().catch(e=>{console.error(e);process.exit(1)});
           NODE
+
+
+      - name: Diagnose Prisma Raksila id
+        shell: bash
+        run: |
+          node <<'NODE'
+          async function main(){
+            const rr=await fetch("https://api.ruoanhinta.fi/api/stores?search=Oulu");
+            const rows=await rr.json();
+            const list=Array.isArray(rows)?rows:(rows.items||rows.stores||rows.results||rows.data||[]);
+            const target=list.find(x=>String(x.name||"").toLowerCase().includes("prisma raksila"))||null;
+            console.log("PRISMA_RAKSILA_RUOANHINTA",JSON.stringify(target,null,2));
+          } main().catch(e=>{console.error(e);process.exit(1)});
+          NODE
