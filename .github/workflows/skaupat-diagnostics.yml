@@ -14,9 +14,9 @@ jobs:
           function csv(line){let a=[],s="",q=false;for(let i=0;i<line.length;i++){let ch=line[i];if(ch=='"'){if(q&&line[i+1]=='"'){s+='"';i++}else q=!q}else if(ch==','&&!q){a.push(s);s=""}else s+=ch}a.push(s);return a}
           (async()=>{
             const ref=["stores",{businessId:"d8ccs8",pagination:{offset:0,limit:3000}}];
-            const sort=o=>Array.isArray(o)?o.map(sort):(o&&typeof o==="object"?Object.fromEntries(Object.keys(o).sort().map(k=>[k,sort(o[k])])):o);
-            const token=Buffer.from(JSON.stringify(sort(ref))).toString("base64");
-            const tr=await fetch("https://squid-api.tjek.com/v2/stores?reference="+encodeURIComponent(token),{headers:{"X-Api-Key":"152000596c6e45d9983eab0c14afebea"}});
+            function stable(v){if(Array.isArray(v))return v.map(stable);if(v&&typeof v==="object")return Object.fromEntries(Object.keys(v).sort().map(k=>[k,stable(v[k])]));return v}
+            const token=Buffer.from(JSON.stringify(stable(ref)),"utf8").toString("base64");
+            const tr=await fetch("https://squid-api.tjek.com/v2/stores?reference="+encodeURIComponent(token),{headers:{"X-Api-Key":"152000596c6e45d9983eab0c14afebea","User-Agent":"Ziiply-diagnostic/1.0"}});
             const tj=await tr.json(), stores=Array.isArray(tj)?tj:(tj.data||tj.stores||[]);
             const dr=await fetch("https://raw.githubusercontent.com/samuel-d-aya/geolytics_projects/1bf552f4924ce992ad15cb36bfc4e28ca75904bf/Finland/smarket_fi_scraper_/smarket_fi_scraper/output.csv");
             const rows=(await dr.text()).split(/\r?\n/).filter(Boolean).map(csv).map(x=>({address:x[0],name:x[7],pc:x[10],id:x[11]})).filter(x=>/^\d{9}$/.test(x.id||""));
