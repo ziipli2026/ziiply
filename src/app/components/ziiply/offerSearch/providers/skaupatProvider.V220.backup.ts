@@ -1,0 +1,2327 @@
+// Revision: V217 — old Prisma resolver path primary; remotePickupSlots fallback
+// Date: 2026-09-23
+// - Official store search + directory resolver run first.
+// - remotePickupSlots V215/V216 is fallback only.
+// - No offer-fetch, pagination, product mapping, S-local provider, or other app logic changed.
+
+// Revision: V216 — multi-query geocode + pickup resolver diagnostics; Myyrmanni-safe
+// Date: 2026-09-20
+// - Tries both full selected store name and chain-stripped place name in Nominatim.
+// - Keeps user GPS and stable /api/store-search untouched.
+// - Exposes V216 resolver state in existing KOPIOI DEBUG zero-result item.
+// - No per-store hardcoded S-kaupat IDs.
+//
+// Revision: V215 — dynamic S-kaupat store ID via remotePickupSlots; no user-GPS dependency
+// SKAUPAT_PROVIDER_V214_OFFICIAL_RESOLVER_DIAGNOSTIC
+// Revision: V214-OFFICIAL-RESOLVER-DIAGNOSTIC
+// Date: 2026-09-20
+//
+// Diagnostic only. No location files, store-search route, category logic or offer fetch behavior changed.
+// Instruments the provider-local official S-kaupat Prisma resolver directly.
+// This isolates the exact resolver that runs before the directory fallback.
+//
+// SKAUPAT_PROVIDER_V212_FETCH_ERROR_TO_MOBILE
+// Revision: V212-FETCH-ERROR-TO-MOBILE
+// Date: 2026-09-20
+//
+// Diagnostic only. Search/resolution behavior unchanged from V211.
+// Adds directoryFetchError from Store Directory V5 to mobile KOPIOI DEBUG.
+//
+// SKAUPAT_PROVIDER_V211_V4_TYPE_COMPATIBLE_DIAGNOSTIC
+// Revision: V211-V4-TYPE-COMPATIBLE-DIAGNOSTIC
+// Date: 2026-09-20
+//
+// Build fix for V210 only. Search/resolution behavior unchanged.
+// V4 response-diagnostic fields are read through a local optional structural type,
+// so this provider compiles even if TypeScript sees the older V3 return type.
+// Runtime values still come from getLastPrismaDirectoryDiagnosticV3().
+//
+// SKAUPAT_PROVIDER_V210_RESPONSE_DIAGNOSTIC_TO_MOBILE
+// Revision: V210-RESPONSE-DIAGNOSTIC-TO-MOBILE
+// Date: 2026-09-19
+//
+// Diagnostic only. Search/resolution behavior unchanged from V209.
+// Adds actual S-kaupat first-response metadata/sample to mobile KOPIOI DEBUG.
+//
+// SKAUPAT_PROVIDER_V209_DIRECTORY_DIAGNOSTIC_TO_MOBILE
+// Revision: V209-DIRECTORY-DIAGNOSTIC-TO-MOBILE
+// Date: 2026-09-19
+//
+// Diagnostic only. Resolution/search behavior is unchanged from V208.
+// Adds directory crawl state to the existing zero-result mobile debug item.
+//
+// ============================================================================
+// SKAUPAT_PROVIDER_V208_QUERY_PLUS_LOOSE_URL_RESOLVER
+// Revision: V208-QUERY-PLUS-LOOSE-URL-RESOLVER
+// Date: 2026-09-19
+//
+// V208 proven correction:
+// - V207 fetched only /myymalat/prisma first page. S-kaupat paginates Prisma stores
+//   (24 results on the first page), so Prisma Varkaus is not present there.
+// - Restore the official ?query=<storeName> server-side filtering from V198.
+// - Keep V207's loose /myymala/<slug>/<id> parser, which does not require a
+//   specific <a>...</a> HTML shape.
+// - No store-specific hardcoded IDs.
+// - V206/V207 zero-result diagnostics remain enabled.
+//
+// Diagnostic/fix:
+// - Replaces the brittle <a>...</a> parser used by V198.
+// - Resolves the official S-kaupat public store id from any /myymala/<slug>/<id>
+//   occurrence in the Prisma listing HTML, including Next/JSON payloads.
+// - Matches primarily by the normalized slug derived from the selected store name.
+// - Does NOT add any per-store hardcoded id mapping.
+// - Keeps V206 zero-result diagnostics so the resulting RemoteFilteredProducts
+//   request/response can be verified before making any further assumption.
+// Date: 2026-09-19
+//
+// Korjaus:
+// - Poistaa Prisma Hyvinkää -kovakoodauksen kokonaan.
+// - Valittu S-kauppa ratkaistaan aina ensin kaupan nimestä S-kaupat.fi:n
+//   virallisesta myymälähausta / directory-resolveristä.
+// - Ziiplyn/Ruoanhinta.fi:n storeId:tä ei tulkita ensisijaisesti S-kaupat-ID:ksi.
+// - Callerilta tullut pitkä numeerinen ID on vasta viimeinen fallback.
+// - Säilyttää V203:n pagination-tracen ja muun tarjoushakulogikan ennallaan.
+// ============================================================================
+
+// ============================================================================
+// SKAUPAT_PROVIDER_V203_PAGINATION_TRACE
+// Revision: V203
+// Date: 2026-09-19
+//
+// V203 DIAGNOSTIC:
+// - Pohja: V202; V201 store-name -> S-kaupat storeId -korjaus säilyy.
+// - DISCOUNTED limit/pageStep = 48 ja current local date säilyvät.
+// - POISTAA V200:n keinotekoiset PRISMA HTTP OK/FAILED -tuoterivit kokonaan.
+// - Lisää oikeaan ensimmäiseen tulokseen debugPaginationV203-kentän.
+// - Kenttä kertoo jokaiselta sivulta:
+//   requestedFrom, responseFrom, raw, mapped, uniqueEAN, total, limit,
+//   sekä lopuksi flattened/uniqueBeforeFinal/returned.
+// - Ei muuta mapperia, dedupe-avainta, kategorioita eikä UI-debug-paneelia.
+// ============================================================================
+
+// ============================================================================
+// SKAUPAT_PROVIDER_V201_RESTORE_WORKING_NAME_MAP
+// Revision: V201-RESTORE-WORKING-NAME-MAP
+// Date: 2026-09-19
+//
+// PALAUTUS VANHAAN TOIMIVAAN MALLIIN:
+// - Göstan S-kaupat-ID ratkaistaan valitun Prisman NIMEN perusteella ennen
+//   Ruoanhinta/Ziiply-lyhyt-ID:n käsittelyä.
+// - Tämä vastaa vanhan toimivan V181-mallin rakennetta:
+//   VERIFIED_*_BY_NAME -> S-kaupat storeId.
+// - Prisma Hyvinkää: Ziiply/Ruoanhinta id 292 EI mene S-kaupat-hakuun.
+// - Prisma Hyvinkää -> S-kaupat id 634976534.
+// - V200 näkyvä HTTP-diagnostiikka säilyy, jotta seuraava vaihe näkyy heti.
+// - Ei muutoksia page.tsx-, core-, route-, sources-, location- tai K-logiikkaan.
+// ============================================================================
+
+// ============================================================================
+// SKAUPAT_PROVIDER_V200_VISIBLE_DIAGNOSTIC_FIXED
+// Revision: V200-VISIBLE-DIAGNOSTIC-FIXED
+// Date: 2026-09-19
+//
+// - V198:n dynaaminen S-kaupat store resolver säilyy.
+// - Lisää näkyvän mobiilidiagnostiikan turvallisesti vain V170 outer fetchiin.
+// - Ei muuta RemoteFilteredProducts requestin syntaksia.
+// - Näyttää: received store, resolved store, HTTP attempted/result,
+//   raw/mapped/total tai resolver failure.
+// ============================================================================
+
+// ============================================================================
+// SKAUPAT_PROVIDER_V198_DYNAMIC_SKAUPAT_STORE_RESOLVER
+// Revision: V198-DYNAMIC-SKAUPAT-STORE-RESOLVER
+// Date: 2026-09-19
+//
+// KORJAUS:
+// - Ziiplyn lyhyt sisäinen kauppa-ID (esim. 292) ei ole S-kaupat
+//   RemoteFilteredProducts -storeId.
+// - Kun valitun Prisman ID ei ole kelvollinen S-kaupat-ID, provider ratkaisee
+//   oikean ID:n dynaamisesti S-kaupat.fi:n Prisma-myymälähausta kaupan nimellä.
+// - Ei Prisma-/kauppakohtaisia kovakoodattuja ID-mäppäyksiä.
+// - Vanha directory-resolver säilyy fallbackina.
+// - Ei muutoksia page.tsx-, core-, route-, sources-, location-, K- tai
+//   kategorialogiikkaan.
+// ============================================================================
+
+// ============================================================================
+// SKAUPAT_PROVIDER_V194_MULTI_SELECTED_S_STORES
+// Revision: V194
+// Date: 2026-07-05
+//
+// Korjaus Göstan S-ryhmän ketjun sisäiseen tarjoushakuun:
+// - Provider tukee useampaa valittua S-kauppaa samalla kutsulla.
+// - Jokaisen tarjouksen storeLabel/storeName asetetaan oikeaksi valitun kaupan nimeksi
+//   (Prisma, S-market, Alepa jne.), ei geneeriseksi "S-kaupat".
+// - Ei kovakoodattua Prisma-fallbackia: jos valittua S-kauppaa ei saada ratkaistua, palautetaan tyhjä.
+// ============================================================================
+
+// ============================================================================
+// SKAUPAT_PROVIDER_V193_GOSTA_S_CLOUD_IMAGE_TEMPLATE_FIX
+// Revision: V193
+// Date: 2026-07-04
+//
+// Muutokset:
+// - Korjaa Göstan S-kaupat-tuotekuvat käyttämään samaa S-cloud URL-muotoa
+//   kuin s-kaupat.fi itse käyttää.
+// - urlTemplate-muunnos käyttää nyt modifieria w360h360@_q75 ja webp-päätettä.
+// - Poistettu V192:n virheellinen Cloudinary-tyylinen /image/upload/-muunnos.
+// - Ei muuta kauppavalintaa, tarjoushakua, GPS:ää, skanneria, äänihakua eikä K-ruokaa.
+// ============================================================================
+
+// ============================================================================
+// SKAUPAT_PROVIDER_V192_GOSTA_S_CLOUD_IMAGE_UPLOAD_URL_FIX
+// Revision: V192
+// Date: 2026-07-04
+//
+// Muutokset V190 -> V192:
+// - Korjaa S-kaupat-kuvien cdn.s-cloud.fi URL-muodon.
+// - Jos urlTemplate muodostaa muodon /v1/<modifiers>/assets/..., lisätään puuttuva /image/upload/.
+// - Esim. https://cdn.s-cloud.fi/v1/w_400,h_400,c_fit/assets/...
+//   -> https://cdn.s-cloud.fi/v1/image/upload/w_400,h_400,c_fit/assets/...
+// - Palauttaa tuotteen nimen normaaliksi: DBG-tekstiä ei enää lisätä title-kenttään.
+// - Palauttaa benefitTextin normaaliksi: DBG-tekstiä ei enää lisätä kampanjatekstiin.
+// - Jättää debugImage*-kentät tarjousobjektiin, jotta iPhonen debug-paneeli voi näyttää src:n.
+// - Ei muuta kauppavalintaa, GPS:ää, skanneria, äänihakua eikä K-ruoka-provideria.
+// ============================================================================
+
+// ============================================================================
+// SKAUPAT_PROVIDER_V190_GOSTA_VISIBLE_IMAGE_URL_DEBUG
+// Revision: V190
+// Date: 2026-07-04
+//
+// DEBUG ONLY - näkyy iPhonessa tarjouskortissa ilman selainkonsolia.
+//
+// Muutokset V189 -> V190:
+// - Debug tuodaan myös tuotteen nimen alkuun, koska benefitText-rivi katkeaa iPhonessa.
+// - Näyttää lyhyesti: hostin, URL:n alun, raakakentän alun, lähdekentän ja placeholder-tilan.
+// - Ei muuta hakulogiikkaa, kauppavalintaa, GPS:ää, skanneria, äänihakua eikä K-ruoka-provideria.
+// - Tarkoitus: nähdään iPhonessa, onko S-kaupat urlTemplate muuttunut selaimelle kelvottomaksi URL:ksi.
+//
+// ============================================================================
+
+// ============================================================================
+// SKAUPAT_PROVIDER_V189_GOSTA_VISIBLE_IMAGE_DEBUG_V2
+// Revision: V189
+// Date: 2026-07-04
+//
+// DEBUG ONLY - näkyy iPhonessa tarjouskortin tekstissä.
+//
+// Muutokset:
+// - Ei muuteta Göstan hakulogiikkaa, kauppavalintaa, GPS:ää, skanneria tai äänihakua.
+// - Lisää S-kaupat-tarjouksiin lyhyen näkyvän kuvadebug-tekstin benefitText-kentän alkuun.
+// - Debug kertoo kuvan tilan: IMG OK/NO, mistä kentästä kuva löytyi, host, pituus, placeholderit ja tiedostopääte.
+// - Lisää myös debugImageV189/debugImageUrlV189/debugImageSourceV189-kentät tarjousobjektiin myöhempää UI-debug-paneelia varten.
+// - Tarkoitus: iPhonella näkee ilman Consolea, onko providerilla oikea kuva-URL vai hajoaako kuva vasta kortissa/selaimessa.
+//
+// ============================================================================
+
+// ============================================================================
+// SKAUPAT_PROVIDER_V185_GOSTA_REAL_OFFER_IMAGES
+// Revision: V185
+// Date: 2026-07-04
+//
+// Muutokset:
+// - Korjaa Göstan S-kaupat-tarjousten tuotekuvat.
+// - getImageUrl lukee nyt kuvia sekä product- että listItem-tasolta.
+// - Tukee S-kaupat-kuvien urlTemplate-, url-, imageUrl- ja pictureUrl-rakenteita.
+// - Rakentaa S-cloud urlTemplate-kuvan turvallisemmin useilla placeholder-muodoilla.
+// - Palauttaa tarjoustulokseen varmuuden vuoksi imageUrl-, image- ja pictureUrl-kentät.
+// - Ei muutoksia kauppavalintaan, GPS:ään, skanneriin, äänihakuun eikä K-ruoka-provideriin.
+//
+// ============================================================================
+
+// ============================================================================
+// SKAUPAT_PROVIDER_V184_FROM_PAGINATION_FOR_OFFERS
+// Revision: V184
+// Date: 2026-06-06
+//
+// Fix:
+// - Fixes real S-kaupat product list field:
+////   data.store.products.productListItems[]
+//// - V153 proved rootKeys include productListItems, not products.
+//// - Keeps visible diagnostics temporarily.
+//   data.store.products.products[]
+//   data.store.products.structuredFacets[]
+// - Reads category facet from structuredFacets where key === "category"
+//   and values are in objectValue[].
+// - Reads product data from each ProductListItem.product.
+// - Reads category path from product.hierarchyPath[].
+// - Keeps fetchSKaupatOffers(query, config) signature unchanged.
+//
+// Install path:
+// src/app/components/ziiply/offerSearch/providers/skaupatProvider.ts
+// ============================================================================
+//
+// V160 fix:
+// - Gösta is an offer search: normal-priced shelf products are filtered out.
+// - Includes only products with campaign/offer signal:
+//   campaignPrice, lowest30DayPrice, campaignPriceValidUntil, campaign label,
+//   or currentPrice < regularPrice.
+// - Sponsored/ad-labelled rows remain filtered out.
+// - S-kaupat prices remain in euros; no cents conversion here.
+//
+
+// V171 Gösta master dataset:
+// - Special query __ziiply_all_offers__ no longer uses empty S-kaupat queryString; direct calls fall back to broad safe seeds.
+// - Paginates more 48-item pages for master mode, while keeping normal searches smaller.
+// - Category chips can then filter this master dataset locally without new seed searches.
+//
+// V170 safe pagination:
+// V173 store context:
+// - fetchSKaupatOffers accepts an optional storeId/storeName context.
+// - RemoteFilteredProducts uses the selected S-store id instead of the hardcoded default.
+// - Product storeId validation also uses that selected store id.
+//
+// V170 safe pagination:
+// - Keeps the original working S-kaupat RemoteFilteredProducts limit at 48.
+// - Fetches several 48-item pages with offset/page variables instead of raising limit.
+// - If S-kaupat ignores offset/page variables, dedupe keeps the result stable.
+// - Does not change storeId behavior yet.
+//
+// ============================================================================
+
+import type {
+  ZiiplyOfferSearchResult,
+  ZiiplyOfferSearchSourceConfig,
+} from "../types";
+import {
+  resolveSKaupatStoreIdFromDirectoryV1,
+  getLastPrismaDirectoryDiagnosticV3,
+} from "../../location/ziiplyStoreDirectory";
+
+type UnknownRecord = Record<string, unknown>;
+
+const SKAUPAT_REMOTE_FILTERED_PRODUCTS_HASH_V156 =
+  "44ca017dddccfe49e787b483f471f26217adca807f8c71101d11e881dab9e480";
+
+const DEFAULT_SKAUPAT_STORE_ID_V156 = "513971200";
+
+// V181: S-kaupat public /myymala URL id is not always the same id that
+// RemoteFilteredProducts uses for product/pricing search.
+// Verified from S-kaupat Network request:
+// V195: Ei yhtään kovaa kauppakohtaista id-mäppäystä. StoreId tulee vain käyttäjän valinnasta tai storeName-resolveristä.
+//
+// V184:
+// - Fixes pagination for S-kaupat RemoteFilteredProducts.
+// - S-kaupat response uses products.from/limit/total, so request must send variables.from.
+// - Do not stop pagination based on mapped offer count because early pages can contain
+//   only normal-priced rows while later pages may contain campaign rows.
+// V218: Proven fallback for Ruoanhinta's internal Prisma id when the dynamic
+// S-kaupat resolvers are unavailable. 423 is Prisma Kaleva Tampere in
+// /api/store-search; S-kaupat RemoteFilteredProducts requires 517609418.
+// Keep this fallback after the dynamic name resolvers so existing stores retain
+// their current resolution path.
+const S_PRODUCT_SEARCH_STORE_ID_MAP_V181: Record<string, string> = {
+  "423": "517609418",
+};
+
+
+export type SKaupatOfferProviderOptionsV173 = {
+  storeId?: string | number | null;
+  storeName?: string | null;
+  sStoreId?: string | number | null;
+  sStoreName?: string | null;
+  storeIds?: Array<string | number | null | undefined> | null;
+  storeNames?: Array<string | null | undefined> | null;
+  sStoreIds?: Array<string | number | null | undefined> | null;
+  sStoreNames?: Array<string | null | undefined> | null;
+  stores?: Array<{
+    storeId?: string | number | null;
+    storeName?: string | null;
+    sStoreId?: string | number | null;
+    sStoreName?: string | null;
+  }> | null;
+};
+
+type ResolvedSKaupatStoreV194 = {
+  storeId: string;
+  storeName: string;
+};
+
+function splitSKaupatMultiValueV194(value: unknown): string[] {
+  const normalized = String(value ?? "")
+    .replaceAll("\r", "")
+    .replaceAll("\n", "||")
+    .replaceAll(";", "||");
+
+  return normalized
+    .split("||")
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
+function normalizeSKaupatValueListV194(arrayValue: unknown, fallbackValue: unknown): string[] {
+  const fromArray = Array.isArray(arrayValue)
+    ? arrayValue.map((value) => String(value ?? "").trim()).filter(Boolean)
+    : [];
+
+  return Array.from(new Set([...fromArray, ...splitSKaupatMultiValueV194(fallbackValue)]));
+}
+
+
+function normalizeSKaupatStoreNameForMatchV198(value: unknown): string {
+  return String(value ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/&amp;/g, "&")
+    .replace(/&#x27;|&#39;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/[^a-z0-9åäö]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function decodeBasicHtmlEntitiesV198(value: string): string {
+  return value
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#x27;|&#39;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">");
+}
+
+const sKaupatDynamicStoreIdCacheV198 = new Map<string, string | null>();
+
+type SKaupatOfficialResolverDiagnosticV214 = {
+  requestedStoreName: string;
+  requestedUrl: string;
+  httpStatus: number | null;
+  finalUrl: string;
+  contentType: string;
+  htmlLength: number;
+  candidateCount: number;
+  bestId: string;
+  bestScore: number;
+  fetchError: string;
+};
+
+let lastOfficialResolverDiagnosticV214: SKaupatOfficialResolverDiagnosticV214 | null = null;
+
+async function resolveSKaupatStoreIdFromOfficialStoreSearchV198(
+  storeName: string,
+): Promise<string | null> {
+  const cleanStoreName = String(storeName || "").trim();
+  if (!cleanStoreName) return null;
+
+  const normalizedWanted = normalizeSKaupatStoreNameForMatchV198(cleanStoreName);
+  if (!normalizedWanted) return null;
+
+  // V214: do not let an earlier cached resolver miss hide the actual request diagnostic.
+  // Successful IDs may still use the cache; cached null is retried.
+  if (sKaupatDynamicStoreIdCacheV198.has(normalizedWanted)) {
+    const cachedV214 = sKaupatDynamicStoreIdCacheV198.get(normalizedWanted) ?? null;
+    if (cachedV214) return cachedV214;
+  }
+
+  lastOfficialResolverDiagnosticV214 = {
+    requestedStoreName: cleanStoreName,
+    requestedUrl: "",
+    httpStatus: null,
+    finalUrl: "",
+    contentType: "",
+    htmlLength: 0,
+    candidateCount: 0,
+    bestId: "",
+    bestScore: -1,
+    fetchError: "",
+  };
+
+  try {
+    // V208: use S-kaupat's official server-side store-name query so the selected
+    // store is present even when it is outside the first 24 Prisma results. Match
+    // from every official /myymala/<slug>/<id> occurrence in the returned HTML
+    // or embedded Next/JSON payload.
+    const url =
+      `https://www.s-kaupat.fi/myymalat/prisma?query=${encodeURIComponent(cleanStoreName)}`;
+
+    if (lastOfficialResolverDiagnosticV214) {
+      lastOfficialResolverDiagnosticV214.requestedUrl = url;
+    }
+
+    const response = await fetch(url, {
+      method: "GET",
+      cache: "no-store",
+      headers: {
+        accept: "text/html,application/xhtml+xml",
+        "accept-language": "fi",
+        "user-agent":
+          "Mozilla/5.0 (compatible; Ziiply/1.0; +https://ziiply.fi)",
+      },
+    });
+
+    if (lastOfficialResolverDiagnosticV214) {
+      lastOfficialResolverDiagnosticV214.httpStatus = response.status;
+      lastOfficialResolverDiagnosticV214.finalUrl = response.url || url;
+      lastOfficialResolverDiagnosticV214.contentType = response.headers.get("content-type") || "";
+    }
+
+    if (!response.ok) {
+      console.warn("[GOSTA V208] S-kaupat Prisma directory fetch failed", {
+        storeName: cleanStoreName,
+        status: response.status,
+      });
+      sKaupatDynamicStoreIdCacheV198.set(normalizedWanted, null);
+      return null;
+    }
+
+    const html = await response.text();
+    if (lastOfficialResolverDiagnosticV214) {
+      lastOfficialResolverDiagnosticV214.htmlLength = html.length;
+    }
+
+    const wantedSlug = normalizedWanted
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+
+    // Works with normal hrefs as well as escaped URLs inside Next/JSON data.
+    const storeUrlRegex =
+      /\/myymala\/([a-z0-9%._~-]+)\/(\d{5,})/gi;
+
+    let bestId: string | null = null;
+    let bestScore = -1;
+    let match: RegExpExecArray | null;
+    let candidateCount = 0;
+
+    while ((match = storeUrlRegex.exec(html)) !== null) {
+      candidateCount += 1;
+
+      const rawSlug = decodeBasicHtmlEntitiesV198(
+        decodeURIComponent(String(match[1] || "")),
+      );
+      const candidateId = String(match[2] || "").trim();
+
+      const normalizedSlug = normalizeSKaupatStoreNameForMatchV198(
+        rawSlug.replace(/-/g, " "),
+      );
+      const candidateSlug = normalizedSlug
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+
+      let score = 0;
+      if (candidateSlug === wantedSlug) score = 100;
+      else if (normalizedSlug === normalizedWanted) score = 100;
+      else if (normalizedSlug.includes(normalizedWanted)) score = 90;
+      else if (normalizedWanted.includes(normalizedSlug) && normalizedSlug) score = 80;
+
+      if (score > bestScore) {
+        bestScore = score;
+        bestId = candidateId;
+      }
+    }
+
+    if (lastOfficialResolverDiagnosticV214) {
+      lastOfficialResolverDiagnosticV214.candidateCount = candidateCount;
+      lastOfficialResolverDiagnosticV214.bestId = bestId || "";
+      lastOfficialResolverDiagnosticV214.bestScore = bestScore;
+    }
+
+    if (bestId && bestScore >= 80) {
+      console.warn("[GOSTA V208] resolved official S-kaupat public storeId", {
+        storeName: cleanStoreName,
+        storeId: bestId,
+        score: bestScore,
+        candidateCount,
+      });
+      sKaupatDynamicStoreIdCacheV198.set(normalizedWanted, bestId);
+      return bestId;
+    }
+
+    console.warn("[GOSTA V208] no matching store in official Prisma directory", {
+      storeName: cleanStoreName,
+      normalizedWanted,
+      wantedSlug,
+      candidateCount,
+      bestScore,
+    });
+    sKaupatDynamicStoreIdCacheV198.set(normalizedWanted, null);
+    return null;
+  } catch (error) {
+    if (lastOfficialResolverDiagnosticV214) {
+      lastOfficialResolverDiagnosticV214.fetchError =
+        error instanceof Error ? error.message : String(error ?? "unknown resolver error");
+    }
+    console.warn("[GOSTA V208] official S-kaupat store resolver failed", {
+      storeName: cleanStoreName,
+      error,
+    });
+    sKaupatDynamicStoreIdCacheV198.set(normalizedWanted, null);
+    return null;
+  }
+}
+
+
+// ============================================================================
+// ZIIPLY_SKAUPAT_PROVIDER_V215_DYNAMIC_PICKUP_SLOT_STORE_ID
+// Date: 2026-09-20
+//
+// Fix:
+// - Resolves Ziiply/Ruoanhinta short store ids to the real S-kaupat store id
+//   without touching the stable /api/store-search route or page GPS selection.
+// - Geocodes the already selected store NAME (not the user's GPS position).
+// - Uses S-kaupat's own remotePickupSlots persisted GraphQL query around that
+//   store location and selects the matching Prisma candidate.
+// - Keeps the old HTML/directory resolver only as a fallback.
+// - No per-store hardcoded id table.
+// ============================================================================
+
+const SKAUPAT_REMOTE_PICKUP_SLOTS_HASH_V215 =
+  "6da249b0fd87c05275a239ed490976c851d7aff90ead0f3a3978e8283f21252d";
+const SKAUPAT_CLIENT_VERSION_V215 =
+  "production-14a82a5b48cd1dd42c0592db0037514ed3c84de8";
+
+type SKaupatPickupCandidateV215 = {
+  storeId: string;
+  brand: string;
+  pickupName: string;
+  city: string;
+  postalCode: string;
+  distance: number | null;
+};
+
+const sKaupatPickupResolverCacheV215 = new Map<string, string | null>();
+
+function getStoreBrandFromNameV215(storeName: string): string {
+  const normalized = normalizeSKaupatStoreNameForMatchV198(storeName);
+  if (normalized.startsWith("prisma ") || normalized === "prisma") return "prisma";
+  if (normalized.startsWith("s market ") || normalized.startsWith("smarket ")) return "s-market";
+  if (normalized.startsWith("sale ") || normalized === "sale") return "sale";
+  if (normalized.startsWith("alepa ") || normalized === "alepa") return "alepa";
+  return "";
+}
+
+function getStorePlaceTokenV215(storeName: string): string {
+  const normalized = normalizeSKaupatStoreNameForMatchV198(storeName);
+  return normalized
+    .replace(/^prisma\s+/, "")
+    .replace(/^s\s*market\s+/, "")
+    .replace(/^smarket\s+/, "")
+    .replace(/^sale\s+/, "")
+    .replace(/^alepa\s+/, "")
+    .trim();
+}
+
+type SKaupatPickupResolverDiagnosticV216 = {
+  storeName: string;
+  geocodeQueries: string[];
+  geocodeQueryUsed: string;
+  latitude: number | null;
+  longitude: number | null;
+  pickupHttpStatus: number | null;
+  candidateCount: number;
+  bestStoreId: string;
+  bestBrand: string;
+  bestPickupName: string;
+  bestCity: string;
+  bestPostalCode: string;
+  bestDistance: number | null;
+  bestScore: number;
+  fetchError: string;
+};
+
+let lastPickupResolverDiagnosticV216: SKaupatPickupResolverDiagnosticV216 | null = null;
+
+function buildGeocodeQueriesV216(storeName: string): string[] {
+  const clean = String(storeName || "").trim();
+  const place = getStorePlaceTokenV215(clean);
+  const queries = [`${clean}, Finland`];
+  if (place && normalizeSKaupatStoreNameForMatchV198(place) !== normalizeSKaupatStoreNameForMatchV198(clean)) {
+    queries.push(`${place}, Finland`);
+  }
+  return Array.from(new Set(queries));
+}
+
+async function geocodeSelectedStoreNameV216(
+  storeName: string,
+): Promise<{ latitude: number; longitude: number; queryUsed: string } | null> {
+  const queries = buildGeocodeQueriesV216(storeName);
+  if (lastPickupResolverDiagnosticV216) lastPickupResolverDiagnosticV216.geocodeQueries = queries;
+
+  for (const q of queries) {
+    const url = new URL("https://nominatim.openstreetmap.org/search");
+    url.searchParams.set("format", "jsonv2");
+    url.searchParams.set("countrycodes", "fi");
+    url.searchParams.set("q", q);
+    url.searchParams.set("limit", "1");
+
+    try {
+      const response = await fetch(url.toString(), {
+        cache: "no-store",
+        headers: {
+          accept: "application/json",
+          "accept-language": "fi",
+          "user-agent": "Ziiply/1.0 (+https://ziiply.fi)",
+        },
+      });
+      if (!response.ok) continue;
+
+      const data = await response.json();
+      const first = Array.isArray(data) ? data[0] : null;
+      const latitude = Number(first?.lat);
+      const longitude = Number(first?.lon);
+      if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) continue;
+
+      if (lastPickupResolverDiagnosticV216) {
+        lastPickupResolverDiagnosticV216.geocodeQueryUsed = q;
+        lastPickupResolverDiagnosticV216.latitude = latitude;
+        lastPickupResolverDiagnosticV216.longitude = longitude;
+      }
+      return { latitude, longitude, queryUsed: q };
+    } catch {
+      // Try the next deterministic query. Final failure is exposed by V216 debug.
+    }
+  }
+  return null;
+}
+
+async function fetchPickupCandidatesV216(latitude: number, longitude: number): Promise<SKaupatPickupCandidateV215[]> {
+  const date = getCurrentLocalDateYYYYMMDDV202();
+  const variables = {
+    startDate: date,
+    endDate: date,
+    location: { latitude, longitude },
+    limit: 20,
+  };
+  const extensions = {
+    persistedQuery: { version: 1, sha256Hash: SKAUPAT_REMOTE_PICKUP_SLOTS_HASH_V215 },
+  };
+  const url = new URL("https://api.s-kaupat.fi/");
+  url.searchParams.set("operationName", "remotePickupSlots");
+  url.searchParams.set("variables", JSON.stringify(variables));
+  url.searchParams.set("extensions", JSON.stringify(extensions));
+
+  const response = await fetch(url.toString(), {
+    method: "GET",
+    cache: "no-store",
+    headers: {
+      accept: "application/graphql-response+json,application/json;q=0.9",
+      "content-type": "application/json",
+      "accept-language": "fi",
+      origin: "https://www.s-kaupat.fi",
+      referer: "https://www.s-kaupat.fi/",
+      "x-client-name": "skaupat-web",
+      "x-client-version": SKAUPAT_CLIENT_VERSION_V215,
+    },
+  });
+  if (lastPickupResolverDiagnosticV216) lastPickupResolverDiagnosticV216.pickupHttpStatus = response.status;
+  if (!response.ok) throw new Error(`S-kaupat remotePickupSlots failed: ${response.status}`);
+
+  const data = await response.json();
+  const rows = data?.data?.pickupSlotsForCoordinates?.slotsInPickupPoints;
+  if (!Array.isArray(rows)) return [];
+
+  return rows.map((row: any) => ({
+    storeId: String(row?.store?.id || "").trim(),
+    brand: String(row?.store?.brand || "").trim().toLowerCase(),
+    pickupName: String(row?.pickupPoint?.name || "").trim(),
+    city: String(row?.pickupPoint?.address?.city || "").trim(),
+    postalCode: String(row?.pickupPoint?.address?.postalCode || "").trim(),
+    distance: Number.isFinite(Number(row?.distance)) ? Number(row.distance) : null,
+  })).filter((row: SKaupatPickupCandidateV215) => /^\d{5,}$/.test(row.storeId));
+}
+
+function scorePickupCandidateV216(storeName: string, candidate: SKaupatPickupCandidateV215): number {
+  const wantedBrand = getStoreBrandFromNameV215(storeName);
+  const wantedPlace = getStorePlaceTokenV215(storeName);
+  const pickup = normalizeSKaupatStoreNameForMatchV198(candidate.pickupName);
+  const city = normalizeSKaupatStoreNameForMatchV198(candidate.city);
+  let score = 0;
+
+  if (wantedBrand && candidate.brand === wantedBrand) score += 100;
+  else if (wantedBrand) score -= 100;
+
+  if (wantedPlace) {
+    if (pickup.includes(wantedPlace)) score += 100;
+    if (city === wantedPlace) score += 50;
+    else if (city && (wantedPlace.includes(city) || city.includes(wantedPlace))) score += 25;
+  }
+
+  if (candidate.distance != null) {
+    if (candidate.distance <= 0.25) score += 50;
+    else if (candidate.distance <= 1) score += 30;
+    else if (candidate.distance <= 5) score += 10;
+  }
+  return score;
+}
+
+async function resolveSKaupatStoreIdViaPickupSlotsV215(storeName: string): Promise<string | null> {
+  const cleanStoreName = String(storeName || "").trim();
+  if (!cleanStoreName) return null;
+  const key = normalizeSKaupatStoreNameForMatchV198(cleanStoreName);
+  if (sKaupatPickupResolverCacheV215.has(key)) return sKaupatPickupResolverCacheV215.get(key) ?? null;
+
+  lastPickupResolverDiagnosticV216 = {
+    storeName: cleanStoreName,
+    geocodeQueries: [],
+    geocodeQueryUsed: "",
+    latitude: null,
+    longitude: null,
+    pickupHttpStatus: null,
+    candidateCount: 0,
+    bestStoreId: "",
+    bestBrand: "",
+    bestPickupName: "",
+    bestCity: "",
+    bestPostalCode: "",
+    bestDistance: null,
+    bestScore: -1,
+    fetchError: "",
+  };
+
+  try {
+    const coords = await geocodeSelectedStoreNameV216(cleanStoreName);
+    if (!coords) {
+      console.warn("[GOSTA V216] selected store geocoding failed", { storeName: cleanStoreName });
+      sKaupatPickupResolverCacheV215.set(key, null);
+      return null;
+    }
+
+    const candidates = await fetchPickupCandidatesV216(coords.latitude, coords.longitude);
+    const ranked = candidates
+      .map((candidate) => ({ candidate, score: scorePickupCandidateV216(cleanStoreName, candidate) }))
+      .sort((a, b) => b.score - a.score || (a.candidate.distance ?? 999999) - (b.candidate.distance ?? 999999));
+    const best = ranked[0];
+
+    if (lastPickupResolverDiagnosticV216) {
+      lastPickupResolverDiagnosticV216.candidateCount = candidates.length;
+      if (best) {
+        lastPickupResolverDiagnosticV216.bestStoreId = best.candidate.storeId;
+        lastPickupResolverDiagnosticV216.bestBrand = best.candidate.brand;
+        lastPickupResolverDiagnosticV216.bestPickupName = best.candidate.pickupName;
+        lastPickupResolverDiagnosticV216.bestCity = best.candidate.city;
+        lastPickupResolverDiagnosticV216.bestPostalCode = best.candidate.postalCode;
+        lastPickupResolverDiagnosticV216.bestDistance = best.candidate.distance;
+        lastPickupResolverDiagnosticV216.bestScore = best.score;
+      }
+    }
+
+    // Require the right chain and either a name hit or a very near pickup point.
+    const wantedBrand = getStoreBrandFromNameV215(cleanStoreName);
+    const wantedPlace = getStorePlaceTokenV215(cleanStoreName);
+    const bestPickup = best ? normalizeSKaupatStoreNameForMatchV198(best.candidate.pickupName) : "";
+    const nameHit = !!(wantedPlace && bestPickup.includes(wantedPlace));
+    const veryNear = best?.candidate.distance != null && best.candidate.distance <= 0.5;
+    const brandOk = !!best && (!wantedBrand || best.candidate.brand === wantedBrand);
+
+    if (!best || !brandOk || (!nameHit && !veryNear) || best.score < 100) {
+      console.warn("[GOSTA V216] no safe S-kaupat pickup candidate", {
+        storeName: cleanStoreName, coords,
+        candidates: ranked.slice(0, 5).map((x) => ({ ...x.candidate, score: x.score })),
+      });
+      sKaupatPickupResolverCacheV215.set(key, null);
+      return null;
+    }
+
+    console.warn("[GOSTA V216] resolved S-kaupat store id via remotePickupSlots", {
+      storeName: cleanStoreName, inputCoordinates: coords, resolvedStoreId: best.candidate.storeId,
+      brand: best.candidate.brand, pickupName: best.candidate.pickupName, city: best.candidate.city,
+      postalCode: best.candidate.postalCode, distance: best.candidate.distance, score: best.score,
+    });
+    sKaupatPickupResolverCacheV215.set(key, best.candidate.storeId);
+    return best.candidate.storeId;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error ?? "unknown resolver error");
+    if (lastPickupResolverDiagnosticV216) lastPickupResolverDiagnosticV216.fetchError = message;
+    console.warn("[GOSTA V216] pickup-slot store resolver failed", { storeName: cleanStoreName, error });
+    sKaupatPickupResolverCacheV215.set(key, null);
+    return null;
+  }
+}
+
+async function getEffectiveSKaupatStoreIdV174(
+  options?: SKaupatOfferProviderOptionsV173,
+): Promise<string | null> {
+  const raw = firstString(options?.storeId, options?.sStoreId);
+  const storeName = firstString(options?.storeName, options?.sStoreName);
+
+  // V217: prefer the older store-name/directory resolver path first.
+  // The newer remotePickupSlots resolver is fallback only. This preserves stores
+  // already working with the old method while still covering old-method misses.
+  if (storeName) {
+    const resolvedFromOfficialStoreSearchV198 =
+      await resolveSKaupatStoreIdFromOfficialStoreSearchV198(storeName);
+
+    if (resolvedFromOfficialStoreSearchV198) {
+      console.warn("[GOSTA V217] S-kaupat storeId resolved by primary official store search", {
+        inputStoreId: raw || null,
+        storeName,
+        resolvedStoreId: resolvedFromOfficialStoreSearchV198,
+      });
+      return resolvedFromOfficialStoreSearchV198;
+    }
+
+    const resolvedFromDirectory = await resolveSKaupatStoreIdFromDirectoryV1(storeName);
+
+    if (resolvedFromDirectory) {
+      console.warn("[GOSTA V217] S-kaupat storeId resolved by primary directory resolver", {
+        inputStoreId: raw || null,
+        storeName,
+        resolvedStoreId: resolvedFromDirectory,
+      });
+      return resolvedFromDirectory;
+    }
+
+    // V215/V216 is intentionally fallback only. If this later proves complete,
+    // the two older resolver blocks above can be disabled without changing it.
+    const resolvedFromPickupSlotsV215 = await resolveSKaupatStoreIdViaPickupSlotsV215(storeName);
+    if (resolvedFromPickupSlotsV215) {
+      console.warn("[GOSTA V217] S-kaupat storeId resolved by remotePickupSlots fallback", {
+        inputStoreId: raw || null,
+        storeName,
+        resolvedStoreId: resolvedFromPickupSlotsV215,
+      });
+      return resolvedFromPickupSlotsV215;
+    }
+  }
+
+  const mappedProductSearchStoreId = S_PRODUCT_SEARCH_STORE_ID_MAP_V181[raw];
+  if (mappedProductSearchStoreId) {
+    console.warn("[GOSTA V218] using verified Ruoanhinta -> S-kaupat Prisma fallback", {
+      inputStoreId: raw,
+      storeName: storeName || null,
+      resolvedStoreId: mappedProductSearchStoreId,
+    });
+    return mappedProductSearchStoreId;
+  }
+
+  // Last resort only. Short Ziiply/Ruoanhinta IDs do not pass this check.
+  if (/^\d{5,}$/.test(raw) && raw !== DEFAULT_SKAUPAT_STORE_ID_V156) {
+    console.warn("[GOSTA V204] using caller numeric storeId only after name resolver miss", {
+      storeId: raw,
+      storeName: storeName || null,
+    });
+    return raw;
+  }
+
+  console.warn("[GOSTA V204] could not resolve selected store to an S-kaupat storeId", {
+    storeId: raw || null,
+    storeName: storeName || null,
+  });
+
+  return null;
+}
+
+
+async function resolveSelectedSKaupatStoresV194(
+  options?: SKaupatOfferProviderOptionsV173,
+): Promise<ResolvedSKaupatStoreV194[]> {
+  if (!options) return [];
+
+  const explicitStores = Array.isArray(options.stores) ? options.stores : [];
+  const candidates: Array<{ storeId: string; storeName: string }> = [];
+
+  for (const store of explicitStores) {
+    const storeId = firstString(store?.storeId, store?.sStoreId);
+    const storeName = firstString(store?.storeName, store?.sStoreName);
+    if (storeId || storeName) candidates.push({ storeId, storeName });
+  }
+
+  const ids = normalizeSKaupatValueListV194(
+    options.sStoreIds ?? options.storeIds,
+    options.sStoreId ?? options.storeId,
+  );
+  const names = normalizeSKaupatValueListV194(
+    options.sStoreNames ?? options.storeNames,
+    options.sStoreName ?? options.storeName,
+  );
+  const maxLength = Math.max(ids.length, names.length);
+
+  for (let index = 0; index < maxLength; index += 1) {
+    const storeId = ids[index] || "";
+    const storeName = names[index] || "";
+    if (storeId || storeName) candidates.push({ storeId, storeName });
+  }
+
+  if (candidates.length === 0) {
+    const storeId = firstString(options.storeId, options.sStoreId);
+    const storeName = firstString(options.storeName, options.sStoreName);
+    if (storeId || storeName) candidates.push({ storeId, storeName });
+  }
+
+  const resolved: ResolvedSKaupatStoreV194[] = [];
+  const seen = new Set<string>();
+
+  for (const candidate of candidates) {
+    const effectiveStoreId = await getEffectiveSKaupatStoreIdV174({
+      storeId: candidate.storeId || null,
+      storeName: candidate.storeName || null,
+    });
+
+    if (!effectiveStoreId) continue;
+
+    const key = `${effectiveStoreId}|${normalizeText(candidate.storeName)}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    resolved.push({
+      storeId: effectiveStoreId,
+      storeName: candidate.storeName || "S-kaupat",
+    });
+  }
+
+  return resolved;
+}
+
+const SKAUPAT_GOSTA_MASTER_QUERY_V171 = "__ziiply_all_offers__";
+
+// V180: Gösta master uses the real S-kaupat discounted label filter:
+// filters=[{ key: "labels", value: ["DISCOUNTED"] }] and queryString="".
+// The old seed list is kept only for emergency fallback, but master search no longer uses it.
+const SKAUPAT_GOSTA_MASTER_SEED_QUERIES_V172 = Array.from(new Set([
+  "kampanja", "tarjous", "maito", "juusto", "jogurtti", "rahka", "kananmuna", "voi", "kerma",
+  "kahvi", "tee", "mehu", "jauheliha", "broileri", "kana", "nauta", "porsas", "makkara",
+  "kala", "lohi", "kirjolohi", "tonnikala", "leipä", "sämpylä", "hedelmät", "vihannekset",
+  "juomat", "pakaste", "valmisruoka", "makeiset", "lemmikki", "kodinhoito", "pesuaine", "talouspaperi", "vaipat",
+]));
+
+function isGostaMasterQueryV171(query: string): boolean {
+  return normalizeText(query) === normalizeText(SKAUPAT_GOSTA_MASTER_QUERY_V171);
+}
+
+function asRecord(value: unknown): UnknownRecord | null {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as UnknownRecord)
+    : null;
+}
+
+function asArray(value: unknown): unknown[] {
+  return Array.isArray(value) ? value : [];
+}
+
+function coerceUnknownList(value: unknown): unknown[] {
+  if (Array.isArray(value)) return value;
+
+  const record = asRecord(value);
+  if (!record) return [];
+
+  const directArrays = [
+    record.items,
+    record.results,
+    record.nodes,
+    record.edges,
+    record.productListItems,
+    record.products,
+    record.listItems,
+  ];
+
+  for (const candidate of directArrays) {
+    if (Array.isArray(candidate)) {
+      if (candidate === record.edges) {
+        return candidate.map((edge) => {
+          const edgeRecord = asRecord(edge);
+          return edgeRecord?.node ?? edge;
+        });
+      }
+
+      return candidate;
+    }
+  }
+
+  const values = Object.values(record);
+  const objectValues = values.filter((entry) => entry && typeof entry === "object");
+
+  // Last-resort support for object maps like { "0": {...}, "1": {...} }.
+  if (objectValues.length > 0 && objectValues.length === values.length) {
+    return objectValues;
+  }
+
+  return [];
+}
+
+function firstString(...values: unknown[]): string {
+  for (const value of values) {
+    if (value == null) continue;
+
+    if (typeof value === "string" || typeof value === "number") {
+      const text = String(value).trim();
+      if (text) return text;
+      continue;
+    }
+
+    const objectValue = asRecord(value);
+    if (objectValue) {
+      const text = firstString(
+        objectValue.name,
+        objectValue.title,
+        objectValue.label,
+        objectValue.displayName,
+        objectValue.localizedName,
+        objectValue.slug,
+        objectValue.value,
+        objectValue.text,
+      );
+      if (text) return text;
+    }
+  }
+
+  return "";
+}
+
+function normalizeText(value: unknown): string {
+  return String(value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/&/g, " ja ")
+    .replace(/[^a-z0-9åäö\s-]/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function getPathValue(object: unknown, path: string[]): unknown {
+  let current: unknown = object;
+
+  for (const key of path) {
+    if (Array.isArray(current)) {
+      const index = Number(key);
+      current = Number.isFinite(index) ? current[index] : undefined;
+      continue;
+    }
+
+    const record = asRecord(current);
+    if (!record) return undefined;
+    current = record[key];
+  }
+
+  return current;
+}
+
+function getSProductsRoot(data: unknown): UnknownRecord | null {
+  return asRecord(getPathValue(data, ["data", "store", "products"]));
+}
+
+function getSProductListItems(data: unknown): UnknownRecord[] {
+  const root = getSProductsRoot(data);
+  if (!root) return [];
+
+  const list =
+    coerceUnknownList(root.productListItems).length > 0
+      ? coerceUnknownList(root.productListItems)
+      : coerceUnknownList(root.products).length > 0
+        ? coerceUnknownList(root.products)
+        : coerceUnknownList(root.items).length > 0
+          ? coerceUnknownList(root.items)
+          : [];
+
+  return list
+    .map((entry) => {
+      const record = asRecord(entry);
+      if (!record) return null;
+
+      // Some GraphQL clients wrap list items in node/item/data.
+      return asRecord(record.node) || asRecord(record.item) || asRecord(record.data) || record;
+    })
+    .filter(Boolean) as UnknownRecord[];
+}
+
+function getSProductsPagingMetaV184(data: unknown) {
+  const root = getSProductsRoot(data);
+  return {
+    total: numberFromUnknown(root?.total) ?? 0,
+    from: numberFromUnknown(root?.from) ?? 0,
+    limit: numberFromUnknown(root?.limit) ?? 0,
+  };
+}
+function getStructuredFacets(data: unknown): UnknownRecord[] {
+  const root = getSProductsRoot(data);
+  if (!root) return [];
+
+  return coerceUnknownList(root.structuredFacets)
+    .map(asRecord)
+    .filter(Boolean) as UnknownRecord[];
+}
+function getCategoryFacetNames(data: unknown): string[] {
+  const categoryFacet = getStructuredFacets(data).find(
+    (facet) => normalizeText(facet.key) === "category",
+  );
+
+  if (!categoryFacet) return [];
+
+  const values =
+    asArray(categoryFacet.objectValue).length > 0
+      ? asArray(categoryFacet.objectValue)
+      : asArray(categoryFacet.stringValue).length > 0
+        ? asArray(categoryFacet.stringValue)
+        : asArray(categoryFacet.values).length > 0
+          ? asArray(categoryFacet.values)
+          : [];
+
+  return values
+    .map((entry) => {
+      const record = asRecord(entry);
+      if (!record) return firstString(entry);
+
+      return firstString(record.name, record.label, record.title, record.value, record.slug);
+    })
+    .filter(Boolean);
+}
+
+function getCategoryFacetPaths(data: unknown): Array<{ name: string; value: string; count?: number }> {
+  const categoryFacet = getStructuredFacets(data).find(
+    (facet) => normalizeText(facet.key) === "category",
+  );
+
+  if (!categoryFacet) return [];
+
+  const values =
+    asArray(categoryFacet.objectValue).length > 0
+      ? asArray(categoryFacet.objectValue)
+      : asArray(categoryFacet.stringValue).length > 0
+        ? asArray(categoryFacet.stringValue)
+        : asArray(categoryFacet.values).length > 0
+          ? asArray(categoryFacet.values)
+          : [];
+
+  return values
+    .map((entry) => {
+      const record = asRecord(entry);
+
+      if (!record) {
+        const name = firstString(entry);
+        return name ? { name, value: name } : null;
+      }
+
+      const name = firstString(record.name, record.label, record.title, record.value);
+      const value = firstString(record.value, record.slug, record.name);
+      const count = typeof record.doc_count === "number" ? record.doc_count : undefined;
+
+      if (!name && !value) return null;
+      return { name, value, count };
+    })
+    .filter(Boolean) as Array<{ name: string; value: string; count?: number }>;
+}
+
+function numberFromUnknown(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string") {
+    const number = Number(value.replace(",", ".").replace(/[^\d.-]/g, ""));
+    return Number.isFinite(number) ? number : null;
+  }
+  return null;
+}
+
+function formatPrice(value: unknown): string {
+  const number = numberFromUnknown(value);
+  if (number == null) return "";
+  return `${number.toFixed(2).replace(".", ",")} €`;
+}
+
+function cleanRepeatedCampaignTextV161(value: string): string {
+  const text = String(value || "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!text) return "";
+
+  const parts = text
+    .split(/\s*[·|]\s*/g)
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  if (parts.length > 1) {
+    return Array.from(new Set(parts)).join(" · ");
+  }
+
+  // Handles exact doubled strings like:
+  // "2 kpl = 3,99 € 2 kpl = 3,99 €"
+  const half = Math.floor(text.length / 2);
+  if (text.length % 2 === 0) {
+    const left = text.slice(0, half).trim();
+    const right = text.slice(half).trim();
+    if (left && left === right) return left;
+  }
+
+  const repeatedOfferPattern =
+    /^(.+?\b(?:kpl|pkt|ps|plo|prk|kg|g|l|ml)\s*=\s*[\d,.]+\s*€)\s+\1$/i;
+  const repeatedMatch = text.match(repeatedOfferPattern);
+  if (repeatedMatch?.[1]) return repeatedMatch[1].trim();
+
+  return text;
+}
+
+
+function getCompactProductTitleKeyV165(value: unknown): string {
+  const normalized = normalizeText(value)
+    .replace(/\b\d+[,.]?\d*\s*(g|kg|ml|l|kpl|pkt|ps|plo|prk)\b/g, " ")
+    .replace(/\b\d+\s*x\s*\d+\b/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const words = normalized
+    .split(/\s+/)
+    .filter((word) => word.length > 1);
+
+  // 4 first meaningful words catch cases where the same product title
+  // differs only by package suffix or campaign metadata.
+  return words.slice(0, 4).join(" ");
+}
+
+
+function getUltraCompactProductTitleKeyV166(value: unknown): string {
+  const stopWords = new Set([
+    "snellmanin",
+    "snellman",
+    "hk",
+    "atria",
+    "saarioinen",
+    "kotimaista",
+    "rainbow",
+    "xtra",
+    "pirkka",
+    "coop",
+    "s",
+    "k",
+  ]);
+
+  const normalized = normalizeText(value)
+    .replace(/\b\d+[,.]?\d*\s*(g|kg|ml|l|kpl|pkt|ps|plo|prk)\b/g, " ")
+    .replace(/\b\d+\s*x\s*\d+\b/g, " ")
+    .replace(/\b(grilli|grillattu|marinoitu|maustettu|nopea|ohut|filee|suikale|pala|viipale|pakkaus|rasia)\b/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const words = normalized
+    .split(/\s+/)
+    .filter((word) => word.length > 2 && !stopWords.has(word));
+
+  return words.slice(0, 3).join(" ");
+}
+
+function getSOfferDedupeKeyV161(item: ZiiplyOfferSearchResult): string {
+  const anyItem = item as any;
+  const ean = firstString(anyItem.ean, anyItem.gtin, anyItem.barcode);
+
+  if (ean) return `ean:${normalizeText(ean)}`;
+
+  const title3 = getUltraCompactProductTitleKeyV166(item.title);
+  const price = normalizeText(item.priceText);
+  const store = normalizeText(item.storeLabel);
+
+  if (title3) return `title3:${title3}|price:${price}|store:${store}`;
+
+  return normalizeText([item.title, item.priceText].filter(Boolean).join("|"));
+}
+
+function dedupeSOfferResultsV161(
+  results: ZiiplyOfferSearchResult[],
+): ZiiplyOfferSearchResult[] {
+  const byKey = new Map<string, ZiiplyOfferSearchResult>();
+
+  for (const item of results) {
+    const key = getSOfferDedupeKeyV161(item);
+    if (!key) continue;
+
+    const previous = byKey.get(key);
+    if (!previous) {
+      byKey.set(key, item);
+      continue;
+    }
+
+    const previousScore =
+      String(previous.benefitText || "").length +
+      String(previous.imageUrl || "").length +
+      String((previous as any).categoryPath || "").length;
+
+    const nextScore =
+      String(item.benefitText || "").length +
+      String(item.imageUrl || "").length +
+      String((item as any).categoryPath || "").length;
+
+    if (nextScore > previousScore) byKey.set(key, item);
+  }
+
+  return Array.from(byKey.values());
+}
+
+function formatComparisonPrice(price: unknown, unit: unknown): string {
+  const number = numberFromUnknown(price);
+  const unitText = firstString(unit);
+  if (number == null || !unitText) return "";
+
+  const normalizedUnit = unitText
+    .replace("KGM", "kg")
+    .replace("KG", "kg")
+    .replace("LTR", "l")
+    .replace("L", "l")
+    .replace("PCE", "kpl");
+
+  return `${number.toFixed(2).replace(".", ",")} €/${normalizedUnit.toLowerCase()}`;
+}
+
+function normalizeSCloudCdnImageUrlV193(value: string): string {
+  const text = String(value || "").trim();
+  if (!text) return "";
+
+  try {
+    const url = new URL(text);
+
+    if (url.hostname !== "cdn.s-cloud.fi") return text;
+
+    // V193: S-kaupat/S-cloud kuvat eivät ole Cloudinary-muotoa.
+    // Oikea muoto on esimerkiksi:
+    // https://cdn.s-cloud.fi/v1/w720h720@_q75/assets/dam-id/<id>.webp
+    // Siksi EI lisätä /image/upload/ väliin. Jos vanha V192 ehti lisätä sen,
+    // poistetaan se takaisin pois.
+    url.pathname = url.pathname.replace(/^\/v1\/image\/upload\//, "/v1/");
+
+    return url.toString();
+  } catch {
+    return text;
+  }
+}
+
+function normalizeSImageUrlV185(value: unknown): string {
+  const text = firstString(value);
+  if (!text) return "";
+
+  const withPlaceholdersFilled = text
+    .replace(/\{MODIFIERS\}/g, "w360h360@_q75")
+    .replace(/\{MODIFIER\}/g, "w360h360@_q75")
+    .replace(/\{SIZE\}/g, "w360h360@_q75")
+    .replace(/\{WIDTH\}/g, "360")
+    .replace(/\{HEIGHT\}/g, "360")
+    .replace(/\{EXTENSION\}/g, "webp")
+    .replace(/\{FORMAT\}/g, "webp");
+
+  let normalized = withPlaceholdersFilled;
+  if (withPlaceholdersFilled.startsWith("//")) normalized = `https:${withPlaceholdersFilled}`;
+  else if (withPlaceholdersFilled.startsWith("http")) normalized = withPlaceholdersFilled;
+  else if (withPlaceholdersFilled.startsWith("/")) normalized = `https://www.s-kaupat.fi${withPlaceholdersFilled}`;
+
+  return normalizeSCloudCdnImageUrlV193(normalized);
+}
+
+function buildSCloudImageUrl(urlTemplate: string): string {
+  return normalizeSImageUrlV185(urlTemplate);
+}
+
+function findFirstImageUrlFromObjectV185(value: unknown, depth = 0): string {
+  if (depth > 5) return "";
+
+  if (typeof value === "string") {
+    return /https?:\/\/|^\/\/|^\//i.test(value) ? normalizeSImageUrlV185(value) : "";
+  }
+
+  if (Array.isArray(value)) {
+    for (const entry of value) {
+      const found = findFirstImageUrlFromObjectV185(entry, depth + 1);
+      if (found) return found;
+    }
+    return "";
+  }
+
+  const record = asRecord(value);
+  if (!record) return "";
+
+  const direct = firstString(
+    record.urlTemplate,
+    record.url,
+    record.imageUrl,
+    record.pictureUrl,
+    record.src,
+    record.href,
+  );
+
+  if (direct) {
+    const normalized = normalizeSImageUrlV185(direct);
+    if (normalized) return normalized;
+  }
+
+  for (const [key, child] of Object.entries(record)) {
+    if (!/image|picture|photo|media|thumbnail|hero|main/i.test(key)) continue;
+    const found = findFirstImageUrlFromObjectV185(child, depth + 1);
+    if (found) return found;
+  }
+
+  return "";
+}
+
+function getHierarchyItems(product: UnknownRecord): UnknownRecord[] {
+  return asArray(product.hierarchyPath)
+    .map(asRecord)
+    .filter(Boolean) as UnknownRecord[];
+}
+
+function getCategoryMeta(product: UnknownRecord, fallbackFacetNames: string[]) {
+  const hierarchy = getHierarchyItems(product);
+
+  // S-kaupat gives hierarchy leaf-first:
+  // [specific category, parent category, main category]
+  const names = hierarchy
+    .map((item) => firstString(item.name))
+    .filter(Boolean);
+
+  const slugs = hierarchy
+    .map((item) => firstString(item.slug))
+    .filter(Boolean);
+
+  const leaf = names[0] || fallbackFacetNames[0] || "";
+  const parent = names[1] || "";
+  const main = names[names.length - 1] || parent || leaf || "";
+
+  const categoryPath = names.length > 0
+    ? [...names].reverse().join(" / ")
+    : fallbackFacetNames.slice(0, 3).join(" / ");
+
+  const slugPath = slugs.length > 0 ? [...slugs].reverse().join(" / ") : "";
+
+  return {
+    category: leaf,
+    categoryPath,
+    breadcrumbs: categoryPath,
+    hierarchy: categoryPath,
+    taxonomy: slugPath,
+    department: main,
+    productGroup: parent || leaf,
+    mainCategory: main,
+    subCategory: leaf,
+  };
+}
+
+function getProductFromListItem(item: UnknownRecord): UnknownRecord | null {
+  return (
+    asRecord(item.product) ||
+    asRecord(item.node) ||
+    asRecord(item.item) ||
+    (firstString(item.name, item.ean, item.id) ? item : null)
+  );
+}
+
+function getPricing(product: UnknownRecord): UnknownRecord {
+  const storePricing = asRecord(getPathValue(product, ["store", "pricing"]));
+  const pricing = asRecord(product.pricing);
+
+  return storePricing || pricing || {};
+}
+
+function getLabels(listItem: UnknownRecord, product: UnknownRecord): string {
+  const labels = [
+    ...asArray(listItem.labels),
+    ...asArray(getPathValue(product, ["store", "labels"])),
+  ];
+
+  return labels
+    .map((label) => {
+      const record = asRecord(label);
+      return record ? firstString(record.labelText, record.labelType, record.name) : firstString(label);
+    })
+    .filter(Boolean)
+    .join(" ");
+}
+
+function isSponsoredSProductListItem(listItem: UnknownRecord, product: UnknownRecord): boolean {
+  const text = normalizeText(
+    [
+      listItem.__typename,
+      listItem.adId,
+      listItem.sponsored,
+      listItem.isSponsored,
+      listItem.sponsoredMetadata,
+      product.adId,
+      product.sponsored,
+      product.isSponsored,
+      getLabels(listItem, product),
+    ]
+      .filter(Boolean)
+      .join(" "),
+  );
+
+  return (
+    text.includes("sponsoroitu") ||
+    text.includes("sponsored") ||
+    text.includes("sponsoredmetadata") ||
+    text.includes("advertisement")
+  );
+}
+
+function hasSOfferSignal(
+  listItem: UnknownRecord,
+  product: UnknownRecord,
+  pricing: UnknownRecord,
+): boolean {
+  const labelsText = normalizeText(getLabels(listItem, product));
+  const currentPrice = numberFromUnknown(
+    pricing.campaignPrice ?? pricing.currentPrice ?? product.price,
+  );
+  const regularPrice = numberFromUnknown(pricing.regularPrice ?? product.price);
+  const campaignPrice = numberFromUnknown(pricing.campaignPrice);
+  const lowest30DayPrice = numberFromUnknown(pricing.lowest30DayPrice);
+  const validUntil = firstString(pricing.campaignPriceValidUntil);
+
+  const hasCampaignPrice = campaignPrice != null;
+  const hasValidCampaignDate = Boolean(validUntil);
+  const hasLowest30DayReference = lowest30DayPrice != null;
+  const hasDiscountAgainstRegular =
+    currentPrice != null &&
+    regularPrice != null &&
+    regularPrice > 0 &&
+    currentPrice < regularPrice - 0.005;
+
+  const hasCampaignLabel =
+    labelsText.includes("kampanja") ||
+    labelsText.includes("tarjous") ||
+    labelsText.includes("campaign") ||
+    labelsText.includes("discount");
+
+  return (
+    hasCampaignPrice ||
+    hasValidCampaignDate ||
+    hasLowest30DayReference ||
+    hasDiscountAgainstRegular ||
+    hasCampaignLabel
+  );
+}
+
+
+function belongsToSelectedSHypermarketV163(
+  product: UnknownRecord,
+  selectedStoreId: string,
+): boolean {
+  const productStoreId = firstString(product.storeId);
+
+  // RemoteFilteredProducts is scoped with storeId, but some rows may still include storeId.
+  // If product has a storeId, it must match the selected S-store, not the old hardcoded MVP store.
+  // If S-kaupat omits it for some rows, allow the row instead of killing all results.
+  return !productStoreId || productStoreId === selectedStoreId;
+}
+
+
+type SKaupatImageDebugV189 = {
+  url: string;
+  raw: string;
+  source: string;
+  host: string;
+  len: number;
+  hasPlaceholder: boolean;
+  ext: string;
+  startsWith: string;
+};
+
+function getImageHostV189(url: string): string {
+  if (!url) return "none";
+
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    if (url.startsWith("/")) return "relative";
+    if (url.startsWith("//")) return "protocol-relative";
+    return "no-url";
+  }
+}
+
+function getImageExtensionV189(url: string): string {
+  const cleanUrl = url.split("?")[0] || "";
+  const match = cleanUrl.match(/\.([a-z0-9]{2,5})$/i);
+  return match?.[1]?.toLowerCase() || "noext";
+}
+
+function buildImageDebugV189(url: string, raw: string, source: string): SKaupatImageDebugV189 {
+  const normalizedUrl = normalizeSImageUrlV185(url);
+
+  return {
+    url: normalizedUrl,
+    raw: String(raw || ""),
+    source: source || "none",
+    host: getImageHostV189(normalizedUrl),
+    len: normalizedUrl.length,
+    hasPlaceholder: /\{[A-Z_]+\}/i.test(String(raw || "")) || /\{[A-Z_]+\}/i.test(normalizedUrl),
+    ext: getImageExtensionV189(normalizedUrl),
+    startsWith: normalizedUrl.slice(0, 18),
+  };
+}
+
+function firstImageCandidateDebugV189(
+  candidates: Array<{ source: string; value: unknown; template?: boolean }>,
+): SKaupatImageDebugV189 | null {
+  for (const candidate of candidates) {
+    const raw = firstString(candidate.value);
+    if (!raw) continue;
+
+    const url = candidate.template ? buildSCloudImageUrl(raw) : normalizeSImageUrlV185(raw);
+    if (!url) continue;
+
+    return buildImageDebugV189(url, raw, candidate.source);
+  }
+
+  return null;
+}
+
+function findFallbackImageDebugV189(product: UnknownRecord, listItem?: UnknownRecord): SKaupatImageDebugV189 | null {
+  const fallbacks: Array<{ source: string; value: unknown }> = [
+    { source: "fb:productDetails.productImages", value: getPathValue(product, ["productDetails", "productImages"]) },
+    { source: "fb:product.productImages", value: product.productImages },
+    { source: "fb:product.images", value: product.images },
+    { source: "fb:listItem", value: listItem },
+    { source: "fb:product", value: product },
+  ];
+
+  for (const fallback of fallbacks) {
+    const url = findFirstImageUrlFromObjectV185(fallback.value);
+    if (!url) continue;
+    return buildImageDebugV189(url, url, fallback.source);
+  }
+
+  return null;
+}
+
+function getImageDebugV189(product: UnknownRecord, listItem?: UnknownRecord): SKaupatImageDebugV189 {
+  const templateDebug = firstImageCandidateDebugV189([
+    { source: "tpl:pDet.hero", value: getPathValue(product, ["productDetails", "productImages", "mobileReadyHeroImage", "urlTemplate"]), template: true },
+    { source: "tpl:pDet.main", value: getPathValue(product, ["productDetails", "productImages", "mainImage", "urlTemplate"]), template: true },
+    { source: "tpl:pDet.primary", value: getPathValue(product, ["productDetails", "productImages", "primaryImage", "urlTemplate"]), template: true },
+    { source: "tpl:pImages.hero", value: getPathValue(product, ["productImages", "mobileReadyHeroImage", "urlTemplate"]), template: true },
+    { source: "tpl:pImages.main", value: getPathValue(product, ["productImages", "mainImage", "urlTemplate"]), template: true },
+    { source: "tpl:pImages.primary", value: getPathValue(product, ["productImages", "primaryImage", "urlTemplate"]), template: true },
+    { source: "tpl:product.image", value: getPathValue(product, ["image", "urlTemplate"]), template: true },
+    { source: "tpl:list.product.hero", value: getPathValue(listItem, ["product", "productDetails", "productImages", "mobileReadyHeroImage", "urlTemplate"]), template: true },
+    { source: "tpl:list.product.main", value: getPathValue(listItem, ["product", "productDetails", "productImages", "mainImage", "urlTemplate"]), template: true },
+    { source: "tpl:list.image", value: getPathValue(listItem, ["image", "urlTemplate"]), template: true },
+  ]);
+
+  if (templateDebug) return templateDebug;
+
+  const directDebug = firstImageCandidateDebugV189([
+    { source: "dir:product.imageUrl", value: product.imageUrl },
+    { source: "dir:product.pictureUrl", value: product.pictureUrl },
+    { source: "dir:product.image", value: product.image },
+    { source: "dir:product.mainImageUrl", value: product.mainImageUrl },
+    { source: "dir:product.thumbnailUrl", value: product.thumbnailUrl },
+    { source: "dir:product.image.url", value: getPathValue(product, ["image", "url"]) },
+    { source: "dir:product.mainImage.url", value: getPathValue(product, ["mainImage", "url"]) },
+    { source: "dir:product.thumbnail.url", value: getPathValue(product, ["thumbnail", "url"]) },
+    { source: "dir:list.imageUrl", value: getPathValue(listItem, ["imageUrl"]) },
+    { source: "dir:list.pictureUrl", value: getPathValue(listItem, ["pictureUrl"]) },
+    { source: "dir:list.image.url", value: getPathValue(listItem, ["image", "url"]) },
+  ]);
+
+  if (directDebug) return directDebug;
+
+  const fallbackDebug = findFallbackImageDebugV189(product, listItem);
+  if (fallbackDebug) return fallbackDebug;
+
+  return buildImageDebugV189("", "", "none");
+}
+
+function compactDebugTextV190(value: string, maxLength: number): string {
+  return String(value || "")
+    .replace(/^https?:\/\//i, "")
+    .replace(/^\/\//, "")
+    .replace(/\s+/g, " ")
+    .slice(0, maxLength);
+}
+
+function formatVisibleImageDebugV189(debug: SKaupatImageDebugV189): string {
+  const imageState = debug.url ? "OK" : "NO";
+  const shortSource = debug.source
+    .replace("productDetails", "pDet")
+    .replace("productImages", "pImg")
+    .replace("mobileReadyHeroImage", "hero")
+    .replace("pictureUrl", "pic")
+    .replace("imageUrl", "imgUrl");
+
+  const urlHead = compactDebugTextV190(debug.url, 46);
+  const rawHead = compactDebugTextV190(debug.raw, 34);
+
+  return `DBG193 IMG:${imageState} SRC:${shortSource} HOST:${debug.host} LEN:${debug.len} EXT:${debug.ext} PH:${debug.hasPlaceholder ? "Y" : "N"} URL:${urlHead || "-"} RAW:${rawHead || "-"}`;
+}
+
+function formatVisibleTitleDebugV190(debug: SKaupatImageDebugV189): string {
+  const imageState = debug.url ? "OK" : "NO";
+  const urlHead = compactDebugTextV190(debug.url, 32);
+  const rawHead = compactDebugTextV190(debug.raw, 18);
+
+  return `DBG193 ${imageState} H:${debug.host} U:${urlHead || "-"} R:${rawHead || "-"}`;
+}
+
+function getImageUrl(product: UnknownRecord, listItem?: UnknownRecord): string {
+  return getImageDebugV189(product, listItem).url;
+}
+
+function getProductUrl(product: UnknownRecord): string {
+  const slug = firstString(product.slug);
+  if (slug) return `https://www.s-kaupat.fi/tuote/${slug}/${firstString(product.ean, product.id)}`;
+
+  const direct = firstString(product.productUrl, product.url);
+  if (!direct) return "";
+  if (direct.startsWith("http")) return direct;
+  if (direct.startsWith("/")) return `https://www.s-kaupat.fi${direct}`;
+  return direct;
+}
+
+function getMatchScore(query: string, title: string, categoryText: string): number {
+  const q = normalizeText(query);
+  const titleText = normalizeText(title);
+  const category = normalizeText(categoryText);
+
+  if (!q) return 1;
+
+  let score = 1;
+  if (titleText === q) score += 120;
+  if (titleText.includes(q)) score += 80;
+  if (category.includes(q)) score += 30;
+
+  const words = q.split(/\s+/).filter((word) => word.length > 2);
+  for (const word of words) {
+    if (titleText.includes(word)) score += 20;
+    if (category.includes(word)) score += 8;
+  }
+
+  return score;
+}
+
+function mapSProductListItemToOfferResult(
+  listItem: UnknownRecord,
+  options: {
+    query: string;
+    config: ZiiplyOfferSearchSourceConfig;
+    fallbackFacetNames: string[];
+    index: number;
+    selectedStoreId: string;
+    selectedStoreName?: string;
+    discountedOnly?: boolean;
+  },
+): ZiiplyOfferSearchResult | null {
+  const product = getProductFromListItem(listItem);
+  if (!product) return null;
+
+  const title = firstString(product.name);
+  if (!title) return null;
+
+  if (isSponsoredSProductListItem(listItem, product)) return null;
+  if (
+    !options.discountedOnly &&
+    !belongsToSelectedSHypermarketV163(product, options.selectedStoreId)
+  ) {
+    return null;
+  }
+
+  const pricing = getPricing(product);
+
+  if (!options.discountedOnly && !hasSOfferSignal(listItem, product, pricing)) {
+    return null;
+  }
+
+  const currentPrice =
+    pricing.campaignPrice ??
+    pricing.currentPrice ??
+    product.price;
+
+  const regularPrice =
+    pricing.regularPrice ??
+    product.price;
+
+  const comparisonPrice =
+    pricing.comparisonPrice ??
+    product.comparisonPrice;
+
+  const comparisonUnit =
+    pricing.comparisonUnit ??
+    product.comparisonUnit;
+
+  const priceText = formatPrice(currentPrice);
+  const unitPriceText = formatComparisonPrice(comparisonPrice, comparisonUnit);
+  const categoryMeta = getCategoryMeta(product, options.fallbackFacetNames);
+  const imageDebugV189 = getImageDebugV189(product, listItem);
+  const imageUrl = imageDebugV189.url;
+  const visibleImageDebugV189 = formatVisibleImageDebugV189(imageDebugV189);
+  const productUrl = getProductUrl(product);
+  const labelsText = cleanRepeatedCampaignTextV161(getLabels(listItem, product));
+
+  const campaignValidUntil = firstString(pricing.campaignPriceValidUntil);
+  const isCampaign =
+    currentPrice != null &&
+    regularPrice != null &&
+    Number(currentPrice) < Number(regularPrice);
+
+  const normalBenefitText = cleanRepeatedCampaignTextV161(
+    isCampaign
+      ? `Kampanja${regularPrice ? `, normaalisti ${formatPrice(regularPrice)}` : ""}`
+      : labelsText,
+  );
+
+  // V192: Debug pidetään erillisissä debugImage*-kentissä.
+  // Tuotteen kampanjateksti pidetään käyttäjälle normaalina.
+  const benefitText = normalBenefitText;
+
+  const rawText = [
+    title,
+    product.brandName,
+    priceText,
+    unitPriceText,
+    labelsText,
+    categoryMeta.category,
+    categoryMeta.categoryPath,
+    categoryMeta.department,
+    categoryMeta.productGroup,
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const id = firstString(
+    product.ean,
+    product.id,
+    product.sokId,
+    `skaupat-product-${options.query}-${options.index}`,
+  );
+
+  return {
+    id,
+    source: options.config.id,
+    sourceUrl: options.config.url,
+    chain: options.config.chain,
+    storeLabel: options.selectedStoreName || options.config.storeLabel,
+    storeName: options.selectedStoreName || options.config.storeLabel,
+    shopName: options.selectedStoreName || options.config.storeLabel,
+    title,
+    priceText,
+    unitPriceText,
+    benefitText,
+    validityText: campaignValidUntil ? `Voimassa ${campaignValidUntil}` : "",
+    imageUrl,
+    image: imageUrl,
+    pictureUrl: imageUrl,
+    productUrl,
+    rawText,
+    matchScore: getMatchScore(
+      options.query,
+      title,
+      `${categoryMeta.category} ${categoryMeta.categoryPath}`,
+    ),
+
+    // Category metadata consumed by ziiplyOfferCategoryCore.ts
+    category: categoryMeta.category,
+    categoryPath: categoryMeta.categoryPath,
+    breadcrumbs: categoryMeta.breadcrumbs,
+    hierarchy: categoryMeta.hierarchy,
+    taxonomy: categoryMeta.taxonomy,
+    department: categoryMeta.department,
+    productGroup: categoryMeta.productGroup,
+    mainCategory: categoryMeta.mainCategory,
+    subCategory: categoryMeta.subCategory,
+    brandName: firstString(product.brandName),
+    ean: firstString(product.ean),
+
+    // V189 visible image debug fields. These are harmless extra fields.
+    debugImageV189: visibleImageDebugV189,
+    debugImageTitleV190: formatVisibleTitleDebugV190(imageDebugV189),
+    debugImageUrlV189: imageDebugV189.url,
+    debugImageSourceV189: imageDebugV189.source,
+    debugImageHostV189: imageDebugV189.host,
+    debugImageLengthV189: imageDebugV189.len,
+    debugImageStartsWithV189: imageDebugV189.startsWith,
+  } as unknown as ZiiplyOfferSearchResult;
+}
+
+function getCurrentLocalDateYYYYMMDDV202(): string {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function buildRemoteFilteredProductsUrl(
+  query: string,
+  offset = 0,
+  selectedStoreId: string,
+  discountedOnly = false,
+): string {
+  const normalLimit = 48;
+  const discountedLimit = 48;
+  const page = Math.floor(offset / normalLimit) + 1;
+  const queryString = discountedOnly ? "" : query;
+  const currentDateV202 = getCurrentLocalDateYYYYMMDDV202();
+
+  const variables: UnknownRecord = {
+    availabilityDate: discountedOnly ? currentDateV202 : undefined,
+    facets: [
+      { key: "brandName", order: "asc" },
+      { key: "category" },
+      { key: "labels" },
+    ],
+    filters: discountedOnly
+      ? [
+          {
+            key: "labels",
+            value: ["DISCOUNTED"],
+          },
+        ]
+      : [],
+    generatedSessionId: "1d6b5de9-df99-4608-af07-7d754955df82",
+    fetchSponsoredContent: discountedOnly,
+    limit: discountedOnly ? discountedLimit : normalLimit,
+    queryString,
+    sortForAvailabilityLabelDate: discountedOnly ? currentDateV202 : undefined,
+    storeId: selectedStoreId,
+    useRandomId: false,
+    marketingId: "d0bcc6e5-6130-494e-b6fb-12b5cb9c60cf",
+  };
+
+  // V184: S-kaupat RemoteFilteredProducts uses "from" in the response metadata.
+  // Send it explicitly. Keep offset/skip/page as harmless compatibility fields.
+  variables.from = offset;
+  variables.offset = offset;
+  variables.skip = offset;
+  variables.page = discountedOnly ? Math.floor(offset / discountedLimit) + 1 : page;
+
+  const extensions = {
+    persistedQuery: {
+      version: 1,
+      sha256Hash: SKAUPAT_REMOTE_FILTERED_PRODUCTS_HASH_V156,
+    },
+  };
+
+  const url = new URL("https://api.s-kaupat.fi/");
+  url.searchParams.set("operationName", "RemoteFilteredProducts");
+  url.searchParams.set("variables", JSON.stringify(variables));
+  url.searchParams.set("extensions", JSON.stringify(extensions));
+  return url.toString();
+}
+
+async function fetchSKaupatRemoteFilteredProductsPageV170(
+  query: string,
+  config: ZiiplyOfferSearchSourceConfig,
+  offset: number,
+  selectedStoreId: string,
+  discountedOnly = false,
+  selectedStoreName = "",
+): Promise<{ results: ZiiplyOfferSearchResult[]; rawCount: number; total: number; from: number; limit: number; httpStatus: number }> {
+  const response = await fetch(
+    buildRemoteFilteredProductsUrl(query, offset, selectedStoreId, discountedOnly),
+    {
+    method: "GET",
+    headers: {
+      accept: "application/json",
+      "content-type": "application/json",
+      "accept-language": "fi",
+      origin: "https://www.s-kaupat.fi",
+      referer: "https://www.s-kaupat.fi/",
+      "x-client-name": "skaupat-web",
+      "x-client-version": "production-45c31f7a746096c6da12e16aba1887e031fbd9de",
+      "user-agent":
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3.1 Safari/605.1.15",
+    },
+    cache: "no-store",
+  });
+
+  if (!response.ok) {
+    throw new Error(`S-kaupat RemoteFilteredProducts failed: ${response.status}`);
+  }
+
+  const data = await response.json();
+  const root = getSProductsRoot(data);
+  const pagingMeta = getSProductsPagingMetaV184(data);
+  const fallbackFacetNames = getCategoryFacetNames(data);
+  const categoryFacetPaths = getCategoryFacetPaths(data);
+  const listItems = getSProductListItems(data);
+
+  const mappedResults = listItems
+    .map((item, index) =>
+      mapSProductListItemToOfferResult(item, {
+        query,
+        config,
+        fallbackFacetNames,
+        index,
+        selectedStoreId,
+        selectedStoreName,
+        discountedOnly,
+      }),
+    )
+    .filter(Boolean) as ZiiplyOfferSearchResult[];
+
+  return {
+    results: dedupeSOfferResultsV161(mappedResults),
+    rawCount: listItems.length,
+    total: pagingMeta.total,
+    from: pagingMeta.from,
+    limit: pagingMeta.limit,
+    httpStatus: response.status,
+  };
+}
+
+function makeGostaZeroResultDiagnosticV208(
+  config: ZiiplyOfferSearchSourceConfig,
+  options: SKaupatOfferProviderOptionsV173 | undefined,
+  detail: string,
+): ZiiplyOfferSearchResult {
+  const receivedStoreId = firstString(options?.storeId, options?.sStoreId);
+  const receivedStoreName = firstString(options?.storeName, options?.sStoreName);
+  const pickupV216 = lastPickupResolverDiagnosticV216;
+  const pickupDetailV216 = pickupV216
+    ? [
+        `v216GeoQueries=${pickupV216.geocodeQueries.join(";") || "-"}`,
+        `v216GeoUsed=${pickupV216.geocodeQueryUsed || "-"}`,
+        `v216Lat=${pickupV216.latitude ?? "-"}`,
+        `v216Lon=${pickupV216.longitude ?? "-"}`,
+        `v216PickupHttp=${pickupV216.pickupHttpStatus ?? "-"}`,
+        `v216Candidates=${pickupV216.candidateCount}`,
+        `v216BestId=${pickupV216.bestStoreId || "-"}`,
+        `v216BestBrand=${pickupV216.bestBrand || "-"}`,
+        `v216BestPickup=${pickupV216.bestPickupName || "-"}`,
+        `v216BestCity=${pickupV216.bestCity || "-"}`,
+        `v216BestPostal=${pickupV216.bestPostalCode || "-"}`,
+        `v216BestDistance=${pickupV216.bestDistance ?? "-"}`,
+        `v216BestScore=${pickupV216.bestScore}`,
+        `v216FetchError=${pickupV216.fetchError || "-"}`,
+      ].join(" | ")
+    : "v216GeoQueries=- | v216GeoUsed=- | v216Lat=- | v216Lon=- | v216PickupHttp=- | v216Candidates=- | v216BestId=- | v216BestBrand=- | v216BestPickup=- | v216BestCity=- | v216BestPostal=- | v216BestDistance=- | v216BestScore=- | v216FetchError=-";
+  const officialV214 = lastOfficialResolverDiagnosticV214;
+  const officialDetailV214 = officialV214
+    ? [
+        `officialName=${officialV214.requestedStoreName || "-"}`,
+        `officialHttp=${officialV214.httpStatus ?? "-"}`,
+        `officialFinalUrl=${officialV214.finalUrl || "-"}`,
+        `officialContentType=${officialV214.contentType || "-"}`,
+        `officialHtmlLength=${officialV214.htmlLength}`,
+        `officialCandidates=${officialV214.candidateCount}`,
+        `officialBestId=${officialV214.bestId || "-"}`,
+        `officialBestScore=${officialV214.bestScore}`,
+        `officialFetchError=${officialV214.fetchError || "-"}`,
+      ].join(" | ")
+    : "officialName=- | officialHttp=- | officialFinalUrl=- | officialContentType=- | officialHtmlLength=- | officialCandidates=- | officialBestId=- | officialBestScore=- | officialFetchError=-";
+  const directoryDiagnosticV209 = getLastPrismaDirectoryDiagnosticV3();
+  const directoryResponseDiagnosticV211 = directoryDiagnosticV209 as
+    | (typeof directoryDiagnosticV209 & {
+        firstHttpStatus?: number | null;
+        firstFinalUrl?: string;
+        firstContentType?: string;
+        firstHtmlLength?: number;
+        firstHasPrisma?: boolean;
+        firstHasMyymala?: boolean;
+        firstHasNextData?: boolean;
+        firstBodySample?: string;
+        firstFetchError?: string;
+      })
+    | null;
+  const directoryDetailV209 = directoryDiagnosticV209
+    ? [
+        `directoryPages=${directoryDiagnosticV209.pagesFetched}`,
+        `directoryEntries=${directoryDiagnosticV209.uniqueEntriesFound}`,
+        `directoryParsed=${directoryDiagnosticV209.entriesParsed}`,
+        `directoryCursors=${directoryDiagnosticV209.cursorUrlsFound}`,
+        `directoryVarkaus=${directoryDiagnosticV209.prismaVarkausFound ? "yes" : "no"}`,
+        `directoryVarkausId=${directoryDiagnosticV209.prismaVarkausStoreId || "-"}`,
+        `directoryHttp=${directoryResponseDiagnosticV211?.firstHttpStatus ?? "-"}`,
+        `directoryFinalUrl=${directoryResponseDiagnosticV211?.firstFinalUrl || "-"}`,
+        `directoryContentType=${directoryResponseDiagnosticV211?.firstContentType || "-"}`,
+        `directoryHtmlLength=${directoryResponseDiagnosticV211?.firstHtmlLength ?? "-"}`,
+        `directoryHasPrisma=${directoryResponseDiagnosticV211?.firstHasPrisma ? "yes" : "no"}`,
+        `directoryHasMyymala=${directoryResponseDiagnosticV211?.firstHasMyymala ? "yes" : "no"}`,
+        `directoryHasNextData=${directoryResponseDiagnosticV211?.firstHasNextData ? "yes" : "no"}`,
+        `directoryBodySample=${directoryResponseDiagnosticV211?.firstBodySample || "-"}`,
+        `directoryFetchError=${directoryResponseDiagnosticV211?.firstFetchError || "-"}`,
+      ].join(" | ")
+    : "directoryPages=- | directoryEntries=- | directoryParsed=- | directoryCursors=- | directoryVarkaus=- | directoryVarkausId=- | directoryHttp=- | directoryFinalUrl=- | directoryContentType=- | directoryHtmlLength=- | directoryHasPrisma=- | directoryHasMyymala=- | directoryHasNextData=- | directoryBodySample=- | directoryFetchError=-";
+
+  const debugText = [
+    "GOSTA_V214_ZERO_RESULT_DIAGNOSTIC",
+    `receivedStoreId=${receivedStoreId || "-"}`,
+    `receivedStoreName=${receivedStoreName || "-"}`,
+    detail,
+    pickupDetailV216,
+    officialDetailV214,
+    directoryDetailV209,
+  ].join(" | ");
+
+  return {
+    id: `gosta-v211-debug-${receivedStoreId || "no-id"}`,
+    source: config.id,
+    sourceUrl: config.url,
+    chain: config.chain,
+    storeLabel: receivedStoreName || config.storeLabel,
+    storeName: receivedStoreName || config.storeLabel,
+    shopName: receivedStoreName || config.storeLabel,
+    title: debugText,
+    priceText: "",
+    unitPriceText: "",
+    benefitText: debugText,
+    validityText: "",
+    imageUrl: "",
+    image: "",
+    pictureUrl: "",
+    productUrl: "",
+    rawText: debugText,
+    matchScore: 1,
+    category: "Muut",
+    categoryPath: "Muut",
+    breadcrumbs: ["Muut"],
+    hierarchy: ["Muut"],
+    taxonomy: ["Muut"],
+    department: "Muut",
+    productGroup: "Muut",
+    mainCategory: "Muut",
+    subCategory: "Muut",
+    brandName: "",
+    ean: "",
+    debugStoreResolutionV210: debugText,
+  } as unknown as ZiiplyOfferSearchResult;
+}
+
+async function fetchSKaupatRemoteFilteredProductsV170(
+  query: string,
+  config: ZiiplyOfferSearchSourceConfig,
+  options?: SKaupatOfferProviderOptionsV173,
+  discountedOnly = false,
+): Promise<ZiiplyOfferSearchResult[]> {
+  const selectedStores = await resolveSelectedSKaupatStoresV194(options);
+  if (selectedStores.length === 0) {
+    return [
+      makeGostaZeroResultDiagnosticV208(
+        config,
+        options,
+        "selectedStores=0 | resolvedStoreId=- | httpStatus=- | raw=0 | total=0",
+      ),
+    ];
+  }
+
+  const allStoreResults: ZiiplyOfferSearchResult[] = [];
+  const paginationTraceV203: string[] = [];
+  const zeroResultDiagnosticsV208: string[] = [];
+
+  for (const selectedStore of selectedStores) {
+    const pageStep = 48;
+    const maxPages = 25;
+    const pageOffsets = Array.from({ length: maxPages }, (_, index) => index * pageStep);
+    const pages: ZiiplyOfferSearchResult[][] = [];
+
+    for (const offset of pageOffsets) {
+      try {
+        const page = await fetchSKaupatRemoteFilteredProductsPageV170(
+          query,
+          config,
+          offset,
+          selectedStore.storeId,
+          discountedOnly,
+          selectedStore.storeName,
+        );
+
+        pages.push(page.results);
+
+        if (offset === 0) {
+          zeroResultDiagnosticsV208.push(
+            [
+              `resolvedStoreId=${selectedStore.storeId}`,
+              `resolvedStoreName=${selectedStore.storeName || "-"}`,
+              `httpStatus=${page.httpStatus}`,
+              `raw=${page.rawCount}`,
+              `mapped=${page.results.length}`,
+              `total=${page.total}`,
+              `from=${page.from}`,
+              `limit=${page.limit}`,
+            ].join(" | "),
+          );
+        }
+
+        const pageEansV203 = new Set(
+          page.results
+            .map((item) => firstString((item as any).ean, (item as any).gtin, (item as any).barcode))
+            .filter(Boolean)
+            .map((value) => normalizeText(value)),
+        );
+
+        paginationTraceV203.push(
+          [
+            `store=${selectedStore.storeId}`,
+            `req=${offset}`,
+            `resp=${page.from}`,
+            `raw=${page.rawCount}`,
+            `mapped=${page.results.length}`,
+            `uniqueEAN=${pageEansV203.size}`,
+            `total=${page.total}`,
+            `limit=${page.limit}`,
+          ].join(","),
+        );
+
+        console.warn("[GOSTA PAGINATION V203]", {
+          query,
+          requestedFrom: offset,
+          responseFrom: page.from,
+          rawCount: page.rawCount,
+          mappedOfferCount: page.results.length,
+          uniqueEanCount: pageEansV203.size,
+          total: page.total,
+          limit: page.limit,
+          discountedOnly,
+          selectedStoreId: selectedStore.storeId,
+          selectedStoreName: selectedStore.storeName,
+        });
+
+        if (page.rawCount === 0) break;
+        if (page.total > 0 && offset + pageStep >= page.total) break;
+        if (page.rawCount < pageStep && page.total === 0) break;
+      } catch (error) {
+        if (offset === 0) {
+          zeroResultDiagnosticsV208.push(
+            [
+              `resolvedStoreId=${selectedStore.storeId}`,
+              `resolvedStoreName=${selectedStore.storeName || "-"}`,
+              "httpStatus=ERROR",
+              `error=${error instanceof Error ? error.message : String(error)}`,
+            ].join(" | "),
+          );
+        }
+        paginationTraceV203.push(
+          `store=${selectedStore.storeId},req=${offset},ERROR=${error instanceof Error ? error.message : String(error)}`,
+        );
+        console.warn(`[Ziiply offers] S-kaupat pagination page failed at offset ${offset}`, error);
+        break;
+      }
+    }
+
+    allStoreResults.push(...pages.flat());
+  }
+
+  const uniqueBeforeFinalV203 = new Set(
+    allStoreResults.map((item) => getSOfferDedupeKeyV161(item)).filter(Boolean),
+  ).size;
+
+  const finalResultsV203 = dedupeSOfferResultsV161(allStoreResults);
+
+  const summaryV203 = [
+    ...paginationTraceV203,
+    `SUMMARY flattened=${allStoreResults.length},uniqueBeforeFinal=${uniqueBeforeFinalV203},returned=${finalResultsV203.length}`,
+  ].join(" | ");
+
+  if (finalResultsV203.length > 0) {
+    (finalResultsV203[0] as any).debugPaginationV203 = summaryV203;
+  }
+
+  console.warn("[GOSTA PAGINATION V203 SUMMARY]", summaryV203);
+
+  if (finalResultsV203.length === 0) {
+    return [
+      makeGostaZeroResultDiagnosticV208(
+        config,
+        options,
+        zeroResultDiagnosticsV208.join(" || ") || "resolvedStoreId=- | httpStatus=- | raw=0 | total=0",
+      ),
+    ];
+  }
+
+  return finalResultsV203;
+}
+
+export async function fetchSKaupatOffers(
+  query: string,
+  config: ZiiplyOfferSearchSourceConfig,
+  options?: SKaupatOfferProviderOptionsV173,
+): Promise<ZiiplyOfferSearchResult[]> {
+  const cleanQuery = String(query || "").trim();
+  if (!cleanQuery) return [];
+
+  try {
+    if (isGostaMasterQueryV171(cleanQuery)) {
+      return await fetchSKaupatRemoteFilteredProductsV170(
+        "",
+        config,
+        options,
+        true,
+      );
+    }
+
+    return await fetchSKaupatRemoteFilteredProductsV170(cleanQuery, config, options);
+  } catch (error) {
+    console.warn("[Ziiply offers] S-kaupat RemoteFilteredProducts failed", error);
+    return [];
+  }
+}
