@@ -441,3 +441,41 @@ jobs:
             console.log("PRISMA_RAKSILA_RUOANHINTA",JSON.stringify(target,null,2));
           } main().catch(e=>{console.error(e);process.exit(1)});
           NODE
+
+
+      - name: Audit Prisma externalId against S-kaupat
+        shell: bash
+        run: |
+          node <<'NODE'
+          const H="44ca017dddccfe49e787b483f471f26217adca807f8c71101d11e881dab9e480";
+          const V="production-45c31f7a746096c6da12e16aba1887e031fbd9de";
+          const pad=n=>String(n).padStart(2,"0"); const d=new Date();
+          const date=`${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}`;
+          async function stores(q){const r=await fetch("https://api.ruoanhinta.fi/api/stores?search="+encodeURIComponent(q));const j=await r.json();return Array.isArray(j)?j:(j.items||j.stores||j.results||j.data||[])}
+          async function validate(storeId){
+            const variables={availabilityDate:date,facets:[{key:"brandName",order:"asc"},{key:"category"},{key:"labels"}],fetchSponsoredContent:true,filters:[{key:"labels",value:["DISCOUNTED"]}],from:0,generatedSessionId:"1d6b5de9-df99-4608-af07-7d754955df82",limit:48,marketingId:"d0bcc6e5-6130-494e-b6fb-12b5cb9c60cf",page:1,queryString:"",skip:0,sortForAvailabilityLabelDate:date,storeId:String(storeId),useRandomId:false};
+            const u=new URL("https://api.s-kaupat.fi/");u.searchParams.set("operationName","RemoteFilteredProducts");u.searchParams.set("variables",JSON.stringify(variables));u.searchParams.set("extensions",JSON.stringify({persistedQuery:{version:1,sha256Hash:H}}));
+            const r=await fetch(u,{headers:{accept:"application/graphql-response+json,application/json;q=0.9","content-type":"application/json","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":V}});
+            const j=await r.json(); const pr=j?.data?.store?.products;
+            return {http:r.status,responseId:j?.data?.store?.id||null,total:pr?.total??null,count:Array.isArray(pr?.productListItems)?pr.productListItems.length:0,errors:(j?.errors||[]).map(e=>e.message)};
+          }
+          async function main(){
+            // Ruoanhinta search is query based. City probes cover the Prisma network broadly;
+            // dedupe by internal id. Also explicitly include known problem stores.
+            const queries=["Prisma","Helsinki","Espoo","Vantaa","Tampere","Turku","Oulu","Jyväskylä","Kuopio","Lahti","Pori","Vaasa","Joensuu","Rovaniemi","Lappeenranta","Hämeenlinna","Seinäjoki","Kouvola","Kotka","Hyvinkää","Järvenpää","Rauma","Mikkeli","Kokkola","Kajaani","Salo","Porvoo","Lohja"];
+            const all=[]; for(const q of queries){try{all.push(...await stores(q))}catch(e){console.error("STORE_QUERY_FAIL",q,String(e))}}
+            const prismas=[...new Map(all.filter(x=>String(x.chain||"").toLowerCase()==="prisma"||/^prisma\b/i.test(String(x.name||""))).map(x=>[String(x.id),x])).values()].sort((a,b)=>String(a.name).localeCompare(String(b.name),"fi"));
+            const out=[];
+            for(const x of prismas){
+              const ext=String(x.externalId||"").trim();
+              let validation={skipped:true};
+              if(/^\d{5,}$/.test(ext)){try{validation=await validate(ext)}catch(e){validation={error:String(e)}}}
+              out.push({id:x.id,name:x.name,city:x.city,postalCode:x.postalCode,externalId:ext,validation});
+              await new Promise(r=>setTimeout(r,80));
+            }
+            const valid=out.filter(x=>x.validation?.responseId===x.externalId && !x.validation?.errors?.length);
+            const missing=out.filter(x=>!/^\d{5,}$/.test(x.externalId));
+            const invalid=out.filter(x=>/^\d{5,}$/.test(x.externalId) && x.validation?.responseId!==x.externalId);
+            console.log("PRISMA_EXTERNAL_ID_AUDIT",JSON.stringify({count:out.length,validCount:valid.length,missingExternalId:missing.length,invalidCount:invalid.length,stores:out},null,2));
+          } main().catch(e=>{console.error(e);process.exit(1)});
+          NODE
