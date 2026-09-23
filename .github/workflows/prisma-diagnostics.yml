@@ -75,3 +75,47 @@ jobs:
             if(!response.ok) process.exitCode=1;
           })().catch(err=>{console.error(err);process.exitCode=1});
           NODE
+      - name: Prisma Kaleva discounted products
+        run: |
+          node <<'NODE'
+          (async () => {
+            const today=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+            const variables={
+              availabilityDate:today,
+              facets:[{key:"brandName",order:"asc"},{key:"category"},{key:"labels"}],
+              filters:[{key:"labels",value:["DISCOUNTED"]}],
+              generatedSessionId:"1d6b5de9-df99-4608-af07-7d754955df82",
+              fetchSponsoredContent:true,
+              limit:48,
+              queryString:"",
+              sortForAvailabilityLabelDate:today,
+              storeId:"517609418",
+              useRandomId:false,
+              marketingId:"d0bcc6e5-6130-494e-b6fb-12b5cb9c60cf",
+              from:0,offset:0,skip:0,page:1
+            };
+            const extensions={persistedQuery:{version:1,sha256Hash:"44ca017dddccfe49e787b483f471f26217adca807f8c71101d11e881dab9e480"}};
+            const url=new URL("https://api.s-kaupat.fi/");
+            url.searchParams.set("operationName","RemoteFilteredProducts");
+            url.searchParams.set("variables",JSON.stringify(variables));
+            url.searchParams.set("extensions",JSON.stringify(extensions));
+            const response=await fetch(url,{headers:{
+              accept:"application/json","content-type":"application/json","accept-language":"fi",
+              origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/",
+              "x-client-name":"skaupat-web","x-client-version":"production-45c31f7a746096c6da12e16aba1887e031fbd9de",
+              "user-agent":"Mozilla/5.0"
+            }});
+            const data=await response.json();
+            const products=data?.data?.products;
+            const items=products?.items||products?.products||products?.edges||[];
+            console.log("PRISMA_KALEVA_PRODUCTS "+JSON.stringify({
+              status:response.status,storeId:"517609418",
+              rootKeys:data?.data?Object.keys(data.data):[],
+              productKeys:products?Object.keys(products):[],
+              count:Array.isArray(items)?items.length:null,
+              from:products?.from,total:products?.total,limit:products?.limit,
+              errors:data?.errors||[]
+            },null,2));
+            if(!response.ok) process.exitCode=1;
+          })().catch(err=>{console.error(err);process.exitCode=1});
+          NODE
