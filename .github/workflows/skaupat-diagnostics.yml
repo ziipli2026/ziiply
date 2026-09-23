@@ -66,7 +66,7 @@ jobs:
               try{
                 const r=await fetch(u,{headers:{"user-agent":"Mozilla/5.0","accept":"text/html"}});
                 const body=await r.text();
-                const ids=[...body.matchAll(/\\/myymala\\/([a-z0-9%._~-]+)\\/(\\d{5,})/gi)].slice(0,20).map(m=>({slug:m[1],id:m[2]}));
+                const ids=[]; for(const m of body.matchAll(new RegExp("/myymala/([^/]+)/([0-9]{5,})","gi"))) ids.push({slug:m[1],id:m[2]}); ids.splice(20);
                 console.log("PRISMA_DIRECTORY_PROBE "+JSON.stringify({q,status:r.status,finalUrl:r.url,contentType:r.headers.get("content-type"),length:body.length,ids}));
               }catch(e){console.log("PRISMA_DIRECTORY_PROBE "+JSON.stringify({q,error:String(e)}))}
             }
