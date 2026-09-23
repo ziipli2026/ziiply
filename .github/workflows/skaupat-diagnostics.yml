@@ -733,3 +733,31 @@ jobs:
             }
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
+
+
+      - name: Probe exact base64 Tjek data references
+        run: |
+          node <<'NODE'
+          const apiKey="152000596c6e45d9983eab0c14afebea";
+          function stable(v){
+            if(Array.isArray(v)) return v.map(stable);
+            if(v&&Object.prototype.toString.call(v)==="[object Object]"){
+              const o={}; for(const k of Object.keys(v).sort()) o[k]=stable(v[k]); return o;
+            }
+            return v;
+          }
+          function key(v){return Buffer.from(JSON.stringify(stable(v)),"utf8").toString("base64")}
+          const refs=[
+            ["businessStores",["stores",{"businessId":"d8ccs8","pagination":{"offset":0,"limit":3000}}]],
+            ["pansioSearch",["stores",{"searchTerm":"S-market Pansio","maxRadius":100000,"pagination":{"limit":10,"offset":0}}]],
+            ["kemiSearch",["stores",{"searchTerm":"S-market Kemi","maxRadius":100000,"pagination":{"limit":10,"offset":0}}]],
+            ["lukkarinsantaSearch",["stores",{"searchTerm":"S-market Lukkarinsanta","maxRadius":100000,"pagination":{"limit":10,"offset":0}}]]
+          ];
+          (async()=>{
+            const data=refs.map(([,x])=>key(x));
+            console.log("TJEK_EXACT_KEYS "+JSON.stringify(refs.map(([name,x],i)=>({name,key:data[i],decoded:JSON.stringify(stable(x))}))));
+            const r=await fetch("https://etarjouslehdet.fi/",{method:"POST",headers:{"content-type":"application/json","x-api-key":apiKey},body:JSON.stringify({data})});
+            const body=await r.text();
+            console.log("TJEK_EXACT_BASE64 "+JSON.stringify({status:r.status,contentType:r.headers.get("content-type"),length:body.length,body:body.slice(0,60000)}));
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
