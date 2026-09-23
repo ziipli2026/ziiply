@@ -857,3 +857,19 @@ jobs:
             }
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
+
+
+      - name: Probe S-kaupat frontend assets for store resolver transport
+        run: |
+          node <<'NODE'
+          (async()=>{
+            const urls=["https://www.s-kaupat.fi/","https://www.s-kaupat.fi/myymalat","https://www.s-kaupat.fi/myymala/519941769"];
+            for(const url of urls){
+              const r=await fetch(url,{headers:{"user-agent":"Mozilla/5.0","accept":"text/html,*/*"}});
+              const b=await r.text();
+              const scripts=[...b.matchAll(/<script[^>]+src=["']([^"']+)["']/gi)].map(m=>m[1]);
+              const next=[...b.matchAll(/["']([^"']*(?:_next|static)[^"']+\.js[^"']*)["']/gi)].map(m=>m[1]);
+              console.log("SKAUPAT_FRONTEND_PAGE "+JSON.stringify({url,status:r.status,length:b.length,scripts:[...new Set([...scripts,...next])].slice(0,100),ids:[...new Set(b.match(/\b\d{9}\b/g)||[])].slice(0,30),body:b.slice(0,1000)}));
+            }
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
