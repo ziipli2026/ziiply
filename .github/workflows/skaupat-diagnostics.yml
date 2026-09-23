@@ -1006,30 +1006,24 @@ jobs:
           })().catch(e => { console.error(e); process.exitCode=1; });
           NODE
 
-      - name: Resolve new S-markets via OpenStreetMap nearby metadata
-        timeout-minutes: 2
+      - name: Validate newly discovered Leinola public store ID
         run: |
           node <<'NODE'
-          const targets = [
-            ["Varisto",60.2648201,24.8112035],["Suutarila",60.2777555,25.0215524],
-            ["Leinola",61.493862,23.91459],["Rautalampi",62.6225997,26.8308516],
-            ["Itikanristeys",62.794854,22.832184],["Zeniitti",64.8920648,25.5834419],
-            ["Hiukkavaara",65.0103704,25.5877432],["Jääli",65.0921002,25.6903283]
-          ];
-          const ep="https://overpass.kumi.systems/api/interpreter";
-          const ac=new AbortController(); const timer=setTimeout(()=>ac.abort(),45000);
+          const id="726675436";
+          const expected="S-market Leinola Tampere";
           (async()=>{
-            const clauses=targets.map(([,lat,lon])=>`nwr(around:300,${lat},${lon})["shop"="supermarket"];`).join("");
-            const q=`[out:json][timeout:20];(${clauses});out center tags;`;
-            let status=0,data=null,error=null;
+            const out={id,expected};
             try{
-              const r=await fetch(ep,{method:"POST",headers:{"content-type":"application/x-www-form-urlencoded","user-agent":"Ziiply diagnostics"},body:"data="+encodeURIComponent(q),signal:ac.signal});
-              status=r.status;
-              if(r.ok)data=await r.json(); else error=(await r.text()).slice(0,500);
-            }catch(e){error=String(e);}
-            clearTimeout(timer);
-            const els=(data?.elements||[]).map(e=>({type:e.type,id:e.id,lat:e.lat??e.center?.lat,lon:e.lon??e.center?.lon,tags:e.tags||{},ids:[...new Set(JSON.stringify(e.tags||{}).match(/\b\d{9}\b/g)||[])]}));
-            const out=targets.map(([name,lat,lon])=>({name,matches:els.map(e=>({...e,d:Math.hypot((e.lat-lat)*111,(e.lon-lon)*55)})).filter(e=>e.d<0.5).sort((a,b)=>a.d-b.d).slice(0,5)}));
-            console.log("OSM_NEW_STORE_METADATA "+JSON.stringify({status,error,total:els.length,out},null,2));
-          })().catch(e=>{clearTimeout(timer);console.error(e);process.exitCode=1});
+              const s=await fetch("https://asiakaspalaute.s-kanava.fi/palaute/toimipaikat/"+id);
+              const body=await s.text();
+              out.skanavaStatus=s.status;
+              out.skanavaName=(body.match(/<h1[^>]*>([^<]+)<\/h1>/i)||body.match(/class="nimi"[^>]*>([^<]+)/i)||[])[1]||null;
+              out.skanavaHasLeinola=/Leinola/i.test(body);
+            }catch(e){out.skanavaError=String(e)}
+            try{
+              const r=await fetch("https://api.s-kaupat.fi/?operationName=RemoteGetPageContent",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({query:`query RemoteGetPageContent($storeId: ID!, $path: String!) { remoteGetPageContent(storeId: $storeId, path: $path) { __typename } }`,variables:{storeId:id,path:"tuotteet/kampanjat"}})});
+              out.pageContentStatus=r.status; out.pageContentBody=(await r.text()).slice(0,1000);
+            }catch(e){out.pageContentError=String(e)}
+            console.log("LEINOLA_ID_VALIDATION "+JSON.stringify(out,null,2));
+          })();
           NODE
