@@ -1,3 +1,5 @@
+import { parseKCitymarketSpatialLeaflet } from "./kCitymarketSpatialParser.js";
+
 // ============================================================================
 // ZIIPLY K-CITYMARKET PROVIDER V13
 // Revision: V13-KCITYMARKET-UNITPRICE-INFERENCE
@@ -352,53 +354,60 @@ function pageNumber(url:string){
 }
 
 export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
-  const entry=await html(ENTRY);
-  let leaflet=entry.url;
-  const direct=entry.text.match(/https?:\/\/kcm-tarjouslehdet\.k-ruoka\.fi\/[^"'<>\s]+\/index\.html/i)?.[0];
-  const href=entry.text.match(/href=["']([^"']*kcm-tarjouslehdet\.k-ruoka\.fi[^"']*)["']/i)?.[1];
-  const refresh=entry.text.match(/url\s*=\s*([^"'<>\s]+)/i)?.[1];
-  if(direct) leaflet=direct; else if(href) leaflet=abs(href,entry.url)??leaflet; else if(refresh) leaflet=abs(refresh,entry.url)??leaflet;
-  const leaf=await html(leaflet);
-  let basic=leaf.text.match(/href=["']([^"']*files\/basic-html\/index\.html[^"']*)["']/i)?.[1];
-  basic=basic?(abs(basic,leaf.url) ?? undefined):leaf.url.replace(/\/index\.html(?:\?.*)?$/i,"/files/basic-html/index.html");
-  if(!basic) throw new Error("K-Citymarket basic-html URL not found");
-  const index=await html(basic);
-  const urls=new Set<string>([index.url]);
-  let maxPage=1;
-  for(const m of index.text.matchAll(/href=["']([^"']*page(\d+)\.html[^"']*)["']/gi)){
-    const u=abs(m[1],index.url);
-    if(u) urls.add(u);
-    maxPage=Math.max(maxPage,Number(m[2])||1);
+  const parsed=await parseKCitymarketSpatialLeaflet(ENTRY);
+  const leafletUrl=String(parsed?.leaflet||ENTRY);
+  const rows=Array.isArray(parsed?.rows)?parsed.rows:[];
+
+  citymarketHtmlDebugV8={
+    leafletUrl,
+    basicIndexUrl:undefined,
+    maxPage:Math.max(0,...rows.map((r:any)=>Number(r?.page)||0)),
+    samples:[]
+  };
+
+  const offers:CitymarketOffer[]=[];
+  for(const row of rows){
+    const resolved=row?.spatialResolved;
+    if(!resolved || resolved.displayOnlyUnitPrice) continue;
+
+    const price=Number(resolved.value);
+    if(!Number.isFinite(price) || price<=0) continue;
+
+    const title=clean(row?.title||"");
+    if(!title || isNoiseLine(title)) continue;
+
+    const normalMin=Number(row?.normal?.min);
+    const unitMin=Number(row?.unitPrice?.min);
+    const unitMax=Number(row?.unitPrice?.max);
+    const unitPrice=
+      Number.isFinite(unitMin) && Number.isFinite(unitMax) && Math.abs(unitMin-unitMax)<0.001
+        ? unitMin
+        : null;
+
+    offers.push({
+      id:`kcm:spatial:${row?.page??0}:${title.toLowerCase()}:${price}`,
+      title,
+      price,
+      normalPrice:Number.isFinite(normalMin)?normalMin:null,
+      unitPrice,
+      unit:row?.unitPrice?.raw?.match(/\/(kg|l)\b/i)?.[1]?.toLowerCase()??resolved?.unit??null,
+      packageSize:row?.package?.raw??null,
+      plussa:/plussa/i.test((row?.nearby||[]).map((x:any)=>x?.text||x?.raw||"").join(" ")),
+      validFrom:null,
+      validTo:null,
+      category:category(title),
+      chain:"K",
+      storeType:"K-Citymarket",
+      source:"K-Citymarket tarjouslehti",
+      sourceUrl:leafletUrl
+    });
   }
 
-  // Basic HTML -lehti ilmoittaa sivut indexissä. Täydennä mahdolliset
-  // välistä puuttuvat linkit samaan hakemistoon, jotta esim. 18-sivuinen
-  // lehti luetaan varmasti sivuilta 1...18.
-  const baseDir=index.url.replace(/index\.html(?:\?.*)?$/i,"");
-  for(let n=2;n<=maxPage;n++) urls.add(`${baseDir}page${n}.html`);
-
-  const ordered=[...urls].sort((a,b)=>pageNumber(a)-pageNumber(b));
-  citymarketHtmlDebugV8={leafletUrl:leaf.url,basicIndexUrl:index.url,maxPage,samples:[]};
-  const pages=await Promise.all(ordered.map(async u=>{
-    const p=await html(u);
-    const pn=pageNumber(p.url);
-    if(pn===2||pn===3) citymarketHtmlDebugV8.samples.push({
-      page:pn,url:p.url,htmlLength:p.text.length,
-      textLines:textOf(p.text).split(/\n+/).map(clean).filter(Boolean).slice(0,220),
-      tagSamples:debugTagSamplesV8(p.text)
-    });
-    const v12=parsePage(p.text,p.url);
-    const lines=textOf(p.text).split(/\n+/).map(clean).filter(Boolean);
-    const inferred=pn<=7?inferredOffersV13(lines,p.url):[];
-    return [...inferred,...v12];
-  }));
-  citymarketHtmlDebugV8.samples.sort((a,b)=>a.page-b.page);
-
   const seen=new Set<string>();
-  return pages.flat().filter(o=>{
-    const k=`${o.title.toLowerCase()}|${o.price}|${o.packageSize??""}`;
-    if(seen.has(k)) return false;
-    seen.add(k);
+  return offers.filter(o=>{
+    const key=`${o.title.toLowerCase()}|${o.price}|${o.packageSize??""}`;
+    if(seen.has(key)) return false;
+    seen.add(key);
     return true;
   });
 }
