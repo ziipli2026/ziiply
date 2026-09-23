@@ -320,3 +320,24 @@ jobs:
             }
           })();
           NODE
+      - name: Kaleva internal-id through actual Prisma resolver
+        run: |
+          node <<'NODE'
+          const storeName="Prisma Kaleva Tampere";
+          const rawStoreId="423";
+          const HASH="6da249b0fd87c05275a239ed490976c851d7aff90ead0f3a3978e8283f21252d";
+          const CV="production-14a82a5b48cd1dd42c0592db0037514ed3c84de8";
+          const today=()=>{const d=new Date();return String(d.getFullYear())+String(d.getMonth()+1).padStart(2,"0")+String(d.getDate()).padStart(2,"0")};
+          (async()=>{
+            const g=await fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&countrycodes=fi&limit=1&q="+encodeURIComponent(storeName),{headers:{"accept":"application/json","accept-language":"fi","user-agent":"Ziiply/1.0 (+https://ziiply.fi)"}});
+            const gj=await g.json(); const lat=Number(gj?.[0]?.lat),lon=Number(gj?.[0]?.lon);
+            const vars={startDate:today(),endDate:today(),location:{latitude:lat,longitude:lon},limit:20};
+            const ext={persistedQuery:{version:1,sha256Hash:HASH}};
+            const url="https://api.s-kaupat.fi/?operationName=remotePickupSlots&variables="+encodeURIComponent(JSON.stringify(vars))+"&extensions="+encodeURIComponent(JSON.stringify(ext));
+            const p=await fetch(url,{headers:{"accept":"application/graphql-response+json, application/json","content-type":"application/json","accept-language":"fi","origin":"https://www.s-kaupat.fi","referer":"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":CV}});
+            const pj=await p.json(); const rows=pj?.data?.pickupSlotsForCoordinates?.slotsInPickupPoints||[];
+            const kaleva=rows.filter(x=>/prisma kaleva/i.test(String(x?.pickupPoint?.name||x?.name||""))||String(x?.store?.id||"")==="517609418").map(x=>({storeId:String(x?.store?.id||""),name:x?.pickupPoint?.name||x?.name||"",brand:x?.store?.brand||"",distance:x?.distance}));
+            const effective=kaleva[0]?.storeId||(/^[0-9]{5,}$/.test(rawStoreId)?rawStoreId:null);
+            console.log("PRISMA_KALEVA_INTERNAL_ID_RESOLUTION "+JSON.stringify({input:{rawStoreId,storeName},geocode:{lat,lon},kaleva,effectiveStoreId:effective,pass:effective==="517609418"},null,2));
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
