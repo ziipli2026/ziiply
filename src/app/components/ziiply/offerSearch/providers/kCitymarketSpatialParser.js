@@ -523,17 +523,6 @@ if(!spatialResolved&&anchor&&(/6 kpl\/210 g tai TÄYS-/i.test(title)||/JYVÄRUIS
  let visual=false;for(const e of euro)for(const z of cents){if(Math.hypot((z.left||0)-(e.left||0),(z.top||0)-(e.top||0))<.06){const u=ps.find(x=>Math.hypot((x.left||0)-(z.left||0),(x.top||0)-(z.top||0))<.05);if(u)visual=true;}}
  if(visual&&pct&&normal)spatialResolved={value:1.69,quantity:null,unit:"PS",source:"bread-shared-card-visual-price-proof",sanity:"pass",confidence:"high"};
 }
-// V243: Rummo 500 g pasta card. Coordinate proof: large 1 + 99 and KPL, with -28% and normal 2.49/ps (4.98/kg).
-if(!spatialResolved&&anchor&&/KUVIOPASTAT 500 g/i.test(title)&&!ur){
- const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.17);
- const euro=local.find(b=>String(b.text||"").trim()==="1"&&Number(b.height||0)>=.04);
- const cents=local.find(b=>String(b.text||"").trim()==="99"&&Number(b.height||0)>=.02)||local.find(b=>String(b.text||"").trim()==="KPL"&&Number(b.height||0)>=.01);
- const unit=local.find(b=>/^KPL$/i.test(String(b.text||"").trim()));
- const pct=local.some(b=>/^-{1,2}28%$/.test(String(b.text||"").trim()));
- const normal=local.some(b=>/^49\/ps$/i.test(String(b.text||"").trim()))&&local.some(b=>/^98\/kg\)$/i.test(String(b.text||"").trim()));
- if(euro&&unit&&pct&&normal)
-   spatialResolved={value:1.99,quantity:null,unit:"KPL",source:"pasta-card-visual-price-proof",sanity:"pass",confidence:"high"};
-}
 if(!spatialResolved&&anchor){
  const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.24);
  const compact4s=local.filter(b=>/^\d{4}$/.test(String(b.text||"").trim())&&Number(b.height||0)>.04);
