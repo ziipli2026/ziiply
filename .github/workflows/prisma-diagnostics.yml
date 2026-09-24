@@ -1331,6 +1331,25 @@ jobs:
           for(const [store,ids] of stores){const attempts=[];let chosen=null;for(const id of ids.slice(0,8)){const x=await gen(id);attempts.push({id,http:x.http});if(x.http===200&&x.json){chosen={id,sections:sections(x.json)};break}}console.log("SMARKET_V262 "+JSON.stringify({store,attempts,chosen,pass:!!chosen}))}
           NODE
 
+      - name: S-market broad resolver and publication sample V263
+        shell: bash
+        run: |
+          node <<'NODE'
+          const ET="https://etarjouslehdet.fi/",BID="d8ccs8",API="https://squid-api.tjek.com/v4/rpc",KEY="152000596c6e45d9983eab0c14afebea";
+          const enc=v=>Buffer.from(JSON.stringify(v)).toString("base64");
+          async function batch(q){const r=await fetch(ET,{method:"POST",headers:{accept:"application/json,text/plain,*/*","content-type":"application/json",origin:"https://etarjouslehdet.fi",referer:"https://etarjouslehdet.fi/S-market/kaupat","user-agent":"Mozilla/5.0 ZiiplyOfferProvider/20"},body:JSON.stringify({data:q.map(enc)})});const t=await r.text();return t.split(/\n+/).map(x=>{try{return JSON.parse(x)}catch{return null}}).filter(Boolean).map(x=>x&&typeof x==="object"&&Object.prototype.hasOwnProperty.call(x,"value")?x.value:x)}
+          function walk(v,fn){if(!v)return;if(Array.isArray(v)){for(const x of v)walk(x,fn);return}if(typeof v==="object"){fn(v);for(const x of Object.values(v))walk(x,fn)}}
+          function first(...v){for(const x of v){if(typeof x==="string"&&x.trim())return x.trim();if(typeof x==="number")return String(x)}return""}
+          function stores(v){const a=[];walk(v,o=>{const id=first(o.id,o.publicId,o.storeId,o.localBusinessId,o.local_business_id),name=first(o.name,o.storeName,o.store_name,o.label,o.title,o.displayName,o.display_name);if(id&&name&&!/^\d+$/.test(id)&&!(id===BID&&name.toLowerCase()==="s-market"))a.push({id,name})});return a}
+          function pubs(v,store){const a=[];walk(v,o=>{const ids=[first(o.publicationId),first(o.publicId),first(o.publication_id),first(o.publication&&o.publication.id),first(o.id)].filter(Boolean),name=first(o.label,o.name,o.publicationName,o.title),from=first(o.validFrom,o.valid_from),until=first(o.validUntil,o.valid_until),keys=Object.keys(o).join(" ").toLowerCase(),typ=first(o.type,o.kind,o.__typename,o.view_name).toLowerCase(),like=from||until||typ.includes("publication")||typ.includes("front")||keys.includes("publication")||keys.includes("validfrom")||keys.includes("validuntil");for(const id of ids)if(id.length>=6&&id!==store&&id!==BID&&like)a.push({id,name,from,until})});const seen=new Set();return a.filter(x=>!seen.has(x.id)&&seen.add(x.id))}
+          async function gen(id){const r=await fetch(API+"/generate_incito_from_publication",{method:"POST",headers:{accept:"application/json","content-type":"application/json",origin:"https://etarjouslehdet.fi",referer:"https://etarjouslehdet.fi/","x-api-key":KEY},body:JSON.stringify({id,device_category:"desktop",pointer:"fine",orientation:"horizontal",pixel_ratio:2,max_width:1418,viewport_width:1432,viewport_height:900,versions_supported:["1.0.0"],locale_code:"fi-FI",time:new Date().toISOString(),feature_labels:[]})});return r.status}
+          let all=[];for(const off of [0,100,200,300,400]){const v=await batch([["stores",{businessId:BID,pagination:{limit:100,offset:off}}]]);all.push(...v.flatMap(stores))}
+          const seen=new Map();for(const x of all)if(!seen.has(x.id))seen.set(x.id,x);all=[...seen.values()];
+          const idx=[0,45,95,105,145,195,205,245,295,305,345,395,405,435,465].filter(i=>i<all.length);
+          for(const i of idx){const s=all[i];const v=await batch([["fronts",{businessIds:[BID],localBusinessIds:[s.id]}],["relatedPublications",{businessId:BID,locationId:s.id}],["relatedPublications",{businessId:BID,localBusinessId:s.id}]]);const ps=v.flatMap(x=>pubs(x,s.id));const attempts=[];let chosen="";for(const p of ps.slice(0,8)){const h=await gen(p.id);attempts.push({id:p.id,http:h});if(h===200){chosen=p.id;break}}console.log("SMARKET_V263 "+JSON.stringify({index:i,store:s,publicationCount:ps.length,attempts,chosen,pass:!!chosen}))}
+          console.log("SMARKET_V263_SUMMARY "+JSON.stringify({uniqueStores:all.length,tested:idx.length}));
+          NODE
+
       - name: Prisma Sunday 2026-09-20 resolver reconstruction V242
         shell: bash
         run: |
