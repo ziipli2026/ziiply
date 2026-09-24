@@ -6,36 +6,22 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Section scope filter simulation V277
+      - name: Campaign terms and generic-section scope V278
         shell: bash
         run: |
           node <<'NODE'
-          const HASH="f6d87786fda8fb5c233c4eaed08f37b0c5b87dc0d8d4c44c33c5529e446369d1";
-          const CLIENT="production-14a82a5b48cd1dd42c0592db0037514ed3c84de8";
+          const HASH="f6d87786fda8fb5c233c4eaed08f37b0c5b87dc0d8d4c44c33c5529e446369d1",CLIENT="production-14a82a5b48cd1dd42c0592db0037514ed3c84de8";
           const date=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
           const stores=[["Vehkoja","519941769"],["Jokela","685839110"]];
-          const txt=s=>String(s??"").toLowerCase();
-          function products(s){return Array.isArray(s?.products)?s.products:[]}
-          function key(p){return String(p?.ean||p?.id||p?.sokId||p?.name||"")}
-          function classify(s){
-            const evidence=[s?.title,s?.description,s?.text,s?.tagTitle,s?.metadata?.entryName].filter(Boolean).join(" | ");
-            const t=txt(evidence);
-            const hasPrisma=/\bprisma\b/.test(t),hasSmarket=/\bs[ -]?market\b/.test(t);
-            const prismaOnly=hasPrisma&&!hasSmarket;
-            return {evidence,hasPrisma,hasSmarket,prismaOnly};
-          }
-          async function page(name,id){
+          const compact=(v,d=0)=>{if(d>5)return "[depth]";if(Array.isArray(v))return v.slice(0,20).map(x=>compact(x,d+1));if(v&&typeof v==="object"){const o={};for(const [k,x] of Object.entries(v)){if(/product/i.test(k)&&Array.isArray(x)){o[k]="["+x.length+" products]";continue}o[k]=compact(x,d+1)}return o}return v};
+          async function get(name,id){
             const variables={preview:false,storeId:id,skipProducts:false,availabilityDate:date,where:{storeId:id,path:"tuotteet/kampanjat",platform:"WEB",availabilityDate:date,userConsent:{marketing:false,marketingId:"ziiply-gosta",useCustomerId:false,sessionId:"ziiply-gosta",loop54:true}}};
             const extensions={clientLibrary:{name:"@apollo/client",version:"4.2.12"},persistedQuery:{version:1,sha256Hash:HASH}};
             const u=new URL("https://api.s-kaupat.fi/");u.searchParams.set("operationName","RemoteGetPageContent");u.searchParams.set("variables",JSON.stringify(variables));u.searchParams.set("extensions",JSON.stringify(extensions));
             const r=await fetch(u,{headers:{accept:"application/graphql-response+json,application/json;q=0.9","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":CLIENT}});
-            const d=await r.json(),secs=Array.isArray(d?.data?.pageContent?.sections)?d.data.pageContent.sections:[];
-            const rows=secs.map((s,i)=>({i,title:s?.title||"",count:products(s).length,...classify(s)}));
-            const raw=secs.flatMap(products),removed=secs.filter(s=>classify(s).prismaOnly).flatMap(products),kept=secs.filter(s=>!classify(s).prismaOnly).flatMap(products);
-            const uniq=a=>new Map(a.filter(Boolean).map(p=>[key(p),p]));
-            const ru=uniq(raw),ku=uniq(kept),xu=[...ru.keys()].filter(k=>!ku.has(k));
-            console.log("V277_SECTIONS "+JSON.stringify({name,requestedStoreId:id,status:r.status,rows},null,2));
-            console.log("V277_SUMMARY "+JSON.stringify({name,rawRows:raw.length,rawUnique:ru.size,prismaOnlySections:rows.filter(x=>x.prismaOnly).map(x=>({i:x.i,title:x.title,count:x.count,evidence:x.evidence})),removedRows:removed.length,keptRows:kept.length,keptUnique:ku.size,uniqueProductsRemovedEntirely:xu.length,removedUniqueProducts:xu.map(k=>{const p=ru.get(k);return{ean:p?.ean,name:p?.name,price:p?.price}})},null,2));
+            const d=await r.json(),p=d?.data?.pageContent,secs=Array.isArray(p?.sections)?p.sections:[];
+            console.log("V278_PAGE_META "+JSON.stringify({name,id,status:r.status,seo:p?.seo,metadata:p?.metadata},null,2));
+            for(let i=0;i<secs.length;i++){const s=secs[i],e=[s?.title,s?.description,s?.text,s?.tagTitle,s?.metadata?.entryName].filter(Boolean).join(" | ");const explicit=/prisma|s[ -]?market|alepa|sale|food market|mestarin/i.test(e);if(i===1||/kampanjaehto/i.test(e)||!explicit){console.log("V278_SECTION "+JSON.stringify({name,i,keys:Object.keys(s||{}),section:compact(s)},null,2))}}
           }
-          (async()=>{for(const s of stores)await page(...s)})().catch(e=>{console.error(e);process.exitCode=1});
+          (async()=>{for(const s of stores)await get(...s)})().catch(e=>{console.error(e);process.exitCode=1});
           NODE
