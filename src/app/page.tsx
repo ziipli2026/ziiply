@@ -14558,7 +14558,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         delete next[id];
         return next;
       });
-      showCartToast(`Poistettu: ${removedItem.name}`);
+      // V65: määrän 1 -> poistaminen vahvistetaan jo koririvillä; erillistä poistotoastia ei näytetä.
     } else {
       showCartToast(`${currentItem.name}: ${nextQuantity} kpl`);
     }
