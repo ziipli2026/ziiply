@@ -398,6 +398,11 @@ if(!spatialResolved&&anchor&&pk&&pk.min===pk.max){
    const rate=Number(m[1]+"."+m[2]),value=Number((pk.min*rate).toFixed(2));
    if(value>=.5&&value<100)rates.push({rate,value});
   }
+  // OCR may duplicate the first decimal digit as a separate box: "4 1 17/l" means 4.17/l.
+  for(const m of t.matchAll(/(?:^|\s|\()(\d{1,3})\s+([0-9])\s+\2([0-9])\/(kg|l)(?:\s|$|\))/gi)){
+   const rate=Number(m[1]+"."+m[2]+m[3]),value=Number((pk.min*rate).toFixed(2));
+   if(value>=.5&&value<100)rates.push({rate,value});
+  }
  }
  const uniq=[...new Map(rates.map(x=>[x.value,x])).values()];
  if(uniq.length===1&&saleUnits.length)spatialResolved={value:uniq[0].value,quantity:null,unit:String(saleUnits.sort((a,b)=>boxDistance(anchor,a)-boxDistance(anchor,b))[0].text).toUpperCase(),source:"fixed-package-own-unitrate-derived",sanity:"pass",confidence:"high"};
