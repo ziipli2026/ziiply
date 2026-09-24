@@ -591,7 +591,12 @@ if(!spatialResolved&&anchor&&pk&&pk.max===pk.min){
  const localAfterText=after.slice(0,6).map(x=>String(x.text||""));
  const evidenceTexts=[...localGroups,...localAfterText];
  const joined=evidenceTexts.join(" ");
- const rateMatch=joined.replace(/\s+/g,"").replace(/,/g,".").match(/(\d{1,3}(?:\.\d{1,2})?)\/(kg|l)(?:[^a-z]|$)/i);
+ const normalizedEvidence=joined.replace(/\s+/g,"").replace(/,/g,".");
+ let rateMatch=normalizedEvidence.match(/(\d{1,3}(?:\.\d{1,2})?)\/(kg|l)(?:[^a-z]|$)/i);
+ if(!rateMatch){
+  const splitRate=localGroups.map(t=>String(t).match(/(?:^|\s)(\d{1,2})\s+(\d{2})\/(kg|l)(?:\s|$)/i)).find(Boolean);
+  if(splitRate)rateMatch=[splitRate[0],splitRate[1]+"."+splitRate[2],splitRate[3]];
+ }
  const hasNormalPrice=evidenceTexts.some(t=>/Ilman\s+Plussa-korttia/i.test(t)&&/\d/.test(t)&&/(?:\/kpl|\/pkt|\/rs|\/ps|\/tlk|\/pl|\/prk)/i.test(t));
  if(rateMatch&&hasNormalPrice){
   const rate=Number(rateMatch[1]),unit=String(rateMatch[2]).toLowerCase();
