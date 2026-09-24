@@ -352,8 +352,23 @@ function offerMatchesStrictGostaCategoryV15(result: ZiiplyOfferSearchResult, que
   return false;
 }
 
-function getOfferSearchCacheKey(query: string) {
-  return `${OFFER_SEARCH_SOURCE_REVISION}:${query}`;
+function getOfferSearchCacheKey(query: string, options?: ZiiplyOfferSearchSourceContextV8) {
+  // V37: tarjousvälimuisti on kauppakohtainen. Pelkkä query avaimena vuoti
+  // esimerkiksi K-Supermarket Jokelan master-tulokset myöhempään S-market
+  // Jokelan hakuun, koska molemmat käyttävät samaa __ziiply_all_offers__-querya.
+  const contextKey = [
+    String(options?.storeCompareScope ?? "").trim(),
+    String((options as any)?.withinChain ?? "").trim(),
+    ...normalizeOfferStoreListV11(options?.sStoreIds, options?.sStoreId ?? options?.storeId),
+    ...normalizeOfferStoreListV11(options?.sStoreNames, options?.sStoreName ?? options?.storeName),
+    ...normalizeOfferStoreListV11(options?.kStoreIds, options?.kStoreId),
+    ...normalizeOfferStoreListV11(options?.kStoreNames, options?.kStoreName),
+  ]
+    .map((value) => normalizeOfferUniqueText(value))
+    .filter(Boolean)
+    .join("|");
+
+  return `${OFFER_SEARCH_SOURCE_REVISION}:${contextKey || "global"}:${query}`;
 }
 
 function normalizeOfferUniqueText(value: unknown) {
@@ -738,7 +753,7 @@ export async function searchZiiplyOffers(
     isKLocalOfferStoreNameV33(selectedKStoreNameV33),
   );
 
-  const cacheKey = getOfferSearchCacheKey(cleanQuery);
+  const cacheKey = getOfferSearchCacheKey(cleanQuery, options);
   const cached = ENABLE_OFFER_SEARCH_CACHE ? getCachedOfferResults(cacheKey) : null;
   if (cached) return cached;
 
