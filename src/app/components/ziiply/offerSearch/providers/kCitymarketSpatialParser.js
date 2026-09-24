@@ -488,7 +488,7 @@ if(anchor){
 }
 // V101 final confidence gate: classify only after every resolver/fallback has finished.
 if(spatialResolved){
- const strongSources=new Set(["validated-geometric-multibuy","high-confidence-geometric-multibuy","visual-large-euro-multibuy","large-visual-price-qty-unit","embedded-productblock-price","group-er-price","group-discount-price","unitprice-validated-multibuy","unitprice-validated-candidate","range-unitprice-cents-validated","spatial-range-unitprice-cents-validated","spatial-fixed-unitprice-cents-validated","local-explicit-unit-price","expected-near-exact-visual","expected-local-cents-validated","local-product-unitprice-exact","local-unitprice-derived-offer","unique-local-explicit-unit-price","fixed-package-unitprice-confirmed-multibuy","fixed-package-local-unitprice-confirmed-price","raw-box-unitprice-confirmed-price","one-unit-duplicate-visual-price-rate","product-row-fixed-package-split","card-fixed-package-unitprice-split","raw-box-one-unit-duplicate-rate","large-visual-price","title-linked-large-split-price","mixed-size-unitprice-range-proof","range-endpoint-cross-derived","own-unitprice-package-derived"]);
+ const strongSources=new Set(["validated-geometric-multibuy","high-confidence-geometric-multibuy","visual-large-euro-multibuy","large-visual-price-qty-unit","embedded-productblock-price","group-er-price","group-discount-price","unitprice-validated-multibuy","unitprice-validated-candidate","range-unitprice-cents-validated","spatial-range-unitprice-cents-validated","spatial-fixed-unitprice-cents-validated","local-explicit-unit-price","expected-near-exact-visual","expected-local-cents-validated","local-product-unitprice-exact","local-unitprice-derived-offer","unique-local-explicit-unit-price","fixed-package-unitprice-confirmed-multibuy","fixed-package-local-unitprice-confirmed-price","raw-box-unitprice-confirmed-price","one-unit-duplicate-visual-price-rate","product-row-fixed-package-split","card-fixed-package-unitprice-split","raw-box-one-unit-duplicate-rate","large-visual-price","title-linked-large-split-price","mixed-size-unitprice-range-proof","isolated-card-large-split-discount-proof","mixed-size-endpoint-equivalence-proof","range-endpoint-cross-derived","own-unitprice-package-derived"]);
  const q=Number(spatialResolved.quantity||1),tx=expected?expected*q:null,ratio=tx?spatialResolved.value/tx:null;
  if(spatialResolved.sanity==="review")spatialResolved.confidence="review";
  else spatialResolved.confidence=strongSources.has(spatialResolved.source)?"high":"medium";
@@ -583,24 +583,42 @@ if(!spatialResolved&&anchor&&pk&&pk.min===pk.max){
  const best=proofs[0];
  if(best&&(!proofs[1]||proofs[1].score-best.score>.025))spatialResolved={value:best.value,quantity:best.quantity,unit:best.unit,source:"fixed-package-unitrate-multibuy-proof",sanity:"pass",confidence:"high"};
 }
-// V280: SHAMPOOT 500 ml is a separate right-hand card on the same visual row.
-// Coordinate proof: large 6 + 90 with KPL beside it and -31% above; require all four signals in the tight right-hand card.
-if(!spatialResolved&&anchor&&/^SHAMPOOT 500 ml$/i.test(title)){
- const local=wordBoxes.filter(b=>Number(b.left)>.35&&Number(b.left)<.50&&Number(b.top)>.22&&Number(b.top)<.31);
- const euro=local.find(b=>/^6$/.test(String(b.text||"").trim())&&Number(b.height||0)>.06);
- const cents=local.find(b=>/^90$/.test(String(b.text||"").trim())&&Number(b.height||0)>.03);
- const unit=local.find(b=>/^KPL$/i.test(String(b.text||"").trim()));
- const pct=local.find(b=>/^-31%$/.test(String(b.text||"").trim()));
- if(euro&&cents&&unit&&pct) spatialResolved={value:6.90,quantity:null,unit:"KPL",source:"shampoo500-right-card-price-proof",sanity:"pass",confidence:"high"};
+// Generic isolated-card large split shelf-price proof.
+// Require a large euro+cents pair, sale unit and discount percentage in the same tight local card.
+// This replaces former product/title-specific right-hand-card handling.
+if(!spatialResolved&&anchor){
+ const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.20);
+ const euros=local.filter(b=>/^\d{1,2}$/.test(String(b.text||"").trim())&&Number(b.height||0)>.055);
+ const cents=local.filter(b=>/^\d{2}$/.test(String(b.text||"").trim())&&Number(b.height||0)>.025);
+ const units=local.filter(b=>/^(KPL|PKT|PS|RS|TLK|PL|PRK)$/i.test(String(b.text||"").trim()));
+ const pcts=local.filter(b=>/^-\d{1,2}%$/.test(String(b.text||"").trim()));
+ const proofs=[];
+ for(const e of euros)for(const ct of cents)for(const u of units){
+  const sameBand=Math.abs(Number(e.top)-Number(ct.top))<.045&&Math.abs(Number(e.top)-Number(u.top))<.07;
+  const ordered=Number(ct.left)>=Number(e.left)-.015&&Number(u.left)>=Number(e.left)-.02;
+  const pct=pcts.find(p=>Math.abs(Number(p.left)-Number(e.left))<.12&&Number(p.top)<Number(e.top)+.02&&Math.abs(Number(p.top)-Number(e.top))<.12);
+  const value=Number(String(e.text).trim()+"."+String(ct.text).trim());
+  if(sameBand&&ordered&&pct&&value>=.5&&value<30) proofs.push({value,unit:String(u.text).trim().toUpperCase(),score:boxDistance(anchor,e)+boxDistance(anchor,ct)+boxDistance(anchor,u)});
+ }
+ proofs.sort((a,b)=>a.score-b.score);
+ if(proofs[0]&&(!proofs[1]||proofs[1].score-proofs[0].score>.02)) spatialResolved={value:proofs[0].value,quantity:null,unit:proofs[0].unit,source:"isolated-card-large-split-discount-proof",sanity:"pass",confidence:"high"};
 }
-// V278: Elvital/Fructis/Respons shampoo-conditioner card prints 9.20–11.50/l for 200–250 ml.
-// Mixed sizes imply the same 2.30 euro offer price at both endpoints: .25*9.20 == .20*11.50.
-if(!spatialResolved&&anchor&&/SHAMPOOT ja HOITO- AINEET 200–250 ml/i.test(title)){
- const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.12);
- const row=local.filter(b=>Math.abs(Number(b.top)-.263048)<.008).sort((a,b)=>a.left-b.left).map(b=>String(b.text||"").trim()).join("");
- const proof=/920.*[–-].*1150\/l/i.test(row.replace(/[^0-9–\-\/l]/gi,""));
- if(proof) spatialResolved={value:2.30,quantity:null,unit:"KPL",source:"shampoo-range-endpoint-price-proof",sanity:"pass",confidence:"high"};
+
+// Generic mixed-size endpoint equivalence proof.
+// If package sizes and a printed unit-price range cross-multiply to the same shelf price,
+// the common endpoint price is the offer price. No product names or fixed coordinates are used.
+if(!spatialResolved&&anchor&&pk&&pk.max>pk.min){
+ const compact=[String(title||""),...after.slice(0,6).map(x=>String(x.text||""))].join(" ").replace(/\s+/g,"").replace(/,/g,".");
+ let m=compact.match(/([0-9]+(?:\.[0-9]+)?)[–-]([0-9]+(?:\.[0-9]+)?)\/(kg|l)(?:[^a-z]|$)/i);
+ if(!m){const q=compact.match(/(\d{3,4})[–-](\d{3,4})\/(kg|l)(?:[^a-z]|$)/i);if(q)m=[q[0],String(Number(q[1])/100),String(Number(q[2])/100),q[3]];}
+ if(m){
+  const lo=Number(m[1]),hi=Number(m[2]),unit=String(m[3]).toLowerCase();
+  const factor=unit==="kg"?1:1;
+  const a=pk.min*hi*factor,b=pk.max*lo*factor;
+  if(Number.isFinite(a)&&Number.isFinite(b)&&Math.abs(a-b)<.04&&a>=.5&&a<30) spatialResolved={value:Number(((a+b)/2).toFixed(2)),quantity:null,unit:"KPL",source:"mixed-size-endpoint-equivalence-proof",sanity:"pass",confidence:"high"};
+ }
 }
+
 // Generic mixed-size unit-price range proof.
 // A mixed-size product card may print its unit-price range either in the title row
 // or immediately below it. Never invent one euro shelf price from the range.
