@@ -495,13 +495,11 @@ if(spatialResolved){
 if(spatialResolved?.rejectedReview)spatialResolved=null;
 // V227: fixed package + exact local unit price may prove a 1.00 offer when the card also prints normal price 1.25/prk.
 if(anchor&&pk&&pk.min===pk.max&&ur&&ur.min===ur.max){const exact=Number((pk.min*ur.min).toFixed(2));const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.13);const normalOnes=local.filter(b=>String(b.text||"").trim()==="1");const normalCents=local.filter(b=>/^25\/prk$/i.test(String(b.text||"").trim()));const hasNormal=normalOnes.some(a=>normalCents.some(b=>Math.abs(a.top-b.top)<.004&&b.left>a.left&&b.left-a.left<.03));if(exact===1&&hasNormal&&(!spatialResolved||spatialResolved.sanity==="review"||spatialResolved.source==="best-spatial-candidate"))spatialResolved={value:1,quantity:null,unit:"PRK",source:"fixed-package-unitprice-exact-with-normal-price",sanity:"pass",confidence:"high"};}
-// Generic multipack: derive a per-unit shelf price from a local large total price (compact or split euro+cents) and an exact N x ... pack count when independent unit-price math agrees.
+// Generic multipack: when a card has an exact N x ... pack count, derive the per-item price from a local large total price when independent unit-price math agrees.
 if(!spatialResolved&&anchor&&expected){
  const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.19),compact=local.filter(b=>/^\d{3,4}$/.test(String(b.text||"").trim())&&Number(b.height||0)>=.04);
- const euros=local.filter(b=>/^\d{1,2}$/.test(String(b.text||"").trim())&&Number(b.height||0)>=.04),cents=local.filter(b=>/^\d{2}$/.test(String(b.text||"").trim())&&Number(b.height||0)>=.02);
- const countText=[title,...around.map(row=>row.text)].join(" "); const counts=[...countText.matchAll(/(?:^|\s)(\d{1,2})\s*x\s*\d+/gi)].map(m=>Number(m[1])).filter(n=>n>=2&&n<=24),totals=[]; console.error("MULTIPACK_GENERIC_TRACE",JSON.stringify({title,expected,countText,counts,compact:compact.map(b=>b.text),euros:euros.map(b=>({t:b.text,l:b.left,y:b.top,h:b.height})),cents:cents.map(b=>({t:b.text,l:b.left,y:b.top,h:b.height}))}));
+ const countText=[title,...around.map(row=>row.text)].join(" "),counts=[...countText.matchAll(/(?:^|\s)(\d{1,2})\s*x\s*\d+/gi)].map(m=>Number(m[1])).filter(n=>n>=2&&n<=24),totals=[];
  for(const b of compact){const t=String(b.text).trim();totals.push(Number(t.slice(0,-2)+"."+t.slice(-2)));}
- for(const e of euros)for(const z of cents){const dx=Math.abs((z.left||0)-(e.left||0)),dy=Math.abs((z.top||0)-(e.top||0));if(dx<.08&&dy<.055)totals.push(Number(String(e.text).trim()+"."+String(z.text).trim()));}
  const vals=[];for(const total of totals)for(const n of counts){const each=Number((total/n).toFixed(2));if(Math.abs(each-expected)<=.015)vals.push({value:each,total,count:n});}
  const uniq=[...new Map(vals.map(x=>[x.value,x])).values()];if(uniq.length===1)spatialResolved={value:uniq[0].value,quantity:null,unit:"KPL",source:"multipack-local-total-derived",sanity:"pass",confidence:"high"};
 }
