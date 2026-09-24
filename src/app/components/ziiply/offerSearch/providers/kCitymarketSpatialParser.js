@@ -550,20 +550,6 @@ if(!spatialResolved&&anchor&&/ROLL-ONIT ja SPRAYT 50–150 ml/i.test(title)){
  const compact=String(title||"").replace(/\s+/g,""); const hasRange=/18[,\.]?33[–-]55[,\.]?00\/l/i.test(compact)||/1833[–-]5500\/l/i.test(compact);
  if(hasRange) spatialResolved={value:18.33,quantity:null,unit:"EUR/L",source:"rollon-unitprice-range-proof",sanity:"pass",confidence:"high",range:{min:18.33,max:55.00},displayOnlyUnitPrice:true};
 }
-// V254: eyelash serum is a percentage-only card; coordinate proof shows -30% beside RIPSISEERUMI 4 ml.
-if(!spatialResolved&&anchor&&/RIPSISEERUMI 4 ml/i.test(title)){
- const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.12);
- const pct=local.find(b=>/^-30%$/.test(String(b.text||"").trim()));
- if(pct) percentageOffer={percent:30,source:"eyelash-serum-percentage-proof",confidence:"high"};
-}
-
-// V252: Dove serum creams are a percentage-only card; OCR/visual text carries -40% with the title.
-if(!spatialResolved&&anchor&&/DOVE SEERUMI-\s*VOITEET 200 ml/i.test(title)){
- const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.22);
- const pct=local.find(b=>/^-40%$/.test(String(b.text||"").trim())||/^-40%\s+DOVE\s+SEERUMI-/i.test(String(b.text||"").trim()));
- if(pct) percentageOffer={percent:40,source:"dove-serum-percentage-proof",confidence:"high"};
-}
-
 // V284: RAE JUUSTO-RIESKAT is a promotional heading, not a product-price row.
 // The geometry below it belongs to separate Moilas/Vaasan products, so keep it out of unresolved product rows.
 if(!spatialResolved&&anchor&&/^RAE JUUSTO- RIESKAT$/i.test(title)){
@@ -634,15 +620,6 @@ if(!spatialResolved&&anchor&&/PUHDISTUSVEDET 100 ml ja SILMÄ- MEIKIN- PUHDISTUS
  const hasRange=/2400.*[–-].*3000.*\/l/i.test(row.replace(/[^0-9–\-\/l]/gi,""));
  if(hasRange) spatialResolved={value:24.00,quantity:null,unit:"EUR/L",source:"micellar-unitprice-range-proof",sanity:"pass",confidence:"high",range:{min:24.00,max:30.00},displayOnlyUnitPrice:true};
 }
-// V247: Cutrin card is a percentage-only offer; coordinate proof shows -25% with the product title.
-if(!spatialResolved&&anchor&&/CUTRIN HIUSTENHOITO- ja MUOTOILUTUOTTEET 75–300 ml/i.test(title)){
- const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.21);
- const pct=local.find(b=>/^-25%$/.test(String(b.text||"").trim()));
- if(pct) percentageOffer={percent:25,source:"cutrin-card-percentage-proof",confidence:"high"};
-}
-
-if(!spatialResolved&&anchor){const pg=spatialGroups(wordBoxes.filter(b=>boxDistance(anchor,b)<.12)).map(g=>String(g.text||"").trim()).filter(t=>/^-\d{1,2}%$/.test(t));const uniqPct=[...new Set(pg)];if(uniqPct.length===1)percentageOffer={percent:Number(uniqPct[0].match(/\d+/)[0]),source:"title-card-percentage-offer",sanity:"pass"};}
-if(/EDULLISET NAKKIMUNAKAS/i.test(title)&&anchor){const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.17).map(b=>String(b.text||"").trim());const recipeProof=local.includes("Katso")&&local.includes("resepti")&&local.includes("MIKROSSA");if(recipeProof){console.error("V274_EXCLUDE_EDITORIAL",JSON.stringify({page:p,title,reason:"recipe-editorial-proof"}));continue;}}
 // V364: ranged package + ranged unit-price cross-check.
 // Opposite range endpoints should reconstruct the same per-package price.
 if(pk&&ur&&pk.max>pk.min&&ur.max>ur.min){
