@@ -6,23 +6,26 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Store-scoped DISCOUNTED comparison V279
+      - name: Compare campaign sections across S-markets V280
         shell: bash
         run: |
           node <<'NODE'
-          const HASH="44ca017dddccfe49e787b483f471f26217adca807f8c71101d11e881dab9e480";
-          const CLIENT="production-45c31f7a746096c6da12e16aba1887e031fbd9de";
+          const HASH="f6d87786fda8fb5c233c4eaed08f37b0c5b87dc0d8d4c44c33c5529e446369d1",CLIENT="production-14a82a5b48cd1dd42c0592db0037514ed3c84de8";
           const date=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
-          const stores=[["Vehkoja","519941769"],["Jokela","685839110"]];
-          function items(d){return d?.data?.store?.products?.productListItems||d?.data?.products?.productListItems||d?.data?.store?.products?.items||[]}
-          function meta(d){const p=d?.data?.store?.products||d?.data?.products||{};return {from:p?.from,limit:p?.limit,total:p?.total,keys:Object.keys(p||{})}}
-          function slim(x){const p=x?.product||x;return {ean:p?.ean,name:p?.name,price:p?.price,storeId:p?.storeId,availability:p?.availability,pricing:p?.pricing,store:p?.store,labels:x?.labels||p?.labels}}
-          async function run(name,storeId){
-            const variables={availabilityDate:date,facets:[{key:"brandName",order:"asc"},{key:"category"},{key:"labels"}],filters:[{key:"labels",value:["DISCOUNTED"]}],generatedSessionId:"1d6b5de9-df99-4608-af07-7d754955df82",fetchSponsoredContent:true,limit:48,queryString:"",sortForAvailabilityLabelDate:date,storeId,useRandomId:false,marketingId:"d0bcc6e5-6130-494e-b6fb-12b5cb9c60cf",from:0,offset:0,skip:0,page:1};
-            const extensions={persistedQuery:{version:1,sha256Hash:HASH}};
-            const u=new URL("https://api.s-kaupat.fi/");u.searchParams.set("operationName","RemoteFilteredProducts");u.searchParams.set("variables",JSON.stringify(variables));u.searchParams.set("extensions",JSON.stringify(extensions));
-            const r=await fetch(u,{headers:{accept:"application/json","content-type":"application/json","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":CLIENT,"user-agent":"Mozilla/5.0"}});
-            const d=await r.json(),a=items(d);console.log("V279_RESULT "+JSON.stringify({name,requestedStoreId:storeId,status:r.status,meta:meta(d),count:a.length,errors:d?.errors||[],sample:a.slice(0,20).map(slim)},null,2));return a;
+          const stores=[["Vehkoja","519941769"],["Jokela","685839110"],["Pukinmäki","726261341"],["Kommila","708276035"],["Tammela","613760495"],["Tanelinranta","660828401"],["Hiukkavaara","726722520"]];
+          const key=p=>String(p?.ean||p?.id||p?.name||"");
+          const secSig=s=>[s?.title,s?.description,s?.metadata?.entryName].filter(Boolean).join(" | ");
+          const cls=s=>{const t=secSig(s).toLowerCase();return /\bprisma\b/.test(t)&&!/\bs[ -]?market\b/.test(t)?"PRISMA_ONLY":/\bs[ -]?market\b/.test(t)?"SMARKET_EXPLICIT":"GENERIC"};
+          async function get(name,id){
+            const variables={preview:false,storeId:id,skipProducts:false,availabilityDate:date,where:{storeId:id,path:"tuotteet/kampanjat",platform:"WEB",availabilityDate:date,userConsent:{marketing:false,marketingId:"ziiply-gosta",useCustomerId:false,sessionId:"ziiply-gosta",loop54:true}}};
+            const extensions={clientLibrary:{name:"@apollo/client",version:"4.2.12"},persistedQuery:{version:1,sha256Hash:HASH}};
+            const u=new URL("https://api.s-kaupat.fi/");u.searchParams.set("operationName","RemoteGetPageContent");u.searchParams.set("variables",JSON.stringify(variables));u.searchParams.set("extensions",JSON.stringify(extensions));
+            const r=await fetch(u,{headers:{accept:"application/graphql-response+json,application/json;q=0.9","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":CLIENT}});
+            const d=await r.json(),secs=d?.data?.pageContent?.sections||[];
+            const rows=secs.map((s,i)=>({i,class:cls(s),title:s?.title||"",entry:s?.metadata?.entryName||"",count:(s?.products||[]).length,eans:(s?.products||[]).map(key).filter(Boolean)}));
+            const all=new Set(rows.flatMap(x=>x.eans)),generic=new Set(rows.filter(x=>x.class==="GENERIC").flatMap(x=>x.eans)),prisma=new Set(rows.filter(x=>x.class==="PRISMA_ONLY").flatMap(x=>x.eans));
+            console.log("V280_STORE "+JSON.stringify({name,id,status:r.status,sections:rows.map(({eans,...x})=>x),uniqueAll:all.size,uniqueGeneric:generic.size,uniquePrismaOnly:prisma.size},null,2));
+            return {name,rows,all,generic,prisma};
           }
-          (async()=>{const a=await run(...stores[0]),b=await run(...stores[1]);const ka=new Set(a.map(x=>(x?.product||x)?.ean).filter(Boolean)),kb=new Set(b.map(x=>(x?.product||x)?.ean).filter(Boolean));console.log("V279_COMPARE "+JSON.stringify({vehkojaCount:a.length,jokelaCount:b.length,shared:[...ka].filter(x=>kb.has(x)).length,onlyVehkoja:[...ka].filter(x=>!kb.has(x)).length,onlyJokela:[...kb].filter(x=>!ka.has(x)).length},null,2))})().catch(e=>{console.error(e);process.exitCode=1});
+          (async()=>{const rs=[];for(const s of stores)rs.push(await get(...s));const base=rs[0];for(const r of rs.slice(1)){console.log("V280_COMPARE "+JSON.stringify({a:base.name,b:r.name,allShared:[...base.all].filter(x=>r.all.has(x)).length,allOnlyA:[...base.all].filter(x=>!r.all.has(x)).length,allOnlyB:[...r.all].filter(x=>!base.all.has(x)).length,genericShared:[...base.generic].filter(x=>r.generic.has(x)).length,genericOnlyA:[...base.generic].filter(x=>!r.generic.has(x)).length,genericOnlyB:[...r.generic].filter(x=>!base.generic.has(x)).length},null,2))}})().catch(e=>{console.error(e);process.exitCode=1});
           NODE
