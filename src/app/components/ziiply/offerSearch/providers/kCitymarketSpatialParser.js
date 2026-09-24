@@ -226,7 +226,6 @@ if(!spatialResolved&&expected&&spatialCandidates.length){
  if(validated.length)spatialResolved={...validated[0],source:"unitprice-validated-candidate"};
 }
 const groupTexts=spatialGroups(anchor?wordBoxes.filter(b=>boxDistance(anchor,b)<0.22):[]).map(g=>String(g.text||""));
-const wholeEuroGroups=groupTexts.map((t,idx)=>({t:t.trim(),idx})).filter(x=>/^[3-9]$/.test(x.t));const qtyOnlyGroups=groupTexts.map((t,idx)=>({t:t.trim(),idx})).filter(x=>{const a=x.t.split(/\\s+/);return a.length>=2&&a.every(v=>v===a[0])&&/^[2-5]$/.test(a[0]);});if(wholeEuroGroups.length&&qtyOnlyGroups.length&&titleSlashUnit){let best=null;for(const p of wholeEuroGroups)for(const q of qtyOnlyGroups){const qty=Number(q.t.split(/\\s+/)[0]);const gap=q.idx-p.idx;if(gap===1&&(!best||p.idx>best.pidx))best={value:Number(p.t),quantity:qty,gap,pidx:p.idx};}if(best){const curStrong=spatialResolved&&["high-confidence-geometric-multibuy","visual-large-euro-multibuy"].includes(spatialResolved.source);if(!curStrong)spatialResolved={value:best.value,quantity:best.quantity,unit:titleSlashUnit,source:"group-whole-euro-multibuy"};}}
 if(!spatialResolved&&expected){
  const rounded=Number(expected.toFixed(2)),euros=Math.floor(rounded),cents=Math.round((rounded-euros)*100);
  const centHits=(anchor?wordBoxes:[]).filter(b=>boxDistance(anchor,b)<0.14&&Number(b.height||0)>=0.04&&/^[0-9]{2}$/.test(String(b.text).trim())).map(b=>Number(String(b.text).trim())).filter(n=>Math.abs(n-cents)<=1);
