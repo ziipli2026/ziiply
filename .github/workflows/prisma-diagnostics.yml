@@ -1221,3 +1221,11 @@ jobs:
           }
           (async()=>{for(const [name,id] of targets){const n=Number(id),ids=[id,...[-3,-2,-1,1,2,3].map(d=>String(n+d))],out=[];for(const x of ids){out.push(await probe(x));await new Promise(r=>setTimeout(r,150));}console.log("PRISMA_V245 "+JSON.stringify({name,currentId:id,date,results:out}));}})().catch(e=>{console.error(e);process.exitCode=1});
           NODE
+
+      - name: Prisma Ruoanhinta raw store payload V246
+        shell: bash
+        run: |
+          node <<'NODE'
+          const qs=["Prisma Tuusula","Tuusula","Prisma Kaleva Tampere","Prisma Hämeenkatu Tampere","Prisma Raksila Oulu","Prisma Myyrmanni","Prisma Jumbo","Prisma Lohja"];
+          (async()=>{for(const q of qs){const r=await fetch("https://api.ruoanhinta.fi/api/stores?search="+encodeURIComponent(q),{headers:{accept:"application/json"}});const j=await r.json();const rows=Array.isArray(j)?j:(j.items||j.stores||j.results||j.data||[]);const wanted=rows.filter(x=>/prisma/i.test(String(x?.name||x?.chain||""))).slice(0,20);console.log("PRISMA_V246 "+JSON.stringify({q,http:r.status,rootKeys:j&&typeof j==="object"&&!Array.isArray(j)?Object.keys(j):[],rows:wanted}));}})().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
