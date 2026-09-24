@@ -1,4 +1,4 @@
-name: K-ruoka category regression diagnostics
+name: K-ruoka diagnostics
 
 on:
   workflow_dispatch:
@@ -90,4 +90,72 @@ jobs:
           }
           console.log(JSON.stringify({total:cases.length,currentWrong:curWrong,proposedWrong:newWrong,regressions:regressions.length,fixes:fixes.length,regressionSamples:regressions.slice(0,30),fixSamples:fixes.slice(0,50)},null,2));
           if(regressions.length) process.exitCode=2;
+          NODE
+
+      # Live-data audit is intentionally kept in this same workflow so there is only one K-ruoka diagnostic flow.
+      - name: Fetch live K-Supermarket Jokela offers and classify
+        shell: bash
+        run: |
+          node <<'NODE'
+          const ORIGIN="https://etarjouslehdet.fi";
+          const BUSINESS="f305U8";
+          const normalize=v=>String(v??"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase()
+            .replace(/[‐-‒–—−]/g,"-").replace(/&/g," ja ").replace(/[^a-z0-9åäö]+/gi," ").replace(/\s+/g," ").trim();
+          const stableBase64=value=>Buffer.from(JSON.stringify(value,(_k,v)=>Object.prototype.toString.call(v)==="[object Object]"?Object.keys(v).sort().reduce((o,k)=>(o[k]=v[k],o),{}):v),"utf8").toString("base64");
+          async function data(name,params){
+            const key=stableBase64([name,params]);
+            const r=await fetch(ORIGIN+"/",{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json, text/plain, */*",Referer:ORIGIN+"/K-Supermarket"},body:JSON.stringify({data:[key]})});
+            if(!r.ok) throw new Error(name+" HTTP "+r.status);
+            const txt=await r.text();
+            for(const line of txt.split(/\r?\n/).filter(Boolean)){try{const row=JSON.parse(line);if(row.key===key)return row.value;}catch{}}
+            throw new Error(name+" key missing");
+          }
+          const arr=v=>Array.isArray(v?.data)?v.data.filter(x=>x&&typeof x==="object"):[];
+          function category(o){
+            const department=normalize(o.departmentSlug??o.department??"");
+            const t=normalize([o.name,o.title,o.description].filter(Boolean).join(" "));
+            if (/\b(koiran|kissan|dog|cat|puppy|kitten|lemmikki|lemmikin|lemmikkien|sheba)\b/.test(t)||department.includes("pet")) return "Lemmikit";
+            if (/\b(mikroateria|valmisateria|valmisruoka|keitto|keitot|lasagne|laatikko|risotto|wrap|wrapit|cesarsalaatti|caesarsalaatti|taco salaattisekoitus)\b/.test(t)) return "Valmisruoka";
+            if (/\b(lohi|lohta|lohen|kirjolohi|kirjolohta|kirjolohen|nieria|nierian|silakka|silakat|muikku|muikut|tonnikala|katkarapu|katkaravut|seiti|turska)\b/.test(t)) return "Kala";
+            if (/(?:^|\s|-)(?:jauheliha\w*|siskonmakkara\w*|grillimakkara\w*|lenkkimakkara\w*|makkara\w*|nakki\w*|broileri\w*|kananpoja\w*|kanan(?:\s|$)|kalkkuna\w*|naudan\w*|nauta\w*|viljaporsaan\w*|porsaan\w*|porsas\w*|possu\w*|pekoni\w*|palvikinkku\w*|saunapalvikinkku\w*|uunikinkku\w*|korppukinkku\w*|kinkku\w*|leikkele\w*|karjalanpaisti liha\w*|lihasuikale\w*|ulkofilee\w*|sisafilee\w*|fileepihvi\w*|minuuttifilee\w*)/.test(t)) return "Liha & makkarat";
+            if (/\b(jogurtti|jugurtti|maito|piima|rahka|juusto|juustoraaste|juustoraasteet|kerma|kananmuna|vanukas|vanukkaat|mousse)\b/.test(t)) return "Maitotuotteet";
+            if (/\b(mehu|mehut|limu|limsat|virvoitusjuoma|virvoitusjuomat|cola|vichy|vesi|energiajuoma|energiajuomat|smoothie|palautusjuoma|palautusjuomat|seltzer)\b/.test(t)) return "Juomat";
+            if (/\b(jaatelo|jaatelot|pakaste|pakastettu|nugget|nuggetit|ranskalaiset|wokvihannes|pakastevihannes|pakastemarja)\b/.test(t)) return "Pakasteet";
+            if (/\b(kissan|koiran|kissanhiekka|lemmikki|sheba)\b/.test(t)) return "Lemmikit";
+            if (/\b(hammastahna|hammastahnat|shampoo|deodorantti|colgate|elmex|suuvesi|suuvedet|hammasharja|hammasharjat)\b/.test(t)) return "Hygienia & kosmetiikka";
+            if (/\b(wc paperi|talouspaperi|pesuaine|pesuaineet|astianpesu)\b/.test(t)) return "Kodinhoito";
+            if (/\b(calluna|paristo|paristot)\b/.test(t)) return "Koti & vapaa-aika";
+            if (/\b(vehnatortilla|vehnatortillat|granola|granolat|mysli|myslit|salsa|salsat|ananakset|ananas)\b/.test(t)) return "Kuivatuotteet";
+            if (/\b(perunalastu|perunalastut|lastu|lastut|chips|suklaa|suklaat|karkki|karkit|makeinen|makeiset|keksi|keksit|purukumi|purukumit)\b/.test(t)) return "Makeiset & keksit";
+            if (/\b(salaatti|salaatit|tomaatti|tomaatit|kurkku|kurkut|suolakurkku|suolakurkut|maustekurkku|maustekurkut|omena|omenat|banaani|banaanit|appelsiini|appelsiinit|satsuma|satsumat|sipuli|sipulit|porkkana|porkkanat|paprika|paprikat|kaali|hedelma|hedelmat|vihannes|vihannekset|marja|marjat|mustikka|mustikat|mango|mangot|rucola)\b/.test(t)) return "Hevi";
+            if (/\b(leipa|leivat|sampyla|sampylat|patonki|patongit|pulla|pullat|munkki|munkit|donitsi|donitsit)\b/.test(t)) return "Leipomo";
+            if(department.includes("snack")||department.includes("candy")||department.includes("confection")||department.includes("sweet")) return "Makeiset & keksit";
+            if(department.includes("frozen")) return "Pakasteet";
+            if(department.includes("fruit")||department.includes("vegetable")) return "Hevi";
+            if(department.includes("beverage")||department.includes("drink")) return "Juomat";
+            if(department.includes("fish")||department.includes("seafood")) return "Kala";
+            if(department.includes("meat")) return "Liha & makkarat";
+            if(department.includes("bakery")||department.includes("bread")) return "Leipomo";
+            if(department.includes("dairy")) return "Maitotuotteet";
+            if(department.includes("pet")) return "Lemmikit";
+            if(department.includes("household")||department.includes("clean")) return "Kodinhoito";
+            if(department.includes("personal care")||department.includes("beauty")||department.includes("hygiene")) return "Hygienia & kosmetiikka";
+            if(department.includes("colonial")) return "Kuivatuotteet";
+            return "Muut";
+          }
+          const stores=arr(await data("stores",{businessId:BUSINESS,pagination:{offset:0,limit:1000}}));
+          const selected=stores.find(s=>normalize(s.name)==="k supermarket jokela")||stores.find(s=>normalize(s.name).includes("jokela"));
+          if(!selected) throw new Error("Jokela store not found");
+          const offers=arr(await data("offers",{businessIds:[BUSINESS],sources:["publication","business_product"],pagination:{limit:1000,offset:0},sort:["score_desc"]}));
+          const pubIds=[...new Set(offers.map(o=>String(o.publicationPublicId??"")).filter(Boolean))];
+          const allowed=new Set();
+          for(const publicationId of pubIds){
+            const ps=arr(await data("stores",{publicationId,businessId:BUSINESS,pagination:{offset:0,limit:1000}}));
+            if(ps.some(s=>String(s.id??"")===String(selected.id??"")||normalize(s.name)===normalize(selected.name))) allowed.add(publicationId);
+          }
+          const live=offers.filter(o=>allowed.has(String(o.publicationPublicId??""))).map(o=>({name:String(o.name??o.title??""),department:String(o.departmentSlug??o.department??""),category:category(o),publicationId:String(o.publicationPublicId??"")}));
+          const counts={}; for(const x of live) counts[x.category]=(counts[x.category]||0)+1;
+          const suspicious=live.filter(x=>x.category==="Kala"||/makkara|kanan|broiler|pors|naudan|liha|kinkku|leikkele|lohi|nier/i.test(x.name));
+          console.log(JSON.stringify({store:{id:selected.id,name:selected.name},rawOffers:offers.length,allowedPublications:[...allowed],liveOffers:live.length,categoryCounts:counts,suspicious},null,2));
+          if(!live.length) process.exitCode=2;
           NODE
