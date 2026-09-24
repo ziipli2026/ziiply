@@ -189,7 +189,7 @@ function mapTjekCategoryV54(offer: UnknownRecord): string {
 
   // V65: meat and cold cuts. Match common Finnish inflections and compounds
   // before an unreliable Tjek department fallback can put meat under fish.
-  if (/(?:^|\s|-)(?:jauheliha\w*|siskonmakkara\w*|grillimakkara\w*|lenkkimakkara\w*|makkara\w*|nakki\w*|broileri\w*|kananpoja\w*|kanan(?:\s|$)|kalkkuna\w*|naudan\w*|nauta\w*|viljaporsaan\w*|porsaan\w*|porsas\w*|possu\w*|pekoni\w*|palvikinkku\w*|saunapalvikinkku\w*|uunikinkku\w*|korppukinkku\w*|kinkku\w*|leikkele\w*|karjalanpaisti-liha\w*|lihasuikale\w*|ulkofilee\w*|sisafilee\w*|fileepihvi\w*|minuuttifilee\w*)/.test(productText)) return "Liha & makkarat";
+  if (/(?:^|\s|-)(?:jauheliha\w*|siskonmakkara\w*|grillimakkara\w*|lenkkimakkara\w*|makkara\w*|nakki\w*|broileri\w*|kananpoja\w*|kanan(?:\s|$)|kalkkuna\w*|naudan\w*|nauta\w*|viljaporsaan\w*|porsaan\w*|porsas\w*|possu\w*|pekoni\w*|palvileikkele\w*|palvikinkku\w*|saunapalvikinkku\w*|uunikinkku\w*|korppukinkku\w*|kinkku\w*|leikkele\w*|karjalanpaisti-liha\w*|lihasuikale\w*|ulkofilee\w*|sisafilee\w*|fileepihvi\w*|minuuttifilee\w*)/.test(productText)) return "Liha & makkarat";
 
   // Dairy.
   if (/\b(jogurtti|jugurtti|maito|piima|rahka|juusto|juustoraaste|juustoraasteet|kerma|kananmuna|vanukas|vanukkaat|mousse)\b/.test(productText)) return "Maitotuotteet";
@@ -210,7 +210,7 @@ function mapTjekCategoryV54(offer: UnknownRecord): string {
   if (/\b(wc-paperi|talouspaperi|pesuaine|pesuaineet|astianpesu)\b/.test(productText)) return "Kodinhoito";
 
   // Home / leisure. Calluna is a plant, not grocery produce.
-  if (/\b(calluna|paristo|paristot)\b/.test(productText)) return "Koti & vapaa-aika";
+  if (/\b(calluna|krysanteemi|paristo|paristot)\b/.test(productText) || department.includes("garden")) return "Koti & vapaa-aika";
 
   // Dry groceries: plain tortillas, granola/muesli, salsa and canned fruit.
   if (/\b(vehnatortilla|vehnatortillat|granola|granolat|mysli|myslit|salsa|salsat|ananakset|ananas)\b/.test(productText)) return "Kuivatuotteet";
