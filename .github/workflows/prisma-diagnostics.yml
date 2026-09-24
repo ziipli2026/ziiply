@@ -6,24 +6,27 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Exact product store comparison V275
+      - name: Campaign scope inspection V276
         shell: bash
         run: |
           node <<'NODE'
-          const HASH="44ca017dddccfe49e787b483f471f26217adca807f8c71101d11e881dab9e480";
+          const HASH="f6d87786fda8fb5c233c4eaed08f37b0c5b87dc0d8d4c44c33c5529e446369d1";
           const CLIENT="production-14a82a5b48cd1dd42c0592db0037514ed3c84de8";
-          const EAN="6416453034112", QUERY="Fazer Remix", SLUG="karkit-suklaat-ja-keksit";
+          const date=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
           const stores=[["Vehkoja","519941769"],["Jokela","685839110"]];
-          async function run(name,storeId){
-            const variables={generatedSessionId:crypto.randomUUID(),limit:96,order:"desc",orderBy:"score",queryString:QUERY,slug:SLUG,storeId,useRandomId:false,marketingId:crypto.randomUUID()};
+          const interesting=/campaign|offer|benefit|valid|scope|segment|chain|store|market|prisma|alepa|sale|s-market|availability|promotion|discount|title|description|text|metadata/i;
+          function walk(v,path="",out=[]){if(out.length>1200)return out;if(v&&typeof v==="object"){for(const [k,x] of Object.entries(v)){const p=path?path+"."+k:k;if(interesting.test(k)||interesting.test(String(x)))out.push({path:p,value:x});if(x&&typeof x==="object")walk(x,p,out)}}return out}
+          async function page(name,id){
+            const variables={preview:false,storeId:id,skipProducts:false,availabilityDate:date,where:{storeId:id,path:"tuotteet/kampanjat",platform:"WEB",availabilityDate:date,userConsent:{marketing:false,marketingId:"ziiply-gosta",useCustomerId:false,sessionId:"ziiply-gosta",loop54:true}}};
             const extensions={clientLibrary:{name:"@apollo/client",version:"4.2.12"},persistedQuery:{version:1,sha256Hash:HASH}};
-            const u=new URL("https://api.s-kaupat.fi/");u.searchParams.set("operationName","RemoteFilteredProducts");u.searchParams.set("variables",JSON.stringify(variables));u.searchParams.set("extensions",JSON.stringify(extensions));
+            const u=new URL("https://api.s-kaupat.fi/");u.searchParams.set("operationName","RemoteGetPageContent");u.searchParams.set("variables",JSON.stringify(variables));u.searchParams.set("extensions",JSON.stringify(extensions));
             const r=await fetch(u,{headers:{accept:"application/graphql-response+json,application/json;q=0.9","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":CLIENT}});
-            const d=await r.json(); const items=d?.data?.store?.products?.productListItems||d?.data?.store?.products?.items||d?.data?.products?.productListItems||d?.data?.products?.items||[];
-            const products=items.map(x=>x?.product||x).filter(Boolean); const p=products.find(x=>String(x?.ean||x?.id||"").replace(/\D/g,"")===EAN)||null;
-            const summary=p&&{ean:p.ean,name:p.name,price:p.price,comparisonPrice:p.comparisonPrice,storeId:p.storeId,availability:p.availability,pricing:p.pricing,store:p.store};
-            console.log("V275_STORE "+JSON.stringify({name,requestedStoreId:storeId,status:r.status,count:products.length,found:!!p,product:summary,errors:d?.errors||[]},null,2));
-            return summary;
+            const d=await r.json(),p=d?.data?.pageContent;
+            console.log("V276_PAGE "+JSON.stringify({name,requestedStoreId:id,status:r.status,pageKeys:p&&Object.keys(p),metadata:p?.metadata,seo:p?.seo,errors:d?.errors||[]},null,2));
+            const secs=Array.isArray(p?.sections)?p.sections:[];
+            console.log("V276_SECTIONS "+JSON.stringify({name,sections:secs.map((s,i)=>({i,keys:Object.keys(s||{}),title:s?.title,description:s?.description,text:s?.text,metadata:s?.metadata,typename:s?.__typename,productCount:Array.isArray(s?.products)?s.products.length:0}))},null,2));
+            const hints=walk(p).filter(x=>!/^sections\.\d+\.products\.\d+\.(availability|pricing|store)/.test(x.path));
+            console.log("V276_SCOPE_HINTS "+JSON.stringify({name,count:hints.length,hints},null,2));
           }
-          (async()=>{const a=await run(...stores[0]);const b=await run(...stores[1]);console.log("V275_COMPARE "+JSON.stringify({same:JSON.stringify(a)===JSON.stringify(b),vehkoja:a,jokela:b},null,2));})().catch(e=>{console.error(e);process.exitCode=1});
+          (async()=>{for(const s of stores)await page(...s)})().catch(e=>{console.error(e);process.exitCode=1});
           NODE
