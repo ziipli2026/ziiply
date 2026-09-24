@@ -1200,7 +1200,7 @@ jobs:
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
 
-      - name: S-market eTarjouslehdet broad discovery V252
+      - name: S-market eTarjouslehdet broad discovery V253
         shell: bash
         run: |
           node <<'NODE'
@@ -1222,12 +1222,12 @@ jobs:
           for(const offset of offsets){
             const r=await batch([["stores",{businessId:BID,pagination:{limit:100,offset}}]]);
             const found=valRows(r.json).flatMap(stores);
-            console.log("SMARKET_V252_PAGE "+JSON.stringify({offset,http:r.status,found:found.length,sample:found.slice(0,3)}));
+            console.log("SMARKET_V253_PAGE "+JSON.stringify({offset,http:r.status,found:found.length,sample:found.slice(0,3)}));
             all.push(...found); if(found.length<100)break;
           }
           const map=new Map(); for(const x of all)if(!map.has(x.id))map.set(x.id,x);
           const uniq=[...map.values()];
-          console.log("SMARKET_V252_DISCOVERY "+JSON.stringify({uniqueStores:uniq.length,sample:uniq.slice(0,20)}));
+          console.log("SMARKET_V253_DISCOVERY "+JSON.stringify({uniqueStores:uniq.length,sample:uniq.slice(0,20)}));
           const wanted=["S-market Jokela","S-market Vehkoja","S-market Hyvinkää","S-market Tuusula","S-market Sokos Helsinki","S-market Redi","S-market Munkkivuori","S-market Pukinmäki","S-market Suutarila","S-market Kontula"];
           for(const q of wanted){
             const sr=await batch([
@@ -1235,9 +1235,13 @@ jobs:
               ["stores",{businessId:BID,pagination:{limit:25,offset:0},search:q}],
               ["stores",{businessId:BID,pagination:{limit:25,offset:0},q:q}]
             ]);
-            const ss=valRows(sr.json).flatMap(stores);
-            // Provider V26 scores all records returned by the three query variants.
-            // If backend ignores query/search/q, this still exposes that behavior.
+            let ss=valRows(sr.json).flatMap(stores);
+            // Exact provider also appends an unfiltered first-100 fallback query.
+            // V252 omitted it, so the backend's ignored query/search/q params produced zero candidates.
+            const fb=await batch([["stores",{businessId:BID,pagination:{limit:100,offset:0}}]]);
+            ss=ss.concat(valRows(fb.json).flatMap(stores));
+            // Also compare against the complete discovered 466-store truth set.
+            const truth=uniq.filter(x=>norm(x.name)===norm(q)||norm(x.name).replace(/^s market\\s*/,"")===norm(q).replace(/^s market\\s*/,""));
             const norm=s=>s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9åäö]+/g," ").trim();
             const tail=norm(q).replace(/^s market\s*/,"");
             const ranked=ss.map(x=>{const n=norm(x.name);let score=0;if(n===norm(q))score=500;if(n===tail)score=Math.max(score,450);if(n.includes(tail)||tail.includes(n))score=Math.max(score,200);return {...x,score}}).sort((a,b)=>b.score-a.score);
@@ -1252,7 +1256,7 @@ jobs:
               ps=valRows(pr.json).flatMap(pubs);
               const pm=new Map(); for(const p of ps)if(!pm.has(p.id))pm.set(p.id,p); ps=[...pm.values()];
             }
-            console.log("SMARKET_V252_STORE "+JSON.stringify({query:q,http:sr.status,candidates:ss.length,best,publications:ps.length,pubSample:ps.slice(0,3)}));
+            console.log("SMARKET_V253_STORE "+JSON.stringify({query:q,http:sr.status,candidates:ss.length,best,truthMatch:truth,publications:ps.length,pubSample:ps.slice(0,3)}));
           }
           NODE
 
