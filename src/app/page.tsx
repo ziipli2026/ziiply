@@ -19051,6 +19051,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   (match as any).product?.ean ??
                   JSON.stringify(match);
 
+                // V731: rivikohtainen V65-poisto on jo vahvistettu CartCardissa.
+                // Tyhjennä mahdollinen aiempi globaali toast ennen poistoa, ettei
+                // vanha vihreä alapalkki näytä poistamisen jälkeen harhaanjohtavalta.
+                setLastCartToast(null);
                 removeCartItem(String(key));
               }
             }}
