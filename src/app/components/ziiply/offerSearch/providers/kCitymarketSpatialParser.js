@@ -335,11 +335,6 @@ if(!spatialResolved&&anchor){
 // Fixed 1 kg/l package: a nearby large visual split price can be self-confirming when its numeric value equals the printed kg/l rate. Require two distinct coordinate pairs for the same value, one price-sized and one rate-sized.
 // Raw-box 1 kg/l self-confirmation: find the same split numeric value twice near the product, with one occurrence immediately associated with a KG/L unit token. This does not depend on basic-html unitRange parsing.
 // Card-level fixed-package split: when title and large price sit on different bands, search the local card neighborhood but require the candidate to be independently compatible with printed package/unit-price arithmetic.
-if(!spatialResolved&&anchor&&pk&&pk.min===pk.max&&ur){
- const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.34),vals=[];
- for(const e of local.filter(b=>/^\d{1,2}$/.test(String(b.text||"").trim())))for(const z of local.filter(b=>/^\d{2}$/.test(String(b.text||"").trim())&&(b.left||0)>(e.left||0))){const dx=(z.left||0)-(e.left||0),dy=Math.abs(((z.top||0)+(z.height||0)/2)-((e.top||0)+(e.height||0)/2));if(dx>.13||dy>.06)continue;const value=Number(String(e.text).trim()+"."+String(z.text).trim()),lo=pk.min*ur.min,hi=pk.max*ur.max;if(value>=.5&&value<30&&value>=lo*.985&&value<=hi*1.015)vals.push({value,d:boxDistance(anchor,e)+boxDistance(anchor,z)});}
- const uniq=[...new Map(vals.sort((a,b)=>a.d-b.d).map(x=>[x.value,x])).values()];if(uniq.length===1)spatialResolved={value:uniq[0].value,quantity:null,unit:null,source:"card-fixed-package-unitprice-split",sanity:"pass"};
-}
 // Generic fixed-package unit-rate derivation from the product's own printed rate.
 // Example: 500 ml + 5.00/l => 2.50; 1.2 l + 4.17/l => about 5.00.
 // Ignore comparison rates on "Ilman Plussa-korttia" rows and require a nearby sale-unit token.
