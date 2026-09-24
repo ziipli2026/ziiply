@@ -1,4 +1,18 @@
 // ============================================================================
+// SKAUPAT_LOCAL_CAMPAIGN_PROVIDER_V5_RUOANHINTA_EXTERNAL_ID_PRIMARY
+// Revision: V5-RUOANHINTA-EXTERNAL-ID-PRIMARY
+// Date: 2026-09-24
+//
+// V270-varmennettu korjaus:
+// - Ratkaisee S-market / Alepa / Sale S-kaupat-storeId:n ensisijaisesti
+//   Ruoanhinta store API:n externalId-kentästä kaupan nimellä.
+// - externalId syötetään suoraan nykyiseen RemoteGetPageContent-hakuun.
+// - remotePickupSlots + Nominatim säilyy fallbackina, jos externalId puuttuu.
+// - Ei kovakoodattuja kauppakohtaisia store-ID:itä.
+// - Muu RemoteGetPageContent-, tuote-, dedupe- ja mapping-logiikka säilyy.
+// ============================================================================
+
+// ============================================================================
 // SKAUPAT_LOCAL_CAMPAIGN_PROVIDER_V4_VISIBLE_DEBUG_REMOVED
 // Revision: V4-VISIBLE-DEBUG-REMOVED
 // Date: 2026-09-20
@@ -288,6 +302,61 @@ function scorePickupCandidateV1(storeName: string, candidate: PickupCandidateV1)
   return score;
 }
 
+async function resolveRuoanhintaExternalStoreIdV5(storeName: string): Promise<string | null> {
+  const cleanName = String(storeName || "").trim();
+  if (!cleanName || !isSupportedLocalSStoreV1(cleanName)) return null;
+
+  try {
+    const url = new URL("https://api.ruoanhinta.fi/api/stores");
+    url.searchParams.set("search", cleanName);
+
+    const response = await fetch(url.toString(), {
+      method: "GET",
+      cache: "no-store",
+      headers: { accept: "application/json" },
+    });
+
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    const rows = Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : [];
+    if (!rows.length) return null;
+
+    const wantedName = normalizeV1(cleanName);
+    const wantedBrand = getBrandFromStoreNameV1(cleanName);
+    const wantedPlace = getPlaceFromStoreNameV1(cleanName);
+
+    const candidates = rows
+      .map((row: any) => {
+        const name = String(row?.name || "").trim();
+        const chain = String(row?.chain || "").trim().toLowerCase();
+        const externalId = String(row?.externalId || "").trim();
+        const normalizedName = normalizeV1(name);
+        const normalizedCity = normalizeV1(row?.city);
+        const rowBrand = getBrandFromStoreNameV1(name) || chain;
+        let score = 0;
+
+        if (!/^\d{5,}$/.test(externalId)) return null;
+        if (normalizedName === wantedName) score += 1000;
+        else if (wantedPlace && normalizedName.includes(wantedPlace)) score += 300;
+        if (wantedBrand && rowBrand === wantedBrand) score += 100;
+        else if (wantedBrand) score -= 500;
+        if (wantedPlace && normalizedCity && wantedPlace.includes(normalizedCity)) score += 25;
+
+        return { externalId, score };
+      })
+      .filter(Boolean)
+      .sort((a: any, b: any) => b.score - a.score);
+
+    const best = candidates[0] as { externalId: string; score: number } | undefined;
+    // Vaaditaan käytännössä oikea ketju + selvä nimiosuma. Täsmällinen nimi saa 1100 pistettä.
+    if (!best || best.score < 400) return null;
+    return best.externalId;
+  } catch {
+    return null;
+  }
+}
+
 async function resolveLocalSStoreIdV1(storeName: string): Promise<string | null> {
   const cleanName = String(storeName || "").trim();
   if (!cleanName || !isSupportedLocalSStoreV1(cleanName)) return null;
@@ -295,6 +364,15 @@ async function resolveLocalSStoreIdV1(storeName: string): Promise<string | null>
   const key = normalizeV1(cleanName);
   if (resolverCacheV1.has(key)) return resolverCacheV1.get(key) ?? null;
 
+  // V5: ensisijainen resolveri. V270 varmisti externalId -> RemoteGetPageContent
+  // 10/10 testikaupalla, mukaan lukien remotePickupSlotsista puuttuvat kaupat.
+  const externalIdV5 = await resolveRuoanhintaExternalStoreIdV5(cleanName);
+  if (externalIdV5) {
+    resolverCacheV1.set(key, externalIdV5);
+    return externalIdV5;
+  }
+
+  // Fallback: vanha V3 Nominatim + remotePickupSlots.
   const coords = await geocodeStoreV1(cleanName);
   if (!coords) {
     resolverCacheV1.set(key, null);
@@ -617,7 +695,7 @@ export async function fetchSKaupatLocalCampaignOffersV1(
   }
 
   try {
-    // Ziiply/Ruoanhinta storeId:tä ei käytetä S-kaupat-ID:nä.
+    // V5: resolveri käyttää ensisijaisesti Ruoanhinta externalId:tä (ei sisäistä id:tä); pickup fallback.
     const resolvedStoreId = await resolveLocalSStoreIdV1(storeName);
 
     if (!resolvedStoreId) {
