@@ -590,11 +590,23 @@ export async function GET(request: Request) {
       sMarketResults = [];
     }
 
-    const results = dedupe([
+    const combinedResultsV20 = dedupe([
       ...(baseResults as unknown as UnknownRecord[]),
       ...citymarketResults,
       ...sMarketResults,
     ]);
+
+    // V20: viimeinen ketjuraja API:ssa. Jos pyyntö sisältää vain S-kauppoja,
+    // K-providerin tulos ei saa päästä vastaukseen edes upstream-cachen tai
+    // vanhan kontekstin kautta. Sama suoja toimii peilikuvana K-only-haulle.
+    const hasSSelectionV20 = splitMultiValue(rawSStoreId).length > 0 || splitMultiValue(rawSStoreName).length > 0;
+    const hasKSelectionV20 = splitMultiValue(rawKStoreId).length > 0 || splitMultiValue(rawKStoreName).length > 0;
+    const results = combinedResultsV20.filter((offer) => {
+      if (hasSSelectionV20 === hasKSelectionV20) return true;
+      const chain = normalizeText(String(offer.chain || ""));
+      if (hasSSelectionV20) return chain === "s" || chain.startsWith("s ");
+      return chain === "k" || chain.startsWith("k ");
+    });
 
     return NextResponse.json(
       {
