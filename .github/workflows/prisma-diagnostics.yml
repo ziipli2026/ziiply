@@ -6,64 +6,30 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: V286 Prisma exact production RemoteFilteredProducts audit
+      - name: V287 Prisma official directory storeId audit
         shell: bash
         run: |
           node <<'NODE'
-          const ENDPOINT="https://api.s-kaupat.fi/";
-          const HASH="44ca017dddccfe49e787b483f471f26217adca807f8c71101d11e881dab9e480";
-          const CLIENT="production-45c31f7a746096c6da12e16aba1887e031fbd9de";
-          const stores=[
-            ["Prisma Hämeenkatu","726413330"],
-            ["Prisma Raksila","516528759"],
-            ["Prisma Myyrmanni","726435566"],
-            ["Prisma Jumbo","613761030"],
-            ["Prisma Lohja","603212895"],
-            ["Prisma Tuusula","726753948"],
-            ["Prisma Limingantulli","627829302"],
-            ["Prisma Lielahti","697940575"],
-          ];
-          const norm=v=>String(v??"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9åäö]+/gi," ").replace(/\s+/g," ").trim();
-          function flattenProducts(v,out=[]){
-            if(!v||typeof v!=="object")return out;
-            if(Array.isArray(v)){for(const x of v)flattenProducts(x,out);return out}
-            if(Array.isArray(v.products))for(const p of v.products)if(p&&typeof p==="object")out.push(p);
-            for(const x of Object.values(v))if(x&&typeof x==="object")flattenProducts(x,out);
-            return out;
-          }
-          async function ruoanhinta(name){
-            const u=new URL("https://api.ruoanhinta.fi/api/stores");u.searchParams.set("search",name);
-            const r=await fetch(u,{headers:{accept:"application/json","user-agent":"Mozilla/5.0"}});
-            const body=await r.text(); let d;try{d=JSON.parse(body)}catch{return {status:r.status,error:"non-json",sample:body.slice(0,300),rows:[]}}
-            const rows=Array.isArray(d)?d:Array.isArray(d?.stores)?d.stores:Array.isArray(d?.data)?d.data:[];
-            return {status:r.status,rows:rows.map(x=>({name:x?.name,chain:x?.chain,city:x?.city,postalCode:x?.postalCode,externalId:x?.externalId,id:x?.id}))};
-          }
-          const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-          async function campaigns(id){
-            if(!id)return {status:null,raw:0,total:0,discounted:0,error:"no id"};
-            const date=new Date().toISOString().slice(0,10); const variables={availabilityDate:date,facets:[{key:"brandName",order:"asc"},{key:"category"},{key:"labels"}],filters:[{key:"labels",value:["DISCOUNTED"]}],generatedSessionId:"1d6b5de9-df99-4608-af07-7d754955df82",fetchSponsoredContent:true,limit:48,queryString:"",sortForAvailabilityLabelDate:date,storeId:String(id),useRandomId:false,marketingId:"d0bcc6e5-6130-494e-b6fb-12b5cb9c60cf",from:0,offset:0,skip:0,page:1};
-            const extensions={persistedQuery:{version:1,sha256Hash:HASH}};
-            const u=new URL(ENDPOINT);u.searchParams.set("operationName","RemoteFilteredProducts");u.searchParams.set("variables",JSON.stringify(variables));u.searchParams.set("extensions",JSON.stringify(extensions));
-            const r=await fetch(u,{headers:{accept:"application/json","content-type":"application/json","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":CLIENT,"user-agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15"}});
-            const body=await r.text();let d;try{d=JSON.parse(body)}catch{return {status:r.status,raw:0,total:0,discounted:0,error:"non-json "+body.slice(0,160)}}
-            const p=d?.data?.products||d?.data?.filteredProducts||d?.data?.remoteFilteredProducts||{};
-            const items=Array.isArray(p?.items)?p.items:Array.isArray(p?.products)?p.products:Array.isArray(p?.edges)?p.edges.map(x=>x?.node):[];
-            const discounted=items.filter(x=>/discount|campaign|benefit|offer|price/i.test(JSON.stringify(x))).length;
-            return {status:r.status,raw:items.length,total:Number(p?.total??0),from:p?.from,limit:p?.limit,discounted,errors:d?.errors?.map(e=>e?.message).filter(Boolean)||[],dataKeys:Object.keys(d?.data||{})};
-          }
+          const stores=["Prisma Hämeenkatu","Prisma Raksila","Prisma Myyrmanni","Prisma Jumbo","Prisma Lohja","Prisma Tuusula","Prisma Limingantulli","Prisma Lielahti"];
+          const norm=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9åäö]+/g," ").replace(/\s+/g," ").trim();
           (async()=>{
-            for(const [name,oldId] of stores){
-              const rh=await ruoanhinta(name);
-              const wanted=norm(name).replace(/^prisma\s+/,"");
-              const candidates=rh.rows.filter(x=>norm(x.chain).includes("prisma")||norm(x.name).includes("prisma"));
-              const exact=candidates.find(x=>norm(x.name)===norm(name));
-              const token=candidates.find(x=>norm(x.name).includes(wanted));
-              const picked=exact||token||candidates[0]||null;
-              const ext=String(picked?.externalId||"").trim();
-              await sleep(1200); const oldRes=await campaigns(oldId);
-              const extRes=ext&&ext!==oldId?(await sleep(1200),await campaigns(ext)):ext?oldRes:{status:null,sections:0,products:0,uniqueProducts:0,error:"no externalId"};
-              console.log("\n=== PRISMA FALLBACK V286 "+name+" ===");
-              console.log(JSON.stringify({name,oldId,ruoanhintaStatus:rh.status,ruoanhintaCandidates:candidates,picked,externalId:ext,sameId:ext===oldId,oldIdCampaigns:oldRes,externalIdCampaigns:extRes},null,2));
+            for(const name of stores){
+              const url="https://www.s-kaupat.fi/myymalat/prisma?query="+encodeURIComponent(name);
+              const r=await fetch(url,{headers:{accept:"text/html,application/xhtml+xml","accept-language":"fi","user-agent":"Mozilla/5.0 (compatible; ZiiplyDiagnostics/1.0)"}});
+              const html=await r.text();
+              const re=/\\?\/myymala\\?\/([a-z0-9%._~-]+)\\?\/(\d{5,})/gi;
+              const wanted=norm(name); const out=[]; let m;
+              while((m=re.exec(html))!==null){
+                let slug="";try{slug=decodeURIComponent(m[1])}catch{slug=m[1]}
+                const n=norm(slug.replace(/-/g," "));
+                if(n.includes(wanted)||wanted.includes(n)||n.includes(wanted.replace(/^prisma /,""))){
+                  out.push({slug,id:m[2],normalized:n});
+                }
+              }
+              const uniq=[...new Map(out.map(x=>[x.id,x])).values()];
+              console.log("\n=== V287 "+name+" ===");
+              console.log(JSON.stringify({status:r.status,finalUrl:r.url,htmlLength:html.length,matches:uniq.slice(0,20),idCount:uniq.length},null,2));
+              await new Promise(r=>setTimeout(r,1000));
             }
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
