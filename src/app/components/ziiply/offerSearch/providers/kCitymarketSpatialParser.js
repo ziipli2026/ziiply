@@ -332,14 +332,6 @@ if(!spatialResolved&&anchor){
  if(uniq.length===1)spatialResolved={...uniq[0],quantity:null,source:"unique-local-explicit-unit-price",sanity:"pass"};
 }
 // Fixed-package multibuy: a whole-euro transaction price + quantity/unit is accepted only when a local printed unit price independently confirms the per-item arithmetic.
-if(!spatialResolved&&anchor&&pk&&pk.min===pk.max){
- const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.20);
- const groups=spatialGroups(local).map(g=>String(g.text||""));
- const unitRates=[];for(const t of groups){if(/Ilman\s+Plussa-korttia/i.test(t))continue;for(const m of t.matchAll(/(?:^|\s)(\d{1,2})\s+(\d{2})\/(kg|l)(?:\s|$|\))/gi))unitRates.push(Number(m[1]+"."+m[2]));}
- const tx=[];for(const euro of local.filter(b=>/^\d{1,2}$/.test(String(b.text||"").trim()))){for(const q of local.filter(b=>/^[2-5]$/.test(String(b.text||"").trim())&&(b.left||0)>(euro.left||0))){const u=local.find(b=>/^(RS|PS|PKT|KPL|TLK|PL|PRK)$/i.test(String(b.text||"").trim())&&Math.hypot((b.left||0)-(q.left||0),(b.top||0)-(q.top||0))<.08);if(u&&Math.hypot((q.left||0)-(euro.left||0),(q.top||0)-(euro.top||0))<.18)tx.push({value:Number(euro.text),quantity:Number(q.text),unit:String(u.text).toUpperCase()});}}
- const confirmed=tx.filter(x=>unitRates.some(rate=>Math.abs((x.value/x.quantity)/(pk.min*rate)-1)<=.015));
- if(confirmed.length===1)spatialResolved={...confirmed[0],source:"fixed-package-unitprice-confirmed-multibuy",sanity:"pass"};
-}
 // Fixed 1 kg/l package: a nearby large visual split price can be self-confirming when its numeric value equals the printed kg/l rate. Require two distinct coordinate pairs for the same value, one price-sized and one rate-sized.
 if(!spatialResolved&&anchor&&pk&&pk.min===pk.max&&Math.abs(pk.min-1)<.0001){
  const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.26),pairs=[];
