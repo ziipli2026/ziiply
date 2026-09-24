@@ -636,9 +636,18 @@ if(/^RAE JUUSTO- RIESKAT$/i.test(title)&&anchor){
 if(!spatialResolved&&anchor&&pk&&pk.min===pk.max){
  const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.22);
  const qtyUnits=[];
+ const units=local.filter(b=>/^(PS|PKT|KPL|RS|TLK|PL|PRK)$/i.test(String(b.text||"").trim()));
  for(const q of local.filter(b=>/^[2-9]$/.test(String(b.text||"").trim()))){
-  const u=local.filter(b=>/^(PS|PKT|KPL|RS|TLK|PL|PRK)$/i.test(String(b.text||"").trim())).map(b=>({...b,d:Math.hypot((Number(b.left)||0)-(Number(q.left)||0),(Number(b.top)||0)-(Number(q.top)||0))})).sort((a,b)=>a.d-b.d)[0];
+  const u=units.map(b=>({...b,d:Math.hypot((Number(b.left)||0)-(Number(q.left)||0),(Number(b.top)||0)-(Number(q.top)||0))})).sort((a,b)=>a.d-b.d)[0];
   if(u&&u.d<.075)qtyUnits.push({quantity:Number(q.text),unit:String(u.text).toUpperCase(),q,u});
+ }
+ // Some leaflets place the sale unit beside the large euro price instead of beside the quantity.
+ // Pair a quantity with a nearby unit-price row and use the nearest sale unit in the same card.
+ if(!qtyUnits.length&&units.length){
+  for(const q of local.filter(b=>/^[2-9]$/.test(String(b.text||"").trim()))){
+   const u=units.map(b=>({...b,d:boxDistance(anchor,b)})).sort((a,b)=>a.d-b.d)[0];
+   if(u&&boxDistance(anchor,q)<.26&&u.d<.20)qtyUnits.push({quantity:Number(q.text),unit:String(u.text).toUpperCase(),q,u});
+  }
  }
  const unitRates=[];
  for(const a of local.filter(b=>/^\(?\d{1,2}$/.test(String(b.text||"").trim()))){
