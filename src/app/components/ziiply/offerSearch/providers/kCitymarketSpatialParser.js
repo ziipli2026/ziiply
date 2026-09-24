@@ -414,12 +414,12 @@ if(!spatialResolved&&anchor&&pk&&pk.min===pk.max){
  // Keep this local to the product lead-in and stop before the normal-price comparison row.
  if(!rates.length){
   const lead=[];
-  for(const row of after.slice(0,4)){if(/Ilman\s+Plussa-korttia/i.test(row.text))break;lead.push(row.text);}
+  for(const row of after.slice(0,8)){if(/Ilman\s+Plussa-korttia/i.test(row.text))break;lead.push(row.text);}
   for(const t of lead){
    const m=String(t||"").match(/^\s*(\d{1,3})[,.](\d{2})\/(kg|l)\s*$/i);
    if(!m)continue;
    const rate=Number(m[1]+"."+m[2]),value=Number((pk.min*rate).toFixed(2));
-   if(value>=.5&&value<100)rates.push({rate,value,basicLead:true});
+   if(value>=.5&&value<100&&(!nr||value<=nr.max*1.001)){rates.push({rate,value,basicLead:true});break;}
   }
  }
  const uniq=[...new Map(rates.map(x=>[x.value,x])).values()];
