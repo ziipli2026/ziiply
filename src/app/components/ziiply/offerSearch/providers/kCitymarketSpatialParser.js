@@ -499,8 +499,6 @@ if(spatialResolved){
  spatialResolved.auditRatio=ratio;
 }
 if(spatialResolved?.rejectedReview)spatialResolved=null;
-// V227: fixed package + exact local unit price may prove a 1.00 offer when the card also prints normal price 1.25/prk.
-if(anchor&&pk&&pk.min===pk.max&&ur&&ur.min===ur.max){const exact=Number((pk.min*ur.min).toFixed(2));const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.13);const normalOnes=local.filter(b=>String(b.text||"").trim()==="1");const normalCents=local.filter(b=>/^25\/prk$/i.test(String(b.text||"").trim()));const hasNormal=normalOnes.some(a=>normalCents.some(b=>Math.abs(a.top-b.top)<.004&&b.left>a.left&&b.left-a.left<.03));if(exact===1&&hasNormal&&(!spatialResolved||spatialResolved.sanity==="review"||spatialResolved.source==="best-spatial-candidate"))spatialResolved={value:1,quantity:null,unit:"PRK",source:"fixed-package-unitprice-exact-with-normal-price",sanity:"pass",confidence:"high"};}
 // Generic package/unit-rate fallback: accept the independently derived rounded shelf price when the
 // product card itself proves the same sale unit and either a discount marker or a printed normal price.
 if(!spatialResolved&&anchor&&pk&&ur&&expected&&nr&&nr.unit){
