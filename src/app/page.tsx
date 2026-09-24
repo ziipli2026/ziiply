@@ -14627,7 +14627,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setSearchPanelOpen(true);
     }
 
-    showCartToast(`Poistettu: ${removedItem.name}`);
     void updateChainComparison(nextCart);
   }
 
