@@ -535,12 +535,16 @@ if(!spatialResolved&&anchor){
   if(geo.length===1)percentageOffer={percent:geo[0],source:"unique-local-percentage-proof",confidence:"high"};
  }
 }
-// V284: RAE JUUSTO-RIESKAT is a promotional heading, not a product-price row.
-// The geometry below it belongs to separate Moilas/Vaasan products, so keep it out of unresolved product rows.
-if(!spatialResolved&&anchor&&/^RAE JUUSTO- RIESKAT$/i.test(title)){
- const recipe=wordBoxes.some(b=>/^resepti$/i.test(String(b.text||'').trim())&&Number(b.left)>.46&&Number(b.left)<.54&&Number(b.top)>.42&&Number(b.top)<.46);
- const moilas=wordBoxes.some(b=>/^Moilas$/i.test(String(b.text||'').trim())&&Number(b.left)>.50&&Number(b.left)<.55&&Number(b.top)>.51&&Number(b.top)<.54);
- if(recipe&&moilas) percentageOffer={type:'non-product-heading',source:'rae-recipe-heading-proof'};
+// Generic editorial/recipe heading proof.
+// A heading with no own package/unit evidence is not a product when the same local
+// HTML section explicitly identifies recipe/editorial content and following rows contain product pricing.
+if(!spatialResolved&&!pk&&!ur&&expected==null){
+ const compactTitle=String(title||"").replace(/\s+/g,"").toLowerCase();
+ const localEditorialText=around.slice(0,9).map(x=>String(x.text||"")).join(" ");
+ const headingLike=compactTitle.length>0&&compactTitle.length<70&&!/\d/.test(compactTitle);
+ const hasRecipeEditorial=/\bresepti\b|\brecept\b/i.test(localEditorialText);
+ const hasFollowingProductPrice=after.slice(0,8).some(x=>/\b(?:kpl|pkt|ps|rs|tlk|pl|prk)\b/i.test(String(x.text||""))&&/\d/.test(String(x.text||"")));
+ if(headingLike&&hasRecipeEditorial&&hasFollowingProductPrice) percentageOffer={type:"non-product-heading",source:"editorial-recipe-heading-proof"};
 }
 // Generic fixed-package multibuy proof from a printed unit price and sale quantity.
 // Example shape: 500 g, "2 PS", "(4 00/kg)" => 2 * 0.5 kg * 4.00/kg = 4.00.
