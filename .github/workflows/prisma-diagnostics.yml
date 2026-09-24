@@ -972,6 +972,7 @@ jobs:
 
 
       - name: Prisma zero-store resolver comparison V238
+        if: ${{ false }}
         shell: bash
         run: |
           node <<'NODE'
@@ -1008,4 +1009,29 @@ jobs:
               await new Promise(r=>setTimeout(r,1000));
             }
           })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
+
+
+      - name: Prisma zero-store pickupSlots probe V239
+        shell: bash
+        run: |
+          node <<'NODE'
+          const H="c7198d6bce06a4cc0c4664cfb2168d273ff3c8ca5c14fd18dc264bdc21efb34a",CV="production-45c31f7a746096c6da12e16aba1887e031fbd9de";
+          const targets=[
+            ["Prisma Hämeenkatu Tampere",61.4983959,23.7699485,"726413330"],
+            ["Prisma Raksila Oulu",65.0085847,25.4901711,"516528759"],
+            ["Prisma Myyrmanni",60.2602019,24.8534899,"726435566"],
+            ["Prisma Jumbo",60.2915942,24.9656777,"613761030"],
+            ["Prisma Lohja",60.2512041,24.0676953,"603212895"],
+            ["Prisma Tuusula",60.4015818,25.0295324,"726753948"],
+          ];
+          function date(){const p=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());return p.replaceAll("-","")}
+          async function probe(name,lat,lon,currentId){
+            const variables={startDate:date(),endDate:date(),location:{latitude:lat,longitude:lon},limit:20};
+            const u=new URL("https://api.s-kaupat.fi/");u.searchParams.set("operationName","remotePickupSlots");u.searchParams.set("variables",JSON.stringify(variables));u.searchParams.set("extensions",JSON.stringify({persistedQuery:{version:1,sha256Hash:H}}));
+            const r=await fetch(u,{headers:{accept:"application/graphql-response+json,application/json;q=0.9","content-type":"application/json","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":CV}});
+            const j=await r.json();const rows=j?.data?.pickupSlotsForCoordinates?.slotsInPickupPoints||[];
+            console.log("PRISMA_V239 "+JSON.stringify({name,currentId,http:r.status,errors:j?.errors||[],candidates:rows.map(x=>({storeId:String(x?.store?.id||""),brand:x?.store?.brand,pickupName:x?.pickupPoint?.name,city:x?.pickupPoint?.address?.city,postalCode:x?.pickupPoint?.address?.postalCode,distance:x?.distance})).slice(0,20)}));
+          }
+          (async()=>{for(const x of targets){try{await probe(...x)}catch(e){console.log("PRISMA_V239 "+JSON.stringify({name:x[0],error:String(e)}))};await new Promise(r=>setTimeout(r,1200))}})();
           NODE
