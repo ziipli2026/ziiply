@@ -177,14 +177,19 @@ function mapTjekCategoryV54(offer: UnknownRecord): string {
   // V64: validated against the 34 active K-Market Hakalantori offers.
   // Specific product rules must precede broad department fallbacks.
 
+  // V65: context guards before food-name inference. A product such as pet food
+  // may contain "lohi", so pet context must win before the fish rule.
+  if (/\b(koiran|kissan|dog|cat|puppy|kitten|lemmikki|lemmikin|lemmikkien|sheba)\b/.test(productText) || department.includes("pet")) return "Lemmikit";
+
   // Ready meals / ready-to-eat products.
   if (/\b(mikroateria|valmisateria|valmisruoka|keitto|keitot|lasagne|laatikko|risotto|wrap|wrapit|cesarsalaatti|caesarsalaatti|taco-salaattisekoitus)\b/.test(productText)) return "Valmisruoka";
 
   // Fish.
-  if (/\b(lohi|kirjolohi|silakka|muikku|tonnikala|katkarapu|seiti|turska)\b/.test(productText)) return "Kala";
+  if (/\b(lohi|lohta|lohen|kirjolohi|kirjolohta|kirjolohen|nieria|nierian|silakka|silakat|muikku|muikut|tonnikala|katkarapu|katkaravut|seiti|turska)\b/.test(productText)) return "Kala";
 
-  // Meat and cold cuts.
-  if (/\b(jauheliha|makkara|makkarat|lenkkimakkara|nakki|nakit|broileri|kana|nauta|porsas|possu|pekoni|kinkku|leikkele|leikkeleet|palvileikkele|palvileikkeleet)\b/.test(productText)) return "Liha & makkarat";
+  // V65: meat and cold cuts. Match common Finnish inflections and compounds
+  // before an unreliable Tjek department fallback can put meat under fish.
+  if (/(?:^|\s|-)(?:jauheliha\w*|siskonmakkara\w*|grillimakkara\w*|lenkkimakkara\w*|makkara\w*|nakki\w*|broileri\w*|kananpoja\w*|kanan(?:\s|$)|kalkkuna\w*|naudan\w*|nauta\w*|viljaporsaan\w*|porsaan\w*|porsas\w*|possu\w*|pekoni\w*|palvikinkku\w*|saunapalvikinkku\w*|uunikinkku\w*|korppukinkku\w*|kinkku\w*|leikkele\w*|karjalanpaisti-liha\w*|lihasuikale\w*|ulkofilee\w*|sisafilee\w*|fileepihvi\w*|minuuttifilee\w*)/.test(productText)) return "Liha & makkarat";
 
   // Dairy.
   if (/\b(jogurtti|jugurtti|maito|piima|rahka|juusto|juustoraaste|juustoraasteet|kerma|kananmuna|vanukas|vanukkaat|mousse)\b/.test(productText)) return "Maitotuotteet";
