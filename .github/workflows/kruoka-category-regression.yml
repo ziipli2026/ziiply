@@ -155,7 +155,7 @@ jobs:
           }
           const live=offers.filter(o=>allowed.has(String(o.publicationPublicId??""))).map(o=>({name:String(o.name??o.title??""),department:String(o.departmentSlug??o.department??""),category:category(o),publicationId:String(o.publicationPublicId??"")}));
           const counts={}; for(const x of live) counts[x.category]=(counts[x.category]||0)+1;
-          const suspicious=live.filter(x=>x.category==="Kala"||/makkara|kanan|broiler|pors|naudan|liha|kinkku|leikkele|lohi|nier/i.test(x.name));
+          const suspicious=live.filter(x=>x.category==="Kala"||x.category==="Muut"||/makkara|kanan|broiler|pors|naudan|liha|kinkku|leikkele|lohi|nier/i.test(x.name));
           console.log(JSON.stringify({store:{id:selected.id,name:selected.name},rawOffers:offers.length,allowedPublications:[...allowed],liveOffers:live.length,categoryCounts:counts,suspicious},null,2));
           if(!live.length) process.exitCode=2;
           NODE
