@@ -511,6 +511,16 @@ if((!spatialResolved||spatialResolved.sanity==="review"||spatialResolved.source=
  const hits=[];for(const e of euros)for(const z of cents){const d=Math.hypot((z.left||0)-(e.left||0),(z.top||0)-(e.top||0));const u=ps.map(x=>({...x,du:Math.hypot((x.left||0)-(z.left||0),(x.top||0)-(z.top||0))})).sort((a,b)=>a.du-b.du)[0];if(d<.08&&u&&u.du<.08)hits.push({value:2.29,unit:"PS"});}
  if(hits.length>=1&&pct20&&hasNormal)spatialResolved={value:2.29,quantity:null,unit:"PS",source:"bakery-box-visual-sale-price-proof",sanity:"pass",confidence:"high"};
 }
+// Generic shared-card split price: require a large euro+cents pair, sale-unit token, discount marker and printed normal-price fragments in the same local card.
+if(!spatialResolved&&anchor&&ur){
+ const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.25),units=local.filter(b=>/^(PS|PKT|KPL|RS|TLK|PL|PRK)$/i.test(String(b.text||"").trim()));
+ const euros=local.filter(b=>/^\d{1,2}$/.test(String(b.text||"").trim())&&Number(b.height||0)>=.04),cents=local.filter(b=>/^\d{2}$/.test(String(b.text||"").trim())&&Number(b.height||0)>=.02);
+ const hasPct=local.some(b=>/^-{1,2}\d{1,2}$/.test(String(b.text||"").trim()))&&local.some(b=>String(b.text||"").trim()==="%");
+ const normalFragments=local.filter(b=>/\/((ps)|(pkt)|(kpl)|(rs)|(tlk)|(pl)|(prk))$/i.test(String(b.text||"").trim()));
+ const found=[];for(const e of euros)for(const z of cents){const u=units.find(x=>Math.hypot((x.left||0)-(z.left||0),(x.top||0)-(z.top||0))<.05);if(u&&Math.hypot((z.left||0)-(e.left||0),(z.top||0)-(e.top||0))<.06){const v=Number(String(e.text).trim()+"."+String(z.text).trim());if(v>=.5&&v<100)found.push({value:v,unit:String(u.text).toUpperCase()});}}
+ const uniq=[...new Map(found.map(x=>[x.value+"|"+x.unit,x])).values()];
+ if(uniq.length===1&&hasPct&&normalFragments.length)spatialResolved={...uniq[0],quantity:null,source:"shared-card-split-price-proof",sanity:"pass",confidence:"high"};
+}
 if(!spatialResolved&&anchor){
  const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.24);
  const compact4s=local.filter(b=>/^\d{4}$/.test(String(b.text||"").trim())&&Number(b.height||0)>.04);
