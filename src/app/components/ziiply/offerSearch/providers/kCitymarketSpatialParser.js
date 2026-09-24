@@ -400,8 +400,8 @@ if(!spatialResolved&&anchor&&pk&&pk.min===pk.max){
   }
   // OCR may duplicate the first decimal digit as a separate box: "4 1 17/l" means 4.17/l.
   const bs=g.boxes||[];
-  for(let i=0;i<bs.length-2;i++){
-   const a=String(bs[i].text||"").trim(),dup=String(bs[i+1].text||"").trim(),tail=String(bs[i+2].text||"").trim();
+  for(let bi=0;bi<bs.length-2;bi++){
+   const a=String(bs[bi].text||"").trim(),dup=String(bs[bi+1].text||"").trim(),tail=String(bs[bi+2].text||"").trim();
    const tm=tail.match(/^(\d)(\d)\/(kg|l)\)?$/i);
    if(/^\d{1,3}$/.test(a)&&/^\d$/.test(dup)&&tm&&dup===tm[1]){
     const rate=Number(a+"."+tm[1]+tm[2]),value=Number((pk.min*rate).toFixed(2));
