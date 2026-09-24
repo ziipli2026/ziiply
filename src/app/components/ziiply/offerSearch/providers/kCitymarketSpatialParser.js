@@ -589,9 +589,10 @@ if(!spatialResolved&&anchor&&pk&&pk.min===pk.max){
 if(!spatialResolved&&anchor&&pk&&pk.max===pk.min){
  const htmlContext=around.map(x=>String(x.text||"")).join(" ");
  const htmlRate=htmlContext.match(/(\d{1,3}[,.]\d{2})\/(kg|l)\b/i);
- if(htmlRate&&nr){
+ const normalMarker=/Ilman\s+Plussa-korttia/i.test(htmlContext);
+ if(htmlRate&&normalMarker){
   const rate=Number(htmlRate[1].replace(",",".")), value=Number((pk.min*rate).toFixed(2));
-  if(Number.isFinite(value)&&value>=.5&&value<30&&value<nr.min) spatialResolved={value,quantity:null,unit:"KPL",source:"fixed-package-unitrate-normalprice-proof",sanity:"pass",confidence:"high"};
+  if(Number.isFinite(value)&&value>=.5&&value<30) spatialResolved={value,quantity:null,unit:"KPL",source:"fixed-package-unitrate-normalprice-proof",sanity:"pass",confidence:"high"};
  }
  const localGroups=spatialGroups(wordBoxes.filter(b=>boxDistance(anchor,b)<.18)).map(g=>String(g.text||""));
  const localAfterText=after.slice(0,10).map(x=>String(x.text||""));
