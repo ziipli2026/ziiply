@@ -36,5 +36,8 @@ jobs:
             const bmap=new Map(b.products.map(x=>[String(x.p?.ean||x.p?.eanCode||x.p?.gtin||x.p?.name||""),x.p]));
             let rawChanged=[]; for(const [k,v] of amap)if(bmap.has(k)&&JSON.stringify(v)!==JSON.stringify(bmap.get(k)))rawChanged.push(k);
             console.log("V273_RAW_PRODUCT_COMPARE "+JSON.stringify({vehkoja:amap.size,jokela:bmap.size,rawChanged:rawChanged.length,sample:rawChanged.slice(0,30)}));
+            const sampleKeys=[...amap.keys()].filter(k=>bmap.has(k)).slice(0,20);
+            const summarize=(p)=>({ean:p?.ean,name:p?.name,price:p?.price,storeId:p?.storeId,availability:p?.availability,pricing:p?.pricing,store:p?.store});
+            console.log("V273_SAMPLE20 "+JSON.stringify(sampleKeys.map(k=>({key:k,vehkoja:summarize(amap.get(k)),jokela:summarize(bmap.get(k))})),null,2));
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
