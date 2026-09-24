@@ -400,18 +400,6 @@ if((!spatialResolved||spatialResolved.sanity==="review"||spatialResolved.source=
 }
 // Exact local shelf-price text such as "1 38/ps" or "2 89/ps" is stronger than a weak nearby candidate.
 // Only accept when it is close to the title anchor and the printed unit matches a normal sale unit.
-if(anchor){
- const localUnitPrices=wordBoxes.filter(b=>boxDistance(anchor,b)<.13).map(b=>({...b,t:String(b.text||"")})); 
- const groups=spatialGroups(localUnitPrices);
- const hits=[];
- for(const g of groups){
-  const gt=String(g.text||"");
-  if(/Ilman\s+Plussa-korttia/i.test(gt))continue;
-  const m=gt.match(/(?:^|\s)(\d{1,2})\s+(\d{2})\/(rs|ps|pkt|kpl|tlk|pl|prk)(?:\s|$)/i);
-  if(m)hits.push({value:Number(m[1]+"."+m[2]),unit:m[3].toUpperCase(),text:g.text});
- }
- if(!spatialResolved&&hits.length===1&&hits[0].value>=.5&&hits[0].value<30)spatialResolved={...hits[0],quantity:null,source:"local-explicit-unit-price"};
-}
 // Final confidence gate: classify only after every resolver/fallback has finished.
 if(spatialResolved){
  const strongSources=new Set(["validated-geometric-multibuy","high-confidence-geometric-multibuy","visual-large-euro-multibuy","large-visual-price-qty-unit","embedded-productblock-price","group-er-price","group-discount-price","unitprice-validated-multibuy","unitprice-validated-candidate","range-unitprice-cents-validated","spatial-range-unitprice-cents-validated","spatial-fixed-unitprice-cents-validated","local-explicit-unit-price","expected-near-exact-visual","expected-local-cents-validated","local-product-unitprice-exact","local-unitprice-derived-offer","unique-local-explicit-unit-price","fixed-package-unitprice-confirmed-multibuy","fixed-package-local-unitprice-confirmed-price","raw-box-unitprice-confirmed-price","one-unit-duplicate-visual-price-rate","product-row-fixed-package-split","card-fixed-package-unitprice-split","raw-box-one-unit-duplicate-rate","large-visual-price","title-linked-large-split-price","mixed-size-unitprice-range-proof","fixed-package-unitrate-normalprice-proof","isolated-card-large-split-discount-proof","mixed-size-endpoint-equivalence-proof","range-endpoint-cross-derived","own-unitprice-package-derived"]);
