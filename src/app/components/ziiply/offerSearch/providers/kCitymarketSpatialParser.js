@@ -412,7 +412,9 @@ if(!spatialResolved&&anchor&&pk&&pk.min===pk.max){
  // Basic-HTML fallback: the product's own printed unit rate is often the first standalone rate line
  // immediately after the title, even when coordinate OCR fragments that same rate into incompatible boxes.
  // Keep this local to the product lead-in and stop before the normal-price comparison row.
- if(!rates.length){
+ if(!rates.length||!saleUnits.length){
+  // Coordinate-only rates are not sufficient without a nearby sale-unit token; prefer the product's own basic-HTML rate.
+  if(!saleUnits.length)rates.length=0;
   const lead=[];
   const selfStart=lines[i]?.i??i,selfAfter=lines.filter(row=>row.i>selfStart).slice(0,8);
   for(const row of selfAfter){if(/Ilman\s+Plussa-korttia/i.test(row.text))break;lead.push(row.text);}
