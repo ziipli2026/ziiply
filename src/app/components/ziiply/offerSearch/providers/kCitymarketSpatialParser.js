@@ -511,18 +511,6 @@ if((!spatialResolved||spatialResolved.sanity==="review"||spatialResolved.source=
  const hits=[];for(const e of euros)for(const z of cents){const d=Math.hypot((z.left||0)-(e.left||0),(z.top||0)-(e.top||0));const u=ps.map(x=>({...x,du:Math.hypot((x.left||0)-(z.left||0),(x.top||0)-(z.top||0))})).sort((a,b)=>a.du-b.du)[0];if(d<.08&&u&&u.du<.08)hits.push({value:2.29,unit:"PS"});}
  if(hits.length>=1&&pct20&&hasNormal)spatialResolved={value:2.29,quantity:null,unit:"PS",source:"bakery-box-visual-sale-price-proof",sanity:"pass",confidence:"high"};
 }
-// V239: Fazer Puikula/Jyvaruis shared card. Coordinate proof shows the offer price 1.69/PS at the left of this card.
-// Require the -21% marker, large 1 + 69 split price, PS unit, and the printed normal 1.49-1.59/ps range.
-if(!spatialResolved&&anchor&&(/6 kpl\/210 g tai TÄYS-/i.test(title)||/JYVÄRUIS 6 kpl\/330 g/i.test(title))&&ur&&Math.abs(ur.min-3.90)<.01&&Math.abs(ur.max-6.14)<.01){
- const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.25);
- const euro=local.filter(b=>String(b.text||"").trim()==="1"&&Number(b.height||0)>=.04);
- const cents=local.filter(b=>String(b.text||"").trim()==="69"&&Number(b.height||0)>=.02);
- const ps=local.filter(b=>/^PS$/i.test(String(b.text||"").trim()));
- const pct=local.some(b=>/^-21$/.test(String(b.text||"").trim()))&&local.some(b=>String(b.text||"").trim()==="%");
- const normal=local.some(b=>/^49–1$/.test(String(b.text||"").trim()))&&local.some(b=>/^59\/ps$/i.test(String(b.text||"").trim()));
- let visual=false;for(const e of euro)for(const z of cents){if(Math.hypot((z.left||0)-(e.left||0),(z.top||0)-(e.top||0))<.06){const u=ps.find(x=>Math.hypot((x.left||0)-(z.left||0),(x.top||0)-(z.top||0))<.05);if(u)visual=true;}}
- if(visual&&pct&&normal)spatialResolved={value:1.69,quantity:null,unit:"PS",source:"bread-shared-card-visual-price-proof",sanity:"pass",confidence:"high"};
-}
 if(!spatialResolved&&anchor){
  const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.24);
  const compact4s=local.filter(b=>/^\d{4}$/.test(String(b.text||"").trim())&&Number(b.height||0)>.04);
