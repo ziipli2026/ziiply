@@ -319,13 +319,6 @@ if(!spatialResolved||spatialResolved.sanity==="review"||spatialResolved.source==
 // This recovers layouts where the large offer digits are fragmented (e.g. 500 ml at 5.00/l => 2.50).
 // Explicit local shelf-price text can also be the only trustworthy offer evidence when package/unit-price arithmetic is missing or misleading.
 // Keep it strict: one unique same-card value, sale unit required, and exclude Ilman Plussa-korttia comparison rows.
-if(!spatialResolved&&anchor){
- const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.16);
- const hits=[];
- for(const g of spatialGroups(local)){const t=String(g.text||"");if(/Ilman\s+Plussa-korttia/i.test(t))continue;for(const m of t.matchAll(/(?:^|\s)(\d{1,2})\s+(\d{2})\/(rs|ps|pkt|kpl|tlk|pl|prk)(?:\s|$)/gi))hits.push({value:Number(m[1]+"."+m[2]),unit:m[3].toUpperCase(),text:t});}
- const uniq=[...new Map(hits.filter(x=>x.value>=.5&&x.value<30).map(x=>[x.value+"|"+x.unit,x])).values()];
- if(uniq.length===1)spatialResolved={...uniq[0],quantity:null,source:"unique-local-explicit-unit-price",sanity:"pass"};
-}
 // Fixed-package multibuy: a whole-euro transaction price + quantity/unit is accepted only when a local printed unit price independently confirms the per-item arithmetic.
 // Fixed 1 kg/l package: a nearby large visual split price can be self-confirming when its numeric value equals the printed kg/l rate. Require two distinct coordinate pairs for the same value, one price-sized and one rate-sized.
 // Raw-box 1 kg/l self-confirmation: find the same split numeric value twice near the product, with one occurrence immediately associated with a KG/L unit token. This does not depend on basic-html unitRange parsing.
