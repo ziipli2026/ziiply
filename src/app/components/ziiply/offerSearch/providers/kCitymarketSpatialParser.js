@@ -631,20 +631,33 @@ if(/^RAE JUUSTO- RIESKAT$/i.test(title)&&anchor){
  const same=wordBoxes.filter(b=>Math.abs(Number(b.top)-Number(anchor.top))<.34&&Math.abs(Number(b.left)-Number(anchor.left))<.30).sort((a,b)=>a.top-b.top||a.left-b.left).map(b=>({text:b.text,left:b.left,top:b.top,width:b.width,height:b.height,d:Number(boxDistance(anchor,b).toFixed(6))}));
  console.error("V283_RAE_RIESKAT",JSON.stringify({page:p,title,anchor,pk,ur,expected,spatialResolved,same}));
 }
-// V281: trace the remaining KUVIOPASTAT 500 g card before adding any resolver.
-if(/^KUVIOPASTAT 500 g$/i.test(title)&&anchor){
- const same=wordBoxes.filter(b=>Math.abs(Number(b.top)-Number(anchor.top))<.20&&Math.abs(Number(b.left)-Number(anchor.left))<.32).sort((a,b)=>a.top-b.top||a.left-b.left).map(b=>({text:b.text,left:b.left,top:b.top,width:b.width,height:b.height,d:Number(boxDistance(anchor,b).toFixed(6))}));
- console.error("V281_KUVIOPASTAT",JSON.stringify({page:p,title,anchor,pk,ur,expected,spatialResolved,same}));
-}
-// V282: Rummo KUVIOPASTAT 500 g card. Visual proof is 2 PS / 4.00 kg-price line and 2.49/ps normal price.
-// 500 g x 2 at 4.00/kg gives the advertised 4.00 euro / 2 PS price.
-if(!spatialResolved&&anchor&&/^KUVIOPASTAT 500 g$/i.test(title)){
- const local=wordBoxes.filter(b=>Number(b.left)>.69&&Number(b.left)<.95&&Number(b.top)>.25&&Number(b.top)<.37);
- const qty=local.find(b=>/^2$/.test(String(b.text||'').trim())&&Number(b.top)>.29&&Number(b.top)<.32);
- const unit=local.find(b=>/^PS$/i.test(String(b.text||'').trim())&&Number(b.top)>.29&&Number(b.top)<.32);
- const kg4=local.some(b=>/^\(4$/.test(String(b.text||'').trim())&&Math.abs(Number(b.top)-.328535)<.008)&&local.some(b=>/^00\/kg\)$/i.test(String(b.text||'').trim())&&Math.abs(Number(b.top)-.328535)<.008);
- const normal=local.some(b=>/^49\/ps$/i.test(String(b.text||'').trim())&&Math.abs(Number(b.top)-.358299)<.008);
- if(qty&&unit&&kg4&&normal) spatialResolved={value:4.00,quantity:2,unit:'PS',source:'kuviopasta-unitprice-multibuy-proof',sanity:'pass',confidence:'high'};
+// Generic fixed-package multibuy proof from a printed unit price and sale quantity.
+// Example shape: 500 g, "2 PS", "(4 00/kg)" => 2 * 0.5 kg * 4.00/kg = 4.00.
+if(!spatialResolved&&anchor&&pk&&pk.min===pk.max){
+ const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.22);
+ const qtyUnits=[];
+ for(const q of local.filter(b=>/^[2-9]$/.test(String(b.text||"").trim()))){
+  const u=local.filter(b=>/^(PS|PKT|KPL|RS|TLK|PL|PRK)$/i.test(String(b.text||"").trim())).map(b=>({...b,d:Math.hypot((Number(b.left)||0)-(Number(q.left)||0),(Number(b.top)||0)-(Number(q.top)||0))})).sort((a,b)=>a.d-b.d)[0];
+  if(u&&u.d<.055)qtyUnits.push({quantity:Number(q.text),unit:String(u.text).toUpperCase(),q,u});
+ }
+ const unitRates=[];
+ for(const a of local.filter(b=>/^\(?\d{1,2}$/.test(String(b.text||"").trim()))){
+  const av=Number(String(a.text).replace(/\D/g,""));
+  for(const b of local.filter(x=>/^\d{2}\/(kg|l)\)?$/i.test(String(x.text||"").trim()))){
+   if(Math.abs((Number(a.top)||0)-(Number(b.top)||0))<.012&&Number(b.left)>Number(a.left)&&Number(b.left)-Number(a.left)<.09){
+    const m=String(b.text).match(/(\d{2})\/(kg|l)/i); if(m)unitRates.push({rate:Number(av+"."+m[1]),rateUnit:m[2].toLowerCase(),a,b});
+   }
+  }
+ }
+ const proofs=[];
+ for(const qu of qtyUnits)for(const urate of unitRates){
+  const value=Number((qu.quantity*pk.min*urate.rate).toFixed(2));
+  const rowNear=Math.abs((Number(qu.q.top)||0)-(Number(urate.a.top)||0))<.07;
+  if(rowNear&&value>=.5&&value<100)proofs.push({...qu,...urate,value,score:boxDistance(anchor,qu.q)+boxDistance(anchor,urate.a)});
+ }
+ proofs.sort((a,b)=>a.score-b.score);
+ const best=proofs[0];
+ if(best&&(!proofs[1]||proofs[1].score-best.score>.025))spatialResolved={value:best.value,quantity:best.quantity,unit:best.unit,source:"fixed-package-unitrate-multibuy-proof",sanity:"pass",confidence:"high"};
 }
 // V280: SHAMPOOT 500 ml is a separate right-hand card on the same visual row.
 // Coordinate proof: large 6 + 90 with KPL beside it and -31% above; require all four signals in the tight right-hand card.
