@@ -1039,6 +1039,7 @@ jobs:
 
 
       - name: Prisma zero-store pickupSlots exact old resolver V240
+        if: ${{ false }}
         shell: bash
         run: |
           node <<'NODE'
@@ -1060,4 +1061,21 @@ jobs:
             console.log("PRISMA_V240 "+JSON.stringify({name,currentId,http:r.status,errors:j?.errors||[],candidates:rows.map(x=>({storeId:String(x?.store?.id||""),brand:x?.store?.brand,pickupName:x?.pickupPoint?.name,city:x?.pickupPoint?.address?.city,postalCode:x?.pickupPoint?.address?.postalCode,distance:x?.distance})).slice(0,20)}));
           }
           (async()=>{for(const x of targets){try{await probe(...x)}catch(e){console.log("PRISMA_V240 "+JSON.stringify({name:x[0],error:String(e)}))};await new Promise(r=>setTimeout(r,1200))}})();
+          NODE
+
+
+      - name: Prisma zero-store old unfiltered master V241
+        shell: bash
+        run: |
+          node <<'NODE'
+          const H="44ca017dddccfe49e787b483f471f26217adca807f8c71101d11e881dab9e480",CV="production-45c31f7a746096c6da12e16aba1887e031fbd9de";
+          const ids=[["Hämeenkatu","726413330"],["Raksila","516528759"],["Myyrmanni","726435566"],["Jumbo","613761030"],["Lohja","603212895"],["Tuusula","726753948"]];
+          async function q(name,storeId){
+            const variables={facets:[{key:"brandName",order:"asc"},{key:"category"},{key:"labels"}],generatedSessionId:"1d6b5de9-df99-4608-af07-7d754955df82",fetchSponsoredContent:false,limit:48,offset:0,skip:0,page:1,queryString:"",storeId,useRandomId:false,marketingId:"d0bcc6e5-6130-494e-b6fb-12b5cb9c60cf"};
+            const u=new URL("https://api.s-kaupat.fi/");u.searchParams.set("operationName","RemoteFilteredProducts");u.searchParams.set("variables",JSON.stringify(variables));u.searchParams.set("extensions",JSON.stringify({persistedQuery:{version:1,sha256Hash:H}}));
+            const r=await fetch(u,{headers:{accept:"application/json","content-type":"application/json","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":CV,"user-agent":"Mozilla/5.0"}});
+            const j=await r.json();const root=j?.data?.store?.products;const items=root?.productListItems||root?.products||root?.items||[];
+            console.log("PRISMA_V241 "+JSON.stringify({name,storeId,http:r.status,responseStoreId:String(j?.data?.store?.id||""),total:root?.total,raw:Array.isArray(items)?items.length:null,errors:j?.errors||[],labelFacet:(root?.structuredFacets||[]).find(x=>x?.key==="labels")||null,sample:Array.isArray(items)?items.slice(0,3):[]}));
+          }
+          (async()=>{for(const x of ids){try{await q(...x)}catch(e){console.log("PRISMA_V241 "+JSON.stringify({name:x[0],error:String(e)}))};await new Promise(r=>setTimeout(r,900))}})();
           NODE
