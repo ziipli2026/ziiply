@@ -461,41 +461,6 @@ if(!spatialResolved&&!pk&&!ur&&expected==null){
 }
 // Generic fixed-package multibuy proof from a printed unit price and sale quantity.
 // Example shape: 500 g, "2 PS", "(4 00/kg)" => 2 * 0.5 kg * 4.00/kg = 4.00.
-if(!spatialResolved&&anchor&&pk&&pk.min===pk.max){
- const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.22);
- const qtyUnits=[];
- const units=local.filter(b=>/^(PS|PKT|KPL|RS|TLK|PL|PRK)$/i.test(String(b.text||"").trim()));
- for(const q of local.filter(b=>/^[2-9]$/.test(String(b.text||"").trim()))){
-  const u=units.map(b=>({...b,d:Math.hypot((Number(b.left)||0)-(Number(q.left)||0),(Number(b.top)||0)-(Number(q.top)||0))})).sort((a,b)=>a.d-b.d)[0];
-  if(u&&u.d<.075)qtyUnits.push({quantity:Number(q.text),unit:String(u.text).toUpperCase(),q,u});
- }
- // Some leaflets place the sale unit beside the large euro price instead of beside the quantity.
- // Pair a quantity with a nearby unit-price row and use the nearest sale unit in the same card.
- if(!qtyUnits.length&&units.length){
-  for(const q of local.filter(b=>/^[2-9]$/.test(String(b.text||"").trim()))){
-   const u=units.map(b=>({...b,d:boxDistance(anchor,b)})).sort((a,b)=>a.d-b.d)[0];
-   if(u&&boxDistance(anchor,q)<.26&&u.d<.20)qtyUnits.push({quantity:Number(q.text),unit:String(u.text).toUpperCase(),q,u});
-  }
- }
- const unitRates=[];
- for(const a of local.filter(b=>/^\(?\d{1,2}$/.test(String(b.text||"").trim()))){
-  const av=Number(String(a.text).replace(/\D/g,""));
-  for(const b of local.filter(x=>/^\d{2}\/(kg|l)\)?$/i.test(String(x.text||"").trim()))){
-   if(Math.abs((Number(a.top)||0)-(Number(b.top)||0))<.012&&Number(b.left)>Number(a.left)&&Number(b.left)-Number(a.left)<.11){
-    const m=String(b.text).match(/(\d{2})\/(kg|l)/i); if(m)unitRates.push({rate:Number(av+"."+m[1]),rateUnit:m[2].toLowerCase(),a,b});
-   }
-  }
- }
- const proofs=[];
- for(const qu of qtyUnits)for(const urate of unitRates){
-  const value=Number((qu.quantity*pk.min*urate.rate).toFixed(2));
-  const rowNear=Math.abs((Number(qu.q.top)||0)-(Number(urate.a.top)||0))<.09;
-  if(rowNear&&value>=.5&&value<100)proofs.push({...qu,...urate,value,score:boxDistance(anchor,qu.q)+boxDistance(anchor,urate.a)});
- }
- proofs.sort((a,b)=>a.score-b.score);
- const best=proofs[0];
- if(best&&(!proofs[1]||proofs[1].score-best.score>.025))spatialResolved={value:best.value,quantity:best.quantity,unit:best.unit,source:"fixed-package-unitrate-multibuy-proof",sanity:"pass",confidence:"high"};
-}
 // Generic fixed-package shelf price from printed unit rate plus explicit normal-price row.
 // Example pattern: 500 ml + 6.00/l + "Ilman Plussa-korttia 3.55/kpl" proves a 3.00 sale price.
 // Require fixed package size and an independently printed normal-price row to avoid treating arbitrary unit rates as offers.
