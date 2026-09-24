@@ -508,12 +508,17 @@ if(!spatialResolved&&anchor&&pk&&ur&&expected&&nr&&nr.unit){
  const hasDiscount=/(?:^|\s)-?\d{1,2}(?:[–-]\d{1,2})?\s*%/.test(localText);
  if(rounded>=.5&&rounded<nr.min&&hasNormalUnit&&hasDiscount)spatialResolved={value:rounded,quantity:null,unit:nr.unit,source:"package-unitrate-normalprice-proof",sanity:"pass",confidence:"high"};
 }
-// Generic percentage-only card proof: accept one unique nearby printed discount percentage.
+// Generic percentage-only card proof: prefer a discount printed on the product's own basic-HTML row.
 if(!spatialResolved&&anchor){
- const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.14);
- const pctValues=local.map(b=>String(b.text||"").trim().match(/^-(\d{1,2})%$/)).filter(Boolean).map(m=>Number(m[1]));
+ const ownText=around.map(r=>String(r.text||"").trim()).join(" | ");
+ const pctValues=[...ownText.matchAll(/-(\d{1,2})%/g)].map(m=>Number(m[1]));
  const uniq=[...new Set(pctValues)];
- if(uniq.length===1)percentageOffer={percent:uniq[0],source:"unique-local-percentage-proof",confidence:"high"};
+ if(uniq.length===1)percentageOffer={percent:uniq[0],source:"own-html-percentage-proof",confidence:"high"};
+ else {
+  const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.14);
+  const geo=[...new Set(local.map(b=>String(b.text||"").trim().match(/^-(\d{1,2})%$/)).filter(Boolean).map(m=>Number(m[1])))];
+  if(geo.length===1)percentageOffer={percent:geo[0],source:"unique-local-percentage-proof",confidence:"high"};
+ }
 }
 // V272: Valo kirkastava hyaluronitiiviste 50 ml JÄTTIKOKO has explicit 498.00/l and large 24.90/KPL in the same card.
 if(!spatialResolved&&anchor&&/50 ml JÄTTIKOKO 498(?:[,.]00)?\/l/i.test(title)){
