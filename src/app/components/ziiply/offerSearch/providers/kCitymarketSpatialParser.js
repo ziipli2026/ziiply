@@ -226,7 +226,7 @@ if(!spatialResolved&&expected&&spatialCandidates.length){
  if(validated.length)spatialResolved={...validated[0],source:"unitprice-validated-candidate"};
 }
 const groupTexts=spatialGroups(anchor?wordBoxes.filter(b=>boxDistance(anchor,b)<0.22):[]).map(g=>String(g.text||""));
-if(!spatialResolved&&nr&&nr.min>=10){const disc=groupTexts.map(t=>t.match(/(?:^|\s)([1-9][0-9]?)(?:\s|$)/)).find(m=>m&&Number(m[1])<nr.min);if(disc)spatialResolved={value:Number(disc[1]),quantity:null,unit:nr.unit||null,source:"group-discount-price"};}
+
 // Direct local product-group price: handle layouts where euro+cents are embedded in the same text row as
 // the product/package, e.g. "PORKKANA 99 1 kg" with "(0 99/kg)". Require arithmetic agreement.
 // Reconstruct an exact visual price from package-size/unit-price arithmetic when the matching cents are
