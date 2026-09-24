@@ -1200,7 +1200,7 @@ jobs:
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
 
-      - name: S-market eTarjouslehdet decoded publication parser V258
+      - name: S-market eTarjouslehdet newline parser V259
         shell: bash
         run: |
           node <<'NODE'
@@ -1209,7 +1209,7 @@ jobs:
           function enc(v){return Buffer.from(JSON.stringify(v),"utf8").toString("base64")}
           async function batch(queries){
             const r=await fetch(URL,{method:"POST",headers:{"accept":"application/json,text/plain,*/*","content-type":"application/json","origin":"https://etarjouslehdet.fi","referer":"https://etarjouslehdet.fi/S-market/kaupat","user-agent":"Mozilla/5.0 ZiiplyOfferProvider/20"},body:JSON.stringify({data:queries.map(enc)})});
-            const t=await r.text(); const j=t.split(/\\n+/).map(x=>x.trim()).filter(Boolean).map(x=>{try{return JSON.parse(x)}catch{return null}}).filter(Boolean);
+            const t=await r.text(); const j=t.split(/\n+/).map(x=>x.trim()).filter(Boolean).map(x=>{try{return JSON.parse(x)}catch{return null}}).filter(Boolean);
             return {status:r.status,json:j,text:t};
           }
           function walk(v,fn){if(!v)return;if(Array.isArray(v)){for(const x of v)walk(x,fn);return}if(typeof v==="object"){fn(v);for(const x of Object.values(v))walk(x,fn)}}
@@ -1223,12 +1223,12 @@ jobs:
           for(const offset of offsets){
             const r=await batch([["stores",{businessId:BID,pagination:{limit:100,offset}}]]);
             const found=valRows(r.json).flatMap(stores);
-            console.log("SMARKET_V258_PAGE "+JSON.stringify({offset,http:r.status,found:found.length,sample:found.slice(0,3)}));
+            console.log("SMARKET_V259_PAGE "+JSON.stringify({offset,http:r.status,found:found.length,sample:found.slice(0,3)}));
             all.push(...found); if(found.length<100)break;
           }
           const map=new Map(); for(const x of all)if(!map.has(x.id))map.set(x.id,x);
           const uniq=[...map.values()];
-          console.log("SMARKET_V258_DISCOVERY "+JSON.stringify({uniqueStores:uniq.length,sample:uniq.slice(0,20)}));
+          console.log("SMARKET_V259_DISCOVERY "+JSON.stringify({uniqueStores:uniq.length,sample:uniq.slice(0,20)}));
           const wanted=["S-market Jokela","S-market Vehkoja","S-market Tuusula","S-market Sokos Helsinki","S-market Redi","S-market Pukinmäki","S-market Suutarila","S-market Kontula"];
           for(const q of wanted){
             const sr=await batch([
@@ -1262,9 +1262,9 @@ jobs:
                 const pt=await pg.text(); pageStatus=pg.status; pageBytes=pt.length;
                 pageIds=[...pt.matchAll(/"(?:publicId|publicationId|id)"\\s*:\\s*"([A-Za-z0-9_-]{6,})"/g)].map(m=>m[1]).filter(id=>id!==best.id&&id!==BID).slice(0,20);
               }catch(e){}
-              console.log("SMARKET_V258_PUBRAW "+JSON.stringify({query:q,storeId:best.id,batchHttp:pr.status,batchBytes:pr.text.length,batchHead:pr.text.slice(0,800),decodedTypes:valRows(pr.json).map(v=>Array.isArray(v)?"array":typeof v),decodedSamples:valRows(pr.json).map(v=>Array.isArray(v)?v.slice(0,2):v).slice(0,4),pageStatus,pageBytes,pageIds}));
+              console.log("SMARKET_V259_PUBRAW "+JSON.stringify({query:q,storeId:best.id,batchHttp:pr.status,batchBytes:pr.text.length,batchHead:pr.text.slice(0,800),decodedTypes:valRows(pr.json).map(v=>Array.isArray(v)?"array":typeof v),decodedSamples:valRows(pr.json).map(v=>Array.isArray(v)?v.slice(0,2):v).slice(0,4),pageStatus,pageBytes,pageIds}));
             }
-            console.log("SMARKET_V258_STORE "+JSON.stringify({query:q,http:sr.status,candidates:ss.length,best,truthMatch:truth,publications:ps.length,pubSample:ps.slice(0,3)}));
+            console.log("SMARKET_V259_STORE "+JSON.stringify({query:q,http:sr.status,candidates:ss.length,best,truthMatch:truth,publications:ps.length,pubSample:ps.slice(0,3)}));
           }
           NODE
 
