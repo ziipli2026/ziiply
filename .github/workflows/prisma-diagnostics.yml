@@ -6,14 +6,24 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: S-local known official IDs page test V268
+      - name: S-local S-kaupat Next data discovery V269
         shell: bash
         run: |
           node <<'NODE'
-          const HASH="f6d87786fda8fb5c233c4eaed08f37b0c5b87dc0d8d4c44c33c5529e446369d1",CLIENT="production-14a82a5b48cd1dd42c0592db0037514ed3c84de8";
-          const stores=[["S-market Vehkoja","519941769"],["S-market Suutarila","726666563"],["S-market Kontula","513931329"]];
-          const date=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
-          async function page(name,id){const variables={preview:false,storeId:id,skipProducts:false,availabilityDate:date,where:{storeId:id,path:"tuotteet/kampanjat",platform:"WEB",availabilityDate:date,userConsent:{marketing:false,marketingId:"ziiply-gosta",useCustomerId:false,sessionId:"ziiply-gosta",loop54:true}}},extensions={clientLibrary:{name:"@apollo/client",version:"4.2.12"},persistedQuery:{version:1,sha256Hash:HASH}};const u=new URL("https://api.s-kaupat.fi/");u.searchParams.set("operationName","RemoteGetPageContent");u.searchParams.set("variables",JSON.stringify(variables));u.searchParams.set("extensions",JSON.stringify(extensions));const r=await fetch(u,{headers:{accept:"application/graphql-response+json,application/json;q=0.9","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":CLIENT}});const d=await r.json(),secs=d?.data?.pageContent?.sections;let products=0;if(Array.isArray(secs))for(const s of secs)products+=Array.isArray(s?.products)?s.products.length:0;return{name,id,status:r.status,sections:Array.isArray(secs)?secs.length:null,products,errors:d?.errors||[]}}
-          let ok=0;for(const [n,id] of stores){const x=await page(n,id);if(x.status===200&&x.sections!==null)ok++;console.log("SLOCAL_V268_RESULT "+JSON.stringify(x))}
-          console.log("SLOCAL_V268_SUMMARY "+JSON.stringify({tested:stores.length,ok}));
+          const urls=[
+            "https://www.s-kaupat.fi/myymala/s-market-vehkoja/519941769",
+            "https://www.s-kaupat.fi/myymala/s-market-suutarila/726666563",
+            "https://www.s-kaupat.fi/myymala/s-market-kontula/513931329"
+          ];
+          for(const url of urls){
+            try{
+              const r=await fetch(url,{headers:{accept:"text/html,application/xhtml+xml","accept-language":"fi","user-agent":"Mozilla/5.0"}});
+              const body=await r.text();
+              const next=body.match(/<script[^>]+id=["']__NEXT_DATA__["'][^>]*>([\s\S]*?)<\/script>/i)?.[1]||"";
+              const build=next?(()=>{try{return JSON.parse(next)?.buildId||""}catch{return""}})():"";
+              const scripts=[...body.matchAll(/<script[^>]+src=["']([^"']+_next[^"']+)["']/gi)].map(m=>m[1]);
+              const api=[...new Set([...body.matchAll(/https?:\\?\/\\?\/[^"'<>\s]+|\/api\/[^"'<>\s]+/gi)].map(m=>m[0]).filter(x=>/api|graphql|store|myym/i.test(x)))].slice(0,30);
+              console.log("SLOCAL_V269_PAGE "+JSON.stringify({url,status:r.status,len:body.length,hasNext:!!next,build,scripts:scripts.slice(0,20),api}));
+            }catch(e){console.log("SLOCAL_V269_PAGE "+JSON.stringify({url,error:String(e?.message||e)}))}
+          }
           NODE
