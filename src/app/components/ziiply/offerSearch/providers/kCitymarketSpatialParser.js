@@ -334,11 +334,6 @@ if(!spatialResolved&&anchor){
 // Fixed-package multibuy: a whole-euro transaction price + quantity/unit is accepted only when a local printed unit price independently confirms the per-item arithmetic.
 // Fixed 1 kg/l package: a nearby large visual split price can be self-confirming when its numeric value equals the printed kg/l rate. Require two distinct coordinate pairs for the same value, one price-sized and one rate-sized.
 // Raw-box 1 kg/l self-confirmation: find the same split numeric value twice near the product, with one occurrence immediately associated with a KG/L unit token. This does not depend on basic-html unitRange parsing.
-if(!spatialResolved&&anchor&&pk&&pk.min===pk.max&&Math.abs(pk.min-1)<.0001){
- const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.36),pairs=[];
- for(const e of local.filter(b=>/^\d{1,2}$/.test(String(b.text||"").trim())))for(const z of local.filter(b=>/^\d{2}$/.test(String(b.text||"").trim())&&(b.left||0)>(e.left||0))){const dx=(z.left||0)-(e.left||0),dy=Math.abs(((z.top||0)+(z.height||0)/2)-((e.top||0)+(e.height||0)/2));if(dx<.14&&dy<.065)pairs.push({value:Number(String(e.text).trim()+"."+String(z.text).trim()),e,z,rate:local.some(u=>/^(?:\/)?(?:KG|L)$/i.test(String(u.text||"").trim())&&(u.left||0)>(z.left||0)&&Math.hypot((u.left||0)-(z.left||0),(u.top||0)-(z.top||0))<.13)});}
- const values=[...new Set(pairs.filter(x=>x.rate).map(x=>x.value))];const confirmed=values.filter(v=>pairs.filter(x=>x.value===v).length>=2);if(confirmed.length===1)spatialResolved={value:confirmed[0],quantity:null,unit:null,source:"raw-box-one-unit-duplicate-rate",sanity:"pass"};
-}
 // Card-level fixed-package split: when title and large price sit on different bands, search the local card neighborhood but require the candidate to be independently compatible with printed package/unit-price arithmetic.
 if(!spatialResolved&&anchor&&pk&&pk.min===pk.max&&ur){
  const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.34),vals=[];
