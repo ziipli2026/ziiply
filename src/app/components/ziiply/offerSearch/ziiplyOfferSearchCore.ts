@@ -357,9 +357,15 @@ export function getLastZiiplyKruokaDebugV174(): ZiiplyKruokaDebugV174 | null {
   return lastZiiplyKruokaDebugV174 ? { ...lastZiiplyKruokaDebugV174 } : null;
 }
 
-function isKCitymarketContextV178(context?: ZiiplyGostaOfferSearchContextV152) {
+function isKCitymarketContextV179(context?: ZiiplyGostaOfferSearchContextV152) {
+  // V179: Citymarket-provider may only activate when the request actually
+  // contains a selected K-store. A stale K-store name must never route an
+  // S/Prisma-only Gösta request into the K-Citymarket provider.
+  const ids = normalizeGostaContextListV164(context?.kStoreIds, context?.kStoreId);
   const names = normalizeGostaContextListV164(context?.kStoreNames, context?.kStoreName)
     .map((value) => normalizeGostaCoreText(value));
+
+  if (ids.length === 0 || names.length === 0) return false;
 
   return names.some(
     (name) =>
@@ -384,7 +390,7 @@ async function fetchOfferSearchResults(query: string, context?: ZiiplyGostaOffer
 
   // V178: Citymarket has its own provider. The API route must dispatch
   // provider=kcitymarket to providers/kCitymarketProvider.ts.
-  if (isKCitymarketContextV178(context)) {
+  if (isKCitymarketContextV179(context)) {
     params.set("provider", "kcitymarket");
   }
 
