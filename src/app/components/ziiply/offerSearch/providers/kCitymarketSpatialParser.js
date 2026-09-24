@@ -555,7 +555,16 @@ if(/^SHAMPOOT 500 ml$/i.test(title)&&anchor){
  const same=wordBoxes.filter(b=>Math.abs(Number(b.top)-Number(anchor.top))<.16&&Math.abs(Number(b.left)-Number(anchor.left))<.42).sort((a,b)=>a.top-b.top||a.left-b.left).map(b=>({text:b.text,left:b.left,top:b.top,width:b.width,height:b.height,d:Number(boxDistance(anchor,b).toFixed(6))}));
  console.error("V279_SHAMPOO500",JSON.stringify({page:p,title,anchor,pk,ur,expected,spatialResolved,same}));
 }
-if(!spatialResolved&&anchor){const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.24);const compact4=local.filter(b=>/^\\d{4}$/.test(String(b.text||"").trim())&&Number(b.height||0)>.04).sort((a,b)=>boxDistance(anchor,a)-boxDistance(anchor,b))[0];const unit=local.filter(b=>/^(PKT|KPL|RS|PS|TLK|PL|PRK)$/i.test(String(b.text||"").trim())).sort((a,b)=>boxDistance(anchor,a)-boxDistance(anchor,b))[0];if(compact4&&unit){const t=String(compact4.text).trim(),v=Number(t.slice(0,-2)+"."+t.slice(-2));if(v>=1&&v<100)spatialResolved={value:v,quantity:null,unit:String(unit.text).toUpperCase(),source:"local-compact4-large-price",sanity:"pass"};}}\n// V216: percentage-only product offer. Keep it separate from euro price resolution.
+if(!spatialResolved&&anchor){
+ const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.24);
+ const compact4=local.filter(b=>/^\d{4}$/.test(String(b.text||"").trim())&&Number(b.height||0)>.04).sort((a,b)=>boxDistance(anchor,a)-boxDistance(anchor,b))[0];
+ const unit=local.filter(b=>/^(PKT|KPL|RS|PS|TLK|PL|PRK)$/i.test(String(b.text||"").trim())).sort((a,b)=>boxDistance(anchor,a)-boxDistance(anchor,b))[0];
+ if(compact4&&unit){
+  const t=String(compact4.text).trim(),v=Number(t.slice(0,-2)+"."+t.slice(-2));
+  if(v>=1&&v<100)spatialResolved={value:v,quantity:null,unit:String(unit.text).toUpperCase(),source:"local-compact4-large-price",sanity:"pass"};
+ }
+}
+// V216: percentage-only product offer. Keep it separate from euro price resolution.
 let percentageOffer=null;
 // V260: Iloleipuri card is a percentage-only offer; coordinate proof shows -20% beside the product title.
 if(!spatialResolved&&anchor&&/^ILOLEIPURI$/i.test(title)){
