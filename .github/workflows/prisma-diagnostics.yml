@@ -921,6 +921,7 @@ jobs:
 
 
       - name: Prisma API batch V235
+        if: ${{ false }}
         shell: bash
         run: |
           node <<'NODE'
@@ -932,5 +933,21 @@ jobs:
             console.log("PRISMA_V235_CANDIDATES "+JSON.stringify(candidates.map(x=>({name:x.name,city:x.city,internalId:String(x.id),externalId:String(x.externalId)}))));
             const today=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
             for(const x of candidates){const name=x.name,storeId=String(x.externalId);const variables={availabilityDate:today,facets:[{key:"brandName",order:"asc"},{key:"category"},{key:"labels"}],fetchSponsoredContent:true,filters:[{key:"labels",value:["DISCOUNTED"]}],from:0,generatedSessionId:"1d6b5de9-df99-4608-af07-7d754955df82",limit:48,marketingId:"d0bcc6e5-6130-494e-b6fb-12b5cb9c60cf",page:1,queryString:"",skip:0,sortForAvailabilityLabelDate:today,storeId,useRandomId:false};const ext={persistedQuery:{version:1,sha256Hash:"44ca017dddccfe49e787b483f471f26217adca807f8c71101d11e881dab9e480"}};const u=new URL("https://api.s-kaupat.fi/");u.searchParams.set("operationName","RemoteFilteredProducts");u.searchParams.set("variables",JSON.stringify(variables));u.searchParams.set("extensions",JSON.stringify(ext));try{const r=await fetch(u,{headers:{accept:"application/json","content-type":"application/json","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":"production-45c31f7a746096c6da12e16aba1887e031fbd9de","user-agent":"Mozilla/5.0"}});const body=await r.text();let j=null;try{j=JSON.parse(body)}catch{};const p=j?.data?.store?.products;console.log("PRISMA_V235 "+JSON.stringify({name,city:x.city,storeId,http:r.status,responseStoreId:j?.data?.store?.id??null,total:p?.total??null,count:Array.isArray(p?.productListItems)?p.productListItems.length:null,errors:j?.errors||[]}));}catch(e){console.log("PRISMA_V235 "+JSON.stringify({name,city:x.city,storeId,error:String(e)}))}await new Promise(r=>setTimeout(r,2500));}
+          })();
+          NODE
+
+
+      - name: Prisma API batch V236
+        shell: bash
+        run: |
+          node <<'NODE'
+          (async()=>{
+            const rows=await (await fetch("https://api.ruoanhinta.fi/api/stores?search=Prisma")).json();
+            const stores=Array.isArray(rows)?rows:(rows?.stores||rows?.data||[]);
+            const tested=new Set(["726413330","516528759","627829302","516079340","726188684","517609418","613756972","697940575","603116906","542859095","519899601","660924630","519896369","634976534","590772240","519900302","634976617","613762350","613758325","552112880","552105082","516242633","411300380","514390483","725799735","726783796","726753948","549977817","685834236","726707572","726025995","518636626","726235149","708273362","613759562","515205409","677095416","697949170","603216615","590778791","726435566","726015093","590772166","613761030","685839284","726452067","542865571","726308752","726544075","666708557","708269337","590784096","726109200","631792405","512413972","666709282","637803164","603217266","542868245","726278877","513971200","590771861","513275040","726308750","552099178","708269170","613759802","516415981","726170469","542862479","638143040","708267208","726668937"]);
+            const seen=new Set(); const candidates=stores.filter(x=>{const id=String(x.externalId||"");if(!/^Prisma\b/i.test(String(x.name||""))||!/^\d{9}$/.test(id)||tested.has(id)||seen.has(id))return false;seen.add(id);return true}).slice(0,10);
+            console.log("PRISMA_V236_CANDIDATES "+JSON.stringify(candidates.map(x=>({name:x.name,city:x.city,internalId:String(x.id),externalId:String(x.externalId)}))));
+            const today=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+            for(const x of candidates){const name=x.name,storeId=String(x.externalId);const variables={availabilityDate:today,facets:[{key:"brandName",order:"asc"},{key:"category"},{key:"labels"}],fetchSponsoredContent:true,filters:[{key:"labels",value:["DISCOUNTED"]}],from:0,generatedSessionId:"1d6b5de9-df99-4608-af07-7d754955df82",limit:48,marketingId:"d0bcc6e5-6130-494e-b6fb-12b5cb9c60cf",page:1,queryString:"",skip:0,sortForAvailabilityLabelDate:today,storeId,useRandomId:false};const ext={persistedQuery:{version:1,sha256Hash:"44ca017dddccfe49e787b483f471f26217adca807f8c71101d11e881dab9e480"}};const u=new URL("https://api.s-kaupat.fi/");u.searchParams.set("operationName","RemoteFilteredProducts");u.searchParams.set("variables",JSON.stringify(variables));u.searchParams.set("extensions",JSON.stringify(ext));try{const r=await fetch(u,{headers:{accept:"application/json","content-type":"application/json","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":"production-45c31f7a746096c6da12e16aba1887e031fbd9de","user-agent":"Mozilla/5.0"}});const body=await r.text();let j=null;try{j=JSON.parse(body)}catch{};const p=j?.data?.store?.products;console.log("PRISMA_V236 "+JSON.stringify({name,city:x.city,storeId,http:r.status,responseStoreId:j?.data?.store?.id??null,total:p?.total??null,count:Array.isArray(p?.productListItems)?p.productListItems.length:null,errors:j?.errors||[]}));}catch(e){console.log("PRISMA_V236 "+JSON.stringify({name,city:x.city,storeId,error:String(e)}))}await new Promise(r=>setTimeout(r,2500));}
           })();
           NODE
