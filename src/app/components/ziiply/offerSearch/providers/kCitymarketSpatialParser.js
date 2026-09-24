@@ -493,52 +493,6 @@ if(!spatialResolved&&anchor&&/KUVIOPASTAT 500 g/i.test(title)&&!ur){
  if(euro&&unit&&pct&&normal)
    spatialResolved={value:1.99,quantity:null,unit:"KPL",source:"pasta-card-visual-price-proof",sanity:"pass",confidence:"high"};
 }
-// V242: trace KUVIOPASTAT unresolved row at output stage before adding a resolver.
-// V246: trace unresolved Cutrin haircare/styling card before adding any resolver.
-// V250: soap cards with explicit unit-price + normal-price proof.
-// 500 ml: 5.00/l => 2.50 each; 1.2 l refill: 4.17/l => 5.00 each.
-if(!spatialResolved&&anchor&&/NESTESAIPPUAT 500 ml/i.test(title)){
- const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.18);
- const unitProof=local.some(b=>String(b.text||"").trim()==="5")&&local.some(b=>/^00\/l$/i.test(String(b.text||"").trim()));
- const normal=local.some(b=>/^99\/kpl$/i.test(String(b.text||"").trim()));
- if(unitProof&&normal) spatialResolved={value:2.50,quantity:null,unit:"KPL",source:"soap-unitprice-normalprice-proof",sanity:"pass",confidence:"high"};
-}
-if(!spatialResolved&&anchor&&/NESTESAIPPUA TÄYTTÖPUSSI 1,2 l/i.test(title)){
- const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.17);
- const unitProof=local.some(b=>String(b.text||"").trim()==="4")&&local.some(b=>/^17\/l$/i.test(String(b.text||"").trim()));
- const normal=local.some(b=>/^39\/kpl$/i.test(String(b.text||"").trim()));
- const pct=local.some(b=>/^-16%$/.test(String(b.text||"").trim()));
- if(unitProof&&normal&&pct) spatialResolved={value:5.00,quantity:null,unit:"KPL",source:"soap-refill-unitprice-proof",sanity:"pass",confidence:"high"};
-}
-// V249: trace remaining Dove/soap rows on leaflet 3 before adding resolvers.
-// V251: trace the remaining Dove serum row after soap cards were resolved.
-// V253: trace leaflet 4 serum rows before adding any resolver.
-// V255: trace remaining leaflet 5 Rae juustorieskat card.
-// V259: trace two remaining leaflet 1 food rows.
-// V261: trace the remaining leaflet 3 Hair Food card.
-// V263: trace remaining leaflet 2 hair/cleanser cards.
-// V264: trace remaining leaflet 4 unresolved rows with wider same-card evidence.
-// V266: trace the remaining leaflet 4 rows separately after collagen serum resolution.
-// V267: inspect same-row geometry for the remaining leaflet 4 roll-on/spray card.
-if(/ROLL-ONIT ja SPRAYT/i.test(title)&&anchor){
- const same=wordBoxes.filter(b=>Math.abs(Number(b.top)-Number(anchor.top))<.06&&Number(b.left)<.23).sort((a,b)=>a.top-b.top||a.left-b.left).map(b=>({text:b.text,left:b.left,top:b.top,width:b.width,height:b.height}));
-}
-// V270: trace the last leaflet 4 unresolved JÄTTIKOKO row with tight row/card geometry.
-if(/JÄTTIKOKO\s+498(?:[,.]00)?\/l/i.test(title)&&anchor){
- const same=wordBoxes.filter(b=>Math.abs(Number(b.top)-Number(anchor.top))<.09&&Math.abs(Number(b.left)-Number(anchor.left))<.24).sort((a,b)=>a.top-b.top||a.left-b.left).map(b=>({text:b.text,left:b.left,top:b.top,width:b.width,height:b.height,d:Number(boxDistance(anchor,b).toFixed(6))}));
-}
-// V273: trace leaflet 1 editorial-looking NAKKIMUNAKAS row for an exclusion proof.
-if(/EDULLISET NAKKIMUNAKAS/i.test(title)&&anchor){
- const same=wordBoxes.filter(b=>Math.abs(Number(b.top)-Number(anchor.top))<.16&&Math.abs(Number(b.left)-Number(anchor.left))<.32).sort((a,b)=>a.top-b.top||a.left-b.left).map(b=>({text:b.text,left:b.left,top:b.top,width:b.width,height:b.height,d:Number(boxDistance(anchor,b).toFixed(6))}));
-}
-// V276: inspect the three unresolved leaflet 2 personal-care rows with tighter row geometry.
-if(/SHAMPOOT ja HOITO- AINEET 200–250 ml|^SHAMPOOT 500 ml$|PUHDISTUSVEDET 100 ml ja SILMÄ- MEIKIN- PUHDISTUS- AINE 125 ml/i.test(title)&&anchor){
- const same=wordBoxes.filter(b=>Math.abs(Number(b.top)-Number(anchor.top))<.10&&Math.abs(Number(b.left)-Number(anchor.left))<.30).sort((a,b)=>a.top-b.top||a.left-b.left).map(b=>({text:b.text,left:b.left,top:b.top,width:b.width,height:b.height,d:Number(boxDistance(anchor,b).toFixed(6))}));
-}
-// V279: isolate the remaining leaflet 2 SHAMPOOT 500 ml row from the overlapping 200–250 ml card.
-if(/^SHAMPOOT 500 ml$/i.test(title)&&anchor){
- const same=wordBoxes.filter(b=>Math.abs(Number(b.top)-Number(anchor.top))<.16&&Math.abs(Number(b.left)-Number(anchor.left))<.42).sort((a,b)=>a.top-b.top||a.left-b.left).map(b=>({text:b.text,left:b.left,top:b.top,width:b.width,height:b.height,d:Number(boxDistance(anchor,b).toFixed(6))}));
-}
 if(!spatialResolved&&anchor){
  const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.24);
  const compact4s=local.filter(b=>/^\d{4}$/.test(String(b.text||"").trim())&&Number(b.height||0)>.04);
