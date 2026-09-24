@@ -500,7 +500,7 @@ if(!spatialResolved&&anchor&&expected){
  const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.19),compact=local.filter(b=>/^\d{3,4}$/.test(String(b.text||"").trim())&&Number(b.height||0)>=.04);
  const countText=[title,...around.map(row=>row.text)].join(" "),counts=[...countText.matchAll(/(?:^|\s)(\d{1,2})\s*x\s*\d+/gi)].map(m=>Number(m[1])).filter(n=>n>=2&&n<=24),totals=[];
  for(const b of compact){const t=String(b.text).trim();totals.push(Number(t.slice(0,-2)+"."+t.slice(-2)));} for(const b of wordBoxes.filter(b=>/^\d{3,4}$/.test(String(b.text||"").trim())&&Number(b.height||0)>=.04&&Math.abs((b.top||0)-(anchor.top||0))<.14&&Math.abs((b.left||0)-(anchor.left||0))<.22)){const t=String(b.text).trim();totals.push(Number(t.slice(0,-2)+"."+t.slice(-2)));}
- console.error("MULTIPACK_STAGE2_TRACE",JSON.stringify({title,expected,counts,totals:[...new Set(totals)]})); const vals=[];for(const total of totals)for(const n of counts){const each=Number((total/n).toFixed(2));if(Math.abs(each-expected)<=.015)vals.push({value:each,total,count:n});}
+ const vals=[];for(const total of totals)for(const n of counts){const eachRaw=total/n,each=Number(eachRaw.toFixed(2));if(Math.abs(eachRaw-expected)<=.015)vals.push({value:each,total,count:n});}
  const uniq=[...new Map(vals.map(x=>[x.value,x])).values()];if(uniq.length===1)spatialResolved={value:uniq[0].value,quantity:null,unit:"KPL",source:"multipack-local-total-derived",sanity:"pass",confidence:"high"};
 }
 // V232: Fazer kuorrutemunkki card. Coordinate proof shows the sale unit is PS at 2.29,
