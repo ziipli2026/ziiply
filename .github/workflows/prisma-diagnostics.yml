@@ -1,65 +1,67 @@
-name: S-local active provider diagnostics
+name: Prisma fallback diagnostics
 on:
   workflow_dispatch:
 jobs:
-  k-category-audit:
+  prisma-fallback-audit:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Multi-store K-Market and K-Supermarket category stress audit V283
+      - name: V284 Prisma Ruoanhinta externalId fallback audit
         shell: bash
         run: |
           node <<'NODE'
-          const ORIGIN="https://etarjouslehdet.fi";
-          const chains=[["K-Supermarket","f305U8"],["K-Market","9c56Y8"]];
-          const norm=v=>String(v??"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[‐-‒–—−]/g,"-").replace(/&/g," ja ").replace(/[^a-z0-9åäö]+/gi," ").replace(/\s+/g," ").trim();
-          const stable=v=>Buffer.from(JSON.stringify(v,(_k,x)=>Object.prototype.toString.call(x)==="[object Object]"?Object.keys(x).sort().reduce((o,k)=>(o[k]=x[k],o),{}):x),"utf8").toString("base64");
-          async function data(name,params,slug){const key=stable([name,params]);const r=await fetch(ORIGIN+"/",{method:"POST",headers:{"content-type":"application/json",accept:"application/json, text/plain, */*",referer:ORIGIN+"/"+slug},body:JSON.stringify({data:[key]})});const txt=await r.text();for(const l of txt.split(/\r?\n/).filter(Boolean)){try{const x=JSON.parse(l);if(x.key===key)return Array.isArray(x?.value?.data)?x.value.data:[]}catch{}}throw Error(name+" missing")}
-          function map(o){
-            const d=norm(o.departmentSlug??o.department??""),p=norm([o.name,o.title,o.description].filter(Boolean).join(" "));
-            if(/\b(mikroateria|valmisateria|valmisruoka|keitto|keitot|lasagne|laatikko|risotto|wrap|wrapit|cesarsalaatti|caesarsalaatti|taco-salaattisekoitus)\b/.test(p))return"Valmisruoka";
-            if(/\b(lohi|kirjolohi|silakka|muikku|tonnikala|katkarapu|seiti|turska)\b/.test(p))return"Kala";
-            if(/\b(jauheliha|makkara|makkarat|lenkkimakkara|nakki|nakit|broileri|kana|nauta|porsas|possu|pekoni|kinkku|leikkele|leikkeleet|palvileikkele|palvileikkeleet)\b/.test(p))return"Liha & makkarat";
-            if(/\b(jogurtti|jugurtti|maito|piima|rahka|juusto|juustoraaste|juustoraasteet|kerma|kananmuna|vanukas|vanukkaat|mousse)\b/.test(p))return"Maitotuotteet";
-            if(/\b(mehu|mehut|limu|limsat|virvoitusjuoma|virvoitusjuomat|cola|vichy|vesi|energiajuoma|energiajuomat|smoothie|palautusjuoma|palautusjuomat|seltzer)\b/.test(p))return"Juomat";
-            if(/\b(jaatelo|jaatelot|pakaste|pakastettu|nugget|nuggetit|ranskalaiset|wokvihannes|pakastevihannes|pakastemarja)\b/.test(p))return"Pakasteet";
-            if(/\b(kissan|koiran|kissanhiekka|lemmikki|sheba)\b/.test(p))return"Lemmikit";
-            if(/\b(hammastahna|hammastahnat|shampoo|deodorantti|colgate|elmex|suuvesi|suuvedet|hammasharja|hammasharjat)\b/.test(p))return"Hygienia & kosmetiikka";
-            if(/\b(wc-paperi|talouspaperi|pesuaine|pesuaineet|astianpesu)\b/.test(p))return"Kodinhoito";
-            if(/\b(calluna|paristo|paristot)\b/.test(p))return"Koti & vapaa-aika";
-            if(/\b(vehnatortilla|vehnatortillat|granola|granolat|mysli|myslit|salsa|salsat|ananakset|ananas)\b/.test(p))return"Kuivatuotteet";
-            if(/\b(perunalastu|perunalastut|lastu|lastut|chips|suklaa|suklaat|karkki|karkit|makeinen|makeiset|keksi|keksit|purukumi|purukumit)\b/.test(p))return"Makeiset & keksit";
-            if(/\b(salaatti|salaatit|tomaatti|tomaatit|kurkku|kurkut|suolakurkku|suolakurkut|maustekurkku|maustekurkut|omena|omenat|banaani|banaanit|appelsiini|appelsiinit|satsuma|satsumat|sipuli|sipulit|porkkana|porkkanat|paprika|paprikat|kaali|hedelma|hedelmat|vihannes|vihannekset|marja|marjat|mustikka|mustikat|mango|mangot|rucola)\b/.test(p))return"Hevi";
-            if(/\b(leipa|leivat|sampyla|sampylat|patonki|patongit|pulla|pullat|munkki|munkit|donitsi|donitsit)\b/.test(p))return"Leipomo";
-            if(d.includes("snack")||d.includes("candy")||d.includes("confection")||d.includes("sweet"))return"Makeiset & keksit";
-            if(d.includes("frozen"))return"Pakasteet"; if(d.includes("fruit")||d.includes("vegetable"))return"Hevi"; if(d.includes("beverage")||d.includes("drink"))return"Juomat"; if(d.includes("fish")||d.includes("seafood"))return"Kala"; if(d.includes("meat"))return"Liha & makkarat"; if(d.includes("bakery")||d.includes("bread"))return"Leipomo"; if(d.includes("dairy"))return"Maitotuotteet"; if(d.includes("pet"))return"Lemmikit"; if(d.includes("household")||d.includes("clean"))return"Kodinhoito"; if(d.includes("personal care")||d.includes("beauty")||d.includes("hygiene"))return"Hygienia & kosmetiikka"; if(d.includes("colonial"))return"Kuivatuotteet"; return"Muut";
+          const ENDPOINT="https://www.s-kaupat.fi/api/v1/graphql";
+          const HASH="f6d87786fda8fb5c233c4eaed08f37b0c5b87dc0d8d4c44c33c5529e446369d1";
+          const CLIENT="production-14a82a5b48cd1dd42c0592db0037514ed3c84de8";
+          const stores=[
+            ["Prisma Hämeenkatu","726413330"],
+            ["Prisma Raksila","516528759"],
+            ["Prisma Myyrmanni","726435566"],
+            ["Prisma Jumbo","613761030"],
+            ["Prisma Lohja","603212895"],
+            ["Prisma Tuusula","726753948"],
+            ["Prisma Limingantulli","627829302"],
+            ["Prisma Lielahti","697940575"],
+          ];
+          const norm=v=>String(v??"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9åäö]+/gi," ").replace(/\s+/g," ").trim();
+          function flattenProducts(v,out=[]){
+            if(!v||typeof v!=="object")return out;
+            if(Array.isArray(v)){for(const x of v)flattenProducts(x,out);return out}
+            if(Array.isArray(v.products))for(const p of v.products)if(p&&typeof p==="object")out.push(p);
+            for(const x of Object.values(v))if(x&&typeof x==="object")flattenProducts(x,out);
+            return out;
           }
-          const expected=d=>{d=norm(d);if(d.includes("frozen"))return["Pakasteet"];if(d.includes("fruit")||d.includes("vegetable"))return["Hevi"];if(d.includes("beverage")||d.includes("drink"))return["Juomat"];if(d.includes("fish")||d.includes("seafood")||d.includes("meat"))return["Kala","Liha & makkarat"];if(d.includes("bakery")||d.includes("bread"))return["Leipomo"];if(d.includes("dairy"))return["Maitotuotteet","Valmisruoka","Juomat"];if(d.includes("snack")||d.includes("candy")||d.includes("confection")||d.includes("sweet"))return["Makeiset & keksit"];if(d.includes("pet"))return["Lemmikit"];if(d.includes("household")||d.includes("clean"))return["Kodinhoito"];if(d.includes("personal care")||d.includes("beauty")||d.includes("hygiene"))return["Hygienia & kosmetiikka"];if(d.includes("colonial"))return["Kuivatuotteet","Juomat","Kala","Valmisruoka"];return[]};
-          const n=v=>norm(v);
-          async function auditChain(slug,id){
-            const stores=await data("stores",{businessId:id,pagination:{offset:0,limit:1000}},slug);
-            const offers=await data("offers",{businessIds:[id],sources:["publication","business_product"],pagination:{limit:1000,offset:0},sort:["score_desc"]},slug);
-            const pubIds=[...new Set(offers.map(o=>String(o.publicationPublicId||"")).filter(Boolean))];
-            const pubCounts=pubIds.map(p=>({p,count:offers.filter(o=>String(o.publicationPublicId||"")===p).length})).sort((a,b)=>b.count-a.count);
-            const dominant=pubCounts[0]||null, second=pubCounts[1]?.count||0;
-            const dominantCommon=slug==="K-Market"&&dominant&&dominant.count>=10&&(second===0||dominant.count>=second*2);
-            const pubStoreIds=new Map();
-            for(const p of pubIds){try{const ps=await data("stores",{publicationId:p,businessId:id,pagination:{offset:0,limit:1000}},slug);pubStoreIds.set(p,new Set(ps.map(s=>String(s.id||""))))}catch{pubStoreIds.set(p,new Set())}}
-            const candidates=stores.filter(s=>{const x=n(s.name);return slug==="K-Supermarket"?x.includes("k supermarket"):x.includes("k market")}).slice(0,40);
-            const audited=[];
-            for(const s of candidates){
-              const sid=String(s.id||""); const allowed=new Set();
-              if(dominantCommon&&dominant)allowed.add(dominant.p);
-              for(const [p,ids] of pubStoreIds)if(ids.has(sid))allowed.add(p);
-              const selected=offers.filter(o=>allowed.has(String(o.publicationPublicId||"")));
-              if(!selected.length)continue;
-              const rows=selected.map(o=>({name:o.name||o.title||"",department:o.departmentSlug||o.department||"",category:map(o),publication:String(o.publicationPublicId||"")}));
-              const suspicious=rows.filter(r=>{const e=expected(r.department);return e.length&&!e.includes(r.category)});
-              audited.push({store:String(s.name||""),storeId:sid,offers:rows.length,suspiciousCount:suspicious.length,suspicious});
+          async function ruoanhinta(name){
+            const u=new URL("https://api.ruoanhinta.fi/api/stores");u.searchParams.set("search",name);
+            const r=await fetch(u,{headers:{accept:"application/json","user-agent":"Mozilla/5.0"}});
+            const body=await r.text(); let d;try{d=JSON.parse(body)}catch{return {status:r.status,error:"non-json",sample:body.slice(0,300),rows:[]}}
+            const rows=Array.isArray(d)?d:Array.isArray(d?.stores)?d.stores:Array.isArray(d?.data)?d.data:[];
+            return {status:r.status,rows:rows.map(x=>({name:x?.name,chain:x?.chain,city:x?.city,postalCode:x?.postalCode,externalId:x?.externalId,id:x?.id}))};
+          }
+          async function campaigns(id){
+            if(!id)return {status:null,sections:0,products:0,uniqueProducts:0,error:"no id"};
+            const variables={storeId:String(id),path:"tuotteet/kampanjat"};
+            const extensions={persistedQuery:{version:1,sha256Hash:HASH}};
+            const u=ENDPOINT+"?operationName=RemoteGetPageContent&variables="+encodeURIComponent(JSON.stringify(variables))+"&extensions="+encodeURIComponent(JSON.stringify(extensions));
+            const r=await fetch(u,{headers:{accept:"application/json","content-type":"application/json","x-client-version":CLIENT,"user-agent":"Mozilla/5.0"}});
+            const body=await r.text();let d;try{d=JSON.parse(body)}catch{return {status:r.status,sections:0,products:0,uniqueProducts:0,error:"non-json "+body.slice(0,200)}}
+            const pc=d?.data?.pageContent; const sections=Array.isArray(pc?.sections)?pc.sections:[];
+            const ps=flattenProducts(pc); const uniq=new Set(ps.map(p=>String(p?.ean||p?.eanCode||p?.gtin||p?.id||p?.name||p?.title||"")).filter(Boolean));
+            return {status:r.status,sections:sections.length,products:ps.length,uniqueProducts:uniq.size,errors:d?.errors?.map(e=>e?.message).filter(Boolean)||[]};
+          }
+          (async()=>{
+            for(const [name,oldId] of stores){
+              const rh=await ruoanhinta(name);
+              const wanted=norm(name).replace(/^prisma\s+/,"");
+              const candidates=rh.rows.filter(x=>norm(x.chain).includes("prisma")||norm(x.name).includes("prisma"));
+              const exact=candidates.find(x=>norm(x.name)===norm(name));
+              const token=candidates.find(x=>norm(x.name).includes(wanted));
+              const picked=exact||token||candidates[0]||null;
+              const ext=String(picked?.externalId||"").trim();
+              const oldRes=await campaigns(oldId);
+              const extRes=ext&&ext!==oldId?await campaigns(ext):ext?oldRes:{status:null,sections:0,products:0,uniqueProducts:0,error:"no externalId"};
+              console.log("\n=== PRISMA FALLBACK V284 "+name+" ===");
+              console.log(JSON.stringify({name,oldId,ruoanhintaStatus:rh.status,ruoanhintaCandidates:candidates,picked,externalId:ext,sameId:ext===oldId,oldIdCampaigns:oldRes,externalIdCampaigns:extRes},null,2));
             }
-            const total=audited.reduce((a,x)=>a+x.offers,0), bad=audited.reduce((a,x)=>a+x.suspiciousCount,0);
-            console.log("\n=== "+slug+" MULTI-STORE V283 ===");
-            console.log(JSON.stringify({availableStores:stores.length,auditedStores:audited.length,totalStoreOfferAssignments:total,suspiciousAssignments:bad,stores:audited},null,2));
-          }
-          (async()=>{for(const [slug,id] of chains)await auditChain(slug,id)})().catch(e=>{console.error(e);process.exitCode=1});
+          })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
