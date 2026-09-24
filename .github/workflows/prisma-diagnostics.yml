@@ -1200,6 +1200,58 @@ jobs:
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
 
+      - name: S-market eTarjouslehdet broad discovery V250
+        shell: bash
+        run: |
+          node <<'NODE'
+          const URL="https://etarjouslehdet.fi/";
+          const BID="d8ccs8";
+          async function batch(queries){
+            const r=await fetch(URL,{method:"POST",headers:{"accept":"application/json","content-type":"application/json","origin":"https://etarjouslehdet.fi","referer":"https://etarjouslehdet.fi/"},body:JSON.stringify(queries)});
+            const t=await r.text(); let j=null; try{j=JSON.parse(t)}catch{}
+            return {status:r.status,json:j,text:t};
+          }
+          function walk(v,fn){if(!v)return;if(Array.isArray(v)){for(const x of v)walk(x,fn);return}if(typeof v==="object"){fn(v);for(const x of Object.values(v))walk(x,fn)}}
+          function valRows(j){const a=Array.isArray(j)?j:[];return a.map(x=>x&&typeof x==="object"&&"value"in x?x.value:x)}
+          function stores(v){const out=[];walk(v,o=>{const id=String(o.publicId||o.id||o.localBusinessId||"").trim();const name=String(o.name||o.title||o.label||"").trim();if(id&&name&&(o.address||o.street||o.coordinates||o.businessId===BID||o.business?.publicId===BID))out.push({id,name})});return out}
+          function pubs(v){const out=[];walk(v,o=>{const id=String(o.publicId||o.id||"").trim();const name=String(o.publicationName||o.label||o.name||"").trim();const from=String(o.validFrom||"");const until=String(o.validUntil||"");if(id&&name&&(from||until))out.push({id,name,from,until})});return out}
+          const offsets=[0,100,200,300,400,500];
+          let all=[];
+          for(const offset of offsets){
+            const r=await batch([["stores",{businessId:BID,pagination:{limit:100,offset}}]]);
+            const found=valRows(r.json).flatMap(stores);
+            console.log("SMARKET_V250_PAGE "+JSON.stringify({offset,http:r.status,found:found.length,sample:found.slice(0,3)}));
+            all.push(...found); if(found.length<100)break;
+          }
+          const map=new Map(); for(const x of all)if(!map.has(x.id))map.set(x.id,x);
+          const uniq=[...map.values()];
+          console.log("SMARKET_V250_DISCOVERY "+JSON.stringify({uniqueStores:uniq.length,sample:uniq.slice(0,20)}));
+          const wanted=["Jokela","Vehkoja","Hyvinkää","Tuusula","Sokos Helsinki","Redi","Munkkivuori","Pukinmäki","Suutarila","Kontula"];
+          for(const q of wanted){
+            const sr=await batch([
+              ["stores",{businessId:BID,pagination:{limit:25,offset:0},query:q}],
+              ["stores",{businessId:BID,pagination:{limit:25,offset:0},search:q}],
+              ["stores",{businessId:BID,pagination:{limit:25,offset:0},q:q}]
+            ]);
+            const ss=valRows(sr.json).flatMap(stores);
+            const norm=s=>s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9åäö]+/g," ").trim();
+            const tail=norm(q).replace(/^s market\s*/,"");
+            const ranked=ss.map(x=>{const n=norm(x.name);let score=0;if(n===norm(q))score=500;if(n===tail)score=Math.max(score,450);if(n.includes(tail)||tail.includes(n))score=Math.max(score,200);return {...x,score}}).sort((a,b)=>b.score-a.score);
+            const best=ranked[0]||null;
+            let ps=[];
+            if(best){
+              const pr=await batch([
+                ["fronts",{businessIds:[BID],localBusinessIds:[best.id]}],
+                ["relatedPublications",{businessId:BID,locationId:best.id}],
+                ["relatedPublications",{businessId:BID,localBusinessId:best.id}]
+              ]);
+              ps=valRows(pr.json).flatMap(pubs);
+              const pm=new Map(); for(const p of ps)if(!pm.has(p.id))pm.set(p.id,p); ps=[...pm.values()];
+            }
+            console.log("SMARKET_V250_STORE "+JSON.stringify({query:q,http:sr.status,candidates:ss.length,best,publications:ps.length,pubSample:ps.slice(0,3)}));
+          }
+          NODE
+
       - name: Prisma Sunday 2026-09-20 resolver reconstruction V242
         shell: bash
         run: |
