@@ -498,8 +498,8 @@ if(anchor&&pk&&pk.min===pk.max&&ur&&ur.min===ur.max){const exact=Number((pk.min*
 // Generic package/unit-rate fallback: accept the independently derived rounded shelf price only when the same local card also contains a printed normal-price range for that sale unit.
 if(!spatialResolved&&anchor&&pk&&ur&&expected&&nr&&nr.unit){
  const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.20),rounded=Number(expected.toFixed(2));
- const hasNormalUnit=local.some(b=>new RegExp("\\/("+nr.unit+")$","i").test(String(b.text||"").trim()));
- const hasDiscount=local.some(b=>/^-{1,2}\d{1,2}$/.test(String(b.text||"").trim()))&&local.some(b=>String(b.text||"").trim()==="%");
+ const localText=around.map(r=>String(r.text||"")).join(" "),hasNormalUnit=new RegExp("\\/("+nr.unit+")\\b","i").test(localText);
+ const hasDiscount=/(?:^|\s)-?\d{1,2}(?:[–-]\d{1,2})?\s*%/.test(localText);
  if(rounded>=.5&&rounded<nr.min&&hasNormalUnit&&hasDiscount)spatialResolved={value:rounded,quantity:null,unit:nr.unit,source:"package-unitrate-normalprice-proof",sanity:"pass",confidence:"high"};
 }
 // V232: Fazer kuorrutemunkki card. Coordinate proof shows the sale unit is PS at 2.29,
