@@ -4,7 +4,7 @@ on:
 jobs:
   kaleva-geocode:
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 8
     steps:
       - if: ${{ false }}
         name: Prisma Kaleva geocode
@@ -1186,7 +1186,7 @@ jobs:
                 const row={name,storeId,pass:false,error:String(e?.stack||e)};
                 summary.push(row);console.log("PRISMA_V247_STORE "+JSON.stringify(row));
               }
-              await sleep(350);
+              await sleep(120);
             }
             console.log("PRISMA_V247_SUMMARY "+JSON.stringify({
               date:today,tested:summary.length,pass:summary.filter(x=>x.pass).length,
