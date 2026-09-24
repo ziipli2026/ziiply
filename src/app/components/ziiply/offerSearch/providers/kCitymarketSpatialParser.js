@@ -567,10 +567,16 @@ if(!spatialResolved&&anchor){
 // V216: percentage-only product offer. Keep it separate from euro price resolution.
 let percentageOffer=null;
 if(!spatialResolved&&anchor){
- const ax=Number(anchor.left)||0,ay=Number(anchor.top)||0;
- const local=wordBoxes.filter(b=>Math.abs((Number(b.top)||0)-ay)<.045&&(Number(b.left)||0)>ax-.03&&(Number(b.left)||0)<ax+.24);
- const pct=local.map(b=>String(b.text||"").trim()).map(t=>t.match(/^-([1-9]\d?)%$/)).find(Boolean);
- if(pct) percentageOffer={percent:Number(pct[1]),source:"same-card-percentage-offer",confidence:"high"};
+ const titleWords=new Set((titleWordHits||[]).map(b=>String(b.text||"").trim().toUpperCase()).filter(Boolean));
+ const groups=spatialGroups(wordBoxes);
+ for(const g of groups){
+  const texts=(g.boxes||[]).map(b=>String(b.text||"").trim());
+  const pct=texts.map(t=>t.match(/^-([1-9]\d?)%$/)).find(Boolean);
+  if(!pct) continue;
+  const overlap=texts.some(t=>titleWords.has(t.toUpperCase()));
+  const nearY=Math.abs((Number(g.top)||0)-(Number(anchor.top)||0))<.035;
+  if(overlap&&nearY){percentageOffer={percent:Number(pct[1]),source:"same-visual-group-percentage-offer",confidence:"high"};break;}
+ }
 }
 // V260: Iloleipuri card is a percentage-only offer; coordinate proof shows -20% beside the product title.
 if(!spatialResolved&&anchor&&/^ILOLEIPURI$/i.test(title)){
