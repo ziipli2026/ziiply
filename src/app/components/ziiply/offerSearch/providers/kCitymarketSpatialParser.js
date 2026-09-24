@@ -203,17 +203,6 @@ const strongDirect=spatialCandidates.filter(x=>
 const inferredMultiKinds=new Set(["expected-validated-multibuy","large-euro-quantity"]);
 const guardedValidatedMulti=validatedMulti&&strongDirect&&inferredMultiKinds.has(validatedMulti.kind)?null:validatedMulti;
 const guardedVisualMulti=visualMulti&&strongDirect?null:visualMulti;
-// V336: final authority for fixed-package cards with their own printed unit price and sale unit.
-// Re-apply after weaker spatial passes so neighbouring visual candidates cannot overwrite it.
-if(anchor&&expected&&pk&&Math.abs(pk.max-pk.min)<1e-9){
-  const ax=Number(anchor.left)||0, ay=Number(anchor.top)||0;
-  const rows=wordBoxes.filter(b=>Math.abs((Number(b.left)||0)-ax)<.035&&(Number(b.top)||0)>ay&&(Number(b.top)||0)<ay+.075&&/^\(\d{1,2}$/.test(String(b.text).trim()));
-  let printed=null;
-  for(const u of rows){const first=Number(String(u.text).replace(/\D/g,""));const tail=wordBoxes.filter(b=>(Number(b.left)||0)>=(Number(u.left)||0)&&(Number(b.left)||0)<(Number(u.left)||0)+.075&&Math.abs((Number(b.top)||0)-(Number(u.top)||0))<.008&&/\d{1,2}\/(?:kg|l)\)/i.test(String(b.text).trim())).sort((a,b)=>(Number(a.left)||0)-(Number(b.left)||0))[0];if(tail){const m=String(tail.text).match(/(\d{1,2})\/(?:kg|l)\)/i);if(m){printed=Number(first+"."+m[1].padStart(2,"0"));break;}}}
-  const unit=wordBoxes.filter(b=>/^(RS|PS|PKT|KPL|TLK|PL|PRK)$/i.test(String(b.text).trim())&&Math.abs((Number(b.top)||0)-ay)<.06&&Math.abs((Number(b.left)||0)-ax)<.28).sort((a,b)=>boxDistance(anchor,a)-boxDistance(anchor,b))[0];
-  const derived=Number((pk.min*Number(printed||0)).toFixed(2));
-  if(printed&&unit&&Math.abs(derived-expected)<.03) spatialResolved={value:derived,quantity:null,unit:String(unit.text).toUpperCase(),kind:"own-unitprice-package-derived",source:"own-unitprice-package-derived",sanity:"pass"};
-}
 // V303: avoid regex escaping entirely for strict visual digit glyphs.
 if(anchor&&expected){const cents=Math.round((expected-Math.floor(expected))*100);const largeCents=wordBoxes.filter(b=>{const t=String(b.text).trim();return boxDistance(anchor,b)<.18&&t.length===2&&Number.isInteger(Number(t))&&Number(b.height||0)>=.05&&Math.abs(Number(t)-cents)<=1;}).sort((a,b)=>boxDistance(anchor,a)-boxDistance(anchor,b))[0];if(largeCents)spatialResolved={value:Number(expected.toFixed(2)),quantity:null,unit:null,kind:"large-cents-expected-visual",source:"large-cents-expected-visual",sanity:"pass"};}
 if(anchor){const mobile=wordBoxes.some(b=>boxDistance(anchor,b)<.14&&/^(?:Mobiilietu|Mobilförmån)$/i.test(String(b.text).trim()));const big3=wordBoxes.filter(b=>{const t=String(b.text).trim();return t.length===3&&Number.isInteger(Number(t))&&Number(b.height||0)>=.09&&Math.abs((Number(b.left)||0)-(Number(anchor.left)||0))<.08&&Math.abs((Number(b.top)||0)-(Number(anchor.top)||0))<.16;}).sort((a,b)=>boxDistance(anchor,a)-boxDistance(anchor,b))[0];if(mobile&&big3){const t=String(big3.text).trim(),v=Number(t[0]+"."+t.slice(1));if(v>=.5&&v<20)spatialResolved={value:v,quantity:null,unit:"PL",kind:"mobile-benefit-large-visual",source:"mobile-benefit-large-visual",sanity:"pass"};}}
@@ -680,6 +669,17 @@ if(!spatialResolved&&anchor&&/CUTRIN HIUSTENHOITO- ja MUOTOILUTUOTTEET 75–300 
 if(!spatialResolved&&anchor){const pg=spatialGroups(wordBoxes.filter(b=>boxDistance(anchor,b)<.12)).map(g=>String(g.text||"").trim()).filter(t=>/^-\d{1,2}%$/.test(t));const uniqPct=[...new Set(pg)];if(uniqPct.length===1)percentageOffer={percent:Number(uniqPct[0].match(/\d+/)[0]),source:"title-card-percentage-offer",sanity:"pass"};}
 if(/6 kpl\/210 g tai TÄYS-/i.test(title)||/JYVÄRUIS 6 kpl\/330 g/i.test(title)){const near=wordBoxes.map(b=>({...b,d:anchor?Number(boxDistance(anchor,b).toFixed(6)):null})).filter(b=>b.d==null||b.d<.24).sort((a,b)=>(a.d??99)-(b.d??99)).map(b=>({text:b.text,left:b.left,top:b.top,width:b.width,height:b.height,d:b.d}));console.error("V237_BREAD",JSON.stringify({page:p,title,anchor,pk,ur,expected,spatialResolved,near}));}
 if(/EDULLISET NAKKIMUNAKAS/i.test(title)&&anchor){const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.17).map(b=>String(b.text||"").trim());const recipeProof=local.includes("Katso")&&local.includes("resepti")&&local.includes("MIKROSSA");if(recipeProof){console.error("V274_EXCLUDE_EDITORIAL",JSON.stringify({page:p,title,reason:"recipe-editorial-proof"}));continue;}}
+// V336: final authority for fixed-package cards with their own printed unit price and sale unit.
+// Re-apply after weaker spatial passes so neighbouring visual candidates cannot overwrite it.
+if(anchor&&expected&&pk&&Math.abs(pk.max-pk.min)<1e-9){
+  const ax=Number(anchor.left)||0, ay=Number(anchor.top)||0;
+  const rows=wordBoxes.filter(b=>Math.abs((Number(b.left)||0)-ax)<.035&&(Number(b.top)||0)>ay&&(Number(b.top)||0)<ay+.075&&/^\(\d{1,2}$/.test(String(b.text).trim()));
+  let printed=null;
+  for(const u of rows){const first=Number(String(u.text).replace(/\D/g,""));const tail=wordBoxes.filter(b=>(Number(b.left)||0)>=(Number(u.left)||0)&&(Number(b.left)||0)<(Number(u.left)||0)+.075&&Math.abs((Number(b.top)||0)-(Number(u.top)||0))<.008&&/\d{1,2}\/(?:kg|l)\)/i.test(String(b.text).trim())).sort((a,b)=>(Number(a.left)||0)-(Number(b.left)||0))[0];if(tail){const m=String(tail.text).match(/(\d{1,2})\/(?:kg|l)\)/i);if(m){printed=Number(first+"."+m[1].padStart(2,"0"));break;}}}
+  const unit=wordBoxes.filter(b=>/^(RS|PS|PKT|KPL|TLK|PL|PRK)$/i.test(String(b.text).trim())&&Math.abs((Number(b.top)||0)-ay)<.06&&Math.abs((Number(b.left)||0)-ax)<.28).sort((a,b)=>boxDistance(anchor,a)-boxDistance(anchor,b))[0];
+  const derived=Number((pk.min*Number(printed||0)).toFixed(2));
+  if(printed&&unit&&Math.abs(derived-expected)<.03) spatialResolved={value:derived,quantity:null,unit:String(unit.text).toUpperCase(),kind:"own-unitprice-package-derived",source:"own-unitprice-package-derived",sanity:"pass"};
+}
 // V309: final authority pass. Reconstruct the large printed card price after every
 // earlier resolver has run, so text-fragment candidates cannot overwrite it.
 if(anchor){
