@@ -567,7 +567,7 @@ if(!spatialResolved&&anchor){
 // V216: percentage-only product offer. Keep it separate from euro price resolution.
 let percentageOffer=null;
 if(!spatialResolved&&anchor){
- const titleWords=new Set((titleWordHits||[]).map(b=>String(b.text||"").trim().toUpperCase()).filter(Boolean));
+ const titleWords=new Set((anchor?.boxes||[]).map(b=>String(b.text||"").trim().toUpperCase()).filter(Boolean));
  const groups=spatialGroups(wordBoxes);
  for(const g of groups){
   const texts=(g.boxes||[]).map(b=>String(b.text||"").trim());
