@@ -382,13 +382,6 @@ if(!spatialResolved&&anchor&&pk&&pk.min===pk.max){
 // Product-row fixed-package split price: reconstruct raw euro+cents tokens on the same visual band to the right of a meaningful title hit, then require package/unit-price consistency when available.
 // Fixed-package visual split price from raw boxes, confirmed by a separate printed unit-rate pair. This handles layouts where spatialGroups do not merge the price/unit-rate tokens.
 // Fixed-package explicit visual price: accept a split euro+cents price only when the printed local kg/l rate independently confirms it. This avoids trusting misleading expectedSingle arithmetic.
-if(!spatialResolved&&anchor&&pk&&pk.min===pk.max){
- const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.30);
- const groups=spatialGroups(local).map(g=>String(g.text||""));
- const unitRates=[];for(const t of groups){if(/Ilman\s+Plussa-korttia/i.test(t))continue;for(const m of t.matchAll(/(?:^|\s|\()(\d{1,2})\s+(\d{2})\/(kg|l)(?:\s|$|\))/gi))unitRates.push(Number(m[1]+"."+m[2]));}
- const prices=[];for(const t of groups){if(/Ilman\s+Plussa-korttia/i.test(t))continue;for(const m of t.matchAll(/(?:^|\s)(\d{1,2})\s+(\d{2})(?:\s|$)/g)){const value=Number(m[1]+"."+m[2]);if(value>=.5&&value<30&&unitRates.some(rate=>Math.abs(value/(pk.min*rate)-1)<=.015))prices.push(value);}}
- const uniq=[...new Set(prices)];if(uniq.length===1)spatialResolved={value:uniq[0],quantity:null,unit:null,source:"fixed-package-local-unitprice-confirmed-price",sanity:"pass"};
-}
 // Large split visual shelf price + nearby sale-unit token on the same product card.
 // Require both digits to be large-font, tightly aligned, and the unit token directly below/right of the cents.
 // This intentionally does not trust expectedSingle, which may describe a different printed comparison rate.
