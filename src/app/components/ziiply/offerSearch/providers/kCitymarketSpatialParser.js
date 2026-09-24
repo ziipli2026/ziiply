@@ -588,8 +588,9 @@ if(!spatialResolved&&anchor&&pk&&pk.min===pk.max){
 // Require fixed package size and an independently printed normal-price row to avoid treating arbitrary unit rates as offers.
 if(!spatialResolved&&anchor&&pk&&pk.max===pk.min){
  const localGroups=spatialGroups(wordBoxes.filter(b=>boxDistance(anchor,b)<.18)).map(g=>String(g.text||""));
- const localAfterText=after.slice(0,6).map(x=>String(x.text||""));
- const evidenceTexts=[...localGroups,...localAfterText];
+ const localAfterText=after.slice(0,10).map(x=>String(x.text||""));
+ const localAroundText=around.map(x=>String(x.text||""));
+ const evidenceTexts=[...localGroups,...localAfterText,...localAroundText];
  const joined=evidenceTexts.join(" ");
  const normalizedEvidence=joined.replace(/\s+/g,"").replace(/,/g,".");
  let rateMatch=normalizedEvidence.match(/(\d{1,3}(?:\.\d{1,2})?)\/(kg|l)(?:[^a-z]|$)/i);
