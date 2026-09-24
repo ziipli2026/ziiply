@@ -380,12 +380,6 @@ if(!spatialResolved&&anchor&&pk&&pk.min===pk.max){
  if(uniq.length===1&&(saleUnits.length||rates[0]?.basicLead))spatialResolved={value:uniq[0].value,quantity:null,unit:saleUnits.length?String(saleUnits.sort((a,b)=>boxDistance(anchor,a)-boxDistance(anchor,b))[0].text).toUpperCase():null,source:rates[0]?.basicLead?"fixed-package-basic-lead-unitrate-derived":"fixed-package-own-unitrate-derived",sanity:"pass",confidence:"high"};
 }
 // Product-row fixed-package split price: reconstruct raw euro+cents tokens on the same visual band to the right of a meaningful title hit, then require package/unit-price consistency when available.
-if(!spatialResolved&&anchor&&pk&&pk.min===pk.max){
- const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.32),titleWords=String(title).toUpperCase().split(/[^A-ZÅÄÖ0-9]+/).filter(w=>w.length>=6);
- const hits=local.filter(b=>titleWords.some(w=>String(b.text||"").toUpperCase().includes(w))),vals=[];
- for(const hit of hits){const hy=(hit.top||0)+(hit.height||0)/2;for(const e of local.filter(b=>/^\d{1,2}$/.test(String(b.text||"").trim())&&(b.left||0)>(hit.left||0)&&Math.abs(((b.top||0)+(b.height||0)/2)-hy)<.06))for(const z of local.filter(b=>/^\d{2}$/.test(String(b.text||"").trim())&&(b.left||0)>(e.left||0))){const dy=Math.abs(((z.top||0)+(z.height||0)/2)-((e.top||0)+(e.height||0)/2)),dx=(z.left||0)-(e.left||0);if(dy<.055&&dx<.12){const value=Number(String(e.text).trim()+"."+String(z.text).trim());if(value>=.5&&value<30&&(!ur||(value>=pk.min*ur.min*.97&&value<=pk.max*ur.max*1.03)))vals.push(value);}}}
- const uniq=[...new Set(vals)];if(uniq.length===1)spatialResolved={value:uniq[0],quantity:null,unit:null,source:"product-row-fixed-package-split",sanity:"pass"};
-}
 // Fixed-package visual split price from raw boxes, confirmed by a separate printed unit-rate pair. This handles layouts where spatialGroups do not merge the price/unit-rate tokens.
 if(!spatialResolved&&anchor&&pk&&pk.min===pk.max){
  const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.24);
