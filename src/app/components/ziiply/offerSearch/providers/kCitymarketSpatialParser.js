@@ -480,18 +480,6 @@ if(!spatialResolved&&anchor&&pk&&pk.max===pk.min){
 // Generic mixed-size endpoint equivalence proof.
 // If package sizes and a printed unit-price range cross-multiply to the same shelf price,
 // the common endpoint price is the offer price. No product names or fixed coordinates are used.
-if(!spatialResolved&&anchor&&pk&&pk.max>pk.min){
- const compact=[String(title||""),...after.slice(0,6).map(x=>String(x.text||""))].join(" ").replace(/\s+/g,"").replace(/,/g,".");
- let m=compact.match(/([0-9]+(?:\.[0-9]+)?)[–-]([0-9]+(?:\.[0-9]+)?)\/(kg|l)(?:[^a-z]|$)/i);
- if(!m){const q=compact.match(/(\d{3,4})[–-](\d{3,4})\/(kg|l)(?:[^a-z]|$)/i);if(q)m=[q[0],String(Number(q[1])/100),String(Number(q[2])/100),q[3]];}
- if(m){
-  const lo=Number(m[1]),hi=Number(m[2]),unit=String(m[3]).toLowerCase();
-  const factor=unit==="kg"?1:1;
-  const a=pk.min*hi*factor,b=pk.max*lo*factor;
-  if(Number.isFinite(a)&&Number.isFinite(b)&&Math.abs(a-b)<.04&&a>=.5&&a<30) spatialResolved={value:Number(((a+b)/2).toFixed(2)),quantity:null,unit:"KPL",source:"mixed-size-endpoint-equivalence-proof",sanity:"pass",confidence:"high"};
- }
-}
-
 // Generic mixed-size unit-price range proof.
 // A mixed-size product card may print its unit-price range either in the title row
 // or immediately below it. Never invent one euro shelf price from the range.
