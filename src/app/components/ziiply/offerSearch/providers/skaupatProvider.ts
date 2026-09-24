@@ -1,8 +1,11 @@
-// Revision: V217 — old Prisma resolver path primary; remotePickupSlots fallback
-// Date: 2026-09-23
-// - Official store search + directory resolver run first.
-// - remotePickupSlots V215/V216 is fallback only.
-// - No offer-fetch, pagination, product mapping, S-local provider, or other app logic changed.
+// Revision: V225 — Prisma current-first + verified safe pickup fallback
+// Date: 2026-09-24
+// - Caller 9-digit Prisma externalId remains the first product-search ID.
+// - Fallback is attempted only after the first DISCOUNTED page returns zero raw products.
+// - remotePickupSlots fallback accepts only a unique same-city name match or same-city street-address match.
+// - Raksila stays unresolved; nearby Limingantulli is never guessed as Raksila.
+// - Existing working current IDs keep their current path and do not invoke fallback.
+//
 
 // Revision: V216 — multi-query geocode + pickup resolver diagnostics; Myyrmanni-safe
 // Date: 2026-09-20
@@ -574,6 +577,7 @@ type SKaupatPickupCandidateV215 = {
   storeId: string;
   brand: string;
   pickupName: string;
+  street: string;
   city: string;
   postalCode: string;
   distance: number | null;
@@ -714,6 +718,7 @@ async function fetchPickupCandidatesV216(latitude: number, longitude: number): P
     storeId: String(row?.store?.id || "").trim(),
     brand: String(row?.store?.brand || "").trim().toLowerCase(),
     pickupName: String(row?.pickupPoint?.name || "").trim(),
+    street: String(row?.pickupPoint?.address?.street || row?.pickupPoint?.address?.streetAddress || "").trim(),
     city: String(row?.pickupPoint?.address?.city || "").trim(),
     postalCode: String(row?.pickupPoint?.address?.postalCode || "").trim(),
     distance: Number.isFinite(Number(row?.distance)) ? Number(row.distance) : null,
@@ -2169,6 +2174,59 @@ function makeGostaZeroResultDiagnosticV208(
   } as unknown as ZiiplyOfferSearchResult;
 }
 
+function getPrismaPlaceTokensV225(storeName: string): string[] {
+  return getStorePlaceTokenV215(storeName).split(" ").filter((token) => token.length > 3);
+}
+
+function getStreetBaseV225(value: string): string {
+  return normalizeSKaupatStoreNameForMatchV198(value).replace(/\s+\d.*$/, "").trim();
+}
+
+async function resolveSafePrismaFallbackStoreIdV225(
+  storeName: string,
+  currentStoreId: string,
+): Promise<string | null> {
+  if (!/^prisma\b/i.test(String(storeName || "").trim())) return null;
+
+  const coords = await geocodeSelectedStoreNameV216(storeName);
+  if (!coords) return null;
+
+  const candidates = await fetchPickupCandidatesV216(coords.latitude, coords.longitude);
+  const wantedCity = normalizeSKaupatStoreNameForMatchV198(
+    String(storeName || "").trim().split(/\s+/).at(-1) || "",
+  );
+  const placeTokens = getPrismaPlaceTokensV225(storeName);
+  const near = candidates.filter((candidate) =>
+    candidate.brand === "prisma" &&
+    candidate.storeId !== currentStoreId &&
+    candidate.distance != null &&
+    candidate.distance <= 1000
+  );
+
+  const safe = near.filter((candidate) => {
+    const pickup = normalizeSKaupatStoreNameForMatchV198(candidate.pickupName);
+    const city = normalizeSKaupatStoreNameForMatchV198(candidate.city);
+    const nameHit = placeTokens.some((token) => pickup.includes(token));
+    return city === wantedCity && nameHit;
+  });
+
+  // Hämeenkatu/Sokos case: pickup name does not contain Hämeenkatu. The pickup
+  // API address itself is exact and V304 proved it safely identifies the unit.
+  if (safe.length === 0 && near.length > 0) {
+    const geocodedName = normalizeSKaupatStoreNameForMatchV198(storeName);
+    const addressSafe = near.filter((candidate) => {
+      const city = normalizeSKaupatStoreNameForMatchV198(candidate.city);
+      const street = getStreetBaseV225(candidate.street);
+      return city === wantedCity && street && geocodedName.includes(street);
+    });
+    const ids = Array.from(new Set(addressSafe.map((candidate) => candidate.storeId)));
+    return ids.length === 1 ? ids[0] : null;
+  }
+
+  const ids = Array.from(new Set(safe.map((candidate) => candidate.storeId)));
+  return ids.length === 1 ? ids[0] : null;
+}
+
 async function fetchSKaupatRemoteFilteredProductsV170(
   query: string,
   config: ZiiplyOfferSearchSourceConfig,
@@ -2200,6 +2258,40 @@ async function fetchSKaupatRemoteFilteredProductsV170(
           discountedOnly,
           selectedStore.storeName,
         );
+
+        // V225: current-first Prisma fallback. Never replace a working current ID.
+        // Only a zero RAW product response on the first DISCOUNTED page may trigger
+        // the separately verified safe pickup resolver.
+        if (
+          offset === 0 &&
+          discountedOnly &&
+          page.rawCount === 0 &&
+          /^prisma\b/i.test(selectedStore.storeName)
+        ) {
+          const fallbackStoreId = await resolveSafePrismaFallbackStoreIdV225(
+            selectedStore.storeName,
+            selectedStore.storeId,
+          );
+          if (fallbackStoreId && fallbackStoreId !== selectedStore.storeId) {
+            const fallbackPage = await fetchSKaupatRemoteFilteredProductsPageV170(
+              query,
+              config,
+              offset,
+              fallbackStoreId,
+              discountedOnly,
+              selectedStore.storeName,
+            );
+            if (fallbackPage.rawCount > 0) {
+              selectedStore.storeId = fallbackStoreId;
+              pages.push(fallbackPage.results);
+              zeroResultDiagnosticsV208.push(
+                `V225 current-first fallback activated: current=0 fallbackStoreId=${fallbackStoreId} raw=${fallbackPage.rawCount}`,
+              );
+              if (fallbackPage.total > 0 && pageStep >= fallbackPage.total) break;
+              continue;
+            }
+          }
+        }
 
         pages.push(page.results);
 
