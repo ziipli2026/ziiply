@@ -13914,6 +13914,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return;
     }
 
+    // V730: Tarjoushaulla valittu tuote kuuluu valittuun tarjoushintaan eikä sitä
+    // kilpailuteta uudelleen normaalin Halpuusvertailun kautta.
+    const comparableCartV730 = cart.filter(
+      (item: any) => String(item?.source || "").toLowerCase() !== "offer",
+    );
+
+    if (comparableCartV730.length === 0) {
+      showCartToast(
+        "Korissa olevat tuotteet ovat tarjoushinnoilla, joten niitä ei vertailla Halpuusvertailussa.",
+      );
+      return;
+    }
+
     // V547: Vertailu avataan samalla suoralla overlay-logiikalla kuin uudet mobiilikortit.
     suppressHaeReadyBadgeV541();
     closeProductSelectionOverlay();
@@ -13929,7 +13942,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setActiveResult("compare");
 
     if (storesReadyForSearch) {
-      void updateChainComparison(cart);
+      void updateChainComparison(comparableCartV730);
     } else {
       setComparisonLoading(false);
       showCartToast("Valitse kaupat, niin vertailu hakee hinnat.");
