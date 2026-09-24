@@ -299,7 +299,7 @@ function getOfficialSKaupatCategoryV165(item: ZiiplyGostaOfferLike): string {
 
   if (/\bkosmetiikka ja hygienia\b/.test(mainCategory)) return "Hygienia & kosmetiikka";
   if (/\bkodinhoito ja taloustarvikkeet\b/.test(mainCategory)) return "Kodinhoito";
-  if (/\bkukat ja koti\b|\bkeittio ja kattaus\b|\bkeittiö ja kattaus\b|\bvapaa aika\b/.test(mainCategory)) return "Koti & vapaa-aika";
+  if (/\bkukat ja koti\b|\bkeittio ja kattaus\b|\bkeittiö ja kattaus\b|\bvapaa(?:-| )aika\b/.test(mainCategory)) return "Koti & vapaa-aika";
 
   if (/\blapset\b/.test(mainCategory)) {
     if (/\blastenruo|\bvauvanruo|\blasten puuro|\bpuuro|\bvelli|\bvalipala|\bvälipala|\bnaksut|\bpatukat|\bsose|\blastentuote/.test(categoryText)) return "Lastenruoat";
