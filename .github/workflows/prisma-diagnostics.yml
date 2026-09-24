@@ -1,35 +1,32 @@
 name: Prisma fallback diagnostics
-on:
-  workflow_dispatch:
+on: { workflow_dispatch: {} }
 jobs:
   prisma-fallback-audit:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
-      - name: V287 Prisma official directory storeId audit
+      - name: V288 Prisma pickup API real storeId audit
         shell: bash
         run: |
           node <<'NODE'
-          const stores=["Prisma Hämeenkatu","Prisma Raksila","Prisma Myyrmanni","Prisma Jumbo","Prisma Lohja","Prisma Tuusula","Prisma Limingantulli","Prisma Lielahti"];
-          const norm=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9åäö]+/g," ").replace(/\s+/g," ").trim();
-          (async()=>{
-            for(const name of stores){
-              const url="https://www.s-kaupat.fi/myymalat/prisma?query="+encodeURIComponent(name);
-              const r=await fetch(url,{headers:{accept:"text/html,application/xhtml+xml","accept-language":"fi","user-agent":"Mozilla/5.0 (compatible; ZiiplyDiagnostics/1.0)"}});
-              const html=await r.text();
-              const re=/\\?\/myymala\\?\/([a-z0-9%._~-]+)\\?\/(\d{5,})/gi;
-              const wanted=norm(name); const out=[]; let m;
-              while((m=re.exec(html))!==null){
-                let slug="";try{slug=decodeURIComponent(m[1])}catch{slug=m[1]}
-                const n=norm(slug.replace(/-/g," "));
-                if(n.includes(wanted)||wanted.includes(n)||n.includes(wanted.replace(/^prisma /,""))){
-                  out.push({slug,id:m[2],normalized:n});
-                }
-              }
-              const uniq=[...new Map(out.map(x=>[x.id,x])).values()];
-              console.log("\n=== V287 "+name+" ===");
-              console.log(JSON.stringify({status:r.status,finalUrl:r.url,htmlLength:html.length,matches:uniq.slice(0,20),idCount:uniq.length},null,2));
-              await new Promise(r=>setTimeout(r,1000));
-            }
-          })().catch(e=>{console.error(e);process.exitCode=1});
+          const stores=[
+            ["Prisma Hämeenkatu",61.4978,23.7610],["Prisma Raksila",65.0100,25.4900],
+            ["Prisma Myyrmanni",60.2617,24.8534],["Prisma Jumbo",60.2925,24.9628],
+            ["Prisma Lohja",60.2486,24.0653],["Prisma Tuusula",60.4030,25.0260],
+            ["Prisma Limingantulli",64.9990,25.4650],["Prisma Lielahti",61.5165,23.6680]
+          ];
+          const HASH="6da249b0fd87c05275a239ed490976c851d7aff90ead0f3a3978e8283f21252d";
+          const CLIENT="production-14a82a5b48cd1dd42c0592db0037514ed3c84de8";
+          const date=new Date().toISOString().slice(0,10);
+          (async()=>{for(const [name,lat,lon] of stores){
+            const variables={startDate:date,endDate:date,location:{latitude:lat,longitude:lon},limit:50};
+            const extensions={persistedQuery:{version:1,sha256Hash:HASH}};
+            const u=new URL("https://api.s-kaupat.fi/");u.searchParams.set("operationName","remotePickupSlots");u.searchParams.set("variables",JSON.stringify(variables));u.searchParams.set("extensions",JSON.stringify(extensions));
+            const r=await fetch(u,{headers:{accept:"application/graphql-response+json,application/json;q=0.9","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":CLIENT}});
+            let d={};try{d=await r.json()}catch{}
+            const rows=d?.data?.pickupSlotsForCoordinates?.slotsInPickupPoints||[];
+            const pris=rows.map(x=>({storeId:String(x?.store?.id||""),brand:x?.store?.brand,pickupName:x?.pickupPoint?.name,city:x?.pickupPoint?.address?.city,postalCode:x?.pickupPoint?.address?.postalCode,distance:x?.distance})).filter(x=>String(x.brand||"").toLowerCase()==="prisma");
+            console.log("\n=== V288 "+name+" ===");console.log(JSON.stringify({status:r.status,coords:{lat,lon},prismaCandidates:pris,errors:d?.errors||[]},null,2));
+            await new Promise(r=>setTimeout(r,1200));
+          }})().catch(e=>{console.error(e);process.exitCode=1});
           NODE
