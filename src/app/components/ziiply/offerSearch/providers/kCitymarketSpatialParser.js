@@ -601,8 +601,11 @@ if(!spatialResolved&&anchor&&/SHAMPOOT ja HOITO- AINEET 200–250 ml/i.test(titl
 // A mixed-size product card may print its unit-price range either in the title row
 // or as a separate local row. Never invent one euro shelf price from the range.
 // Require a ranged package size plus independent nearby product-card price evidence.
-if(!spatialResolved&&anchor&&pk&&pk.max>pk.min){
+if(!spatialResolved&&anchor){
  const compactTitle=String(title||"").replace(/\s+/g,"");
+ const mixedSizeTitle=/\d+(?:[,.]\d+)?(ml|cl|l|g|kg).*?\d+(?:[,.]\d+)\1/i.test(compactTitle);
+ const mixedSizePackage=!!(pk&&pk.max>pk.min);
+ if(!(mixedSizePackage||mixedSizeTitle)) return spatialResolved;
  const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.18);
  const groups=spatialGroups(local).map(g=>String(g.text||""));
  const normalizeRangeText=s=>String(s||"").replace(/\s+/g,"").replace(/,/g,".");
