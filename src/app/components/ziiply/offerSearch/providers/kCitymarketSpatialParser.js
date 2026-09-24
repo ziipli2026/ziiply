@@ -385,6 +385,23 @@ if(!spatialResolved&&anchor&&pk&&pk.min===pk.max&&ur){
  for(const e of local.filter(b=>/^\d{1,2}$/.test(String(b.text||"").trim())))for(const z of local.filter(b=>/^\d{2}$/.test(String(b.text||"").trim())&&(b.left||0)>(e.left||0))){const dx=(z.left||0)-(e.left||0),dy=Math.abs(((z.top||0)+(z.height||0)/2)-((e.top||0)+(e.height||0)/2));if(dx>.13||dy>.06)continue;const value=Number(String(e.text).trim()+"."+String(z.text).trim()),lo=pk.min*ur.min,hi=pk.max*ur.max;if(value>=.5&&value<30&&value>=lo*.985&&value<=hi*1.015)vals.push({value,d:boxDistance(anchor,e)+boxDistance(anchor,z)});}
  const uniq=[...new Map(vals.sort((a,b)=>a.d-b.d).map(x=>[x.value,x])).values()];if(uniq.length===1)spatialResolved={value:uniq[0].value,quantity:null,unit:null,source:"card-fixed-package-unitprice-split",sanity:"pass"};
 }
+// Generic fixed-package unit-rate derivation from the product's own printed rate.
+// Example: 500 ml + 5.00/l => 2.50; 1.2 l + 4.17/l => about 5.00.
+// Ignore comparison rates on "Ilman Plussa-korttia" rows and require a nearby sale-unit token.
+if(!spatialResolved&&anchor&&pk&&pk.min===pk.max){
+ const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.23),groups=spatialGroups(local);
+ const saleUnits=local.filter(b=>/^(PS|PKT|KPL|RS|TLK|PL|PRK)$/i.test(String(b.text||"").trim()));
+ const rates=[];
+ for(const g of groups){
+  const t=String(g.text||""); if(/Ilman\s+Plussa-korttia/i.test(t))continue;
+  for(const m of t.matchAll(/(?:^|\s|\()(\d{1,3})\s+(\d{2})\/(kg|l)(?:\s|$|\))/gi)){
+   const rate=Number(m[1]+"."+m[2]),value=Number((pk.min*rate).toFixed(2));
+   if(value>=.5&&value<100)rates.push({rate,value});
+  }
+ }
+ const uniq=[...new Map(rates.map(x=>[x.value,x])).values()];
+ if(uniq.length===1&&saleUnits.length)spatialResolved={value:uniq[0].value,quantity:null,unit:String(saleUnits.sort((a,b)=>boxDistance(anchor,a)-boxDistance(anchor,b))[0].text).toUpperCase(),source:"fixed-package-own-unitrate-derived",sanity:"pass",confidence:"high"};
+}
 // Product-row fixed-package split price: reconstruct raw euro+cents tokens on the same visual band to the right of a meaningful title hit, then require package/unit-price consistency when available.
 if(!spatialResolved&&anchor&&pk&&pk.min===pk.max){
  const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.32),titleWords=String(title).toUpperCase().split(/[^A-ZÅÄÖ0-9]+/).filter(w=>w.length>=6);
