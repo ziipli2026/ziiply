@@ -1,5 +1,9 @@
 "use client";
 
+// ZIIPLY_MOBILE_CART_CARD_V62_QUANTITY_AND_CHECKOUT_FUTURE_NOTICE
+// - hinta ei ole enää tuotteen poistopainike; miinus vähentää vain kappalemäärää
+// - Valmis kassalle näyttää MVP-ilmoituksen tulevasta Ziiply-maksamisesta ennen sulkemista
+
 // ZIIPLY_MOBILE_CART_CARD_V61_NO_REDUNDANT_100_PERCENT_COMPLETE_CARD
 // Korjaus V60:n valmisnäkymään:
 // - poistettu turha 100 % / keräilyaste / elohopeapalkki, koska valmisruutu aukeaa vain kun kaikki on kerätty
@@ -332,6 +336,7 @@ export default function ZiiplyMobileCartCard({
   const totalItemsV58 = items.length;
   const isCartCompleteV58 = hasItems && totalItemsV58 > 0 && collectedItemsV58 >= totalItemsV58;
   const [showCompletionCardV58, setShowCompletionCardV58] = React.useState(false);
+  const [showCheckoutFutureNoticeV62, setShowCheckoutFutureNoticeV62] = React.useState(false);
   const previousCompleteRefV58 = React.useRef(false);
 
   React.useEffect(() => {
@@ -483,13 +488,32 @@ export default function ZiiplyMobileCartCard({
 
                 <button
                   type="button"
-                  onClick={onClose}
+                  onClick={() => setShowCheckoutFutureNoticeV62(true)}
                   className="rounded-[0.62rem] border-[2px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-3 py-[0.72rem] text-[1.02rem] font-black italic text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58),0_2px_3px_rgba(62,43,20,0.18)] active:translate-y-[1px]"
                   style={{ fontFamily: cooperFont }}
                 >
                   Valmis kassalle
                 </button>
               </div>
+
+              {showCheckoutFutureNoticeV62 ? (
+                <div className="mx-auto mt-4 w-[17.8rem] max-w-full rounded-[0.72rem] border-[1.8px] border-[#496443]/70 bg-[#f3e8cc]/88 px-3 py-3 text-center shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58)]">
+                  <div className="text-[0.98rem] font-black italic text-[#244525]" style={{ fontFamily: cooperFont }}>
+                    Ziiply-maksaminen on tulossa
+                  </div>
+                  <div className="mt-2 text-[0.82rem] font-extrabold leading-snug text-[#533819]" style={{ fontFamily: serifFont }}>
+                    Tulevaisuudessa voit maksaa ostoksesi suoraan Ziiplyn avulla.
+                  </div>
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="mt-3 rounded-[0.52rem] border-[2px] border-[#496443] bg-[#dfcfaa] px-5 py-[0.48rem] text-[0.86rem] font-black italic text-[#244525] active:translate-y-[1px]"
+                    style={{ fontFamily: cooperFont }}
+                  >
+                    Selvä
+                  </button>
+                </div>
+              ) : null}
 
               <button
                 type="button"
@@ -545,21 +569,18 @@ export default function ZiiplyMobileCartCard({
                       onIncrease={onIncreaseItem}
                     />
 
-                    <button
-                      type="button"
-                      onClick={() => onRemoveItem?.(item)}
+                    <div
                       className={cx(
-                        "absolute left-[16.35rem] top-[0.78rem] grid h-[1.62rem] w-[3.45rem] place-items-center rounded-[0.24rem] text-center font-extrabold leading-none active:translate-y-[1px] active:bg-[#ffe0bc]/36",
+                        "pointer-events-none absolute left-[16.35rem] top-[0.78rem] grid h-[1.62rem] w-[3.45rem] place-items-center text-center font-extrabold leading-none",
                         isAlcoholCartItemV8(item)
                           ? "text-center text-[0.86rem] italic text-[#7b3215]/86"
                           : "text-[0.84rem] text-[#3f321f]",
                       )}
                       style={{ fontFamily: serifFont }}
-                      title={isAlcoholCartItemV8(item) ? "Poista kassalla maksettava tuote" : "Poista tuote"}
-                      aria-label="Poista tuote"
+                      aria-label={isAlcoholCartItemV8(item) ? "Maksetaan kassalla" : `Hinta ${price}`}
                     >
                       {isAlcoholCartItemV8(item) ? "kassa" : price}
-                    </button>
+                    </div>
                   </article>
                 );
               })}
