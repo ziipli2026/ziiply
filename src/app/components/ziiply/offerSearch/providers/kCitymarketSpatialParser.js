@@ -690,6 +690,15 @@ if(!spatialResolved&&anchor&&/CUTRIN HIUSTENHOITO- ja MUOTOILUTUOTTEET 75–300 
 if(!spatialResolved&&anchor){const pg=spatialGroups(wordBoxes.filter(b=>boxDistance(anchor,b)<.12)).map(g=>String(g.text||"").trim()).filter(t=>/^-\d{1,2}%$/.test(t));const uniqPct=[...new Set(pg)];if(uniqPct.length===1)percentageOffer={percent:Number(uniqPct[0].match(/\d+/)[0]),source:"title-card-percentage-offer",sanity:"pass"};}
 if(/6 kpl\/210 g tai TÄYS-/i.test(title)||/JYVÄRUIS 6 kpl\/330 g/i.test(title)){const near=wordBoxes.map(b=>({...b,d:anchor?Number(boxDistance(anchor,b).toFixed(6)):null})).filter(b=>b.d==null||b.d<.24).sort((a,b)=>(a.d??99)-(b.d??99)).map(b=>({text:b.text,left:b.left,top:b.top,width:b.width,height:b.height,d:b.d}));console.error("V237_BREAD",JSON.stringify({page:p,title,anchor,pk,ur,expected,spatialResolved,near}));}
 if(/EDULLISET NAKKIMUNAKAS/i.test(title)&&anchor){const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.17).map(b=>String(b.text||"").trim());const recipeProof=local.includes("Katso")&&local.includes("resepti")&&local.includes("MIKROSSA");if(recipeProof){console.error("V274_EXCLUDE_EDITORIAL",JSON.stringify({page:p,title,reason:"recipe-editorial-proof"}));continue;}}
+// V364: ranged package + ranged unit-price cross-check.
+// Opposite range endpoints should reconstruct the same per-package price.
+if(pk&&ur&&pk.max>pk.min&&ur.max>ur.min){
+ const a=Number((pk.min*ur.max).toFixed(2)),b=Number((pk.max*ur.min).toFixed(2));
+ if(a>=.5&&a<100&&Math.abs(a-b)<=.03){
+  const v=Number(((a+b)/2).toFixed(2));
+  if(!spatialResolved||spatialResolved.sanity==="review"||spatialResolved.source==="best-spatial-candidate") spatialResolved={value:v,quantity:null,unit:null,source:"range-endpoint-cross-derived",sanity:"pass"};
+ }
+}
 // V336: final authority for fixed-package cards with their own printed unit price and sale unit.
 // Re-apply after weaker spatial passes so neighbouring visual candidates cannot overwrite it.
 if(anchor&&expected&&pk&&Math.abs(pk.max-pk.min)<1e-9){
