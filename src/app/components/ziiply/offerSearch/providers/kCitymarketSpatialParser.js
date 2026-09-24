@@ -557,11 +557,19 @@ if(/^SHAMPOOT 500 ml$/i.test(title)&&anchor){
 }
 if(!spatialResolved&&anchor){
  const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.24);
- const compact4=local.filter(b=>/^\d{4}$/.test(String(b.text||"").trim())&&Number(b.height||0)>.04).sort((a,b)=>boxDistance(anchor,a)-boxDistance(anchor,b))[0];
- const unit=local.filter(b=>/^(PKT|KPL|RS|PS|TLK|PL|PRK)$/i.test(String(b.text||"").trim())).sort((a,b)=>boxDistance(anchor,a)-boxDistance(anchor,b))[0];
- if(compact4&&unit){
-  const t=String(compact4.text).trim(),v=Number(t.slice(0,-2)+"."+t.slice(-2));
-  if(v>=1&&v<100)spatialResolved={value:v,quantity:null,unit:String(unit.text).toUpperCase(),source:"local-compact4-large-price",sanity:"pass"};
+ const compact4s=local.filter(b=>/^\d{4}$/.test(String(b.text||"").trim())&&Number(b.height||0)>.04);
+ const units=local.filter(b=>/^(PKT|KPL|RS|PS|TLK|PL|PRK)$/i.test(String(b.text||"").trim()));
+ const pairs=[];
+ for(const price of compact4s)for(const unit of units){
+  const px=(Number(price.left)||0)+(Number(price.width)||0)/2,py=(Number(price.top)||0)+(Number(price.height)||0)/2;
+  const ux=(Number(unit.left)||0)+(Number(unit.width)||0)/2,uy=(Number(unit.top)||0)+(Number(unit.height)||0)/2;
+  const dx=Math.abs(px-ux),dy=Math.abs(py-uy);
+  if(dx<.09&&dy<.055)pairs.push({price,unit,score:boxDistance(anchor,price)+dx+dy});
+ }
+ pairs.sort((a,b)=>a.score-b.score);
+ if(pairs[0]&&(!pairs[1]||pairs[1].score-pairs[0].score>.025)){
+  const t=String(pairs[0].price.text).trim(),v=Number(t.slice(0,-2)+"."+t.slice(-2));
+  if(v>=1&&v<100)spatialResolved={value:v,quantity:null,unit:String(pairs[0].unit.text).toUpperCase(),source:"paired-compact4-large-price",sanity:"pass"};
  }
 }
 // V216: percentage-only product offer. Keep it separate from euro price resolution.
