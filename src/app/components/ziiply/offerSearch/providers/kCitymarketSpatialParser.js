@@ -488,7 +488,7 @@ if(anchor){
 }
 // V101 final confidence gate: classify only after every resolver/fallback has finished.
 if(spatialResolved){
- const strongSources=new Set(["validated-geometric-multibuy","high-confidence-geometric-multibuy","visual-large-euro-multibuy","large-visual-price-qty-unit","embedded-productblock-price","group-er-price","group-discount-price","unitprice-validated-multibuy","unitprice-validated-candidate","range-unitprice-cents-validated","spatial-range-unitprice-cents-validated","spatial-fixed-unitprice-cents-validated","local-explicit-unit-price","expected-near-exact-visual","expected-local-cents-validated","local-product-unitprice-exact","local-unitprice-derived-offer","unique-local-explicit-unit-price","fixed-package-unitprice-confirmed-multibuy","fixed-package-local-unitprice-confirmed-price","raw-box-unitprice-confirmed-price","one-unit-duplicate-visual-price-rate","product-row-fixed-package-split","card-fixed-package-unitprice-split","raw-box-one-unit-duplicate-rate","large-visual-price","title-linked-large-split-price","mixed-size-unitprice-range-proof","isolated-card-large-split-discount-proof","mixed-size-endpoint-equivalence-proof","range-endpoint-cross-derived","own-unitprice-package-derived"]);
+ const strongSources=new Set(["validated-geometric-multibuy","high-confidence-geometric-multibuy","visual-large-euro-multibuy","large-visual-price-qty-unit","embedded-productblock-price","group-er-price","group-discount-price","unitprice-validated-multibuy","unitprice-validated-candidate","range-unitprice-cents-validated","spatial-range-unitprice-cents-validated","spatial-fixed-unitprice-cents-validated","local-explicit-unit-price","expected-near-exact-visual","expected-local-cents-validated","local-product-unitprice-exact","local-unitprice-derived-offer","unique-local-explicit-unit-price","fixed-package-unitprice-confirmed-multibuy","fixed-package-local-unitprice-confirmed-price","raw-box-unitprice-confirmed-price","one-unit-duplicate-visual-price-rate","product-row-fixed-package-split","card-fixed-package-unitprice-split","raw-box-one-unit-duplicate-rate","large-visual-price","title-linked-large-split-price","mixed-size-unitprice-range-proof","fixed-package-unitrate-normalprice-proof","isolated-card-large-split-discount-proof","mixed-size-endpoint-equivalence-proof","range-endpoint-cross-derived","own-unitprice-package-derived"]);
  const q=Number(spatialResolved.quantity||1),tx=expected?expected*q:null,ratio=tx?spatialResolved.value/tx:null;
  if(spatialResolved.sanity==="review")spatialResolved.confidence="review";
  else spatialResolved.confidence=strongSources.has(spatialResolved.source)?"high":"medium";
@@ -583,6 +583,21 @@ if(!spatialResolved&&anchor&&pk&&pk.min===pk.max){
  const best=proofs[0];
  if(best&&(!proofs[1]||proofs[1].score-best.score>.025))spatialResolved={value:best.value,quantity:best.quantity,unit:best.unit,source:"fixed-package-unitrate-multibuy-proof",sanity:"pass",confidence:"high"};
 }
+// Generic fixed-package shelf price from printed unit rate plus explicit normal-price row.
+// Example pattern: 500 ml + 6.00/l + "Ilman Plussa-korttia 3.55/kpl" proves a 3.00 sale price.
+// Require fixed package size and an independently printed normal-price row to avoid treating arbitrary unit rates as offers.
+if(!spatialResolved&&anchor&&pk&&pk.max===pk.min){
+ const localGroups=spatialGroups(wordBoxes.filter(b=>boxDistance(anchor,b)<.18)).map(g=>String(g.text||""));
+ const joined=localGroups.join(" ");
+ const rateMatch=joined.replace(/\s+/g,"").replace(/,/g,".").match(/(\d{1,3}(?:\.\d{1,2})?)\/(kg|l)(?:[^a-z]|$)/i);
+ const hasNormalPrice=localGroups.some(t=>/Ilman\s+Plussa-korttia/i.test(t)&&/\d/.test(t)&&/(?:\/kpl|\/pkt|\/rs|\/ps|\/tlk|\/pl|\/prk)/i.test(t));
+ if(rateMatch&&hasNormalPrice){
+  const rate=Number(rateMatch[1]),unit=String(rateMatch[2]).toLowerCase();
+  const value=Number((pk.min*rate).toFixed(2));
+  if(Number.isFinite(value)&&value>=.5&&value<30) spatialResolved={value,quantity:null,unit:"KPL",source:"fixed-package-unitrate-normalprice-proof",sanity:"pass",confidence:"high"};
+ }
+}
+
 // Generic isolated-card large split shelf-price proof.
 // Require a large euro+cents pair, sale unit and discount percentage in the same tight local card.
 // This replaces former product/title-specific right-hand-card handling.
