@@ -419,11 +419,11 @@ if(!spatialResolved&&anchor&&pk&&pk.min===pk.max){
    const m=String(t||"").match(/^\s*(\d{1,3})[,.](\d{2})\/(kg|l)\s*$/i);
    if(!m)continue;
    const rate=Number(m[1]+"."+m[2]),value=Number((pk.min*rate).toFixed(2));
-   if(value>=.5&&value<100)rates.push({rate,value});
+   if(value>=.5&&value<100)rates.push({rate,value,basicLead:true});
   }
  }
  const uniq=[...new Map(rates.map(x=>[x.value,x])).values()];
- if(uniq.length===1&&saleUnits.length)spatialResolved={value:uniq[0].value,quantity:null,unit:String(saleUnits.sort((a,b)=>boxDistance(anchor,a)-boxDistance(anchor,b))[0].text).toUpperCase(),source:"fixed-package-own-unitrate-derived",sanity:"pass",confidence:"high"};
+ if(uniq.length===1&&(saleUnits.length||rates[0]?.basicLead))spatialResolved={value:uniq[0].value,quantity:null,unit:saleUnits.length?String(saleUnits.sort((a,b)=>boxDistance(anchor,a)-boxDistance(anchor,b))[0].text).toUpperCase():null,source:rates[0]?.basicLead?"fixed-package-basic-lead-unitrate-derived":"fixed-package-own-unitrate-derived",sanity:"pass",confidence:"high"};
 }
 // Product-row fixed-package split price: reconstruct raw euro+cents tokens on the same visual band to the right of a meaningful title hit, then require package/unit-price consistency when available.
 if(!spatialResolved&&anchor&&pk&&pk.min===pk.max){
