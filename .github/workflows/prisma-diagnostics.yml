@@ -1081,6 +1081,122 @@ jobs:
           (async()=>{for(const x of ids){try{await q(...x)}catch(e){console.log("PRISMA_V241 "+JSON.stringify({name:x[0],error:String(e)}))};await new Promise(r=>setTimeout(r,900))}})();
           NODE
 
+      - name: Prisma live truth vs Ziiply broad comparison V247
+        shell: bash
+        run: |
+          node <<'NODE'
+          // V247: read-only broad comparison. Uses the same RemoteFilteredProducts
+          // persisted query, DISCOUNTED filter, page size and pagination semantics
+          // as the current Ziiply S-kaupat Prisma provider. No production code touched.
+          const H="44ca017dddccfe49e787b483f471f26217adca807f8c71101d11e881dab9e480";
+          const CV="production-45c31f7a746096c6da12e16aba1887e031fbd9de";
+          const stores=[
+            ["Prisma Hyvinkää","634976534"],
+            ["Prisma Kaleva Tampere","517609418"],
+            ["Prisma Lielahti","697940575"],
+            ["Prisma Linnainmaa","613756972"],
+            ["Prisma Koivistonkylä","516079340"],
+            ["Prisma Linnanmaa Oulu","603116906"],
+            ["Prisma Limingantulli","627829302"],
+            ["Prisma Pietarsaari","542859095"],
+            ["Prisma Hämeenkatu Tampere","726413330"],
+            ["Prisma Raksila Oulu","516528759"],
+            ["Prisma Myyrmanni","726435566"],
+            ["Prisma Jumbo","613761030"],
+            ["Prisma Lohja","603212895"],
+            ["Prisma Tuusula","726753948"],
+          ];
+          const today=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+          const date=today.replaceAll("-","");
+          const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+          function eanOf(x){
+            const p=x?.product||x?.productDetails||x;
+            return String(p?.ean||p?.eanCode||p?.gtin||p?.id||x?.ean||x?.id||"").trim();
+          }
+          function nameOf(x){
+            const p=x?.product||x?.productDetails||x;
+            return String(p?.name||p?.title||x?.name||x?.title||"").trim();
+          }
+          function priceOf(x){
+            const p=x?.product||x?.productDetails||x;
+            const v=p?.price??p?.currentPrice??p?.sellingPrice??x?.price??x?.currentPrice;
+            return typeof v==="object"?JSON.stringify(v):String(v??"");
+          }
+          async function page(storeId,offset,limit=48){
+            const variables={
+              availabilityDate:date,
+              facets:[{key:"brandName",order:"asc"},{key:"category"},{key:"labels"}],
+              filters:[{key:"labels",value:["DISCOUNTED"]}],
+              generatedSessionId:"1d6b5de9-df99-4608-af07-7d754955df82",
+              fetchSponsoredContent:true,limit,queryString:"",
+              sortForAvailabilityLabelDate:date,storeId:String(storeId),
+              useRandomId:false,marketingId:"d0bcc6e5-6130-494e-b6fb-12b5cb9c60cf",
+              from:offset,offset,skip:offset,page:Math.floor(offset/limit)+1
+            };
+            const u=new URL("https://api.s-kaupat.fi/");
+            u.searchParams.set("operationName","RemoteFilteredProducts");
+            u.searchParams.set("variables",JSON.stringify(variables));
+            u.searchParams.set("extensions",JSON.stringify({persistedQuery:{version:1,sha256Hash:H}}));
+            const r=await fetch(u,{headers:{
+              accept:"application/json","content-type":"application/json","accept-language":"fi",
+              origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/",
+              "x-client-name":"skaupat-web","x-client-version":CV,"user-agent":"Mozilla/5.0"
+            }});
+            const j=await r.json();
+            const root=j?.data?.store?.products;
+            const items=Array.isArray(root?.productListItems)?root.productListItems:
+              Array.isArray(root?.products)?root.products:Array.isArray(root?.items)?root.items:[];
+            return {http:r.status,responseStoreId:String(j?.data?.store?.id||""),total:Number(root?.total??0),items,errors:j?.errors||[]};
+          }
+          async function full(storeId){
+            const first=await page(storeId,0);
+            if(first.errors.length||first.http!==200) return {...first,all:[]};
+            const all=[...first.items];
+            for(let off=48;off<first.total;off+=48){
+              await sleep(120);
+              const p=await page(storeId,off);
+              if(p.errors.length||p.http!==200) return {...first,pageError:{offset:off,http:p.http,errors:p.errors},all};
+              all.push(...p.items);
+            }
+            return {...first,all};
+          }
+          (async()=>{
+            const summary=[];
+            for(const [name,storeId] of stores){
+              try{
+                // "truth" = direct current S-kaupat API response for this exact storeId.
+                const truth=await full(storeId);
+                // Ziiply-equivalent set = provider semantics: flatten pages + EAN dedupe.
+                const truthMap=new Map();
+                for(const x of truth.all){const e=eanOf(x);if(e&&!truthMap.has(e))truthMap.set(e,x);}
+                const ziiply=[...truthMap.values()];
+                const directCount=truth.total;
+                const fetched=truth.all.length;
+                const unique=ziiply.length;
+                const missing=Math.max(0,directCount-unique);
+                const pass=!truth.pageError&&truth.http===200&&truth.responseStoreId===storeId&&fetched===directCount&&missing===0;
+                const row={name,storeId,http:truth.http,responseStoreId:truth.responseStoreId,directTotal:directCount,pagesFetched:fetched,ziiplyUniqueEAN:unique,missingOrDuplicateVsDirect:missing,pass,
+                  errors:(truth.errors||[]).map(e=>e?.message||String(e)),
+                  pageError:truth.pageError||null,
+                  sample:ziiply.slice(0,3).map(x=>({ean:eanOf(x),name:nameOf(x),price:priceOf(x)}))
+                };
+                summary.push(row);
+                console.log("PRISMA_V247_STORE "+JSON.stringify(row));
+              }catch(e){
+                const row={name,storeId,pass:false,error:String(e?.stack||e)};
+                summary.push(row);console.log("PRISMA_V247_STORE "+JSON.stringify(row));
+              }
+              await sleep(350);
+            }
+            console.log("PRISMA_V247_SUMMARY "+JSON.stringify({
+              date:today,tested:summary.length,pass:summary.filter(x=>x.pass).length,
+              zeroCatalog:summary.filter(x=>x.http===200&&x.directTotal===0).map(x=>x.name),
+              failed:summary.filter(x=>!x.pass&&!(x.http===200&&x.directTotal===0)).map(x=>x.name),
+              rows:summary
+            },null,2));
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
+
       - name: Prisma Sunday 2026-09-20 resolver reconstruction V242
         shell: bash
         run: |
