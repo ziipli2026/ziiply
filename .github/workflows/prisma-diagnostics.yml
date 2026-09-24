@@ -1081,7 +1081,7 @@ jobs:
           (async()=>{for(const x of ids){try{await q(...x)}catch(e){console.log("PRISMA_V241 "+JSON.stringify({name:x[0],error:String(e)}))};await new Promise(r=>setTimeout(r,900))}})();
           NODE
 
-      - name: Prisma live truth vs Ziiply broad comparison V247
+      - name: Prisma live truth vs Ziiply broad comparison V249
         shell: bash
         run: |
           node <<'NODE'
@@ -1106,8 +1106,11 @@ jobs:
             ["Prisma Lohja","603212895"],
             ["Prisma Tuusula","726753948"],
           ];
-          const today=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
-          const date=today.replaceAll("-","");
+          // Exact provider behavior: getCurrentLocalDateYYYYMMDDV202() returns YYYY-MM-DD.
+          // V247 incorrectly stripped hyphens, which made every discounted query return total=0.
+          const now=new Date();
+          const today=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")}`;
+          const date=today;
           const sleep=ms=>new Promise(r=>setTimeout(r,ms));
           function eanOf(x){
             const p=x?.product||x?.productDetails||x;
@@ -1181,14 +1184,14 @@ jobs:
                   sample:ziiply.slice(0,3).map(x=>({ean:eanOf(x),name:nameOf(x),price:priceOf(x)}))
                 };
                 summary.push(row);
-                console.log("PRISMA_V247_STORE "+JSON.stringify(row));
+                console.log("PRISMA_V249_STORE "+JSON.stringify(row));
               }catch(e){
                 const row={name,storeId,pass:false,error:String(e?.stack||e)};
-                summary.push(row);console.log("PRISMA_V247_STORE "+JSON.stringify(row));
+                summary.push(row);console.log("PRISMA_V249_STORE "+JSON.stringify(row));
               }
               await sleep(120);
             }
-            console.log("PRISMA_V247_SUMMARY "+JSON.stringify({
+            console.log("PRISMA_V249_SUMMARY "+JSON.stringify({
               date:today,tested:summary.length,pass:summary.filter(x=>x.pass).length,
               zeroCatalog:summary.filter(x=>x.http===200&&x.directTotal===0).map(x=>x.name),
               failed:summary.filter(x=>!x.pass&&!(x.http===200&&x.directTotal===0)).map(x=>x.name),
