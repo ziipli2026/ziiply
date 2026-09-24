@@ -399,9 +399,14 @@ if(!spatialResolved&&anchor&&pk&&pk.min===pk.max){
    if(value>=.5&&value<100)rates.push({rate,value});
   }
   // OCR may duplicate the first decimal digit as a separate box: "4 1 17/l" means 4.17/l.
-  for(const m of t.matchAll(/(?:^|\s|\()(\d{1,3})\s+([0-9])\s+\2([0-9])\/(kg|l)(?:\s|$|\))/gi)){
-   const rate=Number(m[1]+"."+m[2]+m[3]),value=Number((pk.min*rate).toFixed(2));
-   if(value>=.5&&value<100)rates.push({rate,value});
+  const bs=g.boxes||[];
+  for(let i=0;i<bs.length-2;i++){
+   const a=String(bs[i].text||"").trim(),dup=String(bs[i+1].text||"").trim(),tail=String(bs[i+2].text||"").trim();
+   const tm=tail.match(/^(\d)(\d)\/(kg|l)\)?$/i);
+   if(/^\d{1,3}$/.test(a)&&/^\d$/.test(dup)&&tm&&dup===tm[1]){
+    const rate=Number(a+"."+tm[1]+tm[2]),value=Number((pk.min*rate).toFixed(2));
+    if(value>=.5&&value<100)rates.push({rate,value});
+   }
   }
  }
  const uniq=[...new Map(rates.map(x=>[x.value,x])).values()];
