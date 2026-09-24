@@ -608,11 +608,6 @@ if(!spatialResolved&&anchor&&/^RAE JUUSTO- RIESKAT$/i.test(title)){
  const moilas=wordBoxes.some(b=>/^Moilas$/i.test(String(b.text||'').trim())&&Number(b.left)>.50&&Number(b.left)<.55&&Number(b.top)>.51&&Number(b.top)<.54);
  if(recipe&&moilas) percentageOffer={type:'non-product-heading',source:'rae-recipe-heading-proof'};
 }
-// V283: trace remaining RAE JUUSTO-RIESKAT card before resolving it.
-if(/^RAE JUUSTO- RIESKAT$/i.test(title)&&anchor){
- const same=wordBoxes.filter(b=>Math.abs(Number(b.top)-Number(anchor.top))<.34&&Math.abs(Number(b.left)-Number(anchor.left))<.30).sort((a,b)=>a.top-b.top||a.left-b.left).map(b=>({text:b.text,left:b.left,top:b.top,width:b.width,height:b.height,d:Number(boxDistance(anchor,b).toFixed(6))}));
- console.error("V283_RAE_RIESKAT",JSON.stringify({page:p,title,anchor,pk,ur,expected,spatialResolved,same}));
-}
 // Generic fixed-package multibuy proof from a printed unit price and sale quantity.
 // Example shape: 500 g, "2 PS", "(4 00/kg)" => 2 * 0.5 kg * 4.00/kg = 4.00.
 if(!spatialResolved&&anchor&&pk&&pk.min===pk.max){
