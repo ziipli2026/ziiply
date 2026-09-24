@@ -413,8 +413,7 @@ if(!spatialResolved&&anchor&&pk&&pk.min===pk.max){
  // immediately after the title, even when coordinate OCR fragments that same rate into incompatible boxes.
  // Keep this local to the product lead-in and stop before the normal-price comparison row.
  if(!rates.length){
-  const lead=[];
-  for(const row of after.slice(0,8)){if(/Ilman\s+Plussa-korttia/i.test(row.text))break;lead.push(row.text);}
+  const lead=[];\n  const selfStart=lines[i]?.i??i,selfAfter=lines.filter(row=>row.i>selfStart).slice(0,8);\n  for(const row of selfAfter){if(/Ilman\\s+Plussa-korttia/i.test(row.text))break;lead.push(row.text);}
   for(const t of lead){
    const m=String(t||"").match(/^\s*(\d{1,3})[,.](\d{2})\/(kg|l)\s*$/i);
    if(!m)continue;
