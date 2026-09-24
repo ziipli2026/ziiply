@@ -508,12 +508,17 @@ if(!spatialResolved&&anchor&&pk&&ur&&expected&&nr&&nr.unit){
  const hasDiscount=/(?:^|\s)-?\d{1,2}(?:[–-]\d{1,2})?\s*%/.test(localText);
  if(rounded>=.5&&rounded<nr.min&&hasNormalUnit&&hasDiscount)spatialResolved={value:rounded,quantity:null,unit:nr.unit,source:"package-unitrate-normalprice-proof",sanity:"pass",confidence:"high"};
 }
-// Generic percentage-only card proof: prefer a discount printed on the product's own basic-HTML row.
+// Generic percentage-only card proof: use the closest percentage in basic HTML after the product row,
+// then fall back to one unique nearby geometric percentage.
 if(!spatialResolved&&anchor){
- const ownText=around.map(r=>String(r.text||"").trim()).join(" | ");
- const pctValues=[...ownText.matchAll(/-(\d{1,2})%/g)].map(m=>Number(m[1]));
- const uniq=[...new Set(pctValues)];
- if(uniq.length===1)percentageOffer={percent:uniq[0],source:"own-html-percentage-proof",confidence:"high"};
+ const selfStart=lines[i]?.i??i,selfAfter=lines.filter(row=>row.i>selfStart).slice(0,6);
+ let htmlPct=null;
+ for(const row of selfAfter){
+  if(/Ilman\s+Plussa-korttia/i.test(row.text))break;
+  const m=String(row.text||"").match(/-(\d{1,2})%/);
+  if(m){htmlPct=Number(m[1]);break;}
+ }
+ if(htmlPct!=null)percentageOffer={percent:htmlPct,source:"own-lead-percentage-proof",confidence:"high"};
  else {
   const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.14);
   const geo=[...new Set(local.map(b=>String(b.text||"").trim().match(/^-(\d{1,2})%$/)).filter(Boolean).map(m=>Number(m[1])))];
