@@ -1200,7 +1200,7 @@ jobs:
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
 
-      - name: S-market eTarjouslehdet broad discovery V255
+      - name: S-market eTarjouslehdet publication raw V256
         shell: bash
         run: |
           node <<'NODE'
@@ -1222,12 +1222,12 @@ jobs:
           for(const offset of offsets){
             const r=await batch([["stores",{businessId:BID,pagination:{limit:100,offset}}]]);
             const found=valRows(r.json).flatMap(stores);
-            console.log("SMARKET_V255_PAGE "+JSON.stringify({offset,http:r.status,found:found.length,sample:found.slice(0,3)}));
+            console.log("SMARKET_V256_PAGE "+JSON.stringify({offset,http:r.status,found:found.length,sample:found.slice(0,3)}));
             all.push(...found); if(found.length<100)break;
           }
           const map=new Map(); for(const x of all)if(!map.has(x.id))map.set(x.id,x);
           const uniq=[...map.values()];
-          console.log("SMARKET_V255_DISCOVERY "+JSON.stringify({uniqueStores:uniq.length,sample:uniq.slice(0,20)}));
+          console.log("SMARKET_V256_DISCOVERY "+JSON.stringify({uniqueStores:uniq.length,sample:uniq.slice(0,20)}));
           const wanted=["S-market Jokela","S-market Vehkoja","S-market Tuusula","S-market Sokos Helsinki","S-market Redi","S-market Pukinmäki","S-market Suutarila","S-market Kontula"];
           for(const q of wanted){
             const sr=await batch([
@@ -1255,8 +1255,15 @@ jobs:
               ]);
               ps=valRows(pr.json).flatMap(pubs);
               const pm=new Map(); for(const p of ps)if(!pm.has(p.id))pm.set(p.id,p); ps=[...pm.values()];
+              let pageStatus=0,pageBytes=0,pageIds=[];
+              try{
+                const pg=await fetch("https://etarjouslehdet.fi/S-market/kaupat/"+encodeURIComponent(best.id),{headers:{"accept":"text/x-component,text/html,application/json;q=0.9,*/*;q=0.8","referer":"https://etarjouslehdet.fi/","user-agent":"Mozilla/5.0 ZiiplyOfferProvider/27"}});
+                const pt=await pg.text(); pageStatus=pg.status; pageBytes=pt.length;
+                pageIds=[...pt.matchAll(/"(?:publicId|publicationId|id)"\\s*:\\s*"([A-Za-z0-9_-]{6,})"/g)].map(m=>m[1]).filter(id=>id!==best.id&&id!==BID).slice(0,20);
+              }catch(e){}
+              console.log("SMARKET_V256_PUBRAW "+JSON.stringify({query:q,storeId:best.id,batchHttp:pr.status,batchBytes:pr.text.length,batchHead:pr.text.slice(0,800),pageStatus,pageBytes,pageIds}));
             }
-            console.log("SMARKET_V255_STORE "+JSON.stringify({query:q,http:sr.status,candidates:ss.length,best,truthMatch:truth,publications:ps.length,pubSample:ps.slice(0,3)}));
+            console.log("SMARKET_V256_STORE "+JSON.stringify({query:q,http:sr.status,candidates:ss.length,best,truthMatch:truth,publications:ps.length,pubSample:ps.slice(0,3)}));
           }
           NODE
 
