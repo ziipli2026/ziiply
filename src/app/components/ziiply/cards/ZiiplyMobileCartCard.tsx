@@ -1,5 +1,8 @@
 "use client";
 
+// ZIIPLY_MOBILE_CART_CARD_V64_REMOVE_COMPLETE_RETURN_BUTTON
+// - valmisnäkymästä paluun jälkeen ei näytetä enää "Näytä valmisnäkymä" -painiketta
+//
 // ZIIPLY_MOBILE_CART_CARD_V63_CHECKOUT_NOTICE_OVERLAY_RETURN_TO_CART
 // - kassainfo avautuu valmisnäkymän toimintojen päälle overlayna eikä venytä korttia
 // - Selvä sulkee vain infon ja valmisnäkymän, jolloin normaali ostoskorilista palaa näkyviin
@@ -631,29 +634,18 @@ export default function ZiiplyMobileCartCard({
             </div>
           )}
 
-          {isCartCompleteV58 ? (
-            <button
-              type="button"
-              onClick={() => setShowCompletionCardV58(true)}
-              className="ml-[4.35rem] mt-[0.68rem] block rounded-[0.50rem] border-[2.5px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-5 py-[0.36rem] text-[0.82rem] font-extrabold italic text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58),0_2px_4px_rgba(62,43,20,0.18)] active:translate-y-[1px]"
-              style={{ fontFamily: cooperFont }}
-            >
-              Näytä valmisnäkymä
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={onCompare}
-              disabled={!hasItems}
-              className={cx(
-                "ml-[5.15rem] mt-[0.68rem] block rounded-[0.50rem] border-[2.5px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-5 py-[0.36rem] text-[0.82rem] font-extrabold italic text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58),0_2px_4px_rgba(62,43,20,0.18)] active:translate-y-[1px]",
-                !hasItems && "cursor-not-allowed opacity-45",
-              )}
-              style={{ fontFamily: cooperFont }}
-            >
-              Halpuusvertailu
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={onCompare}
+            disabled={!hasItems}
+            className={cx(
+              "ml-[5.15rem] mt-[0.68rem] block rounded-[0.50rem] border-[2.5px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-5 py-[0.36rem] text-[0.82rem] font-extrabold italic text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58),0_2px_4px_rgba(62,43,20,0.18)] active:translate-y-[1px]",
+              !hasItems && "cursor-not-allowed opacity-45",
+            )}
+            style={{ fontFamily: cooperFont }}
+          >
+            Halpuusvertailu
+          </button>
         </footer>
         ) : null}
 
