@@ -1200,7 +1200,7 @@ jobs:
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
 
-      - name: S-market eTarjouslehdet publication raw V256
+      - name: S-market eTarjouslehdet publication parser V257
         shell: bash
         run: |
           node <<'NODE'
@@ -1216,18 +1216,18 @@ jobs:
           function valRows(j){const a=Array.isArray(j)?j:[];return a.map(x=>x&&typeof x==="object"&&Object.prototype.hasOwnProperty.call(x,"value")?x.value:x)}
           function first(...xs){for(const x of xs){if(x==null)continue;if(typeof x==="string"||typeof x==="number"){const t=String(x).trim();if(t)return t}}return ""}
           function stores(v){const out=[];walk(v,o=>{const id=first(o.id,o.publicId,o.storeId,o.localBusinessId,o.local_business_id);const name=first(o.name,o.storeName,o.store_name,o.label,o.title,o.displayName,o.display_name);if(!id||!name||/^\\d+$/.test(id)||id===BID)return;out.push({id,name})});const seen=new Set();return out.filter(x=>{const k=x.id+"|"+x.name.toLowerCase();if(seen.has(k))return false;seen.add(k);return true})}
-          function pubs(v){const out=[];walk(v,o=>{const id=String(o.publicId||o.id||"").trim();const name=String(o.publicationName||o.label||o.name||"").trim();const from=String(o.validFrom||"");const until=String(o.validUntil||"");if(id&&name&&(from||until))out.push({id,name,from,until})});return out}
+          function pubs(v,storeId){const out=[];walk(v,o=>{const ids=[first(o.publicationId),first(o.publicId),first(o.publication_id),first(o.publication&&o.publication.id),first(o.id)].filter(Boolean);const name=first(o.label,o.name,o.publicationName,o.title,o.publication&&o.publication.name);const from=first(o.validFrom,o.valid_from,o.publication&&o.publication.validFrom,o.publication&&o.publication.valid_from);const until=first(o.validUntil,o.valid_until,o.publication&&o.publication.validUntil,o.publication&&o.publication.valid_until);const keys=Object.keys(o).join(" ").toLowerCase();const typ=first(o.type,o.kind,o.__typename,o.view_name).toLowerCase();const like=!!(from||until||typ.includes("publication")||typ.includes("front")||keys.includes("publication")||keys.includes("validfrom")||keys.includes("validuntil"));for(const id of ids){if(!id||id.length<6||id===storeId||id===BID)continue;if(!like&&!from&&!until)continue;out.push({id,name:name||"",from,until})}});const seen=new Set();return out.filter(p=>{if(seen.has(p.id))return false;seen.add(p.id);return true})}
           const offsets=[0,100,200,300,400,500];
           let all=[];
           for(const offset of offsets){
             const r=await batch([["stores",{businessId:BID,pagination:{limit:100,offset}}]]);
             const found=valRows(r.json).flatMap(stores);
-            console.log("SMARKET_V256_PAGE "+JSON.stringify({offset,http:r.status,found:found.length,sample:found.slice(0,3)}));
+            console.log("SMARKET_V257_PAGE "+JSON.stringify({offset,http:r.status,found:found.length,sample:found.slice(0,3)}));
             all.push(...found); if(found.length<100)break;
           }
           const map=new Map(); for(const x of all)if(!map.has(x.id))map.set(x.id,x);
           const uniq=[...map.values()];
-          console.log("SMARKET_V256_DISCOVERY "+JSON.stringify({uniqueStores:uniq.length,sample:uniq.slice(0,20)}));
+          console.log("SMARKET_V257_DISCOVERY "+JSON.stringify({uniqueStores:uniq.length,sample:uniq.slice(0,20)}));
           const wanted=["S-market Jokela","S-market Vehkoja","S-market Tuusula","S-market Sokos Helsinki","S-market Redi","S-market Pukinmäki","S-market Suutarila","S-market Kontula"];
           for(const q of wanted){
             const sr=await batch([
@@ -1253,7 +1253,7 @@ jobs:
                 ["relatedPublications",{businessId:BID,locationId:best.id}],
                 ["relatedPublications",{businessId:BID,localBusinessId:best.id}]
               ]);
-              ps=valRows(pr.json).flatMap(pubs);
+              ps=valRows(pr.json).flatMap(v=>pubs(v,best.id));
               const pm=new Map(); for(const p of ps)if(!pm.has(p.id))pm.set(p.id,p); ps=[...pm.values()];
               let pageStatus=0,pageBytes=0,pageIds=[];
               try{
@@ -1261,9 +1261,9 @@ jobs:
                 const pt=await pg.text(); pageStatus=pg.status; pageBytes=pt.length;
                 pageIds=[...pt.matchAll(/"(?:publicId|publicationId|id)"\\s*:\\s*"([A-Za-z0-9_-]{6,})"/g)].map(m=>m[1]).filter(id=>id!==best.id&&id!==BID).slice(0,20);
               }catch(e){}
-              console.log("SMARKET_V256_PUBRAW "+JSON.stringify({query:q,storeId:best.id,batchHttp:pr.status,batchBytes:pr.text.length,batchHead:pr.text.slice(0,800),pageStatus,pageBytes,pageIds}));
+              console.log("SMARKET_V257_PUBRAW "+JSON.stringify({query:q,storeId:best.id,batchHttp:pr.status,batchBytes:pr.text.length,batchHead:pr.text.slice(0,800),pageStatus,pageBytes,pageIds}));
             }
-            console.log("SMARKET_V256_STORE "+JSON.stringify({query:q,http:sr.status,candidates:ss.length,best,truthMatch:truth,publications:ps.length,pubSample:ps.slice(0,3)}));
+            console.log("SMARKET_V257_STORE "+JSON.stringify({query:q,http:sr.status,candidates:ss.length,best,truthMatch:truth,publications:ps.length,pubSample:ps.slice(0,3)}));
           }
           NODE
 
