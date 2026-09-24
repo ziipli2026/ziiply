@@ -494,24 +494,6 @@ if(!spatialResolved&&anchor&&pk&&pk.max===pk.min){
 // Generic isolated-card large split shelf-price proof.
 // Require a large euro+cents pair, sale unit and discount percentage in the same tight local card.
 // This replaces former product/title-specific right-hand-card handling.
-if(!spatialResolved&&anchor){
- const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.20);
- const euros=local.filter(b=>/^\d{1,2}$/.test(String(b.text||"").trim())&&Number(b.height||0)>.055);
- const cents=local.filter(b=>/^\d{2}$/.test(String(b.text||"").trim())&&Number(b.height||0)>.025);
- const units=local.filter(b=>/^(KPL|PKT|PS|RS|TLK|PL|PRK)$/i.test(String(b.text||"").trim()));
- const pcts=local.filter(b=>/^-\d{1,2}%$/.test(String(b.text||"").trim()));
- const proofs=[];
- for(const e of euros)for(const ct of cents)for(const u of units){
-  const sameBand=Math.abs(Number(e.top)-Number(ct.top))<.045&&Math.abs(Number(e.top)-Number(u.top))<.07;
-  const ordered=Number(ct.left)>=Number(e.left)-.015&&Number(u.left)>=Number(e.left)-.02;
-  const pct=pcts.find(p=>Math.abs(Number(p.left)-Number(e.left))<.12&&Number(p.top)<Number(e.top)+.02&&Math.abs(Number(p.top)-Number(e.top))<.12);
-  const value=Number(String(e.text).trim()+"."+String(ct.text).trim());
-  if(sameBand&&ordered&&pct&&value>=.5&&value<30) proofs.push({value,unit:String(u.text).trim().toUpperCase(),score:boxDistance(anchor,e)+boxDistance(anchor,ct)+boxDistance(anchor,u)});
- }
- proofs.sort((a,b)=>a.score-b.score);
- if(proofs[0]&&(!proofs[1]||proofs[1].score-proofs[0].score>.02)) spatialResolved={value:proofs[0].value,quantity:null,unit:proofs[0].unit,source:"isolated-card-large-split-discount-proof",sanity:"pass",confidence:"high"};
-}
-
 // Generic mixed-size endpoint equivalence proof.
 // If package sizes and a printed unit-price range cross-multiply to the same shelf price,
 // the common endpoint price is the offer price. No product names or fixed coordinates are used.
