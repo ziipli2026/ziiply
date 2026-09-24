@@ -257,11 +257,14 @@ function getOfficialSKaupatCategoryV165(item: ZiiplyGostaOfferLike): string {
   );
 
   const mainCategory = normalizeGostaText(item?.mainCategory || item?.department || "");
+  // V169: child taxonomy must contain only actual child fields.
+  // Official S-kaupat flat data repeats the top-level parent in item.category
+  // (e.g. "Liha ja kasviproteiinit"). Including it here made every meat item
+  // look like plant protein because the parent itself contains "kasviproteiinit".
   const childCategoryText = normalizeGostaText(
     [
       item?.productGroup,
       item?.subCategory,
-      item?.category,
     ]
       .filter(Boolean)
       .map(String)
