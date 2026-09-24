@@ -1313,6 +1313,24 @@ jobs:
           for(const id of ids)await test(id);
           NODE
 
+      - name: S-market provider-style publication fallback V262
+        shell: bash
+        run: |
+          node <<'NODE'
+          const API="https://squid-api.tjek.com/v4/rpc",KEY="152000596c6e45d9983eab0c14afebea";
+          const stores=[
+            ["S-market Vehkoja",["lJ1Vw-s_","Yu7vUFbe"]],
+            ["S-market Suutarila",["lJ1Vw-s_","Yu7vUFbe"]],
+            ["S-market Kontula",["lJ1Vw-s_","Yu7vUFbe"]],
+            ["S-market Redi",["T1vxWqaj","lJ1Vw-s_","Yu7vUFbe"]],
+            ["S-market Pukinmäki",["niqfjxWr","lJ1Vw-s_","Yu7vUFbe"]]
+          ];
+          async function gen(id){const r=await fetch(API+"/generate_incito_from_publication",{method:"POST",headers:{accept:"application/json","content-type":"application/json",origin:"https://etarjouslehdet.fi",referer:"https://etarjouslehdet.fi/","x-api-key":KEY},body:JSON.stringify({id,device_category:"desktop",pointer:"fine",orientation:"horizontal",pixel_ratio:2,max_width:1418,viewport_width:1432,viewport_height:900,versions_supported:["1.0.0"],locale_code:"fi-FI",time:new Date().toISOString(),feature_labels:[]})});const t=await r.text();let j=null;try{j=JSON.parse(t)}catch{}return {id,http:r.status,json:j}}
+          function walk(v,fn){if(!v)return;if(Array.isArray(v)){for(const x of v)walk(x,fn);return}if(typeof v==="object"){fn(v);for(const x of Object.values(v))walk(x,fn)}}
+          function sections(pub){let n=0;walk(pub,o=>{if(o.view_name==="IncitoEmbedView"&&typeof o.body==="string"){try{const b=JSON.parse(o.body);if(b.id&&(b.section_id||b.sectionId))n++}catch{}}});return n}
+          for(const [store,ids] of stores){const attempts=[];let chosen=null;for(const id of ids.slice(0,8)){const x=await gen(id);attempts.push({id,http:x.http});if(x.http===200&&x.json){chosen={id,sections:sections(x.json)};break}}console.log("SMARKET_V262 "+JSON.stringify({store,attempts,chosen,pass:!!chosen}))}
+          NODE
+
       - name: Prisma Sunday 2026-09-20 resolver reconstruction V242
         shell: bash
         run: |
