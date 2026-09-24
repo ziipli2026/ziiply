@@ -588,9 +588,11 @@ if(!spatialResolved&&anchor&&pk&&pk.min===pk.max){
 // Require fixed package size and an independently printed normal-price row to avoid treating arbitrary unit rates as offers.
 if(!spatialResolved&&anchor&&pk&&pk.max===pk.min){
  const localGroups=spatialGroups(wordBoxes.filter(b=>boxDistance(anchor,b)<.18)).map(g=>String(g.text||""));
- const joined=localGroups.join(" ");
+ const localAfterText=after.slice(0,6).map(x=>String(x.text||""));
+ const evidenceTexts=[...localGroups,...localAfterText];
+ const joined=evidenceTexts.join(" ");
  const rateMatch=joined.replace(/\s+/g,"").replace(/,/g,".").match(/(\d{1,3}(?:\.\d{1,2})?)\/(kg|l)(?:[^a-z]|$)/i);
- const hasNormalPrice=localGroups.some(t=>/Ilman\s+Plussa-korttia/i.test(t)&&/\d/.test(t)&&/(?:\/kpl|\/pkt|\/rs|\/ps|\/tlk|\/pl|\/prk)/i.test(t));
+ const hasNormalPrice=evidenceTexts.some(t=>/Ilman\s+Plussa-korttia/i.test(t)&&/\d/.test(t)&&/(?:\/kpl|\/pkt|\/rs|\/ps|\/tlk|\/pl|\/prk)/i.test(t));
  if(rateMatch&&hasNormalPrice){
   const rate=Number(rateMatch[1]),unit=String(rateMatch[2]).toLowerCase();
   const value=Number((pk.min*rate).toFixed(2));
