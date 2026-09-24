@@ -409,6 +409,19 @@ if(!spatialResolved&&anchor&&pk&&pk.min===pk.max){
    }
   }
  }
+ // Basic-HTML fallback: the product's own printed unit rate is often the first standalone rate line
+ // immediately after the title, even when coordinate OCR fragments that same rate into incompatible boxes.
+ // Keep this local to the product lead-in and stop before the normal-price comparison row.
+ if(!rates.length){
+  const lead=[];
+  for(const row of after.slice(0,4)){if(/Ilman\s+Plussa-korttia/i.test(row.text))break;lead.push(row.text);}
+  for(const t of lead){
+   const m=String(t||"").match(/^\s*(\d{1,3})[,.](\d{2})\/(kg|l)\s*$/i);
+   if(!m)continue;
+   const rate=Number(m[1]+"."+m[2]),value=Number((pk.min*rate).toFixed(2));
+   if(value>=.5&&value<100)rates.push({rate,value});
+  }
+ }
  const uniq=[...new Map(rates.map(x=>[x.value,x])).values()];
  if(uniq.length===1&&saleUnits.length)spatialResolved={value:uniq[0].value,quantity:null,unit:String(saleUnits.sort((a,b)=>boxDistance(anchor,a)-boxDistance(anchor,b))[0].text).toUpperCase(),source:"fixed-package-own-unitrate-derived",sanity:"pass",confidence:"high"};
 }
