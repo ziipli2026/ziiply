@@ -289,7 +289,6 @@ if(anchor&&expected){
 }
 // Fixed-pack card with explicit local unit price and a large compact visual price (e.g. 0.99).
 // Recover only when title/package and unit-price arithmetic agree with the large compact token in the same visual column.
-if((!spatialResolved||spatialResolved.sanity==="review")&&anchor&&expected&&pk&&pk.min===pk.max){const um=String(title).match(/\((\d{1,2})[,.](\d{2})\/(kg|l)\)/i)||null;const nearbyUnit=wordBoxes.filter(b=>Math.abs((b.top||0)-anchor.top)<.06&&Math.abs((b.left||0)-anchor.left)<.16).map(b=>String(b.text||"")).join(" ").match(/\((\d{1,2})\s*[,.]?\s*(\d{2})\s*\/(kg|l)\)/i);const m=um||nearbyUnit;if(m){const uv=Number(m[1]+"."+m[2]),vv=Number((pk.min*uv).toFixed(2)),compact=wordBoxes.filter(b=>/^\d{3}$/.test(String(b.text||"").trim())&&Number(b.height||0)>=.08&&Math.abs(((b.left||0)+(b.width||0)/2)-anchor.left)<.22&&Math.abs((b.top||0)-anchor.top)<.12).map(b=>({b,v:Number(String(b.text).trim())/100})).sort((a,b)=>Math.abs(a.v-vv)-Math.abs(b.v-vv))[0];if(compact&&Math.abs(compact.v-vv)<=.02)spatialResolved={value:compact.v,quantity:null,unit:null,source:"title-linked-compact-unitprice-exact",sanity:"pass"};}}
 // Merged three-column price row. The euro digits may be collapsed into one wide token across adjacent cards.
 // Trust only a fixed package size + printed local unit price; require the product title and sale unit to share the same visual column.
 if(!spatialResolved&&expected&&pk&&pk.min===pk.max){
