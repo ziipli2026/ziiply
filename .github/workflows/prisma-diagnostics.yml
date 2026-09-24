@@ -6,17 +6,35 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: S-local Jokela vs Vehkoja raw campaign comparison V272
+      - name: S-local campaign structure probe V273
         shell: bash
         run: |
           node <<'NODE'
-          const HASH="f6d87786fda8fb5c233c4eaed08f37b0c5b87dc0d8d4c44c33c5529e446369d1",CLIENT="production-14a82a5b48cd1dd42c0592db0037514ed3c84de8";
-          const names=["S-market Vehkoja","S-market Jokela"];
-          const norm=x=>String(x??"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9åäö]+/gi," ").replace(/\s+/g," ").trim();
+          const HASH="f6d87786fda8fb5c233c4eaed08f37b0c5b87dc0d8d4c44c33c5529e446369d1";
+          const CLIENT="production-14a82a5b48cd1dd42c0592db0037514ed3c84de8";
+          const stores=[["Vehkoja","519941769"],["Jokela","685839110"]];
           const date=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
-          async function search(name){const r=await fetch("https://api.ruoanhinta.fi/api/stores?search="+encodeURIComponent(name),{headers:{accept:"application/json"}});const d=await r.json();const a=Array.isArray(d)?d:(d?.items||[]);const n=norm(name);const best=a.find(x=>norm(x?.name)===n)||a.find(x=>norm(x?.name).includes(n.replace(/^s market /,"")))||a[0]||null;return{status:r.status,count:a.length,best:best&&{id:best.id,name:best.name,chain:best.chain,city:best.city,externalId:best.externalId}}}
-          async function page(id){if(!/^\d{5,}$/.test(String(id||"")))return null;const variables={preview:false,storeId:String(id),skipProducts:false,availabilityDate:date,where:{storeId:String(id),path:"tuotteet/kampanjat",platform:"WEB",availabilityDate:date,userConsent:{marketing:false,marketingId:"ziiply-gosta",useCustomerId:false,sessionId:"ziiply-gosta",loop54:true}}},extensions={clientLibrary:{name:"@apollo/client",version:"4.2.12"},persistedQuery:{version:1,sha256Hash:HASH}};const u=new URL("https://api.s-kaupat.fi/");u.searchParams.set("operationName","RemoteGetPageContent");u.searchParams.set("variables",JSON.stringify(variables));u.searchParams.set("extensions",JSON.stringify(extensions));const r=await fetch(u,{headers:{accept:"application/graphql-response+json,application/json;q=0.9","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":CLIENT}});const d=await r.json(),secs=d?.data?.pageContent?.sections;let products=0;if(Array.isArray(secs))for(const s of secs)products+=Array.isArray(s?.products)?s.products.length:0;const rows=[];if(Array.isArray(secs))for(const [si,s] of secs.entries())for(const p of (Array.isArray(s?.products)?s.products:[])){rows.push({sectionIndex:si,sectionTitle:s?.title||s?.name||s?.heading||"",ean:String(p?.ean||p?.eanCode||p?.gtin||""),name:p?.name||p?.title||"",price:p?.price||p?.currentPrice||p?.offerPrice||null,benefit:p?.benefitText||p?.discountText||p?.campaignText||"",validity:p?.validityText||p?.validTo||p?.endDate||""})}return{status:r.status,sections:Array.isArray(secs)?secs.length:null,products,rows,errors:d?.errors||[]}}
-          let ext=0,ok=0,all=[];for(const name of names){try{const s=await search(name),id=s.best?.externalId;if(id)ext++;const p=await page(id);if(p?.status===200&&p.sections!==null)ok++;all.push({name,id,p});console.log("SLOCAL_V272_RESULT "+JSON.stringify({name,search:s,page:{status:p?.status,sections:p?.sections,products:p?.products,errors:p?.errors}}))}catch(e){console.log("SLOCAL_V272_RESULT "+JSON.stringify({name,error:String(e?.message||e)}))}}
-          if(all.length===2&&all[0].p?.rows&&all[1].p?.rows){const key=x=>x.ean||x.name;const ded=x=>{const m=new Map;for(const r of x){const k=key(r);if(k&&!m.has(k))m.set(k,r)}return m};const a=ded(all[0].p.rows),b=ded(all[1].p.rows);const onlyA=[...a.keys()].filter(k=>!b.has(k)),onlyB=[...b.keys()].filter(k=>!a.has(k));const changed=[...a.keys()].filter(k=>b.has(k)&&JSON.stringify(a.get(k))!==JSON.stringify(b.get(k)));const prismaA=[...a.values()].filter(x=>/prisma/i.test(JSON.stringify(x))),prismaB=[...b.values()].filter(x=>/prisma/i.test(JSON.stringify(x)));console.log("SLOCAL_V272_COMPARE "+JSON.stringify({vehkojaUnique:a.size,jokelaUnique:b.size,onlyVehkoja:onlyA.length,onlyJokela:onlyB.length,changed:changed.length,prismaMarkedVehkoja:prismaA.length,prismaMarkedJokela:prismaB.length,onlyVehkojaSample:onlyA.slice(0,20),onlyJokelaSample:onlyB.slice(0,20),changedSample:changed.slice(0,20),prismaVehkojaSample:prismaA.slice(0,10),prismaJokelaSample:prismaB.slice(0,10)},null,2))}
-          console.log("SLOCAL_V272_SUMMARY "+JSON.stringify({tested:names.length,externalIds:ext,pageOk:ok}));
+          const stable=x=>JSON.stringify(x,Object.keys(x||{}).sort());
+          async function page(name,id){
+            const variables={preview:false,storeId:id,skipProducts:false,availabilityDate:date,where:{storeId:id,path:"tuotteet/kampanjat",platform:"WEB",availabilityDate:date,userConsent:{marketing:false,marketingId:"ziiply-gosta",useCustomerId:false,sessionId:"ziiply-gosta",loop54:true}}};
+            const extensions={clientLibrary:{name:"@apollo/client",version:"4.2.12"},persistedQuery:{version:1,sha256Hash:HASH}};
+            const u=new URL("https://api.s-kaupat.fi/"); u.searchParams.set("operationName","RemoteGetPageContent");u.searchParams.set("variables",JSON.stringify(variables));u.searchParams.set("extensions",JSON.stringify(extensions));
+            const r=await fetch(u,{headers:{accept:"application/graphql-response+json,application/json;q=0.9","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":CLIENT}});
+            const d=await r.json(); const pc=d?.data?.pageContent||{}; const secs=Array.isArray(pc.sections)?pc.sections:[];
+            console.log("V273_PAGE "+JSON.stringify({name,id,status:r.status,pageKeys:Object.keys(pc),sectionCount:secs.length,sectionShapes:secs.map((s,i)=>({i,keys:Object.keys(s||{}),title:s?.title||s?.heading||s?.name||"",productCount:Array.isArray(s?.products)?s.products.length:0})).slice(0,60)}));
+            const products=[]; for(const [si,s] of secs.entries()) for(const p of (Array.isArray(s?.products)?s.products:[])) products.push({si,p});
+            const first=products[0]?.p||{}; console.log("V273_PRODUCT_KEYS "+JSON.stringify({name,keys:Object.keys(first),sample:first}));
+            return {name,id,pc,secs,products};
+          }
+          (async()=>{
+            const a=await page(...stores[0]),b=await page(...stores[1]);
+            function scan(root,path=[],out=[]){if(!root||typeof root!=="object")return out;if(Array.isArray(root)){for(let i=0;i<root.length;i++)scan(root[i],path.concat(i),out);return out}for(const [k,v] of Object.entries(root)){if(/price|offer|campaign|benefit|valid|avail|store|chain|segment|scope|promotion|discount/i.test(k))out.push({path:path.concat(k).join("."),value:v});if(v&&typeof v==="object")scan(v,path.concat(k),out)}return out}
+            const sa=scan(a.pc).slice(0,500),sb=scan(b.pc).slice(0,500);
+            console.log("V273_HINTS_VEHKOJA "+JSON.stringify(sa,null,2));
+            console.log("V273_HINTS_JOKELA "+JSON.stringify(sb,null,2));
+            const amap=new Map(a.products.map(x=>[String(x.p?.ean||x.p?.eanCode||x.p?.gtin||x.p?.name||""),x.p]));
+            const bmap=new Map(b.products.map(x=>[String(x.p?.ean||x.p?.eanCode||x.p?.gtin||x.p?.name||""),x.p]));
+            let rawChanged=[]; for(const [k,v] of amap)if(bmap.has(k)&&JSON.stringify(v)!==JSON.stringify(bmap.get(k)))rawChanged.push(k);
+            console.log("V273_RAW_PRODUCT_COMPARE "+JSON.stringify({vehkoja:amap.size,jokela:bmap.size,rawChanged:rawChanged.length,sample:rawChanged.slice(0,30)}));
+          })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
