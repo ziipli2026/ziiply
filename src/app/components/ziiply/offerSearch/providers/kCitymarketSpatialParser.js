@@ -488,7 +488,7 @@ if(anchor){
 }
 // V101 final confidence gate: classify only after every resolver/fallback has finished.
 if(spatialResolved){
- const strongSources=new Set(["validated-geometric-multibuy","high-confidence-geometric-multibuy","visual-large-euro-multibuy","large-visual-price-qty-unit","embedded-productblock-price","group-er-price","group-discount-price","unitprice-validated-multibuy","unitprice-validated-candidate","range-unitprice-cents-validated","spatial-range-unitprice-cents-validated","spatial-fixed-unitprice-cents-validated","local-explicit-unit-price","expected-near-exact-visual","expected-local-cents-validated","local-product-unitprice-exact","local-unitprice-derived-offer","unique-local-explicit-unit-price","fixed-package-unitprice-confirmed-multibuy","fixed-package-local-unitprice-confirmed-price","raw-box-unitprice-confirmed-price","one-unit-duplicate-visual-price-rate","product-row-fixed-package-split","card-fixed-package-unitprice-split","raw-box-one-unit-duplicate-rate","large-visual-price","title-linked-large-split-price"]);
+ const strongSources=new Set(["validated-geometric-multibuy","high-confidence-geometric-multibuy","visual-large-euro-multibuy","large-visual-price-qty-unit","embedded-productblock-price","group-er-price","group-discount-price","unitprice-validated-multibuy","unitprice-validated-candidate","range-unitprice-cents-validated","spatial-range-unitprice-cents-validated","spatial-fixed-unitprice-cents-validated","local-explicit-unit-price","expected-near-exact-visual","expected-local-cents-validated","local-product-unitprice-exact","local-unitprice-derived-offer","unique-local-explicit-unit-price","fixed-package-unitprice-confirmed-multibuy","fixed-package-local-unitprice-confirmed-price","raw-box-unitprice-confirmed-price","one-unit-duplicate-visual-price-rate","product-row-fixed-package-split","card-fixed-package-unitprice-split","raw-box-one-unit-duplicate-rate","large-visual-price","title-linked-large-split-price","mixed-size-unitprice-range-proof"]);
  const q=Number(spatialResolved.quantity||1),tx=expected?expected*q:null,ratio=tx?spatialResolved.value/tx:null;
  if(spatialResolved.sanity==="review")spatialResolved.confidence="review";
  else spatialResolved.confidence=strongSources.has(spatialResolved.source)?"high":"medium";
@@ -597,13 +597,25 @@ if(!spatialResolved&&anchor&&/SHAMPOOT ja HOITO- AINEET 200–250 ml/i.test(titl
  const proof=/920.*[–-].*1150\/l/i.test(row.replace(/[^0-9–\-\/l]/gi,""));
  if(proof) spatialResolved={value:2.30,quantity:null,unit:"KPL",source:"shampoo-range-endpoint-price-proof",sanity:"pass",confidence:"high"};
 }
-// V277: leaflet 2 Micellar cleansing-water/remover card has a printed unit-price range 24.00–30.00/l.
-// Mixed 100/125 ml products mean no single euro price should be fabricated; retain the proven unit-price range.
-if(!spatialResolved&&anchor&&/PUHDISTUSVEDET 100 ml ja SILMÄ- MEIKIN- PUHDISTUS- AINE 125 ml/i.test(title)){
- const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.16);
- const row=local.filter(b=>Math.abs(Number(b.top)-.560744)<.008).sort((a,b)=>a.left-b.left).map(b=>String(b.text||"").trim()).join("");
- const hasRange=/2400.*[–-].*3000.*\/l/i.test(row.replace(/[^0-9–\-\/l]/gi,""));
- if(hasRange) spatialResolved={value:24.00,quantity:null,unit:"EUR/L",source:"micellar-unitprice-range-proof",sanity:"pass",confidence:"high",range:{min:24.00,max:30.00},displayOnlyUnitPrice:true};
+// Generic mixed-size unit-price range proof.
+// When a product card itself prints a package-size range together with a unit-price range,
+// do not invent a single euro shelf price. Require independent nearby card evidence that
+// this is a priced product row (e.g. an "Ilman Plussa-korttia" price/unit fragment).
+// The range is preserved for downstream display instead of being tied to one leaflet/product.
+if(!spatialResolved&&anchor){
+ const compactTitle=String(title||"").replace(/\s+/g,"");
+ const rangeMatch=compactTitle.match(/(?:^|[^0-9])([0-9]+(?:[,.][0-9]+)?)[–-]([0-9]+(?:[,.][0-9]+)?)(?:ml|cl|l|g|kg).*?([0-9]+(?:[,.][0-9]+)?)[–-]([0-9]+(?:[,.][0-9]+)?)\/(l|kg)(?:[^a-z]|$)/i);
+ if(rangeMatch){
+  const rangeMin=Number(String(rangeMatch[3]).replace(",","."));
+  const rangeMax=Number(String(rangeMatch[4]).replace(",","."));
+  const unit=String(rangeMatch[5]).toUpperCase();
+  const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.18);
+  const groups=spatialGroups(local).map(g=>String(g.text||""));
+  const hasIndependentCardEvidence=groups.some(t=>/Ilman\s+Plussa-korttia/i.test(t)&&/(?:\/kpl|\/pkt|\/kpl\b|\/rs\b|\/ps\b)/i.test(t));
+  if(Number.isFinite(rangeMin)&&Number.isFinite(rangeMax)&&rangeMax>rangeMin&&hasIndependentCardEvidence){
+   spatialResolved={value:rangeMin,quantity:null,unit:"EUR/"+unit,source:"mixed-size-unitprice-range-proof",sanity:"pass",confidence:"high",range:{min:rangeMin,max:rangeMax},displayOnlyUnitPrice:true};
+  }
+ }
 }
 // V364: ranged package + ranged unit-price cross-check.
 // Opposite range endpoints should reconstruct the same per-package price.
