@@ -1,0 +1,827 @@
+"use client";
+
+// ZIIPLY_MOBILE_CART_CARD_V65_QUANTITY_ZERO_PENDING_REMOVE
+// - määrällä 1 miinus vaihtaa rivin poistovahvistukseen (roskakori / peruuta)
+// - muu toiminta vahvistaa odottavan poiston; peruuta palauttaa normaalin määräsäätimen
+//
+// ZIIPLY_MOBILE_CART_CARD_V64_REMOVE_COMPLETE_RETURN_BUTTON
+// - valmisnäkymästä paluun jälkeen ei näytetä enää "Näytä valmisnäkymä" -painiketta
+//
+// ZIIPLY_MOBILE_CART_CARD_V63_CHECKOUT_NOTICE_OVERLAY_RETURN_TO_CART
+// - kassainfo avautuu valmisnäkymän toimintojen päälle overlayna eikä venytä korttia
+// - Selvä sulkee vain infon ja valmisnäkymän, jolloin normaali ostoskorilista palaa näkyviin
+//
+// ZIIPLY_MOBILE_CART_CARD_V62_QUANTITY_AND_CHECKOUT_FUTURE_NOTICE
+// - hinta ei ole enää tuotteen poistopainike; miinus vähentää vain kappalemäärää
+// - Valmis kassalle näyttää MVP-ilmoituksen tulevasta Ziiply-maksamisesta ennen sulkemista
+
+// ZIIPLY_MOBILE_CART_CARD_V61_NO_REDUNDANT_100_PERCENT_COMPLETE_CARD
+// Korjaus V60:n valmisnäkymään:
+// - poistettu turha 100 % / keräilyaste / elohopeapalkki, koska valmisruutu aukeaa vain kun kaikki on kerätty
+// - valmisnäkymä on nyt selkeä kassalle-siirtymäkortti: "✓ Lista kasassa!", pieni rivimäärä ja kysymys unohtuiko jotain
+// - napit pidetään isoina ja selkeästi irti alakulman napeista
+// - "Tarkista lista vielä" palauttaa listaan ja listan footerissa voi palata valmisnäkymään
+
+// ZIIPLY_MOBILE_CART_CARD_V60_COMPLETE_CARD_RETURN_AND_ADD_MORE_FIX
+// Korjaus V59:n valmisnäkymään:
+// - "Tarkista lista vielä" ei enää lukitse käyttäjää ostoslistaan ilman paluuta valmisruutuun:
+//   kun lista on edelleen 100 % kerätty, footerissa näkyy "Näytä valmisnäkymä".
+// - "Lisää vielä" ei käytä enää onBack-polun pääsivuhyppyä, vaan käyttää uutta onAddMore-proppia.
+//   Jos page ei vielä välitä onAddMorea, fallbackina suljetaan kortti onClose-polulla.
+// - Nappien sijoittelu pidetään erillään alakulman painikkeistä.
+
+// ZIIPLY_MOBILE_CART_CARD_V59_COMPACT_THERMOMETER_COMPLETE_CARD
+// Korjaus V58:n valmisnäkymään:
+// - iso analoginen viisari poistettu ja korvattu matalalla vanhan ajan elohopeamittarilla
+// - tekstit suurennettu ja hierarkia selkeytetty: tärkein viesti on "✓ Lista kasassa!"
+// - turhat selittävät tekstit poistettu
+// - toimintanapit sijoitettu ylemmäs omaan kompaktimpaan korttiin, jotta ne eivät osu Jaa ostoskori / takaisin / sulje -nappeihin
+// - visuaalinen linja pidetty nykyisessä vihko-/paperi-/messinkityylissä
+
+// ZIIPLY_MOBILE_CART_CARD_V58_COMPLETION_GAUGE_CHECKOUT_CARD
+// Lisää ostoslistan valmistumisnäkymän ilman, että nykyisen Tavarainkeruu-paperin päälle tungetaan lisätasoja.
+// Kun kaikki tuotteet on merkitty kerätyiksi, listan sisältö vaihtuu omaan vanhan ajan "pääteasema/kassa" -korttiin.
+// Mukana analoginen viisarinäyttö, 8/8-tyyppinen keräilylaskuri ja muistutus listan ulkopuolisista tuotteista.
+// Visuaalinen linja pidetty nykyisessä A. Virtanen / vihkopaperi / messinkipainike -tyylissä.
+// Ei vaadi page-muutoksia: "Lisää vielä" sulkee/poistuu kori-näkymästä onBack/onClose-polulla ja "Valmis kassalle" sulkee kortin.
+
+
+// ZIIPLY_MOBILE_CART_CARD_V57_SHARE_SYMBOL_MATCH_COMPARE
+// Mobiilin Tavarainkeruu-paperivihko.
+// V42: korjaa ostoslistan visuaalisen kohdistuksen: rivit relative, korkeampi rivikorkeus, määrä keskelle, hinnat ja footer vasemmalle samaan linjaan.
+// - "Ostoskori" poistettu kokonaan näkyvästä UI:sta.
+// - Tavarainkeruu sovitettu taustapaperiin kevyempänä mustekirjoituksena.
+// - Tuoterivit sarakkeisiin: N:o | Nimike | Määrä | Hinta | poisto.
+// - Määrä näkyy vain MÄÄRÄ-sarakkeessa, ei tuotteen nimen alla.
+// - Määrässä pienet − / + säätimet samassa sarakkeessa.
+// - Keräilymerkki on vanhanaikainen numero/✓ ilman modernia nappirinkulaa.
+// - Tuotenimi lyhennetään sanasta 2 + seuraava sana.
+// - Halpuusvertailu-termi käytössä.
+// - Lista scrollaa näkymättömästi.
+// - Kortilla pieni sisääntulopomppu.
+// V4: yläosan tekstit ja toiminnot sovitettu paremmin paperin omaan painatukseen.
+// V5: Tavarainkeruu siirretty Pvm-kohdan vasemmalle puolelle pienempänä; määräsolusta tehty sormiystävällinen; N:o-merkki keskitetty ja suurennettu.
+// V6: poisto-X siirretty hinnan vasemmalle puolelle, jotta HINTA-sarake jää puhtaaksi.
+// V7: määrä/poisto/hinta kohdistettu paperisarakeisiin; alkoholijuomat näkyvät keräilyssä mutta eivät kuulu yhteissummaan.
+// V8: alkoholin yhteissummalaskenta ei enää riipu myöhemmin määritellyistä getCartItemQuantity/readCartItemPrice-funktioista.
+// V9: korjaa hasAlcoholItemsV7 → hasAlcoholItemsV8 nimeämisvirheen buildissä.
+// V10: varmistaa, että hasAlcoholItemsV8 määritellään komponentin sisällä ennen renderiä.
+// V11: korjaa hasAlcoholItemsV8-muuttujan scopen ja vaihtaa pääkomponentin yhteissumman alkoholittomaksi.
+// V12: vain koordinaatti/UI-säätö; Tavarainkeruu hieman ylemmäs ja erillinen poisto-ruksi korvattu hinta/kassa-tekstin painalluksella.
+// V13: sulje-nappi kohdistettu A. Virtanen -tekstin vaakatasoon ja symboli pehmennetty.
+// V18B: nimikekentälle lisää vaakasuuntaista tilaa; määrä-/välikenttiä kavennettu maltillisesti.
+
+// V27: tuoterivi nostettu ensimmäiseen kirjoituskohtaan; YHT. ja summa palautettu oikealle pohjakuvan ala-alueen sarakkeisiin.
+// V47: tasaa tuoterivien pystykorko, rajaa nimike ennen MÄÄRÄ-viivaa ja keskittää alkoholihuomautuksen.
+// V48: simulointi: ensimmäisen tuoterivin näkyvä korko tasattu muiden rivien mukaan; nimitekstin leveys rajattu ennen MÄÄRÄ-viivaa; alkoholihuomautus keskitetty.
+// V19: layout-korjaus:
+// - kortti nostettu ylös safe-alueelle, ettei topbar jää näkyviin
+// - korkeus käyttää koko käytettävissä olevan tilan alapalkkia väistäen
+// - header / toolbar / taulukko / footer erotettu flex-rakenteeksi
+// - tuoterivit gridillä: N:o | Nimike | Määrä | Hinta
+// - määräsolun sisäinen koordinaattihässäkkä poistettu kevyesti
+// V45: nimike lähemmäs punaista pystyviivaa, miinus hinta-sarakkeen vasempaan alanurkkaan, footerin YHT. ja alkoholihuomio korostettu.
+// V43: korjaa kuvan perusteella määrä-/hinta-/footer-linjat: määrä keskelle MÄÄRÄ-saraketta, YHT. samaan sarakekeskelle ja summa hinta-sarakkeen keskelle.
+// V44: irrottaa tuoterivin kentät omiksi absoluuttisiksi paperikoordinaateiksi ja siirtää nimikkeet, määrän, miinuksen, hinnat sekä footerin linjaan taustakuvan kanssa.
+
+import React from "react";
+
+export type ZiiplyMobileCartItem = {
+  id?: string | number;
+  ean?: string | number;
+  name?: string;
+  title?: string;
+  productName?: string;
+  brandName?: string;
+  quantity?: number;
+  amount?: number;
+  price?: number | string;
+  image?: string;
+  imageUrl?: string;
+  pictureUrl?: string;
+  checked?: boolean;
+  [key: string]: any;
+};
+
+export type ZiiplyMobileCartCardProps = {
+  open?: boolean;
+  title?: string;
+  items?: ZiiplyMobileCartItem[];
+  savedListsCount?: number;
+  onClose?: () => void;
+  onSaveList?: () => void;
+  onOpenSavedLists?: () => void;
+  onClearCart?: () => void;
+  onRemoveItem?: (item: ZiiplyMobileCartItem) => void;
+  onToggleItem?: (item: ZiiplyMobileCartItem) => void;
+  onIncreaseItem?: (item: ZiiplyMobileCartItem) => void;
+  onDecreaseItem?: (item: ZiiplyMobileCartItem) => void;
+  onCompare?: () => void;
+  onShareCart?: () => void;
+  onAddMore?: () => void;
+  onBack?: () => void;
+  className?: string;
+};
+
+const cooperFont = '"Cooper Black", "Cooper Std Black", Georgia, serif';
+const copperplateFont = '"Copperplate", "Baskerville", Georgia, serif';
+const serifFont = '"Baskerville", Georgia, serif';
+
+function cx(...classes: Array<string | false | null | undefined>) {
+  return classes.filter(Boolean).join(" ");
+}
+
+function getName(item: ZiiplyMobileCartItem) {
+  return String(item.name || item.title || item.productName || item.brandName || "Tuote");
+}
+
+function ledgerName(name: string) {
+  // V35: näytetään tuotteen nimi aidosti. Ei poimita vain tiettyjä sanoja,
+  // koska se tekee esimerkiksi "400g Kunnon ..." -nimistä väärän näköisiä.
+  return name
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function normalizePrice(price: unknown) {
+  if (typeof price === "number" && Number.isFinite(price)) {
+    const euros = Math.abs(price) > 20 ? price / 100 : price;
+    return euros.toLocaleString("fi-FI", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+  }
+
+  const text = String(price ?? "").trim();
+  if (!text) return "";
+
+  const numeric = Number(text.replace(/\s/g, "").replace("€", "").replace(",", "."));
+  if (Number.isFinite(numeric)) {
+    const euros = Math.abs(numeric) > 20 ? numeric / 100 : numeric;
+    return euros.toLocaleString("fi-FI", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+  }
+
+  return text.includes("€") ? text : `${text} €`;
+}
+
+function getNumericPrice(price: unknown) {
+  if (typeof price === "number" && Number.isFinite(price)) {
+    return Math.abs(price) > 20 ? price / 100 : price;
+  }
+
+  const numeric = Number(String(price ?? "").replace(/\s/g, "").replace("€", "").replace(",", "."));
+  if (!Number.isFinite(numeric)) return 0;
+
+  return Math.abs(numeric) > 20 ? numeric / 100 : numeric;
+}
+
+function LedgerButton({
+  children,
+  onClick,
+  disabled,
+  wide = false,
+}: {
+  children: React.ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
+  wide?: boolean;
+}) {
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={cx(
+        "rounded-[0.54rem] border-[1.5px] border-[#8a6b32] bg-[#fff0c7]/72 px-2.5 py-[0.42rem] text-[0.62rem] font-extrabold leading-none text-[#533819] shadow-[0_1px_0_rgba(91,72,44,0.12),inset_0_0_0_1px_rgba(255,255,255,0.42)] active:translate-y-[1px]",
+        wide && "min-w-[7.45rem]",
+        disabled && "cursor-not-allowed opacity-45",
+      )}
+      style={{ fontFamily: cooperFont }}
+    >
+      {children}
+    </button>
+  );
+}
+
+
+function getCartItemQuantityForTotalV8(item: ZiiplyMobileCartItem) {
+  const quantity = Number((item as any).quantity ?? (item as any).amount ?? 1);
+  return Number.isFinite(quantity) && quantity > 0 ? quantity : 1;
+}
+
+function readCartItemPriceForTotalV8(item: ZiiplyMobileCartItem) {
+  const normalizeTotalPrice = (value: number) => {
+    if (!Number.isFinite(value)) return 0;
+    return Math.abs(value) > 20 ? value / 100 : value;
+  };
+
+  const candidates = [
+    (item as any).price,
+    (item as any).unitPrice,
+    (item as any).currentPrice,
+    (item as any).product?.price,
+    (item as any).product?.unitPrice,
+    (item as any).product?.currentPrice,
+  ];
+
+  for (const candidate of candidates) {
+    if (typeof candidate === "number" && Number.isFinite(candidate)) {
+      return normalizeTotalPrice(candidate);
+    }
+
+    if (typeof candidate === "string") {
+      const normalized = candidate.replace(/\s/g, "").replace(",", ".");
+      const parsed = Number(normalized.replace(/[^\d.-]/g, ""));
+      if (Number.isFinite(parsed)) return normalizeTotalPrice(parsed);
+    }
+  }
+
+  return 0;
+}
+
+function isAlcoholCartItemV8(item: ZiiplyMobileCartItem) {
+  const text = [
+    item.name,
+    (item as any).brand,
+    (item as any).category,
+    (item as any).categoryName,
+    (item as any).productGroup,
+    (item as any).department,
+    (item as any).product?.name,
+    (item as any).product?.category,
+    (item as any).product?.categoryName,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+  return /\b(olut|lonkero|siideri|viini|kuohuviini|alkoholijuoma|alkoholi|gin|vodka|rommi|viski|whisky|konjakki|brandy)\b/.test(
+    text,
+  );
+}
+
+function getDisplayCartTotalV8(items: ZiiplyMobileCartItem[]) {
+  return items.reduce((sum, item) => {
+    if (isAlcoholCartItemV8(item)) return sum;
+
+    const quantity = getCartItemQuantityForTotalV8(item);
+    const unitPrice = readCartItemPriceForTotalV8(item);
+
+    return sum + unitPrice * quantity;
+  }, 0);
+}
+
+function hasAlcoholCartItemsV8(items: ZiiplyMobileCartItem[]) {
+  return items.some(isAlcoholCartItemV8);
+}
+
+function QuantityCell({
+  item,
+  quantity,
+  onDecrease,
+  onIncrease,
+  pendingRemove = false,
+  onRequestRemove,
+  onConfirmRemove,
+  onCancelRemove,
+}: {
+  item: ZiiplyMobileCartItem;
+  quantity: number;
+  onDecrease?: (item: ZiiplyMobileCartItem) => void;
+  onIncrease?: (item: ZiiplyMobileCartItem) => void;
+  pendingRemove?: boolean;
+  onRequestRemove?: (item: ZiiplyMobileCartItem) => void;
+  onConfirmRemove?: () => void;
+  onCancelRemove?: () => void;
+}) {
+  if (pendingRemove) {
+    return (
+      <>
+        <button
+          type="button"
+          onClick={onConfirmRemove}
+          className="absolute left-[13.20rem] top-[0.78rem] grid h-[1.62rem] w-[2.00rem] place-items-center rounded-[0.32rem] text-[1.05rem] leading-none text-[#b51a12] active:translate-y-[1px] active:bg-[#fff1c6]/34"
+          aria-label="Poista tuote"
+          title="Poista tuote"
+        >
+          🗑
+        </button>
+        <button
+          type="button"
+          onClick={onCancelRemove}
+          className="absolute left-[17.52rem] top-[1.82rem] grid h-[1.30rem] w-[1.30rem] place-items-center rounded-[0.24rem] text-[1.08rem] font-extrabold leading-none text-[#3d301a] active:translate-y-[1px] active:bg-[#fff1c6]/38"
+          aria-label="Peruuta poisto"
+          title="Peruuta poisto"
+        >
+          ↩
+        </button>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={() => {
+          if (quantity > 1) onDecrease?.(item);
+          else onRequestRemove?.(item);
+        }}
+        className="absolute left-[17.52rem] top-[2.10rem] grid h-[0.90rem] w-[1.10rem] place-items-center rounded-[0.24rem] text-[1.05rem] font-extrabold leading-none !text-[#b51a12] drop-shadow-[0_0_0.4px_rgba(120,0,0,0.45)] active:translate-y-[1px] active:bg-[#fff1c6]/38"
+        aria-label={quantity > 1 ? "Vähennä määrää" : "Poista tuote"}
+        title={quantity > 1 ? "Vähennä määrää" : "Poista tuote"}
+      >
+        −
+      </button>
+
+      <button
+        type="button"
+        onClick={() => onIncrease?.(item)}
+        className="absolute left-[13.20rem] top-[0.78rem] grid h-[1.62rem] w-[2.00rem] place-items-center rounded-[0.32rem] bg-[#fff1c6]/10 text-center text-[0.98rem] font-extrabold leading-none text-[#3d301a] active:translate-y-[1px] active:bg-[#fff1c6]/34"
+        style={{ fontFamily: serifFont }}
+        aria-label="Lisää määrää"
+        title="Lisää määrää"
+      >
+        {quantity}
+      </button>
+    </>
+  );
+}
+
+export default function ZiiplyMobileCartCard({
+  open = true,
+  title = "Tavarainkeruu",
+  items = [],
+  savedListsCount = 0,
+  onClose,
+  onSaveList,
+  onOpenSavedLists,
+  onClearCart,
+  onRemoveItem,
+  onToggleItem,
+  onIncreaseItem,
+  onDecreaseItem,
+  onCompare,
+  onShareCart,
+  onAddMore,
+  onBack,
+  className = "",
+}: ZiiplyMobileCartCardProps) {
+  if (!open) return null;
+
+  const hasItems = items.length > 0;
+  const totalPrice = getDisplayCartTotalV8(items);
+  const hasAlcoholItemsV8 = hasAlcoholCartItemsV8(items);
+  const collectedItemsV58 = items.filter((item) => Boolean(item.checked)).length;
+  const totalItemsV58 = items.length;
+  const isCartCompleteV58 = hasItems && totalItemsV58 > 0 && collectedItemsV58 >= totalItemsV58;
+  const [showCompletionCardV58, setShowCompletionCardV58] = React.useState(false);
+  const [showCheckoutFutureNoticeV62, setShowCheckoutFutureNoticeV62] = React.useState(false);
+  const previousCompleteRefV58 = React.useRef(false);
+  const [pendingRemoveKeyV65, setPendingRemoveKeyV65] = React.useState<string | null>(null);
+  const pendingRemoveItemRefV65 = React.useRef<ZiiplyMobileCartItem | null>(null);
+
+  const getItemKeyV65 = (item: ZiiplyMobileCartItem, index?: number) =>
+    String(item.id ?? item.ean ?? index ?? "");
+
+  const confirmPendingRemoveV65 = () => {
+    const pendingItem = pendingRemoveItemRefV65.current;
+    if (pendingItem) onRemoveItem?.(pendingItem);
+    pendingRemoveItemRefV65.current = null;
+    setPendingRemoveKeyV65(null);
+  };
+
+  const requestRemoveV65 = (item: ZiiplyMobileCartItem, key: string) => {
+    if (pendingRemoveItemRefV65.current && pendingRemoveItemRefV65.current !== item) {
+      onRemoveItem?.(pendingRemoveItemRefV65.current);
+    }
+    pendingRemoveItemRefV65.current = item;
+    setPendingRemoveKeyV65(key);
+  };
+
+  const cancelRemoveV65 = () => {
+    pendingRemoveItemRefV65.current = null;
+    setPendingRemoveKeyV65(null);
+  };
+
+  React.useEffect(() => {
+    if (isCartCompleteV58 && !previousCompleteRefV58.current) {
+      setShowCompletionCardV58(true);
+    }
+
+    if (!isCartCompleteV58) {
+      setShowCompletionCardV58(false);
+    }
+
+    previousCompleteRefV58.current = isCartCompleteV58;
+  }, [isCartCompleteV58]);
+
+  return (
+    <div
+      onPointerDownCapture={(event) => {
+        if (!pendingRemoveItemRefV65.current) return;
+        const target = event.target as HTMLElement;
+        if (target.closest('[data-v65-remove-choice="true"]')) return;
+        confirmPendingRemoveV65();
+      }}
+      className={`fixed inset-0 z-[92] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+5.95rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
+    >
+      <section className="ziiply-cart-paper-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-6.9rem)] max-h-[46rem] min-h-[31rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
+        <div
+          className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[#f7edcf] bg-center bg-no-repeat opacity-100"
+          style={{
+            backgroundImage: "url('/ui/cart/vihkonen.webp')",
+            backgroundSize: "142% 104%",
+            backgroundPosition: "center top",
+          }}
+        />
+        <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[linear-gradient(180deg,rgba(255,250,226,0.30),rgba(238,214,156,0.10))]" />
+        <div className="pointer-events-none absolute inset-[0.42rem] rounded-[1.55rem] border border-dashed border-[#d6a861]/55 shadow-[inset_0_0_0_2px_rgba(27,17,9,0.20)]" />
+        <div className="pointer-events-none absolute right-[0.42rem] top-[0.42rem] z-[8] h-[4.0rem] w-[4.35rem] rounded-bl-[2.0rem] rounded-tr-[1.46rem] border-l-[2px] border-b-[2px] border-[#2c1a0f] bg-[linear-gradient(135deg,#6b4328_0%,#3b2414_70%)] shadow-[inset_0_0_0_1px_rgba(255,214,139,0.18),0_3px_9px_rgba(0,0,0,0.22)]">
+          <span className="absolute right-[1.0rem] top-[0.82rem] h-[0.72rem] w-[0.72rem] rounded-full border border-[#6b421f] bg-[radial-gradient(circle_at_35%_35%,#f6c46c_0%,#b0752a_52%,#65401f_100%)] shadow-[0_1px_2px_rgba(0,0,0,0.28)]" />
+        </div>
+
+        <header className="relative z-10 shrink-0 px-5 pb-1 pt-[4.18rem]">
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <h2
+                className="ml-[0.98rem] mt-[0.46rem] rotate-[-0.45deg] text-[1.08rem] font-extrabold italic leading-none text-[#314226]/78 drop-shadow-[0_1px_0_rgba(255,247,211,0.52)]"
+                style={{ fontFamily: serifFont }}
+              >
+                {title}
+              </h2>
+            </div>
+
+            <span aria-hidden="true" className="block h-[2rem] w-[2rem] shrink-0" />
+          </div>
+
+          <div className="absolute left-[2.05rem] top-[1.64rem] z-[22]">
+            <button
+              type="button"
+              onClick={onOpenSavedLists}
+              title="Ostoslistat"
+              aria-label="Ostoslistat"
+              className="relative grid h-[2.55rem] w-[2.1rem] place-items-center rounded-b-[0.38rem] rounded-t-[0.22rem] border-[1.5px] border-[#7b5c2a] bg-[linear-gradient(180deg,#f5dfac_0%,#d6ad66_100%)] text-[#604017] shadow-[0_2px_3px_rgba(50,31,13,0.22),inset_0_0_0_1px_rgba(255,250,224,0.42)] active:translate-y-[1px]"
+            >
+              <span className="absolute -top-[0.78rem] left-1/2 h-[0.9rem] w-[1px] -translate-x-1/2 bg-[#5a371c]" />
+              <span className="absolute top-[0.22rem] h-[0.36rem] w-[0.36rem] rounded-full border border-[#7b5c2a] bg-[#fff2c7]" />
+              <span className="text-[1.12rem] leading-none">☷</span>
+              {savedListsCount ? (
+                <span className="absolute -right-[0.3rem] -top-[0.3rem] grid h-[0.84rem] min-w-[0.84rem] place-items-center rounded-full bg-[#0b7f3a] px-[0.16rem] text-[0.46rem] font-black text-white">
+                  {savedListsCount}
+                </span>
+              ) : null}
+            </button>
+          </div>
+
+          {hasItems ? (
+            <div className="absolute right-[2.05rem] top-[1.64rem] z-[22]">
+              <button
+                type="button"
+                onClick={onClearCart}
+                title="Tyhjennä ostoskori"
+                aria-label="Tyhjennä ostoskori"
+                className="relative grid h-[2.55rem] w-[2.1rem] place-items-center rounded-b-[0.38rem] rounded-t-[0.22rem] border-[1.5px] border-[#8b3c27] bg-[linear-gradient(180deg,#f3d4a1_0%,#d49a58_100%)] text-[#8d2718] shadow-[0_2px_3px_rgba(50,31,13,0.22),inset_0_0_0_1px_rgba(255,250,224,0.35)] active:translate-y-[1px]"
+              >
+                <span className="absolute -top-[0.78rem] left-1/2 h-[0.9rem] w-[1px] -translate-x-1/2 bg-[#5a371c]" />
+                <span className="absolute top-[0.22rem] h-[0.36rem] w-[0.36rem] rounded-full border border-[#8b3c27] bg-[#fff2c7]" />
+                <span className="text-[1.12rem] leading-none">⌫</span>
+              </button>
+            </div>
+          ) : null}
+        </header>
+
+        <div className="relative z-10 grid shrink-0 grid-cols-[2.35rem_minmax(0,1fr)_3.95rem_4.55rem] px-6 pt-[0.30rem] text-[0.54rem] font-black uppercase tracking-[0.18em] text-transparent opacity-0" style={{ fontFamily: copperplateFont }}>
+          <span>N:o</span>
+          <span>Nimike</span>
+          <span className="text-center">Määrä</span>
+          <span className="text-right">Hinta</span>
+        </div>
+
+        <div className="relative z-10 -mt-[0.36rem] min-h-0 flex-1 overflow-y-auto px-5 pb-[6.0rem] pt-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          {!hasItems ? (
+            <div className="mt-5 rounded-[1.1rem] border-[2px] border-dashed border-[#9a7a3d] bg-[#fff4d4]/48 px-4 py-8 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
+              <div className="text-[1.02rem] font-extrabold italic text-[#59401e]" style={{ fontFamily: serifFont }}>
+                Vihkonen on vielä tyhjä
+              </div>
+              <div className="mt-2 text-[0.78rem] font-extrabold text-[#8a7650]">
+                Lisää löydöksiä koriin.
+              </div>
+            </div>
+          ) : showCompletionCardV58 ? (
+            <div className="ziiply-cart-complete-card-v61 mx-auto mt-[2.20rem] w-[20.3rem] max-w-[calc(100%-0.5rem)] rounded-[1.05rem] border-[2.4px] border-[#70481f] bg-[#fff0c7]/74 px-4 pb-5 pt-5 text-center shadow-[0_3px_0_rgba(84,55,22,0.18),inset_0_0_0_1px_rgba(255,250,224,0.58)]">
+              <div
+                className="mx-auto mb-3 w-fit rounded-[0.52rem] border border-[#8a6b32]/64 bg-[#f5dfac]/70 px-3 py-[0.18rem] text-[0.64rem] font-black uppercase tracking-[0.16em] text-[#604017]"
+                style={{ fontFamily: copperplateFont }}
+              >
+                Tavarainkeruu valmis
+              </div>
+
+              <h3
+                className="text-[2.05rem] font-extrabold italic leading-[0.98] text-[#314226] drop-shadow-[0_1px_0_rgba(255,247,211,0.75)]"
+                style={{ fontFamily: cooperFont }}
+              >
+                ✓ Lista kasassa!
+              </h3>
+
+              <div
+                className="mx-auto mt-3 w-fit rounded-[0.58rem] border-[1.8px] border-[#8a6b32]/72 bg-[#f8e6b9]/80 px-4 py-[0.34rem] text-[1.08rem] font-black text-[#3d301a] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.48)]"
+                style={{ fontFamily: serifFont }}
+              >
+                {totalItemsV58} tuotetta kerätty
+              </div>
+
+              <div
+                className="mx-auto mt-5 rounded-[0.72rem] border border-[#9a7a3d]/60 bg-[#fff8dc]/62 px-3 py-3 text-[1.08rem] font-extrabold italic leading-tight text-[#7b3215]/92"
+                style={{ fontFamily: serifFont }}
+              >
+                Unohtuiko vielä jotain listan ulkopuolelta?
+              </div>
+
+              <div className="mx-auto mt-5 grid w-[17.8rem] max-w-full grid-cols-1 gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCompletionCardV58(false);
+                    window.setTimeout(() => {
+                      if (onAddMore) {
+                        onAddMore();
+                      } else {
+                        onClose?.();
+                      }
+                    }, 0);
+                  }}
+                  className="rounded-[0.62rem] border-[2px] border-[#8a6b32] bg-[linear-gradient(180deg,#f8e6b9_0%,#d6ad66_100%)] px-3 py-[0.66rem] text-[0.94rem] font-black italic text-[#533819] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.48),0_2px_3px_rgba(50,31,13,0.14)] active:translate-y-[1px]"
+                  style={{ fontFamily: cooperFont }}
+                >
+                  Lisää vielä
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setShowCheckoutFutureNoticeV62(true)}
+                  className="rounded-[0.62rem] border-[2px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-3 py-[0.72rem] text-[1.02rem] font-black italic text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58),0_2px_3px_rgba(62,43,20,0.18)] active:translate-y-[1px]"
+                  style={{ fontFamily: cooperFont }}
+                >
+                  Valmis kassalle
+                </button>
+              </div>
+
+              {showCheckoutFutureNoticeV62 ? (
+                <div className="absolute inset-0 z-[35] flex items-center justify-center rounded-[1.0rem] bg-[#fff0c7]/72 px-4 backdrop-blur-[1.5px]">
+                  <div className="w-[17.8rem] max-w-full rounded-[0.82rem] border-[2px] border-[#496443]/80 bg-[#f3e8cc] px-3 py-4 text-center shadow-[0_5px_18px_rgba(62,43,20,0.22),inset_0_0_0_1px_rgba(255,250,224,0.72)]">
+                    <div className="text-[1.02rem] font-black italic text-[#244525]" style={{ fontFamily: cooperFont }}>
+                      Ziiply-maksaminen on tulossa
+                    </div>
+                    <div className="mt-2 text-[0.84rem] font-extrabold leading-snug text-[#533819]" style={{ fontFamily: serifFont }}>
+                      Tulevaisuudessa voit maksaa ostoksesi suoraan Ziiplyn avulla.
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowCheckoutFutureNoticeV62(false);
+                        setShowCompletionCardV58(false);
+                      }}
+                      className="mt-4 rounded-[0.52rem] border-[2px] border-[#496443] bg-[#dfcfaa] px-5 py-[0.50rem] text-[0.88rem] font-black italic text-[#244525] active:translate-y-[1px]"
+                      style={{ fontFamily: cooperFont }}
+                    >
+                      Selvä
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+
+              <button
+                type="button"
+                onClick={() => setShowCompletionCardV58(false)}
+                className="mt-3 text-[0.78rem] font-extrabold italic text-[#6f5730] underline decoration-[#9a7a3d]/50 underline-offset-2"
+                style={{ fontFamily: serifFont }}
+              >
+                Tarkista lista vielä
+              </button>
+            </div>          ) : (
+            <div className="space-y-0 pb-2">
+              {items.map((item, index) => {
+                const originalName = getName(item);
+                const name = ledgerName(originalName);
+                const price = normalizePrice(item.price);
+                const checked = Boolean(item.checked);
+                const quantity = Number(item.quantity ?? item.amount ?? 1);
+                const safeQuantity = Number.isFinite(quantity) ? Math.max(1, quantity) : 1;
+
+                const itemKeyV65 = getItemKeyV65(item, index);
+                const pendingRemoveV65 = pendingRemoveKeyV65 === itemKeyV65;
+
+                return (
+                  <article
+                    key={itemKeyV65}
+                    className={cx(
+                      "relative block h-[3.18rem] border-b-[1.35px] border-[#b9944d]/68 bg-transparent px-1 py-[0.22rem]",
+                      checked && "opacity-55",
+                    )}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => onToggleItem?.(item)}
+                      className="absolute left-[0.36rem] top-[0.64rem] grid h-[1.9rem] w-[1.95rem] place-items-center text-center text-[1.08rem] font-extrabold leading-none text-[#4a3921] active:translate-y-[1px]"
+                      style={{ fontFamily: serifFont }}
+                      aria-label={checked ? "Poista keräilymerkintä" : "Merkitse kerätyksi"}
+                    >
+                      {checked ? "✓" : `${index + 1}.`}
+                    </button>
+
+                    <div
+                      className={cx(
+                        "absolute left-[3.62rem] top-[0.70rem] max-h-[1.92rem] w-[8.25rem] overflow-hidden text-[0.80rem] font-extrabold leading-[1.02] text-[#2f2a1c] [display:-webkit-box] [-webkit-line-clamp:2] [-webkit-box-orient:vertical]",
+                        checked && "line-through",
+                      )}
+                      style={{ fontFamily: serifFont }}
+                      title={originalName}
+                    >
+                      {name}
+                    </div>
+
+                    <div data-v65-remove-choice={pendingRemoveV65 ? "true" : undefined}>
+                      <QuantityCell
+                        item={item}
+                        quantity={safeQuantity}
+                        onDecrease={onDecreaseItem}
+                        onIncrease={onIncreaseItem}
+                        pendingRemove={pendingRemoveV65}
+                        onRequestRemove={(targetItem) => requestRemoveV65(targetItem, itemKeyV65)}
+                        onConfirmRemove={confirmPendingRemoveV65}
+                        onCancelRemove={cancelRemoveV65}
+                      />
+                    </div>
+
+                    <div
+                      className={cx(
+                        "pointer-events-none absolute left-[16.35rem] top-[0.78rem] grid h-[1.62rem] w-[3.45rem] place-items-center text-center font-extrabold leading-none",
+                        isAlcoholCartItemV8(item)
+                          ? "text-center text-[0.86rem] italic text-[#7b3215]/86"
+                          : "text-[0.84rem] text-[#3f321f]",
+                      )}
+                      style={{ fontFamily: serifFont }}
+                      aria-label={isAlcoholCartItemV8(item) ? "Maksetaan kassalla" : `Hinta ${price}`}
+                    >
+                      {isAlcoholCartItemV8(item) ? "kassa" : price}
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {!showCompletionCardV58 ? (
+        <footer className="sticky bottom-0 z-20 shrink-0 px-5 pb-3 pt-2">
+          <div className="relative mb-2 min-h-[1.82rem] border-t-[2px] border-transparent pt-2 text-[#473719]">
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute left-[0.12rem] right-[0.12rem] top-0 block h-[2px] bg-[#9b7b3d]/62"
+            />
+            <span
+              className="absolute left-[12.20rem] top-[0.12rem] grid h-[1.4rem] w-[3.95rem] place-items-center whitespace-nowrap text-center text-[0.76rem] font-extrabold uppercase tracking-[0.04em]"
+              style={{ fontFamily: copperplateFont }}
+            >
+              Yht.
+            </span>
+
+            <span
+              className="absolute left-[16.35rem] top-[0.10rem] grid h-[1.45rem] w-[3.45rem] place-items-center whitespace-nowrap text-center text-[1.02rem] font-black italic"
+              style={{ fontFamily: serifFont }}
+            >
+              {totalPrice.toLocaleString("fi-FI", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })} €
+            </span>
+          </div>
+
+          {hasAlcoholItemsV8 && (
+            <div
+              className="mx-auto mb-1 w-[18.2rem] max-w-[calc(100%-1.2rem)] rounded-[0.42rem] border border-[#9a6137]/50 bg-[#fff0c7]/52 px-3 py-[0.42rem] text-center text-[0.68rem] font-extrabold italic leading-tight text-[#7b3215]/88"
+              style={{ fontFamily: serifFont }}
+            >
+              Alkoholijuomat maksetaan kassalla, eivätkä sisälly yhteissummaan.
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={onCompare}
+            disabled={!hasItems}
+            className={cx(
+              "ml-[5.15rem] mt-[0.68rem] block rounded-[0.50rem] border-[2.5px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-5 py-[0.36rem] text-[0.82rem] font-extrabold italic text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58),0_2px_4px_rgba(62,43,20,0.18)] active:translate-y-[1px]",
+              !hasItems && "cursor-not-allowed opacity-45",
+            )}
+            style={{ fontFamily: cooperFont }}
+          >
+            Halpuusvertailu
+          </button>
+        </footer>
+        ) : null}
+
+        {onBack ? (
+          <button
+            type="button"
+            onClick={onBack}
+            className="absolute bottom-[1.05rem] left-[0.88rem] z-[35] grid h-[2.45rem] w-[2.75rem] place-items-center rounded-l-[0.42rem] rounded-r-[0.8rem] border-[2px] border-[#2b1a0e] bg-[linear-gradient(135deg,#7a4c2d_0%,#3b2414_78%)] text-[1.1rem] font-black leading-none text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.25),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]"
+            aria-label="Takaisin"
+            title="Takaisin"
+          >
+            <span className="grid h-[1.45rem] w-[1.45rem] place-items-center rounded-full border border-[#6b421f] bg-[radial-gradient(circle_at_35%_35%,#f6c46c_0%,#b0752a_52%,#65401f_100%)] text-[1.02rem] text-[#2b1a0e] shadow-[0_1px_2px_rgba(0,0,0,0.28)]">
+              ←
+            </span>
+          </button>
+        ) : null}
+
+        {onShareCart && hasItems && !showCompletionCardV58 ? (
+          <button
+            type="button"
+            onClick={onShareCart}
+            className="absolute bottom-[2.94rem] left-[3.72rem] z-[35] grid h-[2.22rem] w-[2.22rem] place-items-center rounded-[0.46rem] border-[1.6px] border-[#8b713d] bg-[linear-gradient(180deg,#f5e5bd_0%,#d6b875_100%)] text-[#51361a] shadow-[0_2px_5px_rgba(45,30,10,0.17),inset_0_0_0_1px_rgba(255,249,220,0.55)] active:translate-y-[1px]"
+            aria-label="Jaa ostoskori"
+            title="Jaa ostoskori"
+          >
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 18"
+              className="h-[0.94rem] w-[1.12rem]"
+            >
+              <path
+                d="M2.5 3.5h19v11h-19z"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M3 4l9 6.5L21 4M3.2 14.2l6.1-5M20.8 14.2l-6.1-5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        ) : null}
+
+        <button
+          type="button"
+          onClick={onClose}
+          className="absolute bottom-[1.05rem] right-[0.88rem] z-[35] grid h-[2.45rem] w-[2.75rem] place-items-center rounded-l-[0.8rem] rounded-r-[0.42rem] border-[2px] border-[#2b1a0e] bg-[linear-gradient(135deg,#7a4c2d_0%,#3b2414_78%)] text-[1.1rem] font-black leading-none text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.25),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]"
+          aria-label="Sulje"
+          title="Sulje vihko"
+        >
+          <span className="grid h-[1.45rem] w-[1.45rem] place-items-center rounded-full border border-[#6b421f] bg-[radial-gradient(circle_at_35%_35%,#f6c46c_0%,#b0752a_52%,#65401f_100%)] text-[0.92rem] text-[#2b1a0e] shadow-[0_1px_2px_rgba(0,0,0,0.28)]">
+            ×
+          </span>
+        </button>
+
+        <div className="pointer-events-none absolute -bottom-[0.72rem] left-[1.1rem] right-[1.1rem] h-[1.3rem] rounded-[50%] bg-[#cfaa61] opacity-55 blur-[1px]" />
+
+        <style jsx>{`
+          @keyframes ziiplyCartPaperPop {
+            0% {
+              opacity: 0;
+              transform: translateY(18px) scale(0.965) rotate(-0.4deg);
+            }
+            58% {
+              opacity: 1;
+              transform: translateY(-3px) scale(1.01) rotate(0.2deg);
+            }
+            100% {
+              opacity: 1;
+              transform: translateY(0) scale(1) rotate(0deg);
+            }
+          }
+
+          .ziiply-cart-paper-pop {
+            animation: ziiplyCartPaperPop 420ms cubic-bezier(0.2, 0.9, 0.25, 1.2);
+          }
+
+          @keyframes ziiplyCartCompleteCardV61 {
+            0% {
+              opacity: 0;
+              transform: translateY(12px) scale(0.975) rotate(-0.25deg);
+            }
+            62% {
+              opacity: 1;
+              transform: translateY(-2px) scale(1.012) rotate(0.15deg);
+            }
+            100% {
+              opacity: 1;
+              transform: translateY(0) scale(1) rotate(0deg);
+            }
+          }
+
+          .ziiply-cart-complete-card-v61 {
+            animation: ziiplyCartCompleteCardV61 480ms cubic-bezier(0.2, 0.9, 0.25, 1.18);
+          }
+        `}</style>
+      </section>
+    </div>
+  );
+}
+
+export { ZiiplyMobileCartCard };

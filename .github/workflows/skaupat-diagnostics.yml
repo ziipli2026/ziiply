@@ -1,0 +1,76 @@
+name: S-kaupat API diagnostics
+on: { workflow_dispatch: {} }
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: V271 Jokela vs Vehkoja RemoteGetPageContent raw comparison
+        run: |
+          node <<'NODE'
+          const ENDPOINT = "https://www.s-kaupat.fi/api/v1/graphql";
+          const HASH = "f6d87786fda8fb5c233c4eaed08f37b0c5b87dc0d8d4c44c33c5529e446369d1";
+          const CLIENT = "production-14a82a5b48cd1dd42c0592db0037514ed3c84de8";
+          const stores = [
+            { name: "S-market Vehkoja", id: "519941769" },
+            { name: "S-market Jokela", id: "685839110" },
+          ];
+
+          function stableStringify(x) {
+            if (Array.isArray(x)) return "[" + x.map(stableStringify).join(",") + "]";
+            if (x && typeof x === "object") return "{" + Object.keys(x).sort().map(k => JSON.stringify(k)+":"+stableStringify(x[k])).join(",") + "}";
+            return JSON.stringify(x);
+          }
+          function walk(v, path="", out=[]) {
+            if (!v || typeof v !== "object") return out;
+            if (Array.isArray(v)) { v.forEach((x,i)=>walk(x, path+"["+i+"]", out)); return out; }
+            const keys=Object.keys(v);
+            const textKeys=keys.filter(k=>/title|name|label|text|description|valid|campaign|benefit|store|chain|segment|target/i.test(k));
+            if (textKeys.length) {
+              const vals={}; for (const k of textKeys) if (typeof v[k] !== "object") vals[k]=v[k];
+              if (Object.keys(vals).length) out.push({path, vals});
+            }
+            for (const [k,x] of Object.entries(v)) walk(x, path ? path+"."+k : k, out);
+            return out;
+          }
+          function products(v,out=[]) {
+            if (!v || typeof v !== "object") return out;
+            if (Array.isArray(v)) { v.forEach(x=>products(x,out)); return out; }
+            const ean = v.ean || v.eanCode || v.gtin || v.id;
+            const name = v.name || v.title || v.productName;
+            const price = v.price ?? v.priceText ?? v.currentPrice ?? v.offerPrice;
+            if (name && (ean || price != null) && /product|ean|price|gtin/i.test(Object.keys(v).join(" "))) {
+              out.push({ean:String(ean||""),name:String(name),price:typeof price==="object"?stableStringify(price):String(price??""), benefit:String(v.benefitText||v.discountText||v.campaignText||""), validity:String(v.validityText||v.validTo||v.endDate||"")});
+            }
+            Object.values(v).forEach(x=>products(x,out)); return out;
+          }
+          async function fetchStore(s) {
+            const variables = { storeId:s.id, path:"tuotteet/kampanjat" };
+            const ext = { persistedQuery:{version:1,sha256Hash:HASH} };
+            const url = ENDPOINT+"?operationName=RemoteGetPageContent&variables="+encodeURIComponent(JSON.stringify(variables))+"&extensions="+encodeURIComponent(JSON.stringify(ext));
+            const r=await fetch(url,{headers:{"accept":"application/json","content-type":"application/json","x-client-version":CLIENT,"user-agent":"Mozilla/5.0"}});
+            const body=await r.text();
+            let json; try { json=JSON.parse(body); } catch { json={_raw:body}; }
+            console.log("STORE_RESPONSE_META "+JSON.stringify({name:s.name,id:s.id,status:r.status,length:body.length,contentType:r.headers.get("content-type")}));
+            console.log("STORE_TOP_LEVEL "+s.name+" "+JSON.stringify(json && typeof json==="object" ? Object.keys(json) : []));
+            console.log("STORE_CONTEXT_HINTS "+s.name+" "+JSON.stringify(walk(json).filter(x=>/prisma|s-market|jokela|vehkoja|voimassa|kampanj|campaign|store|chain/i.test(stableStringify(x))).slice(0,250),null,2));
+            return {s,r,json,body};
+          }
+          (async()=>{
+            const a=await fetchStore(stores[0]), b=await fetchStore(stores[1]);
+            const pa=products(a.json), pb=products(b.json);
+            const uniq = xs => {
+              const m=new Map(); for(const x of xs){const k=x.ean||x.name; if(k&&!m.has(k))m.set(k,x)} return [...m.values()];
+            };
+            const ua=uniq(pa), ub=uniq(pb), ma=new Map(ua.map(x=>[x.ean||x.name,x])), mb=new Map(ub.map(x=>[x.ean||x.name,x]));
+            const onlyA=[...ma.keys()].filter(k=>!mb.has(k));
+            const onlyB=[...mb.keys()].filter(k=>!ma.has(k));
+            const changed=[...ma.keys()].filter(k=>mb.has(k)&&stableStringify(ma.get(k))!==stableStringify(mb.get(k))).map(k=>({vehkoja:ma.get(k),jokela:mb.get(k)}));
+            const prismaA=ua.filter(x=>/prismoissa|prisma/i.test(stableStringify(x)));
+            const prismaB=ub.filter(x=>/prismoissa|prisma/i.test(stableStringify(x)));
+            console.log("PRODUCT_COMPARE "+JSON.stringify({vehkojaCandidates:pa.length,jokelaCandidates:pb.length,vehkojaUnique:ua.length,jokelaUnique:ub.length,onlyVehkoja:onlyA.length,onlyJokela:onlyB.length,changed:changed.length,prismaMarkedVehkoja:prismaA.length,prismaMarkedJokela:prismaB.length,onlyVehkojaSample:onlyA.slice(0,30),onlyJokelaSample:onlyB.slice(0,30),changedSample:changed.slice(0,30),prismaVehkojaSample:prismaA.slice(0,20),prismaJokelaSample:prismaB.slice(0,20)},null,2));
+            console.log("RAW_COMPARE "+JSON.stringify({sameBody:a.body===b.body,vehkojaLength:a.body.length,jokelaLength:b.body.length}));
+            if(a.r.status!==200||b.r.status!==200) process.exitCode=1;
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE

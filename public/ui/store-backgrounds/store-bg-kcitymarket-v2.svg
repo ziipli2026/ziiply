@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 430">
+  <defs>
+    <filter id="paper-grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.72" numOctaves="3" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feComponentTransfer><feFuncA type="table" tableValues="0 0.075"/></feComponentTransfer>
+    </filter>
+    <linearGradient id="facade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#efe2c3"/>
+      <stop offset="1" stop-color="#c9ad78"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8fa2a1" stop-opacity=".78"/>
+      <stop offset=".52" stop-color="#526d74" stop-opacity=".60"/>
+      <stop offset="1" stop-color="#e8d49d" stop-opacity=".42"/>
+    </linearGradient>
+    <linearGradient id="fadeTop" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff8dc" stop-opacity="0"/>
+      <stop offset=".34" stop-color="#fff8dc" stop-opacity=".10"/>
+      <stop offset="1" stop-color="#fff8dc" stop-opacity=".0"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="900" height="430" fill="none"/>
+  <g opacity=".82">
+    <path d="M48 352 C180 327 294 322 445 329 C606 337 745 320 856 296" fill="none" stroke="#856735" stroke-width="12" opacity=".30"/>
+
+    <path d="M76 176 L805 136 L842 310 L110 336 Z" fill="#8d744f" opacity=".30"/>
+    <path d="M102 190 L786 153 L812 294 L135 315 Z" fill="url(#facade)" opacity=".84"/>
+
+    <path d="M84 177 L807 137 L742 86 L153 120 Z" fill="#835e4d" opacity=".72"/>
+    <path d="M152 120 L742 86" stroke="#fff0bd" stroke-width="10" stroke-linecap="round" opacity=".36"/>
+
+    <rect x="140" y="205" width="88" height="55" rx="4" fill="url(#glass)"/>
+    <rect x="252" y="199" width="88" height="55" rx="4" fill="url(#glass)"/>
+    <rect x="364" y="193" width="88" height="55" rx="4" fill="url(#glass)"/>
+    <rect x="578" y="181" width="88" height="55" rx="4" fill="url(#glass)"/>
+    <rect x="690" y="175" width="74" height="55" rx="4" fill="url(#glass)"/>
+
+    <path d="M132 268 L770 236" stroke="#fff4ca" stroke-width="6" opacity=".22"/>
+    <path d="M128 267 L778 235" stroke="#76542b" stroke-width="10" opacity=".18"/>
+
+    <rect x="472" y="207" width="82" height="84" rx="5" fill="#594530" opacity=".55"/>
+    <path d="M513 207 L513 291" stroke="#fff6cc" stroke-width="4" opacity=".26"/>
+
+    <rect x="116" y="288" width="118" height="13" rx="4" fill="#73562f" opacity=".20"/>
+    <rect x="612" y="266" width="144" height="13" rx="4" fill="#73562f" opacity=".18"/>
+
+    <g opacity=".40">
+      <ellipse cx="208" cy="326" rx="28" ry="9" fill="#5f4729"/>
+      <path d="M208 326 l17 -30 l17 30" fill="none" stroke="#5f4729" stroke-width="4"/>
+      <ellipse cx="708" cy="300" rx="28" ry="9" fill="#5f4729"/>
+      <path d="M708 300 l17 -30 l17 30" fill="none" stroke="#5f4729" stroke-width="4"/>
+    </g>
+
+    <g opacity=".30">
+      <circle cx="828" cy="266" r="34" fill="#526d47"/>
+      <rect x="824" y="276" width="8" height="54" fill="#604623"/>
+      <circle cx="70" cy="312" r="24" fill="#526d47"/>
+      <rect x="67" y="320" width="7" height="38" fill="#604623"/>
+    </g>
+
+    <rect x="238" y="132" width="376" height="52" rx="8" fill="#ead9ad" opacity=".26"/>
+    <text x="426" y="169" text-anchor="middle" font-family="Georgia,serif" font-size="42" font-weight="700" fill="#6a2e24" opacity=".36">K-CITYMARKET</text>
+  </g>
+
+  <rect width="900" height="430" filter="url(#paper-grain)" opacity=".58"/>
+</svg>
