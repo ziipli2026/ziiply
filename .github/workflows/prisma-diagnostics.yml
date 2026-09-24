@@ -6,26 +6,23 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Compare campaign sections across S-markets V280
+      - name: Cross-chain campaign scope validation V281
         shell: bash
         run: |
           node <<'NODE'
           const HASH="f6d87786fda8fb5c233c4eaed08f37b0c5b87dc0d8d4c44c33c5529e446369d1",CLIENT="production-14a82a5b48cd1dd42c0592db0037514ed3c84de8";
           const date=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
-          const stores=[["Vehkoja","519941769"],["Jokela","685839110"],["Pukinmäki","726261341"],["Kommila","708276035"],["Tammela","613760495"],["Tanelinranta","660828401"],["Hiukkavaara","726722520"]];
-          const key=p=>String(p?.ean||p?.id||p?.name||"");
-          const secSig=s=>[s?.title,s?.description,s?.metadata?.entryName].filter(Boolean).join(" | ");
-          const cls=s=>{const t=secSig(s).toLowerCase();return /\bprisma\b/.test(t)&&!/\bs[ -]?market\b/.test(t)?"PRISMA_ONLY":/\bs[ -]?market\b/.test(t)?"SMARKET_EXPLICIT":"GENERIC"};
-          async function get(name,id){
+          const stores=[["S-market Vehkoja","519941769","s-market"],["S-market Tanelinranta","660828401","s-market"],["Alepa Pukinmäki","726261341","alepa"],["Sale Kommila","708276035","sale"]];
+          const ev=s=>[s?.title,s?.description,s?.text,s?.tagTitle,s?.metadata?.entryName].filter(Boolean).join(" | ");
+          const chains=t=>["prisma","s-market","alepa","sale"].filter(c=>new RegExp(c==="s-market"?"\\bs[ -]?market\\b":"\\b"+c+"\\b","i").test(t));
+          async function get(name,id,expected){
             const variables={preview:false,storeId:id,skipProducts:false,availabilityDate:date,where:{storeId:id,path:"tuotteet/kampanjat",platform:"WEB",availabilityDate:date,userConsent:{marketing:false,marketingId:"ziiply-gosta",useCustomerId:false,sessionId:"ziiply-gosta",loop54:true}}};
             const extensions={clientLibrary:{name:"@apollo/client",version:"4.2.12"},persistedQuery:{version:1,sha256Hash:HASH}};
             const u=new URL("https://api.s-kaupat.fi/");u.searchParams.set("operationName","RemoteGetPageContent");u.searchParams.set("variables",JSON.stringify(variables));u.searchParams.set("extensions",JSON.stringify(extensions));
             const r=await fetch(u,{headers:{accept:"application/graphql-response+json,application/json;q=0.9","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":CLIENT}});
-            const d=await r.json(),secs=d?.data?.pageContent?.sections||[];
-            const rows=secs.map((s,i)=>({i,class:cls(s),title:s?.title||"",entry:s?.metadata?.entryName||"",count:(s?.products||[]).length,eans:(s?.products||[]).map(key).filter(Boolean)}));
-            const all=new Set(rows.flatMap(x=>x.eans)),generic=new Set(rows.filter(x=>x.class==="GENERIC").flatMap(x=>x.eans)),prisma=new Set(rows.filter(x=>x.class==="PRISMA_ONLY").flatMap(x=>x.eans));
-            console.log("V280_STORE "+JSON.stringify({name,id,status:r.status,sections:rows.map(({eans,...x})=>x),uniqueAll:all.size,uniqueGeneric:generic.size,uniquePrismaOnly:prisma.size},null,2));
-            return {name,rows,all,generic,prisma};
+            const d=await r.json(),secs=d?.data?.pageContent?.sections||[];let wrong=0,explicit=0,generic=0,wrongProducts=0;
+            const rows=secs.map((s,i)=>{const evidence=ev(s),cs=chains(evidence),count=(s?.products||[]).length,isWrong=cs.length>0&&!cs.includes(expected),isExplicit=cs.includes(expected);if(isWrong){wrong++;wrongProducts+=count}else if(isExplicit)explicit++;else generic++;return {i,title:s?.title||"",entry:s?.metadata?.entryName||"",count,chains:cs,class:isWrong?"WRONG_CHAIN":isExplicit?"EXPECTED_CHAIN":"GENERIC"}});
+            console.log("V281_STORE "+JSON.stringify({name,id,expected,status:r.status,sections:secs.length,wrongSections:wrong,wrongProducts,expectedSections:explicit,genericSections:generic,rows:rows.filter(x=>x.count||x.class!=="GENERIC")},null,2));
           }
-          (async()=>{const rs=[];for(const s of stores)rs.push(await get(...s));const base=rs[0];for(const r of rs.slice(1)){console.log("V280_COMPARE "+JSON.stringify({a:base.name,b:r.name,allShared:[...base.all].filter(x=>r.all.has(x)).length,allOnlyA:[...base.all].filter(x=>!r.all.has(x)).length,allOnlyB:[...r.all].filter(x=>!base.all.has(x)).length,genericShared:[...base.generic].filter(x=>r.generic.has(x)).length,genericOnlyA:[...base.generic].filter(x=>!r.generic.has(x)).length,genericOnlyB:[...r.generic].filter(x=>!base.generic.has(x)).length},null,2))}})().catch(e=>{console.error(e);process.exitCode=1});
+          (async()=>{for(const s of stores)await get(...s)})().catch(e=>{console.error(e);process.exitCode=1});
           NODE
