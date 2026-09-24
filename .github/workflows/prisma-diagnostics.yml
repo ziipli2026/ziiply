@@ -4,69 +4,36 @@ on:
 jobs:
   s-local:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 5
     steps:
-      - name: S-local active provider broad test V266
+      - name: S-local official directory ID test V267
         shell: bash
         run: |
           node <<'NODE'
-          const PICKUP_HASH="6da249b0fd87c05275a239ed490976c851d7aff90ead0f3a3978e8283f21252d";
           const PAGE_HASH="f6d87786fda8fb5c233c4eaed08f37b0c5b87dc0d8d4c44c33c5529e446369d1";
           const CLIENT="production-14a82a5b48cd1dd42c0592db0037514ed3c84de8";
-          const targets=[
-            "S-market Vehkoja","S-market Redi","S-market Pukinmäki","S-market Suutarila","S-market Kontula",
-            "S-market Kommila Varkaus","S-market Tammela","S-market Tupuri","S-market Hamina","S-market Savitaipale",
-            "S-market Kourula","S-market Vaajala","S-market Tanelinranta","S-market Jurva","S-market Sundom",
-            "S-market Kannus","S-market Haapavesi","S-market Hiukkavaara","S-market Ivalo"
-          ];
+          const targets=["S-market Vehkoja","S-market Redi","S-market Suutarila","S-market Kontula","S-market Tammela","S-market Kourula","S-market Tanelinranta","S-market Hiukkavaara"];
           const norm=v=>String(v??"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9åäö]+/gi," ").replace(/\s+/g," ").trim();
-          const place=n=>norm(n).replace(/^s\s*market\s+/,"").replace(/^smarket\s+/,"").trim();
-          const brand=n=>norm(n).startsWith("s market ")||norm(n).startsWith("smarket ")?"s-market":"";
           const today=()=>new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
-          async function geocode(name){
-            for(const q of [...new Set([name+", Finland",place(name)+", Finland"])]){
-              const u=new URL("https://nominatim.openstreetmap.org/search");u.searchParams.set("format","jsonv2");u.searchParams.set("countrycodes","fi");u.searchParams.set("q",q);u.searchParams.set("limit","1");
-              const r=await fetch(u,{headers:{accept:"application/json","accept-language":"fi","user-agent":"Ziiply/1.0 (+https://ziiply.fi)"}});if(!r.ok)continue;
-              const a=await r.json(),x=Array.isArray(a)?a[0]:null,lat=Number(x?.lat),lon=Number(x?.lon);if(Number.isFinite(lat)&&Number.isFinite(lon))return{lat,lon,q,display:x?.display_name||""};
-            } return null;
+          async function directory(name){
+            const u=new URL("https://www.s-kaupat.fi/myymalat/s-market");u.searchParams.set("query",name);
+            const r=await fetch(u,{headers:{accept:"text/html,application/xhtml+xml","accept-language":"fi","user-agent":"Mozilla/5.0 (compatible; Ziiply/1.0; +https://ziiply.fi)"}});
+            const body=await r.text(); const rows=[];
+            for(const m of body.matchAll(/\/myymala\/([^"'<>\s/]+)\/(\d{5,})/g)) rows.push({slug:m[1],id:m[2]});
+            const wanted=norm(name).replace(/^s market /,"");
+            const uniq=[...new Map(rows.map(x=>[x.id,x])).values()];
+            const best=uniq.find(x=>norm(x.slug.replace(/-/g," ")).includes(wanted))||null;
+            return {status:r.status,count:uniq.length,best,sample:uniq.slice(0,10)};
           }
-          async function pickups(lat,lon){
-            const variables={startDate:today(),endDate:today(),location:{latitude:lat,longitude:lon},limit:20};
-            const extensions={persistedQuery:{version:1,sha256Hash:PICKUP_HASH}};
-            const u=new URL("https://api.s-kaupat.fi/");u.searchParams.set("operationName","remotePickupSlots");u.searchParams.set("variables",JSON.stringify(variables));u.searchParams.set("extensions",JSON.stringify(extensions));
-            const r=await fetch(u,{headers:{accept:"application/graphql-response+json,application/json;q=0.9","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":CLIENT}});
-            const d=await r.json();const rows=d?.data?.pickupSlotsForCoordinates?.slotsInPickupPoints;
-            return {status:r.status,rows:Array.isArray(rows)?rows.map(x=>({storeId:String(x?.store?.id||"").trim(),brand:String(x?.store?.brand||"").trim().toLowerCase(),pickupName:String(x?.pickupPoint?.name||"").trim(),city:String(x?.pickupPoint?.address?.city||"").trim(),postalCode:String(x?.pickupPoint?.address?.postalCode||"").trim(),distance:Number.isFinite(Number(x?.distance))?Number(x.distance):null})).filter(x=>/^\d{5,}$/.test(x.storeId)):[]};
-          }
-          function score(name,c){
-            const wp=place(name),p=norm(c.pickupName),city=norm(c.city);let s=0;if(brand(name)&&c.brand===brand(name))s+=100;else if(brand(name))s-=100;
-            if(wp){if(p.includes(wp))s+=100;if(city===wp)s+=50;else if(city&&(wp.includes(city)||city.includes(wp)))s+=25}
-            if(c.distance!=null){if(c.distance<=.25)s+=50;else if(c.distance<=1)s+=30;else if(c.distance<=5)s+=10}return s;
-          }
-          function accept(name,best){
-            if(!best)return false;const wp=place(name),p=norm(best.pickupName),city=norm(best.city),tokens=wp.split(/\s+/).filter(x=>x.length>=3);
-            const ph=tokens.filter(t=>p.includes(t)),ch=tokens.filter(t=>city===t||city.includes(t)||t.includes(city));
-            const exact=!!(wp&&p.includes(wp)),split=ph.length>0&&ch.length>0,single=tokens.length===1&&ch.length===1&&best.distance!=null&&best.distance<=.5,near=best.distance!=null&&best.distance<=.25;
-            return best.brand===brand(name)&&(exact||split||single||near)&&best.score>=100;
-          }
-          async function page(storeId){
-            const date=today(),variables={preview:false,storeId,skipProducts:false,availabilityDate:date,where:{storeId,path:"tuotteet/kampanjat",platform:"WEB",availabilityDate:date,userConsent:{marketing:false,marketingId:"ziiply-gosta",useCustomerId:false,sessionId:"ziiply-gosta",loop54:true}}};
+          async function page(id){
+            const date=today(),variables={preview:false,storeId:id,skipProducts:false,availabilityDate:date,where:{storeId:id,path:"tuotteet/kampanjat",platform:"WEB",availabilityDate:date,userConsent:{marketing:false,marketingId:"ziiply-gosta",useCustomerId:false,sessionId:"ziiply-gosta",loop54:true}}};
             const extensions={clientLibrary:{name:"@apollo/client",version:"4.2.12"},persistedQuery:{version:1,sha256Hash:PAGE_HASH}};
             const u=new URL("https://api.s-kaupat.fi/");u.searchParams.set("operationName","RemoteGetPageContent");u.searchParams.set("variables",JSON.stringify(variables));u.searchParams.set("extensions",JSON.stringify(extensions));
             const r=await fetch(u,{headers:{accept:"application/graphql-response+json,application/json;q=0.9","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":CLIENT}});
             const d=await r.json(),sections=d?.data?.pageContent?.sections;let products=0;if(Array.isArray(sections))for(const s of sections)products+=Array.isArray(s?.products)?s.products.length:0;
             return {status:r.status,sections:Array.isArray(sections)?sections.length:null,products,errors:d?.errors||[]};
           }
-          let ok=0,resolveFail=0,pageFail=0,zero=0;
-          for(const name of targets){
-            try{
-              const g=await geocode(name);if(!g){resolveFail++;console.log("SLOCAL_V266_RESULT "+JSON.stringify({name,pass:false,stage:"geocode"}));continue}
-              const p=await pickups(g.lat,g.lon);const ranked=p.rows.map(x=>({...x,score:score(name,x)})).sort((a,b)=>b.score-a.score||(a.distance??999999)-(b.distance??999999));const best=ranked[0];const accepted=accept(name,best);
-              if(!accepted){resolveFail++;console.log("SLOCAL_V266_RESULT "+JSON.stringify({name,pass:false,stage:"resolver",geocode:g,pickupStatus:p.status,best,candidates:ranked.slice(0,5)}));continue}
-              const pg=await page(best.storeId);const pass=pg.status===200&&pg.sections!==null;
-              if(!pass)pageFail++;else{ok++;if(pg.products===0)zero++}
-              console.log("SLOCAL_V266_RESULT "+JSON.stringify({name,pass,stage:"page",geocode:g,best,page:pg}));
-            }catch(e){resolveFail++;console.log("SLOCAL_V266_RESULT "+JSON.stringify({name,pass:false,stage:"exception",error:String(e?.message||e)}))}
-          }
-          console.log("SLOCAL_V266_SUMMARY "+JSON.stringify({tested:targets.length,ok,resolveFail,pageFail,zeroProductStores:zero}));
+          let resolved=0,pageOk=0;
+          for(const name of targets){try{const d=await directory(name);if(!d.best){console.log("SLOCAL_V267_RESULT "+JSON.stringify({name,pass:false,stage:"directory",directory:d}));continue}resolved++;const p=await page(d.best.id);const pass=p.status===200&&p.sections!==null;if(pass)pageOk++;console.log("SLOCAL_V267_RESULT "+JSON.stringify({name,pass,stage:"page",directory:d,page:p}));}catch(e){console.log("SLOCAL_V267_RESULT "+JSON.stringify({name,pass:false,stage:"exception",error:String(e?.message||e)}))}}
+          console.log("SLOCAL_V267_SUMMARY "+JSON.stringify({tested:targets.length,resolved,pageOk}));
           NODE
