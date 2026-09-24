@@ -403,7 +403,7 @@ if(!spatialResolved&&anchor&&pk&&pk.min===pk.max){
 }
 // Fixed-package explicit visual price: accept a split euro+cents price only when the printed local kg/l rate independently confirms it. This avoids trusting misleading expectedSingle arithmetic.
 if(!spatialResolved&&anchor&&pk&&pk.min===pk.max){
- const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.22);
+ const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.30);
  const groups=spatialGroups(local).map(g=>String(g.text||""));
  const unitRates=[];for(const t of groups){if(/Ilman\s+Plussa-korttia/i.test(t))continue;for(const m of t.matchAll(/(?:^|\s|\()(\d{1,2})\s+(\d{2})\/(kg|l)(?:\s|$|\))/gi))unitRates.push(Number(m[1]+"."+m[2]));}
  const prices=[];for(const t of groups){if(/Ilman\s+Plussa-korttia/i.test(t))continue;for(const m of t.matchAll(/(?:^|\s)(\d{1,2})\s+(\d{2})(?:\s|$)/g)){const value=Number(m[1]+"."+m[2]);if(value>=.5&&value<30&&unitRates.some(rate=>Math.abs(value/(pk.min*rate)-1)<=.015))prices.push(value);}}
@@ -638,13 +638,13 @@ if(!spatialResolved&&anchor&&pk&&pk.min===pk.max){
  const qtyUnits=[];
  for(const q of local.filter(b=>/^[2-9]$/.test(String(b.text||"").trim()))){
   const u=local.filter(b=>/^(PS|PKT|KPL|RS|TLK|PL|PRK)$/i.test(String(b.text||"").trim())).map(b=>({...b,d:Math.hypot((Number(b.left)||0)-(Number(q.left)||0),(Number(b.top)||0)-(Number(q.top)||0))})).sort((a,b)=>a.d-b.d)[0];
-  if(u&&u.d<.055)qtyUnits.push({quantity:Number(q.text),unit:String(u.text).toUpperCase(),q,u});
+  if(u&&u.d<.075)qtyUnits.push({quantity:Number(q.text),unit:String(u.text).toUpperCase(),q,u});
  }
  const unitRates=[];
  for(const a of local.filter(b=>/^\(?\d{1,2}$/.test(String(b.text||"").trim()))){
   const av=Number(String(a.text).replace(/\D/g,""));
   for(const b of local.filter(x=>/^\d{2}\/(kg|l)\)?$/i.test(String(x.text||"").trim()))){
-   if(Math.abs((Number(a.top)||0)-(Number(b.top)||0))<.012&&Number(b.left)>Number(a.left)&&Number(b.left)-Number(a.left)<.09){
+   if(Math.abs((Number(a.top)||0)-(Number(b.top)||0))<.012&&Number(b.left)>Number(a.left)&&Number(b.left)-Number(a.left)<.11){
     const m=String(b.text).match(/(\d{2})\/(kg|l)/i); if(m)unitRates.push({rate:Number(av+"."+m[1]),rateUnit:m[2].toLowerCase(),a,b});
    }
   }
@@ -652,7 +652,7 @@ if(!spatialResolved&&anchor&&pk&&pk.min===pk.max){
  const proofs=[];
  for(const qu of qtyUnits)for(const urate of unitRates){
   const value=Number((qu.quantity*pk.min*urate.rate).toFixed(2));
-  const rowNear=Math.abs((Number(qu.q.top)||0)-(Number(urate.a.top)||0))<.07;
+  const rowNear=Math.abs((Number(qu.q.top)||0)-(Number(urate.a.top)||0))<.09;
   if(rowNear&&value>=.5&&value<100)proofs.push({...qu,...urate,value,score:boxDistance(anchor,qu.q)+boxDistance(anchor,urate.a)});
  }
  proofs.sort((a,b)=>a.score-b.score);
