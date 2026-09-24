@@ -230,14 +230,6 @@ const erDigits=groupTexts.map(t=>t.match(/ERÄ\s+([1-9])\s+([0-9])\s+([0-9])/i))
 if(!spatialResolved&&nr&&nr.min>=10){const disc=groupTexts.map(t=>t.match(/(?:^|\s)([1-9][0-9]?)(?:\s|$)/)).find(m=>m&&Number(m[1])<nr.min);if(disc)spatialResolved={value:Number(disc[1]),quantity:null,unit:nr.unit||null,source:"group-discount-price"};}
 // Direct local product-group price: handle layouts where euro+cents are embedded in the same text row as
 // the product/package, e.g. "PORKKANA 99 1 kg" with "(0 99/kg)". Require arithmetic agreement.
-if(anchor&&expected){
- const rounded=Number(expected.toFixed(2)), euro=Math.floor(rounded), cents=String(Math.round((rounded-euro)*100)).padStart(2,"0");
- const localGroups=spatialGroups(wordBoxes.filter(b=>boxDistance(anchor,b)<.14)).map(g=>String(g.text||""));
- const unitEvidence=localGroups.some(t=>{const s=t.replace(/\\s+/g," ");const direct=new RegExp("\\(?"+euro+"\\s+"+cents+"(?:\\s+"+cents+")?\\/(?:kg|l)\\)?","i").test(s);const splitDup=euro===0&&new RegExp("\\(0\\s+"+cents+"\\s+"+cents+"\\/(?:kg|l)\\)","i").test(s);return direct||splitDup;});
- const productCents=localGroups.some(t=>new RegExp("(?:^|\\s)"+cents+"(?:\\s|$)").test(t));
- const weakExisting=!spatialResolved||spatialResolved.sanity==="review"||spatialResolved.source==="best-spatial-candidate";
- if(unitEvidence&&productCents&&weakExisting)spatialResolved={value:rounded,quantity:null,unit:null,source:"local-product-unitprice-exact",sanity:"pass"};
-}
 // Reconstruct an exact visual price from package-size/unit-price arithmetic when the matching cents are
 // printed in the local product group but the euro digit has been swallowed into adjacent title text.
 // Keep this strict: fixed/ranged package arithmetic must agree and the cents token must be local.
