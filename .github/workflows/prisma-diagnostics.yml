@@ -1303,6 +1303,16 @@ jobs:
           }
           NODE
 
+      - name: S-market publication candidate validity V261
+        shell: bash
+        run: |
+          node <<'NODE'
+          const API="https://squid-api.tjek.com/v4/rpc",KEY="152000596c6e45d9983eab0c14afebea";
+          const ids=["lJ1Vw-s_","Yu7vUFbe","T1vxWqaj","niqfjxWr","nFU0k81r"];
+          async function test(id){const r=await fetch(API+"/generate_incito_from_publication",{method:"POST",headers:{accept:"application/json","content-type":"application/json",origin:"https://etarjouslehdet.fi",referer:"https://etarjouslehdet.fi/","x-api-key":KEY},body:JSON.stringify({id,device_category:"desktop",pointer:"fine",orientation:"horizontal",pixel_ratio:2,max_width:1418,viewport_width:1432,viewport_height:900,versions_supported:["1.0.0"],locale_code:"fi-FI",time:new Date().toISOString(),feature_labels:[]})});const t=await r.text();console.log("SMARKET_V261 "+JSON.stringify({id,http:r.status,bytes:t.length,head:t.slice(0,180)}))}
+          for(const id of ids)await test(id);
+          NODE
+
       - name: Prisma Sunday 2026-09-20 resolver reconstruction V242
         shell: bash
         run: |
