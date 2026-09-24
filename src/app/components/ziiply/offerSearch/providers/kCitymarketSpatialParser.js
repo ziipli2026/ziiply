@@ -322,17 +322,6 @@ if(!spatialResolved||spatialResolved.sanity==="review"||spatialResolved.source==
 // Sale-price arithmetic without an explicit expectedSingle: if the product has a fixed package size and
 // a local unit-price row, derive the offer price only when it differs from an explicit "Ilman Plussa-korttia" row.
 // This recovers layouts where the large offer digits are fragmented (e.g. 500 ml at 5.00/l => 2.50).
-if(!spatialResolved&&anchor&&!expected&&pk){
- const pm=String(pk).match(/([0-9]+(?:[.,][0-9]+)?)\s*(kg|g|l|ml)\b/i);
- if(pm){
-  const amount=Number(pm[1].replace(",",".")), base=/^(kg|l)$/i.test(pm[2])?amount:amount/1000;
-  const groups=spatialGroups(wordBoxes.filter(b=>boxDistance(anchor,b)<.14)).map(g=>String(g.text||""));
-  const saleGroups=groups.filter(t=>!/Ilman\s+Plussa-korttia/i.test(t));
-  const rates=[];
-  for(const t of saleGroups){for(const m of t.matchAll(/(?:^|\s)([0-9]{1,2})\s+([0-9]{2})(?:\s*[–-]\s*[0-9]{1,2}\s+[0-9]{2})?\/(kg|l)(?:\s|$|\))/gi))rates.push(Number(m[1]+"."+m[2]));}
-  if(rates.length===1&&base>0){const v=Number((rates[0]*base).toFixed(2));if(v>=.5&&v<30)spatialResolved={value:v,quantity:null,unit:null,source:"local-unitprice-derived-offer",sanity:"pass"};}
- }
-}
 // Explicit local shelf-price text can also be the only trustworthy offer evidence when package/unit-price arithmetic is missing or misleading.
 // Keep it strict: one unique same-card value, sale unit required, and exclude Ilman Plussa-korttia comparison rows.
 if(!spatialResolved&&anchor){
