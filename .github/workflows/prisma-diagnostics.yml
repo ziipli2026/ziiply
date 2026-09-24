@@ -1268,6 +1268,41 @@ jobs:
           }
           NODE
 
+      - name: S-market Tjek full offer pipeline V260
+        shell: bash
+        run: |
+          node <<'NODE'
+          const API="https://squid-api.tjek.com/v4/rpc", KEY="152000596c6e45d9983eab0c14afebea";
+          const targets=[
+            ["S-market Vehkoja","lJ1Vw-s_"],
+            ["S-market Redi","T1vxWqaj"],
+            ["S-market Pukinmäki","niqfjxWr"],
+            ["S-market Suutarila","lJ1Vw-s_"],
+            ["S-market Kontula","lJ1Vw-s_"]
+          ];
+          async function rpc(path,body){
+            const r=await fetch(API+"/"+path,{method:"POST",headers:{accept:"application/json","content-type":"application/json",origin:"https://etarjouslehdet.fi",referer:"https://etarjouslehdet.fi/","x-api-key":KEY},body:JSON.stringify(body)});
+            const t=await r.text(); let j=null; try{j=JSON.parse(t)}catch{} return {status:r.status,text:t,json:j};
+          }
+          function walk(v,fn){if(!v)return;if(Array.isArray(v)){for(const x of v)walk(x,fn);return}if(typeof v==="object"){fn(v);for(const x of Object.values(v))walk(x,fn)}}
+          function sections(pub){
+            const out=[]; walk(pub,o=>{if(o.view_name!=="IncitoEmbedView"||typeof o.body!=="string")return;try{const b=JSON.parse(o.body);const sid=String(b.section_id||b.sectionId||"");const id=String(b.id||"");if(id&&sid)out.push({sid,body:b})}catch{}});
+            const seen=new Set(); return out.filter(x=>{const k=x.sid+"|"+String(x.body.id||"");if(seen.has(k))return false;seen.add(k);return true}).slice(0,18);
+          }
+          function offers(v){const out=[];walk(v,o=>{if(String(o.role||"")==="offer"&&String(o.accessibility_label||"").trim())out.push({id:String(o.id||""),label:String(o.accessibility_label||"")})});return out}
+          for(const [store,pid] of targets){
+            const p=await rpc("generate_incito_from_publication",{id:pid,device_category:"desktop",pointer:"fine",orientation:"horizontal",pixel_ratio:2,max_width:1418,viewport_width:1432,viewport_height:900,versions_supported:["1.0.0"],locale_code:"fi-FI",time:new Date().toISOString(),feature_labels:[]});
+            if(!p.json){console.log("SMARKET_V260 "+JSON.stringify({store,pid,pubHttp:p.status,pubHead:p.text.slice(0,300)}));continue}
+            const ss=sections(p.json); let raw=[], sectionStats=[];
+            for(const s of ss){
+              const q=await rpc("generate_incito_from_publication_section",s.body);
+              const oo=q.json?offers(q.json):[]; raw.push(...oo); sectionStats.push({sid:s.sid,http:q.status,offers:oo.length});
+            }
+            const uniq=new Map(); for(const o of raw){const k=o.id||o.label;if(!uniq.has(k))uniq.set(k,o)}
+            console.log("SMARKET_V260 "+JSON.stringify({store,pid,pubHttp:p.status,sections:ss.length,rawOffers:raw.length,uniqueOffers:uniq.size,sectionStats,sample:[...uniq.values()].slice(0,8)}));
+          }
+          NODE
+
       - name: Prisma Sunday 2026-09-20 resolver reconstruction V242
         shell: bash
         run: |
