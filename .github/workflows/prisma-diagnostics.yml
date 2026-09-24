@@ -1174,3 +1174,34 @@ jobs:
             }
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
+
+      - name: Prisma candidate storeId neighborhood probe V244
+        shell: bash
+        run: |
+          node <<'NODE'
+          const targets=[
+            ["Prisma Hämeenkatu Tampere","726413330"],
+            ["Prisma Raksila Oulu","516528759"],
+            ["Prisma Myyrmanni","726435566"],
+            ["Prisma Jumbo","613761030"],
+            ["Prisma Lohja","603212895"],
+            ["Prisma Tuusula","726753948"],
+          ];
+          const H="44ca017dddccfe49e787b483f471f26217adca807f8c71101d11e881dab9e480", CV="production-45c31f48e5bb33b8ef00ca6382c9c08a20eb48d7";
+          async function probe(id){
+            const v={storeId:id,queryString:"",limit:1,from:0,filters:{labels:["DISCOUNTED"]}};
+            const u=new URL("https://api.s-kaupat.fi/");u.searchParams.set("operationName","RemoteFilteredProducts");u.searchParams.set("variables",JSON.stringify(v));u.searchParams.set("extensions",JSON.stringify({persistedQuery:{version:1,sha256Hash:H}}));
+            const r=await fetch(u,{headers:{accept:"application/json","content-type":"application/json","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":CV}});
+            const j=await r.json(),p=j?.data?.store?.products;
+            return {id,http:r.status,responseStoreId:String(j?.data?.store?.id||""),total:p?.total??null,errors:(j?.errors||[]).map(e=>e.message)};
+          }
+          (async()=>{
+            for(const [name,id] of targets){
+              const n=Number(id), ids=[id];
+              // S-kaupat IDs often share a store prefix; test only a tiny diagnostic neighborhood, not a national scan.
+              for(let d=-3;d<=3;d++) if(d) ids.push(String(n+d));
+              const out=[]; for(const x of ids){out.push(await probe(x));await new Promise(r=>setTimeout(r,120));}
+              console.log("PRISMA_V244 "+JSON.stringify({name,currentId:id,results:out}));
+            }
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
