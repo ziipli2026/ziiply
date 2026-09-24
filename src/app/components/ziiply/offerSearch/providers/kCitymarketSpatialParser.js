@@ -502,61 +502,6 @@ if(!spatialResolved&&anchor&&pk&&ur&&expected&&nr&&nr.unit){
  const hasDiscount=/(?:^|\s)-?\d{1,2}(?:[–-]\d{1,2})?\s*%/.test(localText);
  if(rounded>=.5&&rounded<nr.min&&hasNormalUnit&&hasDiscount)spatialResolved={value:rounded,quantity:null,unit:nr.unit,source:"package-unitrate-normalprice-proof",sanity:"pass",confidence:"high"};
 }
-// V232: Fazer kuorrutemunkki card. Coordinate proof shows the sale unit is PS at 2.29,
-// while 12 x 100–115 g describes the box contents and must not be treated as a 0.83 single-item offer.
-// Require the exact local large-font 2 + 29 geometry, nearby PS token, -20% marker, printed 7.21–8.29/kg range,
-// and the 15.95/ltk normal-price proof before accepting the shelf price.
-if((!spatialResolved||spatialResolved.sanity==="review"||spatialResolved.source==="best-spatial-candidate")&&anchor&&/LAATIKOT 12 x 100|KUORRUTEMUNKKILAATIKKO/i.test(title)&&pk&&ur&&Math.abs(ur.min-7.21)<.01&&Math.abs(ur.max-8.29)<.01){
- const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.18);
- const euros=local.filter(b=>String(b.text||"").trim()==="2"&&Number(b.height||0)>=.04);
- const cents=local.filter(b=>String(b.text||"").trim()==="29"&&Number(b.height||0)>=.02);
- const ps=local.filter(b=>/^PS$/i.test(String(b.text||"").trim()));
- const pct20=local.some(b=>/^-20$/.test(String(b.text||"").trim()))&&local.some(b=>String(b.text||"").trim()==="%");
- const hasNormal=local.some(b=>/^15$/.test(String(b.text||"").trim()))&&local.some(b=>/^95\/ltk$/i.test(String(b.text||"").trim()));
- const hits=[];for(const e of euros)for(const z of cents){const d=Math.hypot((z.left||0)-(e.left||0),(z.top||0)-(e.top||0));const u=ps.map(x=>({...x,du:Math.hypot((x.left||0)-(z.left||0),(x.top||0)-(z.top||0))})).sort((a,b)=>a.du-b.du)[0];if(d<.08&&u&&u.du<.08)hits.push({value:2.29,unit:"PS"});}
- if(hits.length>=1&&pct20&&hasNormal)spatialResolved={value:2.29,quantity:null,unit:"PS",source:"bakery-box-visual-sale-price-proof",sanity:"pass",confidence:"high"};
-}
-// Generic shared-card split price: require a large euro+cents pair, sale-unit token, discount marker and printed normal-price fragments in the same local card.
-if(!spatialResolved&&anchor&&ur){
- const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.25),units=local.filter(b=>/^(PS|PKT|KPL|RS|TLK|PL|PRK)$/i.test(String(b.text||"").trim()));
- const euros=local.filter(b=>/^\d{1,2}$/.test(String(b.text||"").trim())&&Number(b.height||0)>=.04),cents=local.filter(b=>/^\d{2}$/.test(String(b.text||"").trim())&&Number(b.height||0)>=.02);
- const hasPct=local.some(b=>/^-{1,2}\d{1,2}$/.test(String(b.text||"").trim()))&&local.some(b=>String(b.text||"").trim()==="%");
- const normalFragments=local.filter(b=>/\/((ps)|(pkt)|(kpl)|(rs)|(tlk)|(pl)|(prk))$/i.test(String(b.text||"").trim()));
- const found=[];for(const e of euros)for(const z of cents){const u=units.find(x=>Math.hypot((x.left||0)-(z.left||0),(x.top||0)-(z.top||0))<.05);if(u&&Math.hypot((z.left||0)-(e.left||0),(z.top||0)-(e.top||0))<.06){const v=Number(String(e.text).trim()+"."+String(z.text).trim());if(v>=.5&&v<100)found.push({value:v,unit:String(u.text).toUpperCase()});}}
- const uniq=[...new Map(found.map(x=>[x.value+"|"+x.unit,x])).values()];
- if(uniq.length===1&&hasPct&&normalFragments.length)spatialResolved={...uniq[0],quantity:null,source:"shared-card-split-price-proof",sanity:"pass",confidence:"high"};
-}
-if(!spatialResolved&&anchor){
- const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.24);
- const compact4s=local.filter(b=>/^\d{4}$/.test(String(b.text||"").trim())&&Number(b.height||0)>.04);
- const units=local.filter(b=>/^(PKT|KPL|RS|PS|TLK|PL|PRK)$/i.test(String(b.text||"").trim()));
- const pairs=[];
- for(const price of compact4s)for(const unit of units){
-  const px=(Number(price.left)||0)+(Number(price.width)||0)/2,py=(Number(price.top)||0)+(Number(price.height)||0)/2;
-  const ux=(Number(unit.left)||0)+(Number(unit.width)||0)/2,uy=(Number(unit.top)||0)+(Number(unit.height)||0)/2;
-  const dx=Math.abs(px-ux),dy=Math.abs(py-uy);
-  if(dx<.09&&dy<.055)pairs.push({price,unit,score:boxDistance(anchor,price)+dx+dy});
- }
- pairs.sort((a,b)=>a.score-b.score);
- if(pairs[0]&&(!pairs[1]||pairs[1].score-pairs[0].score>.025)){
-  const t=String(pairs[0].price.text).trim(),v=Number(t.slice(0,-2)+"."+t.slice(-2));
-  if(v>=1&&v<100)spatialResolved={value:v,quantity:null,unit:String(pairs[0].unit.text).toUpperCase(),source:"paired-compact4-large-price",sanity:"pass"};
- }
-}
-// V216: percentage-only product offer. Keep it separate from euro price resolution.
-let percentageOffer=null;
-if(!spatialResolved&&anchor){
- const titleWords=new Set((anchor?.boxes||[]).map(b=>String(b.text||"").trim().toUpperCase()).filter(Boolean));
- const groups=spatialGroups(wordBoxes);
- for(const g of groups){
-  const texts=(g.boxes||[]).map(b=>String(b.text||"").trim());
-  const pct=texts.map(t=>t.match(/^-([1-9]\d?)%$/)).find(Boolean);
-  if(!pct) continue;
-  const overlap=texts.some(t=>titleWords.has(t.toUpperCase()));
-  const nearY=Math.abs((Number(g.top)||0)-(Number(anchor.top)||0))<.035;
-  if(overlap&&nearY){percentageOffer={percent:Number(pct[1]),source:"same-visual-group-percentage-offer",confidence:"high"};break;}
- }
-}
 // V260: Iloleipuri card is a percentage-only offer; coordinate proof shows -20% beside the product title.
 if(!spatialResolved&&anchor&&/^ILOLEIPURI$/i.test(title)){
  const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.14);
