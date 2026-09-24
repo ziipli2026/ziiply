@@ -1,6 +1,6 @@
 // ============================================================================
-// SKAUPAT_LOCAL_CAMPAIGN_PROVIDER_V5_RUOANHINTA_EXTERNAL_ID_PRIMARY
-// Revision: V5-RUOANHINTA-EXTERNAL-ID-PRIMARY
+// SKAUPAT_LOCAL_CAMPAIGN_PROVIDER_V6_SECTION_CHAIN_SCOPE_FILTER
+// Revision: V6-SECTION-CHAIN-SCOPE-FILTER
 // Date: 2026-09-24
 //
 // V270-varmennettu korjaus:
@@ -169,6 +169,39 @@ function getPlaceFromStoreNameV1(storeName: string) {
 
 function isSupportedLocalSStoreV1(storeName: string) {
   return Boolean(getBrandFromStoreNameV1(storeName));
+}
+
+// V6: RemoteGetPageContent palauttaa storeId-kohtaista kampanjadataa, mutta
+// mukana voi olla myös eksplisiittisesti toiselle ketjulle rajattuja CMS-sectioneita.
+// Geneeriset sectionit pidetään. Section hylätään vain, jos se nimeää yhden tai
+// useamman tunnetun ketjun eikä valittu ketju kuulu niihin.
+function getExplicitSectionChainsV6(section: UnknownRecord) {
+  const evidence = [
+    section?.title,
+    section?.description,
+    section?.text,
+    section?.tagTitle,
+    section?.metadata?.entryName,
+  ]
+    .filter(Boolean)
+    .join(" | ");
+
+  const chains: string[] = [];
+  if (/\bprisma\b/i.test(evidence)) chains.push("prisma");
+  if (/\bs[ -]?market\b/i.test(evidence)) chains.push("s-market");
+  if (/\balepa\b/i.test(evidence)) chains.push("alepa");
+  if (/\bsale\b/i.test(evidence)) chains.push("sale");
+  return chains;
+}
+
+function isSectionAllowedForStoreV6(section: UnknownRecord, storeName: string) {
+  const selectedChain = getBrandFromStoreNameV1(storeName);
+  if (!selectedChain) return true;
+
+  const explicitChains = getExplicitSectionChainsV6(section);
+  if (!explicitChains.length) return true;
+
+  return explicitChains.includes(selectedChain);
 }
 
 async function geocodeStoreV1(storeName: string) {
@@ -742,6 +775,12 @@ export async function fetchSKaupatLocalCampaignOffersV1(
     let rawProductCount = 0;
 
     for (const section of sections) {
+      // V6: pidä geneerinen/storeId-kohtainen kampanjadata, mutta ohita section,
+      // joka on eksplisiittisesti rajattu toiselle ketjulle.
+      if (!isSectionAllowedForStoreV6(section, storeName)) {
+        continue;
+      }
+
       const products = Array.isArray(section?.products) ? section.products : [];
       rawProductCount += products.length;
 
