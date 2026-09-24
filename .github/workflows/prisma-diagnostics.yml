@@ -1065,6 +1065,7 @@ jobs:
 
 
       - name: Prisma zero-store old unfiltered master V241
+        if: ${{ false }}
         shell: bash
         run: |
           node <<'NODE'
@@ -1079,3 +1080,54 @@ jobs:
           }
           (async()=>{for(const x of ids){try{await q(...x)}catch(e){console.log("PRISMA_V241 "+JSON.stringify({name:x[0],error:String(e)}))};await new Promise(r=>setTimeout(r,900))}})();
           NODE
+
+      - name: Prisma Sunday 2026-09-20 resolver reconstruction V242
+        shell: bash
+        run: |
+          node <<'NODE'
+          const H="6da249b0fd87c05275a239ed490976c851d7aff90ead0f3a3978e8283f21252d";
+          const CV="production-14a82a5b48cd1dd42c0592db0037514ed3c84de8";
+          const PRODUCT_H="44ca017dddccfe49e787b483f471f26217adca807f8c71101d11e881dab9e480";
+          const PRODUCT_CV="production-45c31f7a746096c6da12e16aba1887e031fbd9de";
+          const targets=[
+            ["Prisma Hämeenkatu Tampere",61.4983959,23.7699485,"726413330"],
+            ["Prisma Raksila Oulu",65.0085847,25.4901711,"516528759"],
+            ["Prisma Myyrmanni",60.2602019,24.8534899,"726435566"],
+            ["Prisma Jumbo",60.2915942,24.9656777,"613761030"],
+            ["Prisma Lohja",60.2512041,24.0676953,"603212895"],
+            ["Prisma Tuusula",60.4015818,25.0295324,"726753948"],
+          ];
+          const norm=v=>String(v||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").replace(/\s+/g," ").trim();
+          const place=name=>norm(name).replace(/^prisma\s+/,"").trim();
+          async function pickup(name,lat,lon,date){
+            const variables={startDate:date,endDate:date,location:{latitude:lat,longitude:lon},limit:20};
+            const u=new URL("https://api.s-kaupat.fi/");
+            u.searchParams.set("operationName","remotePickupSlots");
+            u.searchParams.set("variables",JSON.stringify(variables));
+            u.searchParams.set("extensions",JSON.stringify({persistedQuery:{version:1,sha256Hash:H}}));
+            const r=await fetch(u,{headers:{accept:"application/graphql-response+json,application/json;q=0.9","content-type":"application/json","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":CV}});
+            const j=await r.json(); const rows=j?.data?.pickupSlotsForCoordinates?.slotsInPickupPoints||[];
+            const wanted=place(name);
+            const candidates=rows.map(x=>({storeId:String(x?.store?.id||""),brand:String(x?.store?.brand||"").toLowerCase(),pickupName:String(x?.pickupPoint?.name||""),city:String(x?.pickupPoint?.address?.city||""),postalCode:String(x?.pickupPoint?.address?.postalCode||""),distance:Number(x?.distance)}));
+            const ranked=candidates.map(c=>{const pn=norm(c.pickupName),city=norm(c.city);let score=c.brand==="prisma"?100:-100;if(wanted){if(pn.includes(wanted))score+=100;if(city===wanted)score+=50;else if(city&&(wanted.includes(city)||city.includes(wanted)))score+=25}if(Number.isFinite(c.distance)){if(c.distance<=.25)score+=50;else if(c.distance<=1)score+=30;else if(c.distance<=5)score+=10}return {...c,score}}).sort((a,b)=>b.score-a.score||a.distance-b.distance);
+            const best=ranked[0]||null; const nameHit=!!(best&&wanted&&norm(best.pickupName).includes(wanted)); const veryNear=!!(best&&Number.isFinite(best.distance)&&best.distance<=.5); const brandOk=!!(best&&best.brand==="prisma");
+            const accepted=!!(best&&brandOk&&(nameHit||veryNear)&&best.score>=100);
+            return {http:r.status,errors:j?.errors||[],candidateCount:candidates.length,best,accepted,resolvedStoreId:accepted?best.storeId:null,top5:ranked.slice(0,5)};
+          }
+          async function products(storeId,date){
+            if(!storeId)return null;
+            const variables={availabilityDate:date,facets:[{key:"brandName",order:"asc"},{key:"category"},{key:"labels"}],filters:[{key:"labels",value:["DISCOUNTED"]}],generatedSessionId:"1d6b5de9-df99-4608-af07-7d754955df82",fetchSponsoredContent:true,limit:48,queryString:"",sortForAvailabilityLabelDate:date,storeId,useRandomId:false,marketingId:"d0bcc6e5-6130-494e-b6fb-12b5cb9c60cf",from:0,offset:0,skip:0,page:1};
+            const u=new URL("https://api.s-kaupat.fi/");u.searchParams.set("operationName","RemoteFilteredProducts");u.searchParams.set("variables",JSON.stringify(variables));u.searchParams.set("extensions",JSON.stringify({persistedQuery:{version:1,sha256Hash:PRODUCT_H}}));
+            const r=await fetch(u,{headers:{accept:"application/json","content-type":"application/json","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":PRODUCT_CV,"user-agent":"Mozilla/5.0"}});
+            const j=await r.json();const p=j?.data?.store?.products;return {http:r.status,responseStoreId:String(j?.data?.store?.id||""),total:p?.total??null,count:Array.isArray(p?.productListItems)?p.productListItems.length:null,errors:j?.errors||[]};
+          }
+          (async()=>{
+            for(const [name,lat,lon,currentId] of targets){
+              const historical=await pickup(name,lat,lon,"20260920");
+              const historicalProducts=await products(historical.resolvedStoreId,"20260920");
+              console.log("PRISMA_V242 "+JSON.stringify({name,currentId,historicalDate:"20260920",historical,historicalProducts}));
+              await new Promise(r=>setTimeout(r,1000));
+            }
+          })().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
+
