@@ -5,23 +5,24 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
-      - name: V293 Prisma automatic fallback resolver audit
+      - name: V294 Prisma name-or-address safe resolver audit
         shell: bash
         run: |
           node <<'NODE'
           const tests=[
-            {name:"Hämeenkatu",city:"Tampere",lat:61.4978,lon:23.7610,expect:"726491474"},
-            {name:"Myyrmanni",city:"Vantaa",lat:60.2617,lon:24.8534,expect:"726452067"},
-            {name:"Jumbo",city:"Vantaa",lat:60.2925,lon:24.9628,expect:"726452067"},
-            {name:"Lohja",city:"Lohja",lat:60.2486,lon:24.0653,expect:"613759562"},
-            {name:"Tuusula",city:"Tuusula",lat:60.4030,lon:25.0260,expect:"726452067"},
-            {name:"Limingantulli",city:"Oulu",lat:64.9990,lon:25.4650,expect:"726760153"},
-            {name:"Lielahti",city:"Tampere",lat:61.5165,lon:23.6680,expect:"697940575"},
-            {name:"Raksila",city:"Oulu",lat:65.0100,lon:25.4900,expect:null}
+            {name:"Hämeenkatu",city:"Tampere",street:"Hämeenkatu",lat:61.4978,lon:23.7610,expect:"726491474"},
+            {name:"Myyrmanni",city:"Vantaa",street:"Iskoskuja",lat:60.2617,lon:24.8534,expect:"726452067"},
+            {name:"Jumbo",city:"Vantaa",street:"Vantaanportinkatu",lat:60.2925,lon:24.9628,expect:"726452067"},
+            {name:"Lohja",city:"Lohja",street:"",lat:60.2486,lon:24.0653,expect:"613759562"},
+            {name:"Tuusula",city:"Tuusula",street:"Autoasemankatu",lat:60.4030,lon:25.0260,expect:"726452067"},
+            {name:"Limingantulli",city:"Oulu",street:"Nuottasaarentie",lat:64.9990,lon:25.4650,expect:"726760153"},
+            {name:"Lielahti",city:"Tampere",street:"Turvesuonkatu",lat:61.5165,lon:23.6680,expect:"697940575"},
+            {name:"Raksila",city:"Oulu",street:"",lat:65.0100,lon:25.4900,expect:null}
           ];
           const H="6da249b0fd87c05275a239ed490976c851d7aff90ead0f3a3978e8283f21252d",C="production-14a82a5b48cd1dd42c0592db0037514ed3c84de8",date=new Date().toISOString().slice(0,10);
           const norm=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g," ").trim();
-          const tokens=s=>norm(s).split(/\s+/).filter(x=>x.length>2&&!["prisma","ruoan","verkkokauppa","noutopiste","noutolokero","noutotilaus","drive","sokos"].includes(x));
-          async function rows(t){const v={startDate:date,endDate:date,location:{latitude:t.lat,longitude:t.lon},limit:100},u=new URL("https://api.s-kaupat.fi/");u.searchParams.set("operationName","remotePickupSlots");u.searchParams.set("variables",JSON.stringify(v));u.searchParams.set("extensions",JSON.stringify({persistedQuery:{version:1,sha256Hash:H}}));const r=await fetch(u,{headers:{accept:"application/json","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":C}}),d=await r.json();return [r.status,d?.data?.pickupSlotsForCoordinates?.slotsInPickupPoints||[]]}
-          (async()=>{for(const t of tests){const [status,all]=await rows(t),want=tokens(t.name),cand=all.filter(x=>norm(x?.store?.brand)==="prisma").map(x=>{const n=x?.pickupPoint?.name||"",a=x?.pickupPoint?.address||{},nt=norm(n),score=want.reduce((s,z)=>s+(nt.includes(z)?100:0),0)+(norm(a.city)===norm(t.city)?20:0)+(Number(x?.distance||1e9)<=1000?10:0);return{id:String(x?.store?.id||""),name:n,city:a.city,distance:Math.round(x?.distance||0),score}}).sort((a,b)=>b.score-a.score||a.distance-b.distance);const best=cand[0];const safe=best&&best.score>=110?best:null;console.log("\n=== V293 "+t.name+" ===");console.log(JSON.stringify({status,tokens:want,best,safeId:safe?.id||null,expected:t.expect,pass:(safe?.id||null)===t.expect,top:cand.slice(0,5)},null,2));await new Promise(r=>setTimeout(r,700))}})().catch(e=>{console.error(e);process.exitCode=1});
+          const stop=new Set(["prisma","ruoan","verkkokauppa","noutopiste","noutolokero","noutotilaus","drive","sokos"]);
+          const toks=s=>norm(s).split(/\s+/).filter(x=>x.length>2&&!stop.has(x));
+          async function get(t){const v={startDate:date,endDate:date,location:{latitude:t.lat,longitude:t.lon},limit:100},u=new URL("https://api.s-kaupat.fi/");u.searchParams.set("operationName","remotePickupSlots");u.searchParams.set("variables",JSON.stringify(v));u.searchParams.set("extensions",JSON.stringify({persistedQuery:{version:1,sha256Hash:H}}));const r=await fetch(u,{headers:{accept:"application/json","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":C}}),d=await r.json();return[r.status,d?.data?.pickupSlotsForCoordinates?.slotsInPickupPoints||[]]}
+          (async()=>{for(const t of tests){const[status,all]=await get(t),want=toks(t.name),street=norm(t.street);const cand=all.filter(x=>norm(x?.store?.brand)==="prisma").map(x=>{const n=norm(x?.pickupPoint?.name),a=x?.pickupPoint?.address||{},dist=Number(x?.distance||1e9),nameHit=want.length>0&&want.some(z=>n.includes(z)),streetHit=!!street&&norm(a.street).includes(street),cityHit=norm(a.city)===norm(t.city);let safe=false,reason="";if(nameHit&&cityHit){safe=true;reason="name+city"}else if(streetHit&&cityHit&&dist<=1000){safe=true;reason="street+city+<=1km"}return{id:String(x?.store?.id||""),name:x?.pickupPoint?.name,street:a.street,city:a.city,distance:Math.round(dist),nameHit,streetHit,cityHit,safe,reason}}).sort((a,b)=>Number(b.safe)-Number(a.safe)||a.distance-b.distance);const safe=cand.filter(x=>x.safe),unique=[...new Set(safe.map(x=>x.id))],resolved=unique.length===1?unique[0]:null;console.log("\n=== V294 "+t.name+" ===");console.log(JSON.stringify({status,resolved,expected:t.expect,pass:resolved===t.expect,safeCandidates:safe.slice(0,8),top:cand.slice(0,5)},null,2));await new Promise(r=>setTimeout(r,700))}})().catch(e=>{console.error(e);process.exitCode=1});
           NODE
