@@ -1,79 +1,76 @@
 name: S-kaupat API diagnostics
 on: { workflow_dispatch: {} }
+
 jobs:
   diagnose:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Final 464-store mapping audit
+      - name: V271 Jokela vs Vehkoja RemoteGetPageContent raw comparison
         run: |
           node <<'NODE'
-          const overrides={"e_FuHxQz":"726783952","bvL3I2nH":"726666563","T5ukTphK":"726675436","9_tWc4ba":"726661262","GB3kPt9w":"726771429","m2lA854x":"726728751","EX3lLp-I":"726722520","-Z8p5bMX":"726638148"};
-          const five={"S-market Redi":"726342401","S-market Eskolanmäki":"725612617","S-market Isokyrö":"502960966","S-market Repokallio":"726435480","S-market Rajakylä":"726425628"};
-          const norm=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]/g,"");
-          function csv(line){let a=[],s="",q=false;for(let i=0;i<line.length;i++){let ch=line[i];if(ch=='"'){if(q&&line[i+1]=='"'){s+='"';i++}else q=!q}else if(ch==','&&!q){a.push(s);s=""}else s+=ch}a.push(s);return a}
+          const ENDPOINT = "https://www.s-kaupat.fi/api/v1/graphql";
+          const HASH = "f6d87786fda8fb5c233c4eaed08f37b0c5b87dc0d8d4c44c33c5529e446369d1";
+          const CLIENT = "production-14a82a5b48cd1dd42c0592db0037514ed3c84de8";
+          const stores = [
+            { name: "S-market Vehkoja", id: "519941769" },
+            { name: "S-market Jokela", id: "685839110" },
+          ];
+
+          function stableStringify(x) {
+            if (Array.isArray(x)) return "[" + x.map(stableStringify).join(",") + "]";
+            if (x && typeof x === "object") return "{" + Object.keys(x).sort().map(k => JSON.stringify(k)+":"+stableStringify(x[k])).join(",") + "}";
+            return JSON.stringify(x);
+          }
+          function walk(v, path="", out=[]) {
+            if (!v || typeof v !== "object") return out;
+            if (Array.isArray(v)) { v.forEach((x,i)=>walk(x, path+"["+i+"]", out)); return out; }
+            const keys=Object.keys(v);
+            const textKeys=keys.filter(k=>/title|name|label|text|description|valid|campaign|benefit|store|chain|segment|target/i.test(k));
+            if (textKeys.length) {
+              const vals={}; for (const k of textKeys) if (typeof v[k] !== "object") vals[k]=v[k];
+              if (Object.keys(vals).length) out.push({path, vals});
+            }
+            for (const [k,x] of Object.entries(v)) walk(x, path ? path+"."+k : k, out);
+            return out;
+          }
+          function products(v,out=[]) {
+            if (!v || typeof v !== "object") return out;
+            if (Array.isArray(v)) { v.forEach(x=>products(x,out)); return out; }
+            const ean = v.ean || v.eanCode || v.gtin || v.id;
+            const name = v.name || v.title || v.productName;
+            const price = v.price ?? v.priceText ?? v.currentPrice ?? v.offerPrice;
+            if (name && (ean || price != null) && /product|ean|price|gtin/i.test(Object.keys(v).join(" "))) {
+              out.push({ean:String(ean||""),name:String(name),price:typeof price==="object"?stableStringify(price):String(price??""), benefit:String(v.benefitText||v.discountText||v.campaignText||""), validity:String(v.validityText||v.validTo||v.endDate||"")});
+            }
+            Object.values(v).forEach(x=>products(x,out)); return out;
+          }
+          async function fetchStore(s) {
+            const variables = { storeId:s.id, path:"tuotteet/kampanjat" };
+            const ext = { persistedQuery:{version:1,sha256Hash:HASH} };
+            const url = ENDPOINT+"?operationName=RemoteGetPageContent&variables="+encodeURIComponent(JSON.stringify(variables))+"&extensions="+encodeURIComponent(JSON.stringify(ext));
+            const r=await fetch(url,{headers:{"accept":"application/json","content-type":"application/json","x-client-version":CLIENT,"user-agent":"Mozilla/5.0"}});
+            const body=await r.text();
+            let json; try { json=JSON.parse(body); } catch { json={_raw:body}; }
+            console.log("STORE_RESPONSE_META "+JSON.stringify({name:s.name,id:s.id,status:r.status,length:body.length,contentType:r.headers.get("content-type")}));
+            console.log("STORE_TOP_LEVEL "+s.name+" "+JSON.stringify(json && typeof json==="object" ? Object.keys(json) : []));
+            console.log("STORE_CONTEXT_HINTS "+s.name+" "+JSON.stringify(walk(json).filter(x=>/prisma|s-market|jokela|vehkoja|voimassa|kampanj|campaign|store|chain/i.test(stableStringify(x))).slice(0,250),null,2));
+            return {s,r,json,body};
+          }
           (async()=>{
-            const ref=["stores",{businessId:"d8ccs8",pagination:{offset:0,limit:3000}}];
-            function stable(v){if(Array.isArray(v))return v.map(stable);if(v&&typeof v==="object")return Object.fromEntries(Object.keys(v).sort().map(k=>[k,stable(v[k])]));return v}
-            const token=Buffer.from(JSON.stringify(stable(ref)),"utf8").toString("base64");
-            const tr=await fetch("https://etarjouslehdet.fi/",{method:"POST",headers:{"content-type":"application/json","x-api-key":"152000596c6e45d9983eab0c14afebea","user-agent":"Mozilla/5.0"},body:JSON.stringify({data:[token]})});
-            const tj=await tr.json();
-            function findStores(x){const seen=new Set(),out=[];function walk(v){if(!v||typeof v!=="object")return;if(Array.isArray(v)){for(const z of v)walk(z);return}if(typeof v.name==="string"&&(v.id||v.publicId)&&(v.address||v.streetAddress||v.city||v.coordinates||v.location)){const id=String(v.id||v.publicId);if(!seen.has(id)){seen.add(id);out.push(v)}}for(const z of Object.values(v))walk(z)}walk(x);return out.filter(v=>/^S-market\\b/i.test(v.name||""))}
-            const stores=Array.isArray(tj?.value?.data)?tj.value.data.filter(v=>/^S-market\b/i.test(v.name||"")):findStores(tj);
-            const dr=await fetch("https://raw.githubusercontent.com/samuel-d-aya/geolytics_projects/1bf552f4924ce992ad15cb36bfc4e28ca75904bf/Finland/smarket_fi_scraper_/smarket_fi_scraper/output.csv");
-            const rows=(await dr.text()).split(/\r?\n/).filter(Boolean).map(csv).map(x=>{
-              const url=x.find(v=>/^https:\/\/www\.s-kaupat\.fi\/myymala\//i.test(v||""))||"";
-              const um=url.match(/\/(\d{9})\/?$/);
-              const nums=x.filter(v=>/^-?\d+\.\d+$/.test(v||"")).map(Number);
-              return {address:x[0]||"",city:x[2]||"",name:x.find(v=>/^S-market\b/i.test(v||""))||"",pc:x.find(v=>/^\d{5}$/.test(v||""))||"",id:x.find(v=>/^\d{9}$/.test(v||""))||um?.[1]||"",latitude:nums[0],longitude:nums[1]};
-            }).filter(x=>x.id&&x.name);
-            const hav=(a,b)=>{const R=6371,r=x=>x*Math.PI/180,la=+(a.latitude??a.lat),loa=+(a.longitude??a.lng??a.lon),lb=+b.latitude,lob=+b.longitude,d1=r(lb-la),d2=r(lob-loa),q=Math.sin(d1/2)**2+Math.cos(r(la))*Math.cos(r(lb))*Math.sin(d2/2)**2;return 2*R*Math.asin(Math.sqrt(q))};
-            const out=[];
-            for(const s of stores){
-              const tid=String(s.id||s.publicId||""), name=String(s.name||"");
-              const addr=String(s.address||s.street||s.streetAddress||s.location?.address||"");
-              const pc=String(s.postalCode||s.zipCode||s.location?.postalCode||"");
-              const fiveKey=Object.keys(five).find(k=>norm(k)===norm(name));
-              let id=overrides[tid]||(fiveKey?five[fiveKey]:null), source=overrides[tid]?"override":(fiveKey?"five":null);
-              if(!id){
-                let hits=rows.filter(r=>norm(r.name)===norm(name));
-                if(hits.length!==1&&pc) hits=rows.filter(r=>r.pc===pc&&norm(r.name).includes(norm(name).replace(/^smarket/,"")));
-                const coords=s.coordinates||s.location||{latitude:s.latitude,longitude:s.longitude};
-                if(hits.length!==1&&coords&&isFinite(+(coords.latitude??coords.lat))){
-                  hits=rows.map(r=>({...r,d:hav(coords,r)})).filter(r=>r.d<0.25).sort((a,b)=>a.d-b.d);
-                }
-                if(hits.length===1||(hits.length>0&&hits[0].d!=null&&(hits[1]?.d??999)-hits[0].d>0.1)){id=hits[0].id;source="dataset"}
-              }
-              out.push({tid,name,addr,pc,id,source});
-            }
-            const unresolved=out.filter(x=>!x.id), by={};
-            out.filter(x=>x.id).forEach(x=>(by[x.id]??=[]).push(x));
-            const duplicates=Object.entries(by).filter(([,v])=>v.length>1).map(([id,v])=>({id,names:v.map(x=>x.name)}));
-            const oldRautalampi=out.filter(x=>x.id==="512023912");
-            const summary={tjekStatus:tr.status,datasetStatus:dr.status,tjekTotal:stores.length,finalMapped:out.length-unresolved.length,datasetMapped:out.filter(x=>x.source==="dataset").length,overrideMapped:out.filter(x=>x.source==="override").length,fiveMapped:out.filter(x=>x.source==="five").length,unresolvedCount:unresolved.length,duplicateIdCount:duplicates.length,oldRautalampiUseCount:oldRautalampi.length,unresolved,duplicates,oldRautalampi};
-            summary.pass=summary.tjekTotal===464&&summary.finalMapped===464&&summary.unresolvedCount===0&&summary.duplicateIdCount===0&&summary.oldRautalampiUseCount===0;
-            console.log("FINAL_464_MAPPING_AUDIT "+JSON.stringify(summary,null,2));
-            // Prisma discovery only: keep the proven S-market 464/464 audit untouched.
-            const prismaRefs=[
-              ["prisma",{businessId:"d8ccs8",pagination:{offset:0,limit:3000}}],
-              ["prisma",{pagination:{offset:0,limit:3000}}],
-            ];
-            const prismaFromCurrent=(Array.isArray(tj?.value?.data)?tj.value.data:[]).filter(v=>/^prisma\\b/i.test(v.name||""));
-            console.log("PRISMA_TJEK_CURRENT_BUSINESS "+JSON.stringify({count:prismaFromCurrent.length,sample:prismaFromCurrent.slice(0,10)},null,2));
-            const kalevaGeoUrl="https://nominatim.openstreetmap.org/search?format=json&limit=5&countrycodes=fi&q="+encodeURIComponent("Prisma Kaleva Tampere");
-  const kalevaGeoResponse=await fetch(kalevaGeoUrl);
-  const kalevaGeoBody=await kalevaGeoResponse.text();
-  console.log("PRISMA_KALEVA_GEOCODE",kalevaGeoResponse.status,kalevaGeoBody.slice(0,5000));
-  const qs=["Prisma Kaleva Tampere","Prisma Hyvinkää","Prisma Myyrmanni","Prisma Varkaus"];
-            for(const q of qs){
-              const u="https://www.s-kaupat.fi/myymalat/prisma?query="+encodeURIComponent(q);
-              try{
-                const r=await fetch(u,{headers:{"user-agent":"Mozilla/5.0","accept":"text/html"}});
-                const body=await r.text();
-                const ids=[]; for(const m of body.matchAll(new RegExp("/myymala/([^/]+)/([0-9]{5,})","gi"))) ids.push({slug:m[1],id:m[2]}); ids.splice(20);
-                console.log("PRISMA_DIRECTORY_PROBE "+JSON.stringify({q,status:r.status,finalUrl:r.url,contentType:r.headers.get("content-type"),length:body.length,ids}));
-              }catch(e){console.log("PRISMA_DIRECTORY_PROBE "+JSON.stringify({q,error:String(e)}))}
-            }
-                        if(!summary.pass) process.exitCode=1;
+            const a=await fetchStore(stores[0]), b=await fetchStore(stores[1]);
+            const pa=products(a.json), pb=products(b.json);
+            const uniq = xs => {
+              const m=new Map(); for(const x of xs){const k=x.ean||x.name; if(k&&!m.has(k))m.set(k,x)} return [...m.values()];
+            };
+            const ua=uniq(pa), ub=uniq(pb), ma=new Map(ua.map(x=>[x.ean||x.name,x])), mb=new Map(ub.map(x=>[x.ean||x.name,x]));
+            const onlyA=[...ma.keys()].filter(k=>!mb.has(k));
+            const onlyB=[...mb.keys()].filter(k=>!ma.has(k));
+            const changed=[...ma.keys()].filter(k=>mb.has(k)&&stableStringify(ma.get(k))!==stableStringify(mb.get(k))).map(k=>({vehkoja:ma.get(k),jokela:mb.get(k)}));
+            const prismaA=ua.filter(x=>/prismoissa|prisma/i.test(stableStringify(x)));
+            const prismaB=ub.filter(x=>/prismoissa|prisma/i.test(stableStringify(x)));
+            console.log("PRODUCT_COMPARE "+JSON.stringify({vehkojaCandidates:pa.length,jokelaCandidates:pb.length,vehkojaUnique:ua.length,jokelaUnique:ub.length,onlyVehkoja:onlyA.length,onlyJokela:onlyB.length,changed:changed.length,prismaMarkedVehkoja:prismaA.length,prismaMarkedJokela:prismaB.length,onlyVehkojaSample:onlyA.slice(0,30),onlyJokelaSample:onlyB.slice(0,30),changedSample:changed.slice(0,30),prismaVehkojaSample:prismaA.slice(0,20),prismaJokelaSample:prismaB.slice(0,20)},null,2));
+            console.log("RAW_COMPARE "+JSON.stringify({sameBody:a.body===b.body,vehkojaLength:a.body.length,jokelaLength:b.body.length}));
+            if(a.r.status!==200||b.r.status!==200) process.exitCode=1;
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
