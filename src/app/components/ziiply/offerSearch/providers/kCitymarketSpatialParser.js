@@ -493,9 +493,8 @@ if(spatialResolved){
  if(spatialResolved.sanity==="review")spatialResolved.confidence="review";
  else spatialResolved.confidence=strongSources.has(spatialResolved.source)?"high":"medium";
  // Review means the parser found a price but independent package/unit-price evidence disagrees strongly.
- // Keep known manually verified control exceptions, but do not expose other review rows as resolved offers.
- const verifiedReviewException=/ENERGIAJUOMAT|ISOTONIC/i.test(String(title));
- if(spatialResolved.confidence==="review"&&!verifiedReviewException){spatialResolved.rejectedReview=true;}
+ // Do not expose review rows as resolved offers; require a later independent resolver to prove them.
+ if(spatialResolved.confidence==="review"){spatialResolved.rejectedReview=true;}
  spatialResolved.auditRatio=ratio;
 }
 if(spatialResolved?.rejectedReview)spatialResolved=null;
