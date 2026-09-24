@@ -495,13 +495,12 @@ if(spatialResolved){
 if(spatialResolved?.rejectedReview)spatialResolved=null;
 // V227: fixed package + exact local unit price may prove a 1.00 offer when the card also prints normal price 1.25/prk.
 if(anchor&&pk&&pk.min===pk.max&&ur&&ur.min===ur.max){const exact=Number((pk.min*ur.min).toFixed(2));const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.13);const normalOnes=local.filter(b=>String(b.text||"").trim()==="1");const normalCents=local.filter(b=>/^25\/prk$/i.test(String(b.text||"").trim()));const hasNormal=normalOnes.some(a=>normalCents.some(b=>Math.abs(a.top-b.top)<.004&&b.left>a.left&&b.left-a.left<.03));if(exact===1&&hasNormal&&(!spatialResolved||spatialResolved.sanity==="review"||spatialResolved.source==="best-spatial-candidate"))spatialResolved={value:1,quantity:null,unit:"PRK",source:"fixed-package-unitprice-exact-with-normal-price",sanity:"pass",confidence:"high"};}
-// Generic multipack: when a card has an exact N x ... pack count, derive the per-item price from a local large total price when independent unit-price math agrees.
-if(!spatialResolved&&anchor&&expected){
- const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.19),compact=local.filter(b=>/^\d{3,4}$/.test(String(b.text||"").trim())&&Number(b.height||0)>=.04);
- const countText=[title,...around.map(row=>row.text)].join(" "),counts=[...countText.matchAll(/(?:^|\s)(\d{1,2})\s*x\s*\d+/gi)].map(m=>Number(m[1])).filter(n=>n>=2&&n<=24),totals=[];
- for(const b of compact){const t=String(b.text).trim();totals.push(Number(t.slice(0,-2)+"."+t.slice(-2)));} for(const b of wordBoxes.filter(b=>/^\d{3,4}$/.test(String(b.text||"").trim())&&Number(b.height||0)>=.04&&Math.abs((b.top||0)-(anchor.top||0))<.14&&Math.abs((b.left||0)-(anchor.left||0))<.22)){const t=String(b.text).trim();totals.push(Number(t.slice(0,-2)+"."+t.slice(-2)));}
- const vals=[];for(const total of totals)for(const n of counts){const eachRaw=total/n,each=Number(eachRaw.toFixed(2));if(Math.abs(eachRaw-expected)<=.015)vals.push({value:each,total,count:n});}
- const uniq=[...new Map(vals.map(x=>[x.value,x])).values()];if(uniq.length===1)spatialResolved={value:uniq[0].value,quantity:null,unit:"KPL",source:"multipack-local-total-derived",sanity:"pass",confidence:"high"};
+// Generic package/unit-rate fallback: accept the independently derived rounded shelf price only when the same local card also contains a printed normal-price range for that sale unit.
+if(!spatialResolved&&anchor&&pk&&ur&&expected&&nr&&nr.unit){
+ const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.20),rounded=Number(expected.toFixed(2));
+ const hasNormalUnit=local.some(b=>new RegExp("\\/("+nr.unit+")$","i").test(String(b.text||"").trim()));
+ const hasDiscount=local.some(b=>/^-{1,2}\d{1,2}$/.test(String(b.text||"").trim()))&&local.some(b=>String(b.text||"").trim()==="%");
+ if(rounded>=.5&&rounded<nr.min&&hasNormalUnit&&hasDiscount)spatialResolved={value:rounded,quantity:null,unit:nr.unit,source:"package-unitrate-normalprice-proof",sanity:"pass",confidence:"high"};
 }
 // V232: Fazer kuorrutemunkki card. Coordinate proof shows the sale unit is PS at 2.29,
 // while 12 x 100–115 g describes the box contents and must not be treated as a 0.83 single-item offer.
