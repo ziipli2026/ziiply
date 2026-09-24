@@ -1,5 +1,9 @@
 "use client";
 
+// ZIIPLY_MOBILE_CART_CARD_V63_CHECKOUT_NOTICE_OVERLAY_RETURN_TO_CART
+// - kassainfo avautuu valmisnäkymän toimintojen päälle overlayna eikä venytä korttia
+// - Selvä sulkee vain infon ja valmisnäkymän, jolloin normaali ostoskorilista palaa näkyviin
+//
 // ZIIPLY_MOBILE_CART_CARD_V62_QUANTITY_AND_CHECKOUT_FUTURE_NOTICE
 // - hinta ei ole enää tuotteen poistopainike; miinus vähentää vain kappalemäärää
 // - Valmis kassalle näyttää MVP-ilmoituksen tulevasta Ziiply-maksamisesta ennen sulkemista
@@ -497,21 +501,26 @@ export default function ZiiplyMobileCartCard({
               </div>
 
               {showCheckoutFutureNoticeV62 ? (
-                <div className="mx-auto mt-4 w-[17.8rem] max-w-full rounded-[0.72rem] border-[1.8px] border-[#496443]/70 bg-[#f3e8cc]/88 px-3 py-3 text-center shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58)]">
-                  <div className="text-[0.98rem] font-black italic text-[#244525]" style={{ fontFamily: cooperFont }}>
-                    Ziiply-maksaminen on tulossa
+                <div className="absolute inset-0 z-[35] flex items-center justify-center rounded-[1.0rem] bg-[#fff0c7]/72 px-4 backdrop-blur-[1.5px]">
+                  <div className="w-[17.8rem] max-w-full rounded-[0.82rem] border-[2px] border-[#496443]/80 bg-[#f3e8cc] px-3 py-4 text-center shadow-[0_5px_18px_rgba(62,43,20,0.22),inset_0_0_0_1px_rgba(255,250,224,0.72)]">
+                    <div className="text-[1.02rem] font-black italic text-[#244525]" style={{ fontFamily: cooperFont }}>
+                      Ziiply-maksaminen on tulossa
+                    </div>
+                    <div className="mt-2 text-[0.84rem] font-extrabold leading-snug text-[#533819]" style={{ fontFamily: serifFont }}>
+                      Tulevaisuudessa voit maksaa ostoksesi suoraan Ziiplyn avulla.
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowCheckoutFutureNoticeV62(false);
+                        setShowCompletionCardV58(false);
+                      }}
+                      className="mt-4 rounded-[0.52rem] border-[2px] border-[#496443] bg-[#dfcfaa] px-5 py-[0.50rem] text-[0.88rem] font-black italic text-[#244525] active:translate-y-[1px]"
+                      style={{ fontFamily: cooperFont }}
+                    >
+                      Selvä
+                    </button>
                   </div>
-                  <div className="mt-2 text-[0.82rem] font-extrabold leading-snug text-[#533819]" style={{ fontFamily: serifFont }}>
-                    Tulevaisuudessa voit maksaa ostoksesi suoraan Ziiplyn avulla.
-                  </div>
-                  <button
-                    type="button"
-                    onClick={onClose}
-                    className="mt-3 rounded-[0.52rem] border-[2px] border-[#496443] bg-[#dfcfaa] px-5 py-[0.48rem] text-[0.86rem] font-black italic text-[#244525] active:translate-y-[1px]"
-                    style={{ fontFamily: cooperFont }}
-                  >
-                    Selvä
-                  </button>
                 </div>
               ) : null}
 
