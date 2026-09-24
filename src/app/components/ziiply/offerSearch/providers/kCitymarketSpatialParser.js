@@ -718,7 +718,7 @@ if(anchor&&expected&&pk&&Math.abs(pk.max-pk.min)<1e-9){
   const derived=Number((pk.min*Number(printed||0)).toFixed(2));
   if(printed&&unit&&Math.abs(derived-expected)<.03&&(!spatialResolved||spatialResolved.sanity==="review"||spatialResolved.source==="best-spatial-candidate")) spatialResolved={value:derived,quantity:null,unit:String(unit.text).toUpperCase(),kind:"own-unitprice-package-derived",source:"own-unitprice-package-derived",sanity:"pass"};
 }
-// V309: final authority pass. Reconstruct the large printed card price after every
+// Generic final authority pass: reconstruct the large printed card price after every
 // earlier resolver has run, so text-fragment candidates cannot overwrite it.
 if(anchor){
   const ax=Number(anchor.left)||0, ay=Number(anchor.top)||0;
@@ -735,7 +735,7 @@ if(anchor){
   const badFragment=Number.isFinite(cur)&&cur>=20;
   const badMulti=Number(spatialResolved?.quantity||0)>=2&&direct&&Math.abs(cur-direct.v)>Math.max(2,direct.v*.8);
   if(direct&&(badFragment||badMulti)&&direct.d<.16){
-    spatialResolved={value:direct.v,quantity:null,unit:null,kind:"v309-final-card-large-price",source:"v309-final-card-large-price",sanity:"pass"};
+    spatialResolved={value:direct.v,quantity:null,unit:null,kind:"final-card-large-price-correction",source:"final-card-large-price-correction",sanity:"pass"};
   }
 }
 out.rows.push({page:p,line:lines[i].i,title,package:pk,unitPrice:ur,normal:nr,expectedSingle:expected?Number(expected.toFixed(3)):null,candidate:cand,wordBoxCount:wordBoxes.length,titleAnchor:anchor,titleWordHits:titleHits.slice(0,30),spatialPriceBoxes:spatialPriceBoxes.map(b=>({...b,d:anchor?Number(boxDistance(anchor,b).toFixed(6)):null})).sort((a,b)=>(a.d??99)-(b.d??99)).slice(0,60),spatialResolved,percentageOffer,spatialCandidates:spatialCandidates.slice(0,20),spatialGroups:spatialGroups(anchor?wordBoxes.filter(b=>boxDistance(anchor,b)<0.22):[]).filter(g=>/\d/.test(g.text)).slice(0,60),spatialNeighbors:spatial,debugLocalBoxes:/FILEEPIHVIT/i.test(title)&&anchor?wordBoxes.map(b=>({...b,d:Number(boxDistance(anchor,b).toFixed(6))})).sort((a,b)=>a.d-b.d):undefined,nearby:around.map(x=>x.raw)})}}
