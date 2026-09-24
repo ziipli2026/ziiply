@@ -1,5 +1,9 @@
 "use client";
 
+// ZIIPLY_MOBILE_CART_CARD_V65_QUANTITY_ZERO_PENDING_REMOVE
+// - määrällä 1 miinus vaihtaa rivin poistovahvistukseen (roskakori / peruuta)
+// - muu toiminta vahvistaa odottavan poiston; peruuta palauttaa normaalin määräsäätimen
+//
 // ZIIPLY_MOBILE_CART_CARD_V64_REMOVE_COMPLETE_RETURN_BUTTON
 // - valmisnäkymästä paluun jälkeen ei näytetä enää "Näytä valmisnäkymä" -painiketta
 //
@@ -274,28 +278,56 @@ function QuantityCell({
   quantity,
   onDecrease,
   onIncrease,
+  pendingRemove = false,
+  onRequestRemove,
+  onConfirmRemove,
+  onCancelRemove,
 }: {
   item: ZiiplyMobileCartItem;
   quantity: number;
   onDecrease?: (item: ZiiplyMobileCartItem) => void;
   onIncrease?: (item: ZiiplyMobileCartItem) => void;
+  pendingRemove?: boolean;
+  onRequestRemove?: (item: ZiiplyMobileCartItem) => void;
+  onConfirmRemove?: () => void;
+  onCancelRemove?: () => void;
 }) {
-  const canDecrease = quantity > 1;
+  if (pendingRemove) {
+    return (
+      <>
+        <button
+          type="button"
+          onClick={onConfirmRemove}
+          className="absolute left-[13.20rem] top-[0.78rem] grid h-[1.62rem] w-[2.00rem] place-items-center rounded-[0.32rem] text-[1.05rem] leading-none text-[#b51a12] active:translate-y-[1px] active:bg-[#fff1c6]/34"
+          aria-label="Poista tuote"
+          title="Poista tuote"
+        >
+          🗑
+        </button>
+        <button
+          type="button"
+          onClick={onCancelRemove}
+          className="absolute left-[17.52rem] top-[1.82rem] grid h-[1.30rem] w-[1.30rem] place-items-center rounded-[0.24rem] text-[1.08rem] font-extrabold leading-none text-[#3d301a] active:translate-y-[1px] active:bg-[#fff1c6]/38"
+          aria-label="Peruuta poisto"
+          title="Peruuta poisto"
+        >
+          ↩
+        </button>
+      </>
+    );
+  }
 
   return (
     <>
       <button
         type="button"
         onClick={() => {
-          if (canDecrease) onDecrease?.(item);
+          if (quantity > 1) onDecrease?.(item);
+          else onRequestRemove?.(item);
         }}
-        disabled={!canDecrease}
-        className={cx(
-          "absolute left-[17.52rem] top-[2.10rem] grid h-[0.90rem] w-[1.10rem] place-items-center rounded-[0.24rem] text-[1.05rem] font-extrabold leading-none !text-[#b51a12] drop-shadow-[0_0_0.4px_rgba(120,0,0,0.45)] active:translate-y-[1px] active:bg-[#fff1c6]/38",
-          !canDecrease && "!text-[#b51a12]/72 drop-shadow-[0_0_0.4px_rgba(120,0,0,0.30)]",
-        )}
-        aria-label="Vähennä määrää"
-        title="Vähennä määrää"
+        className="absolute left-[17.52rem] top-[2.10rem] grid h-[0.90rem] w-[1.10rem] place-items-center rounded-[0.24rem] text-[1.05rem] font-extrabold leading-none !text-[#b51a12] drop-shadow-[0_0_0.4px_rgba(120,0,0,0.45)] active:translate-y-[1px] active:bg-[#fff1c6]/38"
+        aria-label={quantity > 1 ? "Vähennä määrää" : "Poista tuote"}
+        title={quantity > 1 ? "Vähennä määrää" : "Poista tuote"}
       >
         −
       </button>
@@ -313,7 +345,6 @@ function QuantityCell({
     </>
   );
 }
-
 
 export default function ZiiplyMobileCartCard({
   open = true,
@@ -345,6 +376,31 @@ export default function ZiiplyMobileCartCard({
   const [showCompletionCardV58, setShowCompletionCardV58] = React.useState(false);
   const [showCheckoutFutureNoticeV62, setShowCheckoutFutureNoticeV62] = React.useState(false);
   const previousCompleteRefV58 = React.useRef(false);
+  const [pendingRemoveKeyV65, setPendingRemoveKeyV65] = React.useState<string | null>(null);
+  const pendingRemoveItemRefV65 = React.useRef<ZiiplyMobileCartItem | null>(null);
+
+  const getItemKeyV65 = (item: ZiiplyMobileCartItem, index?: number) =>
+    String(item.id ?? item.ean ?? index ?? "");
+
+  const confirmPendingRemoveV65 = () => {
+    const pendingItem = pendingRemoveItemRefV65.current;
+    if (pendingItem) onRemoveItem?.(pendingItem);
+    pendingRemoveItemRefV65.current = null;
+    setPendingRemoveKeyV65(null);
+  };
+
+  const requestRemoveV65 = (item: ZiiplyMobileCartItem, key: string) => {
+    if (pendingRemoveItemRefV65.current && pendingRemoveItemRefV65.current !== item) {
+      onRemoveItem?.(pendingRemoveItemRefV65.current);
+    }
+    pendingRemoveItemRefV65.current = item;
+    setPendingRemoveKeyV65(key);
+  };
+
+  const cancelRemoveV65 = () => {
+    pendingRemoveItemRefV65.current = null;
+    setPendingRemoveKeyV65(null);
+  };
 
   React.useEffect(() => {
     if (isCartCompleteV58 && !previousCompleteRefV58.current) {
@@ -360,6 +416,12 @@ export default function ZiiplyMobileCartCard({
 
   return (
     <div
+      onPointerDownCapture={(event) => {
+        if (!pendingRemoveItemRefV65.current) return;
+        const target = event.target as HTMLElement;
+        if (target.closest('[data-v65-remove-choice="true"]')) return;
+        confirmPendingRemoveV65();
+      }}
       className={`fixed inset-0 z-[92] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+5.95rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-cart-paper-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-6.9rem)] max-h-[46rem] min-h-[31rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
@@ -545,9 +607,12 @@ export default function ZiiplyMobileCartCard({
                 const quantity = Number(item.quantity ?? item.amount ?? 1);
                 const safeQuantity = Number.isFinite(quantity) ? Math.max(1, quantity) : 1;
 
+                const itemKeyV65 = getItemKeyV65(item, index);
+                const pendingRemoveV65 = pendingRemoveKeyV65 === itemKeyV65;
+
                 return (
                   <article
-                    key={String(item.id ?? item.ean ?? index)}
+                    key={itemKeyV65}
                     className={cx(
                       "relative block h-[3.18rem] border-b-[1.35px] border-[#b9944d]/68 bg-transparent px-1 py-[0.22rem]",
                       checked && "opacity-55",
@@ -574,12 +639,18 @@ export default function ZiiplyMobileCartCard({
                       {name}
                     </div>
 
-                    <QuantityCell
-                      item={item}
-                      quantity={safeQuantity}
-                      onDecrease={onDecreaseItem}
-                      onIncrease={onIncreaseItem}
-                    />
+                    <div data-v65-remove-choice={pendingRemoveV65 ? "true" : undefined}>
+                      <QuantityCell
+                        item={item}
+                        quantity={safeQuantity}
+                        onDecrease={onDecreaseItem}
+                        onIncrease={onIncreaseItem}
+                        pendingRemove={pendingRemoveV65}
+                        onRequestRemove={(targetItem) => requestRemoveV65(targetItem, itemKeyV65)}
+                        onConfirmRemove={confirmPendingRemoveV65}
+                        onCancelRemove={cancelRemoveV65}
+                      />
+                    </div>
 
                     <div
                       className={cx(
