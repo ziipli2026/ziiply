@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: K-Market and K-Supermarket category audit V282
+      - name: Multi-store K-Market and K-Supermarket category stress audit V283
         shell: bash
         run: |
           node <<'NODE'
@@ -35,5 +35,31 @@ jobs:
             if(d.includes("frozen"))return"Pakasteet"; if(d.includes("fruit")||d.includes("vegetable"))return"Hevi"; if(d.includes("beverage")||d.includes("drink"))return"Juomat"; if(d.includes("fish")||d.includes("seafood"))return"Kala"; if(d.includes("meat"))return"Liha & makkarat"; if(d.includes("bakery")||d.includes("bread"))return"Leipomo"; if(d.includes("dairy"))return"Maitotuotteet"; if(d.includes("pet"))return"Lemmikit"; if(d.includes("household")||d.includes("clean"))return"Kodinhoito"; if(d.includes("personal care")||d.includes("beauty")||d.includes("hygiene"))return"Hygienia & kosmetiikka"; if(d.includes("colonial"))return"Kuivatuotteet"; return"Muut";
           }
           const expected=d=>{d=norm(d);if(d.includes("frozen"))return["Pakasteet"];if(d.includes("fruit")||d.includes("vegetable"))return["Hevi"];if(d.includes("beverage")||d.includes("drink"))return["Juomat"];if(d.includes("fish")||d.includes("seafood")||d.includes("meat"))return["Kala","Liha & makkarat"];if(d.includes("bakery")||d.includes("bread"))return["Leipomo"];if(d.includes("dairy"))return["Maitotuotteet","Valmisruoka","Juomat"];if(d.includes("snack")||d.includes("candy")||d.includes("confection")||d.includes("sweet"))return["Makeiset & keksit"];if(d.includes("pet"))return["Lemmikit"];if(d.includes("household")||d.includes("clean"))return["Kodinhoito"];if(d.includes("personal care")||d.includes("beauty")||d.includes("hygiene"))return["Hygienia & kosmetiikka"];if(d.includes("colonial"))return["Kuivatuotteet","Juomat","Kala","Valmisruoka"];return[]};
-          (async()=>{for(const [slug,id] of chains){const offers=await data("offers",{businessIds:[id],sources:["publication","business_product"],pagination:{limit:1000,offset:0},sort:["score_desc"]},slug);const rows=offers.map(o=>({name:o.name||o.title||"",department:o.departmentSlug||o.department||"",category:map(o)}));const counts={};for(const r of rows)counts[r.category]=(counts[r.category]||0)+1;const suspicious=rows.filter(r=>{const e=expected(r.department);return e.length&&!e.includes(r.category)});console.log("\n=== "+slug+" V282 ===");console.log(JSON.stringify({offers:rows.length,categoryCounts:counts,suspiciousCount:suspicious.length,suspicious},null,2));}})().catch(e=>{console.error(e);process.exitCode=1});
+          const n=v=>norm(v);
+          async function auditChain(slug,id){
+            const stores=await data("stores",{businessId:id,pagination:{offset:0,limit:1000}},slug);
+            const offers=await data("offers",{businessIds:[id],sources:["publication","business_product"],pagination:{limit:1000,offset:0},sort:["score_desc"]},slug);
+            const pubIds=[...new Set(offers.map(o=>String(o.publicationPublicId||"")).filter(Boolean))];
+            const pubCounts=pubIds.map(p=>({p,count:offers.filter(o=>String(o.publicationPublicId||"")===p).length})).sort((a,b)=>b.count-a.count);
+            const dominant=pubCounts[0]||null, second=pubCounts[1]?.count||0;
+            const dominantCommon=slug==="K-Market"&&dominant&&dominant.count>=10&&(second===0||dominant.count>=second*2);
+            const pubStoreIds=new Map();
+            for(const p of pubIds){try{const ps=await data("stores",{publicationId:p,businessId:id,pagination:{offset:0,limit:1000}},slug);pubStoreIds.set(p,new Set(ps.map(s=>String(s.id||""))))}catch{pubStoreIds.set(p,new Set())}}
+            const candidates=stores.filter(s=>{const x=n(s.name);return slug==="K-Supermarket"?x.includes("k supermarket"):x.includes("k market")}).slice(0,40);
+            const audited=[];
+            for(const s of candidates){
+              const sid=String(s.id||""); const allowed=new Set();
+              if(dominantCommon&&dominant)allowed.add(dominant.p);
+              for(const [p,ids] of pubStoreIds)if(ids.has(sid))allowed.add(p);
+              const selected=offers.filter(o=>allowed.has(String(o.publicationPublicId||"")));
+              if(!selected.length)continue;
+              const rows=selected.map(o=>({name:o.name||o.title||"",department:o.departmentSlug||o.department||"",category:map(o),publication:String(o.publicationPublicId||"")}));
+              const suspicious=rows.filter(r=>{const e=expected(r.department);return e.length&&!e.includes(r.category)});
+              audited.push({store:String(s.name||""),storeId:sid,offers:rows.length,suspiciousCount:suspicious.length,suspicious});
+            }
+            const total=audited.reduce((a,x)=>a+x.offers,0), bad=audited.reduce((a,x)=>a+x.suspiciousCount,0);
+            console.log("\n=== "+slug+" MULTI-STORE V283 ===");
+            console.log(JSON.stringify({availableStores:stores.length,auditedStores:audited.length,totalStoreOfferAssignments:total,suspiciousAssignments:bad,stores:audited},null,2));
+          }
+          (async()=>{for(const [slug,id] of chains)await auditChain(slug,id)})().catch(e=>{console.error(e);process.exitCode=1});
           NODE
