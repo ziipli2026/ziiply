@@ -412,19 +412,20 @@ if(!spatialResolved&&anchor&&pk&&pk.min===pk.max){
  // Basic-HTML fallback: the product's own printed unit rate is often the first standalone rate line
  // immediately after the title, even when coordinate OCR fragments that same rate into incompatible boxes.
  // Keep this local to the product lead-in and stop before the normal-price comparison row.
- if(!rates.length||!saleUnits.length){
-  // Coordinate-only rates are not sufficient without a nearby sale-unit token; prefer the product's own basic-HTML rate.
-  if(!saleUnits.length)rates.length=0;
-  const lead=[];
-  const selfStart=lines[i]?.i??i,selfAfter=lines.filter(row=>row.i>selfStart).slice(0,8);
-  for(const row of selfAfter){if(/Ilman\s+Plussa-korttia/i.test(row.text))break;lead.push(row.text);}
-  for(const t of lead){
-   const m=String(t||"").match(/^\s*(\d{1,3})[,.](\d{2})\/(kg|l)\s*$/i);
-   if(!m)continue;
-   const rate=Number(m[1]+"."+m[2]),value=Number((pk.min*rate).toFixed(2));
-   if(value>=.5&&value<100&&(!nr||value<=nr.max*1.001)){rates.push({rate,value,basicLead:true});break;}
-  }
+ // Prefer an exact standalone basic-HTML unit rate from this product's own lead-in.
+ // Coordinate OCR may contain several valid-looking rates from adjacent normal-price/product rows.
+ const lead=[];
+ const selfStart=lines[i]?.i??i,selfAfter=lines.filter(row=>row.i>selfStart).slice(0,8);
+ for(const row of selfAfter){if(/Ilman\s+Plussa-korttia/i.test(row.text))break;lead.push(row.text);}
+ let basicOwnRate=null;
+ for(const t of lead){
+  const m=String(t||"").match(/^\s*(\d{1,3})[,.](\d{2})\/(kg|l)\s*$/i);
+  if(!m)continue;
+  const rate=Number(m[1]+"."+m[2]),value=Number((pk.min*rate).toFixed(2));
+  if(value>=.5&&value<100&&(!nr||value<=nr.max*1.001)){basicOwnRate={rate,value,basicLead:true};break;}
  }
+ if(basicOwnRate){rates.length=0;rates.push(basicOwnRate);}
+ else if(!saleUnits.length)rates.length=0;
  const uniq=[...new Map(rates.map(x=>[x.value,x])).values()];
  if(uniq.length===1&&(saleUnits.length||rates[0]?.basicLead))spatialResolved={value:uniq[0].value,quantity:null,unit:saleUnits.length?String(saleUnits.sort((a,b)=>boxDistance(anchor,a)-boxDistance(anchor,b))[0].text).toUpperCase():null,source:rates[0]?.basicLead?"fixed-package-basic-lead-unitrate-derived":"fixed-package-own-unitrate-derived",sanity:"pass",confidence:"high"};
 }
