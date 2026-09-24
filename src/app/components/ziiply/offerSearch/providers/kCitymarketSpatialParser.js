@@ -598,23 +598,28 @@ if(!spatialResolved&&anchor&&/SHAMPOOT ja HOITO- AINEET 200–250 ml/i.test(titl
  if(proof) spatialResolved={value:2.30,quantity:null,unit:"KPL",source:"shampoo-range-endpoint-price-proof",sanity:"pass",confidence:"high"};
 }
 // Generic mixed-size unit-price range proof.
-// When a product card itself prints a package-size range together with a unit-price range,
-// do not invent a single euro shelf price. Require independent nearby card evidence that
-// this is a priced product row (e.g. an "Ilman Plussa-korttia" price/unit fragment).
-// The range is preserved for downstream display instead of being tied to one leaflet/product.
-if(!spatialResolved&&anchor){
+// A mixed-size product card may print its unit-price range either in the title row
+// or as a separate local row. Never invent one euro shelf price from the range.
+// Require a ranged package size plus independent nearby product-card price evidence.
+if(!spatialResolved&&anchor&&pk&&pk.max>pk.min){
  const compactTitle=String(title||"").replace(/\s+/g,"");
- const rangeMatch=compactTitle.match(/(?:^|[^0-9])([0-9]+(?:[,.][0-9]+)?)[–-]([0-9]+(?:[,.][0-9]+)?)(?:ml|cl|l|g|kg).*?([0-9]+(?:[,.][0-9]+)?)[–-]([0-9]+(?:[,.][0-9]+)?)\/(l|kg)(?:[^a-z]|$)/i);
- if(rangeMatch){
-  const rangeMin=Number(String(rangeMatch[3]).replace(",","."));
-  const rangeMax=Number(String(rangeMatch[4]).replace(",","."));
-  const unit=String(rangeMatch[5]).toUpperCase();
-  const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.18);
-  const groups=spatialGroups(local).map(g=>String(g.text||""));
-  const hasIndependentCardEvidence=groups.some(t=>/Ilman\s+Plussa-korttia/i.test(t)&&/(?:\/kpl|\/pkt|\/kpl\b|\/rs\b|\/ps\b)/i.test(t));
-  if(Number.isFinite(rangeMin)&&Number.isFinite(rangeMax)&&rangeMax>rangeMin&&hasIndependentCardEvidence){
-   spatialResolved={value:rangeMin,quantity:null,unit:"EUR/"+unit,source:"mixed-size-unitprice-range-proof",sanity:"pass",confidence:"high",range:{min:rangeMin,max:rangeMax},displayOnlyUnitPrice:true};
-  }
+ const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.18);
+ const groups=spatialGroups(local).map(g=>String(g.text||""));
+ const normalizeRangeText=s=>String(s||"").replace(/\s+/g,"").replace(/,/g,".");
+ const parseRange=s=>{
+  const t=normalizeRangeText(s);
+  let m=t.match(/([0-9]+(?:\.[0-9]+)?)[–-]([0-9]+(?:\.[0-9]+)?)\/(l|kg)(?:[^a-z]|$)/i);
+  if(m)return {min:Number(m[1]),max:Number(m[2]),unit:String(m[3]).toUpperCase()};
+  m=t.match(/(\d{3,4})[–-](\d{3,4})\/(l|kg)(?:[^a-z]|$)/i);
+  if(m)return {min:Number(m[1])/100,max:Number(m[2])/100,unit:String(m[3]).toUpperCase()};
+  return null;
+ };
+ const titleRange=parseRange(compactTitle);
+ const localRanges=groups.map(parseRange).filter(Boolean);
+ const range=titleRange||localRanges[0];
+ const hasIndependentCardEvidence=groups.some(t=>/Ilman\s+Plussa-korttia/i.test(t)&&/(?:\/kpl|\/pkt|\/rs\b|\/ps\b|\/tlk\b)/i.test(t));
+ if(range&&Number.isFinite(range.min)&&Number.isFinite(range.max)&&range.max>range.min&&hasIndependentCardEvidence){
+  spatialResolved={value:range.min,quantity:null,unit:"EUR/"+range.unit,source:"mixed-size-unitprice-range-proof",sanity:"pass",confidence:"high",range:{min:range.min,max:range.max},displayOnlyUnitPrice:true};
  }
 }
 // V364: ranged package + ranged unit-price cross-check.
