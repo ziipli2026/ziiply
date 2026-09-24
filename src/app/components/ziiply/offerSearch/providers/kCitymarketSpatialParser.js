@@ -499,12 +499,11 @@ if(spatialResolved){
  spatialResolved.auditRatio=ratio;
 }
 if(spatialResolved?.rejectedReview)spatialResolved=null;
-// Generic package/unit-rate fallback: accept the independently derived rounded shelf price when the
-// product card itself proves the same sale unit and either a discount marker or a printed normal price.
+// Generic package/unit-rate fallback: derive the rounded shelf price from package size and unit rate,
+// and require the card context to contain the same sale unit plus a discount or printed normal price.
 if(!spatialResolved&&anchor&&pk&&ur&&expected&&nr&&nr.unit){
- const rounded=Number(expected.toFixed(2)),selfStart=lines[i]?.i??i,selfAfter=lines.filter(row=>row.i>selfStart).slice(0,8);
- const lead=[];for(const row of selfAfter){lead.push(String(row.text||""));if(/Ilman\s+Plussa-korttia/i.test(row.text))break;}
- const localText=lead.join(" "),hasNormalUnit=new RegExp("\\/("+nr.unit+")\\b","i").test(localText);
+ const rounded=Number(expected.toFixed(2)),localText=around.map(r=>String(r.text||"")).join(" ");
+ const hasNormalUnit=new RegExp("\\/("+nr.unit+")\\b","i").test(localText);
  const hasDiscount=/(?:^|\s)-?\d{1,2}(?:[–-]\d{1,2})?\s*%/.test(localText);
  const hasNormal=/Ilman\s+Plussa-korttia/i.test(localText);
  if(rounded>=.5&&rounded<nr.min&&hasNormalUnit&&(hasDiscount||hasNormal))spatialResolved={value:rounded,quantity:null,unit:nr.unit,source:"package-unitrate-normalprice-proof",sanity:"pass",confidence:"high"};
