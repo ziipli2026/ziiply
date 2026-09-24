@@ -9903,8 +9903,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   // saman tiedon muodostaakseen oikean kauppakontekstin myös myöhemmissä
   // kategoriaklikkauksissa.
   const gostaSelectedOfferChainRefV547 = useRef<"S" | "K" | null>(null);
+  // V551: vain viimeisin käynnistetty Gösta-haku saa kirjoittaa tulokset stateen.
+  // Estää esim. vanhan K-haun valmistumisen uuden S-haun jälkeen ja korvaamasta S-listaa.
+  const gostaOfferSearchRequestSeqRefV551 = useRef(0);
 
   async function searchOffers(termOverride?: string) {
+    const requestSeqV551 = ++gostaOfferSearchRequestSeqRefV551.current;
     const hasExplicitOverride = typeof termOverride === "string";
     const cleanedOverride = String(termOverride ?? "").trim();
     const useTerms = hasExplicitOverride ? parseTerms(cleanedOverride) : terms;
@@ -10169,6 +10173,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       } as any;
 
       const offerSearchCoreResult = await searchZiiplyGostaOffersV146(gostaOfferSearchOptionsV171);
+
+      // V551: käyttäjä on ehtinyt käynnistää uuden haun/kauppavalinnan tämän
+      // async-haun aikana. Vanha vastaus ei saa enää ylikirjoittaa uudempaa statea.
+      if (requestSeqV551 !== gostaOfferSearchRequestSeqRefV551.current) return;
+
       setGostaKruokaDebugV550(
         gostaSelectedOfferChainRefV547.current === "K"
           ? getLastZiiplyKruokaDebugV174()
@@ -10223,7 +10232,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // V529: älä tyhjennä onnistuneita vanhoja tuloksia virheessäkään, jotta Gösta ei välähdä tyhjäksi.
       showCartToast("Tarjoushaku ei onnistunut");
     } finally {
-      setLoadingOffers(false);
+      if (requestSeqV551 === gostaOfferSearchRequestSeqRefV551.current) {
+        setLoadingOffers(false);
+      }
     }
   }
 
