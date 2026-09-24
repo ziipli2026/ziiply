@@ -6,13 +6,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: V284 Prisma Ruoanhinta externalId fallback audit
+      - name: V285 Prisma RemoteFilteredProducts fallback audit
         shell: bash
         run: |
           node <<'NODE'
-          const ENDPOINT="https://www.s-kaupat.fi/api/v1/graphql";
-          const HASH="f6d87786fda8fb5c233c4eaed08f37b0c5b87dc0d8d4c44c33c5529e446369d1";
-          const CLIENT="production-14a82a5b48cd1dd42c0592db0037514ed3c84de8";
+          const ENDPOINT="https://api.s-kaupat.fi/";
+          const HASH="44ca017dddccfe49e787b483f471f26217adca807f8c71101d11e881dab9e480";
+          const CLIENT="production-45c31f7a746096c6da12e16aba1887e031fbd9de";
           const stores=[
             ["Prisma Hämeenkatu","726413330"],
             ["Prisma Raksila","516528759"],
@@ -38,16 +38,18 @@ jobs:
             const rows=Array.isArray(d)?d:Array.isArray(d?.stores)?d.stores:Array.isArray(d?.data)?d.data:[];
             return {status:r.status,rows:rows.map(x=>({name:x?.name,chain:x?.chain,city:x?.city,postalCode:x?.postalCode,externalId:x?.externalId,id:x?.id}))};
           }
+          const sleep=ms=>new Promise(r=>setTimeout(r,ms));
           async function campaigns(id){
-            if(!id)return {status:null,sections:0,products:0,uniqueProducts:0,error:"no id"};
-            const variables={storeId:String(id),path:"tuotteet/kampanjat"};
+            if(!id)return {status:null,raw:0,total:0,discounted:0,error:"no id"};
+            const variables={facets:[],filters:{isAvailable:true,isPublished:true},from:0,limit:48,queryString:"",sortForAvailabilityLabelDate:new Date().toISOString().slice(0,10),storeId:String(id),useRandomId:false,marketingId:"d0bcc6e5-6130-494e-b6fb-12b5cb9c60cf"};
             const extensions={persistedQuery:{version:1,sha256Hash:HASH}};
-            const u=ENDPOINT+"?operationName=RemoteGetPageContent&variables="+encodeURIComponent(JSON.stringify(variables))+"&extensions="+encodeURIComponent(JSON.stringify(extensions));
-            const r=await fetch(u,{headers:{accept:"application/json","content-type":"application/json","x-client-version":CLIENT,"user-agent":"Mozilla/5.0"}});
-            const body=await r.text();let d;try{d=JSON.parse(body)}catch{return {status:r.status,sections:0,products:0,uniqueProducts:0,error:"non-json "+body.slice(0,200)}}
-            const pc=d?.data?.pageContent; const sections=Array.isArray(pc?.sections)?pc.sections:[];
-            const ps=flattenProducts(pc); const uniq=new Set(ps.map(p=>String(p?.ean||p?.eanCode||p?.gtin||p?.id||p?.name||p?.title||"")).filter(Boolean));
-            return {status:r.status,sections:sections.length,products:ps.length,uniqueProducts:uniq.size,errors:d?.errors?.map(e=>e?.message).filter(Boolean)||[]};
+            const u=new URL(ENDPOINT);u.searchParams.set("operationName","RemoteFilteredProducts");u.searchParams.set("variables",JSON.stringify(variables));u.searchParams.set("extensions",JSON.stringify(extensions));
+            const r=await fetch(u,{headers:{accept:"application/json","content-type":"application/json","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":CLIENT,"user-agent":"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15"}});
+            const body=await r.text();let d;try{d=JSON.parse(body)}catch{return {status:r.status,raw:0,total:0,discounted:0,error:"non-json "+body.slice(0,160)}}
+            const p=d?.data?.products||d?.data?.filteredProducts||d?.data?.remoteFilteredProducts||{};
+            const items=Array.isArray(p?.items)?p.items:Array.isArray(p?.products)?p.products:Array.isArray(p?.edges)?p.edges.map(x=>x?.node):[];
+            const discounted=items.filter(x=>/discount|campaign|benefit|offer|price/i.test(JSON.stringify(x))).length;
+            return {status:r.status,raw:items.length,total:Number(p?.total??0),from:p?.from,limit:p?.limit,discounted,errors:d?.errors?.map(e=>e?.message).filter(Boolean)||[],dataKeys:Object.keys(d?.data||{})};
           }
           (async()=>{
             for(const [name,oldId] of stores){
@@ -58,9 +60,9 @@ jobs:
               const token=candidates.find(x=>norm(x.name).includes(wanted));
               const picked=exact||token||candidates[0]||null;
               const ext=String(picked?.externalId||"").trim();
-              const oldRes=await campaigns(oldId);
-              const extRes=ext&&ext!==oldId?await campaigns(ext):ext?oldRes:{status:null,sections:0,products:0,uniqueProducts:0,error:"no externalId"};
-              console.log("\n=== PRISMA FALLBACK V284 "+name+" ===");
+              await sleep(1200); const oldRes=await campaigns(oldId);
+              const extRes=ext&&ext!==oldId?(await sleep(1200),await campaigns(ext)):ext?oldRes:{status:null,sections:0,products:0,uniqueProducts:0,error:"no externalId"};
+              console.log("\n=== PRISMA FALLBACK V285 "+name+" ===");
               console.log(JSON.stringify({name,oldId,ruoanhintaStatus:rh.status,ruoanhintaCandidates:candidates,picked,externalId:ext,sameId:ext===oldId,oldIdCampaigns:oldRes,externalIdCampaigns:extRes},null,2));
             }
           })().catch(e=>{console.error(e);process.exitCode=1});
