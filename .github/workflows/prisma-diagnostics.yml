@@ -6,34 +6,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: S-local official directory ID test V267
+      - name: S-local known official IDs page test V268
         shell: bash
         run: |
           node <<'NODE'
-          const PAGE_HASH="f6d87786fda8fb5c233c4eaed08f37b0c5b87dc0d8d4c44c33c5529e446369d1";
-          const CLIENT="production-14a82a5b48cd1dd42c0592db0037514ed3c84de8";
-          const targets=["S-market Vehkoja","S-market Redi","S-market Suutarila","S-market Kontula","S-market Tammela","S-market Kourula","S-market Tanelinranta","S-market Hiukkavaara"];
-          const norm=v=>String(v??"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9åäö]+/gi," ").replace(/\s+/g," ").trim();
-          const today=()=>new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
-          async function directory(name){
-            const u=new URL("https://www.s-kaupat.fi/myymalat/s-market");u.searchParams.set("query",name);
-            const r=await fetch(u,{headers:{accept:"text/html,application/xhtml+xml","accept-language":"fi","user-agent":"Mozilla/5.0 (compatible; Ziiply/1.0; +https://ziiply.fi)"}});
-            const body=await r.text(); const rows=[];
-            for(const m of body.matchAll(/\/myymala\/([^"'<>\s/]+)\/(\d{5,})/g)) rows.push({slug:m[1],id:m[2]});
-            const wanted=norm(name).replace(/^s market /,"");
-            const uniq=[...new Map(rows.map(x=>[x.id,x])).values()];
-            const best=uniq.find(x=>norm(x.slug.replace(/-/g," ")).includes(wanted))||null;
-            return {status:r.status,count:uniq.length,best,sample:uniq.slice(0,10)};
-          }
-          async function page(id){
-            const date=today(),variables={preview:false,storeId:id,skipProducts:false,availabilityDate:date,where:{storeId:id,path:"tuotteet/kampanjat",platform:"WEB",availabilityDate:date,userConsent:{marketing:false,marketingId:"ziiply-gosta",useCustomerId:false,sessionId:"ziiply-gosta",loop54:true}}};
-            const extensions={clientLibrary:{name:"@apollo/client",version:"4.2.12"},persistedQuery:{version:1,sha256Hash:PAGE_HASH}};
-            const u=new URL("https://api.s-kaupat.fi/");u.searchParams.set("operationName","RemoteGetPageContent");u.searchParams.set("variables",JSON.stringify(variables));u.searchParams.set("extensions",JSON.stringify(extensions));
-            const r=await fetch(u,{headers:{accept:"application/graphql-response+json,application/json;q=0.9","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":CLIENT}});
-            const d=await r.json(),sections=d?.data?.pageContent?.sections;let products=0;if(Array.isArray(sections))for(const s of sections)products+=Array.isArray(s?.products)?s.products.length:0;
-            return {status:r.status,sections:Array.isArray(sections)?sections.length:null,products,errors:d?.errors||[]};
-          }
-          let resolved=0,pageOk=0;
-          for(const name of targets){try{const d=await directory(name);if(!d.best){console.log("SLOCAL_V267_RESULT "+JSON.stringify({name,pass:false,stage:"directory",directory:d}));continue}resolved++;const p=await page(d.best.id);const pass=p.status===200&&p.sections!==null;if(pass)pageOk++;console.log("SLOCAL_V267_RESULT "+JSON.stringify({name,pass,stage:"page",directory:d,page:p}));}catch(e){console.log("SLOCAL_V267_RESULT "+JSON.stringify({name,pass:false,stage:"exception",error:String(e?.message||e)}))}}
-          console.log("SLOCAL_V267_SUMMARY "+JSON.stringify({tested:targets.length,resolved,pageOk}));
+          const HASH="f6d87786fda8fb5c233c4eaed08f37b0c5b87dc0d8d4c44c33c5529e446369d1",CLIENT="production-14a82a5b48cd1dd42c0592db0037514ed3c84de8";
+          const stores=[["S-market Vehkoja","519941769"],["S-market Suutarila","726666563"],["S-market Kontula","513931329"]];
+          const date=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+          async function page(name,id){const variables={preview:false,storeId:id,skipProducts:false,availabilityDate:date,where:{storeId:id,path:"tuotteet/kampanjat",platform:"WEB",availabilityDate:date,userConsent:{marketing:false,marketingId:"ziiply-gosta",useCustomerId:false,sessionId:"ziiply-gosta",loop54:true}}},extensions={clientLibrary:{name:"@apollo/client",version:"4.2.12"},persistedQuery:{version:1,sha256Hash:HASH}};const u=new URL("https://api.s-kaupat.fi/");u.searchParams.set("operationName","RemoteGetPageContent");u.searchParams.set("variables",JSON.stringify(variables));u.searchParams.set("extensions",JSON.stringify(extensions));const r=await fetch(u,{headers:{accept:"application/graphql-response+json,application/json;q=0.9","accept-language":"fi",origin:"https://www.s-kaupat.fi",referer:"https://www.s-kaupat.fi/","x-client-name":"skaupat-web","x-client-version":CLIENT}});const d=await r.json(),secs=d?.data?.pageContent?.sections;let products=0;if(Array.isArray(secs))for(const s of secs)products+=Array.isArray(s?.products)?s.products.length:0;return{name,id,status:r.status,sections:Array.isArray(secs)?secs.length:null,products,errors:d?.errors||[]}}
+          let ok=0;for(const [n,id] of stores){const x=await page(n,id);if(x.status===200&&x.sections!==null)ok++;console.log("SLOCAL_V268_RESULT "+JSON.stringify(x))}
+          console.log("SLOCAL_V268_SUMMARY "+JSON.stringify({tested:stores.length,ok}));
           NODE
