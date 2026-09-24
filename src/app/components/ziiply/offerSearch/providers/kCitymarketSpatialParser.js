@@ -535,15 +535,6 @@ if(!spatialResolved&&anchor){
   if(geo.length===1)percentageOffer={percent:geo[0],source:"unique-local-percentage-proof",confidence:"high"};
  }
 }
-// V272: Valo kirkastava hyaluronitiiviste 50 ml JÄTTIKOKO has explicit 498.00/l and large 24.90/KPL in the same card.
-if(!spatialResolved&&anchor&&/50 ml JÄTTIKOKO 498(?:[,.]00)?\/l/i.test(title)){
- const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.23);
- const price=local.find(b=>/^2490$/.test(String(b.text||"").trim())&&Number(b.height||0)>.04);
- const unit=local.find(b=>/^KPL$/i.test(String(b.text||"").trim()));
- const up=local.some(b=>/^498$/.test(String(b.text||"").trim()))&&local.some(b=>/^00\/l$/i.test(String(b.text||"").trim()));
- if(price&&unit&&up) spatialResolved={value:24.90,quantity:null,unit:"KPL",source:"jattikoko-unitprice-large-price-proof",sanity:"pass",confidence:"high"};
-}
-// V268: Advanced roll-on/spray card: OCR row itself carries the unit-price range 18.33–55.00/l.
 // Keep the row as a valid offer even though mixed 50–150 ml sizes do not imply one unique euro price.
 if(!spatialResolved&&anchor&&/ROLL-ONIT ja SPRAYT 50–150 ml/i.test(title)){
  const local=wordBoxes.filter(b=>Math.abs(Number(b.top)-Number(anchor.top))<.035&&Number(b.left)<.14);
