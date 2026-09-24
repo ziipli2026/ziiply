@@ -535,12 +535,6 @@ if(!spatialResolved&&anchor){
   if(geo.length===1)percentageOffer={percent:geo[0],source:"unique-local-percentage-proof",confidence:"high"};
  }
 }
-// Keep the row as a valid offer even though mixed 50–150 ml sizes do not imply one unique euro price.
-if(!spatialResolved&&anchor&&/ROLL-ONIT ja SPRAYT 50–150 ml/i.test(title)){
- const local=wordBoxes.filter(b=>Math.abs(Number(b.top)-Number(anchor.top))<.035&&Number(b.left)<.14);
- const compact=String(title||"").replace(/\s+/g,""); const hasRange=/18[,\.]?33[–-]55[,\.]?00\/l/i.test(compact)||/1833[–-]5500\/l/i.test(compact);
- if(hasRange) spatialResolved={value:18.33,quantity:null,unit:"EUR/L",source:"rollon-unitprice-range-proof",sanity:"pass",confidence:"high",range:{min:18.33,max:55.00},displayOnlyUnitPrice:true};
-}
 // V284: RAE JUUSTO-RIESKAT is a promotional heading, not a product-price row.
 // The geometry below it belongs to separate Moilas/Vaasan products, so keep it out of unresolved product rows.
 if(!spatialResolved&&anchor&&/^RAE JUUSTO- RIESKAT$/i.test(title)){
