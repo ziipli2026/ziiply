@@ -605,7 +605,7 @@ if(!spatialResolved&&anchor){
  const compactTitle=String(title||"").replace(/\s+/g,"");
  const mixedSizeTitle=/\d+(?:[,.]\d+)?(ml|cl|l|g|kg).*?\d+(?:[,.]\d+)\1/i.test(compactTitle);
  const mixedSizePackage=!!(pk&&pk.max>pk.min);
- if(!(mixedSizePackage||mixedSizeTitle)) return spatialResolved;
+ if(mixedSizePackage||mixedSizeTitle){
  const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.18);
  const groups=spatialGroups(local).map(g=>String(g.text||""));
  const normalizeRangeText=s=>String(s||"").replace(/\s+/g,"").replace(/,/g,".");
@@ -623,6 +623,7 @@ if(!spatialResolved&&anchor){
  const hasIndependentCardEvidence=groups.some(t=>/Ilman\s+Plussa-korttia/i.test(t)&&/(?:\/kpl|\/pkt|\/rs\b|\/ps\b|\/tlk\b)/i.test(t));
  if(range&&Number.isFinite(range.min)&&Number.isFinite(range.max)&&range.max>range.min&&hasIndependentCardEvidence){
   spatialResolved={value:range.min,quantity:null,unit:"EUR/"+range.unit,source:"mixed-size-unitprice-range-proof",sanity:"pass",confidence:"high",range:{min:range.min,max:range.max},displayOnlyUnitPrice:true};
+ }
  }
 }
 // V364: ranged package + ranged unit-price cross-check.
