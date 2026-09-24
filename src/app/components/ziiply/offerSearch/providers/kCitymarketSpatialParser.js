@@ -433,21 +433,6 @@ if(!spatialResolved&&anchor&&pk&&ur&&expected&&nr&&nr.unit){
 }
 // Generic percentage-only card proof: use the closest percentage in basic HTML after the product row,
 // then fall back to one unique nearby geometric percentage.
-if(!spatialResolved&&anchor){
- const selfStart=lines[i]?.i??i,selfAfter=lines.filter(row=>row.i>selfStart).slice(0,6);
- let htmlPct=null;
- for(const row of selfAfter){
-  if(/Ilman\s+Plussa-korttia/i.test(row.text))break;
-  const m=String(row.text||"").match(/-(\d{1,2})%/);
-  if(m){htmlPct=Number(m[1]);break;}
- }
- if(htmlPct!=null)percentageOffer={percent:htmlPct,source:"own-lead-percentage-proof",confidence:"high"};
- else {
-  const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.14);
-  const geo=[...new Set(local.map(b=>String(b.text||"").trim().match(/^-(\d{1,2})%$/)).filter(Boolean).map(m=>Number(m[1])))];
-  if(geo.length===1)percentageOffer={percent:geo[0],source:"unique-local-percentage-proof",confidence:"high"};
- }
-}
 // Generic editorial/recipe heading proof.
 // A heading with no own package/unit evidence is not a product when the same local
 // HTML section explicitly identifies recipe/editorial content and following rows contain product pricing.
