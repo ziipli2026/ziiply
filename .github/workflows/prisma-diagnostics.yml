@@ -1200,7 +1200,7 @@ jobs:
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
 
-      - name: S-market eTarjouslehdet broad discovery V254
+      - name: S-market eTarjouslehdet broad discovery V255
         shell: bash
         run: |
           node <<'NODE'
@@ -1222,13 +1222,13 @@ jobs:
           for(const offset of offsets){
             const r=await batch([["stores",{businessId:BID,pagination:{limit:100,offset}}]]);
             const found=valRows(r.json).flatMap(stores);
-            console.log("SMARKET_V254_PAGE "+JSON.stringify({offset,http:r.status,found:found.length,sample:found.slice(0,3)}));
+            console.log("SMARKET_V255_PAGE "+JSON.stringify({offset,http:r.status,found:found.length,sample:found.slice(0,3)}));
             all.push(...found); if(found.length<100)break;
           }
           const map=new Map(); for(const x of all)if(!map.has(x.id))map.set(x.id,x);
           const uniq=[...map.values()];
-          console.log("SMARKET_V254_DISCOVERY "+JSON.stringify({uniqueStores:uniq.length,sample:uniq.slice(0,20)}));
-          const wanted=["S-market Jokela","S-market Vehkoja","S-market Hyvinkää","S-market Tuusula","S-market Sokos Helsinki","S-market Redi","S-market Munkkivuori","S-market Pukinmäki","S-market Suutarila","S-market Kontula"];
+          console.log("SMARKET_V255_DISCOVERY "+JSON.stringify({uniqueStores:uniq.length,sample:uniq.slice(0,20)}));
+          const wanted=["S-market Jokela","S-market Vehkoja","S-market Tuusula","S-market Sokos Helsinki","S-market Redi","S-market Pukinmäki","S-market Suutarila","S-market Kontula"];
           for(const q of wanted){
             const sr=await batch([
               ["stores",{businessId:BID,pagination:{limit:25,offset:0},query:q}],
@@ -1256,7 +1256,7 @@ jobs:
               ps=valRows(pr.json).flatMap(pubs);
               const pm=new Map(); for(const p of ps)if(!pm.has(p.id))pm.set(p.id,p); ps=[...pm.values()];
             }
-            console.log("SMARKET_V254_STORE "+JSON.stringify({query:q,http:sr.status,candidates:ss.length,best,truthMatch:truth,publications:ps.length,pubSample:ps.slice(0,3)}));
+            console.log("SMARKET_V255_STORE "+JSON.stringify({query:q,http:sr.status,candidates:ss.length,best,truthMatch:truth,publications:ps.length,pubSample:ps.slice(0,3)}));
           }
           NODE
 
