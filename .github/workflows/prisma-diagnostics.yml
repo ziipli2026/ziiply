@@ -1368,6 +1368,24 @@ jobs:
           for(const x of fail.slice(0,40))console.log("SMARKET_V264_FAIL "+JSON.stringify(x));
           NODE
 
+      - name: S-market full-directory resolver proof V265
+        shell: bash
+        run: |
+          node <<'NODE'
+          const ET="https://etarjouslehdet.fi/",BID="d8ccs8";const enc=v=>Buffer.from(JSON.stringify(v)).toString("base64");
+          async function batch(q){const r=await fetch(ET,{method:"POST",headers:{accept:"application/json,text/plain,*/*","content-type":"application/json",origin:"https://etarjouslehdet.fi",referer:"https://etarjouslehdet.fi/S-market/kaupat","user-agent":"Mozilla/5.0 ZiiplyOfferProvider/20"},body:JSON.stringify({data:q.map(enc)})});const t=await r.text();return t.split(/\n+/).map(x=>{try{return JSON.parse(x)}catch{return null}}).filter(Boolean).map(x=>Object.prototype.hasOwnProperty.call(x,"value")?x.value:x)}
+          function walk(v,fn){if(!v)return;if(Array.isArray(v)){for(const x of v)walk(x,fn);return}if(typeof v==="object"){fn(v);for(const x of Object.values(v))walk(x,fn)}}
+          function first(...v){for(const x of v){if(typeof x==="string"&&x.trim())return x.trim();if(typeof x==="number")return String(x)}return""}
+          function stores(v){const a=[];walk(v,o=>{const id=first(o.id,o.publicId,o.storeId,o.localBusinessId,o.local_business_id),name=first(o.name,o.storeName,o.store_name,o.label,o.title,o.displayName,o.display_name);if(id&&name&&!/^\d+$/.test(id)&&!(id===BID&&name.toLowerCase()==="s-market"))a.push({id,name})});return a}
+          const norm=s=>String(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g," ").trim(),tail=s=>norm(s).replace(/^s market\s*/,"").trim();
+          function score(r,c){r=norm(r);c=norm(c);const rt=tail(r),ct=tail(c);if(!r||!c)return 0;if(c===r)return 1000;if(rt&&ct&&rt===ct)return 980;if(c.includes(r)||r.includes(c))return 850;if(rt&&ct&&(ct.includes(rt)||rt.includes(ct)))return 820;const w=rt.split(/\s+/).filter(x=>x.length>2),cw=ct.split(/\s+/).filter(x=>x.length>2);return w.filter(x=>cw.includes(x)).length*120}
+          let all=[];for(const off of [0,100,200,300,400]){const v=await batch([["stores",{businessId:BID,pagination:{limit:100,offset:off}}]]);all.push(...v.flatMap(stores))}
+          const m=new Map();for(const x of all)if(!m.has(x.id))m.set(x.id,x);all=[...m.values()];
+          let ok=0,fail=[];for(const target of all){const best=all.map(x=>({...x,score:score(target.name,x.name)})).sort((a,b)=>b.score-a.score)[0];if(best&&best.score>=100&&best.id===target.id)ok++;else fail.push({target,best})}
+          console.log("SMARKET_V265_SUMMARY "+JSON.stringify({directory:all.length,ok,fail:fail.length,coveragePct:+(ok/all.length*100).toFixed(1)}));
+          for(const x of fail.slice(0,30))console.log("SMARKET_V265_FAIL "+JSON.stringify(x));
+          NODE
+
       - name: Prisma Sunday 2026-09-20 resolver reconstruction V242
         shell: bash
         run: |
