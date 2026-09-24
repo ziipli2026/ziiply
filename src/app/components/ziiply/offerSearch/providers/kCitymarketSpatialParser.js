@@ -454,14 +454,6 @@ if(!spatialResolved&&anchor){
 // Generic editorial/recipe heading proof.
 // A heading with no own package/unit evidence is not a product when the same local
 // HTML section explicitly identifies recipe/editorial content and following rows contain product pricing.
-if(!spatialResolved&&!pk&&!ur&&expected==null){
- const compactTitle=String(title||"").replace(/\s+/g,"").toLowerCase();
- const localEditorialText=around.slice(0,9).map(x=>String(x.text||"")).join(" ");
- const headingLike=compactTitle.length>0&&compactTitle.length<70&&!/\d/.test(compactTitle);
- const hasRecipeEditorial=/\bresepti\b|\brecept\b/i.test(localEditorialText);
- const hasFollowingProductPrice=after.slice(0,8).some(x=>/\b(?:kpl|pkt|ps|rs|tlk|pl|prk)\b/i.test(String(x.text||""))&&/\d/.test(String(x.text||"")));
- if(headingLike&&hasRecipeEditorial&&hasFollowingProductPrice) percentageOffer={type:"non-product-heading",source:"editorial-recipe-heading-proof"};
-}
 // Generic fixed-package multibuy proof from a printed unit price and sale quantity.
 // Example shape: 500 g, "2 PS", "(4 00/kg)" => 2 * 0.5 kg * 4.00/kg = 4.00.
 // Generic fixed-package shelf price from printed unit rate plus explicit normal-price row.
