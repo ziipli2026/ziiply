@@ -275,7 +275,7 @@ function getOfficialSKaupatCategoryV165(item: ZiiplyGostaOfferLike): string {
   // "Kahvit, teet ja mehut" is only the S-kaupat parent.
   // IMPORTANT: classify from child fields only, otherwise the parent word
   // "kahvit" makes every juice/smoothie/iced tea look like coffee.
-  if (/\b(jaatee|jäätee|jaateet|jääteet|mehu|mehut|mehutiiviste|smoothie|smoothiet|mehushot|mehushotit|valipalajuoma|välipalajuoma|valipalajuomat|välipalajuomat|marjakeitto)\b/.test(childCategoryText)) return "Juomat";
+  if (/\b(jaatee|jäätee|jaateet|jääteet|mehu|mehut|mehutiiviste|mehutiivisteet|smoothie|smoothiet|mehushot|mehushotit|valipalajuoma|välipalajuoma|valipalajuomat|välipalajuomat|marjakeitto)\b/.test(childCategoryText)) return "Juomat";
   if (/\b(kahvit ja suodatinpaperit|kahvi|kahvit|kahvipapu|kahvipavut|suodatinjauh|suodatinjauhatuskahvi|espresso|kahvikapseli|kahvikapselit|pikakahvi|pikakahvit|kaakao|kaakaojauhe)\b/.test(childCategoryText)) return "Kahvi & tee";
   if (/\b(tee|teet|pussitee|yrttitee|hauduke|haudukkeet|teejuomajauhe|teejuomajauheet)\b/.test(childCategoryText)) return "Kahvi & tee";
 
