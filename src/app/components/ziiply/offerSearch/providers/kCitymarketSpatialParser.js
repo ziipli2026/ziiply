@@ -515,13 +515,6 @@ if(!spatialResolved&&anchor&&/HAIR FOOD HIUSTEN-\s*HOITOTUOTTEET/i.test(title)){
  const pct=local.find(b=>/^-36%$/.test(String(b.text||"").trim()));
  if(pct) percentageOffer={percent:36,source:"hair-food-percentage-proof",confidence:"high"};
 }
-// V265: leaflet 4 serum double-pack has an explicit large 31.90 / PKT price beside the product block.
-if(!spatialResolved&&anchor&&/KOLLAGEENI-\s*SEERUMI 30 ml TUPLAPAKKAUS/i.test(title)){
- const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.22);
- const price=local.find(b=>/^3190$/.test(String(b.text||"").trim())&&Number(b.height||0)>.04);
- const unit=local.find(b=>/^PKT$/i.test(String(b.text||"").trim()));
- if(price&&unit) spatialResolved={value:31.90,quantity:null,unit:"PKT",source:"collagen-serum-large-price-proof",sanity:"pass",confidence:"high"};
-}
 // V272: Valo kirkastava hyaluronitiiviste 50 ml JÄTTIKOKO has explicit 498.00/l and large 24.90/KPL in the same card.
 if(!spatialResolved&&anchor&&/50 ml JÄTTIKOKO 498(?:[,.]00)?\/l/i.test(title)){
  const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.23);
