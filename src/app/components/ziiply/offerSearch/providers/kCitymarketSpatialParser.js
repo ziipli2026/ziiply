@@ -499,7 +499,7 @@ if(anchor&&pk&&pk.min===pk.max&&ur&&ur.min===ur.max){const exact=Number((pk.min*
 if(!spatialResolved&&anchor&&expected){
  const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.19),compact=local.filter(b=>/^\d{3,4}$/.test(String(b.text||"").trim())&&Number(b.height||0)>=.04);
  const euros=local.filter(b=>/^\d{1,2}$/.test(String(b.text||"").trim())&&Number(b.height||0)>=.04),cents=local.filter(b=>/^\d{2}$/.test(String(b.text||"").trim())&&Number(b.height||0)>=.02);
- const countText=[title,...lines.filter(row=>Math.abs((row.i??0)-(lines[i]?.i??i))<=5).map(row=>row.text)].join(" "); const counts=[...countText.matchAll(/(?:^|\s)(\d{1,2})\s*x\s*\d+/gi)].map(m=>Number(m[1])).filter(n=>n>=2&&n<=24),totals=[];
+ const countText=[title,...around.map(row=>row.text)].join(" "); const counts=[...countText.matchAll(/(?:^|\s)(\d{1,2})\s*x\s*\d+/gi)].map(m=>Number(m[1])).filter(n=>n>=2&&n<=24),totals=[];
  for(const b of compact){const t=String(b.text).trim();totals.push(Number(t.slice(0,-2)+"."+t.slice(-2)));}
  for(const e of euros)for(const z of cents){const dx=Math.abs((z.left||0)-(e.left||0)),dy=Math.abs((z.top||0)-(e.top||0));if(dx<.08&&dy<.055)totals.push(Number(String(e.text).trim()+"."+String(z.text).trim()));}
  const vals=[];for(const total of totals)for(const n of counts){const each=Number((total/n).toFixed(2));if(Math.abs(each-expected)<=.015)vals.push({value:each,total,count:n});}
