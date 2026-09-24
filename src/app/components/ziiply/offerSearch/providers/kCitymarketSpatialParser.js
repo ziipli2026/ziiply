@@ -333,11 +333,6 @@ if(!spatialResolved&&anchor){
 }
 // Fixed-package multibuy: a whole-euro transaction price + quantity/unit is accepted only when a local printed unit price independently confirms the per-item arithmetic.
 // Fixed 1 kg/l package: a nearby large visual split price can be self-confirming when its numeric value equals the printed kg/l rate. Require two distinct coordinate pairs for the same value, one price-sized and one rate-sized.
-if(!spatialResolved&&anchor&&pk&&pk.min===pk.max&&Math.abs(pk.min-1)<.0001){
- const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.26),pairs=[];
- for(const a of local.filter(b=>/^\d{1,2}$/.test(String(b.text||"").trim())))for(const z of local.filter(b=>/^\d{2}$/.test(String(b.text||"").trim())&&(b.left||0)>(a.left||0))){const dx=(z.left||0)-(a.left||0),dy=Math.abs(((z.top||0)+(z.height||0)/2)-((a.top||0)+(a.height||0)/2));if(dx<.11&&dy<.05)pairs.push({value:Number(String(a.text).trim()+"."+String(z.text).trim()),h:Math.max(a.height||0,z.height||0)});}
- const by=[...new Set(pairs.map(x=>x.value))];for(const value of by){const same=pairs.filter(x=>x.value===value);if(same.length>=2&&Math.max(...same.map(x=>x.h))>=.035&&Math.min(...same.map(x=>x.h))<Math.max(...same.map(x=>x.h))*.8){spatialResolved={value,quantity:null,unit:null,source:"one-unit-duplicate-visual-price-rate",sanity:"pass"};break;}}
-}
 // Raw-box 1 kg/l self-confirmation: find the same split numeric value twice near the product, with one occurrence immediately associated with a KG/L unit token. This does not depend on basic-html unitRange parsing.
 if(!spatialResolved&&anchor&&pk&&pk.min===pk.max&&Math.abs(pk.min-1)<.0001){
  const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.36),pairs=[];
