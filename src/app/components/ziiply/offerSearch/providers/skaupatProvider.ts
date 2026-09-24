@@ -2177,13 +2177,7 @@ async function fetchSKaupatRemoteFilteredProductsV170(
 ): Promise<ZiiplyOfferSearchResult[]> {
   const selectedStores = await resolveSelectedSKaupatStoresV194(options);
   if (selectedStores.length === 0) {
-    return [
-      makeGostaZeroResultDiagnosticV208(
-        config,
-        options,
-        "selectedStores=0 | resolvedStoreId=- | httpStatus=- | raw=0 | total=0",
-      ),
-    ];
+    return [];
   }
 
   const allStoreResults: ZiiplyOfferSearchResult[] = [];
@@ -2301,13 +2295,7 @@ async function fetchSKaupatRemoteFilteredProductsV170(
   console.warn("[GOSTA PAGINATION V203 SUMMARY]", summaryV203);
 
   if (finalResultsV203.length === 0) {
-    return [
-      makeGostaZeroResultDiagnosticV208(
-        config,
-        options,
-        zeroResultDiagnosticsV208.join(" || ") || "resolvedStoreId=- | httpStatus=- | raw=0 | total=0",
-      ),
-    ];
+    return [];
   }
 
   return finalResultsV203;
