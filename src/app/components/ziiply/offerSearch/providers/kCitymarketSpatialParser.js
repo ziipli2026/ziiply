@@ -508,18 +508,12 @@ if(!spatialResolved&&anchor&&pk&&ur&&expected&&nr&&nr.unit){
  const hasDiscount=/(?:^|\s)-?\d{1,2}(?:[–-]\d{1,2})?\s*%/.test(localText);
  if(rounded>=.5&&rounded<nr.min&&hasNormalUnit&&hasDiscount)spatialResolved={value:rounded,quantity:null,unit:nr.unit,source:"package-unitrate-normalprice-proof",sanity:"pass",confidence:"high"};
 }
-// V260: Iloleipuri card is a percentage-only offer; coordinate proof shows -20% beside the product title.
-if(!spatialResolved&&anchor&&/^ILOLEIPURI$/i.test(title)){
+// Generic percentage-only card proof: accept one unique nearby printed discount percentage.
+if(!spatialResolved&&anchor){
  const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.14);
- const pct=local.find(b=>/^-20%$/.test(String(b.text||"").trim()));
- if(pct) percentageOffer={percent:20,source:"iloleipuri-percentage-proof",confidence:"high"};
-}
-
-// V262: Hair Food card is a percentage-only offer; coordinate proof shows -36% beside the product card.
-if(!spatialResolved&&anchor&&/HAIR FOOD HIUSTEN-\s*HOITOTUOTTEET/i.test(title)){
- const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.13);
- const pct=local.find(b=>/^-36%$/.test(String(b.text||"").trim()));
- if(pct) percentageOffer={percent:36,source:"hair-food-percentage-proof",confidence:"high"};
+ const pctValues=local.map(b=>String(b.text||"").trim().match(/^-(\d{1,2})%$/)).filter(Boolean).map(m=>Number(m[1]));
+ const uniq=[...new Set(pctValues)];
+ if(uniq.length===1)percentageOffer={percent:uniq[0],source:"unique-local-percentage-proof",confidence:"high"};
 }
 // V272: Valo kirkastava hyaluronitiiviste 50 ml JÄTTIKOKO has explicit 498.00/l and large 24.90/KPL in the same card.
 if(!spatialResolved&&anchor&&/50 ml JÄTTIKOKO 498(?:[,.]00)?\/l/i.test(title)){
