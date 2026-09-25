@@ -120,7 +120,9 @@ jobs:
               fetch(base+"/api/s-products?search=maito&store="+encodeURIComponent(String(s.id)),{cache:"no-store"}),
               fetch(base+"/api/k-products?search=maito&store="+encodeURIComponent(String(k.id)),{cache:"no-store"}),
             ]);
-            const [sj,kj]=await Promise.all([sp.json(),kp.json()]);
+            const [st,kt]=await Promise.all([sp.text(),kp.text()]);
+            console.log("GPS_DEPLOYED_HTTP",JSON.stringify({label,s:{status:sp.status,url:sp.url,type:sp.headers.get("content-type"),head:st.slice(0,120)},k:{status:kp.status,url:kp.url,type:kp.headers.get("content-type"),head:kt.slice(0,120)}}));
+            let sj={},kj={}; try{sj=JSON.parse(st)}catch{} try{kj=JSON.parse(kt)}catch{};
             const si=(sj.items||[]).filter(x=>Number(x.price??x.storeItems?.[0]?.price)>0);
             const ki=(kj.items||[]).filter(x=>Number(x.price??x.storeItems?.[0]?.price)>0);
             console.log("GPS_DEPLOYED_E2E",JSON.stringify({label,s:{name:s.name,id:s.id,count:si.length,sample:si[0]?.price??si[0]?.storeItems?.[0]?.price},k:{name:k.name,id:k.id,count:ki.length,sample:ki[0]?.price??ki[0]?.storeItems?.[0]?.price}}));
