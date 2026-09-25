@@ -363,8 +363,6 @@ if(spatialResolved?.rejectedReview)spatialResolved=null;
 // Generic shared-card split price: require a large euro+cents pair, sale-unit token, discount marker and printed normal-price fragments in the same local card.
 // Generic package/unit-rate fallback: derive the rounded shelf price from package size and unit rate,
 // and require the card context to contain the same sale unit plus a discount or printed normal price.
-// Generic package/unit-rate fallback: derive the rounded shelf price from package size and unit rate,
-// and require the card context to contain the same sale unit plus a discount or printed normal price.
 if(!spatialResolved&&anchor&&pk&&ur&&expected&&nr&&nr.unit){
  const rounded=Number(expected.toFixed(2)),localText=around.map(r=>String(r.text||"")).join(" ");
  const hasNormalUnit=new RegExp("\\/("+nr.unit+")\\b","i").test(localText);
@@ -373,8 +371,6 @@ if(!spatialResolved&&anchor&&pk&&ur&&expected&&nr&&nr.unit){
  if(rounded>=.5&&rounded<nr.min&&hasNormalUnit&&(hasDiscount||hasNormal))spatialResolved={value:rounded,quantity:null,unit:nr.unit,source:"package-unitrate-normalprice-proof",sanity:"pass",confidence:"high"};
 }
 
-// Generic percentage-only card proof: use the closest percentage in basic HTML after the product row,
-// then fall back to one unique nearby geometric percentage.
 // Generic percentage-only card proof: use the closest percentage in basic HTML after the product row,
 // then fall back to one unique nearby geometric percentage.
 if(!spatialResolved&&anchor){
@@ -398,9 +394,6 @@ if(!spatialResolved&&anchor){
 // HTML section explicitly identifies recipe/editorial content and following rows contain product pricing.
 // Generic fixed-package multibuy proof from a printed unit price and sale quantity.
 // Example shape: 500 g, "2 PS", "(4 00/kg)" => 2 * 0.5 kg * 4.00/kg = 4.00.
-// Generic fixed-package shelf price from printed unit rate plus explicit normal-price row.
-// Example pattern: 500 ml + 6.00/l + "Ilman Plussa-korttia 3.55/kpl" proves a 3.00 sale price.
-// Require fixed package size and an independently printed normal-price row to avoid treating arbitrary unit rates as offers.
 // Generic fixed-package shelf price from printed unit rate plus explicit normal-price row.
 // Example pattern: 500 ml + 6.00/l + "Ilman Plussa-korttia 3.55/kpl" proves a 3.00 sale price.
 // Require fixed package size and an independently printed normal-price row to avoid treating arbitrary unit rates as offers.
@@ -455,8 +448,6 @@ if(!spatialResolved&&anchor&&pk&&pk.max>pk.min){
 // Require mixed-size evidence plus independent nearby card pricing evidence.
 // Generic ranged package + ranged unit-price cross-check.
 // Opposite range endpoints should reconstruct the same per-package price.
-// Generic final authority for fixed-package cards with their own printed unit price and sale unit.
-// Re-apply after weaker spatial passes so neighbouring visual candidates cannot overwrite it.
 // Generic final authority for fixed-package cards with their own printed unit price and sale unit.
 // Re-apply after weaker spatial passes so neighbouring visual candidates cannot overwrite it.
 if(anchor&&expected&&pk&&Math.abs(pk.max-pk.min)<1e-9){
