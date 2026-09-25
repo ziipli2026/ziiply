@@ -55,6 +55,15 @@ jobs:
               const at=bakeType(A),bt=bakeType(B);if(at!==bt)return true;
             }
             if(A.includes("calzone")&&!B.includes("calzone"))return true;
+            if(A.includes("riisi")){
+              for(const x of ["monivilja","kaura","ohra"])if(A.includes(x)!==B.includes(x))return true;
+            }
+            if(A.includes("smoothie")){
+              for(const x of ["ananas","guava","kookos","mango","banaani"])if(A.includes(x)!==B.includes(x))return true;
+            }
+            if(pet.test(A)&&pet.test(B)){
+              for(const x of ["lohi","riista","lammas"])if(A.includes(x)!==B.includes(x))return true;
+            }
             return false;
           }
           function score(a,b){const A=new Set(norm(a).split(" ").filter(x=>x.length>2&&!/^\d/.test(x)));return norm(b).split(" ").reduce((n,t)=>n+(A.has(t)?1:0),0);}
