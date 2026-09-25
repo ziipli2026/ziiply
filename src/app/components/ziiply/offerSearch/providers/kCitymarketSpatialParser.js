@@ -155,7 +155,7 @@ if(anchor){
  if(mm){const t=mm[2],value=Number(t.slice(0,-2)+"."+t.slice(-2));if(value>=.5&&value<100)spatialResolved={value,quantity:null,unit:mm[1].toUpperCase(),source:"basic-own-row-explicit-compact-price",sanity:"pass",confidence:"high"};}
 }
 
-// Generic basic-HTML explicit shelf price: accept "UNIT 3190" style only from the product's own nearby text row.
+// Add a quantity candidate only when expected unit pricing reconstructs a clean half-euro multibuy total.
 if(expected){for(const q of qtyUnits){const tx=Number((expected*q.quantity).toFixed(2));const half=Math.round(tx*2)/2;if(Math.abs(tx-half)<.08&&half>=1&&half<30&&!spatialCandidates.some(x=>x.kind!=="unitprice-derived-multibuy"&&x.quantity===q.quantity&&Math.abs(x.value-half)<.12))spatialCandidates.push({value:half,quantity:q.quantity,unit:q.unit,parts:["expected",String(q.quantity),q.unit],score:Number((.36+Math.abs(tx-half)).toFixed(6)),kind:"expected-validated-multibuy"});}} const largeVisual=spatialCandidates.filter(x=>x.kind==="large-visual-whole-euro"||x.kind==="spaced-large-cents"||x.kind==="same-row-euro-cents").filter(x=>{if(x.kind==="spaced-large-cents"||x.kind==="same-row-euro-cents")return true;if(!expected||!x.quantity)return true;return Math.abs(x.value-expected*x.quantity)<Math.max(.35,expected*.22)}).sort((a,b)=>a.score-b.score)[0]; const expectedTitleUnit=((title.match(/(?:^|\\s)(RS|PS|PKT|KPL|PRK|TLK|PL)(?:\\s|$)|\/(tlk|pl|ps|pkt|rs|prk|kpl)\b/i)||[]).slice(1).find(Boolean)||"").toUpperCase(); const validatedMulti=expected?spatialCandidates.filter(x=>x.kind!=="unitprice-derived-multibuy"&&x.quantity>=2&&x.quantity<=5&&x.value>=.5&&x.value<50&&(!expectedTitleUnit||String(x.unit||"").toUpperCase()===expectedTitleUnit)&&Math.abs(x.value-expected*x.quantity)<Math.max(.22,expected*.14)).sort((a,b)=>Math.abs(a.value-expected*a.quantity)-Math.abs(b.value-expected*b.quantity)||a.score-b.score)[0]:null;
 // Raw wordBoxes visual recovery; inferred multibuy may be replaced only by strict large visual evidence.
 // expected-validated-multibuy is arithmetic evidence, not geometric evidence. A nearby qty/unit can
@@ -189,9 +189,6 @@ if(!spatialResolved&&nr&&nr.min>=10){const disc=groupTexts.map(t=>t.match(/(?:^|
 // the product/package, e.g. "PORKKANA 99 1 kg" with "(0 99/kg)". Require arithmetic agreement.
 // Reconstruct an exact visual price from package-size/unit-price arithmetic when the matching cents are
 // printed in the local product group but the euro digit has been swallowed into adjacent title text.
-// Large visual euro+cents pair plus a nearby matching sale unit.
-// Require package/unit-price arithmetic to agree when expectedSingle exists; this recovers cards such as 2.59 RS
-// without reviving previously rejected loose nearest-price matches.
 // Large visual euro+cents pair plus a nearby matching sale unit.
 // Require package/unit-price arithmetic to agree when expectedSingle exists; this recovers cards such as 2.59 RS
 // without reviving previously rejected loose nearest-price matches.
@@ -280,9 +277,6 @@ if(!spatialResolved||spatialResolved.sanity==="review"||spatialResolved.source==
 // Fixed 1 kg/l package: a nearby large visual split price can be self-confirming when its numeric value equals the printed kg/l rate. Require two distinct coordinate pairs for the same value, one price-sized and one rate-sized.
 // Raw-box 1 kg/l self-confirmation: find the same split numeric value twice near the product, with one occurrence immediately associated with a KG/L unit token. This does not depend on basic-html unitRange parsing.
 // Card-level fixed-package split: when title and large price sit on different bands, search the local card neighborhood but require the candidate to be independently compatible with printed package/unit-price arithmetic.
-// Generic fixed-package unit-rate derivation from the product's own printed rate.
-// Example: 500 ml + 5.00/l => 2.50; 1.2 l + 4.17/l => about 5.00.
-// Ignore comparison rates on "Ilman Plussa-korttia" rows and require a nearby sale-unit token.
 // Generic fixed-package unit-rate derivation from the product's own printed rate.
 // Example: 500 ml + 5.00/l => 2.50; 1.2 l + 4.17/l => about 5.00.
 // Ignore comparison rates on "Ilman Plussa-korttia" rows and require a nearby sale-unit token.
