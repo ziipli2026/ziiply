@@ -123,7 +123,8 @@ jobs:
             ["async function fetchSProducts(\n    search: string,\n    storeId: number,","async function fetchSProducts(\n    search: string,\n    storeId: string | number,"],
             ["async function fetchSProductsAllowUnpricedV463(\n    search: string,\n    storeId: number,","async function fetchSProductsAllowUnpricedV463(\n    search: string,\n    storeId: string | number,"],
             ["async function hydrateSProductPriceFromSearchBranchV463(\n    candidate: Product,\n    variants: string[],\n    nameCandidates: string[],\n    storeId: number,","async function hydrateSProductPriceFromSearchBranchV463(\n    candidate: Product,\n    variants: string[],\n    nameCandidates: string[],\n    storeId: string | number,"],
-            ["async function fetchKProducts(\n    search: string,\n    storeId: number,","async function fetchKProducts(\n    search: string,\n    storeId: string | number,"]
+            ["async function fetchKProducts(\n    search: string,\n    storeId: number,","async function fetchKProducts(\n    search: string,\n    storeId: string | number,"],
+            ["async function findBestKMatchForStore(\n    query: string,\n    storeId: number,","async function findBestKMatchForStore(\n    query: string,\n    storeId: string | number,"]
           ];
           for(const [a,b] of targets){if(s.includes(a))s=s.replace(a,b)}
           // The new resolver's selected store intentionally has no city field.
