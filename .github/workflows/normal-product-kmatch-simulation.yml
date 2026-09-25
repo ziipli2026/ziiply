@@ -303,4 +303,31 @@ jobs:
             }
           }
           console.log("AGGREGATE_CANDIDATE_PROBE "+JSON.stringify(aggregateProbe));
+
+          let guarded={tested:0,eligible:0,blocked:0,examples:[]};
+          function sameMetricSize(a,b){
+            const rx=/(\\d+(?:[.,]\\d+)?)\\s*(kg|g|l|dl|cl|ml)\\b/;
+            const conv=n=>{const m=norm(n).match(rx);if(!m)return null;let v=Number(m[1].replace(",",".")),u=m[2];if(u==="kg"){v*=1000;u="g"}if(u==="l"){v*=1000;u="ml"}if(u==="dl"){v*=100;u="ml"}if(u==="cl"){v*=10;u="ml"}return u+":"+v};
+            const x=conv(a),y=conv(b); return x&&y?x===y:!x&&!y;
+          }
+          function sharedMeaningful(a,b){
+            const skip=new Set(["coop","xtra","kotimaista","suomalainen","pirkka","menu","valio","arla","tuote","pakattu"]);
+            const bw=norm(b);return [...new Set(norm(a).split(/[^a-z0-9åäö]+/).filter(w=>w.length>=4&&!skip.has(w)))].filter(w=>bw.includes(w)).length;
+          }
+          async function guardedOne(source,storeId){
+            const ts=terms(source).slice(0,4);if(ts.length<2)return;
+            let first=null,best=null;
+            for(let i=0;i<ts.length;i++)for(const x of await k(ts[i],storeId)){
+              if(hardBad(source,x.name))continue;
+              const row={x,sc:simpleScore(source,x.name),term:ts[i]};
+              if(!first)first=row;if(!best||row.sc>best.sc)best=row;
+            }
+            if(!first||!best||best.sc-first.sc<18)return;
+            guarded.tested++;
+            const ok=sameMetricSize(source,best.x.name)&&sharedMeaningful(source,best.x.name)>=2;
+            if(ok)guarded.eligible++;else guarded.blocked++;
+            if(guarded.examples.length<20)guarded.examples.push({source,first:first.x.name,best:best.x.name,gain:best.sc-first.sc,shared:sharedMeaningful(source,best.x.name),sameSize:sameMetricSize(source,best.x.name),eligible:ok});
+          }
+          for(const pair of pairs){const seen=new Set();for(const q of queries.slice(0,8))for(const p of (await s(q,pair.s)).slice(0,10)){if(seen.has(p.name))continue;seen.add(p.name);await guardedOne(p.name,pair.k)}}
+          console.log("GUARDED_REPLACEMENT_PROBE "+JSON.stringify(guarded));
           NODE
