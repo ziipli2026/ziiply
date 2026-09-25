@@ -287,11 +287,15 @@ function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
   // Ziiply category. Preserve that category instead of re-running title regexes
   // in CategoryCore (e.g. PERUNALASTUT contains "peruna" and was changed to Hevi).
   const anyItem = item as any;
-  const storeType = normalizeGostaCoreText(anyItem?.storeType || "");
-  const source = normalizeGostaCoreText(anyItem?.source || "");
+  // Card/search items keep the original K-Citymarket provider object under
+  // __sourceOfferSearchResult. Read identity + category from that object too;
+  // otherwise the generic title classifier can overwrite the provider category.
+  const sourceItem = (anyItem?.__sourceOfferSearchResult || anyItem) as any;
+  const storeType = normalizeGostaCoreText(sourceItem?.storeType || anyItem?.storeType || "");
+  const source = normalizeGostaCoreText(sourceItem?.source || anyItem?.source || "");
   const isKCitymarket = storeType === "k citymarket" || storeType === "k-citymarket" || source.includes("k citymarket tarjouslehti");
   if (isKCitymarket) {
-    const raw = normalizeGostaCoreText(anyItem?.category || "").replace(/\\bja\\b/g, " ").replace(/\\s+/g, " ").trim();
+    const raw = normalizeGostaCoreText(sourceItem?.category || anyItem?.category || "").replace(/\\bja\\b/g, " ").replace(/\\s+/g, " ").trim();
     const trusted = new Map<string, string>([
       ["kahvi tee", "Kahvi & tee"], ["maitotuotteet", "Maitotuotteet"], ["liha makkarat", "Liha & makkarat"],
       ["kala", "Kala"], ["leipomo", "Leipomo"], ["hevi", "Hevi"], ["juomat", "Juomat"], ["pakasteet", "Pakasteet"],
