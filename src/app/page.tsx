@@ -15709,9 +15709,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // - lähikaupat: oman GPS-kunnan kaupat + 10 km lähikaupat, mutta enintään
     //   5 lähintä per ketju; jos joukko jää vajaaksi, täydennetään lähimmillä
     //   myös kuntarajan / 10 km rajan ulkopuolelta
-    // - tavaratalot: lähialueen (35 km) kaikki Prisma/K-Citymarketit +
-    //   kaikki GPS:n tunnistaman kunnan tavaratalot; jos kumpaakaan ei löydy,
-    //   näytetään silti lähin tavaratalo riippumatta kuntarajasta
+    // - tavaratalot: lähin Prisma/K-Citymarket per ketju +
+    //   kaikki GPS:n tunnistaman kunnan saman ketjun tavaratalot; ei km-rajaa
     // Resolverin laaja candidate pool säilyy ennallaan.
     if (!usingOwnLocation || !gpsCoordsV320) {
       return sortStoresForPickerV320(scoped, mode, selectedId, selectedName);
@@ -15758,17 +15757,20 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       );
     }
 
-    const hyperNearbyAndMunicipalityV321 = distanceSortedV321.filter(
-      ({ store, distanceKm }) =>
-        distanceKm <= 35 || sameGpsMunicipalityV321(store),
-    );
-    const hyperPoolV321 =
-      hyperNearbyAndMunicipalityV321.length > 0
-        ? hyperNearbyAndMunicipalityV321.map(({ store }) => store)
-        : distanceSortedV321.slice(0, 1).map(({ store }) => store);
+    // Tavaratalot GPS: mukaan vain lähin kyseisen ketjun tavaratalo +
+    // kaikki saman GPS-kunnan muut saman ketjun tavaratalot. Ei km-rajaa.
+    // Näin naapurikuntien tavaratalot eivät valu listalle pelkän säteen vuoksi.
+    const nearestHyperV322 = distanceSortedV321[0]?.store;
+    const sameMunicipalityHypersV322 = distanceSortedV321
+      .filter(({ store }) => sameGpsMunicipalityV321(store))
+      .map(({ store }) => store);
+    const hyperPoolV322 = uniqueStoresByIdAndName([
+      ...(nearestHyperV322 ? [nearestHyperV322] : []),
+      ...sameMunicipalityHypersV322,
+    ]);
 
     return sortStoresForPickerV320(
-      hyperPoolV321,
+      hyperPoolV322,
       mode,
       selectedId,
       selectedName,
