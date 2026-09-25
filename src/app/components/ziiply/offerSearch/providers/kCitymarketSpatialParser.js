@@ -33,7 +33,7 @@ const e=await ft(ENTRY);let leaf=e.url;const dm=e.text.match(/https?:\/\/kcm-tar
 const out={revision:"V125-KCITYMARKET-ANY-TITLEWORD-ROW-EXACT",leaflet:l.url,rows:[]};
 for(let p=1;p<=18;p++){
  const posUrl=new URL("files/search/text_position["+p+"].js",l.url).href; let wordBoxes=[]; try{const pr=await ft(posUrl);wordBoxes=parseWordBoxes(pr.text)}catch(e){}
-const u=p===1?basic:new URL("page"+p+".html",basic).href,lines=codeLines((await ft(u)).text),pageText=lines.map(x=>x.text).join(" | "),frags=priceFragments(lines);for(let i=0;i<lines.length;i++){let title=lines[i].text;if(!productish(title))continue;const recipeImmediate=lines[i+1]&&/^Katso\s+resepti\s*»?/i.test(String(lines[i+1].text||"").trim());if(recipeImmediate)continue;const before=lines.slice(Math.max(0,i-10),i),after=lines.slice(i+1,Math.min(lines.length,i+16)),around=[...before,lines[i],...after],joined=around.map(x=>x.text).join(" | "),pk=pkg(title),promoAfter=after.slice(0,Math.max(0,after.findIndex(x=>/Ilman Plussa-korttia/i.test(x.text))<0?after.length:after.findIndex(x=>/Ilman Plussa-korttia/i.test(x.text)))),ur=unitRange(title)||unitRange(promoAfter.map(x=>x.text).join(" | ")),nr=normal(after.filter(x=>/Ilman Plussa-korttia/i.test(x.text)).map(x=>x.text).join(" | ")),ex=around.flatMap(x=>explicit(x.text));let expected=null;if(pk&&ur)expected=((pk.min+pk.max)/2)*((ur.min+ur.max)/2);const recipeContextNoPrice=!pk&&!ur&&expected==null&&/Viikon\s+resepti\s*:/i.test(around.map(x=>String(x.text||"")).join(" "));if(recipeContextNoPrice)continue;let cand=ex.sort((a,b)=>Math.abs((a.line??i)-i)-Math.abs((b.line??i)-i))[0]||null;const direct=directPrices(around).sort((a,b)=>Math.abs(a.line-lines[i].i)-Math.abs(b.line-lines[i].i));if(!cand&&direct.length)cand=direct[0];const split=splitAround(around,Math.max(0,around.findIndex(z=>z.i===lines[i].i)));if(!cand&&split.length){const plausible=split.filter(x=>!nr||x.price<=(nr.max*(nr.unit?3:1)+.01));if(plausible.length)cand=plausible.sort((a,b)=>a.distance-b.distance)[0]}if(!cand&&expected){const localIdx=Math.max(0,around.findIndex(z=>z.i===lines[i].i));const q=nearbyQty(around,localIdx)[0];const local=priceFragments(around).filter(x=>x.price!=null&&Math.abs(x.line-i)<=10);if(!cand&&local.length)cand=local.map(x=>({...x,d:Math.abs(x.price-expected)})).sort((a,b)=>a.d-b.d)[0];if((!cand||cand.d>.12)){const suf=priceFragments(around).filter(x=>x.suffix!=null);if(suf.length){const z=suf.map(x=>({...x,...nearestSuffix(x.suffix,expected)})).sort((a,b)=>a.d-b.d)[0];if(!cand||z.d<cand.d)cand=z}}}
+const u=p===1?basic:new URL("page"+p+".html",basic).href,lines=codeLines((await ft(u)).text),pageText=lines.map(x=>x.text).join(" | "),frags=priceFragments(lines);for(let i=0;i<lines.length;i++){let title=lines[i].text;if(!productish(title))continue;const recipeImmediate=lines[i+1]&&/^Katso\s+resepti\s*»?/i.test(String(lines[i+1].text||"").trim());if(recipeImmediate)continue;const before=lines.slice(Math.max(0,i-10),i),after=lines.slice(i+1,Math.min(lines.length,i+16)),around=[...before,lines[i],...after],joined=around.map(x=>x.text).join(" | "),pk=pkg(title),promoAfter=after.slice(0,Math.max(0,after.findIndex(x=>/Ilman Plussa-korttia/i.test(x.text))<0?after.length:after.findIndex(x=>/Ilman Plussa-korttia/i.test(x.text)))),ur=unitRange(title),nr=normal(after.filter(x=>/Ilman Plussa-korttia/i.test(x.text)).map(x=>x.text).join(" | ")),ex=around.flatMap(x=>explicit(x.text));let expected=null;if(pk&&ur)expected=((pk.min+pk.max)/2)*((ur.min+ur.max)/2);const recipeContextNoPrice=!pk&&!ur&&expected==null&&/Viikon\s+resepti\s*:/i.test(around.map(x=>String(x.text||"")).join(" "));if(recipeContextNoPrice)continue;let cand=ex.sort((a,b)=>Math.abs((a.line??i)-i)-Math.abs((b.line??i)-i))[0]||null;const direct=directPrices(around).sort((a,b)=>Math.abs(a.line-lines[i].i)-Math.abs(b.line-lines[i].i));if(!cand&&direct.length)cand=direct[0];const split=splitAround(around,Math.max(0,around.findIndex(z=>z.i===lines[i].i)));if(!cand&&split.length){const plausible=split.filter(x=>!nr||x.price<=(nr.max*(nr.unit?3:1)+.01));if(plausible.length)cand=plausible.sort((a,b)=>a.distance-b.distance)[0]}if(!cand&&expected){const localIdx=Math.max(0,around.findIndex(z=>z.i===lines[i].i));const q=nearbyQty(around,localIdx)[0];const local=priceFragments(around).filter(x=>x.price!=null&&Math.abs(x.line-i)<=10);if(!cand&&local.length)cand=local.map(x=>({...x,d:Math.abs(x.price-expected)})).sort((a,b)=>a.d-b.d)[0];if((!cand||cand.d>.12)){const suf=priceFragments(around).filter(x=>x.suffix!=null);if(suf.length){const z=suf.map(x=>({...x,...nearestSuffix(x.suffix,expected)})).sort((a,b)=>a.d-b.d)[0];if(!cand||z.d<cand.d)cand=z}}}
 let packageRowAnchor=null;
 const packageTokenForAnchor=String(title).match(/\b(\d+(?:[,.]\d+)?)\s*(g|kg|ml|cl|l|kpl|pkt|ps|prk|tlk|pl)\b/i);
 if(packageTokenForAnchor){
@@ -49,8 +49,8 @@ if(packageTokenForAnchor){
     const candidate={left:th.reduce((s,b)=>s+Number(b.left||0),0)/th.length,top:th.reduce((s,b)=>s+Number(b.top||0),0)/th.length,width:0,height:0,boxes:th};
     const ownTitleWords=titleWords.filter(w=>w.length>=6);
     const ownMatches=[...new Set(th.map(b=>String(b.text).toUpperCase().replace(/[^A-ZÅÄÖ]/g,"")).filter(t=>ownTitleWords.includes(t)))];
-    const packageRowHasStrongTitle=ownMatches.length>=1;
-    if(packageRowHasStrongTitle){packageRowAnchor=candidate;break;}
+    const packageRowHasStrongTitle=ownMatches.length>=1; const packCountMatch=String(title).match(/\b(\d{2,3})\s*[- ]?PACK\b/i); const packCountProof=packCountMatch?wordBoxes.some(b=>Math.abs((Number(b.top)||0)-(Number(nb.top)||0))<.04&&Math.abs((Number(b.left)||0)-(Number(nb.left)||0))<.24&&String(b.text||"").replace(/\s+/g,"").toUpperCase().includes(packCountMatch[1])):false;
+    if(packageRowHasStrongTitle||packCountProof){packageRowAnchor=packageRowHasStrongTitle?candidate:{left:(Number(nb.left)+Number(ub.left))/2,top:(Number(nb.top)+Number(ub.top))/2,width:0,height:0,boxes:[nb,ub]};break;}
    }
  }
 }
@@ -67,12 +67,17 @@ for(const fused of productBlock.filter(x=>/^\d{3}$/.test(String(x.text).trim()))
     }
   }
 }
-// Large visual whole-euro price + quantity below/right (e.g. 7 € / 3 ps)
+// Large visual whole-euro price + quantity below/right (e.g. 7 € / 3 ps).
+// Quantity is valid only with its own tightly paired printed sale unit; never infer the unit from a normal-price row.
 for(const euro of productBlock.filter(x=>/^\d{1,2}$/.test(String(x.text).trim())&&Number(x.height||0)>.05)){
-  const q=productBlock.filter(x=>/^[2-5]$/.test(String(x.text).trim())&&x.left>euro.left&&x.left-euro.left<.16&&x.top>euro.top&&x.top-euro.top<.10).sort((a,b)=>Math.hypot(a.left-euro.left,a.top-euro.top)-Math.hypot(b.left-euro.left,b.top-euro.top))[0];
-  if(!q)continue;
-  const normalUnit=(nr&&nr.unit)?String(nr.unit).toUpperCase():null;
-  spatialCandidates.push({value:Number(euro.text),quantity:Number(q.text),unit:normalUnit,parts:[String(euro.text),String(q.text)],score:Number(Math.hypot(q.left-euro.left,q.top-euro.top).toFixed(6)),kind:"large-euro-quantity"});
+  const qs=productBlock.filter(x=>/^[2-5]$/.test(String(x.text).trim())&&x.left>euro.left&&x.left-euro.left<.16&&x.top>euro.top&&x.top-euro.top<.10);
+  for(const q of qs){
+    const purchaseLimit=wordBoxes.some(b=>/^rajoitus$/i.test(String(b.text).trim())&&Math.abs((Number(b.top)||0)-(Number(q.top)||0))<.018&&Math.abs((Number(b.left)||0)-(Number(q.left)||0))<.16);
+    if(purchaseLimit)continue;
+    const u=unitFrags.map(x=>({...x,du:Math.hypot((Number(x.left)||0)-(Number(q.left)||0),(Number(x.top)||0)-(Number(q.top)||0))})).sort((a,b)=>a.du-b.du)[0];
+    if(!u||u.du>.055||Math.abs((Number(u.top)||0)-(Number(q.top)||0))>.035)continue;
+    spatialCandidates.push({value:Number(euro.text),quantity:Number(q.text),unit:String(u.text).toUpperCase(),parts:[String(euro.text),String(q.text),String(u.text)],score:Number(Math.hypot(q.left-euro.left,q.top-euro.top).toFixed(6)),kind:"large-euro-quantity"});
+  }
 }
 // Embedded euro digit in a word plus nearby cents (e.g. T3oalettpapper + 59 => 3.59)
 for(const emb of productBlock){
@@ -117,11 +122,12 @@ if(anchor){
  for(const hit of titleBoxes){
   const hy=(Number(hit.top)||0)+(Number(hit.height)||0)/2;
   const band=local.filter(b=>Math.abs(((Number(b.top)||0)+(Number(b.height)||0)/2)-hy)<.055&&(Number(b.left)||0)>(Number(hit.left)||0)-.01);
-  const euros=band.filter(b=>/^[1-9]$/.test(String(b.text).trim())&&Number(b.height||0)>=.035);
-  const cents=band.filter(b=>/^[0-9]{2}$/.test(String(b.text).trim())&&Number(b.height||0)>=.025);
+  const euros=band.filter(b=>/^[1-9]\d?$/.test(String(b.text).trim())&&Number(b.height||0)>=.035);
+  const cents=band.filter(b=>/^[0-9]{2}$/.test(String(b.text).trim())&&Number(b.height||0)>=.023);
   for(const e of euros)for(const c of cents){
    const dx=Number(c.left)-Number(e.left),dy=Math.abs(Number(c.top)-Number(e.top));
-   if(dx<=.008||dx>.075||dy>.035)continue;
+   const eRight=Number(e.left)+(Number(e.width)||0),edgeGap=Number(c.left)-eRight;
+   if(dx<=.008||dx>.075||dy>.035||edgeGap<-.002||edgeGap>.02)continue;
    const value=Number(String(e.text).trim()+"."+String(c.text).trim());
    if(value<.5||value>=30||packageNumbers.has(value))continue;
    const d=Math.max(boxDistance(anchor,e),boxDistance(anchor,c));
@@ -176,7 +182,7 @@ if(!spatialResolved&&packageRowAnchor){
   }
  }
  proofs.sort((a,b)=>a.score-b.score);
- const uniqueProofs=proofs.filter((p,i,a)=>a.findIndex(x=>x.value===p.value&&x.quantity===p.quantity&&x.unit===p.unit)===i); if(uniqueProofs[0]&&(!uniqueProofs[1]||uniqueProofs[1].value===uniqueProofs[0].value||uniqueProofs[1].score-uniqueProofs[0].score>.02)){const p=uniqueProofs[0];spatialResolved={value:p.value,quantity:p.quantity,unit:p.unit,source:"package-owned-visual-multibuy",sanity:"pass",confidence:"high"};}
+ const uniqueProofs=proofs.filter((p,i,a)=>a.findIndex(x=>x.value===p.value&&x.quantity===p.quantity&&x.unit===p.unit)===i); if(uniqueProofs[0]&&(!uniqueProofs[1]||uniqueProofs[1].value===uniqueProofs[0].value||uniqueProofs[1].score-uniqueProofs[0].score>.02)){const p=uniqueProofs[0];const ownRate=unitRange(title)||unitRange(around.slice(0,8).map(x=>String(x.text||"")).join(" "));const arithmeticTx=pk&&ownRate&&ownRate.min===ownRate.max?Number((((pk.min+pk.max)/2)*ownRate.min*p.quantity).toFixed(2)):null;const visualAgrees=arithmeticTx==null||Math.abs(p.value-arithmeticTx)<=Math.max(.06,arithmeticTx*.025);if(visualAgrees)spatialResolved={value:p.value,quantity:p.quantity,unit:p.unit,source:"package-owned-visual-multibuy",sanity:"pass",confidence:"high"};else if(arithmeticTx>=1&&arithmeticTx<30)spatialResolved={value:arithmeticTx,quantity:p.quantity,unit:p.unit,source:"package-unitrate-multibuy-derived",sanity:"pass",confidence:"high"};}
 }
 
 // Simulation: explicit quantity+unit and split transaction price from the product's own basic-HTML lead.
@@ -217,7 +223,47 @@ const guardedValidatedMulti=validatedMulti&&strongDirect&&inferredMultiKinds.has
 // Avoid regex escaping entirely for strict visual digit glyphs.
 if(anchor&&expected){const cents=Math.round((expected-Math.floor(expected))*100);const largeCents=wordBoxes.filter(b=>{const t=String(b.text).trim();return boxDistance(anchor,b)<.18&&t.length===2&&Number.isInteger(Number(t))&&Number(b.height||0)>=.05&&Math.abs(Number(t)-cents)<=1;}).sort((a,b)=>boxDistance(anchor,a)-boxDistance(anchor,b))[0];if(largeCents)spatialResolved={value:Number(expected.toFixed(2)),quantity:null,unit:null,kind:"large-cents-expected-visual",source:"large-cents-expected-visual",sanity:"pass"};}
 
-const strictVisualSource=spatialResolved&&["large-cents-expected-visual","package-owned-visual-multibuy"].includes(spatialResolved.source); const titleDigits=(title.match(/\\d+(?:[,.]\\d+)?/g)||[]).map(s=>s.replace(",", ".")); const goodCand=spatialCandidates.filter(x=>x.kind!=="unitprice-derived-multibuy"&&x.value>=.5&&x.value<50&&!((x.parts||[]).some(p=>titleDigits.includes(String(p).replace(",", "."))))).sort((a,b)=>a.score-b.score)[0]; if(goodCand&&!strictVisualSource){
+// Same-card unit-price proof from coordinate geometry.
+// Bind a printed kg/l rate immediately below the title/package anchor to this card, derive the package price,
+// and require the same value to be present as a large visual price on the same card.
+if(anchor&&pk&&(!spatialResolved||spatialResolved.sanity==="review"||spatialResolved.source==="best-spatial-candidate")){
+ const ax=Number(anchor.left)||0,ay=Number(anchor.top)||0;
+ const cardBoxes=wordBoxes.filter(b=>Math.abs((Number(b.left)||0)-ax)<.22&&(Number(b.top)||0)>ay-.025&&(Number(b.top)||0)<ay+.115);
+ const cardGroups=spatialGroups(cardBoxes);
+ const rates=[];
+ for(const g of cardGroups){
+  const t=String(g.text||"").replace(/,/g,".");
+  let m=t.match(/\(?\s*(\d{1,2})\s+(\d{2})\s*\/\s*(kg|l)\)?/i);
+  if(m)rates.push({min:Number(m[1]+"."+m[2]),max:Number(m[1]+"."+m[2]),top:g.top,left:g.left});
+  m=t.match(/\(?\s*(\d{1,2})\s+(\d{2})\s*[–-]\s*(\d{1,2})\s+(\d{2})\s*\/\s*(kg|l)\)?/i);
+  if(m)rates.push({min:Number(m[1]+"."+m[2]),max:Number(m[3]+"."+m[4]),top:g.top,left:g.left});
+  m=t.match(/\(?\s*(\d{1,2}\.\d{2})\s*[–-]\s*(\d{1,2}\.\d{2})\s*\/\s*(kg|l)\)?/i);
+  if(m)rates.push({min:Number(m[1]),max:Number(m[2]),top:g.top,left:g.left});
+ }
+ const ownRates=rates.filter(r=>r.top>=ay-.005&&r.top<=ay+.075&&Math.abs(r.left-ax)<.10);
+ const visual=[];
+ for(const b of cardBoxes){
+  const t=String(b.text).trim(),h=Number(b.height||0);
+  if(/^\d{3}$/.test(t)&&h>=.075){const v=Number(t)/100;if(v>=.5&&v<30)visual.push({value:v,d:boxDistance(anchor,b)});}
+ }
+ for(const e of cardBoxes.filter(b=>/^\d{1,2}$/.test(String(b.text).trim())&&Number(b.height||0)>=.075)){
+  for(const z of cardBoxes.filter(b=>/^\d{2}$/.test(String(b.text).trim())&&Number(b.height||0)>=.04&&(Number(b.left)||0)>(Number(e.left)||0))){
+   const dx=(Number(z.left)||0)-(Number(e.left)||0),dy=Math.abs((Number(z.top)||0)-(Number(e.top)||0));
+   if(dx>.12||dy>.055)continue;
+   const v=Number(String(e.text).trim()+"."+String(z.text).trim());if(v>=.5&&v<30)visual.push({value:v,d:Math.max(boxDistance(anchor,e),boxDistance(anchor,z))});
+  }
+ }
+ const proofs=[];
+ for(const r of ownRates){
+  const derived=pk.min===pk.max?[pk.min*r.min]:[pk.min*r.max,pk.max*r.min];
+  for(const d of derived){for(const v of visual){if(Math.abs(v.value-d)<=.035)proofs.push({value:v.value,rate:r,d:v.d});}}
+ }
+ proofs.sort((a,b)=>a.d-b.d);
+ const uniq=[...new Map(proofs.map(x=>[x.value.toFixed(2),x])).values()];
+ if(uniq.length===1)spatialResolved={value:Number(uniq[0].value.toFixed(2)),quantity:null,unit:null,source:"same-card-unitrate-visual-proof",sanity:"pass",confidence:"high"};
+}
+
+const visualOwnRate=anchor&&pk?spatialGroups(wordBoxes.filter(b=>Math.abs((Number(b.left)||0)-(Number(anchor.left)||0))<.14&&Math.abs((Number(b.top)||0)-(Number(anchor.top)||0))<.07)).map(g=>unitRange(String(g.text||"").replace(/\(\s*(\d+)\s+(\d{2})(?=\/)/g,"($1,$2"))).find(Boolean)||null:null; const ownStart=Math.max(0,around.findIndex(z=>z.i===lines[i].i)); const ownBasicLines=around.slice(ownStart,Math.min(around.length,ownStart+5)).map(x=>String(x.text||"")); const basicOwnRate=ownBasicLines.map(x=>unitRange(x)).find(Boolean)||null; const packageContinuation=ownBasicLines.slice(0,3).join(" "); const continuationPk=!pk?pkg(packageContinuation):null; const strictVisualSource=spatialResolved&&["large-cents-expected-visual","package-owned-visual-multibuy","same-card-unitrate-visual-proof","package-unitrate-large-whole-proof"].includes(spatialResolved.source); const effectivePk=pk||continuationPk; const ownTitleUnitRate=unitRange(title)||visualOwnRate||basicOwnRate; const ownDepositText=around.slice(Math.max(0,around.findIndex(z=>z.i===lines[i].i)),Math.min(around.length,around.findIndex(z=>z.i===lines[i].i)+5)).map(x=>String(x.text||"")).join(" "); const ownDepositMatch=ownDepositText.match(/Sis\.?\s*pant(?:it|in)\s*(\d+[,.]\d+)/i); const visualDepositMatch=anchor?spatialGroups(wordBoxes.filter(b=>Math.abs((Number(b.left)||0)-(Number(anchor.left)||0))<.16&&Math.abs((Number(b.top)||0)-(Number(anchor.top)||0))<.08)).map(g=>String(g.text||"")).map(t=>t.match(/Sis\s+pantit\s+(\d+)\s+(\d{2})/i)).find(Boolean):null; const ownDeposit=ownDepositMatch?num(ownDepositMatch[1]):visualDepositMatch?Number(visualDepositMatch[1]+"."+visualDepositMatch[2]):0; const ownQtyText=around.slice(Math.max(0,around.findIndex(z=>z.i===lines[i].i)),Math.min(around.length,around.findIndex(z=>z.i===lines[i].i)+7)).map(x=>String(x.text||"").trim()).join(" "); const ownQtyTextMatch=ownQtyText.match(/\b([2-5])\s*(KPL|PKT|PS|RS|TLK|PL)\b/i); const titleUnit=((title.match(/\/(tlk|pl|ps|pkt|rs|prk|kpl)\b/i)||[])[1]||"").toUpperCase(); const splitQtyMatch=!ownQtyTextMatch&&titleUnit?(()=>{const si=Math.max(0,around.findIndex(z=>z.i===lines[i].i));const a=around.slice(si,Math.min(around.length,si+7)).map(x=>String(x.text||"").trim());for(let k=0;k<a.length-1;k++){if(/^[2-5]$/.test(a[k])&&new RegExp("^"+titleUnit+"$","i").test(a[k+1]))return [a[k]+" "+a[k+1],a[k],a[k+1]];}return null;})():null; const derivedOwnSingle=anchor&&effectivePk&&ownTitleUnitRate&&ownTitleUnitRate.min===ownTitleUnitRate.max?Number((((effectivePk.min+effectivePk.max)/2)*ownTitleUnitRate.min).toFixed(2)):null; const derivedOwnSingleVisual=derivedOwnSingle!=null&&anchor?spatial.filter(b=>/^\d$/.test(String(b.text||"").trim())&&Number(b.height)>.08&&Number(b.width)>.035&&Math.abs(Number(b.left)-Number(anchor.left))<.05&&Number(b.top)>Number(anchor.top)&&Number(b.top)<Number(anchor.top)+.10).sort((a,b)=>boxDistance(anchor,a)-boxDistance(anchor,b))[0]:null; if(derivedOwnSingle!=null&&derivedOwnSingleVisual&&(!spatialResolved||["best-spatial-candidate","large-visual-price"].includes(spatialResolved.source)))spatialResolved={value:derivedOwnSingle,quantity:null,unit:null,source:"package-unitrate-large-whole-proof",sanity:"pass",confidence:"high"}; const ownQtyProof=anchor&&effectivePk&&ownTitleUnitRate&&ownTitleUnitRate.min===ownTitleUnitRate.max?spatial.filter(b=>/^[2-5](?:KPL|PKT|PS|RS|TLK|PL)$/i.test(String(b.text||"").replace(/\s+/g,""))&&Number(b.height)>.018&&Number(b.height)<.05&&Number(b.top)>Number(anchor.top)&&Number(b.top)<Number(anchor.top)+.13&&Math.abs(Number(b.left)-Number(anchor.left))<.18).sort((a,b)=>boxDistance(anchor,a)-boxDistance(anchor,b))[0]:null; const qm=ownQtyProof?String(ownQtyProof.text).replace(/\s+/g,"").match(/^([2-5])(KPL|PKT|PS|RS|TLK|PL)$/i):(ownQtyTextMatch||splitQtyMatch); if(qm&&anchor&&effectivePk&&ownTitleUnitRate&&ownTitleUnitRate.min===ownTitleUnitRate.max){const q=Number(qm[1]),tx=Number(((((effectivePk.min+effectivePk.max)/2)*ownTitleUnitRate.min*q)+ownDeposit).toFixed(2));const whole=spatial.filter(b=>/^\d$/.test(String(b.text||"").trim())&&Number(b.height)>.08&&Number(b.width)>.035&&Math.abs(Number(b.left)-Number(anchor.left))<.06&&Number(b.top)>Number(anchor.top)&&Number(b.top)<Number(anchor.top)+.10).sort((a,b)=>boxDistance(anchor,a)-boxDistance(anchor,b))[0];const txCandidate=spatialCandidates.filter(x=>x.quantity==null&&x.value>=.5&&x.value<50).sort((a,b)=>Math.abs(Number(a.value)-tx)-Math.abs(Number(b.value)-tx)||a.score-b.score)[0];const visualTxProof=(whole&&Math.abs(Number(whole.text)-tx)<=.06)||(txCandidate&&Math.abs(Number(txCandidate.value)-tx)<=.06);if(visualTxProof)spatialResolved={value:tx,quantity:q,unit:qm[2].toUpperCase(),source:"package-unitrate-deposit-multibuy-proof",sanity:"pass",confidence:"high"};} const ownRateVisual=anchor&&effectivePk&&ownTitleUnitRate&&ownTitleUnitRate.min===ownTitleUnitRate.max?spatialCandidates.filter(x=>x.quantity==null&&x.value>=.5&&x.value<50&&Math.abs(x.value-(((effectivePk.min+effectivePk.max)/2)*ownTitleUnitRate.min))/Math.max(.01,(((effectivePk.min+effectivePk.max)/2)*ownTitleUnitRate.min))<=.025).sort((a,b)=>Math.abs(a.value-(((effectivePk.min+effectivePk.max)/2)*ownTitleUnitRate.min))-Math.abs(b.value-(((effectivePk.min+effectivePk.max)/2)*ownTitleUnitRate.min))||a.score-b.score)[0]:null; if(ownRateVisual&&(!spatialResolved||spatialResolved.sanity==="review"||spatialResolved.source==="best-spatial-candidate"))spatialResolved={...ownRateVisual,source:"own-title-unitrate-visual",sanity:"pass",confidence:"high"}; const protectedOwnRate=["own-title-unitrate-visual","same-card-unitrate-visual-proof","package-unitrate-large-whole-proof","package-unitrate-deposit-multibuy-proof"].includes(spatialResolved?.source); const exactOwnRate=anchor&&effectivePk&&ownTitleUnitRate&&ownTitleUnitRate.min===ownTitleUnitRate.max?Number((((effectivePk.min+effectivePk.max)/2)*ownTitleUnitRate.min).toFixed(2)):null; const explicitTitleUnit=((title.match(/\/(tlk|pl|ps|pkt|rs|prk|kpl)\b/i)||[])[1]||"").toUpperCase(); const weakQuantityCandidate=x=>x&&x.kind==="large-euro-quantity"&&(!expected)&&((exactOwnRate!=null&&Math.abs(Number(x.value)-exactOwnRate*Math.max(1,Number(x.quantity||1)))>Math.max(.10,exactOwnRate*.06))||(!exactOwnRate&&explicitTitleUnit&&String(x.unit||"").toUpperCase()===explicitTitleUnit)); const titleDigits=(title.match(/\\d+(?:[,.]\\d+)?/g)||[]).map(s=>s.replace(",", ".")); const goodCand=spatialCandidates.filter(x=>x.kind!=="unitprice-derived-multibuy"&&!weakQuantityCandidate(x)&&x.value>=.5&&x.value<50&&!((x.parts||[]).some(p=>titleDigits.includes(String(p).replace(",", "."))))).sort((a,b)=>a.score-b.score)[0]; if(goodCand&&!strictVisualSource&&!protectedOwnRate){
   const q=Number(goodCand.quantity||1);
   const expectedTx=expected?expected*q:null;
   const ratio=expectedTx?goodCand.value/expectedTx:null;
@@ -228,7 +274,7 @@ const strictVisualSource=spatialResolved&&["large-cents-expected-visual","packag
   // be ambiguous when a leaflet prints litre/kg pricing for a multi-buy. Keep the
   // candidate and mark disagreement for the audit layer instead.
   spatialResolved={...goodCand,source:"best-spatial-candidate",sanity:sane?"pass":"review"};
-} if(!strictVisualSource&&largeVisual&&(!spatialResolved||largeVisual.quantity||["spaced-large-cents","same-row-euro-cents"].includes(largeVisual.kind)))spatialResolved={...largeVisual,source:"large-visual-price"}; if(guardedValidatedMulti&&!["v308-own-column-large-price","v307-own-unitrow-large-price","v307-own-column-large-price","expected-matched-large-compact","expected-matched-large-split","large-cents-expected-visual"].includes(spatialResolved?.source))spatialResolved={...guardedValidatedMulti,source:"validated-geometric-multibuy"}; const titleSlashUnit=((title.match(/\/(tlk|pl|ps|pkt|rs|prk|kpl)\b/i)||[])[1]||"").toUpperCase();const largeWhole=spatial.filter(b=>/^[3-9]$/.test(String(b.text).trim())&&b.height>.08&&b.width>.035&&b.top>anchor.top-.02&&b.top<anchor.top+.09).sort((a,b)=>Math.abs(a.left-anchor.left)-Math.abs(b.left-anchor.left))[0];if(largeWhole){const q=spatial.filter(b=>/^[2-5]$/.test(String(b.text).trim())&&b.height>.02&&b.height<.04&&b.top>largeWhole.top+.035&&b.top<largeWhole.top+.10&&b.left>largeWhole.left+.06&&b.left<largeWhole.left+.16).sort((a,b)=>Math.abs(a.top-(largeWhole.top+.06))-Math.abs(b.top-(largeWhole.top+.06)))[0];const u=unitFrags.filter(x=>/^(RS|PS|PL|TLK|PKT|PRK|KPL)$/i.test(String(x.text||""))&&q&&Math.abs(x.left-q.left)<.035&&x.top>q.top&&x.top<q.top+.04&&(titleSlashUnit?String(x.text).toUpperCase()===titleSlashUnit:true)).sort((a,b)=>Math.abs(a.left-q.left)-Math.abs(b.left-q.left))[0];if(q&&u){const existingDecimal=spatialResolved&&Number.isFinite(Number(spatialResolved.value))&&Math.abs(Number(spatialResolved.value)-Math.round(Number(spatialResolved.value)))>.001;const existingSameQty=spatialResolved&&Number(spatialResolved.quantity)===Number(q.text)&&String(spatialResolved.unit||"").toUpperCase()===String(u.text).toUpperCase();if(!(existingDecimal&&existingSameQty))spatialResolved={value:Number(largeWhole.text),quantity:Number(q.text),unit:String(u.text).toUpperCase(),source:"large-visual-price-qty-unit"};}}
+} if(!strictVisualSource&&!protectedOwnRate&&largeVisual&&(!spatialResolved||largeVisual.quantity||["spaced-large-cents","same-row-euro-cents"].includes(largeVisual.kind)))spatialResolved={...largeVisual,source:"large-visual-price"}; if(!protectedOwnRate&&guardedValidatedMulti&&!["v308-own-column-large-price","v307-own-unitrow-large-price","v307-own-column-large-price","expected-matched-large-compact","expected-matched-large-split","large-cents-expected-visual"].includes(spatialResolved?.source))spatialResolved={...guardedValidatedMulti,source:"validated-geometric-multibuy"}; const titleSlashUnit=((title.match(/\/(tlk|pl|ps|pkt|rs|prk|kpl)\b/i)||[])[1]||"").toUpperCase();const largeWhole=spatial.filter(b=>/^[3-9]$/.test(String(b.text).trim())&&b.height>.08&&b.width>.035&&b.top>anchor.top-.02&&b.top<anchor.top+.09).sort((a,b)=>Math.abs(a.left-anchor.left)-Math.abs(b.left-anchor.left))[0];if(largeWhole){const q=spatial.filter(b=>/^[2-5]$/.test(String(b.text).trim())&&b.height>.02&&b.height<.04&&b.top>largeWhole.top+.035&&b.top<largeWhole.top+.10&&b.left>largeWhole.left+.06&&b.left<largeWhole.left+.16).sort((a,b)=>Math.abs(a.top-(largeWhole.top+.06))-Math.abs(b.top-(largeWhole.top+.06)))[0];const u=unitFrags.filter(x=>/^(RS|PS|PL|TLK|PKT|PRK|KPL)$/i.test(String(x.text||""))&&q&&Math.abs(x.left-q.left)<.035&&x.top>q.top&&x.top<q.top+.04&&(titleSlashUnit?String(x.text).toUpperCase()===titleSlashUnit:true)).sort((a,b)=>Math.abs(a.left-q.left)-Math.abs(b.left-q.left))[0];if(q&&u){const existingDecimal=spatialResolved&&Number.isFinite(Number(spatialResolved.value))&&Math.abs(Number(spatialResolved.value)-Math.round(Number(spatialResolved.value)))>.001;const existingSameQty=spatialResolved&&Number(spatialResolved.quantity)===Number(q.text)&&String(spatialResolved.unit||"").toUpperCase()===String(u.text).toUpperCase();if(!(existingDecimal&&existingSameQty))spatialResolved={value:Number(largeWhole.text),quantity:Number(q.text),unit:String(u.text).toUpperCase(),source:"large-visual-price-qty-unit"};}}
 const groupTexts=spatialGroups(anchor?wordBoxes.filter(b=>boxDistance(anchor,b)<0.22):[]).map(g=>String(g.text||""));
 if(!spatialResolved&&nr&&nr.min>=10){const disc=groupTexts.map(t=>t.match(/(?:^|\s)([1-9][0-9]?)(?:\s|$)/)).find(m=>m&&Number(m[1])<nr.min);if(disc)spatialResolved={value:Number(disc[1]),quantity:null,unit:nr.unit||null,source:"group-discount-price"};}
 
@@ -313,7 +359,7 @@ if(!spatialResolved||spatialResolved.sanity==="review"||spatialResolved.source==
  }
  const uniq=[...new Map(vals.sort((a,b)=>a.score-b.score).map(x=>[x.value,x])).values()];
  const best=uniq[0];
- if(best&&(!uniq[1]||uniq[1].score-best.score>.015)){const ratio=expected?best.value/expected:null;if(ratio==null||ratio>=.55&&ratio<=1.8||pk&&pk.min===pk.max&&Math.abs(pk.min-1)<.0001)spatialResolved={value:best.value,quantity:null,unit:null,source:"title-linked-large-split-price",sanity:"pass"};}
+ if(best&&(!uniq[1]||uniq[1].score-best.score>.015)){const ratio=expected?best.value/expected:null;if(ratio==null||ratio>=.55&&ratio<=1.8||pk&&effectivePk.min===effectivePk.max&&Math.abs(pk.min-1)<.0001)spatialResolved={value:best.value,quantity:null,unit:null,source:"title-linked-large-split-price",sanity:"pass"};}
 }
 // Sale-price arithmetic without an explicit expectedSingle: if the product has a fixed package size and
 // a local unit-price row, derive the offer price only when it differs from an explicit "Ilman Plussa-korttia" row.
@@ -327,7 +373,7 @@ if(!spatialResolved||spatialResolved.sanity==="review"||spatialResolved.source==
 // Generic fixed-package unit-rate derivation from the product's own printed rate.
 // Example: 500 ml + 5.00/l => 2.50; 1.2 l + 4.17/l => about 5.00.
 // Ignore comparison rates on "Ilman Plussa-korttia" rows and require a nearby sale-unit token.
-if(!spatialResolved&&anchor&&pk&&pk.min===pk.max){
+if(!spatialResolved&&anchor&&pk&&effectivePk.min===effectivePk.max){
  const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.23),groups=spatialGroups(local);
  const saleUnits=local.filter(b=>/^(PS|PKT|KPL|RS|TLK|PL|PRK)$/i.test(String(b.text||"").trim()));
  const rates=[];
@@ -523,7 +569,7 @@ if(anchor){
     spatialResolved={value:direct.v,quantity:null,unit:null,source:"final-card-large-price-correction",sanity:"pass"};
   }
 }
-out.rows.push({page:p,line:lines[i].i,title,package:pk,unitPrice:ur,normal:nr,expectedSingle:expected?Number(expected.toFixed(3)):null,candidate:cand,spatialPriceBoxes:spatialPriceBoxes.map(b=>({...b,d:anchor?Number(boxDistance(anchor,b).toFixed(6)):null})).sort((a,b)=>(a.d??99)-(b.d??99)).slice(0,60),spatialResolved,percentageOffer,spatialCandidates:spatialCandidates.slice(0,20),spatialGroups:spatialGroups(anchor?wordBoxes.filter(b=>boxDistance(anchor,b)<0.22):[]).filter(g=>/\d/.test(g.text)).slice(0,60),nearby:around.map(x=>x.raw)})}}
+out.rows.push({page:p,line:lines[i].i,title,package:pk,unitPrice:ur,normal:nr,expectedSingle:expected?Number(expected.toFixed(3)):null,candidate:cand,debugPackageRowAnchor:packageRowAnchor,debugBestTitleRow:bestTitleRow,debugAnchor:anchor,spatialPriceBoxes:spatialPriceBoxes.map(b=>({...b,d:anchor?Number(boxDistance(anchor,b).toFixed(6)):null})).sort((a,b)=>(a.d??99)-(b.d??99)).slice(0,60),spatialResolved,percentageOffer,spatialCandidates:spatialCandidates.slice(0,20),spatialGroups:spatialGroups(anchor?wordBoxes.filter(b=>boxDistance(anchor,b)<0.22):[]).filter(g=>/\d/.test(g.text)).slice(0,60),nearby:around.map(x=>x.raw)})}}
 return out;
 }
 
