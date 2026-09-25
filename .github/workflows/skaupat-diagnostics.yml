@@ -74,3 +74,15 @@ jobs:
             if(a.r.status!==200||b.r.status!==200) process.exitCode=1;
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
+
+      - name: V272 remotePickupSlots store-directory probe
+        run: |
+          node <<'NODE'
+          const ENDPOINT="https://www.s-kaupat.fi/api/v1/graphql";
+          const HASH="6da249b0fd87c05275a239ed490976c851d7aff90ead0f3a3978e8283f21252d";
+          const CLIENT="production-14a82a5b48cd1dd42c0592db0037514ed3c84de8";
+          const vars={latitude:60.6310,longitude:24.8580,date:new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki"}).format(new Date())};
+          const ext={persistedQuery:{version:1,sha256Hash:HASH}};
+          const u=ENDPOINT+"?operationName=remotePickupSlots&variables="+encodeURIComponent(JSON.stringify(vars))+"&extensions="+encodeURIComponent(JSON.stringify(ext));
+          (async()=>{const r=await fetch(u,{headers:{accept:"application/json","x-client-version":CLIENT,"user-agent":"Mozilla/5.0"}}); const t=await r.text(); let j;try{j=JSON.parse(t)}catch{j={raw:t}}; console.log("PICKUP_META",JSON.stringify({status:r.status,length:t.length,keys:Object.keys(j||{})})); console.log("PICKUP_BODY",JSON.stringify(j).slice(0,30000)); if(r.status!==200)process.exitCode=1})().catch(e=>{console.error(e);process.exitCode=1});
+          NODE
