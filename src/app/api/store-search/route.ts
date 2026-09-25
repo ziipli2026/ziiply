@@ -67,6 +67,7 @@ export async function GET(request: NextRequest) {
         .flat()
         .filter((store) => {
           const name = String(store.name || "");
+        if (store.delistedAt) return false;
           if (!/^(?:S-market|Sale\b|Alepa\b|K-Market\b|K-Supermarket\b|Prisma\b|K-Citymarket\b)/i.test(name)) return false;
           if (/ABC|liikenneasema|huoltoasema|verkkokauppa|puutarha|lemmikki/i.test(name)) return false;
           if (/^(?:S-market|Sale\b|Alepa\b|Prisma\b)/i.test(name) && activeSByName.size > 0 && !activeSByName.has(normalizeName(name))) return false;
