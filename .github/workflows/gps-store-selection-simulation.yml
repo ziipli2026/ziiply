@@ -1,0 +1,72 @@
+name: GPS store selection simulation
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/gps-store-selection-simulation.yml"
+      - "src/app/components/ziiply/location/ziiplyStoreSelectionCore.ts"
+
+jobs:
+  simulate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Simulate Jokela and Hyvinkaa against production resolver
+        shell: bash
+        run: |
+          cat > gps-selection-test.ts <<'TS'
+          import { resolveZiiplyPageStoreSelection } from "./src/app/components/ziiply/location/ziiplyStoreSelectionCore";
+
+          const stores = [
+            { id:"s-jokela", name:"S-market Jokela", latitude:60.5520, longitude:24.9667 },
+            { id:"k-jokela", name:"K-Supermarket Jokela", coordinates:{latitude:60.552446,longitude:24.966490} },
+            { id:"s-vehkoja", name:"S-market Vehkoja", latitude:60.6300, longitude:24.8050 },
+            { id:"k-hakalantori", name:"K-Market Hakalantori", latitude:60.6330, longitude:24.8300 },
+            { id:"k-vierema", name:"K-Supermarket Vieremä", latitude:60.6380, longitude:24.8620 },
+            { id:"prisma-hyvinkaa", name:"Prisma Hyvinkää", latitude:60.6310, longitude:24.8530 },
+            { id:"citymarket-hyvinkaa", name:"K-Citymarket Hyvinkää", latitude:60.6310, longitude:24.8580 },
+          ];
+
+          const cases = [
+            {
+              label:"Jokela",
+              coords:{latitude:60.552446,longitude:24.966490},
+              expected:{sLocal:"S-market Jokela",kLocal:"K-Supermarket Jokela",sHyper:"Prisma Hyvinkää",kHyper:"K-Citymarket Hyvinkää"}
+            },
+            {
+              label:"Hyvinkää",
+              coords:{latitude:60.6310,longitude:24.8580},
+              expected:{sLocal:"S-market Vehkoja",kLocal:"K-Supermarket Vieremä",sHyper:"Prisma Hyvinkää",kHyper:"K-Citymarket Hyvinkää"}
+            }
+          ];
+
+          let failed = false;
+          for (const c of cases) {
+            const r = resolveZiiplyPageStoreSelection({stores,areas:[],coords:c.coords,mode:"local"});
+            const got = {sLocal:r.sLocal?.name,kLocal:r.kLocal?.name,sHyper:r.sHyper?.name,kHyper:r.kHyper?.name};
+            const unique = new Set([r.sLocal?.id,r.kLocal?.id,r.sHyper?.id,r.kHyper?.id].filter(Boolean));
+            const distances = {
+              sLocal:r.sLocal?.distanceKm,kLocal:r.kLocal?.distanceKm,
+              sHyper:r.sHyper?.distanceKm,kHyper:r.kHyper?.distanceKm
+            };
+            const match = Object.entries(c.expected).every(([k,v]) => (got as any)[k] === v);
+            const noDuplicates = unique.size === 4;
+            console.log("GPS_SIMULATION", JSON.stringify({case:c.label,coords:c.coords,got,expected:c.expected,distances,debug:r.debug,match,noDuplicates},null,2));
+            if (!match || !noDuplicates) failed = true;
+          }
+
+          const far = resolveZiiplyPageStoreSelection({
+            stores,areas:[],coords:{latitude:65.0121,longitude:25.4651},mode:"local",
+            maxLocalDistanceKm:35,maxHyperDistanceKm:90
+          });
+          const farEmpty = !far.sLocal && !far.kLocal && !far.sHyper && !far.kHyper;
+          console.log("GPS_COVERAGE_RADIUS", JSON.stringify({farEmpty,result:far},null,2));
+          if (!farEmpty) failed = true;
+          if (failed) process.exitCode=2;
+          TS
+          npx --yes tsx gps-selection-test.ts
