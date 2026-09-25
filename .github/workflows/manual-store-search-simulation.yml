@@ -43,8 +43,17 @@ jobs:
               return n === q || n.includes(" " + q) || n.includes(q + " ");
             });
 
-            const proposed = exactCity.length ? exactCity : nameMatches;
-            return { live, exactCity, nameMatches, proposed };
+            const fallbackAnchorPostalCodes = new Set(nameMatches.map(s => String(s.postalCode || "").trim()).filter(Boolean));
+            const fallbackAnchorCities = new Set(nameMatches.map(s => norm(s.city)).filter(Boolean));
+            const postalAreaMatches = live.filter(s => {
+              const postal = String(s.postalCode || "").trim();
+              const city = norm(s.city);
+              return postal && fallbackAnchorPostalCodes.has(postal) && city && fallbackAnchorCities.has(city);
+            });
+            const proposed = exactCity.length ? exactCity : Array.from(
+              new Map([...nameMatches, ...postalAreaMatches].map(s => [String(s.id), s])).values()
+            );
+            return { live, exactCity, nameMatches, postalAreaMatches, proposed };
           }
 
           for (const query of queries) {
@@ -55,6 +64,7 @@ jobs:
             console.log("RAW:", stores.length, "LIVE:", r.live.length,
                         "EXACT_CITY:", r.exactCity.length,
                         "NAME_FALLBACK:", r.nameMatches.length,
+                        "POSTAL_AREA:", r.postalAreaMatches.length,
                         "PROPOSED:", r.proposed.length);
 
             console.log("\n-- RAW/LIVE RESULTS --");
