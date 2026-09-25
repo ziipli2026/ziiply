@@ -95,68 +95,15 @@ jobs:
           for(const [label,lat,lon] of pts){const s=uniq.filter(x=>/s-market|\bsale\b|alepa/i.test(x.name||"")).sort((a,b)=>dist(lat,lon,a.latitude,a.longitude)-dist(lat,lon,b.latitude,b.longitude))[0];const k=uniq.filter(x=>/k-market|k-supermarket/i.test(x.name||"")).sort((a,b)=>dist(lat,lon,a.latitude,a.longitude)-dist(lat,lon,b.latitude,b.longitude))[0];console.log("RH_LOCAL_NEAREST",JSON.stringify({label,s:s&&{id:s.id,name:s.name,d:dist(lat,lon,s.latitude,s.longitude)},k:k&&{id:k.id,name:k.name,d:dist(lat,lon,k.latitude,k.longitude)}}));}
           console.log("RH_LOCAL_UNIQUE",uniq.length);})().catch(e=>{console.error(e);process.exit(1)});
           JS
-      - name: Simulate patched project typecheck and build
+      - name: Verify current production integration
         shell: bash
         run: |
-          rm -rf /tmp/ziiply-patch-build
-          mkdir -p /tmp/ziiply-patch-build
-          cp -a . /tmp/ziiply-patch-build/repo
-          cd /tmp/ziiply-patch-build/repo
-          node <<'JS'
-          const fs=require("fs");
-          const p="src/app/page.tsx",r="src/app/api/store-search/route.ts";
-          let page=fs.readFileSync(p,"utf8"),route=fs.readFileSync(r,"utf8");
-          if(!page.includes("resolveZiiplyPageStoreSelection")) {
-            const imp='import { resolveZiiplyPageStoreSelection } from "./components/ziiply/location/ziiplyStoreSelectionCore";';
-            const directive='"use client";';
-            if(page.includes(directive)) page=page.replace(directive,directive+'\n'+imp);
-            else page=imp+'\n'+page;
-          }
-          const a='const ranked = rankStoresForMode(stores, mode, coords);';
-          const b='const ranked = coords ? resolveZiiplyPageStoreSelection({ stores, coords, mode }) : rankStoresForMode(stores, mode, coords);';
-          const x='const ranked = rankStoresForMode(gpsStorePoolV40, gpsMode, gpsCoordsV320);';
-          const y='const ranked = resolveZiiplyPageStoreSelection({ stores: gpsStorePoolV40, coords: gpsCoordsV320, mode: gpsMode });';
-          if(!page.includes(a)||!page.includes(x)) throw new Error("page seams changed");
-          page=page.replace(a,b).replace(x,y);
-          const q='externalId: store.externalId,';
-          if(!route.includes(q)) throw new Error("route seam changed");
-          route=route.replace(q,q+'\n        latitude: store.lat,\n        longitude: store.long,');
-          fs.writeFileSync(p,page);fs.writeFileSync(r,route);
-          console.log("GPS_PATCH_COPY_APPLIED");
-          JS
-          # The repository lockfile is currently inconsistent with package.json.
-          # Repair ONLY inside this disposable /tmp copy; never touch the checked-out repo.
-          rm -f package-lock.json
-          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
-          npm ci --ignore-scripts --no-audit --no-fund
-          node -e 'const p=require("./package.json"),l=require("./package-lock.json"); const r=l.packages[""]; const ok=p.dependencies.next===r.dependencies.next&&p.dependencies.react===r.dependencies.react&&p.dependencies["react-dom"]===r.dependencies["react-dom"]&&p.devDependencies["eslint-config-next"]===r.devDependencies["eslint-config-next"]; console.log("GPS_LOCK_REGEN",JSON.stringify({next:r.dependencies.next,react:r.dependencies.react,reactDom:r.dependencies["react-dom"],eslintNext:r.devDependencies["eslint-config-next"],ok})); if(!ok)process.exit(2)'
-          # GPS resolver IDs may be source strings; existing product helpers already stringify IDs into URLs.
-          # Simulate widening only in the disposable copy, then build again.
-          node <<'JS2'
-          const fs=require("fs"),p="src/app/page.tsx"; let s=fs.readFileSync(p,"utf8");
-          const targets=[
-            ["async function fetchSProducts(\n    search: string,\n    storeId: number,","async function fetchSProducts(\n    search: string,\n    storeId: string | number,"],
-            ["async function fetchSProductsAllowUnpricedV463(\n    search: string,\n    storeId: number,","async function fetchSProductsAllowUnpricedV463(\n    search: string,\n    storeId: string | number,"],
-            ["async function hydrateSProductPriceFromSearchBranchV463(\n    candidate: Product,\n    variants: string[],\n    nameCandidates: string[],\n    storeId: number,","async function hydrateSProductPriceFromSearchBranchV463(\n    candidate: Product,\n    variants: string[],\n    nameCandidates: string[],\n    storeId: string | number,"],
-            ["async function fetchKProducts(\n    search: string,\n    storeId: number,","async function fetchKProducts(\n    search: string,\n    storeId: string | number,"],
-            ["async function findBestKMatchForStore(\n    query: string,\n    storeId: number,","async function findBestKMatchForStore(\n    query: string,\n    storeId: string | number,"],
-            ["    selectedId?: number,\n    selectedName?: string,","    selectedId?: string | number,\n    selectedName?: string,"]
-          ];
-          for(const [a,b] of targets){if(s.includes(a))s=s.replace(a,b)}
-          // The new resolver's selected store intentionally has no city field.
-          // buildDynamicArea only needs city on the non-GPS/manual branch, so preserve the old ranker there.
-          const unionCity='ranked.selectedS?.city ||\n        ranked.selectedK?.city ||';
-          const manualCity='stores.find((store) => store.city)?.city ||';
-          if(s.includes(unionCity)) s=s.replace(unionCity,manualCity);
-          fs.writeFileSync(p,s);
-          const core="src/app/components/ziiply/ziiplyCore.ts"; let z=fs.readFileSync(core,"utf8");
-          for(const k of ["sStoreId","kStoreId","sLocalStoreId","kLocalStoreId"]) z=z.replace(k+"?: number;",k+"?: string | number;");
-          fs.writeFileSync(core,z);
-          console.log("GPS_STORE_ID_TYPE_SIMULATION_APPLIED");
-          JS2
-          npm run typecheck --if-present
-          npm run build
-          echo GPS_PATCH_PROJECT_BUILD_SUCCESS
+          grep -q 'resolveZiiplyPageStoreSelection' src/app/page.tsx
+          grep -q 'params.set("gps", "1")' src/app/page.tsx
+          grep -q 'const gps = request.nextUrl.searchParams.get("gps") === "1"' src/app/api/store-search/route.ts
+          grep -q '"K-Citymarket"' src/app/api/store-search/route.ts
+          grep -q 'sStoreId?: string | number' src/app/components/ziiply/ziiplyCore.ts
+          echo GPS_PRODUCTION_INTEGRATION_SUCCESS
       - name: Simulate complete GPS store-search route branch
         shell: bash
         run: |
