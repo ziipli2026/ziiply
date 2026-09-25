@@ -79,7 +79,8 @@ jobs:
             const u=base+"/api/store-search?search="+encodeURIComponent(label)+"&gps=1&lat="+lat+"&lon="+lon+"&latitude="+lat+"&longitude="+lon;
             const r=await fetch(u,{headers:{"user-agent":"Ziiply-GPS-regression"}});
             const d=await r.json(); const items=Array.isArray(d.items)?d.items:[];
-            const s=items.find(x=>/^(S-market|Sale\b|Alepa\b)/i.test(String(x.name||"")));
+            const ranked=items.map(x=>({...x,d:dist(lat,lon,Number(x.latitude),Number(x.longitude))})).filter(x=>Number.isFinite(x.d)).sort((a,b)=>a.d-b.d);
+            const s=ranked.find(x=>/^(S-market|Sale\b|Alepa\b)/i.test(String(x.name||"")));
             const k=ranked.find(x=>/^(K-Market|K-Supermarket)/i.test(String(x.name||"")));
             console.log("GPS_DEPLOYED_ROUTE",JSON.stringify({label,status:r.status,count:items.length,s:s&&{name:s.name,id:s.id,externalId:s.externalId},k:k&&{name:k.name,id:k.id,externalId:k.externalId}}));
             if(!r.ok||!s||!k||/Alepa Hämeenkatu/i.test(String(s.name))) process.exitCode=2;
