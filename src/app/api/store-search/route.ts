@@ -70,8 +70,8 @@ export async function GET(request: NextRequest) {
           if (!/^(?:S-market|Sale\b|Alepa\b|K-Market\b|K-Supermarket\b|Prisma\b|K-Citymarket\b)/i.test(name)) return false;
           if (/ABC|liikenneasema|huoltoasema|verkkokauppa|puutarha|lemmikki/i.test(name)) return false;
           if (/^(?:S-market|Sale\b|Alepa\b|Prisma\b)/i.test(name) && activeSByName.size > 0 && !activeSByName.has(normalizeName(name))) return false;
-          const country = String(store.country || store.countryCode || "").toUpperCase();
-          if (country && country !== "FI" && country !== "FIN" && country !== "FINLAND") return false;
+          const country = String(store.country || store.countryCode || "").trim().toUpperCase();
+          if (country && !["FI","FIN","FINLAND","SUOMI"].includes(country)) return false;
           const lat = Number(store.lat ?? store.latitude);
           const lon = Number(store.long ?? store.lon ?? store.lng ?? store.longitude);
           if (!Number.isFinite(lat) || !Number.isFinite(lon)) return false;
@@ -99,7 +99,7 @@ export async function GET(request: NextRequest) {
           };
         });
 
-      return NextResponse.json(debug ? { items, debug: { batchCounts: terms.map((term, i) => ({ term, count: batches[i]?.length || 0 })), sDirectoryCount: sKaupatDirectory.length, samples: batches.map((batch, i) => ({ term: terms[i], sample: batch[0] ? { name: batch[0].name, id: batch[0].id, lat: batch[0].lat, latitude: batch[0].latitude, long: batch[0].long, lon: batch[0].lon, longitude: batch[0].longitude, keys: Object.keys(batch[0]).slice(0,20) } : null })) } } : { items });
+      return NextResponse.json(debug ? { items, debug: { batchCounts: terms.map((term, i) => ({ term, count: batches[i]?.length || 0 })), sDirectoryCount: sKaupatDirectory.length, samples: batches.map((batch, i) => ({ term: terms[i], sample: batch[0] ? { name: batch[0].name, id: batch[0].id, lat: batch[0].lat, latitude: batch[0].latitude, long: batch[0].long, lon: batch[0].lon, longitude: batch[0].longitude, country: batch[0].country, countryCode: batch[0].countryCode, keys: Object.keys(batch[0]).slice(0,20) } : null })) } } : { items });
     }
 
     if (!search) return NextResponse.json({ items: [] });
