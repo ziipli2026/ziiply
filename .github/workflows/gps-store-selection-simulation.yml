@@ -61,7 +61,8 @@ jobs:
             const r=await fetch("https://api.ruoanhinta.fi/api/stores?search="+encodeURIComponent(search)); const a=await r.json();
             return a.filter((x:any)=>x.country==="Suomi"&&Number.isFinite(Number(x.lat))&&Number.isFinite(Number(x.long))&&!/abc|verkkokauppa|puutarha|lemmikki/i.test(String(x.name))).map((x:any)=>({id:x.id,name:x.name,lat:x.lat,lon:x.long}));
           }
-          async function main(){\n          const [s,ks,km,p,c]=await Promise.all([tjek("d8ccs8"),tjek("f305U8"),tjek("9c56Y8"),rh("Prisma"),rh("K-Citymarket")]);
+          async function main(){
+          const [s,ks,km,p,c]=await Promise.all([tjek("d8ccs8"),tjek("f305U8"),tjek("9c56Y8"),rh("Prisma"),rh("K-Citymarket")]);
           const stores=[...s,...ks,...km,...p,...c];
           const cases=[["Jokela",60.552446,24.966490],["Hyvinkää",60.631,24.858],["Tuusula",60.4023,25.0263],["Oulu",65.0121,25.4651]];
           let fail=false;
