@@ -414,33 +414,6 @@ if(!spatialResolved&&anchor){
 // Generic fixed-package shelf price from printed unit rate plus explicit normal-price row.
 // Example pattern: 500 ml + 6.00/l + "Ilman Plussa-korttia 3.55/kpl" proves a 3.00 sale price.
 // Require fixed package size and an independently printed normal-price row to avoid treating arbitrary unit rates as offers.
-if(!spatialResolved&&anchor&&pk&&pk.max===pk.min){
- const htmlContext=around.map(x=>String(x.text||"")).join(" ");
- const htmlRate=htmlContext.match(/(\d{1,3}[,.]\d{2})\/(kg|l)\b/i);
- const normalMarker=/Ilman\s+Plussa-korttia/i.test(htmlContext);
- if(htmlRate&&normalMarker){
-  const rate=Number(htmlRate[1].replace(",",".")), value=Number((pk.min*rate).toFixed(2));
-  if(Number.isFinite(value)&&value>=.5&&value<30) spatialResolved={value,quantity:null,unit:"KPL",source:"fixed-package-unitrate-normalprice-proof",sanity:"pass",confidence:"high"};
- }
- const localGroups=spatialGroups(wordBoxes.filter(b=>boxDistance(anchor,b)<.18)).map(g=>String(g.text||""));
- const localAfterText=after.slice(0,10).map(x=>String(x.text||""));
- const localAroundText=around.map(x=>String(x.text||""));
- const evidenceTexts=[...localGroups,...localAfterText,...localAroundText];
- const joined=evidenceTexts.join(" ");
- const normalizedEvidence=joined.replace(/\s+/g,"").replace(/,/g,".");
- let rateMatch=normalizedEvidence.match(/(\d{1,3}(?:\.\d{1,2})?)\/(kg|l)(?:[^a-z]|$)/i);
- if(!rateMatch){
-  const splitRate=localGroups.map(t=>String(t).match(/(?:^|\s)(\d{1,2})\s+(\d{2})\/(kg|l)(?:\s|$)/i)).find(Boolean);
-  if(splitRate)rateMatch=[splitRate[0],splitRate[1]+"."+splitRate[2],splitRate[3]];
- }
- const hasNormalPrice=evidenceTexts.some(t=>/Ilman\s+Plussa-korttia/i.test(t)&&/\d/.test(t)&&/(?:\/kpl|\/pkt|\/rs|\/ps|\/tlk|\/pl|\/prk)/i.test(t));
- if(rateMatch&&hasNormalPrice){
-  const rate=Number(rateMatch[1]),unit=String(rateMatch[2]).toLowerCase();
-  const value=Number((pk.min*rate).toFixed(2));
-  if(Number.isFinite(value)&&value>=.5&&value<30) spatialResolved={value,quantity:null,unit:"KPL",source:"fixed-package-unitrate-normalprice-proof",sanity:"pass",confidence:"high"};
- }
-}
-
 // Generic isolated-card large split shelf-price proof.
 // Require a large euro+cents pair, sale unit and discount percentage in the same tight local card.
 // This replaces former product/title-specific right-hand-card handling.
