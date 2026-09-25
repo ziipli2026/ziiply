@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getSKaupatFullDirectoryV1 } from "../../components/ziiply/location/ziiplyStoreDirectory";
 
 type RawStore = Record<string, any>;
 
@@ -49,7 +50,19 @@ export async function GET(request: NextRequest) {
       }
 
       const terms = ["S-market", "Sale", "Alepa", "K-Market", "K-Supermarket", "Prisma", "K-Citymarket"];
-      const batches = await Promise.all(terms.map(fetchRuoanhinta));
+      const [batches, sKaupatDirectory] = await Promise.all([
+        Promise.all(terms.map(fetchRuoanhinta)),
+        getSKaupatFullDirectoryV1().catch(() => []),
+      ]);
+      // Ruoanhinta may retain permanently closed S stores. For S-family stores,
+      // require the store to still exist in S-kaupat's current official directory.
+      const activeSNames = new Set(
+        sKaupatDirectory.map((entry) =>
+          String(entry.name || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim(),
+        ),
+      );
+      const normalizeName = (value: unknown) =>
+        String(value || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
       const seen = new Set<string>();
       const items = batches
         .flat()
@@ -57,6 +70,7 @@ export async function GET(request: NextRequest) {
           const name = String(store.name || "");
           if (!/^(?:S-market|Sale\b|Alepa\b|K-Market\b|K-Supermarket\b|Prisma\b|K-Citymarket\b)/i.test(name)) return false;
           if (/ABC|liikenneasema|huoltoasema|verkkokauppa|puutarha|lemmikki/i.test(name)) return false;
+          if (/^(?:S-market|Sale\b|Alepa\b|Prisma\b)/i.test(name) && activeSNames.size > 0 && !activeSNames.has(normalizeName(name))) return false;
           const country = String(store.country || store.countryCode || "").toUpperCase();
           if (country && country !== "FI" && country !== "FIN" && country !== "FINLAND") return false;
           const lat = Number(store.lat ?? store.latitude);
