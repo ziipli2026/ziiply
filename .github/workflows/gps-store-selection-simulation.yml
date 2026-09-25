@@ -93,7 +93,8 @@ jobs:
             const a=await r.json();
             return (Array.isArray(a)?a:a.items||[]).filter((x:any)=>x.country==="Suomi"&&Number.isFinite(Number(x.lat))&&Number.isFinite(Number(x.long))).map(normalizeRuoanhinta);
           }
-          async function main(){\n          const manual=await fetchRh("Prisma Hyvinkää");
+          async function main(){
+          const manual=await fetchRh("Prisma Hyvinkää");
           const gps=[...(await fetchRh("Prisma")).filter((x:any)=>x.chain==="prisma"&&!/verkkokauppa|puutarha|lemmikki|abc/i.test(x.name)),...(await fetchRh("K-Citymarket")).filter((x:any)=>x.chain==="kcitymarket")];
           const manualPreserved=manual.some((x:any)=>x.name==="Prisma Hyvinkää");
           const coordsPreserved=gps.every((x:any)=>Number.isFinite(x.latitude)&&Number.isFinite(x.longitude));
