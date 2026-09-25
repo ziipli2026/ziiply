@@ -64,6 +64,10 @@ export type SKaupatDirectoryDiagnosticV3 = {
   cursorUrlsFound: number;
   prismaVarkausFound: boolean;
   prismaVarkausStoreId: string | null;
+  firstPageHtmlLength?: number;
+  firstPageHasMyymala?: boolean;
+  firstPageHasCursor?: boolean;
+  firstPagePrefix?: string;
 };
 
 let lastPrismaDirectoryDiagnosticV3: SKaupatDirectoryDiagnosticV3 | null = null;
@@ -235,6 +239,7 @@ async function fetchSKaupatChainDirectoryV1(
   // V2 diagnostic counters only.
   let diagnosticEntriesParsedV2 = 0;
   let diagnosticCursorUrlsFoundV2 = 0;
+  let diagnosticFirstHtmlV4 = "";
 
   while (queue.length > 0 && visited.size < 30) {
     const url = queue.shift();
@@ -244,6 +249,7 @@ async function fetchSKaupatChainDirectoryV1(
 
     try {
       const html = await fetchSKaupatHtmlV1(url);
+      if (visited.size === 1) diagnosticFirstHtmlV4 = html;
       const pageEntriesV2 = extractStoreEntriesFromHtmlV1(chain, html);
       const nextUrlsV2 = extractNextPageUrlsV1(url, html);
 
@@ -282,6 +288,10 @@ async function fetchSKaupatChainDirectoryV1(
       cursorUrlsFound: diagnosticCursorUrlsFoundV2,
       prismaVarkausFound: Boolean(prismaVarkausV2),
       prismaVarkausStoreId: prismaVarkausV2?.sKaupatStoreId || null,
+      firstPageHtmlLength: diagnosticFirstHtmlV4.length,
+      firstPageHasMyymala: diagnosticFirstHtmlV4.includes("/myymala/"),
+      firstPageHasCursor: diagnosticFirstHtmlV4.includes("cursor="),
+      firstPagePrefix: diagnosticFirstHtmlV4.slice(0, 180).replace(/\s+/g, " "),
     };
 
     console.warn("[S-kaupat directory V3 diagnostic]", lastPrismaDirectoryDiagnosticV3);
