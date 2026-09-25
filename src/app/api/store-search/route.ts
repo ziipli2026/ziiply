@@ -87,8 +87,12 @@ export async function GET(request: NextRequest) {
           return {
             ...normalized,
             // S-kaupat is authoritative for active S-family identity and product-facing storeId.
-            id: officialS.sKaupatStoreId,
+            // Product prices currently come from Ruoanhinta, whose /api/items
+            // requires its own numeric store id. Keep that as the active id while
+            // exposing the official S-kaupat id separately for identity/offer flows.
+            id: store.id,
             externalId: officialS.sKaupatStoreId,
+            sKaupatStoreId: officialS.sKaupatStoreId,
             name: officialS.name,
             directoryId: store.id,
           };
