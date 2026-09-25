@@ -259,6 +259,7 @@ async function fetchSKaupatChainDirectoryV1(
       }
     } catch (error) {
       console.warn("[S-kaupat directory] chain page failed", { chain, url, error });
+      if (normalizeSKaupatStoreTextV1(chain) === "prisma") lastPrismaDirectoryDiagnosticV3 = { chain, pagesFetched: visited.size, entriesParsed: diagnosticEntriesParsedV2, uniqueEntriesFound: byId.size, cursorUrlsFound: diagnosticCursorUrlsFoundV2, prismaVarkausFound: false, prismaVarkausStoreId: null };
     }
   }
 
