@@ -15704,7 +15704,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       storeMatchesStrictChainAndModeV139(store, chain, mode),
     );
 
-    return sortStoresForPickerV320(scoped, mode, selectedId, selectedName);
+    // GPS-store-search returns a broad candidate pool so the resolver can always
+    // find the nearest stores. The picker itself must stay local instead of
+    // exposing every candidate inside that broad API radius.
+    const pickerScoped =
+      usingOwnLocation && gpsCoordsV320
+        ? scoped.filter((store) => {
+            const distanceKm = getGpsDistanceKmForStoreV93(store);
+            if (distanceKm == null) return false;
+            return distanceKm <= (mode === "hyper" ? 35 : 15);
+          })
+        : scoped;
+
+    return sortStoresForPickerV320(pickerScoped, mode, selectedId, selectedName);
   }
 
   function getStoresForPicker(chain: "S" | "K", mode: StoreMode) {
