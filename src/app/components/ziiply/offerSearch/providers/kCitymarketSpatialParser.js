@@ -379,6 +379,16 @@ if(spatialResolved?.rejectedReview)spatialResolved=null;
 // Generic shared-card split price: require a large euro+cents pair, sale-unit token, discount marker and printed normal-price fragments in the same local card.
 // Generic package/unit-rate fallback: derive the rounded shelf price from package size and unit rate,
 // and require the card context to contain the same sale unit plus a discount or printed normal price.
+// Generic package/unit-rate fallback: derive the rounded shelf price from package size and unit rate,
+// and require the card context to contain the same sale unit plus a discount or printed normal price.
+if(!spatialResolved&&anchor&&pk&&ur&&expected&&nr&&nr.unit){
+ const rounded=Number(expected.toFixed(2)),localText=around.map(r=>String(r.text||"")).join(" ");
+ const hasNormalUnit=new RegExp("\\/("+nr.unit+")\\b","i").test(localText);
+ const hasDiscount=/(?:^|\s)-?\d{1,2}(?:[–-]\d{1,2})?\s*%/.test(localText);
+ const hasNormal=/Ilman\s+Plussa-korttia/i.test(localText);
+ if(rounded>=.5&&rounded<nr.min&&hasNormalUnit&&(hasDiscount||hasNormal))spatialResolved={value:rounded,quantity:null,unit:nr.unit,source:"package-unitrate-normalprice-proof",sanity:"pass",confidence:"high"};
+}
+
 // Generic percentage-only card proof: use the closest percentage in basic HTML after the product row,
 // then fall back to one unique nearby geometric percentage.
 // Generic percentage-only card proof: use the closest percentage in basic HTML after the product row,
