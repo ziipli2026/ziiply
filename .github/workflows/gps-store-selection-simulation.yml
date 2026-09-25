@@ -95,6 +95,20 @@ jobs:
           for(const [label,lat,lon] of pts){const s=uniq.filter(x=>/s-market|\bsale\b|alepa/i.test(x.name||"")).sort((a,b)=>dist(lat,lon,a.latitude,a.longitude)-dist(lat,lon,b.latitude,b.longitude))[0];const k=uniq.filter(x=>/k-market|k-supermarket/i.test(x.name||"")).sort((a,b)=>dist(lat,lon,a.latitude,a.longitude)-dist(lat,lon,b.latitude,b.longitude))[0];console.log("RH_LOCAL_NEAREST",JSON.stringify({label,s:s&&{id:s.id,name:s.name,d:dist(lat,lon,s.latitude,s.longitude)},k:k&&{id:k.id,name:k.name,d:dist(lat,lon,k.latitude,k.longitude)}}));}
           console.log("RH_LOCAL_UNIQUE",uniq.length);})().catch(e=>{console.error(e);process.exit(1)});
           JS
+      - name: Verify stale S-store filtering
+        shell: bash
+        run: |
+          cat > /tmp/check-stale-s.mjs <<'JS'
+          const norm=v=>String(v||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g," ").trim();
+          const html=await (await fetch("https://www.s-kaupat.fi/myymalat/alepa")).text();
+          const active=[...html.matchAll(/\/myymala\/([^/"?]+)\/(\d{5,})/g)].map(m=>norm(decodeURIComponent(m[1]).replace(/-/g," ")));
+          const rh=await (await fetch("https://api.ruoanhinta.fi/api/stores?search="+encodeURIComponent("Alepa Hämeenkatu"))).json();
+          const rows=Array.isArray(rh)?rh:(rh.items||[]);
+          const stale=rows.filter(x=>/alepa hämeenkatu/i.test(String(x.name||"")));
+          console.log("STALE_S_CHECK",JSON.stringify({officialFirstPageHasHameenkatu:active.some(x=>x==="alepa hameenkatu"),ruoanhintaHasHameenkatu:stale.length>0,ruoanhintaRows:stale.map(x=>({id:x.id,name:x.name}))}));
+          if(active.some(x=>x==="alepa hameenkatu")) process.exit(2);
+          JS
+          node /tmp/check-stale-s.mjs
       - name: Verify current production integration
         shell: bash
         run: |
