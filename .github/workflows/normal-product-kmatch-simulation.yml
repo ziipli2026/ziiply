@@ -13,7 +13,7 @@ jobs:
           node <<'NODE'
           const BASE="https://ziiply.vercel.app";
           const pairs=[
-            {label:"HYPER Hyvinkää",s:511971266,k:3221},
+            {label:"HYPER Hyvinkää",s:292,k:3221},
             {label:"LOCAL Jokela",s:721,k:3334},
           ];
           const queries=["kevytmaito","täysmaito","jauheliha","kahvi","juusto","jogurtti","ruisleipä","cola","voi","kananmuna","broileri","pasta","riisi","banaani","tomaatti","kinkku","makkara","rahka"];
