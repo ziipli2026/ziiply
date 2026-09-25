@@ -93,7 +93,8 @@ jobs:
               const as=size(a),bs=size(b);if(as&&bs&&as!==bs)return true;
             }
             if(A.includes("kivennäisvesi")){
-              for(const x of ["vichy","original","magnesium","sitruuna","lime","greippi"])if(A.includes(x)!==B.includes(x))return true;
+              for(const x of ["vichy","sitruuna","lime","greippi"])if(A.includes(x)!==B.includes(x))return true;
+              if(B.includes("original")||B.includes("magnesium"))return true;
             }
             if(A.includes("paprika")&&!/(juusto|dippi|mauste|kastike|ciabatta)/.test(A)){
               if(/juusto|dippi|mauste|kastike|ciabatta/.test(B))return true;
