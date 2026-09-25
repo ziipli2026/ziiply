@@ -80,6 +80,36 @@ jobs:
           main().catch(e=>{ console.error(e); process.exit(2); });
           TS
           npx --yes tsx live-gps-test.ts
+      - name: Simulate minimal production patch statically
+        shell: bash
+        run: |
+          node <<'JS'
+          const fs=require("fs");
+          let page=fs.readFileSync("src/app/page.tsx","utf8");
+          let route=fs.readFileSync("src/app/api/store-search/route.ts","utf8");
+          const coreImport='import { resolveZiiplyPageStoreSelection } from "./components/ziiply/location/ziiplyStoreSelectionCore";\n';
+          if(!page.includes("resolveZiiplyPageStoreSelection")) page=coreImport+page;
+          const oldRank='const ranked = rankStoresForMode(stores, mode, coords);';
+          const newRank='const ranked = coords ? resolveZiiplyPageStoreSelection({ stores, coords, mode }) : rankStoresForMode(stores, mode, coords);';
+          if(!page.includes(oldRank)) throw new Error("buildDynamicArea seam changed");
+          page=page.replace(oldRank,newRank);
+          const oldActive='const ranked = rankStoresForMode(gpsStorePoolV40, gpsMode, gpsCoordsV320);';
+          const newActive='const ranked = resolveZiiplyPageStoreSelection({ stores: gpsStorePoolV40, coords: gpsCoordsV320, mode: gpsMode });';
+          if(!page.includes(oldActive)) throw new Error("activeStores seam changed");
+          page=page.replace(oldActive,newActive);
+          const coordNeedle='externalId: store.externalId,';
+          if(!route.includes(coordNeedle)) throw new Error("route seam changed");
+          route=route.replace(coordNeedle,coordNeedle+'\n        latitude: store.lat,\n        longitude: store.long,');
+          fs.mkdirSync("/tmp/ziiply-gps-patch",{recursive:true});
+          fs.writeFileSync("/tmp/ziiply-gps-patch/page.tsx",page);
+          fs.writeFileSync("/tmp/ziiply-gps-patch/route.ts",route);
+          const checks={resolverImport:page.includes("resolveZiiplyPageStoreSelection"),dynamicAreaUsesResolver:page.includes(newRank),activeStoresUsesResolver:page.includes(newActive),routePreservesCoords:route.includes("latitude: store.lat")&&route.includes("longitude: store.long"),productionUnchanged:!fs.readFileSync("src/app/page.tsx","utf8").includes("resolveZiiplyPageStoreSelection")};
+          console.log("GPS_MIN_PATCH_STATIC",JSON.stringify(checks));
+          if(!Object.values(checks).every(Boolean)) process.exit(2);
+          JS
+          npx --yes esbuild /tmp/ziiply-gps-patch/page.tsx --loader:.tsx=tsx --format=esm --outfile=/tmp/ziiply-gps-patch/page.js --log-level=error
+          npx --yes esbuild /tmp/ziiply-gps-patch/route.ts --loader:.ts=ts --format=esm --outfile=/tmp/ziiply-gps-patch/route.js --log-level=error
+          echo GPS_MIN_PATCH_PARSE_SUCCESS
       - name: Simulate full local plus hyper GPS API pool
         shell: bash
         run: |
