@@ -99,7 +99,7 @@ export async function GET(request: NextRequest) {
           };
         });
 
-      return NextResponse.json(debug ? { items, debug: { batchCounts: terms.map((term, i) => ({ term, count: batches[i]?.length || 0 })), sDirectoryCount: sKaupatDirectory.length } } : { items });
+      return NextResponse.json(debug ? { items, debug: { batchCounts: terms.map((term, i) => ({ term, count: batches[i]?.length || 0 })), sDirectoryCount: sKaupatDirectory.length, samples: batches.map((batch, i) => ({ term: terms[i], sample: batch[0] ? { name: batch[0].name, id: batch[0].id, lat: batch[0].lat, latitude: batch[0].latitude, long: batch[0].long, lon: batch[0].lon, longitude: batch[0].longitude, keys: Object.keys(batch[0]).slice(0,20) } : null })) } } : { items });
     }
 
     if (!search) return NextResponse.json({ items: [] });
