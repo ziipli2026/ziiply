@@ -16,6 +16,28 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Probe live candidate directories
+        shell: bash
+        run: |
+          node <<'NODE'
+          const crypto=require("crypto");
+          const origin="https://etarjouslehdet.fi";
+          const stable=v=>Buffer.from(JSON.stringify(v,(_k,x)=>Object.prototype.toString.call(x)==="[object Object]"?Object.keys(x).sort().reduce((o,k)=>(o[k]=x[k],o),{}):x),"utf8").toString("base64");
+          async function stores(businessId){
+            const key=stable(["stores",{businessId,pagination:{offset:0,limit:3000}}]);
+            const r=await fetch(origin+"/",{method:"POST",headers:{"content-type":"application/json","x-api-key":"152000596c6e45d9983eab0c14afebea","user-agent":"Mozilla/5.0"},body:JSON.stringify({data:[key]})});
+            const j=await r.json();
+            const seen=new Set(), out=[];
+            function walk(x){if(!x||typeof x!=="object")return;if(Array.isArray(x)){for(const y of x)walk(y);return;}const name=String(x.name||x.title||"");const lat=Number(x.latitude??x.coordinates?.latitude),lon=Number(x.longitude??x.coordinates?.longitude);if(name&&Number.isFinite(lat)&&Number.isFinite(lon)){const id=String(x.id||x.storeId||x.uuid||name);const k=id+"|"+name;if(!seen.has(k)){seen.add(k);out.push({id,name,latitude:lat,longitude:lon});}}for(const y of Object.values(x))walk(y);}
+            walk(j); return out;
+          }
+          (async()=>{
+            for(const [label,id] of [["S","d8ccs8"],["K_SUPER","f305U8"],["K_MARKET","9c56Y8"]]){
+              const all=await stores(id); const near=all.filter(x=>/jokela|hyvinkää|hyvinkaa|prisma|citymarket/i.test(x.name));
+              console.log("GPS_LIVE_DIRECTORY",JSON.stringify({label,businessId:id,count:all.length,sample:near.slice(0,40)},null,2));
+            }
+          })().catch(e=>{console.error(e);process.exit(2)});
+          NODE
       - name: Simulate Jokela and Hyvinkaa against production resolver
         shell: bash
         run: |
