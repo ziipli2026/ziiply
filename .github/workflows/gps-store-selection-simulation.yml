@@ -276,7 +276,7 @@ jobs:
           };
           console.log("GPS_PAGE_SEAM",JSON.stringify(checks));
           if(!checks.hasGpsApply||!checks.passesCoordsToFetch||!checks.writesFoundStores||!checks.buildsDynamicArea||!checks.oldRankerStillActive||!checks.storeRouteUsed) process.exit(2);
-          if(checks.newResolverWired) process.exit(3);
+          if(!checks.newResolverWired) process.exit(3);
           TS
           npx --yes tsx gps-page-seam-test.ts
       - name: Simulate Jokela and Hyvinkaa against production resolver
