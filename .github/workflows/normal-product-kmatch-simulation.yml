@@ -166,6 +166,39 @@ jobs:
           }
           console.log("NEAR_TIE_PRICE_PROBE "+JSON.stringify({nearTieCheaperOverrides,nearTieLargeSizeMismatch,examples:nearTieExamples}));
 
+          // Full production-candidate simulation over the same 795-product corpus.
+          // Only rescue NO_SAFE_MATCH cases when size, prioritized core type and variant
+          // compatibility all agree. This does not change production.
+          const candCoreTypes=["jogurtti","jauheliha","kananmun","ruisleip","kermajuusto","juustoviipale","kevytmaito","taysmaito","maito","gouda","emmental","pasta","riisi","kahvi"];
+          const candVariants=["lakritsi","hedelma","metsamarja","mansikka","vanilja","suklaa","kahvi","mustikka","vadelma","persikka","banaani","sitruuna","omena"];
+          function candidateCore(n){const z=norm(n);return candCoreTypes.find(t=>z.includes(t))||(/^voi(?:\\s|$)|\\svoi(?:\\s|$)/.test(z)?"voi":"");}
+          function candidateVariantConflict(a,b){const A=norm(a),B=norm(b),av=candVariants.filter(v=>A.includes(v)),bv=candVariants.filter(v=>B.includes(v));return av.length>0&&bv.length>0&&!av.some(v=>bv.includes(v));}
+          function candidateShared(a,b){const skip=new Set(["coop","xtra","kotimaista","suomalainen","pirkka","menu","valio","arla","tuote","pakattu"]);const B=norm(b);return [...new Set(norm(a).split(/[^a-z0-9åäö]+/).filter(w=>w.length>=4&&!skip.has(w)))].filter(w=>B.includes(w)).length;}
+          let candidateFull={tested:0,baselineNoSafe:0,rescued:0,remainingNoSafe:0,hardBadChosen:0,examples:[]};
+          for(const pair of pairs){
+            for(const q of queries){
+              for(const p of (await s(q,pair.s)).slice(0,5)){
+                candidateFull.tested++;
+                const pe=ean(p.ean),ps=size(p.name);let item=null;
+                if(pe){const er=await k(pe,pair.k);item=er.find(x=>ean(x.ean)===pe)||null;}
+                if(!item){const nr=await k(p.name,pair.k);item=nr.find(x=>norm(x.name)===norm(p.name))||null;}
+                let all=[];
+                if(!item){for(const t of terms(p.name).slice(0,5))all.push(...await k(t,pair.k));all=[...new Map(all.map(x=>[String(x.id),x])).values()];const d=all.filter(x=>!hardBad(p.name,x.name));const ss=ps?d.filter(x=>size(x.name)===ps):d,rank=(ss.length?ss:d).map(x=>({x,sc:score(p.name,x.name)})).sort((a,b)=>b.sc-a.sc);if(rank[0]?.sc>=2)item=rank[0].x;}
+                if(item)continue;
+                candidateFull.baselineNoSafe++;
+                if(!all.length){for(const t of terms(p.name).slice(0,5))all.push(...await k(t,pair.k));all=[...new Map(all.map(x=>[String(x.id),x])).values()];}
+                const core=candidateCore(p.name);
+                const ranked=all.filter(x=>!hardBad(p.name,x.name)&&ps&&size(x.name)===ps&&core&&norm(x.name).includes(core)&&!candidateVariantConflict(p.name,x.name))
+                  .map(x=>({x,shared:candidateShared(p.name,x.name),sc:prodLikeScore(p.name,x.name)}))
+                  .filter(r=>r.shared>=1&&r.sc>=18).sort((a,b)=>(b.shared-a.shared)||(b.sc-a.sc));
+                const rescue=ranked[0]?.x||null;
+                if(rescue){candidateFull.rescued++;if(hardBad(p.name,rescue.name))candidateFull.hardBadChosen++;if(candidateFull.examples.length<25)candidateFull.examples.push({source:p.name,rescue:rescue.name,size:ps,core,shared:ranked[0].shared,score:ranked[0].sc});}
+                else candidateFull.remainingNoSafe++;
+              }
+            }
+          }
+          console.log("FULL_CANDIDATE_SIM "+JSON.stringify(candidateFull));
+
           // Safer production-candidate rule: price may break a near tie only when
           // the cheaper candidate is semantically allowed and known package sizes match.
           let safePriceTieAllowed=0,safePriceTieBlocked=0,safePriceTieBlockedSize=0;
