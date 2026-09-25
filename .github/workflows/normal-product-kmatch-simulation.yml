@@ -284,9 +284,12 @@ jobs:
             const coreTypes=["jogurtti","jauheliha","kananmun","ruisleip","kermajuusto","juustoviipale","kevytmaito","täysmaito","maito","gouda","emmental","pasta","riisi","kahvi"];
             const sourceType=coreTypes.find(t=>sn.includes(t))||(/^voi(?:\\s|$)|\\svoi(?:\\s|$)/.test(sn)?"voi":"");
             const coreMatch=Boolean(sourceType&&cn.includes(sourceType));
-            const likely=Boolean(cand&&cand.sameSize&&coreMatch&&cand.shared>=1&&cand.sc>=18);
+            const variants=["lakritsi","hedelma","metsamarja","mansikka","vanilja","suklaa","kahvi","mustikka","vadelma","persikka","banaani","sitruuna","omena"];
+            const sourceVariants=variants.filter(v=>sn.includes(v)), candidateVariants=variants.filter(v=>cn.includes(v));
+            const variantConflict=sourceVariants.length>0&&candidateVariants.length>0&&!sourceVariants.some(v=>candidateVariants.includes(v));
+            const likely=Boolean(cand&&cand.sameSize&&coreMatch&&!variantConflict&&cand.shared>=1&&cand.sc>=18);
             if(likely)noSafeAudit.likelyMissed++;else noSafeAudit.noCredibleCandidate++;
-            if(noSafeAudit.examples.length<24)noSafeAudit.examples.push({source,candidate:cand?.x?.name||null,sameSize:cand?.sameSize||false,shared:cand?.shared||0,score:cand?.sc||0,sourceType,coreMatch,assessment:likely?"LIKELY_MISSED":"NO_CREDIBLE"});
+            if(noSafeAudit.examples.length<24)noSafeAudit.examples.push({source,candidate:cand?.x?.name||null,sameSize:cand?.sameSize||false,shared:cand?.shared||0,score:cand?.sc||0,sourceType,coreMatch,sourceVariants,candidateVariants,variantConflict,assessment:likely?"LIKELY_MISSED":"NO_CREDIBLE"});
           }
           for(const pair of pairs){
             for(const q of queries.slice(0,10)){
