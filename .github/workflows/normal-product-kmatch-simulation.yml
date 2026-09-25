@@ -82,6 +82,11 @@ jobs:
                 const ag=grams(as),bg=grams(bs);if(ag&&bg&&Math.max(ag,bg)/Math.min(ag,bg)>1.35)return true;
               }
             }
+            const forms2=["panini","heatpot","pastakastike","ciabatta","juustodippi"];
+            for(const x of forms2)if(A.includes(x)!==B.includes(x))return true;
+            if(A.includes("tuorejuusto")){
+              for(const x of ["chili","paprika","valkosipuli","kevyt","laktoositon"])if(A.includes(x)!==B.includes(x))return true;
+            }
             return false;
           }
           function score(a,b){const A=new Set(norm(a).split(" ").filter(x=>x.length>2&&!/^\d/.test(x)));return norm(b).split(" ").reduce((n,t)=>n+(A.has(t)?1:0),0);}
