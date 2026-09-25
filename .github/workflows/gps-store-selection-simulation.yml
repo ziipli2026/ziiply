@@ -112,7 +112,6 @@ jobs:
           for(const [label,lat,lon] of points){
             const u=base+"/api/store-search?search=GPS&gps=1&lat="+lat+"&lon="+lon+"&latitude="+lat+"&longitude="+lon+"&debug=1";
             const sr=await fetch(u,{cache:"no-store"}); const raw=await sr.text(); let sd={}; try{sd=JSON.parse(raw)}catch{} const stores=sd.items||[]; console.log("GPS_STORE_RESULT",JSON.stringify({label,status:sr.status,count:stores.length,debug:sd.debug,first:stores.slice(0,12).map(x=>({name:x.name,id:x.id,lat:x.latitude,lon:x.longitude}))}));
-            if(label==="Hyvinkää") console.log("HYVINKAA_ALEPA_ROWS",JSON.stringify(stores.filter(x=>/alepa/i.test(String(x.name||""))).slice(0,30)));
             const ranked=stores.map(s=>({...s,d:dist(lat,lon,Number(s.latitude),Number(s.longitude))})).filter(s=>Number.isFinite(s.d)).sort((a,b)=>a.d-b.d);
             const s=ranked.find(x=>/^(S-market|Sale\b|Alepa\b)/i.test(String(x.name||"")));
             const k=ranked.find(x=>/^(K-Market|K-Supermarket)/i.test(String(x.name||"")));
