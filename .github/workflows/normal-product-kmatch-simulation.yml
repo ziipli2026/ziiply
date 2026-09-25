@@ -64,6 +64,7 @@ jobs:
             }
             if(pet.test(A)&&pet.test(B)){
               for(const x of ["lohi","riista","lammas"])if(A.includes(x)!==B.includes(x))return true;
+              const as=size(a),bs=size(b);if(as&&bs&&as!==bs)return true;
             }
             return false;
           }
