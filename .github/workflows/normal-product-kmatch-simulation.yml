@@ -231,6 +231,7 @@ jobs:
           // First-hit probe: production findBestKMatchForStore returns the first acceptable
           // non-value-brand candidate. Measure cases where a later search term contains an
           // exact-name or materially higher-scoring candidate.
+          function simpleScore(a,b){const A=new Set(norm(a).split(" ").filter(x=>x.length>2&&!/^\\d/.test(x)));return norm(b).split(" ").reduce((n,t)=>n+(A.has(t)?18:0),0);}
           let guarded={tested:0,eligible:0,blocked:0,examples:[]};
           function sameMetricSize(a,b){
             const rx=/(\\d+(?:[.,]\\d+)?)\\s*(kg|g|l|dl|cl|ml)\\b/;
