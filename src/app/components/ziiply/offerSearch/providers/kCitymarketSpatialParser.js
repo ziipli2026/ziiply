@@ -489,7 +489,7 @@ if(anchor){
   const badFragment=Number.isFinite(cur)&&cur>=20;
   const badMulti=Number(spatialResolved?.quantity||0)>=2&&direct&&Math.abs(cur-direct.v)>Math.max(2,direct.v*.8);
   if(direct&&(badFragment||badMulti)&&direct.d<.16){
-    spatialResolved={value:direct.v,quantity:null,unit:null,kind:"final-card-large-price-correction",source:"final-card-large-price-correction",sanity:"pass"};
+    spatialResolved={value:direct.v,quantity:null,unit:null,source:"final-card-large-price-correction",sanity:"pass"};
   }
 }
 out.rows.push({page:p,line:lines[i].i,title,package:pk,unitPrice:ur,normal:nr,expectedSingle:expected?Number(expected.toFixed(3)):null,candidate:cand,wordBoxCount:wordBoxes.length,titleAnchor:anchor,titleWordHits:titleHits.slice(0,30),spatialPriceBoxes:spatialPriceBoxes.map(b=>({...b,d:anchor?Number(boxDistance(anchor,b).toFixed(6)):null})).sort((a,b)=>(a.d??99)-(b.d??99)).slice(0,60),spatialResolved,percentageOffer,spatialCandidates:spatialCandidates.slice(0,20),spatialGroups:spatialGroups(anchor?wordBoxes.filter(b=>boxDistance(anchor,b)<0.22):[]).filter(g=>/\d/.test(g.text)).slice(0,60),spatialNeighbors:spatial,nearby:around.map(x=>x.raw)})}}
