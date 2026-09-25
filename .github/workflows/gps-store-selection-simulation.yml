@@ -86,14 +86,17 @@ jobs:
           cat > gps-full-api-pool-test.ts <<'TS'
           import { resolveZiiplyPageStoreSelection } from "./src/app/components/ziiply/location/ziiplyStoreSelectionCore";
           async function main(){
-            async function tjek(businessId:string,kind:"s"|"ks"|"km"){
-              const r=await fetch("https://squid-api.tjek.com/v2/catalogs",{method:"POST",headers:{"content-type":"application/json","x-api-key":"${{ secrets.TJEK_API_KEY }}"},body:JSON.stringify(["stores",{businessId,pagination:{offset:0,limit:3000}}])});
-              if(!r.ok) throw new Error("Tjek "+businessId+" "+r.status);
-              const j:any=await r.json(); const a=Array.isArray(j)?j:(j?.data||j?.stores||j?.items||[]);
-              const flat:any[]=[]; const walk=(v:any)=>{if(Array.isArray(v))v.forEach(walk);else if(v&&typeof v==="object"){const lat=Number(v.latitude??v.lat??v.location?.latitude??v.location?.lat);const lon=Number(v.longitude??v.lon??v.lng??v.location?.longitude??v.location?.lon??v.location?.lng);if(v.name&&Number.isFinite(lat)&&Number.isFinite(lon))flat.push({...v,latitude:lat,longitude:lon});else Object.values(v).forEach(walk)}}; walk(a);
-              return flat.filter(x=>kind==="s"?/^(S-market|Sale|Alepa)\b/i.test(x.name)&&!/ABC|liikenneasema|huoltoasema/i.test(x.name):kind==="ks"?/^K-Supermarket\b/i.test(x.name):/^K-Market\b/i.test(x.name));
-            }
-            async function rh(search:string,chain:string){
+            const origin="https://etarjouslehdet.fi";
+          const stable=(v:any)=>Buffer.from(JSON.stringify(v,(_k,x)=>Object.prototype.toString.call(x)==="[object Object]"?Object.keys(x).sort().reduce((o:any,k)=>(o[k]=x[k],o),{}):x),"utf8").toString("base64");
+          async function tjek(businessId:string,kind:"s"|"ks"|"km"){
+            const key=stable(["stores",{businessId,pagination:{offset:0,limit:3000}}]);
+            const r=await fetch(origin+"/",{method:"POST",headers:{"content-type":"application/json","x-api-key":"152000596c6e45d9983eab0c14afebea","user-agent":"Mozilla/5.0"},body:JSON.stringify({data:[key]})});
+            if(!r.ok) throw new Error("Tjek proxy "+businessId+" "+r.status);
+            const j:any=await r.json(); const flat:any[]=[]; const seen=new Set<string>();
+            const walk=(x:any)=>{if(!x||typeof x!=="object")return;if(Array.isArray(x)){x.forEach(walk);return;}const name=String(x.name||x.title||"");const latitude=Number(x.latitude??x.coordinates?.latitude),longitude=Number(x.longitude??x.coordinates?.longitude);if(name&&Number.isFinite(latitude)&&Number.isFinite(longitude)){const id=String(x.id||x.storeId||x.uuid||name),k=id+"|"+name;if(!seen.has(k)){seen.add(k);flat.push({id,name,latitude,longitude})}}Object.values(x).forEach(walk)}; walk(j);
+            return flat.filter(x=>kind==="s"?/^(S-market|Sale|Alepa)\b/i.test(x.name)&&!/ABC|liikenneasema|huoltoasema/i.test(x.name):kind==="ks"?/^K-Supermarket\b/i.test(x.name):/^K-Market\b/i.test(x.name));
+          }
+          async function rh(search:string,chain:string){
               const r=await fetch("https://api.ruoanhinta.fi/api/stores?search="+encodeURIComponent(search)); const a:any=await r.json();
               return (Array.isArray(a)?a:a.items||[]).filter((x:any)=>x.country==="Suomi"&&x.chain===chain&&Number.isFinite(Number(x.lat))&&Number.isFinite(Number(x.long))&&!/verkkokauppa|puutarha|lemmikki|abc/i.test(String(x.name))).map((x:any)=>({...x,latitude:Number(x.lat),longitude:Number(x.long)}));
             }
