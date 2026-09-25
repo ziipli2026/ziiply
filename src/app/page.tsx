@@ -1680,6 +1680,7 @@ import {
   type ZiiplyStoreKind,
   type ZiiplyStoreMode,
 } from "./components/ziiply/location";
+import { resolveZiiplyPageStoreSelection } from "./components/ziiply/location/ziiplyStoreSelectionCore";
 import {
   GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147,
   cleanZiiplyGostaOfferResultsV146,
@@ -5330,7 +5331,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // Tavaratalot -> Lähikaupat, vaikka näkyvä storeMode olisi hyper.
       const gpsMode = storeMode;
       const gpsStorePoolV40 = buildGpsStoreCandidatePoolFromAllAreasV40(foundStores);
-      const ranked = rankStoresForMode(gpsStorePoolV40, gpsMode, gpsCoordsV320);
+      const ranked = resolveZiiplyPageStoreSelection({ stores: gpsStorePoolV40, coords: gpsCoordsV320, mode: gpsMode });
 
       if (gpsMode === "local") {
         // V545_MANUAL_LOCAL_STORE_OVERRIDES_GPS:
@@ -5802,7 +5803,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   async function fetchSProducts(
     search: string,
-    storeId: number,
+    storeId: string | number,
   ): Promise<Product[]> {
     const response = await fetch(
       `/api/s-products?search=${encodeURIComponent(search)}&store=${encodeURIComponent(String(storeId))}`,
@@ -5833,7 +5834,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   async function fetchSProductsAllowUnpricedV463(
     search: string,
-    storeId: number,
+    storeId: string | number,
   ): Promise<Product[]> {
     const response = await fetch(
       `/api/s-products?search=${encodeURIComponent(search)}&store=${encodeURIComponent(String(storeId))}`,
@@ -5899,7 +5900,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     candidate: Product,
     variants: string[],
     nameCandidates: string[],
-    storeId: number,
+    storeId: string | number,
   ): Promise<Product | null> {
     if (getProductPrice(candidate) > 0) return candidate;
 
@@ -6003,7 +6004,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   async function fetchKProducts(
     search: string,
-    storeId: number,
+    storeId: string | number,
   ): Promise<KProduct[]> {
     const response = await fetch(
       `/api/k-products?search=${encodeURIComponent(search)}&store=${encodeURIComponent(String(storeId))}`,
@@ -8920,12 +8921,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     coords?: { latitude: number; longitude: number } | null,
   ): Area {
     const matchedArea = findArea(query);
-    const ranked = rankStoresForMode(stores, mode, coords);
+    const ranked = coords ? resolveZiiplyPageStoreSelection({ stores, coords, mode }) : rankStoresForMode(stores, mode, coords);
 
     const detectedCity = coords
       ? "Oma sijainti"
-      : ranked.selectedS?.city ||
-        ranked.selectedK?.city ||
+      : stores.find((store) => store.city)?.city ||
         stores.find((store) => store.city)?.city ||
         matchedArea?.label ||
         query;
@@ -10849,7 +10849,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   async function findBestKMatchForStore(
     query: string,
-    storeId: number,
+    storeId: string | number,
     ean?: string,
   ) {
     let fallbackCandidate: KProduct | undefined;
@@ -15702,7 +15702,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   function sortStoresForPickerV320(
     stores: StoreSearchItem[],
     mode: StoreMode,
-    selectedId?: number,
+    selectedId?: string | number,
     selectedName?: string,
   ) {
     return uniqueStoresByIdAndName(
