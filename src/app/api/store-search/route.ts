@@ -32,6 +32,8 @@ export async function GET(request: NextRequest) {
         postalCode: store.postalCode,
         // V219: Ruoanhinta externalId is the S-kaupat store id for Finnish Prisma stores.
         externalId: store.externalId,
+        latitude: store.lat ?? store.latitude,
+        longitude: store.long ?? store.lon ?? store.lng ?? store.longitude,
       })
     );
 
