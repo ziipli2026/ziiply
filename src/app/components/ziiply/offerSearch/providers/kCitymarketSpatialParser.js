@@ -95,13 +95,6 @@ for(const euro of spatialPriceBoxes.filter(x=>/^\\d{1,2}[.]?$/.test(String(x.tex
 // Ranged package + ranged unit price can identify one fixed shelf price.
 // Example: 130–170 g and 10.53–13.77/kg => 0.170*10.53 ~= 0.130*13.77 ~= 1.79.
 // Require both cross-products to converge and the matching large cents to be close to the product anchor.
-if(anchor&&pk&&ur&&pk.max>pk.min&&ur.max>ur.min){
- const p1=pk.max*ur.min,p2=pk.min*ur.max,mid=(p1+p2)/2,spread=Math.abs(p1-p2)/mid;
- const derived=Number(mid.toFixed(2)),dc=Math.round((derived-Math.floor(derived))*100);
- const centsBox=spatialPriceBoxes.filter(b=>/^[0-9]{2}$/.test(String(b.text).trim())&&Number(b.height||0)>=.05&&boxDistance(anchor,b)<.12&&Math.abs(Number(b.text)-dc)<=1).sort((a,b)=>boxDistance(anchor,a)-boxDistance(anchor,b))[0];
- const saleUnit=wordBoxes.filter(b=>/^(RS|PS|PKT|KPL|TLK|PL|PRK)$/i.test(String(b.text).trim())&&boxDistance(anchor,b)<.16).sort((a,b)=>boxDistance(anchor,a)-boxDistance(anchor,b))[0];
- if(spread<=.025&&derived>=.5&&derived<30&&centsBox&&saleUnit)spatialCandidates.push({value:derived,quantity:null,unit:String(saleUnit.text).toUpperCase(),parts:[pk.raw,ur.raw,String(centsBox.text)],score:Number((boxDistance(anchor,centsBox)*.20+spread).toFixed(6)),kind:"range-unitprice-cents-validated"});
-}
 // Same ranged-price proof when the unit-price range exists only in the coordinate layer.
 // This handles rows where basic HTML lost or attached the wrong €/kg fragment.
 // Recover prices where the euro digit is embedded in the leaflet graphic/vector layer but the large cents remain textual.
