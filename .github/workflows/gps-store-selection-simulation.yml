@@ -80,6 +80,33 @@ jobs:
           main().catch(e=>{ console.error(e); process.exit(2); });
           TS
           npx --yes tsx live-gps-test.ts
+      - name: Simulate patched project typecheck and build
+        shell: bash
+        run: |
+          rm -rf /tmp/ziiply-patch-build
+          mkdir -p /tmp/ziiply-patch-build
+          cp -a . /tmp/ziiply-patch-build/repo
+          cd /tmp/ziiply-patch-build/repo
+          node <<'JS'
+          const fs=require("fs");
+          const p="src/app/page.tsx",r="src/app/api/store-search/route.ts";
+          let page=fs.readFileSync(p,"utf8"),route=fs.readFileSync(r,"utf8");
+          if(!page.includes("resolveZiiplyPageStoreSelection")) page='import { resolveZiiplyPageStoreSelection } from "./components/ziiply/location/ziiplyStoreSelectionCore";\n'+page;
+          const a='const ranked = rankStoresForMode(stores, mode, coords);';
+          const b='const ranked = coords ? resolveZiiplyPageStoreSelection({ stores, coords, mode }) : rankStoresForMode(stores, mode, coords);';
+          const x='const ranked = rankStoresForMode(gpsStorePoolV40, gpsMode, gpsCoordsV320);';
+          const y='const ranked = resolveZiiplyPageStoreSelection({ stores: gpsStorePoolV40, coords: gpsCoordsV320, mode: gpsMode });';
+          if(!page.includes(a)||!page.includes(x)) throw new Error("page seams changed");
+          page=page.replace(a,b).replace(x,y);
+          const q='externalId: store.externalId,';
+          if(!route.includes(q)) throw new Error("route seam changed");
+          route=route.replace(q,q+'\n        latitude: store.lat,\n        longitude: store.long,');
+          fs.writeFileSync(p,page);fs.writeFileSync(r,route);
+          console.log("GPS_PATCH_COPY_APPLIED");
+          JS
+          npm run typecheck --if-present
+          npm run build
+          echo GPS_PATCH_PROJECT_BUILD_SUCCESS
       - name: Simulate complete GPS store-search route branch
         shell: bash
         run: |
