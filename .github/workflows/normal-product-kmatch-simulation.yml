@@ -262,4 +262,45 @@ jobs:
             }
           }
           console.log("FIRST_HIT_PROBE "+JSON.stringify(firstHitProbe));
+
+          // Aggregated-candidate probe: instead of returning the first acceptable hit,
+          // collect candidates from the existing search terms and choose the strongest
+          // semantic/name match. Require a meaningful score advantage before replacing
+          // the current first hit.
+          let aggregateProbe={tested:0,changed:0,meaningfulGain:0,exactGain:0,unsafeRejected:0,examples:[]};
+          async function probeAggregate(source,storeId){
+            const ts=terms(source).slice(0,6); if(ts.length<2)return;
+            let first=null; const pool=[];
+            for(let i=0;i<ts.length;i++){
+              const xs=await k(ts[i],storeId);
+              for(const x of xs){
+                if(hardBad(source,x.name)){aggregateProbe.unsafeRejected++;continue;}
+                const row={x,sc:simpleScore(source,x.name),term:ts[i],idx:i};
+                pool.push(row);
+                if(!first)first=row;
+              }
+            }
+            if(!first||!pool.length)return;
+            aggregateProbe.tested++;
+            const ded=[...new Map(pool.map(r=>[String(r.x.id||r.x.name),r])).values()];
+            ded.sort((a,b)=>b.sc-a.sc || a.idx-b.idx || Number(a.x.price)-Number(b.x.price));
+            const best=ded[0]; const gain=best.sc-first.sc;
+            if(String(best.x.id||best.x.name)!==String(first.x.id||first.x.name))aggregateProbe.changed++;
+            const exact=norm(best.x.name)===norm(source)&&norm(first.x.name)!==norm(source);
+            if(exact)aggregateProbe.exactGain++;
+            if(exact||gain>=18){
+              aggregateProbe.meaningfulGain++;
+              if(aggregateProbe.examples.length<20)aggregateProbe.examples.push({source,first:first.x.name,firstTerm:first.term,firstScore:first.sc,best:best.x.name,bestTerm:best.term,bestScore:best.sc,gain,exact});
+            }
+          }
+          for(const pair of pairs){
+            const seen=new Set();
+            for(const q of queries){
+              for(const p of (await s(q,pair.s)).slice(0,25)){
+                if(seen.has(p.name))continue;seen.add(p.name);
+                await probeAggregate(p.name,pair.k);
+              }
+            }
+          }
+          console.log("AGGREGATE_CANDIDATE_PROBE "+JSON.stringify(aggregateProbe));
           NODE
