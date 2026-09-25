@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSKaupatFullDirectoryV1, getLastPrismaDirectoryDiagnosticV3 } from "../../components/ziiply/location/ziiplyStoreDirectory";
 
 type RawStore = Record<string, any>;
 
@@ -51,17 +50,7 @@ export async function GET(request: NextRequest) {
       }
 
       const terms = ["S-market", "Sale", "Alepa", "K-Market", "K-Supermarket", "Prisma", "K-Citymarket"];
-      const [batches, sKaupatDirectory] = await Promise.all([
-        Promise.all(terms.map(fetchRuoanhinta)),
-        getSKaupatFullDirectoryV1().catch(() => []),
-      ]);
-      // Ruoanhinta may retain permanently closed S stores. For S-family stores,
-      // require the store to still exist in S-kaupat's current official directory.
-      const normalizeName = (value: unknown) =>
-        String(value || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
-      const activeSByName = new Map(
-        sKaupatDirectory.map((entry) => [normalizeName(entry.name), entry] as const),
-      );
+      const batches = await Promise.all(terms.map(fetchRuoanhinta));
       const seen = new Set<string>();
       const items = batches
         .flat()
@@ -70,7 +59,6 @@ export async function GET(request: NextRequest) {
         if (store.delistedAt) return false;
           if (!/^(?:S-market|Sale\b|Alepa\b|K-Market\b|K-Supermarket\b|Prisma\b|K-Citymarket\b)/i.test(name)) return false;
           if (/ABC|liikenneasema|huoltoasema|verkkokauppa|puutarha|lemmikki/i.test(name)) return false;
-          if (/^(?:S-market|Sale\b|Alepa\b|Prisma\b)/i.test(name) && activeSByName.size > 0 && !activeSByName.has(normalizeName(name))) return false;
           const country = String(store.country || store.countryCode || "").trim().toUpperCase();
           if (country && !["FI","FIN","FINLAND","SUOMI"].includes(country)) return false;
           const lat = Number(store.lat ?? store.latitude);
@@ -82,25 +70,31 @@ export async function GET(request: NextRequest) {
           seen.add(key);
           return true;
         })
-        .map((store) => {
-          const normalized = normalizeStore(store);
-          const officialS = activeSByName.get(normalizeName(store.name));
-          if (!officialS) return normalized;
-          return {
-            ...normalized,
-            // S-kaupat is authoritative for active S-family identity and product-facing storeId.
-            // Product prices currently come from Ruoanhinta, whose /api/items
-            // requires its own numeric store id. Keep that as the active id while
-            // exposing the official S-kaupat id separately for identity/offer flows.
-            id: store.id,
-            externalId: officialS.sKaupatStoreId,
-            sKaupatStoreId: officialS.sKaupatStoreId,
-            name: officialS.name,
-            directoryId: store.id,
-          };
-        });
+        .map(normalizeStore);
 
-      return NextResponse.json(debug ? { items, debug: { batchCounts: terms.map((term, i) => ({ term, count: batches[i]?.length || 0 })), sDirectoryCount: sKaupatDirectory.length, sDirectoryDiagnostic: getLastPrismaDirectoryDiagnosticV3(), lifecycleMatches: batches.flat().filter((store) => /hämeenkatu|hameenkatu/i.test(String(store.name || ""))).map((store) => ({ name: store.name, id: store.id, externalId: store.externalId ?? null, delistedAt: store.delistedAt ?? null, updatedAt: store.updatedAt ?? null, createdAt: store.createdAt ?? null, city: store.city ?? null })), samples: batches.map((batch, i) => ({ term: terms[i], sample: batch[0] ? { name: batch[0].name, id: batch[0].id, lat: batch[0].lat, latitude: batch[0].latitude, long: batch[0].long, lon: batch[0].lon, longitude: batch[0].longitude, country: batch[0].country, countryCode: batch[0].countryCode, keys: Object.keys(batch[0]).slice(0,20) } : null })) } } : { items });
+      return NextResponse.json(
+        debug
+          ? {
+              items,
+              debug: {
+                batchCounts: terms.map((term, i) => ({ term, count: batches[i]?.length || 0 })),
+                samples: batches.map((batch, i) => ({
+                  term: terms[i],
+                  sample: batch[0]
+                    ? {
+                        name: batch[0].name,
+                        id: batch[0].id,
+                        lat: batch[0].lat,
+                        long: batch[0].long,
+                        country: batch[0].country,
+                        delistedAt: batch[0].delistedAt ?? null,
+                      }
+                    : null,
+                })),
+              },
+            }
+          : { items },
+      );
     }
 
     if (!search) return NextResponse.json({ items: [] });
