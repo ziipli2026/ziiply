@@ -116,20 +116,6 @@ if(anchor&&pk&&pk.max>pk.min){
   if(spread<=.025&&derived>=.5&&derived<30&&centsBox&&saleUnit){spatialCandidates.push({value:derived,quantity:null,unit:String(saleUnit.text).toUpperCase(),parts:[pk.raw,String(gg.text),String(centsBox.text)],score:Number((boxDistance(anchor,centsBox)*.18+spread).toFixed(6)),kind:"spatial-range-unitprice-cents-validated"});break;}
  }
 }
-// Fixed package + local unit price + matching large cents.
-// Use the local geometry unit price rather than a stale/misaligned unit-price fragment from basic HTML.
-// Example: 340 g * 20.26/kg = 6.89, with a nearby large "89" cents box.
-if(anchor&&pk&&Math.abs(pk.max-pk.min)<1e-9){
- const localGroups=spatialGroups(wordBoxes.filter(b=>boxDistance(anchor,b)<.13));
- for(const gg of localGroups){
-  const gm=String(gg.text||"").match(/\(?\s*(\d{1,2})\s+(\d{2})\s*\/(kg|l)\)?/i); if(!gm)continue;
-  const localUnit=Number(gm[1]+"."+gm[2]),derived=Number((pk.min*localUnit).toFixed(2)); if(!(derived>=.5&&derived<30))continue;
-  const dc=Math.round((derived-Math.floor(derived))*100);
-  const centsBox=spatialPriceBoxes.filter(b=>/^[0-9]{2}$/.test(String(b.text).trim())&&Number(b.height||0)>=.05&&boxDistance(anchor,b)<.12&&Math.abs(Number(b.text)-dc)<=1).sort((a,b)=>boxDistance(anchor,a)-boxDistance(anchor,b))[0];
-  const saleUnit=wordBoxes.filter(b=>/^(RS|PS|PKT|KPL|TLK|PL|PRK)$/i.test(String(b.text).trim())&&boxDistance(anchor,b)<.16).sort((a,b)=>boxDistance(anchor,a)-boxDistance(anchor,b))[0];
-  if(centsBox&&saleUnit){spatialCandidates.push({value:derived,quantity:null,unit:String(saleUnit.text).toUpperCase(),parts:[pk.raw,String(gg.text),String(centsBox.text)],score:Number((boxDistance(anchor,centsBox)*.17).toFixed(6)),kind:"spatial-fixed-unitprice-cents-validated"});break;}
- }
-}
 // Recover prices where the euro digit is embedded in the leaflet graphic/vector layer but the large cents remain textual.
 // Unit-price evidence supplies the missing euro part; require a very close large cents box and a printed sale unit.
 if(expected&&anchor){
