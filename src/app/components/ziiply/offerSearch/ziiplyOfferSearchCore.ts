@@ -280,16 +280,10 @@ function getTrustedETarjousCategoryV166(item: ZiiplyGostaOfferLike) {
 }
 
 function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
-  const trustedExistingProviderCategory = getTrustedETarjousCategoryV166(item);
-  if (trustedExistingProviderCategory) return trustedExistingProviderCategory;
-
-  // V180: K-Citymarket provider has already classified the leaflet offer into a
-  // Ziiply category. Preserve that category instead of re-running title regexes
-  // in CategoryCore (e.g. PERUNALASTUT contains "peruna" and was changed to Hevi).
   const anyItem = item as any;
-  // Card/search items keep the original K-Citymarket provider object under
-  // __sourceOfferSearchResult. Read identity + category from that object too;
-  // otherwise the generic title classifier can overwrite the provider category.
+  // V181: K-Citymarket must be resolved before the generic trusted-category
+  // branch. Otherwise a stale top-level category such as "Muut" wins before
+  // the authoritative nested provider category can be read.
   const sourceItem = (anyItem?.__sourceOfferSearchResult || anyItem) as any;
   const storeType = normalizeGostaCoreText(sourceItem?.storeType || anyItem?.storeType || "");
   const source = normalizeGostaCoreText(sourceItem?.source || anyItem?.source || "");
@@ -306,6 +300,8 @@ function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
     if (trusted) return trusted;
   }
 
+  const trustedExistingProviderCategory = getTrustedETarjousCategoryV166(item);
+  if (trustedExistingProviderCategory) return trustedExistingProviderCategory;
   return getOfferCategoryV106(item);
 }
 
