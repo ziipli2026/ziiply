@@ -98,8 +98,57 @@ export async function GET(request: NextRequest) {
     }
 
     if (!search) return NextResponse.json({ items: [] });
-    const data = await fetchRuoanhinta(search);
-    return NextResponse.json({ items: data.map(normalizeStore) });
+    // Manual location search: Ruoanhinta fuzzy search can return remote false
+    // positives. Keep GPS behavior above untouched and constrain only manual results.
+    // Ruoanhinta rejects the two-letter query "Ii", but accepts it with trailing
+    // whitespace; validation still uses the original user query.
+    const normalizeText = (value: unknown) =>
+      String(value || "")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .trim();
+
+    const query = normalizeText(search);
+    const apiSearch = query === "ii" ? search.trim() + " " : search;
+    const data = await fetchRuoanhinta(apiSearch);
+    const live = data.filter((store) => !store.delistedAt);
+    const exactCity = live.filter((store) => normalizeText(store.city) === query);
+
+    const nameMatches = live.filter((store) => {
+      const name = normalizeText(store.name);
+      return name === query || name.includes(" " + query) || name.includes(query + " ");
+    });
+
+    const anchorPostalCodes = new Set(
+      nameMatches.map((store) => String(store.postalCode || "").trim()).filter(Boolean),
+    );
+    const anchorCities = new Set(
+      nameMatches.map((store) => normalizeText(store.city)).filter(Boolean),
+    );
+    const postalAreaMatches = live.filter((store) => {
+      const postalCode = String(store.postalCode || "").trim();
+      const city = normalizeText(store.city);
+      return (
+        postalCode &&
+        anchorPostalCodes.has(postalCode) &&
+        city &&
+        anchorCities.has(city)
+      );
+    });
+
+    const filtered = exactCity.length
+      ? exactCity
+      : Array.from(
+          new Map(
+            [...nameMatches, ...postalAreaMatches].map((store) => [
+              String(store.id),
+              store,
+            ]),
+          ).values(),
+        );
+
+    return NextResponse.json({ items: filtered.map(normalizeStore) });
   } catch {
     return NextResponse.json({ error: "Store search failed" }, { status: 500 });
   }
