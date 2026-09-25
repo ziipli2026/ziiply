@@ -80,6 +80,32 @@ jobs:
           main().catch(e=>{ console.error(e); process.exit(2); });
           TS
           npx --yes tsx live-gps-test.ts
+      - name: Simulate resolver to Area contract
+        shell: bash
+        run: |
+          cat > gps-area-contract-test.ts <<'TS'
+          import { resolveZiiplyPageStoreSelection } from "./src/app/components/ziiply/location/ziiplyStoreSelectionCore";
+          const stores=[
+            {id:"s-jokela",name:"S-market Jokela",type:"S",latitude:60.553731,longitude:24.967098},
+            {id:"k-jokela",name:"K-Supermarket Jokela",type:"K",latitude:60.5524463543,longitude:24.9664902869},
+            {id:"p-hyv",name:"Prisma Hyvinkää",type:"S",latitude:60.62988,longitude:24.866795},
+            {id:"c-hyv",name:"K-Citymarket Hyvinkää",type:"K",latitude:60.6325695193,longitude:24.8639144333},
+          ];
+          function areaFromResolver(query:string,coords:any,mode:"local"|"hyper"){
+            const r=resolveZiiplyPageStoreSelection({stores,coords,mode});
+            return {label:"Oma sijainti",aliases:[query,"Oma sijainti"],sStoreId:r.sHyper?.id,sStoreName:r.sHyper?.name,kStoreId:r.kHyper?.id,kStoreName:r.kHyper?.name,sLocalStoreId:r.sLocal?.id,sLocalStoreName:r.sLocal?.name,kLocalStoreId:r.kLocal?.id,kLocalStoreName:r.kLocal?.name};
+          }
+          const expectedKeys=["label","aliases","sStoreId","sStoreName","kStoreId","kStoreName","sLocalStoreId","sLocalStoreName","kLocalStoreId","kLocalStoreName"];
+          for(const mode of ["local","hyper"] as const){
+            const a=areaFromResolver("Jokela",{latitude:60.552446,longitude:24.966490},mode);
+            const keys=expectedKeys.every(k=>Object.prototype.hasOwnProperty.call(a,k));
+            const values=a.sLocalStoreName==="S-market Jokela"&&a.kLocalStoreName==="K-Supermarket Jokela"&&a.sStoreName==="Prisma Hyvinkää"&&a.kStoreName==="K-Citymarket Hyvinkää";
+            const active=mode==="local"?[a.sLocalStoreName,a.kLocalStoreName]:[a.sStoreName,a.kStoreName];
+            console.log("GPS_AREA_CONTRACT",JSON.stringify({mode,keys,values,active,area:a}));
+            if(!keys||!values) process.exitCode=2;
+          }
+          TS
+          npx --yes tsx gps-area-contract-test.ts
       - name: Simulate page GPS integration seam
         shell: bash
         run: |
