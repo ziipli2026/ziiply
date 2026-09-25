@@ -458,13 +458,6 @@ if(!spatialResolved&&anchor&&pk&&pk.max>pk.min){
 // Require mixed-size evidence plus independent nearby card pricing evidence.
 // Generic ranged package + ranged unit-price cross-check.
 // Opposite range endpoints should reconstruct the same per-package price.
-if(pk&&ur&&pk.max>pk.min&&ur.max>ur.min){
- const a=Number((pk.min*ur.max).toFixed(2)),b=Number((pk.max*ur.min).toFixed(2));
- if(a>=.5&&a<100&&Math.abs(a-b)<=.03){
-  const v=Number(((a+b)/2).toFixed(2));
-  if(!spatialResolved||spatialResolved.sanity==="review"||spatialResolved.source==="best-spatial-candidate") spatialResolved={value:v,quantity:null,unit:null,source:"range-endpoint-cross-derived",sanity:"pass"};
- }
-}
 // Generic final authority for fixed-package cards with their own printed unit price and sale unit.
 // Re-apply after weaker spatial passes so neighbouring visual candidates cannot overwrite it.
 // Generic final authority for fixed-package cards with their own printed unit price and sale unit.
