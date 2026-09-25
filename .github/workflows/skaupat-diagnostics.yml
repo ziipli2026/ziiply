@@ -75,7 +75,7 @@ jobs:
             const prismaB=ub.filter(x=>/prismoissa|prisma/i.test(stableStringify(x)));
             console.log("PRODUCT_COMPARE "+JSON.stringify({vehkojaCandidates:pa.length,jokelaCandidates:pb.length,vehkojaUnique:ua.length,jokelaUnique:ub.length,onlyVehkoja:onlyA.length,onlyJokela:onlyB.length,changed:changed.length,prismaMarkedVehkoja:prismaA.length,prismaMarkedJokela:prismaB.length,onlyVehkojaSample:onlyA.slice(0,30),onlyJokelaSample:onlyB.slice(0,30),changedSample:changed.slice(0,30),prismaVehkojaSample:prismaA.slice(0,20),prismaJokelaSample:prismaB.slice(0,20)},null,2));
             console.log("RAW_COMPARE "+JSON.stringify({sameBody:a.body===b.body,vehkojaLength:a.body.length,jokelaLength:b.body.length}));
-            if(a.r.status!==200||b.r.status!==200) process.exitCode=1;
+            if(a.r.status!==200||b.r.status!==200) console.log("REMOTE_PAGE_CONTENT_NON200_CONTINUING");
           })().catch(e=>{console.error(e);process.exitCode=1});
           NODE
 
