@@ -277,9 +277,13 @@ jobs:
             const ranked=usable.map(x=>({x,shared:sharedMeaningful(source,x.name),sameSize:sameMetricSize(source,x.name),sc:simpleScore(source,x.name)}))
               .sort((a,b)=>(Number(b.sameSize)-Number(a.sameSize))||(b.shared-a.shared)||(b.sc-a.sc));
             const cand=ranked[0];
-            const likely=Boolean(cand&&cand.sameSize&&cand.shared>=1&&cand.sc>=18);
+            const coreTypes=["kevytmaito","täysmaito","maito","jogurtti","jauheliha","kananmun","ruisleip","kermajuusto","juustoviipale","gouda","emmental","pasta","riisi","kahvi","voi"];
+            const sn=norm(source),cn=cand?norm(cand.x.name):"";
+            const sourceTypes=coreTypes.filter(t=>sn.includes(t));
+            const coreMatch=sourceTypes.length>0&&sourceTypes.some(t=>cn.includes(t));
+            const likely=Boolean(cand&&cand.sameSize&&coreMatch&&cand.shared>=1&&cand.sc>=18);
             if(likely)noSafeAudit.likelyMissed++;else noSafeAudit.noCredibleCandidate++;
-            if(noSafeAudit.examples.length<24)noSafeAudit.examples.push({source,candidate:cand?.x?.name||null,sameSize:cand?.sameSize||false,shared:cand?.shared||0,score:cand?.sc||0,assessment:likely?"LIKELY_MISSED":"NO_CREDIBLE"});
+            if(noSafeAudit.examples.length<24)noSafeAudit.examples.push({source,candidate:cand?.x?.name||null,sameSize:cand?.sameSize||false,shared:cand?.shared||0,score:cand?.sc||0,coreMatch,assessment:likely?"LIKELY_MISSED":"NO_CREDIBLE"});
           }
           for(const pair of pairs){
             for(const q of queries.slice(0,10)){
