@@ -131,7 +131,11 @@ jobs:
           const unionCity='ranked.selectedS?.city ||\n        ranked.selectedK?.city ||';
           const manualCity='stores.find((store) => store.city)?.city ||';
           if(s.includes(unionCity)) s=s.replace(unionCity,manualCity);
-          fs.writeFileSync(p,s); console.log("GPS_STORE_ID_TYPE_SIMULATION_APPLIED");
+          fs.writeFileSync(p,s);
+          const core="src/app/components/ziiply/ziiplyCore.ts"; let z=fs.readFileSync(core,"utf8");
+          for(const k of ["sStoreId","kStoreId","sLocalStoreId","kLocalStoreId"]) z=z.replace(k+"?: number;",k+"?: string | number;");
+          fs.writeFileSync(core,z);
+          console.log("GPS_STORE_ID_TYPE_SIMULATION_APPLIED");
           JS2
           npm run typecheck --if-present
           npm run build
