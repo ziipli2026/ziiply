@@ -104,7 +104,12 @@ jobs:
           fs.writeFileSync(p,page);fs.writeFileSync(r,route);
           console.log("GPS_PATCH_COPY_APPLIED");
           JS
-          npm ci
+          # The repository lockfile is currently inconsistent with package.json.
+          # Repair ONLY inside this disposable /tmp copy; never touch the checked-out repo.
+          rm -f package-lock.json
+          npm install --package-lock-only --ignore-scripts --no-audit --no-fund
+          npm ci --ignore-scripts --no-audit --no-fund
+          node -e 'const p=require("./package.json"),l=require("./package-lock.json"); const r=l.packages[""]; const ok=p.dependencies.next===r.dependencies.next&&p.dependencies.react===r.dependencies.react&&p.dependencies["react-dom"]===r.dependencies["react-dom"]&&p.devDependencies["eslint-config-next"]===r.devDependencies["eslint-config-next"]; console.log("GPS_LOCK_REGEN",JSON.stringify({next:r.dependencies.next,react:r.dependencies.react,reactDom:r.dependencies["react-dom"],eslintNext:r.devDependencies["eslint-config-next"],ok})); if(!ok)process.exit(2)'
           npm run typecheck --if-present
           npm run build
           echo GPS_PATCH_PROJECT_BUILD_SUCCESS
