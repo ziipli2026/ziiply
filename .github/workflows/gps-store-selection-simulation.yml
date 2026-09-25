@@ -80,6 +80,40 @@ jobs:
           main().catch(e=>{ console.error(e); process.exit(2); });
           TS
           npx --yes tsx live-gps-test.ts
+      - name: Simulate full local plus hyper GPS API pool
+        shell: bash
+        run: |
+          cat > gps-full-api-pool-test.ts <<'TS'
+          import { resolveZiiplyPageStoreSelection } from "./src/app/components/ziiply/location/ziiplyStoreSelectionCore";
+          async function main(){
+            async function tjek(businessId:string,kind:"s"|"ks"|"km"){
+              const r=await fetch("https://squid-api.tjek.com/v2/catalogs",{method:"POST",headers:{"content-type":"application/json","x-api-key":"${{ secrets.TJEK_API_KEY }}"},body:JSON.stringify(["stores",{businessId,pagination:{offset:0,limit:3000}}])});
+              if(!r.ok) throw new Error("Tjek "+businessId+" "+r.status);
+              const j:any=await r.json(); const a=Array.isArray(j)?j:(j?.data||j?.stores||j?.items||[]);
+              const flat:any[]=[]; const walk=(v:any)=>{if(Array.isArray(v))v.forEach(walk);else if(v&&typeof v==="object"){const lat=Number(v.latitude??v.lat??v.location?.latitude??v.location?.lat);const lon=Number(v.longitude??v.lon??v.lng??v.location?.longitude??v.location?.lon??v.location?.lng);if(v.name&&Number.isFinite(lat)&&Number.isFinite(lon))flat.push({...v,latitude:lat,longitude:lon});else Object.values(v).forEach(walk)}}; walk(a);
+              return flat.filter(x=>kind==="s"?/^(S-market|Sale|Alepa)\b/i.test(x.name)&&!/ABC|liikenneasema|huoltoasema/i.test(x.name):kind==="ks"?/^K-Supermarket\b/i.test(x.name):/^K-Market\b/i.test(x.name));
+            }
+            async function rh(search:string,chain:string){
+              const r=await fetch("https://api.ruoanhinta.fi/api/stores?search="+encodeURIComponent(search)); const a:any=await r.json();
+              return (Array.isArray(a)?a:a.items||[]).filter((x:any)=>x.country==="Suomi"&&x.chain===chain&&Number.isFinite(Number(x.lat))&&Number.isFinite(Number(x.long))&&!/verkkokauppa|puutarha|lemmikki|abc/i.test(String(x.name))).map((x:any)=>({...x,latitude:Number(x.lat),longitude:Number(x.long)}));
+            }
+            const [s,ks,km,p,c]=await Promise.all([tjek("d8ccs8","s"),tjek("f305U8","ks"),tjek("9c56Y8","km"),rh("Prisma","prisma"),rh("K-Citymarket","kcitymarket")]);
+            const stores=[...s,...ks,...km,...p,...c];
+            const tests=[["Jokela",60.552446,24.966490],["Hyvinkää",60.6310,24.8580],["Tuusula",60.4023,25.0263],["Oulu",65.0121,25.4651]] as const;
+            let fail=false;
+            for(const [label,latitude,longitude] of tests){
+              const r=resolveZiiplyPageStoreSelection({stores,coords:{latitude,longitude},mode:"local"});
+              const got={sLocal:r.sLocal?.name,kLocal:r.kLocal?.name,sHyper:r.sHyper?.name,kHyper:r.kHyper?.name};
+              const complete=Object.values(got).every(Boolean); const unique=new Set(Object.values(got)).size===4;
+              console.log("GPS_FULL_API_POOL",JSON.stringify({label,got,complete,unique}));
+              if(!complete||!unique) fail=true;
+            }
+            console.log("GPS_FULL_API_COUNTS",JSON.stringify({s:s.length,kSuper:ks.length,kMarket:km.length,prisma:p.length,kCitymarket:c.length,total:stores.length}));
+            if(fail) process.exit(2);
+          }
+          main().catch(e=>{console.error(e);process.exit(2)});
+          TS
+          npx --yes tsx gps-full-api-pool-test.ts
       - name: Simulate store-search GPS API contract
         shell: bash
         run: |
