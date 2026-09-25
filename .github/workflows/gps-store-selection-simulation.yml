@@ -39,7 +39,11 @@ jobs:
           })().catch(e=>{console.error(e);process.exit(2)});
           NODE
       - name: Probe hypermarket source
-        run: curl -sS 'https://api.ruoanhinta.fi/api/stores?search=Prisma%20Hyvink%C3%A4%C3%A4' | head -c 12000
+        run: |
+          for q in 'Prisma%20Hyvink%C3%A4%C3%A4' 'K-Citymarket%20Hyvink%C3%A4%C3%A4' 'Prisma' 'K-Citymarket'; do
+            echo "GPS_RH_QUERY=$q"
+            curl -sS "https://api.ruoanhinta.fi/api/stores?search=$q" | python3 -c 'import json,sys; a=json.load(sys.stdin); print(json.dumps([{"id":x.get("id"),"name":x.get("name"),"chain":x.get("chain"),"type":x.get("type"),"city":x.get("city"),"externalId":x.get("externalId"),"lat":x.get("lat"),"long":x.get("long")} for x in a[:200]],ensure_ascii=False))'
+          done
       - name: Simulate Jokela and Hyvinkaa against production resolver
         shell: bash
         run: |
