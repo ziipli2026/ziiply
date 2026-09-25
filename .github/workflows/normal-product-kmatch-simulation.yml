@@ -37,6 +37,13 @@ jobs:
             }
             if(A.includes("jogurtti")){
               for(const x of ["mustikka","vanilja","kahvi","mansikka","maustamaton"])if(A.includes(x)!==B.includes(x))return true;
+              for(const x of ["rasvaton","laktoositon"])if(A.includes(x)!==B.includes(x))return true;
+            }
+            if(A.includes("jauheliha")){
+              if(A.includes("luomu")!==B.includes("luomu"))return true;
+            }
+            if(A.includes("kaurajuoma")){
+              for(const x of ["barista","vanilja","vanilla","suklaa"])if(A.includes(x)!==B.includes(x))return true;
             }
             if(A.includes("kananmuna")){
               const spec=x=>{const m=x.match(/(?:^| )((?:s|m|l|xl)(?:[ /](?:s|m|l|xl))?)[ ]*(\d{1,2})(?= |$)/);return m?{cls:m[1].replace(/ /g,"/"),count:+m[2]}:null;};
