@@ -80,6 +80,45 @@ jobs:
           main().catch(e=>{ console.error(e); process.exit(2); });
           TS
           npx --yes tsx live-gps-test.ts
+      - name: Simulate complete GPS store-search route branch
+        shell: bash
+        run: |
+          cat > gps-route-branch-test.ts <<'TS'
+          import { resolveZiiplyPageStoreSelection } from "./src/app/components/ziiply/location/ziiplyStoreSelectionCore";
+          const origin="https://etarjouslehdet.fi";
+          const stable=(v:any)=>Buffer.from(JSON.stringify(v,(_k,x)=>Object.prototype.toString.call(x)==="[object Object]"?Object.keys(x).sort().reduce((o:any,k)=>(o[k]=x[k],o),{}):x),"utf8").toString("base64");
+          async function localDirectory(businessId:string){
+            const key=stable(["stores",{businessId,pagination:{offset:0,limit:3000}}]);
+            const r=await fetch(origin+"/",{method:"POST",headers:{"content-type":"application/json","x-api-key":"152000596c6e45d9983eab0c14afebea","user-agent":"Mozilla/5.0"},body:JSON.stringify({data:[key]})});
+            if(!r.ok) throw new Error("local "+businessId+" "+r.status);
+            const j:any=await r.json(),out:any[]=[],seen=new Set<string>();
+            function walk(x:any){if(!x||typeof x!=="object")return;if(Array.isArray(x)){x.forEach(walk);return;}const name=String(x.name||x.title||"");const latitude=Number(x.latitude??x.coordinates?.latitude),longitude=Number(x.longitude??x.coordinates?.longitude);if(name&&Number.isFinite(latitude)&&Number.isFinite(longitude)){const id=String(x.id||x.storeId||x.uuid||name),k=id+"|"+name;if(!seen.has(k)){seen.add(k);out.push({id,name,latitude,longitude})}}Object.values(x).forEach(walk)} walk(j); return out;
+          }
+          async function hyper(search:string,chain:string){
+            const r=await fetch("https://api.ruoanhinta.fi/api/stores?search="+encodeURIComponent(search)); if(!r.ok)throw new Error("rh "+r.status); const a:any=await r.json();
+            return (Array.isArray(a)?a:a.items||[]).filter((x:any)=>x.country==="Suomi"&&x.chain===chain&&Number.isFinite(Number(x.lat))&&Number.isFinite(Number(x.long))&&!/abc|verkkokauppa|puutarha|lemmikki/i.test(String(x.name))).map((x:any)=>({id:x.id,name:x.name,chain:x.chain,type:x.type,city:x.city,postalCode:x.postalCode,externalId:x.externalId,latitude:Number(x.lat),longitude:Number(x.long)}));
+          }
+          async function gpsBranch(){
+            const [s,ks,km,p,c]=await Promise.all([localDirectory("d8ccs8"),localDirectory("f305U8"),localDirectory("9c56Y8"),hyper("Prisma","prisma"),hyper("K-Citymarket","kcitymarket")]);
+            const s2=s.filter((x:any)=>/^(S-market|Sale|Alepa)\b/i.test(x.name)&&!/ABC|liikenneasema|huoltoasema/i.test(x.name));
+            const items=[...s2,...ks,...km,...p,...c];
+            const seen=new Set<string>(); return items.filter((x:any)=>{const k=String(x.id)+"|"+x.name;if(seen.has(k))return false;seen.add(k);return true});
+          }
+          async function manualBranch(search:string){
+            const r=await fetch("https://api.ruoanhinta.fi/api/stores?search="+encodeURIComponent(search)); const a:any=await r.json();
+            return (Array.isArray(a)?a:a.items||[]).map((x:any)=>({id:x.id,name:x.name,chain:x.chain,type:x.type,city:x.city,postalCode:x.postalCode,externalId:x.externalId,latitude:x.lat,longitude:x.long}));
+          }
+          async function main(){
+            const gps=await gpsBranch(); const manual=await manualBranch("Prisma Hyvinkää");
+            const manualOk=manual.some((x:any)=>x.name==="Prisma Hyvinkää"); const coordOk=gps.every((x:any)=>Number.isFinite(Number(x.latitude))&&Number.isFinite(Number(x.longitude)));
+            const cases=[["Jokela",60.552446,24.966490],["Hyvinkää",60.631,24.858],["Tuusula",60.4023,25.0263],["Oulu",65.0121,25.4651]] as const; let fail=!manualOk||!coordOk;
+            for(const [label,latitude,longitude] of cases){const r=resolveZiiplyPageStoreSelection({stores:gps,coords:{latitude,longitude},mode:"local"});const got={sLocal:r.sLocal?.name,kLocal:r.kLocal?.name,sHyper:r.sHyper?.name,kHyper:r.kHyper?.name};const complete=Object.values(got).every(Boolean),unique=new Set(Object.values(got)).size===4;console.log("GPS_ROUTE_BRANCH_CASE",JSON.stringify({label,got,complete,unique}));if(!complete||!unique)fail=true}
+            console.log("GPS_ROUTE_BRANCH",JSON.stringify({gpsCount:gps.length,manualCount:manual.length,manualOk,coordOk}));
+            if(fail)process.exit(2);
+          }
+          main().catch(e=>{console.error(e);process.exit(2)});
+          TS
+          npx --yes tsx gps-route-branch-test.ts
       - name: Simulate minimal production patch statically
         shell: bash
         run: |
