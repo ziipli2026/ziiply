@@ -75,6 +75,8 @@ jobs:
           }
           console.log("GPS_LIVE_COUNTS",JSON.stringify({s:s.length,kSuper:ks.length,kMarket:km.length,prisma:p.length,kCitymarket:c.length,total:stores.length}));
           if(fail) process.exitCode=2;
+          }
+          main().catch(e=>{ console.error(e); process.exit(2); });
           TS
           npx --yes tsx live-gps-test.ts
       - name: Simulate Jokela and Hyvinkaa against production resolver
