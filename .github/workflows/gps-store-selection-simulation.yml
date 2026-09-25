@@ -95,6 +95,28 @@ jobs:
           for(const [label,lat,lon] of pts){const s=uniq.filter(x=>/s-market|\bsale\b|alepa/i.test(x.name||"")).sort((a,b)=>dist(lat,lon,a.latitude,a.longitude)-dist(lat,lon,b.latitude,b.longitude))[0];const k=uniq.filter(x=>/k-market|k-supermarket/i.test(x.name||"")).sort((a,b)=>dist(lat,lon,a.latitude,a.longitude)-dist(lat,lon,b.latitude,b.longitude))[0];console.log("RH_LOCAL_NEAREST",JSON.stringify({label,s:s&&{id:s.id,name:s.name,d:dist(lat,lon,s.latitude,s.longitude)},k:k&&{id:k.id,name:k.name,d:dist(lat,lon,k.latitude,k.longitude)}}));}
           console.log("RH_LOCAL_UNIQUE",uniq.length);})().catch(e=>{console.error(e);process.exit(1)});
           JS
+      - name: Verify live S product prices for GPS stores
+        shell: bash
+        run: |
+          node <<'JS'
+          const points=[
+            ["Jokela",60.552446,24.966490],
+            ["Hyvinkää",60.6310,24.8580],
+            ["Tuusula",60.4023,25.0263],
+            ["Oulu",65.0121,25.4651],
+          ];
+          const dist=(a,b,c,d)=>{const R=6371,r=x=>x*Math.PI/180,x=r(c-a),y=r(d-b),h=Math.sin(x/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(y/2)**2;return 2*R*Math.asin(Math.sqrt(h))};
+          for(const [label,lat,lon] of points){
+            const searches=["S-market","Sale","Alepa"];
+            const batches=await Promise.all(searches.map(async q=>{const x=await (await fetch("https://api.ruoanhinta.fi/api/stores?search="+encodeURIComponent(q))).json();return Array.isArray(x)?x:(x.items||[])}));
+            const stores=batches.flat().filter(s=>/^(S-market|Sale|Alepa)/i.test(String(s.name||""))).map(s=>({...s,d:dist(lat,lon,Number(s.lat??s.latitude),Number(s.long??s.lon??s.lng??s.longitude))})).filter(s=>Number.isFinite(s.d)).sort((a,b)=>a.d-b.d);
+            const s=stores[0]; if(!s) throw new Error(label+": no S store");
+            const u="https://api.ruoanhinta.fi/api/items?search="+encodeURIComponent("maito")+"&storeIds="+encodeURIComponent(String(s.id))+"&skip=0&take=20";
+            const res=await fetch(u); const data=await res.json(); const items=(data.items||[]).filter(p=>Number(p.storeItems?.[0]?.price)>0);
+            console.log("GPS_S_LIVE_PRICE",JSON.stringify({label,store:s.name,storeId:s.id,distanceKm:s.d,status:res.status,count:items.length,sample:items.slice(0,3).map(p=>({name:p.name,price:p.storeItems?.[0]?.price}))}));
+            if(!res.ok||items.length===0) process.exitCode=2;
+          }
+          JS
       - name: Verify stale S-store filtering
         shell: bash
         run: |
