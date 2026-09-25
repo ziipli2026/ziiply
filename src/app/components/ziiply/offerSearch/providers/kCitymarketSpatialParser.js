@@ -138,12 +138,6 @@ for(const p of spatialCandidates.filter(x=>x._qtyGeom)){p.quantity=p._qtyGeom.qu
 
 // Strong transaction-price guards: reject title/package echoes and require multi-buy consistency when unit-price evidence exists.
 for(let i=spatialCandidates.length-1;i>=0;i--){const x=spatialCandidates[i]; const parts=(x.parts||[]).map(String); if(parts.length&&parts.every(p=>title.includes(p)))spatialCandidates.splice(i,1)}
-// Generic basic-HTML explicit shelf price: accept "UNIT 3190" style only from the product's own nearby text row.
-if(anchor){
- const ownText=around.map(r=>String(r.text||"").trim()).join(" | ");
- const mm=ownText.match(/(?:^|\|)\s*(KPL|PKT|PS|RS|TLK|PL|PRK)\s+(\d{3,4})(?=\s*(?:\||$))/i);
- if(mm){const t=mm[2],value=Number(t.slice(0,-2)+"."+t.slice(-2));if(value>=.5&&value<100)spatialResolved={value,quantity:null,unit:mm[1].toUpperCase(),source:"basic-own-row-explicit-compact-price",sanity:"pass",confidence:"high"};}
-}
 
 if(expected){for(let i=spatialCandidates.length-1;i>=0;i--){const x=spatialCandidates[i]; if(x.quantity>=2&&Math.abs(x.value-expected*x.quantity)>Math.max(.30,expected*.18)&&x.kind!=="embedded-productblock-price")spatialCandidates.splice(i,1)}}
 
@@ -160,6 +154,13 @@ if(expected){
  }
 }
 for(const g of spatialGroups(anchor?wordBoxes.filter(b=>boxDistance(anchor,b)<0.22):[])){const m=String(g.text||"").match(/(?:^|\\bERÄ\\s+)([0-9])\\s+([0-9])\\s+([0-9])(?:\\b|$)/i);if(m){const v=Number(m[1]+"."+m[2]+m[3]);if(v>=.5&&v<20&&!title.replace(/\\D/g,"").includes(m[1]+m[2]+m[3]))spatialCandidates.push({value:v,quantity:null,unit:null,parts:[m[1],m[2],m[3]],score:.08,kind:"spaced-large-cents"});}} let spatialResolved=null,percentageOffer=null;
+// Generic basic-HTML explicit shelf price: accept "UNIT 3190" style only from the product's own nearby text row.
+if(anchor){
+ const ownText=around.map(r=>String(r.text||"").trim()).join(" | ");
+ const mm=ownText.match(/(?:^|\|)\s*(KPL|PKT|PS|RS|TLK|PL|PRK)\s+(\d{3,4})(?=\s*(?:\||$))/i);
+ if(mm){const t=mm[2],value=Number(t.slice(0,-2)+"."+t.slice(-2));if(value>=.5&&value<100)spatialResolved={value,quantity:null,unit:mm[1].toUpperCase(),source:"basic-own-row-explicit-compact-price",sanity:"pass",confidence:"high"};}
+}
+
 // Generic basic-HTML explicit shelf price: accept "UNIT 3190" style only from the product's own nearby text row.
 if(expected){for(const q of qtyUnits){const tx=Number((expected*q.quantity).toFixed(2));const half=Math.round(tx*2)/2;if(Math.abs(tx-half)<.08&&half>=1&&half<30&&!spatialCandidates.some(x=>x.kind!=="unitprice-derived-multibuy"&&x.quantity===q.quantity&&Math.abs(x.value-half)<.12))spatialCandidates.push({value:half,quantity:q.quantity,unit:q.unit,parts:["expected",String(q.quantity),q.unit],score:Number((.36+Math.abs(tx-half)).toFixed(6)),kind:"expected-validated-multibuy"});}} const largeVisual=spatialCandidates.filter(x=>x.kind==="large-visual-whole-euro"||x.kind==="spaced-large-cents"||x.kind==="same-row-euro-cents").filter(x=>{if(x.kind==="spaced-large-cents"||x.kind==="same-row-euro-cents")return true;if(!expected||!x.quantity)return true;return Math.abs(x.value-expected*x.quantity)<Math.max(.35,expected*.22)}).sort((a,b)=>a.score-b.score)[0]; const expectedTitleUnit=((title.match(/(?:^|\\s)(RS|PS|PKT|KPL|PRK|TLK|PL)(?:\\s|$)|\/(tlk|pl|ps|pkt|rs|prk|kpl)\b/i)||[]).slice(1).find(Boolean)||"").toUpperCase(); const highConfidenceMulti=spatialCandidates.filter(x=>x.kind==="geometric-fused-multibuy"&&x.quantity>=2&&x.quantity<=5&&(!expectedTitleUnit||String(x.unit||"").toUpperCase()===expectedTitleUnit)).sort((a,b)=>a.score-b.score)[0]; const validatedMulti=expected?spatialCandidates.filter(x=>x.kind!=="unitprice-derived-multibuy"&&x.quantity>=2&&x.quantity<=5&&x.value>=.5&&x.value<50&&(!expectedTitleUnit||String(x.unit||"").toUpperCase()===expectedTitleUnit)&&Math.abs(x.value-expected*x.quantity)<Math.max(.22,expected*.14)).sort((a,b)=>Math.abs(a.value-expected*a.quantity)-Math.abs(b.value-expected*b.quantity)||a.score-b.score)[0]:null; const visualMulti=spatialCandidates.filter(x=>x.kind==="large-euro-quantity").sort((a,b)=>a.score-b.score)[0];
 const embeddedBlock=spatialCandidates.filter(x=>x.kind==="embedded-productblock-price").sort((a,b)=>a.score-b.score)[0];
