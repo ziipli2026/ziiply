@@ -1912,6 +1912,109 @@ export function isHardRejectedKMatch(query: string, candidateName: string) {
   const sourceIsEgg = isEggSearchTerm(source);
   if (sourceIsEgg && !isClearlyEggProduct(candidateName)) return true;
 
+  // K-vastineiden semanttiset suojaukset, validoitu erillisessä
+  // Normal product K-match simulation -regressiossa ennen tuotantoon vientiä.
+  const metricSize = (value: string) => {
+    const raw = String(value || "").toLowerCase().replace(/,/g, ".");
+    const match = raw.match(/(\d+(?:\.\d+)?)\s*(kg|g|l|ml|cl)\b/);
+    return match ? `${match[1]}${match[2]}` : "";
+  };
+
+  const sourceSize = metricSize(query);
+  const targetSize = metricSize(candidateName);
+  const rejectDifferentKnownSize = () => Boolean(sourceSize && targetSize && sourceSize !== targetSize);
+
+  const pairedForms = [
+    "pizza", "wrap", "patonki", "croissant", "kolmioleipa", "keitto",
+    "keittokuppi", "ateria", "ateriakuppi", "pasta ateria", "smoothie",
+    "rahkapulla", "piirakka", "panini", "heatpot", "pastakastike",
+    "ciabatta", "juustodippi",
+  ];
+  for (const form of pairedForms) {
+    if (source.includes(form) !== target.includes(form)) return true;
+  }
+
+  if (source.includes("jauheliha")) {
+    for (const variant of ["kana", "sika nauta", "nauta kana", "viljapors", "nauta viljaposs", "nauta"]) {
+      if (source.includes(variant) !== target.includes(variant)) return true;
+    }
+    const sourceFat = source.match(/(\d{1,2})%/);
+    const targetFat = target.match(/(\d{1,2})%/);
+    if (sourceFat && targetFat && Math.abs(Number(sourceFat[1]) - Number(targetFat[1])) > 2) return true;
+    if (source.includes("luomu") !== target.includes("luomu")) return true;
+    if (rejectDifferentKnownSize()) return true;
+  }
+
+  if (source.includes("maito")) {
+    for (const variant of ["kevytmaito", "taysmaito", "rasvaton", "uht", "laktoositon"]) {
+      if (source.includes(variant) !== target.includes(variant)) return true;
+    }
+  }
+
+  if (source.includes("jogurtti")) {
+    for (const variant of ["mustikka", "vanilja", "kahvi", "mansikka", "maustamaton", "rasvaton", "laktoositon", "juotava"]) {
+      if (source.includes(variant) !== target.includes(variant)) return true;
+    }
+    if (rejectDifferentKnownSize()) return true;
+  }
+
+  if (source.includes("kaurajuoma")) {
+    for (const variant of ["barista", "vanilja", "vanilla", "suklaa", "cinnamon", "dolce"]) {
+      if (source.includes(variant) !== target.includes(variant)) return true;
+    }
+  }
+
+  if (source.includes("kananmuna")) {
+    const eggSpec = (value: string) => {
+      const match = value.match(/(?:^| )((?:s|m|l|xl)(?:[ /](?:s|m|l|xl))?)[ ]*(\d{1,2})(?= |$)/);
+      return match ? { cls: match[1].replace(/ /g, "/"), count: Number(match[2]) } : null;
+    };
+    const sourceEgg = eggSpec(source);
+    const targetEgg = eggSpec(target);
+    if (sourceEgg && targetEgg && (sourceEgg.count !== targetEgg.count || sourceEgg.cls !== targetEgg.cls)) return true;
+  }
+
+  if (source.includes("cola")) {
+    const isMulti = (value: string) => /\b\d+\s*(?:pack|pk|x)\b/.test(value);
+    if (isMulti(source) !== isMulti(target)) return true;
+    if (/\bzero\b/.test(source) !== /\bzero\b/.test(target)) return true;
+  }
+
+  if (source.includes("riisi")) {
+    for (const variant of ["monivilja", "kaura", "ohra", "quinoa"]) {
+      if (source.includes(variant) !== target.includes(variant)) return true;
+    }
+    if (!source.includes("hiutale") && target.includes("hiutale")) return true;
+  }
+
+  if (source.includes("smoothie")) {
+    for (const variant of ["ananas", "guava", "kookos", "mango", "banaani"]) {
+      if (source.includes(variant) !== target.includes(variant)) return true;
+    }
+  }
+
+  if (source.includes("tuorejuusto")) {
+    for (const variant of ["chili", "paprika", "valkosipuli", "kevyt", "laktoositon"]) {
+      if (source.includes(variant) !== target.includes(variant)) return true;
+    }
+    if (rejectDifferentKnownSize()) return true;
+  }
+
+  if (source.includes("pastakastike")) {
+    for (const variant of ["mozzarella", "tomaatti", "basilika"]) {
+      if (source.includes(variant) !== target.includes(variant)) return true;
+    }
+    if (rejectDifferentKnownSize()) return true;
+  }
+
+  if (source.includes("vichy") && /(original|magnesium)/.test(target)) return true;
+
+  if (source.includes("paprika") && !/(juusto|dippi|mauste|kastike|ciabatta)/.test(source)) {
+    if (/(juusto|dippi|mauste|kastike|ciabatta)/.test(target)) return true;
+  }
+
+  if (source.includes("sipuli") && source.includes("paahdettu") && !target.includes("paahdettu")) return true;
+
   return false;
 }
 
