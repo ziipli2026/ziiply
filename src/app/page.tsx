@@ -15704,19 +15704,75 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       storeMatchesStrictChainAndModeV139(store, chain, mode),
     );
 
-    // GPS-store-search returns a broad candidate pool so the resolver can always
-    // find the nearest stores. The picker itself must stay local instead of
-    // exposing every candidate inside that broad API radius.
-    const pickerScoped =
-      gpsCoordsV320
-        ? scoped.filter((store) => {
-            const distanceKm = getGpsDistanceKmForStoreV93(store);
-            if (distanceKm == null) return false;
-            return distanceKm <= (mode === "hyper" ? 35 : 15);
-          })
-        : scoped;
+    // GPS-picker V321:
+    // - manuaalinen sijainti: ei kappale-/etäisyysrajausta
+    // - lähikaupat: oman GPS-kunnan kaupat + 10 km lähikaupat, mutta enintään
+    //   5 lähintä per ketju; jos joukko jää vajaaksi, täydennetään lähimmillä
+    //   myös kuntarajan / 10 km rajan ulkopuolelta
+    // - tavaratalot: lähialueen (35 km) kaikki Prisma/K-Citymarketit +
+    //   kaikki GPS:n tunnistaman kunnan tavaratalot; jos kumpaakaan ei löydy,
+    //   näytetään silti lähin tavaratalo riippumatta kuntarajasta
+    // Resolverin laaja candidate pool säilyy ennallaan.
+    if (!usingOwnLocation || !gpsCoordsV320) {
+      return sortStoresForPickerV320(scoped, mode, selectedId, selectedName);
+    }
 
-    return sortStoresForPickerV320(pickerScoped, mode, selectedId, selectedName);
+    const gpsMunicipalityV321 =
+      (activeArea.aliases || [])
+        .map((value) => String(value || "").trim())
+        .find((value) => value && normalize(value) !== normalize("Oma sijainti")) || "";
+
+    const sameGpsMunicipalityV321 = (store: StoreSearchItem) =>
+      Boolean(
+        gpsMunicipalityV321 &&
+          store.city &&
+          normalize(store.city) === normalize(gpsMunicipalityV321),
+      );
+
+    const distanceSortedV321 = [...scoped]
+      .map((store) => ({
+        store,
+        distanceKm: getGpsDistanceKmForStoreV93(store),
+      }))
+      .filter(
+        (entry): entry is { store: StoreSearchItem; distanceKm: number } =>
+          entry.distanceKm != null && Number.isFinite(entry.distanceKm),
+      )
+      .sort((a, b) => a.distanceKm - b.distanceKm);
+
+    if (mode === "local") {
+      const localPreferredV321 = distanceSortedV321.filter(
+        ({ store, distanceKm }) =>
+          distanceKm <= 10 || sameGpsMunicipalityV321(store),
+      );
+      const localPoolV321 = uniqueStoresByIdAndName([
+        ...localPreferredV321.map(({ store }) => store),
+        ...distanceSortedV321.map(({ store }) => store),
+      ]).slice(0, 5);
+
+      return sortStoresForPickerV320(
+        localPoolV321,
+        mode,
+        selectedId,
+        selectedName,
+      );
+    }
+
+    const hyperNearbyAndMunicipalityV321 = distanceSortedV321.filter(
+      ({ store, distanceKm }) =>
+        distanceKm <= 35 || sameGpsMunicipalityV321(store),
+    );
+    const hyperPoolV321 =
+      hyperNearbyAndMunicipalityV321.length > 0
+        ? hyperNearbyAndMunicipalityV321.map(({ store }) => store)
+        : distanceSortedV321.slice(0, 1).map(({ store }) => store);
+
+    return sortStoresForPickerV320(
+      hyperPoolV321,
+      mode,
+      selectedId,
+      selectedName,
+    );
   }
 
   function getStoresForPicker(chain: "S" | "K", mode: StoreMode) {
