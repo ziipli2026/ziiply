@@ -271,7 +271,7 @@ function getTrustedETarjousCategoryV166(item: ZiiplyGostaOfferLike) {
     ["kodinhoito", "Kodinhoito"],
     ["koti", "Koti & vapaa-aika"],
     ["koti & vapaa aika", "Koti & vapaa-aika"],
-    ["koti vapaa aika", "Koti & vapaa-aika"],
+    ["koti vapaa-aika", "Koti & vapaa-aika"],
     ["koti vapaa-aika", "Koti & vapaa-aika"],
     ["muut", "Muut"],
   ]);
