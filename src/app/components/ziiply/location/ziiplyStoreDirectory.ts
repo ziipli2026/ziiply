@@ -127,7 +127,7 @@ function entryFromStoreHrefV1(chain: string, href: string, label?: string): SKau
   const slug = decodeURIComponent(match[1] || "").trim();
   const sKaupatStoreId = String(match[2] || "").trim();
 
-  if (!slug || !/^\d{5,}$/.test(sKaupatStoreId)) return null;
+  if (!slug || !sKaupatStoreId) return null;
 
   const labelName = cleanStoreNameCandidateV1(label || "");
   const name = labelName || titleFromSlugV1(slug);
