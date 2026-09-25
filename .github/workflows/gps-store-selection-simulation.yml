@@ -129,7 +129,7 @@ jobs:
           // The new resolver's selected store intentionally has no city field.
           // buildDynamicArea only needs city on the non-GPS/manual branch, so preserve the old ranker there.
           const unionCity='ranked.selectedS?.city ||\n        ranked.selectedK?.city ||';
-          const manualCity='(!coords ? ranked.selectedS?.city : undefined) ||\n        (!coords ? ranked.selectedK?.city : undefined) ||';
+          const manualCity='stores.find((store) => store.city)?.city ||';
           if(s.includes(unionCity)) s=s.replace(unionCity,manualCity);
           fs.writeFileSync(p,s); console.log("GPS_STORE_ID_TYPE_SIMULATION_APPLIED");
           JS2
