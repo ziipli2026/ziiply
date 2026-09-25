@@ -234,8 +234,8 @@ jobs:
           function simpleScore(a,b){const A=new Set(norm(a).split(" ").filter(x=>x.length>2&&!/^\\d/.test(x)));return norm(b).split(" ").reduce((n,t)=>n+(A.has(t)?18:0),0);}
           let guarded={tested:0,eligible:0,blocked:0,examples:[]};
           function sameMetricSize(a,b){
-            const rx=/(\\d+(?:[.,]\\d+)?)\\s*(kg|g|l|dl|cl|ml)\\b/;
-            const conv=n=>{const m=norm(n).match(rx);if(!m)return null;let v=Number(m[1].replace(",",".")),u=m[2];if(u==="kg"){v*=1000;u="g"}if(u==="l"){v*=1000;u="ml"}if(u==="dl"){v*=100;u="ml"}if(u==="cl"){v*=10;u="ml"}return u+":"+v};
+            const rx=/(\\d+(?:[.,]\\d+)?)\\s*(kg|g|l|dl|cl|ml)\\b/g;
+            const conv=n=>{const ms=[...norm(n).matchAll(rx)];if(!ms.length)return null;const m=ms[ms.length-1];let v=Number(m[1].replace(",",".")),u=m[2];if(u==="kg"){v*=1000;u="g"}if(u==="l"){v*=1000;u="ml"}if(u==="dl"){v*=100;u="ml"}if(u==="cl"){v*=10;u="ml"}return u+":"+v};
             const x=conv(a),y=conv(b); return Boolean(x && y && x===y);
           }
           function sharedMeaningful(a,b){
