@@ -80,18 +80,18 @@ export type Area = {
 
   // v228: alue ei enää kanna kovakoodattuja kauppoja.
   // Kaupat haetaan dynaamisesti käsin annetun alueen tai GPS:stä päätellyn alueen perusteella.
-  sStoreId?: number;
+  sStoreId?: string | number;
   sStoreName?: string;
-  kStoreId?: number;
+  kStoreId?: string | number;
   kStoreName?: string;
-  sLocalStoreId?: number;
+  sLocalStoreId?: string | number;
   sLocalStoreName?: string;
-  kLocalStoreId?: number;
+  kLocalStoreId?: string | number;
   kLocalStoreName?: string;
 };
 
 export type StoreSearchItem = {
-  id: number;
+  id: string | number;
   name: string;
   chain?: string;
   type?: "S" | "K" | string;
