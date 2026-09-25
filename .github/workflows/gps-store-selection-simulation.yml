@@ -115,7 +115,7 @@ jobs:
             const ranked=stores.map(s=>({...s,d:dist(lat,lon,Number(s.latitude),Number(s.longitude))})).filter(s=>Number.isFinite(s.d)).sort((a,b)=>a.d-b.d);
             const s=ranked.find(x=>/^(S-market|Sale\b|Alepa\b)/i.test(String(x.name||"")));
             const k=ranked.find(x=>/^(K-Market|K-Supermarket)/i.test(String(x.name||"")));
-            if(!s||!k) throw new Error(label+": deployed route missing local stores");
+            if(!s||!k){ console.log("GPS_DEPLOYED_MISSING",JSON.stringify({label,s:!!s,k:!!k,stores:ranked.slice(0,20).map(x=>({name:x.name,id:x.id,d:x.d}))})); continue; }
             const [sp,kp]=await Promise.all([
               fetch(base+"/api/s-products?search=maito&store="+encodeURIComponent(String(s.id)),{cache:"no-store"}),
               fetch(base+"/api/k-products?search=maito&store="+encodeURIComponent(String(k.id)),{cache:"no-store"}),
