@@ -160,7 +160,6 @@ if(expected){for(const q of qtyUnits){const tx=Number((expected*q.quantity).toFi
 // Raw wordBoxes visual recovery; inferred multibuy may be replaced only by strict large visual evidence.
 // expected-validated-multibuy is arithmetic evidence, not geometric evidence. A nearby qty/unit can
 // belong to another offer card. Preserve clean same-row / unit-price-validated / embedded prices.
-// True geometric-fused multibuys remain authoritative below.
 const strongDirect=spatialCandidates.filter(x=>
   x.quantity==null &&
   ["same-row-euro-cents","expected-large-cents-unit","embedded-productblock-price"].includes(x.kind) &&
