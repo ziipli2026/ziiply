@@ -38,8 +38,9 @@ jobs:
               for(const x of ["mustikka","vanilja","kahvi","mansikka","maustamaton"])if(A.includes(x)!==B.includes(x))return true;
             }
             if(A.includes("kananmuna")){
-              const count=x=>{const m=x.match(/(?:^| )(?:s|m|l|xl)(?:\/(?:s|m|l|xl))?(\d{1,2})(?= |$)/);return m?+m[1]:null;};
-              const ac=count(A),bc=count(B);if(ac&&bc&&ac!==bc)return true;
+              const spec=x=>{const m=x.match(/(?:^| )((?:s|m|l|xl)(?:\/(?:s|m|l|xl))?)(\d{1,2})(?= |$)/);return m?{cls:m[1],count:+m[2]}:null;};
+              const ac=spec(A),bc=spec(B);
+              if(ac&&bc&&(ac.count!==bc.count||ac.cls!==bc.cls))return true;
             }
             if(A.includes("cola")){
               const multi=x=>/\b\d+\s*(?:pack|pk|x)\b/.test(x);
@@ -50,7 +51,7 @@ jobs:
               for(const x of ["pekoni","carbonara","tomaatti","mozzarella","juusto","mustapippuri"])if(A.includes(x)!==B.includes(x))return true;
             }
             if(A.includes("rahka")){
-              const bakeType=x=>x.includes("vuokapulla")?"vuokapulla":x.includes("taytepulla")||x.includes("pulla")?"pulla":x.includes("piirakka")?"piirakka":x.includes("kranssi")?"kranssi":"";
+              const bakeType=x=>x.includes("kranssi")?"kranssi":x.includes("vuokapulla")?"vuokapulla":x.includes("taytepulla")||x.includes("pulla")?"pulla":x.includes("piirakka")?"piirakka":"";
               const at=bakeType(A),bt=bakeType(B);if(at!==bt)return true;
             }
             if(A.includes("calzone")&&!B.includes("calzone"))return true;
