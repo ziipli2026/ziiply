@@ -80,6 +80,34 @@ jobs:
           main().catch(e=>{ console.error(e); process.exit(2); });
           TS
           npx --yes tsx live-gps-test.ts
+      - name: Simulate resolver through active store IDs
+        shell: bash
+        run: |
+          cat > gps-active-store-contract-test.ts <<'TS'
+          import { resolveZiiplyPageStoreSelection } from "./src/app/components/ziiply/location/ziiplyStoreSelectionCore";
+          const stores=[
+            {id:"s-jokela",name:"S-market Jokela",type:"S",latitude:60.553731,longitude:24.967098},
+            {id:"k-jokela",name:"K-Supermarket Jokela",type:"K",latitude:60.5524463543,longitude:24.9664902869},
+            {id:"p-hyv",name:"Prisma Hyvinkää",type:"S",latitude:60.62988,longitude:24.866795},
+            {id:"c-hyv",name:"K-Citymarket Hyvinkää",type:"K",latitude:60.6325695193,longitude:24.8639144333},
+          ];
+          const coords={latitude:60.552446,longitude:24.966490};
+          const r=resolveZiiplyPageStoreSelection({stores,coords,mode:"local"});
+          const area={sStoreId:r.sHyper?.id,sStoreName:r.sHyper?.name,kStoreId:r.kHyper?.id,kStoreName:r.kHyper?.name,sLocalStoreId:r.sLocal?.id,sLocalStoreName:r.sLocal?.name,kLocalStoreId:r.kLocal?.id,kLocalStoreName:r.kLocal?.name};
+          function active(mode:"local"|"hyper"){
+            return mode==="local"
+              ? {sStoreId:area.sLocalStoreId,sStoreName:area.sLocalStoreName,kStoreId:area.kLocalStoreId,kStoreName:area.kLocalStoreName}
+              : {sStoreId:area.sStoreId,sStoreName:area.sStoreName,kStoreId:area.kStoreId,kStoreName:area.kStoreName};
+          }
+          for(const mode of ["local","hyper"] as const){
+            const a=active(mode);
+            const productUrls={s:`/api/s-products?search=maito&store=${a.sStoreId}`,k:`/api/k-products?search=maito&store=${a.kStoreId}`};
+            const expected=mode==="local"?a.sStoreId==="s-jokela"&&a.kStoreId==="k-jokela":a.sStoreId==="p-hyv"&&a.kStoreId==="c-hyv";
+            console.log("GPS_ACTIVE_STORE_CONTRACT",JSON.stringify({mode,active:a,productUrls,expected}));
+            if(!expected) process.exitCode=2;
+          }
+          TS
+          npx --yes tsx gps-active-store-contract-test.ts
       - name: Simulate resolver to Area contract
         shell: bash
         run: |
