@@ -256,6 +256,6 @@ jobs:
             if(ok)guarded.eligible++;else guarded.blocked++;
             if(guarded.examples.length<20)guarded.examples.push({source,first:first.x.name,best:best.x.name,gain:best.sc-first.sc,shared:sharedMeaningful(source,best.x.name),sameSize:sameMetricSize(source,best.x.name),eligible:ok});
           }
-          for(const pair of pairs){const seen=new Set();for(const q of queries.slice(0,5))for(const p of (await s(q,pair.s)).slice(0,6)){if(seen.has(p.name))continue;seen.add(p.name);await guardedOne(p.name,pair.k)}}
+          for(const pair of pairs){const seen=new Set();for(const q of queries.slice(0,10))for(const p of (await s(q,pair.s)).slice(0,12)){if(seen.has(p.name))continue;seen.add(p.name);await guardedOne(p.name,pair.k)}}
           console.log("GUARDED_REPLACEMENT_PROBE "+JSON.stringify(guarded));
           NODE
