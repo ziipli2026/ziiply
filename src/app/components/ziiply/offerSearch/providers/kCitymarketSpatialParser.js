@@ -198,13 +198,6 @@ if(!spatialResolved&&nr&&nr.min>=10){const disc=groupTexts.map(t=>t.match(/(?:^|
 // the product/package, e.g. "PORKKANA 99 1 kg" with "(0 99/kg)". Require arithmetic agreement.
 // Reconstruct an exact visual price from package-size/unit-price arithmetic when the matching cents are
 // printed in the local product group but the euro digit has been swallowed into adjacent title text.
-// Keep this strict: fixed/ranged package arithmetic must agree and the cents token must be local.
-if(!spatialResolved&&anchor&&expected){
- const rounded=Number(expected.toFixed(2)), cents=String(Math.round((rounded-Math.floor(rounded))*100)).padStart(2,"0");
- const localCents=wordBoxes.filter(b=>boxDistance(anchor,b)<.16&&String(b.text).trim()===cents&&Number(b.height||0)>=.015);
- const saleUnit=wordBoxes.filter(b=>boxDistance(anchor,b)<.20&&/^(RS|PS|PKT|KPL|TLK|PL|PRK)$/i.test(String(b.text).trim())).sort((a,b)=>boxDistance(anchor,a)-boxDistance(anchor,b))[0];
- if(localCents.length&&saleUnit)spatialCandidates.push({value:rounded,quantity:null,unit:String(saleUnit.text).toUpperCase(),parts:["expected-local-cents",cents],score:Number((boxDistance(anchor,localCents[0])*.2).toFixed(6)),kind:"expected-local-cents-validated"});
-}
 // Large visual euro+cents pair plus a nearby matching sale unit.
 // Require package/unit-price arithmetic to agree when expectedSingle exists; this recovers cards such as 2.59 RS
 // without reviving previously rejected loose nearest-price matches.
