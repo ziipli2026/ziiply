@@ -1,0 +1,53 @@
+name: Normal product K-match simulation
+
+on:
+  workflow_dispatch:
+
+jobs:
+  simulate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe live S to K matching paths
+        shell: bash
+        run: |
+          node <<'NODE'
+          const BASE="https://ziiply.vercel.app";
+          const SSTORE=721; // S-market Jokela
+          const KSTORE=3334; // K-Supermarket Jokela
+          const queries=["kevytmaito","täysmaito","jauheliha","kahvi","juusto","jogurtti","ruisleipä","cola","voi","kananmuna","broileri","pasta"];
+          const norm=v=>String(v||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9åäö%]+/g," ").replace(/\s+/g," ").trim();
+          const ean=v=>String(v||"").replace(/\D/g,"");
+          const size=v=>{const m=norm(v).match(/(\d+(?:[.,]\d+)?)\s*(kg|g|l|ml|cl)\b/);return m?m[1].replace(",",".")+m[2]:"";};
+          async function get(path){const r=await fetch(BASE+path,{headers:{accept:"application/json"}});if(!r.ok)throw new Error(path+" HTTP "+r.status);return r.json();}
+          async function s(q){return (await get("/api/s-products?search="+encodeURIComponent(q)+"&store="+SSTORE)).items||[]}
+          async function k(q){return (await get("/api/k-products?search="+encodeURIComponent(q)+"&store="+KSTORE)).items||[]}
+          function terms(name){
+            const original=String(name||"").trim();
+            const stripped=original.replace(/\b(Coop|Rainbow|Xtra|Kotimaista|Suomalainen|Pirkka|K-Menu|Valio|Arla)\b/gi," ").replace(/\s+/g," ").trim();
+            const n=norm(original), out=[original,stripped];
+            const rules=[["maito","maito"],["jauheliha","jauheliha"],["kahvi","kahvi"],["juusto","juusto"],["jogur","jogurtti"],["leipa","leipä"],["cola","cola"],["voi","voi"],["kananmuna","kananmuna"],["broiler","broileri"],["pasta","pasta"]];
+            for(const [needle,t] of rules)if(n.includes(needle))out.push(t);
+            return [...new Map(out.filter(Boolean).map(x=>[norm(x),x])).values()];
+          }
+          let exactSeen=0, exactMiss=0, sizeMismatch=0, tested=0;
+          for(const q of queries){
+            const sp=(await s(q)).filter(x=>Number(x.storeItems?.[0]?.price||x.price||0)>0).slice(0,4);
+            console.log("\n=== QUERY",q,"S candidates",sp.length,"===");
+            for(const p of sp){
+              tested++;
+              const pe=ean(p.ean||p.gtin||p.eanCode||p.barcode||p.externalId), ps=size(p.name);
+              let union=[], used=[];
+              for(const t of terms(p.name).slice(0,5)){const rows=await k(t); used.push({term:t,count:rows.length}); union.push(...rows);}
+              const ded=[...new Map(union.map(x=>[String(x.id),x])).values()];
+              const exact=pe?ded.find(x=>ean(x.ean)===pe):null;
+              if(exact) exactSeen++; else if(pe) exactMiss++;
+              const sameSize=ps?ded.filter(x=>size(x.name)===ps):ded;
+              const tokenSet=new Set(norm(p.name).split(" ").filter(x=>x.length>2));
+              const score=x=>norm(x.name).split(" ").reduce((n,t)=>n+(tokenSet.has(t)?1:0),0);
+              const best=[...(sameSize.length?sameSize:ded)].sort((a,b)=>score(b)-score(a)||Number(a.price||999)-Number(b.price||999))[0];
+              if(best && ps && size(best.name) && size(best.name)!==ps) sizeMismatch++;
+              console.log(JSON.stringify({s:{name:p.name,ean:pe||null,size:ps||null},searches:used,exactK:exact?{name:exact.name,ean:exact.ean,price:exact.price}:null,diagnosticBest:best?{name:best.name,ean:best.ean,size:size(best.name)||null,price:best.price,tokenScore:score(best)}:null,kCandidates:ded.length}));
+            }
+          }
+          console.log("\nSUMMARY",JSON.stringify({tested,exactSeen,exactMiss,sizeMismatch}));
+          NODE
