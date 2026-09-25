@@ -13,7 +13,7 @@ jobs:
           node <<'NODE'
           const BASE="https://ziiply.vercel.app";
           const pairs=[{label:"HYPER Hyvinkää",s:292,k:3221},{label:"LOCAL Jokela",s:721,k:3334}];
-          const queries=["kevytmaito","täysmaito","jauheliha","kahvi","juusto","jogurtti","ruisleipä","cola","voi","kananmuna","broileri","pasta","riisi","banaani","tomaatti","kinkku","makkara","rahka"];
+          const queries=["kevytmaito","täysmaito","jauheliha","kahvi","juusto","jogurtti","ruisleipä","cola","voi","kananmuna","broileri","pasta","riisi","banaani","tomaatti","kinkku","makkara","rahka","kaurajuoma","kerma","kala","leikkele","murot","mehu","pakastepizza","jäätelö"];
           const norm=v=>String(v||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9åäö%]+/g," ").replace(/\s+/g," ").trim();
           const ean=v=>String(v||"").replace(/\D/g,"");
           const size=v=>{const raw=String(v||"").toLowerCase().replace(/,/g,".");const m=raw.match(/(\d+(?:\.\d+)?)\s*(kg|g|l|ml|cl)\b/);return m?m[1]+m[2]:"";};
