@@ -56,13 +56,11 @@ export async function GET(request: NextRequest) {
       ]);
       // Ruoanhinta may retain permanently closed S stores. For S-family stores,
       // require the store to still exist in S-kaupat's current official directory.
-      const activeSNames = new Set(
-        sKaupatDirectory.map((entry) =>
-          String(entry.name || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim(),
-        ),
-      );
       const normalizeName = (value: unknown) =>
         String(value || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+      const activeSByName = new Map(
+        sKaupatDirectory.map((entry) => [normalizeName(entry.name), entry] as const),
+      );
       const seen = new Set<string>();
       const items = batches
         .flat()
@@ -70,7 +68,7 @@ export async function GET(request: NextRequest) {
           const name = String(store.name || "");
           if (!/^(?:S-market|Sale\b|Alepa\b|K-Market\b|K-Supermarket\b|Prisma\b|K-Citymarket\b)/i.test(name)) return false;
           if (/ABC|liikenneasema|huoltoasema|verkkokauppa|puutarha|lemmikki/i.test(name)) return false;
-          if (/^(?:S-market|Sale\b|Alepa\b|Prisma\b)/i.test(name) && activeSNames.size > 0 && !activeSNames.has(normalizeName(name))) return false;
+          if (/^(?:S-market|Sale\b|Alepa\b|Prisma\b)/i.test(name) && activeSByName.size > 0 && !activeSByName.has(normalizeName(name))) return false;
           const country = String(store.country || store.countryCode || "").toUpperCase();
           if (country && country !== "FI" && country !== "FIN" && country !== "FINLAND") return false;
           const lat = Number(store.lat ?? store.latitude);
@@ -82,7 +80,19 @@ export async function GET(request: NextRequest) {
           seen.add(key);
           return true;
         })
-        .map(normalizeStore);
+        .map((store) => {
+          const normalized = normalizeStore(store);
+          const officialS = activeSByName.get(normalizeName(store.name));
+          if (!officialS) return normalized;
+          return {
+            ...normalized,
+            // S-kaupat is authoritative for active S-family identity and product-facing storeId.
+            id: officialS.sKaupatStoreId,
+            externalId: officialS.sKaupatStoreId,
+            name: officialS.name,
+            directoryId: store.id,
+          };
+        });
 
       return NextResponse.json({ items });
     }
