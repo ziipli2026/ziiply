@@ -99,7 +99,7 @@ export async function GET(request: NextRequest) {
           };
         });
 
-      return NextResponse.json(debug ? { items, debug: { batchCounts: terms.map((term, i) => ({ term, count: batches[i]?.length || 0 })), sDirectoryCount: sKaupatDirectory.length, sDirectoryDiagnostic: getLastPrismaDirectoryDiagnosticV3(), samples: batches.map((batch, i) => ({ term: terms[i], sample: batch[0] ? { name: batch[0].name, id: batch[0].id, lat: batch[0].lat, latitude: batch[0].latitude, long: batch[0].long, lon: batch[0].lon, longitude: batch[0].longitude, country: batch[0].country, countryCode: batch[0].countryCode, keys: Object.keys(batch[0]).slice(0,20) } : null })) } } : { items });
+      return NextResponse.json(debug ? { items, debug: { batchCounts: terms.map((term, i) => ({ term, count: batches[i]?.length || 0 })), sDirectoryCount: sKaupatDirectory.length, sDirectoryDiagnostic: getLastPrismaDirectoryDiagnosticV3(), lifecycleMatches: batches.flat().filter((store) => /hämeenkatu|hameenkatu/i.test(String(store.name || ""))).map((store) => ({ name: store.name, id: store.id, externalId: store.externalId ?? null, delistedAt: store.delistedAt ?? null, updatedAt: store.updatedAt ?? null, createdAt: store.createdAt ?? null, city: store.city ?? null })), samples: batches.map((batch, i) => ({ term: terms[i], sample: batch[0] ? { name: batch[0].name, id: batch[0].id, lat: batch[0].lat, latitude: batch[0].latitude, long: batch[0].long, lon: batch[0].lon, longitude: batch[0].longitude, country: batch[0].country, countryCode: batch[0].countryCode, keys: Object.keys(batch[0]).slice(0,20) } : null })) } } : { items });
     }
 
     if (!search) return NextResponse.json({ items: [] });
