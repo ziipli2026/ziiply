@@ -15716,10 +15716,20 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return sortStoresForPickerV320(scoped, mode, selectedId, selectedName);
     }
 
+    // V325: activeArea.aliases sisältää myös AREAS-aliaksia (esim. postinumeroita),
+    // joten ensimmäinen alias ei välttämättä ole GPS:n tunnistama kunta.
+    // Valitaan alias, joka vastaa oikeasti foundStores-kauppojen city-kenttää.
+    // GPS:n reverse-geocodattu query on aliases-listassa ja osuu tähän.
+    const gpsAliasesV325 = (activeArea.aliases || [])
+      .map((value) => String(value || "").trim())
+      .filter((value) => value && normalize(value) !== normalize("Oma sijainti"));
+    const foundStoreCitiesV325 = new Set(
+      foundStores
+        .map((store) => normalize(String(store.city || "").trim()))
+        .filter(Boolean),
+    );
     const gpsMunicipalityV321 =
-      (activeArea.aliases || [])
-        .map((value) => String(value || "").trim())
-        .find((value) => value && normalize(value) !== normalize("Oma sijainti")) || "";
+      gpsAliasesV325.find((value) => foundStoreCitiesV325.has(normalize(value))) || "";
 
     const sameGpsMunicipalityV321 = (store: StoreSearchItem) =>
       Boolean(
