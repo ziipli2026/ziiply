@@ -94,14 +94,15 @@ jobs:
             }
             if(A.includes("kivennäisvesi")){
               for(const x of ["vichy","sitruuna","lime","greippi"])if(A.includes(x)!==B.includes(x))return true;
-              if(B.includes("original")||B.includes("magnesium"))return true;
             }
+            if(A.includes("vichy")&&/(original|magnesium)/.test(B))return true;
             if(A.includes("paprika")&&!/(juusto|dippi|mauste|kastike|ciabatta)/.test(A)){
               if(/juusto|dippi|mauste|kastike|ciabatta/.test(B))return true;
             }
             if(A.includes("sipuli")&&A.includes("paahdettu")&&!B.includes("paahdettu"))return true;
             return false;
           }
+          if(!hardBad("Kotimaista Vichy kivennäisvesi 0,33l","Hartwall Vichy Original Triple Magnesium kivennäisvesi 0,33l"))throw new Error("VICHY_GUARD_REGRESSION");
           function score(a,b){const A=new Set(norm(a).split(" ").filter(x=>x.length>2&&!/^\d/.test(x)));return norm(b).split(" ").reduce((n,t)=>n+(A.has(t)?1:0),0);}
           function terms(name){const stripped=String(name).replace(/\b(Coop|Rainbow|Xtra|Kotimaista|Suomalainen|Pirkka|K-Menu)\b/gi," ").replace(/\s+/g," ").trim();const n=norm(name),o=[name,stripped];for(const [x,t] of [["maito","maito"],["jauheliha","jauheliha"],["kahvi","kahvi"],["juusto","juusto"],["jogur","jogurtti"],["leipa","leipä"],["cola","cola"],["voi","voi"],["kananmuna","kananmuna"],["broiler","broileri"],["pasta","pasta"],["riisi","riisi"],["banaani","banaani"],["toma","tomaatti"],["kink","kinkku"],["makk","makkara"],["rahka","rahka"]])if(n.includes(x))o.push(t);return [...new Map(o.filter(Boolean).map(x=>[norm(x),x])).values()];}
           for(const pair of pairs){const st={tested:0,eanDirect:0,exactName:0,safeSizeName:0,safeName:0,noSafeMatch:0,hardBadChosen:0,directEanQueriesReturningExact:0,rejectedSemantic:0};
