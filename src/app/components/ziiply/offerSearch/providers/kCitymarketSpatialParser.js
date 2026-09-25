@@ -138,6 +138,13 @@ for(const p of spatialCandidates.filter(x=>x._qtyGeom)){p.quantity=p._qtyGeom.qu
 
 // Strong transaction-price guards: reject title/package echoes and require multi-buy consistency when unit-price evidence exists.
 for(let i=spatialCandidates.length-1;i>=0;i--){const x=spatialCandidates[i]; const parts=(x.parts||[]).map(String); if(parts.length&&parts.every(p=>title.includes(p)))spatialCandidates.splice(i,1)}
+// Generic basic-HTML explicit shelf price: accept "UNIT 3190" style only from the product's own nearby text row.
+if(anchor){
+ const ownText=around.map(r=>String(r.text||"").trim()).join(" | ");
+ const mm=ownText.match(/(?:^|\|)\s*(KPL|PKT|PS|RS|TLK|PL|PRK)\s+(\d{3,4})(?=\s*(?:\||$))/i);
+ if(mm){const t=mm[2],value=Number(t.slice(0,-2)+"."+t.slice(-2));if(value>=.5&&value<100)spatialResolved={value,quantity:null,unit:mm[1].toUpperCase(),source:"basic-own-row-explicit-compact-price",sanity:"pass",confidence:"high"};}
+}
+
 if(expected){for(let i=spatialCandidates.length-1;i>=0;i--){const x=spatialCandidates[i]; if(x.quantity>=2&&Math.abs(x.value-expected*x.quantity)>Math.max(.30,expected*.18)&&x.kind!=="embedded-productblock-price")spatialCandidates.splice(i,1)}}
 
 spatialCandidates.sort((a,b)=>a.score-b.score); const qtyUnits=[]; for(const u of unitFrags){const q=spatial.filter(x=>/^[2-5]$/.test(String(x.text).trim())).map(x=>({...x,dq:Math.hypot(x.left-u.left,x.top-u.top)})).sort((a,b)=>a.dq-b.dq)[0];if(q&&q.dq<.12)qtyUnits.push({quantity:Number(q.text),unit:String(u.text).toUpperCase(),left:u.left,top:u.top,d:u.d})} // If visual price fragments are noisy but package size + promo unit price and an explicit qty/unit are present,
