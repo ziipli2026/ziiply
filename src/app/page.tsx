@@ -15708,7 +15708,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // find the nearest stores. The picker itself must stay local instead of
     // exposing every candidate inside that broad API radius.
     const pickerScoped =
-      usingOwnLocation && gpsCoordsV320
+      gpsCoordsV320
         ? scoped.filter((store) => {
             const distanceKm = getGpsDistanceKmForStoreV93(store);
             if (distanceKm == null) return false;
