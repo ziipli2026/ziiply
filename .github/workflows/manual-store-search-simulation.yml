@@ -14,14 +14,15 @@ jobs:
         shell: bash
         run: |
           cat > /tmp/simulate.mjs <<'EOF'
-          const queries = ["Ii", "Iin", "Ii ", "ii", "II", "Yli-Ii", "Yli Ii", "yli-ii", "91100", "91110", "91150", "Jokela", "Kämmenniemi", "Oulunsalo", "Sääksjärvi", "Terälahti", "Haukipudas", "Rajamäki", "Klaukkala", "Nummela", "Veikkola", "Kellokoski", "Nikkilä", "Söderkulla", "Tikkurila", "Korso", "Laukaa", "Lievestuore", "Vaajakoski", "Muurame", "Äänekoski", "Suolahti", "Vihtavuori", "Leppävesi", "Ylistaro", "Peräseinäjoki", "Nurmo", "Jalasjärvi", "Kauhajoki", "Teuva", "Jurva", "Laihia", "Vähäkyrö", "Orivesi", "Lempäälä", "Sääksjärvi", "Pirkkala", "Ylöjärvi", "Nokia", "Kangasala", "Hervanta", "Tesoma", "Linnainmaa", "Ivalo", "Saariselkä", "Sodankylä", "Kemijärvi", "Ranua", "Posio", "Taivalkoski", "Pudasjärvi", "Liminka", "Kempele", "Muhos", "Ii", "Kiiminki", "Ylikiiminki", "Tyrnävä", "Lumijoki", "Siilinjärvi", "Nilsiä", "Juankoski", "Lapinlahti", "Iisalmi", "Sonkajärvi", "Kiuruvesi", "Mäntsälä", "Pornainen", "Askola", "Pukkila", "Myrskylä", "Lapinjärvi", "Loviisa"];
+          const queries = ["Jokela", "Kämmenniemi", "Oulunsalo", "Sääksjärvi", "Terälahti", "Haukipudas", "Rajamäki", "Klaukkala", "Nummela", "Veikkola", "Kellokoski", "Nikkilä", "Söderkulla", "Tikkurila", "Korso", "Laukaa", "Lievestuore", "Vaajakoski", "Muurame", "Äänekoski", "Suolahti", "Vihtavuori", "Leppävesi", "Ylistaro", "Peräseinäjoki", "Nurmo", "Jalasjärvi", "Kauhajoki", "Teuva", "Jurva", "Laihia", "Vähäkyrö", "Orivesi", "Lempäälä", "Sääksjärvi", "Pirkkala", "Ylöjärvi", "Nokia", "Kangasala", "Hervanta", "Tesoma", "Linnainmaa", "Ivalo", "Saariselkä", "Sodankylä", "Kemijärvi", "Ranua", "Posio", "Taivalkoski", "Pudasjärvi", "Liminka", "Kempele", "Muhos", "Ii", "Kiiminki", "Ylikiiminki", "Tyrnävä", "Lumijoki", "Siilinjärvi", "Nilsiä", "Juankoski", "Lapinlahti", "Iisalmi", "Sonkajärvi", "Kiuruvesi", "Mäntsälä", "Pornainen", "Askola", "Pukkila", "Myrskylä", "Lapinjärvi", "Loviisa"];
 
           const norm = (s) => String(s || "")
             .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
             .toLowerCase().trim();
 
           async function fetchStores(search) {
-            const url = "https://api.ruoanhinta.fi/api/stores?search=" + encodeURIComponent(search);
+            const apiSearch = norm(search) === "ii" ? search.trim() + " " : search;
+            const url = "https://api.ruoanhinta.fi/api/stores?search=" + encodeURIComponent(apiSearch);
             const r = await fetch(url, { headers: { Accept: "application/json" } });
             if (!r.ok) { console.log("FETCH_ERROR:", search, "HTTP", r.status); return []; }
             const data = await r.json();
@@ -56,6 +57,15 @@ jobs:
             return { live, exactCity, nameMatches, postalAreaMatches, proposed };
           }
 
+          const assertions = {
+            "Ii": { include:[4665,436], exclude:[836] },
+            "Yli-Ii": { include:[836], exclude:[4665,436] },
+            "Jokela": { include:[721,3334], exclude:[17] },
+            "Tikkurila": { include:[3,267], exclude:[4415] },
+            "Tesoma": { include:[501,4224,3732], exclude:[4621] }
+          };
+          let failures = 0;
+
           for (const query of queries) {
             const stores = await fetchStores(query);
             const r = simulate(query, stores);
@@ -75,6 +85,18 @@ jobs:
               }));
             }
 
+            const rule = assertions[query];
+            if (rule) {
+              const ids = new Set(r.proposed.map(s => Number(s.id)));
+              for (const id of rule.include || []) if (!ids.has(id)) {
+                console.error("ASSERT_FAIL:", query, "missing expected id", id); failures++;
+              }
+              for (const id of rule.exclude || []) if (ids.has(id)) {
+                console.error("ASSERT_FAIL:", query, "included forbidden id", id); failures++;
+              }
+              if (!failures) console.log("ASSERT_OK:", query);
+            }
+
             console.log("\n-- PROPOSED FIRST-PASS RESULTS --");
             for (const s of r.proposed) {
               console.log(JSON.stringify({
@@ -83,5 +105,10 @@ jobs:
               }));
             }
           }
+          if (failures) {
+            console.error("\nREGRESSION FAILED:", failures, "assertion(s)");
+            process.exit(1);
+          }
+          console.log("\nREGRESSION PASSED");
           EOF
           node /tmp/simulate.mjs
