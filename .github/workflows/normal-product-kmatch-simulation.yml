@@ -216,9 +216,11 @@ jobs:
           }
           for(const pair of pairs){
             const seen=new Set();
-            for(const q of queries){
+            // Deliberately query the brands: the generic category sample can easily
+            // contain zero branded products in its first result window.
+            for(const q of ["valio","arla","valio maito","arla maito","valio jogurtti","arla jogurtti","valio juusto","arla juusto"]){
               const sp=await s(q,pair.s);
-              for(const p of sp.slice(0,25)){
+              for(const p of sp.slice(0,80)){
                 if(seen.has(p.name))continue; seen.add(p.name);
                 if(/\\b(valio|arla)\\b/i.test(p.name))await probeBrandRetention(p.name,pair.k);
               }
