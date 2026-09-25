@@ -44,6 +44,39 @@ jobs:
             echo "GPS_RH_QUERY=$q"
             curl -sS "https://api.ruoanhinta.fi/api/stores?search=$q" | python3 -c 'import json,sys; a=json.load(sys.stdin); print(json.dumps([{"id":x.get("id"),"name":x.get("name"),"chain":x.get("chain"),"type":x.get("type"),"city":x.get("city"),"externalId":x.get("externalId"),"lat":x.get("lat"),"long":x.get("long")} for x in a[:200]],ensure_ascii=False))'
           done
+      - name: Live four-slot resolver simulation
+        shell: bash
+        run: |
+          cat > live-gps-test.ts <<'TS'
+          import { resolveZiiplyPageStoreSelection } from "./src/app/components/ziiply/location/ziiplyStoreSelectionCore";
+          const origin="https://etarjouslehdet.fi";
+          const stable=(v:any)=>Buffer.from(JSON.stringify(v,(_k,x)=>Object.prototype.toString.call(x)==="[object Object]"?Object.keys(x).sort().reduce((o:any,k)=>(o[k]=x[k],o),{}):x),"utf8").toString("base64");
+          async function tjek(businessId:string){
+            const key=stable(["stores",{businessId,pagination:{offset:0,limit:3000}}]);
+            const r=await fetch(origin+"/",{method:"POST",headers:{"content-type":"application/json","x-api-key":"152000596c6e45d9983eab0c14afebea","user-agent":"Mozilla/5.0"},body:JSON.stringify({data:[key]})});
+            const j=await r.json(); const out:any[]=[],seen=new Set<string>();
+            function walk(x:any){if(!x||typeof x!=="object")return;if(Array.isArray(x)){x.forEach(walk);return;}const name=String(x.name||x.title||"");const latitude=Number(x.latitude??x.coordinates?.latitude),longitude=Number(x.longitude??x.coordinates?.longitude);if(name&&Number.isFinite(latitude)&&Number.isFinite(longitude)){const id=String(x.id||x.storeId||x.uuid||name),k=id+"|"+name;if(!seen.has(k)){seen.add(k);out.push({id,name,latitude,longitude});}}Object.values(x).forEach(walk)} walk(j); return out;
+          }
+          async function rh(search:string){
+            const r=await fetch("https://api.ruoanhinta.fi/api/stores?search="+encodeURIComponent(search)); const a=await r.json();
+            return a.filter((x:any)=>x.country==="Suomi"&&Number.isFinite(Number(x.lat))&&Number.isFinite(Number(x.long))&&!/abc|verkkokauppa|puutarha|lemmikki/i.test(String(x.name))).map((x:any)=>({id:x.id,name:x.name,lat:x.lat,lon:x.long}));
+          }
+          const [s,ks,km,p,c]=await Promise.all([tjek("d8ccs8"),tjek("f305U8"),tjek("9c56Y8"),rh("Prisma"),rh("K-Citymarket")]);
+          const stores=[...s,...ks,...km,...p,...c];
+          const cases=[["Jokela",60.552446,24.966490],["Hyvinkää",60.631,24.858],["Tuusula",60.4023,25.0263],["Oulu",65.0121,25.4651]];
+          let fail=false;
+          for(const [label,latitude,longitude] of cases as any[]){
+            const r=resolveZiiplyPageStoreSelection({stores,areas:[],coords:{latitude,longitude},mode:"local"});
+            const got={sLocal:r.sLocal?.name,kLocal:r.kLocal?.name,sHyper:r.sHyper?.name,kHyper:r.kHyper?.name};
+            const ids=[r.sLocal?.id,r.kLocal?.id,r.sHyper?.id,r.kHyper?.id].filter(Boolean);
+            const complete=ids.length===4, unique=new Set(ids).size===ids.length;
+            console.log("GPS_LIVE_RESOLVER",JSON.stringify({label,got,complete,unique,distances:{sLocal:r.sLocal?.distanceKm,kLocal:r.kLocal?.distanceKm,sHyper:r.sHyper?.distanceKm,kHyper:r.kHyper?.distanceKm},debug:r.debug}));
+            if(!complete||!unique) fail=true;
+          }
+          console.log("GPS_LIVE_COUNTS",JSON.stringify({s:s.length,kSuper:ks.length,kMarket:km.length,prisma:p.length,kCitymarket:c.length,total:stores.length}));
+          if(fail) process.exitCode=2;
+          TS
+          npx --yes tsx live-gps-test.ts
       - name: Simulate Jokela and Hyvinkaa against production resolver
         shell: bash
         run: |
