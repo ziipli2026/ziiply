@@ -30,6 +30,7 @@ jobs:
             if(A.includes("jauheliha")){
               for(const x of ["kana","sika nauta","nauta kana","viljapors","nauta viljaposs","nauta"])if(A.includes(x)!==B.includes(x))return true;
               const ap=A.match(/(\\d{1,2})%/),bp=B.match(/(\\d{1,2})%/);if(ap&&bp&&Math.abs(+ap[1]-+bp[1])>2)return true;
+              const as=size(a),bs=size(b);if(as&&bs&&as!==bs)return true;
             }
             if(A.includes("maito")){
               for(const x of ["kevytmaito","taysmaito","rasvaton","uht","laktoositon"])if(A.includes(x)!==B.includes(x))return true;
