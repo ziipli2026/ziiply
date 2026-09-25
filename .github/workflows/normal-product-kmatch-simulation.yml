@@ -227,4 +227,39 @@ jobs:
             }
           }
           console.log("BRAND_RETENTION_PROBE "+JSON.stringify(brandProbe));
+
+          // First-hit probe: production findBestKMatchForStore returns the first acceptable
+          // non-value-brand candidate. Measure cases where a later search term contains an
+          // exact-name or materially higher-scoring candidate.
+          let firstHitProbe={tested:0,laterExactGain:0,laterScoreGain:0,noGain:0,examples:[]};
+          function simpleScore(a,b){const A=new Set(norm(a).split(" ").filter(x=>x.length>2&&!/^\\d/.test(x)));return norm(b).split(" ").reduce((n,t)=>n+(A.has(t)?18:0),0);}
+          async function probeFirstHit(source,storeId){
+            const ts=terms(source).slice(0,6); if(ts.length<2)return;
+            let first=null,laterBest=null;
+            for(let i=0;i<ts.length;i++){
+              const xs=(await k(ts[i],storeId)).filter(x=>!hardBad(source,x.name));
+              if(!xs.length)continue;
+              const cand=xs.map(x=>({x,sc:simpleScore(source,x.name)})).sort((a,b)=>b.sc-a.sc)[0];
+              if(!first){first={...cand,term:ts[i],idx:i};continue;}
+              if(!laterBest||cand.sc>laterBest.sc)laterBest={...cand,term:ts[i],idx:i};
+            }
+            if(!first||!laterBest)return;
+            firstHitProbe.tested++;
+            const exactLater=norm(laterBest.x.name)===norm(source)&&norm(first.x.name)!==norm(source);
+            const scoreGain=laterBest.sc-first.sc;
+            if(exactLater)firstHitProbe.laterExactGain++;
+            else if(scoreGain>=18)firstHitProbe.laterScoreGain++;
+            else {firstHitProbe.noGain++;return;}
+            if(firstHitProbe.examples.length<20)firstHitProbe.examples.push({source,firstTerm:first.term,first:first.x.name,firstScore:first.sc,laterTerm:laterBest.term,later:laterBest.x.name,laterScore:laterBest.sc,scoreGain,exactLater});
+          }
+          for(const pair of pairs){
+            const seen=new Set();
+            for(const q of queries){
+              for(const p of (await s(q,pair.s)).slice(0,25)){
+                if(seen.has(p.name))continue;seen.add(p.name);
+                await probeFirstHit(p.name,pair.k);
+              }
+            }
+          }
+          console.log("FIRST_HIT_PROBE "+JSON.stringify(firstHitProbe));
           NODE
