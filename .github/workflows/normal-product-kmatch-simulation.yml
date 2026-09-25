@@ -31,6 +31,45 @@ jobs:
             for(const [needle,t] of rules)if(n.includes(needle))out.push(t);
             return [...new Map(out.filter(Boolean).map(x=>[norm(x),x])).values()];
           }
+          function hardBad(a,b){
+            const A=norm(a),B=norm(b);
+            const groups=[
+              ["koira","koiran","koirille","dog"],
+              ["wrap","caesarwrap","patonki","pizza","pasteija","keitto","ateria"],
+              ["mauste","mausteseos"],
+            ];
+            if(!groups[0].some(x=>A.includes(x))&&groups[0].some(x=>B.includes(x)))return true;
+            if(A.includes("kokonainen broileri")&&(B.includes("wrap")||B.includes("filee")||B.includes("mauste")))return true;
+            if(A.includes("jauheliha")&&groups[0].some(x=>B.includes(x)))return true;
+            if(A.includes("kananmuna")&&groups[0].some(x=>B.includes(x)))return true;
+            if(A.includes("makkara")&&groups[0].some(x=>B.includes(x))&&!groups[0].some(x=>A.includes(x)))return true;
+            return false;
+          }
+          function tokenScore(a,b){
+            const aa=new Set(norm(a).split(" ").filter(x=>x.length>2&&!/^\\d/.test(x)));
+            return norm(b).split(" ").reduce((n,t)=>n+(aa.has(t)?1:0),0);
+          }
+          async function safeTiered(p,kstore){
+            const pe=ean(p.ean||p.gtin||p.eanCode||p.barcode||p.externalId), ps=size(p.name);
+            if(pe){
+              const erows=await k(pe,kstore);
+              const exact=erows.find(x=>ean(x.ean)===pe);
+              if(exact)return {tier:"EAN_DIRECT",item:exact};
+            }
+            const exactNameRows=await k(p.name,kstore);
+            const exactName=exactNameRows.find(x=>norm(x.name)===norm(p.name));
+            if(exactName)return {tier:"EXACT_NAME",item:exactName};
+            let union=[];
+            for(const t of terms(p.name).slice(0,6))union.push(...await k(t,kstore));
+            const ded=[...new Map(union.map(x=>[String(x.id),x])).values()]
+              .filter(x=>!hardBad(p.name,x.name));
+            const sameSize=ps?ded.filter(x=>size(x.name)===ps):ded;
+            const pool=sameSize.length?sameSize:ded;
+            const ranked=pool.map(x=>({x,score:tokenScore(p.name,x.name)})).sort((a,b)=>b.score-a.score);
+            const best=ranked[0];
+            if(!best||best.score<2)return {tier:"NO_SAFE_MATCH",item:null};
+            return {tier:sameSize.length?"SAFE_SIZE_NAME":"SAFE_NAME",item:best.x};
+          }
           const reports={};
           for(const pair of pairs){
             const summary={queries:0,sReturned:0,sPriced:0,sWithEan:0,kReturned:0,productsTested:0,exactEanFound:0,eanNotSeen:0,noKCandidates:0,sizePreserved:0,sizeMismatch:0};
