@@ -115,6 +115,19 @@ jobs:
           npm install --package-lock-only --ignore-scripts --no-audit --no-fund
           npm ci --ignore-scripts --no-audit --no-fund
           node -e 'const p=require("./package.json"),l=require("./package-lock.json"); const r=l.packages[""]; const ok=p.dependencies.next===r.dependencies.next&&p.dependencies.react===r.dependencies.react&&p.dependencies["react-dom"]===r.dependencies["react-dom"]&&p.devDependencies["eslint-config-next"]===r.devDependencies["eslint-config-next"]; console.log("GPS_LOCK_REGEN",JSON.stringify({next:r.dependencies.next,react:r.dependencies.react,reactDom:r.dependencies["react-dom"],eslintNext:r.devDependencies["eslint-config-next"],ok})); if(!ok)process.exit(2)'
+          # GPS resolver IDs may be source strings; existing product helpers already stringify IDs into URLs.
+          # Simulate widening only in the disposable copy, then build again.
+          node <<'JS2'
+          const fs=require("fs"),p="src/app/page.tsx"; let s=fs.readFileSync(p,"utf8");
+          const targets=[
+            ["async function fetchSProducts(\n    search: string,\n    storeId: number,","async function fetchSProducts(\n    search: string,\n    storeId: string | number,"],
+            ["async function fetchSProductsAllowUnpricedV463(\n    search: string,\n    storeId: number,","async function fetchSProductsAllowUnpricedV463(\n    search: string,\n    storeId: string | number,"],
+            ["async function hydrateSProductPriceFromSearchBranchV463(\n    candidate: Product,\n    variants: string[],\n    nameCandidates: string[],\n    storeId: number,","async function hydrateSProductPriceFromSearchBranchV463(\n    candidate: Product,\n    variants: string[],\n    nameCandidates: string[],\n    storeId: string | number,"],
+            ["async function fetchKProducts(\n    search: string,\n    storeId: number,","async function fetchKProducts(\n    search: string,\n    storeId: string | number,"]
+          ];
+          for(const [a,b] of targets){if(s.includes(a))s=s.replace(a,b)}
+          fs.writeFileSync(p,s); console.log("GPS_STORE_ID_TYPE_SIMULATION_APPLIED");
+          JS2
           npm run typecheck --if-present
           npm run build
           echo GPS_PATCH_PROJECT_BUILD_SUCCESS
