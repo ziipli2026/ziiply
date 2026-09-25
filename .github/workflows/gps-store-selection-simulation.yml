@@ -104,6 +104,7 @@ jobs:
           fs.writeFileSync(p,page);fs.writeFileSync(r,route);
           console.log("GPS_PATCH_COPY_APPLIED");
           JS
+          npm ci
           npm run typecheck --if-present
           npm run build
           echo GPS_PATCH_PROJECT_BUILD_SUCCESS
