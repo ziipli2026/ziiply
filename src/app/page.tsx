@@ -8954,103 +8954,43 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     query: string,
     coords?: { latitude: number; longitude: number } | null,
   ) {
-    async function fetchStoreSearchBatch(search: string) {
+    async function fetchStoreSearchBatch(search: string, gps = false) {
       const params = new URLSearchParams({ search });
 
       if (coords) {
         params.set("lat", String(coords.latitude));
         params.set("lon", String(coords.longitude));
-        params.set("lng", String(coords.longitude));
         params.set("latitude", String(coords.latitude));
         params.set("longitude", String(coords.longitude));
       }
+      if (gps) params.set("gps", "1");
 
       const response = await fetch(`/api/store-search?${params.toString()}`, {
         cache: "no-store",
       });
-
       if (!response.ok) return [] as StoreSearchItem[];
-
       const data = await response.json();
-      const rawStores = (
-        data.items ||
-        data.stores ||
-        data.results ||
-        data.data ||
-        []
-      ) as StoreSearchItem[];
-
-      return rawStores.filter(
-        (store) => store && store.id && store.name,
-      );
+      const rawStores = (data.items || data.stores || data.results || data.data || []) as StoreSearchItem[];
+      return rawStores.filter((store) => store && store.id && store.name);
     }
 
-    // V35_GPS_NO_MUNICIPALITY_LOCK:
-    // GPS-tilassa ei saa hakea kauppoja vain reverse-geocodatun kunnan nimellä.
-    // Kunnanrajalla käyttäjä voi olla Hyvinkään puolella, mutta lähimmät kaupat voivat olla
-    // Jokelassa/Tuusulassa. Siksi GPS-haussa pyydetään ensin koordinaattipohjainen laaja haku
-    // tyhjällä search-arvolla ja vasta sen jälkeen query-fallback vanhaa API-käytöstä varten.
-    const searchQueries = coords
-      ? getNearbyAreaSearchQueriesFromGpsV36(coords, query)
-      : [query];
+    // GPS uses one coordinate-scoped nationwide directory request. The API route
+    // prefilters the five supported S/K store families by physical distance.
+    // Manual text search remains unchanged.
+    const mergedStores: StoreSearchItem[] = coords
+      ? await fetchStoreSearchBatch(query, true)
+      : await fetchStoreSearchBatch(query, false);
 
-    const mergedStores: StoreSearchItem[] = [];
-    const seenStoreKeys = new Set<string>();
-
-    for (const search of searchQueries) {
-      const batch = await fetchStoreSearchBatch(search);
-
-      for (const store of batch) {
-        const key = String(
-          store.id ??
-            `${normalize(String(store.name || ""))}:${normalize(String(store.city || ""))}`,
-        );
-
-        if (seenStoreKeys.has(key)) continue;
-        seenStoreKeys.add(key);
-        mergedStores.push(store);
-      }
-
-      // V36: GPS-tilassa ei katkaista hakuja ensimmäiseen kuntaan/tyhjään batchiin.
-      // Kunnanrajalla juuri seuraavat lähialueet voivat sisältää oikeat kaupat.
-      if (!coords && mergedStores.length >= 4) {
-        break;
-      }
-    }
-
-    // v320store-11 / V35:
-    // Varmistetaan etäisyydet myös silloin, kun API ei palauta distance-kenttää.
-    // GPS-koordinaatilla valinta tehdään distanceKm:n perusteella koko palautuneesta listasta,
-    // ei aktiivisen kunnan/postinumeron perusteella.
     if (!coords) return mergedStores;
 
     return mergedStores.map((store) => {
       const latitude = getStoreCoordinateV320(store, ["latitude", "lat", "y"]);
-      const longitude = getStoreCoordinateV320(store, [
-        "longitude",
-        "lng",
-        "lon",
-        "x",
-      ]);
-
-      // V37: GPS-tilassa API:n distanceKm voi olla laskettu kunnan/queryn keskuksesta
-      // eikä käyttäjän todellisesta sijainnista. Siksi koordinaatit voittavat aina.
+      const longitude = getStoreCoordinateV320(store, ["longitude", "lng", "lon", "x"]);
       if (latitude != null && longitude != null) {
-        return {
-          ...store,
-          distanceKm: calculateDistanceKmV320(coords, { latitude, longitude }),
-        };
+        return { ...store, distanceKm: calculateDistanceKmV320(coords, { latitude, longitude }) };
       }
-
       const explicitDistanceKm = readExplicitDistanceKmV320(store);
-      if (explicitDistanceKm != null) {
-        return {
-          ...store,
-          distanceKm: explicitDistanceKm,
-        };
-      }
-
-      return store;
+      return explicitDistanceKm != null ? { ...store, distanceKm: explicitDistanceKm } : store;
     });
   }
 
