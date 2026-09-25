@@ -132,16 +132,37 @@ jobs:
             if(hardBad(source,target))throw new Error("PRODUCTION_CANDIDATE_ACCEPT_REGRESSION: "+source+" -> "+target);
           }
           console.log("PRODUCTION_CANDIDATE_REGRESSION "+JSON.stringify({reject:productionCandidateRejectCases.length,accept:productionCandidateAcceptCases.length,status:"PASS"}));
+
+          // Next weakness probe: current production K matching prefers the cheapest item
+          // whenever name scores are within 14 points. Measure how often that can override
+          // an otherwise better semantic/name match. Simulation only.
+          let nearTieCheaperOverrides=0, nearTieLargeSizeMismatch=0, nearTieExamples=[];
+          function prodLikeScore(a,b){
+            const A=new Set(norm(a).split(" ").filter(x=>x.length>2&&!/^\\d/.test(x)));
+            return norm(b).split(" ").reduce((n,t)=>n+(A.has(t)?18:0),0);
+          }
+          function inspectNearTie(source,items){
+            const usable=items.filter(x=>!hardBad(source,x.name));
+            const ranked=usable.map(x=>({x,sc:prodLikeScore(source,x.name)})).sort((a,b)=>b.sc-a.sc);
+            if(ranked.length<2)return;
+            const best=ranked[0], cheaper=ranked.filter(r=>best.sc-r.sc<=14&&Number(r.x.price)>0&&Number(r.x.price)<Number(best.x.price)).sort((a,b)=>Number(a.x.price)-Number(b.x.price))[0];
+            if(!cheaper)return;
+            nearTieCheaperOverrides++;
+            const as=size(source),bs=size(best.x.name),cs=size(cheaper.x.name);
+            if(as&&cs&&as!==cs)nearTieLargeSizeMismatch++;
+            if(nearTieExamples.length<20)nearTieExamples.push({source,best:best.x.name,bestScore:best.sc,bestPrice:best.x.price,cheaper:cheaper.x.name,cheaperScore:cheaper.sc,cheaperPrice:cheaper.x.price,sourceSize:as||null,bestSize:bs||null,cheaperSize:cs||null});
+          }
           function score(a,b){const A=new Set(norm(a).split(" ").filter(x=>x.length>2&&!/^\d/.test(x)));return norm(b).split(" ").reduce((n,t)=>n+(A.has(t)?1:0),0);}
           function terms(name){const stripped=String(name).replace(/\b(Coop|Rainbow|Xtra|Kotimaista|Suomalainen|Pirkka|K-Menu)\b/gi," ").replace(/\s+/g," ").trim();const n=norm(name),o=[name,stripped];for(const [x,t] of [["maito","maito"],["jauheliha","jauheliha"],["kahvi","kahvi"],["juusto","juusto"],["jogur","jogurtti"],["leipa","leipä"],["cola","cola"],["voi","voi"],["kananmuna","kananmuna"],["broiler","broileri"],["pasta","pasta"],["riisi","riisi"],["banaani","banaani"],["toma","tomaatti"],["kink","kinkku"],["makk","makkara"],["rahka","rahka"]])if(n.includes(x))o.push(t);return [...new Map(o.filter(Boolean).map(x=>[norm(x),x])).values()];}
           for(const pair of pairs){const st={tested:0,eanDirect:0,exactName:0,safeSizeName:0,safeName:0,noSafeMatch:0,hardBadChosen:0,directEanQueriesReturningExact:0,rejectedSemantic:0};
             for(const q of queries){const rows=(await s(q,pair.s)).slice(0,5);for(const p of rows){st.tested++;const pe=ean(p.ean),ps=size(p.name);let tier="NO_SAFE_MATCH",item=null;
               if(pe){const er=await k(pe,pair.k);item=er.find(x=>ean(x.ean)===pe)||null;if(item){tier="EAN_DIRECT";st.directEanQueriesReturningExact++;}}
               if(!item){const nr=await k(p.name,pair.k);item=nr.find(x=>norm(x.name)===norm(p.name))||null;if(item)tier="EXACT_NAME";}
-              if(!item){let u=[];for(const t of terms(p.name).slice(0,5))u.push(...await k(t,pair.k));let all=[...new Map(u.map(x=>[String(x.id),x])).values()];let d=all.filter(x=>!hardBad(p.name,x.name));st.rejectedSemantic+=all.length-d.length;const ss=ps?d.filter(x=>size(x.name)===ps):d,pool=ss.length?ss:d,rank=pool.map(x=>({x,sc:score(p.name,x.name)})).sort((a,b)=>b.sc-a.sc);if(rank[0]?.sc>=2){item=rank[0].x;tier=ss.length?"SAFE_SIZE_NAME":"SAFE_NAME";}}
+              if(!item){let u=[];for(const t of terms(p.name).slice(0,5))u.push(...await k(t,pair.k));let all=[...new Map(u.map(x=>[String(x.id),x])).values()];inspectNearTie(p.name,all);let d=all.filter(x=>!hardBad(p.name,x.name));st.rejectedSemantic+=all.length-d.length;const ss=ps?d.filter(x=>size(x.name)===ps):d,pool=ss.length?ss:d,rank=pool.map(x=>({x,sc:score(p.name,x.name)})).sort((a,b)=>b.sc-a.sc);if(rank[0]?.sc>=2){item=rank[0].x;tier=ss.length?"SAFE_SIZE_NAME":"SAFE_NAME";}}
               if(tier==="EAN_DIRECT")st.eanDirect++;else if(tier==="EXACT_NAME")st.exactName++;else if(tier==="SAFE_SIZE_NAME")st.safeSizeName++;else if(tier==="SAFE_NAME")st.safeName++;else st.noSafeMatch++;if(item&&hardBad(p.name,item.name))st.hardBadChosen++;
               console.log(JSON.stringify({pair:pair.label,q,s:p.name,sSize:ps||null,sEan:pe||null,tier,k:item?.name||null,kSize:item?size(item.name)||null:null,kEan:item?.ean||null}));
             }}
             console.log("SAFE_SUMMARY "+pair.label+" "+JSON.stringify(st));
           }
+          console.log("NEAR_TIE_PRICE_PROBE "+JSON.stringify({nearTieCheaperOverrides,nearTieLargeSizeMismatch,examples:nearTieExamples}));
           NODE
