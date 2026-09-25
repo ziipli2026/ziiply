@@ -325,47 +325,6 @@ if(!spatialResolved||spatialResolved.sanity==="review"||spatialResolved.source==
 // Generic fixed-package unit-rate derivation from the product's own printed rate.
 // Example: 500 ml + 5.00/l => 2.50; 1.2 l + 4.17/l => about 5.00.
 // Ignore comparison rates on "Ilman Plussa-korttia" rows and require a nearby sale-unit token.
-if(!spatialResolved&&anchor&&pk&&pk.min===pk.max){
- const local=wordBoxes.filter(b=>boxDistance(anchor,b)<.23),groups=spatialGroups(local);
- const saleUnits=local.filter(b=>/^(PS|PKT|KPL|RS|TLK|PL|PRK)$/i.test(String(b.text||"").trim()));
- const rates=[];
- for(const g of groups){
-  const t=String(g.text||""); if(/Ilman\s+Plussa-korttia/i.test(t))continue;
-  for(const m of t.matchAll(/(?:^|\s|\()(\d{1,3})\s+(\d{2})\/(kg|l)(?:\s|$|\))/gi)){
-   const rate=Number(m[1]+"."+m[2]),value=Number((pk.min*rate).toFixed(2));
-   if(value>=.5&&value<100)rates.push({rate,value});
-  }
-  // OCR may duplicate the first decimal digit as a separate box: "4 1 17/l" means 4.17/l.
-  const bs=g.boxes||[];
-  for(let bi=0;bi<bs.length-2;bi++){
-   const a=String(bs[bi].text||"").trim(),dup=String(bs[bi+1].text||"").trim(),tail=String(bs[bi+2].text||"").trim();
-   const tm=tail.match(/^(\d)(\d)\/(kg|l)\)?$/i);
-   if(/^\d{1,3}$/.test(a)&&/^\d$/.test(dup)&&tm&&dup===tm[1]){
-    const rate=Number(a+"."+tm[1]+tm[2]),value=Number((pk.min*rate).toFixed(2));
-    if(value>=.5&&value<100)rates.push({rate,value});
-   }
-  }
- }
- // Basic-HTML fallback: the product's own printed unit rate is often the first standalone rate line
- // immediately after the title, even when coordinate OCR fragments that same rate into incompatible boxes.
- // Keep this local to the product lead-in and stop before the normal-price comparison row.
- // Prefer an exact standalone basic-HTML unit rate from this product's own lead-in.
- // Coordinate OCR may contain several valid-looking rates from adjacent normal-price/product rows.
- const lead=[];
- const selfStart=lines[i]?.i??i,selfAfter=lines.filter(row=>row.i>selfStart).slice(0,8);
- for(const row of selfAfter){if(/Ilman\s+Plussa-korttia/i.test(row.text))break;lead.push(row.text);}
- let basicOwnRate=null;
- for(const t of lead){
-  const m=String(t||"").match(/^\s*(\d{1,3})[,.](\d{2})\/(kg|l)\s*$/i);
-  if(!m)continue;
-  const rate=Number(m[1]+"."+m[2]),value=Number((pk.min*rate).toFixed(2));
-  if(value>=.5&&value<100&&(!nr||value<=nr.max*1.001)){basicOwnRate={rate,value,basicLead:true};break;}
- }
- if(basicOwnRate){rates.length=0;rates.push(basicOwnRate);}
- else if(!saleUnits.length)rates.length=0;
- const uniq=[...new Map(rates.map(x=>[x.value,x])).values()];
- if(uniq.length===1&&(saleUnits.length||rates[0]?.basicLead))spatialResolved={value:uniq[0].value,quantity:null,unit:saleUnits.length?String(saleUnits.sort((a,b)=>boxDistance(anchor,a)-boxDistance(anchor,b))[0].text).toUpperCase():null,source:rates[0]?.basicLead?"fixed-package-basic-lead-unitrate-derived":"fixed-package-own-unitrate-derived",sanity:"pass",confidence:"high"};
-}
 // Product-row fixed-package split price: reconstruct raw euro+cents tokens on the same visual band to the right of a meaningful title hit, then require package/unit-price consistency when available.
 // Fixed-package visual split price from raw boxes, confirmed by a separate printed unit-rate pair. This handles layouts where spatialGroups do not merge the price/unit-rate tokens.
 // Fixed-package explicit visual price: accept a split euro+cents price only when the printed local kg/l rate independently confirms it. This avoids trusting misleading expectedSingle arithmetic.
