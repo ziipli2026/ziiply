@@ -205,12 +205,6 @@ if(!spatialResolved&&anchor&&expected){
 // Large visual euro+cents pair plus a nearby matching sale unit.
 // Require package/unit-price arithmetic to agree when expectedSingle exists; this recovers cards such as 2.59 RS
 // without reviving previously rejected loose nearest-price matches.
-if(anchor&&expected){
- const strong=spatialCandidates.filter(x=>x.value>=.5&&x.value<30&&x.unit&&Math.abs(x.value-expected)/expected<=.025).sort((a,b)=>a.score-b.score)[0];
- // This independent arithmetic+visual proof may replace a weak/review candidate, but never a trusted high-confidence source.
- const weakExisting=!spatialResolved||spatialResolved.sanity==="review"||spatialResolved.source==="best-spatial-candidate";
- if(strong&&weakExisting){const exactRatio=Math.abs(strong.value-expected)/expected;if(exactRatio<=.01)spatialResolved={...strong,source:"expected-near-exact-visual",sanity:"pass"};}
-}
 // Product-row explicit offer digits: accept a price printed in the same local row as the product name
 // when package/unit-price arithmetic independently agrees. Exclude any Ilman Plussa-korttia comparison row.
 if(anchor&&expected){
