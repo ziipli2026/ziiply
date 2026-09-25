@@ -38,6 +38,8 @@ jobs:
             }
           })().catch(e=>{console.error(e);process.exit(2)});
           NODE
+      - name: Probe hypermarket source
+        run: curl -sS 'https://api.ruoanhinta.fi/api/stores?search=Prisma%20Hyvink%C3%A4%C3%A4' | head -c 12000
       - name: Simulate Jokela and Hyvinkaa against production resolver
         shell: bash
         run: |
