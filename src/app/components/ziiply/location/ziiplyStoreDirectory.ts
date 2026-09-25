@@ -328,11 +328,11 @@ export async function getSKaupatFullDirectoryV1(): Promise<SKaupatStoreDirectory
   if (sKaupatFullDirectoryPromiseV1) return sKaupatFullDirectoryPromiseV1;
 
   sKaupatFullDirectoryPromiseV1 = (async () => {
-    const all = await Promise.all(
-      S_KAUPAT_STORE_CHAIN_PAGES_V1.map((item) =>
-        getSKaupatChainDirectoryV1(item.chain),
-      ),
-    );
+    const all: SKaupatStoreDirectoryEntryV1[][] = [];
+    for (const item of S_KAUPAT_STORE_CHAIN_PAGES_V1) {
+      all.push(await getSKaupatChainDirectoryV1(item.chain));
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    }
 
     const byId = new Map<string, SKaupatStoreDirectoryEntryV1>();
     for (const entry of all.flat()) {
