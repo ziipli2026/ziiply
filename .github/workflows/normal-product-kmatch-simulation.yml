@@ -193,4 +193,36 @@ jobs:
             safeTieExamples.push({source:ex.source,cheaper:ex.cheaper,decision:ok?"ALLOW_PRICE_TIE":"BLOCK_PRICE_TIE"});
           }
           console.log("SAFE_PRICE_TIE_PROBE "+JSON.stringify({sampled:nearTieExamples.length,allowed:safePriceTieAllowed,blocked:safePriceTieBlocked,blockedSize:safePriceTieBlockedSize,examples:safeTieExamples}));
+
+          // Brand-retention probe: buildKSearchName currently strips Valio and Arla.
+          // Measure whether keeping those consumer brands as the first K search term
+          // surfaces an exact-name or same-brand candidate that the stripped search misses.
+          let brandProbe={tested:0,brandFirstExactGain:0,brandFirstSameBrandGain:0,brandFirstNoGain:0,examples:[]};
+          async function probeBrandRetention(source,storeId){
+            const n=norm(source); const brand=n.includes("valio")?"valio":n.includes("arla")?"arla":"";
+            if(!brand)return;
+            brandProbe.tested++;
+            const stripped=terms(source)[0]||"";
+            const kept=n;
+            if(!stripped||stripped===kept)return;
+            const [a,b]=await Promise.all([k(stripped,storeId),k(kept,storeId)]);
+            const exactA=a.some(x=>norm(x.name)===n), exactB=b.some(x=>norm(x.name)===n);
+            const brandA=a.some(x=>norm(x.name).includes(brand)), brandB=b.some(x=>norm(x.name).includes(brand));
+            let gain="";
+            if(!exactA&&exactB){brandProbe.brandFirstExactGain++;gain="EXACT";}
+            else if(!brandA&&brandB){brandProbe.brandFirstSameBrandGain++;gain="BRAND";}
+            else brandProbe.brandFirstNoGain++;
+            if(gain&&brandProbe.examples.length<20)brandProbe.examples.push({source,brand,stripped,kept,gain,strippedTop:a.slice(0,3).map(x=>x.name),keptTop:b.slice(0,3).map(x=>x.name)});
+          }
+          for(const pair of pairs){
+            const seen=new Set();
+            for(const q of queries){
+              const sp=await s(q,pair.s);
+              for(const p of sp.slice(0,25)){
+                if(seen.has(p.name))continue; seen.add(p.name);
+                if(/\\b(valio|arla)\\b/i.test(p.name))await probeBrandRetention(p.name,pair.k);
+              }
+            }
+          }
+          console.log("BRAND_RETENTION_PROBE "+JSON.stringify(brandProbe));
           NODE
