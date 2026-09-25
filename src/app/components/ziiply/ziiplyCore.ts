@@ -1110,7 +1110,7 @@ export function hasExactNormalizedWord(value: string, word: string) {
 
 export function parseMetricSize(value: string) {
   const text = normalize(value).replace(/(\d),(\d)/g, "$1.$2");
-  const match = text.match(/\b(\d+(?:\.\d+)?)\s?(kg|g|l|ml)\b/);
+  const match = text.match(/\b(\d+(?:\.\d+)?)\s?(kg|g|l|dl|cl|ml)\b/);
 
   if (!match) return null;
 
@@ -1122,6 +1122,8 @@ export function parseMetricSize(value: string) {
   if (unit === "kg") return { unitGroup: "weight", amount: amount * 1000, label: `${amount}kg` };
   if (unit === "g") return { unitGroup: "weight", amount, label: `${amount}g` };
   if (unit === "l") return { unitGroup: "volume", amount: amount * 1000, label: `${amount}l` };
+  if (unit === "dl") return { unitGroup: "volume", amount: amount * 100, label: `${amount}dl` };
+  if (unit === "cl") return { unitGroup: "volume", amount: amount * 10, label: `${amount}cl` };
   return { unitGroup: "volume", amount, label: `${amount}ml` };
 }
 
@@ -2997,6 +2999,27 @@ export function pickBestSProduct(items: Product[], query: string, ean?: string) 
     .sort((a, b) => b.score - a.score || getProductPrice(a.item) - getProductPrice(b.item))[0]?.item;
 }
 
+function canUseKPriceTieBreaker(sourceName: string, targetName: string) {
+  if (isHardRejectedKMatch(sourceName, targetName)) return false;
+
+  const sourceSize = parseMetricSize(sourceName);
+  const targetSize = parseMetricSize(targetName);
+  if (sourceSize && targetSize) {
+    if (sourceSize.unitGroup !== targetSize.unitGroup || sourceSize.amount !== targetSize.amount) return false;
+  }
+
+  const ignored = new Set(["coop", "xtra", "kotimaista", "suomalainen", "pirkka", "menu", "valio", "arla", "tuote", "pakattu", "laktoositon", "luomu", "kevyt"]);
+  const sourceWords = getNormalizedWords(sourceName).filter(
+    (word) => word.length >= 4 && !/^\d/.test(word) && !ignored.has(word)
+  );
+  const target = normalize(targetName);
+  const sharedWords = sourceWords.filter((word) => target.includes(word));
+
+  if (sourceSize && targetSize) return sharedWords.length >= 1;
+  if (!sourceSize && !targetSize) return sharedWords.length >= 2;
+  return false;
+}
+
 export function pickBestKProduct(items: KProduct[], query: string, ean?: string) {
   const usableItems = items.filter(
     (item) =>
@@ -3028,8 +3051,13 @@ export function pickBestKProduct(items: KProduct[], query: string, ean?: string)
     .sort((a, b) => {
       const scoreDifference = b.score - a.score;
 
-      // Jos osumat ovat lähes yhtä hyviä, edullisempi vaihtoehto on parempi MVP-vastaavuus.
-      if (Math.abs(scoreDifference) <= 14) {
+      // Hinta saa ratkaista lähes tasavahvan osuman vain, kun tuotteiden
+      // vastaavuudesta on myös positiivista näyttöä (tuotetermit + pakkauskoko).
+      if (
+        Math.abs(scoreDifference) <= 14 &&
+        canUseKPriceTieBreaker(query, a.item.name) &&
+        canUseKPriceTieBreaker(query, b.item.name)
+      ) {
         return a.item.price - b.item.price;
       }
 
