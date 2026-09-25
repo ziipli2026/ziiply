@@ -91,7 +91,12 @@ jobs:
           const fs=require("fs");
           const p="src/app/page.tsx",r="src/app/api/store-search/route.ts";
           let page=fs.readFileSync(p,"utf8"),route=fs.readFileSync(r,"utf8");
-          if(!page.includes("resolveZiiplyPageStoreSelection")) page='import { resolveZiiplyPageStoreSelection } from "./components/ziiply/location/ziiplyStoreSelectionCore";\n'+page;
+          if(!page.includes("resolveZiiplyPageStoreSelection")) {
+            const imp='import { resolveZiiplyPageStoreSelection } from "./components/ziiply/location/ziiplyStoreSelectionCore";';
+            const directive='"use client";';
+            if(page.includes(directive)) page=page.replace(directive,directive+'\n'+imp);
+            else page=imp+'\n'+page;
+          }
           const a='const ranked = rankStoresForMode(stores, mode, coords);';
           const b='const ranked = coords ? resolveZiiplyPageStoreSelection({ stores, coords, mode }) : rankStoresForMode(stores, mode, coords);';
           const x='const ranked = rankStoresForMode(gpsStorePoolV40, gpsMode, gpsCoordsV320);';
