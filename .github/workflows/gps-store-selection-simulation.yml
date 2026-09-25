@@ -80,6 +80,18 @@ jobs:
           main().catch(e=>{ console.error(e); process.exit(2); });
           TS
           npx --yes tsx live-gps-test.ts
+      - name: Probe product-compatible Ruoanhinta local store IDs
+        shell: bash
+        run: |
+          node <<'JS'
+          const qs=["S-market","Sale","Alepa","K-Market","K-Supermarket"];
+          const pts=[["Jokela",60.552446,24.966490],["Hyvinkää",60.6310,24.8580],["Tuusula",60.4023,25.0263],["Oulu",65.0121,25.4651]];
+          const rad=x=>x*Math.PI/180,dist=(a,b,c,d)=>{const R=6371,p=rad(c-a),q=rad(d-b),z=Math.sin(p/2)**2+Math.cos(rad(a))*Math.cos(rad(c))*Math.sin(q/2)**2;return 2*R*Math.asin(Math.sqrt(z))};
+          (async()=>{let all=[];for(const q of qs){const r=await fetch("https://api.ruoanhinta.fi/api/stores?search="+encodeURIComponent(q));const j=await r.json();const a=Array.isArray(j)?j:(j.items||[]);console.log("RH_LOCAL_COUNT",q,a.length);all.push(...a.map(x=>({...x,_q:q,latitude:Number(x.lat??x.latitude),longitude:Number(x.long??x.lon??x.longitude)})));}
+          const uniq=[...new Map(all.map(x=>[String(x.id),x])).values()].filter(x=>Number.isFinite(x.latitude)&&Number.isFinite(x.longitude));
+          for(const [label,lat,lon] of pts){const s=uniq.filter(x=>/s-market|\bsale\b|alepa/i.test(x.name||"")).sort((a,b)=>dist(lat,lon,a.latitude,a.longitude)-dist(lat,lon,b.latitude,b.longitude))[0];const k=uniq.filter(x=>/k-market|k-supermarket/i.test(x.name||"")).sort((a,b)=>dist(lat,lon,a.latitude,a.longitude)-dist(lat,lon,b.latitude,b.longitude))[0];console.log("RH_LOCAL_NEAREST",JSON.stringify({label,s:s&&{id:s.id,name:s.name,d:dist(lat,lon,s.latitude,s.longitude)},k:k&&{id:k.id,name:k.name,d:dist(lat,lon,k.latitude,k.longitude)}}));}
+          console.log("RH_LOCAL_UNIQUE",uniq.length);})().catch(e=>{console.error(e);process.exit(1)});
+          JS
       - name: Simulate patched project typecheck and build
         shell: bash
         run: |
@@ -142,18 +154,6 @@ jobs:
           npm run typecheck --if-present
           npm run build
           echo GPS_PATCH_PROJECT_BUILD_SUCCESS
-      - name: Probe product-compatible Ruoanhinta local store IDs
-        shell: bash
-        run: |
-          node <<'JS'
-          const qs=["S-market","Sale","Alepa","K-Market","K-Supermarket"];
-          const pts=[["Jokela",60.552446,24.966490],["Hyvinkää",60.6310,24.8580],["Tuusula",60.4023,25.0263],["Oulu",65.0121,25.4651]];
-          const rad=x=>x*Math.PI/180,dist=(a,b,c,d)=>{const R=6371,p=rad(c-a),q=rad(d-b),z=Math.sin(p/2)**2+Math.cos(rad(a))*Math.cos(rad(c))*Math.sin(q/2)**2;return 2*R*Math.asin(Math.sqrt(z))};
-          (async()=>{let all=[];for(const q of qs){const r=await fetch("https://api.ruoanhinta.fi/api/stores?search="+encodeURIComponent(q));const j=await r.json();const a=Array.isArray(j)?j:(j.items||[]);console.log("RH_LOCAL_COUNT",q,a.length);all.push(...a.map(x=>({...x,_q:q,latitude:Number(x.lat??x.latitude),longitude:Number(x.long??x.lon??x.longitude)})));}
-          const uniq=[...new Map(all.map(x=>[String(x.id),x])).values()].filter(x=>Number.isFinite(x.latitude)&&Number.isFinite(x.longitude));
-          for(const [label,lat,lon] of pts){const s=uniq.filter(x=>/s-market|\bsale\b|alepa/i.test(x.name||"")).sort((a,b)=>dist(lat,lon,a.latitude,a.longitude)-dist(lat,lon,b.latitude,b.longitude))[0];const k=uniq.filter(x=>/k-market|k-supermarket/i.test(x.name||"")).sort((a,b)=>dist(lat,lon,a.latitude,a.longitude)-dist(lat,lon,b.latitude,b.longitude))[0];console.log("RH_LOCAL_NEAREST",JSON.stringify({label,s:s&&{id:s.id,name:s.name,d:dist(lat,lon,s.latitude,s.longitude)},k:k&&{id:k.id,name:k.name,d:dist(lat,lon,k.latitude,k.longitude)}}));}
-          console.log("RH_LOCAL_UNIQUE",uniq.length);})().catch(e=>{console.error(e);process.exit(1)});
-          JS
       - name: Simulate complete GPS store-search route branch
         shell: bash
         run: |
