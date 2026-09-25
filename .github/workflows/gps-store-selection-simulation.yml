@@ -95,6 +95,28 @@ jobs:
           for(const [label,lat,lon] of pts){const s=uniq.filter(x=>/s-market|\bsale\b|alepa/i.test(x.name||"")).sort((a,b)=>dist(lat,lon,a.latitude,a.longitude)-dist(lat,lon,b.latitude,b.longitude))[0];const k=uniq.filter(x=>/k-market|k-supermarket/i.test(x.name||"")).sort((a,b)=>dist(lat,lon,a.latitude,a.longitude)-dist(lat,lon,b.latitude,b.longitude))[0];console.log("RH_LOCAL_NEAREST",JSON.stringify({label,s:s&&{id:s.id,name:s.name,d:dist(lat,lon,s.latitude,s.longitude)},k:k&&{id:k.id,name:k.name,d:dist(lat,lon,k.latitude,k.longitude)}}));}
           console.log("RH_LOCAL_UNIQUE",uniq.length);})().catch(e=>{console.error(e);process.exit(1)});
           JS
+      - name: Verify live K product prices for GPS stores
+        shell: bash
+        run: |
+          node <<'JS'
+          const points=[
+            ["Jokela","K-Supermarket Jokela"],
+            ["Hyvinkää","K-Supermarket Vieremä"],
+            ["Tuusula","K-Supermarket Hyrrä"],
+            ["Oulu","K-Market Torinranta"],
+          ];
+          const searches=["K-Market","K-Supermarket"];
+          const batches=await Promise.all(searches.map(async q=>{const x=await (await fetch("https://api.ruoanhinta.fi/api/stores?search="+encodeURIComponent(q))).json();return Array.isArray(x)?x:(x.items||[])}));
+          const all=batches.flat();
+          for(const [label,expected] of points){
+            const s=all.find(x=>String(x.name||"").toLowerCase()===expected.toLowerCase());
+            if(!s) throw new Error(label+": K store missing: "+expected);
+            const u="https://api.ruoanhinta.fi/api/items?search="+encodeURIComponent("maito")+"&storeIds="+encodeURIComponent(String(s.id))+"&skip=0&take=30";
+            const res=await fetch(u); const data=await res.json(); const items=(data.items||[]).filter(p=>Number(p.storeItems?.[0]?.price)>0);
+            console.log("GPS_K_LIVE_PRICE",JSON.stringify({label,store:s.name,storeId:s.id,externalId:s.externalId??null,status:res.status,count:items.length,sample:items.slice(0,3).map(p=>({name:p.name,price:p.storeItems?.[0]?.price}))}));
+            if(!res.ok||items.length===0) process.exitCode=2;
+          }
+          JS
       - name: Verify live S product prices for GPS stores
         shell: bash
         run: |
