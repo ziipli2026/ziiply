@@ -101,6 +101,8 @@ jobs:
           const hyperCoverage={prisma:gps.filter((x:any)=>x.chain==="prisma").length,kCitymarket:gps.filter((x:any)=>x.chain==="kcitymarket").length};
           console.log("GPS_STORE_API_CONTRACT",JSON.stringify({manualCount:manual.length,manualPreserved,coordsPreserved,hyperCoverage,sample:gps.slice(0,3)}));
           if(!manualPreserved||!coordsPreserved||hyperCoverage.prisma<50||hyperCoverage.kCitymarket<50) process.exit(2);
+          }
+          main().catch(e=>{console.error(e);process.exit(2);});
           TS
           npx --yes tsx gps-store-api-contract-test.ts
       - name: Simulate resolver through active store IDs
