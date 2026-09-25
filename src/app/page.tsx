@@ -15706,9 +15706,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     // GPS-picker V321:
     // - manuaalinen sijainti: ei kappale-/etäisyysrajausta
-    // - lähikaupat: oman GPS-kunnan kaupat + 10 km lähikaupat, mutta enintään
-    //   5 lähintä per ketju; jos joukko jää vajaaksi, täydennetään lähimmillä
-    //   myös kuntarajan / 10 km rajan ulkopuolelta
+    // - lähikaupat: kaikki oman GPS-kunnan saman ketjun lähikaupat +
+    //   lähimmät kuntarajan yli, kunnes listalla on vähintään 5; oman kunnan
+    //   kauppoja ei leikata kappalerajalla
     // - tavaratalot: lähin Prisma/K-Citymarket per ketju +
     //   kaikki GPS:n tunnistaman kunnan saman ketjun tavaratalot; ei km-rajaa
     // Resolverin laaja candidate pool säilyy ennallaan.
@@ -15740,17 +15740,25 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       .sort((a, b) => a.distanceKm - b.distanceKm);
 
     if (mode === "local") {
-      const localPreferredV321 = distanceSortedV321.filter(
-        ({ store, distanceKm }) =>
-          distanceKm <= 10 || sameGpsMunicipalityV321(store),
-      );
-      const localPoolV321 = uniqueStoresByIdAndName([
-        ...localPreferredV321.map(({ store }) => store),
-        ...distanceSortedV321.map(({ store }) => store),
-      ]).slice(0, 5);
+      // Lähikaupat GPS V323:
+      // kaikki GPS-kunnan saman ketjun lähikaupat ovat aina mukana.
+      // Lisäksi täydennetään lähimmillä (myös kuntarajan yli), kunnes listalla
+      // on vähintään 5 kauppaa. Kunnan kauppoja ei koskaan leikata 5 rajalla.
+      const sameMunicipalityLocalsV323 = distanceSortedV321
+        .filter(({ store }) => sameGpsMunicipalityV321(store))
+        .map(({ store }) => store);
+      const nearestLocalsV323 = distanceSortedV321.map(({ store }) => store);
+      const localPoolV323 = uniqueStoresByIdAndName([
+        ...sameMunicipalityLocalsV323,
+        ...nearestLocalsV323,
+      ]);
+      const localPickerV323 =
+        sameMunicipalityLocalsV323.length >= 5
+          ? sameMunicipalityLocalsV323
+          : localPoolV323.slice(0, Math.max(5, sameMunicipalityLocalsV323.length));
 
       return sortStoresForPickerV320(
-        localPoolV321,
+        localPickerV323,
         mode,
         selectedId,
         selectedName,
