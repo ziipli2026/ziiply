@@ -3434,6 +3434,10 @@ export default function Page() {
   const [gpsAutoActivatedV287, setGpsAutoActivatedV287] = useState(false);
   const gpsUserDisabledRefV306 = useRef(false);
   const lastAutoAppliedLocationRefV361 = useRef("");
+  // V552: Hae-huomioanimaatio sallitaan vasta, kun sijainti on vahvistettu
+  // tämän sivulatauksen aikana oikealla GPS-tuloksella tai käsin tehdyllä sijaintihaulla.
+  // Pelkkä localStorage/stable snapshot -palautus ei saa pomputtaa suurennuslasia.
+  const searchReadyLocationConfirmedThisSessionRefV552 = useRef(false);
 
   
   function getDistanceMetersV391(
@@ -4117,7 +4121,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const haeReadyBadgeTextV502 = haeReadyBadgeVisibleV502 ? "Voit hakea" : "";
 
   useEffect(() => {
-    if (!storesReadyForSearch || !haeReadyBadgeAllowedViewV520) {
+    if (
+      !storesReadyForSearch ||
+      !haeReadyBadgeAllowedViewV520 ||
+      !searchReadyLocationConfirmedThisSessionRefV552.current
+    ) {
       setHaeReadyBadgeTimerVisibleV520(false);
       return;
     }
@@ -9287,6 +9295,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
 
       setFoundStores(storesWithDistanceV97);
+
+      // V552: vasta onnistunut, vähintään yhden kaupan löytänyt sijaintihaku
+      // vahvistaa Hae-huomioanimaation sijaintiehdon. Snapshot-hydraus ei käy täällä.
+      if (storesWithDistanceV97.length > 0) {
+        searchReadyLocationConfirmedThisSessionRefV552.current = true;
+      }
 
       if (storesWithDistanceV97.length === 0) {
         // V168: älä jätä edellisen alueen/Joroisten kauppoja activeAreaan,
