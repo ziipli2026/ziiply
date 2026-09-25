@@ -56,7 +56,8 @@ jobs:
             }
             if(A.includes("calzone")&&!B.includes("calzone"))return true;
             if(A.includes("riisi")){
-              for(const x of ["monivilja","kaura","ohra"])if(A.includes(x)!==B.includes(x))return true;
+              for(const x of ["monivilja","kaura","ohra","quinoa"])if(A.includes(x)!==B.includes(x))return true;
+              if(!A.includes("hiutale")&&B.includes("hiutale"))return true;
             }
             if(A.includes("smoothie")){
               for(const x of ["ananas","guava","kookos","mango","banaani"])if(A.includes(x)!==B.includes(x))return true;
