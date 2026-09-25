@@ -38,7 +38,7 @@ jobs:
               for(const x of ["mustikka","vanilja","kahvi","mansikka","maustamaton"])if(A.includes(x)!==B.includes(x))return true;
             }
             if(A.includes("kananmuna")){
-              const ac=A.match(/\\b([smlx]+)\\/?([smlx]+)?(\\d{1,2})\\b/),bc=B.match(/\\b([smlx]+)\\/?([smlx]+)?(\\d{1,2})\\b/);
+              const ac=A.match(new RegExp("\\\\b([smlx]+)\\\\/?([smlx]+)?(\\\\d{1,2})\\\\b")),bc=B.match(new RegExp("\\\\b([smlx]+)\\\\/?([smlx]+)?(\\\\d{1,2})\\\\b"));
               if(ac&&bc&&ac[3]!==bc[3])return true;
             }
             if(A.includes("cola")&&/\\b(\\d+) pack\\b/.test(B)&&!/\\b(\\d+) pack\\b/.test(A))return true;
