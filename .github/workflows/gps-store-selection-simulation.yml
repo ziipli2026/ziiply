@@ -94,7 +94,7 @@ jobs:
             if(!r.ok) throw new Error("Tjek proxy "+businessId+" "+r.status);
             const j:any=await r.json(); const flat:any[]=[]; const seen=new Set<string>();
             const walk=(x:any)=>{if(!x||typeof x!=="object")return;if(Array.isArray(x)){x.forEach(walk);return;}const name=String(x.name||x.title||"");const latitude=Number(x.latitude??x.coordinates?.latitude),longitude=Number(x.longitude??x.coordinates?.longitude);if(name&&Number.isFinite(latitude)&&Number.isFinite(longitude)){const id=String(x.id||x.storeId||x.uuid||name),k=id+"|"+name;if(!seen.has(k)){seen.add(k);flat.push({id,name,latitude,longitude})}}Object.values(x).forEach(walk)}; walk(j);
-            return flat.filter(x=>kind==="s"?/^(S-market|Sale|Alepa)\b/i.test(x.name)&&!/ABC|liikenneasema|huoltoasema/i.test(x.name):kind==="ks"?/^K-Supermarket\b/i.test(x.name):/^K-Market\b/i.test(x.name));
+            return flat.filter(x=>kind==="s"?/^(S-market|Sale|Alepa)\b/i.test(x.name)&&!/ABC|liikenneasema|huoltoasema/i.test(x.name):kind==="ks"?/K-Supermarket/i.test(x.name):/K-Market/i.test(x.name));
           }
           async function rh(search:string,chain:string){
               const r=await fetch("https://api.ruoanhinta.fi/api/stores?search="+encodeURIComponent(search)); const a:any=await r.json();
