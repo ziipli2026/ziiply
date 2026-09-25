@@ -58,7 +58,7 @@ jobs:
         shell: bash
         run: |
           node <<'JS'
-          const candidates=["https://ziiply.vercel.app"];
+          const dist=(a,b,c,d)=>{const R=6371,r=x=>x*Math.PI/180,x=r(c-a),y=r(d-b),h=Math.sin(x/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(y/2)**2;return 2*R*Math.asin(Math.sqrt(h))};\n          const candidates=["https://ziiply.vercel.app"];
           let base="";
           for(const candidate of candidates){
             try{
@@ -79,7 +79,7 @@ jobs:
             const r=await fetch(u,{headers:{"user-agent":"Ziiply-GPS-regression"}});
             const d=await r.json(); const items=Array.isArray(d.items)?d.items:[];
             const s=items.find(x=>/^(S-market|Sale\b|Alepa\b)/i.test(String(x.name||"")));
-            const k=items.find(x=>/^(K-Market|K-Supermarket)/i.test(String(x.name||"")));
+            const k=ranked.find(x=>/^(K-Market|K-Supermarket)/i.test(String(x.name||"")));
             console.log("GPS_DEPLOYED_ROUTE",JSON.stringify({label,status:r.status,count:items.length,s:s&&{name:s.name,id:s.id,externalId:s.externalId},k:k&&{name:k.name,id:k.id,externalId:k.externalId}}));
             if(!r.ok||!s||!k||/Alepa Hämeenkatu/i.test(String(s.name))) process.exitCode=2;
             for(const [chain,x] of [["s",s],["k",k]]){
