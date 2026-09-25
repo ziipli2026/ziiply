@@ -86,6 +86,11 @@ jobs:
             for(const x of forms2)if(A.includes(x)!==B.includes(x))return true;
             if(A.includes("tuorejuusto")){
               for(const x of ["chili","paprika","valkosipuli","kevyt","laktoositon"])if(A.includes(x)!==B.includes(x))return true;
+              const as=size(a),bs=size(b);if(as&&bs&&as!==bs)return true;
+            }
+            if(A.includes("pastakastike")){
+              for(const x of ["mozzarella","tomaatti","basilika"])if(A.includes(x)!==B.includes(x))return true;
+              const as=size(a),bs=size(b);if(as&&bs&&as!==bs)return true;
             }
             return false;
           }
