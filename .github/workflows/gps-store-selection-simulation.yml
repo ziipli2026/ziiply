@@ -80,6 +80,26 @@ jobs:
           main().catch(e=>{ console.error(e); process.exit(2); });
           TS
           npx --yes tsx live-gps-test.ts
+      - name: Simulate page GPS integration seam
+        shell: bash
+        run: |
+          cat > gps-page-seam-test.ts <<'TS'
+          import fs from "node:fs";
+          const page=fs.readFileSync("src/app/page.tsx","utf8");
+          const checks={
+            hasGpsApply: /applyLocation\([\s\S]*source:\s*"manual"\s*\|\s*"gps"/.test(page),
+            passesCoordsToFetch: /fetchStoresForLocationQuery\([\s\S]*coordsOverride\s*\|\|\s*gpsCoordsV320/.test(page),
+            writesFoundStores: page.includes("setFoundStores(storesWithDistanceV97)"),
+            buildsDynamicArea: /buildDynamicArea\(\s*query,\s*storesWithDistanceV97/.test(page),
+            oldRankerStillActive: /rankStoresForMode\(\s*storesWithDistanceV97/.test(page),
+            newResolverWired: page.includes("resolveZiiplyPageStoreSelection"),
+            storeRouteUsed: page.includes("/api/store-search?"),
+          };
+          console.log("GPS_PAGE_SEAM",JSON.stringify(checks));
+          if(!checks.hasGpsApply||!checks.passesCoordsToFetch||!checks.writesFoundStores||!checks.buildsDynamicArea||!checks.oldRankerStillActive||!checks.storeRouteUsed) process.exit(2);
+          if(checks.newResolverWired) process.exit(3);
+          TS
+          npx --yes tsx gps-page-seam-test.ts
       - name: Simulate Jokela and Hyvinkaa against production resolver
         shell: bash
         run: |
