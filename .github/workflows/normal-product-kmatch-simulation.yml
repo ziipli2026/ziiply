@@ -16,7 +16,7 @@ jobs:
           const queries=["kevytmaito","täysmaito","jauheliha","kahvi","juusto","jogurtti","ruisleipä","cola","voi","kananmuna","broileri","pasta","riisi","banaani","tomaatti","kinkku","makkara","rahka","kaurajuoma","kerma","kala","leikkele","murot","mehu","pakastepizza","jäätelö","ketsuppi","majoneesi","tonnikala","lohi","margariini","mysli","suklaa","keksit","piimä","maustamaton jogurtti","raejuusto","tuorejuusto","mozzarella","meetvursti","pekoni","nakki","kananfilee","kanasuikale","kalapuikko","katkarapu","peruna","porkkana","kurkku","paprika","omena","appelsiini","sipuli","salaatti","kaurahiutale","vehnäjauho","sokeri","suola","rypsiöljy","oliiviöljy","tomaattimurska","pavut","hernekeitto","nuudeli","tortilla","sämpylä","paahtoleipä","näkkileipä","granola","vanukas","proteiinirahka","mehukeitto","energiajuoma","kivennäisvesi","limonadi","kasvimaito","soijajuoma","mantelijuoma","ruokakerma","kuohukerma","smetana","ranskankerma","majoneesisalaatti","valmisateria","keitto","salaattiateria","pakastevihannes","ranskanperuna","kalakeitto","lihapulla"];
           const norm=v=>String(v||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9åäö%]+/g," ").replace(/\s+/g," ").trim();
           const ean=v=>String(v||"").replace(/\D/g,"");
-          const size=v=>{const raw=String(v||"").toLowerCase().replace(/,/g,".");const m=raw.match(/(\d+(?:\.\d+)?)\s*(kg|g|l|ml|cl)\b/);return m?m[1]+m[2]:"";};
+          const size=v=>{const raw=String(v||"").toLowerCase().replace(/,/g,".");const m=raw.match(/(\d+(?:\.\d+)?)\s*(kg|g|l|dl|cl|ml)\b/);if(!m)return "";let n=+m[1],u=m[2];if(u==="kg"){n*=1000;u="g";}else if(u==="l"){n*=1000;u="ml";}else if(u==="dl"){n*=100;u="ml";}else if(u==="cl"){n*=10;u="ml";}return String(n)+u;};
           async function get(path){const r=await fetch(BASE+path,{headers:{accept:"application/json"}});if(!r.ok)throw new Error(path+" HTTP "+r.status);return r.json();}
           async function s(q,id){return (await get("/api/s-products?search="+encodeURIComponent(q)+"&store="+id)).items||[];}
           async function k(q,id){return (await get("/api/k-products?search="+encodeURIComponent(q)+"&store="+id)).items||[];}
@@ -172,9 +172,19 @@ jobs:
           const safeTieExamples=[];
           function safePriceTie(source,best,cheaper){
             if(hardBad(source,cheaper.name))return false;
-            const ss=size(source),cs=size(cheaper.name);
+            const S=norm(source),C=norm(cheaper.name),ss=size(source),cs=size(cheaper.name);
             if(ss&&cs&&ss!==cs)return false;
-            return true;
+            // Price is only a tie-breaker when there is positive evidence of equivalence.
+            // Known equal package size is strong evidence, but size alone is not enough:
+            // require at least one meaningful shared product token as well.
+            const stop=new Set(["coop","xtra","kotimaista","suomalainen","pirkka","menu","valio","arla","tuote","pakattu","laktoositon","luomu","kevyt"]);
+            const sw=S.split(" ").filter(x=>x.length>=4&&!/^\\d/.test(x)&&!stop.has(x));
+            const shared=sw.filter(x=>C.includes(x));
+            const sameKnownSize=Boolean(ss&&cs&&ss===cs);
+            if(sameKnownSize&&shared.length>=1)return true;
+            // Without a measurable package size, require considerably stronger textual identity.
+            if(!ss&&!cs&&shared.length>=2)return true;
+            return false;
           }
           for(const ex of nearTieExamples){
             const b={name:ex.best,price:ex.bestPrice},ch={name:ex.cheaper,price:ex.cheaperPrice};
