@@ -57,6 +57,7 @@ jobs:
             return { live, exactCity, nameMatches, postalAreaMatches, proposed };
           }
 
+          console.log("PRODUCTION_ROUTE_PARITY: manual regression algorithm includes Ii API workaround + city/name/postal locality filtering");
           const assertions = {
             "Ii": { include:[4665,436], exclude:[836] },
             "Yli-Ii": { include:[836], exclude:[4665,436] },
