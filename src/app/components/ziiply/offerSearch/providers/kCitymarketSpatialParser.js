@@ -497,6 +497,17 @@ if(pk&&ur&&pk.max>pk.min&&ur.max>ur.min){
 }
 // Generic final authority for fixed-package cards with their own printed unit price and sale unit.
 // Re-apply after weaker spatial passes so neighbouring visual candidates cannot overwrite it.
+// Generic final authority for fixed-package cards with their own printed unit price and sale unit.
+// Re-apply after weaker spatial passes so neighbouring visual candidates cannot overwrite it.
+if(anchor&&expected&&pk&&Math.abs(pk.max-pk.min)<1e-9){
+  const ax=Number(anchor.left)||0, ay=Number(anchor.top)||0;
+  const rows=wordBoxes.filter(b=>Math.abs((Number(b.left)||0)-ax)<.035&&(Number(b.top)||0)>ay&&(Number(b.top)||0)<ay+.075&&/^\(\d{1,2}$/.test(String(b.text).trim()));
+  let printed=null;
+  for(const u of rows){const first=Number(String(u.text).replace(/\D/g,""));const tail=wordBoxes.filter(b=>(Number(b.left)||0)>=(Number(u.left)||0)&&(Number(b.left)||0)<(Number(u.left)||0)+.075&&Math.abs((Number(b.top)||0)-(Number(u.top)||0))<.008&&/\d{1,2}\/(?:kg|l)\)/i.test(String(b.text).trim())).sort((a,b)=>(Number(a.left)||0)-(Number(b.left)||0))[0];if(tail){const m=String(tail.text).match(/(\d{1,2})\/(?:kg|l)\)/i);if(m){printed=Number(first+"."+m[1].padStart(2,"0"));break;}}}
+  const unit=wordBoxes.filter(b=>/^(RS|PS|PKT|KPL|TLK|PL|PRK)$/i.test(String(b.text).trim())&&Math.abs((Number(b.top)||0)-ay)<.06&&Math.abs((Number(b.left)||0)-ax)<.28).sort((a,b)=>boxDistance(anchor,a)-boxDistance(anchor,b))[0];
+  const derived=Number((pk.min*Number(printed||0)).toFixed(2));
+  if(printed&&unit&&Math.abs(derived-expected)<.03&&(!spatialResolved||spatialResolved.sanity==="review"||spatialResolved.source==="best-spatial-candidate")) spatialResolved={value:derived,quantity:null,unit:String(unit.text).toUpperCase(),kind:"own-unitprice-package-derived",source:"own-unitprice-package-derived",sanity:"pass"};
+}
 // Generic final authority pass: reconstruct the large printed card price after every
 // earlier resolver has run, so text-fragment candidates cannot overwrite it.
 if(anchor){
