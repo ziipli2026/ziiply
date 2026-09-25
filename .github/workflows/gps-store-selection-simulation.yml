@@ -6,6 +6,9 @@ on:
     paths:
       - ".github/workflows/gps-store-selection-simulation.yml"
       - "src/app/components/ziiply/location/ziiplyStoreSelectionCore.ts"
+      - "src/app/page.tsx"
+      - "src/app/api/store-search/route.ts"
+      - "src/app/components/ziiply/ziiplyCore.ts"
 
 jobs:
   simulate:
