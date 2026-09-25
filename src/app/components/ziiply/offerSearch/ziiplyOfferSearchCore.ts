@@ -280,10 +280,29 @@ function getTrustedETarjousCategoryV166(item: ZiiplyGostaOfferLike) {
 }
 
 function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
-  // S-market/eTarjouslehdet-provider on jo normalisoinut category/categoryPath/etc.
-  // Älä aja sitä enää vanhan CategoryCore-regexin läpi, koska se tulkitsi esim.
-  // "virvoitusjuoma" -> Maitotuotteet sanan "voi" takia ja "Liha" -> Muut.
-  return getTrustedETarjousCategoryV166(item) || getOfferCategoryV106(item);
+  const trustedExistingProviderCategory = getTrustedETarjousCategoryV166(item);
+  if (trustedExistingProviderCategory) return trustedExistingProviderCategory;
+
+  // V180: K-Citymarket provider has already classified the leaflet offer into a
+  // Ziiply category. Preserve that category instead of re-running title regexes
+  // in CategoryCore (e.g. PERUNALASTUT contains "peruna" and was changed to Hevi).
+  const anyItem = item as any;
+  const storeType = normalizeGostaCoreText(anyItem?.storeType || "");
+  const source = normalizeGostaCoreText(anyItem?.source || "");
+  const isKCitymarket = storeType === "k citymarket" || storeType === "k-citymarket" || source.includes("k citymarket tarjouslehti");
+  if (isKCitymarket) {
+    const raw = normalizeGostaCoreText(anyItem?.category || "").replace(/\\bja\\b/g, " ").replace(/\\s+/g, " ").trim();
+    const trusted = new Map<string, string>([
+      ["kahvi tee", "Kahvi & tee"], ["maitotuotteet", "Maitotuotteet"], ["liha makkarat", "Liha & makkarat"],
+      ["kala", "Kala"], ["leipomo", "Leipomo"], ["hevi", "Hevi"], ["juomat", "Juomat"], ["pakasteet", "Pakasteet"],
+      ["valmisruoka", "Valmisruoka"], ["kuivatuotteet", "Kuivatuotteet"], ["makeiset keksit", "Makeiset & keksit"],
+      ["lemmikit", "Lemmikit"], ["hygienia kosmetiikka", "Hygienia & kosmetiikka"], ["kodinhoito", "Kodinhoito"],
+      ["koti vapaa aika", "Koti & vapaa-aika"], ["muut", "Muut"],
+    ]).get(raw);
+    if (trusted) return trusted;
+  }
+
+  return getOfferCategoryV106(item);
 }
 
 function normalizeGostaContextListV164(values: unknown, fallback?: unknown): string[] {
