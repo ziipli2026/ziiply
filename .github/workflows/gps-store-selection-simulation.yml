@@ -128,6 +128,34 @@ jobs:
             if(label==="Hyvinkää"&&/Hämeenkatu/i.test(String(s.name))) process.exitCode=3;
           }
           JS
+      - name: Verify deployed store-search end to end
+        shell: bash
+        run: |
+          node <<'JS'
+          const base="https://ziiply.fi";
+          const cases=[
+            ["Jokela",60.552446,24.966490],
+            ["Hyvinkää",60.6310,24.8580],
+            ["Tuusula",60.4023,25.0263],
+            ["Oulu",65.0121,25.4651],
+          ];
+          for(const [label,lat,lon] of cases){
+            const u=base+"/api/store-search?search="+encodeURIComponent(label)+"&gps=1&lat="+lat+"&lon="+lon+"&latitude="+lat+"&longitude="+lon;
+            const r=await fetch(u,{headers:{"user-agent":"Ziiply-GPS-regression"}});
+            const d=await r.json(); const items=Array.isArray(d.items)?d.items:[];
+            const s=items.find(x=>/^(S-market|Sale\b|Alepa\b)/i.test(String(x.name||"")));
+            const k=items.find(x=>/^(K-Market|K-Supermarket)/i.test(String(x.name||"")));
+            console.log("GPS_DEPLOYED_ROUTE",JSON.stringify({label,status:r.status,count:items.length,s:s&&{name:s.name,id:s.id,externalId:s.externalId},k:k&&{name:k.name,id:k.id,externalId:k.externalId}}));
+            if(!r.ok||!s||!k||/Alepa Hämeenkatu/i.test(String(s.name))) process.exitCode=2;
+            for(const [chain,x] of [["s",s],["k",k]]){
+              if(!x) continue;
+              const pr=await fetch(base+"/api/"+chain+"-products?search="+encodeURIComponent("maito")+"&store="+encodeURIComponent(String(x.id)));
+              const pd=await pr.json(); const pi=Array.isArray(pd.items)?pd.items:[];
+              console.log("GPS_DEPLOYED_PRICE",JSON.stringify({label,chain,store:x.name,storeId:x.id,status:pr.status,count:pi.length,sample:pi.slice(0,2).map(y=>({name:y.name,price:y.price}))}));
+              if(!pr.ok||pi.length===0||!pi.some(y=>Number(y.price)>0)) process.exitCode=2;
+            }
+          }
+          JS
       - name: Verify live K product prices for GPS stores
         shell: bash
         run: |
