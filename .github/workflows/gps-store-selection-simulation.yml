@@ -132,7 +132,16 @@ jobs:
         shell: bash
         run: |
           node <<'JS'
-          const base="https://ziiply.fi";
+          const candidates=["https://www.ziiply.fi","https://ziiply.fi"];
+          let base="";
+          for(const candidate of candidates){
+            try{
+              const probe=await fetch(candidate+"/api/store-search?search=Jokela&gps=1&lat=60.552446&lon=24.966490&latitude=60.552446&longitude=24.966490",{redirect:"follow"});
+              console.log("GPS_DEPLOY_PROBE",JSON.stringify({candidate,status:probe.status,url:probe.url}));
+              if(probe.ok){base=candidate;break}
+            }catch(e){console.log("GPS_DEPLOY_PROBE",JSON.stringify({candidate,error:String(e),cause:String(e?.cause||"")}))}
+          }
+          if(!base) throw new Error("No reachable Ziiply production base");
           const cases=[
             ["Jokela",60.552446,24.966490],
             ["Hyvinkää",60.6310,24.8580],
