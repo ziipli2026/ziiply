@@ -15765,20 +15765,21 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       );
     }
 
-    // Tavaratalot GPS: mukaan vain lähin kyseisen ketjun tavaratalo +
-    // kaikki saman GPS-kunnan muut saman ketjun tavaratalot. Ei km-rajaa.
-    // Näin naapurikuntien tavaratalot eivät valu listalle pelkän säteen vuoksi.
-    const nearestHyperV322 = distanceSortedV321[0]?.store;
-    const sameMunicipalityHypersV322 = distanceSortedV321
+    // Tavaratalot GPS V324:
+    // kaikki GPS-kunnan saman ketjun tavaratalot ovat aina mukana.
+    // Lisäksi mukaan otetaan lähin saman ketjun tavaratalo riippumatta kunnasta.
+    // Ei km-rajaa eikä muita naapurikuntien tavarataloja.
+    const sameMunicipalityHypersV324 = distanceSortedV321
       .filter(({ store }) => sameGpsMunicipalityV321(store))
       .map(({ store }) => store);
-    const hyperPoolV322 = uniqueStoresByIdAndName([
-      ...(nearestHyperV322 ? [nearestHyperV322] : []),
-      ...sameMunicipalityHypersV322,
+    const nearestHyperV324 = distanceSortedV321[0]?.store;
+    const hyperPoolV324 = uniqueStoresByIdAndName([
+      ...sameMunicipalityHypersV324,
+      ...(nearestHyperV324 ? [nearestHyperV324] : []),
     ]);
 
     return sortStoresForPickerV320(
-      hyperPoolV322,
+      hyperPoolV324,
       mode,
       selectedId,
       selectedName,
