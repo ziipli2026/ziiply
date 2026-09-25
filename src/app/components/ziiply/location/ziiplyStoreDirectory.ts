@@ -68,6 +68,7 @@ export type SKaupatDirectoryDiagnosticV3 = {
   firstPageHasMyymala?: boolean;
   firstPageHasCursor?: boolean;
   firstPagePrefix?: string;
+  fetchError?: string;
 };
 
 let lastPrismaDirectoryDiagnosticV3: SKaupatDirectoryDiagnosticV3 | null = null;
@@ -224,7 +225,9 @@ async function fetchSKaupatHtmlV1(url: string): Promise<string> {
     throw new Error(`S-kaupat store directory fetch failed: ${response.status} ${url}`);
   }
 
-  return response.text();
+  const text = await response.text();
+  if (!text) throw new Error(`S-kaupat empty response: status=${response.status} content-type=${response.headers.get("content-type") || ""} url=${response.url}`);
+  return text;
 }
 
 async function fetchSKaupatChainDirectoryV1(
@@ -265,7 +268,7 @@ async function fetchSKaupatChainDirectoryV1(
       }
     } catch (error) {
       console.warn("[S-kaupat directory] chain page failed", { chain, url, error });
-      if (normalizeSKaupatStoreTextV1(chain) === "prisma") lastPrismaDirectoryDiagnosticV3 = { chain, pagesFetched: visited.size, entriesParsed: diagnosticEntriesParsedV2, uniqueEntriesFound: byId.size, cursorUrlsFound: diagnosticCursorUrlsFoundV2, prismaVarkausFound: false, prismaVarkausStoreId: null };
+      if (normalizeSKaupatStoreTextV1(chain) === "prisma") lastPrismaDirectoryDiagnosticV3 = { chain, pagesFetched: visited.size, entriesParsed: diagnosticEntriesParsedV2, uniqueEntriesFound: byId.size, cursorUrlsFound: diagnosticCursorUrlsFoundV2, prismaVarkausFound: false, prismaVarkausStoreId: null, fetchError: error instanceof Error ? error.message : String(error) };
     }
   }
 
