@@ -1,5 +1,9 @@
 name: S-kaupat API diagnostics
-on: { workflow_dispatch: {} }
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/skaupat-diagnostics.yml"
 
 jobs:
   diagnose:
