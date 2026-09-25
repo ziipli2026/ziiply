@@ -56,7 +56,7 @@ for(const fused of productBlock.filter(x=>/^\d{3}$/.test(String(x.text).trim()))
     const dx=fused.left-euro.left, dy=fused.top-euro.top;
     if(dx>=0&&dx<.16&&dy>=0&&dy<.045){
       const unit=unitFrags.map(x=>({...x,du:Math.hypot(x.left-fused.left,x.top-fused.top)})).sort((a,b)=>a.du-b.du)[0];
-      spatialCandidates.push({value:Number(String(euro.text)+"."+cents),quantity:qty,unit:unit&&unit.du<.14?String(unit.text).toUpperCase():null,parts:[String(euro.text),s],score:Number((Math.abs(dx)+Math.abs(dy)).toFixed(6)),kind:"geometric-fused-multibuy"});
+      spatialCandidates.push({value:Number(String(euro.text)+"."+cents),quantity:qty,unit:unit&&unit.du<.14?String(unit.text).toUpperCase():null,parts:[String(euro.text),s],score:Number((Math.abs(dx)+Math.abs(dy)).toFixed(6))});
     }
   }
 }
