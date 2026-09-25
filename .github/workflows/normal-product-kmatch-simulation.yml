@@ -165,4 +165,22 @@ jobs:
             console.log("SAFE_SUMMARY "+pair.label+" "+JSON.stringify(st));
           }
           console.log("NEAR_TIE_PRICE_PROBE "+JSON.stringify({nearTieCheaperOverrides,nearTieLargeSizeMismatch,examples:nearTieExamples}));
+
+          // Safer production-candidate rule: price may break a near tie only when
+          // the cheaper candidate is semantically allowed and known package sizes match.
+          let safePriceTieAllowed=0,safePriceTieBlocked=0,safePriceTieBlockedSize=0;
+          const safeTieExamples=[];
+          function safePriceTie(source,best,cheaper){
+            if(hardBad(source,cheaper.name))return false;
+            const ss=size(source),cs=size(cheaper.name);
+            if(ss&&cs&&ss!==cs)return false;
+            return true;
+          }
+          for(const ex of nearTieExamples){
+            const b={name:ex.best,price:ex.bestPrice},ch={name:ex.cheaper,price:ex.cheaperPrice};
+            const ok=safePriceTie(ex.source,b,ch);
+            if(ok)safePriceTieAllowed++;else {safePriceTieBlocked++;if(ex.sourceSize&&ex.cheaperSize&&ex.sourceSize!==ex.cheaperSize)safePriceTieBlockedSize++;}
+            safeTieExamples.push({source:ex.source,cheaper:ex.cheaper,decision:ok?"ALLOW_PRICE_TIE":"BLOCK_PRICE_TIE"});
+          }
+          console.log("SAFE_PRICE_TIE_PROBE "+JSON.stringify({sampled:nearTieExamples.length,allowed:safePriceTieAllowed,blocked:safePriceTieBlocked,blockedSize:safePriceTieBlockedSize,examples:safeTieExamples}));
           NODE
