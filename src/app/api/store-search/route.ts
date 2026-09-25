@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSKaupatFullDirectoryV1 } from "../../components/ziiply/location/ziiplyStoreDirectory";
+import { getSKaupatFullDirectoryV1, getLastPrismaDirectoryDiagnosticV3 } from "../../components/ziiply/location/ziiplyStoreDirectory";
 
 type RawStore = Record<string, any>;
 
@@ -99,7 +99,7 @@ export async function GET(request: NextRequest) {
           };
         });
 
-      return NextResponse.json(debug ? { items, debug: { batchCounts: terms.map((term, i) => ({ term, count: batches[i]?.length || 0 })), sDirectoryCount: sKaupatDirectory.length, samples: batches.map((batch, i) => ({ term: terms[i], sample: batch[0] ? { name: batch[0].name, id: batch[0].id, lat: batch[0].lat, latitude: batch[0].latitude, long: batch[0].long, lon: batch[0].lon, longitude: batch[0].longitude, country: batch[0].country, countryCode: batch[0].countryCode, keys: Object.keys(batch[0]).slice(0,20) } : null })) } } : { items });
+      return NextResponse.json(debug ? { items, debug: { batchCounts: terms.map((term, i) => ({ term, count: batches[i]?.length || 0 })), sDirectoryCount: sKaupatDirectory.length, sDirectoryDiagnostic: getLastPrismaDirectoryDiagnosticV3(), samples: batches.map((batch, i) => ({ term: terms[i], sample: batch[0] ? { name: batch[0].name, id: batch[0].id, lat: batch[0].lat, latitude: batch[0].latitude, long: batch[0].long, lon: batch[0].lon, longitude: batch[0].longitude, country: batch[0].country, countryCode: batch[0].countryCode, keys: Object.keys(batch[0]).slice(0,20) } : null })) } } : { items });
     }
 
     if (!search) return NextResponse.json({ items: [] });
