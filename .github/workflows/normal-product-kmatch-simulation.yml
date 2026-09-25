@@ -92,6 +92,13 @@ jobs:
               for(const x of ["mozzarella","tomaatti","basilika"])if(A.includes(x)!==B.includes(x))return true;
               const as=size(a),bs=size(b);if(as&&bs&&as!==bs)return true;
             }
+            if(A.includes("kivennäisvesi")){
+              for(const x of ["vichy","original","magnesium","sitruuna","lime","greippi"])if(A.includes(x)!==B.includes(x))return true;
+            }
+            if(A.includes("paprika")&&!/(juusto|dippi|mauste|kastike|ciabatta)/.test(A)){
+              if(/juusto|dippi|mauste|kastike|ciabatta/.test(B))return true;
+            }
+            if(A.includes("sipuli")&&A.includes("paahdettu")&&!B.includes("paahdettu"))return true;
             return false;
           }
           function score(a,b){const A=new Set(norm(a).split(" ").filter(x=>x.length>2&&!/^\d/.test(x)));return norm(b).split(" ").reduce((n,t)=>n+(A.has(t)?1:0),0);}
