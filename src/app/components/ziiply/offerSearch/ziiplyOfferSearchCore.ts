@@ -289,7 +289,7 @@ function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
   const source = normalizeGostaCoreText(sourceItem?.source || anyItem?.source || "");
   const isKCitymarket = storeType === "k citymarket" || storeType === "k-citymarket" || source.includes("k citymarket tarjouslehti");
   if (isKCitymarket) {
-    const raw = normalizeGostaCoreText(sourceItem?.category || anyItem?.category || "").replace(/&/g, " ").replace(/\\s+/g, " ").trim();
+    const raw = normalizeGostaCoreText(sourceItem?.category || anyItem?.category || "").replace(/&/g, " ").split(" ").filter(Boolean).join(" ");
     const trusted = new Map<string, string>([
       ["kahvi tee", "Kahvi & tee"], ["maitotuotteet", "Maitotuotteet"], ["liha makkarat", "Liha & makkarat"],
       ["kala", "Kala"], ["leipomo", "Leipomo"], ["hevi", "Hevi"], ["juomat", "Juomat"], ["pakasteet", "Pakasteet"],
