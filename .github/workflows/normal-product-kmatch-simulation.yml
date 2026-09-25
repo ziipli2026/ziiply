@@ -258,4 +258,38 @@ jobs:
           }
           for(const pair of pairs){const seen=new Set();for(const q of queries.slice(0,10))for(const p of (await s(q,pair.s)).slice(0,12)){if(seen.has(p.name))continue;seen.add(p.name);await guardedOne(p.name,pair.k)}}
           console.log("GUARDED_REPLACEMENT_PROBE "+JSON.stringify(guarded));
+
+          // Targeted no-safe-match audit: inspect a small sample of cases where the
+          // production-style search finds no safe counterpart, then see whether any
+          // returned K candidate has strong same-size + textual evidence.
+          let noSafeAudit={sampled:0,likelyMissed:0,noCredibleCandidate:0,examples:[]};
+          async function auditNoSafe(source,storeId){
+            if(noSafeAudit.sampled>=24)return;
+            const ts=terms(source).slice(0,4); let all=[];
+            for(const t of ts) all.push(...await k(t,storeId));
+            const usable=all.filter(x=>!hardBad(source,x.name));
+            if(!usable.length)return;
+            // Approximate the current safe outcome: exact normalized name or a same-size
+            // candidate with meaningful overlap. Only audit cases where neither exists.
+            const currentSafe=usable.some(x=>norm(x.name)===norm(source)||(sameMetricSize(source,x.name)&&sharedMeaningful(source,x.name)>=2));
+            if(currentSafe)return;
+            noSafeAudit.sampled++;
+            const ranked=usable.map(x=>({x,shared:sharedMeaningful(source,x.name),sameSize:sameMetricSize(source,x.name),sc:simpleScore(source,x.name)}))
+              .sort((a,b)=>(Number(b.sameSize)-Number(a.sameSize))||(b.shared-a.shared)||(b.sc-a.sc));
+            const cand=ranked[0];
+            const likely=Boolean(cand&&cand.sameSize&&cand.shared>=1&&cand.sc>=18);
+            if(likely)noSafeAudit.likelyMissed++;else noSafeAudit.noCredibleCandidate++;
+            if(noSafeAudit.examples.length<24)noSafeAudit.examples.push({source,candidate:cand?.x?.name||null,sameSize:cand?.sameSize||false,shared:cand?.shared||0,score:cand?.sc||0,assessment:likely?"LIKELY_MISSED":"NO_CREDIBLE"});
+          }
+          for(const pair of pairs){
+            for(const q of queries.slice(0,10)){
+              for(const p of (await s(q,pair.s)).slice(0,15)){
+                if(noSafeAudit.sampled>=24)break;
+                await auditNoSafe(p.name,pair.k);
+              }
+              if(noSafeAudit.sampled>=24)break;
+            }
+            if(noSafeAudit.sampled>=24)break;
+          }
+          console.log("NO_SAFE_AUDIT "+JSON.stringify(noSafeAudit));
           NODE
