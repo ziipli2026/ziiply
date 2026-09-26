@@ -37,8 +37,9 @@ export type ZiiplyMobileCompareCardresponsiveProps = {
   onChangeMatchMode?: (
     storeId: string,
     match: unknown,
-    mode: "cheapest" | "same_quality" | "own_brands" | "same_brand",
-  ) => void | Promise<void>;
+    mode: "cheapest" | "own_brands" | "keep_brands",
+  ) => unknown[] | void | Promise<unknown[] | void>;
+  onSelectAlternative?: (storeId: string, match: unknown, alternative: unknown) => void | Promise<void>;
   onResetMatchMode?: (storeId: string, match: unknown) => void | Promise<void>;
   onClose?: () => void;
   className?: string;
@@ -454,6 +455,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                         store={{ ...store, matches: detailRows }}
                         items={items}
                         onChangeMatchMode={onChangeMatchMode}
+                        onSelectAlternative={onSelectAlternative}
                       />
                     ) : null}
                   </article>
