@@ -4292,6 +4292,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const [comparisonLoading, setComparisonLoading] = useState(false);
   const [restoredComparisonPending, setRestoredComparisonPending] = useState(false);
   const comparisonCacheKeyRef = useRef<string | null>(null);
+  const comparisonItemRequestsRef = useRef<Map<string, Promise<{ s: Match | null; k: Match | null; failed: boolean }>>>(new Map());
+  const comparisonUpdateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [sMatches, setSMatches] = useState<Record<string, Match>>({});
   const [kMatches, setKMatches] = useState<Record<string, Match>>({});
   const [expandedAlternatives, setExpandedAlternatives] = useState<
@@ -10990,11 +10992,65 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     });
   }
 
+  function getComparisonItemMatches(item: CartItem) {
+    // Määrä ei muuta tuotteen vastinetta: sama pyyntö palvelee myös nopeita määränmuutoksia.
+    const itemKey = JSON.stringify([
+      item.id, item.name, item.ean, item.price, item.product?.id, item.chain, item.storeName, item.source,
+      activeStores.sStoreId, activeStores.kStoreId, activeStores.sStoreName, activeStores.kStoreName,
+    ]);
+    const previous = comparisonItemRequestsRef.current.get(itemKey);
+    if (previous) return previous;
+
+    const request = (async (): Promise<{ s: Match | null; k: Match | null; failed: boolean }> => {
+      let s: Match | null = null;
+      let k: Match | null = null;
+      let failed = false;
+      if (item.chain === "S" && item.price && item.product && normalize(item.storeName || "") === normalize(activeStores.sStoreName || "")) {
+        s = { product: item.product, price: item.price, quantity: 1, matchType: "ean", cartItemId: item.id };
+      } else {
+        try {
+          const best = pickBestSProduct(await fetchSProducts(item.name, activeStores.sStoreId), item.name, item.ean);
+          if (best) s = { product: best, price: getProductPrice(best), quantity: 1, matchType: best.ean && item.ean === best.ean ? "ean" : "name", cartItemId: item.id };
+        } catch { failed = true; }
+      }
+      if (item.chain === "K" && item.price && item.product && normalize(item.storeName || "") === normalize(activeStores.kStoreName || "")) {
+        k = { product: item.product, price: item.price, quantity: 1, matchType: "ean", cartItemId: item.id };
+      } else {
+        try {
+          const best = await findBestKMatchForStore(item.name, activeStores.kStoreId, item.ean);
+          if (best) {
+            const product = convertKProductToProduct(best);
+            k = { product: { ...product, ean: best.ean }, price: best.price, quantity: 1, matchType: best.ean && item.ean === best.ean ? "ean" : "name", cartItemId: item.id };
+          }
+        } catch { failed = true; }
+      }
+      if (failed) comparisonItemRequestsRef.current.delete(itemKey);
+      return { s, k, failed };
+    })();
+    comparisonItemRequestsRef.current.set(itemKey, request);
+    if (comparisonItemRequestsRef.current.size > 200) {
+      comparisonItemRequestsRef.current.delete(comparisonItemRequestsRef.current.keys().next().value!);
+    }
+    return request;
+  }
+
+  function scheduleComparisonUpdate(nextCart: CartItem[]) {
+    if (comparisonUpdateTimerRef.current) clearTimeout(comparisonUpdateTimerRef.current);
+    comparisonUpdateTimerRef.current = setTimeout(() => {
+      comparisonUpdateTimerRef.current = null;
+      void updateChainComparison(nextCart, { openCompare: false });
+    }, 900);
+  }
+
   async function updateChainComparison(
     nextCart = cart,
     options: { openCompare?: boolean } = {},
   ) {
     const shouldOpenCompare = options.openCompare !== false;
+    if (comparisonUpdateTimerRef.current) {
+      clearTimeout(comparisonUpdateTimerRef.current);
+      comparisonUpdateTimerRef.current = null;
+    }
     const cacheKey = getComparisonCacheKey(nextCart);
     if (comparisonCacheKeyRef.current === cacheKey) {
       if (shouldOpenCompare) setActiveResult("compare");
@@ -11017,90 +11073,27 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const nextSMatches: Record<string, Match> = {};
       const nextKMatches: Record<string, Match> = {};
 
-      await Promise.all(
-        nextCart.map(async (item) => {
-          if (
-            item.chain === "S" &&
-            item.price &&
-            item.product &&
-            normalize(item.storeName || "") === normalize(activeStores.sStoreName || "")
-          ) {
-            nextSMatches[item.id] = {
-              product: item.product,
-              price: item.price,
-              quantity: item.quantity,
-              matchType: "ean",
-              cartItemId: item.id,
-            };
-          } else {
-            try {
-              let items = await fetchSProducts(
-                item.name,
-                activeStores.sStoreId,
-              );
-              const best = pickBestSProduct(items, item.name, item.ean);
-
-              // Vertailussa hyväksytään vain käyttäjän valitun kaupan hinta.
-              // Jos vastinetta ei löydy tästä kaupasta, tuote jää puuttuvaksi.
-              if (best) {
-                nextSMatches[item.id] = {
-                  product: best,
-                  price: getProductPrice(best),
-                  quantity: item.quantity,
-                  matchType: best.ean && item.ean === best.ean ? "ean" : "name",
-                  cartItemId: item.id,
-                };
-              }
-            } catch {}
-          }
-
-          if (
-            item.chain === "K" &&
-            item.price &&
-            item.product &&
-            normalize(item.storeName || "") === normalize(activeStores.kStoreName || "")
-          ) {
-            nextKMatches[item.id] = {
-              product: item.product,
-              price: item.price,
-              quantity: item.quantity,
-              matchType: "ean",
-              cartItemId: item.id,
-            };
-          } else {
-            try {
-              const best = await findBestKMatchForStore(
-                item.name,
-                activeStores.kStoreId,
-                item.ean,
-              );
-
-              // Vertailussa hyväksytään vain käyttäjän valitun kaupan hinta.
-              // Toisen K-kaupan fallback-hintaa ei saa esittää valitun kaupan hintana.
-              if (best) {
-                const product = convertKProductToProduct(best);
-                nextKMatches[item.id] = {
-                  product: { ...product, ean: best.ean },
-                  price: best.price,
-                  quantity: item.quantity,
-                  matchType: best.ean && item.ean === best.ean ? "ean" : "name",
-                  cartItemId: item.id,
-                };
-              }
-            } catch {}
-          }
-        }),
-      );
+      const itemMatches = await Promise.all(nextCart.map((item) => getComparisonItemMatches(item)));
+      let failed = false;
+      nextCart.forEach((item, index) => {
+        const match = itemMatches[index];
+        if (match.failed) failed = true;
+        if (match.s) nextSMatches[item.id] = { ...match.s, quantity: item.quantity };
+        if (match.k) nextKMatches[item.id] = { ...match.k, quantity: item.quantity };
+      });
 
       if (comparisonCacheKeyRef.current === cacheKey) {
         setSMatches(nextSMatches);
         setKMatches(nextKMatches);
+        if (failed) comparisonCacheKeyRef.current = null;
         try {
-          window.localStorage.setItem("ziiply-comparison-snapshot-v1", JSON.stringify({
-            cacheKey,
-            sMatches: nextSMatches,
-            kMatches: nextKMatches,
-          }));
+          if (!failed) {
+            window.localStorage.setItem("ziiply-comparison-snapshot-v1", JSON.stringify({
+              cacheKey,
+              sMatches: nextSMatches,
+              kMatches: nextKMatches,
+            }));
+          }
         } catch {}
       }
     } catch (error) {
@@ -11130,23 +11123,25 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }, [restoredComparisonPending, storesReadyForSearch, cart, activeStores.sStoreId, activeStores.kStoreId, activeStores.sStoreName, activeStores.kStoreName, storeMode, storeCompareScope, withinChain]);
 
   useEffect(() => {
-    if (cart.length === 0 || !hasActiveStores) {
+    const comparisonCart = cart.filter((item) => String(item.source || "").toLowerCase() !== "offer");
+    if (comparisonCart.length === 0 || !hasActiveStores) {
       if (cart.length === 0) {
         setSMatches({});
         setKMatches({});
+        comparisonCacheKeyRef.current = null;
       }
       return;
     }
-
-    // Halpuusvertailun vastinehaku kuuluu vain avoimeen Vertailu-näkymään.
-    // Normaali tekstihaku / ostoskori ei saa käynnistää sitä taustalla.
-    if (activeResult !== "compare") return;
-
-    const timer = window.setTimeout(() => {
-      void updateChainComparison(cart, { openCompare: false });
-    }, 300);
-
-    return () => window.clearTimeout(timer);
+    if (!storesReadyForSearch || restoredCartPromptV320.open) return;
+    if (comparisonCacheKeyRef.current !== getComparisonCacheKey(comparisonCart)) {
+      comparisonCacheKeyRef.current = null;
+      setComparisonLoading(true);
+    }
+    scheduleComparisonUpdate(comparisonCart);
+    return () => {
+      if (comparisonUpdateTimerRef.current) clearTimeout(comparisonUpdateTimerRef.current);
+      comparisonUpdateTimerRef.current = null;
+    };
   }, [
     cart,
     hasActiveStores,
@@ -11157,7 +11152,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     storeMode,
     storeCompareScope,
     withinChain,
-    activeResult,
+    storesReadyForSearch,
+    restoredCartPromptV320.open,
   ]);
 
   function addOfferToCart(item: ZiiplyOffer) {
@@ -14651,6 +14647,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     changedId?: string,
     removedId?: string,
   ) {
+    // Määrä ja poisto eivät muuta muiden tuotteiden hakuosumia.
+    if (comparisonCacheKeyRef.current === getComparisonCacheKey(cart)) {
+      comparisonCacheKeyRef.current = comparisonLoading ? null : nextCart.length ? getComparisonCacheKey(nextCart) : null;
+    }
     const quantityById = nextCart.reduce(
       (map, item) => {
         map[item.id] = item.quantity;
@@ -14741,9 +14741,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     triggerHaptic();
-    if (activeResult === "compare") {
-      void updateChainComparison(nextCart, { openCompare: false });
-    }
+    // Taustapäivitys käynnistyy korin muutoksen jälkeen yhteisestä ajastimesta.
   }
 
   function removeCartItem(id: string) {
@@ -14789,9 +14787,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setSearchPanelOpen(true);
     }
 
-    if (activeResult === "compare") {
-      void updateChainComparison(nextCart, { openCompare: false });
-    }
+    // Jo löytyneiden vastineiden määrät ja poistot päivittyvät yllä ilman verkkohakua.
   }
 
   function clearCart() {
