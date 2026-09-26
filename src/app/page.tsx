@@ -10995,9 +10995,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         storeCompareScope === "within_chain" &&
         withinChain === "K" &&
         literalNormalQuery
-          ? dedupedNormalItems.filter((item) =>
-              normalize(item.name).includes(literalNormalQuery),
-            )
+          ? dedupedNormalItems.filter((item) => {
+              const normalizedName = normalize(item.name);
+              if (!normalizedName.includes(literalNormalQuery)) return false;
+              if (literalNormalQuery === "huiluntuhti" && normalizedName.includes("makkarapihvi")) return false;
+              return true;
+            })
           : [];
       const normalItemsForSelection =
         literalKMatches.length > 0 ? literalKMatches : dedupedNormalItems;
