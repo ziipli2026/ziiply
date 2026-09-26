@@ -330,6 +330,25 @@ jobs:
           console.log('SAFE_SUMMARY general grocery intent/exclusion regression passed');
           NODE
 
+      - name: Functional K package-size identity regression
+        shell: bash
+        run: |
+          node <<'NODE'
+          const core = require('./.tmp-search-regression/ziiplyCore.js');
+          const source = 'Kivikylän Huiluntuhti 375 g';
+          const sourceEan = '6409620012684';
+          const jokela = [
+            { id: 1991, name: 'Kivikylän Huiluntuhti grillimakkara 400g', ean: '6406300000261', price: 3.69 },
+            { id: 2144, name: 'Kivikylän Kuoreton Huiluntuhti grillimakkara 400g', ean: '6406300014237', price: 3.69 },
+          ];
+          const picked = core.pickBestKProduct(jokela, source, sourceEan);
+          if (picked) {
+            console.error('FAIL K size guard accepted wrong package:', picked);
+            process.exit(1);
+          }
+          console.log('PASS K size guard rejects Jokela 400g for source 375g EAN');
+          NODE
+
       - name: Functional comparison quality-mode regression
         shell: bash
         run: |
