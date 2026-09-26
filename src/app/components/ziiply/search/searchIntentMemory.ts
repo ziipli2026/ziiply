@@ -15,7 +15,7 @@ import {
   scoreProductIntentFit,
   type IntentProductLike,
 } from "./searchIntentAI";
-import { normalizeEan, normalizeFi } from "./searchNormalizer";
+import { getProductPackageSize, normalizeEan, normalizeFi } from "./searchNormalizer";
 import type { ZiiplySearchSuggestion } from "./types";
 
 export type ZiiplySearchMemoryEventType =
@@ -44,6 +44,16 @@ export type ZiiplySearchMemoryEntry = {
   productCategory?: string;
   productBrand?: string;
   ean?: string;
+  // Rakenteellinen profiili on EANista riippumaton. EAN jää vain valinnan
+  // yksilöiväksi todisteeksi / exact-tuotemuistin avaimeksi.
+  structure?: {
+    intent: string;
+    category?: string;
+    brand?: string;
+    packageAmount?: number;
+    packageUnit?: string;
+    attributes: string[];
+  };
   positiveCount: number;
   negativeCount: number;
   lastEventType: ZiiplySearchMemoryEventType;
@@ -94,6 +104,65 @@ function getProductKey(product: ZiiplySearchMemoryProduct) {
   const brand = normalizeFi(product.brandName);
   const category = normalizeFi(product.category);
   return `name:${[brand, name, category].filter(Boolean).join("|")}`;
+}
+
+const STRUCTURE_ATTRIBUTE_TERMS = [
+  "rasvaton", "kevyt", "täys", "täysmaito", "laktoositon", "vähälaktoosinen",
+  "luomu", "gluteeniton", "sokeriton", "suolaton", "maustamaton",
+  "zero", "light", "original", "tumma", "vaalea",
+];
+
+function getProductStructure(query: string, product: ZiiplySearchMemoryProduct) {
+  const intent = resolveSearchIntentAI(query);
+  const name = normalizeFi(product.name);
+  const category = normalizeFi(product.category);
+  const brand = normalizeFi(product.brandName);
+  const packageSize = getProductPackageSize(product);
+  const attributes = STRUCTURE_ATTRIBUTE_TERMS.filter((term) => name.includes(normalizeFi(term)));
+
+  return {
+    intent: intent.intent,
+    category: category || undefined,
+    brand: brand || undefined,
+    packageAmount: packageSize?.amount,
+    packageUnit: packageSize?.unit,
+    attributes,
+  };
+}
+
+function scoreStructureSimilarity(
+  learned: NonNullable<ZiiplySearchMemoryEntry["structure"]>,
+  product: ZiiplySearchMemoryProduct,
+  query: string
+) {
+  const candidate = getProductStructure(query, product);
+  if (learned.intent !== candidate.intent) return 0;
+
+  let score = 0;
+  if (learned.category && candidate.category && learned.category === candidate.category) score += 3;
+
+  if (
+    learned.packageUnit &&
+    candidate.packageUnit === learned.packageUnit &&
+    learned.packageAmount != null &&
+    candidate.packageAmount != null
+  ) {
+    const ratio = Math.min(learned.packageAmount, candidate.packageAmount) /
+      Math.max(learned.packageAmount, candidate.packageAmount);
+    if (ratio >= 0.98) score += 4;
+    else if (ratio >= 0.8) score += 2;
+  }
+
+  const learnedAttrs = learned.attributes || [];
+  const candidateAttrs = new Set(candidate.attributes || []);
+  for (const attribute of learnedAttrs) {
+    if (candidateAttrs.has(attribute)) score += 3;
+  }
+
+  // Brändi on vain heikko signaali: oppimisen tarkoitus ei ole lukita samaan
+  // valmistajaan vaan löytää sama rakenne myös toiselta merkiltä.
+  if (learned.brand && candidate.brand && learned.brand === candidate.brand) score += 1;
+  return score;
 }
 
 function getMemoryEntryKey(query: string, product: ZiiplySearchMemoryProduct) {
@@ -221,6 +290,7 @@ export function rememberSearchChoice(
     productCategory: product.category || undefined,
     productBrand: product.brandName || undefined,
     ean: normalizeEan(product.ean) || undefined,
+    structure: getProductStructure(query, product),
     positiveCount: Math.max(0, (current?.positiveCount || 0) + positiveDelta),
     negativeCount: Math.max(0, (current?.negativeCount || 0) + negativeDelta),
     lastEventType: eventType,
@@ -259,7 +329,36 @@ export function getLearnedSearchBoost(query: string, product: ZiiplySearchMemory
   const store = loadSearchIntentMemory();
   const entry = store.entries[key];
 
-  if (!entry) return { boost: 0, positiveCount: 0, negativeCount: 0, reason: "no_memory" };
+  if (!entry) {
+    // Sama EAN/tuote ei ole vaatimus. Etsi saman kanonisen haun aiemmista
+    // positiivisista valinnoista rakenteellisesti lähin profiili.
+    const store = loadSearchIntentMemory();
+    const canonical = normalizeFi(intent.canonicalQuery || query);
+    let bestStructureScore = 0;
+    let bestPositive = 0;
+
+    for (const candidateEntry of Object.values(store.entries)) {
+      if (normalizeFi(candidateEntry.canonicalQuery) !== canonical) continue;
+      if ((candidateEntry.positiveCount || 0) <= (candidateEntry.negativeCount || 0)) continue;
+      if (!candidateEntry.structure) continue;
+      const similarity = scoreStructureSimilarity(candidateEntry.structure, product, query);
+      if (similarity > bestStructureScore) {
+        bestStructureScore = similarity;
+        bestPositive = candidateEntry.positiveCount || 0;
+      }
+    }
+
+    if (bestStructureScore > 0) {
+      return {
+        boost: Math.min(24, bestStructureScore * 2 + Math.min(6, bestPositive * 2)),
+        positiveCount: bestPositive,
+        negativeCount: 0,
+        reason: "learned_structure_preference",
+      };
+    }
+
+    return { boost: 0, positiveCount: 0, negativeCount: 0, reason: "no_memory" };
+  }
 
   const positive = entry.positiveCount || 0;
   const negative = entry.negativeCount || 0;
