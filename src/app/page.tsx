@@ -3943,6 +3943,25 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function buildNormalSearchCacheKeyV441(searchTerms: string[], forceEan: boolean) {
+    const withinChainStoreSignature =
+      storeCompareScope === "within_chain"
+        ? withinChain === "S"
+          ? [
+              activeArea.sStoreId || "",
+              activeArea.sStoreName || "",
+              activeArea.sLocalStoreId || "",
+              activeArea.sLocalStoreName || "",
+            ]
+          : withinChain === "K"
+            ? [
+                activeArea.kStoreId || "",
+                activeArea.kStoreName || "",
+                activeArea.kLocalStoreId || "",
+                activeArea.kLocalStoreName || "",
+              ]
+            : []
+        : [];
+
     return [
       searchCompareMode,
       forceEan ? "ean" : "text",
@@ -3953,6 +3972,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       activeStores.kStoreId || "",
       activeStores.sStoreName || "",
       activeStores.kStoreName || "",
+      ...withinChainStoreSignature,
       searchTerms.map((term) => normalize(String(term || ""))).join(","),
     ].join("|");
   }
@@ -5673,7 +5693,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   ]);
 
   const hasActiveStores =
-    Number(activeStores.sStoreId) > 0 && Number(activeStores.kStoreId) > 0;
+    storeCompareScope === "within_chain"
+      ? withinChain === "S"
+        ? Boolean(
+            (activeArea.sStoreId || activeArea.sStoreName) &&
+              (activeArea.sLocalStoreId || activeArea.sLocalStoreName),
+          )
+        : withinChain === "K"
+          ? Boolean(
+              (activeArea.kStoreId || activeArea.kStoreName) &&
+                (activeArea.kLocalStoreId || activeArea.kLocalStoreName),
+            )
+          : false
+      : Number(activeStores.sStoreId) > 0 && Number(activeStores.kStoreId) > 0;
 
   const selectedMapStoresV433 = useMemo(() => {
     const selected = [
