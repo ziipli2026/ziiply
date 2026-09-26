@@ -1,0 +1,26 @@
+name: Offer selection cache simulation
+on:
+  workflow_dispatch:
+jobs:
+  simulate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Selection cache state-machine regression
+        run: |
+          node <<'NODE'
+          const cache=new Map(), fetchCount=new Map();
+          const norm=x=>String(x||"").toLowerCase().trim();
+          const key=s=>[s.mode,norm(s.sId),norm(s.sName),norm(s.kId),norm(s.kName)].join("|");
+          async function provider(s){const k=key(s);fetchCount.set(k,(fetchCount.get(k)||0)+1);return {offers:s.mode==="hyper"?37:24,storeKey:k}}
+          async function warm(s){const k=key(s);if(cache.has(k))return {hit:true,...cache.get(k)};const v=await provider(s);cache.set(k,v);return {hit:false,...v}}
+          (async()=>{
+            const hyper={mode:"hyper",sId:"prisma-hyvinkaa",sName:"Prisma Hyvinkää",kId:"3221",kName:"K-Citymarket Hyvinkää"};
+            const local={mode:"local",sId:"519941769",sName:"S-market Vehkoja",kId:"ks-jokela",kName:"K-Supermarket Jokela"};
+            const changed={...local,sId:"685839110",sName:"S-market Jokela"};
+            const a=await warm(hyper),b=await warm(hyper),c=await warm(local),d=await warm(hyper),e=await warm(changed);
+            const checks={firstMiss:!a.hit,repeatHit:b.hit,newModeMiss:!c.hit,returnHit:d.hit,storeChangeMiss:!e.hit,hyperFetchedOnce:fetchCount.get(key(hyper))===1,localFetchedOnce:fetchCount.get(key(local))===1};
+            console.log(JSON.stringify({a,b,c,d,e,fetchCount:Object.fromEntries(fetchCount),checks},null,2));
+            if(Object.values(checks).some(v=>!v))process.exitCode=1;
+          })();
+          NODE
