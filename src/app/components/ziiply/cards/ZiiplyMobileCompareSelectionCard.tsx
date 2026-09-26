@@ -238,7 +238,9 @@ export default function ZiiplyMobileCompareSelectionCard({
                           ) : null}
                           {/huiluntuhti/i.test(String(item.ziiplyDebugSourceName || item.ziiplyDebugSourceProductName || item.name || item.product?.name || "")) ? (
                             <div className="mt-1 break-all rounded border border-[#9b6a2f]/60 bg-[#fff1bf]/80 px-1 py-0.5 text-[0.45rem] font-bold normal-case leading-tight text-[#5b3517]">
-                              DBG src={String(item.ziiplyDebugSourceName || "—")} | ean={String(item.ziiplyDebugSourceEan || "—")}<br />
+                              DBG birth={String(item.ziiplyDebugBirthName || "—")} | bean={String(item.ziiplyDebugBirthEan || "—")}<br />
+                              bprod={String(item.ziiplyDebugBirthProductName || "—")} | bpean={String(item.ziiplyDebugBirthProductEan || "—")}<br />
+                              src={String(item.ziiplyDebugSourceName || "—")} | ean={String(item.ziiplyDebugSourceEan || "—")}<br />
                               prod={String(item.ziiplyDebugSourceProductName || "—")} | pean={String(item.ziiplyDebugSourceProductEan || "—")}<br />
                               match={String(item.product?.name || "MISSING")} | mean={String(item.product?.ean || "—")} | type={String(item.matchType || "—")}
                             </div>
