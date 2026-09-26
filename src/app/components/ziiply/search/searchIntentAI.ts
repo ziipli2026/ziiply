@@ -70,6 +70,7 @@ const QUERY_CORRECTIONS: Record<string, string> = {
   ruispalat: "ruispala",
   pilsneri: "pilsner",
   pils: "pilsner",
+  tomati: "tomaatti",
 
   // Yleiset suomalaiset ruokahaun taivutusmuodot. Canonicalisointi tehdään
   // eksplisiittisesti, ei yleisellä suffix-stemmerillä, jotta tuotenimet eivät rikkoudu.
