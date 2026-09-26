@@ -11210,7 +11210,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // Bump comparison cache schema whenever matching semantics change.
       // Otherwise an old localStorage snapshot can keep serving a previously
       // selected wrong equivalent even after the matcher has been fixed.
-      schema: 11,
+      schema: 12,
       items: nextCart.map((item) => [item.id, item.name, item.ean, item.product?.ean, item.quantity, item.price, item.chain, item.storeName, item.source]),
       stores:
         storeCompareScope === "within_chain"
@@ -11235,7 +11235,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     // Määrä ei muuta tuotteen vastinetta: sama pyyntö palvelee myös nopeita määränmuutoksia.
     const itemKey = JSON.stringify([
-      "matcher-v11",
+      "matcher-v12",
       item.id, item.name, item.ean, item.product?.ean, item.price, item.product?.id, item.chain, item.storeName, item.source,
       activeStores.sStoreId, activeStores.kStoreId, activeStores.sStoreName, activeStores.kStoreName,
       storeCompareScope, withinChain, ...withinStoreSignature,
@@ -11510,20 +11510,21 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       });
 
       if (comparisonCacheKeyRef.current === cacheKey) {
-        const hasPricedMatch = [...Object.values(nextSMatches), ...Object.values(nextKMatches)]
-          .some((match) => Number(match.price) > 0);
-        if (!failed && hasPricedMatch) {
+        if (!failed) {
+          // Myös onnistunut "ei löytynyt" on valmis vertailutulos.
+          // Tyhjät next-match-mapit täytyy kirjoittaa stateen, jotta aiemman
+          // haun vanha vastine (esim. 375 g -> 400 g) ei jää näkyviin.
           comparisonCompletedKeyRef.current = cacheKey;
           setSMatches(nextSMatches);
           setKMatches(nextKMatches);
         } else {
-          // An empty or failed response must never replace a valid comparison or become a cache hit.
+          // Vain oikea hakuhäiriö saa säilyttää edellisen toimivan vertailun.
           comparisonCacheKeyRef.current = null;
           comparisonCompletedKeyRef.current = null;
           setComparisonLoading(false);
         }
         try {
-          if (!failed && hasPricedMatch) {
+          if (!failed) {
             window.localStorage.setItem("ziiply-comparison-snapshot-v1", JSON.stringify({
               cacheKey,
               sMatches: nextSMatches,
