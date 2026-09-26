@@ -1293,6 +1293,7 @@ export function getKSearchTerms(name: string) {
     "kananmuna",
     "kananmunia",
     "munat",
+    "grillimakkara",
     "makkara",
     "pasta",
     "riisi",
