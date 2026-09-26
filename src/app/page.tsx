@@ -11916,7 +11916,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               product: weighedProductV732,
               eanMatch: true,
             },
-            { showFlash: true },
+            { showFlash: true, showScannerMessage: false },
           );
 
           setEanMessage(
@@ -11971,7 +11971,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               product: weighedProductV730,
               eanMatch: true,
             },
-            { showFlash: true },
+            { showFlash: true, showScannerMessage: false },
           );
 
           setEanMessage(
@@ -12005,7 +12005,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             product: fallbackProductV731,
             eanMatch: true,
           },
-          { showFlash: true },
+          { showFlash: true, showScannerMessage: false },
         );
 
         setEanMessage(
@@ -13655,7 +13655,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   function addEanResultToCart(
     result: EanSearchResult,
-    options: { showFlash?: boolean } = {},
+    options: { showFlash?: boolean; showScannerMessage?: boolean } = {},
   ) {
     const ean = normalizeEan(result.product.ean || eanInput);
     if (isUsableEan(ean)) {
@@ -13768,7 +13768,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setEanSearchStartedAutomatically(false);
     eanAutoSearchActiveRef.current = false;
     setEanMessage("");
-    if (eanScannerOpen || eanHtml5ScannerRef.current) {
+    if ((eanScannerOpen || eanHtml5ScannerRef.current) && options.showScannerMessage !== false) {
       setEanScannerOpen(true);
       // V594: valintaikkunan kautta lisättäessä annetaan vain hiljainen, läpikuultava kuittaus.
       // Ei piippiä eikä vihreää flashia, koska varsinainen skannauspiip on annettu jo EAN-lukuhetkellä.
