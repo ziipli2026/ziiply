@@ -2529,6 +2529,28 @@ export function scoreColaProduct(query: string, product: Product) {
   return score;
 }
 
+export function isClearlyButtermilkProduct(product: Product) {
+  const name = normalize(product.name);
+
+  // Leipä ja leivonnaiset voivat sisältää sanan piimä raaka-aineena/nimessä,
+  // mutta eivät ole piimätuotteita.
+  if (hasAnyToken(name, [
+    "piimälimppu",
+    "piimalimppu",
+    "piimäsämpylä",
+    "piimasampyla",
+    "limppu",
+    "sämpylä",
+    "sampyla",
+    "leipä",
+    "leipa",
+  ])) return false;
+
+  // Hyväksy piimä itsenäisenä sanana sekä yhdysmerkin jälkeen (esim. AB-piimä),
+  // mutta älä pelkkää yhdyssanan alkua kuten piimälimppu.
+  return /(^|[\s-])piim(?:ä|a)(?=$|[\s,.;:()\d])/u.test(name);
+}
+
 export function scoreButtermilkProduct(query: string, product: Product) {
   let score = scoreBaseNormalResult(query, product);
   const text = getProductSearchText(product);
@@ -2583,8 +2605,9 @@ export function rankNormalSearchResults(query: string, products: Product[]) {
     const text = getProductSearchText(product);
 
     if (intent.category === "buttermilk") {
-      // Pelkkä "piimä" jonkin muun tuotteen nimen sisällä ei tee siitä piimää.
-      return words.includes("piimä") || words.includes("piima") ? 1 : 0;
+      // Varsinainen piimätuote (myös esim. AB-piimä) ennen tuotteita,
+      // joissa piimä esiintyy vain yhdyssanan/raaka-aineen osana.
+      return isClearlyButtermilkProduct(product) ? 1 : 0;
     }
 
     if (intent.category === "milk") {
