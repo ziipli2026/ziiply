@@ -285,6 +285,7 @@ export default function ZiiplyMobileCompareCardresponsive({
         isBest={Boolean(detailsStore.isBest || cheapest?.id === detailsStore.id)}
         onBack={() => setDetailsStoreId(null)}
         onSelectStore={() => onSelectStore?.(detailsStore.id)}
+        onShareStore={() => onShareStore?.(detailsStore.id)}
         onChangeMatchMode={onChangeMatchMode}
         onClose={onClose}
       />
