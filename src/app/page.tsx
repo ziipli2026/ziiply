@@ -8324,8 +8324,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             },
           ];
 
-    return results
-      .filter((result) => selectedChains[result.key])
+    const visibleResults = results.filter((result) => selectedChains[result.key]);
+
+    // Ketjun sisäisessä vertailussa korttien identiteetti ei saa vaihtua haun
+    // edetessä. Tavaratalo on aina ensin ja lähikauppa toisena; hinnan tai
+    // foundItems-määrän valmistumisjärjestys ei saa järjestää kortteja uudelleen.
+    if (storeCompareScope === "within_chain" && withinChain) {
+      return visibleResults;
+    }
+
+    return visibleResults
       .sort((a, b) => {
         if (a.comingSoon && !b.comingSoon) return 1;
         if (!a.comingSoon && b.comingSoon) return -1;
