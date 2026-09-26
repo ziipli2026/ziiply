@@ -1,5 +1,7 @@
 name: Normal search semantics regression
 
+# Production learning-flow verification trigger
+
 on:
   push:
     branches: [main]
