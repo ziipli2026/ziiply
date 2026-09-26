@@ -316,9 +316,28 @@ export default function ZiiplyMobileCompareCardresponsive({
                 const isBest = !hasNoCounterpart && Boolean(store.isBest || cheapest?.id === store.id);
                 const diffLabel = hasNoCounterpart ? null : getStorePriceDiff(store, cheapest);
                 const matchedIds = new Set((store.matches || []).map((match: any) => String(match?.cartItemId || "")).filter(Boolean));
+                const sourceItemsById = new Map(
+                  (items || []).map((item: any) => [String(item?.id || ""), item]),
+                );
                 const detailRows = [
-                  ...(store.matches || []),
-                  ...(items || []).filter((item: any) => !matchedIds.has(String(item?.id || ""))).map((item: any) => ({ ...item, isMissingComparisonItem: true })),
+                  ...(store.matches || []).map((match: any) => {
+                    const source = sourceItemsById.get(String(match?.cartItemId || "")) as any;
+                    return {
+                      ...match,
+                      ziiplyDebugSourceName: source?.name,
+                      ziiplyDebugSourceEan: source?.ean,
+                      ziiplyDebugSourceProductName: source?.product?.name,
+                      ziiplyDebugSourceProductEan: source?.product?.ean,
+                    };
+                  }),
+                  ...(items || []).filter((item: any) => !matchedIds.has(String(item?.id || ""))).map((item: any) => ({
+                    ...item,
+                    isMissingComparisonItem: true,
+                    ziiplyDebugSourceName: item?.name,
+                    ziiplyDebugSourceEan: item?.ean,
+                    ziiplyDebugSourceProductName: item?.product?.name,
+                    ziiplyDebugSourceProductEan: item?.product?.ean,
+                  })),
                 ];
 
                 return (
