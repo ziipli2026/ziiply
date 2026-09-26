@@ -206,7 +206,7 @@ export default function ZiiplyMobileCompareSelectionCard({
         <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[linear-gradient(180deg,rgba(255,250,226,0.58),rgba(246,226,172,0.22)_34%,rgba(238,214,156,0.10))]" />
         <div className="pointer-events-none absolute inset-[0.42rem] rounded-[1.55rem] border border-dashed border-[#d6a861]/55 shadow-[inset_0_0_0_2px_rgba(27,17,9,0.20)]" />
 
-        <header className="relative z-10 shrink-0 px-5 pb-1 pt-[11.1rem]">
+        <header className="relative z-10 shrink-0 px-5 pb-1 pt-[6.7rem]">
           <div className="mb-2 px-1 text-center">
             <div
               className="text-[0.52rem] font-black uppercase tracking-[0.24em] text-[#665d45]/86"
@@ -226,8 +226,10 @@ export default function ZiiplyMobileCompareSelectionCard({
           </div>
         </header>
 
-        <main className="relative z-10 min-h-0 flex-1 overflow-y-auto px-5 pb-4 pt-[1.9rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          <div className="space-y-2.5">
+        <main className="relative z-10 flex min-h-0 flex-1 flex-col px-5 pb-4 pt-[0.8rem]">
+          <div className="flex min-h-0 flex-1 flex-col gap-2.5">
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[1.05rem] border-[2px] border-[#7c663d]/78 bg-[#fff4d8]/76 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]">
+            <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {rows.length === 0 ? (
               <div className="rounded-[1.05rem] border-[2px] border-[#7c663d]/78 bg-[#fff4d8]/72 px-4 py-8 text-center text-[0.82rem] font-extrabold text-[#6b6048] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]">
                 Tälle kaupalle ei löytynyt tuoterivejä vertailusta.
@@ -242,7 +244,7 @@ export default function ZiiplyMobileCompareSelectionCard({
                 return (
                   <article
                     key={String(item.id ?? item.product?.id ?? index)}
-                    className="overflow-hidden rounded-[1.05rem] border-[2px] border-[#7c663d]/78 bg-[#fff4d8]/76 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]"
+                    className="border-b border-[#d4bd86]/72"
                   >
                     <div className="grid min-h-[3.72rem] grid-cols-[minmax(0,1fr)_4.65rem] items-center border-b border-[#d4bd86]/72 px-3 py-1.5">
                       <div className="flex min-w-0 items-center gap-2.5 pr-2">
@@ -305,7 +307,8 @@ export default function ZiiplyMobileCompareSelectionCard({
               })
             )}
 
-            <div className="grid grid-cols-[2.30rem_minmax(0,1fr)_2.30rem_2.30rem] items-center gap-2">
+            </div>
+            <div className="grid shrink-0 grid-cols-[2.30rem_minmax(0,1fr)_2.30rem_2.30rem] items-center gap-2 border-t border-[#d4bd86]/72 px-3 py-2.5">
               {onBack ? <button type="button" onClick={onBack}
                 className="grid h-[2.22rem] w-[2.30rem] place-items-center rounded-[0.46rem] border-2 border-[#2b1a0e] bg-[linear-gradient(135deg,#7a4c2d,#3b2414)] text-[#f7e7bd] shadow-[0_2px_5px_rgba(45,30,10,0.22)]"
                 aria-label="Takaisin vertailuun" title="Takaisin vertailuun">
@@ -343,6 +346,7 @@ export default function ZiiplyMobileCompareSelectionCard({
               ) : <span aria-hidden="true" />}
             </div>
 
+            </div>
             <div className="grid grid-cols-[minmax(0,1fr)_5.25rem] items-center rounded-[1.05rem] border-[2px] border-[#7c663d]/78 bg-[#fff7df]/78 px-3 py-1.5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]">
               <div
                 className="text-[0.70rem] font-black uppercase tracking-[0.10em] text-[#3e301c]"
