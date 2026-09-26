@@ -1889,6 +1889,75 @@ export function productGroupGate(sourceName: string, targetName: string) {
   return true;
 }
 
+
+export function isComparisonAttributeCompatible(sourceName: string, targetName: string) {
+  if (!productGroupGate(sourceName, targetName)) return false;
+
+  const source = normalize(sourceName);
+  const target = normalize(targetName);
+
+  // Product families that the older generic gate intentionally leaves loose
+  // must be strict in user-requested comparison substitutions.
+  const strictFamilies: string[][] = [
+    ["piimä", "piima"],
+    ["maito", "kevytmaito", "täysmaito", "taysmaito", "ykkösmaito", "ykkosmaito"],
+    ["jogurtti", "jogurt"],
+    ["jauheliha"],
+    ["grillimakkara"],
+    ["kananmuna", "kananmunat", "kananmunia", "munat"],
+    ["kalapuikko", "kalapuikot", "fiskpinnar"],
+  ];
+  for (const family of strictFamilies) {
+    if (hasAnyToken(source, family) && !hasAnyToken(target, family)) return false;
+  }
+
+  // Explicit source attributes are promises: a cheaper replacement may change
+  // brand, never these essential characteristics.
+  const requiredSourceAttributes = [
+    "laktoositon",
+    "vähälaktoosinen",
+    "vahälaktoosinen",
+    "vahalaktoosinen",
+    "rasvaton",
+    "kevyt",
+    "täys",
+    "tays",
+    "luomu",
+    "gluteeniton",
+    "maidoton",
+    "vegaaninen",
+    "sokeriton",
+    "makeuttamaton",
+    "suolaton",
+  ];
+  for (const attribute of requiredSourceAttributes) {
+    if (hasExactNormalizedWord(source, attribute) && !hasExactNormalizedWord(target, attribute)) {
+      return false;
+    }
+  }
+
+  const sourceSize = parseMetricSize(sourceName);
+  const targetSize = parseMetricSize(targetName);
+  if (
+    sourceSize &&
+    targetSize &&
+    (sourceSize.unitGroup !== targetSize.unitGroup || sourceSize.amount !== targetSize.amount)
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
+export function pickCheapestCompatibleComparisonProduct<T extends { name: string }>(
+  sourceName: string,
+  candidates: T[],
+) {
+  return candidates
+    .filter((candidate) => isComparisonAttributeCompatible(sourceName, candidate.name))
+    .sort((a, b) => getProductPrice(a as Product) - getProductPrice(b as Product))[0];
+}
+
 export function isHardRejectedKMatch(query: string, candidateName: string) {
   const source = normalize(query);
   const target = normalize(candidateName);
