@@ -303,28 +303,43 @@ export default function ZiiplyMobileCompareSelectionCard({
               })
             )}
 
-            {onSelectStore ? (
-              <div className="grid grid-cols-[minmax(0,1fr)_2.30rem] items-center gap-2 pl-[2.58rem]">
-                <div
-                  className="min-h-[2.40rem] rounded-[0.72rem] border-[2.5px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-3 py-2 text-center text-[0.72rem] font-black italic tracking-[0.03em] text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58),0_2px_4px_rgba(62,43,20,0.18)]"
-                  style={{ fontFamily: cooperFont }}
-                >
-                  Valittu vertailukori
-                </div>
+            <div className="grid grid-cols-[minmax(0,1fr)_2.30rem_2.30rem] items-center gap-2 pl-[2.58rem]">
+              <div
+                className="min-h-[2.40rem] rounded-[0.72rem] border-[2.5px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-3 py-2 text-center text-[0.72rem] font-black italic tracking-[0.03em] text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58),0_2px_4px_rgba(62,43,20,0.18)]"
+                style={{ fontFamily: cooperFont }}
+              >
+                Valittu vertailukori
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  const shareEvent = new CustomEvent("ziiply:share-compare-store", { detail: { storeId: store.id } });
+                  window.dispatchEvent(shareEvent);
+                }}
+                className="grid h-[2.22rem] w-[2.22rem] place-items-center rounded-[0.46rem] border-[1.6px] border-[#8b713d] bg-[linear-gradient(180deg,#f5e5bd_0%,#d6b875_100%)] text-[#51361a] shadow-[0_2px_5px_rgba(45,30,10,0.17),inset_0_0_0_1px_rgba(255,249,220,0.55)] active:translate-y-[1px]"
+                aria-label="Jaa vertailukori" title="Jaa kori"
+              >
+                <svg aria-hidden="true" viewBox="0 0 24 18" className="h-[0.94rem] w-[1.12rem]">
+                  <path d="M2.5 3.5h19v11h-19z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+                  <path d="M3 4l9 6.5L21 4M3.2 14.2l6.1-5M20.8 14.2l-6.1-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+              {onSelectStore ? (
                 <button
                   type="button"
                   onClick={onSelectStore}
                   className="grid h-[2.22rem] w-[2.22rem] place-items-center rounded-[0.46rem] border-[1.6px] border-[#0b6330] bg-[linear-gradient(180deg,#159448_0%,#087237_100%)] text-[#fff6d7] shadow-[0_2px_5px_rgba(45,30,10,0.17),inset_0_0_0_1px_rgba(255,249,220,0.35)] active:translate-y-[1px]"
-                  aria-label={`Osta ${store.name} kori`}
-                  title="Osta tämä kori"
+                  aria-label={`Osta ${store.name} vertailukori`} title="Osta tämä vertailukori"
                 >
-                  <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[1.18rem] w-[1.18rem]">
-                    <path d="M5 3h14v5H5zM4 9h16v12H4zM8 13h8M8 17h3" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinejoin="round" strokeLinecap="round" />
-                    <path d="M16.5 16.5h2.5v2.5h-2.5z" fill="currentColor" />
+                  <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[1.22rem] w-[1.22rem]">
+                    <rect x="5" y="3" width="12" height="18" rx="2" fill="none" stroke="currentColor" strokeWidth="1.8"/>
+                    <rect x="7.5" y="5.5" width="7" height="4" rx=".5" fill="none" stroke="currentColor" strokeWidth="1.5"/>
+                    <path d="M8 13h1m2 0h1m2 0h1M8 16h1m2 0h1m2 0h1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+                    <path d="M17 8h2.5v8H17" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/>
                   </svg>
                 </button>
-              </div>
-            ) : null}
+              ) : <span aria-hidden="true" />}
+            </div>
 
             <div className="grid grid-cols-[minmax(0,1fr)_5.25rem] items-center rounded-[1.05rem] border-[2px] border-[#7c663d]/78 bg-[#fff7df]/78 px-3 py-1.5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]">
               <div
@@ -356,6 +371,18 @@ export default function ZiiplyMobileCompareSelectionCard({
             <span className="grid h-[1.42rem] w-[1.42rem] place-items-center rounded-full border border-[#6b421f] bg-[radial-gradient(circle_at_35%_35%,#f6c46c_0%,#b0752a_52%,#65401f_100%)] text-[1rem] text-[#2b1a0e] shadow-[0_1px_2px_rgba(0,0,0,0.28)]">
               ←
             </span>
+          </button>
+        ) : null}
+
+        {onBack ? (
+          <button
+            type="button"
+            onClick={onBack}
+            className="absolute bottom-[0.82rem] left-[0.78rem] z-[36] grid h-[2.30rem] w-[2.58rem] place-items-center rounded-l-[0.42rem] rounded-r-[0.82rem] border-[2px] border-[#2b1a0e] bg-[linear-gradient(135deg,#7a4c2d_0%,#3b2414_78%)] text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.22),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]"
+            aria-label="Takaisin vertailuun"
+            title="Takaisin vertailuun"
+          >
+            <span className="grid h-[1.42rem] w-[1.42rem] place-items-center rounded-full border border-[#6b421f] bg-[radial-gradient(circle_at_35%_35%,#f6c46c_0%,#b0752a_52%,#65401f_100%)] text-[1rem] text-[#2b1a0e] shadow-[0_1px_2px_rgba(0,0,0,0.28)]">←</span>
           </button>
         ) : null}
 
