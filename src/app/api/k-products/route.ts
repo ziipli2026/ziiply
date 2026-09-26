@@ -28,7 +28,6 @@ function getEan(product: RuoanhintaProduct) {
     product.gtin,
     product.eanCode,
     product.barcode,
-    product.externalId,
   ];
 
   return candidates.find((value) => value && /^\d{8,14}$/.test(String(value))) || undefined;
