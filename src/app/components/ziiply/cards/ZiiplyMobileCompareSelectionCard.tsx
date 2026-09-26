@@ -186,8 +186,6 @@ export default function ZiiplyMobileCompareSelectionCard({
 }: ZiiplyMobileCompareSelectionCardProps) {
   if (!open) return null;
 
-  void onSelectStore;
-
   const rows = ((store.matches && store.matches.length > 0 ? store.matches : items) || []) as ZiiplyCompareSelectionItem[];
 
   return (
@@ -304,6 +302,17 @@ export default function ZiiplyMobileCompareSelectionCard({
                 );
               })
             )}
+
+            {onSelectStore ? (
+              <button
+                type="button"
+                onClick={onSelectStore}
+                className="min-h-[3.05rem] w-full rounded-[0.92rem] border-[3px] border-[#0b6330] bg-[linear-gradient(180deg,#139143_0%,#087237_100%)] px-4 text-[0.82rem] font-black uppercase tracking-[0.08em] text-[#fff6d7] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.24),0_3px_0_#064a26] active:translate-y-[1px]"
+                style={{ fontFamily: cooperFont }}
+              >
+                Osta tämä kori
+              </button>
+            ) : null}
 
             <div className="grid grid-cols-[minmax(0,1fr)_5.25rem] items-center rounded-[1.05rem] border-[2px] border-[#7c663d]/78 bg-[#fff7df]/78 px-3 py-1.5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]">
               <div
