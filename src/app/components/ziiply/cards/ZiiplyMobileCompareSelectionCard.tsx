@@ -107,8 +107,12 @@ function formatComparePrice(value: unknown) {
 function getItemName(item: unknown) {
   const data = item as ZiiplyCompareSelectionItem;
 
+  // Vertailun Match-rivillä product on juuri kyseiselle kaupalle valittu
+  // vastine. Älä anna mahdollisen ylimmän tason lähdenimen peittää sitä.
+  // Puuttuvalle/cart-riville käytetään edelleen alkuperäistä nimeä.
   return String(
-    data?.name ||
+    (!data?.isMissingComparisonItem && data?.product?.name) ||
+      data?.name ||
       data?.title ||
       data?.productName ||
       data?.product?.name ||
