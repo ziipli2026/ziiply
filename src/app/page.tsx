@@ -11970,9 +11970,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           .then((response) => response.ok ? response.json() : null)
           .catch(() => null);
 
-        pushScannerDebugV493(
-          `K-WEIGHT identity found=${Boolean(kWeightIdentityV732?.found)} source=${String(kWeightIdentityV732?.source || "none")} diagnostic=${String(kWeightIdentityV732?.diagnostic || "")}`
-        );
+        const kWeightDebugV734 = `IDENTITY: found=${Boolean(kWeightIdentityV732?.found)} | source=${String(kWeightIdentityV732?.source || "none")} | diagnostic=${String(kWeightIdentityV732?.diagnostic || "none")}`;
+        pushScannerDebugV493(`K-WEIGHT ${kWeightDebugV734}`);
+        if (!kWeightIdentityV732?.found) {
+          setEanScannerMessage(kWeightDebugV734);
+        }
         if (kWeightIdentityV732?.found && kWeightIdentityV732?.product?.name) {
           const resolvedNameV732 = fixText(String(kWeightIdentityV732.product.name));
           const weighedProductV732: Product = {
