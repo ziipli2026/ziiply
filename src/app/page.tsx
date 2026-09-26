@@ -15708,51 +15708,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return terms;
   }
 
-  function isCompareCandidateAttributeSafe(sourceName: string, targetName: string) {
-    if (!productGroupGate(sourceName, targetName)) return false;
-    const source = normalize(sourceName);
-    const target = normalize(targetName);
-
-    const strictFamilies = [
-      ["piimä", "piima"],
-      ["maito", "kevytmaito", "täysmaito", "taysmaito", "ykkösmaito", "ykkosmaito"],
-      ["jogurtti", "jogurt"],
-      ["jauheliha"],
-      ["grillimakkara"],
-      ["kananmuna", "kananmunat", "kananmunia", "munat"],
-      ["kalapuikko", "kalapuikot", "fiskpinnar"],
-    ];
-    for (const family of strictFamilies) {
-      if (hasAnyToken(source, family) && !hasAnyToken(target, family)) return false;
-    }
-
-    for (const attribute of [
-      "laktoositon", "vähälaktoosinen", "vahalaktoosinen", "rasvaton",
-      "kevyt", "täys", "tays", "luomu", "gluteeniton", "maidoton",
-      "vegaaninen", "sokeriton", "makeuttamaton", "suolaton",
-    ]) {
-      if (hasExactNormalizedWord(source, attribute) && !hasExactNormalizedWord(target, attribute)) {
-        return false;
-      }
-    }
-
-    const sourceSize = parseMetricSize(sourceName);
-    const targetSize = parseMetricSize(targetName);
-    if (
-      sourceSize &&
-      targetSize &&
-      (sourceSize.unitGroup !== targetSize.unitGroup || sourceSize.amount !== targetSize.amount)
-    ) return false;
-
-    return true;
-  }
-
-  function pickCheapestCompareCandidate(sourceName: string, candidates: Product[]) {
-    return candidates
-      .filter((candidate) => isCompareCandidateAttributeSafe(sourceName, candidate.name))
-      .sort((a, b) => getProductPrice(a) - getProductPrice(b))[0];
-  }
-
   function getQualityModeLabel(mode: QualityMode) {
     if (mode === "cheapest") return "Huokein";
     if (mode === "same_quality") return "Sama taso";
@@ -15761,18 +15716,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function getMatchQualityMode(match: Match, chainKey?: ChainResult["key"]) {
-    if (!match.cartItemId) return "keep_brands" as QualityMode;
+    if (!match.cartItemId) return "cheapest" as QualityMode;
     const key = chainKey ? `${chainKey}:${match.cartItemId}` : match.cartItemId;
-    const explicitMode = qualityModesByCart[key];
-    if (explicitMode) return explicitMode;
-
-    // Initial status follows the original shopping-list product, never a later
-    // comparison replacement. Own-brand products start in the own-brand group;
-    // ordinary branded products start under their original product brand.
-    const sourceItem = cart.find((item) => item.id === match.cartItemId);
-    const sourceName = sourceItem?.name || sourceItem?.product?.name || match.product.name;
-    if (isValueBrandProduct(sourceName)) return "own_brands" as QualityMode;
-    return "keep_brands" as QualityMode;
+    return qualityModesByCart[key] || "cheapest";
   }
 
   function setMatchQualityMode(
@@ -15821,43 +15767,76 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     forcedQualityMode?: QualityMode,
   ) {
     const matchQualityMode = forcedQualityMode || getMatchQualityMode(match, chainKey);
-    const sourceCartItem = match.cartItemId
-      ? cart.find((item) => item.id === match.cartItemId)
-      : undefined;
-    const sourceName = sourceCartItem?.name || sourceCartItem?.product?.name || match.product.name;
-    const sourceBrandName =
-      sourceCartItem?.product?.brandName || getPrimaryBrand(sourceName);
     let alternatives: Product[] = [];
 
     if (chainKey === "s") {
-      const sTerms = getAlternativeSearchTerms(sourceName, "s");
+      const sTerms = getAlternativeSearchTerms(match.product.name, "s");
       const allSItems: Product[] = [];
+
       for (const term of sTerms.slice(0, 5)) {
-        allSItems.push(...await fetchSProducts(term, activeStores.sStoreId));
+        const items = await fetchSProducts(term, activeStores.sStoreId);
+        allSItems.push(...items);
       }
 
-      alternatives = Array.from(new Map(allSItems.map((item) => [item.id, item])).values())
+      const uniqueSItems = Array.from(
+        new Map(allSItems.map((item) => [item.id, item])).values(),
+      );
+
+      alternatives = uniqueSItems
         .filter((product) => getProductPrice(product) > 0)
-        .filter((product) => !isHardRejectedOptimizationAlternative(sourceName, product.name))
-        .filter((product) => productGroupGate(sourceName, product.name))
-        .filter((product) => isCompareCandidateAttributeSafe(sourceName, product.name))
+        .filter((product) => product.id !== match.product.id)
+        .filter(
+          (product) =>
+            !isHardRejectedOptimizationAlternative(
+              match.product.name,
+              product.name,
+            ),
+        )
+        .filter((product) => productGroupGate(match.product.name, product.name))
         .filter((product) =>
           isAllowedByQualityMode(
-            sourceName,
+            match.product.name,
             product.name,
             matchQualityMode,
-            "s",
-            sourceBrandName,
-            product.brandName,
           ),
         )
-        .sort((a, b) => getProductPrice(a) - getProductPrice(b))
-        .slice(0, 12);
+        .filter(
+          (product) =>
+            scoreNameMatch(match.product.name, product.name) +
+              scoreQualityMode(
+                match.product.name,
+                product.name,
+                matchQualityMode,
+              ) >
+            -100,
+        )
+        .sort((a, b) => {
+          const aScore =
+            scoreNameMatch(match.product.name, a.name) +
+            scoreQualityMode(match.product.name, a.name, matchQualityMode);
+          const bScore =
+            scoreNameMatch(match.product.name, b.name) +
+            scoreQualityMode(match.product.name, b.name, matchQualityMode);
+
+          if (
+            matchQualityMode !== "cheapest" &&
+            Math.abs(bScore - aScore) > 20
+          ) {
+            return bScore - aScore;
+          }
+
+          return getProductPrice(a) - getProductPrice(b);
+        })
+        .slice(0, 3);
     }
 
     if (chainKey === "k") {
-      const kTerms = getAlternativeSearchTerms(sourceName, "k");
+      const kTerms = getAlternativeSearchTerms(match.product.name, "k");
       const allKItems: KProduct[] = [];
+
+      // Vaihtoehdot pitää hakea juuri sen vertailukortin kaupasta.
+      // Ketjun sisällä activeStores.kStoreId voi osoittaa toiseen K-kauppaan
+      // (esim. Citymarket), vaikka match kuuluu K-Supermarket Jokelaan.
       const matchStoreName = normalize(
         (match.product as Product & { storeName?: string }).storeName ||
           match.fallbackStoreName ||
@@ -15875,28 +15854,64 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const alternativeKStoreId = matchKStore?.id || activeStores.kStoreId;
 
       for (const term of kTerms.slice(0, 4)) {
-        allKItems.push(...await fetchKProducts(term, alternativeKStoreId));
+        const items = await fetchKProducts(term, alternativeKStoreId);
+        allKItems.push(...items);
       }
 
-      alternatives = Array.from(new Map(allKItems.map((item) => [item.id, item])).values())
+      const uniqueKItems = Array.from(
+        new Map(allKItems.map((item) => [item.id, item])).values(),
+      );
+
+      alternatives = uniqueKItems
         .filter((product) => product.price > 0)
-        .filter((product) => !isHardRejectedOptimizationAlternative(sourceName, product.name))
-        .filter((product) => !isHardRejectedKMatch(sourceName, product.name))
-        .filter((product) => productGroupGate(sourceName, product.name))
-        .filter((product) => isCompareCandidateAttributeSafe(sourceName, product.name))
+        .filter((product) => product.id !== String(match.product.id))
+        .filter(
+          (product) =>
+            !isHardRejectedOptimizationAlternative(
+              match.product.name,
+              product.name,
+            ),
+        )
+        .filter(
+          (product) => !isHardRejectedKMatch(match.product.name, product.name),
+        )
+        .filter((product) => productGroupGate(match.product.name, product.name))
         .filter((product) =>
           isAllowedByQualityMode(
-            sourceName,
+            match.product.name,
             product.name,
             matchQualityMode,
-            "k",
-            sourceBrandName,
-            product.brandName,
           ),
         )
+        .filter(
+          (product) =>
+            scoreNameMatch(match.product.name, product.name) +
+              scoreQualityMode(
+                match.product.name,
+                product.name,
+                matchQualityMode,
+              ) >
+            -100,
+        )
         .map(convertKProductToProduct)
-        .sort((a, b) => getProductPrice(a) - getProductPrice(b))
-        .slice(0, 12);
+        .sort((a, b) => {
+          const aScore =
+            scoreNameMatch(match.product.name, a.name) +
+            scoreQualityMode(match.product.name, a.name, matchQualityMode);
+          const bScore =
+            scoreNameMatch(match.product.name, b.name) +
+            scoreQualityMode(match.product.name, b.name, matchQualityMode);
+
+          if (
+            matchQualityMode !== "cheapest" &&
+            Math.abs(bScore - aScore) > 20
+          ) {
+            return bScore - aScore;
+          }
+
+          return getProductPrice(a) - getProductPrice(b);
+        })
+        .slice(0, 3);
     }
 
     return alternatives;
@@ -20291,10 +20306,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   ...match,
                   chainKey: result.key,
                   qualityMode: getMatchQualityMode(match, result.key),
-                  sourceProductName: cart.find((item) => item.id === match.cartItemId)?.name || match.product.name,
-                  sourceBrandName:
-                    cart.find((item) => item.id === match.cartItemId)?.product?.brandName ||
-                    getPrimaryBrand(cart.find((item) => item.id === match.cartItemId)?.name || match.product.name),
                 })),
                 missingItems: result.missingItems || 0,
               }))}
@@ -20322,16 +20333,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               const chainKey =
                 storeId === "k" || storeId === "s"
                   ? storeId
-                  : ((match as any)?.chainKey === "k" ? "k" : "s");
+                  : storeId === "lidl" || storeId === "tokmanni"
+                    ? storeId
+                    : ((match as any)?.chainKey === "k" ? "k" : "s");
+
               const safeMode = mode as QualityMode;
               const safeMatch = match as Match;
 
-              setMatchQualityMode(
-                safeMatch,
-                safeMode,
-                undefined,
-                chainKey as ChainResult["key"],
-              );
+              setMatchQualityMode(safeMatch, safeMode, undefined, chainKey as ChainResult["key"]);
 
               try {
                 const alternatives = await fetchAlternativesForMatch(
@@ -20340,46 +20349,24 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   safeMode,
                 );
 
-                if (safeMode === "cheapest") {
-                  const sourceItem = safeMatch.cartItemId
-                    ? cart.find((item) => item.id === safeMatch.cartItemId)
-                    : undefined;
-                  const sourceName =
-                    sourceItem?.name || sourceItem?.product?.name || safeMatch.product.name;
-                  const replacement = pickCheapestCompareCandidate(
-                    sourceName,
-                    [safeMatch.product, ...alternatives].filter(
-                      (candidate, index, all) =>
-                        all.findIndex((other) => other.id === candidate.id) === index,
-                    ),
-                  );
-                  if (replacement) {
-                    replaceMatchProduct(
-                      chainKey as ChainResult["key"],
-                      safeMatch,
-                      replacement,
-                    );
-                  }
-                  return;
-                }
+                const replacement = alternatives
+                  .filter((alternative) => getProductPrice(alternative) > 0)
+                  .filter((alternative) =>
+                    productGroupGate(safeMatch.product.name, alternative.name),
+                  )
+                  .sort((a, b) => getProductPrice(a) - getProductPrice(b))[0];
 
-                return alternatives;
+                if (replacement) {
+                  replaceMatchProduct(
+                    chainKey as ChainResult["key"],
+                    safeMatch,
+                    replacement,
+                  );
+                }
               } catch (error) {
                 console.error(error);
                 showCartToast("Vaihtoehdon haku epäonnistui");
-                return [];
               }
-            }}
-            onSelectAlternative={async (storeId, match, alternative) => {
-              const chainKey =
-                storeId === "k" || storeId === "s"
-                  ? storeId
-                  : ((match as any)?.chainKey === "k" ? "k" : "s");
-              replaceMatchProduct(
-                chainKey as ChainResult["key"],
-                match as Match,
-                alternative as Product,
-              );
             }}
             onResetMatchMode={async (storeId, match) => {
               const chainKey =
