@@ -11141,68 +11141,57 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     ean?: string,
   ) {
     const normalizedEan = normalizeEan(ean);
+    const searchTerms = getKSearchTerms(query).filter(Boolean);
+    const identityTerms = Array.from(
+      new Set([
+        ...(normalizedEan ? [normalizedEan] : []),
+        ...searchTerms.slice(0, 4),
+      ]),
+    );
 
-    // Ketjun sisäisessä K-vertailussa sama tuote haetaan ensin nimenomaan
-    // EANilla valitusta K-kaupasta. Nimeen perustuva vastaavuushaku alkaa
-    // vasta, jos täsmä-EANia ei löydy.
+    // Nopeus + oikeellisuus: EAN ja tuotteen omat erottavat nimihakutermit
+    // ajetaan rinnakkain. Ruoanhinta ei aina löydä search=EAN-haulla, mutta
+    // sama EAN voi löytyä nimihakutuloksesta.
+    const identityResults = await Promise.all(
+      identityTerms.map((term) =>
+        fetchKProducts(term, storeId).catch(() => [] as KProduct[]),
+      ),
+    );
+    const identityCandidates = identityResults.flat();
+
     if (normalizedEan) {
-      const eanItems = await fetchKProducts(normalizedEan, storeId).catch(
-        () => [] as KProduct[],
-      );
-      const exact = eanItems.find(
-        (item) =>
-          item.price > 0 && normalizeEan(item.ean) === normalizedEan,
+      const exact = identityCandidates.find(
+        (item) => item.price > 0 && normalizeEan(item.ean) === normalizedEan,
       );
       if (exact) return exact;
     }
 
-    const allCandidates: KProduct[] = [];
-    const seenCandidateIds = new Set<string>();
+    // Jos täsmä-EANia ei ole, valitse ensisijaisesti tuotteen omista
+    // identiteettihakutuloksista. Geneerisiä tuoteryhmäfallbackeja ei ajeta
+    // turhaan, jos näistä löytyy jo turvallinen vastine.
+    const identityBest = pickBestKProduct(identityCandidates, query, normalizedEan);
+    if (identityBest) return identityBest;
 
-    // Täsmä-EAN puuttui: kerää turvalliset nimihakukandidaatit ja valitse
-    // niistä lähin vastaava nykyisillä tuoteryhmä- ja semantiikkasuojilla.
-    for (const searchTerm of getKSearchTerms(query)) {
-      // Yksittäinen fallback-haku ei saa kaataa koko matchia. Erityisesti
-      // täsmä-EAN voi löytyä jo aiemmasta nimihakutermistä.
-      const items = await fetchKProducts(searchTerm, storeId).catch(
-        () => [] as KProduct[],
-      );
+    const remainingTerms = searchTerms.filter(
+      (term) => !identityTerms.includes(term),
+    );
+    if (remainingTerms.length === 0) return undefined;
 
-      for (const item of items) {
-        const candidateKey = String(item.id || item.ean || item.name);
-        if (seenCandidateIds.has(candidateKey)) continue;
-        seenCandidateIds.add(candidateKey);
-        allCandidates.push(item);
-      }
+    // Vasta viimeisenä geneeriset fallbackit, nekin rinnakkain.
+    const fallbackResults = await Promise.all(
+      remainingTerms.map((term) =>
+        fetchKProducts(term, storeId).catch(() => [] as KProduct[]),
+      ),
+    );
+    const allCandidates = [...identityCandidates, ...fallbackResults.flat()];
 
-      // Ruoanhinta ei aina löydä search=EAN-haulla, mutta palauttaa saman EANin
-      // nimihakutuloksessa. Kun oikea EAN löytyy, lopeta heti: älä aja enää
-      // hitaita/geneerisiä fallback-hakuja äläkä anna myöhemmän haun sotkea osumaa.
-      if (normalizedEan) {
-        const exactFromThisSearch = items.find(
-          (item) =>
-            item.price > 0 && normalizeEan(item.ean) === normalizedEan,
-        );
-        if (exactFromThisSearch) return exactFromThisSearch;
-      }
-    }
-
-    // Ruoanhinta ei aina palauta tuotetta, kun search-parametrina käytetään
-    // suoraan EANia. Nimihakujen tuloksissa sama EAN kuitenkin tulee tuotteen
-    // mukana. Siksi tarkista täsmä-EAN vielä KAIKISTA tämän nimen/tuoteryhmän
-    // perusteella juuri tästä kaupasta kerätyistä kandidaateista ennen
-    // vastaavuuspisteytystä.
     if (normalizedEan) {
-      const exactFromNameCandidates = allCandidates.find(
-        (item) =>
-          item.price > 0 && normalizeEan(item.ean) === normalizedEan,
+      const exact = allCandidates.find(
+        (item) => item.price > 0 && normalizeEan(item.ean) === normalizedEan,
       );
-      if (exactFromNameCandidates) return exactFromNameCandidates;
+      if (exact) return exact;
     }
 
-    // Vasta kun samaa EANia ei löydy tämän kaupan omista kandidaateista,
-    // valitaan nimellä lähin vastaava tuote. Välitä alkuperäinen EAN myös
-    // valitsimelle: se tekee vielä oman täsmä-EAN-priorisoinnin ennen pisteytystä.
     return pickBestKProduct(allCandidates, query, normalizedEan);
   }
 
@@ -11211,7 +11200,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // Bump comparison cache schema whenever matching semantics change.
       // Otherwise an old localStorage snapshot can keep serving a previously
       // selected wrong equivalent even after the matcher has been fixed.
-      schema: 4,
+      schema: 5,
       items: nextCart.map((item) => [item.id, item.name, item.ean, item.product?.ean, item.quantity, item.price, item.chain, item.storeName, item.source]),
       stores:
         storeCompareScope === "within_chain"
@@ -11236,7 +11225,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     // Määrä ei muuta tuotteen vastinetta: sama pyyntö palvelee myös nopeita määränmuutoksia.
     const itemKey = JSON.stringify([
-      "matcher-v5",
+      "matcher-v6",
       item.id, item.name, item.ean, item.product?.ean, item.price, item.product?.id, item.chain, item.storeName, item.source,
       activeStores.sStoreId, activeStores.kStoreId, activeStores.sStoreName, activeStores.kStoreName,
       storeCompareScope, withinChain, ...withinStoreSignature,
