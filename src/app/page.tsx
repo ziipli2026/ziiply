@@ -8580,12 +8580,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function openShoppingListForCheapest() {
-    setMobileCompareShoppingStoreKeyV732(cheapest?.key || null);
-    setSearchPanelOpen(false);
-    setEanModalOpen(false);
-    setActiveResult("none");
-    setCartModalOpen(true);
-    triggerHaptic();
+    openMobileShoppingListFromCompareV724(cheapest?.key);
   }
 
   function openMobileShoppingListFromCompareV724(storeId?: string) {
@@ -19225,7 +19220,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         {!showLaunchScreen && cartModalOpen && !mobileComparePickingOpenV733 && (
           <ZiiplyMobileCartCard
             open={true}
-            items={(mobileCompareShoppingItemsV732 || cart).map((item: any) => {
+            items={cart.map((item: any) => {
               const key =
                 item.id ??
                 item.ean ??
