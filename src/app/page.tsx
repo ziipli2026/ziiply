@@ -15670,7 +15670,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // Vaihtoehdot pitää hakea juuri sen vertailukortin kaupasta.
       // Ketjun sisällä activeStores.kStoreId voi osoittaa toiseen K-kauppaan
       // (esim. Citymarket), vaikka match kuuluu K-Supermarket Jokelaan.
-      const matchStoreName = normalize(match.product.storeName || match.fallbackStoreName || "");
+      const matchStoreName = normalize(
+        (match.product as Product & { storeName?: string }).storeName ||
+          match.fallbackStoreName ||
+          "",
+      );
       const matchKStore = matchStoreName
         ? foundStores
             .map(normalizeStoreForPickerV320)
