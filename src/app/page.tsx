@@ -12037,11 +12037,27 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         return;
       } catch (error) {
         console.error("K weight-label lookup failed", error);
-        setEanLoading(false);
+
+        // V736: identity lookup is enrichment only. A valid physical K scale label
+        // must still enter the cart with its authoritative label price on any lookup error.
+        const fallbackNameV736 = `Punnittu tuote (PLU ${kWeightLabelV730.plu})`;
+        const fallbackProductV736: Product = {
+          id: Number(kWeightLabelV730.canonicalEan.slice(-9)),
+          name: fallbackNameV736,
+          ean: kWeightLabelV730.scannedEan,
+          price: kWeightLabelV730.price,
+        };
+        addWeightProductToCartV733(fallbackProductV736, kWeightLabelV730.scannedEan);
+
         setEanMessage(
-          `Vaakatuote tunnistettu (PLU ${kWeightLabelV730.plu}, ${kWeightLabelV730.price.toFixed(2).replace(".", ",")} €), mutta tuotetietohaku epäonnistui.`,
+          `Vaakatuote lisätty tarran hinnalla ${kWeightLabelV730.price.toFixed(2).replace(".", ",")} €. PLU ${kWeightLabelV730.plu}. Tuotenimeä ei saatu haettua.`,
         );
-        setEanScannerMessage("Vaakatuotteen tuotetietohaku epäonnistui");
+        setEanScannerMessage("Vaakatuote lisätty");
+        window.setTimeout(() => {
+          setEanScannerMessage((current) =>
+            current === "Vaakatuote lisätty" ? "" : current,
+          );
+        }, 2200);
         return;
       }
     }
