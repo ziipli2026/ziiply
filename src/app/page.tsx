@@ -10788,7 +10788,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           debugEntries.push({
             term,
             query: originalSearchFallback || term,
-            storeName: activeStores.sStoreName,
+            storeName:
+              storeCompareScope === "within_chain" && withinChain === "K"
+                ? activeArea.kStoreName || "K-tavaratalo"
+                : storeCompareScope === "within_chain" && withinChain === "S"
+                  ? activeArea.sStoreName || "S-tavaratalo"
+                  : activeStores.sStoreName,
             rawCount: 0,
             pricedCount: 0,
             badFilterCount: 0,
@@ -10802,18 +10807,43 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         }
 
         for (const searchQuery of searchQueries) {
-          let rawItems: Product[] = await fetchSProducts(
-            searchQuery,
-            activeStores.sStoreId,
-          );
+          const withinChainS = storeCompareScope === "within_chain" && withinChain === "S";
+          const withinChainK = storeCompareScope === "within_chain" && withinChain === "K";
+
+          let rawItems: Product[] = [];
           let usedStoreName = activeStores.sStoreName;
           let fallbackStoreName = "";
 
-          if (rawItems.length === 0 && shouldUseLocalFallback("S")) {
-            if (activeArea.sStoreId)
-              rawItems = await fetchSProducts(searchQuery, activeArea.sStoreId);
-            fallbackStoreName = activeArea.sStoreName || "S-tavaratalo";
-            usedStoreName = activeArea.sStoreName || "S-tavaratalo";
+          if (withinChainK) {
+            const kPrimaryStoreId = activeArea.kStoreId;
+            usedStoreName = activeArea.kStoreName || "K-tavaratalo";
+            if (kPrimaryStoreId) {
+              const kItems = await fetchKProducts(searchQuery, kPrimaryStoreId);
+              rawItems = kItems
+                .filter((item) => Number(item.price || 0) > 0)
+                .map((item) => ({
+                  ...convertKProductToProduct(item),
+                  ean: item.ean,
+                }));
+            }
+          } else {
+            const sPrimaryStoreId = withinChainS
+              ? activeArea.sStoreId
+              : activeStores.sStoreId;
+            usedStoreName = withinChainS
+              ? activeArea.sStoreName || "S-tavaratalo"
+              : activeStores.sStoreName;
+
+            if (sPrimaryStoreId) {
+              rawItems = await fetchSProducts(searchQuery, sPrimaryStoreId);
+            }
+
+            if (!withinChainS && rawItems.length === 0 && shouldUseLocalFallback("S")) {
+              if (activeArea.sStoreId)
+                rawItems = await fetchSProducts(searchQuery, activeArea.sStoreId);
+              fallbackStoreName = activeArea.sStoreName || "S-tavaratalo";
+              usedStoreName = activeArea.sStoreName || "S-tavaratalo";
+            }
           }
 
           const pricedItems = rawItems.filter(
