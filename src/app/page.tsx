@@ -11856,6 +11856,77 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }, 0);
   }
 
+  function addWeightProductToCartV733(product: Product, scannedEan: string) {
+    const ean = normalizeEan(scannedEan);
+    const productName = fixText(product.name);
+    const addKey = `K-weight-${ean}-${product.id}`;
+    const now = Date.now();
+
+    if (
+      lastEanCartAddRef.current?.key === addKey &&
+      now - lastEanCartAddRef.current.at < 2500
+    ) return;
+    lastEanCartAddRef.current = { key: addKey, at: now };
+
+    trackZiiplyEvent("product_added_to_cart", {
+      source: "barcode_scanner",
+      productName,
+      ean,
+      chain: "K",
+      storeName: activeStores.kStoreName || "K-kauppa",
+      price: getProductPrice(product),
+    });
+
+    triggerHaptic();
+    showScanSuccessFlash();
+
+    setCart((currentCart) => {
+      const baseCart = mergeCartPoolsByIdV129(currentCart);
+      const existingItem = baseCart.find((item) =>
+        (isUsableEan(ean) && cartItemMatchesEanLooseV129(item, ean)) ||
+        normalize(item.name) === normalize(productName)
+      );
+      if (existingItem) {
+        const nextCart = baseCart.map((item) =>
+          item.id === existingItem.id
+            ? { ...item, quantity: Number(item.quantity || 1) + 1, ean }
+            : item
+        );
+        cartRefV124.current = nextCart;
+        persistCartImmediately(nextCart);
+        void updateChainComparison(nextCart, { openCompare: false });
+        showCartToast(`Määrä +1: ${existingItem.name}`);
+        return nextCart;
+      }
+      if (baseCart.length >= MAX_ITEMS) return currentCart;
+      const newItem: CartItem = {
+        id: `k-weight-${product.id}-${Date.now()}`,
+        name: productName,
+        price: getProductPrice(product),
+        image: product.pictureUrl,
+        chain: "K",
+        storeName: activeStores.kStoreName || "K-kauppa",
+        quantity: 1,
+        source: "search",
+        product,
+        ean,
+      };
+      const nextCart = [...baseCart, newItem];
+      cartRefV124.current = nextCart;
+      persistCartImmediately(nextCart);
+      void updateChainComparison(nextCart, { openCompare: false });
+      showCartToast(`Lisätty: ${newItem.name}`);
+      return nextCart;
+    });
+
+    setEanInput("");
+    setEanResults([]);
+    setEanLoading(false);
+    setEanSearchStartedAutomatically(false);
+    eanAutoSearchActiveRef.current = false;
+    setLastAutoEanSearch("");
+  }
+
   async function searchByEan(
     eanOverride?: string,
     options: { fromScanner?: boolean } = {},
@@ -11899,6 +11970,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           .then((response) => response.ok ? response.json() : null)
           .catch(() => null);
 
+        pushScannerDebugV493(
+          `K-WEIGHT identity found=${Boolean(kWeightIdentityV732?.found)} source=${String(kWeightIdentityV732?.source || "none")} diagnostic=${String(kWeightIdentityV732?.diagnostic || "")}`
+        );
         if (kWeightIdentityV732?.found && kWeightIdentityV732?.product?.name) {
           const resolvedNameV732 = fixText(String(kWeightIdentityV732.product.name));
           const weighedProductV732: Product = {
@@ -11908,16 +11982,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             price: kWeightLabelV730.price,
           };
 
-          addEanResultToCart(
-            {
-              key: `K-weight-${kWeightLabelV730.scannedEan}`,
-              chain: "K",
-              storeName: activeStores.kStoreName || "K-kauppa",
-              product: weighedProductV732,
-              eanMatch: true,
-            },
-            { showFlash: true, showScannerMessage: false },
-          );
+          addWeightProductToCartV733(weighedProductV732, kWeightLabelV730.scannedEan);
 
           setEanMessage(
             `Vaakatuote tunnistettu: ${resolvedNameV732}. Tarran hinta ${kWeightLabelV730.price.toFixed(2).replace(".", ",")} €.`,
@@ -11963,16 +12028,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             price: kWeightLabelV730.price,
           };
 
-          addEanResultToCart(
-            {
-              key: `K-weight-${kWeightLabelV730.scannedEan}`,
-              chain: "K",
-              storeName: activeStores.kStoreName || "K-kauppa",
-              product: weighedProductV730,
-              eanMatch: true,
-            },
-            { showFlash: true, showScannerMessage: false },
-          );
+          addWeightProductToCartV733(weighedProductV730, kWeightLabelV730.scannedEan);
 
           setEanMessage(
             `Vaakatuote tunnistettu. Tarran hinta ${kWeightLabelV730.price.toFixed(2).replace(".", ",")} €.`,
@@ -11997,16 +12053,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           price: kWeightLabelV730.price,
         };
 
-        addEanResultToCart(
-          {
-            key: `K-weight-fallback-${kWeightLabelV730.scannedEan}`,
-            chain: "K",
-            storeName: activeStores.kStoreName || "K-kauppa",
-            product: fallbackProductV731,
-            eanMatch: true,
-          },
-          { showFlash: true, showScannerMessage: false },
-        );
+        addWeightProductToCartV733(fallbackProductV731, kWeightLabelV730.scannedEan);
 
         setEanMessage(
           `Vaakatuote lisätty tarran hinnalla ${kWeightLabelV730.price.toFixed(2).replace(".", ",")} €. PLU ${kWeightLabelV730.plu}.`,
