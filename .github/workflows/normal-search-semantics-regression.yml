@@ -24,14 +24,14 @@ jobs:
         run: |
           rm -rf .tmp-search-regression
           npx tsc src/app/components/ziiply/ziiplyCore.ts \
-            --target ES2020 \
+            --target ES2021 \
             --module commonjs \
             --moduleResolution node \
             --esModuleInterop \
             --skipLibCheck \
             --outDir .tmp-search-regression
           npx tsc src/app/components/ziiply/search/searchIntentAI.ts src/app/components/ziiply/search/searchIntentMemory.ts \
-            --target ES2020 \
+            --target ES2021 \
             --module commonjs \
             --moduleResolution node \
             --esModuleInterop \
