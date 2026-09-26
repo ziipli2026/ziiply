@@ -11352,7 +11352,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
     } catch {}
     void updateChainComparison(comparableCart, { openCompare: false });
-  }, [restoredComparisonPending, storesReadyForSearch, cart, activeStores.sStoreId, activeStores.kStoreId, activeStores.sStoreName, activeStores.kStoreName, storeMode, storeCompareScope, withinChain]);
+  }, [restoredComparisonPending, storesReadyForSearch, cart, activeStores.sStoreId, activeStores.kStoreId, activeStores.sStoreName, activeStores.kStoreName, activeArea.sStoreId, activeArea.sLocalStoreId, activeArea.kStoreId, activeArea.kLocalStoreId, activeArea.sStoreName, activeArea.sLocalStoreName, activeArea.kStoreName, activeArea.kLocalStoreName, storeMode, storeCompareScope, withinChain]);
 
   useEffect(() => {
     const comparisonCart = cart.filter((item) => String(item.source || "").toLowerCase() !== "offer" && !isWeightCartItemV738(item));
@@ -11381,6 +11381,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     activeStores.kStoreId,
     activeStores.sStoreName,
     activeStores.kStoreName,
+    activeArea.sStoreId,
+    activeArea.sLocalStoreId,
+    activeArea.kStoreId,
+    activeArea.kLocalStoreId,
+    activeArea.sStoreName,
+    activeArea.sLocalStoreName,
+    activeArea.kStoreName,
+    activeArea.kLocalStoreName,
     storeMode,
     storeCompareScope,
     withinChain,
