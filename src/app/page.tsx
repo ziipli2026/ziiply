@@ -19178,6 +19178,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 setSearchPanelOpen(false);
               }}
               onOfferSearch={handleMainOfferSearch}
+              offerSearchDisabled={storeCompareScope === "within_chain"}
               onNormalSearch={handleMainNormalSearch}
               onOpenResults={() => {
                 // Avaa viimeisin jo valmis tuotelista heti ilman uutta API-hakua.
