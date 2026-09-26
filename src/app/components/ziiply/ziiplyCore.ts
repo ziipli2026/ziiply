@@ -482,6 +482,12 @@ export const SEARCH_ALIASES: Record<string, string> = {
   // Snacks
   tortilla: "tortilla chips",
   sipsit: "sipsit",
+
+  // Juomien yleisiä käyttäjämuotoja / tuotenimissä käytettyjä vastineita.
+  // Säilytetään alkuperäinen hakusana getNormalSearchQueries()-listassa,
+  // mutta haetaan lisäksi backendin tavallisesti käyttämällä muodolla.
+  pilsneri: "pilsner",
+  pils: "pilsner",
 };
 
 export function getSearchQuery(term: string) {
