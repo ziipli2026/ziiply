@@ -11972,14 +11972,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setEanScannerMessage("Vaakatuote — haetaan K-tuotetietoa");
 
       try {
-        const kStoreIdV730 = activeStores.kStoreId || "3221";
-        const queriesV730 = [
-          kWeightLabelV730.canonicalEan,
-          kWeightLabelV730.plu,
-        ];
-
-        let exactKProductV730: KProduct | null = null;
-
         // V732: canonical K-vaakatuote ratkaistaan ensisijaisesti suoraan K-Ruoasta.
         // Tämä ei ole riippuvainen Ruoanhinta.fi:n kauppakohtaisesta valikoimasta/hinnasta.
         const kWeightIdentityV732 = await fetch(
@@ -12017,51 +12009,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           return;
         }
 
-        for (const queryV730 of queriesV730) {
-          const productsV730 = await fetchKProducts(queryV730, kStoreIdV730).catch(
-            () => [] as KProduct[],
-          );
-          exactKProductV730 =
-            productsV730.find(
-              (product) =>
-                normalizeEan(product?.ean) === kWeightLabelV730.canonicalEan,
-            ) || null;
-
-          // Ruoanhinta does not consistently expose K's internal canonical EAN.
-          // For the PLU query only, accept a single unambiguous result as identity.
-          // Its price is NEVER used: the physical scale label remains authoritative.
-          if (
-            !exactKProductV730 &&
-            queryV730 === kWeightLabelV730.plu &&
-            productsV730.length === 1
-          ) {
-            exactKProductV730 = productsV730[0];
-          }
-
-          if (exactKProductV730) break;
-        }
-
-        if (exactKProductV730) {
-          const convertedV730 = convertKProductToProduct(exactKProductV730);
-          const weighedProductV730: Product = {
-            ...convertedV730,
-            ean: kWeightLabelV730.scannedEan,
-            price: kWeightLabelV730.price,
-          };
-
-          addWeightProductToCartV733(weighedProductV730, kWeightLabelV730.scannedEan);
-
-          setEanMessage(
-            `Vaakatuote tunnistettu. Tarran hinta ${kWeightLabelV730.price.toFixed(2).replace(".", ",")} €.`,
-          );
-          setEanScannerMessage("Vaakatuote lisätty");
-          window.setTimeout(() => {
-            setEanScannerMessage((current) =>
-              current === "Vaakatuote lisätty" ? "" : current,
-            );
-          }, 2200);
-          return;
-        }
+        // V735: identity miss must never block a valid K scale label from entering the cart.
+        // The physical label already gives authoritative PLU + total price; enrich the name only on an exact identity hit.
 
         // V731: vaakatuotteen koriin pääsy ei saa riippua Ruoanhinta/K-tuotetieto-osumasta.
         // Tarrasta tiedetään jo varmasti PLU ja tämän yksilön kassahinta.
