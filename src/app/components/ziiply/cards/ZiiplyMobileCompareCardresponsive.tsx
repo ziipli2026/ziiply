@@ -261,10 +261,26 @@ export default function ZiiplyMobileCompareCardresponsive({
   const comparedCount = items.length || visibleStores[0]?.itemCount || 0;
 
   if (detailsStore) {
+    const matchedCartItemIds = new Set(
+      (detailsStore.matches || [])
+        .map((match: any) => String(match?.cartItemId || ""))
+        .filter(Boolean),
+    );
+    const missingRows = (items || [])
+      .filter((item: any) => {
+        const itemId = String(item?.id || "");
+        return itemId && !matchedCartItemIds.has(itemId);
+      })
+      .map((item: any) => ({
+        ...item,
+        isMissingComparisonItem: true,
+      }));
+    const detailRows = [...(detailsStore.matches || []), ...missingRows];
+
     return (
       <ZiiplyMobileCompareSelectionCard
         open
-        store={detailsStore}
+        store={{ ...detailsStore, matches: detailRows }}
         items={items}
         isBest={Boolean(detailsStore.isBest || cheapest?.id === detailsStore.id)}
         onBack={() => setDetailsStoreId(null)}
