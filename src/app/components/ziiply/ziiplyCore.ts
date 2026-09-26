@@ -3008,24 +3008,35 @@ export function getPrimaryBrand(name: string) {
   return brandGroups.find((brand) => text.includes(normalize(brand))) || "";
 }
 
-export function isAllowedByQualityMode(sourceName: string, candidateName: string, qualityMode: QualityMode) {
+export function isAllowedByQualityMode(
+  sourceName: string,
+  candidateName: string,
+  qualityMode: QualityMode,
+  chainKey?: "s" | "k",
+  sourceBrandName?: string,
+  candidateBrandName?: string,
+) {
   if (qualityMode === "cheapest") return true;
 
   const source = normalize(sourceName);
   const candidate = normalize(candidateName);
 
-  const sourceBrand = getPrimaryBrand(sourceName);
-  const candidateBrand = getPrimaryBrand(candidateName);
+  const sourceBrand = getPrimaryBrand(sourceBrandName || sourceName);
+  const candidateBrand = getPrimaryBrand(candidateBrandName || candidateName);
 
   const sourceOwnBrand = isValueBrandProduct(sourceName);
   const candidateOwnBrand = isValueBrandProduct(candidateName);
 
   if (qualityMode === "own_brands") {
+    if (chainKey === "s") return hasAnyBrand(normalize(candidateBrandName || candidateName), S_OWN_BRANDS);
+    if (chainKey === "k") return hasAnyBrand(normalize(candidateBrandName || candidateName), K_OWN_BRANDS);
     return candidateOwnBrand;
   }
 
   if (qualityMode === "keep_brands") {
-    if (!sourceBrand) return true;
+    // "Sama brändi" must never silently degrade to "any brand".
+    // Prefer explicit product brandName when available, then known brand names in product text.
+    if (!sourceBrand) return false;
     return sourceBrand === candidateBrand;
   }
 
@@ -3051,11 +3062,18 @@ export function isAllowedByQualityMode(sourceName: string, candidateName: string
   return true;
 }
 
-export function scoreQualityMode(sourceName: string, candidateName: string, qualityMode: QualityMode) {
-  if (!isAllowedByQualityMode(sourceName, candidateName, qualityMode)) return -9999;
+export function scoreQualityMode(
+  sourceName: string,
+  candidateName: string,
+  qualityMode: QualityMode,
+  chainKey?: "s" | "k",
+  sourceBrandName?: string,
+  candidateBrandName?: string,
+) {
+  if (!isAllowedByQualityMode(sourceName, candidateName, qualityMode, chainKey, sourceBrandName, candidateBrandName)) return -9999;
 
-  const sourceBrand = getPrimaryBrand(sourceName);
-  const candidateBrand = getPrimaryBrand(candidateName);
+  const sourceBrand = getPrimaryBrand(sourceBrandName || sourceName);
+  const candidateBrand = getPrimaryBrand(candidateBrandName || candidateName);
 
   let score = 0;
 
