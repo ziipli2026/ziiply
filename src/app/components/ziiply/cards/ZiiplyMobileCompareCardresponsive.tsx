@@ -277,7 +277,7 @@ export default function ZiiplyMobileCompareCardresponsive({
 
 {showSkeleton ? <RetroMopedOverlay /> : null}
 
-        <main className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden px-5 pb-4 pt-[9.5rem]">
+        <main className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden px-5 pb-[5.7rem] pt-[8.8rem]">
           <div className="relative z-20 mb-3 ml-[3.1rem] max-w-[calc(100%-3.1rem)] shrink-0">
             <div className="text-[1.46rem] font-black italic leading-none text-[#28402a] drop-shadow-[0_1px_0_rgba(255,247,211,0.62)]" style={{ fontFamily: cooperFont }}>{title}</div>
             <div className="mt-[0.16rem] text-[0.72rem] font-extrabold text-[#5f5034]">{subtitle || `${comparedCount || visibleStores.length} tuotetta / ${visibleStores.length} kauppaa`}</div>
@@ -326,7 +326,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                       store.chain === "S" ? "border-[#0b6330] bg-[#ecf3d5]/82" : "border-[#7c663d]/76 bg-[#fff8e5]/72",
                     )}
                   >
-                    <div className="grid grid-cols-[2.35rem_minmax(0,1fr)_3.45rem] gap-3">
+                    <div className="grid shrink-0 grid-cols-[2.35rem_minmax(0,1fr)_4.75rem] gap-2">
                       <button
                         type="button"
                         onClick={() => setDetailsStoreId((current) => current === store.id ? null : store.id)}
@@ -366,28 +366,15 @@ export default function ZiiplyMobileCompareCardresponsive({
                           </span>
                         </button>
 
-                        <div className="mt-2 min-h-[1.26rem]">
-                          {diffLabel ? (
-                            <span
-                              className={cx(
-                                "inline-flex rounded-[0.44rem] border-[1.5px] px-2 py-[0.12rem] text-[0.55rem] font-black uppercase tracking-[0.055em]",
-                                isBest
-                                  ? "border-[#0b6330] bg-[#0b8f3a] text-[#fff6d7]"
-                                  : "border-[#b99d5c] bg-[#f4e7c7] text-[#6b6048]",
-                              )}
-                            >
-                              {isBest ? "Paras hinta" : diffLabel}
-                            </span>
-                          ) : null}
-                        </div>
                       </div>
 
                       <button
                         type="button"
                         onClick={() => setDetailsStoreId((current) => current === store.id ? null : store.id)}
-                        className="min-w-0 pt-1 text-right"
+                        className="flex min-w-0 flex-col items-end justify-end gap-1 pb-0.5 text-right"
                         aria-label={`Avaa ${store.name}`}
                       >
+                        {diffLabel ? <span className={cx("whitespace-nowrap rounded-[0.44rem] border px-1 py-[0.10rem] text-[0.48rem] font-black uppercase", isBest ? "border-[#0b6330] bg-[#0b8f3a] text-[#fff6d7]" : "border-[#b99d5c] bg-[#f4e7c7] text-[#6b6048]")}>{isBest ? "Paras hinta" : diffLabel}</span> : null}
                         <span
                           className={cx(
                             "block whitespace-nowrap text-right text-[1.00rem] font-black italic leading-none",
@@ -400,15 +387,15 @@ export default function ZiiplyMobileCompareCardresponsive({
                       </button>
                     </div>
 
-                    <div className="mt-2.5 grid shrink-0 grid-cols-[minmax(0,1fr)_2.30rem_2.30rem] items-center gap-2 pl-[2.58rem]">
+                    <div className="mt-2 flex shrink-0 items-center gap-2 pl-[2.58rem]">
                       {detailsStoreId === store.id ? (
-                        <button type="button" onClick={() => setDetailsStoreId(null)} className="grid h-[2.62rem] w-[2.86rem] place-items-center rounded-l-[0.42rem] rounded-r-[0.8rem] border-[2px] border-[#2b1a0e] bg-[linear-gradient(135deg,#7a4c2d_0%,#3b2414_78%)] text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.25),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]" aria-label="Palaa vertailukoreihin" title="Palaa vertailukoreihin">
+                        <button type="button" onClick={() => setDetailsStoreId(null)} className="mr-auto grid h-[2.62rem] w-[2.86rem] shrink-0 place-items-center rounded-l-[0.42rem] rounded-r-[0.8rem] border-[2px] border-[#2b1a0e] bg-[linear-gradient(135deg,#7a4c2d_0%,#3b2414_78%)] text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.25),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]" aria-label="Palaa vertailukoreihin" title="Palaa vertailukoreihin">
                           <span className="grid h-[1.50rem] w-[1.50rem] place-items-center rounded-full border border-[#6b421f] bg-[radial-gradient(circle_at_35%_35%,#f6c46c_0%,#b0752a_52%,#65401f_100%)] text-[1.02rem] text-[#2b1a0e] shadow-[0_1px_2px_rgba(0,0,0,0.28)]">←</span>
                         </button>
                       ) : <button
                         type="button"
                         onClick={() => setDetailsStoreId((current) => current === store.id ? null : store.id)}
-                        className="min-h-[2.40rem] rounded-[0.72rem] border-[2.5px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-3 text-[0.72rem] font-black italic tracking-[0.03em] text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58),0_2px_4px_rgba(62,43,20,0.18)] active:translate-y-[1px]"
+                        className="mr-auto min-h-[2.40rem] min-w-0 flex-1 rounded-[0.72rem] border-[2.5px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-3 text-[0.72rem] font-black italic tracking-[0.03em] text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58),0_2px_4px_rgba(62,43,20,0.18)] active:translate-y-[1px]"
                         style={{ fontFamily: cooperFont }}
                       >
                         Muuta valintoja
@@ -418,7 +405,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                         <button
                           type="button"
                           onClick={(event) => { event.stopPropagation(); onShareStore(store.id); }}
-                          className="grid h-[2.22rem] w-[2.22rem] place-items-center rounded-[0.46rem] border-[1.6px] border-[#8b713d] bg-[linear-gradient(180deg,#f5e5bd_0%,#d6b875_100%)] text-[#51361a] shadow-[0_2px_5px_rgba(45,30,10,0.17),inset_0_0_0_1px_rgba(255,249,220,0.55)] active:translate-y-[1px]"
+                          className="grid h-[2.22rem] w-[2.22rem] shrink-0 place-items-center rounded-[0.46rem] border-[1.6px] border-[#8b713d] bg-[linear-gradient(180deg,#f5e5bd_0%,#d6b875_100%)] text-[#51361a] shadow-[0_2px_5px_rgba(45,30,10,0.17),inset_0_0_0_1px_rgba(255,249,220,0.55)] active:translate-y-[1px]"
                           aria-label={`Jaa ${store.name} kori`} title="Jaa kori"
                         >
                           <svg aria-hidden="true" viewBox="0 0 24 18" className="h-[0.94rem] w-[1.12rem]">
@@ -432,7 +419,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                         <button
                           type="button"
                           onClick={(event) => { event.stopPropagation(); onSelectStore(store.id); }}
-                          className="grid h-[2.22rem] w-[2.22rem] place-items-center rounded-[0.46rem] border-[1.6px] border-[#765628] bg-[linear-gradient(180deg,#f5dfac_0%,#d2a661_100%)] text-[#51361a] shadow-[0_2px_5px_rgba(45,30,10,0.17)] active:translate-y-[1px]"
+                          className="grid h-[2.22rem] w-[2.22rem] shrink-0 place-items-center rounded-[0.46rem] border-[1.6px] border-[#765628] bg-[linear-gradient(180deg,#f5dfac_0%,#d2a661_100%)] text-[#51361a] shadow-[0_2px_5px_rgba(45,30,10,0.17)] active:translate-y-[1px]"
                           aria-label={`Osta ${store.name} vertailukori`} title="Osta tämä vertailukori"
                         >
                           <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[1.52rem] w-[1.52rem]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round">
