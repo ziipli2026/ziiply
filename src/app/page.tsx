@@ -10969,26 +10969,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 item.name,
                 activeStores.sStoreId,
               );
-              let best = pickBestSProduct(items, item.name, item.ean);
-              let fallbackStoreName = "";
+              const best = pickBestSProduct(items, item.name, item.ean);
 
-              if (!best && shouldUseLocalFallback("S")) {
-                if (activeArea.sStoreId)
-                  items = await fetchSProducts(item.name, activeArea.sStoreId);
-                best = pickBestSProduct(items, item.name, item.ean);
-                fallbackStoreName =
-                  activeArea.sStoreName ||
-                  activeStores.sStoreName ||
-                  "S-kauppa";
-              }
-
+              // Vertailussa hyväksytään vain käyttäjän valitun kaupan hinta.
+              // Jos vastinetta ei löydy tästä kaupasta, tuote jää puuttuvaksi.
               if (best) {
                 nextSMatches[item.id] = {
                   product: best,
                   price: getProductPrice(best),
                   quantity: item.quantity,
                   matchType: best.ean && item.ean === best.ean ? "ean" : "name",
-                  fallbackStoreName: fallbackStoreName || undefined,
                   cartItemId: item.id,
                 };
               }
@@ -11005,31 +10995,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             };
           } else {
             try {
-              let best: KProduct | undefined;
-              let fallbackStoreName = "";
-
-              best = await findBestKMatchForStore(
+              const best = await findBestKMatchForStore(
                 item.name,
                 activeStores.kStoreId,
                 item.ean,
               );
 
-              if (!best && shouldUseLocalFallback("K")) {
-                if (activeArea.kStoreId)
-                  best = await findBestKMatchForStore(
-                    item.name,
-                    activeArea.kStoreId,
-                    item.ean,
-                  );
-
-                if (best) {
-                  fallbackStoreName =
-                    activeArea.kStoreName ||
-                    activeStores.kStoreName ||
-                    "K-kauppa";
-                }
-              }
-
+              // Vertailussa hyväksytään vain käyttäjän valitun kaupan hinta.
+              // Toisen K-kaupan fallback-hintaa ei saa esittää valitun kaupan hintana.
               if (best) {
                 const product = convertKProductToProduct(best);
                 nextKMatches[item.id] = {
@@ -11037,7 +11010,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   price: best.price,
                   quantity: item.quantity,
                   matchType: best.ean && item.ean === best.ean ? "ean" : "name",
-                  fallbackStoreName: fallbackStoreName || undefined,
                   cartItemId: item.id,
                 };
               }
