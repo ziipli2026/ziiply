@@ -11200,7 +11200,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // Bump comparison cache schema whenever matching semantics change.
       // Otherwise an old localStorage snapshot can keep serving a previously
       // selected wrong equivalent even after the matcher has been fixed.
-      schema: 6,
+      schema: 7,
       items: nextCart.map((item) => [item.id, item.name, item.ean, item.product?.ean, item.quantity, item.price, item.chain, item.storeName, item.source]),
       stores:
         storeCompareScope === "within_chain"
@@ -11386,13 +11386,20 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         }
       }
 
-      if (failed) comparisonItemRequestsRef.current.delete(itemKey);
       return { s, k, failed };
     })();
     comparisonItemRequestsRef.current.set(itemKey, request);
-    if (comparisonItemRequestsRef.current.size > 200) {
-      comparisonItemRequestsRef.current.delete(comparisonItemRequestsRef.current.keys().next().value!);
-    }
+
+    // Tämä map on vain samanaikaisten identtisten hakujen deduplikointiin.
+    // Valmista tuotematchia ei saa säilyttää session mittaisena cachena:
+    // muuten kerran väärin valittu vastine voi jäädä vertailukortille vaikka
+    // matcher/data on jo korjaantunut.
+    void request.finally(() => {
+      if (comparisonItemRequestsRef.current.get(itemKey) === request) {
+        comparisonItemRequestsRef.current.delete(itemKey);
+      }
+    });
+
     return request;
   }
 
