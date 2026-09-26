@@ -11178,8 +11178,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     // Vasta kun samaa EANia ei löydy tämän kaupan omista kandidaateista,
-    // valitaan nimellä lähin vastaava tuote.
-    return pickBestKProduct(allCandidates, query);
+    // valitaan nimellä lähin vastaava tuote. Välitä alkuperäinen EAN myös
+    // valitsimelle: se tekee vielä oman täsmä-EAN-priorisoinnin ennen pisteytystä.
+    return pickBestKProduct(allCandidates, query, normalizedEan);
   }
 
   function getComparisonCacheKey(nextCart: CartItem[]) {
@@ -11212,6 +11213,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     // Määrä ei muuta tuotteen vastinetta: sama pyyntö palvelee myös nopeita määränmuutoksia.
     const itemKey = JSON.stringify([
+      "matcher-v3",
       item.id, item.name, item.ean, item.product?.ean, item.price, item.product?.id, item.chain, item.storeName, item.source,
       activeStores.sStoreId, activeStores.kStoreId, activeStores.sStoreName, activeStores.kStoreName,
       storeCompareScope, withinChain, ...withinStoreSignature,
