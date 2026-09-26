@@ -11085,7 +11085,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       if (comparisonCacheKeyRef.current === cacheKey) {
         setSMatches(nextSMatches);
         setKMatches(nextKMatches);
-        if (failed) comparisonCacheKeyRef.current = null;
+        if (failed) {
+          comparisonCacheKeyRef.current = null;
+          setComparisonLoading(false);
+        }
         try {
           if (!failed) {
             window.localStorage.setItem("ziiply-comparison-snapshot-v1", JSON.stringify({
@@ -11097,10 +11100,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         } catch {}
       }
     } catch (error) {
-      if (comparisonCacheKeyRef.current === cacheKey) comparisonCacheKeyRef.current = null;
+      if (comparisonCacheKeyRef.current === cacheKey) {
+        comparisonCacheKeyRef.current = null;
+        setComparisonLoading(false);
+      }
       throw error;
     } finally {
-      if (comparisonCacheKeyRef.current === cacheKey || comparisonCacheKeyRef.current === null) setComparisonLoading(false);
+      if (comparisonCacheKeyRef.current === cacheKey) setComparisonLoading(false);
     }
   }
 
