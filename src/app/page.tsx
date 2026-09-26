@@ -11149,7 +11149,28 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           }
 
           if (localId) {
-            const localBest = pickBestSProduct(await fetchSProducts(item.name, localId), item.name, itemEan);
+            const localSearchTerms = Array.from(
+              new Map(
+                [
+                  itemEan,
+                  item.name,
+                  ...getNormalSearchQueries(item.name).slice(0, 6),
+                ]
+                  .map((term) => fixText(String(term || "")).trim())
+                  .filter(Boolean)
+                  .map((term) => [normalize(term), term]),
+              ).values(),
+            ).slice(0, 8);
+
+            let localBest: Product | undefined;
+            for (const term of localSearchTerms) {
+              const localItems = await fetchSProducts(term, localId).catch(
+                () => [] as Product[],
+              );
+              localBest = pickBestSProduct(localItems, item.name, itemEan);
+              if (localBest) break;
+            }
+
             if (localBest && getProductPrice(localBest) > 0) {
               k = { product: { ...localBest, storeName: localName } as Product, price: getProductPrice(localBest), quantity: 1, matchType: normalizeEan(localBest.ean) === itemEan && itemEan ? "ean" : "name", cartItemId: item.id };
             }
