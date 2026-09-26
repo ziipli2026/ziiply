@@ -414,6 +414,86 @@ jobs:
           console.log('SAFE_SUMMARY functional comparison quality-mode regression passed');
           NODE
 
+      - name: Functional comparison attribute-preservation regression
+        shell: bash
+        run: |
+          node <<'NODE'
+          const core = require('./.tmp-search-regression/ziiplyCore.js');
+
+          if (typeof core.isComparisonAttributeCompatible !== 'function') {
+            console.error('FAIL missing comparison attribute compatibility gate');
+            process.exit(1);
+          }
+
+          const source = 'Valio Eila laktoositon rasvaton piimä 1 l';
+          const accepted = [
+            'Kotimaista laktoositon rasvaton piimä 1 l',
+            'Pirkka laktoositon rasvaton piimä 1 l',
+            'Arla laktoositon rasvaton piimä 1 l',
+          ];
+          const rejected = [
+            'Valio rasvaton piimä 1 l',
+            'Valio laktoositon AB-piimä 1 l',
+            'Valio laktoositon rasvaton maito 1 l',
+            'Valio laktoositon rasvaton piimä 500 ml',
+          ];
+
+          for (const candidate of accepted) {
+            if (!core.isComparisonAttributeCompatible(source, candidate)) {
+              console.error('FAIL compatible comparison product rejected:', candidate);
+              process.exit(1);
+            }
+          }
+          for (const candidate of rejected) {
+            if (core.isComparisonAttributeCompatible(source, candidate)) {
+              console.error('FAIL essential product attribute changed:', candidate);
+              process.exit(1);
+            }
+          }
+
+          const candidates = [
+            { id: 1, name: 'Valio rasvaton piimä 1 l', price: 0.79 },
+            { id: 2, name: 'Arla laktoositon rasvaton piimä 1 l', price: 1.29 },
+            { id: 3, name: 'Pirkka laktoositon rasvaton piimä 1 l', price: 1.09 },
+          ];
+          if (typeof core.pickCheapestCompatibleComparisonProduct !== 'function') {
+            console.error('FAIL missing deterministic cheapest-compatible picker');
+            process.exit(1);
+          }
+          const picked = core.pickCheapestCompatibleComparisonProduct(source, candidates);
+          if (!picked || picked.id !== 3) {
+            console.error('FAIL cheapest changed attributes or did not choose true cheapest compatible product:', picked);
+            process.exit(1);
+          }
+
+          console.log('PASS cheapest preserves product group + essential attributes and then uses price only');
+          NODE
+
+      - name: Verify three-mode comparison UX contract
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const card = fs.readFileSync('src/app/components/ziiply/cards/ZiiplyMobileCompareSelectionCard.tsx', 'utf8');
+
+          const forbidden = ['same_quality', 'Vastaava'];
+          for (const value of forbidden) {
+            if (card.includes('mode: "' + value + '"') || card.includes('label: "' + value + '"')) {
+              console.error('FAIL obsolete quality-tier button remains:', value);
+              process.exit(1);
+            }
+          }
+          if (!card.includes('label: "Halvin"')) {
+            console.error('FAIL direct Halvin action missing');
+            process.exit(1);
+          }
+          if (!card.includes('Pirkka / K-Menu') || !card.includes('Coop / Xtra / Kotimaista')) {
+            console.error('FAIL chain-specific own-brand labels missing');
+            process.exit(1);
+          }
+          console.log('PASS three-mode comparison UX contract');
+          NODE
+
       - name: Verify comparison mode state is chain-scoped
         shell: bash
         run: |
