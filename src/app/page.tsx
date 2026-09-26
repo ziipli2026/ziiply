@@ -10946,6 +10946,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return;
     }
 
+    // Halpuusvertailun vastinehaku kuuluu vain avoimeen Vertailu-näkymään.
+    // Normaali tekstihaku / ostoskori ei saa käynnistää sitä taustalla.
+    if (activeResult !== "compare") return;
+
     const timer = window.setTimeout(() => {
       void updateChainComparison(cart, { openCompare: false });
     }, 300);
@@ -13515,7 +13519,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     setCart(nextCart);
     showCartToast(`Lisätty ostoskoriin: ${newItem.name}`);
-    void updateChainComparison(nextCart);
 
     const nextInput = remainingTerms.join(",");
 
@@ -13841,9 +13844,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setActiveResult("none");
     setCartModalOpen(true);
 
-    if (storesReadyForSearch) {
-      void updateChainComparison(cart);
-    }
   }
 
   function toggleCartModal() {
@@ -14546,7 +14546,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     triggerHaptic();
-    void updateChainComparison(nextCart);
+    if (activeResult === "compare") {
+      void updateChainComparison(nextCart, { openCompare: false });
+    }
   }
 
   function removeCartItem(id: string) {
@@ -14592,7 +14594,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setSearchPanelOpen(true);
     }
 
-    void updateChainComparison(nextCart);
+    if (activeResult === "compare") {
+      void updateChainComparison(nextCart, { openCompare: false });
+    }
   }
 
   function clearCart() {
