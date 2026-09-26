@@ -38,6 +38,30 @@ function finnishName(product: UnknownRecord) {
   const marketing = getRecord(attrs.marketingName);
   return String(localized.finnish ?? label.fi ?? marketing.fi ?? "").trim();
 }
+function decodeHtml(value: string) {
+  return value.replace(/&amp;/g, "&").replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&auml;/g, "ä").replace(/&ouml;/g, "ö").replace(/&aring;/g, "å");
+}
+async function resolveKaloriIdentity(canonicalEan: string) {
+  try {
+    const response = await fetch(`https://kalori.info/haku?q=${encodeURIComponent(canonicalEan)}`, {
+      headers: { accept: "text/html", "user-agent": "Mozilla/5.0 Ziiply/1.0" },
+      cache: "no-store",
+      redirect: "follow",
+    });
+    if (!response.ok) return null;
+    const html = await response.text();
+    const hrefs = [...html.matchAll(/href=["']([^"']+)["']/gi)].map((match) => decodeHtml(String(match[1] ?? "")));
+    const exactLink = hrefs.find((href) => href.includes("/kalorit/") && href.includes(`_${canonicalEan}`));
+    if (!exactLink) return null;
+    const slug = exactLink.split("/kalorit/")[1]?.split("?")[0]?.replace(new RegExp(`_${canonicalEan}$`), "") ?? "";
+    if (!slug) return null;
+    const name = decodeURIComponent(slug).replace(/-/g, " ").replace(/\s+/g, " ").trim();
+    if (!name) return null;
+    return name.replace(/\b\w/g, (letter) => letter.toUpperCase());
+  } catch {
+    return null;
+  }
+}
 async function resolveStoreId(storeName: string) {
   if (!storeName) return "";
   const response = await fetch(`${K_API}/stores/search`, {
@@ -121,9 +145,19 @@ export async function GET(request: Request) {
       }
     }
 
-    // Public canonical-EAN identity fallback. Identity only: never use price/availability.
+    // Kalori.info supports exact canonical EAN search. Identity only: never use its price.
+    const kaloriName = await resolveKaloriIdentity(canonicalEan);
+    if (kaloriName) {
+      return NextResponse.json({
+        found: true,
+        canonicalEan,
+        source: "kalori-ean-search",
+        product: { id: canonicalEan, ean: canonicalEan, name: kaloriName },
+      });
+    }
+
+    // Other public canonical-EAN identity fallback. Identity only: never use price/availability.
     const publicSources = [
-      `https://kalori.info/kalorit/${canonicalEan}`,
       `https://prices.nedostavka.net/fi/product/${canonicalEan}`,
     ];
     for (const publicUrl of publicSources) {
@@ -140,11 +174,7 @@ export async function GET(request: Request) {
           html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i) ??
           html.match(/<title[^>]*>([^<]+)<\/title>/i) ??
           html.match(/<h1[^>]*>([^<]+)<\/h1>/i);
-        const rawTitle = String(titleMatch?.[1] ?? "")
-          .replace(/&amp;/g, "&")
-          .replace(/&#39;/g, "'")
-          .replace(/&quot;/g, '"')
-          .trim();
+        const rawTitle = decodeHtml(String(titleMatch?.[1] ?? "")).trim();
         const name = rawTitle
           .replace(/\s*[–|-]\s*(Ravintosisältö.*|Kalorit.*|hinta eri maissa.*)$/i, "")
           .trim();
