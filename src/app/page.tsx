@@ -10965,6 +10965,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     storeMode,
     storeCompareScope,
     withinChain,
+    activeResult,
   ]);
 
   function addOfferToCart(item: ZiiplyOffer) {
