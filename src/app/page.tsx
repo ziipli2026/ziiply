@@ -16219,6 +16219,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   function handleWithinChainChange(nextChain: "S" | "K" | null) {
     setWithinChain(nextChain);
+    setSelectedChains((current) => ({
+      ...current,
+      // Ketjun sisäinen vertailu käyttää s/k-slotit kahtena kauppakorttina
+      // (tavaratalo + lähikauppa), joten molempien pitää olla näkyviä.
+      s: Boolean(nextChain),
+      k: Boolean(nextChain),
+      lidl: false,
+      tokmanni: false,
+    }));
     clearSearchAndComparisonState();
     gostaSelectedOfferChainRefV547.current = null;
     gostaPanelStickyOpenRefV158.current = false;
@@ -17344,14 +17353,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     aria-pressed={selected}
                     onClick={() => {
                       const nextChain = chain;
-                      setWithinChain(nextChain);
-                      setSelectedChains((current) => ({
-                        ...current,
-                        s: nextChain === "S",
-                        k: nextChain === "K",
-                        lidl: false,
-                        tokmanni: false,
-                      }));
+                      handleWithinChainChange(nextChain);
                       setOpenStorePicker(null);
                       setLocationMessage(
                         `${store.title} valittu ketjun sisäiseen vertailuun. Valitse kaksi vertailtavaa kauppaa.`,
