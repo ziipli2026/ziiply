@@ -1663,7 +1663,7 @@ import ZiiplyMobileNotebookCard from "./components/ziiply/cards/ZiiplyMobileNote
 import ZiiplyMobileOfferSearchCard from "./components/ziiply/cards/ZiiplyMobileOfferSearchCard";
 const ZiiplyMobileOfferSearchCardLoose: any = ZiiplyMobileOfferSearchCard;
 import ZiiplyMobileScannerCard from "./components/ziiply/cards/ZiiplyMobileScannerCard";
-import { resolveKWeightLabel } from "./components/ziiply/kWeightLabelResolver";
+import { resolveKWeightLabel, resolvePriceWeightLabel } from "./components/ziiply/kWeightLabelResolver";
 import ZiiplyMobileProductPickCard from "./components/ziiply/cards/ZiiplyMobileProductPickCard";
 import ZiiplyMobileCompareCard from "./components/ziiply/cards/ZiiplyMobileCompareCardresponsive";
 import ZiiplyStoreLocaCard from "./components/ziiply/cards/ZiiplyStoreLocaCard";
@@ -11958,6 +11958,27 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       pushScannerDebugV493("STOP invalid EAN");
       setEanMessage("Syötä 8–14 numeron EAN-koodi.");
       setEanResults([]);
+      return;
+    }
+
+    // V737: chain-independent weighed-price fallback. If the barcode carries a valid
+    // physical label total but is not the K-specific canonical format, it must still
+    // enter the cart even when product identity is unknown.
+    const genericWeightLabelV737 = resolvePriceWeightLabel(ean);
+    const kWeightCandidateV737 = resolveKWeightLabel(ean);
+    if (genericWeightLabelV737 && !kWeightCandidateV737) {
+      const unknownWeightProductV737: Product = {
+        id: Number(genericWeightLabelV737.scannedEan.slice(-9)),
+        name: `Tuntematon punnittu tuote (PLU ${genericWeightLabelV737.plu})`,
+        ean: genericWeightLabelV737.scannedEan,
+        price: genericWeightLabelV737.price,
+      };
+      addWeightProductToCartV733(unknownWeightProductV737, genericWeightLabelV737.scannedEan);
+      setEanMessage(`Punnittu tuote lisätty tarran hinnalla ${genericWeightLabelV737.price.toFixed(2).replace(".", ",")} €.`);
+      setEanScannerMessage("Vaakatuote lisätty");
+      window.setTimeout(() => {
+        setEanScannerMessage((current) => current === "Vaakatuote lisätty" ? "" : current);
+      }, 2200);
       return;
     }
 
