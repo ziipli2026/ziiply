@@ -3427,6 +3427,9 @@ export default function Page() {
   const [cartModalOpen, setCartModalOpen] = useState(false);
   // V732: when shopping starts from Compare, keep the chosen S/K basket as the mobile picking list.
   const [mobileCompareShoppingStoreKeyV732, setMobileCompareShoppingStoreKeyV732] = useState<ChainResult["key"] | null>(null);
+  // V733: comparison purchase/picking is its own overlay and must never become the normal cart.
+  const [mobileComparePickingOpenV733, setMobileComparePickingOpenV733] = useState(false);
+  const [mobileCompareCheckedV733, setMobileCompareCheckedV733] = useState<Record<string, boolean>>({});
   const [cartSavePanelOpen, setCartSavePanelOpen] = useState(false);
   const [notebookOpen, setNotebookOpen] = useState(false);
   const [shopsPanelOpen, setShopsPanelOpen] = useState(false);
@@ -8593,14 +8596,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return;
     }
     setMobileCompareShoppingStoreKeyV732(chosenKey);
-    // Mobiilin compare-kortilta valinta vie aina paperiseen keräilylistaan.
-    // Ei toggleta koria, ettei Vertailu -> Kori -siirtymä sulje itseään vahingossa.
+    // V733: vertailukorin keräily on täysin oma näkymänsä. Tavallista cartModalOpen-tilaa
+    // tai alkuperäistä cart-dataa ei muuteta.
+    setMobileCompareCheckedV733({});
     setSearchPanelOpen(false);
     setShopsPanelOpen(false);
     setEanModalOpen(false);
     setCartSavePanelOpen(false);
-    setActiveResult("none");
-    setCartModalOpen(true);
+    setCartModalOpen(false);
+    setMobileComparePickingOpenV733(true);
     triggerHaptic();
   }
 
@@ -19178,10 +19182,47 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             </div>
           )}
 
+        {/* V733_COMPARE_PICKING_ISOLATED:
+            Vertailukorin ostaminen/keräily on oma overlay. Se käyttää vain valitun
+            S/K-vertailukorin tuotteita eikä kirjoita alkuperäiseen cart-stateen. */}
+        {!showLaunchScreen && mobileComparePickingOpenV733 && mobileCompareShoppingItemsV732 && (
+          <ZiiplyMobileCartCard
+            open={true}
+            title="Vertailukorin keräily"
+            items={mobileCompareShoppingItemsV732.map((item: any) => {
+              const key = String(item.id ?? item.ean ?? item.name ?? item.product?.id ?? "");
+              return {
+                ...item,
+                id: key,
+                checked: Boolean(mobileCompareCheckedV733[key]),
+              };
+            })}
+            onShareCart={() => {
+              if (mobileCompareShoppingStoreKeyV732) {
+                void shareMobileCompareStoreV729(mobileCompareShoppingStoreKeyV732);
+              }
+            }}
+            onToggleItem={(item: any) => {
+              const key = String(item.id ?? "");
+              setMobileCompareCheckedV733((current) => ({ ...current, [key]: !current[key] }));
+            }}
+            onBack={() => {
+              setMobileComparePickingOpenV733(false);
+              setMobileCompareShoppingStoreKeyV732(null);
+              setActiveResult("compare");
+            }}
+            onClose={() => {
+              setMobileComparePickingOpenV733(false);
+              setMobileCompareShoppingStoreKeyV732(null);
+              setActiveResult("compare");
+            }}
+          />
+        )}
+
         {/* V542_MOBILE_CART_PAPER_CARD_CONNECTED:
             Mobiili-Kori renderöidään erillisellä paperivihko/keräilylista-komponentilla.
             Desktop käyttää edelleen ZiiplyCartCardia muualla. */}
-        {!showLaunchScreen && cartModalOpen && (
+        {!showLaunchScreen && cartModalOpen && !mobileComparePickingOpenV733 && (
           <ZiiplyMobileCartCard
             open={true}
             items={(mobileCompareShoppingItemsV732 || cart).map((item: any) => {
