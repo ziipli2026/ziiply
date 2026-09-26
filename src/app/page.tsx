@@ -11893,7 +11893,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         // V732: canonical K-vaakatuote ratkaistaan ensisijaisesti suoraan K-Ruoasta.
         // Tämä ei ole riippuvainen Ruoanhinta.fi:n kauppakohtaisesta valikoimasta/hinnasta.
         const kWeightIdentityV732 = await fetch(
-          `/api/k-weight-product?ean=${encodeURIComponent(kWeightLabelV730.canonicalEan)}`,
+          `/api/k-weight-product?ean=${encodeURIComponent(kWeightLabelV730.canonicalEan)}&storeName=${encodeURIComponent(activeStores.kStoreName || "")}`,
           { cache: "no-store" },
         )
           .then((response) => response.ok ? response.json() : null)
