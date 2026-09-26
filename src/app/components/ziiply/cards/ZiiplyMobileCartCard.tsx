@@ -380,11 +380,25 @@ export default function ZiiplyMobileCartCard({
   const [showCompletionCardV58, setShowCompletionCardV58] = React.useState(false);
   const [showCheckoutFutureNoticeV62, setShowCheckoutFutureNoticeV62] = React.useState(false);
   const [purchaseModeV739, setPurchaseModeV739] = React.useState<"instore" | "online" | null>(null);
+  const [checkoutPhaseV66, setCheckoutPhaseV66] = React.useState<"mode" | "future">("mode");
+  const [purchaseCountdownV66, setPurchaseCountdownV66] = React.useState(5);
 
   React.useEffect(() => {
     if (!showCheckoutFutureNoticeV62) return;
     setPurchaseModeV739(purchaseModeDefault === "ask" ? null : purchaseModeDefault);
+    setCheckoutPhaseV66("mode");
+    setPurchaseCountdownV66(5);
   }, [showCheckoutFutureNoticeV62, purchaseModeDefault]);
+
+  React.useEffect(() => {
+    if (!showCheckoutFutureNoticeV62 || checkoutPhaseV66 !== "mode" || purchaseModeDefault === "ask") return;
+    if (purchaseCountdownV66 <= 0) {
+      setCheckoutPhaseV66("future");
+      return;
+    }
+    const timer = window.setTimeout(() => setPurchaseCountdownV66((value) => value - 1), 1000);
+    return () => window.clearTimeout(timer);
+  }, [showCheckoutFutureNoticeV62, checkoutPhaseV66, purchaseModeDefault, purchaseCountdownV66]);
   const previousCompleteRefV58 = React.useRef(false);
   const [pendingRemoveKeyV65, setPendingRemoveKeyV65] = React.useState<string | null>(null);
   const pendingRemoveItemRefV65 = React.useRef<ZiiplyMobileCartItem | null>(null);
@@ -578,52 +592,109 @@ export default function ZiiplyMobileCartCard({
               {showCheckoutFutureNoticeV62 ? (
                 <div className="absolute inset-0 z-[35] flex items-center justify-center rounded-[1.0rem] bg-[#fff0c7]/72 px-4 backdrop-blur-[1.5px]">
                   <div className="w-[17.8rem] max-w-full rounded-[0.82rem] border-[2px] border-[#496443]/80 bg-[#f3e8cc] px-3 py-4 text-center shadow-[0_5px_18px_rgba(62,43,20,0.22),inset_0_0_0_1px_rgba(255,250,224,0.72)]">
-                    <div className="text-[1.02rem] font-black italic text-[#244525]" style={{ fontFamily: cooperFont }}>
-                      Miten haluat ostaa?
-                    </div>
-                    <div className="mt-2 text-[0.78rem] font-extrabold leading-snug text-[#533819]" style={{ fontFamily: serifFont }}>
-                      {purchaseModeDefault === "ask"
-                        ? "Valitse ostotapa."
-                        : purchaseModeDefault === "instore"
-                          ? "Sijainnin perusteella oletus on lähiosto. Voit vaihtaa sen."
-                          : "Sijainnin perusteella oletus on verkko-osto. Voit vaihtaa sen."}
-                    </div>
-                    <div className="mt-3 grid grid-cols-2 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setPurchaseModeV739("instore")}
-                        className={`rounded-[0.52rem] border-[2px] px-2 py-[0.58rem] text-[0.78rem] font-black italic active:translate-y-[1px] ${purchaseModeV739 === "instore" ? "border-[#496443] bg-[#d8e4c4] text-[#244525]" : "border-[#8a6b32] bg-[#f6e5b9] text-[#533819]"}`}
-                        style={{ fontFamily: cooperFont }}
-                      >
-                        Ostan myymälässä
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setPurchaseModeV739("online")}
-                        className={`rounded-[0.52rem] border-[2px] px-2 py-[0.58rem] text-[0.78rem] font-black italic active:translate-y-[1px] ${purchaseModeV739 === "online" ? "border-[#496443] bg-[#d8e4c4] text-[#244525]" : "border-[#8a6b32] bg-[#f6e5b9] text-[#533819]"}`}
-                        style={{ fontFamily: cooperFont }}
-                      >
-                        Tilaan verkosta
-                      </button>
-                    </div>
-                    {purchaseModeV739 === "online" && weightItemCount > 0 ? (
-                      <div className="mt-3 rounded-[0.48rem] border border-[#9a7a3d]/60 bg-[#fff8dc]/72 px-2 py-2 text-[0.74rem] font-extrabold leading-snug text-[#7b3215]" style={{ fontFamily: serifFont }}>
-                        {weightItemCount} vaakatuotetta ei voida siirtää verkko-ostoon. Ne jätetään pois verkkotilauksesta.
-                      </div>
-                    ) : null}
-                    <button
-                      type="button"
-                      disabled={!purchaseModeV739}
-                      onClick={() => {
-                        if (!purchaseModeV739) return;
-                        setShowCheckoutFutureNoticeV62(false);
-                        setShowCompletionCardV58(false);
-                      }}
-                      className="mt-4 rounded-[0.52rem] border-[2px] border-[#496443] bg-[#dfcfaa] px-5 py-[0.50rem] text-[0.88rem] font-black italic text-[#244525] disabled:opacity-45 active:translate-y-[1px]"
-                      style={{ fontFamily: cooperFont }}
-                    >
-                      Jatka
-                    </button>
+                    {checkoutPhaseV66 === "future" ? (
+                      <>
+                        <div className="text-[1.02rem] font-black italic text-[#244525]" style={{ fontFamily: cooperFont }}>
+                          Ziiply-maksaminen on tulossa
+                        </div>
+                        <div className="mt-2 text-[0.84rem] font-extrabold leading-snug text-[#533819]" style={{ fontFamily: serifFont }}>
+                          Tulevaisuudessa voit maksaa ostoksesi suoraan Ziiplyn avulla.
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowCheckoutFutureNoticeV62(false);
+                            setShowCompletionCardV58(false);
+                          }}
+                          className="mt-4 rounded-[0.52rem] border-[2px] border-[#496443] bg-[#dfcfaa] px-5 py-[0.50rem] text-[0.88rem] font-black italic text-[#244525] active:translate-y-[1px]"
+                          style={{ fontFamily: cooperFont }}
+                        >
+                          Selvä
+                        </button>
+                      </>
+                    ) : purchaseModeDefault === "ask" ? (
+                      <>
+                        <div className="text-[1.02rem] font-black italic text-[#244525]" style={{ fontFamily: cooperFont }}>
+                          Miten haluat ostaa?
+                        </div>
+                        <div className="mt-2 text-[0.78rem] font-extrabold leading-snug text-[#533819]" style={{ fontFamily: serifFont }}>
+                          Sijaintisi perusteella ostotapaa ei voida päätellä. Valitse ostotapa.
+                        </div>
+                        <div className="mt-3 grid grid-cols-2 gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setPurchaseModeV739("instore")}
+                            className={`rounded-[0.52rem] border-[2px] px-2 py-[0.58rem] text-[0.78rem] font-black italic active:translate-y-[1px] ${purchaseModeV739 === "instore" ? "border-[#496443] bg-[#d8e4c4] text-[#244525]" : "border-[#8a6b32] bg-[#f6e5b9] text-[#533819]"}`}
+                            style={{ fontFamily: cooperFont }}
+                          >
+                            Ostan myymälässä
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setPurchaseModeV739("online")}
+                            className={`rounded-[0.52rem] border-[2px] px-2 py-[0.58rem] text-[0.78rem] font-black italic active:translate-y-[1px] ${purchaseModeV739 === "online" ? "border-[#496443] bg-[#d8e4c4] text-[#244525]" : "border-[#8a6b32] bg-[#f6e5b9] text-[#533819]"}`}
+                            style={{ fontFamily: cooperFont }}
+                          >
+                            Tilaan verkosta
+                          </button>
+                        </div>
+                        {purchaseModeV739 === "online" && weightItemCount > 0 ? (
+                          <div className="mt-3 rounded-[0.48rem] border border-[#9a7a3d]/60 bg-[#fff8dc]/72 px-2 py-2 text-[0.74rem] font-extrabold leading-snug text-[#7b3215]" style={{ fontFamily: serifFont }}>
+                            {weightItemCount} vaakatuotetta ei voida siirtää verkko-ostoon. Ne jätetään pois verkkotilauksesta.
+                          </div>
+                        ) : null}
+                        <button
+                          type="button"
+                          disabled={!purchaseModeV739}
+                          onClick={() => purchaseModeV739 && setCheckoutPhaseV66("future")}
+                          className="mt-4 rounded-[0.52rem] border-[2px] border-[#496443] bg-[#dfcfaa] px-5 py-[0.50rem] text-[0.88rem] font-black italic text-[#244525] disabled:opacity-45 active:translate-y-[1px]"
+                          style={{ fontFamily: cooperFont }}
+                        >
+                          Jatka
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setShowCheckoutFutureNoticeV62(false)}
+                          className="mt-3 block w-full text-[0.76rem] font-extrabold italic text-[#6f5730] underline decoration-[#9a7a3d]/50 underline-offset-2"
+                          style={{ fontFamily: serifFont }}
+                        >
+                          Peruuta
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-[1.02rem] font-black italic text-[#244525]" style={{ fontFamily: cooperFont }}>
+                          {purchaseModeV739 === "instore" ? "Olet nyt ostamassa myymälässä" : "Olet nyt ostamassa verkko-ostoksena"}
+                        </div>
+                        <div className="mt-2 text-[0.78rem] font-extrabold leading-snug text-[#533819]" style={{ fontFamily: serifFont }}>
+                          Jatketaan automaattisesti {purchaseCountdownV66}…
+                        </div>
+                        {purchaseModeV739 === "online" && weightItemCount > 0 ? (
+                          <div className="mt-3 rounded-[0.48rem] border border-[#9a7a3d]/60 bg-[#fff8dc]/72 px-2 py-2 text-[0.74rem] font-extrabold leading-snug text-[#7b3215]" style={{ fontFamily: serifFont }}>
+                            {weightItemCount} vaakatuotetta ei voida siirtää verkko-ostoon. Ne jätetään pois verkkotilauksesta.
+                          </div>
+                        ) : null}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPurchaseModeV739((mode) => mode === "online" ? "instore" : "online");
+                            setCheckoutPhaseV66("future");
+                          }}
+                          className="mt-4 rounded-[0.52rem] border-[2px] border-[#496443] bg-[#dfcfaa] px-4 py-[0.55rem] text-[0.84rem] font-black italic text-[#244525] active:translate-y-[1px]"
+                          style={{ fontFamily: cooperFont }}
+                        >
+                          Vaihda ostotapa
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setShowCheckoutFutureNoticeV62(false)}
+                          className="mt-3 block w-full text-[0.76rem] font-extrabold italic text-[#6f5730] underline decoration-[#9a7a3d]/50 underline-offset-2"
+                          style={{ fontFamily: serifFont }}
+                        >
+                          Peruuta
+                        </button>
+                      </>
+                    )}
                   </div>
                 </div>
               ) : null}
