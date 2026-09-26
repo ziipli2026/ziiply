@@ -10981,10 +10981,29 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         }
       }
 
+      const dedupedNormalItems = Array.from(
+        new Map(all.map((item) => [item.id, item])).values(),
+      );
+
+      // K-Ruoka's product search is anchored to the user's literal query. Our
+      // generated fallback queries may be broader; when literal K matches exist,
+      // do not mix those broader side-results into the selection list.
+      const literalNormalQuery = normalize(
+        focusedSearchTerms[0] || useTerms[0] || "",
+      );
+      const literalKMatches =
+        storeCompareScope === "within_chain" &&
+        withinChain === "K" &&
+        literalNormalQuery
+          ? dedupedNormalItems.filter((item) =>
+              normalize(item.name).includes(literalNormalQuery),
+            )
+          : [];
+      const normalItemsForSelection =
+        literalKMatches.length > 0 ? literalKMatches : dedupedNormalItems;
+
       const unique = filterPetProductsFromFoodSearchV443(
-        Array.from(
-          new Map(all.map((item) => [item.id, item])).values(),
-        ),
+        normalItemsForSelection,
         focusedSearchTerms[0] || useTerms[0] || "",
       )
         .filter((item) => {
