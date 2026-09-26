@@ -1,0 +1,63 @@
+name: Normal search semantics regression
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/app/components/ziiply/ziiplyCore.ts"
+      - ".github/workflows/normal-search-semantics-regression.yml"
+  workflow_dispatch:
+
+jobs:
+  semantic-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Verify normal-search semantics
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require("fs");
+          const core = fs.readFileSync("src/app/components/ziiply/ziiplyCore.ts", "utf8");
+
+          const requiredAliases = [
+            ['pilsneri', 'pilsner'],
+            ['pils', 'pilsner'],
+            ['kahvia', 'kahvi'],
+            ['kananmunia', 'kananmuna 10 kpl'],
+            ['piima', 'piimä'],
+          ];
+
+          let failures = 0;
+          for (const [input, expected] of requiredAliases) {
+            const pattern = new RegExp('(?:^|\\n)\\s*["\\\']?' + input + '["\\\']?\\s*:\\s*["\\\']' + expected.replace(/[.*+?^$()|[\\]{}]/g, '\\$&') + '["\\\']');
+            if (!pattern.test(core)) {
+              console.error('FAIL alias:', input, '=>', expected);
+              failures++;
+            } else {
+              console.log('PASS alias:', input, '=>', expected);
+            }
+          }
+
+          const requiredArchitecture = [
+            'export function getSearchQuery',
+            'export function detectSearchIntent',
+            'export function getNormalSearchQueries',
+            'export function rankNormalSearchResults',
+            'export function isClearlyButtermilkProduct',
+          ];
+          for (const symbol of requiredArchitecture) {
+            if (!core.includes(symbol)) {
+              console.error('FAIL missing search stage:', symbol);
+              failures++;
+            } else {
+              console.log('PASS stage:', symbol);
+            }
+          }
+
+          if (failures) process.exit(1);
+          console.log('SAFE_SUMMARY normal-search semantics regression passed');
+          NODE
