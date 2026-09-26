@@ -324,27 +324,11 @@ export default function ZiiplyMobileCompareCardresponsive({
                     const source = sourceItemsById.get(String(match?.cartItemId || "")) as any;
                     return {
                       ...match,
-                      ziiplyDebugSourceName: source?.name,
-                      ziiplyDebugSourceEan: source?.ean,
-                      ziiplyDebugSourceProductName: source?.product?.name,
-                      ziiplyDebugSourceProductEan: source?.product?.ean,
-                      ziiplyDebugBirthName: source?.ziiplyDebugBirthName,
-                      ziiplyDebugBirthEan: source?.ziiplyDebugBirthEan,
-                      ziiplyDebugBirthProductName: source?.ziiplyDebugBirthProductName,
-                      ziiplyDebugBirthProductEan: source?.ziiplyDebugBirthProductEan,
                     };
                   }),
                   ...(items || []).filter((item: any) => !matchedIds.has(String(item?.id || ""))).map((item: any) => ({
                     ...item,
                     isMissingComparisonItem: true,
-                    ziiplyDebugSourceName: item?.name,
-                    ziiplyDebugSourceEan: item?.ean,
-                    ziiplyDebugSourceProductName: item?.product?.name,
-                    ziiplyDebugSourceProductEan: item?.product?.ean,
-                    ziiplyDebugBirthName: item?.ziiplyDebugBirthName,
-                    ziiplyDebugBirthEan: item?.ziiplyDebugBirthEan,
-                    ziiplyDebugBirthProductName: item?.ziiplyDebugBirthProductName,
-                    ziiplyDebugBirthProductEan: item?.ziiplyDebugBirthProductEan,
                   })),
                 ];
 
