@@ -3081,6 +3081,7 @@ export function getPrimaryBrand(name: string) {
     "pepsi",
     "valio",
     "arla",
+    "ingman",
     "atria",
     "hk",
     "snellman",
