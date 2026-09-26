@@ -3758,7 +3758,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const storeName = result?.storeName || result?.chain || "Kauppa";
     const total =
       typeof result?.totalPrice === "number"
-        ? `${(result.totalPrice / 100).toFixed(2).replace(".", ",")} €`
+        ? `${result.totalPrice.toFixed(2).replace(".", ",")} €`
         : "";
 
     const lines = (result?.matches || []).map((match: Match, index: number) => {
@@ -4289,6 +4289,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     Record<string, QualityMode>
   >({});
   const [comparisonLoading, setComparisonLoading] = useState(false);
+  const comparisonCacheKeyRef = useRef<string | null>(null);
   const [sMatches, setSMatches] = useState<Record<string, Match>>({});
   const [kMatches, setKMatches] = useState<Record<string, Match>>({});
   const [expandedAlternatives, setExpandedAlternatives] = useState<
@@ -10984,6 +10985,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     options: { openCompare?: boolean } = {},
   ) {
     const shouldOpenCompare = options.openCompare !== false;
+    const cacheKey = JSON.stringify({
+      items: nextCart.map((item) => [item.id, item.name, item.ean, item.quantity, item.price, item.chain, item.storeName, item.source]),
+      stores: [activeStores.sStoreId, activeStores.kStoreId, activeStores.sStoreName, activeStores.kStoreName],
+      storeMode, storeCompareScope, withinChain,
+    });
+    if (comparisonCacheKeyRef.current === cacheKey) {
+      if (shouldOpenCompare) setActiveResult("compare");
+      return;
+    }
+    comparisonCacheKeyRef.current = cacheKey;
 
     trackZiiplyEvent("comparison_opened", {
       cartItemsCount: nextCart.length,
@@ -11075,10 +11086,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         }),
       );
 
-      setSMatches(nextSMatches);
-      setKMatches(nextKMatches);
+      if (comparisonCacheKeyRef.current === cacheKey) {
+        setSMatches(nextSMatches);
+        setKMatches(nextKMatches);
+      }
+    } catch (error) {
+      if (comparisonCacheKeyRef.current === cacheKey) comparisonCacheKeyRef.current = null;
+      throw error;
     } finally {
-      setComparisonLoading(false);
+      if (comparisonCacheKeyRef.current === cacheKey || comparisonCacheKeyRef.current === null) setComparisonLoading(false);
     }
   }
 
@@ -19183,7 +19199,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         {!showLaunchScreen && mobileComparePickingOpenV733 && mobileCompareShoppingItemsV732 && (
           <ZiiplyMobileCartCard
             open={true}
-            title="Vertailukorin keräily"
+            title={`${chainResults.find((result) => result.key === mobileCompareShoppingStoreKeyV732)?.storeName || "Kauppa"} · vertailukori`}
             className="!z-[96]"
             items={mobileCompareShoppingItemsV732.map((item: any) => {
               const key = String(item.id ?? item.ean ?? item.name ?? item.product?.id ?? "");
