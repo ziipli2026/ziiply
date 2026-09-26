@@ -8153,7 +8153,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }, [cart]);
 
   const chainResults = useMemo<ChainResult[]>(() => {
-    if (cart.length === 0) return [];
+    if (comparableCart.length === 0) return [];
     const sList = comparableCart
       .map((item) => sMatches[item.id])
       .filter(Boolean);
