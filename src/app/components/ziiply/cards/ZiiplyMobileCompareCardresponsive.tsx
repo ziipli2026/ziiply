@@ -461,15 +461,13 @@ export default function ZiiplyMobileCompareCardresponsive({
                         <button
                           type="button"
                           onClick={(event) => { event.stopPropagation(); onSelectStore(store.id); }}
-                          className="grid h-[2.22rem] w-[2.22rem] place-items-center rounded-[0.46rem] border-[1.6px] border-[#0b6330] bg-[linear-gradient(180deg,#159448_0%,#087237_100%)] text-[#fff6d7] shadow-[0_2px_5px_rgba(45,30,10,0.17),inset_0_0_0_1px_rgba(255,249,220,0.35)] active:translate-y-[1px]"
+                          className="grid h-[2.22rem] w-[2.22rem] place-items-center rounded-[0.46rem] border-[1.6px] border-[#765628] bg-[linear-gradient(180deg,#f5dfac_0%,#d2a661_100%)] text-[#51361a] shadow-[0_2px_5px_rgba(45,30,10,0.17)] active:translate-y-[1px]"
                           aria-label={`Osta ${store.name} vertailukori`} title="Osta tämä vertailukori"
                         >
-                          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[1.22rem] w-[1.22rem]">
-                            <rect x="5" y="3" width="12" height="18" rx="2" fill="none" stroke="currentColor" strokeWidth="1.8"/>
-                            <rect x="7.5" y="5.5" width="7" height="4" rx=".5" fill="none" stroke="currentColor" strokeWidth="1.5"/>
-                            <path d="M8 13h1m2 0h1m2 0h1M8 16h1m2 0h1m2 0h1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-                            <path d="M17 8h2.5v8H17" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/>
-                          </svg>
+                          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[1.52rem] w-[1.52rem]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round">
+                    <path d="M3 18h18v4H3zM5 10h14l2 8H3zM7 2h10v8H7z"/>
+                    <path d="M9 5h6M8 14h2m4 0h2M11 20h2" strokeLinecap="round"/>
+                  </svg>
                         </button>
                       ) : <span aria-hidden="true" />}
                     </div>
