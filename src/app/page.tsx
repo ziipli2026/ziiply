@@ -8650,6 +8650,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function clearSearchAndComparisonState() {
+    comparisonCacheKeyRef.current = null;
+    comparisonCompletedKeyRef.current = null;
     setOffers([]);
     setNormalResults([]);
     setSMatches({});
@@ -8812,6 +8814,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function clearStoreBackedSearchState() {
+    comparisonCacheKeyRef.current = null;
+    comparisonCompletedKeyRef.current = null;
     setOffers([]);
     setNormalResults([]);
     setVisibleNormalCount(8);
@@ -11074,7 +11078,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       comparisonUpdateTimerRef.current = null;
     }
     const cacheKey = getComparisonCacheKey(nextCart);
-    if (comparisonCompletedKeyRef.current === cacheKey) {
+    if (comparisonCompletedKeyRef.current === cacheKey &&
+      [...Object.values(sMatches), ...Object.values(kMatches)].some((match) => Number(match.price) > 0)) {
       if (shouldOpenCompare) setActiveResult("compare");
       return;
     }
