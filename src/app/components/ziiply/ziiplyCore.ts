@@ -488,6 +488,34 @@ export const SEARCH_ALIASES: Record<string, string> = {
   // mutta haetaan lisäksi backendin tavallisesti käyttämällä muodolla.
   pilsneri: "pilsner",
   pils: "pilsner",
+
+  // Pidä vanha tuotantorankkeri samassa canonical-muodossa uuden searchIntentAI-kerroksen kanssa.
+  maitoa: "maito",
+  maidon: "maito",
+  juustoa: "juusto 500g",
+  juuston: "juusto 500g",
+  jogurttia: "jogurtti 1kg",
+  jogurtin: "jogurtti 1kg",
+  voita: "voi 500g",
+  kermaa: "kerma",
+  kerman: "kerma",
+  jauhelihaa: "jauheliha 400g",
+  jauhelihan: "jauheliha 400g",
+  leipää: "leipä",
+  leipaa: "leipä",
+  munia: "kananmuna 10 kpl",
+  tomaatteja: "tomaatti",
+  tomaatin: "tomaatti",
+  kurkkua: "kurkku",
+  kurkun: "kurkku",
+  perunaa: "peruna",
+  perunoita: "peruna",
+  porkkanaa: "porkkana",
+  porkkanoita: "porkkana",
+  omenaa: "omena",
+  omenoita: "omena",
+  banaania: "banaani",
+  banaaneja: "banaani",
 };
 
 export function getSearchQuery(term: string) {
