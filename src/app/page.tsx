@@ -11327,7 +11327,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             const localBest = await findBestKMatchForStore(item.name, localId, itemEan);
             if (localBest && localBest.price > 0) {
               const product = convertKProductToProduct(localBest);
-              k = { product: { ...product, ean: localBest.ean, storeName: localName } as Product, price: localBest.price, quantity: 1, matchType: normalizeEan(localBest.ean) === itemEan && itemEan ? "ean" : "name", cartItemId: item.id };
+              k = { product: { ...product, ean: localBest.ean, storeName: localName } as Product, price: localBest.price, quantity: 1, matchType: normalizeEan(localBest.ean) === itemEan && itemEan ? "ean" : "name", storeId: localId, storeName: localName, cartItemId: item.id };
             }
           }
         } catch { failed = true; }
