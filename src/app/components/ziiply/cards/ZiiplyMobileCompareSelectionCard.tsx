@@ -30,6 +30,7 @@ export type ZiiplyCompareSelectionItem = {
   price?: number | string;
   quantity?: number;
   qualityMode?: "cheapest" | "same_quality" | "own_brands" | "same_brand";
+  isMissingComparisonItem?: boolean;
   storePrices?: Record<string, number | string | undefined>;
   product?: {
     id?: string | number;
@@ -233,7 +234,8 @@ export default function ZiiplyMobileCompareSelectionCard({
               </div>
             ) : (
               rows.map((item, index) => {
-                const price = getItemPriceForStore(item, store.id);
+                const missing = Boolean(item.isMissingComparisonItem);
+                const price = missing ? null : getItemPriceForStore(item, store.id);
                 const currentMode = getCurrentQualityMode(item);
                 const image = getProductImage(item);
 
@@ -256,7 +258,7 @@ export default function ZiiplyMobileCompareSelectionCard({
                             {getItemName(item)}
                           </div>
                           <div className="mt-0.5 text-[0.54rem] font-black uppercase tracking-[0.08em] text-[#6e6d55]">
-                            #{index + 1} · {getItemQuantity(item)} kpl
+                            #{index + 1} · {getItemQuantity(item)} kpl{missing ? " · Ei löytynyt tästä kaupasta" : ""}
                           </div>
                         </div>
                       </div>
@@ -269,7 +271,7 @@ export default function ZiiplyMobileCompareSelectionCard({
                       </div>
                     </div>
 
-                    {onChangeMatchMode ? (
+                    {onChangeMatchMode && !missing ? (
                       <div className="grid grid-cols-2 gap-2 px-3 py-2.5">
                         {QUALITY_MODES.map(({ mode, label, hint }) => {
                           const active = currentMode === mode;
