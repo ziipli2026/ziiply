@@ -310,7 +310,7 @@ export default function ZiiplyMobileCompareCardresponsive({
 
 {showSkeleton ? <RetroMopedOverlay /> : null}
 
-                <header className="pointer-events-none absolute left-[6.15rem] top-[7.50rem] z-20 w-[13.75rem]">
+                <header className="pointer-events-none absolute left-[6.15rem] top-[5.50rem] z-20 w-[13.75rem]">
           <div
             className="text-[1.46rem] font-black italic leading-none text-[#28402a] drop-shadow-[0_1px_0_rgba(255,247,211,0.62)]"
             style={{ fontFamily: cooperFont }}
@@ -322,7 +322,7 @@ export default function ZiiplyMobileCompareCardresponsive({
           </div>
         </header>
 
-        <main className="relative z-10 min-h-0 flex-1 overflow-y-auto px-5 pb-4 pt-[10.40rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <main className="relative z-10 min-h-0 flex-1 overflow-y-auto px-5 pb-4 pt-[12.00rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <div className="space-y-2.5">
 
             {showSkeleton ? (
