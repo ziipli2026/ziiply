@@ -14118,13 +14118,22 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return;
     }
 
+    const normalSearchChain: "S" | "K" =
+      storeCompareScope === "within_chain" && withinChain === "K" ? "K" : "S";
+    const normalSearchStoreName =
+      storeCompareScope === "within_chain"
+        ? withinChain === "K"
+          ? activeArea.kStoreName || "K-tavaratalo"
+          : activeArea.sStoreName || "S-tavaratalo"
+        : activeStores.sStoreName;
+
     const newItem: CartItem = {
       id: `search-${product.id}`,
       name: fixText(product.name),
       price: getProductPrice(product),
       image: product.pictureUrl,
-      chain: "S",
-      storeName: activeStores.sStoreName,
+      chain: normalSearchChain,
+      storeName: normalSearchStoreName,
       quantity: 1,
       source: "search",
       product,
