@@ -21,6 +21,13 @@ jobs:
           await kprobe("stores/search",{query:"K-Supermarket Eväskontti",offset:0,limit:5});
           for(const ep of ["tos-offers","raw-offer/product-map","offers","offer-search","leaflets","campaigns"]){await kprobe(ep,{storeId:"4165GCi",storeName:"K-Supermarket Eväskontti",offset:0,limit:20})}
           for(const slug of ["k-supermarket-evaskontti","k-supermarket-rantakyla","k-supermarket-lansivayla","k-supermarket-matkus","k-supermarket-okeroinen","k-supermarket-herkkuduo","k-supermarket-annika","k-supermarket-joutsensilta","k-supermarket-ounasvaara","k-supermarket-jokela"]){try{console.log("KRUOKA_PAGE",slug,JSON.stringify(await inspectKRuoka(slug)))}catch(e){console.log("KRUOKA_PAGE_ERROR",slug,String(e))}}
+          for(const [label,params] of [
+["front-business-id",{businessIds:[BUSINESS]}],
+["front-business-single",{businessId:BUSINESS}],
+["front-slug-pagination",{businessSlugs:["K-Supermarket"],pagination:{offset:0,limit:1000}}],
+["publications-business",{businessIds:[BUSINESS],pagination:{offset:0,limit:1000}}],
+["publications-single",{businessId:BUSINESS,pagination:{offset:0,limit:1000}}]
+]){try{const name=label.startsWith("publications")?"publications":"fronts";const v=await data(name,params);console.log("TJEK_DISCOVERY",label,JSON.stringify(v).slice(0,12000))}catch(e){console.log("TJEK_DISCOVERY_ERROR",label,String(e))}}
           const fronts=await data("fronts",{businessSlugs:["K-Supermarket"]}); console.log("FRONTS",JSON.stringify(fronts)); const stores=arr(await data("stores",{businessId:BUSINESS,pagination:{offset:0,limit:1000}}));
           function pick(label){const q=norm(label);return stores.find(s=>norm(s.name)===q)||stores.find(s=>norm(s.name).includes(q.replace("k supermarket ","")))}
           const ev=pick("K-Supermarket Eväskontti"), jo=pick("K-Supermarket Jokela");
