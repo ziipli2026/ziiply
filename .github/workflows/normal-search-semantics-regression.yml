@@ -18,8 +18,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Install dependencies
-        run: npm ci
+      - name: Install TypeScript test compiler
+        run: npm install --no-save --ignore-scripts typescript@^5
       - name: Compile search core for functional regression
         run: |
           rm -rf .tmp-search-regression
