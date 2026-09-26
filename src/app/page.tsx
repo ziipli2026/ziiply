@@ -16543,14 +16543,23 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         .filter(({ store }) => sameGpsMunicipalityV321(store))
         .map(({ store }) => store);
       const nearestLocalsV323 = distanceSortedV321.map(({ store }) => store);
-      const localPoolV323 = uniqueStoresByIdAndName([
+
+      // V734: oman kunnan kaikki lähikaupat säilyvät, mutta GPS:n lähin
+      // saman ketjun lähikauppa säilytetään aina myös käsivalinnassa,
+      // vaikka se olisi kuntarajan toisella puolella ja kunnassa olisi jo >= 5 kauppaa.
+      const nearestLocalV734 = nearestLocalsV323[0];
+      const requiredLocalsV734 = uniqueStoresByIdAndName([
         ...sameMunicipalityLocalsV323,
+        ...(nearestLocalV734 ? [nearestLocalV734] : []),
+      ]);
+      const localPoolV323 = uniqueStoresByIdAndName([
+        ...requiredLocalsV734,
         ...nearestLocalsV323,
       ]);
       const localPickerV323 =
-        sameMunicipalityLocalsV323.length >= 5
-          ? sameMunicipalityLocalsV323
-          : localPoolV323.slice(0, Math.max(5, sameMunicipalityLocalsV323.length));
+        requiredLocalsV734.length >= 5
+          ? requiredLocalsV734
+          : localPoolV323.slice(0, Math.max(5, requiredLocalsV734.length));
 
       return sortStoresForPickerV320(
         localPickerV323,
