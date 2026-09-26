@@ -51,3 +51,24 @@ export function resolveKWeightLabel(value: string): KWeightLabelResolution | nul
     canonicalEan: canonicalBody + checkDigit,
   };
 }
+
+export type PriceWeightLabelResolution = {
+  scannedEan: string;
+  plu: string;
+  priceCents: number;
+  price: number;
+};
+
+/**
+ * Chain-independent fallback for verified Finnish grocery price-bearing scale labels.
+ * Real labels seen in Ziiply use 200x RRRR PPPP C, where PPPP is the exact
+ * physical label total in cents. Identity may remain unknown; price must survive.
+ */
+export function resolvePriceWeightLabel(value: string): PriceWeightLabelResolution | null {
+  const scannedEan = String(value || "").replace(/\D/g, "");
+  if (!/^200\d{10}$/.test(scannedEan) || !isValidEan13(scannedEan)) return null;
+  const plu = scannedEan.slice(4, 8);
+  const priceCents = Number(scannedEan.slice(8, 12));
+  if (!Number.isInteger(priceCents) || priceCents <= 0) return null;
+  return { scannedEan, plu, priceCents, price: priceCents / 100 };
+}
