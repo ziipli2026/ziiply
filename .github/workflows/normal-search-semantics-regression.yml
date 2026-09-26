@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - "src/app/components/ziiply/ziiplyCore.ts"
+      - "src/app/components/ziiply/search/**"
+      - "src/app/page.tsx"
       - ".github/workflows/normal-search-semantics-regression.yml"
   workflow_dispatch:
 
@@ -22,6 +24,9 @@ jobs:
           node <<'NODE'
           const fs = require("fs");
           const core = fs.readFileSync("src/app/components/ziiply/ziiplyCore.ts", "utf8");
+          const intent = fs.readFileSync("src/app/components/ziiply/search/searchIntentAI.ts", "utf8");
+          const memory = fs.readFileSync("src/app/components/ziiply/search/searchIntentMemory.ts", "utf8");
+          const page = fs.readFileSync("src/app/page.tsx", "utf8");
 
           const requiredAliases = [
             ['pilsneri', 'pilsner'],
@@ -55,6 +60,22 @@ jobs:
               failures++;
             } else {
               console.log('PASS stage:', symbol);
+            }
+          }
+
+          const structuralChecks = [
+            [intent, 'pilsneri: "pilsner"', 'semantic pilsner normalization'],
+            [memory, 'learned_structure_preference', 'structure-based learning'],
+            [memory, 'getProductPackageSize', 'package-size structure'],
+            [memory, 'STRUCTURE_ATTRIBUTE_TERMS', 'attribute structure'],
+            [page, 'learnZiiplyNormalSearchChoice(learnedQuery, product, "added_to_cart")', 'cart selection learning hook'],
+          ];
+          for (const [source, fragment, label] of structuralChecks) {
+            if (!source.includes(fragment)) {
+              console.error('FAIL structural search check:', label);
+              failures++;
+            } else {
+              console.log('PASS structural search check:', label);
             }
           }
 
