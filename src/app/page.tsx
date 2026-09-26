@@ -19394,6 +19394,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 })),
                 missingItems: result.missingItems || 0,
               }))}
+            items={comparableCart}
             title="Vertailu"
             subtitle={cart.length > 0 ? `${cart.length} tuotetta korissa` : "Lisää tuotteita koriin ja vertaile kauppoja"}
             loading={comparisonLoading}
