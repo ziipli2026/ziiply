@@ -5489,42 +5489,33 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         ? storeName
         : String(activeArea.label || locationInput || "").trim();
 
-    const warmContexts: any[] = [];
-    if (sStore) {
-      warmContexts.push({
-        areaLabel: areaFor(sStore.name),
-        storeMode,
-        storeCompareScope,
-        withinChain,
-        sStoreId: sStore.id || undefined,
-        sStoreName: sStore.name || undefined,
-        sStoreIds: sStore.id ? [sStore.id] : [],
-        sStoreNames: sStore.name ? [sStore.name] : [],
-        kStoreIds: [],
-        kStoreNames: [],
-      });
-    }
-    if (kStore) {
-      warmContexts.push({
-        areaLabel: areaFor(kStore.name),
-        storeMode,
-        storeCompareScope,
-        withinChain,
-        sStoreIds: [],
-        sStoreNames: [],
-        kStoreId: kStore.id || undefined,
-        kStoreName: kStore.name || undefined,
-        kStoreIds: kStore.id ? [kStore.id] : [],
-        kStoreNames: kStore.name ? [kStore.name] : [],
-      });
-    }
+    // Warm exactly the same selected S+K context that the visible Gösta search uses.
+    // Keeping both chains in one context is important: the master-cache key is derived
+    // from the whole search context, so separate S-only/K-only warmups would populate
+    // different keys and the first visible search could still be cold.
+    const warmContext: any = {
+      areaLabel:
+        storeCompareScope === "within_chain"
+          ? String(activeArea.label || locationInput || sStore?.name || kStore?.name || "").trim()
+          : String(activeArea.label || locationInput || "").trim(),
+      storeMode,
+      storeCompareScope,
+      withinChain,
+      sStoreId: sStore?.id || undefined,
+      sStoreName: sStore?.name || undefined,
+      sStoreIds: sStore?.id ? [sStore.id] : [],
+      sStoreNames: sStore?.name ? [sStore.name] : [],
+      kStoreId: kStore?.id || undefined,
+      kStoreName: kStore?.name || undefined,
+      kStoreIds: kStore?.id ? [kStore.id] : [],
+      kStoreNames: kStore?.name ? [kStore.name] : [],
+    };
 
     const timer = window.setTimeout(() => {
-      for (const context of warmContexts) {
-        void warmZiiplyGostaOfferCacheV182(context).catch((error) => {
-          console.debug("[Ziiply offer warmup] skipped after provider failure", error);
-        });
-      }
+      if (!sStore && !kStore) return;
+      void warmZiiplyGostaOfferCacheV182(warmContext).catch((error) => {
+        console.debug("[Ziiply offer warmup] skipped after provider failure", error);
+      });
     }, 250);
 
     return () => window.clearTimeout(timer);
