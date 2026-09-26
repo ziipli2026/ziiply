@@ -121,13 +121,50 @@ export async function GET(request: Request) {
       }
     }
 
+    // Public canonical-EAN identity fallback. Identity only: never use price/availability.
+    const publicSources = [
+      `https://kalori.info/kalorit/${canonicalEan}`,
+      `https://prices.nedostavka.net/fi/product/${canonicalEan}`,
+    ];
+    for (const publicUrl of publicSources) {
+      try {
+        const publicResponse = await fetch(publicUrl, {
+          headers: { accept: "text/html", "user-agent": "Mozilla/5.0 Ziiply/1.0" },
+          cache: "no-store",
+          redirect: "follow",
+        });
+        if (!publicResponse.ok) continue;
+        const html = await publicResponse.text();
+        if (!html.includes(canonicalEan)) continue;
+        const titleMatch =
+          html.match(/<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']+)["']/i) ??
+          html.match(/<title[^>]*>([^<]+)<\/title>/i) ??
+          html.match(/<h1[^>]*>([^<]+)<\/h1>/i);
+        const rawTitle = String(titleMatch?.[1] ?? "")
+          .replace(/&amp;/g, "&")
+          .replace(/&#39;/g, "'")
+          .replace(/&quot;/g, '"')
+          .trim();
+        const name = rawTitle
+          .replace(/\s*[–|-]\s*(Ravintosisältö.*|Kalorit.*|hinta eri maissa.*)$/i, "")
+          .trim();
+        if (!name || name === canonicalEan) continue;
+        return NextResponse.json({
+          found: true,
+          canonicalEan,
+          source: "public-canonical-identity",
+          product: { id: canonicalEan, ean: canonicalEan, name },
+        });
+      } catch { }
+    }
+
     return NextResponse.json({
       found: false,
       canonicalEan,
-      source: "k-ruoka-product-search",
+      source: "identity-chain",
       storeName,
       storeId,
-      diagnostic: "K-Ruoka exact canonical identity not returned",
+      diagnostic: "No exact canonical identity returned",
     });
   } catch (error) {
     return NextResponse.json({ found: false, canonicalEan, error: String(error) }, { status: 502 });
