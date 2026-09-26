@@ -15667,8 +15667,23 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const kTerms = getAlternativeSearchTerms(match.product.name, "k");
       const allKItems: KProduct[] = [];
 
+      // Vaihtoehdot pitää hakea juuri sen vertailukortin kaupasta.
+      // Ketjun sisällä activeStores.kStoreId voi osoittaa toiseen K-kauppaan
+      // (esim. Citymarket), vaikka match kuuluu K-Supermarket Jokelaan.
+      const matchStoreName = normalize(match.product.storeName || match.fallbackStoreName || "");
+      const matchKStore = matchStoreName
+        ? foundStores
+            .map(normalizeStoreForPickerV320)
+            .find(
+              (store) =>
+                getStoreChainV320(store) === "K" &&
+                normalize(store.name || "") === matchStoreName,
+            )
+        : undefined;
+      const alternativeKStoreId = matchKStore?.id || activeStores.kStoreId;
+
       for (const term of kTerms.slice(0, 4)) {
-        const items = await fetchKProducts(term, activeStores.kStoreId);
+        const items = await fetchKProducts(term, alternativeKStoreId);
         allKItems.push(...items);
       }
 
