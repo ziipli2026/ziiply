@@ -326,7 +326,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                       store.chain === "S" ? "border-[#0b6330] bg-[#ecf3d5]/82" : "border-[#7c663d]/76 bg-[#fff8e5]/72",
                     )}
                   >
-                    <div className="grid shrink-0 grid-cols-[2.35rem_minmax(0,1fr)_4.75rem] gap-2">
+                    <div className="grid min-h-[3.2rem] shrink-0 grid-cols-[2.35rem_minmax(0,1fr)_4.75rem] gap-2">
                       <button
                         type="button"
                         onClick={() => setDetailsStoreId((current) => current === store.id ? null : store.id)}
@@ -352,8 +352,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                           <span className="block truncate text-[0.92rem] font-black leading-tight text-[#233020]">
                             {store.name}
                           </span>
-                          <span className="block text-[0.62rem] font-bold text-[#5f5034]">Kauppakohtainen kori</span>
-                          <span className="mt-1 flex flex-wrap items-center gap-1.5 text-[0.64rem] font-black uppercase tracking-[0.07em] text-[#6e6d55]">
+                          <span className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[0.64rem] font-black uppercase tracking-[0.07em] text-[#6e6d55]">
                             <span>#{index + 1}</span>
                             <span>·</span>
                             <span>{store.itemCount ?? comparedCount ?? 0} tuotetta</span>
@@ -387,7 +386,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                       </button>
                     </div>
 
-                    <div className="mt-2 flex shrink-0 items-center gap-2 pl-[2.58rem]">
+                    <div className="mt-2 grid shrink-0 grid-cols-[minmax(0,1fr)_2.22rem_2.22rem] items-center gap-2 pl-[2.58rem]">
                       {detailsStoreId === store.id ? (
                         <button type="button" onClick={() => setDetailsStoreId(null)} className="mr-auto grid h-[2.62rem] w-[2.86rem] shrink-0 place-items-center rounded-l-[0.42rem] rounded-r-[0.8rem] border-[2px] border-[#2b1a0e] bg-[linear-gradient(135deg,#7a4c2d_0%,#3b2414_78%)] text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.25),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]" aria-label="Palaa vertailukoreihin" title="Palaa vertailukoreihin">
                           <span className="grid h-[1.50rem] w-[1.50rem] place-items-center rounded-full border border-[#6b421f] bg-[radial-gradient(circle_at_35%_35%,#f6c46c_0%,#b0752a_52%,#65401f_100%)] text-[1.02rem] text-[#2b1a0e] shadow-[0_1px_2px_rgba(0,0,0,0.28)]">←</span>
