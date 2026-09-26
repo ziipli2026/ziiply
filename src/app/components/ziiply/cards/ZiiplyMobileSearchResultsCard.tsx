@@ -357,6 +357,12 @@ export default function ZiiplyMobileSearchResultsCard({
                         {name}
                       </div>
 
+                      {(product.ean || product.product?.ean) && (
+                        <div className="mt-[0.18rem] truncate text-[0.61rem] font-bold leading-none text-[#8a7a55]">
+                          EAN {String(product.ean || product.product?.ean)}
+                        </div>
+                      )}
+
                       {comparison && (
                         <div className="mt-[0.30rem] truncate text-[0.68rem] font-black leading-none text-[#8a7a55]">
                           {comparison}
