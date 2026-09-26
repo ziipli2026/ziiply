@@ -309,8 +309,12 @@ export default function ZiiplyMobileCompareCardresponsive({
             ) : (
               visibleStores.map((store, index) => {
                 if (detailsStoreId && detailsStoreId !== store.id) return null;
-                const isBest = Boolean(store.isBest || cheapest?.id === store.id);
-                const diffLabel = getStorePriceDiff(store, cheapest);
+                const hasNoCounterpart =
+                  comparedCount > 0 &&
+                  Math.max(0, Number(store.itemCount || 0)) === 0 &&
+                  Math.max(0, Number(store.missingItems || comparedCount)) > 0;
+                const isBest = !hasNoCounterpart && Boolean(store.isBest || cheapest?.id === store.id);
+                const diffLabel = hasNoCounterpart ? null : getStorePriceDiff(store, cheapest);
                 const matchedIds = new Set((store.matches || []).map((match: any) => String(match?.cartItemId || "")).filter(Boolean));
                 const detailRows = [
                   ...(store.matches || []),
@@ -355,7 +359,11 @@ export default function ZiiplyMobileCompareCardresponsive({
                           <span className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[0.64rem] font-black uppercase tracking-[0.07em] text-[#6e6d55]">
                             <span>#{index + 1}</span>
                             <span>·</span>
-                            <span>{store.itemCount ?? comparedCount ?? 0} tuotetta</span>
+                            <span>
+                              {hasNoCounterpart
+                                ? "Vastinetta ei löytynyt"
+                                : `${store.itemCount ?? comparedCount ?? 0} tuotetta`}
+                            </span>
                             {store.distanceKm != null ? (
                               <>
                                 <span>·</span>
@@ -381,7 +389,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                           )}
                           style={{ fontFamily: serifFont }}
                         >
-                          {formatEuro(store.totalPrice)}
+                          {hasNoCounterpart ? "—" : formatEuro(store.totalPrice)}
                         </span>
                       </button>
                     </div>
