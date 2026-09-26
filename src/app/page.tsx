@@ -11370,7 +11370,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               product: { ...item.product, storeName: hyperName } as Product,
               price: item.price,
               quantity: 1,
-              matchType: "ean",
+              matchType:
+                itemEan &&
+                normalizeEan(item.product?.ean) === itemEan
+                  ? "ean"
+                  : "name",
               storeId: hyperId,
               storeName: hyperName,
               cartItemId: item.id,
