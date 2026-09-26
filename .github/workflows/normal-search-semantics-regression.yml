@@ -330,6 +330,52 @@ jobs:
           console.log('SAFE_SUMMARY general grocery intent/exclusion regression passed');
           NODE
 
+      - name: Functional comparison quality-mode regression
+        shell: bash
+        run: |
+          node <<'NODE'
+          const core = require('./.tmp-search-regression/ziiplyCore.js');
+
+          const allow = (source, candidate, mode, chain, sourceBrand, candidateBrand) =>
+            core.isAllowedByQualityMode(source, candidate, mode, chain, sourceBrand, candidateBrand);
+
+          const cases = [
+            ['S own brand accepts Kotimaista', allow('Valio rasvaton maito 1l', 'Kotimaista rasvaton maito 1l', 'own_brands', 's'), true],
+            ['S own brand rejects Pirkka', allow('Valio rasvaton maito 1l', 'Pirkka rasvaton maito 1l', 'own_brands', 's'), false],
+            ['K own brand accepts Pirkka', allow('Valio rasvaton maito 1l', 'Pirkka rasvaton maito 1l', 'own_brands', 'k'), true],
+            ['K own brand rejects Kotimaista', allow('Valio rasvaton maito 1l', 'Kotimaista rasvaton maito 1l', 'own_brands', 'k'), false],
+            ['same brand accepts explicit unknown brand', allow('Maitokolmio kevytmaito 1l', 'Maitokolmio rasvaton maito 1l', 'keep_brands', 's', 'Maitokolmio', 'Maitokolmio'), true],
+            ['same brand rejects different explicit brand', allow('Maitokolmio kevytmaito 1l', 'Valio kevytmaito 1l', 'keep_brands', 's', 'Maitokolmio', 'Valio'), false],
+            ['same brand fails closed without identifiable source brand', allow('Tuntematon kevytmaito 1l', 'Valio kevytmaito 1l', 'keep_brands', 's'), false],
+            ['cheapest remains permissive', allow('Valio rasvaton maito 1l', 'Pirkka rasvaton maito 1l', 'cheapest', 'k'), true],
+          ];
+
+          for (const [name, actual, expected] of cases) {
+            if (actual !== expected) {
+              console.error('FAIL quality mode:', name, { actual, expected });
+              process.exit(1);
+            }
+            console.log('PASS quality mode:', name);
+          }
+
+          console.log('SAFE_SUMMARY functional comparison quality-mode regression passed');
+          NODE
+
+      - name: Verify comparison mode state is chain-scoped
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const page = fs.readFileSync('src/app/page.tsx', 'utf8');
+          const legacyRead = 'qualityModesByCart[match.cartItemId]';
+          const legacyWrite = '[match.cartItemId as string]: mode';
+          if (page.includes(legacyRead) || page.includes(legacyWrite)) {
+            console.error('FAIL comparison mode state is still shared between S and K cards');
+            process.exit(1);
+          }
+          console.log('PASS comparison mode state is chain-scoped');
+          NODE
+
       - name: Functional piima ranking regression
         shell: bash
         run: |
