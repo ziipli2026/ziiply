@@ -18882,6 +18882,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               }}
               onOfferSearch={handleMainOfferSearch}
               onNormalSearch={handleMainNormalSearch}
+              onOpenResults={() => {
+                // Avaa viimeisin jo valmis tuotelista heti ilman uutta API-hakua.
+                if (normalResults.length === 0) return;
+                setMobileResultsReadyQueryV537(
+                  activeNormalSearchTerm || input.trim() || "Tuotteet",
+                );
+              }}
               onVoiceClick={() => toggleVoiceInput()}
               onScannerClick={openEanModal}
               voiceState={voiceProcessing ? "processing" : isListening ? "recording" : "idle"}
@@ -18927,10 +18934,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               products={normalResults}
               onClose={() => {
                 resolveVoiceResultWaitV509("results-close");
+                // Sulje vain valintaikkuna. Säilytä valmis lista ja sen hakutermi,
+                // jotta Löytöluettelo voidaan avata uudelleen ilman uutta hakua.
                 setMobileResultsReadyQueryV537("");
                 setNormalSearchAttempted(false);
                 setVisibleNormalCount(8);
-                setActiveNormalSearchTerm("");
               }}
               onAddProduct={(product: any) => {
                 resolveVoiceResultWaitV509("results-add");
