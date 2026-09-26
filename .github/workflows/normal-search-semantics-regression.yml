@@ -30,7 +30,7 @@ jobs:
             --esModuleInterop \
             --skipLibCheck \
             --outDir .tmp-search-regression
-          npx tsc src/app/components/ziiply/search/searchIntentAI.ts \
+          npx tsc src/app/components/ziiply/search/searchIntentAI.ts src/app/components/ziiply/search/searchIntentMemory.ts \
             --target ES2020 \
             --module commonjs \
             --moduleResolution node \
@@ -203,6 +203,82 @@ jobs:
           }
 
           console.log('SAFE_SUMMARY grocery typo autocorrect regression passed');
+          NODE
+
+      - name: Functional structural search learning regression
+        shell: bash
+        run: |
+          node <<'NODE'
+          // Minimal browser storage shim so the real search-memory module can run in Node.
+          const values = new Map();
+          global.window = {
+            localStorage: {
+              getItem: key => values.has(key) ? values.get(key) : null,
+              setItem: (key, value) => values.set(key, String(value)),
+              removeItem: key => values.delete(key),
+            }
+          };
+
+          const memory = require('./.tmp-search-regression/search/searchIntentMemory.js');
+          memory.clearSearchIntentMemory();
+
+          const learned = {
+            id: 'learned-a',
+            ean: '6411111111111',
+            name: 'Valio Eila laktoositon rasvaton maito 1 l',
+            brandName: 'Valio',
+            category: 'Maidot ja piimät',
+          };
+          memory.rememberSearchChoice('maito', learned, 'added_to_cart');
+
+          const sameStructureDifferentEan = {
+            id: 'candidate-b',
+            ean: '6422222222222',
+            name: 'Arla laktoositon rasvaton maito 1 l',
+            brandName: 'Arla',
+            category: 'Maidot ja piimät',
+          };
+          const differentStructure = {
+            id: 'candidate-c',
+            ean: '6433333333333',
+            name: 'Arla täysmaito 1 l',
+            brandName: 'Arla',
+            category: 'Maidot ja piimät',
+          };
+          const wrongGroup = {
+            id: 'candidate-d',
+            ean: '6444444444444',
+            name: 'Fazer maitosuklaa 200g',
+            brandName: 'Fazer',
+            category: 'Makeiset',
+          };
+
+          const same = memory.getLearnedStructureBoost('maito', sameStructureDifferentEan);
+          const different = memory.getLearnedStructureBoost('maito', differentStructure);
+          const wrong = memory.getLearnedStructureBoost('maito', wrongGroup);
+          const exact = memory.getLearnedStructureBoost('maito', learned);
+
+          if (!(same.boost > different.boost && same.boost > 0)) {
+            console.error('FAIL structural learning did not prefer same structure with different EAN', { same, different });
+            process.exit(1);
+          }
+          if (same.reason !== 'learned_structure_preference') {
+            console.error('FAIL different-EAN structure was not learned structurally', same);
+            process.exit(1);
+          }
+          if (exact.boost !== 0 || exact.reason !== 'no_structure_memory') {
+            console.error('FAIL exact EAN leaked into production structural bridge', exact);
+            process.exit(1);
+          }
+          if (wrong.boost !== 0) {
+            console.error('FAIL wrong product group received production structural boost', wrong);
+            process.exit(1);
+          }
+
+          console.log('PASS different EAN + same structure receives learned structural preference');
+          console.log('PASS exact EAN is not hard-locked by production structural bridge');
+          console.log('PASS wrong product group receives no structural learning boost');
+          console.log('SAFE_SUMMARY functional structural search learning regression passed');
           NODE
 
       - name: Functional general grocery intent and exclusion regression
