@@ -11131,14 +11131,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       if (exact) return exact;
     }
 
+    const searchTerms = getKSearchTerms(query).slice(0, 6);
     const allCandidates: KProduct[] = [];
     const seenCandidateIds = new Set<string>();
 
-    // Täsmä-EAN puuttui: kerää turvalliset nimihakukandidaatit ja valitse
-    // niistä lähin vastaava nykyisillä tuoteryhmä- ja semantiikkasuojilla.
-    for (const searchTerm of getKSearchTerms(query)) {
-      const items = await fetchKProducts(searchTerm, storeId);
+    // EAN puuttui Ruoanhinnan hausta. Nimihakujen ei tarvitse odottaa toisiaan:
+    // hae rajattu joukko rinnakkain ja valitse vasta sitten paras kauppakohtainen vastine.
+    const resultSets = await Promise.all(
+      searchTerms.map((searchTerm) =>
+        fetchKProducts(searchTerm, storeId).catch(() => [] as KProduct[]),
+      ),
+    );
 
+    for (const items of resultSets) {
       for (const item of items) {
         const candidateKey = String(item.id || item.ean || item.name);
         if (seenCandidateIds.has(candidateKey)) continue;
@@ -11279,15 +11284,32 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               matchType: "ean",
               cartItemId: item.id,
             };
-          } else if (hyperId) {
-            const hyperBest = await findBestKMatchForStore(item.name, hyperId, itemEan);
+          } else {
+            // Tavaratalo ja lähikauppa ovat toisistaan riippumattomia:
+            // käynnistä molemmat haut rinnakkain.
+            const [hyperBest, localBest] = await Promise.all([
+              hyperId
+                ? findBestKMatchForStore(item.name, hyperId, itemEan)
+                : Promise.resolve(undefined),
+              localId
+                ? findBestKMatchForStore(item.name, localId, itemEan)
+                : Promise.resolve(undefined),
+            ]);
+
             if (hyperBest && hyperBest.price > 0) {
               const product = convertKProductToProduct(hyperBest);
               s = { product: { ...product, ean: hyperBest.ean, storeName: hyperName } as Product, price: hyperBest.price, quantity: 1, matchType: normalizeEan(hyperBest.ean) === itemEan && itemEan ? "ean" : "name", cartItemId: item.id };
             }
+
+            if (localBest && localBest.price > 0) {
+              const product = convertKProductToProduct(localBest);
+              k = { product: { ...product, ean: localBest.ean, storeName: localName } as Product, price: localBest.price, quantity: 1, matchType: normalizeEan(localBest.ean) === itemEan && itemEan ? "ean" : "name", cartItemId: item.id };
+            }
           }
 
-          if (localId) {
+          // Jos alkuperäinen tuote oli jo valitusta tavaratalosta, hae vain lähikaupan
+          // vastine erikseen; tavaratalon alkuperäinen rivi säilyy muuttumattomana.
+          if (s && localId && !k) {
             const localBest = await findBestKMatchForStore(item.name, localId, itemEan);
             if (localBest && localBest.price > 0) {
               const product = convertKProductToProduct(localBest);
