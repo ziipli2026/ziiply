@@ -15,7 +15,7 @@ jobs:
           const b64=value=>Buffer.from(JSON.stringify(value,(_k,v)=>Object.prototype.toString.call(v)==="[object Object]"?Object.keys(v).sort().reduce((o,k)=>(o[k]=v[k],o),{}):v),"utf8").toString("base64");
           async function data(name,params){const key=b64([name,params]);const r=await fetch(ORIGIN+"/",{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json, text/plain, */*",Referer:ORIGIN+"/K-Supermarket"},body:JSON.stringify({data:[key]})});if(!r.ok)throw new Error(name+" HTTP "+r.status);for(const line of (await r.text()).split(/\r?\n/).filter(Boolean)){try{const row=JSON.parse(line);if(row.key===key)return row.value}catch{}}throw new Error(name+" key missing")}
           const arr=v=>Array.isArray(v?.data)?v.data.filter(x=>x&&typeof x==="object"):[];
-          const stores=arr(await data("stores",{businessId:BUSINESS,pagination:{offset:0,limit:1000}}));
+          const fronts=await data("fronts",{businessSlugs:["K-Supermarket"]}); console.log("FRONTS",JSON.stringify(fronts)); const stores=arr(await data("stores",{businessId:BUSINESS,pagination:{offset:0,limit:1000}}));
           function pick(label){const q=norm(label);return stores.find(s=>norm(s.name)===q)||stores.find(s=>norm(s.name).includes(q.replace("k supermarket ","")))}
           const ev=pick("K-Supermarket Eväskontti"), jo=pick("K-Supermarket Jokela");
           if(!ev||!jo) throw new Error("store missing "+JSON.stringify({ev:!!ev,jo:!!jo,evMatches:stores.filter(s=>norm(s.name).includes("evaskontti")).map(s=>({id:s.id,name:s.name})),joMatches:stores.filter(s=>norm(s.name).includes("jokela")).map(s=>({id:s.id,name:s.name}))}));
