@@ -1658,6 +1658,7 @@ import ZiiplySearchCard from "./components/ziiply/cards/ZiiplySearchCard";
 import ZiiplyMobileSearchCard from "./components/ziiply/cards/ZiiplyMobileSearchCard";
 import ZiiplyMobileSearchResultsCard from "./components/ziiply/cards/ZiiplyMobileSearchResultsCard";
 import ZiiplyMobileCartCard from "./components/ziiply/cards/ZiiplyMobileCartCard";
+import ZiiplyMobileCompareCheckoutCard from "./components/ziiply/cards/ZiiplyMobileCompareCheckoutCard";
 import ZiiplyMobileNotebookCard from "./components/ziiply/cards/ZiiplyMobileNotebookCard";
 import ZiiplyMobileOfferSearchCard from "./components/ziiply/cards/ZiiplyMobileOfferSearchCard";
 const ZiiplyMobileOfferSearchCardLoose: any = ZiiplyMobileOfferSearchCard;
@@ -19193,37 +19194,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             </div>
           )}
 
-        {/* V733_COMPARE_PICKING_ISOLATED:
-            Vertailukorin ostaminen/keräily on oma overlay. Se käyttää vain valitun
-            S/K-vertailukorin tuotteita eikä kirjoita alkuperäiseen cart-stateen. */}
-        {!showLaunchScreen && mobileComparePickingOpenV733 && mobileCompareShoppingItemsV732 && (
-          <ZiiplyMobileCartCard
-            open={true}
-            title={`${chainResults.find((result) => result.key === mobileCompareShoppingStoreKeyV732)?.storeName || "Kauppa"} · vertailukori`}
-            className="!z-[96]"
-            items={mobileCompareShoppingItemsV732.map((item: any) => {
-              const key = String(item.id ?? item.ean ?? item.name ?? item.product?.id ?? "");
-              return {
-                ...item,
-                id: key,
-                checked: Boolean(mobileCompareCheckedV733[key]),
-              };
-            })}
-            onShareCart={() => {
-              if (mobileCompareShoppingStoreKeyV732) {
-                void shareMobileCompareStoreV729(mobileCompareShoppingStoreKeyV732);
-              }
-            }}
-            onToggleItem={(item: any) => {
-              const key = String(item.id ?? "");
-              setMobileCompareCheckedV733((current) => ({ ...current, [key]: !current[key] }));
-            }}
+        {/* Osta käyttää valitun vertailukorin tietoja. Tavallista ostoskoria ei avata. */}
+        {!showLaunchScreen && mobileComparePickingOpenV733 && mobileCompareShoppingStoreKeyV732 && (
+          <ZiiplyMobileCompareCheckoutCard
+            key={mobileCompareShoppingStoreKeyV732}
+            storeName={chainResults.find((result) => result.key === mobileCompareShoppingStoreKeyV732)?.storeName || "Kauppa"}
+            itemCount={chainResults.find((result) => result.key === mobileCompareShoppingStoreKeyV732)?.foundItems || 0}
+            totalPrice={chainResults.find((result) => result.key === mobileCompareShoppingStoreKeyV732)?.totalPrice || 0}
             onBack={() => {
-              setMobileComparePickingOpenV733(false);
-              setMobileCompareShoppingStoreKeyV732(null);
-              setActiveResult("compare");
-            }}
-            onClose={() => {
               setMobileComparePickingOpenV733(false);
               setMobileCompareShoppingStoreKeyV732(null);
               setActiveResult("compare");
