@@ -436,7 +436,7 @@ type KCitymarketCachedPayload = { period:KCitymarketPeriod; offers:CitymarketOff
 function helsinkiClock(now=new Date()){
   const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit",weekday:"short",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(now);
   const get=(type:Intl.DateTimeFormatPartTypes)=>parts.find(part=>part.type===type)?.value||"";
-  return {date:${get("year")}-${get("month")}-${get("day")},weekday:get("weekday"),hour:Number(get("hour")),minute:Number(get("minute"))};
+  return {date:get("year")+"-"+get("month")+"-"+get("day"),weekday:get("weekday"),hour:Number(get("hour")),minute:Number(get("minute"))};
 }
 function shiftIsoDate(date:string,days:number){
   const [y,m,d]=date.split("-").map(Number);
@@ -452,7 +452,7 @@ function isoWeekForDate(date:string){
 }
 function periodFromStart(startDate:string,kind:KCitymarketPeriodKind):KCitymarketPeriod{
   const week=isoWeekForDate(startDate);
-  return {key:${startDate}-W${week}-${kind},kind,week,startDate};
+  return {key:startDate+"-W"+week+"-"+kind,kind,week,startDate};
 }
 export function getActiveKCitymarketPeriod(now=new Date()):KCitymarketPeriod{
   const clock=helsinkiClock(now);
@@ -469,15 +469,15 @@ function getNextKCitymarketPeriod(now=new Date()):KCitymarketPeriod|null{
   return null;
 }
 function leafletMatchesPeriod(url:string,period:KCitymarketPeriod){
-  return String(url||"").toUpperCase().includes(_${period.week}${period.kind}_KCM);
+  return String(url||"").toUpperCase().includes("_"+period.week+period.kind+"_KCM");
 }
 const getCachedKCitymarketPeriod=unstable_cache(
   async(period:KCitymarketPeriod):Promise<KCitymarketCachedPayload>=>{
     const offers=await fetchKCitymarketOffersFresh();
     const debug=citymarketHtmlDebugV8;
     const leafletUrl=String(debug?.leafletUrl||offers[0]?.sourceUrl||"");
-    if(!leafletMatchesPeriod(leafletUrl,period)) throw new Error(K-Citymarket leaflet "${leafletUrl||"(missing)"}" does not match requested ${period.key});
-    if(!offers.length) throw new Error(K-Citymarket ${period.key} parsed zero offers);
+    if(!leafletMatchesPeriod(leafletUrl,period)) throw new Error('K-Citymarket leaflet "'+(leafletUrl||"(missing)")+'" does not match requested '+period.key);
+    if(!offers.length) throw new Error("K-Citymarket "+period.key+" parsed zero offers");
     return {period,offers,debug,cachedAt:new Date().toISOString()};
   },
   ["ziiply-kcitymarket-offers-v1"],
@@ -496,14 +496,14 @@ export async function warmKCitymarketOfferCache(now=new Date()){
     const payload=await readCachedPeriod(active);
     result.active={period:payload.period.key,offers:payload.offers.length,cachedAt:payload.cachedAt};
   }catch(error){
-    result.errors.push(active ${active.key}: ${error instanceof Error?error.message:String(error)});
+    result.errors.push("active "+active.key+": "+(error instanceof Error?error.message:String(error)));
   }
   if(next){
     try{
       const payload=await readCachedPeriod(next);
       result.next={period:payload.period.key,offers:payload.offers.length,cachedAt:payload.cachedAt};
     }catch(error){
-      result.errors.push(next ${next.key}: ${error instanceof Error?error.message:String(error)});
+      result.errors.push("next "+next.key+": "+(error instanceof Error?error.message:String(error)));
     }
   }
   return result;
