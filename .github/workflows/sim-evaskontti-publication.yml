@@ -18,6 +18,8 @@ jobs:
           const fronts=await data("fronts",{businessSlugs:["K-Supermarket"]}); console.log("FRONTS",JSON.stringify(fronts)); const stores=arr(await data("stores",{businessId:BUSINESS,pagination:{offset:0,limit:1000}}));
           function pick(label){const q=norm(label);return stores.find(s=>norm(s.name)===q)||stores.find(s=>norm(s.name).includes(q.replace("k supermarket ","")))}
           const ev=pick("K-Supermarket Eväskontti"), jo=pick("K-Supermarket Jokela");
+          const cities=["Helsinki","Espoo","Vantaa","Järvenpää","Hyvinkää","Lahti","Tampere","Turku","Jyväskylä","Kuopio","Joensuu","Oulu","Rovaniemi"];
+          const matrix=cities.map(city=>{const ss=stores.filter(s=>norm(s.city)===norm(city));return {city,total:ss.length,sample:ss.slice(0,3).map(s=>({id:s.id,name:s.name}))}}); console.log("CITY_MATRIX",JSON.stringify(matrix));
           if(!ev||!jo) throw new Error("store missing "+JSON.stringify({ev:!!ev,jo:!!jo,evMatches:stores.filter(s=>norm(s.name).includes("evaskontti")).map(s=>({id:s.id,name:s.name})),joMatches:stores.filter(s=>norm(s.name).includes("jokela")).map(s=>({id:s.id,name:s.name}))}));
           const baseParams={businessIds:[BUSINESS],sources:["publication","business_product"],pagination:{limit:1000,offset:0},sort:["score_desc"]};
           const offers=arr(await data("offers",baseParams));
