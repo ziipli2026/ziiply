@@ -5443,10 +5443,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }, [gostaSelectedStoresSignatureV534]);
 
 
-  // V553_SELECTION_TRIGGERED_OFFER_CACHE_WARMUP:
-  // Kun käyttäjän aktiivinen S/K-kauppapari on ratkennut, lämmitä Göstan
-  // ketjukohtainen master-cache taustalla. Visible search käyttää samaa cachea.
-  // Provider/parsauslogiikkaan ei kosketa, eikä warmup muuta UI-statea.
+  // V554_SELECTION_TRIGGERED_CHAIN_CACHE_WARMUP:
+  // Göstan näkyvä S/K-portti hakee aina vain valitun ketjun. Lämmitä siksi
+  // täsmälleen samat S-only ja K-only contextit jo kauppavalinnan ratkettua.
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!storesReadyForSearch || !storeModeChosenV299) return;
@@ -5469,10 +5468,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         .map(normalizeStoreForPickerV320)
         .find((store) =>
           isPrisma(store) &&
-          (
-            sameStoreIdV93(store.id, selected.id) ||
-            normalize(store.name || "") === wantedName
-          ),
+          (sameStoreIdV93(store.id, selected.id) || normalize(store.name || "") === wantedName),
         );
 
       const externalId = String(matched?.externalId || "").trim();
@@ -5484,38 +5480,58 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     const sStore = resolveWarmSStore();
     const kStore = cleanStore(activeStores.kStoreId, activeStores.kStoreName);
-    const areaFor = (storeName: string) =>
-      storeCompareScope === "within_chain"
-        ? storeName
-        : String(activeArea.label || locationInput || "").trim();
+    const baseAreaLabel = String(locationInput || activeArea.label || "").trim();
 
-    // Warm exactly the same selected S+K context that the visible Gösta search uses.
-    // Keeping both chains in one context is important: the master-cache key is derived
-    // from the whole search context, so separate S-only/K-only warmups would populate
-    // different keys and the first visible search could still be cold.
-    const warmContext: any = {
-      areaLabel:
-        storeCompareScope === "within_chain"
-          ? String(activeArea.label || locationInput || sStore?.name || kStore?.name || "").trim()
-          : String(activeArea.label || locationInput || "").trim(),
+    const commonContext = {
+      locationInput: locationInput || "",
       storeMode,
       storeCompareScope,
       withinChain,
-      sStoreId: sStore?.id || undefined,
-      sStoreName: sStore?.name || undefined,
-      sStoreIds: sStore?.id ? [sStore.id] : [],
-      sStoreNames: sStore?.name ? [sStore.name] : [],
-      kStoreId: kStore?.id || undefined,
-      kStoreName: kStore?.name || undefined,
-      kStoreIds: kStore?.id ? [kStore.id] : [],
-      kStoreNames: kStore?.name ? [kStore.name] : [],
+      usingOwnLocation,
+      gpsLat: gpsCoordsV320?.latitude,
+      gpsLon: gpsCoordsV320?.longitude,
     };
 
-    const timer = window.setTimeout(() => {
-      if (!sStore && !kStore) return;
-      void warmZiiplyGostaOfferCacheV182(warmContext).catch((error) => {
-        console.debug("[Ziiply offer warmup] skipped after provider failure", error);
+    const warmContexts: any[] = [];
+
+    if (sStore) {
+      warmContexts.push({
+        ...commonContext,
+        areaLabel:
+          storeCompareScope === "within_chain"
+            ? String(locationInput || sStore.name || "").trim()
+            : baseAreaLabel,
+        sStoreId: sStore.id || undefined,
+        sStoreName: sStore.name || undefined,
+        sStoreIds: sStore.id ? [sStore.id] : [],
+        sStoreNames: sStore.name ? [sStore.name] : [],
+        kStoreIds: [],
+        kStoreNames: [],
       });
+    }
+
+    if (kStore) {
+      warmContexts.push({
+        ...commonContext,
+        areaLabel:
+          storeCompareScope === "within_chain"
+            ? String(locationInput || kStore.name || "").trim()
+            : baseAreaLabel,
+        sStoreIds: [],
+        sStoreNames: [],
+        kStoreId: kStore.id || undefined,
+        kStoreName: kStore.name || undefined,
+        kStoreIds: kStore.id ? [kStore.id] : [],
+        kStoreNames: kStore.name ? [kStore.name] : [],
+      });
+    }
+
+    const timer = window.setTimeout(() => {
+      for (const context of warmContexts) {
+        void warmZiiplyGostaOfferCacheV182(context).catch((error) => {
+          console.debug("[Ziiply offer warmup] skipped after provider failure", error);
+        });
+      }
     }, 250);
 
     return () => window.clearTimeout(timer);
@@ -5527,13 +5543,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     withinChain,
     activeArea.label,
     locationInput,
+    usingOwnLocation,
+    gpsCoordsV320?.latitude,
+    gpsCoordsV320?.longitude,
     activeStores.sStoreId,
     activeStores.sStoreName,
     activeStores.kStoreId,
     activeStores.kStoreName,
     foundStores,
   ]);
-
 
   // V506_BUILD_FIX_WARMUP_AFTER_ACTIVESTORES:
   // Warmup-effect on activeStores-riippuvainen, joten se pitää sijoittaa activeStores-useMemo:n jälkeen.
