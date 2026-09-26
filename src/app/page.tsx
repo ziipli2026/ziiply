@@ -8211,6 +8211,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         const bComplete = b.missingItems === 0 && b.totalPrice > 0;
         if (aComplete && !bComplete) return -1;
         if (!aComplete && bComplete) return 1;
+
+        // Jos molemmat korit ovat vajaita, suurempi tuotekattavuus ratkaisee
+        // järjestyksen ennen hintaa. Muuten halvempi mutta enemmän tuotteita
+        // puuttuva kori voisi näkyä Vertailussa virheellisesti sijalla #1.
+        if (!aComplete && !bComplete && a.foundItems !== b.foundItems) {
+          return b.foundItems - a.foundItems;
+        }
+
         if (a.totalPrice === 0) return 1;
         if (b.totalPrice === 0) return -1;
         return a.totalPrice - b.totalPrice;
