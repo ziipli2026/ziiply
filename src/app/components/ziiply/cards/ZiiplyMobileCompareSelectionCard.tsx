@@ -43,6 +43,7 @@ export type ZiiplyCompareSelectionItem = {
   };
   cartItem?: {
     name?: string;
+    brandName?: string;
     quantity?: number;
   };
   [key: string]: any;
