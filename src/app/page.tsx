@@ -1688,6 +1688,7 @@ import {
   isZiiplyGostaCategorySelectionV147,
   mapZiiplyGostaOfferToCardOfferV147,
   searchZiiplyGostaOffersV146,
+  warmZiiplyGostaOfferCacheV182,
   getLastZiiplyKruokaDebugV174,
   type ZiiplyKruokaDebugV174,
 } from "./components/ziiply/offerSearch/ziiplyOfferSearchCore";
@@ -5440,6 +5441,107 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setOfferCardFilterV106("");
     setOfferShowingAllAreaOffersV106(false);
   }, [gostaSelectedStoresSignatureV534]);
+
+
+  // V553_SELECTION_TRIGGERED_OFFER_CACHE_WARMUP:
+  // Kun käyttäjän aktiivinen S/K-kauppapari on ratkennut, lämmitä Göstan
+  // ketjukohtainen master-cache taustalla. Visible search käyttää samaa cachea.
+  // Provider/parsauslogiikkaan ei kosketa, eikä warmup muuta UI-statea.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!storesReadyForSearch || !storeModeChosenV299) return;
+
+    const cleanStore = (idValue: unknown, nameValue: unknown) => {
+      const id = String(idValue || "").trim();
+      const name = String(nameValue || "").trim();
+      if ((!id || id === "0") && !name) return null;
+      if (/ei valittu|valitse ensin/i.test(name)) return null;
+      return { id, name };
+    };
+
+    const resolveWarmSStore = () => {
+      const selected = cleanStore(activeStores.sStoreId, activeStores.sStoreName);
+      if (!selected) return null;
+      if (storeMode !== "hyper") return selected;
+
+      const wantedName = normalize(selected.name);
+      const matched = foundStores
+        .map(normalizeStoreForPickerV320)
+        .find((store) =>
+          isPrisma(store) &&
+          (
+            sameStoreIdV93(store.id, selected.id) ||
+            normalize(store.name || "") === wantedName
+          ),
+        );
+
+      const externalId = String(matched?.externalId || "").trim();
+      return {
+        id: /^\d{5,}$/.test(externalId) ? externalId : selected.id,
+        name: matched?.name || selected.name,
+      };
+    };
+
+    const sStore = resolveWarmSStore();
+    const kStore = cleanStore(activeStores.kStoreId, activeStores.kStoreName);
+    const areaFor = (storeName: string) =>
+      storeCompareScope === "within_chain"
+        ? storeName
+        : String(activeArea.label || locationInput || "").trim();
+
+    const warmContexts: any[] = [];
+    if (sStore) {
+      warmContexts.push({
+        areaLabel: areaFor(sStore.name),
+        storeMode,
+        storeCompareScope,
+        withinChain,
+        sStoreId: sStore.id || undefined,
+        sStoreName: sStore.name || undefined,
+        sStoreIds: sStore.id ? [sStore.id] : [],
+        sStoreNames: sStore.name ? [sStore.name] : [],
+        kStoreIds: [],
+        kStoreNames: [],
+      });
+    }
+    if (kStore) {
+      warmContexts.push({
+        areaLabel: areaFor(kStore.name),
+        storeMode,
+        storeCompareScope,
+        withinChain,
+        sStoreIds: [],
+        sStoreNames: [],
+        kStoreId: kStore.id || undefined,
+        kStoreName: kStore.name || undefined,
+        kStoreIds: kStore.id ? [kStore.id] : [],
+        kStoreNames: kStore.name ? [kStore.name] : [],
+      });
+    }
+
+    const timer = window.setTimeout(() => {
+      for (const context of warmContexts) {
+        void warmZiiplyGostaOfferCacheV182(context).catch((error) => {
+          console.debug("[Ziiply offer warmup] skipped after provider failure", error);
+        });
+      }
+    }, 250);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    storesReadyForSearch,
+    storeModeChosenV299,
+    storeMode,
+    storeCompareScope,
+    withinChain,
+    activeArea.label,
+    locationInput,
+    activeStores.sStoreId,
+    activeStores.sStoreName,
+    activeStores.kStoreId,
+    activeStores.kStoreName,
+    foundStores,
+  ]);
 
 
   // V506_BUILD_FIX_WARMUP_AFTER_ACTIVESTORES:
