@@ -125,6 +125,23 @@ const FUZZY_GROCERY_TERMS = [
 
 function editDistance(a: string, b: string) {
   if (a === b) return 0;
+
+  // A very common mobile typo is swapping two adjacent letters (matio -> maito).
+  // Count that as one edit without making the general fuzzy threshold looser.
+  if (a.length === b.length) {
+    const differences: number[] = [];
+    for (let index = 0; index < a.length; index += 1) {
+      if (a[index] !== b[index]) differences.push(index);
+    }
+    if (
+      differences.length === 2 &&
+      differences[1] === differences[0] + 1 &&
+      a[differences[0]] === b[differences[1]] &&
+      a[differences[1]] === b[differences[0]]
+    ) {
+      return 1;
+    }
+  }
   if (!a) return b.length;
   if (!b) return a.length;
 
