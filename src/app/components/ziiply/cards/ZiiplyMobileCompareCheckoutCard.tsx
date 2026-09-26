@@ -21,7 +21,7 @@ export default function ZiiplyMobileCompareCheckoutCard({ storeName, itemCount, 
           {!showPaymentNotice ? (
             <>
               <h2 className="text-[2.05rem] font-extrabold italic leading-none text-[#314226]">✓ Lista kasassa!</h2>
-              <div className="mx-auto mt-3 w-fit rounded-[0.58rem] border border-[#8a6b32] bg-[#f8e6b9] px-4 py-2 text-[1.08rem] font-black text-[#3d301a]">{itemCount} tuotetta · {totalPrice.toLocaleString("fi-FI", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €</div>
+              <div className="mx-auto mt-3 w-fit rounded-[0.58rem] border border-[#8a6b32] bg-[#f8e6b9] px-4 py-2 text-[1.08rem] font-black text-[#3d301a]">{itemCount} tuotetta · {(totalPrice / 100).toLocaleString("fi-FI", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €</div>
               <div className="mx-auto mt-5 rounded-[0.72rem] border border-[#9a7a3d]/60 bg-[#fff8dc]/62 px-3 py-3 text-[1.08rem] font-extrabold italic text-[#7b3215]">Unohtuiko vielä jotain listan ulkopuolelta?</div>
               <div className="mt-5 grid gap-2.5">
                 <button type="button" onClick={onBack} className="rounded-[0.62rem] border-2 border-[#8a6b32] bg-[#f5dfac] px-3 py-3 font-black italic text-[#533819]">Lisää vielä</button>
