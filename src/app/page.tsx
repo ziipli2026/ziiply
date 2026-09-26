@@ -11088,16 +11088,27 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }, 900);
   }
 
+  function isWeightCartItemV738(item: CartItem) {
+    const productAny = item.product as any;
+    if (productAny?.ziiplyWeightLabel === true) return true;
+    const itemEan = normalizeEan(String(item.ean || productAny?.ean || ""));
+    return Boolean(itemEan && resolvePriceWeightLabel(itemEan));
+  }
+
   async function updateChainComparison(
     nextCart = cart,
     options: { openCompare?: boolean } = {},
   ) {
+    // V738: physical scale-label products are never price-comparison candidates.
+    // Their label total is authoritative, but store-specific comparable unit price
+    // cannot be guaranteed even when product identity is known.
+    const comparisonCartV738 = nextCart.filter((item) => !isWeightCartItemV738(item));
     const shouldOpenCompare = options.openCompare !== false;
     if (comparisonUpdateTimerRef.current) {
       clearTimeout(comparisonUpdateTimerRef.current);
       comparisonUpdateTimerRef.current = null;
     }
-    const cacheKey = getComparisonCacheKey(nextCart);
+    const cacheKey = getComparisonCacheKey(comparisonCartV738);
     if (comparisonCompletedKeyRef.current === cacheKey &&
       [...Object.values(sMatches), ...Object.values(kMatches)].some((match) => Number(match.price) > 0)) {
       if (shouldOpenCompare) setActiveResult("compare");
@@ -11106,8 +11117,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     comparisonCacheKeyRef.current = cacheKey;
 
     trackZiiplyEvent("comparison_opened", {
-      cartItemsCount: nextCart.length,
-      totalQuantity: nextCart.reduce((sum, item) => sum + item.quantity, 0),
+      cartItemsCount: comparisonCartV738.length,
+      totalQuantity: comparisonCartV738.reduce((sum, item) => sum + item.quantity, 0),
       storeMode,
       sStoreName: activeStores.sStoreName,
       kStoreName: activeStores.kStoreName,
@@ -11120,9 +11131,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const nextSMatches: Record<string, Match> = {};
       const nextKMatches: Record<string, Match> = {};
 
-      const itemMatches = await Promise.all(nextCart.map((item) => getComparisonItemMatches(item)));
+      const itemMatches = await Promise.all(comparisonCartV738.map((item) => getComparisonItemMatches(item)));
       let failed = false;
-      nextCart.forEach((item, index) => {
+      comparisonCartV738.forEach((item, index) => {
         const match = itemMatches[index];
         if (match.failed) failed = true;
         if (match.s) nextSMatches[item.id] = { ...match.s, quantity: item.quantity };
@@ -11166,7 +11177,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   useEffect(() => {
     if (!restoredComparisonPending || !storesReadyForSearch || cart.length === 0) return;
     setRestoredComparisonPending(false);
-    const comparableCart = cart.filter((item) => String(item.source || "").toLowerCase() !== "offer");
+    const comparableCart = cart.filter((item) => String(item.source || "").toLowerCase() !== "offer" && !isWeightCartItemV738(item));
     if (comparableCart.length === 0) {
       setComparisonLoading(false);
       return;
@@ -11190,7 +11201,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }, [restoredComparisonPending, storesReadyForSearch, cart, activeStores.sStoreId, activeStores.kStoreId, activeStores.sStoreName, activeStores.kStoreName, storeMode, storeCompareScope, withinChain]);
 
   useEffect(() => {
-    const comparisonCart = cart.filter((item) => String(item.source || "").toLowerCase() !== "offer");
+    const comparisonCart = cart.filter((item) => String(item.source || "").toLowerCase() !== "offer" && !isWeightCartItemV738(item));
     if (comparisonCart.length === 0 || !hasActiveStores) {
       if (cart.length === 0) {
         setSMatches({});
@@ -11918,6 +11929,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         return nextCart;
       }
       if (baseCart.length >= MAX_ITEMS) return currentCart;
+      const weightProductV738 = {
+        ...product,
+        ziiplyWeightLabel: true,
+      } as Product;
       const newItem: CartItem = {
         id: `k-weight-${product.id}-${Date.now()}`,
         name: productName,
@@ -11927,7 +11942,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         storeName: activeStores.kStoreName || "K-kauppa",
         quantity: 1,
         source: "search",
-        product,
+        product: weightProductV738,
         ean,
       };
       const nextCart = [...baseCart, newItem];
