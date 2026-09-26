@@ -227,7 +227,7 @@ export default function ZiiplyMobileCompareSelectionCard({
                           </div>
                           {!missing && item.matchType === "name" ? (
                             <div className="mt-0.5 text-[0.54rem] font-black uppercase tracking-[0.06em] text-[#8a4f20]">
-                              Vastaava tuote · ei sama EAN
+                              Vastaava tuote
                             </div>
                           ) : null}
                         </div>
