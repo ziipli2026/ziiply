@@ -278,10 +278,10 @@ export default function ZiiplyMobileCompareCardresponsive({
 {showSkeleton ? <RetroMopedOverlay /> : null}
 
         <main className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden px-5 pb-4 pt-[9.5rem]">
-          <header className="relative z-20 mb-3 ml-[3.1rem] max-w-[calc(100%-3.1rem)]">
+          <div className="relative z-20 mb-3 ml-[3.1rem] max-w-[calc(100%-3.1rem)] shrink-0">
             <div className="text-[1.46rem] font-black italic leading-none text-[#28402a] drop-shadow-[0_1px_0_rgba(255,247,211,0.62)]" style={{ fontFamily: cooperFont }}>{title}</div>
             <div className="mt-[0.16rem] text-[0.72rem] font-extrabold text-[#5f5034]">{subtitle || `${comparedCount || visibleStores.length} tuotetta / ${visibleStores.length} kauppaa`}</div>
-          </header>
+          </div>
           <div className="flex min-h-0 flex-1 flex-col gap-2.5">
 
             {showSkeleton ? (
@@ -308,6 +308,7 @@ export default function ZiiplyMobileCompareCardresponsive({
               </div>
             ) : (
               visibleStores.map((store, index) => {
+                if (detailsStoreId && detailsStoreId !== store.id) return null;
                 const isBest = Boolean(store.isBest || cheapest?.id === store.id);
                 const diffLabel = getStorePriceDiff(store, cheapest);
                 const matchedIds = new Set((store.matches || []).map((match: any) => String(match?.cartItemId || "")).filter(Boolean));
@@ -351,6 +352,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                           <span className="block truncate text-[0.92rem] font-black leading-tight text-[#233020]">
                             {store.name}
                           </span>
+                          <span className="block text-[0.62rem] font-bold text-[#5f5034]">Kauppakohtainen kori</span>
                           <span className="mt-1 flex flex-wrap items-center gap-1.5 text-[0.64rem] font-black uppercase tracking-[0.07em] text-[#6e6d55]">
                             <span>#{index + 1}</span>
                             <span>·</span>
@@ -398,15 +400,19 @@ export default function ZiiplyMobileCompareCardresponsive({
                       </button>
                     </div>
 
-                    <div className="mt-2.5 grid grid-cols-[minmax(0,1fr)_2.30rem_2.30rem] items-center gap-2 pl-[2.58rem]">
-                      <button
+                    <div className="mt-2.5 grid shrink-0 grid-cols-[minmax(0,1fr)_2.30rem_2.30rem] items-center gap-2 pl-[2.58rem]">
+                      {detailsStoreId === store.id ? (
+                        <button type="button" onClick={() => setDetailsStoreId(null)} className="grid h-[2.62rem] w-[2.86rem] place-items-center rounded-l-[0.42rem] rounded-r-[0.8rem] border-[2px] border-[#2b1a0e] bg-[linear-gradient(135deg,#7a4c2d_0%,#3b2414_78%)] text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.25),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]" aria-label="Palaa vertailukoreihin" title="Palaa vertailukoreihin">
+                          <span className="grid h-[1.50rem] w-[1.50rem] place-items-center rounded-full border border-[#6b421f] bg-[radial-gradient(circle_at_35%_35%,#f6c46c_0%,#b0752a_52%,#65401f_100%)] text-[1.02rem] text-[#2b1a0e] shadow-[0_1px_2px_rgba(0,0,0,0.28)]">←</span>
+                        </button>
+                      ) : <button
                         type="button"
                         onClick={() => setDetailsStoreId((current) => current === store.id ? null : store.id)}
                         className="min-h-[2.40rem] rounded-[0.72rem] border-[2.5px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-3 text-[0.72rem] font-black italic tracking-[0.03em] text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58),0_2px_4px_rgba(62,43,20,0.18)] active:translate-y-[1px]"
                         style={{ fontFamily: cooperFont }}
                       >
                         Muuta valintoja
-                      </button>
+                      </button>}
 
                       {onShareStore ? (
                         <button
@@ -442,7 +448,6 @@ export default function ZiiplyMobileCompareCardresponsive({
                         open
                         store={{ ...store, matches: detailRows }}
                         items={items}
-                        onBack={() => setDetailsStoreId(null)}
                         onChangeMatchMode={onChangeMatchMode}
                       />
                     ) : null}
@@ -502,11 +507,6 @@ export default function ZiiplyMobileCompareCardresponsive({
             animation: ziiplyMobileComparePop 420ms cubic-bezier(0.2, 0.9, 0.25, 1.2);
           }
 
-          @media (max-height: 720px) {
-            .ziiply-mobile-compare-pop header {
-              top: 11.55rem;
-            }
-          }
         `}</style>
       </section>
     </div>
