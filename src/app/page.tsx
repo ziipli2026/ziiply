@@ -11184,7 +11184,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   function getComparisonCacheKey(nextCart: CartItem[]) {
     return JSON.stringify({
-      items: nextCart.map((item) => [item.id, item.name, item.ean, item.quantity, item.price, item.chain, item.storeName, item.source]),
+      // Bump comparison cache schema whenever matching semantics change.
+      // Otherwise an old localStorage snapshot can keep serving a previously
+      // selected wrong equivalent even after the matcher has been fixed.
+      schema: 2,
+      items: nextCart.map((item) => [item.id, item.name, item.ean, item.product?.ean, item.quantity, item.price, item.chain, item.storeName, item.source]),
       stores:
         storeCompareScope === "within_chain"
           ? withinChain === "S"
