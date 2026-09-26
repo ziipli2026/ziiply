@@ -1697,6 +1697,7 @@ import {
   explainNormalSearch as explainZiiplyNormalSearch,
   learnNormalSearchChoice as learnZiiplyNormalSearchChoice,
 } from "./components/ziiply/search/searchEngine";
+import { getLearnedStructureBoost } from "./components/ziiply/search/searchIntentMemory";
 
 const MOBILE_EAN_SCANNER_REGION_ID = `${EAN_SCANNER_REGION_ID}-mobile`;
 
@@ -10863,6 +10864,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           // tuoteryhmätietoista rankkausta kuin yksittäisessä haussa.
           // Vanha directName-first -sorttaus nosti esim. piimäleivät oikeiden
           // piimien edelle ja "Maitokolmio"-brändin rasvaseoksen maitojen edelle.
+          const aLearnedStructureBoost = getLearnedStructureBoost(aOriginalQuery, a).boost;
+          const bLearnedStructureBoost = getLearnedStructureBoost(bOriginalQuery, b).boost;
+          if (aLearnedStructureBoost !== bLearnedStructureBoost) {
+            return bLearnedStructureBoost - aLearnedStructureBoost;
+          }
+
           const rankedPair = rankNormalSearchResults(
             aOriginalQuery,
             [a, b],
