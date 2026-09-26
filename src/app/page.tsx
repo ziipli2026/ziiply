@@ -11901,17 +11901,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         if (kWeightIdentityV732?.found && kWeightIdentityV732?.product?.name) {
           const resolvedNameV732 = fixText(String(kWeightIdentityV732.product.name));
-          const weighedProductV732 = {
-            id: `k-weight-${kWeightLabelV730.canonicalEan}`,
+          const weighedProductV732: Product = {
+            id: Number(kWeightLabelV730.canonicalEan.slice(-9)),
             name: resolvedNameV732,
             ean: kWeightLabelV730.scannedEan,
             price: kWeightLabelV730.price,
-            ziiplyKWeightLabel: true,
-            ziiplyKWeightPlu: kWeightLabelV730.plu,
-            ziiplyKCanonicalEan: kWeightLabelV730.canonicalEan,
-            ziiplyKScalePriceCents: kWeightLabelV730.priceCents,
-            ziiplyKWeightProductUrl: kWeightIdentityV732.productUrl,
-          } as Product;
+          };
 
           addEanResultToCart(
             {
@@ -11950,15 +11945,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         if (exactKProductV730) {
           const convertedV730 = convertKProductToProduct(exactKProductV730);
-          const weighedProductV730 = {
+          const weighedProductV730: Product = {
             ...convertedV730,
             ean: kWeightLabelV730.scannedEan,
             price: kWeightLabelV730.price,
-            ziiplyKWeightLabel: true,
-            ziiplyKWeightPlu: kWeightLabelV730.plu,
-            ziiplyKCanonicalEan: kWeightLabelV730.canonicalEan,
-            ziiplyKScalePriceCents: kWeightLabelV730.priceCents,
-          } as Product;
+          };
 
           addEanResultToCart(
             {
@@ -11987,17 +11978,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         // Tarrasta tiedetään jo varmasti PLU ja tämän yksilön kassahinta.
         // Tuotenimi voidaan rikastaa myöhemmin canonical-K-tunnuksen perusteella.
         const fallbackNameV731 = `Punnittu tuote (PLU ${kWeightLabelV730.plu})`;
-        const fallbackProductV731 = {
-          id: `k-weight-${kWeightLabelV730.canonicalEan}`,
+        const fallbackProductV731: Product = {
+          id: Number(kWeightLabelV730.canonicalEan.slice(-9)),
           name: fallbackNameV731,
           ean: kWeightLabelV730.scannedEan,
           price: kWeightLabelV730.price,
-          ziiplyKWeightLabel: true,
-          ziiplyKWeightPlu: kWeightLabelV730.plu,
-          ziiplyKCanonicalEan: kWeightLabelV730.canonicalEan,
-          ziiplyKScalePriceCents: kWeightLabelV730.priceCents,
-          ziiplyKWeightIdentityPending: true,
-        } as Product;
+        };
 
         addEanResultToCart(
           {
