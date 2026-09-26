@@ -256,41 +256,8 @@ export default function ZiiplyMobileCompareCardresponsive({
   const visibleStores = stores;
   const showSkeleton = loading || visibleStores.length === 0;
   const cheapest = getCheapestStore(visibleStores);
-  const detailsStore = detailsStoreId ? visibleStores.find((store) => store.id === detailsStoreId) || null : null;
-  const handleBack = onBack || onBackToCart;
+  const handleBack = detailsStoreId ? () => setDetailsStoreId(null) : onBack || onBackToCart;
   const comparedCount = items.length || visibleStores[0]?.itemCount || 0;
-
-  if (detailsStore) {
-    const matchedCartItemIds = new Set(
-      (detailsStore.matches || [])
-        .map((match: any) => String(match?.cartItemId || ""))
-        .filter(Boolean),
-    );
-    const missingRows = (items || [])
-      .filter((item: any) => {
-        const itemId = String(item?.id || "");
-        return itemId && !matchedCartItemIds.has(itemId);
-      })
-      .map((item: any) => ({
-        ...item,
-        isMissingComparisonItem: true,
-      }));
-    const detailRows = [...(detailsStore.matches || []), ...missingRows];
-
-    return (
-      <ZiiplyMobileCompareSelectionCard
-        open
-        store={{ ...detailsStore, matches: detailRows }}
-        items={items}
-        isBest={Boolean(detailsStore.isBest || cheapest?.id === detailsStore.id)}
-        onBack={() => setDetailsStoreId(null)}
-        onSelectStore={() => onSelectStore?.(detailsStore.id)}
-        onShareStore={() => onShareStore?.(detailsStore.id)}
-        onChangeMatchMode={onChangeMatchMode}
-        onClose={onClose}
-      />
-    );
-  }
 
   return (
     <div
@@ -351,6 +318,11 @@ export default function ZiiplyMobileCompareCardresponsive({
               visibleStores.map((store, index) => {
                 const isBest = Boolean(store.isBest || cheapest?.id === store.id);
                 const diffLabel = getStorePriceDiff(store, cheapest);
+                const matchedIds = new Set((store.matches || []).map((match: any) => String(match?.cartItemId || "")).filter(Boolean));
+                const detailRows = [
+                  ...(store.matches || []),
+                  ...(items || []).filter((item: any) => !matchedIds.has(String(item?.id || ""))).map((item: any) => ({ ...item, isMissingComparisonItem: true })),
+                ];
 
                 return (
                   <article
@@ -363,7 +335,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                     <div className="grid grid-cols-[2.35rem_minmax(0,1fr)_3.45rem] gap-3">
                       <button
                         type="button"
-                        onClick={() => setDetailsStoreId(store.id)}
+                        onClick={() => setDetailsStoreId((current) => current === store.id ? null : store.id)}
                         className={cx(
                           "mt-1 grid h-9 w-9 place-items-center rounded-full border-[2px] text-[1.00rem] font-black shadow-[0_2px_3px_rgba(40,28,12,0.22)] active:scale-[0.96]",
                           store.chain === "K"
@@ -380,7 +352,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                       <div className="min-w-0">
                         <button
                           type="button"
-                          onClick={() => setDetailsStoreId(store.id)}
+                          onClick={() => setDetailsStoreId((current) => current === store.id ? null : store.id)}
                           className="block max-w-full text-left"
                         >
                           <span className="block truncate text-[0.92rem] font-black leading-tight text-[#233020]">
@@ -417,7 +389,7 @@ export default function ZiiplyMobileCompareCardresponsive({
 
                       <button
                         type="button"
-                        onClick={() => setDetailsStoreId(store.id)}
+                        onClick={() => setDetailsStoreId((current) => current === store.id ? null : store.id)}
                         className="min-w-0 pt-1 text-right"
                         aria-label={`Avaa ${store.name}`}
                       >
@@ -436,7 +408,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                     <div className="mt-2.5 grid grid-cols-[minmax(0,1fr)_2.30rem_2.30rem] items-center gap-2 pl-[2.58rem]">
                       <button
                         type="button"
-                        onClick={() => setDetailsStoreId(store.id)}
+                        onClick={() => setDetailsStoreId((current) => current === store.id ? null : store.id)}
                         className="min-h-[2.40rem] rounded-[0.72rem] border-[2.5px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-3 text-[0.72rem] font-black italic tracking-[0.03em] text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58),0_2px_4px_rgba(62,43,20,0.18)] active:translate-y-[1px]"
                         style={{ fontFamily: cooperFont }}
                       >
@@ -471,6 +443,15 @@ export default function ZiiplyMobileCompareCardresponsive({
                         </button>
                       ) : <span aria-hidden="true" />}
                     </div>
+                    {detailsStoreId === store.id ? (
+                      <ZiiplyMobileCompareSelectionCard
+                        embedded
+                        open
+                        store={{ ...store, matches: detailRows }}
+                        items={items}
+                        onChangeMatchMode={onChangeMatchMode}
+                      />
+                    ) : null}
                   </article>
                 );
               })
