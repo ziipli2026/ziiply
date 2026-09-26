@@ -3164,13 +3164,33 @@ export function pickBestKProduct(items: KProduct[], query: string, ean?: string)
 
   // Vasta jos samaa EANia ei löydy, sovelletaan nimellä haettavan
   // "Vastaava tuote" -kandidaatin semantiikka- ja tuoteryhmäsuojia.
-  const usableItems = items.filter(
-    (item) =>
-      item.price > 0 &&
-      !isHardRejectedAlternative(query, item.name) &&
-      !isHardRejectedKMatch(query, item.name) &&
-      productGroupGate(query, item.name)
-  );
+  const sourceSize = parseMetricSize(query);
+  const usableItems = items.filter((item) => {
+    if (
+      item.price <= 0 ||
+      isHardRejectedAlternative(query, item.name) ||
+      isHardRejectedKMatch(query, item.name) ||
+      !productGroupGate(query, item.name)
+    ) {
+      return false;
+    }
+
+    // Jos lähtötuotteella on tarkka EAN ja nimessä ilmoitettu pakkauskoko,
+    // eri pakkauskokoa ei saa nostaa saman tuotteen nimivastineeksi.
+    // Esim. Kivikylän Huiluntuhti 375 g != Huiluntuhti 400 g.
+    if (isUsableEan(normalizedEan) && sourceSize) {
+      const targetSize = parseMetricSize(item.name);
+      if (
+        targetSize &&
+        (sourceSize.unitGroup !== targetSize.unitGroup ||
+          sourceSize.amount !== targetSize.amount)
+      ) {
+        return false;
+      }
+    }
+
+    return true;
+  });
 
   const queryIsValueBrand = isValueBrandProduct(query);
 
