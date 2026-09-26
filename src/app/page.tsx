@@ -11095,16 +11095,32 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   function getComparisonCacheKey(nextCart: CartItem[]) {
     return JSON.stringify({
       items: nextCart.map((item) => [item.id, item.name, item.ean, item.quantity, item.price, item.chain, item.storeName, item.source]),
-      stores: [activeStores.sStoreId, activeStores.kStoreId, activeStores.sStoreName, activeStores.kStoreName],
+      stores:
+        storeCompareScope === "within_chain"
+          ? withinChain === "S"
+            ? [activeArea.sStoreId, activeArea.sLocalStoreId, activeArea.sStoreName, activeArea.sLocalStoreName]
+            : withinChain === "K"
+              ? [activeArea.kStoreId, activeArea.kLocalStoreId, activeArea.kStoreName, activeArea.kLocalStoreName]
+              : []
+          : [activeStores.sStoreId, activeStores.kStoreId, activeStores.sStoreName, activeStores.kStoreName],
       storeMode, storeCompareScope, withinChain,
     });
   }
 
   function getComparisonItemMatches(item: CartItem) {
+    const withinS = storeCompareScope === "within_chain" && withinChain === "S";
+    const withinK = storeCompareScope === "within_chain" && withinChain === "K";
+    const withinStoreSignature = withinS
+      ? [activeArea.sStoreId, activeArea.sLocalStoreId, activeArea.sStoreName, activeArea.sLocalStoreName]
+      : withinK
+        ? [activeArea.kStoreId, activeArea.kLocalStoreId, activeArea.kStoreName, activeArea.kLocalStoreName]
+        : [];
+
     // Määrä ei muuta tuotteen vastinetta: sama pyyntö palvelee myös nopeita määränmuutoksia.
     const itemKey = JSON.stringify([
       item.id, item.name, item.ean, item.price, item.product?.id, item.chain, item.storeName, item.source,
       activeStores.sStoreId, activeStores.kStoreId, activeStores.sStoreName, activeStores.kStoreName,
+      storeCompareScope, withinChain, ...withinStoreSignature,
     ]);
     const previous = comparisonItemRequestsRef.current.get(itemKey);
     if (previous) return previous;
@@ -11113,25 +11129,77 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       let s: Match | null = null;
       let k: Match | null = null;
       let failed = false;
-      if (item.chain === "S" && item.price && item.product && normalize(item.storeName || "") === normalize(activeStores.sStoreName || "")) {
-        s = { product: item.product, price: item.price, quantity: 1, matchType: "ean", cartItemId: item.id };
-      } else {
+
+      if (withinS) {
+        const hyperId = activeArea.sStoreId;
+        const localId = activeArea.sLocalStoreId;
         try {
-          const best = pickBestSProduct(await fetchSProducts(item.name, activeStores.sStoreId), item.name, item.ean);
-          if (best) s = { product: best, price: getProductPrice(best), quantity: 1, matchType: best.ean && item.ean === best.ean ? "ean" : "name", cartItemId: item.id };
-        } catch { failed = true; }
-      }
-      if (item.chain === "K" && item.price && item.product && normalize(item.storeName || "") === normalize(activeStores.kStoreName || "")) {
-        k = { product: item.product, price: item.price, quantity: 1, matchType: "ean", cartItemId: item.id };
-      } else {
-        try {
-          const best = await findBestKMatchForStore(item.name, activeStores.kStoreId, item.ean);
-          if (best) {
-            const product = convertKProductToProduct(best);
-            k = { product: { ...product, ean: best.ean }, price: best.price, quantity: 1, matchType: best.ean && item.ean === best.ean ? "ean" : "name", cartItemId: item.id };
+          const hyperName = activeArea.sStoreName || "S-tavaratalo";
+          const localName = activeArea.sLocalStoreName || "S-lähikauppa";
+          const itemEan = normalizeEan(item.ean || item.product?.ean);
+
+          let hyperBest: Product | undefined;
+          if (item.chain === "S" && item.price && item.product && normalize(item.storeName || "") === normalize(hyperName)) {
+            hyperBest = item.product;
+          } else if (hyperId) {
+            hyperBest = pickBestSProduct(await fetchSProducts(item.name, hyperId), item.name, itemEan);
+          }
+          if (hyperBest && getProductPrice(hyperBest) > 0) {
+            s = { product: { ...hyperBest, storeName: hyperName } as Product, price: getProductPrice(hyperBest), quantity: 1, matchType: normalizeEan(hyperBest.ean) === itemEan && itemEan ? "ean" : "name", cartItemId: item.id };
+          }
+
+          if (localId) {
+            const localBest = pickBestSProduct(await fetchSProducts(item.name, localId), item.name, itemEan);
+            if (localBest && getProductPrice(localBest) > 0) {
+              k = { product: { ...localBest, storeName: localName } as Product, price: getProductPrice(localBest), quantity: 1, matchType: normalizeEan(localBest.ean) === itemEan && itemEan ? "ean" : "name", cartItemId: item.id };
+            }
           }
         } catch { failed = true; }
+      } else if (withinK) {
+        const hyperId = activeArea.kStoreId;
+        const localId = activeArea.kLocalStoreId;
+        try {
+          const hyperName = activeArea.kStoreName || "K-tavaratalo";
+          const localName = activeArea.kLocalStoreName || "K-lähikauppa";
+          const itemEan = normalizeEan(item.ean || item.product?.ean);
+
+          let hyperBest: KProduct | undefined;
+          if (hyperId) hyperBest = await findBestKMatchForStore(item.name, hyperId, itemEan);
+          if (hyperBest && hyperBest.price > 0) {
+            const product = convertKProductToProduct(hyperBest);
+            s = { product: { ...product, ean: hyperBest.ean, storeName: hyperName } as Product, price: hyperBest.price, quantity: 1, matchType: normalizeEan(hyperBest.ean) === itemEan && itemEan ? "ean" : "name", cartItemId: item.id };
+          }
+
+          if (localId) {
+            const localBest = await findBestKMatchForStore(item.name, localId, itemEan);
+            if (localBest && localBest.price > 0) {
+              const product = convertKProductToProduct(localBest);
+              k = { product: { ...product, ean: localBest.ean, storeName: localName } as Product, price: localBest.price, quantity: 1, matchType: normalizeEan(localBest.ean) === itemEan && itemEan ? "ean" : "name", cartItemId: item.id };
+            }
+          }
+        } catch { failed = true; }
+      } else {
+        if (item.chain === "S" && item.price && item.product && normalize(item.storeName || "") === normalize(activeStores.sStoreName || "")) {
+          s = { product: item.product, price: item.price, quantity: 1, matchType: "ean", cartItemId: item.id };
+        } else {
+          try {
+            const best = pickBestSProduct(await fetchSProducts(item.name, activeStores.sStoreId), item.name, item.ean);
+            if (best) s = { product: best, price: getProductPrice(best), quantity: 1, matchType: best.ean && item.ean === best.ean ? "ean" : "name", cartItemId: item.id };
+          } catch { failed = true; }
+        }
+        if (item.chain === "K" && item.price && item.product && normalize(item.storeName || "") === normalize(activeStores.kStoreName || "")) {
+          k = { product: item.product, price: item.price, quantity: 1, matchType: "ean", cartItemId: item.id };
+        } else {
+          try {
+            const best = await findBestKMatchForStore(item.name, activeStores.kStoreId, item.ean);
+            if (best) {
+              const product = convertKProductToProduct(best);
+              k = { product: { ...product, ean: best.ean }, price: best.price, quantity: 1, matchType: best.ean && item.ean === best.ean ? "ean" : "name", cartItemId: item.id };
+            }
+          } catch { failed = true; }
+        }
       }
+
       if (failed) comparisonItemRequestsRef.current.delete(itemKey);
       return { s, k, failed };
     })();
