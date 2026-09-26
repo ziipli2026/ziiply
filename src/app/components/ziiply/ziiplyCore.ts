@@ -2985,7 +2985,9 @@ export function convertKProductToProduct(product: KProduct): Product {
   return {
     id: Number(product.id.replace(/\D/g, "").slice(0, 9)) || Date.now(),
     name: fixText(product.name),
-    
+    // Preserve K/Ruoanhinta GTIN. Without this the product identity is lost
+    // when a KProduct is converted for comparison/cart rendering.
+    ean: product.ean,
     brandName: product.brandName,
     pictureUrl: product.pictureUrl,
     price: product.price,
