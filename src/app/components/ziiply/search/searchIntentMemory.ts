@@ -373,6 +373,15 @@ export function getLearnedSearchBoost(query: string, product: ZiiplySearchMemory
   };
 }
 
+export function getLearnedStructureBoost(query: string, product: ZiiplySearchMemoryProduct): ZiiplyLearnedBoost {
+  const learned = getLearnedSearchBoost(query, product);
+  // Tuotantohaun silta saa käyttää vain rakenteellista oppimista. Exact EAN /
+  // exact product -muisti ei saa lukita yleishakua samaan tuotteeseen.
+  return learned.reason === "learned_structure_preference"
+    ? learned
+    : { boost: 0, positiveCount: learned.positiveCount, negativeCount: learned.negativeCount, reason: "no_structure_memory" };
+}
+
 export function scoreProductWithIntentMemory(product: ZiiplySearchMemoryProduct, query: string, baseScore = 0) {
   const intent = resolveSearchIntentAI(query);
   if (!isProductAllowedByIntent(product, intent)) return -9999;
