@@ -92,7 +92,14 @@ export async function GET(request: Request) {
         ean: getEan(product),
         familyKey: product.familyKey,
         brandName: product.brandName ? fixEncoding(product.brandName) : undefined,
-        pictureUrl: product.pictureUrl,
+        pictureUrl:
+          product.pictureUrl ||
+          (() => {
+            const ean = getEan(product);
+            return ean
+              ? `https://public.keskofiles.com/f/k-ruoka/product/${ean}`
+              : undefined;
+          })(),
         price: getPrice(product),
         comparisonPrice: product.storeItems?.[0]?.comparisonPrice ?? undefined,
         comparisonPriceUnit: product.storeItems?.[0]?.comparisonPriceUnit ?? undefined,
