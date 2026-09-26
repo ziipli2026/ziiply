@@ -62,7 +62,24 @@ function formatEuro(value?: number | null) {
 function getCheapestStore(stores: ZiiplyCompareStore[]) {
   return [...stores]
     .filter((store) => typeof store.totalPrice === "number")
-    .sort((a, b) => (a.totalPrice || 0) - (b.totalPrice || 0))[0];
+    .sort((a, b) => {
+      const aMissing = Math.max(0, Number(a.missingItems || 0));
+      const bMissing = Math.max(0, Number(b.missingItems || 0));
+      const aComplete = aMissing === 0;
+      const bComplete = bMissing === 0;
+
+      // Täysi kori voittaa aina vajaan korin. Muuten puuttuva tuote voisi tehdä
+      // vajaan korin näennäisesti halvimmaksi ja saada virheellisen Paras hinta -merkinnän.
+      if (aComplete !== bComplete) return aComplete ? -1 : 1;
+
+      // Jos kumpikaan kori ei ole täysi, suurempi löydettyjen tuotteiden määrä
+      // on vertailussa tärkeämpi kuin pienempi summa.
+      const aCount = Math.max(0, Number(a.itemCount || 0));
+      const bCount = Math.max(0, Number(b.itemCount || 0));
+      if (aCount !== bCount) return bCount - aCount;
+
+      return (a.totalPrice || 0) - (b.totalPrice || 0);
+    })[0];
 }
 
 function formatEuroCents(value?: number | null) {
@@ -72,6 +89,15 @@ function formatEuroCents(value?: number | null) {
 
 function getStorePriceDiff(store: ZiiplyCompareStore, cheapest?: ZiiplyCompareStore) {
   if (!cheapest || store.totalPrice == null || cheapest.totalPrice == null) return null;
+
+  // Hintaero on mielekäs vain saman kattavuuden koreille. Älä väitä vajaata
+  // koria halvemmaksi/kalliimmaksi kuin täyttä koria.
+  const storeMissing = Math.max(0, Number(store.missingItems || 0));
+  const cheapestMissing = Math.max(0, Number(cheapest.missingItems || 0));
+  const storeCount = Math.max(0, Number(store.itemCount || 0));
+  const cheapestCount = Math.max(0, Number(cheapest.itemCount || 0));
+  if (storeMissing !== cheapestMissing || storeCount !== cheapestCount) return null;
+
   const diff = store.totalPrice - cheapest.totalPrice;
   if (Math.abs(diff) < 0.001) return "Huokein";
   // chainResults.totalPrice ja diff ovat senttejä. Käytä tässä aina senttimuotoilua,
