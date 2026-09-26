@@ -55,6 +55,7 @@ export type ZiiplyMobileSearchCardProps = {
   onAddInputToCart?: (options?: ZiiplyAddInputToCartOptions) => void;
   onOpenNotebook?: () => void;
   onOfferSearch?: () => void;
+  offerSearchDisabled?: boolean;
   onNormalSearch?: () => void;
   onOpenResults?: () => void;
   hasSearchInput?: boolean;
@@ -546,6 +547,7 @@ export default function ZiiplyMobileSearchCard({
   onAddInputToCart,
   onOpenNotebook,
   onOfferSearch,
+  offerSearchDisabled = false,
   onNormalSearch,
   onOpenResults,
   loadingOffers = false,
@@ -1044,7 +1046,7 @@ export default function ZiiplyMobileSearchCard({
               <AssistantButton
                 kind="gosta"
                 onClick={() => handleManualSearch("gosta", onOfferSearch)}
-                disabled={false}
+                disabled={offerSearchDisabled}
                 loading={loadingOffers}
               />
 
