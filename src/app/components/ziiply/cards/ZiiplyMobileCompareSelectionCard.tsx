@@ -304,14 +304,26 @@ export default function ZiiplyMobileCompareSelectionCard({
             )}
 
             {onSelectStore ? (
-              <button
-                type="button"
-                onClick={onSelectStore}
-                className="min-h-[3.05rem] w-full rounded-[0.92rem] border-[3px] border-[#0b6330] bg-[linear-gradient(180deg,#139143_0%,#087237_100%)] px-4 text-[0.82rem] font-black uppercase tracking-[0.08em] text-[#fff6d7] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.24),0_3px_0_#064a26] active:translate-y-[1px]"
-                style={{ fontFamily: cooperFont }}
-              >
-                Osta tämä kori
-              </button>
+              <div className="grid grid-cols-[minmax(0,1fr)_2.30rem] items-center gap-2 pl-[2.58rem]">
+                <div
+                  className="min-h-[2.40rem] rounded-[0.72rem] border-[2.5px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-3 py-2 text-center text-[0.72rem] font-black italic tracking-[0.03em] text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58),0_2px_4px_rgba(62,43,20,0.18)]"
+                  style={{ fontFamily: cooperFont }}
+                >
+                  Valittu vertailukori
+                </div>
+                <button
+                  type="button"
+                  onClick={onSelectStore}
+                  className="grid h-[2.22rem] w-[2.22rem] place-items-center rounded-[0.46rem] border-[1.6px] border-[#0b6330] bg-[linear-gradient(180deg,#159448_0%,#087237_100%)] text-[#fff6d7] shadow-[0_2px_5px_rgba(45,30,10,0.17),inset_0_0_0_1px_rgba(255,249,220,0.35)] active:translate-y-[1px]"
+                  aria-label={`Osta ${store.name} kori`}
+                  title="Osta tämä kori"
+                >
+                  <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[1.18rem] w-[1.18rem]">
+                    <path d="M5 3h14v5H5zM4 9h16v12H4zM8 13h8M8 17h3" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinejoin="round" strokeLinecap="round" />
+                    <path d="M16.5 16.5h2.5v2.5h-2.5z" fill="currentColor" />
+                  </svg>
+                </button>
+              </div>
             ) : null}
 
             <div className="grid grid-cols-[minmax(0,1fr)_5.25rem] items-center rounded-[1.05rem] border-[2px] border-[#7c663d]/78 bg-[#fff7df]/78 px-3 py-1.5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]">
