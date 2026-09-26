@@ -11116,43 +11116,56 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     ean?: string,
   ) {
     const normalizedEan = normalizeEan(ean);
+    const searchTerms = getKSearchTerms(query);
 
-    // Ketjun sisäisessä K-vertailussa sama tuote haetaan ensin nimenomaan
-    // EANilla valitusta K-kaupasta. Nimeen perustuva vastaavuushaku alkaa
-    // vasta, jos täsmä-EANia ei löydy.
-    if (normalizedEan) {
-      const eanItems = await fetchKProducts(normalizedEan, storeId).catch(
-        () => [] as KProduct[],
-      );
-      const exact = eanItems.find(
-        (item) =>
-          item.price > 0 && normalizeEan(item.ean) === normalizedEan,
-      );
-      if (exact) return exact;
-    }
-
-    const searchTerms = getKSearchTerms(query).slice(0, 6);
-    const allCandidates: KProduct[] = [];
-    const seenCandidateIds = new Set<string>();
-
-    // EAN puuttui Ruoanhinnan hausta. Nimihakujen ei tarvitse odottaa toisiaan:
-    // hae rajattu joukko rinnakkain ja valitse vasta sitten paras kauppakohtainen vastine.
-    const resultSets = await Promise.all(
-      searchTerms.map((searchTerm) =>
-        fetchKProducts(searchTerm, storeId).catch(() => [] as KProduct[]),
+    // Ruoanhinta /api/items ei käytännössä löydä tuotetta EAN-merkkijonolla,
+    // vaikka nimihakutuloksen tuotteessa on sama EAN. Siksi erillinen EAN-HTTP-haku
+    // vain hidasti jokaista vertailua. EAN tarkistetaan nimihakujen palauttamista riveistä.
+    const specificTerms = searchTerms.slice(0, 3);
+    const specificSets = await Promise.all(
+      specificTerms.map((term) =>
+        fetchKProducts(term, storeId).catch(() => [] as KProduct[]),
       ),
     );
+    const specificItems = Array.from(
+      new Map(
+        specificSets
+          .flat()
+          .map((item) => [String(item.id || item.ean || item.name), item]),
+      ).values(),
+    );
 
-    for (const items of resultSets) {
-      for (const item of items) {
-        const candidateKey = String(item.id || item.ean || item.name);
-        if (seenCandidateIds.has(candidateKey)) continue;
-        seenCandidateIds.add(candidateKey);
-        allCandidates.push(item);
-      }
-    }
+    const exact = specificItems.find(
+      (item) =>
+        item.price > 0 &&
+        isUsableEan(normalizedEan) &&
+        normalizeEan(item.ean) === normalizedEan,
+    );
+    if (exact) return exact;
 
-    return pickBestKProduct(allCandidates, query);
+    const specificBest = pickBestKProduct(specificItems, query);
+    if (specificBest) return specificBest;
+
+    // Vasta jos täsmällisemmät nimihakutermit eivät löydä käyttökelpoista vastinetta,
+    // laajenna tuoteryhmähakuun. Näin tavallinen osuma ei odota kaikkia fallback-kutsuja.
+    const fallbackTerms = searchTerms.slice(3, 6);
+    if (fallbackTerms.length === 0) return undefined;
+
+    const fallbackSets = await Promise.all(
+      fallbackTerms.map((term) =>
+        fetchKProducts(term, storeId).catch(() => [] as KProduct[]),
+      ),
+    );
+    const fallbackItems = Array.from(
+      new Map(
+        [...specificItems, ...fallbackSets.flat()].map((item) => [
+          String(item.id || item.ean || item.name),
+          item,
+        ]),
+      ).values(),
+    );
+
+    return pickBestKProduct(fallbackItems, query);
   }
 
   function getComparisonCacheKey(nextCart: CartItem[]) {
