@@ -15986,6 +15986,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     );
   }
 
+  function handleWithinChainChange(nextChain: "S" | "K" | null) {
+    setWithinChain(nextChain);
+    clearSearchAndComparisonState();
+    gostaSelectedOfferChainRefV547.current = null;
+    gostaPanelStickyOpenRefV158.current = false;
+    setOfferCardFilterV106("");
+    setOfferSearchQuerySnapshot("");
+    setActiveResult(null);
+  }
+
   function isLocalStoreForModeV295(store: StoreSearchItem) {
     const text = storeText(store);
     return (
@@ -17752,7 +17762,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       }
                       onStoreModeChange={handleStoreModeChange}
                       onStoreCompareScopeChange={handleStoreCompareScopeChange}
-                      onWithinChainChange={setWithinChain}
+                      onWithinChainChange={handleWithinChainChange}
                     />
                   </div>
 
@@ -18656,7 +18666,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 hyperStorePairMissing={currentStorePairMissingV168 || hyperStorePairMissingV391}
                 onStoreModeChange={handleStoreModeChange}
                 onStoreCompareScopeChange={handleStoreCompareScopeChange}
-                onWithinChainChange={setWithinChain}
+                onWithinChainChange={handleWithinChainChange}
               />
             </div>
 
