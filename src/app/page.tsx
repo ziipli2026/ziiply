@@ -11166,33 +11166,43 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       if (exact) return exact;
     }
 
-    // Jos täsmä-EANia ei ole, valitse ensisijaisesti tuotteen omista
-    // identiteettihakutuloksista. Geneerisiä tuoteryhmäfallbackeja ei ajeta
-    // turhaan, jos näistä löytyy jo turvallinen vastine.
-    const identityBest = pickBestKProduct(identityCandidates, query, normalizedEan);
-    if (identityBest) return identityBest;
-
     const remainingTerms = searchTerms.filter(
       (term) => !identityTerms.includes(term),
     );
-    if (remainingTerms.length === 0) return undefined;
 
-    // Vasta viimeisenä geneeriset fallbackit, nekin rinnakkain.
+    // Kun lähtötuotteella on EAN, älä lukitse nimivastinetta ennen kuin kaikki
+    // tuotteen omat identiteettitermit on tarkistettu. Ruoanhinta voi palauttaa
+    // saman EANin vasta esim. "huiluntuhti"-haulla, vaikka pidempi nimihaku
+    // palauttaisi ensin eri pakkauskoon.
+    if (normalizedEan && remainingTerms.length > 0) {
+      const remainingResults = await Promise.all(
+        remainingTerms.map((term) =>
+          fetchKProducts(term, storeId).catch(() => [] as KProduct[]),
+        ),
+      );
+      const allCandidates = [...identityCandidates, ...remainingResults.flat()];
+      const exact = allCandidates.find(
+        (item) => item.price > 0 && normalizeEan(item.ean) === normalizedEan,
+      );
+      if (exact) return exact;
+      return pickBestKProduct(allCandidates, query, normalizedEan);
+    }
+
+    const identityBest = pickBestKProduct(identityCandidates, query, normalizedEan);
+    if (identityBest || remainingTerms.length === 0) return identityBest;
+
+    // Ilman EANia geneeriset fallbackit ajetaan vasta, jos identity-batch ei
+    // löytänyt turvallista vastinetta.
     const fallbackResults = await Promise.all(
       remainingTerms.map((term) =>
         fetchKProducts(term, storeId).catch(() => [] as KProduct[]),
       ),
     );
-    const allCandidates = [...identityCandidates, ...fallbackResults.flat()];
-
-    if (normalizedEan) {
-      const exact = allCandidates.find(
-        (item) => item.price > 0 && normalizeEan(item.ean) === normalizedEan,
-      );
-      if (exact) return exact;
-    }
-
-    return pickBestKProduct(allCandidates, query, normalizedEan);
+    return pickBestKProduct(
+      [...identityCandidates, ...fallbackResults.flat()],
+      query,
+      normalizedEan,
+    );
   }
 
   function getComparisonCacheKey(nextCart: CartItem[]) {
@@ -11200,7 +11210,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // Bump comparison cache schema whenever matching semantics change.
       // Otherwise an old localStorage snapshot can keep serving a previously
       // selected wrong equivalent even after the matcher has been fixed.
-      schema: 8,
+      schema: 9,
       items: nextCart.map((item) => [item.id, item.name, item.ean, item.product?.ean, item.quantity, item.price, item.chain, item.storeName, item.source]),
       stores:
         storeCompareScope === "within_chain"
@@ -11225,7 +11235,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     // Määrä ei muuta tuotteen vastinetta: sama pyyntö palvelee myös nopeita määränmuutoksia.
     const itemKey = JSON.stringify([
-      "matcher-v8",
+      "matcher-v9",
       item.id, item.name, item.ean, item.product?.ean, item.price, item.product?.id, item.chain, item.storeName, item.source,
       activeStores.sStoreId, activeStores.kStoreId, activeStores.sStoreName, activeStores.kStoreName,
       storeCompareScope, withinChain, ...withinStoreSignature,
