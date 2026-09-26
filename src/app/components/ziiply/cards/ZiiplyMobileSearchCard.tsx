@@ -660,7 +660,10 @@ export default function ZiiplyMobileSearchCard({
   }, [items]);
 
   const foundCount = items.length;
-  const hasFoundProducts = hasText && foundCount > 0;
+  // Valmis löytöluettelo kuuluu viimeisimpään valmistuneeseen hakuun.
+  // Sen pitää säilyä näkyvissä myös silloin, kun käyttäjä alkaa kirjoittaa
+  // seuraavaa hakua tai tyhjentää tekstikentän.
+  const hasFoundProducts = foundCount > 0;
   const effectiveTempo = autoSearchDelayMs
     ? getTempoByDelay(autoSearchDelayMs)
     : SEARCH_TEMPO_OPTIONS.find((option) => option.key === tempoKey) || SEARCH_TEMPO_OPTIONS[1];
