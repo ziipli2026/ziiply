@@ -36,6 +36,7 @@ export type ZiiplyCompareSelectionItem = {
   product?: {
     id?: string | number;
     name?: string;
+    ean?: string;
     price?: number;
     image?: string;
     imageUrl?: string;
