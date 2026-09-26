@@ -162,26 +162,37 @@ jobs:
         shell: bash
         run: |
           node <<'NODE'
-          const { correctSearchQuery } = require('./.tmp-search-regression/search/searchIntentAI.js');
+          const { correctSearchQuery, resolveSearchIntentAI } = require('./.tmp-search-regression/search/searchIntentAI.js');
 
           const typoCases = [
-            ['matio', 'maito'],
-            ['maitoo', 'maito'],
-            ['piiimä', 'piimä'],
-            ['jogurti', 'jogurtti'],
-            ['kanamuna', 'kananmuna'],
-            ['tomati', 'tomaatti'],
+            ['matio', 'maito', 'milk_drink'],
+            ['maitoo', 'maito', 'milk_drink'],
+            ['jogurti', 'jogurtti', 'yogurt'],
+            ['kanamuna', 'kananmuna', 'eggs'],
+            ['tomati', 'tomaatti', 'vegetable'],
           ];
-          for (const [input, expected] of typoCases) {
+          for (const [input, expected, expectedIntent] of typoCases) {
             const actual = correctSearchQuery(input);
             if (actual !== expected) {
               console.error('FAIL typo autocorrect:', input, '=>', actual, 'expected', expected);
               process.exit(1);
             }
-            console.log('PASS typo autocorrect:', input, '=>', actual);
+            const resolved = resolveSearchIntentAI(input);
+            if (resolved.intent !== expectedIntent) {
+              console.error('FAIL typo intent:', input, '=>', resolved.intent, 'expected', expectedIntent);
+              process.exit(1);
+            }
+            console.log('PASS typo autocorrect+intent:', input, '=>', actual, '=>', resolved.intent);
           }
 
-          const protectedQueries = ['valio', 'arla', 'pirkka', 'juhla mokka'];
+          // Piimä is intentionally not in the newer intent enum yet; still verify the typo
+          // correction itself without pretending it has a dedicated intent in this layer.
+          if (correctSearchQuery('piiimä') !== 'piimä') {
+            console.error('FAIL typo autocorrect: piiimä');
+            process.exit(1);
+          }
+
+          const protectedQueries = ['valio', 'arla', 'pirkka', 'juhla mokka', 'oltermanni', 'rainbow'];
           for (const input of protectedQueries) {
             const actual = correctSearchQuery(input);
             if (actual !== input) {
