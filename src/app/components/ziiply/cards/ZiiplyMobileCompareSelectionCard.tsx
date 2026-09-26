@@ -53,6 +53,7 @@ export type ZiiplyMobileCompareSelectionCardProps = {
   isBest?: boolean;
   onBack?: () => void;
   onSelectStore?: () => void;
+  onShareStore?: () => void;
   onChangeMatchMode?: (
     storeId: string,
     match: unknown,
@@ -180,6 +181,7 @@ export default function ZiiplyMobileCompareSelectionCard({
   isBest = false,
   onBack,
   onSelectStore,
+  onShareStore,
   onChangeMatchMode,
   onClose,
   className = "",
@@ -310,12 +312,9 @@ export default function ZiiplyMobileCompareSelectionCard({
               >
                 Valittu vertailukori
               </div>
-              <button
+              {onShareStore ? <button
                 type="button"
-                onClick={() => {
-                  const shareEvent = new CustomEvent("ziiply:share-compare-store", { detail: { storeId: store.id } });
-                  window.dispatchEvent(shareEvent);
-                }}
+                onClick={onShareStore}
                 className="grid h-[2.22rem] w-[2.22rem] place-items-center rounded-[0.46rem] border-[1.6px] border-[#8b713d] bg-[linear-gradient(180deg,#f5e5bd_0%,#d6b875_100%)] text-[#51361a] shadow-[0_2px_5px_rgba(45,30,10,0.17),inset_0_0_0_1px_rgba(255,249,220,0.55)] active:translate-y-[1px]"
                 aria-label="Jaa vertailukori" title="Jaa kori"
               >
@@ -323,7 +322,7 @@ export default function ZiiplyMobileCompareSelectionCard({
                   <path d="M2.5 3.5h19v11h-19z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
                   <path d="M3 4l9 6.5L21 4M3.2 14.2l6.1-5M20.8 14.2l-6.1-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-              </button>
+              </button> : <span aria-hidden="true" />}
               {onSelectStore ? (
                 <button
                   type="button"
