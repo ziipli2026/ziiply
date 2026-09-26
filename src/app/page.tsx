@@ -8367,6 +8367,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         "",
       ean: match.product.ean,
       product: match.product,
+      // V741: preserve comparison metadata for the opened store basket.
+      // The card uses this to show "Vastaava tuote" for name-based matches.
+      matchType: match.matchType,
       compareStoreKey: selectedResult.key,
       compareStoreName: selectedResult.storeName,
     }));
