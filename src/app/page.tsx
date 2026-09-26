@@ -11095,6 +11095,30 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return Boolean(itemEan && resolvePriceWeightLabel(itemEan));
   }
 
+  function getCheckoutPurchaseModeV739(): "instore" | "online" | "ask" {
+    // No usable GPS -> user chooses. GPS is only a default, never a lock.
+    if (!usingOwnLocation || !gpsCoordsV320) return "ask";
+
+    const activeNames = new Set(
+      [activeStores.sStoreName, activeStores.kStoreName]
+        .map((name) => normalize(String(name || "")))
+        .filter(Boolean),
+    );
+    const distances = foundStores
+      .filter((store) => activeNames.has(normalize(String(store.name || ""))))
+      .map((store) => Number((store as any).distanceKm))
+      .filter((distance) => Number.isFinite(distance) && distance >= 0);
+
+    if (distances.length === 0) return "ask";
+    const nearestKm = Math.min(...distances);
+
+    // <=150 m: strong in-store signal. >=500 m: clearly away -> online default.
+    // Between the thresholds is deliberately uncertain and asks the user.
+    if (nearestKm <= 0.15) return "instore";
+    if (nearestKm >= 0.5) return "online";
+    return "ask";
+  }
+
   async function updateChainComparison(
     nextCart = cart,
     options: { openCompare?: boolean } = {},
@@ -19566,6 +19590,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               };
             })}
             savedListsCount={savedShoppingLists.length}
+            purchaseModeDefault={getCheckoutPurchaseModeV739()}
+            weightItemCount={cart.filter((item) => isWeightCartItemV738(item)).length}
             onClose={closeCartModal}
             onSaveList={() => setNotebookOpen(true)}
             onOpenSavedLists={() => setNotebookOpen(true)}
