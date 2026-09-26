@@ -14104,7 +14104,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     result: EanSearchResult,
     options: { showFlash?: boolean; showScannerMessage?: boolean } = {},
   ) {
-    const ean = normalizeEan(result.product.ean || eanInput);
+    // EAN-haussa käyttäjän syöttämä/skannaama koodi on lähdetuotteen identiteetti.
+    // Fallback-hakutuloksen eri EAN ei saa vaihtaa valittua tuotetta toiseksi.
+    const inputEan = normalizeEan(eanInput);
+    const resultEan = normalizeEan(result.product.ean);
+    const ean = isUsableEan(inputEan) ? inputEan : resultEan;
     if (isUsableEan(ean)) {
       lastContinuousScanRef.current = { code: ean, at: Date.now() };
     }
