@@ -18183,7 +18183,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                         .map((result) => ({
                           id: result.key,
                           name: result.storeName || result.chain,
-                          chain: result.key === "s" ? "S" : result.key === "k" ? "K" : undefined,
+                          chain: storeCompareScope === "within_chain" && withinChain
+                  ? withinChain
+                  : result.key === "s"
+                    ? "S"
+                    : result.key === "k"
+                      ? "K"
+                      : undefined,
                           totalPrice: Math.round((result.totalPrice || 0) * 100),
                           itemCount: result.foundItems,
                           isBest: cheapest?.key === result.key,
@@ -20055,7 +20061,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               .map((result) => ({
                 id: result.key,
                 name: result.storeName || result.chain,
-                chain: result.key === "s" ? "S" : result.key === "k" ? "K" : undefined,
+                chain: storeCompareScope === "within_chain" && withinChain
+                  ? withinChain
+                  : result.key === "s"
+                    ? "S"
+                    : result.key === "k"
+                      ? "K"
+                      : undefined,
                 // result.totalPrice on jo samaa yksikköä kuin match.price-summat.
                 // EI kerrota sadalla, muuten mobiilikortilla hinnat näyttävät 100x liian suurilta.
                 totalPrice: result.totalPrice || 0,
