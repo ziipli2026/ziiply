@@ -19184,6 +19184,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           <ZiiplyMobileCartCard
             open={true}
             title="Vertailukorin keräily"
+            className="!z-[96]"
             items={mobileCompareShoppingItemsV732.map((item: any) => {
               const key = String(item.id ?? item.ean ?? item.name ?? item.product?.id ?? "");
               return {
