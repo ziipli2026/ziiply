@@ -11163,16 +11163,37 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             ).slice(0, 8);
 
             let localBest: Product | undefined;
-            for (const term of localSearchTerms) {
-              const localItems = await fetchSProducts(term, localId).catch(
+            let localMatchType: "ean" | "name" = "name";
+
+            // 1) Täsmävastine aina ensisijaisesti EANilla.
+            if (itemEan) {
+              const eanItems = await fetchSProducts(itemEan, localId).catch(
                 () => [] as Product[],
               );
-              localBest = pickBestSProduct(localItems, item.name, itemEan);
-              if (localBest) break;
+              localBest = eanItems.find(
+                (candidate) =>
+                  normalizeEan(candidate.ean) === itemEan &&
+                  getProductPrice(candidate) > 0,
+              );
+              if (localBest) localMatchType = "ean";
+            }
+
+            // 2) Vasta jos samaa EANia ei löydy, etsi lähin turvallinen vastaava tuote.
+            if (!localBest) {
+              for (const term of localSearchTerms.filter((term) => normalizeEan(term) !== itemEan)) {
+                const localItems = await fetchSProducts(term, localId).catch(
+                  () => [] as Product[],
+                );
+                localBest = pickBestSProduct(localItems, item.name);
+                if (localBest) {
+                  localMatchType = "name";
+                  break;
+                }
+              }
             }
 
             if (localBest && getProductPrice(localBest) > 0) {
-              k = { product: { ...localBest, storeName: localName } as Product, price: getProductPrice(localBest), quantity: 1, matchType: normalizeEan(localBest.ean) === itemEan && itemEan ? "ean" : "name", cartItemId: item.id };
+              k = { product: { ...localBest, storeName: localName } as Product, price: getProductPrice(localBest), quantity: 1, matchType: localMatchType, cartItemId: item.id };
             }
           }
         } catch { failed = true; }
