@@ -272,7 +272,7 @@ export default function ZiiplyMobileCompareSelectionCard({
   </>);
 
   if (embedded) return (
-    <div className="mt-2 border-t border-[#d4bd86]/72 bg-transparent">
+    <div className="mt-2 min-h-0 flex-1 overflow-y-auto overscroll-contain border-t border-[#d4bd86]/72 bg-transparent [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
       {onBack ? (
         <button type="button" onClick={onBack} className="ml-2 mt-2 inline-flex items-center gap-1 rounded-[0.42rem] border border-[#876b37] bg-[#efe1bd] px-2 py-1 text-[0.68rem] font-black text-[#28402a]" aria-label={`Palaa ${store.name} korin yhteenvetoon`}>
           <span aria-hidden="true">←</span> Paluu
