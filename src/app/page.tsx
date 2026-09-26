@@ -11112,14 +11112,27 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     storeId: string | number,
     ean?: string,
   ) {
+    const normalizedEan = normalizeEan(ean);
+
+    // Ketjun sisäisessä K-vertailussa sama tuote haetaan ensin nimenomaan
+    // EANilla valitusta K-kaupasta. Nimeen perustuva vastaavuushaku alkaa
+    // vasta, jos täsmä-EANia ei löydy.
+    if (normalizedEan) {
+      const eanItems = await fetchKProducts(normalizedEan, storeId).catch(
+        () => [] as KProduct[],
+      );
+      const exact = eanItems.find(
+        (item) =>
+          item.price > 0 && normalizeEan(item.ean) === normalizedEan,
+      );
+      if (exact) return exact;
+    }
+
     const allCandidates: KProduct[] = [];
     const seenCandidateIds = new Set<string>();
 
-    // Älä palauta ensimmäistä hyväksyttyä osumaa heti ensimmäisestä K-hakutermistä.
-    // Myöhempi hakutermi voi löytää saman tuoteryhmän selvästi paremman vastineen.
-    // Kerätään hakutermien kandidaatit yhteen ja annetaan pickBestKProductin
-    // nykyisten semanttisten guardien, EANin, private-label-logiikan ja scorerin
-    // ratkaista paras vastine koko turvallisesta kandidaatijoukosta.
+    // Täsmä-EAN puuttui: kerää turvalliset nimihakukandidaatit ja valitse
+    // niistä lähin vastaava nykyisillä tuoteryhmä- ja semantiikkasuojilla.
     for (const searchTerm of getKSearchTerms(query)) {
       const items = await fetchKProducts(searchTerm, storeId);
 
@@ -11131,7 +11144,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
     }
 
-    return pickBestKProduct(allCandidates, query, ean);
+    return pickBestKProduct(allCandidates, query);
   }
 
   function getComparisonCacheKey(nextCart: CartItem[]) {
