@@ -277,19 +277,11 @@ export default function ZiiplyMobileCompareCardresponsive({
 
 {showSkeleton ? <RetroMopedOverlay /> : null}
 
-                <header className="pointer-events-none absolute left-[6.15rem] top-[5.50rem] z-20 w-[13.75rem]">
-          <div
-            className="text-[1.46rem] font-black italic leading-none text-[#28402a] drop-shadow-[0_1px_0_rgba(255,247,211,0.62)]"
-            style={{ fontFamily: cooperFont }}
-          >
-            {title}
-          </div>
-          <div className="mt-[0.16rem] text-[0.72rem] font-extrabold text-[#5f5034]">
-            {subtitle || `${comparedCount || visibleStores.length} tuotetta / ${visibleStores.length} kauppaa`}
-          </div>
-        </header>
-
-        <main className="relative z-10 min-h-0 flex-1 overflow-y-auto px-5 pb-4 pt-[12.00rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <main className="relative z-10 min-h-0 flex-1 overflow-y-auto px-5 pb-4 pt-[9.5rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <header className="relative z-20 mb-3 ml-[3.1rem] max-w-[calc(100%-3.1rem)]">
+            <div className="text-[1.46rem] font-black italic leading-none text-[#28402a] drop-shadow-[0_1px_0_rgba(255,247,211,0.62)]" style={{ fontFamily: cooperFont }}>{title}</div>
+            <div className="mt-[0.16rem] text-[0.72rem] font-extrabold text-[#5f5034]">{subtitle || `${comparedCount || visibleStores.length} tuotetta / ${visibleStores.length} kauppaa`}</div>
+          </header>
           <div className="space-y-2.5">
 
             {showSkeleton ? (
@@ -449,6 +441,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                         open
                         store={{ ...store, matches: detailRows }}
                         items={items}
+                        onBack={() => setDetailsStoreId(null)}
                         onChangeMatchMode={onChangeMatchMode}
                       />
                     ) : null}
