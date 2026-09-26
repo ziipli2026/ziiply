@@ -349,6 +349,23 @@ jobs:
           console.log('PASS K size guard rejects Jokela 400g for source 375g EAN');
           NODE
 
+      - name: Verify cart EAN remains authoritative for comparison
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const page = fs.readFileSync('src/app/page.tsx', 'utf8');
+          if (!page.includes('const comparisonSourceEan = normalizeEan(item.ean || item.product?.ean);')) {
+            console.error('FAIL comparison can prefer product.ean over cart EAN');
+            process.exit(1);
+          }
+          if (!page.includes('item.id, item.name, item.product?.name, item.ean, item.product?.ean')) {
+            console.error('FAIL comparison cache/request identity omits product name or EAN fields');
+            process.exit(1);
+          }
+          console.log('PASS cart EAN remains authoritative when product object disagrees');
+          NODE
+
       - name: Functional comparison quality-mode regression
         shell: bash
         run: |
