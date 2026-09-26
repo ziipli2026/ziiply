@@ -68,6 +68,8 @@ const QUERY_CORRECTIONS: Record<string, string> = {
   ruisleivät: "ruisleipa",
   ruisleipapalat: "ruisleipapala",
   ruispalat: "ruispala",
+  pilsneri: "pilsner",
+  pils: "pilsner",
 };
 
 export function correctSearchQuery(query: string) {
