@@ -1,4 +1,4 @@
-name: K Jokela product provenance diagnostic
+name: K product provenance diagnostic
 
 on:
   push:
@@ -11,29 +11,34 @@ jobs:
   diagnose:
     runs-on: ubuntu-latest
     steps:
-      - name: Query Ruoanhinta Jokela directly
+      - name: Compare source and target product identity
         shell: bash
         run: |
           node <<'NODE'
-          const storeId = 3334;
-          const terms = ["6409620012684", "Huiluntuhti", "Kivikylän Huiluntuhti"];
-          for (const term of terms) {
-            const url = "https://api.ruoanhinta.fi/api/items?search=" + encodeURIComponent(term) + "&storeIds=" + storeId + "&skip=0&take=30";
-            const res = await fetch(url);
+          const checks = [
+            { storeId: 3221, term: "6409620012684" },
+            { storeId: 3221, term: "Huiluntuhti" },
+            { storeId: 3221, term: "Kivikylän Huiluntuhti" },
+            { storeId: 3334, term: "6409620012684" },
+            { storeId: 3334, term: "Huiluntuhti" },
+            { storeId: 3334, term: "Kivikylän Huiluntuhti" },
+          ];
+          for (const { storeId, term } of checks) {
+            const upstream = "https://api.ruoanhinta.fi/api/items?search=" + encodeURIComponent(term) + "&storeIds=" + storeId + "&skip=0&take=30";
+            const res = await fetch(upstream);
             const data = await res.json();
-            console.log("\n=== QUERY", term, "STATUS", res.status, "COUNT", (data.items || []).length, "===");
+            console.log("\n=== UPSTREAM STORE", storeId, "QUERY", term, "STATUS", res.status, "COUNT", (data.items || []).length, "===");
             for (const p of (data.items || [])) {
               console.log(JSON.stringify({
-                id: p.id,
-                name: p.name,
-                ean: p.ean,
-                gtin: p.gtin,
-                eanCode: p.eanCode,
-                barcode: p.barcode,
-                externalId: p.externalId,
-                familyKey: p.familyKey,
-                storeItems: p.storeItems
+                id:p.id,name:p.name,ean:p.ean,gtin:p.gtin,eanCode:p.eanCode,barcode:p.barcode,
+                externalId:p.externalId,familyKey:p.familyKey,brandName:p.brandName,storeItems:p.storeItems
               }));
             }
+
+            const ziiply = "https://ziiply.vercel.app/api/k-products?search=" + encodeURIComponent(term) + "&store=" + storeId;
+            const zr = await fetch(ziiply);
+            const zd = await zr.json();
+            console.log("=== ZIIPLY STORE", storeId, "QUERY", term, "STATUS", zr.status, "COUNT", (zd.items || []).length, "===");
+            for (const p of (zd.items || [])) console.log(JSON.stringify(p));
           }
           NODE
