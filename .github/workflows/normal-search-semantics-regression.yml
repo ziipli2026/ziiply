@@ -81,6 +81,15 @@ jobs:
             }
           }
 
+          const relevanceIndex = page.indexOf('const rankedPair = rankNormalSearchResults(');
+          const learningIndex = page.indexOf('const aLearnedStructureBoost = getLearnedStructureBoost(');
+          if (relevanceIndex < 0 || learningIndex < 0 || relevanceIndex > learningIndex) {
+            console.error('FAIL ordering: learned preference must run after normal relevance');
+            failures++;
+          } else {
+            console.log('PASS ordering: normal relevance precedes learned preference');
+          }
+
           if (failures) process.exit(1);
           console.log('SAFE_SUMMARY normal-search semantics regression passed');
           NODE
