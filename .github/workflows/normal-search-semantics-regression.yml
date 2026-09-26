@@ -68,7 +68,9 @@ jobs:
             [memory, 'learned_structure_preference', 'structure-based learning'],
             [memory, 'getProductPackageSize', 'package-size structure'],
             [memory, 'STRUCTURE_ATTRIBUTE_TERMS', 'attribute structure'],
+            [memory, 'getLearnedStructureBoost', 'structure-only production boost'],
             [page, 'learnZiiplyNormalSearchChoice(learnedQuery, product, "added_to_cart")', 'cart selection learning hook'],
+            [page, 'getLearnedStructureBoost(aOriginalQuery, a).boost', 'production ranking learning bridge'],
           ];
           for (const [source, fragment, label] of structuralChecks) {
             if (!source.includes(fragment)) {
