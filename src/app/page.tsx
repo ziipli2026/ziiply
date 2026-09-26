@@ -10864,19 +10864,23 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           // tuoteryhmätietoista rankkausta kuin yksittäisessä haussa.
           // Vanha directName-first -sorttaus nosti esim. piimäleivät oikeiden
           // piimien edelle ja "Maitokolmio"-brändin rasvaseoksen maitojen edelle.
-          const aLearnedStructureBoost = getLearnedStructureBoost(aOriginalQuery, a).boost;
-          const bLearnedStructureBoost = getLearnedStructureBoost(bOriginalQuery, b).boost;
-          if (aLearnedStructureBoost !== bLearnedStructureBoost) {
-            return bLearnedStructureBoost - aLearnedStructureBoost;
-          }
-
           const rankedPair = rankNormalSearchResults(
             aOriginalQuery,
             [a, b],
           );
 
+          // Tuoteryhmän oikeellisuus / normaali relevance ratkaisee aina ensin.
+          // Oppiminen ei saa nostaa väärää tuoteryhmää oikean tuotteen edelle.
           if (rankedPair[0]?.id === a.id && rankedPair[1]?.id === b.id) return -1;
           if (rankedPair[0]?.id === b.id && rankedPair[1]?.id === a.id) return 1;
+
+          // Vasta relevance-tasapelin jälkeen käytetään käyttäjän aiemmista
+          // valinnoista opittua EAN-riippumatonta rakenneprofiilia.
+          const aLearnedStructureBoost = getLearnedStructureBoost(aOriginalQuery, a).boost;
+          const bLearnedStructureBoost = getLearnedStructureBoost(bOriginalQuery, b).boost;
+          if (aLearnedStructureBoost !== bLearnedStructureBoost) {
+            return bLearnedStructureBoost - aLearnedStructureBoost;
+          }
 
           return (
             scoreNormalSResult(bOriginalQuery, b) -
