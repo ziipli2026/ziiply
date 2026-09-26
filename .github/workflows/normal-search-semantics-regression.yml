@@ -44,6 +44,11 @@ jobs:
             ['pilsneri', 'pilsner'],
             ['pils', 'pilsner'],
             ['kahvia', 'kahvi'],
+            ['maitoa', 'maito'],
+            ['juustoa', 'juusto 500g'],
+            ['jogurttia', 'jogurtti 1kg'],
+            ['jauhelihaa', 'jauheliha 400g'],
+            ['munia', 'kananmuna 10 kpl'],
             ['kananmunia', 'kananmuna 10 kpl'],
             ['piima', 'piimä'],
           ];
