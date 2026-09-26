@@ -11164,6 +11164,21 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
     }
 
+    // Ruoanhinta ei aina palauta tuotetta, kun search-parametrina käytetään
+    // suoraan EANia. Nimihakujen tuloksissa sama EAN kuitenkin tulee tuotteen
+    // mukana. Siksi tarkista täsmä-EAN vielä KAIKISTA tämän nimen/tuoteryhmän
+    // perusteella juuri tästä kaupasta kerätyistä kandidaateista ennen
+    // vastaavuuspisteytystä.
+    if (normalizedEan) {
+      const exactFromNameCandidates = allCandidates.find(
+        (item) =>
+          item.price > 0 && normalizeEan(item.ean) === normalizedEan,
+      );
+      if (exactFromNameCandidates) return exactFromNameCandidates;
+    }
+
+    // Vasta kun samaa EANia ei löydy tämän kaupan omista kandidaateista,
+    // valitaan nimellä lähin vastaava tuote.
     return pickBestKProduct(allCandidates, query);
   }
 
