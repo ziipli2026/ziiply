@@ -1324,21 +1324,21 @@ export function getKSearchTerms(name: string) {
     addTerm("munat");
   }
 
-  for (const word of fallbackWords) {
-    if (normalized.includes(word)) addTerm(word);
-  }
-
   const importantWords = cleaned
     .split(" ")
     .filter((word) => word.length > 3)
     .filter((word) => !/^\\d/.test(word))
     .slice(0, 3);
 
+  // Identiteettihakujen pitää tulla ENNEN geneerisiä tuoteryhmäfallbackeja.
+  // Esim. Kivikylän Huiluntuhti 375 g: "huiluntuhti" löytää saman EANin,
+  // kun taas "grillimakkara"/"makkara" voi palauttaa 400 g vaihtoehdon.
   if (importantWords.length >= 2) addTerm(importantWords.join(" "));
-  // Yksittäiset erottavat nimisanat pitää hakea myös erikseen. Pelkkä ensimmäinen
-  // sana on usein valmistaja (esim. Kivikylän), jolloin kaupan oikea nimiperhe
-  // (esim. Huiluntuhti) ei koskaan päädy kandidaatteihin.
   for (const word of importantWords) addTerm(word);
+
+  for (const word of fallbackWords) {
+    if (normalized.includes(word)) addTerm(word);
+  }
 
   return terms.filter(Boolean);
 }
