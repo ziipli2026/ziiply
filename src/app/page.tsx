@@ -1608,8 +1608,6 @@ import {
   isKOwnBrandProduct,
   isPremiumBrandProduct,
   productGroupGate,
-  isComparisonAttributeCompatible,
-  pickCheapestCompatibleComparisonProduct,
   isHardRejectedKMatch,
   scoreNameMatch,
   scoreDirectQueryNameMatch,
@@ -15710,6 +15708,51 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return terms;
   }
 
+  function isCompareCandidateAttributeSafe(sourceName: string, targetName: string) {
+    if (!productGroupGate(sourceName, targetName)) return false;
+    const source = normalize(sourceName);
+    const target = normalize(targetName);
+
+    const strictFamilies = [
+      ["piimä", "piima"],
+      ["maito", "kevytmaito", "täysmaito", "taysmaito", "ykkösmaito", "ykkosmaito"],
+      ["jogurtti", "jogurt"],
+      ["jauheliha"],
+      ["grillimakkara"],
+      ["kananmuna", "kananmunat", "kananmunia", "munat"],
+      ["kalapuikko", "kalapuikot", "fiskpinnar"],
+    ];
+    for (const family of strictFamilies) {
+      if (hasAnyToken(source, family) && !hasAnyToken(target, family)) return false;
+    }
+
+    for (const attribute of [
+      "laktoositon", "vähälaktoosinen", "vahalaktoosinen", "rasvaton",
+      "kevyt", "täys", "tays", "luomu", "gluteeniton", "maidoton",
+      "vegaaninen", "sokeriton", "makeuttamaton", "suolaton",
+    ]) {
+      if (hasExactNormalizedWord(source, attribute) && !hasExactNormalizedWord(target, attribute)) {
+        return false;
+      }
+    }
+
+    const sourceSize = parseMetricSize(sourceName);
+    const targetSize = parseMetricSize(targetName);
+    if (
+      sourceSize &&
+      targetSize &&
+      (sourceSize.unitGroup !== targetSize.unitGroup || sourceSize.amount !== targetSize.amount)
+    ) return false;
+
+    return true;
+  }
+
+  function pickCheapestCompareCandidate(sourceName: string, candidates: Product[]) {
+    return candidates
+      .filter((candidate) => isCompareCandidateAttributeSafe(sourceName, candidate.name))
+      .sort((a, b) => getProductPrice(a) - getProductPrice(b))[0];
+  }
+
   function getQualityModeLabel(mode: QualityMode) {
     if (mode === "cheapest") return "Huokein";
     if (mode === "same_quality") return "Sama taso";
@@ -15797,7 +15840,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         .filter((product) => getProductPrice(product) > 0)
         .filter((product) => !isHardRejectedOptimizationAlternative(sourceName, product.name))
         .filter((product) => productGroupGate(sourceName, product.name))
-        .filter((product) => isComparisonAttributeCompatible(sourceName, product.name))
+        .filter((product) => isCompareCandidateAttributeSafe(sourceName, product.name))
         .filter((product) =>
           isAllowedByQualityMode(
             sourceName,
@@ -15840,7 +15883,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         .filter((product) => !isHardRejectedOptimizationAlternative(sourceName, product.name))
         .filter((product) => !isHardRejectedKMatch(sourceName, product.name))
         .filter((product) => productGroupGate(sourceName, product.name))
-        .filter((product) => isComparisonAttributeCompatible(sourceName, product.name))
+        .filter((product) => isCompareCandidateAttributeSafe(sourceName, product.name))
         .filter((product) =>
           isAllowedByQualityMode(
             sourceName,
@@ -20303,7 +20346,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     : undefined;
                   const sourceName =
                     sourceItem?.name || sourceItem?.product?.name || safeMatch.product.name;
-                  const replacement = pickCheapestCompatibleComparisonProduct(
+                  const replacement = pickCheapestCompareCandidate(
                     sourceName,
                     [safeMatch.product, ...alternatives].filter(
                       (candidate, index, all) =>
