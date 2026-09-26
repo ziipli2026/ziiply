@@ -11210,7 +11210,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // Bump comparison cache schema whenever matching semantics change.
       // Otherwise an old localStorage snapshot can keep serving a previously
       // selected wrong equivalent even after the matcher has been fixed.
-      schema: 10,
+      schema: 11,
       items: nextCart.map((item) => [item.id, item.name, item.ean, item.product?.ean, item.quantity, item.price, item.chain, item.storeName, item.source]),
       stores:
         storeCompareScope === "within_chain"
@@ -11235,7 +11235,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     // Määrä ei muuta tuotteen vastinetta: sama pyyntö palvelee myös nopeita määränmuutoksia.
     const itemKey = JSON.stringify([
-      "matcher-v10",
+      "matcher-v11",
       item.id, item.name, item.ean, item.product?.ean, item.price, item.product?.id, item.chain, item.storeName, item.source,
       activeStores.sStoreId, activeStores.kStoreId, activeStores.sStoreName, activeStores.kStoreName,
       storeCompareScope, withinChain, ...withinStoreSignature,
@@ -14139,8 +14139,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           item.id === existingItem.id
             ? {
                 ...item,
+                // Exact-EAN-osuma on tämän rivin vahvin identiteettilähde.
+                // Päivitä myös nimi/product, jotta vertailumatcher ei käytä
+                // vanhaa tai lyhennettyä CartItem-nimeä ilman pakkauskokoa.
+                name: productName || item.name,
+                price: getProductPrice(result.product) || item.price,
+                image: result.product.pictureUrl || item.image,
+                chain: result.chain,
+                storeName: result.storeName,
                 quantity: Number(item.quantity || 1) + 1,
-                ean: ean || item.ean || result.product.ean,
+                product: result.product,
+                ean: ean || result.product.ean || item.ean,
               }
             : item,
         );
