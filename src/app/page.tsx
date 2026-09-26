@@ -11890,6 +11890,52 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         let exactKProductV730: KProduct | null = null;
 
+        // V732: canonical K-vaakatuote ratkaistaan ensisijaisesti suoraan K-Ruoasta.
+        // Tämä ei ole riippuvainen Ruoanhinta.fi:n kauppakohtaisesta valikoimasta/hinnasta.
+        const kWeightIdentityV732 = await fetch(
+          `/api/k-weight-product?ean=${encodeURIComponent(kWeightLabelV730.canonicalEan)}`,
+          { cache: "no-store" },
+        )
+          .then((response) => response.ok ? response.json() : null)
+          .catch(() => null);
+
+        if (kWeightIdentityV732?.found && kWeightIdentityV732?.product?.name) {
+          const resolvedNameV732 = fixText(String(kWeightIdentityV732.product.name));
+          const weighedProductV732 = {
+            id: `k-weight-${kWeightLabelV730.canonicalEan}`,
+            name: resolvedNameV732,
+            ean: kWeightLabelV730.scannedEan,
+            price: kWeightLabelV730.price,
+            ziiplyKWeightLabel: true,
+            ziiplyKWeightPlu: kWeightLabelV730.plu,
+            ziiplyKCanonicalEan: kWeightLabelV730.canonicalEan,
+            ziiplyKScalePriceCents: kWeightLabelV730.priceCents,
+            ziiplyKWeightProductUrl: kWeightIdentityV732.productUrl,
+          } as Product;
+
+          addEanResultToCart(
+            {
+              key: `K-weight-${kWeightLabelV730.scannedEan}`,
+              chain: "K",
+              storeName: activeStores.kStoreName || "K-kauppa",
+              product: weighedProductV732,
+              eanMatch: true,
+            },
+            { showFlash: true },
+          );
+
+          setEanMessage(
+            `Vaakatuote tunnistettu: ${resolvedNameV732}. Tarran hinta ${kWeightLabelV730.price.toFixed(2).replace(".", ",")} €.`,
+          );
+          setEanScannerMessage("Vaakatuote lisätty");
+          window.setTimeout(() => {
+            setEanScannerMessage((current) =>
+              current === "Vaakatuote lisätty" ? "" : current,
+            );
+          }, 2200);
+          return;
+        }
+
         for (const queryV730 of queriesV730) {
           const productsV730 = await fetchKProducts(queryV730, kStoreIdV730).catch(
             () => [] as KProduct[],
