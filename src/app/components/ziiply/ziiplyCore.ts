@@ -2982,8 +2982,15 @@ export function rankOfferSearchResults(offers: ZiiplyOffer[], terms: string[]) {
 }
 
 export function convertKProductToProduct(product: KProduct): Product {
+  const stableIdentity = String(product.ean || product.id || "").trim();
+  const stableNumericId = stableIdentity
+    ? stableIdentity.split("").reduce((hash, char) => ((hash * 31) + char.charCodeAt(0)) >>> 0, 7)
+    : 0;
+
   return {
-    id: Number(product.id.replace(/\D/g, "").slice(0, 9)) || Date.now(),
+    // Keep the whole K identity in the hash. Truncating product.id to its first
+    // 9 digits can collapse distinct K variants into the same normal-search row.
+    id: stableNumericId || Date.now(),
     name: fixText(product.name),
     // Preserve K/Ruoanhinta GTIN. Without this the product identity is lost
     // when a KProduct is converted for comparison/cart rendering.
