@@ -104,9 +104,80 @@ const QUERY_CORRECTIONS: Record<string, string> = {
   banaaneja: "banaani",
 };
 
+const FUZZY_GROCERY_TERMS = [
+  "maito",
+  "piimä",
+  "jogurtti",
+  "jauheliha",
+  "kananmuna",
+  "tomaatti",
+  "kurkku",
+  "peruna",
+  "porkkana",
+  "banaani",
+  "omena",
+  "juusto",
+  "kahvi",
+  "kerma",
+  "leipä",
+  "pilsner",
+] as const;
+
+function editDistance(a: string, b: string) {
+  if (a === b) return 0;
+  if (!a) return b.length;
+  if (!b) return a.length;
+
+  const previous = Array.from({ length: b.length + 1 }, (_, index) => index);
+  for (let i = 1; i <= a.length; i += 1) {
+    let diagonal = previous[0];
+    previous[0] = i;
+    for (let j = 1; j <= b.length; j += 1) {
+      const above = previous[j];
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      previous[j] = Math.min(previous[j] + 1, previous[j - 1] + 1, diagonal + cost);
+      diagonal = above;
+    }
+  }
+  return previous[b.length];
+}
+
+function correctSingleGroceryTypo(value: string) {
+  const word = normalizeFi(value);
+  if (!word || word.length < 4 || /\d/.test(word)) return word;
+
+  let best = "";
+  let bestDistance = Number.POSITIVE_INFINITY;
+  let tied = false;
+
+  for (const candidate of FUZZY_GROCERY_TERMS) {
+    const normalizedCandidate = normalizeFi(candidate);
+    const distance = editDistance(word, normalizedCandidate);
+    if (distance < bestDistance) {
+      best = candidate;
+      bestDistance = distance;
+      tied = false;
+    } else if (distance === bestDistance) {
+      tied = true;
+    }
+  }
+
+  // Conservative on purpose: one typo for short words, at most two for longer
+  // grocery nouns. Ambiguous matches are never autocorrected.
+  const maxDistance = word.length >= 8 ? 2 : 1;
+  return !tied && bestDistance <= maxDistance ? best : word;
+}
+
 export function correctSearchQuery(query: string) {
   const q = normalizeFi(query);
-  return QUERY_CORRECTIONS[q] || q;
+  const explicit = QUERY_CORRECTIONS[q];
+  if (explicit) return explicit;
+
+  // Fuzzy correction is deliberately limited to a single grocery noun.
+  // Brand names and multi-word product searches stay untouched unless they have
+  // an explicit correction above.
+  if (!q.includes(" ")) return correctSingleGroceryTypo(q);
+  return q;
 }
 
 const INTENTS: Record<Exclude<ZiiplySearchIntentName, "unknown">, Omit<ZiiplySearchIntent, "originalQuery" | "correctedQuery" | "canonicalQuery" | "intent">> = {
