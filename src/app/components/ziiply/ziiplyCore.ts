@@ -1889,8 +1889,6 @@ export function productGroupGate(sourceName: string, targetName: string) {
   return true;
 }
 
-
-
 export function isHardRejectedKMatch(query: string, candidateName: string) {
   const source = normalize(query);
   const target = normalize(candidateName);
@@ -3014,7 +3012,6 @@ export function getPrimaryBrand(name: string) {
     "pepsi",
     "valio",
     "arla",
-    "ingman",
     "atria",
     "hk",
     "snellman",
