@@ -11248,6 +11248,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       let k: Match | null = null;
       let failed = false;
 
+      // Vertailun identiteetti tulee ensisijaisesti varsinaisesta tuoteobjektista.
+      // Jos CartItem.name on vanha/lyhennetty, pakkauskoko ei saa kadota matcherilta.
+      const cartItemName = fixText(String(item.name || ""));
+      const productItemName = fixText(String(item.product?.name || ""));
+      const cartItemSize = parseMetricSize(cartItemName);
+      const productItemSize = parseMetricSize(productItemName);
+      const comparisonSourceName =
+        productItemName && (!cartItemName || (!cartItemSize && productItemSize))
+          ? productItemName
+          : cartItemName || productItemName;
+      const comparisonSourceEan = normalizeEan(item.product?.ean || item.ean);
+
       if (withinS) {
         const hyperId = activeArea.sStoreId;
         const localId = activeArea.sLocalStoreId;
@@ -11346,10 +11358,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             // käynnistä molemmat haut rinnakkain.
             const [hyperBest, localBest] = await Promise.all([
               hyperId
-                ? findBestKMatchForStore(item.name, hyperId, itemEan)
+                ? findBestKMatchForStore(comparisonSourceName, hyperId, comparisonSourceEan)
                 : Promise.resolve(undefined),
               localId
-                ? findBestKMatchForStore(item.name, localId, itemEan)
+                ? findBestKMatchForStore(comparisonSourceName, localId, comparisonSourceEan)
                 : Promise.resolve(undefined),
             ]);
 
@@ -11367,7 +11379,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           // Jos alkuperäinen tuote oli jo valitusta tavaratalosta, hae vain lähikaupan
           // vastine erikseen; tavaratalon alkuperäinen rivi säilyy muuttumattomana.
           if (s && localId && !k) {
-            const localBest = await findBestKMatchForStore(item.name, localId, itemEan);
+            const localBest = await findBestKMatchForStore(comparisonSourceName, localId, comparisonSourceEan);
             if (localBest && localBest.price > 0) {
               const product = convertKProductToProduct(localBest);
               k = { product: { ...product, ean: localBest.ean, storeName: localName } as Product, price: localBest.price, quantity: 1, matchType: normalizeEan(localBest.ean) === itemEan && itemEan ? "ean" : "name", storeId: localId, storeName: localName, cartItemId: item.id };
@@ -11387,7 +11399,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           k = { product: item.product, price: item.price, quantity: 1, matchType: "ean", cartItemId: item.id };
         } else {
           try {
-            const best = await findBestKMatchForStore(item.name, activeStores.kStoreId, item.ean);
+            const best = await findBestKMatchForStore(comparisonSourceName, activeStores.kStoreId, comparisonSourceEan);
             if (best) {
               const product = convertKProductToProduct(best);
               k = { product: { ...product, ean: best.ean }, price: best.price, quantity: 1, matchType: best.ean && item.ean === best.ean ? "ean" : "name", cartItemId: item.id };
