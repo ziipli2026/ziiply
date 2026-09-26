@@ -328,6 +328,10 @@ export default function ZiiplyMobileCompareCardresponsive({
                       ziiplyDebugSourceEan: source?.ean,
                       ziiplyDebugSourceProductName: source?.product?.name,
                       ziiplyDebugSourceProductEan: source?.product?.ean,
+                      ziiplyDebugBirthName: source?.ziiplyDebugBirthName,
+                      ziiplyDebugBirthEan: source?.ziiplyDebugBirthEan,
+                      ziiplyDebugBirthProductName: source?.ziiplyDebugBirthProductName,
+                      ziiplyDebugBirthProductEan: source?.ziiplyDebugBirthProductEan,
                     };
                   }),
                   ...(items || []).filter((item: any) => !matchedIds.has(String(item?.id || ""))).map((item: any) => ({
@@ -337,6 +341,10 @@ export default function ZiiplyMobileCompareCardresponsive({
                     ziiplyDebugSourceEan: item?.ean,
                     ziiplyDebugSourceProductName: item?.product?.name,
                     ziiplyDebugSourceProductEan: item?.product?.ean,
+                    ziiplyDebugBirthName: item?.ziiplyDebugBirthName,
+                    ziiplyDebugBirthEan: item?.ziiplyDebugBirthEan,
+                    ziiplyDebugBirthProductName: item?.ziiplyDebugBirthProductName,
+                    ziiplyDebugBirthProductEan: item?.ziiplyDebugBirthProductEan,
                   })),
                 ];
 
