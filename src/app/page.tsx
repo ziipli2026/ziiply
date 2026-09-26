@@ -11154,13 +11154,28 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // Täsmä-EAN puuttui: kerää turvalliset nimihakukandidaatit ja valitse
     // niistä lähin vastaava nykyisillä tuoteryhmä- ja semantiikkasuojilla.
     for (const searchTerm of getKSearchTerms(query)) {
-      const items = await fetchKProducts(searchTerm, storeId);
+      // Yksittäinen fallback-haku ei saa kaataa koko matchia. Erityisesti
+      // täsmä-EAN voi löytyä jo aiemmasta nimihakutermistä.
+      const items = await fetchKProducts(searchTerm, storeId).catch(
+        () => [] as KProduct[],
+      );
 
       for (const item of items) {
         const candidateKey = String(item.id || item.ean || item.name);
         if (seenCandidateIds.has(candidateKey)) continue;
         seenCandidateIds.add(candidateKey);
         allCandidates.push(item);
+      }
+
+      // Ruoanhinta ei aina löydä search=EAN-haulla, mutta palauttaa saman EANin
+      // nimihakutuloksessa. Kun oikea EAN löytyy, lopeta heti: älä aja enää
+      // hitaita/geneerisiä fallback-hakuja äläkä anna myöhemmän haun sotkea osumaa.
+      if (normalizedEan) {
+        const exactFromThisSearch = items.find(
+          (item) =>
+            item.price > 0 && normalizeEan(item.ean) === normalizedEan,
+        );
+        if (exactFromThisSearch) return exactFromThisSearch;
       }
     }
 
