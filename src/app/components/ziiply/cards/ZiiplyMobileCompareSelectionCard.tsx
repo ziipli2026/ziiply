@@ -206,7 +206,7 @@ export default function ZiiplyMobileCompareSelectionCard({
         <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[linear-gradient(180deg,rgba(255,250,226,0.58),rgba(246,226,172,0.22)_34%,rgba(238,214,156,0.10))]" />
         <div className="pointer-events-none absolute inset-[0.42rem] rounded-[1.55rem] border border-dashed border-[#d6a861]/55 shadow-[inset_0_0_0_2px_rgba(27,17,9,0.20)]" />
 
-        <header className="relative z-10 shrink-0 px-5 pb-1 pt-[6.7rem]">
+        <header className="relative z-10 shrink-0 px-5 pb-1 pt-[7.9rem]">
           <div className="mb-2 px-1 text-center">
             <div
               className="text-[0.52rem] font-black uppercase tracking-[0.24em] text-[#665d45]/86"
@@ -221,7 +221,7 @@ export default function ZiiplyMobileCompareSelectionCard({
               {store.name}
             </div>
             <div className="mt-0.5 text-[0.78rem] font-extrabold text-[#5f5034]">
-              {isBest ? "Huokein kokonaisuus" : "Kauppakohtainen kori"}
+              Kauppakohtainen kori
             </div>
           </div>
         </header>
