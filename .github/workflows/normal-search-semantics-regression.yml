@@ -18,6 +18,18 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Install dependencies
+        run: npm ci
+      - name: Compile search core for functional regression
+        run: |
+          rm -rf .tmp-search-regression
+          npx tsc src/app/components/ziiply/ziiplyCore.ts \
+            --target ES2020 \
+            --module commonjs \
+            --moduleResolution node \
+            --esModuleInterop \
+            --skipLibCheck \
+            --outDir .tmp-search-regression
       - name: Verify normal-search semantics
         shell: bash
         run: |
@@ -132,4 +144,42 @@ jobs:
 
           if (failures) process.exit(1);
           console.log('SAFE_SUMMARY normal-search semantics regression passed');
+          NODE
+
+      - name: Functional piima ranking regression
+        shell: bash
+        run: |
+          node <<'NODE'
+          const core = require('./.tmp-search-regression/ziiplyCore.js');
+
+          const products = [
+            { id: 1, name: 'Kotimaista rasvaton piimä 1l', category: 'Maidot ja piimät', price: 1.19 },
+            { id: 2, name: 'Valio Eila laktoositon piimä 1 l rasvaton', category: 'Maidot ja piimät', price: 1.69 },
+            { id: 3, name: 'Arla rasvaton AB-piimä 1l', category: 'Maidot ja piimät', price: 1.55 },
+            { id: 4, name: 'Vaasan Piimälimppu 400g', category: 'Leivät', price: 2.89 },
+            { id: 5, name: 'Rosten piimäsämpylä 6kpl', category: 'Leivät', price: 2.59 },
+          ];
+
+          const ranked = core.rankNormalSearchResults('piimä', products);
+          const positions = new Map(ranked.map((product, index) => [product.id, index]));
+          const drinkIds = [1, 2, 3];
+          const breadIds = [4, 5];
+          const lastDrink = Math.max(...drinkIds.map(id => positions.get(id)));
+          const firstBread = Math.min(...breadIds.map(id => positions.get(id)));
+
+          if (!(lastDrink < firstBread)) {
+            console.error('FAIL piimä ranking:', ranked.map(product => product.name));
+            process.exit(1);
+          }
+
+          if (!core.isClearlyButtermilkProduct(products[0]) ||
+              !core.isClearlyButtermilkProduct(products[2]) ||
+              core.isClearlyButtermilkProduct(products[3]) ||
+              core.isClearlyButtermilkProduct(products[4])) {
+            console.error('FAIL piimä product classification');
+            process.exit(1);
+          }
+
+          console.log('PASS piimä ranking: all buttermilk drinks precede piimä breads');
+          console.log('SAFE_SUMMARY functional piimä regression passed');
           NODE
