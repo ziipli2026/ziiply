@@ -70,6 +70,38 @@ const QUERY_CORRECTIONS: Record<string, string> = {
   ruispalat: "ruispala",
   pilsneri: "pilsner",
   pils: "pilsner",
+
+  // Yleiset suomalaiset ruokahaun taivutusmuodot. Canonicalisointi tehdään
+  // eksplisiittisesti, ei yleisellä suffix-stemmerillä, jotta tuotenimet eivät rikkoudu.
+  maitoa: "maito",
+  maidon: "maito",
+  kahvia: "kahvi",
+  kahvin: "kahvi",
+  juustoa: "juusto",
+  juuston: "juusto",
+  jogurttia: "jogurtti",
+  jogurtin: "jogurtti",
+  voita: "voi",
+  kerman: "kerma",
+  kermaa: "kerma",
+  jauhelihaa: "jauheliha",
+  jauhelihan: "jauheliha",
+  leipää: "leipä",
+  leipaa: "leipä",
+  kananmunia: "kananmuna",
+  munia: "kananmuna",
+  tomaatteja: "tomaatti",
+  tomaatin: "tomaatti",
+  kurkkua: "kurkku",
+  kurkun: "kurkku",
+  perunaa: "peruna",
+  perunoita: "peruna",
+  porkkanaa: "porkkana",
+  porkkanoita: "porkkana",
+  omenaa: "omena",
+  omenoita: "omena",
+  banaania: "banaani",
+  banaaneja: "banaani",
 };
 
 export function correctSearchQuery(query: string) {
