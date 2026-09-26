@@ -3158,15 +3158,45 @@ export function pickBestKProduct(items: KProduct[], query: string, ean?: string)
 
   const queryIsValueBrand = isValueBrandProduct(query);
 
+  // Suosi saman nimiperheen tuotetta ennen geneeristä tuoteryhmävastinetta.
+  // Valitse kyselyn sanoista se, joka esiintyy harvimmissa tämän kaupan
+  // käyttökelpoisissa kandidaateissa. Näin esim. "huiluntuhti" voittaa
+  // yleisen "grillimakkara"-sanan, mutta jos nimiperhettä ei löydy lainkaan,
+  // tavallinen tuoteryhmäfallback jää edelleen käyttöön.
+  const genericFamilyWords = new Set([
+    "grillimakkara", "makkara", "nakki", "nakkimakkara",
+    "maito", "juusto", "jauheliha", "kahvi", "jogurtti", "rahka",
+    "kananmuna", "kananmunat", "tortilla", "chips", "sipsi",
+  ]);
+  const distinctiveFamilyWords = Array.from(new Set(getNormalizedWords(query)))
+    .filter((word) => word.length >= 6)
+    .filter((word) => !genericFamilyWords.has(word))
+    .filter((word) => !/^\\d/.test(word))
+    .map((word) => ({
+      word,
+      count: usableItems.filter((item) =>
+        hasExactNormalizedWord(item.name, word),
+      ).length,
+    }))
+    .filter(({ count }) => count > 0)
+    .sort((a, b) => a.count - b.count || b.word.length - a.word.length);
+
+  const strongestFamilyWord = distinctiveFamilyWords[0]?.word;
+  const familyPool = strongestFamilyWord
+    ? usableItems.filter((item) =>
+        hasExactNormalizedWord(item.name, strongestFamilyWord),
+      )
+    : usableItems;
+
   // Jos lähtötuote on Coop/Rainbow/Xtra/Kotimaista tai muu private label,
   // K-vastineeksi haetaan ensisijaisesti Pirkka/K-Menu. Premium-brändit arvioidaan
   // vasta jos omaa merkkiä ei löydy lainkaan samasta tuoteryhmästä.
   const primaryPool =
-    queryIsValueBrand && usableItems.some((item) => isKOwnBrandProduct(item.name))
-      ? usableItems.filter((item) => isKOwnBrandProduct(item.name))
-      : queryIsValueBrand && usableItems.some((item) => !isPremiumBrandProduct(item.name))
-      ? usableItems.filter((item) => !isPremiumBrandProduct(item.name))
-      : usableItems;
+    queryIsValueBrand && familyPool.some((item) => isKOwnBrandProduct(item.name))
+      ? familyPool.filter((item) => isKOwnBrandProduct(item.name))
+      : queryIsValueBrand && familyPool.some((item) => !isPremiumBrandProduct(item.name))
+      ? familyPool.filter((item) => !isPremiumBrandProduct(item.name))
+      : familyPool;
 
   return primaryPool
     .map((item) => ({ item, score: scoreNameMatch(query, item.name) }))
