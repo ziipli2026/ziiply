@@ -1,0 +1,39 @@
+name: K Jokela product provenance diagnostic
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/k-jokela-product-diagnostic.yml"
+  workflow_dispatch:
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Query Ruoanhinta Jokela directly
+        shell: bash
+        run: |
+          node <<'NODE'
+          const storeId = 3334;
+          const terms = ["6409620012684", "Huiluntuhti", "Kivikylän Huiluntuhti"];
+          for (const term of terms) {
+            const url = "https://api.ruoanhinta.fi/api/items?search=" + encodeURIComponent(term) + "&storeIds=" + storeId + "&skip=0&take=30";
+            const res = await fetch(url);
+            const data = await res.json();
+            console.log("\n=== QUERY", term, "STATUS", res.status, "COUNT", (data.items || []).length, "===");
+            for (const p of (data.items || [])) {
+              console.log(JSON.stringify({
+                id: p.id,
+                name: p.name,
+                ean: p.ean,
+                gtin: p.gtin,
+                eanCode: p.eanCode,
+                barcode: p.barcode,
+                externalId: p.externalId,
+                familyKey: p.familyKey,
+                storeItems: p.storeItems
+              }));
+            }
+          }
+          NODE
