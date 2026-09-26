@@ -347,6 +347,23 @@ jobs:
             process.exit(1);
           }
           console.log('PASS K size guard rejects Jokela 400g for source 375g EAN');
+
+          const exactCases = [
+            ['Kivikylän Huiluntuhti grillimakkara 400g', '6406300000261'],
+            ['Kivikylän Kuoreton Huiluntuhti grillimakkara 400g', '6406300014237'],
+          ];
+          const withPihvi = [
+            ...jokela,
+            { id: 3000, name: 'Kivikylän Huiluntuhti makkarapihvi 300g', ean: '6406300011397', price: 3.49 },
+          ];
+          for (const [name, ean] of exactCases) {
+            const exact = core.pickBestKProduct(withPihvi, name, ean);
+            if (!exact || exact.ean !== ean || exact.name !== name) {
+              console.error('FAIL K exact EAN identity changed Huiluntuhti variant:', { name, ean, exact });
+              process.exit(1);
+            }
+            console.log('PASS K exact EAN preserves Huiluntuhti variant:', ean);
+          }
           NODE
 
       - name: Verify cart EAN remains authoritative for comparison
