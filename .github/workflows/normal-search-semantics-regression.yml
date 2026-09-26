@@ -63,6 +63,46 @@ jobs:
             }
           }
 
+          const inflectionIntentCases = [
+            ['maitoa', 'maito', 'milk_drink'],
+            ['kahvia', 'kahvi', 'coffee'],
+            ['juustoa', 'juusto', 'cheese'],
+            ['jogurttia', 'jogurtti', 'yogurt'],
+            ['voita', 'voi', 'butter'],
+            ['kermaa', 'kerma', 'cream'],
+            ['jauhelihaa', 'jauheliha', 'meat'],
+            ['leipää', 'leipä', 'bread'],
+            ['kananmunia', 'kananmuna', 'eggs'],
+            ['munia', 'kananmuna', 'eggs'],
+            ['tomaatteja', 'tomaatti', 'vegetable'],
+            ['kurkkua', 'kurkku', 'vegetable'],
+            ['perunoita', 'peruna', 'vegetable'],
+            ['porkkanoita', 'porkkana', 'vegetable'],
+            ['omenoita', 'omena', 'fruit'],
+            ['banaaneja', 'banaani', 'fruit'],
+            ['pilsneri', 'pilsner', 'unknown'],
+          ];
+
+          for (const [input, canonical, expectedIntent] of inflectionIntentCases) {
+            const correctionPattern = new RegExp('(?:^|\\n)\\s*["\\\']?' + input + '["\\\']?\\s*:\\s*["\\\']' + canonical + '["\\\']');
+            if (!correctionPattern.test(intent)) {
+              console.error('FAIL canonical grocery form:', input, '=>', canonical);
+              failures++;
+              continue;
+            }
+            if (expectedIntent !== 'unknown') {
+              const intentRule = new RegExp('\\["' + expectedIntent.replace('_', '\\_') + '"');
+              if (!intentRule.test(intent)) {
+                console.error('FAIL missing intent rule:', expectedIntent, 'for', input);
+                failures++;
+              } else {
+                console.log('PASS grocery form:', input, '=>', canonical, '=>', expectedIntent);
+              }
+            } else {
+              console.log('PASS grocery form:', input, '=>', canonical);
+            }
+          }
+
           const structuralChecks = [
             [intent, 'pilsneri: "pilsner"', 'semantic pilsner normalization'],
             [memory, 'learned_structure_preference', 'structure-based learning'],
