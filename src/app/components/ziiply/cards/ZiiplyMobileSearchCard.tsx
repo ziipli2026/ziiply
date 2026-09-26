@@ -260,7 +260,11 @@ function AssistantButton({
         isGosta
           ? "border-[#6f8f56] bg-gradient-to-b from-[#f5f7dc] to-[#c8d98d]"
           : "border-[#c99f3c] bg-gradient-to-b from-[#fff4c9] to-[#eac85b]",
-        disabled ? "cursor-not-allowed grayscale opacity-55 brightness-[0.62] contrast-75 saturate-0 shadow-none ring-0" : "hover:brightness-105 hover:saturate-[1.08]",
+        disabled && isGosta
+          ? "cursor-not-allowed grayscale opacity-55 brightness-[0.62] contrast-75 saturate-0 shadow-none ring-0"
+          : disabled
+            ? "cursor-not-allowed"
+            : "hover:brightness-105 hover:saturate-[1.08]",
         loading && "animate-pulse ring-2 ring-[#fff1bf]/70",
       )}
     >
