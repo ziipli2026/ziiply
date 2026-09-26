@@ -15191,9 +15191,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return "Sama brändi";
   }
 
-  function getMatchQualityMode(match: Match) {
+  function getQualityModeStorageKey(match: Match, chainKey?: ChainResult["key"]) {
+    if (!match.cartItemId) return "";
+    return chainKey ? `${chainKey}:${match.cartItemId}` : match.cartItemId;
+  }
+
+  function getMatchQualityMode(match: Match, chainKey?: ChainResult["key"]) {
     if (!match.cartItemId) return "cheapest" as QualityMode;
-    return qualityModesByCart[match.cartItemId] || "cheapest";
+    const chainScopedKey = getQualityModeStorageKey(match, chainKey);
+    return qualityModesByCart[chainScopedKey] || "cheapest";
   }
 
   function setMatchQualityMode(
@@ -15217,7 +15223,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     setQualityModesByCart((prev) => ({
       ...prev,
-      [match.cartItemId as string]: mode,
+      [getQualityModeStorageKey(match, chainKey)]: mode,
     }));
 
     if (alternativeKey) {
@@ -15241,7 +15247,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     match: Match,
     forcedQualityMode?: QualityMode,
   ) {
-    const matchQualityMode = forcedQualityMode || getMatchQualityMode(match);
+    const matchQualityMode = forcedQualityMode || getMatchQualityMode(match, chainKey);
     let alternatives: Product[] = [];
 
     if (chainKey === "s") {
@@ -15273,6 +15279,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             match.product.name,
             product.name,
             matchQualityMode,
+            chainKey === "k" ? "k" : "s",
+            match.product.brandName,
+            product.brandName,
           ),
         )
         .filter(
@@ -15282,16 +15291,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 match.product.name,
                 product.name,
                 matchQualityMode,
+                chainKey === "k" ? "k" : "s",
+                match.product.brandName,
+                product.brandName,
               ) >
             -100,
         )
         .sort((a, b) => {
           const aScore =
             scoreNameMatch(match.product.name, a.name) +
-            scoreQualityMode(match.product.name, a.name, matchQualityMode);
+            scoreQualityMode(match.product.name, a.name, matchQualityMode, chainKey === "k" ? "k" : "s", match.product.brandName, a.brandName);
           const bScore =
             scoreNameMatch(match.product.name, b.name) +
-            scoreQualityMode(match.product.name, b.name, matchQualityMode);
+            scoreQualityMode(match.product.name, b.name, matchQualityMode, chainKey === "k" ? "k" : "s", match.product.brandName, b.brandName);
 
           if (
             matchQualityMode !== "cheapest" &&
@@ -15337,6 +15349,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             match.product.name,
             product.name,
             matchQualityMode,
+            chainKey === "k" ? "k" : "s",
+            match.product.brandName,
+            product.brandName,
           ),
         )
         .filter(
@@ -15346,6 +15361,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 match.product.name,
                 product.name,
                 matchQualityMode,
+                chainKey === "k" ? "k" : "s",
+                match.product.brandName,
+                product.brandName,
               ) >
             -100,
         )
@@ -15353,10 +15371,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         .sort((a, b) => {
           const aScore =
             scoreNameMatch(match.product.name, a.name) +
-            scoreQualityMode(match.product.name, a.name, matchQualityMode);
+            scoreQualityMode(match.product.name, a.name, matchQualityMode, chainKey === "k" ? "k" : "s", match.product.brandName, a.brandName);
           const bScore =
             scoreNameMatch(match.product.name, b.name) +
-            scoreQualityMode(match.product.name, b.name, matchQualityMode);
+            scoreQualityMode(match.product.name, b.name, matchQualityMode, chainKey === "k" ? "k" : "s", match.product.brandName, b.brandName);
 
           if (
             matchQualityMode !== "cheapest" &&
@@ -19723,7 +19741,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 matches: (result.matches || []).map((match: Match) => ({
                   ...match,
                   chainKey: result.key,
-                  qualityMode: getMatchQualityMode(match),
+                  qualityMode: getMatchQualityMode(match, result.key),
                 })),
                 missingItems: result.missingItems || 0,
               }))}
