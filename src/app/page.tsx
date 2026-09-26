@@ -14390,6 +14390,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       ean: product.ean,
     };
 
+    // TEMP Huiluntuhti identity trace: capture the exact user-selected identity
+    // before any comparison/EAN/fallback work can run.
+    (newItem as any).ziiplyDebugBirthName = newItem.name;
+    (newItem as any).ziiplyDebugBirthEan = newItem.ean;
+    (newItem as any).ziiplyDebugBirthProductName = newItem.product?.name;
+    (newItem as any).ziiplyDebugBirthProductEan = newItem.product?.ean;
+
     const nextCart = [...cartWithoutMatchingManualRows, newItem];
 
     trackZiiplyEvent("product_added_to_cart", {
