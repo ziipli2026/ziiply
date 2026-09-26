@@ -8200,12 +8200,29 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   const chainResults = useMemo<ChainResult[]>(() => {
     if (comparableCart.length === 0) return [];
+    const expectedHyperStoreId =
+      storeCompareScope === "within_chain" && withinChain === "K"
+        ? String(activeArea.kStoreId || "")
+        : "";
+    const expectedLocalStoreId =
+      storeCompareScope === "within_chain" && withinChain === "K"
+        ? String(activeArea.kLocalStoreId || "")
+        : "";
+
     const sList = comparableCart
       .map((item) => sMatches[item.id])
-      .filter(Boolean);
+      .filter(Boolean)
+      .filter((match) =>
+        !expectedHyperStoreId ||
+        (match.storeId != null && String(match.storeId) === expectedHyperStoreId),
+      );
     const kList = comparableCart
       .map((item) => kMatches[item.id])
-      .filter(Boolean);
+      .filter(Boolean)
+      .filter((match) =>
+        !expectedLocalStoreId ||
+        (match.storeId != null && String(match.storeId) === expectedLocalStoreId),
+      );
     const sTotal = sList.reduce(
       (sum, match) => sum + match.price * match.quantity,
       0,
@@ -11277,6 +11294,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               price: item.price,
               quantity: 1,
               matchType: "ean",
+              storeId: hyperId,
+              storeName: hyperName,
               cartItemId: item.id,
             };
           } else {
@@ -11293,12 +11312,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
             if (hyperBest && hyperBest.price > 0) {
               const product = convertKProductToProduct(hyperBest);
-              s = { product: { ...product, ean: hyperBest.ean, storeName: hyperName } as Product, price: hyperBest.price, quantity: 1, matchType: normalizeEan(hyperBest.ean) === itemEan && itemEan ? "ean" : "name", cartItemId: item.id };
+              s = { product: { ...product, ean: hyperBest.ean, storeName: hyperName } as Product, price: hyperBest.price, quantity: 1, matchType: normalizeEan(hyperBest.ean) === itemEan && itemEan ? "ean" : "name", storeId: hyperId, storeName: hyperName, cartItemId: item.id };
             }
 
             if (localBest && localBest.price > 0) {
               const product = convertKProductToProduct(localBest);
-              k = { product: { ...product, ean: localBest.ean, storeName: localName } as Product, price: localBest.price, quantity: 1, matchType: normalizeEan(localBest.ean) === itemEan && itemEan ? "ean" : "name", cartItemId: item.id };
+              k = { product: { ...product, ean: localBest.ean, storeName: localName } as Product, price: localBest.price, quantity: 1, matchType: normalizeEan(localBest.ean) === itemEan && itemEan ? "ean" : "name", storeId: localId, storeName: localName, cartItemId: item.id };
             }
           }
 
