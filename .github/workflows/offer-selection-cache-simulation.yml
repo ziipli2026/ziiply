@@ -1,6 +1,9 @@
 name: Offer selection cache simulation
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/offer-selection-cache-simulation.yml"
 jobs:
   simulate:
     runs-on: ubuntu-latest
