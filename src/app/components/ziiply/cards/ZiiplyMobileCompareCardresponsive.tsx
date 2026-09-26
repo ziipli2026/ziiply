@@ -277,12 +277,12 @@ export default function ZiiplyMobileCompareCardresponsive({
 
 {showSkeleton ? <RetroMopedOverlay /> : null}
 
-        <main className="relative z-10 min-h-0 flex-1 overflow-y-auto px-5 pb-4 pt-[9.5rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <main className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden px-5 pb-4 pt-[9.5rem]">
           <header className="relative z-20 mb-3 ml-[3.1rem] max-w-[calc(100%-3.1rem)]">
             <div className="text-[1.46rem] font-black italic leading-none text-[#28402a] drop-shadow-[0_1px_0_rgba(255,247,211,0.62)]" style={{ fontFamily: cooperFont }}>{title}</div>
             <div className="mt-[0.16rem] text-[0.72rem] font-extrabold text-[#5f5034]">{subtitle || `${comparedCount || visibleStores.length} tuotetta / ${visibleStores.length} kauppaa`}</div>
           </header>
-          <div className="space-y-2.5">
+          <div className="flex min-h-0 flex-1 flex-col gap-2.5">
 
             {showSkeleton ? (
               <>
@@ -320,8 +320,9 @@ export default function ZiiplyMobileCompareCardresponsive({
                   <article
                     key={store.id}
                     className={cx(
-                      "relative overflow-hidden rounded-[1.18rem] border-[2.5px] px-3.5 py-2.5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]",
-                      isBest ? "border-[#0b6330] bg-[#ecf3d5]/82" : "border-[#7c663d]/76 bg-[#fff8e5]/72",
+                      "relative flex min-h-0 flex-col overflow-hidden rounded-[1.18rem] border-[2.5px] px-3.5 py-2.5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]",
+                      detailsStoreId === store.id ? "flex-1" : "shrink-0",
+                      store.chain === "S" ? "border-[#0b6330] bg-[#ecf3d5]/82" : "border-[#7c663d]/76 bg-[#fff8e5]/72",
                     )}
                   >
                     <div className="grid grid-cols-[2.35rem_minmax(0,1fr)_3.45rem] gap-3">
