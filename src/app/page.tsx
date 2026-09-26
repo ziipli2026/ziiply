@@ -11937,16 +11937,42 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           return;
         }
 
-        setEanLoading(false);
-        setEanMessage(
-          `Vaakatuote tunnistettu (PLU ${kWeightLabelV730.plu}, ${kWeightLabelV730.price.toFixed(2).replace(".", ",")} €), mutta K-tuotetietoa ei löytynyt.`,
+        // V731: vaakatuotteen koriin pääsy ei saa riippua Ruoanhinta/K-tuotetieto-osumasta.
+        // Tarrasta tiedetään jo varmasti PLU ja tämän yksilön kassahinta.
+        // Tuotenimi voidaan rikastaa myöhemmin canonical-K-tunnuksen perusteella.
+        const fallbackNameV731 = `Punnittu tuote (PLU ${kWeightLabelV730.plu})`;
+        const fallbackProductV731 = {
+          id: `k-weight-${kWeightLabelV730.canonicalEan}`,
+          name: fallbackNameV731,
+          ean: kWeightLabelV730.scannedEan,
+          price: kWeightLabelV730.price,
+          ziiplyKWeightLabel: true,
+          ziiplyKWeightPlu: kWeightLabelV730.plu,
+          ziiplyKCanonicalEan: kWeightLabelV730.canonicalEan,
+          ziiplyKScalePriceCents: kWeightLabelV730.priceCents,
+          ziiplyKWeightIdentityPending: true,
+        } as Product;
+
+        addEanResultToCart(
+          {
+            key: `K-weight-fallback-${kWeightLabelV730.scannedEan}`,
+            chain: "K",
+            storeName: activeStores.kStoreName || "K-kauppa",
+            product: fallbackProductV731,
+            eanMatch: true,
+          },
+          { showFlash: true },
         );
-        setEanScannerMessage("Vaakatuote tunnistettu — tuotetietoa ei löytynyt");
+
+        setEanMessage(
+          `Vaakatuote lisätty tarran hinnalla ${kWeightLabelV730.price.toFixed(2).replace(".", ",")} €. PLU ${kWeightLabelV730.plu}.`,
+        );
+        setEanScannerMessage("Vaakatuote lisätty");
         window.setTimeout(() => {
           setEanScannerMessage((current) =>
-            current === "Vaakatuote tunnistettu — tuotetietoa ei löytynyt" ? "" : current,
+            current === "Vaakatuote lisätty" ? "" : current,
           );
-        }, 2800);
+        }, 2200);
         return;
       } catch (error) {
         console.error("K weight-label lookup failed", error);
