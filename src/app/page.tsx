@@ -16123,7 +16123,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     gostaPanelStickyOpenRefV158.current = false;
     setOfferCardFilterV106("");
     setOfferSearchQuerySnapshot("");
-    setActiveResult(null);
+    setActiveResult("none");
   }
 
   function isLocalStoreForModeV295(store: StoreSearchItem) {
