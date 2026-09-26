@@ -52,7 +52,11 @@ async function resolveStoreId(storeName: string) {
   const wanted = normalize(storeName);
   const exact = candidates.find((x) => normalize(x.name) === wanted);
   const chosen = exact ?? (candidates.length === 1 ? candidates[0] : undefined);
-  return String(chosen?.id ?? chosen?.branchCode ?? "").trim();
+  if (!chosen) return "";
+  const ids = [chosen.storeId, chosen.id, chosen.branchCode, chosen.externalId]
+    .map((value) => String(value ?? "").trim())
+    .filter(Boolean);
+  return ids[0] ?? "";
 }
 
 export async function GET(request: Request) {
@@ -117,7 +121,14 @@ export async function GET(request: Request) {
       }
     }
 
-    return NextResponse.json({ found: false, canonicalEan, source: "k-ruoka-product-search", storeId });
+    return NextResponse.json({
+      found: false,
+      canonicalEan,
+      source: "k-ruoka-product-search",
+      storeName,
+      storeId,
+      diagnostic: "K-Ruoka exact canonical identity not returned",
+    });
   } catch (error) {
     return NextResponse.json({ found: false, canonicalEan, error: String(error) }, { status: 502 });
   }
