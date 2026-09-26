@@ -2578,16 +2578,54 @@ export function rankNormalSearchResults(query: string, products: Product[]) {
   const intent = detectSearchIntent(query);
   const queryIsEgg = intent.category === "egg" || isEggSearchTerm(query);
 
+  function coreProductIntentRank(product: Product) {
+    const words = getNormalizedWords(product.name);
+    const text = getProductSearchText(product);
+
+    if (intent.category === "buttermilk") {
+      // Pelkkä "piimä" jonkin muun tuotteen nimen sisällä ei tee siitä piimää.
+      return words.includes("piimä") || words.includes("piima") ? 1 : 0;
+    }
+
+    if (intent.category === "milk") {
+      // Hyväksy sekä erillinen "maito" että aidot maitotyypit kuten kevytmaito.
+      // Väärät maitokontekstit (rahka, kerma, maitojuoma jne.) jäävät viimeisiksi.
+      const hasMilkProductWord = words.some(
+        (word) =>
+          word === "maito" ||
+          word === "kevytmaito" ||
+          word === "täysmaito" ||
+          word === "taysmaito" ||
+          word === "ykkösmaito" ||
+          word === "ykkosmaito" ||
+          word === "luomumaito" ||
+          word === "kauramaito" ||
+          word === "soijamaito" ||
+          word === "mantelimaito",
+      );
+      return hasMilkProductWord && !isWrongMilkSearchProduct(product) ? 1 : 0;
+    }
+
+    return 0;
+  }
+
   return products
     .filter((product: Product) => !queryIsEgg || isClearlyEggProduct(product.name))
-    .map((product: Product): ScoredProduct => ({
+    .map((product: Product): ScoredProduct & { coreProductIntentRank: number } => ({
       product,
       score: scoreNormalSResult(query, product),
       categoryConfidence: getCategoryConfidence(intent, product),
       preferredSizeScore: getPreferredSizeScore(intent, product),
       nonFoodPenalty: getGroceryNonFoodPenalty(query, product),
+      coreProductIntentRank: coreProductIntentRank(product),
     }))
     .sort((a, b) => {
+      // Geneerisissä maito-/piimähauissa aito tuotetyyppi ratkaisee ennen
+      // substring-osumaa. Näin esim. piimä-sanan sisältävä muu tuote ei nouse
+      // varsinaisten piimien joukkoon.
+      const coreIntentDifference = b.coreProductIntentRank - a.coreProductIntentRank;
+      if (coreIntentDifference !== 0) return coreIntentDifference;
+
       const scoreDifference = b.score - a.score;
       if (Math.abs(scoreDifference) > 8) return scoreDifference;
 
