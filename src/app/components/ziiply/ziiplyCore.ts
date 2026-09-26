@@ -3155,15 +3155,30 @@ export function pickBestKProduct(items: KProduct[], query: string, ean?: string)
 
   const queryIsValueBrand = isValueBrandProduct(query);
 
+  // Jos saman nimiperheen tuote löytyy juuri tämän kaupan hakutuloksista,
+  // käytä sitä ennen geneeristä tuoteryhmävastinetta. Tämä estää esim.
+  // Huiluntuhdin vaihtumisen toiseen grillimakkaraan, kun Jokelassa on
+  // oikeasti toinen Huiluntuhti-versio saatavilla.
+  const queryWords = getNormalizedWords(query).filter((word) => word.length >= 7);
+  const familyWords = queryWords.filter((word) =>
+    usableItems.some((item) => hasExactNormalizedWord(item.name, word)),
+  );
+  const familyPool =
+    familyWords.length > 0
+      ? usableItems.filter((item) =>
+          familyWords.some((word) => hasExactNormalizedWord(item.name, word)),
+        )
+      : usableItems;
+
   // Jos lähtötuote on Coop/Rainbow/Xtra/Kotimaista tai muu private label,
   // K-vastineeksi haetaan ensisijaisesti Pirkka/K-Menu. Premium-brändit arvioidaan
   // vasta jos omaa merkkiä ei löydy lainkaan samasta tuoteryhmästä.
   const primaryPool =
-    queryIsValueBrand && usableItems.some((item) => isKOwnBrandProduct(item.name))
-      ? usableItems.filter((item) => isKOwnBrandProduct(item.name))
-      : queryIsValueBrand && usableItems.some((item) => !isPremiumBrandProduct(item.name))
-      ? usableItems.filter((item) => !isPremiumBrandProduct(item.name))
-      : usableItems;
+    queryIsValueBrand && familyPool.some((item) => isKOwnBrandProduct(item.name))
+      ? familyPool.filter((item) => isKOwnBrandProduct(item.name))
+      : queryIsValueBrand && familyPool.some((item) => !isPremiumBrandProduct(item.name))
+      ? familyPool.filter((item) => !isPremiumBrandProduct(item.name))
+      : familyPool;
 
   return primaryPool
     .map((item) => ({ item, score: scoreNameMatch(query, item.name) }))
