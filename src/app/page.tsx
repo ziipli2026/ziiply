@@ -1693,7 +1693,10 @@ import {
   getLastZiiplyKruokaDebugV174,
   type ZiiplyKruokaDebugV174,
 } from "./components/ziiply/offerSearch/ziiplyOfferSearchCore";
-import { explainNormalSearch as explainZiiplyNormalSearch } from "./components/ziiply/search/searchEngine";
+import {
+  explainNormalSearch as explainZiiplyNormalSearch,
+  learnNormalSearchChoice as learnZiiplyNormalSearchChoice,
+} from "./components/ziiply/search/searchEngine";
 
 const MOBILE_EAN_SCANNER_REGION_ID = `${EAN_SCANNER_REGION_ID}-mobile`;
 
@@ -13657,6 +13660,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function addProductToCart(product: Product) {
+    // Tallenna käyttäjän onnistunut valinta ennen kuin hakukenttää muutetaan.
+    // activeNormalSearchTerm on juuri valmistuneen tuloslistan hakutermi;
+    // input on fallback esim. vanhemmissa/erikoisissa avauspoluissa.
+    const learnedQuery = (activeNormalSearchTerm || input).trim();
+    if (learnedQuery) {
+      learnZiiplyNormalSearchChoice(learnedQuery, product, "added_to_cart");
+    }
+
     const remainingTerms = removeMatchingSearchTerm(product);
     const matchedTerms = parseTerms(input).filter(
       (term) => !remainingTerms.includes(term),
