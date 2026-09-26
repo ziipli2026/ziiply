@@ -10955,7 +10955,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       await Promise.all(
         nextCart.map(async (item) => {
-          if (item.chain === "S" && item.price && item.product) {
+          if (
+            item.chain === "S" &&
+            item.price &&
+            item.product &&
+            normalize(item.storeName || "") === normalize(activeStores.sStoreName || "")
+          ) {
             nextSMatches[item.id] = {
               product: item.product,
               price: item.price,
@@ -10985,7 +10990,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             } catch {}
           }
 
-          if (item.chain === "K" && item.price && item.product) {
+          if (
+            item.chain === "K" &&
+            item.price &&
+            item.product &&
+            normalize(item.storeName || "") === normalize(activeStores.kStoreName || "")
+          ) {
             nextKMatches[item.id] = {
               product: item.product,
               price: item.price,
