@@ -30,6 +30,7 @@ export type ZiiplyCompareSelectionItem = {
   price?: number | string;
   quantity?: number;
   qualityMode?: "cheapest" | "same_quality" | "own_brands" | "same_brand";
+  matchType?: "ean" | "name" | "manual";
   isMissingComparisonItem?: boolean;
   storePrices?: Record<string, number | string | undefined>;
   product?: {
