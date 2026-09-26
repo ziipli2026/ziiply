@@ -10820,7 +10820,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             if (kPrimaryStoreId) {
               const kItems = await fetchKProducts(searchQuery, kPrimaryStoreId);
               rawItems = kItems
-                .filter((item) => Number(item.price || 0) > 0)
+                .filter((item) => Number(item.price) > 0)
                 .map((item) => ({
                   ...convertKProductToProduct(item),
                   ean: item.ean,
