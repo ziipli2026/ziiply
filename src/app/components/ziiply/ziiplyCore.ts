@@ -117,6 +117,9 @@ export type Match = {
   quantity: number;
   matchType: "ean" | "name" | "manual";
   fallbackStoreName?: string;
+  // Store provenance: the match is valid only for the store it was fetched from.
+  storeId?: string | number;
+  storeName?: string;
   cartItemId?: string;
 };
 
