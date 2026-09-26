@@ -15238,9 +15238,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return "Sama brändi";
   }
 
-  function getMatchQualityMode(match: Match) {
+  function getMatchQualityMode(match: Match, chainKey?: ChainResult["key"]) {
     if (!match.cartItemId) return "cheapest" as QualityMode;
-    return qualityModesByCart[match.cartItemId] || "cheapest";
+    const key = chainKey ? `${chainKey}:${match.cartItemId}` : match.cartItemId;
+    return qualityModesByCart[key] || "cheapest";
   }
 
   function setMatchQualityMode(
@@ -15264,7 +15265,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     setQualityModesByCart((prev) => ({
       ...prev,
-      [match.cartItemId as string]: mode,
+      [`${chainKey || "s"}:${match.cartItemId}`]: mode,
     }));
 
     if (alternativeKey) {
@@ -15288,7 +15289,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     match: Match,
     forcedQualityMode?: QualityMode,
   ) {
-    const matchQualityMode = forcedQualityMode || getMatchQualityMode(match);
+    const matchQualityMode = forcedQualityMode || getMatchQualityMode(match, chainKey);
     let alternatives: Product[] = [];
 
     if (chainKey === "s") {
@@ -19770,7 +19771,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 matches: (result.matches || []).map((match: Match) => ({
                   ...match,
                   chainKey: result.key,
-                  qualityMode: getMatchQualityMode(match),
+                  qualityMode: getMatchQualityMode(match, result.key),
                 })),
                 missingItems: result.missingItems || 0,
               }))}
