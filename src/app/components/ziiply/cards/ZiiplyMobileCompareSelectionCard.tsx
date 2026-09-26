@@ -48,6 +48,7 @@ export type ZiiplyCompareSelectionItem = {
 
 export type ZiiplyMobileCompareSelectionCardProps = {
   open?: boolean;
+  embedded?: boolean;
   store: ZiiplyCompareSelectionStore;
   items?: unknown[];
   isBest?: boolean;
@@ -176,6 +177,7 @@ function getQualityHint(mode: QualityMode, item: unknown, chain?: "S" | "K") {
 
 export default function ZiiplyMobileCompareSelectionCard({
   open = true,
+  embedded = false,
   store,
   items = [],
   isBest = false,
@@ -190,47 +192,8 @@ export default function ZiiplyMobileCompareSelectionCard({
 
   const rows = ((store.matches && store.matches.length > 0 ? store.matches : items) || []) as ZiiplyCompareSelectionItem[];
 
-  return (
-    <div
-      className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
-    >
-      <section className="relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-2.0rem)] max-h-[46rem] min-h-[31rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
-        <div
-          className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[#f7edcf] bg-center bg-no-repeat opacity-100"
-          style={{
-            backgroundImage: "url('/ui/cart/vihkonen.webp')",
-            backgroundSize: "142% 104%",
-            backgroundPosition: "center top",
-          }}
-        />
-        <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[linear-gradient(180deg,rgba(255,250,226,0.58),rgba(246,226,172,0.22)_34%,rgba(238,214,156,0.10))]" />
-        <div className="pointer-events-none absolute inset-[0.42rem] rounded-[1.55rem] border border-dashed border-[#d6a861]/55 shadow-[inset_0_0_0_2px_rgba(27,17,9,0.20)]" />
-
-        <header className="relative z-10 shrink-0 px-5 pb-1 pt-[7.9rem]">
-          <div className="mb-2 px-1 text-center">
-            <div
-              className="text-[0.52rem] font-black uppercase tracking-[0.24em] text-[#665d45]/86"
-              style={{ fontFamily: copperplateFont }}
-            >
-              Kaupan erittely
-            </div>
-            <div
-              className="mt-0.5 truncate text-[1.52rem] font-black italic leading-none text-[#28402a] drop-shadow-[0_1px_0_rgba(255,247,211,0.62)]"
-              style={{ fontFamily: cooperFont }}
-            >
-              {store.name}
-            </div>
-            <div className="mt-0.5 text-[0.78rem] font-extrabold text-[#5f5034]">
-              Kauppakohtainen kori
-            </div>
-          </div>
-        </header>
-
-        <main className="relative z-10 flex min-h-0 flex-1 flex-col px-5 pb-4 pt-[0.8rem]">
-          <div className="flex min-h-0 flex-1 flex-col gap-2.5">
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[1.05rem] border-[2px] border-[#7c663d]/78 bg-[#fff4d8]/76 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]">
-            <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {rows.length === 0 ? (
+  const productRows = (<>
+{rows.length === 0 ? (
               <div className="rounded-[1.05rem] border-[2px] border-[#7c663d]/78 bg-[#fff4d8]/72 px-4 py-8 text-center text-[0.82rem] font-extrabold text-[#6b6048] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]">
                 Tälle kaupalle ei löytynyt tuoterivejä vertailusta.
               </div>
@@ -306,6 +269,51 @@ export default function ZiiplyMobileCompareSelectionCard({
                 );
               })
             )}
+  </>);
+
+  if (embedded) return <div className="border-t border-[#d4bd86]/72 bg-[#fff4d8]/85">{productRows}</div>;
+
+  return (
+    <div
+      className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
+    >
+      <section className="relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-2.0rem)] max-h-[46rem] min-h-[31rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
+        <div
+          className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[#f7edcf] bg-center bg-no-repeat opacity-100"
+          style={{
+            backgroundImage: "url('/ui/cart/vihkonen.webp')",
+            backgroundSize: "142% 104%",
+            backgroundPosition: "center top",
+          }}
+        />
+        <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[linear-gradient(180deg,rgba(255,250,226,0.58),rgba(246,226,172,0.22)_34%,rgba(238,214,156,0.10))]" />
+        <div className="pointer-events-none absolute inset-[0.42rem] rounded-[1.55rem] border border-dashed border-[#d6a861]/55 shadow-[inset_0_0_0_2px_rgba(27,17,9,0.20)]" />
+
+        <header className="relative z-10 shrink-0 px-5 pb-1 pt-[7.9rem]">
+          <div className="mb-2 px-1 text-center">
+            <div
+              className="text-[0.52rem] font-black uppercase tracking-[0.24em] text-[#665d45]/86"
+              style={{ fontFamily: copperplateFont }}
+            >
+              Kaupan erittely
+            </div>
+            <div
+              className="mt-0.5 truncate text-[1.52rem] font-black italic leading-none text-[#28402a] drop-shadow-[0_1px_0_rgba(255,247,211,0.62)]"
+              style={{ fontFamily: cooperFont }}
+            >
+              {store.name}
+            </div>
+            <div className="mt-0.5 text-[0.78rem] font-extrabold text-[#5f5034]">
+              Kauppakohtainen kori
+            </div>
+          </div>
+        </header>
+
+        <main className="relative z-10 flex min-h-0 flex-1 flex-col px-5 pb-4 pt-[0.8rem]">
+          <div className="flex min-h-0 flex-1 flex-col gap-2.5">
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[1.05rem] border-[2px] border-[#7c663d]/78 bg-[#fff4d8]/76 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]">
+            <div className="min-h-0 flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {productRows}
 
             </div>
             <div className="grid shrink-0 grid-cols-[2.30rem_minmax(0,1fr)_2.30rem_2.30rem] items-center gap-2 border-t border-[#d4bd86]/72 px-3 py-2.5">
