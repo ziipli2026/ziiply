@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import { parseKCitymarketSpatialLeaflet } from "./kCitymarketSpatialParser.js";
 
 // ============================================================================
@@ -364,7 +365,7 @@ function pageNumber(url:string){
   return m?Number(m[1]):1;
 }
 
-export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
+async function fetchKCitymarketOffersFresh():Promise<CitymarketOffer[]>{
   const parsed=await parseKCitymarketSpatialLeaflet(ENTRY);
   const leafletUrl=String(parsed?.leaflet||ENTRY);
   const rows:any[]=Array.isArray(parsed?.rows)?parsed.rows:[];
@@ -427,4 +428,88 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
   });
 }
 
+
+type KCitymarketPeriodKind = "AV" | "LV";
+type KCitymarketPeriod = { key:string; kind:KCitymarketPeriodKind; week:number; startDate:string };
+type KCitymarketCachedPayload = { period:KCitymarketPeriod; offers:CitymarketOffer[]; debug:KCitymarketHtmlDebugV8; cachedAt:string };
+
+function helsinkiClock(now=new Date()){
+  const parts=new Intl.DateTimeFormat("en-CA",{timeZone:"Europe/Helsinki",year:"numeric",month:"2-digit",day:"2-digit",weekday:"short",hour:"2-digit",minute:"2-digit",hourCycle:"h23"}).formatToParts(now);
+  const get=(type:Intl.DateTimeFormatPartTypes)=>parts.find(part=>part.type===type)?.value||"";
+  return {date:${get("year")}-${get("month")}-${get("day")},weekday:get("weekday"),hour:Number(get("hour")),minute:Number(get("minute"))};
+}
+function shiftIsoDate(date:string,days:number){
+  const [y,m,d]=date.split("-").map(Number);
+  return new Date(Date.UTC(y,m-1,d+days,12)).toISOString().slice(0,10);
+}
+function isoWeekForDate(date:string){
+  const [y,m,d]=date.split("-").map(Number);
+  const value=new Date(Date.UTC(y,m-1,d,12));
+  const weekday=value.getUTCDay()||7;
+  value.setUTCDate(value.getUTCDate()+4-weekday);
+  const yearStart=new Date(Date.UTC(value.getUTCFullYear(),0,1,12));
+  return Math.ceil((((value.getTime()-yearStart.getTime())/86400000)+1)/7);
+}
+function periodFromStart(startDate:string,kind:KCitymarketPeriodKind):KCitymarketPeriod{
+  const week=isoWeekForDate(startDate);
+  return {key:${startDate}-W${week}-${kind},kind,week,startDate};
+}
+export function getActiveKCitymarketPeriod(now=new Date()):KCitymarketPeriod{
+  const clock=helsinkiClock(now);
+  const index:Record<string,number>={Mon:0,Tue:1,Wed:2,Thu:3,Fri:4,Sat:5,Sun:6};
+  const day=index[clock.weekday]??0;
+  if(day<=2) return periodFromStart(shiftIsoDate(clock.date,-day),"AV");
+  return periodFromStart(shiftIsoDate(clock.date,3-day),"LV");
+}
+function getNextKCitymarketPeriod(now=new Date()):KCitymarketPeriod|null{
+  const clock=helsinkiClock(now);
+  if(clock.hour<15) return null;
+  if(clock.weekday==="Wed") return periodFromStart(shiftIsoDate(clock.date,1),"LV");
+  if(clock.weekday==="Sun") return periodFromStart(shiftIsoDate(clock.date,1),"AV");
+  return null;
+}
+function leafletMatchesPeriod(url:string,period:KCitymarketPeriod){
+  return String(url||"").toUpperCase().includes(_${period.week}${period.kind}_KCM);
+}
+const getCachedKCitymarketPeriod=unstable_cache(
+  async(period:KCitymarketPeriod):Promise<KCitymarketCachedPayload>=>{
+    const offers=await fetchKCitymarketOffersFresh();
+    const debug=citymarketHtmlDebugV8;
+    const leafletUrl=String(debug?.leafletUrl||offers[0]?.sourceUrl||"");
+    if(!leafletMatchesPeriod(leafletUrl,period)) throw new Error(K-Citymarket leaflet "${leafletUrl||"(missing)"}" does not match requested ${period.key});
+    if(!offers.length) throw new Error(K-Citymarket ${period.key} parsed zero offers);
+    return {period,offers,debug,cachedAt:new Date().toISOString()};
+  },
+  ["ziiply-kcitymarket-offers-v1"],
+  {revalidate:false},
+);
+async function readCachedPeriod(period:KCitymarketPeriod){
+  const payload=await getCachedKCitymarketPeriod(period);
+  citymarketHtmlDebugV8=payload.debug;
+  return payload;
+}
+export async function warmKCitymarketOfferCache(now=new Date()){
+  const active=getActiveKCitymarketPeriod(now);
+  const next=getNextKCitymarketPeriod(now);
+  const result:{active:{period:string;offers:number;cachedAt:string}|null;next:{period:string;offers:number;cachedAt:string}|null;errors:string[]}={active:null,next:null,errors:[]};
+  try{
+    const payload=await readCachedPeriod(active);
+    result.active={period:payload.period.key,offers:payload.offers.length,cachedAt:payload.cachedAt};
+  }catch(error){
+    result.errors.push(active ${active.key}: ${error instanceof Error?error.message:String(error)});
+  }
+  if(next){
+    try{
+      const payload=await readCachedPeriod(next);
+      result.next={period:payload.period.key,offers:payload.offers.length,cachedAt:payload.cachedAt};
+    }catch(error){
+      result.errors.push(next ${next.key}: ${error instanceof Error?error.message:String(error)});
+    }
+  }
+  return result;
+}
+export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
+  const payload=await readCachedPeriod(getActiveKCitymarketPeriod());
+  return payload.offers;
+}
 export default fetchKCitymarketOffers;
