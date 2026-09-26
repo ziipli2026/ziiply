@@ -34,6 +34,8 @@ jobs:
           const rows=[];
           for(const id of ids){const ps=arr(await data("stores",{publicationId:id,businessId:BUSINESS,pagination:{offset:0,limit:1000}}));rows.push({id,count:offers.filter(o=>String(o.publicationPublicId??"")===id).length,ev:ps.some(s=>String(s.id)===String(ev.id)),jo:ps.some(s=>String(s.id)===String(jo.id)),stores:ps.length,samples:ps.map(s=>({name:s.name,city:s.city,postalCode:s.postalCode}))})}
           rows.sort((a,b)=>b.count-a.count);
+          const covered=new Set(); for(const r of rows){if(r.id!=="2mlUHxXd") for(const s of r.samples) covered.add(String(s.name))}
+          const coverage=matrix.map(m=>{const ss=stores.filter(s=>norm(s.city)===norm(m.city)); const hit=ss.filter(s=>covered.has(String(s.name))); return {city:m.city,total:ss.length,covered:hit.length,coveredNames:hit.map(s=>s.name)};}); console.log("REGIONAL_COVERAGE",JSON.stringify(coverage));
           const dominant=rows[0], second=rows[1]?.count??0;
           const safe=!!dominant&&dominant.count>=10&&(second===0||dominant.count>=second*2);
           const current=(store)=>rows.filter(r=>r[store]).reduce((n,r)=>n+r.count,0);
