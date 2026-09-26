@@ -1,0 +1,17 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "crons": [
+    {
+      "path": "/api/cron/kcitymarket-cache",
+      "schedule": "10 3 * * *"
+    },
+    {
+      "path": "/api/cron/kcitymarket-cache",
+      "schedule": "10 13 * * 3"
+    },
+    {
+      "path": "/api/cron/kcitymarket-cache",
+      "schedule": "10 13 * * 0"
+    }
+  ]
+}
