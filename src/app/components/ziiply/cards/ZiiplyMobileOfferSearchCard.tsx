@@ -969,16 +969,6 @@ export default function ZiiplyMobileOfferSearchCard({
       className={`fixed inset-0 z-[94] flex items-start justify-center bg-[#eef7f2]/98 px-2 pb-[calc(env(safe-area-inset-bottom)+1.05rem)] pt-[calc(env(safe-area-inset-top)+0.45rem)] backdrop-blur-md sm:hidden ${className}`}
     >
       <section className="ziiply-offer-pop relative flex h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-7.15rem)] max-h-[41.8rem] min-h-[29rem] w-full max-w-[28rem] flex-col overflow-hidden rounded-[2.1rem] border-[5px] border-[#3b2414] bg-[linear-gradient(135deg,#2a170e_0%,#5a3720_45%,#2a170e_100%)] shadow-[0_12px_0_rgba(35,23,13,0.28),0_24px_52px_rgba(0,0,0,0.30)]">
-        {selectedOfferChainV39 ? (
-          <button
-            type="button"
-            onClick={() => setDebugOpenV52(true)}
-            className="absolute left-1/2 top-[4.05rem] z-[80] -translate-x-1/2 rounded border border-[#8b1e1e] bg-[#fff3b0] px-1 py-[1px] text-[0.46rem] font-black leading-none text-[#8b1e1e]"
-          >
-            DBG
-          </button>
-        ) : null}
-
         {debugOpenV52 ? (
           <div className="absolute inset-2 z-[9999] flex flex-col overflow-hidden rounded-[1.25rem] border-[3px] border-[#2b1a0e] bg-[#fff8dc] shadow-2xl">
             <div className="flex shrink-0 items-center justify-between gap-2 border-b-2 border-[#9a7a3d] bg-[#f1d99a] px-3 py-2">
