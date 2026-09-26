@@ -1663,6 +1663,7 @@ import ZiiplyMobileNotebookCard from "./components/ziiply/cards/ZiiplyMobileNote
 import ZiiplyMobileOfferSearchCard from "./components/ziiply/cards/ZiiplyMobileOfferSearchCard";
 const ZiiplyMobileOfferSearchCardLoose: any = ZiiplyMobileOfferSearchCard;
 import ZiiplyMobileScannerCard from "./components/ziiply/cards/ZiiplyMobileScannerCard";
+import { resolveKWeightLabel } from "./components/ziiply/kWeightLabelResolver";
 import ZiiplyMobileProductPickCard from "./components/ziiply/cards/ZiiplyMobileProductPickCard";
 import ZiiplyMobileCompareCard from "./components/ziiply/cards/ZiiplyMobileCompareCardresponsive";
 import ZiiplyStoreLocaCard from "./components/ziiply/cards/ZiiplyStoreLocaCard";
@@ -11868,6 +11869,94 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setEanMessage("Syötä 8–14 numeron EAN-koodi.");
       setEanResults([]);
       return;
+    }
+
+    // V730: K-kaupan hintaa sisältävä vaakatarra käsitellään ennen normaalia EAN-ketjua.
+    // 20 00 RRRR PPPP C -> canonical 20 00 RRRR 0000 C.
+    // Tarran PPPP on tämän nimenomaisen punnituksen oikea kokonaishinta.
+    const kWeightLabelV730 = resolveKWeightLabel(ean);
+    if (kWeightLabelV730) {
+      setEanLoading(true);
+      setEanMessage("");
+      setEanResults([]);
+      setEanScannerMessage("Vaakatuote — haetaan K-tuotetietoa");
+
+      try {
+        const kStoreIdV730 = activeStores.kStoreId || "3221";
+        const queriesV730 = [
+          kWeightLabelV730.canonicalEan,
+          kWeightLabelV730.plu,
+        ];
+
+        let exactKProductV730: KProduct | null = null;
+
+        for (const queryV730 of queriesV730) {
+          const productsV730 = await fetchKProducts(queryV730, kStoreIdV730).catch(
+            () => [] as KProduct[],
+          );
+          exactKProductV730 =
+            productsV730.find(
+              (product) =>
+                normalizeEan(product?.ean) === kWeightLabelV730.canonicalEan,
+            ) || null;
+          if (exactKProductV730) break;
+        }
+
+        if (exactKProductV730) {
+          const convertedV730 = convertKProductToProduct(exactKProductV730);
+          const weighedProductV730 = {
+            ...convertedV730,
+            ean: kWeightLabelV730.scannedEan,
+            price: kWeightLabelV730.price,
+            ziiplyKWeightLabel: true,
+            ziiplyKWeightPlu: kWeightLabelV730.plu,
+            ziiplyKCanonicalEan: kWeightLabelV730.canonicalEan,
+            ziiplyKScalePriceCents: kWeightLabelV730.priceCents,
+          } as Product;
+
+          addEanResultToCart(
+            {
+              key: `K-weight-${kWeightLabelV730.scannedEan}`,
+              chain: "K",
+              storeName: activeStores.kStoreName || "K-kauppa",
+              product: weighedProductV730,
+              eanMatch: true,
+            },
+            { showFlash: true },
+          );
+
+          setEanMessage(
+            `Vaakatuote tunnistettu. Tarran hinta ${kWeightLabelV730.price.toFixed(2).replace(".", ",")} €.`,
+          );
+          setEanScannerMessage("Vaakatuote lisätty");
+          window.setTimeout(() => {
+            setEanScannerMessage((current) =>
+              current === "Vaakatuote lisätty" ? "" : current,
+            );
+          }, 2200);
+          return;
+        }
+
+        setEanLoading(false);
+        setEanMessage(
+          `Vaakatuote tunnistettu (PLU ${kWeightLabelV730.plu}, ${kWeightLabelV730.price.toFixed(2).replace(".", ",")} €), mutta K-tuotetietoa ei löytynyt.`,
+        );
+        setEanScannerMessage("Vaakatuote tunnistettu — tuotetietoa ei löytynyt");
+        window.setTimeout(() => {
+          setEanScannerMessage((current) =>
+            current === "Vaakatuote tunnistettu — tuotetietoa ei löytynyt" ? "" : current,
+          );
+        }, 2800);
+        return;
+      } catch (error) {
+        console.error("K weight-label lookup failed", error);
+        setEanLoading(false);
+        setEanMessage(
+          `Vaakatuote tunnistettu (PLU ${kWeightLabelV730.plu}, ${kWeightLabelV730.price.toFixed(2).replace(".", ",")} €), mutta tuotetietohaku epäonnistui.`,
+        );
+        setEanScannerMessage("Vaakatuotteen tuotetietohaku epäonnistui");
+        return;
+      }
     }
 
     const existingLookupPromiseV121 = eanLookupPromiseRefV121.current.get(ean);
