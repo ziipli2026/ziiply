@@ -8814,14 +8814,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     );
   }
 
-  function clearStoreBackedSearchState() {
-    comparisonCacheKeyRef.current = null;
-    comparisonCompletedKeyRef.current = null;
+  function clearStoreBackedSearchState(options: { preserveComparison?: boolean } = {}) {
+    if (!options.preserveComparison) {
+      comparisonCacheKeyRef.current = null;
+      comparisonCompletedKeyRef.current = null;
+      setSMatches({});
+      setKMatches({});
+    }
     setOffers([]);
     setNormalResults([]);
     setVisibleNormalCount(8);
-    setSMatches({});
-    setKMatches({});
     setHasSearchedOffers(false);
     setActiveResult("none");
     setLastOptimizationSnapshot(null);
@@ -9491,7 +9493,24 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         setLocationInput(nextArea.label || query);
       }
 
-      clearStoreBackedSearchState();
+      // Reloadin boot-GPS saa päivittää sijaintidatan, mutta jos aktiivinen
+      // S/K-kauppapari ei muutu, valmista Halpuusvertailua ei mitätöidä.
+      // Muuttunut kauppapari tyhjentää vertailun normaalisti ja laukaisee uuden haun.
+      const nextSelectedS =
+        effectiveLocationStoreModeV39 === "local"
+          ? { id: nextArea.sLocalStoreId, name: nextArea.sLocalStoreName }
+          : { id: nextArea.sStoreId, name: nextArea.sStoreName };
+      const nextSelectedK =
+        effectiveLocationStoreModeV39 === "local"
+          ? { id: nextArea.kLocalStoreId, name: nextArea.kLocalStoreName }
+          : { id: nextArea.kStoreId, name: nextArea.kStoreName };
+      const comparisonStoresUnchanged =
+        String(activeStores.sStoreId || "") === String(nextSelectedS.id || "") &&
+        normalize(activeStores.sStoreName || "") === normalize(nextSelectedS.name || "") &&
+        String(activeStores.kStoreId || "") === String(nextSelectedK.id || "") &&
+        normalize(activeStores.kStoreName || "") === normalize(nextSelectedK.name || "");
+
+      clearStoreBackedSearchState({ preserveComparison: comparisonStoresUnchanged });
 
       // V39_GPS_RELOAD_NO_HYPER_DEFAULT_LOCK:
       // GPS ei saa pakottaa Tavaratalot-tilaa, koska kunnanrajalla se lukitsee helposti
