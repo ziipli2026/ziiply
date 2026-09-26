@@ -183,3 +183,37 @@ jobs:
           console.log('PASS piimä ranking: all buttermilk drinks precede piimä breads');
           console.log('SAFE_SUMMARY functional piimä regression passed');
           NODE
+
+      - name: Functional maito ranking regression
+        shell: bash
+        run: |
+          node <<'NODE'
+          const core = require('./.tmp-search-regression/ziiplyCore.js');
+
+          const products = [
+            { id: 11, name: 'Kotimaista rasvaton maito 1l', category: 'Maidot ja piimät', price: 0.99 },
+            { id: 12, name: 'Valio Eila laktoositon rasvaton maito 1 l', category: 'Maidot ja piimät', price: 1.65 },
+            { id: 13, name: 'Arla kevytmaito 1l', category: 'Maidot ja piimät', price: 1.29 },
+            { id: 14, name: 'Maitokolmio Sipaisu rasvaseos 400g', category: 'Rasvat ja levitteet', price: 2.49 },
+            { id: 15, name: 'Fazer maitosuklaa 200g', category: 'Makeiset', price: 3.19 },
+            { id: 16, name: 'Valio kuohukerma 2 dl', category: 'Kermat', price: 1.39 },
+            { id: 17, name: 'Valio maitorahka 250g', category: 'Rahkat', price: 1.09 },
+          ];
+
+          for (const query of ['maito', 'maitoa']) {
+            const ranked = core.rankNormalSearchResults(query, products);
+            const positions = new Map(ranked.map((product, index) => [product.id, index]));
+            const milkIds = [11, 12, 13];
+            const wrongIds = [14, 15, 16, 17];
+            const lastMilk = Math.max(...milkIds.map(id => positions.get(id)));
+            const firstWrong = Math.min(...wrongIds.map(id => positions.get(id)));
+
+            if (!(lastMilk < firstWrong)) {
+              console.error('FAIL milk ranking for', query, ranked.map(product => product.name));
+              process.exit(1);
+            }
+            console.log('PASS milk ranking:', query, 'keeps true milk before incidental/wrong products');
+          }
+
+          console.log('SAFE_SUMMARY functional maito regression passed');
+          NODE
