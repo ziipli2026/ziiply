@@ -19,7 +19,15 @@ jobs:
           function pick(label){const q=norm(label);return stores.find(s=>norm(s.name)===q)||stores.find(s=>norm(s.name).includes(q.replace("k supermarket ","")))}
           const ev=pick("K-Supermarket Eväskontti"), jo=pick("K-Supermarket Jokela");
           if(!ev||!jo) throw new Error("store missing "+JSON.stringify({ev:!!ev,jo:!!jo,evMatches:stores.filter(s=>norm(s.name).includes("evaskontti")).map(s=>({id:s.id,name:s.name})),joMatches:stores.filter(s=>norm(s.name).includes("jokela")).map(s=>({id:s.id,name:s.name}))}));
-          const offers=arr(await data("offers",{businessIds:[BUSINESS],sources:["publication","business_product"],pagination:{limit:1000,offset:0},sort:["score_desc"]}));
+          const baseParams={businessIds:[BUSINESS],sources:["publication","business_product"],pagination:{limit:1000,offset:0},sort:["score_desc"]};
+          const offers=arr(await data("offers",baseParams));
+          for(const [label,extra] of [["storeId",{storeId:String(ev.id)}],["storeIds",{storeIds:[String(ev.id)]}],["stores",{stores:[String(ev.id)]}]]){
+            try{
+              const probe=arr(await data("offers",{...baseParams,...extra}));
+              const pubs=[...new Set(probe.map(o=>String(o.publicationPublicId??"")).filter(Boolean))];
+              console.log("EVASKONTTI_PROBE",JSON.stringify({label,count:probe.length,pubs:pubs.map(id=>({id,count:probe.filter(o=>String(o.publicationPublicId??"")===id).length}))}));
+            }catch(e){console.log("EVASKONTTI_PROBE_ERROR",label,String(e))}
+          }
           const ids=[...new Set(offers.map(o=>String(o.publicationPublicId??"")).filter(Boolean))];
           const rows=[];
           for(const id of ids){const ps=arr(await data("stores",{publicationId:id,businessId:BUSINESS,pagination:{offset:0,limit:1000}}));rows.push({id,count:offers.filter(o=>String(o.publicationPublicId??"")===id).length,ev:ps.some(s=>String(s.id)===String(ev.id)),jo:ps.some(s=>String(s.id)===String(jo.id)),stores:ps.length,samples:ps.map(s=>({name:s.name,city:s.city,postalCode:s.postalCode}))})}
