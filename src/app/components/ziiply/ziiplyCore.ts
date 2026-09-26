@@ -3149,6 +3149,21 @@ function canUseKPriceTieBreaker(sourceName: string, targetName: string) {
 }
 
 export function pickBestKProduct(items: KProduct[], query: string, ean?: string) {
+  const normalizedEan = normalizeEan(ean);
+
+  // Täsmä-EAN ratkaisee tuotteen identiteetin ENNEN nimisuodattimia.
+  // Sama tuote ei saa pudota pois productGroupGate-/nimireject-säännöillä
+  // vain siksi, että kaupan nimi/teksti poikkeaa lähtötuotteen nimestä.
+  const exactEanMatch = items.find(
+    (item) =>
+      item.price > 0 &&
+      isUsableEan(normalizedEan) &&
+      normalizeEan(item.ean) === normalizedEan,
+  );
+  if (exactEanMatch) return exactEanMatch;
+
+  // Vasta jos samaa EANia ei löydy, sovelletaan nimellä haettavan
+  // "Vastaava tuote" -kandidaatin semantiikka- ja tuoteryhmäsuojia.
   const usableItems = items.filter(
     (item) =>
       item.price > 0 &&
@@ -3156,10 +3171,6 @@ export function pickBestKProduct(items: KProduct[], query: string, ean?: string)
       !isHardRejectedKMatch(query, item.name) &&
       productGroupGate(query, item.name)
   );
-
-  const normalizedEan = normalizeEan(ean);
-  const eanMatch = usableItems.find((item) => isUsableEan(normalizedEan) && normalizeEan(item.ean) === normalizedEan);
-  if (eanMatch) return eanMatch;
 
   const queryIsValueBrand = isValueBrandProduct(query);
 
