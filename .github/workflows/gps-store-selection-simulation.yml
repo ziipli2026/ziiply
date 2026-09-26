@@ -115,6 +115,18 @@ jobs:
             if(!res.ok||items.length===0) process.exitCode=2;
           }
           JS
+      - name: Diagnose Jokela Huiluntuhti matching
+        shell: bash
+        run: |
+          node <<'JS'
+          const storeId=3334;
+          const terms=["6406300000261","6406300014237","Huiluntuhti","grillimakkara","makkara"];
+          for(const q of terms){
+            const u="https://api.ruoanhinta.fi/api/items?search="+encodeURIComponent(q)+"&storeIds="+storeId+"&skip=0&take=30";
+            const res=await fetch(u); const data=await res.json(); const items=data.items||[];
+            console.log("JOKELA_HUILUNTUHTI_DIAG",JSON.stringify({q,status:res.status,count:items.length,items:items.slice(0,30).map(p=>({id:p.id,name:p.name,ean:p.ean??p.gtin??p.eanCode??p.barcode??p.externalId??null,externalId:p.externalId??null,price:p.storeItems?.[0]?.price??null}))}));
+          }
+          JS
       - name: Verify live S product prices for GPS stores
         shell: bash
         run: |
