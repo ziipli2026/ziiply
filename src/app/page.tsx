@@ -11260,11 +11260,28 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           const localName = activeArea.kLocalStoreName || "K-lähikauppa";
           const itemEan = normalizeEan(item.ean || item.product?.ean);
 
-          let hyperBest: KProduct | undefined;
-          if (hyperId) hyperBest = await findBestKMatchForStore(item.name, hyperId, itemEan);
-          if (hyperBest && hyperBest.price > 0) {
-            const product = convertKProductToProduct(hyperBest);
-            s = { product: { ...product, ean: hyperBest.ean, storeName: hyperName } as Product, price: hyperBest.price, quantity: 1, matchType: normalizeEan(hyperBest.ean) === itemEan && itemEan ? "ean" : "name", cartItemId: item.id };
+          // Ketjun sisäisessä K-vertailussa tavaratalokorin pitää säilyttää
+          // käyttäjän alun perin valitsema K-tavaratalon tuote. Älä hae sille
+          // uutta nimivastinetta samasta kaupasta, koska se voi vaihtaa tuotteen.
+          if (
+            item.chain === "K" &&
+            item.price &&
+            item.product &&
+            normalize(item.storeName || "") === normalize(hyperName)
+          ) {
+            s = {
+              product: { ...item.product, storeName: hyperName } as Product,
+              price: item.price,
+              quantity: 1,
+              matchType: "ean",
+              cartItemId: item.id,
+            };
+          } else if (hyperId) {
+            const hyperBest = await findBestKMatchForStore(item.name, hyperId, itemEan);
+            if (hyperBest && hyperBest.price > 0) {
+              const product = convertKProductToProduct(hyperBest);
+              s = { product: { ...product, ean: hyperBest.ean, storeName: hyperName } as Product, price: hyperBest.price, quantity: 1, matchType: normalizeEan(hyperBest.ean) === itemEan && itemEan ? "ean" : "name", cartItemId: item.id };
+            }
           }
 
           if (localId) {
