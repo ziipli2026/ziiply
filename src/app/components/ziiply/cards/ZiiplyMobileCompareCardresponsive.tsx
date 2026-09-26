@@ -246,6 +246,7 @@ export default function ZiiplyMobileCompareCardresponsive({
   onShareStore,
   onChangeItemQuantity: _onChangeItemQuantity,
   onChangeMatchMode,
+  onSelectAlternative,
   onResetMatchMode: _onResetMatchMode,
   onClose,
   className = "",
