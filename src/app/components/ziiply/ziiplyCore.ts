@@ -1948,6 +1948,12 @@ export function isHardRejectedKMatch(query: string, candidateName: string) {
   const sourceIsEgg = isEggSearchTerm(source);
   if (sourceIsEgg && !isClearlyEggProduct(candidateName)) return true;
 
+  // Grillimakkara ei saa pudota geneeriseksi "makkara"-vastineeksi.
+  // Jos sama EAN puuttuu, hyväksy edelleen oikea vastaava grillimakkara
+  // (esim. toinen Huiluntuhti-versio), mutta älä muuta makkaratyyppiä.
+  const sourceIsGrillSausage = hasAnyToken(source, ["grillimakkara"]);
+  if (sourceIsGrillSausage && !hasAnyToken(target, ["grillimakkara"])) return true;
+
   // K-vastineiden semanttiset suojaukset, validoitu erillisessä
   // Normal product K-match simulation -regressiossa ennen tuotantoon vientiä.
   const metricSize = (value: string) => {
