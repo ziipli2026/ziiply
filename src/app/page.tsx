@@ -15718,9 +15718,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function getMatchQualityMode(match: Match, chainKey?: ChainResult["key"]) {
-    if (!match.cartItemId) return "cheapest" as QualityMode;
+    if (!match.cartItemId) return "keep_brands" as QualityMode;
     const key = chainKey ? `${chainKey}:${match.cartItemId}` : match.cartItemId;
-    return qualityModesByCart[key] || "cheapest";
+    const explicitMode = qualityModesByCart[key];
+    if (explicitMode) return explicitMode;
+
+    // Initial status follows the original shopping-list product, never a later
+    // comparison replacement. Own-brand products start in the own-brand group;
+    // ordinary branded products start under their original product brand.
+    const sourceItem = cart.find((item) => item.id === match.cartItemId);
+    const sourceName = sourceItem?.name || sourceItem?.product?.name || match.product.name;
+    if (isValueBrandProduct(sourceName)) return "own_brands" as QualityMode;
+    return "keep_brands" as QualityMode;
   }
 
   function setMatchQualityMode(
