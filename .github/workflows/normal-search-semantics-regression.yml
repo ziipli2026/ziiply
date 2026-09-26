@@ -205,6 +205,53 @@ jobs:
           console.log('SAFE_SUMMARY grocery typo autocorrect regression passed');
           NODE
 
+      - name: Functional general grocery intent and exclusion regression
+        shell: bash
+        run: |
+          node <<'NODE'
+          const search = require('./.tmp-search-regression/search/searchIntentAI.js');
+
+          const intentCases = [
+            ['kahiv', 'kahvi', 'coffee'],
+            ['juutso', 'juusto', 'cheese'],
+            ['jauhelhia', 'jauheliha', 'meat'],
+            ['leip', 'leipä', 'bread'],
+            ['kanamuna', 'kananmuna', 'eggs'],
+          ];
+          for (const [input, corrected, intent] of intentCases) {
+            const actualCorrection = search.correctSearchQuery(input);
+            const resolved = search.resolveSearchIntentAI(input);
+            if (actualCorrection !== corrected || resolved.intent !== intent) {
+              console.error('FAIL general intent:', input, actualCorrection, resolved.intent, 'expected', corrected, intent);
+              process.exit(1);
+            }
+            console.log('PASS general intent:', input, '=>', corrected, '=>', intent);
+          }
+
+          const exclusionCases = [
+            ['kahvi', { name: 'Paulig Juhla Mokka kahvi 500g', category: 'Kahvit' }, { name: 'Kahvinsuodatin 1x4 100kpl', category: 'Suodatinpussit' }],
+            ['juusto', { name: 'Valio Oltermanni juusto 500g', category: 'Juustot' }, { name: 'Juustonaksu 150g', category: 'Naposteltavat' }],
+            ['jauheliha', { name: 'Naudan jauheliha 400g', category: 'Lihat' }, { name: 'Jauhelihamauste 30g', category: 'Mausteet' }],
+            ['leipä', { name: 'Täysjyväleipä 500g', category: 'Leivät' }, { name: 'Leipäveitsi 20cm', category: 'Keittiötarvikkeet' }],
+            ['kananmuna', { name: 'Vapaan kanan munat 10kpl', category: 'Kananmunat' }, { name: 'Suklaamuna 20g', category: 'Makeiset' }],
+          ];
+
+          for (const [query, good, bad] of exclusionCases) {
+            const intent = search.resolveSearchIntentAI(query);
+            if (!search.isProductAllowedByIntent(good, intent)) {
+              console.error('FAIL good product rejected:', query, good.name);
+              process.exit(1);
+            }
+            if (search.isProductAllowedByIntent(bad, intent)) {
+              console.error('FAIL bad substring product allowed:', query, bad.name);
+              process.exit(1);
+            }
+            console.log('PASS intent exclusion:', query, 'keeps', good.name, 'rejects', bad.name);
+          }
+
+          console.log('SAFE_SUMMARY general grocery intent/exclusion regression passed');
+          NODE
+
       - name: Functional piima ranking regression
         shell: bash
         run: |
