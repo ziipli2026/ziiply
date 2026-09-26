@@ -412,6 +412,14 @@ export function isProductAllowedByIntent(product: IntentProductLike, intent: Zii
   if (!text) return false;
   if (hasAny(text, intent.excludeTerms)) return false;
 
+  // Product-group searches must not accept incidental compound-word hits merely
+  // because the query noun occurs inside another product name.
+  if (intent.intent === "coffee" && hasAny(text, ["kahvinsuodatin", "suodatinpussi", "kahvimuki", "kahvikuppi"])) return false;
+  if (intent.intent === "cheese" && hasAny(text, ["juustonaksu", "juustokakku", "juustodippi"])) return false;
+  if (intent.intent === "meat" && hasAny(text, ["jauhelihamauste", "liemikuutio", "jauhelihakastike"])) return false;
+  if (intent.intent === "bread" && hasAny(text, ["leipäveitsi", "leipävuoka", "leipäkori", "korppujauho"])) return false;
+  if (intent.intent === "eggs" && hasAny(text, ["suklaamuna", "pääsiäismuna", "munavoi", "majoneesi"])) return false;
+
   if (intent.intent === "rye_bread") {
     return hasAny(text, ["ruis", "ruisleipa", "ruisleipapala", "ruispala", "ruislimppu"]);
   }
