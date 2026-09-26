@@ -14152,21 +14152,34 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       });
 
       if (existingItem) {
+        const existingProductAny = existingItem.product as any;
+        const existingEan = normalizeEan(existingItem.ean || existingProductAny?.ean || "");
+        const sameExactEan =
+          isUsableEan(existingEan) &&
+          isUsableEan(resultEan) &&
+          getEanVariantKeysV126(existingEan).some((variant) =>
+            getEanVariantKeysV126(resultEan).includes(variant),
+          );
+
         const nextCart = baseCart.map((item) =>
           item.id === existingItem.id
             ? {
                 ...item,
-                // Exact-EAN-osuma on tämän rivin vahvin identiteettilähde.
-                // Päivitä myös nimi/product, jotta vertailumatcher ei käytä
-                // vanhaa tai lyhennettyä CartItem-nimeä ilman pakkauskokoa.
-                name: productName || item.name,
-                price: getProductPrice(result.product) || item.price,
-                image: result.product.pictureUrl || item.image,
-                chain: result.chain,
-                storeName: result.storeName,
+                // Cart-rivin tuoteidentiteetti on käyttäjän valinta. Hakutulos saa
+                // rikastaa name/product/EAN-tietoja vain kun myös hakutuloksen EAN
+                // on täsmälleen sama tuote. Eri-EAN fallback ei saa vaihtaa tuotetta.
+                ...(sameExactEan
+                  ? {
+                      name: productName || item.name,
+                      price: getProductPrice(result.product) || item.price,
+                      image: result.product.pictureUrl || item.image,
+                      chain: result.chain,
+                      storeName: result.storeName,
+                      product: result.product,
+                      ean: existingEan,
+                    }
+                  : {}),
                 quantity: Number(item.quantity || 1) + 1,
-                product: result.product,
-                ean: ean || result.product.ean || item.ean,
               }
             : item,
         );
