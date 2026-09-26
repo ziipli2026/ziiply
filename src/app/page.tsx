@@ -11210,7 +11210,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // Bump comparison cache schema whenever matching semantics change.
       // Otherwise an old localStorage snapshot can keep serving a previously
       // selected wrong equivalent even after the matcher has been fixed.
-      schema: 9,
+      schema: 10,
       items: nextCart.map((item) => [item.id, item.name, item.ean, item.product?.ean, item.quantity, item.price, item.chain, item.storeName, item.source]),
       stores:
         storeCompareScope === "within_chain"
@@ -11235,7 +11235,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     // Määrä ei muuta tuotteen vastinetta: sama pyyntö palvelee myös nopeita määränmuutoksia.
     const itemKey = JSON.stringify([
-      "matcher-v9",
+      "matcher-v10",
       item.id, item.name, item.ean, item.product?.ean, item.price, item.product?.id, item.chain, item.storeName, item.source,
       activeStores.sStoreId, activeStores.kStoreId, activeStores.sStoreName, activeStores.kStoreName,
       storeCompareScope, withinChain, ...withinStoreSignature,
