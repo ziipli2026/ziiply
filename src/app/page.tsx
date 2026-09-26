@@ -3425,6 +3425,8 @@ export default function Page() {
 
 
   const [cartModalOpen, setCartModalOpen] = useState(false);
+  // V732: when shopping starts from Compare, keep the chosen S/K basket as the mobile picking list.
+  const [mobileCompareShoppingStoreKeyV732, setMobileCompareShoppingStoreKeyV732] = useState<ChainResult["key"] | null>(null);
   const [cartSavePanelOpen, setCartSavePanelOpen] = useState(false);
   const [notebookOpen, setNotebookOpen] = useState(false);
   const [shopsPanelOpen, setShopsPanelOpen] = useState(false);
@@ -8250,6 +8252,44 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     selectedChains,
   ]);
 
+  // V732_COMPARE_STORE_PICKING_LIST:
+  // A Compare -> store selection must show that store's matched products/prices,
+  // while a normal cart opening must continue to show the user's original cart.
+  const mobileCompareShoppingItemsV732 = useMemo(() => {
+    if (!mobileCompareShoppingStoreKeyV732) return null;
+
+    const selectedResult = chainResults.find(
+      (result) => result.key === mobileCompareShoppingStoreKeyV732,
+    );
+    if (!selectedResult) return null;
+
+    const matchedCartIds = new Set(
+      (selectedResult.matches || []).map((match) => match.cartItemId).filter(Boolean),
+    );
+
+    const matchedItems = (selectedResult.matches || []).map((match) => ({
+      id: match.cartItemId || String(match.product.id),
+      name: match.product.name,
+      price: match.price,
+      quantity: match.quantity,
+      image:
+        (match.product as any).image ||
+        (match.product as any).imageUrl ||
+        (match.product as any).pictureUrl ||
+        "",
+      ean: match.product.ean,
+      product: match.product,
+      compareStoreKey: selectedResult.key,
+      compareStoreName: selectedResult.storeName,
+    }));
+
+    const manualItems = cart.filter(
+      (item) => isManualShoppingItem(item) && !matchedCartIds.has(item.id),
+    );
+
+    return [...matchedItems, ...manualItems];
+  }, [mobileCompareShoppingStoreKeyV732, chainResults, cart]);
+
   const { completeResults, cheapest, secondCheapest, savings, savingsPercent } =
     useMemo(() => {
       const complete = chainResults.filter(
@@ -8537,6 +8577,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function openShoppingListForCheapest() {
+    setMobileCompareShoppingStoreKeyV732(cheapest?.key || null);
     setSearchPanelOpen(false);
     setEanModalOpen(false);
     setActiveResult("none");
@@ -8544,7 +8585,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     triggerHaptic();
   }
 
-  function openMobileShoppingListFromCompareV724(_storeId?: string) {
+  function openMobileShoppingListFromCompareV724(storeId?: string) {
+    // V732: lock the explicitly chosen comparison store into the picking list.
+    const chosenKey = chainResults.find((result) => result.key === storeId)?.key || null;
+    if (!chosenKey) {
+      showCartToast("Valitun kaupan ostoskoria ei löytynyt");
+      return;
+    }
+    setMobileCompareShoppingStoreKeyV732(chosenKey);
     // Mobiilin compare-kortilta valinta vie aina paperiseen keräilylistaan.
     // Ei toggleta koria, ettei Vertailu -> Kori -siirtymä sulje itseään vahingossa.
     setSearchPanelOpen(false);
@@ -13934,6 +13982,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     // V547: Kori avataan suoralla overlay-state-vaihdolla ilman vanhaa scroll/ref-hyppelyä.
+    // V732: suora Kori avaa alkuperäisen käyttäjän korin, ei aiemmin valittua vertailukauppaa.
+    setMobileCompareShoppingStoreKeyV732(null);
     suppressHaeReadyBadgeV541();
     closeProductSelectionOverlay();
     setSearchPanelOpen(false);
@@ -19134,7 +19184,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         {!showLaunchScreen && cartModalOpen && (
           <ZiiplyMobileCartCard
             open={true}
-            items={cart.map((item: any) => {
+            items={(mobileCompareShoppingItemsV732 || cart).map((item: any) => {
               const key =
                 item.id ??
                 item.ean ??
@@ -19401,6 +19451,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             onSelectStore={(storeId) => openMobileShoppingListFromCompareV724(storeId)}
             onShareStore={(storeId) => shareMobileCompareStoreV729(storeId)}
             onBackToCart={() => {
+              setMobileCompareShoppingStoreKeyV732(null);
               setActiveResult("none");
               setCartModalOpen(true);
             }}
