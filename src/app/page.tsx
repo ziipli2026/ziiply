@@ -4292,6 +4292,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const [comparisonLoading, setComparisonLoading] = useState(false);
   const [restoredComparisonPending, setRestoredComparisonPending] = useState(false);
   const comparisonCacheKeyRef = useRef<string | null>(null);
+  const comparisonCompletedKeyRef = useRef<string | null>(null);
   const comparisonItemRequestsRef = useRef<Map<string, Promise<{ s: Match | null; k: Match | null; failed: boolean }>>>(new Map());
   const comparisonUpdateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [sMatches, setSMatches] = useState<Record<string, Match>>({});
@@ -11059,7 +11060,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       comparisonUpdateTimerRef.current = null;
     }
     const cacheKey = getComparisonCacheKey(nextCart);
-    if (comparisonCacheKeyRef.current === cacheKey) {
+    if (comparisonCompletedKeyRef.current === cacheKey) {
       if (shouldOpenCompare) setActiveResult("compare");
       return;
     }
@@ -11090,14 +11091,20 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       });
 
       if (comparisonCacheKeyRef.current === cacheKey) {
-        setSMatches(nextSMatches);
-        setKMatches(nextKMatches);
-        if (failed) {
+        const hasPricedMatch = [...Object.values(nextSMatches), ...Object.values(nextKMatches)]
+          .some((match) => Number(match.price) > 0);
+        if (!failed && hasPricedMatch) {
+          comparisonCompletedKeyRef.current = cacheKey;
+          setSMatches(nextSMatches);
+          setKMatches(nextKMatches);
+        } else {
+          // An empty or failed response must never replace a valid comparison or become a cache hit.
           comparisonCacheKeyRef.current = null;
+          comparisonCompletedKeyRef.current = null;
           setComparisonLoading(false);
         }
         try {
-          if (!failed) {
+          if (!failed && hasPricedMatch) {
             window.localStorage.setItem("ziiply-comparison-snapshot-v1", JSON.stringify({
               cacheKey,
               sMatches: nextSMatches,
@@ -11129,10 +11136,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     try {
       const raw = window.localStorage.getItem("ziiply-comparison-snapshot-v1");
       const snapshot = raw ? JSON.parse(raw) : null;
-      if (snapshot?.cacheKey === cacheKey && snapshot.sMatches && snapshot.kMatches) {
+      if (snapshot?.cacheKey === cacheKey && snapshot.sMatches && snapshot.kMatches &&
+        [...Object.values(snapshot.sMatches), ...Object.values(snapshot.kMatches)]
+          .some((match) => Number((match as Match).price) > 0)) {
         setSMatches(snapshot.sMatches);
         setKMatches(snapshot.kMatches);
         comparisonCacheKeyRef.current = cacheKey;
+        comparisonCompletedKeyRef.current = cacheKey;
         setComparisonLoading(false);
         return;
       }
@@ -14667,7 +14677,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   ) {
     // Määrä ja poisto eivät muuta muiden tuotteiden hakuosumia.
     if (comparisonCacheKeyRef.current === getComparisonCacheKey(cart)) {
-      comparisonCacheKeyRef.current = comparisonLoading ? null : nextCart.length ? getComparisonCacheKey(nextCart) : null;
+      const nextKey = comparisonLoading ? null : nextCart.length ? getComparisonCacheKey(nextCart) : null;
+      if (comparisonCompletedKeyRef.current === comparisonCacheKeyRef.current) comparisonCompletedKeyRef.current = nextKey;
+      comparisonCacheKeyRef.current = nextKey;
     }
     const quantityById = nextCart.reduce(
       (map, item) => {
