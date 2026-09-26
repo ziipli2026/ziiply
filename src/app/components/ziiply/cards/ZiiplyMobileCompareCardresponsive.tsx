@@ -386,7 +386,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                       </button>
                     </div>
 
-                    <div className="mt-2 grid shrink-0 grid-cols-[minmax(0,1fr)_2.22rem_2.22rem] items-center gap-2 pl-[2.58rem]">
+                    <div className="mt-2 flex h-[2.62rem] shrink-0 items-center pl-[2.58rem] pr-[5.25rem]">
                       {detailsStoreId === store.id ? (
                         <button type="button" onClick={() => setDetailsStoreId(null)} className="mr-auto grid h-[2.62rem] w-[2.86rem] shrink-0 place-items-center rounded-l-[0.42rem] rounded-r-[0.8rem] border-[2px] border-[#2b1a0e] bg-[linear-gradient(135deg,#7a4c2d_0%,#3b2414_78%)] text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.25),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]" aria-label="Palaa vertailukoreihin" title="Palaa vertailukoreihin">
                           <span className="grid h-[1.50rem] w-[1.50rem] place-items-center rounded-full border border-[#6b421f] bg-[radial-gradient(circle_at_35%_35%,#f6c46c_0%,#b0752a_52%,#65401f_100%)] text-[1.02rem] text-[#2b1a0e] shadow-[0_1px_2px_rgba(0,0,0,0.28)]">←</span>
@@ -394,7 +394,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                       ) : <button
                         type="button"
                         onClick={() => setDetailsStoreId((current) => current === store.id ? null : store.id)}
-                        className="mr-auto min-h-[2.40rem] min-w-0 flex-1 rounded-[0.72rem] border-[2.5px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-3 text-[0.72rem] font-black italic tracking-[0.03em] text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58),0_2px_4px_rgba(62,43,20,0.18)] active:translate-y-[1px]"
+                        className="min-h-[2.40rem] min-w-0 flex-1 rounded-[0.72rem] border-[2.5px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-3 text-[0.72rem] font-black italic tracking-[0.03em] text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58),0_2px_4px_rgba(62,43,20,0.18)] active:translate-y-[1px]"
                         style={{ fontFamily: cooperFont }}
                       >
                         Muuta valintoja
@@ -404,7 +404,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                         <button
                           type="button"
                           onClick={(event) => { event.stopPropagation(); onShareStore(store.id); }}
-                          className="grid h-[2.22rem] w-[2.22rem] shrink-0 place-items-center rounded-[0.46rem] border-[1.6px] border-[#8b713d] bg-[linear-gradient(180deg,#f5e5bd_0%,#d6b875_100%)] text-[#51361a] shadow-[0_2px_5px_rgba(45,30,10,0.17),inset_0_0_0_1px_rgba(255,249,220,0.55)] active:translate-y-[1px]"
+                          className="absolute right-[3.58rem] top-[4.18rem] grid h-[2.22rem] w-[2.22rem] place-items-center rounded-[0.46rem] border-[1.6px] border-[#8b713d] bg-[linear-gradient(180deg,#f5e5bd_0%,#d6b875_100%)] text-[#51361a] shadow-[0_2px_5px_rgba(45,30,10,0.17),inset_0_0_0_1px_rgba(255,249,220,0.55)] active:translate-y-[1px]"
                           aria-label={`Jaa ${store.name} kori`} title="Jaa kori"
                         >
                           <svg aria-hidden="true" viewBox="0 0 24 18" className="h-[0.94rem] w-[1.12rem]">
@@ -418,7 +418,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                         <button
                           type="button"
                           onClick={(event) => { event.stopPropagation(); onSelectStore(store.id); }}
-                          className="grid h-[2.22rem] w-[2.22rem] shrink-0 place-items-center rounded-[0.46rem] border-[1.6px] border-[#765628] bg-[linear-gradient(180deg,#f5dfac_0%,#d2a661_100%)] text-[#51361a] shadow-[0_2px_5px_rgba(45,30,10,0.17)] active:translate-y-[1px]"
+                          className="absolute right-[0.85rem] top-[4.18rem] grid h-[2.22rem] w-[2.22rem] place-items-center rounded-[0.46rem] border-[1.6px] border-[#765628] bg-[linear-gradient(180deg,#f5dfac_0%,#d2a661_100%)] text-[#51361a] shadow-[0_2px_5px_rgba(45,30,10,0.17)] active:translate-y-[1px]"
                           aria-label={`Osta ${store.name} vertailukori`} title="Osta tämä vertailukori"
                         >
                           <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[1.52rem] w-[1.52rem]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round">
