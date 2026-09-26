@@ -10591,10 +10591,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     if (isMainSearch) {
-      // Uusi Hae-haku ei enää tyhjennä ostoskoria. Vain vanhat vertailuosumat nollataan,
-      // jotta seuraava vertailu rakennetaan nykyisen korin ja uusien hakutulosten pohjalta.
-      setSMatches({});
-      setKMatches({});
+      // Normaali Hae-haku ei koske korin vertailuosumiin.
+      // Vertailu rakentaa/päivittää osumat vasta kun käyttäjä avaa Vertailu-näkymän.
+      // Näin uuden tuotteen hakeminen ei pyyhi jo korissa olevien tuotteiden S/K-osumia.
       setLastOptimizationSnapshot(null);
     }
 
