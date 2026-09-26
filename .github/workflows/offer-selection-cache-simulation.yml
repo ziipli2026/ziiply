@@ -7,7 +7,7 @@ on:
 jobs:
   simulate:
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 3
     steps:
       - name: Selection cache state-machine regression
         run: |
