@@ -1949,13 +1949,13 @@ export function isComparisonAttributeCompatible(sourceName: string, targetName: 
   return true;
 }
 
-export function pickCheapestCompatibleComparisonProduct<T extends { name: string }>(
+export function pickCheapestCompatibleComparisonProduct(
   sourceName: string,
-  candidates: T[],
+  candidates: Product[],
 ) {
   return candidates
     .filter((candidate) => isComparisonAttributeCompatible(sourceName, candidate.name))
-    .sort((a, b) => getProductPrice(a as Product) - getProductPrice(b as Product))[0];
+    .sort((a, b) => getProductPrice(a) - getProductPrice(b))[0];
 }
 
 export function isHardRejectedKMatch(query: string, candidateName: string) {
