@@ -10854,11 +10854,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               .originalSearchTerm ||
             useTerms[0] ||
             "";
-          const directNameDifference =
-            scoreDirectQueryNameMatch(bOriginalQuery, b.name) -
-            scoreDirectQueryNameMatch(aOriginalQuery, a.name);
 
-          if (Math.abs(directNameDifference) > 12) return directNameDifference;
+          // Kaikkien alihakujen yhdistämisen jälkeen käytetään samaa
+          // tuoteryhmätietoista rankkausta kuin yksittäisessä haussa.
+          // Vanha directName-first -sorttaus nosti esim. piimäleivät oikeiden
+          // piimien edelle ja "Maitokolmio"-brändin rasvaseoksen maitojen edelle.
+          const rankedPair = rankNormalSearchResults(
+            aOriginalQuery,
+            [a, b],
+          );
+
+          if (rankedPair[0]?.id === a.id && rankedPair[1]?.id === b.id) return -1;
+          if (rankedPair[0]?.id === b.id && rankedPair[1]?.id === a.id) return 1;
 
           return (
             scoreNormalSResult(bOriginalQuery, b) -
