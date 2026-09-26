@@ -1335,7 +1335,10 @@ export function getKSearchTerms(name: string) {
     .slice(0, 3);
 
   if (importantWords.length >= 2) addTerm(importantWords.join(" "));
-  if (importantWords.length >= 1) addTerm(importantWords[0]);
+  // Yksittäiset erottavat nimisanat pitää hakea myös erikseen. Pelkkä ensimmäinen
+  // sana on usein valmistaja (esim. Kivikylän), jolloin kaupan oikea nimiperhe
+  // (esim. Huiluntuhti) ei koskaan päädy kandidaatteihin.
+  for (const word of importantWords) addTerm(word);
 
   return terms.filter(Boolean);
 }
