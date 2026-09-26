@@ -3021,8 +3021,8 @@ export function isAllowedByQualityMode(
   const source = normalize(sourceName);
   const candidate = normalize(candidateName);
 
-  const sourceBrand = getPrimaryBrand(sourceBrandName || sourceName);
-  const candidateBrand = getPrimaryBrand(candidateBrandName || candidateName);
+  const sourceBrand = sourceBrandName ? normalize(sourceBrandName) : getPrimaryBrand(sourceName);
+  const candidateBrand = candidateBrandName ? normalize(candidateBrandName) : getPrimaryBrand(candidateName);
 
   const sourceOwnBrand = isValueBrandProduct(sourceName);
   const candidateOwnBrand = isValueBrandProduct(candidateName);
@@ -3072,8 +3072,8 @@ export function scoreQualityMode(
 ) {
   if (!isAllowedByQualityMode(sourceName, candidateName, qualityMode, chainKey, sourceBrandName, candidateBrandName)) return -9999;
 
-  const sourceBrand = getPrimaryBrand(sourceBrandName || sourceName);
-  const candidateBrand = getPrimaryBrand(candidateBrandName || candidateName);
+  const sourceBrand = sourceBrandName ? normalize(sourceBrandName) : getPrimaryBrand(sourceName);
+  const candidateBrand = candidateBrandName ? normalize(candidateBrandName) : getPrimaryBrand(candidateName);
 
   let score = 0;
 
