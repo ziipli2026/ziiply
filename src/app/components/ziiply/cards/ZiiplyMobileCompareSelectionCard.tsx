@@ -29,7 +29,7 @@ export type ZiiplyCompareSelectionItem = {
   cheapestPrice?: number;
   price?: number | string;
   quantity?: number;
-  qualityMode?: "cheapest" | "same_quality" | "own_brands" | "same_brand";
+  qualityMode?: "cheapest" | "own_brands" | "keep_brands";
   matchType?: "ean" | "name" | "manual";
   isMissingComparisonItem?: boolean;
   storePrices?: Record<string, number | string | undefined>;
@@ -60,8 +60,9 @@ export type ZiiplyMobileCompareSelectionCardProps = {
   onChangeMatchMode?: (
     storeId: string,
     match: unknown,
-    mode: "cheapest" | "same_quality" | "own_brands" | "same_brand",
-  ) => void | Promise<void>;
+    mode: "cheapest" | "own_brands" | "keep_brands",
+  ) => unknown[] | void | Promise<unknown[] | void>;
+  onSelectAlternative?: (storeId: string, match: unknown, alternative: unknown) => void | Promise<void>;
   onResetMatchMode?: (storeId: string, match: unknown) => void | Promise<void>;
   onClose?: () => void;
   className?: string;
@@ -71,17 +72,12 @@ const cooperFont = '"Cooper Black", "Cooper Std Black", Georgia, serif';
 const copperplateFont = '"Copperplate", "Baskerville", Georgia, serif';
 const serifFont = '"Baskerville", Georgia, serif';
 
-type QualityMode = "cheapest" | "same_quality" | "own_brands" | "same_brand";
+type QualityMode = "cheapest" | "own_brands" | "keep_brands";
 
-const QUALITY_MODES: Array<{
-  mode: QualityMode;
-  label: string;
-  hint: string;
-}> = [
-  { mode: "cheapest", label: "Edullisin", hint: "Halvin sopiva" },
-  { mode: "same_quality", label: "Vastaava", hint: "Sama taso" },
-  { mode: "own_brands", label: "Oma merkki", hint: "Kaupan oma" },
-  { mode: "same_brand", label: "Sama merkki", hint: "Sama brändi" },
+const QUALITY_MODES: Array<{ mode: QualityMode; label: string }> = [
+  { mode: "cheapest", label: "Halvin" },
+  { mode: "own_brands", label: "Omat merkit" },
+  { mode: "keep_brands", label: "Tuotemerkki" },
 ];
 
 function formatComparePrice(value: unknown) {
@@ -142,10 +138,8 @@ function getItemPriceForStore(item: unknown, storeId: string) {
 
 function getCurrentQualityMode(item: unknown): QualityMode {
   const data = item as ZiiplyCompareSelectionItem;
-  const mode = String(data?.qualityMode || "cheapest");
-
-  if (mode === "same_quality" || mode === "own_brands" || mode === "same_brand") return mode;
-
+  const mode = String(data?.qualityMode || "keep_brands");
+  if (mode === "own_brands" || mode === "keep_brands") return mode;
   return "cheapest";
 }
 
@@ -156,29 +150,28 @@ function getProductImage(item: unknown) {
 
 function getStoreOwnBrandExample(chain?: "S" | "K") {
   if (chain === "K") return "Pirkka / K-Menu";
-  if (chain === "S") return "Kotimaista / Coop / Xtra";
+  if (chain === "S") return "Coop / Xtra / Kotimaista";
   return "Kaupan oma";
 }
 
 function getProductBrandExample(item: unknown) {
-  const name = getItemName(item);
-  const first = name.split(/\s+/).find((part) => /[A-Za-zÅÄÖåäö]/.test(part)) || "sama brändi";
+  const data = item as ZiiplyCompareSelectionItem;
+  const explicit = String(data?.sourceBrandName || data?.cartItem?.brandName || "").trim();
+  if (explicit) return explicit;
+  const sourceName = String(data?.sourceProductName || data?.cartItem?.name || "").trim();
+  const first = sourceName.split(/\s+/).find((part) => /[A-Za-zÅÄÖåäö]/.test(part)) || "Tuotemerkki";
   return first.replace(/[^\wÅÄÖåäö-]/g, "");
 }
 
-function getQualityHint(mode: QualityMode, item: unknown, chain?: "S" | "K") {
-  switch (mode) {
-    case "cheapest":
-      return "Halvin sopiva";
-    case "same_quality":
-      return "Esim. Pepsi / vastaava";
-    case "own_brands":
-      return `Esim. ${getStoreOwnBrandExample(chain)}`;
-    case "same_brand":
-      return `Esim. ${getProductBrandExample(item)}`;
-    default:
-      return "";
-  }
+function getQualityLabel(mode: QualityMode, item: unknown, chain?: "S" | "K") {
+  if (mode === "cheapest") return "Halvin";
+  if (mode === "own_brands") return getStoreOwnBrandExample(chain);
+  return getProductBrandExample(item);
+}
+
+function getQualityHint(mode: QualityMode) {
+  if (mode === "cheapest") return "Valitse suoraan";
+  return "Avaa vaihtoehdot";
 }
 
 export default function ZiiplyMobileCompareSelectionCard({
@@ -191,9 +184,14 @@ export default function ZiiplyMobileCompareSelectionCard({
   onSelectStore,
   onShareStore,
   onChangeMatchMode,
+  onSelectAlternative,
   onClose,
   className = "",
 }: ZiiplyMobileCompareSelectionCardProps) {
+  const [menuKey, setMenuKey] = React.useState("");
+  const [menuItems, setMenuItems] = React.useState<ZiiplyCompareSelectionItem[]>([]);
+  const [menuLoading, setMenuLoading] = React.useState(false);
+
   if (!open) return null;
 
   const rows = ((store.matches && store.matches.length > 0 ? store.matches : items) || []) as ZiiplyCompareSelectionItem[];
@@ -250,14 +248,32 @@ export default function ZiiplyMobileCompareSelectionCard({
 
                     {onChangeMatchMode && !missing ? (
                       <div className="grid grid-cols-2 gap-2 px-3 py-2.5">
-                        {QUALITY_MODES.map(({ mode, label, hint }) => {
+                        {QUALITY_MODES.map(({ mode }) => {
                           const active = currentMode === mode;
+                          const label = getQualityLabel(mode, item, store.chain);
+                          const rowKey = String(item.id ?? item.product?.id ?? index);
+                          const thisMenuKey = `${rowKey}:${mode}`;
 
                           return (
                             <button
                               key={mode}
                               type="button"
-                              onClick={() => onChangeMatchMode(store.id, item, mode)}
+                              onClick={async () => {
+                                if (mode === "cheapest") {
+                                  setMenuKey("");
+                                  setMenuItems([]);
+                                  await onChangeMatchMode(store.id, item, mode);
+                                  return;
+                                }
+                                setMenuLoading(true);
+                                setMenuKey(thisMenuKey);
+                                try {
+                                  const result = await onChangeMatchMode(store.id, item, mode);
+                                  setMenuItems(Array.isArray(result) ? result as ZiiplyCompareSelectionItem[] : []);
+                                } finally {
+                                  setMenuLoading(false);
+                                }
+                              }}
                               className={`min-h-[2.52rem] rounded-[0.82rem] border-[2.5px] px-2 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.25)] active:translate-y-[1px] ${
                                 active
                                   ? "border-[#0b6330] bg-[linear-gradient(180deg,#139143_0%,#087237_100%)] text-[#fff6d7]"
@@ -270,11 +286,38 @@ export default function ZiiplyMobileCompareSelectionCard({
                                 {label}
                               </div>
                               <div className={active ? "mt-0.5 text-[0.49rem] font-extrabold opacity-90" : "mt-0.5 text-[0.49rem] font-extrabold text-[#6b6048]"}>
-                                {active ? "Valittu" : getQualityHint(mode, item, store.chain)}
+                                {active ? "Valittu" : getQualityHint(mode)}
                               </div>
                             </button>
                           );
                         })}
+                        {menuKey.startsWith(String(item.id ?? item.product?.id ?? index) + ":") ? (
+                          <div className="col-span-2 rounded-[0.82rem] border-2 border-[#876b37] bg-[#fff8e5] p-2">
+                            {menuLoading ? (
+                              <div className="py-2 text-center text-[0.65rem] font-black text-[#6b6048]">Haetaan vaihtoehtoja…</div>
+                            ) : menuItems.length === 0 ? (
+                              <div className="py-2 text-center text-[0.65rem] font-black text-[#6b6048]">Ei sopivia vaihtoehtoja</div>
+                            ) : (
+                              <div className="grid gap-1.5">
+                                {menuItems.map((alternative, alternativeIndex) => (
+                                  <button
+                                    key={String(alternative.id ?? alternative.product?.id ?? alternativeIndex)}
+                                    type="button"
+                                    onClick={async () => {
+                                      await onSelectAlternative?.(store.id, item, alternative);
+                                      setMenuKey("");
+                                      setMenuItems([]);
+                                    }}
+                                    className="grid grid-cols-[minmax(0,1fr)_4.8rem] items-center gap-2 rounded-[0.62rem] border border-[#b99d5c] bg-[#f5e8c7] px-2.5 py-2 text-left"
+                                  >
+                                    <span className="truncate text-[0.67rem] font-black text-[#28402a]">{getItemName(alternative)}</span>
+                                    <span className="text-right text-[0.67rem] font-black text-[#3e301c]">{formatComparePrice(alternative.price ?? alternative.product?.price)}</span>
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        ) : null}
                       </div>
                     ) : null}
                   </article>
