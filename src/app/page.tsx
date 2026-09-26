@@ -8215,58 +8215,97 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       0,
     );
 
-    const results: ChainResult[] = [
-      {
-        key: "s",
-        chain: "S-ryhmä",
-        storeName: activeStores.sStoreName,
-        detail: "Oikea hinta valitusta S-kaupasta",
-        totalPrice: sTotal,
-        foundItems: sList.length,
-        missingItems: comparableCart.length - sList.length,
-        offerCount: 0,
-        icon: "🟢",
-        matches: sList,
-      },
-      {
-        key: "k",
-        chain: "K-ryhmä",
-        storeName: activeStores.kStoreName,
-        detail: "Tarkka K-hinta: erikoistuotteet suodatetaan",
-        totalPrice: kTotal,
-        foundItems: kList.length,
-        missingItems: comparableCart.length - kList.length,
-        offerCount: 0,
-        icon: "🔴",
-        matches: kList,
-      },
-      {
-        key: "lidl",
-        chain: "Lidl",
-        storeName: "Lidl alueella",
-        detail: "Hintadata lisätään myöhemmin",
-        totalPrice: 0,
-        foundItems: 0,
-        missingItems: comparableCart.length,
-        offerCount: 0,
-        icon: "🔵",
-        matches: [],
-        comingSoon: true,
-      },
-      {
-        key: "tokmanni",
-        chain: "Tokmanni / Spar",
-        storeName: "Tokmanni / Spar alueella",
-        detail: "Hintadata lisätään myöhemmin",
-        totalPrice: 0,
-        foundItems: 0,
-        missingItems: comparableCart.length,
-        offerCount: 0,
-        icon: "🟡",
-        matches: [],
-        comingSoon: true,
-      },
-    ];
+    const results: ChainResult[] =
+      storeCompareScope === "within_chain" && withinChain
+        ? [
+            {
+              key: "s",
+              chain: withinChain === "S" ? "S-ryhmä" : "K-ryhmä",
+              storeName:
+                withinChain === "S"
+                  ? activeArea.sStoreName || "S-tavaratalo"
+                  : activeArea.kStoreName || "K-tavaratalo",
+              detail: "Valittu tavaratalo",
+              totalPrice: sTotal,
+              foundItems: sList.length,
+              missingItems: comparableCart.length - sList.length,
+              offerCount: 0,
+              icon: withinChain === "S" ? "🟢" : "🔴",
+              matches: sList,
+            },
+            {
+              key: "k",
+              chain: withinChain === "S" ? "S-ryhmä" : "K-ryhmä",
+              storeName:
+                withinChain === "S"
+                  ? activeArea.sLocalStoreName || "S-lähikauppa"
+                  : activeArea.kLocalStoreName || "K-lähikauppa",
+              detail:
+                kList.length === 0
+                  ? "Tuotetta tai vastaavaa tuotetta ei löytynyt tästä kaupasta"
+                  : kList.some((match) => match.matchType === "name")
+                    ? "Vastaava tuote"
+                    : "Sama tuote (EAN)",
+              totalPrice: kTotal,
+              foundItems: kList.length,
+              missingItems: comparableCart.length - kList.length,
+              offerCount: 0,
+              icon: withinChain === "S" ? "🟢" : "🔴",
+              matches: kList,
+            },
+          ]
+        : [
+            {
+              key: "s",
+              chain: "S-ryhmä",
+              storeName: activeStores.sStoreName,
+              detail: "Oikea hinta valitusta S-kaupasta",
+              totalPrice: sTotal,
+              foundItems: sList.length,
+              missingItems: comparableCart.length - sList.length,
+              offerCount: 0,
+              icon: "🟢",
+              matches: sList,
+            },
+            {
+              key: "k",
+              chain: "K-ryhmä",
+              storeName: activeStores.kStoreName,
+              detail: "Tarkka K-hinta: erikoistuotteet suodatetaan",
+              totalPrice: kTotal,
+              foundItems: kList.length,
+              missingItems: comparableCart.length - kList.length,
+              offerCount: 0,
+              icon: "🔴",
+              matches: kList,
+            },
+            {
+              key: "lidl",
+              chain: "Lidl",
+              storeName: "Lidl alueella",
+              detail: "Hintadata lisätään myöhemmin",
+              totalPrice: 0,
+              foundItems: 0,
+              missingItems: comparableCart.length,
+              offerCount: 0,
+              icon: "🔵",
+              matches: [],
+              comingSoon: true,
+            },
+            {
+              key: "tokmanni",
+              chain: "Tokmanni / Spar",
+              storeName: "Tokmanni / Spar alueella",
+              detail: "Hintadata lisätään myöhemmin",
+              totalPrice: 0,
+              foundItems: 0,
+              missingItems: comparableCart.length,
+              offerCount: 0,
+              icon: "🟡",
+              matches: [],
+              comingSoon: true,
+            },
+          ];
 
     return results
       .filter((result) => selectedChains[result.key])
@@ -8295,6 +8334,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     sMatches,
     kMatches,
     activeStores,
+    activeArea,
+    storeCompareScope,
+    withinChain,
     selectedChains,
   ]);
 
