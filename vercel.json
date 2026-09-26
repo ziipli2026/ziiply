@@ -3,7 +3,7 @@
   "crons": [
     {
       "path": "/api/cron/kcitymarket-cache",
-      "schedule": "10 3 * * *"
+      "schedule": "45 3 * * *"
     },
     {
       "path": "/api/cron/kcitymarket-cache",
