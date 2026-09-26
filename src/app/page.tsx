@@ -14402,7 +14402,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       cartItemsCount: nextCart.length,
     });
 
+    // Normaali käyttäjän valinta on cart-identiteetin auktoriteetti myös
+    // saman render-kierroksen aikana. Päivitä ref + storage synkronisesti,
+    // jotta myöhempi EAN/fallback-polku ei voi yhdistää mukaan vanhaa cartRef-riviä.
+    cartRefV124.current = nextCart;
     setCart(nextCart);
+    persistCartImmediately(nextCart);
     showCartToast(`Lisätty ostoskoriin: ${newItem.name}`);
 
     const nextInput = remainingTerms.join(",");
@@ -15496,7 +15501,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     );
     if (!ok) return false;
 
+    // Tyhjennä myös synkroninen ref ja storage heti. Muuten saman tickin
+    // myöhempi mergeCartPoolsByIdV129 voi herättää juuri poistetun tuotteen takaisin.
+    cartRefV124.current = [];
     setCart([]);
+    persistCartImmediately([]);
     setCheckedCartItems({});
     setQualityModesByCart({});
     setSMatches({});
