@@ -471,7 +471,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                           </svg>
                         </button>
                       ) : <span aria-hidden="true" />}
-                    </div>div>
+                    </div>
                   </article>
                 );
               })
