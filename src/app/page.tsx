@@ -11120,7 +11120,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   useEffect(() => {
     if (!restoredComparisonPending || !storesReadyForSearch || cart.length === 0) return;
     setRestoredComparisonPending(false);
-    const cacheKey = getComparisonCacheKey(cart);
+    const comparableCart = cart.filter((item) => String(item.source || "").toLowerCase() !== "offer");
+    if (comparableCart.length === 0) {
+      setComparisonLoading(false);
+      return;
+    }
+    const cacheKey = getComparisonCacheKey(comparableCart);
     try {
       const raw = window.localStorage.getItem("ziiply-comparison-snapshot-v1");
       const snapshot = raw ? JSON.parse(raw) : null;
@@ -11132,7 +11137,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         return;
       }
     } catch {}
-    void updateChainComparison(cart, { openCompare: false });
+    void updateChainComparison(comparableCart, { openCompare: false });
   }, [restoredComparisonPending, storesReadyForSearch, cart, activeStores.sStoreId, activeStores.kStoreId, activeStores.sStoreName, activeStores.kStoreName, storeMode, storeCompareScope, withinChain]);
 
   useEffect(() => {
