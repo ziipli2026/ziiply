@@ -453,7 +453,7 @@ export default function ZiiplyMobileCartCard({
             <span aria-hidden="true" className="block h-[2rem] w-[2rem] shrink-0" />
           </div>
 
-          <div className="absolute left-[2.05rem] top-[1.64rem] z-[22]">
+          {onOpenSavedLists ? <div className="absolute left-[2.05rem] top-[1.64rem] z-[22]">
             <button
               type="button"
               onClick={onOpenSavedLists}
@@ -470,9 +470,9 @@ export default function ZiiplyMobileCartCard({
                 </span>
               ) : null}
             </button>
-          </div>
+          </div> : null}
 
-          {hasItems ? (
+          {hasItems && onClearCart ? (
             <div className="absolute right-[2.05rem] top-[1.64rem] z-[22]">
               <button
                 type="button"
@@ -705,7 +705,7 @@ export default function ZiiplyMobileCartCard({
             </div>
           )}
 
-          <button
+          {onCompare ? <button
             type="button"
             onClick={onCompare}
             disabled={!hasItems}
@@ -716,7 +716,7 @@ export default function ZiiplyMobileCartCard({
             style={{ fontFamily: cooperFont }}
           >
             Halpuusvertailu
-          </button>
+          </button> : null}
         </footer>
         ) : null}
 
