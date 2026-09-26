@@ -466,6 +466,15 @@ async function fetchGostaMasterOfferResultsV156(context?: ZiiplyGostaOfferSearch
   return promise;
 }
 
+export async function warmZiiplyGostaOfferCacheV182(
+  context?: ZiiplyGostaOfferSearchContextV152,
+) {
+  // Selection warmup deliberately reuses the exact same master-cache function
+  // as the visible Gösta search. This means a later search gets the same
+  // promise/data instead of starting a second provider request.
+  await fetchGostaMasterOfferResultsV156(context);
+}
+
 
 function getCompactGostaTitleKeyV149(value: unknown) {
   const normalized = normalizeGostaCoreText(value)
