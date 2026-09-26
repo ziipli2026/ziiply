@@ -214,7 +214,7 @@ jobs:
           const intentCases = [
             ['kahiv', 'kahvi', 'coffee'],
             ['juutso', 'juusto', 'cheese'],
-            ['jauhelhia', 'jauheliha', 'meat'],
+            ['jauhelih', 'jauheliha', 'meat'],
             ['leip', 'leipä', 'bread'],
             ['kanamuna', 'kananmuna', 'eggs'],
           ];
