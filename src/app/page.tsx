@@ -4290,6 +4290,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     Record<string, QualityMode>
   >({});
   const [comparisonLoading, setComparisonLoading] = useState(false);
+  const [restoredComparisonPending, setRestoredComparisonPending] = useState(false);
   const comparisonCacheKeyRef = useRef<string | null>(null);
   const [sMatches, setSMatches] = useState<Record<string, Match>>({});
   const [kMatches, setKMatches] = useState<Record<string, Match>>({});
@@ -10981,16 +10982,20 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return pickBestKProduct(allCandidates, query, ean);
   }
 
+  function getComparisonCacheKey(nextCart: CartItem[]) {
+    return JSON.stringify({
+      items: nextCart.map((item) => [item.id, item.name, item.ean, item.quantity, item.price, item.chain, item.storeName, item.source]),
+      stores: [activeStores.sStoreId, activeStores.kStoreId, activeStores.sStoreName, activeStores.kStoreName],
+      storeMode, storeCompareScope, withinChain,
+    });
+  }
+
   async function updateChainComparison(
     nextCart = cart,
     options: { openCompare?: boolean } = {},
   ) {
     const shouldOpenCompare = options.openCompare !== false;
-    const cacheKey = JSON.stringify({
-      items: nextCart.map((item) => [item.id, item.name, item.ean, item.quantity, item.price, item.chain, item.storeName, item.source]),
-      stores: [activeStores.sStoreId, activeStores.kStoreId, activeStores.sStoreName, activeStores.kStoreName],
-      storeMode, storeCompareScope, withinChain,
-    });
+    const cacheKey = getComparisonCacheKey(nextCart);
     if (comparisonCacheKeyRef.current === cacheKey) {
       if (shouldOpenCompare) setActiveResult("compare");
       return;
@@ -11090,6 +11095,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       if (comparisonCacheKeyRef.current === cacheKey) {
         setSMatches(nextSMatches);
         setKMatches(nextKMatches);
+        try {
+          window.localStorage.setItem("ziiply-comparison-snapshot-v1", JSON.stringify({
+            cacheKey,
+            sMatches: nextSMatches,
+            kMatches: nextKMatches,
+          }));
+        } catch {}
       }
     } catch (error) {
       if (comparisonCacheKeyRef.current === cacheKey) comparisonCacheKeyRef.current = null;
@@ -11098,6 +11110,24 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       if (comparisonCacheKeyRef.current === cacheKey || comparisonCacheKeyRef.current === null) setComparisonLoading(false);
     }
   }
+
+  useEffect(() => {
+    if (!restoredComparisonPending || !storesReadyForSearch || cart.length === 0) return;
+    setRestoredComparisonPending(false);
+    const cacheKey = getComparisonCacheKey(cart);
+    try {
+      const raw = window.localStorage.getItem("ziiply-comparison-snapshot-v1");
+      const snapshot = raw ? JSON.parse(raw) : null;
+      if (snapshot?.cacheKey === cacheKey && snapshot.sMatches && snapshot.kMatches) {
+        setSMatches(snapshot.sMatches);
+        setKMatches(snapshot.kMatches);
+        comparisonCacheKeyRef.current = cacheKey;
+        setComparisonLoading(false);
+        return;
+      }
+    } catch {}
+    void updateChainComparison(cart, { openCompare: false });
+  }, [restoredComparisonPending, storesReadyForSearch, cart, activeStores.sStoreId, activeStores.kStoreId, activeStores.sStoreName, activeStores.kStoreName, storeMode, storeCompareScope, withinChain]);
 
   useEffect(() => {
     if (cart.length === 0 || !hasActiveStores) {
@@ -18779,6 +18809,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                         type="button"
                         onClick={() => {
                           setRestoredCartPromptV320({ open: false, count: 0 });
+                          setComparisonLoading(true);
+                          setRestoredComparisonPending(true);
                           setSearchPanelOpen(false);
                           setShopsPanelOpen(false);
                           setEanModalOpen(false);
