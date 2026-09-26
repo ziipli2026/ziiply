@@ -11940,6 +11940,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               (product) =>
                 normalizeEan(product?.ean) === kWeightLabelV730.canonicalEan,
             ) || null;
+
+          // Ruoanhinta does not consistently expose K's internal canonical EAN.
+          // For the PLU query only, accept a single unambiguous result as identity.
+          // Its price is NEVER used: the physical scale label remains authoritative.
+          if (
+            !exactKProductV730 &&
+            queryV730 === kWeightLabelV730.plu &&
+            productsV730.length === 1
+          ) {
+            exactKProductV730 = productsV730[0];
+          }
+
           if (exactKProductV730) break;
         }
 
