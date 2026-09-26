@@ -22,7 +22,7 @@ jobs:
           const offers=arr(await data("offers",{businessIds:[BUSINESS],sources:["publication","business_product"],pagination:{limit:1000,offset:0},sort:["score_desc"]}));
           const ids=[...new Set(offers.map(o=>String(o.publicationPublicId??"")).filter(Boolean))];
           const rows=[];
-          for(const id of ids){const ps=arr(await data("stores",{publicationId:id,businessId:BUSINESS,pagination:{offset:0,limit:1000}}));rows.push({id,count:offers.filter(o=>String(o.publicationPublicId??"")===id).length,ev:ps.some(s=>String(s.id)===String(ev.id)),jo:ps.some(s=>String(s.id)===String(jo.id)),stores:ps.length,samples:ps.slice(0,5).map(s=>s.name)})}
+          for(const id of ids){const ps=arr(await data("stores",{publicationId:id,businessId:BUSINESS,pagination:{offset:0,limit:1000}}));rows.push({id,count:offers.filter(o=>String(o.publicationPublicId??"")===id).length,ev:ps.some(s=>String(s.id)===String(ev.id)),jo:ps.some(s=>String(s.id)===String(jo.id)),stores:ps.length,samples:ps.map(s=>({name:s.name,city:s.city,postalCode:s.postalCode}))})}
           rows.sort((a,b)=>b.count-a.count);
           const dominant=rows[0], second=rows[1]?.count??0;
           const safe=!!dominant&&dominant.count>=10&&(second===0||dominant.count>=second*2);
