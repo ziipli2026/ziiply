@@ -10792,28 +10792,26 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     storeId: string | number,
     ean?: string,
   ) {
-    let fallbackCandidate: KProduct | undefined;
+    const allCandidates: KProduct[] = [];
+    const seenCandidateIds = new Set<string>();
 
+    // Älä palauta ensimmäistä hyväksyttyä osumaa heti ensimmäisestä K-hakutermistä.
+    // Myöhempi hakutermi voi löytää saman tuoteryhmän selvästi paremman vastineen.
+    // Kerätään hakutermien kandidaatit yhteen ja annetaan pickBestKProductin
+    // nykyisten semanttisten guardien, EANin, private-label-logiikan ja scorerin
+    // ratkaista paras vastine koko turvallisesta kandidaatijoukosta.
     for (const searchTerm of getKSearchTerms(query)) {
       const items = await fetchKProducts(searchTerm, storeId);
-      const candidate = pickBestKProduct(items, query, ean);
 
-      if (!candidate) continue;
-
-      if (isValueBrandProduct(query)) {
-        if (isKOwnBrandProduct(candidate.name)) return candidate;
-
-        if (!fallbackCandidate) fallbackCandidate = candidate;
-
-        if (shouldKeepSearchingKOwnBrand(query, candidate)) {
-          continue;
-        }
+      for (const item of items) {
+        const candidateKey = String(item.id || item.ean || item.name);
+        if (seenCandidateIds.has(candidateKey)) continue;
+        seenCandidateIds.add(candidateKey);
+        allCandidates.push(item);
       }
-
-      return candidate;
     }
 
-    return fallbackCandidate;
+    return pickBestKProduct(allCandidates, query, ean);
   }
 
   async function updateChainComparison(
