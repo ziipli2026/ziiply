@@ -517,7 +517,7 @@ function TopGuideStatusBox({
             className="text-[0.82rem] font-black leading-tight text-[#174c2c]"
             style={{ fontFamily: cooperFont }}
           >
-            Justiina auttaa löytämään tuotteet ja tarjoukset.
+            Justiina auttaa löytämään tuotteet ja Gösta tarjoukset.
           </div>
           <div className="mt-0.5 text-[0.66rem] font-bold leading-tight text-[#6f5630]">
             Kirjoita tuote, tuoteryhmä tai ostoslista.
