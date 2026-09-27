@@ -406,6 +406,13 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
     if(!title || isNoiseLine(title)) continue;
 
     const normalMin=Number(row?.normal?.min);
+    const offerQuantity=resolved?.quantity!=null&&Number.isFinite(Number(resolved.quantity))?Number(resolved.quantity):null;
+    // The leaflet's normal price is a single-item price, while resolved.value is
+    // the total for multi-buy offers (e.g. 3 kpl / 4 €). Keep both prices on
+    // the same basis so UI comparisons and strike-through prices are meaningful.
+    const normalPrice=Number.isFinite(normalMin)
+      ? Number((normalMin*(offerQuantity&&offerQuantity>1?offerQuantity:1)).toFixed(2))
+      : null;
     const unitMin=Number(row?.unitPrice?.min);
     const unitMax=Number(row?.unitPrice?.max);
     const unitPrice=
@@ -417,11 +424,11 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       id:`kcm:spatial:${row?.page??0}:${title.toLowerCase()}:${price}`,
       title,
       price,
-      normalPrice:Number.isFinite(normalMin)?normalMin:null,
+      normalPrice,
       unitPrice,
       unit:row?.unitPrice?.raw?.match(/\/(kg|l)\b/i)?.[1]?.toLowerCase()??resolved?.unit??null,
       packageSize:row?.package?.raw??null,
-      offerQuantity:resolved?.quantity!=null&&Number.isFinite(Number(resolved.quantity))?Number(resolved.quantity):null,
+      offerQuantity,
       offerUnit:resolved?.unit?String(resolved.unit).toUpperCase():null,
       resolutionSource:resolved?.source?String(resolved.source):null,
       resolutionSanity:resolved?.sanity?String(resolved.sanity):null,
