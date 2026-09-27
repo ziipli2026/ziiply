@@ -356,7 +356,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                   <article
                     key={store.id}
                     className={cx(
-                      "relative flex min-h-0 flex-col overflow-hidden rounded-[1.18rem] border-[2.5px] px-3.5 pt-2 pb-1 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]",
+                      "relative flex min-h-0 flex-col overflow-hidden rounded-[1.18rem] border-[2.5px] px-3.5 pt-2 pb-0.5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]",
                       detailsStoreId === store.id ? "flex-1" : "shrink-0",
                       store.chain === "S" ? "border-[#0b6330] bg-[#ecf3d5]/82" : "border-[#7c663d]/76 bg-[#fff8e5]/72",
                     )}
@@ -365,7 +365,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                       "grid shrink-0 gap-2",
                       detailsStoreId === store.id
                         ? "min-h-[4.95rem] grid-cols-[2.86rem_minmax(0,1fr)_2.22rem_4.75rem] items-start"
-                        : "min-h-[3.35rem] grid-cols-[2.35rem_minmax(0,1fr)_2.22rem_4.75rem] items-start",
+                        : "min-h-[3.12rem] grid-cols-[2.35rem_minmax(0,1fr)_2.22rem_4.75rem] items-start",
                     )}>
                       {detailsStoreId === store.id ? (
                         <button type="button" onClick={() => setDetailsStoreId(null)}
@@ -424,7 +424,7 @@ export default function ZiiplyMobileCompareCardresponsive({
 
                       </div>
 
-                      <div className="flex flex-col items-center gap-2 pt-0.5">
+                      <div className="flex -translate-y-[0.18rem] flex-col items-center gap-2">
                           {onShareStore ? (
                             <button type="button" onClick={(event) => { event.stopPropagation(); onShareStore(store.id); }}
                               className="grid h-[2.22rem] w-[2.22rem] place-items-center rounded-[0.46rem] border-[1.6px] border-[#8b713d] bg-[linear-gradient(180deg,#f5e5bd_0%,#d6b875_100%)] text-[#51361a] shadow-[0_2px_5px_rgba(45,30,10,0.17),inset_0_0_0_1px_rgba(255,249,220,0.55)] active:translate-y-[1px]"
@@ -467,7 +467,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                     </div>
 
                     {detailsStoreId !== store.id ? (
-                      <div className="-mt-[1.72rem] flex h-[1.96rem] shrink-0 items-start pl-[1.72rem] pr-[8.85rem]">
+                      <div className="-mt-[1.94rem] flex h-[1.96rem] shrink-0 items-start pl-[1.72rem] pr-[8.85rem]">
                         <button
                           type="button"
                           onClick={() => setDetailsStoreId((current) => current === store.id ? null : store.id)}
