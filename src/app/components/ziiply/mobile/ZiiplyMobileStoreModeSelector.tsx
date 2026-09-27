@@ -137,22 +137,22 @@ export default function ZiiplyMobileStoreModeSelector({
           type="button"
           disabled={modeButtonsDisabled}
           onClick={() => onStoreModeChange("hyper")}
-          className={`${buttonClass(hyperActive, modeButtonsDisabled)} w-[calc(50%-0.5rem)]`}
+          className={`${buttonClass(hyperActive, modeButtonsDisabled)} w-[calc(50%-0.5rem)] -translate-x-5`}
         >
           <span className="relative z-10">🏬 Tavaratalot</span>
         </button>
-        <div className={`absolute left-1/2 z-20 flex w-[42px] -translate-x-1/2 flex-col items-center justify-center gap-0 ${storeCompareScope === "between_chains" && storeModeChosen ? "" : "invisible pointer-events-none"}`} aria-hidden={!(storeCompareScope === "between_chains" && storeModeChosen)}>
-          <span className="text-[10px] font-black text-[#6a5330]">Yksi</span>
+        <div className={`absolute left-1/2 top-1/2 z-20 flex w-[48px] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center ${storeCompareScope === "between_chains" && storeModeChosen ? "" : "invisible pointer-events-none"}`} aria-hidden={!(storeCompareScope === "between_chains" && storeModeChosen)}>
+          <span className="mb-[1px] text-[9px] font-black leading-none text-[#6a5330]">Yksi</span>
           <button type="button" role="switch" aria-checked={betweenChainSelectionMode === "many"} aria-label="Valitse yksi tai monta kauppaa" onClick={() => onBetweenChainSelectionModeChange?.(betweenChainSelectionMode === "one" ? "many" : "one")} className={`relative h-[34px] w-[18px] shrink-0 rounded-full border transition-colors ${betweenChainSelectionMode === "many" ? "border-[#07502c] bg-[#0a6d39]" : "border-[#b99b62] bg-[#d8c69d]"}`}>
             <span className={`absolute left-[2px] h-[12px] w-[12px] rounded-full bg-white shadow-sm transition-all ${betweenChainSelectionMode === "many" ? "top-[18px]" : "top-[2px]"}`} />
           </button>
-          <span className="text-[10px] font-black text-[#6a5330]">Monta</span>
+          <span className="mt-[1px] text-[9px] font-black leading-none text-[#6a5330]">Monta</span>
         </div>
 <button
           type="button"
           disabled={modeButtonsDisabled}
           onClick={() => onStoreModeChange("local")}
-          className={`${buttonClass(localActive, modeButtonsDisabled)} w-[calc(50%-0.5rem)]`}
+          className={`${buttonClass(localActive, modeButtonsDisabled)} w-[calc(50%-0.5rem)] translate-x-5`}
         >
           <span className="relative z-10">🏪 Lähikaupat</span>
         </button>
@@ -181,7 +181,7 @@ export default function ZiiplyMobileStoreModeSelector({
         <button
           type="button"
           onClick={() => onStoreCompareScopeChange("between_chains")}
-          className={buttonClass(storeCompareScope === "between_chains")}
+          className={`${buttonClass(storeCompareScope === "between_chains")} -translate-x-5`}
         >
           <span className="relative z-10">Ketjujen väliltä</span>
         </button>
@@ -189,7 +189,7 @@ export default function ZiiplyMobileStoreModeSelector({
         <button
           type="button"
           onClick={() => onStoreCompareScopeChange("within_chain")}
-          className={buttonClass(storeCompareScope === "within_chain")}
+          className={`${buttonClass(storeCompareScope === "within_chain")} translate-x-5`}
         >
           <span className="relative z-10">Ketjun sisältä</span>
         </button>
