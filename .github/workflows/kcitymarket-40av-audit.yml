@@ -20,7 +20,7 @@ jobs:
           cp src/app/components/ziiply/offerSearch/providers/kCitymarketSpatialParser.js /tmp/kcm-parser.mjs
           node --input-type=module <<'NODE'
           import parser from "file:///tmp/kcm-parser.mjs";
-          const URL="https://kcm-tarjouslehdet.k-ruoka.fi/79obhu0_tarjouslehti_40AV_KCM/index.html";
+          const URL="https://kcm-tarjouslehdet.k-ruoka.fi/78sgvzy_tarjouslehti_39LV_KCM/index.html";
           const out=await parser(URL);
           const rows=Array.isArray(out?.rows)?out.rows:[];
           const clean=rows.map(r=>({
@@ -35,15 +35,15 @@ jobs:
           const inverted=clean.filter(r=>Number(r.normal?.min)>0&&Number(r.price)>Number(r.normal.min)*1.02&&!(Number(r.quantity)>1));
           const arithmetic=clean.filter(r=>Number(r.expectedSingle)>0&&Number(r.price)>0&&Number(r.quantity||1)===1&&Math.abs(Number(r.price)-Number(r.expectedSingle))>Math.max(.25,Number(r.expectedSingle)*.20));
           const suspiciousHigh=clean.filter(r=>Number(r.price)>=20);
-          console.log("KCM_40AV_SUMMARY",JSON.stringify({leaflet:out.leaflet,total:clean.length,resolved:clean.length-unresolved.length,unresolved:unresolved.length,review:review.length,inverted:inverted.length,arithmetic:arithmetic.length,suspiciousHigh:suspiciousHigh.length},null,2));
-          console.log("KCM_40AV_UNRESOLVED",JSON.stringify(unresolved,null,2));
-          console.log("KCM_40AV_REVIEW",JSON.stringify(review,null,2));
-          console.log("KCM_40AV_INVERTED",JSON.stringify(inverted,null,2));
-          console.log("KCM_40AV_ARITHMETIC",JSON.stringify(arithmetic,null,2));
-          console.log("KCM_40AV_SUSPICIOUS_HIGH",JSON.stringify(suspiciousHigh,null,2));
-          console.log("KCM_40AV_ALL_ROWS",JSON.stringify(clean,null,2));
+          console.log("KCM_39LV_SUMMARY",JSON.stringify({leaflet:out.leaflet,total:clean.length,resolved:clean.length-unresolved.length,unresolved:unresolved.length,review:review.length,inverted:inverted.length,arithmetic:arithmetic.length,suspiciousHigh:suspiciousHigh.length},null,2));
+          console.log("KCM_39LV_UNRESOLVED",JSON.stringify(unresolved,null,2));
+          console.log("KCM_39LV_REVIEW",JSON.stringify(review,null,2));
+          console.log("KCM_39LV_INVERTED",JSON.stringify(inverted,null,2));
+          console.log("KCM_39LV_ARITHMETIC",JSON.stringify(arithmetic,null,2));
+          console.log("KCM_39LV_SUSPICIOUS_HIGH",JSON.stringify(suspiciousHigh,null,2));
+          console.log("KCM_39LV_ALL_ROWS",JSON.stringify(clean,null,2));
           const focusTitles=new Set([...inverted,...arithmetic].map(x=>x.title));
           const focusRaw=rows.filter(r=>focusTitles.has(r.title)).map(r=>({page:r.page,title:r.title,package:r.package,unitPrice:r.unitPrice,normal:r.normal,expectedSingle:r.expectedSingle,spatialResolved:r.spatialResolved,debugAnchor:r.debugAnchor,debugBestTitleRow:r.debugBestTitleRow,spatialCandidates:r.spatialCandidates,spatialGroups:r.spatialGroups,nearby:r.nearby}));
-          console.log("KCM_40AV_FOCUS_RAW",JSON.stringify(focusRaw,null,2));
+          console.log("KCM_39LV_FOCUS_RAW",JSON.stringify(focusRaw,null,2));
           if(!clean.length) process.exitCode=2;
           NODE
