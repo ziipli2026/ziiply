@@ -22,7 +22,7 @@ jobs:
 
       - name: Verify Next production build
         run: |
-          npm ci
+          npm install --package-lock=false --ignore-scripts
           npm run build
 
       - name: Run 300-case category simulation
