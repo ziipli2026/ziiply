@@ -258,6 +258,10 @@ export type ZiiplyMobileOfferSearchItem = {
   image?: string;
   imageUrl?: string;
   pictureUrl?: string;
+  comparisonPrice?: string | number | null;
+  comparisonPriceText?: string | number | null;
+  unitPrice?: string | number | null;
+  comparisonUnit?: string;
   [key: string]: any;
 };
 
@@ -526,8 +530,40 @@ function getSavingsText(offer: ZiiplyMobileOfferSearchItem) {
   return "";
 }
 
+function getOfferEan(offer: ZiiplyMobileOfferSearchItem) {
+  const source = offer.__sourceOfferSearchResult || {};
+  const value = offer.ean ?? source.ean;
+  const text = String(value ?? "").trim();
+  return /^\d{8,14}$/.test(text) ? text : "";
+}
+
+function getOfferComparisonPrice(offer: ZiiplyMobileOfferSearchItem) {
+  const source = offer.__sourceOfferSearchResult || {};
+  const value =
+    offer.comparisonPriceText ??
+    offer.unitPrice ??
+    offer.comparisonPrice ??
+    source.unitPriceText ??
+    source.comparisonPriceText ??
+    source.comparisonPrice;
+  const text = String(value ?? "").trim();
+  if (!text) return "";
+  if (/€\s*\/\s*(?:kg|l|kpl)/i.test(text)) return text;
+  const number = Number(text.replace(",", ".").replace(/[^0-9.-]/g, ""));
+  if (!Number.isFinite(number) || number <= 0) return text;
+  const unit = String(offer.comparisonUnit ?? source.comparisonUnit ?? "kg").trim().toLowerCase();
+  return `${number.toLocaleString("fi-FI", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €/${unit || "kg"}`;
+}
+
 function getOfferImage(offer: ZiiplyMobileOfferSearchItem) {
-  return String(offer.imageUrl || offer.pictureUrl || offer.image || "").trim();
+  const ean = getOfferEan(offer);
+  const source = offer.__sourceOfferSearchResult || {};
+  const explicit = String(offer.imageUrl || offer.pictureUrl || offer.image || source.imageUrl || "").trim();
+  if (explicit) return explicit;
+  if (String(offer.chain || source.chain || "").toUpperCase() === "K" && ean) {
+    return `https://public.keskofiles.com/f/k-ruoka/product/${ean}`;
+  }
+  return "";
 }
 
 function getCategoryIcon(category?: string) {
@@ -1203,6 +1239,8 @@ export default function ZiiplyMobileOfferSearchCard({
                 const normalPrice = getNormalPrice(offer);
                 const savingsText = getSavingsText(offer);
                 const image = getOfferImage(offer);
+                const ean = getOfferEan(offer);
+                const comparisonPrice = getOfferComparisonPrice(offer);
                 const category = String(offer.category || "");
 
                 return (
@@ -1218,6 +1256,12 @@ export default function ZiiplyMobileOfferSearchCard({
                           <div className="mt-0.5 flex flex-wrap items-center gap-1 text-[0.56rem] font-black uppercase tracking-[0.08em] text-[#6e6d55]">
                             <span>{storeName}</span>
                             {category ? <span className="rounded-full bg-[#174c2c]/12 px-1.5 py-0.5 text-[#174c2c]">{category}</span> : null}
+                          </div>
+                          <div className="mt-[0.18rem] min-h-[0.61rem] truncate text-[0.61rem] font-bold leading-none text-[#8a7a55]">
+                            {ean ? `EAN ${ean}` : ""}
+                          </div>
+                          <div className="mt-[0.30rem] min-h-[0.68rem] truncate text-[0.68rem] font-black leading-none text-[#8a7a55]">
+                            {comparisonPrice}
                           </div>
                           <div className="mt-1 truncate text-[0.68rem] font-extrabold italic text-[#6b6048]" style={{ fontFamily: serifFont }}>
                             {savingsText || (normalPrice ? `Norm. ${normalPrice}` : "Tarjous voimassa")}
