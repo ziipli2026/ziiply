@@ -11,6 +11,20 @@ jobs:
   category-regression:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repository for build verification
+        uses: actions/checkout@v4
+
+      - name: Setup Node for build verification
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Verify Next production build
+        run: |
+          npm ci
+          npm run build
+
       - name: Run 300-case category simulation
         shell: bash
         run: |
