@@ -38,7 +38,9 @@ async function fetchRuoanhinta(search: string) {
 
 export async function GET(request: NextRequest) {
   const search = request.nextUrl.searchParams.get("search") || "";
-  const debug = request.nextUrl.searchParams.get("debug") === "1";
+  const debug =
+    process.env.VERCEL_ENV !== "production" &&
+    request.nextUrl.searchParams.get("debug") === "1";
   const gps = request.nextUrl.searchParams.get("gps") === "1";
 
   try {
