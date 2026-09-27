@@ -23,6 +23,8 @@ jobs:
           if(!provider.includes('schemaVersion !== 1')) fail('schema v1 guard missing');
           if(!provider.includes('today < from || today > to')) fail('validity gate missing');
           if(!provider.includes('priceBasis === "multi-buy-total"')) fail('multi-buy semantics missing');
-          if(route.includes('eurosparProvider')||route.includes('fetchEurosparOffers')) fail('EUROSPAR wired into production route');
-          console.log('EUROSPAR isolated provider guards OK');
+          if(!route.includes('requestedProvider === "eurospar" && Boolean(eurosparStoreName)')) fail('explicit EUROSPAR request gate missing');
+          if(!route.includes('if (!isEurosparEnabled())')) fail('route feature flag gate missing');
+          if(!route.includes('const rawSStoreId = getParam(searchParams, "sStoreId")')) fail('existing S/K route missing');
+          console.log('EUROSPAR route feature-flag guards OK');
           NODE
