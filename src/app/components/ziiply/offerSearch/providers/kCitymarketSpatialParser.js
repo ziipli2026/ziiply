@@ -195,7 +195,7 @@ if(!spatialResolved&&rejectedForeignNormal&&anchor&&pk&&Math.abs(Number(pk.max)-
  const ax=Number(anchor.left)||0,ay=Number(anchor.top)||0,pu=String(pk.raw||"").match(/(kg|g|ml|l)\b/i)?.[1]?.toLowerCase()||"",kind=(pu==="kg"||pu==="g")?"kg":(pu==="l"||pu==="ml")?"l":"";
  const groups=spatialGroups(wordBoxes.filter(b=>Math.abs((Number(b.left)||0)-ax)<.18&&(Number(b.top)||0)>=ay-.01&&(Number(b.top)||0)<=ay+.07));
  const rates=[];
- for(const g of groups){const t=String(g.text||"").replace(/,/g,".");const m=t.match(/\(\s*(\d{1,2})\s+(\d{2})\s*\/\s*(kg|l)\)(?:\s+[gml]+)?/i);if(m&&String(m[3]).toLowerCase()===kind)rates.push(Number(m[1]+"."+m[2]));}
+ for(const g of groups){const t=String(g.text||"").replace(/,/g,".");const m=t.match(/\(\s*(\d{1,2})\s+(\d{2})\s*\/\s*(kg|l)\)(?:\s+[gml]+)?/i)||t.match(/\(\s*(\d{1,2})\s*(\d{2})\s*\/\s*(kg|l)\)(?:\s+[gml]+)?/i);if(m&&String(m[3]).toLowerCase()===kind)rates.push(Number(m[1]+"."+m[2]));}
  const uniq=[...new Set(rates.filter(Number.isFinite))];
  if(uniq.length===1){const v=Number((Number(pk.min)*uniq[0]).toFixed(2));if(v>=.2&&v<30){spatialResolved={value:v,quantity:null,unit:null,source:"same-card-fragmented-unitrate-derived",sanity:"pass",confidence:"high"};ur={min:uniq[0],max:uniq[0],raw:"geometry/"+kind};expected=v;}}
 }
