@@ -346,7 +346,7 @@ if(!spatialResolved&&anchor&&pk){
  const linesY=[...new Set(wordBoxes.filter(b=>(Number(b.top)||0)>=ay+.02&&(Number(b.top)||0)<=ay+.065&&Math.abs((Number(b.left)||0)-ax)<.18).map(b=>Number(Number(b.top).toFixed(4))))],rates=[];
  for(const y of linesY){const t=wordBoxes.filter(b=>Math.abs((Number(b.top)||0)-y)<.003&&(Number(b.left)||0)>=ax-.01&&(Number(b.left)||0)<=ax+.20).sort((a,b)=>Number(a.left)-Number(b.left)).map(b=>String(b.text||"")).join(" ").replace(/,/g,".");const m=t.match(/\(?\s*(\d{1,2})\s+(\d{2})\s*[-–]\s*(\d{1,2})\s+(\d{2})\s*\/\s*(kg|l)\)?/i);if(m&&String(m[5]).toLowerCase()===kind)rates.push(Number(m[1]+"."+m[2]),Number(m[3]+"."+m[4]));}
  const vals=[];for(const w of [Number(pk.min),Number(pk.max)])for(const rate of rates){const v=w*rate,rounded=Number(v.toFixed(2));if(rounded>=.20&&Math.abs(v-rounded)<=.015)vals.push(rounded);}
- const uniq=[...new Set(vals)];if(uniq.length===1&&wordBoxes.some(b=>String(b.text||"").trim()===String(Math.trunc(uniq[0]))&&Number(b.height||0)>=.05&&Math.abs((Number(b.top)||0)-ay)<.10&&Math.abs((Number(b.left)||0)-ax)<.30))spatialResolved={value:uniq[0],quantity:null,unit:nr?.unit||null,source:"raw-line-range-endpoint-visual",sanity:"pass",confidence:"high"};
+ const uniq=[...new Set(vals)].filter(v=>Math.abs(v-Math.round(v))<.001&&wordBoxes.some(b=>String(b.text||"").trim()===String(Math.round(v))&&Number(b.height||0)>=.05&&Math.abs((Number(b.top)||0)-ay)<.10&&Math.abs((Number(b.left)||0)-ax)<.30));if(uniq.length===1)spatialResolved={value:uniq[0],quantity:null,unit:nr?.unit||null,source:"raw-line-range-endpoint-visual",sanity:"pass",confidence:"high"};
 }
 
 // Combined-card range endpoint proof.
