@@ -37,6 +37,8 @@ export type CitymarketOffer = {
 };
 
 const ENTRY = "https://kcm-lehdet.k-ruoka.fi/tarjouslehti";
+const AV_ENTRY = "https://kcm-lehdet.k-ruoka.fi/loppuviikon_tarjouslehdet/avtarjouslehti.html";
+const LV_ENTRY = "https://kcm-lehdet.k-ruoka.fi/loppuviikon_tarjouslehdet/lvtarjouslehti.html";
 const clean=(s:string)=>String(s??"").replace(/\u00a0/g," ").replace(/[ \t]+/g," ").trim();
 const money=(s:string)=>Number(String(s).replace(",","."));
 const abs=(href:string,base:string)=>{try{return new URL(href,base).href}catch{return null}};
@@ -365,8 +367,8 @@ function pageNumber(url:string){
   return m?Number(m[1]):1;
 }
 
-async function fetchKCitymarketOffersFresh():Promise<CitymarketOffer[]>{
-  const parsed=await parseKCitymarketSpatialLeaflet(ENTRY);
+async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[]>{
+  const parsed=await parseKCitymarketSpatialLeaflet(entry);
   const leafletUrl=String(parsed?.leaflet||ENTRY);
   const rows:any[]=Array.isArray(parsed?.rows)?parsed.rows:[];
 
@@ -473,7 +475,8 @@ function leafletMatchesPeriod(url:string,period:KCitymarketPeriod){
 }
 const getCachedKCitymarketPeriod=unstable_cache(
   async(period:KCitymarketPeriod):Promise<KCitymarketCachedPayload>=>{
-    const offers=await fetchKCitymarketOffersFresh();
+    const periodEntry=period.kind==="AV"?AV_ENTRY:LV_ENTRY;
+    const offers=await fetchKCitymarketOffersFresh(periodEntry);
     const debug=citymarketHtmlDebugV8;
     const leafletUrl=String(debug?.leafletUrl||offers[0]?.sourceUrl||"");
     if(!leafletMatchesPeriod(leafletUrl,period)) throw new Error('K-Citymarket leaflet "'+(leafletUrl||"(missing)")+'" does not match requested '+period.key);
