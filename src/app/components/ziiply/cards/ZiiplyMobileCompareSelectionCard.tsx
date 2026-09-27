@@ -141,11 +141,11 @@ function getItemPriceForStore(item: unknown, storeId: string) {
 
 function getCurrentQualityMode(item: unknown): QualityMode {
   const data = item as ZiiplyCompareSelectionItem;
-  const mode = String(data?.qualityMode || "cheapest");
+  const mode = String(data?.qualityMode || "");
 
-  if (mode === "same_quality" || mode === "own_brands" || mode === "same_brand") return mode;
+  if (mode === "cheapest" || mode === "same_quality" || mode === "own_brands" || mode === "same_brand") return mode;
 
-  return "cheapest";
+  return "";
 }
 
 function getProductImage(item: unknown) {
