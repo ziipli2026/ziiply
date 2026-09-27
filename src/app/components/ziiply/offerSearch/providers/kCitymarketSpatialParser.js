@@ -383,6 +383,15 @@ if(anchor&&pk){
  if(uniq.length===1)spatialResolved={value:uniq[0],quantity:null,unit:nr?.unit||null,source:"combined-card-range-endpoint-visual",sanity:"pass",confidence:"high"};
 }
 
+// Geometry-owned fragmented unit rate, e.g. "(3" + "00/l)" or "(2" + "94/kg)".
+// Require same visual line, matching package dimension, and a large whole-euro glyph on the card.
+if(!spatialResolved&&anchor&&pk){
+ const ax=Number(anchor.left)||0,ay=Number(anchor.top)||0,pu=String(pk.raw||"").match(/(kg|g|ml|l)\b/i)?.[1]?.toLowerCase()||"",kind=(pu==="kg"||pu==="g")?"kg":(pu==="l"||pu==="ml")?"l":"",vals=[];
+ const local=wordBoxes.filter(b=>Math.abs((Number(b.left)||0)-ax)<.22&&(Number(b.top)||0)>=ay&&(Number(b.top)||0)<=ay+.075);
+ for(const a of local){const am=String(a.text||"").trim().match(/^\((\d{1,2})$/);if(!am)continue;const b=local.find(x=>Math.abs((Number(x.top)||0)-(Number(a.top)||0))<.003&&(Number(x.left)||0)>Number(a.left)&&Number(x.left)-Number(a.left)<.07&&new RegExp("^\\\\d{2}\\\\/"+kind+"\\\\)$","i").test(String(x.text||"").trim()));if(!b)continue;const bm=String(b.text).trim().match(/^(\d{2})\/(kg|l)\)$/i),rate=Number(am[1]+"."+bm[1]),v=((Number(pk.min)+Number(pk.max))/2)*rate,rv=Number(v.toFixed(2));if(Math.abs(v-rv)<=.015&&wordBoxes.some(g=>String(g.text||"").trim()===String(Math.round(rv))&&Number(g.height||0)>=.05&&Math.abs((Number(g.top)||0)-ay)<.10&&Math.abs((Number(g.left)||0)-ax)<.30))vals.push({value:rv,rate});}
+ const uniq=[...new Map(vals.map(x=>[x.value,x])).values()];if(uniq.length===1){spatialResolved={value:uniq[0].value,quantity:null,unit:null,source:"fragmented-owned-unitrate-visual",sanity:"pass",confidence:"high"};ur={min:uniq[0].rate,max:uniq[0].rate,raw:"geometry/"+kind};expected=uniq[0].value;}
+}
+
 // Geometry-owned unit-rate arithmetic fallback.
 // Some leaflet cards print the offer only as a unit rate directly below the product/package
 // (for example "(5 00/kg)") while the large price glyph is fragmented beyond reliable recovery.
