@@ -9468,6 +9468,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     source: "manual" | "gps" = "manual",
     coordsOverride?: { latitude: number; longitude: number } | null,
     silentStatusV137 = false,
+    silentLoadingV743 = false,
   ) {
     pushGpsDebugLogV492(`applyLocation() ENTRY source=${source} query=${String(queryOverride || locationInput)}`);
     const rawQuery = (queryOverride || locationInput).trim();
@@ -9493,7 +9494,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setGpsCoordsV320(null);
     }
 
-    setStoreSearchLoading(true);
+    if (!silentLoadingV743) setStoreSearchLoading(true);
     setLocationStatusV137(
       source === "gps"
         ? "Paikannetaan..."
@@ -9717,7 +9718,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           : "Kauppahaku epäonnistui. Valitse alue käsin.",
       );
     } finally {
-      setStoreSearchLoading(false);
+      if (!silentLoadingV743) setStoreSearchLoading(false);
       if (source === "gps") {
         setGpsErrorMessage("");
         if (!silentStatusV137) setLocationMessageVisible(true);
@@ -9907,7 +9908,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setGpsErrorMessage("");
     setUsingOwnLocation(true);
     setLocationInput("");
-    setStoreSearchLoading(true);
+    if (!isBackgroundBootRefreshV736) setStoreSearchLoading(true);
     // V735_BACKGROUND_BOOT_GPS_KEEPS_SNAPSHOT_VISIBLE:
     // Bootin automaattinen GPS-refresh saa pyöriä snapshotin takana ilman,
     // että käyttäjän vakaa sijaintiteksti vaihtuu "Paikannetaan..."-tilaan.
@@ -9981,7 +9982,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         selectedStoreModeRefV302.current = storeMode;
       }
       pushGpsDebugLogV492(`useOwnLocation applyLocation start`);
-      await applyLocation(city, "gps", nextGpsCoordsV485);
+      await applyLocation(city, "gps", nextGpsCoordsV485, isBackgroundBootRefreshV736, isBackgroundBootRefreshV736);
       gpsPollLastAppliedCoordsRefV137.current = nextGpsCoordsV485;
       gpsPollLastAppliedAtRefV90.current = Date.now();
       gpsApplyLocationDoneV495 = true;
