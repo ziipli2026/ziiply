@@ -456,6 +456,19 @@ jobs:
           console.log(JSON.stringify({htmlLength:html.length,dataKeys:uniq.map(v=>({name:v[0],params:v[1]??null})).filter(x=>!/key|token|secret/i.test(JSON.stringify(x)))},null,2));
           NODE
 
+      - name: Verify Joensuu K-Supermarket regional store gating
+        shell: bash
+        run: |
+          node <<'NODE'
+          const ORIGIN="https://etarjouslehdet.fi", BUSINESS="f305U8", PUBLICATION="VgNLpUyJ";
+          const enc=v=>Buffer.from(JSON.stringify(v),"utf8").toString("base64");
+          async function data(name,params){const key=enc([name,params]);const r=await fetch(ORIGIN+"/",{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json, text/plain, */*",Referer:ORIGIN+"/K-Supermarket"},body:JSON.stringify({data:[key]})});for(const line of (await r.text()).split(/\r?\n/).filter(Boolean)){try{const x=JSON.parse(line);if(x.key===key)return x.value;}catch{}}return null;}
+          const stores=Array.isArray((await data("stores",{businessId:BUSINESS,pagination:{offset:0,limit:1000}}))?.data)?(await data("stores",{businessId:BUSINESS,pagination:{offset:0,limit:1000}})).data:[];
+          const pub=Array.isArray((await data("stores",{publicationId:PUBLICATION,businessId:BUSINESS,pagination:{offset:0,limit:1000}}))?.data)?(await data("stores",{publicationId:PUBLICATION,businessId:BUSINESS,pagination:{offset:0,limit:1000}})).data:[];
+          const targets=["K-Supermarket Eväskontti","K-Supermarket Rantakylä"];
+          console.log(JSON.stringify({selected:stores.filter(s=>targets.includes(s.name)).map(s=>({id:s.id,name:s.name})),publicationStores:pub.filter(s=>targets.includes(s.name)).map(s=>({id:s.id,name:s.name})),publicationStoreCount:pub.length},null,2));
+          NODE
+
       # Live-data audit is intentionally kept in this same workflow so there is only one K-ruoka diagnostic flow.
       - name: Fetch live K-Supermarket Jokela offers and classify
         shell: bash
