@@ -421,6 +421,19 @@ if(anchor&&expected){
 if(!spatialResolved||spatialResolved.sanity==="review"||spatialResolved.source==="best-spatial-candidate"){const words=String(title).toUpperCase().split(/[^A-ZÅÄÖ0-9]+/).filter(w=>w.length>=6);const hits=wordBoxes.filter(b=>words.some(w=>String(b.text||"").toUpperCase().replace(/[^A-ZÅÄÖ0-9]/g,"")===w));const found=[];for(const hit of hits){const hy=(hit.top||0)+(hit.height||0)/2;for(const e of wordBoxes.filter(b=>/^\d{1,2}$/.test(String(b.text||"").trim())&&Number(b.height||0)>=.055&&Math.abs(((b.left||0)+(b.width||0)/2)-((hit.left||0)+(hit.width||0)/2))<.28&&Math.abs(((b.top||0)+(b.height||0)/2)-hy)<.12)){const ey=(e.top||0)+(e.height||0)/2;const et=(e.top||0);for(const q of wordBoxes.filter(b=>b!==e&&/^[2-9]$/.test(String(b.text||"").trim())&&Number(b.height||0)<Number(e.height||0)*.8&&Math.abs(((b.left||0)+(b.width||0)/2)-((e.left||0)+(e.width||0)/2))<.18&&Math.min(Math.abs(((b.top||0)+(b.height||0)/2)-ey),Math.abs(((b.top||0)+(b.height||0)/2)-et),Math.abs(((b.top||0)+(b.height||0)/2)-((e.top||0)+(e.height||0))))<.07)){const u=wordBoxes.find(b=>/^PKT$/i.test(String(b.text||"").trim())&&Math.abs(((b.left||0)+(b.width||0)/2)-((q.left||0)+(q.width||0)/2))<.06&&Math.abs(((b.top||0)+(b.height||0)/2)-((q.top||0)+(q.height||0)/2))<.025);if(u){const value=Number(String(e.text).trim()),quantity=Number(String(q.text).trim());if(value>=2&&value<=30&&quantity>=2)found.push({value,quantity,score:Math.abs((e.left||0)-((hit.left||0)+(hit.width||0)))+Math.abs(ey-hy)});}}} }found.sort((a,b)=>a.score-b.score);const best=found[0];if(best&&(!found[1]||found[1].score-best.score>.03)){const single=best.value/best.quantity,ratio=expected?single/expected:null;if(ratio==null||ratio>=.45&&ratio<=1.25)spatialResolved={value:best.value,quantity:best.quantity,unit:"PKT",source:"title-linked-whole-euro-multibuy",sanity:"pass"};}}
 
 
+// Title-linked whole-euro single-item offer validated by this card's own printed normal price.
+// "6 pr" is package contents (pairs), never a multibuy quantity.
+if(!spatialResolved&&anchor&&!pk&&!ur){
+ const ax=Number(anchor.left)||0,ay=Number(anchor.top)||0;
+ const groups=spatialGroups(wordBoxes.filter(b=>Math.abs((Number(b.left)||0)-ax)<.22&&(Number(b.top)||0)>=ay-.035&&(Number(b.top)||0)<=ay+.075));
+ const ownNormal=[];
+ for(const g of groups){const m=String(g.text||"").replace(/,/g,".").match(/\b(\d{1,2})\s+(\d{2})\/(pkt|kpl|ps|rs|tlk|pl)\b/i);if(m)ownNormal.push({value:Number(m[1]+"."+m[2]),unit:m[3].toUpperCase()});}
+ const normals=[...new Map(ownNormal.map(x=>[x.value.toFixed(2)+"|"+x.unit,x])).values()];
+ const whole=wordBoxes.filter(b=>/^[1-9]\d?$/.test(String(b.text||"").trim())&&Number(b.height||0)>=.05&&Math.abs((Number(b.left)||0)-ax)<.20&&Math.abs((Number(b.top)||0)-ay)<.06).map(b=>Number(String(b.text).trim())).filter(v=>v>=1&&v<30);
+ const prices=[...new Set(whole)];
+ if(normals.length===1&&prices.length===1&&prices[0]<normals[0].value*.995)spatialResolved={value:prices[0],quantity:null,unit:normals[0].unit,source:"title-linked-whole-euro-normal-bounded",sanity:"pass",confidence:"high"};
+}
+
 // Title-linked large visual split price. Accept a raw euro+cents pair only when it is immediately to the right of a strong title token on the same visual band. This avoids relying on expectedSingle, which can be polluted by comparison-price arithmetic.
 if(!spatialResolved||spatialResolved.sanity==="review"||spatialResolved.source==="best-spatial-candidate"){
  const titleWords=String(title).toUpperCase().split(/[^A-ZÅÄÖ0-9]+/).filter(w=>w.length>=6);
