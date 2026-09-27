@@ -279,7 +279,7 @@ export default function ZiiplyMobileCompareCardresponsive({
 
 {showSkeleton ? <RetroMopedOverlay /> : null}
 
-        <main className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden px-5 pb-[4.65rem] pt-[8.8rem]">
+        <main className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden px-5 pb-[3.1rem] pt-[8.8rem]">
           <div className="relative z-20 mb-3 ml-[3.1rem] max-w-[calc(100%-3.1rem)] shrink-0">
             <div className="text-[1.46rem] font-black italic leading-none text-[#28402a] drop-shadow-[0_1px_0_rgba(255,247,211,0.62)]" style={{ fontFamily: cooperFont }}>{title}</div>
             <div className="mt-[0.16rem] text-[0.72rem] font-extrabold text-[#5f5034]">{subtitle || `${comparedCount || visibleStores.length} tuotetta / ${visibleStores.length} kauppaa`}</div>
