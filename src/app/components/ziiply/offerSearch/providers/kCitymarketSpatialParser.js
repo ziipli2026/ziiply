@@ -199,6 +199,13 @@ if(!spatialResolved&&rejectedForeignNormal&&anchor&&pk&&Math.abs(Number(pk.max)-
  const uniq=[...new Set(rates.filter(Number.isFinite))];
  if(uniq.length===1){const v=Number((Number(pk.min)*uniq[0]).toFixed(2));if(v>=.2&&v<30){spatialResolved={value:v,quantity:null,unit:null,source:"same-card-fragmented-unitrate-derived",sanity:"pass",confidence:"high"};ur={min:uniq[0],max:uniq[0],raw:"geometry/"+kind};expected=v;}}
 }
+// Same-card fragmented unit rate can also be read directly from aligned word boxes.
+if(!spatialResolved&&rejectedForeignNormal&&anchor&&pk&&Math.abs(Number(pk.max)-Number(pk.min))<1e-9){
+ const ax=Number(anchor.left)||0,ay=Number(anchor.top)||0,pu=String(pk.raw||"").match(/(kg|g|ml|l)\b/i)?.[1]?.toLowerCase()||"",kind=(pu==="kg"||pu==="g")?"kg":(pu==="l"||pu==="ml")?"l":"",rates=[];
+ const local=wordBoxes.filter(b=>Math.abs((Number(b.left)||0)-ax)<.18&&(Number(b.top)||0)>=ay&&(Number(b.top)||0)<=ay+.07);
+ for(const a of local){const am=String(a.text||"").trim().match(/^\((\d{1,2})$/);if(!am)continue;const b=local.find(x=>Math.abs((Number(x.top)||0)-(Number(a.top)||0))<.004&&(Number(x.left)||0)>Number(a.left)&&Number(x.left)-Number(a.left)<.09&&new RegExp("^\\d{2}\\/"+kind+"\\)$","i").test(String(x.text||"").trim()));if(b){const bm=String(b.text).trim().match(/^(\d{2})\/(kg|l)\)$/i);rates.push(Number(am[1]+"."+bm[1]));}}
+ const uniq=[...new Set(rates.filter(Number.isFinite))];if(uniq.length===1){const v=Number((Number(pk.min)*uniq[0]).toFixed(2));if(v>=.2&&v<30){spatialResolved={value:v,quantity:null,unit:null,source:"same-card-box-unitrate-derived",sanity:"pass",confidence:"high"};ur={min:uniq[0],max:uniq[0],raw:"geometry/"+kind};expected=v;}}
+}
 // Whole-euro visual price: require one uniquely large glyph on the product's right side.
 if(!spatialResolved&&rejectedForeignNormal&&anchor){
  const ax=Number(anchor.left)||0,ay=Number(anchor.top)||0;
