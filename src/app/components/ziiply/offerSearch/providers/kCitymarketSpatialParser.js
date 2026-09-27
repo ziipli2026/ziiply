@@ -323,7 +323,7 @@ if(!spatialResolved&&anchor&&pk&&nr&&Number(nr.min)>0&&Math.abs(Number(pk.max)-N
  const ax=Number(anchor.left)||0,ay=Number(anchor.top)||0;
  const packageUnit=String(pk.raw||"").match(/(kg|g|ml|l)\b/i)?.[1]?.toLowerCase()||"";
  const packageKind=(packageUnit==="kg"||packageUnit==="g")?"kg":(packageUnit==="l"||packageUnit==="ml")?"l":"";
- const rateGroups=spatialGroups(wordBoxes.filter(b=>(Number(b.left)||0)>=ax-.008&&(Number(b.left)||0)<=ax+.11&&(Number(b.top)||0)>=ay-.005&&(Number(b.top)||0)<=ay+.065));
+ const rateGroups=spatialGroups(wordBoxes.filter(b=>Math.abs((Number(b.left)||0)-ax)<.11&&(Number(b.top)||0)>=ay-.005&&(Number(b.top)||0)<=ay+.065));
  const rates=[];
  for(const g of rateGroups){
   const t=String(g.text||"").replace(/,/g,".");
