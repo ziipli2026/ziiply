@@ -189,18 +189,8 @@ if(expected){
 }
 for(const g of spatialGroups(anchor?wordBoxes.filter(b=>boxDistance(anchor,b)<0.22):[])){const m=String(g.text||"").match(/(?:^|\\bERÄ\\s+)([0-9])\\s+([0-9])\\s+([0-9])(?:\\b|$)/i);if(m){const v=Number(m[1]+"."+m[2]+m[3]);if(v>=.5&&v<20&&!title.replace(/\\D/g,"").includes(m[1]+m[2]+m[3]))spatialCandidates.push({value:v,quantity:null,unit:null,parts:[m[1],m[2],m[3]],score:.08,kind:"spaced-large-cents"});}} const rejectedForeignNormal=!nr&&after.some(x=>/Ilman Plussa-korttia/i.test(String(x.text||"")));
 let spatialResolved=null,percentageOffer=null;
-// Exact same-card package × fragmented unit-rate proof. This survives a foreign
-// normal-price row because both package size and rate are geometrically tied to the title.
-if(!spatialResolved&&rejectedForeignNormal&&anchor&&pk&&Math.abs(Number(pk.max)-Number(pk.min))<1e-9){
- const ax=Number(anchor.left)||0,ay=Number(anchor.top)||0,pu=String(pk.raw||"").match(/(kg|g|ml|l)\b/i)?.[1]?.toLowerCase()||"",kind=(pu==="kg"||pu==="g")?"kg":(pu==="l"||pu==="ml")?"l":"";
- const groups=spatialGroups(wordBoxes.filter(b=>Math.abs((Number(b.left)||0)-ax)<.18&&(Number(b.top)||0)>=ay-.01&&(Number(b.top)||0)<=ay+.07));
- const rates=[];
- for(const g of groups){const t=String(g.text||"").replace(/,/g,".");const m=t.match(/\(\s*(\d{1,2})\s+(\d{2})\s*\/\s*(kg|l)\)(?:\s+[gml]+)?/i)||t.match(/\(\s*(\d{1,2})\s*(\d{2})\s*\/\s*(kg|l)\)(?:\s+[gml]+)?/i);if(m&&String(m[3]).toLowerCase()===kind)rates.push(Number(m[1]+"."+m[2]));}
- const uniq=[...new Set(rates.filter(Number.isFinite))];
- if(uniq.length===1){const v=Number((Number(pk.min)*uniq[0]).toFixed(2));if(v>=.2&&v<30){spatialResolved={value:v,quantity:null,unit:null,source:"same-card-fragmented-unitrate-derived",sanity:"pass",confidence:"high"};ur={min:uniq[0],max:uniq[0],raw:"geometry/"+kind};expected=v;}}
-}
 // Same-card fragmented unit rate can also be read directly from aligned word boxes.
-if(!spatialResolved&&rejectedForeignNormal&&anchor&&pk&&Math.abs(Number(pk.max)-Number(pk.min))<1e-9){
+if(!spatialResolved&&anchor&&pk&&Math.abs(Number(pk.max)-Number(pk.min))<1e-9){
  const ax=Number(anchor.left)||0,ay=Number(anchor.top)||0,pu=String(pk.raw||"").match(/(kg|g|ml|l)\b/i)?.[1]?.toLowerCase()||"",kind=(pu==="kg"||pu==="g")?"kg":(pu==="l"||pu==="ml")?"l":"",rates=[];
  const local=wordBoxes.filter(b=>Math.abs((Number(b.left)||0)-ax)<.18&&(Number(b.top)||0)>=ay&&(Number(b.top)||0)<=ay+.07);
  for(const a of local){const am=String(a.text||"").trim().match(/^\((\d{1,2})$/);if(!am)continue;const b=local.find(x=>Math.abs((Number(x.top)||0)-(Number(a.top)||0))<.004&&(Number(x.left)||0)>Number(a.left)&&Number(x.left)-Number(a.left)<.09&&new RegExp("^\\d{2}\\/"+kind+"\\)$","i").test(String(x.text||"").trim()));if(b){const bm=String(b.text).trim().match(/^(\d{2})\/(kg|l)\)$/i);rates.push(Number(am[1]+"."+bm[1]));}}
