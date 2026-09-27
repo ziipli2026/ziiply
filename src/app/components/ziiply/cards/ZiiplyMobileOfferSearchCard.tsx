@@ -1251,9 +1251,12 @@ export default function ZiiplyMobileOfferSearchCard({
                           <OfferImageBox src={image} category={category} />
                         </div>
 
-                        <div className="min-w-0 flex-1 pr-[8.2rem]">
-                          <div className="line-clamp-2 text-[0.92rem] font-black leading-tight text-[#233020]">{name}</div>
-                          <div className="mt-0.5 flex flex-wrap items-center gap-1 text-[0.56rem] font-black uppercase tracking-[0.08em] text-[#6e6d55]">
+                        <div className="min-w-0 flex-1">
+                          <div className="float-right ml-2 mb-0.5 max-w-[7.7rem] whitespace-nowrap text-right text-[clamp(0.88rem,4vw,1.05rem)] font-black italic leading-none text-[#087237]" style={{ fontFamily: cooperFont }}>
+                            {offerPrice || "—"}
+                          </div>
+                          <div className="line-clamp-3 text-[0.92rem] font-black leading-tight text-[#233020]">{name}</div>
+                          <div className="clear-both mt-0.5 flex flex-wrap items-center gap-1 text-[0.56rem] font-black uppercase tracking-[0.08em] text-[#6e6d55]">
                             <span>{storeName}</span>
                             {category ? <span className="rounded-full bg-[#174c2c]/12 px-1.5 py-0.5 text-[#174c2c]">{category}</span> : null}
                           </div>
@@ -1266,10 +1269,6 @@ export default function ZiiplyMobileOfferSearchCard({
                           <div className="mt-1 truncate text-[0.68rem] font-extrabold italic text-[#6b6048]" style={{ fontFamily: serifFont }}>
                             {savingsText || (normalPrice ? `Norm. ${normalPrice}` : "Tarjous voimassa")}
                           </div>
-                        </div>
-
-                        <div className="absolute right-[0.72rem] top-[0.72rem] max-w-[7.7rem] whitespace-nowrap text-right text-[clamp(0.88rem,4vw,1.05rem)] font-black italic leading-none text-[#087237]" style={{ fontFamily: cooperFont }}>
-                          {offerPrice || "—"}
                         </div>
                       </div>
 
