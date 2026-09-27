@@ -675,7 +675,7 @@ if(!spatialResolved&&anchor&&pk){
 // Propagate an exact range-proven price to an immediately adjacent sibling title in the same visual card.
 if(!spatialResolved&&anchor&&out.rows.length){
  const prev=[...out.rows].reverse().find(r=>r&&r.page===p&&r.spatialResolved?.value!=null&&["three-token-range-endpoint-visual","late-three-token-range-endpoint-visual"].includes(r.spatialResolved?.source)&&r.debugAnchor&&Math.abs(Number(r.debugAnchor.left)-Number(anchor.left))<.02&&Math.abs(Number(r.debugAnchor.top)-Number(anchor.top))<.05);
- if(prev)spatialResolved={value:Number(prev.spatialResolved.value),quantity:null,unit:null,source:"same-card-exact-sibling-price",sanity:"pass",confidence:"high"};
+ if(prev){spatialResolved={value:Number(prev.spatialResolved.value),quantity:null,unit:null,source:"same-card-exact-sibling-price",sanity:"pass",confidence:"high"};nr=null;ur=null;expected=null;}
 }
 // Explicit large "N-" glyph with KPL unit and a printed normal-price range.
 if(!spatialResolved&&anchor&&nr&&Number(nr.min)>0){
