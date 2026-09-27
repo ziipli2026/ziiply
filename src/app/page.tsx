@@ -17935,10 +17935,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const topStores = comparedStoreCards.filter(
         (store) => store.key === "s" || store.key === "k",
       );
-      const bottomStores = comparedStoreCards.filter(
-        (store) => store.key !== "s" && store.key !== "k",
-      );
-
 
       const renderBetweenChainCard = (
         store: (typeof comparedStoreCards)[number],
@@ -18144,11 +18140,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 overflow-visible">
             {topStores.map((store) => renderBetweenChainCard(store, true))}
           </div>
-          {bottomStores.length > 0 ? (
-            <div className="mt-1.5 grid grid-cols-2 gap-x-3 gap-y-1.5">
-              {bottomStores.map((store) => renderBetweenChainCard(store, false))}
-            </div>
-          ) : null}
         </div>
       );
     }
