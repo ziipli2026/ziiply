@@ -188,6 +188,23 @@ if(expected){
  }
 }
 for(const g of spatialGroups(anchor?wordBoxes.filter(b=>boxDistance(anchor,b)<0.22):[])){const m=String(g.text||"").match(/(?:^|\\bERÄ\\s+)([0-9])\\s+([0-9])\\s+([0-9])(?:\\b|$)/i);if(m){const v=Number(m[1]+"."+m[2]+m[3]);if(v>=.5&&v<20&&!title.replace(/\\D/g,"").includes(m[1]+m[2]+m[3]))spatialCandidates.push({value:v,quantity:null,unit:null,parts:[m[1],m[2],m[3]],score:.08,kind:"spaced-large-cents"});}} let spatialResolved=null,percentageOffer=null;
+// Exact same-card package × fragmented unit-rate proof. This survives a foreign
+// normal-price row because both package size and rate are geometrically tied to the title.
+if(!spatialResolved&&anchor&&pk&&Math.abs(Number(pk.max)-Number(pk.min))<1e-9){
+ const ax=Number(anchor.left)||0,ay=Number(anchor.top)||0,pu=String(pk.raw||"").match(/(kg|g|ml|l)\b/i)?.[1]?.toLowerCase()||"",kind=(pu==="kg"||pu==="g")?"kg":(pu==="l"||pu==="ml")?"l":"";
+ const groups=spatialGroups(wordBoxes.filter(b=>Math.abs((Number(b.left)||0)-ax)<.18&&(Number(b.top)||0)>=ay-.01&&(Number(b.top)||0)<=ay+.07));
+ const rates=[];
+ for(const g of groups){const t=String(g.text||"").replace(/,/g,".");const m=t.match(/\(\s*(\d{1,2})\s+(\d{2})\s*\/\s*(kg|l)\)/i);if(m&&String(m[3]).toLowerCase()===kind)rates.push(Number(m[1]+"."+m[2]));}
+ const uniq=[...new Set(rates.filter(Number.isFinite))];
+ if(uniq.length===1){const v=Number((Number(pk.min)*uniq[0]).toFixed(2));if(v>=.2&&v<30){spatialResolved={value:v,quantity:null,unit:null,source:"same-card-fragmented-unitrate-derived",sanity:"pass",confidence:"high"};ur={min:uniq[0],max:uniq[0],raw:"geometry/"+kind};expected=v;}}
+}
+// Whole-euro visual price: require one uniquely large glyph on the product's right side.
+if(!spatialResolved&&anchor){
+ const ax=Number(anchor.left)||0,ay=Number(anchor.top)||0;
+ const vals=wordBoxes.filter(b=>Number(b.height||0)>=.075&&(Number(b.left)||0)>ax+.12&&(Number(b.left)||0)<ax+.32&&Math.abs((Number(b.top)||0)-ay)<.07&&/^\d{1,2}$/.test(String(b.text||"").trim())).map(b=>Number(String(b.text).trim())).filter(v=>v>=1&&v<=20);
+ const uniq=[...new Set(vals)];
+ if(uniq.length===1)spatialResolved={value:uniq[0],quantity:null,unit:null,source:"same-card-right-large-whole-euro",sanity:"pass",confidence:"high"};
+}
 // Package-owned visual multibuy proof.
 if(!spatialResolved&&packageRowAnchor){
  const local=wordBoxes.filter(b=>Math.abs((Number(b.left)||0)-(Number(packageRowAnchor.left)||0))<.20&&Math.abs((Number(b.top)||0)-(Number(packageRowAnchor.top)||0))<.18);
