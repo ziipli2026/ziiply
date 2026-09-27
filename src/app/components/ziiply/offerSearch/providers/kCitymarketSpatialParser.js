@@ -314,6 +314,19 @@ if(!spatialResolved&&anchor&&pk){
  }
 }
 
+// Prefer a title-column unit rate over a basic-text rate borrowed from an adjacent card.
+// This also handles drained-weight products such as 567/340 g: 340 g × 2.94/kg = 1.00.
+if(!spatialResolved&&anchor&&pk&&nr&&Number(nr.min)>0&&Math.abs(Number(pk.max)-Number(pk.min))<1e-9){
+ const ax=Number(anchor.left)||0,ay=Number(anchor.top)||0,pu=String(pk.raw||"").match(/(kg|g|ml|l)\b/i)?.[1]?.toLowerCase()||"";
+ const kind=(pu==="kg"||pu==="g")?"kg":(pu==="l"||pu==="ml")?"l":"";
+ const vals=[];
+ for(const g of spatialGroups(wordBoxes.filter(b=>(Number(b.left)||0)>=ax-.05&&(Number(b.left)||0)<=ax+.08&&(Number(b.top)||0)>=ay+.005&&(Number(b.top)||0)<=ay+.04))){
+  const t=String(g.text||"").replace(/,/g,".");const m=t.match(/\(\s*(\d{1,2})\s+(\d{2})\s*\/\s*(kg|l)\)/i);if(m&&String(m[3]).toLowerCase()===kind)vals.push(Number(m[1]+"."+m[2]));
+ }
+ const uniq=[...new Set(vals.filter(Number.isFinite))];
+ if(uniq.length===1){const v=Number((Number(pk.min)*uniq[0]).toFixed(2));if(v>=.20&&v<Number(nr.min)*.995)spatialResolved={value:v,quantity:null,unit:nr.unit||null,source:"title-column-unitrate-normal-bounded",sanity:"pass",confidence:"high"};}
+}
+
 // Strong title-aligned unit-rate proof for cards whose printed "(x yy/kg)" begins at the title column.
 // Keep this separate from the broader geometry resolver so neighbouring columns cannot contaminate it.
 if(!spatialResolved&&anchor&&pk&&nr&&Number(nr.min)>0&&Math.abs(Number(pk.max)-Number(pk.min))<1e-9){
