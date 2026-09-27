@@ -20415,17 +20415,32 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   )
                   .sort((a, b) => getProductPrice(a) - getProductPrice(b))[0];
 
-                if (replacement) {
+                if (safeMode === "cheapest" && replacement) {
                   replaceMatchProduct(
                     chainKey as ChainResult["key"],
                     safeMatch,
                     replacement,
                   );
                 }
+
+                if (safeMode !== "cheapest") {
+                  return alternatives;
+                }
               } catch (error) {
                 console.error(error);
                 showCartToast("Vaihtoehdon haku epäonnistui");
               }
+            }}
+            onSelectMatchAlternative={async (storeId, match, alternative) => {
+              const chainKey =
+                storeId === "k" || storeId === "s"
+                  ? storeId
+                  : ((match as any)?.chainKey === "k" ? "k" : "s");
+              replaceMatchProduct(
+                chainKey as ChainResult["key"],
+                match as Match,
+                alternative as Product,
+              );
             }}
             onResetMatchMode={async (storeId, match) => {
               const chainKey =
