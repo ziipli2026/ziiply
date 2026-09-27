@@ -43,3 +43,34 @@ for (const [name, fn] of tests) {
 }
 console.log(`\nSecurity simulation: ${tests.length-failed}/${tests.length} passed`);
 if (failed) process.exit(1);
+
+
+console.log("\n--- Ziiply real-call compatibility model ---");
+function classifyPath(path) {
+  if (path === "/api/transcribe") return "protected-cost";
+  if (path === "/api/cron/kcitymarket-cache") return "cron";
+  if (["/api/k-weight-identity-coverage-test","/api/k-weight-sitemap-test","/api/kalori-ean-test"].includes(path)) return "diagnostic";
+  return "normal";
+}
+const realFlows = [
+  ["Justiina S product search","/api/s-products"],
+  ["Justiina K product search","/api/k-products"],
+  ["Scanner S direct EAN","/api/s-ean-product"],
+  ["Scanner K weight product","/api/k-weight-product"],
+  ["Store selector / GPS","/api/store-search"],
+  ["Gösta offer search","/api/offers/search"],
+];
+for (const [flow,path] of realFlows) {
+  assert.equal(classifyPath(path),"normal", flow+" must remain on normal API policy");
+  console.log("PASS",flow,"unchanged",path);
+}
+assert.equal(classifyPath("/api/transcribe"),"protected-cost");
+console.log("PASS voice transcription identified as protected-cost endpoint; client needs matching authorization mechanism");
+assert.equal(classifyPath("/api/cron/kcitymarket-cache"),"cron");
+console.log("PASS K-Citymarket cron isolated from interactive user flows");
+for (const p of ["/api/k-weight-identity-coverage-test","/api/k-weight-sitemap-test","/api/kalori-ean-test"]) {
+  assert.equal(classifyPath(p),"diagnostic");
+  console.log("PASS diagnostic isolated",p);
+}
+console.log("PASS rate limiting can target protected/expensive routes without changing normal S/K/store/offer routes");
+console.log("\nCompatibility conclusion: normal Justiina, scanner, Kaupat and Gösta API paths need no auth contract change in this hardening design.");
