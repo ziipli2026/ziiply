@@ -9911,10 +9911,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
     }, 45000);
     gpsUserDisabledRefV306.current = false;
-    setGpsErrorMessage("");
-    setUsingOwnLocation(true);
-    setLocationInput("");
-    if (!isBackgroundBootRefreshV736) setStoreSearchLoading(true);
+    // V747_BACKGROUND_BOOT_GPS_PRESERVES_VISIBLE_SNAPSHOT:
+    // boot_refresh ei saa ennen onnistunutta GPS-tulosta vaihtaa näkyvää sijaintitilaa,
+    // tyhjentää käyttäjän juuri aloittamaa käsinsyöttöä tai poistaa vakaata snapshotia.
+    if (!isBackgroundBootRefreshV736) {
+      setGpsErrorMessage("");
+      setUsingOwnLocation(true);
+      setLocationInput("");
+      setStoreSearchLoading(true);
+    }
     // V735_BACKGROUND_BOOT_GPS_KEEPS_SNAPSHOT_VISIBLE:
     // Bootin automaattinen GPS-refresh saa pyöriä snapshotin takana ilman,
     // että käyttäjän vakaa sijaintiteksti vaihtuu "Paikannetaan..."-tilaan.
@@ -9968,7 +9973,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         setLocationMessage(`${city} käytössä`);
         setLocationMessageVisible(true);
       }
-      setLocationInput("");
+      if (!isBackgroundBootRefreshV736) setLocationInput("");
       // V470: älä pudota storeSearchLoadingia pois päältä tässä välissä.
       // GPS-paikannus ja sitä seuraava kauppahaku ovat yksi atominen ajo, jotta
       // Kaupat-paneelin fallback tai toinen effect ei voi startata uutta GPS-hakua väliin.
@@ -10009,14 +10014,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         typeof error === "object" && error !== null && "code" in error
           ? Number((error as { code?: number }).code)
           : 0;
-      if (gpsErrorCode === 1) {
-        setGpsErrorMessage("GPS ei löydy");
-      } else if (gpsErrorCode === 2) {
-        setGpsErrorMessage("GPS ei löydy");
-      } else if (gpsErrorCode === 3) {
-        setGpsErrorMessage("GPS ei löydy");
-      } else {
-        setGpsErrorMessage("GPS ei löydy");
+      // V747: tausta-reloadin GPS-virhe ei saa korvata toimivaa snapshotia
+      // näkyvällä "GPS ei löydy" -virheellä. Manuaalinen GPS näyttää virheen normaalisti.
+      if (!isBackgroundBootRefreshV736) {
+        if (gpsErrorCode === 1) {
+          setGpsErrorMessage("GPS ei löydy");
+        } else if (gpsErrorCode === 2) {
+          setGpsErrorMessage("GPS ei löydy");
+        } else if (gpsErrorCode === 3) {
+          setGpsErrorMessage("GPS ei löydy");
+        } else {
+          setGpsErrorMessage("GPS ei löydy");
+        }
       }
       if (!isBackgroundBootRefreshV736) {
         setLocationMessage("GPS ei löydy");
@@ -10054,7 +10063,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         if (gpsResolvedCoordsV495) setGpsCoordsV320(gpsResolvedCoordsV495);
         setStoreSearchLoading(false);
         setGpsStorePickerBlockedV382(false);
-        setLocationInput("");
+        if (!isBackgroundBootRefreshV736) setLocationInput("");
         if (!isBackgroundBootRefreshV736) {
           setLocationMessage("Oma sijainti käytössä");
           setLocationMessageVisible(true);
