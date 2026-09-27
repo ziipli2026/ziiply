@@ -18076,7 +18076,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 src={storeLogoSrc}
                 alt={cardLabel}
                 draggable={false}
-                className="h-full w-full scale-[1.2] object-contain"
+                className={`h-full w-full object-contain ${
+                  store.key === "s"
+                    ? "scale-[1.55]"
+                    : store.key === "k"
+                      ? "scale-[1.45]"
+                      : store.key === "lidl"
+                        ? "scale-[1.35]"
+                        : "scale-[1.45]"
+                }`}
                 onError={(event) => {
                   event.currentTarget.style.display = "none";
                 }}
@@ -18277,6 +18285,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 {showDistanceForCard && !isComingSoon && (
                   <span className="absolute left-4 right-4 top-[82px] z-20 mx-auto max-w-[6.7rem] rounded-[0.38rem] border border-[#d1b979] bg-[#fff8df]/92 px-1.5 py-[2px] text-[10px] font-black leading-none text-[#4b3a18] shadow-[inset_0_1px_0_rgba(255,255,255,0.84)]">
                     {distanceForCard}
+                  </span>
+                )}
+
+                {!isRealChain && (
+                  <span className="absolute bottom-[10px] left-0 right-0 z-20 mx-auto w-fit rounded-full bg-[#fff8df]/90 px-2 py-1 text-[10px] font-black text-slate-700 ring-1 ring-slate-200">
+                    {selected ? "Vaihda" : "Valitse"}
                   </span>
                 )}
               </button>
