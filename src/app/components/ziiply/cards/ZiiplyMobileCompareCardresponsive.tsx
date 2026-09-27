@@ -10,6 +10,7 @@ import ZiiplyMobileCompareSelectionCard from "./ZiiplyMobileCompareSelectionCard
 export type ZiiplyCompareStore = {
   id: string;
   name: string;
+  locality?: string;
   chain?: "S" | "K";
   totalPrice?: number;
   itemCount?: number;
@@ -104,6 +105,22 @@ function getStorePriceDiff(store: ZiiplyCompareStore, cheapest?: ZiiplyCompareSt
   // chainResults.totalPrice ja diff ovat senttejä. Käytä tässä aina senttimuotoilua,
   // jotta +6 senttiä näkyy +0,06 € eikä +6,00 €.
   return `+${formatEuroCents(diff)} kalliimpi`;
+}
+
+function splitStoreName(name: string, locality?: string) {
+  const cleanName = String(name || "").trim();
+  const cleanLocality = String(locality || "").trim();
+  if (cleanLocality) {
+    const lowerName = cleanName.toLocaleLowerCase("fi-FI");
+    const lowerLocality = cleanLocality.toLocaleLowerCase("fi-FI");
+    const title = lowerName.endsWith(" " + lowerLocality)
+      ? cleanName.slice(0, -(cleanLocality.length + 1)).trim()
+      : cleanName;
+    return { title: title || cleanName, locality: cleanLocality };
+  }
+  const parts = cleanName.split(/\s+/).filter(Boolean);
+  if (parts.length < 2) return { title: cleanName, locality: "" };
+  return { title: parts.slice(0, -1).join(" "), locality: parts[parts.length - 1] };
 }
 
 function getChainLabel(chain?: "S" | "K") {
@@ -321,6 +338,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                 const sourceItemsById = new Map(
                   (items || []).map((item: any) => [String(item?.id || ""), item]),
                 );
+                const storeNameParts = splitStoreName(store.name, store.locality);
                 const detailRows = [
                   ...(store.matches || []).map((match: any) => {
                     const source = sourceItemsById.get(String(match?.cartItemId || "")) as any;
@@ -380,8 +398,13 @@ export default function ZiiplyMobileCompareCardresponsive({
                           className="block max-w-full text-left"
                         >
                           <span className="block truncate text-[0.92rem] font-black leading-tight text-[#233020]">
-                            {store.name}
+                            {storeNameParts.title}
                           </span>
+                          {storeNameParts.locality ? (
+                            <span className="mt-0.5 block truncate text-[0.72rem] font-black leading-tight text-[#53604b]">
+                              {storeNameParts.locality}
+                            </span>
+                          ) : null}
                           <span className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[0.64rem] font-black uppercase tracking-[0.07em] text-[#6e6d55]">
                             <span>#{index + 1}</span>
                             <span>·</span>
