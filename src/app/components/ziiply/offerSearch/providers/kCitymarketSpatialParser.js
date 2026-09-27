@@ -508,6 +508,17 @@ if(spatialResolved?.source==="isolated-visual-metadata-conflict"){
  ur=null; nr=null; expected=null;
 }
 
+// Final multibuy sanity gate.
+// A multi-buy total may legitimately exceed one item's normal price, so compare per-item economics.
+// Reject ownership when the claimed bundle does not actually discount the item, or when independent
+// package/unit-rate evidence disagrees materially with the claimed per-item price.
+if(spatialResolved&&Number(spatialResolved.quantity)>1){
+ const q=Number(spatialResolved.quantity),perItem=Number(spatialResolved.value)/q;
+ const noDiscount=nr&&Number(nr.min)>0&&perItem>=Number(nr.min)*.995;
+ const perItemArithmeticConflict=expected&&Number(expected)>0&&Math.abs(perItem-Number(expected))>Math.max(.20,Number(expected)*.20);
+ if(noDiscount||perItemArithmeticConflict)spatialResolved=null;
+}
+
 // Final ownership gate for weak nearest-price matches.
 // A best-spatial candidate is proximity evidence only: reject it when independent normal-price
 // or package/unit-rate arithmetic says it belongs to another card. Strong same-card resolvers are unaffected.
