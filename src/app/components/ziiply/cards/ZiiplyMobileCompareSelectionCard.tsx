@@ -250,7 +250,7 @@ export default function ZiiplyMobileCompareSelectionCard({
                     </div>
 
                     {onChangeMatchMode && !missing ? (
-                      <div className="grid grid-cols-2 gap-2 px-3 py-2.5">
+                      <div className="grid grid-cols-3 gap-1.5 px-3 py-2">
                         {QUALITY_MODES.map(({ mode, label }) => {
                           const active = currentMode === mode;
 
@@ -273,19 +273,16 @@ export default function ZiiplyMobileCompareSelectionCard({
                                   loading: false,
                                 });
                               }}
-                              className={`min-h-[2.52rem] rounded-[0.82rem] border-[2.5px] px-2 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.25)] active:translate-y-[1px] ${
+                              className={`min-h-[2.05rem] rounded-[0.72rem] border-2 px-1.5 py-1 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.25)] active:translate-y-[1px] ${
                                 active
                                   ? "border-[#0b6330] bg-[linear-gradient(180deg,#139143_0%,#087237_100%)] text-[#fff6d7]"
                                   : "border-[#876b37] bg-[#efe1bd] text-[#28402a]"
                               }`}
                               title={label}
                             >
-                              <div className="text-[0.62rem] font-black uppercase tracking-[0.04em]">
+                              <div className="text-[0.57rem] font-black uppercase leading-[1.08] tracking-[0.025em]">
                                 {active ? "✓ " : ""}
                                 {mode === "own_brands" ? getStoreOwnBrandExample(store.chain) : mode === "same_brand" ? getProductBrandExample(item) : label}
-                              </div>
-                              <div className={active ? "mt-0.5 text-[0.49rem] font-extrabold opacity-90" : "mt-0.5 text-[0.49rem] font-extrabold text-[#6b6048]"}>
-                                {active ? "Valittu" : getQualityHint(mode, item, store.chain)}
                               </div>
                             </button>
                           );
