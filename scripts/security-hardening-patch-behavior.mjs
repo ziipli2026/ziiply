@@ -98,3 +98,15 @@ assert.match(sean,/error\.stack\.split/);
 console.log("PASS s-ean-product production stack exposure detected");
 assert.match(kWeight,/error: String\(error\)/);
 console.log("PASS k-weight-product raw error exposure detected");
+
+
+console.log("\n--- Input hardening patch assertions ---");
+assert.match(storeSearch,/latitude < -90/); assert.match(storeSearch,/longitude > 180/);
+assert.match(storeSearch,/search\.length > 120/);
+assert.match(kProducts,/search\.length > 120/); assert.match(sProducts,/search\.length > 120/);
+assert.match(offers,/\\^\\\\d\{1,16\}\$/);
+assert.match(sean,/\\^\\\\d\{8,14\}\$/);
+assert.match(kWeight,/storeName\.length > 160/);
+assert.match(offersSearch,/q\.length > 160/);
+assert.match(offersSearch,/length > 40/);
+console.log("PASS GPS bounds and query/store/EAN size limits are present");
