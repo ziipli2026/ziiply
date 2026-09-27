@@ -15716,9 +15716,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function getMatchQualityMode(match: Match, chainKey?: ChainResult["key"]) {
-    if (!match.cartItemId) return undefined;
+    if (!match.cartItemId) return "cheapest" as QualityMode;
     const key = chainKey ? `${chainKey}:${match.cartItemId}` : match.cartItemId;
-    return qualityModesByCart[key];
+    return qualityModesByCart[key] || "cheapest";
   }
 
   function setMatchQualityMode(
@@ -20405,6 +20405,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               const safeMode = mode as QualityMode;
               const safeMatch = match as Match;
 
+              setMatchQualityMode(safeMatch, safeMode, undefined, chainKey as ChainResult["key"]);
+
               try {
                 const alternatives = await fetchAlternativesForMatch(
                   chainKey as ChainResult["key"],
@@ -20420,7 +20422,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   .sort((a, b) => getProductPrice(a) - getProductPrice(b))[0];
 
                 if (safeMode === "cheapest" && replacement) {
-                  setMatchQualityMode(safeMatch, safeMode, undefined, chainKey as ChainResult["key"]);
                   replaceMatchProduct(
                     chainKey as ChainResult["key"],
                     safeMatch,
@@ -20436,17 +20437,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 showCartToast("Vaihtoehdon haku epäonnistui");
               }
             }}
-            onSelectMatchAlternative={async (storeId, match, alternative, mode) => {
+            onSelectMatchAlternative={async (storeId, match, alternative) => {
               const chainKey =
                 storeId === "k" || storeId === "s"
                   ? storeId
                   : ((match as any)?.chainKey === "k" ? "k" : "s");
-              setMatchQualityMode(
-                match as Match,
-                mode as QualityMode,
-                undefined,
-                chainKey as ChainResult["key"],
-              );
               replaceMatchProduct(
                 chainKey as ChainResult["key"],
                 match as Match,
