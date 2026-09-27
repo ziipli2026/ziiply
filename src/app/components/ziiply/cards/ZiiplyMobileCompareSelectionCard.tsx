@@ -295,7 +295,7 @@ export default function ZiiplyMobileCompareSelectionCard({
                           );
                         })}
                         {alternativeMenu?.key.startsWith(`${String(item.id ?? item.product?.id ?? index)}:`) ? (
-                          <div className={`col-span-3 rounded-[0.82rem] border-2 border-[#876b37] bg-[#fff8e5] p-2 [scrollbar-width:thin] ${alternativeMenu.items.length > 3 ? "max-h-[15.5rem] overflow-y-auto overscroll-contain [touch-action:pan-y]" : "overflow-y-hidden"}`}>
+                          <div className="col-span-3 max-h-[13.2rem] overflow-y-auto overscroll-contain rounded-[0.82rem] border-2 border-[#876b37] bg-[#fff8e5] p-2 pb-8 [scrollbar-width:thin] [touch-action:pan-y]">
                             {alternativeMenu.loading ? (
                               <div className="py-2 text-center text-[0.65rem] font-black text-[#6b6048]">Haetaan vaihtoehtoja…</div>
                             ) : alternativeMenu.items.length === 0 ? (
