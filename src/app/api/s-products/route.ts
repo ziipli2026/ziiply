@@ -57,6 +57,9 @@ export async function GET(request: Request) {
 
   const search = searchParams.get("search") || "";
   const store = searchParams.get("store") || "292";
+  if (search.length > 120 || store.length > 32) {
+    return NextResponse.json({ error: "Invalid query" }, { status: 400 });
+  }
   const storeId = resolveSStoreId(store);
 
   if (!search.trim()) {
