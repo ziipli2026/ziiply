@@ -4,8 +4,15 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
+const MAX_AUDIO_BYTES = 25 * 1024 * 1024;
+
 export async function POST(request: NextRequest) {
   try {
+    const contentLength = Number(request.headers.get("content-length") || "0");
+    if (Number.isFinite(contentLength) && contentLength > MAX_AUDIO_BYTES + 1024 * 1024) {
+      return NextResponse.json({ error: "Audio-tiedosto on liian suuri." }, { status: 413 });
+    }
+
     const apiKey = process.env.OPENAI_API_KEY;
 
     if (!apiKey) {
@@ -24,6 +31,10 @@ export async function POST(request: NextRequest) {
         { error: "Audio-tiedostoa ei löytynyt kentästä audio." },
         { status: 400 },
       );
+    }
+
+    if (audio.size > MAX_AUDIO_BYTES) {
+      return NextResponse.json({ error: "Audio-tiedosto on liian suuri." }, { status: 413 });
     }
 
     const arrayBuffer = await audio.arrayBuffer();
