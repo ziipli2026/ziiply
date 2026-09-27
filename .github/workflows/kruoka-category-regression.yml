@@ -903,3 +903,25 @@ jobs:
             console.log("FRONTS_RESULT",JSON.stringify({id,name:s.name,city:s.city,business:s.business.publicId,coordinates:s.coordinates,status:fr.status,frontCount:fronts.length,publicationCount:pubs.length,publications:pubs.map(p=>({id:p.id||p.publicId,name:p.name||p.title,start:p.startDate||p.validFrom,end:p.endDate||p.validTo}))}));
           }
           NODE
+
+      - name: Validate dynamically discovered K-Supermarket publication viewer chain
+        run: |
+          node <<'NODE'
+          const pubs=[["Eväskontti","VgNLpUyJ"],["Kumela","WTcTbNSm"],["Karis-Karjaa","7VJyII7Q"],["Orimattila","WTcTbNSm"]];
+          for(const [store,pub] of pubs){
+            let pages=0,hotspots=0,offerIds=new Set(),sample=[];
+            for(let page=0;page<8;page++){
+              const url="https://publication-viewer.tjek.com/api/paged-publications/"+pub+"/"+page;
+              const r=await fetch(url);
+              if(!r.ok){ if(page===0) console.log("VIEWER_FAIL",JSON.stringify({store,pub,status:r.status})); break; }
+              const j=await r.json(); pages++;
+              const hs=j.hotspots||j.page?.hotspots||[];
+              hotspots+=hs.length;
+              for(const h of hs){
+                const id=h.offerId||h.offer_id||h.offer?.publicId||h.offer?.id||h.referenceId||h.reference_id;
+                if(id){offerIds.add(id); if(sample.length<5) sample.push(id);}
+              }
+            }
+            console.log("VIEWER_CHAIN",JSON.stringify({store,pub,pages,hotspots,offerIdCount:offerIds.size,sample}));
+          }
+          NODE
