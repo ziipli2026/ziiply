@@ -710,6 +710,11 @@ if(!spatialResolved&&pk&&ur&&nr&&Number(nr.min)>0&&Math.abs(Number(pk.max)-Numbe
   spatialResolved={value,quantity:null,unit:String(nr.unit||"KPL").toUpperCase(),source:"fixed-package-unitrate-normalprice-safe",sanity:"pass",confidence:"high",auditRatio:1};
  }
 }
+// Last-resort same-row arithmetic fallback: expectedSingle is computed only from this row's
+// package size and printed unit rate. Use it only when no normal price exists and no owner survived.
+if(!spatialResolved&&!nr&&expected&&Number(expected)>=.20&&Number(expected)<=30){
+ spatialResolved={value:Number(Number(expected).toFixed(2)),quantity:null,unit:null,source:"same-row-expected-single-safe",sanity:"pass",confidence:"high",auditRatio:1};
+}
 out.rows.push({page:p,line:lines[i].i,title,package:pk,unitPrice:ur,normal:nr,expectedSingle:expected?Number(expected.toFixed(3)):null,candidate:cand,debugPackageRowAnchor:packageRowAnchor,debugBestTitleRow:bestTitleRow,debugAnchor:anchor,spatialPriceBoxes:spatialPriceBoxes.map(b=>({...b,d:anchor?Number(boxDistance(anchor,b).toFixed(6)):null})).sort((a,b)=>(a.d??99)-(b.d??99)).slice(0,60),spatialResolved,percentageOffer,spatialCandidates:spatialCandidates.slice(0,20),spatialGroups:spatialGroups(anchor?wordBoxes.filter(b=>boxDistance(anchor,b)<0.22):[]).filter(g=>/\d/.test(g.text)).slice(0,60),nearby:around.map(x=>x.raw)})}}
 return out;
 }
