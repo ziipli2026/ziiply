@@ -19318,11 +19318,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 storeCompareScope={storeCompareScope}
                 withinChain={withinChain}
                 selectedRealChainCount={selectedRealChainCount}
+                betweenChainSelectionMode={betweenChainSelectionModeV749}
                 missingStoresMessageVisible={false}
                 foundStoresCount={foundStores.length}
                 hyperStorePairMissing={currentStorePairMissingV168 || hyperStorePairMissingV391}
                 onStoreModeChange={handleStoreModeChange}
                 onStoreCompareScopeChange={handleStoreCompareScopeChange}
+                onBetweenChainSelectionModeChange={handleBetweenChainSelectionModeChangeV749}
                 onWithinChainChange={handleWithinChainChange}
               />
             </div>
