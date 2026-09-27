@@ -18070,13 +18070,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             </span>
 
             <div
-              className="absolute left-2.5 top-2 z-30 flex h-[26px] w-[36px] items-center justify-center rounded-[0.45rem] border border-[#b89552] bg-[linear-gradient(180deg,#fffef9_0%,#ecd7a0_100%)] px-[5px] py-[3px] shadow-[0_2px_0_rgba(94,71,31,0.14),inset_0_1px_0_rgba(255,255,255,0.90)] ring-1 ring-[#fff4cc]"
+              className="absolute left-2.5 top-2 z-30 flex h-[22px] w-[30px] items-center justify-center rounded-[0.45rem] border border-[#b89552] bg-[linear-gradient(180deg,#fffef9_0%,#ecd7a0_100%)] px-[5px] py-[3px] shadow-[0_2px_0_rgba(94,71,31,0.14),inset_0_1px_0_rgba(255,255,255,0.90)] ring-1 ring-[#fff4cc]"
             >
               <img
                 src={storeLogoSrc}
                 alt={cardLabel}
                 draggable={false}
-                className="h-full w-full object-contain"
+                className="h-full w-full scale-[1.2] object-contain"
                 onError={(event) => {
                   event.currentTarget.style.display = "none";
                 }}
