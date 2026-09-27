@@ -364,12 +364,12 @@ export default function ZiiplyMobileCompareCardresponsive({
                     <div className={cx(
                       "grid shrink-0 gap-2",
                       detailsStoreId === store.id
-                        ? "min-h-[4.95rem] grid-cols-[2.86rem_minmax(0,1fr)_2.22rem_4.75rem] items-start"
+                        ? "min-h-[4.95rem] grid-cols-[2.35rem_minmax(0,1fr)_2.22rem_4.75rem] items-start"
                         : "min-h-[3.12rem] grid-cols-[2.35rem_minmax(0,1fr)_2.22rem_4.75rem] items-start",
                     )}>
                       {detailsStoreId === store.id ? (
                         <button type="button" onClick={() => setDetailsStoreId(null)}
-                          className="mt-1 grid h-[2.62rem] w-[2.62rem] place-items-center rounded-full border-[2px] border-[#2b1a0e] bg-[linear-gradient(135deg,#7a4c2d_0%,#3b2414_78%)] text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.25),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]"
+                          className="mt-1 -ml-[0.255rem] grid h-[2.62rem] w-[2.62rem] place-items-center rounded-full border-[2px] border-[#2b1a0e] bg-[linear-gradient(135deg,#7a4c2d_0%,#3b2414_78%)] text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.25),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]"
                           aria-label="Palaa vertailukoreihin" title="Palaa vertailukoreihin">
                           <span className="grid h-[1.50rem] w-[1.50rem] place-items-center rounded-full border border-[#6b421f] bg-[radial-gradient(circle_at_35%_35%,#f6c46c_0%,#b0752a_52%,#65401f_100%)] text-[1.02rem] text-[#2b1a0e]">←</span>
                         </button>
