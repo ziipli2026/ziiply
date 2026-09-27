@@ -225,6 +225,41 @@ jobs:
           if(matches.length!==1) process.exitCode=2;
           NODE
 
+      - name: Verify regional K-Supermarket end-to-end offer load
+        shell: bash
+        run: |
+          node <<'NODE'
+          const ORIGIN="https://etarjouslehdet.fi", VIEWER="https://publication-viewer.tjek.com", BUSINESS="f305U8", PUBLICATION="VgNLpUyJ";
+          const stableBase64=value=>Buffer.from(JSON.stringify(value,(_k,v)=>Object.prototype.toString.call(v)==="[object Object]"?Object.keys(v).sort().reduce((o,k)=>(o[k]=v[k],o),{}):v),"utf8").toString("base64");
+          async function data(name,params){
+            const key=stableBase64([name,params]);
+            const r=await fetch(ORIGIN+"/",{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json, text/plain, */*",Referer:ORIGIN+"/K-Supermarket"},body:JSON.stringify({data:[key]})});
+            if(!r.ok) throw new Error(name+" HTTP "+r.status);
+            for(const line of (await r.text()).split(/\r?\n/).filter(Boolean)){try{const row=JSON.parse(line);if(row.key===key)return row.value;}catch{}}
+            throw new Error(name+" key missing");
+          }
+          const ids=[];
+          for(let page=1;page<=20;page++){
+            const r=await fetch(`${VIEWER}/api/paged-publications/${PUBLICATION}/${page}`,{headers:{Accept:"application/json"}});
+            if(!r.ok){if(page>1&&(r.status===400||r.status===404))break;throw new Error("page "+page+" HTTP "+r.status);}
+            const p=await r.json();
+            for(const h of p?.hotspots??[]){const id=String(h?.offer?.id??"");if(id&&!ids.includes(id))ids.push(id);}
+          }
+          const offers=[];
+          for(const publicId of ids){const o=await data("offer",{publicId});if(o&&typeof o==="object")offers.push(o);}
+          const num=v=>{if(v==null||v==="")return null;const n=Number(v);return Number.isFinite(n)?n:null};
+          const mapped=offers.map(o=>{
+            const membership=num(o.membershipPrice),app=num(o.appPrice),regular=num(o.price),from=num(o.fromPrice);
+            const effective=app??membership??regular??from;
+            const qf=num(o.pieceCountFrom),qt=num(o.pieceCountTo);
+            const quantity=qf!=null&&qf>1&&qt===qf?qf:null;
+            return {id:o.publicId,name:o.name,publicationId:o.publicationPublicId,effective,quantity,priceText:effective==null?null:(quantity?`${effective.toFixed(2).replace(".",",")} € / ${quantity} kpl`:effective.toFixed(2).replace(".",","))};
+          }).filter(x=>x.effective!=null&&x.effective>0);
+          const atria=mapped.find(x=>x.id==="hvXKgK6Pr_zW8-p74D1yh");
+          console.log(JSON.stringify({hotspotIds:ids.length,structuredOffers:offers.length,mappedOffers:mapped.length,atria},null,2));
+          if(ids.length!==45||offers.length!==45||!atria||atria.effective!==5||atria.quantity!==2||atria.priceText!=="5,00 € / 2 kpl") process.exitCode=2;
+          NODE
+
       # Live-data audit is intentionally kept in this same workflow so there is only one K-ruoka diagnostic flow.
       - name: Fetch live K-Supermarket Jokela offers and classify
         shell: bash
