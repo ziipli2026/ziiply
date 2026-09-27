@@ -340,6 +340,15 @@ if(!spatialResolved&&anchor&&pk&&nr&&Number(nr.min)>0&&Math.abs(Number(pk.max)-N
  if(uniq.length===1){const v=Number((Number(pk.min)*uniq[0]).toFixed(2));if(v>=.20&&v<Number(nr.min)*.995)spatialResolved={value:v,quantity:null,unit:nr.unit||null,source:"title-aligned-unitrate-normal-bounded",sanity:"pass",confidence:"high"};}
 }
 
+// Raw same-line unit-rate range proof for fragmented PDF text boxes.
+if(!spatialResolved&&anchor&&pk){
+ const ax=Number(anchor.left)||0,ay=Number(anchor.top)||0,pu=String(pk.raw||"").match(/(kg|g|ml|l)\b/i)?.[1]?.toLowerCase()||"",kind=(pu==="kg"||pu==="g")?"kg":(pu==="l"||pu==="ml")?"l":"";
+ const linesY=[...new Set(wordBoxes.filter(b=>(Number(b.top)||0)>=ay+.02&&(Number(b.top)||0)<=ay+.065&&Math.abs((Number(b.left)||0)-ax)<.18).map(b=>Number(Number(b.top).toFixed(4))))],rates=[];
+ for(const y of linesY){const t=wordBoxes.filter(b=>Math.abs((Number(b.top)||0)-y)<.003&&(Number(b.left)||0)>=ax-.01&&(Number(b.left)||0)<=ax+.20).sort((a,b)=>Number(a.left)-Number(b.left)).map(b=>String(b.text||"")).join(" ").replace(/,/g,".");const m=t.match(/\(?\s*(\d{1,2})\s+(\d{2})\s*[-–]\s*(\d{1,2})\s+(\d{2})\s*\/\s*(kg|l)\)?/i);if(m&&String(m[5]).toLowerCase()===kind)rates.push(Number(m[1]+"."+m[2]),Number(m[3]+"."+m[4]));}
+ const vals=[];for(const w of [Number(pk.min),Number(pk.max)])for(const rate of rates){const v=w*rate,rounded=Number(v.toFixed(2));if(rounded>=.20&&Math.abs(v-rounded)<=.015)vals.push(rounded);}
+ const uniq=[...new Set(vals)];if(uniq.length===1&&wordBoxes.some(b=>String(b.text||"").trim()===String(Math.trunc(uniq[0]))&&Number(b.height||0)>=.05&&Math.abs((Number(b.top)||0)-ay)<.10&&Math.abs((Number(b.left)||0)-ax)<.30))spatialResolved={value:uniq[0],quantity:null,unit:nr?.unit||null,source:"raw-line-range-endpoint-visual",sanity:"pass",confidence:"high"};
+}
+
 // Combined-card range endpoint proof.
 // Leaflet cards may list several package sizes under one whole-euro price and print the resulting
 // unit-price range. If one package endpoint × one printed rate endpoint reconstructs an exact
