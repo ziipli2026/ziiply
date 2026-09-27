@@ -52,11 +52,13 @@ type Props = {
   storeCompareScope: StoreCompareScope;
   withinChain: "S" | "K" | null;
   selectedRealChainCount: number;
+  betweenChainSelectionMode?: "one" | "many";
   missingStoresMessageVisible?: boolean;
   foundStoresCount?: number;
   hyperStorePairMissing?: boolean;
   onStoreModeChange: (mode: StoreMode) => void;
   onStoreCompareScopeChange: (scope: StoreCompareScope) => void;
+  onBetweenChainSelectionModeChange?: (mode: "one" | "many") => void;
   onWithinChainChange?: (chain: "S" | "K" | null) => void;
   [key: string]: unknown;
 };
@@ -78,11 +80,13 @@ export default function ZiiplyMobileStoreModeSelector({
   storeCompareScope,
   withinChain,
   selectedRealChainCount,
+  betweenChainSelectionMode = "many",
   missingStoresMessageVisible = false,
   foundStoresCount = 0,
   hyperStorePairMissing = false,
   onStoreModeChange,
   onStoreCompareScopeChange,
+  onBetweenChainSelectionModeChange,
   onWithinChainChange,
 }: Props) {
   const [hakutapaNoticeVisible, setHakutapaNoticeVisible] = useState(false);
@@ -95,7 +99,7 @@ export default function ZiiplyMobileStoreModeSelector({
     hyperStorePairMissing ||
     (missingStoresMessageVisible && foundStoresCount === 0) ||
     (storeCompareScope === "between_chains" && !storeModeChosen) ||
-    (storeCompareScope === "between_chains" && selectedRealChainCount < 2) ||
+    (storeCompareScope === "between_chains" && selectedRealChainCount < (betweenChainSelectionMode === "one" ? 1 : 2)) ||
     (storeCompareScope === "within_chain" && !withinChain);
 
   useEffect(() => {
@@ -166,6 +170,31 @@ export default function ZiiplyMobileStoreModeSelector({
               : "Hakutapa"}
         </p>
       </div>
+
+      {storeCompareScope === "between_chains" && (
+        <div className="relative z-10 mb-1.5 flex justify-center">
+          <div className="grid w-[172px] grid-cols-2 rounded-full border-2 border-[#caa45e] bg-[#f4e5ba] p-[3px] shadow-[inset_0_1px_2px_rgba(92,62,24,0.12)]">
+            {(["one", "many"] as const).map((mode) => {
+              const active = betweenChainSelectionMode === mode;
+              return (
+                <button
+                  key={mode}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => onBetweenChainSelectionModeChange?.(mode)}
+                  className={`rounded-full px-3 py-1 text-[12px] font-black transition ${
+                    active
+                      ? "bg-[#0a6d39] text-[#fff4d4] shadow-[0_2px_0_#064123]"
+                      : "text-[#6a5330]"
+                  }`}
+                >
+                  {mode === "one" ? "Yksi" : "Monta"}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <div className="relative z-10 grid grid-cols-2 gap-4">
         <button
