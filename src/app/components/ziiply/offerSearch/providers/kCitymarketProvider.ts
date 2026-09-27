@@ -542,6 +542,7 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
   const offers=active.week===39 && active.kind==="LV"
     ? await fetchKCitymarketOffersFresh("https://kcm-tarjouslehdet.k-ruoka.fi/78sgvzy_tarjouslehti_39LV_KCM/index.html")
     : await fetchKCitymarketOffersFresh(ENTRY);
-  return offers;
+  const fallback=kCitymarketDefaultValidityV15(active);
+  return offers.map(offer=>({...offer,validFrom:offer.validFrom??fallback.from,validTo:offer.validTo??fallback.to}));
 }
 export default fetchKCitymarketOffers;
