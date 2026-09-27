@@ -62,6 +62,9 @@ async function probe(url: string, ean: string) {
 }
 
 export async function GET() {
+  if (process.env.VERCEL_ENV === "production") {
+    return new NextResponse(null, { status: 404 });
+  }
   const results = [];
   for (const test of TESTS) {
     const queries = [
