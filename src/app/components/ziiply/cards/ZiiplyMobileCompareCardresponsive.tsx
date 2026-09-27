@@ -365,7 +365,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                       "grid shrink-0 gap-2",
                       detailsStoreId === store.id
                         ? "min-h-[4.95rem] grid-cols-[2.86rem_minmax(0,1fr)_2.22rem_4.75rem] items-start"
-                        : "min-h-[3.2rem] grid-cols-[2.35rem_minmax(0,1fr)_4.75rem]",
+                        : "min-h-[4.95rem] grid-cols-[2.35rem_minmax(0,1fr)_2.22rem_4.75rem] items-start",
                     )}>
                       {detailsStoreId === store.id ? (
                         <button type="button" onClick={() => setDetailsStoreId(null)}
@@ -424,8 +424,7 @@ export default function ZiiplyMobileCompareCardresponsive({
 
                       </div>
 
-                      {detailsStoreId === store.id ? (
-                        <div className="flex flex-col items-center gap-2 pt-0.5">
+                      <div className="flex flex-col items-center gap-2 pt-0.5">
                           {onShareStore ? (
                             <button type="button" onClick={(event) => { event.stopPropagation(); onShareStore(store.id); }}
                               className="grid h-[2.22rem] w-[2.22rem] place-items-center rounded-[0.46rem] border-[1.6px] border-[#8b713d] bg-[linear-gradient(180deg,#f5e5bd_0%,#d6b875_100%)] text-[#51361a] shadow-[0_2px_5px_rgba(45,30,10,0.17),inset_0_0_0_1px_rgba(255,249,220,0.55)] active:translate-y-[1px]"
@@ -447,7 +446,6 @@ export default function ZiiplyMobileCompareCardresponsive({
                             </button>
                           ) : null}
                         </div>
-                      ) : null}
 
                       <button
                         type="button"
@@ -469,48 +467,16 @@ export default function ZiiplyMobileCompareCardresponsive({
                     </div>
 
                     {detailsStoreId !== store.id ? (
-                    <div className="mt-1.5 flex h-[2.62rem] shrink-0 items-center pl-[2.58rem] pr-[7.35rem]">
-                      {detailsStoreId === store.id ? (
-                        <button type="button" onClick={() => setDetailsStoreId(null)} className="mr-auto grid h-[2.62rem] w-[2.86rem] shrink-0 place-items-center rounded-l-[0.42rem] rounded-r-[0.8rem] border-[2px] border-[#2b1a0e] bg-[linear-gradient(135deg,#7a4c2d_0%,#3b2414_78%)] text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.25),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]" aria-label="Palaa vertailukoreihin" title="Palaa vertailukoreihin">
-                          <span className="grid h-[1.50rem] w-[1.50rem] place-items-center rounded-full border border-[#6b421f] bg-[radial-gradient(circle_at_35%_35%,#f6c46c_0%,#b0752a_52%,#65401f_100%)] text-[1.02rem] text-[#2b1a0e] shadow-[0_1px_2px_rgba(0,0,0,0.28)]">←</span>
-                        </button>
-                      ) : <button
-                        type="button"
-                        onClick={() => setDetailsStoreId((current) => current === store.id ? null : store.id)}
-                        className="min-h-[2.40rem] min-w-0 flex-1 rounded-[0.72rem] border-[2.5px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-3 text-[0.72rem] font-black italic tracking-[0.03em] text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58),0_2px_4px_rgba(62,43,20,0.18)] active:translate-y-[1px]"
-                        style={{ fontFamily: cooperFont }}
-                      >
-                        Muuta valintoja
-                      </button>}
-
-                      {onShareStore ? (
+                      <div className="mt-0.5 flex h-[2.42rem] shrink-0 items-center pl-[2.58rem] pr-[8.2rem]">
                         <button
                           type="button"
-                          onClick={(event) => { event.stopPropagation(); onShareStore(store.id); }}
-                          className="absolute right-[6.70rem] top-[3.92rem] grid h-[2.22rem] w-[2.22rem] place-items-center rounded-[0.46rem] border-[1.6px] border-[#8b713d] bg-[linear-gradient(180deg,#f5e5bd_0%,#d6b875_100%)] text-[#51361a] shadow-[0_2px_5px_rgba(45,30,10,0.17),inset_0_0_0_1px_rgba(255,249,220,0.55)] active:translate-y-[1px]"
-                          aria-label={`Jaa ${store.name} kori`} title="Jaa kori"
+                          onClick={() => setDetailsStoreId((current) => current === store.id ? null : store.id)}
+                          className="min-h-[2.28rem] min-w-0 flex-1 rounded-[0.72rem] border-[2.5px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-2 text-[0.70rem] font-black italic tracking-[0.02em] text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58),0_2px_4px_rgba(62,43,20,0.18)] active:translate-y-[1px]"
+                          style={{ fontFamily: cooperFont }}
                         >
-                          <svg aria-hidden="true" viewBox="0 0 24 18" className="h-[0.94rem] w-[1.12rem]">
-                            <path d="M2.5 3.5h19v11h-19z" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-                            <path d="M3 4l9 6.5L21 4M3.2 14.2l6.1-5M20.8 14.2l-6.1-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                          </svg>
+                          Muuta valintoja
                         </button>
-                      ) : <span aria-hidden="true" />}
-
-                      {onSelectStore ? (
-                        <button
-                          type="button"
-                          onClick={(event) => { event.stopPropagation(); onSelectStore(store.id); }}
-                          className="absolute right-[3.98rem] top-[3.92rem] grid h-[2.22rem] w-[2.22rem] place-items-center rounded-[0.46rem] border-[1.6px] border-[#765628] bg-[linear-gradient(180deg,#f5dfac_0%,#d2a661_100%)] text-[#51361a] shadow-[0_2px_5px_rgba(45,30,10,0.17)] active:translate-y-[1px]"
-                          aria-label={`Osta ${store.name} vertailukori`} title="Osta tämä vertailukori"
-                        >
-                          <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[1.52rem] w-[1.52rem]" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round">
-                    <path d="M3 18h18v4H3zM5 10h14l2 8H3zM7 2h10v8H7z"/>
-                    <path d="M9 5h6M8 14h2m4 0h2M11 20h2" strokeLinecap="round"/>
-                  </svg>
-                        </button>
-                      ) : <span aria-hidden="true" />}
-                    </div>
+                      </div>
                     ) : null}
                     {detailsStoreId === store.id ? (
                       <ZiiplyMobileCompareSelectionCard
