@@ -734,3 +734,28 @@ jobs:
             console.log("CANONICAL_STORE_PAGE "+JSON.stringify({name,id,status:r.status,url,length:html.length,noCatalog,publicationIds:ids,snippets},null,2));
           }
           NODE
+
+      - name: Trace canonical store page client data loader
+        run: |
+          node <<'NODE'
+          const ORIGIN="https://etarjouslehdet.fi";
+          const targets=[["Kumela","e508Azi"],["Eväskontti","4165GCi"]];
+          const interesting=/publication|storeId|storeIds|publications|groupedFronts|fronts|paged-publications|business_product|data\(|stores/i;
+          for(const [name,id] of targets){
+            const html=await (await fetch(ORIGIN+"/K-Supermarket/kaupat/"+id)).text();
+            const srcs=[...new Set([...html.matchAll(/<script[^>]+src=["']([^"']+)["']/gi)].map(m=>new URL(m[1],ORIGIN).href))];
+            console.log("STORE_CLIENT_ASSETS "+JSON.stringify({name,id,scriptCount:srcs.length,scripts:srcs},null,2));
+            for(const src of srcs){
+              let js=""; try{js=await (await fetch(src)).text()}catch{continue}
+              if(!interesting.test(js))continue;
+              const snippets=[];
+              for(const term of ["groupedFronts","publications","publicationId","storeId","storeIds","paged-publications","business_product"]){
+                let p=js.indexOf(term),n=0;
+                while(p>=0&&n<4){snippets.push({term,text:js.slice(Math.max(0,p-500),p+1200).replace(/\s+/g," ")});p=js.indexOf(term,p+term.length);n++}
+              }
+              if(snippets.length)console.log("STORE_CLIENT_JS "+JSON.stringify({name,id,src,snippets},null,2));
+            }
+            const inline=[...html.matchAll(/<script(?![^>]+src=)[^>]*>([\s\S]*?)<\/script>/gi)].map(m=>m[1]).filter(x=>interesting.test(x));
+            console.log("STORE_INLINE_DATA "+JSON.stringify({name,id,blocks:inline.map(x=>x.slice(0,12000))},null,2));
+          }
+          NODE
