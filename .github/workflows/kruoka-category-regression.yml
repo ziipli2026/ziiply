@@ -781,3 +781,25 @@ jobs:
             break;
           }
           NODE
+
+      - name: Verify store-specific Tjek fronts publications
+        run: |
+          node <<'NODE'
+          const BASE="https://squid-api.tjek.com/v2";
+          const BUSINESS="f305U8";
+          async function data(type,params){
+            const key=Buffer.from(JSON.stringify({type,params})).toString("base64url");
+            const r=await fetch(BASE+"/data/"+key,{headers:{"accept":"application/json"}});
+            const text=await r.text(); let body; try{body=JSON.parse(text)}catch{body=text}
+            return {status:r.status,body};
+          }
+          for(const [name,id] of [["Eväskontti","4165GCi"],["Kumela","e508Azi"],["Karis-Karjaa","f310kEi"],["Orimattila","a528m8i"]]){
+            const st=await data("store",{storeId:id});
+            const store=st.body?.data??st.body;
+            const coordinates=store?.coordinates;
+            const fr=await data("fronts",{businessIds:[BUSINESS],localBusinessIds:[id],coordinates});
+            const fronts=fr.body?.data??fr.body;
+            const pubs=Array.isArray(fronts)?fronts.flatMap(x=>x?.publications??[]):[];
+            console.log("STORE_FRONTS_PUBLICATIONS "+JSON.stringify({name,id,storeStatus:st.status,coordinates,frontsStatus:fr.status,frontCount:Array.isArray(fronts)?fronts.length:null,publications:pubs.map(p=>({id:p.id,label:p.label,publish:p.publish,expires:p.expires}))},null,2));
+          }
+          NODE
