@@ -74,3 +74,50 @@ for (const p of ["/api/k-weight-identity-coverage-test","/api/k-weight-sitemap-t
 }
 console.log("PASS rate limiting can target protected/expensive routes without changing normal S/K/store/offer routes");
 console.log("\nCompatibility conclusion: normal Justiina, scanner, Kaupat and Gösta API paths need no auth contract change in this hardening design.");
+
+
+console.log("\n--- Phase 3: abuse and regression boundary simulation ---");
+function publicPolicy(path, ctx={}) {
+  const normal = new Set(["/api/s-products","/api/k-products","/api/s-ean-product","/api/k-weight-product","/api/store-search","/api/offers/search"]);
+  const diagnostics = new Set(["/api/k-weight-identity-coverage-test","/api/k-weight-sitemap-test","/api/kalori-ean-test"]);
+  if (diagnostics.has(path)) return ctx.production ? 404 : 200;
+  if (path === "/api/cron/kcitymarket-cache") {
+    if (!ctx.cronSecret) return 503; // configuration failure: never execute work
+    return ctx.authorization === "Bearer "+ctx.cronSecret ? 200 : 401;
+  }
+  if (path === "/api/transcribe") {
+    if ((ctx.bytes ?? 0) > 25*1024*1024) return 413;
+    if ((ctx.windowRequests ?? 0) > 10) return 429;
+    return 200;
+  }
+  if (normal.has(path)) return (ctx.windowRequests ?? 0) > 120 ? 429 : 200;
+  return 404;
+}
+const phase3=[
+ ["S search normal",publicPolicy("/api/s-products",{windowRequests:4}),200],
+ ["K search normal",publicPolicy("/api/k-products",{windowRequests:4}),200],
+ ["scanner S normal",publicPolicy("/api/s-ean-product",{windowRequests:4}),200],
+ ["scanner K scale normal",publicPolicy("/api/k-weight-product",{windowRequests:4}),200],
+ ["store GPS normal",publicPolicy("/api/store-search",{windowRequests:8}),200],
+ ["offers normal",publicPolicy("/api/offers/search",{windowRequests:8}),200],
+ ["normal API abusive burst",publicPolicy("/api/store-search",{windowRequests:121}),429],
+ ["transcribe ordinary voice",publicPolicy("/api/transcribe",{bytes:2*1024*1024,windowRequests:2}),200],
+ ["transcribe oversized",publicPolicy("/api/transcribe",{bytes:26*1024*1024,windowRequests:2}),413],
+ ["transcribe burst",publicPolicy("/api/transcribe",{bytes:2*1024*1024,windowRequests:11}),429],
+ ["cron configured + Vercel auth",publicPolicy("/api/cron/kcitymarket-cache",{cronSecret:"x",authorization:"Bearer x"}),200],
+ ["cron wrong auth",publicPolicy("/api/cron/kcitymarket-cache",{cronSecret:"x",authorization:"Bearer z"}),401],
+ ["cron env missing does not run",publicPolicy("/api/cron/kcitymarket-cache",{}),503],
+ ["diagnostic prod hidden",publicPolicy("/api/kalori-ean-test",{production:true}),404],
+ ["diagnostic dev usable",publicPolicy("/api/kalori-ean-test",{production:false}),200],
+];
+for(const [name,actual,expected] of phase3){assert.equal(actual,expected);console.log("PASS",name,"=>",actual)}
+console.log("PASS phase 3 boundaries: interactive Ziiply remains public; expensive/diagnostic abuse gets bounded.");
+
+console.log("\n--- Debug exposure model ---");
+function publicDebug(requested, production, internalAuthorized=false){
+ return Boolean(requested && (!production || internalAuthorized));
+}
+assert.equal(publicDebug(true,true,false),false);
+assert.equal(publicDebug(false,true,false),false);
+assert.equal(publicDebug(true,false,false),true);
+console.log("PASS ?debug=1 cannot expose diagnostic payload in public production model");
