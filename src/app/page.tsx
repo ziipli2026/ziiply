@@ -20306,6 +20306,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   ...match,
                   chainKey: result.key,
                   qualityMode: getMatchQualityMode(match, result.key),
+                  sourceProductName:
+                    cart.find((item) => item.id === match.cartItemId)?.name ||
+                    cart.find((item) => item.id === match.cartItemId)?.product?.name ||
+                    match.product.name,
                 })),
                 missingItems: result.missingItems || 0,
               }))}
