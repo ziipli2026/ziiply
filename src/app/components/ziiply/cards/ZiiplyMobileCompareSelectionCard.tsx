@@ -139,13 +139,13 @@ function getItemPriceForStore(item: unknown, storeId: string) {
   return storeSpecific ?? data?.selectedPrice ?? data?.price ?? data?.cheapestPrice;
 }
 
-function getCurrentQualityMode(item: unknown): QualityMode | null {
+function getCurrentQualityMode(item: unknown): QualityMode | undefined {
   const data = item as ZiiplyCompareSelectionItem;
-  const mode = String(data?.qualityMode || "");
+  const mode = data?.qualityMode;
 
   if (mode === "cheapest" || mode === "same_quality" || mode === "own_brands" || mode === "same_brand") return mode;
 
-  return null;
+  return undefined;
 }
 
 function getProductImage(item: unknown) {
