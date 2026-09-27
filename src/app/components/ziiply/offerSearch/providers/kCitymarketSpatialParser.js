@@ -674,8 +674,8 @@ if(!spatialResolved&&anchor&&pk){
 
 // Propagate an exact range-proven price to an immediately adjacent sibling title in the same visual card.
 if(!spatialResolved&&anchor&&out.rows.length){
- const prev=[...out.rows].reverse().find(r=>r&&r.page===p&&r.price!=null&&["three-token-range-endpoint-visual","late-three-token-range-endpoint-visual"].includes(r.source)&&r.debugAnchor&&Math.abs(Number(r.debugAnchor.left)-Number(anchor.left))<.02&&Math.abs(Number(r.debugAnchor.top)-Number(anchor.top))<.05);
- if(prev)spatialResolved={value:Number(prev.price),quantity:null,unit:null,source:"same-card-exact-sibling-price",sanity:"pass",confidence:"high"};
+ const prev=[...out.rows].reverse().find(r=>r&&r.page===p&&r.spatialResolved?.value!=null&&["three-token-range-endpoint-visual","late-three-token-range-endpoint-visual"].includes(r.spatialResolved?.source)&&r.debugAnchor&&Math.abs(Number(r.debugAnchor.left)-Number(anchor.left))<.02&&Math.abs(Number(r.debugAnchor.top)-Number(anchor.top))<.05);
+ if(prev)spatialResolved={value:Number(prev.spatialResolved.value),quantity:null,unit:null,source:"same-card-exact-sibling-price",sanity:"pass",confidence:"high"};
 }
 // Explicit large "N-" glyph with KPL unit and a printed normal-price range.
 if(!spatialResolved&&anchor&&nr&&Number(nr.min)>0){
@@ -697,8 +697,8 @@ if(spatialResolved){
 }
 if(spatialResolved?.rejectedReview)spatialResolved=null;
 if(!spatialResolved&&anchor&&out.rows.length){
- const prev=[...out.rows].reverse().find(r=>r&&r.page===p&&r.price!=null&&["three-token-range-endpoint-visual","late-three-token-range-endpoint-visual"].includes(r.source)&&r.debugAnchor&&Math.abs(Number(r.debugAnchor.left)-Number(anchor.left))<.02&&Math.abs(Number(r.debugAnchor.top)-Number(anchor.top))<.05);
- if(prev){spatialResolved={value:Number(prev.price),quantity:null,unit:null,source:"same-card-exact-sibling-price",sanity:"pass",confidence:"high"};nr=null;ur=null;expected=null;}
+ const prev=[...out.rows].reverse().find(r=>r&&r.page===p&&r.spatialResolved?.value!=null&&["three-token-range-endpoint-visual","late-three-token-range-endpoint-visual"].includes(r.spatialResolved?.source)&&r.debugAnchor&&Math.abs(Number(r.debugAnchor.left)-Number(anchor.left))<.02&&Math.abs(Number(r.debugAnchor.top)-Number(anchor.top))<.05);
+ if(prev){spatialResolved={value:Number(prev.spatialResolved.value),quantity:null,unit:null,source:"same-card-exact-sibling-price",sanity:"pass",confidence:"high"};nr=null;ur=null;expected=null;}
 }
  // Generic shared-card split price: require a large euro+cents pair, sale-unit token, discount marker and printed normal-price fragments in the same local card.
 // Generic package/unit-rate fallback: derive the rounded shelf price from package size and unit rate,
