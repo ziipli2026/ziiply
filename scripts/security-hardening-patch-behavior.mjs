@@ -63,3 +63,17 @@ for(const path of ["/api/s-products","/api/k-products","/api/s-ean-product","/ap
 console.log("PASS Firewall model: transcribe 10/min/IP, general API 120/min/IP");
 console.log("PASS cron excluded from generic rate rule; authorization remains its protection");
 console.log("PASS normal Ziiply API routes remain available below abuse threshold");
+
+
+console.log("\n--- Secret exposure checks ---");
+const transcribeSrc=read("src/app/api/transcribe/route.ts");
+const cronSrc=read("src/app/api/cron/kcitymarket-cache/route.ts");
+const offerRouter=read("src/app/components/ziiply/offerSearch/ziiplyOfferSearchSources.ts");
+const etProvider=read("src/app/components/ziiply/offerSearch/providers/etarjouslehdetProvider.ts");
+assert.match(transcribeSrc,/process\.env\.OPENAI_API_KEY/);
+assert.match(cronSrc,/process\.env\.CRON_SECRET/);
+assert.match(etProvider,/const TJEK_API_KEY\s*=\s*["'][^"']+["']/);
+assert.match(offerRouter,/const ENABLE_ETARJOUSLEHDET_PROVIDER_V28 = false/);
+console.log("PASS OpenAI and cron credentials remain server environment references");
+console.log("PASS hardcoded Tjek key exposure detected without printing its value");
+console.log("PASS active offer router currently disables eTarjouslehdet provider, so remediation can be isolated");
