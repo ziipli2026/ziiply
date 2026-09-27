@@ -295,7 +295,7 @@ export default function ZiiplyMobileCompareSelectionCard({
                           );
                         })}
                         {alternativeMenu?.key.startsWith(`${String(item.id ?? item.product?.id ?? index)}:`) ? (
-                          <div className="col-span-3 max-h-[13.2rem] overflow-y-auto overscroll-contain rounded-[0.82rem] border-2 border-[#876b37] bg-[#fff8e5] p-2 pb-8 [scrollbar-width:thin] [touch-action:pan-y]">
+                          <div className="col-span-3 h-[11.5rem] min-h-0 overflow-y-scroll overscroll-contain rounded-[0.82rem] border-2 border-[#876b37] bg-[#fff8e5] p-2 pb-[5rem] [scrollbar-width:thin] [touch-action:pan-y] [-webkit-overflow-scrolling:touch]">
                             {alternativeMenu.loading ? (
                               <div className="py-2 text-center text-[0.65rem] font-black text-[#6b6048]">Haetaan vaihtoehtoja…</div>
                             ) : alternativeMenu.items.length === 0 ? (
@@ -328,7 +328,7 @@ export default function ZiiplyMobileCompareSelectionCard({
   </>);
 
   if (embedded) return (
-    <div className={`mt-2 min-h-0 flex-1 border-t border-[#d4bd86]/72 bg-transparent ${alternativeMenu ? "overflow-hidden touch-none" : "overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"}`}>
+    <div className={`mt-2 min-h-0 flex-1 border-t border-[#d4bd86]/72 bg-transparent ${alternativeMenu ? "overflow-hidden" : "overflow-y-auto overscroll-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"}`}>
       {onBack ? (
         <button type="button" onClick={onBack} className="ml-2 mt-2 inline-flex items-center gap-1 rounded-[0.42rem] border border-[#876b37] bg-[#efe1bd] px-2 py-1 text-[0.68rem] font-black text-[#28402a]" aria-label={`Palaa ${store.name} korin yhteenvetoon`}>
           <span aria-hidden="true">←</span> Paluu
