@@ -172,19 +172,25 @@ export default function ZiiplyMobileStoreModeSelector({
       </div>
 
       {storeCompareScope === "between_chains" && (
-        <div className="relative z-10 mb-1.5 flex justify-center">
-          <div className="grid w-[172px] grid-cols-2 rounded-full border-2 border-[#caa45e] bg-[#f4e5ba] p-[3px] shadow-[inset_0_1px_2px_rgba(92,62,24,0.12)]">
-            {(["one", "many"] as const).map((mode) => {
-              const active = betweenChainSelectionMode === mode;
-              return (
-                <button key={mode} type="button" aria-pressed={active}
-                  onClick={() => onBetweenChainSelectionModeChange?.(mode)}
-                  className={`rounded-full px-3 py-1 text-[12px] font-black transition ${active ? "bg-[#0a6d39] text-[#fff4d4] shadow-[0_2px_0_#064123]" : "text-[#6a5330]"}`}>
-                  {mode === "one" ? "Yksi" : "Monta"}
-                </button>
-              );
-            })}
-          </div>
+        <div className="relative z-10 mb-1 flex items-center justify-center gap-1.5">
+          <span className="text-[10px] font-black text-[#6a5330]">Yksi</span>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={betweenChainSelectionMode === "many"}
+            aria-label="Valitse yksi tai monta kauppaa"
+            onClick={() =>
+              onBetweenChainSelectionModeChange?.(
+                betweenChainSelectionMode === "one" ? "many" : "one",
+              )
+            }
+            className={`relative h-[18px] w-[34px] rounded-full border transition-colors ${betweenChainSelectionMode === "many" ? "border-[#07502c] bg-[#0a6d39]" : "border-[#b99b62] bg-[#d8c69d]"}`}
+          >
+            <span
+              className={`absolute top-[2px] h-[12px] w-[12px] rounded-full bg-white shadow-sm transition-transform ${betweenChainSelectionMode === "many" ? "left-[18px]" : "left-[2px]"}`}
+            />
+          </button>
+          <span className="text-[10px] font-black text-[#6a5330]">Monta</span>
         </div>
       )}
 
