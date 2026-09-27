@@ -514,12 +514,19 @@ if(spatialResolved?.source==="isolated-visual-metadata-conflict"){
 // package/unit-rate evidence disagrees materially with the claimed per-item price.
 if(spatialResolved&&Number(spatialResolved.quantity)>1){
  const q=Number(spatialResolved.quantity),perItem=Number(spatialResolved.value)/q;
+ const normalUnit=String(nr?.unit||"").toUpperCase();
+ const resolvedUnit=String(spatialResolved.unit||"").toUpperCase();
+ // A quantity label belongs to this card only when its sales unit agrees with the card's
+ // own normal-price unit. This rejects neighbouring PS/PKT/RS bundle labels.
+ const unitOwnershipConflict=normalUnit&&resolvedUnit&&normalUnit!==resolvedUnit;
+ // If package x unit-rate already proves that the displayed total is one item's price,
+ // the nearby quantity glyph is not a bundle quantity for this card.
+ const totalIsSingle=expected&&Number(expected)>0&&Math.abs(Number(spatialResolved.value)-Number(expected))<=Math.max(.08,Number(expected)*.08);
  const noDiscount=nr&&Number(nr.min)>0&&perItem>=Number(nr.min)*.995;
- // expected is a single-item package/unit-rate value. For multibuys it is useful only as a
- // lower-bound consistency check: a claimed bundle item cannot be materially more expensive
- // than its own printed unit-rate-derived value.
- const perItemArithmeticConflict=expected&&Number(expected)>0&&perItem>Number(expected)*1.20&&perItem-Number(expected)>.20;
- if(noDiscount||perItemArithmeticConflict)spatialResolved=null;
+ const perItemArithmeticConflict=expected&&Number(expected)>0&&!totalIsSingle&&perItem>Number(expected)*1.20&&perItem-Number(expected)>.20;
+ if(unitOwnershipConflict)spatialResolved=null;
+ else if(totalIsSingle)spatialResolved={...spatialResolved,quantity:null};
+ else if(noDiscount||perItemArithmeticConflict)spatialResolved=null;
 }
 
 // Final ownership gate for weak nearest-price matches.
