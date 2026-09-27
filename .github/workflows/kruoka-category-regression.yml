@@ -759,3 +759,25 @@ jobs:
             console.log("STORE_INLINE_DATA "+JSON.stringify({name,id,blocks:inline.map(x=>x.slice(0,12000))},null,2));
           }
           NODE
+
+      - name: Extract Tjek store route implementation
+        run: |
+          node <<'NODE'
+          const ORIGIN="https://etarjouslehdet.fi";
+          const html=await (await fetch(ORIGIN+"/K-Supermarket/kaupat/4165GCi")).text();
+          const srcs=[...new Set([...html.matchAll(/<script[^>]+src=["']([^"']+)["']/gi)].map(m=>new URL(m[1],ORIGIN).href))];
+          for(const src of srcs){
+            const js=await (await fetch(src)).text();
+            const p=js.indexOf("function VM({Route:e})");
+            if(p<0)continue;
+            console.log("STORE_ROUTE_IMPL "+js.slice(p,p+18000));
+            const route=js.slice(p,p+18000);
+            const calls=[...new Set([...route.matchAll(/\b([A-Za-z_$][\w$]{1,8})\(/g)].map(m=>m[1]))];
+            for(const fn of calls){
+              const re=new RegExp("(?:function|var|let|const) "+fn.replace(/[$]/g,"\\$")+"(?:\\s*=|\\()");
+              const m=re.exec(js); if(!m)continue;
+              console.log("STORE_ROUTE_DEP "+fn+" "+js.slice(m.index,m.index+6000));
+            }
+            break;
+          }
+          NODE
