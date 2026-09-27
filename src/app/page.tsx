@@ -3270,7 +3270,7 @@ export default function Page() {
       if (gpsUserDisabledRefV306.current) return;
       // V519: käytä samaa polkua kuin GPS-nappi, jotta paikannus käynnistyy oikeasti
       // myös silloin kun snapshotissa on jo vanhat coords+kaupat.
-      void useOwnLocation("manual");
+      void useOwnLocation("boot_refresh");
     }, 650);
   }, []);
 
@@ -9771,11 +9771,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
   }
 
-  async function useOwnLocation(source: "boot" | "manual" = "manual") {
+  async function useOwnLocation(source: "boot" | "manual" | "boot_refresh" = "manual") {
     pushGpsDebugLogV492(`useOwnLocation ENTRY using=${String(usingOwnLocation)} loading=${String(storeSearchLoading)} coords=${gpsCoordsV320 ? "yes" : "no"} stores=${String(foundStores.length)}`);
     const now = Date.now();
     const gpsWindowLockV470 = getZiiplyGpsWindowLockV470();
     const isBootGpsRunV472 = source === "boot";
+    const isBackgroundBootRefreshV736 = source === "boot_refresh";
     let gpsResolvedCityV495 = "";
     let gpsResolvedCoordsV495: { latitude: number; longitude: number } | null = null;
     let gpsApplyLocationDoneV495 = false;
@@ -9881,14 +9882,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // Bootin automaattinen GPS-refresh saa pyöriä snapshotin takana ilman,
     // että käyttäjän vakaa sijaintiteksti vaihtuu "Paikannetaan..."-tilaan.
     // Käyttäjän itse käynnistämä GPS-haku näyttää edelleen paikannustilan normaalisti.
-    if (source !== "manual" || !stableBootSnapshotHydratedRefV505.current) {
+    if (!isBackgroundBootRefreshV736) {
       setLocationMessage("Paikannetaan...");
     }
 
     try {
       pushGpsDebugLogV492(`useOwnLocation before getCurrentPosition`);
       const position = await getCurrentPosition(
-        isBootGpsRunV472
+        (isBootGpsRunV472 || isBackgroundBootRefreshV736)
           ? { enableHighAccuracy: false, timeout: 18000, maximumAge: 30000 }
           : { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
       );
