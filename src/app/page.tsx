@@ -15761,16 +15761,69 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
   }
 
+  function isCheapestAttributeCompatible(sourceName: string, candidateName: string) {
+    if (!productGroupGate(sourceName, candidateName)) return false;
+
+    const source = normalize(sourceName);
+    const candidate = normalize(candidateName);
+    const strictFamilies = [
+      ["piimä", "piima"],
+      ["maito", "kevytmaito", "täysmaito", "taysmaito", "ykkösmaito", "ykkosmaito"],
+      ["jogurtti", "jogurt"],
+      ["jauheliha"],
+      ["grillimakkara"],
+      ["kananmuna", "kananmunat", "kananmunia", "munat"],
+      ["kalapuikko", "kalapuikot", "fiskpinnar"],
+    ];
+
+    for (const family of strictFamilies) {
+      if (hasAnyToken(source, family) && !hasAnyToken(candidate, family)) return false;
+    }
+
+    const requiredAttributes = [
+      "laktoositon",
+      "vähälaktoosinen",
+      "vahalaktoosinen",
+      "rasvaton",
+      "luomu",
+      "gluteeniton",
+      "maidoton",
+      "vegaaninen",
+      "sokeriton",
+      "makeuttamaton",
+      "suolaton",
+    ];
+    for (const attribute of requiredAttributes) {
+      if (hasExactNormalizedWord(source, attribute) && !hasExactNormalizedWord(candidate, attribute)) {
+        return false;
+      }
+    }
+
+    const sourceSize = parseMetricSize(sourceName);
+    const candidateSize = parseMetricSize(candidateName);
+    if (
+      sourceSize &&
+      candidateSize &&
+      (sourceSize.unitGroup !== candidateSize.unitGroup || sourceSize.amount !== candidateSize.amount)
+    ) {
+      return false;
+    }
+
+    return true;
+  }
+
   async function fetchAlternativesForMatch(
     chainKey: ChainResult["key"],
     match: Match,
     forcedQualityMode?: QualityMode,
   ) {
     const matchQualityMode = forcedQualityMode || getMatchQualityMode(match, chainKey);
+    const sourceCartItem = match.cartItemId ? cart.find((item) => item.id === match.cartItemId) : undefined;
+    const sourceName = sourceCartItem?.name || sourceCartItem?.product?.name || match.product.name;
     let alternatives: Product[] = [];
 
     if (chainKey === "s") {
-      const sTerms = getAlternativeSearchTerms(match.product.name, "s");
+      const sTerms = getAlternativeSearchTerms(sourceName, "s");
       const allSItems: Product[] = [];
 
       for (const term of sTerms.slice(0, 5)) {
@@ -15788,35 +15841,36 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         .filter(
           (product) =>
             !isHardRejectedOptimizationAlternative(
-              match.product.name,
+              sourceName,
               product.name,
             ),
         )
-        .filter((product) => productGroupGate(match.product.name, product.name))
+        .filter((product) => productGroupGate(sourceName, product.name))
+        .filter((product) => matchQualityMode !== "cheapest" || isCheapestAttributeCompatible(sourceName, product.name))
         .filter((product) =>
           isAllowedByQualityMode(
-            match.product.name,
-            product.name,
+            sourceName,
+              product.name,
             matchQualityMode,
           ),
         )
         .filter(
           (product) =>
-            scoreNameMatch(match.product.name, product.name) +
+            scoreNameMatch(sourceName, product.name) +
               scoreQualityMode(
-                match.product.name,
-                product.name,
+                sourceName,
+              product.name,
                 matchQualityMode,
               ) >
             -100,
         )
         .sort((a, b) => {
           const aScore =
-            scoreNameMatch(match.product.name, a.name) +
-            scoreQualityMode(match.product.name, a.name, matchQualityMode);
+            scoreNameMatch(sourceName, a.name) +
+            scoreQualityMode(sourceName, a.name, matchQualityMode);
           const bScore =
-            scoreNameMatch(match.product.name, b.name) +
-            scoreQualityMode(match.product.name, b.name, matchQualityMode);
+            scoreNameMatch(sourceName, b.name) +
+            scoreQualityMode(sourceName, b.name, matchQualityMode);
 
           if (
             matchQualityMode !== "cheapest" &&
@@ -15831,7 +15885,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     if (chainKey === "k") {
-      const kTerms = getAlternativeSearchTerms(match.product.name, "k");
+      const kTerms = getAlternativeSearchTerms(sourceName, "k");
       const allKItems: KProduct[] = [];
 
       // Vaihtoehdot pitää hakea juuri sen vertailukortin kaupasta.
@@ -15868,27 +15922,28 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         .filter(
           (product) =>
             !isHardRejectedOptimizationAlternative(
-              match.product.name,
+              sourceName,
               product.name,
             ),
         )
         .filter(
           (product) => !isHardRejectedKMatch(match.product.name, product.name),
         )
-        .filter((product) => productGroupGate(match.product.name, product.name))
+        .filter((product) => productGroupGate(sourceName, product.name))
+        .filter((product) => matchQualityMode !== "cheapest" || isCheapestAttributeCompatible(sourceName, product.name))
         .filter((product) =>
           isAllowedByQualityMode(
-            match.product.name,
-            product.name,
+            sourceName,
+              product.name,
             matchQualityMode,
           ),
         )
         .filter(
           (product) =>
-            scoreNameMatch(match.product.name, product.name) +
+            scoreNameMatch(sourceName, product.name) +
               scoreQualityMode(
-                match.product.name,
-                product.name,
+                sourceName,
+              product.name,
                 matchQualityMode,
               ) >
             -100,
@@ -15896,11 +15951,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         .map(convertKProductToProduct)
         .sort((a, b) => {
           const aScore =
-            scoreNameMatch(match.product.name, a.name) +
-            scoreQualityMode(match.product.name, a.name, matchQualityMode);
+            scoreNameMatch(sourceName, a.name) +
+            scoreQualityMode(sourceName, a.name, matchQualityMode);
           const bScore =
-            scoreNameMatch(match.product.name, b.name) +
-            scoreQualityMode(match.product.name, b.name, matchQualityMode);
+            scoreNameMatch(sourceName, b.name) +
+            scoreQualityMode(sourceName, b.name, matchQualityMode);
 
           if (
             matchQualityMode !== "cheapest" &&
