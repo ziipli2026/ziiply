@@ -132,16 +132,16 @@ export default function ZiiplyMobileStoreModeSelector({
       <div className="pointer-events-none absolute inset-0 opacity-24 [background-image:radial-gradient(#c9ad6b_0.9px,transparent_0.9px)] [background-size:17px_17px]" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.64),transparent_60%)]" />
 
-      <div className="relative z-10 grid grid-cols-[minmax(0,1fr)_82px_minmax(0,1fr)] items-center gap-1">
+      <div className="relative z-10 relative flex items-center justify-between">
 <button
           type="button"
           disabled={modeButtonsDisabled}
           onClick={() => onStoreModeChange("hyper")}
-          className={`${buttonClass(hyperActive, modeButtonsDisabled)} -translate-x-3`}
+          className={`${buttonClass(hyperActive, modeButtonsDisabled)} w-[calc(50%-0.5rem)]`}
         >
           <span className="relative z-10">🏬 Tavaratalot</span>
         </button>
-        <div className={`flex w-[82px] items-center justify-center gap-1 ${storeCompareScope === "between_chains" && storeModeChosen ? "" : "invisible pointer-events-none"}`} aria-hidden={!(storeCompareScope === "between_chains" && storeModeChosen)}>
+        <div className={`absolute left-1/2 z-20 flex w-[82px] -translate-x-1/2 items-center justify-center gap-1 ${storeCompareScope === "between_chains" && storeModeChosen ? "" : "invisible pointer-events-none"}`} aria-hidden={!(storeCompareScope === "between_chains" && storeModeChosen)}>
           <span className="text-[10px] font-black text-[#6a5330]">Yksi</span>
           <button type="button" role="switch" aria-checked={betweenChainSelectionMode === "many"} aria-label="Valitse yksi tai monta kauppaa" onClick={() => onBetweenChainSelectionModeChange?.(betweenChainSelectionMode === "one" ? "many" : "one")} className={`relative h-[18px] w-[34px] shrink-0 rounded-full border transition-colors ${betweenChainSelectionMode === "many" ? "border-[#07502c] bg-[#0a6d39]" : "border-[#b99b62] bg-[#d8c69d]"}`}>
             <span className={`absolute top-[2px] h-[12px] w-[12px] rounded-full bg-white shadow-sm transition-transform ${betweenChainSelectionMode === "many" ? "left-[18px]" : "left-[2px]"}`} />
@@ -152,7 +152,7 @@ export default function ZiiplyMobileStoreModeSelector({
           type="button"
           disabled={modeButtonsDisabled}
           onClick={() => onStoreModeChange("local")}
-          className={`${buttonClass(localActive, modeButtonsDisabled)} translate-x-3`}
+          className={`${buttonClass(localActive, modeButtonsDisabled)} w-[calc(50%-0.5rem)]`}
         >
           <span className="relative z-10">🏪 Lähikaupat</span>
         </button>
