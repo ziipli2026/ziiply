@@ -170,7 +170,9 @@ async function fetchKSupermarketRegionalOffers(publicationId: string): Promise<U
     const values = await Promise.all(batch.map(async publicId => {
       try {
         const value = await fetchTjekData("offer", { publicId }, "K-Supermarket");
-        return value && typeof value === "object" ? value as UnknownRecord : null;
+        return value && typeof value === "object"
+          ? { ...(value as UnknownRecord), publicationPublicId: publicationId }
+          : null;
       } catch {
         return null;
       }
