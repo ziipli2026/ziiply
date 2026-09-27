@@ -9959,6 +9959,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         return;
       }
 
+      // V748_STALE_BACKGROUND_GPS_RESULT_GUARD:
+      // Jos käyttäjä ehti boot_refresh-ajon aikana vaihtaa käsinsyöttöön / sammuttaa GPS:n,
+      // vanha tausta-GPS-tulos ei saa enää yliajaa käyttäjän uudempaa valintaa.
+      if (isBackgroundBootRefreshV736 && gpsUserDisabledRefV306.current) {
+        pushGpsDebugLogV492("useOwnLocation(boot_refresh) stale result ignored: GPS disabled by user");
+        return;
+      }
+
       pushGpsDebugLogV492(`useOwnLocation city=${city}`);
       gpsResolvedCityV495 = city;
       gpsResolvedCoordsV495 = nextGpsCoordsV485;
