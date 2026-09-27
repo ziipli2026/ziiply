@@ -391,7 +391,7 @@ if(!spatialResolved&&anchor&&pk){
   const am=String(a.text||"").trim().match(/^\((\d{1,2})$/);if(!am)continue;
   const b=local.find(x=>{if(!(Math.abs((Number(x.top)||0)-(Number(a.top)||0))<.003&&(Number(x.left)||0)>Number(a.left)&&Number(x.left)-Number(a.left)<.07))return false;const m=String(x.text||"").trim().match(/^(\d{2})\/(kg|l)\)$/i);return !!m&&String(m[2]).toLowerCase()===kind;});if(!b)continue;
   const bm=String(b.text).trim().match(/^(\d{2})\/(kg|l)\)$/i),rate=Number(am[1]+"."+bm[1]),v=((Number(pk.min)+Number(pk.max))/2)*rate,rv=Number(v.toFixed(2));
-  if(Math.abs(v-rv)<=.015&&wordBoxes.some(g=>String(g.text||"").trim()===String(Math.round(rv))&&Number(g.height||0)>=.05&&Math.abs((Number(g.top)||0)-ay)<.10&&Math.abs((Number(g.left)||0)-ax)<.30))vals.push({value:rv,rate});
+  if(Math.abs(v-rv)<=.015&&wordBoxes.some(g=>String(g.text||"").trim()===String(Math.round(rv))&&Number(g.height||0)>=.05&&Math.abs((Number(g.top)||0)-ay)<.10&&Math.abs((Number(g.left)||0)-ax)<.45))vals.push({value:rv,rate});
  }
  const uniq=[...new Map(vals.map(x=>[x.value,x])).values()];if(uniq.length===1){spatialResolved={value:uniq[0].value,quantity:null,unit:null,source:"fragmented-owned-unitrate-visual",sanity:"pass",confidence:"high"};ur={min:uniq[0].rate,max:uniq[0].rate,raw:"geometry/"+kind};expected=uniq[0].value;}
 }
