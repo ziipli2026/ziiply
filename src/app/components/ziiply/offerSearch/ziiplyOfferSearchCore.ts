@@ -695,7 +695,7 @@ export function mapZiiplyGostaOfferToCardOfferV147(item: ZiiplyGostaOfferLike) {
     discountText:
       item.benefitText ||
       item.validityText ||
-      (item.validFrom && item.validTo ? `Voimassa ${item.validFrom}–${item.validTo}` : ""),
+      (item.validFrom && item.validTo ? `Voimassa ${String(item.validFrom)}–${String(item.validTo)}` : ""),
     image: item.imageUrl,
     imageUrl: item.imageUrl,
     pictureUrl: item.imageUrl,
