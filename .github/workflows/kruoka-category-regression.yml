@@ -415,6 +415,20 @@ jobs:
           console.log(JSON.stringify(out,null,2));
           NODE
 
+      - name: Inspect businesses publicIds result for publication lists
+        shell: bash
+        run: |
+          node <<'NODE'
+          const ORIGIN="https://etarjouslehdet.fi", BUSINESS="f305U8";
+          const stableBase64=value=>Buffer.from(JSON.stringify(value,(_k,v)=>Object.prototype.toString.call(v)==="[object Object]"?Object.keys(v).sort().reduce((o,k)=>(o[k]=v[k],o),{}):v),"utf8").toString("base64");
+          async function data(name,params){const key=stableBase64([name,params]);const r=await fetch(ORIGIN+"/",{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json, text/plain, */*",Referer:ORIGIN+"/K-Supermarket"},body:JSON.stringify({data:[key]})});for(const line of (await r.text()).split(/\r?\n/).filter(Boolean)){try{const row=JSON.parse(line);if(row.key===key)return row.value;}catch{}}return null;}
+          const v=await data("businesses",{publicIds:[BUSINESS]});
+          const rows=Array.isArray(v)?v:Array.isArray(v?.data)?v.data:[];
+          const safe=rows.map((x,i)=>{const pubs=Array.isArray(x?.publications)?x.publications:[];return {i,name:x?.name??null,publicId:x?.publicId??x?.id??null,keys:x&&typeof x==="object"?Object.keys(x).filter(k=>!/key|token|secret/i.test(k)).sort():[],publicationCount:pubs.length,publications:pubs.map(p=>({id:p?.id??p?.publicId??null,label:p?.label??p?.publicationName??null,validFrom:p?.validFrom??null,validUntil:p?.validUntil??null})).slice(0,20)}}).filter(x=>x.publicationCount||x.publicId===BUSINESS||x.name==="K-Supermarket");
+          const allPublicationIds=[...new Set(safe.flatMap(x=>x.publications.map(p=>p.id)).filter(Boolean))];
+          console.log(JSON.stringify({rowCount:rows.length,relevant:safe,allPublicationIds,containsVgNLpUyJ:allPublicationIds.includes("VgNLpUyJ")},null,2));
+          NODE
+
       # Live-data audit is intentionally kept in this same workflow so there is only one K-ruoka diagnostic flow.
       - name: Fetch live K-Supermarket Jokela offers and classify
         shell: bash
