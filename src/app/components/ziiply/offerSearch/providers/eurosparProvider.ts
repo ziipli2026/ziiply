@@ -35,7 +35,7 @@ type Feed = {
   offers?: FeedOffer[];
 };
 
-export const EUROSPAR_PROVIDER_VERSION = 2;
+export const EUROSPAR_PROVIDER_VERSION = 3;
 export const isEurosparEnabled = () => process.env.ZIIPLY_EUROSPAR_ENABLED === "1";
 
 const norm = (value: unknown) => String(value ?? "").trim().toLocaleLowerCase("fi-FI");
