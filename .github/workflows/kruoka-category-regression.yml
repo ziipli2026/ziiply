@@ -339,6 +339,24 @@ jobs:
           if(!unique.includes("VgNLpUyJ")) process.exitCode=2;
           NODE
 
+      - name: Probe K-Supermarket publication discovery from HTML payload
+        shell: bash
+        run: |
+          node <<'NODE'
+          const urls=["https://etarjouslehdet.fi/K-Supermarket","https://etarjouslehdet.fi/K-Supermarket/kaupat/4165GCi"];
+          for(const url of urls){
+            const r=await fetch(url,{headers:{Accept:"text/html","User-Agent":"Mozilla/5.0"}});
+            const html=await r.text();
+            const ids=[...new Set([
+              ...[...html.matchAll(/[?&]publication=([A-Za-z0-9_-]+)/g)].map(m=>m[1]),
+              ...[...html.matchAll(/"publicationPublicId"\s*:\s*"([A-Za-z0-9_-]+)"/g)].map(m=>m[1]),
+              ...[...html.matchAll(/"publicId"\s*:\s*"([A-Za-z0-9_-]+)"[^{}]{0,500}"(?:validFrom|validUntil)"/g)].map(m=>m[1])
+            ])];
+            console.log(JSON.stringify({url:path(url),count:ids.length,publicationIds:ids},null,2));
+          }
+          function path(u){return new URL(u).pathname}
+          NODE
+
       # Live-data audit is intentionally kept in this same workflow so there is only one K-ruoka diagnostic flow.
       - name: Fetch live K-Supermarket Jokela offers and classify
         shell: bash
