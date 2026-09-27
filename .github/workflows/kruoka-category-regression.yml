@@ -370,6 +370,21 @@ jobs:
           console.log(JSON.stringify(out,null,2));
           NODE
 
+      - name: Probe frontend bundle for publication query signatures
+        shell: bash
+        run: |
+          node <<'NODE'
+          const html=await (await fetch("https://etarjouslehdet.fi/K-Supermarket",{headers:{"User-Agent":"Mozilla/5.0"}})).text();
+          const scripts=[...html.matchAll(/<script[^>]+src=["']([^"']+\.js[^"']*)/g)].map(m=>new URL(m[1],"https://etarjouslehdet.fi").href);
+          const signatures=new Set();
+          for(const url of [...new Set(scripts)]){
+            const js=await (await fetch(url,{headers:{"User-Agent":"Mozilla/5.0"}})).text();
+            for(const m of js.matchAll(/(?:useData|loadData)\(\s*["']([^"']*publication[^"']*)["']/gi)) signatures.add(m[1]);
+            for(const m of js.matchAll(/["'](publications?|publication_[A-Za-z0-9_-]+)["']\s*,\s*\{/gi)) signatures.add(m[1]);
+          }
+          console.log(JSON.stringify({scriptCount:new Set(scripts).size,publicationDataKeys:[...signatures].sort()},null,2));
+          NODE
+
       # Live-data audit is intentionally kept in this same workflow so there is only one K-ruoka diagnostic flow.
       - name: Fetch live K-Supermarket Jokela offers and classify
         shell: bash
