@@ -471,7 +471,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                         <button
                           type="button"
                           onClick={() => setDetailsStoreId((current) => current === store.id ? null : store.id)}
-                          className="min-h-[2.28rem] min-w-0 flex-1 rounded-[0.72rem] border-[2.5px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-2 text-[0.70rem] font-black italic tracking-[0.02em] text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58),0_2px_4px_rgba(62,43,20,0.18)] active:translate-y-[1px]"
+                          className="h-[1.96rem] min-w-0 flex-1 rounded-[0.62rem] border-[2.5px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-2 text-[0.68rem] font-black italic tracking-[0.02em] text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58),0_2px_4px_rgba(62,43,20,0.18)] active:translate-y-[1px]"
                           style={{ fontFamily: cooperFont }}
                         >
                           Muuta valintoja
