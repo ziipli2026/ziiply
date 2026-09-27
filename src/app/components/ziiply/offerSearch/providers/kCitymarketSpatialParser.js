@@ -621,6 +621,9 @@ if(spatialResolved&&spatialResolved.quantity==null&&Number(spatialResolved.value
  if(qu&&(!expected||Math.abs(Number(spatialResolved.value)/qu.quantity-Number(expected))<=Math.max(.08,Number(spatialResolved.value)/qu.quantity*.08)))spatialResolved={...spatialResolved,quantity:qu.quantity,unit:qu.unit,source:"final-card-explicit-multibuy",sanity:"pass",confidence:"high",auditRatio:expected?1:null};
 }
 
+// Strong three-token range proof can outlive a foreign normal-price row from an adjacent card.
+if(spatialResolved?.source==="three-token-range-endpoint-visual"&&nr&&Number(spatialResolved.value)>=Number(nr.min)*.995){nr=null;spatialResolved={...spatialResolved,unit:null};}
+
 // Simulation: sanitize contradictory arithmetic metadata once an isolated visual price wins.
 if(spatialResolved?.source==="isolated-visual-metadata-conflict"){
  ur=null; nr=null; expected=null;
