@@ -16554,19 +16554,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       key: "lidl",
       logo: "L",
       title: "Lidl",
-      name: "Tulossa",
+      name: "Lidl",
       tone: "bg-blue-600 text-white ring-blue-100",
       selectedTone: "border-blue-600 bg-blue-50 text-blue-900",
-      comingSoon: true,
     },
     {
       key: "tokmanni",
       logo: "T",
-      title: "Tokmanni",
-      name: "Tulossa",
+      title: "SPAR",
+      name: "SPAR",
       tone: "bg-yellow-400 text-slate-950 ring-yellow-100",
       selectedTone: "border-yellow-500 bg-yellow-50 text-yellow-950",
-      comingSoon: true,
     },
   ];
 
@@ -16637,10 +16635,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function handleBetweenChainCardSelectionV749(storeKey: ChainResult["key"]) {
-    if (storeKey !== "s" && storeKey !== "k") return;
     setSelectedChains((current) => {
       if (betweenChainSelectionModeV749 === "one") {
-        return { ...current, s: storeKey === "s", k: storeKey === "k", lidl: false, tokmanni: false };
+        return {
+          ...current,
+          s: storeKey === "s",
+          k: storeKey === "k",
+          lidl: storeKey === "lidl",
+          tokmanni: storeKey === "tokmanni",
+        };
       }
       return { ...current, [storeKey]: !current[storeKey] };
     });
@@ -17981,7 +17984,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               ? "K-RYHMÄ"
               : store.key === "lidl"
                 ? "LIDL"
-                : "TOKMANNI";
+                : "SPAR";
 
         const storeLogoSrc =
           store.key === "s"
@@ -18030,7 +18033,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   ? selected
                     ? "border-[#927259] bg-[linear-gradient(180deg,#fff8ec_0%,#eedcc1_54%,#dfc19a_100%)] text-[#33271f]"
                     : "border-[#d9c18e] bg-[linear-gradient(180deg,#fffaf0_0%,#f4e9c7_100%)] text-[#725d35] opacity-[0.78]"
-                  : "border-[#e5d5ad] bg-[linear-gradient(180deg,#fff9ec_0%,#f4e8c8_100%)] text-[#b19d76] opacity-[0.34]"
+                  : selected
+                    ? "border-[#8f7a4f] bg-[linear-gradient(180deg,#fff8df_0%,#eadbb7_100%)] text-[#33271f] opacity-100"
+                    : "border-[#d9c18e] bg-[linear-gradient(180deg,#fffaf0_0%,#f4e9c7_100%)] text-[#725d35] opacity-[0.78]"
             }`}
           >
             {chain && (
@@ -18129,8 +18134,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     </span>
                   )
                 ) : (
-                  <span className="rounded-full border border-[#d6bd82] bg-[#fff7dc] px-2.5 py-1 text-[9px] font-black text-[#9a8354] ring-1 ring-[#fff1bf]">
-                    Tulossa
+                  <span className="rounded-[0.38rem] border border-[#b89552] bg-[linear-gradient(180deg,#fffdf7_0%,#ecd8a2_100%)] px-2 py-[2px] text-[8px] font-black text-[#70552a] shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] ring-1 ring-[#f7ebc7]">
+                    {selected ? "Valittu" : "Valitse"}
                   </span>
                 )}
               </div>
