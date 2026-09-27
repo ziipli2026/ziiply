@@ -14374,9 +14374,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     ) {
       const nextInputForDuplicate = remainingTerms.join(",");
       setInput(nextInputForDuplicate);
-      setNormalResults([]);
+      // Säilytä viimeisin onnistunut löytölista, kunnes seuraava haku valmistuu.
       setVisibleNormalCount(8);
-      setActiveNormalSearchTerm("");
 
       if (remainingTerms.length > 0) {
         void searchNormalPrices(nextInputForDuplicate);
@@ -14453,10 +14452,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // Fast add flow: lisää tuote koriin ja pidä käyttäjä hakutilassa seuraavaa tuotetta varten.
       // Ei hypätä vertailuun eikä näytetä vertailukortteja tuotteen lisäämisen jälkeen.
       setInput("");
-      setNormalResults([]);
-      setNormalSearchAttempted(false);
+      // Yhden tuotteen valinta ei tyhjennä löytöluetteloa. Viimeisin onnistunut
+      // lista säilyy, kunnes seuraava onnistunut haku korvaa sen.
       setVisibleNormalCount(8);
-      setActiveNormalSearchTerm("");
       setSearchPanelOpen(true);
       setCartModalOpen(false);
       setCartSavePanelOpen(false);
