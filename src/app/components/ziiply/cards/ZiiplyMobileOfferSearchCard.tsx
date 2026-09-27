@@ -356,6 +356,15 @@ function getOfferName(offer: ZiiplyMobileOfferSearchItem) {
   return String(offer.name || offer.title || offer.productName || offer.brandName || "Tarjoustuote");
 }
 
+function splitOfferNameComparisonPrice(name: string) {
+  const match = name.match(/\s*(\((?:\d+[,.]\d+)(?:\s*[–-]\s*\d+[,.]\d+)?\s*\/\s*(?:kg|l|kpl)\))\s*$/i);
+  if (!match || match.index == null) return { productName: name, embeddedComparisonPrice: "" };
+  return {
+    productName: name.slice(0, match.index).trim(),
+    embeddedComparisonPrice: match[1].replace(/\s*\/\s*/g, "/"),
+  };
+}
+
 function getStoreName(offer: ZiiplyMobileOfferSearchItem) {
   return String(offer.storeName || offer.shopName || offer.chain || "Kauppa");
 }
@@ -1234,6 +1243,7 @@ export default function ZiiplyMobileOfferSearchCard({
             <div className="space-y-3 pt-4">
               {visibleItems.map((offer, index) => {
                 const name = getOfferName(offer);
+                const { productName, embeddedComparisonPrice } = splitOfferNameComparisonPrice(name);
                 const storeName = getStoreName(offer);
                 const offerPrice = getOfferPrice(offer);
                 const normalPrice = getNormalPrice(offer);
@@ -1255,7 +1265,12 @@ export default function ZiiplyMobileOfferSearchCard({
                           <div className="float-right ml-2 mb-0.5 max-w-[7.7rem] whitespace-nowrap text-right text-[clamp(0.88rem,4vw,1.05rem)] font-black italic leading-none text-[#087237]" style={{ fontFamily: cooperFont }}>
                             {offerPrice || "—"}
                           </div>
-                          <div className="break-words text-[0.92rem] font-black leading-tight text-[#233020]">{name}</div>
+                          <div className="break-words text-[0.92rem] font-black leading-tight text-[#233020]">{productName}</div>
+                          {embeddedComparisonPrice ? (
+                            <div className="clear-both mt-[0.18rem] text-[0.70rem] font-extrabold leading-tight text-[#74694f]">
+                              {embeddedComparisonPrice}
+                            </div>
+                          ) : null}
                           <div className="clear-both mt-0.5 flex flex-wrap items-center gap-1 text-[0.56rem] font-black uppercase tracking-[0.08em] text-[#6e6d55]">
                             <span>{storeName}</span>
                             {category ? <span className="rounded-full bg-[#174c2c]/12 px-1.5 py-0.5 text-[#174c2c]">{category}</span> : null}
