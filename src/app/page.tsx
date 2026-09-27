@@ -5560,13 +5560,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       });
     }
 
+    // V740_DEFER_NETWORK_WARMUPS_AFTER_STABLE_BOOT:
+    // Tarjouscache kannattaa lämmittää, mutta ei heti snapshot/GPS-startin kanssa.
+    // Näin ensimmäinen näkymä ja taustapaikannus saavat verkkoresurssit ensin.
     const timer = window.setTimeout(() => {
       for (const context of warmContexts) {
         void warmZiiplyGostaOfferCacheV182(context).catch((error) => {
           console.debug("[Ziiply offer warmup] skipped after provider failure", error);
         });
       }
-    }, 250);
+    }, 2500);
 
     return () => window.clearTimeout(timer);
   }, [
@@ -5614,7 +5617,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       } catch {}
     };
 
-    const timer = window.setTimeout(warmup, 450);
+    // Säilytä S/K-tuote-endpointtien warmup ensimmäisen haun nopeuttamiseksi,
+    // mutta aja se vasta startupin kriittisen vaiheen jälkeen.
+    const timer = window.setTimeout(warmup, 3000);
     return () => window.clearTimeout(timer);
   }, [storesReadyForSearch, activeStores?.sStoreId, activeStores?.kStoreId]);
 
