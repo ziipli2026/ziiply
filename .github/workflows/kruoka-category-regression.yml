@@ -116,6 +116,26 @@ jobs:
           if(single?.price!==5||single?.priceText!=="5,00"||single?.quantity!==null) process.exitCode=3;
           NODE
 
+      - name: Audit Keski- ja Ita-Suomi publication stores
+        shell: bash
+        run: |
+          node <<'NODE'
+          const ORIGIN="https://etarjouslehdet.fi", BUSINESS="f305U8", PUBLICATION="VgNLpUyJ";
+          const stableBase64=value=>Buffer.from(JSON.stringify(value,(_k,v)=>Object.prototype.toString.call(v)==="[object Object]"?Object.keys(v).sort().reduce((o,k)=>(o[k]=v[k],o),{}):v),"utf8").toString("base64");
+          async function data(name,params){
+            const key=stableBase64([name,params]);
+            const r=await fetch(ORIGIN+"/",{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json, text/plain, */*",Referer:ORIGIN+"/K-Supermarket"},body:JSON.stringify({data:[key]})});
+            if(!r.ok) throw new Error(name+" HTTP "+r.status);
+            for(const line of (await r.text()).split(/\r?\n/).filter(Boolean)){try{const row=JSON.parse(line);if(row.key===key)return row.value;}catch{}}
+            throw new Error(name+" key missing");
+          }
+          const arr=v=>Array.isArray(v?.data)?v.data.filter(x=>x&&typeof x==="object"):[];
+          const stores=arr(await data("stores",{publicationId:PUBLICATION,businessId:BUSINESS,pagination:{offset:0,limit:1000}}));
+          const safe=stores.map(s=>({id:s.id??null,name:s.name??null,city:s.city??s.address?.city??null}));
+          console.log(JSON.stringify({publicationId:PUBLICATION,count:safe.length,stores:safe},null,2));
+          if(!safe.length) process.exitCode=2;
+          NODE
+
       # Live-data audit is intentionally kept in this same workflow so there is only one K-ruoka diagnostic flow.
       - name: Fetch live K-Supermarket Jokela offers and classify
         shell: bash
