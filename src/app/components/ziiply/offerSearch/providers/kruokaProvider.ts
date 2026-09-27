@@ -85,6 +85,11 @@ export function getLastKruokaPipelineDebugV49(): KruokaPipelineDebugV49 | null {
 const ETARJOUSLEHDET_ORIGIN = "https://etarjouslehdet.fi";
 const K_SUPERMARKET_BUSINESS_ID = "f305U8";
 const K_MARKET_BUSINESS_ID = "9c56Y8";
+const K_SUPERMARKET_REGIONAL_PUBLICATION_IDS = [
+  "ecbpeytj", "WTcTbNSm", "wsonqubf", "VgNLpUyJ", "7VJyII7Q",
+  "5brdfQ15", "Lfu5WbgE", "FanAklUL", "EdyJW2k4",
+] as const;
+const TJEK_PUBLICATION_VIEWER_ORIGIN = "https://publication-viewer.tjek.com";
 
 function normalize(value: unknown): string {
   return String(value ?? "")
@@ -135,6 +140,37 @@ async function fetchTjekData(name: string, params: UnknownRecord, slug = "K-Supe
     } catch { }
   }
   throw new Error(`eTarjouslehdet data-avain ${name} puuttui vastauksesta`);
+}
+
+async function fetchKSupermarketRegionalOffers(publicationId: string): Promise<UnknownRecord[]> {
+  const offerIds: string[] = [];
+  for (let page = 1; page <= 20; page++) {
+    const response = await fetch(`${TJEK_PUBLICATION_VIEWER_ORIGIN}/api/paged-publications/${encodeURIComponent(publicationId)}/${page}`, {
+      headers: { Accept: "application/json" },
+      cache: "no-store",
+    });
+    if (!response.ok) {
+      if (page > 1 && (response.status === 400 || response.status === 404)) break;
+      throw new Error(`K-Supermarket regional publication ${publicationId} page ${page} HTTP ${response.status}`);
+    }
+    const payload = await response.json() as UnknownRecord;
+    const hotspots = Array.isArray(payload.hotspots) ? payload.hotspots : [];
+    for (const hotspot of hotspots) {
+      if (!hotspot || typeof hotspot !== "object") continue;
+      const offer = (hotspot as UnknownRecord).offer;
+      if (!offer || typeof offer !== "object") continue;
+      const id = String((offer as UnknownRecord).id ?? "").trim();
+      if (id && !offerIds.includes(id)) offerIds.push(id);
+    }
+  }
+  const rows: UnknownRecord[] = [];
+  for (const publicId of offerIds) {
+    try {
+      const value = await fetchTjekData("offer", { publicId }, "K-Supermarket");
+      if (value && typeof value === "object") rows.push(value as UnknownRecord);
+    } catch { }
+  }
+  return rows;
 }
 
 function dataArray(value: unknown): UnknownRecord[] {
@@ -318,6 +354,20 @@ export async function fetchKruokaOffers(
     const tjekStoreId = String(selected.id ?? "").trim();
     debug.kStoreId = tjekStoreId;
 
+    const regionalOffers: UnknownRecord[] = [];
+    if (business.chain === "K-Supermarket") {
+      for (const publicationId of K_SUPERMARKET_REGIONAL_PUBLICATION_IDS) {
+        const storesValue = await fetchTjekData("stores", {
+          publicationId,
+          businessId: business.businessId,
+          pagination: { offset: 0, limit: 1000 },
+        }, business.slug);
+        const publicationStores = dataArray(storesValue);
+        if (!publicationStores.some(s => String(s.id ?? "") === tjekStoreId)) continue;
+        regionalOffers.push(...await fetchKSupermarketRegionalOffers(publicationId));
+      }
+    }
+
     const offersValue = await fetchTjekData("offers", {
       businessIds: [business.businessId],
       sources: ["publication", "business_product"],
@@ -325,7 +375,15 @@ export async function fetchKruokaOffers(
       sort: ["score_desc"],
     }, business.slug);
 
-    const offers = dataArray(offersValue);
+    const baseOffers = dataArray(offersValue);
+    const offers = [...baseOffers];
+    const knownOfferIds = new Set(baseOffers.map(o => String(o.publicId ?? "")).filter(Boolean));
+    for (const offer of regionalOffers) {
+      const id = String(offer.publicId ?? "");
+      if (!id || knownOfferIds.has(id)) continue;
+      knownOfferIds.add(id);
+      offers.push(offer);
+    }
     debug.brochureOffers = offers.length;
     debug.fetchOffersHttp = 200;
     debug.fetchOffersShape = `etarjouslehdet:offers:${business.chain}`;
