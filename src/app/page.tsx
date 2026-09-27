@@ -18199,8 +18199,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   ? "border-[#E3000F] bg-[#FFF1F1] text-[#1F2B42] shadow-[0_5px_16px_rgba(227,0,15,0.13)]"
                   : "border-[#d9c79a] bg-[#fff9ea] text-[#6f6b59] opacity-70"
                 : selected
-                  ? "border-[#d9c79a] bg-[#f5ead0] text-[#6f6b59] opacity-90"
-                  : "border-[#d9c79a] bg-[#fff9ea] text-[#6f6b59] opacity-60";
+                  ? "border-[#d9c79a] bg-[#f5ead0] text-[#6f6b59]"
+                  : "border-[#d9c79a] bg-[#fff9ea] text-[#6f6b59]";
 
           const logoTone =
             store.key === "s"
