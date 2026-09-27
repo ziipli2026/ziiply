@@ -447,6 +447,16 @@ if(anchor&&expected){
 if(!spatialResolved||spatialResolved.sanity==="review"||spatialResolved.source==="best-spatial-candidate"){const words=String(title).toUpperCase().split(/[^A-ZÅÄÖ0-9]+/).filter(w=>w.length>=6);const hits=wordBoxes.filter(b=>words.some(w=>String(b.text||"").toUpperCase().replace(/[^A-ZÅÄÖ0-9]/g,"")===w));const found=[];for(const hit of hits){const hy=(hit.top||0)+(hit.height||0)/2;for(const e of wordBoxes.filter(b=>/^\d{1,2}$/.test(String(b.text||"").trim())&&Number(b.height||0)>=.055&&Math.abs(((b.left||0)+(b.width||0)/2)-((hit.left||0)+(hit.width||0)/2))<.28&&Math.abs(((b.top||0)+(b.height||0)/2)-hy)<.12)){const ey=(e.top||0)+(e.height||0)/2;const et=(e.top||0);for(const q of wordBoxes.filter(b=>b!==e&&/^[2-9]$/.test(String(b.text||"").trim())&&Number(b.height||0)<Number(e.height||0)*.8&&Math.abs(((b.left||0)+(b.width||0)/2)-((e.left||0)+(e.width||0)/2))<.18&&Math.min(Math.abs(((b.top||0)+(b.height||0)/2)-ey),Math.abs(((b.top||0)+(b.height||0)/2)-et),Math.abs(((b.top||0)+(b.height||0)/2)-((e.top||0)+(e.height||0))))<.07)){const u=wordBoxes.find(b=>/^PKT$/i.test(String(b.text||"").trim())&&Math.abs(((b.left||0)+(b.width||0)/2)-((q.left||0)+(q.width||0)/2))<.06&&Math.abs(((b.top||0)+(b.height||0)/2)-((q.top||0)+(q.height||0)/2))<.025);if(u){const value=Number(String(e.text).trim()),quantity=Number(String(q.text).trim());if(value>=2&&value<=30&&quantity>=2)found.push({value,quantity,score:Math.abs((e.left||0)-((hit.left||0)+(hit.width||0)))+Math.abs(ey-hy)});}}} }found.sort((a,b)=>a.score-b.score);const best=found[0];if(best&&(!found[1]||found[1].score-best.score>.03)){const single=best.value/best.quantity,ratio=expected?single/expected:null;if(ratio==null||ratio>=.45&&ratio<=1.25)spatialResolved={value:best.value,quantity:best.quantity,unit:"PKT",source:"title-linked-whole-euro-multibuy",sanity:"pass"};}}
 
 
+// Whole-euro "N,-" price immediately to the right/below the title, validated by owned normal price.
+if(!spatialResolved&&anchor&&nr&&Number(nr.min)>0){
+ const ax=Number(anchor.left)||0,ay=Number(anchor.top)||0,vals=[];
+ for(const e of wordBoxes.filter(b=>/^[1-9]\d?$/.test(String(b.text||"").trim())&&Number(b.height||0)>=.045&&(Number(b.left)||0)>ax&&(Number(b.left)||0)<ax+.22&&(Number(b.top)||0)>=ay&&(Number(b.top)||0)<=ay+.075)){
+  const dash=wordBoxes.find(b=>/^[-–]$/.test(String(b.text||"").trim())&&Math.abs((Number(b.top)||0)-(Number(e.top)||0))<.015&&(Number(b.left)||0)>(Number(e.left)||0)&&(Number(b.left)||0)<(Number(e.left)||0)+.05);
+  if(dash){const v=Number(String(e.text).trim());if(v<Number(nr.min)*.995)vals.push(v);}
+ }
+ const uniq=[...new Set(vals)];if(uniq.length===1)spatialResolved={value:uniq[0],quantity:null,unit:nr.unit||null,source:"title-right-whole-euro-dash-normal-bounded",sanity:"pass",confidence:"high"};
+}
+
 // Title-linked whole-euro single-item offer validated by this card's own printed normal price.
 // "6 pr" is package contents (pairs), never a multibuy quantity.
 if(!spatialResolved&&anchor&&!pk&&!ur){
