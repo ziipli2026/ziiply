@@ -669,7 +669,19 @@ if(spatialResolved?.source==="best-spatial-candidate"&&spatialResolved.quantity=
 if(!spatialResolved&&anchor&&pk){
  const ax=Number(anchor.left)||0,ay=Number(anchor.top)||0,rates=[],local=wordBoxes.filter(b=>Math.abs((Number(b.left)||0)-ax)<.22&&(Number(b.top)||0)>=ay+.015&&(Number(b.top)||0)<=ay+.07);
  for(const c of local){const cm=String(c.text||"").trim().match(/^(\d{2})\/(kg|l)\)$/i);if(!cm)continue;const mid=local.find(b=>Math.abs((Number(b.top)||0)-(Number(c.top)||0))<.003&&(Number(b.left)||0)<Number(c.left)&&Number(c.left)-Number(b.left)<.08&&/^(\d{2})[-–](\d{2})$/.test(String(b.text||"").trim()));if(!mid)continue;const mm=String(mid.text).trim().match(/^(\d{2})[-–](\d{2})$/),first=local.find(b=>Math.abs((Number(b.top)||0)-(Number(c.top)||0))<.003&&(Number(b.left)||0)<Number(mid.left)&&Number(mid.left)-Number(b.left)<.06&&/^\(\d{1,2}$/.test(String(b.text||"").trim()));if(first){const fm=String(first.text).trim().match(/^\((\d{1,2})$/);rates.push(Number(fm[1]+"."+mm[1]),Number(mm[2]+"."+cm[1]));}}
- const vals=[];for(const w of [Number(pk.min),Number(pk.max)])for(const rate of rates){const v=w*rate,rv=Number(v.toFixed(2));if(Math.abs(v-rv)<=.015&&Math.abs(rv-Math.round(rv))<.001&&wordBoxes.some(b=>String(b.text||"").trim()===String(Math.round(rv))&&Number(b.height||0)>=.05&&Math.abs((Number(b.top)||0)-ay)<.10&&Math.abs((Number(b.left)||0)-ax)<.30))vals.push(rv);}const uniq=[...new Set(vals)];if(uniq.length===1){spatialResolved={value:uniq[0],quantity:null,unit:null,source:"late-three-token-range-endpoint-visual",sanity:"pass",confidence:"high"};if(nr&&uniq[0]>=Number(nr.min)*.995)nr=null;}
+ const vals=[];for(const w of [Number(pk.min),Number(pk.max)])for(const rate of rates){const v=w*rate,rv=Number(v.toFixed(2));if(Math.abs(v-rv)<=.015&&Math.abs(rv-Math.round(rv))<.001&&wordBoxes.some(b=>String(b.text||"").trim()===String(Math.round(rv))&&Number(b.height||0)>=.05&&Math.abs((Number(b.top)||0)-ay)<.10&&Math.abs((Number(b.left)||0)-ax)<.30))vals.push(rv);}const uniq=[...new Set(vals)];if(uniq.length===1){spatialResolved={value:uniq[0],quantity:null,unit:null,source:"late-three-token-range-endpoint-visual",sanity:"pass",confidence:"high"};nr=null;ur=null;expected=null;}
+}
+
+// Propagate an exact range-proven price to an immediately adjacent sibling title in the same visual card.
+if(!spatialResolved&&anchor&&out.rows.length){
+ const prev=[...out.rows].reverse().find(r=>r&&r.page===p&&r.price!=null&&["three-token-range-endpoint-visual","late-three-token-range-endpoint-visual"].includes(r.source)&&r.debugAnchor&&Math.abs(Number(r.debugAnchor.left)-Number(anchor.left))<.02&&Math.abs(Number(r.debugAnchor.top)-Number(anchor.top))<.05);
+ if(prev)spatialResolved={value:Number(prev.price),quantity:null,unit:null,source:"same-card-exact-sibling-price",sanity:"pass",confidence:"high"};
+}
+// Explicit large "N-" glyph with KPL unit and a printed normal-price range.
+if(!spatialResolved&&anchor&&nr&&Number(nr.min)>0){
+ const ax=Number(anchor.left)||0,ay=Number(anchor.top)||0,vals=[];
+ for(const b of wordBoxes.filter(b=>/^[1-9][-–]$/.test(String(b.text||"").trim())&&Number(b.height||0)>=.05&&Math.abs((Number(b.left)||0)-ax)<.24&&Math.abs((Number(b.top)||0)-ay)<.06)){const v=Number(String(b.text).match(/[1-9]/)[0]);const unit=wordBoxes.some(u=>/^KPL$/i.test(String(u.text||"").trim())&&Math.abs((Number(u.left)||0)-(Number(b.left)||0))<.05&&Math.abs((Number(u.top)||0)-(Number(b.top)||0))<.05);if(unit&&v<Number(nr.min)*.995)vals.push(v);}
+ const uniq=[...new Set(vals)];if(uniq.length===1)spatialResolved={value:uniq[0],quantity:null,unit:"KPL",source:"explicit-whole-euro-token-normal-bounded",sanity:"pass",confidence:"high"};
 }
 
 // Final confidence gate: classify only after every resolver/fallback has finished.
