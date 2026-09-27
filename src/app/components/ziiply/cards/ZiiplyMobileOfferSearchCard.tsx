@@ -292,6 +292,7 @@ export type ZiiplyMobileOfferSearchCardProps = {
   onFilterChange?: (value: string) => void;
   onSearch?: (value: string) => void;
   onSelectOfferChain?: (chain: "S" | "K") => void;
+  showLidlChain?: boolean;
   onBack?: () => void;
   onClose?: () => void;
   onAddOffer?: (offer: ZiiplyMobileOfferSearchItem) => void;
@@ -611,6 +612,7 @@ export default function ZiiplyMobileOfferSearchCard({
   onFilterChange,
   onSearch,
   onSelectOfferChain,
+  showLidlChain = false,
   onBack,
   onClose,
   onAddOffer,
@@ -1094,7 +1096,7 @@ export default function ZiiplyMobileOfferSearchCard({
               <div className="mx-auto mt-1.5 max-w-[17rem] text-[0.72rem] font-extrabold leading-snug text-[#6d5d3f]">
                 Mistä kaupparyhmästä haetaan tarjoukset?
               </div>
-              <div className="mt-5 grid grid-cols-2 gap-3">
+              <div className={`mt-5 grid gap-3 ${showLidlChain ? "grid-cols-3" : "grid-cols-2"}`}>
                 <button
                   type="button"
                   onClick={() => {
@@ -1119,6 +1121,18 @@ export default function ZiiplyMobileOfferSearchCard({
                   <img src="/storelogos/k-group.png" alt="K-ryhmä" className="h-[4.4rem] w-full object-contain" draggable={false} />
                   <span className="mt-2 text-[0.78rem] font-black text-[#174c2c]">K-ryhmä</span>
                 </button>
+                {showLidlChain ? (
+                  <button
+                    type="button"
+                    disabled
+                    aria-disabled="true"
+                    aria-label="Lidl tarjoukset tulossa"
+                    className="flex min-h-[7.4rem] flex-col items-center justify-center rounded-[1rem] border-[3px] border-[#174c2c] bg-[#fff8d9] px-2 py-3 opacity-100 shadow-[0_4px_0_rgba(91,72,44,0.18)]"
+                  >
+                    <img src="/storelogos/lidl.png" alt="Lidl" className="h-[4.4rem] w-full object-contain" draggable={false} />
+                    <span className="mt-2 text-[0.78rem] font-black text-[#174c2c]">Lidl</span>
+                  </button>
+                ) : null}
               </div>
             </div>
           ) : loading ? (
