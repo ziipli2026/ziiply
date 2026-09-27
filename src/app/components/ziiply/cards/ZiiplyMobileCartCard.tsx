@@ -834,7 +834,7 @@ export default function ZiiplyMobileCartCard({
           <button
             type="button"
             onClick={onBack}
-            className="absolute bottom-[1.05rem] left-[0.88rem] z-[35] grid h-[2.45rem] w-[2.75rem] place-items-center rounded-l-[0.42rem] rounded-r-[0.8rem] border-[2px] border-[#2b1a0e] bg-[linear-gradient(135deg,#7a4c2d_0%,#3b2414_78%)] text-[1.1rem] font-black leading-none text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.25),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]"
+            className="absolute bottom-[1.05rem] left-[1.18rem] z-[35] grid h-[2.45rem] w-[2.75rem] place-items-center rounded-l-[0.42rem] rounded-r-[0.8rem] border-[2px] border-[#2b1a0e] bg-[linear-gradient(135deg,#7a4c2d_0%,#3b2414_78%)] text-[1.1rem] font-black leading-none text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.25),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]"
             aria-label="Takaisin"
             title="Takaisin"
           >
@@ -879,7 +879,7 @@ export default function ZiiplyMobileCartCard({
         <button
           type="button"
           onClick={onClose}
-          className="absolute bottom-[1.05rem] right-[0.88rem] z-[35] grid h-[2.45rem] w-[2.75rem] place-items-center rounded-l-[0.8rem] rounded-r-[0.42rem] border-[2px] border-[#2b1a0e] bg-[linear-gradient(135deg,#7a4c2d_0%,#3b2414_78%)] text-[1.1rem] font-black leading-none text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.25),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]"
+          className="absolute bottom-[1.05rem] right-[1.18rem] z-[35] grid h-[2.45rem] w-[2.75rem] place-items-center rounded-l-[0.8rem] rounded-r-[0.42rem] border-[2px] border-[#2b1a0e] bg-[linear-gradient(135deg,#7a4c2d_0%,#3b2414_78%)] text-[1.1rem] font-black leading-none text-[#f7e7bd] shadow-[0_3px_8px_rgba(0,0,0,0.25),inset_0_0_0_1px_rgba(255,214,139,0.18)] active:translate-y-[1px]"
           aria-label="Sulje"
           title="Sulje vihko"
         >
