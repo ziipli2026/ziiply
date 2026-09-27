@@ -91,14 +91,14 @@ export async function GET(request: Request) {
         ean: getEan(product),
         familyKey: product.familyKey,
         brandName: product.brandName ? fixEncoding(product.brandName) : undefined,
-        pictureUrl:
-          product.pictureUrl ||
-          (() => {
-            const ean = getEan(product);
-            return ean
-              ? `https://public.keskofiles.com/f/k-ruoka/product/${ean}`
-              : undefined;
-          })(),
+        // Prefer Kesko's canonical EAN image for K products. Ruoanhinta's
+        // pictureUrl can be empty/stale for Citymarket rows even when the EAN is valid.
+        pictureUrl: (() => {
+          const ean = getEan(product);
+          return ean
+            ? `https://public.keskofiles.com/f/k-ruoka/product/${ean}`
+            : product.pictureUrl || undefined;
+        })(),
         price: getPrice(product),
         comparisonPrice: product.storeItems?.[0]?.comparisonPrice ?? undefined,
         comparisonPriceUnit: product.storeItems?.[0]?.comparisonPriceUnit ?? undefined,
