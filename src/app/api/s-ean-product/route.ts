@@ -423,6 +423,14 @@ export async function GET(request: NextRequest) {
     const storeId = String(searchParams.get("storeId") || "708276035").trim();
     const nameHint = fixText(searchParams.get("name") || "");
     const origin = new URL(request.url).origin;
+
+    if (!/^\\d{8,14}$/.test(ean)) {
+      return NextResponse.json({ ok: false, error: "Invalid EAN" }, { status: 400 });
+    }
+    if (storeId.length > 32 || nameHint.length > 160) {
+      return NextResponse.json({ ok: false, error: "Invalid query" }, { status: 400 });
+    }
+
     const debugEnabled =
       process.env.VERCEL_ENV !== "production" &&
       searchParams.get("debug") === "1";
@@ -614,11 +622,14 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       {
         ok: false,
-        error: error?.message || "Unknown error",
-        stack:
-          typeof error?.stack === "string"
-            ? error.stack.split("\n").slice(0, 5)
-            : undefined,
+        error:
+          process.env.VERCEL_ENV === "production"
+            ? "Product lookup failed"
+            : error?.message || "Unknown error",
+        ...(process.env.VERCEL_ENV !== "production" &&
+        typeof error?.stack === "string"
+          ? { stack: error.stack.split("\n").slice(0, 5) }
+          : {}),
       },
       { status: 500 },
     );
