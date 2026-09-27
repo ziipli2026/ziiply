@@ -723,6 +723,13 @@ if(!spatialResolved&&pk&&ur&&nr&&Number(nr.min)>0&&Math.abs(Number(pk.max)-Numbe
   spatialResolved={value,quantity:null,unit:String(nr.unit||"KPL").toUpperCase(),source:"fixed-package-unitrate-normalprice-safe",sanity:"pass",confidence:"high",auditRatio:1};
  }
 }
+// Final normal-price-bounded arithmetic fallback. If the row's package × unit-rate price is below
+// every printed normal-price endpoint, it is independently safe even when the normal range varies.
+if(!spatialResolved&&nr&&expected&&Number(expected)>0&&Number(expected)<Number(nr.min)*.995){
+ const ratio=Number(expected)/Number(nr.min);
+ if(ratio>=.40&&ratio<=.98)spatialResolved={value:Number(Number(expected).toFixed(2)),quantity:null,unit:nr.unit||null,source:"expected-single-normal-bounded-safe",sanity:"pass",confidence:"high",auditRatio:1};
+}
+
 // Last-resort same-row arithmetic fallback: expectedSingle is computed only from this row's
 // package size and printed unit rate. Use it only when no normal price exists and no owner survived.
 if(!spatialResolved&&!nr&&expected&&Number(expected)>=.20&&Number(expected)<=30){
