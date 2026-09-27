@@ -537,11 +537,26 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const searchParams = url.searchParams;
     const q = getParam(searchParams, "q") || "";
+    if (q.length > 160) {
+      return NextResponse.json({ ok: false, error: "Hakuehto on liian pitkä", results: [] }, { status: 400 });
+    }
 
     const rawSStoreId = getParam(searchParams, "sStoreId");
     const rawSStoreName = getParam(searchParams, "sStoreName");
     const rawKStoreId = getParam(searchParams, "kStoreId");
     const rawKStoreName = getParam(searchParams, "kStoreName");
+
+    const boundedValues = [rawSStoreId, rawSStoreName, rawKStoreId, rawKStoreName];
+    if (boundedValues.some((value) => String(value || "").length > 500)) {
+      return NextResponse.json({ ok: false, error: "Virheellinen kauppavalinta", results: [] }, { status: 400 });
+    }
+    if (
+      [rawSStoreId, rawSStoreName, rawKStoreId, rawKStoreName]
+        .flatMap((value) => splitMultiValue(value))
+        .length > 40
+    ) {
+      return NextResponse.json({ ok: false, error: "Liian monta kauppavalintaa", results: [] }, { status: 400 });
+    }
 
     const context: ZiiplyOfferSearchSourceContextV8 = {
       areaLabel: getParam(searchParams, "area"),
@@ -614,17 +629,21 @@ export async function GET(request: Request) {
         query: q,
         context,
         results,
-        kruokaDebug: isKCitymarketV19
+        ...(process.env.VERCEL_ENV !== "production"
           ? {
-              selectedStoreName: rawKStoreName || "",
-              selectedStoreId: rawKStoreId || "",
-              applicationState: "KCITYMARKET_V20",
-              htmlDebug: getKCitymarketHtmlDebugV8(),
-              brochureOffers: citymarketResults.length,
-              activeOffers: citymarketResults.length,
-              error: null,
+              kruokaDebug: isKCitymarketV19
+                ? {
+                    selectedStoreName: rawKStoreName || "",
+                    selectedStoreId: rawKStoreId || "",
+                    applicationState: "KCITYMARKET_V20",
+                    htmlDebug: getKCitymarketHtmlDebugV8(),
+                    brochureOffers: citymarketResults.length,
+                    activeOffers: citymarketResults.length,
+                    error: null,
+                  }
+                : getKruokaOfferPipelineDebugV34(),
             }
-          : getKruokaOfferPipelineDebugV34(),
+          : {}),
       },
       {
         headers: {
@@ -637,7 +656,12 @@ export async function GET(request: Request) {
     return NextResponse.json(
       {
         ok: false,
-        error: error instanceof Error ? error.message : "Tarjoushaku epäonnistui",
+        error:
+          process.env.VERCEL_ENV === "production"
+            ? "Tarjoushaku epäonnistui"
+            : error instanceof Error
+              ? error.message
+              : "Tarjoushaku epäonnistui",
         results: [],
       },
       {
