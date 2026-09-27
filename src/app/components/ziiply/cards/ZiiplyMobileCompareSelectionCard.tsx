@@ -104,13 +104,19 @@ function formatComparePrice(value: unknown) {
   return raw;
 }
 
+function cleanComparisonProductName(value: unknown) {
+  return String(value ?? "")
+    .replace(/\s+kmp\s*$/i, "")
+    .trim();
+}
+
 function getItemName(item: unknown) {
   const data = item as ZiiplyCompareSelectionItem;
 
   // Vertailun Match-rivillä product on juuri kyseiselle kaupalle valittu
   // vastine. Älä anna mahdollisen ylimmän tason lähdenimen peittää sitä.
   // Puuttuvalle/cart-riville käytetään edelleen alkuperäistä nimeä.
-  return String(
+  return cleanComparisonProductName(
     (!data?.isMissingComparisonItem && data?.product?.name) ||
       data?.name ||
       data?.title ||
@@ -289,7 +295,7 @@ export default function ZiiplyMobileCompareSelectionCard({
                           );
                         })}
                         {alternativeMenu?.key.startsWith(`${String(item.id ?? item.product?.id ?? index)}:`) ? (
-                          <div className="col-span-3 max-h-[15.5rem] overflow-y-auto rounded-[0.82rem] border-2 border-[#876b37] bg-[#fff8e5] p-2 [scrollbar-width:thin]">
+                          <div className="col-span-3 max-h-[15.5rem] overflow-y-auto overscroll-contain rounded-[0.82rem] border-2 border-[#876b37] bg-[#fff8e5] p-2 [scrollbar-width:thin] [touch-action:pan-y]">
                             {alternativeMenu.loading ? (
                               <div className="py-2 text-center text-[0.65rem] font-black text-[#6b6048]">Haetaan vaihtoehtoja…</div>
                             ) : alternativeMenu.items.length === 0 ? (
