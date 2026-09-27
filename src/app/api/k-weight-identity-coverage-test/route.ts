@@ -41,6 +41,9 @@ async function get(url:string) {
 }
 
 export async function GET() {
+  if (process.env.VERCEL_ENV === "production") {
+    return new NextResponse(null, { status: 404 });
+  }
   const results=[];
   for (const t of TESTS) {
     const k=await get(`https://kalori.info/haku?q=${encodeURIComponent(t.ean)}`);
