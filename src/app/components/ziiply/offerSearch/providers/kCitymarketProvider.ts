@@ -367,10 +367,24 @@ function pageNumber(url:string){
   return m?Number(m[1]):1;
 }
 
+function extractKCitymarketValidityV16(text:unknown){
+  const source=clean(String(text??""));
+  const match=source.match(/(?:voimassa[^0-9]{0,24})?(\d{1,2})\.(?:\s*(\d{1,2})\.)?\s*[–-]\s*(\d{1,2})\.(\d{1,2})\.(\d{4})?/i);
+  if(!match) return null;
+  const startDay=Number(match[1]);
+  const startMonth=Number(match[2]||match[4]);
+  const endDay=Number(match[3]);
+  const endMonth=Number(match[4]);
+  if(!startDay||!startMonth||!endDay||!endMonth) return null;
+  return {from:`${startDay}.${startMonth}.`,to:`${endDay}.${endMonth}.`};
+}
+
 async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[]>{
   const parsed=await parseKCitymarketSpatialLeaflet(entry);
   const leafletUrl=String(parsed?.leaflet||ENTRY);
   const rows:any[]=Array.isArray(parsed?.rows)?parsed.rows:[];
+  const allLeafletText=rows.flatMap((row:any)=>Array.isArray(row?.nearby)?row.nearby:[]).join(" | ");
+  const leafletValidity=extractKCitymarketValidityV16(allLeafletText);
 
   citymarketHtmlDebugV8={
     leafletUrl,
@@ -411,8 +425,8 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       resolutionSource:resolved?.source?String(resolved.source):null,
       resolutionSanity:resolved?.sanity?String(resolved.sanity):null,
       plussa:/plussa/i.test((row?.nearby||[]).map((x:any)=>x?.text||x?.raw||"").join(" ")),
-      validFrom:null,
-      validTo:null,
+      validFrom:extractKCitymarketValidityV16((row?.nearby||[]).join(" | "))?.from??leafletValidity?.from??null,
+      validTo:extractKCitymarketValidityV16((row?.nearby||[]).join(" | "))?.to??leafletValidity?.to??null,
       category:category(title),
       chain:"K",
       storeType:"K-Citymarket",
@@ -489,11 +503,6 @@ const getCachedKCitymarketPeriod=unstable_cache(
     const leafletUrl=String(debug?.leafletUrl||offers[0]?.sourceUrl||"");
     if(!leafletMatchesPeriod(leafletUrl,period)) throw new Error('K-Citymarket leaflet "'+(leafletUrl||"(missing)")+'" does not match requested '+period.key);
     if(!offers.length) throw new Error("K-Citymarket "+period.key+" parsed zero offers");
-    const fallback=kCitymarketDefaultValidityV15(period);
-    for(const offer of offers){
-      if(!offer.validFrom) offer.validFrom=fallback.from;
-      if(!offer.validTo) offer.validTo=fallback.to;
-    }
     return {period,offers,debug,cachedAt:new Date().toISOString()};
   },
   ["ziiply-kcitymarket-offers-v1"],
@@ -532,11 +541,6 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
   const offers=active.week===39 && active.kind==="LV"
     ? await fetchKCitymarketOffersFresh("https://kcm-tarjouslehdet.k-ruoka.fi/78sgvzy_tarjouslehti_39LV_KCM/index.html")
     : await fetchKCitymarketOffersFresh(ENTRY);
-  const fallback=kCitymarketDefaultValidityV15(active);
-  for(const offer of offers){
-    if(!offer.validFrom) offer.validFrom=fallback.from;
-    if(!offer.validTo) offer.validTo=fallback.to;
-  }
   return offers;
 }
 export default fetchKCitymarketOffers;
