@@ -18070,21 +18070,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             </span>
 
             <div
-              className="absolute left-2.5 top-2 z-30 flex h-[22px] w-[30px] items-center justify-center rounded-[0.45rem] border border-[#b89552] bg-[linear-gradient(180deg,#fffef9_0%,#ecd7a0_100%)] px-[5px] py-[3px] shadow-[0_2px_0_rgba(94,71,31,0.14),inset_0_1px_0_rgba(255,255,255,0.90)] ring-1 ring-[#fff4cc]"
+              className="absolute left-2.5 top-2 z-30 flex h-[22px] w-[30px] items-center justify-center overflow-hidden rounded-[0.45rem] border border-[#b89552] bg-[linear-gradient(180deg,#fffef9_0%,#ecd7a0_100%)] p-[1px] shadow-[0_2px_0_rgba(94,71,31,0.14),inset_0_1px_0_rgba(255,255,255,0.90)] ring-1 ring-[#fff4cc]"
             >
               <img
                 src={storeLogoSrc}
                 alt={cardLabel}
                 draggable={false}
-                className={`h-full w-full object-contain ${
-                  store.key === "s"
-                    ? "scale-[1.55]"
-                    : store.key === "k"
-                      ? "scale-[1.45]"
-                      : store.key === "lidl"
-                        ? "scale-[1.35]"
-                        : "scale-[1.45]"
-                }`}
+                className="h-full w-full object-contain"
+                style={{
+                  transform: `translate(${store.key === "lidl" ? "0px, 0px" : store.key === "tokmanni" ? "0px, 0px" : "0px, 0px"}) scale(${store.key === "s" ? 0.78 : store.key === "k" ? 0.92 : store.key === "lidl" ? 1.18 : 1.2})`,
+                  transformOrigin: "center",
+                }}
                 onError={(event) => {
                   event.currentTarget.style.display = "none";
                 }}
