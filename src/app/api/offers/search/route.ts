@@ -63,6 +63,7 @@
 
 import { NextResponse } from "next/server";
 import { fetchKCitymarketOffers, getKCitymarketHtmlDebugV8 } from "../../../components/ziiply/offerSearch/providers/kCitymarketProvider";
+import { fetchEurosparOffers, isEurosparEnabled } from "../../../components/ziiply/offerSearch/providers/eurosparProvider";
 import {
   searchZiiplyOffers,
   getKruokaOfferPipelineDebugV34,
@@ -537,6 +538,29 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const searchParams = url.searchParams;
     const q = getParam(searchParams, "q") || "";
+
+    const requestedProvider = getParam(searchParams, "provider");
+    const eurosparStoreName = getParam(searchParams, "eurosparStoreName");
+    const isEurosparRequest = requestedProvider === "eurospar" && Boolean(eurosparStoreName);
+
+    if (isEurosparRequest) {
+      if (!isEurosparEnabled()) {
+        return NextResponse.json(
+          { ok: true, query: q, results: [], provider: "eurospar", enabled: false },
+          { headers: { "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate" } },
+        );
+      }
+
+      const today = new Date().toISOString().slice(0, 10);
+      const fetched = await fetchEurosparOffers(eurosparStoreName!, today);
+      const results = (fetched as unknown as UnknownRecord[]).filter((offer) =>
+        offerMatchesQuery(q, offer),
+      );
+      return NextResponse.json(
+        { ok: true, query: q, results, provider: "eurospar", enabled: true },
+        { headers: { "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate" } },
+      );
+    }
 
     const rawSStoreId = getParam(searchParams, "sStoreId");
     const rawSStoreName = getParam(searchParams, "sStoreName");
