@@ -5584,18 +5584,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       });
     }
 
-    // V740_DEFER_NETWORK_WARMUPS_AFTER_STABLE_BOOT:
-    // Tarjouscache kannattaa lämmittää, mutta ei heti snapshot/GPS-startin kanssa.
-    // Näin ensimmäinen näkymä ja taustapaikannus saavat verkkoresurssit ensin.
-    const timer = window.setTimeout(() => {
-      for (const context of warmContexts) {
-        void warmZiiplyGostaOfferCacheV182(context).catch((error) => {
-          console.debug("[Ziiply offer warmup] skipped after provider failure", error);
-        });
-      }
-    }, 2500);
-
-    return () => window.clearTimeout(timer);
+    // V741_SELECTION_WARMUP_IMMEDIATE:
+    // Kun aktiivinen kauppavalinta on ratkennut, käynnistä Göstan täsmälleen saman
+    // ketjukohtaisen master-cachen lämmitys heti. Jos Gösta avataan kesken latauksen,
+    // näkyvä haku käyttää samaa cacheen tallennettua promisea eikä tee tuplapyyntöä.
+    for (const context of warmContexts) {
+      void warmZiiplyGostaOfferCacheV182(context).catch((error) => {
+        console.debug("[Ziiply offer warmup] skipped after provider failure", error);
+      });
+    }
   }, [
     storesReadyForSearch,
     storeModeChosenV299,
