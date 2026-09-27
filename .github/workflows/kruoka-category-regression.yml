@@ -878,3 +878,28 @@ jobs:
             console.log("STORE_PROTOCOL",JSON.stringify({name,status:r.status,key,body:txt.slice(0,5000)}));
           }
           NODE
+
+      - name: Resolve Tjek fronts publications for selected K-Supermarkets
+        run: |
+          node <<'NODE'
+          const O="https://etarjouslehdet.fi";
+          const enc=v=>Buffer.from(JSON.stringify(v,(k,x)=>x&&Object.prototype.toString.call(x)==="[object Object]"?Object.keys(x).sort().reduce((o,k)=>(o[k]=x[k],o),{}):x),"utf8").toString("base64");
+          async function data(refs){
+            const keys=refs.map(enc);
+            const r=await fetch(O+"/",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({data:keys})});
+            const txt=await r.text();
+            const rows=txt.trim().split("\n").filter(Boolean).map(x=>JSON.parse(x));
+            if(!r.ok) throw Error(r.status+" "+txt);
+            return rows;
+          }
+          const ids=["4165GCi","e508Azi","f310kEi","a528m8i"];
+          for(const id of ids){
+            const sr=(await data([["store",{storeId:id}]]))[0];
+            const s=sr.value;
+            const params={businessIds:[s.business.publicId],localBusinessIds:[s.id],coordinates:s.coordinates};
+            const fr=(await data([["fronts",params]]))[0];
+            const fronts=fr.value||[];
+            const pubs=fronts.flatMap(x=>x.publications||[]);
+            console.log("FRONTS_RESULT",JSON.stringify({id,name:s.name,city:s.city,business:s.business.publicId,coordinates:s.coordinates,status:fr.status,frontCount:fronts.length,publicationCount:pubs.length,publications:pubs.map(p=>({id:p.id||p.publicId,name:p.name||p.title,start:p.startDate||p.validFrom,end:p.endDate||p.validTo}))}));
+          }
+          NODE
