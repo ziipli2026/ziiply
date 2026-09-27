@@ -193,7 +193,7 @@ export default function ZiiplyMobileCompareSelectionCard({
   onClose,
   className = "",
 }: ZiiplyMobileCompareSelectionCardProps) {
-  const [alternativeMenu, setAlternativeMenu] = React.useState<{ key: string; items: ZiiplyCompareSelectionItem[]; loading: boolean } | null>(null);
+  const [alternativeMenu, setAlternativeMenu] = React.useState<{ key: string; mode: QualityMode; items: ZiiplyCompareSelectionItem[]; loading: boolean } | null>(null);
 
   if (!open) return null;
 
@@ -265,10 +265,11 @@ export default function ZiiplyMobileCompareSelectionCard({
                                   return;
                                 }
                                 const key = `${String(item.id ?? item.product?.id ?? index)}:${mode}`;
-                                setAlternativeMenu({ key, items: [], loading: true });
+                                setAlternativeMenu({ key, mode, items: [], loading: true });
                                 const result = await onChangeMatchMode(store.id, item, mode);
                                 setAlternativeMenu({
                                   key,
+                                  mode,
                                   items: Array.isArray(result) ? result as ZiiplyCompareSelectionItem[] : [],
                                   loading: false,
                                 });
@@ -298,7 +299,10 @@ export default function ZiiplyMobileCompareSelectionCard({
                                 key={String(alternative.id ?? alternative.product?.id ?? alternativeIndex)}
                                 type="button"
                                 onClick={async () => {
-                                  await onSelectMatchAlternative?.(store.id, item, alternative);
+                                  await onSelectMatchAlternative?.(store.id, item, {
+                                    ...alternative,
+                                    comparisonSelectionMode: alternativeMenu.mode,
+                                  });
                                   setAlternativeMenu(null);
                                 }}
                                 className="mb-1.5 grid w-full grid-cols-[minmax(0,1fr)_4.8rem] items-center gap-3 rounded-[0.62rem] border border-[#b99d5c] bg-[#f5e8c7] px-3 py-2.5 text-left last:mb-0"
