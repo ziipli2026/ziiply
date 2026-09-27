@@ -991,6 +991,16 @@ export default function ZiiplyMobileOfferSearchCard({
 
         <LeatherBackButton onClick={handleBack} />
 
+        <button
+          type="button"
+          onClick={() => setDebugOpenV52(true)}
+          className="absolute left-[4.15rem] top-[1.08rem] z-[35] rounded border border-[#6d5d3f] bg-[#fff4d4]/90 px-1.5 py-0.5 font-mono text-[0.55rem] font-black text-[#5f5034] shadow-sm"
+          aria-label="Avaa tarjoushaun debug"
+          title="Avaa debug"
+        >
+          DBG
+        </button>
+
         {onClose ? (
           <button
             type="button"
