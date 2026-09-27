@@ -433,6 +433,14 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
 
 type KCitymarketPeriodKind = "AV" | "LV";
 type KCitymarketPeriod = { key:string; kind:KCitymarketPeriodKind; week:number; startDate:string };
+function formatKCitymarketDateV15(iso:string){
+  const [,m,d]=String(iso||"").match(/^(\d{4})-(\d{2})-(\d{2})$/)||[];
+  return m&&d?`${Number(d)}.${Number(m)}.`:"";
+}
+function kCitymarketDefaultValidityV15(period:KCitymarketPeriod){
+  const days=period.kind==="AV"?2:3;
+  return {from:formatKCitymarketDateV15(period.startDate),to:formatKCitymarketDateV15(shiftIsoDate(period.startDate,days))};
+}
 type KCitymarketCachedPayload = { period:KCitymarketPeriod; offers:CitymarketOffer[]; debug:KCitymarketHtmlDebugV8; cachedAt:string };
 
 function helsinkiClock(now=new Date()){
@@ -481,6 +489,11 @@ const getCachedKCitymarketPeriod=unstable_cache(
     const leafletUrl=String(debug?.leafletUrl||offers[0]?.sourceUrl||"");
     if(!leafletMatchesPeriod(leafletUrl,period)) throw new Error('K-Citymarket leaflet "'+(leafletUrl||"(missing)")+'" does not match requested '+period.key);
     if(!offers.length) throw new Error("K-Citymarket "+period.key+" parsed zero offers");
+    const fallback=kCitymarketDefaultValidityV15(period);
+    for(const offer of offers){
+      if(!offer.validFrom) offer.validFrom=fallback.from;
+      if(!offer.validTo) offer.validTo=fallback.to;
+    }
     return {period,offers,debug,cachedAt:new Date().toISOString()};
   },
   ["ziiply-kcitymarket-offers-v1"],
