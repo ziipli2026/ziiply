@@ -429,7 +429,7 @@ if(!spatialResolved&&anchor&&!pk&&!ur){
  const ownNormal=[];
  for(const g of groups){const m=String(g.text||"").replace(/,/g,".").match(/\b(\d{1,2})\s+(\d{2})\/(pkt|kpl|ps|rs|tlk|pl)\b/i);if(m)ownNormal.push({value:Number(m[1]+"."+m[2]),unit:m[3].toUpperCase()});}
  const normals=[...new Map(ownNormal.map(x=>[x.value.toFixed(2)+"|"+x.unit,x])).values()];
- const whole=wordBoxes.filter(b=>/^[1-9]\d?$/.test(String(b.text||"").trim())&&Number(b.height||0)>=.05&&Math.abs((Number(b.left)||0)-ax)<.20&&Math.abs((Number(b.top)||0)-ay)<.06).map(b=>Number(String(b.text).trim())).filter(v=>v>=1&&v<30);
+ const whole=wordBoxes.filter(b=>/^[1-9]\d?$/.test(String(b.text||"").trim())&&Number(b.height||0)>=.05&&(Number(b.left)||0)>=ax&&Math.abs((Number(b.left)||0)-ax)<.20&&Math.abs((Number(b.top)||0)-ay)<.06).map(b=>Number(String(b.text).trim())).filter(v=>v>=1&&v<30);
  const prices=[...new Set(whole)];
  if(normals.length===1&&prices.length===1&&prices[0]<normals[0].value*.995)spatialResolved={value:prices[0],quantity:null,unit:normals[0].unit,source:"title-linked-whole-euro-normal-bounded",sanity:"pass",confidence:"high"};
 }
