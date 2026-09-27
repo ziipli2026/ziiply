@@ -592,7 +592,7 @@ if(false&&!spatialResolved&&anchor&&pk&&pk.max===pk.min){
 if(!spatialResolved&&anchor&&pk){
  const visual=spatialCandidates.filter(x=>x.quantity==null&&x.value>=.5&&x.value<30&&Number(x.score)<=.30&&Array.isArray(x.parts)&&x.parts.length>=2).sort((a,b)=>a.score-b.score)[0];
  const metadataConflict=ur&&nr&&Number.isFinite(Number(expected))&&Number(nr.min)>0&&Number(expected)>=Number(nr.min)*.75;
- if(visual&&metadataConflict)spatialResolved={...visual,source:"isolated-visual-metadata-conflict",sanity:"pass",confidence:"medium",auditRatio:null};
+ if(visual&&metadataConflict){\n // Contradictory package/unit-rate metadata is not proof that the nearest large visual price belongs to this product.\n // Leave the row unresolved unless a later same-card ownership resolver independently proves the price.\n spatialResolved=null;\n}
 }
 
 // Generic isolated-card large split shelf-price proof.
