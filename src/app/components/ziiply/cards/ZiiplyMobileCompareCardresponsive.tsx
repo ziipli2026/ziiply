@@ -356,7 +356,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                   <article
                     key={store.id}
                     className={cx(
-                      "relative flex min-h-0 flex-col overflow-hidden rounded-[1.18rem] border-[2.5px] px-3.5 py-2 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]",
+                      "relative flex min-h-0 flex-col overflow-hidden rounded-[1.18rem] border-[2.5px] px-3.5 pt-2 pb-1.5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]",
                       detailsStoreId === store.id ? "flex-1" : "shrink-0",
                       store.chain === "S" ? "border-[#0b6330] bg-[#ecf3d5]/82" : "border-[#7c663d]/76 bg-[#fff8e5]/72",
                     )}
@@ -365,7 +365,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                       "grid shrink-0 gap-2",
                       detailsStoreId === store.id
                         ? "min-h-[4.95rem] grid-cols-[2.86rem_minmax(0,1fr)_2.22rem_4.75rem] items-start"
-                        : "min-h-[3.95rem] grid-cols-[2.35rem_minmax(0,1fr)_2.22rem_4.75rem] items-start",
+                        : "min-h-[3.75rem] grid-cols-[2.35rem_minmax(0,1fr)_2.22rem_4.75rem] items-start",
                     )}>
                       {detailsStoreId === store.id ? (
                         <button type="button" onClick={() => setDetailsStoreId(null)}
@@ -467,7 +467,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                     </div>
 
                     {detailsStoreId !== store.id ? (
-                      <div className="-mt-[0.55rem] flex h-[2.28rem] shrink-0 items-start pl-[2.58rem] pr-[8.2rem]">
+                      <div className="-mt-[0.90rem] flex h-[2.18rem] shrink-0 items-start pl-[2.10rem] pr-[8.65rem]">
                         <button
                           type="button"
                           onClick={() => setDetailsStoreId((current) => current === store.id ? null : store.id)}
