@@ -10140,7 +10140,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             setLocationInput("");
 
             if (storeModeChosenV299) {
-              await applyLocation(city, "gps", nextCoords, true);
+              // V745: watchdog on taustapäivitys kuten boot_refresh: pidä snapshot/UI käytettävänä.
+              await applyLocation(city, "gps", nextCoords, true, true);
             } else {
               setGpsCoordsV320(nextCoords);
             }
