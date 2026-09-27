@@ -85,10 +85,6 @@ export function getLastKruokaPipelineDebugV49(): KruokaPipelineDebugV49 | null {
 const ETARJOUSLEHDET_ORIGIN = "https://etarjouslehdet.fi";
 const K_SUPERMARKET_BUSINESS_ID = "f305U8";
 const K_MARKET_BUSINESS_ID = "9c56Y8";
-const K_SUPERMARKET_REGIONAL_PUBLICATION_IDS = [
-  "ecbpeytj", "WTcTbNSm", "wsonqubf", "VgNLpUyJ", "7VJyII7Q",
-  "5brdfQ15", "Lfu5WbgE", "FanAklUL", "EdyJW2k4",
-] as const;
 const TJEK_PUBLICATION_VIEWER_ORIGIN = "https://publication-viewer.tjek.com";
 
 function normalize(value: unknown): string {
@@ -140,6 +136,42 @@ async function fetchTjekData(name: string, params: UnknownRecord, slug = "K-Supe
     } catch { }
   }
   throw new Error(`eTarjouslehdet data-avain ${name} puuttui vastauksesta`);
+}
+
+async function resolveKSupermarketRegionalPublicationIds(selected: UnknownRecord): Promise<string[]> {
+  const storeId = String(selected.id ?? "").trim();
+  const coordinates = selected.coordinates;
+  if (!storeId || !coordinates || typeof coordinates !== "object") return [];
+
+  const value = await fetchTjekData("fronts", {
+    businessIds: [K_SUPERMARKET_BUSINESS_ID],
+    localBusinessIds: [storeId],
+    coordinates,
+  }, "K-Supermarket");
+  const fronts = Array.isArray(value) ? value : [];
+  const now = Date.now();
+  const publications = fronts.flatMap(front => {
+    if (!front || typeof front !== "object") return [];
+    const rows = (front as UnknownRecord).publications;
+    return Array.isArray(rows) ? rows.filter((p): p is UnknownRecord => !!p && typeof p === "object") : [];
+  });
+  const active = publications.filter(publication => {
+    const from = Date.parse(String(publication.validFrom ?? ""));
+    const until = Date.parse(String(publication.validUntil ?? ""));
+    return Number.isFinite(from) && Number.isFinite(until) && from <= now && now <= until;
+  });
+
+  // Tjek returns one regional/common brochure plus one store-specific brochure.
+  // The regional brochure is published later and contains the offer hotspots used by Ziiply.
+  const regional = active
+    .filter(publication => !normalize(publication.label).includes(normalize(selected.name)))
+    .sort((a, b) => Date.parse(String(b.publish ?? b.validFrom ?? "")) - Date.parse(String(a.publish ?? a.validFrom ?? "")));
+
+  const chosen = regional[0] ?? active
+    .slice()
+    .sort((a, b) => Date.parse(String(b.publish ?? b.validFrom ?? "")) - Date.parse(String(a.publish ?? a.validFrom ?? "")))[0];
+  const id = String(chosen?.id ?? "").trim();
+  return id ? [id] : [];
 }
 
 async function fetchKSupermarketRegionalOffers(publicationId: string): Promise<UnknownRecord[]> {
@@ -367,14 +399,8 @@ export async function fetchKruokaOffers(
 
     const regionalOffers: UnknownRecord[] = [];
     if (business.chain === "K-Supermarket") {
-      for (const publicationId of K_SUPERMARKET_REGIONAL_PUBLICATION_IDS) {
-        const storesValue = await fetchTjekData("stores", {
-          publicationId,
-          businessId: business.businessId,
-          pagination: { offset: 0, limit: 1000 },
-        }, business.slug);
-        const publicationStores = dataArray(storesValue);
-        if (!publicationStores.some(s => String(s.id ?? "") === tjekStoreId)) continue;
+      const publicationIds = await resolveKSupermarketRegionalPublicationIds(selected);
+      for (const publicationId of publicationIds) {
         regionalOffers.push(...await fetchKSupermarketRegionalOffers(publicationId));
       }
     }
