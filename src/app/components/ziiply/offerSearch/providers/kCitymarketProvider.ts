@@ -420,7 +420,7 @@ async function fetchKCitymarketOffersFresh(entry=ENTRY):Promise<CitymarketOffer[
       unitPrice,
       unit:row?.unitPrice?.raw?.match(/\/(kg|l)\b/i)?.[1]?.toLowerCase()??resolved?.unit??null,
       packageSize:row?.package?.raw??null,
-      offerQuantity:Number.isFinite(Number(resolved?.quantity))?Number(resolved.quantity):null,
+      offerQuantity:resolved?.quantity!=null&&Number.isFinite(Number(resolved.quantity))?Number(resolved.quantity):null,
       offerUnit:resolved?.unit?String(resolved.unit).toUpperCase():null,
       resolutionSource:resolved?.source?String(resolved.source):null,
       resolutionSanity:resolved?.sanity?String(resolved.sanity):null,
