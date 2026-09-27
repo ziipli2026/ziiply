@@ -14,6 +14,9 @@ function extractName(html: string) {
 }
 
 export async function GET() {
+  if (process.env.VERCEL_ENV === "production") {
+    return new NextResponse(null, { status: 404 });
+  }
   const ruoanhintaResults = [];
   for (const test of TEST_PLUS) {
     const queries = [test.ean, test.plu];
