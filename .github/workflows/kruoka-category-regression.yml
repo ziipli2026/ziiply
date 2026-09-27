@@ -165,6 +165,37 @@ jobs:
           if(!regional.length) process.exitCode=2;
           NODE
 
+      - name: Probe regional K-Supermarket offer query shapes
+        shell: bash
+        run: |
+          node <<'NODE'
+          const ORIGIN="https://etarjouslehdet.fi", BUSINESS="f305U8", PUBLICATION="VgNLpUyJ";
+          const stableBase64=value=>Buffer.from(JSON.stringify(value,(_k,v)=>Object.prototype.toString.call(v)==="[object Object]"?Object.keys(v).sort().reduce((o,k)=>(o[k]=v[k],o),{}):v),"utf8").toString("base64");
+          async function data(name,params){
+            const key=stableBase64([name,params]);
+            const r=await fetch(ORIGIN+"/",{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json, text/plain, */*",Referer:ORIGIN+"/K-Supermarket"},body:JSON.stringify({data:[key]})});
+            const txt=await r.text(); if(!r.ok)return {error:"HTTP "+r.status};
+            for(const line of txt.split(/\r?\n/).filter(Boolean)){try{const row=JSON.parse(line);if(row.key===key)return row.value;}catch{}}
+            return {error:"key missing"};
+          }
+          const arr=v=>Array.isArray(v?.data)?v.data.filter(x=>x&&typeof x==="object"):[];
+          const queries=[
+            ["publicationId",{publicationId:PUBLICATION,pagination:{limit:1000,offset:0}}],
+            ["publicationIds",{publicationIds:[PUBLICATION],pagination:{limit:1000,offset:0}}],
+            ["publicationId+sources",{publicationId:PUBLICATION,sources:["publication"],pagination:{limit:1000,offset:0}}],
+            ["publicationIds+sources",{publicationIds:[PUBLICATION],sources:["publication"],pagination:{limit:1000,offset:0}}],
+            ["business+publicationId",{businessIds:[BUSINESS],publicationId:PUBLICATION,sources:["publication","business_product"],pagination:{limit:1000,offset:0},sort:["score_desc"]}],
+            ["business+publicationIds",{businessIds:[BUSINESS],publicationIds:[PUBLICATION],sources:["publication","business_product"],pagination:{limit:1000,offset:0},sort:["score_desc"]}]
+          ];
+          const out=[];
+          for(const [label,params] of queries){
+            const v=await data("offers",params), rows=arr(v);
+            out.push({label,error:v?.error??null,count:rows.length,publicationMatches:rows.filter(o=>String(o.publicationPublicId??"")===PUBLICATION).length,sample:rows.slice(0,3).map(o=>({id:o.publicId??null,name:o.name??null,publicationId:o.publicationPublicId??null}))});
+          }
+          console.log(JSON.stringify(out,null,2));
+          if(!out.some(x=>x.publicationMatches>0)) process.exitCode=2;
+          NODE
+
       # Live-data audit is intentionally kept in this same workflow so there is only one K-ruoka diagnostic flow.
       - name: Fetch live K-Supermarket Jokela offers and classify
         shell: bash
