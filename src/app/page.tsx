@@ -9873,8 +9873,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       gpsWindowLockV470.lastStartedAt = now;
     }
 
-    setOpenStorePicker(null);
-    setGpsStorePickerBlockedV382(true);
+    // V744_BACKGROUND_BOOT_GPS_DOES_NOT_BLOCK_STORE_PICKER:
+    // Snapshot on jo käyttövalmis ennen boot_refresh-ajoa. Taustapaikannus ei saa
+    // sulkea käyttäjän juuri avaamaa kauppavalitsinta eikä lukita sitä GPS-ajon ajaksi.
+    // Manuaalinen GPS säilyttää vanhan atomisen lukituksen.
+    if (!isBackgroundBootRefreshV736) {
+      setOpenStorePicker(null);
+      setGpsStorePickerBlockedV382(true);
+    }
     if (gpsFailTimerRefV391.current) {
       window.clearTimeout(gpsFailTimerRefV391.current);
       gpsFailTimerRefV391.current = null;
