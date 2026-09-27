@@ -2860,6 +2860,8 @@ export default function Page() {
   const [storeCompareScope, setStoreCompareScope] =
     useState<StoreCompareScope>("between_chains");
   const [withinChain, setWithinChain] = useState<"S" | "K" | null>(null);
+  const [betweenChainSelectionModeV749, setBetweenChainSelectionModeV749] =
+    useState<"one" | "many">("many");
   const [openStorePicker, setOpenStorePicker] = useState<string | null>(null);
   const [storeDrillViewV320, setStoreDrillViewV320] = useState<
     "main" | "selection"
@@ -3886,6 +3888,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     storeModeChosenV299,
     storeCompareScope,
     withinChain,
+    betweenChainSelectionModeV749,
     gpsCoordsV320,
     usingOwnLocation,
     foundStores,
@@ -3985,6 +3988,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       forceEan ? "ean" : "text",
       storeCompareScope,
       storeMode,
+      betweenChainSelectionModeV749,
+      selectedChains.s ? "s1" : "s0",
+      selectedChains.k ? "k1" : "k0",
       withinChain || "",
       activeStores.sStoreId || "",
       activeStores.kStoreId || "",
@@ -5858,6 +5864,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const storePairMissingNoticeVisibleV427 =
     storeModeChosenV299 &&
     storeCompareScope === "between_chains" &&
+    betweenChainSelectionModeV749 === "many" &&
     (!activeStores.sStoreId || !activeStores.kStoreId);
 
   // V168: aiempi ehto katsoi vain activeArea.sStoreId/kStoreId ja vain tavarataloja.
@@ -5867,6 +5874,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const currentStorePairMissingV168 =
     storeModeChosenV299 &&
     storeCompareScope === "between_chains" &&
+    betweenChainSelectionModeV749 === "many" &&
     (!activeStores.sStoreId || !activeStores.kStoreId);
 
   const hyperStorePairMissingV391 =
@@ -5895,7 +5903,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const shouldShow =
       currentStorePairMissingV168 ||
       hyperStorePairMissingV391 ||
-      (storeCompareScope === "between_chains" && selectedChainCount < 2) ||
+      (storeCompareScope === "between_chains" && selectedChainCount < (betweenChainSelectionModeV749 === "one" ? 1 : 2)) ||
       (storeCompareScope === "within_chain" && !withinChain);
 
     if (!shouldShow) {
@@ -5915,6 +5923,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     storeCompareScope,
     selectedChains.s,
     selectedChains.k,
+    betweenChainSelectionModeV749,
     withinChain,
     gpsCoordsV320,
     usingOwnLocation,
@@ -6453,6 +6462,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               }
 
               if (
+                parsedStoreSelection.betweenChainSelectionModeV749 === "one" ||
+                parsedStoreSelection.betweenChainSelectionModeV749 === "many"
+              ) {
+                setBetweenChainSelectionModeV749(parsedStoreSelection.betweenChainSelectionModeV749);
+              }
+
+              if (
                 parsedStoreSelection.withinChain === "S" ||
                 parsedStoreSelection.withinChain === "K"
               ) {
@@ -6503,6 +6519,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           storeModeChosenV299,
           storeCompareScope,
           withinChain,
+          betweenChainSelectionModeV749,
           gpsCoordsV320,
           usingOwnLocation,
         }),
@@ -8854,13 +8871,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     setStoreMode(nextMode);
     if (storeCompareScope === "between_chains") {
-      setSelectedChains((current) => ({
-        ...current,
-        s: true,
-        k: true,
-        lidl: false,
-        tokmanni: false,
-      }));
+      setSelectedChains((current) => {
+        if (betweenChainSelectionModeV749 === "one") {
+          const keepK = current.k && !current.s;
+          return { ...current, s: !keepK, k: keepK, lidl: false, tokmanni: false };
+        }
+        return { ...current, s: true, k: true, lidl: false, tokmanni: false };
+      });
     }
     clearSearchAndComparisonState();
   }
@@ -10976,14 +10993,21 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         for (const searchQuery of searchQueries) {
           const withinChainS = storeCompareScope === "within_chain" && withinChain === "S";
           const withinChainK = storeCompareScope === "within_chain" && withinChain === "K";
+          const betweenSingleK =
+            storeCompareScope === "between_chains" &&
+            betweenChainSelectionModeV749 === "one" &&
+            selectedChains.k &&
+            !selectedChains.s;
 
           let rawItems: Product[] = [];
           let usedStoreName = activeStores.sStoreName;
           let fallbackStoreName = "";
 
-          if (withinChainK) {
-            const kPrimaryStoreId = activeArea.kStoreId;
-            usedStoreName = activeArea.kStoreName || "K-tavaratalo";
+          if (withinChainK || betweenSingleK) {
+            const kPrimaryStoreId = withinChainK ? activeArea.kStoreId : activeStores.kStoreId;
+            usedStoreName = withinChainK
+              ? activeArea.kStoreName || "K-tavaratalo"
+              : activeStores.kStoreName;
             if (kPrimaryStoreId) {
               const kItems = await fetchKProducts(searchQuery, kPrimaryStoreId);
               rawItems = kItems
@@ -11089,8 +11113,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         focusedSearchTerms[0] || useTerms[0] || "",
       );
       const literalKMatches =
-        storeCompareScope === "within_chain" &&
-        withinChain === "K" &&
+        ((storeCompareScope === "within_chain" && withinChain === "K") ||
+          (storeCompareScope === "between_chains" &&
+            betweenChainSelectionModeV749 === "one" &&
+            selectedChains.k &&
+            !selectedChains.s)) &&
         literalNormalQuery
           ? dedupedNormalItems.filter((item) => {
               const normalizedName = normalize(item.name);
@@ -16570,13 +16597,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setStoreModeChosenV299(hadStoreModeChoice);
       // V504: älä pakota Tavaratalot-valintaa, jos käyttäjä ei ole vielä itse
       // valinnut Tavaratalot/Lähikaupat-tilaa.
-      setSelectedChains((current) => ({
-        ...current,
-        s: hadStoreModeChoice,
-        k: hadStoreModeChoice,
-        lidl: false,
-        tokmanni: false,
-      }));
+      setSelectedChains((current) => {
+        if (!hadStoreModeChoice) return { ...current, s: false, k: false, lidl: false, tokmanni: false };
+        if (betweenChainSelectionModeV749 === "one") {
+          const keepK = current.k && !current.s;
+          return { ...current, s: !keepK, k: keepK, lidl: false, tokmanni: false };
+        }
+        return { ...current, s: true, k: true, lidl: false, tokmanni: false };
+      });
       clearSearchAndComparisonState();
       setLocationMessage(
         hadStoreModeChoice
@@ -16604,6 +16632,37 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setLocationMessage(
       " ketjun sisäistä vertailua varten.",
     );
+  }
+
+  function handleBetweenChainSelectionModeChangeV749(nextMode: "one" | "many") {
+    setBetweenChainSelectionModeV749(nextMode);
+    setOpenStorePicker(null);
+    setSelectedChains((current) => {
+      if (nextMode === "one") {
+        const keepK = current.k && !current.s;
+        return { ...current, s: !keepK, k: keepK, lidl: false, tokmanni: false };
+      }
+      return { ...current, lidl: false, tokmanni: false };
+    });
+    clearSearchAndComparisonState();
+  }
+
+  function handleBetweenChainCardSelectionV749(storeKey: ChainResult["key"]) {
+    if (storeKey !== "s" && storeKey !== "k") return;
+    setSelectedChains((current) => {
+      if (betweenChainSelectionModeV749 === "one") {
+        return {
+          ...current,
+          s: storeKey === "s",
+          k: storeKey === "k",
+          lidl: false,
+          tokmanni: false,
+        };
+      }
+      return { ...current, [storeKey]: !current[storeKey] };
+    });
+    clearSearchAndComparisonState();
+    setOpenStorePicker(null);
   }
 
   function handleWithinChainChange(nextChain: "S" | "K" | null) {
@@ -17970,21 +18029,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             tabIndex={0}
             aria-pressed={selected}
             onClick={() => {
-              setSelectedChains((current) => ({
-                ...current,
-                [store.key]: !current[store.key],
-              }));
-              setOpenStorePicker(null);
+              handleBetweenChainCardSelectionV749(store.key);
               triggerHaptic();
             }}
             onKeyDown={(event) => {
               if (event.key !== "Enter" && event.key !== " ") return;
               event.preventDefault();
-              setSelectedChains((current) => ({
-                ...current,
-                [store.key]: !current[store.key],
-              }));
-              setOpenStorePicker(null);
+              handleBetweenChainCardSelectionV749(store.key);
               triggerHaptic();
             }}
             className={`relative cursor-pointer overflow-hidden rounded-[1.18rem] border-[2.5px] px-2 pb-1 pt-1 text-center transition active:scale-[0.985] h-[104px] min-h-[104px] max-h-[104px] shadow-[0_1px_0_rgba(77,50,18,0.12),0_5px_10px_rgba(52,38,14,0.05),inset_0_0_0_1px_rgba(255,255,255,0.90)] before:pointer-events-none before:absolute before:inset-0 before:rounded-[inherit] before:bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.34),transparent_54%),linear-gradient(135deg,rgba(118,82,34,0.035)_0_8%,transparent_8%_16%,rgba(255,255,255,0.05)_16%_24%,transparent_24%_100%)] before:bg-[length:100%_100%,22px_22px] after:bg-[linear-gradient(115deg,transparent_0%,rgba(255,255,255,0.05)_48%,transparent_52%)] after:bg-[length:120px_120px] after:pointer-events-none after:absolute after:inset-[5px] after:rounded-[0.9rem] after:border after:border-[#fff4cf]/80 ${
@@ -18188,11 +18239,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 aria-pressed={selected}
                 disabled={false}
                 onClick={() => {
-                  setSelectedChains((current) => ({
-                    ...current,
-                    [store.key]: !current[store.key],
-                  }));
-                  setOpenStorePicker(null);
+                  handleBetweenChainCardSelectionV749(store.key);
                 }}
                 className="flex w-full flex-1 flex-col items-center justify-start text-center"
               >
@@ -18384,6 +18431,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       storeCompareScope={storeCompareScope}
                       withinChain={withinChain}
                       selectedRealChainCount={selectedRealChainCount}
+                      betweenChainSelectionMode={betweenChainSelectionModeV749}
                       missingStoresMessageVisible={false}
                       foundStoresCount={foundStores.length}
                       hyperStorePairMissing={
@@ -18393,6 +18441,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       }
                       onStoreModeChange={handleStoreModeChange}
                       onStoreCompareScopeChange={handleStoreCompareScopeChange}
+                      onBetweenChainSelectionModeChange={handleBetweenChainSelectionModeChangeV749}
                       onWithinChainChange={handleWithinChainChange}
                     />
                   </div>
