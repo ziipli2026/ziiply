@@ -2886,6 +2886,7 @@ export default function Page() {
   const gpsSearchInFlightRefV465 = useRef(false);
   const gpsInitialSearchStartedRefV465 = useRef(false);
   const gpsLastFinishedAtRefV466 = useRef(0);
+  const appHiddenAtRefV737 = useRef(0);
   const weatherBootApplyInFlightRefV481 = useRef(false);
   const gpsBootTimerRefV483 = useRef<number | null>(null);
   const gpsBootWatchdogRefV483 = useRef<number | null>(null);
@@ -3240,16 +3241,17 @@ export default function Page() {
       setLocationMessage("Valitse sijainti ja kauppatyyppi.");
     }
 
-    // V518: GPS on oletusarvona päällä jokaisella käynnistyksellä.
-    // Käyttäjän oma pois-painallus tai käsin kirjoitettu kunta/kaupunki/postinumero
-    // asettaa gpsUserDisabledRefV306.current = true ja estää tämän boot-haun.
+    // V734_SNAPSHOT_VISIBLE_DURING_BOOT_REFRESH:
+    // Säilytä juuri hydratoitu vakaa snapshot käyttäjälle näkyvänä myös silloin,
+    // kun avauksen GPS-päivitys käynnistyy taustalla. Älä vaihda näkyvää tilaa
+    // "Paikannetaan..."-välitilaan ennen kuin taustapäivityksellä on uusi valmis tieto.
+    // GPS pysyy oletuksena päällä ja 650 ms ajastus käyttää edelleen samaa
+    // useOwnLocation("manual") -polkua; tässä poistetaan vain bootin ennakoiva
+    // näkyvän snapshotin ylikirjoitus.
     gpsUserDisabledRefV306.current = false;
     gpsInitialVisiblePhaseRefV391.current = false;
-    setUsingOwnLocation(true);
-    setLocationMessage("Paikannetaan...");
-    setLocationMessageVisible(true);
     setGpsErrorMessage("");
-    setGpsBootReadyV473(false);
+    setGpsBootReadyV473(true);
     setStoreSearchLoading(false);
     setGpsStorePickerBlockedV382(false);
     setSearchPanelOpen(false);
@@ -3269,7 +3271,7 @@ export default function Page() {
       if (gpsUserDisabledRefV306.current) return;
       // V519: käytä samaa polkua kuin GPS-nappi, jotta paikannus käynnistyy oikeasti
       // myös silloin kun snapshotissa on jo vanhat coords+kaupat.
-      void useOwnLocation("manual");
+      void useOwnLocation("boot_refresh");
     }, 650);
   }, []);
 
@@ -9770,11 +9772,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
   }
 
-  async function useOwnLocation(source: "boot" | "manual" = "manual") {
+  async function useOwnLocation(source: "boot" | "manual" | "boot_refresh" = "manual") {
     pushGpsDebugLogV492(`useOwnLocation ENTRY using=${String(usingOwnLocation)} loading=${String(storeSearchLoading)} coords=${gpsCoordsV320 ? "yes" : "no"} stores=${String(foundStores.length)}`);
     const now = Date.now();
     const gpsWindowLockV470 = getZiiplyGpsWindowLockV470();
     const isBootGpsRunV472 = source === "boot";
+    const isBackgroundBootRefreshV736 = source === "boot_refresh";
     let gpsResolvedCityV495 = "";
     let gpsResolvedCoordsV495: { latitude: number; longitude: number } | null = null;
     let gpsApplyLocationDoneV495 = false;
@@ -9853,11 +9856,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       if (gpsSearchInFlightRefV465.current) {
         pushGpsDebugLogV492(`WATCHDOG FIRED`);
         const finishedAt = Date.now();
-        setGpsErrorMessage("GPS ei löydy");
-        setLocationMessage("GPS ei löydy");
-        setLocationMessageVisible(true);
+        if (!isBackgroundBootRefreshV736) {
+          setGpsErrorMessage("GPS ei löydy");
+          setLocationMessage("GPS ei löydy");
+          setLocationMessageVisible(true);
+          setUsingOwnLocation(false);
+        }
         setStoreSearchLoading(false);
-        setUsingOwnLocation(false);
         gpsLastFinishedAtRefV466.current = finishedAt;
         ziiplyGpsHardLastFinishedAtV469 = finishedAt;
         const gpsWindowLock = getZiiplyGpsWindowLockV470();
@@ -9876,12 +9881,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setUsingOwnLocation(true);
     setLocationInput("");
     setStoreSearchLoading(true);
-    setLocationMessage("Paikannetaan...");
+    // V735_BACKGROUND_BOOT_GPS_KEEPS_SNAPSHOT_VISIBLE:
+    // Bootin automaattinen GPS-refresh saa pyöriä snapshotin takana ilman,
+    // että käyttäjän vakaa sijaintiteksti vaihtuu "Paikannetaan..."-tilaan.
+    // Käyttäjän itse käynnistämä GPS-haku näyttää edelleen paikannustilan normaalisti.
+    if (!isBackgroundBootRefreshV736) {
+      setLocationMessage("Paikannetaan...");
+    }
 
     try {
       pushGpsDebugLogV492(`useOwnLocation before getCurrentPosition`);
       const position = await getCurrentPosition(
-        isBootGpsRunV472
+        (isBootGpsRunV472 || isBackgroundBootRefreshV736)
           ? { enableHighAccuracy: false, timeout: 18000, maximumAge: 30000 }
           : { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
       );
@@ -9898,12 +9909,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       if (!city) {
         pushGpsDebugLogV492(`useOwnLocation reverse geocode EMPTY`);
-        setGpsErrorMessage("GPS ei löydy");
-        setLocationMessage("GPS ei löydy");
-        setLocationMessageVisible(true);
-        gpsUserDisabledRefV306.current = true;
-        setUsingOwnLocation(false);
-        setGpsCoordsV320(null);
+        if (!isBackgroundBootRefreshV736) {
+          setGpsErrorMessage("GPS ei löydy");
+          setLocationMessage("GPS ei löydy");
+          setLocationMessageVisible(true);
+          gpsUserDisabledRefV306.current = true;
+          setUsingOwnLocation(false);
+          setGpsCoordsV320(null);
+        }
         return;
       }
 
@@ -9917,8 +9930,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         gpsFailTimerRefV391.current = null;
       }
       setGpsErrorMessage("");
-      setLocationMessage(`${city} käytössä`);
-      setLocationMessageVisible(true);
+      if (!isBackgroundBootRefreshV736) {
+        setLocationMessage(`${city} käytössä`);
+        setLocationMessageVisible(true);
+      }
       setLocationInput("");
       // V470: älä pudota storeSearchLoadingia pois päältä tässä välissä.
       // GPS-paikannus ja sitä seuraava kauppahaku ovat yksi atominen ajo, jotta
@@ -9969,12 +9984,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       } else {
         setGpsErrorMessage("GPS ei löydy");
       }
-      setLocationMessage("GPS ei löydy");
-      setLocationMessageVisible(true);
-      gpsUserDisabledRefV306.current = true;
-      gpsManualSuccessGuardUntilRefV485.current = 0;
-      gpsManualSuccessCoordsRefV485.current = null;
-      setUsingOwnLocation(false);
+      if (!isBackgroundBootRefreshV736) {
+        setLocationMessage("GPS ei löydy");
+        setLocationMessageVisible(true);
+        gpsUserDisabledRefV306.current = true;
+        gpsManualSuccessGuardUntilRefV485.current = 0;
+        gpsManualSuccessCoordsRefV485.current = null;
+        setUsingOwnLocation(false);
+      }
       setStoreSearchLoading(false);
     } finally {
       pushGpsDebugLogV492(`useOwnLocation FINALLY`);
@@ -10004,8 +10021,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         setStoreSearchLoading(false);
         setGpsStorePickerBlockedV382(false);
         setLocationInput("");
-        setLocationMessage("Oma sijainti käytössä");
-        setLocationMessageVisible(true);
+        if (!isBackgroundBootRefreshV736) {
+          setLocationMessage("Oma sijainti käytössä");
+          setLocationMessageVisible(true);
+        }
       } else {
         setStoreSearchLoading(false);
       }
@@ -10133,6 +10152,32 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     };
   }, [usingOwnLocation]);
 
+
+  // V737_RESUME_REFRESH_AFTER_LONG_BACKGROUND:
+  // Jos sovellus on ollut pitkään taustalla, pidä nykyinen vakaa näkymä näkyvissä
+  // ja käynnistä palatessa yksi hiljainen GPS-refresh. Lyhyet app-vaihdot eivät tee mitään.
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+
+    const onVisibilityChangeV737 = () => {
+      if (document.visibilityState === "hidden") {
+        appHiddenAtRefV737.current = Date.now();
+        return;
+      }
+      if (document.visibilityState !== "visible") return;
+
+      const hiddenAt = appHiddenAtRefV737.current;
+      appHiddenAtRefV737.current = 0;
+      if (!hiddenAt || Date.now() - hiddenAt < 120000) return;
+      if (!usingOwnLocation || gpsUserDisabledRefV306.current) return;
+      if (gpsSearchInFlightRefV465.current || ziiplyGpsHardInFlightV469) return;
+
+      void useOwnLocation("boot_refresh");
+    };
+
+    document.addEventListener("visibilitychange", onVisibilityChangeV737);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChangeV737);
+  }, [usingOwnLocation]);
 
   // Manuaalinen GPS-nappi käyttää edelleen useOwnLocation("manual") ja toimii normaalisti.
   useEffect(() => {
