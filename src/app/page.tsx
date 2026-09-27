@@ -20436,15 +20436,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 showCartToast("Vaihtoehdon haku epäonnistui");
               }
             }}
-            onSelectMatchAlternative={async (storeId, match, alternative) => {
+            onSelectMatchAlternative={async (storeId, match, alternative, mode) => {
               const chainKey =
                 storeId === "k" || storeId === "s"
                   ? storeId
                   : ((match as any)?.chainKey === "k" ? "k" : "s");
-              const selectedMode = getMatchQualityMode(match as Match, chainKey as ChainResult["key"]);
-              if (selectedMode) {
-                setMatchQualityMode(match as Match, selectedMode, undefined, chainKey as ChainResult["key"]);
-              }
+              setMatchQualityMode(
+                match as Match,
+                mode as QualityMode,
+                undefined,
+                chainKey as ChainResult["key"],
+              );
               replaceMatchProduct(
                 chainKey as ChainResult["key"],
                 match as Match,
