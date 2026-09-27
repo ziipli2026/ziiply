@@ -450,7 +450,7 @@ if(!spatialResolved||spatialResolved.sanity==="review"||spatialResolved.source==
 // Whole-euro "N,-" price immediately to the right/below the title, validated by owned normal price.
 if(!spatialResolved&&anchor&&nr&&Number(nr.min)>0){
  const ax=Number(anchor.left)||0,ay=Number(anchor.top)||0,vals=[];
- for(const e of wordBoxes.filter(b=>/^[1-9]\d?$/.test(String(b.text||"").trim())&&Number(b.height||0)>=.045&&(Number(b.left)||0)>ax-.01&&(Number(b.left)||0)<ax+.22&&(Number(b.top)||0)>=ay&&(Number(b.top)||0)<=ay+.075)){
+ for(const e of wordBoxes.filter(b=>/^[1-9]\d?$/.test(String(b.text||"").trim())&&Number(b.height||0)>=.045&&(Number(b.left)||0)>ax-.01&&(Number(b.left)||0)<ax+.22&&(Number(b.top)||0)>=ay-.01&&(Number(b.top)||0)<=ay+.075)){
   const dash=wordBoxes.find(b=>/^[-–]$/.test(String(b.text||"").trim())&&Math.abs(((Number(b.top)||0)+(Number(b.height)||0)/2)-((Number(e.top)||0)+(Number(e.height)||0)/2))<.04&&Math.abs(((Number(b.left)||0)+(Number(b.width)||0)/2)-((Number(e.left)||0)+(Number(e.width)||0)/2))<.05);
   if(dash){const v=Number(String(e.text).trim());if(v<Number(nr.min)*.995)vals.push(v);}
  }
