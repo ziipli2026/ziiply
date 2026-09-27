@@ -2199,21 +2199,10 @@ function KauppiasMobileTopBar({
         setWeatherText(areaLabel);
       }
 
-      if (typeof navigator !== "undefined" && navigator.geolocation && !weatherGpsFallbackCoordsV104) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            if (cancelled) return;
-            setWeatherGpsFallbackCoordsV104({
-              latitude: position.coords.latitude,
-              longitude: position.coords.longitude,
-            });
-          },
-          () => {
-            // Ei nollata toimivaa vanhaa arvoa viivaksi pelkän säähaun epäonnistuessa.
-          },
-          { enableHighAccuracy: false, timeout: 8000, maximumAge: 5 * 60 * 1000 },
-        );
-      }
+      // V739_SINGLE_GPS_OWNER_RESTORE:
+      // Topbar/sää ei käynnistä omaa geolocation-hakua. Page omistaa GPS:n ja
+      // antaa koordinaatit tänne; siihen asti näytetään viimeisin sääcache/alue.
+      // Tämä poistaa startupista toisen rinnakkaisen GPS-pyynnön.
 
       return () => {
         cancelled = true;
