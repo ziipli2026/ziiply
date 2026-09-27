@@ -17995,18 +17995,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 ? "/storelogos/lidl.png"
                 : "/storelogos/spar.png";
 
-        // Logo artwork has different transparent margins/aspect ratios.
-        // Normalize the visible mark, not the sign frame: each logo gets
-        // its own scale so the four visible marks are visually comparable
-        // while remaining inside the existing sign plate.
+        // Normalize the visible logo mark without changing the sign plate.
         const storeLogoScale =
           store.key === "s"
-            ? "scale-[1.38]"
+            ? 1.38
             : store.key === "k"
-              ? "scale-[1.38]"
+              ? 1.38
               : store.key === "lidl"
-                ? "scale-[1.08]"
-                : "scale-[1.18]";
+                ? 1.08
+                : 1.18;
 
         const displayName =
           !storeModeChosenV299 && chain
@@ -18263,7 +18260,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     src={storeLogoSrc}
                     alt={cardLabel}
                     draggable={false}
-                    className={`h-full w-full object-contain ${storeLogoScale}`}
+                    className="h-full w-full object-contain"
+                    style={{ transform: `scale(${storeLogoScale})` }}
                     onError={(event) => {
                       event.currentTarget.style.display = "none";
                     }}
