@@ -19790,12 +19790,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               }}
               onAddProduct={(product: any) => {
                 resolveVoiceResultWaitV509("results-add");
+                // Tuotteen valinta sulkee vain valintaikkunan. Säilytä viimeisin
+                // onnistunut lista Löytöluetteloa varten; seuraava valmistunut
+                // normaali haku korvaa sen searchNormalPrices-polussa.
                 addProductToCart(product as Product);
-                setNormalResults([]);
                 setMobileResultsReadyQueryV537("");
                 setNormalSearchAttempted(false);
                 setVisibleNormalCount(8);
-                setActiveNormalSearchTerm("");
               }}
             />
           </>
