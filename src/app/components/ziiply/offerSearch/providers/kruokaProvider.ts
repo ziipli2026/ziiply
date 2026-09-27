@@ -177,7 +177,9 @@ async function fetchKSupermarketRegionalOffers(publicationId: string): Promise<U
         return null;
       }
     }));
-    rows.push(...values.filter((value): value is UnknownRecord => value != null));
+    for (const value of values) {
+      if (value != null) rows.push(value as UnknownRecord);
+    }
   }
   return rows;
 }
