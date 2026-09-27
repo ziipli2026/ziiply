@@ -669,8 +669,8 @@ if(anchor){
 // a printed normal price independently bounds the result, and the discount is plausible.
 // This recovers conservative 40AV rows without borrowing a neighbouring visual price.
 if(!spatialResolved&&pk&&ur&&nr&&Number(nr.min)>0&&Math.abs(Number(pk.max)-Number(pk.min))<1e-9&&Math.abs(Number(ur.max)-Number(ur.min))<1e-9){
- const pkgUnit=String(pk.raw||"").match(/(kg|g|l|ml)\\b/i)?.[1]?.toLowerCase()||"";
- const rateUnit=String(ur.raw||"").match(/\\/(kg|l)\\b/i)?.[1]?.toLowerCase()||"";
+ const pkgUnit=String(pk.raw||"").match(/(kg|g|l|ml)\b/i)?.[1]?.toLowerCase()||"";
+ const rateUnit=String(ur.raw||"").match(/\/(kg|l)\b/i)?.[1]?.toLowerCase()||"";
  const pkgKind=/^(?:kg|g)$/.test(pkgUnit)?"kg":/^(?:l|ml)$/.test(pkgUnit)?"l":"";
  const value=Number((Number(pk.min)*Number(ur.min)).toFixed(2));
  const ratio=value/Number(nr.min);
