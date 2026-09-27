@@ -90,14 +90,14 @@ assert.ok(!/searchParams\.get\(["']url["']\)/.test(kProducts+sProducts+storeSear
 console.log("PASS no reviewed route exposes a direct caller-supplied URL fetch parameter");
 assert.match(storeSearch,/Promise\.all\(terms\.map\(fetchRuoanhinta\)\)/);
 console.log("PASS store-search amplification point detected: one GPS call => seven upstream searches");
-assert.match(offers,/raw:\s*rawData/); assert.match(offers,/preview:\s*text\.slice/);
-console.log("PASS offers raw/preview production exposure detected");
-assert.match(offersSearch,/kruokaDebug:/);
-console.log("PASS offers-search production debug payload detected");
-assert.match(sean,/error\.stack\.split/);
-console.log("PASS s-ean-product production stack exposure detected");
-assert.match(kWeight,/error: String\(error\)/);
-console.log("PASS k-weight-product raw error exposure detected");
+assert.match(offers,/process\.env\.VERCEL_ENV !== "production"[\s\S]*raw: rawData/);
+console.log("PASS offers raw/preview are now non-production only");
+assert.match(offersSearch,/process\.env\.VERCEL_ENV !== "production"[\s\S]*kruokaDebug:/);
+console.log("PASS offers-search debug is now non-production only");
+assert.match(sean,/process\.env\.VERCEL_ENV !== "production"[\s\S]*error\.stack\.split/);
+console.log("PASS s-ean-product stack is now non-production only");
+assert.match(kWeight,/process\.env\.VERCEL_ENV === "production" \? "upstream-error"/);
+console.log("PASS k-weight-product production error is generic");
 
 
 console.log("\n--- Input hardening patch assertions ---");
