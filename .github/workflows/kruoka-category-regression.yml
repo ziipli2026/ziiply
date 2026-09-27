@@ -1014,3 +1014,19 @@ jobs:
           console.log("ACTIVESEL_META_SAMPLES",JSON.stringify(metaSamples));
           console.log("ACTIVESEL_STORE_SAMPLES",JSON.stringify(stores.slice(0,20).map(s=>({id:s.id,name:s.name,pubs:storePubs.get(String(s.id))}))));
           NODE
+
+      - name: Validate active dynamic K-Supermarket viewer offers correctly
+        run: |
+          node <<'NODE'
+          const O="https://etarjouslehdet.fi",B="f305U8",NOW=Date.now();
+          const enc=v=>Buffer.from(JSON.stringify(v,(k,x)=>x&&Object.prototype.toString.call(x)==="[object Object]"?Object.keys(x).sort().reduce((o,k)=>(o[k]=x[k],o),{}):x),"utf8").toString("base64");
+          async function data(refs){const keys=refs.map(enc);const r=await fetch(O+"/",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({data:keys})});const t=await r.text();if(!r.ok)throw Error(r.status+" "+t);return t.trim().split("\n").filter(Boolean).map(JSON.parse)}
+          const stores=((await data([["stores",{businessId:B,pagination:{offset:0,limit:1000}}]]))[0].value?.data||[]).filter(Boolean);
+          const active=new Map(); let noActive=[];
+          for(let i=0;i<stores.length;i+=25){const b=stores.slice(i,i+25),refs=b.map(s=>["fronts",{businessIds:[B],localBusinessIds:[String(s.id)],coordinates:s.coordinates}]),rows=await data(refs),by=new Map(rows.map(r=>[r.key,r]));for(let j=0;j<b.length;j++){const s=b[j],ps=(by.get(enc(refs[j]))?.value||[]).flatMap(x=>x.publications||[]),a=ps.filter(p=>Date.parse(p.validFrom)<=NOW&&NOW<=Date.parse(p.validUntil));if(!a.length)noActive.push({id:s.id,name:s.name,pubs:ps.map(p=>({id:p.id,from:p.validFrom,to:p.validUntil}))});for(const p of a)active.set(p.id,p)}}
+          let ok=0,fail=0,totalOffers=0;const bad=[];
+          for(const [id,p] of active){let offers=new Set(),pages=0;for(let page=0;page<8;page++){const r=await fetch("https://publication-viewer.tjek.com/api/paged-publications/"+id+"/"+page);if(!r.ok){if(page===0)bad.push({id,status:r.status});break}const j=await r.json();pages++;const groups=Array.isArray(j.hotspots)?j.hotspots:Object.values(j.hotspots||{}).flatMap(v=>Array.isArray(v)?v:[v]);for(const h of groups.flat(Infinity)){if(!h||typeof h!=="object")continue;const oid=h.offerId||h.offer_id||h.offer?.publicId||h.offer?.id||h.referenceId||h.reference_id;if(oid)offers.add(oid)}}if(offers.size){ok++;totalOffers+=offers.size}else{fail++;bad.push({id,label:p.label,pages,reason:"no offer ids"})}}
+          console.log("ACTIVE_VIEWER_SUMMARY",JSON.stringify({stores:stores.length,noActiveStores:noActive.length,activeUniquePublications:active.size,publicationsWithOffers:ok,publicationsWithoutOffers:fail,totalDistinctPerPublicationOffers:totalOffers,badCount:bad.length}));
+          console.log("ACTIVE_VIEWER_NO_ACTIVE",JSON.stringify(noActive));
+          console.log("ACTIVE_VIEWER_BAD",JSON.stringify(bad));
+          NODE
