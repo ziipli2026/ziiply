@@ -20,7 +20,7 @@ jobs:
         with:
           node-version: 20
       - name: Build application
-        run: npm ci && npm run build
+        run: npm install --no-audit --no-fund && npm run build
       - name: Verify deployed store-search to live product prices
         shell: bash
         env:
