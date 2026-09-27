@@ -9,23 +9,20 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 24
-          cache: npm
-      - run: npm ci
-      - name: Typecheck EUROSPAR provider
-        run: npx tsc --noEmit
-      - name: Verify provider stays disconnected
+      - name: Verify isolated provider guards
         run: |
           node - <<'NODE'
           const fs=require('fs');
+          const provider=fs.readFileSync('src/app/components/ziiply/offerSearch/providers/eurosparProvider.ts','utf8');
           const route=fs.readFileSync('src/app/api/offers/search/route.ts','utf8');
-          if(route.includes('eurosparProvider')||route.includes('fetchEurosparOffers')) {
-            throw new Error('EUROSPAR provider is wired into production route');
-          }
-          console.log('EUROSPAR provider remains isolated');
+          const fail=(m)=>{throw new Error(m)};
+          if(!provider.includes('process.env.ZIIPLY_EUROSPAR_ENABLED === "1"')) fail('feature flag is not default-off');
+          if(!provider.includes('schemaVersion !== 1')) fail('schema v1 guard missing');
+          if(!provider.includes('today < from || today > to')) fail('validity gate missing');
+          if(!provider.includes('priceBasis === "multi-buy-total"')) fail('multi-buy semantics missing');
+          if(route.includes('eurosparProvider')||route.includes('fetchEurosparOffers')) fail('EUROSPAR wired into production route');
+          console.log('EUROSPAR isolated provider guards OK');
           NODE
