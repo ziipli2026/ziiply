@@ -15682,6 +15682,20 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return terms;
     }
 
+    if (hasAnyToken(normalized, ["grillimakkara", "grillimakkarat"])) {
+      if (chainKey === "s") {
+        addTerm("coop grillimakkara");
+        addTerm("xtra grillimakkara");
+        addTerm("kotimaista grillimakkara");
+      }
+      if (chainKey === "k") {
+        addTerm("pirkka grillimakkara");
+        addTerm("k-menu grillimakkara");
+      }
+      addTerm("grillimakkara");
+      return terms;
+    }
+
     if (hasAnyToken(normalized, ["kahvi", "juhla mokka"])) {
       addTerm("kahvi suodatinjauhatus");
       addTerm("kahvi");
@@ -15884,7 +15898,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
           return getProductPrice(a) - getProductPrice(b);
         })
-        .slice(0, 3);
+        .slice(0, 12);
     }
 
     if (chainKey === "k") {
@@ -15972,7 +15986,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
           return getProductPrice(a) - getProductPrice(b);
         })
-        .slice(0, 3);
+        .slice(0, 12);
     }
 
     return alternatives;
