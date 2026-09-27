@@ -671,3 +671,38 @@ jobs:
           const missing=stores.filter(s=>!covered.has(String(s.id??""))).map(s=>({id:s.id,name:s.name,city:s.city??s.address?.city??null}));
           console.log(JSON.stringify({storeCount:stores.length,pages,globalPublicationCount:ids.length,kSupermarketPublicationCount:publications.length,coveredStoreCount:stores.length-missing.length,missingStoreCount:missing.length,publications,missing:missing.slice(0,30)},null,2));
           NODE
+
+      - name: Trace missing K-Supermarket stores to Tjek publications
+        run: |
+          node <<'NODE'
+          const ORIGIN="https://etarjouslehdet.fi", BUSINESS="f305U8";
+          const TARGETS=["e508Azi","f310kEi","a528m8i"];
+          const stableBase64=value=>Buffer.from(JSON.stringify(value,(_k,v)=>Object.prototype.toString.call(v)==="[object Object]"?Object.keys(v).sort().reduce((o,k)=>(o[k]=v[k],o),{}):v),"utf8").toString("base64");
+          async function data(name,params){const key=stableBase64([name,params]);const r=await fetch(ORIGIN+"/",{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json, text/plain, */*",Referer:ORIGIN+"/"},body:JSON.stringify({data:[key]})});const txt=await r.text();if(!r.ok)return {__error:name+" HTTP "+r.status,__text:txt.slice(0,500)};for(const line of txt.split(/\r?\n/).filter(Boolean)){try{const x=JSON.parse(line);if(x.key===key)return x.value}catch{}}return {__error:name+" key missing",__text:txt.slice(0,500)}}
+          const arr=v=>Array.isArray(v?.data)?v.data.filter(Boolean):[];
+          const stores=arr(await data("stores",{businessId:BUSINESS,pagination:{offset:0,limit:1000}}));
+          const targets=TARGETS.map(id=>stores.find(s=>String(s.id)===id)).filter(Boolean);
+          const queryShapes=s=>[
+            ["stores-id",{businessId:BUSINESS,publicIds:[String(s.id)],pagination:{offset:0,limit:1000}}],
+            ["stores-search",{businessId:BUSINESS,searchTerm:String(s.name||""),pagination:{offset:0,limit:50}}],
+            ["offers-storeId",{storeId:String(s.id),pagination:{offset:0,limit:1000},sources:["publication","business_product"]}],
+            ["offers-storeIds",{storeIds:[String(s.id)],pagination:{offset:0,limit:1000},sources:["publication","business_product"]}],
+            ["offers-business-store",{businessIds:[BUSINESS],storeId:String(s.id),pagination:{offset:0,limit:1000},sources:["publication","business_product"]}],
+            ["offers-business-storeIds",{businessIds:[BUSINESS],storeIds:[String(s.id)],pagination:{offset:0,limit:1000},sources:["publication","business_product"]}]
+          ];
+          for(const s of targets){
+            const out={store:{id:s.id,name:s.name,city:s.city??s.address?.city??null,keys:Object.keys(s),raw:s},queries:[],pages:[]};
+            for(const [label,params] of queryShapes(s)){
+              const name=label.startsWith("stores")?"stores":"offers",v=await data(name,params),rows=arr(v);
+              out.queries.push({label,count:rows.length,error:v?.__error??null,publicationIds:[...new Set(rows.map(x=>String(x.publicationPublicId??x.publicationId??"")).filter(Boolean))],sample:rows.slice(0,2)});
+            }
+            for(const param of ["store","storeId","shop"]){
+              const url=ORIGIN+"/K-Supermarket?"+param+"="+encodeURIComponent(String(s.id));
+              const r=await fetch(url,{headers:{Accept:"text/html"}});
+              const html=await r.text();
+              const ids=[...new Set([...html.matchAll(/["'](?:publicationPublicId|publicationId|publication)["']?\s*[:=]\s*["']([A-Za-z0-9_-]{6,})["']/g)].map(m=>m[1]))];
+              out.pages.push({param,status:r.status,length:html.length,publicationIds:ids.slice(0,30),containsStoreId:html.includes(String(s.id)),containsStoreName:html.toLowerCase().includes(String(s.name||"").toLowerCase())});
+            }
+            console.log("MISSING_STORE_TRACE "+JSON.stringify(out,null,2));
+          }
+          NODE
