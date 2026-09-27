@@ -508,6 +508,16 @@ if(spatialResolved?.source==="isolated-visual-metadata-conflict"){
  ur=null; nr=null; expected=null;
 }
 
+// Final ownership gate for weak nearest-price matches.
+// A best-spatial candidate is proximity evidence only: reject it when independent normal-price
+// or package/unit-rate arithmetic says it belongs to another card. Strong same-card resolvers are unaffected.
+if(spatialResolved?.source==="best-spatial-candidate"&&spatialResolved.quantity==null){
+ const v=Number(spatialResolved.value);
+ const aboveNormal=nr&&Number(nr.min)>0&&v>Number(nr.min)*1.02;
+ const arithmeticConflict=expected&&Number(expected)>0&&Math.abs(v-Number(expected))>Math.max(.25,Number(expected)*.20);
+ if(aboveNormal||arithmeticConflict)spatialResolved=null;
+}
+
 // Final confidence gate: classify only after every resolver/fallback has finished.
 if(spatialResolved){
  const strongSources=new Set(["package-owned-visual-multibuy","validated-geometric-multibuy","large-visual-price-qty-unit","embedded-productblock-price","group-discount-price","expected-near-exact-visual","large-visual-price","title-linked-large-split-price","fixed-package-unitrate-normalprice-proof","mixed-size-endpoint-equivalence-proof","own-unitprice-package-derived"]);
