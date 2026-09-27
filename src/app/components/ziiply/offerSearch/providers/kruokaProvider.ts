@@ -164,11 +164,18 @@ async function fetchKSupermarketRegionalOffers(publicationId: string): Promise<U
     }
   }
   const rows: UnknownRecord[] = [];
-  for (const publicId of offerIds) {
-    try {
-      const value = await fetchTjekData("offer", { publicId }, "K-Supermarket");
-      if (value && typeof value === "object") rows.push(value as UnknownRecord);
-    } catch { }
+  const concurrency = 8;
+  for (let offset = 0; offset < offerIds.length; offset += concurrency) {
+    const batch = offerIds.slice(offset, offset + concurrency);
+    const values = await Promise.all(batch.map(async publicId => {
+      try {
+        const value = await fetchTjekData("offer", { publicId }, "K-Supermarket");
+        return value && typeof value === "object" ? value as UnknownRecord : null;
+      } catch {
+        return null;
+      }
+    }));
+    rows.push(...values.filter((value): value is UnknownRecord => value != null));
   }
   return rows;
 }
