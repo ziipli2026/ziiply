@@ -9877,7 +9877,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setUsingOwnLocation(true);
     setLocationInput("");
     setStoreSearchLoading(true);
-    setLocationMessage("Paikannetaan...");
+    // V735_BACKGROUND_BOOT_GPS_KEEPS_SNAPSHOT_VISIBLE:
+    // Bootin automaattinen GPS-refresh saa pyöriä snapshotin takana ilman,
+    // että käyttäjän vakaa sijaintiteksti vaihtuu "Paikannetaan..."-tilaan.
+    // Käyttäjän itse käynnistämä GPS-haku näyttää edelleen paikannustilan normaalisti.
+    if (source !== "manual" || !stableBootSnapshotHydratedRefV505.current) {
+      setLocationMessage("Paikannetaan...");
+    }
 
     try {
       pushGpsDebugLogV492(`useOwnLocation before getCurrentPosition`);
