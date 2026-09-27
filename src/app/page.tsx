@@ -20446,11 +20446,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 storeId === "k" || storeId === "s"
                   ? storeId
                   : ((match as any)?.chainKey === "k" ? "k" : "s");
-              const selectedMode = (alternative as any)?.comparisonSelectionMode as QualityMode | undefined;
+              const selectedMode = String((alternative as any)?.comparisonSelectionMode || "");
               if (selectedMode === "own_brands" || selectedMode === "same_brand") {
                 setMatchQualityMode(
                   match as Match,
-                  selectedMode,
+                  selectedMode as QualityMode,
                   undefined,
                   chainKey as ChainResult["key"],
                 );
