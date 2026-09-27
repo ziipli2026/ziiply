@@ -90,7 +90,8 @@ function category(t:string){
   if(/omena|banaani|tomaatti|kurkku|salaatti|pinaatti|rucola|paprika|peruna\b|sipuli|porkkana|mango|satsuma|vadelma|mansikka|marja|hedelm|vihann/.test(s)) return "Hevi";
   if(/koira|kissa|lemmik/.test(s)) return "Lemmikit";
   if(/wc-paper|talouspaper|nenäliina|näsdukar|astianpes|pyykin|puhdistussuih|puhdistusaine|pesuaine/.test(s)) return "Kodinhoito";
-  if(/shampoo|suihkugeeli|saippua|deodor|hammastahna|hammasharja|vaihtoharja|oral-b|herbina|kosmeti|seerumi|tiiviste|hyaluroni/.test(s)) return "Hygienia & kosmetiikka";\n  if(/kertakäyttökäsine|asentajankäsine|käsine/.test(s)) return "Koti & vapaa-aika";
+  if(/shampoo|suihkugeeli|saippua|deodor|hammastahna|hammasharja|vaihtoharja|oral-b|herbina|kosmeti|seerumi|tiiviste|hyaluroni|huulivoide/.test(s)) return "Hygienia & kosmetiikka";
+  if(/kertakäyttökäsine|asentajankäsine|käsine/.test(s)) return "Koti & vapaa-aika";
   if(/calluna|ljung|orkidea|krysanteemi|kukka|kasvi|kenkä|nilkkuri|maihari|takki|housut|vaate|kalenteri|muki|lakana|pyyhe|kerä|lanka|asuste/.test(s)) return "Koti & vapaa-aika";
   return "Muut";
 }
