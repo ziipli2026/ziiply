@@ -483,6 +483,38 @@ jobs:
           console.log(JSON.stringify({selected:stores.filter(s=>/joensuu|eväskontti|rantakylä|puronsuunkatu/i.test(String(s.name))).map(s=>({id:s.id,name:s.name})),publicationStores:pub.map(s=>({id:s.id,name:s.name})).filter(s=>/joensuu|eväskontti|rantakylä|puronsuunkatu/i.test(String(s.name))),publicationStoreCount:pub.length},null,2));
           NODE
 
+      - name: Audit every Tjek K-Supermarket store end-to-end
+        shell: bash
+        run: |
+          node <<'NODE'
+          const ORIGIN="https://etarjouslehdet.fi", BUSINESS="f305U8";
+          const stableBase64=value=>Buffer.from(JSON.stringify(value,(_k,v)=>Object.prototype.toString.call(v)==="[object Object]"?Object.keys(v).sort().reduce((o,k)=>(o[k]=v[k],o),{}):v),"utf8").toString("base64");
+          async function data(name,params){
+            const key=stableBase64([name,params]);
+            const r=await fetch(ORIGIN+"/",{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json, text/plain, */*",Referer:ORIGIN+"/K-Supermarket"},body:JSON.stringify({data:[key]})});
+            if(!r.ok) throw new Error(name+" HTTP "+r.status);
+            for(const line of (await r.text()).split(/\r?\n/).filter(Boolean)){try{const row=JSON.parse(line);if(row.key===key)return row.value;}catch{}}
+            throw new Error(name+" key missing");
+          }
+          const arr=v=>Array.isArray(v?.data)?v.data.filter(x=>x&&typeof x==="object"):[];
+          const stores=arr(await data("stores",{businessId:BUSINESS,pagination:{offset:0,limit:1000}}));
+          const offers=arr(await data("offers",{businessIds:[BUSINESS],sources:["publication","business_product"],pagination:{limit:1000,offset:0},sort:["score_desc"]}));
+          const publicationIds=[...new Set(offers.map(o=>String(o.publicationPublicId??"")).filter(Boolean))];
+          const publicationStores=new Map();
+          for(const publicationId of publicationIds){
+            publicationStores.set(publicationId,arr(await data("stores",{publicationId,businessId:BUSINESS,pagination:{offset:0,limit:1000}})));
+          }
+          const results=stores.map(store=>{
+            const storeId=String(store.id??"");
+            const matchedPublications=publicationIds.filter(pid=>publicationStores.get(pid).some(s=>String(s.id??"")===storeId));
+            const liveOffers=offers.filter(o=>matchedPublications.includes(String(o.publicationPublicId??"")));
+            return {id:store.id??null,name:store.name??null,city:store.city??store.address?.city??null,publications:matchedPublications,liveOffers:liveOffers.length,ok:matchedPublications.length>0&&liveOffers.length>0};
+          });
+          const failed=results.filter(x=>!x.ok);
+          console.log(JSON.stringify({storeCount:stores.length,publicationCount:publicationIds.length,offerCount:offers.length,passed:results.length-failed.length,failed:failed.length,results},null,2));
+          if(failed.length) process.exitCode=2;
+          NODE
+
       # Live-data audit is intentionally kept in this same workflow so there is only one K-ruoka diagnostic flow.
       - name: Fetch live K-Supermarket Jokela offers and classify
         shell: bash
