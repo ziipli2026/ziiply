@@ -423,7 +423,9 @@ export async function GET(request: NextRequest) {
     const storeId = String(searchParams.get("storeId") || "708276035").trim();
     const nameHint = fixText(searchParams.get("name") || "");
     const origin = new URL(request.url).origin;
-    const debugEnabled = searchParams.get("debug") === "1";
+    const debugEnabled =
+      process.env.VERCEL_ENV !== "production" &&
+      searchParams.get("debug") === "1";
 
     if (!ean) {
       return NextResponse.json({ ok: false, error: "EAN missing" }, { status: 400 });
