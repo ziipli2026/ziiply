@@ -43,7 +43,7 @@ jobs:
           console.log("KCM_40AV_SUSPICIOUS_HIGH",JSON.stringify(suspiciousHigh,null,2));
           console.log("KCM_40AV_ALL_ROWS",JSON.stringify(clean,null,2));
           const focusTitles=new Set([...unresolved,...inverted,...arithmetic].map(x=>x.title));
-          const focusRaw=rows.filter(r=>focusTitles.has(r.title)).map(r=>({page:r.page,title:r.title,package:r.package,unitPrice:r.unitPrice,normal:r.normal,expectedSingle:r.expectedSingle,spatialResolved:r.spatialResolved,debugAnchor:r.debugAnchor,debugBestTitleRow:r.debugBestTitleRow,debugNearbyBoxes:r.debugNearbyBoxes,spatialCandidates:r.spatialCandidates,spatialGroups:r.spatialGroups,nearby:r.nearby}));
+          const focusRaw=rows.filter(r=>focusTitles.has(r.title)).map(r=>({page:r.page,title:r.title,package:r.package,unitPrice:r.unitPrice,normal:r.normal,expectedSingle:r.expectedSingle,spatialResolved:r.spatialResolved,debugAnchor:r.debugAnchor,debugBestTitleRow:r.debugBestTitleRow,debugNearbyBoxes:r.debugNearbyBoxes,debugRateProof:r.debugRateProof,spatialCandidates:r.spatialCandidates,spatialGroups:r.spatialGroups,nearby:r.nearby}));
           console.log("KCM_40AV_FOCUS_RAW",JSON.stringify(focusRaw,null,2));
           if(!clean.length) process.exitCode=2;
           NODE
