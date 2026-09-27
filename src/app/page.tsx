@@ -3411,6 +3411,8 @@ export default function Page() {
 
   const [offers, setOffers] = useState<ZiiplyOffer[]>([]);
   const [offerSearchResults, setOfferSearchResults] = useState<any[]>([]);
+  const [gostaCitymarketProductMetaV750, setGostaCitymarketProductMetaV750] = useState<Record<string, any>>({});
+  const gostaCitymarketProductMetaCacheV750 = useRef<Record<string, any>>({});
   const [gostaKruokaDebugV550, setGostaKruokaDebugV550] = useState<ZiiplyKruokaDebugV174 | null>(null);
   const [hasSearchedOffers, setHasSearchedOffers] = useState(false);
   const [loadingOffers, setLoadingOffers] = useState(false);
@@ -8133,11 +8135,79 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return filterZiiplyGostaOfferResultsV146(cleanOfferSearchResultsV106, offerCardFilterV106);
   }, [cleanOfferSearchResultsV106, offerCardFilterV106]);
 
+  useEffect(() => {
+    let cancelled = false;
+    const storeId = String(activeStores?.kStoreId || "").trim();
+    if (!storeId || storeId === "0") return;
+
+    const citymarketOffers = visibleOfferSearchResultsV106.filter((item: any) =>
+      /citymarket/i.test(String(item?.storeType || item?.storeName || item?.storeLabel || "")),
+    );
+    if (citymarketOffers.length === 0) return;
+
+    void (async () => {
+      const next: Record<string, any> = {};
+
+      for (const offer of citymarketOffers) {
+        if (cancelled) return;
+        const key = String(offer?.id || offer?.title || "").trim();
+        const title = String(offer?.title || offer?.name || "").trim();
+        if (!key || !title) continue;
+
+        const cached = gostaCitymarketProductMetaCacheV750.current[key];
+        if (cached !== undefined) {
+          if (cached) next[key] = cached;
+          continue;
+        }
+
+        try {
+          const response = await fetch(
+            `/api/k-products?search=${encodeURIComponent(title)}&store=${encodeURIComponent(storeId)}`,
+            { cache: "no-store" },
+          );
+          const data = response.ok ? await response.json() : null;
+          const product = Array.isArray(data?.items) ? data.items[0] : null;
+
+          const meta = product
+            ? {
+                ean: product.ean || product.product?.ean || "",
+                image: product.image || product.imageUrl || product.pictureUrl || "",
+                imageUrl: product.imageUrl || product.pictureUrl || product.image || "",
+                pictureUrl: product.pictureUrl || product.imageUrl || product.image || "",
+                comparisonPrice: product.comparisonPrice ?? product.product?.comparisonPrice ?? null,
+                comparisonPriceText: product.comparisonPriceText ?? product.product?.comparisonPriceText ?? null,
+                unitPrice: product.unitPrice ?? product.product?.unitPrice ?? null,
+                comparisonUnit: product.comparisonPriceUnit || product.comparisonUnit || product.product?.comparisonPriceUnit || product.product?.comparisonUnit || "",
+              }
+            : null;
+
+          gostaCitymarketProductMetaCacheV750.current[key] = meta;
+          if (meta) next[key] = meta;
+        } catch {
+          gostaCitymarketProductMetaCacheV750.current[key] = null;
+        }
+      }
+
+      if (!cancelled && Object.keys(next).length > 0) {
+        setGostaCitymarketProductMetaV750((current) => ({ ...current, ...next }));
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [visibleOfferSearchResultsV106, activeStores?.kStoreId]);
+
   const gostaOfferCardItemsV163 = useMemo(() => {
     return dedupeGostaCardItemsV166(
-      visibleOfferSearchResultsV106.map(mapZiiplyGostaOfferToCardOfferV147),
+      visibleOfferSearchResultsV106.map((item: any) => {
+        const mapped = mapZiiplyGostaOfferToCardOfferV147(item);
+        const key = String(item?.id || item?.title || "").trim();
+        const meta = gostaCitymarketProductMetaV750[key];
+        return meta ? { ...mapped, ...meta } : mapped;
+      }),
     );
-  }, [visibleOfferSearchResultsV106]);
+  }, [visibleOfferSearchResultsV106, gostaCitymarketProductMetaV750]);
 
   const gostaCategoryOfferCountsV163 = useMemo(() => {
     const counts: Record<string, number> = {};
