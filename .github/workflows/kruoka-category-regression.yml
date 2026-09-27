@@ -989,3 +989,28 @@ jobs:
           console.log("DYNAMIC2_PUBLICATIONS",JSON.stringify([...pubs.entries()].sort((a,b)=>b[1]-a[1])));
           console.log("DYNAMIC2_MISSING",JSON.stringify(missing));
           NODE
+
+      - name: Validate dynamic K-Supermarket active publication selection
+        run: |
+          node <<'NODE'
+          const O="https://etarjouslehdet.fi", B="f305U8";
+          const enc=v=>Buffer.from(JSON.stringify(v,(k,x)=>x&&Object.prototype.toString.call(x)==="[object Object]"?Object.keys(x).sort().reduce((o,k)=>(o[k]=x[k],o),{}):x),"utf8").toString("base64");
+          async function data(refs){const keys=refs.map(enc);const r=await fetch(O+"/",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({data:keys})});const txt=await r.text();if(!r.ok)throw Error(r.status+" "+txt);return txt.trim().split("\n").filter(Boolean).map(x=>JSON.parse(x));}
+          const stores=((await data([["stores",{businessId:B,pagination:{offset:0,limit:1000}}]]))[0].value?.data||[]).filter(Boolean);
+          const pubMap=new Map(), storePubs=new Map();
+          for(let i=0;i<stores.length;i+=25){
+            const batch=stores.slice(i,i+25),refs=batch.map(s=>["fronts",{businessIds:[B],localBusinessIds:[String(s.id)],coordinates:s.coordinates}]),rows=await data(refs),by=new Map(rows.map(r=>[r.key,r]));
+            for(let j=0;j<batch.length;j++){const s=batch[j],ps=(by.get(enc(refs[j]))?.value||[]).flatMap(x=>x.publications||[]);storePubs.set(String(s.id),ps.map(p=>p.id||p.publicId).filter(Boolean));for(const p of ps){const id=p.id||p.publicId;if(id&&!pubMap.has(id))pubMap.set(id,p)}}
+          }
+          let viewerOK=0,viewerFail=0,withHotspots=0,zeroHotspots=0; const failures=[],metaSamples=[];
+          for(const [id,p] of pubMap){
+            const r=await fetch("https://publication-viewer.tjek.com/api/paged-publications/"+id+"/0");
+            if(!r.ok){viewerFail++;failures.push({id,status:r.status});continue}
+            viewerOK++;const j=await r.json(),hs=j.hotspots||j.page?.hotspots||[];if(hs.length)withHotspots++;else zeroHotspots++;
+            if(metaSamples.length<20)metaSamples.push({id,pub:p,viewerKeys:Object.keys(j),hotspots:hs.length});
+          }
+          console.log("ACTIVESEL_SUMMARY",JSON.stringify({stores:stores.length,uniquePublications:pubMap.size,viewerOK,viewerFail,withHotspots,zeroHotspots}));
+          console.log("ACTIVESEL_FAILURES",JSON.stringify(failures));
+          console.log("ACTIVESEL_META_SAMPLES",JSON.stringify(metaSamples));
+          console.log("ACTIVESEL_STORE_SAMPLES",JSON.stringify(stores.slice(0,20).map(s=>({id:s.id,name:s.name,pubs:storePubs.get(String(s.id))}))));
+          NODE
