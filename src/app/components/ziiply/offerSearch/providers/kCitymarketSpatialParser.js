@@ -723,6 +723,23 @@ if(!spatialResolved&&pk&&ur&&nr&&Number(nr.min)>0&&Math.abs(Number(pk.max)-Numbe
   spatialResolved={value,quantity:null,unit:String(nr.unit||"KPL").toUpperCase(),source:"fixed-package-unitrate-normalprice-safe",sanity:"pass",confidence:"high",auditRatio:1};
  }
 }
+// Same-card visual discount fallback for large euro/cents glyphs whose text extraction is fragmented.
+// Require one large whole-euro glyph and one large cents glyph on the same side of the product anchor,
+// plus a printed normal-price range that the reconstructed offer actually discounts.
+if(!spatialResolved&&anchor&&nr){
+ const largeEuros=wordBoxes.filter(b=>/^\d{1,2}$/.test(String(b.text||"").trim())&&Number(b.height||0)>=.045&&Math.abs(Number(b.top)-Number(anchor.top))<.10);
+ const largeCents=wordBoxes.filter(b=>/^\d{2}$/.test(String(b.text||"").trim())&&Number(b.height||0)>=.035&&Math.abs(Number(b.top)-Number(anchor.top))<.13);
+ const vals=[];
+ for(const e of largeEuros)for(const c of largeCents){
+  const sameSide=(Number(e.left)-Number(anchor.left))*(Number(c.left)-Number(anchor.left))>=0;
+  const close=Math.hypot(Number(e.left)-Number(c.left),Number(e.top)-Number(c.top))<.13;
+  const v=Number(String(e.text).trim()+"."+String(c.text).trim());
+  if(sameSide&&close&&v>=.20&&v<Number(nr.min)*.995)vals.push({value:v,e,c});
+ }
+ const uniq=[...new Map(vals.map(x=>[x.value.toFixed(2),x])).values()];
+ if(uniq.length===1)spatialResolved={value:uniq[0].value,quantity:null,unit:nr.unit||null,source:"same-card-large-glyph-normal-bounded",sanity:"pass",confidence:"high"};
+}
+
 // Final normal-price-bounded arithmetic fallback. If the row's package × unit-rate price is below
 // every printed normal-price endpoint, it is independently safe even when the normal range varies.
 if(!spatialResolved&&nr&&expected&&Number(expected)>0&&Number(expected)<Number(nr.min)*.995){
