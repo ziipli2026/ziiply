@@ -2673,11 +2673,18 @@ function KauppiasMobileTopBar({
       else setElectricityText("api virhe");
     }
 
-    loadElectricity();
+    // V741_ELECTRICITY_CACHE_FIRST_DEFER_NETWORK:
+    // Näytä mahdollinen viimeisin sähköhintacache heti, mutta älä käynnistä
+    // usean ulkoisen API:n fallback-ketjua snapshot/GPS-startin rinnalla.
+    showCachedElectricityIfAvailable();
+    const startupTimerV741 = window.setTimeout(() => {
+      void loadElectricity();
+    }, 3500);
     const interval = window.setInterval(loadElectricity, 60 * 1000);
 
     return () => {
       cancelled = true;
+      window.clearTimeout(startupTimerV741);
       window.clearInterval(interval);
     };
   }, [hidden]);
