@@ -18078,7 +18078,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 draggable={false}
                 className="h-full w-full object-contain"
                 style={{
-                  transform: `translate(${store.key === "lidl" ? "0px, 0px" : store.key === "tokmanni" ? "0px, 0px" : "0px, 0px"}) scale(${store.key === "s" ? 0.78 : store.key === "k" ? 0.92 : store.key === "lidl" ? 1.18 : 1.2})`,
+                  transform: `translate(${store.key === "lidl" ? "1px, 0px" : store.key === "tokmanni" ? "1px, 0px" : "0px, 0px"}) scale(${store.key === "s" ? 1.02 : store.key === "k" ? 0.92 : store.key === "lidl" ? 1.18 : 1.2})`,
                   transformOrigin: "center",
                 }}
                 onError={(event) => {
