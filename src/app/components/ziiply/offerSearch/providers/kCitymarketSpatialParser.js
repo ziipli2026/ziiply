@@ -515,7 +515,10 @@ if(spatialResolved?.source==="isolated-visual-metadata-conflict"){
 if(spatialResolved&&Number(spatialResolved.quantity)>1){
  const q=Number(spatialResolved.quantity),perItem=Number(spatialResolved.value)/q;
  const noDiscount=nr&&Number(nr.min)>0&&perItem>=Number(nr.min)*.995;
- const perItemArithmeticConflict=expected&&Number(expected)>0&&Math.abs(perItem-Number(expected))>Math.max(.20,Number(expected)*.20);
+ // expected is a single-item package/unit-rate value. For multibuys it is useful only as a
+ // lower-bound consistency check: a claimed bundle item cannot be materially more expensive
+ // than its own printed unit-rate-derived value.
+ const perItemArithmeticConflict=expected&&Number(expected)>0&&perItem>Number(expected)*1.20&&perItem-Number(expected)>.20;
  if(noDiscount||perItemArithmeticConflict)spatialResolved=null;
 }
 
