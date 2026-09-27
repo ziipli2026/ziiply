@@ -512,9 +512,13 @@ export async function warmKCitymarketOfferCache(now=new Date()){
   return result;
 }
 export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
-  // Visible Gösta search must always follow K-Citymarket's currently published
-  // generic leaflet. Period-specific cache warmup is separate and must never
-  // turn a valid live leaflet into an empty search result.
+  const active=getActiveKCitymarketPeriod();
+  // Keep the currently valid leaflet visible through the end of its period.
+  // 40AV may already be published on Sunday afternoon, but 39LV remains the
+  // customer-facing leaflet until Sunday 23:59.
+  if(active.week===39 && active.kind==="LV"){
+    return fetchKCitymarketOffersFresh("https://kcm-tarjouslehdet.k-ruoka.fi/78sgvzy_tarjouslehti_39LV_KCM/index.html");
+  }
   return fetchKCitymarketOffersFresh(ENTRY);
 }
 export default fetchKCitymarketOffers;
