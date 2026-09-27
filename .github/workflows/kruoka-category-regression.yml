@@ -443,6 +443,19 @@ jobs:
           console.log(JSON.stringify(out,null,2));
           NODE
 
+      - name: Inspect live search SSR data keys
+        shell: bash
+        run: |
+          node <<'NODE'
+          const url="https://etarjouslehdet.fi/haku/mehu";
+          const html=await (await fetch(url,{headers:{"User-Agent":"Mozilla/5.0"}})).text();
+          const b64=/[A-Za-z0-9+/]{20,}={0,2}/g;
+          const decoded=[];
+          for(const m of html.matchAll(b64)){try{const raw=Buffer.from(m[0],"base64").toString("utf8");if(raw.startsWith("[")&&raw.includes('"')){const v=JSON.parse(raw);if(Array.isArray(v)&&typeof v[0]==="string")decoded.push(v);}}catch{}}
+          const uniq=[...new Map(decoded.map(v=>[JSON.stringify(v),v])).values()];
+          console.log(JSON.stringify({htmlLength:html.length,dataKeys:uniq.map(v=>({name:v[0],params:v[1]??null})).filter(x=>!/key|token|secret/i.test(JSON.stringify(x)))},null,2));
+          NODE
+
       # Live-data audit is intentionally kept in this same workflow so there is only one K-ruoka diagnostic flow.
       - name: Fetch live K-Supermarket Jokela offers and classify
         shell: bash
