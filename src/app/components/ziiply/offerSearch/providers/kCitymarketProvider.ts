@@ -70,7 +70,7 @@ function textOf(src:string){
   ).replace(/ ?\n ?/g,"\n");
 }
 function category(t:string){
-  const s=clean(t).toLowerCase();
+  const s=clean(t).toLowerCase().replace(/\s+/g," ");
 
   // K-Citymarket classification is authoritative downstream. Match non-food
   // appliances and other product-specific classes before generic food words.
