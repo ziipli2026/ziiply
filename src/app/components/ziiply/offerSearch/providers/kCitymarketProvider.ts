@@ -376,6 +376,7 @@ function extractKCitymarketValidityV16(text:unknown){
   const endDay=Number(match[3]);
   const endMonth=Number(match[4]);
   if(!startDay||!startMonth||!endDay||!endMonth) return null;
+  if(startDay<1||startDay>31||endDay<1||endDay>31||startMonth<1||startMonth>12||endMonth<1||endMonth>12) return null;
   return {from:`${startDay}.${startMonth}.`,to:`${endDay}.${endMonth}.`};
 }
 
