@@ -9307,9 +9307,29 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // GPS uses one coordinate-scoped nationwide directory request. The API route
     // prefilters the five supported S/K store families by physical distance.
     // Manual text search remains unchanged.
-    const mergedStores: StoreSearchItem[] = coords
+    const skStores: StoreSearchItem[] = coords
       ? await fetchStoreSearchBatch(query, true)
       : await fetchStoreSearchBatch(query, false);
+
+    const lidlParams = new URLSearchParams({ search: query });
+    if (coords) {
+      lidlParams.set("lat", String(coords.latitude));
+      lidlParams.set("lon", String(coords.longitude));
+      lidlParams.set("gps", "1");
+    }
+
+    let lidlStores: StoreSearchItem[] = [];
+    try {
+      const lidlResponse = await fetch(`/api/lidl/store-search?${lidlParams.toString()}`, { cache: "no-store" });
+      if (lidlResponse.ok) {
+        const lidlData = await lidlResponse.json();
+        lidlStores = (lidlData.items || []) as StoreSearchItem[];
+      }
+    } catch {
+      // Lidl store lookup must never break the existing S/K store search.
+    }
+
+    const mergedStores: StoreSearchItem[] = [...skStores, ...lidlStores];
 
     if (!coords) return mergedStores;
 
