@@ -363,18 +363,15 @@ if((!spatialResolved||spatialResolved.source==="best-spatial-candidate")&&anchor
 // Leaflet cards may list several package sizes under one whole-euro price and print the resulting
 // unit-price range. If one package endpoint × one printed rate endpoint reconstructs an exact
 // cent price, accept it only when a matching large whole-euro glyph is visible on the same band.
-if((!spatialResolved||spatialResolved.source==="best-spatial-candidate")&&anchor&&pk){
+if(anchor&&pk){
  const ax=Number(anchor.left)||0,ay=Number(anchor.top)||0,pu=String(pk.raw||"").match(/(kg|g|ml|l)\b/i)?.[1]?.toLowerCase()||"";
  const kind=(pu==="kg"||pu==="g")?"kg":(pu==="l"||pu==="ml")?"l":"",rates=[];
  for(const g of spatialGroups(wordBoxes.filter(b=>Math.abs((Number(b.left)||0)-ax)<.16&&(Number(b.top)||0)>=ay-.01&&(Number(b.top)||0)<=ay+.075))){
   const t=String(g.text||"").replace(/,/g,".");const m=t.match(/\(\s*(\d{1,2})\s+(\d{2})\s*[-–]\s*(\d{1,2})\s+(\d{2})\s*\/\s*(kg|l)\)/i);if(m&&String(m[5]).toLowerCase()===kind)rates.push(Number(m[1]+"."+m[2]),Number(m[3]+"."+m[4]));
  }
  const vals=[];for(const w of [Number(pk.min),Number(pk.max)])for(const rate of rates){const v=w*rate,rounded=Number(v.toFixed(2));if(rounded>=.20&&Math.abs(v-rounded)<=.015)vals.push(rounded);}
- const uniq=[...new Set(vals)];
- if(uniq.length===1){
-  const visual=wordBoxes.some(b=>String(b.text||"").trim()===String(Math.trunc(uniq[0]))&&Number(b.height||0)>=.05&&Math.abs((Number(b.top)||0)-ay)<.10&&Math.abs((Number(b.left)||0)-ax)<.30);
-  if(visual)spatialResolved={value:uniq[0],quantity:null,unit:nr?.unit||null,source:"combined-card-range-endpoint-visual",sanity:"pass",confidence:"high"};
- }
+ const uniq=[...new Set(vals)].filter(v=>Math.abs(v-Math.round(v))<.001&&wordBoxes.some(b=>String(b.text||"").trim()===String(Math.round(v))&&Number(b.height||0)>=.05&&Math.abs((Number(b.top)||0)-ay)<.10&&Math.abs((Number(b.left)||0)-ax)<.30));
+ if(uniq.length===1)spatialResolved={value:uniq[0],quantity:null,unit:nr?.unit||null,source:"combined-card-range-endpoint-visual",sanity:"pass",confidence:"high"};
 }
 
 // Geometry-owned unit-rate arithmetic fallback.
