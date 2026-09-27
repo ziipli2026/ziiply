@@ -371,9 +371,16 @@ export type ZiiplyKruokaDebugV174 = {
 };
 
 let lastZiiplyKruokaDebugV174: ZiiplyKruokaDebugV174 | null = null;
+const ziiplyKruokaDebugByContextV183 = new Map<string, ZiiplyKruokaDebugV174 | null>();
 
-export function getLastZiiplyKruokaDebugV174(): ZiiplyKruokaDebugV174 | null {
-  return lastZiiplyKruokaDebugV174 ? { ...lastZiiplyKruokaDebugV174 } : null;
+export function getLastZiiplyKruokaDebugV174(
+  context?: ZiiplyGostaOfferSearchContextV152,
+): ZiiplyKruokaDebugV174 | null {
+  const contextKey = buildOfferSearchContextKeyV152(context);
+  const debug = contextKey && ziiplyKruokaDebugByContextV183.has(contextKey)
+    ? ziiplyKruokaDebugByContextV183.get(contextKey) ?? null
+    : lastZiiplyKruokaDebugV174;
+  return debug ? { ...debug } : null;
 }
 
 function isKCitymarketContextV179(context?: ZiiplyGostaOfferSearchContextV152) {
@@ -435,8 +442,14 @@ async function fetchOfferSearchResults(query: string, context?: ZiiplyGostaOffer
       payloadV174 && typeof payloadV174 === "object" && payloadV174.kruokaDebug
         ? { ...payloadV174.kruokaDebug }
         : null;
+    if (contextKey) {
+      ziiplyKruokaDebugByContextV183.set(contextKey, lastZiiplyKruokaDebugV174);
+    }
   } catch {
     lastZiiplyKruokaDebugV174 = null;
+    if (contextKey) {
+      ziiplyKruokaDebugByContextV183.set(contextKey, null);
+    }
   }
 
   return parseOfferSearchResponse(response);
