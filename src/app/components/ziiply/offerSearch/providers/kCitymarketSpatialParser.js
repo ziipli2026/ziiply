@@ -396,6 +396,15 @@ if(!spatialResolved&&anchor&&pk){
  const uniq=[...new Map(vals.map(x=>[x.value,x])).values()];if(uniq.length===1){spatialResolved={value:uniq[0].value,quantity:null,unit:null,source:"fragmented-owned-unitrate-visual",sanity:"pass",confidence:"high"};ur={min:uniq[0].rate,max:uniq[0].rate,raw:"geometry/"+kind};expected=uniq[0].value;}
 }
 
+// Percent + normal-price proof for cards whose offer glyph is too fragmented for direct ownership.
+// Require the printed normal price and percentage to reconstruct the same whole-euro glyph.
+if(!spatialResolved&&anchor&&percentageOffer&&pk){
+ const ax=Number(anchor.left)||0,ay=Number(anchor.top)||0;
+ const normals=[];
+ for(const ib of wordBoxes.filter(b=>/^Ilman$/i.test(String(b.text||"").trim())&&Math.abs((Number(b.left)||0)-ax)<.10&&Math.abs((Number(b.top)||0)-ay)<.10)){const row=wordBoxes.filter(b=>Math.abs((Number(b.top)||0)-(Number(ib.top)||0))<.004&&(Number(b.left)||0)>=Number(ib.left)&&(Number(b.left)||0)<=Number(ib.left)+.20).sort((a,b)=>Number(a.left)-Number(b.left)).map(b=>String(b.text||"")).join(" ");const m=row.match(/Ilman\s+Plussa-korttia\s+(\d)\s+(\d{2})\/(kpl|pkt|ps|rs|tlk|pl|prk)/i);if(m)normals.push(Number(m[1]+"."+m[2]));}
+ const uniqN=[...new Set(normals)],pct=Number(percentageOffer.percent);if(uniqN.length===1&&pct>0){const v=uniqN[0]*(1-pct/100),rv=Number(v.toFixed(2));if(Math.abs(rv-Math.round(rv))<.03&&wordBoxes.some(g=>String(g.text||"").trim()===String(Math.round(rv))&&Number(g.height||0)>=.05&&Math.abs((Number(g.top)||0)-ay)<.10&&Math.abs((Number(g.left)||0)-ax)<.45))spatialResolved={value:Number(Math.round(rv).toFixed(2)),quantity:null,unit:null,source:"percentage-owned-normal-whole-euro",sanity:"pass",confidence:"high"};}
+}
+
 // Geometry-owned unit-rate arithmetic fallback.
 // Some leaflet cards print the offer only as a unit rate directly below the product/package
 // (for example "(5 00/kg)") while the large price glyph is fragmented beyond reliable recovery.
