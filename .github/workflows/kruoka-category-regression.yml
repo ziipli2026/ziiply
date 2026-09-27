@@ -1030,3 +1030,18 @@ jobs:
           console.log("ACTIVE_VIEWER_NO_ACTIVE",JSON.stringify(noActive));
           console.log("ACTIVE_VIEWER_BAD",JSON.stringify(bad));
           NODE
+
+      - name: Classify shared versus store-specific K-Supermarket publications
+        run: |
+          node <<'NODE'
+          const O="https://etarjouslehdet.fi",B="f305U8",NOW=Date.now();
+          const enc=v=>Buffer.from(JSON.stringify(v,(k,x)=>x&&Object.prototype.toString.call(x)==="[object Object]"?Object.keys(x).sort().reduce((o,k)=>(o[k]=x[k],o),{}):x),"utf8").toString("base64");
+          async function data(refs){const ks=refs.map(enc),r=await fetch(O+"/",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({data:ks})}),t=await r.text();if(!r.ok)throw Error(r.status+" "+t);return t.trim().split("\n").filter(Boolean).map(JSON.parse)}
+          const stores=((await data([["stores",{businessId:B,pagination:{offset:0,limit:1000}}]]))[0].value?.data||[]).filter(Boolean), use=new Map(),perStore=[];
+          for(let i=0;i<stores.length;i+=25){const b=stores.slice(i,i+25),refs=b.map(s=>["fronts",{businessIds:[B],localBusinessIds:[String(s.id)],coordinates:s.coordinates}]),rows=await data(refs),by=new Map(rows.map(r=>[r.key,r]));for(let j=0;j<b.length;j++){const s=b[j],ps=(by.get(enc(refs[j]))?.value||[]).flatMap(x=>x.publications||[]).filter(p=>Date.parse(p.validFrom)<=NOW&&NOW<=Date.parse(p.validUntil));perStore.push({id:s.id,name:s.name,pubs:ps.map(p=>p.id)});for(const p of ps){const id=p.id;const x=use.get(id)||{id,label:p.label,count:0,stores:[]};x.count++;x.stores.push(s.name);use.set(id,x)}}}
+          const shared=[...use.values()].filter(x=>x.count>1).sort((a,b)=>b.count-a.count),single=[...use.values()].filter(x=>x.count===1);
+          const covered=new Set(shared.flatMap(x=>x.stores)),uncovered=perStore.filter(s=>!s.pubs.some(id=>(use.get(id)?.count||0)>1));
+          console.log("PUBCLASS_SUMMARY",JSON.stringify({stores:stores.length,activePublications:use.size,sharedPublications:shared.length,singleStorePublications:single.length,storesCoveredByShared:covered.size,storesWithoutShared:uncovered.length}));
+          console.log("PUBCLASS_SHARED",JSON.stringify(shared));
+          console.log("PUBCLASS_UNCOVERED",JSON.stringify(uncovered));
+          NODE
