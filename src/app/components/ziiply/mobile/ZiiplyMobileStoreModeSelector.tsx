@@ -107,7 +107,7 @@ export default function ZiiplyMobileStoreModeSelector({
   }, [shouldShowHakutapaNotice]);
 
   return (
-    <section className="relative mx-auto w-full max-w-[390px] overflow-hidden rounded-[1.9rem] border-[3px] border-[#b38a4a] bg-[#fcf5de] px-4 pb-2 pt-1.5 text-[#213224] shadow-[0_5px_0_rgba(105,72,28,0.14),0_14px_24px_rgba(46,32,12,0.10),inset_0_0_0_2px_rgba(255,255,255,0.48)]">
+    <section className="relative mx-auto w-full max-w-[390px] overflow-hidden rounded-[1.9rem] border-[3px] border-[#b38a4a] bg-[#fcf5de] px-4 pb-2.5 pt-3 text-[#213224] shadow-[0_5px_0_rgba(105,72,28,0.14),0_14px_24px_rgba(46,32,12,0.10),inset_0_0_0_2px_rgba(255,255,255,0.48)]">
       <style>{`
         @keyframes ziiplyNoticePop {
           0% {
@@ -152,7 +152,7 @@ export default function ZiiplyMobileStoreModeSelector({
         </button>
       </div>
 
-      <div className="relative z-20 my-1 flex h-7 items-center justify-center overflow-visible">
+      <div className="relative z-20 my-1.5 flex h-7 items-center justify-center overflow-visible">
         <p
           className={[
             "relative z-10 whitespace-nowrap rounded-full border-[2px] px-3.5 py-[0.35rem] text-center text-[12px] font-black uppercase leading-none tracking-[0.14em] transition-none shadow-[0_2px_0_rgba(91,72,44,0.16),inset_0_1px_0_rgba(255,255,255,0.72)]",
@@ -172,7 +172,7 @@ export default function ZiiplyMobileStoreModeSelector({
       </div>
 
       <div
-        className={`relative z-10 mb-0.5 flex h-[18px] items-center justify-center gap-1.5 ${
+        className={`relative z-10 mb-1 flex h-[18px] items-center justify-center gap-1.5 ${
           storeCompareScope === "between_chains" && storeModeChosen ? "" : "invisible pointer-events-none"
         }`}
         aria-hidden={!(storeCompareScope === "between_chains" && storeModeChosen)}
