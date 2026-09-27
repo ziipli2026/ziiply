@@ -257,11 +257,19 @@ function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId: strin
   const unitPriceValue = num(offer.unitPrice);
   const unitPrice = unitPriceValue == null ? "" : `${priceText(unitPriceValue)}${unit ? `/${unit}` : ""}`;
   const isPlussa = membership != null;
+  const pieceCountFrom = num(offer.pieceCountFrom);
+  const pieceCountTo = num(offer.pieceCountTo);
+  const offerQuantity = pieceCountFrom != null && pieceCountFrom > 1 && pieceCountTo === pieceCountFrom
+    ? pieceCountFrom
+    : null;
+  const effectivePriceText = offerQuantity == null
+    ? priceText(effective)
+    : `${priceText(effective)} € / ${offerQuantity} kpl`;
   const category = mapTjekCategoryV54(offer);
   return {
     id: `etarjouslehdet-v59-${displayStoreId}-${offerId}-${index}`,
     title, name: title, productName: title,
-    price: effective, priceText: priceText(effective), offerPrice: priceText(effective),
+    price: effective, priceText: effectivePriceText, offerPrice: effectivePriceText,
     previousPrice: regular != null && regular !== effective ? regular : null,
     unitPrice, unitPriceText: unitPrice, unitPriceUnit: unit || null,
     imageUrl: image, image, pictureUrl: image,
@@ -273,7 +281,7 @@ function mapTjekOffer(offer: UnknownRecord, index: number, displayStoreId: strin
     category, categoryPath: category, productGroup: category, mainCategory: category, subCategory: category,
     validFrom: offer.validFrom ?? null, validUntil: offer.validUntil ?? null, isPlussaOffer: isPlussa,
     url: `${ETARJOUSLEHDET_ORIGIN}/${slug}`, productUrl: `${ETARJOUSLEHDET_ORIGIN}/${slug}`,
-    debug: { providerVersion: "V65_KMARKET_PRODUCTION", publicationId, tjekStoreId: displayStoreId, chain },
+    debug: { providerVersion: "V66_KSUPERMARKET_MULTIBUY", publicationId, tjekStoreId: displayStoreId, chain, offerQuantity },
   } as unknown as ZiiplyOfferSearchResult;
 }
 
