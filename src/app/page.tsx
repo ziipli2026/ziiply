@@ -19310,7 +19310,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           </div>
 
           <section
-            className={`relative -translate-y-[4px] transform-gpu overflow-hidden rounded-[2.05rem] border-[4px] border-[#b98e4d] px-5 pb-1 pt-2 shadow-[0_18px_34px_rgba(52,38,14,0.18),0_4px_0_rgba(116,78,31,0.18),inset_0_0_0_2px_rgba(255,252,235,0.96),inset_0_18px_28px_rgba(255,255,255,0.30)] ring-1 ring-[#fff7d6]/95 ${
+            className={`relative max-h-[calc(100%-5.45rem)] overflow-y-auto rounded-[2.05rem] border-[4px] border-[#b98e4d] px-5 pb-1 pt-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden shadow-[0_18px_34px_rgba(52,38,14,0.18),0_4px_0_rgba(116,78,31,0.18),inset_0_0_0_2px_rgba(255,252,235,0.96),inset_0_18px_28px_rgba(255,255,255,0.30)] ring-1 ring-[#fff7d6]/95 ${
               storeMode === "local"
                 ? "bg-[#fbf1d2]"
                 : "bg-[#fcf4da]"
