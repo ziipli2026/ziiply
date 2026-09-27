@@ -2886,6 +2886,7 @@ export default function Page() {
   const gpsSearchInFlightRefV465 = useRef(false);
   const gpsInitialSearchStartedRefV465 = useRef(false);
   const gpsLastFinishedAtRefV466 = useRef(0);
+  const appHiddenAtRefV737 = useRef(0);
   const weatherBootApplyInFlightRefV481 = useRef(false);
   const gpsBootTimerRefV483 = useRef<number | null>(null);
   const gpsBootWatchdogRefV483 = useRef<number | null>(null);
@@ -10141,6 +10142,32 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     };
   }, [usingOwnLocation]);
 
+
+  // V737_RESUME_REFRESH_AFTER_LONG_BACKGROUND:
+  // Jos sovellus on ollut pitkään taustalla, pidä nykyinen vakaa näkymä näkyvissä
+  // ja käynnistä palatessa yksi hiljainen GPS-refresh. Lyhyet app-vaihdot eivät tee mitään.
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+
+    const onVisibilityChangeV737 = () => {
+      if (document.visibilityState === "hidden") {
+        appHiddenAtRefV737.current = Date.now();
+        return;
+      }
+      if (document.visibilityState !== "visible") return;
+
+      const hiddenAt = appHiddenAtRefV737.current;
+      appHiddenAtRefV737.current = 0;
+      if (!hiddenAt || Date.now() - hiddenAt < 120000) return;
+      if (!usingOwnLocation || gpsUserDisabledRefV306.current) return;
+      if (gpsSearchInFlightRefV465.current || ziiplyGpsHardInFlightV469) return;
+
+      void useOwnLocation("boot_refresh");
+    };
+
+    document.addEventListener("visibilitychange", onVisibilityChangeV737);
+    return () => document.removeEventListener("visibilitychange", onVisibilityChangeV737);
+  }, [usingOwnLocation]);
 
   // Manuaalinen GPS-nappi käyttää edelleen useOwnLocation("manual") ja toimii normaalisti.
   useEffect(() => {
