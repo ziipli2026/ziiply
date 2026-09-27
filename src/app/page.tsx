@@ -3240,16 +3240,17 @@ export default function Page() {
       setLocationMessage("Valitse sijainti ja kauppatyyppi.");
     }
 
-    // V518: GPS on oletusarvona päällä jokaisella käynnistyksellä.
-    // Käyttäjän oma pois-painallus tai käsin kirjoitettu kunta/kaupunki/postinumero
-    // asettaa gpsUserDisabledRefV306.current = true ja estää tämän boot-haun.
+    // V734_SNAPSHOT_VISIBLE_DURING_BOOT_REFRESH:
+    // Säilytä juuri hydratoitu vakaa snapshot käyttäjälle näkyvänä myös silloin,
+    // kun avauksen GPS-päivitys käynnistyy taustalla. Älä vaihda näkyvää tilaa
+    // "Paikannetaan..."-välitilaan ennen kuin taustapäivityksellä on uusi valmis tieto.
+    // GPS pysyy oletuksena päällä ja 650 ms ajastus käyttää edelleen samaa
+    // useOwnLocation("manual") -polkua; tässä poistetaan vain bootin ennakoiva
+    // näkyvän snapshotin ylikirjoitus.
     gpsUserDisabledRefV306.current = false;
     gpsInitialVisiblePhaseRefV391.current = false;
-    setUsingOwnLocation(true);
-    setLocationMessage("Paikannetaan...");
-    setLocationMessageVisible(true);
     setGpsErrorMessage("");
-    setGpsBootReadyV473(false);
+    setGpsBootReadyV473(true);
     setStoreSearchLoading(false);
     setGpsStorePickerBlockedV382(false);
     setSearchPanelOpen(false);
