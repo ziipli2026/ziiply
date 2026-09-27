@@ -47,8 +47,15 @@ export async function GET(request: NextRequest) {
     if (gps) {
       const latitude = Number(request.nextUrl.searchParams.get("lat") ?? request.nextUrl.searchParams.get("latitude"));
       const longitude = Number(request.nextUrl.searchParams.get("lon") ?? request.nextUrl.searchParams.get("lng") ?? request.nextUrl.searchParams.get("longitude"));
-      if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-        return NextResponse.json({ error: "GPS coordinates required" }, { status: 400 });
+      if (
+        !Number.isFinite(latitude) ||
+        !Number.isFinite(longitude) ||
+        latitude < -90 ||
+        latitude > 90 ||
+        longitude < -180 ||
+        longitude > 180
+      ) {
+        return NextResponse.json({ error: "Valid GPS coordinates required" }, { status: 400 });
       }
 
       const terms = ["S-market", "Sale", "Alepa", "K-Market", "K-Supermarket", "Prisma", "K-Citymarket"];
@@ -100,6 +107,9 @@ export async function GET(request: NextRequest) {
     }
 
     if (!search) return NextResponse.json({ items: [] });
+    if (search.length > 120) {
+      return NextResponse.json({ error: "Search query too long" }, { status: 400 });
+    }
     // Manual location search: Ruoanhinta fuzzy search can return remote false
     // positives. Keep GPS behavior above untouched and constrain only manual results.
     // Ruoanhinta rejects the two-letter query "Ii", but accepts it with trailing
