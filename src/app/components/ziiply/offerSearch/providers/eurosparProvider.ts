@@ -65,8 +65,9 @@ export function adaptEurosparFeed(feed: Feed, storeName: string, date: string): 
       ? raw.multiUnit as { quantity?: unknown; unit?: unknown }
       : null;
     const quantity = Number.isInteger(multi?.quantity) ? Number(multi?.quantity) : null;
-    const priceBasis = raw.priceBasis;
-    if (!(price && price > 0) || (priceBasis !== "single-unit" && priceBasis !== "multi-buy-total")) return [];
+    const rawPriceBasis = raw.priceBasis;
+    if (!(price && price > 0) || (rawPriceBasis !== "single-unit" && rawPriceBasis !== "multi-buy-total")) return [];
+    const priceBasis: EurosparOffer["priceBasis"] = rawPriceBasis;
     if (priceBasis === "multi-buy-total" && (!quantity || quantity < 2)) return [];
 
     return [{
