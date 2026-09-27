@@ -171,8 +171,12 @@ export default function ZiiplyMobileStoreModeSelector({
         </p>
       </div>
 
-      {storeCompareScope === "between_chains" && (
-        <div className="relative z-10 mb-1 flex items-center justify-center gap-1.5">
+      <div
+        className={`relative z-10 mb-1 flex h-[18px] items-center justify-center gap-1.5 ${
+          storeCompareScope === "between_chains" && storeModeChosen ? "" : "invisible pointer-events-none"
+        }`}
+        aria-hidden={!(storeCompareScope === "between_chains" && storeModeChosen)}
+      >
           <span className="text-[10px] font-black text-[#6a5330]">Yksi</span>
           <button
             type="button"
@@ -191,8 +195,7 @@ export default function ZiiplyMobileStoreModeSelector({
             />
           </button>
           <span className="text-[10px] font-black text-[#6a5330]">Monta</span>
-        </div>
-      )}
+      </div>
 
       <div className="relative z-10 grid grid-cols-2 gap-4">
         <button
