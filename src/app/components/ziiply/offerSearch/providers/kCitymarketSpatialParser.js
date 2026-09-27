@@ -340,6 +340,16 @@ if(!spatialResolved&&anchor&&pk&&nr&&Number(nr.min)>0&&Math.abs(Number(pk.max)-N
  if(uniq.length===1){const v=Number((Number(pk.min)*uniq[0]).toFixed(2));if(v>=.20&&v<Number(nr.min)*.995)spatialResolved={value:v,quantity:null,unit:nr.unit||null,source:"title-aligned-unitrate-normal-bounded",sanity:"pass",confidence:"high"};}
 }
 
+// Shared-card whole-euro proof with an owned "Ilman Plussa-korttia" KPL normal-price row.
+// Used for cards where several named variants share one large N,- price.
+if(!spatialResolved&&anchor){
+ const ax=Number(anchor.left)||0,ay=Number(anchor.top)||0,owned=[];
+ const ilmans=wordBoxes.filter(b=>/^Ilman$/i.test(String(b.text||"").trim())&&Math.abs((Number(b.left)||0)-ax)<.015&&(Number(b.top)||0)>ay&&(Number(b.top)||0)<ay+.10);
+ for(const ib of ilmans){const row=wordBoxes.filter(b=>Math.abs((Number(b.top)||0)-(Number(ib.top)||0))<.004&&(Number(b.left)||0)>=ax-.005&&(Number(b.left)||0)<=ax+.24).sort((a,b)=>Number(a.left)-Number(b.left)).map(b=>String(b.text||"")).join(" ");const m=row.match(/Ilman\s+Plussa-korttia\s+(\d)\s+(\d{2})[–-](\d)\s+(\d{2})\/(kpl)\b/i);if(m)owned.push({min:Number(m[1]+"."+m[2]),max:Number(m[3]+"."+m[4]),unit:"KPL"});}
+ const normals=[...new Map(owned.map(x=>[x.min+"|"+x.max,x])).values()];
+ if(normals.length===1){const n=normals[0],vals=[];for(const e of wordBoxes.filter(b=>/^[1-9]$/.test(String(b.text||"").trim())&&Number(b.height||0)>=.05&&Math.abs((Number(b.top)||0)-ay)<.10&&Math.abs((Number(b.left)||0)-ax)<.30)){const dash=wordBoxes.some(b=>/^[-–]$/.test(String(b.text||"").trim())&&Number(b.height||0)>=.04&&Math.hypot((Number(b.left)||0)-(Number(e.left)||0),(Number(b.top)||0)-(Number(e.top)||0))<.08);const v=Number(e.text);if(dash&&v<n.min*.995)vals.push(v);}const uniq=[...new Set(vals)];if(uniq.length===1)spatialResolved={value:uniq[0],quantity:null,unit:"KPL",source:"owned-normal-shared-card-whole-euro",sanity:"pass",confidence:"high"};}
+}
+
 // Raw same-line unit-rate range proof for fragmented PDF text boxes.
 if(!spatialResolved&&anchor&&pk){
  const ax=Number(anchor.left)||0,ay=Number(anchor.top)||0,pu=String(pk.raw||"").match(/(kg|g|ml|l)\b/i)?.[1]?.toLowerCase()||"",kind=(pu==="kg"||pu==="g")?"kg":(pu==="l"||pu==="ml")?"l":"";
