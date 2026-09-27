@@ -137,7 +137,7 @@ export default function ZiiplyMobileStoreModeSelector({
           type="button"
           disabled={modeButtonsDisabled}
           onClick={() => onStoreModeChange("hyper")}
-          className={`${buttonClass(hyperActive, modeButtonsDisabled)} w-[calc(50%-0.5rem)]`}
+          className={`${buttonClass(hyperActive, modeButtonsDisabled)} w-[calc(50%-0.5rem)] -translate-x-7`}
         >
           <span className="relative z-10">🏬 Tavaratalot</span>
         </button>
@@ -152,7 +152,7 @@ export default function ZiiplyMobileStoreModeSelector({
           type="button"
           disabled={modeButtonsDisabled}
           onClick={() => onStoreModeChange("local")}
-          className={`${buttonClass(localActive, modeButtonsDisabled)} w-[calc(50%-0.5rem)]`}
+          className={`${buttonClass(localActive, modeButtonsDisabled)} w-[calc(50%-0.5rem)] translate-x-7`}
         >
           <span className="relative z-10">🏪 Lähikaupat</span>
         </button>
@@ -181,7 +181,7 @@ export default function ZiiplyMobileStoreModeSelector({
         <button
           type="button"
           onClick={() => onStoreCompareScopeChange("between_chains")}
-          className={buttonClass(storeCompareScope === "between_chains")}
+          className={`${buttonClass(storeCompareScope === "between_chains")} -translate-x-7`}
         >
           <span className="relative z-10">Ketjujen väliltä</span>
         </button>
@@ -189,7 +189,7 @@ export default function ZiiplyMobileStoreModeSelector({
         <button
           type="button"
           onClick={() => onStoreCompareScopeChange("within_chain")}
-          className={buttonClass(storeCompareScope === "within_chain")}
+          className={`${buttonClass(storeCompareScope === "within_chain")} translate-x-7`}
         >
           <span className="relative z-10">Ketjun sisältä</span>
         </button>
