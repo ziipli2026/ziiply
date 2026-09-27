@@ -854,3 +854,27 @@ jobs:
             console.log("CLIENT_AROUND "+js.slice(Math.max(0,p-18000),p+2500));
           }
           NODE
+
+      - name: Verify exact Tjek store and fronts protocol
+        run: |
+          node <<'NODE'
+          const ORIGIN="https://etarjouslehdet.fi";
+          const bundle="https://dqei8yomz48ve.cloudfront.net/assets/entry-client-CjqEhrFN.js";
+          const js=await (await fetch(bundle)).text();
+          const yp=js.indexOf("function y(e){return _(JSON.stringify");
+          console.log("SERIALIZER_CONTEXT",js.slice(Math.max(0,yp-5000),yp+800));
+          const b64=s=>Buffer.from(s,"utf8").toString("base64");
+          const b64url=s=>Buffer.from(s,"utf8").toString("base64url");
+          const sorted=(v)=>{
+            if(Array.isArray(v)) return v.map(sorted);
+            if(v&&Object.prototype.toString.call(v)==="[object Object]") return Object.keys(v).sort().reduce((o,k)=>(o[k]=sorted(v[k]),o),{});
+            return v;
+          };
+          const ref=["store",{storeId:"4165GCi"}];
+          for(const [name,enc] of [["base64",b64],["base64url",b64url]]){
+            const key=enc(JSON.stringify(sorted(ref)));
+            const r=await fetch(ORIGIN+"/",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({data:[key]})});
+            const txt=await r.text();
+            console.log("STORE_PROTOCOL",JSON.stringify({name,status:r.status,key,body:txt.slice(0,5000)}));
+          }
+          NODE
