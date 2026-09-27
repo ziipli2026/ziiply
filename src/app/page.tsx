@@ -18078,7 +18078,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 draggable={false}
                 className="h-full w-full object-contain"
                 style={{
-                  transform: `translate(${store.key === "lidl" ? "-3px, 0px" : store.key === "tokmanni" ? "-2px, 0px" : "0px, 0px"}) scale(${store.key === "s" ? 1.02 : store.key === "k" ? 0.92 : store.key === "lidl" ? 1.18 : 1.2})`,
+                  transform: `scale(${store.key === "s" ? 1.02 : store.key === "k" ? 0.92 : store.key === "lidl" ? 1.18 : 1.2})`,
                   transformOrigin: "center",
                 }}
                 onError={(event) => {
@@ -18142,8 +18142,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     </span>
                   )
                 ) : (
-                  <span className="rounded-[0.38rem] border border-[#b89552] bg-[linear-gradient(180deg,#fffdf7_0%,#ecd8a2_100%)] px-2 py-[2px] text-[8px] font-black text-[#70552a] shadow-[inset_0_1px_0_rgba(255,255,255,0.72)] ring-1 ring-[#f7ebc7]">
-                    {selected ? "Valittu" : "Valitse"}
+                  <span className={`mt-1 rounded-full px-2 py-1 text-[9px] font-black ring-1 ${selected ? "bg-slate-100 text-[#b7aa8d] ring-slate-200" : "bg-[#fff8df]/90 text-slate-700 ring-slate-200"}`}>
+                    {selected ? "Valittu" : "Vaihda"}
                   </span>
                 )}
               </div>
