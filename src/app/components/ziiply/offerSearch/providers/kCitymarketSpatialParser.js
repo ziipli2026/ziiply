@@ -350,6 +350,15 @@ if(anchor){
  if(normals.length===1){const n=normals[0],vals=[];for(const e of wordBoxes.filter(b=>/^[1-9]$/.test(String(b.text||"").trim())&&Number(b.height||0)>=.05&&Math.abs((Number(b.top)||0)-ay)<.10&&Math.abs((Number(b.left)||0)-ax)<.30)){const dash=wordBoxes.some(b=>/^[-–]$/.test(String(b.text||"").trim())&&Number(b.height||0)>=.04&&Math.hypot((Number(b.left)||0)-(Number(e.left)||0),(Number(b.top)||0)-(Number(e.top)||0))<.08);const v=Number(e.text);if(dash&&v<n.min*.995)vals.push(v);}const uniq=[...new Set(vals)];if(uniq.length===1)spatialResolved={value:uniq[0],quantity:null,unit:"KPL",source:"owned-normal-shared-card-whole-euro",sanity:"pass",confidence:"high"};}
 }
 
+// Direct three-token PDF range proof: "(11" + "49-19" + "23/kg)" => 11.49-19.23/kg.
+if(anchor&&pk){
+ const ax=Number(anchor.left)||0,ay=Number(anchor.top)||0,rates=[];
+ const local=wordBoxes.filter(b=>Math.abs((Number(b.left)||0)-ax)<.22&&(Number(b.top)||0)>=ay+.015&&(Number(b.top)||0)<=ay+.07);
+ for(const c of local){const cm=String(c.text||"").trim().match(/^(\d{2})\/(kg|l)\)$/i);if(!cm)continue;const mid=local.find(b=>Math.abs((Number(b.top)||0)-(Number(c.top)||0))<.003&&(Number(b.left)||0)<Number(c.left)&&Number(c.left)-Number(b.left)<.08&&/^(\d{2})[-–](\d{2})$/.test(String(b.text||"").trim()));if(!mid)continue;const mm=String(mid.text).trim().match(/^(\d{2})[-–](\d{2})$/);const first=local.find(b=>Math.abs((Number(b.top)||0)-(Number(c.top)||0))<.003&&(Number(b.left)||0)<Number(mid.left)&&Number(mid.left)-Number(b.left)<.06&&/^\(\d{1,2}$/.test(String(b.text||"").trim()));if(!first)continue;const fm=String(first.text).trim().match(/^\((\d{1,2})$/);rates.push(Number(fm[1]+"."+mm[1]),Number(mm[2]+"."+cm[1]));}
+ const vals=[];for(const w of [Number(pk.min),Number(pk.max)])for(const rate of rates){const v=w*rate,rounded=Number(v.toFixed(2));if(Math.abs(v-rounded)<=.015)vals.push(rounded);}
+ const uniq=[...new Set(vals)].filter(v=>Math.abs(v-Math.round(v))<.001&&wordBoxes.some(b=>String(b.text||"").trim()===String(Math.round(v))&&Number(b.height||0)>=.05&&Math.abs((Number(b.top)||0)-ay)<.10&&Math.abs((Number(b.left)||0)-ax)<.30));if(uniq.length===1)spatialResolved={value:uniq[0],quantity:null,unit:nr?.unit||null,source:"three-token-range-endpoint-visual",sanity:"pass",confidence:"high"};
+}
+
 // Raw same-line unit-rate range proof for fragmented PDF text boxes.
 if((!spatialResolved||spatialResolved.source==="best-spatial-candidate")&&anchor&&pk){
  const ax=Number(anchor.left)||0,ay=Number(anchor.top)||0,pu=String(pk.raw||"").match(/(kg|g|ml|l)\b/i)?.[1]?.toLowerCase()||"",kind=(pu==="kg"||pu==="g")?"kg":(pu==="l"||pu==="ml")?"l":"";
