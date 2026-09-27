@@ -62,7 +62,7 @@ export type ZiiplyMobileCompareSelectionCardProps = {
     match: unknown,
     mode: "cheapest" | "same_quality" | "own_brands" | "same_brand",
   ) => unknown[] | void | Promise<unknown[] | void>;
-  onSelectMatchAlternative?: (storeId: string, match: unknown, alternative: unknown, mode: "own_brands" | "same_brand") => void | Promise<void>;
+  onSelectMatchAlternative?: (storeId: string, match: unknown, alternative: unknown) => void | Promise<void>;
   onResetMatchMode?: (storeId: string, match: unknown) => void | Promise<void>;
   onClose?: () => void;
   className?: string;
@@ -141,11 +141,11 @@ function getItemPriceForStore(item: unknown, storeId: string) {
 
 function getCurrentQualityMode(item: unknown): QualityMode {
   const data = item as ZiiplyCompareSelectionItem;
-  const mode = String(data?.qualityMode || "");
+  const mode = String(data?.qualityMode || "cheapest");
 
-  if (mode === "cheapest" || mode === "same_quality" || mode === "own_brands" || mode === "same_brand") return mode;
+  if (mode === "same_quality" || mode === "own_brands" || mode === "same_brand") return mode;
 
-  return "";
+  return "cheapest";
 }
 
 function getProductImage(item: unknown) {
@@ -298,7 +298,7 @@ export default function ZiiplyMobileCompareSelectionCard({
                                 key={String(alternative.id ?? alternative.product?.id ?? alternativeIndex)}
                                 type="button"
                                 onClick={async () => {
-                                  await onSelectMatchAlternative?.(store.id, item, alternative, alternativeMenu.key.endsWith(":own_brands") ? "own_brands" : "same_brand");
+                                  await onSelectMatchAlternative?.(store.id, item, alternative);
                                   setAlternativeMenu(null);
                                 }}
                                 className="mb-1.5 grid w-full grid-cols-[minmax(0,1fr)_4.8rem] items-center gap-3 rounded-[0.62rem] border border-[#b99d5c] bg-[#f5e8c7] px-3 py-2.5 text-left last:mb-0"
