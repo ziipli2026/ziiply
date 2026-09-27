@@ -256,7 +256,9 @@ jobs:
             return {id:o.publicId,name:o.name,publicationId:o.publicationPublicId,effective,quantity,priceText:effective==null?null:(quantity?`${effective.toFixed(2).replace(".",",")} € / ${quantity} kpl`:effective.toFixed(2).replace(".",","))};
           }).filter(x=>x.effective!=null&&x.effective>0);
           const atria=mapped.find(x=>x.id==="hvXKgK6Pr_zW8-p74D1yh");
-          console.log(JSON.stringify({hotspotIds:ids.length,structuredOffers:offers.length,mappedOffers:mapped.length,atria},null,2));
+          const mappedIds=new Set(mapped.map(x=>String(x.id)));
+          const dropped=offers.filter(o=>!mappedIds.has(String(o.publicId??""))).map(o=>({id:o.publicId??null,name:o.name??null,publicationId:o.publicationPublicId??null,membershipPrice:o.membershipPrice??null,appPrice:o.appPrice??null,price:o.price??null,fromPrice:o.fromPrice??null,pieceCountFrom:o.pieceCountFrom??null,pieceCountTo:o.pieceCountTo??null}));
+          console.log(JSON.stringify({hotspotIds:ids.length,structuredOffers:offers.length,mappedOffers:mapped.length,dropped,atria},null,2));
           if(ids.length!==45||offers.length!==45||!atria||atria.effective!==5||atria.quantity!==2||atria.priceText!=="5,00 € / 2 kpl") process.exitCode=2;
           NODE
 
