@@ -803,3 +803,23 @@ jobs:
             console.log("STORE_FRONTS_PUBLICATIONS "+JSON.stringify({name,id,storeStatus:st.status,coordinates,frontsStatus:fr.status,frontCount:Array.isArray(fronts)?fronts.length:null,publications:pubs.map(p=>({id:p.id,label:p.label,publish:p.publish,expires:p.expires}))},null,2));
           }
           NODE
+
+      - name: Extract Tjek useData HTTP request builder
+        run: |
+          node <<'NODE'
+          const ORIGIN="https://etarjouslehdet.fi";
+          const html=await (await fetch(ORIGIN+"/K-Supermarket/kaupat/4165GCi")).text();
+          const srcs=[...new Set([...html.matchAll(/<script[^>]+src=["']([^"']+)["']/gi)].map(m=>new URL(m[1],ORIGIN).href))];
+          for(const src of srcs){
+            const js=await (await fetch(src)).text();
+            if(!js.includes("useData")||!js.includes("loadData")) continue;
+            const needles=["useData(","loadData(","/data/","dataKey","serialize","base64","fetch("];
+            for(const needle of needles){
+              let p=js.indexOf(needle),n=0;
+              while(p>=0&&n<8){
+                console.log("DATA_BUILDER_SNIP "+JSON.stringify({src,needle,text:js.slice(Math.max(0,p-1800),p+4200).replace(/\\s+/g," ")}));
+                p=js.indexOf(needle,p+needle.length); n++;
+              }
+            }
+          }
+          NODE
