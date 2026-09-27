@@ -385,6 +385,19 @@ jobs:
           console.log(JSON.stringify({scriptCount:new Set(scripts).size,publicationDataKeys:[...signatures].sort()},null,2));
           NODE
 
+      - name: Probe SSR K-Supermarket publication payload
+        shell: bash
+        run: |
+          node <<'NODE'
+          const html=await (await fetch("https://etarjouslehdet.fi/K-Supermarket",{headers:{"User-Agent":"Mozilla/5.0"}})).text();
+          const known=["VgNLpUyJ","EdyJW2k4"];
+          const hits={};
+          for(const id of known){const i=html.indexOf(id);hits[id]=i<0?null:html.slice(Math.max(0,i-700),i+700).replace(/data-api-key=["'][^"']+["']/gi,'data-api-key="[redacted]"');}
+          const businessSnippets=[];
+          for(const needle of ['"publications"','\"publications\"']){let from=0;while(businessSnippets.length<6){const i=html.indexOf(needle,from);if(i<0)break;businessSnippets.push(html.slice(Math.max(0,i-900),i+2200).replace(/data-api-key=["'][^"']+["']/gi,'data-api-key="[redacted]"'));from=i+needle.length;}}
+          console.log(JSON.stringify({htmlLength:html.length,knownIdPresent:Object.fromEntries(known.map(id=>[id,html.includes(id)])),publicationMarkerCount:businessSnippets.length,snippets:businessSnippets.map(s=>s.slice(0,2800)),knownContexts:hits},null,2));
+          NODE
+
       # Live-data audit is intentionally kept in this same workflow so there is only one K-ruoka diagnostic flow.
       - name: Fetch live K-Supermarket Jokela offers and classify
         shell: bash
