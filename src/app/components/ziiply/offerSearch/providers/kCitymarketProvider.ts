@@ -512,7 +512,9 @@ export async function warmKCitymarketOfferCache(now=new Date()){
   return result;
 }
 export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
-  const payload=await readCachedPeriod(getActiveKCitymarketPeriod());
-  return payload.offers;
+  // Visible Gösta search must always follow K-Citymarket's currently published
+  // generic leaflet. Period-specific cache warmup is separate and must never
+  // turn a valid live leaflet into an empty search result.
+  return fetchKCitymarketOffersFresh(ENTRY);
 }
 export default fetchKCitymarketOffers;
