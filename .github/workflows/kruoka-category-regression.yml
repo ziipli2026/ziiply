@@ -823,3 +823,17 @@ jobs:
             }
           }
           NODE
+
+      - name: Extract Tjek data batch request body
+        run: |
+          node <<'NODE'
+          const src="https://dqei8yomz48ve.cloudfront.net/assets/entry-client-CjqEhrFN.js";
+          const js=await (await fetch(src)).text();
+          for(const needle of ["async function L(","function L(","/api/data","api/data","NDJSON","initiatedAt","JSON.stringify(t)"]){
+            let p=js.indexOf(needle);
+            while(p>=0){
+              console.log("DATA_BATCH_IMPL "+JSON.stringify({needle,text:js.slice(Math.max(0,p-5000),p+8000).replace(/\\s+/g," ")}));
+              p=js.indexOf(needle,p+needle.length);
+            }
+          }
+          NODE
