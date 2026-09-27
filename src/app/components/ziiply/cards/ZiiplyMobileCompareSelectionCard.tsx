@@ -76,12 +76,10 @@ type QualityMode = "cheapest" | "same_quality" | "own_brands" | "same_brand";
 const QUALITY_MODES: Array<{
   mode: QualityMode;
   label: string;
-  hint: string;
 }> = [
-  { mode: "cheapest", label: "Edullisin", hint: "Halvin sopiva" },
-  { mode: "same_quality", label: "Vastaava", hint: "Sama taso" },
-  { mode: "own_brands", label: "Oma merkki", hint: "Kaupan oma" },
-  { mode: "same_brand", label: "Sama merkki", hint: "Sama brändi" },
+  { mode: "cheapest", label: "Halvin" },
+  { mode: "own_brands", label: "Oma merkki" },
+  { mode: "same_brand", label: "Sama merkki" },
 ];
 
 function formatComparePrice(value: unknown) {
@@ -156,7 +154,7 @@ function getProductImage(item: unknown) {
 
 function getStoreOwnBrandExample(chain?: "S" | "K") {
   if (chain === "K") return "Pirkka / K-Menu";
-  if (chain === "S") return "Kotimaista / Coop / Xtra";
+  if (chain === "S") return "Coop / Xtra / Kotimaista";
   return "Kaupan oma";
 }
 
@@ -170,8 +168,6 @@ function getQualityHint(mode: QualityMode, item: unknown, chain?: "S" | "K") {
   switch (mode) {
     case "cheapest":
       return "Halvin sopiva";
-    case "same_quality":
-      return "Esim. Pepsi / vastaava";
     case "own_brands":
       return `Esim. ${getStoreOwnBrandExample(chain)}`;
     case "same_brand":
@@ -250,7 +246,7 @@ export default function ZiiplyMobileCompareSelectionCard({
 
                     {onChangeMatchMode && !missing ? (
                       <div className="grid grid-cols-2 gap-2 px-3 py-2.5">
-                        {QUALITY_MODES.map(({ mode, label, hint }) => {
+                        {QUALITY_MODES.map(({ mode, label }) => {
                           const active = currentMode === mode;
 
                           return (
@@ -267,7 +263,7 @@ export default function ZiiplyMobileCompareSelectionCard({
                             >
                               <div className="text-[0.62rem] font-black uppercase tracking-[0.04em]">
                                 {active ? "✓ " : ""}
-                                {label}
+                                {mode === "own_brands" ? getStoreOwnBrandExample(store.chain) : label}
                               </div>
                               <div className={active ? "mt-0.5 text-[0.49rem] font-extrabold opacity-90" : "mt-0.5 text-[0.49rem] font-extrabold text-[#6b6048]"}>
                                 {active ? "Valittu" : getQualityHint(mode, item, store.chain)}
