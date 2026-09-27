@@ -18253,13 +18253,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   ✓
                 </span>
 
-                <div className="absolute left-2.5 top-2.5 z-40 flex h-9 w-9 items-center justify-center rounded-xl bg-white p-1.5 shadow-md ring-1 ring-slate-200">
+                <div className="absolute left-2.5 top-2.5 z-40 flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl bg-white p-[2px] shadow-md ring-1 ring-slate-200">
                   <img
                     src={storeLogoSrc}
                     alt={cardLabel}
                     draggable={false}
                     className="h-full w-full object-contain"
-                    style={{ transform: `scale(${store.key === "s" || store.key === "k" ? 1.38 : store.key === "lidl" ? 1.08 : 1.18})` }}
+                    style={{
+                      transform: `scale(${store.key === "s" ? 1.16 : store.key === "k" ? 1.12 : store.key === "lidl" ? 1.04 : 1.1})`,
+                      transformOrigin: "center",
+                    }}
                     onError={(event) => {
                       event.currentTarget.style.display = "none";
                     }}
