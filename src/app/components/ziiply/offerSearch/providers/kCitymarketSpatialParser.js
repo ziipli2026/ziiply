@@ -665,6 +665,13 @@ if(spatialResolved?.source==="best-spatial-candidate"&&spatialResolved.quantity=
  if(aboveNormal||arithmeticConflict)spatialResolved=null;
 }
 
+// Late exact three-token recovery after weak ownership gates have had a chance to reject foreign candidates.
+if(!spatialResolved&&anchor&&pk){
+ const ax=Number(anchor.left)||0,ay=Number(anchor.top)||0,rates=[],local=wordBoxes.filter(b=>Math.abs((Number(b.left)||0)-ax)<.22&&(Number(b.top)||0)>=ay+.015&&(Number(b.top)||0)<=ay+.07);
+ for(const c of local){const cm=String(c.text||"").trim().match(/^(\d{2})\/(kg|l)\)$/i);if(!cm)continue;const mid=local.find(b=>Math.abs((Number(b.top)||0)-(Number(c.top)||0))<.003&&(Number(b.left)||0)<Number(c.left)&&Number(c.left)-Number(b.left)<.08&&/^(\d{2})[-–](\d{2})$/.test(String(b.text||"").trim()));if(!mid)continue;const mm=String(mid.text).trim().match(/^(\d{2})[-–](\d{2})$/),first=local.find(b=>Math.abs((Number(b.top)||0)-(Number(c.top)||0))<.003&&(Number(b.left)||0)<Number(mid.left)&&Number(mid.left)-Number(b.left)<.06&&/^\(\d{1,2}$/.test(String(b.text||"").trim()));if(first){const fm=String(first.text).trim().match(/^\((\d{1,2})$/);rates.push(Number(fm[1]+"."+mm[1]),Number(mm[2]+"."+cm[1]));}}
+ const vals=[];for(const w of [Number(pk.min),Number(pk.max)])for(const rate of rates){const v=w*rate,rv=Number(v.toFixed(2));if(Math.abs(v-rv)<=.015&&Math.abs(rv-Math.round(rv))<.001&&wordBoxes.some(b=>String(b.text||"").trim()===String(Math.round(rv))&&Number(b.height||0)>=.05&&Math.abs((Number(b.top)||0)-ay)<.10&&Math.abs((Number(b.left)||0)-ax)<.30))vals.push(rv);}const uniq=[...new Set(vals)];if(uniq.length===1){spatialResolved={value:uniq[0],quantity:null,unit:null,source:"late-three-token-range-endpoint-visual",sanity:"pass",confidence:"high"};if(nr&&uniq[0]>=Number(nr.min)*.995)nr=null;}
+}
+
 // Final confidence gate: classify only after every resolver/fallback has finished.
 if(spatialResolved){
  const strongSources=new Set(["package-owned-visual-multibuy","validated-geometric-multibuy","large-visual-price-qty-unit","embedded-productblock-price","group-discount-price","expected-near-exact-visual","large-visual-price","title-linked-large-split-price","fixed-package-unitrate-normalprice-proof","mixed-size-endpoint-equivalence-proof","own-unitprice-package-derived"]);
