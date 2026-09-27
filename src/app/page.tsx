@@ -18038,16 +18038,20 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     : "border-[#d9c18e] bg-[linear-gradient(180deg,#fffaf0_0%,#f4e9c7_100%)] text-[#725d35] opacity-[0.78]"
             }`}
           >
-            {chain && (
+            {(chain || store.key === "lidl" || store.key === "tokmanni") && (
               <img
                 src={
-                  storeMode === "hyper"
-                    ? store.key === "s"
-                      ? "/ui/store-backgrounds/store-bg-prisma-v3.svg"
-                      : "/ui/store-backgrounds/store-bg-kcitymarket-v3.svg"
-                    : store.key === "s"
-                      ? "/ui/store-backgrounds/store-bg-alepa-v3.svg"
-                      : "/ui/store-backgrounds/store-bg-kmarket-v3.svg"
+                  store.key === "lidl"
+                    ? "/ui/store-backgrounds/store-bg-lidl-v3.svg"
+                    : store.key === "tokmanni"
+                      ? "/ui/store-backgrounds/store-bg-spar-v3.svg"
+                      : storeMode === "hyper"
+                        ? store.key === "s"
+                          ? "/ui/store-backgrounds/store-bg-prisma-v3.svg"
+                          : "/ui/store-backgrounds/store-bg-kcitymarket-v3.svg"
+                        : store.key === "s"
+                          ? "/ui/store-backgrounds/store-bg-alepa-v3.svg"
+                          : "/ui/store-backgrounds/store-bg-kmarket-v3.svg"
                 }
                 alt=""
                 aria-hidden="true"
@@ -18066,7 +18070,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             </span>
 
             <div
-              className="absolute left-2.5 top-2 z-30 flex h-[22px] w-[30px] items-center justify-center rounded-[0.45rem] border border-[#b89552] bg-[linear-gradient(180deg,#fffef9_0%,#ecd7a0_100%)] px-[5px] py-[3px] shadow-[0_2px_0_rgba(94,71,31,0.14),inset_0_1px_0_rgba(255,255,255,0.90)] ring-1 ring-[#fff4cc]"
+              className="absolute left-2.5 top-2 z-30 flex h-[26px] w-[36px] items-center justify-center rounded-[0.45rem] border border-[#b89552] bg-[linear-gradient(180deg,#fffef9_0%,#ecd7a0_100%)] px-[5px] py-[3px] shadow-[0_2px_0_rgba(94,71,31,0.14),inset_0_1px_0_rgba(255,255,255,0.90)] ring-1 ring-[#fff4cc]"
             >
               <img
                 src={storeLogoSrc}
