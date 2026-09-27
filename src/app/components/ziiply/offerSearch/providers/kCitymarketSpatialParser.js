@@ -396,6 +396,13 @@ if(!spatialResolved&&anchor&&pk){
  const uniq=[...new Map(vals.map(x=>[x.value,x])).values()];if(uniq.length===1){spatialResolved={value:uniq[0].value,quantity:null,unit:null,source:"fragmented-owned-unitrate-visual",sanity:"pass",confidence:"high"};ur={min:uniq[0].rate,max:uniq[0].rate,raw:"geometry/"+kind};expected=uniq[0].value;}
 }
 
+// Reconstruct a fragmented local percentage token such as "-19" + "%".
+if(!percentageOffer&&anchor){
+ const ax=Number(anchor.left)||0,ay=Number(anchor.top)||0,ps=[];
+ for(const n of wordBoxes.filter(b=>/^-\d{1,2}$/.test(String(b.text||"").trim())&&Math.abs((Number(b.left)||0)-ax)<.25&&Math.abs((Number(b.top)||0)-ay)<.08)){const pct=Number(String(n.text).slice(1));if(wordBoxes.some(b=>String(b.text||"").trim()==="%"&&Math.abs((Number(b.top)||0)-(Number(n.top)||0))<.012&&Math.abs((Number(b.left)||0)-(Number(n.left)||0))<.08))ps.push(pct);}
+ const uniq=[...new Set(ps)];if(uniq.length===1)percentageOffer={percent:uniq[0],source:"fragmented-local-percentage-proof",confidence:"high"};
+}
+
 // Percent + normal-price proof for cards whose offer glyph is too fragmented for direct ownership.
 // Require the printed normal price and percentage to reconstruct the same whole-euro glyph.
 if(!spatialResolved&&anchor&&percentageOffer&&pk){
