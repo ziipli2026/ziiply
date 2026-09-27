@@ -226,7 +226,7 @@ export default function ZiiplyMobileCompareSelectionCard({
                         ) : null}
 
                         <div className="min-w-0">
-                          <div className="truncate text-[0.87rem] font-black leading-tight text-[#233020]">
+                          <div className="line-clamp-2 text-[0.87rem] font-black leading-tight text-[#233020]">
                             {getItemName(item)}
                           </div>
                           <div className="mt-0.5 text-[0.54rem] font-black uppercase tracking-[0.08em] text-[#6e6d55]">
