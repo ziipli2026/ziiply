@@ -88,6 +88,10 @@ export async function GET(request: Request) {
   const canonicalEan = digits(params.get("ean"));
   const storeName = String(params.get("storeName") ?? "").trim();
 
+  if (storeName.length > 160) {
+    return NextResponse.json({ found: false, error: "invalid-store-name" }, { status: 400 });
+  }
+
   if (!/^2000\d{9}$/.test(canonicalEan)) {
     return NextResponse.json({ found: false, error: "invalid-canonical-ean" }, { status: 400 });
   }
@@ -197,6 +201,13 @@ export async function GET(request: Request) {
       diagnostic: "No exact canonical identity returned",
     });
   } catch (error) {
-    return NextResponse.json({ found: false, canonicalEan, error: String(error) }, { status: 502 });
+    return NextResponse.json(
+      {
+        found: false,
+        canonicalEan,
+        error: process.env.VERCEL_ENV === "production" ? "upstream-error" : String(error),
+      },
+      { status: 502 },
+    );
   }
 }
