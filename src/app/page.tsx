@@ -3383,9 +3383,16 @@ export default function Page() {
       });
     }
 
-    void geocodeStoreDistanceFallbacksV101();
+    // V738_DEFER_STORE_DISTANCE_FALLBACKS_AFTER_BOOT:
+    // Nominatim-varalaskenta voi tehdä jopa 24 ulkoista hakua. Se ei kuulu
+    // snapshotin/startupin kriittiseen polkuun, joten anna ensin UI:n, GPS:n ja
+    // varsinaisten kauppatietojen asettua. Etäisyydet täydentyvät taustalla.
+    const fallbackTimerV738 = window.setTimeout(() => {
+      void geocodeStoreDistanceFallbacksV101();
+    }, 3000);
 
     return () => {
+      window.clearTimeout(fallbackTimerV738);
       cancelled = true;
       controller.abort();
     };
