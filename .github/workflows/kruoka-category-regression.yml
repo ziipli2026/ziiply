@@ -640,3 +640,34 @@ jobs:
           const missing=stores.filter(s=>!covered.has(String(s.id??""))).map(s=>({id:s.id,name:s.name,city:s.city??s.address?.city??null}));
           console.log(JSON.stringify({storeCount:stores.length,globalOfferCount:offers.length,globalPublicationCount:pubIds.length,kSupermarketPublicationCount:publications.length,coveredStoreCount:stores.length-missing.length,missingStoreCount:missing.length,publications,missing},null,2));
           NODE
+
+      - name: Map paginated global Tjek publications to every K-Supermarket
+        run: |
+          node <<'NODE'
+          const ORIGIN="https://etarjouslehdet.fi", BUSINESS="f305U8";
+          const stableBase64=value=>Buffer.from(JSON.stringify(value,(_k,v)=>Object.prototype.toString.call(v)==="[object Object]"?Object.keys(v).sort().reduce((o,k)=>(o[k]=v[k],o),{}):v),"utf8").toString("base64");
+          async function data(name,params){const key=stableBase64([name,params]);const r=await fetch(ORIGIN+"/",{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json, text/plain, */*",Referer:ORIGIN+"/"},body:JSON.stringify({data:[key]})});if(!r.ok)throw new Error(name+" HTTP "+r.status);for(const line of (await r.text()).split(/\r?\n/).filter(Boolean)){try{const x=JSON.parse(line);if(x.key===key)return x.value}catch{}}throw new Error(name+" key missing")}
+          const arr=v=>Array.isArray(v?.data)?v.data.filter(Boolean):[];
+          const stores=arr(await data("stores",{businessId:BUSINESS,pagination:{offset:0,limit:1000}}));
+          const pubIds=new Set(), pages=[];
+          for(let offset=0;offset<10000;offset+=1000){
+            const rows=arr(await data("offers",{sources:["publication","business_product"],pagination:{limit:1000,offset},sort:["score_desc"]}));
+            pages.push({offset,count:rows.length});
+            for(const o of rows){const id=String(o.publicationPublicId??"");if(id)pubIds.add(id)}
+            if(rows.length<1000) break;
+          }
+          const covered=new Map(), publications=[];
+          const ids=[...pubIds];
+          for(let i=0;i<ids.length;i+=12){
+            const batch=await Promise.all(ids.slice(i,i+12).map(async publicationId=>{
+              try{return {publicationId,stores:arr(await data("stores",{publicationId,businessId:BUSINESS,pagination:{offset:0,limit:1000}}))}}
+              catch(e){return {publicationId,stores:[],error:String(e)}}
+            }));
+            for(const x of batch){
+              if(x.stores.length) publications.push({publicationId:x.publicationId,storeCount:x.stores.length});
+              for(const s of x.stores){const id=String(s.id??"");if(!id)continue;if(!covered.has(id))covered.set(id,new Set());covered.get(id).add(x.publicationId)}
+            }
+          }
+          const missing=stores.filter(s=>!covered.has(String(s.id??""))).map(s=>({id:s.id,name:s.name,city:s.city??s.address?.city??null}));
+          console.log(JSON.stringify({storeCount:stores.length,pages,globalPublicationCount:ids.length,kSupermarketPublicationCount:publications.length,coveredStoreCount:stores.length-missing.length,missingStoreCount:missing.length,publications,missing:missing.slice(0,30)},null,2));
+          NODE
