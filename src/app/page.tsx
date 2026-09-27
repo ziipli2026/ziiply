@@ -18162,6 +18162,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   {distanceForCard}
                 </p>
               )}
+              {showLidlDistanceForCard && (
+                <p className="absolute left-0 right-0 top-[56px] z-50 text-[12px] font-black leading-none text-[#000000] [text-shadow:0_1px_0_rgba(255,250,232,0.95),0_2px_2px_rgba(55,38,12,0.22)]">
+                  {lidlDistanceForCard}
+                </p>
+              )}
 
               <div
                 className="absolute bottom-[6px] left-0 right-0 z-40 flex justify-center"
@@ -18187,6 +18192,55 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       Tulossa
                     </span>
                   )
+                ) : store.key === "lidl" ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        if (lidlStoreOptionsV750.length > 1) {
+                          setOpenStorePicker((current) => current === "lidl-store-picker" ? null : "lidl-store-picker");
+                        }
+                      }}
+                      className={`mt-1 rounded-full px-2 py-1 text-[9px] font-black ring-1 ${lidlStoreOptionsV750.length > 1 ? "bg-[#fff8df]/90 text-slate-700 ring-slate-200" : "bg-slate-100 text-[#b7aa8d] ring-slate-200"}`}
+                    >
+                      {lidlStoreOptionsV750.length > 1 ? "Vaihda" : selectedLidlStoreV750 ? "Valittu" : "Ei kauppaa"}
+                    </button>
+                    {openStorePicker === "lidl-store-picker" && typeof document !== "undefined" && (
+                      <MobileStorePickerModal
+                        open
+                        chain={"L" as any}
+                        title="Valitse Lidl"
+                        stores={lidlStoreOptionsV750.map((option, index) => ({
+                          ...option,
+                          id: String(option.id ?? `lidl-${index}`),
+                          distance: option.distance != null ? String(option.distance) : undefined,
+                          distanceLabel: (option as any).distanceLabel != null ? String((option as any).distanceLabel) : undefined,
+                          __sourceIndex: index,
+                        }))}
+                        selectedId={selectedLidlStoreV750?.id != null ? String(selectedLidlStoreV750.id) : undefined}
+                        selectedName={selectedLidlStoreV750?.name}
+                        activeAreaLabel={activeArea.label}
+                        top={storePickerViewportStyle.top}
+                        width={storePickerViewportStyle.width}
+                        onClose={() => setOpenStorePicker(null)}
+                        getDistanceLabel={(option) => {
+                          const sourceIndex = Number((option as any).__sourceIndex);
+                          const sourceStore = Number.isFinite(sourceIndex) ? lidlStoreOptionsV750[sourceIndex] : (option as StoreSearchItem);
+                          return getStoreDistanceLabelV320(sourceStore);
+                        }}
+                        getStoreKey={(option, index) => `lidl-${option.id || index}-${normalize(option.name || "")}`}
+                        onSelectStore={(option) => {
+                          const sourceIndex = Number((option as any).__sourceIndex);
+                          const sourceStore = Number.isFinite(sourceIndex) ? lidlStoreOptionsV750[sourceIndex] : (option as StoreSearchItem);
+                          setSelectedLidlStoreV750(sourceStore);
+                          triggerHaptic();
+                          window.setTimeout(() => setOpenStorePicker(null), 0);
+                        }}
+                      />
+                    )}
+                  </>
                 ) : (
                   <span className={`mt-1 rounded-full px-2 py-1 text-[9px] font-black ring-1 ${selected ? "bg-slate-100 text-[#b7aa8d] ring-slate-200" : "bg-[#fff8df]/90 text-slate-700 ring-slate-200"}`}>
                     {selected ? "Valittu" : "Vaihda"}
