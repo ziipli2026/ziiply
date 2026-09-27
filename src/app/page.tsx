@@ -2251,10 +2251,22 @@ function KauppiasMobileTopBar({
       }
     }
 
-    loadWeatherFromCoordsV104();
+    // V743_WEATHER_CACHE_FIRST_DEFER_NETWORK:
+    // Näytä viimeisin sääcache heti, mutta anna snapshot/GPS/kauppapäivityksen
+    // valmistua ennen Open-Meteo-verkkopyyntöä.
+    const cachedWeatherV743 = readCachedWeatherV104();
+    if (cachedWeatherV743?.value) {
+      setWeatherValue(cachedWeatherV743.value);
+      setWeatherText(cachedWeatherV743.text || areaLabel);
+    }
+
+    const weatherRefreshTimerV743 = window.setTimeout(() => {
+      void loadWeatherFromCoordsV104();
+    }, 2000);
 
     return () => {
       cancelled = true;
+      window.clearTimeout(weatherRefreshTimerV743);
     };
   }, [hidden, gpsCoords?.latitude, gpsCoords?.longitude, weatherGpsFallbackCoordsV104?.latitude, weatherGpsFallbackCoordsV104?.longitude, areaLabel]);
 
