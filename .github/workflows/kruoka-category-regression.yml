@@ -96,6 +96,26 @@ jobs:
           if(regressions.length) process.exitCode=2;
           NODE
 
+      - name: Verify K multi-buy price semantics
+        shell: bash
+        run: |
+          node <<'NODE'
+          const num=v=>{const n=Number(v);return Number.isFinite(n)?n:null};
+          const priceText=v=>{const n=num(v);return n==null?"":n.toFixed(2).replace(".",",")};
+          function mappedPrice(o){
+            const effective=num(o.appPrice)??num(o.membershipPrice)??num(o.price)??num(o.fromPrice);
+            if(effective==null||effective<=0) return null;
+            const from=num(o.pieceCountFrom), to=num(o.pieceCountTo);
+            const quantity=from!=null&&from>1&&to===from?from:null;
+            return {price:effective,priceText:quantity==null?priceText(effective):`${priceText(effective)} € / ${quantity} kpl`,quantity};
+          }
+          const multi=mappedPrice({membershipPrice:5,pieceCountFrom:2,pieceCountTo:2});
+          const single=mappedPrice({membershipPrice:5,pieceCountFrom:1,pieceCountTo:1});
+          console.log(JSON.stringify({multi,single},null,2));
+          if(multi?.price!==5||multi?.priceText!=="5,00 € / 2 kpl"||multi?.quantity!==2) process.exitCode=2;
+          if(single?.price!==5||single?.priceText!=="5,00"||single?.quantity!==null) process.exitCode=3;
+          NODE
+
       # Live-data audit is intentionally kept in this same workflow so there is only one K-ruoka diagnostic flow.
       - name: Fetch live K-Supermarket Jokela offers and classify
         shell: bash
