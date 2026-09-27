@@ -585,6 +585,14 @@ if(!spatialResolved&&anchor){
  }
 }
 
+// Percentage + normal-price validation fallback. The percentage never invents a price: it may only
+// select an already parsed local visual candidate whose discount matches the card's printed percentage.
+if(!spatialResolved&&percentageOffer&&nr&&Number(nr.min)>0){
+ const pct=Number(percentageOffer.percent),lo=Number(nr.min)*(1-pct/100),hi=Number(nr.max||nr.min)*(1-pct/100);
+ const candidates=spatialCandidates.filter(x=>Number(x.value)>0&&Number(x.value)<Number(nr.max||nr.min)&&Number(x.quantity||1)===1).filter(x=>Number(x.value)>=Math.min(lo,hi)-.08&&Number(x.value)<=Math.max(lo,hi)+.08).sort((a,b)=>a.score-b.score);
+ if(candidates.length===1)spatialResolved={...candidates[0],quantity:null,unit:nr.unit||candidates[0].unit||null,source:"percentage-normalprice-validated-visual",sanity:"pass",confidence:"high"};
+}
+
 // Generic editorial/recipe heading proof.
 // A heading with no own package/unit evidence is not a product when the same local
 // HTML section explicitly identifies recipe/editorial content and following rows contain product pricing.
