@@ -1096,7 +1096,7 @@ export default function ZiiplyMobileOfferSearchCard({
               <div className="mx-auto mt-1.5 max-w-[17rem] text-[0.72rem] font-extrabold leading-snug text-[#6d5d3f]">
                 Mistä kaupparyhmästä haetaan tarjoukset?
               </div>
-              <div className={`mt-5 grid gap-3 ${showLidlChain ? "grid-cols-3" : "grid-cols-2"}`}>
+              <div className="mt-5 grid grid-cols-2 gap-3">
                 <button
                   type="button"
                   onClick={() => {
