@@ -2872,6 +2872,7 @@ export default function Page() {
   const [usingOwnLocation, setUsingOwnLocation] = useState(false);
   const [storeSearchLoading, setStoreSearchLoading] = useState(false);
   const [foundStores, setFoundStores] = useState<StoreSearchItem[]>([]);
+  const [selectedLidlStoreV750, setSelectedLidlStoreV750] = useState<StoreSearchItem | null>(null);
   const [gpsCoordsV320, setGpsCoordsV320] = useState<{
     latitude: number;
     longitude: number;
@@ -16545,6 +16546,36 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     );
   }
 
+  const lidlStoreOptionsV750 = useMemo(() => {
+    const options = foundStores
+      .map(normalizeStoreForPickerV320)
+      .filter((store) => String(store.chain || store.type || "").toLowerCase() === "lidl");
+
+    return [...options].sort((a, b) => {
+      const da = getGpsDistanceKmForStoreV93(a);
+      const db = getGpsDistanceKmForStoreV93(b);
+      if (da != null && db != null && da !== db) return da - db;
+      if (da != null !== (db != null)) return da != null ? -1 : 1;
+      return normalize(a.name || "").localeCompare(normalize(b.name || ""), "fi");
+    });
+  }, [foundStores, gpsCoordsV320]);
+
+  useEffect(() => {
+    if (lidlStoreOptionsV750.length === 0) {
+      setSelectedLidlStoreV750(null);
+      return;
+    }
+    setSelectedLidlStoreV750((current) => {
+      if (current) {
+        const stillAvailable = lidlStoreOptionsV750.find((store) =>
+          sameStoreIdV93(store.id, current.id),
+        );
+        if (stillAvailable) return stillAvailable;
+      }
+      return lidlStoreOptionsV750[0];
+    });
+  }, [lidlStoreOptionsV750]);
+
   const comparedStoreCards: Array<{
     key: ChainResult["key"];
     logo: string;
@@ -16574,7 +16605,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       key: "lidl",
       logo: "L",
       title: "Lidl",
-      name: "Lidl",
+      name: selectedLidlStoreV750?.name || "Lidl ei valittu",
       tone: "bg-blue-600 text-white ring-blue-100",
       selectedTone: "border-blue-600 bg-blue-50 text-blue-900",
     },
@@ -18027,6 +18058,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         const showDistanceForCard = Boolean(
           distanceForCard && !isComingSoon && storeModeChosenV299,
         );
+        const lidlDistanceForCard =
+          store.key === "lidl" ? getStoreDistanceLabelV320(selectedLidlStoreV750) : "";
+        const showLidlDistanceForCard = Boolean(lidlDistanceForCard && !isComingSoon);
 
         return (
           <div
