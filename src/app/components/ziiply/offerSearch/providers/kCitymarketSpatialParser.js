@@ -386,7 +386,7 @@ if(anchor&&pk){
 // Geometry-owned fragmented unit rate, e.g. "(3" + "00/l)" or "(2" + "94/kg)".
 if(!spatialResolved&&anchor&&pk){
  const ax=Number(anchor.left)||0,ay=Number(anchor.top)||0,pu=String(pk.raw||"").match(/(kg|g|ml|l)\b/i)?.[1]?.toLowerCase()||"",kind=(pu==="kg"||pu==="g")?"kg":(pu==="l"||pu==="ml")?"l":"",vals=[];
- const local=wordBoxes.filter(b=>Math.abs((Number(b.left)||0)-ax)<.22&&(Number(b.top)||0)>=ay-.035&&(Number(b.top)||0)<=ay+.075);
+ const local=wordBoxes.filter(b=>Math.abs((Number(b.left)||0)-ax)<.30&&(Number(b.top)||0)>=ay-.035&&(Number(b.top)||0)<=ay+.075);
  for(const a of local){
   const am=String(a.text||"").trim().match(/^\((\d{1,2})$/);if(!am)continue;
   const b=local.find(x=>{if(!(Math.abs((Number(x.top)||0)-(Number(a.top)||0))<.003&&(Number(x.left)||0)>Number(a.left)&&Number(x.left)-Number(a.left)<.07))return false;const m=String(x.text||"").trim().match(/^(\d{2})\/(kg|l)\)$/i);return !!m&&String(m[2]).toLowerCase()===kind;});if(!b)continue;
