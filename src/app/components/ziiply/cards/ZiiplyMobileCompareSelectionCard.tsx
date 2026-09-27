@@ -264,7 +264,7 @@ export default function ZiiplyMobileCompareSelectionCard({
                             >
                               <div className="text-[0.62rem] font-black uppercase tracking-[0.04em]">
                                 {active ? "✓ " : ""}
-                                {mode === "own_brands" ? getStoreOwnBrandExample(store.chain) : label}
+                                {mode === "own_brands" ? getStoreOwnBrandExample(store.chain) : mode === "same_brand" ? getProductBrandExample(item) : label}
                               </div>
                               <div className={active ? "mt-0.5 text-[0.49rem] font-extrabold opacity-90" : "mt-0.5 text-[0.49rem] font-extrabold text-[#6b6048]"}>
                                 {active ? "Valittu" : getQualityHint(mode, item, store.chain)}
