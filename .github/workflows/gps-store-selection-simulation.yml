@@ -20,6 +20,7 @@ jobs:
         with:
           node-version: 20
       - name: Build application
+        # V749 rerun after K-Ruoka provider compile fix.
         run: npm install --no-audit --no-fund && npm run build
       - name: Verify deployed store-search to live product prices
         shell: bash
