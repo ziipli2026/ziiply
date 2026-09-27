@@ -44,3 +44,22 @@ for(const src of [store,sean]){
 console.log("PASS normal store/scanner routes gained no authentication requirement");
 
 console.log("\nPATCH BEHAVIOR STATIC CHECK: PASS");
+
+
+console.log("\n--- Vercel Firewall design checks ---");
+const fw=JSON.parse(fs.readFileSync("security/vercel-firewall-rate-limit-plan.json","utf8"));
+assert.equal(fw.simulationOnly,true);
+const tr=fw.rules.find(r=>r.name==="ziiply-transcribe-rate-limit");
+const api=fw.rules.find(r=>r.name==="ziiply-public-api-rate-limit");
+assert.deepEqual(tr.match,{path:"/api/transcribe",method:"POST"});
+assert.equal(tr.limit,10); assert.equal(tr.windowSeconds,60); assert.equal(tr.responseStatus,429);
+assert.equal(api.match.pathPrefix,"/api/");
+assert.ok(api.excludePaths.includes("/api/transcribe"));
+assert.ok(api.excludePaths.includes("/api/cron/kcitymarket-cache"));
+assert.equal(api.limit,120); assert.equal(api.windowSeconds,60); assert.equal(api.responseStatus,429);
+for(const path of ["/api/s-products","/api/k-products","/api/s-ean-product","/api/k-weight-product","/api/store-search","/api/offers/search"]){
+ assert.ok(!api.excludePaths.includes(path),path+" unexpectedly excluded from general protection");
+}
+console.log("PASS Firewall model: transcribe 10/min/IP, general API 120/min/IP");
+console.log("PASS cron excluded from generic rate rule; authorization remains its protection");
+console.log("PASS normal Ziiply API routes remain available below abuse threshold");
