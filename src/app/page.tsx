@@ -9856,11 +9856,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       if (gpsSearchInFlightRefV465.current) {
         pushGpsDebugLogV492(`WATCHDOG FIRED`);
         const finishedAt = Date.now();
-        setGpsErrorMessage("GPS ei löydy");
-        setLocationMessage("GPS ei löydy");
-        setLocationMessageVisible(true);
+        if (!isBackgroundBootRefreshV736) {
+          setGpsErrorMessage("GPS ei löydy");
+          setLocationMessage("GPS ei löydy");
+          setLocationMessageVisible(true);
+          setUsingOwnLocation(false);
+        }
         setStoreSearchLoading(false);
-        setUsingOwnLocation(false);
         gpsLastFinishedAtRefV466.current = finishedAt;
         ziiplyGpsHardLastFinishedAtV469 = finishedAt;
         const gpsWindowLock = getZiiplyGpsWindowLockV470();
@@ -9907,12 +9909,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       if (!city) {
         pushGpsDebugLogV492(`useOwnLocation reverse geocode EMPTY`);
-        setGpsErrorMessage("GPS ei löydy");
-        setLocationMessage("GPS ei löydy");
-        setLocationMessageVisible(true);
-        gpsUserDisabledRefV306.current = true;
-        setUsingOwnLocation(false);
-        setGpsCoordsV320(null);
+        if (!isBackgroundBootRefreshV736) {
+          setGpsErrorMessage("GPS ei löydy");
+          setLocationMessage("GPS ei löydy");
+          setLocationMessageVisible(true);
+          gpsUserDisabledRefV306.current = true;
+          setUsingOwnLocation(false);
+          setGpsCoordsV320(null);
+        }
         return;
       }
 
@@ -9926,8 +9930,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         gpsFailTimerRefV391.current = null;
       }
       setGpsErrorMessage("");
-      setLocationMessage(`${city} käytössä`);
-      setLocationMessageVisible(true);
+      if (!isBackgroundBootRefreshV736) {
+        setLocationMessage(`${city} käytössä`);
+        setLocationMessageVisible(true);
+      }
       setLocationInput("");
       // V470: älä pudota storeSearchLoadingia pois päältä tässä välissä.
       // GPS-paikannus ja sitä seuraava kauppahaku ovat yksi atominen ajo, jotta
@@ -9978,12 +9984,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       } else {
         setGpsErrorMessage("GPS ei löydy");
       }
-      setLocationMessage("GPS ei löydy");
-      setLocationMessageVisible(true);
-      gpsUserDisabledRefV306.current = true;
-      gpsManualSuccessGuardUntilRefV485.current = 0;
-      gpsManualSuccessCoordsRefV485.current = null;
-      setUsingOwnLocation(false);
+      if (!isBackgroundBootRefreshV736) {
+        setLocationMessage("GPS ei löydy");
+        setLocationMessageVisible(true);
+        gpsUserDisabledRefV306.current = true;
+        gpsManualSuccessGuardUntilRefV485.current = 0;
+        gpsManualSuccessCoordsRefV485.current = null;
+        setUsingOwnLocation(false);
+      }
       setStoreSearchLoading(false);
     } finally {
       pushGpsDebugLogV492(`useOwnLocation FINALLY`);
@@ -10013,8 +10021,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         setStoreSearchLoading(false);
         setGpsStorePickerBlockedV382(false);
         setLocationInput("");
-        setLocationMessage("Oma sijainti käytössä");
-        setLocationMessageVisible(true);
+        if (!isBackgroundBootRefreshV736) {
+          setLocationMessage("Oma sijainti käytössä");
+          setLocationMessageVisible(true);
+        }
       } else {
         setStoreSearchLoading(false);
       }
