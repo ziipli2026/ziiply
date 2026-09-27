@@ -2843,6 +2843,7 @@ export default function Page() {
   const selectedStoreModeRefV302 = useRef<StoreMode>("local");
   const storeSelectionHydratedRefV343 = useRef(false);
   const storeSelectionPersistenceReadyRefV343 = useRef(false);
+  const savedShoppingListsHydratedRefV742 = useRef(false);
   const STORE_SELECTION_STORAGE_KEY_V343 = "ziiply-store-selection-v536";
   const [storeCompareScope, setStoreCompareScope] =
     useState<StoreCompareScope>("between_chains");
@@ -6591,10 +6592,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
     } catch {
       // Ignore broken saved-list data.
+    } finally {
+      // V742: persistence saa käynnistyä vasta, kun mahdollinen vanha sisältö
+      // on luettu. Muuten mountin tyhjä oletuslista voi ehtiä kirjoittaa
+      // localStorageen ennen palautettua statea.
+      savedShoppingListsHydratedRefV742.current = true;
     }
   }, []);
 
   useEffect(() => {
+    if (!savedShoppingListsHydratedRefV742.current) return;
     try {
       window.localStorage.setItem(
         SAVED_SHOPPING_LISTS_STORAGE_KEY,
