@@ -68,7 +68,7 @@ export default function ZiiplyMobileLocationBar({
 
   return (
     <section className="relative w-full">
-      <div className="relative mx-auto grid h-[70px] w-full grid-cols-[56px_minmax(0,1fr)_76px] items-center gap-[7px] rounded-[2.05rem] border-[4px] border-[#0b4638] bg-[linear-gradient(180deg,#fffdf5_0%,#f9efd4_56%,#ecd39d_100%)] p-[5px] shadow-[0_0_0_1px_rgba(255,255,255,0.58)_inset,0_3px_0_rgba(54,39,17,0.14),0_8px_16px_rgba(50,34,12,0.09)]">
+      <div className="relative mx-auto grid h-[74px] w-full grid-cols-[56px_minmax(0,1fr)_76px] items-center gap-[7px] rounded-[2.05rem] border-[4px] border-[#0b4638] bg-[linear-gradient(180deg,#fffdf5_0%,#f9efd4_56%,#ecd39d_100%)] p-[5px] shadow-[0_0_0_1px_rgba(255,255,255,0.58)_inset,0_3px_0_rgba(54,39,17,0.14),0_8px_16px_rgba(50,34,12,0.09)]">
         <div className="pointer-events-none absolute inset-[7px] rounded-[1.65rem] border border-[#ead09a]/35 opacity-35" />
 
         <button
