@@ -519,13 +519,18 @@ if(spatialResolved&&Number(spatialResolved.quantity)>1){
  // A quantity label belongs to this card only when its sales unit agrees with the card's
  // own normal-price unit. This rejects neighbouring PS/PKT/RS bundle labels.
  const unitOwnershipConflict=normalUnit&&resolvedUnit&&normalUnit!==resolvedUnit;
+ // Some leaflet blocks print a foreign unit token beside an otherwise mathematically exact
+ // multibuy total. When package × unit-rate reconstructs the bundle per-item price, the
+ // arithmetic is stronger ownership evidence than that stray unit token.
+ const arithmeticOwnsBundle=expected&&Number(expected)>0&&Math.abs(perItem-Number(expected))<=Math.max(.08,Number(expected)*.08);
  // If package x unit-rate already proves that the displayed total is one item's price,
  // the nearby quantity glyph is not a bundle quantity for this card.
  const totalIsSingle=expected&&Number(expected)>0&&Math.abs(Number(spatialResolved.value)-Number(expected))<=Math.max(.08,Number(expected)*.08);
  const noDiscount=nr&&Number(nr.min)>0&&perItem>=Number(nr.min)*.995;
  const perItemArithmeticConflict=expected&&Number(expected)>0&&!totalIsSingle&&perItem>Number(expected)*1.20&&perItem-Number(expected)>.20;
- if(unitOwnershipConflict)spatialResolved=null;
+ if(unitOwnershipConflict&&!arithmeticOwnsBundle)spatialResolved=null;
  else if(totalIsSingle)spatialResolved={...spatialResolved,quantity:null};
+ else if(unitOwnershipConflict&&arithmeticOwnsBundle)spatialResolved={...spatialResolved,unit:normalUnit||resolvedUnit};
  else if(noDiscount||perItemArithmeticConflict)spatialResolved=null;
 }
 
