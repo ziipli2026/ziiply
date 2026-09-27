@@ -137,11 +137,11 @@ export default function ZiiplyMobileStoreModeSelector({
           type="button"
           disabled={modeButtonsDisabled}
           onClick={() => onStoreModeChange("hyper")}
-          className={`${buttonClass(hyperActive, modeButtonsDisabled)} w-[calc(50%-0.5rem)] -translate-x-5`}
+          className={`${buttonClass(hyperActive, modeButtonsDisabled)} w-[calc(50%-0.5rem)] -translate-x-2.5`}
         >
           <span className="relative z-10">🏬 Tavaratalot</span>
         </button>
-        <div className={`absolute left-1/2 top-1/2 z-20 flex w-[48px] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center ${storeCompareScope === "between_chains" && storeModeChosen ? "" : "invisible pointer-events-none"}`} aria-hidden={!(storeCompareScope === "between_chains" && storeModeChosen)}>
+        <div className={`absolute left-1/2 top-1/2 z-30 flex w-[48px] -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center ${storeCompareScope === "between_chains" && storeModeChosen ? "" : "invisible pointer-events-none"}`} aria-hidden={!(storeCompareScope === "between_chains" && storeModeChosen)}>
           <span className="mb-[1px] text-[9px] font-black leading-none text-[#6a5330]">Yksi</span>
           <button type="button" role="switch" aria-checked={betweenChainSelectionMode === "many"} aria-label="Valitse yksi tai monta kauppaa" onClick={() => onBetweenChainSelectionModeChange?.(betweenChainSelectionMode === "one" ? "many" : "one")} className={`relative h-[34px] w-[18px] shrink-0 rounded-full border transition-colors ${betweenChainSelectionMode === "many" ? "border-[#07502c] bg-[#0a6d39]" : "border-[#b99b62] bg-[#d8c69d]"}`}>
             <span className={`absolute left-[2px] h-[12px] w-[12px] rounded-full bg-white shadow-sm transition-all ${betweenChainSelectionMode === "many" ? "top-[18px]" : "top-[2px]"}`} />
@@ -152,16 +152,16 @@ export default function ZiiplyMobileStoreModeSelector({
           type="button"
           disabled={modeButtonsDisabled}
           onClick={() => onStoreModeChange("local")}
-          className={`${buttonClass(localActive, modeButtonsDisabled)} w-[calc(50%-0.5rem)] translate-x-5`}
+          className={`${buttonClass(localActive, modeButtonsDisabled)} w-[calc(50%-0.5rem)] translate-x-2.5`}
         >
           <span className="relative z-10">🏪 Lähikaupat</span>
         </button>
       </div>
 
-      <div className="relative z-20 my-1 flex h-7 items-center justify-center overflow-visible">
+      <div className="relative z-0 my-1 flex h-7 items-center justify-center overflow-visible">
         <p
           className={[
-            "relative z-10 whitespace-nowrap rounded-full border-[2px] px-3.5 py-[0.35rem] text-center text-[12px] font-black uppercase leading-none tracking-[0.14em] transition-none shadow-[0_2px_0_rgba(91,72,44,0.16),inset_0_1px_0_rgba(255,255,255,0.72)]",
+            "relative z-0 whitespace-nowrap px-3.5 py-[0.35rem] text-center text-[12px] font-black uppercase leading-none tracking-[0.14em] transition-none",
             shouldShowHakutapaNotice
               ? "border-[#cda34a] bg-[#ffeaa0] text-[#634100] shadow-[0_3px_10px_rgba(180,119,0,0.14)]"
               : "border-[#d7b977] bg-[#fff8da] text-[#66543a]",
@@ -181,7 +181,7 @@ export default function ZiiplyMobileStoreModeSelector({
         <button
           type="button"
           onClick={() => onStoreCompareScopeChange("between_chains")}
-          className={`${buttonClass(storeCompareScope === "between_chains")} -translate-x-5`}
+          className={`${buttonClass(storeCompareScope === "between_chains")} -translate-x-2.5`}
         >
           <span className="relative z-10">Ketjujen väliltä</span>
         </button>
@@ -189,7 +189,7 @@ export default function ZiiplyMobileStoreModeSelector({
         <button
           type="button"
           onClick={() => onStoreCompareScopeChange("within_chain")}
-          className={`${buttonClass(storeCompareScope === "within_chain")} translate-x-5`}
+          className={`${buttonClass(storeCompareScope === "within_chain")} translate-x-2.5`}
         >
           <span className="relative z-10">Ketjun sisältä</span>
         </button>
