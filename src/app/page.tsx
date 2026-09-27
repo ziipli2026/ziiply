@@ -8858,13 +8858,25 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     setStoreMode(nextMode);
     if (storeCompareScope === "between_chains") {
-      setSelectedChains((current) => ({
-        ...current,
-        s: true,
-        k: true,
-        lidl: false,
-        tokmanni: false,
-      }));
+      setSelectedChains((current) => {
+        if (betweenChainSelectionModeV749 === "one") {
+          const keepK = current.k && !current.s;
+          return {
+            ...current,
+            s: !keepK,
+            k: keepK,
+            lidl: false,
+            tokmanni: false,
+          };
+        }
+        return {
+          ...current,
+          s: true,
+          k: true,
+          lidl: false,
+          tokmanni: false,
+        };
+      });
     }
     clearSearchAndComparisonState();
   }
