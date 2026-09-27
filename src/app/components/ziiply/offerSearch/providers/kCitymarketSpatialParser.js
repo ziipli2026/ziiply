@@ -695,7 +695,12 @@ if(spatialResolved){
  if(spatialResolved.confidence==="review"){spatialResolved.rejectedReview=true;}
  spatialResolved.auditRatio=ratio;
 }
-if(spatialResolved?.rejectedReview)spatialResolved=null; // Generic shared-card split price: require a large euro+cents pair, sale-unit token, discount marker and printed normal-price fragments in the same local card.
+if(spatialResolved?.rejectedReview)spatialResolved=null;
+if(!spatialResolved&&anchor&&out.rows.length){
+ const prev=[...out.rows].reverse().find(r=>r&&r.page===p&&r.price!=null&&["three-token-range-endpoint-visual","late-three-token-range-endpoint-visual"].includes(r.source)&&r.debugAnchor&&Math.abs(Number(r.debugAnchor.left)-Number(anchor.left))<.02&&Math.abs(Number(r.debugAnchor.top)-Number(anchor.top))<.05);
+ if(prev){spatialResolved={value:Number(prev.price),quantity:null,unit:null,source:"same-card-exact-sibling-price",sanity:"pass",confidence:"high"};nr=null;ur=null;expected=null;}
+}
+ // Generic shared-card split price: require a large euro+cents pair, sale-unit token, discount marker and printed normal-price fragments in the same local card.
 // Generic package/unit-rate fallback: derive the rounded shelf price from package size and unit rate,
 // and require the card context to contain the same sale unit plus a discount or printed normal price.
 if(false&&!spatialResolved&&anchor&&pk&&ur&&expected&&nr&&nr.unit&&packageRowAnchor&&Math.abs(Number(packageRowAnchor.left)-Number(anchor.left))<.12){
