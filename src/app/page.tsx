@@ -15850,8 +15850,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         .filter((product) =>
           isAllowedByQualityMode(
             sourceName,
-              product.name,
+            product.name,
             matchQualityMode,
+            "s",
+            sourceCartItem?.product?.brandName || getPrimaryBrand(sourceName),
+            product.brandName,
           ),
         )
         .filter(
@@ -15934,8 +15937,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         .filter((product) =>
           isAllowedByQualityMode(
             sourceName,
-              product.name,
+            product.name,
             matchQualityMode,
+            "k",
+            sourceCartItem?.product?.brandName || getPrimaryBrand(sourceName),
+            product.brandName,
           ),
         )
         .filter(
