@@ -20407,7 +20407,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               const safeMode = mode as QualityMode;
               const safeMatch = match as Match;
 
-              setMatchQualityMode(safeMatch, safeMode, undefined, chainKey as ChainResult["key"]);
+              if (safeMode === "cheapest") {
+                setMatchQualityMode(safeMatch, safeMode, undefined, chainKey as ChainResult["key"]);
+              }
 
               try {
                 const alternatives = await fetchAlternativesForMatch(
@@ -20444,6 +20446,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 storeId === "k" || storeId === "s"
                   ? storeId
                   : ((match as any)?.chainKey === "k" ? "k" : "s");
+              const selectedMode = (alternative as any)?.comparisonSelectionMode as QualityMode | undefined;
+              if (selectedMode === "own_brands" || selectedMode === "same_brand") {
+                setMatchQualityMode(
+                  match as Match,
+                  selectedMode,
+                  undefined,
+                  chainKey as ChainResult["key"],
+                );
+              }
               replaceMatchProduct(
                 chainKey as ChainResult["key"],
                 match as Match,
