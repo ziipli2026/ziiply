@@ -1,7 +1,11 @@
 name: K-ruoka diagnostics
+# ZIIPLY_KRUOKA_DIAGNOSTIC_TRIGGER_20260927
 
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/kruoka-category-regression.yml'
 
 jobs:
   category-regression:
