@@ -925,3 +925,45 @@ jobs:
             console.log("VIEWER_CHAIN",JSON.stringify({store,pub,pages,hotspots,offerIdCount:offerIds.size,sample}));
           }
           NODE
+
+      - name: Audit all K-Supermarkets via dynamic Tjek fronts
+        run: |
+          node <<'NODE'
+          const O="https://etarjouslehdet.fi";
+          const B="f305U8";
+          const enc=v=>Buffer.from(JSON.stringify(v,(k,x)=>x&&Object.prototype.toString.call(x)==="[object Object]"?Object.keys(x).sort().reduce((o,k)=>(o[k]=x[k],o),{}):x),"utf8").toString("base64");
+          async function data(refs){
+            const keys=refs.map(enc);
+            const r=await fetch(O+"/",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({data:keys})});
+            const txt=await r.text();
+            if(!r.ok) throw Error(r.status+" "+txt);
+            return txt.trim().split("\n").filter(Boolean).map(x=>JSON.parse(x));
+          }
+          let stores=[];
+          for(let offset=0;offset<1000;offset+=100){
+            const rows=await data([["stores",{businessId:B,pagination:{limit:100,offset}}]]);
+            const v=rows[0].value||[];
+            const arr=Array.isArray(v)?v:(v.stores||v.items||v.results||[]);
+            stores.push(...arr);
+            if(arr.length<100) break;
+          }
+          const uniq=[...new Map(stores.map(s=>[s.id||s.publicId,s])).values()];
+          console.log("DYNAMIC_AUDIT_STORE_COUNT",uniq.length);
+          let ok=0,zero=0,err=0; const pubs=new Map(),missing=[];
+          for(let i=0;i<uniq.length;i+=25){
+            const batch=uniq.slice(i,i+25);
+            const refs=batch.map(s=>["fronts",{businessIds:[B],localBusinessIds:[s.id||s.publicId],coordinates:s.coordinates}]);
+            let rows;
+            try{rows=await data(refs)}catch(e){console.log("DYNAMIC_BATCH_ERROR",i,String(e));err+=batch.length;continue;}
+            const byKey=new Map(rows.map(r=>[r.key,r]));
+            for(let j=0;j<batch.length;j++){
+              const s=batch[j], key=enc(refs[j]), row=byKey.get(key), fronts=row?.value||[];
+              const ps=fronts.flatMap(x=>x.publications||[]);
+              if(ps.length){ok++; for(const p of ps){const id=p.id||p.publicId; if(id) pubs.set(id,(pubs.get(id)||0)+1);}}
+              else {zero++; missing.push({id:s.id||s.publicId,name:s.name,city:s.city,status:row?.status,error:row?.error});}
+            }
+          }
+          console.log("DYNAMIC_AUDIT_SUMMARY",JSON.stringify({stores:uniq.length,withPublications:ok,withoutPublications:zero,errors:err,uniquePublications:pubs.size}));
+          console.log("DYNAMIC_PUBLICATIONS",JSON.stringify([...pubs.entries()].sort((a,b)=>b[1]-a[1])));
+          console.log("DYNAMIC_MISSING",JSON.stringify(missing.slice(0,100)));
+          NODE
