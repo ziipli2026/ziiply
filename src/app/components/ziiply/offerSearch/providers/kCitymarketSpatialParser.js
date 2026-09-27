@@ -664,6 +664,20 @@ if(anchor){
     spatialResolved={value:direct.v,quantity:null,unit:null,source:"final-card-large-price-correction",sanity:"pass"};
   }
 }
+// Safe fixed-package arithmetic recovery for unresolved rows.
+// Use the leaflet's own package size + unit rate only when their physical units agree,
+// a printed normal price independently bounds the result, and the discount is plausible.
+// This recovers conservative 40AV rows without borrowing a neighbouring visual price.
+if(!spatialResolved&&pk&&ur&&nr&&Number(nr.min)>0&&Math.abs(Number(pk.max)-Number(pk.min))<1e-9&&Math.abs(Number(ur.max)-Number(ur.min))<1e-9){
+ const pkgUnit=String(pk.raw||"").match(/(kg|g|l|ml)\\b/i)?.[1]?.toLowerCase()||"";
+ const rateUnit=String(ur.raw||"").match(/\\/(kg|l)\\b/i)?.[1]?.toLowerCase()||"";
+ const pkgKind=/^(?:kg|g)$/.test(pkgUnit)?"kg":/^(?:l|ml)$/.test(pkgUnit)?"l":"";
+ const value=Number((Number(pk.min)*Number(ur.min)).toFixed(2));
+ const ratio=value/Number(nr.min);
+ if(pkgKind&&pkgKind===rateUnit&&value>=.5&&value<Number(nr.min)&&ratio>=.40&&ratio<=.98){
+  spatialResolved={value,quantity:null,unit:String(nr.unit||"KPL").toUpperCase(),source:"fixed-package-unitrate-normalprice-safe",sanity:"pass",confidence:"high",auditRatio:1};
+ }
+}
 out.rows.push({page:p,line:lines[i].i,title,package:pk,unitPrice:ur,normal:nr,expectedSingle:expected?Number(expected.toFixed(3)):null,candidate:cand,debugPackageRowAnchor:packageRowAnchor,debugBestTitleRow:bestTitleRow,debugAnchor:anchor,spatialPriceBoxes:spatialPriceBoxes.map(b=>({...b,d:anchor?Number(boxDistance(anchor,b).toFixed(6)):null})).sort((a,b)=>(a.d??99)-(b.d??99)).slice(0,60),spatialResolved,percentageOffer,spatialCandidates:spatialCandidates.slice(0,20),spatialGroups:spatialGroups(anchor?wordBoxes.filter(b=>boxDistance(anchor,b)<0.22):[]).filter(g=>/\d/.test(g.text)).slice(0,60),nearby:around.map(x=>x.raw)})}}
 return out;
 }
