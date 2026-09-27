@@ -467,7 +467,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                     </div>
 
                     {detailsStoreId !== store.id ? (
-                      <div className="mt-0.5 flex h-[2.42rem] shrink-0 items-center pl-[2.58rem] pr-[8.2rem]">
+                      <div className="-mt-[1.05rem] flex h-[2.42rem] shrink-0 items-center pl-[2.58rem] pr-[8.2rem]">
                         <button
                           type="button"
                           onClick={() => setDetailsStoreId((current) => current === store.id ? null : store.id)}
