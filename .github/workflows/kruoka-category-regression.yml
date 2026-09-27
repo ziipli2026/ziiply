@@ -429,6 +429,20 @@ jobs:
           console.log(JSON.stringify({rowCount:rows.length,relevant:safe,allPublicationIds,containsVgNLpUyJ:allPublicationIds.includes("VgNLpUyJ")},null,2));
           NODE
 
+      - name: Probe search data query for K publication aggregation
+        shell: bash
+        run: |
+          node <<'NODE'
+          const ORIGIN="https://etarjouslehdet.fi";
+          const stableBase64=value=>Buffer.from(JSON.stringify(value,(_k,v)=>Object.prototype.toString.call(v)==="[object Object]"?Object.keys(v).sort().reduce((o,k)=>(o[k]=v[k],o),{}):v),"utf8").toString("base64");
+          async function data(name,params){const key=stableBase64([name,params]);const r=await fetch(ORIGIN+"/",{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json, text/plain, */*",Referer:ORIGIN+"/haku/mehu"},body:JSON.stringify({data:[key]})});if(!r.ok)return null;for(const line of (await r.text()).split(/\r?\n/).filter(Boolean)){try{const row=JSON.parse(line);if(row.key===key)return row.value;}catch{}}return null;}
+          const shapes=[["search",{query:"mehu"}],["search",{q:"mehu"}],["offers",{query:"mehu",pagination:{limit:100,offset:0}}],["offers",{search:"mehu",pagination:{limit:100,offset:0}}]];
+          function walk(v,out=[]){if(!v||typeof v!=="object")return out;if(Array.isArray(v)){for(const x of v)walk(x,out);return out;}if(v.business?.publicId==="f305U8"&&Array.isArray(v.publications))out.push(v);for(const x of Object.values(v))walk(x,out);return out;}
+          const out=[];
+          for(const [name,params] of shapes){const v=await data(name,params);const hits=walk(v);out.push({name,params,hitCount:hits.length,publications:[...new Map(hits.flatMap(h=>h.publications).map(p=>[p.id??p.publicId,{id:p.id??p.publicId,label:p.label??p.publicationName,validFrom:p.validFrom,validUntil:p.validUntil}])).values()]});}
+          console.log(JSON.stringify(out,null,2));
+          NODE
+
       # Live-data audit is intentionally kept in this same workflow so there is only one K-ruoka diagnostic flow.
       - name: Fetch live K-Supermarket Jokela offers and classify
         shell: bash
