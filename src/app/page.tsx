@@ -18089,14 +18089,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
             <div className="h-7" aria-hidden="true" />
 
-            {store.key !== "s" && store.key !== "k" && (
-              <p
-                className="mx-auto mt-0 max-w-[72%] font-black uppercase tracking-wide text-[#aa9872] text-[8px]"
-              >
-                {cardLabel}
-              </p>
-            )}
-
             <>
               <p
                 className={`absolute left-[5px] right-[5px] top-[36px] z-50 mx-auto flex h-[1.45rem] max-w-[9.15rem] items-center justify-center overflow-hidden whitespace-nowrap text-center text-[11.5px] font-black leading-none text-[#050505] [text-shadow:0_1px_1px_rgba(255,250,232,1)] ${
