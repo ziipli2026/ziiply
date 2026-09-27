@@ -77,3 +77,24 @@ assert.match(offerRouter,/const ENABLE_ETARJOUSLEHDET_PROVIDER_V28 = false/);
 console.log("PASS OpenAI and cron credentials remain server environment references");
 console.log("PASS hardcoded Tjek key exposure detected without printing its value");
 console.log("PASS active offer router currently disables eTarjouslehdet provider, so remediation can be isolated");
+
+
+console.log("\n--- Public API deep-review assertions ---");
+const kProducts=read("src/app/api/k-products/route.ts");
+const sProducts=read("src/app/api/s-products/route.ts");
+const storeSearch=read("src/app/api/store-search/route.ts");
+const offers=read("src/app/api/offers/route.ts");
+const offersSearch=read("src/app/api/offers/search/route.ts");
+const kWeight=read("src/app/api/k-weight-product/route.ts");
+assert.ok(!/searchParams\.get\(["']url["']\)/.test(kProducts+sProducts+storeSearch+offers+offersSearch+sean+kWeight));
+console.log("PASS no reviewed route exposes a direct caller-supplied URL fetch parameter");
+assert.match(storeSearch,/Promise\.all\(terms\.map\(fetchRuoanhinta\)\)/);
+console.log("PASS store-search amplification point detected: one GPS call => seven upstream searches");
+assert.match(offers,/raw:\s*rawData/); assert.match(offers,/preview:\s*text\.slice/);
+console.log("PASS offers raw/preview production exposure detected");
+assert.match(offersSearch,/kruokaDebug:/);
+console.log("PASS offers-search production debug payload detected");
+assert.match(sean,/error\.stack\.split/);
+console.log("PASS s-ean-product production stack exposure detected");
+assert.match(kWeight,/error: String\(error\)/);
+console.log("PASS k-weight-product raw error exposure detected");
