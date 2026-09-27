@@ -706,3 +706,31 @@ jobs:
             console.log("MISSING_STORE_TRACE "+JSON.stringify(out,null,2));
           }
           NODE
+
+      - name: Inspect canonical Tjek store pages for missing K-Supermarkets
+        run: |
+          node <<'NODE'
+          const ORIGIN="https://etarjouslehdet.fi";
+          const TARGETS=[
+            ["Kumela","e508Azi"],
+            ["Karis-Karjaa","f310kEi"],
+            ["Orimattila","a528m8i"],
+            ["Eväskontti","4165GCi"]
+          ];
+          for(const [name,id] of TARGETS){
+            const url=ORIGIN+"/K-Supermarket/kaupat/"+encodeURIComponent(id);
+            const r=await fetch(url,{headers:{Accept:"text/html"}});
+            const html=await r.text();
+            const ids=[...new Set([
+              ...[...html.matchAll(/["'](?:publicationPublicId|publicationId|publicId)["']?\s*:\s*["']([A-Za-z0-9_-]{8})["']/g)].map(m=>m[1]),
+              ...[...html.matchAll(/[?&]publication=([A-Za-z0-9_-]{8})/g)].map(m=>m[1])
+            ])].filter(x=>x!==id);
+            const noCatalog=/Meillä ei ole aktiivisia katalogeja|ei ole aktiivisia katalogeja/i.test(html);
+            const snippets=[];
+            for(const term of ["publications","publication","katalog"]){
+              const p=html.toLowerCase().indexOf(term.toLowerCase());
+              if(p>=0)snippets.push(html.slice(Math.max(0,p-250),p+700).replace(/\s+/g," ").slice(0,950));
+            }
+            console.log("CANONICAL_STORE_PAGE "+JSON.stringify({name,id,status:r.status,url,length:html.length,noCatalog,publicationIds:ids,snippets},null,2));
+          }
+          NODE
