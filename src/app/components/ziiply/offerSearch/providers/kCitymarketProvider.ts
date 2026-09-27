@@ -529,9 +529,14 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
   // Keep the currently valid leaflet visible through the end of its period.
   // 40AV may already be published on Sunday afternoon, but 39LV remains the
   // customer-facing leaflet until Sunday 23:59.
-  if(active.week===39 && active.kind==="LV"){
-    return fetchKCitymarketOffersFresh("https://kcm-tarjouslehdet.k-ruoka.fi/78sgvzy_tarjouslehti_39LV_KCM/index.html");
+  const offers=active.week===39 && active.kind==="LV"
+    ? await fetchKCitymarketOffersFresh("https://kcm-tarjouslehdet.k-ruoka.fi/78sgvzy_tarjouslehti_39LV_KCM/index.html")
+    : await fetchKCitymarketOffersFresh(ENTRY);
+  const fallback=kCitymarketDefaultValidityV15(active);
+  for(const offer of offers){
+    if(!offer.validFrom) offer.validFrom=fallback.from;
+    if(!offer.validTo) offer.validTo=fallback.to;
   }
-  return fetchKCitymarketOffersFresh(ENTRY);
+  return offers;
 }
 export default fetchKCitymarketOffers;
