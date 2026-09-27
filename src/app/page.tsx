@@ -10537,7 +10537,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       setGostaKruokaDebugV550(
         gostaSelectedOfferChainRefV547.current === "K"
-          ? getLastZiiplyKruokaDebugV174()
+          ? getLastZiiplyKruokaDebugV174(gostaOfferSearchContextV172)
           : null,
       );
 
