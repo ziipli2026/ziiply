@@ -15846,7 +15846,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             ),
         )
         .filter((product) => productGroupGate(sourceName, product.name))
-        .filter((product) => matchQualityMode !== "cheapest" || isCheapestAttributeCompatible(sourceName, product.name))
+        .filter((product) => isCheapestAttributeCompatible(sourceName, product.name))
         .filter((product) =>
           isAllowedByQualityMode(
             sourceName,
@@ -15927,10 +15927,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             ),
         )
         .filter(
-          (product) => !isHardRejectedKMatch(match.product.name, product.name),
+          (product) => !isHardRejectedKMatch(sourceName, product.name),
         )
         .filter((product) => productGroupGate(sourceName, product.name))
-        .filter((product) => matchQualityMode !== "cheapest" || isCheapestAttributeCompatible(sourceName, product.name))
+        .filter((product) => isCheapestAttributeCompatible(sourceName, product.name))
         .filter((product) =>
           isAllowedByQualityMode(
             sourceName,
