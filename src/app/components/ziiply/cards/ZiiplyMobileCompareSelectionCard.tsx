@@ -288,7 +288,7 @@ export default function ZiiplyMobileCompareSelectionCard({
                           );
                         })}
                         {alternativeMenu?.key.startsWith(`${String(item.id ?? item.product?.id ?? index)}:`) ? (
-                          <div className="col-span-2 rounded-[0.82rem] border-2 border-[#876b37] bg-[#fff8e5] p-2">
+                          <div className="col-span-3 max-h-[15.5rem] overflow-y-auto rounded-[0.82rem] border-2 border-[#876b37] bg-[#fff8e5] p-2 [scrollbar-width:thin]">
                             {alternativeMenu.loading ? (
                               <div className="py-2 text-center text-[0.65rem] font-black text-[#6b6048]">Haetaan vaihtoehtoja…</div>
                             ) : alternativeMenu.items.length === 0 ? (
@@ -301,9 +301,9 @@ export default function ZiiplyMobileCompareSelectionCard({
                                   await onSelectMatchAlternative?.(store.id, item, alternative);
                                   setAlternativeMenu(null);
                                 }}
-                                className="mb-1 grid w-full grid-cols-[minmax(0,1fr)_4.8rem] items-center gap-2 rounded-[0.62rem] border border-[#b99d5c] bg-[#f5e8c7] px-2.5 py-2 text-left last:mb-0"
+                                className="mb-1.5 grid w-full grid-cols-[minmax(0,1fr)_4.8rem] items-center gap-3 rounded-[0.62rem] border border-[#b99d5c] bg-[#f5e8c7] px-3 py-2.5 text-left last:mb-0"
                               >
-                                <span className="truncate text-[0.67rem] font-black text-[#28402a]">{getItemName(alternative)}</span>
+                                <span className="line-clamp-3 min-w-0 whitespace-normal break-words text-[0.69rem] font-black leading-[1.2] text-[#28402a]">{getItemName(alternative)}</span>
                                 <span className="text-right text-[0.67rem] font-black text-[#3e301c]">{formatComparePrice(alternative.price ?? alternative.product?.price)}</span>
                               </button>
                             ))}
