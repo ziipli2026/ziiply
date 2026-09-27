@@ -342,7 +342,7 @@ if(!spatialResolved&&anchor&&pk&&nr&&Number(nr.min)>0&&Math.abs(Number(pk.max)-N
 
 // Shared-card whole-euro proof with an owned "Ilman Plussa-korttia" KPL normal-price row.
 // Used for cards where several named variants share one large N,- price.
-if((!spatialResolved||spatialResolved.source==="best-spatial-candidate")&&anchor){
+if(anchor){
  const ax=Number(anchor.left)||0,ay=Number(anchor.top)||0,owned=[];
  const ilmans=wordBoxes.filter(b=>/^Ilman$/i.test(String(b.text||"").trim())&&Math.abs((Number(b.left)||0)-ax)<.015&&(Number(b.top)||0)>ay&&(Number(b.top)||0)<ay+.10);
  for(const ib of ilmans){const row=wordBoxes.filter(b=>Math.abs((Number(b.top)||0)-(Number(ib.top)||0))<.004&&(Number(b.left)||0)>=ax-.005&&(Number(b.left)||0)<=ax+.24).sort((a,b)=>Number(a.left)-Number(b.left)).map(b=>String(b.text||"")).join(" ");const m=row.match(/Ilman\s+Plussa-korttia\s+(\d)\s+(\d{2})[–-](\d)\s+(\d{2})\/(kpl)\b/i);if(m)owned.push({min:Number(m[1]+"."+m[2]),max:Number(m[3]+"."+m[4]),unit:"KPL"});}
