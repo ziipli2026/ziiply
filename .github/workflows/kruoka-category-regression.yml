@@ -160,6 +160,7 @@ jobs:
           const live=offers.filter(o=>allowed.has(String(o.publicationPublicId??""))).map(o=>({publicId:String(o.publicId??""),name:String(o.name??o.title??""),department:String(o.departmentSlug??o.department??""),category:category(o),publicationId:String(o.publicationPublicId??""),membershipPrice:o.membershipPrice??null,appPrice:o.appPrice??null,price:o.price??null,fromPrice:o.fromPrice??null,pieceCountFrom:o.pieceCountFrom??null,pieceCountGet:o.pieceCountGet??null,pieceCountGetFor:o.pieceCountGetFor??null,pieceCountMin:o.pieceCountMin??null,pieceCountTo:o.pieceCountTo??null,pieceCountMax:o.pieceCountMax??null,unitPrice:o.unitPrice??null,baseUnit:o.baseUnit??null}));
           const counts={}; for(const x of live) counts[x.category]=(counts[x.category]||0)+1;
           const suspicious=live.filter(x=>x.category==="Kala"||x.category==="Muut"||/makkara|kanan|broiler|pors|naudan|liha|kinkku|leikkele|lohi|nier/i.test(x.name));
-          const atria=live.filter(x=>/atria kanan minuuttifileet/i.test(x.name));\n          console.log(JSON.stringify({store:{id:selected.id,name:selected.name},rawOffers:offers.length,allowedPublications:[...allowed],liveOffers:live.length,categoryCounts:counts,atria,suspicious},null,2));
+          const atria=live.filter(x=>/atria kanan minuuttifileet/i.test(x.name));
+          console.log(JSON.stringify({store:{id:selected.id,name:selected.name},rawOffers:offers.length,allowedPublications:[...allowed],liveOffers:live.length,categoryCounts:counts,atria,suspicious},null,2));
           if(!live.length) process.exitCode=2;
           NODE
