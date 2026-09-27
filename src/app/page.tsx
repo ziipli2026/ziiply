@@ -17995,16 +17995,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 ? "/storelogos/lidl.png"
                 : "/storelogos/spar.png";
 
-        // Normalize the visible logo mark without changing the sign plate.
-        const storeLogoScale =
-          store.key === "s"
-            ? 1.38
-            : store.key === "k"
-              ? 1.38
-              : store.key === "lidl"
-                ? 1.08
-                : 1.18;
-
         const displayName =
           !storeModeChosenV299 && chain
             ? "Vertailuparia ei löytynyt"
@@ -18261,7 +18251,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     alt={cardLabel}
                     draggable={false}
                     className="h-full w-full object-contain"
-                    style={{ transform: `scale(${storeLogoScale})` }}
+                    style={{ transform: `scale(${store.key === "s" || store.key === "k" ? 1.38 : store.key === "lidl" ? 1.08 : 1.18})` }}
                     onError={(event) => {
                       event.currentTarget.style.display = "none";
                     }}
