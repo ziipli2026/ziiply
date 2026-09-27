@@ -306,6 +306,24 @@ jobs:
           if(!out.some(x=>x.matched===ids.length)) console.log("KNOWN_GAP: offers(offerIds) batch is not supported by this backend");
           NODE
 
+      - name: Probe dynamic K-Supermarket publications discovery
+        shell: bash
+        run: |
+          node <<'NODE'
+          const ORIGIN="https://etarjouslehdet.fi", BUSINESS="f305U8";
+          const stableBase64=value=>Buffer.from(JSON.stringify(value,(_k,v)=>Object.prototype.toString.call(v)==="[object Object]"?Object.keys(v).sort().reduce((o,k)=>(o[k]=v[k],o),{}):v),"utf8").toString("base64");
+          async function data(name,params){const key=stableBase64([name,params]);const r=await fetch(ORIGIN+"/",{method:"POST",headers:{"Content-Type":"application/json",Accept:"application/json, text/plain, */*",Referer:ORIGIN+"/K-Supermarket"},body:JSON.stringify({data:[key]})});if(!r.ok)throw new Error(name+" HTTP "+r.status);for(const line of (await r.text()).split(/\r?\n/).filter(Boolean)){try{const row=JSON.parse(line);if(row.key===key)return row.value;}catch{}}throw new Error(name+" key missing");}
+          const shapes=[
+            ["businessId",{businessId:BUSINESS}],
+            ["businessIds",{businessIds:[BUSINESS]}],
+            ["business+pagination",{businessId:BUSINESS,pagination:{limit:1000,offset:0}}],
+            ["businessIds+pagination",{businessIds:[BUSINESS],pagination:{limit:1000,offset:0}}]
+          ];
+          const out=[];
+          for(const [label,params] of shapes){try{const v=await data("publications",params);const rows=Array.isArray(v?.data)?v.data:Array.isArray(v)?v:[];out.push({label,count:rows.length,sample:rows.slice(0,15).map(x=>({id:x.publicId??x.id??null,label:x.label??x.name??x.publicationName??null,validFrom:x.validFrom??null,validUntil:x.validUntil??null,businessPublicId:x.businessPublicId??x.business?.publicId??null}))});}catch(e){out.push({label,error:String(e)});}}
+          console.log(JSON.stringify(out,null,2));
+          NODE
+
       # Live-data audit is intentionally kept in this same workflow so there is only one K-ruoka diagnostic flow.
       - name: Fetch live K-Supermarket Jokela offers and classify
         shell: bash
