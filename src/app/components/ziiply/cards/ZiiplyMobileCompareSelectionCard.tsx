@@ -61,7 +61,8 @@ export type ZiiplyMobileCompareSelectionCardProps = {
     storeId: string,
     match: unknown,
     mode: "cheapest" | "same_quality" | "own_brands" | "same_brand",
-  ) => void | Promise<void>;
+  ) => unknown[] | void | Promise<unknown[] | void>;
+  onSelectMatchAlternative?: (storeId: string, match: unknown, alternative: unknown) => void | Promise<void>;
   onResetMatchMode?: (storeId: string, match: unknown) => void | Promise<void>;
   onClose?: () => void;
   className?: string;
@@ -188,9 +189,12 @@ export default function ZiiplyMobileCompareSelectionCard({
   onSelectStore,
   onShareStore,
   onChangeMatchMode,
+  onSelectMatchAlternative,
   onClose,
   className = "",
 }: ZiiplyMobileCompareSelectionCardProps) {
+  const [alternativeMenu, setAlternativeMenu] = React.useState<{ key: string; items: ZiiplyCompareSelectionItem[]; loading: boolean } | null>(null);
+
   if (!open) return null;
 
   const rows = ((store.matches && store.matches.length > 0 ? store.matches : items) || []) as ZiiplyCompareSelectionItem[];
@@ -254,7 +258,21 @@ export default function ZiiplyMobileCompareSelectionCard({
                             <button
                               key={mode}
                               type="button"
-                              onClick={() => onChangeMatchMode(store.id, item, mode)}
+                              onClick={async () => {
+                                if (mode === "cheapest") {
+                                  setAlternativeMenu(null);
+                                  await onChangeMatchMode(store.id, item, mode);
+                                  return;
+                                }
+                                const key = `${String(item.id ?? item.product?.id ?? index)}:${mode}`;
+                                setAlternativeMenu({ key, items: [], loading: true });
+                                const result = await onChangeMatchMode(store.id, item, mode);
+                                setAlternativeMenu({
+                                  key,
+                                  items: Array.isArray(result) ? result as ZiiplyCompareSelectionItem[] : [],
+                                  loading: false,
+                                });
+                              }}
                               className={`min-h-[2.52rem] rounded-[0.82rem] border-[2.5px] px-2 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.25)] active:translate-y-[1px] ${
                                 active
                                   ? "border-[#0b6330] bg-[linear-gradient(180deg,#139143_0%,#087237_100%)] text-[#fff6d7]"
@@ -272,6 +290,28 @@ export default function ZiiplyMobileCompareSelectionCard({
                             </button>
                           );
                         })}
+                        {alternativeMenu?.key.startsWith(`${String(item.id ?? item.product?.id ?? index)}:`) ? (
+                          <div className="col-span-2 rounded-[0.82rem] border-2 border-[#876b37] bg-[#fff8e5] p-2">
+                            {alternativeMenu.loading ? (
+                              <div className="py-2 text-center text-[0.65rem] font-black text-[#6b6048]">Haetaan vaihtoehtoja…</div>
+                            ) : alternativeMenu.items.length === 0 ? (
+                              <div className="py-2 text-center text-[0.65rem] font-black text-[#6b6048]">Ei sopivia vaihtoehtoja</div>
+                            ) : alternativeMenu.items.map((alternative, alternativeIndex) => (
+                              <button
+                                key={String(alternative.id ?? alternative.product?.id ?? alternativeIndex)}
+                                type="button"
+                                onClick={async () => {
+                                  await onSelectMatchAlternative?.(store.id, item, alternative);
+                                  setAlternativeMenu(null);
+                                }}
+                                className="mb-1 grid w-full grid-cols-[minmax(0,1fr)_4.8rem] items-center gap-2 rounded-[0.62rem] border border-[#b99d5c] bg-[#f5e8c7] px-2.5 py-2 text-left last:mb-0"
+                              >
+                                <span className="truncate text-[0.67rem] font-black text-[#28402a]">{getItemName(alternative)}</span>
+                                <span className="text-right text-[0.67rem] font-black text-[#3e301c]">{formatComparePrice(alternative.price ?? alternative.product?.price)}</span>
+                              </button>
+                            ))}
+                          </div>
+                        ) : null}
                       </div>
                     ) : null}
                   </article>
