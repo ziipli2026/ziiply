@@ -324,6 +324,21 @@ jobs:
           console.log(JSON.stringify(out,null,2));
           NODE
 
+      - name: Verify dynamic K-Supermarket publication IDs from landing page
+        shell: bash
+        run: |
+          node <<'NODE'
+          const url="https://etarjouslehdet.fi/K-Supermarket";
+          const r=await fetch(url,{headers:{Accept:"text/html","User-Agent":"Mozilla/5.0"}});
+          if(!r.ok)throw new Error("landing HTTP "+r.status);
+          const html=await r.text();
+          const ids=[...html.matchAll(/[?&]publication=([A-Za-z0-9_-]+)/g)].map(m=>m[1]);
+          const unique=[...new Set(ids)];
+          const known=["ecbpeytj","WTcTbNSm","wsonqubf","VgNLpUyJ","7VJyII7Q","5brdfQ15","Lfu5WbgE","FanAklUL","EdyJW2k4"];
+          console.log(JSON.stringify({count:unique.length,publicationIds:unique,knownMatched:known.filter(id=>unique.includes(id))},null,2));
+          if(!unique.includes("VgNLpUyJ")) process.exitCode=2;
+          NODE
+
       # Live-data audit is intentionally kept in this same workflow so there is only one K-ruoka diagnostic flow.
       - name: Fetch live K-Supermarket Jokela offers and classify
         shell: bash
