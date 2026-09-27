@@ -837,3 +837,20 @@ jobs:
             }
           }
           NODE
+
+      - name: Extract exact Tjek loadData function
+        run: |
+          node <<'NODE'
+          const src="https://dqei8yomz48ve.cloudfront.net/assets/entry-client-CjqEhrFN.js";
+          const js=await (await fetch(src)).text();
+          const marker="async loadData(e,t,n){return await L(this,[e,t],n)}";
+          const p=js.indexOf(marker);
+          console.log("LOAD_MARKER_POS",p);
+          if(p>=0){
+            const before=js.slice(0,p);
+            const hits=[...before.matchAll(/(?:async )?function L\(/g)];
+            console.log("L_HITS",hits.length);
+            for(const h of hits.slice(-8)) console.log("LOAD_L_DEF "+js.slice(h.index,h.index+12000));
+            console.log("CLIENT_AROUND "+js.slice(Math.max(0,p-18000),p+2500));
+          }
+          NODE
