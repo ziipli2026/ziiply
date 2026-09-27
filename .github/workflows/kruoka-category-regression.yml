@@ -967,3 +967,25 @@ jobs:
           console.log("DYNAMIC_PUBLICATIONS",JSON.stringify([...pubs.entries()].sort((a,b)=>b[1]-a[1])));
           console.log("DYNAMIC_MISSING",JSON.stringify(missing.slice(0,100)));
           NODE
+
+      - name: Audit all K-Supermarkets via dynamic Tjek fronts corrected
+        run: |
+          node <<'NODE'
+          const O="https://etarjouslehdet.fi", B="f305U8";
+          const enc=v=>Buffer.from(JSON.stringify(v,(k,x)=>x&&Object.prototype.toString.call(x)==="[object Object]"?Object.keys(x).sort().reduce((o,k)=>(o[k]=x[k],o),{}):x),"utf8").toString("base64");
+          async function data(refs){const keys=refs.map(enc);const r=await fetch(O+"/",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({data:keys})});const txt=await r.text();if(!r.ok)throw Error(r.status+" "+txt);return txt.trim().split("\n").filter(Boolean).map(x=>JSON.parse(x));}
+          const row=(await data([["stores",{businessId:B,pagination:{offset:0,limit:1000}}]]))[0];
+          const stores=Array.isArray(row.value?.data)?row.value.data.filter(Boolean):[];
+          console.log("DYNAMIC2_STORE_COUNT",stores.length);
+          let ok=0,zero=0,err=0; const pubs=new Map(),missing=[];
+          for(let i=0;i<stores.length;i+=25){
+            const batch=stores.slice(i,i+25), refs=batch.map(s=>["fronts",{businessIds:[B],localBusinessIds:[String(s.id)],coordinates:s.coordinates}]);
+            try{
+              const rows=await data(refs), byKey=new Map(rows.map(r=>[r.key,r]));
+              for(let j=0;j<batch.length;j++){const s=batch[j],r=byKey.get(enc(refs[j])),ps=(r?.value||[]).flatMap(x=>x.publications||[]);if(ps.length){ok++;for(const p of ps){const id=p.id||p.publicId;if(id)pubs.set(id,(pubs.get(id)||0)+1)}}else{zero++;missing.push({id:s.id,name:s.name,city:s.city,status:r?.status,error:r?.error})}}
+            }catch(e){err+=batch.length;console.log("DYNAMIC2_BATCH_ERROR",i,String(e))}
+          }
+          console.log("DYNAMIC2_SUMMARY",JSON.stringify({stores:stores.length,withPublications:ok,withoutPublications:zero,errors:err,uniquePublications:pubs.size}));
+          console.log("DYNAMIC2_PUBLICATIONS",JSON.stringify([...pubs.entries()].sort((a,b)=>b[1]-a[1])));
+          console.log("DYNAMIC2_MISSING",JSON.stringify(missing));
+          NODE
