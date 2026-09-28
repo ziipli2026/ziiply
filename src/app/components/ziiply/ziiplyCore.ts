@@ -66,7 +66,9 @@ export type CartItem = {
   name: string;
   price?: number;
   image?: string;
-  chain?: "S" | "K" | "EUROSPAR";
+  // Cart comparison currently understands S/K only. Keep other offer-chain
+  // provenance in storeName/source data until the comparison model is widened.
+  chain?: "S" | "K";
   storeName?: string;
   quantity: number;
   source: "manual" | "offer" | "search";
