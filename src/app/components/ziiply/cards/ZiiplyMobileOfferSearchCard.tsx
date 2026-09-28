@@ -1248,7 +1248,7 @@ export default function ZiiplyMobileOfferSearchCard({
                     className="flex min-h-[7.4rem] flex-col items-center justify-center rounded-[1rem] border-[3px] border-[#174c2c] bg-[#fff8d9] px-2 py-3 shadow-[0_4px_0_rgba(91,72,44,0.18)] active:translate-y-[1px]"
                     aria-label="Hae EUROSPARin tarjoukset"
                   >
-                    <img src="/storelogos/spar.png" alt="EUROSPAR" className="h-[4.4rem] w-full object-contain" draggable={false} />
+                    <img src="/storelogos/spar.png" alt="EUROSPAR" className="h-[4.4rem] w-full -translate-x-[5px] object-contain" draggable={false} />
                     <span className="mt-2 text-[0.78rem] font-black text-[#174c2c]">EUROSPAR</span>
                   </button>
                 ) : null}
