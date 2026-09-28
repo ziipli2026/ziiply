@@ -4373,6 +4373,24 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     tokmanni: false,
   });
 
+  // V756: ketjuraksit ovat käyttäjän valinta. Palauta ne vasta state-määrittelyn
+  // jälkeen, jotta reload säilyttää valinnan ilman bootin TDZ/build-ongelmaa.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem(STORE_SELECTION_STORAGE_KEY_V343);
+      const saved = raw ? JSON.parse(raw) : null;
+      const chains = saved?.selectedChains;
+      if (!chains || typeof chains !== "object") return;
+      setSelectedChains({
+        s: Boolean(chains.s),
+        k: Boolean(chains.k),
+        lidl: Boolean(chains.lidl),
+        tokmanni: Boolean(chains.tokmanni),
+      });
+    } catch {}
+  }, []);
+
   const [isOnline, setIsOnline] = useState(true);
   const [showLaunchScreen, setShowLaunchScreen] = useState(true);
   const [suppressUiForEanClose, setSuppressUiForEanClose] = useState(false);
@@ -6527,6 +6545,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           storeModeChosenV299,
           storeCompareScope,
           withinChain,
+          selectedChains,
           gpsCoordsV320,
           usingOwnLocation,
         }),
@@ -6540,6 +6559,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     storeModeChosenV299,
     storeCompareScope,
     withinChain,
+    selectedChains,
     gpsCoordsV320,
     usingOwnLocation,
   ]);
