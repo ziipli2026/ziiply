@@ -9773,13 +9773,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         setStoreModeChosenV299(true);
         setStoreCompareScope("between_chains");
         setWithinChain(null);
-        setSelectedChains((current) => ({
-          ...current,
-          s: true,
-          k: true,
-          lidl: false,
-          tokmanni: false,
-        }));
+        // GPS valitsee vain Lähikaupat-tilan; ketjut valitsee käyttäjä.
       }
 
       if (typeof document !== "undefined") {
