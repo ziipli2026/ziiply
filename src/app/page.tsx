@@ -5824,6 +5824,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     usingOwnLocation,
   ]);
 
+  // V766: Yksi-haussa aktiivinen kauppa määräytyy valitun ketjun mukaan.
+  // Vanha ehto käsitteli vain Lidlin erikseen ja vaati muilta aina sekä S- että K-kaupan,
+  // mikä esti Yksi → S/K/SPAR-Tokmanni -Justiina-haun ennen varsinaista hakupolkua.
   const hasActiveStores =
     storeCompareScope === "within_chain"
       ? withinChain === "S"
@@ -5837,11 +5840,21 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 (activeArea.kLocalStoreId || activeArea.kLocalStoreName),
             )
           : false
-      : betweenChainSelectionModeV749 === "one" &&
-          selectedChains.lidl &&
-          !selectedChains.s &&
-          !selectedChains.k
-        ? Boolean(selectedLidlStoreV750?.id || selectedLidlStoreV750?.name)
+      : betweenChainSelectionModeV749 === "one"
+        ? selectedChains.lidl
+          ? Boolean(selectedLidlStoreV750?.id || selectedLidlStoreV750?.name)
+          : selectedChains.tokmanni
+            ? Boolean(
+                selectedTokmanniStoreV756?.id ||
+                  selectedTokmanniStoreV756?.name ||
+                  selectedEurosparStoreV751?.id ||
+                  selectedEurosparStoreV751?.name,
+              )
+            : selectedChains.k
+              ? Boolean(activeStores.kStoreId || activeStores.kStoreName)
+              : selectedChains.s
+                ? Boolean(activeStores.sStoreId || activeStores.sStoreName)
+                : false
         : Number(activeStores.sStoreId) > 0 && Number(activeStores.kStoreId) > 0;
 
   const selectedMapStoresV433 = useMemo(() => {
@@ -6006,7 +6019,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   // Näyttää ilmoituksen kerran suoraan Hakutapa-tekstin kohdalla.
   useEffect(() => {
     const selectedChainCount =
-      Number(Boolean(selectedChains.s)) + Number(Boolean(selectedChains.k));
+      Number(Boolean(selectedChains.s)) +
+      Number(Boolean(selectedChains.k)) +
+      Number(Boolean(selectedChains.lidl)) +
+      Number(Boolean(selectedChains.tokmanni));
 
     const shouldShow =
       currentStorePairMissingV168 ||
@@ -6031,6 +6047,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     storeCompareScope,
     selectedChains.s,
     selectedChains.k,
+    selectedChains.lidl,
+    selectedChains.tokmanni,
     betweenChainSelectionModeV749,
     withinChain,
     gpsCoordsV320,
