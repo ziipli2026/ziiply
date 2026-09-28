@@ -295,7 +295,7 @@ export type ZiiplyMobileOfferSearchCardProps = {
   testedEmptyCategories?: Record<string, boolean | undefined>;
   onFilterChange?: (value: string) => void;
   onSearch?: (value: string) => void;
-  onSelectOfferChain?: (chain: "S" | "K" | "EUROSPAR") => void;
+  onSelectOfferChain?: (chain: "S" | "K" | "EUROSPAR" | "LIDL") => void;
   showSChain?: boolean;
   showKChain?: boolean;
   showLidlChain?: boolean;
@@ -726,7 +726,7 @@ export default function ZiiplyMobileOfferSearchCard({
   className = "",
 }: ZiiplyMobileOfferSearchCardProps) {
   const [lastOpenedCategoryV27, setLastOpenedCategoryV27] = React.useState("");
-  const [selectedOfferChainV39, setSelectedOfferChainV39] = React.useState<"S" | "K" | "EUROSPAR" | null>(null);
+  const [selectedOfferChainV39, setSelectedOfferChainV39] = React.useState<"S" | "K" | "EUROSPAR" | "LIDL" | null>(null);
   const [debugOpenV52, setDebugOpenV52] = React.useState(false);
 
   React.useEffect(() => {
@@ -1255,10 +1255,12 @@ export default function ZiiplyMobileOfferSearchCard({
                 {showLidlChain ? (
                   <button
                     type="button"
-                    disabled
-                    aria-disabled="true"
-                    aria-label="Lidl tarjoukset tulossa"
-                    className="flex min-h-[7.4rem] flex-col items-center justify-center rounded-[1rem] border-[3px] border-[#174c2c] bg-[#fff8d9] px-2 py-3 opacity-100 shadow-[0_4px_0_rgba(91,72,44,0.18)]"
+                    onClick={() => {
+                      setSelectedOfferChainV39("LIDL");
+                      onSelectOfferChain?.("LIDL");
+                    }}
+                    aria-label="Hae Lidlin tarjoukset"
+                    className="flex min-h-[7.4rem] flex-col items-center justify-center rounded-[1rem] border-[3px] border-[#174c2c] bg-[#fff8d9] px-2 py-3 shadow-[0_4px_0_rgba(91,72,44,0.18)] active:translate-y-[1px]"
                   >
                     <span className="flex h-[4.4rem] w-[4.4rem] items-center justify-center"><img src="/storelogos/lidl.png" alt="Lidl" className="block h-full w-full object-contain object-center" draggable={false} /></span>
                     <span className="mt-2 text-[0.78rem] font-black text-[#174c2c]">Lidl</span>
