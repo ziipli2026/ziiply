@@ -14676,10 +14676,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       selectedChains.lidl &&
       !selectedChains.s &&
       !selectedChains.k;
-    const normalSearchChain: "S" | "K" | "LIDL" =
-      isLidlOnlyNormalSearchV760
-        ? "LIDL"
-        : storeCompareScope === "within_chain" && withinChain === "K"
+    const normalSearchChain: "S" | "K" =
+      storeCompareScope === "within_chain" && withinChain === "K"
           ? "K"
           : "S";
     const normalSearchStoreName =
@@ -14700,9 +14698,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       storeName: normalSearchStoreName,
       quantity: 1,
       source: "search",
-      product,
+      product: isLidlOnlyNormalSearchV760
+        ? ({ ...product, ziiplySourceChain: "LIDL" } as Product)
+        : product,
       ean: product.ean,
     };
+    if (isLidlOnlyNormalSearchV760) {
+      (newItem as any).ziiplySourceChain = "LIDL";
+    }
 
     // TEMP Huiluntuhti identity trace: capture the exact user-selected identity
     // before any comparison/EAN/fallback work can run.
