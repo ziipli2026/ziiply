@@ -147,6 +147,9 @@ export type ZiiplyGostaOfferSearchContextV152 = {
   kStoreName?: string;
   kStoreIds?: Array<string | number | null | undefined>;
   kStoreNames?: Array<string | null | undefined>;
+  eurosparStoreId?: string | number;
+  eurosparStoreName?: string;
+  eurosparStoreChain?: string;
 };
 
 export type ZiiplyGostaOfferSearchCoreResult = {
@@ -345,6 +348,9 @@ function buildOfferSearchContextKeyV152(context?: ZiiplyGostaOfferSearchContextV
     ...normalizeGostaContextListV164(context.sStoreNames, context.sStoreName),
     ...normalizeGostaContextListV164(context.kStoreIds, context.kStoreId),
     ...normalizeGostaContextListV164(context.kStoreNames, context.kStoreName),
+    context.eurosparStoreId,
+    context.eurosparStoreName,
+    context.eurosparStoreChain,
   ]
     .map((value) => normalizeGostaCoreText(value))
     .filter(Boolean)
@@ -424,6 +430,15 @@ async function fetchOfferSearchResults(query: string, context?: ZiiplyGostaOffer
   const sStoreNamesV162 = normalizeGostaContextListV164(context?.sStoreNames, context?.sStoreName);
   const kStoreIdsV162 = normalizeGostaContextListV164(context?.kStoreIds, context?.kStoreId);
   const kStoreNamesV162 = normalizeGostaContextListV164(context?.kStoreNames, context?.kStoreName);
+  const eurosparChain = normalizeGostaCoreText(context?.eurosparStoreChain);
+  const isEurosparSelection = eurosparChain === "eurospar" && Boolean(context?.eurosparStoreName);
+
+  // EUROSPAR is an isolated provider branch. Ordinary Tokmanni selections must
+  // not receive the EUROSPAR Ruokasanomat leaflet.
+  if (isEurosparSelection) {
+    params.set("provider", "eurospar");
+    params.set("eurosparStoreName", String(context?.eurosparStoreName || ""));
+  }
 
   if (sStoreIdsV162.length > 0) params.set("sStoreId", sStoreIdsV162.join("||"));
   if (sStoreNamesV162.length > 0) params.set("sStoreName", sStoreNamesV162.join("||"));
