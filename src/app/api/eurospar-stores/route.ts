@@ -1,3 +1,4 @@
+import storeFeed from "./tokmanni-store-feed.json";
 import { NextRequest, NextResponse } from "next/server";
 
 type StoreFeedItem = {
@@ -13,9 +14,6 @@ type StoreFeedItem = {
 
 type StoreFeed = { schemaVersion?: number; stores?: StoreFeedItem[] };
 
-const FEED_URL =
-  "https://raw.githubusercontent.com/ziipli2026/ziiply-kruoka-scraper/main/diagnostics/tokmanni-store-feed-latest.json";
-
 function distanceKm(lat1: number, lon1: number, lat2: number, lon2: number) {
   const rad = (value: number) => (value * Math.PI) / 180;
   const dLat = rad(lat2 - lat1);
@@ -30,11 +28,7 @@ export async function GET(request: NextRequest) {
   const hasGps = Number.isFinite(lat) && Number.isFinite(lon);
   const search = String(request.nextUrl.searchParams.get("search") || "").trim().toLocaleLowerCase("fi-FI");
 
-  const response = await fetch(FEED_URL, { next: { revalidate: 3600 } });
-  if (!response.ok) {
-    return NextResponse.json({ items: [], error: "Tokmanni store feed unavailable" }, { status: 503 });
-  }
-  const feed = await response.json() as StoreFeed;
+  const feed = storeFeed as StoreFeed;
   if (feed.schemaVersion !== 1 || !Array.isArray(feed.stores)) {
     return NextResponse.json({ items: [], error: "Invalid Tokmanni store feed" }, { status: 503 });
   }
