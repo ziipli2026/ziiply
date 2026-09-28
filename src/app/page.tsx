@@ -6551,6 +6551,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     storeModeChosenV299,
     storeCompareScope,
     withinChain,
+    selectedChains,
     gpsCoordsV320,
     usingOwnLocation,
   ]);
