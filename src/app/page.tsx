@@ -16624,6 +16624,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (gpsCoordsV320) {
       params.set("lat", String(gpsCoordsV320.latitude));
       params.set("lon", String(gpsCoordsV320.longitude));
+      const gpsAliases = (activeArea.aliases || [])
+        .map((value) => String(value || "").trim())
+        .filter((value) => value && normalize(value) !== normalize("Oma sijainti"));
+      const foundCities = new Set(
+        foundStores.map((store) => normalize(String(store.city || "").trim())).filter(Boolean),
+      );
+      const gpsMunicipality =
+        gpsAliases.find((value) => foundCities.has(normalize(value))) || "";
+      if (gpsMunicipality) params.set("search", gpsMunicipality);
     } else if (locationInput.trim()) {
       params.set("search", locationInput.trim());
     }
@@ -16648,7 +16657,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       });
 
     return () => { cancelled = true; };
-  }, [gpsCoordsV320, locationInput]);
+  }, [gpsCoordsV320, locationInput, activeArea.aliases, foundStores]);
 
   const lidlStoreOptionsV750 = useMemo(() => {
     const options = foundStores
