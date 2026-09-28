@@ -94,6 +94,16 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       city,
+      encodingDebug: {
+        rawStoreName: store?.name || "",
+        repairedStoreName: repairMojibake(store?.name || ""),
+        rawStoreNameCodePoints: Array.from(String(store?.name || "")).map((ch) => ch.codePointAt(0)?.toString(16)),
+        repairedStoreNameCodePoints: Array.from(repairMojibake(store?.name || "")).map((ch) => ch.codePointAt(0)?.toString(16)),
+        rawOfferTitle: rows[9]?.title || "",
+        repairedOfferTitle: repairMojibake(rows[9]?.title || ""),
+        rawOfferTitleCodePoints: Array.from(String(rows[9]?.title || "")).map((ch) => ch.codePointAt(0)?.toString(16)),
+        repairedOfferTitleCodePoints: Array.from(repairMojibake(rows[9]?.title || "")).map((ch) => ch.codePointAt(0)?.toString(16)),
+      },
       store: { storeKey, name: repairMojibake(store?.name || ""), locality: repairMojibake(store?.locality || ""), address: repairMojibake(store?.address || "") },
       offersStatus: or.status,
       rawOfferCount: rows.length,
