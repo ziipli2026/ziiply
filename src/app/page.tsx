@@ -20690,8 +20690,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               gostaSelectedOfferChainRefV547.current = chain;
               void searchOffers();
             }}
-            showSChain={Number(activeStores.sStoreId || 0) > 0}
-            showKChain={Number(activeStores.kStoreId || 0) > 0}
+            showSChain={Boolean(selectedChains.s && Number(activeStores.sStoreId || 0) > 0)}
+            showKChain={Boolean(selectedChains.k && Number(activeStores.kStoreId || 0) > 0)}
             showLidlChain={Boolean(selectedChains.lidl && selectedLidlStoreV750)}
             showEurosparChain={Boolean(selectedEurosparStoreV751)}
             categorySuggestions={GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147}
