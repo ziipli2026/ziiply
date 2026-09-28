@@ -16823,8 +16823,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     {
       key: "tokmanni",
       logo: "T",
-      title: "SPAR",
-      name: selectedTokmanniStoreV756?.name || selectedEurosparStoreV751?.name || "SPAR/Tokmanni ei valittu",
+      title: "Tokmanni",
+      name: selectedTokmanniStoreV756?.name || "Tokmanni ei valittu",
       tone: "bg-yellow-400 text-slate-950 ring-yellow-100",
       selectedTone: "border-yellow-500 bg-yellow-50 text-yellow-950",
     },
@@ -18259,7 +18259,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         const displayName =
           store.key === "tokmanni"
-            ? (selectedTokmanniStoreV756?.name || selectedEurosparStoreV751?.name || "SPAR/Tokmanni ei valittu")
+            ? (selectedTokmanniStoreV756?.name || "Tokmanni ei valittu")
             : !storeModeChosenV299 && chain
               ? "Vertailuparia ei löytynyt"
               : isComingSoon
