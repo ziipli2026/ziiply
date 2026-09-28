@@ -91,6 +91,10 @@ export async function fetchLidlOffers(storeKey: string, storeName = "Lidl") {
     const category = classifyLidlOffer(title, brandName);
     const priceText = formatPrice(numericPrice);
     const unitPriceText = String(row?.pricePerUnit || "").trim();
+    const isWeightedProduct =
+      /(?:€|eur)\s*\/\s*kg\b/i.test(unitPriceText) ||
+      /\b(?:kg|kilohinta)\b/i.test(String(box?.largePartString || "")) &&
+        !/\b\d+(?:[.,]\d+)?\s*(?:g|kg)\b/i.test(title);
 
     return {
       id: `lidl-${key}-${String(row?.id || index)}`,
@@ -111,6 +115,9 @@ export async function fetchLidlOffers(storeKey: string, storeName = "Lidl") {
       normalPrice,
       unitPriceText,
       comparisonPriceText: unitPriceText,
+      isWeightedProduct,
+      weightProductLabel: isWeightedProduct ? "Vaakatuote" : "",
+      priceBasis: isWeightedProduct ? "per-kg" : totalPrice != null ? "multi-buy-total" : "unit",
       discountText,
       benefitText: discountText || "Lidl tarjous",
       validityText: validityText(row?.startValidityDate, row?.endValidityDate),
