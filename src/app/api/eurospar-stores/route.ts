@@ -34,6 +34,7 @@ export async function GET(request: NextRequest) {
   const lat = Number(request.nextUrl.searchParams.get("lat"));
   const lon = Number(request.nextUrl.searchParams.get("lon"));
   const hasGps = Number.isFinite(lat) && Number.isFinite(lon);
+  const search = String(request.nextUrl.searchParams.get("search") || "").trim().toLocaleLowerCase("fi-FI");
 
   const items = await Promise.all(STORES.map(async (store) => {
     const coords = await geocode(store.address);
@@ -49,6 +50,11 @@ export async function GET(request: NextRequest) {
   }));
 
   items.sort((a, b) => {
+    if (!hasGps && search) {
+      const aMatch = a.city.toLocaleLowerCase("fi-FI") === search || a.name.toLocaleLowerCase("fi-FI").includes(search);
+      const bMatch = b.city.toLocaleLowerCase("fi-FI") === search || b.name.toLocaleLowerCase("fi-FI").includes(search);
+      if (aMatch !== bMatch) return aMatch ? -1 : 1;
+    }
     if (a.distanceKm != null && b.distanceKm != null) return a.distanceKm - b.distanceKm;
     if (a.distanceKm != null) return -1;
     if (b.distanceKm != null) return 1;
