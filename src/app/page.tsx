@@ -3928,7 +3928,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   // V769: GPS:n löytämät kaupat eivät yksin vapauta Hae-nappia.
   // Haku vapautuu vasta käyttäjän kelvollisesta ketjuvalinnasta:
   // Yksi + 1 ketju tai Monta + vähintään 2 ketjua.
-  const searchSelectionEnabledV769 = cartSelectionEnabledV767;
+  const searchSelectedChainCountV769 =
+    Number(Boolean(selectedChains.s)) +
+    Number(Boolean(selectedChains.k)) +
+    Number(Boolean(selectedChains.lidl)) +
+    Number(Boolean(selectedChains.tokmanni));
+  const searchSelectionEnabledV769 =
+    storeCompareScope === "between_chains" &&
+    ((betweenChainSelectionModeV749 === "one" && searchSelectedChainCountV769 === 1) ||
+      (betweenChainSelectionModeV749 === "many" && searchSelectedChainCountV769 >= 2));
   // V476: Hae-napin pitää pystyä sulkemaan Hae-kortti myös silloin,
   // kun haku/lataus lukitsee uuden navigoinnin. Lukitus koskee vain avausta.
   const searchBottomNavDisabled =
