@@ -64,6 +64,7 @@
 import { NextResponse } from "next/server";
 import { fetchKCitymarketOffers, getKCitymarketHtmlDebugV8 } from "../../../components/ziiply/offerSearch/providers/kCitymarketProvider";
 import { fetchEurosparOffers } from "../../../components/ziiply/offerSearch/providers/eurosparProvider";
+import { fetchLidlOffers } from "../../../components/ziiply/offerSearch/providers/lidlProvider";
 import {
   searchZiiplyOffers,
   getKruokaOfferPipelineDebugV34,
@@ -552,6 +553,17 @@ export async function GET(request: Request) {
       const results = (fetched as unknown as UnknownRecord[]).filter((offer) => offerMatchesQuery(q, offer));
       return NextResponse.json(
         { ok: true, query: q, provider: "eurospar", storeName, results },
+        { headers: { "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate" } },
+      );
+    }
+
+    if (provider === "lidl") {
+      const storeKey = getParam(searchParams, "lidlStoreKey") || "";
+      const storeName = getParam(searchParams, "lidlStoreName") || "Lidl";
+      const fetched = storeKey ? await fetchLidlOffers(storeKey, storeName) : [];
+      const results = (fetched as unknown as UnknownRecord[]).filter((offer) => offerMatchesQuery(q, offer));
+      return NextResponse.json(
+        { ok: true, query: q, provider: "lidl", storeKey, storeName, results },
         { headers: { "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate" } },
       );
     }
