@@ -291,6 +291,28 @@ function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
   const storeType = normalizeGostaCoreText(sourceItem?.storeType || anyItem?.storeType || "");
   const source = normalizeGostaCoreText(sourceItem?.source || anyItem?.source || "");
   const isKCitymarket = storeType === "k citymarket" || storeType === "k-citymarket" || source.includes("k citymarket tarjouslehti");
+  // V182: EUROSPAR provider already emits Ziiply's authoritative category.
+  // Preserve it instead of reclassifying leaflet titles with generic regexes.
+  const isEurospar =
+    storeType === "eurospar" ||
+    source.includes("eurospar tarjouslehti") ||
+    normalizeGostaCoreText(sourceItem?.chain || anyItem?.chain || "") === "eurospar";
+  if (isEurospar) {
+    const raw = normalizeGostaCoreText(sourceItem?.category || anyItem?.category || "")
+      .split(" ")
+      .filter((part) => part !== "ja")
+      .join(" ");
+    const trusted = new Map<string, string>([
+      ["kahvi tee", "Kahvi & tee"], ["maitotuotteet", "Maitotuotteet"], ["liha makkarat", "Liha & makkarat"],
+      ["kala", "Kala"], ["leipomo", "Leipomo"], ["hevi", "Hevi"], ["juomat", "Juomat"], ["pakasteet", "Pakasteet"],
+      ["valmisruoka", "Valmisruoka"], ["kuivatuotteet", "Kuivatuotteet"], ["makeiset keksit", "Makeiset & keksit"],
+      ["lastenruoat", "Lastenruoat"], ["vitamiinit ravinteet", "Vitamiinit & ravinteet"], ["lemmikit", "Lemmikit"],
+      ["hygienia kosmetiikka", "Hygienia & kosmetiikka"], ["kodinhoito", "Kodinhoito"],
+      ["koti vapaa-aika", "Koti & vapaa-aika"], ["muut", "Muut"],
+    ]).get(raw);
+    if (trusted) return trusted;
+  }
+
   if (isKCitymarket) {
     const raw = normalizeGostaCoreText(sourceItem?.category || anyItem?.category || "").split(" ").filter((part) => part !== "ja").join(" ");
     const trusted = new Map<string, string>([
