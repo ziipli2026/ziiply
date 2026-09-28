@@ -191,6 +191,8 @@ type ZiiplyBottomNavProps = {
   storesReadyForSearch: boolean;
   cartLength: number;
   cartModalOpen: boolean;
+  cartSelectionEnabled?: boolean;
+  compareSelectionEnabled?: boolean;
   activeResult: "none" | "compare" | string;
   onShopsClick: () => void;
   onSearchClick: () => void;
@@ -208,6 +210,8 @@ export function ZiiplyBottomNav({
   storesReadyForSearch,
   cartLength,
   cartModalOpen,
+  cartSelectionEnabled = true,
+  compareSelectionEnabled = true,
   activeResult,
   onShopsClick,
   onSearchClick,
@@ -244,8 +248,11 @@ export function ZiiplyBottomNav({
   const cartActive = cartModalOpen && cartLength > 0;
   const compareActive = activeResult === "compare" && !searchPanelOpen && !cartModalOpen && cartLength > 0;
   const searchDisabled = searchBottomNavDisabled && !searchPanelOpen;
-  const cartDisabled = cartLength === 0;
-  const compareDisabled = cartLength === 0;
+  // V767: Kori ja Vertailu vapautuvat vasta kelvollisen ketjuvalinnan jälkeen.
+  // Yksi + 1 ketju sallii Korin, mutta ei Halpuusvertailua.
+  // Monta + vähintään 2 ketjua sallii molemmat.
+  const cartDisabled = cartLength === 0 || !cartSelectionEnabled;
+  const compareDisabled = cartLength === 0 || !compareSelectionEnabled;
   const iconClass = "h-[30px] w-[30px] drop-shadow-[0_1px_0_rgba(255,255,255,0.45)]";
   const labelClass = "mt-0.5 block leading-none";
 
