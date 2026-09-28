@@ -88,7 +88,7 @@ export function adaptEurosparFeed(feed: Feed, storeName: string, date: string): 
     const normalRange = range(raw.normalPrice);
     const unitRange = range(raw.unitPrice);
 
-    return [{
+    const offer: EurosparOffer = {
       id: String(raw.id ?? ""),
       title: String(raw.name ?? ""),
       price,
@@ -120,8 +120,9 @@ export function adaptEurosparFeed(feed: Feed, storeName: string, date: string): 
       source: "EUROSPAR tarjouslehti",
       stores,
       page: typeof raw.page === "number" ? raw.page : null,
-    }];
-  }).filter((offer) => offer.id && offer.title);
+    };
+    return offer.id && offer.title ? [offer] : [];
+  });
 }
 
 export async function fetchEurosparOffers(storeName: string, date: string): Promise<EurosparOffer[]> {
