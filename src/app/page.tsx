@@ -9202,7 +9202,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     );
   }
 
-  function clearStoreBackedSearchState(options: { preserveComparison?: boolean } = {}) {
+  function clearStoreBackedSearchState(
+    options: { preserveComparison?: boolean; preserveActiveView?: boolean } = {},
+  ) {
     if (!options.preserveComparison) {
       comparisonCacheKeyRef.current = null;
       comparisonCompletedKeyRef.current = null;
@@ -9213,7 +9215,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setNormalResults([]);
     setVisibleNormalCount(8);
     setHasSearchedOffers(false);
-    setActiveResult("none");
+    // V771: hiljainen GPS-/snapshot-taustapäivitys ei saa heittää käyttäjää
+    // avoimesta Vertailu- tai muusta näkymästä pääsivulle.
+    if (!options.preserveActiveView) setActiveResult("none");
     setLastOptimizationSnapshot(null);
   }
 
@@ -9919,7 +9923,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         String(activeStores.kStoreId || "") === String(nextSelectedK.id || "") &&
         normalize(activeStores.kStoreName || "") === normalize(nextSelectedK.name || "");
 
-      clearStoreBackedSearchState({ preserveComparison: comparisonStoresUnchanged });
+      clearStoreBackedSearchState({
+        preserveComparison: comparisonStoresUnchanged,
+        preserveActiveView: source === "gps" && silentStatusV137,
+      });
 
       // V39_GPS_RELOAD_NO_HYPER_DEFAULT_LOCK:
       // GPS ei saa pakottaa Tavaratalot-tilaa, koska kunnanrajalla se lukitsee helposti
