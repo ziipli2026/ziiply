@@ -10379,7 +10379,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   // V547: Göstan kortin ketjuvalinta on kortin sisällä, mutta page.tsx tarvitsee
   // saman tiedon muodostaakseen oikean kauppakontekstin myös myöhemmissä
   // kategoriaklikkauksissa.
-  const gostaSelectedOfferChainRefV547 = useRef<"S" | "K" | null>(null);
+  const gostaSelectedOfferChainRefV547 = useRef<"S" | "K" | "EUROSPAR" | null>(null);
   // V551: vain viimeisin käynnistetty Gösta-haku saa kirjoittaa tulokset stateen.
   // Estää esim. vanhan K-haun valmistumisen uuden S-haun jälkeen ja korvaamasta S-listaa.
   const gostaOfferSearchRequestSeqRefV551 = useRef(0);
@@ -20674,13 +20674,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             filter={offerCardFilterV106}
             onFilterChange={handleGostaFilterChangeV136}
             onSearch={(value: string) => void searchOffers(value)}
-            onSelectOfferChain={(chain: "S" | "K") => {
+            onSelectOfferChain={(chain: "S" | "K" | "EUROSPAR") => {
               // V549: tallenna S/K-valinta ennen hakua. searchOffers rakentaa
               // eksklusiivisen kontekstin nykyisen storeMode-arvon kaupasta.
               gostaSelectedOfferChainRefV547.current = chain;
               void searchOffers();
             }}
             showLidlChain={Boolean(selectedChains.lidl && selectedLidlStoreV750)}
+            showEurosparChain={selectedEurosparStoreV751?.chain === "EUROSPAR"}
             categorySuggestions={GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147}
             categoryOfferCounts={gostaCategoryOfferCountsV163}
             testedEmptyCategories={gostaTestedEmptyCategoriesV166}
@@ -20688,9 +20689,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             emptyText={offerShowingAllAreaOffersV106 ? "Alueen tarjouksia ei löytynyt vielä." : "Gösta ei löytänyt tarjouksia tälle rajaukselle."}
             kruokaDebug={gostaKruokaDebugV550}
             selectedStoreName={
-              gostaSelectedOfferChainRefV547.current === "K"
-                ? (storeMode === "local" ? activeArea.kLocalStoreName : activeArea.kStoreName) || activeStores.kStoreName || ""
-                : (storeMode === "local" ? activeArea.sLocalStoreName : activeArea.sStoreName) || activeStores.sStoreName || ""
+              gostaSelectedOfferChainRefV547.current === "EUROSPAR"
+                ? selectedEurosparStoreV751?.name || ""
+                : gostaSelectedOfferChainRefV547.current === "K"
+                  ? (storeMode === "local" ? activeArea.kLocalStoreName : activeArea.kStoreName) || activeStores.kStoreName || ""
+                  : (storeMode === "local" ? activeArea.sLocalStoreName : activeArea.sStoreName) || activeStores.sStoreName || ""
             }
             onBack={() => {
               gostaPanelStickyOpenRefV158.current = false;
