@@ -6276,6 +6276,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return Array.isArray(data?.items) ? (data.items as Product[]) : [];
   }
 
+  async function fetchTokmanniProductsV761(search: string): Promise<Product[]> {
+    const response = await fetch(
+      `/api/tokmanni/products?search=${encodeURIComponent(search)}`,
+      { cache: "no-store" },
+    );
+    if (!response.ok) return [];
+    const data = await response.json();
+    return Array.isArray(data?.items) ? (data.items as Product[]) : [];
+  }
+
   async function fetchKProducts(
     search: string,
     storeId: string | number,
