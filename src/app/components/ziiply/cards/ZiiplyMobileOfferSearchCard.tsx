@@ -708,14 +708,11 @@ export default function ZiiplyMobileOfferSearchCard({
     );
   }, []);
 
-  // V56: a fresh Gösta landing view must always reopen the chain gate.
-  // page.tsx clears query/filter when Gösta is opened again, but this card can
-  // stay mounted and otherwise retain the previous S/K/EUROSPAR selection.
-  React.useEffect(() => {
-    if (!String(query || "").trim() && !String(filter || "").trim()) {
-      setSelectedOfferChainV39(null);
-    }
-  }, [query, filter, selectedStoreName]);
+  // V57: Do not derive the chain gate from an empty query/filter.
+  // Empty filter is also the normal "Tuoteryhmät" landing view inside the
+  // already selected chain, so resetting here incorrectly jumped back to the
+  // S/K/EUROSPAR logo gate. The card is unmounted when Gösta is closed, so the
+  // local chain selection naturally resets on the next fresh open.
 
   const rememberGostaCategoryV27 = React.useCallback((category: string) => {
     const clean = String(category || "").trim();
