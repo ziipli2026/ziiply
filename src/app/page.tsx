@@ -16761,6 +16761,21 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return () => { cancelled = true; };
   }, [gpsCoordsV320, locationInput, activeArea.aliases, foundStores]);
 
+  // A single SPAR card may point to either Tokmanni or EUROSPAR, never both.
+  // Old/background state can briefly populate both; collapse that state to the
+  // nearest store while preserving normal explicit picker selections (which
+  // already clear the other family).
+  useEffect(() => {
+    if (!selectedTokmanniStoreV756 || !selectedEurosparStoreV751) return;
+    const tokmanniDistance = Number((selectedTokmanniStoreV756 as any).distanceKm);
+    const eurosparDistance = Number((selectedEurosparStoreV751 as any).distanceKm);
+    const keepEurospar =
+      Number.isFinite(eurosparDistance) &&
+      (!Number.isFinite(tokmanniDistance) || eurosparDistance < tokmanniDistance);
+    if (keepEurospar) setSelectedTokmanniStoreV756(null);
+    else setSelectedEurosparStoreV751(null);
+  }, [selectedTokmanniStoreV756, selectedEurosparStoreV751]);
+
   const lidlStoreOptionsV750 = useMemo(() => {
     const options = foundStores
       .map(normalizeStoreForPickerV320)
