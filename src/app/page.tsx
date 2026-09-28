@@ -2875,6 +2875,8 @@ export default function Page() {
   const [selectedLidlStoreV750, setSelectedLidlStoreV750] = useState<StoreSearchItem | null>(null);
   const [eurosparStoreOptionsV751, setEurosparStoreOptionsV751] = useState<StoreSearchItem[]>([]);
   const [selectedEurosparStoreV751, setSelectedEurosparStoreV751] = useState<StoreSearchItem | null>(null);
+  const [tokmanniStoreOptionsV756, setTokmanniStoreOptionsV756] = useState<StoreSearchItem[]>([]);
+  const [selectedTokmanniStoreV756, setSelectedTokmanniStoreV756] = useState<StoreSearchItem | null>(null);
   const [gpsCoordsV320, setGpsCoordsV320] = useState<{
     latitude: number;
     longitude: number;
@@ -10385,7 +10387,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   // V547: Göstan kortin ketjuvalinta on kortin sisällä, mutta page.tsx tarvitsee
   // saman tiedon muodostaakseen oikean kauppakontekstin myös myöhemmissä
   // kategoriaklikkauksissa.
-  const gostaSelectedOfferChainRefV547 = useRef<"S" | "K" | "EUROSPAR" | "LIDL" | null>(null);
+  const gostaSelectedOfferChainRefV547 = useRef<"S" | "K" | "EUROSPAR" | "LIDL" | "TOKMANNI" | null>(null);
   // V551: vain viimeisin käynnistetty Gösta-haku saa kirjoittaa tulokset stateen.
   // Estää esim. vanhan K-haun valmistumisen uuden S-haun jälkeen ja korvaamasta S-listaa.
   const gostaOfferSearchRequestSeqRefV551 = useRef(0);
@@ -10579,7 +10581,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // nykyisen storeMode-arvon mukaisen kaupan; toinen ketju ei vuoda hakuun.
       const sOfferStoresV532 = gostaSelectedOfferChainRefV547.current === "S"
         ? uniqueSelectedOfferStoresV532([gostaSelectedSStoreV547])
-        : gostaSelectedOfferChainRefV547.current === "K" || gostaSelectedOfferChainRefV547.current === "EUROSPAR" || gostaSelectedOfferChainRefV547.current === "LIDL"
+        : gostaSelectedOfferChainRefV547.current === "K" || gostaSelectedOfferChainRefV547.current === "EUROSPAR" || gostaSelectedOfferChainRefV547.current === "LIDL" || gostaSelectedOfferChainRefV547.current === "TOKMANNI"
           ? []
           : useWithinChainSOffersV532
             ? uniqueSelectedOfferStoresV532([sWithinHyperStoreV539, sWithinLocalStoreV539])
@@ -10589,7 +10591,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       const kOfferStoresV532 = gostaSelectedOfferChainRefV547.current === "K"
         ? uniqueSelectedOfferStoresV532([gostaSelectedKStoreV549])
-        : gostaSelectedOfferChainRefV547.current === "S" || gostaSelectedOfferChainRefV547.current === "EUROSPAR" || gostaSelectedOfferChainRefV547.current === "LIDL"
+        : gostaSelectedOfferChainRefV547.current === "S" || gostaSelectedOfferChainRefV547.current === "EUROSPAR" || gostaSelectedOfferChainRefV547.current === "LIDL" || gostaSelectedOfferChainRefV547.current === "TOKMANNI"
           ? []
           : useWithinChainKOffersV532
             ? uniqueSelectedOfferStoresV532([kWithinHyperStoreV539, kWithinLocalStoreV539])
@@ -10648,6 +10650,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         eurosparStoreChain: gostaSelectedOfferChainRefV547.current === "EUROSPAR" ? selectedEurosparStoreV751?.chain || undefined : undefined,
         lidlStoreKey: gostaSelectedOfferChainRefV547.current === "LIDL" ? String((selectedLidlStoreV750 as any)?.storeKey || selectedLidlStoreV750?.id || "") || undefined : undefined,
         lidlStoreName: gostaSelectedOfferChainRefV547.current === "LIDL" ? selectedLidlStoreV750?.name || "Lidl" : undefined,
+        tokmanniStoreId: gostaSelectedOfferChainRefV547.current === "TOKMANNI" ? selectedTokmanniStoreV756?.id || undefined : undefined,
+        tokmanniStoreName: gostaSelectedOfferChainRefV547.current === "TOKMANNI" ? selectedTokmanniStoreV756?.name || "Tokmanni" : undefined,
         usingOwnLocation,
         gpsLat: gpsCoordsV320?.latitude,
         gpsLon: gpsCoordsV320?.longitude,
@@ -16670,8 +16674,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       .then((response) => response.ok ? response.json() : Promise.reject(new Error("EUROSPAR store lookup failed")))
       .then((data) => {
         if (cancelled) return;
-        const options = Array.isArray(data?.items) ? data.items as StoreSearchItem[] : [];
+        const allOptions = Array.isArray(data?.items) ? data.items as StoreSearchItem[] : [];
+        const options = allOptions.filter((store) => String(store.chain || "").toUpperCase() === "EUROSPAR");
+        const tokmanniOptions = allOptions.filter((store) => String(store.chain || "").toUpperCase() === "TOKMANNI");
         setEurosparStoreOptionsV751(options);
+        setTokmanniStoreOptionsV756(tokmanniOptions);
+        setSelectedTokmanniStoreV756((current) => {
+          if (current) {
+            const same = tokmanniOptions.find((store) => sameStoreIdV93(store.id, current.id));
+            if (same) return { ...same, chain: "TOKMANNI" };
+            return { ...current, chain: "TOKMANNI" };
+          }
+          return tokmanniOptions[0] ? { ...tokmanniOptions[0], chain: "TOKMANNI" } : null;
+        });
         setSelectedEurosparStoreV751((current) => {
           // V752: GPS/background refresh must never overwrite a user's explicit
           // EUROSPAR choice. Previously gpsCoordsV320 forced options[0] on every
@@ -16686,7 +16701,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         });
       })
       .catch(() => {
-        if (!cancelled) setEurosparStoreOptionsV751([]);
+        if (!cancelled) {
+          setEurosparStoreOptionsV751([]);
+          setTokmanniStoreOptionsV756([]);
+        }
       });
 
     return () => { cancelled = true; };
@@ -20686,7 +20704,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             filter={offerCardFilterV106}
             onFilterChange={handleGostaFilterChangeV136}
             onSearch={(value: string) => void searchOffers(value)}
-            onSelectOfferChain={(chain: "S" | "K" | "EUROSPAR" | "LIDL") => {
+            onSelectOfferChain={(chain: "S" | "K" | "EUROSPAR" | "LIDL" | "TOKMANNI") => {
               // V549: tallenna S/K-valinta ennen hakua. searchOffers rakentaa
               // eksklusiivisen kontekstin nykyisen storeMode-arvon kaupasta.
               gostaSelectedOfferChainRefV547.current = chain;
@@ -20696,6 +20714,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             showKChain={Boolean(selectedChains.k && Number(activeStores.kStoreId || 0) > 0)}
             showLidlChain={Boolean(selectedChains.lidl && selectedLidlStoreV750)}
             showEurosparChain={Boolean(selectedEurosparStoreV751)}
+            showTokmanniChain={Boolean(selectedChains.tokmanni && selectedTokmanniStoreV756)}
             categorySuggestions={GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147}
             categoryOfferCounts={gostaCategoryOfferCountsV163}
             testedEmptyCategories={gostaTestedEmptyCategoriesV166}
@@ -20707,6 +20726,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 ? selectedEurosparStoreV751?.name || ""
                 : gostaSelectedOfferChainRefV547.current === "LIDL"
                   ? selectedLidlStoreV750?.name || ""
+                : gostaSelectedOfferChainRefV547.current === "TOKMANNI"
+                  ? selectedTokmanniStoreV756?.name || ""
                 : gostaSelectedOfferChainRefV547.current === "K"
                   ? (storeMode === "local" ? activeArea.kLocalStoreName : activeArea.kStoreName) || activeStores.kStoreName || ""
                   : (storeMode === "local" ? activeArea.sLocalStoreName : activeArea.sStoreName) || activeStores.sStoreName || ""
