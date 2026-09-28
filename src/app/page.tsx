@@ -20692,14 +20692,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               (activeStores.kStoreId && Number(activeStores.kStoreId) > 0) ||
               String(activeStores.kStoreName || "").trim()
             )}
-            showSChain={Boolean(
-              (activeStores.sStoreId && Number(activeStores.sStoreId) > 0) ||
-              String(activeStores.sStoreName || "").trim()
-            )}
-            showKChain={Boolean(
-              (activeStores.kStoreId && Number(activeStores.kStoreId) > 0) ||
-              String(activeStores.kStoreName || "").trim()
-            )}
             showLidlChain={Boolean(selectedChains.lidl && selectedLidlStoreV750)}
             showEurosparChain={Boolean(selectedEurosparStoreV751)}
             categorySuggestions={GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147}
