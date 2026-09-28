@@ -76,7 +76,14 @@ export async function fetchLidlOffers(storeKey: string, storeName = "Lidl") {
 
   return rows.map((row, index) => {
     const box = row?.priceBox || {};
-    const numericPrice = typeof box.largePartNumeric === "number" ? box.largePartNumeric : null;
+    const directNumericPrice = typeof box.largePartNumeric === "number" ? box.largePartNumeric : null;
+    const totalMatch =
+      directNumericPrice == null && String(box?.discountMessage || "").trim().toLowerCase() === "yhteensä"
+        ? String(box?.largePartString || "").match(/(\d+(?:[.,]\d+)?)\s*€\s*\/\s*(\d+)\s*kpl/i)
+        : null;
+    const totalPrice = totalMatch ? Number(totalMatch[1].replace(",", ".")) : null;
+    const totalQuantity = totalMatch ? Number(totalMatch[2]) : null;
+    const numericPrice = totalPrice ?? directNumericPrice;
     const normalPrice = typeof box.smallPartNumeric === "number" ? box.smallPartNumeric : null;
     const title = String(row?.title || "Lidl tarjous").trim();
     const brandName = String(row?.brand || "").trim();
@@ -119,6 +126,13 @@ export async function fetchLidlOffers(storeKey: string, storeName = "Lidl") {
       offerType: row?.offerType || "",
       redemptionChannel: row?.redemptionChannel || "",
       hasConcretePrice: numericPrice != null,
+      ...(totalPrice != null && totalQuantity != null
+        ? {
+            multiBuyTotalPrice: totalPrice,
+            multiBuyQuantity: totalQuantity,
+            multiBuyUnitPrice: totalPrice / totalQuantity,
+          }
+        : {}),
       // Keep Lidl's complete price box available for DBG inspection when the
       // API represents a multi-buy/special offer without largePartNumeric.
       // Do not derive a cart price from these fields until their semantics are verified.
