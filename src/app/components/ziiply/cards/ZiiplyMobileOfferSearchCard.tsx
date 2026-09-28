@@ -295,11 +295,12 @@ export type ZiiplyMobileOfferSearchCardProps = {
   testedEmptyCategories?: Record<string, boolean | undefined>;
   onFilterChange?: (value: string) => void;
   onSearch?: (value: string) => void;
-  onSelectOfferChain?: (chain: "S" | "K" | "EUROSPAR" | "LIDL") => void;
+  onSelectOfferChain?: (chain: "S" | "K" | "EUROSPAR" | "LIDL" | "TOKMANNI") => void;
   showSChain?: boolean;
   showKChain?: boolean;
   showLidlChain?: boolean;
   showEurosparChain?: boolean;
+  showTokmanniChain?: boolean;
   onBack?: () => void;
   onClose?: () => void;
   onAddOffer?: (offer: ZiiplyMobileOfferSearchItem) => void;
@@ -719,6 +720,7 @@ export default function ZiiplyMobileOfferSearchCard({
   showKChain = true,
   showLidlChain = false,
   showEurosparChain = false,
+  showTokmanniChain = false,
   onBack,
   onClose,
   onAddOffer,
@@ -726,7 +728,7 @@ export default function ZiiplyMobileOfferSearchCard({
   className = "",
 }: ZiiplyMobileOfferSearchCardProps) {
   const [lastOpenedCategoryV27, setLastOpenedCategoryV27] = React.useState("");
-  const [selectedOfferChainV39, setSelectedOfferChainV39] = React.useState<"S" | "K" | "EUROSPAR" | "LIDL" | null>(null);
+  const [selectedOfferChainV39, setSelectedOfferChainV39] = React.useState<"S" | "K" | "EUROSPAR" | "LIDL" | "TOKMANNI" | null>(null);
   const [debugOpenV52, setDebugOpenV52] = React.useState(false);
 
   React.useEffect(() => {
@@ -1252,6 +1254,20 @@ export default function ZiiplyMobileOfferSearchCard({
                     <span className="mt-2 text-[0.78rem] font-black text-[#174c2c]">EUROSPAR</span>
                   </button>
                 ) : null}
+                {showTokmanniChain ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedOfferChainV39("TOKMANNI");
+                      onSelectOfferChain?.("TOKMANNI");
+                    }}
+                    aria-label="Hae Tokmannin tarjoukset"
+                    className="flex min-h-[7.4rem] flex-col items-center justify-center rounded-[1rem] border-[3px] border-[#174c2c] bg-[#fff8d9] px-2 py-3 shadow-[0_4px_0_rgba(91,72,44,0.18)] active:translate-y-[1px]"
+                  >
+                    <span className="flex h-[4.4rem] w-[4.4rem] items-center justify-center rounded-full bg-[#e30613] text-[1.05rem] font-black text-white">TOK</span>
+                    <span className="mt-2 text-[0.78rem] font-black text-[#174c2c]">Tokmanni</span>
+                  </button>
+                ) : null}
                 {showLidlChain ? (
                   <button
                     type="button"
@@ -1317,6 +1333,8 @@ export default function ZiiplyMobileOfferSearchCard({
                   <div className="mt-1.5 text-[0.70rem] font-extrabold leading-snug">
                     {selectedOfferChainV39 === "EUROSPAR"
                       ? "Valitulle EUROSPAR-myymälälle ei löytynyt tällä hetkellä aktiivisia tarjouksia."
+                      : selectedOfferChainV39 === "TOKMANNI"
+                        ? "Valitulle Tokmanni-myymälälle ei löytynyt tällä hetkellä aktiivisia tarjouksia."
                       : selectedOfferChainV39 === "K"
                         ? "Valitulle myymälälle ei löytynyt tällä hetkellä tarjoustietoja. Myymälällä ei välttämättä ole aktiivisia tarjouksia tai tarjoustietoja ei ole saatavilla."
                         : "Valitulle myymälälle ei löytynyt tarjoustietoja S-kaupat.fi-palvelusta. Myymälä ei välttämättä ole palvelussa tai sillä ei ole tällä hetkellä aktiivisia tarjouksia."}
