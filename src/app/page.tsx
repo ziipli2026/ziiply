@@ -11176,6 +11176,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             selectedChains.lidl &&
             !selectedChains.s &&
             !selectedChains.k;
+          const betweenSingleTokmanni =
+            storeCompareScope === "between_chains" &&
+            betweenChainSelectionModeV749 === "one" &&
+            selectedChains.tokmanni &&
+            Boolean(selectedTokmanniStoreV756) &&
+            !selectedEurosparStoreV751 &&
+            !selectedChains.s &&
+            !selectedChains.k &&
+            !selectedChains.lidl;
           let rawItems: Product[] = [];
           let usedStoreName = activeStores.sStoreName;
           let fallbackStoreName = "";
@@ -11183,6 +11192,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           if (betweenSingleLidl && selectedLidlStoreV750) {
             usedStoreName = selectedLidlStoreV750.name || "Lidl";
             rawItems = await fetchLidlProductsV760(searchQuery, selectedLidlStoreV750);
+          } else if (betweenSingleTokmanni && selectedTokmanniStoreV756) {
+            usedStoreName = selectedTokmanniStoreV756.name || "Tokmanni";
+            rawItems = await fetchTokmanniProductsV761(searchQuery);
           } else if (withinChainK || betweenSingleK) {
             const kPrimaryStoreId = withinChainK ? activeArea.kStoreId : activeStores.kStoreId;
             usedStoreName = withinChainK ? activeArea.kStoreName || "K-tavaratalo" : activeStores.kStoreName;
