@@ -4372,16 +4372,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     lidl: false,
     tokmanni: false,
   });
-  // Göstan ketjuportti seuraa vain käyttäjän nimenomaista vertailukorttivalintaa.
-  // selectedChains ei kelpaa tähän, koska S/K ovat vertailun vuoksi oletuksena true.
-  const [gostaExplicitChainSelectionV755, setGostaExplicitChainSelectionV755] = useState<
-    Record<ChainResult["key"], boolean>
-  >({
-    s: false,
-    k: false,
-    lidl: false,
-    tokmanni: false,
-  });
 
   const [isOnline, setIsOnline] = useState(true);
   const [showLaunchScreen, setShowLaunchScreen] = useState(true);
@@ -16799,33 +16789,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function handleBetweenChainCardSelectionV749(storeKey: ChainResult["key"]) {
-    setGostaExplicitChainSelectionV755((currentExplicit) => {
-      const nextExplicit =
-        betweenChainSelectionModeV749 === "one"
-          ? {
-              s: storeKey === "s",
-              k: storeKey === "k",
-              lidl: storeKey === "lidl",
-              tokmanni: storeKey === "tokmanni",
-            }
-          : {
-              ...currentExplicit,
-              [storeKey]: !currentExplicit[storeKey],
-            };
-
-      // selectedChains sisältää legacy-oletuksen S=true/K=true. Kun käyttäjä
-      // tekee ensimmäisen nimenomaisen korttivalinnan, synkronoi kyseinen ketju
-      // explicit-tilaan sen sijaan että togglattaisiin legacy-oletusta.
-      setSelectedChains((currentSelected) =>
-        betweenChainSelectionModeV749 === "one"
-          ? { ...currentSelected, ...nextExplicit }
-          : {
-              ...currentSelected,
-              [storeKey]: nextExplicit[storeKey],
-            },
-      );
-
-      return nextExplicit;
+    setSelectedChains((current) => {
+      if (betweenChainSelectionModeV749 === "one") {
+        return {
+          ...current,
+          s: storeKey === "s",
+          k: storeKey === "k",
+          lidl: storeKey === "lidl",
+          tokmanni: storeKey === "tokmanni",
+        };
+      }
+      return { ...current, [storeKey]: !current[storeKey] };
     });
     clearSearchAndComparisonState();
     setOpenStorePicker(null);
@@ -20675,13 +20649,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               gostaSelectedOfferChainRefV547.current = chain;
               void searchOffers();
             }}
-            showSChain={Boolean(gostaExplicitChainSelectionV755.s && selectedChains.s)}
-            showKChain={Boolean(gostaExplicitChainSelectionV755.k && selectedChains.k)}
-            showLidlChain={Boolean(
-              gostaExplicitChainSelectionV755.lidl &&
-              selectedChains.lidl &&
-              selectedLidlStoreV750
+            showSChain={Boolean(
+              (activeStores.sStoreId && Number(activeStores.sStoreId) > 0) ||
+              String(activeStores.sStoreName || "").trim()
             )}
+            showKChain={Boolean(
+              (activeStores.kStoreId && Number(activeStores.kStoreId) > 0) ||
+              String(activeStores.kStoreName || "").trim()
+            )}
+            showLidlChain={Boolean(selectedLidlStoreV750)}
             categorySuggestions={GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147}
             categoryOfferCounts={gostaCategoryOfferCountsV163}
             testedEmptyCategories={gostaTestedEmptyCategoriesV166}
