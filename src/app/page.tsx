@@ -20847,10 +20847,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               const name = fixText(String(offer.name || offer.title || offer.productName || "Tarjoustuote"));
               const sourceOffer = offer.__sourceOfferSearchResult || {};
               const isWeightedOffer = Boolean(offer.isWeightedProduct ?? sourceOffer.isWeightedProduct);
-              if (isWeightedOffer) {
-                showCartToast(`Vaakatuote: ${name} – lopullinen hinta määräytyy painon mukaan`);
-                return;
-              }
               if (cart.length >= MAX_ITEMS) {
                 alert(`Demossa ostoskori on rajattu ${MAX_ITEMS} tuotteeseen.`);
                 return;
@@ -20875,7 +20871,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               const newItem: CartItem = {
                 id: String(offer.id || `offer-${Date.now()}`),
                 name,
-                price: Number.isFinite(eurosparUnitPrice) ? eurosparUnitPrice : 0,
+                price: isWeightedOffer ? 0 : Number.isFinite(eurosparUnitPrice) ? eurosparUnitPrice : 0,
                 image: String(offer.imageUrl || offer.pictureUrl || offer.image || ""),
                 chain: offer.chain === "S" || offer.chain === "K" ? offer.chain : undefined,
                 storeName: String(offer.storeName || offer.shopName || ""),
@@ -20884,15 +20880,24 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 product: {
                   id: String(offer.id || `offer-product-${Date.now()}`),
                   name,
-                  price: Number.isFinite(eurosparUnitPrice) ? eurosparUnitPrice : 0,
+                  price: isWeightedOffer ? 0 : Number.isFinite(eurosparUnitPrice) ? eurosparUnitPrice : 0,
                   pictureUrl: String(offer.imageUrl || offer.pictureUrl || offer.image || ""),
+                  ...(isWeightedOffer
+                    ? {
+                        ziiplyWeightLabel: true,
+                        ziiplyWeightOffer: true,
+                        ziiplyPricePendingWeight: true,
+                        comparisonPrice: Number.isFinite(numericPrice) ? numericPrice : undefined,
+                        comparisonPriceUnit: "kg",
+                      }
+                    : {}),
                 } as unknown as Product,
               };
 
               const nextCart = [...cart, newItem];
               setCart(nextCart);
               persistCartImmediately(nextCart);
-              showCartToast(`Lisätty ostoskoriin: ${name}`);
+              showCartToast(isWeightedOffer ? `Vaakatuote lisätty listalle: ${name}` : `Lisätty ostoskoriin: ${name}`);
               void updateChainComparison(nextCart, { openCompare: false });
             }}
             onAddAllOffers={(offerItems: any[]) => {
