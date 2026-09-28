@@ -18226,7 +18226,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           store.key === "lidl" ? getStoreDistanceLabelV320(selectedLidlStoreV750) : "";
         const showLidlDistanceForCard = Boolean(lidlDistanceForCard && !isComingSoon);
         const eurosparDistanceForCard =
-          store.key === "tokmanni" ? getStoreDistanceLabelV320(selectedEurosparStoreV751) : "";
+          store.key === "tokmanni" ? getStoreDistanceLabelV320(selectedChains.tokmanni ? selectedTokmanniStoreV756 : selectedEurosparStoreV751) : "";
         const showEurosparDistanceForCard = Boolean(eurosparDistanceForCard && !isComingSoon);
 
         return (
@@ -18420,14 +18420,38 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       onClick={(event) => {
                         event.preventDefault();
                         event.stopPropagation();
-                        if (eurosparStoreOptionsV751.length > 1) {
-                          setOpenStorePicker((current) => current === "eurospar-store-picker" ? null : "eurospar-store-picker");
+                        const options = selectedChains.tokmanni ? tokmanniStoreOptionsV756 : eurosparStoreOptionsV751;
+                        if (options.length > 1) {
+                          const picker = selectedChains.tokmanni ? "tokmanni-store-picker" : "eurospar-store-picker";
+                          setOpenStorePicker((current) => current === picker ? null : picker);
                         }
                       }}
-                      className={`mt-1 rounded-full px-2 py-1 text-[9px] font-black ring-1 ${eurosparStoreOptionsV751.length > 1 ? "bg-[#fff8df]/90 text-slate-700 ring-slate-200" : "bg-slate-100 text-[#b7aa8d] ring-slate-200"}`}
+                      className={`mt-1 rounded-full px-2 py-1 text-[9px] font-black ring-1 ${(selectedChains.tokmanni ? tokmanniStoreOptionsV756.length : eurosparStoreOptionsV751.length) > 1 ? "bg-[#fff8df]/90 text-slate-700 ring-slate-200" : "bg-slate-100 text-[#b7aa8d] ring-slate-200"}`}
                     >
-                      {eurosparStoreOptionsV751.length > 1 ? "Vaihda" : selectedEurosparStoreV751 ? "Valittu" : "Ei kauppaa"}
+                      {(selectedChains.tokmanni ? tokmanniStoreOptionsV756.length : eurosparStoreOptionsV751.length) > 1 ? "Vaihda" : (selectedChains.tokmanni ? selectedTokmanniStoreV756 : selectedEurosparStoreV751) ? "Valittu" : "Ei kauppaa"}
                     </button>
+                    {openStorePicker === "tokmanni-store-picker" && typeof document !== "undefined" && (
+                      <MobileStorePickerModal
+                        open
+                        chain={"TOKMANNI" as any}
+                        title="Valitse Tokmanni"
+                        stores={tokmanniStoreOptionsV756}
+                        selectedId={selectedTokmanniStoreV756?.id}
+                        selectedName={selectedTokmanniStoreV756?.name}
+                        activeAreaLabel={activeArea.label}
+                        top={storePickerViewportStyle.top}
+                        width={storePickerViewportStyle.width}
+                        onClose={() => setOpenStorePicker(null)}
+                        getDistanceLabel={(option) => String(option.distance || "")}
+                        getStoreKey={(option, index) => `tokmanni-${option.id || index}-${normalize(option.name || "")}`}
+                        onSelectStore={(option) => {
+                          const source = tokmanniStoreOptionsV756.find((item) => sameStoreIdV93(item.id, option.id)) || option as StoreSearchItem;
+                          setSelectedTokmanniStoreV756({ ...source, chain: "TOKMANNI" });
+                          triggerHaptic();
+                          window.setTimeout(() => setOpenStorePicker(null), 0);
+                        }}
+                      />
+                    )}
                     {openStorePicker === "eurospar-store-picker" && typeof document !== "undefined" && (
                       <MobileStorePickerModal
                         open
@@ -18443,7 +18467,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                         getDistanceLabel={(option) => String(option.distance || "")}
                         getStoreKey={(option, index) => `eurospar-${option.id || index}-${normalize(option.name || "")}`}
                         onSelectStore={(option) => {
-                          const source = eurosparStoreOptionsV751.find((store) => sameStoreIdV93(store.id, option.id)) || option as StoreSearchItem;
+                          const source = eurosparStoreOptionsV751.find((item) => sameStoreIdV93(item.id, option.id)) || option as StoreSearchItem;
                           setSelectedEurosparStoreV751({ ...source, chain: "EUROSPAR" });
                           triggerHaptic();
                           window.setTimeout(() => setOpenStorePicker(null), 0);
