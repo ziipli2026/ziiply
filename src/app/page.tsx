@@ -3155,16 +3155,6 @@ export default function Page() {
 
         setStoreModeChosenV299(Boolean(parsedStoreSelection.storeModeChosenV299));
 
-        // V753: restore explicit chain choices after mount, never during SSR.
-        if (parsedStoreSelection.selectedChains && typeof parsedStoreSelection.selectedChains === "object") {
-          setSelectedChains({
-            s: Boolean(parsedStoreSelection.selectedChains.s),
-            k: Boolean(parsedStoreSelection.selectedChains.k),
-            lidl: Boolean(parsedStoreSelection.selectedChains.lidl),
-            tokmanni: Boolean(parsedStoreSelection.selectedChains.tokmanni),
-          });
-        }
-
         if (
           parsedStoreSelection.storeCompareScope === "none" ||
           parsedStoreSelection.storeCompareScope === "between_chains" ||
@@ -3902,7 +3892,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     storeModeChosenV299,
     storeCompareScope,
     withinChain,
-    selectedChains,
     gpsCoordsV320,
     usingOwnLocation,
     foundStores,
@@ -4375,14 +4364,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const [lastOptimizationSnapshot, setLastOptimizationSnapshot] =
     useState<OptimizationSnapshot | null>(null);
 
-  // V753: keep SSR/client initial state identical. Persisted explicit chain
-  // choices are restored after mount by the existing store-selection restore
-  // flow; reading localStorage inside the useState initializer breaks hydration.
   const [selectedChains, setSelectedChains] = useState<
     Record<ChainResult["key"], boolean>
   >({
-    s: false,
-    k: false,
+    s: true,
+    k: true,
     lidl: false,
     tokmanni: false,
   });
@@ -6541,7 +6527,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           storeModeChosenV299,
           storeCompareScope,
           withinChain,
-          selectedChains,
           gpsCoordsV320,
           usingOwnLocation,
         }),
@@ -6555,7 +6540,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     storeModeChosenV299,
     storeCompareScope,
     withinChain,
-    selectedChains,
     gpsCoordsV320,
     usingOwnLocation,
   ]);
@@ -8961,8 +8945,27 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     });
 
     setStoreMode(nextMode);
-    // Tavaratalot/Lähikaupat vaihtaa vain kauppatyypin.
-    // Ketjuraksit (S/K/Lidl/Tokmanni) ovat käyttäjän erillinen valinta.
+    if (storeCompareScope === "between_chains") {
+      setSelectedChains((current) => {
+        if (betweenChainSelectionModeV749 === "one") {
+          const keepK = current.k && !current.s;
+          return {
+            ...current,
+            s: !keepK,
+            k: keepK,
+            lidl: false,
+            tokmanni: false,
+          };
+        }
+        return {
+          ...current,
+          s: true,
+          k: true,
+          lidl: false,
+          tokmanni: false,
+        };
+      });
+    }
     clearSearchAndComparisonState();
   }
 
@@ -9789,8 +9792,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         setStoreModeChosenV299(true);
         setStoreCompareScope("between_chains");
         setWithinChain(null);
-        // GPS saa ratkaista Lähikaupat-tilan, mutta ketjut valitsee käyttäjä.
-        // Puhdas käynnistys ei saa näyttää S/K-rakseja automaattisesti.
+        setSelectedChains((current) => ({
+          ...current,
+          s: true,
+          k: true,
+          lidl: false,
+          tokmanni: false,
+        }));
       }
 
       if (typeof document !== "undefined") {
@@ -20676,8 +20684,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               gostaSelectedOfferChainRefV547.current = chain;
               void searchOffers();
             }}
-            showSChain={Boolean(selectedChains.s && Number(activeStores.sStoreId || 0) > 0)}
-            showKChain={Boolean(selectedChains.k && Number(activeStores.kStoreId || 0) > 0)}
+            showSChain={Number(activeStores.sStoreId || 0) > 0}
+            showKChain={Number(activeStores.kStoreId || 0) > 0}
             showLidlChain={Boolean(selectedChains.lidl && selectedLidlStoreV750)}
             showEurosparChain={Boolean(selectedEurosparStoreV751)}
             categorySuggestions={GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147}
@@ -20713,24 +20721,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 return;
               }
 
-              const sourceOffer = offer.__sourceOfferSearchResult || {};
-              const isEurosparMultiBuy =
-                String(sourceOffer.chain || offer.chain || "").trim().toUpperCase() === "EUROSPAR" &&
-                sourceOffer.priceBasis === "multi-buy-total" &&
-                Number.isFinite(Number(sourceOffer.offerQuantity)) &&
-                Number(sourceOffer.offerQuantity) > 1;
-              const rawNumericPrice = Number(
+              const numericPrice = Number(
                 String(offer.offerPrice || offer.price || "")
                   .replace(",", ".")
                   .replace(/[^\d.-]/g, ""),
               );
-              const equivalentPrice = Number(sourceOffer.singleEquivalentPrice);
-              // Cart rows are per product unit. A EUROSPAR multi-buy total such
-              // as 4 kpl / 5 € must therefore enter as 1.25 €/kpl, not 5 €/kpl.
-              const numericPrice =
-                isEurosparMultiBuy && Number.isFinite(equivalentPrice) && equivalentPrice > 0
-                  ? equivalentPrice
-                  : rawNumericPrice;
 
               const newItem: CartItem = {
                 id: String(offer.id || `offer-${Date.now()}`),
@@ -20765,22 +20760,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 const name = fixText(String(offer.name || offer.title || offer.productName || "Tarjoustuote"));
                 if (nextCart.some((item) => normalize(item.name) === normalize(name))) continue;
 
-                const sourceOffer = offer.__sourceOfferSearchResult || {};
-                const isEurosparMultiBuy =
-                  String(sourceOffer.chain || offer.chain || "").trim().toUpperCase() === "EUROSPAR" &&
-                  sourceOffer.priceBasis === "multi-buy-total" &&
-                  Number.isFinite(Number(sourceOffer.offerQuantity)) &&
-                  Number(sourceOffer.offerQuantity) > 1;
-                const rawNumericPrice = Number(
+                const numericPrice = Number(
                   String(offer.offerPrice || offer.price || "")
                     .replace(",", ".")
                     .replace(/[^\d.-]/g, ""),
                 );
-                const equivalentPrice = Number(sourceOffer.singleEquivalentPrice);
-                const numericPrice =
-                  isEurosparMultiBuy && Number.isFinite(equivalentPrice) && equivalentPrice > 0
-                    ? equivalentPrice
-                    : rawNumericPrice;
 
                 nextCart = [
                   ...nextCart,
