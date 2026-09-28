@@ -119,6 +119,23 @@ export async function fetchLidlOffers(storeKey: string, storeName = "Lidl") {
       offerType: row?.offerType || "",
       redemptionChannel: row?.redemptionChannel || "",
       hasConcretePrice: numericPrice != null,
+      // Keep Lidl's complete price box available for DBG inspection when the
+      // API represents a multi-buy/special offer without largePartNumeric.
+      // Do not derive a cart price from these fields until their semantics are verified.
+      ...(numericPrice == null
+        ? {
+            debugPriceBox: box,
+            debugOfferPricing: {
+              discountMessage: box?.discountMessage ?? null,
+              largePartString: box?.largePartString ?? null,
+              largePartNumeric: box?.largePartNumeric ?? null,
+              smallPartString: box?.smallPartString ?? null,
+              smallPartNumeric: box?.smallPartNumeric ?? null,
+              priceSymbol: box?.priceSymbol ?? null,
+              pricePerUnit: row?.pricePerUnit ?? null,
+            },
+          }
+        : {}),
       // Lidl productIds are not assumed to be EANs.
       ean: "",
       rawText: [title, brandName, priceText, discountText, unitPriceText, category, storeName].filter(Boolean).join(" "),
