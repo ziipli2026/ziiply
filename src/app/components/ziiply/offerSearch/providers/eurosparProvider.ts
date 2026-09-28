@@ -6,7 +6,13 @@ export type EurosparOffer = {
   title: string;
   price: number;
   normalPrice?: number | null;
+  normalPriceText?: string | null;
+  normalPriceMin?: number | null;
+  normalPriceMax?: number | null;
   unitPrice?: number | null;
+  unitPriceText?: string | null;
+  unitPriceMin?: number | null;
+  unitPriceMax?: number | null;
   unit?: string | null;
   packageSize?: string | null;
   offerQuantity?: number | null;
@@ -44,6 +50,16 @@ const num = (value: unknown) => {
   return Number.isFinite(n) ? n : null;
 };
 const iso = (value: unknown) => /^\d{4}-\d{2}-\d{2}$/.test(String(value ?? "")) ? String(value) : null;
+const range = (value: unknown) => {
+  if (value == null || value === "") return { text: null, min: null, max: null };
+  const text = String(value).trim();
+  const parts = text.split(/\s*[-–]\s*/).map(num);
+  if (parts.length === 1 && parts[0] !== null) return { text, min: parts[0], max: parts[0] };
+  if (parts.length === 2 && parts.every((part) => part !== null)) {
+    return { text, min: parts[0], max: parts[1] };
+  }
+  return { text, min: null, max: null };
+};
 
 export function adaptEurosparFeed(feed: Feed, storeName: string, date: string): EurosparOffer[] {
   if (feed.schemaVersion !== 1 || !feed.healthy || !Array.isArray(feed.offers)) return [];
@@ -68,12 +84,21 @@ export function adaptEurosparFeed(feed: Feed, storeName: string, date: string): 
     if (!(price && price > 0) || (priceBasis !== "single-unit" && priceBasis !== "multi-buy-total")) return [];
     if (priceBasis === "multi-buy-total" && (!quantity || quantity < 2)) return [];
 
+    const normalRange = range(raw.normalPrice);
+    const unitRange = range(raw.unitPrice);
+
     return [{
       id: String(raw.id ?? ""),
       title: String(raw.name ?? ""),
       price,
-      normalPrice: num(raw.normalPrice),
-      unitPrice: num(raw.unitPrice),
+      normalPrice: normalRange.min === normalRange.max ? normalRange.min : null,
+      normalPriceText: normalRange.text,
+      normalPriceMin: normalRange.min,
+      normalPriceMax: normalRange.max,
+      unitPrice: unitRange.min === unitRange.max ? unitRange.min : null,
+      unitPriceText: unitRange.text,
+      unitPriceMin: unitRange.min,
+      unitPriceMax: unitRange.max,
       unit: raw.unitPriceUnit ? String(raw.unitPriceUnit) : null,
       packageSize: raw.size ? String(raw.size) : null,
       offerQuantity: quantity,
