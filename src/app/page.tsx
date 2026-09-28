@@ -9042,7 +9042,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setExpandedAlternatives(lastOptimizationSnapshot.expandedAlternatives);
     setOptimizingChains({});
     setLastOptimizationSnapshot(null);
-    setActiveResult("compare");
+    if (storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one") {
+      setActiveResult("none");
+      void refreshSingleChainCartPricesV770(lastOptimizationSnapshot.cart);
+      setCartModalOpen(true);
+    } else {
+      setActiveResult("compare");
+    }
   }
 
   function clearSearchAndComparisonState() {
@@ -15117,8 +15123,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       showCartToast(
         `Lisätty muistilistaan: ${newItems.length} ${newItems.length === 1 ? "rivi" : "riviä"}`,
       );
-      setActiveResult("compare");
-      void updateChainComparison(nextCart);
+      if (storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one") {
+        void refreshSingleChainCartPricesV770(nextCart);
+      } else {
+        setActiveResult("compare");
+        void updateChainComparison(nextCart);
+      }
       setSearchPanelOpen(false);
       setCartModalOpen(true);
     } else {
@@ -19161,6 +19171,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   }
                   onOpenResults={() => setActiveResult((current) => current === "offers" ? "none" : "offers")}
                   onOpenCompare={() => {
+                    if (storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one") {
+                      setActiveResult("none");
+                      if (cart.length > 0) void refreshSingleChainCartPricesV770(cart);
+                      setCartModalOpen(cart.length > 0);
+                      return;
+                    }
                     if (activeResult === "compare") {
                       setActiveResult("none");
                       return;
@@ -21488,8 +21504,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 setActiveResult("none");
                 return;
               }
-              setActiveResult("compare");
-              void updateChainComparison(cart);
+              if (storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one") {
+                setActiveResult("none");
+                void refreshSingleChainCartPricesV770(cart);
+                setCartModalOpen(true);
+              } else {
+                setActiveResult("compare");
+                void updateChainComparison(cart);
+              }
               return;
             }
 
