@@ -18464,7 +18464,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                           window.setTimeout(() => setOpenStorePicker(null), 0);
                         }}
                       />
-                                  ) : store.key === "tokmanni" ? (
+                    )}
+                  </>
+                ) : store.key === "tokmanni" ? (
                   <>
                     <button
                       type="button"
@@ -18511,9 +18513,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                         }}
                       />
                     )}
-                  </>
- )}
-
                   </>
                 ) : (
                   <span className={`mt-1 rounded-full px-2 py-1 text-[9px] font-black ring-1 ${selected ? "bg-slate-100 text-[#b7aa8d] ring-slate-200" : "bg-[#fff8df]/90 text-slate-700 ring-slate-200"}`}>
