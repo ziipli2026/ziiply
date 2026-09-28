@@ -148,6 +148,12 @@ export async function fetchLidlOffers(storeKey: string, storeName = "Lidl") {
               priceSymbol: box?.priceSymbol ?? null,
               pricePerUnit: row?.pricePerUnit ?? null,
             },
+            debugRawPriceFields: Object.fromEntries(
+              Object.entries(row).filter(([field]) =>
+                /price|amount|value|discount|saving|regular|original|before|unit/i.test(field),
+              ),
+            ),
+            debugRawKeys: Object.keys(row),
           }
         : {}),
       // Lidl productIds are not assumed to be EANs.
