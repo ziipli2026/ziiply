@@ -1,6 +1,8 @@
 type TokmanniOffer = Record<string, any>;
 
 const TOKMANNI_OFFERS_URL = "https://www.tokmanni.fi/viikkotarjoukset";
+const TOKMANNI_PAGE_SIZE = 40;
+const TOKMANNI_MAX_PAGES = 80;
 
 const clean = (value: unknown) =>
   String(value ?? "").replace(/\u00a0/g, " ").replace(/[ \t]+/g, " ").trim();
@@ -159,8 +161,10 @@ function mapBlock(block: string, index: number): TokmanniOffer | null {
   };
 }
 
-export async function fetchTokmanniOffers() {
-  const response = await fetch(TOKMANNI_OFFERS_URL, {
+async function fetchTokmanniPage(page: number) {
+  const url = new URL(TOKMANNI_OFFERS_URL);
+  if (page > 1) url.searchParams.set("p", String(page));
+  const response = await fetch(url, {
     redirect: "follow",
     headers: {
       accept: "text/html,application/xhtml+xml",
@@ -169,12 +173,40 @@ export async function fetchTokmanniOffers() {
     },
     cache: "no-store",
   });
-  if (!response.ok) throw new Error(`Tokmanni offers failed: ${response.status}`);
+  if (!response.ok) throw new Error(`Tokmanni offers page ${page} failed: ${response.status}`);
+  return response.text();
+}
 
-  const html = await response.text();
-  const items = productBlocks(html)
-    .map(mapBlock)
-    .filter((item): item is TokmanniOffer => Boolean(item));
+function advertisedTotal(html: string) {
+  const text = textOf(html);
+  const m = text.match(/(?:Tuotteet\s+\d+\s*[-–]\s*\d+\s*\/\s*|)(\d+)\s+tuotetta/i);
+  return m ? Number(m[1]) : null;
+}
+
+export async function fetchTokmanniOffers() {
+  const firstHtml = await fetchTokmanniPage(1);
+  const total = advertisedTotal(firstHtml);
+  const pageCount = total
+    ? Math.min(TOKMANNI_MAX_PAGES, Math.max(1, Math.ceil(total / TOKMANNI_PAGE_SIZE)))
+    : 1;
+
+  const htmlPages = [firstHtml];
+  // Fetch in small batches: Tokmanni currently paginates the weekly-offer
+  // listing at 40 products/page, so page 1 alone is not a complete dataset.
+  for (let start = 2; start <= pageCount; start += 5) {
+    const pages = Array.from(
+      { length: Math.min(5, pageCount - start + 1) },
+      (_, index) => start + index,
+    );
+    const batch = await Promise.all(pages.map(fetchTokmanniPage));
+    htmlPages.push(...batch);
+  }
+
+  const items = htmlPages.flatMap((html, pageIndex) =>
+    productBlocks(html)
+      .map((block, index) => mapBlock(block, pageIndex * TOKMANNI_PAGE_SIZE + index))
+      .filter((item): item is TokmanniOffer => Boolean(item)),
+  );
 
   const seen = new Set<string>();
   return items.filter((item) => {
