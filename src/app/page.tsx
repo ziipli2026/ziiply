@@ -10573,7 +10573,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // nykyisen storeMode-arvon mukaisen kaupan; toinen ketju ei vuoda hakuun.
       const sOfferStoresV532 = gostaSelectedOfferChainRefV547.current === "S"
         ? uniqueSelectedOfferStoresV532([gostaSelectedSStoreV547])
-        : gostaSelectedOfferChainRefV547.current === "K"
+        : gostaSelectedOfferChainRefV547.current === "K" || gostaSelectedOfferChainRefV547.current === "EUROSPAR"
           ? []
           : useWithinChainSOffersV532
             ? uniqueSelectedOfferStoresV532([sWithinHyperStoreV539, sWithinLocalStoreV539])
@@ -10583,7 +10583,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       const kOfferStoresV532 = gostaSelectedOfferChainRefV547.current === "K"
         ? uniqueSelectedOfferStoresV532([gostaSelectedKStoreV549])
-        : gostaSelectedOfferChainRefV547.current === "S"
+        : gostaSelectedOfferChainRefV547.current === "S" || gostaSelectedOfferChainRefV547.current === "EUROSPAR"
           ? []
           : useWithinChainKOffersV532
             ? uniqueSelectedOfferStoresV532([kWithinHyperStoreV539, kWithinLocalStoreV539])
@@ -10637,9 +10637,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         kStoreName: kOfferNamesV532.join("||") || undefined,
         kStoreIds: kOfferIdsV532,
         kStoreNames: kOfferNamesV532,
-        eurosparStoreId: selectedEurosparStoreV751?.id || undefined,
-        eurosparStoreName: selectedEurosparStoreV751?.name || undefined,
-        eurosparStoreChain: selectedEurosparStoreV751?.chain || undefined,
+        eurosparStoreId: gostaSelectedOfferChainRefV547.current === "EUROSPAR" ? selectedEurosparStoreV751?.id || undefined : undefined,
+        eurosparStoreName: gostaSelectedOfferChainRefV547.current === "EUROSPAR" ? selectedEurosparStoreV751?.name || undefined : undefined,
+        eurosparStoreChain: gostaSelectedOfferChainRefV547.current === "EUROSPAR" ? selectedEurosparStoreV751?.chain || undefined : undefined,
         usingOwnLocation,
         gpsLat: gpsCoordsV320?.latitude,
         gpsLon: gpsCoordsV320?.longitude,
