@@ -556,6 +556,34 @@ function getNormalPrice(offer: ZiiplyMobileOfferSearchItem) {
 }
 
 function getSavingsText(offer: ZiiplyMobileOfferSearchItem) {
+  const source = offer.__sourceOfferSearchResult || {};
+  const isEurospar = String(source.chain || offer.chain || "").trim().toUpperCase() === "EUROSPAR";
+  const quantity = Number(source.offerQuantity);
+  const unit = String(source.offerUnit || "kpl").trim();
+  const isMultiBuy =
+    isEurospar &&
+    source.priceBasis === "multi-buy-total" &&
+    Number.isFinite(quantity) &&
+    quantity > 1;
+
+  // V58: EUROSPAR's mapped discountText is normally the validity period, not
+  // a saving. For multi-buy offers show comparable per-unit pricing instead of
+  // letting that validity text hide the useful normal-price information.
+  if (isMultiBuy) {
+    const equivalent = Number(source.singleEquivalentPrice);
+    const normalText = String(source.normalPriceText || "").trim();
+    const percent = Number(source.discountPercent);
+    const parts: string[] = [];
+
+    if (Number.isFinite(equivalent) && equivalent > 0) {
+      parts.push(`${equivalent.toLocaleString("fi-FI", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €/${unit}`);
+    }
+    if (normalText) parts.push(`norm. ${normalText} €/${unit}`);
+    if (Number.isFinite(percent) && percent > 0) parts.push(`-${Math.round(percent)} %`);
+
+    if (parts.length) return parts.join(" · ");
+  }
+
   if (offer.discountText) return cleanRepeatedOfferTextV4(offer.discountText);
 
   const explicit = normalizePrice(offer.savings);
