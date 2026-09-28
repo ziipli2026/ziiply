@@ -5675,6 +5675,21 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       });
     }
 
+    // V765: Tokmanni kuuluu samaan valinnan jälkeiseen Gösta-warmupiin kuin EUROSPAR.
+    // Muuten Tokmanni-kortin valinta ei lämmitä tarjouksia ennen Göstan avaamista.
+    if (selectedTokmanniStoreV756?.chain === "TOKMANNI") {
+      warmContexts.push({
+        ...commonContext,
+        areaLabel: baseAreaLabel,
+        sStoreIds: [],
+        sStoreNames: [],
+        kStoreIds: [],
+        kStoreNames: [],
+        tokmanniStoreId: selectedTokmanniStoreV756.id || undefined,
+        tokmanniStoreName: selectedTokmanniStoreV756.name || undefined,
+      });
+    }
+
     // V741_SELECTION_WARMUP_IMMEDIATE:
     // Kun aktiivinen kauppavalinta on ratkennut, käynnistä Göstan täsmälleen saman
     // ketjukohtaisen master-cachen lämmitys heti. Jos Gösta avataan kesken latauksen,
@@ -5701,6 +5716,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     activeStores.kStoreName,
     foundStores,
     selectedEurosparStoreV751,
+    selectedTokmanniStoreV756,
   ]);
 
   // V506_BUILD_FIX_WARMUP_AFTER_ACTIVESTORES:
