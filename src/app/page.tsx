@@ -11923,72 +11923,93 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     );
     if (!selectedKey) return;
 
-    const nextItems = await Promise.all(
-      nextCart.map(async (item) => {
-        if (isWeightCartItemV738(item) || String(item?.source || "").toLowerCase() === "offer") return item;
+    setComparisonLoading(true);
+    try {
+      const nextItems = await Promise.all(
+        nextCart.map(async (item) => {
+          if (isWeightCartItemV738(item) || String(item?.source || "").toLowerCase() === "offer") return item;
 
-        const itemEan = normalizeEan(item.ean || item.product?.ean);
-        const itemName = fixText(String(item.product?.name || item.name || "")).trim();
-        if (!itemName) return item;
+          const itemEan = normalizeEan(item.ean || item.product?.ean);
+          const itemName = fixText(String(item.product?.name || item.name || "")).trim();
+          if (!itemName) return item;
 
-        let candidates: Product[] = [];
-        let storeName = item.storeName || "";
+          let match: Product | undefined;
+          let storeName = item.storeName || "";
 
-        try {
-          if (selectedKey === "s" && activeStores.sStoreId) {
-            candidates = await fetchSProducts(itemEan || itemName, activeStores.sStoreId);
-            storeName = activeStores.sStoreName || storeName;
-          } else if (selectedKey === "k" && activeStores.kStoreId) {
-            const raw = await fetchKProducts(itemEan || itemName, activeStores.kStoreId);
-            candidates = raw.map((product) => convertKProductToProduct(product));
-            storeName = activeStores.kStoreName || storeName;
-          } else if (selectedKey === "lidl" && selectedLidlStoreV750) {
-            candidates = await fetchLidlProductsV760(itemEan || itemName, selectedLidlStoreV750);
-            storeName = selectedLidlStoreV750.name || storeName;
-          } else if (selectedKey === "tokmanni") {
-            candidates = await fetchTokmanniProductsV761(itemEan || itemName);
-            storeName =
-              selectedTokmanniStoreV756?.name ||
-              selectedEurosparStoreV751?.name ||
-              storeName;
+          try {
+            if (selectedKey === "s" && activeStores.sStoreId) {
+              storeName = activeStores.sStoreName || storeName;
+              const queries = Array.from(new Set([itemEan, itemName, ...getNormalSearchQueries(itemName).slice(0, 6)].filter(Boolean)));
+              for (const query of queries) {
+                const candidates = await fetchSProducts(query, activeStores.sStoreId).catch(() => [] as Product[]);
+                match = itemEan
+                  ? candidates.find((product) => normalizeEan(product.ean) === itemEan && getProductPrice(product) > 0)
+                  : undefined;
+                if (!match) match = pickBestSProduct(candidates, itemName, itemEan);
+                if (match && getProductPrice(match) > 0) break;
+              }
+            } else if (selectedKey === "k" && activeStores.kStoreId) {
+              storeName = activeStores.kStoreName || storeName;
+              const best = await findBestKMatchForStore(itemName, activeStores.kStoreId, itemEan);
+              if (best && best.price > 0) match = convertKProductToProduct(best);
+            } else if (selectedKey === "lidl" && selectedLidlStoreV750) {
+              storeName = selectedLidlStoreV750.name || storeName;
+              const candidates = await fetchLidlProductsV760(itemEan || itemName, selectedLidlStoreV750);
+              match =
+                (itemEan
+                  ? candidates.find((product) => normalizeEan(product.ean) === itemEan && getProductPrice(product) > 0)
+                  : undefined) ||
+                pickBestSProduct(candidates, itemName, itemEan);
+            } else if (selectedKey === "tokmanni") {
+              storeName =
+                selectedTokmanniStoreV756?.name ||
+                selectedEurosparStoreV751?.name ||
+                storeName;
+              const candidates = await fetchTokmanniProductsV761(itemEan || itemName);
+              match =
+                (itemEan
+                  ? candidates.find((product) => normalizeEan(product.ean) === itemEan && getProductPrice(product) > 0)
+                  : undefined) ||
+                pickBestSProduct(candidates, itemName, itemEan);
+            }
+          } catch {
+            return item;
           }
-        } catch {
-          return item;
-        }
 
-        const exactEan = itemEan
-          ? candidates.find((product) => normalizeEan(product.ean) === itemEan && getProductPrice(product) > 0)
-          : undefined;
-        const exactName = candidates.find(
-          (product) =>
-            normalize(fixText(String(product.name || ""))) === normalize(itemName) &&
-            getProductPrice(product) > 0,
-        );
-        const match = exactEan || exactName;
-        if (!match) return item;
+          if (!match || getProductPrice(match) <= 0) return item;
 
-        const price = getProductPrice(match);
-        return {
-          ...item,
-          price,
-          chain: selectedKey === "s" ? "S" : selectedKey === "k" ? "K" : item.chain,
-          storeName,
-          product: { ...(item.product || match), ...match, price },
-          ean: item.ean || match.ean,
-        } as CartItem;
-      }),
-    );
+          const price = getProductPrice(match);
+          return {
+            ...item,
+            name: match.name || item.name,
+            price,
+            chain: selectedKey === "s" ? "S" : selectedKey === "k" ? "K" : item.chain,
+            storeName,
+            product: { ...match, price, storeName } as Product,
+            ean: match.ean || item.ean,
+          } as CartItem;
+        }),
+      );
 
-    const changed = nextItems.some(
-      (item, index) =>
-        Number(item.price || 0) !== Number(nextCart[index]?.price || 0) ||
-        String(item.storeName || "") !== String(nextCart[index]?.storeName || ""),
-    );
-    if (!changed) return;
+      const changed = nextItems.some(
+        (item, index) =>
+          Number(item.price || 0) !== Number(nextCart[index]?.price || 0) ||
+          normalize(String(item.name || "")) !== normalize(String(nextCart[index]?.name || "")) ||
+          normalizeEan(item.ean) !== normalizeEan(nextCart[index]?.ean) ||
+          String(item.storeName || "") !== String(nextCart[index]?.storeName || ""),
+      );
+      if (!changed) {
+        showCartToast("Valitusta ketjusta ei löytynyt turvallista vastaavaa tuotetta.");
+        return;
+      }
 
-    cartRefV124.current = nextItems;
-    setCart(nextItems);
-    persistCartImmediately(nextItems);
+      cartRefV124.current = nextItems;
+      setCart(nextItems);
+      persistCartImmediately(nextItems);
+      showCartToast("Ostoskori päivitetty valitun ketjun tuotteilla ja hinnoilla.");
+    } finally {
+      setComparisonLoading(false);
+    }
   }
 
   async function updateChainComparison(
