@@ -982,7 +982,8 @@ export default function ZiiplyMobileOfferSearchCard({
     : "Valitsemasi lähipuodin huojennetut hinnat ja tarjoukset";
 
   const debugPayloadV52 = {
-    revision: "V54-KRUOKA-PIPELINE-DEBUG-PROP",
+    revision: "V55-EUROSPAR-CATEGORY-MULTIBUY",
+    buildMarker: "e3dd3e6",
     selectedOfferChain: selectedOfferChainV39,
     loading,
     query: shownQuery,
