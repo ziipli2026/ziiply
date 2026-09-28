@@ -97,6 +97,7 @@ export type StoreSearchItem = {
   type?: "S" | "K" | string;
   city?: string;
   postalCode?: string;
+  address?: string;
   // V219: Ruoanhinta's external store id; for Finnish Prisma this is the S-kaupat storeId.
   externalId?: string | number;
   distanceKm?: number;
