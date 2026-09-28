@@ -28,7 +28,8 @@ export async function GET(request: NextRequest) {
   const lat = latParam == null || latParam === "" ? NaN : Number(latParam);
   const lon = lonParam == null || lonParam === "" ? NaN : Number(lonParam);
   const hasGps = Number.isFinite(lat) && Number.isFinite(lon);
-  const search = String(request.nextUrl.searchParams.get("search") || "").trim().toLocaleLowerCase("fi-FI");
+  const searchRaw = String(request.nextUrl.searchParams.get("search") || "").trim();
+  const search = searchRaw.toLocaleLowerCase("fi-FI");
 
   const feed = storeFeed as StoreFeed;
   if (feed.schemaVersion !== 1 || !Array.isArray(feed.stores)) {
@@ -74,16 +75,33 @@ export async function GET(request: NextRequest) {
 
   const visibleItems = hasGps
     ? (() => {
-        const nearby = items.filter((item) => item.distanceKm != null && item.distanceKm <= 50);
-        return nearby.length >= 2 ? nearby : items.slice(0, Math.min(8, items.length));
+        // Same picker rule as S/K local stores:
+        // all stores in the detected municipality + always the nearest store,
+        // then nearest stores until there are at least five. No km cutoff.
+        const municipality = search;
+        const sameMunicipality = municipality
+          ? items.filter((item) => item.city.toLocaleLowerCase("fi-FI") === municipality)
+          : [];
+        const nearest = items[0];
+        const required = [
+          ...sameMunicipality,
+          ...(nearest && !sameMunicipality.some((item) => item.id === nearest.id) ? [nearest] : []),
+        ];
+        const requiredIds = new Set(required.map((item) => item.id));
+        const result = [...required];
+        for (const item of items) {
+          if (result.length >= 5) break;
+          if (!requiredIds.has(item.id)) {
+            result.push(item);
+            requiredIds.add(item.id);
+          }
+        }
+        return result.sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity));
       })()
     : search
-      ? (() => {
-          const matches = items.filter((item) =>
-            `${item.name} ${item.city}`.toLocaleLowerCase("fi-FI").includes(search),
-          );
-          return matches.length ? matches : items.slice(0, Math.min(8, items.length));
-        })()
+      ? items.filter((item) =>
+          `${item.name} ${item.city}`.toLocaleLowerCase("fi-FI").includes(search),
+        )
       : [];
 
   return NextResponse.json({ items: visibleItems });
