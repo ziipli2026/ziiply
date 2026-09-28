@@ -16827,8 +16827,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     {
       key: "tokmanni",
       logo: "T",
-      title: "Tokmanni",
-      name: selectedTokmanniStoreV756?.name || "Tokmanni ei valittu",
+      title: "SPAR",
+      name: selectedTokmanniStoreV756?.name || selectedEurosparStoreV751?.name || "SPAR ei valittu",
       tone: "bg-yellow-400 text-slate-950 ring-yellow-100",
       selectedTone: "border-yellow-500 bg-yellow-50 text-yellow-950",
     },
@@ -18464,46 +18464,55 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                           window.setTimeout(() => setOpenStorePicker(null), 0);
                         }}
                       />
-                    )}
-                  </>
-                ) : store.key === "tokmanni" ? (
+                                  ) : store.key === "tokmanni" ? (
                   <>
                     <button
                       type="button"
                       onClick={(event) => {
                         event.preventDefault();
                         event.stopPropagation();
-                        const options = tokmanniStoreOptionsV756;
+                        const options = [...tokmanniStoreOptionsV756, ...eurosparStoreOptionsV751]
+                          .sort((left, right) => ((left as any).distanceKm ?? Infinity) - ((right as any).distanceKm ?? Infinity));
                         if (options.length > 1) {
-                          setOpenStorePicker((current) => current === "tokmanni-store-picker" ? null : "tokmanni-store-picker");
+                          setOpenStorePicker((current) => current === "spar-store-picker" ? null : "spar-store-picker");
                         }
                       }}
-                      className={`mt-1 rounded-full px-2 py-1 text-[9px] font-black ring-1 ${tokmanniStoreOptionsV756.length > 1 ? "bg-[#fff8df]/90 text-slate-700 ring-slate-200" : "bg-slate-100 text-[#b7aa8d] ring-slate-200"}`}
+                      className={`mt-1 rounded-full px-2 py-1 text-[9px] font-black ring-1 ${(tokmanniStoreOptionsV756.length + eurosparStoreOptionsV751.length) > 1 ? "bg-[#fff8df]/90 text-slate-700 ring-slate-200" : "bg-slate-100 text-[#b7aa8d] ring-slate-200"}`}
                     >
-                      {tokmanniStoreOptionsV756.length > 1 ? "Vaihda" : selectedTokmanniStoreV756 ? "Valittu" : "Ei kauppaa"}
+                      {(tokmanniStoreOptionsV756.length + eurosparStoreOptionsV751.length) > 1 ? "Vaihda" : (selectedTokmanniStoreV756 || selectedEurosparStoreV751) ? "Valittu" : "Ei kauppaa"}
                     </button>
-                    {openStorePicker === "tokmanni-store-picker" && typeof document !== "undefined" && (
+                    {openStorePicker === "spar-store-picker" && typeof document !== "undefined" && (
                       <MobileStorePickerModal
                         open
-                        chain={"TOKMANNI" as any}
-                        title="Valitse Tokmanni"
-                        stores={tokmanniStoreOptionsV756}
-                        selectedId={selectedTokmanniStoreV756?.id}
-                        selectedName={selectedTokmanniStoreV756?.name}
+                        chain={"SPAR" as any}
+                        title="Valitse SPAR / Tokmanni"
+                        stores={[...tokmanniStoreOptionsV756, ...eurosparStoreOptionsV751].sort((left, right) => ((left as any).distanceKm ?? Infinity) - ((right as any).distanceKm ?? Infinity))}
+                        selectedId={selectedTokmanniStoreV756?.id || selectedEurosparStoreV751?.id}
+                        selectedName={selectedTokmanniStoreV756?.name || selectedEurosparStoreV751?.name}
                         activeAreaLabel={activeArea.label}
                         top={storePickerViewportStyle.top}
                         width={storePickerViewportStyle.width}
                         onClose={() => setOpenStorePicker(null)}
                         getDistanceLabel={(option) => String(option.distance || "")}
-                        getStoreKey={(option, index) => `tokmanni-${option.id || index}-${normalize(option.name || "")}`}
+                        getStoreKey={(option, index) => `spar-${String(option.chain || option.type || "store").toLowerCase()}-${option.id || index}-${normalize(option.name || "")}`}
                         onSelectStore={(option) => {
-                          const source = tokmanniStoreOptionsV756.find((item) => sameStoreIdV93(item.id, option.id)) || option as StoreSearchItem;
-                          setSelectedTokmanniStoreV756({ ...source, chain: "TOKMANNI" });
+                          const optionChain = String(option.chain || option.type || "").toUpperCase();
+                          if (optionChain === "EUROSPAR") {
+                            const source = eurosparStoreOptionsV751.find((item) => sameStoreIdV93(item.id, option.id)) || option as StoreSearchItem;
+                            setSelectedEurosparStoreV751({ ...source, chain: "EUROSPAR" });
+                            setSelectedTokmanniStoreV756(null);
+                          } else {
+                            const source = tokmanniStoreOptionsV756.find((item) => sameStoreIdV93(item.id, option.id)) || option as StoreSearchItem;
+                            setSelectedTokmanniStoreV756({ ...source, chain: "TOKMANNI" });
+                            setSelectedEurosparStoreV751(null);
+                          }
                           triggerHaptic();
                           window.setTimeout(() => setOpenStorePicker(null), 0);
                         }}
                       />
                     )}
+                  </>
+ )}
 
                   </>
                 ) : (
