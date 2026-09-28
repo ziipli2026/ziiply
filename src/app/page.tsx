@@ -6264,7 +6264,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       .filter((item: Product | null): item is Product =>
         Boolean(item && item.name && getProductPrice(item) > 0),
       )
-      .map((item) => ({ ...item, ziiplySourceChain: "LIDL" }) as Product);
+      .map((item) => item);
   }
 
   async function fetchKProducts(
@@ -14698,14 +14698,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       storeName: normalSearchStoreName,
       quantity: 1,
       source: "search",
-      product: isLidlOnlyNormalSearchV760
-        ? ({ ...product, ziiplySourceChain: "LIDL" } as Product)
-        : product,
+      product,
       ean: product.ean,
     };
-    if (isLidlOnlyNormalSearchV760) {
-      (newItem as any).ziiplySourceChain = "LIDL";
-    }
 
     // TEMP Huiluntuhti identity trace: capture the exact user-selected identity
     // before any comparison/EAN/fallback work can run.
