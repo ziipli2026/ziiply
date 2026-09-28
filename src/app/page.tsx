@@ -3489,6 +3489,21 @@ export default function Page() {
   const [cartSavePanelOpen, setCartSavePanelOpen] = useState(false);
   const [notebookOpen, setNotebookOpen] = useState(false);
 
+  function preloadSearchUiAssetsV774() {
+    [
+      "/assistants/gosta.png",
+      "/assistants/justiina.png",
+      "/ui/voice/aanita-on.webp",
+      "/ui/voice/aanita-search.webp",
+      "/ui/voice/aanita-off.webp",
+      "/ui/scanner/scanner-idle.webp",
+    ].forEach((src) => {
+      const image = new Image();
+      image.decoding = "async";
+      image.src = src;
+    });
+  }
+
   // V773: lämmitä pääsivun ja korttien staattiset grafiikat heti cold startissa,
   // jotta Kori/Vertailu/Muistivihko eivät odota kuvia vasta korttia avattaessa.
   useEffect(() => {
@@ -21490,6 +21505,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             toggleShopsPanel();
           }}
           onSearchClick={() => {
+            preloadSearchUiAssetsV774();
             gostaPanelStickyOpenRefV158.current = false;
             suppressHaeReadyBadgeV541();
             setNormalResults([]);
