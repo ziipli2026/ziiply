@@ -3879,29 +3879,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     foundStores.length > 0 ||
     gpsCoordsV320,
   );
-  const independentSingleChainReadyV762 =
-    storeCompareScope === "between_chains" &&
-    betweenChainSelectionModeV749 === "one" &&
-    ((selectedChains.lidl &&
-      !selectedChains.s &&
-      !selectedChains.k &&
-      !selectedChains.tokmanni &&
-      Boolean(selectedLidlStoreV750?.id || selectedLidlStoreV750?.name)) ||
-      (selectedChains.tokmanni &&
-        !selectedChains.s &&
-        !selectedChains.k &&
-        !selectedChains.lidl &&
-        Boolean(
-          selectedTokmanniStoreV756?.id ||
-          selectedTokmanniStoreV756?.name ||
-          selectedEurosparStoreV751?.id ||
-          selectedEurosparStoreV751?.name,
-        )));
-
   const storesReadyForSearch = Boolean(
-    (independentSingleChainReadyV762 || locationReadyForSearchV504) &&
-    ((storeCompareScope === "between_chains" &&
-      (storeModeChosenV299 || independentSingleChainReadyV762)) ||
+    locationReadyForSearchV504 &&
+    ((storeCompareScope === "between_chains" && storeModeChosenV299) ||
       withinChainStoresReadyV320),
   );
 
