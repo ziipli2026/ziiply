@@ -296,6 +296,8 @@ export type ZiiplyMobileOfferSearchCardProps = {
   onFilterChange?: (value: string) => void;
   onSearch?: (value: string) => void;
   onSelectOfferChain?: (chain: "S" | "K") => void;
+  showSChain?: boolean;
+  showKChain?: boolean;
   showLidlChain?: boolean;
   onBack?: () => void;
   onClose?: () => void;
@@ -657,6 +659,8 @@ export default function ZiiplyMobileOfferSearchCard({
   onFilterChange,
   onSearch,
   onSelectOfferChain,
+  showSChain = true,
+  showKChain = true,
   showLidlChain = false,
   onBack,
   onClose,
@@ -1142,30 +1146,34 @@ export default function ZiiplyMobileOfferSearchCard({
                 Mistä kaupparyhmästä haetaan tarjoukset?
               </div>
               <div className="mt-5 grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedOfferChainV39("S");
-                    onSelectOfferChain?.("S");
-                  }}
-                  className="flex min-h-[7.4rem] flex-col items-center justify-center rounded-[1rem] border-[3px] border-[#174c2c] bg-[#fff8d9] px-3 py-3 shadow-[0_4px_0_rgba(91,72,44,0.18)] active:translate-y-[1px]"
-                  aria-label="Hae S-ryhmän tarjoukset"
-                >
-                  <img src="/storelogos/s-group.png" alt="S-ryhmä" className="h-[4.4rem] w-full object-contain" draggable={false} />
-                  <span className="mt-2 text-[0.78rem] font-black text-[#174c2c]">S-ryhmä</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelectedOfferChainV39("K");
-                    onSelectOfferChain?.("K");
-                  }}
-                  className="flex min-h-[7.4rem] flex-col items-center justify-center rounded-[1rem] border-[3px] border-[#174c2c] bg-[#fff8d9] px-3 py-3 shadow-[0_4px_0_rgba(91,72,44,0.18)] active:translate-y-[1px]"
-                  aria-label="Hae K-ryhmän tarjoukset"
-                >
-                  <img src="/storelogos/k-group.png" alt="K-ryhmä" className="h-[4.4rem] w-full object-contain" draggable={false} />
-                  <span className="mt-2 text-[0.78rem] font-black text-[#174c2c]">K-ryhmä</span>
-                </button>
+                {showSChain ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedOfferChainV39("S");
+                      onSelectOfferChain?.("S");
+                    }}
+                    className="flex min-h-[7.4rem] flex-col items-center justify-center rounded-[1rem] border-[3px] border-[#174c2c] bg-[#fff8d9] px-3 py-3 shadow-[0_4px_0_rgba(91,72,44,0.18)] active:translate-y-[1px]"
+                    aria-label="Hae S-ryhmän tarjoukset"
+                  >
+                    <img src="/storelogos/s-group.png" alt="S-ryhmä" className="h-[4.4rem] w-full object-contain" draggable={false} />
+                    <span className="mt-2 text-[0.78rem] font-black text-[#174c2c]">S-ryhmä</span>
+                  </button>
+                ) : null}
+                {showKChain ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedOfferChainV39("K");
+                      onSelectOfferChain?.("K");
+                    }}
+                    className="flex min-h-[7.4rem] flex-col items-center justify-center rounded-[1rem] border-[3px] border-[#174c2c] bg-[#fff8d9] px-3 py-3 shadow-[0_4px_0_rgba(91,72,44,0.18)] active:translate-y-[1px]"
+                    aria-label="Hae K-ryhmän tarjoukset"
+                  >
+                    <img src="/storelogos/k-group.png" alt="K-ryhmä" className="h-[4.4rem] w-full object-contain" draggable={false} />
+                    <span className="mt-2 text-[0.78rem] font-black text-[#174c2c]">K-ryhmä</span>
+                  </button>
+                ) : null}
                 {showLidlChain ? (
                   <button
                     type="button"
