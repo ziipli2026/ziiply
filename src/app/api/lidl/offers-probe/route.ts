@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 const STORES_URL = "https://stores.lidlplus.com/api/v4/FI";
 const OFFERS_BASE = "https://offers.lidlplus.com/app/api/v4/FI";
-
 const headers = {
   accept: "application/json",
   "accept-language": "fi-FI,fi;q=0.9",
@@ -10,6 +9,36 @@ const headers = {
   "x-client-version": "17.0.5",
   "x-client-platform": "android",
 };
+
+function normalizeOffer(row: any, store: any) {
+  const box = row?.priceBox || {};
+  const offerPrice = typeof box.largePartNumeric === "number" ? box.largePartNumeric : null;
+  const normalPrice = typeof box.smallPartNumeric === "number" ? box.smallPartNumeric : null;
+  const hasConcretePrice = offerPrice != null;
+  return {
+    id: row?.id,
+    name: row?.title || "Lidl tarjous",
+    title: row?.title || "Lidl tarjous",
+    brandName: row?.brand || undefined,
+    storeName: store?.name || "Lidl",
+    chain: "Lidl",
+    category: row?.category || "Muut",
+    price: offerPrice,
+    offerPrice,
+    normalPrice,
+    originalPrice: normalPrice,
+    discountText: box.discountMessage || undefined,
+    imageUrl: row?.imageUrl || undefined,
+    comparisonPriceText: row?.pricePerUnit || undefined,
+    comparisonUnit: box.priceSymbol || undefined,
+    productIds: Array.isArray(row?.productIds) ? row.productIds : [],
+    validFrom: row?.startValidityDate || undefined,
+    validUntil: row?.endValidityDate || undefined,
+    offerType: row?.offerType || undefined,
+    redemptionChannel: row?.redemptionChannel || undefined,
+    hasConcretePrice,
+  };
+}
 
 export async function GET(request: NextRequest) {
   const city = String(request.nextUrl.searchParams.get("city") || "Hyvinkää").trim();
@@ -27,20 +56,21 @@ export async function GET(request: NextRequest) {
     if (!storeKey) return NextResponse.json({ stage: "store-match", city, matches: matches.length }, { status: 404 });
 
     const or = await fetch(`${OFFERS_BASE}/${encodeURIComponent(storeKey)}/offers`, { headers, cache: "no-store" });
-    const text = await or.text();
-    let raw: any;
-    try { raw = JSON.parse(text); } catch { raw = { raw: text.slice(0, 1000) }; }
-
+    const raw = await or.json();
     const rows = Array.isArray(raw) ? raw : Array.isArray(raw?.offers) ? raw.offers : Array.isArray(raw?.items) ? raw.items : [];
+    const normalized = rows.map((row: any) => normalizeOffer(row, store));
+    const priced = normalized.filter((row: any) => row.hasConcretePrice);
+    const discountOnly = normalized.filter((row: any) => !row.hasConcretePrice);
+
     return NextResponse.json({
       city,
       store: { storeKey, name: store?.name, locality: store?.locality, address: store?.address },
       offersStatus: or.status,
-      responseType: Array.isArray(raw) ? "array" : typeof raw,
-      topKeys: raw && !Array.isArray(raw) && typeof raw === "object" ? Object.keys(raw) : [],
-      offerCount: rows.length,
-      samples: rows.slice(0, 5),
-      rawPreview: rows.length ? undefined : raw,
+      rawOfferCount: rows.length,
+      pricedOfferCount: priced.length,
+      discountOnlyCount: discountOnly.length,
+      pricedSamples: priced.slice(0, 8),
+      discountOnlySamples: discountOnly.slice(0, 8),
     });
   } catch (error) {
     return NextResponse.json({ stage: "exception", error: error instanceof Error ? error.message : String(error) }, { status: 500 });
