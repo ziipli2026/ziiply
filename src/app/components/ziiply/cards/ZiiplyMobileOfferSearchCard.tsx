@@ -1220,7 +1220,7 @@ export default function ZiiplyMobileOfferSearchCard({
                     className="flex min-h-[7.4rem] flex-col items-center justify-center rounded-[1rem] border-[3px] border-[#174c2c] bg-[#fff8d9] px-3 py-3 shadow-[0_4px_0_rgba(91,72,44,0.18)] active:translate-y-[1px]"
                     aria-label="Hae S-ryhmän tarjoukset"
                   >
-                    <img src="/storelogos/s-group.png" alt="S-ryhmä" className="h-[4.4rem] w-full object-contain" draggable={false} />
+                    <span className="flex h-[4.4rem] w-[4.4rem] items-center justify-center"><img src="/storelogos/s-group.png" alt="S-ryhmä" className="block h-full w-full object-contain object-center" draggable={false} /></span>
                     <span className="mt-2 text-[0.78rem] font-black text-[#174c2c]">S-ryhmä</span>
                   </button>
                 ) : null}
@@ -1234,7 +1234,7 @@ export default function ZiiplyMobileOfferSearchCard({
                     className="flex min-h-[7.4rem] flex-col items-center justify-center rounded-[1rem] border-[3px] border-[#174c2c] bg-[#fff8d9] px-3 py-3 shadow-[0_4px_0_rgba(91,72,44,0.18)] active:translate-y-[1px]"
                     aria-label="Hae K-ryhmän tarjoukset"
                   >
-                    <img src="/storelogos/k-group.png" alt="K-ryhmä" className="h-[4.4rem] w-full object-contain" draggable={false} />
+                    <span className="flex h-[4.4rem] w-[4.4rem] items-center justify-center"><img src="/storelogos/k-group.png" alt="K-ryhmä" className="block h-full w-full object-contain object-center" draggable={false} /></span>
                     <span className="mt-2 text-[0.78rem] font-black text-[#174c2c]">K-ryhmä</span>
                   </button>
                 ) : null}
@@ -1248,7 +1248,7 @@ export default function ZiiplyMobileOfferSearchCard({
                     className="flex min-h-[7.4rem] flex-col items-center justify-center rounded-[1rem] border-[3px] border-[#174c2c] bg-[#fff8d9] px-2 py-3 shadow-[0_4px_0_rgba(91,72,44,0.18)] active:translate-y-[1px]"
                     aria-label="Hae EUROSPARin tarjoukset"
                   >
-                    <img src="/storelogos/spar.png" alt="EUROSPAR" className="h-[4.4rem] w-full -translate-x-[5px] object-contain" draggable={false} />
+                    <span className="flex h-[4.4rem] w-[4.4rem] items-center justify-center"><img src="/storelogos/spar.png" alt="EUROSPAR" className="block h-full w-full object-contain object-center" draggable={false} /></span>
                     <span className="mt-2 text-[0.78rem] font-black text-[#174c2c]">EUROSPAR</span>
                   </button>
                 ) : null}
@@ -1260,7 +1260,7 @@ export default function ZiiplyMobileOfferSearchCard({
                     aria-label="Lidl tarjoukset tulossa"
                     className="flex min-h-[7.4rem] flex-col items-center justify-center rounded-[1rem] border-[3px] border-[#174c2c] bg-[#fff8d9] px-2 py-3 opacity-100 shadow-[0_4px_0_rgba(91,72,44,0.18)]"
                   >
-                    <img src="/storelogos/lidl.png" alt="Lidl" className="h-[4.4rem] w-full object-contain" draggable={false} />
+                    <span className="flex h-[4.4rem] w-[4.4rem] items-center justify-center"><img src="/storelogos/lidl.png" alt="Lidl" className="block h-full w-full object-contain object-center" draggable={false} /></span>
                     <span className="mt-2 text-[0.78rem] font-black text-[#174c2c]">Lidl</span>
                   </button>
                 ) : null}
