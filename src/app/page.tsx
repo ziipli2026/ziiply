@@ -3155,15 +3155,6 @@ export default function Page() {
 
         setStoreModeChosenV299(Boolean(parsedStoreSelection.storeModeChosenV299));
 
-        if (parsedStoreSelection.selectedChains && typeof parsedStoreSelection.selectedChains === "object") {
-          setSelectedChains({
-            s: Boolean(parsedStoreSelection.selectedChains.s),
-            k: Boolean(parsedStoreSelection.selectedChains.k),
-            lidl: Boolean(parsedStoreSelection.selectedChains.lidl),
-            tokmanni: Boolean(parsedStoreSelection.selectedChains.tokmanni),
-          });
-        }
-
         if (
           parsedStoreSelection.storeCompareScope === "none" ||
           parsedStoreSelection.storeCompareScope === "between_chains" ||
@@ -4376,11 +4367,24 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
   const [selectedChains, setSelectedChains] = useState<
     Record<ChainResult["key"], boolean>
-  >({
-    s: false,
-    k: false,
-    lidl: false,
-    tokmanni: false,
+  >(() => {
+    if (typeof window === "undefined") {
+      return { s: false, k: false, lidl: false, tokmanni: false };
+    }
+    try {
+      const raw = window.localStorage.getItem("ziiply-store-selection-v536");
+      const saved = raw ? JSON.parse(raw) : null;
+      const chains = saved?.selectedChains;
+      if (chains && typeof chains === "object") {
+        return {
+          s: Boolean(chains.s),
+          k: Boolean(chains.k),
+          lidl: Boolean(chains.lidl),
+          tokmanni: Boolean(chains.tokmanni),
+        };
+      }
+    } catch {}
+    return { s: false, k: false, lidl: false, tokmanni: false };
   });
 
   const [isOnline, setIsOnline] = useState(true);
@@ -8957,27 +8961,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     });
 
     setStoreMode(nextMode);
-    if (storeCompareScope === "between_chains") {
-      setSelectedChains((current) => {
-        if (betweenChainSelectionModeV749 === "one") {
-          const keepK = current.k && !current.s;
-          return {
-            ...current,
-            s: !keepK,
-            k: keepK,
-            lidl: false,
-            tokmanni: false,
-          };
-        }
-        return {
-          ...current,
-          s: true,
-          k: true,
-          lidl: false,
-          tokmanni: false,
-        };
-      });
-    }
+    // Tavaratalot/Lähikaupat vaihtaa vain kauppatyypin.
+    // Ketjuraksit (S/K/Lidl/Tokmanni) ovat käyttäjän erillinen valinta.
     clearSearchAndComparisonState();
   }
 
