@@ -6265,7 +6265,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       storeName: String(store.name || ""),
       city: String(store.city || ""),
     });
-    const address = String((store as any).address || "").trim();
+    const address = String(store.address || "").trim();
     if (address) params.set("address", address);
 
     const response = await fetch(`/api/lidl/products?${params.toString()}`, {
