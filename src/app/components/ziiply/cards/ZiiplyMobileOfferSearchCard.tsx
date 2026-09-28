@@ -1022,6 +1022,13 @@ export default function ZiiplyMobileOfferSearchCard({
     return "";
   }, [items, selectedStoreName]);
 
+  const selectedStoreDisplayNameV56 =
+    selectedOfferChainV39 === "LIDL" &&
+    selectedStoreNameV41 &&
+    !/\blidl\b/i.test(selectedStoreNameV41)
+      ? `Lidl ${selectedStoreNameV41}`
+      : selectedStoreNameV41;
+
   const selectedStoreIsPrismaV41 = /\bprisma\b/i.test(selectedStoreNameV41);
   const selectedStoreOfferLineV41 = selectedStoreIsPrismaV41
     ? "Valitsemasi kauppahuoneen huojennetut hinnat ja tarjoukset"
@@ -1160,7 +1167,7 @@ export default function ZiiplyMobileOfferSearchCard({
           {selectedOfferChainV39 && selectedStoreNameV41 ? (
             <div className="mt-[0.28rem] rounded-[1.05rem] border-[2px] border-[#9a7a3d] bg-[#fff4d4]/96 px-2.5 py-1.5 text-center shadow-[0_3px_0_rgba(91,72,44,0.14),inset_0_0_0_1px_rgba(255,255,255,0.45)]">
               <div className="whitespace-nowrap text-[clamp(0.84rem,4vw,1.02rem)] font-black leading-tight text-[#28402a]" style={{ fontFamily: cooperFont }}>
-                {selectedStoreNameV41}
+                {selectedStoreDisplayNameV56}
               </div>
               <div className="mt-0.5 whitespace-nowrap text-[clamp(0.55rem,2.55vw,0.68rem)] font-extrabold italic leading-tight text-[#6d5d3f]" style={{ fontFamily: serifFont }}>
                 {selectedStoreOfferLineV41}
