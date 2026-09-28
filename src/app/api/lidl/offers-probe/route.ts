@@ -12,11 +12,12 @@ const headers = {
 
 function repairMojibake(value: string) {
   if (!/[Ãâ]/.test(value)) return value;
-  try {
-    return decodeURIComponent(escape(value));
-  } catch {
-    return value;
-  }
+  const replacements: Array<[string, string]> = [
+    ["Ã¤", "ä"], ["Ã„", "Ä"], ["Ã¶", "ö"], ["Ã–", "Ö"],
+    ["Ã¥", "å"], ["Ã…", "Å"], ["â‚¬", "€"], ["â€“", "–"],
+    ["â€”", "—"], ["â€™", "’"], ["â€œ", "“"], ["â€", "”"],
+  ];
+  return replacements.reduce((text, [bad, good]) => text.split(bad).join(good), value);
 }
 
 function classify(name: string, brand = "") {
