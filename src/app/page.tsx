@@ -5583,7 +5583,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   // täsmälleen samat S-only ja K-only contextit jo kauppavalinnan ratkettua.
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (!storesReadyForSearch || !storeModeChosenV299) return;
+    if (!storesReadyForSearch) return;
+
+    const independentOfferStoreReadyV766 = Boolean(
+      selectedLidlStoreV750 ||
+      selectedEurosparStoreV751 ||
+      selectedTokmanniStoreV756,
+    );
+    if (!storeModeChosenV299 && !independentOfferStoreReadyV766) return;
 
     const cleanStore = (idValue: unknown, nameValue: unknown) => {
       const id = String(idValue || "").trim();
@@ -5629,7 +5636,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     const warmContexts: any[] = [];
 
-    if (sStore) {
+    if (storeModeChosenV299 && sStore) {
       warmContexts.push({
         ...commonContext,
         areaLabel:
@@ -5645,7 +5652,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       });
     }
 
-    if (kStore) {
+    if (storeModeChosenV299 && kStore) {
       warmContexts.push({
         ...commonContext,
         areaLabel:
@@ -5658,6 +5665,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         kStoreName: kStore.name || undefined,
         kStoreIds: kStore.id ? [kStore.id] : [],
         kStoreNames: kStore.name ? [kStore.name] : [],
+      });
+    }
+
+    if (selectedLidlStoreV750) {
+      warmContexts.push({
+        ...commonContext,
+        areaLabel: baseAreaLabel,
+        sStoreIds: [],
+        sStoreNames: [],
+        kStoreIds: [],
+        kStoreNames: [],
+        lidlStoreKey: String((selectedLidlStoreV750 as any)?.storeKey || selectedLidlStoreV750.id || "") || undefined,
+        lidlStoreName: selectedLidlStoreV750.name || "Lidl",
       });
     }
 
@@ -5715,6 +5735,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     activeStores.kStoreId,
     activeStores.kStoreName,
     foundStores,
+    selectedLidlStoreV750,
     selectedEurosparStoreV751,
     selectedTokmanniStoreV756,
   ]);
