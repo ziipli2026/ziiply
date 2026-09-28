@@ -11176,12 +11176,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             selectedChains.lidl &&
             !selectedChains.s &&
             !selectedChains.k;
-          const betweenSingleTokmanni =
+          const betweenSingleSpar =
             storeCompareScope === "between_chains" &&
             betweenChainSelectionModeV749 === "one" &&
             selectedChains.tokmanni &&
-            Boolean(selectedTokmanniStoreV756) &&
-            !selectedEurosparStoreV751 &&
+            Boolean(selectedTokmanniStoreV756 || selectedEurosparStoreV751) &&
             !selectedChains.s &&
             !selectedChains.k &&
             !selectedChains.lidl;
@@ -11192,8 +11191,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           if (betweenSingleLidl && selectedLidlStoreV750) {
             usedStoreName = selectedLidlStoreV750.name || "Lidl";
             rawItems = await fetchLidlProductsV760(searchQuery, selectedLidlStoreV750);
-          } else if (betweenSingleTokmanni && selectedTokmanniStoreV756) {
-            usedStoreName = selectedTokmanniStoreV756.name || "Tokmanni";
+          } else if (betweenSingleSpar) {
+            usedStoreName = selectedTokmanniStoreV756?.name || selectedEurosparStoreV751?.name || "SPAR";
+            // Tokmanni.fi carries the online SPAR assortment too. For a selected
+            // EUROSPAR this is intentionally the online SPAR/Tokmanni subset,
+            // not a claim that the whole physical EUROSPAR assortment is indexed.
             rawItems = await fetchTokmanniProductsV761(searchQuery);
           } else if (withinChainK || betweenSingleK) {
             const kPrimaryStoreId = withinChainK ? activeArea.kStoreId : activeStores.kStoreId;
