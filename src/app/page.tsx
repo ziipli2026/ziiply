@@ -18266,7 +18266,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           store.key === "lidl" ? getStoreDistanceLabelV320(selectedLidlStoreV750) : "";
         const showLidlDistanceForCard = Boolean(lidlDistanceForCard && !isComingSoon);
         const eurosparDistanceForCard =
-          store.key === "tokmanni" ? getStoreDistanceLabelV320(selectedTokmanniStoreV756 || selectedEurosparStoreV751) : "";
+          store.key === "tokmanni" ? getStoreDistanceLabelV320(selectedTokmanniStoreV756) : "";
         const showEurosparDistanceForCard = Boolean(eurosparDistanceForCard && !isComingSoon);
 
         return (
