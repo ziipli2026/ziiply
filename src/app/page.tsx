@@ -12723,10 +12723,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setShopsPanelOpen(!storesReadyForSearch);
     setSearchPanelOpen(storesReadyForSearch);
 
+    // V775: käyttäjälle paluu tapahtuu heti. Piilota kamera-overlay seuraavalla
+    // framella ja anna MediaStream/decoder-cleanupin valmistua taustalla.
+    // Näin Hae-näkymä toimii käytännössä "snapshotina" ilman raskasta screenshotia.
     await new Promise<void>((resolve) =>
       window.requestAnimationFrame(() => resolve()),
     );
-    await new Promise<void>((resolve) => window.setTimeout(resolve, 720));
+    setEanModalOpen(false);
+    setEanScannerOpen(false);
+    setDesktopKeyboardScannerOpen(false);
+    setSuppressUiForEanClose(false);
 
     await stopEanCameraScanner({ keepScannerOpenState: true });
 
@@ -12741,11 +12747,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setEanSearchStartedAutomatically(false);
     eanAutoSearchActiveRef.current = false;
 
-    setEanScannerOpen(false);
-    setDesktopKeyboardScannerOpen(false);
-    setEanModalOpen(false);
     setEanModalClosing(false);
-    setSuppressUiForEanClose(false);
   }
 
   function openEanModal() {
