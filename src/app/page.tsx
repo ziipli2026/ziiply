@@ -3155,6 +3155,17 @@ export default function Page() {
 
         setStoreModeChosenV299(Boolean(parsedStoreSelection.storeModeChosenV299));
 
+        // V755: restore only explicit chain choices that were persisted by the user.
+        // Missing legacy data stays false/false from the safe initial state.
+        if (parsedStoreSelection.selectedChains && typeof parsedStoreSelection.selectedChains === "object") {
+          setSelectedChains({
+            s: Boolean(parsedStoreSelection.selectedChains.s),
+            k: Boolean(parsedStoreSelection.selectedChains.k),
+            lidl: Boolean(parsedStoreSelection.selectedChains.lidl),
+            tokmanni: Boolean(parsedStoreSelection.selectedChains.tokmanni),
+          });
+        }
+
         if (
           parsedStoreSelection.storeCompareScope === "none" ||
           parsedStoreSelection.storeCompareScope === "between_chains" ||
