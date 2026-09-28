@@ -42,10 +42,71 @@ function fixEncoding(value: string) {
     .replace(/Â/g, "");
 }
 
+type RuoanhintaStore = {
+  id: number | string;
+  name?: string;
+  city?: string;
+  address?: string;
+  streetAddress?: string;
+};
+
+function normalize(value: unknown) {
+  return String(value ?? "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+async function resolveRuoanhintaLidlStoreId(storeName: string, city: string, address: string) {
+  const queries = [address, storeName, city, "Lidl"].map((value) => String(value || "").trim()).filter(Boolean);
+  const seen = new Map<string, RuoanhintaStore>();
+
+  for (const query of queries) {
+    const response = await fetch(
+      `https://api.ruoanhinta.fi/api/stores?search=${encodeURIComponent(query)}`,
+      { headers: { accept: "application/json" }, cache: "no-store" },
+    );
+    if (!response.ok) continue;
+    const data = await response.json();
+    const rows: RuoanhintaStore[] = Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : [];
+    for (const row of rows) seen.set(String(row.id), row);
+  }
+
+  const targetAddress = normalize(address);
+  const targetCity = normalize(city);
+  const targetName = normalize(storeName);
+
+  const candidates = Array.from(seen.values()).filter((store) => {
+    const haystack = normalize([store.name, store.city, store.address, store.streetAddress].filter(Boolean).join(" "));
+    return haystack.includes("lidl");
+  });
+
+  const scored = candidates
+    .map((store) => {
+      const haystack = normalize([store.name, store.city, store.address, store.streetAddress].filter(Boolean).join(" "));
+      let score = 0;
+      if (targetAddress && haystack.includes(targetAddress)) score += 100;
+      if (targetCity && haystack.includes(targetCity)) score += 20;
+      if (targetName && haystack.includes(targetName)) score += 10;
+      return { store, score };
+    })
+    .sort((a, b) => b.score - a.score);
+
+  return scored[0]?.score > 0 ? String(scored[0].store.id) : "";
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const search = String(searchParams.get("search") || "").trim();
-  const storeId = String(searchParams.get("storeId") || "").trim();
+  const requestedStoreId = String(searchParams.get("storeId") || "").trim();
+  const storeName = String(searchParams.get("storeName") || "").trim();
+  const city = String(searchParams.get("city") || "").trim();
+  const address = String(searchParams.get("address") || "").trim();
+  const storeId = /^\\d+$/.test(requestedStoreId)
+    ? requestedStoreId
+    : await resolveRuoanhintaLidlStoreId(storeName, city, address);
 
   if (!search || !/^\d+$/.test(storeId)) {
     return NextResponse.json({
