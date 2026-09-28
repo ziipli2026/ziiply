@@ -2873,6 +2873,8 @@ export default function Page() {
   const [storeSearchLoading, setStoreSearchLoading] = useState(false);
   const [foundStores, setFoundStores] = useState<StoreSearchItem[]>([]);
   const [selectedLidlStoreV750, setSelectedLidlStoreV750] = useState<StoreSearchItem | null>(null);
+  const [eurosparStoreOptionsV751, setEurosparStoreOptionsV751] = useState<StoreSearchItem[]>([]);
+  const [selectedEurosparStoreV751, setSelectedEurosparStoreV751] = useState<StoreSearchItem | null>(null);
   const [gpsCoordsV320, setGpsCoordsV320] = useState<{
     latitude: number;
     longitude: number;
@@ -16616,6 +16618,37 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     );
   }
 
+  useEffect(() => {
+    let cancelled = false;
+    const params = new URLSearchParams();
+    if (gpsCoordsV320) {
+      params.set("lat", String(gpsCoordsV320.latitude));
+      params.set("lon", String(gpsCoordsV320.longitude));
+    } else if (locationInput.trim()) {
+      params.set("search", locationInput.trim());
+    }
+
+    fetch(`/api/eurospar-stores?${params.toString()}`, { cache: "no-store" })
+      .then((response) => response.ok ? response.json() : Promise.reject(new Error("EUROSPAR store lookup failed")))
+      .then((data) => {
+        if (cancelled) return;
+        const options = Array.isArray(data?.items) ? data.items as StoreSearchItem[] : [];
+        setEurosparStoreOptionsV751(options);
+        setSelectedEurosparStoreV751((current) => {
+          if (current) {
+            const same = options.find((store) => sameStoreIdV93(store.id, current.id));
+            if (same) return same;
+          }
+          return options[0] || null;
+        });
+      })
+      .catch(() => {
+        if (!cancelled) setEurosparStoreOptionsV751([]);
+      });
+
+    return () => { cancelled = true; };
+  }, [gpsCoordsV320, locationInput]);
+
   const lidlStoreOptionsV750 = useMemo(() => {
     const options = foundStores
       .map(normalizeStoreForPickerV320)
@@ -16683,7 +16716,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       key: "tokmanni",
       logo: "T",
       title: "SPAR",
-      name: "SPAR",
+      name: selectedEurosparStoreV751?.name || "EUROSPAR ei valittu",
       tone: "bg-yellow-400 text-slate-950 ring-yellow-100",
       selectedTone: "border-yellow-500 bg-yellow-50 text-yellow-950",
     },
@@ -18131,6 +18164,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         const lidlDistanceForCard =
           store.key === "lidl" ? getStoreDistanceLabelV320(selectedLidlStoreV750) : "";
         const showLidlDistanceForCard = Boolean(lidlDistanceForCard && !isComingSoon);
+        const eurosparDistanceForCard =
+          store.key === "tokmanni" ? getStoreDistanceLabelV320(selectedEurosparStoreV751) : "";
+        const showEurosparDistanceForCard = Boolean(eurosparDistanceForCard && !isComingSoon);
 
         return (
           <div
@@ -18237,6 +18273,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   {lidlDistanceForCard}
                 </p>
               )}
+              {showEurosparDistanceForCard && (
+                <p className="absolute left-0 right-0 top-[56px] z-50 text-[12px] font-black leading-none text-[#000000] [text-shadow:0_1px_0_rgba(255,250,232,0.95),0_2px_2px_rgba(55,38,12,0.22)]">
+                  {eurosparDistanceForCard}
+                </p>
+              )}
 
               <div
                 className="absolute bottom-[6px] left-0 right-0 z-40 flex justify-center"
@@ -18305,6 +18346,44 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                           const sourceIndex = Number((option as any).__sourceIndex);
                           const sourceStore = Number.isFinite(sourceIndex) ? lidlStoreOptionsV750[sourceIndex] : (option as StoreSearchItem);
                           setSelectedLidlStoreV750(sourceStore);
+                          triggerHaptic();
+                          window.setTimeout(() => setOpenStorePicker(null), 0);
+                        }}
+                      />
+                    )}
+                  </>
+                ) : store.key === "tokmanni" ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={(event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        if (eurosparStoreOptionsV751.length > 1) {
+                          setOpenStorePicker((current) => current === "eurospar-store-picker" ? null : "eurospar-store-picker");
+                        }
+                      }}
+                      className={`mt-1 rounded-full px-2 py-1 text-[9px] font-black ring-1 ${eurosparStoreOptionsV751.length > 1 ? "bg-[#fff8df]/90 text-slate-700 ring-slate-200" : "bg-slate-100 text-[#b7aa8d] ring-slate-200"}`}
+                    >
+                      {eurosparStoreOptionsV751.length > 1 ? "Vaihda" : selectedEurosparStoreV751 ? "Valittu" : "Ei kauppaa"}
+                    </button>
+                    {openStorePicker === "eurospar-store-picker" && typeof document !== "undefined" && (
+                      <MobileStorePickerModal
+                        open
+                        chain={"SPAR" as any}
+                        title="Valitse EUROSPAR"
+                        stores={eurosparStoreOptionsV751}
+                        selectedId={selectedEurosparStoreV751?.id}
+                        selectedName={selectedEurosparStoreV751?.name}
+                        activeAreaLabel={activeArea.label}
+                        top={storePickerViewportStyle.top}
+                        width={storePickerViewportStyle.width}
+                        onClose={() => setOpenStorePicker(null)}
+                        getDistanceLabel={(option) => String(option.distance || "")}
+                        getStoreKey={(option, index) => `eurospar-${option.id || index}-${normalize(option.name || "")}`}
+                        onSelectStore={(option) => {
+                          const source = eurosparStoreOptionsV751.find((store) => sameStoreIdV93(store.id, option.id)) || option as StoreSearchItem;
+                          setSelectedEurosparStoreV751(source);
                           triggerHaptic();
                           window.setTimeout(() => setOpenStorePicker(null), 0);
                         }}
