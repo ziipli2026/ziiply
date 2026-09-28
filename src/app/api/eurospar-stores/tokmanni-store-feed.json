@@ -1,0 +1,1888 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-28T04:03:54.592Z",
+  "count": 209,
+  "stores": [
+    {
+      "id": "454170",
+      "name": "Tokmanni Ähtäri",
+      "city": "Ähtäri",
+      "address": "Niittyläntie 2 63700 Ähtäri",
+      "latitude": 62.548136,
+      "longitude": 24.0734849,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "453998",
+      "name": "Tokmanni Ivalo",
+      "city": "Ivalo",
+      "address": "Neitamontie 2 99800 Ivalo",
+      "latitude": 68.6381567,
+      "longitude": 27.5401641,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "452195",
+      "name": "Tokmanni Nilsiä",
+      "city": "Nilsiä",
+      "address": "Nilsiäntie 72 73300 Nilsiä",
+      "latitude": 63.2040898,
+      "longitude": 28.0810207,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "452036",
+      "name": "Tokmanni Tuusula Jokela",
+      "city": "Jokela",
+      "address": "Kolsantie 2 05400 Jokela",
+      "latitude": 60.5576858,
+      "longitude": 24.9565955,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "452024",
+      "name": "Tokmanni Naantali",
+      "city": "Naantali",
+      "address": "Venekuja 5 21100 Naantali",
+      "latitude": 60.4769615,
+      "longitude": 22.0403142,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "450727",
+      "name": "Tokmanni Kemiönsaari",
+      "city": "Kemiö",
+      "address": "Wuorionkuja 4 25700 Kemiö",
+      "latitude": 60.1610553,
+      "longitude": 22.7248121,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "450464",
+      "name": "Tokmanni Karjaa TK",
+      "city": "Karjaa",
+      "address": "Ensikuja 11 10300 Karjaa",
+      "latitude": 60.073716,
+      "longitude": 23.704378,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "447422",
+      "name": "Tokmanni Sodankylä",
+      "city": "Sodankylä",
+      "address": "Karistamontie 1 99600 Sodankylä",
+      "latitude": 67.4109547,
+      "longitude": 26.5733538,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "447394",
+      "name": "Tokmanni Espoo Entresse",
+      "city": "Espoo",
+      "address": "Siltakatu 11 02770 Espoo",
+      "latitude": 60.2472239,
+      "longitude": 24.6137111,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "447149",
+      "name": "Tokmanni Sipoo Nikkilä",
+      "city": "Nikkilä",
+      "address": "Jokilaaksontie 1 04130 Nikkilä",
+      "latitude": 60.375025,
+      "longitude": 25.2799104,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "447144",
+      "name": "Tokmanni Eurajoki",
+      "city": "Eurajoki",
+      "address": "Kauppatie 4 27100 Eurajoki",
+      "latitude": 61.2054696,
+      "longitude": 21.7242192,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "444586",
+      "name": "Tokmanni Sipoo Söderkulla",
+      "city": "Sipoo",
+      "address": "Liiketie 2 01150 Sipoo",
+      "latitude": 60.2975198,
+      "longitude": 25.3364645,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "444582",
+      "name": "Tokmanni Pälkäne",
+      "city": "Pälkäne",
+      "address": "Tervapirtintie 11 36600 Pälkäne",
+      "latitude": 61.3493102,
+      "longitude": 24.2509691,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "443828",
+      "name": "Tokmanni Kouvola Katajaharju",
+      "city": "Kouvola",
+      "address": "Tommolankatu 7 45130 Kouvola",
+      "latitude": 60.8726267,
+      "longitude": 26.6609771,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "442876",
+      "name": "Tokmanni Rovaniemi Revontuli",
+      "city": "Rovaniemi",
+      "address": "Koskikatu 27 B 96100 Rovaniemi",
+      "latitude": 66.5029377,
+      "longitude": 25.7220584,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "441763",
+      "name": "Tokmanni Helsinki Konala",
+      "city": "Helsinki",
+      "address": "Ajomiehentie 1 00390 Helsinki",
+      "latitude": 60.23934,
+      "longitude": 24.8494,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "440781",
+      "name": "Tokmanni Jyväskylä Jyskä",
+      "city": "Jyväskylä",
+      "address": "Vaajakoskentie 97 40420 Jyväskylä",
+      "latitude": 62.2398281,
+      "longitude": 25.8229377,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "440630",
+      "name": "Tokmanni Helsinki Kontula",
+      "city": "HELSINKI",
+      "address": "Sirrikuja 1 00940 HELSINKI",
+      "latitude": 60.230382,
+      "longitude": 25.0775402,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "439854",
+      "name": "Tokmanni Nurmijärvi Kirkonkylä",
+      "city": "Nurmijärvi",
+      "address": "Sairaalantie 3 01900 Nurmijärvi",
+      "latitude": 60.4673391,
+      "longitude": 24.8060876,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "438889",
+      "name": "Tokmanni Espoo Lippulaiva",
+      "city": "Espoo",
+      "address": "Espoonlahdenkatu 4 02320 Espoo",
+      "latitude": 60.1490235,
+      "longitude": 24.6539532,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "427201",
+      "name": "Tokmanni Kemi Tervaharju",
+      "city": "Kemi",
+      "address": "Kiveliönkatu 28 94600 Kemi",
+      "latitude": 65.7438956,
+      "longitude": 24.5854352,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "426680",
+      "name": "Tokmanni Kittilä",
+      "city": "Kittilä",
+      "address": "Aakenuksentie 30 99100 Kittilä",
+      "latitude": 67.6715437,
+      "longitude": 24.872548,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "417489",
+      "name": "Tokmanni Leppävirta",
+      "city": "Leppävirta",
+      "address": "Leppävirrantie 16 79100 Leppävirta",
+      "latitude": 62.4932133,
+      "longitude": 27.7900632,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "406456",
+      "name": "Tokmanni Jyväskylä Forum",
+      "city": "Jyväskylä",
+      "address": "Kauppakatu 20-22, 1krs 40100 Jyväskylä",
+      "latitude": 62.2419503,
+      "longitude": 25.7453872,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "353689",
+      "name": "Tokmanni-EUROSPAR Tornio",
+      "city": "Tornio",
+      "address": "Teollisuuskatu 14 95420 Tornio",
+      "latitude": 65.843881,
+      "longitude": 24.187676,
+      "chain": "EUROSPAR"
+    },
+    {
+      "id": "329615",
+      "name": "Tokmanni Helsinki Kaari",
+      "city": "Helsinki",
+      "address": "Kantelettarentie 1 (2. krs) 00420 Helsinki",
+      "latitude": 60.2365429,
+      "longitude": 24.8896166,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "329610",
+      "name": "Tokmanni Iitti",
+      "city": "Kausala",
+      "address": "Kymenrannantie 4 47400 Kausala",
+      "latitude": 60.8959363,
+      "longitude": 26.2548723,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "308808",
+      "name": "Tokmanni Lahti Trio",
+      "city": "Lahti",
+      "address": "Aleksanterinkatu 18 15140 Lahti",
+      "latitude": 60.9830253,
+      "longitude": 25.6610578,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "269652",
+      "name": "Tokmanni Pietarsaari",
+      "city": "Pietarsaari",
+      "address": "Vaunusepäntie 12 68660 Pietarsaari",
+      "latitude": 63.6784172,
+      "longitude": 22.7352968,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "260131",
+      "name": "Tokmanni Helsinki REDI",
+      "city": "Helsinki",
+      "address": "Hermannin rantatie 5 00580 Helsinki",
+      "latitude": 60.1866832,
+      "longitude": 24.9768713,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "215012",
+      "name": "Tokmanni Pudasjärvi",
+      "city": "Pudasjärvi",
+      "address": "Pietarilantie 48 93100 Pudasjärvi",
+      "latitude": 65.37142,
+      "longitude": 26.9889463,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "207576",
+      "name": "Tokmanni Aura",
+      "city": "Aura",
+      "address": "Huuskantie 19 21380 Aura",
+      "latitude": 60.650599,
+      "longitude": 22.587935,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "199931",
+      "name": "Tokmanni Vantaa Myyrmanni",
+      "city": "Vantaa",
+      "address": "Iskoskuja 3 A1 01600 Vantaa",
+      "latitude": 60.260271,
+      "longitude": 24.85348,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "175021",
+      "name": "Tokmanni Virrat",
+      "city": "Virrat",
+      "address": "Asematie 11 34800 Virrat",
+      "latitude": 62.240662,
+      "longitude": 23.783039,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "174819",
+      "name": "Tokmanni Vääksy",
+      "city": "Vääksy",
+      "address": "Kartanotie 2 17200 Vääksy",
+      "latitude": 61.170968,
+      "longitude": 25.552205,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "124822",
+      "name": "Tokmanni Loppi",
+      "city": "Launonen",
+      "address": "Jylhäntie 8 12540 Launonen",
+      "latitude": 60.739148,
+      "longitude": 24.578852,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "102304",
+      "name": "Tokmanni Tampere Tesoma",
+      "city": "Tampere",
+      "address": "Tesomankatu 4 D 33310 Tampere",
+      "latitude": 61.505234,
+      "longitude": 23.626244,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "108900",
+      "name": "Tokmanni Centtilä",
+      "city": "Keminmaa",
+      "address": "Kisällinkuja 10 94450 Keminmaa",
+      "latitude": 65.800782,
+      "longitude": 24.493034,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "105234",
+      "name": "Tokmanni Saarijärvi Jyväskyläntie",
+      "city": "Saarijärvi",
+      "address": "Jyväskyläntie 19 43100 Saarijärvi",
+      "latitude": 62.700867,
+      "longitude": 25.278708,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "105233",
+      "name": "Tokmanni Pihtipudas",
+      "city": "Pihtipudas",
+      "address": "Asematie 9 44800 Pihtipudas",
+      "latitude": 63.370748,
+      "longitude": 25.574655,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "102483",
+      "name": "Tokmanni Kangasniemi",
+      "city": "Kangasniemi",
+      "address": "Wiljam Sarjalan tie 18 51200 Kangasniemi",
+      "latitude": 61.989832,
+      "longitude": 26.64314,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "102474",
+      "name": "Tokmanni Pielavesi",
+      "city": "Pielavesi",
+      "address": "Puistotie 28 72400 Pielavesi",
+      "latitude": 63.232164,
+      "longitude": 26.758595,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "102473",
+      "name": "Tokmanni Laukaa",
+      "city": "Laukaa",
+      "address": "Vuojärven puistotie 11 41340 Laukaa",
+      "latitude": 62.413675,
+      "longitude": 25.948575,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "102472",
+      "name": "Tokmanni Viitasaari",
+      "city": "Viitasaari",
+      "address": "Kauppakaari 4 44500 Viitasaari",
+      "latitude": 63.088374,
+      "longitude": 25.864023,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "102470",
+      "name": "Tokmanni Suolahti",
+      "city": "Suolahti",
+      "address": "Asemakatu 7 44200 Suolahti",
+      "latitude": 62.566863,
+      "longitude": 25.853676,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "102460",
+      "name": "Tokmanni Äänekoski",
+      "city": "Äänekoski",
+      "address": "Äänekoskentie 50 44100 Äänekoski",
+      "latitude": 62.616305,
+      "longitude": 25.685287,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "102090",
+      "name": "Tokmanni Kemijärvi",
+      "city": "Kemijärvi",
+      "address": "Seminaarinkatu 2 - 4 98120 Kemijärvi",
+      "latitude": 66.720624,
+      "longitude": 27.398933,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "82395",
+      "name": "Tokmanni Espoo Laajalahti",
+      "city": "Espoo",
+      "address": "Sinimäentie 18 02180 Espoo",
+      "latitude": 60.201308,
+      "longitude": 24.784143,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "60847",
+      "name": "Tokmanni Eura",
+      "city": "Eura",
+      "address": "Satakunnankatu 4 27510 Eura",
+      "latitude": 61.130858,
+      "longitude": 22.127563,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "38336",
+      "name": "Tokmanni Liperi Ylämylly",
+      "city": "Ylämylly",
+      "address": "Ylämyllyntie 78 80400 Ylämylly",
+      "latitude": 62.613958,
+      "longitude": 29.54152,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "34571",
+      "name": "Tokmanni Kalajoki",
+      "city": "Kalajoki",
+      "address": "Kalajoentie 1 85100 Kalajoki",
+      "latitude": 64.259332,
+      "longitude": 23.947215,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "31260",
+      "name": "Tokmanni Tammisaari",
+      "city": "Tammisaari",
+      "address": "Oikotie 4 10650 Tammisaari",
+      "latitude": 59.981595,
+      "longitude": 23.458218,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "701",
+      "name": "Tokmanni Tampere Kaukajärvi",
+      "city": "Tampere",
+      "address": "Juvankatu 14 33710 Tampere",
+      "latitude": 61.473749,
+      "longitude": 23.87172,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "678",
+      "name": "Tokmanni Sotkamo",
+      "city": "Sotkamo",
+      "address": "Ratatie 37 88600 Sotkamo",
+      "latitude": 64.1325075,
+      "longitude": 28.3605809,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "679",
+      "name": "Tokmanni Suomussalmi",
+      "city": "Suomussalmi",
+      "address": "Risteentie 12 89600 Suomussalmi",
+      "latitude": 64.886452,
+      "longitude": 28.9103202,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "680",
+      "name": "Tokmanni Lapinlahti",
+      "city": "Lapinlahti",
+      "address": "Juhani Ahontie 13 73100 Lapinlahti",
+      "latitude": 63.3632859,
+      "longitude": 27.3840036,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "681",
+      "name": "Tokmanni Kajaani Kehräämöntie",
+      "city": "Kajaani",
+      "address": "Kehräämöntie 20 87400 Kajaani",
+      "latitude": 64.2122169,
+      "longitude": 27.7733807,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "682",
+      "name": "Tokmanni Salo",
+      "city": "Salo",
+      "address": "Asemakatu 7 24100 Salo",
+      "latitude": 60.3862503,
+      "longitude": 23.1256875,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "684",
+      "name": "Tokmanni Tampere Keskustori",
+      "city": "Tampere",
+      "address": "Aleksis Kiven katu 18 33100 Tampere",
+      "latitude": 61.4990967,
+      "longitude": 23.7593011,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "686",
+      "name": "Tokmanni Ulvila",
+      "city": "Ulvila",
+      "address": "Friitalantie 18 28400 Ulvila",
+      "latitude": 61.4281694,
+      "longitude": 21.8757618,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "687",
+      "name": "Tokmanni Turku Varissuo",
+      "city": "Turku",
+      "address": "Littoistentie 81 20610 Turku",
+      "latitude": 60.4428681,
+      "longitude": 22.3590237,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "688",
+      "name": "Tokmanni Lempäälä Keskusta",
+      "city": "Lempäälä",
+      "address": "Tampereentie 2 37500 Lempäälä",
+      "latitude": 61.3122446,
+      "longitude": 23.7530821,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "689",
+      "name": "Tokmanni Mynämäki",
+      "city": "Mynämäki",
+      "address": "Keskuskatu 12 23100 Mynämäki",
+      "latitude": 60.6764513,
+      "longitude": 21.9939334,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "690",
+      "name": "Tokmanni Hanko",
+      "city": "Hanko",
+      "address": "Santalantie 21 A 10960 Hanko",
+      "latitude": 59.838517,
+      "longitude": 22.996324,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "691",
+      "name": "Tokmanni Karkkila",
+      "city": "Karkkila",
+      "address": "Helsingintie 27-29 03600 Karkkila",
+      "latitude": 60.5345329,
+      "longitude": 24.2250286,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "694",
+      "name": "Tokmanni Helsinki Citycenter",
+      "city": "Helsinki",
+      "address": "Kaivokatu 8 00100 Helsinki",
+      "latitude": 60.169864,
+      "longitude": 24.941872,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "695",
+      "name": "Tokmanni Haukipudas",
+      "city": "Haukipudas",
+      "address": "Takomotie 4 90830 Haukipudas",
+      "latitude": 65.165942,
+      "longitude": 25.341166,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "696",
+      "name": "Tokmanni Oulu Kaakkuri",
+      "city": "Oulu",
+      "address": "Kaakkurinkulma 4 90410 Oulu",
+      "latitude": 64.962171,
+      "longitude": 25.520729,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "697",
+      "name": "Tokmanni Keuruu",
+      "city": "Keuruu",
+      "address": "Tervantie 2 42700 Keuruu",
+      "latitude": 62.261116,
+      "longitude": 24.692029,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "698",
+      "name": "Tokmanni Kouvola Tornionmäki",
+      "city": "Kouvola",
+      "address": "Palokankaantie 4 45200 Kouvola",
+      "latitude": 60.8776969,
+      "longitude": 26.7357023,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "699",
+      "name": "Tokmanni Lapua",
+      "city": "Lapua",
+      "address": "Alangontie 4 62100 Lapua",
+      "latitude": 62.977579,
+      "longitude": 23.025956,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "700",
+      "name": "Tokmanni Joensuu Metropol",
+      "city": "Joensuu",
+      "address": "Torikatu 29 80100 Joensuu",
+      "latitude": 62.602754,
+      "longitude": 29.764701,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "658",
+      "name": "Tokmanni Uusikaupunki",
+      "city": "Uusikaupunki",
+      "address": "Ketunkalliontie 5-7 23500 Uusikaupunki",
+      "latitude": 60.8054186,
+      "longitude": 21.4219457,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "659",
+      "name": "Tokmanni Halikko",
+      "city": "Halikko",
+      "address": "Valtatie 5 24800 Halikko",
+      "latitude": 60.3915128,
+      "longitude": 23.0923962,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "660",
+      "name": "Tokmanni Vantaa Porttipuisto",
+      "city": "Vantaa",
+      "address": "Porttisuontie 4 01200 Vantaa",
+      "latitude": 60.280887,
+      "longitude": 25.087894,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "661",
+      "name": "Tokmanni Forssa",
+      "city": "Forssa",
+      "address": "Miemolantie 2 30300 Forssa",
+      "latitude": 60.8047871,
+      "longitude": 23.6338402,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "662",
+      "name": "Tokmanni Somero",
+      "city": "Somero",
+      "address": "Havuharjuntie 2-8 31400 Somero",
+      "latitude": 60.6186625,
+      "longitude": 23.5226834,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "663",
+      "name": "Tokmanni Lieto",
+      "city": "Lieto",
+      "address": "Simpukkatie 8 21420 Lieto",
+      "latitude": 60.5033446,
+      "longitude": 22.4661603,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "664",
+      "name": "Tokmanni Espoo Olari",
+      "city": "Espoo",
+      "address": "Pihatörmä 1 02240 Espoo",
+      "latitude": 60.1649876,
+      "longitude": 24.7317907,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "666",
+      "name": "Tokmanni Lohja Lempola",
+      "city": "Lohja",
+      "address": "Lehmijärventie 8 08500 Lohja",
+      "latitude": 60.2749172,
+      "longitude": 24.1223334,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "668",
+      "name": "Tokmanni Kerava",
+      "city": "Kerava",
+      "address": "Peltomäenkatu 2-4 04250 Kerava",
+      "latitude": 60.391342,
+      "longitude": 25.110133,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "669",
+      "name": "Tokmanni Paimio",
+      "city": "Paimio",
+      "address": "Teollisuustie 12 21530 Paimio",
+      "latitude": 60.456149,
+      "longitude": 22.69769,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "670",
+      "name": "Tokmanni Karjaa",
+      "city": "Karjaa",
+      "address": "Ensikuja 5-9 10300 Karjaa",
+      "latitude": 60.0730185,
+      "longitude": 23.7029374,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "673",
+      "name": "Tokmanni Kajaani Lehtikangas",
+      "city": "Kajaani",
+      "address": "Kasarminkatu 18 87100 Kajaani",
+      "latitude": 64.2179242,
+      "longitude": 27.7429656,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "674",
+      "name": "Tokmanni-EUROSPAR Iisalmi",
+      "city": "Iisalmi",
+      "address": "Meijerikatu 3 74120 Iisalmi",
+      "latitude": 63.5638876,
+      "longitude": 27.1865581,
+      "chain": "EUROSPAR"
+    },
+    {
+      "id": "675",
+      "name": "Tokmanni Kuopio Volttikatu",
+      "city": "Kuopio",
+      "address": "Volttikatu 4 70700 Kuopio",
+      "latitude": 62.8844682,
+      "longitude": 27.6285089,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "676",
+      "name": "Tokmanni Kiuruvesi",
+      "city": "Kiuruvesi",
+      "address": "Tulotie 10 74700 Kiuruvesi",
+      "latitude": 63.644417,
+      "longitude": 26.6061085,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "677",
+      "name": "Tokmanni Kuhmo",
+      "city": "Kuhmo",
+      "address": "Rajakatu 36 88900 Kuhmo",
+      "latitude": 64.127779,
+      "longitude": 29.5241404,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "636",
+      "name": "Tokmanni Oulu Keskusta",
+      "city": "Oulu",
+      "address": "Isokatu 33 90100 Oulu",
+      "latitude": 65.010635,
+      "longitude": 25.471979,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "637",
+      "name": "Tokmanni Espoo Sello",
+      "city": "Espoo",
+      "address": "Leppävaarankatu 3-9 02600 Espoo",
+      "latitude": 60.218207,
+      "longitude": 24.811936,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "638",
+      "name": "Tokmanni Turku Kivikukkaro",
+      "city": "Turku",
+      "address": "Yliopistonkatu 29 b 20100 Turku",
+      "latitude": 60.450757,
+      "longitude": 22.260888,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "639",
+      "name": "Tokmanni Seinäjoki Keskusta",
+      "city": "Seinäjoki",
+      "address": "Puskantie 13 60100 Seinäjoki",
+      "latitude": 62.79196,
+      "longitude": 22.833968,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "640",
+      "name": "Tokmanni Hämeenlinna Tiiriö",
+      "city": "Hämeenlinna",
+      "address": "Katsastusmiehentie 9 13130 Hämeenlinna",
+      "latitude": 61.0101205,
+      "longitude": 24.4165752,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "641",
+      "name": "Tokmanni Helsinki Itis",
+      "city": "Helsinki",
+      "address": "Turunlinnantie 4 00930 Helsinki",
+      "latitude": 60.2120047,
+      "longitude": 25.0818358,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "642",
+      "name": "Tokmanni-EUROSPAR Järvenpää",
+      "city": "Järvenpää",
+      "address": "Helsingintie 43 04430 Järvenpää",
+      "latitude": 60.477938,
+      "longitude": 25.104318,
+      "chain": "EUROSPAR"
+    },
+    {
+      "id": "643",
+      "name": "Tokmanni Riihimäki",
+      "city": "Riihimäki",
+      "address": "Merkoksenkatu 5 B 11710 Riihimäki",
+      "latitude": 60.7219102,
+      "longitude": 24.7341096,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "644",
+      "name": "Tokmanni Helsinki Kaisaniemi",
+      "city": "Helsinki",
+      "address": "Vilhonkatu 5 00100 Helsinki",
+      "latitude": 60.172159,
+      "longitude": 24.9463244,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "646",
+      "name": "Tokmanni Vantaa Tikkurila",
+      "city": "Vantaa",
+      "address": "Tikkuraitti 11 01300 Vantaa",
+      "latitude": 60.2925313,
+      "longitude": 25.0419025,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "647",
+      "name": "Tokmanni Helsinki Malmi",
+      "city": "Helsinki",
+      "address": "Ala-Malmintori 5 00700 Helsinki",
+      "latitude": 60.250953,
+      "longitude": 25.012853,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "648",
+      "name": "Tokmanni Vantaa Tammisto",
+      "city": "Vantaa",
+      "address": "Nilsaksentie 2 01510 Vantaa",
+      "latitude": 60.2837249,
+      "longitude": 24.9753313,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "649",
+      "name": "Tokmanni Helsinki Arabia",
+      "city": "Helsinki",
+      "address": "Hämeentie 111 00560 Helsinki",
+      "latitude": 60.202849,
+      "longitude": 24.9664767,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "650",
+      "name": "Tokmanni Klaukkala",
+      "city": "Klaukkala",
+      "address": "Viirintie 8  01800 Klaukkala",
+      "latitude": 60.3787768,
+      "longitude": 24.758702,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "651",
+      "name": "Tokmanni-EUROSPAR Masku",
+      "city": "Masku",
+      "address": "Maskuntie 232 21250 Masku",
+      "latitude": 60.5531304,
+      "longitude": 22.1147167,
+      "chain": "EUROSPAR"
+    },
+    {
+      "id": "652",
+      "name": "Tokmanni Tuulos",
+      "city": "Tuulos",
+      "address": "Tuulosentie 1 14810 Tuulos",
+      "latitude": 61.1050853,
+      "longitude": 24.8672043,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "653",
+      "name": "Tokmanni Tuusula Hyrylä",
+      "city": "Tuusula",
+      "address": "Sulantie 1 04300 Tuusula",
+      "latitude": 60.3834598,
+      "longitude": 25.0274633,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "654",
+      "name": "Tokmanni Turenki",
+      "city": "Turenki",
+      "address": "Sokeriportti 1 14200 Turenki",
+      "latitude": 60.9280034,
+      "longitude": 24.6354785,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "655",
+      "name": "Tokmanni Kaarina",
+      "city": "Piispanristi",
+      "address": "Jännekatu 4 20760 Piispanristi",
+      "latitude": 60.4147772,
+      "longitude": 22.3287886,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "656",
+      "name": "Tokmanni Parainen",
+      "city": "Parainen",
+      "address": "Österbyntie 58 21600 Parainen",
+      "latitude": 60.3141341,
+      "longitude": 22.3319926,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "657",
+      "name": "Tokmanni Turku Länsikeskus",
+      "city": "Turku",
+      "address": "Viilarinkatu 8  20320 Turku",
+      "latitude": 60.4730306,
+      "longitude": 22.226031,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "615",
+      "name": "Tokmanni Orimattila",
+      "city": "Orimattila",
+      "address": "Lahdentie 109 16300 Orimattila",
+      "latitude": 60.8120828,
+      "longitude": 25.7297093,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "617",
+      "name": "Tokmanni Lahti Karisto",
+      "city": "Lahti",
+      "address": "Kauppiaankatu 6 15160 Lahti",
+      "latitude": 60.9831223,
+      "longitude": 25.7363501,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "618",
+      "name": "Tokmanni Turku Skanssi",
+      "city": "Turku",
+      "address": "Skanssinkatu 10 20730 Turku",
+      "latitude": 60.429722,
+      "longitude": 22.319338,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "619",
+      "name": "Tokmanni Kuopio Kolmisoppi",
+      "city": "Kuopio",
+      "address": "Kolmisopentie 1-3 70780 Kuopio",
+      "latitude": 62.862538,
+      "longitude": 27.614566,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "620",
+      "name": "Tokmanni Lappeenranta IsoKristiina",
+      "city": "Lappeenranta",
+      "address": "Brahenkatu 5b 53100 Lappeenranta",
+      "latitude": 61.056841,
+      "longitude": 28.193206,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "622",
+      "name": "Tokmanni Kotka Jumalniemi",
+      "city": "Kotka",
+      "address": "Jumalniementie 7 48600 Kotka",
+      "latitude": 60.505095,
+      "longitude": 26.916765,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "623",
+      "name": "Tokmanni Kirkkonummi",
+      "city": "Kirkkonummi",
+      "address": "Makasiinitie 1 02400 Kirkkonummi",
+      "latitude": 60.119487,
+      "longitude": 24.431464,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "624",
+      "name": "Tokmanni Raisio",
+      "city": "Raisio",
+      "address": "Kauppakuja 2 21200 Raisio",
+      "latitude": 60.4873,
+      "longitude": 22.16706,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "625",
+      "name": "Tokmanni Närpiö",
+      "city": "Närpiö",
+      "address": "Yhdistyksentie 3 64200 Närpiö",
+      "latitude": 62.478211,
+      "longitude": 21.335423,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "626",
+      "name": "Tokmanni Savonlinna",
+      "city": "Savonlinna",
+      "address": "Kartanonväylä 3 57210 Savonlinna",
+      "latitude": 61.874214,
+      "longitude": 28.954978,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "627",
+      "name": "Tokmanni Helsinki Ruoholahti",
+      "city": "Helsinki",
+      "address": "Itämerenkatu 21 00180 Helsinki",
+      "latitude": 60.163734,
+      "longitude": 24.910336,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "628",
+      "name": "Tokmanni Imatra",
+      "city": "Imatra",
+      "address": "Tietäjänkatu 3 55120 Imatra",
+      "latitude": 61.185509,
+      "longitude": 28.770837,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "629",
+      "name": "Tokmanni Lempäälä RealPark",
+      "city": "Lempäälä",
+      "address": "Realparkinkatu 3 37570 Lempäälä",
+      "latitude": 61.368417,
+      "longitude": 23.79639,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "630",
+      "name": "Tokmanni Parkano",
+      "city": "Parkano",
+      "address": "Humalankatu 3 39700 Parkano",
+      "latitude": 62.008011,
+      "longitude": 23.010788,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "631",
+      "name": "Tokmanni Haapajärvi",
+      "city": "Haapajärvi",
+      "address": "Kustaa Vaasankatu 3 85800 Haapajärvi",
+      "latitude": 63.747964,
+      "longitude": 25.32144,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "634",
+      "name": "Tokmanni Lohja Keskusta",
+      "city": "Lohja",
+      "address": "Kauppakatu 10-12 08100 Lohja",
+      "latitude": 60.249785,
+      "longitude": 24.065616,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "635",
+      "name": "Tokmanni Kuopio Keskusta",
+      "city": "Kuopio",
+      "address": "Puijonkatu 19 70100 Kuopio",
+      "latitude": 62.892178,
+      "longitude": 27.680405,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "596",
+      "name": "Tokmanni Loviisa",
+      "city": "Loviisa",
+      "address": "Porvoonkatu 2 07900 Loviisa",
+      "latitude": 60.457211,
+      "longitude": 26.19853,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "597",
+      "name": "Tokmanni Laitila",
+      "city": "Laitila",
+      "address": "Garpintie 1 23800 Laitila",
+      "latitude": 60.872566,
+      "longitude": 21.695558,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "598",
+      "name": "Tokmanni Loimaa",
+      "city": "Loimaa",
+      "address": "Kartanomäenkatu 6 32200 Loimaa",
+      "latitude": 60.853993,
+      "longitude": 23.033766,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "599",
+      "name": "Tokmanni Jämsä",
+      "city": "Jämsä",
+      "address": "Sirkankatu 2 42100 Jämsä",
+      "latitude": 61.851405,
+      "longitude": 25.176449,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "600",
+      "name": "Tokmanni Juva",
+      "city": "Juva",
+      "address": "Tulostie 2 51900 Juva",
+      "latitude": 61.898039,
+      "longitude": 27.808612,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "601",
+      "name": "Tokmanni Nivala",
+      "city": "Nivala",
+      "address": "Jyrkäntie 1 85500 Nivala",
+      "latitude": 63.930114,
+      "longitude": 24.96786,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "602",
+      "name": "Tokmanni Vantaa Varisto",
+      "city": "Vantaa",
+      "address": "Kalustetie 1 01720 Vantaa",
+      "latitude": 60.277345,
+      "longitude": 24.817624,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "603",
+      "name": "Tokmanni Porvoo",
+      "city": "Porvoo",
+      "address": "Asentajantie 5 06150 Porvoo",
+      "latitude": 60.4021775,
+      "longitude": 25.6883635,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "604",
+      "name": "Tokmanni Heinola",
+      "city": "Heinola",
+      "address": "Työmiehentie 31 18200 Heinola",
+      "latitude": 61.231417,
+      "longitude": 26.0445475,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "605",
+      "name": "Tokmanni Hamina",
+      "city": "Hamina",
+      "address": "Rautatienkatu 14 49400 Hamina",
+      "latitude": 60.5753692,
+      "longitude": 27.1917292,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "606",
+      "name": "Tokmanni Vanhakylä",
+      "city": "Gammelby",
+      "address": "Heskerintie 17 07740 Gammelby",
+      "latitude": 60.484553,
+      "longitude": 25.888531,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "607",
+      "name": "Tokmanni Mäntsälä",
+      "city": "Mäntsälä",
+      "address": "Maisalantie 9 04600 Mäntsälä",
+      "latitude": 60.6238681,
+      "longitude": 25.2864051,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "608",
+      "name": "Tokmanni Kotka Kotkansaari",
+      "city": "Kotka",
+      "address": "Suursaarenkatu 3 48100 Kotka",
+      "latitude": 60.4569829,
+      "longitude": 26.9306882,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "609",
+      "name": "Tokmanni Hollola",
+      "city": "Hollola",
+      "address": "Keskikankaantie 4  15860 Hollola",
+      "latitude": 60.9898715,
+      "longitude": 25.5364521,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "610",
+      "name": "Tokmanni Kuusankoski",
+      "city": "Kuusankoski",
+      "address": "Kiltatie 10 45740 Kuusankoski",
+      "latitude": 60.900456,
+      "longitude": 26.6046664,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "611",
+      "name": "Tokmanni Lappeenranta Myllymäki",
+      "city": "Lappeenranta",
+      "address": "Hiessillankatu 5 53550 Lappeenranta",
+      "latitude": 61.0388825,
+      "longitude": 28.222513,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "612",
+      "name": "Tokmanni Nastola",
+      "city": "Nastola",
+      "address": "Kauppakaari 1 15560 Nastola",
+      "latitude": 60.9483622,
+      "longitude": 25.9288443,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "613",
+      "name": "Tokmanni Inkeroinen",
+      "city": "Inkeroinen",
+      "address": "Spännärintie 2 A 46900 Inkeroinen",
+      "latitude": 60.695877,
+      "longitude": 26.859754,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "614",
+      "name": "Tokmanni Lahti Laune",
+      "city": "Lahti",
+      "address": "Alhonkatu 3  15610  Lahti",
+      "latitude": 60.9493408,
+      "longitude": 25.6498318,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "577",
+      "name": "Tokmanni Mikkeli",
+      "city": "Mikkeli",
+      "address": "Setrikatu 1 50100 Mikkeli",
+      "latitude": 61.6801035,
+      "longitude": 27.2693585,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "578",
+      "name": "Tokmanni Mäntyharju",
+      "city": "Mäntyharju",
+      "address": "Keskustie 18 52700 Mäntyharju",
+      "latitude": 61.4140266,
+      "longitude": 26.8771316,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "580",
+      "name": "Tokmanni Sysmä",
+      "city": "Sysmä",
+      "address": "Ohrasaarentie 2 19700 Sysmä",
+      "latitude": 61.501783,
+      "longitude": 25.678294,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "581",
+      "name": "Tokmanni Varkaus",
+      "city": "Varkaus",
+      "address": "Käsityökatu 22 78200 Varkaus",
+      "latitude": 62.3170523,
+      "longitude": 27.855052,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "582",
+      "name": "Tokmanni Suonenjoki",
+      "city": "Suonenjoki",
+      "address": "Kauppiaankatu 1 77600 Suonenjoki",
+      "latitude": 62.6364706,
+      "longitude": 27.0949906,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "584",
+      "name": "Tokmanni Pieksämäki",
+      "city": "Pieksämäki",
+      "address": "Keskuskatu 35-37 76100 Pieksämäki",
+      "latitude": 62.2987918,
+      "longitude": 27.1501222,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "586",
+      "name": "Tokmanni Heinävesi",
+      "city": "Heinävesi",
+      "address": "Purotie 2 79700 Heinävesi",
+      "latitude": 62.4257653,
+      "longitude": 28.6343101,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "587",
+      "name": "Tokmanni Kylmäkoski",
+      "city": "Kylmäkoski",
+      "address": "Yrittäjäntie 4  37910 Kylmäkoski",
+      "latitude": 61.161394,
+      "longitude": 23.694668,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "588",
+      "name": "Tokmanni Oulu Jukola",
+      "city": "Oulu",
+      "address": "Jukolankuja 1-3 90410 Oulu",
+      "latitude": 64.9684829,
+      "longitude": 25.4968073,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "589",
+      "name": "Tokmanni Oulu Kaijonharju",
+      "city": "Oulu",
+      "address": "Sammonkatu 5 90570 Oulu",
+      "latitude": 65.0587056,
+      "longitude": 25.478274,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "590",
+      "name": "Tokmanni Oulu Toppila",
+      "city": "Oulu",
+      "address": "Kansipojantie 1 90520 Oulu",
+      "latitude": 65.0347102,
+      "longitude": 25.4484331,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "591",
+      "name": "Tokmanni Hyvinkää",
+      "city": "Hyvinkää",
+      "address": "Kauppatori 1 05800 Hyvinkää",
+      "latitude": 60.630154,
+      "longitude": 24.861374,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "592",
+      "name": "Tokmanni Harjavalta",
+      "city": "Harjavalta",
+      "address": "Huovinkatu 4 29200 Harjavalta",
+      "latitude": 61.311875,
+      "longitude": 22.13582,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "593",
+      "name": "Tokmanni Siilinjärvi",
+      "city": "Siilinjärvi",
+      "address": "Kuiluntie 3 71800 Siilinjärvi",
+      "latitude": 63.073777,
+      "longitude": 27.660398,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "594",
+      "name": "Tokmanni Oulu Ritaharju",
+      "city": "Oulu",
+      "address": "Ritaharjuntie 49 90540 Oulu",
+      "latitude": 65.076615,
+      "longitude": 25.447083,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "595",
+      "name": "Tokmanni Orivesi",
+      "city": "Orivesi",
+      "address": "Kääjäntie 1 35300 Orivesi",
+      "latitude": 61.677108,
+      "longitude": 24.351299,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "556",
+      "name": "Tokmanni Nummela",
+      "city": "Nummela",
+      "address": "Kyöstinpolku 6 03100 Nummela",
+      "latitude": 60.335498,
+      "longitude": 24.32858,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "557",
+      "name": "Tokmanni Valkeakoski",
+      "city": "Valkeakoski",
+      "address": "Apiankatu 6 37600 Valkeakoski",
+      "latitude": 61.26492,
+      "longitude": 24.036584,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "558",
+      "name": "Tokmanni Helsinki Herttoniemi",
+      "city": "Helsinki",
+      "address": "Insinöörinkatu 2 00880 Helsinki",
+      "latitude": 60.194012,
+      "longitude": 25.03413,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "559",
+      "name": "Tokmanni Ikaalinen",
+      "city": "Ikaalinen",
+      "address": "Karhoistentie 3 39500 Ikaalinen",
+      "latitude": 61.7567664,
+      "longitude": 23.0660395,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "560",
+      "name": "Tokmanni Saarijärvi Keskusta",
+      "city": "Saarijärvi",
+      "address": "Kauppakatu 5 43100 Saarijärvi",
+      "latitude": 62.706021,
+      "longitude": 25.258512,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "561",
+      "name": "Tokmanni Rovaniemi Eteläkeskus",
+      "city": "Rovaniemi",
+      "address": "Teollisuustie 13 96320 Rovaniemi",
+      "latitude": 66.490956,
+      "longitude": 25.673354,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "562",
+      "name": "Tokmanni Pirkkala",
+      "city": "Pirkkala",
+      "address": "Palmrothintie 1-3 33950 Pirkkala",
+      "latitude": 61.4649702,
+      "longitude": 23.7218196,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "563",
+      "name": "Tokmanni Vaasa",
+      "city": "Vaasa",
+      "address": "Kokkokalliontie 8 65300 Vaasa",
+      "latitude": 63.1093,
+      "longitude": 21.65386,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "564",
+      "name": "Tokmanni-EUROSPAR Ylöjärvi",
+      "city": "Ylöjärvi",
+      "address": "Elotie 9 33470 Ylöjärvi",
+      "latitude": 61.556444,
+      "longitude": 23.567165,
+      "chain": "EUROSPAR"
+    },
+    {
+      "id": "565",
+      "name": "Tokmanni Kemi Keskusta",
+      "city": "Kemi",
+      "address": "Asemakatu 4 94100 Kemi",
+      "latitude": 65.738033,
+      "longitude": 24.568229,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "566",
+      "name": "Tokmanni-EUROSPAR Joensuu Raatekangas",
+      "city": "Joensuu",
+      "address": "Raatekankaantie 4 80100 Joensuu",
+      "latitude": 62.6279802,
+      "longitude": 29.7748162,
+      "chain": "EUROSPAR"
+    },
+    {
+      "id": "567",
+      "name": "Tokmanni Lieksa",
+      "city": "Lieksa",
+      "address": "Pielisentie 28-30 81700 Lieksa",
+      "latitude": 63.3188281,
+      "longitude": 30.0248359,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "568",
+      "name": "Tokmanni Nurmes",
+      "city": "Nurmes",
+      "address": "Teollisuustie 20 75530 Nurmes",
+      "latitude": 63.5561498,
+      "longitude": 29.0777689,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "569",
+      "name": "Tokmanni Outokumpu",
+      "city": "Outokumpu",
+      "address": "Polvijärventie 4 83500 Outokumpu",
+      "latitude": 62.726234,
+      "longitude": 29.02119,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "570",
+      "name": "Tokmanni Kitee",
+      "city": "Kitee",
+      "address": "Kiteentie 75 82500 Kitee",
+      "latitude": 62.1085414,
+      "longitude": 30.1158494,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "571",
+      "name": "Tokmanni Ilomantsi",
+      "city": "Ilomantsi",
+      "address": "Kalevalantie 24 82900 Ilomantsi",
+      "latitude": 62.673474,
+      "longitude": 30.9291835,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "572",
+      "name": "Tokmanni Juuka",
+      "city": "Juuka",
+      "address": "Väyryläntie 2 83900 Juuka",
+      "latitude": 63.2400135,
+      "longitude": 29.2168286,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "573",
+      "name": "Tokmanni Liperi Keskusta",
+      "city": "Liperi",
+      "address": "Keskustie 1 83100 Liperi",
+      "latitude": 62.5302721,
+      "longitude": 29.3860845,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "574",
+      "name": "Tokmanni Kerimäki",
+      "city": "Kerimäki",
+      "address": "Kerimäentie 1 58200 Kerimäki",
+      "latitude": 61.9094098,
+      "longitude": 29.2784275,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "575",
+      "name": "Tokmanni Parikkala",
+      "city": "Parikkala",
+      "address": "Puistokatu 4 59100 Parikkala",
+      "latitude": 61.554193,
+      "longitude": 29.5036769,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "576",
+      "name": "Tokmanni Rantasalmi",
+      "city": "Rantasalmi",
+      "address": "Kylätie 22 58900 Rantasalmi",
+      "latitude": 62.062799,
+      "longitude": 28.3050702,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "535",
+      "name": "Tokmanni Hämeenkyrö",
+      "city": "Kyröskoski",
+      "address": "Kyreltie 2-6 39200 Kyröskoski",
+      "latitude": 61.6575605,
+      "longitude": 23.1812197,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "536",
+      "name": "Tokmanni Mänttä",
+      "city": "Mänttä",
+      "address": "Pohjaväreenkuja 1 35800 Mänttä",
+      "latitude": 62.029007,
+      "longitude": 24.6167288,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "537",
+      "name": "Tokmanni Pori ICCO",
+      "city": "Pori",
+      "address": "Itäkeskuksenkaari 8 28130 Pori",
+      "latitude": 61.4536307,
+      "longitude": 21.8356014,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "538",
+      "name": "Tokmanni Kokemäki",
+      "city": "Kokemäki",
+      "address": "Haapionkatu 19 32800 Kokemäki",
+      "latitude": 61.2543514,
+      "longitude": 22.3475256,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "539",
+      "name": "Tokmanni Jyväskylä Seppälänkangas",
+      "city": "Jyväskylä",
+      "address": "Sorastajantie 1 40320 Jyväskylä",
+      "latitude": 62.2708952,
+      "longitude": 25.7874024,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "540",
+      "name": "Tokmanni Tampere Lielahti",
+      "city": "Tampere",
+      "address": "Harjuntausta 14 33400 Tampere",
+      "latitude": 61.5167151,
+      "longitude": 23.6660673,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "541",
+      "name": "Tokmanni Huittinen",
+      "city": "Huittinen",
+      "address": "Kauppiaskatu 4 32700 Huittinen",
+      "latitude": 61.1719459,
+      "longitude": 22.6806145,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "542",
+      "name": "Tokmanni Seinäjoki Päivölä",
+      "city": "Seinäjoki",
+      "address": "Pohjan akka 5 60120 Seinäjoki",
+      "latitude": 62.794531,
+      "longitude": 22.86875,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "543",
+      "name": "Tokmanni Rauma",
+      "city": "Rauma",
+      "address": "Kairakatu 2 26100 Rauma",
+      "latitude": 61.1338783,
+      "longitude": 21.5220336,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "545",
+      "name": "Tokmanni Nokia",
+      "city": "Nokia",
+      "address": "Nuijamiestentie 9 37120 Nokia",
+      "latitude": 61.4682975,
+      "longitude": 23.5105694,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "546",
+      "name": "Tokmanni Kuusamo",
+      "city": "Kuusamo",
+      "address": "Luomantie 2 93600 Kuusamo",
+      "latitude": 65.955694,
+      "longitude": 29.160867,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "547",
+      "name": "Tokmanni Tampere Koskikeskus",
+      "city": "Tampere",
+      "address": "Hatanpään valtatie 1 33100 Tampere",
+      "latitude": 61.496141,
+      "longitude": 23.768073,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "548",
+      "name": "Tokmanni Pori Keskusta",
+      "city": "Pori",
+      "address": "Isolinnankatu 18 28100 Pori",
+      "latitude": 61.485348,
+      "longitude": 21.799664,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "549",
+      "name": "Tokmanni Joutsa",
+      "city": "Joutsa",
+      "address": "Keskustie 3 19650 Joutsa",
+      "latitude": 61.742953,
+      "longitude": 26.109151,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "550",
+      "name": "Tokmanni Sastamala",
+      "city": "Sastamala",
+      "address": "Vammalantie 8 38200 Sastamala",
+      "latitude": 61.33073577431038,
+      "longitude": 22.92351211477054,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "551",
+      "name": "Tokmanni Tampere Hervanta",
+      "city": "Tampere",
+      "address": "Pietilänkatu 2 33720 Tampere",
+      "latitude": 61.4507734,
+      "longitude": 23.8523764,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "552",
+      "name": "Tokmanni Kokkola",
+      "city": "Kokkola",
+      "address": "Heinolankaari 9 67600 Kokkola",
+      "latitude": 63.827658,
+      "longitude": 23.156948,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "555",
+      "name": "Tokmanni Hämeenlinna Hämeensaari",
+      "city": "Hämeenlinna",
+      "address": "Hämeensaarentie 5 13100 Hämeenlinna",
+      "latitude": 60.9926115,
+      "longitude": 24.4623182,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "526",
+      "name": "Tokmanni Oulainen",
+      "city": "Oulainen",
+      "address": "Asemakatu 8 86300 Oulainen",
+      "latitude": 64.2694718,
+      "longitude": 24.8198419,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "527",
+      "name": "Tokmanni Kauhajoki",
+      "city": "Kauhajoki",
+      "address": "Topeeka 78 61800 Kauhajoki",
+      "latitude": 62.4348135,
+      "longitude": 22.1856463,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "528",
+      "name": "Tokmanni Kankaanpää",
+      "city": "Kankaanpää",
+      "address": "Päivikenkatu 4 38700 Kankaanpää",
+      "latitude": 61.8009675,
+      "longitude": 22.3939199,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "529",
+      "name": "Tokmanni Ilmajoki",
+      "city": "Ilmajoki",
+      "address": "Huhdantie 1 60800 Ilmajoki",
+      "latitude": 62.72843,
+      "longitude": 22.598821,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "530",
+      "name": "Tokmanni Alajärvi",
+      "city": "Alajärvi",
+      "address": "Kurejoentie 2 62900 Alajärvi",
+      "latitude": 63.0029461,
+      "longitude": 23.8057158,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "531",
+      "name": "Tokmanni Kurikka",
+      "city": "Kurikka",
+      "address": "Laurintie 9 61300 Kurikka",
+      "latitude": 62.6146093,
+      "longitude": 22.3960623,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "532",
+      "name": "Tokmanni Raahe",
+      "city": "Raahe",
+      "address": "Rakentajankatu 6 92130 Raahe",
+      "latitude": 64.6847342,
+      "longitude": 24.4962776,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "533",
+      "name": "Tokmanni Kauhava",
+      "city": "Kauhava",
+      "address": "Kauppatie 86 62200 Kauhava",
+      "latitude": 63.100183,
+      "longitude": 23.0607592,
+      "chain": "TOKMANNI"
+    },
+    {
+      "id": "534",
+      "name": "Tokmanni Kangasala",
+      "city": "Kangasala",
+      "address": "Mäkirinteentie 4 36220 Kangasala",
+      "latitude": 61.4741206,
+      "longitude": 23.9766826,
+      "chain": "TOKMANNI"
+    }
+  ]
+}
