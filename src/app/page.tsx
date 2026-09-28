@@ -20727,11 +20727,24 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 return;
               }
 
-              const numericPrice = Number(
+              const sourceOffer = offer.__sourceOfferSearchResult || {};
+              const isEurosparMultiBuy =
+                String(sourceOffer.chain || offer.chain || "").trim().toUpperCase() === "EUROSPAR" &&
+                sourceOffer.priceBasis === "multi-buy-total" &&
+                Number.isFinite(Number(sourceOffer.offerQuantity)) &&
+                Number(sourceOffer.offerQuantity) > 1;
+              const rawNumericPrice = Number(
                 String(offer.offerPrice || offer.price || "")
                   .replace(",", ".")
                   .replace(/[^\d.-]/g, ""),
               );
+              const equivalentPrice = Number(sourceOffer.singleEquivalentPrice);
+              // Cart rows are per product unit. A EUROSPAR multi-buy total such
+              // as 4 kpl / 5 € must therefore enter as 1.25 €/kpl, not 5 €/kpl.
+              const numericPrice =
+                isEurosparMultiBuy && Number.isFinite(equivalentPrice) && equivalentPrice > 0
+                  ? equivalentPrice
+                  : rawNumericPrice;
 
               const newItem: CartItem = {
                 id: String(offer.id || `offer-${Date.now()}`),
@@ -20766,11 +20779,22 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 const name = fixText(String(offer.name || offer.title || offer.productName || "Tarjoustuote"));
                 if (nextCart.some((item) => normalize(item.name) === normalize(name))) continue;
 
-                const numericPrice = Number(
+                const sourceOffer = offer.__sourceOfferSearchResult || {};
+                const isEurosparMultiBuy =
+                  String(sourceOffer.chain || offer.chain || "").trim().toUpperCase() === "EUROSPAR" &&
+                  sourceOffer.priceBasis === "multi-buy-total" &&
+                  Number.isFinite(Number(sourceOffer.offerQuantity)) &&
+                  Number(sourceOffer.offerQuantity) > 1;
+                const rawNumericPrice = Number(
                   String(offer.offerPrice || offer.price || "")
                     .replace(",", ".")
                     .replace(/[^\d.-]/g, ""),
                 );
+                const equivalentPrice = Number(sourceOffer.singleEquivalentPrice);
+                const numericPrice =
+                  isEurosparMultiBuy && Number.isFinite(equivalentPrice) && equivalentPrice > 0
+                    ? equivalentPrice
+                    : rawNumericPrice;
 
                 nextCart = [
                   ...nextCart,
