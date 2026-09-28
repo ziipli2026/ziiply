@@ -16665,12 +16665,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         const options = Array.isArray(data?.items) ? data.items as StoreSearchItem[] : [];
         setEurosparStoreOptionsV751(options);
         setSelectedEurosparStoreV751((current) => {
-          if (gpsCoordsV320) return options[0] || null;
+          // V752: GPS/background refresh must never overwrite a user's explicit
+          // EUROSPAR choice. Previously gpsCoordsV320 forced options[0] on every
+          // refresh, which could silently replace Järvenpää with another store
+          // and make Gösta's EUROSPAR gate disappear/change context.
           if (current) {
             const same = options.find((store) => sameStoreIdV93(store.id, current.id));
-            if (same) return same;
+            if (same) return { ...same, chain: "EUROSPAR" };
+            return { ...current, chain: "EUROSPAR" };
           }
-          return options[0] || null;
+          return options[0] ? { ...options[0], chain: "EUROSPAR" } : null;
         });
       })
       .catch(() => {
@@ -18414,7 +18418,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                         getStoreKey={(option, index) => `eurospar-${option.id || index}-${normalize(option.name || "")}`}
                         onSelectStore={(option) => {
                           const source = eurosparStoreOptionsV751.find((store) => sameStoreIdV93(store.id, option.id)) || option as StoreSearchItem;
-                          setSelectedEurosparStoreV751(source);
+                          setSelectedEurosparStoreV751({ ...source, chain: "EUROSPAR" });
                           triggerHaptic();
                           window.setTimeout(() => setOpenStorePicker(null), 0);
                         }}
@@ -20681,7 +20685,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               void searchOffers();
             }}
             showLidlChain={Boolean(selectedChains.lidl && selectedLidlStoreV750)}
-            showEurosparChain={selectedEurosparStoreV751?.chain === "EUROSPAR"}
+            showEurosparChain={Boolean(selectedEurosparStoreV751)}
             categorySuggestions={GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147}
             categoryOfferCounts={gostaCategoryOfferCountsV163}
             testedEmptyCategories={gostaTestedEmptyCategoriesV166}
