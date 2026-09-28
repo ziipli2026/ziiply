@@ -299,8 +299,9 @@ function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
     normalizeGostaCoreText(sourceItem?.chain || anyItem?.chain || "") === "eurospar";
   if (isEurospar) {
     const raw = normalizeGostaCoreText(sourceItem?.category || anyItem?.category || "")
+      .replace(/&/g, " ")
       .split(" ")
-      .filter((part) => part !== "ja")
+      .filter((part) => part && part !== "ja")
       .join(" ");
     const trusted = new Map<string, string>([
       ["kahvi tee", "Kahvi & tee"], ["maitotuotteet", "Maitotuotteet"], ["liha makkarat", "Liha & makkarat"],
