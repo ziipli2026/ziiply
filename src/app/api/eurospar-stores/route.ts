@@ -23,8 +23,10 @@ function distanceKm(lat1: number, lon1: number, lat2: number, lon2: number) {
 }
 
 export async function GET(request: NextRequest) {
-  const lat = Number(request.nextUrl.searchParams.get("lat"));
-  const lon = Number(request.nextUrl.searchParams.get("lon"));
+  const latParam = request.nextUrl.searchParams.get("lat");
+  const lonParam = request.nextUrl.searchParams.get("lon");
+  const lat = latParam == null || latParam === "" ? NaN : Number(latParam);
+  const lon = lonParam == null || lonParam === "" ? NaN : Number(lonParam);
   const hasGps = Number.isFinite(lat) && Number.isFinite(lon);
   const search = String(request.nextUrl.searchParams.get("search") || "").trim().toLocaleLowerCase("fi-FI");
 
@@ -70,5 +72,19 @@ export async function GET(request: NextRequest) {
     return a.name.localeCompare(b.name, "fi");
   });
 
-  return NextResponse.json({ items });
+  const visibleItems = hasGps
+    ? (() => {
+        const nearby = items.filter((item) => item.distanceKm != null && item.distanceKm <= 50);
+        return nearby.length >= 2 ? nearby : items.slice(0, Math.min(8, items.length));
+      })()
+    : search
+      ? (() => {
+          const matches = items.filter((item) =>
+            `${item.name} ${item.city}`.toLocaleLowerCase("fi-FI").includes(search),
+          );
+          return matches.length ? matches : items.slice(0, Math.min(8, items.length));
+        })()
+      : [];
+
+  return NextResponse.json({ items: visibleItems });
 }
