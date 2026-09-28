@@ -18076,8 +18076,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     );
   }
 
+  // V764: kaikki neljä oikeaa ketjuvalintaa lasketaan mukaan.
+  // Muuten Yksi → Lidl/SPAR-Tokmanni näyttää selectorille virheellisesti 0 valittua ketjua.
   const selectedRealChainCount =
-    Number(Boolean(selectedChains.s)) + Number(Boolean(selectedChains.k));
+    Number(Boolean(selectedChains.s)) +
+    Number(Boolean(selectedChains.k)) +
+    Number(Boolean(selectedChains.lidl)) +
+    Number(Boolean(selectedChains.tokmanni));
   function renderComparedStoreCards(compact = false) {
     if (storeCompareScope === "none") {
       return null;
