@@ -4394,6 +4394,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const [restoredComparisonPending, setRestoredComparisonPending] = useState(false);
   const comparisonCacheKeyRef = useRef<string | null>(null);
   const comparisonCompletedKeyRef = useRef<string | null>(null);
+  // V768: kauppavalinnan muutos saa ajaa vertailun taustalla vasta sen jälkeen,
+  // kun käyttäjä on käynnistänyt Halpuusvertailun vähintään kerran tälle korille.
+  const comparisonUserStartedRefV768 = useRef(false);
   const comparisonItemRequestsRef = useRef<Map<string, Promise<{ s: Match | null; k: Match | null; failed: boolean }>>>(new Map());
   const comparisonUpdateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [sMatches, setSMatches] = useState<Record<string, Match>>({});
@@ -11981,6 +11984,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         setKMatches(snapshot.kMatches);
         comparisonCacheKeyRef.current = cacheKey;
         comparisonCompletedKeyRef.current = cacheKey;
+        // Palautettu snapshot tarkoittaa, että tälle korille on jo tehty vertailu.
+        comparisonUserStartedRefV768.current = true;
         setComparisonLoading(false);
         return;
       }
@@ -11995,10 +12000,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         setSMatches({});
         setKMatches({});
         comparisonCacheKeyRef.current = null;
+        comparisonCompletedKeyRef.current = null;
+        comparisonUserStartedRefV768.current = false;
       }
       return;
     }
     if (!storesReadyForSearch || restoredCartPromptV320.open) return;
+    // V768: älä esilämmitä Halpuusvertailua ennen käyttäjän ensimmäistä käynnistystä.
+    if (!comparisonUserStartedRefV768.current) return;
     if (comparisonCacheKeyRef.current !== getComparisonCacheKey(comparisonCart)) {
       comparisonCacheKeyRef.current = null;
       setComparisonLoading(true);
@@ -12059,7 +12068,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setCart(nextCart);
     persistCartImmediately(nextCart);
     showCartToast(`Lisätty ostoskoriin: ${name}`);
-    void updateChainComparison(nextCart, { openCompare: false });
+    if (comparisonUserStartedRefV768.current) {
+      void updateChainComparison(nextCart, { openCompare: false });
+    }
   }
 
   function loadHtml5QrCodeScript() {
@@ -15222,6 +15233,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setNormalResults([]);
     setVisibleNormalCount(8);
     setActiveResult("compare");
+
+    // V768: tästä alkaa käyttäjän nimenomaisesti käynnistämä Halpuusvertailu.
+    // Tämän jälkeen kauppa-/ketjuvalinnan muutokset saavat päivittää vertailun taustalla.
+    comparisonUserStartedRefV768.current = true;
 
     if (storesReadyForSearch) {
       void updateChainComparison(comparableCartV730);
