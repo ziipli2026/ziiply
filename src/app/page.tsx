@@ -16635,6 +16635,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         const options = Array.isArray(data?.items) ? data.items as StoreSearchItem[] : [];
         setEurosparStoreOptionsV751(options);
         setSelectedEurosparStoreV751((current) => {
+          if (gpsCoordsV320) return options[0] || null;
           if (current) {
             const same = options.find((store) => sameStoreIdV93(store.id, current.id));
             if (same) return same;
