@@ -11891,10 +11891,96 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     return "ask";
   }
 
+  async function refreshSingleChainCartPricesV770(nextCart = cart) {
+    if (storeCompareScope !== "between_chains" || betweenChainSelectionModeV749 !== "one") return;
+
+    const selectedKey = (["s", "k", "lidl", "tokmanni"] as const).find(
+      (key) => Boolean(selectedChains[key]),
+    );
+    if (!selectedKey) return;
+
+    const nextItems = await Promise.all(
+      nextCart.map(async (item) => {
+        if (isWeightCartItemV738(item) || String(item?.source || "").toLowerCase() === "offer") return item;
+
+        const itemEan = normalizeEan(item.ean || item.product?.ean);
+        const itemName = fixText(String(item.product?.name || item.name || "")).trim();
+        if (!itemName) return item;
+
+        let candidates: Product[] = [];
+        let storeName = item.storeName || "";
+
+        try {
+          if (selectedKey === "s" && activeStores.sStoreId) {
+            candidates = await fetchSProducts(itemEan || itemName, activeStores.sStoreId);
+            storeName = activeStores.sStoreName || storeName;
+          } else if (selectedKey === "k" && activeStores.kStoreId) {
+            const raw = await fetchKProducts(itemEan || itemName, activeStores.kStoreId);
+            candidates = raw.map((product) => convertKProductToProduct(product));
+            storeName = activeStores.kStoreName || storeName;
+          } else if (selectedKey === "lidl" && selectedLidlStoreV750) {
+            candidates = await fetchLidlProductsV760(itemEan || itemName, selectedLidlStoreV750);
+            storeName = selectedLidlStoreV750.name || storeName;
+          } else if (selectedKey === "tokmanni") {
+            candidates = await fetchTokmanniProductsV761(itemEan || itemName);
+            storeName =
+              selectedTokmanniStoreV756?.name ||
+              selectedEurosparStoreV751?.name ||
+              storeName;
+          }
+        } catch {
+          return item;
+        }
+
+        const exactEan = itemEan
+          ? candidates.find((product) => normalizeEan(product.ean) === itemEan && getProductPrice(product) > 0)
+          : undefined;
+        const exactName = candidates.find(
+          (product) =>
+            normalize(fixText(String(product.name || ""))) === normalize(itemName) &&
+            getProductPrice(product) > 0,
+        );
+        const match = exactEan || exactName;
+        if (!match) return item;
+
+        const price = getProductPrice(match);
+        return {
+          ...item,
+          price,
+          chain: selectedKey === "s" ? "S" : selectedKey === "k" ? "K" : item.chain,
+          storeName,
+          product: { ...(item.product || match), ...match, price },
+          ean: item.ean || match.ean,
+        } as CartItem;
+      }),
+    );
+
+    const changed = nextItems.some(
+      (item, index) =>
+        Number(item.price || 0) !== Number(nextCart[index]?.price || 0) ||
+        String(item.storeName || "") !== String(nextCart[index]?.storeName || ""),
+    );
+    if (!changed) return;
+
+    cartRefV124.current = nextItems;
+    setCart(nextItems);
+    persistCartImmediately(nextItems);
+  }
+
   async function updateChainComparison(
     nextCart = cart,
     options: { openCompare?: boolean } = {},
   ) {
+    // V770: Yksi-tila ei koskaan tuota Halpuusvertailua. Päivitä valitun
+    // ketjun löytyvä täsmähinta suoraan käyttäjän ostoskoriin.
+    if (storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one") {
+      if (options.openCompare !== false) setActiveResult("none");
+      setComparisonLoading(false);
+      comparisonUserStartedRefV768.current = false;
+      void refreshSingleChainCartPricesV770(nextCart);
+      return;
+    }
+
     // V738: physical scale-label products are never price-comparison candidates.
     // Their label total is authoritative, but store-specific comparable unit price
     // cannot be guaranteed even when product identity is known.
@@ -15208,6 +15294,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function openComparisonView() {
+    if (storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one") {
+      setActiveResult("none");
+      setComparisonLoading(false);
+      comparisonUserStartedRefV768.current = false;
+      void refreshSingleChainCartPricesV770(cart);
+      setCartModalOpen(true);
+      return;
+    }
+
     if (cart.length === 0) {
       showCartToast("Lisää ensin tuote koriin.");
       return;
