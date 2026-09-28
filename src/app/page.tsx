@@ -4372,6 +4372,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     lidl: false,
     tokmanni: false,
   });
+  // Göstan ketjuportti seuraa vain käyttäjän nimenomaista vertailukorttivalintaa.
+  // selectedChains ei kelpaa tähän, koska S/K ovat vertailun vuoksi oletuksena true.
+  const [gostaExplicitChainSelectionV755, setGostaExplicitChainSelectionV755] = useState<
+    Record<ChainResult["key"], boolean>
+  >({
+    s: false,
+    k: false,
+    lidl: false,
+    tokmanni: false,
+  });
 
   const [isOnline, setIsOnline] = useState(true);
   const [showLaunchScreen, setShowLaunchScreen] = useState(true);
@@ -16801,6 +16811,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
       return { ...current, [storeKey]: !current[storeKey] };
     });
+    setGostaExplicitChainSelectionV755((current) => {
+      if (betweenChainSelectionModeV749 === "one") {
+        return {
+          s: storeKey === "s",
+          k: storeKey === "k",
+          lidl: storeKey === "lidl",
+          tokmanni: storeKey === "tokmanni",
+        };
+      }
+      return { ...current, [storeKey]: !current[storeKey] };
+    });
     clearSearchAndComparisonState();
     setOpenStorePicker(null);
   }
@@ -20649,9 +20670,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               gostaSelectedOfferChainRefV547.current = chain;
               void searchOffers();
             }}
-            showSChain={Boolean(selectedChains.s)}
-            showKChain={Boolean(selectedChains.k)}
-            showLidlChain={Boolean(selectedChains.lidl && selectedLidlStoreV750)}
+            showSChain={Boolean(gostaExplicitChainSelectionV755.s && selectedChains.s)}
+            showKChain={Boolean(gostaExplicitChainSelectionV755.k && selectedChains.k)}
+            showLidlChain={Boolean(
+              gostaExplicitChainSelectionV755.lidl &&
+              selectedChains.lidl &&
+              selectedLidlStoreV750
+            )}
             categorySuggestions={GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147}
             categoryOfferCounts={gostaCategoryOfferCountsV163}
             testedEmptyCategories={gostaTestedEmptyCategoriesV166}
