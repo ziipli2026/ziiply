@@ -10,8 +10,17 @@ const headers = {
   "x-client-platform": "android",
 };
 
+function repairMojibake(value: string) {
+  if (!/[Ãâ]/.test(value)) return value;
+  try {
+    return decodeURIComponent(escape(value));
+  } catch {
+    return value;
+  }
+}
+
 function classify(name: string, brand = "") {
-  const s = `${name} ${brand}`.toLocaleLowerCase("fi-FI");
+  const s = repairMojibake(`${name} ${brand}`).toLocaleLowerCase("fi-FI");
   if (/kahvi|espresso|cappuccino|tee\b/.test(s)) return "Kahvi & tee";
   if (/maito|jogur|jugur|rahka|juusto|kerma|voi\b|piimä|viili/.test(s)) return "Maitotuotteet";
   if (/kana|broiler|nauta|sika|pors|jauheliha|makkara|nakki|pekoni|kinkku|liha|pulled pork/.test(s)) return "Liha & makkarat";
