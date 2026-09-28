@@ -1392,6 +1392,8 @@ export default function ZiiplyMobileOfferSearchCard({
                 const ean = getOfferEan(offer);
                 const comparisonPrice = getOfferComparisonPrice(offer);
                 const category = String(offer.category || "");
+                const sourceOffer = offer.__sourceOfferSearchResult || {};
+                const isWeightedProduct = Boolean(offer.isWeightedProduct ?? sourceOffer.isWeightedProduct);
 
                 return (
                   <article key={String(offer.id || offer.ean || `${name}-${index}`)} className="relative overflow-hidden rounded-[1.05rem] border-[2px] border-[#7c663d]/78 bg-[#fff4d8] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_6px_14px_rgba(72,51,22,0.10)]">
@@ -1414,6 +1416,9 @@ export default function ZiiplyMobileOfferSearchCard({
                           <div className="clear-both mt-0.5 flex flex-wrap items-center gap-1 text-[0.56rem] font-black uppercase tracking-[0.08em] text-[#6e6d55]">
                             <span>{storeName}</span>
                             {category ? <span className="rounded-full bg-[#174c2c]/12 px-1.5 py-0.5 text-[#174c2c]">{category}</span> : null}
+                            {isWeightedProduct ? (
+                              <span className="rounded-full border border-[#9a7a3d] bg-[#f6dfaa] px-1.5 py-0.5 text-[#6b421f]">Vaakatuote</span>
+                            ) : null}
                           </div>
                           <div className="mt-[0.18rem] min-h-[0.61rem] truncate text-[0.61rem] font-bold leading-none text-[#8a7a55]">
                             {ean ? `EAN ${ean}` : ""}
