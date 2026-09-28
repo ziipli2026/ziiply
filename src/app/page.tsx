@@ -16799,28 +16799,33 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   function handleBetweenChainCardSelectionV749(storeKey: ChainResult["key"]) {
-    setSelectedChains((current) => {
-      if (betweenChainSelectionModeV749 === "one") {
-        return {
-          ...current,
-          s: storeKey === "s",
-          k: storeKey === "k",
-          lidl: storeKey === "lidl",
-          tokmanni: storeKey === "tokmanni",
-        };
-      }
-      return { ...current, [storeKey]: !current[storeKey] };
-    });
-    setGostaExplicitChainSelectionV755((current) => {
-      if (betweenChainSelectionModeV749 === "one") {
-        return {
-          s: storeKey === "s",
-          k: storeKey === "k",
-          lidl: storeKey === "lidl",
-          tokmanni: storeKey === "tokmanni",
-        };
-      }
-      return { ...current, [storeKey]: !current[storeKey] };
+    setGostaExplicitChainSelectionV755((currentExplicit) => {
+      const nextExplicit =
+        betweenChainSelectionModeV749 === "one"
+          ? {
+              s: storeKey === "s",
+              k: storeKey === "k",
+              lidl: storeKey === "lidl",
+              tokmanni: storeKey === "tokmanni",
+            }
+          : {
+              ...currentExplicit,
+              [storeKey]: !currentExplicit[storeKey],
+            };
+
+      // selectedChains sisältää legacy-oletuksen S=true/K=true. Kun käyttäjä
+      // tekee ensimmäisen nimenomaisen korttivalinnan, synkronoi kyseinen ketju
+      // explicit-tilaan sen sijaan että togglattaisiin legacy-oletusta.
+      setSelectedChains((currentSelected) =>
+        betweenChainSelectionModeV749 === "one"
+          ? { ...currentSelected, ...nextExplicit }
+          : {
+              ...currentSelected,
+              [storeKey]: nextExplicit[storeKey],
+            },
+      );
+
+      return nextExplicit;
     });
     clearSearchAndComparisonState();
     setOpenStorePicker(null);
