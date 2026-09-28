@@ -20721,11 +20721,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   .replace(",", ".")
                   .replace(/[^\d.-]/g, ""),
               );
+              const eurosparUnitPrice =
+                String(offer.chain || "").toUpperCase() === "EUROSPAR" &&
+                offer.priceBasis === "multi-buy-total" &&
+                Number.isFinite(Number(offer.singleEquivalentPrice))
+                  ? Number(offer.singleEquivalentPrice)
+                  : numericPrice;
 
               const newItem: CartItem = {
                 id: String(offer.id || `offer-${Date.now()}`),
                 name,
-                price: Number.isFinite(numericPrice) ? numericPrice : 0,
+                price: Number.isFinite(eurosparUnitPrice) ? eurosparUnitPrice : 0,
                 image: String(offer.imageUrl || offer.pictureUrl || offer.image || ""),
                 chain: offer.chain === "S" || offer.chain === "K" ? offer.chain : undefined,
                 storeName: String(offer.storeName || offer.shopName || ""),
@@ -20734,7 +20740,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 product: {
                   id: String(offer.id || `offer-product-${Date.now()}`),
                   name,
-                  price: Number.isFinite(numericPrice) ? numericPrice : 0,
+                  price: Number.isFinite(eurosparUnitPrice) ? eurosparUnitPrice : 0,
                   pictureUrl: String(offer.imageUrl || offer.pictureUrl || offer.image || ""),
                 } as unknown as Product,
               };
@@ -20760,13 +20766,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     .replace(",", ".")
                     .replace(/[^\d.-]/g, ""),
                 );
+                const eurosparUnitPrice =
+                  String(offer.chain || "").toUpperCase() === "EUROSPAR" &&
+                  offer.priceBasis === "multi-buy-total" &&
+                  Number.isFinite(Number(offer.singleEquivalentPrice))
+                    ? Number(offer.singleEquivalentPrice)
+                    : numericPrice;
 
                 nextCart = [
                   ...nextCart,
                   {
                     id: String(offer.id || `offer-${Date.now()}-${added}`),
                     name,
-                    price: Number.isFinite(numericPrice) ? numericPrice : 0,
+                    price: Number.isFinite(eurosparUnitPrice) ? eurosparUnitPrice : 0,
                     image: String(offer.imageUrl || offer.pictureUrl || offer.image || ""),
                     chain: offer.chain === "S" || offer.chain === "K" ? offer.chain : undefined,
                     storeName: String(offer.storeName || offer.shopName || ""),
@@ -20775,7 +20787,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     product: {
                       id: String(offer.id || `offer-product-${Date.now()}-${added}`),
                       name,
-                      price: Number.isFinite(numericPrice) ? numericPrice : 0,
+                      price: Number.isFinite(eurosparUnitPrice) ? eurosparUnitPrice : 0,
                       pictureUrl: String(offer.imageUrl || offer.pictureUrl || offer.image || ""),
                     } as unknown as Product,
                   } as CartItem,
