@@ -20649,6 +20649,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               gostaSelectedOfferChainRefV547.current = chain;
               void searchOffers();
             }}
+            showSChain={Boolean(
+              storeMode === "local"
+                ? activeArea.sLocalStoreName
+                : activeArea.sStoreName
+            )}
+            showKChain={Boolean(
+              storeMode === "local"
+                ? activeArea.kLocalStoreName
+                : activeArea.kStoreName
+            )}
             showLidlChain={Boolean(selectedChains.lidl && selectedLidlStoreV750)}
             categorySuggestions={GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147}
             categoryOfferCounts={gostaCategoryOfferCountsV163}
