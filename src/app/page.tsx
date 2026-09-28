@@ -10385,7 +10385,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   // V547: Göstan kortin ketjuvalinta on kortin sisällä, mutta page.tsx tarvitsee
   // saman tiedon muodostaakseen oikean kauppakontekstin myös myöhemmissä
   // kategoriaklikkauksissa.
-  const gostaSelectedOfferChainRefV547 = useRef<"S" | "K" | "EUROSPAR" | null>(null);
+  const gostaSelectedOfferChainRefV547 = useRef<"S" | "K" | "EUROSPAR" | "LIDL" | null>(null);
   // V551: vain viimeisin käynnistetty Gösta-haku saa kirjoittaa tulokset stateen.
   // Estää esim. vanhan K-haun valmistumisen uuden S-haun jälkeen ja korvaamasta S-listaa.
   const gostaOfferSearchRequestSeqRefV551 = useRef(0);
@@ -20686,7 +20686,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             filter={offerCardFilterV106}
             onFilterChange={handleGostaFilterChangeV136}
             onSearch={(value: string) => void searchOffers(value)}
-            onSelectOfferChain={(chain: "S" | "K" | "EUROSPAR") => {
+            onSelectOfferChain={(chain: "S" | "K" | "EUROSPAR" | "LIDL") => {
               // V549: tallenna S/K-valinta ennen hakua. searchOffers rakentaa
               // eksklusiivisen kontekstin nykyisen storeMode-arvon kaupasta.
               gostaSelectedOfferChainRefV547.current = chain;
