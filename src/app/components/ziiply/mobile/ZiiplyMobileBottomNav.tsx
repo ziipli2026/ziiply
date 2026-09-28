@@ -125,7 +125,6 @@ export default function ZiiplyMobileBottomNav({
           />
 
           <ZiiplyNavItem
-            key={`search-${searchReadyBounceKeyV320}`}
             label="Hae"
             icon={<span aria-hidden="true">🔎</span>}
             active={searchPanelOpen}
