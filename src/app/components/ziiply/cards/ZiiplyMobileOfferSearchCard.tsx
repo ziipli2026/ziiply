@@ -598,6 +598,30 @@ function getSavingsText(offer: ZiiplyMobileOfferSearchItem) {
   return "";
 }
 
+function getOfferValidityTextV59(offer: ZiiplyMobileOfferSearchItem) {
+  const source = offer.__sourceOfferSearchResult || {};
+  const explicit = String(offer.validityText ?? source.validityText ?? "").trim();
+  const from = String(offer.validFrom ?? source.validFrom ?? "").slice(0, 10);
+  const until = String(offer.validUntil ?? source.validUntil ?? "").slice(0, 10);
+
+  const formatDate = (value: string) => {
+    const match = value.match(/^\d{4}-(\d{2})-(\d{2})$/);
+    if (!match) return value;
+    return `${Number(match[2])}.${Number(match[1])}.`;
+  };
+
+  if (from && until) return `Voimassa ${formatDate(from)}–${formatDate(until)}`;
+  if (until) return `Voimassa ${formatDate(until)} asti`;
+  if (from) return `Voimassa alkaen ${formatDate(from)}`;
+
+  if (explicit) {
+    return explicit.replace(/(\d{4})-(\d{2})-(\d{2})/g, (_all, _year, month, day) =>
+      `${Number(day)}.${Number(month)}.`,
+    );
+  }
+  return "";
+}
+
 function getOfferEan(offer: ZiiplyMobileOfferSearchItem) {
   const source = offer.__sourceOfferSearchResult || {};
   const value = offer.ean ?? source.ean;
@@ -1363,6 +1387,7 @@ export default function ZiiplyMobileOfferSearchCard({
                 const offerPrice = getOfferPrice(offer);
                 const normalPrice = getNormalPrice(offer);
                 const savingsText = getSavingsText(offer);
+                const validityText = getOfferValidityTextV59(offer);
                 const image = getOfferImage(offer);
                 const ean = getOfferEan(offer);
                 const comparisonPrice = getOfferComparisonPrice(offer);
@@ -1397,8 +1422,13 @@ export default function ZiiplyMobileOfferSearchCard({
                             {comparisonPrice}
                           </div>
                           <div className="mt-1 truncate text-[0.68rem] font-extrabold italic text-[#6b6048]" style={{ fontFamily: serifFont }}>
-                            {savingsText || (normalPrice ? `Norm. ${normalPrice}` : "Tarjous voimassa")}
+                            {savingsText || (normalPrice ? `Norm. ${normalPrice}` : "Tarjous")}
                           </div>
+                          {validityText ? (
+                            <div className="mt-[0.24rem] truncate text-[0.66rem] font-black text-[#7a6846]">
+                              {validityText}
+                            </div>
+                          ) : null}
                         </div>
                       </div>
 
