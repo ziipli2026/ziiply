@@ -18211,11 +18211,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 : "/storelogos/spar.png";
 
         const displayName =
-          !storeModeChosenV299 && chain
-            ? "Vertailuparia ei löytynyt"
-            : isComingSoon
-              ? "Tulossa"
-              : store.name;
+          store.key === "tokmanni"
+            ? (selectedChains.tokmanni
+                ? selectedTokmanniStoreV756?.name || "Tokmanni ei valittu"
+                : selectedEurosparStoreV751?.name || "EUROSPAR ei valittu")
+            : !storeModeChosenV299 && chain
+              ? "Vertailuparia ei löytynyt"
+              : isComingSoon
+                ? "Tulossa"
+                : store.name;
         const distanceForCard = chain
           ? getStoreDistanceLabelForVisibleCardV98(chain, storeMode, displayName)
           : "";
