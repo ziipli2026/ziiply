@@ -16934,11 +16934,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setBetweenChainSelectionModeV749(nextMode);
     setOpenStorePicker(null);
     setSelectedChains((current) => {
+      // V762: Yksi on vain valintatapa, ei S-ryhmän oletusvalinta.
+      // Säilytä nykyinen yksittäinen ketju (S/K/Lidl/Spar-Tokmanni). Jos Monta-tilassa
+      // oli useita ketjuja valittuna, Yksi-tilaan siirtyminen tyhjentää valinnan ja
+      // käyttäjä valitsee itse haluamansa ketjun.
       if (nextMode === "one") {
-        const keepK = current.k && !current.s;
-        return { ...current, s: !keepK, k: keepK, lidl: false, tokmanni: false };
+        const selectedKeys = (["s", "k", "lidl", "tokmanni"] as const).filter(
+          (key) => Boolean(current[key]),
+        );
+        if (selectedKeys.length === 1) return current;
+        return { ...current, s: false, k: false, lidl: false, tokmanni: false };
       }
-      return { ...current, lidl: false, tokmanni: false };
+      return current;
     });
     clearSearchAndComparisonState();
   }
