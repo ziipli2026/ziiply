@@ -1,13 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const STORES = [
-  { id: "eurospar-iisalmi", name: "EUROSPAR Iisalmi", city: "Iisalmi", postalCode: "74120", address: "Meijerikatu 3, 74120 Iisalmi" },
-  { id: "eurospar-joensuu", name: "EUROSPAR Joensuu Raatekangas", city: "Joensuu", postalCode: "80100", address: "Raatekankaantie 4, 80100 Joensuu" },
-  { id: "eurospar-jarvenpaa", name: "EUROSPAR Järvenpää", city: "Järvenpää", postalCode: "04430", address: "Helsingintie 43, 04430 Järvenpää" },
-  { id: "eurospar-masku", name: "EUROSPAR Masku", city: "Masku", postalCode: "21250", address: "Maskuntie 232, 21250 Masku" },
-  { id: "eurospar-tornio", name: "EUROSPAR Tornio", city: "Tornio", postalCode: "95420", address: "Teollisuuskatu 14, 95420 Tornio" },
-  { id: "eurospar-ylojarvi", name: "EUROSPAR Ylöjärvi", city: "Ylöjärvi", postalCode: "33470", address: "Elotie 9, 33470 Ylöjärvi" },
-] as const;
+type StoreFeedItem = {
+  id: string;
+  name: string;
+  city?: string;
+  postalCode?: string;
+  address?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  chain?: "EUROSPAR" | "TOKMANNI";
+};
+
+type StoreFeed = { schemaVersion?: number; stores?: StoreFeedItem[] };
+
+const FEED_URL =
+  "https://raw.githubusercontent.com/ziipli2026/ziiply-kruoka-scraper/main/diagnostics/tokmanni-store-feed-latest.json";
 
 function distanceKm(lat1: number, lon1: number, lat2: number, lon2: number) {
   const rad = (value: number) => (value * Math.PI) / 180;
@@ -17,48 +24,56 @@ function distanceKm(lat1: number, lon1: number, lat2: number, lon2: number) {
   return 6371 * 2 * Math.asin(Math.sqrt(a));
 }
 
-async function geocode(address: string) {
-  const response = await fetch(
-    `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=fi&q=${encodeURIComponent(address)}`,
-    { headers: { "User-Agent": "Ziiply/1.0 store-locator" }, next: { revalidate: 86400 } },
-  );
-  if (!response.ok) return null;
-  const data = await response.json();
-  const first = Array.isArray(data) ? data[0] : null;
-  const latitude = Number(first?.lat);
-  const longitude = Number(first?.lon);
-  return Number.isFinite(latitude) && Number.isFinite(longitude) ? { latitude, longitude } : null;
-}
-
 export async function GET(request: NextRequest) {
   const lat = Number(request.nextUrl.searchParams.get("lat"));
   const lon = Number(request.nextUrl.searchParams.get("lon"));
   const hasGps = Number.isFinite(lat) && Number.isFinite(lon);
   const search = String(request.nextUrl.searchParams.get("search") || "").trim().toLocaleLowerCase("fi-FI");
 
-  const items = await Promise.all(STORES.map(async (store) => {
-    const coords = await geocode(store.address);
-    const distance = hasGps && coords ? distanceKm(lat, lon, coords.latitude, coords.longitude) : null;
+  const response = await fetch(FEED_URL, { next: { revalidate: 3600 } });
+  if (!response.ok) {
+    return NextResponse.json({ items: [], error: "Tokmanni store feed unavailable" }, { status: 503 });
+  }
+  const feed = await response.json() as StoreFeed;
+  if (feed.schemaVersion !== 1 || !Array.isArray(feed.stores)) {
+    return NextResponse.json({ items: [], error: "Invalid Tokmanni store feed" }, { status: 503 });
+  }
+
+  const items = feed.stores.map((store) => {
+    const latitude = Number(store.latitude);
+    const longitude = Number(store.longitude);
+    const located = Number.isFinite(latitude) && Number.isFinite(longitude);
+    const distance = hasGps && located ? distanceKm(lat, lon, latitude, longitude) : null;
     return {
-      ...store,
-      chain: "SPAR",
-      type: "EUROSPAR",
-      ...(coords || {}),
+      id: store.id,
+      name: store.name,
+      city: store.city || "",
+      postalCode: store.postalCode || "",
+      address: store.address || "",
+      latitude: located ? latitude : undefined,
+      longitude: located ? longitude : undefined,
+      chain: store.chain || "TOKMANNI",
+      type: store.chain || "TOKMANNI",
       distanceKm: distance,
       distance: distance == null ? undefined : `${distance < 10 ? distance.toFixed(1) : Math.round(distance)} km`,
     };
-  }));
+  });
 
   items.sort((a, b) => {
     if (!hasGps && search) {
-      const aMatch = a.city.toLocaleLowerCase("fi-FI") === search || a.name.toLocaleLowerCase("fi-FI").includes(search);
-      const bMatch = b.city.toLocaleLowerCase("fi-FI") === search || b.name.toLocaleLowerCase("fi-FI").includes(search);
+      const aText = `${a.name} ${a.city}`.toLocaleLowerCase("fi-FI");
+      const bText = `${b.name} ${b.city}`.toLocaleLowerCase("fi-FI");
+      const aExact = a.city.toLocaleLowerCase("fi-FI") === search;
+      const bExact = b.city.toLocaleLowerCase("fi-FI") === search;
+      if (aExact !== bExact) return aExact ? -1 : 1;
+      const aMatch = aText.includes(search);
+      const bMatch = bText.includes(search);
       if (aMatch !== bMatch) return aMatch ? -1 : 1;
     }
     if (a.distanceKm != null && b.distanceKm != null) return a.distanceKm - b.distanceKm;
     if (a.distanceKm != null) return -1;
     if (b.distanceKm != null) return 1;
-    return a.city.localeCompare(b.city, "fi");
+    return a.name.localeCompare(b.name, "fi");
   });
 
   return NextResponse.json({ items });
