@@ -3923,6 +3923,21 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     foundStores,
   ]);
 
+  // V767: alapalkin käyttöoikeus tulee ketjuvalinnasta, ei siitä onko korissa jo tavaraa.
+  const bottomNavSelectedChainCountV767 =
+    Number(Boolean(selectedChains.s)) +
+    Number(Boolean(selectedChains.k)) +
+    Number(Boolean(selectedChains.lidl)) +
+    Number(Boolean(selectedChains.tokmanni));
+  const cartSelectionEnabledV767 =
+    storeCompareScope === "between_chains" &&
+    ((betweenChainSelectionModeV749 === "one" && bottomNavSelectedChainCountV767 === 1) ||
+      (betweenChainSelectionModeV749 === "many" && bottomNavSelectedChainCountV767 >= 2));
+  const compareSelectionEnabledV767 =
+    storeCompareScope === "between_chains" &&
+    betweenChainSelectionModeV749 === "many" &&
+    bottomNavSelectedChainCountV767 >= 2;
+
   const initialStoreSelectionLocked =
     !storesReadyForSearch && cart.length === 0;
   // V476: Hae-napin pitää pystyä sulkemaan Hae-kortti myös silloin,
@@ -21260,6 +21275,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           storesReadyForSearch={storesReadyForSearch}
           cartLength={cart.length}
           cartModalOpen={cartModalOpen}
+          cartSelectionEnabled={cartSelectionEnabledV767}
+          compareSelectionEnabled={compareSelectionEnabledV767}
           activeResult={activeResult}
           onShopsClick={() => {
             gostaPanelStickyOpenRefV158.current = false;
