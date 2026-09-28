@@ -1702,10 +1702,14 @@ import { getLearnedStructureBoost } from "./components/ziiply/search/searchInten
 
 const MOBILE_EAN_SCANNER_REGION_ID = `${EAN_SCANNER_REGION_ID}-mobile`;
 
-const ZIIPLY_GPS_REFRESH_INTERVAL_MS_V92 = 60000;
-const ZIIPLY_GPS_REFRESH_FIRST_DELAY_MS_V92 = 20000;
-const ZIIPLY_GPS_REFRESH_MIN_MOVED_METERS_V92 = 300;
-const ZIIPLY_GPS_REFRESH_FORCE_AFTER_MS_V92 = 120000;
+// V757_GPS_TRAVEL_STORE_REFRESH_EARLIER
+// Ajossa kaupparesolveri päivitetään aiemmin: iOS/Safari voi muuten antaa uuden
+// koordinaatin vasta pitkällä pollivälillä, jolloin etäisyydet ehtivät muuttua mutta
+// valitut kaupat vaihtuvat vasta aivan uuden alueen lähellä.
+const ZIIPLY_GPS_REFRESH_INTERVAL_MS_V92 = 15000;
+const ZIIPLY_GPS_REFRESH_FIRST_DELAY_MS_V92 = 5000;
+const ZIIPLY_GPS_REFRESH_MIN_MOVED_METERS_V92 = 250;
+const ZIIPLY_GPS_REFRESH_FORCE_AFTER_MS_V92 = 45000;
 
 
 type ZiiplyPageScannerFallbackDecodeResult = {
