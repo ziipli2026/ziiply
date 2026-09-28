@@ -150,6 +150,8 @@ export type ZiiplyGostaOfferSearchContextV152 = {
   eurosparStoreId?: string | number;
   eurosparStoreName?: string;
   eurosparStoreChain?: string;
+  lidlStoreKey?: string;
+  lidlStoreName?: string;
 };
 
 export type ZiiplyGostaOfferSearchCoreResult = {
@@ -452,6 +454,13 @@ async function fetchOfferSearchResults(query: string, context?: ZiiplyGostaOffer
   if (isEurosparSelection) {
     params.set("provider", "eurospar");
     params.set("eurosparStoreName", String(context?.eurosparStoreName || ""));
+  }
+
+  const isLidlSelection = Boolean(context?.lidlStoreKey);
+  if (isLidlSelection) {
+    params.set("provider", "lidl");
+    params.set("lidlStoreKey", String(context?.lidlStoreKey || ""));
+    params.set("lidlStoreName", String(context?.lidlStoreName || "Lidl"));
   }
 
   if (sStoreIdsV162.length > 0) params.set("sStoreId", sStoreIdsV162.join("||"));
