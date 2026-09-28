@@ -298,20 +298,11 @@ function getResolvedGostaCategoryV166(item: ZiiplyGostaOfferLike) {
     source.includes("eurospar tarjouslehti") ||
     normalizeGostaCoreText(sourceItem?.chain || anyItem?.chain || "") === "eurospar";
   if (isEurospar) {
-    const raw = normalizeGostaCoreText(sourceItem?.category || anyItem?.category || "")
-      .replace(/&/g, " ")
-      .split(" ")
-      .filter((part) => part && part !== "ja")
-      .join(" ");
-    const trusted = new Map<string, string>([
-      ["kahvi tee", "Kahvi & tee"], ["maitotuotteet", "Maitotuotteet"], ["liha makkarat", "Liha & makkarat"],
-      ["kala", "Kala"], ["leipomo", "Leipomo"], ["hevi", "Hevi"], ["juomat", "Juomat"], ["pakasteet", "Pakasteet"],
-      ["valmisruoka", "Valmisruoka"], ["kuivatuotteet", "Kuivatuotteet"], ["makeiset keksit", "Makeiset & keksit"],
-      ["lastenruoat", "Lastenruoat"], ["vitamiinit ravinteet", "Vitamiinit & ravinteet"], ["lemmikit", "Lemmikit"],
-      ["hygienia kosmetiikka", "Hygienia & kosmetiikka"], ["kodinhoito", "Kodinhoito"],
-      ["koti vapaa-aika", "Koti & vapaa-aika"], ["muut", "Muut"],
-    ]).get(raw);
-    if (trusted) return trusted;
+    // Provider output is already in Ziiply's canonical taxonomy. Do not run it
+    // through title-based classification or text normalization that may alter
+    // punctuation such as "&".
+    const providerCategory = String(sourceItem?.category || "").trim();
+    if (providerCategory) return providerCategory;
   }
 
   if (isKCitymarket) {
