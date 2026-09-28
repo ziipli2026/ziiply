@@ -11,13 +11,7 @@ const headers = {
 };
 
 function repairMojibake(value: string) {
-  if (!/[Ãâ]/.test(value)) return value;
-  const replacements: Array<[string, string]> = [
-    ["Ã¤", "ä"], ["Ã„", "Ä"], ["Ã¶", "ö"], ["Ã–", "Ö"],
-    ["Ã¥", "å"], ["Ã…", "Å"], ["â‚¬", "€"], ["â€“", "–"],
-    ["â€”", "—"], ["â€™", "’"], ["â€œ", "“"], ["â€", "”"],
-  ];
-  return replacements.reduce((text, [bad, good]) => text.split(bad).join(good), value);
+  return value;
 }
 
 function classify(name: string, brand = "") {
@@ -77,6 +71,35 @@ export async function GET(request: NextRequest) {
       String(s?.locality || "").toLocaleLowerCase("fi-FI").includes(needle) ||
       String(s?.name || "").toLocaleLowerCase("fi-FI").includes(needle)
     ) : [];
+    const storeComparisons = await Promise.all(matches.map(async (candidate: any) => {
+      const key = String(candidate?.storeKey || "").trim();
+      if (!key) return null;
+      const response = await fetch(`${OFFERS_BASE}/${encodeURIComponent(key)}/offers`, { headers, cache: "no-store" });
+      const body = JSON.parse(new TextDecoder("utf-8").decode(await response.arrayBuffer()));
+      const offerRows = Array.isArray(body) ? body : Array.isArray(body?.offers) ? body.offers : Array.isArray(body?.items) ? body.items : [];
+      const normalizedRows = offerRows.map((row: any) => normalizeOffer(row, candidate));
+      return {
+        storeKey: key,
+        name: candidate?.name || "",
+        address: candidate?.address || "",
+        status: response.status,
+        rawOfferCount: offerRows.length,
+        pricedOfferCount: normalizedRows.filter((row: any) => row.hasConcretePrice).length,
+        discountOnlyCount: normalizedRows.filter((row: any) => !row.hasConcretePrice).length,
+        signature: normalizedRows.map((row: any) => [row.id, row.offerPrice, row.normalPrice, row.validFrom, row.validUntil]),
+      };
+    }));
+    const validComparisons = storeComparisons.filter(Boolean);
+    const baseline = validComparisons[0] as any;
+    const comparisonSummary = validComparisons.map((entry: any) => ({
+      storeKey: entry.storeKey,
+      name: entry.name,
+      sameOfferSetAsFirst: baseline ? JSON.stringify(entry.signature) === JSON.stringify(baseline.signature) : null,
+      rawOfferCount: entry.rawOfferCount,
+      pricedOfferCount: entry.pricedOfferCount,
+      discountOnlyCount: entry.discountOnlyCount,
+    }));
+
     const store = matches[0];
     const storeKey = String(store?.storeKey || "").trim();
     if (!storeKey) return NextResponse.json({ stage: "store-match", city, matches: matches.length }, { status: 404 });
@@ -94,6 +117,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       city,
+      matchedStoreCount: matches.length,
+      comparisonSummary,
+      storeComparisons: validComparisons,
       encodingDebug: {
         rawStoreName: store?.name || "",
         repairedStoreName: repairMojibake(store?.name || ""),
