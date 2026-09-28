@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
   try {
     const sr = await fetch(STORES_URL, { headers, cache: "no-store" });
     if (!sr.ok) return NextResponse.json({ stage: "stores", status: sr.status }, { status: 502 });
-    const stores = await sr.json();
+    const stores = JSON.parse(new TextDecoder("utf-8").decode(await sr.arrayBuffer()));
     const needle = city.toLocaleLowerCase("fi-FI");
     const matches = Array.isArray(stores) ? stores.filter((s: any) =>
       String(s?.locality || "").toLocaleLowerCase("fi-FI").includes(needle) ||
@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
     if (!storeKey) return NextResponse.json({ stage: "store-match", city, matches: matches.length }, { status: 404 });
 
     const or = await fetch(`${OFFERS_BASE}/${encodeURIComponent(storeKey)}/offers`, { headers, cache: "no-store" });
-    const raw = await or.json();
+    const raw = JSON.parse(new TextDecoder("utf-8").decode(await or.arrayBuffer()));
     const rows = Array.isArray(raw) ? raw : Array.isArray(raw?.offers) ? raw.offers : Array.isArray(raw?.items) ? raw.items : [];
     const normalized = rows.map((row: any) => normalizeOffer(row, store));
     const priced = normalized.filter((row: any) => row.hasConcretePrice);
