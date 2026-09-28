@@ -4007,9 +4007,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       betweenChainSelectionModeV749,
       selectedChains.s ? "s1" : "s0",
       selectedChains.k ? "k1" : "k0",
-      selectedChains.lidl ? "lidl1" : "lidl0",
-      selectedLidlStoreV750?.id || "",
-      selectedLidlStoreV750?.name || "",
       withinChain || "",
       activeStores.sStoreId || "",
       activeStores.kStoreId || "",
@@ -5783,9 +5780,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 (activeArea.kLocalStoreId || activeArea.kLocalStoreName),
             )
           : false
-      : betweenChainSelectionModeV749 === "one" && selectedChains.lidl && !selectedChains.s && !selectedChains.k
-        ? Boolean(selectedLidlStoreV750?.id || selectedLidlStoreV750?.name)
-        : Number(activeStores.sStoreId) > 0 && Number(activeStores.kStoreId) > 0;
+      : Number(activeStores.sStoreId) > 0 && Number(activeStores.kStoreId) > 0;
 
   const selectedMapStoresV433 = useMemo(() => {
     const selected = [
@@ -6242,29 +6237,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     return results;
-  }
-
-  async function fetchLidlProductsV760(
-    search: string,
-    store: StoreSearchItem,
-  ): Promise<Product[]> {
-    const params = new URLSearchParams({
-      search,
-      storeName: String(store?.name || ""),
-      city: String(store?.city || ""),
-    });
-    const response = await fetch(`/api/lidl/products?${params.toString()}`, {
-      cache: "no-store",
-    });
-    if (!response.ok) return [];
-    const data = await response.json();
-    const rawItems = Array.isArray(data?.items) ? data.items : [];
-    return rawItems
-      .map((item: any) => normalizeSProduct(item))
-      .filter((item: Product | null): item is Product =>
-        Boolean(item && item.name && getProductPrice(item) > 0),
-      )
-      .map((item) => item);
   }
 
   async function fetchKProducts(
@@ -11147,21 +11119,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           const withinChainS = storeCompareScope === "within_chain" && withinChain === "S";
           const withinChainK = storeCompareScope === "within_chain" && withinChain === "K";
           const betweenSingleK = storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one" && selectedChains.k && !selectedChains.s;
-          const betweenSingleLidl =
-            storeCompareScope === "between_chains" &&
-            betweenChainSelectionModeV749 === "one" &&
-            selectedChains.lidl &&
-            !selectedChains.s &&
-            !selectedChains.k;
-
           let rawItems: Product[] = [];
           let usedStoreName = activeStores.sStoreName;
           let fallbackStoreName = "";
 
-          if (betweenSingleLidl && selectedLidlStoreV750) {
-            usedStoreName = selectedLidlStoreV750.name || "Lidl";
-            rawItems = await fetchLidlProductsV760(searchQuery, selectedLidlStoreV750);
-          } else if (withinChainK || betweenSingleK) {
+          if (withinChainK || betweenSingleK) {
             const kPrimaryStoreId = withinChainK ? activeArea.kStoreId : activeStores.kStoreId;
             usedStoreName = withinChainK ? activeArea.kStoreName || "K-tavaratalo" : activeStores.kStoreName;
             if (kPrimaryStoreId) {
@@ -14670,24 +14632,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return;
     }
 
-    const isLidlOnlyNormalSearchV760 =
-      storeCompareScope === "between_chains" &&
-      betweenChainSelectionModeV749 === "one" &&
-      selectedChains.lidl &&
-      !selectedChains.s &&
-      !selectedChains.k;
     const normalSearchChain: "S" | "K" =
       storeCompareScope === "within_chain" && withinChain === "K"
           ? "K"
           : "S";
     const normalSearchStoreName =
-      isLidlOnlyNormalSearchV760
-        ? selectedLidlStoreV750?.name || "Lidl"
-        : storeCompareScope === "within_chain"
-          ? withinChain === "K"
-            ? activeArea.kStoreName || "K-tavaratalo"
-            : activeArea.sStoreName || "S-tavaratalo"
-          : activeStores.sStoreName;
+      storeCompareScope === "within_chain"
+        ? withinChain === "K"
+          ? activeArea.kStoreName || "K-tavaratalo"
+          : activeArea.sStoreName || "S-tavaratalo"
+        : activeStores.sStoreName;
 
     const newItem: CartItem = {
       id: `search-${product.id}`,
