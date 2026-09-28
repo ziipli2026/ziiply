@@ -21,14 +21,14 @@ function classify(name: string, brand = "") {
   if (/limu|juoma|mehu|vesi|vichy|energiajuoma|cola/.test(s)) return "Juomat";
   if (/pakaste|jäätel|jaatelo|pakastettu/.test(s)) return "Pakasteet";
   if (/valmis|ateria|pizza|keitto|salaattiateria|mikroateria|laatikko|lasagne|wokki|risotto/.test(s)) return "Valmisruoka";
-  if (/pasta|riisi|jauho|hiutale|muro|mysli|säilyke|sailyke|kastike|öljy|oljy|mauste|sokeri|suola|puuro|nuudeli|makaroni|spagetti/.test(s)) return "Kuivatuotteet";
+  if (/pasta|riisi|jauho|hiutale|muro|mysli|säilyke|sailyke|kastike|öljy|oljy|mauste|sokeri|suola|puuro|nuudeli|makaroni|spagetti|sushi-inkivääri|nori|merilevä|wasabi|seesaminsiemen/.test(s)) return "Kuivatuotteet";
   if (/kark|makeis|suklaa|keksi|lakrit|salmiak|purukumi|patukka|sips|chips/.test(s)) return "Makeiset & keksit";
   if (/lastenruo|vauva|äidinmaidonkorvike/.test(s)) return "Lastenruoat";
   if (/vitami|ravinne|magnesium|sinkki/.test(s)) return "Vitamiinit & ravinteet";
   if (/koira|kissa|lemmik/.test(s)) return "Lemmikit";
   if (/hammastahna|hammasharja|shampoo|saippua|deodorant|kosmeti|ihonhoito/.test(s)) return "Hygienia & kosmetiikka";
   if (/pesuaine|pyykin|astianpesu|puhdistus/.test(s)) return "Kodinhoito";
-  if (/vaate|asuste|esmara|työkalu|kodin|vapaa-aika/.test(s)) return "Koti & vapaa-aika";
+  if (/vaate|asuste|esmara|työkalu|kodin|vapaa-aika|ilmanpuhdistin|rakennussarja|turvalaita|nukanpoistaja|pyykkikori|pyykkipoika/.test(s)) return "Koti & vapaa-aika";
   return "Muut";
 }
 
