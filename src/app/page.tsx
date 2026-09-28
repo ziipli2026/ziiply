@@ -3502,6 +3502,11 @@ export default function Page() {
       image.decoding = "async";
       image.src = src;
     });
+
+    // V775: lämmitä myös varsinainen EAN-dekooderikirjasto Hae-näkymässä.
+    // Kameraa ei avata taustalla; skannerin painallus voi mennä suoraan
+    // kameran käynnistykseen ilman html5-qrcode-scriptin verkkolatausta.
+    void loadHtml5QrCodeScript().catch(() => undefined);
   }
 
   // V773: lämmitä pääsivun ja korttien staattiset grafiikat heti cold startissa,
