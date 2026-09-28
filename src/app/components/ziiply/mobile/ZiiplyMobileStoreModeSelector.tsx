@@ -95,11 +95,15 @@ export default function ZiiplyMobileStoreModeSelector({
   const localActive = storeModeChosen && storeMode === "local";
   const modeButtonsDisabled = storeCompareScope === "within_chain";
 
+  // V763: "Vertailuparia ei löytynyt" kuuluu vain Monta-tilaan.
+  // Yksi-haussa ei etsitä vertailuparia, joten parin puuttuminen ei ole virhetila.
   const shouldShowHakutapaNotice =
-    hyperStorePairMissing ||
+    (betweenChainSelectionMode === "many" && hyperStorePairMissing) ||
     (missingStoresMessageVisible && foundStoresCount === 0) ||
     (storeCompareScope === "between_chains" && !storeModeChosen) ||
-    (storeCompareScope === "between_chains" && selectedRealChainCount < (betweenChainSelectionMode === "one" ? 1 : 2)) ||
+    (storeCompareScope === "between_chains" &&
+      betweenChainSelectionMode === "many" &&
+      selectedRealChainCount < 2) ||
     (storeCompareScope === "within_chain" && !withinChain);
 
   useEffect(() => {
