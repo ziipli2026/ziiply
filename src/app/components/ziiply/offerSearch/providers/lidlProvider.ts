@@ -123,6 +123,12 @@ export async function fetchLidlOffers(storeKey: string, storeName = "Lidl") {
       categoryPath: category,
       mainCategory: category,
       productIds: Array.isArray(row?.productIds) ? row.productIds : [],
+      lidlProductIds: Array.isArray(row?.productIds)
+        ? row.productIds.map((value: unknown) => String(value || "").trim()).filter(Boolean)
+        : [],
+      lidlProductId: Array.isArray(row?.productIds)
+        ? String(row.productIds.find((value: unknown) => String(value || "").trim()) || "")
+        : "",
       offerType: row?.offerType || "",
       redemptionChannel: row?.redemptionChannel || "",
       hasConcretePrice: numericPrice != null,
@@ -156,8 +162,11 @@ export async function fetchLidlOffers(storeKey: string, storeName = "Lidl") {
             debugRawKeys: Object.keys(row),
           }
         : {}),
-      // Lidl productIds are not assumed to be EANs.
-      ean: "",
+      // Lidl productIds are internal identifiers unless the source explicitly
+      // publishes a barcode field. Never present an internal Lidl id as an EAN.
+      ean: [row?.ean, row?.gtin, row?.barcode]
+        .map((value) => String(value || "").trim())
+        .find((value) => /^\d{8,14}$/.test(value)) || "",
       rawText: [title, brandName, priceText, discountText, unitPriceText, category, storeName].filter(Boolean).join(" "),
     };
   });
