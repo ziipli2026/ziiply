@@ -9838,6 +9838,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       setFoundStores(storesWithDistanceV97);
 
+      // V772: hiljainen GPS-watchdog päivittää vain sijaintiin perustuvan
+      // kauppaehdokaslistan. Se EI saa muuttaa käyttäjän valitsemaa activeAreaa,
+      // ketjuja, Yksi/Monta-tilaa, Lähikaupat/Tavaratalot-tilaa, scopea tai näkymää.
+      // Myös hetkellinen 0-kaupan GPS-vastaus jätetään valintojen osalta huomiotta.
+      if (source === "gps" && silentStatusV137) {
+        setUsingOwnLocation(true);
+        setGpsCoordsV320(coordsOverride || gpsCoordsV320);
+        setLocationInput("");
+        return;
+      }
+
       // V552: vasta onnistunut, vähintään yhden kaupan löytänyt sijaintihaku
       // vahvistaa Hae-huomioanimaation sijaintiehdon. Snapshot-hydraus ei käy täällä.
       if (storesWithDistanceV97.length > 0) {
