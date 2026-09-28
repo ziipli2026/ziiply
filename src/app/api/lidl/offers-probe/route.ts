@@ -138,6 +138,21 @@ export async function GET(request: NextRequest) {
       categoryCounts,
       pricedOffers: priced,
       discountOnlyOffers: discountOnly,
+      discountOnlyRaw: rows
+        .filter((row: any) => typeof row?.priceBox?.largePartNumeric !== "number")
+        .map((row: any) => ({
+          id: row?.id,
+          title: row?.title,
+          brand: row?.brand,
+          priceBox: row?.priceBox,
+          packaging: row?.packaging,
+          pricePerUnit: row?.pricePerUnit,
+          offerType: row?.offerType,
+          redemptionChannel: row?.redemptionChannel,
+          productIds: row?.productIds,
+          startValidityDate: row?.startValidityDate,
+          endValidityDate: row?.endValidityDate,
+        })),
     });
   } catch (error) {
     return NextResponse.json({ stage: "exception", error: error instanceof Error ? error.message : String(error) }, { status: 500 });
