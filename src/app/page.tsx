@@ -16777,7 +16777,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       key: "tokmanni",
       logo: "T",
       title: "SPAR",
-      name: selectedEurosparStoreV751?.name || "EUROSPAR ei valittu",
+      name: selectedTokmanniStoreV756?.name || selectedEurosparStoreV751?.name || "SPAR/Tokmanni ei valittu",
       tone: "bg-yellow-400 text-slate-950 ring-yellow-100",
       selectedTone: "border-yellow-500 bg-yellow-50 text-yellow-950",
     },
@@ -18212,9 +18212,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         const displayName =
           store.key === "tokmanni"
-            ? (selectedChains.tokmanni
-                ? selectedTokmanniStoreV756?.name || "Tokmanni ei valittu"
-                : selectedEurosparStoreV751?.name || "EUROSPAR ei valittu")
+            ? (selectedTokmanniStoreV756?.name || selectedEurosparStoreV751?.name || "SPAR/Tokmanni ei valittu")
             : !storeModeChosenV299 && chain
               ? "Vertailuparia ei löytynyt"
               : isComingSoon
@@ -18230,7 +18228,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           store.key === "lidl" ? getStoreDistanceLabelV320(selectedLidlStoreV750) : "";
         const showLidlDistanceForCard = Boolean(lidlDistanceForCard && !isComingSoon);
         const eurosparDistanceForCard =
-          store.key === "tokmanni" ? getStoreDistanceLabelV320(selectedChains.tokmanni ? selectedTokmanniStoreV756 : selectedEurosparStoreV751) : "";
+          store.key === "tokmanni" ? getStoreDistanceLabelV320(selectedTokmanniStoreV756 || selectedEurosparStoreV751) : "";
         const showEurosparDistanceForCard = Boolean(eurosparDistanceForCard && !isComingSoon);
 
         return (
@@ -18424,15 +18422,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       onClick={(event) => {
                         event.preventDefault();
                         event.stopPropagation();
-                        const options = selectedChains.tokmanni ? tokmanniStoreOptionsV756 : eurosparStoreOptionsV751;
+                        const options = tokmanniStoreOptionsV756;
                         if (options.length > 1) {
-                          const picker = selectedChains.tokmanni ? "tokmanni-store-picker" : "eurospar-store-picker";
-                          setOpenStorePicker((current) => current === picker ? null : picker);
+                          setOpenStorePicker((current) => current === "tokmanni-store-picker" ? null : "tokmanni-store-picker");
                         }
                       }}
-                      className={`mt-1 rounded-full px-2 py-1 text-[9px] font-black ring-1 ${(selectedChains.tokmanni ? tokmanniStoreOptionsV756.length : eurosparStoreOptionsV751.length) > 1 ? "bg-[#fff8df]/90 text-slate-700 ring-slate-200" : "bg-slate-100 text-[#b7aa8d] ring-slate-200"}`}
+                      className={`mt-1 rounded-full px-2 py-1 text-[9px] font-black ring-1 ${tokmanniStoreOptionsV756.length > 1 ? "bg-[#fff8df]/90 text-slate-700 ring-slate-200" : "bg-slate-100 text-[#b7aa8d] ring-slate-200"}`}
                     >
-                      {(selectedChains.tokmanni ? tokmanniStoreOptionsV756.length : eurosparStoreOptionsV751.length) > 1 ? "Vaihda" : (selectedChains.tokmanni ? selectedTokmanniStoreV756 : selectedEurosparStoreV751) ? "Valittu" : "Ei kauppaa"}
+                      {tokmanniStoreOptionsV756.length > 1 ? "Vaihda" : selectedTokmanniStoreV756 ? "Valittu" : "Ei kauppaa"}
                     </button>
                     {openStorePicker === "tokmanni-store-picker" && typeof document !== "undefined" && (
                       <MobileStorePickerModal
