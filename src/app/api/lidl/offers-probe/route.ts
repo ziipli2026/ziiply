@@ -26,8 +26,8 @@ function classify(name: string, brand = "") {
   if (/kana|broiler|nauta|sika|pors|jauheliha|makkara|nakki|pekoni|kinkku|liha|pulled pork/.test(s)) return "Liha & makkarat";
   if (/kala|lohi|silakka|tonnikala|kirjolohi|seiti|katkarapu/.test(s)) return "Kala";
   if (/leipä|sämpyl|pull|croissant|paton|karjalanpiirakka|ruisleip|rieska/.test(s)) return "Leipomo";
-  if (/sitruuna|retiisi|granaattiomena|omena|banaani|tomaatti|kurkku|salaatti|paprika|peruna|sipuli|porkkana|bataatti|mandariini|appelsiini|mango|marja|hedelm|vihann|kasvis|kaali/.test(s)) return "Hevi";
   if (/limu|juoma|mehu|vesi|vichy|energiajuoma|cola/.test(s)) return "Juomat";
+  if (/sitruuna|retiisi|granaattiomena|omena|banaani|tomaatti|kurkku|salaatti|paprika|peruna|sipuli|porkkana|bataatti|mandariini|appelsiini|mango|marja|hedelm|vihann|kasvis|kaali/.test(s)) return "Hevi";
   if (/pakaste|jäätel|jaatelo|pakastettu/.test(s)) return "Pakasteet";
   if (/valmis|ateria|pizza|keitto|salaattiateria|mikroateria|laatikko|lasagne|wokki|risotto/.test(s)) return "Valmisruoka";
   if (/pasta|riisi|jauho|hiutale|muro|mysli|säilyke|sailyke|kastike|öljy|oljy|mauste|sokeri|suola|puuro|nuudeli|makaroni|spagetti|sushi-inkivääri|nori|merilevä|wasabi|seesaminsiemen/.test(s)) return "Kuivatuotteet";
@@ -45,8 +45,8 @@ function normalizeOffer(row: any, store: any) {
   const box = row?.priceBox || {};
   const offerPrice = typeof box.largePartNumeric === "number" ? box.largePartNumeric : null;
   const normalPrice = typeof box.smallPartNumeric === "number" ? box.smallPartNumeric : null;
-  const name = row?.title || "Lidl tarjous";
-  const brandName = row?.brand || undefined;
+  const name = repairMojibake(row?.title || "Lidl tarjous");
+  const brandName = row?.brand ? repairMojibake(row.brand) : undefined;
   return {
     id: row?.id, name, title: name, brandName,
     storeName: repairMojibake(store?.name || "Lidl"), chain: "Lidl",
