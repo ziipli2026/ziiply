@@ -44,6 +44,11 @@ type Feed = {
 export const EUROSPAR_PROVIDER_VERSION = 4;
 
 const norm = (value: unknown) => String(value ?? "").trim().toLocaleLowerCase("fi-FI");
+const normEurosparStore = (value: unknown) =>
+  norm(value)
+    .replace(/^tokmanni\s*[-–—]?\s*eurospar\s+/u, "")
+    .replace(/^eurospar\s+/u, "")
+    .trim();
 const num = (value: unknown) => {
   if (value == null || value === "") return null;
   const n = Number(String(value).replace(",", "."));
@@ -68,12 +73,12 @@ export function adaptEurosparFeed(feed: Feed, storeName: string, date: string): 
   const today = iso(date);
   if (!from || !to || !today || today < from || today > to) return [];
 
-  const wanted = norm(storeName);
+  const wanted = normEurosparStore(storeName);
   if (!wanted) return [];
 
   return feed.offers.flatMap((raw) => {
     const stores = Array.isArray(raw.stores) ? raw.stores.map(String) : [];
-    if (!stores.some((store) => norm(store) === wanted)) return [];
+    if (!stores.some((store) => normEurosparStore(store) === wanted)) return [];
 
     const price = num(raw.offerPrice);
     const multi = raw.multiUnit && typeof raw.multiUnit === "object"
