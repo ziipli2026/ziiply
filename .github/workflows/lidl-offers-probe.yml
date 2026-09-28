@@ -1,0 +1,58 @@
+name: Lidl offers probe
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Probe Lidl Finland stores and Hyvinkaa offers
+        shell: python
+        run: |
+          import json, urllib.request
+
+          headers = {
+              "Accept": "application/json",
+              "Accept-Language": "fi-FI,fi;q=0.9",
+              "User-Agent": "LidlPlus/17.0.5 Android okhttp/4.12.0",
+              "X-Client-Version": "17.0.5",
+              "X-Client-Platform": "android",
+          }
+
+          def get(url):
+              req = urllib.request.Request(url, headers=headers)
+              with urllib.request.urlopen(req, timeout=20) as r:
+                  return r.status, json.load(r)
+
+          status, stores = get("https://stores.lidlplus.com/api/v4/FI")
+          print("stores_status=", status, "stores_count=", len(stores) if isinstance(stores,list) else "not-list")
+          matches = [s for s in stores if "hyvink" in str(s.get("locality","")).lower() or "hyvink" in str(s.get("name","")).lower()]
+          print("hyvinkaa_matches=", len(matches))
+          for s in matches:
+              print("STORE", json.dumps({
+                  "storeKey": s.get("storeKey"), "name": s.get("name"),
+                  "locality": s.get("locality"), "address": s.get("address")
+              }, ensure_ascii=False))
+
+          if not matches:
+              raise SystemExit("No Hyvinkaa Lidl store found")
+
+          key = matches[0].get("storeKey")
+          status, offers = get(f"https://offers.lidlplus.com/app/api/v4/FI/{key}/offers")
+          print("offers_status=", status)
+          print("response_type=", type(offers).__name__)
+          if isinstance(offers, dict):
+              print("top_keys=", sorted(offers.keys()))
+              rows = offers.get("offers") or offers.get("items") or []
+          elif isinstance(offers, list):
+              rows = offers
+          else:
+              rows = []
+          print("offers_count=", len(rows))
+          for i, row in enumerate(rows[:5]):
+              print("OFFER", i+1, json.dumps(row, ensure_ascii=False)[:4000])
