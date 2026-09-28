@@ -1127,7 +1127,7 @@ export default function ZiiplyMobileOfferSearchCard({
 
           </div>
 
-          {selectedOfferChainV39 && showLandingView && selectedStoreNameV41 ? (
+          {selectedOfferChainV39 && selectedStoreNameV41 ? (
             <div className="mt-[0.28rem] rounded-[1.05rem] border-[2px] border-[#9a7a3d] bg-[#fff4d4]/96 px-2.5 py-1.5 text-center shadow-[0_3px_0_rgba(91,72,44,0.14),inset_0_0_0_1px_rgba(255,255,255,0.45)]">
               <div className="whitespace-nowrap text-[clamp(0.84rem,4vw,1.02rem)] font-black leading-tight text-[#28402a]" style={{ fontFamily: cooperFont }}>
                 {selectedStoreNameV41}
