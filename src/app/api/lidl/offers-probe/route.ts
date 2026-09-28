@@ -40,13 +40,13 @@ function normalizeOffer(row: any, store: any) {
   const brandName = row?.brand || undefined;
   return {
     id: row?.id, name, title: name, brandName,
-    storeName: store?.name || "Lidl", chain: "Lidl",
+    storeName: repairMojibake(store?.name || "Lidl"), chain: "Lidl",
     category: classify(name, brandName),
     price: offerPrice, offerPrice, normalPrice, originalPrice: normalPrice,
-    discountText: box.discountMessage || undefined,
+    discountText: box.discountMessage ? repairMojibake(box.discountMessage) : undefined,
     imageUrl: row?.imageUrl || undefined,
     comparisonPriceText: row?.pricePerUnit || undefined,
-    comparisonUnit: box.priceSymbol || undefined,
+    comparisonUnit: box.priceSymbol ? repairMojibake(box.priceSymbol) : undefined,
     productIds: Array.isArray(row?.productIds) ? row.productIds : [],
     validFrom: row?.startValidityDate || undefined,
     validUntil: row?.endValidityDate || undefined,
@@ -84,7 +84,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       city,
-      store: { storeKey, name: store?.name, locality: store?.locality, address: store?.address },
+      store: { storeKey, name: repairMojibake(store?.name || ""), locality: repairMojibake(store?.locality || ""), address: repairMojibake(store?.address || "") },
       offersStatus: or.status,
       rawOfferCount: rows.length,
       pricedOfferCount: priced.length,
