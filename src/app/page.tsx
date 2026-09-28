@@ -5589,6 +5589,20 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       });
     }
 
+    if (selectedEurosparStoreV751?.chain === "EUROSPAR") {
+      warmContexts.push({
+        ...commonContext,
+        areaLabel: baseAreaLabel,
+        sStoreIds: [],
+        sStoreNames: [],
+        kStoreIds: [],
+        kStoreNames: [],
+        eurosparStoreId: selectedEurosparStoreV751.id || undefined,
+        eurosparStoreName: selectedEurosparStoreV751.name || undefined,
+        eurosparStoreChain: "EUROSPAR",
+      });
+    }
+
     // V741_SELECTION_WARMUP_IMMEDIATE:
     // Kun aktiivinen kauppavalinta on ratkennut, käynnistä Göstan täsmälleen saman
     // ketjukohtaisen master-cachen lämmitys heti. Jos Gösta avataan kesken latauksen,
@@ -5614,6 +5628,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     activeStores.kStoreId,
     activeStores.kStoreName,
     foundStores,
+    selectedEurosparStoreV751,
   ]);
 
   // V506_BUILD_FIX_WARMUP_AFTER_ACTIVESTORES:
@@ -10593,6 +10608,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         sOfferNames: sOfferNamesV532,
         kOfferIds: kOfferIdsV532,
         kOfferNames: kOfferNamesV532,
+        eurosparStoreId: selectedEurosparStoreV751?.id || "",
+        eurosparStoreName: selectedEurosparStoreV751?.name || "",
+        eurosparStoreChain: selectedEurosparStoreV751?.chain || "",
       });
 
       if (gostaLastSearchContextKeyRefV532.current !== gostaOfferSearchContextKeyV532) {
@@ -10619,6 +10637,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         kStoreName: kOfferNamesV532.join("||") || undefined,
         kStoreIds: kOfferIdsV532,
         kStoreNames: kOfferNamesV532,
+        eurosparStoreId: selectedEurosparStoreV751?.id || undefined,
+        eurosparStoreName: selectedEurosparStoreV751?.name || undefined,
+        eurosparStoreChain: selectedEurosparStoreV751?.chain || undefined,
         usingOwnLocation,
         gpsLat: gpsCoordsV320?.latitude,
         gpsLon: gpsCoordsV320?.longitude,
