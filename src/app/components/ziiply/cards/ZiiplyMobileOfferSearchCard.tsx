@@ -519,7 +519,19 @@ function cleanRepeatedOfferTextV4(value: unknown) {
 }
 
 function getOfferPrice(offer: ZiiplyMobileOfferSearchItem) {
-  return normalizePrice(offer.offerPrice ?? offer.price);
+  const source = offer.__sourceOfferSearchResult || {};
+  const isEurospar = String(source.chain || offer.chain || "").trim().toUpperCase() === "EUROSPAR";
+  const quantity = Number(source.offerQuantity);
+  const unit = String(source.offerUnit || "").trim();
+  const isMultiBuy =
+    isEurospar &&
+    source.priceBasis === "multi-buy-total" &&
+    Number.isFinite(quantity) &&
+    quantity > 1 &&
+    unit;
+
+  const price = normalizePrice(offer.offerPrice ?? offer.price);
+  return isMultiBuy && price ? `${quantity} ${unit} / ${price}` : price;
 }
 
 function getNormalPrice(offer: ZiiplyMobileOfferSearchItem) {
