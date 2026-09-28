@@ -18278,7 +18278,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         const displayName =
           store.key === "tokmanni"
-            ? (selectedTokmanniStoreV756?.name || "Tokmanni ei valittu")
+            ? (selectedTokmanniStoreV756?.name || selectedEurosparStoreV751?.name || "SPAR ei valittu")
             : !storeModeChosenV299 && chain
               ? "Vertailuparia ei löytynyt"
               : isComingSoon
