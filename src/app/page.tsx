@@ -20821,6 +20821,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             }}
             onAddOffer={(offer: any) => {
               const name = fixText(String(offer.name || offer.title || offer.productName || "Tarjoustuote"));
+              const sourceOffer = offer.__sourceOfferSearchResult || {};
+              const isWeightedOffer = Boolean(offer.isWeightedProduct ?? sourceOffer.isWeightedProduct);
+              if (isWeightedOffer) {
+                showCartToast(`Vaakatuote: ${name} – lopullinen hinta määräytyy painon mukaan`);
+                return;
+              }
               if (cart.length >= MAX_ITEMS) {
                 alert(`Demossa ostoskori on rajattu ${MAX_ITEMS} tuotteeseen.`);
                 return;
@@ -20873,6 +20879,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 if (nextCart.length >= MAX_ITEMS) break;
 
                 const name = fixText(String(offer.name || offer.title || offer.productName || "Tarjoustuote"));
+                const sourceOffer = offer.__sourceOfferSearchResult || {};
+                const isWeightedOffer = Boolean(offer.isWeightedProduct ?? sourceOffer.isWeightedProduct);
+                if (isWeightedOffer) continue;
                 if (nextCart.some((item) => normalize(item.name) === normalize(name))) continue;
 
                 const numericPrice = Number(
