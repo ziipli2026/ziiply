@@ -66,7 +66,7 @@ export type CartItem = {
   name: string;
   price?: number;
   image?: string;
-  chain?: "S" | "K" | "LIDL";
+  chain?: "S" | "K";
   storeName?: string;
   quantity: number;
   source: "manual" | "offer" | "search";
