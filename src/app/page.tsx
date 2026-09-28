@@ -10579,7 +10579,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // nykyisen storeMode-arvon mukaisen kaupan; toinen ketju ei vuoda hakuun.
       const sOfferStoresV532 = gostaSelectedOfferChainRefV547.current === "S"
         ? uniqueSelectedOfferStoresV532([gostaSelectedSStoreV547])
-        : gostaSelectedOfferChainRefV547.current === "K" || gostaSelectedOfferChainRefV547.current === "EUROSPAR"
+        : gostaSelectedOfferChainRefV547.current === "K" || gostaSelectedOfferChainRefV547.current === "EUROSPAR" || gostaSelectedOfferChainRefV547.current === "LIDL"
           ? []
           : useWithinChainSOffersV532
             ? uniqueSelectedOfferStoresV532([sWithinHyperStoreV539, sWithinLocalStoreV539])
@@ -10589,7 +10589,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       const kOfferStoresV532 = gostaSelectedOfferChainRefV547.current === "K"
         ? uniqueSelectedOfferStoresV532([gostaSelectedKStoreV549])
-        : gostaSelectedOfferChainRefV547.current === "S" || gostaSelectedOfferChainRefV547.current === "EUROSPAR"
+        : gostaSelectedOfferChainRefV547.current === "S" || gostaSelectedOfferChainRefV547.current === "EUROSPAR" || gostaSelectedOfferChainRefV547.current === "LIDL"
           ? []
           : useWithinChainKOffersV532
             ? uniqueSelectedOfferStoresV532([kWithinHyperStoreV539, kWithinLocalStoreV539])
@@ -20705,6 +20705,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             selectedStoreName={
               gostaSelectedOfferChainRefV547.current === "EUROSPAR"
                 ? selectedEurosparStoreV751?.name || ""
+                : gostaSelectedOfferChainRefV547.current === "LIDL"
+                  ? selectedLidlStoreV750?.name || ""
                 : gostaSelectedOfferChainRefV547.current === "K"
                   ? (storeMode === "local" ? activeArea.kLocalStoreName : activeArea.kStoreName) || activeStores.kStoreName || ""
                   : (storeMode === "local" ? activeArea.sLocalStoreName : activeArea.sStoreName) || activeStores.sStoreName || ""
