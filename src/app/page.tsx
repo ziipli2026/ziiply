@@ -10646,6 +10646,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         eurosparStoreId: gostaSelectedOfferChainRefV547.current === "EUROSPAR" ? selectedEurosparStoreV751?.id || undefined : undefined,
         eurosparStoreName: gostaSelectedOfferChainRefV547.current === "EUROSPAR" ? selectedEurosparStoreV751?.name || undefined : undefined,
         eurosparStoreChain: gostaSelectedOfferChainRefV547.current === "EUROSPAR" ? selectedEurosparStoreV751?.chain || undefined : undefined,
+        lidlStoreKey: gostaSelectedOfferChainRefV547.current === "LIDL" ? String((selectedLidlStoreV750 as any)?.storeKey || selectedLidlStoreV750?.id || "") || undefined : undefined,
+        lidlStoreName: gostaSelectedOfferChainRefV547.current === "LIDL" ? selectedLidlStoreV750?.name || "Lidl" : undefined,
         usingOwnLocation,
         gpsLat: gpsCoordsV320?.latitude,
         gpsLon: gpsCoordsV320?.longitude,
