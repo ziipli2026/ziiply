@@ -18504,28 +18504,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                         }}
                       />
                     )}
-                    {openStorePicker === "eurospar-store-picker" && typeof document !== "undefined" && (
-                      <MobileStorePickerModal
-                        open
-                        chain={"SPAR" as any}
-                        title="Valitse EUROSPAR"
-                        stores={eurosparStoreOptionsV751}
-                        selectedId={selectedEurosparStoreV751?.id}
-                        selectedName={selectedEurosparStoreV751?.name}
-                        activeAreaLabel={activeArea.label}
-                        top={storePickerViewportStyle.top}
-                        width={storePickerViewportStyle.width}
-                        onClose={() => setOpenStorePicker(null)}
-                        getDistanceLabel={(option) => String(option.distance || "")}
-                        getStoreKey={(option, index) => `eurospar-${option.id || index}-${normalize(option.name || "")}`}
-                        onSelectStore={(option) => {
-                          const source = eurosparStoreOptionsV751.find((item) => sameStoreIdV93(item.id, option.id)) || option as StoreSearchItem;
-                          setSelectedEurosparStoreV751({ ...source, chain: "EUROSPAR" });
-                          triggerHaptic();
-                          window.setTimeout(() => setOpenStorePicker(null), 0);
-                        }}
-                      />
-                    )}
+
                   </>
                 ) : (
                   <span className={`mt-1 rounded-full px-2 py-1 text-[9px] font-black ring-1 ${selected ? "bg-slate-100 text-[#b7aa8d] ring-slate-200" : "bg-[#fff8df]/90 text-slate-700 ring-slate-200"}`}>
@@ -20789,7 +20768,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             showSChain={Boolean(selectedChains.s && Number(activeStores.sStoreId || 0) > 0)}
             showKChain={Boolean(selectedChains.k && Number(activeStores.kStoreId || 0) > 0)}
             showLidlChain={Boolean(selectedChains.lidl && selectedLidlStoreV750)}
-            showEurosparChain={Boolean(selectedEurosparStoreV751)}
+            showEurosparChain={false}
             showTokmanniChain={Boolean(selectedChains.tokmanni && selectedTokmanniStoreV756)}
             categorySuggestions={GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147}
             categoryOfferCounts={gostaCategoryOfferCountsV163}
