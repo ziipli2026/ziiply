@@ -3155,6 +3155,16 @@ export default function Page() {
 
         setStoreModeChosenV299(Boolean(parsedStoreSelection.storeModeChosenV299));
 
+        // V753: restore explicit chain choices after mount, never during SSR.
+        if (parsedStoreSelection.selectedChains && typeof parsedStoreSelection.selectedChains === "object") {
+          setSelectedChains({
+            s: Boolean(parsedStoreSelection.selectedChains.s),
+            k: Boolean(parsedStoreSelection.selectedChains.k),
+            lidl: Boolean(parsedStoreSelection.selectedChains.lidl),
+            tokmanni: Boolean(parsedStoreSelection.selectedChains.tokmanni),
+          });
+        }
+
         if (
           parsedStoreSelection.storeCompareScope === "none" ||
           parsedStoreSelection.storeCompareScope === "between_chains" ||
@@ -4365,26 +4375,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const [lastOptimizationSnapshot, setLastOptimizationSnapshot] =
     useState<OptimizationSnapshot | null>(null);
 
+  // V753: keep SSR/client initial state identical. Persisted explicit chain
+  // choices are restored after mount by the existing store-selection restore
+  // flow; reading localStorage inside the useState initializer breaks hydration.
   const [selectedChains, setSelectedChains] = useState<
     Record<ChainResult["key"], boolean>
-  >(() => {
-    if (typeof window === "undefined") {
-      return { s: false, k: false, lidl: false, tokmanni: false };
-    }
-    try {
-      const raw = window.localStorage.getItem("ziiply-store-selection-v536");
-      const saved = raw ? JSON.parse(raw) : null;
-      const chains = saved?.selectedChains;
-      if (chains && typeof chains === "object") {
-        return {
-          s: Boolean(chains.s),
-          k: Boolean(chains.k),
-          lidl: Boolean(chains.lidl),
-          tokmanni: Boolean(chains.tokmanni),
-        };
-      }
-    } catch {}
-    return { s: false, k: false, lidl: false, tokmanni: false };
+  >({
+    s: false,
+    k: false,
+    lidl: false,
+    tokmanni: false,
   });
 
   const [isOnline, setIsOnline] = useState(true);
