@@ -677,6 +677,15 @@ export default function ZiiplyMobileOfferSearchCard({
     );
   }, []);
 
+  // V56: a fresh Gösta landing view must always reopen the chain gate.
+  // page.tsx clears query/filter when Gösta is opened again, but this card can
+  // stay mounted and otherwise retain the previous S/K/EUROSPAR selection.
+  React.useEffect(() => {
+    if (!String(query || "").trim() && !String(filter || "").trim()) {
+      setSelectedOfferChainV39(null);
+    }
+  }, [query, filter, selectedStoreName]);
+
   const rememberGostaCategoryV27 = React.useCallback((category: string) => {
     const clean = String(category || "").trim();
     if (!clean) return;
@@ -1243,9 +1252,11 @@ export default function ZiiplyMobileOfferSearchCard({
                     </div>
                   ) : null}
                   <div className="mt-1.5 text-[0.70rem] font-extrabold leading-snug">
-                    {selectedOfferChainV39 === "K"
-                      ? "Valitulle myymälälle ei löytynyt tällä hetkellä tarjoustietoja. Myymälällä ei välttämättä ole aktiivisia tarjouksia tai tarjoustietoja ei ole saatavilla."
-                      : "Valitulle myymälälle ei löytynyt tarjoustietoja S-kaupat.fi-palvelusta. Myymälä ei välttämättä ole palvelussa tai sillä ei ole tällä hetkellä aktiivisia tarjouksia."}
+                    {selectedOfferChainV39 === "EUROSPAR"
+                      ? "Valitulle EUROSPAR-myymälälle ei löytynyt tällä hetkellä aktiivisia tarjouksia."
+                      : selectedOfferChainV39 === "K"
+                        ? "Valitulle myymälälle ei löytynyt tällä hetkellä tarjoustietoja. Myymälällä ei välttämättä ole aktiivisia tarjouksia tai tarjoustietoja ei ole saatavilla."
+                        : "Valitulle myymälälle ei löytynyt tarjoustietoja S-kaupat.fi-palvelusta. Myymälä ei välttämättä ole palvelussa tai sillä ei ole tällä hetkellä aktiivisia tarjouksia."}
                   </div>
                 </div>
               )}
