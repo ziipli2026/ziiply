@@ -535,6 +535,21 @@ function getOfferPrice(offer: ZiiplyMobileOfferSearchItem) {
 }
 
 function getNormalPrice(offer: ZiiplyMobileOfferSearchItem) {
+  const source = offer.__sourceOfferSearchResult || {};
+  const isEurospar = String(source.chain || offer.chain || "").trim().toUpperCase() === "EUROSPAR";
+  const quantity = Number(source.offerQuantity);
+  const isMultiBuy =
+    isEurospar &&
+    source.priceBasis === "multi-buy-total" &&
+    Number.isFinite(quantity) &&
+    quantity > 1;
+
+  if (isMultiBuy) {
+    const normalText = String(source.normalPriceText || "").trim();
+    if (normalText) return `${normalText} €/${String(source.offerUnit || "kpl").trim()}`;
+    return "";
+  }
+
   return normalizePrice(offer.normalPrice ?? offer.originalPrice);
 }
 
