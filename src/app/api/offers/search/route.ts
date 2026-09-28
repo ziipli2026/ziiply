@@ -63,6 +63,7 @@
 
 import { NextResponse } from "next/server";
 import { fetchKCitymarketOffers, getKCitymarketHtmlDebugV8 } from "../../../components/ziiply/offerSearch/providers/kCitymarketProvider";
+import { fetchEurosparOffers } from "../../../components/ziiply/offerSearch/providers/eurosparProvider";
 import {
   searchZiiplyOffers,
   getKruokaOfferPipelineDebugV34,
@@ -537,6 +538,23 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const searchParams = url.searchParams;
     const q = getParam(searchParams, "q") || "";
+    const provider = getParam(searchParams, "provider");
+
+    if (provider === "eurospar") {
+      const storeName = getParam(searchParams, "eurosparStoreName") || "";
+      const now = new Intl.DateTimeFormat("en-CA", {
+        timeZone: "Europe/Helsinki",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      }).format(new Date());
+      const fetched = storeName ? await fetchEurosparOffers(storeName, now) : [];
+      const results = (fetched as unknown as UnknownRecord[]).filter((offer) => offerMatchesQuery(q, offer));
+      return NextResponse.json(
+        { ok: true, query: q, provider: "eurospar", storeName, results },
+        { headers: { "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate" } },
+      );
+    }
 
     const rawSStoreId = getParam(searchParams, "sStoreId");
     const rawSStoreName = getParam(searchParams, "sStoreName");
