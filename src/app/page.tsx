@@ -4367,8 +4367,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const [selectedChains, setSelectedChains] = useState<
     Record<ChainResult["key"], boolean>
   >({
-    s: true,
-    k: true,
+    s: false,
+    k: false,
     lidl: false,
     tokmanni: false,
   });
@@ -8945,27 +8945,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     });
 
     setStoreMode(nextMode);
-    if (storeCompareScope === "between_chains") {
-      setSelectedChains((current) => {
-        if (betweenChainSelectionModeV749 === "one") {
-          const keepK = current.k && !current.s;
-          return {
-            ...current,
-            s: !keepK,
-            k: keepK,
-            lidl: false,
-            tokmanni: false,
-          };
-        }
-        return {
-          ...current,
-          s: true,
-          k: true,
-          lidl: false,
-          tokmanni: false,
-        };
-      });
-    }
+    // V754: Tavaratalot/Lähikaupat changes only the store type.
+    // Never auto-select S/K; chain ticks are an explicit user choice.
     clearSearchAndComparisonState();
   }
 
@@ -20684,8 +20665,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               gostaSelectedOfferChainRefV547.current = chain;
               void searchOffers();
             }}
-            showSChain={Number(activeStores.sStoreId || 0) > 0}
-            showKChain={Number(activeStores.kStoreId || 0) > 0}
+            showSChain={Boolean(selectedChains.s && Number(activeStores.sStoreId || 0) > 0)}
+            showKChain={Boolean(selectedChains.k && Number(activeStores.kStoreId || 0) > 0)}
             showLidlChain={Boolean(selectedChains.lidl && selectedLidlStoreV750)}
             showEurosparChain={Boolean(selectedEurosparStoreV751)}
             categorySuggestions={GOSTA_OFFER_CATEGORY_SUGGESTIONS_V147}
