@@ -3488,6 +3488,27 @@ export default function Page() {
   const [mobileCompareCheckedV733, setMobileCompareCheckedV733] = useState<Record<string, boolean>>({});
   const [cartSavePanelOpen, setCartSavePanelOpen] = useState(false);
   const [notebookOpen, setNotebookOpen] = useState(false);
+
+  // V773: lämmitä pääsivun ja korttien staattiset grafiikat heti cold startissa,
+  // jotta Kori/Vertailu/Muistivihko eivät odota kuvia vasta korttia avattaessa.
+  useEffect(() => {
+    const uiAssetsV773 = [
+      "/ui/cart/vihkonen.webp",
+      "/ziiplylogo_mobile.png",
+      "/assistants/gosta.png",
+      "/assistants/justiina.png",
+      "/assistants/arvo.png",
+      "/ui/voice/aanita-on.webp",
+      "/ui/voice/aanita-search.webp",
+      "/ui/voice/aanita-off.webp",
+      "/ui/scanner/scanner-idle.webp",
+    ];
+    uiAssetsV773.forEach((src) => {
+      const image = new Image();
+      image.decoding = "async";
+      image.src = src;
+    });
+  }, []);
   const [shopsPanelOpen, setShopsPanelOpen] = useState(false);
   const [inlineHakutapaNoticeVisibleV452, setInlineHakutapaNoticeVisibleV452] = useState(false);
   const [mapStoresOverlayOpenV433, setMapStoresOverlayOpenV433] = useState(false);
@@ -9044,7 +9065,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setLastOptimizationSnapshot(null);
     if (storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one") {
       setActiveResult("none");
-      void refreshSingleChainCartPricesV770(lastOptimizationSnapshot.cart);
       setCartModalOpen(true);
     } else {
       setActiveResult("compare");
@@ -15155,9 +15175,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       showCartToast(
         `Lisätty muistilistaan: ${newItems.length} ${newItems.length === 1 ? "rivi" : "riviä"}`,
       );
-      if (storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one") {
-        void refreshSingleChainCartPricesV770(nextCart);
-      } else {
+      if (!(storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one")) {
         setActiveResult("compare");
         void updateChainComparison(nextCart);
       }
