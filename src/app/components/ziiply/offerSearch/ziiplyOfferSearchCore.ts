@@ -152,6 +152,8 @@ export type ZiiplyGostaOfferSearchContextV152 = {
   eurosparStoreChain?: string;
   lidlStoreKey?: string;
   lidlStoreName?: string;
+  tokmanniStoreId?: string | number;
+  tokmanniStoreName?: string;
 };
 
 export type ZiiplyGostaOfferSearchCoreResult = {
@@ -473,6 +475,12 @@ async function fetchOfferSearchResults(query: string, context?: ZiiplyGostaOffer
     params.set("provider", "lidl");
     params.set("lidlStoreKey", String(context?.lidlStoreKey || ""));
     params.set("lidlStoreName", String(context?.lidlStoreName || "Lidl"));
+  }
+
+  const isTokmanniSelection = Boolean(context?.tokmanniStoreId || context?.tokmanniStoreName);
+  if (isTokmanniSelection) {
+    params.set("provider", "tokmanni");
+    params.set("tokmanniStoreName", String(context?.tokmanniStoreName || "Tokmanni"));
   }
 
   if (sStoreIdsV162.length > 0) params.set("sStoreId", sStoreIdsV162.join("||"));
