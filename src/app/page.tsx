@@ -3157,6 +3157,15 @@ export default function Page() {
 
         setStoreModeChosenV299(Boolean(parsedStoreSelection.storeModeChosenV299));
 
+        // V757: restore explicit SPAR/Tokmanni store choices before the store lookup refresh.
+        // The lookup effect will reconcile these IDs against fresh options without replacing them with options[0].
+        if (parsedStoreSelection.selectedEurosparStoreV751 && typeof parsedStoreSelection.selectedEurosparStoreV751 === "object") {
+          setSelectedEurosparStoreV751({ ...parsedStoreSelection.selectedEurosparStoreV751, chain: "EUROSPAR" });
+        }
+        if (parsedStoreSelection.selectedTokmanniStoreV756 && typeof parsedStoreSelection.selectedTokmanniStoreV756 === "object") {
+          setSelectedTokmanniStoreV756({ ...parsedStoreSelection.selectedTokmanniStoreV756, chain: "TOKMANNI" });
+        }
+
         // V755: restore only explicit chain choices that were persisted by the user.
         // Missing legacy data stays false/false from the safe initial state.
         if (parsedStoreSelection.selectedChains && typeof parsedStoreSelection.selectedChains === "object") {
@@ -6587,6 +6596,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           storeCompareScope,
           withinChain,
           selectedChains,
+          selectedEurosparStoreV751,
+          selectedTokmanniStoreV756,
           gpsCoordsV320,
           usingOwnLocation,
         }),
@@ -6601,6 +6612,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     storeCompareScope,
     withinChain,
     selectedChains,
+    selectedEurosparStoreV751,
+    selectedTokmanniStoreV756,
     gpsCoordsV320,
     usingOwnLocation,
   ]);
