@@ -3155,6 +3155,15 @@ export default function Page() {
 
         setStoreModeChosenV299(Boolean(parsedStoreSelection.storeModeChosenV299));
 
+        if (parsedStoreSelection.selectedChains && typeof parsedStoreSelection.selectedChains === "object") {
+          setSelectedChains({
+            s: Boolean(parsedStoreSelection.selectedChains.s),
+            k: Boolean(parsedStoreSelection.selectedChains.k),
+            lidl: Boolean(parsedStoreSelection.selectedChains.lidl),
+            tokmanni: Boolean(parsedStoreSelection.selectedChains.tokmanni),
+          });
+        }
+
         if (
           parsedStoreSelection.storeCompareScope === "none" ||
           parsedStoreSelection.storeCompareScope === "between_chains" ||
@@ -3892,6 +3901,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     storeModeChosenV299,
     storeCompareScope,
     withinChain,
+    selectedChains,
     gpsCoordsV320,
     usingOwnLocation,
     foundStores,
@@ -4367,8 +4377,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const [selectedChains, setSelectedChains] = useState<
     Record<ChainResult["key"], boolean>
   >({
-    s: true,
-    k: true,
+    s: false,
+    k: false,
     lidl: false,
     tokmanni: false,
   });
@@ -6527,6 +6537,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           storeModeChosenV299,
           storeCompareScope,
           withinChain,
+          selectedChains,
           gpsCoordsV320,
           usingOwnLocation,
         }),
@@ -9792,13 +9803,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         setStoreModeChosenV299(true);
         setStoreCompareScope("between_chains");
         setWithinChain(null);
-        setSelectedChains((current) => ({
-          ...current,
-          s: true,
-          k: true,
-          lidl: false,
-          tokmanni: false,
-        }));
+        // GPS saa ratkaista Lähikaupat-tilan, mutta ketjut valitsee käyttäjä.
+        // Puhdas käynnistys ei saa näyttää S/K-rakseja automaattisesti.
       }
 
       if (typeof document !== "undefined") {
