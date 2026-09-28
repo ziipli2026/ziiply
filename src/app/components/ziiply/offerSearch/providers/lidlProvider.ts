@@ -91,10 +91,31 @@ export async function fetchLidlOffers(storeKey: string, storeName = "Lidl") {
     const category = classifyLidlOffer(title, brandName);
     const priceText = formatPrice(numericPrice);
     const unitPriceText = String(row?.pricePerUnit || "").trim();
+    const lidlPricingText = [
+      row?.pricePerUnit,
+      row?.unit,
+      row?.unitText,
+      row?.basePrice,
+      row?.basePriceText,
+      row?.quantityText,
+      row?.subtitle,
+      row?.description,
+      box?.largePartString,
+      box?.smallPartString,
+      box?.priceSymbol,
+      box?.discountMessage,
+    ]
+      .filter((value) => value != null)
+      .map((value) => String(value))
+      .join(" ");
+    const hasPackWeightInTitle = /\b\d+(?:[.,]\d+)?\s*(?:g|kg)\b/i.test(title);
     const isWeightedProduct =
-      /(?:€|eur)\s*\/\s*kg\b/i.test(unitPriceText) ||
-      /\b(?:kg|kilohinta)\b/i.test(String(box?.largePartString || "")) &&
-        !/\b\d+(?:[.,]\d+)?\s*(?:g|kg)\b/i.test(title);
+      !hasPackWeightInTitle &&
+      (
+        /(?:€|eur)\s*\/\s*kg\b/i.test(lidlPricingText) ||
+        /\b(?:hinta\s*\/\s*kg|kilohinta|per\s*kg)\b/i.test(lidlPricingText) ||
+        /\bkg\b/i.test(String(box?.priceSymbol || ""))
+      );
 
     return {
       id: `lidl-${key}-${String(row?.id || index)}`,
@@ -160,6 +181,8 @@ export async function fetchLidlOffers(storeKey: string, storeName = "Lidl") {
               smallPartNumeric: box?.smallPartNumeric ?? null,
               priceSymbol: box?.priceSymbol ?? null,
               pricePerUnit: row?.pricePerUnit ?? null,
+              weightedPricingText: lidlPricingText || null,
+              detectedWeightedProduct: isWeightedProduct,
             },
             debugRawPriceFields: Object.fromEntries(
               Object.entries(row).filter(([field]) =>
