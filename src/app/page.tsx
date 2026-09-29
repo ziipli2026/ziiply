@@ -13403,12 +13403,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // known name to accelerate the selected S-store lookup; price/availability
       // still comes from the selected store, never from the bank.
       let bankSourceV786 = "";
+      let bankIdentityNameV789 = "";
+      let bankIdentityImageV789 = "";
+      let bankIdentityBrandV789 = "";
       try {
         const bankResponseV784 = await fetch(`/api/ean-bank?ean=${encodeURIComponent(ean)}`, {
           cache: "no-store",
         });
         const bankDataV784 = bankResponseV784.ok ? await bankResponseV784.json().catch(() => null) : null;
         const bankNameV784 = fixText(String(bankDataV784?.product?.name || "")).trim();
+        bankIdentityNameV789 = bankNameV784;
+        bankIdentityImageV789 = String(bankDataV784?.product?.imageUrl || "").trim();
+        bankIdentityBrandV789 = fixText(String(bankDataV784?.product?.brand || "")).trim();
         bankSourceV786 = String(bankDataV784?.product?.source || "").trim().toLowerCase();
         if (!cachedName && bankNameV784) {
           cachedName = bankNameV784;
@@ -13439,6 +13445,64 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         Number(activeStores.sStoreId || 0) > 0 &&
         !scannerManyKFirstV786;
 
+      // V789: EAN-pankki on identiteettilähde. Kun nimi tunnetaan, skannerin ei pidä
+      // odottaa hinnan hakua eikä OFF-kierrosta ennen koriin lisäämistä.
+      // Hinta saa täydentyä myöhemmin taustalla valittujen kauppojen datasta.
+      const fastIdentityFromBankV789 = Boolean(
+        bankIdentityNameV789 &&
+        (eanScannerOpen || eanHtml5ScannerRef.current || options.fromScanner),
+      );
+      if (fastIdentityFromBankV789) {
+        addOpenFoodFactsScannedEanToCartV729({
+          ean,
+          name: bankIdentityNameV789,
+          brandName: bankIdentityBrandV789 || undefined,
+          imageUrl: bankIdentityImageV789 || undefined,
+        });
+
+        // Käynnistä hinnan rikastus taustalle. Tämä ei pidätä skannerin kuittausta.
+        if (scannerAllowSV785 && Number(activeStores.sStoreId || 0) > 0) {
+          void (async () => {
+            try {
+              const params = new URLSearchParams({
+                ean,
+                storeId: String(activeStores.sStoreId),
+                name: bankIdentityNameV789,
+              });
+              const response = await fetch(`/api/s-ean-product?${params.toString()}`, { cache: "no-store" });
+              const data = response.ok ? await response.json().catch(() => null) : null;
+              const product = data?.product as Product | undefined;
+              if (!product || !isSameEan((product as any)?.ean || ean, getEanSearchVariants(ean))) return;
+              const price = getProductPrice(product);
+              if (price <= 0) return;
+
+              setCart((currentCart) => {
+                const nextCart = currentCart.map((item) => {
+                  if (!cartItemMatchesEanLooseV129(item, ean)) return item;
+                  return {
+                    ...item,
+                    name: fixText(product.name || item.name),
+                    price,
+                    image: product.pictureUrl || item.image,
+                    chain: "S" as const,
+                    storeName: activeStores.sStoreName || item.storeName,
+                    product: { ...product, ean, price } as Product,
+                    ean,
+                  } as CartItem;
+                });
+                cartRefV124.current = nextCart;
+                persistCartImmediately(nextCart);
+                return nextCart;
+              });
+            } catch {}
+          })();
+        }
+
+        eanSearchInFlightRef.current = null;
+        eanLookupPendingRefV120.current.delete(ean);
+        eanLookupPromiseRefV121.current.delete(ean);
+        return;
+      }
 
 
       pushScannerDebugV493(`VARIANTS ${variants.join(",")} cachedName=${cachedName || "-"} manySFirst=${scannerManySFirstV784} manyKFirst=${scannerManyKFirstV786}`);
