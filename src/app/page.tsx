@@ -12732,9 +12732,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setEanModalOpen(false);
     setEanScannerOpen(false);
     setDesktopKeyboardScannerOpen(false);
-    setSuppressUiForEanClose(false);
 
-    await stopEanCameraScanner({ keepScannerOpenState: true });
+    // V776: pidä Hae-freeze kameran päällä hetki, jotta streamin sammumisen
+    // viimeinen välähdys ei ehdi näkyä käyttäjälle.
+    const scannerCleanupPromise = stopEanCameraScanner({ keepScannerOpenState: true });
+    await Promise.all([
+      scannerCleanupPromise,
+      new Promise<void>((resolve) => window.setTimeout(resolve, 500)),
+    ]);
+    setSuppressUiForEanClose(false);
 
     setEanManualInputOpen(false);
     setEanInput("");
