@@ -13396,6 +13396,27 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // V784: the persistent EAN bank is identity-only. In multi-chain mode use its
       // known name to accelerate the selected S-store lookup; price/availability
       // still comes from the selected store, never from the bank.
+      let bankSourceV786 = "";
+      try {
+        const bankResponseV784 = await fetch(`/api/ean-bank?ean=${encodeURIComponent(ean)}`, {
+          cache: "no-store",
+        });
+        const bankDataV784 = bankResponseV784.ok ? await bankResponseV784.json().catch(() => null) : null;
+        const bankNameV784 = fixText(String(bankDataV784?.product?.name || "")).trim();
+        bankSourceV786 = String(bankDataV784?.product?.source || "").trim().toLowerCase();
+        if (!cachedName && bankNameV784) {
+          cachedName = bankNameV784;
+          setEanCache((prev) => ({ ...prev, [ean]: bankNameV784 }));
+        }
+        pushScannerDebugV493(
+          bankNameV784
+            ? `EAN_BANK identity hit name=${bankNameV784.slice(0, 54)} source=${bankSourceV786 || "-"}`
+            : "EAN_BANK identity miss",
+        );
+      } catch (error) {
+        pushScannerDebugV493(`EAN_BANK error ${String((error as any)?.message || error).slice(0, 90)}`);
+      }
+
       const scannerBetweenChainsV785 = storeCompareScope === "between_chains";
       const scannerAllowSV785 = !scannerBetweenChainsV785 || Boolean(selectedChains.s);
       const scannerAllowKV785 = !scannerBetweenChainsV785 || Boolean(selectedChains.k);
@@ -13404,25 +13425,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         betweenChainSelectionModeV749 === "many" &&
         scannerAllowSV785 &&
         Number(activeStores.sStoreId || 0) > 0;
+      const scannerManyKFirstV786 =
+        scannerBetweenChainsV785 &&
+        betweenChainSelectionModeV749 === "many" &&
+        scannerAllowKV785 &&
+        Number(activeStores.kStoreId || 0) > 0 &&
+        /(^|[-_])(k|kruoka|k-ruoka)([-_]|$)|ruoanhinta-k|k-products|k-ean/.test(bankSourceV786);
 
-      if (!cachedName) {
-        try {
-          const bankResponseV784 = await fetch(`/api/ean-bank?ean=${encodeURIComponent(ean)}`, {
-            cache: "no-store",
-          });
-          const bankDataV784 = bankResponseV784.ok ? await bankResponseV784.json().catch(() => null) : null;
-          const bankNameV784 = fixText(String(bankDataV784?.product?.name || "")).trim();
-          if (bankNameV784) {
-            cachedName = bankNameV784;
-            setEanCache((prev) => ({ ...prev, [ean]: bankNameV784 }));
-            pushScannerDebugV493(`EAN_BANK identity hit name=${bankNameV784.slice(0, 54)}`);
-          } else {
-            pushScannerDebugV493("EAN_BANK identity miss");
-          }
-        } catch (error) {
-          pushScannerDebugV493(`EAN_BANK error ${String((error as any)?.message || error).slice(0, 90)}`);
-        }
-      }
+
 
       pushScannerDebugV493(`VARIANTS ${variants.join(",")} cachedName=${cachedName || "-"} manySFirst=${scannerManySFirstV784}`);
 
@@ -13641,13 +13651,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         for (const query of fastQueriesV498) {
           const [sProducts, kProducts] = await Promise.all([
-            scannerAllowSV785
+            scannerAllowSV785 && !scannerManyKFirstV786
               ? fetchSProducts(query, storeIdNumberV498).catch((error) => {
                   pushScannerDebugV493(`S_FAST ERROR query=${query.slice(0, 30)} ${String(error?.message || error).slice(0, 80)}`);
                   return [] as Product[];
                 })
               : Promise.resolve([] as Product[]),
-            scannerAllowKV785 && !scannerManySFirstV784 && Number.isFinite(kStoreIdNumberV499) && kStoreIdNumberV499 > 0
+            scannerAllowKV785 && (!scannerManySFirstV784 || scannerManyKFirstV786) && Number.isFinite(kStoreIdNumberV499) && kStoreIdNumberV499 > 0
               ? fetchKProducts(query, kStoreIdNumberV499).catch((error) => {
                   pushScannerDebugV493(`K_FAST ERROR query=${query.slice(0, 30)} ${String(error?.message || error).slice(0, 80)}`);
                   return [] as KProduct[];
@@ -13683,7 +13693,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // V784: Monta + selected S is deliberately S-first. Do not prefetch K here;
       // Halpuuta resolves exact EAN / equivalents from the other selected stores.
       // Outside that mode preserve the older paired exact-EAN behavior.
-      if (cachedHitNameV499 && !scannerManySFirstV784) {
+      if (cachedHitNameV499 && !scannerManySFirstV784 && !scannerManyKFirstV786) {
         await tryStrictSEanRouteV491(cachedHitNameV499).catch((error) => {
           pushScannerDebugV493(`FAST ERROR cachedHitName ${String(error?.message || error).slice(0, 120)}`);
           return false;
@@ -15024,7 +15034,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       cartRefV124.current = nextCart;
       persistCartImmediately(nextCart);
       void updateChainComparison(nextCart, { openCompare: false });
-      showCartToast(`Lisätty: ${newItem.name}`);
+      if (!(eanScannerOpen || eanHtml5ScannerRef.current)) showCartToast("✓ Lisätty ostoskoriin");
 
       const normalizedEan = normalizeEan(newItem.ean);
       if (isUsableEan(normalizedEan)) {
@@ -21206,10 +21216,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                         );
                         setEanResults([]);
                         setEanMessage("");
-                        setEanScannerMessage("✓ Lisätty ostoskoriin");
-                        window.setTimeout(() => {
-                          setEanScannerMessage("");
-                        }, 900);
                       }}
                     />
                   </div>
@@ -21250,10 +21256,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                         );
                         setEanResults([]);
                         setEanMessage("");
-                        setEanScannerMessage("✓ Lisätty ostoskoriin");
-                        window.setTimeout(() => {
-                          setEanScannerMessage("");
-                        }, 900);
                       }}
                     />
                   </div>
