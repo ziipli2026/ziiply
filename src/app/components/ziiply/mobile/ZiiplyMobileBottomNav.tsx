@@ -26,6 +26,7 @@ type NavItemProps = {
   disabled?: boolean;
   badge?: number | string | null;
   notice?: string | null;
+  bounceIcon?: boolean;
   onClick: () => void;
 };
 
@@ -36,6 +37,7 @@ function ZiiplyNavItem({
   disabled = false,
   badge = null,
   notice = null,
+  bounceIcon = false,
   onClick,
 }: NavItemProps) {
   return (
@@ -62,6 +64,7 @@ function ZiiplyNavItem({
         className={[
           "relative flex h-[29px] items-center justify-center leading-none drop-shadow-[0_1px_0_rgba(255,255,255,0.75)]",
           active ? "text-[27px]" : "text-[26px]",
+          bounceIcon ? "animate-[ziiplySearchReadyBounce_1.15s_ease-in-out_infinite]" : "",
         ].join(" ")}
       >
         {icon}
@@ -130,6 +133,7 @@ export default function ZiiplyMobileBottomNav({
             active={searchPanelOpen}
             disabled={searchBottomNavDisabled}
             notice={searchNotice}
+            bounceIcon={!searchBottomNavDisabled}
             onClick={onSearchClick}
           />
 
@@ -149,8 +153,7 @@ export default function ZiiplyMobileBottomNav({
           />
         </div>
       </div>
-    </nav>
-  );
+      <style jsx>{`\n        @keyframes ziiplySearchReadyBounce {\n          0%, 100% { transform: translateY(0); }\n          42% { transform: translateY(-5px); }\n          62% { transform: translateY(-2px); }\n        }\n      `}</style>\n    </nav>\n  );
 }
 
 export { ZiiplyMobileBottomNav };
