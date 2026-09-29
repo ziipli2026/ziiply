@@ -13086,6 +13086,19 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const genericWeightLabelV737 = resolvePriceWeightLabel(ean);
     const kWeightCandidateV737 = resolveKWeightLabel(ean);
     if (genericWeightLabelV737 && !kWeightCandidateV737) {
+      // Preserve chain-independent scale-label identity without polluting the bank with a fake product name.
+      // The same EAN-bank row can be enriched later when a real product identity becomes available.
+      void fetch("/api/ean-bank", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          ean: genericWeightLabelV737.scannedEan,
+          category: "Vaakatuote",
+          source: `weight-label-plu-${genericWeightLabelV737.plu}`,
+        }),
+        keepalive: true,
+      }).catch(() => undefined);
+
       const unknownWeightProductV737: Product = {
         id: Number(genericWeightLabelV737.scannedEan.slice(-9)),
         name: `Tuntematon punnittu tuote (PLU ${genericWeightLabelV737.plu})`,
