@@ -13892,21 +13892,21 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           }));
         }
 
-        if (exactResults.length === 1 && eanAutoSearchActiveRef.current) {
-          // Yksi tuote -tilassa skannaus toimii kuten tekstihaku: avaa vertailu,
-          // ei lisää tuotetta suoraan ostoskoriin. Koko kori -tilassa säilyy vanha pikalisäys.
+        const singleExactScannerHitV793 =
+          exactResults.length === 1 &&
+          Boolean(eanAutoSearchActiveRef.current || eanScannerOpen || eanHtml5ScannerRef.current);
+
+        if (singleExactScannerHitV793) {
+          // Yksi tuote -tilassa skannaus toimii kuten tekstihaku: avaa vertailu.
+          // Muussa skannerikäytössä tarkka EAN-osuma lisätään heti koriin myös kylmähaussa.
           if (searchCompareMode === "single") {
             await stopEanCameraScanner();
             await compareEanResultAsSingle(exactResults[0]);
           } else {
-            // Automaattisen EAN-haun yhden täsmäosuman polku pidetään hiljaisena:
-            // ei renderöidä välissä tuloskorttia, jotta EAN-ikkuna ei hypi.
-            pushScannerDebugV493("ADD exact S result directly to cart");
+            pushScannerDebugV493("ADD exact scanner EAN result directly to cart");
             addEanResultToCart(exactResults[0]);
           }
         } else if (exactResults.length === 1) {
-          if (eanScannerOpen || eanHtml5ScannerRef.current)
-            showScanSuccessFlash();
           setEanResults(exactResults.slice(0, 8));
           setEanMessage("Löytyi 1 tarkka EAN-osuma.");
         } else {
