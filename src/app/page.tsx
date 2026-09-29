@@ -13030,10 +13030,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         product: weightProductV738,
         ean,
       };
-      if (scannedSingleChainKeyV782) {
-        (newItem as any).ziiplySingleChainAtAdd = scannedSingleChainKeyV782;
-      }
-
       const nextCart = [...baseCart, newItem];
       cartRefV124.current = nextCart;
       persistCartImmediately(nextCart);
@@ -14931,6 +14927,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         product: result.product,
         ean: ean || result.product.ean,
       };
+
+      if (scannedSingleChainKeyV782) {
+        (newItem as any).ziiplySingleChainAtAdd = scannedSingleChainKeyV782;
+      }
 
       const nextCart = [...baseCart, newItem];
       cartRefV124.current = nextCart;
