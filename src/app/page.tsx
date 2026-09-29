@@ -15085,7 +15085,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setEanSearchStartedAutomatically(false);
     eanAutoSearchActiveRef.current = false;
     setEanMessage("");
-    if (isScannerAddV787 && options.showScannerMessage !== false) {
+    // V797: automaattinen skannaus kuittaa onnistumisen vain kerran.
+    // Kun success-flash on käytössä, ScannerCard näyttää jo "Lisätty koriin".
+    // Erillinen scannerMessage tarvitaan vain valintakortin lisäyksessä,
+    // jossa showFlash=false eikä vihreää success-kuittausta näytetä.
+    if (
+      isScannerAddV787 &&
+      options.showScannerMessage !== false &&
+      options.showFlash === false
+    ) {
       setEanScannerOpen(true);
       // V594: valintaikkunan kautta lisättäessä annetaan vain hiljainen, läpikuultava kuittaus.
       // Ei piippiä eikä vihreää flashia, koska varsinainen skannauspiip on annettu jo EAN-lukuhetkellä.
