@@ -13884,7 +13884,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         pushScannerDebugV493(`FALLBACK ADD OFF name=${fixText(String(openFoodFactsFallback?.name || "")).slice(0, 54)}`);
         setEanLookupOutcomeForAllVariantsV126(ean, "off");
         if (eanScannerOpen || eanHtml5ScannerRef.current || options.fromScanner) {
-          setEanScannerMessage("Tuote tunnistettu Food Factsista — ei mukana hintavertailussa");
+          setEanScannerMessage("✓ Lisätty koriin — ei mukana hintavertailussa");
         }
         addOpenFoodFactsScannedEanToCartV729(openFoodFactsFallback);
         return;
