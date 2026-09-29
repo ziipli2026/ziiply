@@ -50,15 +50,19 @@ export default function ZiiplyMobileHomeView({
           paddingTop: "0.25vh",
         }}
       >
-        <img
-          src="/ziiplylogo_mobile.png"
-          alt="Ziiply"
-          draggable={false}
-          className="mb-2 w-[94px] select-none object-contain drop-shadow-[0_4px_10px_rgba(21,79,50,0.10)]"
-          onError={(event) => {
-            event.currentTarget.style.display = "none";
-          }}
-        />
+        <div className="mb-2 flex h-[94px] w-[94px] shrink-0 items-center justify-center">
+          <img
+            src="/ziiplylogo_mobile.png"
+            alt="Ziiply"
+            width={94}
+            height={94}
+            draggable={false}
+            className="block h-[94px] w-[94px] select-none object-contain drop-shadow-[0_4px_10px_rgba(21,79,50,0.10)]"
+            onError={(event) => {
+              event.currentTarget.style.visibility = "hidden";
+            }}
+          />
+        </div>
 
         <h1 className="max-w-[318px] text-[30px] font-black leading-[1.02] tracking-[-0.045em] text-[#050b2b] drop-shadow-[0_1px_0_rgba(255,255,255,0.55)]">
           Viilaa ruokakorisi huokeammaks
