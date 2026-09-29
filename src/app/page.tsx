@@ -13884,7 +13884,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         pushScannerDebugV493(`FALLBACK ADD OFF name=${fixText(String(openFoodFactsFallback?.name || "")).slice(0, 54)}`);
         setEanLookupOutcomeForAllVariantsV126(ean, "off");
         if (eanScannerOpen || eanHtml5ScannerRef.current || options.fromScanner) {
-          setEanScannerMessage("✓ Lisätty koriin — ei mukana hintavertailussa");
+          setEanScannerMessage("✓ Lisätty koriin — hinta ei saatavilla");
         }
         addOpenFoodFactsScannedEanToCartV729(openFoodFactsFallback);
         return;
@@ -13949,18 +13949,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       setEanLookupOutcomeForAllVariantsV126(ean, "unknown");
 
-      // V729: käsin haetussa EANissa 2. fallback säilyy: täysin tuntematon EAN
-      // lisätään koriin ja localStorage-logiin myöhempää/online-tunnistusta varten.
-      addUnknownScannedEanToCartV724(ean, { lookupSource: "not_found" });
-
-      if (cachedName || openFoodFactsFallback) {
-        setEanMessage(
-          "Tuote tunnistettiin osittain, mutta valituista kaupoista ei löytynyt tarkkaa EAN-osumaa. Lisättiin koriin tunnisteella ja otettiin talteen.",
-        );
-      } else {
-        setEanMessage(
-          "EAN-koodilla ei löytynyt tarkkaa tuotetta valituista kaupoista. Lisättiin koriin tunnisteella ja otettiin talteen.",
-        );
+      // Täysin tunnistamatonta EANia ei lisätä koriin. EAN voidaan edelleen
+      // havaita/tallentaa taustalla, mutta korissa pitää olla vähintään tuotteen nimi.
+      setEanMessage("Tuotetta ei tunnistettu.");
+      if (eanScannerOpen || eanHtml5ScannerRef.current || options.fromScanner) {
+        setEanScannerMessage("Tuotetta ei tunnistettu");
       }
 
     } catch (error) {
@@ -14005,10 +13998,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           return;
         }
         setEanLookupOutcomeForAllVariantsV126(ean, "unknown");
-        addUnknownScannedEanToCartV724(ean, { lookupSource: "lookup_error" });
-        setEanMessage(
-          "EAN-haku epäonnistui verkossa. Lisättiin koriin viivakoodilla ja otettiin talteen.",
-        );
+        setEanMessage("EAN-haku epäonnistui. Tuotetta ei lisätty koriin.");
       }
     } finally {
       pushScannerDebugV493("FINALLY cleanup pending/inFlight/loading");
