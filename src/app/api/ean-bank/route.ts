@@ -39,7 +39,7 @@ async function ensureSchema(sql: ReturnType<typeof db>) {
   await sql`
     CREATE TABLE IF NOT EXISTS ziiply_ean_products (
       ean TEXT PRIMARY KEY,
-      name TEXT NOT NULL,
+      name TEXT NOT NULL DEFAULT '',
       brand TEXT,
       quantity TEXT,
       image_url TEXT,
@@ -103,8 +103,8 @@ export async function POST(request: NextRequest) {
     const body = (await request.json()) as ProductInput;
     const ean = normalizeEan(body.ean);
     const name = clean(body.name, 300);
-    if (!ean || !name) {
-      return NextResponse.json({ ok: false, error: "Valid EAN and product name are required" }, { status: 400 });
+    if (!ean) {
+      return NextResponse.json({ ok: false, error: "Valid EAN is required" }, { status: 400 });
     }
 
     const brand = clean(body.brand, 160) || null;
@@ -120,7 +120,7 @@ export async function POST(request: NextRequest) {
       INSERT INTO ziiply_ean_products (ean, name, brand, quantity, image_url, category, source, aliases)
       VALUES (${ean}, ${name}, ${brand}, ${quantity}, ${imageUrl}, ${category}, ${source}, ${aliasList})
       ON CONFLICT (ean) DO UPDATE SET
-        name = EXCLUDED.name,
+        name = CASE WHEN EXCLUDED.name <> '' THEN EXCLUDED.name ELSE ziiply_ean_products.name END,
         brand = COALESCE(EXCLUDED.brand, ziiply_ean_products.brand),
         quantity = COALESCE(EXCLUDED.quantity, ziiply_ean_products.quantity),
         image_url = COALESCE(EXCLUDED.image_url, ziiply_ean_products.image_url),
