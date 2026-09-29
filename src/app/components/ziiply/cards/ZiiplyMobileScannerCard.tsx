@@ -481,7 +481,7 @@ export default function ZiiplyMobileScannerCard({
 function ScannerCorner({ className = "" }: { className?: string }) {
   return (
     <div
-      className={["pointer-events-none absolute z-[15] h-[76px] w-[76px]", className].join(" ")}
+      className={["ziiply-scanner-corner pointer-events-none absolute z-[15] h-[76px] w-[76px]", className].join(" ")}
       aria-hidden="true"
     >
       <div className="absolute left-0 top-0 h-[7px] w-[58px] rounded-full bg-[#fff8ea] shadow-[0_0_10px_rgba(255,255,255,0.45)]" />
