@@ -12387,6 +12387,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     const now = Date.now();
 
+    // V783: yksi kameraskannaus saa omistaa EAN-haun loppuun asti.
+    // Muuten hidas edellinen lookup voi valmistua uuden skannauksen jälkeen ja
+    // kirjoittaa uuden tuotteen päälle vanhan "ei löytynyt" / tuntematon-statuksen.
+    if (eanSearchInFlightRef.current || eanLookupPendingRefV120.current.size > 0) {
+      return;
+    }
+
     // V131: älä hyväksy heti perään tulevia live/still-fallback -osumia.
     // Jos ensimmäinen hyväksytty koodi tunnistuu OFF-/kauppatuotteeksi, nämä
     // myöhäiset osumat eivät saa ehtiä omaksi tuntematon-hauksi.
