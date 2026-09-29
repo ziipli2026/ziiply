@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { observeEanProductsBestEffort } from "@/lib/eanBank";
 
 const TOKMANNI_SEARCH_URL = "https://www.tokmanni.fi/search";
 const clean = (value: unknown) => String(value ?? "").replace(/\u00a0/g, " ").replace(/[ \t]+/g, " ").trim();
@@ -20,6 +21,16 @@ function textOf(src: string) {
 
 function absoluteUrl(href: string) {
   try { return new URL(href, TOKMANNI_SEARCH_URL).href; } catch { return ""; }
+}
+
+function eanFromProductUrl(productUrl: string) {
+  try {
+    const pathname = new URL(productUrl).pathname.replace(/\/+$/, "");
+    const match = pathname.match(/-(\d{8,14})$/);
+    return match?.[1] || "";
+  } catch {
+    return "";
+  }
 }
 
 function first(block: string, patterns: RegExp[]) {
@@ -64,12 +75,16 @@ function mapProduct(block: string, index: number) {
   const imageMatch = block.match(/class=["'][^"']*product-image-photo[^"']*["'][^>]*(?:src|data-src)=["']([^"']+)/i)
     || block.match(/(?:src|data-src)=["']([^"']+)["'][^>]*class=["'][^"']*product-image-photo/i);
 
+  const productUrl = absoluteUrl(decodeEntities(hrefMatch?.[1] || ""));
+  const ean = eanFromProductUrl(productUrl);
+
   return {
     id: 761000000 + index,
     name,
     price,
     pictureUrl: absoluteUrl(decodeEntities(imageMatch?.[1] || "")),
-    productUrl: absoluteUrl(decodeEntities(hrefMatch?.[1] || "")),
+    productUrl,
+    ean,
     category: "Tokmanni",
     storeItems: [{ price }],
   };
@@ -101,6 +116,18 @@ export async function GET(request: Request) {
     const items = productBlocks(html)
       .map(mapProduct)
       .filter((item): item is NonNullable<ReturnType<typeof mapProduct>> => Boolean(item));
+
+    await observeEanProductsBestEffort(
+      items
+        .filter((item) => Boolean(item.ean))
+        .map((item) => ({
+          ean: item.ean,
+          name: item.name,
+          imageUrl: item.pictureUrl,
+          category: item.category,
+          source: "tokmanni-search",
+        })),
+    );
 
     return NextResponse.json({ source: "tokmanni-search", status: response.status, items });
   } catch (error) {
