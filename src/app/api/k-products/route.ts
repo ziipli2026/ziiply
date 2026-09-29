@@ -63,8 +63,6 @@ export async function GET(request: Request) {
   }
 
   if (!search.trim()) {
-    await observeEanProductsBestEffort(items.map((item) => ({ ean: item.ean, name: item.name, brand: item.brandName, imageUrl: item.pictureUrl, source: "ruoanhinta-k" })));
-
     return NextResponse.json({
       store,
       storeId,
@@ -111,6 +109,8 @@ export async function GET(request: Request) {
         comparisonPriceUnit: product.storeItems?.[0]?.comparisonPriceUnit ?? undefined,
         unitPrice: undefined,
       }));
+
+    await observeEanProductsBestEffort(items.map((item) => ({ ean: item.ean, name: item.name, brand: item.brandName, imageUrl: item.pictureUrl, source: "ruoanhinta-k" })));
 
     return NextResponse.json({
       store,
