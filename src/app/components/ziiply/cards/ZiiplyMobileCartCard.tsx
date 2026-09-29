@@ -487,7 +487,24 @@ export default function ZiiplyMobileCartCard({
             >
               <span className="absolute -top-[0.78rem] left-1/2 h-[0.9rem] w-[1px] -translate-x-1/2 bg-[#5a371c]" />
               <span className="absolute top-[0.22rem] h-[0.36rem] w-[0.36rem] rounded-full border border-[#7b5c2a] bg-[#fff2c7]" />
-              <span className="text-[1.12rem] leading-none">☷</span>
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 28 28"
+                className="h-[1.34rem] w-[1.34rem]"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                {/* V66: vanhan ajan kortisto — tallennetut ostoslistat arkistossa. */}
+                <path d="M5.2 11.3h17.6l1.3 11.1H3.9l1.3-11.1Z" />
+                <path d="M7.1 11.3V7.7h13.8v3.6" />
+                <path d="M9.1 7.7V4.6h9.8v3.1" />
+                <path d="M9.2 15.1h9.6" />
+                <path d="M11.1 18.2h5.8" />
+                <path d="M7 22.4v1.4M21 22.4v1.4" />
+              </svg>
               {savedListsCount ? (
                 <span className="absolute -right-[0.3rem] -top-[0.3rem] grid h-[0.84rem] min-w-[0.84rem] place-items-center rounded-full bg-[#0b7f3a] px-[0.16rem] text-[0.46rem] font-black text-white">
                   {savedListsCount}
