@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { observeEanProductsBestEffort } from "@/lib/eanBank";
 
 type RuoanhintaProduct = {
   id: number;
@@ -154,6 +155,8 @@ export async function GET(request: Request) {
           comparisonPriceUnit: product.storeItems?.[0]?.comparisonPriceUnit ?? undefined,
         }],
       }));
+
+    await observeEanProductsBestEffort(items.map((item) => ({ ean: item.ean, name: item.name, brand: item.brandName, imageUrl: item.pictureUrl, category: item.category, source: "ruoanhinta-lidl" })));
 
     return NextResponse.json({
       source: "ruoanhinta-lidl",
