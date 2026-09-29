@@ -717,7 +717,10 @@ export default function ZiiplyMobileCartCard({
               {items.map((item, index) => {
                 const originalName = getName(item);
                 const name = ledgerName(originalName);
-                const price = normalizePrice(item.price);
+                // V792: puuttuva / vielä löytymätön hinta näytetään viivana.
+                // Sisäinen 0 säilyy laskentaa varten, mutta sitä ei esitetä käyttäjälle 0,00 € hintana.
+                const numericRowPriceV792 = getNumericPrice(item.price);
+                const price = numericRowPriceV792 > 0 ? normalizePrice(item.price) : "";
                 const checked = Boolean(item.checked);
                 const quantity = Number(item.quantity ?? item.amount ?? 1);
                 const safeQuantity = Number.isFinite(quantity) ? Math.max(1, quantity) : 1;
