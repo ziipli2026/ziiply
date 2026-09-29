@@ -20,7 +20,7 @@
 // - poistettu turha 100 % / keräilyaste / elohopeapalkki, koska valmisruutu aukeaa vain kun kaikki on kerätty
 // - valmisnäkymä on nyt selkeä kassalle-siirtymäkortti: "✓ Lista kasassa!", pieni rivimäärä ja kysymys unohtuiko jotain
 // - napit pidetään isoina ja selkeästi irti alakulman napeista
-// - "Tarkista lista vielä" palauttaa listaan ja listan footerissa voi palata valmisnäkymään
+// - "Tarkasta vielä lista" palauttaa listaan ja listan footerissa voi palata valmisnäkymään
 
 // ZIIPLY_MOBILE_CART_CARD_V60_COMPLETE_CARD_RETURN_AND_ADD_MORE_FIX
 // Korjaus V59:n valmisnäkymään:
@@ -523,7 +523,7 @@ export default function ZiiplyMobileCartCard({
         <div className={cx(
           "relative z-10 -mt-[0.36rem] min-h-0 flex-1 px-5 pt-0",
           showCompletionCardV58
-            ? "overflow-hidden pb-[4.65rem]"
+            ? "overflow-hidden pb-[3.35rem]"
             : "overflow-y-auto pb-[6.0rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
         )}>
           {!hasItems ? (
@@ -536,7 +536,7 @@ export default function ZiiplyMobileCartCard({
               </div>
             </div>
           ) : showCompletionCardV58 ? (
-            <div className="ziiply-cart-complete-card-v61 mx-auto mt-[0.55rem] flex h-[calc(100%-1.0rem)] w-[20.3rem] max-w-[calc(100%-0.5rem)] flex-col justify-center rounded-[1.05rem] border-[2.4px] border-[#70481f] bg-[#fff0c7]/74 px-4 pb-3 pt-3 text-center shadow-[0_3px_0_rgba(84,55,22,0.18),inset_0_0_0_1px_rgba(255,250,224,0.58)]">
+            <div className="ziiply-cart-complete-card-v61 mx-auto mt-[0.95rem] flex h-[calc(100%-0.45rem)] w-[20.3rem] max-w-[calc(100%-0.5rem)] flex-col justify-center rounded-[1.05rem] border-[2.4px] border-[#70481f] bg-[#fff0c7]/74 px-4 pb-3 pt-3 text-center shadow-[0_3px_0_rgba(84,55,22,0.18),inset_0_0_0_1px_rgba(255,250,224,0.58)]">
               <div
                 className="mx-auto mb-2 w-fit rounded-[0.52rem] border border-[#8a6b32]/64 bg-[#f5dfac]/70 px-3 py-[0.18rem] text-[0.64rem] font-black uppercase tracking-[0.16em] text-[#604017]"
                 style={{ fontFamily: copperplateFont }}
@@ -565,7 +565,7 @@ export default function ZiiplyMobileCartCard({
                 Unohtuiko vielä jotain listan ulkopuolelta?
               </div>
 
-              <div className="mx-auto mt-3 grid w-[17.8rem] max-w-full grid-cols-1 gap-2">
+              <div className="mx-auto mt-3 grid w-[13.8rem] max-w-full grid-cols-1 gap-[0.42rem]">
                 <button
                   type="button"
                   onClick={() => {
@@ -578,7 +578,7 @@ export default function ZiiplyMobileCartCard({
                       }
                     }, 0);
                   }}
-                  className="rounded-[0.62rem] border-[2px] border-[#8a6b32] bg-[linear-gradient(180deg,#f8e6b9_0%,#d6ad66_100%)] px-3 py-[0.54rem] text-[0.92rem] font-black italic text-[#533819] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.48),0_2px_3px_rgba(50,31,13,0.14)] active:translate-y-[1px]"
+                  className="rounded-[0.56rem] border-[2px] border-[#8a6b32] bg-[linear-gradient(180deg,#f8e6b9_0%,#d6ad66_100%)] px-3 py-[0.38rem] text-[0.84rem] font-black italic text-[#533819] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.48),0_2px_3px_rgba(50,31,13,0.14)] active:translate-y-[1px]"
                   style={{ fontFamily: cooperFont }}
                 >
                   Lisää vielä
@@ -587,7 +587,7 @@ export default function ZiiplyMobileCartCard({
                 <button
                   type="button"
                   onClick={() => setShowCheckoutFutureNoticeV62(true)}
-                  className="rounded-[0.62rem] border-[2px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-3 py-[0.58rem] text-[0.98rem] font-black italic text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58),0_2px_3px_rgba(62,43,20,0.18)] active:translate-y-[1px]"
+                  className="rounded-[0.56rem] border-[2px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-3 py-[0.38rem] text-[0.84rem] font-black italic text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58),0_2px_3px_rgba(62,43,20,0.18)] active:translate-y-[1px]"
                   style={{ fontFamily: cooperFont }}
                 >
                   Valmis kassalle
@@ -707,7 +707,7 @@ export default function ZiiplyMobileCartCard({
               <button
                 type="button"
                 onClick={() => setShowCompletionCardV58(false)}
-                className="mt-2 text-[0.76rem] font-extrabold italic text-[#6f5730] underline decoration-[#9a7a3d]/50 underline-offset-2"
+                className="mx-auto mt-[0.42rem] block w-[13.8rem] max-w-full rounded-[0.56rem] border-[2px] border-[#8a6b32] bg-[linear-gradient(180deg,#f8e6b9_0%,#d6ad66_100%)] px-3 py-[0.38rem] text-[0.84rem] font-black italic text-[#533819] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.48),0_2px_3px_rgba(50,31,13,0.14)] active:translate-y-[1px]"
                 style={{ fontFamily: serifFont }}
               >
                 Tarkista lista vielä
