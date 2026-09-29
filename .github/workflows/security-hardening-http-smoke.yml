@@ -1,0 +1,83 @@
+name: Security hardening HTTP smoke
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - security-hardening-current-20260929
+    paths:
+      - ".github/workflows/security-hardening-http-smoke.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_ENV: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm install --no-audit --no-fund
+      - run: npm run build
+      - name: Start Next server
+        run: |
+          npm run start -- -p 3000 > /tmp/ziiply-next.log 2>&1 &
+          echo $! > /tmp/ziiply-next.pid
+          for i in {1..40}; do
+            curl -fsS http://127.0.0.1:3000/ >/dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/ziiply-next.log
+          exit 1
+      - name: HTTP regression smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          base=http://127.0.0.1:3000
+          check() {
+            local expected="$1"; shift
+            local url="$1"; shift
+            code=$(curl -sS -o /tmp/body -w "%{http_code}" "$url")
+            echo "$code $url"
+            test "$code" = "$expected" || { cat /tmp/body; exit 1; }
+          }
+
+          # Production diagnostics must be closed.
+          check 404 "$base/api/k-weight-identity-coverage-test"
+          check 404 "$base/api/k-weight-sitemap-test"
+          check 404 "$base/api/kalori-ean-test"
+
+          # Hardened invalid-input contracts.
+          check 400 "$base/api/s-products?search=$(printf 'a%.0s' {1..121})&store=292"
+          check 400 "$base/api/k-products?search=$(printf 'a%.0s' {1..121})&store=3221"
+          check 400 "$base/api/store-search?mode=gps&latitude=91&longitude=24"
+          check 400 "$base/api/store-search?mode=text&search=$(printf 'a%.0s' {1..121})"
+          check 400 "$base/api/s-ean-product?ean=abc&storeId=292"
+          check 400 "$base/api/k-weight-product?ean=2000638800001&storeName=$(printf 'a%.0s' {1..161})"
+          check 400 "$base/api/offers?storeId=abc"
+          check 400 "$base/api/offers/search?q=$(printf 'a%.0s' {1..161})"
+
+          # Normal public contracts remain reachable without auth.
+          for url in \
+            "$base/api/s-products?search=maito&store=292" \
+            "$base/api/k-products?search=maito&store=3221" \
+            "$base/api/store-search?mode=text&search=Hyvinkaa" \
+            "$base/api/s-ean-product?ean=6414893382177&storeId=292" \
+            "$base/api/k-weight-product?ean=2000638800001"; do
+            code=$(curl --max-time 30 -sS -o /tmp/body -w "%{http_code}" "$url" || true)
+            echo "$code $url"
+            case "$code" in
+              200|404|502|503) ;;
+              *) cat /tmp/body; exit 1 ;;
+            esac
+          done
+
+          echo "HTTP SECURITY REGRESSION SMOKE: PASS"
+      - name: Server log on failure
+        if: failure()
+        run: cat /tmp/ziiply-next.log || true
