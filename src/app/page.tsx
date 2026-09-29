@@ -15035,8 +15035,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         product: result.product,
         ean: ean || result.product.ean,
       };
-      (newItem as any).ziiplyPriceFetchedAt = Date.now();
-      (newItem as any).ziiplyPriceStoreName = result.storeName;
+      const exactEanPriceV794 = getProductPrice(result.product);
+      if (exactEanPriceV794 > 0) {
+        (newItem as any).ziiplyPriceFetchedAt = Date.now();
+        (newItem as any).ziiplyPriceStoreName = result.storeName;
+      } else if (isScannerAddV787 && result.chain === "S") {
+        (newItem as any).ziiplyPriceRefreshPending = true;
+      }
 
       if (scannedSingleChainKeyV782) {
         (newItem as any).ziiplySingleChainAtAdd = scannedSingleChainKeyV782;
@@ -15082,10 +15087,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setEanScannerOpen(true);
       // V594: valintaikkunan kautta lisättäessä annetaan vain hiljainen, läpikuultava kuittaus.
       // Ei piippiä eikä vihreää flashia, koska varsinainen skannauspiip on annettu jo EAN-lukuhetkellä.
-      setEanScannerMessage("✓ Lisätty ostoskoriin");
+      const scannerAddMessageV794 =
+        result.chain === "S" && getProductPrice(result.product) <= 0
+          ? "✓ Tuote lisätty — haetaan hintaa…"
+          : "✓ Lisätty ostoskoriin";
+      setEanScannerMessage(scannerAddMessageV794);
       window.setTimeout(() => {
         setEanScannerMessage((current) =>
-          current === "✓ Lisätty ostoskoriin" ? "" : current,
+          current === scannerAddMessageV794 ? "" : current,
         );
       }, 2200);
     }
