@@ -71,10 +71,11 @@ const offerRouter=read("src/app/components/ziiply/offerSearch/ziiplyOfferSearchS
 const etProvider=read("src/app/components/ziiply/offerSearch/providers/etarjouslehdetProvider.ts");
 assert.match(transcribeSrc,/process\.env\.OPENAI_API_KEY/);
 assert.match(cronSrc,/process\.env\.CRON_SECRET/);
-assert.match(etProvider,/const TJEK_API_KEY\s*=\s*["'][^"']+["']/);
+assert.match(etProvider,/process\.env\.TJEK_API_KEY/);
+assert.doesNotMatch(etProvider,/const TJEK_API_KEY\s*=\s*["\'][^"\']+["\']/);
 assert.match(offerRouter,/const ENABLE_ETARJOUSLEHDET_PROVIDER_V28 = false/);
 console.log("PASS OpenAI and cron credentials remain server environment references");
-console.log("PASS hardcoded Tjek key exposure detected without printing its value");
+console.log("PASS Tjek credential is server environment-only and not hardcoded");
 console.log("PASS active offer router currently disables eTarjouslehdet provider, so remediation can be isolated");
 
 
