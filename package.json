@@ -13,7 +13,8 @@
     "next": "15.5.9",
     "posthog-js": "^1.374.2",
     "react": "19.1.1",
-    "react-dom": "19.1.1"
+    "react-dom": "19.1.1",
+    "@neondatabase/serverless": "^1.0.2"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
