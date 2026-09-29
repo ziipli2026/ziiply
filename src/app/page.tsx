@@ -14653,18 +14653,36 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     const singleSelectedChain =
       storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one"
-        ? (selectedChains.s ? "S" : selectedChains.k ? "K" : null)
+        ? (selectedChains.s
+            ? "S"
+            : selectedChains.k
+              ? "K"
+              : selectedChains.lidl
+                ? "LIDL"
+                : selectedChains.tokmanni
+                  ? "SPAR"
+                  : null)
         : null;
-    const chain = chainHint || singleSelectedChain;
+    const chain: "S" | "K" | "LIDL" | "SPAR" | null = chainHint || singleSelectedChain;
 
+    const selectedSpecialStore =
+      chain === "LIDL"
+        ? selectedLidlStoreV750
+        : chain === "SPAR"
+          ? selectedTokmanniStoreV756 || selectedEurosparStoreV751
+          : null;
     const selectedName =
       chain === "S"
         ? String(activeStores.sStoreName || "").trim()
         : chain === "K"
           ? String(activeStores.kStoreName || "").trim()
-          : "";
+          : String(selectedSpecialStore?.name || "").trim();
     const selectedId =
-      chain === "S" ? activeStores.sStoreId : chain === "K" ? activeStores.kStoreId : 0;
+      chain === "S"
+        ? activeStores.sStoreId
+        : chain === "K"
+          ? activeStores.kStoreId
+          : selectedSpecialStore?.id;
 
     // GPS pois / ei käyttökelpoista sijaintia: varmista käyttäjältä nykyinen valinta.
     if (!usingOwnLocation || !gpsCoordsV320) {
@@ -14681,12 +14699,28 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // Moniketjutilanteessa ilman luotettavaa ketjutietoa emme arvaa kauppaa.
     if (!chain || !selectedName) return;
 
-    const gpsPool = buildGpsStoreCandidatePoolFromAllAreasV40(foundStores);
-    const ranked = rankStoresForMode(gpsPool, storeMode, gpsCoordsV320);
-    const gpsStore =
-      chain === "S"
-        ? storeMode === "local" ? ranked.sLocal : ranked.sHyper
-        : storeMode === "local" ? ranked.kLocal : ranked.kHyper;
+    let gpsStore: StoreSearchItem | null = null;
+    if (chain === "S" || chain === "K") {
+      const gpsPool = buildGpsStoreCandidatePoolFromAllAreasV40(foundStores);
+      const ranked = rankStoresForMode(gpsPool, storeMode, gpsCoordsV320);
+      gpsStore =
+        chain === "S"
+          ? storeMode === "local" ? ranked.sLocal : ranked.sHyper
+          : storeMode === "local" ? ranked.kLocal : ranked.kHyper;
+    } else if (chain === "LIDL") {
+      gpsStore = lidlStoreOptionsV750[0] || null;
+    } else {
+      gpsStore =
+        [...tokmanniStoreOptionsV756, ...eurosparStoreOptionsV751]
+          .sort((left, right) => {
+            const dl = getGpsDistanceKmForStoreV93(left);
+            const dr = getGpsDistanceKmForStoreV93(right);
+            if (dl != null && dr != null) return dl - dr;
+            if (dl != null) return -1;
+            if (dr != null) return 1;
+            return 0;
+          })[0] || null;
+    }
     if (!gpsStore?.name) return;
 
     const sameSelectedStore =
@@ -14697,8 +14731,21 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const useGpsStore = window.confirm(
       `Valittu kauppa on ${selectedName}.\n\nGPS:n perusteella olet kaupan ${gpsStore.name} lähellä. Vaihdetaanko kaupaksi ${gpsStore.name}?\n\nOK = Vaihda · Peruuta = Pidä ${selectedName}`,
     );
-    if (useGpsStore) {
+    if (!useGpsStore) return;
+
+    if (chain === "S" || chain === "K") {
       selectStoreForCurrentMode(normalizeStoreForPickerV320(gpsStore), storeMode);
+    } else if (chain === "LIDL") {
+      setSelectedLidlStoreV750(gpsStore);
+    } else {
+      const gpsChain = String(gpsStore.chain || gpsStore.type || "").toUpperCase();
+      if (gpsChain === "EUROSPAR") {
+        setSelectedEurosparStoreV751({ ...gpsStore, chain: "EUROSPAR" });
+        setSelectedTokmanniStoreV756(null);
+      } else {
+        setSelectedTokmanniStoreV756({ ...gpsStore, chain: "TOKMANNI" });
+        setSelectedEurosparStoreV751(null);
+      }
     }
   }
 
