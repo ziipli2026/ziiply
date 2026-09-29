@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { observeEanProductsBestEffort } from "@/lib/eanBank";
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -116,6 +117,9 @@ export async function GET(request: Request) {
           if (!name) continue;
           const attrs = getRecord(product.productAttributes);
           const image = getRecord(attrs.image);
+          const brandName = String(getRecord(product.brand).name ?? "") || undefined;
+          const pictureUrl = String(image.url ?? records(product.images)[0] ?? "") || undefined;
+          await observeEanProductsBestEffort([{ ean: canonicalEan, name, brand: brandName, imageUrl: pictureUrl, category: "Vaakatuote", source: "k-weight-label" }]);
           return NextResponse.json({
             found: true,
             canonicalEan,
@@ -125,8 +129,8 @@ export async function GET(request: Request) {
               id: canonicalEan,
               ean: canonicalEan,
               name,
-              brandName: String(getRecord(product.brand).name ?? "") || undefined,
-              pictureUrl: String(image.url ?? records(product.images)[0] ?? "") || undefined,
+              brandName,
+              pictureUrl,
             },
           });
         }
@@ -142,6 +146,7 @@ export async function GET(request: Request) {
       for (const item of items) {
         const itemEans = [item.ean, item.gtin, item.eanCode, item.barcode, item.externalId].map(digits);
         if (!itemEans.includes(canonicalEan) || !item.name) continue;
+        await observeEanProductsBestEffort([{ ean: canonicalEan, name: String(item.name), category: "Vaakatuote", source: "k-weight-label" }]);
         return NextResponse.json({
           found: true, canonicalEan, source: "ruoanhinta-identity",
           product: { id: item.id, ean: canonicalEan, name: String(item.name) },
@@ -152,6 +157,7 @@ export async function GET(request: Request) {
     // Kalori.info supports exact canonical EAN search. Identity only: never use its price.
     const kaloriName = await resolveKaloriIdentity(canonicalEan);
     if (kaloriName) {
+      await observeEanProductsBestEffort([{ ean: canonicalEan, name: kaloriName, category: "Vaakatuote", source: "k-weight-label" }]);
       return NextResponse.json({
         found: true,
         canonicalEan,
@@ -183,6 +189,7 @@ export async function GET(request: Request) {
           .replace(/\s*[–|-]\s*(Ravintosisältö.*|Kalorit.*|hinta eri maissa.*)$/i, "")
           .trim();
         if (!name || name === canonicalEan) continue;
+        await observeEanProductsBestEffort([{ ean: canonicalEan, name, category: "Vaakatuote", source: "k-weight-label" }]);
         return NextResponse.json({
           found: true,
           canonicalEan,
