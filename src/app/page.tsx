@@ -15497,13 +15497,22 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   async function refreshSavedListPricesV783(itemIds: string[]) {
     const idSet = new Set(itemIds);
     const source = cartRefV124.current.filter((item) => idSet.has(String(item.id)));
-    const refreshed = await Promise.all(source.map(async (item) => ({ id: String(item.id), next: await refreshSavedListItemPriceV783(item) })));
+    const refreshed = await Promise.all(source.map(async (item) => {
+      const result = await Promise.race([
+        refreshSavedListItemPriceV783(item).then((next) => ({ next, timedOut: false })),
+        new Promise<{ next: null; timedOut: true }>((resolve) =>
+          setTimeout(() => resolve({ next: null, timedOut: true }), 10_000),
+        ),
+      ]);
+      return { id: String(item.id), ...result };
+    }));
 
     setCart((current) => {
       const nextCart = current.map((item) => {
         const result = refreshed.find((entry) => entry.id === String(item.id));
         if (!result) return item;
         if (result.next) return result.next;
+        if (result.timedOut) return { ...item, ziiplyPriceRefreshPending: false, price: Number(item.price || 0) > 0 ? item.price : 0 } as CartItem;
         return { ...item, ziiplyPriceRefreshPending: true, price: Number(item.price || 0) > 0 ? item.price : 0 } as CartItem;
       });
       cartRefV124.current = nextCart;
