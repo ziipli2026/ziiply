@@ -14686,7 +14686,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       cartRefV124.current = nextCart;
       persistCartImmediately(nextCart);
       void updateChainComparison(nextCart, { openCompare: false });
-      showCartToast("Ei löytynyt vielä — lisättiin koriin tunnisteella");
+      showCartToast("✓ Lisätty koriin tunnistamattomana — ei mukana hintavertailussa");
       return nextCart;
     });
 
