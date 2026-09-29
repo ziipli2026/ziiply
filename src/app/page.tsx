@@ -13030,6 +13030,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         product: weightProductV738,
         ean,
       };
+      if (scannedSingleChainKeyV782) {
+        (newItem as any).ziiplySingleChainAtAdd = scannedSingleChainKeyV782;
+      }
+
       const nextCart = [...baseCart, newItem];
       cartRefV124.current = nextCart;
       persistCartImmediately(nextCart);
@@ -14851,6 +14855,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     let cartLimitReached = false;
 
+    // EAN-skannaus on käyttäjän tuotteen valintatapahtuma siinä ketjussa, joka
+    // on Yksi-tilassa aktiivinen juuri skannaushetkellä. Merkitse sama historia
+    // kuin normaalissa tuotehaussa, jotta V770:n Halpuuta/ketjunvaihtopolku ei
+    // uudelleenhae eikä korvaa juuri skannattua exact-EAN-tuotetta.
+    const scannedSingleChainKeyV782 =
+      storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one"
+        ? (["s", "k", "lidl", "tokmanni"] as const).find((key) => Boolean(selectedChains[key]))
+        : undefined;
+
     setCart((currentCart) => {
       const baseCart = mergeCartPoolsByIdV129(currentCart);
       const existingItem = baseCart.find((item) => {
@@ -14885,6 +14898,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                       product: result.product,
                       ean: existingEan,
                     }
+                  : {}),
+                ...(scannedSingleChainKeyV782
+                  ? { ziiplySingleChainAtAdd: scannedSingleChainKeyV782 }
                   : {}),
                 quantity: Number(item.quantity || 1) + 1,
               }
