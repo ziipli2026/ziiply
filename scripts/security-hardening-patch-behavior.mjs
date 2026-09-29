@@ -13,9 +13,9 @@ const store=read("src/app/api/store-search/route.ts");
 const sean=read("src/app/api/s-ean-product/route.ts");
 const page=read("src/app/page.tsx");
 
-assert.match(cron,/process\.env\.CRON_SECRET/);
-assert.match(cron,/authorization.*Bearer/);
-console.log("DEFER cron fail-closed assertion until production CRON_SECRET is verified");
+assert.match(cron,/if \(!secret\)[\s\S]*status: 503/);
+assert.match(cron,/authorization[\s\S]*Bearer[\s\S]*status: 401/);
+console.log("PASS cron fails closed when CRON_SECRET is missing and rejects invalid bearer");
 
 assert.match(transcribe,/MAX_AUDIO_BYTES = 25 \* 1024 \* 1024/);
 assert.match(transcribe,/content-length/);
