@@ -12040,6 +12040,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     );
     if (!selectedKey) return;
 
+    const eligibleItemsV781 = nextCart.filter((item) => {
+      if (isWeightCartItemV738(item) || String(item?.source || "").toLowerCase() === "offer") return false;
+      const addedUnderChain = String((item as any).ziiplySingleChainAtAdd || "");
+      return !addedUnderChain || addedUnderChain !== selectedKey;
+    });
+
+    // V781: käyttäjä ei ole vaihtanut Yksi-ketjua tuotteen lisäämisen jälkeen.
+    // Halpuuta-painallus on silloin tarkoituksella no-op, ei epäonnistunut vastinehaku.
+    if (eligibleItemsV781.length === 0) return;
+
     setComparisonLoading(true);
     try {
       const nextItems = await Promise.all(
