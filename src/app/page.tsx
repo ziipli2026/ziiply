@@ -15039,9 +15039,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       if (exactEanPriceV794 > 0) {
         (newItem as any).ziiplyPriceFetchedAt = Date.now();
         (newItem as any).ziiplyPriceStoreName = result.storeName;
-      } else if (isScannerAddV787 && result.chain === "S") {
-        (newItem as any).ziiplyPriceRefreshPending = true;
       }
+      // V796: tämä exact-S-tulos syntyy vasta valitun S-kaupan hintahaun jälkeen.
+      // Jos hinta jäi nollaksi, haku on jo päättynyt ilman hintaa: älä jätä
+      // ostoskoririviä pending-tilaan. Sisäinen 0 säilyy myöhempää hintahakua varten,
+      // ja ostoskorin UI näyttää sen viivana.
 
       if (scannedSingleChainKeyV782) {
         (newItem as any).ziiplySingleChainAtAdd = scannedSingleChainKeyV782;
