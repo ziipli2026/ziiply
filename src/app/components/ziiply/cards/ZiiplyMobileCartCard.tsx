@@ -825,7 +825,7 @@ export default function ZiiplyMobileCartCard({
             onClick={onCompare}
             disabled={!hasItems}
             className={cx(
-              "ml-[5.15rem] mt-[0.29rem] block rounded-[0.50rem] border-[2.5px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-5 py-[0.36rem] text-[0.82rem] font-extrabold italic text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58),0_2px_4px_rgba(62,43,20,0.18)] active:translate-y-[1px]",
+              "ml-[5.15rem] mt-[0.68rem] block rounded-[0.50rem] border-[2.5px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-5 py-[0.36rem] text-[0.82rem] font-extrabold italic text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58),0_2px_4px_rgba(62,43,20,0.18)] active:translate-y-[1px]",
               !hasItems && "cursor-not-allowed opacity-45",
             )}
             style={{ fontFamily: cooperFont }}
