@@ -6640,7 +6640,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       source: item.source,
       product: item.product,
       ean: item.ean,
-    };
+      ...((item as any).ziiplySingleChainAtAdd
+        ? { ziiplySingleChainAtAdd: (item as any).ziiplySingleChainAtAdd }
+        : {}),
+    } as CartItem;
   }
 
   function rememberRecentCartItems(items: CartItem[]) {
@@ -14498,6 +14501,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     let handledNameV129 = "";
     let handledWasOffV129 = false;
     let handledWasUnknownV129 = false;
+    const unknownSingleChainKeyV782 =
+      storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one"
+        ? (["s", "k", "lidl", "tokmanni"] as const).find((key) => Boolean(selectedChains[key]))
+        : undefined;
 
     setCart((currentCart) => {
       const baseCart = mergeCartPoolsByIdV129(currentCart);
@@ -14539,6 +14546,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     ...(item.product as any),
                     ean: normalizedEan,
                   } as Product,
+                  ...(unknownSingleChainKeyV782
+                    ? { ziiplySingleChainAtAdd: unknownSingleChainKeyV782 }
+                    : {}),
                 } as CartItem)
               : item,
           )
@@ -14587,6 +14597,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         source: "manual",
         product: placeholderProduct,
         ean: normalizedEan,
+        ...(unknownSingleChainKeyV782
+          ? { ziiplySingleChainAtAdd: unknownSingleChainKeyV782 }
+          : {}),
       } as CartItem;
 
       const nextCart = [...baseCart, newItem];
@@ -14696,6 +14709,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     let cartLimitReached = false;
     let mergedExistingV129 = false;
+    const offSingleChainKeyV782 =
+      storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one"
+        ? (["s", "k", "lidl", "tokmanni"] as const).find((key) => Boolean(selectedChains[key]))
+        : undefined;
 
     setCart((currentCart) => {
       const baseCart = mergeCartPoolsByIdV129(currentCart);
@@ -14730,6 +14747,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           product: fallbackProductForCart,
           ean: normalizedEan,
           quantity: Math.max(1, nextQuantity),
+          ...(offSingleChainKeyV782
+            ? { ziiplySingleChainAtAdd: offSingleChainKeyV782 }
+            : {}),
         } as CartItem;
 
         const nextCart = baseCart
@@ -14759,6 +14779,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         source: "manual",
         product: fallbackProductForCart,
         ean: normalizedEan,
+        ...(offSingleChainKeyV782
+          ? { ziiplySingleChainAtAdd: offSingleChainKeyV782 }
+          : {}),
       } as CartItem;
 
       const nextCart = [...baseCart, newItem];
