@@ -17290,9 +17290,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     );
   }
 
+  const sparGpsSelectionKeyRefV780 = useRef("");
+
   useEffect(() => {
     let cancelled = false;
     const params = new URLSearchParams();
+    const gpsSelectionKeyV780 = gpsCoordsV320
+      ? `${gpsCoordsV320.latitude.toFixed(4)},${gpsCoordsV320.longitude.toFixed(4)}`
+      : "";
+    if (!gpsCoordsV320) sparGpsSelectionKeyRefV780.current = "";
     if (gpsCoordsV320) {
       params.set("lat", String(gpsCoordsV320.latitude));
       params.set("lon", String(gpsCoordsV320.longitude));
@@ -17318,6 +17324,30 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         const tokmanniOptions = allOptions.filter((store) => String(store.chain || "").toUpperCase() === "TOKMANNI");
         setEurosparStoreOptionsV751(options);
         setTokmanniStoreOptionsV756(tokmanniOptions);
+
+        // V780: GPS must choose the nearest physical store for the shared
+        // SPAR/Tokmanni card, just like the other chain cards. Do this once
+        // whenever the GPS position actually changes; picker selections made
+        // afterwards remain explicit until the next location change.
+        const gpsLocationChangedV780 =
+          Boolean(gpsSelectionKeyV780) &&
+          sparGpsSelectionKeyRefV780.current !== gpsSelectionKeyV780;
+        if (gpsLocationChangedV780) {
+          sparGpsSelectionKeyRefV780.current = gpsSelectionKeyV780;
+          const nearest = allOptions[0] || null;
+          if (nearest && String(nearest.chain || "").toUpperCase() === "EUROSPAR") {
+            setSelectedEurosparStoreV751({ ...nearest, chain: "EUROSPAR" });
+            setSelectedTokmanniStoreV756(null);
+          } else if (nearest) {
+            setSelectedTokmanniStoreV756({ ...nearest, chain: "TOKMANNI" });
+            setSelectedEurosparStoreV751(null);
+          } else {
+            setSelectedTokmanniStoreV756(null);
+            setSelectedEurosparStoreV751(null);
+          }
+          return;
+        }
+
         setSelectedTokmanniStoreV756((current) => {
           if (current) {
             const same = tokmanniOptions.find((store) => sameStoreIdV93(store.id, current.id));
@@ -17327,10 +17357,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           return tokmanniOptions[0] ? { ...tokmanniOptions[0], chain: "TOKMANNI" } : null;
         });
         setSelectedEurosparStoreV751((current) => {
-          // V752: GPS/background refresh must never overwrite a user's explicit
-          // EUROSPAR choice. Previously gpsCoordsV320 forced options[0] on every
-          // refresh, which could silently replace Järvenpää with another store
-          // and make Gösta's EUROSPAR gate disappear/change context.
           if (current) {
             const same = options.find((store) => sameStoreIdV93(store.id, current.id));
             if (same) return { ...same, chain: "EUROSPAR" };
