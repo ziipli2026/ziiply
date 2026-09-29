@@ -20784,11 +20784,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
                         <div className="shrink-0 text-right">
                           <p className="whitespace-nowrap text-[18px] font-black text-[#20301f]">
-                            {Number(item.price || 0) > 0 ? formatEuro(item.price * item.quantity) : "—"}
+                            {Number(item.price || 0) > 0 ? formatEuro(Number(item.price || 0) * item.quantity) : "—"}
                           </p>
                           {Number(item.price || 0) > 0 ? (
                             <p className="mt-1 whitespace-nowrap text-[11px] font-bold text-[#6f6b59]">
-                              {formatEuro(item.price)} / kpl
+                              {formatEuro(Number(item.price || 0))} / kpl
                             </p>
                           ) : null}
                         </div>
