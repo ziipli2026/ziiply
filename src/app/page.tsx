@@ -12738,7 +12738,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const scannerCleanupPromise = stopEanCameraScanner({ keepScannerOpenState: true });
     await Promise.all([
       scannerCleanupPromise,
-      new Promise<void>((resolve) => window.setTimeout(resolve, 500)),
+      new Promise<void>((resolve) => window.setTimeout(resolve, 600)),
     ]);
     setSuppressUiForEanClose(false);
 
