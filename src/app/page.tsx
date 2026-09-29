@@ -13037,7 +13037,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         cartRefV124.current = nextCart;
         persistCartImmediately(nextCart);
         void updateChainComparison(nextCart, { openCompare: false });
-        if (!isScannerAddV787) showCartToast(`Määrä +1: ${existingItem.name}`);
+        showCartToast(`Määrä +1: ${existingItem.name}`);
         return nextCart;
       }
       if (baseCart.length >= MAX_ITEMS) return currentCart;
@@ -13061,7 +13061,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       cartRefV124.current = nextCart;
       persistCartImmediately(nextCart);
       void updateChainComparison(nextCart, { openCompare: false });
-      if (!isScannerAddV787) showCartToast("✓ Lisätty ostoskoriin");
+      showCartToast("✓ Lisätty ostoskoriin");
       return nextCart;
     });
 
