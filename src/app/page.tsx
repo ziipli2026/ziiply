@@ -14704,9 +14704,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const gpsPool = buildGpsStoreCandidatePoolFromAllAreasV40(foundStores);
       const ranked = rankStoresForMode(gpsPool, storeMode, gpsCoordsV320);
       gpsStore =
-        chain === "S"
+        (chain === "S"
           ? storeMode === "local" ? ranked.sLocal : ranked.sHyper
-          : storeMode === "local" ? ranked.kLocal : ranked.kHyper;
+          : storeMode === "local" ? ranked.kLocal : ranked.kHyper) || null;
     } else if (chain === "LIDL") {
       gpsStore = lidlStoreOptionsV750[0] || null;
     } else {
