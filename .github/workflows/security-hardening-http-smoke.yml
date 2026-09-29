@@ -55,7 +55,7 @@ jobs:
           # Hardened invalid-input contracts.
           check 400 "$base/api/s-products?search=$(printf 'a%.0s' {1..121})&store=292"
           check 400 "$base/api/k-products?search=$(printf 'a%.0s' {1..121})&store=3221"
-          check 400 "$base/api/store-search?mode=gps&latitude=91&longitude=24"
+          check 400 "$base/api/store-search?gps=1&latitude=91&longitude=24"
           check 400 "$base/api/store-search?mode=text&search=$(printf 'a%.0s' {1..121})"
           check 400 "$base/api/s-ean-product?ean=abc&storeId=292"
           check 400 "$base/api/k-weight-product?ean=2000638800001&storeName=$(printf 'a%.0s' {1..161})"
