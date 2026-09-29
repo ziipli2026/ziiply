@@ -13420,21 +13420,22 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const scannerBetweenChainsV785 = storeCompareScope === "between_chains";
       const scannerAllowSV785 = !scannerBetweenChainsV785 || Boolean(selectedChains.s);
       const scannerAllowKV785 = !scannerBetweenChainsV785 || Boolean(selectedChains.k);
-      const scannerManySFirstV784 =
-        scannerBetweenChainsV785 &&
-        betweenChainSelectionModeV749 === "many" &&
-        scannerAllowSV785 &&
-        Number(activeStores.sStoreId || 0) > 0;
       const scannerManyKFirstV786 =
         scannerBetweenChainsV785 &&
         betweenChainSelectionModeV749 === "many" &&
         scannerAllowKV785 &&
         Number(activeStores.kStoreId || 0) > 0 &&
         /(^|[-_])(k|kruoka|k-ruoka)([-_]|$)|ruoanhinta-k|k-products|k-ean/.test(bankSourceV786);
+      const scannerManySFirstV784 =
+        scannerBetweenChainsV785 &&
+        betweenChainSelectionModeV749 === "many" &&
+        scannerAllowSV785 &&
+        Number(activeStores.sStoreId || 0) > 0 &&
+        !scannerManyKFirstV786;
 
 
 
-      pushScannerDebugV493(`VARIANTS ${variants.join(",")} cachedName=${cachedName || "-"} manySFirst=${scannerManySFirstV784}`);
+      pushScannerDebugV493(`VARIANTS ${variants.join(",")} cachedName=${cachedName || "-"} manySFirst=${scannerManySFirstV784} manyKFirst=${scannerManyKFirstV786}`);
 
       const exactResultsByKey = new Map<string, EanSearchResult>();
       let openFoodFactsFallbackForSearchV120: any = null;
