@@ -15566,21 +15566,21 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         const queries = Array.from(new Set([itemEan, itemName, ...getNormalSearchQueries(itemName).slice(0, 5)].filter(Boolean)));
         for (const query of queries) {
           const candidates = await fetchSProducts(query, activeStores.sStoreId).catch(() => [] as Product[]);
-          match =
-            (itemEan ? candidates.find((product) => normalizeEan(product.ean) === itemEan && getProductPrice(product) > 0) || null : null) ||
-            pickBestSProduct(candidates, itemName, itemEan) ||
-            null;
+          match = itemEan
+            ? candidates.find((product) => normalizeEan(product.ean) === itemEan && getProductPrice(product) > 0) || null
+            : pickBestSProduct(candidates, itemName, itemEan) || null;
           if (match && getProductPrice(match) > 0) break;
         }
       } else if (target.key === "k" && activeStores.kStoreId) {
         const best = await findBestKMatchForStore(itemName, activeStores.kStoreId, itemEan);
-        if (best && best.price > 0) match = convertKProductToProduct(best);
+        if (best && best.price > 0 && (!itemEan || normalizeEan(best.ean) === itemEan)) {
+          match = convertKProductToProduct(best);
+        }
       } else if (target.key === "lidl" && selectedLidlStoreV750) {
         const candidates = await fetchLidlProductsV760(itemEan || itemName, selectedLidlStoreV750);
-        match =
-          (itemEan ? candidates.find((product) => normalizeEan(product.ean) === itemEan && getProductPrice(product) > 0) || null : null) ||
-          pickBestSProduct(candidates, itemName, itemEan) ||
-          null;
+        match = itemEan
+          ? candidates.find((product) => normalizeEan(product.ean) === itemEan && getProductPrice(product) > 0) || null
+          : pickBestSProduct(candidates, itemName, itemEan) || null;
       } else if (target.key === "tokmanni") {
         const candidates = await fetchTokmanniProductsV761(itemEan || itemName);
         match =
