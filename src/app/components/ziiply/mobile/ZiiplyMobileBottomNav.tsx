@@ -64,7 +64,7 @@ function ZiiplyNavItem({
         className={[
           "relative flex h-[29px] items-center justify-center leading-none drop-shadow-[0_1px_0_rgba(255,255,255,0.75)]",
           active ? "text-[27px]" : "text-[26px]",
-          bounceIcon ? "animate-[ziiplySearchReadyBounce_1.15s_ease-in-out_infinite]" : "",
+          bounceIcon ? "animate-bounce" : "",
         ].join(" ")}
       >
         {icon}
@@ -153,13 +153,6 @@ export default function ZiiplyMobileBottomNav({
           />
         </div>
       </div>
-      <style jsx>{`
-        @keyframes ziiplySearchReadyBounce {
-          0%, 100% { transform: translateY(0); }
-          42% { transform: translateY(-5px); }
-          62% { transform: translateY(-2px); }
-        }
-      `}</style>
     </nav>\n  );
 }
 
