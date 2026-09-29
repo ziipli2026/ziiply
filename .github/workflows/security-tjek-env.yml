@@ -17,3 +17,4 @@ jobs:
       - run: npm install --no-audit --no-fund
       - run: node scripts/security-hardening-patch-behavior.mjs
       - run: npm run build
+
