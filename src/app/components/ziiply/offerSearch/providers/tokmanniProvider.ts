@@ -1,3 +1,5 @@
+import { observeEanProductsBestEffort } from "@/lib/eanBank";
+
 type TokmanniOffer = Record<string, any>;
 
 const TOKMANNI_OFFERS_URL = "https://www.tokmanni.fi/viikkotarjoukset";
@@ -70,6 +72,16 @@ function absoluteUrl(href: string) {
   try { return new URL(href, TOKMANNI_OFFERS_URL).href; } catch { return ""; }
 }
 
+function eanFromProductUrl(productUrl: string) {
+  try {
+    const pathname = new URL(productUrl).pathname.replace(/\/+$/, "");
+    const match = pathname.match(/-(\d{8,14})$/);
+    return match?.[1] || "";
+  } catch {
+    return "";
+  }
+}
+
 function productBlocks(html: string) {
   // Magento listing cards are list items. Restrict extraction to cards that
   // contain both a product link and one of Tokmanni's offer markers.
@@ -98,6 +110,7 @@ function mapBlock(block: string, index: number): TokmanniOffer | null {
   const hrefMatch = block.match(/class=["'][^"']*product-item-link[^"']*["'][^>]*href=["']([^"']+)/i)
     || block.match(/href=["']([^"']+)["'][^>]*class=["'][^"']*product-item-link/i);
   const productUrl = absoluteUrl(decodeEntities(hrefMatch?.[1] || ""));
+  const ean = eanFromProductUrl(productUrl);
 
   const allText = textOf(block);
   const multi = allText.match(/(\d+)\s*kpl\s*\/\s*(\d+(?:[,.]\d{1,2})?)\s*€/i);
@@ -156,7 +169,7 @@ function mapBlock(block: string, index: number): TokmanniOffer | null {
     image: imageUrl,
     pictureUrl: imageUrl,
     productUrl,
-    ean: "",
+    ean,
     rawText: [name, cat, multiText, offerPrice, normalPrice].filter(Boolean).join(" "),
   };
 }
@@ -209,10 +222,24 @@ export async function fetchTokmanniOffers() {
   );
 
   const seen = new Set<string>();
-  return items.filter((item) => {
+  const dedupedItems = items.filter((item) => {
     const key = [normalize(item.title), item.price, item.normalPrice, item.offerQuantity].join("|");
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
   });
+
+  await observeEanProductsBestEffort(
+    dedupedItems
+      .filter((item) => Boolean(item.ean))
+      .map((item) => ({
+        ean: item.ean,
+        name: item.name,
+        imageUrl: item.imageUrl,
+        category: item.category,
+        source: "tokmanni-viikkotarjoukset",
+      })),
+  );
+
+  return dedupedItems;
 }
