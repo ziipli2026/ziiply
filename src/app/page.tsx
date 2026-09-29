@@ -13948,7 +13948,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         pushScannerDebugV493(`FALLBACK ADD OFF name=${fixText(String(openFoodFactsFallback?.name || "")).slice(0, 54)}`);
         setEanLookupOutcomeForAllVariantsV126(ean, "off");
         if (eanScannerOpen || eanHtml5ScannerRef.current || options.fromScanner) {
-          setEanScannerMessage("✓ Lisätty koriin — hinta ei saatavilla");
+          setEanScannerMessage("✓ Tuote lisätty — haetaan hintaa…");
         }
         addOpenFoodFactsScannedEanToCartV729(openFoodFactsFallback);
         return;
@@ -14749,7 +14749,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     showCartToast(
       mergedExistingV129
         ? `Määrä +1: ${productName}`
-        : "✓ Lisätty koriin — hinta ei saatavilla",
+        : "✓ Tuote lisätty — haetaan hintaa…",
     );
     setEanInput("");
     setEanResults([]);
@@ -14766,7 +14766,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (eanScannerOpen || eanHtml5ScannerRef.current) {
       const scannerMessage = mergedExistingV129
         ? "Määrä +1 — hinta ei saatavilla"
-        : "✓ Lisätty koriin — hinta ei saatavilla";
+        : "✓ Tuote lisätty — haetaan hintaa…";
       setEanScannerOpen(true);
       setEanScannerMessage(scannerMessage);
       window.setTimeout(() => {
