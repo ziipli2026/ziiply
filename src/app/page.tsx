@@ -2864,7 +2864,7 @@ export default function Page() {
   const [storeCompareScope, setStoreCompareScope] =
     useState<StoreCompareScope>("between_chains");
   const [withinChain, setWithinChain] = useState<"S" | "K" | null>(null);
-  const [betweenChainSelectionModeV749, setBetweenChainSelectionModeV749] = useState<"one" | "many">("many");
+  const [betweenChainSelectionModeV749, setBetweenChainSelectionModeV749] = useState<"one" | "many">("one");
   const [openStorePicker, setOpenStorePicker] = useState<string | null>(null);
   const [storeDrillViewV320, setStoreDrillViewV320] = useState<
     "main" | "selection"
@@ -3154,7 +3154,7 @@ export default function Page() {
           setStoreModeChosenV299(false);
           setStoreCompareScope("between_chains");
           setWithinChain(null);
-          setBetweenChainSelectionModeV749("many");
+          setBetweenChainSelectionModeV749("one");
           setSelectedChains({ s: false, k: false, lidl: false, tokmanni: false });
           setSelectedLidlStoreV750(null);
           setSelectedEurosparStoreV751(null);
