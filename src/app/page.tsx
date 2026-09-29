@@ -13029,7 +13029,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         cartRefV124.current = nextCart;
         persistCartImmediately(nextCart);
         void updateChainComparison(nextCart, { openCompare: false });
-        showCartToast(`Määrä +1: ${existingItem.name}`);
+        if (!isScannerAddV787) showCartToast(`Määrä +1: ${existingItem.name}`);
         return nextCart;
       }
       if (baseCart.length >= MAX_ITEMS) return currentCart;
@@ -13053,7 +13053,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       cartRefV124.current = nextCart;
       persistCartImmediately(nextCart);
       void updateChainComparison(nextCart, { openCompare: false });
-      if (!(eanScannerOpen || eanHtml5ScannerRef.current)) showCartToast("✓ Lisätty ostoskoriin");
+      if (!isScannerAddV787) showCartToast("✓ Lisätty ostoskoriin");
       return nextCart;
     });
 
@@ -14918,6 +14918,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     const productName = fixText(result.product.name);
+    const isScannerAddV787 = Boolean(
+      eanScannerOpen || eanHtml5ScannerRef.current || eanSearchStartedAutomatically,
+    );
     const addKey = `${result.chain}-${ean || normalize(productName)}-${result.product.id}`;
     const now = Date.now();
 
@@ -15063,7 +15066,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setEanSearchStartedAutomatically(false);
     eanAutoSearchActiveRef.current = false;
     setEanMessage("");
-    if ((eanScannerOpen || eanHtml5ScannerRef.current) && options.showScannerMessage !== false) {
+    if (isScannerAddV787 && options.showScannerMessage !== false) {
       setEanScannerOpen(true);
       // V594: valintaikkunan kautta lisättäessä annetaan vain hiljainen, läpikuultava kuittaus.
       // Ei piippiä eikä vihreää flashia, koska varsinainen skannauspiip on annettu jo EAN-lukuhetkellä.
