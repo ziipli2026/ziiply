@@ -779,7 +779,7 @@ export default function ZiiplyMobileCartCard({
                     >
                       {isAlcoholCartItemV8(item)
                         ? "kassa"
-                        : item.ziiplyPriceRefreshPending && !normalizePrice(item.price)
+                        : item.ziiplyPriceRefreshPending && Number(item.price || 0) <= 0
                           ? <span className="inline-block animate-pulse text-[1rem]" aria-label="Hintaa päivitetään">⌛</span>
                           : price || "—"}
                     </div>
