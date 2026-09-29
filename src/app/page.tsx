@@ -15726,14 +15726,45 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }
 
   useEffect(() => {
-    const pendingIdsV792 = cartRefV124.current
-      .filter((item) => Boolean((item as any).ziiplyPriceRefreshPending))
-      .filter((item) => getSavedListPriceTargetV783(item).ready)
-      .map((item) => String(item.id));
+    // V797: kaupan vaihtuessa myös jo korissa olevien tuotteiden hinnat pitää
+    // kohdistaa uuteen kauppaan. Aiemmin effect poimi vain valmiiksi pendingiksi
+    // merkityt (esim. ostoslistalta palautetut) tuotteet.
+    const refreshIdsV797: string[] = [];
+    let cartChangedV797 = false;
 
-    if (pendingIdsV792.length === 0) return;
+    const nextCartV797 = cartRefV124.current.map((item) => {
+      const target = getSavedListPriceTargetV783(item);
+      if (!target.ready || isWeightCartItemV738(item) || String(item?.source || "").toLowerCase() === "offer") {
+        return item;
+      }
 
-    void refreshSavedListPricesV783(pendingIdsV792);
+      const cachedStoreV797 = String((item as any).ziiplyPriceStoreName || item.storeName || "");
+      const storeChangedV797 =
+        Boolean(target.storeName) &&
+        normalize(cachedStoreV797) !== normalize(target.storeName);
+      const alreadyPendingV797 = Boolean((item as any).ziiplyPriceRefreshPending);
+
+      if (!storeChangedV797 && !alreadyPendingV797) return item;
+
+      refreshIdsV797.push(String(item.id));
+      if (alreadyPendingV797 && !storeChangedV797) return item;
+
+      cartChangedV797 = true;
+      return {
+        ...item,
+        price: 0,
+        ziiplyPriceRefreshPending: true,
+      } as CartItem;
+    });
+
+    if (cartChangedV797) {
+      cartRefV124.current = nextCartV797;
+      setCart(nextCartV797);
+      persistCartImmediately(nextCartV797);
+    }
+
+    if (refreshIdsV797.length === 0) return;
+    void refreshSavedListPricesV783(refreshIdsV797);
   }, [
     activeStores.sStoreId,
     activeStores.sStoreName,
