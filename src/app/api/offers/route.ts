@@ -73,11 +73,12 @@ export async function GET(request: Request) {
         status: response.status,
         source: "ruoanhinta-offers",
         storeId,
-        endpoint,
+        ...(process.env.VERCEL_ENV !== "production" ? { endpoint } : {}),
         count: items.length,
         items,
-        raw: rawData,
-        preview: text.slice(0, 800),
+        ...(process.env.VERCEL_ENV !== "production"
+          ? { raw: rawData, preview: text.slice(0, 800) }
+          : {}),
       },
       { status: 200 }
     );
@@ -88,10 +89,10 @@ export async function GET(request: Request) {
         status: 500,
         source: "ruoanhinta-offers",
         storeId,
-        endpoint,
+        ...(process.env.VERCEL_ENV !== "production" ? { endpoint } : {}),
         items: [],
         error: "Tarjousten haku epäonnistui",
-        details: String(error),
+        ...(process.env.VERCEL_ENV !== "production" ? { details: String(error) } : {}),
       },
       { status: 500 }
     );
