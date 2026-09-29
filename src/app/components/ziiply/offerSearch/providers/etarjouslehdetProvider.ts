@@ -72,7 +72,7 @@ export type ETarjouslehdetProviderOptions = {
 const ET_BASE = "https://etarjouslehdet.fi";
 const ET_BATCH_URL = "https://etarjouslehdet.fi/";
 const TJEK_RPC_URL = "https://squid-api.tjek.com/v4/rpc";
-const TJEK_API_KEY = "152000596c6e45d9983eab0c14afebea";
+const TJEK_API_KEY = process.env.TJEK_API_KEY?.trim() ?? "";
 const S_MARKET_BUSINESS_ID = "d8ccs8";
 const GOSTA_MASTER_QUERY = "__ziiply_all_offers__";
 const FETCH_TIMEOUT_MS = 11000;
@@ -758,6 +758,8 @@ async function resolvePublicationForStore(store: SelectedETStore): Promise<Publi
 }
 
 async function postTjekRpc(path: string, body: unknown): Promise<UnknownRecord | null> {
+  if (!TJEK_API_KEY) return null;
+
   const response = await fetchWithTimeout(`${TJEK_RPC_URL}/${path}`, {
     method: "POST",
     headers: {
