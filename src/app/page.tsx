@@ -4859,9 +4859,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     ];
 
     let cancelled = false;
-    const timeout = window.setTimeout(() => {
-      if (!cancelled) setShowLaunchScreen(false);
-    }, 1400);
 
     void Promise.all(
       criticalHomeAssetsV777.map(
@@ -4882,13 +4879,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       ),
     ).then(() => {
       if (cancelled) return;
-      window.clearTimeout(timeout);
       setShowLaunchScreen(false);
     });
 
     return () => {
       cancelled = true;
-      window.clearTimeout(timeout);
     };
   }, []);
 
