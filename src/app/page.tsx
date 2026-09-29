@@ -3131,6 +3131,47 @@ export default function Page() {
   }, [storeMode, storeModeChosenV299]);
 
   useEffect(() => {
+    if (typeof window === "undefined" || !("caches" in window)) return;
+
+    // V778: selainresurssien välimuistin tyhjennys ei normaalisti poista localStoragea.
+    // CacheStorage-marker erottaa oikean cache-clear/kylmäkäynnistyksen tavallisesta reloadista.
+    // Tavallinen reload löytää markerin ja säilyttää valinnat.
+    let cancelled = false;
+    void (async () => {
+      try {
+        const cache = await window.caches.open("ziiply-boot-marker-v778");
+        const markerRequest = new Request("/__ziiply_boot_marker_v778__");
+        const marker = await cache.match(markerRequest);
+        if (cancelled) return;
+
+        if (!marker) {
+          await cache.put(markerRequest, new Response("1", { headers: { "content-type": "text/plain" } }));
+          window.localStorage.removeItem(STORE_SELECTION_STORAGE_KEY_V343);
+          window.localStorage.removeItem(STABLE_BOOT_SNAPSHOT_STORAGE_KEY_V505);
+
+          // Cache-clear = uusi valinta. Älä anna juuri hydratetun localStorage-tilan
+          // jäädä ruudulle, vaikka async CacheStorage-tarkistus valmistuu bootin jälkeen.
+          setStoreModeChosenV299(false);
+          setStoreCompareScope("between_chains");
+          setWithinChain(null);
+          setBetweenChainSelectionModeV749("many");
+          setSelectedChains({ s: false, k: false, lidl: false, tokmanni: false });
+          setSelectedLidlStoreV750(null);
+          setSelectedEurosparStoreV751(null);
+          setSelectedTokmanniStoreV756(null);
+          setOpenStorePicker(null);
+        }
+      } catch {
+        // Jos CacheStorage ei ole käytettävissä, säilytä nykyinen reload-käytös.
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
     if (typeof window === "undefined") return;
 
     // V504_BOOT_STABLE_NO_AUTO_GPS_SEARCH_LOCK:
