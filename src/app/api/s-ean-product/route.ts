@@ -513,12 +513,45 @@ export async function GET(request: NextRequest) {
         break;
       }
 
-      const internal = await tryInternalSProductsExact({
-        origin,
-        ean,
-        storeId,
-        queryString,
-      });
+      let internal: Awaited<ReturnType<typeof tryInternalSProductsExact>>;
+      const internalStartedAt = Date.now();
+      try {
+        internal = await tryInternalSProductsExact({
+          origin,
+          ean,
+          storeId,
+          queryString,
+        });
+      } catch (error: any) {
+        const elapsedMs = Date.now() - internalStartedAt;
+        const errorName = String(error?.name || "Error");
+        const errorMessage = String(error?.message || error).slice(0, 160);
+        console.warn("S_EAN_INTERNAL_LOOKUP_FAILED", {
+          ean,
+          storeId,
+          stage: "internal-s-products",
+          queryString: queryString.slice(0, 80),
+          elapsedMs,
+          errorName,
+          errorMessage,
+        });
+        if (debugEnabled) {
+          debug.push({
+            step: "InternalApiSProductsFastFirstError",
+            queryString,
+            storeId,
+            elapsedMs,
+            errorName,
+            error: errorMessage,
+          });
+        }
+
+        // A single internal /api/s-products timeout/network failure must not turn
+        // the whole S-first EAN lookup into HTTP 500. On timeout, stop repeating
+        // the same slow internal path and continue to the existing fallbacks.
+        if (errorName === "AbortError" || elapsedMs >= 2400) break;
+        continue;
+      }
 
       if (debugEnabled) {
         debug.push({
@@ -681,6 +714,21 @@ export async function GET(request: NextRequest) {
       debug,
     });
   } catch (error: any) {
+    let requestEan = "";
+    let requestStoreId = "";
+    try {
+      const params = new URL(request.url).searchParams;
+      requestEan = normalizeEan(params.get("ean"));
+      requestStoreId = String(params.get("storeId") || "").trim();
+    } catch {}
+
+    console.error("S_EAN_ROUTE_ERROR", {
+      ean: requestEan,
+      storeId: requestStoreId,
+      errorName: String(error?.name || "Error"),
+      errorMessage: String(error?.message || error).slice(0, 200),
+    });
+
     return NextResponse.json(
       {
         ok: false,
