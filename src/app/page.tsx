@@ -6698,6 +6698,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       if (existingIndex >= 0) {
         nextCart[existingIndex] = {
           ...nextCart[existingIndex],
+          ...item,
+          id: nextCart[existingIndex].id,
           quantity:
             Math.max(1, nextCart[existingIndex].quantity || 1) +
             Math.max(1, item.quantity || 1),
@@ -15502,7 +15504,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         const result = refreshed.find((entry) => entry.id === String(item.id));
         if (!result) return item;
         if (result.next) return result.next;
-        return { ...item, ziiplyPriceRefreshPending: false, price: Number(item.price || 0) > 0 ? item.price : 0 } as CartItem;
+        return { ...item, ziiplyPriceRefreshPending: true, price: Number(item.price || 0) > 0 ? item.price : 0 } as CartItem;
       });
       cartRefV124.current = nextCart;
       persistCartImmediately(nextCart);
@@ -15565,6 +15567,28 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setActiveResult("compare");
     void updateChainComparison(nextCart);
   }
+
+  useEffect(() => {
+    const pendingIdsV792 = cartRefV124.current
+      .filter((item) => Boolean((item as any).ziiplyPriceRefreshPending))
+      .filter((item) => getSavedListPriceTargetV783(item).ready)
+      .map((item) => String(item.id));
+
+    if (pendingIdsV792.length === 0) return;
+
+    void refreshSavedListPricesV783(pendingIdsV792);
+  }, [
+    activeStores.sStoreId,
+    activeStores.sStoreName,
+    activeStores.kStoreId,
+    activeStores.kStoreName,
+    selectedLidlStoreV750?.id,
+    selectedLidlStoreV750?.name,
+    selectedTokmanniStoreV756?.id,
+    selectedTokmanniStoreV756?.name,
+    selectedEurosparStoreV751?.id,
+    selectedEurosparStoreV751?.name,
+  ]);
 
   function deleteSavedShoppingList(id: string) {
     const list = savedShoppingLists.find((item) => item.id === id);
