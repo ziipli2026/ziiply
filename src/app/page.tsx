@@ -12046,6 +12046,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         nextCart.map(async (item) => {
           if (isWeightCartItemV738(item) || String(item?.source || "").toLowerCase() === "offer") return item;
 
+          // V779: Yksi-tilassa Halpuuta on ketjunvaihtotoiminto. Jos käyttäjä on
+          // juuri valinnut tuotteen samasta ketjusta, sitä ei haeta uudelleen eikä
+          // tulkita epäonnistuneeksi vastinehauksi. Vasta ketjun vaihto aktivoi haun.
+          const itemChainKeyV779 =
+            item.chain === "S" ? "s" :
+            item.chain === "K" ? "k" :
+            normalize(String(item.storeName || "")).includes("lidl") ? "lidl" :
+            /tokmanni|eurospar|spar/.test(normalize(String(item.storeName || ""))) ? "tokmanni" :
+            null;
+          if (itemChainKeyV779 === selectedKey) return item;
+
           const itemEan = normalizeEan(item.ean || item.product?.ean);
           const itemName = fixText(String(item.product?.name || item.name || "")).trim();
           if (!itemName) return item;
@@ -15058,16 +15069,30 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return;
     }
 
-    const normalSearchChain: "S" | "K" =
-      storeCompareScope === "within_chain" && withinChain === "K"
+    const selectedSingleChainKeyV779 =
+      storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one"
+        ? (["s", "k", "lidl", "tokmanni"] as const).find((key) => Boolean(selectedChains[key]))
+        : undefined;
+    const normalSearchChain: "S" | "K" | undefined =
+      storeCompareScope === "within_chain"
+        ? withinChain === "K" ? "K" : "S"
+        : selectedSingleChainKeyV779 === "k"
           ? "K"
-          : "S";
+          : selectedSingleChainKeyV779 === "s"
+            ? "S"
+            : undefined;
     const normalSearchStoreName =
       storeCompareScope === "within_chain"
         ? withinChain === "K"
           ? activeArea.kStoreName || "K-tavaratalo"
           : activeArea.sStoreName || "S-tavaratalo"
-        : activeStores.sStoreName;
+        : selectedSingleChainKeyV779 === "k"
+          ? activeStores.kStoreName
+          : selectedSingleChainKeyV779 === "lidl"
+            ? selectedLidlStoreV750?.name || ""
+            : selectedSingleChainKeyV779 === "tokmanni"
+              ? selectedTokmanniStoreV756?.name || selectedEurosparStoreV751?.name || ""
+              : activeStores.sStoreName;
 
     const newItem: CartItem = {
       id: `search-${product.id}`,
