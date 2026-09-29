@@ -153,7 +153,14 @@ export default function ZiiplyMobileBottomNav({
           />
         </div>
       </div>
-      <style jsx>{`\n        @keyframes ziiplySearchReadyBounce {\n          0%, 100% { transform: translateY(0); }\n          42% { transform: translateY(-5px); }\n          62% { transform: translateY(-2px); }\n        }\n      `}</style>\n    </nav>\n  );
+      <style jsx>{`
+        @keyframes ziiplySearchReadyBounce {
+          0%, 100% { transform: translateY(0); }
+          42% { transform: translateY(-5px); }
+          62% { transform: translateY(-2px); }
+        }
+      `}</style>
+    </nav>\n  );
 }
 
 export { ZiiplyMobileBottomNav };
