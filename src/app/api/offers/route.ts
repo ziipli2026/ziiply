@@ -33,6 +33,10 @@ export async function GET(request: Request) {
     );
   }
 
+  if (!/^\d{1,16}$/.test(storeId)) {
+    return NextResponse.json({ ok: false, error: "Virheellinen storeId" }, { status: 400 });
+  }
+
   const endpoint = `https://api.ruoanhinta.fi/api/offers?storeId=${encodeURIComponent(
     storeId
   )}`;
