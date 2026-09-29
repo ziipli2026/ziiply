@@ -523,7 +523,7 @@ export default function ZiiplyMobileCartCard({
         <div className={cx(
           "relative z-10 -mt-[0.36rem] min-h-0 flex-1 px-5 pt-0",
           showCompletionCardV58
-            ? "overflow-hidden pb-[3.35rem]"
+            ? "overflow-hidden pb-[4.65rem]"
             : "overflow-y-auto pb-[6.0rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
         )}>
           {!hasItems ? (
@@ -536,7 +536,7 @@ export default function ZiiplyMobileCartCard({
               </div>
             </div>
           ) : showCompletionCardV58 ? (
-            <div className="ziiply-cart-complete-card-v61 mx-auto mt-[0.12rem] flex h-[calc(100%+1.97rem)] w-[20.3rem] max-w-[calc(100%-0.5rem)] flex-col justify-start rounded-[1.05rem] border-[2.4px] border-[#70481f] bg-[#fff0c7]/74 px-4 pb-3 pt-[1.65rem] text-center shadow-[0_3px_0_rgba(84,55,22,0.18),inset_0_0_0_1px_rgba(255,250,224,0.58)]">
+            <div className="ziiply-cart-complete-card-v61 mx-auto mt-[0.12rem] flex h-[calc(100%-0.57rem)] w-[20.3rem] max-w-[calc(100%-0.5rem)] flex-col justify-start rounded-[1.05rem] border-[2.4px] border-[#70481f] bg-[#fff0c7]/74 px-4 pb-3 pt-[1.65rem] text-center shadow-[0_3px_0_rgba(84,55,22,0.18),inset_0_0_0_1px_rgba(255,250,224,0.58)]">
               <div
                 className="mx-auto mb-2 w-fit rounded-[0.52rem] border border-[#8a6b32]/64 bg-[#f5dfac]/70 px-3 py-[0.18rem] text-[0.64rem] font-black uppercase tracking-[0.16em] text-[#604017]"
                 style={{ fontFamily: copperplateFont }}
