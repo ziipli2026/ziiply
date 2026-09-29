@@ -13299,10 +13299,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           "Tuote tunnistettu. Määrä lisättiin koriin. Vertailuhintaa ei löytynyt käytettävissä olevista kauppatiedoista.",
         );
         if (eanScannerOpen || eanHtml5ScannerRef.current) {
-          setEanScannerMessage("Määrä +1 — ei mukana hintavertailussa");
+          setEanScannerMessage("Määrä +1 — hinta ei saatavilla");
           window.setTimeout(() => {
             setEanScannerMessage((current) =>
-              current === "Määrä +1 — ei mukana hintavertailussa" ? "" : current,
+              current === "Määrä +1 — hinta ei saatavilla" ? "" : current,
             );
           }, 2600);
         }
@@ -13993,7 +13993,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       if (options.fromScanner || eanAutoSearchActiveRef.current || eanScannerOpen || eanHtml5ScannerRef.current) {
         // V525: kameraskannerissa ei lisätä tuntematonta riviä automaattisesti,
         // mutta ketjua ei saa enää katkaista hiljaa.
-        const scannerNoResultMessageV525 = "EAN luettiin, mutta Food Factsista eikä valituista kaupoista löytynyt tuotetietoa.";
+        const scannerNoResultMessageV525 = "❌ Tuotetta ei tunnistettu — ei lisätty koriin";
         setEanInput("");
         setEanResults([]);
         setEanLoading(false);
