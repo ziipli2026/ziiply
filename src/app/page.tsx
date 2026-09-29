@@ -15073,6 +15073,82 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       window.setTimeout(() => confirmScannerStoreAfterFirstAddV791(result.chain), 0);
     }
 
+    // V795: hinnaton tarkka S-EAN on jo korissa identiteettinä. Yritä vielä
+    // valitun S-kaupan exact-EAN-hinta taustalla. Pending päättyy aina:
+    // löytynyt hinta päivitetään, muuten sisäinen 0 jää ja UI näyttää viivan.
+    if (
+      isScannerAddV787 &&
+      result.chain === "S" &&
+      getProductPrice(result.product) <= 0 &&
+      isUsableEan(ean) &&
+      Number(activeStores.sStoreId || 0) > 0
+    ) {
+      const pendingEanV795 = ean;
+      const pendingStoreIdV795 = String(activeStores.sStoreId);
+      const pendingStoreNameV795 = activeStores.sStoreName || result.storeName || "";
+      const pendingNameV795 = productName;
+
+      void (async () => {
+        const controllerV795 = new AbortController();
+        const timeoutV795 = window.setTimeout(() => controllerV795.abort(), 9000);
+        let exactProductV795: Product | null = null;
+        try {
+          const paramsV795 = new URLSearchParams({
+            ean: pendingEanV795,
+            storeId: pendingStoreIdV795,
+          });
+          if (pendingNameV795) paramsV795.set("name", pendingNameV795);
+          const responseV795 = await fetch(`/api/s-ean-product?${paramsV795.toString()}`, {
+            cache: "no-store",
+            signal: controllerV795.signal,
+          });
+          const dataV795 = responseV795.ok ? await responseV795.json().catch(() => null) : null;
+          const candidateV795 = dataV795?.product as Product | undefined;
+          if (
+            candidateV795 &&
+            isSameEan((candidateV795 as any)?.ean || pendingEanV795, getEanSearchVariants(pendingEanV795)) &&
+            getProductPrice(candidateV795) > 0
+          ) {
+            exactProductV795 = candidateV795;
+          }
+        } catch {
+          exactProductV795 = null;
+        } finally {
+          window.clearTimeout(timeoutV795);
+          setCart((currentCart) => {
+            const nextCart = currentCart.map((item) => {
+              if (!cartItemMatchesEanLooseV129(item, pendingEanV795)) return item;
+              const nextPriceV795 = exactProductV795 ? getProductPrice(exactProductV795) : 0;
+              return {
+                ...item,
+                ...(nextPriceV795 > 0
+                  ? {
+                      name: fixText(exactProductV795?.name || item.name),
+                      price: nextPriceV795,
+                      image: exactProductV795?.pictureUrl || item.image,
+                      chain: "S" as const,
+                      storeName: pendingStoreNameV795 || item.storeName,
+                      product: {
+                        ...(exactProductV795 as Product),
+                        ean: pendingEanV795,
+                        price: nextPriceV795,
+                      } as Product,
+                      ziiplyPriceFetchedAt: Date.now(),
+                      ziiplyPriceStoreName: pendingStoreNameV795 || item.storeName || "",
+                    }
+                  : { price: Number(item.price || 0) > 0 ? item.price : 0 }),
+                ziiplyPriceRefreshPending: false,
+                ean: pendingEanV795,
+              } as CartItem;
+            });
+            cartRefV124.current = nextCart;
+            persistCartImmediately(nextCart);
+            return nextCart;
+          });
+        }
+      })();
+    }
+
     // EAN/skannerilisäys ei saa siirtää käyttäjää automaattisesti Vertailu-kortille.
     // Vertailu päivittyy taustalla ja avataan vain käyttäjän omasta Vertailu-napista.
 
