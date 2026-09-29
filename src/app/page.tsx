@@ -12845,6 +12845,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setEanScannerOpen(false);
     setDesktopKeyboardScannerOpen(false);
 
+    // V788: suljettu skannerisessio ei saa lukita seuraavaa avausta.
+    // Vapauta scannerin single-flight-portit heti; vanhan session verkko-operaatio
+    // saa valmistua omassa promise-ketjussaan, mutta uusi skannaus ei odota sitä.
+    eanSearchInFlightRef.current = null;
+    eanLookupPendingRefV120.current.clear();
+    eanLookupPromiseRefV121.current.clear();
+    scannerDecodeIgnoreUntilRefV131.current = 0;
+
     // V776: pidä Hae-freeze kameran päällä hetki, jotta streamin sammumisen
     // viimeinen välähdys ei ehdi näkyä käyttäjälle.
     const scannerCleanupPromise = stopEanCameraScanner({ keepScannerOpenState: true });
