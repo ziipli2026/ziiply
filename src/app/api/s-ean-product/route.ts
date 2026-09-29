@@ -8,6 +8,7 @@
 // - Hyväksytään exact EAN myös silloin, kun price puuttuu tai on 0 (esim. S-kaupat alkoholituotteet).
 
 import { NextRequest, NextResponse } from "next/server";
+import { observeEanProductsBestEffort } from "@/lib/eanBank";
 
 export const runtime = "nodejs";
 
@@ -480,17 +481,15 @@ export async function GET(request: NextRequest) {
             { source: "internal-/api/s-products", ean, storeId, name: fixText(internal.exact?.name), price: getPrice(internal.exact) },
           );
         }
+        const product = toProduct({ ...internal.exact, rawSource: "internal-/api/s-products" }, ean, storeId);
+        await observeEanProductsBestEffort([{ ean, name: product.name, brand: product.brandName, imageUrl: product.pictureUrl, source: "s-kaupat-ean" }]);
         return NextResponse.json({
           ok: true,
           source: "internal-s-products-fast-exact-ean-v8-no-price-ok",
           found: true,
           ean,
           storeId,
-          product: toProduct(
-            { ...internal.exact, rawSource: "internal-/api/s-products" },
-            ean,
-            storeId,
-          ),
+          product,
           debug,
         });
       }
@@ -532,13 +531,15 @@ export async function GET(request: NextRequest) {
               { source: "s-kaupat-filtered-fallback", ean, storeId, slug, queryString, name: fixText(filtered.exact?.name), price: getPrice(filtered.exact) },
             );
           }
+          const product = toProduct(filtered.exact, ean, storeId);
+          await observeEanProductsBestEffort([{ ean, name: product.name, brand: product.brandName, imageUrl: product.pictureUrl, source: "s-kaupat-ean" }]);
           return NextResponse.json({
             ok: true,
             source: "s-kaupat-filtered-fallback-exact-v8-no-price-ok",
             found: true,
             ean,
             storeId,
-            product: toProduct(filtered.exact, ean, storeId),
+            product,
             debug,
           });
         }
@@ -595,13 +596,15 @@ export async function GET(request: NextRequest) {
           { source: "s-kaupat-complementary", ean, storeId, name: fixText(exactComplementary?.name), price: getPrice(exactComplementary) },
         );
       }
+      const product = toProduct(exactComplementary, ean, storeId);
+      await observeEanProductsBestEffort([{ ean, name: product.name, brand: product.brandName, imageUrl: product.pictureUrl, source: "s-kaupat-ean" }]);
       return NextResponse.json({
         ok: true,
         source: "s-kaupat-complementary-exact-v8-no-price-ok",
         found: true,
         ean,
         storeId,
-        product: toProduct(exactComplementary, ean, storeId),
+        product,
         debug,
       });
     }
