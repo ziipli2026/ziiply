@@ -17398,6 +17398,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setSelectedLidlStoreV750(null);
       return;
     }
+
+    // GPS follows the same visible-card rule as S/K/SPAR: the Lidl card
+    // always reflects the nearest Lidl for the current own-location result.
+    // Manual picker choices are preserved only outside GPS mode.
+    if (gpsCoordsV320) {
+      setSelectedLidlStoreV750(lidlStoreOptionsV750[0]);
+      return;
+    }
+
     setSelectedLidlStoreV750((current) => {
       if (current) {
         const stillAvailable = lidlStoreOptionsV750.find((store) =>
@@ -17407,7 +17416,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       }
       return lidlStoreOptionsV750[0];
     });
-  }, [lidlStoreOptionsV750]);
+  }, [lidlStoreOptionsV750, gpsCoordsV320]);
 
   const comparedStoreCards: Array<{
     key: ChainResult["key"];
