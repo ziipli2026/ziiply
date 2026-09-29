@@ -777,7 +777,11 @@ export default function ZiiplyMobileCartCard({
                       style={{ fontFamily: serifFont }}
                       aria-label={isAlcoholCartItemV8(item) ? "Maksetaan kassalla" : `Hinta ${price}`}
                     >
-                      {isAlcoholCartItemV8(item) ? "kassa" : price}
+                      {isAlcoholCartItemV8(item)
+                        ? "kassa"
+                        : item.ziiplyPriceRefreshPending && !normalizePrice(item.price)
+                          ? <span className="inline-block animate-pulse text-[1rem]" aria-label="Hintaa päivitetään">⌛</span>
+                          : price || "—"}
                     </div>
                   </article>
                 );
