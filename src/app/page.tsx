@@ -12049,13 +12049,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           // V779: Yksi-tilassa Halpuuta on ketjunvaihtotoiminto. Jos käyttäjä on
           // juuri valinnut tuotteen samasta ketjusta, sitä ei haeta uudelleen eikä
           // tulkita epäonnistuneeksi vastinehauksi. Vasta ketjun vaihto aktivoi haun.
-          const itemChainKeyV779 =
-            item.chain === "S" ? "s" :
-            item.chain === "K" ? "k" :
-            normalize(String(item.storeName || "")).includes("lidl") ? "lidl" :
-            /tokmanni|eurospar|spar/.test(normalize(String(item.storeName || ""))) ? "tokmanni" :
-            null;
-          if (itemChainKeyV779 === selectedKey) return item;
+          const itemSingleChainAtAddV780 = String((item as any).ziiplySingleChainAtAdd || "");
+          if (itemSingleChainAtAddV780 && itemSingleChainAtAddV780 === selectedKey) return item;
 
           const itemEan = normalizeEan(item.ean || item.product?.ean);
           const itemName = fixText(String(item.product?.name || item.name || "")).trim();
@@ -15106,6 +15101,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       product,
       ean: product.ean,
     };
+
+    // V780: Yksi-tilan Halpuuta aktivoituu vasta, kun käyttäjä vaihtaa ketjun
+    // tuotteen lisäämisen jälkeen. Tämä on tapahtumahistoriaa, ei tuotteen chain-päätelmä.
+    if (selectedSingleChainKeyV779) {
+      (newItem as any).ziiplySingleChainAtAdd = selectedSingleChainKeyV779;
+    }
 
     // TEMP Huiluntuhti identity trace: capture the exact user-selected identity
     // before any comparison/EAN/fallback work can run.
