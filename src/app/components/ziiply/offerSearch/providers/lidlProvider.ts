@@ -1,3 +1,5 @@
+import { observeEanProductsBestEffort } from "@/lib/eanBank";
+
 type LidlRaw = Record<string, any>;
 
 const LIDL_OFFERS_BASE = "https://offers.lidlplus.com/app/api/v4/FI";
@@ -74,7 +76,7 @@ export async function fetchLidlOffers(storeKey: string, storeName = "Lidl") {
         ? raw.items
         : [];
 
-  return rows.map((row, index) => {
+  const offers = rows.map((row, index) => {
     const box = row?.priceBox || {};
     const directNumericPrice = typeof box.largePartNumeric === "number" ? box.largePartNumeric : null;
     const totalMatch =
@@ -200,4 +202,17 @@ export async function fetchLidlOffers(storeKey: string, storeName = "Lidl") {
       rawText: [title, brandName, priceText, discountText, unitPriceText, category, storeName].filter(Boolean).join(" "),
     };
   });
+
+  await observeEanProductsBestEffort(
+    offers.map((offer) => ({
+      ean: offer.ean,
+      name: offer.name,
+      brand: offer.brandName,
+      imageUrl: offer.imageUrl,
+      category: offer.category,
+      source: "lidl-plus-offers",
+    })),
+  );
+
+  return offers;
 }
