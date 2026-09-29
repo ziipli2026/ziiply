@@ -520,7 +520,12 @@ export default function ZiiplyMobileCartCard({
           <span className="text-right">Hinta</span>
         </div>
 
-        <div className="relative z-10 -mt-[0.36rem] min-h-0 flex-1 overflow-y-auto px-5 pb-[6.0rem] pt-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <div className={cx(
+          "relative z-10 -mt-[0.36rem] min-h-0 flex-1 px-5 pt-0",
+          showCompletionCardV58
+            ? "overflow-hidden pb-[4.65rem]"
+            : "overflow-y-auto pb-[6.0rem] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
+        )}>
           {!hasItems ? (
             <div className="mt-5 rounded-[1.1rem] border-[2px] border-dashed border-[#9a7a3d] bg-[#fff4d4]/48 px-4 py-8 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.35)]">
               <div className="text-[1.02rem] font-extrabold italic text-[#59401e]" style={{ fontFamily: serifFont }}>
@@ -531,36 +536,36 @@ export default function ZiiplyMobileCartCard({
               </div>
             </div>
           ) : showCompletionCardV58 ? (
-            <div className="ziiply-cart-complete-card-v61 mx-auto mt-[2.20rem] w-[20.3rem] max-w-[calc(100%-0.5rem)] rounded-[1.05rem] border-[2.4px] border-[#70481f] bg-[#fff0c7]/74 px-4 pb-5 pt-5 text-center shadow-[0_3px_0_rgba(84,55,22,0.18),inset_0_0_0_1px_rgba(255,250,224,0.58)]">
+            <div className="ziiply-cart-complete-card-v61 mx-auto mt-[0.55rem] flex h-[calc(100%-1.0rem)] w-[20.3rem] max-w-[calc(100%-0.5rem)] flex-col justify-center rounded-[1.05rem] border-[2.4px] border-[#70481f] bg-[#fff0c7]/74 px-4 pb-3 pt-3 text-center shadow-[0_3px_0_rgba(84,55,22,0.18),inset_0_0_0_1px_rgba(255,250,224,0.58)]">
               <div
-                className="mx-auto mb-3 w-fit rounded-[0.52rem] border border-[#8a6b32]/64 bg-[#f5dfac]/70 px-3 py-[0.18rem] text-[0.64rem] font-black uppercase tracking-[0.16em] text-[#604017]"
+                className="mx-auto mb-2 w-fit rounded-[0.52rem] border border-[#8a6b32]/64 bg-[#f5dfac]/70 px-3 py-[0.18rem] text-[0.64rem] font-black uppercase tracking-[0.16em] text-[#604017]"
                 style={{ fontFamily: copperplateFont }}
               >
                 Tavarainkeruu valmis
               </div>
 
               <h3
-                className="text-[2.05rem] font-extrabold italic leading-[0.98] text-[#314226] drop-shadow-[0_1px_0_rgba(255,247,211,0.75)]"
+                className="text-[1.90rem] font-extrabold italic leading-[0.98] text-[#314226] drop-shadow-[0_1px_0_rgba(255,247,211,0.75)]"
                 style={{ fontFamily: cooperFont }}
               >
                 ✓ Lista kasassa!
               </h3>
 
               <div
-                className="mx-auto mt-3 w-fit rounded-[0.58rem] border-[1.8px] border-[#8a6b32]/72 bg-[#f8e6b9]/80 px-4 py-[0.34rem] text-[1.08rem] font-black text-[#3d301a] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.48)]"
+                className="mx-auto mt-2 w-fit rounded-[0.58rem] border-[1.8px] border-[#8a6b32]/72 bg-[#f8e6b9]/80 px-4 py-[0.34rem] text-[1.08rem] font-black text-[#3d301a] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.48)]"
                 style={{ fontFamily: serifFont }}
               >
                 {totalItemsV58} tuotetta kerätty
               </div>
 
               <div
-                className="mx-auto mt-5 rounded-[0.72rem] border border-[#9a7a3d]/60 bg-[#fff8dc]/62 px-3 py-3 text-[1.08rem] font-extrabold italic leading-tight text-[#7b3215]/92"
+                className="mx-auto mt-3 rounded-[0.72rem] border border-[#9a7a3d]/60 bg-[#fff8dc]/62 px-3 py-2 text-[1.00rem] font-extrabold italic leading-tight text-[#7b3215]/92"
                 style={{ fontFamily: serifFont }}
               >
                 Unohtuiko vielä jotain listan ulkopuolelta?
               </div>
 
-              <div className="mx-auto mt-5 grid w-[17.8rem] max-w-full grid-cols-1 gap-2.5">
+              <div className="mx-auto mt-3 grid w-[17.8rem] max-w-full grid-cols-1 gap-2">
                 <button
                   type="button"
                   onClick={() => {
@@ -573,7 +578,7 @@ export default function ZiiplyMobileCartCard({
                       }
                     }, 0);
                   }}
-                  className="rounded-[0.62rem] border-[2px] border-[#8a6b32] bg-[linear-gradient(180deg,#f8e6b9_0%,#d6ad66_100%)] px-3 py-[0.66rem] text-[0.94rem] font-black italic text-[#533819] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.48),0_2px_3px_rgba(50,31,13,0.14)] active:translate-y-[1px]"
+                  className="rounded-[0.62rem] border-[2px] border-[#8a6b32] bg-[linear-gradient(180deg,#f8e6b9_0%,#d6ad66_100%)] px-3 py-[0.54rem] text-[0.92rem] font-black italic text-[#533819] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.48),0_2px_3px_rgba(50,31,13,0.14)] active:translate-y-[1px]"
                   style={{ fontFamily: cooperFont }}
                 >
                   Lisää vielä
@@ -582,7 +587,7 @@ export default function ZiiplyMobileCartCard({
                 <button
                   type="button"
                   onClick={() => setShowCheckoutFutureNoticeV62(true)}
-                  className="rounded-[0.62rem] border-[2px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-3 py-[0.72rem] text-[1.02rem] font-black italic text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58),0_2px_3px_rgba(62,43,20,0.18)] active:translate-y-[1px]"
+                  className="rounded-[0.62rem] border-[2px] border-[#496443] bg-[linear-gradient(180deg,#f3e8cc_0%,#dfcfaa_100%)] px-3 py-[0.58rem] text-[0.98rem] font-black italic text-[#244525] shadow-[inset_0_0_0_1px_rgba(255,250,224,0.58),0_2px_3px_rgba(62,43,20,0.18)] active:translate-y-[1px]"
                   style={{ fontFamily: cooperFont }}
                 >
                   Valmis kassalle
@@ -702,7 +707,7 @@ export default function ZiiplyMobileCartCard({
               <button
                 type="button"
                 onClick={() => setShowCompletionCardV58(false)}
-                className="mt-3 text-[0.78rem] font-extrabold italic text-[#6f5730] underline decoration-[#9a7a3d]/50 underline-offset-2"
+                className="mt-2 text-[0.76rem] font-extrabold italic text-[#6f5730] underline decoration-[#9a7a3d]/50 underline-offset-2"
                 style={{ fontFamily: serifFont }}
               >
                 Tarkista lista vielä
