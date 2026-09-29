@@ -153,7 +153,8 @@ export default function ZiiplyMobileBottomNav({
           />
         </div>
       </div>
-    </nav>\n  );
+    </nav>
+  );
 }
 
 export { ZiiplyMobileBottomNav };
