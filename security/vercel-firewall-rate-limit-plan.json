@@ -1,0 +1,39 @@
+{
+  "simulationOnly": true,
+  "note": "Design artifact only. Does not configure Vercel Firewall.",
+  "rules": [
+    {
+      "name": "ziiply-transcribe-rate-limit",
+      "match": {
+        "path": "/api/transcribe",
+        "method": "POST"
+      },
+      "trackBy": "ip",
+      "limit": 10,
+      "windowSeconds": 60,
+      "action": "rate_limit",
+      "responseStatus": 429
+    },
+    {
+      "name": "ziiply-public-api-rate-limit",
+      "match": {
+        "pathPrefix": "/api/"
+      },
+      "excludePaths": [
+        "/api/transcribe",
+        "/api/cron/kcitymarket-cache"
+      ],
+      "trackBy": "ip",
+      "limit": 120,
+      "windowSeconds": 60,
+      "action": "rate_limit",
+      "responseStatus": 429
+    }
+  ],
+  "protectedByCode": [
+    "/api/cron/kcitymarket-cache",
+    "/api/k-weight-identity-coverage-test",
+    "/api/k-weight-sitemap-test",
+    "/api/kalori-ean-test"
+  ]
+}
