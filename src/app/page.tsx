@@ -15428,13 +15428,33 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     try {
       if (target.key === "s" && activeStores.sStoreId) {
-        const queries = Array.from(new Set([itemEan, itemName, ...getNormalSearchQueries(itemName).slice(0, 5)].filter(Boolean)));
-        for (const query of queries) {
-          const candidates = await fetchSProducts(query, activeStores.sStoreId).catch(() => [] as Product[]);
-          match = itemEan
-            ? candidates.find((product) => normalizeEan(product.ean) === itemEan && getProductPrice(product) > 0) || null
-            : pickBestSProduct(candidates, itemName, itemEan) || null;
-          if (match && getProductPrice(match) > 0) break;
+        if (itemEan) {
+          const params = new URLSearchParams({
+            ean: itemEan,
+            storeId: String(activeStores.sStoreId),
+          });
+          if (itemName) params.set("name", itemName);
+          const response = await fetch(`/api/s-ean-product?${params.toString()}`, { cache: "no-store" }).catch(() => null);
+          const data = response?.ok ? await response.json().catch(() => null) : null;
+          const exact = data?.product as Product | undefined;
+          if (
+            exact &&
+            normalizeEan((exact as any).ean || itemEan) === itemEan &&
+            getProductPrice(exact) > 0
+          ) {
+            match = exact;
+          }
+        }
+
+        if (!match) {
+          const queries = Array.from(new Set([itemEan, itemName, ...getNormalSearchQueries(itemName).slice(0, 5)].filter(Boolean)));
+          for (const query of queries) {
+            const candidates = await fetchSProducts(query, activeStores.sStoreId).catch(() => [] as Product[]);
+            match = itemEan
+              ? candidates.find((product) => normalizeEan(product.ean) === itemEan && getProductPrice(product) > 0) || null
+              : pickBestSProduct(candidates, itemName, itemEan) || null;
+            if (match && getProductPrice(match) > 0) break;
+          }
         }
       } else if (target.key === "k" && activeStores.kStoreId) {
         const best = await findBestKMatchForStore(itemName, activeStores.kStoreId, itemEan);
@@ -15528,7 +15548,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     cartRefV124.current = nextCart;
     persistCartImmediately(nextCart);
     const addedIdsV783 = nextCart
-      .filter((item) => String(item.id || "").startsWith("saved-"))
+      .filter((item) => Boolean((item as any).ziiplyPriceRefreshPending))
       .map((item) => String(item.id));
     void refreshSavedListPricesV783(addedIdsV783);
     setCartSavePanelOpen(false);
