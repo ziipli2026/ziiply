@@ -14530,162 +14530,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const normalizedEan = normalizeEan(ean);
     if (!isUsableEan(normalizedEan)) return;
 
-    // V130: jos samasta skanneritapahtumasta on juuri saatu tunnistettu tuote,
-    // rinnakkainen/myöhäinen tuntematon fallback blokataan kokonaan.
-    if (isBlockedByRecentRecognizedGuardV130(normalizedEan)) {
-      setEanInput("");
-      setEanResults([]);
-      setEanLoading(false);
-      setEanSearchStartedAutomatically(false);
-      eanAutoSearchActiveRef.current = false;
-      setLastAutoEanSearch("");
-      setEanMessage("Tuote tunnistettiin. Tuntematonta rinnakkaisriviä ei lisätty.");
-      if (eanScannerOpen || eanHtml5ScannerRef.current) {
-        setEanScannerMessage("Tunnistettu — ei tuntematonta riviä");
-        window.setTimeout(() => {
-          setEanScannerMessage((current) =>
-            current === "Tunnistettu — ei tuntematonta riviä" ? "" : current,
-          );
-        }, 2200);
-      }
-      return;
-    }
+    // Täysin tunnistamatonta EANia ei lisätä ostoskoriin.
+    // Koodi kirjataan silti talteen myöhempää tunnistamista varten.
+    logUnknownScannedEanV724(normalizedEan, options.lookupSource || "not_found");
 
-    // V129: tuntematon fallback EI saa koskaan tehdä omaa riviä, jos sama EAN
-    // löytyy jo korista tunnistettuna tai tuntemattomana. Sama koodi vain kasvattaa määrää.
-    const cachedOffForUnknownV129 = getCachedOpenFoodFactsProductForAnyVariantV126(normalizedEan);
-    if (cachedOffForUnknownV129) {
-      addOpenFoodFactsScannedEanToCartV729(cachedOffForUnknownV129);
-      return;
-    }
-
-    const previousOutcomeForUnknownV129 = getEanLookupOutcomeForAnyVariantV126(normalizedEan)?.status;
-    const recognizedOrKnownV129 =
-      wasRecognizedEanPersistedV128(normalizedEan) ||
-      previousOutcomeForUnknownV129 === "off" ||
-      previousOutcomeForUnknownV129 === "store";
-
-    let cartLimitReached = false;
-    let handledExistingEanV129 = false;
-    let blockedRecognizedWithoutCartRowV129 = false;
-    let handledNameV129 = "";
-    let handledWasOffV129 = false;
-    let handledWasUnknownV129 = false;
-    const unknownSingleChainKeyV782 =
-      storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one"
-        ? (["s", "k", "lidl", "tokmanni"] as const).find((key) => Boolean(selectedChains[key]))
-        : undefined;
-
-    setCart((currentCart) => {
-      const baseCart = mergeCartPoolsByIdV129(currentCart);
-      const matchingIndexes = baseCart
-        .map((item, index) => ({ item, index }))
-        .filter(({ item }) => cartItemMatchesEanLooseV129(item, normalizedEan))
-        .map(({ index }) => index);
-
-      if (matchingIndexes.length > 0) {
-        const keepIndex = matchingIndexes[0];
-        const matchingSet = new Set(matchingIndexes);
-        const matchingItems = matchingIndexes.map((index) => baseCart[index]);
-        const keepItem = baseCart[keepIndex];
-        const keepProductAny = keepItem.product as any;
-        const totalQuantity = matchingItems.reduce(
-          (sum, item) => sum + Math.max(1, Number(item.quantity || 1)),
-          0,
-        );
-
-        handledWasOffV129 = matchingItems.some((item) => (item.product as any)?.ziiplyOpenFoodFactsFallback);
-        handledWasUnknownV129 = matchingItems.some((item) => {
-          const productAny = item.product as any;
-          return (
-            productAny?.ziiplyUnknownEan ||
-            String(item.id || "").startsWith("unknown-ean-") ||
-            String(item.name || "").toLowerCase().includes("tuntematon tuote")
-          );
-        });
-        handledNameV129 = String(keepItem.name || keepProductAny?.name || `EAN ${normalizedEan}`);
-
-        const nextCart = baseCart
-          .map((item, index) =>
-            index === keepIndex
-              ? ({
-                  ...item,
-                  quantity: totalQuantity + 1,
-                  ean: normalizedEan,
-                  product: {
-                    ...(item.product as any),
-                    ean: normalizedEan,
-                  } as Product,
-                  ...(unknownSingleChainKeyV782
-                    ? { ziiplySingleChainAtAdd: unknownSingleChainKeyV782 }
-                    : {}),
-                } as CartItem)
-              : item,
-          )
-          .filter((_, index) => index === keepIndex || !matchingSet.has(index));
-
-        cartRefV124.current = nextCart;
-        persistCartImmediately(nextCart);
-        void updateChainComparison(nextCart, { openCompare: false });
-        handledExistingEanV129 = true;
-        return nextCart;
-      }
-
-      // Jos EAN on jo tunnistettu aiemmin, mutta riviä ei löydy juuri nyt Reactin/refsien
-      // välissä, älä silti koskaan luo tuntematonta riviä.
-      if (recognizedOrKnownV129) {
-        blockedRecognizedWithoutCartRowV129 = true;
-        return currentCart;
-      }
-
-      if (baseCart.length >= MAX_ITEMS) {
-        cartLimitReached = true;
-        return currentCart;
-      }
-
-      logUnknownScannedEanV724(normalizedEan, options.lookupSource || "not_found");
-
-      const unknownName = `Tuntematon tuote · EAN ${normalizedEan}`;
-      const placeholderProduct = {
-        id: `unknown-ean-${normalizedEan}`,
-        name: unknownName,
-        price: 0,
-        ean: normalizedEan,
-        pictureUrl: "",
-        ziiplyUnknownEan: true,
-        lookupStatus: "pending",
-      } as unknown as Product;
-
-      const newItem: CartItem = {
-        id: `unknown-ean-${normalizedEan}-${Date.now()}`,
-        name: unknownName,
-        price: 0,
-        image: "",
-        chain: undefined,
-        storeName: activeStores.sStoreName || activeStores.kStoreName || activeArea?.label || "",
-        quantity: 1,
-        source: "manual",
-        product: placeholderProduct,
-        ean: normalizedEan,
-        ...(unknownSingleChainKeyV782
-          ? { ziiplySingleChainAtAdd: unknownSingleChainKeyV782 }
-          : {}),
-      } as CartItem;
-
-      const nextCart = [...baseCart, newItem];
-      cartRefV124.current = nextCart;
-      persistCartImmediately(nextCart);
-      void updateChainComparison(nextCart, { openCompare: false });
-      showCartToast("✓ Lisätty koriin tunnistamattomana — ei mukana hintavertailussa");
-      return nextCart;
-    });
-
-    if (cartLimitReached) {
-      alert(`Demossa ostoskori on rajattu ${MAX_ITEMS} tuotteeseen.`);
-      return;
-    }
-
-    triggerHaptic();
     setEanInput("");
     setEanResults([]);
     setEanLoading(false);
@@ -14693,53 +14541,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     eanAutoSearchActiveRef.current = false;
     setLastAutoEanSearch("");
 
-    if (handledExistingEanV129) {
-      const message = handledWasOffV129
-        ? "Määrä +1 — ei mukana hintavertailussa"
-        : handledWasUnknownV129
-          ? "Määrä +1 — odottaa tunnistusta"
-          : "Määrä +1";
-      showCartToast(`Määrä +1: ${handledNameV129}`);
-      setEanMessage(
-        handledWasOffV129
-          ? "Tuote on jo korissa. Määrä lisättiin +1. Vertailuhintaa ei löytynyt käytettävissä olevista kauppatiedoista."
-          : "Sama viivakoodi on jo korissa. Määrä lisättiin +1.",
-      );
-      if (eanScannerOpen || eanHtml5ScannerRef.current) {
-        setEanScannerMessage(message);
-        window.setTimeout(() => {
-          setEanScannerMessage((current) => (current === message ? "" : current));
-        }, 2600);
-      }
-      return;
-    }
-
-    if (blockedRecognizedWithoutCartRowV129) {
-      setEanMessage("Tuote on tunnistettu aiemmin. Tuntematonta riviä ei lisätty.");
-      if (eanScannerOpen || eanHtml5ScannerRef.current) {
-        setEanScannerMessage("Tunnistettu aiemmin");
-        window.setTimeout(() => {
-          setEanScannerMessage((current) =>
-            current === "Tunnistettu aiemmin" ? "" : current,
-          );
-        }, 2200);
-      }
-      return;
-    }
-
-    setEanMessage("Tuotetta ei löytynyt vielä. Lisättiin koriin viivakoodilla ja otettiin talteen.");
+    const message = "❌ Tuotetta ei tunnistettu — ei lisätty koriin";
+    setEanMessage(message);
+    showScanMissFlash();
 
     if (eanScannerOpen || eanHtml5ScannerRef.current) {
       setEanScannerOpen(true);
-      setEanScannerMessage("Ei löytynyt vielä — otettiin talteen");
+      setEanScannerMessage(message);
       window.setTimeout(() => {
-        setEanScannerMessage((current) =>
-          current === "Ei löytynyt vielä — otettiin talteen" ? "" : current,
-        );
-      }, 2600);
+        setEanScannerMessage((current) => (current === message ? "" : current));
+      }, 3000);
     }
   }
-
 
   function addOpenFoodFactsScannedEanToCartV729(
     fallbackProduct: OpenFoodFactsFallbackProductV729,
@@ -14872,7 +14685,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     showCartToast(
       mergedExistingV129
         ? `Määrä +1: ${productName}`
-        : `Tunnistettu — ei mukana hintavertailussa: ${productName}`,
+        : "✓ Lisätty koriin — hinta ei saatavilla",
     );
     setEanInput("");
     setEanResults([]);
@@ -14888,8 +14701,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     if (eanScannerOpen || eanHtml5ScannerRef.current) {
       const scannerMessage = mergedExistingV129
-        ? "Määrä +1 — ei mukana hintavertailussa"
-        : "Tunnistettu — ei mukana hintavertailussa";
+        ? "Määrä +1 — hinta ei saatavilla"
+        : "✓ Lisätty koriin — hinta ei saatavilla";
       setEanScannerOpen(true);
       setEanScannerMessage(scannerMessage);
       window.setTimeout(() => {
