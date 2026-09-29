@@ -13396,10 +13396,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // V784: the persistent EAN bank is identity-only. In multi-chain mode use its
       // known name to accelerate the selected S-store lookup; price/availability
       // still comes from the selected store, never from the bank.
+      const scannerBetweenChainsV785 = storeCompareScope === "between_chains";
+      const scannerAllowSV785 = !scannerBetweenChainsV785 || Boolean(selectedChains.s);
+      const scannerAllowKV785 = !scannerBetweenChainsV785 || Boolean(selectedChains.k);
       const scannerManySFirstV784 =
-        storeCompareScope === "between_chains" &&
+        scannerBetweenChainsV785 &&
         betweenChainSelectionModeV749 === "many" &&
-        selectedChains.s &&
+        scannerAllowSV785 &&
         Number(activeStores.sStoreId || 0) > 0;
 
       if (!cachedName) {
@@ -13435,7 +13438,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         // Älä hylkää S-tuotetta price <= 0 -ehdolla, muuten fallback-ketju näyttää tyhjältä.
         const productEanV525 = product?.ean || product?.gtin || product?.code || product?.id || ean;
 
-        if (!product || !isSameEan(productEanV525, variants)) {
+        if (!scannerAllowSV785 || !product || !isSameEan(productEanV525, variants)) {
           return false;
         }
 
@@ -13458,7 +13461,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
 
       const addStrictKProductResultV499 = (product: any, sourceLabel: string) => {
-        if (!product || Number(product?.price || 0) <= 0 || !isSameEan(product?.ean, variants)) {
+        if (!scannerAllowKV785 || !product || Number(product?.price || 0) <= 0 || !isSameEan(product?.ean, variants)) {
           return false;
         }
 
@@ -13529,8 +13532,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       const tryDirectSEanProductRouteV520 = async (nameHint?: string | null) => {
         const storeId = String(activeStores.sStoreId || "").trim();
-        if (!storeId || storeId === "0") {
-          pushScannerDebugV493("S_DIRECT skip missing active S storeId");
+        if (!scannerAllowSV785 || !storeId || storeId === "0") {
+          pushScannerDebugV493(`S_DIRECT skip allowed=${scannerAllowSV785} storeId=${storeId || "-"}`);
           return false;
         }
 
@@ -13638,11 +13641,13 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         for (const query of fastQueriesV498) {
           const [sProducts, kProducts] = await Promise.all([
-            fetchSProducts(query, storeIdNumberV498).catch((error) => {
-              pushScannerDebugV493(`S_FAST ERROR query=${query.slice(0, 30)} ${String(error?.message || error).slice(0, 80)}`);
-              return [] as Product[];
-            }),
-            !scannerManySFirstV784 && Number.isFinite(kStoreIdNumberV499) && kStoreIdNumberV499 > 0
+            scannerAllowSV785
+              ? fetchSProducts(query, storeIdNumberV498).catch((error) => {
+                  pushScannerDebugV493(`S_FAST ERROR query=${query.slice(0, 30)} ${String(error?.message || error).slice(0, 80)}`);
+                  return [] as Product[];
+                })
+              : Promise.resolve([] as Product[]),
+            scannerAllowKV785 && !scannerManySFirstV784 && Number.isFinite(kStoreIdNumberV499) && kStoreIdNumberV499 > 0
               ? fetchKProducts(query, kStoreIdNumberV499).catch((error) => {
                   pushScannerDebugV493(`K_FAST ERROR query=${query.slice(0, 30)} ${String(error?.message || error).slice(0, 80)}`);
                   return [] as KProduct[];
