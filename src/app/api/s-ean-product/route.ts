@@ -445,6 +445,65 @@ export async function GET(request: NextRequest) {
     const hasNameHint = nameHint.length >= 3;
     const queries = trimForNoHint(buildQueries(nameHint, ean), hasNameHint);
 
+    // V9: aito EAN-only S-haku ennen nimihakua/OFF:ia.
+    // RemoteComplementaryProducts tukee focusOnEan-kenttää, joten tämä on nopea,
+    // kauppakohtainen exact-EAN-probe eikä tarvitse tuotteen nimeä.
+    // Hyväksytään vain täsmälleen sama EAN; mitään vastaavaa tuotetta ei koskaan oteta.
+    if (!hasNameHint && !deadlineExceeded(startedAt)) {
+      try {
+        const directComplementary = await fetchSGraphql(
+          "RemoteComplementaryProducts",
+          {
+            storeId,
+            eans: [],
+            limit: 12,
+            focusOnEan: ean,
+          },
+          COMPLEMENTARY_HASH,
+        );
+        const directProducts = directComplementary.payload?.data?.complementaryProducts || [];
+        const directExact = findExact(directProducts, ean);
+
+        if (debugEnabled) {
+          debug.push({
+            step: "RemoteComplementaryProductsEanOnlyFirstV9",
+            status: directComplementary.status,
+            ok: directComplementary.ok,
+            count: directProducts.length,
+            exact: Boolean(directExact),
+            first: summarize(directProducts[0]),
+          });
+        }
+
+        if (directExact) {
+          const product = toProduct(directExact, ean, storeId);
+          await observeEanProductsBestEffort([{
+            ean,
+            name: product.name,
+            brand: product.brandName,
+            imageUrl: product.pictureUrl,
+            source: "s-kaupat-ean",
+          }]);
+          return NextResponse.json({
+            ok: true,
+            source: "s-kaupat-complementary-ean-only-first-v9",
+            found: true,
+            ean,
+            storeId,
+            product,
+            debug,
+          });
+        }
+      } catch (error: any) {
+        if (debugEnabled) {
+          debug.push({
+            step: "RemoteComplementaryProductsEanOnlyFirstV9Error",
+            error: String(error?.message || error).slice(0, 160),
+          });
+        }
+      }
+    }
+
     // 1) NOPEA ENSISIJAINEN POLKU:
     // Sama /api/s-products-nimihaku kuin käsinhaussa.
     // Hyväksy exact EAN myös ilman hintaa. Hinta voi puuttua esim. alkoholituotteilta.
