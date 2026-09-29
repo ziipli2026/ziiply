@@ -12090,21 +12090,20 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 match = itemEan
                   ? candidates.find((product) => normalizeEan(product.ean) === itemEan && getProductPrice(product) > 0)
                   : undefined;
-                if (!match) match = pickBestSProduct(candidates, itemName, itemEan);
+                if (!itemEan && !match) match = pickBestSProduct(candidates, itemName, itemEan);
                 if (match && getProductPrice(match) > 0) break;
               }
             } else if (selectedKey === "k" && activeStores.kStoreId) {
               storeName = activeStores.kStoreName || storeName;
               const best = await findBestKMatchForStore(itemName, activeStores.kStoreId, itemEan);
-              if (best && best.price > 0) match = convertKProductToProduct(best);
+              if (best && best.price > 0 && (!itemEan || normalizeEan(best.ean) === itemEan)) match = convertKProductToProduct(best);
             } else if (selectedKey === "lidl" && selectedLidlStoreV750) {
               storeName = selectedLidlStoreV750.name || storeName;
               const candidates = await fetchLidlProductsV760(itemEan || itemName, selectedLidlStoreV750);
               match =
                 (itemEan
                   ? candidates.find((product) => normalizeEan(product.ean) === itemEan && getProductPrice(product) > 0)
-                  : undefined) ||
-                pickBestSProduct(candidates, itemName, itemEan);
+                  : pickBestSProduct(candidates, itemName, itemEan));
             } else if (selectedKey === "tokmanni") {
               storeName =
                 selectedTokmanniStoreV756?.name ||
@@ -12114,8 +12113,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               match =
                 (itemEan
                   ? candidates.find((product) => normalizeEan(product.ean) === itemEan && getProductPrice(product) > 0)
-                  : undefined) ||
-                pickBestSProduct(candidates, itemName, itemEan);
+                  : pickBestSProduct(candidates, itemName, itemEan));
             }
           } catch {
             return item;
@@ -15584,9 +15582,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       } else if (target.key === "tokmanni") {
         const candidates = await fetchTokmanniProductsV761(itemEan || itemName);
         match =
-          (itemEan ? candidates.find((product) => normalizeEan(product.ean) === itemEan && getProductPrice(product) > 0) || null : null) ||
-          pickBestSProduct(candidates, itemName, itemEan) ||
-          null;
+          itemEan ? candidates.find((product) => normalizeEan(product.ean) === itemEan && getProductPrice(product) > 0) || null : pickBestSProduct(candidates, itemName, itemEan) || null;
       }
     } catch {
       return null;
