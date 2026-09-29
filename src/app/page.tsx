@@ -4390,6 +4390,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   const bluetoothBarcodeRefocusTimerRefV202 = useRef<number | null>(null);
   const eanResultsRef = useRef<HTMLDivElement | null>(null);
   const lastEanCartAddRef = useRef<{ key: string; at: number } | null>(null);
+  // V791: kauppavarmistus tehdään vain ensimmäisen onnistuneen skannerilisäyksen jälkeen.
+  const scannerStoreCheckDoneRefV791 = useRef(false);
   const lastEanToastRef = useRef<{ message: string; at: number } | null>(null);
   const eanSearchInFlightRef = useRef<string | null>(null);
   const cartSaveTimeoutRef = useRef<number | null>(null);
@@ -14645,6 +14647,61 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
   }
 
+  function confirmScannerStoreAfterFirstAddV791(chainHint?: "S" | "K") {
+    if (scannerStoreCheckDoneRefV791.current) return;
+    scannerStoreCheckDoneRefV791.current = true;
+
+    const singleSelectedChain =
+      storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one"
+        ? (selectedChains.s ? "S" : selectedChains.k ? "K" : null)
+        : null;
+    const chain = chainHint || singleSelectedChain;
+
+    const selectedName =
+      chain === "S"
+        ? String(activeStores.sStoreName || "").trim()
+        : chain === "K"
+          ? String(activeStores.kStoreName || "").trim()
+          : "";
+    const selectedId =
+      chain === "S" ? activeStores.sStoreId : chain === "K" ? activeStores.kStoreId : 0;
+
+    // GPS pois / ei käyttökelpoista sijaintia: varmista käyttäjältä nykyinen valinta.
+    if (!usingOwnLocation || !gpsCoordsV320) {
+      const label = selectedName || "valittu kauppa";
+      const keepSelected = window.confirm(
+        `Oletko kaupassa ${label}?\n\nOK = Kyllä · Peruuta = Vaihda kauppa`,
+      );
+      if (!keepSelected) {
+        setActiveTab("stores");
+      }
+      return;
+    }
+
+    // Moniketjutilanteessa ilman luotettavaa ketjutietoa emme arvaa kauppaa.
+    if (!chain || !selectedName) return;
+
+    const gpsPool = buildGpsStoreCandidatePoolFromAllAreasV40(foundStores);
+    const ranked = rankStoresForMode(gpsPool, storeMode, gpsCoordsV320);
+    const gpsStore =
+      chain === "S"
+        ? storeMode === "local" ? ranked.sLocal : ranked.sHyper
+        : storeMode === "local" ? ranked.kLocal : ranked.kHyper;
+    if (!gpsStore?.name) return;
+
+    const sameSelectedStore =
+      Boolean(selectedId && sameStoreIdV93(gpsStore.id, selectedId)) ||
+      normalize(String(gpsStore.name)) === normalize(selectedName);
+    if (sameSelectedStore) return;
+
+    const useGpsStore = window.confirm(
+      `Valittu kauppa on ${selectedName}.\n\nGPS:n perusteella olet kaupan ${gpsStore.name} lähellä. Vaihdetaanko kaupaksi ${gpsStore.name}?\n\nOK = Vaihda · Peruuta = Pidä ${selectedName}`,
+    );
+    if (useGpsStore) {
+      selectStoreForCurrentMode(normalizeStoreForPickerV320(gpsStore), storeMode);
+    }
+  }
+
   function addOpenFoodFactsScannedEanToCartV729(
     fallbackProduct: OpenFoodFactsFallbackProductV729,
   ) {
@@ -14768,6 +14825,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (cartLimitReached) {
       alert(`Demossa ostoskori on rajattu ${MAX_ITEMS} tuotteeseen.`);
       return;
+    }
+
+    if (eanScannerOpen || eanHtml5ScannerRef.current || eanSearchStartedAutomatically) {
+      window.setTimeout(() => confirmScannerStoreAfterFirstAddV791(), 0);
     }
 
     triggerHaptic();
@@ -14954,6 +15015,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (cartLimitReached) {
       alert(`Demossa ostoskori on rajattu ${MAX_ITEMS} tuotteeseen.`);
       return;
+    }
+
+    if (isScannerAddV787) {
+      window.setTimeout(() => confirmScannerStoreAfterFirstAddV791(result.chain), 0);
     }
 
     // EAN/skannerilisäys ei saa siirtää käyttäjää automaattisesti Vertailu-kortille.
