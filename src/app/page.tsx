@@ -4847,8 +4847,49 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
   }, []);
 
   useEffect(() => {
-    // Launch/splash overlay disabled: keep initial reload/startup view visible immediately.
-    setShowLaunchScreen(false);
+    // V777_COLD_START_HOME_ASSET_GATE:
+    // Älä paljasta mobiilin pääsivua tyhjällä välimuistilla ennen kuin sen
+    // näkyvät avausgrafiikat ovat valmiit. Tämä estää logon puuttumisen ja
+    // Gösta/Justiina/Arvo-kuvien hyppäämisen paikoilleen ensimmäisessä renderissä.
+    const criticalHomeAssetsV777 = [
+      "/ziiplylogo_mobile.png",
+      "/assistants/gosta.png",
+      "/assistants/justiina.png",
+      "/assistants/arvo.png",
+    ];
+
+    let cancelled = false;
+    const timeout = window.setTimeout(() => {
+      if (!cancelled) setShowLaunchScreen(false);
+    }, 1400);
+
+    void Promise.all(
+      criticalHomeAssetsV777.map(
+        (src) =>
+          new Promise<void>((resolve) => {
+            const image = new Image();
+            image.decoding = "async";
+            image.onload = () => {
+              if (typeof image.decode === "function") {
+                void image.decode().catch(() => undefined).finally(resolve);
+                return;
+              }
+              resolve();
+            };
+            image.onerror = () => resolve();
+            image.src = src;
+          }),
+      ),
+    ).then(() => {
+      if (cancelled) return;
+      window.clearTimeout(timeout);
+      setShowLaunchScreen(false);
+    });
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeout);
+    };
   }, []);
 
   // V471_GPS_SINGLE_OWNER_BOOT:
