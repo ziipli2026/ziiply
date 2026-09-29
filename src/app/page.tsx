@@ -20823,6 +20823,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                   <ZiiplyMobileScannerCard
                   regionId={MOBILE_EAN_SCANNER_REGION_ID}
                   fullscreen
+                  className={eanModalClosing ? "[&_.ziiply-scanner-corner]:hidden" : ""}
                   flashState={scanSuccessFlash ? "success" : scanMissFlash ? "error" : "idle"}
                   loading={eanLoading}
                   scannerMessage={eanLoading ? "Haetaan tuotetta" : eanScannerMessage}
