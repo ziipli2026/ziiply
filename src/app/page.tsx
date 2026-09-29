@@ -17290,15 +17290,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     );
   }
 
-  const sparGpsSelectionKeyRefV780 = useRef("");
-
   useEffect(() => {
     let cancelled = false;
     const params = new URLSearchParams();
-    const gpsSelectionKeyV780 = gpsCoordsV320
-      ? `${gpsCoordsV320.latitude.toFixed(4)},${gpsCoordsV320.longitude.toFixed(4)}`
-      : "";
-    if (!gpsCoordsV320) sparGpsSelectionKeyRefV780.current = "";
     if (gpsCoordsV320) {
       params.set("lat", String(gpsCoordsV320.latitude));
       params.set("lon", String(gpsCoordsV320.longitude));
@@ -17325,15 +17319,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         setEurosparStoreOptionsV751(options);
         setTokmanniStoreOptionsV756(tokmanniOptions);
 
-        // V780: GPS must choose the nearest physical store for the shared
-        // SPAR/Tokmanni card, just like the other chain cards. Do this once
-        // whenever the GPS position actually changes; picker selections made
-        // afterwards remain explicit until the next location change.
-        const gpsLocationChangedV780 =
-          Boolean(gpsSelectionKeyV780) &&
-          sparGpsSelectionKeyRefV780.current !== gpsSelectionKeyV780;
-        if (gpsLocationChangedV780) {
-          sparGpsSelectionKeyRefV780.current = gpsSelectionKeyV780;
+        // GPS follows the same visible-card rule as S/K: the chain card
+        // always reflects the nearest store for the current own-location result.
+        // Manual picker choices are preserved only outside GPS mode.
+        if (gpsCoordsV320) {
           const nearest = allOptions[0] || null;
           if (nearest && String(nearest.chain || "").toUpperCase() === "EUROSPAR") {
             setSelectedEurosparStoreV751({ ...nearest, chain: "EUROSPAR" });
