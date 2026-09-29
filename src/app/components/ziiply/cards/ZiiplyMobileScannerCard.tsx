@@ -219,8 +219,12 @@ export default function ZiiplyMobileScannerCard({
         /* V777: html5-qrcode piirtää qrboxin ympärille omat varjostuspalat.
            Ne voivat stop()/clear()-vaiheessa välähtää eri kokoisena suorakulmiona.
            Ziiplyllä on oma kohdistus-UI, joten kirjaston shaded overlay piilotetaan. */
-        #${regionId} .qr-shaded-region {
+        #${regionId} #qr-shaded-region,
+        #${regionId} #qr-shaded-region * {
           display: none !important;
+          border: 0 !important;
+          outline: 0 !important;
+          box-shadow: none !important;
         }
 
         @keyframes ziiplyRadarSweep {
