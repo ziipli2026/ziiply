@@ -6643,6 +6643,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       ...((item as any).ziiplySingleChainAtAdd
         ? { ziiplySingleChainAtAdd: (item as any).ziiplySingleChainAtAdd }
         : {}),
+      ...((item as any).ziiplyPriceFetchedAt
+        ? { ziiplyPriceFetchedAt: Number((item as any).ziiplyPriceFetchedAt) }
+        : {}),
+      ...((item as any).ziiplyPriceStoreName
+        ? { ziiplyPriceStoreName: String((item as any).ziiplyPriceStoreName) }
+        : {}),
+      ...((item as any).ziiplyPriceRefreshPending
+        ? { ziiplyPriceRefreshPending: true }
+        : {}),
     } as CartItem;
   }
 
@@ -13044,7 +13053,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       cartRefV124.current = nextCart;
       persistCartImmediately(nextCart);
       void updateChainComparison(nextCart, { openCompare: false });
-      showCartToast(`Lisätty: ${newItem.name}`);
+      if (!(eanScannerOpen || eanHtml5ScannerRef.current)) showCartToast("✓ Lisätty ostoskoriin");
       return nextCart;
     });
 
@@ -14957,6 +14966,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         product: result.product,
         ean: ean || result.product.ean,
       };
+      (newItem as any).ziiplyPriceFetchedAt = Date.now();
+      (newItem as any).ziiplyPriceStoreName = result.storeName;
 
       if (scannedSingleChainKeyV782) {
         (newItem as any).ziiplySingleChainAtAdd = scannedSingleChainKeyV782;
@@ -14998,10 +15009,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setEanScannerOpen(true);
       // V594: valintaikkunan kautta lisättäessä annetaan vain hiljainen, läpikuultava kuittaus.
       // Ei piippiä eikä vihreää flashia, koska varsinainen skannauspiip on annettu jo EAN-lukuhetkellä.
-      setEanScannerMessage("Tuote lisätty");
+      setEanScannerMessage("✓ Lisätty ostoskoriin");
       window.setTimeout(() => {
         setEanScannerMessage((current) =>
-          current === "Tuote lisätty" ? "" : current,
+          current === "✓ Lisätty ostoskoriin" ? "" : current,
         );
       }, 2200);
     }
@@ -15157,6 +15168,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       product,
       ean: product.ean,
     };
+    (newItem as any).ziiplyPriceFetchedAt = Date.now();
+    (newItem as any).ziiplyPriceStoreName = normalSearchStoreName;
 
     // V780: Yksi-tilan Halpuuta aktivoituu vasta, kun käyttäjä vaihtaa ketjun
     // tuotteen lisäämisen jälkeen. Tämä on tapahtumahistoriaa, ei tuotteen chain-päätelmä.
@@ -15189,7 +15202,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     cartRefV124.current = nextCart;
     setCart(nextCart);
     persistCartImmediately(nextCart);
-    showCartToast(`Lisätty ostoskoriin: ${newItem.name}`);
+    showCartToast("✓ Lisätty ostoskoriin");
 
     const nextInput = remainingTerms.join(",");
 
@@ -15453,12 +15466,117 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     showCartToast(`Tallennettu lista: ${listName}`);
   }
 
+  const SAVED_LIST_PRICE_FRESH_MS_V783 = 24 * 60 * 60 * 1000;
+
+  function getSavedListPriceTargetV783(item: CartItem) {
+    const oneKey =
+      storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one"
+        ? (["s", "k", "lidl", "tokmanni"] as const).find((key) => Boolean(selectedChains[key]))
+        : undefined;
+    const remembered = String((item as any).ziiplySingleChainAtAdd || "").toLowerCase();
+    const fallback = String(item.chain || "").toLowerCase();
+    const key = oneKey || remembered || (fallback === "k" ? "k" : "s");
+
+    if (key === "k") return { key, storeName: activeStores.kStoreName || "", ready: Boolean(activeStores.kStoreId) };
+    if (key === "lidl") return { key, storeName: selectedLidlStoreV750?.name || "", ready: Boolean(selectedLidlStoreV750) };
+    if (key === "tokmanni") return { key, storeName: selectedTokmanniStoreV756?.name || selectedEurosparStoreV751?.name || "", ready: true };
+    return { key: "s" as const, storeName: activeStores.sStoreName || "", ready: Boolean(activeStores.sStoreId) };
+  }
+
+  async function refreshSavedListItemPriceV783(item: CartItem): Promise<CartItem | null> {
+    if (isWeightCartItemV738(item) || String(item?.source || "").toLowerCase() === "offer") return null;
+    const target = getSavedListPriceTargetV783(item);
+    if (!target.ready) return null;
+
+    const itemName = fixText(String(item.name || "")).trim();
+    const itemEan = normalizeEan(item.ean || (item.product as any)?.ean || "");
+    let match: Product | null = null;
+
+    try {
+      if (target.key === "s" && activeStores.sStoreId) {
+        const queries = Array.from(new Set([itemEan, itemName, ...getNormalSearchQueries(itemName).slice(0, 5)].filter(Boolean)));
+        for (const query of queries) {
+          const candidates = await fetchSProducts(query, activeStores.sStoreId).catch(() => [] as Product[]);
+          match =
+            (itemEan ? candidates.find((product) => normalizeEan(product.ean) === itemEan && getProductPrice(product) > 0) || null : null) ||
+            pickBestSProduct(candidates, itemName, itemEan) ||
+            null;
+          if (match && getProductPrice(match) > 0) break;
+        }
+      } else if (target.key === "k" && activeStores.kStoreId) {
+        const best = await findBestKMatchForStore(itemName, activeStores.kStoreId, itemEan);
+        if (best && best.price > 0) match = convertKProductToProduct(best);
+      } else if (target.key === "lidl" && selectedLidlStoreV750) {
+        const candidates = await fetchLidlProductsV760(itemEan || itemName, selectedLidlStoreV750);
+        match =
+          (itemEan ? candidates.find((product) => normalizeEan(product.ean) === itemEan && getProductPrice(product) > 0) || null : null) ||
+          pickBestSProduct(candidates, itemName, itemEan) ||
+          null;
+      } else if (target.key === "tokmanni") {
+        const candidates = await fetchTokmanniProductsV761(itemEan || itemName);
+        match =
+          (itemEan ? candidates.find((product) => normalizeEan(product.ean) === itemEan && getProductPrice(product) > 0) || null : null) ||
+          pickBestSProduct(candidates, itemName, itemEan) ||
+          null;
+      }
+    } catch {
+      return null;
+    }
+
+    const price = match ? getProductPrice(match) : 0;
+    if (!match || price <= 0) return null;
+
+    return {
+      ...item,
+      name: match.name || item.name,
+      price,
+      storeName: target.storeName || item.storeName,
+      product: { ...match, price, storeName: target.storeName || item.storeName } as Product,
+      ean: match.ean || item.ean,
+      ...((target.key === "s" || target.key === "k") ? { chain: target.key.toUpperCase() as "S" | "K" } : {}),
+      ziiplyPriceFetchedAt: Date.now(),
+      ziiplyPriceStoreName: target.storeName || item.storeName || "",
+      ziiplyPriceRefreshPending: false,
+    } as CartItem;
+  }
+
+  async function refreshSavedListPricesV783(itemIds: string[]) {
+    const idSet = new Set(itemIds);
+    const source = cartRefV124.current.filter((item) => idSet.has(String(item.id)));
+    const refreshed = await Promise.all(source.map(async (item) => ({ id: String(item.id), next: await refreshSavedListItemPriceV783(item) })));
+
+    setCart((current) => {
+      const nextCart = current.map((item) => {
+        const result = refreshed.find((entry) => entry.id === String(item.id));
+        if (!result) return item;
+        if (result.next) return result.next;
+        return { ...item, ziiplyPriceRefreshPending: false, price: Number(item.price || 0) > 0 ? item.price : 0 } as CartItem;
+      });
+      cartRefV124.current = nextCart;
+      persistCartImmediately(nextCart);
+      return nextCart;
+    });
+  }
+
   function addSavedListToCart(list: SavedShoppingList) {
     triggerHaptic();
 
     if (!list.items.length) return;
 
-    const nextCart = mergeItemsIntoCart(cart, list.items);
+    const nowV783 = Date.now();
+    const preparedItemsV783 = list.items.map((item) => {
+      const target = getSavedListPriceTargetV783(item);
+      const fetchedAt = Number((item as any).ziiplyPriceFetchedAt || 0);
+      const cachedStore = String((item as any).ziiplyPriceStoreName || item.storeName || "");
+      const sameStore = Boolean(target.storeName) && normalize(cachedStore) === normalize(target.storeName);
+      const fresh = Number(item.price || 0) > 0 && fetchedAt > 0 && nowV783 - fetchedAt < SAVED_LIST_PRICE_FRESH_MS_V783 && sameStore;
+      return {
+        ...item,
+        price: fresh ? item.price : 0,
+        ziiplyPriceRefreshPending: !fresh,
+      } as CartItem;
+    });
+    const nextCart = mergeItemsIntoCart(cart, preparedItemsV783);
 
     if (
       nextCart.length === cart.length &&
@@ -15475,7 +15593,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
 
     setCart(nextCart);
+    cartRefV124.current = nextCart;
     persistCartImmediately(nextCart);
+    const addedIdsV783 = nextCart
+      .filter((item) => String(item.id || "").startsWith("saved-"))
+      .map((item) => String(item.id));
+    void refreshSavedListPricesV783(addedIdsV783);
     setCartSavePanelOpen(false);
     showCartToast(`Lisätty lista: ${list.name}`);
     setSearchPanelOpen(false);
@@ -21036,7 +21159,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                         );
                         setEanResults([]);
                         setEanMessage("");
-                        setEanScannerMessage("Tuote lisätty");
+                        setEanScannerMessage("✓ Lisätty ostoskoriin");
                         window.setTimeout(() => {
                           setEanScannerMessage("");
                         }, 900);
@@ -21080,7 +21203,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                         );
                         setEanResults([]);
                         setEanMessage("");
-                        setEanScannerMessage("Tuote lisätty");
+                        setEanScannerMessage("✓ Lisätty ostoskoriin");
                         window.setTimeout(() => {
                           setEanScannerMessage("");
                         }, 900);
