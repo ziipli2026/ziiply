@@ -13948,6 +13948,31 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
       if (openFoodFactsFallback) {
         pushScannerDebugV493(`FALLBACK ADD OFF name=${fixText(String(openFoodFactsFallback?.name || "")).slice(0, 54)}`);
+
+        // V790: Kun aiemmin tuntematon EAN tunnistuu Open Food Factsista
+        // ruokatuotteeksi, opeta identiteetti pysyvään EAN-pankkiin. Hinta ei
+        // kuulu identiteettipankkiin; valitun kaupan hinta ratkaistaan erikseen.
+        void fetch("/api/ean-bank", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            ean,
+            name: openFoodFactsFallback.name,
+            brand: openFoodFactsFallback.brandName,
+            imageUrl: openFoodFactsFallback.imageUrl,
+            source: "open-food-facts",
+          }),
+          keepalive: true,
+        })
+          .then((response) => {
+            pushScannerDebugV493(`EAN_BANK learn OFF status=${response.status} ean=${ean}`);
+          })
+          .catch((error) => {
+            pushScannerDebugV493(
+              `EAN_BANK learn OFF error ${String((error as any)?.message || error).slice(0, 90)}`,
+            );
+          });
+
         setEanLookupOutcomeForAllVariantsV126(ean, "off");
         if (eanScannerOpen || eanHtml5ScannerRef.current || options.fromScanner) {
           setEanScannerMessage("✓ Tuote lisätty — haetaan hintaa…");
