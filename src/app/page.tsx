@@ -14673,7 +14673,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         `Oletko kaupassa ${label}?\n\nOK = Kyllä · Peruuta = Vaihda kauppa`,
       );
       if (!keepSelected) {
-        setActiveTab("stores");
+        openShopsPanel();
       }
       return;
     }
