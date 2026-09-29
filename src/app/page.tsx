@@ -19088,7 +19088,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           html, body, #__next { background: #efe5cf !important; }
         `}</style>
 
-        {showLaunchScreen && <ZiiplyLaunchScreen appVersion={APP_VERSION} />}
+
 
         {!showLaunchScreen && (
           <div className="mx-auto grid h-full max-w-[1540px] grid-rows-[auto_minmax(0,1fr)] gap-2">
@@ -19933,7 +19933,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           }
         }
       `}</style>
-        {showLaunchScreen && <ZiiplyLaunchScreen appVersion={APP_VERSION} />}
+
 
         <div
           className={`relative z-[80] m-0 p-0 mt-1 mb-0 ziiply-desktop-debug-compact sm:mx-auto sm:max-w-[1180px] sm:px-4 ${showLaunchScreen ? "hidden" : ""}`}
