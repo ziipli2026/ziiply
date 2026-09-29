@@ -15524,9 +15524,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const fresh = Number(item.price || 0) > 0 && fetchedAt > 0 && nowV783 - fetchedAt < SAVED_LIST_PRICE_FRESH_MS_V783 && sameStore;
       return {
         ...item,
-        // V791: Älä nollaa muistilistan tunnettua hintaa synkronisesti kaupan vaihtuessa.
-        // Exact-EAN-refresh korvaa hinnan vasta, kun uuden valitun kaupan hinta löytyy.
-        price: item.price,
+        price: fresh ? item.price : 0,
         ziiplyPriceRefreshPending: !fresh,
       } as CartItem;
     });
