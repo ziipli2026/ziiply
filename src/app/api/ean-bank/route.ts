@@ -35,7 +35,7 @@ function aliases(value: unknown) {
   return Array.from(new Set(value.map((v) => clean(v, 160)).filter(Boolean))).slice(0, 24);
 }
 
-async function ensureSchema(sql: ReturnType<typeof neon>) {
+async function ensureSchema(sql: ReturnType<typeof db>) {
   await sql`
     CREATE TABLE IF NOT EXISTS ziiply_ean_products (
       ean TEXT PRIMARY KEY,
