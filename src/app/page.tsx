@@ -15528,7 +15528,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         ziiplyPriceRefreshPending: !fresh,
       } as CartItem;
     });
-    const nextCart = mergeItemsIntoCart(cart, preparedItemsV783);
+    const restoredMemoryKeysV790 = new Set(
+      preparedItemsV783.map((item) => getCartItemMemoryKey(item)),
+    );
+    const nextCart = mergeItemsIntoCart(cart, preparedItemsV783).map((item) =>
+      restoredMemoryKeysV790.has(getCartItemMemoryKey(item))
+        ? { ...item, ziiplyPriceRefreshPending: true } as CartItem
+        : item,
+    );
 
     if (
       nextCart.length === cart.length &&
@@ -15548,7 +15555,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     cartRefV124.current = nextCart;
     persistCartImmediately(nextCart);
     const addedIdsV783 = nextCart
-      .filter((item) => Boolean((item as any).ziiplyPriceRefreshPending))
+      .filter((item) => restoredMemoryKeysV790.has(getCartItemMemoryKey(item)))
       .map((item) => String(item.id));
     void refreshSavedListPricesV783(addedIdsV783);
     setCartSavePanelOpen(false);
