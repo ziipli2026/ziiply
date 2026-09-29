@@ -51,10 +51,6 @@ async function ensureSchema(sql: ReturnType<typeof db>) {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     )
   `;
-  await sql`
-    CREATE INDEX IF NOT EXISTS ziiply_ean_products_name_idx
-    ON ziiply_ean_products USING GIN (to_tsvector('simple', coalesce(name,'') || ' ' || coalesce(brand,'') || ' ' || array_to_string(aliases, ' ')))
-  `;
 }
 
 export async function GET(request: NextRequest) {
