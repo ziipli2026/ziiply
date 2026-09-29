@@ -20681,7 +20681,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             className="fixed inset-0 z-[9999] flex items-stretch justify-center overflow-hidden overscroll-none bg-[#EAF4F1] px-2 pb-[calc(env(safe-area-inset-bottom)+5.65rem)] pt-[calc(env(safe-area-inset-top)+0.85rem)] sm:items-center sm:p-4"
           >
             <div
-              className={`flex h-full w-full max-w-[430px] flex-col overflow-hidden ${eanModalClosing ? "opacity-0" : "opacity-100"}`}
+              className="flex h-full w-full max-w-[430px] flex-col overflow-hidden"
             >
 
               {eanScannerMessage && !eanScannerOpen && (
