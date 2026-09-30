@@ -14821,6 +14821,18 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
     if (!gpsStore?.name) return;
 
+    // V792: "nearest" is not the same as "at the store". The scanner may suggest
+    // switching stores only when GPS places the user genuinely at/next to that
+    // store. Being kilometres away must never interrupt scanning.
+    const gpsStoreDistanceKmV792 = getGpsDistanceKmForStoreV93(gpsStore);
+    const SCANNER_STORE_PROXIMITY_KM_V792 = 0.2;
+    if (
+      gpsStoreDistanceKmV792 == null ||
+      gpsStoreDistanceKmV792 > SCANNER_STORE_PROXIMITY_KM_V792
+    ) {
+      return;
+    }
+
     const sameSelectedStore =
       Boolean(selectedId && sameStoreIdV93(gpsStore.id, selectedId)) ||
       normalize(String(gpsStore.name)) === normalize(selectedName);
