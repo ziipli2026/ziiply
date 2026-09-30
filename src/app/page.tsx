@@ -11420,13 +11420,22 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
         const originalSearchFallback = fixText(String(term || "")).trim();
 
+        const detectedIntentV799 = detectSearchIntent(term);
+        const strongCategoryIntentV799 = detectedIntentV799.category !== "generic";
+        const searchQueryLimitV799 = strongCategoryIntentV799 ? 2 : 6;
+
+        // V799: tunnettu tuoteryhmä ei tarvitse koko varianttilistan verkkohakua.
+        // Esim. "maito" palauttaa jo maitotuotteet yhdellä laajalla haulla ja
+        // nykyinen intent-filtteri/rankkaus rajaa väärät osumat. Pidetään toinen
+        // kysely turvallisena alias/canonical-fallbackina. Tuntemattomalle
+        // tuotteelle säilytetään laajempi fallback.
         const searchQueries = Array.from(
           new Map(
             [...generatedSearchQueries, originalSearchFallback]
               .filter(Boolean)
               .map((query) => [normalize(query), query]),
           ).values(),
-        ).slice(0, 9);
+        ).slice(0, searchQueryLimitV799);
 
         if (searchQueries.length === 0) {
           debugEntries.push({
