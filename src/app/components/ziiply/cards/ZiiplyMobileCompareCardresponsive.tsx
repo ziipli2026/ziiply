@@ -225,7 +225,7 @@ function RetroMopedOverlay() {
   }, []);
 
   return (
-    <div className="pointer-events-none relative ml-[2.35rem] h-[2.2rem] w-[10.8rem] shrink-0 overflow-visible">
+    <div className="pointer-events-none relative ml-[2.35rem] flex h-[2.2rem] w-[10.8rem] shrink-0 items-center overflow-visible">
       <span
         className="block text-[0.72rem] font-black italic tracking-[0.02em] text-[#28402a]/86"
         style={{ fontFamily: cooperFont }}
@@ -407,13 +407,15 @@ export default function ZiiplyMobileCompareCardresponsive({
                           <span className="absolute bottom-[0.48rem] right-[0.85rem] flex items-center gap-1 text-[0.54rem] font-black uppercase tracking-[0.05em] text-[#77725e]">
                             <span>#{index + 1}</span>
                             <span>·</span>
-                            <span>
-                              {loading
-                                ? ""
-                                : hasNoCounterpart
-                                  ? "Vastinetta ei löytynyt"
-                                  : `${store.itemCount ?? comparedCount ?? 0} tuotetta`}
-                            </span>
+                            {!detailsStoreId ? (
+                              <span>
+                                {loading
+                                  ? ""
+                                  : hasNoCounterpart
+                                    ? "Vastinetta ei löytynyt"
+                                    : `${store.itemCount ?? comparedCount ?? 0} tuotetta`}
+                              </span>
+                            ) : null}
                             {store.distanceKm != null ? (
                               <>
                                 <span>·</span>
