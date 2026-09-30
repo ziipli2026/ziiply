@@ -65,6 +65,8 @@ export type KruokaPipelineDebugV49 = {
     publicId: string;
     publicationPublicId: string;
     name: string;
+    sourceTaxonomy?: string;
+    mappedCategory?: string;
     publicationAllowedForSelectedStore: boolean;
     membershipPrice: unknown;
     appPrice: unknown;
@@ -249,9 +251,54 @@ function matchesQuery(result: ZiiplyOfferSearchResult, query: string): boolean {
   return normalize([x.title,x.name,x.productName,x.brand,x.category,x.categoryPath,x.productGroup,x.subCategory].filter(Boolean).join(" ")).includes(q);
 }
 
+function tjekTaxonomyTextV67(offer: UnknownRecord): string {
+  // V67: Tjek/eTarjouslehdet does not consistently populate departmentSlug.
+  // Read the taxonomy-like source fields themselves before falling back to product-name inference.
+  const fields = [
+    offer.departmentSlug,
+    offer.department,
+    offer.category,
+    offer.categoryName,
+    offer.categorySlug,
+    offer.categoryPath,
+    offer.productGroup,
+    offer.productGroupName,
+    offer.subCategory,
+    offer.subCategoryName,
+    offer.section,
+    offer.aisle,
+    offer.tags,
+  ];
+  return normalize(fields.map(value => {
+    if (value == null) return "";
+    if (typeof value === "object") {
+      try { return JSON.stringify(value); } catch { return ""; }
+    }
+    return String(value);
+  }).join(" "));
+}
+
 function mapTjekCategoryV54(offer: UnknownRecord): string {
-  const department = normalize(offer.departmentSlug ?? offer.department ?? "");
+  const department = tjekTaxonomyTextV67(offer);
   const productText = normalize([offer.name, offer.title, offer.description].filter(Boolean).join(" "));
+
+  // V67: prefer Tjek's own category/department taxonomy when present.
+  // These rules deliberately use category context only; product-name inference below remains
+  // a fallback for legacy rows whose source taxonomy is empty.
+  if (/\b(lemmik|pet|dog|cat)\w*/.test(department)) return "Lemmikit";
+  if (/\b(valmisruo|ready meal|ready food|ateria|deli)\w*/.test(department)) return "Valmisruoka";
+  if (/\b(kala|fish|seafood)\w*/.test(department)) return "Kala";
+  if (/\b(liha|makkara|meat|cold cut|charcuterie)\w*/.test(department)) return "Liha & makkarat";
+  if (/\b(maito|maitotuot|dairy|cheese|yogurt)\w*/.test(department)) return "Maitotuotteet";
+  if (/\b(juoma|beverage|drink|soft drink)\w*/.test(department)) return "Juomat";
+  if (/\b(pakaste|frozen)\w*/.test(department)) return "Pakasteet";
+  if (/\b(hygienia|kosmetiikka|personal care|beauty|hygiene)\w*/.test(department)) return "Hygienia & kosmetiikka";
+  if (/\b(kodinhoito|household|cleaning|clean)\w*/.test(department)) return "Kodinhoito";
+  if (/\b(koti|vapaa aika|home|leisure|garden)\w*/.test(department)) return "Koti & vapaa-aika";
+  if (/\b(kuivatuot|kuiva aine|colonial|pantry|grocery)\w*/.test(department)) return "Kuivatuotteet";
+  if (/\b(makei|keksi|snack|candy|confection|sweet|biscuit)\w*/.test(department)) return "Makeiset & keksit";
+  if (/\b(hedel|vihanne|hevi|fruit|vegetable|produce)\w*/.test(department)) return "Hevi";
+  if (/\b(leip|leipomo|bakery|bread)\w*/.test(department)) return "Leipomo";
 
   // V64: validated against the 34 active K-Market Hakalantori offers.
   // Specific product rules must precede broad department fallbacks.
@@ -538,6 +585,8 @@ export async function fetchKruokaOffers(
         publicId: String(offer.publicId ?? ""),
         publicationPublicId: publicationId,
         name: title,
+        sourceTaxonomy: tjekTaxonomyTextV67(offer),
+        mappedCategory: mapTjekCategoryV54(offer),
         publicationAllowedForSelectedStore,
         membershipPrice: offer.membershipPrice ?? null,
         appPrice: offer.appPrice ?? null,
