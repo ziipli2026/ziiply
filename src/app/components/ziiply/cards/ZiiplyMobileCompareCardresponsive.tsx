@@ -225,7 +225,7 @@ function RetroMopedOverlay() {
   }, []);
 
   return (
-    <div className="pointer-events-none relative ml-[2.35rem] h-[2.75rem] w-[10.8rem] shrink-0 overflow-visible">
+    <div className="pointer-events-none relative ml-[2.35rem] h-[2.2rem] w-[10.8rem] shrink-0 overflow-visible">
       <span
         className="block text-[0.72rem] font-black italic tracking-[0.02em] text-[#28402a]/86"
         style={{ fontFamily: cooperFont }}
