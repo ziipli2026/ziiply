@@ -13172,6 +13172,56 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           return;
         }
 
+        // V790: Current K weight lookup stays primary. Only after an identity miss,
+        // try the persistent EAN bank with the zero-price canonical HEVI EAN
+        // (2000 + PLU + 0000 + check digit). This makes the fallback self-learning:
+        // once that shelf/generic HEVI EAN has been identified by any normal scanner
+        // path and stored in the bank, later scale labels with the same PLU resolve
+        // immediately without changing the authoritative price from the physical label.
+        try {
+          const learnedResponseV790 = await fetch(
+            `/api/ean-bank?ean=${encodeURIComponent(kWeightLabelV730.canonicalEan)}`,
+            { cache: "no-store" },
+          );
+          const learnedDataV790 = learnedResponseV790.ok
+            ? await learnedResponseV790.json().catch(() => null)
+            : null;
+          const learnedNameV790 = fixText(String(learnedDataV790?.product?.name || "")).trim();
+
+          if (learnedNameV790) {
+            const learnedProductV790: Product = {
+              id: Number(kWeightLabelV730.canonicalEan.slice(-9)),
+              name: learnedNameV790,
+              ean: kWeightLabelV730.scannedEan,
+              price: kWeightLabelV730.price,
+              pictureUrl: String(learnedDataV790?.product?.imageUrl || "") || undefined,
+            };
+
+            pushScannerDebugV493(
+              `K-WEIGHT learned fallback hit plu=${kWeightLabelV730.plu} canonical=${kWeightLabelV730.canonicalEan}`,
+            );
+            addWeightProductToCartV733(learnedProductV790, kWeightLabelV730.scannedEan);
+            setEanMessage(
+              `Vaakatuote tunnistettu: ${learnedNameV790}. Tarran hinta ${kWeightLabelV730.price.toFixed(2).replace(".", ",")} €.`,
+            );
+            setEanScannerMessage("Vaakatuote lisätty");
+            window.setTimeout(() => {
+              setEanScannerMessage((current) =>
+                current === "Vaakatuote lisätty" ? "" : current,
+              );
+            }, 2200);
+            return;
+          }
+
+          pushScannerDebugV493(
+            `K-WEIGHT learned fallback miss plu=${kWeightLabelV730.plu} canonical=${kWeightLabelV730.canonicalEan}`,
+          );
+        } catch (error) {
+          pushScannerDebugV493(
+            `K-WEIGHT learned fallback error ${String((error as any)?.message || error).slice(0, 80)}`,
+          );
+        }
+
         // V735: identity miss must never block a valid K scale label from entering the cart.
         // The physical label already gives authoritative PLU + total price; enrich the name only on an exact identity hit.
 
