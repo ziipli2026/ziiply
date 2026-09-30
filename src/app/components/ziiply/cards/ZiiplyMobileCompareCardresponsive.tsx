@@ -202,17 +202,18 @@ function RetroMopedOverlay() {
 
   useEffect(() => {
     let raf = 0;
-    const durationMs = 4300;
+    const durationMs = 6200;
     const startedAt = window.performance.now();
 
     const tick = (now: number) => {
       const progress = ((now - startedAt) % durationMs) / durationMs;
-      const x = progress * 42;
+      // V781: aja Haetaan-tekstin H-kohdasta selvästi pidempi matka sen alapuolella.
+      const x = progress * 126;
       const opacity =
-        progress < 0.20
-          ? progress / 0.20
-          : progress > 0.86
-            ? Math.max(0, (1 - progress) / 0.14)
+        progress < 0.12
+          ? progress / 0.12
+          : progress > 0.90
+            ? Math.max(0, (1 - progress) / 0.10)
             : 1;
 
       setFrame({ x, opacity: opacity * 0.98 });
@@ -224,9 +225,9 @@ function RetroMopedOverlay() {
   }, []);
 
   return (
-    <div className="pointer-events-none ml-[2.35rem] flex h-[2.2rem] w-[9.4rem] shrink-0 items-center overflow-visible">
+    <div className="pointer-events-none relative ml-[2.35rem] h-[2.75rem] w-[10.8rem] shrink-0 overflow-visible">
       <span
-        className="shrink-0 text-[0.72rem] font-black italic tracking-[0.02em] text-[#28402a]/86"
+        className="block text-[0.72rem] font-black italic tracking-[0.02em] text-[#28402a]/86"
         style={{ fontFamily: cooperFont }}
       >
         Haetaan...
@@ -234,7 +235,7 @@ function RetroMopedOverlay() {
       <img
         src="/icons/ziiply-retro-moped-loader.png?v=3"
         alt=""
-        className="ml-1 h-[3.2rem] w-auto shrink-0 drop-shadow-[0_2px_2px_rgba(44,28,8,0.24)]"
+        className="absolute left-0 top-[0.72rem] h-[2.55rem] w-auto shrink-0 drop-shadow-[0_2px_2px_rgba(44,28,8,0.24)]"
         style={{
           transform: `translate3d(${frame.x}px, 0, 0)`,
           opacity: frame.opacity,
@@ -407,9 +408,11 @@ export default function ZiiplyMobileCompareCardresponsive({
                             <span>#{index + 1}</span>
                             <span>·</span>
                             <span>
-                              {hasNoCounterpart
-                                ? "Vastinetta ei löytynyt"
-                                : `${loading ? "" : `${store.itemCount ?? comparedCount ?? 0} tuotetta`}`}
+                              {loading
+                                ? ""
+                                : hasNoCounterpart
+                                  ? "Vastinetta ei löytynyt"
+                                  : `${store.itemCount ?? comparedCount ?? 0} tuotetta`}
                             </span>
                             {store.distanceKm != null ? (
                               <>
