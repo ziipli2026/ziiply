@@ -685,7 +685,22 @@ export async function GET(request: Request) {
                   }
                 : getKruokaOfferPipelineDebugV34(),
             }
-          : {}),
+          : (() => {
+              const debug = isKCitymarketV19 ? null : getKruokaOfferPipelineDebugV34();
+              const resolver = debug?.kSupermarketPublicationResolverDebug;
+              return resolver
+                ? {
+                    kruokaDebug: {
+                      selectedStoreName: debug?.selectedStoreName ?? rawKStoreName ?? "",
+                      applicationState: debug?.applicationState ?? "OK",
+                      brochureOffers: debug?.brochureOffers ?? null,
+                      activeOffers: debug?.activeOffers ?? null,
+                      error: debug?.error ?? null,
+                      kSupermarketPublicationResolverDebug: resolver,
+                    },
+                  }
+                : {};
+            })()),
       },
       {
         headers: {
