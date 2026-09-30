@@ -37,26 +37,47 @@ export async function GET(request: Request) {
   const found = new Map<string,{ean:string;name:string;brand?:string;imageUrl?:string;category?:string;source:string;terms:string[]}>();
   const errors:string[] = [];
 
-  for (const term of TERMS) {
-    try {
-      const url = `https://api.ruoanhinta.fi/api/items?search=${encodeURIComponent(term)}&skip=0&take=100`;
-      const response = await fetch(url,{headers:{accept:"application/json"},cache:"no-store"});
-      if (!response.ok) { errors.push(`${term}: HTTP ${response.status}`); continue; }
-      const data = await response.json();
-      const rows:Row[] = Array.isArray(data?.items) ? data.items : [];
-      for (const row of rows) {
-        const ean=getEan(row), name=clean(row.name);
-        if (!ean || !name) continue;
-        const previous=found.get(ean);
-        if (previous) { if (!previous.terms.includes(term)) previous.terms.push(term); continue; }
-        found.set(ean,{ean,name,brand:clean(row.brandName)||undefined,imageUrl:clean(row.pictureUrl)||undefined,category:clean(row.category)||"HEVI / Vaakatuote",source:"hevi-mass-harvest",terms:[term]});
-      }
-    } catch (error) { errors.push(`${term}: ${String(error)}`); }
+  const sources = [
+    { key: "s", storeId: 292 },
+    { key: "k", storeId: 3221 },
+  ] as const;
+
+  for (const source of sources) {
+    for (const term of TERMS) {
+      try {
+        // Match the request shape already used successfully by Ziiply's S/K product routes.
+        const take = source.key === "s" ? 80 : 30;
+        const url = `https://api.ruoanhinta.fi/api/items?search=${encodeURIComponent(term)}&storeIds=${source.storeId}&skip=0&take=${take}`;
+        const response = await fetch(url,{headers:{accept:"application/json"},cache:"no-store"});
+        if (!response.ok) { errors.push(`${source.key}/${term}: HTTP ${response.status}`); continue; }
+        const data = await response.json();
+        const rows:Row[] = Array.isArray(data?.items) ? data.items : [];
+        for (const row of rows) {
+          const ean=getEan(row), name=clean(row.name);
+          if (!ean || !name) continue;
+          const previous=found.get(ean);
+          if (previous) {
+            const marker = `${source.key}:${term}`;
+            if (!previous.terms.includes(marker)) previous.terms.push(marker);
+            continue;
+          }
+          found.set(ean,{
+            ean,
+            name,
+            brand:clean(row.brandName)||undefined,
+            imageUrl:clean(row.pictureUrl)||undefined,
+            category:clean(row.category)||"HEVI / Vaakatuote",
+            source:`hevi-mass-harvest-${source.key}`,
+            terms:[`${source.key}:${term}`],
+          });
+        }
+      } catch (error) { errors.push(`${source.key}/${term}: ${String(error)}`); }
+    }
   }
 
   const products=[...found.values()].sort((a,b)=>a.name.localeCompare(b.name,"fi"));
   if (commit && products.length) {
     await observeEanProductsBestEffort(products.map(({terms:_terms,...product})=>product));
   }
-  return NextResponse.json({ok:errors.length===0,mode:commit?"commit":"dry-run",searchedTerms:TERMS.length,validUniqueProducts:products.length,errors,sample:products.slice(0,50)},{headers:{"Cache-Control":"no-store"}});
+  return NextResponse.json({ok:errors.length===0,mode:commit?"commit":"dry-run",searchedTerms:TERMS.length,sourceSearches:TERMS.length * sources.length,validUniqueProducts:products.length,errors,sample:products.slice(0,50)},{headers:{"Cache-Control":"no-store"}});
 }
