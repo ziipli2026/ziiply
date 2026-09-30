@@ -15084,15 +15084,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       window.setTimeout(() => confirmScannerStoreAfterFirstAddV791(result.chain), 0);
     }
 
-    if (isScannerAddV787 && scannerExistingItemV798) {
-      // Repeat-scan: tyhjennä mahdollinen aiempi uuden tuotteen kuittaus ja näytä vain +1.
-      setScanSuccessFlash(false);
-      setEanScannerMessage("Määrä +1");
-      window.setTimeout(() => {
-        setEanScannerMessage((current) => (current === "Määrä +1" ? "" : current));
-      }, 2200);
-    }
-
     // EAN/skannerilisäys ei saa siirtää käyttäjää automaattisesti Vertailu-kortille.
     // Vertailu päivittyy taustalla ja avataan vain käyttäjän omasta Vertailu-napista.
 
