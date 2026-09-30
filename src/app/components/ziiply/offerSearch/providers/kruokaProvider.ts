@@ -193,17 +193,16 @@ async function resolveKSupermarketRegionalPublicationIds(
     return Number.isFinite(from) && Number.isFinite(until) && from <= now && now <= until;
   });
 
-  // Tjek returns one regional/common brochure plus one store-specific brochure.
-  // The regional brochure is published later and contains the offer hotspots used by Ziiply.
+  // V67: fronts is already scoped with localBusinessIds=[selected store].
+  // A store can legitimately have both a common/regional brochure and a store-specific
+  // brochure active at the same time. Read all active publications and merge/dedupe later.
   const regional = active
     .filter(publication => !normalize(publication.label).includes(normalize(selected.name)))
     .sort((a, b) => Date.parse(String(b.publish ?? b.validFrom ?? "")) - Date.parse(String(a.publish ?? a.validFrom ?? "")));
 
-  const chosen = regional[0] ?? active
-    .slice()
-    .sort((a, b) => Date.parse(String(b.publish ?? b.validFrom ?? "")) - Date.parse(String(a.publish ?? a.validFrom ?? "")))[0];
-  const id = String(chosen?.id ?? "").trim();
-  const ids = id ? [id] : [];
+  const ids = Array.from(
+    new Set(active.map(publication => String(publication.id ?? "").trim()).filter(Boolean)),
+  );
   const regionalIds = new Set(regional.map(publication => String(publication.id ?? "").trim()).filter(Boolean));
   return {
     ids,
