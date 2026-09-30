@@ -12,6 +12,10 @@
     {
       "path": "/api/cron/kcitymarket-cache",
       "schedule": "10 13 * * 0"
+    },
+    {
+      "path": "/api/cron/hevi-ean-harvest?commit=1",
+      "schedule": "20 2 30 9 *"
     }
   ]
 }
