@@ -291,6 +291,7 @@ import {
   resolveSKaupatStoreIdFromDirectoryV1,
   getLastPrismaDirectoryDiagnosticV3,
 } from "../../location/ziiplyStoreDirectory";
+import { getSKaupatProtocolConfig, type SKaupatProtocolConfig } from "@/lib/skaupatProtocol";
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -1941,6 +1942,7 @@ function buildRemoteFilteredProductsUrl(
   offset = 0,
   selectedStoreId: string,
   discountedOnly = false,
+  protocol?: SKaupatProtocolConfig,
 ): string {
   const normalLimit = 48;
   const discountedLimit = 48;
@@ -1983,11 +1985,11 @@ function buildRemoteFilteredProductsUrl(
   const extensions = {
     clientLibrary: {
       name: "@apollo/client",
-      version: "4.3.1",
+      version: protocol?.apolloVersion || "4.3.1",
     },
     persistedQuery: {
       version: 1,
-      sha256Hash: SKAUPAT_REMOTE_FILTERED_PRODUCTS_HASH_V156,
+      sha256Hash: protocol?.persistedQueryHash || SKAUPAT_REMOTE_FILTERED_PRODUCTS_HASH_V156,
     },
   };
 
@@ -2006,8 +2008,9 @@ async function fetchSKaupatRemoteFilteredProductsPageV170(
   discountedOnly = false,
   selectedStoreName = "",
 ): Promise<{ results: ZiiplyOfferSearchResult[]; rawCount: number; total: number; from: number; limit: number; httpStatus: number }> {
+  const protocolV802 = await getSKaupatProtocolConfig();
   const response = await fetch(
-    buildRemoteFilteredProductsUrl(query, offset, selectedStoreId, discountedOnly),
+    buildRemoteFilteredProductsUrl(query, offset, selectedStoreId, discountedOnly, protocolV802),
     {
     method: "GET",
     headers: {
@@ -2017,7 +2020,7 @@ async function fetchSKaupatRemoteFilteredProductsPageV170(
       origin: "https://www.s-kaupat.fi",
       referer: "https://www.s-kaupat.fi/",
       "x-client-name": "skaupat-web",
-      "x-client-version": "production-add4ac0e6ec7f03f2c5373a6ebfab2b63df73f68",
+      "x-client-version": protocolV802.clientVersion,
       "user-agent":
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3.1 Safari/605.1.15",
     },
