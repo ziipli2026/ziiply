@@ -90,47 +90,122 @@ function mapProduct(block: string, index: number) {
   };
 }
 
+const KLEVU_SEARCH_URL = "https://eucs11.ksearchnet.com/cloud-search/n-search/search";
+const KLEVU_TICKET = "klevu-15488592134928913";
+
+function mapKlevuProduct(item: any, index: number) {
+  const ean = clean(item?.sku);
+  const name = clean(item?.name);
+  // Justiina is a normal-price search. Prefer oldPrice when Klevu exposes a
+  // discounted salePrice; otherwise the current/base price is the normal price.
+  const salePrice = numberPrice(item?.salePrice);
+  const oldPrice = numberPrice(item?.oldPrice);
+  const basePrice = numberPrice(item?.basePrice);
+  const currentPrice = numberPrice(item?.price);
+  const price = oldPrice > salePrice && salePrice > 0
+    ? oldPrice
+    : basePrice || currentPrice || salePrice;
+  if (!name || !(price > 0)) return null;
+
+  return {
+    id: Number(item?.id) || 762000000 + index,
+    name,
+    price,
+    pictureUrl: clean(item?.cloudinary_image),
+    productUrl: clean(item?.url),
+    ean,
+    brand: clean(item?.item_brand_name),
+    category: clean(item?.category) || "Tokmanni",
+    inStock: String(item?.inStock || "").toLowerCase() === "yes",
+    storeItems: [{ price }],
+  };
+}
+
+async function fetchKlevuProducts(search: string) {
+  const url = new URL(KLEVU_SEARCH_URL);
+  url.searchParams.set("ticket", KLEVU_TICKET);
+  url.searchParams.set("analyticsApiKey", KLEVU_TICKET);
+  url.searchParams.set("term", search);
+  url.searchParams.set("paginationStartsFrom", "0");
+  url.searchParams.set("noOfResults", "100");
+  url.searchParams.set("klevuSort", "rel");
+  url.searchParams.set("responseType", "json");
+  url.searchParams.set("category", "KLEVU_PRODUCT");
+  url.searchParams.set("visibility", "search");
+  url.searchParams.set("showOutOfStockProducts", "true");
+  url.searchParams.set("fetchMinMaxPrice", "true");
+
+  const response = await fetch(url, {
+    headers: { accept: "application/json", "user-agent": "Ziiply/1.0" },
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error(`Klevu HTTP ${response.status}`);
+  const data = await response.json();
+  return (Array.isArray(data?.result) ? data.result : [])
+    .map(mapKlevuProduct)
+    .filter((item: any): item is NonNullable<ReturnType<typeof mapKlevuProduct>> => Boolean(item));
+}
+
+async function fetchHtmlFallbackProducts(search: string) {
+  const url = new URL(TOKMANNI_SEARCH_URL);
+  url.searchParams.set("q", search);
+  const response = await fetch(url, {
+    redirect: "follow",
+    headers: {
+      accept: "text/html,application/xhtml+xml",
+      "accept-language": "fi-FI,fi;q=0.9",
+      "user-agent": "Ziiply/1.0",
+    },
+    cache: "no-store",
+  });
+  if (!response.ok) throw new Error(`Tokmanni HTML HTTP ${response.status}`);
+  const html = await response.text();
+  return productBlocks(html)
+    .map(mapProduct)
+    .filter((item): item is NonNullable<ReturnType<typeof mapProduct>> => Boolean(item));
+}
+
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const search = String(searchParams.get("search") || "").trim();
-  if (!search) return NextResponse.json({ source: "tokmanni-search", items: [] });
+  if (!search) return NextResponse.json({ source: "tokmanni-klevu", items: [] });
 
-  const url = new URL(TOKMANNI_SEARCH_URL);
-  url.searchParams.set("q", search);
+  let items: any[] = [];
+  let source = "tokmanni-klevu";
+  let klevuError = "";
 
   try {
-    const response = await fetch(url, {
-      redirect: "follow",
-      headers: {
-        accept: "text/html,application/xhtml+xml",
-        "accept-language": "fi-FI,fi;q=0.9",
-        "user-agent": "Ziiply/1.0",
-      },
-      cache: "no-store",
-    });
-    if (!response.ok) {
-      return NextResponse.json({ source: "tokmanni-search", status: response.status, items: [] }, { status: 502 });
-    }
-
-    const html = await response.text();
-    const items = productBlocks(html)
-      .map(mapProduct)
-      .filter((item): item is NonNullable<ReturnType<typeof mapProduct>> => Boolean(item));
-
-    await observeEanProductsBestEffort(
-      items
-        .filter((item) => Boolean(item.ean))
-        .map((item) => ({
-          ean: item.ean,
-          name: item.name,
-          imageUrl: item.pictureUrl,
-          category: item.category,
-          source: "tokmanni-search",
-        })),
-    );
-
-    return NextResponse.json({ source: "tokmanni-search", status: response.status, items });
+    items = await fetchKlevuProducts(search);
   } catch (error) {
-    return NextResponse.json({ source: "tokmanni-search", status: 500, items: [], error: String(error) }, { status: 500 });
+    klevuError = String(error);
   }
+
+  // Keep the existing HTML parser as a resilience fallback. Klevu is primary,
+  // but an outage or response change must not make Tokmanni/SPAR search vanish.
+  if (items.length === 0) {
+    source = "tokmanni-html-fallback";
+    try {
+      items = await fetchHtmlFallbackProducts(search);
+    } catch (error) {
+      return NextResponse.json(
+        { source, status: 500, items: [], klevuError, error: String(error) },
+        { status: 500 },
+      );
+    }
+  }
+
+  await observeEanProductsBestEffort(
+    items
+      .filter((item) => Boolean(item.ean))
+      .map((item) => ({
+        ean: item.ean,
+        name: item.name,
+        imageUrl: item.pictureUrl,
+        brand: item.brand,
+        category: item.category,
+        source,
+      })),
+  );
+
+  return NextResponse.json({ source, status: 200, items, klevuError: klevuError || undefined });
 }
