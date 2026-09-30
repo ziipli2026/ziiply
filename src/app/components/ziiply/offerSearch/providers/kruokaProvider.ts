@@ -42,6 +42,22 @@ export type KruokaPipelineDebugV49 = {
   activeOffers: number | null;
   error: string | null;
   rawOffers?: UnknownRecord[];
+  kSupermarketPublicationResolverDebug?: {
+    selectedTjekStoreId: string;
+    selectedStoreName: string;
+    totalPublicationCount: number;
+    activePublicationCount: number;
+    publications: Array<{
+      id: string;
+      label: string;
+      validFrom: string;
+      validUntil: string;
+      publish: string;
+      active: boolean;
+      consideredRegional: boolean;
+    }>;
+    chosenPublicationIds: string[];
+  };
   kMarketDominantPublicationDebug?: { publicationPublicId: string | null; offerCount: number; secondOfferCount: number; acceptedAsChainPublication: boolean; reason: string };
   publicationStoreDebug?: Array<{
     publicationPublicId: string;
@@ -140,10 +156,24 @@ async function fetchTjekData(name: string, params: UnknownRecord, slug = "K-Supe
   throw new Error(`eTarjouslehdet data-avain ${name} puuttui vastauksesta`);
 }
 
-async function resolveKSupermarketRegionalPublicationIds(selected: UnknownRecord): Promise<string[]> {
+async function resolveKSupermarketRegionalPublicationIds(
+  selected: UnknownRecord,
+): Promise<{ ids: string[]; debug: NonNullable<KruokaPipelineDebugV49["kSupermarketPublicationResolverDebug"]> }> {
   const storeId = String(selected.id ?? "").trim();
   const coordinates = selected.coordinates;
-  if (!storeId || !coordinates || typeof coordinates !== "object") return [];
+  if (!storeId || !coordinates || typeof coordinates !== "object") {
+    return {
+      ids: [],
+      debug: {
+        selectedTjekStoreId: storeId,
+        selectedStoreName: String(selected.name ?? ""),
+        totalPublicationCount: 0,
+        activePublicationCount: 0,
+        publications: [],
+        chosenPublicationIds: [],
+      },
+    };
+  }
 
   const value = await fetchTjekData("fronts", {
     businessIds: [K_SUPERMARKET_BUSINESS_ID],
@@ -173,7 +203,32 @@ async function resolveKSupermarketRegionalPublicationIds(selected: UnknownRecord
     .slice()
     .sort((a, b) => Date.parse(String(b.publish ?? b.validFrom ?? "")) - Date.parse(String(a.publish ?? a.validFrom ?? "")))[0];
   const id = String(chosen?.id ?? "").trim();
-  return id ? [id] : [];
+  const ids = id ? [id] : [];
+  const regionalIds = new Set(regional.map(publication => String(publication.id ?? "").trim()).filter(Boolean));
+  return {
+    ids,
+    debug: {
+      selectedTjekStoreId: storeId,
+      selectedStoreName: String(selected.name ?? ""),
+      totalPublicationCount: publications.length,
+      activePublicationCount: active.length,
+      publications: publications.map(publication => {
+        const publicationId = String(publication.id ?? "").trim();
+        const from = Date.parse(String(publication.validFrom ?? ""));
+        const until = Date.parse(String(publication.validUntil ?? ""));
+        return {
+          id: publicationId,
+          label: String(publication.label ?? ""),
+          validFrom: String(publication.validFrom ?? ""),
+          validUntil: String(publication.validUntil ?? ""),
+          publish: String(publication.publish ?? ""),
+          active: Number.isFinite(from) && Number.isFinite(until) && from <= now && now <= until,
+          consideredRegional: regionalIds.has(publicationId),
+        };
+      }),
+      chosenPublicationIds: ids,
+    },
+  };
 }
 
 async function fetchKSupermarketRegionalOffers(publicationId: string): Promise<UnknownRecord[]> {
@@ -447,8 +502,9 @@ export async function fetchKruokaOffers(
 
     const regionalOffers: UnknownRecord[] = [];
     if (business.chain === "K-Supermarket") {
-      const publicationIds = await resolveKSupermarketRegionalPublicationIds(selected);
-      for (const publicationId of publicationIds) {
+      const resolvedPublications = await resolveKSupermarketRegionalPublicationIds(selected);
+      debug.kSupermarketPublicationResolverDebug = resolvedPublications.debug;
+      for (const publicationId of resolvedPublications.ids) {
         regionalOffers.push(...await fetchKSupermarketRegionalOffers(publicationId));
       }
     }
