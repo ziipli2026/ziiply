@@ -3246,7 +3246,11 @@ export function pickBestKProduct(items: KProduct[], query: string, ean?: string)
       ? familyPool.filter((item) => !isPremiumBrandProduct(item.name))
       : familyPool;
 
-  return primaryPool
+  // Private-label-vertailun järjestys:
+  // 1) K:n oma turvallinen vastine (Pirkka/K-Menu), jos sellainen löytyy.
+  // 2) Muuten mikä tahansa turvallinen saman tuoteryhmän vastine.
+  // "Ei löytynyt" vasta, jos kumpikaan pooli ei tuota hyväksyttävää osumaa.
+  const rankPool = (pool: KProduct[]) => pool
     .map((item) => ({ item, score: scoreNameMatch(query, item.name) }))
     .filter((x) => x.score > -100)
     .sort((a, b) => {
@@ -3264,5 +3268,16 @@ export function pickBestKProduct(items: KProduct[], query: string, ean?: string)
 
       return scoreDifference;
     })[0]?.item;
+
+  const primaryBest = rankPool(primaryPool);
+  if (primaryBest) return primaryBest;
+
+  // Jos oman merkin pooli ei oikeasti tuota kelvollista osumaa,
+  // älä jätä vertailukoria vajaaksi ennen muun saman tuoteryhmän fallbackia.
+  if (queryIsValueBrand && primaryPool !== familyPool) {
+    return rankPool(familyPool);
+  }
+
+  return undefined;
 }
 
