@@ -268,7 +268,7 @@ export default function ZiiplyMobileCompareCardresponsive({
   if (!open) return null;
 
   const visibleStores = stores;
-  const showSkeleton = loading || visibleStores.length === 0;
+  // V780: kun valitut kaupat tunnetaan, näytä heti oikeat lopullisen muotoiset kortit.\n  // Lataus täydentää niihin vain hinnat/määrät ym.; vanhaa erillistä skeleton-korttia käytetään vain jos kauppoja ei vielä tunneta.\n  const showSkeleton = visibleStores.length === 0;
   const cheapest = getCheapestStore(visibleStores);
   const handleBack = detailsStoreId ? () => setDetailsStoreId(null) : onBack || onBackToCart;
   const comparedCount = items.length || visibleStores[0]?.itemCount || 0;
@@ -293,7 +293,7 @@ export default function ZiiplyMobileCompareCardresponsive({
           <div className="relative z-20 mb-3 ml-[3.1rem] max-w-[calc(100%-3.1rem)] shrink-0">
             <div className="flex items-center">
               <div className="shrink-0 text-[1.46rem] font-black italic leading-none text-[#28402a] drop-shadow-[0_1px_0_rgba(255,247,211,0.62)]" style={{ fontFamily: cooperFont }}>{title}</div>
-              {showSkeleton ? <RetroMopedOverlay /> : null}
+              {loading ? <RetroMopedOverlay /> : null}
             </div>
             <div className="mt-[0.16rem] text-[0.72rem] font-extrabold text-[#5f5034]">{subtitle || `${comparedCount || visibleStores.length} tuotetta / ${visibleStores.length} kauppaa`}</div>
           </div>
@@ -407,7 +407,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                             <span>
                               {hasNoCounterpart
                                 ? "Vastinetta ei löytynyt"
-                                : `${store.itemCount ?? comparedCount ?? 0} tuotetta`}
+                                : `${loading ? "" : `${store.itemCount ?? comparedCount ?? 0} tuotetta`}`}
                             </span>
                             {store.distanceKm != null ? (
                               <>
@@ -449,7 +449,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                         className="flex min-w-0 flex-col items-end justify-end gap-1 pb-0.5 text-right"
                         aria-label={`Avaa ${store.name}`}
                       >
-                        {diffLabel ? <span className={cx("whitespace-nowrap rounded-[0.44rem] border px-1 py-[0.10rem] text-[0.48rem] font-black uppercase", isBest ? "border-[#0b6330] bg-[#0b8f3a] text-[#fff6d7]" : "border-[#b99d5c] bg-[#f4e7c7] text-[#6b6048]")}>{isBest ? "Paras hinta" : diffLabel}</span> : null}
+                        {!loading && diffLabel ? <span className={cx("whitespace-nowrap rounded-[0.44rem] border px-1 py-[0.10rem] text-[0.48rem] font-black uppercase", isBest ? "border-[#0b6330] bg-[#0b8f3a] text-[#fff6d7]" : "border-[#b99d5c] bg-[#f4e7c7] text-[#6b6048]")}>{isBest ? "Paras hinta" : diffLabel}</span> : null}
                         <span
                           className={cx(
                             "block whitespace-nowrap text-right text-[1.00rem] font-black italic leading-none",
@@ -457,7 +457,7 @@ export default function ZiiplyMobileCompareCardresponsive({
                           )}
                           style={{ fontFamily: serifFont }}
                         >
-                          {hasNoCounterpart ? "—" : formatEuro(store.totalPrice)}
+                          {loading ? "" : hasNoCounterpart ? "—" : formatEuro(store.totalPrice)}
                         </span>
                       </button>
                     </div>
