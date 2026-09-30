@@ -666,10 +666,15 @@ export default function ZiiplyMobileSearchCard({
   }, [items]);
 
   const foundCount = items.length;
-  // Valmis löytöluettelo kuuluu viimeisimpään valmistuneeseen hakuun.
-  // Sen pitää säilyä näkyvissä myös silloin, kun käyttäjä alkaa kirjoittaa
-  // seuraavaa hakua tai tyhjentää tekstikentän.
-  const hasFoundProducts = foundCount > 0;
+  // Löytöluettelo kuuluu vain valmistuneeseen hakuun. Edellisen haun
+  // yhteenveto ei saa näkyä uuden Gösta/Justiina-haun ollessa käynnissä.
+  const searchInProgress =
+    loadingOffers ||
+    loadingNormal ||
+    singleProductCompareLoading ||
+    loading ||
+    searchingAssistant !== null;
+  const hasFoundProducts = foundCount > 0 && !searchInProgress;
   const effectiveTempo = autoSearchDelayMs
     ? getTempoByDelay(autoSearchDelayMs)
     : SEARCH_TEMPO_OPTIONS.find((option) => option.key === tempoKey) || SEARCH_TEMPO_OPTIONS[1];
