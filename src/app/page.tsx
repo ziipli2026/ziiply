@@ -11377,6 +11377,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setSearchDebug(cachedNormalSearchV441.debug || []);
       setMobileResultsReadyQueryV537(cachedNormalSearchV441.readyQuery || focusedSearchTerms[0] || useTerms[0] || "");
       setVisibleNormalCount(8);
+      setLoadingNormal(false);
+      setNormalSearchAttempted(true);
+      setActiveNormalSearchTerm(focusedSearchTerms[0] || "");
+      setActiveResult("none");
+      return;
     }
 
     const normalSearchRequestIdV441 = ++activeNormalSearchRequestRefV441.current;
