@@ -1309,6 +1309,9 @@ export function getKSearchTerms(name: string) {
     "kalapuikot",
     "kalafile",
     "kalapalat",
+    "ranskanperuna",
+    "ranskanperunat",
+    "fries",
   ];
 
   if (hasAnyToken(normalized, ["kalapuikko", "kalapuikot", "fiskpinnar"])) {
@@ -3211,6 +3214,7 @@ export function pickBestKProduct(items: KProduct[], query: string, ean?: string)
     "grillimakkara", "makkara", "nakki", "nakkimakkara",
     "maito", "juusto", "jauheliha", "kahvi", "jogurtti", "rahka",
     "kananmuna", "kananmunat", "tortilla", "chips", "sipsi",
+    "ranskanperuna", "ranskanperunat", "fries", "peruna", "perunat",
   ]);
   const distinctiveFamilyWords = Array.from(new Set(getNormalizedWords(query)))
     .filter((word) => word.length >= 6)
