@@ -295,7 +295,7 @@ import {
 type UnknownRecord = Record<string, unknown>;
 
 const SKAUPAT_REMOTE_FILTERED_PRODUCTS_HASH_V156 =
-  "44ca017dddccfe49e787b483f471f26217adca807f8c71101d11e881dab9e480";
+  "85a4eed2f0a1e3269ac49b94276ca952922568369d85ddd5dcee34481e4c0f91";
 
 const DEFAULT_SKAUPAT_STORE_ID_V156 = "513971200";
 
@@ -839,18 +839,6 @@ async function getEffectiveSKaupatStoreIdV174(
   const raw = firstString(options?.storeId, options?.sStoreId);
   const storeName = firstString(options?.storeName, options?.sStoreName);
 
-  // V801: restore the previously verified RemoteFilteredProducts id for
-  // Prisma Hyvinkää. Public/directory store ids are not guaranteed to be the
-  // product-search id. Keep this narrowly scoped; other stores retain their
-  // existing dynamic resolution path.
-  if (normalizeSKaupatStoreNameForMatchV198(storeName) === "prisma hyvinkaa") {
-    console.warn("[GOSTA V801] using verified Prisma Hyvinkää product-search storeId", {
-      inputStoreId: raw || null,
-      storeName,
-      resolvedStoreId: "634976534",
-    });
-    return "634976534";
-  }
 
   // V217: prefer the older store-name/directory resolver path first.
   // The newer remotePickupSlots resolver is fallback only. This preserves stores
@@ -1993,6 +1981,10 @@ function buildRemoteFilteredProductsUrl(
   variables.page = discountedOnly ? Math.floor(offset / discountedLimit) + 1 : page;
 
   const extensions = {
+    clientLibrary: {
+      name: "@apollo/client",
+      version: "4.3.1",
+    },
     persistedQuery: {
       version: 1,
       sha256Hash: SKAUPAT_REMOTE_FILTERED_PRODUCTS_HASH_V156,
@@ -2025,7 +2017,7 @@ async function fetchSKaupatRemoteFilteredProductsPageV170(
       origin: "https://www.s-kaupat.fi",
       referer: "https://www.s-kaupat.fi/",
       "x-client-name": "skaupat-web",
-      "x-client-version": "production-45c31f7a746096c6da12e16aba1887e031fbd9de",
+      "x-client-version": "production-add4ac0e6ec7f03f2c5373a6ebfab2b63df73f68",
       "user-agent":
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/26.3.1 Safari/605.1.15",
     },
