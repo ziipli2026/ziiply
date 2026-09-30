@@ -112,7 +112,16 @@ export async function GET(request: Request) {
         ],
       }));
 
-    await observeEanProductsBestEffort(items.map((item) => ({ ean: item.ean, name: item.name, brand: item.brandName, imageUrl: item.pictureUrl, category: item.category, source: "ruoanhinta-s" })));
+    // EAN-pankin opetus ei saa blokata käyttäjän hakuvastausta.
+    // Tämä on aidosti best-effort: haku palautetaan heti, observointi saa valmistua taustalla.
+    void observeEanProductsBestEffort(items.map((item) => ({
+      ean: item.ean,
+      name: item.name,
+      brand: item.brandName,
+      imageUrl: item.pictureUrl,
+      category: item.category,
+      source: "ruoanhinta-s",
+    }))).catch(() => undefined);
 
     return NextResponse.json({
       store,
