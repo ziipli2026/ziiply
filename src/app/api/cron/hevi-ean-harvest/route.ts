@@ -22,6 +22,29 @@ function getEan(row: Row) {
 }
 function clean(value: unknown) { return String(value ?? "").replace(/\s+/g, " ").trim(); }
 
+const NON_HEVI_NAME = /(?:leipur|leipä|ciabatta|focaccia|croissant|pulla|piirakka|torttu|muusi|keitto|pizza|täytte|rahka|kierre|salaattiannos|ateria|valmisruoka)/i;
+
+function isHeviCandidate(row: Row, source: "s" | "k") {
+  const name = clean(row.name);
+  const category = clean(row.category).toLowerCase();
+
+  if (!name || NON_HEVI_NAME.test(name)) return false;
+
+  // K/Ruoanhinta exposes a readable HEVI category path. Require it when present.
+  if (source === "k") {
+    return category.startsWith("hedelmat-ja-vihannekset/");
+  }
+
+  // S rows may use either the same readable path or opaque taxonomy codes.
+  // A readable non-HEVI category is a hard rejection. Opaque C... codes are
+  // accepted only after the explicit prepared-food/bakery name exclusions above.
+  if (category && !category.startsWith("c")) {
+    return category.startsWith("hedelmat-ja-vihannekset/");
+  }
+
+  return true;
+}
+
 export async function GET(request: Request) {
   const commit = new URL(request.url).searchParams.get("commit") === "1";
 
@@ -54,7 +77,7 @@ export async function GET(request: Request) {
         const rows:Row[] = Array.isArray(data?.items) ? data.items : [];
         for (const row of rows) {
           const ean=getEan(row), name=clean(row.name);
-          if (!ean || !name) continue;
+          if (!ean || !name || !isHeviCandidate(row, source.key)) continue;
           const previous=found.get(ean);
           if (previous) {
             const marker = `${source.key}:${term}`;
