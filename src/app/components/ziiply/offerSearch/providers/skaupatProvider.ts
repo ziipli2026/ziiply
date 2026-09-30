@@ -839,6 +839,19 @@ async function getEffectiveSKaupatStoreIdV174(
   const raw = firstString(options?.storeId, options?.sStoreId);
   const storeName = firstString(options?.storeName, options?.sStoreName);
 
+  // V801: restore the previously verified RemoteFilteredProducts id for
+  // Prisma Hyvinkää. Public/directory store ids are not guaranteed to be the
+  // product-search id. Keep this narrowly scoped; other stores retain their
+  // existing dynamic resolution path.
+  if (normalizeSKaupatStoreNameForMatchV198(storeName) === "prisma hyvinkaa") {
+    console.warn("[GOSTA V801] using verified Prisma Hyvinkää product-search storeId", {
+      inputStoreId: raw || null,
+      storeName,
+      resolvedStoreId: "634976534",
+    });
+    return "634976534";
+  }
+
   // V217: prefer the older store-name/directory resolver path first.
   // The newer remotePickupSlots resolver is fallback only. This preserves stores
   // already working with the old method while still covering old-method misses.
