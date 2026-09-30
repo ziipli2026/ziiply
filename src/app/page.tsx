@@ -21892,37 +21892,42 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         {!showLaunchScreen && activeResult === "compare" && !searchPanelOpen && !cartModalOpen && !shopsPanelOpen && !eanModalOpen && (
           <ZiiplyMobileCompareCard
             open
-            stores={chainResults
-              .filter((result) => !result.comingSoon)
-              .map((result) => ({
-                id: result.key,
-                name: result.storeName || result.chain,
-                chain: storeCompareScope === "within_chain" && withinChain
-                  ? withinChain
-                  : result.key === "s"
-                    ? "S"
-                    : result.key === "k"
-                      ? "K"
-                      : undefined,
-                // result.totalPrice on jo samaa yksikköä kuin match.price-summat.
-                // EI kerrota sadalla, muuten mobiilikortilla hinnat näyttävät 100x liian suurilta.
-                totalPrice: result.totalPrice || 0,
-                itemCount: result.foundItems,
-                isBest: cheapest?.key === result.key,
-                badge: result.missingItems > 0 ? `${result.missingItems} puuttuu` : "Täysi kori",
-                matches: (result.matches || []).map((match: Match) => ({
-                  ...match,
-                  chainKey: result.key,
-                  qualityMode: match.cartItemId
-                    ? qualityModesByCart[`${result.key}:${match.cartItemId}`]
-                    : undefined,
-                  sourceProductName:
-                    cart.find((item) => item.id === match.cartItemId)?.name ||
-                    cart.find((item) => item.id === match.cartItemId)?.product?.name ||
-                    match.product.name,
-                })),
-                missingItems: result.missingItems || 0,
-              }))}
+            stores={(chainResults.length > 0
+              ? chainResults
+                  .filter((result) => !result.comingSoon)
+                  .map((result) => ({
+                    id: result.key,
+                    name: result.storeName || result.chain,
+                    chain: storeCompareScope === "within_chain" && withinChain
+                      ? withinChain
+                      : result.key === "s"
+                        ? "S" as const
+                        : result.key === "k"
+                          ? "K" as const
+                          : undefined,
+                    // result.totalPrice on jo samaa yksikköä kuin match.price-summat.
+                    // EI kerrota sadalla, muuten mobiilikortilla hinnat näyttävät 100x liian suurilta.
+                    totalPrice: result.totalPrice || 0,
+                    itemCount: result.foundItems,
+                    isBest: cheapest?.key === result.key,
+                    badge: result.missingItems > 0 ? `${result.missingItems} puuttuu` : "Täysi kori",
+                    matches: (result.matches || []).map((match: Match) => ({
+                      ...match,
+                      chainKey: result.key,
+                      qualityMode: match.cartItemId
+                        ? qualityModesByCart[`${result.key}:${match.cartItemId}`]
+                        : undefined,
+                      sourceProductName:
+                        cart.find((item) => item.id === match.cartItemId)?.name ||
+                        cart.find((item) => item.id === match.cartItemId)?.product?.name ||
+                        match.product.name,
+                    })),
+                    missingItems: result.missingItems || 0,
+                  }))
+              : [
+                  ...(selectedChains.s ? [{ id: "s", name: activeStores.sStoreName || "S-ryhmä", chain: "S" as const }] : []),
+                  ...(selectedChains.k ? [{ id: "k", name: activeStores.kStoreName || "K-ryhmä", chain: "K" as const }] : []),
+                ])}
             items={comparableCart}
             title="Vertailu"
             subtitle={cart.length > 0 ? `${cart.length} tuotetta korissa` : "Lisää tuotteita koriin ja vertaile kauppoja"}
