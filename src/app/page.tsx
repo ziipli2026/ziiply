@@ -22054,9 +22054,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         )}
 
         {lastCartToast && (
-          <div className="pointer-events-none fixed left-3 right-3 top-[35.2rem] z-[10020] mx-auto max-w-md sm:hidden">
+          <div className="pointer-events-none fixed left-3 right-3 top-[22.65rem] z-[10020] mx-auto max-w-md sm:hidden">
             <div className="animate-[ziiplyFade_2.6s_ease-in-out] rounded-2xl bg-emerald-600 px-4 py-3 text-center text-sm font-black text-white shadow-2xl">
-              ✓ {lastCartToast}
+              {lastCartToast}
             </div>
           </div>
         )}
