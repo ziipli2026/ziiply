@@ -69,7 +69,71 @@ export async function GET(request: NextRequest) {
         WHERE ean = ${ean}
         LIMIT 1
       `;
-      return NextResponse.json({ ok: true, product: rows[0] ?? null });
+      if (rows[0]) {
+        return NextResponse.json({ ok: true, product: rows[0] });
+      }
+
+      // Tokmanni/SPAR cold EAN fallback: Tokmanni product URLs end in the
+      // public product number/EAN. This lets the scanner identify a product
+      // even before Ziiply has learned it into the persistent EAN bank.
+      try {
+        const searchUrl = new URL("https://www.tokmanni.fi/search");
+        searchUrl.searchParams.set("q", ean);
+        const response = await fetch(searchUrl, {
+          redirect: "follow",
+          headers: {
+            accept: "text/html,application/xhtml+xml",
+            "accept-language": "fi-FI,fi;q=0.9",
+            "user-agent": "Ziiply/1.0",
+          },
+          cache: "no-store",
+        });
+
+        if (response.ok) {
+          const html = await response.text();
+          const escapedEan = ean.replace(/[.*+?^$()|[\]\\]/g, "\\      return NextResponse.json({ ok: true, product: rows[0] ?? null });");
+          const linkRe = new RegExp(
+            `<a\\b[^>]*class=["'][^"']*product-item-link[^"']*["'][^>]*href=["']([^"']*-${escapedEan}(?:[/?#][^"']*)?)["'][^>]*>([\\s\\S]*?)<\\/a>`,
+            "i",
+          );
+          const reverseLinkRe = new RegExp(
+            `<a\\b[^>]*href=["']([^"']*-${escapedEan}(?:[/?#][^"']*)?)["'][^>]*class=["'][^"']*product-item-link[^"']*["'][^>]*>([\\s\\S]*?)<\\/a>`,
+            "i",
+          );
+          const match = html.match(linkRe) || html.match(reverseLinkRe);
+          if (match) {
+            const decode = (value: string) =>
+              value
+                .replace(/<[^>]+>/g, " ")
+                .replace(/&nbsp;/gi, " ")
+                .replace(/&amp;/gi, "&")
+                .replace(/&quot;/gi, '"')
+                .replace(/&#39;|&apos;/gi, "'")
+                .replace(/\\s+/g, " ")
+                .trim();
+            const name = decode(match[2] || "");
+            if (name) {
+              return NextResponse.json({
+                ok: true,
+                product: {
+                  ean,
+                  name,
+                  brand: null,
+                  quantity: null,
+                  imageUrl: null,
+                  category: "Tokmanni",
+                  source: "tokmanni-search-ean",
+                  aliases: [],
+                },
+              });
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Tokmanni EAN fallback failed", error);
+      }
+
+      return NextResponse.json({ ok: true, product: null });
     }
 
     if (q.length >= 2) {
