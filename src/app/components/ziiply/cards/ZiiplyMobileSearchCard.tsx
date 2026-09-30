@@ -666,15 +666,7 @@ export default function ZiiplyMobileSearchCard({
   }, [items]);
 
   const foundCount = items.length;
-  // Löytöluettelo kuuluu vain valmistuneeseen hakuun. Edellisen haun
-  // yhteenveto ei saa näkyä uuden Gösta/Justiina-haun ollessa käynnissä.
-  const searchInProgress =
-    loadingOffers ||
-    loadingNormal ||
-    singleProductCompareLoading ||
-    loading ||
-    searchingAssistant !== null;
-  const hasFoundProducts = foundCount > 0 && !searchInProgress;
+  const hasFoundProducts = foundCount > 0;
   const effectiveTempo = autoSearchDelayMs
     ? getTempoByDelay(autoSearchDelayMs)
     : SEARCH_TEMPO_OPTIONS.find((option) => option.key === tempoKey) || SEARCH_TEMPO_OPTIONS[1];
@@ -1125,7 +1117,7 @@ export default function ZiiplyMobileSearchCard({
               </div>
             </div>
 
-            {hasFoundProducts && (
+            {hasFoundProducts && !loadingOffers && !loadingNormal && !singleProductCompareLoading && !loading && searchingAssistant === null && (
               <button
                 type="button"
                 onClick={handleOpenFindingsLedger}
