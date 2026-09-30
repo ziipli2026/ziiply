@@ -4930,6 +4930,36 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     };
   }, []);
 
+  // V778_IOS_RESUME_WINDOW_SCROLL_LOCK:
+  // iOS Safari may restore the document scroll position after a long idle/BFCache
+  // resume even though Ziiply's mobile shell uses fixed top/bottom chrome and
+  // card-local scrolling. That scrolls the permanent 104px top-bar anchor out
+  // of view and makes the home artwork jump underneath the fixed top bar.
+  // Reset only the document scroll; card-local scroll positions are untouched.
+  useEffect(() => {
+    const restoreMobileShellTopV778 = () => {
+      if (!window.matchMedia("(max-width: 639px)").matches) return;
+      if (window.scrollY === 0) return;
+      window.scrollTo(0, 0);
+      window.requestAnimationFrame(() => {
+        if (window.scrollY !== 0) window.scrollTo(0, 0);
+      });
+    };
+
+    const onPageShowV778 = () => restoreMobileShellTopV778();
+    const onVisibilityV778 = () => {
+      if (document.visibilityState === "visible") restoreMobileShellTopV778();
+    };
+
+    window.addEventListener("pageshow", onPageShowV778);
+    document.addEventListener("visibilitychange", onVisibilityV778);
+
+    return () => {
+      window.removeEventListener("pageshow", onPageShowV778);
+      document.removeEventListener("visibilitychange", onVisibilityV778);
+    };
+  }, []);
+
   // V471_GPS_SINGLE_OWNER_BOOT:
   // Tämä oli aiemmin toinen avauksen GPS-polku: se laittoi UI:n pending-tilaan
   // erillään varsinaisesta useOwnLocation()-hausta ja jätti fallbackeille mahdollisuuden
