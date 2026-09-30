@@ -23,13 +23,17 @@ function getEan(row: Row) {
 function clean(value: unknown) { return String(value ?? "").replace(/\s+/g, " ").trim(); }
 
 export async function GET(request: Request) {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return NextResponse.json({ ok:false, error:"Cron unavailable" }, { status:503 });
-  if (request.headers.get("authorization") !== `Bearer ${secret}`) {
-    return NextResponse.json({ ok:false, error:"Unauthorized" }, { status:401 });
-  }
-
   const commit = new URL(request.url).searchParams.get("commit") === "1";
+
+  // Dry-run is intentionally public and read-only so its harvest quality can be
+  // inspected without exposing CRON_SECRET. Any database write remains protected.
+  if (commit) {
+    const secret = process.env.CRON_SECRET;
+    if (!secret) return NextResponse.json({ ok:false, error:"Cron unavailable" }, { status:503 });
+    if (request.headers.get("authorization") !== `Bearer ${secret}`) {
+      return NextResponse.json({ ok:false, error:"Unauthorized" }, { status:401 });
+    }
+  }
   const found = new Map<string,{ean:string;name:string;brand?:string;imageUrl?:string;category?:string;source:string;terms:string[]}>();
   const errors:string[] = [];
 
