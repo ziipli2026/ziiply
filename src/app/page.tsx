@@ -14952,8 +14952,17 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       price: getProductPrice(result.product),
     });
 
+    const scannerExistingItemV798 = isScannerAddV787
+      ? mergeCartPoolsByIdV129(cartRefV124.current).find((item) => {
+          if (isUsableEan(ean) && cartItemMatchesEanLooseV129(item, ean)) return true;
+          return normalize(item.name) === normalize(productName);
+        })
+      : undefined;
+
     triggerHaptic();
-    if (options.showFlash !== false) {
+    // V798: repeat-scan ei saa näyttää uuden tuotteen vihreää "Lisätty koriin" -flashia.
+    // Saman tuotteen toisella skannauksella ainoa skanneri-info on Määrä +1.
+    if (options.showFlash !== false && !scannerExistingItemV798) {
       showScanSuccessFlash();
     }
 
@@ -15073,6 +15082,15 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
 
     if (isScannerAddV787) {
       window.setTimeout(() => confirmScannerStoreAfterFirstAddV791(result.chain), 0);
+    }
+
+    if (isScannerAddV787 && scannerExistingItemV798) {
+      // Repeat-scan: tyhjennä mahdollinen aiempi uuden tuotteen kuittaus ja näytä vain +1.
+      setScanSuccessFlash(false);
+      setEanScannerMessage("Määrä +1");
+      window.setTimeout(() => {
+        setEanScannerMessage((current) => (current === "Määrä +1" ? "" : current));
+      }, 2200);
     }
 
     // EAN/skannerilisäys ei saa siirtää käyttäjää automaattisesti Vertailu-kortille.
