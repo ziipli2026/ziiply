@@ -46,7 +46,8 @@ function isHeviCandidate(row: Row, source: "s" | "k") {
 }
 
 export async function GET(request: Request) {
-  const commit = new URL(request.url).searchParams.get("commit") === "1";
+  const url = new URL(request.url);
+  const commit = url.searchParams.get("commit") === "1" || request.headers.get("x-vercel-cron") === "1";
 
   // Dry-run is intentionally public and read-only so its harvest quality can be
   // inspected without exposing CRON_SECRET. Any database write remains protected.
