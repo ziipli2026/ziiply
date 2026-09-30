@@ -22,7 +22,7 @@ function getEan(row: Row) {
 }
 function clean(value: unknown) { return String(value ?? "").replace(/\s+/g, " ").trim(); }
 
-const NON_HEVI_NAME = /(?:leipur|leipä|ciabatta|focaccia|croissant|pulla|piirakka|torttu|muusi|keitto|pizza|täytte|rahka|kierre|salaattiannos|ateria|valmisruoka|pihvi|lohi|kala|filee|liha|makkara|kana|broileri)/i;
+const NON_HEVI_NAME = /(?:leipur|leipä|ciabatta|focaccia|croissant|pulla|piirakka|torttu|muusi|keitto|pizza|täytte|rahka|kierre|salaattiannos|ateria|valmisruoka|pihvi|lohi|kala|filee|liha|makkara|kana|broileri|juusto|gouda|kermajuusto|maito|jogurtti|rahka|voi)/i;
 
 function isHeviCandidate(row: Row, source: "s" | "k") {
   const name = clean(row.name);
