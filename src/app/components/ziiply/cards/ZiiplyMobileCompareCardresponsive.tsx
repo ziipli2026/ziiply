@@ -268,7 +268,9 @@ export default function ZiiplyMobileCompareCardresponsive({
   if (!open) return null;
 
   const visibleStores = stores;
-  // V780: kun valitut kaupat tunnetaan, näytä heti oikeat lopullisen muotoiset kortit.\n  // Lataus täydentää niihin vain hinnat/määrät ym.; vanhaa erillistä skeleton-korttia käytetään vain jos kauppoja ei vielä tunneta.\n  const showSkeleton = visibleStores.length === 0;
+  // V780: kun valitut kaupat tunnetaan, näytä heti oikeat lopullisen muotoiset kortit.
+  // Lataus täydentää niihin vain hinnat/määrät ym.; vanhaa erillistä skeleton-korttia käytetään vain jos kauppoja ei vielä tunneta.
+  const showSkeleton = visibleStores.length === 0;
   const cheapest = getCheapestStore(visibleStores);
   const handleBack = detailsStoreId ? () => setDetailsStoreId(null) : onBack || onBackToCart;
   const comparedCount = items.length || visibleStores[0]?.itemCount || 0;
