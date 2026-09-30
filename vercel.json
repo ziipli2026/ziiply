@@ -12,14 +12,6 @@
     {
       "path": "/api/cron/kcitymarket-cache",
       "schedule": "10 13 * * 0"
-    },
-    {
-      "path": "/api/cron/skaupat-protocol",
-      "schedule": "20 2 * * *"
-    },
-    {
-      "path": "/api/cron/skaupat-protocol",
-      "schedule": "20 14 * * *"
     }
   ]
 }
