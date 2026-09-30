@@ -191,7 +191,7 @@ function RetroMopedOverlay() {
   }, []);
 
   return (
-    <div className="pointer-events-none absolute left-[12.65rem] top-[11.28rem] z-[21] h-[5.25rem] w-[14.3rem] overflow-hidden">
+    <div className="pointer-events-none absolute left-[13.9rem] top-[11.55rem] z-[21] h-[3.15rem] w-[12.2rem] overflow-hidden">
       <img
         src="/icons/ziiply-retro-moped-loader.png?v=3"
         alt="Haetaan..."
