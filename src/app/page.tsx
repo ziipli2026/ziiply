@@ -13486,6 +13486,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const scannerBetweenChainsV785 = storeCompareScope === "between_chains";
       const scannerAllowSV785 = !scannerBetweenChainsV785 || Boolean(selectedChains.s);
       const scannerAllowKV785 = !scannerBetweenChainsV785 || Boolean(selectedChains.k);
+      const scannerAllowTokmanniV790 = !scannerBetweenChainsV785 || Boolean(selectedChains.tokmanni);
       const scannerManyKFirstV786 =
         scannerBetweenChainsV785 &&
         betweenChainSelectionModeV749 === "many" &&
@@ -13541,6 +13542,53 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                     chain: "S" as const,
                     storeName: activeStores.sStoreName || item.storeName,
                     product: { ...product, ean, price } as Product,
+                    ean,
+                  } as CartItem;
+                });
+                cartRefV124.current = nextCart;
+                persistCartImmediately(nextCart);
+                return nextCart;
+              });
+            } catch {}
+          })();
+        }
+
+        // V790: Tokmanni/SPAR exact-EAN price enrichment. Identity stays from the
+        // scanned EAN; never replace it with a name-only match.
+        if (
+          scannerAllowTokmanniV790 &&
+          (selectedTokmanniStoreV756 || selectedEurosparStoreV751)
+        ) {
+          void (async () => {
+            try {
+              const products = await fetchTokmanniProductsV761(ean);
+              const product = products.find((candidate) =>
+                isSameEan((candidate as any)?.ean, getEanSearchVariants(ean)),
+              );
+              if (!product) return;
+              const price = getProductPrice(product);
+              if (price <= 0) return;
+
+              const tokmanniStoreNameV790 =
+                selectedTokmanniStoreV756?.name ||
+                selectedEurosparStoreV751?.name ||
+                "SPAR / Tokmanni";
+
+              setCart((currentCart) => {
+                const nextCart = currentCart.map((item) => {
+                  if (!cartItemMatchesEanLooseV129(item, ean)) return item;
+                  return {
+                    ...item,
+                    price,
+                    image: product.pictureUrl || item.image,
+                    storeName: tokmanniStoreNameV790,
+                    product: {
+                      ...(item.product || product),
+                      ...product,
+                      name: item.product?.name || item.name || product.name,
+                      ean,
+                      price,
+                    } as Product,
                     ean,
                   } as CartItem;
                 });
