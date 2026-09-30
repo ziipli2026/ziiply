@@ -1117,7 +1117,7 @@ export default function ZiiplyMobileSearchCard({
               </div>
             </div>
 
-            {hasFoundProducts && !loadingOffers && !loadingNormal && !singleProductCompareLoading && !loading && searchingAssistant === null && (
+            {hasFoundProducts && !loadingOffers && !justiinaLoading && !loading && (
               <button
                 type="button"
                 onClick={handleOpenFindingsLedger}
