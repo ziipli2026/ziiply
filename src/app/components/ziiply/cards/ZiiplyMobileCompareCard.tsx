@@ -191,7 +191,7 @@ function RetroMopedOverlay() {
   }, []);
 
   return (
-    <div className="pointer-events-none absolute left-[13.9rem] top-[11.55rem] z-[21] h-[3.15rem] w-[12.2rem] overflow-hidden">
+    <div className="pointer-events-none absolute left-[calc(100%+2.35rem)] top-[-0.52rem] z-[21] h-[3.15rem] w-[9.8rem] overflow-hidden">
       <img
         src="/icons/ziiply-retro-moped-loader.png?v=3"
         alt="Haetaan..."
@@ -266,8 +266,6 @@ export default function ZiiplyMobileCompareCardresponsive({
         <div className="pointer-events-none absolute inset-[0.18rem] rounded-[1.82rem] bg-[linear-gradient(180deg,rgba(255,250,226,0.58),rgba(246,226,172,0.22)_34%,rgba(238,214,156,0.10))]" />
         <div className="pointer-events-none absolute inset-[0.42rem] rounded-[1.55rem] border border-dashed border-[#d6a861]/55 shadow-[inset_0_0_0_2px_rgba(27,17,9,0.20)]" />
 
-{showSkeleton ? <RetroMopedOverlay /> : null}
-
                 <header className="pointer-events-none absolute left-[6.15rem] top-[11.95rem] z-20 w-[13.75rem]">
           <div
             className="text-[1.46rem] font-black italic leading-none text-[#28402a] drop-shadow-[0_1px_0_rgba(255,247,211,0.62)]"
@@ -275,6 +273,7 @@ export default function ZiiplyMobileCompareCardresponsive({
           >
             {title}
           </div>
+          {showSkeleton ? <RetroMopedOverlay /> : null}
           <div className="mt-[0.16rem] text-[0.72rem] font-extrabold text-[#5f5034]">
             {subtitle || `${comparedCount || visibleStores.length} tuotetta / ${visibleStores.length} kauppaa`}
           </div>
