@@ -282,23 +282,8 @@ function mapTjekCategoryV54(offer: UnknownRecord): string {
   const department = tjekTaxonomyTextV67(offer);
   const productText = normalize([offer.name, offer.title, offer.description].filter(Boolean).join(" "));
 
-  // V67: prefer Tjek's own category/department taxonomy when present.
-  // These rules deliberately use category context only; product-name inference below remains
-  // a fallback for legacy rows whose source taxonomy is empty.
-  if (/\b(lemmik|pet|dog|cat)\w*/.test(department)) return "Lemmikit";
-  if (/\b(valmisruo|ready meal|ready food|ateria|deli)\w*/.test(department)) return "Valmisruoka";
-  if (/\b(kala|fish|seafood)\w*/.test(department)) return "Kala";
-  if (/\b(liha|makkara|meat|cold cut|charcuterie)\w*/.test(department)) return "Liha & makkarat";
-  if (/\b(maito|maitotuot|dairy|cheese|yogurt)\w*/.test(department)) return "Maitotuotteet";
-  if (/\b(juoma|beverage|drink|soft drink)\w*/.test(department)) return "Juomat";
-  if (/\b(pakaste|frozen)\w*/.test(department)) return "Pakasteet";
-  if (/\b(hygienia|kosmetiikka|personal care|beauty|hygiene)\w*/.test(department)) return "Hygienia & kosmetiikka";
-  if (/\b(kodinhoito|household|cleaning|clean)\w*/.test(department)) return "Kodinhoito";
-  if (/\b(koti|vapaa aika|home|leisure|garden)\w*/.test(department)) return "Koti & vapaa-aika";
-  if (/\b(kuivatuot|kuiva aine|colonial|pantry|grocery)\w*/.test(department)) return "Kuivatuotteet";
-  if (/\b(makei|keksi|snack|candy|confection|sweet|biscuit)\w*/.test(department)) return "Makeiset & keksit";
-  if (/\b(hedel|vihanne|hevi|fruit|vegetable|produce)\w*/.test(department)) return "Hevi";
-  if (/\b(leip|leipomo|bakery|bread)\w*/.test(department)) return "Leipomo";
+  // V68: product-name rules are authoritative when the product can be identified.
+  // Tjek taxonomy is only a fallback because weekly publications may contain incorrect categories.
 
   // V64: validated against the 34 active K-Market Hakalantori offers.
   // Specific product rules must precede broad department fallbacks.
@@ -363,6 +348,22 @@ function mapTjekCategoryV54(offer: UnknownRecord): string {
   if (department.includes("household") || department.includes("clean")) return "Kodinhoito";
   if (department.includes("personal care") || department.includes("beauty") || department.includes("hygiene")) return "Hygienia & kosmetiikka";
   if (department.includes("colonial")) return "Kuivatuotteet";
+
+  // V68: source taxonomy fallback only after the general product-name rules above.
+  if (/\b(lemmik|pet|dog|cat)\w*/.test(department)) return "Lemmikit";
+  if (/\b(valmisruo|ready meal|ready food|ateria|deli)\w*/.test(department)) return "Valmisruoka";
+  if (/\b(kala|fish|seafood)\w*/.test(department)) return "Kala";
+  if (/\b(liha|makkara|meat|cold cut|charcuterie)\w*/.test(department)) return "Liha & makkarat";
+  if (/\b(maito|maitotuot|dairy|cheese|yogurt)\w*/.test(department)) return "Maitotuotteet";
+  if (/\b(juoma|beverage|drink|soft drink)\w*/.test(department)) return "Juomat";
+  if (/\b(pakaste|frozen)\w*/.test(department)) return "Pakasteet";
+  if (/\b(hygienia|kosmetiikka|personal care|beauty|hygiene)\w*/.test(department)) return "Hygienia & kosmetiikka";
+  if (/\b(kodinhoito|household|cleaning|clean)\w*/.test(department)) return "Kodinhoito";
+  if (/\b(koti|vapaa aika|home|leisure|garden)\w*/.test(department)) return "Koti & vapaa-aika";
+  if (/\b(kuivatuot|kuiva aine|colonial|pantry|grocery)\w*/.test(department)) return "Kuivatuotteet";
+  if (/\b(makei|keksi|snack|candy|confection|sweet|biscuit)\w*/.test(department)) return "Makeiset & keksit";
+  if (/\b(hedel|vihanne|hevi|fruit|vegetable|produce)\w*/.test(department)) return "Hevi";
+  if (/\b(leip|leipomo|bakery|bread)\w*/.test(department)) return "Leipomo";
 
   return "Muut";
 }
