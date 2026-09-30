@@ -13073,6 +13073,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     setEanSearchStartedAutomatically(false);
     eanAutoSearchActiveRef.current = false;
     setLastAutoEanSearch("");
+
+    // V798: vaakatuote merkitsee fyysistä kaupassa asiointia. Vasta sen jälkeen
+    // voidaan verrata valittua kauppaa GPS:ään. Kysely syntyy vain, jos käyttäjä
+    // on <= 200 m jonkin toisen kaupan luona; kotona/kaukana ei kysytä mitään.
+    window.setTimeout(() => confirmWeightProductStoreV798("K"), 0);
   }
 
   async function searchByEan(
@@ -14745,7 +14750,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
   }
 
-  function confirmScannerStoreAfterFirstAddV791(chainHint?: "S" | "K") {
+  function confirmWeightProductStoreV798(chainHint?: "S" | "K") {
     if (scannerStoreCheckDoneRefV791.current) return;
     scannerStoreCheckDoneRefV791.current = true;
 
@@ -14782,17 +14787,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           ? activeStores.kStoreId
           : selectedSpecialStore?.id;
 
-    // GPS pois / ei käyttökelpoista sijaintia: varmista käyttäjältä nykyinen valinta.
-    if (!usingOwnLocation || !gpsCoordsV320) {
-      const label = selectedName || "valittu kauppa";
-      const keepSelected = window.confirm(
-        `Oletko kaupassa ${label}?\n\nOK = Kyllä · Peruuta = Vaihda kauppa`,
-      );
-      if (!keepSelected) {
-        openShopsPanel();
-      }
-      return;
-    }
+    // V798: vaakatuote saa käyttää kauppavarmistusta vain aidossa fyysisessä
+    // kauppatilanteessa. Ilman GPS:ää tai kaukana kaupoista ei kysytä mitään.
+    if (!usingOwnLocation || !gpsCoordsV320) return;
 
     // Moniketjutilanteessa ilman luotettavaa ketjutietoa emme arvaa kauppaa.
     if (!chain || !selectedName) return;
@@ -14982,10 +14979,6 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (cartLimitReached) {
       alert(`Demossa ostoskori on rajattu ${MAX_ITEMS} tuotteeseen.`);
       return;
-    }
-
-    if (eanScannerOpen || eanHtml5ScannerRef.current || eanSearchStartedAutomatically) {
-      window.setTimeout(() => confirmScannerStoreAfterFirstAddV791(), 0);
     }
 
     triggerHaptic();
@@ -15190,9 +15183,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       return;
     }
 
-    if (isScannerAddV787) {
-      window.setTimeout(() => confirmScannerStoreAfterFirstAddV791(result.chain), 0);
-    }
+    // V798: tavallinen EAN/skannerilisäys ei koskaan kysy kaupan vaihtamisesta.
+    // Kauppa on valittu jo ennen hakua. Vain vaakatuote käyttää GPS-kauppavarmistusta.
 
     // EAN/skannerilisäys ei saa siirtää käyttäjää automaattisesti Vertailu-kortille.
     // Vertailu päivittyy taustalla ja avataan vain käyttäjän omasta Vertailu-napista.
