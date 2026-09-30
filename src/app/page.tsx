@@ -4899,6 +4899,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       "/assistants/gosta.png",
       "/assistants/justiina.png",
       "/assistants/arvo.png",
+      // V779: paperipohja kuuluu cold-start-porttiin, ei pelkkään best-effort
+      // preloadiin. Kori/Vertailu/Muistivihko eivät saa avautua ennen kuin
+      // vihkonen.webp on oikeasti ladattu ja dekoodattu selaimen cacheen.
+      "/ui/cart/vihkonen.webp",
     ];
 
     let cancelled = false;
