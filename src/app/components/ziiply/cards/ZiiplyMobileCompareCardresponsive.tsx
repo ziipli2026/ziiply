@@ -153,15 +153,6 @@ function StoreLoadingCard({ index }: { index: number }) {
           {chain}
         </div>
 
-        {index === 0 ? (
-          <div
-            className="absolute left-[12.75rem] top-[0.95rem] z-10 text-[0.72rem] font-black italic tracking-[0.02em] text-[#28402a]/86"
-            style={{ fontFamily: cooperFont }}
-          >
-            Haetaan...
-          </div>
-        ) : null}
-
         <div className="min-w-0">
           <span className="block truncate text-[0.92rem] font-black leading-tight text-transparent">
             Kaupan nimi
@@ -207,7 +198,7 @@ function StoreLoadingCard({ index }: { index: number }) {
 
 
 function RetroMopedOverlay() {
-  const [frame, setFrame] = useState({ x: -126, opacity: 0 });
+  const [frame, setFrame] = useState({ x: 0, opacity: 0 });
 
   useEffect(() => {
     let raf = 0;
@@ -216,8 +207,7 @@ function RetroMopedOverlay() {
 
     const tick = (now: number) => {
       const progress = ((now - startedAt) % durationMs) / durationMs;
-      const x = -126 + progress * 252;
-
+      const x = progress * 42;
       const opacity =
         progress < 0.20
           ? progress / 0.20
@@ -230,16 +220,21 @@ function RetroMopedOverlay() {
     };
 
     raf = window.requestAnimationFrame(tick);
-
     return () => window.cancelAnimationFrame(raf);
   }, []);
 
   return (
-    <div className="pointer-events-none absolute left-[8.55rem] top-[-0.52rem] z-[21] h-[3.15rem] w-[9.8rem] overflow-hidden">
+    <div className="pointer-events-none ml-[2.35rem] flex h-[2.2rem] w-[9.4rem] shrink-0 items-center overflow-visible">
+      <span
+        className="shrink-0 text-[0.72rem] font-black italic tracking-[0.02em] text-[#28402a]/86"
+        style={{ fontFamily: cooperFont }}
+      >
+        Haetaan...
+      </span>
       <img
         src="/icons/ziiply-retro-moped-loader.png?v=3"
-        alt="Haetaan..."
-        className="absolute top-0 h-[4.65rem] w-auto drop-shadow-[0_2px_2px_rgba(44,28,8,0.24)]"
+        alt=""
+        className="ml-1 h-[3.2rem] w-auto shrink-0 drop-shadow-[0_2px_2px_rgba(44,28,8,0.24)]"
         style={{
           transform: `translate3d(${frame.x}px, 0, 0)`,
           opacity: frame.opacity,
@@ -296,8 +291,10 @@ export default function ZiiplyMobileCompareCardresponsive({
 
         <main className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden px-5 pb-[3.6rem] pt-[8.8rem]">
           <div className="relative z-20 mb-3 ml-[3.1rem] max-w-[calc(100%-3.1rem)] shrink-0">
-            <div className="text-[1.46rem] font-black italic leading-none text-[#28402a] drop-shadow-[0_1px_0_rgba(255,247,211,0.62)]" style={{ fontFamily: cooperFont }}>{title}</div>
-            {showSkeleton ? <RetroMopedOverlay /> : null}
+            <div className="flex items-center">
+              <div className="shrink-0 text-[1.46rem] font-black italic leading-none text-[#28402a] drop-shadow-[0_1px_0_rgba(255,247,211,0.62)]" style={{ fontFamily: cooperFont }}>{title}</div>
+              {showSkeleton ? <RetroMopedOverlay /> : null}
+            </div>
             <div className="mt-[0.16rem] text-[0.72rem] font-extrabold text-[#5f5034]">{subtitle || `${comparedCount || visibleStores.length} tuotetta / ${visibleStores.length} kauppaa`}</div>
           </div>
           <div className="flex min-h-0 flex-1 flex-col gap-2.5">
