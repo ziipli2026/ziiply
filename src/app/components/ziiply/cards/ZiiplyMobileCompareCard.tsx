@@ -395,6 +395,11 @@ export default function ZiiplyMobileCompareCardresponsive({
                         </button>
 
                         <div className="mt-2 min-h-[1.26rem]">
+                          {Number(store.missingItems || 0) > 0 ? (
+                            <div className="mb-1.5 rounded-[0.48rem] border-[1.5px] border-[#9a3f24] bg-[#fff0d8] px-2 py-1 text-[0.58rem] font-black leading-tight text-[#7b2f1d]">
+                              ⚠ Vertailu puutteellinen – {store.missingItems} ${Number(store.missingItems) === 1 ? "tuote" : "tuotetta"} ei löytynyt tästä kaupasta
+                            </div>
+                          ) : null}
                           {diffLabel ? (
                             <span
                               className={cx(
