@@ -16,13 +16,15 @@ export const SKAUPAT_PROTOCOL_FALLBACK: SKaupatProtocolConfig = {
 const CONFIG_KEY = "remote-filtered-products";
 let memoryCache: { value: SKaupatProtocolConfig; expiresAt: number } | null = null;
 
+type NeonSql = (strings: TemplateStringsArray, ...values: unknown[]) => Promise<unknown[]>;
+
 const validHash = (value: unknown) =>
   typeof value === "string" && /^[a-f0-9]{64}$/i.test(value);
 
 const validClientVersion = (value: unknown) =>
   typeof value === "string" && /^production-[a-f0-9]{20,}$/i.test(value);
 
-async function ensureTable(sql: ReturnType<typeof neon<false, false>>) {
+async function ensureTable(sql: NeonSql) {
   await sql`
     CREATE TABLE IF NOT EXISTS ziiply_skaupat_protocol (
       config_key TEXT PRIMARY KEY,
@@ -50,7 +52,7 @@ export async function getSKaupatProtocolConfig(): Promise<SKaupatProtocolConfig>
       WHERE config_key = ${CONFIG_KEY}
       LIMIT 1
     `;
-    const row = rows[0];
+    const row = rows[0] as Record<string, unknown> | undefined;
     if (row && validHash(row.persisted_query_hash) && validClientVersion(row.client_version)) {
       const value: SKaupatProtocolConfig = {
         persistedQueryHash: String(row.persisted_query_hash),
