@@ -40,6 +40,8 @@ try{
  run("duplicate-product-id",[...good,good[0]],false,"duplicate ID");
  run("missing-product-id",good.map(x=>({...x,productId:null})),false,"missing string product ID");
  run("numeric-product-id",good.map(x=>({...x,productId:1000})),false,"missing string product ID");
+ run("numeric-product-name",good.map(x=>({...x,name:123})),false,"missing string product name");
+ run("empty-product-name",good.map(x=>({...x,name:"   "})),false,"missing string product name");
  run("missing-store",good.map(x=>({...x,storeId:null})),false,"checkout verification lacks store ID");
  run("missing-effective-date",good.map(x=>({...x,priceValidFrom:null})),false,"checkout verification lacks store ID");
  run("unverified-all",good.map(x=>({...x,checkoutPriceVerified:false})),false,"priced feed row is not checkout verified");
