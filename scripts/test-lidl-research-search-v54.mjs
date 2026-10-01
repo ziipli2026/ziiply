@@ -28,6 +28,20 @@ assert.deepEqual(searchResearch("kananmuna",[
  {lidlProductId:"egg",name:"Kotimaiset kananmunat 10 kpl"}
 ]).map(r=>r.lidlProductId),["egg"]);
 assert.deepEqual(searchResearch("rieska",sample).map(r=>r.lidlProductId),[]);
+assert.deepEqual(searchResearch("maito 1 l",[
+ {lidlProductId:"milk-1",name:"Täysmaito 1 l"},
+ {lidlProductId:"milk-2",name:"Täysmaito 2 l"},
+ {lidlProductId:"milk-no-size",name:"Täysmaito"}
+]).map(r=>r.lidlProductId),["milk-1","milk-2"]);
+assert.deepEqual(searchResearch("pasta carbonara",[
+ {lidlProductId:"carbonara",name:"Pasta Carbonara"},
+ {lidlProductId:"plain",name:"Pasta"},
+ {lidlProductId:"other",name:"Carbonara kastike"}
+]).map(r=>r.lidlProductId),["carbonara"]);
+assert.deepEqual(searchResearch("maito banaani",[
+ {lidlProductId:"milk",name:"Täysmaito"},
+ {lidlProductId:"banana",name:"Banaani"}
+]),[]);
 assert.equal(searchResearch("täysmaito",sample)[0].regularPriceEur,null);
 assert.equal(searchResearch("täysmaito",sample)[0].displayedPriceEur,null);
 assert.equal(searchResearch("täysmaito",sample)[0].storeAvailability,"unknown");
