@@ -23,6 +23,9 @@ function run(label,records,expected,reason=null){
 }
 try{
  run("valid-authorized-store-feed",good,true);
+ run("null-record",[...good,null],false,"expected product object");
+ run("string-record",[...good,"not a product"],false,"expected product object");
+ run("array-record",[...good,[]],false,"expected product object");
  run("public-price-not-checkout",good.map(x=>({...x,priceSource:"lidl-official-public"})),false,"public website observation");
  run("missing-staple",good.slice(1),false,"Core staple gaps");
  run("duplicate-product-id",[...good,good[0]],false,"duplicate ID");
