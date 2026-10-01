@@ -6,7 +6,7 @@ import {spawnSync} from "node:child_process";
 import {fileURLToPath} from "node:url";
 const dir=mkdtempSync(join(tmpdir(),"ziiply-lidl-gate-"));
 const terms=["maito","kananmuna","voi","pasta","jauheliha","banaani","peruna","juusto"];
-const good=terms.map((name,i)=>({productId:String(1000+i),name,regularPriceEur:1.5,storeId:"FI0326",storeScope:"FI0326",observedAt:"2026-10-01T12:00:00+03:00",priceValidFrom:"2026-10-01",priceSource:"authorized-store-feed",checkoutPriceVerified:true,ean:null,ian:String(7000+i)}));
+const good=terms.map((name,i)=>({productId:String(1000+i),name,regularPriceEur:1.5,storeId:"FI0326",storeScope:"FI0326",observedAt:"2026-10-01T12:00:00+03:00",priceValidFrom:"2026-10-01",priceSource:"authorized-store-feed",evidenceReference:"EXAMPLE-AUTHORIZED-FEED-BATCH",checkoutPriceVerified:true,ean:null,ian:String(7000+i)}));
 function run(label,records,expected,reason=null){
  const path=join(dir,label+".json");writeFileSync(path,JSON.stringify({records}));
  const result=spawnSync(process.execPath,[fileURLToPath(new URL("./check-lidl-feed-v48.mjs",import.meta.url)),path],{encoding:"utf8"});
@@ -37,6 +37,7 @@ try{
  run("array-record",[...good,[]],false,"expected product object");
  run("public-price-not-checkout",good.map(x=>({...x,priceSource:"lidl-official-public"})),false,"public website observation");
  run("unknown-verification-source",good.map(x=>({...x,priceSource:"self-declared"})),false,"approved evidence source");
+ run("authorized-feed-without-evidence",good.map(x=>({...x,evidenceReference:null})),false,"authorized feed verification requires a nonempty evidence reference");
  run("receipt-without-evidence",good.map(x=>({...x,priceSource:"verified-store-receipt"})),false,"nonempty evidence reference");
  run("verified-store-receipt",good.map(x=>({...x,priceSource:"verified-store-receipt",evidenceReference:"EXAMPLE-RECEIPT-REFERENCE"})),true);
  run("missing-staple",good.slice(1),false,"Core staple gaps");
