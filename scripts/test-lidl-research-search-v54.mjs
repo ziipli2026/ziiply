@@ -150,6 +150,15 @@ for(const query of ["peruna","banaani","jauheliha"]){
  assert.ok(Array.isArray(hits));
  assert.ok(hits.every(r=>r.ean===null&&r.displayedPriceEur===null&&r.checkoutPriceVerified===false&&r.storeAvailability==="unknown"));
 }
+const corpusQueries=["peruna","banaani","jauheliha","juusto","leipä"];
+for(const query of corpusQueries){
+ const first=searchResearch(query,corpus);
+ const second=searchResearch(query,corpus);
+ assert.deepEqual(second,first,"Corpus query must be deterministic: "+query);
+ assert.equal(new Set(first.map(r=>r.lidlProductId)).size,first.length,"No duplicate Lidl product IDs: "+query);
+ assert.ok(first.length<=15,"Default result limit: "+query);
+ assert.ok(first.every(r=>r.source==="lidl.fi-public-research"&&r.ean===null&&r.regularPriceEur===null&&r.displayedPriceEur===null&&r.storeAvailability==="unknown"&&r.checkoutPriceVerified===false),"Research feed safety: "+query);
+}
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
