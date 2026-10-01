@@ -107,6 +107,9 @@ assert.deepEqual(searchResearch("maito",[
 assert.equal(searchResearch("maito",sample,0).length,0);
 assert.equal(searchResearch("maito",sample,Number.NaN).length,1);
 assert.equal(searchResearch("maito",sample,-5).length,0);
+assert.equal(searchResearch("maito",sample,"0").length,1);
+assert.equal(searchResearch("maito",sample,null).length,1);
+assert.equal(searchResearch("maito",sample,Infinity).length,1);
 assert.deepEqual(searchResearch("olut",[{lidlProductId:"10038275",name:"Olut"},{lidlProductId:"safe-fixture",name:"Olutniminen testituote"}]).map(r=>r.lidlProductId),["safe-fixture"]);
 assert.deepEqual(searchResearch("testi",[{lidlProductId:"10038306",name:"Testi"},{lidlProductId:"10038307",name:"Testi"},{lidlProductId:"10038308",name:"Testi"}]),[]);
 assert.deepEqual(searchResearch("maito",[null,...sample]).map(r=>r.lidlProductId),["2"]);
