@@ -1,7 +1,7 @@
 /** Offline, dependency-free guard for manually transcribed Lidl leaflet research. */
 import fs from "node:fs";
 import {fileURLToPath} from "node:url";
-const file=fileURLToPath(new URL("../data/lidl/hyvinkaa-paper-leaflet-w40-2026.fixture.json",import.meta.url));
+const file=process.argv[2]??fileURLToPath(new URL("../data/lidl/hyvinkaa-paper-leaflet-w40-2026.fixture.json",import.meta.url));
 const data=JSON.parse(fs.readFileSync(file,"utf8"));
 const errors=[];
 if(data.purpose!=="manual-leaflet-cross-check-only"||data.completeLeaflet!==false)errors.push("Research-only/incomplete-leaflet flags missing");
