@@ -53,6 +53,7 @@ try{
  run("invalid-zero-price",good.map(x=>({...x,regularPriceEur:0})),false,"invalid regular price");
  run("ian-reused-as-ean",good.map(x=>({...x,ean:x.ian})),false,"suspicious IAN reused as EAN");
  run("valid-gtin13",good.map(x=>({...x,ean:"6410405082657",eanSource:"verified-product-packaging",eanVerifiedForProduct:true})),true);
+ run("numeric-gtin",good.map(x=>({...x,ean:6410405082657,eanSource:"verified-product-packaging",eanVerifiedForProduct:true})),false,"EAN must be a string");
  run("bad-gtin-check-digit",good.map(x=>({...x,ean:"6410405082658",eanSource:"verified-product-packaging",eanVerifiedForProduct:true})),false,"invalid EAN/GTIN check digit");
  run("valid-checksum-without-product-proof",good.map(x=>({...x,ean:"6410405082657"})),false,"EAN needs product-specific verification");
  run("ean-proof-without-source",good.map(x=>({...x,ean:"6410405082657",eanVerifiedForProduct:true})),false,"EAN needs product-specific verification");
