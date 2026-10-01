@@ -30,6 +30,8 @@ try{
  run("empty-provenance",good.map(x=>({...x,priceSource:"   "})),false);
  run("invalid-zero-price",good.map(x=>({...x,regularPriceEur:0})),false);
  run("ian-reused-as-ean",good.map(x=>({...x,ean:x.ian})),false);
- run("valid-gtin13",good.map(x=>({...x,ean:"6410405082657"})),true);
- run("bad-gtin-check-digit",good.map(x=>({...x,ean:"6410405082658"})),false);
+ run("valid-gtin13",good.map(x=>({...x,ean:"6410405082657",eanSource:"verified-product-packaging",eanVerifiedForProduct:true})),true);
+ run("bad-gtin-check-digit",good.map(x=>({...x,ean:"6410405082658",eanSource:"verified-product-packaging",eanVerifiedForProduct:true})),false);
+ run("valid-checksum-without-product-proof",good.map(x=>({...x,ean:"6410405082657"})),false);
+ run("ean-proof-without-source",good.map(x=>({...x,ean:"6410405082657",eanVerifiedForProduct:true})),false);
 }finally{rmSync(dir,{recursive:true,force:true});}
