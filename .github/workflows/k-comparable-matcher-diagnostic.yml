@@ -51,3 +51,21 @@ jobs:
           grep -q '"size-conflict-with-source-ean":1' /tmp/k-rejected-output.txt
           grep -q '"hard-k-match":1' /tmp/k-rejected-output.txt
           echo 'PASS: empty candidate feed and matcher rejection are distinguishable'
+      - name: Assert reverse package-size guard and exact identity
+        run: |
+          node - <<'NODE'
+          const assert = require('node:assert/strict');
+          const core = require('/tmp/ziiply-core/ziiplyCore.js');
+          const source375 = 'Kivikylän Huiluntuhti 375 g';
+          const ean375 = '6409620012684';
+          const wrong400 = [
+            {name:'Kivikylän Huiluntuhti grillimakkara 400g',ean:'6406300000261',price:3.69},
+            {name:'Kivikylän Kuoreton Huiluntuhti grillimakkara 400g',ean:'6406300014237',price:3.69},
+          ];
+          assert.equal(core.pickBestKProduct(wrong400,source375,ean375),undefined,
+            '375g source must not select 400g candidates');
+          const exact400 = {name:'Kivikylän Huiluntuhti grillimakkara 400g',ean:'6406300000261',price:3.69};
+          assert.equal(core.pickBestKProduct([exact400],exact400.name,exact400.ean)?.ean,exact400.ean,
+            'exact 400g EAN must remain selectable');
+          console.log('PASS: reverse size conflict rejected; exact EAN selected');
+          NODE
