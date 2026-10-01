@@ -10,12 +10,14 @@ const stapleForms={maito:new Set(["maito","täysmaito","kevytmaito","rasvatonmai
 const matches=(word,term)=>word===term||(exactStaples.has(term)?[...stapleForms[term]].some(form=>norm(form)===word):term.length>=4&&word.startsWith(term));
 export function searchResearch(query,rows=data.records,limit=15){
  const q=tokens(query).map(t=>t==="kananmunat"?"kananmuna":t);if(!q.length)return [];
- return rows.filter(r=>r&&typeof r==="object"&&!quarantinedIds.has(String(r.lidlProductId))).map(r=>{
+ const safeLimit=Number.isFinite(limit)?Math.max(0,Math.min(50,Math.trunc(limit))):15;
+ const seen=new Set();
+ return rows.filter(r=>r&&typeof r==="object"&&!Array.isArray(r)&&typeof r.lidlProductId==="string"&&r.lidlProductId.trim()&&!quarantinedIds.has(r.lidlProductId)).map(r=>{
   const name=tokens([r.name,r.variant].filter(Boolean).join(" "));
   const score=q.reduce((n,t)=>n+(name.includes(t)?10:name.some(w=>matches(w,t))?3:0),0);
   const all=q.every(t=>name.some(w=>matches(w,t)));
   return {r,score:all?score:0};
- }).filter(x=>x.score>0).sort((a,b)=>b.score-a.score||String(a.r.name).localeCompare(String(b.r.name),"fi-FI")).slice(0,Math.max(0,Math.min(50,limit))).map(({r})=>({
+ }).filter(x=>x.score>0).sort((a,b)=>b.score-a.score||String(a.r.name).localeCompare(String(b.r.name),"fi-FI")).filter(({r})=>{if(seen.has(r.lidlProductId))return false;seen.add(r.lidlProductId);return true;}).slice(0,safeLimit).map(({r})=>({
   lidlProductId:String(r.lidlProductId),name:r.name,variant:r.variant??null,
   source:"lidl.fi-public-research",observedDate:r.observedDate??null,
   ean:null,regularPriceEur:null,storeAvailability:"unknown",
