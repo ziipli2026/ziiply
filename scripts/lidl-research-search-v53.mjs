@@ -9,11 +9,11 @@ const exactStaples=new Set(["maito","voi","pasta","kananmuna"]);
 const stapleForms={maito:new Set(["maito","täysmaito","kevytmaito","rasvatonmaito","laktoositonmaito"]),voi:new Set(["voi","meijerivoi"]),pasta:new Set(["pasta"]),kananmuna:new Set(["kananmuna","kananmunat"])};
 const matches=(word,term)=>word===term||(exactStaples.has(term)?[...stapleForms[term]].some(form=>norm(form)===word):term.length>=4&&word.startsWith(term));
 export function searchResearch(query,rows=data.records,limit=15){
- const q=tokens(query).map(t=>t==="kananmunat"?"kananmuna":t);if(!q.length)return [];
+ const q=tokens(query).map(t=>t==="kananmunat"?"kananmuna":t);if(!q.length||!Array.isArray(rows))return [];
  const safeLimit=Number.isFinite(limit)?Math.max(0,Math.min(50,Math.trunc(limit))):15;
  const seen=new Set();
  return rows.filter(r=>r&&typeof r==="object"&&!Array.isArray(r)&&typeof r.lidlProductId==="string"&&r.lidlProductId.trim()&&!quarantinedIds.has(r.lidlProductId)).map(r=>{
-  const name=tokens([r.name,r.variant].filter(Boolean).join(" "));
+  const name=tokens([r.name,r.variant].filter(v=>typeof v==="string").join(" "));
   const score=q.reduce((n,t)=>n+(name.includes(t)?10:name.some(w=>matches(w,t))?3:0),0);
   const all=q.every(t=>name.some(w=>matches(w,t)));
   return {r,score:all?score:0};
