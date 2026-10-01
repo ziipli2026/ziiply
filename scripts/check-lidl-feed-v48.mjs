@@ -8,6 +8,7 @@ if(!Array.isArray(rows)){console.error("Expected array or {records: array}");pro
 const errors=[], seen=new Set();
 const words=["maito","kananmuna","voi","pasta","jauheliha","banaani","peruna","juusto"];
 const normalize=s=>String(s??"").toLocaleLowerCase("fi-FI").normalize("NFKC");
+const validGtin=value=>{const digits=String(value);if(!/^(?:[0-9]{8}|[0-9]{12}|[0-9]{13}|[0-9]{14})$/.test(digits))return false;const a=[...digits].map(Number);const check=a.pop();let sum=0;for(let i=a.length-1,weight=3;i>=0;i--,weight=weight===3?1:3)sum+=a[i]*weight;return (10-sum%10)%10===check;};
 const matching=(name,q)=>normalize(name).split(/[^\p{L}\p{N}]+/u).some(t=>t===q||t.endsWith(q));
 for(const [i,r] of rows.entries()){
  const id=String(r.productId??r.lidlProductId??"").trim();
