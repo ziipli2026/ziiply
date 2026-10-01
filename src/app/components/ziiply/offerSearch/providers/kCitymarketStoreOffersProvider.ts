@@ -70,10 +70,8 @@ export async function probeKCitymarketStoreOffers(options: {
   const offerLinkSeen = offerLinks.length > 0;
   // Research-only hints from page markup. Never fetch these automatically: a URL
   // may require session context or refer to a different store.
-  const embeddedOfferEndpointHints = [...html.matchAll(/(?:https?:\\/\\/[^"'<>\\s]+|\\/api\\/[^"'<>\\s]+)/gi)]
-    .map(match => match[0].replace(/&amp;/g, "&"))
+  const embeddedOfferEndpointHints = offerLinks
     .filter(value => /offer|tarjou|etu|campaign/i.test(value))
-    .filter((value, index, all) => all.indexOf(value) === index)
     .slice(0, 15);
   const evidence = { storePageUrl: response.url, storePageHttp: response.status, storeIdentitySeen: identitySeen, offerLinkSeen, offerLinks, embeddedOfferEndpointHints };
   if (!identitySeen) return {
