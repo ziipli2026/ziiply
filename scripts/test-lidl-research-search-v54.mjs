@@ -11,6 +11,15 @@ assert.deepEqual(searchResearch("täysmaito",sample).map(r=>r.lidlProductId),["2
 assert.deepEqual(searchResearch("maitosuklaa",sample).map(r=>r.lidlProductId),["1"]);
 assert.deepEqual(searchResearch("maito",[{lidlProductId:"x",name:"Maitosuklaa 100 g"}]),[]);
 assert.deepEqual(searchResearch("pasta",sample).map(r=>r.lidlProductId),["3"]);
+assert.deepEqual(searchResearch("voi",[
+ {lidlProductId:"butter",name:"Meijerivoi 500 g"},
+ {lidlProductId:"bread",name:"Voileipä 200 g"},
+ {lidlProductId:"pastry",name:"Voitaikina 500 g"}
+]).map(r=>r.lidlProductId),["butter"]);
+assert.deepEqual(searchResearch("maito",[
+ {lidlProductId:"milk",name:"Laktoositon maito 1 l"},
+ {lidlProductId:"chocolate",name:"Maitosuklaa 100 g"}
+]).map(r=>r.lidlProductId),["milk"]);
 assert.deepEqual(searchResearch("kananmunat",[
  {lidlProductId:"egg",name:"Kotimainen kananmuna 10 kpl"},
  {lidlProductId:"other",name:"Kananmunaton majoneesi"}
