@@ -3281,3 +3281,34 @@ export function pickBestKProduct(items: KProduct[], query: string, ean?: string)
   return undefined;
 }
 
+
+/** Preserve essential product attributes when comparing different retail brands. */
+export function isComparisonAttributeCompatible(sourceName: string, candidateName: string): boolean {
+  const source = normalize(sourceName);
+  const candidate = normalize(candidateName);
+  const sourceSize = parseMetricSize(sourceName);
+  const candidateSize = parseMetricSize(candidateName);
+  if (sourceSize && (!candidateSize || sourceSize.unitGroup !== candidateSize.unitGroup || sourceSize.amount !== candidateSize.amount)) return false;
+  const group = (name: string) => {
+    if (/\\bpiim[aä]\\b/.test(name)) return "piima";
+    if (/\\bmaito\\b/.test(name)) return "maito";
+    if (/\\bjogurtti\\b/.test(name)) return "jogurtti";
+    return "";
+  };
+  const sourceGroup = group(source);
+  if (sourceGroup && group(candidate) !== sourceGroup) return false;
+  for (const attribute of ["laktoositon", "rasvaton", "kevyt", "täys", "luomu"]) {
+    if (new RegExp("\\b" + attribute + "\\b").test(source) !== new RegExp("\\b" + attribute + "\\b").test(candidate)) return false;
+  }
+  if (/\\bab.piim[aä]\\b/.test(source) !== /\\bab.piim[aä]\\b/.test(candidate)) return false;
+  return !isHardRejectedAlternative(sourceName, candidateName);
+}
+
+export function pickCheapestCompatibleComparisonProduct<T extends { name: string; price: number }>(
+  sourceName: string,
+  candidates: T[],
+): T | undefined {
+  return candidates
+    .filter((candidate) => Number(candidate.price) > 0 && isComparisonAttributeCompatible(sourceName, candidate.name))
+    .sort((a, b) => a.price - b.price)[0];
+}
