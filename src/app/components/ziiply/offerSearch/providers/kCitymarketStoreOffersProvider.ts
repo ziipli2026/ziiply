@@ -51,7 +51,12 @@ export async function probeKCitymarketStoreOffers(options: {
     return { ...received, status: "UNVERIFIED_STORE", diagnostic: "Store page redirected to another context." };
   }
   const html = await response.text();
-  const identitySeen = html.toLowerCase().includes(storeId.replace(/^k-citymarket-/, "").replace(/-/g, " "));
+  const fold = (value: string) => value.toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+  const storeName = storeId.replace(/^k-citymarket-/, "").replace(/-/g, " ");
+  // Compare against visible heading/title, not an arbitrary occurrence of the town in page scripts.
+  const headings = [...html.matchAll(/<(?:h1|title)\\b[^>]*>([\\s\\S]*?)<\\/(?:h1|title)>/gi)]
+    .map(match => fold(match[1].replace(/<[^>]*>/g, " ")));
+  const identitySeen = headings.some(heading => heading.includes("citymarket") && heading.includes(fold(storeName)));
   const offerLinkSeen = /tarjoushaku|>Edut<|edut-ja-tarjoukset/i.test(html);
   const evidence = { storePageUrl: response.url, storePageHttp: response.status, storeIdentitySeen: identitySeen, offerLinkSeen };
   if (!identitySeen) return {
