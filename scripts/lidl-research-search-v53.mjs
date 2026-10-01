@@ -6,7 +6,7 @@ const quarantinedIds=new Set((data.quarantinedProductIds??[]).map(id=>String(id)
 const norm=s=>String(s??"").toLocaleLowerCase("fi-FI").normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^\p{L}\p{N}]+/gu," ").trim();
 const tokens=s=>norm(s).split(/\s+/).filter(Boolean);
 const exactStaples=new Set(["maito","voi","pasta","kananmuna","jauheliha","peruna","banaani","juusto","leipa"]);
-const stapleForms={maito:new Set(["maito","täysmaito","kevytmaito","rasvatonmaito","laktoositonmaito"]),voi:new Set(["voi","meijerivoi"]),pasta:new Set(["pasta"]),kananmuna:new Set(["kananmuna","kananmunat"]),jauheliha:new Set(["jauheliha"]),peruna:new Set(["peruna","perunat"]),banaani:new Set(["banaani","banaanit"]),juusto:new Set(["juusto","juustot"]),leipa:new Set(["leipa","leivat"])};
+const stapleForms={maito:new Set(["maito","täysmaito","kevytmaito","rasvatonmaito","laktoositonmaito"]),voi:new Set(["voi","meijerivoi"]),pasta:new Set(["pasta"]),kananmuna:new Set(["kananmuna","kananmunat"]),jauheliha:new Set(["jauheliha"]),peruna:new Set(["peruna","perunat"]),banaani:new Set(["banaani","banaanit"]),juusto:new Set(["juusto","juustot"]),leipa:new Set(["leipa","leivat","ruisleipa","kauraleipa","vehnaleipa","hapanjuurileipa","siemenhapanjuurileipa","kiviuunileipa","artesaanileipa","rusticoleipa","myslileipa","herkkumyslileipa","pitaleipa","tomaattimozzarellaleipa","perunasipulileipa"])};
 const matches=(word,term)=>word===term||(exactStaples.has(term)?[...stapleForms[term]].some(form=>norm(form)===word):term.length>=4&&word.startsWith(term));
 export function searchResearch(query,rows=data.records,limit=15){
  if(typeof query!=="string")return [];
