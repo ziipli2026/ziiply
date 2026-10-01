@@ -20,3 +20,9 @@ A permitted source should provide: FI store ID or store scope; product ID; exact
 
 ## Recommended acquisition
 Request a direct authorized Finnish Lidl product/pricing feed or written terms for a permitted integration. Keep any partner feed behind a source adapter and run coverage tests offline before enabling it in Justiina.
+
+## Integration status after v50 gate hardening
+- The 226 official-site grocery candidates are research observations, **not** a store-level assortment or regular-price feed. Current offline staple coverage still lacks `maito`, `kananmuna`, `voi` and `pasta`.
+- `scripts/check-lidl-feed-v48.mjs` accepts only declared evidence categories `authorized-store-feed` and `verified-store-receipt` for checkout-verified rows. This is a **schema guard, not proof** that an authorization, receipt, price, or store match is genuine. Verify the underlying source and rights outside the script before production import.
+- Keep the research JSON out of `src/app/api/lidl/products/route.ts`, Justiina and basket comparison. Missing EAN or regular price must stay null rather than being inferred from IAN, product ID or a promotional website price.
+- A successful Vercel deployment confirms build/deployment status, not Lidl catalog coverage or the separate GitHub Actions regression result.
