@@ -27,6 +27,9 @@ try{
  test("missing-end-note",d=>{d.records[0].validThrough=null},false,"unknown-end provenance");
  test("unknown-end-without-status",d=>{d.records[0].validThrough=null;d.records[0].note="Leaflet page states starting Thu 1 Oct; no confirmed end date visible.";},false,"explicitly marked unknown");
  test("unknown-end-with-status",d=>{d.records[0].validThrough=null;d.records[0].note="Leaflet page states starting Thu 1 Oct; no confirmed end date visible.";d.records[0].endDateStatus="unknown";},true);
+ test("invalid-end-status",d=>{d.records[0].endDateStatus="open-ended";},false,"invalid end-date status");
+ test("dated-offer-marked-unknown",d=>{d.records[0].endDateStatus="unknown";},false,"inconsistent end-date status");
+ test("blank-name",d=>{d.records[0].name=" ";},false,"nonempty strings");
  test("bundle-quantity",d=>{d.records.find(r=>r.priceBasis==="bundle").requiredQuantity=1},false,"requires at least 2");
  test("fabricated-ean",d=>{d.records[0].ean="6410405082657"},false,"must not assert EAN");
  test("fabricated-regular-price",d=>{d.records[0].regularPriceEur=0.79},false,"must not assert EAN");
