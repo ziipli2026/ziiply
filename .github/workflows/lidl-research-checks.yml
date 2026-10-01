@@ -9,6 +9,8 @@ on:
       - 'data/lidl/hyvinkaa-paper-leaflet-w40-2026.fixture.json'
       - 'scripts/test-lidl-feed-gate-v50.mjs'
       - 'scripts/audit-lidl-research-v49.mjs'
+      - 'scripts/lidl-research-search-v53.mjs'
+      - 'scripts/test-lidl-research-search-v54.mjs'
       - 'data/lidl/official-catalog-research-v43-2026-10-01.json'
       - 'data/lidl/official-grocery-candidates-v44-2026-10-01.json'
       - '.github/workflows/lidl-research-checks.yml'
@@ -32,3 +34,5 @@ jobs:
         run: node scripts/check-lidl-leaflet-fixture-v51.mjs
       - name: Test leaflet validator rejection cases
         run: node scripts/test-lidl-leaflet-fixture-v52.mjs
+      - name: Test isolated Lidl name-only search
+        run: node scripts/test-lidl-research-search-v54.mjs
