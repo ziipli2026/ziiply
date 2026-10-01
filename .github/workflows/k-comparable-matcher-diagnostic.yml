@@ -95,3 +95,23 @@ jobs:
           assert.equal(core.pickBestKProduct(candidates,source,exact.ean)?.ean,exact.ean);
           console.log('PASS: exact EAN wins alongside rejected variants');
           NODE
+      - name: Assert snapshot envelope and positive match diagnostic
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const fs = require('node:fs');
+          fs.writeFileSync('/tmp/k-snapshot.json',JSON.stringify({
+            store:'offline-fixture',
+            items:[{name:'Kivikylän Huiluntuhti grillimakkara 400 g',ean:'6406300000261',price:3.69}]
+          }));
+          NODE
+          node scripts/audit-k-comparable-diagnostics-20261001.cjs "Kivikylän Huiluntuhti grillimakkara 400 g" 6406300000261 /tmp/k-snapshot.json | tee /tmp/k-positive-output.txt
+          grep -q '"status":"MATCH_FOUND"' /tmp/k-positive-output.txt
+          grep -q '"bestEan":"6406300000261"' /tmp/k-positive-output.txt
+          printf '{"items":{}}\n' > /tmp/k-invalid-snapshot.json
+          if node scripts/audit-k-comparable-diagnostics-20261001.cjs "Kivikylän Huiluntuhti grillimakkara 400 g" 6406300000261 /tmp/k-invalid-snapshot.json > /tmp/k-invalid-output.txt 2>&1; then
+            echo 'FAIL: malformed candidate snapshot was accepted'
+            exit 1
+          fi
+          grep -q 'INVALID_CANDIDATES' /tmp/k-invalid-output.txt
+          echo 'PASS: valid snapshot yields exact match; malformed snapshot fails clearly'
