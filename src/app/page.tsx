@@ -2894,6 +2894,31 @@ function KauppiasMobileTopBar({
 }
 
 
+// V758: Gosta cart prices must come from numeric provider data, not display text
+// such as "7,00 € / 2 kpl". A multi-buy card represents one cart unit.
+function getGostaCartPriceV758(offer: any): { total: number; unit: number } {
+  const source = offer?.__sourceOfferSearchResult || {};
+  const numeric = (value: unknown): number | null => {
+    if (typeof value === "number") return Number.isFinite(value) && value >= 0 ? value : null;
+    const raw = String(value ?? "").trim();
+    const match = raw.match(/(?:^|\/\s*)(\d+(?:[,.]\d{1,2})?)(?=\s*(?:€|$))/);
+    const plain = /^\d+(?:[,.]\d{1,2})?$/.test(raw) ? raw : match?.[1];
+    if (!plain) return null;
+    const n = Number(plain.replace(",", "."));
+    return Number.isFinite(n) && n >= 0 ? n : null;
+  };
+  const total = numeric(source.price) ?? numeric(offer?.offerPrice) ?? numeric(offer?.price) ?? 0;
+  const quantity = Number(source?.debug?.offerQuantity ?? source?.offerQuantity);
+  const chain = String(offer?.chain || source?.chain || "").toUpperCase();
+  const eurosparEquivalent = numeric(offer?.singleEquivalentPrice ?? source?.singleEquivalentPrice);
+  const unit = chain === "EUROSPAR" && offer?.priceBasis === "multi-buy-total" && eurosparEquivalent != null
+    ? eurosparEquivalent
+    : chain === "K" && Number.isInteger(quantity) && quantity > 1
+      ? Math.round((total / quantity) * 100) / 100
+      : total;
+  return { total, unit };
+}
+
 export default function Page() {
   const TopbarResponsiveCard = ((TopbarResponsiveCardModule as any).default ||
     (TopbarResponsiveCardModule as any).TopbarResponsiveCard ||
@@ -22139,17 +22164,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 return;
               }
 
-              const numericPrice = Number(
-                String(offer.offerPrice || offer.price || "")
-                  .replace(",", ".")
-                  .replace(/[^\d.-]/g, ""),
-              );
-              const eurosparUnitPrice =
-                String(offer.chain || "").toUpperCase() === "EUROSPAR" &&
-                offer.priceBasis === "multi-buy-total" &&
-                Number.isFinite(Number(offer.singleEquivalentPrice))
-                  ? Number(offer.singleEquivalentPrice)
-                  : numericPrice;
+              const { total: numericPrice, unit: eurosparUnitPrice } = getGostaCartPriceV758(offer);
 
               const newItem: CartItem = {
                 id: String(offer.id || `offer-${Date.now()}`),
@@ -22196,17 +22211,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 if (isWeightedOffer) continue;
                 if (nextCart.some((item) => normalize(item.name) === normalize(name))) continue;
 
-                const numericPrice = Number(
-                  String(offer.offerPrice || offer.price || "")
-                    .replace(",", ".")
-                    .replace(/[^\d.-]/g, ""),
-                );
-                const eurosparUnitPrice =
-                  String(offer.chain || "").toUpperCase() === "EUROSPAR" &&
-                  offer.priceBasis === "multi-buy-total" &&
-                  Number.isFinite(Number(offer.singleEquivalentPrice))
-                    ? Number(offer.singleEquivalentPrice)
-                    : numericPrice;
+                const { total: numericPrice, unit: eurosparUnitPrice } = getGostaCartPriceV758(offer);
 
                 nextCart = [
                   ...nextCart,
