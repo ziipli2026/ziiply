@@ -133,3 +133,16 @@ jobs:
           node scripts/audit-k-comparable-diagnostics-20261001.cjs "Kivikylän Huiluntuhti grillimakkara 400 g" 6406300000261 /tmp/k-candidates.json | tee /tmp/k-array-provenance-output.txt
           grep -q '"kind":"unlabelled-offline-array"' /tmp/k-array-provenance-output.txt
           echo 'PASS: provenance is explicit and unlabelled arrays are not presented as live store data'
+      - name: Assert malformed candidate rows fail explicitly
+        run: |
+          set -euo pipefail
+          printf '{"items":[null]}\n' > /tmp/k-null-row.json
+          printf '{"items":[{"name":"   ","price":3.69}]}\n' > /tmp/k-blank-name.json
+          for file in /tmp/k-null-row.json /tmp/k-blank-name.json; do
+            if node scripts/audit-k-comparable-diagnostics-20261001.cjs "Kivikylän Huiluntuhti grillimakkara 400 g" 6406300000261 "$file" > /tmp/k-malformed-row-output.txt 2>&1; then
+              echo "FAIL: malformed row accepted: $file"
+              exit 1
+            fi
+            grep -Fq 'INVALID_CANDIDATE_ROW: items[0]' /tmp/k-malformed-row-output.txt
+          done
+          echo 'PASS: malformed candidate rows are rejected with a clear diagnostic'
