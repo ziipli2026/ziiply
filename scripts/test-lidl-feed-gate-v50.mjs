@@ -21,6 +21,9 @@ try{
  run("missing-store",good.map(x=>({...x,storeId:null})),false);
  run("missing-effective-date",good.map(x=>({...x,priceValidFrom:null})),false);
  run("unverified-all",good.map(x=>({...x,checkoutPriceVerified:false})),false);
+ run("partially-unverified",[...good.slice(0,7),{...good[7],checkoutPriceVerified:false}],false);
+ run("store-scope-mismatch",good.map(x=>({...x,storeScope:"FI9999"})),false);
+ run("invalid-effective-date",good.map(x=>({...x,priceValidFrom:"today"})),false);
  run("invalid-zero-price",good.map(x=>({...x,regularPriceEur:0})),false);
  run("ian-reused-as-ean",good.map(x=>({...x,ean:x.ian})),false);
 }finally{rmSync(dir,{recursive:true,force:true});}
