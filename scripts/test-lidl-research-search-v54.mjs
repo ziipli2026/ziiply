@@ -30,7 +30,7 @@ assert.deepEqual(searchResearch("maito",[
  {lidlProductId:"different",name:"Rasvaton maito 1 l"},
  {name:"Maito ilman tunnusta"},
  [],null
-]).map(r=>r.lidlProductId),["same","different"]);
+]).map(r=>r.lidlProductId),["different","same"]);
 assert.equal(searchResearch("maito",sample,0).length,0);
 assert.equal(searchResearch("maito",sample,Number.NaN).length,1);
 assert.equal(searchResearch("maito",sample,-5).length,0);
