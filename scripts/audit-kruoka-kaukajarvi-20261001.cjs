@@ -1,4 +1,4 @@
-// Snapshot: 2026-10-01 K-Supermarket Kaukajärvi, 41 active offers.
+// Snapshot: 2026-10-01 Kaukajärvi 41 offers + Munckinkatu 2 category regressions.
 // This executes the REAL provider classifier, not a copied approximation.
 const fs=require("node:fs"); const vm=require("node:vm"); const ts=require("typescript");
 const source=fs.readFileSync("src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts","utf8");
@@ -176,5 +176,5 @@ const cases=[
   ["Pirkka neulelangat", "Koti & vapaa-aika"]
 ];
 let wrong=0;for(const [name,expected] of cases){const originalWrong={"HÄRKIS HÄRKÄPAPUMURSKAT":"Kala","ISOT BURGERIT":"Maitotuotteet","SUODATIN- tai PAPUKAHVIT":"Kuivatuotteet","Oreo TÄYTEKEKSIT":"Leipomo"}; const originalCategory=/neulelangat/i.test(name)?"Muut":(originalWrong[name]??expected); const actual=classify({name,department:originalCategory});if(actual!==expected){wrong++;console.error("CATEGORY_FAIL",JSON.stringify({name,expected,actual}));}}
-console.log("KAUKAJARVI_CATEGORY_AUDIT",JSON.stringify({total:cases.length,wrong,passed:cases.length-wrong}));
+console.log("KRUOKA_CATEGORY_AUDIT",JSON.stringify({total:cases.length,wrong,passed:cases.length-wrong}));
 if(wrong)process.exitCode=1;
