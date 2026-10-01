@@ -1,0 +1,27 @@
+name: Lidl research safety checks
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/check-lidl-feed-v48.mjs'
+      - 'scripts/test-lidl-feed-gate-v50.mjs'
+      - 'scripts/audit-lidl-research-v49.mjs'
+      - 'data/lidl/official-catalog-research-v43-2026-10-01.json'
+      - 'data/lidl/official-grocery-candidates-v44-2026-10-01.json'
+      - '.github/workflows/lidl-research-checks.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline-lidl-research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check research catalog integrity
+        run: node scripts/audit-lidl-research-v49.mjs
+      - name: Check feed gate positive and negative cases
+        run: node scripts/test-lidl-feed-gate-v50.mjs
