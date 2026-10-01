@@ -26,8 +26,8 @@ Research-only manual visual reference supplied by the user on 2026-10-01. Seven 
 | 5–7 Oct | Arla proteiinijogurtti 200 g | €2.50 / 2 pcs | Multi-buy |
 | 1–4 Oct | Atria nauta-viljapossujauheliha 1 kg | €8.99 | Limited batch |
 | 1–4 Oct | Chicken nuggets 1 kg | €8.99 | Limited batch |
-| 1–4 Oct | Kuljanka hapankurkku 400 g | €2.49 | Themed assortment |
-| 1–4 Oct | Kuljanka gulassikeitto 400 ml | €2.49 | Themed assortment |
+| From 1 Oct; end unconfirmed | Kuljanka hapankurkku 400 g | €2.49 | Themed assortment |
+| From 1 Oct; end unconfirmed | Kuljanka gulassikeitto 400 ml | €2.49 | Themed assortment |
 
 ## Handling rules
 1. The printed price is a time-limited leaflet offer, not proof of ordinary regular price or checkout verification at Hyvinkää.
