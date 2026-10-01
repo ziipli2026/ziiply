@@ -1,0 +1,4 @@
+import {NextResponse} from "next/server";
+const V="LIDL-STOREFRONT-v29-20261001";
+const base="https://www.lidl.fi";
+export async function GET(){const p="/q/storefront-dist/Bf_midYo.js";try{const r=await fetch(base+p,{cache:"no-store",signal:AbortSignal.timeout(12000)});const t=await r.text();const terms=["/q/api/","category","endpointAPI","loadMore","fetchSize","gridboxes","import(","searchPath"];const hits=Object.fromEntries(terms.map(s=>{const a=[...t.matchAll(new RegExp(s.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"g"))].slice(0,5).map(m=>t.slice(Math.max(0,(m.index??0)-120),Math.min(t.length,(m.index??0)+210)));return[s,a]}));const imports=[...t.matchAll(/(?:from\s*|import\s*\(|import\s*)["']([^"']+\.js)["']/g)].slice(0,50).map(m=>m[1]);return NextResponse.json({debugVersion:V,readOnly:true,path:p,status:r.status,length:t.length,hits,imports,head:t.slice(0,700)})}catch(e){return NextResponse.json({debugVersion:V,error:String(e)})}}
