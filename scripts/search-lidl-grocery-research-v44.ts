@@ -7,6 +7,7 @@ export function searchLidlResearch(query:string,limit=20){
  const q=query.trim().toLocaleLowerCase("fi-FI");
  if(!q)return [];
  const words=q.split(/\s+/).filter(Boolean);
- return catalog.records.filter(r=>words.every(w=>r.name.toLocaleLowerCase("fi-FI").includes(w)||r.lidlProductId===w||r.ian===w))
+ const matches=(name:string,w:string)=>name.toLocaleLowerCase("fi-FI").split(/[^\\p{L}\\p{N}]+/u).some(token=>w.length<=5?token===w:token.includes(w));
+ return catalog.records.filter(r=>words.every(w=>matches(r.name,w)||r.lidlProductId===w||r.ian===w))
  .slice(0,Math.max(0,Math.min(50,limit))).map(r=>({lidlProductId:r.lidlProductId,name:r.name,ian:r.ian??null,observedPublicPriceEur:r.displayedPriceEur,checkoutPriceVerified:false,basketComparisonEligible:false,category:r.researchCategory??"existing-research"}));
 }
