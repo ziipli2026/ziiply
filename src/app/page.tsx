@@ -12504,11 +12504,22 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             return item;
           }
 
-          if (!match || getProductPrice(match) <= 0) return item;
+          if (!match || getProductPrice(match) <= 0) {
+            // Retain the original shopping need without claiming it belongs to the new chain.
+            return {
+              ...item,
+              ziiplyUnmatchedChainV783: selectedKey,
+              ziiplyOriginalNeedV783: (item as any).ziiplyOriginalNeedV783 || {
+                name: itemName, ean: itemEan, chain: item.chain, storeName: item.storeName,
+              },
+            } as CartItem;
+          }
 
           const price = getProductPrice(match);
           return {
             ...item,
+            ziiplyUnmatchedChainV783: undefined,
+            ziiplySingleChainAtAdd: selectedKey,
             name: match.name || item.name,
             price,
             chain: selectedKey === "s" ? "S" : selectedKey === "k" ? "K" : item.chain,
@@ -12524,7 +12535,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           Number(item.price || 0) !== Number(nextCart[index]?.price || 0) ||
           normalize(String(item.name || "")) !== normalize(String(nextCart[index]?.name || "")) ||
           normalizeEan(item.ean) !== normalizeEan(nextCart[index]?.ean) ||
-          String(item.storeName || "") !== String(nextCart[index]?.storeName || ""),
+          String(item.storeName || "") !== String(nextCart[index]?.storeName || "") ||
+          String((item as any).ziiplyUnmatchedChainV783 || "") !== String((nextCart[index] as any)?.ziiplyUnmatchedChainV783 || ""),
       );
       if (!changed) {
         showCartToast("Valitusta ketjusta ei löytynyt turvallista vastaavaa tuotetta.");
