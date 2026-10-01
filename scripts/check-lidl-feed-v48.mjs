@@ -31,7 +31,11 @@ for(const [i,r] of rows.entries()){
  if(!parsed||!Number.isFinite(parsed.getTime())||parsed.toISOString().slice(0,10)!==date)errors.push(`record ${i}: invalid effective calendar date`);
 }
  if(r.priceSource==="lidl-official-public"&&r.checkoutPriceVerified===true)errors.push(`record ${i}: public website observation cannot by itself verify local checkout price`);
- if(r.checkoutPriceVerified===true&&(!Number.isFinite(Date.parse(String(r.observedAt??"")))))errors.push(`record ${i}: invalid observation timestamp`);
+ if(r.checkoutPriceVerified===true){
+ const observed=String(r.observedAt??"");
+ const offsetTimestamp=/^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]+)?(?:Z|[+-][0-9]{2}:[0-9]{2})$/.test(observed);
+ if(!offsetTimestamp||!Number.isFinite(Date.parse(observed)))errors.push(`record ${i}: observation timestamp must be valid ISO 8601 with timezone`);
+}
  if(r.checkoutPriceVerified===true&&(!String(r.priceSource??"").trim()||!String(r.storeId??"").trim()))errors.push(`record ${i}: empty verification provenance`);
 }
 const coverage=words.map(query=>({query,matches:rows.filter(r=>matching(r.name,query)).length}));
