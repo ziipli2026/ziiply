@@ -285,6 +285,9 @@ function getOfficialSKaupatCategoryV165(item: ZiiplyGostaOfferLike): string {
     if (/\b(tofu|harkis|härkis|nyhtokaura|nyhtökaura|kasviproteiini|kasviproteiinit|vege|vegaan)\b/.test(childCategoryText)) return "Valmisruoka";
     return "Liha & makkarat";
   }
+  // S-kaupat's Ruokatori includes the fish counter: never classify Kalatiski as ready meals.
+  // Match actual child taxonomy only, so other Ruokatori departments retain their mapping.
+  if (/\\bkalatiski\\b|\\bmuu tuore kala\\b|\\bvaalea kala\\b/.test(childCategoryText)) return "Kala";
   if (/\bkala ja merenelavat\b|\bkala ja merenelävät\b/.test(mainCategory)) return "Kala";
   if (/\bhedelmat ja vihannekset\b|\bhedelmät ja vihannekset\b/.test(mainCategory)) return "Hevi";
   if (/\bleivat ja leivonnaiset\b|\bleivät ja leivonnaiset\b|\bleivat keksit ja leivonnaiset\b|\bleivät keksit ja leivonnaiset\b/.test(mainCategory)) return "Leipomo";
