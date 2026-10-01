@@ -22202,7 +22202,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 quantity: 1,
                 source: "offer",
                 ean: String(offer.ean || sourceOffer.ean || ""),
-                ziiplySingleChainAtAdd: (offer.chain === "S" ? "s" : offer.chain === "K" ? "k" : offer.chain === "LIDL" ? "lidl" : offer.chain === "TOKMANNI" || offer.chain === "EUROSPAR" ? "tokmanni" : "") as any,
+                ...(storeCompareScope === "between_chains" && betweenChainSelectionModeV749 === "one" ? { ziiplySingleChainAtAdd: offer.chain === "S" ? "s" : offer.chain === "K" ? "k" : offer.chain === "LIDL" ? "lidl" : offer.chain === "TOKMANNI" || offer.chain === "EUROSPAR" ? "tokmanni" : "" } : {}),
                 product: {
                   id: String(offer.id || `offer-product-${Date.now()}`),
                   name,
