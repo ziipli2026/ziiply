@@ -32,7 +32,7 @@ assert.deepEqual(searchResearch("maito 1 l",[
  {lidlProductId:"milk-1",name:"Täysmaito 1 l"},
  {lidlProductId:"milk-2",name:"Täysmaito 2 l"},
  {lidlProductId:"milk-no-size",name:"Täysmaito"}
-]).map(r=>r.lidlProductId),["milk-1","milk-2"]);
+]).map(r=>r.lidlProductId),["milk-1"]);
 assert.deepEqual(searchResearch("pasta carbonara",[
  {lidlProductId:"carbonara",name:"Pasta Carbonara"},
  {lidlProductId:"plain",name:"Pasta"},
