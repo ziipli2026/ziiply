@@ -5055,7 +5055,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     const previousRestoration = window.history.scrollRestoration;
     window.history.scrollRestoration = "manual";
     let frame = 0;
-    let delayed: ReturnType<typeof setTimeout> | null = null;
+    let delayed: number | null = null;
 
     const restoreHomeAnchorV801 = () => {
       if (!window.matchMedia("(max-width: 639px)").matches) return;
