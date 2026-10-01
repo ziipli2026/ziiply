@@ -52,6 +52,12 @@ assert.equal(searchResearch("täysmaito",sample)[0].displayedPriceEur,null);
 assert.equal(searchResearch("täysmaito",sample)[0].storeAvailability,"unknown");
 assert.equal(searchResearch("täysmaito",sample)[0].checkoutPriceVerified,false);
 assert.deepEqual(searchResearch("",sample),[]);
+assert.deepEqual(searchResearch("maito",null),[]);
+assert.deepEqual(searchResearch("maito",{}),[]);
+assert.deepEqual(searchResearch("maito",[
+ {lidlProductId:"valid",name:"Maito",variant:{unexpected:"object"}},
+ {lidlProductId:"invalid",name:{unexpected:"object"},variant:["maito"]}
+]).map(r=>r.lidlProductId),["valid"]);
 assert.deepEqual(searchResearch("maito",[
  {lidlProductId:"same",name:"Täysmaito 1 l"},
  {lidlProductId:"same",name:"Kevytmaito 1 l"},
