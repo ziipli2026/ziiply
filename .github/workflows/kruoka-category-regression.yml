@@ -6,8 +6,6 @@ on:
   push:
     paths:
       - '.github/workflows/kruoka-category-regression.yml'
-      - 'scripts/audit-kruoka-kaukajarvi-20261001.cjs'
-      - 'src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts'
 
 jobs:
   category-regression:
