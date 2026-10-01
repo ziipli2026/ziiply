@@ -11,6 +11,7 @@ const normalize=s=>String(s??"").toLocaleLowerCase("fi-FI").normalize("NFKC");
 const validGtin=value=>{const digits=String(value);if(!/^(?:[0-9]{8}|[0-9]{12}|[0-9]{13}|[0-9]{14})$/.test(digits))return false;const a=[...digits].map(Number);const check=a.pop();let sum=0;for(let i=a.length-1,weight=3;i>=0;i--,weight=weight===3?1:3)sum+=a[i]*weight;return (10-sum%10)%10===check;};
 const matching=(name,q)=>normalize(name).split(/[^\p{L}\p{N}]+/u).some(t=>t===q||t.endsWith(q));
 for(const [i,r] of rows.entries()){
+ if(r===null||typeof r!=="object"||Array.isArray(r)){errors.push(`record ${i}: expected product object`);continue;}
  const id=String(r.productId??r.lidlProductId??"").trim();
  if(!id)errors.push(`record ${i}: missing product ID`);
  if(seen.has(id))errors.push(`record ${i}: duplicate ID ${id}`);
@@ -38,10 +39,11 @@ for(const [i,r] of rows.entries()){
 }
  if(r.checkoutPriceVerified===true&&(!String(r.priceSource??"").trim()||!String(r.storeId??"").trim()))errors.push(`record ${i}: empty verification provenance`);
 }
-const coverage=words.map(query=>({query,matches:rows.filter(r=>matching(r.name,query)).length}));
+const validRows=rows.filter(r=>r!==null&&typeof r==="object"&&!Array.isArray(r));
+const coverage=words.map(query=>({query,matches:validRows.filter(r=>matching(r.name,query)).length}));
 const missing=coverage.filter(x=>!x.matches).map(x=>x.query);
-const priced=rows.filter(r=>Number.isFinite(r.regularPriceEur)&&r.regularPriceEur>0).length;
-const checkoutVerified=rows.filter(r=>r.checkoutPriceVerified===true).length;
+const priced=validRows.filter(r=>Number.isFinite(r.regularPriceEur)&&r.regularPriceEur>0).length;
+const checkoutVerified=validRows.filter(r=>r.checkoutPriceVerified===true).length;
 if(checkoutVerified===0)errors.push("No store-specific checkout-verified prices");
 if(missing.length)errors.push("Core staple gaps: "+missing.join(", "));
 console.log(JSON.stringify({records:rows.length,uniqueIds:seen.size,coverage,priced,checkoutVerified,accepted:errors.length===0,errors},null,2));
