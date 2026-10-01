@@ -5786,38 +5786,25 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       const gpsStorePoolV40 = buildGpsStoreCandidatePoolFromAllAreasV40(foundStores);
       const ranked = resolveZiiplyPageStoreSelection({ stores: gpsStorePoolV40, coords: gpsCoordsV320, mode: gpsMode });
 
-      if (gpsMode === "local") {
-        // V545_MANUAL_LOCAL_STORE_OVERRIDES_GPS:
-        // GPS valitsee lähikaupat ensimmäisellä haulla, mutta käyttäjän myöhemmin
-        // valitsema S-/K-lähikauppa activeAreasta voittaa GPS-rankingin.
-        // Näin Ketjujen väliltä -kortit päivittyvät heti valintaikkunan valintaan.
-        const selectedSLocal = getActiveAreaStoreCandidateV139("S", "local");
-        const selectedKLocal = getActiveAreaStoreCandidateV139("K", "local");
-
-        return {
-          sStoreId: selectedSLocal?.id ?? ranked.sLocal?.id ?? 0,
-          sStoreName:
-            selectedSLocal?.name ??
-            ranked.sLocal?.name ??
-            "S-lähikauppa ei valittu",
-          kStoreId: selectedKLocal?.id ?? ranked.kLocal?.id ?? 0,
-          kStoreName:
-            selectedKLocal?.name ??
-            ranked.kLocal?.name ??
-            "K-lähikauppa ei valittu",
-        };
-      }
-
-      // Tavaratalot palautettu V173-malliin: käyttäjän/manuaalinen aktiivialue saa olla
-      // varana, koska tämä polku oli toimiva ennen lähikauppafallback-korjauksia.
-      const selectedSHyper = getActiveAreaStoreCandidateV139("S", "hyper");
-      const selectedKHyper = getActiveAreaStoreCandidateV139("K", "hyper");
-
+      // GPS defaults are derived from fresh coordinates. Only an explicit picker
+      // selection (V786) may override them; activeArea can contain stale snapshots.
+      const manualCandidate = (chain: "S" | "K", mode: StoreMode) => {
+        const manual = getManualStoreOverrideV786(chain, mode);
+        if (!manual?.name) return null;
+        return foundStores.map(normalizeStoreForPickerV320).find((store) =>
+          storeMatchesStrictChainAndModeV139(store, chain, mode) &&
+          normalize(store.name || "") === normalize(manual.name)
+        ) ?? null;
+      };
+      const selectedS = manualCandidate("S", gpsMode) ??
+        (gpsMode === "local" ? ranked.sLocal : ranked.sHyper);
+      const selectedK = manualCandidate("K", gpsMode) ??
+        (gpsMode === "local" ? ranked.kLocal : ranked.kHyper);
       return {
-        sStoreId: selectedSHyper?.id ?? ranked.sHyper?.id ?? 0,
-        sStoreName: selectedSHyper?.name ?? ranked.sHyper?.name ?? "S-tavaratalo ei valittu",
-        kStoreId: selectedKHyper?.id ?? ranked.kHyper?.id ?? 0,
-        kStoreName: selectedKHyper?.name ?? ranked.kHyper?.name ?? "K-tavaratalo ei valittu",
+        sStoreId: selectedS?.id ?? 0,
+        sStoreName: selectedS?.name ?? (gpsMode === "local" ? "S-lähikauppa ei valittu" : "S-tavaratalo ei valittu"),
+        kStoreId: selectedK?.id ?? 0,
+        kStoreName: selectedK?.name ?? (gpsMode === "local" ? "K-lähikauppa ei valittu" : "K-tavaratalo ei valittu"),
       };
     }
 
