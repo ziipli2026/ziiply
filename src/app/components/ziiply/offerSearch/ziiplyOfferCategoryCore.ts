@@ -495,10 +495,29 @@ function getTrustedProviderCategoryV162(item: ZiiplyGostaOfferLike): string {
   return "";
 }
 
+// V170: Product-specific semantic rules apply across all non-official providers.
+// Use the actual product title only: broad category metadata and store names
+// must not turn a coffee into dry goods or a sweet bun into meat.
+function getPreciseProductCategoryV170(item: ZiiplyGostaOfferLike): string {
+  const title = normalizeGostaText(getOfferProductTitleV113(item));
+  if (!title) return "";
+  if (/\b(oreo|taytekeksi|taytekeksit|suklaakeksi|suklaakeksit|voileipakeksi|voileipakeksit)\b/.test(title)) return "Makeiset & keksit";
+  if (/\b(omenapossu|munkki|munkit|donitsi|donitsit|korvapuusti|pullapitko)\b/.test(title)) return "Leipomo";
+  if (/\b(burgeri|burgerit|hampurilainen|hampurilaiset|mikroburgeri|mikroburgerit|valmisateria|valmisateriat)\b/.test(title)) return "Valmisruoka";
+  if (/\b(harkis|harkismurska|harkapapumurska|nyhtokaura|kasviproteiinimurska)\b/.test(title)) return "Valmisruoka";
+  if (/\b(kahvi|kahvit|kahvipapu|kahvipavut|papukahvi|papukahvit|suodatinkahvi|suodatinkahvit|jauhettu kahvi|pikakahvi|espresso|kahvikapseli|kahvikapselit)\b/.test(title)) return "Kahvi & tee";
+  return "";
+}
+
 export function getOfferCategoryV106(item: ZiiplyGostaOfferLike) {
   // V165: official S-kaupat/Prisma taxonomy wins before title/brand overrides.
   const officialSKaupatCategoryV165 = getOfficialSKaupatCategoryV165(item);
   if (officialSKaupatCategoryV165) return officialSKaupatCategoryV165;
+
+  // V170: specific product identity wins over a generic or mistaken provider
+  // category for non-official sources. Official S-kaupat taxonomy remains first.
+  const preciseProductCategoryV170 = getPreciseProductCategoryV170(item);
+  if (preciseProductCategoryV170) return preciseProductCategoryV170;
 
   // V162: trust an explicit normalized provider category before any title regex.
   // This prevents products such as "Nordqvist Jäätee" from changing
