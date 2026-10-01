@@ -11120,6 +11120,39 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // async-haun aikana. Vanha vastaus ei saa enää ylikirjoittaa uudempaa statea.
       if (requestSeqV551 !== gostaOfferSearchRequestSeqRefV551.current) return;
 
+      // V786: bind an S/K response to the exact store identity that launched it.
+      // React may already render a newer activeArea while an older request is still
+      // completing. Sequence alone is not sufficient if no replacement request was
+      // started for that state transition. Never publish old-store results/debug under
+      // the newly visible store; trigger the current-store request instead.
+      const selectedChainAfterRequestV786 = gostaSelectedOfferChainRefV547.current;
+      if (selectedChainAfterRequestV786 === "S" || selectedChainAfterRequestV786 === "K") {
+        const modeAfterRequestV786: "hyper" | "local" = storeMode === "local" ? "local" : "hyper";
+        const currentStoreV786 = pickOfferStoreFromSelectionV539(
+          selectedChainAfterRequestV786,
+          modeAfterRequestV786,
+        );
+        const requestStoreIdV786 =
+          selectedChainAfterRequestV786 === "K" ? kOfferIdsV532[0] : sOfferIdsV532[0];
+        const requestStoreNameV786 =
+          selectedChainAfterRequestV786 === "K" ? kOfferNamesV532[0] : sOfferNamesV532[0];
+        const sameIdV786 =
+          Boolean(requestStoreIdV786) &&
+          Boolean(currentStoreV786?.id) &&
+          sameStoreIdV93(currentStoreV786?.id, requestStoreIdV786);
+        const sameNameV786 =
+          Boolean(requestStoreNameV786) &&
+          Boolean(currentStoreV786?.name) &&
+          normalize(currentStoreV786?.name || "") === normalize(requestStoreNameV786 || "");
+
+        if (!currentStoreV786 || (!sameIdV786 && !sameNameV786)) {
+          if (requestSeqV551 === gostaOfferSearchRequestSeqRefV551.current) {
+            void searchOffers(hasExplicitOverride ? cleanedOverride : undefined);
+          }
+          return;
+        }
+      }
+
       setGostaKruokaDebugV550(
         gostaSelectedOfferChainRefV547.current === "K"
           ? getLastZiiplyKruokaDebugV174(gostaOfferSearchContextV172)
