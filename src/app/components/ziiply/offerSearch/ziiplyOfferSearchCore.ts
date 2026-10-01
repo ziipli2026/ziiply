@@ -392,6 +392,12 @@ const ZIIPLY_GOSTA_MASTER_CACHE_TTL_MS_V156 = 5 * 60 * 1000;
 const ziiplyGostaMasterCacheV156 = new Map<string, { expiresAt: number; promise: Promise<ZiiplyGostaOfferLike[]> }>();
 
 export type ZiiplyKruokaDebugV174 = {
+  deploy?: {
+    gitCommitSha?: string | null;
+    gitCommitRef?: string | null;
+    vercelEnv?: string | null;
+    deploymentId?: string | null;
+  };
   selectedStoreName?: string;
   selectedStoreId?: string;
   brochureUrl?: string;
@@ -496,9 +502,16 @@ async function fetchOfferSearchResults(query: string, context?: ZiiplyGostaOffer
   const clonedForDebugV174 = response.clone();
   try {
     const payloadV174 = await clonedForDebugV174.json();
+    const deployV184 =
+      payloadV174 && typeof payloadV174 === "object" && payloadV174.deploy
+        ? { ...payloadV174.deploy }
+        : undefined;
     lastZiiplyKruokaDebugV174 =
-      payloadV174 && typeof payloadV174 === "object" && payloadV174.kruokaDebug
-        ? { ...payloadV174.kruokaDebug }
+      payloadV174 && typeof payloadV174 === "object"
+        ? {
+            ...(payloadV174.kruokaDebug ? { ...payloadV174.kruokaDebug } : {}),
+            ...(deployV184 ? { deploy: deployV184 } : {}),
+          }
         : null;
     if (contextKey) {
       ziiplyKruokaDebugByContextV183.set(contextKey, lastZiiplyKruokaDebugV174);
