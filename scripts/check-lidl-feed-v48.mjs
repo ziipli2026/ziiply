@@ -18,7 +18,7 @@ for(const [i,r] of rows.entries()){
  if(!id)errors.push(`record ${i}: missing string product ID`);
  else if(seen.has(id))errors.push(`record ${i}: duplicate ID ${id}`);
  else seen.add(id);
- if(!String(r.name??"").trim())errors.push(`record ${i}: missing name`);
+ if(typeof r.name!=="string"||!r.name.trim())errors.push(`record ${i}: missing string product name`);
  const p=r.regularPriceEur;
  if(p!==null&&p!==undefined&&(!Number.isFinite(p)||p<=0))errors.push(`record ${i}: invalid regular price`);
  if(r.ean!=null&&typeof r.ean!=="string")errors.push(`record ${i}: EAN must be a string to preserve leading zeros`);
