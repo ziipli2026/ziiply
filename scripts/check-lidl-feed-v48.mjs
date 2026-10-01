@@ -13,10 +13,11 @@ const validGtin=value=>{const digits=String(value);if(!/^(?:[0-9]{8}|[0-9]{12}|[
 const matching=(name,q)=>normalize(name).split(/[^\p{L}\p{N}]+/u).some(t=>t===q||t.endsWith(q));
 for(const [i,r] of rows.entries()){
  if(r===null||typeof r!=="object"||Array.isArray(r)){errors.push(`record ${i}: expected product object`);continue;}
- const id=String(r.productId??r.lidlProductId??"").trim();
- if(!id)errors.push(`record ${i}: missing product ID`);
- if(seen.has(id))errors.push(`record ${i}: duplicate ID ${id}`);
- seen.add(id);
+ const rawId=r.productId??r.lidlProductId;
+ const id=typeof rawId==="string"?rawId.trim():"";
+ if(!id)errors.push(`record ${i}: missing string product ID`);
+ else if(seen.has(id))errors.push(`record ${i}: duplicate ID ${id}`);
+ else seen.add(id);
  if(!String(r.name??"").trim())errors.push(`record ${i}: missing name`);
  const p=r.regularPriceEur;
  if(p!==null&&p!==undefined&&(!Number.isFinite(p)||p<=0))errors.push(`record ${i}: invalid regular price`);
