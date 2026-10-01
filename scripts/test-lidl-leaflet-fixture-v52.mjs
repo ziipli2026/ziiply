@@ -19,6 +19,9 @@ function test(label,change,expected,reason=""){
 }
 try{
  test("baseline",null,true);
+ test("null-record",d=>{d.records[0]=null},false,"expected offer object");
+ test("array-record",d=>{d.records[0]=[]},false,"expected offer object");
+ test("missing-records",d=>{delete d.records},false,"No leaflet records");
  test("bad-month",d=>{d.records[0].validFrom="2026-13-01"},false,"invalid validity dates");
  test("bad-day",d=>{d.records[0].validThrough="2026-02-30"},false,"invalid validity dates");
  test("missing-end-note",d=>{d.records[0].validThrough=null},false,"unknown-end provenance");
