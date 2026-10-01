@@ -19,6 +19,6 @@ jobs:
           node-version: '20'
           cache: npm
       - name: Install dependencies without lifecycle scripts
-        run: npm ci --ignore-scripts
+        run: npm install --package-lock=false --ignore-scripts
       - name: Audit 45 real-provider category cases without network fetch
         run: node scripts/audit-kruoka-kaukajarvi-20261001.cjs
