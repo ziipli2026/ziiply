@@ -38,6 +38,8 @@ try{
  run("public-price-not-checkout",good.map(x=>({...x,priceSource:"lidl-official-public"})),false,"public website observation");
  run("missing-staple",good.slice(1),false,"Core staple gaps");
  run("duplicate-product-id",[...good,good[0]],false,"duplicate ID");
+ run("missing-product-id",good.map(x=>({...x,productId:null})),false,"missing string product ID");
+ run("numeric-product-id",good.map(x=>({...x,productId:1000})),false,"missing string product ID");
  run("missing-store",good.map(x=>({...x,storeId:null})),false,"checkout verification lacks store ID");
  run("missing-effective-date",good.map(x=>({...x,priceValidFrom:null})),false,"checkout verification lacks store ID");
  run("unverified-all",good.map(x=>({...x,checkoutPriceVerified:false})),false,"priced feed row is not checkout verified");
