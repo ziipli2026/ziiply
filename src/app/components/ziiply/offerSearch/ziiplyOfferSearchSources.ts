@@ -522,9 +522,51 @@ export async function searchSelectedKruokaOffersV10(
   query: string,
   options?: ZiiplyOfferSearchSourceContextV8,
 ) {
-  const source = getKruokaSourceByStoreNameV10(options);
-  const kOptions = normalizeKruokaProviderOptionsV9(options);
-  return fetchKruokaOffers(query, source, kOptions);
+  // V38: K-local stores must be searched as explicit id+name pairs.
+  // A stale singular kStoreName/kStoreId must never override the currently
+  // selected kStoreNames/kStoreIds list and leak another K-store's offers.
+  const ids = normalizeOfferStoreListV11(options?.kStoreIds, options?.kStoreId);
+  const names = normalizeOfferStoreListV11(options?.kStoreNames, options?.kStoreName);
+  const maxLength = Math.max(ids.length, names.length);
+
+  if (maxLength === 0) {
+    const source = getKruokaSourceByStoreNameV10(options);
+    const kOptions = normalizeKruokaProviderOptionsV9(options);
+    return fetchKruokaOffers(query, source, kOptions);
+  }
+
+  const allResults: ZiiplyOfferSearchResult[] = [];
+  const seenStores = new Set<string>();
+
+  for (let index = 0; index < maxLength; index += 1) {
+    const storeId = ids[index] || "";
+    const storeName = names[index] || "";
+    if (!storeId && !storeName) continue;
+    if (!isKLocalOfferStoreNameV33(storeName)) continue;
+
+    const key = `${storeId}|${storeName}`.toLowerCase();
+    if (seenStores.has(key)) continue;
+    seenStores.add(key);
+
+    const storeOptions: ZiiplyOfferSearchSourceContextV8 = {
+      ...options,
+      storeId: storeId || null,
+      storeName: storeName || null,
+      kStoreId: storeId || null,
+      kStoreName: storeName || null,
+      kStoreIds: [storeId || null],
+      kStoreNames: [storeName || null],
+    };
+    const source = getKruokaSourceByStoreNameV10(storeOptions);
+    const storeResults = await fetchKruokaOffers(
+      query,
+      source,
+      normalizeKruokaProviderOptionsV9(storeOptions),
+    );
+    allResults.push(...storeResults);
+  }
+
+  return allResults;
 }
 
 
