@@ -2009,10 +2009,10 @@
       "source": "lidl.fi official product sitemap and public product page",
       "observedDate": "2026-10-01",
       "canonicalPath": "/p/siemenruispala/p10033046",
-      "categoryReview": "manual-review",
+      "categoryReview": "name-reviewed",
       "priceStatus": "not-published",
-      "researchCategory": "review",
-      "pricingUnit": null
+      "researchCategory": "bakery-piece",
+      "pricingUnit": "piece-unverified"
     },
     {
       "lidlProductId": "10033047",
@@ -2073,10 +2073,10 @@
       "source": "lidl.fi official product sitemap and public product page",
       "observedDate": "2026-10-01",
       "canonicalPath": "/p/riihiruispala/p10033051",
-      "categoryReview": "manual-review",
+      "categoryReview": "name-reviewed",
       "priceStatus": "not-published",
-      "researchCategory": "review",
-      "pricingUnit": null
+      "researchCategory": "bakery-piece",
+      "pricingUnit": "piece-unverified"
     },
     {
       "lidlProductId": "10034203",
@@ -2393,10 +2393,10 @@
       "source": "lidl.fi official product sitemap and public product page",
       "observedDate": "2026-10-01",
       "canonicalPath": "/p/parkside-munkki/p10037402",
-      "categoryReview": "rule-provisional",
+      "categoryReview": "name-reviewed",
       "priceStatus": "not-published",
-      "researchCategory": "nonfood",
-      "pricingUnit": null
+      "researchCategory": "bakery-piece",
+      "pricingUnit": "piece-unverified"
     },
     {
       "lidlProductId": "10037403",
@@ -2441,10 +2441,10 @@
       "source": "lidl.fi official product sitemap and public product page",
       "observedDate": "2026-10-01",
       "canonicalPath": "/p/leijonantassu-kinuski-paaryna/p10037405",
-      "categoryReview": "manual-review",
+      "categoryReview": "name-reviewed",
       "priceStatus": "not-published",
-      "researchCategory": "review",
-      "pricingUnit": null
+      "researchCategory": "bakery-piece",
+      "pricingUnit": "piece-unverified"
     },
     {
       "lidlProductId": "10037406",
@@ -4442,10 +4442,10 @@
       "source": "lidl.fi official product sitemap and public product page",
       "observedDate": "2026-10-01",
       "canonicalPath": "/p/ruispala-100/p16150",
-      "categoryReview": "manual-review",
+      "categoryReview": "name-reviewed",
       "priceStatus": "not-published",
-      "researchCategory": "review",
-      "pricingUnit": null
+      "researchCategory": "bakery-piece",
+      "pricingUnit": "piece-unverified"
     },
     {
       "lidlProductId": "1821550",
