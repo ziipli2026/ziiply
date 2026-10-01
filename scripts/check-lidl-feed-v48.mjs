@@ -18,7 +18,8 @@ for(const [i,r] of rows.entries()){
  if(!String(r.name??"").trim())errors.push(`record ${i}: missing name`);
  const p=r.regularPriceEur;
  if(p!==null&&p!==undefined&&(!Number.isFinite(p)||p<=0))errors.push(`record ${i}: invalid regular price`);
- if(r.ean!==null&&r.ean!==undefined&&!/^\d{8}(?:\d{4,6})?$/.test(String(r.ean)))errors.push(`record ${i}: invalid EAN/GTIN`);
+ if(r.ean!=null&&!validGtin(r.ean))errors.push(`record ${i}: invalid EAN/GTIN check digit`);
+ if(r.ean!=null&&(!String(r.eanSource??"").trim()||r.eanVerifiedForProduct!==true))errors.push(`record ${i}: EAN needs product-specific verification and source`);
  if(r.ian!=null&&r.ean!=null&&String(r.ian)===String(r.ean))errors.push(`record ${i}: suspicious IAN reused as EAN`);
  if(p!==null&&p!==undefined&&(!r.observedAt||!r.priceSource||!r.storeScope))errors.push(`record ${i}: priced record missing timestamp/source/store scope`);
  if(r.checkoutPriceVerified===true&&(!r.storeId||!r.priceValidFrom||!r.priceSource||p===null||p===undefined))errors.push(`record ${i}: checkout verification lacks store ID, effective date, source or price`);
