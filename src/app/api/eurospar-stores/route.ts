@@ -75,33 +75,11 @@ export async function GET(request: NextRequest) {
 
   const visibleItems = hasGps
     ? (() => {
-        // Same picker rule as S/K local stores:
-        // all stores in the detected municipality + always the nearest store,
-        // then nearest stores until there are at least five. No km cutoff.
-        const municipality = search;
-        const sameMunicipality = municipality
-          ? items.filter((item) => item.city.toLocaleLowerCase("fi-FI") === municipality)
-          : [];
-        // The feed contains two store families behind the same SPAR card.
-        // Keep the nearest store from BOTH families visible so a closer
-        // Tokmanni cannot hide EUROSPAR (or vice versa) from the picker.
-        const nearestByChain = ["TOKMANNI", "EUROSPAR"]
-          .map((chain) => items.find((item) => item.chain === chain))
-          .filter((item): item is (typeof items)[number] => Boolean(item));
-        const required = [...sameMunicipality];
-        for (const item of nearestByChain) {
-          if (!required.some((existing) => existing.id === item.id)) required.push(item);
-        }
-        const requiredIds = new Set(required.map((item) => item.id));
-        const result = [...required];
-        for (const item of items) {
-          if (result.length >= 5) break;
-          if (!requiredIds.has(item.id)) {
-            result.push(item);
-            requiredIds.add(item.id);
-          }
-        }
-        return result.sort((a, b) => (a.distanceKm ?? Infinity) - (b.distanceKm ?? Infinity));
+        // V789: Sama 50 km GPS-raja kuin Prisma/K-Citymarket-valinnassa.
+        // Ei viiden kaupan minimipakkoa: se nosti esim. 68 km Järvenpään listaan.
+        // Jos kummankaan perheen kauppaa ei ole 50 km sisällä, säilytä lähin.
+        const nearby = items.filter((item) => item.distanceKm != null && item.distanceKm <= 50);
+        return nearby.length > 0 ? nearby : items.slice(0, 1);
       })()
     : search
       ? items.filter((item) =>
