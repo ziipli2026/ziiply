@@ -25,7 +25,7 @@ function classifyLidlOffer(name: string, brand = "") {
   const s = normalizeText(`${name} ${brand}`);
   // Non-food first: prevent lihashuoltovasara and öljypumppu matching grocery substrings.
   if (/vaatte|asuste|esmara|tyokalu|tyokal|akkukayttoinen|imuri|puhallin|pumppu|ruuvinvaannin|raikka|vasara|urheiluhame|pesuri|magneettiastia|auton puhdistusliina/.test(s)) return "Koti & vapaa-aika";
-  if (/talouspaperi|wc paperi|paperipyyhe|huuhteluaine|pesuaine|pyykin|astianpesu|puhdistuskivi|puhdistusaine/.test(s)) return "Kodinhoito";
+  if (/talouspaperi|wc[ -]?paperi|paperipyyhe|huuhteluaine|pesuaine|pyykin|astianpesu|puhdistuskivi|puhdistusaine/.test(s)) return "Kodinhoito";
   if (/varsiselleri|selleri|punajuuri/.test(s)) return "Hevi";
   if (/korvapuusti|ruispala|blini/.test(s)) return "Leipomo";
   if (/pahkina/.test(s)) return "Kuivatuotteet";
@@ -37,6 +37,7 @@ function classifyLidlOffer(name: string, brand = "") {
   if (/limu|juoma|mehu|vesi|vichy|energiajuoma|cola/.test(s)) return "Juomat";
   if (/sitruuna|retiisi|granaattiomena|omena|banaani|tomaatti|kurkku|salaatti|paprika|peruna|sipuli|porkkana|bataatti|mandariini|appelsiini|mango|marja|hedelm|vihann|kasvis|kaali/.test(s)) return "Hevi";
   if (/pakaste|jaatel|pakastettu/.test(s)) return "Pakasteet";
+  if (/pikanuudeli|nuudelikeitto/.test(s)) return "Kuivatuotteet";
   if (/valmis|ateria|pizza|keitto|salaattiateria|mikroateria|laatikko|lasagne|wokki|risotto/.test(s)) return "Valmisruoka";
   if (/pasta|riisi|jauho|hiutale|muro|mysli|sailyke|kastike|\boljy\b|mauste|sokeri|suola|puuro|nuudeli|makaroni|spagetti|sushi-inkivaari|nori|merileva|wasabi|seesaminsiemen/.test(s)) return "Kuivatuotteet";
   if (/kark|makeis|suklaa|keksi|lakrit|salmiak|purukumi|patukka|sips|chips/.test(s)) return "Makeiset & keksit";
