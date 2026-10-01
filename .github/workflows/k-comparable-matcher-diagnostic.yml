@@ -115,3 +115,21 @@ jobs:
           fi
           grep -q 'INVALID_CANDIDATES' /tmp/k-invalid-output.txt
           echo 'PASS: valid snapshot yields exact match; malformed snapshot fails clearly'
+      - name: Assert candidate provenance is explicit
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const fs = require('node:fs');
+          fs.writeFileSync('/tmp/k-provenance.json',JSON.stringify({
+            provenance:'offline-fixture',
+            store:'K-Supermarket Jokela (fixture, not live)',
+            capturedAt:'2026-10-01T00:00:00Z',
+            items:[{name:'Kivikylän Huiluntuhti grillimakkara 400 g',ean:'6406300000261',price:3.69}]
+          }));
+          NODE
+          node scripts/audit-k-comparable-diagnostics-20261001.cjs "Kivikylän Huiluntuhti grillimakkara 400 g" 6406300000261 /tmp/k-provenance.json | tee /tmp/k-provenance-output.txt
+          grep -q '"kind":"offline-fixture"' /tmp/k-provenance-output.txt
+          grep -q '"store":"K-Supermarket Jokela (fixture, not live)"' /tmp/k-provenance-output.txt
+          node scripts/audit-k-comparable-diagnostics-20261001.cjs "Kivikylän Huiluntuhti grillimakkara 400 g" 6406300000261 /tmp/k-candidates.json | tee /tmp/k-array-provenance-output.txt
+          grep -q '"kind":"unlabelled-offline-array"' /tmp/k-array-provenance-output.txt
+          echo 'PASS: provenance is explicit and unlabelled arrays are not presented as live store data'
