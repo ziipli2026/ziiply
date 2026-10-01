@@ -10117,12 +10117,66 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         effectiveLocationStoreModeV39,
         locationCoordsForResolverV32,
       );
-      const nextArea = buildDynamicArea(
+      const resolvedArea = buildDynamicArea(
         query,
         storesWithDistanceV97,
         effectiveLocationStoreModeV39,
         locationCoordsForResolverV32,
       );
+
+      // V783: a silent GPS/boot refresh must not overwrite an explicit store
+      // choice when that exact named store still exists in the fresh result set.
+      // Re-resolve the id from the fresh row so an old id can never stay paired
+      // with the preserved name.
+      const preserveExplicitStoreV783 = (
+        chain: "S" | "K",
+        mode: "hyper" | "local",
+        selectedName: unknown,
+      ) => {
+        const wantedName = normalize(String(selectedName || ""));
+        if (!wantedName) return null;
+        return storesWithDistanceV97
+          .map(normalizeStoreForPickerV320)
+          .find((store) => {
+            if (getStoreChainV320(store) !== chain) return false;
+            if (mode === "hyper") {
+              if (!(chain === "S" ? isPrisma(store) : isKCitymarket(store))) return false;
+            } else if (!(chain === "S" ? isSLocalStore(store) : isKLocalStore(store))) {
+              return false;
+            }
+            return normalize(store.name || "") === wantedName;
+          }) ?? null;
+      };
+
+      const preservedS =
+        source === "gps" && silentStatusV137 && storeModeChosenV299
+          ? preserveExplicitStoreV783(
+              "S",
+              effectiveLocationStoreModeV39,
+              effectiveLocationStoreModeV39 === "local" ? activeArea.sLocalStoreName : activeArea.sStoreName,
+            )
+          : null;
+      const preservedK =
+        source === "gps" && silentStatusV137 && storeModeChosenV299
+          ? preserveExplicitStoreV783(
+              "K",
+              effectiveLocationStoreModeV39,
+              effectiveLocationStoreModeV39 === "local" ? activeArea.kLocalStoreName : activeArea.kStoreName,
+            )
+          : null;
+
+      const nextArea: Area = {
+        ...resolvedArea,
+        ...(effectiveLocationStoreModeV39 === "local"
+          ? {
+              ...(preservedS ? { sLocalStoreId: preservedS.id, sLocalStoreName: preservedS.name } : {}),
+              ...(preservedK ? { kLocalStoreId: preservedK.id, kLocalStoreName: preservedK.name } : {}),
+            }
+          : {
+              ...(preservedS ? { sStoreId: preservedS.id, sStoreName: preservedS.name } : {}),
+              ...(preservedK ? { kStoreId: preservedK.id, kStoreName: preservedK.name } : {}),
+            }),
+      };
       setActiveArea(nextArea);
 
       // v272: Nuppineula kertoo yksiselitteisesti käytetäänkö omaa sijaintia.
