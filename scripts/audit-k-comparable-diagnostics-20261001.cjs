@@ -21,6 +21,11 @@ if (!Array.isArray(items)) {
   console.error("INVALID_CANDIDATES: expected an array or an object containing items[]");
   process.exit(2);
 }
+const malformedIndex = items.findIndex(item => !item || typeof item !== "object" || Array.isArray(item) || typeof item.name !== "string" || !item.name.trim());
+if (malformedIndex !== -1) {
+  console.error(`INVALID_CANDIDATE_ROW: items[${malformedIndex}] must contain a nonempty string name`);
+  process.exit(2);
+}
 const sourceSize = core.parseMetricSize(query);
 const rows = items.map((item) => {
   const targetSize = core.parseMetricSize(item.name);
