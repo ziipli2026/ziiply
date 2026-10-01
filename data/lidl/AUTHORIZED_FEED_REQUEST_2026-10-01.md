@@ -35,3 +35,20 @@ For a genuine candidate import, use `node scripts/check-lidl-feed-v48.mjs path/t
 
 ## Current state
 Public-site research candidate set: 226 grocery records, with no reliable matches for ordinary `maito`, `kananmuna`, `voi` or `pasta`. Keep this dataset isolated from production Justiina, basket and comparison until a source meets the coverage and provenance requirements.
+
+## Contact route verified 2026-10-01
+Lidl Finland publishes `asiakaspalvelu@lidl.fi` and its customer-service form (`https://asiakaspalvelu.lidl.fi/`) as general contact channels. These are **routing contacts, not a confirmed product-feed or partnership department**. Ask for forwarding to the person responsible for authorized product and store-pricing data licensing. Official source: https://www.lidl.fi/c/osallistumisehdot-lidl-plus/s10021544 (section 11). Do not send this request to the privacy, compliance or media mailbox merely because those addresses are published.
+
+### Concise initial routing request (Finnish)
+**Subject:** Ziiply Oy – tiedustelu Lidl Suomen tuotetietojen käyttöluvasta ja rajapinnasta
+
+Hei,
+
+Kehitämme Ziiply Oy:ssä kuluttajille ruokaostosten hinta- ja ostoskorivertailua. Haluaisimme selvittää, onko Lidl Suomen tavanomaisen elintarvikevalikoiman tuotetietoihin ja myymäläkohtaisiin hintoihin saatavissa luvallista koneellista rajapintaa tai tietosyötettä, ja millä ehdoilla tietoja voisi näyttää kuluttajapalvelussa.
+
+Voisitteko välittää tiedustelun tuotetietojen, rajapintojen tai kaupallisten tietolisenssien vastuuhenkilölle? Tarvitsisimme ensivaiheessa tiedon mahdollisuudesta, käyttöehdoista ja mahdollisesta teknisestä yhteyshenkilöstä. Tuotteiden EAN/GTIN, pakkauskoko, myymäläkohtaiset normaali- ja tarjoushinnat sekä voimassaoloajat olisivat keskeisiä kenttiä.
+
+Ystävällisin terveisin,
+Ziiply Oy
+
+**Status:** draft only; no message sent, permission or feed received.
