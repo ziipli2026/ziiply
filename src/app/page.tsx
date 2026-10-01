@@ -3012,6 +3012,20 @@ export default function Page() {
   const [storeSearchLoading, setStoreSearchLoading] = useState(false);
   const [foundStores, setFoundStores] = useState<StoreSearchItem[]>([]);
   const [selectedLidlStoreV750, setSelectedLidlStoreV750] = useState<StoreSearchItem | null>(null);
+  // Explicit picker locks for independent chains; GPS defaults never write these.
+  const independentManualStoreRefV791 = useRef<Record<string, string>>({});
+  function readIndependentManualStoreV791(chain: string) {
+    try {
+      const saved = JSON.parse(window.localStorage.getItem("ziiply-independent-manual-stores-v791") || "{}");
+      return String(saved?.[chain] || "");
+    } catch { return independentManualStoreRefV791.current[chain] || ""; }
+  }
+  function setIndependentManualStoreV791(chain: string, store: StoreSearchItem) {
+    const next = { ...independentManualStoreRefV791.current, [chain]: String(store.id) };
+    independentManualStoreRefV791.current = next;
+    try { window.localStorage.setItem("ziiply-independent-manual-stores-v791", JSON.stringify(next)); } catch {}
+  }
+
   const [eurosparStoreOptionsV751, setEurosparStoreOptionsV751] = useState<StoreSearchItem[]>([]);
   const [selectedEurosparStoreV751, setSelectedEurosparStoreV751] = useState<StoreSearchItem | null>(null);
   const [tokmanniStoreOptionsV756, setTokmanniStoreOptionsV756] = useState<StoreSearchItem[]>([]);
@@ -17977,7 +17991,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
         // always reflects the nearest store for the current own-location result.
         // Manual picker choices are preserved only outside GPS mode.
         if (gpsCoordsV320) {
-          const nearest = allOptions[0] || null;
+          const manualId = readIndependentManualStoreV791("SPAR");
+          const nearest = allOptions.find(store => manualId && sameStoreIdV93(store.id, manualId)) || allOptions[0] || null;
           if (nearest && String(nearest.chain || "").toUpperCase() === "EUROSPAR") {
             setSelectedEurosparStoreV751({ ...nearest, chain: "EUROSPAR" });
             setSelectedTokmanniStoreV756(null);
@@ -18065,8 +18080,9 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     // GPS follows the same visible-card rule as S/K/SPAR: the Lidl card
     // always reflects the nearest Lidl for the current own-location result.
     // Manual picker choices are preserved only outside GPS mode.
-    if (gpsCoordsV320) {
-      setSelectedLidlStoreV750(lidlStoreOptionsV750[0]);
+    if (usingOwnLocation && gpsCoordsV320) {
+      const manualId = readIndependentManualStoreV791("LIDL");
+      setSelectedLidlStoreV750(lidlStoreOptionsV750.find(store => manualId && sameStoreIdV93(store.id, manualId)) || lidlStoreOptionsV750[0]);
       return;
     }
 
