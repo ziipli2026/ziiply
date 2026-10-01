@@ -40,6 +40,8 @@ try{
  run("duplicate-product-id",[...good,good[0]],false,"duplicate ID");
  run("missing-product-id",good.map(x=>({...x,productId:null})),false,"missing string product ID");
  run("numeric-product-id",good.map(x=>({...x,productId:1000})),false,"missing string product ID");
+ run("conflicting-product-ids",good.map(x=>({...x,lidlProductId:"other-"+x.productId})),false,"conflicting Lidl product IDs");
+ run("matching-product-ids",good.map(x=>({...x,lidlProductId:x.productId})),true);
  run("numeric-product-name",good.map(x=>({...x,name:123})),false,"missing string product name");
  run("empty-product-name",good.map(x=>({...x,name:"   "})),false,"missing string product name");
  run("missing-store",good.map(x=>({...x,storeId:null})),false,"checkout verification lacks store ID");
