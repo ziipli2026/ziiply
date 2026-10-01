@@ -11021,16 +11021,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       // Tämä ohittaa vain Göstan S-haun vanhan compare-scope-koosteen.
       const gostaSelectedSStoreV547 =
         storeMode === "local" ? sWithinLocalStoreV539 : sWithinHyperStoreV539;
-      // V787: Göstan K-portin pitää käyttää samaa aktiivista K-kauppaa kuin UI/Justiina.
-      // activeArea voi sisältää vielä vanhan persisted K-slotin (esim. Martti 3591),
-      // vaikka GPS/valinta on jo ratkaissut activeStoresiin nykyisen kaupan (esim. Jokela 3334).
-      // Älä anna rinnakkaisen activeArea-resolverin ohittaa näkyvää aktiivista K-kauppaa.
       const gostaSelectedKStoreV549 =
-        cleanSelectedOfferStoreV532({
-          id: activeStores.kStoreId,
-          name: activeStores.kStoreName,
-        }) ??
-        (storeMode === "local" ? kWithinLocalStoreV539 : kWithinHyperStoreV539);
+        storeMode === "local" ? kWithinLocalStoreV539 : kWithinHyperStoreV539;
 
       // V549: Göstan S/K-portti on aidosti eksklusiivinen. Valittu ketju saa vain
       // nykyisen storeMode-arvon mukaisen kaupan; toinen ketju ei vuoda hakuun.
