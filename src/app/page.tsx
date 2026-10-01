@@ -2910,6 +2910,7 @@ export default function Page() {
   const gpsBootTimerRefV483 = useRef<number | null>(null);
   const gpsBootWatchdogRefV483 = useRef<number | null>(null);
   const stableBootSnapshotHydratedRefV505 = useRef(false);
+  const [bootGpsRefreshSettledV785, setBootGpsRefreshSettledV785] = useState(false);
   const stableBootWarmupDoneRefV505 = useRef(false);
   const searchReadyBadgeBootArmedRefV505 = useRef(false);
   const STABLE_BOOT_SNAPSHOT_STORAGE_KEY_V505 = "ziiply-stable-boot-snapshot-v536";
@@ -5749,12 +5750,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (typeof window === "undefined") return;
     if (!storesReadyForSearch) return;
 
+    // V785: a hydrated boot snapshot may contain an obsolete S/K store. GPS is
+    // automatically refreshed 650 ms after boot, so do not let that snapshot
+    // start Gösta S/K warmup before the fresh GPS pass has settled.
     const independentOfferStoreReadyV766 = Boolean(
       selectedLidlStoreV750 ||
       selectedEurosparStoreV751 ||
       selectedTokmanniStoreV756,
     );
     if (!storeModeChosenV299 && !independentOfferStoreReadyV766) return;
+    if (storeModeChosenV299 && !bootGpsRefreshSettledV785) return;
 
     const cleanStore = (idValue: unknown, nameValue: unknown) => {
       const id = String(idValue || "").trim();
@@ -5921,6 +5926,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     }
   }, [
     storesReadyForSearch,
+    bootGpsRefreshSettledV785,
     storeModeChosenV299,
     storeMode,
     storeCompareScope,
@@ -10608,6 +10614,12 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
       setStoreSearchLoading(false);
     } finally {
       pushGpsDebugLogV492(`useOwnLocation FINALLY`);
+      if (isBackgroundBootRefreshV736) {
+        // V785: only now may the hydrated S/K snapshot feed Gösta warmup.
+        // Success has already applied fresh GPS stores; failure deliberately
+        // falls back to the preserved snapshot instead of blocking offers.
+        setBootGpsRefreshSettledV785(true);
+      }
       const finishedAt = Date.now();
       gpsLastFinishedAtRefV466.current = finishedAt;
       ziiplyGpsHardLastFinishedAtV469 = finishedAt;
