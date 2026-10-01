@@ -6,7 +6,7 @@ const norm=s=>String(s??"").toLocaleLowerCase("fi-FI").normalize("NFKD").replace
 const tokens=s=>norm(s).split(/\s+/).filter(Boolean);
 const exactStaples=new Set(["maito","voi","pasta","kananmuna"]);
 const stapleForms={maito:new Set(["maito","täysmaito","kevytmaito","rasvatonmaito","laktoositonmaito"]),voi:new Set(["voi","meijerivoi"]),pasta:new Set(["pasta"]),kananmuna:new Set(["kananmuna","kananmunat"])};
-const matches=(word,term)=>word===term||(exactStaples.has(term)?stapleForms[term].has(word):term.length>=4&&word.startsWith(term));
+const matches=(word,term)=>word===term||(exactStaples.has(term)?[...stapleForms[term]].some(form=>norm(form)===word):term.length>=4&&word.startsWith(term));
 export function searchResearch(query,rows=data.records,limit=15){
  const q=tokens(query);if(!q.length)return [];
  return rows.map(r=>{
