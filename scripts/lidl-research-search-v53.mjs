@@ -11,7 +11,7 @@ const matches=(word,term)=>word===term||(exactStaples.has(term)?[...stapleForms[
 export function searchResearch(query,rows=data.records,limit=15){
  if(typeof query!=="string")return [];
  const q=tokens(query).map(t=>t==="kananmunat"?"kananmuna":t==="perunat"?"peruna":t==="banaanit"?"banaani":t==="juustot"?"juusto":t==="leivat"?"leipa":t);if(!q.length||!Array.isArray(rows))return [];
- const safeLimit=Number.isFinite(limit)?Math.max(0,Math.min(50,Math.trunc(limit))):15;
+ const safeLimit=typeof limit==="number"&&Number.isFinite(limit)?Math.max(0,Math.min(50,Math.trunc(limit))):15;
  const seen=new Set();
  return rows.filter(r=>r&&typeof r==="object"&&!Array.isArray(r)&&typeof r.lidlProductId==="string"&&r.lidlProductId.trim()&&!quarantinedIds.has(r.lidlProductId.trim())).map(r=>{
   const name=tokens([r.name,r.variant].filter(v=>typeof v==="string").join(" "));
