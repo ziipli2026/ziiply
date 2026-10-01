@@ -12567,6 +12567,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           normalize(String(item.name || "")) !== normalize(String(nextCart[index]?.name || "")) ||
           normalizeEan(item.ean) !== normalizeEan(nextCart[index]?.ean) ||
           String(item.storeName || "") !== String(nextCart[index]?.storeName || "") ||
+          String((item as any).ziiplySingleChainAtAdd || "") !== String((nextCart[index] as any)?.ziiplySingleChainAtAdd || "") ||
+          String(item.chain || "") !== String(nextCart[index]?.chain || "") ||
           String((item as any).ziiplyUnmatchedChainV783 || "") !== String((nextCart[index] as any)?.ziiplyUnmatchedChainV783 || ""),
       );
       if (!changed) {
