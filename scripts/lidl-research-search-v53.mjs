@@ -9,7 +9,7 @@ const exactStaples=new Set(["maito","voi","pasta","kananmuna"]);
 const stapleForms={maito:new Set(["maito","täysmaito","kevytmaito","rasvatonmaito","laktoositonmaito"]),voi:new Set(["voi","meijerivoi"]),pasta:new Set(["pasta"]),kananmuna:new Set(["kananmuna","kananmunat"])};
 const matches=(word,term)=>word===term||(exactStaples.has(term)?[...stapleForms[term]].some(form=>norm(form)===word):term.length>=4&&word.startsWith(term));
 export function searchResearch(query,rows=data.records,limit=15){
- const q=tokens(query);if(!q.length)return [];
+ const q=tokens(query).map(t=>t==="kananmunat"?"kananmuna":t);if(!q.length)return [];
  return rows.filter(r=>r&&typeof r==="object"&&!quarantinedIds.has(String(r.lidlProductId))).map(r=>{
   const name=tokens([r.name,r.variant].filter(Boolean).join(" "));
   const score=q.reduce((n,t)=>n+(name.includes(t)?10:name.some(w=>matches(w,t))?3:0),0);
