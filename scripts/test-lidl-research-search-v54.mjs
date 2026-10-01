@@ -119,4 +119,25 @@ assert.deepEqual(searchResearch("maito",[
  {lidlProductId:" 10038275 ",name:"Maito"},
  {lidlProductId:" ",name:"Maito"}
 ]).map(r=>r.lidlProductId),["duplicate"]);
-console.log("Lidl research name-only search safety tests passed");
+
+assert.deepEqual(searchResearch("Milbona raejuusto",[
+ {lidlProductId:"brand-match",name:"Milbona Raejuusto 200 g"},
+ {lidlProductId:"other-brand",name:"Raejuusto 200 g"},
+ {lidlProductId:"other-product",name:"Milbona Jogurtti 200 g"}
+]).map(r=>r.lidlProductId),["brand-match"]);
+assert.deepEqual(searchResearch("maito 400 g",[
+ {lidlProductId:"400",name:"Täysmaito 400 g"},
+ {lidlProductId:"800",name:"Täysmaito 800 g"}
+]).map(r=>r.lidlProductId),["400"]);
+assert.deepEqual(searchResearch("tuntematon tuote",[
+ {lidlProductId:"known",name:"Täysmaito 1 l"}
+]),[]);
+assert.deepEqual(searchResearch("voi",[
+ {lidlProductId:"butter",name:"Meijerivoi 500 g"},
+ {lidlProductId:"sandwich",name:"Voileipä 200 g"}
+]).map(r=>r.lidlProductId),["butter"]);
+assert.deepEqual(searchResearch("leivät",[
+ {lidlProductId:"bread",name:"Leivät"},
+ {lidlProductId:"spread",name:"Leipälevite"}
+]).map(r=>r.lidlProductId),["bread"]);
+console.log("Lidl research name-only search safety and quality v55 tests passed");
