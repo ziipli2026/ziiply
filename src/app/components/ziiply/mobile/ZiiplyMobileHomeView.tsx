@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import ZiiplyMobileAssistantButton from "./ZiiplyMobileAssistantButton";
 import type { ZiiplyAssistantKey } from "./ZiiplyMobileAssistantButton";
 
@@ -13,10 +13,51 @@ export default function ZiiplyMobileHomeView({
   activeAssistant,
   onSelectAssistant,
 }: Props) {
+  const [viewportHeight, setViewportHeight] = useState<number | null>(null);
+
+  useEffect(() => {
+    let delayedMeasure: ReturnType<typeof setTimeout> | null = null;
+
+    const measureViewport = () => {
+      const nextHeight = Math.round(window.visualViewport?.height ?? window.innerHeight);
+      if (nextHeight > 0) setViewportHeight((current) => current === nextHeight ? current : nextHeight);
+    };
+
+    const resumeMeasure = () => {
+      measureViewport();
+      requestAnimationFrame(measureViewport);
+      if (delayedMeasure) clearTimeout(delayedMeasure);
+      delayedMeasure = setTimeout(measureViewport, 320);
+    };
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") resumeMeasure();
+    };
+
+    resumeMeasure();
+    window.addEventListener("pageshow", resumeMeasure);
+    window.addEventListener("focus", resumeMeasure);
+    window.addEventListener("resize", measureViewport);
+    window.addEventListener("orientationchange", resumeMeasure);
+    window.visualViewport?.addEventListener("resize", measureViewport);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    return () => {
+      if (delayedMeasure) clearTimeout(delayedMeasure);
+      window.removeEventListener("pageshow", resumeMeasure);
+      window.removeEventListener("focus", resumeMeasure);
+      window.removeEventListener("resize", measureViewport);
+      window.removeEventListener("orientationchange", resumeMeasure);
+      window.visualViewport?.removeEventListener("resize", measureViewport);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, []);
+
   return (
     <div
       className="relative isolate sm:hidden -mx-4 px-4 pb-[150px] pt-0 overflow-hidden"
       style={{
+        minHeight: viewportHeight ? `${viewportHeight}px` : "100dvh",
         // V3: 70 % rauhallinen salvianvihreä, 20 % lämmin paperi, 10 % vanha kauppakirja.
         // Sävy pidetty lämpimänä, mutta ei liian antiikkisena eikä startup-turkoosina.
         background:
@@ -45,7 +86,7 @@ export default function ZiiplyMobileHomeView({
       <section
         className="flex flex-col items-center text-center"
         style={{
-          minHeight: "23vh",
+          minHeight: viewportHeight ? `${Math.round(viewportHeight * 0.23)}px` : "23dvh",
           justifyContent: "flex-start",
           paddingTop: "0.25vh",
         }}
