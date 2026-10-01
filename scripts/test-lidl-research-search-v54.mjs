@@ -218,7 +218,7 @@ assert.deepEqual(searchResearch("oululainen reissumies tosi ohut",corpus,1),same
 
 /* v65: corpus coverage smoke audit across five broad grocery groups. */
 const coverageCases=[
- ["maito",/maito/i],
+ ["maitosuklaa",/maito/i],
  ["jauheliha",/jauheliha/i],
  ["peruna",/peruna/i],
  ["leipä",/leip/i],
