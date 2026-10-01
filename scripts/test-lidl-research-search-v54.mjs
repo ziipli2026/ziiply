@@ -190,6 +190,20 @@ assert.deepEqual(searchResearch("milbona juustoviipale",corpus),[]);
 assert.deepEqual(searchResearch("red bull proteiinivanukas",corpus),[]);
 assert.deepEqual(searchResearch("milbona proteiinivanukas 999 kg",corpus),[]);
 
+
+/* v63: multiword ranking, variant isolation and research-only output. */
+const variantFixture=[
+ {lidlProductId:"coffee",name:"MILBONA Proteiinivanukas",variant:"kahvi"},
+ {lidlProductId:"coconut",name:"MILBONA Proteiinivanukas",variant:"kookos"},
+ {lidlProductId:"other",name:"MILBONA Proteiinijuoma",variant:"kahvi"}
+];
+assert.deepEqual(searchResearch("milbona proteiinivanukas kahvi",variantFixture).map(r=>r.lidlProductId),["coffee"]);
+assert.deepEqual(searchResearch("milbona proteiinivanukas kookos",variantFixture).map(r=>r.lidlProductId),["coconut"]);
+assert.deepEqual(searchResearch("milbona proteiinivanukas mansikka",variantFixture),[]);
+assert.deepEqual(searchResearch("milbona proteiinivanukas 200 g",variantFixture),[]);
+assert.deepEqual(searchResearch("milbona proteiinivanukas",variantFixture,1).map(r=>r.lidlProductId),["coffee"]);
+assert.ok(searchResearch("milbona proteiinivanukas kahvi",variantFixture).every(r=>r.ean===null&&r.regularPriceEur===null&&r.displayedPriceEur===null&&r.checkoutPriceVerified===false&&r.storeAvailability==="unknown"));
+
 const cheeseHits=searchResearch("juusto",corpus);
 assert.ok(cheeseHits.some(r=>r.name==="ARLA Juustoviipale"),"Generic cheese query must find cheese slices");
 assert.ok(cheeseHits.some(r=>r.name==="JOKILAAKSON JUUSTO Tuorejuusto 2 kpl"),"Generic cheese query must find cream cheese");
