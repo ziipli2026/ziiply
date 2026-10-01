@@ -5045,33 +5045,50 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     };
   }, []);
 
-  // V778_IOS_RESUME_WINDOW_SCROLL_LOCK:
-  // iOS Safari may restore the document scroll position after a long idle/BFCache
-  // resume even though Ziiply's mobile shell uses fixed top/bottom chrome and
-  // card-local scrolling. That scrolls the permanent 104px top-bar anchor out
-  // of view and makes the home artwork jump underneath the fixed top bar.
-  // Reset only the document scroll; card-local scroll positions are untouched.
+  // V801_IOS_RESUME_HOME_ANCHOR:
+  // Safari can restore a stale visual/document scroll after a long background
+  // pause or BFCache navigation. Do not rely on scrollY at event time: Safari
+  // sometimes restores the position in a later frame. Reset the document only;
+  // do not touch independently scrollable store, search or offer panels.
   useEffect(() => {
-    const restoreMobileShellTopV778 = () => {
+    if (typeof window === "undefined") return;
+    const previousRestoration = window.history.scrollRestoration;
+    window.history.scrollRestoration = "manual";
+    let frame = 0;
+    let delayed: ReturnType<typeof setTimeout> | null = null;
+
+    const restoreHomeAnchorV801 = () => {
       if (!window.matchMedia("(max-width: 639px)").matches) return;
-      if (window.scrollY === 0) return;
-      window.scrollTo(0, 0);
-      window.requestAnimationFrame(() => {
-        if (window.scrollY !== 0) window.scrollTo(0, 0);
+      if (document.visibilityState === "hidden") return;
+      if (delayed !== null) window.clearTimeout(delayed);
+      window.cancelAnimationFrame(frame);
+      const reset = () => {
+        if (window.scrollX !== 0 || window.scrollY !== 0) {
+          window.scrollTo({ left: 0, top: 0, behavior: "instant" });
+        }
+      };
+      reset();
+      frame = window.requestAnimationFrame(() => {
+        reset();
+        frame = window.requestAnimationFrame(reset);
       });
+      // Safari may apply BFCache scroll restoration after pageshow/visibilitychange.
+      delayed = window.setTimeout(reset, 240);
     };
-
-    const onPageShowV778 = () => restoreMobileShellTopV778();
-    const onVisibilityV778 = () => {
-      if (document.visibilityState === "visible") restoreMobileShellTopV778();
+    const onVisibilityV801 = () => {
+      if (document.visibilityState === "visible") restoreHomeAnchorV801();
     };
-
-    window.addEventListener("pageshow", onPageShowV778);
-    document.addEventListener("visibilitychange", onVisibilityV778);
-
+    window.addEventListener("pageshow", restoreHomeAnchorV801);
+    window.addEventListener("focus", restoreHomeAnchorV801);
+    document.addEventListener("visibilitychange", onVisibilityV801);
+    restoreHomeAnchorV801();
     return () => {
-      window.removeEventListener("pageshow", onPageShowV778);
-      document.removeEventListener("visibilitychange", onVisibilityV778);
+      window.removeEventListener("pageshow", restoreHomeAnchorV801);
+      window.removeEventListener("focus", restoreHomeAnchorV801);
+      document.removeEventListener("visibilitychange", onVisibilityV801);
+      window.cancelAnimationFrame(frame);
+      if (delayed !== null) window.clearTimeout(delayed);
+      window.history.scrollRestoration = previousRestoration;
     };
   }, []);
 
