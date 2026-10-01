@@ -1582,6 +1582,7 @@ import {
   getNormalizedWords,
   hasExactNormalizedWord,
   parseMetricSize,
+  isComparisonAttributeCompatible,
   getExactWordScore,
   getBrandMatchScore,
   getSizeMatchScore,
@@ -12460,26 +12461,22 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
               storeName = activeStores.sStoreName || storeName;
               const neutralName = itemName.replace(/^(?:pirkka|k-menu|kotimaista|coop|xtra|rainbow)\s+/i, "").trim();
               const queries = Array.from(new Set([itemEan, itemName, neutralName, ...getNormalSearchQueries(itemName).slice(0, 6), ...getNormalSearchQueries(neutralName).slice(0, 6)].filter(Boolean)));
+              // Search all queries before selecting a different EAN: exact identity wins globally.
+              const found: Product[] = [];
               for (const query of queries) {
                 const candidates = await fetchSProducts(query, activeStores.sStoreId).catch(() => [] as Product[]);
-                match = itemEan
-                  ? candidates.find((product) => normalizeEan(product.ean) === itemEan && getProductPrice(product) > 0)
-                  : undefined;
-                if (!match) {
-                  const sourceMilk = /\b(rasvaton|kevyt|täys)\s*maito\b/i.exec(itemName);
-                  const sourceSize = /\b(\d+(?:[,.]\d+)?)\s*l\b/i.exec(itemName);
-                  const safe = candidates.filter((candidate) => {
-                    const name = String(candidate.name || "");
-                    if (sourceMilk && !new RegExp("\\b" + sourceMilk[1] + "\\s*maito\\b", "i").test(name)) return false;
-                    if (sourceSize) {
-                      const size = /\b(\d+(?:[,.]\d+)?)\s*l\b/i.exec(name);
-                      if (!size || Number(size[1].replace(",", ".")) !== Number(sourceSize[1].replace(",", "."))) return false;
-                    }
-                    return true;
-                  });
-                  match = pickBestSProduct(safe, neutralName || itemName);
+                found.push(...candidates);
+                if (itemEan) {
+                  const exact = candidates.find((product) => normalizeEan(product.ean) === itemEan && getProductPrice(product) > 0);
+                  if (exact) { match = exact; break; }
                 }
-                if (match && getProductPrice(match) > 0) break;
+              }
+              if (!match) {
+                const safe = found.filter((candidate) =>
+                  getProductPrice(candidate) > 0 &&
+                  isComparisonAttributeCompatible(itemName, String(candidate.name || ""))
+                );
+                match = pickBestSProduct(safe, neutralName || itemName);
               }
             } else if (selectedKey === "k" && activeStores.kStoreId) {
               storeName = activeStores.kStoreName || storeName;
