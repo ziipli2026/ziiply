@@ -1,0 +1,3 @@
+import {NextResponse} from "next/server";
+const V="LIDL-CATEGORY-CALL-v31-20261001";
+export async function GET(){const r=await fetch("https://www.lidl.fi/q/storefront-dist/C0XBAIth.js",{cache:"no-store",signal:AbortSignal.timeout(12000)});const t=await r.text();const needles=["function ra(","function ia(","var oa=","Xr=","endpointAPI","entityId","categoryId","fetchSize","assortment","locale","version","validOffset"];const out=Object.fromEntries(needles.map(s=>{let p=-1;const hits=[];while(hits.length<7&&(p=t.indexOf(s,p+1))>=0)hits.push({position:p,context:t.slice(Math.max(0,p-650),Math.min(t.length,p+1050))});return[s,hits]}));return NextResponse.json({debugVersion:V,readOnly:true,status:r.status,length:t.length,findings:out})}
