@@ -46,6 +46,7 @@ for(const [i,r] of rows.entries()){
  if(!offsetTimestamp||!validCalendar||!validClock||!Number.isFinite(Date.parse(observed)))errors.push(`record ${i}: observation timestamp must be valid ISO 8601 with timezone`);
 }
  if(r.checkoutPriceVerified===true&&(!String(r.priceSource??"").trim()||!String(r.storeId??"").trim()))errors.push(`record ${i}: empty verification provenance`);
+ if(r.checkoutPriceVerified===true&&r.priceSource!=="authorized-store-feed"&&r.priceSource!=="verified-store-receipt")errors.push(`record ${i}: checkout verification requires an approved evidence source`);
 }
 const validRows=rows.filter(r=>r!==null&&typeof r==="object"&&!Array.isArray(r));
 const coverage=words.map(query=>({query,matches:validRows.filter(r=>matching(r.name,query)).length}));
