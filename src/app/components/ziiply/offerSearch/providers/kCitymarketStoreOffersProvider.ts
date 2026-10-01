@@ -10,7 +10,7 @@ export type KCitymarketStoreOfferProbe = {
   httpStatus: number | null;
   offers: unknown[];
   diagnostic: string;
-  evidence?: { storePageUrl: string; storePageHttp: number; storeIdentitySeen: boolean; offerLinkSeen: boolean };
+  evidence?: { storePageUrl: string; storePageHttp: number; storeIdentitySeen: boolean; offerLinkSeen: boolean; offerLinks: string[] };
 };
 
 export async function probeKCitymarketStoreOffers(options: {
@@ -51,15 +51,24 @@ export async function probeKCitymarketStoreOffers(options: {
     return { ...received, status: "UNVERIFIED_STORE", diagnostic: "Store page redirected to another context." };
   }
   const html = await response.text();
-  const fold = (value: string) => value.toLowerCase().normalize("NFD")
+  const fold = (value: string) => value.toLowerCase()
+    .replace(/ä/g, "a").replace(/ö/g, "o").replace(/å/g, "a")
     .replace(/[^a-z0-9 ]/g, " ").replace(/ +/g, " ").trim();
   const storeName = storeId.replace(/^k-citymarket-/, "").replace(/-/g, " ");
   const title = html.match(/<title[^>]*>([^<]*)/i)?.[1] ?? "";
   const heading = html.match(/<h1[^>]*>([^<]*)/i)?.[1] ?? "";
   const headings = [fold(title), fold(heading)];
   const identitySeen = headings.some(heading => heading.includes("citymarket") && heading.includes(fold(storeName)));
-  const offerLinkSeen = /tarjoushaku|>Edut<|edut-ja-tarjoukset/i.test(html);
-  const evidence = { storePageUrl: response.url, storePageHttp: response.status, storeIdentitySeen: identitySeen, offerLinkSeen };
+  // Record only links actually present on the verified store page; never invent a store-scoped API.
+  const offerLinks = [...html.matchAll(/<a\\b[^>]*href=["']([^"'<>]+)["'][^>]*>/gi)]
+    .map(match => match[1].replace(/&amp;/g, "&"))
+    .filter(href => /tarjous|edut|etuja/i.test(href))
+    .map(href => { try { return new URL(href, response.url).href; } catch { return ""; } })
+    .filter(href => href.startsWith("https://www.k-ruoka.fi/"))
+    .filter((href, index, all) => all.indexOf(href) === index)
+    .slice(0, 20);
+  const offerLinkSeen = offerLinks.length > 0;
+  const evidence = { storePageUrl: response.url, storePageHttp: response.status, storeIdentitySeen: identitySeen, offerLinkSeen, offerLinks };
   if (!identitySeen) return {
     ...received, evidence, status: "UNVERIFIED_STORE",
     diagnostic: "Canonical URL responded but selected store identity was not confirmed in HTML.",
