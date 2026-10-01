@@ -153,5 +153,7 @@ for(const query of ["peruna","banaani","jauheliha"]){
 const breadCompoundNames=corpus.filter(r=>typeof r.name==="string"&&/leipä/i.test(r.name));
 assert.ok(breadCompoundNames.length>0,"Fixture corpus must contain real compound bread names");
 const breadQueryHits=searchResearch("leipä",corpus);
-console.log(JSON.stringify({audit:"Lidl real-corpus v56",candidateCount:corpus.length,breadCompoundCandidates:breadCompoundNames.length,breadQueryHits:breadQueryHits.length,knownGap:"Bread compounds are not currently expanded for generic leipä query; no production behavior changed."}));
+assert.ok(breadQueryHits.some(r=>/leipä/i.test(r.name)),"Generic bread query must find verified bread compounds");
+assert.ok(!searchResearch("leipä",[{lidlProductId:"spread",name:"Leipälevite"},{lidlProductId:"crumb",name:"Leipäjauho"}]).length,"Bread query must exclude spread and crumbs");
+console.log(JSON.stringify({audit:"Lidl real-corpus v56",candidateCount:corpus.length,breadCompoundCandidates:breadCompoundNames.length,breadQueryHits:breadQueryHits.length,rule:"Verified bread compound whitelist; no production behavior changed."}));
 console.log("Lidl research name-only search safety and quality v56 tests passed");
