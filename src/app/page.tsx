@@ -12552,10 +12552,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             ziiplySingleChainAtAdd: selectedKey,
             name: match.name || item.name,
             price,
-            chain: selectedKey === "s" ? "S" : selectedKey === "k" ? "K" : item.chain,
+            chain: selectedKey === "s" ? "S" : selectedKey === "k" ? "K" : undefined,
             storeName,
             product: { ...match, price, storeName } as Product,
-            ean: match.ean || item.ean,
+            // Never retain the previous chain's EAN for a different matched product.
+            ean: match.ean || undefined,
           } as CartItem;
         }),
       );
