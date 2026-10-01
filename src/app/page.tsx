@@ -11055,17 +11055,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           };
         }
 
-        // Viimeinen fallback: jos valittu slotti puuttuu kokonaan, käytetään nykyisen alueen/moodin
-        // ensimmäistä samaa ketjua olevaa kauppaa. Tämä ei saa ohittaa varsinaista käyttäjän valintaa.
-        const candidates = normalizedFoundOfferStoresV539.filter((store) => {
-          if (getStoreChainV320(store) !== chain) return false;
-          if (mode === "hyper") return chain === "S" ? isPrisma(store) : isKCitymarket(store);
-          return chain === "S" ? isSLocalStore(store) : isKLocalStore(store);
-        });
-
-        const areaMatches = candidates.filter(storeMatchesCurrentOfferAreaV539);
-        const fallback = sortOfferStoresByDistanceV539(areaMatches.length > 0 ? areaMatches : candidates)[0];
-        return fallback ? { id: fallback.id, name: fallback.name } : null;
+        // V788: jos activeArea-slotissa ei ole käsin valittua kauppaa, älä ratkaise
+        // Göstalle omaa kauppaa foundStores-listasta. Page on jo ratkaissut nykyisen
+        // GPS-/moodikaupan activeStoresiin; Göstan pitää käyttää täsmälleen samaa.
+        // activeArea yllä säilyy ensisijaisena, joten käsivalinta ei ylikirjoitu.
+        const activeResolved =
+          chain === "S"
+            ? { id: activeStores.sStoreId, name: activeStores.sStoreName }
+            : { id: activeStores.kStoreId, name: activeStores.kStoreName };
+        const cleanedActiveResolved = cleanSelectedOfferStoreV532(activeResolved);
+        return cleanedActiveResolved ? { id: cleanedActiveResolved.id, name: cleanedActiveResolved.name } : null;
       };
 
       const sWithinHyperStoreV539 = pickOfferStoreFromSelectionV539("S", "hyper");
