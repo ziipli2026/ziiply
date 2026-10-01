@@ -23,16 +23,22 @@ function normalizeText(value: unknown) {
 
 function classifyLidlOffer(name: string, brand = "") {
   const s = normalizeText(`${name} ${brand}`);
+  // Non-food first: prevent lihashuoltovasara and öljypumppu matching grocery substrings.
+  if (/vaatte|asuste|esmara|tyokalu|tyokal|akkukayttoinen|imuri|puhallin|pumppu|ruuvinvaannin|raikka|vasara|urheiluhame|pesuri|magneettiastia|auton puhdistusliina/.test(s)) return "Koti & vapaa-aika";
+  if (/talouspaperi|wc paperi|paperipyyhe|huuhteluaine|pesuaine|pyykin|astianpesu|puhdistuskivi|puhdistusaine/.test(s)) return "Kodinhoito";
+  if (/varsiselleri|selleri|punajuuri/.test(s)) return "Hevi";
+  if (/korvapuusti|ruispala|blini/.test(s)) return "Leipomo";
+  if (/pahkina/.test(s)) return "Kuivatuotteet";
   if (/kahvi|espresso|cappuccino|tee\b/.test(s)) return "Kahvi & tee";
   if (/maito|jogur|jugur|rahka|juusto|kerma|voi\b|piima|viili/.test(s)) return "Maitotuotteet";
-  if (/kana|broiler|nauta|sika|pors|jauheliha|makkara|nakki|pekoni|kinkku|liha|pulled pork/.test(s)) return "Liha & makkarat";
+  if (/kana|broiler|nauta|sika|pors|jauheliha|makkara|nakki|pekoni|kinkku|\bliha\b|pulled pork/.test(s)) return "Liha & makkarat";
   if (/kala|lohi|silakka|tonnikala|kirjolohi|seiti|katkarapu/.test(s)) return "Kala";
   if (/leipa|sampyl|pull|croissant|paton|karjalanpiirakka|ruisleip|rieska/.test(s)) return "Leipomo";
   if (/limu|juoma|mehu|vesi|vichy|energiajuoma|cola/.test(s)) return "Juomat";
   if (/sitruuna|retiisi|granaattiomena|omena|banaani|tomaatti|kurkku|salaatti|paprika|peruna|sipuli|porkkana|bataatti|mandariini|appelsiini|mango|marja|hedelm|vihann|kasvis|kaali/.test(s)) return "Hevi";
   if (/pakaste|jaatel|pakastettu/.test(s)) return "Pakasteet";
   if (/valmis|ateria|pizza|keitto|salaattiateria|mikroateria|laatikko|lasagne|wokki|risotto/.test(s)) return "Valmisruoka";
-  if (/pasta|riisi|jauho|hiutale|muro|mysli|sailyke|kastike|oljy|mauste|sokeri|suola|puuro|nuudeli|makaroni|spagetti|sushi-inkivaari|nori|merileva|wasabi|seesaminsiemen/.test(s)) return "Kuivatuotteet";
+  if (/pasta|riisi|jauho|hiutale|muro|mysli|sailyke|kastike|\boljy\b|mauste|sokeri|suola|puuro|nuudeli|makaroni|spagetti|sushi-inkivaari|nori|merileva|wasabi|seesaminsiemen/.test(s)) return "Kuivatuotteet";
   if (/kark|makeis|suklaa|keksi|lakrit|salmiak|purukumi|patukka|sips|chips/.test(s)) return "Makeiset & keksit";
   if (/lastenruo|vauva|aidinmaidonkorvike/.test(s)) return "Lastenruoat";
   if (/vitami|ravinne|magnesium|sinkki/.test(s)) return "Vitamiinit & ravinteet";
