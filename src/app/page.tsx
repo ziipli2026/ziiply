@@ -21957,13 +21957,16 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 kStoreId: activeStores.kStoreId ?? null,
                 kStoreName: activeStores.kStoreName ?? null,
               },
-              resolvedSelection: (() => {
-                const store = pickOfferStoreFromSelectionV539(
-                  "K",
-                  storeMode === "local" ? "local" : "hyper",
-                );
-                return store ? { id: store.id ?? null, name: store.name ?? null } : null;
-              })(),
+              resolvedSelection: {
+                id:
+                  (storeMode === "local" ? activeArea.kLocalStoreId : activeArea.kStoreId) ??
+                  activeStores.kStoreId ??
+                  null,
+                name:
+                  (storeMode === "local" ? activeArea.kLocalStoreName : activeArea.kStoreName) ??
+                  activeStores.kStoreName ??
+                  null,
+              },
               foundKStores: foundStores
                 .map(normalizeStoreForPickerV320)
                 .filter((store) => getStoreChainV320(store) === "K")
