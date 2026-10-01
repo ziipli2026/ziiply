@@ -29,6 +29,8 @@ for(const [i,r] of rows.entries()){
  if(!parsed||!Number.isFinite(parsed.getTime())||parsed.toISOString().slice(0,10)!==date)errors.push(`record ${i}: invalid effective calendar date`);
 }
  if(r.priceSource==="lidl-official-public"&&r.checkoutPriceVerified===true)errors.push(`record ${i}: public website observation cannot by itself verify local checkout price`);
+ if(r.checkoutPriceVerified===true&&(!Number.isFinite(Date.parse(String(r.observedAt??"")))))errors.push(`record ${i}: invalid observation timestamp`);
+ if(r.checkoutPriceVerified===true&&(!String(r.priceSource??"").trim()||!String(r.storeId??"").trim()))errors.push(`record ${i}: empty verification provenance`);
 }
 const coverage=words.map(query=>({query,matches:rows.filter(r=>matching(r.name,query)).length}));
 const missing=coverage.filter(x=>!x.matches).map(x=>x.query);
