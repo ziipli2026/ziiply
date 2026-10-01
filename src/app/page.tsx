@@ -12492,7 +12492,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 const namedCandidates = itemEan
                   ? await fetchLidlProductsV760(itemName, selectedLidlStoreV750)
                   : candidates;
-                match = pickBestSProduct(
+                // The name query can also reveal the original EAN: preserve exact-first globally.
+                match = itemEan
+                  ? namedCandidates.find((product) => normalizeEan(product.ean) === itemEan && getProductPrice(product) > 0)
+                  : undefined;
+                if (!match) match = pickBestSProduct(
                   namedCandidates.filter((product) =>
                     getProductPrice(product) > 0 &&
                     isComparisonAttributeCompatible(itemName, String(product.name || ""))
@@ -12513,7 +12517,11 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 const namedCandidates = itemEan
                   ? await fetchTokmanniProductsV761(itemName)
                   : candidates;
-                match = pickBestSProduct(
+                // The name query can also reveal the original EAN: preserve exact-first globally.
+                match = itemEan
+                  ? namedCandidates.find((product) => normalizeEan(product.ean) === itemEan && getProductPrice(product) > 0)
+                  : undefined;
+                if (!match) match = pickBestSProduct(
                   namedCandidates.filter((product) =>
                     getProductPrice(product) > 0 &&
                     isComparisonAttributeCompatible(itemName, String(product.name || ""))
