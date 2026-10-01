@@ -12458,19 +12458,33 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
           try {
             if (selectedKey === "s" && activeStores.sStoreId) {
               storeName = activeStores.sStoreName || storeName;
-              const queries = Array.from(new Set([itemEan, itemName, ...getNormalSearchQueries(itemName).slice(0, 6)].filter(Boolean)));
+              const neutralName = itemName.replace(/^(?:pirkka|k-menu|kotimaista|coop|xtra|rainbow)\s+/i, "").trim();
+              const queries = Array.from(new Set([itemEan, itemName, neutralName, ...getNormalSearchQueries(itemName).slice(0, 6), ...getNormalSearchQueries(neutralName).slice(0, 6)].filter(Boolean)));
               for (const query of queries) {
                 const candidates = await fetchSProducts(query, activeStores.sStoreId).catch(() => [] as Product[]);
                 match = itemEan
                   ? candidates.find((product) => normalizeEan(product.ean) === itemEan && getProductPrice(product) > 0)
                   : undefined;
-                if (!itemEan && !match) match = pickBestSProduct(candidates, itemName, itemEan);
+                if (!match) {
+                  const sourceMilk = /\b(rasvaton|kevyt|täys)\s*maito\b/i.exec(itemName);
+                  const sourceSize = /\b(\d+(?:[,.]\d+)?)\s*l\b/i.exec(itemName);
+                  const safe = candidates.filter((candidate) => {
+                    const name = String(candidate.name || "");
+                    if (sourceMilk && !new RegExp("\\b" + sourceMilk[1] + "\\s*maito\\b", "i").test(name)) return false;
+                    if (sourceSize) {
+                      const size = /\b(\d+(?:[,.]\d+)?)\s*l\b/i.exec(name);
+                      if (!size || Number(size[1].replace(",", ".")) !== Number(sourceSize[1].replace(",", "."))) return false;
+                    }
+                    return true;
+                  });
+                  match = pickBestSProduct(safe, neutralName || itemName);
+                }
                 if (match && getProductPrice(match) > 0) break;
               }
             } else if (selectedKey === "k" && activeStores.kStoreId) {
               storeName = activeStores.kStoreName || storeName;
               const best = await findBestKMatchForStore(itemName, activeStores.kStoreId, itemEan);
-              if (best && best.price > 0 && (!itemEan || normalizeEan(best.ean) === itemEan)) match = convertKProductToProduct(best);
+              if (best && best.price > 0) match = convertKProductToProduct(best);
             } else if (selectedKey === "lidl" && selectedLidlStoreV750) {
               storeName = selectedLidlStoreV750.name || storeName;
               const candidates = await fetchLidlProductsV760(itemEan || itemName, selectedLidlStoreV750);
