@@ -5,6 +5,7 @@ on:
     paths:
       - 'scripts/check-lidl-feed-v48.mjs'
       - 'scripts/check-lidl-leaflet-fixture-v51.mjs'
+      - 'scripts/test-lidl-leaflet-fixture-v52.mjs'
       - 'data/lidl/hyvinkaa-paper-leaflet-w40-2026.fixture.json'
       - 'scripts/test-lidl-feed-gate-v50.mjs'
       - 'scripts/audit-lidl-research-v49.mjs'
@@ -29,3 +30,5 @@ jobs:
         run: node scripts/test-lidl-feed-gate-v50.mjs
       - name: Check photographed leaflet reference safety
         run: node scripts/check-lidl-leaflet-fixture-v51.mjs
+      - name: Test leaflet validator rejection cases
+        run: node scripts/test-lidl-leaflet-fixture-v52.mjs
