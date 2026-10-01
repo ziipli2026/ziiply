@@ -25,7 +25,7 @@ jobs:
           npm install --package-lock=false --ignore-scripts
           npm run build
 
-      - name: Run 300-case category simulation
+      - name: Audit 41 real Kaukajärvi offer titles through production provider\n        run: node scripts/audit-kruoka-kaukajarvi-20261001.cjs\n\n      - name: Run 300-case category simulation
         shell: bash
         run: |
           node <<'NODE'
