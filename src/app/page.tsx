@@ -21943,6 +21943,39 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
             loading={loadingOffers}
             emptyText={offerShowingAllAreaOffersV106 ? "Alueen tarjouksia ei löytynyt vielä." : "Gösta ei löytänyt tarjouksia tälle rajaukselle."}
             kruokaDebug={gostaKruokaDebugV550}
+            storeTraceV787={{
+              storeMode,
+              usingOwnLocation,
+              gpsCoordsPresent: Boolean(gpsCoordsV320),
+              activeArea: {
+                kStoreId: activeArea.kStoreId ?? null,
+                kStoreName: activeArea.kStoreName ?? null,
+                kLocalStoreId: activeArea.kLocalStoreId ?? null,
+                kLocalStoreName: activeArea.kLocalStoreName ?? null,
+              },
+              activeStores: {
+                kStoreId: activeStores.kStoreId ?? null,
+                kStoreName: activeStores.kStoreName ?? null,
+              },
+              resolvedSelection: (() => {
+                const store = pickOfferStoreFromSelectionV539(
+                  "K",
+                  storeMode === "local" ? "local" : "hyper",
+                );
+                return store ? { id: store.id ?? null, name: store.name ?? null } : null;
+              })(),
+              foundKStores: foundStores
+                .map(normalizeStoreForPickerV320)
+                .filter((store) => getStoreChainV320(store) === "K")
+                .slice(0, 20)
+                .map((store) => ({
+                  id: store.id ?? null,
+                  externalId: store.externalId ?? null,
+                  name: store.name ?? null,
+                  city: store.city ?? null,
+                  distanceKm: getGpsDistanceKmForStoreV93(store),
+                })),
+            }}
             selectedStoreName={
               gostaSelectedOfferChainRefV547.current === "EUROSPAR"
                 ? selectedEurosparStoreV751?.name || ""
