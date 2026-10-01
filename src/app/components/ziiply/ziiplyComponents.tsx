@@ -281,7 +281,7 @@ export function ZiiplyBottomNav({
           <span className={`${innerBaseClass} ${searchActive ? activeInnerClass : searchDisabled ? disabledInnerClass : idleInnerClass}`}>
             <span
               key={searchReadyBounceKeyV320}
-              className={!searchActive && !searchDisabled && storesReadyForSearch ? "ziiply-search-ready-bounce" : undefined}
+              className={!searchActive && !searchDisabled && storesReadyForSearch && activeResult !== "offers" ? "ziiply-search-ready-bounce" : undefined}
             >
               <ZiiplyNavIcon type="search" active={searchActive} disabled={searchDisabled} className={iconClass} />
             </span>
