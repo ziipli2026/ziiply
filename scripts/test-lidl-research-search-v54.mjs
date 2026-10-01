@@ -9,6 +9,7 @@ const sample=[
 assert.deepEqual(searchResearch("maito",sample).map(r=>r.lidlProductId),["2"]);
 assert.deepEqual(searchResearch("täysmaito",sample).map(r=>r.lidlProductId),["2"]);
 assert.deepEqual(searchResearch("maitosuklaa",sample).map(r=>r.lidlProductId),["1"]);
+assert.deepEqual(searchResearch("maito",[{lidlProductId:"x",name:"Maitosuklaa 100 g"}]),[]);
 assert.deepEqual(searchResearch("pasta",sample).map(r=>r.lidlProductId),["3"]);
 assert.deepEqual(searchResearch("rieska",sample).map(r=>r.lidlProductId),[]);
 assert.equal(searchResearch("täysmaito",sample)[0].regularPriceEur,null);
