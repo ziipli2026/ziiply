@@ -69,3 +69,29 @@ jobs:
             'exact 400g EAN must remain selectable');
           console.log('PASS: reverse size conflict rejected; exact EAN selected');
           NODE
+      - name: Assert unpriced feed and mixed exact EAN behavior
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const source = 'Kivikylän Huiluntuhti grillimakkara 400 g';
+          fs.writeFileSync('/tmp/k-unpriced.json',JSON.stringify([
+            {name:source,ean:'6406300000261',price:0}
+          ]));
+          NODE
+          node scripts/audit-k-comparable-diagnostics-20261001.cjs "Kivikylän Huiluntuhti grillimakkara 400 g" 6406300000261 /tmp/k-unpriced.json | tee /tmp/k-unpriced-output.txt
+          grep -q '"status":"NO_PRICED_CANDIDATES"' /tmp/k-unpriced-output.txt
+          grep -q '"no-positive-price":1' /tmp/k-unpriced-output.txt
+          node - <<'NODE'
+          const assert = require('node:assert/strict');
+          const core = require('/tmp/ziiply-core/ziiplyCore.js');
+          const source = 'Kivikylän Huiluntuhti grillimakkara 400 g';
+          const exact = {name:source,ean:'6406300000261',price:3.69};
+          const candidates = [
+            {name:'Kivikylän Huiluntuhti grillimakkara 375 g',ean:'1111111111111',price:3.49},
+            {name:'Kivikylän Huiluntuhti makkarapihvi 400 g',ean:'2222222222222',price:3.59},
+            exact,
+          ];
+          assert.equal(core.pickBestKProduct(candidates,source,exact.ean)?.ean,exact.ean);
+          console.log('PASS: exact EAN wins alongside rejected variants');
+          NODE
