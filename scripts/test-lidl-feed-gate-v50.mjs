@@ -34,6 +34,8 @@ try{
  run("impossible-calendar-date",good.map(x=>({...x,priceValidFrom:"2026-02-30"})),false);
  run("null-ian-and-ean",good.map(x=>({...x,ian:null,ean:null})),true);
  run("invalid-observation-timestamp",good.map(x=>({...x,observedAt:"nonsense"})),false);
+ run("timestamp-without-timezone",good.map(x=>({...x,observedAt:"2026-10-01T12:00:00"})),false);
+ run("date-only-observation",good.map(x=>({...x,observedAt:"2026-10-01"})),false);
  run("empty-provenance",good.map(x=>({...x,priceSource:"   "})),false);
  run("invalid-zero-price",good.map(x=>({...x,regularPriceEur:0})),false);
  run("ian-reused-as-ean",good.map(x=>({...x,ean:x.ian})),false);
