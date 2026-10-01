@@ -671,6 +671,12 @@ export async function GET(request: Request) {
         query: q,
         context,
         results,
+        deploy: {
+          gitCommitSha: process.env.VERCEL_GIT_COMMIT_SHA || null,
+          gitCommitRef: process.env.VERCEL_GIT_COMMIT_REF || null,
+          vercelEnv: process.env.VERCEL_ENV || null,
+          deploymentId: process.env.VERCEL_DEPLOYMENT_ID || null,
+        },
         ...(process.env.VERCEL_ENV !== "production"
           ? {
               kruokaDebug: isKCitymarketV19
