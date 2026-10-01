@@ -12428,7 +12428,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (!selectedKey) return;
 
     const eligibleItemsV781 = nextCart.filter((item) => {
-      if (isWeightCartItemV738(item) || String(item?.source || "").toLowerCase() === "offer") return false;
+      if (isWeightCartItemV738(item)) return false;
       const addedUnderChain = String((item as any).ziiplySingleChainAtAdd || "");
       return !addedUnderChain || addedUnderChain !== selectedKey;
     });
@@ -12441,7 +12441,7 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     try {
       const nextItems = await Promise.all(
         nextCart.map(async (item) => {
-          if (isWeightCartItemV738(item) || String(item?.source || "").toLowerCase() === "offer") return item;
+          if (isWeightCartItemV738(item)) return item;
 
           // V779: Yksi-tilassa Halpuuta on ketjunvaihtotoiminto. Jos käyttäjä on
           // juuri valinnut tuotteen samasta ketjusta, sitä ei haeta uudelleen eikä
@@ -22201,6 +22201,8 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
                 storeName: String(offer.storeName || offer.shopName || ""),
                 quantity: 1,
                 source: "offer",
+                ean: String(offer.ean || sourceOffer.ean || ""),
+                ziiplySingleChainAtAdd: (offer.chain === "S" ? "s" : offer.chain === "K" ? "k" : offer.chain === "LIDL" ? "lidl" : offer.chain === "TOKMANNI" || offer.chain === "EUROSPAR" ? "tokmanni" : "") as any,
                 product: {
                   id: String(offer.id || `offer-product-${Date.now()}`),
                   name,
