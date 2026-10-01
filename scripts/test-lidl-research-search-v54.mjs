@@ -24,6 +24,16 @@ assert.equal(searchResearch("täysmaito",sample)[0].displayedPriceEur,null);
 assert.equal(searchResearch("täysmaito",sample)[0].storeAvailability,"unknown");
 assert.equal(searchResearch("täysmaito",sample)[0].checkoutPriceVerified,false);
 assert.deepEqual(searchResearch("",sample),[]);
+assert.deepEqual(searchResearch("maito",[
+ {lidlProductId:"same",name:"Täysmaito 1 l"},
+ {lidlProductId:"same",name:"Kevytmaito 1 l"},
+ {lidlProductId:"different",name:"Rasvaton maito 1 l"},
+ {name:"Maito ilman tunnusta"},
+ [],null
+]).map(r=>r.lidlProductId),["same","different"]);
+assert.equal(searchResearch("maito",sample,0).length,0);
+assert.equal(searchResearch("maito",sample,Number.NaN).length,1);
+assert.equal(searchResearch("maito",sample,-5).length,0);
 assert.deepEqual(searchResearch("olut",[{lidlProductId:"10038275",name:"Olut"},{lidlProductId:"safe-fixture",name:"Olutniminen testituote"}]).map(r=>r.lidlProductId),["safe-fixture"]);
 assert.deepEqual(searchResearch("testi",[{lidlProductId:"10038306",name:"Testi"},{lidlProductId:"10038307",name:"Testi"},{lidlProductId:"10038308",name:"Testi"}]),[]);
 assert.deepEqual(searchResearch("maito",[null,...sample]).map(r=>r.lidlProductId),["2"]);
