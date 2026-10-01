@@ -37,7 +37,7 @@ export type CitymarketOffer = {
 };
 
 const ENTRY = "https://kcm-lehdet.k-ruoka.fi/tarjouslehti";
-const AV_ENTRY = "https://kcm-lehdet.k-ruoka.fi/loppuviikon_tarjouslehdet/avtarjouslehti.html";
+const AV_ENTRY = "https://kcm-lehdet.k-ruoka.fi/arkilehti.html";
 const LV_ENTRY = "https://kcm-lehdet.k-ruoka.fi/loppuviikon_tarjouslehdet/lvtarjouslehti.html";
 const clean=(s:string)=>String(s??"").replace(/\u00a0/g," ").replace(/[ \t]+/g," ").trim();
 const money=(s:string)=>Number(String(s).replace(",","."));
@@ -568,6 +568,13 @@ export async function fetchKCitymarketOffers():Promise<CitymarketOffer[]>{
     console.warn("[K-Citymarket] active period cache unavailable, parsing fresh",active.key,error);
     const periodEntry=active.kind==="AV"?AV_ENTRY:LV_ENTRY;
     offers=await fetchKCitymarketOffersFresh(periodEntry);
+    // Never leak the other half-week leaflet through a redirecting entry URL.
+    // The cache path already validates the period; the recovery path must obey
+    // the exact same invariant.
+    const freshLeafletUrl=String(citymarketHtmlDebugV8?.leafletUrl||offers[0]?.sourceUrl||"");
+    if(!leafletMatchesPeriod(freshLeafletUrl,active)){
+      throw new Error('K-Citymarket fallback leaflet "'+(freshLeafletUrl||"(missing)")+'" does not match active '+active.key);
+    }
   }
 
   const fallback=kCitymarketDefaultValidityV15(active);
