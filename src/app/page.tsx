@@ -5779,7 +5779,34 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     };
 
     const sStore = resolveWarmSStore();
-    const kStore = cleanStore(activeStores.kStoreId, activeStores.kStoreName);
+
+    // V767_K_LOCAL_WARMUP_MATCH_VISIBLE_GOSTA:
+    // K-Market/K-Supermarket warmup must resolve the selected local K store from
+    // the same activeArea slot that visible Gösta uses. activeStores can still
+    // contain a GPS-ranked/fallback id during the selection handoff, producing
+    // a different context key and therefore a cold visible request.
+    const resolveWarmKStore = () => {
+      const modeId = storeMode === "local" ? activeArea.kLocalStoreId : activeArea.kStoreId;
+      const modeName = storeMode === "local" ? activeArea.kLocalStoreName : activeArea.kStoreName;
+      const selected = cleanStore(modeId, modeName) ?? cleanStore(activeStores.kStoreId, activeStores.kStoreName);
+      if (!selected) return null;
+
+      const wantedName = normalize(selected.name);
+      const matched = foundStores
+        .map(normalizeStoreForPickerV320)
+        .find((store) =>
+          getStoreChainV320(store) === "K" &&
+          (storeMode === "local" ? isKLocalStore(store) : isKCitymarket(store)) &&
+          (sameStoreIdV93(store.id, selected.id) || normalize(store.name || "") === wantedName),
+        );
+
+      return {
+        id: String(matched?.id ?? selected.id).trim(),
+        name: String(matched?.name ?? selected.name).trim(),
+      };
+    };
+
+    const kStore = resolveWarmKStore();
     const baseAreaLabel = String(locationInput || activeArea.label || "").trim();
 
     const commonContext = {
@@ -5813,10 +5840,14 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     if (storeModeChosenV299 && kStore) {
       warmContexts.push({
         ...commonContext,
+        // Must match searchOffers(): locationInput wins; otherwise within-chain
+        // uses the selected store name, between-chains uses activeArea.label.
         areaLabel:
-          storeCompareScope === "within_chain"
-            ? String(locationInput || kStore.name || "").trim()
-            : baseAreaLabel,
+          String(
+            locationInput ||
+              (storeCompareScope === "within_chain" ? kStore.name : activeArea.label) ||
+              "",
+          ).trim(),
         sStoreIds: [],
         sStoreNames: [],
         kStoreId: kStore.id || undefined,
@@ -5884,6 +5915,10 @@ function stopOwnLocationV306(message = "GPS pois päältä") {
     storeCompareScope,
     withinChain,
     activeArea.label,
+    activeArea.kStoreId,
+    activeArea.kStoreName,
+    activeArea.kLocalStoreId,
+    activeArea.kLocalStoreName,
     locationInput,
     usingOwnLocation,
     gpsCoordsV320?.latitude,
