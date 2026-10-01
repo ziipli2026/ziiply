@@ -150,6 +150,13 @@ for(const query of ["peruna","banaani","jauheliha"]){
  assert.ok(Array.isArray(hits));
  assert.ok(hits.every(r=>r.ean===null&&r.displayedPriceEur===null&&r.checkoutPriceVerified===false&&r.storeAvailability==="unknown"));
 }
+const minceHits=searchResearch("jauheliha",corpus);
+assert.ok(minceHits.some(r=>/Nauta-viljapossujauheliha/i.test(r.name)),"Generic mince query must find the actual mixed-mince candidate");
+assert.ok(!searchResearch("jauheliha",[{lidlProductId:"pie",name:"Jauhelihapiirakka"}]).length);
+assert.ok(searchResearch("peruna",corpus).some(r=>r.name==="Kotimainen peruna"));
+assert.ok(!searchResearch("peruna",[{lidlProductId:"pie",name:"Perunapiirakka"}]).length);
+assert.ok(searchResearch("banaani",corpus).some(r=>r.name==="Reilun kaupan banaani"));
+assert.ok(!searchResearch("banaani",[{lidlProductId:"cake",name:"Banaanikakku"}]).length);
 const breadCompoundNames=corpus.filter(r=>typeof r.name==="string"&&/leipä/i.test(r.name));
 assert.ok(breadCompoundNames.length>0,"Fixture corpus must contain real compound bread names");
 const breadQueryHits=searchResearch("leipä",corpus);
