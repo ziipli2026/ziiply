@@ -20,9 +20,14 @@ for(const [i,r] of rows.entries()){
  if(r.ean!==null&&r.ean!==undefined&&!/^\d{8}(?:\d{4,6})?$/.test(String(r.ean)))errors.push(`record ${i}: invalid EAN/GTIN`);
  if(r.ian!==undefined&&r.ean!==undefined&&String(r.ian)===String(r.ean))errors.push(`record ${i}: suspicious IAN reused as EAN`);
  if(p!==null&&p!==undefined&&(!r.observedAt||!r.priceSource||!r.storeScope))errors.push(`record ${i}: priced record missing timestamp/source/store scope`);
+ if(r.checkoutPriceVerified===true&&(!r.storeId||!r.priceValidFrom||!r.priceSource||p===null||p===undefined))errors.push(`record ${i}: checkout verification lacks store ID, effective date, source or price`);
+ if(r.priceSource==="lidl-official-public"&&r.checkoutPriceVerified===true)errors.push(`record ${i}: public website observation cannot by itself verify local checkout price`);
 }
 const coverage=words.map(query=>({query,matches:rows.filter(r=>matching(r.name,query)).length}));
 const missing=coverage.filter(x=>!x.matches).map(x=>x.query);
+const priced=rows.filter(r=>Number.isFinite(r.regularPriceEur)&&r.regularPriceEur>0).length;
+const checkoutVerified=rows.filter(r=>r.checkoutPriceVerified===true).length;
+if(checkoutVerified===0)errors.push("No store-specific checkout-verified prices");
 if(missing.length)errors.push("Core staple gaps: "+missing.join(", "));
-console.log(JSON.stringify({records:rows.length,uniqueIds:seen.size,coverage,accepted:errors.length===0,errors},null,2));
+console.log(JSON.stringify({records:rows.length,uniqueIds:seen.size,coverage,priced,checkoutVerified,accepted:errors.length===0,errors},null,2));
 if(errors.length)process.exitCode=1;
