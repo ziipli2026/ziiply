@@ -25,6 +25,8 @@ try{
  test("bad-month",d=>{d.records[0].validFrom="2026-13-01"},false,"invalid validity dates");
  test("bad-day",d=>{d.records[0].validThrough="2026-02-30"},false,"invalid validity dates");
  test("missing-end-note",d=>{d.records[0].validThrough=null},false,"unknown-end provenance");
+ test("unknown-end-without-status",d=>{d.records[0].validThrough=null;d.records[0].note="Leaflet page states starting Thu 1 Oct; no confirmed end date visible.";},false,"explicitly marked unknown");
+ test("unknown-end-with-status",d=>{d.records[0].validThrough=null;d.records[0].note="Leaflet page states starting Thu 1 Oct; no confirmed end date visible.";d.records[0].endDateStatus="unknown";},true);
  test("bundle-quantity",d=>{d.records.find(r=>r.priceBasis==="bundle").requiredQuantity=1},false,"requires at least 2");
  test("fabricated-ean",d=>{d.records[0].ean="6410405082657"},false,"must not assert EAN");
  test("fabricated-regular-price",d=>{d.records[0].regularPriceEur=0.79},false,"must not assert EAN");
