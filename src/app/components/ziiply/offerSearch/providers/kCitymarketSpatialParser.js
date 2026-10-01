@@ -493,7 +493,7 @@ const groupTexts=spatialGroups(anchor?wordBoxes.filter(b=>boxDistance(anchor,b)<
 // Only accept a bare group integer when the same local group explicitly contains a sale unit and the
 // candidate is arithmetically plausible against the product's package/unit-rate expectation.
 if((!spatialResolved||spatialResolved.source==="best-spatial-candidate")&&nr&&nr.min>=10){
- const expectedGroupPrice=Number.isFinite(Number(expectedSingle))?Number(expectedSingle):Number.isFinite(Number(expected))?Number(expected):null;
+ const expectedGroupPrice=Number.isFinite(Number(expected))?Number(expected):null;
  const groupPrice=groupTexts.map(t=>{
    if(/[-−–]\s*\d{1,2}\s*%|\d{1,2}\s*%/.test(t))return null;
    if(!/\b(?:RS|PS|PL|TLK|PKT|PRK|KPL)\b/i.test(t))return null;
