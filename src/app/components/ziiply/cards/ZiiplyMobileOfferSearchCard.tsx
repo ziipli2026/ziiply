@@ -277,8 +277,21 @@ export type ZiiplyMobileOfferSearchCardProps = {
   emptyText?: string;
   selectedStoreName?: string;
   kruokaDebug?: {
+    deploy?: {
+      gitCommitSha?: string | null;
+      gitCommitRef?: string | null;
+      vercelEnv?: string | null;
+      deploymentId?: string | null;
+    };
+    requestContext?: {
+      rawKStoreId?: string | null;
+      rawKStoreName?: string | null;
+      kStoreIds?: string[];
+      kStoreNames?: string[];
+    };
     selectedStoreName?: string;
     selectedStoreId?: string;
+    resolvedTjekStoreId?: string | null;
     brochureUrl?: string;
     brochureHttp?: number | null;
     applicationState?: string;
@@ -289,6 +302,7 @@ export type ZiiplyMobileOfferSearchCardProps = {
     productMapProducts?: number | null;
     activeOffers?: number | null;
     error?: string | null;
+    kSupermarketPublicationResolverDebug?: unknown;
   } | null;
   categorySuggestions?: string[];
   categoryOfferCounts?: Record<string, number | null | undefined>;
