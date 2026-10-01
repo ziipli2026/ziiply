@@ -229,7 +229,8 @@
       "lidlProductId": null,
       "regularPriceEur": null,
       "checkoutPriceVerified": false,
-      "note": "Leaflet page states starting Thu 1 Oct; no confirmed end date visible on supplied photograph."
+      "note": "Leaflet page states starting Thu 1 Oct; no confirmed end date visible on supplied photograph.",
+      "endDateStatus": "unknown"
     },
     {
       "id": "kuljanka-goulash",
@@ -244,7 +245,8 @@
       "lidlProductId": null,
       "regularPriceEur": null,
       "checkoutPriceVerified": false,
-      "note": "Leaflet page states starting Thu 1 Oct; no confirmed end date visible on supplied photograph."
+      "note": "Leaflet page states starting Thu 1 Oct; no confirmed end date visible on supplied photograph.",
+      "endDateStatus": "unknown"
     }
   ]
 }
