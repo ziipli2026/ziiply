@@ -14,6 +14,8 @@ for(const [i,r] of (Array.isArray(data?.records)?data.records:[]).entries()){
  const dateOK=s=>{if(typeof s!=="string"||!/^\d{4}-\d{2}-\d{2}$/.test(s))return false;const parsed=new Date(s+"T00:00:00Z");return Number.isFinite(parsed.getTime())&&parsed.toISOString().slice(0,10)===s;};
  if(!dateOK(r.validFrom)||(r.validThrough!==null&&!dateOK(r.validThrough))||(r.validThrough!==null&&r.validFrom>r.validThrough))errors.push(i+": invalid validity dates");
  if(r.validThrough===null&&!String(r.note??"").includes("no confirmed end date"))errors.push(i+": open-ended offer requires explicit unknown-end provenance");
+ if(r.validThrough===null&&r.endDateStatus!=="unknown")errors.push(i+": missing end date must be explicitly marked unknown, not open-ended");
+ if(r.validThrough!==null&&r.endDateStatus!==undefined&&r.endDateStatus!=="confirmed")errors.push(i+": dated offer has inconsistent end-date status");
  if(!Number.isFinite(r.printedPriceEur)||r.printedPriceEur<=0)errors.push(i+": invalid printed price");
  if(!["pack","kg","multi-buy","bundle"].includes(r.priceBasis))errors.push(i+": invalid price basis");
  if(!Number.isInteger(r.requiredQuantity)||r.requiredQuantity<1)errors.push(i+": invalid quantity");
