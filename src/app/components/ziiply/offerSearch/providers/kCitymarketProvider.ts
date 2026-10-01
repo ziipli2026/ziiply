@@ -75,7 +75,7 @@ function category(t:string){
   // K-Citymarket classification is authoritative downstream. Match non-food
   // appliances and other product-specific classes before generic food words.
   if(/voileipägrilli|leivänpaahdin|kahvinkeitin|vedenkeitin|sähkögrilli/.test(s)) return "Koti & vapaa-aika";
-  if(/suklaa|noblesse|makeis|kark|keksi|suolakeksi|perunalastu|sips|chips|pretzel|lakrit|salmiak|purukum|godispås|patuk|tikkari|crunchy bites/.test(s)) return "Makeiset & keksit";
+  if(/suklaa|noblesse|remix|makeis|kark|keksi|suolakeksi|perunalastu|sips|chips|pretzel|lakrit|salmiak|purukum|godispås|patuk|tikkari|crunchy bites/.test(s)) return "Makeiset & keksit";
   if(/leipä|näkkileip|näkkileiv|näkkäri|sämpyl|pull|croissant|patonki|patongi|karjalanpiirakka|ruisleip|rieska|rinkeli|puikula|reissumies/.test(s)) return "Leipomo";
   // Frozen vegetables must win over the generic "keitto" prepared-food match.
   if(/keittojuures|pinaattikeitto/.test(s)) return "Pakasteet";
@@ -93,7 +93,7 @@ function category(t:string){
   if(/jäätel|tuut|multipack|pakaste|palko\+/.test(s)) return "Pakasteet";
   if(/pasta|riisi|jauho|hiutale|muro|mysli|säilyke|kastike|ketsupp|hiiva|ruokaöljy|mauste|tortilla/.test(s)) return "Kuivatuotteet";
   if(/omena|banaani|tomaatti|kurkku|salaatti|pinaatti|rucola|paprika|peruna\b|sipuli|porkkana|mango|satsuma|vadelma|mansikka|marja|hedelm|vihann/.test(s)) return "Hevi";
-  if(/wc-paper|talouspaper|nenäliina|näsdukar|astianpes|pyykin|pyykkietikka|puhdistussuih|puhdistusaine|pesuaine/.test(s)) return "Kodinhoito";
+  if(/wc-paper|talouspaper|nenäliina|näsdukar|astianpes|pyykin|pyykkietikka|biojätekassi|jätekassi|roskapussi|puhdistussuih|puhdistusaine|pesuaine/.test(s)) return "Kodinhoito";
   if(/shampoo|suihkugeeli|saippua|deodor|hammastahna|hammasharja|vaihtoharja|oral-b|herbina|kosmeti|meikkivoide|meikki|seerumi|tiiviste|hyaluroni|huulivoi/.test(s)) return "Hygienia & kosmetiikka";
   if(/kertakäyttökäsine|asentajankäsine|käsine/.test(s)) return "Koti & vapaa-aika";
   if(/calluna|ljung|orkidea|krysanteemi|kukka|kasvi|kenkä|nilkkuri|maihari|takki|housut|vaate|kalenteri|muki|lakana|pyyhe|kerä|lanka|asuste/.test(s)) return "Koti & vapaa-aika";
