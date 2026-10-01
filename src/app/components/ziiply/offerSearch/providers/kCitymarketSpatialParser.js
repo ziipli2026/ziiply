@@ -487,25 +487,9 @@ const visualOwnRate=anchor&&pk?spatialGroups(wordBoxes.filter(b=>Math.abs((Numbe
   // candidate and mark disagreement for the audit layer instead.
   if(!unsupportedHighNoExpected)spatialResolved={...goodCand,source:"best-spatial-candidate",sanity:sane?"pass":"review"};
 } if(!strictVisualSource&&!protectedOwnRate&&largeVisual&&(!spatialResolved||largeVisual.quantity||["spaced-large-cents","same-row-euro-cents"].includes(largeVisual.kind))){const vm=guardedValidatedMulti&&Number(guardedValidatedMulti.quantity)>1&&Number.isFinite(Number(expected))&&Math.abs(Number(largeVisual.value)-Number(expected)*Number(guardedValidatedMulti.quantity))<=Math.max(.06,Number(expected)*.035)?guardedValidatedMulti:null;spatialResolved=vm?{...vm,source:"validated-geometric-multibuy",sanity:"pass"}:{...largeVisual,source:"large-visual-price",sanity:largeVisual?.quantity?"pass":largeVisual?.sanity??null};} if(!protectedOwnRate&&guardedValidatedMulti&&!["v308-own-column-large-price","v307-own-unitrow-large-price","v307-own-column-large-price","expected-matched-large-compact","expected-matched-large-split","large-cents-expected-visual"].includes(spatialResolved?.source))spatialResolved={...guardedValidatedMulti,source:"validated-geometric-multibuy",sanity:"pass"}; const titleSlashUnit=((title.match(/\/(tlk|pl|ps|pkt|rs|prk|kpl)\b/i)||[])[1]||"").toUpperCase();const largeWhole=spatial.filter(b=>/^[3-9]$/.test(String(b.text).trim())&&b.height>.08&&b.width>.035&&b.top>anchor.top-.02&&b.top<anchor.top+.09).sort((a,b)=>Math.abs(a.left-anchor.left)-Math.abs(b.left-anchor.left))[0];if(largeWhole){const q=spatial.filter(b=>/^[2-5]$/.test(String(b.text).trim())&&b.height>.02&&b.height<.04&&b.top>largeWhole.top+.035&&b.top<largeWhole.top+.10&&b.left>largeWhole.left+.06&&b.left<largeWhole.left+.16).sort((a,b)=>Math.abs(a.top-(largeWhole.top+.06))-Math.abs(b.top-(largeWhole.top+.06)))[0];const u=unitFrags.filter(x=>/^(RS|PS|PL|TLK|PKT|PRK|KPL)$/i.test(String(x.text||""))&&q&&Math.abs(x.left-q.left)<.035&&x.top>q.top&&x.top<q.top+.04&&(titleSlashUnit?String(x.text).toUpperCase()===titleSlashUnit:true)).sort((a,b)=>Math.abs(a.left-q.left)-Math.abs(b.left-q.left))[0];if(q&&u){const existingDecimal=spatialResolved&&Number.isFinite(Number(spatialResolved.value))&&Math.abs(Number(spatialResolved.value)-Math.round(Number(spatialResolved.value)))>.001;const existingSameQty=spatialResolved&&Number(spatialResolved.quantity)===Number(q.text)&&String(spatialResolved.unit||"").toUpperCase()===String(u.text).toUpperCase();if(!(existingDecimal&&existingSameQty))spatialResolved={value:Number(largeWhole.text),quantity:Number(q.text),unit:String(u.text).toUpperCase(),source:"large-visual-price-qty-unit",sanity:"pass"};}}
-const groupTexts=spatialGroups(anchor?wordBoxes.filter(b=>boxDistance(anchor,b)<0.22):[]).map(g=>String(g.text||""));
-// Do not turn a leaflet discount percentage (for example "-13 %") into an offer price.
-// The old loose integer fallback produced POSSUNKORVA 330 g = 13 EUR from a nearby discount badge.
-// Only accept a bare group integer when the same local group explicitly contains a sale unit and the
-// candidate is arithmetically plausible against the product's package/unit-rate expectation.
-if((!spatialResolved||spatialResolved.source==="best-spatial-candidate")&&nr&&nr.min>=10){
- const expectedGroupPrice=Number.isFinite(Number(expected))?Number(expected):null;
- const groupPrice=groupTexts.map(t=>{
-   if(/[-−–]\s*\d{1,2}\s*%|\d{1,2}\s*%/.test(t))return null;
-   if(!/\b(?:RS|PS|PL|TLK|PKT|PRK|KPL)\b/i.test(t))return null;
-   const m=t.match(/(?:^|\s)([1-9][0-9]?)(?:\s|$)/);
-   if(!m)return null;
-   const value=Number(m[1]);
-   if(!(value<nr.min))return null;
-   if(expectedGroupPrice!=null&&Math.abs(value-expectedGroupPrice)/Math.max(expectedGroupPrice,0.01)>.03)return null;
-   return value;
- }).find(v=>v!=null);
- if(groupPrice!=null)spatialResolved={value:Number(groupPrice),quantity:null,unit:nr.unit||null,source:"group-discount-price",sanity:"pass"};
-}
+// V20261001: removed unsafe bare-integer group discount fallback.
+// A nearby discount badge / percentage must never become a product offer price.
+// Keep only price resolvers that have explicit visual or arithmetic price evidence.
 
 // Direct local product-group price: handle layouts where euro+cents are embedded in the same text row as
 // the product/package, e.g. "PORKKANA 99 1 kg" with "(0 99/kg)". Require arithmetic agreement.
