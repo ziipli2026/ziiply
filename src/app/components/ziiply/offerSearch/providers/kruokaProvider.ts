@@ -358,7 +358,7 @@ function mapTjekCategoryV54(offer: UnknownRecord): string {
   // V70: K-Market Martti 1 Oct 2026 cross-store category audit.
   // Identity guards before Tjek's sometimes incorrect department.
   if (/\b(piltti\w*|lastenruoka\w*|vauvanruoka\w*)\b/.test(productTitle) || (/\b(smoothie\w*)\b/.test(productTitle) && /\b(?:1\s*5\s*v|kk|kuukau\w*|vauva\w*|laps\w*)\b/.test(productTitle))) return "Lastenruoat";
-  if (/\b(neulelan(?:ka\w*|ga\w*)|lankakera\w*|lampokynttila\w*|tuikku\w*)\b/.test(productTitle)) return "Koti & vapaa-aika";
+  if (/\b(neulelan(?:k|g)\w*|lankakera\w*|lampokynttila\w*|tuikku\w*)\b/.test(productTitle)) return "Koti & vapaa-aika";
   if (/\b(fasupala\w*|fasupalat|suklaavohveli\w*)\b/.test(productTitle)) return "Makeiset & keksit";
   if (/\b(panini\w*|paninit|pitaleipa\w*)\b/.test(productTitle)) return "Valmisruoka";
   if (/\b(minikalapihvi\w*|kalapihvi\w*)\b/.test(productTitle)) return "Kala";
