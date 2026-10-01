@@ -1,0 +1,24 @@
+name: K-ruoka category regression (isolated)
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/kruoka-category-isolated.yml'
+      - 'scripts/audit-kruoka-kaukajarvi-20261001.cjs'
+      - 'src/app/components/ziiply/offerSearch/providers/kruokaProvider.ts'
+
+jobs:
+  category-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+      - name: Install dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts
+      - name: Audit 43 real-provider category cases without network fetch
+        run: node scripts/audit-kruoka-kaukajarvi-20261001.cjs
