@@ -1058,9 +1058,15 @@ export default function ZiiplyMobileOfferSearchCard({
     ? "Valitsemasi kauppahuoneen huojennetut hinnat ja tarjoukset"
     : "Valitsemasi lähipuodin huojennetut hinnat ja tarjoukset";
 
+  const debugGeneratedAtV56 = new Date();
   const debugPayloadV52 = {
-    revision: "V55-EUROSPAR-CATEGORY-MULTIBUY",
-    buildMarker: "e3dd3e6",
+    revision: "V56-DBG-TIMESTAMP",
+    generatedAtIso: debugGeneratedAtV56.toISOString(),
+    generatedAtLocal: debugGeneratedAtV56.toLocaleString("fi-FI", {
+      timeZone: "Europe/Helsinki",
+      hour12: false,
+    }),
+    generatedAtTimeZone: "Europe/Helsinki",
     selectedOfferChain: selectedOfferChainV39,
     loading,
     query: shownQuery,
