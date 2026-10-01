@@ -42,6 +42,11 @@ assert.deepEqual(searchResearch("maito banaani",[
  {lidlProductId:"milk",name:"Täysmaito"},
  {lidlProductId:"banana",name:"Banaani"}
 ]),[]);
+assert.deepEqual(searchResearch("MAITO",sample).map(r=>r.lidlProductId),["2"]);
+assert.deepEqual(searchResearch("  maito!!!  ",sample).map(r=>r.lidlProductId),["2"]);
+assert.deepEqual(searchResearch("maito",sample,1).map(r=>r.lidlProductId),["2"]);
+assert.deepEqual(searchResearch("maito",sample,50).map(r=>r.lidlProductId),["2"]);
+assert.equal(searchResearch("täysmaito",sample)[0].ean,null);
 assert.equal(searchResearch("täysmaito",sample)[0].regularPriceEur,null);
 assert.equal(searchResearch("täysmaito",sample)[0].displayedPriceEur,null);
 assert.equal(searchResearch("täysmaito",sample)[0].storeAvailability,"unknown");
