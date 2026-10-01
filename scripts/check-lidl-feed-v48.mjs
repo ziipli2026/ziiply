@@ -21,6 +21,9 @@ for(const [i,r] of rows.entries()){
  if(r.ian!==undefined&&r.ean!==undefined&&String(r.ian)===String(r.ean))errors.push(`record ${i}: suspicious IAN reused as EAN`);
  if(p!==null&&p!==undefined&&(!r.observedAt||!r.priceSource||!r.storeScope))errors.push(`record ${i}: priced record missing timestamp/source/store scope`);
  if(r.checkoutPriceVerified===true&&(!r.storeId||!r.priceValidFrom||!r.priceSource||p===null||p===undefined))errors.push(`record ${i}: checkout verification lacks store ID, effective date, source or price`);
+ if(p!==null&&p!==undefined&&r.checkoutPriceVerified!==true)errors.push(`record ${i}: priced feed row is not checkout verified`);
+ if(r.checkoutPriceVerified===true&&String(r.storeId)!==String(r.storeScope))errors.push(`record ${i}: verified store ID and scope disagree`);
+ if(r.checkoutPriceVerified===true&&!/^\\d{4}-\\d{2}-\\d{2}$/.test(String(r.priceValidFrom??"")))errors.push(`record ${i}: effective date must be YYYY-MM-DD`);
  if(r.priceSource==="lidl-official-public"&&r.checkoutPriceVerified===true)errors.push(`record ${i}: public website observation cannot by itself verify local checkout price`);
 }
 const coverage=words.map(query=>({query,matches:rows.filter(r=>matching(r.name,query)).length}));
