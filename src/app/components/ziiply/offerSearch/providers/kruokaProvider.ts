@@ -355,6 +355,14 @@ function mapTjekCategoryV54(offer: UnknownRecord): string {
   if (/\b(burgeri\w*|hampurilais\w*|mikroburgeri\w*|valmisateria\w*)\b/.test(productTitle)) return "Valmisruoka";
   if (/\b(kahvi\w*|papukahvi\w*|suodatinkahvi\w*|pikakahvi\w*|espresso\w*|kahvikapseli\w*)\b/.test(productTitle)) return "Kahvi & tee";
 
+  // V70: K-Market Martti 1 Oct 2026 cross-store category audit.
+  // Identity guards before Tjek's sometimes incorrect department.
+  if (/\b(piltti\w*|lastenruoka\w*|vauvanruoka\w*)\b/.test(productTitle) || (/\b(smoothie\w*)\b/.test(productTitle) && /\b(?:1[,.]5\s*v|kk|kuukau\w*|vauva\w*|laps\w*)\b/.test(productTitle))) return "Lastenruoat";
+  if (/\b(neulelanka\w*|lankakera\w*|lampokynttila\w*|tuikku\w*)\b/.test(productTitle)) return "Koti & vapaa-aika";
+  if (/\b(fasupala\w*|fasupalat|suklaavohveli\w*)\b/.test(productTitle)) return "Makeiset & keksit";
+  if (/\b(panini\w*|paninit|pitaleipa\w*)\b/.test(productTitle)) return "Valmisruoka";
+  if (/\b(minikalapihvi\w*|kalapihvi\w*)\b/.test(productTitle)) return "Kala";
+
   // Ready meals / ready-to-eat products.
   if (/\b(mikroateria|valmisateria|valmisruoka|keitto|keitot|lasagne|laatikko|risotto|wrap|wrapit|cesarsalaatti|caesarsalaatti|taco-salaattisekoitus)\b/.test(productText)) return "Valmisruoka";
 
