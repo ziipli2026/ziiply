@@ -677,42 +677,39 @@ export async function GET(request: Request) {
           vercelEnv: process.env.VERCEL_ENV || null,
           deploymentId: process.env.VERCEL_DEPLOYMENT_ID || null,
         },
-        ...(process.env.VERCEL_ENV !== "production"
-          ? {
-              kruokaDebug: isKCitymarketV19
-                ? {
-                    selectedStoreName: rawKStoreName || "",
-                    selectedStoreId: rawKStoreId || "",
-                    applicationState: "KCITYMARKET_V20",
-                    htmlDebug: getKCitymarketHtmlDebugV8(),
-                    brochureOffers: citymarketResults.length,
-                    activeOffers: citymarketResults.length,
-                    error: null,
-                  }
-                : getKruokaOfferPipelineDebugV34(),
-            }
-          : (() => {
-              const debug = isKCitymarketV19 ? null : getKruokaOfferPipelineDebugV34();
-              const resolver = debug?.kSupermarketPublicationResolverDebug;
-              return {
-                kruokaDebug: {
-                  requestContext: {
-                    rawKStoreId: rawKStoreId ?? null,
-                    rawKStoreName: rawKStoreName ?? null,
-                    kStoreIds: splitMultiValue(rawKStoreId),
-                    kStoreNames: splitMultiValue(rawKStoreName),
-                  },
-                  selectedStoreName: debug?.selectedStoreName ?? rawKStoreName ?? "",
-                  selectedStoreId: debug?.selectedStoreId ?? rawKStoreId ?? "",
-                  resolvedTjekStoreId: debug?.kStoreId ?? null,
-                  applicationState: debug?.applicationState ?? "OK",
-                  brochureOffers: debug?.brochureOffers ?? null,
-                  activeOffers: debug?.activeOffers ?? null,
-                  error: debug?.error ?? null,
-                  ...(resolver ? { kSupermarketPublicationResolverDebug: resolver } : {}),
-                },
-              };
-            })()),
+        kruokaDebug: (() => {
+          const debug = isKCitymarketV19 ? null : getKruokaOfferPipelineDebugV34();
+          if (process.env.VERCEL_ENV !== "production") {
+            return isKCitymarketV19
+              ? {
+                  selectedStoreName: rawKStoreName || "",
+                  selectedStoreId: rawKStoreId || "",
+                  applicationState: "KCITYMARKET_V20",
+                  htmlDebug: getKCitymarketHtmlDebugV8(),
+                  brochureOffers: citymarketResults.length,
+                  activeOffers: citymarketResults.length,
+                  error: null,
+                }
+              : debug;
+          }
+          const resolver = debug?.kSupermarketPublicationResolverDebug;
+          return {
+            requestContext: {
+              rawKStoreId: rawKStoreId ?? null,
+              rawKStoreName: rawKStoreName ?? null,
+              kStoreIds: splitMultiValue(rawKStoreId),
+              kStoreNames: splitMultiValue(rawKStoreName),
+            },
+            selectedStoreName: debug?.selectedStoreName ?? rawKStoreName ?? "",
+            selectedStoreId: debug?.selectedStoreId ?? rawKStoreId ?? "",
+            resolvedTjekStoreId: debug?.kStoreId ?? null,
+            applicationState: debug?.applicationState ?? "OK",
+            brochureOffers: debug?.brochureOffers ?? null,
+            activeOffers: debug?.activeOffers ?? null,
+            error: debug?.error ?? null,
+            ...(resolver ? { kSupermarketPublicationResolverDebug: resolver } : {}),
+          };
+        })(),
       },
       {
         headers: {
