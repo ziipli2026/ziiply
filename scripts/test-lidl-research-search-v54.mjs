@@ -11,6 +11,13 @@ assert.deepEqual(searchResearch("täysmaito",sample).map(r=>r.lidlProductId),["2
 assert.deepEqual(searchResearch("maitosuklaa",sample).map(r=>r.lidlProductId),["1"]);
 assert.deepEqual(searchResearch("maito",[{lidlProductId:"x",name:"Maitosuklaa 100 g"}]),[]);
 assert.deepEqual(searchResearch("pasta",sample).map(r=>r.lidlProductId),["3"]);
+assert.deepEqual(searchResearch("kananmunat",[
+ {lidlProductId:"egg",name:"Kotimainen kananmuna 10 kpl"},
+ {lidlProductId:"other",name:"Kananmunaton majoneesi"}
+]).map(r=>r.lidlProductId),["egg"]);
+assert.deepEqual(searchResearch("kananmuna",[
+ {lidlProductId:"egg",name:"Kotimaiset kananmunat 10 kpl"}
+]).map(r=>r.lidlProductId),["egg"]);
 assert.deepEqual(searchResearch("rieska",sample).map(r=>r.lidlProductId),[]);
 assert.equal(searchResearch("täysmaito",sample)[0].regularPriceEur,null);
 assert.equal(searchResearch("täysmaito",sample)[0].displayedPriceEur,null);
