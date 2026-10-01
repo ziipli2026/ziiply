@@ -3,8 +3,9 @@
   "sourceRecords": {
     "search": 27,
     "category": 48,
-    "unique": 96,
-    "v15New": 29
+    "unique": 121,
+    "v15New": 29,
+    "v17bBatch1New": 25
   },
   "notes": "IAN and Lidl product ID are not EAN. No verified EAN in source. Price is site publication price, not store checkout price. Do not import null EAN into EAN bank.",
   "records": [
@@ -126,6 +127,26 @@
       "ean": null,
       "eanMatchStatus": "unverified",
       "source": "lidl.fi category Nuxt v14",
+      "observedDate": "2026-10-01"
+    },
+    {
+      "lidlProductId": "10038244",
+      "ian": "7112603",
+      "name": "FISKANO Tuore lohifilee",
+      "displayedPriceEur": 12.89,
+      "ean": null,
+      "eanMatchStatus": "unverified",
+      "source": "lidl.fi category Nuxt v17b batch 1",
+      "observedDate": "2026-10-01"
+    },
+    {
+      "lidlProductId": "10038245",
+      "ian": "7112199",
+      "name": "HARTWALL Sokeriton Jaffa 6-pack 3 kpl",
+      "displayedPriceEur": 10,
+      "ean": null,
+      "eanMatchStatus": "unverified",
+      "source": "lidl.fi category Nuxt v17b batch 1",
       "observedDate": "2026-10-01"
     },
     {
@@ -465,6 +486,26 @@
       "observedDate": "2026-10-01"
     },
     {
+      "lidlProductId": "10038279",
+      "ian": "7107027",
+      "name": "SERLA Valkoinen talouspaperi",
+      "displayedPriceEur": null,
+      "ean": null,
+      "eanMatchStatus": "unverified",
+      "source": "lidl.fi category Nuxt v17b batch 1",
+      "observedDate": "2026-10-01"
+    },
+    {
+      "lidlProductId": "10038280",
+      "ian": "7107022",
+      "name": "SERLA Hellä-wc-paperi",
+      "displayedPriceEur": null,
+      "ean": null,
+      "eanMatchStatus": "unverified",
+      "source": "lidl.fi category Nuxt v17b batch 1",
+      "observedDate": "2026-10-01"
+    },
+    {
       "lidlProductId": "10038281",
       "ian": "7107090",
       "name": "KARL FAZER Suklaalevy 4 kpl",
@@ -587,6 +628,26 @@
       "observedDate": "2026-10-01"
     },
     {
+      "lidlProductId": "10038293",
+      "ian": "7601221",
+      "name": "KULJANKA Vaniljajäätelövohvelipikarit",
+      "displayedPriceEur": 3.49,
+      "ean": null,
+      "eanMatchStatus": "unverified",
+      "source": "lidl.fi category Nuxt v17b batch 1",
+      "observedDate": "2026-10-01"
+    },
+    {
+      "lidlProductId": "10038294",
+      "ian": "6700311",
+      "name": "KULJANKA Jäätelökakku",
+      "displayedPriceEur": 1.99,
+      "ean": null,
+      "eanMatchStatus": "unverified",
+      "source": "lidl.fi category Nuxt v17b batch 1",
+      "observedDate": "2026-10-01"
+    },
+    {
       "lidlProductId": "10038295",
       "ian": "5524178",
       "name": "KULJANKA Suklaakuorrutettu vaahtomakeinen",
@@ -604,6 +665,26 @@
       "ean": null,
       "eanMatchStatus": "unverified",
       "source": "lidl.fi category Nuxt v14",
+      "observedDate": "2026-10-01"
+    },
+    {
+      "lidlProductId": "10038297",
+      "ian": "6404019",
+      "name": "KULJANKA Paprikapyree",
+      "displayedPriceEur": 1.49,
+      "ean": null,
+      "eanMatchStatus": "unverified",
+      "source": "lidl.fi category Nuxt v17b batch 1",
+      "observedDate": "2026-10-01"
+    },
+    {
+      "lidlProductId": "10038298",
+      "ian": "5500397",
+      "name": "KULJANKA Maustesuola",
+      "displayedPriceEur": 3.49,
+      "ean": null,
+      "eanMatchStatus": "unverified",
+      "source": "lidl.fi category Nuxt v17b batch 1",
       "observedDate": "2026-10-01"
     },
     {
@@ -689,6 +770,26 @@
       "observedDate": "2026-10-01"
     },
     {
+      "lidlProductId": "10038310",
+      "ian": "7704257",
+      "name": "TYMBARK Omena-kirsikkamehu",
+      "displayedPriceEur": 2.49,
+      "ean": null,
+      "eanMatchStatus": "unverified",
+      "source": "lidl.fi category Nuxt v17b batch 1",
+      "observedDate": "2026-10-01"
+    },
+    {
+      "lidlProductId": "10038311",
+      "ian": "59859",
+      "name": "MCENNEDY / GELATELLI Pannupizza ja amerikkalainen jäätelö",
+      "displayedPriceEur": 5,
+      "ean": null,
+      "eanMatchStatus": "unverified",
+      "source": "lidl.fi category Nuxt v17b batch 1",
+      "observedDate": "2026-10-01"
+    },
+    {
       "lidlProductId": "10038312",
       "ian": "7107496",
       "name": "HK Burgeri 6 kpl",
@@ -696,6 +797,16 @@
       "ean": null,
       "eanMatchStatus": "unverified",
       "source": "lidl.fi category Nuxt v14",
+      "observedDate": "2026-10-01"
+    },
+    {
+      "lidlProductId": "10038313",
+      "ian": "176508",
+      "name": "SOLEVITA Appelsiinitäysmehu",
+      "displayedPriceEur": null,
+      "ean": null,
+      "eanMatchStatus": "unverified",
+      "source": "lidl.fi category Nuxt v17b batch 1",
       "observedDate": "2026-10-01"
     },
     {
@@ -833,6 +944,126 @@
       "unitPriceText": "irto | hinta/kg"
     },
     {
+      "lidlProductId": "10038332",
+      "ian": "136355",
+      "name": "W5 Kertakäyttökäsine",
+      "displayedPriceEur": 4.99,
+      "ean": null,
+      "eanMatchStatus": "unverified",
+      "source": "lidl.fi category Nuxt v17b batch 1",
+      "observedDate": "2026-10-01"
+    },
+    {
+      "lidlProductId": "10038333",
+      "ian": "150304",
+      "name": "PURIO Roskapussi tuoksulla",
+      "displayedPriceEur": 1.99,
+      "ean": null,
+      "eanMatchStatus": "unverified",
+      "source": "lidl.fi category Nuxt v17b batch 1",
+      "observedDate": "2026-10-01"
+    },
+    {
+      "lidlProductId": "10038334",
+      "ian": "1009184",
+      "name": "W5 WC-puhdistusjauhe",
+      "displayedPriceEur": 3.49,
+      "ean": null,
+      "eanMatchStatus": "unverified",
+      "source": "lidl.fi category Nuxt v17b batch 1",
+      "observedDate": "2026-10-01"
+    },
+    {
+      "lidlProductId": "10038335",
+      "ian": "161950",
+      "name": "W5 Rasvalikaa irrottava puhdistusaine",
+      "displayedPriceEur": 1.99,
+      "ean": null,
+      "eanMatchStatus": "unverified",
+      "source": "lidl.fi category Nuxt v17b batch 1",
+      "observedDate": "2026-10-01"
+    },
+    {
+      "lidlProductId": "10038336",
+      "ian": "219654",
+      "name": "W5 WC-geeli",
+      "displayedPriceEur": 2.99,
+      "ean": null,
+      "eanMatchStatus": "unverified",
+      "source": "lidl.fi category Nuxt v17b batch 1",
+      "observedDate": "2026-10-01"
+    },
+    {
+      "lidlProductId": "10038338",
+      "ian": "13195",
+      "name": "W5 Kyllästyssuihke",
+      "displayedPriceEur": 2.49,
+      "ean": null,
+      "eanMatchStatus": "unverified",
+      "source": "lidl.fi category Nuxt v17b batch 1",
+      "observedDate": "2026-10-01"
+    },
+    {
+      "lidlProductId": "10038340",
+      "ian": "22961",
+      "name": "W5 Käsien puhdistusaine",
+      "displayedPriceEur": 2.29,
+      "ean": null,
+      "eanMatchStatus": "unverified",
+      "source": "lidl.fi category Nuxt v17b batch 1",
+      "observedDate": "2026-10-01"
+    },
+    {
+      "lidlProductId": "10038342",
+      "ian": "139647",
+      "name": "W5 Mikrokuitupesukinnas",
+      "displayedPriceEur": 2.49,
+      "ean": null,
+      "eanMatchStatus": "unverified",
+      "source": "lidl.fi category Nuxt v17b batch 1",
+      "observedDate": "2026-10-01"
+    },
+    {
+      "lidlProductId": "10038343",
+      "ian": "39850",
+      "name": "W5 Paperipyyherulla",
+      "displayedPriceEur": 5.99,
+      "ean": null,
+      "eanMatchStatus": "unverified",
+      "source": "lidl.fi category Nuxt v17b batch 1",
+      "observedDate": "2026-10-01"
+    },
+    {
+      "lidlProductId": "10038345",
+      "ian": "13095",
+      "name": "W5 Puhdistussuihke",
+      "displayedPriceEur": 1.99,
+      "ean": null,
+      "eanMatchStatus": "unverified",
+      "source": "lidl.fi category Nuxt v17b batch 1",
+      "observedDate": "2026-10-01"
+    },
+    {
+      "lidlProductId": "10038348",
+      "ian": "39826",
+      "name": "W5 Puhdistusliina 2 kpl",
+      "displayedPriceEur": null,
+      "ean": null,
+      "eanMatchStatus": "unverified",
+      "source": "lidl.fi category Nuxt v17b batch 1",
+      "observedDate": "2026-10-01"
+    },
+    {
+      "lidlProductId": "10038436",
+      "ian": "13099",
+      "name": "W5 Puhdistussuihke",
+      "displayedPriceEur": 1.99,
+      "ean": null,
+      "eanMatchStatus": "unverified",
+      "source": "lidl.fi category Nuxt v17b batch 1",
+      "observedDate": "2026-10-01"
+    },
+    {
       "lidlProductId": "10038437",
       "ian": "7715164",
       "name": "DOVGAN Blini 2 kpl",
@@ -910,6 +1141,16 @@
       "ean": null,
       "eanMatchStatus": "unverified",
       "source": "lidl.fi public search v10/v11",
+      "observedDate": "2026-10-01"
+    },
+    {
+      "lidlProductId": "10038477",
+      "ian": "7112282",
+      "name": "GELATELLI Kuningatarkermajäätelö",
+      "displayedPriceEur": 2.69,
+      "ean": null,
+      "eanMatchStatus": "unverified",
+      "source": "lidl.fi category Nuxt v17b batch 1",
       "observedDate": "2026-10-01"
     },
     {
@@ -996,6 +1237,16 @@
       "ean": null,
       "eanMatchStatus": "unverified",
       "source": "lidl.fi category Nuxt v15",
+      "observedDate": "2026-10-01"
+    },
+    {
+      "lidlProductId": "10038486",
+      "ian": "7111949",
+      "name": "FRESHONA Suomalainen peruna-sipulisekoitus",
+      "displayedPriceEur": 1.45,
+      "ean": null,
+      "eanMatchStatus": "unverified",
+      "source": "lidl.fi category Nuxt v17b batch 1",
       "observedDate": "2026-10-01"
     },
     {
