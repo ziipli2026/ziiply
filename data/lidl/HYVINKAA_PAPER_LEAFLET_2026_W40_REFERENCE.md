@@ -7,7 +7,7 @@ Research-only manual visual reference supplied by the user on 2026-10-01. Seven 
 - Thu 1 Oct – Sun 4 Oct: several spreads marked `to 1.10. – su 4.10.`.
 - Fri 2 Oct – Sun 4 Oct: `Superviikonloppu` page 24.
 - Mon 5 Oct – Wed 7 Oct: `Arjen säästö` page 16–17.
-- From Thu 1 Oct: Kuljanka themed-food page 8–9; from Mon 5 Oct: Silvercrest nonfood page 18–19.
+- From Thu 1 Oct: Kuljanka themed-food page 8–9 (**end date not confirmed in the supplied photographs; `validThrough: null` means unknown, not indefinite validity**); from Mon 5 Oct: Silvercrest nonfood page 18–19.
 
 ## Readable examples for manual cross-check (do not automatically publish)
 | Window | Leaflet item | Printed offer | Offer condition |
@@ -26,7 +26,7 @@ Research-only manual visual reference supplied by the user on 2026-10-01. Seven 
 | 5–7 Oct | Arla proteiinijogurtti 200 g | €2.50 / 2 pcs | Multi-buy |
 | 1–4 Oct | Atria nauta-viljapossujauheliha 1 kg | €8.99 | Limited batch |
 | 1–4 Oct | Chicken nuggets 1 kg | €8.99 | Limited batch |
-| From 1 Oct; end unconfirmed | Kuljanka hapankurkku 400 g | €2.49 | Themed assortment |
+| From 1 Oct; end unconfirmed | Kuljanka hapankurkku 700 g (drained weight 400 g) | €2.49 | Themed assortment |
 | From 1 Oct; end unconfirmed | Kuljanka gulassikeitto 400 ml | €2.49 | Themed assortment |
 
 ## Handling rules
@@ -34,4 +34,5 @@ Research-only manual visual reference supplied by the user on 2026-10-01. Seven 
 2. Store a promotion's date range, pack size, pricing unit and conditional eligibility separately. Lidl Plus prices require membership/app conditions; `2 kpl`, `3 kpl`, `4 kpl`, `6 kpl` and combination deals must not be displayed as single-item prices.
 3. Page photographs may be used as human cross-checks against official current leaflet/parser output. No automated public image republication or assumption of rights.
 4. Do not fill missing EAN, regular price, availability or product IDs from a leaflet image. This reference does not fix the staple gaps in the official-site 226-product catalog.
-5. Visible source image names in this conversation: IMG_3841.jpeg, IMG_3842.jpeg, IMG_3843.jpeg, IMG_3844.jpeg, IMG_3845.jpeg, IMG_3846.jpeg, IMG_3847.jpeg. These are provenance labels only; the photos are not committed to the repository.
+5. Source provenance: seven user-uploaded photographs in the conversation dated 2026-10-01. Original attachment filenames are not asserted here; the photographs are not committed to the repository.
+6. For the two Kuljanka records, `endDateStatus: "unknown"` is mandatory alongside `validThrough: null`. Never infer that an offer remains active indefinitely.
