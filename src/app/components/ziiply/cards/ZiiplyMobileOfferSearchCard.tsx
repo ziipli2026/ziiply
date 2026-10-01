@@ -276,6 +276,7 @@ export type ZiiplyMobileOfferSearchCardProps = {
   loading?: boolean;
   emptyText?: string;
   selectedStoreName?: string;
+  storeTraceV787?: unknown;
   kruokaDebug?: {
     deploy?: {
       gitCommitSha?: string | null;
@@ -748,6 +749,7 @@ export default function ZiiplyMobileOfferSearchCard({
   emptyText = "Gösta ei löytänyt tarjouksia vielä.",
   selectedStoreName = "",
   kruokaDebug = null,
+  storeTraceV787 = null,
   categorySuggestions = ["Kahvi & tee", "Maitotuotteet", "Liha & makkarat", "Kala", "Leipomo", "Hevi", "Juomat", "Pakasteet", "Valmisruoka", "Kuivatuotteet", "Makeiset & keksit", "Lastenruoat", "Vitamiinit & ravinteet", "Lemmikit", "Hygienia & kosmetiikka", "Kodinhoito", "Koti & vapaa-aika", "Muut"],
   categoryOfferCounts,
   testedEmptyCategories,
@@ -1088,6 +1090,7 @@ export default function ZiiplyMobileOfferSearchCard({
     filter: shownFilter,
     showLandingView,
     selectedStoreName: selectedStoreNameV41,
+    storeTraceV787,
     rawItemsCount: rawItems.length,
     dedupedItemsCount: items.length,
     visibleItemsCount: visibleItems.length,
