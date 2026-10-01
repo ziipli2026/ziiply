@@ -5,11 +5,11 @@ const data=JSON.parse(readFileSync(source,"utf8"));
 const quarantinedIds=new Set((data.quarantinedProductIds??[]).map(id=>String(id).trim()));
 const norm=s=>String(s??"").toLocaleLowerCase("fi-FI").normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^\p{L}\p{N}]+/gu," ").trim();
 const tokens=s=>norm(s).split(/\s+/).filter(Boolean);
-const exactStaples=new Set(["maito","voi","pasta","kananmuna","jauheliha","peruna","banaani"]);
-const stapleForms={maito:new Set(["maito","täysmaito","kevytmaito","rasvatonmaito","laktoositonmaito"]),voi:new Set(["voi","meijerivoi"]),pasta:new Set(["pasta"]),kananmuna:new Set(["kananmuna","kananmunat"]),jauheliha:new Set(["jauheliha"]),peruna:new Set(["peruna","perunat"]),banaani:new Set(["banaani","banaanit"])};
+const exactStaples=new Set(["maito","voi","pasta","kananmuna","jauheliha","peruna","banaani","juusto"]);
+const stapleForms={maito:new Set(["maito","täysmaito","kevytmaito","rasvatonmaito","laktoositonmaito"]),voi:new Set(["voi","meijerivoi"]),pasta:new Set(["pasta"]),kananmuna:new Set(["kananmuna","kananmunat"]),jauheliha:new Set(["jauheliha"]),peruna:new Set(["peruna","perunat"]),banaani:new Set(["banaani","banaanit"]),juusto:new Set(["juusto","juustot"])};
 const matches=(word,term)=>word===term||(exactStaples.has(term)?[...stapleForms[term]].some(form=>norm(form)===word):term.length>=4&&word.startsWith(term));
 export function searchResearch(query,rows=data.records,limit=15){
- const q=tokens(query).map(t=>t==="kananmunat"?"kananmuna":t==="perunat"?"peruna":t==="banaanit"?"banaani":t);if(!q.length||!Array.isArray(rows))return [];
+ const q=tokens(query).map(t=>t==="kananmunat"?"kananmuna":t==="perunat"?"peruna":t==="banaanit"?"banaani":t==="juustot"?"juusto":t);if(!q.length||!Array.isArray(rows))return [];
  const safeLimit=Number.isFinite(limit)?Math.max(0,Math.min(50,Math.trunc(limit))):15;
  const seen=new Set();
  return rows.filter(r=>r&&typeof r==="object"&&!Array.isArray(r)&&typeof r.lidlProductId==="string"&&r.lidlProductId.trim()&&!quarantinedIds.has(r.lidlProductId.trim())).map(r=>{
