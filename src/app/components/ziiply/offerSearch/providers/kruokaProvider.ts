@@ -346,6 +346,15 @@ function mapTjekCategoryV54(offer: UnknownRecord): string {
   // may contain "lohi", so pet context must win before the fish rule.
   if (/\b(koiran|kissan|dog|cat|puppy|kitten|lemmikki|lemmikin|lemmikkien|sheba)\b/.test(productText) || department.includes("pet")) return "Lemmikit";
 
+  // V69: explicit product identities must beat unreliable Tjek publication
+  // departments (observed K-Supermarket Kaukajärvi, 1 Oct 2026).
+  // Match only the product title: descriptions often mention unrelated products.
+  const productTitle = normalize(offer.name ?? offer.title ?? "");
+  if (/\b(oreo|taytekeksi\w*|suklaakeksi\w*|voileipakeksi\w*)\b/.test(productTitle)) return "Makeiset & keksit";
+  if (/\b(harkis\w*|harkapapumurska\w*|nyhtokaura\w*|kasviproteiinimurska\w*)\b/.test(productTitle)) return "Valmisruoka";
+  if (/\b(burgeri\w*|hampurilais\w*|mikroburgeri\w*|valmisateria\w*)\b/.test(productTitle)) return "Valmisruoka";
+  if (/\b(kahvi\w*|papukahvi\w*|suodatinkahvi\w*|pikakahvi\w*|espresso\w*|kahvikapseli\w*)\b/.test(productTitle)) return "Kahvi & tee";
+
   // Ready meals / ready-to-eat products.
   if (/\b(mikroateria|valmisateria|valmisruoka|keitto|keitot|lasagne|laatikko|risotto|wrap|wrapit|cesarsalaatti|caesarsalaatti|taco-salaattisekoitus)\b/.test(productText)) return "Valmisruoka";
 
