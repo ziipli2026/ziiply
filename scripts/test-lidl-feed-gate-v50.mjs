@@ -37,7 +37,8 @@ try{
  run("array-record",[...good,[]],false,"expected product object");
  run("public-price-not-checkout",good.map(x=>({...x,priceSource:"lidl-official-public"})),false,"public website observation");
  run("unknown-verification-source",good.map(x=>({...x,priceSource:"self-declared"})),false,"approved evidence source");
- run("verified-store-receipt",good.map(x=>({...x,priceSource:"verified-store-receipt"})),true);
+ run("receipt-without-evidence",good.map(x=>({...x,priceSource:"verified-store-receipt"})),false,"nonempty evidence reference");
+ run("verified-store-receipt",good.map(x=>({...x,priceSource:"verified-store-receipt",evidenceReference:"EXAMPLE-RECEIPT-REFERENCE"})),true);
  run("missing-staple",good.slice(1),false,"Core staple gaps");
  run("duplicate-product-id",[...good,good[0]],false,"duplicate ID");
  run("missing-product-id",good.map(x=>({...x,productId:null})),false,"missing string product ID");
