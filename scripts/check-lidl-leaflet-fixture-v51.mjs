@@ -4,10 +4,11 @@ import {fileURLToPath} from "node:url";
 const file=process.argv[2]??fileURLToPath(new URL("../data/lidl/hyvinkaa-paper-leaflet-w40-2026.fixture.json",import.meta.url));
 const data=JSON.parse(fs.readFileSync(file,"utf8"));
 const errors=[];
-if(data.purpose!=="manual-leaflet-cross-check-only"||data.completeLeaflet!==false)errors.push("Research-only/incomplete-leaflet flags missing");
-if(!Array.isArray(data.records)||data.records.length<1)errors.push("No leaflet records");
+if(data===null||typeof data!=="object"||Array.isArray(data)||data.purpose!=="manual-leaflet-cross-check-only"||data.completeLeaflet!==false)errors.push("Research-only/incomplete-leaflet flags missing");
+if(!Array.isArray(data?.records)||data.records.length<1)errors.push("No leaflet records");
 const ids=new Set();
-for(const [i,r] of (Array.isArray(data.records)?data.records:[]).entries()){
+for(const [i,r] of (Array.isArray(data?.records)?data.records:[]).entries()){
+ if(r===null||typeof r!=="object"||Array.isArray(r)){errors.push(i+": expected offer object");continue;}
  if(ids.has(r.id))errors.push(i+": duplicate id");ids.add(r.id);
  if(!r.id||!r.name)errors.push(i+": missing id/name");
  const dateOK=s=>{if(typeof s!=="string"||!/^\d{4}-\d{2}-\d{2}$/.test(s))return false;const parsed=new Date(s+"T00:00:00Z");return Number.isFinite(parsed.getTime())&&parsed.toISOString().slice(0,10)===s;};
@@ -22,5 +23,5 @@ for(const [i,r] of (Array.isArray(data.records)?data.records:[]).entries()){
  if(r.priceBasis==="bundle"&&r.eligibility!=="combination")errors.push(i+": bundle needs combination flag");
  if(r.ean!==null||r.lidlProductId!==null||r.regularPriceEur!==null||r.checkoutPriceVerified!==false)errors.push(i+": leaflet must not assert EAN, product ID, regular or checkout price");
 }
-console.log(JSON.stringify({records:data.records?.length,passed:errors.length===0,errors},null,2));
+console.log(JSON.stringify({records:data?.records?.length,passed:errors.length===0,errors},null,2));
 if(errors.length)process.exitCode=1;
