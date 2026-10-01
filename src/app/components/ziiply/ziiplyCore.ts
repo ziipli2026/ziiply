@@ -3298,7 +3298,7 @@ export function isComparisonAttributeCompatible(sourceName: string, candidateNam
   const sourceGroup = group(source);
   if (sourceGroup && group(candidate) !== sourceGroup) return false;
   for (const attribute of ["laktoositon", "rasvaton", "kevyt", "tays", "luomu"]) {
-    if (new RegExp("\b" + attribute + "\b").test(source) !== new RegExp("\b" + attribute + "\b").test(candidate)) return false;
+    if (new RegExp("\\b" + attribute + "\\b").test(source) !== new RegExp("\\b" + attribute + "\\b").test(candidate)) return false;
   }
   if (/\bab.piima\b/.test(source) !== /\bab.piima\b/.test(candidate)) return false;
   return !isHardRejectedAlternative(sourceName, candidateName);
