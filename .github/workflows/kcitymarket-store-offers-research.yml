@@ -1,0 +1,34 @@
+name: Citymarket store offers research
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe-hyvinkaa:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Probe public canonical Hyvinkaa store page
+        shell: bash
+        run: |
+          node <<'NODE'
+          const url = "https://www.k-ruoka.fi/kauppa/k-citymarket-hyvinkaa";
+          (async () => {
+            const response = await fetch(url, { redirect: "follow", signal: AbortSignal.timeout(15000) });
+            const html = await response.text();
+            const title = html.match(/<title[^>]*>([^<]*)/i)?.[1] || "";
+            const links = [...html.matchAll(/<a\b[^>]*href=["']([^"'<>]+)["'][^>]*>/gi)]
+              .map(m => m[1].replace(/&amp;/g, "&"))
+              .filter(href => /tarjous|edut|etuja/i.test(href))
+              .map(href => { try { return new URL(href, response.url).href; } catch { return ""; } })
+              .filter(href => href.startsWith("https://www.k-ruoka.fi/"))
+              .filter((href, i, all) => all.indexOf(href) === i);
+            const result = { requestedStore: "k-citymarket-hyvinkaa", status: response.status,
+              finalUrl: response.url, title, offerLinks: links.slice(0, 30),
+              note: "Public navigation only; no session-based offer data or inferred prices." };
+            console.log(JSON.stringify(result, null, 2));
+            if (!response.ok || new URL(response.url).pathname !== "/kauppa/k-citymarket-hyvinkaa") process.exitCode = 1;
+          })().catch(e => { console.error(String(e)); process.exitCode = 1; });
+          NODE
